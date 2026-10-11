@@ -61,6 +61,10 @@ action desinstaller, cible assemblage installé, outil vide, depuis le pied ou l
 si une prise et un sol stable permettent de le remonter. Installer est également possible
 depuis le sommet : on abaisse l'échelle vers le sol voisin. Composer permet de combiner
 soulever, appuyer et franchir, sans imposer de commandes séparées au joueur.
+Le dossier manoeuvres donne les appuis et passages déjà validés depuis la position actuelle.
+Placer une échelle contre un appui utilise installer (ou appuyer dans composer), pas deplacer
+vers la pièce. Pour monter avec une échelle encore libre, composer appuyer puis franchir
+si l'appui figure dans installer_puis_franchir ; une seule confirmation couvre les deux gestes.
 Ces trois actions utilisent methode simple, difficulte 0 et une justification courte.
 La résistance est un arbitrage de jeu persisté, pas une certitude d'ingénierie.
 """
@@ -336,6 +340,39 @@ def dossier(m):
             appuis.append(o["id"])
     if not (ressources or assemblages or appuis):
         return None
+    from .moteur import Moteur, proposition
+    from .operations import etape, sequence
+
+    manoeuvres = []
+    for id in assemblages:
+        o = m.objets[id]
+        support = (o.get("installation") or {}).get("support")
+        installables, enchainables = [], []
+        passage = False
+        if support:
+            try:
+                preparer_usage(m, proposition("franchir", id), "dossier")
+                passage = True
+            except ErreurMonde:
+                pass
+        else:
+            for appui_id in appuis:
+                try:
+                    preparer_usage(m, proposition("installer", id, appui_id), "dossier")
+                except ErreurMonde:
+                    continue
+                installables.append(appui_id)
+                enchainement = sequence(etape("appuyer", id, outil=appui_id),
+                                        etape("franchir", id))
+                try:
+                    Moteur(m).preparer(enchainement, "dossier")
+                    enchainables.append(appui_id)
+                except ErreurMonde:
+                    pass
+        manoeuvres.append({"echelle": id, "installation": support,
+                           "installer_sur": installables,
+                           "installer_puis_franchir": enchainables,
+                           "franchir_maintenant": passage})
     suggestion = None
     perches = [i for i in ressources if m.objets[i].get("ressource") == "perche"]
     liens = [i for i in ressources if m.objets[i].get("ressource") == "lien"]
@@ -359,6 +396,7 @@ def dossier(m):
         except ErreurMonde as exc:
             suggestion = {"obstacle": str(exc)}
     return {"ressources": ressources, "assemblages": assemblages, "appuis": appuis,
+            "manoeuvres": manoeuvres,
             "inconnues": inconnues, "suggestion": suggestion,
             "regle": "Charges et difficultés : conventions de jeu. Aucun objet créé avant résolution. Ne complète pas silencieusement une mesure inconnue."}
 

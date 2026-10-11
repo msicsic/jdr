@@ -2,13 +2,16 @@
 import copy
 import unittest
 from collections import deque
+from pathlib import Path
 from unittest.mock import patch
 
+from donjon.artisanat import dossier as dossier_atelier
 from donjon.carte import carte
 from donjon.defi import BEFFROI, OBJECTIF, PIED_BEFFROI, REFUGE, actualiser, nouveau_defi
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.moteur import Moteur, proposition
+from donjon.operations import etape, sequence
 from donjon.spatial import installer as installer_spatial, preparer_pas
 
 
@@ -142,6 +145,57 @@ class DefiRelaisTests(unittest.TestCase):
             self.agir("franchir", "echelle_relais")
         self.assertEqual(self.m.joueur["salle"], REFUGE)
         self.victoire()
+
+    def test_mj_recoit_la_manoeuvre_pour_monter_une_echelle_libre(self):
+        self.marcher_jusqua((7, 3))
+        manoeuvre = next(x for x in dossier_atelier(self.m)["manoeuvres"]
+                         if x["echelle"] == "echelle_relais")
+        self.assertEqual(manoeuvre["installation"], None)
+        self.assertEqual(manoeuvre["installer_sur"], ["appui_clocher"])
+        self.assertEqual(manoeuvre["installer_puis_franchir"], ["appui_clocher"])
+        self.assertFalse(manoeuvre["franchir_maintenant"])
+
+        mj = MJOpenAI("gpt-6-luna")
+        proposition_mj = sequence(etape("appuyer", "echelle_relais", outil="appui_clocher"),
+                                  etape("franchir", "echelle_relais"))
+        reponse = {"mode": "action", "texte": "", "faits": ["atelier"],
+                   "proposition": proposition_mj}
+        with patch.object(mj, "_appeler", return_value=reponse) as appel:
+            resultat_mj = mj._echanger_prepare(self.m, "je monte a l'echelle")
+        self.assertEqual(resultat_mj["proposition"], proposition_mj)
+        instructions, entree, *_ = appel.call_args.args
+        self.assertIn("appuyer puis franchir", instructions)
+        self.assertEqual(entree["faits"]["atelier"]["manoeuvres"], [manoeuvre])
+
+        plan = self.moteur.preparer(resultat_mj["proposition"], "LLM : gpt-6-luna")
+        self.assertIn("2 étapes", plan.resume(self.m))
+        with patch.object(Monde, "d20", return_value=20):
+            self.moteur.executer(plan)
+        self.assertEqual(self.m.objets["echelle_relais"]["installation"]["support"],
+                         "appui_clocher")
+        self.assertEqual(self.m.joueur["salle"], BEFFROI)
+        chemin = Path("artifacts/tests/verification-echelle.json")
+        try:
+            self.m.sauver(chemin)
+            reprise = Monde.charger(chemin)
+            self.assertEqual(reprise.joueur["salle"], BEFFROI)
+            self.assertIn("H1", carte(reprise))
+        finally:
+            chemin.unlink(missing_ok=True)
+
+    def test_mj_recoit_l_installation_pour_deplacer_echelle_sur_appui(self):
+        self.marcher_jusqua((7, 3))
+        mj = MJOpenAI("gpt-6-luna")
+        reponse = {"mode": "action", "texte": "", "faits": ["atelier"],
+                   "proposition": proposition("installer", "echelle_relais", "appui_clocher")}
+        with patch.object(mj, "_appeler", return_value=reponse) as appel:
+            resultat_mj = mj._echanger_prepare(self.m, "je déplace l'echelle sur l'appui")
+        self.assertEqual(resultat_mj["proposition"], reponse["proposition"])
+        self.assertEqual(appel.call_args.args[1]["faits"]["atelier"]["manoeuvres"][0]
+                         ["installer_sur"], ["appui_clocher"])
+        plan = self.moteur.preparer(resultat_mj["proposition"], "LLM : gpt-6-luna")
+        self.moteur.executer(plan)
+        self.assertEqual(self.m.objets["echelle_relais"]["position"], [8, 3])
 
 
 if __name__ == "__main__":
