@@ -147,8 +147,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde("Cette source est déjà " + ("allumée." if allumer else "éteinte."))
         t = monde.objets.get(outil) if outil else None
         if allumer:
-            if o["integrite"] == 0 or o["combustible"] <= 0:
-                raise ErreurMonde("Cette source est détruite ou n'a plus de combustible.")
+            if o["integrite"] == 0:
+                raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.")
+            if o["combustible"] <= 0:
+                raise ErreurMonde(designer(o, debut=True) + " n'a plus de combustible.")
             if not outil:
                 t = next((e for e in monde.objets.values() if monde.est_porte(e["id"]) and monde.accessible(e["id"])
                           and "allumage" in e.get("usages", []) and e["integrite"] > 0), None)

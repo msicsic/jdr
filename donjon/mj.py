@@ -18,6 +18,7 @@ from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
 from .config import MODELE_PAR_DEFAUT
+from .francais import designer
 from .artisanat import SCHEMA_FABRICATION, dossier as dossier_atelier, REGLES as REGLES_ATELIER
 from .harnais import CONSIGNES_ATELIER, REGLES_REPRISE, derniere_tentative
 from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_FRANCHISSEMENT
@@ -351,6 +352,25 @@ SCHEMA = {
 }
 
 
+def expliquer_refus(monde, premier, dernier):
+    """Garde le motif initial lorsqu'une correction échoue à son tour."""
+    action = premier[0].get("action", "")
+    cible = monde.objets.get(premier[0].get("cible", ""))
+    verbes = {"crocheter": "crocheter", "lire": "lire", "copier": "copier",
+              "detacher": "détacher", "deverrouiller": "déverrouiller",
+              "ouvrir": "ouvrir", "installer": "installer", "franchir": "franchir",
+              "prendre": "prendre", "allumer": "allumer", "eteindre": "éteindre"}
+    debut = ("Tu ne parviens pas à " + verbes[action] + " " + designer(cible)
+             if cible and action in verbes else "Ta tentative n'aboutit pas")
+    motifs = list(dict.fromkeys(m.strip().rstrip(".") for _, m in (premier, dernier) if m.strip()))
+    if not motifs:
+        return debut + "."
+    texte = debut + " : " + motifs[0][:1].lower() + motifs[0][1:] + "."
+    for motif in motifs[1:]:
+        texte += " " + motif + "."
+    return texte
+
+
 class MJOpenAI:
     def __init__(self, modele=None, effort="medium", timeout=45, connexion="api"):
         self.modele = modele or os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
@@ -428,6 +448,7 @@ class MJOpenAI:
                 return r
         reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
         correction_utilisee = False
+        premier_refus = None
         for tentative in range(2):
             if (not correction_utilisee and not est_question(intention) and reponse["mode"] == "dialogue"
                     and refus_technique(reponse["texte"])):
@@ -440,6 +461,11 @@ class MJOpenAI:
             p = reponse["proposition"]
             try:
                 from .moteur import Moteur
+                if (premier_refus and p.get("action") == "composer"
+                        and isinstance(p.get("etapes"), list) and p["etapes"]
+                        and all(isinstance(e, dict) and e.get("operation") == "patienter"
+                                for e in p["etapes"])):
+                    raise ErreurMonde("Attendre ne réalise pas la manœuvre demandée.")
                 if p.get("action") == "clarifier":
                     break
                 if p.get("action") == "impossible":
@@ -455,13 +481,16 @@ class MJOpenAI:
                 Moteur(monde).preparer(p, "MJ")
                 break
             except ErreurMonde as exc:
+                dernier_refus = (p, str(exc))
+                if premier_refus is None:
+                    premier_refus = dernier_refus
                 retour = {"proposition_refusee": p, "obstacle": str(exc),
                           "consigne": "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue."}
                 if self.observateur:
                     self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                       "revision": revision, "tentative": tentative + 1, **retour})
                 if correction_utilisee:
-                    return {"mode": "dialogue", "texte": "Tu ne peux pas réaliser cette tentative ainsi : " + str(exc),
+                    return {"mode": "dialogue", "texte": expliquer_refus(monde, premier_refus, dernier_refus),
                             "faits": [], "proposition": None}
                 correction_utilisee = True
                 reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)

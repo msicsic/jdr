@@ -153,7 +153,7 @@ class Moteur:
         if action == "examiner" and not m.visible(cible):
             raise ErreurMonde("Il fait trop noir pour examiner cet objet. Vous pouvez toucher vos affaires ou allumer une lumière.")
         if action in ("lire", "detacher", "copier") and eclairage(m)["niveau"] < 2:
-            raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise. Allumez une source proche.")
+            raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise.")
         o = m.objets[cible]
         t = None
         if outil:

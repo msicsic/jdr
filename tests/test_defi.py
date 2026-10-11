@@ -238,6 +238,41 @@ class DefiRelaisTests(unittest.TestCase):
         finally:
             chemin.unlink(missing_ok=True)
 
+    def test_double_refus_explique_action_et_echec_du_rallumage(self):
+        for id in ("torche", "lanterne"):
+            self.m.objets[id].update(allume=False, combustible=0)
+        self.assertEqual(eclairage(self.m)["niveau"], 1)
+        avant = copy.deepcopy(self.m.data)
+        lire = {"mode": "action", "texte": "", "faits": ["objet:gravure"],
+                "proposition": proposition("lire", "gravure")}
+        allumer = {"mode": "action", "texte": "", "faits": ["objet:torche"],
+                   "proposition": sequence(etape("allumer", "torche", outil="briquet"))}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler", side_effect=[lire, allumer]) as appel:
+            reponse = mj._echanger_prepare(self.m, "je lis la consigne")
+        self.assertEqual(appel.call_count, 2)
+        self.assertEqual(reponse["mode"], "dialogue")
+        self.assertIn("Tu ne parviens pas à lire la consigne émaillée", reponse["texte"])
+        self.assertIn("la lumière est insuffisante", reponse["texte"])
+        self.assertIn("La torche n'a plus de combustible", reponse["texte"])
+        self.assertEqual(self.m.data, avant)
+
+    def test_attendre_seul_ne_remplace_pas_l_action_refusee(self):
+        for id in ("torche", "lanterne"):
+            self.m.objets[id].update(allume=False, combustible=0)
+        avant = copy.deepcopy(self.m.data)
+        lire = {"mode": "action", "texte": "", "faits": ["objet:gravure"],
+                "proposition": proposition("lire", "gravure")}
+        attendre = {"mode": "action", "texte": "", "faits": ["retour_moteur"],
+                    "proposition": sequence(etape("patienter"))}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler", side_effect=[lire, attendre]):
+            reponse = mj._echanger_prepare(self.m, "je lis la consigne")
+        self.assertEqual(reponse["mode"], "dialogue")
+        self.assertIn("la lumière est insuffisante", reponse["texte"])
+        self.assertIn("Attendre ne réalise pas", reponse["texte"])
+        self.assertEqual(self.m.data, avant)
+
 
 if __name__ == "__main__":
     unittest.main()
