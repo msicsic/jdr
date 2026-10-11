@@ -1,0 +1,473 @@
+import asyncio
+import importlib.util
+from pathlib import Path
+import tempfile
+import threading
+import unittest
+from unittest.mock import patch
+
+from donjon.mj import MJOpenAI
+from donjon.defi import nouveau_defi
+from donjon.monde import Monde, nouveau_monde
+from donjon.moteur import proposition
+from donjon.operations import sequence, etape
+from donjon.spatial import installer
+
+TEXTUAL = all(importlib.util.find_spec(m) is not None for m in ("textual", "pyperclip"))
+if TEXTUAL:
+    from donjon.tui import SeuilApp
+    from textual.widgets import Input, TabbedContent
+
+
+@unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
+class TUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_ramassage_pied_de_biche_depuis_tui_malgre_ancien_refus(self):
+        with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
+            chemin = Path(fichier.name)
+        self.addCleanup(chemin.unlink, missing_ok=True)
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+             patch.object(MJOpenAI, "_appeler", side_effect=AssertionError("Appel LLM inattendu")) as api:
+            monde = nouveau_defi()
+            installer(monde)
+            monde.joueur.update(salle="echoppe", position=[6, 5])
+            monde.memoriser("je ramasse le pied de biche",
+                            "Le pied-de-biche est dans l'échoppe ; retourne-y pour le prendre.")
+            monde.sauver(chemin)
+            app = SeuilApp(["--defi", "--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                self.assertIn("le pied-de-biche", app.derniere_vue["carte"])
+                await self.commande(app, pilot, "je ramasse le pied de biche", 1)
+                self.assertNotIn("le pied-de-biche", app.derniere_vue["carte"])
+                self.assertIn("pied-de-biche", app.derniere_vue["fiche"])
+                self.assertIn("pied-de-biche", " ".join(app.sorties))
+                await self.fermer(app)
+            api.assert_not_called()
+            self.assertEqual(Monde.charger(chemin).objets["pied_de_biche"]["lieu"], "joueur")
+
+    async def test_ramassage_force_par_mj_depuis_tui(self):
+        with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
+            chemin = Path(fichier.name)
+        self.addCleanup(chemin.unlink, missing_ok=True)
+        monde = nouveau_defi()
+        installer(monde)
+        monde.joueur.update(salle="echoppe", position=[6, 5])
+        monde.memoriser("je ramasse le pied de biche",
+                        "Le pied-de-biche est dans l'échoppe ; retourne-y pour le prendre.")
+        monde.sauver(chemin)
+        reponses = [
+            {"mode": "action", "texte": "", "faits": ["objet:pied_de_biche"],
+             "proposition": sequence(etape("deplacer", "pied_de_biche", "joueur"))},
+            {"mode": "dialogue", "texte": "Tu glisses le pied-de-biche dans ta besace.",
+             "faits": ["resultat_resolu"], "proposition": None},
+        ]
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+             patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api:
+            app = SeuilApp(["--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj je ramasse le pied de biche", 1)
+                self.assertNotIn("le pied-de-biche", app.derniere_vue["carte"])
+                self.assertIn("pied-de-biche", app.derniere_vue["fiche"])
+                self.assertIn("Tu glisses le pied-de-biche", " ".join(app.sorties))
+                await self.fermer(app)
+            self.assertEqual(api.call_count, 2)
+            entree = api.call_args_list[0].args[1]
+            self.assertEqual(entree["conversation"], [])
+            self.assertTrue(entree["faits"]["objet:pied_de_biche"]["a_portee"])
+            self.assertNotIn("lieu", entree["faits"]["objet:pied_de_biche"])
+            self.assertEqual(Monde.charger(chemin).objets["pied_de_biche"]["lieu"], "joueur")
+
+    async def test_atelier_luna_seul_confirmation_et_debug(self):
+        from donjon.artisanat import fabrication
+        p = fabrication(["perche_1", "perche_2"], "perche_3", "ficelle", "hache")
+        reponses = [
+            {"mode": "action", "texte": "", "faits": ["atelier"], "proposition": p},
+            {"mode": "dialogue", "texte": "Ton échelle est prête et posée au sol.", "faits": ["resultat_resolu"], "proposition": None},
+        ]
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(Monde, "d20", return_value=20):
+            path = Path(tmp) / "atelier.json"
+            app = SeuilApp(["--atelier", "--debug", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(path)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "je fabrique une échelle", 0)
+                self.assertTrue(app.query_one("#proposition-cadre").display)
+                self.assertNotIn("échelle de branches", app.derniere_vue["scene"])
+                await self.commande(app, pilot, "tenter", 26)
+                self.assertIn("échelle de branches", app.derniere_vue["scene"])
+                self.assertEqual(api.call_count, 2)
+                self.assertTrue(all(f.get("mono_modele") for f in app.comparaisons.values()))
+                await pilot.press("f5")
+                self.assertFalse(app.query_one("#debug-secondaire-cadre").display)
+                self.assertIn("Ton échelle est prête", str(app.query_one("#debug-principal").render()))
+                await pilot.press("f5")
+                await self.fermer(app)
+
+    async def pret(self, app, minutes=None):
+        for _ in range(250):
+            if app.derniere_vue and not app.occupe and (minutes is None or app.derniere_vue["minutes"] == minutes):
+                return
+            await asyncio.sleep(0.02)
+        self.fail("La TUI n'est pas redevenue disponible")
+
+    async def commande(self, app, pilot, texte, minutes=None):
+        app.query_one("#commande", Input).value = texte
+        await pilot.press("enter")
+        await self.pret(app, minutes)
+
+    async def fermer(self, app):
+        app.action_quitter()
+        for _ in range(250):
+            if not app.is_running:
+                return
+            await asyncio.sleep(0.02)
+        self.fail("La TUI ne se ferme pas")
+
+    async def test_cle_disparait_et_inventaire_actualise_sans_changer_onglet(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--offline", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                self.assertIn("k la clé", app.derniere_vue["carte"])
+                self.assertNotIn("clé du veilleur", app.derniere_vue["fiche"])
+                await self.commande(app, pilot, "prendre clé", 1)
+                self.assertNotIn("k la clé", app.derniere_vue["carte"])
+                self.assertNotIn("clé du veilleur", app.derniere_vue["scene"])
+                self.assertIn("clé du veilleur", app.derniere_vue["fiche"])
+                self.assertEqual(app.query_one(TabbedContent).active, "onglet-carte")
+                self.assertIn("La clé du veilleur rejoint votre besace.", app.sorties)
+                await self.commande(app, pilot, "poser clé", 2)
+                self.assertIn("À tes pieds (@) : la clé", app.derniere_vue["carte"])
+                self.assertNotIn("clé du veilleur", app.derniere_vue["fiche"])
+                await self.fermer(app)
+            self.assertEqual(Monde.charger(chemin).objets["cle"]["lieu"], "antichambre")
+
+    async def test_conversation_accord_et_paiement_actualisent_la_fiche(self):
+        reponses = [
+            {"mode": "conversation_pnj", "texte": "", "faits": ["interlocuteurs"],
+             "proposition": {"personnage": "marchand", "sujet": "Quelle récompense ?",
+                             "operation": "proposer", "mission": "anneau_veilleur", "montant_demande": 0}},
+            {"mode": "dialogue", "texte": "Gorm : « Je te propose 20 pièces pour cet anneau. »",
+             "faits": ["conversation_validee"], "proposition": None},
+        ]
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            monde = nouveau_monde()
+            monde.joueur["salle"] = "echoppe"
+            monde.objets["anneau"]["lieu"] = "joueur"
+            monde.sauver(chemin)
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "je demande a gorn ce que j'y gagne a retrouver cet anneau", 0)
+                self.assertIn("offre à accepter", app.derniere_vue["fiche"])
+                self.assertIn("20 pièces", app.derniere_vue["fiche"])
+                await self.commande(app, pilot, "accepter offre", 0)
+                self.assertIn("accord accepté", app.derniere_vue["fiche"])
+                await self.commande(app, pilot, "remettre anneau", 1)
+                self.assertIn("récompense payée", app.derniere_vue["fiche"])
+                self.assertIn("44 pièces", app.derniere_vue["fiche"])
+                sauvegarde = Monde.charger(chemin)
+                self.assertEqual(sauvegarde.objets["anneau"]["lieu"], "marchand")
+                self.assertEqual(sauvegarde.joueur["or"], 44)
+                await self.fermer(app)
+
+    async def test_mj_en_attente_ui_reactive_et_pas_de_double_action(self):
+        arrive = threading.Event()
+        continuer = threading.Event()
+        def reponse(*args):
+            arrive.set()
+            continuer.wait(5)
+            return {"mode": "action", "texte": "", "faits": [], "proposition": proposition("prendre", "cle")}
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "echanger", side_effect=reponse) as mj, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            app = SeuilApp(["--connexion", "api", "--save", str(Path(tmp) / "partie.json")])
+            async with app.run_test(size=(100, 32)) as pilot:
+                await self.pret(app)
+                app.query_one("#commande", Input).value = "mj je prend la clé"
+                await pilot.press("enter")
+                for _ in range(100):
+                    if arrive.is_set():
+                        break
+                    await asyncio.sleep(.02)
+                self.assertTrue(arrive.is_set())
+                self.assertTrue(app.occupe)
+                self.assertTrue(app.query_one("#commande", Input).disabled)
+                await pilot.press("f3")
+                self.assertEqual(app.query_one(TabbedContent).active, "onglet-fiche")
+                await pilot.resize_terminal(70, 30)
+                self.assertTrue(app.screen.has_class("etroit"))
+                app.soumettre("prendre clé")
+                continuer.set()
+                await self.pret(app, 1)
+                self.assertEqual(mj.call_count, 1)
+                self.assertNotIn("k la clé", app.derniere_vue["carte"])
+                self.assertIn("clé du veilleur", app.derniere_vue["fiche"])
+                self.assertFalse(app.query_one("#proposition-cadre").display)
+                await self.fermer(app)
+
+    async def test_savoir_pnj_persiste_depuis_interface(self):
+        p = {"personnage": "marchand", "savoirs": [{"sujet": "lien_anneau",
+             "texte": "Gorm associe l'anneau au souvenir de son ancien métier de veilleur."}]}
+        reponses = [
+            {"mode": "enrichir_savoirs", "texte": "", "faits": ["connaissances_a_completer"], "proposition": p},
+            {"mode": "dialogue", "texte": "Gorm : « Il me rappelle mon ancien métier de veilleur. »",
+             "faits": ["connaissances_pnj"], "proposition": None},
+        ]
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            m = nouveau_monde()
+            m.joueur["salle"] = "echoppe"
+            m.sauver(chemin)
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "Gorm, pourquoi cet anneau ?", 0)
+                self.assertIn(reponses[1]["texte"], app.sorties)
+                self.assertEqual(Monde.charger(chemin).data["savoirs_pnj"]["marchand"]["lien_anneau"]["texte"], p["savoirs"][0]["texte"])
+                await self.fermer(app)
+
+    async def test_boutons_proposition_et_annulation(self):
+        p = {"mode": "action", "texte": "", "faits": [], "proposition": proposition("detacher", "axe_haut", "couteau", "levier", 18)}
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "echanger", return_value=p), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj je retire l'axe")
+                self.assertTrue(app.query_one("#proposition-cadre").display)
+                self.assertTrue(Monde.charger(chemin).objets["axe_haut"]["attache"])
+                await pilot.click("#annuler")
+                await self.pret(app)
+                self.assertFalse(app.query_one("#proposition-cadre").display)
+                await self.commande(app, pilot, "mj je retire l'axe")
+                with patch.object(Monde, "d20", return_value=20):
+                    await pilot.click("#tenter")
+                    await self.pret(app, 3)
+                self.assertFalse(app.query_one("#proposition-cadre").display)
+                self.assertFalse(Monde.charger(chemin).objets["axe_haut"]["attache"])
+                await self.fermer(app)
+
+    async def test_vol_attend_tenter_puis_actualise_objet_ou_mefiance(self):
+        reponse = {"mode": "action", "texte": "", "faits": [],
+                   "proposition": proposition("voler", "crochets", methode="finesse")}
+        for jet in (20, 1):
+            with self.subTest(jet=jet), tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "echanger", return_value=reponse), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+                chemin = Path(tmp) / "partie.json"
+                m = nouveau_monde()
+                m.joueur["salle"] = "echoppe"
+                m.sauver(chemin)
+                app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+                async with app.run_test(size=(120, 40)) as pilot:
+                    await self.pret(app)
+                    await self.commande(app, pilot, "j'attens que Gorm ait le dos tourné pour discretement prendre la trousse de crochets", 0)
+                    self.assertTrue(app.query_one("#proposition-cadre").display)
+                    self.assertEqual(Monde.charger(chemin).objets["crochets"]["lieu"], "echoppe")
+                    with patch.object(Monde, "d20", return_value=jet):
+                        await pilot.click("#tenter")
+                        await self.pret(app, 3)
+                    self.assertFalse(app.query_one("#proposition-cadre").display)
+                    if jet == 20:
+                        self.assertNotIn("la trousse", app.derniere_vue["carte"])
+                        self.assertIn("trousse", app.derniere_vue["fiche"])
+                    else:
+                        self.assertIn("la trousse", app.derniere_vue["carte"])
+                        self.assertIn("méfiant", app.derniere_vue["scene"])
+                    self.assertEqual(Monde.charger(chemin).objets["crochets"]["lieu"], "joueur" if jet == 20 else "echoppe")
+                    await self.fermer(app)
+
+    async def test_manoeuvre_composee_et_recit_echec_partiel(self):
+        p = sequence(*[etape("detacher", cible, outil="couteau", methode="levier", difficulte=18)
+                       for cible in ("axe_haut", "axe_bas")])
+        texte = "Tu libères l'axe supérieur. Le second résiste et ta lame s'abîme."
+        reponses = [{"mode": "action", "texte": "", "faits": [], "proposition": p},
+                    {"mode": "dialogue", "texte": texte, "faits": ["resultat_resolu"], "proposition": None}]
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as appels, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(100, 36)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "Je retire les deux axes avec mon couteau", 0)
+                self.assertTrue(app.query_one("#proposition-cadre").display)
+                self.assertIn("Étape 2 — Libérer", app.derniere_vue["proposition"])
+                with patch.object(Monde, "d20", side_effect=[20, 1]):
+                    await pilot.click("#tenter")
+                    await self.pret(app, 6)
+                self.assertIn(texte, app.sorties)
+                self.assertEqual(appels.call_count, 2)
+                m = Monde.charger(chemin)
+                self.assertFalse(m.objets["axe_haut"]["attache"])
+                self.assertTrue(m.objets["axe_bas"]["attache"])
+                self.assertFalse(m.objets["porte"]["ouverte"])
+                self.assertFalse(app.query_one("#proposition-cadre").display)
+                await self.fermer(app)
+
+    async def test_comparaison_lente_copie_et_seul_principal_enregistre(self):
+        commence, liberer = threading.Event(), threading.Event()
+        def appel(mj, instructions, entree, intention, fonction, schema):
+            couleur = "gris" if mj.modele == "principal" else "bruns"
+            if entree["faits"]["descriptions_a_completer"]:
+                if mj.modele == "secondaire":
+                    commence.set()
+                    liberer.wait(10)
+                return {"mode": "enrichir", "texte": "", "faits": ["descriptions_a_completer"],
+                        "proposition": {"ajouts": [{"personnage": "marchand", "facette": "yeux",
+                                                    "description": "Ses yeux sont " + couleur + "."}]}}
+            return {"mode": "dialogue", "texte": "Ses yeux sont " + couleur + ".", "faits": ["souvenirs_personnages"], "proposition": None}
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", autospec=True, side_effect=appel), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch("donjon.tui.pyperclip.copy") as copier:
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--model", "principal", "--compare-model", "secondaire", "--save", str(chemin)])
+            try:
+                async with app.run_test(size=(120, 40)) as pilot:
+                    await self.pret(app)
+                    await self.commande(app, pilot, "De quelle couleur sont ses yeux ?", 0)
+                    self.assertTrue(commence.is_set())
+                    self.assertFalse(app.occupe)
+                    await pilot.press("f5")
+                    self.assertTrue(app.debug_visible)
+                    self.assertFalse(app.query_one("#corps").display)
+                    self.assertEqual(app.comparaisons[1]["principal"]["statut"], "Terminé")
+                    self.assertEqual(app.comparaisons[1]["secondaire"]["statut"], "En cours")
+                    liberer.set()
+                    for _ in range(100):
+                        if app.comparaisons[1]["secondaire"]["statut"] == "Terminé":
+                            break
+                        await asyncio.sleep(.02)
+                    self.assertEqual(app.comparaisons[1]["secondaire"]["statut"], "Terminé")
+                    await pilot.press("f4")
+                    texte = copier.call_args.args[0]
+                    self.assertIn("FAITS PROPOSÉS", texte)
+                    self.assertIn("gris", texte)
+                    self.assertIn("bruns", texte)
+                    self.assertIn("jamais appliqué", texte)
+                    await pilot.resize_terminal(60, 28)
+                    self.assertGreater(app.query_one("#debug-secondaire-cadre").region.y, app.query_one("#debug-principal-cadre").region.y)
+                    await pilot.press("f2")
+                    self.assertFalse(app.debug_visible)
+                    self.assertTrue(app.query_one("#corps").display)
+                    self.assertEqual(Monde.charger(chemin).objets["detail_marchand_yeux"]["description_visuelle"], "Ses yeux sont gris.")
+                    await self.fermer(app)
+            finally:
+                liberer.set()
+
+    async def test_enrichissement_mj_sauvegarde_et_actualise_la_scene(self):
+        reponses = [
+            {"mode": "enrichir", "texte": "", "faits": ["descriptions_a_completer"],
+             "proposition": {"ajouts": [{"personnage": "marchand", "facette": "yeux",
+                                         "description": "Ses yeux sont gris clair."}]}},
+            {"mode": "dialogue", "texte": "Gorm a les yeux gris clair.",
+             "faits": ["objet:detail_marchand_yeux"], "proposition": None},
+        ]
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as appels, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "ouest", 1)
+                await self.commande(app, pilot, "De quelle couleur sont ses yeux ?", 1)
+                self.assertIn("Ses yeux sont gris clair.", app.derniere_vue["scene"])
+                self.assertIn("detail_marchand_yeux", Monde.charger(chemin).objets)
+                await self.commande(app, pilot, "examiner yeux", 1)
+                self.assertIn("Ses yeux sont gris clair.", app.sorties)
+                self.assertEqual(appels.call_count, 2)
+                self.assertFalse(app.query_one("#proposition-cadre").display)
+                await self.fermer(app)
+
+    async def test_redimensionnement_et_historique_de_saisie(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            app = SeuilApp(["--offline", "--save", str(Path(tmp) / "partie.json")])
+            async with app.run_test(size=(80, 25)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "prendre clé", 1)
+                await pilot.press("up")
+                self.assertEqual(app.query_one("#commande", Input).value, "prendre clé")
+                await pilot.press("down")
+                self.assertEqual(app.query_one("#commande", Input).value, "")
+                await pilot.resize_terminal(60, 28)
+                self.assertGreater(app.query_one("#recit").region.y, app.query_one("#etat").region.y)
+                saisie = app.query_one("#commande", Input).region
+                self.assertGreater(saisie.width, 0)
+                self.assertLessEqual(saisie.bottom, 28)
+                await self.fermer(app)
+
+    async def test_quitter_pendant_mj_attend_et_sauvegarde_action(self):
+        arrive = threading.Event()
+        continuer = threading.Event()
+        def reponse(*args):
+            arrive.set()
+            continuer.wait(5)
+            return {"mode": "action", "texte": "", "faits": [], "proposition": proposition("prendre", "cle")}
+        with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "echanger", side_effect=reponse), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(100, 32)) as pilot:
+                await self.pret(app)
+                app.query_one("#commande", Input).value = "mj je prends la clé"
+                await pilot.press("enter")
+                for _ in range(100):
+                    if arrive.is_set():
+                        break
+                    await asyncio.sleep(.02)
+                self.assertTrue(arrive.is_set())
+                await pilot.press("ctrl+q")
+                self.assertTrue(app.fermeture_demandee)
+                self.assertTrue(app.is_running)
+                continuer.set()
+                for _ in range(250):
+                    if not app.is_running:
+                        break
+                    await asyncio.sleep(.02)
+                self.assertFalse(app.is_running)
+            self.assertEqual(Monde.charger(chemin).objets["cle"]["lieu"], "joueur")
+
+    async def test_selection_souris_et_ctrl_c_copient_sans_quitter(self):
+        with tempfile.TemporaryDirectory() as tmp, patch("donjon.tui.pyperclip.copy") as copier:
+            app = SeuilApp(["--offline", "--save", str(Path(tmp) / "partie.json")])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                app.journal_entrees.clear()
+                app.ajouter_journal("Corvus > pourquoi ?")
+                app.ecrire("Une réponse étrange.\nAvec des accents : clé, émeraude.")
+                await pilot.pause()
+                await pilot.mouse_down("#journal-texte", offset=(0, 2))
+                await pilot.hover("#journal-texte", offset=(20, 2))
+                await pilot.mouse_up("#journal-texte", offset=(20, 2))
+                selection = app.screen.get_selected_text()
+                self.assertEqual(selection, "Une réponse étrange.")
+                await pilot.press("ctrl+c")
+                copier.assert_called_once_with(selection)
+                self.assertTrue(app.is_running)
+                self.assertFalse(app.fermeture_demandee)
+                self.assertEqual(app.clipboard, selection)
+                await self.fermer(app)
+
+    async def test_f4_copie_la_commande_et_la_reponse_et_ctrl_c_vide_ne_quitte_pas(self):
+        with tempfile.TemporaryDirectory() as tmp, patch("donjon.tui.pyperclip.copy") as copier:
+            app = SeuilApp(["--offline", "--save", str(Path(tmp) / "partie.json")])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await pilot.press("ctrl+c")
+                copier.assert_not_called()
+                self.assertTrue(app.is_running)
+                await self.commande(app, pilot, "prendre clé", 1)
+                await pilot.press("f4")
+                copier.assert_called_once_with("Corvus > prendre clé\n\nLa clé du veilleur rejoint votre besace.")
+                self.assertEqual(app.derniere_vue["minutes"], 1)
+                await self.fermer(app)
+
+    async def test_presse_papiers_indisponible_ne_ferme_pas_le_jeu(self):
+        from pyperclip import PyperclipException
+        with tempfile.TemporaryDirectory() as tmp, patch("donjon.tui.pyperclip.copy", side_effect=PyperclipException("occupé")):
+            app = SeuilApp(["--offline", "--save", str(Path(tmp) / "partie.json")])
+            async with app.run_test(size=(100, 32)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "prendre clé", 1)
+                with patch.object(app, "notify") as notifier:
+                    await pilot.press("f4")
+                self.assertEqual(notifier.call_args.kwargs["severity"], "error")
+                self.assertTrue(app.is_running)
+                await self.fermer(app)
+
+
+if __name__ == "__main__":
+    unittest.main()

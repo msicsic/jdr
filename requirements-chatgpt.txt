@@ -1,0 +1,2 @@
+# Uniquement pour la connexion OAuth ; le jeu hors ligne n'en a pas besoin.
+PyJWT[crypto]>=2.10,<3

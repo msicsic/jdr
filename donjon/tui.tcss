@@ -1,0 +1,38 @@
+Screen { background: #111920; color: #deded6; }
+Header { background: #24343c; color: #ddc694; height: 1; }
+Footer { background: #24343c; }
+#corps { height: 1fr; }
+#etat { width: 46%; min-width: 36; height: 1fr; border: round #49646b; }
+TabPane { padding: 0 1; height: 1fr; }
+TabbedContent ContentSwitcher { height: 1fr; }
+#vue-carte { height: 1fr; overflow-x: auto; }
+#plan { height: auto; color: #a9cbb9; }
+#plan:focus { color: #f0d18b; }
+#legende { height: auto; margin-top: 1; color: #a9b5bc; }
+#fiche { height: auto; }
+#recit { width: 1fr; height: 1fr; }
+#scene-cadre { height: 40%; min-height: 6; max-height: 15; border: round #49646b; padding: 0 1; }
+#scene { height: auto; }
+#journal { height: 1fr; min-height: 4; border: round #49646b; padding: 0 1; }
+#journal-texte { height: auto; }
+#proposition-cadre { height: auto; max-height: 14; border: round #bda46e; padding: 0 1; }
+#portee-tentative { height: auto; color: #ddc694; }
+#risques { height: auto; max-height: 6; }
+#proposition { height: auto; }
+#choix { height: 3; }
+Button { margin-right: 1; min-width: 12; }
+#statut { height: 1; color: #a9b5bc; padding: 0 1; }
+#commande { height: 3; border: tall #718f88; margin: 0; }
+Screen.etroit #corps { layout: vertical; }
+Screen.etroit #etat { width: 100%; min-width: 0; height: 55%; }
+Screen.etroit #recit { width: 100%; height: 45%; }
+Screen.etroit #scene-cadre { min-height: 4; max-height: 5; }
+#debug-cadre { height: 1fr; }
+#debug-navigation { height: 3; }
+#debug-navigation Button { min-width: 10; margin: 0; }
+#debug-question { height: auto; max-height: 6; padding: 0 1; color: #ddc694; }
+#debug-resultats { height: 1fr; }
+#debug-principal-cadre, #debug-secondaire-cadre { width: 1fr; height: 1fr; border: round #49646b; padding: 0 1; }
+#debug-principal, #debug-secondaire { height: auto; }
+Screen.etroit #debug-resultats { layout: vertical; }
+Screen.etroit #debug-principal-cadre, Screen.etroit #debug-secondaire-cadre { width: 100%; height: 1fr; }
