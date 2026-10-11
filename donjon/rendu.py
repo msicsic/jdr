@@ -29,6 +29,8 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             complements.append("Elle est appuyée contre " + designer(monde.objets[o['installation']['support']]))
     if o.get("appui_vertical"):
         complements.append(f"Un palier surplombe le pied du mur de {o['appui_vertical']['hauteur_cm'] / 100:g} m")
+    if o.get("fixee_sur"):
+        complements.append("Elle est fixée sur " + o["fixee_sur"])
     if o["integrite"] == 0:
         morceaux.append(accorder(o, "brisé"))
     elif o["integrite"] < o["maximum"]:

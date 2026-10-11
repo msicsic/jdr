@@ -121,6 +121,9 @@ class Monde:
         from .vol import installer as installer_vol
         installer_vol(self)
         installer(self)
+        if self.data.get("defi_relais"):
+            from .defi import installer_consigne
+            installer_consigne(self)
         from .franchissement import installer as installer_franchissements
         installer_franchissements(self)
         from .artisanat import installer as installer_artisanat

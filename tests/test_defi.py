@@ -1,9 +1,12 @@
 """Vérifie que les deux itinéraires du Relais des crues sont praticables."""
+import copy
 import unittest
 from collections import deque
 from unittest.mock import patch
 
+from donjon.carte import carte
 from donjon.defi import BEFFROI, OBJECTIF, PIED_BEFFROI, REFUGE, actualiser, nouveau_defi
+from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.moteur import Moteur, proposition
 from donjon.spatial import installer as installer_spatial, preparer_pas
@@ -63,7 +66,9 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertEqual(self.m.data["scenario"]["objectif"], OBJECTIF)
         self.assertFalse(self.m.visible("cle"))
         self.assertNotIn("cle", [o["id"] for o in self.m.contexte()["objets_perceptibles"]])
-        self.assertIn("contournant", self.agir("examiner", "gravure"))
+        examen = self.agir("examiner", "gravure")
+        self.assertIn("contournant", examen)
+        self.assertIn("face ouest de la cloison", examen)
         self.marcher_jusqua((6, 5))
         self.assertTrue(self.m.visible("cle"))
         self.agir("prendre", "cle")
@@ -84,6 +89,41 @@ class DefiRelaisTests(unittest.TestCase):
         self.aller_dans(REFUGE)
         self.assertEqual(self.m.joueur["salle"], REFUGE)
         self.victoire()
+
+    def test_consigne_touche_la_cloison_et_relation_transmise_au_mj(self):
+        salle = self.m.data["salles"][REFUGE]
+        self.assertEqual(salle["plan"]["sol"][3][3], " ")
+        self.assertEqual(self.m.objets["gravure"]["position"], [2, 3])
+        self.assertEqual(self.m.objets["antichambre_murs"]["position"], [2, 3])
+        self.assertTrue(self.m.visible("gravure"))
+        fait = next(o for o in self.m.contexte()["objets_perceptibles"]
+                    if o["id"] == "gravure")
+        self.assertEqual(fait["fixee_sur"], "la face ouest de la cloison de pierre")
+
+        self.m.memoriser("comment la consigne est elle attachée ?",
+                         "Elle tient au mur, mais sa fixation est inconnue.")
+        mj = MJOpenAI("gpt-6-luna")
+        reponse = {"mode": "dialogue", "texte": "La consigne est sur la cloison.",
+                   "faits": ["objet:gravure"], "proposition": None}
+        with patch.object(mj, "_appeler", return_value=reponse) as appel:
+            mj._echanger(self.m, "comment la consigne est elle attachée ?", None, True)
+        instructions, entree, *_ = appel.call_args.args
+        self.assertEqual(entree["faits"]["objet:gravure"]["fixee_sur"],
+                         "la face ouest de la cloison de pierre")
+        self.assertIn("L'état actuel prime", instructions)
+
+    def test_ancienne_partie_ajuste_la_cloison_sans_deplacer_la_consigne(self):
+        donnees = copy.deepcopy(self.m.data)
+        donnees["salles"][REFUGE]["plan"]["sol"][3] = ".... ...."
+        donnees["objets"]["antichambre_murs"]["position"] = [3, 3]
+        donnees["objets"]["gravure"].pop("fixee_sur")
+        donnees["exploration"][REFUGE].append([3, 3])
+        reprise = Monde(donnees)
+        self.assertEqual(reprise.data["salles"][REFUGE]["plan"]["sol"][3], "...  ....")
+        self.assertEqual(reprise.objets["gravure"]["position"], [2, 3])
+        self.assertEqual(reprise.objets["antichambre_murs"]["position"], [2, 3])
+        self.assertNotIn([3, 3], reprise.data["exploration"][REFUGE])
+        self.assertIn("! ##", carte(reprise))
 
     def test_route_exterieure_par_echelle_et_retour(self):
         with self.assertRaises(ErreurMonde):

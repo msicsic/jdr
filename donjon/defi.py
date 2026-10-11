@@ -9,6 +9,33 @@ REFUGE = "antichambre"
 BEFFROI = "chambre_cloche"
 PIED_BEFFROI = "beffroi"
 OBJECTIF = "Ramener la cloche d'alarme du beffroi au refuge du relais."
+ANCIENNE_LIGNE_CONSIGNE = ".... ...."
+LIGNE_CONSIGNE_MURALE = "...  ...."
+
+
+def installer_consigne(m):
+    """Raccorde la consigne au mur dans les parties antérieures à cette correction."""
+    if not m.data.get("defi_relais"):
+        return
+    refuge = m.data["salles"][REFUGE]
+    plan = refuge["plan"]["sol"]
+    consigne = m.objets.get("gravure")
+    cloison = m.objets.get("antichambre_murs")
+    if not consigne or not cloison:
+        return
+    if (plan[3] == ANCIENNE_LIGNE_CONSIGNE
+            and consigne.get("lieu") == REFUGE and consigne.get("position") == [2, 3]
+            and cloison.get("position_salle") == REFUGE and cloison.get("position") == [3, 3]
+            and not (m.joueur["salle"] == REFUGE and m.joueur["position"] == [3, 3])
+            and not any(o is not cloison and o.get("position_salle") == REFUGE
+                        and o.get("position") == [3, 3] for o in m.objets.values())):
+        plan[3] = LIGNE_CONSIGNE_MURALE
+        placer(cloison, REFUGE, [2, 3])
+        memoire = m.data.get("exploration", {}).get(REFUGE, [])
+        if [3, 3] in memoire:
+            memoire.remove([3, 3])
+    if plan[3] == LIGNE_CONSIGNE_MURALE and consigne.get("position") == [2, 3]:
+        consigne.setdefault("fixee_sur", "la face ouest de la cloison de pierre")
 
 
 def nouveau_defi(seed=1985):
@@ -23,7 +50,7 @@ def nouveau_defi(seed=1985):
             "ouest": {"vers": "echoppe", "porte": None, "case": [-1, 3]}},
             "fenetres": 0, "lumiere_naturelle": 0, "altitude_cm": 0,
             "plan": {"origine": [0, 0], "sol": [" ....... ", ".........", ".... ....",
-                     ".... ....", ".... ....", ".........", " ....... "], "repere": "R"}},
+                     LIGNE_CONSIGNE_MURALE, ".... ....", ".........", " ....... "], "repere": "R"}},
         "echoppe": {"nom": "Conduite basse", "sorties": {
             "est": {"vers": "antichambre", "porte": None, "case": [9, 3]},
             "sud": {"vers": "crypte", "porte": None, "case": [4, 7]}},
@@ -75,6 +102,7 @@ def nouveau_defi(seed=1985):
     m.objets["serrure"].update(nom="serrure de la porte étanche", lieu="porte", aliases=["serrure"])
     m.objets["gravure"].update(
         nom="consigne émaillée", genre="f", materiau="fer émaillé", lieu=REFUGE, aliases=["plaque", "consigne", "inscription", "gravure"],
+        fixee_sur="la face ouest de la cloison de pierre",
         motif="Un croissant gravé derrière un épaulement de pierre, une petite clé et une cloche.",
         inscription=("Le veilleur cachait la clé au pied de l'épaulement fissuré. On ne la voit qu'en "
                      "contournant le mur par son ouverture basse. La porte étanche mène au beffroi."),
@@ -82,7 +110,7 @@ def nouveau_defi(seed=1985):
     placer(m.objets["gravure"], REFUGE, [2, 3])
     m.objets["antichambre_murs"].update(aliases=["murs", "mur", "cloison", "épaulement"],
         description_visuelle="Une cloison de pierre fissurée coupe le centre du refuge. On peut la contourner par ses deux extrémités.")
-    placer(m.objets["antichambre_murs"], REFUGE, [3, 3])
+    placer(m.objets["antichambre_murs"], REFUGE, [2, 3])
     m.objets["cle"].update(nom="clé du relais", aliases=["clé", "cle", "clé du relais"],
                             lieu=REFUGE, proprietaire=None, ouvre=["porte"])
     placer(m.objets["cle"], REFUGE, [7, 5])
