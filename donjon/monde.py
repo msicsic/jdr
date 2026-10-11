@@ -358,6 +358,8 @@ class Monde:
                 vue["a_portee"] = proche(self, o["id"])
                 vue["case_percue"] = position_cible(self, o["id"])
                 vue["localisation"] = localiser(self, o["id"], champ_vision)
+            if o["type"] == "contenant" and o["ouverte"] and (not self.data.get("mode_cases") or vue["a_portee"]):
+                vue["contenu_vide"] = not any(self.present_physique(e["id"]) for e in self.enfants(o["id"]))
             if o["id"] not in self.data["lus"]:
                 vue.pop("sens", None)
             if niveau < 2 or (self.data.get("mode_cases") and not vue["a_portee"]):

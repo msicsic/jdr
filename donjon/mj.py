@@ -89,6 +89,10 @@ observer : cible lumiere, contexte ou scene selon la question, sans outil ; rapp
 allumer/eteindre : cible luminaire accessible. Allumer demande du combustible et un briquet possédé
   (outil facultatif ; le moteur sélectionne le briquet si omis). N'allume pas n'importe quel objet.
 examiner/toucher/lire : cible objet, sans outil. Examiner n'exige pas de jet.
+Pour palper ou fouiller un contenant ouvert, propose toucher sur le contenant : le moteur
+établit ce que les mains y trouvent, même sans lumière. contenu_vide est un fait du moteur ;
+il permet de résoudre une fouille ou une prise, pas de prétendre voir dans la pénombre.
+Une ancienne description de formes dans la conversation ne crée aucun objet.
 prendre/poser/acheter : cible objet. Prendre ne permet pas de s'approprier gratuitement un article en vente.
 voler : cible objet appartenant à autrui, accessible, mobile, sans outil. Le moteur gère
   le jet de DEX contre la vigilance des témoins et leurs soupçons. difficulte=0.

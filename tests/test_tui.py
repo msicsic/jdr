@@ -11,6 +11,7 @@ from donjon.defi import nouveau_defi
 from donjon.monde import Monde, nouveau_monde
 from donjon.moteur import proposition
 from donjon.operations import sequence, etape
+from donjon.improvisation import proposition as improviser, issue
 from donjon.spatial import installer
 
 TEXTUAL = all(importlib.util.find_spec(m) is not None for m in ("textual", "pyperclip"))
@@ -21,6 +22,37 @@ if TEXTUAL:
 
 @unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
 class TUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_palper_coffre_vide_depuis_tui_et_sauvegarder_le_constat(self):
+        with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
+            chemin = Path(fichier.name)
+        self.addCleanup(chemin.unlink, missing_ok=True)
+        monde = nouveau_defi()
+        installer(monde)
+        monde.joueur.update(salle="chambre_cloche", position=[4, 3])
+        monde.sauver(chemin)
+        p = improviser("Palper à la main les objets à l'intérieur du coffre",
+                       issue("Tu sens des formes et des matières dans le coffre."),
+                       cibles=["coffre"], approche="observation")
+        reponses = [
+            {"mode": "action", "texte": "", "faits": ["objet:coffre"], "proposition": p},
+            {"mode": "dialogue", "texte": "Le coffre est vide : tes mains n'y ont rien trouvé.",
+             "faits": ["objet:coffre"], "proposition": None},
+        ]
+        with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+             patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api:
+            app = SeuilApp(["--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "je tate les objets dans le coffre avec mes mains", 0)
+                self.assertIn("est vide", " ".join(app.sorties))
+                await self.commande(app, pilot, "je prends tout ce que le coffre contient", 0)
+                await self.fermer(app)
+            self.assertEqual(api.call_count, 2)
+            self.assertTrue(api.call_args_list[1].args[1]["faits"]["objet:coffre"]["contenu_vide"])
+            charge = Monde.charger(chemin)
+            self.assertEqual(charge.data["journal"][-1]["action"]["action"], "toucher")
+            self.assertFalse(charge.data.get("gestes_improvises"))
+
     async def test_ramassage_pied_de_biche_depuis_tui_malgre_ancien_refus(self):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
             chemin = Path(fichier.name)

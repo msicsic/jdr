@@ -364,6 +364,8 @@ Un éclairage proche suffit à lire ; la lumière d'une pièce voisine perd un n
 ouverture. Une porte fermée ou un contenant opaque fermé arrête la lumière. Dans la pénombre,
 on distingue les objets, mais on ne lit pas les inscriptions. Dans le noir, la liste visuelle des objets
 est masquée. Les affaires de l'inventaire restent accessibles au toucher, ce qui permet le rallumage.
+Palper un contenant ouvert et à portée révèle ce qu'il contient réellement, même dans la pénombre ;
+un contenant vide est reconnu comme tel, sans inventer d'objets.
 La lecture, la copie et l'extraction d'un axe exigent un éclairage suffisant. Une serrure
 accessible peut être crochetée au toucher dans la pénombre, avec un jet plus difficile et plus long.
 

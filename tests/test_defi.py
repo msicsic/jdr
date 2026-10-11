@@ -12,6 +12,7 @@ from donjon.defi import BEFFROI, OBJECTIF, PIED_BEFFROI, REFUGE, actualiser, nou
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.moteur import Moteur, proposition
+from donjon.improvisation import proposition as improviser, issue
 from donjon.operations import etape, sequence
 from donjon.perception import eclairage
 from donjon.spatial import installer as installer_spatial, preparer_pas
@@ -25,6 +26,31 @@ class DefiRelaisTests(unittest.TestCase):
 
     def agir(self, action, cible="", outil=""):
         return self.moteur.executer(self.moteur.preparer(proposition(action, cible, outil)))
+
+    def test_palper_coffre_ouvert_vide_corrige_recit_improvise(self):
+        self.m.joueur.update(salle=BEFFROI, position=[4, 3])
+        self.assertTrue(next(o for o in self.m.contexte()["objets_perceptibles"]
+                             if o["id"] == "coffre")["contenu_vide"])
+        p = improviser("Palper à la main les objets à l'intérieur du coffre",
+                       issue("Tu sens des formes et des matières dans le coffre."),
+                       cibles=["coffre"], approche="observation")
+        plan = self.moteur.preparer(p, "MJ")
+        self.assertEqual(plan.proposition["action"], "toucher")
+        texte = self.moteur.executer(plan)
+        self.assertIn("est vide", texte)
+        self.assertNotIn("formes", texte)
+        self.assertEqual(self.m.data["journal"][-1]["action"]["action"], "toucher")
+        self.assertFalse(self.m.data.get("gestes_improvises"))
+
+    def test_palper_coffre_ouvert_revele_son_contenu_reel(self):
+        self.m.joueur.update(salle=BEFFROI, position=[4, 3])
+        self.m.objets["cle"]["lieu"] = "coffre"
+        self.m.objets["cle"].pop("position", None)
+        self.assertFalse(next(o for o in self.m.contexte()["objets_perceptibles"]
+                              if o["id"] == "coffre")["contenu_vide"])
+        texte = self.agir("toucher", "coffre")
+        self.assertIn("clé du relais", texte)
+        self.assertIn("cle", self.m.data["connus"])
 
     def victoire(self):
         self.assertTrue(self.m.data.get("objectif_atteint"))

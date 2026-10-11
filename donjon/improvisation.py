@@ -7,7 +7,7 @@ import copy
 import hashlib
 import json
 
-from .monde import ErreurMonde, objet
+from .monde import ErreurMonde, objet, normaliser
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
@@ -197,10 +197,18 @@ def preparer(m, p, origine):
         raise ErreurMonde("Un risque de blessure doit être annoncé dans une tentative à confirmer.")
     if any(e[0] == "endommager" for e in effets+echec) and not p["stat"]:
         raise ErreurMonde("Un risque pour l'outil doit être annoncé avant confirmation.")
+    # Une palpation d'un contenant ouvert relève de la perception vérifiable.
+    # Son résultat ne peut pas être inventé dans le récit d'une improvisation.
+    if (p["approche"] == "observation" and not p["stat"] and not p["outil"]
+            and len(p["cibles"]) == 1 and not effets and not echec
+            and m.objets[p["cibles"][0]]["type"] == "contenant"
+            and m.objets[p["cibles"][0]]["ouverte"]
+            and any(mot in normaliser(p["intention"]) for mot in ("palp", "tat", "touch", "fouill"))):
+        from .moteur import Moteur, proposition as action_simple
+        return Moteur(m).preparer(action_simple("toucher", p["cibles"][0]), origine)
     plan = Plan(copy.deepcopy(p), m.data["revision"], p["intention"], origine=origine)
     plan.stat, plan.dd, plan.minutes, plan.bruit = p["stat"], p["difficulte"], p["minutes"], p["bruit"]
     # Les descriptions et le DD proposé ne changent pas les contraintes d'une méthode.
-    from .monde import normaliser
     signature = {"version": 1, "intention": normaliser(p["intention"]), "approche": p["approche"], "stat": p["stat"],
         "salle": m.joueur["salle"], "outil": p["outil"], "lumiere": eclairage(m)["niveau"],
         "cibles": [{k: m.objets[id].get(k) for k in ("id", "type", "lieu", "materiau", "integrite", "masse", "attache", "verrouillee", "installation", "usages")}

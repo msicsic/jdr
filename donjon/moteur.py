@@ -174,6 +174,9 @@ class Moteur:
             if action == "examiner" and not detail:
                 plan.information += " Approche-toi pour distinguer les petits détails."
             plan.effets = [("connaitre", cible, None)]
+            if action == "toucher" and o["type"] == "contenant" and o["ouverte"]:
+                plan.effets.extend(("connaitre", enfant["id"], None)
+                                   for enfant in m.enfants(cible) if m.present_physique(enfant["id"]))
         elif action == "parler":
             if o["type"] != "personnage":
                 raise ErreurMonde("Cet objet ne peut pas vous répondre.")

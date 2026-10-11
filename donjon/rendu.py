@@ -244,6 +244,12 @@ def toucher(monde, id):
     if not monde.accessible(id):
         raise ErreurMonde("Vous ne savez pas où trouver cet objet au toucher.")
     o = monde.objets[id]
+    if o["type"] == "contenant" and o["ouverte"]:
+        contenu = [e for e in monde.enfants(id) if monde.present_physique(e["id"])]
+        if not contenu:
+            return designer(o, debut=True) + " est vide : tes mains n'y trouvent rien."
+        return ("En fouillant " + designer(o) + ", tu reconnais au toucher "
+                + enumerer(designer(e, "indefini") for e in contenu) + ".")
     if o.get("description_tactile"):
         return designer(o, debut=True) + " : " + o["description_tactile"]
     return designer(o, debut=True) + f' : vous en sentez le matériau ({o["materiau"]}).'
