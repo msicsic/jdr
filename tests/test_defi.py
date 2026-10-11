@@ -7,11 +7,13 @@ from unittest.mock import patch
 
 from donjon.artisanat import dossier as dossier_atelier
 from donjon.carte import carte
+from donjon.commandes import analyser
 from donjon.defi import BEFFROI, OBJECTIF, PIED_BEFFROI, REFUGE, actualiser, nouveau_defi
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
+from donjon.perception import eclairage
 from donjon.spatial import installer as installer_spatial, preparer_pas
 
 
@@ -208,6 +210,33 @@ class DefiRelaisTests(unittest.TestCase):
         plan = self.moteur.preparer(resultat_mj["proposition"], "LLM : gpt-6-luna")
         self.moteur.executer(plan)
         self.assertEqual(self.m.objets["echelle_relais"]["position"], [8, 3])
+
+    def test_crochetage_au_toucher_dans_la_penombre(self):
+        self.m.joueur.update(salle="crypte", position=[8, 3])
+        self.m.objets["crochets"]["lieu"] = "joueur"
+        for id in ("torche", "lanterne"):
+            self.m.objets[id].update(allume=False, combustible=0)
+        self.assertEqual(eclairage(self.m)["niveau"], 1)
+        phrase = "j'utilise mes crochets pour crochetter la serrure"
+        self.assertIsNone(analyser(self.m, phrase))
+        mj = MJOpenAI("gpt-6-luna")
+        reponse = {"mode": "action", "texte": "", "faits": ["objet:serrure", "objet:crochets"],
+                   "proposition": proposition("crocheter", "serrure", "crochets", methode="finesse")}
+        with patch.object(mj, "_appeler", return_value=reponse) as appel:
+            resultat_mj = mj._echanger_prepare(self.m, phrase)
+        self.assertEqual(appel.call_args.args[1]["faits"]["perception"]["niveau"], 1)
+        plan = self.moteur.preparer(resultat_mj["proposition"], "LLM : gpt-6-luna")
+        self.assertEqual((plan.dd, plan.minutes), (18, 5))
+        self.assertIn("à tâtons", plan.resume(self.m))
+        with patch.object(Monde, "d20", return_value=20):
+            self.moteur.executer(plan)
+        self.assertFalse(self.m.objets["porte"]["verrouillee"])
+        chemin = Path("artifacts/tests/verification-crochetage.json")
+        try:
+            self.m.sauver(chemin)
+            self.assertFalse(Monde.charger(chemin).objets["porte"]["verrouillee"])
+        finally:
+            chemin.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

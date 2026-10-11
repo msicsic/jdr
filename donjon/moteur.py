@@ -152,7 +152,7 @@ class Moteur:
             exiger(m, cible)
         if action == "examiner" and not m.visible(cible):
             raise ErreurMonde("Il fait trop noir pour examiner cet objet. Vous pouvez toucher vos affaires ou allumer une lumière.")
-        if action in ("lire", "crocheter", "detacher", "copier") and eclairage(m)["niveau"] < 2:
+        if action in ("lire", "detacher", "copier") and eclairage(m)["niveau"] < 2:
             raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise. Allumez une source proche.")
         o = m.objets[cible]
         t = None
@@ -229,7 +229,10 @@ class Moteur:
                 raise ErreurMonde("La serrure est bloquée ; le crochetage ne peut plus fonctionner.")
             if not t or "crochetage" not in t.get("usages", []):
                 raise ErreurMonde("Il faut une trousse de crochets.")
-            plan.stat, plan.dd, plan.minutes = "DEX", 14, 3
+            lumiere = eclairage(m)["niveau"]
+            plan.stat, plan.dd, plan.minutes = "DEX", 14 + 4 * (2 - lumiere), 3 + 2 * (2 - lumiere)
+            if lumiere < 2:
+                plan.titre = plan.titre[:-1] + " à tâtons."
             plan.effets = [("deverrouiller", parent_id, None)]
             plan.echec_critique = [("endommager", outil, 1)]
             serrure = next((e["id"] for e in m.enfants(parent_id) if e["type"] == "serrure"), None)
