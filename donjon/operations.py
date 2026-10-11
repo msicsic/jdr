@@ -78,6 +78,20 @@ def verifier_etape(e):
         raise ErreurMonde("Seules une extraction ou un franchissement improvisé acceptent une estimation de difficulté.")
 
 
+def canoniser_appui(monde, e):
+    """Ramène les champs redondants d'un geste d'échelle à sa forme exécutable."""
+    verifier_etape(e)
+    if e["operation"] == "appuyer" and not e["outil"]:
+        support = monde.objets.get(e["destination"], {})
+        if support.get("appui_vertical") and e["methode"] in ("simple", "appui_mobile"):
+            return {**e, "destination": "", "outil": e["destination"], "methode": "simple"}
+    if e["operation"] == "franchir" and not e["outil"]:
+        installation = monde.objets.get(e["cible"], {}).get("installation") or {}
+        if e["destination"] and e["destination"] == installation.get("support"):
+            return {**e, "destination": ""}
+    return e
+
+
 def sous_arbre(monde, id):
     ids = {id}
     while True:
@@ -244,7 +258,10 @@ def preparer(monde, proposition, origine):
             or not isinstance(proposition.get("justification"), str) or len(proposition["justification"]) > 1000):
         raise ErreurMonde("Une manœuvre contient une à six opérations et une justification courte.")
     simulation, plans, precedent = monde.copier(), [], None
-    for e in etapes:
+    etapes = copy.deepcopy(etapes)
+    for numero, brut in enumerate(etapes):
+        e = canoniser_appui(simulation, brut)
+        etapes[numero] = e
         p = compiler(simulation, e, precedent, proposition["justification"], origine)
         plans.append(p)
         for effet in p.effets:
@@ -252,7 +269,10 @@ def preparer(monde, proposition, origine):
         Moteur._terminer_etape(simulation, p, [])
         simulation.verifier()
         precedent = e
-    resultat = Plan(copy.deepcopy(proposition), monde.data["revision"], "Manœuvre composée.", origine=origine)
+    canonique = copy.deepcopy(proposition)
+    if canonique["action"] == "composer":
+        canonique["etapes"] = copy.deepcopy(etapes)
+    resultat = Plan(canonique, monde.data["revision"], "Manœuvre composée.", origine=origine)
     resultat.etapes = copy.deepcopy(etapes)
     resultat.plans = plans
     premier_jet = next((p for p in plans if p.stat), plans[0])

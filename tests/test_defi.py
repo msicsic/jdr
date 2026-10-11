@@ -156,7 +156,9 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertFalse(manoeuvre["franchir_maintenant"])
 
         mj = MJOpenAI("gpt-6-luna")
-        proposition_mj = sequence(etape("appuyer", "echelle_relais", outil="appui_clocher"),
+        # Forme réellement proposée par Luna : l'appui est mis dans destination.
+        proposition_mj = sequence(etape("appuyer", "echelle_relais",
+                                      destination="appui_clocher", methode="appui_mobile"),
                                   etape("franchir", "echelle_relais"))
         reponse = {"mode": "action", "texte": "", "faits": ["atelier"],
                    "proposition": proposition_mj}
@@ -169,6 +171,16 @@ class DefiRelaisTests(unittest.TestCase):
 
         plan = self.moteur.preparer(resultat_mj["proposition"], "LLM : gpt-6-luna")
         self.assertIn("2 étapes", plan.resume(self.m))
+        self.assertEqual(plan.proposition["etapes"][0],
+                         etape("appuyer", "echelle_relais", outil="appui_clocher"))
+        variante = copy.deepcopy(proposition_mj)
+        variante["etapes"][1]["destination"] = "appui_clocher"
+        self.assertEqual(self.moteur.preparer(variante).proposition["etapes"][1],
+                         etape("franchir", "echelle_relais"))
+        autre_appui = copy.deepcopy(proposition_mj)
+        autre_appui["etapes"][0]["destination"] = "cle"
+        with self.assertRaises(ErreurMonde):
+            self.moteur.preparer(autre_appui)
         with patch.object(Monde, "d20", return_value=20):
             self.moteur.executer(plan)
         self.assertEqual(self.m.objets["echelle_relais"]["installation"]["support"],
