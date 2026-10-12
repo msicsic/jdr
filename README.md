@@ -45,6 +45,8 @@ joueur prend l'objet. La console sans couleur préfixe ce symbole par `~`. Une c
 affiché sur deux colonnes pour conserver des proportions lisibles dans le terminal.
 Le dernier état vu d'une porte reste également indiqué hors de vue, avec la même couleur
 de souvenir. Il peut avoir changé depuis ; la carte l'actualise quand le seuil est revu.
+Dans le noir, la case que Corvus vient de fouler reste connue : sa position et l'escalier
+emprunté demeurent sur le niveau d'arrivée, sans révéler le reste de la pièce.
 
 Dix pas dépensent une minute et consomment le combustible correspondant. Franchir un seuil
 ou un escalier est une transition vers la première case de l'autre côté. La lumière utilise

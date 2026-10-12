@@ -22,6 +22,30 @@ if TEXTUAL:
 
 @unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
 class TUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_sortie_galerie_vers_palier_noir_garde_joueur_sur_la_carte(self):
+        with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
+            chemin = Path(fichier.name)
+        self.addCleanup(chemin.unlink, missing_ok=True)
+        monde = nouveau_defi()
+        installer(monde)
+        monde.joueur.update(salle="chambre_cloche", position=[0, 11])
+        for id in ("torche", "lanterne"):
+            monde.objets[id].update(allume=False, combustible=0)
+        from donjon.spatial import memoriser
+        memoriser(monde)
+        monde.sauver(chemin)
+        app = SeuilApp(["--defi", "--offline", "--save", str(chemin)])
+        async with app.run_test(size=(120, 40)) as pilot:
+            await self.pret(app)
+            await self.commande(app, pilot, "pas ouest", 0)
+            self.assertEqual(app.derniere_vue["salle"], "Palier des vannes")
+            self.assertIn("@ ^", app.derniere_vue["carte"])
+            self.assertIn("@", app.query_one("#plan").render().plain)
+            await self.fermer(app)
+        charge = Monde.charger(chemin)
+        self.assertEqual((charge.joueur["salle"], charge.joueur["position"]),
+                         ("beffroi", [8, 3]))
+
     async def test_palper_coffre_vide_depuis_tui_et_sauvegarder_le_constat(self):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
             chemin = Path(fichier.name)

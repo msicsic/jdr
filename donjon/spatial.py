@@ -389,6 +389,11 @@ def memoriser(m):
         connues = {tuple(p) for p in exploration[salle]}
         if (x, y) not in connues:
             exploration[salle].append([x, y])
+    # Même dans le noir, le joueur connaît la case sur laquelle il marche.
+    salle_joueur = m.joueur["salle"]
+    position_joueur = list(m.joueur["position"])
+    if position_joueur not in exploration[salle_joueur]:
+        exploration[salle_joueur].append(position_joueur)
 
     souvenirs = m.data.setdefault("souvenirs_visuels", {})
     observations = {objet["id"]: {

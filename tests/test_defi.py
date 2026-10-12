@@ -174,6 +174,23 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertEqual(self.m.joueur["salle"], REFUGE)
         self.victoire()
 
+    def test_escalier_de_galerie_vers_palier_noir_reste_sur_la_carte(self):
+        self.m.joueur.update(salle=BEFFROI, position=[0, 11])
+        self.m.objets["torche"].update(allume=False, combustible=0)
+        self.m.objets["lanterne"].update(allume=False, combustible=0)
+        from donjon.spatial import memoriser
+        memoriser(self.m)
+        self.assertEqual(self.m.data["exploration"][PIED_BEFFROI], [])
+
+        self.agir("marcher", "ouest")
+        self.assertEqual((self.m.joueur["salle"], self.m.joueur["position"]),
+                         (PIED_BEFFROI, [8, 3]))
+        self.assertEqual(self.m.data["exploration"][PIED_BEFFROI], [[8, 3]])
+        plan = carte(self.m).split("=== LEGENDE ===")[0]
+        self.assertEqual(plan.count("@"), 1)
+        self.assertIn("@ ^", plan)
+        self.assertIn("v ", plan)
+
     def test_mj_recoit_la_manoeuvre_pour_monter_une_echelle_libre(self):
         self.marcher_jusqua((7, 3))
         manoeuvre = next(x for x in dossier_atelier(self.m)["manoeuvres"]

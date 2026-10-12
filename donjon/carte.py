@@ -196,6 +196,9 @@ def _carte_cases(monde):
     etages = defaultdict(list)
     for salle in connus:
         etages[salles[salle].get("niveau", 0)].append(salle)
+    # Dans le noir, la nouvelle salle peut n'avoir aucune case mémorisée.
+    # Le personnage doit malgré tout figurer sur le panneau de son niveau.
+    etages[salles[monde.joueur["salle"]].get("niveau", 0)].append(monde.joueur["salle"])
     liens_installes = {}
     for support in monde.objets.values():
         appui = support.get("appui_vertical", {})
@@ -284,7 +287,7 @@ def _carte_cases(monde):
             elif p in seuils_visibles:
                 continue
             souvenir_porte = False
-            if sortie.get("escalier") and visible_sortie:
+            if sortie.get("escalier"):
                 vers = sortie.get("vers")
                 monte = salles.get(vers, {}).get("niveau", 0) > salles[source].get("niveau", 0)
                 symbole = "^" if monte else "v"
