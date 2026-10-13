@@ -295,9 +295,23 @@ class DefiRelaisTests(unittest.TestCase):
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
         self.assertEqual(appel.call_count, 2)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Tu ne parviens pas à lire la consigne émaillée", reponse["texte"])
+        self.assertIn("Tu ne peux pas lire la consigne émaillée", reponse["texte"])
         self.assertIn("la lumière est insuffisante", reponse["texte"])
         self.assertIn("La torche n'a plus de combustible", reponse["texte"])
+        self.assertEqual(self.m.data, avant)
+
+    def test_double_refus_pour_coffre_eloigne_ne_raconte_pas_une_tentative(self):
+        avant = copy.deepcopy(self.m.data)
+        ouvrir = {"mode": "action", "texte": "", "faits": [],
+                  "proposition": proposition("ouvrir", "coffre")}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler", side_effect=[ouvrir, ouvrir]) as appel:
+            reponse = mj.echanger(self.m, "j'ouvre le coffre d'entretien")
+        self.assertEqual(appel.call_count, 2)
+        self.assertEqual(reponse["mode"], "dialogue")
+        self.assertIn("Tu ne peux pas ouvrir", reponse["texte"])
+        self.assertIn("inaccessible depuis ici", reponse["texte"])
+        self.assertNotIn("Tu ne parviens pas", reponse["texte"])
         self.assertEqual(self.m.data, avant)
 
     def test_attendre_seul_ne_remplace_pas_l_action_refusee(self):

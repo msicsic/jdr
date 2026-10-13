@@ -357,15 +357,15 @@ SCHEMA = {
 
 
 def expliquer_refus(monde, premier, dernier):
-    """Garde le motif initial lorsqu'une correction échoue à son tour."""
+    """Explique les obstacles sans raconter une action que le moteur n'a pas exécutée."""
     action = premier[0].get("action", "")
     cible = monde.objets.get(premier[0].get("cible", ""))
     verbes = {"crocheter": "crocheter", "lire": "lire", "copier": "copier",
               "detacher": "détacher", "deverrouiller": "déverrouiller",
               "ouvrir": "ouvrir", "installer": "installer", "franchir": "franchir",
               "prendre": "prendre", "allumer": "allumer", "eteindre": "éteindre"}
-    debut = ("Tu ne parviens pas à " + verbes[action] + " " + designer(cible)
-             if cible and action in verbes else "Ta tentative n'aboutit pas")
+    debut = ("Tu ne peux pas " + verbes[action] + " " + designer(cible)
+             if cible and action in verbes else "Tu ne peux pas faire cela ainsi")
     motifs = list(dict.fromkeys(m.strip().rstrip(".") for _, m in (premier, dernier) if m.strip()))
     if not motifs:
         return debut + "."
