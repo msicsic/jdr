@@ -377,6 +377,33 @@ def champ_visible(m):
     return vus
 
 
+def murs_visibles(m, champ=None):
+    """Murs vus depuis la position actuelle, sans déduire les contours du plan caché."""
+    champ = champ_visible(m) if champ is None else champ
+    if not champ:
+        return {}
+    salles = _salles_relies(m, m.joueur["salle"])
+    terrain, opaques = _globales(m, salles)
+    origine = _global(m.data["salles"][m.joueur["salle"]], m.joueur["position"])
+    rayon = rayon_vision(m)
+    vus = {}
+    for salle, x, y in champ:
+        if salle not in salles:
+            continue
+        ox, oy = m.data["salles"][salle]["plan"]["origine"]
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            cible = ox + x + dx, oy + y + dy
+            if (cible in terrain or
+                    max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > rayon):
+                continue
+            terrain[cible] = None
+            visible = _los_global(m, origine, cible, terrain, opaques)
+            del terrain[cible]
+            if visible:
+                vus.setdefault(salle, set()).add((x + dx, y + dy))
+    return vus
+
+
 def memoriser(m):
     from .carte import objets_visibles_cases, symbole_objet_cases, symbole_porte_cases
     from .francais import designer
@@ -394,6 +421,13 @@ def memoriser(m):
     position_joueur = list(m.joueur["position"])
     if position_joueur not in exploration[salle_joueur]:
         exploration[salle_joueur].append(position_joueur)
+
+    murs = m.data.setdefault("murs_memorises", {})
+    for salle, positions in murs_visibles(m, champ).items():
+        connues = {tuple(p) for p in murs.setdefault(salle, [])}
+        for x, y in sorted(positions):
+            if (x, y) not in connues:
+                murs[salle].append([x, y])
 
     souvenirs = m.data.setdefault("souvenirs_visuels", {})
     observations = {objet["id"]: {
@@ -551,6 +585,19 @@ def verifier(m):
                     or tuple(position) not in cases(m.data["salles"][salle])
                     or tuple(position) in connues):
                 raise AssertionError(f"Case mémorisée invalide : {salle}/{position}")
+            connues.add(tuple(position))
+    murs = m.data.get("murs_memorises", {})
+    if not isinstance(murs, dict):
+        raise AssertionError("Mémoire des murs invalide")
+    for salle, positions in murs.items():
+        if salle not in m.data["salles"] or not isinstance(positions, list):
+            raise AssertionError(f"Mémoire des murs invalide : {salle}")
+        connues = set()
+        for position in positions:
+            if (not isinstance(position, list) or len(position) != 2
+                    or any(type(v) is not int or abs(v) > 200 for v in position)
+                    or tuple(position) in connues):
+                raise AssertionError(f"Mur mémorisé invalide : {salle}/{position}")
             connues.add(tuple(position))
     souvenirs = m.data.get("souvenirs_visuels", {})
     if not isinstance(souvenirs, dict):

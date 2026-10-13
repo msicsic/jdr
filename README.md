@@ -37,6 +37,9 @@ légère alternance de teinte laisse compter les pas. La console conserve `.` po
 visible et `:` pour le terrain mémorisé.
 Les murs sont des blocs `##`, y compris dans les angles. `+` désigne uniquement une porte
 fermée, `X` une porte verrouillée et `/` une porte ouverte dans ce mode.
+Seuls les murs effectivement aperçus sont mémorisés. Une case parcourue dans le noir ne
+révèle pas à elle seule les murs voisins ; les murs déjà vus restent dessinés. Les dimensions
+d'une pièce n'apparaissent qu'une fois tout son sol exploré.
 Les lieux encore inconnus restent blancs. Les niveaux explorés restent affichés ensemble ;
 une échelle installée porte le même repère `H1` à ses deux extrémités. Un objet déjà vu
 hors du champ de vision garde son symbole à sa dernière position observée, en gris bleuté
@@ -54,6 +57,12 @@ encore des niveaux par pièce ; la ligne de vue et les obstacles sont calculés 
 Les touches de déplacement, les collisions, la visibilité et les commandes locales sont
 entièrement déterministes et ne consomment aucun appel au LLM. Le MJ reçoit les objets
 perceptibles et leur portée, puis le moteur vérifie aussi ses propositions d'action.
+Les objectifs de chaque partie sont déclarés dans son état ; le moteur n'exige plus les
+objets historiques de la crypte pour résoudre une action. `nouveau_monde_libre` crée une
+aventure à partir de ses propres salles, objets, départ, prémisse et objectif. Le Relais
+existant réutilise encore le contenu de la crypte pendant sa construction. Le prochain
+contrat de narration et de paroles des PNJ est décrit dans
+[docs/contrat-mj.md](docs/contrat-mj.md).
 
 Les lanceurs du donjon et de l'atelier activent également ce mode. En ligne de commande :
 

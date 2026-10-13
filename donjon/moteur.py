@@ -349,9 +349,8 @@ class Moteur:
                 lignes.append(pnj["nom"] + " semble " + humeur + ".")
             pnj["humeur"] = humeur
         travail.actualiser_souvenirs_personnages()
-        if travail.data.get("defi_relais"):
-            from .defi import actualiser
-            actualiser(travail, lignes)
+        from .objectifs import actualiser as actualiser_objectif
+        actualiser_objectif(travail, lignes)
         if travail.data.get("mode_cases"):
             from .spatial import memoriser
             memoriser(travail)
@@ -530,18 +529,19 @@ class Moteur:
 
     @staticmethod
     def _stabiliser(m, lignes):
-        porte = m.objets["porte"]
-        axes = [m.objets[i] for i in ("axe_haut", "axe_bas")]
-        for axe in axes:
-            if axe["integrite"] == 0 and axe["attache"]:
-                axe["attache"], axe["lieu"] = False, m.joueur["salle"]
-        if not any(a["attache"] for a in axes) and not porte["detachee"]:
-            porte["detachee"] = True
-            lignes.append("Sans ses deux axes, le battant bascule hors du cadre. Le passage est libre.")
-        if porte["integrite"] == 0 or porte["detachee"]:
-            porte["ouverte"], porte["verrouillee"] = True, False
-            if porte["bloque_par"]:
-                Moteur._appliquer(m, ("decaler", "porte", m.joueur["salle"]), lignes)
+        for porte in (o for o in m.objets.values() if o["type"] == "porte"):
+            fixations = [m.objets[id] for id in porte.get("fixations", []) if id in m.objets]
+            for fixation in fixations:
+                if fixation["integrite"] == 0 and fixation.get("attache"):
+                    fixation["attache"], fixation["lieu"] = False, m.joueur["salle"]
+            if (porte.get("fixations") and not any(f.get("attache") for f in fixations)
+                    and not porte.get("detachee")):
+                porte["detachee"] = True
+                lignes.append("Sans ses fixations, " + designer(porte) + " bascule hors du cadre. Le passage est libre.")
+            if porte["integrite"] == 0 or porte.get("detachee"):
+                porte["ouverte"], porte["verrouillee"] = True, False
+                if porte.get("bloque_par"):
+                    Moteur._appliquer(m, ("decaler", porte["id"], m.joueur["salle"]), lignes)
         for o in list(m.objets.values()):
             if o["type"] == "contenant" and o["integrite"] == 0:
                 o["ouverte"], o["verrouillee"] = True, False
@@ -550,6 +550,3 @@ class Moteur:
                     if o["lieu"] in m.data["salles"]:
                         placer(enfant, o["lieu"], position_objet(m, o))
                     lignes.append(designer(enfant, debut=True) + " tombe au sol.")
-        if m.objets["anneau"]["lieu"] == "joueur" and not m.data.get("objectif_atteint"):
-            m.data["objectif_atteint"] = True
-            lignes.append("OBJECTIF ATTEINT : vous avez retrouvé l'anneau du veilleur. L'exploration reste ouverte.")

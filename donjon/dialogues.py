@@ -23,6 +23,8 @@ def installer(monde):
     d.setdefault("dialogues_pnj", {})
     d.setdefault("finances_pnj", {})
     d.setdefault("missions", {})
+    if d.get("scenario_id") == "libre":
+        return
     if d.get("dialogues_version") == 1:
         return
     d["finances_pnj"].setdefault("marchand", 50)

@@ -163,7 +163,7 @@ def _carte_ancienne(monde):
 
 def _carte_cases(monde):
     """Carte métrique fondée sur la vision courante et les cases mémorisées."""
-    from .spatial import champ_visible, position_cible, sortie_visible
+    from .spatial import champ_visible, murs_visibles, position_cible, sortie_visible
 
     salles = monde.data["salles"]
     exploration = monde.data.get("exploration", {})
@@ -263,21 +263,19 @@ def _carte_cases(monde):
             largeur = max((len(row) for row in piece.get("plan", {}).get("sol", [])), default=0)
             hauteur = len(piece.get("plan", {}).get("sol", []))
             if salle in monde.data.get("visitees", []) or salle == joueur_salle:
-                details_salles.append(f'{repere} : {piece["nom"]} ({largeur} x {hauteur} m)')
+                dimensions = (f" ({largeur} x {hauteur} m)"
+                              if cases(piece).issubset(connu) else "")
+                details_salles.append(f'{repere} : {piece["nom"]}{dimensions}')
 
-        # Draw only known boundary walls. Unexplored cells that are actually
-        # floor remain blank; consulting their floor mask here never renders them.
-        sols_connus = set(dessin)
-        sols_reels_niveau = set()
-        for id_salle, piece_reelle in salles.items():
-            if piece_reelle.get("niveau", 0) != niveau:
-                continue
-            rx, ry = piece_reelle["plan"]["origine"]
-            sols_reels_niveau.update((rx + x, ry + y) for x, y in cases(piece_reelle))
-        murs = {(x + dx, y + dy) for x, y in sols_connus
-                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))} - sols_connus - sols_reels_niveau
-        for x, y in murs:
-            dessin[x, y] = "##"
+        # Les murs sont des observations persistées, jamais déduites du sol caché.
+        murs = {s: {tuple(p) for p in coords}
+                for s, coords in monde.data.get("murs_memorises", {}).items() if s in salles}
+        for salle, positions in murs_visibles(monde, champ).items():
+            murs.setdefault(salle, set()).update(positions)
+        for salle in salles_etage:
+            ox, oy = salles[salle]["plan"]["origine"]
+            for x, y in murs.get(salle, set()):
+                dessin.setdefault((ox + x, oy + y), "##")
         souvenirs_niveau = []
         seuils_visibles = set()
         portes_souvenues_positions = set()

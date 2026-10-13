@@ -191,6 +191,25 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertIn("@ ^", plan)
         self.assertIn("v ", plan)
 
+    def test_action_du_relais_sans_objets_historiques_de_la_crypte(self):
+        for id in ("porte", "axe_haut", "axe_bas", "serrure", "anneau"):
+            del self.m.objets[id]
+        for salle in self.m.data["salles"].values():
+            for sortie in salle["sorties"].values():
+                if sortie.get("porte") == "porte":
+                    sortie["porte"] = None
+        self.m.verifier()
+        self.agir("attendre")
+        self.assertEqual(self.m.data["revision"], 1)
+        self.assertFalse(self.m.data.get("objectif_atteint"))
+
+    def test_ancienne_sauvegarde_du_relais_retrouve_son_objectif(self):
+        donnees = copy.deepcopy(self.m.data)
+        donnees.pop("objectif_partie")
+        reprise = Monde(donnees)
+        self.assertEqual(reprise.data["objectif_partie"]["objet"], "cloche")
+        self.assertEqual(reprise.data["objectif_partie"]["salle"], REFUGE)
+
     def test_mj_recoit_la_manoeuvre_pour_monter_une_echelle_libre(self):
         self.marcher_jusqua((7, 3))
         manoeuvre = next(x for x in dossier_atelier(self.m)["manoeuvres"]
@@ -295,7 +314,8 @@ class DefiRelaisTests(unittest.TestCase):
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
         self.assertEqual(appel.call_count, 2)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Tu ne peux pas lire la consigne émaillée", reponse["texte"])
+        self.assertIn("Ce geste n'est pas possible dans ces conditions", reponse["texte"])
+        self.assertTrue(reponse["_validation_refusee"])
         self.assertIn("la lumière est insuffisante", reponse["texte"])
         self.assertIn("La torche n'a plus de combustible", reponse["texte"])
         self.assertEqual(self.m.data, avant)
@@ -309,7 +329,8 @@ class DefiRelaisTests(unittest.TestCase):
             reponse = mj.echanger(self.m, "j'ouvre le coffre d'entretien")
         self.assertEqual(appel.call_count, 2)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Tu ne peux pas ouvrir", reponse["texte"])
+        self.assertIn("Ce geste n'est pas possible dans ces conditions", reponse["texte"])
+        self.assertTrue(reponse["_validation_refusee"])
         self.assertIn("inaccessible depuis ici", reponse["texte"])
         self.assertNotIn("Tu ne parviens pas", reponse["texte"])
         self.assertEqual(self.m.data, avant)

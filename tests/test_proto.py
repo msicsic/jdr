@@ -10,7 +10,7 @@ import urllib.error
 from donjon.commandes import analyser
 from donjon.config import charger_env
 from donjon.mj import MJOpenAI
-from donjon.monde import ErreurMonde, Monde, nouveau_monde
+from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import carte, decrire, regarder
 
@@ -103,6 +103,25 @@ class MondeEtReglesTests(unittest.TestCase):
         self.assertIn("x", carte(self.m))
         with self.assertRaises(ErreurMonde):
             self.agir("fermer porte")
+
+    def test_stabilisation_utilise_les_fixations_de_chaque_porte(self):
+        self.m.objets["herse"] = objet("herse", "herse", "porte", "antichambre",
+                                       ouverte=False, verrouillee=True, detachee=False,
+                                       bloque_par=None, relie=[], fixations=["cheville"])
+        self.m.objets["cheville"] = objet("cheville", "cheville", "fixation", "joueur",
+                                          attache=False, mobile=True)
+        self.moteur.executer(self.moteur.preparer(proposition("attendre")))
+        self.assertTrue(self.m.objets["herse"]["detachee"])
+        self.assertTrue(self.m.objets["herse"]["ouverte"])
+        self.assertFalse(self.m.objets["herse"]["verrouillee"])
+
+    def test_ancienne_partie_retrouve_son_objectif_declare(self):
+        data = copy.deepcopy(self.m.data)
+        data.pop("objectif_partie")
+        data["objets"]["porte"].pop("fixations")
+        reprise = Monde(data)
+        self.assertEqual(reprise.objets["porte"]["fixations"], ["axe_haut", "axe_bas"])
+        self.assertEqual(reprise.data["objectif_partie"]["objet"], "anneau")
 
     def test_acces_aux_axes_depuis_un_seul_cote(self):
         self.ouvrir_porte()

@@ -356,16 +356,9 @@ SCHEMA = {
 }
 
 
-def expliquer_refus(monde, premier, dernier):
+def expliquer_refus(premier, dernier):
     """Explique les obstacles sans raconter une action que le moteur n'a pas exécutée."""
-    action = premier[0].get("action", "")
-    cible = monde.objets.get(premier[0].get("cible", ""))
-    verbes = {"crocheter": "crocheter", "lire": "lire", "copier": "copier",
-              "detacher": "détacher", "deverrouiller": "déverrouiller",
-              "ouvrir": "ouvrir", "installer": "installer", "franchir": "franchir",
-              "prendre": "prendre", "allumer": "allumer", "eteindre": "éteindre"}
-    debut = ("Tu ne peux pas " + verbes[action] + " " + designer(cible)
-             if cible and action in verbes else "Tu ne peux pas faire cela ainsi")
+    debut = "Ce geste n'est pas possible dans ces conditions"
     motifs = list(dict.fromkeys(m.strip().rstrip(".") for _, m in (premier, dernier) if m.strip()))
     if not motifs:
         return debut + "."
@@ -494,8 +487,8 @@ class MJOpenAI:
                     self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                       "revision": revision, "tentative": tentative + 1, **retour})
                 if correction_utilisee:
-                    return {"mode": "dialogue", "texte": expliquer_refus(monde, premier_refus, dernier_refus),
-                            "faits": [], "proposition": None}
+                    return {"mode": "dialogue", "texte": expliquer_refus(premier_refus, dernier_refus),
+                            "faits": [], "proposition": None, "_validation_refusee": True}
                 correction_utilisee = True
                 reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
         if reponse["mode"] == "enrichir_joueur":

@@ -357,7 +357,8 @@ def main(argv=None, interface=None):
                                 mj.noter_savoirs(reponse["texte"], ajout["proposition"])
                             continue
                         imprimer(reponse["texte"])
-                        m.memoriser(texte, reponse["texte"])
+                        m.memoriser(texte, reponse["texte"],
+                                   "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
                         m.sauver(args.save)
                         continue
                     p = reponse["proposition"]

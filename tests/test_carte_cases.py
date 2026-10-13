@@ -15,6 +15,30 @@ class CarteCasesTests(unittest.TestCase):
         self.monde = nouveau_monde()
         installer(self.monde)
 
+    def test_noir_ne_revele_pas_les_murs_inconnus(self):
+        self.monde.objets["lanterne"]["allume"] = False
+        self.monde.objets["brasero"]["allume"] = False
+        self.monde.data["exploration"] = {salle: [] for salle in self.monde.data["salles"]}
+        self.monde.data["exploration"][self.monde.joueur["salle"]] = [list(self.monde.joueur["position"])]
+        self.monde.data["murs_memorises"] = {}
+        plan = carte(self.monde).split("=== LEGENDE ===")[0]
+        self.assertIn("@", plan)
+        self.assertNotIn("##", plan)
+        self.assertNotIn(" x ", carte(self.monde).split("=== LEGENDE ===")[1])
+
+    def test_murs_vus_restent_memorises_apres_extinction_et_rechargement(self):
+        murs = self.monde.data["murs_memorises"]
+        self.assertTrue(murs["antichambre"])
+        self.monde.objets["lanterne"]["allume"] = False
+        plan = carte(self.monde).split("=== LEGENDE ===")[0]
+        self.assertIn("##", plan)
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            chemin = Path(dossier) / "murs.json"
+            self.monde.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        self.assertEqual(reprise.data["murs_memorises"], murs)
+        self.assertIn("##", carte(reprise).split("=== LEGENDE ===")[0])
+
     def test_memorise_terrain_visible_objets_et_salles_inconnues(self):
         salle = self.monde.joueur["salle"]
         self.monde.data["exploration"][salle] = [[1, 2], [2, 2], [3, 2]]

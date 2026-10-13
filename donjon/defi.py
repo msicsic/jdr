@@ -188,6 +188,10 @@ def nouveau_defi(seed=1985):
     m.data["defi_relais"] = {"id": "relais_des_crues", "refuge": REFUGE,
                              "objet": "cloche", "objectif": OBJECTIF}
     m.data["defi"] = m.data["defi_relais"]
+    m.data["objectif_partie"] = {
+        "objet": "cloche", "lieu": "joueur", "salle": REFUGE,
+        "message": "OBJECTIF ATTEINT : la cloche est de retour au refuge. Le relais peut donner l'alarme.",
+    }
     m.data.pop("objectif_atteint", None)
     m.verifier()
     return m
@@ -195,12 +199,5 @@ def nouveau_defi(seed=1985):
 
 def actualiser(m, lignes):
     """Valide la victoire uniquement avec la cloche portée au refuge."""
-    defi = m.data.get("defi", {})
-    cible = defi.get("objet", "cloche")
-    refuge = defi.get("refuge", REFUGE)
-    if (m.joueur["salle"] == refuge and cible in m.objets
-            and m.objets[cible]["lieu"] == "joueur"):
-        if not m.data.get("objectif_atteint"):
-            m.data["objectif_atteint"] = True
-            lignes.append("OBJECTIF ATTEINT : la cloche est de retour au refuge. Le relais peut donner l'alarme.")
-    return bool(m.data.get("objectif_atteint"))
+    from .objectifs import actualiser as actualiser_objectif
+    return actualiser_objectif(m, lignes)

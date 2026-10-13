@@ -35,7 +35,7 @@ def installer(monde):
             d["sujets_savoirs_pnj"].setdefault(id, copy.deepcopy(SUJETS))
     if d.get("savoirs_version") == 1:
         return
-    if "marchand" in d["savoirs_pnj"]:
+    if "marchand" in d["savoirs_pnj"] and d.get("scenario_id") != "libre":
         connus = d["savoirs_pnj"]["marchand"]
         connus.setdefault("porte_crypte", {
             "texte": "Gorm connaît la porte de chêne au nord de l'antichambre. Une trousse de crochets "

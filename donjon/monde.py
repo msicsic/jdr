@@ -34,7 +34,8 @@ def nouveau_monde(seed=1985):
         objet("porte", "porte de la crypte", "porte", "antichambre",
               aliases=["porte", "battant"], materiau="chêne", masse=80,
               integrite=30, maximum=30, relie=["antichambre", "crypte"],
-              ouverte=False, verrouillee=True, detachee=False, bloque_par=None),
+              ouverte=False, verrouillee=True, detachee=False, bloque_par=None,
+              fixations=["axe_haut", "axe_bas"]),
         objet("gravure", "gravure du chevalier", "motif", "porte",
               aliases=["gravure", "runes", "inscription"], materiau="chêne",
               motif="Un chevalier agenouillé tend une clé à une silhouette couronnée.",
@@ -106,6 +107,20 @@ def nouveau_monde(seed=1985):
     })
 
 
+def nouveau_monde_libre(salles, objets, salle_depart, position, scenario, objectif=None, seed=1985):
+    """Crée une aventure sans les lieux, personnages ni objets de la crypte."""
+    return Monde({
+        "version": 1, "seed": seed, "jets": 0, "revision": 0, "minutes": 0,
+        "bruit": 0, "visitees": [salle_depart], "connus": [], "lus": [],
+        "journal": [], "arbitrages": {}, "scenario_id": "libre", "geometrie_version": 1,
+        "joueur": {"nom": "Corvus", "salle": salle_depart, "position": list(position),
+                   "pv": 18, "pv_max": 18, "or": 0, "capacite": 12,
+                   "stats": {"FOR": 12, "DEX": 16, "INT": 14, "PER": 12, "CHA": 12}},
+        "salles": copy.deepcopy(salles), "objets": copy.deepcopy(objets),
+        "scenario": copy.deepcopy(scenario), "objectif_partie": copy.deepcopy(objectif),
+    })
+
+
 class Monde:
     def __init__(self, data):
         self.data = data
@@ -113,6 +128,11 @@ class Monde:
         installer_profil(self)
         self._installer_eclairage()
         self._installer_recit()
+        # Relation explicite pour les parties créées avant les fixations déclarées.
+        if "porte" in self.objets and "fixations" not in self.objets["porte"]:
+            self.objets["porte"]["fixations"] = [id for id in ("axe_haut", "axe_bas") if id in self.objets]
+        from .objectifs import installer as installer_objectif
+        installer_objectif(self)
         self._installer_personnages()
         from .dialogues import installer as installer_dialogues
         installer_dialogues(self)
@@ -160,6 +180,8 @@ class Monde:
     def _installer_personnages(self):
         """Portrait d'auteur et souvenir de la rencontre établie dans la prémisse."""
         self.data.setdefault("souvenirs_personnages", {})
+        if self.data.get("scenario_id") == "libre":
+            return
         if self.data.get("personnages_version") == 1:
             return
         gorm = self.objets["marchand"]
@@ -218,6 +240,9 @@ class Monde:
         for salle in self.data["salles"].values():
             salle.setdefault("fenetres", 0)
             salle.setdefault("lumiere_naturelle", 0)
+        if self.data.get("scenario_id") == "libre":
+            self.data["eclairage_version"] = 1
+            return
         for o in (
             objet("lanterne", "lanterne", "luminaire", "joueur", aliases=["lampe"],
                   materiau="fer et verre", mobile=True, masse=0.8,
@@ -435,6 +460,8 @@ class Monde:
             verifier_savoirs(self)
             from .vol import verifier as verifier_vol
             verifier_vol(self)
+            from .objectifs import verifier as verifier_objectif
+            verifier_objectif(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"
             assert d["joueur"]["salle"] in d["salles"], "Salle inconnue"
             assert d["joueur"]["or"] >= 0, "Or négatif"
