@@ -115,14 +115,6 @@ class MondeEtReglesTests(unittest.TestCase):
         self.assertTrue(self.m.objets["herse"]["ouverte"])
         self.assertFalse(self.m.objets["herse"]["verrouillee"])
 
-    def test_ancienne_partie_retrouve_son_objectif_declare(self):
-        data = copy.deepcopy(self.m.data)
-        data.pop("objectif_partie")
-        data["objets"]["porte"].pop("fixations")
-        reprise = Monde(data)
-        self.assertEqual(reprise.objets["porte"]["fixations"], ["axe_haut", "axe_bas"])
-        self.assertEqual(reprise.data["objectif_partie"]["objet"], "anneau")
-
     def test_acces_aux_axes_depuis_un_seul_cote(self):
         self.ouvrir_porte()
         self.agir("nord")

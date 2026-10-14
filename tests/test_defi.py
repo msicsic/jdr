@@ -203,13 +203,6 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertEqual(self.m.data["revision"], 1)
         self.assertFalse(self.m.data.get("objectif_atteint"))
 
-    def test_ancienne_sauvegarde_du_relais_retrouve_son_objectif(self):
-        donnees = copy.deepcopy(self.m.data)
-        donnees.pop("objectif_partie")
-        reprise = Monde(donnees)
-        self.assertEqual(reprise.data["objectif_partie"]["objet"], "cloche")
-        self.assertEqual(reprise.data["objectif_partie"]["salle"], REFUGE)
-
     def test_mj_recoit_la_manoeuvre_pour_monter_une_echelle_libre(self):
         self.marcher_jusqua((7, 3))
         manoeuvre = next(x for x in dossier_atelier(self.m)["manoeuvres"]

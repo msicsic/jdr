@@ -91,6 +91,10 @@ def nouveau_monde(seed=1985):
         "version": 1, "seed": seed, "jets": 0, "revision": 0, "minutes": 0,
         "bruit": 0, "visitees": ["antichambre"], "connus": [], "lus": [],
         "journal": [], "arbitrages": {},
+        "objectif_partie": {
+            "objet": "anneau", "lieu": "joueur",
+            "message": "OBJECTIF ATTEINT : vous avez retrouvé l'anneau du veilleur. L'exploration reste ouverte.",
+        },
         "joueur": {"nom": "Corvus", "salle": "antichambre", "pv": 18,
                     "pv_max": 18, "or": 24, "capacite": 12,
                     "stats": {"FOR": 12, "DEX": 16, "INT": 14, "PER": 12, "CHA": 12}},
@@ -128,11 +132,6 @@ class Monde:
         installer_profil(self)
         self._installer_eclairage()
         self._installer_recit()
-        # Relation explicite pour les parties créées avant les fixations déclarées.
-        if "porte" in self.objets and "fixations" not in self.objets["porte"]:
-            self.objets["porte"]["fixations"] = [id for id in ("axe_haut", "axe_bas") if id in self.objets]
-        from .objectifs import installer as installer_objectif
-        installer_objectif(self)
         self._installer_personnages()
         from .dialogues import installer as installer_dialogues
         installer_dialogues(self)
