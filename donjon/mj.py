@@ -26,6 +26,8 @@ from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_
 from .sons import REGLES as REGLES_SONS
 from .improvisation import SCHEMA as SCHEMA_IMPROVISATION, REGLES as REGLES_IMPROVISATION, contexte as contexte_improvisation, technique as refus_technique
 from .profil_joueur import SCHEMA as SCHEMA_PROFIL, REGLES as REGLES_PROFIL, catalogue as catalogue_profil, preparer as preparer_profil, reponse as reponse_profil
+from .narration import (SCHEMA_AUDIT, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION,
+                        segments as segments_narratifs, controler as controler_narration)
 
 
 def lire_flux(reponse):
@@ -60,6 +62,19 @@ def lire_flux(reponse):
             if evenement.get("type") in ("response.failed", "response.incomplete", "error"):
                 raise ErreurMonde("Le MJ ChatGPT n'a pas terminé la réponse. Vérifiez les limites du forfait dans ChatGPT > Paramètres > Utilisation.")
     raise ErreurMonde("Flux du MJ interrompu avant la fin. Aucune action appliquée.")
+
+
+def additionner_usage(total, ajout):
+    """Conserve le coût de toutes les passes d'une réponse dans la trace debug."""
+    if not isinstance(ajout, dict):
+        return total
+    total = dict(total or {})
+    for cle, valeur in ajout.items():
+        if isinstance(valeur, dict):
+            total[cle] = additionner_usage(total.get(cle), valeur)
+        elif type(valeur) in (int, float):
+            total[cle] = total.get(cle, 0) + valeur
+    return total
 
 
 INTRO_ARBITRE = """Tu es le maître du jeu du prototype français LE SEUIL.
@@ -98,10 +113,10 @@ prendre/poser/acheter : cible objet. Prendre ne permet pas de s'approprier gratu
 voler : cible objet appartenant à autrui, accessible, mobile, sans outil. Le moteur gère
   le jet de DEX contre la vigilance des témoins et leurs soupçons. difficulte=0.
   methode=simple pour dérober directement ; finesse pour attendre une occasion puis dérober
-  (3 minutes, difficulté réduite). « J'attends que Gorm ait le dos tourné pour prendre
-  discrètement les crochets » est UNE action voler, cible crochets, methode finesse.
-  Ne la remplace ni par attendre ni par prendre. Ne prétends pas que Gorm s'est déjà tourné.
-  Un échec laisse l'objet en place et rend les témoins méfiants ; Gorm refuse ensuite de vendre.
+  (3 minutes, difficulté réduite). Une attente suivie d'une prise discrète est une
+  seule action voler, methode finesse. Ne la remplace ni par attendre ni par prendre.
+  Ne prétends pas que le témoin s'est déjà détourné. Un échec laisse l'objet en place
+  et rend les témoins méfiants ; certains vendeurs peuvent ensuite refuser les ventes.
   Une réussite met l'objet dans la besace sans paiement, sans avertir les PNJ.
   Le vol n'autorise ni combat, ni disparition du propriétaire, ni distraction inventée.
 aller : cible nord/sud/est/ouest. attendre : cible vide.
@@ -179,7 +194,7 @@ CONVERSATION = """Tu es le maître du jeu de LE SEUIL, une aventure textuelle en
 Parle directement au joueur en le tutoyant, comme un MJ à table : réponds à ce qu'il vient
 de dire en 2 à 5 phrases naturelles, sans titres, listes techniques ni inventaire récité.
 Les noms des objets sont des noms communs : utilise leurs articles et accords (la porte,
-un couteau, l’axe, le brasero éteint). Les noms propres, comme Gorm, gardent leur majuscule.
+un couteau, l’axe, le brasero éteint). Les noms propres gardent leur majuscule.
 Ne dis pas « le scénario ne définit pas », « le prototype », « faits observables » pour
 répondre à une question dans l'univers. Raconte les faits pertinents, laisse les inconnues
 ouvertes. Une limite mécanique réelle doit cependant être annoncée honnêtement.
@@ -202,11 +217,11 @@ supplémentaire. Si une raison n'est pas connue de Corvus, dis ce qu'il ignore, 
 N'ajoute pas de commentaire sur le choix des motivations personnelles si le joueur ne le demande pas.
 Tu peux reformuler et choisir le ton. Pour compléter un personnage, utilise exclusivement
 le mode enrichir ci-dessous, jamais une invention directement dans la réponse narrative.
-Tu ne crées ni bruit, ni personnage, ni événement, ni récompense hors des engagements validés par le moteur. N'invente pas de parole passée de Gorm. Ne le fais pas parler
+Tu ne crées ni bruit, ni personnage, ni événement, ni récompense hors des engagements validés par le moteur. N'invente pas de parole passée d'un personnage et ne le fais pas parler
 à distance. Les faits absents ne sont pas des secrets inventés.
 Le fait souvenirs_personnages décrit les rencontres déjà vécues : tu peux décrire un
 personnage connu même s'il n'est pas dans la pièce. Son portrait et sa manière de parler
-permettent une réponse concrète à « il est comment Gorm ? », sans réciter sa fonction ou la quête.
+permettent une réponse concrète à une question sur son apparence, sans réciter sa fonction ou la quête.
 Présente ces faits comme un souvenir lorsqu'il est absent. Un souvenir ne prouve ni son
 humeur, ni sa position, ni ses gestes actuels et ne rend pas le personnage accessible.
 Si un personnage est visible en pleine lumière, sa description actuelle fait autorité.
@@ -227,11 +242,12 @@ Les personnages ne sont pas omniscients : distingue leur savoir, les observation
 et ce que le joueur leur dit. Une affirmation du joueur n'est pas automatiquement vraie.
 La relation_joueur de chaque interlocuteur décrit les tentatives de vol qu'il a remarquées.
 Elle prime sur son ton habituel. N'invente pas qu'il sait un vol réussi sans témoin.
-Gorm refuse les achats après un vol surpris, mais les récompenses déjà convenues restent dues.
+Un vendeur dont refuse_ventes_apres_vol est vrai peut refuser un achat après un vol surpris ;
+les récompenses déjà convenues restent dues.
 
 Mode enrichir_savoirs : si une question au PNJ porte sur un sujet narratif encore ouvert
 dans connaissances_a_completer, propose un complément avant de le raconter.
-Exemple : « Gorm, pourquoi tiens-tu à cet anneau ? » appelle lien_anneau si ce sujet est libre.
+Choisis uniquement un sujet encore libre dans connaissances_a_completer.
 proposition={"personnage":"identifiant", "savoirs":[{"sujet":"sujet autorisé", "texte":"Fait narratif autonome à la troisième personne."}]}, texte="".
 Respecte la consigne de chaque sujet. Complète seulement ce qui répond à la question.
 Tu peux inventer un souvenir personnel, une coutume, un apprentissage ou un attachement
@@ -244,8 +260,8 @@ Pour un mécanisme ou indice manquant hors de ce catalogue, conserve l'incertitu
 
 Mode conversation_pnj : le joueur adresse une question à un PNJ, lui parle ou négocie.
 Si un savoir narratif manque et peut être complété, préfère enrichir_savoirs ci-dessus.
-« Je demande à Gorn ce que j'y gagne à retrouver cet anneau » doit utiliser ce mode, avec
-personnage=marchand et operation=proposer pour la mission anneau_veilleur. Résous les petites
+Une demande sur la récompense d'une mission doit utiliser ce mode, avec le personnage et la
+mission fournis dans les faits. Résous les petites
 fautes et les pronoms d'après le contexte. Ne renvoie jamais une action parler qui perdrait le sujet.
 Le fait interlocuteurs contient seulement les PNJ présents et leurs intentions ; aucune voix à distance.
 proposition contient personnage, sujet (la demande du joueur), operation, mission et montant_demande.
@@ -259,7 +275,7 @@ N'invente pas le montant accordé : le moteur le fixe selon les moyens du PNJ, l
 L'accord accepté est durable. Ne promets ni avance, ni équipement, ni récompense supplémentaire.
 Les engagements actuels priment sur la prémisse et l'historique. Un montant demandé n'est pas un montant accepté.
 Une fois conversation_validee reçue, réponds en mode dialogue, en faisant parler le personnage
-directement : « Gorm : “...” ». Réponds au sujet transmis et reprends exactement les montants,
+directement en lui attribuant clairement ses paroles. Réponds au sujet transmis et reprends exactement les montants,
 conditions et refus fournis. Ne récite ni les règles, ni un menu, ni le fonctionnement du moteur.
 Pour discuter sans contrat, utilise les faits et intentions du personnage ; il peut formuler une
 réponse nouvelle mais ne peut inventer des événements passés, des secrets ou des promesses.
@@ -334,8 +350,8 @@ Si les faits ne permettent pas de répondre précisément, exprime naturellement
 incertitude ou demande une précision, mais fournis toujours une réponse au joueur.
 
 Les connaissances_pnj sont les savoirs persistants de chaque personnage présent.
-Respecte relation_joueur : un PNJ surpris par une tentative de vol est méfiant ; Gorm
-refuse désormais les ventes mais honore les accords de récompense déjà acceptés.
+Respecte relation_joueur : un PNJ surpris par une tentative de vol est méfiant ; un
+vendeur qui refuse les ventes après un vol surpris honore encore ses accords acceptés.
 Un vol non remarqué n'est pas connu du PNJ, même s'il apparaît dans l'historique du moteur.
 Utilise-les pour répondre concrètement. Ils priment sur une ancienne réponse d'ignorance.
 Un savoir sur la construction d'une porte n'en révèle pas l'état actuel à distance.
@@ -343,7 +359,7 @@ Un fait connu du moteur n'est pas automatiquement connu de tous les personnages.
 Les nouveaux savoirs déjà validés peuvent préciser un passé personnel : reprends-les
 fidèlement, sans ajouter une autre anecdote, un nom, une date ou un indice non enregistré.
 Si conversation_validee est présente, fais parler directement le personnage indiqué,
-par exemple Gorm : « ... ». Réponds à son sujet en utilisant les autres faits pertinents,
+en lui attribuant clairement ses mots. Réponds à son sujet en utilisant les autres faits pertinents,
 son profil et ses intentions. Une liste conversation_validee.faits vide signifie seulement
 qu'aucun changement d'accord n'a été effectué : le personnage doit quand même répondre.
 Respecte exactement les montants, conditions et refus validés ; une offre n'est pas encore
@@ -391,6 +407,7 @@ class MJOpenAI:
         self.catalogue_verifie = False
         self.derniere_sortie = []
         self.observateur = None
+        self._audit_courant = None
 
     def proposer(self, monde, intention):
         return self._appeler(INSTRUCTIONS, {"monde": monde.contexte(), "intention": intention},
@@ -685,6 +702,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                  "empreinte_requete": hashlib.sha256(json.dumps(
                      [instructions, entree, schema], sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
         try:
+            self._audit_courant = None
             reponse = self._appeler(instructions, entree, intention, "repondre_au_joueur", schema)
             trace["reponse"] = copy.deepcopy(reponse)
         except ErreurMonde as exc:
@@ -695,7 +713,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 trace["secondes"] = round(time.monotonic() - debut, 3)
                 trace["usage"] = copy.deepcopy(self.derniere_utilisation)
                 self.observateur(trace)
-        # Contrôle structurel seulement : les références ne prouvent pas la fidélité de la prose.
+        # L'audit sémantique de la prose est effectué par _appeler avant ce contrôle de forme.
         if (set(reponse) != {"mode", "texte", "faits", "proposition"}
                 or not isinstance(reponse["texte"], str) or len(reponse["texte"]) > 4000
                 or not isinstance(reponse["faits"], list)
@@ -728,9 +746,63 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 raise ErreurMonde("Faits narratifs invalides. Aucun ajout enregistré.")
         else:
             raise ErreurMonde("Type de réponse du MJ inconnu. Aucune action appliquée.")
+        if reponse["mode"] == "dialogue" and self._audit_courant:
+            reponse["_audit"] = self._audit_courant
         return reponse
 
     def _appeler(self, instructions, entree, intention, fonction, schema):
+        """Contrôle toute narration sortante, indépendamment de son mode d'origine."""
+        self._audit_courant = None
+        usage_total = None
+
+        def appeler_brut(*arguments):
+            nonlocal usage_total
+            sortie = self._appeler_brut(*arguments)
+            usage_total = additionner_usage(usage_total, self.derniere_utilisation)
+            self.derniere_utilisation = usage_total
+            return sortie
+
+        reponse = appeler_brut(instructions, entree, intention, fonction, schema)
+        if fonction != "repondre_au_joueur":
+            return reponse
+        for tentative in range(3):
+            passages = []
+            if reponse.get("mode") == "dialogue" and isinstance(reponse.get("texte"), str):
+                passages = [("texte", reponse["texte"], None)]
+            elif (reponse.get("mode") == "action" and isinstance(reponse.get("proposition"), dict)
+                  and reponse["proposition"].get("action") == "improviser"):
+                p = reponse["proposition"]
+                for branche in ("reussite", "echec"):
+                    issue = p.get(branche)
+                    if isinstance(issue, dict) and issue.get("recit"):
+                        passages.append((branche, issue["recit"], issue.get("effets")))
+            obstacles = []
+            audits = {}
+            for nom, texte, effets in passages:
+                faits = dict(entree.get("faits", {}))
+                if effets is not None:
+                    faits["effets_prevus"] = {"branche": nom, "effets": effets,
+                                               "intention": reponse["proposition"].get("intention")}
+                audit = appeler_brut(
+                    INSTRUCTIONS_AUDIT,
+                    {"faits": faits, "segments": segments_narratifs(texte),
+                     "nature": "récit conditionnel d'action" if effets is not None else "réponse du MJ"},
+                    "Contrôler chaque segment de la réponse", "auditer_narration", SCHEMA_AUDIT)
+                rapport = controler_narration(texte, audit, faits)
+                audits[nom] = {**rapport, "faits": faits}
+                obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
+            if not obstacles:
+                if "texte" in audits:
+                    self._audit_courant = audits["texte"]
+                return reponse
+            if tentative == 2:
+                raise ErreurMonde("Le MJ n'a pas pu formuler une réponse compatible avec le monde actuel.")
+            correction = {**entree, "controle_narratif": obstacles}
+            reponse = appeler_brut(instructions + INSTRUCTIONS_REVISION, correction,
+                                   intention, fonction, schema)
+        raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
+
+    def _appeler_brut(self, instructions, entree, intention, fonction, schema):
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
         if self.connexion == "chatgpt" and not self.catalogue_verifie:

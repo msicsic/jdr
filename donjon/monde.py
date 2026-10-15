@@ -62,19 +62,20 @@ def nouveau_monde(seed=1985):
               aliases=["cle", "cle du veilleur"], materiau="bronze", masse=0.1,
               mobile=True, ouvre=["coffre"]),
         objet("marchand", "Gorm le marchand", "personnage", "echoppe",
-              aliases=["gorm", "marchand"], humeur="calme"),
+              aliases=["gorm", "marchand"], humeur="calme",
+              refuse_ventes_apres_vol=True),
         objet("pied_de_biche", "pied-de-biche", "outil", "echoppe",
               aliases=["pied de biche", "pied-de-biche", "levier"], materiau="fer",
               masse=2, mobile=True, usages=["levier", "percussion"], puissance=7,
-              prix=12, en_vente=True),
+              prix=12, en_vente=True, vendeur="marchand"),
         objet("marteau", "marteau", "outil", "echoppe",
               aliases=["marteau"], materiau="fer et bois", masse=1,
               mobile=True, usages=["percussion", "cale"], puissance=5,
-              prix=7, en_vente=True),
+              prix=7, en_vente=True, vendeur="marchand"),
         objet("crochets", "trousse de crochets", "outil", "echoppe",
               aliases=["crochets", "crochet", "trousse"], materiau="acier", masse=0.1,
               mobile=True, usages=["crochetage"], puissance=0,
-              integrite=3, maximum=3, prix=8, en_vente=True),
+              integrite=3, maximum=3, prix=8, en_vente=True, vendeur="marchand"),
         objet("coffre", "coffre de pierre", "contenant", "crypte",
               aliases=["coffre"], materiau="pierre", masse=150,
               integrite=40, maximum=40, ouverte=False, verrouillee=True),
@@ -474,6 +475,8 @@ class Monde:
             verifier_objectif(self)
             from .faits_locaux import verifier as verifier_faits_locaux
             verifier_faits_locaux(self)
+            from .narration import verifier as verifier_narration
+            verifier_narration(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"
             assert d["joueur"]["salle"] in d["salles"], "Salle inconnue"
             assert d["joueur"]["or"] >= 0, "Or négatif"
@@ -500,6 +503,10 @@ class Monde:
             for id, o in d["objets"].items():
                 assert o["id"] == id, "Identité incohérente"
                 assert 0 <= o["integrite"] <= o["maximum"], "Intégrité invalide"
+                if o.get("en_vente"):
+                    vendeur = o.get("vendeur")
+                    assert (vendeur in d["objets"] and d["objets"][vendeur]["type"] == "personnage"
+                            and type(o.get("prix")) is int and o["prix"] > 0), "Vente sans vendeur ou prix valide"
                 if "luminosite" in o:
                     assert 0 <= o["luminosite"] <= 2 and o["combustible"] >= 0, "Source lumineuse invalide"
                     assert not o["allume"] or (o["combustible"] > 0 and o["integrite"] > 0), "Source allumée sans combustible ou détruite"

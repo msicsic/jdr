@@ -207,7 +207,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 p.dd = min(25, max(2, vigilance + (2 if masse > 1 else 0) + (2 if monde.data["bruit"] >= 6 else 0) - occasion))
                 if illicite:
                     p.echec = [("surprendre_vol", id, cible) for id in temoins]
-                    p.risque = "En cas d'échec, l'objet reste en place, les témoins deviennent méfiants et Gorm refuse ensuite les ventes."
+                    p.risque = "En cas d'échec, l'objet reste en place et les témoins deviennent méfiants ; certains vendeurs peuvent refuser leurs ventes."
                 else:
                     p.echec = [("remarquer", id, cible) for id in temoins]
                     p.risque = "En cas d'échec, le geste est remarqué et l'objet reste en place."

@@ -15,6 +15,7 @@ from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur
 from donjon.enrichissement import preparer_complements
 from donjon.faits_locaux import preparer_faits
+from donjon.narration import consigner as consigner_narration
 from donjon.connaissances import preparer_savoirs
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.comparaison import Comparateur, texte_comparaison
@@ -187,8 +188,11 @@ def main(argv=None, interface=None):
                 imprimer(resultat)
                 imprimer("Récit indisponible ; la manœuvre est déjà résolue et sauvegardée. " + str(exc))
                 return
-            m.memoriser(intention, reponse["texte"], "narration_resultat")
-            m.sauver(args.save)
+            travail = m.copier()
+            travail.memoriser(intention, reponse["texte"], "narration_resultat")
+            consigner_narration(travail, reponse)
+            travail.sauver(args.save)
+            m.data = travail.data
             jets = [ligne for ligne in resultat.splitlines() if ligne.startswith("1d20(")]
             if jets:
                 imprimer("\n".join(jets))
@@ -334,6 +338,7 @@ def main(argv=None, interface=None):
                             travail, rapport = preparer_conversation(m, ajout["proposition"], ajout["revision"])
                             suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
                             travail.memoriser(texte, reponse["texte"], "conversation_pnj")
+                            consigner_narration(travail, reponse)
                             travail.sauver(args.save)
                             m.data, pending = travail.data, suite
                             imprimer(reponse["texte"])
@@ -354,6 +359,7 @@ def main(argv=None, interface=None):
                                 travail = preparer(m, ajout["proposition"], ajout["revision"])
                             suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
                             travail.memoriser(texte, reponse["texte"])
+                            consigner_narration(travail, reponse)
                             # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
                             travail.sauver(args.save)
                             m.data, pending = travail.data, suite
@@ -361,10 +367,13 @@ def main(argv=None, interface=None):
                             if savoirs and isinstance(mj, Comparateur):
                                 mj.noter_savoirs(reponse["texte"], ajout["proposition"])
                             continue
+                        travail = m.copier()
+                        travail.memoriser(texte, reponse["texte"],
+                                           "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
+                        consigner_narration(travail, reponse)
+                        travail.sauver(args.save)
+                        m.data = travail.data
                         imprimer(reponse["texte"])
-                        m.memoriser(texte, reponse["texte"],
-                                   "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
-                        m.sauver(args.save)
                         continue
                     p = reponse["proposition"]
                     if question and p.get("action") not in ("observer", "examiner", "clarifier", "impossible"):

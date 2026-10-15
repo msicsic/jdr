@@ -60,9 +60,17 @@ perceptibles et leur portée, puis le moteur vérifie aussi ses propositions d'a
 Les objectifs de chaque partie sont déclarés dans son état ; le moteur n'exige plus les
 objets historiques de la crypte pour résoudre une action. `nouveau_monde_libre` crée une
 aventure à partir de ses propres salles, objets, départ, prémisse et objectif. Le Relais
-existant réutilise encore le contenu de la crypte pendant sa construction. Le prochain
-contrat de narration et de paroles des PNJ est décrit dans
+existant réutilise encore le contenu de la crypte pendant sa construction. Le contrat
+de narration et de paroles des PNJ est décrit dans
 [docs/contrat-mj.md](docs/contrat-mj.md).
+
+Les réponses libres de Luna et les récits d'improvisation passent par un contrôle narratif
+avant affichage. Luna relit chaque segment à partir des faits et effets fournis ; un fait
+nouveau ou contradictoire entraîne une révision de la réponse. Une parole attribuée à un
+PNJ présent est enregistrée avec ses auditeurs. Cette relecture consomme des appels LLM
+supplémentaires et reste probabiliste : elle ne prouve pas formellement chaque phrase.
+Les articles en vente indiquent leur vendeur ; achat et paiement ne dépendent plus de
+l'échoppe ni de Gorm.
 
 Les lanceurs du donjon et de l'atelier activent également ce mode. En ligne de commande :
 

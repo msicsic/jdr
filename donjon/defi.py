@@ -142,9 +142,11 @@ def nouveau_defi(seed=1985):
 
     # Les outils de secours sont disponibles dans la conduite, loin du spawn.
     m.objets["crochets"].update(nom="trousse de crochets", lieu="echoppe", proprietaire=None, en_vente=False)
+    m.objets["crochets"].pop("vendeur", None)
     placer(m.objets["crochets"], "echoppe", [8, 5])
     for id in ("pied_de_biche", "marteau"):
         m.objets[id].update(lieu="echoppe", en_vente=False, proprietaire=None)
+        m.objets[id].pop("vendeur", None)
         placer(m.objets[id], "echoppe", [7, 5] if id == "pied_de_biche" else [8, 5])
     m.objets["torche"].update(lieu=REFUGE, allume=True)
     placer(m.objets["torche"], REFUGE, [1, 2])

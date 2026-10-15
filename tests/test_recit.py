@@ -15,11 +15,20 @@ class RecitTests(unittest.TestCase):
     def appel(self, monde, reponse, inspecter=None):
         def retour(requete, timeout):
             payload = json.loads(requete.data)
-            if inspecter:
-                inspecter(payload)
+            nom = payload["tools"][0]["name"]
+            if nom == "auditer_narration":
+                entree = json.loads(payload["input"][0]["content"])
+                arguments = {"segments": [
+                    {"indice": i, "verdict": "etabli", "sources": ["scenario"],
+                     "locuteur": "", "citation": "", "motif": ""}
+                    for i, _ in enumerate(entree["segments"])]}
+            else:
+                if inspecter:
+                    inspecter(payload)
+                arguments = reponse
             return io.BytesIO(json.dumps({"status": "completed", "output": [{
-                "type": "function_call", "name": "repondre_au_joueur",
-                "arguments": json.dumps(reponse)}]}).encode())
+                "type": "function_call", "name": nom,
+                "arguments": json.dumps(arguments)}]}).encode())
         with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch("urllib.request.urlopen", side_effect=retour):
             return MJOpenAI().echanger(monde, "Et pourquoi lui ?")
 
@@ -37,7 +46,9 @@ class RecitTests(unittest.TestCase):
             self.assertNotIn("objet:marchand", entree["faits"])
             self.assertNotIn("objet:anneau", entree["faits"])
             self.assertNotIn("sens", entree["faits"]["objet:gravure"])
-        self.assertEqual(self.appel(m, reponse, inspecter), reponse)
+        resultat = self.appel(m, reponse, inspecter)
+        self.assertEqual({k: resultat[k] for k in reponse}, reponse)
+        self.assertEqual(resultat["_audit"]["segments"][0]["sources"], ["scenario"])
         self.assertEqual(avant, m.data)
 
     def test_dialogue_ne_peut_pas_transporter_une_action(self):

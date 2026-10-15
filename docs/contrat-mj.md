@@ -1,7 +1,9 @@
 # Contrat entre le MJ et le monde
 
-Ce document décrit le contrat visé. Une première transaction de faits typés est implémentée ;
-la vérification générale des dialogues libres reste à faire.
+Ce document décrit le contrat visé. La transaction de faits typés existe et une passe
+commune contrôle désormais les textes de Luna avant affichage. Ce contrôle utilise Luna
+pour interpréter la prose ; il réduit le risque d'invention mais ne donne pas une garantie
+formelle de vérité.
 
 ## Première tranche implémentée
 
@@ -14,8 +16,30 @@ Luna reçoit la raison et peut la corriger une fois. La TUI et la console sauveg
 transaction avant affichage.
 
 Cette tranche ne permet pas encore de créer le support lui-même, de décrire une ambiance sans
-ancrage ou de vérifier chaque affirmation d'un dialogue ordinaire. Le contenu d'une inscription
+ancrage. Le contenu d'une inscription
 est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
+
+## Contrôle commun actuellement appliqué
+
+Chaque réponse finale libre est découpée en segments et relue par Luna, y compris le récit
+après une action. Les récits conditionnels de l'arbitrage improvisé suivent la même passe
+avant préparation de l'action. L'auditeur doit classer chaque segment comme établi,
+hypothétique, neutre, parole attribuée, nouveau fait ou contradiction. Le moteur vérifie la
+couverture des segments, les clés de sources et la présence du locuteur ; une affirmation
+nouvelle ou contradictoire entraîne une nouvelle proposition de Luna, au plus deux fois.
+Après trois refus, aucun des textes rejetés n'est affiché.
+
+La réponse acceptée et ses références sont enregistrées avant affichage. Une parole nouvelle
+attribuée à un PNJ présent est conservée avec son lieu, son instant et ses auditeurs ; son
+contenu ne devient pas une vérité du monde. Le contrôle ajoute des appels à Luna et leur
+consommation est additionnée dans la trace debug.
+
+La compréhension du texte par l'auditeur reste probabiliste : il peut considérer à tort
+qu'une source soutient une phrase ou manquer une implication. Les faits nouveaux que le
+moteur ne sait pas représenter restent refusés ou hypothétiques ; leur création générale
+demande encore un contrat de faits plus riche. Les tests simulés vérifient le rejet, la
+révision, l'affichage et le rechargement ; ils ne prouvent pas le jugement d'une requête
+Luna réelle.
 
 ## Ce qu'une phrase engage
 
@@ -32,13 +56,13 @@ est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
 
 Le Relais des crues désigne une cloche précise comme objectif. Une seconde cloche peut exister si une évolution de l'histoire le justifie et si l'état de la mission est mis à jour explicitement. Le test qui injecte une « seconde cloche » dans une réponse simulée révèle une faille de validation ; il ne démontre pas que Luna l'a inventée en partie.
 
-## Boucle de rétroaction envisagée
+## Contrat complet encore visé
 
 1. Luna propose une réponse et les assertions qu'elle contient : faits observés, ajouts proposés, paroles attribuées, hypothèses et résultats d'action.
-2. Une passe de contrôle relit la réponse pour relever les assertions oubliées ou mal classées. Cette passe peut utiliser Luna, mais son avis n'a pas autorité sur l'état du monde.
-3. Le moteur vérifie la compatibilité avec le lieu, la perception, les objets, les connaissances, les effets réellement exécutés et les contraintes du scénario. Il prépare les ajouts admissibles sur une copie.
+2. La relecture relève les assertions oubliées ou mal classées, sans avoir autorité sur l'état du monde.
+3. Le moteur vérifie lui-même la compatibilité de chaque assertion avec le lieu, la perception, les objets, les connaissances, les effets réellement exécutés et les contraintes du scénario. Il prépare les ajouts admissibles sur une copie.
 4. Si une assertion est contradictoire ou incomplète, Luna reçoit les motifs précis et reformule ou propose un autre ajout. Aucune phrase rejetée n'est montrée au joueur.
-5. Les faits, paroles et témoins acceptés sont sauvegardés avant affichage. La réponse finale est contrôlée contre cet état ; en cas d'échec répété, le jeu donne un compte rendu sûr tiré de l'état validé.
+5. Les faits, paroles et témoins acceptés sont sauvegardés avant affichage. La réponse finale est construite depuis cet état ; en cas d'échec répété, le jeu donne un compte rendu sûr tiré des seuls faits validés.
 
 Une relecture par LLM seule ne garantit pas la vérité d'une prose libre : elle peut oublier une assertion ou mal la classer. Pour une garantie stricte, le texte affiché devra être construit à partir d'éléments validés, ou être limité à des formulations que le moteur sait contrôler. La boucle proposée réduit le risque, mais ne prétend pas le supprimer tant que Luna peut rédiger librement la réponse finale. Les tests devront couvrir la chaîne saisie → proposition → rejet ou persistance → affichage → rechargement, avec des réponses simulées qui omettent ou contredisent volontairement des faits.
 

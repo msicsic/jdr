@@ -14,7 +14,7 @@ def proprietaire(monde, objet):
     if objet.get("proprietaire"):
         return objet["proprietaire"]
     if objet.get("en_vente"):
-        return "marchand"
+        return objet.get("vendeur")
     parent = monde.objets.get(objet["lieu"])
     while parent:
         if parent.get("proprietaire"):
@@ -30,6 +30,7 @@ def appliquer(monde, effet, lignes):
     if op == "voler":
         o = monde.objets[cible]
         o.update(proprietaire=valeur, vole_a=valeur, vole_par="joueur", en_vente=False)
+        o.pop("vendeur", None)
         lignes.append("Tu dérobes " + designer(o) + " sans être remarqué.")
     else:
         relation = monde.data["relations_pnj"][cible]
@@ -39,8 +40,8 @@ def appliquer(monde, effet, lignes):
         monde.objets[cible]["humeur"] = "méfiant"
         lignes.append(monde.objets[cible]["nom"] + " te surprend en train de tenter de dérober "
                       + designer(monde.objets[valeur]) + ". Tu retires la main ; l'objet reste en place.")
-        if cible == "marchand":
-            lignes.append("Gorm : « J'ai vu ton geste. Je ne te vends plus rien. »")
+        if monde.objets[cible].get("refuse_ventes_apres_vol"):
+            lignes.append(monde.objets[cible]["nom"] + " refuse désormais de te vendre ses articles.")
 
 
 def verifier(monde):

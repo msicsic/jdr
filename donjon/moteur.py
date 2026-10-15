@@ -181,7 +181,7 @@ class Moteur:
             if o["type"] != "personnage":
                 raise ErreurMonde("Cet objet ne peut pas vous répondre.")
             raise ErreurMonde("Pour discuter librement, active le MJ et adresse ta question au personnage. "
-                              "Hors ligne : offre marchand, negocier marchand 25, accepter offre, remettre anneau.")
+                              "Hors ligne : offre <personnage>, negocier <personnage> <montant>, accepter offre, remettre <objet>.")
         elif action == "acheter":
             possesseur = proprietaire(m, o)
             if possesseur not in (None, "joueur") and o.get("vole_par") != "joueur" and not o.get("en_vente"):
@@ -192,18 +192,21 @@ class Moteur:
                 raise ErreurMonde("Vous possédez déjà cet objet.")
             if m.charge() + o["masse"] > m.joueur["capacite"]:
                 raise ErreurMonde("Cet objet dépasse votre capacité de portage.")
-            if not o.get("en_vente") or m.joueur["salle"] != "echoppe":
+            vendeur_id = o.get("vendeur")
+            vendeur = m.objets.get(vendeur_id) if vendeur_id else None
+            if not o.get("en_vente") or not vendeur or vendeur["type"] != "personnage":
                 raise ErreurMonde("Cet objet n'est pas à vendre ici.")
-            if not m.present_physique("marchand"):
-                raise ErreurMonde("Gorm doit être présent pour te vendre cet objet.")
+            if not m.present_physique(vendeur_id):
+                raise ErreurMonde(designer(vendeur, debut=True) + " doit être présent pour cette vente.")
             from .proximite import exiger
-            exiger(m, "marchand")
-            if m.data["relations_pnj"]["marchand"]["vols_surpris"]:
-                raise ErreurMonde("Gorm refuse de te vendre quoi que ce soit depuis ta tentative de vol.")
+            exiger(m, vendeur_id)
+            if (vendeur.get("refuse_ventes_apres_vol")
+                    and m.data["relations_pnj"][vendeur_id]["vols_surpris"]):
+                raise ErreurMonde(designer(vendeur, debut=True) + " refuse de te vendre quoi que ce soit depuis ta tentative de vol.")
             cout = prix(m, o)
             if cout > m.joueur["or"]:
                 raise ErreurMonde("Vous n'avez pas assez de pièces.")
-            plan.effets.append(("payer", cible, cout))
+            plan.effets.append(("payer", cible, {"vendeur": vendeur_id, "montant": cout}))
             plan.effets.append(("deplacer", cible, "joueur"))
         elif action in ("ouvrir", "fermer", "deverrouiller"):
             if o["type"] not in ("porte", "contenant"):
@@ -467,11 +470,13 @@ class Moteur:
                 o.pop("position_salle", None)
             lignes.append(designer(o, debut=True) + (" rejoint votre besace." if valeur == "joueur" else " est " + accorder(o, "posé") + " au sol."))
         elif op == "payer":
-            m.joueur["or"] -= valeur
-            m.data["finances_pnj"]["marchand"] += valeur
+            montant, vendeur = valeur["montant"], valeur["vendeur"]
+            m.joueur["or"] -= montant
+            m.data["finances_pnj"][vendeur] = m.data["finances_pnj"].get(vendeur, 0) + montant
             o["en_vente"] = False
             o["proprietaire"] = "joueur"
-            lignes.append(f"Vous payez {valeur} pièces.")
+            o.pop("vendeur", None)
+            lignes.append(f"Vous payez {montant} pièces à {m.objets[vendeur]['nom']}.")
         elif op == "voyager":
             position = valeur if isinstance(valeur, (list, tuple)) else position_entree(m, cible, m.joueur["salle"])
             m.joueur["salle"] = cible

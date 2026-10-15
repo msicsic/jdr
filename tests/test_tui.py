@@ -22,6 +22,31 @@ if TEXTUAL:
 
 @unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
 class TUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_narration_fausse_corrigee_avant_affichage_et_sauvegardee(self):
+        invention = "Une seconde cloche est cachée sous le plancher."
+        corrige = "Tu te trouves dans l'antichambre."
+        reponses = [
+            {"mode": "dialogue", "texte": invention, "faits": [], "proposition": None},
+            {"segments": [{"indice": 0, "verdict": "nouveau", "sources": [],
+                           "locuteur": "", "citation": "", "motif": "Aucune seconde cloche établie."}]},
+            {"mode": "dialogue", "texte": corrige, "faits": ["salle"], "proposition": None},
+            {"segments": [{"indice": 0, "verdict": "etabli", "sources": ["salle"],
+                           "locuteur": "", "citation": "", "motif": ""}]},
+        ]
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(MJOpenAI, "_appeler_brut", side_effect=reponses) as api, \
+             patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj Que vois-je ?", 0)
+                self.assertNotIn(invention, " ".join(app.sorties))
+                self.assertIn(corrige, " ".join(app.sorties))
+                self.assertEqual(Monde.charger(chemin).data["narrations_mj"][-1]["texte"], corrige)
+                await self.fermer(app)
+            self.assertEqual(api.call_count, 4)
+
     async def test_inscription_du_mj_affichee_apres_sauvegarde_et_lisible(self):
         reponse = {"mode": "etablir_faits", "texte": "",
                    "faits": ["faits_narratifs_proposables"],
