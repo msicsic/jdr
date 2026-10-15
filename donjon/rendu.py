@@ -147,7 +147,7 @@ def regarder(monde):
         if o["lieu"] == "joueur" or o["type"] == "surface":
             continue
         # Les composants apparaissent à l'examen de leur parent ; pas de doublons.
-        if o["lieu"] in monde.objets and o["type"] != "porte":
+        if o["lieu"] in monde.objets and o["type"] != "porte" and not o.get("scene_detail"):
             continue
         if lumiere["niveau"] == 1:
             lignes.append("Tu distingues " + designer(o, "indefini") + ".")

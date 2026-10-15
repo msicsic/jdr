@@ -306,6 +306,14 @@ class Monde:
         return True
 
     def visible(self, id):
+        o = self.objets.get(id, {})
+        if o.get("detail_local"):
+            if eclairage(self)["niveau"] < 2:
+                return False
+            if self.data.get("mode_cases"):
+                from .spatial import proche
+                if not proche(self, id):
+                    return False
         if self.data.get("mode_cases"):
             from .spatial import visible
             return visible(self, id)

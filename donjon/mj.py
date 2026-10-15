@@ -13,6 +13,7 @@ from .monde import ErreurMonde, normaliser
 from .moteur import ACTIONS, METHODES
 from .connexion import jeton, modeles
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
+from .faits_locaux import SCHEMA_INSCRIPTION, supports as supports_inscription, preparer_inscription
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
 from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
@@ -287,6 +288,13 @@ pas un enrichissement. Un personnage jamais rencontré ne doit pas être complé
 Lorsque descriptions_a_completer est vide, le mode enrichir est indisponible : réponds
 avec les faits reçus. Après un enrichissement, réponds en mode dialogue, sans nouvelle action.
 
+Mode enrichir_inscription : pour établir un détail écrit local qui répond à la demande du
+joueur, choisis un identifiant dans supports_inscription et le texte effectivement gravé.
+proposition={"support":"identifiant", "inscription":"texte gravé"}, texte="".
+Le moteur crée une cible lisible et rédige la réponse depuis cet objet validé. N'emploie
+pas ce mode pour inventer un objet de quête, un événement ou une information cachée.
+Si le support n'existe pas dans supports_inscription, ne prétends pas y voir une inscription.
+
 Mode action : pour une volonté d'agir, renseigne proposition selon les règles ci-dessous.
 texte reste vide : le moteur valide puis exécute directement les actions simples sans jet.
 Pour une manœuvre avec un jet ou un risque, il présente la proposition et attend « tenter ».
@@ -496,6 +504,27 @@ class MJOpenAI:
             travail = preparer_profil(monde, p, revision)
             return {"mode": "dialogue", "texte": reponse_profil(travail, p), "faits": ["joueur"],
                     "proposition": None, "_profil_joueur": {"revision": revision, "proposition": p}}
+        if reponse["mode"] == "enrichir_inscription":
+            p = reponse["proposition"]
+            try:
+                travail, id = preparer_inscription(monde, p, revision)
+            except ErreurMonde as exc:
+                retour = {"proposition_refusee": p, "obstacle": str(exc),
+                          "consigne": "Revois le support et les faits actuels. Ne décris pas comme observé un détail refusé."}
+                reponse = self._echanger(monde, intention, proposition_en_attente,
+                                         enrichir=True, retour_moteur=retour)
+                if reponse["mode"] != "enrichir_inscription":
+                    if reponse["mode"] == "dialogue":
+                        return reponse
+                    raise ErreurMonde("La correction du détail écrit n'a pas abouti.")
+                p = reponse["proposition"]
+                travail, id = preparer_inscription(monde, p, revision)
+            texte = ("Tu remarques une inscription gravée sur "
+                     + designer(travail.objets[p["support"]]) + " : « "
+                     + travail.objets[id]["inscription"] + " ».")
+            return {"mode": "dialogue", "texte": texte,
+                    "faits": [], "proposition": None,
+                    "_inscription": {"revision": revision, "proposition": p}}
         if reponse["mode"] not in ("enrichir", "conversation_pnj", "enrichir_savoirs"):
             return reponse
         complements = reponse["proposition"]
@@ -547,6 +576,9 @@ class MJOpenAI:
         disponibles = catalogue(monde) if enrichir else {}
         faits["descriptions_a_completer"] = disponibles
         savoirs_disponibles = catalogue_savoirs(monde) if enrichir else {}
+        inscriptions_disponibles = supports_inscription(monde) if enrichir else {}
+        if inscriptions_disponibles:
+            faits["supports_inscription"] = inscriptions_disponibles
         faits["connaissances_a_completer"] = savoirs_disponibles
         profil_disponible = catalogue_profil(monde) if enrichir else {}
         faits["profil_joueur_a_completer"] = profil_disponible
@@ -574,10 +606,10 @@ class MJOpenAI:
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else [])},
+                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["enrichir_inscription"] if inscriptions_disponibles else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_INSCRIPTION] if inscriptions_disponibles else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
@@ -689,6 +721,9 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         elif reponse["mode"] == "enrichir_savoirs":
             if not savoirs_disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Connaissances invalides. Aucun ajout enregistré.")
+        elif reponse["mode"] == "enrichir_inscription":
+            if not inscriptions_disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):
+                raise ErreurMonde("Inscription invalide. Aucun ajout enregistré.")
         else:
             raise ErreurMonde("Type de réponse du MJ inconnu. Aucune action appliquée.")
         return reponse

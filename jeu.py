@@ -14,6 +14,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur
 from donjon.enrichissement import preparer_complements
+from donjon.faits_locaux import preparer_inscription
 from donjon.connaissances import preparer_savoirs
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.comparaison import Comparateur, texte_comparaison
@@ -339,14 +340,18 @@ def main(argv=None, interface=None):
                             if isinstance(mj, Comparateur):
                                 mj.noter_resultat(reponse["texte"], rapport)
                             continue
-                        if "_enrichissement" in reponse or "_savoirs" in reponse or "_profil_joueur" in reponse:
+                        if any(k in reponse for k in ("_enrichissement", "_savoirs", "_profil_joueur", "_inscription")):
                             savoirs = "_savoirs" in reponse
                             profil = "_profil_joueur" in reponse
-                            ajout = reponse["_profil_joueur" if profil else "_savoirs" if savoirs else "_enrichissement"]
+                            inscription = "_inscription" in reponse
+                            ajout = reponse["_inscription" if inscription else "_profil_joueur" if profil else "_savoirs" if savoirs else "_enrichissement"]
                             preparer = preparer_savoirs if savoirs else preparer_complements
                             if profil:
                                 from donjon.profil_joueur import preparer
-                            travail = preparer(m, ajout["proposition"], ajout["revision"])
+                            if inscription:
+                                travail, _ = preparer_inscription(m, ajout["proposition"], ajout["revision"])
+                            else:
+                                travail = preparer(m, ajout["proposition"], ajout["revision"])
                             suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
                             travail.memoriser(texte, reponse["texte"])
                             # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.

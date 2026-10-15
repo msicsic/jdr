@@ -1,6 +1,19 @@
 # Contrat entre le MJ et le monde
 
-Ce document décrit le prochain chantier. La boucle de contrôle narratif ci-dessous n'est pas encore implémentée.
+Ce document décrit le contrat visé. Une première tranche, limitée aux inscriptions sur un support
+existant, est implémentée ; la vérification générale des dialogues libres reste à faire.
+
+## Première tranche implémentée
+
+Luna peut proposer le texte d'une inscription et l'identifiant de son support visible et proche.
+Le moteur vérifie la lumière, le support, les doublons et la forme du texte, puis crée sur une copie
+un objet lisible attaché au support. Il construit la réponse affichée à partir de cet objet. Si la
+proposition est refusée, Luna reçoit la raison et peut la corriger une fois. La boucle de jeu
+sauvegarde l'objet avant d'afficher la réponse. La TUI et la console suivent le même chemin.
+
+Cette tranche ne permet pas encore de créer le support lui-même, d'enregistrer toute nouvelle
+ambiance ou de vérifier chaque affirmation d'un dialogue ordinaire. Le contenu d'une inscription
+est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
 
 ## Ce qu'une phrase engage
 

@@ -22,6 +22,25 @@ if TEXTUAL:
 
 @unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
 class TUITests(unittest.IsolatedAsyncioTestCase):
+    async def test_inscription_du_mj_affichee_apres_sauvegarde_et_lisible(self):
+        reponse = {"mode": "enrichir_inscription", "texte": "",
+                   "faits": ["supports_inscription"],
+                   "proposition": {"support": "antichambre_murs",
+                                   "inscription": "Veille au niveau des eaux."}}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(MJOpenAI, "_appeler", return_value=reponse) as api, \
+             patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj y a-t-il une inscription sur les murs ?", 0)
+                self.assertIn("Veille au niveau des eaux.", " ".join(app.sorties))
+                self.assertIn("inscription sur les murs", app.derniere_vue["scene"])
+                self.assertIn("inscription_antichambre_murs_1", Monde.charger(chemin).objets)
+                await self.fermer(app)
+            api.assert_called_once()
+
     async def test_sortie_galerie_vers_palier_noir_garde_joueur_sur_la_carte(self):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
             chemin = Path(fichier.name)
