@@ -45,6 +45,8 @@ def interlocuteurs(monde):
     return {id: {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
                  "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
                  "dernier_son_entendu": copy.deepcopy(o.get("dernier_son_entendu")),
+                 "paroles_entendues": copy.deepcopy([
+                     p for p in monde.data.get("paroles_pnj", []) if id in p["auditeurs"]][-4:]),
                  "humeur": o.get("humeur", "non précisée")}
             for id, o in monde.objets.items()
             if o["type"] == "personnage" and monde.present_physique(id)

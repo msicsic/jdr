@@ -1,18 +1,20 @@
 # Contrat entre le MJ et le monde
 
-Ce document décrit le contrat visé. Une première tranche, limitée aux inscriptions sur un support
-existant, est implémentée ; la vérification générale des dialogues libres reste à faire.
+Ce document décrit le contrat visé. Une première transaction de faits typés est implémentée ;
+la vérification générale des dialogues libres reste à faire.
 
 ## Première tranche implémentée
 
-Luna peut proposer le texte d'une inscription et l'identifiant de son support visible et proche.
-Le moteur vérifie la lumière, le support, les doublons et la forme du texte, puis crée sur une copie
-un objet lisible attaché au support. Il construit la réponse affichée à partir de cet objet. Si la
-proposition est refusée, Luna reçoit la raison et peut la corriger une fois. La boucle de jeu
-sauvegarde l'objet avant d'afficher la réponse. La TUI et la console suivent le même chemin.
+Luna peut proposer un groupe de faits structurés : détail visible, inscription ou parole. Le
+moteur vérifie les supports et locuteurs disponibles, la perception et la forme des données,
+puis applique le groupe sur une copie. Les détails deviennent des cibles ; une parole est
+enregistrée avec son auteur, son lieu et ses auditeurs, sans transformer son contenu en vérité.
+Le texte affiché est construit à partir des faits acceptés. Si la proposition est refusée,
+Luna reçoit la raison et peut la corriger une fois. La TUI et la console sauvegardent la
+transaction avant affichage.
 
-Cette tranche ne permet pas encore de créer le support lui-même, d'enregistrer toute nouvelle
-ambiance ou de vérifier chaque affirmation d'un dialogue ordinaire. Le contenu d'une inscription
+Cette tranche ne permet pas encore de créer le support lui-même, de décrire une ambiance sans
+ancrage ou de vérifier chaque affirmation d'un dialogue ordinaire. Le contenu d'une inscription
 est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
 
 ## Ce qu'une phrase engage

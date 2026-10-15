@@ -690,11 +690,11 @@ observation autonome, les mensonges et la propagation de rumeurs ne sont pas sim
   autorisés, les doublons et la transaction ; la cohérence **sémantique du texte libre** repose encore
   sur le respect des consignes par le modèle, pas sur une preuve automatique. Les portraits d'auteur
   restent prioritaires. Les ajouts du MJ sont traçables dans `enrichissements` dans la sauvegarde.
-- Le MJ peut proposer une inscription sur un support matériel déjà connu, proche et visible en pleine
-  lumière. Le moteur crée une cible attachée à ce support, vérifie la proposition et compose lui-même
-  la première description. Elle est sauvegardée avant affichage, puis peut être examinée et lue comme
-  les inscriptions du scénario. Un support déjà inscrit n'est plus proposé. Les autres affirmations
-  d'un dialogue libre ne disposent pas encore de ce contrôle sémantique.
+- Le MJ peut proposer dans une même transaction des faits typés : détail visible sur un support,
+  inscription et parole d'un PNJ présent. Le moteur vérifie les ancrages et la perception, crée
+  les cibles ou enregistre le locuteur et les auditeurs, puis compose le texte affiché. Les ajouts
+  sont sauvegardés avant affichage ; une inscription reste examinable et lisible. Les affirmations
+  d'un dialogue libre qui ne passent pas par ce contrat ne sont pas encore contrôlées sémantiquement.
 - La mémoire permet de décrire un personnage rencontré même hors de sa pièce, sans révéler son humeur
   actuelle. Les souvenirs visuels sont actualisés lors des actions en présence du personnage et en pleine
   lumière. La rencontre initiale et le premier portrait de Gorm sont établis par la prémisse.
@@ -704,8 +704,7 @@ observation autonome, les mensonges et la propagation de rumeurs ne sont pas sim
   pour les interactions. Le plan des salles déjà visitées reste consultable dans le noir ; leurs objets ne sont
   affichés que lorsqu’ils sont visibles dans la pièce actuelle. La taille des salles est révélée à leur entrée.
 - L'éclairage utilise trois niveaux discrets, sans portée métrique, ombres ou calcul physique des flammes.
-  Pas de calcul mécanique des leviers. L'enrichissement des décors ne couvre pour l'instant que les
-  inscriptions sur un support existant.
+  Pas de calcul mécanique des leviers. L'enrichissement du décor exige encore un support existant.
 - Dans le noir, la navigation par les directions du plan reste simplifiée ; les surfaces doivent être
   connues pour être ciblées au toucher. Les descriptions tactiles ne reproduisent pas les détails visuels.
 - Sauvegarde destinée à une seule instance du jeu à la fois. `--debug` autorise `etat <objet>` et

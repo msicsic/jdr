@@ -13,7 +13,7 @@ from .monde import ErreurMonde, normaliser
 from .moteur import ACTIONS, METHODES
 from .connexion import jeton, modeles
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
-from .faits_locaux import SCHEMA_INSCRIPTION, supports as supports_inscription, preparer_inscription
+from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
 from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
@@ -187,6 +187,8 @@ ouvertes. Une limite mécanique réelle doit cependant être annoncée honnêtem
 Tu reçois des faits publics du moteur, une conversation récente et le message du joueur.
 Seuls les faits du moteur font autorité. La conversation sert à comprendre « lui », « ici »,
 « pourquoi », etc. Elle ne prouve pas une action : une proposition n'est pas une réussite.
+paroles_entendues atteste ce qui a été dit, pas la vérité des propos. souvenirs_faits
+conserve une observation passée, sans prouver que son support est encore présent.
 Seul le fait proposition_en_attente indique si « tenter » exécutera encore une proposition.
 Le joueur peut poser une question, discuter, exprimer un doute ou demander une action.
 Comprends son intention, même sans point d'interrogation ou avec des fautes.
@@ -288,12 +290,15 @@ pas un enrichissement. Un personnage jamais rencontré ne doit pas être complé
 Lorsque descriptions_a_completer est vide, le mode enrichir est indisponible : réponds
 avec les faits reçus. Après un enrichissement, réponds en mode dialogue, sans nouvelle action.
 
-Mode enrichir_inscription : pour établir un détail écrit local qui répond à la demande du
-joueur, choisis un identifiant dans supports_inscription et le texte effectivement gravé.
-proposition={"support":"identifiant", "inscription":"texte gravé"}, texte="".
-Le moteur crée une cible lisible et rédige la réponse depuis cet objet validé. N'emploie
-pas ce mode pour inventer un objet de quête, un événement ou une information cachée.
-Si le support n'existe pas dans supports_inscription, ne prétends pas y voir une inscription.
+Mode etablir_faits : propose de un à trois faits narratifs lorsque la réponse exige un détail
+nouveau. Chaque ajout contient type, ancrage, nom, genre, texte. Types : detail (nom et description
+visuelle sur un support existant), inscription (nom vide, texte littéral écrit sur le support),
+parole (ancrage = PNJ présent, nom vide, texte prononcé). Pour detail, genre vaut m ou f ;
+pour les autres, genre est vide. Les ancrages autorisés sont dans
+faits_narratifs_proposables. texte reste vide : le moteur crée les cibles ou enregistre les
+paroles, puis construit la réponse depuis les seuls ajouts validés. Une parole établit ce qui
+a été dit, pas la vérité de son contenu. N'utilise pas un détail local pour créer une mission,
+un événement ou un objet de quête ; ne remplace pas un fait existant.
 
 Mode action : pour une volonté d'agir, renseigne proposition selon les règles ci-dessous.
 texte reste vide : le moteur valide puis exécute directement les actions simples sans jet.
@@ -504,27 +509,24 @@ class MJOpenAI:
             travail = preparer_profil(monde, p, revision)
             return {"mode": "dialogue", "texte": reponse_profil(travail, p), "faits": ["joueur"],
                     "proposition": None, "_profil_joueur": {"revision": revision, "proposition": p}}
-        if reponse["mode"] == "enrichir_inscription":
+        if reponse["mode"] == "etablir_faits":
             p = reponse["proposition"]
             try:
-                travail, id = preparer_inscription(monde, p, revision)
+                travail, texte, _ = preparer_faits(monde, p, revision)
             except ErreurMonde as exc:
                 retour = {"proposition_refusee": p, "obstacle": str(exc),
-                          "consigne": "Revois le support et les faits actuels. Ne décris pas comme observé un détail refusé."}
+                          "consigne": "Revois les ancrages et les faits actuels. Ne raconte pas un fait refusé."}
                 reponse = self._echanger(monde, intention, proposition_en_attente,
                                          enrichir=True, retour_moteur=retour)
-                if reponse["mode"] != "enrichir_inscription":
+                if reponse["mode"] != "etablir_faits":
                     if reponse["mode"] == "dialogue":
                         return reponse
-                    raise ErreurMonde("La correction du détail écrit n'a pas abouti.")
+                    raise ErreurMonde("La correction des faits narratifs n'a pas abouti.")
                 p = reponse["proposition"]
-                travail, id = preparer_inscription(monde, p, revision)
-            texte = ("Tu remarques une inscription gravée sur "
-                     + designer(travail.objets[p["support"]]) + " : « "
-                     + travail.objets[id]["inscription"] + " ».")
+                travail, texte, _ = preparer_faits(monde, p, revision)
             return {"mode": "dialogue", "texte": texte,
                     "faits": [], "proposition": None,
-                    "_inscription": {"revision": revision, "proposition": p}}
+                    "_faits_narratifs": {"revision": revision, "proposition": p}}
         if reponse["mode"] not in ("enrichir", "conversation_pnj", "enrichir_savoirs"):
             return reponse
         complements = reponse["proposition"]
@@ -576,9 +578,9 @@ class MJOpenAI:
         disponibles = catalogue(monde) if enrichir else {}
         faits["descriptions_a_completer"] = disponibles
         savoirs_disponibles = catalogue_savoirs(monde) if enrichir else {}
-        inscriptions_disponibles = supports_inscription(monde) if enrichir else {}
-        if inscriptions_disponibles:
-            faits["supports_inscription"] = inscriptions_disponibles
+        faits_disponibles = catalogue_faits(monde) if enrichir else {"supports": {}, "locuteurs": {}}
+        if any(faits_disponibles.values()):
+            faits["faits_narratifs_proposables"] = faits_disponibles
         faits["connaissances_a_completer"] = savoirs_disponibles
         profil_disponible = catalogue_profil(monde) if enrichir else {}
         faits["profil_joueur_a_completer"] = profil_disponible
@@ -606,10 +608,10 @@ class MJOpenAI:
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["enrichir_inscription"] if inscriptions_disponibles else [])},
+                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_INSCRIPTION] if inscriptions_disponibles else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
@@ -721,9 +723,9 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         elif reponse["mode"] == "enrichir_savoirs":
             if not savoirs_disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Connaissances invalides. Aucun ajout enregistré.")
-        elif reponse["mode"] == "enrichir_inscription":
-            if not inscriptions_disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):
-                raise ErreurMonde("Inscription invalide. Aucun ajout enregistré.")
+        elif reponse["mode"] == "etablir_faits":
+            if not any(faits_disponibles.values()) or reponse["texte"] or not isinstance(reponse["proposition"], dict):
+                raise ErreurMonde("Faits narratifs invalides. Aucun ajout enregistré.")
         else:
             raise ErreurMonde("Type de réponse du MJ inconnu. Aucune action appliquée.")
         return reponse

@@ -14,7 +14,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur
 from donjon.enrichissement import preparer_complements
-from donjon.faits_locaux import preparer_inscription
+from donjon.faits_locaux import preparer_faits
 from donjon.connaissances import preparer_savoirs
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.comparaison import Comparateur, texte_comparaison
@@ -340,16 +340,16 @@ def main(argv=None, interface=None):
                             if isinstance(mj, Comparateur):
                                 mj.noter_resultat(reponse["texte"], rapport)
                             continue
-                        if any(k in reponse for k in ("_enrichissement", "_savoirs", "_profil_joueur", "_inscription")):
+                        if any(k in reponse for k in ("_enrichissement", "_savoirs", "_profil_joueur", "_faits_narratifs")):
                             savoirs = "_savoirs" in reponse
                             profil = "_profil_joueur" in reponse
-                            inscription = "_inscription" in reponse
-                            ajout = reponse["_inscription" if inscription else "_profil_joueur" if profil else "_savoirs" if savoirs else "_enrichissement"]
+                            faits_narratifs = "_faits_narratifs" in reponse
+                            ajout = reponse["_faits_narratifs" if faits_narratifs else "_profil_joueur" if profil else "_savoirs" if savoirs else "_enrichissement"]
                             preparer = preparer_savoirs if savoirs else preparer_complements
                             if profil:
                                 from donjon.profil_joueur import preparer
-                            if inscription:
-                                travail, _ = preparer_inscription(m, ajout["proposition"], ajout["revision"])
+                            if faits_narratifs:
+                                travail, _, _ = preparer_faits(m, ajout["proposition"], ajout["revision"])
                             else:
                                 travail = preparer(m, ajout["proposition"], ajout["revision"])
                             suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None

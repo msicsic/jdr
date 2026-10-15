@@ -434,6 +434,9 @@ class Monde:
                 "interlocuteurs": interlocuteurs(self), "missions_discutables": missions_discutables(self),
                 "engagements": contrats_publics(self),
                 "connaissances_pnj": connaissances_pnj(self),
+                "paroles_entendues": copy.deepcopy([
+                    p for p in self.data.get("paroles_pnj", []) if "joueur" in p["auditeurs"]][-10:]),
+                "souvenirs_faits": copy.deepcopy(self.data.get("faits_vus", [])[-20:]),
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],
                 "evenements_recents": [e for e in self.data["journal"]
                     if e["action"]["action"] not in (("marcher", "aller") if self.data.get("mode_cases") else ("marcher",))][-6:]}
@@ -469,6 +472,8 @@ class Monde:
             verifier_vol(self)
             from .objectifs import verifier as verifier_objectif
             verifier_objectif(self)
+            from .faits_locaux import verifier as verifier_faits_locaux
+            verifier_faits_locaux(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"
             assert d["joueur"]["salle"] in d["salles"], "Salle inconnue"
             assert d["joueur"]["or"] >= 0, "Or négatif"

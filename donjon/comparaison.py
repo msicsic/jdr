@@ -48,6 +48,8 @@ def texte_resultat(resultat):
             lignes += ["ÉCHANGE / ENGAGEMENT PROPOSÉ", json.dumps(r.get("proposition"), ensure_ascii=False, indent=2)]
         elif r.get("mode") == "enrichir_savoirs":
             lignes += ["CONNAISSANCES PROPOSÉES", json.dumps(r.get("proposition"), ensure_ascii=False, indent=2)]
+        elif r.get("mode") == "etablir_faits":
+            lignes += ["FAITS NARRATIFS PROPOSÉS", json.dumps(r.get("proposition"), ensure_ascii=False, indent=2)]
         elif r.get("mode") == "enrichir_espace":
             lignes += ["ABORDS PROPOSÉS", json.dumps(r.get("proposition"), ensure_ascii=False, indent=2)]
         elif r.get("mode") == "enrichir_joueur":
@@ -142,6 +144,8 @@ class Comparateur:
                 validation = "Compléments descriptifs validés sur une copie."
             elif "_savoirs" in reponse:
                 validation = "Connaissances narratives validées sur une copie ; aucune propriété physique modifiée."
+            elif "_faits_narratifs" in reponse:
+                validation = "Faits narratifs validés sur une copie ; enregistrement par le jeu avant affichage."
             elif "_conversation_pnj" in reponse:
                 validation = "Conversation validée sur une copie. " + " ".join(reponse["_conversation_pnj"]["rapport"]["faits"])
             self._publier(numero, role, statut="Terminé", reponse=copy.deepcopy(reponse),

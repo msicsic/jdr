@@ -23,10 +23,11 @@ if TEXTUAL:
 @unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
 class TUITests(unittest.IsolatedAsyncioTestCase):
     async def test_inscription_du_mj_affichee_apres_sauvegarde_et_lisible(self):
-        reponse = {"mode": "enrichir_inscription", "texte": "",
-                   "faits": ["supports_inscription"],
-                   "proposition": {"support": "antichambre_murs",
-                                   "inscription": "Veille au niveau des eaux."}}
+        reponse = {"mode": "etablir_faits", "texte": "",
+                   "faits": ["faits_narratifs_proposables"],
+                   "proposition": {"ajouts": [{"type": "inscription",
+                                               "ancrage": "antichambre_murs", "nom": "", "genre": "",
+                                               "texte": "Veille au niveau des eaux."}]}}
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(MJOpenAI, "_appeler", return_value=reponse) as api, \
              patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
@@ -37,7 +38,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.commande(app, pilot, "mj y a-t-il une inscription sur les murs ?", 0)
                 self.assertIn("Veille au niveau des eaux.", " ".join(app.sorties))
                 self.assertIn("inscription sur les murs", app.derniere_vue["scene"])
-                self.assertIn("inscription_antichambre_murs_1", Monde.charger(chemin).objets)
+                self.assertIn("fait_1_1", Monde.charger(chemin).objets)
                 await self.fermer(app)
             api.assert_called_once()
 
