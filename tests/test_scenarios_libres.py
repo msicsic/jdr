@@ -1,7 +1,11 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from donjon.atelier import nouveau_atelier
+from donjon.defi import nouveau_defi
+from donjon import scenario_crypte
 from donjon.monde import Monde, nouveau_monde_libre, objet
 from donjon.moteur import Moteur, proposition
 from donjon.spatial import installer
@@ -21,6 +25,21 @@ def creer(objectif=None):
 
 
 class ScenariosLibresTests(unittest.TestCase):
+    def test_relais_et_atelier_demarrent_sans_le_fichier_de_la_crypte(self):
+        with patch.object(scenario_crypte, "ETAT_INITIAL", Path("absent.json")):
+            relais = nouveau_defi()
+            atelier = nouveau_atelier()
+        self.assertIn("cloche", relais.objets)
+        self.assertIn("perche_1", atelier.objets)
+        self.assertEqual(relais.data["objectif_partie"]["objet"], "cloche")
+        self.assertEqual(set(atelier.data["salles"]), {"cour", "terrasse"})
+        self.assertNotIn("marchand", atelier.objets)
+        self.assertIsNone(atelier.data["objectif_partie"])
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            chemin = Path(dossier) / "relais.json"
+            relais.sauver(chemin)
+            self.assertEqual(Monde.charger(chemin).objets["cloche"], relais.objets["cloche"])
+
     def test_partie_sans_crypte_agit_et_se_recharge(self):
         monde = creer()
         self.assertEqual(set(monde.objets), {"jeton"})

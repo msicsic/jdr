@@ -13,12 +13,12 @@ AIDE = """COMMANDES LOCALES — sans appel API
   examiner axe supérieur               observer sans jet
   lire gravure                         tenter d'en comprendre le sens
   prendre clé | poser couteau
-  acheter pied-de-biche                 seulement dans l'échoppe
+  acheter <objet>                       auprès de son vendeur présent
   voler crochets                       tentative discrète, jet de DEX si observé
-  parler marchand
-  offre marchand | negocier marchand 25
+  parler <personnage>
+  offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
-  remettre anneau à Gorm                remet l'objet contre le paiement convenu
+  remettre <objet> à <personnage>       remet l'objet contre le paiement convenu
   ouvrir coffre avec clé | fermer porte
   crocheter serrure avec crochets
   retirer axe supérieur avec couteau    puis axe inférieur, séparément

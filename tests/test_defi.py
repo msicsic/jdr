@@ -143,17 +143,14 @@ class DefiRelaisTests(unittest.TestCase):
                          "la face ouest de la cloison de pierre")
         self.assertIn("L'état actuel prime", instructions)
 
-    def test_ancienne_partie_ajuste_la_cloison_sans_deplacer_la_consigne(self):
-        donnees = copy.deepcopy(self.m.data)
-        donnees["salles"][REFUGE]["plan"]["sol"][3] = ".... ...."
-        donnees["objets"]["antichambre_murs"]["position"] = [3, 3]
-        donnees["objets"]["gravure"].pop("fixee_sur")
-        donnees["exploration"][REFUGE].append([3, 3])
-        reprise = Monde(donnees)
+    def test_consigne_et_cloison_restent_alignees_apres_rechargement(self):
+        reprise = Monde(copy.deepcopy(self.m.data))
         self.assertEqual(reprise.data["salles"][REFUGE]["plan"]["sol"][3], "...  ....")
         self.assertEqual(reprise.objets["gravure"]["position"], [2, 3])
         self.assertEqual(reprise.objets["antichambre_murs"]["position"], [2, 3])
         self.assertNotIn([3, 3], reprise.data["exploration"][REFUGE])
+        self.assertEqual(reprise.objets["gravure"]["fixee_sur"],
+                         "la face ouest de la cloison de pierre")
         self.assertIn("! ##", carte(reprise))
 
     def test_route_exterieure_par_echelle_et_retour(self):

@@ -23,21 +23,6 @@ def installer(monde):
     d.setdefault("dialogues_pnj", {})
     d.setdefault("finances_pnj", {})
     d.setdefault("missions", {})
-    if d.get("scenario_id") == "libre":
-        return
-    if d.get("dialogues_version") == 1:
-        return
-    d["finances_pnj"].setdefault("marchand", 50)
-    d["dialogues_pnj"].setdefault("marchand", {
-        "intentions": "Gorm souhaite récupérer l'anneau du veilleur. Il préfère payer pour sa récupération et rester tenir son échoppe.",
-        "ton": "Il parle d'une voix grave, brièvement et sans détour. Il peut marchander, mais tient ses engagements.",
-    })
-    d["missions"].setdefault("anneau_veilleur", {
-        "donneur": "marchand", "objet": "anneau", "nom": "Retrouver l'anneau du veilleur",
-        "condition": "Remettre l'anneau du veilleur à Gorm dans la pièce où il se trouve.",
-        "prime_base": 20, "prime_plafond": 30,
-    })
-    d["dialogues_version"] = 1
 
 
 def interlocuteurs(monde):
@@ -192,7 +177,7 @@ def commande_sociale(monde, texte):
                   (id, monde.objets[id]["nom"], *monde.objets[id]["aliases"])]]
         candidats = [(id, m) for id, m in monde.data["missions"].items() if m["donneur"] in acteurs]
     if len(candidats) != 1:
-        raise ErreurMonde("Précise le personnage présent et son offre : offre marchand, negocier marchand 25, accepter offre.")
+        raise ErreurMonde("Précise le personnage présent et son offre, ou accepte une offre en attente.")
     id, mission = candidats[0]
     return {"personnage": mission["donneur"], "sujet": texte, "operation": operations[operation],
             "mission": id, "montant_demande": montant}

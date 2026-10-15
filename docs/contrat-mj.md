@@ -21,8 +21,8 @@ est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
 
 ## Contrôle commun actuellement appliqué
 
-Chaque réponse finale libre est découpée en segments et relue par Luna, y compris le récit
-après une action. Les récits conditionnels de l'arbitrage improvisé suivent la même passe
+Chaque réponse finale libre est découpée en segments et relue par Luna. Les récits
+conditionnels de l'arbitrage improvisé suivent la même passe
 avant préparation de l'action. L'auditeur doit classer chaque segment comme établi,
 hypothétique, neutre, parole attribuée, nouveau fait ou contradiction. Le moteur vérifie la
 couverture des segments, les clés de sources et la présence du locuteur ; une affirmation
@@ -40,6 +40,14 @@ moteur ne sait pas représenter restent refusés ou hypothétiques ; leur créat
 demande encore un contrat de faits plus riche. Les tests simulés vérifient le rejet, la
 révision, l'affichage et le rechargement ; ils ne prouvent pas le jugement d'une requête
 Luna réelle.
+
+Les résultats exécutés suivent un contrat plus strict : le moteur rédige les conséquences
+pendant l'application de ses effets et les enregistre dans son journal. La console et la TUI
+affichent ces phrases après sauvegarde, sans demander à Luna de les paraphraser. Les lignes
+de calcul des jets restent consultables dans le journal. Ce rendu est moins libre que le
+dialogue, mais les effets affichés proviennent de l'exécution réelle. Une improvisation
+peut aussi inscrire dans ce journal le récit conditionnel que Luna a proposé avant le jet :
+il est enregistré avec l'action, mais son exactitude sémantique dépend encore de la relecture.
 
 ## Ce qu'une phrase engage
 

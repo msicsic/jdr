@@ -187,27 +187,23 @@ class OperationsTests(unittest.TestCase):
         with self.assertRaises(ErreurMonde):
             self.moteur.executer(p)
 
-    def test_narration_sauvegardee_avant_appel_et_panne_sans_double_execution(self):
-        for suite in (narration(), ErreurMonde("réseau indisponible")):
-            with self.subTest(suite=suite), tempfile.TemporaryDirectory() as tmp:
-                path = Path(tmp) / "partie.json"
-                m = nouveau_monde()
-                m.sauver(path)
-                def appel(instructions, entree, intention, fonction, schema):
-                    if "resultat_resolu" not in entree["faits"]:
-                        return action(sequence(etape("deplacer", "cle", "joueur")))
-                    self.assertEqual(Monde.charger(path).objets["cle"]["lieu"], "joueur")
-                    self.assertEqual(schema["properties"]["mode"]["enum"], ["dialogue"])
-                    self.assertTrue(entree["faits"]["resultat_resolu"]["reussite"])
-                    if isinstance(suite, Exception):
-                        raise suite
-                    return suite
-                with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "_appeler", side_effect=appel), patch("builtins.input", side_effect=["je range la clé", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()) as sorties:
-                    jeu.main(["--console", "--connexion", "api", "--save", str(path)])
-                sauvegarde = Monde.charger(path)
-                self.assertEqual(sauvegarde.data["minutes"], 1)
-                self.assertEqual(len(sauvegarde.data["journal"]), 1)
-                self.assertIn("Aucune proposition en attente", sorties.getvalue())
+    def test_resultat_compose_vient_du_moteur_et_est_sauvegarde(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "partie.json"
+            nouveau_monde().sauver(path)
+            reponse = action(sequence(etape("deplacer", "cle", "joueur")))
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+                 patch.object(MJOpenAI, "_appeler", return_value=reponse) as appel, \
+                 patch("builtins.input", side_effect=["je range la clé", "tenter", "quitter"]), \
+                 patch("sys.stdout", io.StringIO()) as sorties:
+                jeu.main(["--console", "--connexion", "api", "--save", str(path)])
+            sauvegarde = Monde.charger(path)
+            self.assertEqual(appel.call_count, 1)
+            self.assertEqual(sauvegarde.objets["cle"]["lieu"], "joueur")
+            self.assertEqual(sauvegarde.data["minutes"], 1)
+            self.assertEqual(len(sauvegarde.data["journal"]), 1)
+            self.assertIn("la clé", sorties.getvalue().lower())
+            self.assertEqual(sauvegarde.data["conversation"][-1]["nature"], "resultat_moteur")
 
     def test_composition_proposee_a_une_question_non_executee(self):
         with tempfile.TemporaryDirectory() as tmp:

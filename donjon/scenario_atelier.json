@@ -1,0 +1,347 @@
+{
+  "ajouts_savoirs": [],
+  "arbitrages": {},
+  "artisanat_soigne_version": 1,
+  "bruit": 0,
+  "cadres_spatiaux": {
+    "terrasse_nord": {
+      "altitude_cm": 0,
+      "direction": "nord",
+      "haut": "terrasse",
+      "prise_sommet": true,
+      "profondeur_m": 3,
+      "recul_cm": 90,
+      "sol_stable": true,
+      "sommet_stable": true
+    }
+  },
+  "connus": [],
+  "conversation": [],
+  "dialogues_pnj": {},
+  "dialogues_version": 1,
+  "eclairage_version": 1,
+  "engagements": {},
+  "espace_version": 1,
+  "finances_pnj": {},
+  "franchissements_version": 1,
+  "geometrie_version": 1,
+  "jets": 0,
+  "joueur": {
+    "capacite": 12,
+    "espece": "humain",
+    "masse_kg": 70,
+    "nom": "Corvus",
+    "or": 24,
+    "position": [
+      2,
+      3
+    ],
+    "pv": 18,
+    "pv_max": 18,
+    "salle": "cour",
+    "stade_vie": "adulte",
+    "stats": {
+      "CHA": 12,
+      "DEX": 16,
+      "FOR": 12,
+      "INT": 14,
+      "PER": 12
+    }
+  },
+  "journal": [],
+  "lus": [],
+  "minutes": 0,
+  "missions": {},
+  "objectif_partie": null,
+  "objets": {
+    "cour_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "cour_sol",
+      "integrite": 10,
+      "lieu": "cour",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "sol",
+      "type": "surface"
+    },
+    "couteau": {
+      "aliases": [
+        "couteau",
+        "poignard",
+        "dague"
+      ],
+      "id": "couteau",
+      "integrite": 3,
+      "lieu": "joueur",
+      "masse": 0.3,
+      "materiau": "acier",
+      "maximum": 3,
+      "mobile": true,
+      "nom": "couteau à lame fine",
+      "puissance": 2,
+      "type": "outil",
+      "usages": [
+        "levier_fin",
+        "couper"
+      ]
+    },
+    "ficelle": {
+      "aliases": [
+        "ficelle",
+        "bobine"
+      ],
+      "charge_jeu_kg": 110,
+      "genre": "f",
+      "id": "ficelle",
+      "integrite": 10,
+      "lieu": "cour",
+      "longueur_cm": 2000,
+      "masse": 0.3,
+      "materiau": "fibres",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bobine de ficelle solide",
+      "position": [
+        4,
+        2
+      ],
+      "position_salle": "cour",
+      "proprietaire": "joueur",
+      "ressource": "lien",
+      "type": "materiau"
+    },
+    "hache": {
+      "aliases": [
+        "hache"
+      ],
+      "elision": false,
+      "genre": "f",
+      "id": "hache",
+      "integrite": 10,
+      "lieu": "joueur",
+      "masse": 1.5,
+      "materiau": "acier et bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "hache",
+      "proprietaire": "joueur",
+      "type": "outil",
+      "usages": [
+        "couper_bois"
+      ]
+    },
+    "lanterne": {
+      "aliases": [
+        "lampe"
+      ],
+      "allume": false,
+      "combustible": 60,
+      "id": "lanterne",
+      "integrite": 10,
+      "lieu": "joueur",
+      "luminosite": 2,
+      "masse": 0.8,
+      "materiau": "fer et verre",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "lanterne",
+      "type": "luminaire"
+    },
+    "mur_atelier": {
+      "aliases": [
+        "mur"
+      ],
+      "appui_vertical": {
+        "bas": "cour",
+        "direction": "sud",
+        "elan_cm": 400,
+        "haut": "terrasse",
+        "hauteur_cm": 240,
+        "prise_sommet": true,
+        "reception_stable": true,
+        "recul_cm": 90,
+        "sol_stable": true,
+        "sommet_stable": true
+      },
+      "id": "mur_atelier",
+      "integrite": 10,
+      "lieu": "cour",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "mur de l'atelier",
+      "type": "surface"
+    },
+    "perche_1": {
+      "aliases": [
+        "perche 1",
+        "branche 1",
+        "tronc 1"
+      ],
+      "charge_jeu_kg": 110,
+      "diametre_cm": 5,
+      "genre": "f",
+      "id": "perche_1",
+      "integrite": 10,
+      "lieu": "cour",
+      "longueur_cm": 300,
+      "masse": 3,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "perche de bois 1",
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "cour",
+      "proprietaire": "joueur",
+      "ressource": "perche",
+      "type": "materiau"
+    },
+    "perche_2": {
+      "aliases": [
+        "perche 2",
+        "branche 2",
+        "tronc 2"
+      ],
+      "charge_jeu_kg": 110,
+      "diametre_cm": 5,
+      "genre": "f",
+      "id": "perche_2",
+      "integrite": 10,
+      "lieu": "cour",
+      "longueur_cm": 300,
+      "masse": 3,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "perche de bois 2",
+      "position": [
+        2,
+        1
+      ],
+      "position_salle": "cour",
+      "proprietaire": "joueur",
+      "ressource": "perche",
+      "type": "materiau"
+    },
+    "perche_3": {
+      "aliases": [
+        "perche 3",
+        "branche 3",
+        "tronc 3"
+      ],
+      "charge_jeu_kg": 110,
+      "diametre_cm": 5,
+      "genre": "f",
+      "id": "perche_3",
+      "integrite": 10,
+      "lieu": "cour",
+      "longueur_cm": 300,
+      "masse": 3,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "perche de bois 3",
+      "position": [
+        3,
+        1
+      ],
+      "position_salle": "cour",
+      "proprietaire": "joueur",
+      "ressource": "perche",
+      "type": "materiau"
+    },
+    "terrasse_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "terrasse_sol",
+      "integrite": 10,
+      "lieu": "terrasse",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "sol",
+      "type": "surface"
+    }
+  },
+  "personnages_version": 1,
+  "relations_pnj": {},
+  "revision": 0,
+  "salles": {
+    "cour": {
+      "altitude_cm": 0,
+      "exterieur": true,
+      "fenetres": 0,
+      "lumiere_naturelle": 2,
+      "niveau": 0,
+      "nom": "Cour de l'atelier",
+      "plan": {
+        "origine": [
+          20,
+          10
+        ],
+        "repere": "A",
+        "sol": [
+          "......",
+          "......",
+          "......",
+          "......",
+          "......",
+          "......"
+        ]
+      },
+      "sorties": {},
+      "travail_calme": true
+    },
+    "terrasse": {
+      "altitude_cm": 240,
+      "bords_fermes": [
+        "est",
+        "ouest"
+      ],
+      "exterieur": true,
+      "fenetres": 0,
+      "lumiere_naturelle": 2,
+      "niveau": 1,
+      "nom": "Terrasse de l'atelier",
+      "plan": {
+        "origine": [
+          20,
+          10
+        ],
+        "repere": "T",
+        "sol": [
+          "......",
+          "......",
+          "......"
+        ]
+      },
+      "sorties": {}
+    }
+  },
+  "savoirs_pnj": {},
+  "savoirs_version": 1,
+  "scenario": {
+    "debut": "Tu es dans la cour d'un atelier, en plein jour. Trois perches et une bobine de ficelle sont à ta disposition. Une terrasse borde le sommet d'un mur de 2,4 m. Tu portes une hache : à toi d'imaginer comment atteindre ce palier.",
+    "liberte_personnage": "Le joueur décide de ses actions. Les dimensions et ressources sont établies, sans création gratuite.",
+    "objectif": "Atteindre la terrasse puis revenir, par les moyens de ton choix.",
+    "version": 1
+  },
+  "seed": 1985,
+  "souvenirs_personnages": {},
+  "sujets_savoirs_pnj": {},
+  "version": 1,
+  "visitees": [
+    "cour"
+  ],
+  "scenario_id": "atelier"
+}

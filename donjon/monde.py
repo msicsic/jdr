@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .perception import eclairage
 from .francais import designer
-from .geometrie import installer, cases
+from .geometrie import cases
 
 
 class ErreurMonde(ValueError):
@@ -30,90 +30,12 @@ def objet(id, nom, type, lieu, **proprietes):
 
 
 def nouveau_monde(seed=1985):
-    objets = [
-        objet("porte", "porte de la crypte", "porte", "antichambre",
-              aliases=["porte", "battant"], materiau="chêne", masse=80,
-              integrite=30, maximum=30, relie=["antichambre", "crypte"],
-              ouverte=False, verrouillee=True, detachee=False, bloque_par=None,
-              fixations=["axe_haut", "axe_bas"]),
-        objet("gravure", "gravure du chevalier", "motif", "porte",
-              aliases=["gravure", "runes", "inscription"], materiau="chêne",
-              motif="Un chevalier agenouillé tend une clé à une silhouette couronnée.",
-              inscription="Au veilleur revient le dernier serment.",
-              sens="La clé du veilleur ouvre le coffre de la crypte."),
-        objet("serrure", "serrure de la porte", "serrure", "porte",
-              aliases=["serrure"], materiau="fer", bloquee=False),
-        objet("axe_haut", "axe du gond supérieur", "fixation", "porte",
-              aliases=["axe superieur", "gond superieur", "axe haut", "gond haut"],
-              materiau="fer", masse=0.2, mobile=True, attache=True,
-              amovible=True, cote="antichambre", resistance=12),
-        objet("axe_bas", "axe du gond inférieur", "fixation", "porte",
-              aliases=["axe inferieur", "gond inferieur", "axe bas", "gond bas"],
-              materiau="fer", masse=0.2, mobile=True, attache=True,
-              amovible=True, cote="antichambre", resistance=12),
-        objet("couteau", "couteau à lame fine", "outil", "joueur",
-              aliases=["couteau", "poignard", "dague"], materiau="acier", masse=0.3,
-              mobile=True, usages=["levier_fin", "couper"], puissance=2,
-              integrite=3, maximum=3),
-        objet("cire", "bloc de cire malléable", "consommable", "joueur",
-              aliases=["cire", "bloc de cire"], materiau="cire", masse=0.2,
-              mobile=True, usages=["empreinte"], charges=2),
-        objet("cle", "clé du veilleur", "cle", "antichambre",
-              aliases=["cle", "cle du veilleur"], materiau="bronze", masse=0.1,
-              mobile=True, ouvre=["coffre"]),
-        objet("marchand", "Gorm le marchand", "personnage", "echoppe",
-              aliases=["gorm", "marchand"], humeur="calme",
-              refuse_ventes_apres_vol=True),
-        objet("pied_de_biche", "pied-de-biche", "outil", "echoppe",
-              aliases=["pied de biche", "pied-de-biche", "levier"], materiau="fer",
-              masse=2, mobile=True, usages=["levier", "percussion"], puissance=7,
-              prix=12, en_vente=True, vendeur="marchand"),
-        objet("marteau", "marteau", "outil", "echoppe",
-              aliases=["marteau"], materiau="fer et bois", masse=1,
-              mobile=True, usages=["percussion", "cale"], puissance=5,
-              prix=7, en_vente=True, vendeur="marchand"),
-        objet("crochets", "trousse de crochets", "outil", "echoppe",
-              aliases=["crochets", "crochet", "trousse"], materiau="acier", masse=0.1,
-              mobile=True, usages=["crochetage"], puissance=0,
-              integrite=3, maximum=3, prix=8, en_vente=True, vendeur="marchand"),
-        objet("coffre", "coffre de pierre", "contenant", "crypte",
-              aliases=["coffre"], materiau="pierre", masse=150,
-              integrite=40, maximum=40, ouverte=False, verrouillee=True),
-        objet("anneau", "anneau du veilleur", "tresor", "coffre",
-              aliases=["anneau", "tresor"], materiau="argent", masse=0.02, mobile=True),
-    ]
-    # Même les surfaces mentionnées ont une identité et peuvent être ciblées.
-    for salle in ("antichambre", "echoppe", "crypte"):
-        for surface in ("sol", "murs", "plafond"):
-            objets.append(objet(f"{salle}_{surface}", surface, "surface", salle,
-                                aliases=[surface], materiau="pierre",
-                                integrite=100, maximum=100))
-    return Monde({
-        "version": 1, "seed": seed, "jets": 0, "revision": 0, "minutes": 0,
-        "bruit": 0, "visitees": ["antichambre"], "connus": [], "lus": [],
-        "journal": [], "arbitrages": {},
-        "objectif_partie": {
-            "objet": "anneau", "lieu": "joueur",
-            "message": "OBJECTIF ATTEINT : vous avez retrouvé l'anneau du veilleur. L'exploration reste ouverte.",
-        },
-        "joueur": {"nom": "Corvus", "salle": "antichambre", "pv": 18,
-                    "pv_max": 18, "or": 24, "capacite": 12,
-                    "stats": {"FOR": 12, "DEX": 16, "INT": 14, "PER": 12, "CHA": 12}},
-        "salles": {
-            "antichambre": {"nom": "Antichambre", "sorties": {
-                "ouest": {"vers": "echoppe", "porte": None},
-                "nord": {"vers": "crypte", "porte": "porte"}}},
-            "echoppe": {"nom": "Echoppe de Gorm", "sorties": {
-                "est": {"vers": "antichambre", "porte": None}}},
-            "crypte": {"nom": "Crypte du veilleur", "sorties": {
-                "sud": {"vers": "antichambre", "porte": "porte"}}},
-        },
-        "objets": {o["id"]: o for o in objets},
-    })
+    from .scenario_crypte import nouveau_monde as creer_crypte
+    return creer_crypte(seed)
 
 
 def nouveau_monde_libre(salles, objets, salle_depart, position, scenario, objectif=None, seed=1985):
-    """Crée une aventure sans les lieux, personnages ni objets de la crypte."""
+    """Crée une aventure directement à partir de ses propres données."""
     return Monde({
         "version": 1, "seed": seed, "jets": 0, "revision": 0, "minutes": 0,
         "bruit": 0, "visitees": [salle_depart], "connus": [], "lus": [],
@@ -140,10 +62,6 @@ class Monde:
         installer_savoirs(self)
         from .vol import installer as installer_vol
         installer_vol(self)
-        installer(self)
-        if self.data.get("defi_relais"):
-            from .defi import installer_consigne
-            installer_consigne(self)
         from .franchissement import installer as installer_franchissements
         installer_franchissements(self)
         from .artisanat import installer as installer_artisanat
@@ -153,22 +71,6 @@ class Monde:
         self.verifier()
 
     def _installer_recit(self):
-        """Prémisse d'auteur persistante, ajoutée aux anciennes parties sans réinitialisation."""
-        if "scenario" not in self.data:
-            self.data["scenario"] = {
-                "version": 1,
-                "debut": "Tu as accepté de retrouver l'anneau du veilleur à la demande de Gorm. "
-                         "Le marchand t'a conduit de son échoppe à cette antichambre, puis est retourné à ses affaires. "
-                         "C'est là que ton exploration a commencé.",
-                "objectif": "Retrouver l'anneau du veilleur dans la crypte.",
-                "gorm": "Gorm tient l'échoppe à l'ouest de l'antichambre. Il t'a demandé de retrouver l'anneau, "
-                        "mais n'a expliqué ni ce qu'il représente pour lui ni pourquoi il ne va pas le chercher lui-même. "
-                        "Aucune récompense n'a été convenue.",
-                "liberte_personnage": "Le joueur choisit les raisons personnelles de Corvus. "
-                                      "Ne lui impose ni sentiments, ni amnésie, ni passé supplémentaire.",
-            }
-            if "echoppe" not in self.data["visitees"]:
-                self.data["visitees"].append("echoppe")
         self.data.setdefault("conversation", [])
 
     def memoriser(self, joueur, reponse, nature="dialogue"):
@@ -178,36 +80,7 @@ class Monde:
         self.data["conversation"] = self.data["conversation"][-12:]
 
     def _installer_personnages(self):
-        """Portrait d'auteur et souvenir de la rencontre établie dans la prémisse."""
         self.data.setdefault("souvenirs_personnages", {})
-        if self.data.get("scenario_id") == "libre":
-            return
-        if self.data.get("personnages_version") == 1:
-            return
-        gorm = self.objets["marchand"]
-        gorm.setdefault("portrait", "Gorm est un homme trapu d'une cinquantaine d'années, au visage large.")
-        gorm.setdefault("maniere_de_parler", "Gorm parle peu et va droit au but, d'une voix grave.")
-        for detail in (
-            objet("barbe_gorm", "barbe de Gorm", "partie_corps", "marchand",
-                  aliases=["barbe", "sa barbe"], genre="f", materiau="poils",
-                  description_visuelle="Sa barbe est courte et grisonnante.",
-                  description_tactile="Les poils de sa barbe sont courts et rêches."),
-            objet("mains_gorm", "mains de Gorm", "partie_corps", "marchand",
-                  aliases=["mains", "ses mains"], genre="f", pluriel=True, materiau="peau",
-                  description_visuelle="Ses mains sont larges et calleuses.",
-                  description_tactile="La peau de ses mains est épaisse et rugueuse."),
-        ):
-            self.objets.setdefault(detail["id"], detail)
-        # Pas de lecture de son humeur ou de sa position actuelle à distance.
-        self.data["souvenirs_personnages"].setdefault("marchand", {
-            **self._portrait_public(gorm),
-            "details": [{"nom": self.objets[id]["nom"],
-                         "description": self.objets[id]["description_visuelle"]}
-                        for id in ("barbe_gorm", "mains_gorm")],
-            "maniere_de_parler": gorm["maniere_de_parler"],
-            "source": "Rencontre avec Gorm avant le début de l'exploration : il t'a conduit à l'antichambre.",
-        })
-        self.data["personnages_version"] = 1
 
     def _portrait_public(self, personnage):
         """Liste blanche : jamais de secrets, d'inventaire ou de lieu dans un souvenir."""
@@ -234,32 +107,9 @@ class Monde:
             souvenir["minute"] = self.data["minutes"]
 
     def _installer_eclairage(self):
-        """Extension additive des parties v1 ; aucune source existante n'est rallumée au chargement."""
-        if self.data.get("eclairage_version") == 1:
-            return
         for salle in self.data["salles"].values():
             salle.setdefault("fenetres", 0)
             salle.setdefault("lumiere_naturelle", 0)
-        if self.data.get("scenario_id") == "libre":
-            self.data["eclairage_version"] = 1
-            return
-        for o in (
-            objet("lanterne", "lanterne", "luminaire", "joueur", aliases=["lampe"],
-                  materiau="fer et verre", mobile=True, masse=0.8,
-                  luminosite=2, allume=True, combustible=60),
-            objet("torche", "torche", "luminaire", "antichambre", aliases=["flambeau"],
-                  materiau="bois", mobile=True, masse=0.3,
-                  luminosite=2, allume=False, combustible=30),
-            objet("brasero", "brasero", "luminaire", "echoppe", aliases=["foyer"],
-                  materiau="fer", masse=20, luminosite=2, allume=True, combustible=180),
-            objet("briquet", "briquet à silex", "outil", "joueur", aliases=["briquet", "silex"],
-                  materiau="fer et silex", mobile=True, masse=0.1, usages=["allumage"]),
-        ):
-            if (o["lieu"] == "joueur" and o["id"] not in self.objets
-                    and self.charge() + o["masse"] > self.joueur["capacite"]):
-                o["lieu"] = self.joueur["salle"]
-            self.objets.setdefault(o["id"], o)
-        self.data["eclairage_version"] = 1
 
     @property
     def objets(self):

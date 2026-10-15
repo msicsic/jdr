@@ -1,0 +1,779 @@
+{
+  "ajouts_savoirs": [],
+  "arbitrages": {},
+  "bruit": 0,
+  "connus": [],
+  "conversation": [],
+  "dialogues_pnj": {
+    "marchand": {
+      "intentions": "Gorm souhaite récupérer l'anneau du veilleur. Il préfère payer pour sa récupération et rester tenir son échoppe.",
+      "ton": "Il parle d'une voix grave, brièvement et sans détour. Il peut marchander, mais tient ses engagements."
+    }
+  },
+  "dialogues_version": 1,
+  "eclairage_version": 1,
+  "engagements": {},
+  "finances_pnj": {
+    "marchand": 50
+  },
+  "geometrie_version": 1,
+  "jets": 0,
+  "joueur": {
+    "capacite": 12,
+    "espece": "humain",
+    "nom": "Corvus",
+    "or": 24,
+    "position": [
+      1,
+      2
+    ],
+    "pv": 18,
+    "pv_max": 18,
+    "salle": "antichambre",
+    "stade_vie": "adulte",
+    "stats": {
+      "CHA": 12,
+      "DEX": 16,
+      "FOR": 12,
+      "INT": 14,
+      "PER": 12
+    }
+  },
+  "journal": [],
+  "lus": [],
+  "minutes": 0,
+  "missions": {
+    "anneau_veilleur": {
+      "condition": "Remettre l'anneau du veilleur à Gorm dans la pièce où il se trouve.",
+      "donneur": "marchand",
+      "nom": "Retrouver l'anneau du veilleur",
+      "objet": "anneau",
+      "prime_base": 20,
+      "prime_plafond": 30
+    }
+  },
+  "objectif_partie": {
+    "lieu": "joueur",
+    "message": "OBJECTIF ATTEINT : vous avez retrouvé l'anneau du veilleur. L'exploration reste ouverte.",
+    "objet": "anneau"
+  },
+  "objets": {
+    "porte": {
+      "aliases": [
+        "porte",
+        "battant"
+      ],
+      "bloque_par": null,
+      "detachee": false,
+      "fixations": [
+        "axe_haut",
+        "axe_bas"
+      ],
+      "id": "porte",
+      "integrite": 30,
+      "lieu": "antichambre",
+      "masse": 80,
+      "materiau": "chêne",
+      "maximum": 30,
+      "mobile": false,
+      "nom": "porte de la crypte",
+      "ouverte": false,
+      "relie": [
+        "antichambre",
+        "crypte"
+      ],
+      "type": "porte",
+      "verrouillee": true
+    },
+    "gravure": {
+      "aliases": [
+        "gravure",
+        "runes",
+        "inscription"
+      ],
+      "id": "gravure",
+      "inscription": "Au veilleur revient le dernier serment.",
+      "integrite": 10,
+      "lieu": "porte",
+      "masse": 0,
+      "materiau": "chêne",
+      "maximum": 10,
+      "mobile": false,
+      "motif": "Un chevalier agenouillé tend une clé à une silhouette couronnée.",
+      "nom": "gravure du chevalier",
+      "sens": "La clé du veilleur ouvre le coffre de la crypte.",
+      "type": "motif"
+    },
+    "serrure": {
+      "aliases": [
+        "serrure"
+      ],
+      "bloquee": false,
+      "id": "serrure",
+      "integrite": 10,
+      "lieu": "porte",
+      "masse": 0,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "serrure de la porte",
+      "type": "serrure"
+    },
+    "axe_haut": {
+      "aliases": [
+        "axe superieur",
+        "gond superieur",
+        "axe haut",
+        "gond haut"
+      ],
+      "amovible": true,
+      "attache": true,
+      "cote": "antichambre",
+      "id": "axe_haut",
+      "integrite": 10,
+      "lieu": "porte",
+      "masse": 0.2,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "axe du gond supérieur",
+      "resistance": 12,
+      "type": "fixation"
+    },
+    "axe_bas": {
+      "aliases": [
+        "axe inferieur",
+        "gond inferieur",
+        "axe bas",
+        "gond bas"
+      ],
+      "amovible": true,
+      "attache": true,
+      "cote": "antichambre",
+      "id": "axe_bas",
+      "integrite": 10,
+      "lieu": "porte",
+      "masse": 0.2,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "axe du gond inférieur",
+      "resistance": 12,
+      "type": "fixation"
+    },
+    "couteau": {
+      "aliases": [
+        "couteau",
+        "poignard",
+        "dague"
+      ],
+      "id": "couteau",
+      "integrite": 3,
+      "lieu": "joueur",
+      "masse": 0.3,
+      "materiau": "acier",
+      "maximum": 3,
+      "mobile": true,
+      "nom": "couteau à lame fine",
+      "puissance": 2,
+      "type": "outil",
+      "usages": [
+        "levier_fin",
+        "couper"
+      ]
+    },
+    "cire": {
+      "aliases": [
+        "cire",
+        "bloc de cire"
+      ],
+      "charges": 2,
+      "id": "cire",
+      "integrite": 10,
+      "lieu": "joueur",
+      "masse": 0.2,
+      "materiau": "cire",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bloc de cire malléable",
+      "type": "consommable",
+      "usages": [
+        "empreinte"
+      ]
+    },
+    "cle": {
+      "aliases": [
+        "cle",
+        "cle du veilleur"
+      ],
+      "id": "cle",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "masse": 0.1,
+      "materiau": "bronze",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "clé du veilleur",
+      "ouvre": [
+        "coffre"
+      ],
+      "position": [
+        3,
+        2
+      ],
+      "position_salle": "antichambre",
+      "type": "cle"
+    },
+    "marchand": {
+      "aliases": [
+        "gorm",
+        "marchand"
+      ],
+      "humeur": "calme",
+      "id": "marchand",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "maniere_de_parler": "Gorm parle peu et va droit au but, d'une voix grave.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Gorm le marchand",
+      "portrait": "Gorm est un homme trapu d'une cinquantaine d'années, au visage large.",
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "echoppe",
+      "refuse_ventes_apres_vol": true,
+      "type": "personnage",
+      "vigilance": 14
+    },
+    "pied_de_biche": {
+      "aliases": [
+        "pied de biche",
+        "pied-de-biche",
+        "levier"
+      ],
+      "en_vente": true,
+      "id": "pied_de_biche",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "masse": 2,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "pied-de-biche",
+      "position": [
+        3,
+        1
+      ],
+      "position_salle": "echoppe",
+      "prix": 12,
+      "puissance": 7,
+      "type": "outil",
+      "usages": [
+        "levier",
+        "percussion"
+      ],
+      "vendeur": "marchand"
+    },
+    "marteau": {
+      "aliases": [
+        "marteau"
+      ],
+      "en_vente": true,
+      "id": "marteau",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "masse": 1,
+      "materiau": "fer et bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "marteau",
+      "position": [
+        3,
+        2
+      ],
+      "position_salle": "echoppe",
+      "prix": 7,
+      "puissance": 5,
+      "type": "outil",
+      "usages": [
+        "percussion",
+        "cale"
+      ],
+      "vendeur": "marchand"
+    },
+    "crochets": {
+      "aliases": [
+        "crochets",
+        "crochet",
+        "trousse"
+      ],
+      "en_vente": true,
+      "id": "crochets",
+      "integrite": 3,
+      "lieu": "echoppe",
+      "masse": 0.1,
+      "materiau": "acier",
+      "maximum": 3,
+      "mobile": true,
+      "nom": "trousse de crochets",
+      "position": [
+        3,
+        3
+      ],
+      "position_salle": "echoppe",
+      "prix": 8,
+      "puissance": 0,
+      "type": "outil",
+      "usages": [
+        "crochetage"
+      ],
+      "vendeur": "marchand"
+    },
+    "coffre": {
+      "aliases": [
+        "coffre"
+      ],
+      "id": "coffre",
+      "integrite": 40,
+      "lieu": "crypte",
+      "masse": 150,
+      "materiau": "pierre",
+      "maximum": 40,
+      "mobile": false,
+      "nom": "coffre de pierre",
+      "ouverte": false,
+      "position": [
+        4,
+        2
+      ],
+      "position_salle": "crypte",
+      "type": "contenant",
+      "verrouillee": true
+    },
+    "anneau": {
+      "aliases": [
+        "anneau",
+        "tresor"
+      ],
+      "id": "anneau",
+      "integrite": 10,
+      "lieu": "coffre",
+      "masse": 0.02,
+      "materiau": "argent",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "anneau du veilleur",
+      "type": "tresor"
+    },
+    "antichambre_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "antichambre_sol",
+      "integrite": 100,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "sol",
+      "type": "surface"
+    },
+    "antichambre_murs": {
+      "aliases": [
+        "murs"
+      ],
+      "id": "antichambre_murs",
+      "integrite": 100,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "murs",
+      "type": "surface"
+    },
+    "antichambre_plafond": {
+      "aliases": [
+        "plafond"
+      ],
+      "id": "antichambre_plafond",
+      "integrite": 100,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "plafond",
+      "type": "surface"
+    },
+    "echoppe_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "echoppe_sol",
+      "integrite": 100,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "sol",
+      "type": "surface"
+    },
+    "echoppe_murs": {
+      "aliases": [
+        "murs"
+      ],
+      "id": "echoppe_murs",
+      "integrite": 100,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "murs",
+      "type": "surface"
+    },
+    "echoppe_plafond": {
+      "aliases": [
+        "plafond"
+      ],
+      "id": "echoppe_plafond",
+      "integrite": 100,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "plafond",
+      "type": "surface"
+    },
+    "crypte_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "crypte_sol",
+      "integrite": 100,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "sol",
+      "type": "surface"
+    },
+    "crypte_murs": {
+      "aliases": [
+        "murs"
+      ],
+      "id": "crypte_murs",
+      "integrite": 100,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "murs",
+      "type": "surface"
+    },
+    "crypte_plafond": {
+      "aliases": [
+        "plafond"
+      ],
+      "id": "crypte_plafond",
+      "integrite": 100,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "plafond",
+      "type": "surface"
+    },
+    "lanterne": {
+      "aliases": [
+        "lampe"
+      ],
+      "allume": true,
+      "combustible": 60,
+      "id": "lanterne",
+      "integrite": 10,
+      "lieu": "joueur",
+      "luminosite": 2,
+      "masse": 0.8,
+      "materiau": "fer et verre",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "lanterne",
+      "type": "luminaire"
+    },
+    "torche": {
+      "aliases": [
+        "flambeau"
+      ],
+      "allume": false,
+      "combustible": 30,
+      "id": "torche",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "luminosite": 2,
+      "masse": 0.3,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "torche",
+      "position": [
+        4,
+        1
+      ],
+      "position_salle": "antichambre",
+      "type": "luminaire"
+    },
+    "brasero": {
+      "aliases": [
+        "foyer"
+      ],
+      "allume": true,
+      "combustible": 180,
+      "id": "brasero",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "luminosite": 2,
+      "masse": 20,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "brasero",
+      "position": [
+        3,
+        4
+      ],
+      "position_salle": "echoppe",
+      "type": "luminaire"
+    },
+    "briquet": {
+      "aliases": [
+        "briquet",
+        "silex"
+      ],
+      "id": "briquet",
+      "integrite": 10,
+      "lieu": "joueur",
+      "masse": 0.1,
+      "materiau": "fer et silex",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "briquet à silex",
+      "type": "outil",
+      "usages": [
+        "allumage"
+      ]
+    },
+    "barbe_gorm": {
+      "aliases": [
+        "barbe",
+        "sa barbe"
+      ],
+      "description_tactile": "Les poils de sa barbe sont courts et rêches.",
+      "description_visuelle": "Sa barbe est courte et grisonnante.",
+      "genre": "f",
+      "id": "barbe_gorm",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 0,
+      "materiau": "poils",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "barbe de Gorm",
+      "type": "partie_corps"
+    },
+    "mains_gorm": {
+      "aliases": [
+        "mains",
+        "ses mains"
+      ],
+      "description_tactile": "La peau de ses mains est épaisse et rugueuse.",
+      "description_visuelle": "Ses mains sont larges et calleuses.",
+      "genre": "f",
+      "id": "mains_gorm",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 0,
+      "materiau": "peau",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "mains de Gorm",
+      "pluriel": true,
+      "type": "partie_corps"
+    }
+  },
+  "personnages_version": 1,
+  "relations_pnj": {
+    "marchand": {
+      "dernier_objet": "",
+      "soupcon": 0,
+      "vols_surpris": 0
+    }
+  },
+  "revision": 0,
+  "salles": {
+    "antichambre": {
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Antichambre",
+      "plan": {
+        "origine": [
+          8,
+          10
+        ],
+        "repere": "A",
+        "sol": [
+          "......",
+          "......",
+          "......",
+          "......"
+        ]
+      },
+      "sorties": {
+        "nord": {
+          "case": [
+            3,
+            -1
+          ],
+          "porte": "porte",
+          "vers": "crypte"
+        },
+        "ouest": {
+          "case": [
+            -1,
+            1
+          ],
+          "porte": null,
+          "vers": "echoppe"
+        }
+      }
+    },
+    "crypte": {
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Crypte du veilleur",
+      "plan": {
+        "origine": [
+          8,
+          2
+        ],
+        "repere": "C",
+        "sol": [
+          "  ....  ",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      },
+      "sorties": {
+        "sud": {
+          "case": [
+            3,
+            7
+          ],
+          "porte": "porte",
+          "vers": "antichambre"
+        }
+      }
+    },
+    "echoppe": {
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Echoppe de Gorm",
+      "plan": {
+        "origine": [
+          2,
+          8
+        ],
+        "repere": "E",
+        "sol": [
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ]
+      },
+      "sorties": {
+        "est": {
+          "case": [
+            5,
+            3
+          ],
+          "porte": null,
+          "vers": "antichambre"
+        }
+      }
+    }
+  },
+  "savoirs_pnj": {
+    "marchand": {
+      "porte_crypte": {
+        "origine": "jeu",
+        "revision": 0,
+        "texte": "Gorm connaît la porte de chêne au nord de l'antichambre. Une trousse de crochets permet d'en tenter le crochetage, sans garantie de réussite. Ses deux axes de gonds sont amovibles du côté de l'antichambre : un levier adapté peut aider à les extraire un par un. Un couteau risque de casser. Ce savoir décrit la construction, pas son état actuel."
+      },
+      "prudence": {
+        "origine": "jeu",
+        "revision": 0,
+        "texte": "Gorm préfère laisser l'exploration à quelqu'un d'autre et tenir son échoppe. Il connaît les usages des outils qu'il vend, sans garantir le succès d'une manœuvre."
+      }
+    }
+  },
+  "savoirs_version": 1,
+  "scenario": {
+    "debut": "Tu as accepté de retrouver l'anneau du veilleur à la demande de Gorm. Le marchand t'a conduit de son échoppe à cette antichambre, puis est retourné à ses affaires. C'est là que ton exploration a commencé.",
+    "gorm": "Gorm tient l'échoppe à l'ouest de l'antichambre. Il t'a demandé de retrouver l'anneau, mais n'a expliqué ni ce qu'il représente pour lui ni pourquoi il ne va pas le chercher lui-même. Aucune récompense n'a été convenue.",
+    "liberte_personnage": "Le joueur choisit les raisons personnelles de Corvus. Ne lui impose ni sentiments, ni amnésie, ni passé supplémentaire.",
+    "objectif": "Retrouver l'anneau du veilleur dans la crypte.",
+    "version": 1
+  },
+  "seed": 1985,
+  "souvenirs_personnages": {
+    "marchand": {
+      "details": [
+        {
+          "description": "Sa barbe est courte et grisonnante.",
+          "nom": "barbe de Gorm"
+        },
+        {
+          "description": "Ses mains sont larges et calleuses.",
+          "nom": "mains de Gorm"
+        }
+      ],
+      "maniere_de_parler": "Gorm parle peu et va droit au but, d'une voix grave.",
+      "nom": "Gorm le marchand",
+      "portrait": "Gorm est un homme trapu d'une cinquantaine d'années, au visage large.",
+      "source": "Rencontre avec Gorm avant le début de l'exploration : il t'a conduit à l'antichambre.",
+      "traits": {}
+    }
+  },
+  "sujets_savoirs_pnj": {
+    "marchand": {
+      "apprentissage_metier": "Comment le personnage a appris son métier connu ; aucun pouvoir ni bonus nouveau.",
+      "lien_anneau": "Pourquoi Gorm tient à retrouver l'anneau : un attachement personnel ordinaire. Aucun pouvoir, emplacement secret, nouvelle récompense ou lien imposé à Corvus.",
+      "motivation_personnelle": "Une raison personnelle compatible avec ses intentions connues, sans nouvelle mission ni récompense.",
+      "souvenir_personnel": "Un souvenir ordinaire, sans nouveau lieu visitable, PNJ interactif, trésor ou secret.",
+      "tradition_locale": "Une coutume ou expression locale sans effet magique ni indice mécanique."
+    }
+  },
+  "version": 1,
+  "visitees": [
+    "antichambre",
+    "echoppe"
+  ]
+}

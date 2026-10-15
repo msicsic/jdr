@@ -57,18 +57,24 @@ encore des niveaux par pièce ; la ligne de vue et les obstacles sont calculés 
 Les touches de déplacement, les collisions, la visibilité et les commandes locales sont
 entièrement déterministes et ne consomment aucun appel au LLM. Le MJ reçoit les objets
 perceptibles et leur portée, puis le moteur vérifie aussi ses propositions d'action.
-Les objectifs de chaque partie sont déclarés dans son état ; le moteur n'exige plus les
-objets historiques de la crypte pour résoudre une action. `nouveau_monde_libre` crée une
-aventure à partir de ses propres salles, objets, départ, prémisse et objectif. Le Relais
-existant réutilise encore le contenu de la crypte pendant sa construction. Le contrat
-de narration et de paroles des PNJ est décrit dans
+Les objectifs de chaque partie sont déclarés dans son état ; le moteur n'exige pas les
+objets de la crypte pour résoudre une action. La crypte, le Relais et l'atelier possèdent
+chacun leur état initial dans `donjon/scenario_*.json`. Le Relais et l'atelier démarrent
+sans construire la crypte ; l'atelier ne contient que sa cour, sa terrasse et son matériel.
+`nouveau_monde_libre` crée aussi une aventure à partir de ses
+propres salles, objets, départ, prémisse et objectif. Le contrat de narration et de paroles
+des PNJ est décrit dans
 [docs/contrat-mj.md](docs/contrat-mj.md).
 
-Les réponses libres de Luna et les récits d'improvisation passent par un contrôle narratif
+Les réponses libres de Luna et les récits conditionnels d'improvisation passent par un contrôle narratif
 avant affichage. Luna relit chaque segment à partir des faits et effets fournis ; un fait
 nouveau ou contradictoire entraîne une révision de la réponse. Une parole attribuée à un
 PNJ présent est enregistrée avec ses auditeurs. Cette relecture consomme des appels LLM
 supplémentaires et reste probabiliste : elle ne prouve pas formellement chaque phrase.
+Après exécution, les conséquences affichées viennent directement du journal du moteur ;
+les calculs de dés restent dans ce journal. Luna ne reformule plus un résultat déjà résolu.
+Un récit conditionnel d'improvisation proposé par Luna peut toutefois figurer dans ce journal
+après validation de la manœuvre ; sa relecture sémantique garde la limite indiquée ci-dessus.
 Les articles en vente indiquent leur vendeur ; achat et paiement ne dépendent plus de
 l'échoppe ni de Gorm.
 

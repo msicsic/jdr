@@ -11,6 +11,12 @@ from .monde import ErreurMonde
 
 
 VERDICTS = ("etabli", "hypothese", "neutre", "parole", "nouveau", "contradictoire")
+
+
+def rendre_resultat(resultat):
+    """Affiche les conséquences rédigées par le moteur, sans la ligne de calcul du jet."""
+    lignes = [ligne for ligne in resultat.splitlines() if not ligne.startswith("1d20(")]
+    return "\n".join(lignes).strip() or "Action accomplie."
 SCHEMA_AUDIT = {
     "type": "object", "additionalProperties": False,
     "properties": {"segments": {"type": "array", "maxItems": 24,

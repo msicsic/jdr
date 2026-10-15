@@ -98,19 +98,10 @@ class CarteTests(unittest.TestCase):
         self.assertEqual(self.m.objets["anneau"]["position"], self.m.objets["coffre"]["position"])
         self.assertIn("& le coffre de pierre et l'anneau", carte(self.m))
 
-    def test_migration_et_rechargement_preservent_la_partie(self):
+    def test_rechargement_preserve_la_partie(self):
         self.agir("prendre clé")
         self.agir("ouest")
         data = copy.deepcopy(self.m.data)
-        data.pop("geometrie_version")
-        data["joueur"].pop("position")
-        for piece in data["salles"].values():
-            piece.pop("plan")
-            for sortie in piece["sorties"].values():
-                sortie.pop("case")
-        for o in data["objets"].values():
-            o.pop("position", None)
-            o.pop("position_salle", None)
         m = Monde(data)
         self.assertEqual(m.joueur["salle"], "echoppe")
         self.assertEqual(m.objets["cle"]["lieu"], "joueur")

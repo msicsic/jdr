@@ -15,7 +15,7 @@ from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur
 from donjon.enrichissement import preparer_complements
 from donjon.faits_locaux import preparer_faits
-from donjon.narration import consigner as consigner_narration
+from donjon.narration import consigner as consigner_narration, rendre_resultat
 from donjon.connaissances import preparer_savoirs
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.comparaison import Comparateur, texte_comparaison
@@ -173,30 +173,13 @@ def main(argv=None, interface=None):
         comparaison_pending = 0
 
         def conclure(plan, resultat, intention, numero=0):
-            # Résoudre et sauvegarder une seule fois AVANT toute narration distante.
-            m.memoriser(intention, resultat, "resultat_moteur")
+            # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
+            affichage = rendre_resultat(resultat)
+            m.memoriser(intention, affichage, "resultat_moteur")
             m.sauver(args.save)
             if isinstance(mj, Comparateur) and numero:
                 mj.noter_resultat(resultat, numero=numero)
-            if plan.proposition["action"] not in ("composer", "fabriquer", "installer", "franchir", "desinstaller") or mj is None:
-                imprimer(resultat)
-                return
-            imprimer("Le MJ raconte le résultat…", flush=True)
-            try:
-                reponse = mj.raconter_resultat(m, m.data["journal"][-1])
-            except ErreurMonde as exc:
-                imprimer(resultat)
-                imprimer("Récit indisponible ; la manœuvre est déjà résolue et sauvegardée. " + str(exc))
-                return
-            travail = m.copier()
-            travail.memoriser(intention, reponse["texte"], "narration_resultat")
-            consigner_narration(travail, reponse)
-            travail.sauver(args.save)
-            m.data = travail.data
-            jets = [ligne for ligne in resultat.splitlines() if ligne.startswith("1d20(")]
-            if jets:
-                imprimer("\n".join(jets))
-            imprimer(reponse["texte"])
+            imprimer(affichage)
 
         while True:
             if interface:

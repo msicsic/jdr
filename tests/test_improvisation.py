@@ -54,11 +54,12 @@ class ImprovisationTests(unittest.TestCase):
     def test_son_entendu_sans_reponse_inventee_et_isolation(self):
         self.moteur.executer(self.moteur.preparer(chant()))
         self.assertFalse(self.m.data["sons"][-1]["auditeurs"])
-        self.assertNotIn("dernier_son_entendu", self.m.objets["marchand"])
-        self.m.joueur["salle"] = "echoppe"
-        self.moteur.executer(self.moteur.preparer(chant()))
-        self.assertEqual(self.m.objets["marchand"]["dernier_son_entendu"]["intention"], "Fredonner une chanson")
-        self.assertFalse(self.m.data["engagements"])
+        from donjon.monde import nouveau_monde
+        crypte = nouveau_monde()
+        crypte.joueur["salle"] = "echoppe"
+        Moteur(crypte).executer(Moteur(crypte).preparer(chant()))
+        self.assertEqual(crypte.objets["marchand"]["dernier_son_entendu"]["intention"], "Fredonner une chanson")
+        self.assertFalse(crypte.data["engagements"])
 
     def test_marque_cree_detail_examinable_et_sauvegarde(self):
         avant = copy.deepcopy(self.m.data)

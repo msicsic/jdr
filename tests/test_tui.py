@@ -156,12 +156,8 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         monde.memoriser("je ramasse le pied de biche",
                         "Le pied-de-biche est dans l'échoppe ; retourne-y pour le prendre.")
         monde.sauver(chemin)
-        reponses = [
-            {"mode": "action", "texte": "", "faits": ["objet:pied_de_biche"],
-             "proposition": sequence(etape("deplacer", "pied_de_biche", "joueur"))},
-            {"mode": "dialogue", "texte": "Tu glisses le pied-de-biche dans ta besace.",
-             "faits": ["resultat_resolu"], "proposition": None},
-        ]
+        reponses = [{"mode": "action", "texte": "", "faits": ["objet:pied_de_biche"],
+                     "proposition": sequence(etape("deplacer", "pied_de_biche", "joueur"))}]
         with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
              patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api:
             app = SeuilApp(["--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
@@ -170,9 +166,9 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.commande(app, pilot, "mj je ramasse le pied de biche", 1)
                 self.assertNotIn("le pied-de-biche", app.derniere_vue["carte"])
                 self.assertIn("pied-de-biche", app.derniere_vue["fiche"])
-                self.assertIn("Tu glisses le pied-de-biche", " ".join(app.sorties))
+                self.assertIn("Le pied-de-biche rejoint votre besace", " ".join(app.sorties))
                 await self.fermer(app)
-            self.assertEqual(api.call_count, 2)
+            self.assertEqual(api.call_count, 1)
             entree = api.call_args_list[0].args[1]
             self.assertEqual(entree["conversation"], [])
             self.assertTrue(entree["faits"]["objet:pied_de_biche"]["a_portee"])
@@ -182,10 +178,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
     async def test_atelier_luna_seul_confirmation_et_debug(self):
         from donjon.artisanat import fabrication
         p = fabrication(["perche_1", "perche_2"], "perche_3", "ficelle", "hache")
-        reponses = [
-            {"mode": "action", "texte": "", "faits": ["atelier"], "proposition": p},
-            {"mode": "dialogue", "texte": "Ton échelle est prête et posée au sol.", "faits": ["resultat_resolu"], "proposition": None},
-        ]
+        reponses = [{"mode": "action", "texte": "", "faits": ["atelier"], "proposition": p}]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(Monde, "d20", return_value=20):
             path = Path(tmp) / "atelier.json"
             app = SeuilApp(["--atelier", "--debug", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(path)])
@@ -196,11 +189,11 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("échelle de branches", app.derniere_vue["scene"])
                 await self.commande(app, pilot, "tenter", 26)
                 self.assertIn("échelle de branches", app.derniere_vue["scene"])
-                self.assertEqual(api.call_count, 2)
+                self.assertEqual(api.call_count, 1)
                 self.assertTrue(all(f.get("mono_modele") for f in app.comparaisons.values()))
                 await pilot.press("f5")
                 self.assertFalse(app.query_one("#debug-secondaire-cadre").display)
-                self.assertIn("Ton échelle est prête", str(app.query_one("#debug-principal").render()))
+                self.assertIn("fabriquer", str(app.query_one("#debug-principal").render()).lower())
                 await pilot.press("f5")
                 await self.fermer(app)
 
@@ -380,9 +373,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
     async def test_manoeuvre_composee_et_recit_echec_partiel(self):
         p = sequence(*[etape("detacher", cible, outil="couteau", methode="levier", difficulte=18)
                        for cible in ("axe_haut", "axe_bas")])
-        texte = "Tu libères l'axe supérieur. Le second résiste et ta lame s'abîme."
-        reponses = [{"mode": "action", "texte": "", "faits": [], "proposition": p},
-                    {"mode": "dialogue", "texte": texte, "faits": ["resultat_resolu"], "proposition": None}]
+        reponses = [{"mode": "action", "texte": "", "faits": [], "proposition": p}]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as appels, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             chemin = Path(tmp) / "partie.json"
             app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
@@ -394,9 +385,12 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 with patch.object(Monde, "d20", side_effect=[20, 1]):
                     await pilot.click("#tenter")
                     await self.pret(app, 6)
-                self.assertIn(texte, app.sorties)
-                self.assertEqual(appels.call_count, 2)
+                self.assertIn("L'axe du gond supérieur est libéré", " ".join(app.sorties))
+                self.assertIn("La suite de la manœuvre est abandonnée", " ".join(app.sorties))
+                self.assertNotIn("1d20(", " ".join(app.sorties))
+                self.assertEqual(appels.call_count, 1)
                 m = Monde.charger(chemin)
+                self.assertTrue(any(ligne.startswith("1d20(") for ligne in m.data["journal"][-1]["faits"]))
                 self.assertFalse(m.objets["axe_haut"]["attache"])
                 self.assertTrue(m.objets["axe_bas"]["attache"])
                 self.assertFalse(m.objets["porte"]["ouverte"])

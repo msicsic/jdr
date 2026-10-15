@@ -33,26 +33,6 @@ def installer(monde):
             d["savoirs_pnj"].setdefault(id, {})
             # Un scénario peut fournir {} pour interdire toute invention à ce PNJ.
             d["sujets_savoirs_pnj"].setdefault(id, copy.deepcopy(SUJETS))
-    if d.get("savoirs_version") == 1:
-        return
-    if "marchand" in d["savoirs_pnj"] and d.get("scenario_id") != "libre":
-        connus = d["savoirs_pnj"]["marchand"]
-        connus.setdefault("porte_crypte", {
-            "texte": "Gorm connaît la porte de chêne au nord de l'antichambre. Une trousse de crochets "
-                     "permet d'en tenter le crochetage, sans garantie de réussite. Ses deux axes de gonds "
-                     "sont amovibles du côté de l'antichambre : un levier adapté peut aider à les extraire "
-                     "un par un. Un couteau risque de casser. Ce savoir décrit la construction, pas son état actuel.",
-            "origine": "jeu", "revision": d["revision"],
-        })
-        connus.setdefault("prudence", {
-            "texte": "Gorm préfère laisser l'exploration à quelqu'un d'autre et tenir son échoppe. "
-                     "Il connaît les usages des outils qu'il vend, sans garantir le succès d'une manœuvre.",
-            "origine": "jeu", "revision": d["revision"],
-        })
-        d["sujets_savoirs_pnj"]["marchand"].setdefault("lien_anneau",
-            "Pourquoi Gorm tient à retrouver l'anneau : un attachement personnel ordinaire. "
-            "Aucun pouvoir, emplacement secret, nouvelle récompense ou lien imposé à Corvus.")
-    d["savoirs_version"] = 1
 
 
 def presents(monde):

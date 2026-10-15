@@ -34,12 +34,12 @@ class SonsTests(unittest.TestCase):
         self.assertIn("aucune réponse", texte)
         self.assertEqual(set(m.objets), set(avant["objets"]))
         self.assertEqual(m.data["sons"][-1]["auditeurs"], [])
-        self.assertEqual(m.objets["marchand"]["humeur"], avant["objets"]["marchand"]["humeur"])
+        self.assertFalse(interlocuteurs(m))
         self.assertEqual((m.data["minutes"], m.data["bruit"], m.data["revision"]), (1, 3, 1))
         # Une action ultérieure ne doit pas réintroduire une alerte mondiale.
         moteur.executer(moteur.preparer(appel()))
         moteur.executer(moteur.preparer(proposition("examiner", "hache")))
-        self.assertEqual(m.objets["marchand"]["humeur"], "calme")
+        self.assertFalse(interlocuteurs(m))
 
     def test_audition_persistante_sans_reveler_un_pnj_distant(self):
         m = nouveau_monde()

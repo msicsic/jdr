@@ -114,32 +114,15 @@ class EclairageTests(unittest.TestCase):
         self.assertFalse(copie.objets["lanterne"]["allume"])
         self.assertEqual(copie.data, self.m.data)
 
-    def test_migration_ancienne_partie_conserve_progression(self):
+    def test_rechargement_ne_recree_pas_une_source_supprimee(self):
         data = copy.deepcopy(self.m.data)
-        data.pop("eclairage_version")
-        for id in ("lanterne", "torche", "briquet", "brasero"):
-            del data["objets"][id]
-        for salle in data["salles"].values():
-            salle.pop("fenetres")
-            salle.pop("lumiere_naturelle")
+        del data["objets"]["lanterne"]
         data["joueur"]["or"] = 3
         data["objets"]["porte"]["ouverte"] = True
         copie = Monde(data)
         self.assertEqual(copie.joueur["or"], 3)
         self.assertTrue(copie.objets["porte"]["ouverte"])
-        self.assertEqual(eclairage(copie)["niveau"], 2)
-
-    def test_migration_inventaire_plein_pose_equipement_au_sol(self):
-        data = copy.deepcopy(self.m.data)
-        data.pop("eclairage_version")
-        for id in ("lanterne", "torche", "briquet", "brasero"):
-            del data["objets"][id]
-        data["joueur"]["capacite"] = 0.5
-        copie = Monde(data)
-        self.assertEqual(copie.objets["lanterne"]["lieu"], "antichambre")
-        self.assertEqual(copie.objets["briquet"]["lieu"], "antichambre")
-        self.assertAlmostEqual(copie.charge(), 0.5)
-        self.assertEqual(eclairage(copie)["niveau"], 2)
+        self.assertNotIn("lanterne", copie.objets)
 
 
 class QuestionsConsoleTests(unittest.TestCase):
