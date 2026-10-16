@@ -1,0 +1,29 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "tours": [
+  "regarder",
+  "ça sent quoi, ici ?",
+  "je fredonne doucement",
+  "examiner consigne",
+  "que dit la consigne, exactement ?",
+  "je cherche des traces de pas sur le sol",
+  "ouest",
+  "ouest",
+  "ouest",
+  "ouest",
+  "nord",
+  "nord",
+  "ouest",
+  "ouest",
+  "ouest",
+  "regarder",
+  "Gorm, tu peux me décrire le beffroi ?",
+  "de quelle couleur sont les yeux de Gorm ?",
+  "Gorm, pourquoi tiens-tu tant à cette cloche ?",
+  "décris-moi l'ambiance de cette conduite",
+  "est-ce que je pourrais passer sous la poutre effondrée ?",
+  "je donne un coup de pied dans la poutre",
+  "je prends le pied-de-biche"
+ ]
+}
