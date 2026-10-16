@@ -45,6 +45,12 @@ def coloriser_plan(dessin):
                 rendu.append(" " * len(case), style=f"on {SOL_MEMORISE[nuance]}")
             elif case_complete == "##":
                 rendu.append(case, style="bold #a6b8ae")
+            elif case_complete.endswith("#"):
+                rendu.append(case[0], style="bold #efc477")
+                rendu.append("#", style="bold #a6b8ae")
+            elif case_complete.endswith("~"):
+                rendu.append(case[0], style=SOUVENIR_OBJET)
+                rendu.append("#", style="bold #a6b8ae")
             elif case_complete.startswith("@"):
                 rendu.append(case, style=f"bold #ffe19a on {SOL_VISIBLE[nuance]}")
             elif case_complete.startswith("~"):

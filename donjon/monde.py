@@ -23,6 +23,30 @@ def normaliser(texte: str) -> str:
                     .replace("’", "'").strip(" .?!").split())
 
 
+def reference_exacte(objets, texte):
+    """Résout une référence structurée par identifiant, nom ou alias, sans deviner."""
+    if not isinstance(texte, str):
+        return None
+    reference = normaliser(texte)
+    objets = list(objets)
+    for article in ("de la ", "du ", "des ", "la ", "le ", "les ", "un ", "une ", "l'"):
+        if reference.startswith(article):
+            reference = reference[len(article):]
+            break
+    if not reference:
+        return None
+    identifiants = [o["id"] for o in objets if reference == normaliser(o["id"])]
+    if len(identifiants) == 1:
+        return identifiants[0]
+    noms = [o["id"] for o in objets if reference in
+            [normaliser(n) for n in (o["nom"], *o.get("aliases", []))]]
+    if len(noms) == 1:
+        return noms[0]
+    if identifiants or noms:
+        raise ErreurMonde("Cette référence désigne plusieurs objets ; précisez lequel.")
+    return None
+
+
 def objet(id, nom, type, lieu, **proprietes):
     return {"id": id, "nom": nom, "type": type, "lieu": lieu,
             "aliases": [], "materiau": "", "masse": 0, "mobile": False,
@@ -235,6 +259,9 @@ class Monde:
             if not self.accessible(o["id"]):
                 continue
             vue = copy.deepcopy(o)
+            if "constats_capacites" in vue:
+                from .capacites_objet import resume_constats
+                vue["constats_capacites"] = resume_constats(o, self.objets)
             vue["visible"] = self.visible(o["id"])
             if self.data.get("mode_cases"):
                 from .spatial import proche, position_cible
@@ -261,7 +288,7 @@ class Monde:
         if self.data.get("mode_cases"):
             for id, souvenir in self.data.get("souvenirs_visuels", {}).items():
                 salle_souvenir = souvenir["salle"]
-                if ((salle_souvenir, *souvenir["position"]) in champ_vision
+                if ((salle_souvenir, *souvenir.get("contact", souvenir["position"])) in champ_vision
                         or self.est_porte(id)):
                     continue
                 souvenirs_visuels.append({
@@ -298,9 +325,6 @@ class Monde:
                    if e["reussite"] and (e["action"]["action"] == "aller" and not self.data.get("mode_cases")
                        or any(f.startswith(("Tu entres dans :", "Vous entrez dans :")) for f in e["faits"]))]
         scenario = copy.deepcopy(self.data["scenario"])
-        if self.data.get("engagements") and "gorm" in scenario:
-            scenario["gorm"] = scenario["gorm"].replace("Aucune récompense n'a été convenue.",
-                "Au début de l'exploration, aucune récompense n'avait été convenue. Les engagements enregistrés indiquent l'accord actuel.")
         return {
             **scenario,
             "position": self.data["salles"][self.joueur["salle"]]["nom"],
@@ -325,6 +349,8 @@ class Monde:
             verifier_objectif(self)
             from .faits_locaux import verifier as verifier_faits_locaux
             verifier_faits_locaux(self)
+            from .transitions_scenario import verifier as verifier_transitions_scenario
+            verifier_transitions_scenario(self)
             from .narration import verifier as verifier_narration
             verifier_narration(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"
@@ -358,8 +384,61 @@ class Monde:
                     assert (vendeur in d["objets"] and d["objets"][vendeur]["type"] == "personnage"
                             and type(o.get("prix")) is int and o["prix"] > 0), "Vente sans vendeur ou prix valide"
                 if "luminosite" in o:
-                    assert 0 <= o["luminosite"] <= 2 and o["combustible"] >= 0, "Source lumineuse invalide"
+                    assert (type(o["luminosite"]) is int and 0 <= o["luminosite"] <= 2
+                            and type(o["combustible"]) is int and o["combustible"] >= 0
+                            and type(o["allume"]) is bool), "Source lumineuse invalide"
                     assert not o["allume"] or (o["combustible"] > 0 and o["integrite"] > 0), "Source allumée sans combustible ou détruite"
+                if "sonorite" in o:
+                    assert type(o["sonorite"]) is int and 1 <= o["sonorite"] <= 3, "Sonorité invalide"
+                if "usages" in o:
+                    assert isinstance(o["usages"], list) and all(isinstance(u, str) for u in o["usages"]), "Usages d'outil invalides"
+                    assert len(o["usages"]) == len(set(o["usages"])), "Usages d'outil dupliqués"
+                if "puissance" in o:
+                    assert type(o["puissance"]) is int and o["puissance"] >= 0, "Puissance d'outil invalide"
+                if "seuil_coupe" in o:
+                    assert type(o["seuil_coupe"]) is int and 1 <= o["seuil_coupe"] <= 7, "Résistance à la coupe invalide"
+                if "constats_capacites" in o:
+                    from .capacites_objet import CAPACITES_REVUE, empreinte, statut
+                    constats = o["constats_capacites"]
+                    assert isinstance(constats, list) and all(
+                        isinstance(c, dict) and set(c) == {
+                            "capacite", "issue", "empreinte", "moyen_nom", "moyen_id",
+                            "empreinte_moyen", "puissance_observee"}
+                        and c["capacite"] in CAPACITES_REVUE
+                        and c["issue"] in ("etablie", "ecartee")
+                        and (c["issue"] != "etablie" or c["capacite"] == "tranchable")
+                        and isinstance(c["empreinte"], str) and len(c["empreinte"]) == 64
+                        and isinstance(c["moyen_nom"], str)
+                        and isinstance(c["moyen_id"], str)
+                        and isinstance(c["empreinte_moyen"], str)
+                        and ((c["capacite"] == "tranchable"
+                              and c["moyen_id"] and len(c["empreinte_moyen"]) == 64)
+                             or (c["capacite"] != "tranchable"
+                                 and not c["moyen_id"] and not c["empreinte_moyen"]))
+                        and type(c["puissance_observee"]) is int
+                        and c["puissance_observee"] >= 0
+                        for c in constats), "Constats physiques invalides"
+                    actifs = {}
+                    for c in constats:
+                        qualite_stable = c["issue"] == "etablie"
+                        if c["empreinte"] != empreinte(o, usure=not qualite_stable):
+                            continue
+                        if c["moyen_id"]:
+                            moyen = d["objets"].get(c["moyen_id"])
+                            if (moyen is None or c["empreinte_moyen"] !=
+                                    empreinte(moyen, usure=not qualite_stable)):
+                                continue
+                            if qualite_stable and (o["integrite"] == 0 or moyen["integrite"] == 0):
+                                continue
+                        cle_constat = (c["capacite"], c["moyen_id"])
+                        assert (cle_constat not in actifs or actifs[cle_constat] == c["issue"]), "Constats physiques contradictoires"
+                        actifs[cle_constat] = c["issue"]
+                        positif = statut({**o, "constats_capacites": []}, c["capacite"]) == "etablie"
+                        if positif and c["capacite"] == "tranchable":
+                            assert ((c["issue"] == "etablie") ==
+                                    (c["puissance_observee"] >= o["seuil_coupe"])), "Constat physique contradictoire"
+                        else:
+                            assert not positif, "Constat physique contradictoire"
                 assert o["lieu"] in {*d["objets"], *d["salles"], "joueur"}, "Lieu inconnu"
                 parents = {id}
                 lieu = o["lieu"]

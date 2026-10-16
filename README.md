@@ -27,6 +27,19 @@ est conservée dans un fichier `.bak`). Le donjon et l'atelier gardent leurs sau
 - Les prises simples comme `je ramasse le pied de biche` ou `je prends la clé` sont aussi
   exécutées localement, avec les mêmes contrôles de portée et de propriété. Les demandes
   conditionnelles, discrètes ou combinées restent confiées au MJ.
+- `sonner <objet>` utilise un objet sonore à portée ; une source lumineuse créée par le MJ
+  s'allume avec les mêmes règles de combustible et d'allumage qu'une lanterne du scénario.
+- `couper <cible> avec <outil>` entaille une cible si une règle de coupe du scénario
+  accepte cet outil ou si le MJ a fait valider leur compatibilité. Le moteur fixe les
+  dégâts et la cible est sectionnée lorsque son intégrité tombe à zéro. Pour une cible
+  encore inconnue, Luna juge l'outil employé sans inventer un seuil chiffré global ;
+  la même demande est reprise après validation et sauvegarde.
+- Une capacité physique peut être inconnue, établie ou écartée dans les conditions
+  constatées. Luna peut établir qu'un objet observable résiste à l'outil de coupe
+  employé, peut être entamé par lui, ne sonne pas ou ne peut pas éclairer. Le moteur conserve le constat avec
+  l'état physique de l'objet et celui de l'outil évalué. Après rechargement, ce même
+  outil dans le même état reste sans effet ; un autre moyen ou un changement physique
+  de l'un des deux ouvre un nouvel arbitrage sans effacer ce qui a été établi.
 - Les objets doivent être sur la même case ou une case voisine pour être manipulés.
   Il faut s'approcher pour lire les petits détails ; les murs, les portes et les obstacles
   opaques bloquent la vue. Les objets pris quittent immédiatement la carte.
@@ -37,6 +50,10 @@ légère alternance de teinte laisse compter les pas. La console conserve `.` po
 visible et `:` pour le terrain mémorisé.
 Les murs sont des blocs `##`, y compris dans les angles. `+` désigne uniquement une porte
 fermée, `X` une porte verrouillée et `/` une porte ouverte dans ce mode.
+Une consigne ou un objet fixé à un mur occupe la case du mur sur la carte : son symbole
+remplace le premier caractère du bloc (`!#` par exemple). La case de sol voisine reste
+son point de manipulation. Hors de vue, le symbole mémorisé reste sur le mur (`!~` dans
+la console, symbole grisé sur le mur dans la TUI) jusqu'à une nouvelle observation.
 Seuls les murs effectivement aperçus sont mémorisés. Une case parcourue dans le noir ne
 révèle pas à elle seule les murs voisins ; les murs déjà vus restent dessinés. Les dimensions
 d'une pièce n'apparaissent qu'une fois tout son sol exploré.
@@ -44,7 +61,8 @@ Les lieux encore inconnus restent blancs. Les niveaux explorés restent affiché
 une échelle installée porte le même repère `H1` à ses deux extrémités. Un objet déjà vu
 hors du champ de vision garde son symbole à sa dernière position observée, en gris bleuté
 dans la TUI. Ce souvenir peut être périmé : il s'efface si la case est revue vide ou si le
-joueur prend l'objet. La console sans couleur préfixe ce symbole par `~`. Une case représente un mètre,
+joueur prend l'objet. La console sans couleur préfixe les souvenirs au sol par `~` ;
+sur un mur, elle place `~` après le symbole. Une case représente un mètre,
 affiché sur deux colonnes pour conserver des proportions lisibles dans le terminal.
 Le dernier état vu d'une porte reste également indiqué hors de vue, avec la même couleur
 de souvenir. Il peut avoir changé depuis ; la carte l'actualise quand le seuil est revu.
@@ -65,16 +83,36 @@ sans construire la crypte ; l'atelier ne contient que sa cour, sa terrasse et so
 propres salles, objets, départ, prémisse et objectif. Le contrat de narration et de paroles
 des PNJ est décrit dans
 [docs/contrat-mj.md](docs/contrat-mj.md).
+Le corpus de contre revue et ses résultats sont décrits dans
+[docs/evaluation-portee-narrative.md](docs/evaluation-portee-narrative.md).
 
-Les réponses libres de Luna et les récits conditionnels d'improvisation passent par un contrôle narratif
-avant affichage. Luna relit chaque segment à partir des faits et effets fournis ; un fait
-nouveau ou contradictoire entraîne une révision de la réponse. Une parole attribuée à un
-PNJ présent est enregistrée avec ses auditeurs. Cette relecture consomme des appels LLM
-supplémentaires et reste probabiliste : elle ne prouve pas formellement chaque phrase.
-Après exécution, les conséquences affichées viennent directement du journal du moteur ;
-les calculs de dés restent dans ce journal. Luna ne reformule plus un résultat déjà résolu.
-Un récit conditionnel d'improvisation proposé par Luna peut toutefois figurer dans ce journal
-après validation de la manœuvre ; sa relecture sémantique garde la limite indiquée ci-dessus.
+Les réponses libres de Luna passent par un contrôle avant affichage. Le moteur fournit des
+phrases attestées depuis l'état courant : une affirmation factuelle doit en reprendre une
+exactement. Luna classe les segments ; le moteur vérifie les attestations et les locuteurs.
+Une parole de PNJ est enregistrée avec ses auditeurs. Un détail nouveau passe par une
+proposition typée, validée et sauvegardée avant affichage. La relecture consomme des appels
+LLM supplémentaires. Les descriptions libres de détails et de portraits passent aussi par
+une contre revue : Luna découpe leurs affirmations, et le moteur exige la couverture du texte
+et des preuves exactes pour les faits extérieurs au sujet. Un fragment sans preuve entraîne
+une révision. Elle classe aussi la représentation nécessaire : aspect local, objet autonome,
+texte lisible, état du monde ou portrait. Le moteur refuse un ajout dont la représentation
+requise diffère du type proposé. Ce contrôle sémantique reste probabiliste.
+
+Un objet autonome proposé par le MJ possède un support observable, une case stable, une masse,
+une matière et une mobilité. Il peut déclarer une capacité sonore ou lumineuse, avec intensité
+et combustible bornés, ou des usages physiques `couper`, `levier` et `allumage` avec une
+puissance bornée ; le moteur applique les opérations ordinaires à ces objets.
+Un objet tranchable déclare aussi son seuil de coupe et sa ténacité. Ces propriétés
+appartiennent à la cible, indépendamment du nom de son matériau. Une entaille partielle
+reste visible et persistante ; la coupe complète laisse l'objet brisé.
+Il devient une cible ordinaire du moteur : on peut l'examiner et, s'il est mobile et à portée,
+le ramasser. Le contrôle narratif confronte les capacités et la mobilité déclarées avec le
+nom et la description ; il refuse aussi un ajout libre classé comme objectif,
+solution, indice ou changement de mission. Les évolutions de scénario sont déclarées
+dans les données de la partie avec des conditions d'état et des effets ; Luna peut proposer
+une évolution disponible, puis le moteur la vérifie, l'applique et la sauvegarde.
+Après exécution, les conséquences affichées viennent du journal du moteur ; les calculs de
+dés y restent consultables. Les brouillons de récit d'improvisation de Luna ne sont pas affichés.
 Les articles en vente indiquent leur vendeur ; achat et paiement ne dépendent plus de
 l'échoppe ni de Gorm.
 
@@ -140,29 +178,30 @@ les deux cas ; aucun accès permanent ou retour automatique n'est créé. Le mod
 est une conséquence forfaitaire de JDR, sans trajectoire détaillée.
 
 Le dossier `franchissements` présente les conditions vérifiées et les obstacles/inconnues.
-Un refus initial du MJ est réexaminé une fois si ce dossier comporte une méthode admissible,
+Un refus initial du MJ est réexaminé une fois avant de conclure à une impossibilité,
 sans forcer une réussite ni contourner un obstacle réel. `tools/test_saut_reel.py` vérifie la
 phrase avec Luna seul, puis résout réussite et échec sur des copies en mémoire.
 
 Le harnais fournit à Luna un dossier calculé localement : ressources, mesures manquantes,
 proposition réalisable si disponible, consommation et durée. Les intentions de fabrication
-utilisent des instructions ciblées. Une proposition d'action invalide reçoit l'obstacle exact
-et **un seul essai de correction**, sans effet sur le monde avant résolution. Une question
-ne déclenche pas de fabrication. La narration du résultat reçoit un contexte réduit.
+reçoivent le dossier atelier et ses règles lorsque le joueur demande une action. Une proposition
+invalide reçoit son obstacle et **un seul essai de correction**, sans effet sur le monde avant
+résolution. Si la correction échoue, Luna peut expliquer les conditions attestées sans raconter
+une tentative de Corvus. Une question ne déclenche pas de fabrication.
 Les commandes connues restent locales ; aucun second modèle ni modèle de secours n'est lancé.
 
 « Je retente » ou « je réessaie » reprend la dernière tentative échouée sans appel
 d'interprétation au LLM : même méthode, ressources revalidées, étapes déjà réussies exclues.
 Une tentative risquée attend toujours **tenter**. Pour changer de méthode après un échec,
 préciser par exemple « Cette fois je prends mon temps pour fabriquer soigneusement l'échelle ».
-Une narration peut ensuite utiliser le modèle, comme pour les autres actions.
+Le moteur raconte ensuite les conséquences, comme pour les autres actions.
 Le contexte du MJ contient aussi la dernière tentative résolue et les quantités exactes de lien
 disponibles/requises, pour éviter les clarifications inutiles et les fausses annonces de pénurie.
 
 `F5` en mode debug montre les réponses, propositions, usages et refus de validation de Luna.
 Les traces sont aussi enregistrées dans `artifacts/mj/`, sans clés ni jetons. Les informations
-techniques restent hors de la chronique. Pour une action valide : un appel d'interprétation,
-puis un appel de narration après exécution ; une correction peut ajouter un appel.
+techniques restent hors de la chronique. Une action valide demande un appel d'interprétation ;
+une correction ou une réponse libre peut ajouter des appels de contrôle.
 
 **Portée actuelle :** un premier profil d'assemblage à barreaux. Ce n'est pas encore un
 générateur universel de recettes, de lieux ou de lois physiques. Les charges sont des valeurs
@@ -207,27 +246,34 @@ La réponse initiale est formulée localement après validation : pas de second 
 
 Le MJ dispose d'un arbitrage sommaire `improviser` : intention, cibles, outil, durée,
 bruit, éventuel jet et deux issues conditionnelles. S'étirer ou fredonner ne demandent
-pas de règle dédiée ni de jet. Un refus fondé sur une limite technique est réexaminé
-une seule fois, avec le même modèle. Le schéma est disponible dès le premier appel :
-aucun appel supplémentaire systématique et aucun second modèle.
-Le récit des deux issues est fourni dans cet appel ; seule l'issue effectivement résolue
-est affichée. Ces arbitrages n'utilisent donc pas un second appel de narration.
+pas de règle dédiée ni de jet. Une proposition « impossible » est réexaminée une fois
+avec le même modèle. Le schéma est disponible dès le premier appel : aucun second modèle.
+Luna propose les effets des deux issues ; le moteur raconte le geste et les effets de la
+branche effectivement résolue. Son brouillon libre n'est ni affiché ni conservé comme fait.
+Avant l'exécution, une contre-revue compare la demande entière aux opérations validées
+par le moteur. Si une conséquence perceptible manque, Luna reçoit l'écart et peut corriger
+le plan une fois ; aucune action n'a lieu tant que le plan n'est pas accepté.
 
 La résolution est validée sur une copie puis appliquée et journalisée par le moteur.
-Les gestes passés reviennent dans le contexte ; une marque devient un détail réel,
+Les gestes passés reviennent dans le contexte sous forme structurée (approche, cibles,
+outil, résultat), sans reprendre l'intention ou le récit rédigés par Luna. Une marque
+devient un détail réel,
 examinable sur son support et conservé dans la sauvegarde. Les sons laissent un souvenir
-aux PNJ à portée. Les mouvements d'objets réutilisent les contrôles de propriété,
+aux PNJ à portée avec une forme acoustique bornée (voix, souffle ou rythme corporel),
+sans transformer une proposition libre de Luna en parole entendue. Les mouvements
+d'objets réutilisent les contrôles de propriété,
 d'accessibilité, de poids et d'attaches. Les blessures de cet arbitrage sont limitées
 à 3 PV au total et ne peuvent tuer ; blessures et usure exigent une tentative confirmée.
 Une difficulté est mémorisée pour la même intention et les mêmes conditions pertinentes.
 
 Exemples : « je m'étire », « je fredonne une chanson », « je grave une flèche sur la perche
-avec mon couteau », « je jongle avec la clé ». Une chute d'objet racontée doit correspondre
-à un déplacement effectif dans la branche concernée. Les tests réels sont dans
+avec mon couteau », « je jongle avec la clé ». Une chute d'objet n'est racontée que si
+la branche résolue déplace réellement cet objet. Les tests réels sont dans
 `tools/test_improvisation_reel.py` et n'utilisent aucune sauvegarde du joueur.
 
-La prose reste proposée par le LLM : le moteur vérifie les effets structurés, pas la vérité
-de chaque phrase libre. Elle ne doit pas établir de propriétés mécaniques supplémentaires.
+Le moteur valide les effets structurés et produit le résultat affiché. La formulation
+de l'intention proposée par Luna reste dans les données d'arbitrage ; l'aperçu et le
+résultat affichés emploient des formulations du moteur.
 L'improvisation ne remplace pas la géométrie pour un franchissement, les règles de fabrication
 pour un nouvel objet fonctionnel, ni les mécanismes de dialogue pour un engagement de PNJ.
 
@@ -499,15 +545,18 @@ Discuter avec le MJ conserve la proposition en attente ; une autre action la rem
 Le MJ reçoit explicitement cette proposition afin de distinguer ce qui reste à tenter d’un résultat acquis.
 Le moteur recompilé au moment d'agir vérifie que l'état n'a pas changé.
 
-Les commandes locales n'appellent pas l'API. Chaque phrase transmise au MJ déclenche au maximum
-un appel, décompté du forfait ou facturé sur le compte API, sans relance automatique. L’appel contient
+Les commandes locales n'appellent pas l'API. Une phrase transmise au MJ peut déclencher
+plusieurs appels : interprétation, contre-revues, correction et parfois narration du résultat.
+Chaque action confiée au MJ reçoit aussi une contre-revue de fidélité entre l'intention et
+le plan mécanique, ce qui ajoute au moins un appel et peut allonger l'attente.
+Ces appels sont décomptés du forfait ou facturés sur le compte API. Le contexte contient
 l’intention, la scène perceptible, la fiche, la prémisse, les six derniers événements et les douze
 derniers échanges. Les paroles du joueur et du MJ sont séparées des faits du moteur. Le trésor encore caché et le sens
 non déchiffré de la gravure sont exclus de cette vue. `store` vaut `false`.
 La réponse de conversation vient du LLM ; les résultats d’actions restent décrits par le moteur,
-sans second appel au modèle. Les références de faits du dialogue sont contrôlées, mais ce contrôle
-ne prouve pas que chaque phrase les reformule fidèlement. Une hallucination narrative reste possible ;
-elle n’est jamais ajoutée automatiquement à l’état physique ou au scénario.
+avec parfois un appel de narration supplémentaire. Les affirmations libres affichées passent
+par un contrôle de leurs attestations exactes. Les avis non contrôlés d'une proposition et
+les brouillons d'intention de Luna ne sont pas affichés. Le contrôle sémantique reste probabiliste.
 
 En cas de clé invalide, délai réseau ou réponse incorrecte, l'action n'est pas appliquée.
 Une erreur 401 coupe les appels répétés pour cette session ; connecter le forfait recrée un client.
@@ -571,6 +620,10 @@ déplacer ses propres affaires discrètement ne devient pas une accusation de vo
 Attendre deux minutes réduit de deux points la difficulté du déplacement discret suivant,
 sans imposer l'inattention du PNJ et sans cumul du bonus. Extraire une fixation la dépose
 au sol ; la ranger immédiatement ensuite ne consomme pas de minute supplémentaire.
+Les objets créés par le MJ déclarent aussi leur relation au support : posés sur un support
+qui peut porter, fixés à un élément immobile, ou placés dans un contenant ouvert. Une prise
+d'objet fixé exige d'abord son détachement ; une attache simple se libère sans outil ni jet.
+La relation est enregistrée avec l'objet et reste visible après rechargement.
 
 Le moteur vérifie toute la séquence sur une projection avant de lancer les dés, y compris
 la lumière qui peut s'éteindre entre deux étapes. Une séquence impossible est refusée sans
@@ -653,8 +706,10 @@ Gorm connaît notamment le crochetage et les axes amovibles de la porte de la cr
 Ces connaissances décrivent sa construction, sans lui donner la vision de son état à distance.
 Le contexte du modèle ne contient que les connaissances des personnages présents.
 
-Lorsqu'un sujet narratif manque, le MJ peut proposer `enrichir_savoirs`, puis reçoit les
-connaissances validées pour rédiger sa réponse. L'ajout est sauvegardé avant affichage.
+Lorsqu'un sujet narratif manque, le MJ peut proposer `enrichir_savoirs`. Une contre-revue
+classe la portée de chaque phrase : le souvenir ou la croyance du PNJ peut être enregistré,
+mais une affirmation autonome sur le monde ou la quête exige un autre fait validé.
+L'ajout est sauvegardé avant affichage.
 Il reste disponible après un redémarrage et indépendamment des douze échanges récents.
 Une connaissance existante ne peut pas être remplacée par un autre récit.
 Exemples : « Gorm, pourquoi tiens-tu à cet anneau ? », puis plus tard « Rappelle-moi pourquoi ».
@@ -692,8 +747,8 @@ observation autonome, les mensonges et la propagation de rumeurs ne sont pas sim
 - Le MJ peut compléter à la demande la description de **tout personnage connu ou visible en pleine lumière** :
   âge apparent, silhouette, visage, cheveux, yeux, barbe, mains, voix et tempérament apparent.
   Par exemple : « De quelle couleur sont les yeux de Gorm ? ». Il propose les ajouts au moteur,
-  puis reçoit les faits validés pour répondre. Deux appels au maximum sont nécessaires lors d'un
-  enrichissement ; une réponse ordinaire reste à un appel. Aucun supplément d'action, de temps ou de jet.
+  puis reçoit les faits validés pour répondre. Les contrôles de narration et de portée ajoutent
+  des appels au modèle. Aucun supplément d'action, de temps ou de jet.
   Les détails corporels deviennent des cibles pour `examiner` et `toucher`, puis sont conservés dans
   la sauvegarde et la mémoire des rencontres. Le combat et les transformations corporelles restent hors modèle.
   `examiner <personnage>` utilise aussi le MJ si le personnage n'a encore aucun portrait ; hors ligne,
@@ -701,14 +756,15 @@ observation autonome, les mensonges et la propagation de rumeurs ne sont pas sim
   La TUI actualise la scène après leur enregistrement.
 - Un complément ne remplace aucune facette existante. Il ne crée ni équipement, ni PNJ,
   ni caractéristique, ni récompense, ni secret de quête. Le moteur vérifie les cibles, les champs
-  autorisés, les doublons et la transaction ; la cohérence **sémantique du texte libre** repose encore
-  sur le respect des consignes par le modèle, pas sur une preuve automatique. Les portraits d'auteur
+  autorisés, les doublons et la transaction ; un contrôle de portée fait corriger les descriptions
+  qui impliquent un fait autonome, mais sa classification sémantique n'est pas une preuve formelle.
+  Les portraits d'auteur
   restent prioritaires. Les ajouts du MJ sont traçables dans `enrichissements` dans la sauvegarde.
 - Le MJ peut proposer dans une même transaction des faits typés : détail visible sur un support,
   inscription et parole d'un PNJ présent. Le moteur vérifie les ancrages et la perception, crée
   les cibles ou enregistre le locuteur et les auditeurs, puis compose le texte affiché. Les ajouts
-  sont sauvegardés avant affichage ; une inscription reste examinable et lisible. Les affirmations
-  d'un dialogue libre qui ne passent pas par ce contrat ne sont pas encore contrôlées sémantiquement.
+  sont sauvegardés avant affichage ; une inscription reste examinable et lisible. Les dialogues
+  libres sont contrôlés séparément, à partir des phrases attestées par le moteur.
 - La mémoire permet de décrire un personnage rencontré même hors de sa pièce, sans révéler son humeur
   actuelle. Les souvenirs visuels sont actualisés lors des actions en présence du personnage et en pleine
   lumière. La rencontre initiale et le premier portrait de Gorm sont établis par la prémisse.

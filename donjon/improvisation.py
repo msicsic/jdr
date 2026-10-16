@@ -30,6 +30,14 @@ def proposition(intention, reussite, echec=None, cibles=None, outil="", approche
 
 APPROCHES = ("expression", "manipulation", "effort", "adresse", "observation")
 STAT = ("", "FOR", "DEX", "INT", "PER", "CHA")
+FORMES_SONORES = {
+    "indetermine": "Tu produis un son.",
+    "voix_melodique": "Tu fais entendre des notes de ta voix.",
+    "voix_breve": "Tu fais entendre un son de voix bref.",
+    "souffle": "Tu produis un son de souffle.",
+    "corps_rythmique": "Tu frappes un rythme avec ton corps.",
+    "corps_bref": "Tu produis un bruit bref avec ton corps.",
+}
 SCHEMA_EFFET = {"type": "object", "additionalProperties": False, "properties": {
     "operation": {"type": "string", "enum": ["marquer", "deplacer", "user", "blesser", "son"]},
     "cible": {"type": "string"}, "destination": {"type": "string"},
@@ -56,12 +64,13 @@ possédé ou vide, approche expression/manipulation/effort/adresse/observation, 
 bruit 0..3. stat vide et difficulte 0 pour les gestes simples ; sinon FOR/DEX/INT/PER/CHA,
 difficulte 10..18, proportionnée. Aucun jet pour chanter, s'étirer, frapper un rythme ou
 graver un repère grossier dans du bois avec un couteau disponible.
-reussite et echec contiennent recit (1-3 phrases) et effets (liste, éventuellement vide).
-Le récit est CONDITIONNEL à la branche résolue : il n'est montré qu'après l'action.
-Sans jet, echec={recit:"",effets:[]}. Le récit peut décrire un geste volontaire sans changement
-durable (s'étirer, essayer de jongler, fredonner). Ne remplace pas tout geste nouveau par un
-échec ou « rien ne se passe ». Ne rends pas le joueur muet, ne crée pas de vide mortel.
-Les faits établis restent prioritaires. Ne crée dans la prose ni objet, trésor, PNJ, lieu,
+reussite et echec contiennent recit (brouillon non affiché) et effets (liste, éventuellement vide).
+Le moteur raconte le geste et les effets validés après l'action ; recit n'établit aucun fait.
+Sans jet, echec={recit:"",effets:[]}. L'intention peut décrire un geste volontaire sans changement
+durable. Les conséquences perceptibles que le monde doit retenir exigent néanmoins un effet
+typé ; un récit ou un bruit chiffré ne remplace pas cet effet. Ne remplace pas tout geste nouveau
+par un échec ou « rien ne se passe ». Ne rends pas le joueur muet, ne crée pas de vide mortel.
+Les faits établis restent prioritaires. Ne crée dans le brouillon ni objet, trésor, PNJ, lieu,
 accès, savoir secret, réponse de PNJ, guérison, bonus ou état physique non représenté.
 Tout changement durable exige un effet typé. Chaque effet a operation,cible,destination,texte,valeur.
 - marquer : support existant dans cible, texte = contenu littéral d'une marque/inscription
@@ -70,8 +79,10 @@ Tout changement durable exige un effet typé. Chaque effet a operation,cible,des
 - deplacer : objet libre et accessible dans cible, destination joueur/sol actuel/contenant
   ouvert. texte vide, valeur 0. Réutilise les contrôles de poids, attaches et propriété.
   N'utilise pas cet effet pour le vol ni pour voyager ; utilise leurs règles.
-- son : cible joueur, valeur intensité 1..3, texte et destination vides. Pour un chant, un
-  rythme ou autre bruit improvisé ; les PNJ à portée gardent un souvenir, aucune réponse garantie.
+- son : cible joueur, valeur intensité 1..3, destination vide. texte indique une forme
+  acoustique observable parmi indetermine, voix_melodique, voix_breve, souffle,
+  corps_rythmique, corps_bref. Le moteur garde cette forme dans le souvenir des PNJ ;
+  elle ne porte ni paroles ni fait sur l'origine d'un bruit. Aucune réponse garantie.
 - user : cible outil possédé, valeur 1, texte/destination vides ; seulement risque justifié.
 - blesser : cible joueur, valeur 1..3, texte/destination vides ; seulement risque physique
   explicite, jamais punition pour une donnée absente. Impossible de tuer via cet arbitrage.
@@ -88,12 +99,26 @@ def texte_valide(s, maxi, vide=False):
     return isinstance(s, str) and (vide or bool(s.strip())) and len(s) <= maxi and all(ord(c) >= 32 for c in s)
 
 
-def technique(texte):
-    from .monde import normaliser
-    s = normaliser(texte)
-    return any(m in s for m in ("pas pris en charge", "pas prise en charge", "non pris en charge",
-        "pas implemente", "pas implementee", "moteur ne permet", "moteur ne gere", "moteur ne sait",
-        "hors du moteur", "actions disponibles", "pas simule", "pas simulee"))
+def libelle_geste(m, p):
+    """Décrit une tentative depuis ses seuls champs structurés et validés."""
+    noms = {"expression": "d'expression", "manipulation": "de manipulation",
+            "effort": "d'effort", "adresse": "d'adresse", "observation": "d'observation"}
+    objets = [m.objets[id] for id in p["cibles"]]
+    cibles = ", ".join(designer(o) for o in objets)
+    outil = m.objets.get(p["outil"])
+    complements = (" concernant " + cibles if cibles else "")
+    if outil and p["outil"] not in p["cibles"]:
+        complements += " avec " + designer(outil)
+    return "Geste " + noms[p["approche"]] + complements
+
+
+def action_persistante(m, p):
+    """Conserve une proposition rejouable sans les brouillons libres du MJ."""
+    action = copy.deepcopy(p)
+    action["intention"] = libelle_geste(m, p)
+    action["reussite"]["recit"] = "Tu réalises ce geste."
+    action["echec"]["recit"] = "Tu tentes ce geste sans aboutir." if p["stat"] else ""
+    return action
 
 
 def compiler_effets(m, p, branche):
@@ -108,7 +133,7 @@ def compiler_effets(m, p, branche):
         op, cible, destination, texte, valeur = (e[k] for k in effet(""))
         if cible != "joueur" and cible not in [*p["cibles"], p["outil"]]:
             raise ErreurMonde("La conséquence doit viser une cible annoncée.")
-        if op != "marquer" and texte:
+        if op not in ("marquer", "son") and texte:
             raise ErreurMonde("Un texte libre ne peut pas définir un effet physique.")
         if op != "deplacer" and destination:
             raise ErreurMonde("Cette conséquence n'a pas de destination.")
@@ -135,7 +160,7 @@ def compiler_effets(m, p, branche):
         elif op == "user":
             o = simulation.objets.get(cible, {})
             if (cible != p["outil"] or valeur != 1 or not simulation.est_porte(cible)
-                    or o.get("type") != "outil" or o.get("integrite", 0) <= 1):
+                    or not o.get("usages") or o.get("integrite", 0) <= 1):
                 raise ErreurMonde("Cette usure doit rester limitée à un outil annoncé, porté et en état.")
             effets = [("endommager", cible, 1)]
         elif op == "blesser":
@@ -145,9 +170,12 @@ def compiler_effets(m, p, branche):
         elif op == "son":
             if cible != "joueur" or not 1 <= valeur <= 3 or valeur > p["bruit"]:
                 raise ErreurMonde("L'intensité du son doit correspondre au bruit annoncé.")
-            if p["approche"] == "expression" and simulation.joueur.get("peut_parler") is False:
+            if texte not in FORMES_SONORES:
+                raise ErreurMonde("La forme sonore doit être une catégorie acoustique connue.")
+            forme = texte
+            if forme.startswith("voix_") and simulation.joueur.get("peut_parler") is False:
                 raise ErreurMonde("Ta voix ne peut actuellement pas produire ce son.")
-            effets = [("son_improvise", "joueur", {"intensite": valeur, "intention": p["intention"]})]
+            effets = [("son_improvise", "joueur", {"intensite": valeur, "forme": forme})]
         else:
             raise ErreurMonde("Conséquence non autorisée dans cet arbitrage.")
         for e_interne in effets:
@@ -185,8 +213,6 @@ def preparer(m, p, origine):
                 or not texte_valide(b["recit"], 600, vide=(nom == "echec" and not p["stat"]))
                 or not isinstance(b["effets"], list) or len(b["effets"]) > 4):
             raise ErreurMonde("Issue d'improvisation mal formée.")
-        if technique(b["recit"]):
-            raise ErreurMonde("Décris le résultat dans la fiction, sans refus technique.")
         if sum(e.get("valeur", 0) for e in b["effets"] if isinstance(e, dict) and e.get("operation") == "blesser" and type(e.get("valeur")) is int) > 3:
             raise ErreurMonde("Le total des blessures doit rester mineur : au plus 3 PV.")
     if not p["stat"] and p["echec"] != issue(""):
@@ -197,16 +223,13 @@ def preparer(m, p, origine):
         raise ErreurMonde("Un risque de blessure doit être annoncé dans une tentative à confirmer.")
     if any(e[0] == "endommager" for e in effets+echec) and not p["stat"]:
         raise ErreurMonde("Un risque pour l'outil doit être annoncé avant confirmation.")
-    # Une palpation d'un contenant ouvert relève de la perception vérifiable.
-    # Son résultat ne peut pas être inventé dans le récit d'une improvisation.
-    if (p["approche"] == "observation" and not p["stat"] and not p["outil"]
-            and len(p["cibles"]) == 1 and not effets and not echec
-            and m.objets[p["cibles"][0]]["type"] == "contenant"
-            and m.objets[p["cibles"][0]]["ouverte"]
-            and any(mot in normaliser(p["intention"]) for mot in ("palp", "tat", "touch", "fouill"))):
-        from .moteur import Moteur, proposition as action_simple
-        return Moteur(m).preparer(action_simple("toucher", p["cibles"][0]), origine)
-    plan = Plan(copy.deepcopy(p), m.data["revision"], p["intention"], origine=origine)
+    if p["approche"] == "observation" and p["cibles"] and not effets and not echec:
+        raise ErreurMonde("L'observation d'une cible existante doit passer par une action de perception du moteur.")
+    # Le libellé vient uniquement des champs validés ; le brouillon du MJ ne décrit pas le monde.
+    libelle = libelle_geste(m, p)
+    plan = Plan(copy.deepcopy(p), m.data["revision"], libelle + ".", origine=origine)
+    recits = {"reussite": "Tu réalises ce " + libelle.lower() + ".",
+              "echec": "Tu tentes ce " + libelle.lower() + " sans aboutir."}
     plan.stat, plan.dd, plan.minutes, plan.bruit = p["stat"], p["difficulte"], p["minutes"], p["bruit"]
     # Les descriptions et le DD proposé ne changent pas les contraintes d'une méthode.
     signature = {"version": 1, "intention": normaliser(p["intention"]), "approche": p["approche"], "stat": p["stat"],
@@ -223,11 +246,12 @@ def preparer(m, p, origine):
         for nom, branche in (("réussite", p["reussite"]), ("échec", p["echec"])):
             pv = sum(e["valeur"] for e in branche["effets"] if e["operation"] == "blesser")
             usure = sum(e["valeur"] for e in branche["effets"] if e["operation"] == "user")
-            risques.append(f"En cas de {nom} : " + branche["recit"] +
+            risques.append(f"En cas de {nom} : " + recits["reussite" if nom == "réussite" else "echec"].strip() +
                            (f" ({pv} PV perdus)" if pv else "") + (f" (outil : -{usure} intégrité)" if usure else ""))
         plan.risque = "\n".join(risques)
-    plan.effets = effets + [("recit_improvise", "", {"texte": p["reussite"]["recit"], "intention": p["intention"], "cibles": p["cibles"]})]
-    plan.echec = echec + [("recit_improvise", "", {"texte": p["echec"]["recit"], "intention": p["intention"], "cibles": p["cibles"]})]
+    trace = {"approche": p["approche"], "cibles": p["cibles"], "outil": p["outil"]}
+    plan.effets = effets + [("recit_improvise", "", {"texte": recits["reussite"].strip(), **trace})]
+    plan.echec = echec + [("recit_improvise", "", {"texte": recits["echec"].strip(), **trace})]
     return plan
 
 
@@ -258,11 +282,15 @@ def appliquer(m, e, lignes):
         from .sons import auditeurs
         ids = auditeurs(m, m.joueur["salle"], valeur["intensite"])
         son = {"tour": m.data["revision"]+1, "minute": m.data["minutes"], "origine": m.joueur["salle"],
-               "nature": "geste sonore", "intention": valeur["intention"], "intensite": valeur["intensite"], "auditeurs": ids}
+               "nature": "geste sonore", "forme": valeur["forme"],
+               "intensite": valeur["intensite"], "auditeurs": ids}
         m.data.setdefault("sons", []).append(son)
         m.data["sons"] = m.data["sons"][-40:]
+        lignes.append(FORMES_SONORES[valeur["forme"]])
         for id in ids:
             m.objets[id]["dernier_son_entendu"] = {k: v for k, v in son.items() if k != "auditeurs"}
+            if m.visible(id):
+                lignes.append(designer(m.objets[id], debut=True) + " entend ce son.")
 
 
 def contexte(m):

@@ -15,11 +15,13 @@ from donjon.moteur import Moteur, proposition
 from donjon.improvisation import proposition as improviser, issue
 from donjon.operations import etape, sequence
 from donjon.perception import eclairage
-from donjon.spatial import installer as installer_spatial, preparer_pas
+from donjon.spatial import installer as installer_spatial, preparer_pas, position_carte
+from tests.support import simuler_couverture
 
 
 class DefiRelaisTests(unittest.TestCase):
     def setUp(self):
+        simuler_couverture(self)
         self.m = nouveau_defi()
         installer_spatial(self.m)
         self.moteur = Moteur(self.m)
@@ -27,16 +29,16 @@ class DefiRelaisTests(unittest.TestCase):
     def agir(self, action, cible="", outil=""):
         return self.moteur.executer(self.moteur.preparer(proposition(action, cible, outil)))
 
-    def test_palper_coffre_ouvert_vide_corrige_recit_improvise(self):
+    def test_observation_improvisee_ne_remplace_pas_perception_moteur(self):
         self.m.joueur.update(salle=BEFFROI, position=[4, 3])
         self.assertTrue(next(o for o in self.m.contexte()["objets_perceptibles"]
                              if o["id"] == "coffre")["contenu_vide"])
         p = improviser("Palper à la main les objets à l'intérieur du coffre",
                        issue("Tu sens des formes et des matières dans le coffre."),
                        cibles=["coffre"], approche="observation")
-        plan = self.moteur.preparer(p, "MJ")
-        self.assertEqual(plan.proposition["action"], "toucher")
-        texte = self.moteur.executer(plan)
+        with self.assertRaises(ErreurMonde):
+            self.moteur.preparer(p, "MJ")
+        texte = self.agir("toucher", "coffre")
         self.assertIn("est vide", texte)
         self.assertNotIn("formes", texte)
         self.assertEqual(self.m.data["journal"][-1]["action"]["action"], "toucher")
@@ -126,6 +128,9 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertEqual(salle["plan"]["sol"][3][3], " ")
         self.assertEqual(self.m.objets["gravure"]["position"], [2, 3])
         self.assertEqual(self.m.objets["antichambre_murs"]["position"], [2, 3])
+        self.assertEqual(position_carte(self.m, "gravure"), (3, 3))
+        self.assertEqual(self.m.objets["gravure"]["ancrage_carte"],
+                         self.m.objets["antichambre_murs"]["ancrage_carte"])
         self.assertTrue(self.m.visible("gravure"))
         fait = next(o for o in self.m.contexte()["objets_perceptibles"]
                     if o["id"] == "gravure")
@@ -151,7 +156,7 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertNotIn([3, 3], reprise.data["exploration"][REFUGE])
         self.assertEqual(reprise.objets["gravure"]["fixee_sur"],
                          "la face ouest de la cloison de pierre")
-        self.assertIn("! ##", carte(reprise))
+        self.assertIn("!#", carte(reprise))
 
     def test_route_exterieure_par_echelle_et_retour(self):
         with self.assertRaises(ErreurMonde):
@@ -300,14 +305,12 @@ class DefiRelaisTests(unittest.TestCase):
         allumer = {"mode": "action", "texte": "", "faits": ["objet:torche"],
                    "proposition": sequence(etape("allumer", "torche", outil="briquet"))}
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler", side_effect=[lire, allumer]) as appel:
+        with patch.object(mj, "_appeler", side_effect=[lire, allumer, ErreurMonde("narration indisponible")]) as appel:
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
-        self.assertEqual(appel.call_count, 2)
+        self.assertEqual(appel.call_count, 3)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Ce geste n'est pas possible dans ces conditions", reponse["texte"])
+        self.assertIn("Corvus n'a rien tenté", reponse["texte"])
         self.assertTrue(reponse["_validation_refusee"])
-        self.assertIn("la lumière est insuffisante", reponse["texte"])
-        self.assertIn("La torche n'a plus de combustible", reponse["texte"])
         self.assertEqual(self.m.data, avant)
 
     def test_double_refus_pour_coffre_eloigne_ne_raconte_pas_une_tentative(self):
@@ -315,13 +318,12 @@ class DefiRelaisTests(unittest.TestCase):
         ouvrir = {"mode": "action", "texte": "", "faits": [],
                   "proposition": proposition("ouvrir", "coffre")}
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler", side_effect=[ouvrir, ouvrir]) as appel:
+        with patch.object(mj, "_appeler", side_effect=[ouvrir, ouvrir, ErreurMonde("narration indisponible")]) as appel:
             reponse = mj.echanger(self.m, "j'ouvre le coffre d'entretien")
-        self.assertEqual(appel.call_count, 2)
+        self.assertEqual(appel.call_count, 3)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Ce geste n'est pas possible dans ces conditions", reponse["texte"])
+        self.assertIn("Corvus n'a rien tenté", reponse["texte"])
         self.assertTrue(reponse["_validation_refusee"])
-        self.assertIn("inaccessible depuis ici", reponse["texte"])
         self.assertNotIn("Tu ne parviens pas", reponse["texte"])
         self.assertEqual(self.m.data, avant)
 
@@ -334,11 +336,10 @@ class DefiRelaisTests(unittest.TestCase):
         attendre = {"mode": "action", "texte": "", "faits": ["retour_moteur"],
                     "proposition": sequence(etape("patienter"))}
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler", side_effect=[lire, attendre]):
+        with patch.object(mj, "_appeler", side_effect=[lire, attendre, ErreurMonde("narration indisponible")]):
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("la lumière est insuffisante", reponse["texte"])
-        self.assertIn("Attendre ne réalise pas", reponse["texte"])
+        self.assertIn("Corvus n'a rien tenté", reponse["texte"])
         self.assertEqual(self.m.data, avant)
 
 

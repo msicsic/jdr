@@ -3,7 +3,7 @@ from textwrap import fill
 from .monde import ErreurMonde
 from .perception import eclairage
 from .carte import carte
-from .francais import accorder, designer, enumerer, pluriel
+from .francais import accorder, designer, enumerer, pluriel, relation_physique
 
 
 def decrire(monde, id, detail=False, article="defini", technique=True):
@@ -31,6 +31,8 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
         complements.append(f"Un palier surplombe le pied du mur de {o['appui_vertical']['hauteur_cm'] / 100:g} m")
     if o.get("fixee_sur"):
         complements.append("Elle est fixée sur " + o["fixee_sur"])
+    if o.get("relation_support") and o["lieu"] in monde.objets:
+        morceaux.append(relation_physique(o, monde.objets[o["lieu"]], o["relation_support"]))
     if o["integrite"] == 0:
         morceaux.append(accorder(o, "brisé"))
     elif o["integrite"] < o["maximum"]:
@@ -58,13 +60,37 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
         complements.append(f'Il reste {o["charges"]} utilisation' + ("s" if o["charges"] > 1 else ""))
     if "allume" in o:
         morceaux.append(accorder(o, "allumé" if o["allume"] else "éteint"))
-        if technique:
+        if o.get("combustible") == 0:
+            complements.append(designer(o, debut=True) + " n'a plus de combustible")
+        elif technique:
             complements.append(f'Combustible restant : {o["combustible"]} min')
+    if o.get("sonorite"):
+        complements.append(designer(o, debut=True) + " peut produire un son audible")
+    if o.get("constats_capacites"):
+        from .capacites_objet import (absence as absence_capacite, aptitude_coupe,
+                                     empreinte as empreinte_capacite)
+        for observation in o["constats_capacites"]:
+            positive = observation["issue"] == "etablie"
+            phrase = (aptitude_coupe(o, observation) if positive else
+                      absence_capacite(o, observation["capacite"], observation))
+            moyen = monde.objets.get(observation["moyen_id"])
+            if (observation["empreinte"] != empreinte_capacite(o, usure=not positive)
+                    or positive and o["integrite"] == 0
+                    or observation["moyen_id"] and
+                    (moyen is None or observation["empreinte_moyen"] !=
+                     empreinte_capacite(moyen, usure=not positive)
+                     or positive and moyen["integrite"] == 0)):
+                phrase = "Constat dans un état antérieur : « " + phrase + " »"
+            complements.append(phrase)
+    from .spatial import proche
+    a_portee = not monde.data.get("mode_cases") or proche(monde, id)
+    if not a_portee:
+        complements.append(designer(o, debut=True) + " est trop loin pour être "
+                           + accorder(o, "manipulé") + " d'ici")
     texte = nom + ((" sont " if pluriel(o) else " est ") + enumerer(morceaux) if morceaux else "") + "."
     if complements:
         texte += " " + ". ".join(complements) + "."
-    from .spatial import proche
-    if eclairage(monde)["niveau"] >= 2 and (not monde.data.get("mode_cases") or proche(monde, id)):
+    if eclairage(monde)["niveau"] >= 2 and a_portee:
         if o.get("portrait"):
             texte += " " + o["portrait"]
         if o["type"] == "personnage":
@@ -90,7 +116,7 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             texte += " Eléments accessibles : " + enumerer(enfants) + "."
         if o["type"] == "porte":
             fixes = sum(e.get("attache", False) for e in monde.enfants(id))
-            texte += f' Masse : {o["masse"]} kg. Axes en place : {fixes}.'
+            texte += f' Masse : {o["masse"]} kg. Fixations en place : {fixes}.'
         if o.get("usages"):
             noms = {"levier_fin": "petit levier fragile", "couper": "couper",
                     "levier": "levier robuste", "percussion": "frapper",
@@ -219,8 +245,8 @@ def decrire_perception(monde):
     lignes = ["Tu es à l'extérieur." if piece.get("exterieur") else "Cette pièce n'a pas de fenêtre." if piece["fenetres"] == 0 else
               f'Cette pièce possède {piece["fenetres"]} fenêtre(s).']
     lignes.append([
-        "Il fait entièrement noir : aucune lumière ne vous parvient. Vous ne pouvez pas voir les objets ni lire les gravures.",
-        "Il ne fait pas entièrement noir : une pénombre permet de distinguer les objets, mais pas de lire les gravures.",
+        "Il fait entièrement noir : aucune lumière ne vous parvient. Vous ne pouvez pas voir les objets ni lire les inscriptions.",
+        "Il ne fait pas entièrement noir : une pénombre permet de distinguer les objets, mais pas de lire les inscriptions.",
         "Il ne fait pas noir : la lumière est suffisante pour voir les objets et leurs détails.",
     ][lumiere["niveau"]])
     causes = set()

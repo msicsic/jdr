@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from donjon.carte import carte
 from donjon.defi import nouveau_defi
+from donjon.faits_locaux import preparer_faits
 from donjon.monde import Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.spatial import installer, memoriser
@@ -121,6 +122,52 @@ class CarteCasesTests(unittest.TestCase):
             moteur.executer(moteur.preparer(proposition("marcher", direction)))
         self.assertEqual(reprise.data["souvenirs_portes"]["porte"], "/")
         self.assertNotIn("~X", carte(reprise).split("=== LEGENDE ===")[0])
+
+    def test_consigne_du_relais_est_dessinee_sur_le_mur_et_memorisee_apres_rechargement(self):
+        m = nouveau_defi()
+        installer(m)
+        dessin = carte(m).split("=== LEGENDE ===")[0]
+        self.assertIn("!#", dessin)
+        self.assertEqual(m.data["souvenirs_visuels"]["gravure"]["position"], [3, 3])
+        self.assertEqual(m.data["souvenirs_visuels"]["gravure"]["contact"], [2, 3])
+
+        m.joueur["position"] = [7, 3]
+        memoriser(m)
+        self.assertFalse(m.visible("gravure"))
+        self.assertIn("!~", carte(m).split("=== LEGENDE ===")[0])
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            chemin = Path(dossier) / "consigne.json"
+            m.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        self.assertIn("!~", carte(reprise).split("=== LEGENDE ===")[0])
+        reprise.joueur["position"] = [1, 3]
+        memoriser(reprise)
+        self.assertIn("!#", carte(reprise).split("=== LEGENDE ===")[0])
+        self.assertNotIn("!~", carte(reprise).split("=== LEGENDE ===")[0])
+
+    def test_objet_invente_sur_un_autre_mur_garde_son_ancrage_dans_le_noir(self):
+        m = nouveau_monde()
+        installer(m)
+        m, _, etablis = preparer_faits(m, {"ajouts": [{
+            "type": "objet", "ancrage": "antichambre_murs",
+            "nom": "anneau de fer", "genre": "m", "texte": "Le fer est rouillé.",
+            "materiau": "fer", "masse": 0.1, "mobile": True,
+            "relation": "fixe", "capacites": []}]})
+        id = etablis[0]["objet"]
+        memoriser(m)
+        self.assertEqual(m.objets[id]["ancrage_carte"], [-1, 2])
+        self.assertIn("!#", carte(m).split("=== LEGENDE ===")[0])
+
+        m.objets["lanterne"]["allume"] = False
+        m.objets["brasero"]["allume"] = False
+        memoriser(m)
+        self.assertFalse(m.visible(id))
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            chemin = Path(dossier) / "mur.json"
+            m.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        self.assertEqual(reprise.data["souvenirs_visuels"][id]["position"], [-1, 2])
+        self.assertIn("!~", carte(reprise).split("=== LEGENDE ===")[0])
 
     def test_obstacle_opaque_est_representable_sur_la_carte(self):
         pilier = objet("pilier_test", "pilier de pierre", "contenant", "antichambre",

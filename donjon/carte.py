@@ -33,22 +33,32 @@ def symbole_objet_cases(objet, salle):
 
 def objets_visibles_cases(monde, champ):
     """Objets effectivement dessinables, avec leur position observée."""
-    from .spatial import position_cible
+    from .spatial import position_cible, position_carte
 
     salles = monde.data["salles"]
     for objet in monde.objets.values():
         salle = objet.get("lieu")
+        if salle not in salles and objet.get("cartographier") and not monde.est_porte(objet["id"]):
+            for salle_vue in salles:
+                contact = position_cible(monde, objet["id"], salle_vue)
+                if (contact is not None and monde.visible(objet["id"])
+                        and (salle_vue, contact[0], contact[1]) in champ):
+                    yield objet, salle_vue, tuple(position_carte(monde, objet["id"], salle_vue))
+                    break
+            continue
         obstacle = bool(objet.get("bloque_vue") or objet.get("bloque_passage"))
         support_vertical = objet["type"] == "surface" and bool(objet.get("appui_vertical"))
         if (salle not in salles or (objet["type"] == "surface" and not obstacle and not support_vertical)
                 or objet["type"] == "porte" or objet.get("installation")):
             continue
-        pos = position_cible(monde, objet["id"], salle)
-        if pos is not None and (salle, pos[0], pos[1]) in champ:
-            yield objet, salle, tuple(pos)
+        contact = position_cible(monde, objet["id"], salle)
+        if (contact is not None and (salle, contact[0], contact[1]) in champ
+                and monde.visible(objet["id"])):
+            yield objet, salle, tuple(position_carte(monde, objet["id"], salle))
 
 
 def _carte_ancienne(monde):
+    from .spatial import position_carte
     salles = monde.data["salles"]
     niveau = salles[monde.joueur["salle"]].get("niveau", 0)
     connues = [id for id in salles if (id in monde.data["visitees"] or id == monde.joueur["salle"])
@@ -109,7 +119,7 @@ def _carte_ancienne(monde):
     for o in monde.presents():
         if o["lieu"] != salle or o["type"] in ("surface", "porte"):
             continue
-        x, y = position_objet(monde, o)
+        x, y = position_carte(monde, o["id"], salle)
         objets[ox + x, oy + y].append(o)
     legendes = defaultdict(list)
     for position, groupe in objets.items():
@@ -122,7 +132,7 @@ def _carte_ancienne(monde):
             symbole = "*" if o["allume"] else "t"
         else:
             symbole = SYMBOLES.get(o["type"], "!")
-        dessin[position] = symbole + " "
+        dessin[position] = symbole + ("#" if any(o.get("ancrage_carte") for o in groupe) else " ")
         legendes[symbole].extend(designer(o) for o in groupe)
     dessin[joueur] = "@ "
     pieces = []
@@ -302,7 +312,7 @@ def _carte_cases(monde):
                     etat = {"X": "porte verrouillée", "+": "porte fermée",
                             "/": "porte ouverte", "x": "passage libéré"}[symbole]
                     if p not in portes_souvenues_positions:
-                        souvenirs_niveau.append((p, symbole, [etat]))
+                        souvenirs_niveau.append((p, symbole, False, [etat]))
                         portes_souvenues_positions.add(p)
                 else:
                     symbole = ":"
@@ -314,15 +324,20 @@ def _carte_cases(monde):
         for id, souvenir in monde.data.get("souvenirs_visuels", {}).items():
             salle = souvenir["salle"]
             pos = tuple(souvenir["position"])
-            if (salle not in salles_etage or pos not in memorisees.get(salle, set())
-                    or pos in visible.get(salle, set()) or monde.est_porte(id)):
+            contact = tuple(souvenir.get("contact", souvenir["position"]))
+            ancre_mur = pos != contact
+            if (salle not in salles_etage or contact not in memorisees.get(salle, set())
+                    or (ancre_mur and pos not in murs.get(salle, set()))
+                    or contact in visible.get(salle, set()) or monde.est_porte(id)):
                 continue
             ox, oy = salles[salle]["plan"]["origine"]
             souvenirs_positions[(ox + pos[0], oy + pos[1])].append(souvenir)
         for p, groupe in souvenirs_positions.items():
             symbole = "&" if len(groupe) > 1 else groupe[0]["symbole"]
-            dessin[p] = "~" + symbole
-            souvenirs_niveau.append((p, symbole, [souvenir["nom"] for souvenir in groupe]))
+            ancre_mur = any(tuple(s["position"]) != tuple(s.get("contact", s["position"]))
+                            for s in groupe)
+            dessin[p] = symbole + "~" if ancre_mur else "~" + symbole
+            souvenirs_niveau.append((p, symbole, ancre_mur, [souvenir["nom"] for souvenir in groupe]))
 
         # Current visible objects are positioned through the shared spatial API.
         # This keeps dropped or picked up items in sync with the world state.
@@ -338,7 +353,7 @@ def _carte_cases(monde):
             objets_positions[(p, salle)].append(objet)
         for (p, salle_groupe), groupe in objets_positions.items():
             symbole = "&" if len(groupe) > 1 else symbole_objet_cases(groupe[0], salle_groupe)
-            dessin[p] = symbole + " "
+            dessin[p] = symbole + ("#" if any(o.get("ancrage_carte") for o in groupe) else " ")
             legendes[symbole].extend(designer(objet) for objet in groupe)
 
         # Ladder endpoints only appear when the support and that endpoint are
@@ -367,8 +382,8 @@ def _carte_cases(monde):
             ox, oy = salles[joueur_salle]["plan"]["origine"]
             dessin[ox + joueur_pos[0], oy + joueur_pos[1]] = "@ "
 
-        souvenirs_dessines.extend((symbole, noms) for p, symbole, noms in souvenirs_niveau
-                                  if dessin.get(p) == "~" + symbole)
+        souvenirs_dessines.extend((symbole, noms) for p, symbole, mur, noms in souvenirs_niveau
+                                  if dessin.get(p) == (symbole + "~" if mur else "~" + symbole))
 
         if dessin:
             xmin = min(x for x, _ in dessin)

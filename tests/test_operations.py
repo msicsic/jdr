@@ -12,6 +12,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
+from tests.support import simuler_couverture
 
 
 def extraire(id):
@@ -28,6 +29,7 @@ def narration(texte="Tu ranges la clé dans ta besace."):
 
 class OperationsTests(unittest.TestCase):
     def setUp(self):
+        simuler_couverture(self)
         self.m = nouveau_monde()
         self.moteur = Moteur(self.m)
 

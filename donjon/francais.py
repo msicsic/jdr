@@ -31,9 +31,35 @@ def designer(objet, article="defini", debut=False):
     return texte[:1].upper() + texte[1:] if debut else texte
 
 
+def complement_de(objet):
+    """Forme le complément nominal avec les contractions françaises usuelles."""
+    nom = designer(objet)
+    if nom.startswith("le "):
+        return "du " + nom[3:]
+    if nom.startswith("les "):
+        return "des " + nom[4:]
+    return "d'" + nom[2:] if nom.startswith("l'") else "de " + nom
+
+
 def accorder(objet, masculin, feminin_irregulier=None):
     mot = (feminin_irregulier or masculin + "e") if feminin(objet) else masculin
     return mot + "s" if pluriel(objet) else mot
+
+
+def relation_physique(objet, support, relation):
+    """Formule l'emplacement déclaré sans déduire une relation depuis le nom."""
+    nom_support = designer(support)
+    if relation == "pose":
+        return accorder(objet, "posé") + " sur " + nom_support
+    if relation == "contenu":
+        return "dans " + nom_support
+    if nom_support.startswith("le "):
+        nom_support = "au " + nom_support[3:]
+    elif nom_support.startswith("les "):
+        nom_support = "aux " + nom_support[4:]
+    else:
+        nom_support = "à " + nom_support
+    return accorder(objet, "fixé") + " " + nom_support
 
 
 def enumerer(elements):

@@ -12,7 +12,7 @@ from donjon.config import charger_env, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
-from donjon.moteur import Moteur
+from donjon.moteur import Moteur, QualificationRequise
 from donjon.enrichissement import preparer_complements
 from donjon.faits_locaux import preparer_faits
 from donjon.narration import consigner as consigner_narration, rendre_resultat
@@ -26,27 +26,8 @@ BASE = Path(__file__).resolve().parent
 
 
 def demo():
-    m = nouveau_monde(1985)
-    moteur = Moteur(m)
-    print("LE SEUIL — démonstration locale reproductible, aucune sauvegarde modifiée")
-    print(carte(m))
-    commandes = ["examiner porte", "examiner gravure", "copier gravure avec cire",
-                 "prendre clé", "ouest", "acheter pied-de-biche", "est"]
-    def jouer(cmd):
-        print("\n> " + cmd)
-        plan = moteur.preparer(analyser(m, cmd))
-        print(moteur.executer(plan))
-    for cmd in commandes:
-        jouer(cmd)
-    for axe in ("supérieur", "inférieur"):
-        id = "axe_haut" if axe == "supérieur" else "axe_bas"
-        while m.objets[id]["attache"]:
-            jouer(f"retirer axe {axe} avec pied-de-biche")
-    for cmd in ("nord", "ouvrir coffre avec clé", "prendre anneau", "sud", "examiner porte"):
-        jouer(cmd)
-    print("\n" + carte(m))
-    print(fiche(m))
-    return 0
+    from donjon.scenario_crypte import demo as demo_crypte
+    return demo_crypte()
 
 
 def lancer_tui(argv):
@@ -288,7 +269,7 @@ def main(argv=None, interface=None):
                 except ErreurMonde:
                     if mj is None:
                         raise
-                    # « Retirer les gonds avec mon petit couteau » peut dépasser la syntaxe locale.
+                    # Une intention libre peut dépasser la syntaxe locale.
                     p = None
                 if mj is not None and p and p["action"] == "parler":
                     p = None
@@ -297,6 +278,11 @@ def main(argv=None, interface=None):
                         and not m.objets[p["cible"]].get("portrait")
                         and not m.objets[p["cible"]].get("facettes")):
                     p = None
+                if mj is not None and p is not None:
+                    try:
+                        Moteur(m).preparer(p)
+                    except QualificationRequise:
+                        p = None
                 if p is None:
                     if mj is None:
                         if question:
@@ -363,16 +349,14 @@ def main(argv=None, interface=None):
                         imprimer("Le MJ a proposé une action à une question. Aucune action n'a été appliquée.")
                         imprimer("Précisez une action si vous souhaitez la tenter, ou consultez contexte / regarder.")
                         continue
+                    if "_faits_narratifs" in reponse:
+                        ajout = reponse["_faits_narratifs"]
+                        travail, _, _ = preparer_faits(m, ajout["proposition"], ajout["revision"])
+                        travail.sauver(args.save)
+                        m.data = travail.data
                     pending = None
                     if p.get("action") in ("clarifier", "impossible"):
-                        # Valide les champs par le même chemin que toute proposition.
-                        try:
-                            moteur.preparer(p, origine="LLM : " + mj.modele)
-                        except ErreurMonde as exc:
-                            imprimer(str(exc))
-                            m.memoriser(texte, str(exc), "avis_sans_action")
-                            m.sauver(args.save)
-                        continue
+                        raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
                     pending = moteur.preparer(p, origine="reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele)
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
                     if not pending.stat and not pending.echec_critique:
@@ -395,15 +379,15 @@ def main(argv=None, interface=None):
                     plan = moteur.preparer(p)
                     resultat = moteur.executer(plan)
                     mouvement = m.data.get("mode_cases") and p["action"] in ("marcher", "aller")
+                    if not mouvement:
+                        m.memoriser(texte, resultat, "resultat_moteur")
+                    m.sauver(args.save)
                     if not mouvement or interface is None:
                         imprimer(resultat)
                     else:
                         evenements = [ligne for ligne in resultat.splitlines() if ligne != "Tu avances d'un pas."]
                         if evenements:
                             imprimer("\n".join(evenements))
-                    if not mouvement:
-                        m.memoriser(texte, resultat, "resultat_moteur")
-                    m.sauver(args.save)
                     if p["action"] == "aller" and not mouvement:
                         afficher("carte")
                         afficher("scene")

@@ -1,4 +1,6 @@
 """Syntaxe locale volontairement limitée ; les intentions libres vont au MJ."""
+import re
+
 from .monde import normaliser
 from .moteur import proposition
 
@@ -6,30 +8,31 @@ from .moteur import proposition
 AIDE = """COMMANDES LOCALES — sans appel API
   regarder | carte | fiche | inventaire | journal | contexte | aide
   lumière                              expliquer les conditions de visibilité
-  allumer torche | éteindre lanterne    utiliser le briquet de votre besace
+  allumer <source> | éteindre <source>  utiliser un outil d'allumage porté
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
   pas nord / pas sud / pas est / pas ouest  déplacer d'une case (sans IA)
-  examiner porte                       voir les composants accessibles
-  examiner axe supérieur               observer sans jet
-  lire gravure                         tenter d'en comprendre le sens
-  prendre clé | poser couteau
+  examiner <objet>                     voir les composants accessibles
+  lire <inscription>                   tenter d'en comprendre le sens
+  prendre <objet> | poser <objet>
   acheter <objet>                       auprès de son vendeur présent
-  voler crochets                       tentative discrète, jet de DEX si observé
+  voler <objet>                        tentative discrète, jet de DEX si observé
   parler <personnage>
   offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
   remettre <objet> à <personnage>       remet l'objet contre le paiement convenu
-  ouvrir coffre avec clé | fermer porte
-  crocheter serrure avec crochets
-  retirer axe supérieur avec couteau    puis axe inférieur, séparément
-  frapper porte avec marteau
-  caler porte avec marteau | débloquer porte
-  copier gravure avec cire
+  ouvrir <objet> avec <clé> | fermer <objet>
+  crocheter <serrure> avec <outil>
+  retirer <fixation> avec <outil>
+  frapper <cible> avec <outil>
+  couper <cible> avec <outil>          entailler, puis sectionner si l'intégrité cède
+  caler <porte> avec <objet> | débloquer <porte>
+  copier <motif> avec <matériau>
   installer échelle contre mur | monter échelle | descendre échelle
   désinstaller échelle                 retirer l'accès vertical depuis son pied ou son sommet
   fabriquer échelle                    assemblage local si les matériaux sont à portée
   attendre                             5 minutes, le bruit diminue
   crier à l'aide | crier | siffler       émettre un son, sans garantie de secours
+  sonner <objet>                        utiliser un objet sonore accessible
   sauver | quitter                     sauvegarde aussi après chaque action
   contexte                             début, objectif et dernier déplacement
   connexion | connecter                état du MJ / connexion au forfait ChatGPT
@@ -38,11 +41,11 @@ AIDE = """COMMANDES LOCALES — sans appel API
 MJ — conversation et actions
   Une phrase libre appelle le LLM si le mode IA est actif.
   Le MJ répond aux questions et se souvient des derniers échanges, sans « tenter » ni jet.
-  Les actions simples (« je prends la clé ») s'exécutent directement après validation.
+  Les actions simples (« je prends cet objet ») s'exécutent directement après validation.
   Les manœuvres interprétées par le MJ avec un jet ou un risque attendent « tenter ».
   Hors ligne, utilisez les commandes explicites : contexte, lumière, regarder, journal.
   mj <phrase> force son utilisation, même pour une commande connue.
-  Exemple : mj Je fais levier avec mon couteau pour extraire l'axe du haut.
+  Exemple : mj Je fais levier avec cet outil pour retirer cette fixation.
   tenter : exécuter sa proposition ; annuler : abandonner sans effet.
   Une nouvelle action remplace la proposition ; discuter avec le MJ la conserve.
 
@@ -60,6 +63,7 @@ VERBES = {
     "voler": "voler", "derober": "voler",
     "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
+    "couper": "couper", "decouper": "couper", "trancher": "couper",
     "retirer": "detacher", "extraire": "detacher", "detacher": "detacher",
     "caler": "bloquer", "bloquer": "bloquer", "debloquer": "debloquer",
     "decaler": "debloquer", "copier": "copier", "parler": "parler",
@@ -68,10 +72,23 @@ VERBES = {
 
 
 def est_question(texte):
-    """Détecte une forme interrogative, sans prétendre en comprendre le sujet."""
-    normalise = normaliser(texte)
-    return "?" in texte or normalise.startswith(("pourquoi ", "comment ", "est-ce ",
-        "est ce ", "qu'est", "a quoi ", "d'ou ", "quelle ", "quel ", "quelles ", "quels "))
+    """Reconnaît la ponctuation, les interrogatifs et l'inversion du sujet."""
+    if "?" in texte:
+        return True
+    mots = normaliser(texte).split()
+    if not mots:
+        return False
+    premier = mots[0]
+    interrogatifs = {"ou", "qui", "que", "quoi", "quand", "combien", "comment",
+                     "pourquoi", "quel", "quelle", "quels", "quelles", "lequel",
+                     "laquelle", "lesquels", "lesquelles"}
+    if premier in interrogatifs or premier.startswith(("qu'", "d'ou")):
+        return True
+    if len(mots) > 1 and (mots[:2] in (["est", "ce"], ["a", "quoi"], ["de", "quoi"])):
+        return True
+    if re.fullmatch(r"[a-z]+-(?:t-)?(?:je|tu|il|elle|on|nous|vous|ils|elles|ce)", premier):
+        return True
+    return "combien" in mots[1:] or mots[-1] in {"ou", "quand", "pourquoi", "comment"}
 
 
 def analyser(monde, texte):
@@ -104,7 +121,7 @@ def analyser(monde, texte):
         d = dossier(monde)
         suggestion = (d or {}).get("suggestion") or {}
         if "proposition" not in suggestion:
-            raise ErreurMonde(suggestion.get("obstacle", "Il faut réunir trois perches, du lien et un outil de coupe à portée."))
+            raise ErreurMonde(suggestion.get("obstacle", "Aucun assemblage d'échelle n'est disponible dans cette situation."))
         return suggestion.get("travail_soigne", {}).get("proposition", suggestion["proposition"])
     sons = {"crier a l'aide": "appel", "je crie a l'aide": "appel", "appeler a l'aide": "appel",
             "crier au secours": "appel", "je crie au secours": "appel",
@@ -112,6 +129,9 @@ def analyser(monde, texte):
     if texte in sons:
         from .operations import etape, sequence
         return sequence(etape("emettre_son", "joueur", methode=sons[texte]), justification="")
+    if texte.startswith("sonner "):
+        from .operations import etape, sequence
+        return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))
     if texte.startswith("installer ") and " contre " in texte:
         cible, _, support = texte[10:].partition(" contre ")
         return proposition("installer", monde.trouver(cible), monde.trouver(support))
@@ -148,5 +168,5 @@ def analyser(monde, texte):
     if action == "detacher":
         t = monde.objets.get(outil_id, {})
         usages = t.get("usages", [])
-        methode = "percussion" if "percussion" in usages and "levier" not in usages else "levier"
+        methode = ("percussion" if "percussion" in usages and "levier" not in usages else "levier") if outil_id else "simple"
     return proposition(action, cible_id, outil_id, methode)

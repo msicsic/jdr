@@ -84,6 +84,7 @@
         "cloison",
         "épaulement"
       ],
+      "ancrage_carte": [3, 3],
       "description_visuelle": "Une cloison de pierre fissurée coupe le centre du refuge. On peut la contourner par ses deux extrémités.",
       "id": "antichambre_murs",
       "integrite": 100,
@@ -126,6 +127,7 @@
       "maximum": 100,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     },
     "appui_clocher": {
@@ -173,6 +175,7 @@
       ],
       "amovible": true,
       "attache": true,
+      "extraction": "outil",
       "cote": "crypte",
       "id": "axe_bas",
       "integrite": 12,
@@ -194,6 +197,7 @@
       ],
       "amovible": true,
       "attache": true,
+      "extraction": "outil",
       "cote": "crypte",
       "id": "axe_haut",
       "integrite": 12,
@@ -322,6 +326,7 @@
       "maximum": 10,
       "mobile": true,
       "nom": "cloche d'alarme",
+      "sonorite": 3,
       "position": [
         2,
         3
@@ -459,6 +464,7 @@
       "maximum": 100,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     },
     "echelle_relais": {
@@ -529,6 +535,7 @@
       "maximum": 100,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     },
     "gravure": {
@@ -538,6 +545,7 @@
         "inscription",
         "gravure"
       ],
+      "ancrage_carte": [3, 3],
       "fixee_sur": "la face ouest de la cloison de pierre",
       "genre": "f",
       "id": "gravure",
@@ -693,6 +701,7 @@
       "lieu": "antichambre",
       "masse": 80,
       "materiau": "chêne",
+      "seuil_coupe": 2,
       "maximum": 30,
       "mobile": false,
       "nom": "porte étanche du beffroi",
@@ -749,6 +758,7 @@
       "maximum": 10,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     },
     "sol_palier": {
@@ -761,6 +771,7 @@
       "maximum": 10,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     },
     "torche": {
@@ -1003,7 +1014,7 @@
   },
   "savoirs_version": 1,
   "scenario": {
-    "debut": "Après la rupture du pont, tu as rejoint à pied le Relais des crues par la digue. Gorm y prépare l'accueil des habitants évacués. Il t'a demandé de rapporter la petite cloche de réserve, rangée dans la galerie du vieux beffroi : elle servira à donner le signal depuis le refuge. Une consigne émaillée est fixée près de l'entrée. À l'ouest, une conduite mène aux locaux du relais.",
+    "debut": "Après la rupture du pont, tu as rejoint à pied le Relais des crues par la digue. À ton arrivée, Gorm préparait l'accueil des habitants évacués. Il t'a demandé de rapporter la petite cloche de réserve, alors rangée dans la galerie du vieux beffroi : elle devait servir à donner le signal depuis le refuge. Une consigne émaillée était fixée près de l'entrée. À l'ouest, une conduite menait aux locaux du relais.",
     "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. Aucun compte à rebours ne s'écoule.",
     "objectif": "Ramener la cloche d'alarme du beffroi au refuge du relais.",
     "version": 1

@@ -11,6 +11,7 @@ from donjon.atelier import nouveau_atelier
 from donjon.carte import carte
 from donjon.config import MODELE_PAR_DEFAUT
 from donjon.mj import MJOpenAI
+from tests.support import simuler_couverture
 from donjon.monde import Monde, ErreurMonde
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
@@ -203,6 +204,9 @@ class ArtisanatTests(unittest.TestCase):
 
 
 class HarnaisTests(unittest.TestCase):
+    def setUp(self):
+        simuler_couverture(self)
+
     def test_reprise_identifiee_sans_appel_llm_ni_changement_de_methode(self):
         from donjon.harnais import derniere_tentative
         m = nouveau_atelier()
@@ -215,7 +219,10 @@ class HarnaisTests(unittest.TestCase):
         with patch.object(MJOpenAI, "_appeler", side_effect=AssertionError("La reprise est locale")) as api:
             reponse = MJOpenAI().echanger(m, "je retente")
         self.assertEqual(api.call_count, 0)
-        self.assertEqual(reponse["proposition"], fabriquer())
+        attendue = fabriquer()
+        attendue["justification"] = ""
+        self.assertEqual(reponse["proposition"], attendue)
+        self.assertIsNotNone(moteur.preparer(reponse["proposition"]))
         self.assertTrue(reponse["_reprise_locale"])
         self.assertEqual(m.data["revision"], 1)
         m.objets["ficelle"]["longueur_cm"] = 100
@@ -274,7 +281,7 @@ class HarnaisTests(unittest.TestCase):
                            ("Puis-je fabriquer une échelle ?", fabriquer())):
             with patch.object(MJOpenAI, "_appeler", return_value=action(p)) as api:
                 r = MJOpenAI().echanger(m, message)
-            self.assertEqual(api.call_count, 2)
+            self.assertEqual(api.call_count, 3)
             self.assertEqual(r["mode"], "dialogue")
             self.assertEqual(m.data["revision"], 0)
 
@@ -282,7 +289,7 @@ class HarnaisTests(unittest.TestCase):
         m = nouveau_atelier()
         self.assertEqual(MODELE_PAR_DEFAUT, "gpt-6-luna")
         def appeler(instructions, entree, *args):
-            self.assertEqual(set(entree["faits"]), {"resultat_resolu", "joueur", "salle", "perception"})
+            self.assertEqual(set(entree["faits"]), {"resultat_resolu", "joueur", "salle", "perception", "attestations"})
             return {"mode": "dialogue", "texte": "Tu poses ton échelle au sol.", "faits": ["resultat_resolu"], "proposition": None}
         with patch.object(MJOpenAI, "_appeler", side_effect=appeler):
             MJOpenAI().raconter_resultat(m, {"faits": ["Une échelle a été créée au sol."]})

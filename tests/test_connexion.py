@@ -196,7 +196,7 @@ class ConnexionConsoleTests(unittest.TestCase):
     def test_connecter_dans_jeu_utilise_forfait_apres_validation(self):
         import jeu
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch("jeu.connecter") as connexion, patch.object(MJOpenAI, "echanger", return_value={"mode": "dialogue", "texte": "Gorm t’a conduit ici.", "faits": ["scenario"], "proposition": None}), patch("builtins.input", side_effect=["connecter", "connexion", "comment je suis arrivé ici ?", "quitter"]), patch("sys.stdout", io.StringIO()) as sortie:
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch("jeu.connecter") as connexion, patch.object(MJOpenAI, "echanger", return_value={"mode": "dialogue", "texte": "Gorm t’a conduit ici.", "faits": ["scenario"], "proposition": None, "_texte_moteur": True}), patch("builtins.input", side_effect=["connecter", "connexion", "comment je suis arrivé ici ?", "quitter"]), patch("sys.stdout", io.StringIO()) as sortie:
                 jeu.main(["--connexion", "api", "--save", str(Path(tmp) / "partie.json")])
             connexion.assert_called_once()
             self.assertIn("MJ : chatgpt", sortie.getvalue())

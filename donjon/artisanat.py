@@ -268,7 +268,7 @@ def preparer_usage(m, p, origine):
     return plan
 
 
-def prelever(m, id, longueur, incorporer=None):
+def prelever(m, id, longueur):
     o = m.objets[id]
     avant = o["longueur_cm"]
     if not 0 < longueur <= avant:
@@ -279,8 +279,6 @@ def prelever(m, id, longueur, incorporer=None):
     if not o["longueur_cm"]:
         o["incorpore"] = True
         o["mobile"] = False
-        if incorporer:
-            o["lieu"] = incorporer
     return masse
 
 
@@ -291,7 +289,12 @@ def appliquer(m, effet, lignes):
         id = "assemblage_" + str(m.data["revision"] + 1)
         if id in m.objets:
             raise ErreurMonde("Un assemblage porte déjà cet identifiant.")
-        masse = sum(prelever(m, source, longueur, id) for source, longueur in b["consommes"].items())
+        masse = 0
+        entiers = []
+        for source, longueur in b["consommes"].items():
+            masse += prelever(m, source, longueur)
+            if m.objets[source].get("incorpore"):
+                entiers.append(source)
         o = objet(id, "échelle de branches", "assemblage", m.joueur["salle"],
                   aliases=["echelle", "échelle", "assemblage"], genre="f", mobile=True,
                   proprietaire="joueur", masse=round(masse, 6), materiau="bois et ficelle",
@@ -300,6 +303,9 @@ def appliquer(m, effet, lignes):
                   composants=copy.deepcopy(b["consommes"]), arbitrage=b["cle"])
         placer(o, m.joueur["salle"], m.joueur["position"])
         m.objets[id] = o
+        from .deplacement_objet import deplacer
+        for source in entiers:
+            deplacer(m, source, id)
         lignes.append(f"Tu fabriques une échelle de {b['longueur_cm'] / 100:g} m et {b['barreaux']} barreaux, puis la poses au sol. Les matériaux employés ont été prélevés.")
         if b.get("rythme") == "soigne":
             lignes.append(f"Tu y consacres {b['minutes']} minutes de travail soigné, sans jet de dés.")
@@ -310,19 +316,20 @@ def appliquer(m, effet, lignes):
         o = m.objets[cible]
         o["installation"] = {"support": valeur}
         from .geometrie import position_entree
-        o["lieu"] = m.objets[valeur]["appui_vertical"]["bas"]
+        destination = m.objets[valeur]["appui_vertical"]["bas"]
         if m.data.get("mode_cases"):
             from .spatial import destination_appui
             position = destination_appui(m, valeur, o["lieu"])
         else:
-            position = position_entree(m, o["lieu"])
-        placer(o, o["lieu"], position)
+            position = position_entree(m, destination)
+        from .deplacement_objet import deplacer
+        deplacer(m, cible, destination, position)
         lignes.append("Tu appuies " + designer(o) + " contre " + designer(m.objets[valeur]) + ". Le palier est désormais atteignable par cet assemblage.")
     elif op == "retirer_assemblage":
         o = m.objets[cible]
         o.pop("installation", None)
-        o["lieu"] = m.joueur["salle"]
-        placer(o, o["lieu"], m.joueur["position"])
+        from .deplacement_objet import deplacer
+        deplacer(m, cible, m.joueur["salle"])
         lignes.append("Tu retires l'échelle de son appui et la poses au sol. Le passage vertical disparaît.")
 
 

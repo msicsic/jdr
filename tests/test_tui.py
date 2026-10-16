@@ -8,11 +8,15 @@ from unittest.mock import patch
 
 from donjon.mj import MJOpenAI
 from donjon.defi import nouveau_defi
+from donjon.faits_locaux import preparer_faits
 from donjon.monde import Monde, nouveau_monde
 from donjon.moteur import proposition
+from donjon.rendu import decrire
 from donjon.operations import sequence, etape
 from donjon.improvisation import proposition as improviser, issue
 from donjon.spatial import installer
+from donjon.spatial import position_carte, position_cible
+from tests.support import simuler_couverture
 
 TEXTUAL = all(importlib.util.find_spec(m) is not None for m in ("textual", "pyperclip"))
 if TEXTUAL:
@@ -22,15 +26,70 @@ if TEXTUAL:
 
 @unittest.skipUnless(TEXTUAL, "Installer requirements-tui.txt pour les tests d'interface")
 class TUITests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        simuler_couverture(self)
+
+    async def test_avis_libre_d_action_ne_traverse_pas_la_tui_ni_la_sauvegarde(self):
+        invention = "Une seconde cloche est sous le plancher."
+        reponse = {"mode": "action", "texte": "", "faits": [],
+                   "proposition": proposition("observer", "scene", justification=invention)}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(MJOpenAI, "_appeler_brut", return_value=reponse), \
+             patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj je regarde autour de moi", 0)
+                self.assertNotIn(invention, " ".join(app.sorties))
+                reprise = Monde.charger(chemin)
+                self.assertNotIn(invention, str(reprise.data["journal"]))
+                self.assertNotIn(invention, str(reprise.data["conversation"]))
+                self.assertNotIn("seconde_cloche", reprise.objets)
+                await self.fermer(app)
+
+    async def test_capacites_improvisees_utilisables_et_sauvees_dans_la_tui(self):
+        monde = nouveau_defi()
+        installer(monde)
+        monde, _, etablis = preparer_faits(monde, {"ajouts": [
+            {"type": "objet", "ancrage": "antichambre_sol", "nom": "timbre de fer",
+             "genre": "m", "texte": "Le métal résonne quand on le frappe.",
+             "materiau": "fer", "masse": 0.2, "mobile": True, "relation": "pose",
+             "capacites": [{"nature": "son", "intensite": 2}]},
+            {"type": "objet", "ancrage": "antichambre_sol", "nom": "lampe à huile",
+             "genre": "f", "texte": "Une mèche plonge dans l'huile de son réservoir.",
+             "materiau": "cuivre et verre", "masse": 0.4, "mobile": True,
+             "relation": "pose", "capacites": [{"nature": "lumiere", "niveau": 2,
+                                                  "combustible": 6}]},
+        ]})
+        timbre, lampe = (e["objet"] for e in etablis)
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            monde.sauver(chemin)
+            app = SeuilApp(["--defi", "--offline", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                self.assertIn("timbre de fer", app.derniere_vue["carte"])
+                await self.commande(app, pilot, "sonner timbre de fer")
+                self.assertIn("produis un son", " ".join(app.sorties))
+                self.assertEqual(Monde.charger(chemin).data["sons"][-1]["objet"], timbre)
+                await self.commande(app, pilot, "prendre lampe à huile")
+                await self.commande(app, pilot, "allumer lampe à huile")
+                reprise = Monde.charger(chemin)
+                self.assertTrue(reprise.objets[lampe]["allume"])
+                self.assertEqual(reprise.objets[lampe]["lieu"], "joueur")
+                self.assertIn("lampe à huile", app.derniere_vue["fiche"])
+                await self.fermer(app)
+
     async def test_narration_fausse_corrigee_avant_affichage_et_sauvegardee(self):
         invention = "Une seconde cloche est cachée sous le plancher."
-        corrige = "Tu te trouves dans l'antichambre."
+        corrige = "Tu te trouves dans : Antichambre."
         reponses = [
             {"mode": "dialogue", "texte": invention, "faits": [], "proposition": None},
             {"segments": [{"indice": 0, "verdict": "nouveau", "sources": [],
                            "locuteur": "", "citation": "", "motif": "Aucune seconde cloche établie."}]},
-            {"mode": "dialogue", "texte": corrige, "faits": ["salle"], "proposition": None},
-            {"segments": [{"indice": 0, "verdict": "etabli", "sources": ["salle"],
+            {"mode": "dialogue", "texte": corrige, "faits": ["attestations"], "proposition": None},
+            {"segments": [{"indice": 0, "verdict": "etabli", "sources": ["attestations"],
                            "locuteur": "", "citation": "", "motif": ""}]},
         ]
         with tempfile.TemporaryDirectory() as tmp, \
@@ -66,6 +125,146 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("fait_1_1", Monde.charger(chemin).objets)
                 await self.fermer(app)
             api.assert_called_once()
+
+    async def test_objet_du_mj_sur_la_carte_puis_dans_la_besace(self):
+        reponse = {"mode": "etablir_faits", "texte": "",
+                   "faits": ["faits_narratifs_proposables"],
+                   "proposition": {"ajouts": [{
+                       "type": "objet", "ancrage": "antichambre_sol",
+                       "nom": "bouton de cuivre", "genre": "m",
+                       "texte": "Un petit bouton rond repose sur la pierre.",
+                       "materiau": "cuivre", "masse": 0.01, "mobile": True, "capacites": [],
+                       "relation": "pose"}]}}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(MJOpenAI, "_appeler", return_value=reponse), \
+             patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--defi", "--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj Que vois-je sur le sol ?", 0)
+                cree = Monde.charger(chemin)
+                id = cree.trouver("bouton de cuivre")
+                self.assertIn("bouton de cuivre", app.derniere_vue["carte"])
+                self.assertIn("bouton de cuivre", " ".join(app.sorties))
+                await self.commande(app, pilot, "prendre bouton de cuivre")
+                repris = Monde.charger(chemin)
+                self.assertEqual(repris.objets[id]["lieu"], "joueur")
+                self.assertNotIn("bouton de cuivre", app.derniere_vue["carte"])
+                self.assertIn("bouton de cuivre", app.derniere_vue["fiche"])
+                await self.fermer(app)
+
+    async def test_objet_fixe_est_detache_et_range_par_la_commande_composee(self):
+        reponse = {"mode": "etablir_faits", "texte": "",
+                   "faits": ["faits_narratifs_proposables"],
+                   "proposition": {"ajouts": [{
+                       "type": "objet", "ancrage": "antichambre_murs",
+                       "nom": "crochet de cuivre", "genre": "m",
+                       "texte": "Sa surface est couverte de patine.",
+                       "materiau": "cuivre", "masse": 0.05, "mobile": True, "capacites": [],
+                       "relation": "fixe"}]}}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(MJOpenAI, "_appeler", return_value=reponse), \
+             patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--defi", "--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj Que vois-je sur les murs ?", 0)
+                cree = Monde.charger(chemin)
+                id = cree.trouver("crochet de cuivre")
+                self.assertTrue(cree.objets[id]["attache"])
+                self.assertEqual(position_cible(cree, id), (2, 3))
+                self.assertEqual(position_carte(cree, id), (3, 3))
+                self.assertIn("fixé aux murs", " ".join(app.sorties))
+                self.assertIn("fixé aux murs", decrire(cree, id))
+                self.assertIn("&#", app.derniere_vue["carte"])
+                self.assertIn("crochet de cuivre", app.derniere_vue["carte"])
+                await self.commande(app, pilot, "prendre crochet de cuivre")
+                self.assertEqual(Monde.charger(chemin).objets[id]["lieu"], "antichambre_murs")
+                self.assertIn("crochet de cuivre", app.derniere_vue["carte"])
+                await self.commande(app, pilot, "détacher crochet de cuivre")
+                libere = Monde.charger(chemin)
+                self.assertFalse(libere.objets[id]["attache"])
+                self.assertEqual(libere.objets[id]["lieu"], "joueur")
+                self.assertNotIn("relation_support", libere.objets[id])
+                self.assertEqual(position_carte(libere, id), tuple(libere.joueur["position"]))
+                self.assertNotIn("ancrage_carte", libere.objets[id])
+                self.assertNotIn("crochet de cuivre", app.derniere_vue["carte"])
+                self.assertIn("crochet de cuivre", app.derniere_vue["fiche"])
+                await self.fermer(app)
+
+    async def test_objet_fixe_reste_sur_le_mur_en_souvenir_apres_rechargement(self):
+        from donjon.spatial import memoriser
+
+        monde = nouveau_defi()
+        installer(monde)
+        monde, _, etablis = preparer_faits(monde, {"ajouts": [{
+            "type": "objet", "ancrage": "antichambre_murs",
+            "nom": "crochet de cuivre", "genre": "m",
+            "texte": "Sa surface est patinée.", "materiau": "cuivre",
+            "masse": 0.05, "mobile": True, "relation": "fixe", "capacites": []}]})
+        id = etablis[0]["objet"]
+        memoriser(monde)
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            monde.sauver(chemin)
+            app = SeuilApp(["--defi", "--offline", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)):
+                await self.pret(app)
+                self.assertIn("&#", app.derniere_vue["carte"])
+                await self.fermer(app)
+
+            monde = Monde.charger(chemin)
+            monde.joueur["position"] = [7, 3]
+            memoriser(monde)
+            monde.sauver(chemin)
+            app = SeuilApp(["--defi", "--offline", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)):
+                await self.pret(app)
+                self.assertEqual(Monde.charger(chemin).objets[id]["ancrage_carte"], [3, 3])
+                self.assertIn("&~", app.derniere_vue["carte"])
+                self.assertIn("crochet de cuivre", app.derniere_vue["carte"])
+                self.assertIn("&#", app.query_one("#plan").render().plain)
+                await self.fermer(app)
+
+    async def test_detail_hors_portee_revise_avant_affichage_et_sauvegarde(self):
+        invention = "Une seconde cloche est cachée sous le plancher."
+        corrige = "Une tache sombre couvre quelques pierres."
+        def proposition_mj(texte):
+            return {"mode": "etablir_faits", "texte": "",
+                    "faits": ["faits_narratifs_proposables"],
+                    "proposition": {"ajouts": [{"type": "detail",
+                                               "ancrage": "antichambre_murs",
+                                               "nom": "tache d'humidité", "genre": "f",
+                                               "texte": texte}]}}
+        reponses = [
+            proposition_mj(invention),
+            {"descriptions": [
+                {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": "tache d'humidité", "portee": "sujet", "preuve": "", "motif": ""}]},
+                {"representation": "etat_du_monde", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": invention, "portee": "sans_preuve", "preuve": "", "motif": "Autre objet."}]},
+            ]},
+            proposition_mj(corrige),
+            {"descriptions": [
+                {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": "tache d'humidité", "portee": "sujet", "preuve": "", "motif": ""}]},
+                {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": corrige, "portee": "sujet", "preuve": "", "motif": ""}]},
+            ]},
+        ]
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(MJOpenAI, "_appeler_brut", side_effect=reponses) as api, \
+             patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            async with app.run_test(size=(120, 40)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "mj Décris un détail sur les murs.", 0)
+                self.assertNotIn(invention, " ".join(app.sorties))
+                self.assertIn(corrige, " ".join(app.sorties))
+                detail = Monde.charger(chemin).trouver("tache d'humidité")
+                self.assertEqual(Monde.charger(chemin).objets[detail]["description_visuelle"], corrige)
+                self.assertIn("tache d'humidité", app.derniere_vue["scene"])
+                await self.fermer(app)
+            self.assertEqual(api.call_count, 4)
 
     async def test_sortie_galerie_vers_palier_noir_garde_joueur_sur_la_carte(self):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
@@ -104,8 +303,8 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                        cibles=["coffre"], approche="observation")
         reponses = [
             {"mode": "action", "texte": "", "faits": ["objet:coffre"], "proposition": p},
-            {"mode": "dialogue", "texte": "Le coffre est vide : tes mains n'y ont rien trouvé.",
-             "faits": ["objet:coffre"], "proposition": None},
+            {"mode": "action", "texte": "", "faits": ["objet:coffre"],
+             "proposition": proposition("toucher", "coffre")},
         ]
         with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
              patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api:
@@ -114,7 +313,6 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.pret(app)
                 await self.commande(app, pilot, "je tate les objets dans le coffre avec mes mains", 0)
                 self.assertIn("est vide", " ".join(app.sorties))
-                await self.commande(app, pilot, "je prends tout ce que le coffre contient", 0)
                 await self.fermer(app)
             self.assertEqual(api.call_count, 2)
             self.assertTrue(api.call_args_list[1].args[1]["faits"]["objet:coffre"]["contenu_vide"])
@@ -243,7 +441,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
              "proposition": {"personnage": "marchand", "sujet": "Quelle récompense ?",
                              "operation": "proposer", "mission": "anneau_veilleur", "montant_demande": 0}},
             {"mode": "dialogue", "texte": "Gorm : « Je te propose 20 pièces pour cet anneau. »",
-             "faits": ["conversation_validee"], "proposition": None},
+             "faits": ["conversation_validee"], "proposition": None, "_texte_moteur": True},
         ]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             chemin = Path(tmp) / "partie.json"
@@ -306,7 +504,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         reponses = [
             {"mode": "enrichir_savoirs", "texte": "", "faits": ["connaissances_a_completer"], "proposition": p},
             {"mode": "dialogue", "texte": "Gorm : « Il me rappelle mon ancien métier de veilleur. »",
-             "faits": ["connaissances_pnj"], "proposition": None},
+             "faits": ["connaissances_pnj"], "proposition": None, "_texte_moteur": True},
         ]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             chemin = Path(tmp) / "partie.json"
@@ -408,7 +606,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 return {"mode": "enrichir", "texte": "", "faits": ["descriptions_a_completer"],
                         "proposition": {"ajouts": [{"personnage": "marchand", "facette": "yeux",
                                                     "description": "Ses yeux sont " + couleur + "."}]}}
-            return {"mode": "dialogue", "texte": "Ses yeux sont " + couleur + ".", "faits": ["souvenirs_personnages"], "proposition": None}
+            return {"mode": "dialogue", "texte": "Ses yeux sont " + couleur + ".", "faits": ["souvenirs_personnages"], "proposition": None, "_texte_moteur": True}
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", autospec=True, side_effect=appel), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch("donjon.tui.pyperclip.copy") as copier:
             chemin = Path(tmp) / "partie.json"
             app = SeuilApp(["--connexion", "api", "--model", "principal", "--compare-model", "secondaire", "--save", str(chemin)])
@@ -451,7 +649,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
              "proposition": {"ajouts": [{"personnage": "marchand", "facette": "yeux",
                                          "description": "Ses yeux sont gris clair."}]}},
             {"mode": "dialogue", "texte": "Gorm a les yeux gris clair.",
-             "faits": ["objet:detail_marchand_yeux"], "proposition": None},
+             "faits": ["objet:detail_marchand_yeux"], "proposition": None, "_texte_moteur": True},
         ]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as appels, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             chemin = Path(tmp) / "partie.json"

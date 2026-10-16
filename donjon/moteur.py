@@ -1,22 +1,34 @@
 """Arbitrage borné et transitions atomiques. Le MJ ne reçoit aucun accès en écriture."""
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
-from .francais import accorder, designer
-from .geometrie import placer, position_entree, position_objet
+from .francais import accorder, complement_de, designer
+from .geometrie import position_entree, position_objet
+from .deplacement_objet import deplacer
 from .rendu import decrire, decrire_contexte, decrire_perception, regarder, prix, toucher
 from .perception import avancer_combustion, eclairage
 from .dialogues import verifier_remise, payer_remise
 from .vol import proprietaire, appliquer as appliquer_vol
+from .capacites_objet import statut as statut_capacite, absence as absence_capacite
 
 
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
-           "deverrouiller", "crocheter", "frapper", "detacher", "bloquer", "debloquer",
+           "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "clarifier", "impossible"]
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
+
+
+class QualificationRequise(ErreurMonde):
+    """Une propriété de la cible est inconnue, sans conclure à un échec fictif."""
+
+    def __init__(self, cible, capacite):
+        self.cible = cible
+        self.capacite = capacite
+        super().__init__(f"La capacité {capacite} de {cible} reste à établir.")
 
 
 def proposition(action, cible="", outil="", methode="simple", difficulte=0, justification=""):
@@ -52,8 +64,6 @@ class Plan:
                           for i, p in enumerate(self.plans, 1))
             if plusieurs:
                 lignes.append(f"Durée totale prévue : {self.minutes} min. Arrêt au premier échec ; les étapes déjà réussies restent acquises.")
-            if afficher_avis and self.proposition["justification"] and self.origine != "règles":
-                lignes.append("Avis du MJ : " + self.proposition["justification"])
             lignes.append("« tenter » lance l'ensemble ; « annuler » abandonne sans exécuter aucune étape.")
             return "\n".join(lignes)
         lignes = [self.titre]
@@ -68,14 +78,23 @@ class Plan:
             lignes.append(self.risque)
         if self.minutes:
             lignes.append(f'Durée : {self.minutes} min. Bruit : {self.bruit}.')
-        if afficher_avis and self.proposition.get("justification") and self.origine != "règles":
-            lignes.append("Avis du MJ : " + self.proposition["justification"])
         return "\n".join(lignes)
 
 
 class Moteur:
     def __init__(self, monde):
         self.monde = monde
+
+    @staticmethod
+    def _action_journal(monde, proposition):
+        """Le journal décrit une action structurée, sans prose libre du MJ."""
+        action = copy.deepcopy(proposition)
+        if "justification" in action:
+            action["justification"] = ""
+        if action.get("action") == "improviser":
+            from .improvisation import action_persistante
+            action = action_persistante(monde, action)
+        return action
 
     def preparer(self, p, origine="règles"):
         from .operations import preparer as preparer_operations
@@ -98,7 +117,7 @@ class Moteur:
         if action not in ACTIONS or p["methode"] not in METHODES:
             raise ErreurMonde("Cette opération n'est pas prise en charge.")
         if action in ("clarifier", "impossible"):
-            raise ErreurMonde("Avis du MJ (aucune action) : " + p["justification"])
+            raise ErreurMonde("Aucune action exécutable n'a été proposée.")
         if action in ("prendre", "poser", "voler", "detacher", "allumer", "eteindre"):
             return preparer_operations(self.monde, p, origine)
         if action in ("installer", "franchir", "desinstaller"):
@@ -234,7 +253,7 @@ class Moteur:
             if o.get("bloquee") or any(e.get("bloquee") for e in m.enfants(parent_id)):
                 raise ErreurMonde("La serrure est bloquée ; le crochetage ne peut plus fonctionner.")
             if not t or "crochetage" not in t.get("usages", []):
-                raise ErreurMonde("Il faut une trousse de crochets.")
+                raise ErreurMonde("Il faut un outil utilisable pour le crochetage.")
             lumiere = eclairage(m)["niveau"]
             plan.stat, plan.dd, plan.minutes = "DEX", 14 + 4 * (2 - lumiere), 3 + 2 * (2 - lumiere)
             if lumiere < 2:
@@ -244,27 +263,45 @@ class Moteur:
             serrure = next((e["id"] for e in m.enfants(parent_id) if e["type"] == "serrure"), None)
             if serrure:
                 plan.echec_critique.append(("gripper", serrure, None))
-        elif action == "frapper":
+        elif action in ("frapper", "couper"):
             if o["type"] in ("personnage", "partie_corps", "motif", "tresor"):
                 raise ErreurMonde("Cette destruction ou ce combat n'est pas simulé dans ce prototype.")
             if o["integrite"] == 0:
                 raise ErreurMonde("C'est déjà brisé.")
-            if not t or not {"percussion", "levier", "couper"}.intersection(t.get("usages", [])):
-                raise ErreurMonde("Il faut un outil de frappe ou de coupe.")
-            if "couper" in t.get("usages", []) and o["materiau"] != "chêne":
-                raise ErreurMonde("La lame fine ne permet pas d'entamer ce matériau.")
+            usages = set(t.get("usages", [])) if t else set()
+            puissance = t.get("puissance", 0) if t else 0
+            coupe = bool(usages & {"couper", "couper_bois"}) and (
+                puissance >= o["seuil_coupe"] if "seuil_coupe" in o else
+                statut_capacite(o, "tranchable", t) == "etablie")
+            choc = bool(usages & {"percussion", "levier"})
+            if action == "couper" and not usages & {"couper", "couper_bois"}:
+                raise ErreurMonde("Il faut un outil de coupe utilisable.")
+            if usages & {"couper", "couper_bois"} and (action == "couper" or not choc):
+                etat_coupe = statut_capacite(o, "tranchable", t)
+                if etat_coupe == "inconnue":
+                    raise QualificationRequise(cible, "tranchable")
+                if etat_coupe == "ecartee":
+                    from .capacites_objet import constat as constat_capacite
+                    raise ErreurMonde(absence_capacite(
+                        o, "tranchable", constat_capacite(o, "tranchable", t)) + ".")
+            if action == "couper" and not coupe:
+                raise ErreurMonde("Cet outil ne peut pas entamer " + designer(o) + ".")
+            if action == "frapper" and not (coupe or choc):
+                raise ErreurMonde("Il faut un outil adapté à cette cible pour la frapper ou l'entamer.")
+            if action == "couper":
+                plan.titre = "Entailler " + designer(o) + " avec " + designer(t) + "."
             plan.stat, plan.dd = "FOR", 10
-            plan.bonus, plan.bruit = (2 if "percussion" in t["usages"] else 0), 3
-            degats = t["puissance"] + max(0, (m.joueur["stats"]["FOR"] - 10) // 2)
+            plan.bonus, plan.bruit = (2 if action == "frapper" and "percussion" in usages else 0), 3
+            degats = puissance + max(0, (m.joueur["stats"]["FOR"] - 10) // 2)
             plan.effets = [("endommager", cible, degats)]
             plan.echec_critique = [("endommager", outil, 1)]
         elif action == "bloquer":
             if o["type"] != "porte" or not o["ouverte"] or o["detachee"] or o["integrite"] == 0:
-                raise ErreurMonde("Il faut une porte ouverte encore sur ses gonds.")
+                raise ErreurMonde("Il faut une porte ouverte encore montée.")
             if o["bloque_par"]:
                 raise ErreurMonde("La porte est déjà calée.")
             if not t or "cale" not in t.get("usages", []):
-                raise ErreurMonde("Il faut un objet assez épais pour servir de cale, tel le marteau.")
+                raise ErreurMonde("Il faut un objet utilisable comme cale.")
             plan.effets = [("caler", cible, outil)]
         elif action == "debloquer":
             porte_id = o.get("cale_de") or cible
@@ -278,7 +315,7 @@ class Moteur:
             if parent and parent["integrite"] == 0:
                 raise ErreurMonde("Le support brisé ne permet plus une empreinte lisible.")
             if not t or "empreinte" not in t.get("usages", []) or t.get("charges", 0) < 1:
-                raise ErreurMonde("Il faut de la cire encore utilisable.")
+                raise ErreurMonde("Il faut un matériau à empreinte encore utilisable.")
             plan.minutes = 2
             plan.effets = [("empreinte", cible, outil)]
         elif action == "lire":
@@ -327,7 +364,7 @@ class Moteur:
         self._terminer_etape(travail, plan, lignes)
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
-            "minutes": travail.data["minutes"], "action": plan.proposition,
+            "minutes": travail.data["minutes"], "action": self._action_journal(travail, plan.proposition),
             "origine": plan.origine, "dd": plan.dd, "jet": jet,
             "reussite": reussite, "faits": lignes[:]})
         travail.verifier()
@@ -359,7 +396,7 @@ class Moteur:
             memoriser(travail)
         if plan.cle_arbitrage:
             travail.data["arbitrages"][plan.cle_arbitrage] = {
-                "dd": plan.dd, "justification": plan.proposition.get("justification", plan.proposition.get("intention", "")), "origine": plan.origine}
+                "dd": plan.dd, "justification": "", "origine": plan.origine}
 
     def _executer_operations(self, sequence):
         from .operations import compiler
@@ -394,7 +431,8 @@ class Moteur:
             precedent = e
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"], "minutes": travail.data["minutes"],
-            "action": sequence.proposition, "origine": sequence.origine, "dd": dernier_dd,
+            "action": self._action_journal(travail, sequence.proposition),
+            "origine": sequence.origine, "dd": dernier_dd,
             "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:]})
         travail.verifier()
         self.monde.data = travail.data
@@ -422,7 +460,7 @@ class Moteur:
             return
         if op == "emettre_son":
             from .sons import appliquer
-            appliquer(m, valeur, lignes)
+            appliquer(m, cible, valeur, lignes)
             return
         if op == "blessure_franchissement":
             m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)
@@ -440,16 +478,10 @@ class Moteur:
             return
         o = m.objets.get(cible)
         if op == "liberer":
-            o["attache"], o["lieu"] = False, valeur
-            placer(o, valeur, m.joueur["position"])
+            deplacer(m, cible, valeur)
             lignes.append(designer(o, debut=True) + " est libéré et déposé au sol.")
         elif op == "transferer":
-            o["lieu"] = valeur
-            if valeur in m.data["salles"]:
-                placer(o, valeur, m.joueur["position"])
-            else:
-                o.pop("position", None)
-                o.pop("position_salle", None)
+            deplacer(m, cible, valeur)
             lignes.append("Tu portes maintenant " + designer(o) + "." if valeur == "joueur" and o.get("longueur_cm", 0) >= 100 else designer(o, debut=True) + (" rejoint votre besace." if valeur == "joueur" else
                           " est " + accorder(o, "posé") + " au sol." if valeur in m.data["salles"] else
                           " est " + accorder(o, "placé") + " dans " + designer(m.objets[valeur]) + "."))
@@ -462,12 +494,7 @@ class Moteur:
             o["allume"] = valeur
             lignes.append(designer(o, debut=True) + (" s'allume." if valeur else " s'éteint."))
         elif op == "deplacer":
-            o["lieu"] = valeur
-            if valeur in m.data["salles"]:
-                placer(o, valeur, m.joueur["position"])
-            else:
-                o.pop("position", None)
-                o.pop("position_salle", None)
+            deplacer(m, cible, valeur)
             lignes.append(designer(o, debut=True) + (" rejoint votre besace." if valeur == "joueur" else " est " + accorder(o, "posé") + " au sol."))
         elif op == "payer":
             montant, vendeur = valeur["montant"], valeur["vendeur"]
@@ -491,38 +518,45 @@ class Moteur:
             o["verrouillee"] = False
             lignes.append(designer(o, debut=True) + " est " + accorder(o, "déverrouillé") + ".")
         elif op == "detacher":
-            o["attache"], o["lieu"] = False, "joueur"
+            deplacer(m, cible, "joueur")
             lignes.append(designer(o, debut=True) + " est " + accorder(o, "retiré") + " et " + accorder(o, "rangé") + " dans votre besace.")
         elif op == "endommager":
             o["integrite"] = max(0, o["integrite"] - valeur)
-            lignes.append(f'{designer(o, debut=True)} : intégrité {o["integrite"]}/{o["maximum"]}.')
+            lignes.append(designer(o, debut=True) + " est "
+                          + accorder(o, "brisé" if o["integrite"] == 0 else "abîmé") + ".")
         elif op == "gripper":
             o["bloquee"] = True
             lignes.append("La serrure est désormais bloquée.")
         elif op == "caler":
             o["bloque_par"] = valeur
-            m.objets[valeur]["lieu"] = cible
+            deplacer(m, valeur, cible)
             m.objets[valeur]["cale_de"] = cible
             lignes.append("La porte reste ouverte, calée par " + designer(m.objets[valeur]) + ".")
         elif op == "decaler":
             cale = m.objets[o["bloque_par"]]
-            cale["lieu"] = valeur
-            placer(cale, valeur, m.joueur["position"])
+            deplacer(m, cale["id"], valeur)
             cale.pop("cale_de", None)
             o["bloque_par"] = None
             lignes.append(designer(cale, debut=True) + " est " + accorder(cale, "retiré") + " et " + accorder(cale, "posé") + " au sol.")
         elif op == "empreinte":
-            cire = m.objets[valeur]
-            cire["charges"] -= 1
-            masse = min(0.05, cire["masse"])
-            cire["masse"] -= masse
-            id = f'empreinte_{m.data["revision"] + 1}'
-            copie = objet(id, "empreinte de la gravure", "motif", "joueur",
-                          aliases=["empreinte", "copie"], mobile=True, materiau="cire",
-                          masse=masse, motif=o["motif"], inscription=o.get("inscription", ""),
-                          sens=o.get("sens", ""), source=cible)
+            materiau = m.objets[valeur]
+            materiau["charges"] -= 1
+            masse = min(0.05, materiau["masse"])
+            materiau["masse"] -= masse
+            base = f'empreinte_{m.data["revision"] + 1}'
+            id = base
+            numero = 2
+            while id in m.objets:
+                id, numero = f"{base}_{numero}", numero + 1
+            copie = objet(id, "empreinte " + complement_de(o), "motif", "joueur",
+                          aliases=["empreinte", "copie"], genre="f", mobile=True,
+                          materiau=materiau["materiau"], masse=masse, motif=o["motif"],
+                          inscription=o.get("inscription", ""), sens=o.get("sens", ""),
+                          source=cible)
             m.objets[id] = copie
-            lignes.append("Une empreinte de la gravure rejoint votre besace. La cire a été consommée en partie.")
+            lignes.append(designer(copie, debut=True) + " rejoint votre besace. "
+                          + designer(materiau, debut=True) + " a été "
+                          + accorder(materiau, "consommé") + " en partie.")
         elif op == "dechiffrer":
             m.data["lus"].append(cible)
             lignes.append("Vous comprenez : " + o.get("sens", o["inscription"]))
@@ -538,7 +572,7 @@ class Moteur:
             fixations = [m.objets[id] for id in porte.get("fixations", []) if id in m.objets]
             for fixation in fixations:
                 if fixation["integrite"] == 0 and fixation.get("attache"):
-                    fixation["attache"], fixation["lieu"] = False, m.joueur["salle"]
+                    deplacer(m, fixation["id"], m.joueur["salle"])
             if (porte.get("fixations") and not any(f.get("attache") for f in fixations)
                     and not porte.get("detachee")):
                 porte["detachee"] = True
@@ -551,7 +585,6 @@ class Moteur:
             if o["type"] == "contenant" and o["integrite"] == 0:
                 o["ouverte"], o["verrouillee"] = True, False
                 for enfant in m.enfants(o["id"]):
-                    enfant["lieu"] = o["lieu"]
-                    if o["lieu"] in m.data["salles"]:
-                        placer(enfant, o["lieu"], position_objet(m, o))
+                    deplacer(m, enfant["id"], o["lieu"], position_objet(m, o)
+                             if o["lieu"] in m.data["salles"] else None)
                     lignes.append(designer(enfant, debut=True) + " tombe au sol.")

@@ -1,8 +1,8 @@
 """Contrôle commun des assertions du MJ avant leur affichage.
 
-Le contrôle s'applique au texte final comme aux récits conditionnels d'une action.
-L'auditeur interprète la prose ; le moteur contrôle la couverture, les références et
-les locuteurs, puis conserve la réponse acceptée et les paroles attribuées.
+Le contrôle s'applique à la prose finale du MJ. Les effets d'une action sont
+racontés par le moteur après résolution. Les phrases factuelles du MJ doivent
+reprendre une attestation produite à partir de l'état courant.
 """
 
 import copy
@@ -11,6 +11,23 @@ from .monde import ErreurMonde
 
 
 VERDICTS = ("etabli", "hypothese", "neutre", "parole", "nouveau", "contradictoire")
+
+
+def attestations(monde, contexte):
+    """Phrases produites par l'état courant, que le MJ peut reprendre telles quelles.
+
+    Une référence à un objet entier ne prouve pas une phrase libre à son sujet. Le
+    catalogue reste volontairement distinct des données utiles pour décider d'agir.
+    """
+    from .rendu import decrire, regarder, decrire_perception, decrire_contexte
+
+    scene = " ".join(ligne.strip() for ligne in regarder(monde).splitlines()
+                     if ligne.strip() and not ligne.startswith("=="))
+    textes = [scene, decrire_perception(monde), decrire_contexte(monde)]
+    for objet in contexte["objets_perceptibles"]:
+        if objet["visible"]:
+            textes.append(decrire(monde, objet["id"], technique=False))
+    return list(dict.fromkeys(p for texte in textes for p in segments(texte) if p))
 
 
 def rendre_resultat(resultat):
@@ -35,11 +52,14 @@ SCHEMA_AUDIT = {
 }
 
 INSTRUCTIONS_AUDIT = """Tu contrôles une réponse du maître du jeu avant qu'un joueur la voie.
-Les faits du moteur et les effets prévus sont les seules sources de vérité. L'historique,
+Les attestations sont les seules phrases factuelles que le moteur autorise à reprendre.
+Pour etabli, le segment doit reproduire exactement une attestation et citer attestations.
+Les autres faits servent à choisir une action, mais ne prouvent pas une phrase libre.
+L'historique,
 une proposition non exécutée et une parole de personnage ne prouvent pas leur contenu.
 Examine CHAQUE segment fourni, y compris les implications contenues dans une proposition.
 Classe-le en entier :
-- etabli : toutes ses affirmations sont déductibles des sources citées ;
+- etabli : segment identique à une attestation du moteur ;
 - hypothese : possibilité explicitement présentée comme incertaine ;
 - neutre : formule sans affirmation sur le monde ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; son contenu
@@ -49,12 +69,12 @@ Classe-le en entier :
 Si un segment mêle plusieurs catégories, choisis le verdict le plus contraignant :
 contradictoire, puis nouveau, puis parole, puis etabli, puis hypothese, puis neutre.
 Une source vaguement liée au sujet ne suffit pas : elle doit soutenir l'affirmation précise.
-N'autorise pas dans un récit d'action un résultat que ses effets ne produisent pas.
 Rends un contrôle pour chaque indice, dans l'ordre, sans réécrire les segments.
 """
 
 INSTRUCTIONS_REVISION = """\nLe contrôle de la réponse précédente a relevé des affirmations
-non établies. Réponds de nouveau à l'intention initiale, à partir de l'état actuel.
+non établies ou hors de la portée de leur sujet. Réponds de nouveau à l'intention
+initiale, à partir de l'état actuel.
 Tu peux proposer un ajout persistant par le protocole déjà disponible si l'état et
 la demande le permettent. Sinon, reformule sans présenter l'ajout comme un fait.
 Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
@@ -92,6 +112,11 @@ def controler(texte, rapport, faits):
         raise ErreurMonde("Contrôle narratif incomplet.")
     obstacles = []
     paroles = []
+    rendus = []
+    lignes_validees = []
+    preuves = faits.get("attestations", [])
+    if not isinstance(preuves, list) or any(not isinstance(p, str) for p in preuves):
+        preuves = []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
         if (not isinstance(ligne, dict)
                 or set(ligne) != {"indice", "verdict", "sources", "locuteur", "citation", "motif"}
@@ -102,8 +127,17 @@ def controler(texte, rapport, faits):
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "motif"))):
             raise ErreurMonde("Contrôle narratif mal formé ou fondé sur une source inconnue.")
         verdict = ligne["verdict"]
-        if verdict == "etabli" and not ligne["sources"]:
-            raise ErreurMonde("Une affirmation du MJ n'a aucune source vérifiable.")
+        if verdict != "parole":
+            # Ces deux champs ne portent aucun sens hors d'une parole attribuée.
+            # Les vider évite qu'une erreur de format de l'auditeur rejette une
+            # réponse dont le segment sera contrôlé par son verdict réel.
+            ligne = {**ligne, "locuteur": "", "citation": ""}
+        lignes_validees.append(ligne)
+        if verdict == "etabli":
+            if "attestations" not in ligne["sources"] or passage not in preuves:
+                obstacles.append({"segment": indice, "texte": passage,
+                                   "motif": "Cette phrase n'est pas attestée par le moteur."})
+            rendus.append(passage)
         if verdict == "parole":
             locuteur, citation = ligne["locuteur"], ligne["citation"]
             if (locuteur not in faits.get("interlocuteurs", {}) or not citation
@@ -112,23 +146,33 @@ def controler(texte, rapport, faits):
                     or f"« {citation} »" not in passage):
                 raise ErreurMonde("Une parole du MJ n'a pas de locuteur présent ou de citation exacte.")
             paroles.append({"locuteur": locuteur, "texte": citation})
-        elif ligne["locuteur"] or ligne["citation"]:
-            raise ErreurMonde("Attribution de parole incohérente dans le contrôle narratif.")
+            nom = faits["interlocuteurs"][locuteur]["nom"]
+            rendus.append(nom + " dit : « " + citation + " ».")
+        if verdict == "hypothese":
+            rendus.append("C'est une possibilité, pas un fait établi : « " + passage + " »")
+        elif verdict == "neutre":
+            rendus.append("Je ne peux pas encore l'établir.")
         if verdict in ("nouveau", "contradictoire"):
             obstacles.append({"segment": indice, "texte": passage,
                                "motif": ligne["motif"] or "Affirmation non établie."})
-    return {"segments": copy.deepcopy(lignes), "paroles": paroles,
-            "obstacles": obstacles}
+    return {"segments": copy.deepcopy(lignes_validees), "paroles": paroles,
+            "obstacles": obstacles, "texte_controle": " ".join(rendus)}
 
 
 def consigner(monde, reponse):
     """Enregistre une réponse contrôlée et ses paroles sur l'état à sauvegarder."""
     audit = reponse.get("_audit")
     if not audit:
+        if reponse.get("_texte_moteur") is not True:
+            raise ErreurMonde("Réponse du MJ sans contrôle narratif.")
+        monde.data.setdefault("narrations_mj", []).append({
+            "texte": reponse["texte"], "revision": monde.data["revision"],
+            "sources": ["moteur"]})
+        monde.data["narrations_mj"] = monde.data["narrations_mj"][-60:]
         return
     texte = reponse["texte"]
-    rapport = controler(texte, {"segments": audit["segments"]}, audit["faits"])
-    if rapport["obstacles"]:
+    rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
+    if rapport["obstacles"] or rapport["texte_controle"] != texte:
         raise ErreurMonde("Une narration refusée ne peut pas être enregistrée.")
     paroles = []
     if rapport["paroles"]:

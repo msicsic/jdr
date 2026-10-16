@@ -19,7 +19,7 @@ class RecitTests(unittest.TestCase):
             if nom == "auditer_narration":
                 entree = json.loads(payload["input"][0]["content"])
                 arguments = {"segments": [
-                    {"indice": i, "verdict": "etabli", "sources": ["scenario"],
+                    {"indice": i, "verdict": "etabli", "sources": ["attestations"],
                      "locuteur": "", "citation": "", "motif": ""}
                     for i, _ in enumerate(entree["segments"])]}
             else:
@@ -36,8 +36,8 @@ class RecitTests(unittest.TestCase):
         m = nouveau_monde()
         m.memoriser("Qui m'a conduit ici ?", "Gorm t'a conduit depuis son échoppe.")
         avant = copy.deepcopy(m.data)
-        reponse = {"mode": "dialogue", "texte": "Gorm ne t'a pas expliqué ses raisons.",
-                   "faits": ["scenario"], "proposition": None}
+        reponse = {"mode": "dialogue", "texte": "Tu te trouves dans : Antichambre.",
+                   "faits": ["attestations"], "proposition": None}
         def inspecter(payload):
             entree = json.loads(payload["input"][0]["content"])
             self.assertEqual(entree["conversation"], m.data["conversation"])
@@ -48,7 +48,7 @@ class RecitTests(unittest.TestCase):
             self.assertNotIn("sens", entree["faits"]["objet:gravure"])
         resultat = self.appel(m, reponse, inspecter)
         self.assertEqual({k: resultat[k] for k in reponse}, reponse)
-        self.assertEqual(resultat["_audit"]["segments"][0]["sources"], ["scenario"])
+        self.assertEqual(resultat["_audit"]["segments"][0]["sources"], ["attestations"])
         self.assertEqual(avant, m.data)
 
     def test_dialogue_ne_peut_pas_transporter_une_action(self):
@@ -101,7 +101,7 @@ class RecitTests(unittest.TestCase):
         reponses = [
             {"mode": "action", "texte": "", "faits": [], "proposition": p},
             {"mode": "dialogue", "texte": "Tu risques d'abîmer ta lame.",
-             "faits": ["objet:couteau"], "proposition": None},
+             "faits": ["objet:couteau"], "proposition": None, "_texte_moteur": True},
         ]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"

@@ -141,6 +141,16 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if destination or methode != "simple":
             raise ErreurMonde("L'allumage et l'extinction n'ont pas de destination et utilisent la méthode simple.")
         if "allume" not in o:
+            if op == "allumer":
+                if o["integrite"] == 0:
+                    raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.")
+                from .capacites_objet import statut as statut_capacite, absence as absence_capacite
+                etat = statut_capacite(o, "lumiere")
+                if etat == "inconnue":
+                    from .moteur import QualificationRequise
+                    raise QualificationRequise(cible, "lumiere")
+                if etat == "ecartee":
+                    raise ErreurMonde(absence_capacite(o, "lumiere") + ".")
             raise ErreurMonde("Cet objet n'est pas une source lumineuse modélisée.")
         allumer = op == "allumer"
         if o["allume"] == allumer:
@@ -156,7 +166,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                           and "allumage" in e.get("usages", []) and e["integrite"] > 0), None)
             if (not t or not monde.est_porte(t["id"]) or not monde.accessible(t["id"])
                     or not t["integrite"] or "allumage" not in t.get("usages", []) or t["id"] == cible):
-                raise ErreurMonde("Il faut un briquet utilisable et accessible dans votre inventaire.")
+                raise ErreurMonde("Il faut un outil d'allumage utilisable et accessible dans votre inventaire.")
         elif outil:
             raise ErreurMonde("Éteindre cette source ne demande pas d'outil.")
         p.titre = ("Allumer " if allumer else "Éteindre ") + designer(o) + (" avec " + designer(t) if t else "") + "."
@@ -184,7 +194,8 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde("Cet objet et son contenu dépassent ta capacité de portage.")
         # Contrôle aussi la destination et le poids imbriqué, sans toucher au monde réel.
         projection = monde.copier()
-        projection.objets[cible]["lieu"] = destination
+        from .deplacement_objet import deplacer
+        deplacer(projection, cible, destination)
         if projection.charge() > monde.joueur["capacite"]:
             raise ErreurMonde("Ce déplacement dépasse ta capacité de portage.")
         victime = proprietaire(monde, o)
@@ -217,10 +228,18 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         return p
     if destination:
         raise ErreurMonde("Détacher libère la fixation sur place ; ajoute deplacer pour la ranger.")
+    if not o.get("attache") or not o.get("amovible"):
+        raise ErreurMonde("Cet objet n'est pas une fixation amovible encore attachée.")
+    if o.get("extraction", "main") == "main":
+        if outil or methode != "simple" or e["difficulte"]:
+            raise ErreurMonde("Cette attache se libère à la main, sans outil ni jet.")
+        p.titre = "Détacher " + designer(o) + "."
+        p.effets = [("liberer", cible, monde.joueur["salle"])]
+        return p
+    if o["extraction"] != "outil":
+        raise ErreurMonde("Mode d'extraction inconnu.")
     if eclairage(monde)["niveau"] < 2:
         raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise.")
-    if o["type"] != "fixation" or not o.get("attache") or not o.get("amovible"):
-        raise ErreurMonde("Ciblez une fixation amovible encore attachée.")
     t = monde.objets.get(outil)
     if not t or t["lieu"] != "joueur" or not t["integrite"]:
         raise ErreurMonde("Il faut posséder un outil utilisable pour cette extraction.")

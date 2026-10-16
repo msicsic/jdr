@@ -9,6 +9,7 @@ from unittest.mock import patch
 import jeu
 from donjon.enrichissement import catalogue, preparer_complements
 from donjon.mj import MJOpenAI
+from tests.support import simuler_couverture
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import decrire, regarder
@@ -28,10 +29,14 @@ def reponse_enrichir(*ajouts):
 
 
 DIALOGUE = {"mode": "dialogue", "texte": "Tu te souviens de ses yeux gris clair.",
-            "faits": ["souvenirs_personnages"], "proposition": None}
+            "faits": ["souvenirs_personnages"], "proposition": None,
+            "_texte_moteur": True}
 
 
 class EnrichissementTests(unittest.TestCase):
+    def setUp(self):
+        simuler_couverture(self)
+
     def test_autre_personnage_sans_portrait_et_detail_examinable_apres_rechargement(self):
         m = nouveau_monde()
         m.objets["mira"] = objet("mira", "Mira", "personnage", "antichambre", aliases=["mira"])

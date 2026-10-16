@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from donjon.commandes import analyser
+from donjon.commandes import analyser, est_question
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde
 from donjon.moteur import Moteur, proposition
@@ -126,8 +126,29 @@ class EclairageTests(unittest.TestCase):
 
 
 class QuestionsConsoleTests(unittest.TestCase):
+    def test_formes_interrogatives_sans_point_ne_declenchent_pas_d_action(self):
+        monde = nouveau_monde()
+        for phrase in ("Où est la clé", "Qui tient la clé", "Combien de combustible reste",
+                       "Puis-je éteindre la lanterne", "Peut-on éteindre la lanterne",
+                       "je mesure combien"):
+            with self.subTest(phrase=phrase):
+                self.assertTrue(est_question(phrase))
+                self.assertIsNone(analyser(monde, phrase))
+        self.assertFalse(est_question("je prends la clé"))
+        self.assertFalse(est_question("ouvrir la porte"))
+        for phrase in ("Où est la clé", "Peut-on éteindre la lanterne"):
+            with self.subTest(console=phrase):
+                texte, reprise, _ = self.lancer([phrase], {
+                    "mode": "action", "texte": "", "faits": [],
+                    "proposition": proposition("eteindre", "lanterne")})
+                self.assertIn("Aucune action n'a été appliquée", texte)
+                self.assertTrue(reprise.objets["lanterne"]["allume"])
+                self.assertEqual(reprise.data["revision"], 0)
+
     def lancer(self, commandes, p=None, panne=None):
         import jeu
+        if isinstance(p, dict) and p.get("mode") == "dialogue":
+            p = {**p, "_texte_moteur": True}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             with patch("builtins.input", side_effect=commandes + ["quitter"]), patch("sys.stdout", io.StringIO()) as sortie:

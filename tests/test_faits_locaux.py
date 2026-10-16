@@ -29,6 +29,97 @@ def preparer_inscription(monde, proposition, revision=None):
 
 
 class FaitsLocauxTests(unittest.TestCase):
+    def test_fausse_portee_sujet_ne_cree_ni_objet_autonome_ni_indice_de_quete(self):
+        for nom, texte, representation in (
+            ("seconde cloche", "Sa surface de bronze est ternie.", "objet"),
+            ("lettres gravées", "Ces lettres indiquent que la cloche a été déplacée vers une cave.",
+             "etat_du_monde"),
+        ):
+            with self.subTest(nom=nom), tempfile.TemporaryDirectory() as tmp:
+                chemin = Path(tmp) / "partie.json"
+                def proposition_mj(nom_propose, description):
+                    return {"mode": "etablir_faits", "texte": "",
+                            "faits": ["faits_narratifs_proposables"],
+                            "proposition": {"ajouts": [{"type": "detail",
+                                "ancrage": "antichambre_murs", "nom": nom_propose,
+                                "genre": "f", "texte": description}]}}
+                def audit(nom_propose, description, nom_requis, texte_requis):
+                    return {"descriptions": [
+                        {"representation": nom_requis, "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{
+                            "texte": nom_propose, "portee": "sujet", "preuve": "", "motif": ""}]},
+                        {"representation": texte_requis, "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{
+                            "texte": description, "portee": "sujet", "preuve": "", "motif": ""}]},
+                    ]}
+                correction = "Une trace claire marque la pierre."
+                sorties = [
+                    proposition_mj(nom, texte),
+                    audit(nom, texte, representation if representation == "objet" else "aspect",
+                          "aspect" if representation == "objet" else representation),
+                    proposition_mj("trace claire", correction),
+                    audit("trace claire", correction, "aspect", "aspect"),
+                ]
+                with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                      patch.object(MJOpenAI, "_appeler_brut", side_effect=sorties),
+                      patch("builtins.input", side_effect=["mj Que vois-je sur les murs ?", "quitter"]),
+                      patch("sys.stdout", io.StringIO()) as sortie):
+                    self.assertEqual(jeu.main(["--console", "--save", str(chemin),
+                                               "--connexion", "api"]), 0)
+                reprise = Monde.charger(chemin)
+                self.assertNotIn(nom, sortie.getvalue())
+                self.assertNotIn(texte, sortie.getvalue())
+                with self.assertRaises(ErreurMonde):
+                    reprise.trouver(nom)
+                self.assertNotIn(texte, str(reprise.data["faits_vus"]))
+                detail = reprise.trouver("trace claire")
+                self.assertIn(correction, decrire(reprise, detail, detail=True))
+
+    def test_description_hors_sujet_est_revisee_avant_sauvegarde_et_affichage(self):
+        for nom, invention, description in (
+            ("tache d'humidité", "Une seconde cloche est cachée sous le plancher.",
+             "Une tache sombre couvre quelques pierres."),
+            ("rainure", "Un passage mène à une pièce inconnue.",
+             "Une rainure étroite traverse la pierre."),
+        ):
+            with self.subTest(nom=nom), tempfile.TemporaryDirectory() as tmp:
+                chemin = Path(tmp) / "partie.json"
+                base = {"type": "detail", "ancrage": "antichambre_murs",
+                        "nom": nom, "genre": "f"}
+                def proposition_mj(texte):
+                    return {"mode": "etablir_faits", "texte": "",
+                            "faits": ["faits_narratifs_proposables"],
+                            "proposition": {"ajouts": [{**base, "texte": texte}]}}
+                def portee(texte, douteux=False):
+                    return {"descriptions": [
+                        {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [
+                            {"texte": nom, "portee": "sujet", "preuve": "", "motif": ""}]},
+                        {"representation": "etat_du_monde" if douteux else "aspect",
+                         "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [],
+                         "fragments": [{"texte": texte,
+                                        "portee": "sans_preuve" if douteux else "sujet",
+                                        "preuve": "",
+                                        "motif": "Le texte ajoute un fait autonome." if douteux else ""}]},
+                    ]}
+                sorties = [proposition_mj(invention),
+                           portee(invention, douteux=True),
+                           proposition_mj(description),
+                           portee(description),
+                           ]
+                with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                      patch.object(MJOpenAI, "_appeler_brut", side_effect=sorties) as appel,
+                      patch("builtins.input", side_effect=["mj Que vois-je sur le mur ?", "quitter"]),
+                      patch("sys.stdout", io.StringIO()) as sortie):
+                    self.assertEqual(jeu.main(["--console", "--save", str(chemin),
+                                               "--connexion", "api"]), 0)
+                reprise = Monde.charger(chemin)
+                detail = reprise.trouver(nom)
+                self.assertEqual(appel.call_count, 4)
+                self.assertTrue(appel.call_args_list[2].args[1]["controle_narratif"][0]["motif"])
+                self.assertNotIn(invention, sortie.getvalue())
+                self.assertIn(description, sortie.getvalue())
+                self.assertEqual(reprise.objets[detail]["description_visuelle"], description)
+                self.assertIn(description, decrire(reprise, detail, detail=True))
+                self.assertNotIn(invention, str(reprise.data["faits_vus"]))
+
     def test_inscription_persistante_et_lisible_comme_objet(self):
         m = nouveau_monde()
         avant = copy.deepcopy(m.data)

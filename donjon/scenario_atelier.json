@@ -66,6 +66,7 @@
       "maximum": 10,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     },
     "couteau": {
@@ -129,6 +130,7 @@
       "mobile": true,
       "nom": "hache",
       "proprietaire": "joueur",
+      "puissance": 3,
       "type": "outil",
       "usages": [
         "couper_bois"
@@ -192,6 +194,7 @@
       "longueur_cm": 300,
       "masse": 3,
       "materiau": "bois",
+      "seuil_coupe": 2,
       "maximum": 10,
       "mobile": true,
       "nom": "perche de bois 1",
@@ -219,6 +222,7 @@
       "longueur_cm": 300,
       "masse": 3,
       "materiau": "bois",
+      "seuil_coupe": 2,
       "maximum": 10,
       "mobile": true,
       "nom": "perche de bois 2",
@@ -246,6 +250,7 @@
       "longueur_cm": 300,
       "masse": 3,
       "materiau": "bois",
+      "seuil_coupe": 2,
       "maximum": 10,
       "mobile": true,
       "nom": "perche de bois 3",
@@ -270,6 +275,7 @@
       "maximum": 10,
       "mobile": false,
       "nom": "sol",
+      "support_pose": true,
       "type": "surface"
     }
   },
@@ -331,7 +337,7 @@
   "savoirs_pnj": {},
   "savoirs_version": 1,
   "scenario": {
-    "debut": "Tu es dans la cour d'un atelier, en plein jour. Trois perches et une bobine de ficelle sont à ta disposition. Une terrasse borde le sommet d'un mur de 2,4 m. Tu portes une hache : à toi d'imaginer comment atteindre ce palier.",
+    "debut": "Au début, tu te trouvais dans la cour d'un atelier, en plein jour. Trois perches et une bobine de ficelle étaient à ta disposition. Une terrasse bordait le sommet d'un mur de 2,4 m. Tu portais une hache : à toi d'imaginer comment atteindre ce palier.",
     "liberte_personnage": "Le joueur décide de ses actions. Les dimensions et ressources sont établies, sans création gratuite.",
     "objectif": "Atteindre la terrasse puis revenir, par les moyens de ton choix.",
     "version": 1

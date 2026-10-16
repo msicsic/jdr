@@ -1,0 +1,114 @@
+[
+  {
+    "id": "aspect_enduit",
+    "attendu": "accepter",
+    "nom": "éclat d'enduit",
+    "genre": "m",
+    "texte": "Un éclat d'enduit blanchi marque le bas des murs."
+  },
+  {
+    "id": "aspect_rayure",
+    "attendu": "accepter",
+    "nom": "rayure oblique",
+    "genre": "f",
+    "texte": "Une rayure oblique traverse la pierre sur la largeur d'une main."
+  },
+  {
+    "id": "aspect_suie",
+    "attendu": "accepter",
+    "nom": "dépôt de suie",
+    "genre": "m",
+    "texte": "Un dépôt de suie forme une bande sombre près du plafond."
+  },
+  {
+    "id": "aspect_fissure",
+    "attendu": "accepter",
+    "nom": "fissure ramifiée",
+    "genre": "f",
+    "texte": "Une fissure ramifiée court sur quelques pierres, sans former de motif régulier."
+  },
+  {
+    "id": "aspect_tache",
+    "attendu": "accepter",
+    "nom": "tache claire",
+    "genre": "f",
+    "texte": "Une tache claire découpe la surface humide en deux nuances."
+  },
+  {
+    "id": "aspect_empreinte",
+    "attendu": "accepter",
+    "nom": "empreinte de paume",
+    "genre": "f",
+    "texte": "Une empreinte de paume est visible dans la poussière du mur."
+  },
+  {
+    "id": "autre_cloche",
+    "attendu": "refuser",
+    "nom": "tache de rouille",
+    "genre": "f",
+    "texte": "Une seconde cloche est cachée sous le plancher."
+  },
+  {
+    "id": "autre_piece",
+    "attendu": "refuser",
+    "nom": "rainure",
+    "genre": "f",
+    "texte": "Une rainure traverse la pierre et mène à une pièce inconnue."
+  },
+  {
+    "id": "cle_pnj",
+    "attendu": "refuser",
+    "nom": "marque blanche",
+    "genre": "f",
+    "texte": "Une marque blanche couvre la pierre. Gorm possède la clé du beffroi."
+  },
+  {
+    "id": "nom_objet_autonome",
+    "attendu": "refuser",
+    "nom": "seconde cloche",
+    "genre": "f",
+    "texte": "Sa surface de bronze est ternie."
+  },
+  {
+    "id": "indice_quete",
+    "attendu": "refuser",
+    "nom": "lettres gravées",
+    "genre": "f",
+    "texte": "Ces lettres indiquent que la cloche a été déplacée vers une cave."
+  },
+  {
+    "id": "evenement_cache",
+    "attendu": "refuser",
+    "nom": "trace noire",
+    "genre": "f",
+    "texte": "Une trace noire prouve qu'une trappe s'est ouverte ici cette nuit."
+  },
+  {
+    "id": "porte_implicite",
+    "attendu": "refuser",
+    "nom": "tache humide",
+    "genre": "f",
+    "texte": "Une tache humide dessine un cercle sur la pierre, tandis qu'une porte dissimulée s'ouvre derrière le mur."
+  },
+  {
+    "id": "portrait_yeux",
+    "mode": "portrait",
+    "attendu": "accepter",
+    "facette": "yeux",
+    "texte": "Ses yeux sont gris clair."
+  },
+  {
+    "id": "portrait_objet",
+    "mode": "portrait",
+    "attendu": "refuser",
+    "facette": "yeux",
+    "texte": "Ses yeux sont gris clair, et une clé de bronze apparaît dans sa paume."
+  },
+  {
+    "id": "portrait_savoir",
+    "mode": "portrait",
+    "attendu": "refuser",
+    "facette": "yeux",
+    "texte": "Ses yeux sont gris clair ; Gorm connaît un passage secret sous le refuge."
+  }
+]

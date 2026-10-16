@@ -11,6 +11,7 @@ from donjon.enrichissement import preparer_complements
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, nouveau_monde
 from donjon.moteur import Moteur, proposition
+from tests.support import simuler_couverture
 
 
 def dialogue(texte="Réponse."):
@@ -24,6 +25,9 @@ def enrichissement(couleur, facette="yeux"):
 
 
 class ComparaisonTests(unittest.TestCase):
+    def setUp(self):
+        simuler_couverture(self)
+
     def creer(self, dossier=None, publier=None):
         fini = Event()
         def recevoir(fiche):

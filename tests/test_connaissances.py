@@ -27,7 +27,7 @@ def proposition(p=None):
 
 def dialogue():
     return {"mode": "dialogue", "texte": "Gorm : « Cet anneau me rappelle mon ancien métier de veilleur. »",
-            "faits": ["connaissances_pnj"], "proposition": None}
+            "faits": ["connaissances_pnj"], "proposition": None, "_texte_moteur": True}
 
 
 class ConnaissancesTests(unittest.TestCase):
@@ -145,6 +145,56 @@ class ConnaissancesTests(unittest.TestCase):
                 jeu.main(["--console", "--connexion", "api", "--save", str(path)])
             self.assertNotIn("mon ancien métier", sortie.getvalue())
             self.assertEqual(path.read_bytes(), avant)
+
+    def test_savoir_subjectif_revu_puis_parole_sauvee_avant_affichage(self):
+        souvenir = "Gorm se rappelle les longues veilles de son enfance."
+        citation = "Je me rappelle les longues veilles de mon enfance."
+        candidat = proposition(ajout(souvenir, "souvenir_personnel"))
+        revue = {"descriptions": [{"representation": "savoir_pnj", "mobilite": [],
+            "placement": "aucun", "impact_scenario": "aucun", "capacites": [],
+            "fragments": [{"texte": souvenir, "portee": "sujet", "preuve": "", "motif": ""}]}]}
+        parole = {"mode": "dialogue", "texte": "Gorm dit : « " + citation + " ».",
+                  "faits": [], "proposition": None}
+        audit = {"segments": [{"indice": 0, "verdict": "parole", "sources": [],
+            "locuteur": "marchand", "citation": citation, "motif": ""}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            self.m.sauver(chemin)
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut",
+                               side_effect=[candidat, revue, parole, audit]),
+                  patch("builtins.input", side_effect=["mj Gorm, raconte ton enfance", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin),
+                                           "--connexion", "api"]), 0)
+            reprise = Monde.charger(chemin)
+        self.assertIn(citation, sortie.getvalue())
+        self.assertEqual(reprise.data["savoirs_pnj"]["marchand"]
+                         ["souvenir_personnel"]["texte"], souvenir)
+        self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
+
+    def test_savoir_qui_invente_solution_de_quete_refuse_avant_sauvegarde(self):
+        invention = "Une seconde cloche est cachée sous le plancher."
+        candidat = proposition(ajout(invention, "souvenir_personnel"))
+        revue = {"descriptions": [{"representation": "etat_du_monde", "mobilite": [],
+            "placement": "aucun", "impact_scenario": "solution", "capacites": [],
+            "fragments": [{"texte": invention, "portee": "sans_preuve",
+                           "preuve": "", "motif": "Objet de quête inexistant."}]}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            self.m.sauver(chemin)
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut",
+                               side_effect=[candidat, revue] * 3),
+                  patch("builtins.input", side_effect=["mj Gorm, parle-moi de la cloche", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin),
+                                           "--connexion", "api"]), 0)
+            reprise = Monde.charger(chemin)
+        self.assertNotIn(invention, sortie.getvalue())
+        self.assertNotIn("souvenir_personnel", reprise.data["savoirs_pnj"]["marchand"])
+        self.assertNotIn("seconde_cloche", reprise.objets)
+        self.assertIn("Je ne peux pas encore répondre avec certitude.", sortie.getvalue())
 
     def test_comparaison_isole_les_inventions(self):
         fini = Event()

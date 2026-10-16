@@ -12,9 +12,11 @@ VOIX = {
 }
 
 REGLES = """
-SONS : crier, appeler à l'aide et siffler sont des actions possibles, sans jet.
+SONS : crier, appeler à l'aide, siffler et faire sonner un objet sonore sont possibles, sans jet.
 Compose emettre_son avec cible joueur, destination et outil vides, difficulte 0 ;
 methode appel pour appeler à l'aide/au secours, cri pour un cri, sifflement pour siffler.
+Pour un objet ayant une sonorite dans les faits, cible = son identifiant, methode simple,
+destination et outil vides. Le moteur vérifie la proximité, l'intégrité et l'audition.
 « Je crie à l'aide » = une étape emettre_son(joueur,appel). Ce n'est pas une conversation
 avec un PNJ absent ni une impossibilité. Le moteur produit le son, détermine qui peut
 l'entendre et conserve ce souvenir. Il n'invente ni sauveteur, ni réponse, ni déplacement.
@@ -62,6 +64,29 @@ def auditeurs(m, source, intensite):
 
 def compiler(m, e, justification, origine):
     from .moteur import Plan
+    if e["cible"] in m.objets and e["methode"] == "simple":
+        if e["destination"] or e["outil"] or e["difficulte"]:
+            raise ErreurMonde("Un son d'objet ne demande ni destination ni outil imposé.")
+        id = e["cible"]
+        o = m.objets[id]
+        from .proximite import exiger
+        if not m.accessible(id):
+            raise ErreurMonde("Cet objet est inaccessible depuis ici.")
+        exiger(m, id)
+        if o["integrite"] <= 0:
+            raise ErreurMonde("Cet objet ne peut pas produire ce son.")
+        from .capacites_objet import statut as statut_capacite, absence as absence_capacite
+        etat = statut_capacite(o, "son")
+        if etat == "inconnue":
+            from .moteur import QualificationRequise
+            raise QualificationRequise(id, "son")
+        if etat == "ecartee":
+            raise ErreurMonde(absence_capacite(o, "son") + ".")
+        p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
+                 "Produire un son avec " + designer(o) + ".", origine=origine)
+        p.minutes, p.bruit = 1, o["sonorite"]
+        p.effets = [("emettre_son", id, "objet")]
+        return p
     if (e["cible"] not in ("", "joueur") or e["destination"] or e["outil"]
             or e["methode"] not in VOIX or e["difficulte"]):
         raise ErreurMonde("Une émission vocale vient du joueur, sans outil ni destination imposée : appel, cri ou sifflement.")
@@ -74,12 +99,23 @@ def compiler(m, e, justification, origine):
     return p
 
 
-def appliquer(m, mode, lignes):
-    _, texte, intensite = VOIX[mode]
-    source = m.joueur["salle"]
+def appliquer(m, emetteur, mode, lignes):
+    if emetteur == "joueur":
+        _, texte, intensite = VOIX[mode]
+    else:
+        o = m.objets[emetteur]
+        intensite = o["sonorite"]
+        texte = "Tu produis un son avec " + designer(o) + "."
+    if emetteur == "joueur":
+        source = m.joueur["salle"]
+    else:
+        from .perception import salle_source
+        source = salle_source(m, o)
     entendants = auditeurs(m, source, intensite)
     evenement = {"tour": m.data["revision"] + 1, "minute": m.data["minutes"],
                  "origine": source, "nature": mode, "intensite": intensite, "auditeurs": entendants}
+    if emetteur != "joueur":
+        evenement["objet"] = emetteur
     # Historique borné ; chaque PNJ conserve son dernier souvenir même après éviction.
     m.data.setdefault("sons", []).append(evenement)
     m.data["sons"] = m.data["sons"][-40:]
@@ -89,6 +125,8 @@ def appliquer(m, mode, lignes):
         pnj["dernier_son_entendu"] = {k: v for k, v in evenement.items() if k != "auditeurs"}
         pnj["humeur"] = "méfiant" if m.data["relations_pnj"].get(id, {}).get("soupcon") else "inquiet"
         if m.visible(id):
-            lignes.append(designer(pnj, debut=True) + " entend ton " + ("appel à l'aide." if mode == "appel" else "cri." if mode == "cri" else "sifflement."))
+            entendu = ("le son de " + designer(m.objets[emetteur]) + "." if emetteur != "joueur" else
+                       "ton " + ("appel à l'aide." if mode == "appel" else "cri." if mode == "cri" else "sifflement."))
+            lignes.append(designer(pnj, debut=True) + " entend " + entendu)
     # Pas de réplique ou de déplacement décidés à la place du PNJ.
     lignes.append("Pour l'instant, aucune réponse ne te parvient.")

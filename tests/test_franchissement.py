@@ -10,6 +10,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
+from tests.support import simuler_couverture
 
 
 def saut(dd=18, outil="perche_1", destination="terrasse"):
@@ -20,6 +21,7 @@ def saut(dd=18, outil="perche_1", destination="terrasse"):
 
 class FranchissementTests(unittest.TestCase):
     def setUp(self):
+        simuler_couverture(self)
         self.m = nouveau_atelier()
         self.moteur = Moteur(self.m)
 
@@ -103,16 +105,16 @@ class FranchissementTests(unittest.TestCase):
         self.assertIn("retour_moteur", api.call_args.args[1]["faits"])
         self.assertEqual(r["proposition"], saut())
         self.assertEqual(self.m.data["revision"], 0)
-        with patch.object(MJOpenAI, "_appeler", return_value=refus) as api:
-            r = MJOpenAI().echanger(self.m, "Je vole par-dessus le mur")
+        with patch.object(MJOpenAI, "_appeler", return_value=refus) as api, \
+             self.assertRaisesRegex(ErreurMonde, "n'a pas été contrôlé"):
+            MJOpenAI().echanger(self.m, "Je vole par-dessus le mur")
         self.assertEqual(api.call_count, 2)
-        self.assertEqual(r["proposition"]["action"], "impossible")
 
     def test_question_ne_declenche_ni_prise_ni_saut(self):
         r = {"mode": "action", "texte": "", "faits": ["franchissements"], "proposition": saut()}
         with patch.object(MJOpenAI, "_appeler", return_value=r) as api:
             reponse = MJOpenAI().echanger(self.m, "Puis-je sauter avec la perche ?")
-        self.assertEqual(api.call_count, 2)
+        self.assertEqual(api.call_count, 3)
         self.assertEqual(reponse["mode"], "dialogue")
         self.assertEqual(self.m.data["revision"], 0)
         self.assertEqual(self.m.objets["perche_1"]["lieu"], "cour")

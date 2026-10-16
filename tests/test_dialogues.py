@@ -26,7 +26,8 @@ def reponse(p):
 
 
 def dialogue(texte='Gorm : « Je te propose 20 pièces quand tu me remettras l’anneau. »'):
-    return {"mode": "dialogue", "texte": texte, "faits": ["conversation_validee"], "proposition": None}
+    return {"mode": "dialogue", "texte": texte, "faits": ["conversation_validee"],
+            "proposition": None, "_texte_moteur": True}
 
 
 class DialoguesTests(unittest.TestCase):

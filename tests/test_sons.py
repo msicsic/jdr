@@ -10,6 +10,7 @@ from donjon.atelier import nouveau_atelier
 from donjon.commandes import analyser
 from donjon.dialogues import interlocuteurs
 from donjon.mj import MJOpenAI
+from tests.support import simuler_couverture
 from donjon.monde import Monde, ErreurMonde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
@@ -21,6 +22,9 @@ def appel(mode="appel"):
 
 
 class SonsTests(unittest.TestCase):
+    def setUp(self):
+        simuler_couverture(self)
+
     def test_crier_local_sans_jet_et_sans_creer_de_secours(self):
         m = nouveau_atelier()
         avant = copy.deepcopy(m.data)

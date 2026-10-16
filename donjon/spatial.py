@@ -128,6 +128,12 @@ def _salle_position(m, id, trace=None, salle_vue=None):
             return lieu, tuple(m.joueur.get("position", ()))
         p = position_objet(m, o)
         return (lieu, tuple(p)) if p is not None else None
+    if (o.get("position_autonome") and lieu == o.get("ancrage_initial")
+            and lieu in m.objets
+            and not m.objets[lieu]["mobile"]
+            and o.get("position_salle") == salle_vue
+            and tuple(o.get("position", ())) in cases(m.data["salles"][salle_vue])):
+        return salle_vue, tuple(o["position"])
     parent = _salle_position(m, lieu, trace, salle_vue)
     if parent and parent[0] == salle_vue:
         conteneur = m.objets.get(lieu, {})
@@ -144,6 +150,18 @@ def position_cible(m, id, salle=None):
     salle = salle or m.joueur["salle"]
     resultat = _salle_position(m, id, salle_vue=salle)
     return resultat[1] if resultat else None
+
+
+def position_carte(m, id, salle=None):
+    """Case dessinée ; la portée garde la case de contact de position_cible."""
+    salle = salle or m.joueur["salle"]
+    contact = position_cible(m, id, salle)
+    if contact is None:
+        return None
+    o = m.objets[id]
+    if o.get("ancrage_carte") and o.get("position_salle") == salle:
+        return tuple(o["ancrage_carte"])
+    return contact
 
 
 def _bloque(m, salle, position, vue=False, sauf=None):
@@ -313,6 +331,9 @@ def visible(m, id):
     for salle in m.data["salles"]:
         position = position_cible(m, id, salle)
         if position is not None and (salle, position[0], position[1]) in champ:
+            ancrage = m.objets[id].get("ancrage_carte")
+            if ancrage and tuple(ancrage) not in murs_visibles(m, champ).get(salle, set()):
+                continue
             return True
     return False
 
@@ -432,11 +453,12 @@ def memoriser(m):
     souvenirs = m.data.setdefault("souvenirs_visuels", {})
     observations = {objet["id"]: {
         "salle": salle, "position": list(pos),
+        "contact": list(position_cible(m, objet["id"], salle)),
         "symbole": symbole_objet_cases(objet, salle), "nom": designer(objet),
     } for objet, salle, pos in objets_visibles_cases(m, champ)}
     for id, souvenir in list(souvenirs.items()):
         salle = souvenir["salle"]
-        x, y = souvenir["position"]
+        x, y = souvenir.get("contact", souvenir["position"])
         if (id in observations or m.est_porte(id)
                 or (salle, x, y) in champ):
             del souvenirs[id]
@@ -561,6 +583,19 @@ def verifier(m):
         if salle in m.data["salles"] and p is not None and "plan" in m.data["salles"][salle]:
             if tuple(p) not in cases(m.data["salles"][salle]):
                 raise AssertionError(f"Position d'objet hors du sol : {id}")
+        if "ancrage_carte" in o:
+            ancrage = o["ancrage_carte"]
+            if (salle not in m.data["salles"] or not isinstance(p, list)
+                    or len(p) != 2 or any(type(v) is not int for v in p)
+                    or tuple(p) not in cases(m.data["salles"][salle])
+                    or not isinstance(ancrage, list) or len(ancrage) != 2
+                    or any(type(v) is not int for v in ancrage)
+                    or tuple(ancrage) in cases(m.data["salles"][salle])
+                    or abs(ancrage[0] - p[0]) + abs(ancrage[1] - p[1]) != 1
+                    or any(tuple(sortie.get("case", ())) == tuple(ancrage)
+                           for sortie in m.data["salles"][salle]["sorties"].values())
+                    or (o["mobile"] and not o.get("attache"))):
+                raise AssertionError(f"Ancrage mural invalide : {id}")
         if o.get("appui_vertical"):
             a = o["appui_vertical"]
             for cle, salle_cle in (("position_bas", "bas"), ("position_haut", "haut")):
@@ -607,9 +642,16 @@ def verifier(m):
             raise AssertionError("Souvenir visuel invalide")
         salle = souvenir.get("salle")
         pos = souvenir.get("position")
+        contact = souvenir.get("contact", pos)
         if (salle not in m.data["salles"] or not isinstance(pos, list) or len(pos) != 2
                 or any(type(v) is not int for v in pos)
-                or tuple(pos) not in cases(m.data["salles"][salle])
+                or not isinstance(contact, list) or len(contact) != 2
+                or any(type(v) is not int for v in contact)
+                or tuple(contact) not in cases(m.data["salles"][salle])
+                or (tuple(pos) != tuple(contact) and
+                    (tuple(pos) in cases(m.data["salles"][salle])
+                     or abs(pos[0] - contact[0]) + abs(pos[1] - contact[1]) != 1
+                     or pos not in m.data.get("murs_memorises", {}).get(salle, [])))
                 or not isinstance(souvenir.get("nom"), str)
                 or not isinstance(souvenir.get("symbole"), str)
                 or len(souvenir["symbole"]) != 1):

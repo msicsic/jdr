@@ -15,7 +15,8 @@ from donjon.rendu import decrire
 
 
 def chant():
-    return proposition("Fredonner une chanson", issue("Tu fredonnes quelques mesures.", [effet("son", "joueur", valeur=1)]), bruit=1)
+    return proposition("Fredonner une chanson", issue("Tu fredonnes quelques mesures.",
+                       [effet("son", "joueur", texte="voix_melodique", valeur=1)]), bruit=1)
 
 
 def marque():
@@ -43,13 +44,18 @@ class ImprovisationTests(unittest.TestCase):
         plan = self.moteur.preparer(p, "MJ")
         self.assertEqual(self.m.data, avant)
         self.assertFalse(plan.stat)
-        self.assertIn("S'étirer", plan.resume(self.m))
+        self.assertIn("Geste d'expression", plan.resume(self.m))
+        self.assertNotIn("S'étirer", plan.resume(self.m))
         with patch.object(Monde, "d20", side_effect=AssertionError("Sans dé")):
             texte = self.moteur.executer(plan)
-        self.assertIn("délies", texte)
+        self.assertIn("geste d'expression", texte)
+        self.assertNotIn("S'étirer", texte)
+        self.assertNotIn("délies", texte)
         self.assertEqual(self.m.data["minutes"], 1)
         self.assertEqual(self.m.joueur["pv"], 18)
-        self.assertEqual(self.m.data["gestes_improvises"][-1]["intention"], "S'étirer")
+        self.assertEqual(self.m.data["gestes_improvises"][-1]["approche"], "expression")
+        self.assertNotIn("intention", self.m.data["gestes_improvises"][-1])
+        self.assertNotIn("S'étirer", str(self.m.data["journal"]))
 
     def test_son_entendu_sans_reponse_inventee_et_isolation(self):
         self.moteur.executer(self.moteur.preparer(chant()))
@@ -58,8 +64,36 @@ class ImprovisationTests(unittest.TestCase):
         crypte = nouveau_monde()
         crypte.joueur["salle"] = "echoppe"
         Moteur(crypte).executer(Moteur(crypte).preparer(chant()))
-        self.assertEqual(crypte.objets["marchand"]["dernier_son_entendu"]["intention"], "Fredonner une chanson")
+        self.assertEqual(crypte.objets["marchand"]["dernier_son_entendu"]["nature"], "geste sonore")
+        self.assertEqual(crypte.objets["marchand"]["dernier_son_entendu"]["forme"], "voix_melodique")
+        self.assertNotIn("intention", crypte.objets["marchand"]["dernier_son_entendu"])
         self.assertFalse(crypte.data["engagements"])
+
+    def test_forme_sonore_structuree_et_souvenir_apres_rechargement(self):
+        from donjon.monde import nouveau_monde
+        from donjon.dialogues import interlocuteurs
+        m = nouveau_monde()
+        m.joueur["salle"] = "echoppe"
+        moteur = Moteur(m)
+        chant_texte = moteur.executer(moteur.preparer(chant()))
+        self.assertIn("notes de ta voix", chant_texte)
+        frappe = proposition("Taper des mains", issue("La porte répond au rythme.",
+            [effet("son", "joueur", texte="corps_rythmique", valeur=2)]), bruit=2)
+        texte = moteur.executer(moteur.preparer(frappe))
+        self.assertIn("rythme avec ton corps", texte)
+        self.assertNotIn("La porte répond", texte)
+        avec_texte_libre = proposition("Frapper des mains", issue("Un bruit retentit.", [
+            effet("son", "joueur", texte="Une cloche cachée répond", valeur=1)]), bruit=1)
+        with self.assertRaisesRegex(ErreurMonde, "forme sonore"):
+            moteur.preparer(avec_texte_libre)
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "sons.json"
+            m.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        self.assertEqual([s["forme"] for s in reprise.data["sons"][-2:]],
+                         ["voix_melodique", "corps_rythmique"])
+        self.assertEqual(interlocuteurs(reprise)["marchand"]["dernier_son_entendu"]["forme"],
+                         "corps_rythmique")
 
     def test_marque_cree_detail_examinable_et_sauvegarde(self):
         avant = copy.deepcopy(self.m.data)
@@ -94,10 +128,13 @@ class ImprovisationTests(unittest.TestCase):
         m = nouveau_monde()
         moteur = Moteur(m)
         moteur.executer(moteur.preparer(action("prendre", "cle")))
+        plan = moteur.preparer(jongler())
+        self.assertIn("geste d'adresse concernant la clé", plan.resume(m))
+        self.assertNotIn("Jongler", plan.resume(m))
         with patch.object(Monde, "d20", return_value=1):
-            t = moteur.executer(moteur.preparer(jongler()))
+            t = moteur.executer(plan)
         self.assertEqual(m.objets["cle"]["lieu"], "antichambre")
-        self.assertIn("tombe au sol", t)
+        self.assertIn("posée au sol", t)
         moteur.executer(moteur.preparer(action("prendre", "cle")))
         p = jongler()
         p["difficulte"] = 18
@@ -132,27 +169,27 @@ class ImprovisationTests(unittest.TestCase):
         self.assertEqual(self.m.joueur["or"], 24)
         with self.assertRaises(ErreurMonde): self.moteur.executer(plan)
 
-    def test_refus_technique_repare_sans_second_modele(self):
-        for r in ({"mode": "dialogue", "texte": "Chanter n'est pas pris en charge par le moteur.", "faits": [], "proposition": None},
-                  reponse(action("impossible", justification="Le moteur ne permet pas de chanter."))):
-            with patch.object(MJOpenAI, "_appeler", side_effect=[r, reponse(chant())]) as api:
-                sortie = MJOpenAI().echanger(self.m, "je chante")
-            self.assertEqual(api.call_count, 2)
-            self.assertEqual(sortie["proposition"], chant())
-            self.assertEqual(self.m.data["revision"], 0)
+    def test_refus_impossible_reexamine_intention_sans_regle_de_mot_cle(self):
+        refus = reponse(action("impossible", justification="Je ne vois pas de voie."))
+        with patch.object(MJOpenAI, "_appeler", side_effect=[refus, reponse(chant())]) as api, \
+             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": ""}):
+            sortie = MJOpenAI().echanger(self.m, "je chante")
+        self.assertEqual(api.call_count, 2)
+        self.assertEqual(sortie["proposition"], chant())
+        self.assertEqual(self.m.data["revision"], 0)
 
     def test_question_sans_action_et_une_seule_correction(self):
         with patch.object(MJOpenAI, "_appeler", return_value=reponse(chant())) as api:
             sortie = MJOpenAI().echanger(self.m, "Est-ce que je peux chanter ?")
-        self.assertEqual(api.call_count, 2)
+        self.assertEqual(api.call_count, 3)
         self.assertEqual(sortie["mode"], "dialogue")
         self.assertEqual(self.m.data["revision"], 0)
         invalide = chant()
         invalide["minutes"] = 500
-        refus = {"mode": "dialogue", "texte": "Le moteur ne permet pas cela.", "faits": [], "proposition": None}
-        with patch.object(MJOpenAI, "_appeler", side_effect=[refus, reponse(invalide)]) as api:
+        with patch.object(MJOpenAI, "_appeler", side_effect=[reponse(invalide), reponse(invalide),
+                                                         ErreurMonde("narration indisponible")]) as api:
             sortie = MJOpenAI().echanger(self.m, "je chante")
-        self.assertEqual(api.call_count, 2)
+        self.assertEqual(api.call_count, 3)
         self.assertEqual(sortie["mode"], "dialogue")
 
     def test_console_applique_et_sauve_geste_sans_confirmation(self):
@@ -165,5 +202,47 @@ class ImprovisationTests(unittest.TestCase):
                 jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(p)])
             m = Monde.charger(p)
             self.assertEqual(m.data["minutes"], 1)
-            self.assertEqual(m.data["gestes_improvises"][-1]["intention"], "Fredonner une chanson")
+            self.assertEqual(m.data["gestes_improvises"][-1]["approche"], "expression")
+            self.assertNotIn("Fredonner une chanson", str(m.data["journal"]))
             self.assertNotIn("« tenter »", output.getvalue())
+
+    def test_contre_revue_corrige_deux_effets_omis_avant_affichage_et_sauvegarde(self):
+        cas = (
+            ("je fredonne doucement", proposition("Fredonner", issue("Tu fredonnes.")),
+             chant(), "son_improvise", "notes de ta voix"),
+            ("je grave une flèche sur la perche", proposition("Graver une flèche",
+             issue("Une flèche apparaît."), cibles=["perche_1"], outil="couteau",
+             approche="manipulation"), marque(), "marque_improvisee", "flèche vers le nord"),
+        )
+        for phrase, omise, corrigee, operation, attendu in cas:
+            with self.subTest(phrase=phrase), tempfile.TemporaryDirectory() as tmp:
+                chemin = Path(tmp) / "partie.json"
+                appels = []
+
+                def faux_appel(_instructions, entree, _intention, fonction, _schema):
+                    if fonction == "auditer_action":
+                        effets = entree["plan"]["effets_reussite"]
+                        conforme = any(e[0] == operation for e in effets)
+                        appels.append(("audit", conforme))
+                        return {"conforme": conforme, "motif": "L'effet demandé manque." if not conforme else ""}
+                    self.assertEqual(fonction, "repondre_au_joueur")
+                    corrige = "retour_moteur" in entree["faits"]
+                    appels.append(("proposition", corrige))
+                    return reponse(copy.deepcopy(corrigee if corrige else omise))
+
+                with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                      patch.object(MJOpenAI, "_appeler_brut", side_effect=faux_appel),
+                      patch("builtins.input", side_effect=[phrase, "quitter"]),
+                      patch("sys.stdout", new_callable=io.StringIO) as output):
+                    jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(chemin)])
+                reprise = Monde.charger(chemin)
+                self.assertEqual(appels, [("proposition", False), ("audit", False),
+                                         ("proposition", True), ("audit", True)])
+                self.assertEqual(reprise.data["revision"], 1)
+                self.assertIn(attendu, output.getvalue())
+                self.assertTrue(any(e["operation"] == ("son" if operation == "son_improvise" else "marquer")
+                                    for e in reprise.data["journal"][-1]["action"]["reussite"]["effets"]))
+                if operation == "son_improvise":
+                    self.assertEqual(reprise.data["sons"][-1]["forme"], "voix_melodique")
+                else:
+                    self.assertIn(attendu, decrire(reprise, "marque_1", detail=True))
