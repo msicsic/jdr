@@ -11,6 +11,7 @@ from donjon.monde import Monde
 from donjon.moteur import Moteur
 from donjon.espace import preparer
 from tests.test_espace import terrasse
+from donjon.transactions import du_type
 
 
 def main():
@@ -20,8 +21,8 @@ def main():
     mj = MJOpenAI("gpt-6-luna", connexion="chatgpt")
     mj.observateur = JournalMJ(Path(__file__).resolve().parents[1]/"artifacts/mj/test-reel")
     r = mj.echanger(m, "il y a d'autres issues ?")
-    assert "_espace" in r, r
-    m = preparer(m, r["_espace"]["proposition"], r["_espace"]["revision"])
+    assert du_type(r, "espace"), r
+    m = preparer(m, du_type(r, "espace")["proposition"], du_type(r, "espace")["revision"])
     assert r["mode"] == "dialogue", r
     print("ISSUES :", r["texte"], flush=True)
     origine = m.copier()

@@ -14,6 +14,7 @@ from donjon.dialogues import preparer_conversation
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, nouveau_monde
 from donjon.moteur import Moteur
+from donjon.transactions import du_type
 
 
 def main():
@@ -34,8 +35,8 @@ def main():
             avant = copy.deepcopy(m.data)
             r = mj.echanger(m, message)
             assert m.data == avant
-            assert r["mode"] == "dialogue" and "_conversation_pnj" in r, r
-            p = r["_conversation_pnj"]
+            assert r["mode"] == "dialogue" and du_type(r, "conversation_pnj"), r
+            p = du_type(r, "conversation_pnj")
             m, rapport = preparer_conversation(m, p["proposition"], p["revision"])
             assert rapport["engagement"] == {"statut": statut, "montant": montant}, rapport
             assert m.joueur["or"] == 24

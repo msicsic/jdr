@@ -13,11 +13,9 @@ from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur, QualificationRequise
-from donjon.enrichissement import preparer_complements
-from donjon.faits_locaux import preparer_faits
 from donjon.narration import consigner as consigner_narration, rendre_resultat
-from donjon.connaissances import preparer_savoirs
 from donjon.dialogues import preparer_conversation, commande_sociale
+from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.rendu import carte, fiche, regarder, decrire_accords
 
@@ -294,66 +292,36 @@ def main(argv=None, interface=None):
                     imprimer("Le MJ réfléchit…", flush=True)
                     reponse = mj.echanger(m, texte[3:] if force_mj else texte,
                                          pending.proposition if pending else None)
-                    if "_espace" in reponse:
-                        from donjon.espace import preparer as preparer_espace
-                        ajout = reponse["_espace"]
-                        travail = preparer_espace(m, ajout["proposition"], ajout["revision"])
-                        suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
+                    transactions = reponse.get("_transactions", [])
+                    if reponse["mode"] == "dialogue":
+                        travail, rapports = appliquer_transactions(m, transactions)
+                        suite = (Moteur(travail).preparer(pending.proposition, pending.origine)
+                                 if pending and transactions else pending)
+                        types = [t["type"] for t in transactions]
+                        nature = ("conversation_pnj" if "conversation_pnj" in types else
+                                  "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
+                        travail.memoriser(texte, reponse["texte"], nature)
+                        consigner_narration(travail, reponse)
+                        # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
                         travail.sauver(args.save)
                         m.data, pending = travail.data, suite
-                    if reponse["mode"] == "dialogue":
-                        if "_conversation_pnj" in reponse:
-                            ajout = reponse["_conversation_pnj"]
-                            travail, rapport = preparer_conversation(m, ajout["proposition"], ajout["revision"])
-                            suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
-                            travail.memoriser(texte, reponse["texte"], "conversation_pnj")
-                            consigner_narration(travail, reponse)
-                            travail.sauver(args.save)
-                            m.data, pending = travail.data, suite
-                            imprimer(reponse["texte"])
-                            if isinstance(mj, Comparateur):
-                                mj.noter_resultat(reponse["texte"], rapport)
-                            continue
-                        if any(k in reponse for k in ("_enrichissement", "_savoirs", "_profil_joueur", "_faits_narratifs")):
-                            savoirs = "_savoirs" in reponse
-                            profil = "_profil_joueur" in reponse
-                            faits_narratifs = "_faits_narratifs" in reponse
-                            ajout = reponse["_faits_narratifs" if faits_narratifs else "_profil_joueur" if profil else "_savoirs" if savoirs else "_enrichissement"]
-                            preparer = preparer_savoirs if savoirs else preparer_complements
-                            if profil:
-                                from donjon.profil_joueur import preparer
-                            if faits_narratifs:
-                                travail, _, _ = preparer_faits(m, ajout["proposition"], ajout["revision"])
-                            else:
-                                travail = preparer(m, ajout["proposition"], ajout["revision"])
-                            suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
-                            travail.memoriser(texte, reponse["texte"])
-                            consigner_narration(travail, reponse)
-                            # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
-                            travail.sauver(args.save)
-                            m.data, pending = travail.data, suite
-                            imprimer(reponse["texte"])
-                            if savoirs and isinstance(mj, Comparateur):
-                                mj.noter_savoirs(reponse["texte"], ajout["proposition"])
-                            continue
-                        travail = m.copier()
-                        travail.memoriser(texte, reponse["texte"],
-                                           "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
-                        consigner_narration(travail, reponse)
-                        travail.sauver(args.save)
-                        m.data = travail.data
                         imprimer(reponse["texte"])
+                        if isinstance(mj, Comparateur):
+                            for t, rapport in zip(transactions, rapports):
+                                if t["type"] == "conversation_pnj":
+                                    mj.noter_resultat(reponse["texte"], rapport)
+                                elif t["type"] == "savoirs":
+                                    mj.noter_savoirs(reponse["texte"], t["proposition"])
                         continue
                     p = reponse["proposition"]
+                    if transactions:
+                        travail, _ = appliquer_transactions(m, transactions)
+                        travail.sauver(args.save)
+                        m.data = travail.data
                     if question and p.get("action") not in ("observer", "examiner", "clarifier", "impossible"):
                         imprimer("Le MJ a proposé une action à une question. Aucune action n'a été appliquée.")
                         imprimer("Précisez une action si vous souhaitez la tenter, ou consultez contexte / regarder.")
                         continue
-                    if "_faits_narratifs" in reponse:
-                        ajout = reponse["_faits_narratifs"]
-                        travail, _, _ = preparer_faits(m, ajout["proposition"], ajout["revision"])
-                        travail.sauver(args.save)
-                        m.data = travail.data
                     pending = None
                     if p.get("action") in ("clarifier", "impossible"):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")

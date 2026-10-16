@@ -13,6 +13,7 @@ from tests.support import simuler_couverture
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import decrire, regarder
+from donjon.transactions import du_type
 
 
 def ajout(id="marchand", facette="yeux", description="Ses yeux sont gris clair."):
@@ -135,7 +136,7 @@ class EnrichissementTests(unittest.TestCase):
             resultat = MJOpenAI().echanger(m, "De quelle couleur sont les yeux de Gorm ?")
         self.assertEqual(appels.call_count, 2)
         self.assertEqual(m.data, avant)
-        self.assertEqual(resultat["_enrichissement"]["proposition"], completer(ajout()))
+        self.assertEqual(du_type(resultat, "complements")["proposition"], completer(ajout()))
 
     def test_echec_second_appel_ou_boucle_sans_enregistrement(self):
         for seconde in (ErreurMonde("Réseau indisponible"), reponse_enrichir(ajout(facette="cheveux")),

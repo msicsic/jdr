@@ -15,6 +15,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import decrire_accords
+from donjon.transactions import du_type
 
 
 def conversation(operation="proposer", montant=0, acteur="marchand", mission="anneau_veilleur", sujet="Quelle récompense pour l'anneau ?"):
@@ -190,7 +191,7 @@ class DialoguesTests(unittest.TestCase):
         with patch.object(MJOpenAI, "_appeler", side_effect=appel) as api:
             r = MJOpenAI().echanger(self.m, question)
         self.assertEqual(api.call_count, 2)
-        self.assertIn("_conversation_pnj", r)
+        self.assertIsNotNone(du_type(r, "conversation_pnj"))
         self.assertEqual(self.m.data, avant)
 
     def test_question_ne_peut_pas_accepter_et_panne_narration_ne_cree_pas_offre(self):
@@ -259,8 +260,8 @@ class DialoguesTests(unittest.TestCase):
             with patch.object(c.principal, "_appeler", side_effect=[reponse(conversation()), dialogue()]), patch.object(c.secondaire, "_appeler", side_effect=[reponse(conversation("negocier", 30)), dialogue('Gorm : « 22 pièces. »')]):
                 r = c.echanger(self.m, "Combien ?")
                 self.assertTrue(fini.wait(2))
-            self.assertEqual(r["_conversation_pnj"]["rapport"]["engagement"]["montant"], 20)
-            self.assertEqual(c.fiches[1]["secondaire"]["reponse"]["_conversation_pnj"]["rapport"]["engagement"]["montant"], 22)
+            self.assertEqual(du_type(r, "conversation_pnj")["rapport"]["engagement"]["montant"], 20)
+            self.assertEqual(du_type(c.fiches[1]["secondaire"]["reponse"], "conversation_pnj")["rapport"]["engagement"]["montant"], 22)
             self.assertEqual(self.m.data, avant)
         finally:
             c.fermer()

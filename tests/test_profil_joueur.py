@@ -11,6 +11,7 @@ from donjon.monde import Monde, ErreurMonde
 from donjon.mj import MJOpenAI
 from donjon.profil_joueur import preparer, catalogue, reponse
 from donjon.rendu import fiche
+from donjon.transactions import du_type
 
 
 TAILLE = {"profil_joueur": [{"champ": "taille_cm", "valeur": 178}]}
@@ -86,7 +87,7 @@ class ProfilJoueurTests(unittest.TestCase):
             resultat = MJOpenAI().echanger(m, "je mesure combien ?")
         self.assertEqual(api.call_count, 1)
         self.assertEqual(resultat["texte"], "Tu mesures 1 m 78.")
-        self.assertEqual(resultat["_profil_joueur"]["proposition"], TAILLE)
+        self.assertEqual(du_type(resultat, "profil_joueur")["proposition"], TAILLE)
         self.assertEqual(m.data, avant)
         self.assertIn("jamais l'altitude", api.call_args.args[0])
 

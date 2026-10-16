@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from donjon.config import charger_env
 from donjon.mj import MJOpenAI
 from donjon.monde import nouveau_monde
+from donjon.transactions import du_type
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
             mj.observateur = tracer
             resultat = mj.echanger(monde, question)
             assert resultat["mode"] == "dialogue" and resultat["texte"].strip(), resultat
-            assert resultat["_conversation_pnj"]["proposition"]["operation"] == "discuter", resultat
+            assert du_type(resultat, "conversation_pnj")["proposition"]["operation"] == "discuter", resultat
             assert monde.data == avant, "Le test ne doit pas modifier le monde."
             print(f"Essai {essai} : {resultat['texte']}", flush=True)
     print("Trois réponses non vides ; aucune sauvegarde utilisateur chargée ni modifiée.")

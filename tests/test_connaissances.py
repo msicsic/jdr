@@ -11,6 +11,7 @@ from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.connaissances import catalogue, preparer_savoirs
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
+from donjon.transactions import du_type
 
 
 TEXTE = "Gorm tient à l'anneau parce qu'il lui rappelle son ancien métier de veilleur."
@@ -104,8 +105,8 @@ class ConnaissancesTests(unittest.TestCase):
         with patch.object(MJOpenAI, "_appeler", side_effect=appel) as appels:
             r = MJOpenAI().echanger(self.m, "Gorm, pourquoi cet anneau ?")
         self.assertEqual(appels.call_count, 2)
-        self.assertIn("_savoirs", r)
-        self.assertNotIn("_conversation_pnj", r)
+        self.assertIsNotNone(du_type(r, "savoirs"))
+        self.assertIsNone(du_type(r, "conversation_pnj"))
         self.assertEqual(self.m.data, avant)
 
     def test_echec_narration_ne_persiste_aucun_savoir(self):
@@ -206,10 +207,10 @@ class ConnaissancesTests(unittest.TestCase):
             with patch.object(c.principal, "_appeler", side_effect=[proposition(), dialogue()]), patch.object(c.secondaire, "_appeler", side_effect=[proposition(ajout(autre)), dialogue()]):
                 r = c.echanger(self.m, "Pourquoi cet anneau ?")
                 self.assertTrue(fini.wait(2))
-            m = preparer_savoirs(self.m, r["_savoirs"]["proposition"])
-            c.noter_savoirs(r["texte"], r["_savoirs"]["proposition"])
+            m = preparer_savoirs(self.m, du_type(r, "savoirs")["proposition"])
+            c.noter_savoirs(r["texte"], du_type(r, "savoirs")["proposition"])
             self.assertEqual(m.data["savoirs_pnj"]["marchand"]["lien_anneau"]["texte"], TEXTE)
-            self.assertEqual(c.fiches[1]["secondaire"]["reponse"]["_savoirs"]["proposition"]["savoirs"][0]["texte"], autre)
+            self.assertEqual(du_type(c.fiches[1]["secondaire"]["reponse"], "savoirs")["proposition"]["savoirs"][0]["texte"], autre)
             self.assertIn("CONNAISSANCES ENREGISTRÉES", texte_comparaison(c.fiches[1]))
             self.assertIn("CONNAISSANCES PROPOSÉES", texte_comparaison(c.fiches[1]))
             self.assertEqual(self.m.data, avant)

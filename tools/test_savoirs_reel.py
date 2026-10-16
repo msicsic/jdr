@@ -11,6 +11,7 @@ from donjon.connaissances import preparer_savoirs
 from donjon.dialogues import preparer_conversation
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, nouveau_monde
+from donjon.transactions import du_type
 
 
 def main():
@@ -39,8 +40,8 @@ def main():
             if numero == 0:
                 assert "crochet" in r["texte"].lower() or "gond" in r["texte"].lower(), r
             elif numero == 1:
-                assert "_savoirs" in r, r
-                p = r["_savoirs"]
+                assert du_type(r, "savoirs"), r
+                p = du_type(r, "savoirs")
                 m = preparer_savoirs(m, p["proposition"], p["revision"])
                 savoirs = copy.deepcopy(m.data["savoirs_pnj"])
                 print("Savoir enregistré : " + json.dumps(p["proposition"], ensure_ascii=False), flush=True)
@@ -49,10 +50,10 @@ def main():
                 m = Monde.charger(path)
                 m.data["conversation"] = []
             else:
-                assert "_savoirs" not in r, r
+                assert du_type(r, "savoirs") is None, r
                 assert m.data["savoirs_pnj"] == savoirs
-            if "_conversation_pnj" in r:
-                p = r["_conversation_pnj"]
+            if du_type(r, "conversation_pnj"):
+                p = du_type(r, "conversation_pnj")
                 m, _ = preparer_conversation(m, p["proposition"], p["revision"])
             print(message + "\n" + r["texte"] + "\n", flush=True)
     print("Connaissance d'auteur, ajout du MJ et rappel sans historique vérifiés. Aucune partie utilisateur modifiée.")

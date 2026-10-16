@@ -15,6 +15,7 @@ from donjon.operations import sequence, etape
 from donjon.mj import MJOpenAI
 from donjon.rendu import regarder
 from donjon.carte import carte
+from donjon.transactions import du_type
 
 
 AJOUT = {"abords": [{"cadre": "terrasse_nord", "terrain": "terre"}]}
@@ -154,7 +155,7 @@ class EspaceTests(unittest.TestCase):
         self.assertEqual(api.call_count, 2)
         self.assertIn("espace", api.call_args_list[1].args[1]["faits"])
         self.assertEqual(m.data, avant)
-        m = preparer(m, reponse["_espace"]["proposition"], reponse["_espace"]["revision"])
+        m = preparer(m, du_type(reponse, "espace")["proposition"], du_type(reponse, "espace")["revision"])
         with patch.object(mj, "_appeler", return_value=r) as api:
             mj.echanger(m, "il y a d'autres issues ?")
         self.assertEqual(api.call_count, 1)
@@ -163,7 +164,7 @@ class EspaceTests(unittest.TestCase):
         m, id = terrasse()
         p = sequence(etape("soulever", id, "terrasse"), etape("appuyer", id, outil="appui_terrasse_nord"), etape("franchir", id))
         r = {"mode": "action", "texte": "", "faits": ["espace"], "proposition": p,
-             "_espace": {"revision": m.data["revision"], "proposition": AJOUT}}
+             "_transactions": [{"type": "espace", "revision": m.data["revision"], "proposition": AJOUT}]}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp)/"test.json"
             m.sauver(chemin)

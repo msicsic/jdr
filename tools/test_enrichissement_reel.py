@@ -11,6 +11,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import decrire
+from donjon.transactions import du_type
 
 
 def main():
@@ -26,9 +27,9 @@ def main():
             reponse = mj.echanger(m, question)
             assert m.data == avant
             assert reponse["mode"] == "dialogue"
-            assert ("_enrichissement" in reponse) == attendu, reponse
+            assert (du_type(reponse, "complements") is not None) == attendu, reponse
             if attendu:
-                ajout = reponse["_enrichissement"]
+                ajout = du_type(reponse, "complements")
                 m = preparer_complements(m, ajout["proposition"], ajout["revision"])
                 print("Ajouts validés : " + str(ajout["proposition"]), flush=True)
             m.memoriser(question, reponse["texte"])

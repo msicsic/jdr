@@ -37,6 +37,7 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
                                  propositions as qualifications_proposees,
                                  controler as controler_physique)
 from .moteur import QualificationRequise
+from .transactions import ajouter as ajouter_transaction
 
 
 def lire_flux(reponse):
@@ -482,8 +483,7 @@ class MJOpenAI:
                 trace.update(secondes=round(time.monotonic()-debut, 3), usage=copy.deepcopy(self.derniere_utilisation))
                 self.observateur(trace)
         reponse = copy.deepcopy(self._echanger_prepare(travail, intention, proposition_en_attente))
-        reponse["_espace"] = {"revision": monde.data["revision"], "proposition": p}
-        return reponse
+        return ajouter_transaction(reponse, "espace", monde.data["revision"], p, debut=True)
 
     def _echanger_prepare(self, monde, intention, proposition_en_attente=None,
                           suite_qualification=False):
@@ -571,9 +571,9 @@ class MJOpenAI:
         if reponse["mode"] == "enrichir_joueur":
             p = reponse["proposition"]
             travail = preparer_profil(monde, p, revision)
-            return {"mode": "dialogue", "texte": reponse_profil(travail, p), "faits": ["joueur"],
-                    "proposition": None, "_profil_joueur": {"revision": revision, "proposition": p},
-                    "_texte_moteur": True}
+            return ajouter_transaction(
+                {"mode": "dialogue", "texte": reponse_profil(travail, p), "faits": ["joueur"],
+                 "proposition": None, "_texte_moteur": True}, "profil_joueur", revision, p)
         if reponse["mode"] == "etablir_faits":
             p = reponse["proposition"]
             try:
@@ -589,7 +589,6 @@ class MJOpenAI:
                     raise ErreurMonde("La correction des faits narratifs n'a pas abouti.")
                 p = reponse["proposition"]
                 travail, texte, _ = preparer_faits(monde, p, revision)
-            transaction = {"revision": revision, "proposition": p}
             qualification = any(a["type"] == "qualification" for a in p["ajouts"])
             if qualification and not suite_qualification:
                 try:
@@ -597,14 +596,12 @@ class MJOpenAI:
                                                    proposition_en_attente,
                                                    suite_qualification=True)
                     if suite["mode"] == "action":
-                        suite["_faits_narratifs"] = transaction
-                        return suite
+                        return ajouter_transaction(suite, "faits", revision, p, debut=True)
                 except ErreurMonde:
                     pass
-            return {"mode": "dialogue", "texte": texte,
-                    "faits": [], "proposition": None,
-                    "_faits_narratifs": transaction,
-                    "_texte_moteur": True}
+            return ajouter_transaction({"mode": "dialogue", "texte": texte, "faits": [],
+                                        "proposition": None, "_texte_moteur": True},
+                                       "faits", revision, p)
         if reponse["mode"] == "action" and reponse["proposition"]["action"] in ("clarifier", "impossible"):
             if "_audit_justification" not in reponse:
                 raise ErreurMonde("L'avis du MJ n'a pas été contrôlé.")
@@ -628,12 +625,10 @@ class MJOpenAI:
         narration = self._echanger(travail, intention, proposition_en_attente, enrichir=False, conversation_validee=rapport)
         if narration["mode"] != "dialogue":
             raise ErreurMonde("Le MJ n'a pas terminé la description. Aucun complément enregistré.")
-        cle = {"conversation_pnj": "_conversation_pnj", "enrichir": "_enrichissement",
-               "enrichir_savoirs": "_savoirs"}[reponse["mode"]]
-        narration[cle] = {"revision": revision, "proposition": complements}
-        if rapport is not None:
-            narration[cle]["rapport"] = rapport
-        return narration
+        nature = {"conversation_pnj": "conversation_pnj", "enrichir": "complements",
+                  "enrichir_savoirs": "savoirs"}[reponse["mode"]]
+        return ajouter_transaction(narration, nature, revision, complements,
+                                   rapport if reponse["mode"] == "conversation_pnj" else None)
 
     def _echanger(self, monde, intention, proposition_en_attente, enrichir, conversation_validee=None, resultat_resolu=None, retour_moteur=None):
         contexte = monde.contexte()

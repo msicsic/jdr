@@ -16,6 +16,7 @@ from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, QualificationRequise, proposition
 from donjon.rendu import decrire
 from tests.support import simuler_couverture
+from donjon.transactions import du_type
 
 
 class CoupeTests(unittest.TestCase):
@@ -227,8 +228,8 @@ class CoupeTests(unittest.TestCase):
         self.assertEqual(reponse["mode"], "dialogue")
         self.assertTrue(reponse["_texte_moteur"])
         self.assertIn("résiste à la hache", reponse["texte"])
-        travail, _, _ = preparer_faits(m, reponse["_faits_narratifs"]["proposition"],
-                                        reponse["_faits_narratifs"]["revision"])
+        travail, _, _ = preparer_faits(m, du_type(reponse, "faits")["proposition"],
+                                        du_type(reponse, "faits")["revision"])
         self.assertEqual(statut_capacite(travail.objets["dalle"], "tranchable",
                                         travail.objets["hache"]), "ecartee")
 
@@ -312,7 +313,7 @@ class CoupeTests(unittest.TestCase):
                                   side_effect=[demande, refus] * 3):
                     reponse = MJOpenAI().echanger(m, "Je coupe la perche avec la hache")
                 self.assertEqual(reponse["mode"], "dialogue")
-                self.assertNotIn("_faits_narratifs", reponse)
+                self.assertIsNone(du_type(reponse, "faits"))
                 self.assertEqual(m.data, avant)
 
     def test_objet_tranchable_cree_par_mj_coupe_en_console_et_persiste(self):

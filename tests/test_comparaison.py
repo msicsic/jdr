@@ -12,6 +12,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, nouveau_monde
 from donjon.moteur import Moteur, proposition
 from tests.support import simuler_couverture
+from donjon.transactions import du_type
 
 
 def dialogue(texte="Réponse."):
@@ -88,7 +89,7 @@ class ComparaisonTests(unittest.TestCase):
                 reponse = c.echanger(m, "Ses yeux ?")
                 self.assertTrue(fini.wait(2))
             self.assertEqual(m.data, avant)
-            m = preparer_complements(m, reponse["_enrichissement"]["proposition"])
+            m = preparer_complements(m, du_type(reponse, "complements")["proposition"])
             self.assertEqual(m.objets["detail_marchand_yeux"]["description_visuelle"], "Ses yeux sont gris.")
             fiche = c.fiches[1]
             self.assertIn("bruns", texte_resultat(fiche["secondaire"]))

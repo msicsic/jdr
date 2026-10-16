@@ -14,6 +14,7 @@ from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import decrire, regarder
 from donjon.spatial import installer as installer_cases
+from donjon.transactions import du_type
 
 
 PROPOSITION = {"support": "antichambre_murs", "inscription": "Veille au niveau des eaux."}
@@ -244,7 +245,7 @@ class FaitsLocauxTests(unittest.TestCase):
         self.assertEqual(appel.call_count, 1)
         self.assertEqual(m.data, avant)
         self.assertIn(PROPOSITION["inscription"], resultat["texte"])
-        self.assertEqual(resultat["_faits_narratifs"]["proposition"], FAITS)
+        self.assertEqual(du_type(resultat, "faits")["proposition"], FAITS)
 
     def test_mj_recoit_le_refus_et_corrige_un_support_invente(self):
         m = nouveau_monde()

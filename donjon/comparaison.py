@@ -140,14 +140,13 @@ class Comparateur:
                     validation = Moteur(monde).preparer(reponse["proposition"], origine="comparaison").resume(monde)
                 except ErreurMonde as exc:
                     validation = "Refus / avis du moteur : " + str(exc)
-            elif "_enrichissement" in reponse:
-                validation = "Compléments descriptifs validés sur une copie."
-            elif "_savoirs" in reponse:
-                validation = "Connaissances narratives validées sur une copie ; aucune propriété physique modifiée."
-            elif "_faits_narratifs" in reponse:
-                validation = "Faits narratifs validés sur une copie ; enregistrement par le jeu avant affichage."
-            elif "_conversation_pnj" in reponse:
-                validation = "Conversation validée sur une copie. " + " ".join(reponse["_conversation_pnj"]["rapport"]["faits"])
+            for t in (reponse.get("_transactions", []) if reponse["mode"] != "action" else []):
+                validation = {
+                    "complements": "Compléments descriptifs validés sur une copie.",
+                    "savoirs": "Connaissances narratives validées sur une copie ; aucune propriété physique modifiée.",
+                    "faits": "Faits narratifs validés sur une copie ; enregistrement par le jeu avant affichage.",
+                    "conversation_pnj": "Conversation validée sur une copie. " + " ".join(t.get("rapport", {}).get("faits", [])),
+                }.get(t["type"], validation)
             self._publier(numero, role, statut="Terminé", reponse=copy.deepcopy(reponse),
                           validation=validation, secondes=round(time.monotonic() - debut, 3))
             return reponse
