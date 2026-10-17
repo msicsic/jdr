@@ -306,7 +306,15 @@
         ]
       },
       "sorties": {},
-      "travail_calme": true
+      "travail_calme": true,
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
     },
     "terrasse": {
       "altitude_cm": 240,
@@ -331,7 +339,15 @@
           "......"
         ]
       },
-      "sorties": {}
+      "sorties": {},
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
     }
   },
   "savoirs_pnj": {},

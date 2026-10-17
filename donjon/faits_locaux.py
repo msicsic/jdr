@@ -116,7 +116,37 @@ def catalogue(monde):
                              for id in accessibles if monde.objets[id].get("masse", 0) > 0},
             "locuteurs": {
         id: {"nom": p["nom"]} for id, p in interlocuteurs(monde).items()},
-        "evolutions": disponibles(monde)}
+        "evolutions": disponibles(monde),
+        **({"potentiel_invention": potentiel(monde)} if potentiel(monde) is not None else {})}
+
+
+def potentiel(monde, salle=None):
+    """Budget d'invention déclaré par le scénario pour ce lieu ; None si le lieu n'en fixe pas.
+
+    Un objet créé par le MJ consomme définitivement une place du lieu où il apparaît :
+    le déplacer ensuite ne libère rien. Les capacités permises bornent aussi les
+    propriétés ajoutées à un objet existant de ce lieu.
+    """
+    salle = salle or monde.joueur["salle"]
+    budget = monde.data["salles"][salle].get("potentiel_invention")
+    if budget is None:
+        return None
+    return {**budget, "objets_restants": max(0, budget["objets_max"]
+                                              - monde.data.get("inventions", {}).get(salle, 0))}
+
+
+def _respecter_potentiel(monde, capacites, masse=None, nouvel_objet=False):
+    budget = potentiel(monde)
+    if budget is None:
+        return
+    if nouvel_objet and not budget["objets_restants"]:
+        raise ErreurMonde("Ce lieu ne recèle plus rien de nouveau : ce qui s'y trouve est déjà connu.")
+    if masse is not None and masse > budget["masse_max_kg"]:
+        raise ErreurMonde("Un objet de plus de " + str(budget["masse_max_kg"]).replace(".", ",")
+                          + " kg ne peut pas apparaître ici.")
+    interdites = sorted(set(noms_capacites(capacites)) - set(budget["capacites"]))
+    if interdites:
+        raise ErreurMonde("Ce lieu ne peut pas fournir d'objet doté de : " + ", ".join(interdites) + ".")
 
 
 def _texte(texte, maximum):
@@ -215,6 +245,7 @@ def preparer_faits(monde, proposition, revision=None):
                 etablis.append({"type": nature, "objet": ancrage,
                                 "constats": list(exclusions)})
                 continue
+            _respecter_potentiel(travail, ajout["capacites"])
             nouvelles = proprietes_capacites(ajout["capacites"], cible["masse"], cible["mobile"])
             if not nouvelles:
                 raise ErreurMonde("Aucune propriété physique proposée.")
@@ -287,6 +318,11 @@ def preparer_faits(monde, proposition, revision=None):
                         or (relation == "contenu" and
                             (support["type"] != "contenant" or not support.get("ouverte")))):
                     raise ErreurMonde("Propriétés physiques de l'objet invalides.")
+                _respecter_potentiel(travail, ajout["capacites"], masse, nouvel_objet=True)
+                salle = travail.joueur["salle"]
+                if potentiel(travail) is not None:
+                    inventions = travail.data.setdefault("inventions", {})
+                    inventions[salle] = inventions.get(salle, 0) + 1
                 detail = objet("", nom, "accessoire", ancrage, aliases=[nom],
                                genre=genre, materiau=materiau.strip(), masse=masse,
                                mobile=mobile, description_visuelle=texte,
@@ -334,6 +370,18 @@ def preparer_faits(monde, proposition, revision=None):
 
 def verifier(monde):
     from .geometrie import cases
+    for salle, nombre in monde.data.get("inventions", {}).items():
+        budget = monde.data["salles"].get(salle, {}).get("potentiel_invention")
+        assert (budget is not None and type(nombre) is int
+                and 0 < nombre <= budget["objets_max"]), "Budget d'invention dépassé"
+    for salle in monde.data["salles"].values():
+        budget = salle.get("potentiel_invention")
+        assert budget is None or (
+            isinstance(budget, dict) and set(budget) == {"objets_max", "masse_max_kg", "capacites"}
+            and type(budget["objets_max"]) is int and budget["objets_max"] >= 0
+            and type(budget["masse_max_kg"]) in (int, float) and budget["masse_max_kg"] >= 0
+            and isinstance(budget["capacites"], list)
+            and set(budget["capacites"]) <= set(CAPACITES_REVUE)), "Potentiel d'invention mal formé"
     for o in monde.objets.values():
         if o.get("relation_support"):
             relation = o["relation_support"]

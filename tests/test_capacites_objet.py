@@ -17,6 +17,7 @@ from donjon.moteur import Moteur, QualificationRequise, proposition
 from donjon.operations import etape, sequence
 from donjon.rendu import decrire
 from donjon.spatial import installer
+from tests.support import sans_budget
 
 
 class CapacitesObjetTests(unittest.TestCase):
@@ -88,6 +89,7 @@ class CapacitesObjetTests(unittest.TestCase):
             for representation, texte in (("objet", ajout["nom"]), ("aspect", ajout["texte"]))]}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
+            sans_budget(nouveau_monde()).sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[reponse, rapport]),
                   patch("builtins.input", side_effect=["mj Y a-t-il un percuteur ici ?", "quitter"]),
@@ -149,7 +151,7 @@ class CapacitesObjetTests(unittest.TestCase):
             self.assertEqual(reprise.objets[id]["lieu"], "antichambre_sol")
 
     def test_source_improvisee_consomme_son_combustible_et_eclaire(self):
-        m = nouveau_monde()
+        m = sans_budget(nouveau_monde())
         installer(m)
         m, _, etablis = preparer_faits(m, {"ajouts": [{
             "type": "objet", "ancrage": "antichambre_sol",
@@ -199,7 +201,7 @@ class CapacitesObjetTests(unittest.TestCase):
             Moteur(m).preparer(analyser(m, "sonner marteau"))
 
     def test_outils_improvises_couper_levier_allumage_apres_rechargement(self):
-        m = nouveau_monde()
+        m = sans_budget(nouveau_monde())
         ajouts = [
             {"type": "objet", "ancrage": "antichambre_sol",
              "nom": "barre à tranchant", "genre": "f",

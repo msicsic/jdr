@@ -391,7 +391,10 @@
       "aliases": [
         "murs"
       ],
-      "ancrage_carte": [-1, 2],
+      "ancrage_carte": [
+        -1,
+        2
+      ],
       "id": "antichambre_murs",
       "integrite": 100,
       "lieu": "antichambre",
@@ -400,7 +403,10 @@
       "maximum": 100,
       "mobile": false,
       "nom": "murs",
-      "position": [0, 2],
+      "position": [
+        0,
+        2
+      ],
       "position_salle": "antichambre",
       "type": "surface"
     },
@@ -665,6 +671,14 @@
           "porte": null,
           "vers": "echoppe"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     },
     "crypte": {
@@ -696,6 +710,14 @@
           "porte": "porte",
           "vers": "antichambre"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     },
     "echoppe": {
@@ -726,6 +748,14 @@
           "porte": null,
           "vers": "antichambre"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     }
   },

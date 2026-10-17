@@ -14,3 +14,10 @@ def simuler_couverture(test):
     controle = patch.object(MJOpenAI, "_auditer_action")
     controle.start()
     test.addCleanup(controle.stop)
+
+
+def sans_budget(monde):
+    """Lieu sans budget d'invention : ces tests portent sur les capacités elles-mêmes."""
+    for salle in monde.data["salles"].values():
+        salle.pop("potentiel_invention", None)
+    return monde

@@ -84,7 +84,10 @@
         "cloison",
         "épaulement"
       ],
-      "ancrage_carte": [3, 3],
+      "ancrage_carte": [
+        3,
+        3
+      ],
       "description_visuelle": "Une cloison de pierre fissurée coupe le centre du refuge. On peut la contourner par ses deux extrémités.",
       "id": "antichambre_murs",
       "integrite": 100,
@@ -545,7 +548,10 @@
         "inscription",
         "gravure"
       ],
-      "ancrage_carte": [3, 3],
+      "ancrage_carte": [
+        3,
+        3
+      ],
       "fixee_sur": "la face ouest de la cloison de pierre",
       "genre": "f",
       "id": "gravure",
@@ -837,6 +843,14 @@
           "porte": null,
           "vers": "echoppe"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     },
     "beffroi": {
@@ -878,6 +892,14 @@
           "porte": "porte",
           "vers": "crypte"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     },
     "chambre_cloche": {
@@ -920,6 +942,14 @@
           "porte": null,
           "vers": "beffroi"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     },
     "crypte": {
@@ -960,6 +990,14 @@
           "porte": null,
           "vers": "echoppe"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     },
     "echoppe": {
@@ -1000,6 +1038,14 @@
           "porte": null,
           "vers": "crypte"
         }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
       }
     }
   },

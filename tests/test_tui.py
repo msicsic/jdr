@@ -16,7 +16,7 @@ from donjon.operations import sequence, etape
 from donjon.improvisation import proposition as improviser, issue
 from donjon.spatial import installer
 from donjon.spatial import position_carte, position_cible
-from tests.support import simuler_couverture
+from tests.support import sans_budget, simuler_couverture
 
 TEXTUAL = all(importlib.util.find_spec(m) is not None for m in ("textual", "pyperclip"))
 if TEXTUAL:
@@ -49,7 +49,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.fermer(app)
 
     async def test_capacites_improvisees_utilisables_et_sauvees_dans_la_tui(self):
-        monde = nouveau_defi()
+        monde = sans_budget(nouveau_defi())
         installer(monde)
         monde, _, etablis = preparer_faits(monde, {"ajouts": [
             {"type": "objet", "ancrage": "antichambre_sol", "nom": "timbre de fer",
