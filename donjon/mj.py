@@ -472,7 +472,8 @@ def decoder_imbrique(valeur, schema):
 
 
 class MJOpenAI:
-    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api", langage="json"):
+    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api", langage="json",
+                 strict=True, renvoi=True):
         self.modele = modele or os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
         self.effort, self.timeout = effort, timeout
         self.derniere_utilisation = None
@@ -482,6 +483,8 @@ class MJOpenAI:
         self.erreur_auth = None
         self.catalogue_verifie = False
         self.sans_strict = set()  # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
+        # Essais : strict=False n'impose plus le schéma ; renvoi=False ne renvoie pas les écarts au modèle.
+        self.strict, self.renvoi = strict, renvoi
         self.derniere_sortie = []
         self.observateur = None
         self._audit_courant = None
@@ -1052,6 +1055,10 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 
+    def _format_garanti(self, fonction):
+        """Le fournisseur impose-t-il le schéma ? MiMo accepte le mode strict sans l'appliquer."""
+        return self.strict and self.connexion != "mimo" and fonction not in self.sans_strict
+
     def _demander(self, instructions, entree, intention, fonction, schema):
         """Une réponse conforme au schéma, quel que soit le langage du modèle.
 
@@ -1067,7 +1074,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             def tenter(supplement):
                 brut = self._appeler_brut(instructions, {**entree, **supplement}, intention, fonction, schema)
                 fautes = (script_mj.erreurs(brut, schema)
-                          if self.connexion == "mimo" or fonction in self.sans_strict else [])
+                          if self.renvoi and not self._format_garanti(fonction) else [])
                 if fautes:
                     raise script_mj.ErreurScript(script_mj.refus(fautes))
                 return brut
@@ -1105,7 +1112,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             "input": [{"role": "user", "content": json.dumps(entree, ensure_ascii=False)}],
             "tools": [{"type": "function", "name": fonction,
                        "description": "Répond au joueur ou soumet une manœuvre au moteur, sans modifier le monde.",
-                       "parameters": schema, "strict": True}],
+                       "parameters": schema, "strict": self.strict}],
             "tool_choice": {"type": "function", "name": fonction},
             "parallel_tool_calls": False,
             "reasoning": {"effort": self.effort},
@@ -1126,7 +1133,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             payload, adresse = vers_chat(payload), "https://api.xiaomimimo.com/v1/chat/completions"
         if self.connexion == "anthropic":
             payload, adresse = vers_messages(payload), "https://api.anthropic.com/v1/messages"
-            payload["tools"][0]["strict"] = fonction not in self.sans_strict
+            payload["tools"][0]["strict"] = self.strict and fonction not in self.sans_strict
             entetes = {"x-api-key": cle, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
         requete = urllib.request.Request(adresse, data=json.dumps(payload).encode("utf-8"),
                                          headers=entetes, method="POST")
@@ -1146,7 +1153,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 erreur, code = {}, "erreur_api"
             status = exc.code
             exc.close()
-            if (self.connexion == "anthropic" and status == 400 and fonction not in self.sans_strict
+            if (self.connexion == "anthropic" and status == 400 and self._format_garanti(fonction)
                     and "grammar is too large" in str(erreur.get("message"))):
                 # Schéma trop riche pour la grammaire stricte : même requête sans garantie de format.
                 self.sans_strict.add(fonction)
@@ -1178,7 +1185,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             raise ErreurMonde("Le MJ n'a pas fourni une proposition unique. Aucune action appliquée.")
         try:
             p = json.loads(appels[0]["arguments"])
-            if self.connexion == "mimo" or fonction in self.sans_strict:
+            if not self._format_garanti(fonction):
                 p = decoder_imbrique(p, schema)
             if not isinstance(p, dict):
                 raise ValueError("La proposition doit être un objet")

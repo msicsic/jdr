@@ -153,7 +153,7 @@ def preparer(donnees, sauvegarde):
     m.sauver(sauvegarde)
 
 
-def jouer(script, compteur, offline, connexion="chatgpt", effort="medium", langage="json"):
+def jouer(script, compteur, offline, connexion="chatgpt", effort="medium", langage="json", options=()):
     donnees = json.loads(Path(script).read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as dossier:
         sauvegarde = Path(dossier) / "banc.json"
@@ -166,7 +166,7 @@ def jouer(script, compteur, offline, connexion="chatgpt", effort="medium", langa
         if offline:
             argv.append("--offline")
         else:
-            argv += ["--connexion", connexion, "--effort", effort, "--langage", langage]
+            argv += ["--connexion", connexion, "--effort", effort, "--langage", langage, *options]
         arret = None
         try:
             jeu.main(argv, interface=interface)
@@ -208,6 +208,8 @@ def main(argv=None):
                    help="fournisseur du MJ ; mimo ou anthropic pour un essai comparatif")
     p.add_argument("--effort", choices=("low", "medium", "high"), default="medium")
     p.add_argument("--langage", choices=("json", "script"), default="json")
+    p.add_argument("--sans-strict", action="store_true")
+    p.add_argument("--sans-renvoi", action="store_true")
     args = p.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8")
     compteur = Compteur(args.max_appels)
@@ -217,7 +219,8 @@ def main(argv=None):
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
     resumes = []
     for script in args.scripts:
-        partie = jouer(script, compteur, args.offline, args.connexion, args.effort, args.langage)
+        options = [o for o, actif in (("--sans-strict", args.sans_strict), ("--sans-renvoi", args.sans_renvoi)) if actif]
+        partie = jouer(script, compteur, args.offline, args.connexion, args.effort, args.langage, options)
         nom = f"{horodatage}-{args.etiquette + '-' if args.etiquette else ''}{partie['script']}.json"
         (sortie / nom).write_text(json.dumps(partie, ensure_ascii=False, indent=1), encoding="utf-8")
         resumes.append(resumer(partie))

@@ -142,6 +142,17 @@ class JsonNonStrictTests(unittest.TestCase):
             self.assertEqual(mj._demander("Règles.", {}, "x", "repondre_au_joueur", SCHEMA), {"x": 1})
         self.assertEqual(appel.call_count, 1)
 
+    def test_sans_strict_le_schema_n_est_plus_impose_mais_verifie(self):
+        mj = MJOpenAI("gpt-6-luna", connexion="api", strict=False)
+        faux = {"mode": "dialogue", "texte": "Oui.", "faits": ["objet:x"], "proposition": None}
+        bon = {**faux, "faits": ["salle"]}
+        with patch.object(MJOpenAI, "_appeler_brut", side_effect=[faux, bon]):
+            self.assertEqual(mj._demander("Règles.", {}, "x", "repondre_au_joueur", SCHEMA), bon)
+        sans_renvoi = MJOpenAI("gpt-6-luna", connexion="api", strict=False, renvoi=False)
+        with patch.object(MJOpenAI, "_appeler_brut", return_value=faux) as appel:
+            self.assertEqual(sans_renvoi._demander("Règles.", {}, "x", "repondre_au_joueur", SCHEMA), faux)
+        self.assertEqual(appel.call_count, 1)
+
     def test_deux_ecarts_de_suite_arretent_le_tour(self):
         mj = MJOpenAI("mimo-v2.6-flash", connexion="mimo")
         with patch.object(MJOpenAI, "_appeler_brut", return_value={"mode": "autre"}), \
