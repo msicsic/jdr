@@ -37,6 +37,8 @@ def appliquer(monde, effet, lignes):
         relation["soupcon"] = min(3, relation["soupcon"] + 1)
         relation["vols_surpris"] += 1
         relation["dernier_objet"] = valeur
+        from .esprits import memoriser
+        memoriser(monde, cible, {"type": "vol_surpris", "auteur": "joueur", "objet": valeur})
         monde.objets[cible]["humeur"] = "méfiant"
         lignes.append(monde.objets[cible]["nom"] + " te surprend en train de tenter de dérober "
                       + designer(monde.objets[valeur]) + ". Tu retires la main ; l'objet reste en place.")

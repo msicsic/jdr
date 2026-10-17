@@ -218,8 +218,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if precedent and precedent["operation"] == "detacher" and precedent["cible"] == cible:
             p.minutes = 0  # Ranger la fixation qu'on vient de libérer fait partie du même geste.
         if methode == "discret":
-            temoins = [id for id, t in monde.objets.items() if t["type"] == "personnage" and monde.present_physique(id)
-                       and (not monde.data.get("mode_cases") or monde.visible(id))]
+            # Témoin : un personnage qui perçoit le joueur maintenant, avec les règles du joueur.
+            from .esprits import percoit
+            temoins = [id for id, t in monde.objets.items() if t["type"] == "personnage"
+                       and percoit(monde, id, "joueur")]
             if temoins:
                 p.stat = "DEX"
                 vigilance = max(monde.objets[id]["vigilance"] + 2 * monde.data["relations_pnj"][id]["soupcon"] for id in temoins)

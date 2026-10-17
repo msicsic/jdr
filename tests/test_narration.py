@@ -11,6 +11,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde
 from donjon.moteur import Moteur
 from donjon.narration import controler
+from donjon.esprits import dernier_son
 
 
 def dialogue(texte):
@@ -275,7 +276,7 @@ class NarrationTests(unittest.TestCase):
         self.assertIn("rythme avec ton corps", sortie.getvalue())
         self.assertTrue(reprise.data["sons"][-1]["auditeurs"])
         self.assertEqual(reprise.data["sons"][-1]["forme"], "corps_rythmique")
-        self.assertNotIn("intention", reprise.objets["marchand"]["dernier_son_entendu"])
+        self.assertNotIn("intention", dernier_son(reprise, "marchand"))
         for texte in (sortie.getvalue(), str(reprise.data["gestes_improvises"]),
                       str(reprise.data["sons"]), str(reprise.data["journal"]),
                       str(reprise.data["arbitrages"]), str(reprise.contexte()),

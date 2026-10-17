@@ -3,6 +3,7 @@ import copy
 
 from .monde import ErreurMonde, normaliser
 from .francais import designer
+from .esprits import dernier_son
 
 
 OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
@@ -29,7 +30,7 @@ def interlocuteurs(monde):
     # Une voix porte dans la même pièce ; elle ne traverse pas automatiquement les sorties.
     return {id: {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
                  "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
-                 "dernier_son_entendu": copy.deepcopy(o.get("dernier_son_entendu")),
+                 "dernier_son_entendu": dernier_son(monde, id),
                  "paroles_entendues": copy.deepcopy([
                      p for p in monde.data.get("paroles_pnj", []) if id in p["auditeurs"]][-4:]),
                   "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),

@@ -9,6 +9,7 @@ from unittest.mock import patch
 import jeu
 from donjon.monde import Monde, nouveau_monde
 from donjon.moteur import Moteur, proposition
+from donjon.esprits import dernier_son, lire
 
 
 def jouer(monde, *saisies):
@@ -32,27 +33,59 @@ class ReactionsTests(unittest.TestCase):
         m.objets["marchand"]["reaction_son"] = {"seuil": 2}
         reprise, sortie = jouer(m, "je crie à l'aide")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
-        self.assertNotIn("trajet", reprise.objets["marchand"])
+        self.assertIsNone(lire(reprise, "marchand")["intention"])
         self.assertIn("Gorm le marchand arrive.", sortie)
         self.assertNotIn("aucune réponse", sortie)
 
-    def test_porte_fermee_arrete_le_pnj_jusqu_a_son_ouverture(self):
+    def test_gorm_ouvre_une_porte_fermee_pour_rejoindre_le_cri(self):
         m = nouveau_monde()
         m.objets["porte"]["verrouillee"] = False
         # Placement d'auteur : Gorm attend dans la crypte, derrière la porte.
         m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
+        reprise, sortie = jouer(m, "crier")
+        self.assertTrue(reprise.objets["porte"]["ouverte"])
+        self.assertEqual(reprise.objets["marchand"]["lieu"], "crypte")
+        self.assertIn("s'ouvre.", sortie)
+        self.assertFalse(lire(reprise, "marchand")["croyances"]["porte"]["verrouillee"]["valeur"])
+        reprise, sortie = jouer(reprise, "attendre")
+        self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
+        self.assertIsNone(lire(reprise, "marchand")["intention"])
+        self.assertIn("Gorm le marchand arrive.", sortie)
+
+    def test_gorm_deverrouille_avec_la_cle_qu_il_porte(self):
+        m = nouveau_monde()
+        m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
+        # Placement d'auteur : Gorm garde sur lui un passe de la porte de la crypte.
+        m.objets["passe"] = {**m.objets["cle"], "id": "passe", "nom": "passe de Gorm", "lieu": "marchand",
+                             "ouvre": ["porte"], "aliases": ["passe"]}
+        for cle in ("position", "position_salle"):
+            m.objets["passe"].pop(cle, None)
+        reprise, _ = jouer(m, "crier", "attendre")
+        self.assertFalse(reprise.objets["porte"]["verrouillee"])
+        self.assertTrue(reprise.objets["porte"]["ouverte"])
+        self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
+
+    def test_porte_verrouillee_apprise_par_l_essai_jusqu_a_ce_qu_il_la_voie_ouverte(self):
+        m = nouveau_monde()
+        # Placement d'auteur : Gorm attend dans la crypte avec une torche allumée.
+        m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
+        m.objets["torche"].update(lieu="marchand", allume=True)
         reprise, sortie = jouer(m, "crier", "attendre")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "crypte")
-        self.assertEqual(reprise.objets["marchand"]["trajet"]["vers"], "antichambre")
+        self.assertTrue(lire(reprise, "marchand")["croyances"]["porte"]["verrouillee"]["valeur"])
+        self.assertEqual(lire(reprise, "marchand")["intention"]["but"]["lieu"], "antichambre")
+        self.assertIn("résiste à une poussée.", sortie)
         self.assertIn("aucune réponse", sortie)
-        reprise, sortie = jouer(reprise, "ouvrir porte", "attendre")
+        # Une ouverture qu'il voit lui apprend que le passage est libre.
+        reprise.objets["porte"].update(verrouillee=False, ouverte=True)
+        reprise, sortie = jouer(reprise, "attendre")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
         self.assertIn("Gorm le marchand arrive.", sortie)
 
     def test_sans_reaction_declaree_le_pnj_reste_en_place(self):
         reprise, sortie = jouer(nouveau_monde(), "je crie à l'aide")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "echoppe")
-        self.assertEqual(reprise.objets["marchand"]["dernier_son_entendu"]["nature"], "appel")
+        self.assertEqual(dernier_son(reprise, "marchand")["nature"], "appel")
         self.assertIn("aucune réponse", sortie)
 
     def test_son_trop_faible_sous_le_seuil(self):
@@ -60,7 +93,7 @@ class ReactionsTests(unittest.TestCase):
         m.objets["marchand"]["reaction_son"] = {"seuil": 3}
         reprise, _ = jouer(m, "je crie à l'aide")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "echoppe")
-        self.assertNotIn("trajet", reprise.objets["marchand"])
+        self.assertIsNone(lire(reprise, "marchand")["intention"])
 
 
 HORLOGE = {"id": "courant_air", "minute": 5, "annonce": "Un souffle glacé traverse la salle et couche les flammes.",

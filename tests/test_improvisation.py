@@ -12,6 +12,7 @@ from donjon.moteur import Moteur, proposition as action
 from donjon.improvisation import proposition, issue, effet
 from donjon.mj import MJOpenAI
 from donjon.rendu import decrire
+from donjon.esprits import dernier_son
 
 
 def chant():
@@ -64,9 +65,9 @@ class ImprovisationTests(unittest.TestCase):
         crypte = nouveau_monde()
         crypte.joueur["salle"] = "echoppe"
         Moteur(crypte).executer(Moteur(crypte).preparer(chant()))
-        self.assertEqual(crypte.objets["marchand"]["dernier_son_entendu"]["nature"], "geste sonore")
-        self.assertEqual(crypte.objets["marchand"]["dernier_son_entendu"]["forme"], "voix_melodique")
-        self.assertNotIn("intention", crypte.objets["marchand"]["dernier_son_entendu"])
+        self.assertEqual(dernier_son(crypte, "marchand")["nature"], "geste sonore")
+        self.assertEqual(dernier_son(crypte, "marchand")["forme"], "voix_melodique")
+        self.assertNotIn("intention", dernier_son(crypte, "marchand"))
         self.assertFalse(crypte.data["engagements"])
 
     def test_forme_sonore_structuree_et_souvenir_apres_rechargement(self):

@@ -180,22 +180,40 @@ def _case_libre(m, salle, position):
     return position in cases(m.data["salles"][salle]) and not _bloque(m, salle, position)
 
 
-def proche(m, id):
+def porte_par(m, id, acteur):
+    """Vrai si l'objet est porté par l'acteur, directement ou dans un contenant porté."""
+    vus = set()
+    while id in m.objets and id not in vus:
+        vus.add(id)
+        id = m.objets[id]["lieu"]
+        if id == acteur:
+            return True
+    return False
+
+
+def position_acteur(m, acteur="joueur"):
+    """Salle et case d'où un acteur, le joueur ou un PNJ, perçoit et agit."""
+    if acteur == "joueur":
+        return m.joueur["salle"], tuple(m.joueur["position"])
+    salle = m.objets[acteur]["lieu"]
+    return salle, position_cible(m, acteur, salle)
+
+
+def proche(m, id, acteur="joueur"):
     if id not in m.objets:
         return False
-    o = m.objets[id]
-    if o.get("lieu") == "joueur" or m.est_porte(id):
+    if porte_par(m, id, acteur) or (acteur == "joueur" and m.est_porte(id)):
         return True
-    cible = position_cible(m, id)
-    if cible is None:
+    salle, origine = position_acteur(m, acteur)
+    cible = position_cible(m, id, salle)
+    if cible is None or origine is None:
         return False
-    x, y = m.joueur["position"]
+    x, y = origine
     dx, dy = cible[0] - x, cible[1] - y
     if max(abs(dx), abs(dy)) > 1:
         return False
     if not (dx and dy):
         return True
-    salle = m.joueur["salle"]
     # Une diagonale ne passe pas en biais entre deux murs ou obstacles solides.
     return (_case_libre(m, salle, (x + dx, y))
             or _case_libre(m, salle, (x, y + dy)))
@@ -322,15 +340,20 @@ def _los_global(m, a, b, terrain, opaques):
     return True
 
 
-def visible(m, id):
-    if id not in m.objets:
+def _los_mutuelle(m, a, b, terrain, opaques):
+    """Vue symétrique : Bresenham diffère selon le sens, on exige les deux tracés libres."""
+    return _los_global(m, a, b, terrain, opaques) and _los_global(m, b, a, terrain, opaques)
+
+
+def visible(m, id, acteur="joueur", champ=None):
+    if id not in m.objets or id == acteur:
         return False
-    champ = champ_visible(m)
+    champ = champ_visible(m, acteur) if champ is None else champ
     for salle in m.data["salles"]:
         position = position_cible(m, id, salle)
         if position is not None and (salle, position[0], position[1]) in champ:
             ancrage = m.objets[id].get("ancrage_carte")
-            if ancrage and tuple(ancrage) not in murs_visibles(m, champ).get(salle, set()):
+            if ancrage and tuple(ancrage) not in murs_visibles(m, champ, acteur).get(salle, set()):
                 continue
             return True
     return False
@@ -346,12 +369,12 @@ def eclairage_niveau(m):
 PORTEE_VUE = {1: 3, 2: 8}
 
 
-def _vue(m):
-    """Origine globale du regard, terrain et carte de lumière des salles reliées."""
+def _vue(m, acteur="joueur"):
+    """Origine globale du regard d'un acteur, terrain et carte de lumière des salles reliées."""
     from .perception import CarteLumiere
-    salle = m.joueur["salle"]
+    salle, position = position_acteur(m, acteur)
     lumiere = CarteLumiere(m, salle)
-    origine = _global(m.data["salles"][salle], m.joueur["position"])
+    origine = _global(m.data["salles"][salle], position)
     return origine, lumiere
 
 
@@ -360,15 +383,15 @@ def _vu(m, origine, lumiere, cible):
     portee = PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
     if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > portee:
         return False
-    return _los_global(m, origine, cible, lumiere.terrain, lumiere.opaques)
+    return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
 
 
-def sortie_visible(m, salle, direction):
+def sortie_visible(m, salle, direction, acteur="joueur"):
     """Retourne si le seuil est visible, même si une porte le ferme."""
     sortie = m.data["salles"].get(salle, {}).get("sorties", {}).get(direction)
     if not sortie or len(sortie.get("case", ())) != 2:
         return False
-    origine, lumiere = _vue(m)
+    origine, lumiere = _vue(m, acteur)
     if salle not in lumiere.salles:
         return False
     cible = _global(m.data["salles"][salle], sortie["case"])
@@ -382,9 +405,9 @@ def sortie_visible(m, salle, direction):
             del lumiere.terrain[cible]
 
 
-def champ_visible(m):
-    """Ensemble des cases vues maintenant, incluant les paliers d'une porte ouverte."""
-    origine, lumiere = _vue(m)
+def champ_visible(m, acteur="joueur"):
+    """Cases vues maintenant par l'acteur, incluant les paliers d'une porte ouverte."""
+    origine, lumiere = _vue(m, acteur)
     vus = set()
     for salle in lumiere.salles:
         piece = m.data["salles"][salle]
@@ -394,14 +417,15 @@ def champ_visible(m):
     return vus
 
 
-def murs_visibles(m, champ=None):
-    """Murs vus depuis la position actuelle, sans déduire les contours du plan caché."""
-    champ = champ_visible(m) if champ is None else champ
+def murs_visibles(m, champ=None, acteur="joueur"):
+    """Murs vus depuis la position de l'acteur, sans déduire les contours du plan caché."""
+    champ = champ_visible(m, acteur) if champ is None else champ
     if not champ:
         return {}
-    salles = _salles_relies(m, m.joueur["salle"])
+    salle_acteur, position = position_acteur(m, acteur)
+    salles = _salles_relies(m, salle_acteur)
     terrain, opaques = _globales(m, salles)
-    origine = _global(m.data["salles"][m.joueur["salle"]], m.joueur["position"])
+    origine = _global(m.data["salles"][salle_acteur], position)
     rayon = PORTEE_VUE[2]
     vus = {}
     for salle, x, y in champ:

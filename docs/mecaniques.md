@@ -281,15 +281,44 @@ composable `emettre_son`. Un son coûte une minute et augmente le bruit.
 L'audition suit les connexions établies : perte d'un niveau par ouverture, de deux derrière
 une porte fermée. Les paliers reliés par un appui vertical transmettent aussi le son. Les
 lieux non reliés restent hors de portée ; il ne s'agit pas d'un calcul acoustique métrique.
-Les PNJ à portée conservent leur dernier son entendu, sans révéler leur identité au joueur
-s'ils sont hors de sa perception. Ce souvenir est fourni au dialogue lorsqu'on les rencontre.
+Les PNJ à portée gardent le son dans leur mémoire, sans révéler leur identité au joueur
+s'ils sont hors de sa perception. Le dernier son est fourni au dialogue lorsqu'on les rencontre.
 Un son ne fait réagir un PNJ que par une réaction déclarée dans l'état ; Luna n'affirme ni
 réponse ni arrivée que l'état n'établit pas. Un PNJ doté de `"reaction_son": {"seuil": n}`
-qui reçoit un son de niveau `n` ou plus se met en route vers son origine : un lieu par minute
-écoulée, par les sorties sans porte ou à porte ouverte. Une porte fermée l'arrête jusqu'à
-son ouverture. Son arrivée dans la perception du joueur est annoncée par le moteur (`donjon/pnj.py`).
+qui reçoit un son de niveau `n` ou plus prend l'intention de rejoindre son origine, exécutée
+par le moteur (voir « Perception et croyances des PNJ »). Son arrivée dans la perception du
+joueur est annoncée par le moteur (`donjon/pnj.py`).
 Sans réaction perceptible, la restitution est :
 « Tu cries à l'aide. Pour l'instant, aucune réponse ne te parvient. »
+
+#### Perception et croyances des PNJ
+
+Chaque PNJ perçoit avec les règles du joueur, depuis sa propre case : lumière par case,
+ligne de vue, obstacles opaques, portes (`donjon/esprits.py`). La ligne de vue est
+symétrique : elle exige que le tracé passe dans les deux sens, si bien que deux personnages
+se voient mutuellement ou pas du tout, à éclairage égal. L'asymétrie vient de la lumière :
+un joueur dans la pénombre voit de loin un PNJ éclairé sans être vu de lui. Sans cases, un
+PNJ perçoit sa salle si elle est éclairée. Il sait ce qu'il porte ; chez autrui, il ne
+remarque que les objets encombrants (1 kg ou 50 cm au moins) ou allumés.
+
+Ce qu'il perçoit devient croyance dans `esprits[pnj]["croyances"][sujet][attribut]`, avec
+`source` (`vu`, `savoir`, `essai`), `minute` et `confiance`. Attributs : `lieu` (avec la salle
+et la case où il l'a vu), `etat` (ouvert, allumé), `verrouillee` (appris en essayant, ou
+déduit d'une porte vue ouverte). Une croyance reste vraie pour lui tant qu'il n'a pas revu
+la place : s'il la revoit vide, le lieu devient inconnu et la mémoire note une `absence`.
+Un scénario déclare les savoirs initiaux dans les mêmes champs, source `savoir` (le Relais :
+Gorm croit la cloche dans la galerie, la clé au refuge et la porte étanche verrouillée).
+La mémoire (40 événements) garde les sons entendus, les absences constatées, les vols
+surpris et les gestes remarqués.
+
+Un PNJ n'agit que par une intention, aujourd'hui `rejoindre` un lieu. Le chemin est cherché
+sur ses croyances ; chaque geste, d'une minute, est revalidé sur l'état réel : il ouvre une
+porte fermée, déverrouille avec une clé qu'il porte, ou apprend par l'essai qu'elle est
+verrouillée et attend sur place. Le moteur annonce ce que le joueur en perçoit.
+
+Les témoins d'un geste discret sont les personnages qui perçoivent le joueur au moment du
+geste. Luna ne reçoit pas les croyances des PNJ. En `--debug`, `esprit <personnage>`
+affiche croyances, mémoire et intention.
 
 #### Horloges d'environnement
 
@@ -592,9 +621,9 @@ attendre ne les efface pas. Les dialogues reçoivent cette relation avec le joue
 Hors ligne, `voler crochets` ou `dérober crochets` exécute directement une tentative.
 `prendre crochets` reste refusé pour éviter d'interpréter une simple commande comme un
 vol. Seuls les objets accessibles, transportables et appartenant à autrui sont concernés.
-Sans témoin présent, il n'y a pas de jet de discrétion. La surveillance reste simplifiée
-à la pièce entière : pas encore de champ de vision, routine de déplacement, découverte
-ultérieure d'un objet manquant ou mécanisme de réconciliation.
+Sans témoin, c'est-à-dire sans personnage qui perçoit le joueur, il n'y a pas de jet de
+discrétion. Un PNJ qui revoit la place d'un objet disparu le note dans sa mémoire ; il n'en
+tire encore ni soupçon ni réaction (besoins et délibération viendront au jalon B).
 
 ### Connaissances des personnages
 

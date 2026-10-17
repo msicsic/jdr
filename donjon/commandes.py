@@ -52,7 +52,8 @@ MJ — conversation et actions
 L'objectif de ta partie est indiqué par « contexte ».
 En mode cases : Ctrl+flèches pour marcher ; F6 pour piloter depuis la carte.
 Manipuler exige d'être sur la case de l'objet ou juste à côté ; voir exige une ligne de vue.
-« etat <objet> » affiche les données internes avec --debug uniquement.
+« etat <objet> » affiche les données internes avec --debug uniquement ;
+« esprit <personnage> » affiche ses croyances, sa mémoire et son intention.
 """
 
 

@@ -377,12 +377,16 @@ class Moteur:
         avancer_combustion(travail, plan.minutes, lignes)
         travail.data["minutes"] += plan.minutes
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
+        # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour.
+        from .esprits import percevoir_tous
+        percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, plan.minutes, lignes)
         if any(e[0] == "emettre_son" for e in plan.effets) and not apparus:
             lignes.append("Pour l'instant, aucune réponse ne te parvient.")
         from .horloges import declencher as declencher_horloges
         declencher_horloges(travail, lignes)
+        percevoir_tous(travail)
         from .sons import auditeurs
         a_portee = set(auditeurs(travail, travail.joueur["salle"], 3))
         for id, relation in travail.data["relations_pnj"].items():
@@ -492,6 +496,8 @@ class Moteur:
                           " est " + accorder(o, "posé") + " au sol." if valeur in m.data["salles"] else
                           " est " + accorder(o, "placé") + " dans " + designer(m.objets[valeur]) + "."))
         elif op == "remarquer":
+            from .esprits import memoriser
+            memoriser(m, cible, {"type": "geste_remarque", "auteur": "joueur", "objet": valeur})
             lignes.append(o["nom"] + " remarque ton geste vers " + designer(m.objets[valeur]) + ".")
         elif op == "connaitre":
             if cible not in m.data["connus"]:

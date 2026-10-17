@@ -289,6 +289,17 @@ def main(argv=None, interface=None):
                     else:
                         imprimer(json.dumps(m.objets[m.trouver(cmd[5:])], ensure_ascii=False, indent=2))
                     continue
+                # Hors --debug, la phrase reste une saisie ordinaire (« esprit, es-tu là ? »).
+                if args.debug and cmd.startswith("esprit "):
+                    nom = normaliser(cmd[7:])
+                    id = next((i for i, o in m.objets.items() if o["type"] == "personnage"
+                               and nom in [i, normaliser(o["nom"]), *map(normaliser, o.get("aliases", []))]), None)
+                    if id is None:
+                        imprimer("Aucun personnage de ce nom.")
+                    else:
+                        from donjon.esprits import esprit
+                        imprimer(json.dumps(esprit(m, id), ensure_ascii=False, indent=2))
+                    continue
                 force_mj = cmd.startswith("mj ")
                 question = est_question(texte)
                 try:

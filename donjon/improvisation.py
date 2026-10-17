@@ -281,7 +281,7 @@ def appliquer(m, e, lignes):
             inscription=valeur["texte"], origine_description="geste du joueur", outil=valeur["outil"])
         lignes.append("Une marque reste sur " + designer(support) + " : « " + valeur["texte"] + " ».")
     elif op == "son_improvise":
-        from .pnj import reagir
+        from .esprits import entendre
         from .sons import auditeurs, portee
         ids = auditeurs(m, m.joueur["salle"], valeur["intensite"])
         niveaux = portee(m, m.joueur["salle"], valeur["intensite"])
@@ -292,8 +292,7 @@ def appliquer(m, e, lignes):
         m.data["sons"] = m.data["sons"][-40:]
         lignes.append(FORMES_SONORES[valeur["forme"]])
         for id in ids:
-            m.objets[id]["dernier_son_entendu"] = {k: v for k, v in son.items() if k != "auditeurs"}
-            reagir(m, id, son["origine"], niveaux[m.objets[id]["lieu"]])
+            entendre(m, id, son, niveaux[m.objets[id]["lieu"]])
             if m.visible(id):
                 lignes.append(designer(m.objets[id], debut=True) + " entend ce son.")
 

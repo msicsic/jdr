@@ -3,7 +3,7 @@ import heapq
 
 from .monde import ErreurMonde
 from .francais import designer
-from .pnj import reagir
+from .esprits import entendre
 
 
 VOIX = {
@@ -118,15 +118,14 @@ def appliquer(m, emetteur, mode, lignes):
                  "origine": source, "nature": mode, "intensite": intensite, "auditeurs": entendants}
     if emetteur != "joueur":
         evenement["objet"] = emetteur
-    # Historique borné ; chaque PNJ conserve son dernier souvenir même après éviction.
+    # Historique borné ; chaque PNJ garde aussi le son dans sa propre mémoire.
     m.data.setdefault("sons", []).append(evenement)
     m.data["sons"] = m.data["sons"][-40:]
     lignes.append(texte)
     for id in entendants:
         pnj = m.objets[id]
-        pnj["dernier_son_entendu"] = {k: v for k, v in evenement.items() if k != "auditeurs"}
         pnj["humeur"] = "méfiant" if m.data["relations_pnj"].get(id, {}).get("soupcon") else "inquiet"
-        reagir(m, id, source, niveaux[pnj["lieu"]])
+        entendre(m, id, evenement, niveaux[pnj["lieu"]])
         if m.visible(id):
             entendu = ("le son de " + designer(m.objets[emetteur]) + "." if emetteur != "joueur" else
                        "ton " + ("appel à l'aide." if mode == "appel" else "cri." if mode == "cri" else "sifflement."))

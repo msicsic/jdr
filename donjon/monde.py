@@ -86,6 +86,8 @@ class Monde:
         installer_savoirs(self)
         from .vol import installer as installer_vol
         installer_vol(self)
+        from .esprits import installer as installer_esprits
+        installer_esprits(self)
         from .franchissement import installer as installer_franchissements
         installer_franchissements(self)
         from .artisanat import installer as installer_artisanat
@@ -149,7 +151,8 @@ class Monde:
     def enfants(self, id):
         return [o for o in self.objets.values() if o["lieu"] == id]
 
-    def present_physique(self, id, trace=None):
+    def present_physique(self, id, trace=None, salle=None):
+        """Présence matérielle dans une salle, par défaut celle du joueur."""
         if id not in self.objets:
             return False
         trace = set() if trace is None else trace
@@ -157,7 +160,7 @@ class Monde:
             return False
         trace.add(id)
         o = self.objets[id]
-        salle = self.joueur["salle"]
+        salle = salle or self.joueur["salle"]
         if o.get("incorpore"):
             return False
         if o.get("appui_vertical"):
@@ -171,10 +174,10 @@ class Monde:
             return False
         if o["type"] == "porte":
             return salle in o["relie"]
-        if o["lieu"] in (salle, "joueur"):
+        if o["lieu"] == salle or (o["lieu"] == "joueur" and self.joueur["salle"] == salle):
             return True
         parent = self.objets.get(o["lieu"])
-        if not parent or not self.present_physique(parent["id"], trace):
+        if not parent or not self.present_physique(parent["id"], trace, salle):
             return False
         if parent["type"] == "contenant" and not parent["ouverte"]:
             return False
@@ -355,6 +358,8 @@ class Monde:
             verifier_transitions_scenario(self)
             from .pnj import verifier as verifier_pnj
             verifier_pnj(self)
+            from .esprits import verifier as verifier_esprits
+            verifier_esprits(self)
             from .horloges import verifier as verifier_horloges
             verifier_horloges(self)
             from .narration import verifier as verifier_narration
