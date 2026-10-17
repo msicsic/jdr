@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 from donjon.commandes import AIDE, analyser, est_question
-from donjon.config import charger_env, MODELE_MIMO, MODELE_PAR_DEFAUT
+from donjon.config import charger_env, ESSAIS, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
@@ -49,9 +49,9 @@ def main(argv=None, interface=None):
     charger_env()
     parser = argparse.ArgumentParser(description="Le Seuil — donjon ASCII et maître du jeu IA")
     parser.add_argument("--offline", action="store_true", help="aucun appel au LLM")
-    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", "mimo"], default="auto",
-                        help="auto privilégie le compte ChatGPT enregistré, sinon la clé API ; mimo : essai "
-                             "de MiMo (MIMO_API_KEY), jamais choisi par défaut")
+    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", *ESSAIS], default="auto",
+                        help="auto privilégie le compte ChatGPT enregistré, sinon la clé API ; mimo (MIMO_API_KEY) "
+                             "ou anthropic (ANTHROPIC_API_KEY) : essai d'un autre fournisseur, jamais choisi par défaut")
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
     parser.add_argument("--defi", action="store_true", help="Le Relais des crues, défi d'exploration avec sauvegarde séparée")
@@ -131,10 +131,10 @@ def main(argv=None, interface=None):
         connexion = args.connexion
         if connexion == "auto" and not args.offline:
             connexion = "chatgpt" if Coffre().compte() else "api"
-        if connexion == "mimo" and args.model == MODELE_PAR_DEFAUT:
-            args.model = MODELE_MIMO
+        if connexion in ESSAIS and args.model == MODELE_PAR_DEFAUT:
+            args.model = ESSAIS[connexion][1]
         actif = not args.offline and (connexion == "chatgpt" or bool(
-            os.environ.get("MIMO_API_KEY" if connexion == "mimo" else "OPENAI_API_KEY")))
+            os.environ.get(ESSAIS[connexion][0] if connexion in ESSAIS else "OPENAI_API_KEY")))
         mj = MJOpenAI(args.model, args.effort, connexion=connexion) if actif else None
         if mj:
             mj = comparer(mj)
@@ -148,7 +148,7 @@ def main(argv=None, interface=None):
             imprimer("MJ : " + (f"{args.model} / {args.effort} / {connexion}" if actif else "hors ligne (commandes locales)"))
             if actif:
                 imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
-                                                      "la clé API MiMo, à titre d'essai." if connexion == "mimo" else
+                                                      f"la clé API {ESSAIS[connexion][2]}, à titre d'essai." if connexion in ESSAIS else
                                                       "la clé API OpenAI, avec une facturation séparée."))
         imprimer(m.data["scenario"]["objectif"] + " « aide » : commandes disponibles.")
         if not m.data["journal"]:

@@ -19,7 +19,7 @@ from .paroles import REGLES as REGLES_PAROLE, SCHEMA_PAROLE, citation, contexte 
 from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
-from .config import MODELE_PAR_DEFAUT
+from .config import ESSAIS, MODELE_PAR_DEFAUT
 from .francais import designer
 from .artisanat import SCHEMA_FABRICATION, dossier as dossier_atelier, REGLES as REGLES_ATELIER
 from .harnais import REGLES_REPRISE, derniere_tentative
@@ -373,6 +373,47 @@ def depuis_chat(resultat):
             "usage": resultat.get("usage"),
             "output": [{"type": "function_call", "name": a["function"]["name"], "arguments": a["function"]["arguments"],
                         "status": "completed"} for a in appels if a.get("type") == "function"]}
+
+
+REFLEXION_ANTHROPIC = {"medium": 2048, "high": 6000}
+
+
+def vers_messages(payload):
+    """Requête Responses traduite pour l'API Messages d'Anthropic (essai de Claude Haiku).
+
+    Anthropic refuse la réflexion étendue avec un outil imposé : à l'effort low, l'outil est
+    imposé sans réflexion ; au-delà, le modèle réfléchit puis choisit librement d'appeler
+    l'outil, et une réponse sans appel est refusée par le contrôle habituel.
+    """
+    outil = payload["tools"][0]
+    sortie = payload.get("max_output_tokens", 3000)
+    requete = {
+        "model": payload["model"],
+        "system": payload["instructions"],
+        "messages": payload["input"],
+        "tools": [{"name": outil["name"], "description": outil["description"],
+                   "input_schema": outil["parameters"], "strict": outil["strict"]}],
+        "tool_choice": {"type": "tool", "name": outil["name"], "disable_parallel_tool_use": True},
+        "max_tokens": sortie,
+    }
+    budget = REFLEXION_ANTHROPIC.get(payload["reasoning"]["effort"])
+    if budget:
+        requete.update(thinking={"type": "enabled", "budget_tokens": budget},
+                       tool_choice={"type": "auto", "disable_parallel_tool_use": True},
+                       max_tokens=budget + sortie)
+    return requete
+
+
+def depuis_messages(resultat):
+    """Réponse Messages ramenée à la forme Responses attendue par le contrôle."""
+    if not isinstance(resultat, dict) or not isinstance(resultat.get("content"), list):
+        return resultat
+    usage = dict(resultat.get("usage") or {})
+    usage["total_tokens"] = sum(usage.get(k) or 0 for k in ("input_tokens", "output_tokens"))
+    return {"status": "completed" if resultat.get("stop_reason") in ("tool_use", "end_turn") else "incomplete",
+            "usage": usage,
+            "output": [{"type": "function_call", "name": b.get("name"), "arguments": json.dumps(b.get("input")),
+                        "status": "completed"} for b in resultat["content"] if b.get("type") == "tool_use"]}
 
 
 def _accepte_texte(schema):
@@ -993,11 +1034,10 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             if self.modele not in [m["slug"] for m in disponibles]:
                 raise ErreurMonde("Ce modèle n'est pas disponible sur ce forfait. Lancez python connexion.py modeles, puis choisissez avec --model.")
             self.catalogue_verifie = True
-        cle = (jeton() if self.connexion == "chatgpt" else
-               os.environ.get("MIMO_API_KEY") if self.connexion == "mimo" else os.environ.get("OPENAI_API_KEY"))
+        variable = ESSAIS[self.connexion][0] if self.connexion in ESSAIS else "OPENAI_API_KEY"
+        cle = jeton() if self.connexion == "chatgpt" else os.environ.get(variable)
         if not cle:
-            raise ErreurMonde(("MIMO_API_KEY" if self.connexion == "mimo" else "OPENAI_API_KEY")
-                              + " absente. Les commandes hors ligne restent disponibles (aide).")
+            raise ErreurMonde(variable + " absente. Les commandes hors ligne restent disponibles (aide).")
         if len(intention) > 2000:
             raise ErreurMonde("Limitez votre action à 2 000 caractères.")
         payload = {
@@ -1021,24 +1061,27 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             payload["tool_choice"] = "required"
             payload["stream"] = True
             payload.pop("max_output_tokens")  # non accepté par le contrat Sign in with ChatGPT
+        entetes = {"Authorization": "Bearer " + cle, "Content-Type": "application/json"}
+        adresse = "https://api.openai.com/v1/responses"
         if self.connexion == "mimo":
-            payload = vers_chat(payload)
-        requete = urllib.request.Request(
-            "https://api.xiaomimimo.com/v1/chat/completions" if self.connexion == "mimo" else
-            "https://api.openai.com/v1/responses",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Authorization": "Bearer " + cle, "Content-Type": "application/json"},
-            method="POST",
-        )
+            payload, adresse = vers_chat(payload), "https://api.xiaomimimo.com/v1/chat/completions"
+        if self.connexion == "anthropic":
+            payload, adresse = vers_messages(payload), "https://api.anthropic.com/v1/messages"
+            entetes = {"x-api-key": cle, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
+        requete = urllib.request.Request(adresse, data=json.dumps(payload).encode("utf-8"),
+                                         headers=entetes, method="POST")
         try:
             with urllib.request.urlopen(requete, timeout=self.timeout) as reponse:
                 resultat = lire_flux(reponse) if self.connexion == "chatgpt" else json.load(reponse)
             if self.connexion == "mimo":
                 resultat = depuis_chat(resultat)
+            if self.connexion == "anthropic":
+                resultat = depuis_messages(resultat)
         except urllib.error.HTTPError as exc:
             # Ne jamais afficher les en-têtes ou une clé dans le journal.
             try:
-                code = json.loads(exc.read()).get("error", {}).get("code", "erreur_api")
+                erreur = json.loads(exc.read()).get("error", {})
+                code = erreur.get("code") or erreur.get("type") or "erreur_api"
             except (ValueError, AttributeError):
                 code = "erreur_api"
             status = exc.code

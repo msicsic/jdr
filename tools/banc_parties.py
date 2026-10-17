@@ -153,7 +153,7 @@ def preparer(donnees, sauvegarde):
     m.sauver(sauvegarde)
 
 
-def jouer(script, compteur, offline, connexion="chatgpt"):
+def jouer(script, compteur, offline, connexion="chatgpt", effort="medium"):
     donnees = json.loads(Path(script).read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as dossier:
         sauvegarde = Path(dossier) / "banc.json"
@@ -166,7 +166,7 @@ def jouer(script, compteur, offline, connexion="chatgpt"):
         if offline:
             argv.append("--offline")
         else:
-            argv += ["--connexion", connexion]
+            argv += ["--connexion", connexion, "--effort", effort]
         arret = None
         try:
             jeu.main(argv, interface=interface)
@@ -204,8 +204,9 @@ def main(argv=None):
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle")
     p.add_argument("--max-appels", type=int, default=150)
     p.add_argument("--etiquette", default="")
-    p.add_argument("--connexion", choices=("chatgpt", "api", "mimo"), default="chatgpt",
-                   help="fournisseur du MJ ; mimo pour un essai comparatif")
+    p.add_argument("--connexion", choices=("chatgpt", "api", "mimo", "anthropic"), default="chatgpt",
+                   help="fournisseur du MJ ; mimo ou anthropic pour un essai comparatif")
+    p.add_argument("--effort", choices=("low", "medium", "high"), default="medium")
     args = p.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8")
     compteur = Compteur(args.max_appels)
@@ -215,7 +216,7 @@ def main(argv=None):
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
     resumes = []
     for script in args.scripts:
-        partie = jouer(script, compteur, args.offline, args.connexion)
+        partie = jouer(script, compteur, args.offline, args.connexion, args.effort)
         nom = f"{horodatage}-{args.etiquette + '-' if args.etiquette else ''}{partie['script']}.json"
         (sortie / nom).write_text(json.dumps(partie, ensure_ascii=False, indent=1), encoding="utf-8")
         resumes.append(resumer(partie))
