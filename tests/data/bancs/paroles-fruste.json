@@ -1,0 +1,32 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "stats": {
+   "INT": 6,
+   "CHA": 6
+  },
+  "salle": "echoppe",
+  "position": [
+   1,
+   2
+  ],
+  "connus": [
+   "brune"
+  ],
+  "besoins": {
+   "brune": {
+    "faim": 0
+   }
+  }
+ },
+ "tours": [
+  "Gorm, comment vas-tu ?",
+  "je dis à Gorm que la cloche est déjà au refuge",
+  "je lui dis « Tu es un vieil ours, mais un brave homme. »",
+  "Gorm, que penses-tu de moi ?",
+  "je lui explique que la porte étanche du beffroi est déverrouillée et que Brune n'est pas fiable",
+  "Gorm, où est la cloche, d'après toi ?",
+  "je demande à Gorm de me prêter son pied-de-biche jusqu'à ce soir"
+ ]
+}

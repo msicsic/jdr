@@ -39,6 +39,18 @@ def corpus(*elements):
     return normaliser(" ".join(morceaux))
 
 
+def entites_citees(monde, texte):
+    """Identifiants nommés dans un texte, le terme le plus long l'emportant sur ceux qu'il contient."""
+    texte = normaliser(texte)
+    ids = set()
+    for terme, porteurs in sorted(termes(monde).items(), key=lambda t: -len(t[0])):
+        motif = _motif(terme)
+        if motif.search(texte):
+            ids |= porteurs
+            texte = motif.sub(" ", texte)
+    return ids
+
+
 def mentions_sans_fondement(monde, texte, fondement):
     """Termes d'entités présents dans le texte mais absents du fondement normalisé.
 

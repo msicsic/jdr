@@ -339,12 +339,16 @@ def main(argv=None, interface=None):
                                  if pending and transactions else pending)
                         types = [t["type"] for t in transactions]
                         nature = ("conversation_pnj" if "conversation_pnj" in types else
+                                  "parole_joueur" if "parole" in types else
                                   "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
-                        travail.memoriser(texte, reponse["texte"], nature)
+                        prefixe = reponse.get("_prefixe_moteur")
+                        travail.memoriser(texte, "\n".join(filter(None, (prefixe, reponse["texte"]))), nature)
                         consigner_narration(travail, reponse)
                         # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
                         travail.sauver(args.save)
                         m.data, pending = travail.data, suite
+                        if prefixe:
+                            imprimer(prefixe)
                         imprimer(reponse["texte"])
                         if isinstance(mj, Comparateur):
                             for t, rapport in zip(transactions, rapports):

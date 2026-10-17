@@ -356,6 +356,36 @@ Les témoins d'un geste discret du joueur sont les personnages qui le perçoiven
 du geste. Luna ne reçoit ni les croyances, ni les besoins, ni les plans des PNJ. En `--debug`, `esprit <personnage>`
 affiche croyances, mémoire et intention.
 
+#### Paroles du joueur aux PNJ
+
+Quand le joueur fait parler Corvus à un personnage présent, Luna choisit le mode
+`parole_joueur` (`donjon/paroles.py`). Le moteur lui fournit la bande d'expression de Corvus :
+précision selon l'INT (très pauvre ≤ 7, pauvre ≤ 9, courante ≤ 12, précise ≤ 15, riche),
+aisance selon le CHA (même découpage, de très maladroite à brillante). Luna écrit la réplique
+dans cette bande et type son contenu, trois éléments au plus : `affirmation` (sujet, attribut
+`lieu`, `verrouillee` ou `fiable`, valeur), `demande` (un objet que le personnage porte),
+`propos`. Des mots du joueur entre guillemets sont prononcés tels quels. La réplique est
+enregistrée avant l'affichage, qui commence par « Tu dis : « … » ».
+
+L'effet ne dépend pas des mots de Luna. Corvus ne peut parler que de ce qu'il connaît :
+entité perçue, examinée, vue auparavant ou nommée devant lui, lieu visité. Il transmet au
+plus 1 idée avec une INT ≤ 9, 2 jusqu'à 12, 3 au-delà ; l'auditeur retient selon sa propre
+INT, et une INT ≤ 8 diminue sa confiance dans ce qu'il retient. Une affirmation contredite
+par ce que l'auditeur a vu ou essayé dans les 30 dernières minutes est rejetée sans jet et
+il cesse de croire le joueur fiable. Sinon, jet de d20 + modificateur de CHA contre 10
+(−2 s'il croit le joueur fiable, +2 s'il n'en sait rien, +6 s'il le croit peu fiable) :
+réussi, la croyance devient `dit:joueur` ; ce qu'il a sous les yeux peut la démentir
+aussitôt. Une croyance `dit:` que la perception ou un essai contredit plus tard est un
+`mensonge_decouvert` : il cesse de croire le locuteur fiable. Une demande d'objet réussit
+contre 12 avec les mêmes modificateurs, sauf si le personnage se méfie du joueur ou si
+l'objet sert son plan en cours ou une de ses pulsions.
+
+Luna reçoit, pour les personnages présents, leurs traits, ce qu'ils croient (douze
+croyances au plus, celles qu'on leur a dites d'abord), leur but actuel et leurs besoins
+pressants : jamais la vérité à leur place, jamais leur profil brut. Les objets qu'un
+personnage porte ne sont pas perçus par le joueur s'ils sont petits et éteints, avec la
+même règle que pour les PNJ.
+
 #### Horloges d'environnement
 
 Un scénario peut déclarer des `horloges` : `{"id", "minute", "effets", "annonce", "lieux"}`.

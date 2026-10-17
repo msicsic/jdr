@@ -98,7 +98,9 @@ class Interface:
                     controle=[o.get("motif", "") + " | " + o.get("texte", "")[:160]
                               for t in traces if t.get("etape") == "contrôle narratif"
                               for o in t["obstacles"]],
-                    mentions_sans_fondement=mentions)
+                    mentions_sans_fondement=mentions,
+                    propositions=[t["reponse"]["proposition"] for t in traces
+                                  if isinstance(t.get("reponse"), dict) and t["reponse"].get("proposition")])
         self.affiches.append(texte)
         self.tours.append(tour)
 
@@ -127,6 +129,30 @@ class Interface:
         pass
 
 
+def preparer(donnees, sauvegarde):
+    """État de départ d'un script : caractéristiques, place du joueur, besoins des PNJ."""
+    from donjon.esprits import esprit
+    seed, prep = donnees.get("seed", 1985), donnees["preparation"]
+    if donnees["scenario"] == "relais":
+        from donjon.defi import nouveau_defi
+        m = nouveau_defi(seed)
+    else:
+        from donjon.monde import nouveau_monde
+        m = nouveau_monde(seed)
+    if "--cases" in LANCEMENT[donnees["scenario"]] or donnees["scenario"] == "relais":
+        from donjon.spatial import installer
+        installer(m)
+    m.joueur["stats"].update(prep.get("stats", {}))
+    for cle in ("salle", "position"):
+        if cle in prep:
+            m.joueur[cle] = prep[cle]
+    m.data["connus"].extend(prep.get("connus", []))
+    for id, besoins in prep.get("besoins", {}).items():
+        esprit(m, id)["besoins"].update(besoins)
+    m.verifier()
+    m.sauver(sauvegarde)
+
+
 def jouer(script, compteur, offline):
     donnees = json.loads(Path(script).read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as dossier:
@@ -134,6 +160,9 @@ def jouer(script, compteur, offline):
         interface = Interface(donnees["tours"], sauvegarde, compteur)
         argv = [*LANCEMENT[donnees["scenario"]], "--new", "--save", str(sauvegarde),
                 "--seed", str(donnees.get("seed", 1985))]
+        if donnees.get("preparation"):
+            preparer(donnees, sauvegarde)
+            argv.remove("--new")
         if offline:
             argv.append("--offline")
         else:

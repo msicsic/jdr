@@ -67,7 +67,8 @@ def installer(monde):
 
 
 def _croyance_valide(monde, attribut, c):
-    assert (isinstance(c, dict) and c.get("source") in SOURCES and type(c.get("minute")) is int
+    assert (isinstance(c, dict) and isinstance(c.get("source"), str)
+            and (c["source"] in SOURCES or c["source"].startswith("dit:")) and type(c.get("minute")) is int
             and isinstance(c.get("confiance"), (int, float)) and 0 <= c["confiance"] <= 1), "Croyance mal formée"
     if attribut == "lieu":
         # Une croyance peut survivre à son objet (détruit, retiré) ; la perception la purge.
@@ -152,15 +153,23 @@ def _porteur(monde, o):
     return "joueur" if lieu == "joueur" else None
 
 
+def apparent(o):
+    """Porté par quelqu'un, un objet ne se remarque que s'il est encombrant ou allumé."""
+    return bool(o.get("allume") or o.get("masse", 0) >= MASSE_APPARENTE_KG
+                or o.get("longueur_cm", 0) >= LONGUEUR_APPARENTE_CM)
+
+
+def cache_par_porteur(monde, o, observateur):
+    """Vrai pour un objet porté par un autre personnage que l'observateur et trop discret pour être vu."""
+    porteur = _porteur(monde, o)
+    return (porteur not in (None, observateur) and o["type"] != "partie_corps" and not apparent(o))
+
+
 def _pertinent(monde, acteur, o):
     if (o["id"] == acteur or o.get("detail_local") or o.get("incorpore")
             or o["type"] in ("surface", "partie_corps")):
         return False
-    porteur = _porteur(monde, o)
-    if porteur is None or porteur == acteur:
-        return True
-    return bool(o.get("allume") or o.get("masse", 0) >= MASSE_APPARENTE_KG
-                or o.get("longueur_cm", 0) >= LONGUEUR_APPARENTE_CM)
+    return not cache_par_porteur(monde, o, acteur)
 
 
 def percus(monde, acteur):
@@ -200,12 +209,30 @@ def percoit(monde, acteur, sujet):
 
 
 def _observe(monde, champ, croyance):
-    """Le lieu où l'on attendait le sujet est-il sous les yeux du PNJ ?"""
+    """Le lieu où l'on attendait le sujet est-il sous les yeux du PNJ ?
+
+    Sans case connue (un lieu qu'on lui a dit), il faut voir au moins la moitié de la salle.
+    """
     if croyance["salle"] is None:
         return False
     if not monde.data.get("mode_cases"):
         return croyance["salle"] in champ
-    return croyance["case"] is not None and (croyance["salle"], *croyance["case"]) in champ
+    if croyance["case"] is None:
+        from .geometrie import cases
+        sol = cases(monde.data["salles"][croyance["salle"]])
+        return 2 * sum((croyance["salle"], x, y) in champ for x, y in sol) >= len(sol)
+    return (croyance["salle"], *croyance["case"]) in champ
+
+
+def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
+    """Ce qu'il constate remplace ce qu'on lui a dit ; une contradiction trahit le locuteur."""
+    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
+    if ancienne and ancienne["source"].startswith("dit:") and ancienne["valeur"] != valeur:
+        locuteur = ancienne["source"][4:]
+        memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
+        if locuteur != id:
+            croire(monde, id, locuteur, "fiable", False, "vu")
+    croire(monde, id, sujet, attribut, valeur, source, **lieu)
 
 
 def percevoir(monde, id):
@@ -220,13 +247,13 @@ def percevoir(monde, id):
             continue
         o = monde.objets[sujet]
         if o["type"] != "porte":
-            croire(monde, id, sujet, "lieu", o["lieu"], "vu", salle=salle, case=case)
+            reviser(monde, id, sujet, "lieu", o["lieu"], salle=salle, case=case)
         etats = ETATS_VISIBLES.get(o["type"])
         if etats:
             valeurs = {**o, "disponible": o.get("portions", 0) > 0}
             croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, "vu")
         if o["type"] in ("porte", "contenant") and o.get("ouverte"):
-            croire(monde, id, sujet, "verrouillee", False, "vu")  # Ouvert sous ses yeux : pas verrouillé.
+            reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
         if sujet in vus or not lieu or lieu["valeur"] is None or not _observe(monde, champ, lieu):
@@ -236,7 +263,7 @@ def percevoir(monde, id):
             continue  # Un contenant fermé peut toujours le cacher.
         if lieu["valeur"] == "joueur" or contenant and contenant["type"] == "personnage":
             continue  # Porté par quelqu'un : son absence de la case ne prouve rien.
-        croire(monde, id, sujet, "lieu", None, "vu", salle=None, case=None)
+        reviser(monde, id, sujet, "lieu", None, salle=None, case=None)
         if sujet != "joueur" and monde.objets[sujet]["type"] != "personnage":
             memoriser(monde, id, {"type": "absence", "objet": sujet, "salle": lieu["salle"]})
             from .vol import proprietaire

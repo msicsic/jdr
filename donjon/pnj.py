@@ -218,10 +218,11 @@ def _pas(monde, id, sortie, lignes):
 
 def _rate(monde, id, cible, attribut="lieu", valeur=None):
     """Un geste impossible corrige la croyance qui l'avait motivé."""
+    from .esprits import reviser
     if attribut == "lieu":
-        croire(monde, id, cible, "lieu", None, "essai", salle=None, case=None)
+        reviser(monde, id, cible, "lieu", None, "essai", salle=None, case=None)
     else:
-        croire(monde, id, cible, attribut, valeur, "essai")
+        reviser(monde, id, cible, attribut, valeur, "essai")
     return False
 
 
