@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.support import sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percoit
 from donjon.monde import Monde, nouveau_monde
@@ -22,7 +23,7 @@ def recharger(monde):
 
 
 def relais():
-    m = nouveau_defi()
+    m = sans_evacues(nouveau_defi())
     installer(m)
     # Placement d'auteur : Brune a déjà mangé ; ces tests ne portent que sur Gorm.
     lire(m, "brune")["besoins"]["faim"] = 0

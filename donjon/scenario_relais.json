@@ -24,6 +24,14 @@
     "brune": {
       "intentions": "Brune veut manger et se faire oublier jusqu'à la décrue.",
       "ton": "Elle reste évasive sur ce qu'elle a vu et sur ce qu'elle compte faire."
+    },
+    "ilse": {
+      "intentions": "Ilse veut savoir ce qui se passe au relais et que chacun soit à l'abri de la crue.",
+      "ton": "Elle raconte volontiers ce qu'elle a vu, et le tient pour vrai."
+    },
+    "aubin": {
+      "intentions": "Aubin veut surveiller l'eau et se reposer.",
+      "ton": "Il répond brièvement et ne dit que ce dont il est sûr."
     }
   },
   "dialogues_version": 1,
@@ -700,6 +708,20 @@
               "objet": "vivres",
               "lieu": "antichambre"
             }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "antichambre",
+              "periode": 45
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "crypte",
+              "periode": 90
+            }
           }
         ]
       }
@@ -999,6 +1021,171 @@
       ],
       "proprietaire": "marchand",
       "type": "cle"
+    },
+    "ilse": {
+      "aliases": [
+        "ilse",
+        "meunière",
+        "meuniere"
+      ],
+      "humeur": "inquiète",
+      "id": "ilse",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "maniere_de_parler": "Ilse parle beaucoup, vite et avec chaleur, en posant des questions.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Ilse, meunière évacuée",
+      "genre": "f",
+      "portrait": "Ilse est une femme ronde d'une quarantaine d'années, un châle trempé sur les épaules.",
+      "position": [
+        3,
+        5
+      ],
+      "position_salle": "antichambre",
+      "type": "personnage",
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 9,
+          "DEX": 11,
+          "INT": 12,
+          "PER": 14,
+          "CHA": 13
+        },
+        "traits": "Meunière évacuée, bavarde et curieuse ; elle répète ce qu'elle a vu et s'inquiète de la crue. Honnête, elle ne prend rien qui ne soit à elle.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "securite": {
+            "depart": 65,
+            "derive_heure": 2,
+            "urgence": 60
+          },
+          "faim": {
+            "depart": 30,
+            "derive_heure": 3,
+            "urgence": 85
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "echoppe",
+              "periode": 40
+            }
+          },
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "antichambre",
+              "periode": 40
+            }
+          }
+        ]
+      }
+    },
+    "aubin": {
+      "aliases": [
+        "aubin",
+        "passeur"
+      ],
+      "humeur": "las",
+      "id": "aubin",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "maniere_de_parler": "Aubin parle peu, par phrases courtes, d'une voix éraillée.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Aubin, vieux passeur",
+      "portrait": "Aubin est un vieil homme voûté aux mains noueuses, ses bottes encore pleines d'eau.",
+      "position": [
+        1,
+        5
+      ],
+      "position_salle": "antichambre",
+      "type": "personnage",
+      "vigilance": 11,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 12,
+          "DEX": 9,
+          "INT": 9,
+          "PER": 12,
+          "CHA": 8
+        },
+        "traits": "Vieux passeur évacué, taciturne et honnête ; il surveille le niveau de l'eau aux vannes et dit à Gorm ce qu'il a vu.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "securite": {
+            "depart": 58,
+            "derive_heure": 4,
+            "urgence": 60
+          },
+          "repos": {
+            "depart": 60,
+            "derive_heure": 3,
+            "urgence": 80
+          },
+          "faim": {
+            "depart": 20,
+            "derive_heure": 3,
+            "urgence": 85
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "crypte",
+              "periode": 60
+            }
+          },
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "antichambre",
+              "periode": 30
+            }
+          }
+        ]
+      },
+      "genre": "m"
+    },
+    "fanal": {
+      "aliases": [
+        "fanal",
+        "lumignon"
+      ],
+      "allume": true,
+      "combustible": 720,
+      "id": "fanal",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "luminosite": 1,
+      "masse": 2,
+      "materiau": "fer et corne",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "fanal du refuge",
+      "position": [
+        4,
+        0
+      ],
+      "position_salle": "antichambre",
+      "type": "luminaire"
     }
   },
   "personnages_version": 1,
@@ -1413,6 +1600,16 @@
           }
         }
       },
+      "memoire": [],
+      "intention": null
+    },
+    "ilse": {
+      "croyances": {},
+      "memoire": [],
+      "intention": null
+    },
+    "aubin": {
+      "croyances": {},
       "memoire": [],
       "intention": null
     }

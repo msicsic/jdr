@@ -21,3 +21,16 @@ def sans_budget(monde):
     for salle in monde.data["salles"].values():
         salle.pop("potentiel_invention", None)
     return monde
+
+
+def sans_evacues(monde):
+    """Placement d'auteur : le Relais des jalons A à C, sans Ilse, Aubin ni le fanal du refuge.
+
+    Ces tests isolent Gorm et Brune ; la vie à quatre PNJ est couverte par test_social.
+    """
+    for id in ("ilse", "aubin", "fanal"):
+        monde.objets.pop(id, None)
+        for table in monde.data.values():
+            if isinstance(table, dict):
+                table.pop(id, None)
+    return monde

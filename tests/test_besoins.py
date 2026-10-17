@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from tests.support import sans_evacues
 from donjon import banc_pnj
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percoit
@@ -23,7 +24,7 @@ def recharger(monde):
 
 
 def relais():
-    m = nouveau_defi()
+    m = sans_evacues(nouveau_defi())
     installer(m)
     return m
 
@@ -157,7 +158,9 @@ class GormTests(unittest.TestCase):
         m, _ = attendre(absent(relais()), 24)
         self.assertGreaterEqual(lire(m, "marchand")["besoins"]["devoir"], 70)
         self.assertEqual(m.objets["cloche"]["lieu"], "chambre_cloche")
-        self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")
+        # Ses rondes le mènent au refuge et aux vannes, jamais vers la cloche.
+        self.assertNotIn("Gorm, gardien du relais passe dans : Palier des vannes.", chronique(m))
+        self.assertNotEqual((lire(m, "marchand")["intention"] or {}).get("but", {}).get("objet"), "cloche")
 
     def test_honnete_il_ne_mange_pas_les_vivres_d_autrui(self):
         m = absent(relais())
@@ -179,8 +182,11 @@ class ProfilTests(unittest.TestCase):
 
     def test_banc_sans_joueur(self):
         with patch("sys.stdout", io.StringIO()) as sortie:
-            self.assertEqual(banc_pnj.main(["--heures", "1", "--joueur", "chambre_cloche"]), 0)
+            self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche"]), 0)
+        # Relais complet : affamée, Brune finit par crocheter sous les yeux des évacués, qui le disent à Gorm.
         self.assertIn("crochète la serrure", sortie.getvalue())
+        self.assertIn("dit à Gorm que Brune", sortie.getvalue())
+        self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())
         self.assertIn("Mesures :", sortie.getvalue())
 
 

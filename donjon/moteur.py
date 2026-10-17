@@ -394,7 +394,8 @@ class Moteur:
                 # L'audition a déjà été résolue spatialement, sans alerter tout le monde.
                 continue
             pnj = travail.objets[id]
-            humeur = "méfiant" if relation["soupcon"] else "inquiet" if travail.data["bruit"] >= 6 else "calme"
+            from .vol import mefiance
+            humeur = "méfiant" if mefiance(travail, id) else "inquiet" if travail.data["bruit"] >= 6 else "calme"
             if pnj.get("humeur") != humeur and travail.visible(id):
                 lignes.append(pnj["nom"] + " semble " + humeur + ".")
             pnj["humeur"] = humeur

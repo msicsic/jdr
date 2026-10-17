@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.support import sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire
 from donjon.mj import MJOpenAI
@@ -17,7 +18,7 @@ from donjon.spatial import installer
 
 
 def relais():
-    m = nouveau_defi()
+    m = sans_evacues(nouveau_defi())
     installer(m)
     # Placement d'auteur : Brune a déjà mangé ; le joueur se tient près de Gorm dans la conduite.
     lire(m, "brune")["besoins"]["faim"] = 0

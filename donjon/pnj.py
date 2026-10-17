@@ -137,13 +137,21 @@ def temoins_crus(monde, id):
 
 
 def _temoigner(monde, id, operation, objet):
-    """Les PNJ qui perçoivent réellement l'auteur d'un geste illicite s'en souviennent."""
+    """Les PNJ qui perçoivent réellement l'auteur d'un geste illicite s'en souviennent.
+
+    Un geste occupe sa minute : appelé de nouveau en fin de minute, il compte aussi ceux qui
+    sont arrivés entre-temps, sans doubler le souvenir des premiers.
+    """
     from .deliberation import VOL, relancer
     from .vol import proprietaire
     victime = proprietaire(monde, monde.objets[objet])
+    souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
     for autre in pnjs(monde):
         if autre != id and percoit(monde, autre, id):
-            memoriser(monde, autre, {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet})
+            if any(s["minute"] == monde.data["minutes"] and all(s.get(k) == v for k, v in souvenir.items())
+                   for s in lire(monde, autre)["memoire"]):
+                continue
+            memoriser(monde, autre, souvenir)
             croire(monde, autre, id, "fiable", False, "vu")
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
@@ -161,6 +169,14 @@ def _au_seuil(monde, o, sortie):
         placer(o, o["lieu"], list(case))
 
 
+def _occupee(monde, id, salle, case):
+    """Un autre personnage, ou le joueur, se tient déjà sur la case."""
+    j = monde.joueur
+    return (j["salle"] == salle and tuple(j["position"]) == tuple(case)) or any(
+        o["type"] == "personnage" and k != id and o["lieu"] == salle and tuple(o.get("position", ())) == tuple(case)
+        for k, o in monde.objets.items())
+
+
 def _approcher(monde, id, cible):
     """Rejoint une case libre au contact de la cible, dans la même salle (une minute)."""
     from .spatial import _case_libre, position_cible, proche
@@ -172,7 +188,8 @@ def _approcher(monde, id, cible):
         return False
     depart = tuple(o.get("position", p))
     voisines = sorted((c for c in cases(monde.data["salles"][o["lieu"]])
-                       if max(abs(c[0] - p[0]), abs(c[1] - p[1])) == 1 and _case_libre(monde, o["lieu"], c)),
+                       if max(abs(c[0] - p[0]), abs(c[1] - p[1])) == 1 and _case_libre(monde, o["lieu"], c)
+                       and not _occupee(monde, id, o["lieu"], c)),
                       key=lambda c: (max(abs(c[0] - depart[0]), abs(c[1] - depart[1])), c))
     for case in voisines:
         placer(o, o["lieu"], list(case))
@@ -180,6 +197,20 @@ def _approcher(monde, id, cible):
             return True
     placer(o, o["lieu"], list(depart))
     return False
+
+
+def _inspecter(monde, id):
+    """Gagne la case libre la plus proche du centre de la salle pour la parcourir des yeux."""
+    o = monde.objets[id]
+    if monde.data.get("mode_cases") and "position" in o:
+        from .spatial import _case_libre
+        sol = cases(monde.data["salles"][o["lieu"]])
+        cx, cy = sum(x for x, _ in sol) / len(sol), sum(y for _, y in sol) / len(sol)
+        libres = [c for c in sol if tuple(c) == tuple(o["position"])
+                  or _case_libre(monde, o["lieu"], c) and not _occupee(monde, id, o["lieu"], c)]
+        if libres:
+            placer(o, o["lieu"], list(min(libres, key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, tuple(c)))))
+    esprit(monde, id)["visites"][o["lieu"]] = monde.data["minutes"]
 
 
 def _accessible(monde, id, objet):
@@ -234,7 +265,7 @@ def _crocheter(monde, id, cible, outil):
     return monde.d20() + (stats["DEX"] - 10) // 2 >= 14 + 4 * (2 - lumiere)
 
 
-def _executer(monde, id, etape, lignes):
+def _executer(monde, id, etape, lignes, gestes):
     """Accomplit une étape ; renvoie True si elle est terminée."""
     from .deliberation import SATIETE, illicite
     from .deplacement_objet import deplacer
@@ -245,6 +276,11 @@ def _executer(monde, id, etape, lignes):
         if route:
             _pas(monde, id, route[0], lignes)
         return o["lieu"] == etape["lieu"]
+    if op == "inspecter":
+        if o["lieu"] != etape["lieu"]:
+            return False
+        _inspecter(monde, id)
+        return True
     c = monde.objets.get(cible)
     if c is None:
         return False
@@ -283,6 +319,9 @@ def _executer(monde, id, etape, lignes):
             return _rate(monde, id, cible, "verrouillee", False) or True
         if not _crocheter(monde, id, cible, outil):
             _raconter(monde, id, "s'acharne sur la serrure de", c, lignes)
+            if faute:
+                gestes.append((id, "forcer", cible))
+                _temoigner(monde, id, "forcer", cible)
             return False
         c["verrouillee"] = False
         croire(monde, id, cible, "verrouillee", False, "essai")
@@ -296,11 +335,19 @@ def _executer(monde, id, etape, lignes):
         besoins["faim"] = max(0.0, besoins.get("faim", 0) - SATIETE)
         _raconter(monde, id, "mange une part de", c, lignes)
     if faute:
+        gestes.append((id, op, cible))
         _temoigner(monde, id, op, cible)
     return True
 
 
-def agir(monde, id, minute, lignes):
+def desespere(monde, id):
+    """Un besoin à son comble l'emporte sur la crainte d'être vu."""
+    from .deliberation import DESESPOIR
+    e = lire(monde, id)
+    return bool(e["intention"]) and e["besoins"].get(e["intention"]["motif"], 0) >= DESESPOIR
+
+
+def agir(monde, id, minute, lignes, gestes=None):
     """Un geste d'une minute selon l'intention courante."""
     from .deliberation import PATIENCE, renoncer
     e = esprit(monde, id)
@@ -323,38 +370,55 @@ def agir(monde, id, minute, lignes):
             # S'approcher prend la minute ; l'absence de témoin se juge ensuite sur place.
             _approcher(monde, id, etape["cible"])
             return
-    if etape["condition"] == "sans_temoin" and temoins_crus(monde, id):
+    if etape["condition"] == "sans_temoin" and temoins_crus(monde, id) and not desespere(monde, id):
         intention["attente"] += 1
         if intention["attente"] > PATIENCE:
             renoncer(monde, id, minute)
         return
-    if _executer(monde, id, etape, lignes):
+    if _executer(monde, id, etape, lignes, [] if gestes is None else gestes):
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
             e["intention"] = None
 
 
+def _annoncer_presences(monde, vus, apparus, lignes):
+    """Arrivées et départs à la minute où le joueur les perçoit, avant ce qui suit."""
+    for id, avant in vus.items():
+        maintenant = monde.visible(id)
+        if maintenant and not avant:
+            lignes.append(designer(monde.objets[id], debut=True) + " arrive.")
+            if id not in apparus:
+                apparus.append(id)
+        elif avant and not maintenant:
+            lignes.append(designer(monde.objets[id], debut=True) + " s'éloigne.")
+        vus[id] = maintenant
+
+
 def avancer(monde, minutes, lignes):
     """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
     from .deliberation import deliberer
+    from .social import bavarder
     fin = monde.data["minutes"]
     ids = pnjs(monde)
     vus = {id: monde.visible(id) for id in ids}
+    apparus = []
     for k in range(minutes):
         minute = monde.data["minutes"] = fin - minutes + k + 1
+        gestes = []
         for id in ids:
             if monde.objets[id].get("profil"):
                 deliberer(monde, id, minute)
-            if lire(monde, id)["intention"]:
-                agir(monde, id, minute, lignes)
+            intention = lire(monde, id)["intention"]
+            # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
+            if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
+                continue
+            if intention:
+                agir(monde, id, minute, lignes, gestes)
                 percevoir(monde, id)
+                _annoncer_presences(monde, vus, apparus, lignes)
+        for geste in gestes:
+            if geste[2] in monde.objets:
+                _temoigner(monde, *geste)
     monde.data["minutes"] = fin
-    apparus = []
-    for id in ids:
-        o = monde.objets[id]
-        if monde.visible(id) and not vus[id]:
-            lignes.append(designer(o, debut=True) + " arrive.")
-            apparus.append(id)
-        elif vus[id] and not monde.visible(id):
-            lignes.append(designer(o, debut=True) + " s'éloigne.")
+    _annoncer_presences(monde, vus, apparus, lignes)
     return apparus
