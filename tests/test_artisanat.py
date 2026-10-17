@@ -289,7 +289,7 @@ class HarnaisTests(unittest.TestCase):
         m = nouveau_atelier()
         self.assertEqual(MODELE_PAR_DEFAUT, "gpt-6-luna")
         def appeler(instructions, entree, *args):
-            self.assertEqual(set(entree["faits"]), {"resultat_resolu", "joueur", "salle", "perception", "attestations"})
+            self.assertEqual(set(entree["faits"]), {"resultat_resolu", "joueur", "salle", "perception", "attestations", "ambiance_etablie"})
             return {"mode": "dialogue", "texte": "Tu poses ton échelle au sol.", "faits": ["resultat_resolu"], "proposition": None}
         with patch.object(MJOpenAI, "_appeler", side_effect=appeler):
             MJOpenAI().raconter_resultat(m, {"faits": ["Une échelle a été créée au sol."]})
@@ -298,7 +298,7 @@ class HarnaisTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "atelier.json"
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", return_value=action(fabriquer())), patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Le résultat vient du moteur")), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["je fabrique une échelle", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()) as out:
-                jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(path)])
+                jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(path)])
             self.assertIn("échelle", out.getvalue())
             self.assertIn("26 min", out.getvalue())
             m = Monde.charger(path)

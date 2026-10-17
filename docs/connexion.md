@@ -91,7 +91,7 @@ derniers échanges. Les paroles du joueur et du MJ sont séparées des faits du 
 non déchiffré de la gravure sont exclus de cette vue. `store` vaut `false`.
 La réponse de conversation vient du LLM ; les résultats d’actions restent décrits par le moteur,
 avec parfois un appel de narration supplémentaire. Les affirmations libres affichées passent
-par un contrôle de leurs attestations exactes. Les avis non contrôlés d'une proposition et
+par le contrôle décrit dans contrat-mj.md. Les avis non contrôlés d'une proposition et
 les brouillons d'intention de Luna ne sont pas affichés. Le contrôle sémantique reste probabiliste.
 
 En cas de clé invalide, délai réseau ou réponse incorrecte, l'action n'est pas appliquée.

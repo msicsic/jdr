@@ -198,7 +198,7 @@ class OperationsTests(unittest.TestCase):
                  patch.object(MJOpenAI, "_appeler", return_value=reponse) as appel, \
                  patch("builtins.input", side_effect=["je range la clé", "tenter", "quitter"]), \
                  patch("sys.stdout", io.StringIO()) as sorties:
-                jeu.main(["--console", "--connexion", "api", "--save", str(path)])
+                jeu.main(["--recit-moteur", "--console", "--connexion", "api", "--save", str(path)])
             sauvegarde = Monde.charger(path)
             self.assertEqual(appel.call_count, 1)
             self.assertEqual(sauvegarde.objets["cle"]["lieu"], "joueur")

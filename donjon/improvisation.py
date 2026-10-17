@@ -246,7 +246,7 @@ def preparer(m, p, origine):
         for nom, branche in (("réussite", p["reussite"]), ("échec", p["echec"])):
             pv = sum(e["valeur"] for e in branche["effets"] if e["operation"] == "blesser")
             usure = sum(e["valeur"] for e in branche["effets"] if e["operation"] == "user")
-            risques.append(f"En cas de {nom} : " + recits["reussite" if nom == "réussite" else "echec"].strip() +
+            risques.append(("En cas de réussite : " if nom == "réussite" else "En cas d'échec : ") + recits["reussite" if nom == "réussite" else "echec"].strip() +
                            (f" ({pv} PV perdus)" if pv else "") + (f" (outil : -{usure} intégrité)" if usure else ""))
         plan.risque = "\n".join(risques)
     trace = {"approche": p["approche"], "cibles": p["cibles"], "outil": p["outil"]}

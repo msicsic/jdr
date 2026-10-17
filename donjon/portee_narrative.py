@@ -29,7 +29,7 @@ SCHEMA = {
                 "items": {"type": "object", "additionalProperties": False,
                     "properties": {
                         "texte": {"type": "string"},
-                        "portee": {"type": "string", "enum": ["sujet", "attestation", "sans_preuve"]},
+                        "portee": {"type": "string", "enum": ["sujet", "attestation", "ambiance", "sans_preuve"]},
                         "preuve": {"type": "string"},
                         "motif": {"type": "string"},
                     },
@@ -101,8 +101,10 @@ Pour chaque fragment, indique :
 - sujet : propriété du seul sujet indiqué, y compris son aspect ou sa relation locale ;
 - attestation : fait déjà établi, seulement si le fragment entier est identique à une
   attestation fournie par le moteur ; copie cette attestation dans preuve ;
+- ambiance : impression sensorielle autour du sujet (odeur, son de fond, lumière ambiante,
+  texture), sans autre objet, passage, personnage, ressource ou indice ;
 - sans_preuve : fait autonome nouveau, contradiction ou portée indécidable. Explique-le.
-Pour sujet et sans_preuve, preuve est vide. Même si l'affirmation semble vraisemblable,
+Pour sujet, ambiance et sans_preuve, preuve est vide. Même si l'affirmation semble vraisemblable,
 classe-la sans_preuve si elle exige un autre ajout au monde.
 Les paroles et inscriptions littérales sont conservées comme citations et ne figurent pas
 parmi ces entrées. Rends un rapport pour chaque entrée, dans le même ordre.
@@ -208,7 +210,7 @@ def controler(entrees, rapport, attestations=()):
                        or set(f) != {"texte", "portee", "preuve", "motif"}
                        or any(not isinstance(f[k], str) for k in f)
                        or not f["texte"]
-                       or f["portee"] not in ("sujet", "attestation", "sans_preuve")
+                       or f["portee"] not in ("sujet", "attestation", "ambiance", "sans_preuve")
                        for f in ligne["fragments"])
                 or "".join(f["texte"] for f in ligne["fragments"]) != entree["texte"]):
             raise ErreurMonde("Contrôle de portée mal formé.")

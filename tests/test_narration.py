@@ -17,30 +17,47 @@ def dialogue(texte):
     return {"mode": "dialogue", "texte": texte, "faits": [], "proposition": None}
 
 
-def segment(verdict, sources=(), locuteur="", citation="", motif=""):
+def segment(verdict, sources=(), locuteur="", citation="", motif="", entites=()):
     return {"segments": [{"indice": 0, "verdict": verdict, "sources": list(sources),
-                           "locuteur": locuteur, "citation": citation, "motif": motif}]}
+                           "locuteur": locuteur, "citation": citation, "entites": list(entites),
+                           "motif": motif}]}
 
 
 class NarrationTests(unittest.TestCase):
     def test_couverture_et_references_du_controle(self):
         texte = "La porte est fermée. Une cloche apparaît."
         with self.assertRaises(ErreurMonde):
-            controler(texte, segment("etabli", ["salle"]), {"salle": {}})
+            controler(texte, segment("mecanique", ["salle"]), {"salle": {}})
         with self.assertRaises(ErreurMonde):
-            controler("La porte est fermée.", segment("etabli", ["source_inventee"]), {"salle": {}})
+            controler("La porte est fermée.", segment("mecanique", ["source_inventee"]), {"salle": {}})
 
-    def test_source_connue_ne_prouve_pas_une_nouvelle_affirmation(self):
-        faits = {"objet:cloche": {"nom": "cloche"},
-                 "attestations": ["La cloche est dans le beffroi."]}
-        rapport = segment("etabli", ["attestations", "objet:cloche"])
-        self.assertTrue(controler("Une seconde cloche est sous le plancher.", rapport, faits)["obstacles"])
-        self.assertFalse(controler("La cloche est dans le beffroi.", rapport, faits)["obstacles"])
+    def test_mecanique_exige_une_source_et_invention_refusee(self):
+        faits = {"objet:cloche": {"nom": "cloche"}}
+        phrase = "La cloche est dans le beffroi."
+        self.assertTrue(controler(phrase, segment("mecanique"), faits)["obstacles"])
+        self.assertFalse(controler(phrase, segment("mecanique", ["objet:cloche"]), faits)["obstacles"])
+        self.assertTrue(controler("Une seconde cloche est sous le plancher.",
+                                  segment("invention_protegee", motif="Seconde cloche."), faits)["obstacles"])
+
+    def test_texte_accepte_affiche_tel_quel(self):
+        texte = "Prends ton temps. Une odeur de vase monte du sol. Peut-être que l'eau a reflué ici."
+        rapport = {"segments": [
+            {"indice": 0, "verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
+             "entites": [], "motif": ""},
+            {"indice": 1, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+             "entites": ["odeur de vase"], "motif": ""},
+            {"indice": 2, "verdict": "hypothese", "sources": [], "locuteur": "", "citation": "",
+             "entites": [], "motif": ""}]}
+        resultat = controler(texte, rapport, {})
+        self.assertFalse(resultat["obstacles"])
+        self.assertEqual(resultat["texte_controle"], texte)
+        self.assertEqual(resultat["ambiances"], [{"texte": "Une odeur de vase monte du sol.",
+                                                   "entites": ["odeur de vase"]}])
 
     def test_attribution_superflue_hors_parole_est_normalisee(self):
         phrase = "La cloche est dans le beffroi."
         faits = {"attestations": [phrase]}
-        rapport = controler(phrase, segment("etabli", ["attestations"],
+        rapport = controler(phrase, segment("mecanique", ["attestations"],
                                             locuteur="marchand", citation="Une autre phrase."), faits)
         self.assertFalse(rapport["obstacles"])
         self.assertEqual(rapport["segments"][0]["locuteur"], "")
@@ -49,8 +66,8 @@ class NarrationTests(unittest.TestCase):
     def test_dialogue_invente_est_revise_puis_sauvegarde_avant_affichage(self):
         invention = "Une seconde cloche est cachée sous le plancher."
         corrige = "Tu te trouves dans : Refuge du relais."
-        sorties = [dialogue(invention), segment("etabli", ["attestations"]),
-                   dialogue(corrige), segment("etabli", ["attestations"])]
+        sorties = [dialogue(invention), segment("invention_protegee", motif="Aucune seconde cloche."),
+                   dialogue(corrige), segment("mecanique", ["attestations"])]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
@@ -125,7 +142,7 @@ class NarrationTests(unittest.TestCase):
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                      avis, segment("etabli", ["attestations"])]),
+                      avis, segment("mecanique", ["attestations"])]),
                   patch("builtins.input", side_effect=["mj Où suis-je ?", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
@@ -149,8 +166,8 @@ class NarrationTests(unittest.TestCase):
             {"mode": "action", "texte": "", "faits": [],
              "proposition": sequence(etape("allumer", "torche", outil="briquet"))},
             dialogue(explication),
-            {"segments": [{"indice": i, "verdict": "etabli", "sources": ["attestations"],
-                           "locuteur": "", "citation": "", "motif": ""} for i in range(2)]},
+            {"segments": [{"indice": i, "verdict": "mecanique", "sources": ["attestations"],
+                           "locuteur": "", "citation": "", "entites": [], "motif": ""} for i in range(2)]},
         ]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
@@ -298,7 +315,7 @@ class NarrationTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("Gorm le marchand dit : « " + citation + " ».", sortie.getvalue())
+        self.assertIn(texte, sortie.getvalue())
         self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
         self.assertIn("joueur", reprise.data["paroles_pnj"][-1]["auditeurs"])
         self.assertNotIn("seconde_cloche", reprise.objets)
@@ -320,10 +337,73 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
         self.assertEqual(appel.call_count, 4)
-        self.assertEqual(sortie.getvalue().count("Gorm le marchand dit : « " + citation), 1)
+        self.assertEqual(sortie.getvalue().count(texte), 1)
         self.assertEqual(len(reprise.data["paroles_pnj"]), 1)
         self.assertEqual(reprise.data["paroles_pnj"][0]["texte"], citation)
         self.assertNotIn("seconde_cloche", reprise.objets)
+
+    def test_ambiance_affichee_enregistree_et_reprise_apres_rechargement(self):
+        # Cas réel du banc de référence : « ça sent quoi, ici ? » finissait en repli.
+        texte = "L'air est humide et sent la vase. Une odeur de pierre mouillée flotte autour de toi."
+        rapport = {"segments": [
+            {"indice": i, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+             "entites": [e], "motif": ""} for i, e in enumerate(("odeur de vase", "pierre mouillée"))]}
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=[dialogue(texte), rapport]),
+                  patch("builtins.input", side_effect=["ça sent quoi, ici ?", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--defi", "--console", "--save", str(chemin),
+                                           "--connexion", "api"]), 0)
+            reprise = Monde.charger(chemin)
+        self.assertIn(texte, sortie.getvalue())
+        self.assertNotIn("Je ne peux pas encore", sortie.getvalue())
+        self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], texte)
+        self.assertEqual([a["entites"] for a in reprise.contexte()["ambiance_etablie"]],
+                         [["odeur de vase"], ["pierre mouillée"]])
+        self.assertEqual(set(reprise.objets), set(nouveau_defi().objets))
+
+    def test_ambiance_d_un_autre_lieu_n_est_pas_fournie(self):
+        m = nouveau_monde()
+        m.data["ambiances"] = {"echoppe": [{"texte": "Ça sent le fer.", "entites": ["fer"], "revision": 0}]}
+        m.verifier()
+        self.assertEqual(m.contexte()["ambiance_etablie"], [])
+        m.joueur["salle"] = "echoppe"
+        self.assertEqual(m.contexte()["ambiance_etablie"], [{"texte": "Ça sent le fer.", "entites": ["fer"]}])
+
+    def test_nom_d_entite_cachee_refuse_meme_si_l_auditeur_le_laisse_passer(self):
+        # Le marteau est dans l'échoppe, hors de vue depuis l'antichambre.
+        fuite = "Un marteau traîne contre le mur."
+        corrige = "La pierre est froide sous tes doigts."
+        sorties = [dialogue(fuite), segment("ambiance", entites=["marteau"]),
+                   dialogue(corrige), segment("ambiance", entites=["pierre froide"])]
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=sorties) as appel,
+                  patch("builtins.input", side_effect=["mj je tâte le mur", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
+            reprise = Monde.charger(chemin)
+        self.assertEqual(appel.call_count, 4)
+        self.assertIn("marteau", str(appel.call_args_list[2].args[1]["controle_narratif"]))
+        self.assertNotIn(fuite, sortie.getvalue())
+        self.assertIn(corrige, sortie.getvalue())
+        self.assertNotIn(fuite, str(reprise.data))
+        self.assertNotIn("marteau", str(reprise.data.get("ambiances", {})))
+
+    def test_nom_cite_par_le_joueur_reste_fonde(self):
+        texte = "Tu ne vois aucun marteau ici."
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=[
+                      dialogue(texte), segment("mecanique", ["perception"])]),
+                  patch("builtins.input", side_effect=["y a-t-il un marteau ici ?", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
+        self.assertIn(texte, sortie.getvalue())
 
     def test_recit_libre_d_improvisation_ne_cree_pas_de_fait(self):
         monde = nouveau_monde()

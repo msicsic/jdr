@@ -199,7 +199,7 @@ class ImprovisationTests(unittest.TestCase):
                  patch("jeu.MJOpenAI.echanger", return_value=reponse(chant())), \
                  patch("jeu.MJOpenAI.raconter_resultat", side_effect=AssertionError("Pas de second appel de narration")), \
                  patch("sys.stdout", new_callable=io.StringIO) as output:
-                jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(p)])
+                jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(p)])
             m = Monde.charger(p)
             self.assertEqual(m.data["minutes"], 1)
             self.assertEqual(m.data["gestes_improvises"][-1]["approche"], "expression")
@@ -234,7 +234,7 @@ class ImprovisationTests(unittest.TestCase):
                       patch.object(MJOpenAI, "_appeler_brut", side_effect=faux_appel),
                       patch("builtins.input", side_effect=[phrase, "quitter"]),
                       patch("sys.stdout", new_callable=io.StringIO) as output):
-                    jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(chemin)])
+                    jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(chemin)])
                 reprise = Monde.charger(chemin)
                 self.assertEqual(appels, [("proposition", False), ("audit", False),
                                          ("proposition", True), ("audit", True)])

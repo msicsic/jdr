@@ -55,7 +55,7 @@ class CoupeTests(unittest.TestCase):
                       "je coupe la plaque d'acier avec la scie à métaux", "tenter",
                       "examiner plaque d'acier", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--console", "--atelier", "--save",
+                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
             self.assertEqual(appel.call_count, 4)
             self.assertEqual(appel.call_args_list[2].args[1]["qualifications"][0]
@@ -125,7 +125,7 @@ class CoupeTests(unittest.TestCase):
                   patch("builtins.input", side_effect=[
                       "couper plaque d'acier avec scie à métaux", "tenter", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--console", "--atelier", "--save",
+                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
             fin = Monde.charger(chemin)
             self.assertNotIn("seuil_coupe", fin.objets["plaque"])
@@ -162,9 +162,9 @@ class CoupeTests(unittest.TestCase):
                                      "motif": "La dalle résiste à cette hache."}]}
             explication = {"mode": "dialogue", "texte": phrase,
                            "faits": ["attestations"], "proposition": None}
-            audit = {"segments": [{"indice": 0, "verdict": "etabli",
+            audit = {"segments": [{"indice": 0, "verdict": "mecanique",
                                    "sources": ["attestations"], "locuteur": "",
-                                   "citation": "", "motif": ""}]}
+                                   "citation": "", "entites": [], "motif": ""}]}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut",
                                side_effect=[action, exclusion, revue, action,
@@ -265,7 +265,7 @@ class CoupeTests(unittest.TestCase):
                           f"couper {depart.objets[cible]['nom']} avec hache",
                           "tenter", "quitter"]),
                       patch("sys.stdout", io.StringIO()) as sortie):
-                    self.assertEqual(jeu.main(["--console", "--atelier", "--save",
+                    self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
                                                str(chemin), "--connexion", "api"],
                                                interface=interface), 0)
                 affichage = ("\n".join(str(a.args[0]) for a in interface.ecrire.call_args_list)

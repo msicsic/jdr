@@ -632,7 +632,7 @@ observation autonome, les mensonges et la propagation de rumeurs ne sont pas sim
   inscription et parole d'un PNJ présent. Le moteur vérifie les ancrages et la perception, crée
   les cibles ou enregistre le locuteur et les auditeurs, puis compose le texte affiché. Les ajouts
   sont sauvegardés avant affichage ; une inscription reste examinable et lisible. Les dialogues
-  libres sont contrôlés séparément, à partir des phrases attestées par le moteur.
+  libres sont contrôlés séparément (voir contrat-mj.md).
 - La mémoire permet de décrire un personnage rencontré même hors de sa pièce, sans révéler son humeur
   actuelle. Les souvenirs visuels sont actualisés lors des actions en présence du personnage et en pleine
   lumière. La rencontre initiale et le premier portrait de Gorm sont établis par la prémisse.

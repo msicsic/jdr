@@ -18,14 +18,20 @@ SCHEMA = {
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
-Signale une action différente, une étape omise ou une conséquence perceptible nécessaire
-à l'action demandée qui n'est représentée par aucune opération. Le titre, le récit et
-l'enregistrement générique d'un geste ne créent pas à eux seuls une conséquence physique.
-Une action sans changement durable peut être conforme si le geste suffit à la demande.
+Le plan représente l'état du monde : action, cibles, outil, et changements durables
+(objet déplacé, détaché, allumé, marqué, son émis, blessure, usure). La manière du geste
+(position des mains, style, intention affichée, caractère d'un son ou d'un air) relève du
+récit et n'a pas à figurer dans les opérations ; l'outil et la méthode la portent déjà.
+Réponds conforme=false seulement pour un écart d'état net :
+- une action ou une cible différente de celle demandée ;
+- un changement durable demandé qu'aucune opération ne produit ;
+- un changement durable ajouté que le joueur n'a pas demandé.
+Une action sans changement durable est conforme si le geste suffit à la demande.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
-Réponds conforme=false en cas de doute sérieux. Le motif désigne seulement l'écart
-entre demande et plan, sans inventer un fait du monde. Appelle auditer_action une fois.
+En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
+Le motif désigne seulement l'écart d'état, sans inventer un fait du monde.
+Appelle auditer_action une fois.
 """
 
 

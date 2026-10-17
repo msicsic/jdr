@@ -19,8 +19,8 @@ class RecitTests(unittest.TestCase):
             if nom == "auditer_narration":
                 entree = json.loads(payload["input"][0]["content"])
                 arguments = {"segments": [
-                    {"indice": i, "verdict": "etabli", "sources": ["attestations"],
-                     "locuteur": "", "citation": "", "motif": ""}
+                    {"indice": i, "verdict": "mecanique", "sources": ["attestations"],
+                     "locuteur": "", "citation": "", "entites": [], "motif": ""}
                     for i, _ in enumerate(entree["segments"])]}
             else:
                 if inspecter:

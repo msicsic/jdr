@@ -25,6 +25,17 @@ class LexiqueTests(unittest.TestCase):
         fondement = lexique.corpus("axe du gond supérieur")
         self.assertEqual(lexique.mentions_sans_fondement(m, "L'axe du gond supérieur grince.", fondement), [])
 
+    def test_texte_d_un_ajout_persistant_controle_aussi(self):
+        from donjon.narration import mentions_proposees
+        m = nouveau_monde()
+        base = lexique.corpus(m.contexte())
+        def detail(nom, texte):
+            return {"mode": "etablir_faits", "texte": "", "faits": [], "proposition": {"ajouts": [
+                {"type": "detail", "ancrage": "antichambre_murs", "nom": nom, "genre": "f", "texte": texte}]}}
+        self.assertTrue(mentions_proposees(m, detail("rayure", "Elle désigne le marteau."), base))
+        # Le nom de l'élément créé appartient à l'ajout lui-même.
+        self.assertFalse(mentions_proposees(m, detail("trace de marteau", "Un choc ancien."), base))
+
     def test_fondement_issu_d_un_texte_affiche(self):
         m = nouveau_monde()
         fondement = lexique.corpus(m.contexte(), "Gorm parle d'un anneau du veilleur.")

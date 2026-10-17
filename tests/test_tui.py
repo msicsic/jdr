@@ -86,11 +86,11 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         corrige = "Tu te trouves dans : Antichambre."
         reponses = [
             {"mode": "dialogue", "texte": invention, "faits": [], "proposition": None},
-            {"segments": [{"indice": 0, "verdict": "nouveau", "sources": [],
-                           "locuteur": "", "citation": "", "motif": "Aucune seconde cloche établie."}]},
+            {"segments": [{"indice": 0, "verdict": "invention_protegee", "sources": [],
+                           "locuteur": "", "citation": "", "entites": [], "motif": "Aucune seconde cloche établie."}]},
             {"mode": "dialogue", "texte": corrige, "faits": ["attestations"], "proposition": None},
-            {"segments": [{"indice": 0, "verdict": "etabli", "sources": ["attestations"],
-                           "locuteur": "", "citation": "", "motif": ""}]},
+            {"segments": [{"indice": 0, "verdict": "mecanique", "sources": ["attestations"],
+                           "locuteur": "", "citation": "", "entites": [], "motif": ""}]},
         ]
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(MJOpenAI, "_appeler_brut", side_effect=reponses) as api, \
@@ -308,7 +308,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         ]
         with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
              patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api:
-            app = SeuilApp(["--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
+            app = SeuilApp(["--recit-moteur", "--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
             async with app.run_test(size=(120, 40)) as pilot:
                 await self.pret(app)
                 await self.commande(app, pilot, "je tate les objets dans le coffre avec mes mains", 0)
@@ -358,7 +358,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                      "proposition": sequence(etape("deplacer", "pied_de_biche", "joueur"))}]
         with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
              patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api:
-            app = SeuilApp(["--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
+            app = SeuilApp(["--recit-moteur", "--defi", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(chemin)])
             async with app.run_test(size=(120, 40)) as pilot:
                 await self.pret(app)
                 await self.commande(app, pilot, "mj je ramasse le pied de biche", 1)
@@ -379,7 +379,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         reponses = [{"mode": "action", "texte": "", "faits": ["atelier"], "proposition": p}]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as api, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(Monde, "d20", return_value=20):
             path = Path(tmp) / "atelier.json"
-            app = SeuilApp(["--atelier", "--debug", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(path)])
+            app = SeuilApp(["--recit-moteur", "--atelier", "--debug", "--connexion", "api", "--model", "gpt-6-luna", "--save", str(path)])
             async with app.run_test(size=(120, 40)) as pilot:
                 await self.pret(app)
                 await self.commande(app, pilot, "je fabrique une échelle", 0)
@@ -574,7 +574,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         reponses = [{"mode": "action", "texte": "", "faits": [], "proposition": p}]
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "_appeler", side_effect=reponses) as appels, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             chemin = Path(tmp) / "partie.json"
-            app = SeuilApp(["--connexion", "api", "--save", str(chemin)])
+            app = SeuilApp(["--recit-moteur", "--connexion", "api", "--save", str(chemin)])
             async with app.run_test(size=(100, 36)) as pilot:
                 await self.pret(app)
                 await self.commande(app, pilot, "Je retire les deux axes avec mon couteau", 0)

@@ -13,7 +13,8 @@ from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur, QualificationRequise
-from donjon.narration import consigner as consigner_narration, rendre_resultat
+from donjon.narration import (consigner as consigner_narration, rendre_resultat,
+                              chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
@@ -66,6 +67,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--demo", action="store_true", help="joue une démonstration sans API et sans sauvegarde")
     parser.add_argument("--console", action="store_true", help="ancien affichage ligne par ligne")
     parser.add_argument("--tui", action="store_true", help="interface plein écran")
+    parser.add_argument("--recit-moteur", action="store_true",
+                        help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
     if args.atelier and args.defi:
         parser.error("Choisis --atelier ou --defi.")
@@ -151,14 +154,40 @@ def main(argv=None, interface=None):
         pending = None
         comparaison_pending = 0
 
+        def demande_initiale(intention):
+            # « tenter » confirme la dernière proposition : son récit part de la demande d'origine.
+            if normaliser(intention) != "tenter":
+                return intention
+            return next((e["joueur"] for e in reversed(m.data["conversation"])
+                         if e.get("nature") == "proposition_non_executee"), intention)
+
+        def raconter(affichage, intention):
+            """Récit de Luna d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
+            if mj is None or args.recit_moteur:
+                return None
+            try:
+                recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention),
+                                                 "faits": affichage.splitlines()})
+            except ErreurMonde:
+                return None
+            if (recit.get("mode") != "dialogue" or not recit.get("_audit")
+                    or chiffres_sans_fondement(recit["texte"], affichage, m.joueur)):
+                return None
+            return recit
+
         def conclure(plan, resultat, intention, numero=0):
             # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
             affichage = rendre_resultat(resultat)
-            m.memoriser(intention, affichage, "resultat_moteur")
+            m.sauver(args.save)
+            recit = raconter(affichage, intention)
+            texte_affiche = recit["texte"] if recit else affichage
+            m.memoriser(intention, texte_affiche, "resultat_moteur")
+            if recit:
+                consigner_narration(m, recit)
             m.sauver(args.save)
             if isinstance(mj, Comparateur) and numero:
                 mj.noter_resultat(resultat, numero=numero)
-            imprimer(affichage)
+            imprimer(texte_affiche)
 
         while True:
             if interface:

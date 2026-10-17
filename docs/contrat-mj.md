@@ -1,21 +1,72 @@
 # Contrat entre le MJ et le monde
 
-Ce document décrit le contrat appliqué et ce qui reste à construire. Les réponses libres
-de Luna sont relues avant affichage. Une affirmation factuelle doit reprendre exactement
-une phrase attestée par le moteur depuis l'état courant ; une clé d'objet vaguement liée
-ne suffit plus. Luna classe encore les phrases, mais ne peut pas faire accepter une nouvelle
-affirmation en citant simplement une source existante.
+Ce document décrit le contrat appliqué entre Luna (le MJ) et le moteur, et ce qui reste à
+construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENTS.md).
 
-## Première tranche implémentée
+## Trois niveaux de vérité
+
+| Niveau | Contenu | Autorité | Contrôle avant affichage |
+|---|---|---|---|
+| Mécanique | entités identifiées, positions, sorties et passages, portes et attaches, possession, ressources, lumière, présence des PNJ, missions, résultats d'action, indices | moteur | doit découler des faits fournis ; une invention est refusée et passe par un fait typé |
+| Interactif | objet ou détail que le joueur peut cibler | moteur, après proposition typée | validation des faits typés ci-dessous |
+| Ambiance | aspect, odeur, son de fond, texture, impression | Luna | libre, enregistrée avec son lieu, ne crée aucune entité mécanique |
+
+## Contrôle de la prose
+
+Chaque réponse libre de Luna (dialogue, avis de clarification, explication d'un refus)
+est découpée en segments et relue par un auditeur, qui classe chaque segment :
+
+| Verdict | Traitement |
+|---|---|
+| `neutre` (salutation, conseil, question) | affiché tel quel |
+| `hypothese` (possibilité présentée comme incertaine) | affiché tel quel |
+| `ambiance` (description sensorielle) | affiché tel quel ; enregistré dans `ambiances[lieu]` avec les éléments évoqués |
+| `parole` (propos d'un PNJ présent) | locuteur présent et citation exacte exigés ; enregistrée avec lieu, instant et auditeurs ; son contenu n'est pas une vérité |
+| `mecanique` | doit citer au moins une clé de fait fournie (`objet:<id>`, `perception`, `salle`…) |
+| `invention_protegee`, `contradictoire` | révision demandée à Luna ; jamais affiché |
+
+Le texte accepté est affiché **tel que Luna l'a écrit**. Les ambiances du lieu courant
+reviennent dans le contexte suivant (`ambiance_etablie`), ce qui permet à Luna de rester
+cohérente et à l'auditeur de refuser une ambiance qui les contredit.
+
+**Garde-fou déterministe.** Les noms et alias de toutes les entités du monde, y compris
+cachées, et les noms des salles forment un lexique dérivé de l'état
+([donjon/lexique.py](../donjon/lexique.py)). Un terme du lexique présent dans le texte mais
+absent de tout ce que Luna a reçu (faits, conversation récente, message du joueur) entraîne
+une révision, quel que soit le verdict de l'auditeur. Le même contrôle s'applique aux
+textes des ajouts persistants (détail, objet, inscription, parole, portrait, savoir), le
+nom de l'élément créé faisant partie de l'ajout. Il est refait au moment de l'enregistrement.
+
+Une réponse refusée est révisée au plus deux fois ; aucun texte refusé n'est affiché. Après
+trois échecs, le jeu affiche une phrase sûre du moteur. La réponse acceptée, ses paroles et
+ses ambiances sont enregistrées et sauvegardées avant l'affichage.
+
+**Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
+mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
+qu'elle est éclairée), ou un objet manipulable présenté comme ambiance, dépend de son
+jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un élément
+d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
+matérialisation à la demande, quand elle sera en place.
+
+## Contrôle des actions
+
+Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare
+la demande du joueur aux opérations du plan. Elle ne juge que l'état : action et cibles,
+changement durable demandé mais absent, changement durable ajouté sans demande. La
+manière du geste (style, position des mains, caractère d'un son) relève du récit, portée
+par l'outil et la méthode. En cas de doute, le plan est accepté : le moteur garde
+l'autorité sur chaque effet. Les conséquences affichées viennent du journal du moteur.
+
+## Faits typés persistants
 
 Luna peut proposer un groupe de faits structurés : détail visible, inscription ou parole. Le
 moteur vérifie les supports et locuteurs disponibles, la perception et la forme des données.
 Les descriptions de détail et les facettes de personnage passent aussi par une contre revue.
 Le nom et chaque phrase sont soumis séparément. Luna découpe chaque entrée en fragments
 contigus et cherche les affirmations vérifiables indépendamment du sujet proposé. Le moteur
-vérifie que les fragments couvrent tout le texte et qu'une preuve tirée de l'état courant
-correspond exactement à une attestation. Un fragment sans preuve entraîne une révision
-avant toute mutation.
+vérifie que les fragments couvrent tout le texte. Un fragment porte sur le sujet, sur une
+attestation exacte de l'état courant, sur l'ambiance autour du sujet, ou il est sans preuve ;
+un fragment sans preuve entraîne une révision avant toute mutation.
 L'inscription et la parole sont conservées comme textes cités ; leur contenu n'établit pas
 la vérité de ce qu'elles disent. Le moteur applique ensuite le groupe sur une copie.
 Les détails deviennent des cibles ; une parole est
@@ -24,59 +75,12 @@ Le texte affiché est construit à partir des faits acceptés. Si la proposition
 Luna reçoit la raison et peut la corriger. La TUI et la console sauvegardent la
 transaction avant affichage.
 
-Cette tranche ne permet pas encore de créer le support lui-même, de décrire une ambiance sans
-ancrage. Le contenu d'une inscription
+Un fait typé ne permet pas encore de créer le support lui-même. Le contenu d'une inscription
 est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
-
-## Contrôle commun actuellement appliqué
-
-Chaque réponse finale libre est découpée en segments et relue par Luna. L'auditeur classe
-chaque segment comme établi, hypothétique, neutre, parole attribuée, nouveau fait ou
-contradiction. Le moteur vérifie la couverture, le locuteur et la correspondance exacte
-entre chaque segment factuel établi et une attestation de l'état courant. Les paroles sont
-reformulées avec leur locuteur, les hypothèses sont annoncées comme possibilités et les
-formules neutres deviennent une réponse prudente. Une affirmation nouvelle ou contradictoire
-entraîne une révision, au plus deux fois ; aucun texte rejeté n'est affiché.
-Si les trois formulations échouent, le jeu affiche une phrase déjà attestée depuis l'état
-courant, sans créer le fait proposé.
-
-La réponse acceptée et ses références sont enregistrées avant affichage. Une parole nouvelle
-attribuée à un PNJ présent est conservée avec son lieu, son instant et ses auditeurs ; son
-contenu ne devient pas une vérité du monde. Le contrôle ajoute des appels à Luna et leur
-consommation est additionnée dans la trace debug.
-
-La classification de la prose par l'auditeur reste probabiliste. Une erreur de classement
-ne peut toutefois plus faire passer une phrase factuelle libre pour une attestation : le
-moteur exige le texte exact. La contre revue impose désormais une couverture textuelle et
-des preuves vérifiables. La contre revue classe maintenant aussi la représentation nécessaire
-de chaque nom et phrase : aspect local, objet autonome, texte lisible, état du monde ou portrait.
-Le moteur refuse une classification incompatible avec le type d'ajout proposé, même si Luna
-a couvert tout le texte en le qualifiant de propriété du sujet. Luna peut encore se tromper
-sur cette classification ou manquer une implication. Un contrat de faits plus riche sera
-nécessaire pour garantir que toute entité sous-entendue devient une cible. Les tests simulés vérifient le rejet, la révision,
-l'affichage et le rechargement ; un essai avec Luna réel vérifie le parcours d'un détail
-créé sur une partie temporaire.
-
-Les résultats exécutés suivent un contrat plus strict : le moteur rédige les conséquences
-pendant l'application de ses effets et les enregistre dans son journal. La console et la TUI
-affichent ces phrases après sauvegarde, sans demander à Luna de les paraphraser. Les lignes
-de calcul des jets restent consultables dans le journal. Ce rendu est moins libre que le
-dialogue, mais les effets affichés proviennent de l'exécution réelle. Pour une improvisation,
-le brouillon narratif et la formulation de l'intention de Luna ne sont ni affichés ni
-réinjectés comme faits : le moteur décrit le type de geste, ses cibles et les effets
-validés de la branche réellement résolue.
-Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare
-l'intention entière du joueur aux opérations du plan préparé par le moteur. Un effet
-perceptible nécessaire mais absent entraîne une correction du plan avant toute mutation.
-Le contrôle peut se tromper sur le sens de la phrase ; le moteur conserve l'autorité sur
-la possibilité et l'application de chaque effet.
-Pour un son improvisé, Luna choisit une catégorie acoustique contrôlée par le moteur.
-Le souvenir d'un PNJ conserve cette forme et l'intensité, sans attribuer au personnage
-des paroles que le joueur n'a pas prononcées.
 
 ## Ce qu'une phrase engage
 
-- Une affirmation du MJ sur le monde établit un fait. Elle doit être compatible avec l'état déterministe et enregistrée avant affichage. Une odeur ou une gravure décorative a au minimum un lieu, une origine et une description persistante. Si le joueur peut la cibler, elle reçoit une identité et des interactions générales ; une gravure lisible porte son texte et les conditions de lecture.
+- Une affirmation mécanique du MJ doit être compatible avec l'état déterministe. Une ambiance (une odeur, un aspect décoratif) est enregistrée avec son lieu avant affichage. Si le joueur la cible, elle doit recevoir une identité et des interactions générales, ou être déclarée non manipulable ; une gravure lisible porte son texte et les conditions de lecture.
 - Une parole attribuée à un PNJ établit que ce PNJ a prononcé ces mots, à cet endroit et à cet instant. Le contenu peut être faux. Le moteur détermine les témoins capables de l'entendre et conserve cette parole dans leur mémoire ; elle ne devient pas automatiquement une vérité du monde.
 - Une phrase du joueur établit son intention ou sa parole, pas la réussite du geste ni la vérité de ce qu'il affirme.
 - Une hypothèse, une métaphore ou une possibilité annoncée par le MJ doit rester marquée comme telle. Elle ne peut être réutilisée comme observation certaine.
@@ -87,17 +91,11 @@ des paroles que le joueur n'a pas prononcées.
 2. **Élément interactif** : créer ou compléter une entité du monde avec identité, position, propriétés perceptibles et actions possibles. La validation du moteur précède sa première mention affirmative.
 3. **Évolution du scénario** : exiger un déclencheur établi, une cause et des conséquences explicites. Un objet de remplacement ou un nouvel indice de quête ne peut pas naître d'une description destinée à combler un silence. Un obstacle provisoire, comme le manque de lumière, ne rend pas automatiquement l'objectif inaccessible.
 
-Le Relais des crues désigne une cloche précise comme objectif. Une seconde cloche peut exister si une évolution de l'histoire le justifie et si l'état de la mission est mis à jour explicitement. Un test vérifie désormais que la phrase « une seconde cloche » est refusée même lorsque l'auditeur cite la cloche existante comme source.
+Le Relais des crues désigne une cloche précise comme objectif. Une seconde cloche peut exister si une évolution de l'histoire le justifie et si l'état de la mission est mis à jour explicitement. Une seconde cloche affirmée dans la prose est une `invention_protegee`.
 
-## Contrat complet encore visé
+## Objets, capacités et évolutions
 
-1. Luna propose une réponse et les assertions qu'elle contient : faits observés, ajouts proposés, paroles attribuées, hypothèses et résultats d'action.
-2. La relecture relève les assertions oubliées ou mal classées, sans avoir autorité sur l'état du monde.
-3. Le moteur vérifie lui-même la compatibilité de chaque assertion avec le lieu, la perception, les objets, les connaissances, les effets réellement exécutés et les contraintes du scénario. Il prépare les ajouts admissibles sur une copie.
-4. Si une assertion est contradictoire ou incomplète, Luna reçoit les motifs précis et reformule ou propose un autre ajout. Aucune phrase rejetée n'est montrée au joueur.
-5. Les faits, paroles et témoins acceptés sont sauvegardés avant affichage. La réponse finale est construite depuis cet état ; en cas d'échec répété, le jeu donne un compte rendu sûr tiré des seuls faits validés.
-
-La réponse factuelle libre est désormais limitée aux formulations attestées. Le type `objet`
+Le type `objet`
 crée une entité physique située, dotée d'une masse, d'une matière, d'une mobilité et d'une
 relation au support : `pose`, `fixe` ou `contenu`. Le support annonce les relations possibles ;
 les sols portent les objets et seuls les contenants ouverts peuvent en recevoir. Le moteur

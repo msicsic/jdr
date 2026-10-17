@@ -278,6 +278,7 @@ class Monde:
             objets.append(vue)
         from .dialogues import interlocuteurs, missions_discutables, contrats_publics
         from .connaissances import contexte as connaissances_pnj
+        from .narration import ambiance_etablie
         salle = copy.deepcopy(self.data["salles"][self.joueur["salle"]])
         salle["id"] = self.joueur["salle"]
         joueur = copy.deepcopy(self.joueur)
@@ -315,6 +316,7 @@ class Monde:
                 "paroles_entendues": copy.deepcopy([
                     p for p in self.data.get("paroles_pnj", []) if "joueur" in p["auditeurs"]][-10:]),
                 "souvenirs_faits": copy.deepcopy(self.data.get("faits_vus", [])[-20:]),
+                "ambiance_etablie": ambiance_etablie(self),
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],
                 "evenements_recents": [e for e in self.data["journal"]
                     if e["action"]["action"] not in (("marcher", "aller") if self.data.get("mode_cases") else ("marcher",))][-6:]}

@@ -95,6 +95,9 @@ class Interface:
                     replis=[r for r in REPLIS if r in texte],
                     refus=[t.get("obstacle", "") for t in traces if t.get("etape") == "validation"],
                     erreurs=[t["erreur"] for t in traces if t.get("erreur")],
+                    controle=[o.get("motif", "") + " | " + o.get("texte", "")[:160]
+                              for t in traces if t.get("etape") == "contrôle narratif"
+                              for o in t["obstacles"]],
                     mentions_sans_fondement=mentions)
         self.affiches.append(texte)
         self.tours.append(tour)
