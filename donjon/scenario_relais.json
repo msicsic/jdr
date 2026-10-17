@@ -20,6 +20,10 @@
     "marchand": {
       "intentions": "Gorm veut que la cloche du relais revienne au refuge avant la crue.",
       "ton": "Il parle clairement et s'en tient à ce qu'il sait du relais."
+    },
+    "brune": {
+      "intentions": "Brune veut manger et se faire oublier jusqu'à la décrue.",
+      "ton": "Elle reste évasive sur ce qu'elle a vu et sur ce qu'elle compte faire."
     }
   },
   "dialogues_version": 1,
@@ -632,7 +636,73 @@
       "position_salle": "echoppe",
       "refuse_ventes_apres_vol": true,
       "type": "personnage",
-      "vigilance": 14
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 14,
+          "DEX": 10,
+          "INT": 11,
+          "PER": 13,
+          "CHA": 9
+        },
+        "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il ne quitte pas le relais tant que des évacués y sont attendus.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "devoir": {
+            "depart": 60,
+            "derive_heure": 10,
+            "urgence": 70
+          },
+          "biens": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 60
+          },
+          "faim": {
+            "depart": 20,
+            "derive_heure": 4,
+            "urgence": 70
+          },
+          "repos": {
+            "depart": 10,
+            "derive_heure": 3,
+            "urgence": 80
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "devoir",
+            "condition": {
+              "objet": "cloche",
+              "lieu": "antichambre"
+            },
+            "delegue_a": "joueur"
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "reserve",
+              "verrouillee": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "vivres",
+              "lieu": "antichambre"
+            }
+          }
+        ]
+      }
     },
     "marteau": {
       "aliases": [
@@ -801,6 +871,134 @@
       ],
       "position_salle": "antichambre",
       "type": "luminaire"
+    },
+    "brune": {
+      "aliases": [
+        "brune",
+        "batelière",
+        "bateliere",
+        "évacuée",
+        "evacuee"
+      ],
+      "humeur": "tendue",
+      "id": "brune",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "maniere_de_parler": "Brune parle vite, à mi-voix, en évitant les regards.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Brune, batelière évacuée",
+      "genre": "f",
+      "portrait": "Brune est une femme sèche d'une trentaine d'années, les vêtements encore humides de la digue.",
+      "position": [
+        7,
+        1
+      ],
+      "position_salle": "antichambre",
+      "type": "personnage",
+      "vigilance": 12,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 10,
+          "DEX": 15,
+          "INT": 12,
+          "PER": 11,
+          "CHA": 11
+        },
+        "traits": "Batelière évacuée, affamée depuis la veille, débrouillarde et peu scrupuleuse ; elle évite la violence.",
+        "limites": [
+          "ne_blesse_pas"
+        ],
+        "capacites": [
+          "crochetage"
+        ],
+        "besoins": {
+          "faim": {
+            "depart": 80,
+            "derive_heure": 6,
+            "urgence": 70
+          },
+          "securite": {
+            "depart": 20,
+            "derive_heure": -5,
+            "urgence": 60
+          },
+          "repos": {
+            "depart": 40,
+            "derive_heure": 3,
+            "urgence": 80
+          }
+        },
+        "pulsions": []
+      }
+    },
+    "reserve": {
+      "aliases": [
+        "réserve",
+        "reserve",
+        "réserve de vivres",
+        "coffre à vivres"
+      ],
+      "genre": "f",
+      "id": "reserve",
+      "integrite": 30,
+      "lieu": "antichambre",
+      "masse": 60,
+      "materiau": "bois cerclé de fer",
+      "maximum": 30,
+      "mobile": false,
+      "nom": "réserve de vivres",
+      "ouverte": false,
+      "verrouillee": true,
+      "position": [
+        8,
+        3
+      ],
+      "position_salle": "antichambre",
+      "proprietaire": "marchand",
+      "type": "contenant"
+    },
+    "vivres": {
+      "aliases": [
+        "vivres",
+        "pain",
+        "provisions"
+      ],
+      "genre": "m",
+      "id": "vivres",
+      "integrite": 10,
+      "lieu": "reserve",
+      "masse": 3,
+      "materiau": "pain et fromage",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "vivres du refuge",
+      "portions": 6,
+      "proprietaire": "marchand",
+      "type": "nourriture",
+      "pluriel": true
+    },
+    "cle_reserve": {
+      "aliases": [
+        "clé de la réserve",
+        "cle de la reserve"
+      ],
+      "genre": "f",
+      "id": "cle_reserve",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 0.05,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "clé de la réserve",
+      "ouvre": [
+        "reserve"
+      ],
+      "proprietaire": "marchand",
+      "type": "cle"
     }
   },
   "personnages_version": 1,
@@ -1135,6 +1333,83 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "brune": {
+      "croyances": {
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "crochets": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              8,
+              5
+            ]
           }
         }
       },

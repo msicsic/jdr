@@ -188,6 +188,19 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
 - **Capacités** : marcher, ouvrir et fermer, verrouiller avec la clé, prendre et poser,
   appeler, allumer ; pas de crochetage (DEX moyenne, pas de compétence).
 
+## Écarts retenus au jalon B
+
+- `reaction_son` reste un réflexe déclaré (intention `alerte`) : le remplacer par le besoin
+  `securite` n'apportait rien tant qu'aucune méthode ne répond à ce besoin.
+- `securite` et `repos` sont déclarés et dérivent, sans méthode pour les satisfaire.
+- Les outils de la conduite restent sans propriétaire, pour ne pas changer le jeu du joueur ;
+  les biens de Gorm sont la réserve, ses vivres et la clé de la réserve. La pulsion du
+  brasero allumé est reportée (pas de source de feu chez Gorm). `vigilance` n'est pas
+  encore dérivée de PER.
+- Au banc, Gorm reste dans la conduite et ne découvre la réserve forcée que s'il revient
+  au refuge : sans routine (ronde, accueil), l'émergence reste mince. C'est la première
+  piste pour D.
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -197,7 +210,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | Jalon | En jeu | Contenu | Luna |
 |---|---|---|---|
 | **A. Gorm perçoit et se souvient** — *fait* | il ne voit pas dans le noir ni derrière la poutre ; il croit ce qu'il a vu ou su jusqu'à revoir la place ; un témoin est celui qui perçoit le joueur ; il ouvre les portes et apprend une serrure par l'essai ; tout persiste après rechargement | perception par acteur ; ligne de vue symétrique ; croyances `vu`/`savoir`/`essai` et mémoire (sons, absences, vols surpris) ; intention `rejoindre` exécutée geste par geste (`trajet` migré) ; `esprit <pnj>` en `--debug` | aucun appel |
-| **B. Gorm veut** | besoins → plan, échec → nouveau plan ; le garde-manger de bout en bout, surpris depuis l'ombre | besoins, pulsions, délibération utilitaire, planificateur borné ; actions prendre, poser, appeler, crocheter (reportées de A, faute d'un but pour les déclencher) ; `reaction_son` remplacé par le besoin de sécurité ; garde `sans_temoin` ; un second PNJ (évacué) et une réserve de vivres ajoutés au Relais ; banc sans joueur minimal (chronique texte) | aucun appel |
+| **B. Gorm veut** — *fait* | Brune, affamée, va chercher les crochets, attend que personne ne la voie, crochète la réserve et mange ; sous les yeux du joueur elle renonce ; sans crochets elle reste sans plan ; surprise depuis l'ombre (joueur ou Gorm) ; Gorm volé garde ses biens, cesse de déléguer la cloche, va chercher la clé, déverrouille et la rapporte ; sans clé, il renonce | profils, besoins, pulsions (dont déléguées), délibération par urgence, planificateur borné sur croyances, gestes prendre/poser/ouvrir/fermer/(dé)verrouiller/crocheter/manger, garde `sans_temoin`, témoins réels, chronique, `banc_pnj` | aucun appel |
 | **C. On peut lui parler** | ce que tu dis devient une croyance : un mensonge crédible change son plan ; ta réplique est rendue selon INT et CHA, avec aperçu | proposition `parole_joueur`, confiance ; expression et compréhension selon les caractéristiques | dans l'appel de dialogue existant |
 | **D. Plusieurs PNJ** | une rumeur se propage, un vol découvert change les relations, le monde vit hors de ta vue | couche sociale entre PNJ, niveau de détail hors champ, 3–4 PNJ sur le Relais, banc sans joueur complet | aucun appel |
 | **E. Luna stratège** | buts tirés d'une personnalité en prose, stratégies sociales | stratège à pas de temps long, A/B contre D sur le banc | budget plafonné ; gardé seulement si la chronique s'améliore de façon mesurable |

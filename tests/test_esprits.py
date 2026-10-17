@@ -24,6 +24,8 @@ def recharger(monde):
 def relais():
     m = nouveau_defi()
     installer(m)
+    # Placement d'auteur : Brune a déjà mangé ; ces tests ne portent que sur Gorm.
+    lire(m, "brune")["besoins"]["faim"] = 0
     return m
 
 

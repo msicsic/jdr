@@ -16,7 +16,8 @@ from .perception import eclairage
 
 MEMOIRE_MAX = 40
 SOURCES = ("vu", "savoir", "essai")
-ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume",)}
+ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume",),
+                  "nourriture": ("disponible",)}
 # Un objet porté par quelqu'un d'autre ne se remarque que s'il est encombrant ou allumé.
 MASSE_APPARENTE_KG = 1
 LONGUEUR_APPARENTE_CM = 50
@@ -26,16 +27,20 @@ def pnjs(monde):
     return [id for id, o in monde.objets.items() if o["type"] == "personnage"]
 
 
+CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
+          "besoins": dict, "pulsions": list, "renoncements": dict}
+CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
+
+
 def lire(monde, id):
     """Esprit en lecture seule : une consultation ne crée rien dans l'état."""
-    return monde.data.get("esprits", {}).get(id) or {"croyances": {}, "memoire": [], "intention": None}
+    return monde.data.get("esprits", {}).get(id) or {k: f() for k, f in CHAMPS.items()}
 
 
 def esprit(monde, id):
     e = monde.data.setdefault("esprits", {}).setdefault(id, {})
-    e.setdefault("croyances", {})
-    e.setdefault("memoire", [])
-    e.setdefault("intention", None)
+    for cle, defaut in CHAMPS.items():
+        e.setdefault(cle, defaut())
     return e
 
 
@@ -50,8 +55,15 @@ def installer(monde):
             e["memoire"].append({"type": "son", **son})
         trajet = o.pop("trajet", None)
         if trajet and e["intention"] is None:
-            e["intention"] = {"but": {"type": "rejoindre", "lieu": trajet["vers"]},
-                              "minutes": trajet["minutes"], "depuis": monde.data["minutes"]}
+            e["intention"] = {"but": {"type": "rejoindre", "lieu": trajet["vers"]}}
+        i = e["intention"]
+        if i is not None and set(i) != CLES_INTENTION:
+            # Intention du jalon A : un réflexe d'alerte, sans plan enregistré.
+            e["intention"] = {"but": i["but"], "motif": "alerte", "plan": [
+                {"operation": "aller", "cible": "", "outil": "", "lieu": i["but"]["lieu"], "condition": ""}],
+                              "depuis": i.get("depuis", monde.data["minutes"]), "attente": 0}
+        from .deliberation import installer as installer_besoins
+        installer_besoins(monde, id)
 
 
 def _croyance_valide(monde, attribut, c):
@@ -66,7 +78,7 @@ def _croyance_valide(monde, attribut, c):
     elif attribut == "etat":
         assert isinstance(c.get("valeur"), dict) and all(type(v) is bool for v in c["valeur"].values()), "Croyance d'état invalide"
     else:
-        assert attribut == "verrouillee" and type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
+        assert attribut in ("verrouillee", "fiable") and type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
 
 
 def verifier(monde):
@@ -74,7 +86,16 @@ def verifier(monde):
     assert isinstance(esprits, dict), "Esprits invalides"
     for id, e in esprits.items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Esprit sans personnage"
-        assert set(e) == {"croyances", "memoire", "intention"}, "Esprit mal formé"
+        assert set(e) == set(CHAMPS), "Esprit mal formé"
+        p = monde.objets[id].get("profil")
+        if p is not None:
+            from .deliberation import verifier_profil
+            verifier_profil(monde, id, p)
+        assert (isinstance(e["besoins"], dict) and set(e["besoins"]) <= set(p["besoins"] if p else ())
+                and all(isinstance(v, (int, float)) and 0 <= v <= 100 for v in e["besoins"].values())), "Besoins de PNJ invalides"
+        assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
+                and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
+        assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
         for sujet, attributs in e["croyances"].items():
             assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
             for attribut, c in attributs.items():
@@ -83,10 +104,17 @@ def verifier(monde):
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
         i = e["intention"]
-        assert i is None or (isinstance(i, dict) and set(i) == {"but", "minutes", "depuis"}
-                             and i["but"].get("type") == "rejoindre" and i["but"].get("lieu") in monde.data["salles"]
-                             and type(i["minutes"]) is int and i["minutes"] >= 0
-                             and type(i["depuis"]) is int), "Intention de PNJ invalide"
+        assert i is None or (isinstance(i, dict) and set(i) == CLES_INTENTION
+                             and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)
+                             and isinstance(i["motif"], str) and type(i["depuis"]) is int
+                             and type(i["attente"]) is int and i["attente"] >= 0
+                             and isinstance(i["plan"], list)), "Intention de PNJ invalide"
+        if i:
+            from .deliberation import OPERATIONS
+            for etape in i["plan"]:
+                assert (isinstance(etape, dict) and set(etape) == {"operation", "cible", "outil", "lieu", "condition"}
+                        and etape["operation"] in OPERATIONS
+                        and etape["condition"] in ("", "sans_temoin")), "Étape de plan invalide"
 
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
@@ -195,9 +223,10 @@ def percevoir(monde, id):
             croire(monde, id, sujet, "lieu", o["lieu"], "vu", salle=salle, case=case)
         etats = ETATS_VISIBLES.get(o["type"])
         if etats:
-            croire(monde, id, sujet, "etat", {k: bool(o.get(k)) for k in etats}, "vu")
-        if o["type"] == "porte" and o.get("ouverte"):
-            croire(monde, id, sujet, "verrouillee", False, "vu")
+            valeurs = {**o, "disponible": o.get("portions", 0) > 0}
+            croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, "vu")
+        if o["type"] in ("porte", "contenant") and o.get("ouverte"):
+            croire(monde, id, sujet, "verrouillee", False, "vu")  # Ouvert sous ses yeux : pas verrouillé.
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
         if sujet in vus or not lieu or lieu["valeur"] is None or not _observe(monde, champ, lieu):
@@ -210,6 +239,10 @@ def percevoir(monde, id):
         croire(monde, id, sujet, "lieu", None, "vu", salle=None, case=None)
         if sujet != "joueur" and monde.objets[sujet]["type"] != "personnage":
             memoriser(monde, id, {"type": "absence", "objet": sujet, "salle": lieu["salle"]})
+            from .vol import proprietaire
+            if proprietaire(monde, monde.objets[sujet]) == id:
+                from .deliberation import relancer
+                relancer(monde, id, "biens", 30)
 
 
 def percevoir_tous(monde):

@@ -311,13 +311,49 @@ Gorm croit la cloche dans la galerie, la clé au refuge et la porte étanche ver
 La mémoire (40 événements) garde les sons entendus, les absences constatées, les vols
 surpris et les gestes remarqués.
 
-Un PNJ n'agit que par une intention, aujourd'hui `rejoindre` un lieu. Le chemin est cherché
-sur ses croyances ; chaque geste, d'une minute, est revalidé sur l'état réel : il ouvre une
-porte fermée, déverrouille avec une clé qu'il porte, ou apprend par l'essai qu'elle est
-verrouillée et attend sur place. Le moteur annonce ce que le joueur en perçoit.
+#### Besoins, pulsions et plans des PNJ
 
-Les témoins d'un geste discret sont les personnages qui perçoivent le joueur au moment du
-geste. Luna ne reçoit pas les croyances des PNJ. En `--debug`, `esprit <personnage>`
+Un PNJ peut porter un `profil` d'auteur (`donjon/deliberation.py`) : `caracteristiques`
+(FOR, DEX, INT, PER, CHA), `traits` (prose destinée à Luna), `limites` (`ne_vole_pas`,
+`ne_blesse_pas`), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
+`faim`, `repos`, chacun avec `depart`, `derive_heure`, `urgence`) et `pulsions` : des
+conditions sur le monde (`{"objet", "lieu"}` ou `{"objet", "verrouillee": true}`) liées à
+un besoin, éventuellement `delegue_a` le joueur.
+
+Chaque minute écoulée, le moteur fait dériver les besoins. Une pulsion qui cesse d'être
+satisfaite *selon les croyances du PNJ* relance son besoin de 30 ; un vol vu par sa victime,
+de 60 ; l'absence constatée d'un objet qui lui appartient, de 30. Le PNJ retient alors le
+besoin urgent (valeur ≥ urgence) le plus en dépassement pour lequel il trouve un plan :
+manger pour la faim, rétablir une pulsion, ou garder le lieu de ses biens. Une pulsion
+déléguée au joueur attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est
+repris qu'après 60 minutes.
+
+Le plan est cherché sur les croyances, jamais sur la vérité, par décomposition bornée
+(profondeur 4) : obtenir un objet, accéder à un contenant (l'ouvrir, le déverrouiller avec
+une clé connue ou le crocheter si le PNJ en a la capacité et l'outil), aller dans une salle
+(une porte crue verrouillée fait chercher sa clé). Les objets fixes sont connus de lieu ;
+les autres ne le sont que par croyance. Un geste sur le bien d'autrui est interdit par
+`ne_vole_pas` ; sinon il porte la garde `sans_temoin`. Le plan est recalculé chaque minute.
+
+Exécution : un geste par minute (aller d'une salle, s'approcher au contact, prendre, poser,
+ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger), revalidé sur l'état réel ;
+un échec corrige la croyance qui l'avait motivé. Crocheter est un jet de DEX du PNJ contre
+14 + 4 par niveau de lumière manquant, comme pour le joueur. Une étape `sans_temoin` attend
+que le PNJ ne perçoive plus personne depuis la case de son geste ; au-delà de 30 minutes, il
+renonce. Les témoins réels sont ceux qui le perçoivent : un PNJ témoin d'un geste illicite
+s'en souvient, cesse de croire l'auteur fiable et, s'il en est la victime, voit ses biens
+relancés. Le moteur annonce au joueur ce qu'il perçoit et tient une `chronique` complète
+(300 entrées), réservée au débogage.
+
+Le réflexe `reaction_son` reste une intention `alerte` prioritaire jusqu'à son terme.
+
+Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, réserve
+de vivres sous clé) et Brune, batelière évacuée, affamée et capable de crocheter. Le banc
+`python -m donjon.banc_pnj --heures 3 --joueur chambre_cloche` fait vivre le scénario sans
+joueur actif et imprime chronique et mesures, sans appel à Luna.
+
+Les témoins d'un geste discret du joueur sont les personnages qui le perçoivent au moment
+du geste. Luna ne reçoit ni les croyances, ni les besoins, ni les plans des PNJ. En `--debug`, `esprit <personnage>`
 affiche croyances, mémoire et intention.
 
 #### Horloges d'environnement
@@ -622,8 +658,9 @@ Hors ligne, `voler crochets` ou `dérober crochets` exécute directement une ten
 `prendre crochets` reste refusé pour éviter d'interpréter une simple commande comme un
 vol. Seuls les objets accessibles, transportables et appartenant à autrui sont concernés.
 Sans témoin, c'est-à-dire sans personnage qui perçoit le joueur, il n'y a pas de jet de
-discrétion. Un PNJ qui revoit la place d'un objet disparu le note dans sa mémoire ; il n'en
-tire encore ni soupçon ni réaction (besoins et délibération viendront au jalon B).
+discrétion. Un PNJ qui revoit vide la place d'un objet qui lui appartient le note dans sa
+mémoire et ses biens sont relancés ; il ne sait pas qui l'a pris. Un vol surpris lui fait
+cesser de croire le joueur fiable.
 
 ### Connaissances des personnages
 
