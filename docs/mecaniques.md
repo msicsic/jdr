@@ -67,8 +67,8 @@ Dans le noir, la case que Corvus vient de fouler reste connue : sa position et l
 emprunté demeurent sur le niveau d'arrivée, sans révéler le reste de la pièce.
 
 Dix pas dépensent une minute et consomment le combustible correspondant. Franchir un seuil
-ou un escalier est une transition vers la première case de l'autre côté. La lumière utilise
-encore des niveaux par pièce ; la ligne de vue et les obstacles sont calculés case par case.
+ou un escalier est une transition vers la première case de l'autre côté. La lumière, la ligne
+de vue et les obstacles sont calculés case par case (voir « Lumière en cases » plus bas).
 Les touches de déplacement, les collisions, la visibilité et les commandes locales sont
 entièrement déterministes et ne consomment aucun appel au LLM. Le MJ reçoit les objets
 perceptibles et leur portée, puis le moteur vérifie aussi ses propositions d'action.
@@ -420,6 +420,19 @@ Palper un contenant ouvert et à portée révèle ce qu'il contient réellement,
 un contenant vide est reconnu comme tel, sans inventer d'objets.
 La lecture, la copie et l'extraction d'un axe exigent un éclairage suffisant. Une serrure
 accessible peut être crochetée au toucher dans la pénombre, avec un jet plus difficile et plus long.
+
+#### Lumière en cases
+
+En mode cases (Relais, `--cases`), chaque source allumée éclaire directement les cases qu'elle
+voit : pleine lumière jusqu'à 4 cases, pénombre jusqu'à 8 pour une lanterne, une torche ou un
+brasero (`luminosite` 2 ; 2 et 4 cases pour 1, 6 et 12 pour 3). Murs, portes fermées et
+obstacles opaques projettent une ombre. Une source éclaire aussi sa pièce, et la pièce voisine
+par une ouverture, d'une lumière diffuse qui ne dépasse pas la pénombre. La lumière du jour
+garde le modèle par pièce. Le niveau perçu, celui qu'exigent la lecture ou un geste précis, est
+celui de la case du joueur : pour lire loin d'une source, il faut s'en approcher ou porter la
+sienne. Une case recevant une lumière directe se voit jusqu'à 8 cases, une case dans la seule
+pénombre diffuse jusqu'à 3. Depuis l'obscurité, une zone éclairée reste donc visible au loin
+(`donjon/perception.py`, `CarteLumiere`). Sans cases, le modèle par pièce s'applique.
 
 Pour obtenir le noir complet : aller à l'ouest, éteindre le brasero, revenir à l'est puis éteindre
 la lanterne. La rallumer restaure la visibilité. Le combustible diminue avec le temps de jeu ;

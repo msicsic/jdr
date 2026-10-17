@@ -325,8 +325,6 @@ def _los_global(m, a, b, terrain, opaques):
 def visible(m, id):
     if id not in m.objets:
         return False
-    if eclairage_niveau(m) <= 0:
-        return False
     champ = champ_visible(m)
     for salle in m.data["salles"]:
         position = position_cible(m, id, salle)
@@ -343,57 +341,55 @@ def eclairage_niveau(m):
     return eclairage(m)["niveau"]
 
 
-def rayon_vision(m):
-    niveau = eclairage_niveau(m)
-    return 3 if niveau == 1 else 8 if niveau >= 2 else 0
+# Distance de vue d'une case, si rien ne s'interpose : 8 si elle reçoit une lumière directe
+# ou la pleine lumière du jour, 3 si elle n'est que dans la pénombre diffuse de la pièce.
+PORTEE_VUE = {1: 3, 2: 8}
+
+
+def _vue(m):
+    """Origine globale du regard, terrain et carte de lumière des salles reliées."""
+    from .perception import CarteLumiere
+    salle = m.joueur["salle"]
+    lumiere = CarteLumiere(m, salle)
+    origine = _global(m.data["salles"][salle], m.joueur["position"])
+    return origine, lumiere
+
+
+def _vu(m, origine, lumiere, cible):
+    niveau = lumiere.niveau(cible)
+    portee = PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
+    if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > portee:
+        return False
+    return _los_global(m, origine, cible, lumiere.terrain, lumiere.opaques)
 
 
 def sortie_visible(m, salle, direction):
     """Retourne si le seuil est visible, même si une porte le ferme."""
     sortie = m.data["salles"].get(salle, {}).get("sorties", {}).get(direction)
-    if not sortie or len(sortie.get("case", ())) != 2 or eclairage_niveau(m) <= 0:
+    if not sortie or len(sortie.get("case", ())) != 2:
         return False
-    salles = _salles_relies(m, m.joueur["salle"])
-    if salle not in salles:
+    origine, lumiere = _vue(m)
+    if salle not in lumiere.salles:
         return False
-    terrain, opaques = _globales(m, salles)
-    ox, oy = m.data["salles"][salle]["plan"]["origine"]
-    cible = ox + sortie["case"][0], oy + sortie["case"][1]
-    terrain.setdefault(cible, None)
-    origine_piece = m.data["salles"][m.joueur["salle"]]
-    sx, sy = origine_piece["plan"]["origine"]
-    x, y = m.joueur["position"]
-    origine = sx + x, sy + y
-    return (max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) <= rayon_vision(m)
-            and _los_global(m, origine, cible, terrain, opaques))
+    cible = _global(m.data["salles"][salle], sortie["case"])
+    ajoute = cible not in lumiere.terrain
+    if ajoute:
+        lumiere.terrain[cible] = None
+    try:
+        return _vu(m, origine, lumiere, cible)
+    finally:
+        if ajoute:
+            del lumiere.terrain[cible]
 
 
 def champ_visible(m):
     """Ensemble des cases vues maintenant, incluant les paliers d'une porte ouverte."""
-    niveau = eclairage_niveau(m)
-    if niveau <= 0:
-        return set()
-    rayon = rayon_vision(m)
-    origine = tuple(m.joueur["position"])
-    salle_origine = m.joueur["salle"]
-    salles = _salles_relies(m, salle_origine)
-    terrain, opaques = _globales(m, salles)
-    piece = m.data["salles"][salle_origine]
-    ox, oy = piece["plan"]["origine"]
-    centre_global = (ox + origine[0], oy + origine[1])
+    origine, lumiere = _vue(m)
     vus = set()
-    for salle in salles:
-        p = m.data["salles"][salle]["plan"]
-        sx, sy = p["origine"]
-        from .perception import eclairage
-        niveau_piece = eclairage(m, salle)["niveau"]
-        rayon_piece = 3 if niveau_piece == 1 else 8 if niveau_piece >= 2 else 0
-        if rayon_piece == 0:
-            continue
-        for x, y in cases(m.data["salles"][salle]):
-            cible = sx + x, sy + y
-            if (max(abs(cible[0] - centre_global[0]), abs(cible[1] - centre_global[1])) <= min(rayon, rayon_piece)
-                    and _los_global(m, centre_global, cible, terrain, opaques)):
+    for salle in lumiere.salles:
+        piece = m.data["salles"][salle]
+        for x, y in cases(piece):
+            if _vu(m, origine, lumiere, _global(piece, (x, y))):
                 vus.add((salle, x, y))
     return vus
 
@@ -406,7 +402,7 @@ def murs_visibles(m, champ=None):
     salles = _salles_relies(m, m.joueur["salle"])
     terrain, opaques = _globales(m, salles)
     origine = _global(m.data["salles"][m.joueur["salle"]], m.joueur["position"])
-    rayon = rayon_vision(m)
+    rayon = PORTEE_VUE[2]
     vus = {}
     for salle, x, y in champ:
         if salle not in salles:

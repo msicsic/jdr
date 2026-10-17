@@ -46,12 +46,17 @@ class SpatialTests(unittest.TestCase):
 
     def test_visible_respecte_le_rayon_de_champ_visible(self):
         m = monde_eclaire()
-        m.objets["torche"]["luminosite"] = 1
+        m.objets["torche"].update(luminosite=1, position=[0, 1])
         m.objets["lanterne"]["allume"] = False
         m.joueur["position"] = [1, 1]
         m.objets["cle"]["position"] = [5, 1]
+        # Hors de portée directe de la torche, la clé n'est que dans la pénombre diffuse.
         self.assertNotIn(("antichambre", 5, 1), spatial.champ_visible(m))
         self.assertFalse(spatial.visible(m, "cle"))
+        # Torche posée près de la clé : sa lumière directe la rend visible de plus loin.
+        m.objets["torche"]["position"] = [4, 1]
+        self.assertIn(("antichambre", 5, 1), spatial.champ_visible(m))
+        self.assertTrue(spatial.visible(m, "cle"))
 
     def test_proximite_et_coin_diagonal(self):
         m = monde_eclaire()
@@ -204,7 +209,8 @@ class SpatialTests(unittest.TestCase):
             "plan": {"origine": [9, 15], "sol": ["..."], "repere": "S"}}
         m.joueur["position"] = [2, 3]
         m.objets["lanterne"]["allume"] = False
-        m.objets["torche"].update(allume=True, luminosite=1, combustible=10)
+        # Torche hors d'axe : sa lumière directe n'atteint pas la salle voisine.
+        m.objets["torche"].update(allume=True, luminosite=1, combustible=10, position=[5, 0])
         m.objets["boite_sombre"] = {"id": "boite_sombre", "type": "objet", "lieu": "sombre",
             "position_salle": "sombre", "position": [1, 0]}
         spatial.installer(m)

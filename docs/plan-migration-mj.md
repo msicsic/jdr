@@ -19,7 +19,7 @@ comparé à la phase précédente.
 | 7 | fait | prompt de conversation 3 123 → 2 134 mots, narration 232 mots ; sources d'audit limitées par le schéma |
 | 8 | fait | récit des résultats par Luna, repli moteur, contrôle des nombres, `--recit-moteur` |
 | 9 | partiel | budget d'invention fait ; habillage à la première visite écarté (l'ambiance à la demande le rend peu utile, pour un appel de plus par salle) |
-| 10 | partiel | composition étendue, réactions des PNJ au son et horloges d'environnement faites dans le moteur ; aucun scénario ne les déclare encore |
+| 10 | partiel | composition étendue, réactions des PNJ au son, horloges d'environnement et lumière par case faites ; aucun scénario ne déclare encore réactions ni horloges ; fragments et profils d'artisanat non faits |
 | 3 et 6 | reportées | voir ci-dessous |
 
 **Phases 3 et 6 reportées.** L'essai de transport a réussi : sur le forfait, avec

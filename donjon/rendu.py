@@ -137,7 +137,9 @@ def regarder(monde):
     lignes = []
     lumiere = eclairage(monde)
     if lumiere["niveau"] == 0:
-        lignes.append("Il fait entièrement noir. Tu ne distingues rien autour de toi.")
+        # En cases, une zone éclairée au loin reste visible depuis l'obscurité.
+        lignes.append("Autour de toi, il fait noir ; plus loin, une zone éclairée se détache."
+                      if monde.presents() else "Il fait entièrement noir. Tu ne distingues rien autour de toi.")
     else:
         if lumiere["niveau"] == 1:
             lignes.append("Dans la pénombre, tu distingues les objets, mais leurs détails t'échappent.")
@@ -175,14 +177,16 @@ def regarder(monde):
         # Les composants apparaissent à l'examen de leur parent ; pas de doublons.
         if o["lieu"] in monde.objets and o["type"] != "porte" and not o.get("scene_detail"):
             continue
-        if lumiere["niveau"] == 1:
-            lignes.append("Tu distingues " + designer(o, "indefini") + ".")
+        au_dela = (monde.data.get("mode_cases") and o["lieu"] in monde.data["salles"]
+                   and o["lieu"] != salle and o["type"] != "porte" and not o.get("installation"))
+        if lumiere["niveau"] <= 1:
+            lignes.append(("Au-delà du passage, tu distingues " if au_dela else "Tu distingues ")
+                          + designer(o, "indefini") + ".")
         else:
             description = decrire(monde, o["id"], article="defini" if o["type"] == "porte" else "indefini", technique=False)
             if o["type"] != "personnage" and " est " not in description:
                 description = "Tu vois " + description[:1].lower() + description[1:]
-            if (monde.data.get("mode_cases") and o["lieu"] in monde.data["salles"]
-                    and o["lieu"] != salle and o["type"] != "porte" and not o.get("installation")):
+            if au_dela:
                 description = "Au-delà du passage : " + description[:1].lower() + description[1:]
             lignes.append(description)
     sorties = []
@@ -245,6 +249,8 @@ def decrire_perception(monde):
     lignes = ["Tu es à l'extérieur." if piece.get("exterieur") else "Cette pièce n'a pas de fenêtre." if piece["fenetres"] == 0 else
               f'Cette pièce possède {piece["fenetres"]} fenêtre(s).']
     lignes.append([
+        "Il fait noir là où tu te tiens : tu ne peux rien lire, mais une zone éclairée reste visible plus loin."
+        if monde.presents() else
         "Il fait entièrement noir : aucune lumière ne vous parvient. Vous ne pouvez pas voir les objets ni lire les inscriptions.",
         "Il ne fait pas entièrement noir : une pénombre permet de distinguer les objets, mais pas de lire les inscriptions.",
         "Il ne fait pas noir : la lumière est suffisante pour voir les objets et leurs détails.",
