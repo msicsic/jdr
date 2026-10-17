@@ -227,7 +227,6 @@ class DialoguesTests(unittest.TestCase):
         for resultat, erreur in (
             (dialogue(""), "dialogue vide"),
             (dialogue(" \n\t"), "dialogue vide"),
-            ({**dialogue(), "proposition": proposition("prendre", "cle")}, "contient une action"),
             ({"mode": "action", "texte": "", "faits": [], "proposition": proposition("prendre", "cle")}, "réponse finale"),
         ):
             with self.subTest(resultat=resultat):

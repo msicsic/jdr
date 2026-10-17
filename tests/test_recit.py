@@ -54,9 +54,10 @@ class RecitTests(unittest.TestCase):
     def test_dialogue_ne_peut_pas_transporter_une_action(self):
         m = nouveau_monde()
         avant = copy.deepcopy(m.data)
-        with self.assertRaises(ErreurMonde):
-            self.appel(m, {"mode": "dialogue", "texte": "Ta lanterne est éteinte.",
-                          "faits": ["perception"], "proposition": proposition("eteindre", "lanterne")})
+        resultat = self.appel(m, {"mode": "dialogue", "texte": "Tu te trouves dans : Antichambre.",
+                                  "faits": ["perception"], "proposition": proposition("eteindre", "lanterne")})
+        # La proposition jointe à un dialogue est écartée : elle ne sera jamais exécutée.
+        self.assertIsNone(resultat["proposition"])
         self.assertEqual(avant, m.data)
 
     def test_reference_inventee_ou_cachee_refusee(self):

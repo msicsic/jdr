@@ -9,8 +9,11 @@ from .perception import eclairage
 from .vol import proprietaire
 
 
+# Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
+ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper", "frapper",
+                       "bloquer", "debloquer")
 OPERATIONS = ("patienter", "deplacer", "detacher", "allumer", "eteindre", "franchir_obstacle", "emettre_son",
-              "soulever", "appuyer", "franchir", "sauter")
+              "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement")
 
 
@@ -125,6 +128,12 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
     if e["operation"] == "franchir_obstacle":
         from .franchissement import compiler as compiler_franchissement
         return compiler_franchissement(monde, e, justification, origine)
+    if e["operation"] in ACTIONS_COMPOSABLES:
+        from .moteur import Moteur, METHODES as METHODES_ACTION, proposition
+        if e["destination"] or e["methode"] not in METHODES_ACTION:
+            raise ErreurMonde("Cette opération n'a pas de destination et garde les méthodes de l'action seule.")
+        return Moteur(monde).preparer(proposition(e["operation"], e["cible"], e["outil"], e["methode"],
+                                                  e["difficulte"], justification), origine)
     p = Plan({"action": "composer", "justification": justification}, monde.data["revision"], "", origine=origine)
     op, cible, destination, outil, methode = (e[k] for k in ("operation", "cible", "destination", "outil", "methode"))
     if op == "patienter":

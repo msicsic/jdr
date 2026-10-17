@@ -168,8 +168,8 @@ def compiler_effets(m, p, branche):
                 raise ErreurMonde("Cette blessure dépasse les conséquences mineures de cet arbitrage.")
             effets = [("blessure_improvisee", "joueur", valeur)]
         elif op == "son":
-            if cible != "joueur" or not 1 <= valeur <= 3 or valeur > p["bruit"]:
-                raise ErreurMonde("L'intensité du son doit correspondre au bruit annoncé.")
+            if cible != "joueur" or not 1 <= valeur <= 3:
+                raise ErreurMonde("Un son improvisé vient du joueur, avec une intensité de 1 à 3.")
             if texte not in FORMES_SONORES:
                 raise ErreurMonde("La forme sonore doit être une catégorie acoustique connue.")
             forme = texte
@@ -230,7 +230,9 @@ def preparer(m, p, origine):
     plan = Plan(copy.deepcopy(p), m.data["revision"], libelle + ".", origine=origine)
     recits = {"reussite": "Tu réalises ce " + libelle.lower() + ".",
               "echec": "Tu tentes ce " + libelle.lower() + " sans aboutir."}
-    plan.stat, plan.dd, plan.minutes, plan.bruit = p["stat"], p["difficulte"], p["minutes"], p["bruit"]
+    plan.stat, plan.dd, plan.minutes = p["stat"], p["difficulte"], p["minutes"]
+    # Le bruit du geste découle au moins du son qu'il produit réellement.
+    plan.bruit = max([p["bruit"], *(e[2]["intensite"] for e in effets + echec if e[0] == "son_improvise")])
     # Les descriptions et le DD proposé ne changent pas les contraintes d'une méthode.
     signature = {"version": 1, "intention": normaliser(p["intention"]), "approche": p["approche"], "stat": p["stat"],
         "salle": m.joueur["salle"], "outil": p["outil"], "lumiere": eclairage(m)["niveau"],

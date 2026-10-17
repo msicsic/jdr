@@ -120,6 +120,10 @@ def catalogue(monde):
         **({"potentiel_invention": potentiel(monde)} if potentiel(monde) is not None else {})}
 
 
+# Longueur maximale d'une parole de PNJ enregistrée, quelle que soit sa voie d'entrée.
+LONGUEUR_PAROLE = 800
+
+
 def potentiel(monde, salle=None):
     """Budget d'invention déclaré par le scénario pour ce lieu ; None si le lieu n'en fixe pas.
 
@@ -416,7 +420,7 @@ def verifier(monde):
                 and parole["locuteur"] in monde.objets
                 and monde.objets[parole["locuteur"]]["type"] == "personnage"
                 and parole["salle"] in monde.data["salles"]
-                and _texte(parole["texte"], 240)
+                and _texte(parole["texte"], LONGUEUR_PAROLE)
                 and isinstance(parole["auditeurs"], list)
                 and all(a == "joueur" or a in monde.objets for a in parole["auditeurs"])
                 and type(parole["minute"]) is int and parole["minute"] >= 0

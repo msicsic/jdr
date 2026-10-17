@@ -199,6 +199,9 @@ Opérations :
   Prendre puis allumer une source exige les deux étapes, dans cet ordre.
   Ces opérations sont combinables avec les autres, notamment allumer avant une extraction
   qui exige de la lumière, ou éteindre puis poser une lanterne.
+- ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : mêmes
+  règles, outils et méthodes que les actions homonymes, destination vide, difficulte 0.
+  « Je déverrouille la porte avec la clé, je l'ouvre et je la cale » forme une seule séquence.
 Une demande portant sur plusieurs fixations exige une étape detacher par fixation
 concernée. Ranger les fixations est une étape supplémentaire seulement si demandé.
 Représente tous les gestes explicitement demandés dans la limite de six étapes. Ne tronque
@@ -475,7 +478,7 @@ class MJOpenAI:
                                       "revision": revision, "tentative": tentative + 1, **retour})
                 if correction_utilisee:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
-                              "consigne": "Aucune action n'a été exécutée. Explique seulement les conditions établies qui gênent les gestes envisagés, à partir des faits fournis. Ne conclus pas que l'intention entière est impossible."}
+                              "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne conclus pas que l'intention entière est impossible."}
                     try:
                         explication = self._echanger(monde, intention, proposition_en_attente,
                                                     enrichir=False, retour_moteur=retour)
@@ -719,8 +722,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 or any(not isinstance(f, str) or f not in faits for f in reponse["faits"])):
             raise ErreurMonde("Réponse du MJ invalide. Aucune action appliquée.")
         if reponse["mode"] == "dialogue":
-            if reponse["proposition"] is not None:
-                raise ErreurMonde("Le dialogue du MJ contient une action. Aucune action appliquée.")
+            # Une proposition jointe à un dialogue n'est jamais exécutée : elle est écartée.
+            reponse["proposition"] = None
             if not reponse["texte"].strip():
                 raise ErreurMonde("Le MJ a renvoyé un dialogue vide. Aucun changement enregistré.")
         elif not enrichir:

@@ -214,12 +214,13 @@ def controler(texte, rapport, faits):
             obstacles.append({"segment": indice, "texte": passage,
                               "motif": "Cette affirmation mécanique ne cite aucun fait du moteur."})
         elif verdict == "parole":
+            from .faits_locaux import LONGUEUR_PAROLE
             locuteur, citation = ligne["locuteur"], ligne["citation"]
             if locuteur not in faits.get("interlocuteurs", {}):
                 obstacles.append({"segment": indice, "texte": passage,
                                   "motif": "Seul un personnage présent peut parler ; aucun locuteur présent "
                                            "ne correspond à cette parole."})
-            elif (not 3 <= len(citation) <= 800 or any(ord(c) < 32 for c in citation)
+            elif (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
                     or f"« {citation} »" not in passage):
                 obstacles.append({"segment": indice, "texte": passage,
                                   "motif": "Une parole doit être citée entre « et », en entier, dans le segment."})

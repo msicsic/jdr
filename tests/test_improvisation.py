@@ -246,3 +246,17 @@ class ImprovisationTests(unittest.TestCase):
                     self.assertEqual(reprise.data["sons"][-1]["forme"], "voix_melodique")
                 else:
                     self.assertIn(attendu, decrire(reprise, "marque_1", detail=True))
+
+
+class BruitDuSonTests(unittest.TestCase):
+    def test_bruit_du_geste_decoule_du_son_produit(self):
+        from donjon.improvisation import effet, issue, proposition as improviser
+        from donjon.monde import nouveau_monde
+        m = nouveau_monde()
+        p = improviser("Fredonner", issue("Brouillon.", [effet("son", "joueur", texte="voix_melodique", valeur=2)]),
+                       bruit=0)
+        plan = Moteur(m).preparer(p)
+        self.assertEqual(plan.bruit, 2)
+        Moteur(m).executer(plan)
+        self.assertEqual(m.data["sons"][-1]["intensite"], 2)
+        self.assertEqual(m.data["bruit"], 2)
