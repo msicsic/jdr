@@ -377,6 +377,12 @@ class Moteur:
         avancer_combustion(travail, plan.minutes, lignes)
         travail.data["minutes"] += plan.minutes
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
+        from .pnj import avancer as avancer_pnj
+        apparus = avancer_pnj(travail, plan.minutes, lignes)
+        if any(e[0] == "emettre_son" for e in plan.effets) and not apparus:
+            lignes.append("Pour l'instant, aucune réponse ne te parvient.")
+        from .horloges import declencher as declencher_horloges
+        declencher_horloges(travail, lignes)
         from .sons import auditeurs
         a_portee = set(auditeurs(travail, travail.joueur["salle"], 3))
         for id, relation in travail.data["relations_pnj"].items():

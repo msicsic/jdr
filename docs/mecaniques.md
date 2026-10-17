@@ -9,8 +9,8 @@ monde est décrit dans [contrat-mj.md](contrat-mj.md) ; la connexion au modèle 
 Double-cliquer sur **`lancer-defi.cmd`** pour une nouvelle scène avec **Luna seul**.
 **`lancer-defi-hors-ligne.cmd`** lance exactement le même défi sans aucun appel au LLM.
 Retrouver la cloche d'alarme du relais et la rapporter au refuge : un indice, des recoins
-à explorer et plusieurs accès permettent de choisir son itinéraire. Aucun chronomètre
-de défaite : on peut prendre le temps de réfléchir.
+à explorer et plusieurs accès permettent de choisir son itinéraire. Ce scénario ne
+déclare pas de compte à rebours : on peut prendre le temps de réfléchir.
 
 La partie du défi est enregistrée séparément dans `sauvegardes/defi.json` et reprend au
 prochain lancement. Pour recommencer : `lancer-defi.cmd --new` (l'ancienne sauvegarde
@@ -283,8 +283,22 @@ une porte fermée. Les paliers reliés par un appui vertical transmettent aussi 
 lieux non reliés restent hors de portée ; il ne s'agit pas d'un calcul acoustique métrique.
 Les PNJ à portée conservent leur dernier son entendu, sans révéler leur identité au joueur
 s'ils sont hors de sa perception. Ce souvenir est fourni au dialogue lorsqu'on les rencontre.
-Le cri ne décide ni de leur réponse ni de leur déplacement, et ne crée pas de sauveteur.
-La restitution peut donc être : « Tu cries à l'aide. Pour l'instant, aucune réponse ne te parvient. »
+Un son ne fait réagir un PNJ que par une réaction déclarée dans l'état ; Luna n'affirme ni
+réponse ni arrivée que l'état n'établit pas. Un PNJ doté de `"reaction_son": {"seuil": n}`
+qui reçoit un son de niveau `n` ou plus se met en route vers son origine : un lieu par minute
+écoulée, par les sorties sans porte ou à porte ouverte. Une porte fermée l'arrête jusqu'à
+son ouverture. Son arrivée dans la perception du joueur est annoncée par le moteur (`donjon/pnj.py`).
+Sans réaction perceptible, la restitution est :
+« Tu cries à l'aide. Pour l'instant, aucune réponse ne te parvient. »
+
+#### Horloges d'environnement
+
+Un scénario peut déclarer des `horloges` : `{"id", "minute", "effets", "annonce", "lieux"}`.
+Dès que les minutes de la partie atteignent l'échéance, le moteur applique les effets, une
+seule fois, et l'annonce n'est montrée que si le joueur se trouve dans l'un des `lieux`.
+Les effets sont ceux des transitions de scénario : `deplacer`, `objectif` et `eteindre`
+(sources allumées des salles citées). Un effet devenu sans objet est ignoré
+(`donjon/horloges.py`). Aucun scénario fourni n'en déclare pour l'instant.
 
 `tools/test_cri_reel.py` vérifie la phrase exacte avec Luna seul, sans sauvegarde utilisateur.
 

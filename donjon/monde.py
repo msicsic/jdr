@@ -353,6 +353,10 @@ class Monde:
             verifier_faits_locaux(self)
             from .transitions_scenario import verifier as verifier_transitions_scenario
             verifier_transitions_scenario(self)
+            from .pnj import verifier as verifier_pnj
+            verifier_pnj(self)
+            from .horloges import verifier as verifier_horloges
+            verifier_horloges(self)
             from .narration import verifier as verifier_narration
             verifier_narration(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"

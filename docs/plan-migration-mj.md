@@ -19,7 +19,7 @@ comparé à la phase précédente.
 | 7 | fait | prompt de conversation 3 123 → 2 134 mots, narration 232 mots ; sources d'audit limitées par le schéma |
 | 8 | fait | récit des résultats par Luna, repli moteur, contrôle des nombres, `--recit-moteur` |
 | 9 | partiel | budget d'invention fait ; habillage à la première visite écarté (l'ambiance à la demande le rend peu utile, pour un appel de plus par salle) |
-| 10 | partiel | composition étendue faite ; PNJ réactifs et crue non faits (voir ci-dessous) |
+| 10 | partiel | composition étendue, réactions des PNJ au son et horloges d'environnement faites dans le moteur ; aucun scénario ne les déclare encore |
 | 3 et 6 | reportées | voir ci-dessous |
 
 **Phases 3 et 6 reportées.** L'essai de transport a réussi : sur le forfait, avec
@@ -29,10 +29,12 @@ nombre de modes : la boucle ne réduirait guère les appels. Elle impose en reva
 environ 110 simulations de tests en même temps que `mj.py`, ce qui retire aux tests leur rôle
 d'oracle pendant la refonte. À mener comme étape dédiée, relue.
 
-**PNJ réactifs et crue non faits.** Ce sont des choix de design qui contredisent des
-engagements écrits : « le cri ne décide ni de leur réponse ni de leur déplacement, et ne crée
-pas de sauveteur » (sons) et « aucun chronomètre de défaite » (Relais, dont le refuge, but
-final, est lui-même au niveau inondable). Ils demandent une décision de l'auteur.
+**PNJ réactifs et horloges.** Faits comme mécaniques générales, opt-in par les données :
+`reaction_son` sur un PNJ (`donjon/pnj.py`) et `horloges` dans l'état (`donjon/horloges.py`),
+dont les effets réutilisent ceux des transitions de scénario. Les phrases « le cri ne crée pas
+de sauveteur » et « aucun chronomètre » décrivaient un cas de test et un scénario, pas des
+règles du jeu ; elles ont été reformulées. Reste à choisir quels scénarios les déclarent
+(crue du Relais, Gorm alerté par un cri).
 
 **Écart de moteur relevé par le banc.** « J'écoute à la porte » n'a pas d'opération de
 perception auditive : le moteur refuse une improvisation d'observation et Luna ne peut que

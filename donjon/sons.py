@@ -3,6 +3,7 @@ import heapq
 
 from .monde import ErreurMonde
 from .francais import designer
+from .pnj import reagir
 
 
 VOIX = {
@@ -19,8 +20,8 @@ Pour un objet ayant une sonorite dans les faits, cible = son identifiant, method
 destination et outil vides. Le moteur vérifie la proximité, l'intégrité et l'audition.
 « Je crie à l'aide » = une étape emettre_son(joueur,appel). Ce n'est pas une conversation
 avec un PNJ absent ni une impossibilité. Le moteur produit le son, détermine qui peut
-l'entendre et conserve ce souvenir. Il n'invente ni sauveteur, ni réponse, ni déplacement.
-La réussite d'un cri ne garantit pas des secours. L'absence de PNJ visible n'empêche pas
+l'entendre et conserve ce souvenir. Une réponse, une arrivée ou un déplacement de PNJ n'est
+affirmé que si les faits l'établissent. L'absence de PNJ visible n'empêche pas
 d'appeler ; n'affirme pas non plus que personne n'existe aux alentours. Une question sur
 ce qui se passerait reste un dialogue. Ces opérations se combinent aux autres gestes.
 """
@@ -111,6 +112,7 @@ def appliquer(m, emetteur, mode, lignes):
     else:
         from .perception import salle_source
         source = salle_source(m, o)
+    niveaux = portee(m, source, intensite)
     entendants = auditeurs(m, source, intensite)
     evenement = {"tour": m.data["revision"] + 1, "minute": m.data["minutes"],
                  "origine": source, "nature": mode, "intensite": intensite, "auditeurs": entendants}
@@ -124,9 +126,9 @@ def appliquer(m, emetteur, mode, lignes):
         pnj = m.objets[id]
         pnj["dernier_son_entendu"] = {k: v for k, v in evenement.items() if k != "auditeurs"}
         pnj["humeur"] = "méfiant" if m.data["relations_pnj"].get(id, {}).get("soupcon") else "inquiet"
+        reagir(m, id, source, niveaux[pnj["lieu"]])
         if m.visible(id):
             entendu = ("le son de " + designer(m.objets[emetteur]) + "." if emetteur != "joueur" else
                        "ton " + ("appel à l'aide." if mode == "appel" else "cri." if mode == "cri" else "sifflement."))
             lignes.append(designer(pnj, debut=True) + " entend " + entendu)
-    # Pas de réplique ou de déplacement décidés à la place du PNJ.
-    lignes.append("Pour l'instant, aucune réponse ne te parvient.")
+    # Les déplacements déclarés et l'absence de réponse sont résolus après l'avancée du temps.
