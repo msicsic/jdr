@@ -350,32 +350,6 @@ def expliquer_refus(premier, dernier):
     return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
 
 
-def vers_chat(payload):
-    """Requête Responses traduite en Chat Completions, pour un fournisseur compatible (MiMo)."""
-    outil = payload["tools"][0]
-    return {
-        "model": payload["model"],
-        "messages": [{"role": "system", "content": payload["instructions"]}, *payload["input"]],
-        "tools": [{"type": "function", "function": {k: outil[k] for k in ("name", "description", "parameters", "strict")}}],
-        "tool_choice": {"type": "function", "function": {"name": outil["name"]}},
-        "reasoning_effort": payload["reasoning"]["effort"],
-        # Le raisonnement compte dans la sortie : la marge est plus large que pour Luna.
-        "max_tokens": 2 * payload.get("max_output_tokens", 3000),
-    }
-
-
-def depuis_chat(resultat):
-    """Réponse Chat Completions ramenée à la forme Responses attendue par le contrôle."""
-    if not isinstance(resultat, dict) or not resultat.get("choices"):
-        return resultat
-    choix = resultat["choices"][0]
-    appels = (choix.get("message") or {}).get("tool_calls") or []
-    return {"status": "completed" if choix.get("finish_reason") in ("tool_calls", "stop") else "incomplete",
-            "usage": resultat.get("usage"),
-            "output": [{"type": "function_call", "name": a["function"]["name"], "arguments": a["function"]["arguments"],
-                        "status": "completed"} for a in appels if a.get("type") == "function"]}
-
-
 REFLEXION_ANTHROPIC = {"medium": 2048, "high": 6000}
 BORNES = ("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
           "minLength", "maxLength", "maxItems")
@@ -1056,8 +1030,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 
     def _format_garanti(self, fonction):
-        """Le fournisseur impose-t-il le schéma ? MiMo accepte le mode strict sans l'appliquer."""
-        return self.strict and self.connexion != "mimo" and fonction not in self.sans_strict
+        """Le fournisseur impose-t-il le schéma de cette fonction ?"""
+        return self.strict and fonction not in self.sans_strict
 
     def _demander(self, instructions, entree, intention, fonction, schema):
         """Une réponse conforme au schéma, quel que soit le langage du modèle.
@@ -1129,8 +1103,6 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             payload.pop("max_output_tokens")  # non accepté par le contrat Sign in with ChatGPT
         entetes = {"Authorization": "Bearer " + cle, "Content-Type": "application/json"}
         adresse = "https://api.openai.com/v1/responses"
-        if self.connexion == "mimo":
-            payload, adresse = vers_chat(payload), "https://api.xiaomimimo.com/v1/chat/completions"
         if self.connexion == "anthropic":
             payload, adresse = vers_messages(payload), "https://api.anthropic.com/v1/messages"
             payload["tools"][0]["strict"] = self.strict and fonction not in self.sans_strict
@@ -1140,8 +1112,6 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         try:
             with urllib.request.urlopen(requete, timeout=self.timeout) as reponse:
                 resultat = lire_flux(reponse) if self.connexion == "chatgpt" else json.load(reponse)
-            if self.connexion == "mimo":
-                resultat = depuis_chat(resultat)
             if self.connexion == "anthropic":
                 resultat = depuis_messages(resultat)
         except urllib.error.HTTPError as exc:

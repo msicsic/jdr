@@ -3,8 +3,27 @@ import json
 import unittest
 from unittest.mock import patch
 
-from donjon.mj import MJOpenAI, depuis_messages, schema_anthropic, vers_messages
-from tests.test_mimo import SCHEMA, ReponseFactice
+from donjon.mj import MJOpenAI, decoder_imbrique, depuis_messages, schema_anthropic, vers_messages
+
+
+class ReponseFactice:
+    def __init__(self, corps):
+        self.corps = json.dumps(corps).encode("utf-8")
+
+    def read(self, *_):
+        return self.corps
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
+
+
+SCHEMA = {"type": "object", "additionalProperties": False,
+          "properties": {"texte": {"type": "string"}}, "required": ["texte"]}
+
+
 
 
 class TraductionTests(unittest.TestCase):
@@ -57,6 +76,13 @@ class TraductionTests(unittest.TestCase):
         self.assertEqual(liste["items"], {"type": "integer", "description": "Contraintes : minimum 0."})
         self.assertEqual(traduit["properties"]["nom"]["description"], "Nom. Contraintes : maxLength 40.")
         self.assertEqual(schema["properties"]["liste"]["maxItems"], 3)
+
+    def test_hors_mode_strict_un_objet_code_en_texte_est_decode_seulement_hors_texte(self):
+        schema = {"type": "object", "properties": {
+            "texte": {"type": "string"},
+            "proposition": {"anyOf": [{"type": "object", "properties": {"x": {"type": "integer"}}}, {"type": "null"}]}}}
+        brut = {"texte": '{"reste": "un texte"}', "proposition": '{"x": 1}'}
+        self.assertEqual(decoder_imbrique(brut, schema), {"texte": '{"reste": "un texte"}', "proposition": {"x": 1}})
 
     def test_une_reponse_tronquee_ou_sans_outil_est_refusee(self):
         self.assertEqual(depuis_messages({"stop_reason": "max_tokens", "content": []})["status"], "incomplete")

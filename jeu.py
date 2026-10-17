@@ -50,8 +50,8 @@ def main(argv=None, interface=None):
     parser = argparse.ArgumentParser(description="Le Seuil — donjon ASCII et maître du jeu IA")
     parser.add_argument("--offline", action="store_true", help="aucun appel au LLM")
     parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", *ESSAIS], default="auto",
-                        help="auto privilégie le compte ChatGPT enregistré, sinon la clé API ; mimo (MIMO_API_KEY) "
-                             "ou anthropic (ANTHROPIC_API_KEY) : essai d'un autre fournisseur, jamais choisi par défaut")
+                        help="auto privilégie le compte ChatGPT enregistré, sinon la clé API ; anthropic "
+                             "(ANTHROPIC_API_KEY) : essai d'un autre fournisseur, jamais choisi par défaut")
     parser.add_argument("--langage", choices=["json", "script"], default="json",
                         help="script : essai où le MJ répond par un appel Python à l'API du moteur, lu sans exécution")
     parser.add_argument("--sans-strict", action="store_true", help="essai : le schéma du MJ n'est plus imposé")

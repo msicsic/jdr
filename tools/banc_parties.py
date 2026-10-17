@@ -204,8 +204,8 @@ def main(argv=None):
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle")
     p.add_argument("--max-appels", type=int, default=150)
     p.add_argument("--etiquette", default="")
-    p.add_argument("--connexion", choices=("chatgpt", "api", "mimo", "anthropic"), default="chatgpt",
-                   help="fournisseur du MJ ; mimo ou anthropic pour un essai comparatif")
+    p.add_argument("--connexion", choices=("chatgpt", "api", "anthropic"), default="chatgpt",
+                   help="fournisseur du MJ ; anthropic pour un essai comparatif")
     p.add_argument("--effort", choices=("low", "medium", "high"), default="medium")
     p.add_argument("--langage", choices=("json", "script"), default="json")
     p.add_argument("--sans-strict", action="store_true")

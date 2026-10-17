@@ -3,11 +3,9 @@ import os
 from pathlib import Path
 
 MODELE_PAR_DEFAUT = "gpt-6-luna"
-MODELE_MIMO = "mimo-v2.6-flash"  # essai d'un autre fournisseur, jamais par défaut
-MODELE_ANTHROPIC = "claude-haiku-5-5"  # idem
+MODELE_ANTHROPIC = "claude-haiku-5-5"  # essai d'un autre fournisseur, jamais par défaut
 # Fournisseurs d'essai : variable de la clé, modèle proposé, nom affiché.
-ESSAIS = {"mimo": ("MIMO_API_KEY", MODELE_MIMO, "MiMo"),
-          "anthropic": ("ANTHROPIC_API_KEY", MODELE_ANTHROPIC, "Anthropic")}
+ESSAIS = {"anthropic": ("ANTHROPIC_API_KEY", MODELE_ANTHROPIC, "Anthropic")}
 
 
 def charger_env(chemin=None):
@@ -20,7 +18,7 @@ def charger_env(chemin=None):
             continue
         nom, valeur = ligne.split("=", 1)
         nom, valeur = nom.strip(), valeur.strip()
-        if nom not in ("OPENAI_API_KEY", "OPENAI_MODEL", "MIMO_API_KEY", "ANTHROPIC_API_KEY"):
+        if nom not in ("OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY"):
             continue
         if len(valeur) >= 2 and valeur[0] == valeur[-1] and valeur[0] in ("'", '"'):
             valeur = valeur[1:-1]
