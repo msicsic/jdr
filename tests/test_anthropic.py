@@ -3,7 +3,7 @@ import json
 import unittest
 from unittest.mock import patch
 
-from donjon.mj import MJOpenAI, depuis_messages, vers_messages
+from donjon.mj import MJOpenAI, depuis_messages, schema_anthropic, vers_messages
 from tests.test_mimo import SCHEMA, ReponseFactice
 
 
@@ -26,7 +26,8 @@ class TraductionTests(unittest.TestCase):
 
     def test_avec_reflexion_l_outil_reste_unique_mais_libre(self):
         requete = vers_messages(self.payload("medium"))
-        self.assertEqual(requete["thinking"], {"type": "enabled", "budget_tokens": 2048})
+        self.assertEqual(requete["thinking"], {"type": "adaptive"})
+        self.assertEqual(requete["output_config"], {"effort": "medium"})
         self.assertEqual(requete["tool_choice"], {"type": "auto", "disable_parallel_tool_use": True})
         self.assertEqual(requete["max_tokens"], 2048 + 3000)
         self.assertTrue(requete["tools"][0]["strict"])
@@ -43,6 +44,19 @@ class TraductionTests(unittest.TestCase):
         self.assertEqual(requete.get_header("X-api-key"), "cle-de-test")
         self.assertIsNone(requete.get_header("Authorization"))
         self.assertEqual(mj.derniere_utilisation["total_tokens"], 15)
+
+    def test_les_bornes_non_prises_en_charge_passent_dans_la_description(self):
+        schema = {"type": "object", "properties": {
+            "liste": {"type": "array", "maxItems": 3, "minItems": 1, "items": {"type": "integer", "minimum": 0}},
+            "nom": {"type": "string", "description": "Nom.", "maxLength": 40}}}
+        traduit = schema_anthropic(schema)
+        liste = traduit["properties"]["liste"]
+        self.assertNotIn("maxItems", liste)
+        self.assertEqual(liste["minItems"], 1)
+        self.assertEqual(liste["description"], "Contraintes : maxItems 3.")
+        self.assertEqual(liste["items"], {"type": "integer", "description": "Contraintes : minimum 0."})
+        self.assertEqual(traduit["properties"]["nom"]["description"], "Nom. Contraintes : maxLength 40.")
+        self.assertEqual(schema["properties"]["liste"]["maxItems"], 3)
 
     def test_une_reponse_tronquee_ou_sans_outil_est_refusee(self):
         self.assertEqual(depuis_messages({"stop_reason": "max_tokens", "content": []})["status"], "incomplete")

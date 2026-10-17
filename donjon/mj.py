@@ -376,6 +376,27 @@ def depuis_chat(resultat):
 
 
 REFLEXION_ANTHROPIC = {"medium": 2048, "high": 6000}
+BORNES = ("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
+          "minLength", "maxLength", "maxItems")
+
+
+def schema_anthropic(schema):
+    """Le mode strict d'Anthropic n'accepte pas les bornes : elles passent dans la description.
+
+    Le modèle les lit encore ; le moteur continue de vérifier la proposition comme avant.
+    """
+    if isinstance(schema, list):
+        return [schema_anthropic(s) for s in schema]
+    if not isinstance(schema, dict):
+        return schema
+    retirees = {k: schema[k] for k in BORNES if k in schema}
+    if schema.get("minItems", 0) > 1:
+        retirees["minItems"] = schema["minItems"]
+    copie = {k: schema_anthropic(v) for k, v in schema.items() if k not in retirees}
+    if retirees:
+        note = "Contraintes : " + ", ".join(f"{k} {v}" for k, v in retirees.items()) + "."
+        copie["description"] = (copie["description"] + " " + note) if copie.get("description") else note
+    return copie
 
 
 def vers_messages(payload):
@@ -392,13 +413,14 @@ def vers_messages(payload):
         "system": payload["instructions"],
         "messages": payload["input"],
         "tools": [{"name": outil["name"], "description": outil["description"],
-                   "input_schema": outil["parameters"], "strict": outil["strict"]}],
+                   "input_schema": schema_anthropic(outil["parameters"]), "strict": outil["strict"]}],
         "tool_choice": {"type": "tool", "name": outil["name"], "disable_parallel_tool_use": True},
         "max_tokens": sortie,
     }
     budget = REFLEXION_ANTHROPIC.get(payload["reasoning"]["effort"])
     if budget:
-        requete.update(thinking={"type": "enabled", "budget_tokens": budget},
+        # Réflexion adaptative : le modèle décide combien réfléchir, guidé par l'effort.
+        requete.update(thinking={"type": "adaptive"}, output_config={"effort": payload["reasoning"]["effort"]},
                        tool_choice={"type": "auto", "disable_parallel_tool_use": True},
                        max_tokens=budget + sortie)
     return requete
@@ -456,6 +478,7 @@ class MJOpenAI:
         self.connexion = connexion
         self.erreur_auth = None
         self.catalogue_verifie = False
+        self.sans_strict = set()  # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
         self.derniere_sortie = []
         self.observateur = None
         self._audit_courant = None
@@ -1067,6 +1090,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             payload, adresse = vers_chat(payload), "https://api.xiaomimimo.com/v1/chat/completions"
         if self.connexion == "anthropic":
             payload, adresse = vers_messages(payload), "https://api.anthropic.com/v1/messages"
+            payload["tools"][0]["strict"] = fonction not in self.sans_strict
             entetes = {"x-api-key": cle, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
         requete = urllib.request.Request(adresse, data=json.dumps(payload).encode("utf-8"),
                                          headers=entetes, method="POST")
@@ -1083,9 +1107,14 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 erreur = json.loads(exc.read()).get("error", {})
                 code = erreur.get("code") or erreur.get("type") or "erreur_api"
             except (ValueError, AttributeError):
-                code = "erreur_api"
+                erreur, code = {}, "erreur_api"
             status = exc.code
             exc.close()
+            if (self.connexion == "anthropic" and status == 400 and fonction not in self.sans_strict
+                    and "grammar is too large" in str(erreur.get("message"))):
+                # Schéma trop riche pour la grammaire stricte : même requête sans garantie de format.
+                self.sans_strict.add(fonction)
+                return self._appeler_brut(instructions, entree, intention, fonction, schema)
             if status == 401:
                 conseil = ("Reconnectez le forfait : python connexion.py connecter, puis relancez le jeu."
                            if self.connexion == "chatgpt" else
@@ -1113,7 +1142,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             raise ErreurMonde("Le MJ n'a pas fourni une proposition unique. Aucune action appliquée.")
         try:
             p = json.loads(appels[0]["arguments"])
-            if self.connexion == "mimo":
+            if self.connexion == "mimo" or fonction in self.sans_strict:
                 p = decoder_imbrique(p, schema)
             if not isinstance(p, dict):
                 raise ValueError("La proposition doit être un objet")
