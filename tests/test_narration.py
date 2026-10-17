@@ -28,8 +28,15 @@ class NarrationTests(unittest.TestCase):
         texte = "La porte est fermée. Une cloche apparaît."
         with self.assertRaises(ErreurMonde):
             controler(texte, segment("mecanique", ["salle"]), {"salle": {}})
-        with self.assertRaises(ErreurMonde):
-            controler("La porte est fermée.", segment("mecanique", ["source_inventee"]), {"salle": {}})
+        rapport = controler("La porte est fermée.", segment("mecanique", ["source_inventee"]), {"salle": {}})
+        self.assertTrue(rapport["obstacles"])
+        self.assertEqual(rapport["segments"][0]["sources"], [])
+
+    def test_schema_d_audit_limite_les_sources_aux_cles_fournies(self):
+        from donjon.narration import schema_audit
+        schema = schema_audit({"salle": {}, "objet:cloche": {}})
+        sources = schema["properties"]["segments"]["items"]["properties"]["sources"]["items"]
+        self.assertEqual(sources["enum"], ["objet:cloche", "salle"])
 
     def test_mecanique_exige_une_source_et_invention_refusee(self):
         faits = {"objet:cloche": {"nom": "cloche"}}

@@ -62,6 +62,15 @@ SCHEMA_AUDIT = {
 }
 CHAMPS_AUDIT = set(SCHEMA_AUDIT["properties"]["segments"]["items"]["required"])
 
+
+def schema_audit(faits):
+    """Les sources citables sont exactement les clés fournies : une référence inventée
+    ou un chemin approximatif ne peut pas être produit."""
+    schema = copy.deepcopy(SCHEMA_AUDIT)
+    schema["properties"]["segments"]["items"]["properties"]["sources"]["items"] = {
+        "type": "string", "enum": sorted(faits)}
+    return schema
+
 INSTRUCTIONS_AUDIT = """Tu contrôles une réponse du maître du jeu avant qu'un joueur la voie.
 Le jeu distingue deux sortes d'affirmations sur le monde.
 Mécaniques : objets et personnages identifiés, positions, sorties et passages, portes et
@@ -103,6 +112,8 @@ ressources, lumière, missions, résultats) doit découler des faits fournis ; p
 (aspect, odeur, son de fond, texture, impression) est libre si elle ne crée ni objet
 manipulable, ni passage, ni personnage, ni ressource, ni indice. Reste cohérent avec
 ambiance_etablie. Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
+Dis une inconnue dans la fiction (ce que Corvus voit, entend ou ignore), jamais en parlant
+de faits, de données ou de ce qui est « établi ».
 """
 
 
@@ -183,12 +194,15 @@ def controler(texte, rapport, faits):
                 or type(ligne["indice"]) is not int or ligne["indice"] != indice
                 or ligne["verdict"] not in VERDICTS
                 or not isinstance(ligne["sources"], list)
-                or any(not isinstance(s, str) or s not in faits for s in ligne["sources"])
+                or any(not isinstance(s, str) for s in ligne["sources"])
                 or not isinstance(ligne["entites"], list)
                 or any(not isinstance(e, str) for e in ligne["entites"])
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "motif"))):
-            raise ErreurMonde("Contrôle narratif mal formé ou fondé sur une source inconnue.")
+            raise ErreurMonde("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
+        # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
+        # mécanique sans source restante est refusée plus bas.
+        ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
         if verdict != "parole":
@@ -201,12 +215,16 @@ def controler(texte, rapport, faits):
                               "motif": "Cette affirmation mécanique ne cite aucun fait du moteur."})
         elif verdict == "parole":
             locuteur, citation = ligne["locuteur"], ligne["citation"]
-            if (locuteur not in faits.get("interlocuteurs", {}) or not citation
-                    or not 3 <= len(citation) <= 240
-                    or any(ord(c) < 32 for c in citation)
+            if locuteur not in faits.get("interlocuteurs", {}):
+                obstacles.append({"segment": indice, "texte": passage,
+                                  "motif": "Seul un personnage présent peut parler ; aucun locuteur présent "
+                                           "ne correspond à cette parole."})
+            elif (not 3 <= len(citation) <= 800 or any(ord(c) < 32 for c in citation)
                     or f"« {citation} »" not in passage):
-                raise ErreurMonde("Une parole du MJ n'a pas de locuteur présent ou de citation exacte.")
-            paroles.append({"locuteur": locuteur, "texte": citation})
+                obstacles.append({"segment": indice, "texte": passage,
+                                  "motif": "Une parole doit être citée entre « et », en entier, dans le segment."})
+            else:
+                paroles.append({"locuteur": locuteur, "texte": citation})
         elif verdict == "ambiance":
             ambiances.append({"texte": passage,
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
