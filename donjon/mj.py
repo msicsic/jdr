@@ -20,6 +20,7 @@ from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
 from .config import ESSAIS, MODELE_PAR_DEFAUT
+from . import script_mj
 from .francais import designer
 from .artisanat import SCHEMA_FABRICATION, dossier as dossier_atelier, REGLES as REGLES_ATELIER
 from .harnais import REGLES_REPRISE, derniere_tentative
@@ -471,11 +472,13 @@ def decoder_imbrique(valeur, schema):
 
 
 class MJOpenAI:
-    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api"):
+    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api", langage="json"):
         self.modele = modele or os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
         self.effort, self.timeout = effort, timeout
         self.derniere_utilisation = None
         self.connexion = connexion
+        # json : le modèle remplit le schéma de l'outil ; script : il écrit un appel Python à l'API.
+        self.langage = langage
         self.erreur_auth = None
         self.catalogue_verifie = False
         self.sans_strict = set()  # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
@@ -493,7 +496,7 @@ class MJOpenAI:
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
                                         entree as entree_couverture,
                                         verifier as verifier_couverture)
-        rapport = self._appeler_brut(
+        rapport = self._demander(
             INSTRUCTIONS_COUVERTURE, entree_couverture(intention, plan),
             "Contrôler la fidélité du plan", "auditer_action", SCHEMA_COUVERTURE)
         verifier_couverture(rapport)
@@ -925,7 +928,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
 
         def appeler_brut(*arguments):
             nonlocal usage_total
-            sortie = self._appeler_brut(*arguments)
+            sortie = self._demander(*arguments)
             if isinstance(sortie, dict) and "_texte_moteur" in sortie:
                 raise ErreurMonde("Le MJ ne peut pas déclarer lui-même un texte comme validé par le moteur.")
             usage_total = additionner_usage(usage_total, self.derniere_utilisation)
@@ -1048,6 +1051,39 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             reponse = appeler_brut(instructions + INSTRUCTIONS_REVISION, correction,
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
+
+    def _demander(self, instructions, entree, intention, fonction, schema):
+        """Une réponse conforme au schéma, quel que soit le langage du modèle.
+
+        Quand le fournisseur ne garantit pas le format (script, ou schéma non strict), les
+        écarts sont renvoyés au modèle pour une seule correction, comme une erreur d'outil.
+        """
+        if self.langage == "script":
+            def tenter(supplement):
+                brut = self._appeler_brut(instructions + script_mj.consigne(fonction, schema),
+                                          {**entree, **supplement}, intention, script_mj.FONCTION, script_mj.SCHEMA)
+                return script_mj.lire(brut.get("script"), fonction, schema)
+        else:
+            def tenter(supplement):
+                brut = self._appeler_brut(instructions, {**entree, **supplement}, intention, fonction, schema)
+                fautes = (script_mj.erreurs(brut, schema)
+                          if self.connexion == "mimo" or fonction in self.sans_strict else [])
+                if fautes:
+                    raise script_mj.ErreurScript(script_mj.refus(fautes))
+                return brut
+        try:
+            return tenter({})
+        except script_mj.ErreurScript as exc:
+            premiere, refus = self.derniere_utilisation, str(exc)
+        if self.observateur:
+            self.observateur({"etape": "format", "modele": self.modele, "fonction": fonction, "erreur": refus})
+        try:
+            return tenter({"erreur_script": {"erreur": refus,
+                                             "consigne": "Corrige seulement ce qui est signalé et réponds à nouveau."}})
+        except script_mj.ErreurScript:
+            raise ErreurMonde("Réponse du MJ invalide. Aucune action appliquée.") from None
+        finally:
+            self.derniere_utilisation = additionner_usage(premiere, self.derniere_utilisation)
 
     def _appeler_brut(self, instructions, entree, intention, fonction, schema):
         if self.erreur_auth:

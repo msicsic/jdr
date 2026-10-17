@@ -52,6 +52,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", *ESSAIS], default="auto",
                         help="auto privilégie le compte ChatGPT enregistré, sinon la clé API ; mimo (MIMO_API_KEY) "
                              "ou anthropic (ANTHROPIC_API_KEY) : essai d'un autre fournisseur, jamais choisi par défaut")
+    parser.add_argument("--langage", choices=["json", "script"], default="json",
+                        help="script : essai où le MJ répond par un appel Python à l'API du moteur, lu sans exécution")
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
     parser.add_argument("--defi", action="store_true", help="Le Relais des crues, défi d'exploration avec sauvegarde séparée")
@@ -135,7 +137,7 @@ def main(argv=None, interface=None):
             args.model = ESSAIS[connexion][1]
         actif = not args.offline and (connexion == "chatgpt" or bool(
             os.environ.get(ESSAIS[connexion][0] if connexion in ESSAIS else "OPENAI_API_KEY")))
-        mj = MJOpenAI(args.model, args.effort, connexion=connexion) if actif else None
+        mj = MJOpenAI(args.model, args.effort, connexion=connexion, langage=args.langage) if actif else None
         if mj:
             mj = comparer(mj)
         if isinstance(mj, Comparateur):
@@ -145,7 +147,8 @@ def main(argv=None, interface=None):
             imprimer("Comparaison inactive : MJ hors ligne. Aucun appel au second modèle.")
         if interface is None:
             imprimer("\nLE SEUIL — prototype testvrac | " + str(BASE))
-            imprimer("MJ : " + (f"{args.model} / {args.effort} / {connexion}" if actif else "hors ligne (commandes locales)"))
+            imprimer("MJ : " + (f"{args.model} / {args.effort} / {connexion}" + (" / script" if args.langage == "script" else "")
+                                if actif else "hors ligne (commandes locales)"))
             if actif:
                 imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
                                                       f"la clé API {ESSAIS[connexion][2]}, à titre d'essai." if connexion in ESSAIS else
@@ -236,7 +239,7 @@ def main(argv=None, interface=None):
                     connexion, actif = "chatgpt", True
                     if isinstance(mj, Comparateur):
                         mj.fermer()
-                    mj = comparer(MJOpenAI(args.model, args.effort, connexion="chatgpt"))
+                    mj = comparer(MJOpenAI(args.model, args.effort, connexion="chatgpt", langage=args.langage))
                     pending = None
                     continue
                 if cmd in ("comparaison", "debug"):
