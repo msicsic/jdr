@@ -319,7 +319,7 @@ pas de contenu caché. Une possibilité n'est pas une réussite.
 Si conversation_validee est présente, fais parler directement le personnage indiqué, en lui
 attribuant clairement ses mots entre « et ». Si elle contient replique_joueur, cette réplique
 de Corvus est déjà affichée : ne la répète pas ; le personnage y répond d'après
-conversation_validee.faits et ce qu'il croit (paroles.esprits_interlocuteurs). Réponds à son sujet avec ses savoirs
+conversation_validee.faits et ce qu'il croit (esprits_interlocuteurs). Réponds à son sujet avec ses savoirs
 (connaissances_pnj), son profil, ses intentions et sa relation au joueur. Une liste
 conversation_validee.faits vide signifie seulement qu'aucun accord n'a changé : le personnage
 doit quand même répondre. Reprends exactement les montants, conditions et refus validés ; une
@@ -655,7 +655,8 @@ class MJOpenAI:
         social = enrichir and bool(faits["interlocuteurs"])
         paroles = contexte_paroles(monde)
         if paroles:
-            faits["paroles"] = paroles
+            # Chaque bloc que les règles nomment est un fait citable de premier niveau.
+            faits.update(paroles)
         faits.update({"objet:" + o["id"]: o for o in objets})
         schema = {
             "type": "object", "additionalProperties": False,

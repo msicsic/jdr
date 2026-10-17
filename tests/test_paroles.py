@@ -1,5 +1,6 @@
 """Paroles du joueur : réplique selon INT et CHA, croyances transmises, après rechargement."""
 import io
+import re
 from pathlib import Path
 import tempfile
 import unittest
@@ -13,7 +14,7 @@ from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
-from donjon.paroles import bande_expression, capacite_transmission, preparer_parole
+from donjon.paroles import REGLES as REGLES_PAROLE, bande_expression, capacite_transmission, preparer_parole
 from donjon.spatial import installer
 
 
@@ -61,6 +62,37 @@ def croyance(monde, sujet, attribut="lieu", pnj="marchand"):
     return lire(monde, pnj)["croyances"].get(sujet, {}).get(attribut)
 
 
+class CitationTests(unittest.TestCase):
+    def test_les_blocs_nommes_par_les_regles_sont_des_faits_citables(self):
+        # Cas du banc Haiku : la règle des paroles nommait esprits_interlocuteurs, rangé sous
+        # paroles ; seule une clé de premier niveau peut être citée dans faits ou sources.
+        appels = []
+
+        def appel(instructions, entree, intention, fonction, schema):
+            appels.append((instructions, entree, schema))
+            return [parole("Tout va bien, Gorm ?", ("propos", "", "", "")),
+                    reponse_pnj("Gorm : « Ça ira. »")][len(appels) - 1]
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            relais().sauver(chemin)
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler", side_effect=appel),
+                  patch("builtins.input", side_effect=["je demande à Gorm s'il va bien", "quitter"]),
+                  patch("sys.stdout", io.StringIO())):
+                self.assertEqual(jeu.main(["--console", "--connexion", "api", "--save", str(chemin)]), 0)
+        self.assertEqual(len(appels), 2)
+        for instructions, entree, schema in appels:
+            citables = schema["properties"]["faits"]["items"]["enum"]
+            self.assertEqual(citables, list(entree["faits"]))
+            # Les blocs du contexte de parole, et tout sous-bloc que leurs règles nomment, se citent.
+            self.assertLessEqual({"expression_joueur", "esprits_interlocuteurs"}, set(citables))
+            sous_blocs = {cle for bloc in entree["faits"].values() if isinstance(bloc, dict)
+                          for cle, valeur in bloc.items() if isinstance(valeur, dict)}
+            nommes = {cle for cle in sous_blocs - set(citables)
+                      if re.search(r"(?<!\w)" + re.escape(cle) + r"(?!\w)", REGLES_PAROLE)}
+            self.assertEqual(nommes, set(), "bloc nommé par les règles mais non citable")
+
+
 class ExpressionTests(unittest.TestCase):
     def test_bande_et_capacite_suivent_int_et_cha(self):
         self.assertTrue(bande_expression({"INT": 14, "CHA": 12})["precision"].startswith("précise"))
@@ -74,7 +106,7 @@ class ExpressionTests(unittest.TestCase):
         _, sortie, appels = jouer(m, "je demande à Gorm s'il va bien", [
             parole("Tout va bien, Gorm ?", ("propos", "", "", "")),
             reponse_pnj("Gorm : « Ça ira. »")])
-        paroles = appels[0]["faits"]["paroles"]
+        paroles = appels[0]["faits"]
         self.assertTrue(paroles["expression_joueur"]["precision"].startswith("précise"))
         gorm = paroles["esprits_interlocuteurs"]["marchand"]
         self.assertIn("croit que la cloche d'alarme est dans Galerie de ronde", gorm["croit"])
