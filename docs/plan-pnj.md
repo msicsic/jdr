@@ -201,6 +201,18 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
   au refuge : sans routine (ronde, accueil), l'émergence reste mince. C'est la première
   piste pour D.
 
+## Écarts retenus au jalon C
+
+- L'aperçu avant de dire (dire, reformuler, annuler) n'est pas fait : il doublerait les
+  échanges pour chaque réplique à enjeu. Le contrôle du joueur passe par les guillemets
+  (mot pour mot) ; l'aperçu reste possible si le rendu agace en jeu.
+- Les indices d'environnement à seuil d'INT ou de PER sont reportés : aucun scénario n'en
+  déclare encore.
+- Banc Luna réel (Relais, 7 répliques, Corvus 17/17 puis 6/6, 111 appels sur 150) : les
+  répliques diffèrent nettement selon la bande ; le même mensonge est cru à 17 de CHA,
+  rejeté à 6, et Gorm répond ensuite d'après ce qu'on lui a dit (« On m'a dit qu'elle était
+  au refuge du relais ») ; aucune mention sans fondement dans la voix de Luna.
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -211,7 +223,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 |---|---|---|---|
 | **A. Gorm perçoit et se souvient** — *fait* | il ne voit pas dans le noir ni derrière la poutre ; il croit ce qu'il a vu ou su jusqu'à revoir la place ; un témoin est celui qui perçoit le joueur ; il ouvre les portes et apprend une serrure par l'essai ; tout persiste après rechargement | perception par acteur ; ligne de vue symétrique ; croyances `vu`/`savoir`/`essai` et mémoire (sons, absences, vols surpris) ; intention `rejoindre` exécutée geste par geste (`trajet` migré) ; `esprit <pnj>` en `--debug` | aucun appel |
 | **B. Gorm veut** — *fait* | Brune, affamée, va chercher les crochets, attend que personne ne la voie, crochète la réserve et mange ; sous les yeux du joueur elle renonce ; sans crochets elle reste sans plan ; surprise depuis l'ombre (joueur ou Gorm) ; Gorm volé garde ses biens, cesse de déléguer la cloche, va chercher la clé, déverrouille et la rapporte ; sans clé, il renonce | profils, besoins, pulsions (dont déléguées), délibération par urgence, planificateur borné sur croyances, gestes prendre/poser/ouvrir/fermer/(dé)verrouiller/crocheter/manger, garde `sans_temoin`, témoins réels, chronique, `banc_pnj` | aucun appel |
-| **C. On peut lui parler** | ce que tu dis devient une croyance : un mensonge crédible change son plan ; ta réplique est rendue selon INT et CHA, avec aperçu | proposition `parole_joueur`, confiance ; expression et compréhension selon les caractéristiques | dans l'appel de dialogue existant |
+| **C. On peut lui parler** — *fait* | ta réplique est rendue selon INT et CHA (« Tu dis : « … » »), mot pour mot entre guillemets ; un mensonge cru change le plan de Gorm et se découvre quand il voit la vérité ; un mensonge démenti par ce qu'il vient de voir est rejeté ; une INT faible transmet moins ; une demande d'objet est refusée s'il en a besoin ou se méfie ; Luna fait parler les PNJ d'après leurs croyances | mode `parole_joueur`, bande d'expression, contenu typé résolu par identifiant ou par nom, jet de CHA et confiance, `mensonge_decouvert`, contrôle des mentions sur la réplique ; objets portés discrets cachés au joueur ; profil des PNJ retiré du contexte de Luna | 3 appels par réplique (interprétation, réponse, audit) |
 | **D. Plusieurs PNJ** | une rumeur se propage, un vol découvert change les relations, le monde vit hors de ta vue | couche sociale entre PNJ, niveau de détail hors champ, 3–4 PNJ sur le Relais, banc sans joueur complet | aucun appel |
 | **E. Luna stratège** | buts tirés d'une personnalité en prose, stratégies sociales | stratège à pas de temps long, A/B contre D sur le banc | budget plafonné ; gardé seulement si la chronique s'améliore de façon mesurable |
 

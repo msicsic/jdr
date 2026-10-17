@@ -15,6 +15,7 @@ from .connexion import jeton, modeles
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
 from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
+from .paroles import REGLES as REGLES_PAROLE, SCHEMA_PAROLE, citation, contexte as contexte_paroles, preparer_parole
 from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
@@ -240,7 +241,8 @@ Choisis un mode :
 - dialogue : répondre, expliquer, décrire ; proposition=null. Une question de faisabilité
   n'exécute rien : explique les possibilités et les risques sans annoncer de résultat.
 - action : une volonté d'agir, selon les règles d'action ci-dessous.
-- conversation_pnj : le joueur s'adresse à un PNJ présent, discute ou négocie.
+- parole_joueur : le joueur fait parler Corvus à un PNJ présent (affirmer, demander, converser).
+- conversation_pnj : le joueur discute ou négocie une récompense de mission avec un PNJ présent.
 - enrichir, enrichir_savoirs, enrichir_joueur, etablir_faits : la réponse exige un détail
   persistant encore absent ; le moteur le valide avant que tu le racontes.
 Dans tous les modes, faits contient les clés des faits utilisés (références internes).
@@ -315,7 +317,9 @@ Respecte l'éclairage et la visibilité ; un souvenir ne prouve pas un état act
 pas de contenu caché. Une possibilité n'est pas une réussite.
 
 Si conversation_validee est présente, fais parler directement le personnage indiqué, en lui
-attribuant clairement ses mots entre « et ». Réponds à son sujet avec ses savoirs
+attribuant clairement ses mots entre « et ». Si elle contient replique_joueur, cette réplique
+de Corvus est déjà affichée : ne la répète pas ; le personnage y répond d'après
+conversation_validee.faits et ce qu'il croit (paroles.esprits_interlocuteurs). Réponds à son sujet avec ses savoirs
 (connaissances_pnj), son profil, ses intentions et sa relation au joueur. Une liste
 conversation_validee.faits vide signifie seulement qu'aucun accord n'a changé : le personnage
 doit quand même répondre. Reprends exactement les montants, conditions et refus validés ; une
@@ -538,11 +542,38 @@ class MJOpenAI:
             return {"mode": "dialogue", "texte": reponse["proposition"]["justification"],
                     "faits": reponse["faits"], "proposition": None,
                     "_audit": reponse["_audit_justification"]}
-        if reponse["mode"] not in ("enrichir", "conversation_pnj", "enrichir_savoirs"):
+        if reponse["mode"] not in ("enrichir", "conversation_pnj", "enrichir_savoirs", "parole_joueur"):
             return reponse
         complements = reponse["proposition"]
         rapport = None
-        if reponse["mode"] == "conversation_pnj":
+        if reponse["mode"] == "parole_joueur":
+            for essai in range(2):
+                # Des mots cités par le joueur sont dits tels quels, sans réécriture.
+                complements = {**reponse["proposition"],
+                               "replique": citation(intention) or reponse["proposition"].get("replique", ""),
+                               "_intention": intention[:600]}
+                try:
+                    travail, rapport = preparer_parole(monde, complements, revision)
+                    break
+                except ErreurMonde as exc:
+                    if essai:
+                        # Rien n'est dit : le joueur reformule, sans message technique.
+                        return {"mode": "dialogue", "texte": "Corvus cherche ses mots sans parvenir à le dire "
+                                "ainsi. Reformule ta réplique avec ce qu'il connaît.", "faits": [],
+                                "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
+                    retour = {"proposition_refusee": reponse["proposition"], "obstacle": str(exc),
+                              "consigne": "Corrige la parole : la réplique ne nomme que ce que Corvus connaît "
+                                          "d'après les faits, le message et la conversation."}
+                    if self.observateur:
+                        self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
+                                          "revision": revision, "tentative": 1, **retour})
+                    reponse = self._echanger(monde, intention, proposition_en_attente,
+                                             enrichir=True, retour_moteur=retour)
+                    if reponse["mode"] != "parole_joueur":
+                        if reponse["mode"] == "dialogue":
+                            return reponse
+                        raise ErreurMonde("La correction de la parole n'a pas abouti.")
+        elif reponse["mode"] == "conversation_pnj":
             if complements.get("operation") in ("accepter", "refuser") and est_question(intention):
                 raise ErreurMonde("Une question ne suffit pas à accepter ou refuser une offre.")
             travail, rapport = preparer_conversation(monde, complements, revision)
@@ -556,9 +587,11 @@ class MJOpenAI:
         if narration["mode"] != "dialogue":
             raise ErreurMonde("Le MJ n'a pas terminé la description. Aucun complément enregistré.")
         nature = {"conversation_pnj": "conversation_pnj", "enrichir": "complements",
-                  "enrichir_savoirs": "savoirs"}[reponse["mode"]]
+                  "enrichir_savoirs": "savoirs", "parole_joueur": "parole"}[reponse["mode"]]
+        if nature == "parole":
+            narration["_prefixe_moteur"] = "Tu dis : « " + rapport["replique_joueur"] + " »"
         return ajouter_transaction(narration, nature, revision, complements,
-                                   rapport if reponse["mode"] == "conversation_pnj" else None)
+                                   rapport if reponse["mode"] in ("conversation_pnj", "parole_joueur") else None)
 
     def _echanger(self, monde, intention, proposition_en_attente, enrichir, conversation_validee=None, resultat_resolu=None, retour_moteur=None):
         contexte = monde.contexte()
@@ -620,14 +653,17 @@ class MJOpenAI:
             faits["resultat_resolu"] = resultat_resolu
             faits["attestations"].extend(resultat_resolu.get("faits", []))
         social = enrichir and bool(faits["interlocuteurs"])
+        paroles = contexte_paroles(monde)
+        if paroles:
+            faits["paroles"] = paroles
         faits.update({"objet:" + o["id"]: o for o in objets})
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
+                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj", "parole_joueur"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION, SCHEMA_PAROLE] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
@@ -644,6 +680,8 @@ class MJOpenAI:
             instructions += "\nLe retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
         if enrichir:
             instructions += REGLES_PROFIL
+            if social:
+                instructions += REGLES_PAROLE
         if not enrichir:
             instructions = NARRATION
             schema["properties"]["mode"] = {"type": "string", "enum": ["dialogue"]}
@@ -740,6 +778,9 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         elif reponse["mode"] == "conversation_pnj":
             if not social or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Conversation invalide. Aucun engagement enregistré.")
+        elif reponse["mode"] == "parole_joueur":
+            if not social or reponse["texte"] or not isinstance(reponse["proposition"], dict):
+                raise ErreurMonde("Parole invalide. Rien n'a été dit.")
         elif reponse["mode"] == "enrichir_savoirs":
             if not savoirs_disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Connaissances invalides. Aucun ajout enregistré.")

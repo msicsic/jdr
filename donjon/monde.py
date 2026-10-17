@@ -185,6 +185,9 @@ class Monde:
 
     def visible(self, id):
         o = self.objets.get(id, {})
+        from .esprits import cache_par_porteur
+        if o and cache_par_porteur(self, o, "joueur"):
+            return False
         if o.get("detail_local"):
             if eclairage(self)["niveau"] < 2:
                 return False
@@ -262,6 +265,8 @@ class Monde:
             if not self.accessible(o["id"]):
                 continue
             vue = copy.deepcopy(o)
+            # L'esprit d'un PNJ (profil, besoins, pulsions) reste interne au moteur.
+            vue.pop("profil", None)
             if "constats_capacites" in vue:
                 from .capacites_objet import resume_constats
                 vue["constats_capacites"] = resume_constats(o, self.objets)
