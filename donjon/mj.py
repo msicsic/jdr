@@ -349,6 +349,64 @@ def expliquer_refus(premier, dernier):
     return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
 
 
+def vers_chat(payload):
+    """Requête Responses traduite en Chat Completions, pour un fournisseur compatible (MiMo)."""
+    outil = payload["tools"][0]
+    return {
+        "model": payload["model"],
+        "messages": [{"role": "system", "content": payload["instructions"]}, *payload["input"]],
+        "tools": [{"type": "function", "function": {k: outil[k] for k in ("name", "description", "parameters", "strict")}}],
+        "tool_choice": {"type": "function", "function": {"name": outil["name"]}},
+        "reasoning_effort": payload["reasoning"]["effort"],
+        # Le raisonnement compte dans la sortie : la marge est plus large que pour Luna.
+        "max_tokens": 2 * payload.get("max_output_tokens", 3000),
+    }
+
+
+def depuis_chat(resultat):
+    """Réponse Chat Completions ramenée à la forme Responses attendue par le contrôle."""
+    if not isinstance(resultat, dict) or not resultat.get("choices"):
+        return resultat
+    choix = resultat["choices"][0]
+    appels = (choix.get("message") or {}).get("tool_calls") or []
+    return {"status": "completed" if choix.get("finish_reason") in ("tool_calls", "stop") else "incomplete",
+            "usage": resultat.get("usage"),
+            "output": [{"type": "function_call", "name": a["function"]["name"], "arguments": a["function"]["arguments"],
+                        "status": "completed"} for a in appels if a.get("type") == "function"]}
+
+
+def _accepte_texte(schema):
+    if not isinstance(schema, dict):
+        return True
+    if "anyOf" in schema:
+        return any(_accepte_texte(s) for s in schema["anyOf"])
+    types = schema.get("type")
+    return types is None or "string" in (types if isinstance(types, list) else [types])
+
+
+def decoder_imbrique(valeur, schema):
+    """Un fournisseur qui n'applique pas le schéma strict peut renvoyer un objet sous forme de texte JSON.
+
+    Seul ce codage est défait, là où le schéma n'accepte pas de texte ; le contrôle ne change pas.
+    """
+    if isinstance(valeur, str) and not _accepte_texte(schema) and valeur.lstrip()[:1] in ("{", "["):
+        try:
+            valeur = json.loads(valeur)
+        except ValueError:
+            return valeur
+    if isinstance(schema, dict) and "anyOf" in schema:
+        for option in schema["anyOf"]:
+            if (option.get("type") == "object") == isinstance(valeur, dict):
+                return decoder_imbrique(valeur, option)
+        return valeur
+    if isinstance(valeur, dict) and isinstance(schema, dict):
+        proprietes = schema.get("properties", {})
+        return {k: decoder_imbrique(v, proprietes.get(k)) for k, v in valeur.items()}
+    if isinstance(valeur, list) and isinstance(schema, dict):
+        return [decoder_imbrique(v, schema.get("items")) for v in valeur]
+    return valeur
+
+
 class MJOpenAI:
     def __init__(self, modele=None, effort="medium", timeout=45, connexion="api"):
         self.modele = modele or os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
@@ -935,9 +993,11 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             if self.modele not in [m["slug"] for m in disponibles]:
                 raise ErreurMonde("Ce modèle n'est pas disponible sur ce forfait. Lancez python connexion.py modeles, puis choisissez avec --model.")
             self.catalogue_verifie = True
-        cle = jeton() if self.connexion == "chatgpt" else os.environ.get("OPENAI_API_KEY")
+        cle = (jeton() if self.connexion == "chatgpt" else
+               os.environ.get("MIMO_API_KEY") if self.connexion == "mimo" else os.environ.get("OPENAI_API_KEY"))
         if not cle:
-            raise ErreurMonde("OPENAI_API_KEY absente. Les commandes hors ligne restent disponibles (aide).")
+            raise ErreurMonde(("MIMO_API_KEY" if self.connexion == "mimo" else "OPENAI_API_KEY")
+                              + " absente. Les commandes hors ligne restent disponibles (aide).")
         if len(intention) > 2000:
             raise ErreurMonde("Limitez votre action à 2 000 caractères.")
         payload = {
@@ -961,7 +1021,10 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             payload["tool_choice"] = "required"
             payload["stream"] = True
             payload.pop("max_output_tokens")  # non accepté par le contrat Sign in with ChatGPT
+        if self.connexion == "mimo":
+            payload = vers_chat(payload)
         requete = urllib.request.Request(
+            "https://api.xiaomimimo.com/v1/chat/completions" if self.connexion == "mimo" else
             "https://api.openai.com/v1/responses",
             data=json.dumps(payload).encode("utf-8"),
             headers={"Authorization": "Bearer " + cle, "Content-Type": "application/json"},
@@ -970,6 +1033,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         try:
             with urllib.request.urlopen(requete, timeout=self.timeout) as reponse:
                 resultat = lire_flux(reponse) if self.connexion == "chatgpt" else json.load(reponse)
+            if self.connexion == "mimo":
+                resultat = depuis_chat(resultat)
         except urllib.error.HTTPError as exc:
             # Ne jamais afficher les en-têtes ou une clé dans le journal.
             try:
@@ -1005,6 +1070,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             raise ErreurMonde("Le MJ n'a pas fourni une proposition unique. Aucune action appliquée.")
         try:
             p = json.loads(appels[0]["arguments"])
+            if self.connexion == "mimo":
+                p = decoder_imbrique(p, schema)
             if not isinstance(p, dict):
                 raise ValueError("La proposition doit être un objet")
             return p
