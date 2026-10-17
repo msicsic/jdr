@@ -25,6 +25,12 @@ def proprietaire(monde, objet):
     return None
 
 
+def mefiance(monde, id):
+    """Soupçon envers le joueur : incidents surpris, ou réputation apprise (vue ou rapportée)."""
+    fiable = monde.data.get("esprits", {}).get(id, {}).get("croyances", {}).get("joueur", {}).get("fiable")
+    return max(monde.data["relations_pnj"][id]["soupcon"], 1 if fiable and not fiable["valeur"] else 0)
+
+
 def appliquer(monde, effet, lignes):
     op, cible, valeur = effet
     if op == "voler":
@@ -41,7 +47,8 @@ def appliquer(monde, effet, lignes):
         from .esprits import croire, memoriser
         memoriser(monde, cible, {"type": "vol_surpris", "auteur": "joueur", "objet": valeur})
         croire(monde, cible, "joueur", "fiable", False, "vu")
-        relancer(monde, cible, "biens", VOL)
+        if proprietaire(monde, monde.objets[valeur]) == cible:
+            relancer(monde, cible, "biens", VOL)  # Seule la victime craint pour ses biens.
         monde.objets[cible]["humeur"] = "méfiant"
         lignes.append(monde.objets[cible]["nom"] + " te surprend en train de tenter de dérober "
                       + designer(monde.objets[valeur]) + ". Tu retires la main ; l'objet reste en place.")

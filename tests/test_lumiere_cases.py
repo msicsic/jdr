@@ -38,7 +38,7 @@ class LumiereCasesTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--defi", "--console", "--offline", "--save", str(chemin)]), 0)
             reprise = Monde.charger(chemin)
-        texte = sortie.getvalue()
+        texte = " ".join(sortie.getvalue().split())
         # La conduite reste dans la pénombre diffuse ; le brasero, en lumière directe, se voit de loin.
         self.assertIn("Dans la pénombre", texte)
         self.assertIn("Au-delà du passage, tu distingues un brasero.", texte)

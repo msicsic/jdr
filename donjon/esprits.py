@@ -15,6 +15,7 @@ import copy
 from .perception import eclairage
 
 MEMOIRE_MAX = 40
+RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
 SOURCES = ("vu", "savoir", "essai")
 ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume",),
                   "nourriture": ("disponible",)}
@@ -28,7 +29,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
-          "besoins": dict, "pulsions": list, "renoncements": dict}
+          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
 
@@ -97,6 +98,7 @@ def verifier(monde):
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
         for sujet, attributs in e["croyances"].items():
             assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
             for attribut, c in attributs.items():
@@ -225,14 +227,37 @@ def _observe(monde, champ, croyance):
 
 
 def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
-    """Ce qu'il constate remplace ce qu'on lui a dit ; une contradiction trahit le locuteur."""
+    """Ce qu'il constate remplace ce qu'on lui a dit ; une contradiction trahit le locuteur.
+
+    Passé ``RECENT`` minutes, le monde a pu changer depuis la parole : elle n'est que périmée.
+    """
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
-    if ancienne and ancienne["source"].startswith("dit:") and ancienne["valeur"] != valeur:
+    if (ancienne and ancienne["source"].startswith("dit:") and ancienne["valeur"] != valeur
+            and monde.data["minutes"] - ancienne["minute"] <= RECENT):
         locuteur = ancienne["source"][4:]
         memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
         if locuteur != id:
             croire(monde, id, locuteur, "fiable", False, "vu")
     croire(monde, id, sujet, attribut, valeur, source, **lieu)
+
+
+def prete(monde, id, objet, a):
+    return any(s["type"] == "pret" and s.get("objet") == objet and s.get("a") == a for s in lire(monde, id)["memoire"])
+
+
+def _vu_porter(monde, id, sujet):
+    """Le propriétaire qui voit son bien aux mains d'un autre, sans le lui avoir prêté, découvre un vol."""
+    from .vol import proprietaire
+    o = monde.objets[sujet]
+    porteur = _porteur(monde, o)
+    if (porteur in (None, id) or proprietaire(monde, o) != id or prete(monde, id, sujet, porteur)
+            or any(s["type"] == "vu_porter" and s["auteur"] == porteur and s["objet"] == sujet
+                   for s in lire(monde, id)["memoire"])):
+        return
+    from .deliberation import VOL, relancer
+    memoriser(monde, id, {"type": "vu_porter", "auteur": porteur, "objet": sujet})
+    croire(monde, id, porteur, "fiable", False, "vu")
+    relancer(monde, id, "biens", VOL)
 
 
 def percevoir(monde, id):
@@ -248,6 +273,7 @@ def percevoir(monde, id):
         o = monde.objets[sujet]
         if o["type"] != "porte":
             reviser(monde, id, sujet, "lieu", o["lieu"], salle=salle, case=case)
+            _vu_porter(monde, id, sujet)
         etats = ETATS_VISIBLES.get(o["type"])
         if etats:
             valeurs = {**o, "disponible": o.get("portions", 0) > 0}

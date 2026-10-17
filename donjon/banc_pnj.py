@@ -3,7 +3,8 @@
     python -m donjon.banc_pnj --heures 3 --joueur chambre_cloche
 
 Le joueur reste passif dans la salle choisie (par défaut, celle du départ) ; le temps
-avance par le moteur réel, cinq minutes à la fois. Aucun appel à Luna.
+avance par le moteur réel, cinq minutes à la fois. Aucun appel à Luna. La chronique
+montre gestes, confidences entre PNJ et leur issue (crue, doute, démenti).
 """
 import argparse
 from collections import Counter
@@ -30,9 +31,13 @@ def executer(monde, minutes):
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
     chronique = monde.data.get("chronique", [])[depart:]
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
+    mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
+                    if c.get("fiable", {}).get("valeur") is False)
     mesures = {"gestes": len(chronique), "renoncements": memoire["renoncement"],
                "vols_vus": memoire["vu_agir"], "absences": memoire["absence"],
-               "jets": monde.data["jets"]}
+               "confidences": sum(" dit à " in c["texte"] for c in chronique),
+               "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
+               "mefiances": mefiances, "jets": monde.data["jets"]}
     return chronique, mesures
 
 

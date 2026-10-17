@@ -213,6 +213,23 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
   rejeté à 6, et Gorm répond ensuite d'après ce qu'on lui a dit (« On m'a dit qu'elle était
   au refuge du relais ») ; aucune mention sans fondement dans la voix de Luna.
 
+## Écarts retenus au jalon D
+
+- Pas de niveau de détail hors champ : mesuré à quatre PNJ, le moteur fait 8 h de jeu en
+  5,5 s, soit environ 60 ms par tour de 5 minutes ; la simulation complète reste exacte et
+  suffit. À reprendre si un scénario multiplie les PNJ ou les longues attentes.
+- Pas de demande ni de don entre PNJ (Ilse affamée ne demande pas à Gorm) : les nouvelles
+  suffisent aux histoires de D ; les promesses et les accusations directes restent à faire.
+- `relations_pnj.soupcon` et `humeur` ne sont pas encore migrés : la méfiance envers le
+  joueur en est dérivée (`vol.mefiance`), sans les remplacer.
+- Au banc, l'histoire est toujours celle de Brune : sur quatre graines, elle crochète vers
+  190 minutes sous les yeux d'Ilse et d'Aubin, et seuls les jets de persuasion varient (Gorm
+  croit Aubin, ou doute des deux mais verrouille quand même). La variété viendra du joueur
+  et de nouveaux besoins.
+- `securite` n'a encore pour méthode que les rondes déclarées ; `repos` aucune.
+- Les tests des jalons A à C isolent Gorm et Brune (`tests.support.sans_evacues`) ; le
+  Relais à quatre est couvert par `tests/test_social.py` et le banc.
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -224,7 +241,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **A. Gorm perçoit et se souvient** — *fait* | il ne voit pas dans le noir ni derrière la poutre ; il croit ce qu'il a vu ou su jusqu'à revoir la place ; un témoin est celui qui perçoit le joueur ; il ouvre les portes et apprend une serrure par l'essai ; tout persiste après rechargement | perception par acteur ; ligne de vue symétrique ; croyances `vu`/`savoir`/`essai` et mémoire (sons, absences, vols surpris) ; intention `rejoindre` exécutée geste par geste (`trajet` migré) ; `esprit <pnj>` en `--debug` | aucun appel |
 | **B. Gorm veut** — *fait* | Brune, affamée, va chercher les crochets, attend que personne ne la voie, crochète la réserve et mange ; sous les yeux du joueur elle renonce ; sans crochets elle reste sans plan ; surprise depuis l'ombre (joueur ou Gorm) ; Gorm volé garde ses biens, cesse de déléguer la cloche, va chercher la clé, déverrouille et la rapporte ; sans clé, il renonce | profils, besoins, pulsions (dont déléguées), délibération par urgence, planificateur borné sur croyances, gestes prendre/poser/ouvrir/fermer/(dé)verrouiller/crocheter/manger, garde `sans_temoin`, témoins réels, chronique, `banc_pnj` | aucun appel |
 | **C. On peut lui parler** — *fait* | ta réplique est rendue selon INT et CHA (« Tu dis : « … » »), mot pour mot entre guillemets ; un mensonge cru change le plan de Gorm et se découvre quand il voit la vérité ; un mensonge démenti par ce qu'il vient de voir est rejeté ; une INT faible transmet moins ; une demande d'objet est refusée s'il en a besoin ou se méfie ; Luna fait parler les PNJ d'après leurs croyances | mode `parole_joueur`, bande d'expression, contenu typé résolu par identifiant ou par nom, jet de CHA et confiance, `mensonge_decouvert`, contrôle des mentions sur la réplique ; objets portés discrets cachés au joueur ; profil des PNJ retiré du contexte de Luna | 3 appels par réplique (interprétation, réponse, audit) |
-| **D. Plusieurs PNJ** | une rumeur se propage, un vol découvert change les relations, le monde vit hors de ta vue | couche sociale entre PNJ, niveau de détail hors champ, 3–4 PNJ sur le Relais, banc sans joueur complet | aucun appel |
+| **D. Plusieurs PNJ** — *fait* | Ilse et Aubin voient Brune, à bout de faim, crocheter la réserve et le disent à Gorm, qui les croit ou non, referme et verrouille ; ce qu'Ilse voit de toi passe à Gorm puis à Aubin, et Gorm se méfie, reprend la cloche à son compte et te surveille ; Gorm reconnaît son bien entre d'autres mains ; tu entends ce qui se dit dans ta salle | nouvelles et rumeurs typées (jet de CHA du locuteur, confiance décroissante, trois relais au plus), `vu_porter`, rondes `{lieu, periode}` et geste `inspecter`, témoins de toute la minute du geste, besoin extrême plus fort que la crainte d'être vu, Ilse, Aubin et le fanal du refuge, mesures sociales au banc | aucun appel |
 | **E. Luna stratège** | buts tirés d'une personnalité en prose, stratégies sociales | stratège à pas de temps long, A/B contre D sur le banc | budget plafonné ; gardé seulement si la chronique s'améliore de façon mesurable |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les

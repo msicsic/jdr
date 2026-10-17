@@ -12,13 +12,12 @@ a vu récemment est rejetée et il cesse de croire le joueur fiable.
 import copy
 import re
 
-from .esprits import croire, esprit, lire, memoriser, percevoir
+from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
 from .francais import designer
 from .monde import ErreurMonde
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
 TYPES = ("propos", "affirmation", "demande")
-RECENT = 30            # minutes pendant lesquelles ce qu'il a vu prime sur ce qu'on lui dit
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -82,8 +81,24 @@ def capacite_transmission(intelligence):
 
 
 def _stats_pnj(monde, id):
+    if id == "joueur":
+        return monde.joueur["stats"]
     profil = monde.objets[id].get("profil")
     return profil["caracteristiques"] if profil else {"FOR": 10, "DEX": 10, "INT": 10, "PER": 10, "CHA": 10}
+
+
+def jet_persuasion(monde, auditeur, locuteur, dd_base):
+    """d20 + CHA du locuteur contre un DD que la confiance de l'auditeur abaisse ou relève."""
+    confiance = lire(monde, auditeur)["croyances"].get(locuteur, {}).get("fiable")
+    dd = dd_base + (-2 if confiance and confiance["valeur"] else 6 if confiance else 2)
+    return monde.d20() + (_stats_pnj(monde, locuteur)["CHA"] - 10) // 2 >= dd, dd
+
+
+def dementi(monde, auditeur, sujet, attribut, valeur):
+    """Ce que l'auditeur a vu ou essayé récemment contredit-il ce qu'on lui dit ?"""
+    actuelle = lire(monde, auditeur)["croyances"].get(sujet, {}).get(attribut)
+    return bool(actuelle and actuelle["source"] in ("vu", "essai") and actuelle["valeur"] != valeur
+                and monde.data["minutes"] - actuelle["minute"] <= RECENT)
 
 
 def _nom(monde, id):
@@ -107,6 +122,18 @@ def _phrase(monde, sujet, attribut, valeur):
     return ""
 
 
+def _ouidire(monde, source):
+    """D'où il tient une croyance rapportée, nommé seulement si le joueur connaît ce témoin."""
+    if not source.startswith("dit:"):
+        return ""
+    locuteur = source[4:]
+    if locuteur == "joueur":
+        return " (tu le lui as dit)"
+    if locuteur in monde.objets and _connu_du_joueur(monde, locuteur):
+        return f" ({monde.objets[locuteur]['nom'].split(',')[0]} le lui a dit)"
+    return " (on le lui a dit)"
+
+
 def esprits_interlocuteurs(monde, presents):
     """Ce que Luna peut savoir d'un PNJ présent pour lui donner une voix : ses croyances, pas la vérité."""
     resultat = {}
@@ -118,7 +145,7 @@ def esprits_interlocuteurs(monde, presents):
                 if attribut in ATTRIBUTS and (sujet == "joueur" or sujet in monde.objets):
                     croyances.append((not c["source"].startswith("dit:"), -c["minute"],
                                       f"croit que {_phrase(monde, sujet, attribut, c['valeur'])}"
-                                      + (" (on le lui a dit)" if c["source"].startswith("dit:") else "")))
+                                      + _ouidire(monde, c["source"])))
         resultat[id] = {
             "traits": profil["traits"] if profil else "",
             "croit": [texte for *_, texte in sorted(croyances)[:12]],
@@ -200,20 +227,16 @@ def _typer(monde, c):
 
 
 def _jet(monde, auditeur, dd_base):
-    confiance = lire(monde, auditeur)["croyances"].get("joueur", {}).get("fiable")
-    dd = dd_base + (-2 if confiance and confiance["valeur"] else 6 if confiance else 2)
-    jet = monde.d20()
-    return jet + (monde.joueur["stats"]["CHA"] - 10) // 2 >= dd, dd
+    return jet_persuasion(monde, auditeur, "joueur", dd_base)
 
 
 def _affirmer(travail, auditeur, sujet, attribut, valeur, clarte, faits):
     e = esprit(travail, auditeur)
     nom = travail.objets[auditeur]["nom"]
-    actuelle = e["croyances"].get(sujet, {}).get(attribut)
-    if (actuelle and actuelle["source"] in ("vu", "essai") and actuelle["valeur"] != valeur
-            and travail.data["minutes"] - actuelle["minute"] <= RECENT):
+    if dementi(travail, auditeur, sujet, attribut, valeur):
         croire(travail, auditeur, "joueur", "fiable", False, "vu")
-        memoriser(travail, auditeur, {"type": "mensonge_dementi", "sujet": sujet, "attribut": attribut})
+        memoriser(travail, auditeur, {"type": "mensonge_dementi", "locuteur": "joueur",
+                                      "sujet": sujet, "attribut": attribut})
         faits.append(f"{nom} sait de ses propres yeux que c'est faux et cesse de te croire fiable.")
         return
     reussi, dd = _jet(travail, auditeur, 10)
@@ -240,8 +263,8 @@ def _necessaire(travail, auditeur, objet):
         return True
     profil = travail.objets[auditeur].get("profil")
     for pulsion in (profil or {}).get("pulsions", []):
-        cible = pulsion["condition"]["objet"]
-        if objet == cible or cible in travail.objets[objet].get("ouvre", []):
+        cible = pulsion["condition"].get("objet")
+        if cible and (objet == cible or cible in travail.objets[objet].get("ouvre", [])):
             return True
     return False
 

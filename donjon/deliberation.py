@@ -14,13 +14,14 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos")
 LIMITES = ("ne_vole_pas", "ne_blesse_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger")
+              "crocheter", "manger", "inspecter")
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
 REPIT = 60             # minutes avant de reprendre un but abandonné
 ATTEINTE = 30          # une pulsion qui cesse d'être satisfaite relance son besoin
 VOL = 60               # un vol vu par sa victime
 SATIETE = 50           # un repas
+DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu
 STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
 
@@ -42,9 +43,10 @@ def verifier_profil(monde, id, p):
     for pulsion in p["pulsions"]:
         c = pulsion.get("condition", {})
         assert (set(pulsion) <= {"besoin", "condition", "delegue_a"} and pulsion.get("besoin") in p["besoins"]
-                and c.get("objet") in monde.objets
-                and ((set(c) == {"objet", "lieu"} and c["lieu"] in monde.data["salles"])
-                     or (set(c) == {"objet", "verrouillee"} and c["verrouillee"] is True))
+                and ((set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
+                     or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
+                     or (set(c) == {"lieu", "periode"} and c["lieu"] in monde.data["salles"]
+                         and type(c["periode"]) is int and c["periode"] > 0))
                 and pulsion.get("delegue_a", "joueur") == "joueur"), "Pulsion de PNJ invalide"
 
 
@@ -106,7 +108,15 @@ def _connus(monde, id):
     return sorted(s for s in monde.objets if s in croyances or porte_par(monde, s, id))
 
 
+def periodique(condition):
+    """Une ronde : avoir inspecté un lieu depuis moins de ``periode`` minutes."""
+    return "periode" in condition
+
+
 def satisfaite(monde, id, condition):
+    if periodique(condition):
+        vu = lire(monde, id)["visites"].get(condition["lieu"])
+        return vu is not None and monde.data["minutes"] - vu < condition["periode"]
     if "lieu" in condition:
         # Le tenir soi-même ne suffit pas : l'objet doit être déposé (ou tenu par un autre) sur place.
         return (not porte_par(monde, condition["objet"], id)
@@ -242,7 +252,10 @@ def _plan_manger(monde, id):
 def _plan_pulsion(monde, id, condition):
     p = Plan(monde, id)
     try:
-        if "lieu" in condition:
+        if periodique(condition):
+            p.aller(condition["lieu"])
+            p.ajouter("inspecter", lieu=condition["lieu"])
+        elif "lieu" in condition:
             p.obtenir(condition["objet"])
             p.aller(condition["lieu"])
             p.ajouter("poser", condition["objet"], lieu=condition["lieu"])
@@ -294,6 +307,8 @@ def candidats(monde, id):
                 yield besoin, lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c)
         if besoin == "biens":
             for x in pulsions:
+                if periodique(x["condition"]):
+                    continue
                 yield besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c)
 
 
@@ -308,8 +323,10 @@ def deliberer(monde, id, minute):
         e["besoins"][nom] = round(min(100.0, max(0.0, e["besoins"][nom] + b["derive_heure"] / 60)), 3)
     for i, x in enumerate(p["pulsions"]):
         etat = satisfaite(monde, id, x["condition"])
-        if e["pulsions"][i] and not etat:
-            relancer(monde, id, x["besoin"], ATTEINTE)
+        # Une ronde expire d'elle-même : ce n'est pas une atteinte.
+        if e["pulsions"][i] and not etat and not periodique(x["condition"]):
+            # Ses biens forcés ou déplacés : un vol découvert, même sans coupable.
+            relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)
             memoriser(monde, id, {"type": "atteinte", "condition": dict(x["condition"])})
         e["pulsions"][i] = etat
     intention = e["intention"]

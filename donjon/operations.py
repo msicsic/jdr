@@ -220,11 +220,12 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if methode == "discret":
             # Témoin : un personnage qui perçoit le joueur maintenant, avec les règles du joueur.
             from .esprits import percoit
+            from .vol import mefiance
             temoins = [id for id, t in monde.objets.items() if t["type"] == "personnage"
                        and percoit(monde, id, "joueur")]
             if temoins:
                 p.stat = "DEX"
-                vigilance = max(monde.objets[id]["vigilance"] + 2 * monde.data["relations_pnj"][id]["soupcon"] for id in temoins)
+                vigilance = max(monde.objets[id]["vigilance"] + 2 * mefiance(monde, id) for id in temoins)
                 occasion = 2 if precedent and precedent["operation"] == "patienter" else 0
                 p.dd = min(25, max(2, vigilance + (2 if masse > 1 else 0) + (2 if monde.data["bruit"] >= 6 else 0) - occasion))
                 if illicite:

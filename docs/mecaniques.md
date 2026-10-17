@@ -318,11 +318,14 @@ Un PNJ peut porter un `profil` d'auteur (`donjon/deliberation.py`) : `caracteris
 `ne_blesse_pas`), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
 `faim`, `repos`, chacun avec `depart`, `derive_heure`, `urgence`) et `pulsions` : des
 conditions sur le monde (`{"objet", "lieu"}` ou `{"objet", "verrouillee": true}`) liées à
-un besoin, éventuellement `delegue_a` le joueur.
+un besoin, éventuellement `delegue_a` le joueur, ou des rondes (`{"lieu", "periode"}` :
+avoir inspecté ce lieu depuis moins de `periode` minutes).
 
 Chaque minute écoulée, le moteur fait dériver les besoins. Une pulsion qui cesse d'être
-satisfaite *selon les croyances du PNJ* relance son besoin de 30 ; un vol vu par sa victime,
-de 60 ; l'absence constatée d'un objet qui lui appartient, de 30. Le PNJ retient alors le
+satisfaite *selon les croyances du PNJ* relance son besoin de 30, de 60 s'il s'agit de ses
+biens (un vol découvert, même sans coupable) ; une ronde expire sans rien relancer. Un vol
+vu par sa victime relance ses biens de 60 ; l'absence constatée d'un objet qui lui
+appartient, de 30. Le PNJ retient alors le
 besoin urgent (valeur ≥ urgence) le plus en dépassement pour lequel il trouve un plan :
 manger pour la faim, rétablir une pulsion, ou garder le lieu de ses biens. Une pulsion
 déléguée au joueur attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est
@@ -336,25 +339,62 @@ les autres ne le sont que par croyance. Un geste sur le bien d'autrui est interd
 `ne_vole_pas` ; sinon il porte la garde `sans_temoin`. Le plan est recalculé chaque minute.
 
 Exécution : un geste par minute (aller d'une salle, s'approcher au contact, prendre, poser,
-ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger), revalidé sur l'état réel ;
+ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger, inspecter : gagner la case
+libre la plus proche du centre de la salle pour la parcourir des yeux, ce qui accomplit la
+ronde), revalidé sur l'état réel ;
 un échec corrige la croyance qui l'avait motivé. Crocheter est un jet de DEX du PNJ contre
 14 + 4 par niveau de lumière manquant, comme pour le joueur. Une étape `sans_temoin` attend
 que le PNJ ne perçoive plus personne depuis la case de son geste ; au-delà de 30 minutes, il
-renonce. Les témoins réels sont ceux qui le perçoivent : un PNJ témoin d'un geste illicite
-s'en souvient, cesse de croire l'auteur fiable et, s'il en est la victime, voit ses biens
-relancés. Le moteur annonce au joueur ce qu'il perçoit et tient une `chronique` complète
+renonce. Un besoin à 95 ou plus l'emporte sur cette crainte : le PNJ agit sous les yeux de
+tous. Les témoins réels sont ceux qui le perçoivent pendant la minute du geste, y compris
+ceux qui arrivent avant qu'elle s'achève : un PNJ témoin d'un geste illicite (une tentative
+de crochetage ratée comprise) s'en souvient, cesse de croire l'auteur fiable et, s'il en
+est la victime, voit ses biens relancés. Le moteur annonce au joueur ce qu'il perçoit et tient une `chronique` complète
 (300 entrées), réservée au débogage.
 
 Le réflexe `reaction_son` reste une intention `alerte` prioritaire jusqu'à son terme.
 
-Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, réserve
-de vivres sous clé) et Brune, batelière évacuée, affamée et capable de crocheter. Le banc
-`python -m donjon.banc_pnj --heures 3 --joueur chambre_cloche` fait vivre le scénario sans
-joueur actif et imprime chronique et mesures, sans appel à Luna.
+Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, rondes au
+refuge et aux vannes, réserve de vivres sous clé), Brune, batelière évacuée, affamée et
+capable de crocheter, Ilse, meunière bavarde qui va et vient entre le refuge et le brasero,
+et Aubin, vieux passeur qui surveille l'eau aux vannes. Un fanal éclaire le refuge pendant
+douze heures. Le banc `python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche` fait
+vivre le scénario sans joueur actif et imprime chronique et mesures (gestes, renoncements,
+gestes illicites vus, confidences, rumeurs crues ou doutées, méfiances), sans appel à Luna.
 
 Les témoins d'un geste discret du joueur sont les personnages qui le perçoivent au moment
-du geste. Luna ne reçoit ni les croyances, ni les besoins, ni les plans des PNJ. En `--debug`, `esprit <personnage>`
-affiche croyances, mémoire et intention.
+du geste. En `--debug`, `esprit <personnage>` affiche croyances, mémoire et intention.
+
+#### Vie sociale des PNJ
+
+Les PNJ se confient ce qu'ils savent (`donjon/social.py`). Une nouvelle est un souvenir :
+geste illicite vu (`vu_agir`), vol surpris, bien aperçu aux mains d'un autre (`vu_porter`),
+mensonge découvert ou démenti, objet disparu, ou rumeur reçue. Un PNJ désœuvré, ou qui
+guette une occasion sous des yeux, consacre sa minute à confier une nouvelle à un
+personnage de sa salle qu'il perçoit et qui le perçoit, à qui il ne refuse pas sa confiance.
+Il ne la confie ni à celui qu'elle accuse, ni à celui qui la lui a apprise, ni deux fois au
+même ; un objet disparu ne se dit qu'à son propriétaire déclaré ; il ne répète que ce qu'il
+croit encore. Ce qu'il sait d'un même accusé se dit d'un coup, en une confidence.
+
+L'auditeur l'adopte avec la règle des paroles du joueur : une disparition démentie par ce
+qu'il a vu dans les 30 dernières minutes est rejetée et il cesse de croire le locuteur
+fiable ; sinon, jet de d20 + CHA du locuteur contre 10, avec les mêmes modificateurs de
+confiance. Crue, l'accusation devient `fiable` faux (source `dit:<locuteur>`) ; la victime
+voit ses biens relancés de 30. La confiance vaut 0,7 (0,35 pour une INT ≤ 8), multipliée
+par 0,8 à chaque relais ; une rumeur de troisième main n'est plus répétée. Une croyance
+`dit:` contredite plus de 30 minutes après avoir été dite est seulement périmée : le monde a
+pu changer, ce n'est pas un mensonge.
+
+Le propriétaire qui voit son bien porté par un autre (joueur compris), sans le lui avoir
+prêté, découvre un vol : il cesse de le croire fiable et ses biens sont relancés de 60. La
+méfiance d'un PNJ envers le joueur, vue ou rapportée, renforce sa vigilance contre un geste
+discret et le fait paraître méfiant.
+
+Le joueur entend ce qui se dit dans sa salle : « Ilse glisse à Gorm que Brune a mangé une
+part des vivres du refuge. » si Corvus connaît chacun de ceux dont on parle, sinon un échange
+à voix basse ; d'une autre salle, il voit seulement deux personnages parler. Arrivées et
+départs sont annoncés à la minute où ils se produisent. Luna reçoit les croyances des
+personnages présents avec leur source (« Ilse le lui a dit ») si Corvus connaît ce témoin.
 
 #### Paroles du joueur aux PNJ
 
