@@ -7,6 +7,50 @@ ne puisse honorer ». Le moteur garde l'autorité sur l'état ; Luna retrouve sa
 Chaque phase est un commit autonome : tests verts, banc de mesure relancé, résultat
 comparé à la phase précédente.
 
+## État au 17 octobre 2026 (branche `migration-narrateur`)
+
+| Phase | État | Remarques |
+|---|---|---|
+| 0 | fait | `tools/banc_parties.py`, scripts `tests/data/bancs/`, `donjon/lexique.py` |
+| 1 | fait | trois niveaux dans `AGENTS.md`, README découpé (`docs/mecaniques.md`, `docs/connexion.md`) |
+| 2 | fait | `donjon/transactions.py` ; la boucle de jeu réapplique une liste ordonnée |
+| 4 | fait | verdicts mécanique / ambiance, garde-fou lexical déterministe, texte affiché tel quel ; contre-revue d'action limitée à l'état |
+| 5 | fait | `ambiance_ciblee`, réexamen après création d'un objet |
+| 7 | fait | prompt de conversation 3 123 → 2 134 mots, narration 232 mots ; sources d'audit limitées par le schéma |
+| 8 | fait | récit des résultats par Luna, repli moteur, contrôle des nombres, `--recit-moteur` |
+| 9 | partiel | budget d'invention fait ; habillage à la première visite écarté (l'ambiance à la demande le rend peu utile, pour un appel de plus par salle) |
+| 10 | partiel | composition étendue faite ; PNJ réactifs et crue non faits (voir ci-dessous) |
+| 3 et 6 | reportées | voir ci-dessous |
+
+**Phases 3 et 6 reportées.** L'essai de transport a réussi : sur le forfait, avec
+`store: false`, Luna appelle un outil, reçoit sa sortie (`function_call_output`) puis appelle
+`repondre`. Mais le banc montre que le nombre d'appels par tour vient des contrôles, pas du
+nombre de modes : la boucle ne réduirait guère les appels. Elle impose en revanche de réécrire
+environ 110 simulations de tests en même temps que `mj.py`, ce qui retire aux tests leur rôle
+d'oracle pendant la refonte. À mener comme étape dédiée, relue.
+
+**PNJ réactifs et crue non faits.** Ce sont des choix de design qui contredisent des
+engagements écrits : « le cri ne décide ni de leur réponse ni de leur déplacement, et ne crée
+pas de sauveteur » (sons) et « aucun chronomètre de défaite » (Relais, dont le refuge, but
+final, est lui-même au niveau inondable). Ils demandent une décision de l'auteur.
+
+**Écart de moteur relevé par le banc.** « J'écoute à la porte » n'a pas d'opération de
+perception auditive : le moteur refuse une improvisation d'observation et Luna ne peut que
+l'expliquer. Une perception `écouter` fondée sur `sons.portee` serait le correctif général.
+
+### Mesures du banc (3 scripts, 31 tours confiés au MJ, Luna réel)
+
+| Version | Tours en repli | Appels par tour MJ | Secondes par tour MJ | Mentions sans fondement |
+|---|---|---|---|---|
+| Référence (`main`) | 25 / 31 | 6,4 | 26 | 0 |
+| Phase 4 | 5 / 31 | 3,6 | 15 | 0 |
+| Phase 7 | 1 / 31 | 3,2 | 13 | 0 |
+| Final (phases 0 à 10 partielles) | 0 / 31 | 3,2 | 13 | 0 |
+
+Un « repli » est une formule de secours affichée à la place d'une réponse (« Je ne peux pas
+encore répondre avec certitude », « Corvus n'a rien tenté »…). Les mentions sans fondement
+sont des noms d'entités absents de ce que le MJ a reçu ou affiché.
+
 **Ordre d'exécution retenu.** 0, 1, 2, puis 4 et 5 (le cœur, suivi du point de décision
 du banc), puis 3 et 6 ensemble, puis 7, 8, 9. Le mode d'ajout unique de la phase 3
 change le parcours de réponse après un fait établi ; il est réalisé avec la boucle

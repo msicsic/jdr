@@ -467,7 +467,10 @@ compteur sauvegardés. Les échecs consomment aussi le temps prévu et produisen
 ### Manœuvres composées
 
 Le MJ peut proposer `action: composer` avec une à six étapes au lieu d'un verbe spécialisé.
-Le langage comprend `patienter`, `deplacer`, `detacher`, `allumer` et `eteindre`.
+Le langage comprend `patienter`, `deplacer`, `detacher`, `allumer`, `eteindre`, les gestes
+d'appui et de son, ainsi que `ouvrir`, `fermer`, `deverrouiller`, `crocheter`, `couper`,
+`frapper`, `bloquer` et `debloquer`, compilés avec les règles de l'action seule : « je crochète
+la porte, je l'ouvre et je la cale avec le marteau » forme une seule séquence.
 Les commandes locales `prendre`, `poser`, `voler`, `retirer`, `allumer` et `éteindre` sont traduites
 vers ces mêmes opérations ; elles ne possèdent plus leur propre chemin de résolution.
 Les effets (transfert, vol, détection, dommage à l'outil, réaction des témoins) sont calculés
@@ -595,6 +598,23 @@ autorisés, les doublons et la transaction. La compatibilité sémantique du tex
 les autres récits dépend encore du modèle ; ce n'est pas un système de preuve automatique.
 Les secrets et les mécanismes de quête restent définis par le jeu. L'apprentissage par
 observation autonome, les mensonges et la propagation de rumeurs ne sont pas simulés.
+
+### Ambiance et budget d'invention
+
+Luna décrit librement l'ambiance (aspect, odeur, son de fond, impression) ; elle est
+enregistrée par lieu et revient dans son contexte pour rester cohérente. Un élément
+d'ambiance que le joueur veut manipuler est établi comme objet ou détail par le moteur,
+puis l'intention est réexaminée sans que le joueur la répète ; sinon Luna explique qu'il
+ne se manipule pas.
+
+Chaque lieu peut déclarer `potentiel_invention` : nombre d'objets que le MJ peut y faire
+apparaître, masse maximale et capacités permises (`son`, `lumiere`, `tranchable`, `couper`,
+`levier`, `allumage`). Une place consommée le reste, même si l'objet est emporté. Les trois
+scénarios déclarent 2 objets, 3 kg, `son` et `tranchable` : Luna peut enrichir un lieu sans
+fournir une source de lumière ou un outil qui contournerait une énigme.
+
+Les résultats d'action sont racontés par Luna après application et sauvegarde ; le texte du
+moteur reste dans le journal et sert de repli. `--recit-moteur` garde le rendu du moteur.
 
 ### Limites de cette première version
 
