@@ -14,9 +14,10 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger", "inspecter", "reposer", "chauffer", "alimenter", "allumer", "eteindre", "servir",
+              "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
+              "servir",
               "dire", "demander", "confier", "remettre")
-PROGRESSIFS = ("aller", "reposer", "chauffer")  # gestes qui durent : une minute sans les finir n'est pas un échec
+PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "confier", "remettre")
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
@@ -28,6 +29,11 @@ REPOS_MINUTE = 2       # repos regagné par minute passée à se reposer
 REPOS_FIN = 20         # reposé : il se relève
 CHALEUR_MINUTE = 3     # chaleur regagnée par minute passée près d'un foyer allumé
 CHALEUR_FIN = 20       # réchauffé : il s'écarte du feu
+SECURITE_FIN = 30      # rassuré : il quitte l'abri
+# Ce qui inquiète (+) ou rassure (−) la sécurité, valeurs par défaut que chaque profil nuance
+# (donnée ``securite``) : par minute pour ce qui dure, d'un coup pour un événement.
+SECURITE = {"noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
+            "lumiere": 0.2, "compagnie": 0.5, "ronde": 20}                 # rassure
 REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient de refuser
 ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
 REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
@@ -59,8 +65,10 @@ def parts(o):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions",
-                          "reserve"}), "Profil de PNJ mal formé"
+                          "reserve", "securite"}), "Profil de PNJ mal formé"
     assert type(p.get("reserve", 1)) is int and 0 <= p.get("reserve", 1) <= 10, "Réserve de PNJ invalide"
+    assert (isinstance(p.get("securite", {}), dict) and set(p.get("securite", {})) <= set(SECURITE)
+            and all(isinstance(v, (int, float)) and 0 <= v <= 100 for v in p.get("securite", {}).values())),         "Sécurité de PNJ invalide"
     assert set(p["caracteristiques"]) == set(STATS) and all(
         type(v) is int and 1 <= v <= 20 for v in p["caracteristiques"].values()), "Caractéristiques de PNJ invalides"
     assert isinstance(p["traits"], str) and len(p["traits"]) <= 600, "Traits de PNJ invalides"
@@ -492,6 +500,83 @@ def _plan_pulsion(monde, id, condition):
     return {"type": "pulsion", **condition}, p.etapes
 
 
+# --- Sécurité ----------------------------------------------------------------------------
+
+def taux(monde, id, cause):
+    return (profil(monde, id) or {}).get("securite", {}).get(cause, SECURITE[cause])
+
+
+def autour(monde, id):
+    """Ce qui, dans sa salle, l'inquiète ou le rassure : la lumière sur sa case, ceux qu'il y voit
+    et croit fiables, ceux qu'il y voit et ne croit pas fiables."""
+    from .esprits import pnjs
+    from .perception import eclairage
+    o = monde.objets[id]
+    niveau = eclairage(monde, o["lieu"], o.get("position") if monde.data.get("mode_cases") else None)["niveau"]
+    presents = [x for x in [*pnjs(monde), "joueur"] if x != id
+                and (monde.joueur["salle"] if x == "joueur" else monde.objets[x]["lieu"]) == o["lieu"]]
+    if monde.data.get("mode_cases"):
+        from .spatial import acteurs_vus
+        autres = acteurs_vus(monde, id, presents)
+    else:
+        autres = presents if niveau else []
+    return {"lumiere": niveau > 0,
+            "fiables": sorted(x for x in autres if _cru(monde, id, x, "fiable") is True),
+            "mefiants": sorted(x for x in autres if _cru(monde, id, x, "fiable") is False)}
+
+
+def ressentir(monde, id):
+    """Une minute de sécurité perçue : le noir et la méfiance inquiètent, la lumière et la
+    compagnie de qui l'on croit fiable rassurent."""
+    if "securite" not in esprit(monde, id)["besoins"] or monde.objets[id]["lieu"] not in monde.data["salles"]:
+        return
+    a = autour(monde, id)
+    ecart = (-taux(monde, id, "lumiere") if a["lumiere"] else taux(monde, id, "noir"))
+    ecart += taux(monde, id, "mefiance") if a["mefiants"] else 0
+    ecart -= taux(monde, id, "compagnie") if a["fiables"] else 0
+    relancer(monde, id, "securite", ecart)
+
+
+def inquieter(monde, id, cause, signe=1):
+    """Un événement inquiète (un bruit sans cause vue, un geste illicite) ou rassure (une ronde)."""
+    if monde.objets.get(id, {}).get("profil"):
+        relancer(monde, id, "securite", signe * taux(monde, id, cause))
+
+
+def _eclairee_crue(monde, id, salle):
+    """Éclairée quand il y était, ou par une source qu'il y croit allumée."""
+    vue = _cru(monde, id, salle, "etat")
+    if vue is not None:
+        return vue.get("eclairee", False)
+    if monde.data["salles"][salle].get("lumiere_naturelle"):
+        return True
+    return any("allume" in monde.objets[k] and (_cru(monde, id, k, "etat") or {}).get("allume")
+               and salle_crue(monde, id, k) == salle for k in _connus(monde, id))
+
+
+def _plan_abri(monde, id):
+    """Se mettre à l'abri : rejoindre un lieu qu'il croit éclairé où se tient quelqu'un qu'il croit
+    fiable, et y rester ; là où il est d'abord, s'il l'est déjà."""
+    from .esprits import pnjs
+    ici = monde.objets[id]["lieu"]
+    salles = []
+    for x in [*pnjs(monde), "joueur"]:
+        if x == id or _cru(monde, id, x, "fiable") is not True:
+            continue
+        salle = salle_crue(monde, id, x)
+        if salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle):
+            salles.append(salle)
+    for salle in sorted(salles, key=lambda s: s != ici):
+        p = Plan(monde, id)
+        try:
+            p.aller(salle)
+        except Echec:
+            continue
+        p.ajouter("abriter", lieu=salle)
+        return {"type": "abri", "lieu": salle}, p.etapes
+    return None
+
+
 def _plan_reposer(monde, id):
     """Se reposer là où l'on est."""
     p = Plan(monde, id)
@@ -628,7 +713,9 @@ def confie_a_autrui(monde, id, objet):
 
 
 # Besoins qu'un geste qui dure apaise : la méthode, et le seuil où il s'achève.
-PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_chauffer, CHALEUR_FIN)}
+PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_chauffer, CHALEUR_FIN),
+           "securite": (_plan_abri, SECURITE_FIN)}
+GESTE_PROGRES = {"repos": "reposer", "chaleur": "chauffer", "securite": "abriter"}
 
 
 def retabli_par_son_plan(monde, id, condition):
@@ -653,7 +740,8 @@ def candidats(monde, id):
     p, e = profil(monde, id), esprit(monde, id)
     buts = []
     en_cours = e["intention"]["motif"] if e["intention"] and e["intention"]["plan"] else None
-    for besoin in urgents(monde, id):
+    pressants = urgents(monde, id)
+    for besoin in pressants:
         if (en_cours and besoin != en_cours
                 and e["besoins"][besoin] < p["besoins"][besoin]["urgence"] + INERTIE):
             continue
@@ -661,8 +749,8 @@ def candidats(monde, id):
             buts.append((besoin, _plan_manger, False))
             continue
         if besoin in PROGRES:
+            # Le geste qui apaise d'abord ; les pulsions du même besoin (les rondes) restent des recours.
             buts.append((besoin, PROGRES[besoin][0], False))
-            continue
         pulsions = [x for x in p["pulsions"] if x["besoin"] == besoin]
         for x in pulsions:
             if (not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)
@@ -683,9 +771,16 @@ def candidats(monde, id):
                 and not retabli_par_son_plan(monde, id, c)):
             buts.append((x["besoin"], lambda m, i, c=c: _plan_pulsion(m, i, c), False))
     # Assis pour se reposer, ou près du feu, il ne s'en va qu'une fois remis, ou pour plus pressant.
+    # Seulement si son plan comporte bien ce geste : une ronde a le même motif que l'abri.
     for besoin, (methode, fin) in PROGRES.items():
-        if e["intention"] and e["intention"]["motif"] == besoin and e["besoins"].get(besoin, 0) > fin:
+        if (e["intention"] and e["intention"]["motif"] == besoin and e["besoins"].get(besoin, 0) > fin
+                and any(x["operation"] == GESTE_PROGRES[besoin] for x in e["intention"]["plan"])):
             buts.append((besoin, methode, False))
+    # La routine : ses rondes, même quand le besoin qu'elles servent ne presse pas.
+    for x in p["pulsions"]:
+        if (periodique(x["condition"]) and x["besoin"] not in pressants
+                and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
+            buts.append((x["besoin"], lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), True))
     # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.
     for besoin, methode, _ in sorted(buts, key=lambda x: x[2]):
         yield besoin, methode
@@ -700,6 +795,7 @@ def deliberer(monde, id, minute):
     installer(monde, id)
     for nom, b in p["besoins"].items():
         e["besoins"][nom] = round(min(100.0, max(0.0, e["besoins"][nom] + b["derive_heure"] / 60)), 3)
+    ressentir(monde, id)
     for i, x in enumerate(p["pulsions"]):
         etat = satisfaite(monde, id, x["condition"])
         # Une ronde expire, un feu baisse d'eux-mêmes : ce n'est pas une atteinte.

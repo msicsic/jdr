@@ -386,6 +386,28 @@ def _vu(m, origine, lumiere, cible):
     return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
 
 
+def acteurs_vus(m, acteur, autres):
+    """Ceux d'``autres`` (personnages ou joueur) que l'acteur voit dans sa propre salle : un test
+    case par case, sans calculer tout son champ de vision."""
+    salle = position_acteur(m, acteur)[0]
+    origine = lumiere = None
+    vus = []
+    for autre in autres:
+        if autre == "joueur":
+            if m.joueur["salle"] != salle:
+                continue
+            case = tuple(m.joueur["position"])
+        else:
+            case = position_cible(m, autre, salle) if m.objets[autre]["lieu"] == salle else None
+        if case is None:
+            continue
+        if origine is None:
+            origine, lumiere = _vue(m, acteur)
+        if _vu(m, origine, lumiere, _global(m.data["salles"][salle], case)):
+            vus.append(autre)
+    return vus
+
+
 def dans_le_regard(m, salle, case, acteur="joueur"):
     """Une case sous le regard de l'acteur, même dans le noir : une flamme y serait vue de loin."""
     origine, lumiere = _vue(m, acteur)

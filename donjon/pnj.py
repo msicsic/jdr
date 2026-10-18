@@ -161,6 +161,8 @@ def _temoigner(monde, id, operation, objet):
                 continue
             memoriser(monde, autre, souvenir)
             croire(monde, autre, id, "fiable", False, "vu")
+            from .deliberation import inquieter
+            inquieter(monde, autre, "illicite")
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
 
@@ -219,6 +221,11 @@ def _inspecter(monde, id):
         if libres:
             placer(o, o["lieu"], list(min(libres, key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, tuple(c)))))
     esprit(monde, id)["visites"][o["lieu"]] = monde.data["minutes"]
+    # Une ronde accomplie rassure : le lieu qu'il surveille est tel qu'il doit être.
+    if any(x["condition"].get("lieu") == o["lieu"] and "periode" in x["condition"]
+           for x in (o.get("profil") or {}).get("pulsions", [])):
+        from .deliberation import inquieter
+        inquieter(monde, id, "ronde", -1)
 
 
 def _accessible(monde, id, objet):
@@ -292,6 +299,8 @@ def _executer(monde, id, etape, lignes, gestes):
         return True
     if op == "reposer":
         return _reposer(monde, id, lignes)
+    if op == "abriter":
+        return _abriter(monde, id, etape["lieu"], lignes)
     from .deliberation import SOCIALES
     if op in SOCIALES:
         from .echanges import executer
@@ -418,6 +427,30 @@ def _chauffer(monde, id, foyer, lignes):
         _raconter(monde, id, "se chauffe près de", f, lignes)
     e["besoins"]["chaleur"] = max(0.0, e["besoins"]["chaleur"] - CHALEUR_MINUTE)
     return e["besoins"]["chaleur"] <= CHALEUR_FIN
+
+
+def _abriter(monde, id, lieu, lignes):
+    """Une minute à l'abri : il y reste tant que la lumière ou une compagnie fiable le rassure ;
+    le geste s'achève quand il est rassuré."""
+    from .deliberation import SECURITE_FIN, autour
+    from .social import _qui
+    e = esprit(monde, id)
+    if "securite" not in e["besoins"]:
+        return True
+    if monde.objets[id]["lieu"] != lieu:
+        return False
+    a = autour(monde, id)
+    if not a["fiables"] and not a["lumiere"]:
+        return False  # Ni lumière ni personne de sûr : ce n'est pas un abri.
+    depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
+    if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
+        memoriser(monde, id, {"type": "abrite", "lieu": lieu})
+        texte = (f"{_qui(monde, id)} reste près de {_qui(monde, a['fiables'][0])}." if a["fiables"]
+                 else f"{_qui(monde, id)} reste dans la lumière.")
+        _chroniquer(monde, id, texte)
+        if monde.visible(id):
+            lignes.append(texte)
+    return e["besoins"]["securite"] <= SECURITE_FIN
 
 
 def _reposer(monde, id, lignes):

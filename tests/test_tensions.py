@@ -19,6 +19,7 @@ from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
 from donjon.pnj import avancer
 from donjon.spatial import installer
+from tests.support import calme
 
 
 def recharger(monde):
@@ -38,15 +39,6 @@ def relais():
 
 def placer(monde, id, salle, case):
     monde.objets[id].update(lieu=salle, position=list(case), position_salle=salle)
-
-
-def calme(monde, *ids):
-    """Placement d'auteur : ces PNJ n'ont aucun besoin pressant et restent où ils sont."""
-    for id in ids:
-        besoins = lire(monde, id)["besoins"]
-        for b in besoins:
-            besoins[b] = 0.0
-    return monde
 
 
 def vivre(monde, minutes, jet=None):
@@ -79,7 +71,8 @@ class FroidTests(unittest.TestCase):
         lire(m, "ilse")["besoins"]["chaleur"] = 75.0
         # Placement d'auteur : le joueur se tient dans la conduite, près du brasero.
         m.joueur.update(salle="echoppe", position=[4, 5])
-        m, texte = attendre(recharger(m), 6)
+        # Vingt-cinq minutes : réchauffés, ils sont encore là ; la ronde d'Aubin tombe à la trentième.
+        m, texte = attendre(recharger(m), 5)
         for id, nom in (("aubin", "Aubin, vieux passeur"), ("ilse", "Ilse, meunière évacuée")):
             self.assertEqual(m.objets[id]["lieu"], "echoppe")
             self.assertLessEqual(lire(m, id)["besoins"]["chaleur"], 25)
@@ -102,6 +95,8 @@ class FeuTests(unittest.TestCase):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.objets["brasero"]["combustible"] = combustible
         lire(m, "marchand")["besoins"].update(devoir=80.0, **besoins)
+        # De garde, ses rondes sont dues : elles le mènent là où il voit le feu.
+        lire(m, "marchand")["visites"].clear()
         percevoir_tous(m)
         return m
 

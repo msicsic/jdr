@@ -24,6 +24,8 @@ def relais():
     # Placement d'auteur : Brune a déjà mangé ; le joueur se tient près de Gorm dans la conduite.
     lire(m, "brune")["besoins"]["faim"] = 0
     m.joueur.update(salle="echoppe", position=[1, 2])
+    # Placement d'auteur : Gorm vient de faire ses rondes et reste à son poste.
+    lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)
     return m
 
 

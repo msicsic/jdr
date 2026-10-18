@@ -16,7 +16,7 @@ from donjon.paroles import esprits_interlocuteurs
 from donjon.social import RANG_MAX
 from donjon.spatial import installer
 from donjon.vol import mefiance
-from tests.support import refusee
+from tests.support import calme, refusee
 
 
 def recharger(monde):
@@ -44,15 +44,6 @@ def chronique(monde):
 
 def placer(monde, id, salle, case):
     monde.objets[id].update(lieu=salle, position=list(case), position_salle=salle)
-
-
-def calme(monde, *ids):
-    """Placement d'auteur : ces PNJ n'ont aucun besoin pressant et restent où ils sont."""
-    for id in ids:
-        besoins = lire(monde, id)["besoins"]
-        for b in besoins:
-            besoins[b] = 0.0
-    return monde
 
 
 def relais():
@@ -190,8 +181,10 @@ class VolDecouvertTests(unittest.TestCase):
         m.joueur.update(salle="chambre_cloche", position=[1, 3])
         croire(m, "brune", "reserve", "verrouillee", False, "vu")
         croire(m, "brune", "reserve", "etat", {"ouverte": True}, "vu")
-        lire(m, "ilse")["besoins"]["securite"] = 70.0
-        lire(m, "ilse")["visites"]["echoppe"] = 0
+        # Calme, elle fait sa ronde en routine (inquiète, elle se mettrait d'abord à l'abri).
+        lire(m, "ilse")["besoins"]["securite"] = 40.0
+        # Sa ronde de l'échoppe est faite, celle du refuge est due.
+        lire(m, "ilse")["visites"] = {"echoppe": 0}
         self.assertFalse(percoit(m, "ilse", "brune"))
         m, _ = attendre(recharger(m))
         self.assertIn("Brune, batelière évacuée mange une part des vivres du refuge.", chronique(m))
@@ -214,7 +207,8 @@ class RondeTests(unittest.TestCase):
 
     def test_aubin_va_aux_vannes_et_revient(self):
         m = calme(relais(), "marchand", "brune", "ilse")
-        lire(m, "aubin")["besoins"].update(securite=70.0, chaleur=0.0)
+        # Calme, il fait ses rondes en routine (inquiet, il se mettrait d'abord à l'abri).
+        lire(m, "aubin")["besoins"].update(securite=40.0, chaleur=0.0)
         m.joueur.update(salle="chambre_cloche", position=[1, 3])
         m, _ = attendre(recharger(m), 2)
         textes = chronique(m)

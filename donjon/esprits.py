@@ -148,6 +148,10 @@ def dernier_son(monde, id):
 def entendre(monde, id, evenement, niveau):
     """Un PNJ entend un son : souvenir, puis réflexe déclaré s'il y en a un."""
     memoriser(monde, id, {"type": "son", **{k: v for k, v in evenement.items() if k != "auditeurs"}, "niveau": niveau})
+    if niveau >= 2 and evenement["origine"] != monde.objets[id]["lieu"]:
+        # Un bruit fort venu d'ailleurs, dont il ne voit pas la cause, inquiète.
+        from .deliberation import inquieter
+        inquieter(monde, id, "bruit")
     from .pnj import reagir
     reagir(monde, id, evenement["origine"], niveau)
 
@@ -300,8 +304,14 @@ def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
     vus, champ = percus(monde, id)
     croyances = esprit(monde, id)["croyances"]
-    for sujet in [s for s in croyances if s != "joueur" and s not in monde.objets]:
+    for sujet in [s for s in croyances if s != "joueur" and s not in monde.objets and s not in monde.data["salles"]]:
         del croyances[sujet]  # Objet détruit ou consommé : plus rien à croire à son sujet.
+    salle = monde.objets[id]["lieu"]
+    if salle in monde.data["salles"]:
+        # Il sait si la salle où il se tient est éclairée, même sans en voir la source.
+        from .perception import eclairage
+        position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
+        croire(monde, id, salle, "etat", {"eclairee": eclairage(monde, salle, position)["niveau"] > 0}, "vu")
     for sujet, (salle, case) in vus.items():
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
