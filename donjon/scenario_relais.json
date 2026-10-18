@@ -885,8 +885,8 @@
       "aliases": [
         "flambeau"
       ],
-      "allume": true,
-      "combustible": 30,
+      "allume": false,
+      "combustible": 60,
       "id": "torche",
       "integrite": 10,
       "lieu": "antichambre",

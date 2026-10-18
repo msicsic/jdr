@@ -153,7 +153,10 @@ class FeuTests(unittest.TestCase):
         percevoir_tous(m)
         m, _ = vivre(m, 5)
         self.assertTrue(m.objets["brasero"]["allume"])
-        self.assertEqual(m.objets["brasero"]["combustible"], 120 - 3)
+        # Dans le noir, il voit le feu éteint sans voir le foyer vide : son premier essai le lui
+        # apprend ; il recharge une seule fois, allume, et le feu brûle depuis deux minutes.
+        self.assertEqual(m.objets["brasero"]["combustible"], 120 - 2)
+        self.assertEqual(m.objets["bois"]["charges"], 1)
         textes = chronique(m)
         self.assertLess(textes.index("Gorm, gardien du relais alimente le brasero."),
                         textes.index("Gorm, gardien du relais allume le brasero."))
@@ -220,8 +223,8 @@ class FeuTests(unittest.TestCase):
 
     def test_la_flamme_meurt_en_route_il_le_constate(self):
         m = self.eteint_sans_briquet()
-        # Placement d'auteur : la torche n'a plus que deux minutes, le fanal est éteint.
-        m.objets["torche"]["combustible"] = 2
+        # Placement d'auteur : la torche brûle encore deux minutes, le fanal est éteint.
+        m.objets["torche"].update(allume=True, combustible=2)
         m.objets["fanal"]["allume"] = False
         percevoir_tous(m)
         m, _ = vivre(m, 12)
@@ -272,7 +275,9 @@ class JoueurFeuTests(unittest.TestCase):
         m.joueur.update(position=[5, 2])
         with self.assertRaisesRegex(ErreurMonde, "autre flamme"):
             Moteur(m).preparer(sequence(etape("allumer", "lanterne")))
+        # Lanterne rallumée pour y voir : le fanal, fixe, n'atteint pas le brasero, fixe aussi.
         m.joueur.update(position=[3, 5])
+        m.objets["lanterne"]["allume"] = True
         m.objets["brasero"]["allume"] = False
         with self.assertRaisesRegex(ErreurMonde, "autre flamme"):
             Moteur(m).preparer(sequence(etape("allumer", "brasero", outil="fanal")))

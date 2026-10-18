@@ -382,6 +382,11 @@ def _executer(monde, id, etape, lignes, gestes):
             return _rate(monde, id, cible, "etat", {"allume": False, "faible": False, "charge": False})
         c["allume"] = True
         _raconter(monde, id, "allume", c, lignes)
+    # Ce qu'il vient de faire de ses mains, il le sait, même dans le noir.
+    from .esprits import constater
+    for objet in (cible, outil):
+        if objet in monde.objets:
+            constater(monde, id, objet, "essai")
     if faute:
         gestes.append((id, op, cible))
         _temoigner(monde, id, op, cible)
