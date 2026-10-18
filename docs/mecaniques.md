@@ -337,8 +337,11 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
      Une part promise s'attend près des vivres, 60 minutes au plus. Sinon, sans `ne_vole_pas`,
      il prend le bien d'autrui ;
    - se reposer là où il est pour le repos (2 points par minute, jusqu'à 20) ;
-   - se chauffer près d'un foyer qu'il croit allumé pour la chaleur (3 points par minute,
-     jusqu'à 20) ;
+   - pour la chaleur, se chauffer près d'un foyer qu'il croit allumé (3 points par minute,
+     jusqu'à 20). Sans feu vif, il ranime un foyer qu'il croit éteint, avec les recours de la
+     faim : son bois ou celui de personne, puis une part de bois demandée au propriétaire, puis,
+     sans `ne_vole_pas`, le bois d'autrui. Une part de bois acceptée est l'engagement
+     d'entretenir ce feu : le donneur va lui-même le recharger et l'allumer ;
    - rétablir une pulsion.
 2. Ses engagements.
 3. Refermer à clé ce qu'il garde sous clé et a lui-même ouvert dans les 30 dernières minutes.
@@ -352,13 +355,26 @@ du plan presse encore : Gorm qui déverrouille sa réserve pour servir une part 
 reverrouille pas avant d'avoir servi. Il ne s'alarme pas de ce qu'il vient de défaire
 lui-même (sa clé, sa main) : ce n'est pas une atteinte. Une pulsion déléguée au joueur
 attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est repris qu'après 60
-minutes.
+minutes. Un besoin qui vient à peine de devenir urgent (moins de 5 points au-delà de son seuil,
+`INERTIE`) n'interrompt pas le plan en cours d'un autre motif : on achève le geste entamé.
+
+Une part se demande pour toute ressource comptée qui apaise un besoin du demandeur : des
+vivres (`portions`) pour la faim, un combustible (`charges`) pour le froid. Le propriétaire
+garde `reserve` parts (donnée de profil, 1 par défaut) et ne donne pas ce dont il a lui-même
+besoin.
 
 Un feu entretenu (pulsion `allume`) se juge sur ce que le PNJ en voit : le feu qui baisse se
 voit 45 minutes avant de s'éteindre, et un foyer froid montre s'il lui reste du combustible.
 Un feu vu vif il y a plus de 30 minutes, ou jamais vu, doit être revu : il va le voir. Vu
 baisser, il va chercher un combustible qu'il peut prendre et le recharge ; éteint, il le
-recharge s'il est vide puis l'allume s'il porte de quoi l'allumer, sinon il n'y touche pas.
+recharge s'il est vide puis l'allume s'il trouve de quoi l'allumer, sinon il n'y touche pas.
+De quoi allumer : un outil d'allumage, une source qu'il croit allumée et peut prendre, ou une
+source éteinte et chargée qu'il va allumer à une flamme fixe (la torche au fanal) ; une source
+fixe ne se déplace pas. Une flamme se voit de loin, même dans le noir : une source crue
+allumée, sous son regard, qui ne brille pas, est crue éteinte ; un feu vu baisser s'est
+consumé, un feu vu vif garde le combustible qu'il lui supposait. Il connaît l'état qu'il laisse
+de ses mains à un objet, même sans le voir. Une flamme portable allumée ou employée pour
+allumer, que son plan n'emploie plus, est éteinte et gardée.
 
 Le plan est cherché sur les croyances, jamais sur la vérité, par décomposition bornée
 (profondeur 4) : obtenir un objet, accéder à un contenant (l'ouvrir, le déverrouiller avec
@@ -369,7 +385,8 @@ les autres ne le sont que par croyance. Un geste sur le bien d'autrui est interd
 
 Exécution : un geste par minute (aller d'une salle, s'approcher au contact, prendre, poser,
 ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger, alimenter un foyer avec un
-combustible porté, l'allumer avec un outil d'allumage, se chauffer dans la salle d'un foyer
+combustible porté, l'allumer avec un outil d'allumage ou une autre flamme (l'une des deux
+portée), éteindre, se chauffer dans la salle d'un foyer
 allumé, inspecter : gagner la case libre la plus proche du centre de la salle pour la
 parcourir des yeux, ce qui accomplit la ronde), revalidé sur l'état réel ;
 un échec corrige la croyance qui l'avait motivé. Crocheter est un jet de DEX du PNJ contre
@@ -391,7 +408,9 @@ qui va et vient entre le refuge et le brasero, et Aubin, vieux passeur qui surve
 aux vannes. Les trois évacués sont trempés : leur besoin de chaleur monte de 10 par heure.
 Tous ont faim avant la fin de la nuit, et la réserve ne compte que 4 parts ; Gorm garde la
 dernière pour lui. Le brasero brûle 150 minutes ; deux charges de fagots, rangés aux vannes
-et qui sont à Gorm, l'entretiennent chacune 120 minutes de plus. Les évacués savent Gorm à
+et qui sont à Gorm, l'entretiennent chacune 120 minutes de plus, et les planches de bac
+d'Aubin, au refuge, deux charges de 90 minutes. La torche du refuge attend éteinte, avec 60
+minutes de combustible : elle porte la flamme du fanal jusqu'au brasero. Les évacués savent Gorm à
 l'échoppe, le brasero allumé et les vivres dans la réserve ; Gorm les sait au refuge et les
 tient pour fiables. Un fanal éclaire le refuge pendant douze heures. Le banc `python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche` fait
 vivre le scénario sans joueur actif et imprime chronique et mesures (gestes, événements
@@ -653,7 +672,9 @@ minute par minute avec la vie des PNJ : un feu qu'un PNJ recharge pendant une at
 s'éteint pas entre-temps. Les commandes d'observation ne le consomment pas. Un foyer
 (`foyer: true`, le brasero) se recharge avec un combustible porté ou à portée de main
 (`usages: ["combustible"]`, `charges`, `duree_combustion` en minutes par charge) : une
-brassée se prend sur le tas sans emporter le stock. Le combustible d'autrui qu'on ne porte
+brassée se prend sur le tas sans emporter le stock. Pour allumer une source, il faut un outil
+d'allumage ou une autre source allumée, portée ou à portée ; une source fixe ne vient pas à
+soi : on lui apporte ce qu'on veut allumer. Le combustible d'autrui qu'on ne porte
 pas doit d'abord être obtenu. Mettre un combustible dans un foyer (`deplacer` vers le foyer)
 est le même geste ; un autre objet n'y entre pas, le feu ne brûle pas encore les objets
 quelconques. Les autres sources ne se rechargent pas encore.

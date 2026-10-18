@@ -329,7 +329,7 @@ décrit le changement, elle ne tranche rien).
   - on ne se partage pas le bois, et le froid n'a d'autre recours que le brasero ;
   - la sécurité reste satisfaite par les seules rondes, désormais rangées en routine.
 
-## Jalon G — le feu partagé (proposition, à valider)
+## Jalon G — le feu partagé
 
 **Constat après F.** Seul le briquet du joueur allume une flamme : un feu éteint ne se rallume
 que si le joueur l'a laissé à Gorm. Le bois tient en un tas de deux charges (240 minutes) qui
@@ -410,6 +410,32 @@ limites. Luna en vrai sur les phrases du joueur : « j'allume ma lanterne au bra
 3. Allumer à une source fixe se fait en lui apportant la cible : règle physique du moteur,
    déduite de `mobile` et de la portée, valable pour toute source de tout scénario.
 
+## Écarts retenus au jalon G
+
+- Données du Relais (A et B), validées en cours de jalon : la torche du refuge attend éteinte
+  avec 60 minutes (allumée, elle mourait à la trentième minute) ; les planches de bac d'Aubin,
+  au refuge, deux charges de 90 minutes (sans elles, le feu ne meurt que faute de bois et
+  aucune flamme n'y peut rien).
+- Défauts généraux trouvés en suivant le feu sur 12 heures, corrigés :
+  - dans le noir, un PNJ ne voyait pas qu'un feu s'était éteint : une flamme se voit de loin,
+    une source crue allumée sous son regard qui ne brille pas est crue éteinte ; un feu vu
+    baisser s'est consumé ;
+  - un PNJ ignorait l'état qu'il laissait de ses mains dans le noir et rechargeait deux fois ;
+  - un besoin à peine urgent interrompait un plan presque fini (Aubin quittait le brasero
+    chargé, torche allumée, pour se reposer) : `INERTIE`, 5 points au-delà du seuil ;
+  - une flamme employée brûlait pour rien dans la main : elle est éteinte et gardée.
+- Banc moteur seul, 8 graines (1985, 7, 42, 2024, 3, 11, 99, 500), 8 heures, `main` → G :
+  19,1 → 28,6 événements distincts (+50 %), 7,6 → 9,8 échanges, 1135 → 1063 minutes urgentes
+  oisives (−6 %), 530 → 466 sans recours (−12 %), aucune usurpation. Sur 12 heures, le feu
+  mort faute de fagots est rallumé dans 8 graines sur 8, deux fois dans 4.
+- Luna en vrai : « j'allume ma lanterne au brasero » et « je rallume la lanterne avec le
+  feu », briquet laissé au refuge, allument la lanterne (`tools/test_flamme_reel.py`).
+- Non fait :
+  - le joueur ne demande pas une part (ni de vivres ni de bois) : la part suppose un besoin
+    du demandeur, que le joueur n'a pas ; « je demande du bois à Gorm » n'a pas été vérifié ;
+  - le feu reste borné par le bois du Relais : il n'en naît pas d'autre (la coupe de la
+    poutre ne crée pas de fragments).
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -424,7 +450,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **D. Plusieurs PNJ** — *fait* | Ilse et Aubin voient Brune, à bout de faim, crocheter la réserve et le disent à Gorm, qui les croit ou non, referme et verrouille ; ce qu'Ilse voit de toi passe à Gorm puis à Aubin, et Gorm se méfie, reprend la cloche à son compte et te surveille ; Gorm reconnaît son bien entre d'autres mains ; tu entends ce qui se dit dans ta salle | nouvelles et rumeurs typées (jet de CHA du locuteur, confiance décroissante, trois relais au plus), `vu_porter`, rondes `{lieu, periode}` et geste `inspecter`, témoins de toute la minute du geste, besoin extrême plus fort que la crainte d'être vu, Ilse, Aubin et le fanal du refuge, mesures sociales au banc | aucun appel |
 | **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, demande une part à Gorm avant de voler, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Gorm qui accepte ouvre sa réserve, sert et referme à clé ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; Aubin se repose ; tu entends ces échanges | gestes sociaux `dire`, `demander` (dont une part de nourriture), `confier`, `remettre`, `servir`, `reposer`, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ et complété par le planificateur, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
 | **F. Tensions du Relais** — *fait* | les évacués trempés quittent le refuge pour se chauffer au brasero ; Gorm revoit son feu, va chercher ses fagots aux vannes et le recharge, jusqu'à épuiser le bois ; tous ont faim pour 4 parts : on demande une part à Gorm avant de voler, il sert, refuse ou garde la dernière ; Brune refusée crochète, Ilse refusée redemande deux heures plus tard ; on cherche Gorm quand on l'a perdu de vue ; tu recharges toi-même le brasero | besoin `chaleur`, foyer et combustible (`alimenter`, commun au joueur et aux PNJ, `allumer` pour les PNJ), feu consumé minute par minute avec les PNJ, pulsion de feu entretenu, part demandée par le moteur et attendue près des vivres, refus par objet, recherche d'un personnage, ordre des buts (ce qui presse, parole donnée, ce qu'on finit, routine) | aucun appel ; stratège remesuré |
-| **G. Le feu partagé** — *proposé* | Gorm, sans briquet, rallume le brasero avec la torche allumée au fanal ; tu allumes ta lanterne au brasero ; quand Gorm garde sa dernière brassée, les évacués la lui demandent et Brune peut la prendre ; tu peux demander du bois ou en apporter | une source allumée sert d'outil d'allumage (joueur et PNJ) ; part généralisée aux ressources comptées (`portions`, `charges`), réserve gardée en donnée de profil (`reserve`) ; recours au froid ordonnés comme ceux de la faim | aucun appel |
+| **G. Le feu partagé** — *fait* | Gorm, sans briquet, rallume le brasero avec la torche allumée au fanal ; tu allumes ta lanterne au brasero ; quand Gorm garde sa dernière brassée, les évacués demandent une part des planches d'Aubin, qui va lui-même entretenir le feu ; Aubin rallume le brasero mort avec ses planches et la torche allumée au fanal, puis l'éteint et la garde ; tu allumes ta lanterne au feu | une source allumée sert d'outil d'allumage (joueur et PNJ) ; part généralisée aux ressources comptées (`portions`, `charges`), réserve gardée en donnée de profil (`reserve`) ; recours au froid ordonnés comme ceux de la faim ; perception d'une flamme dans le noir, inertie d'un plan en cours, flamme ménagée | aucun appel |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune
