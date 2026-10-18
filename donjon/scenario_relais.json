@@ -1242,6 +1242,36 @@
       "usages": [
         "combustible"
       ]
+    },
+    "planches": {
+      "aliases": [
+        "planches",
+        "planche",
+        "planches de bac",
+        "bordages"
+      ],
+      "charges": 2,
+      "duree_combustion": 90,
+      "genre": "f",
+      "id": "planches",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "masse": 8,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "planches de bac",
+      "pluriel": true,
+      "position": [
+        2,
+        5
+      ],
+      "position_salle": "antichambre",
+      "proprietaire": "aubin",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ]
     }
   },
   "personnages_version": 1,

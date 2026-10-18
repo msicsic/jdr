@@ -54,18 +54,31 @@ def necessaire(monde, auditeur, objet):
 
 
 def demande_de_part(monde, demandeur, auditeur, objet):
-    """Un affamé peut demander une part d'une nourriture qui appartient à l'autre, même rangée ailleurs."""
+    """On peut demander une part d'une ressource comptée qui appartient à l'autre, même rangée
+    ailleurs, si elle apaise un de ses besoins : des vivres quand on a faim, du bois quand on a froid."""
+    from .deliberation import besoin_de_part
     from .social import _proprietaire
     from .spatial import porte_par
     o = monde.objets.get(objet)
     besoins = lire(monde, demandeur)["besoins"] if demandeur != "joueur" else {}
-    return bool(o and o["type"] == "nourriture" and "faim" in besoins and not porte_par(monde, objet, auditeur)
+    return bool(o and besoin_de_part(o) in besoins and not porte_par(monde, objet, auditeur)
                 and _proprietaire(monde, {"objet": objet}) == auditeur)
 
 
-def demander(monde, demandeur, auditeur, objet):
+def foyer_de(monde, auditeur, demandeur, foyer=None):
+    """Le feu qu'une part de combustible entretient : celui que vise le demandeur, sinon un foyer
+    que l'auditeur connaît dans la salle du demandeur, sinon le premier qu'il connaît."""
+    from .deliberation import _connus, salle_crue
+    if foyer in monde.objets and monde.objets[foyer].get("foyer"):
+        return foyer
+    foyers = [f for f in _connus(monde, auditeur) if monde.objets[f].get("foyer")]
+    salle = monde.objets[demandeur]["lieu"] if demandeur in monde.objets else None
+    return next((f for f in foyers if salle_crue(monde, auditeur, f) == salle), foyers[0] if foyers else None)
+
+
+def demander(monde, demandeur, auditeur, objet, foyer=None):
     """« absent », « mefiance », « necessaire », « impossible », « refus », « remis » ou « promis »."""
-    from .deliberation import _plan_pulsion, urgents
+    from .deliberation import _plan_pulsion, besoin_de_part, parts, reserve, urgents
     from .deplacement_objet import deplacer
     from .spatial import porte_par
     part = demande_de_part(monde, demandeur, auditeur, objet)
@@ -75,10 +88,18 @@ def demander(monde, demandeur, auditeur, objet):
     if confiance and not confiance["valeur"]:
         return "mefiance"
     if part:
-        # Il garde la dernière part, et ne donne pas ce dont il a lui-même besoin.
-        if monde.objets[objet].get("portions", 0) < 2 or "faim" in urgents(monde, auditeur):
+        # Il garde sa réserve, et ne donne pas ce dont il a lui-même besoin.
+        o = monde.objets[objet]
+        if parts(o) <= reserve(monde, auditeur) or besoin_de_part(o) in urgents(monde, auditeur):
             return "necessaire"
-        condition = {"objet": objet, "servir": demandeur}
+        if besoin_de_part(o) == "faim":
+            condition = {"objet": objet, "servir": demandeur}
+        else:
+            # Une part de bois se donne au feu : il l'entretient lui-même pour celui qui a froid.
+            foyer = foyer_de(monde, auditeur, demandeur, foyer)
+            if foyer is None:
+                return "impossible"
+            condition = {"objet": foyer, "allume": True}
         engagements = esprit(monde, auditeur)["engagements"]
         if not any(x["condition"] == condition for x in engagements):
             if _plan_pulsion(monde, auditeur, condition) is None:
@@ -220,8 +241,9 @@ def executer(monde, id, etape, lignes):
     elif op == "demander":
         if objet is None:
             return False
-        issue = demander(monde, id, autre, objet["id"])
+        # La nature de la demande se juge avant l'échange : après un prêt, le demandeur porte l'objet.
         part = demande_de_part(monde, id, autre, objet["id"])
+        issue = demander(monde, id, autre, objet["id"], contenu.get("foyer"))
         recit = f"{a} demande {'une part ' + complement_de(objet) if part else designer(objet)} à {b}"
         clair = recit + "." + {"remis": f" {b} lui remet {designer(objet)}.",
                                "promis": f" {b} accepte de lui en donner."}.get(issue, f" {b} refuse.")

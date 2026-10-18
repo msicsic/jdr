@@ -39,9 +39,27 @@ def profil(monde, id):
     return monde.objets[id].get("profil")
 
 
+def reserve(monde, id):
+    """Parts qu'un personnage garde pour lui de chaque ressource comptée qu'il possède."""
+    return (profil(monde, id) or {}).get("reserve", 1)
+
+
+def besoin_de_part(o):
+    """Le besoin qu'une part de cette ressource apaise : la faim des vivres, le froid du combustible."""
+    if o["type"] == "nourriture":
+        return "faim"
+    return "chaleur" if "combustible" in o.get("usages", []) else None
+
+
+def parts(o):
+    return o.get("portions", o.get("charges", 0))
+
+
 def verifier_profil(monde, id, p):
-    assert (isinstance(p, dict) and set(p) == {"caracteristiques", "traits", "limites", "capacites",
-                                               "besoins", "pulsions"}), "Profil de PNJ mal formé"
+    assert (isinstance(p, dict) and {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions"}
+            <= set(p) <= {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions",
+                          "reserve"}), "Profil de PNJ mal formé"
+    assert type(p.get("reserve", 1)) is int and 0 <= p.get("reserve", 1) <= 10, "Réserve de PNJ invalide"
     assert set(p["caracteristiques"]) == set(STATS) and all(
         type(v) is int and 1 <= v <= 20 for v in p["caracteristiques"].values()), "Caractéristiques de PNJ invalides"
     assert isinstance(p["traits"], str) and len(p["traits"]) <= 600, "Traits de PNJ invalides"
@@ -495,6 +513,68 @@ def _plan_chauffer(monde, id):
             continue
         p.ajouter("chauffer", f)
         return {"type": "chaleur", "objet": f}, p.etapes
+    # Aucun feu vif : ranimer un foyer froid, comme la faim cherche des vivres. Son bois ou celui
+    # de personne d'abord ; sinon une part demandée à qui en possède ; sinon, sans scrupule, le
+    # bien d'autrui, sans témoin.
+    foyers = [f for f in _connus(monde, id) if monde.objets[f].get("foyer")
+              and (_cru(monde, id, f, "etat") or {}).get("allume") is False]
+    bois = [b for b in _connus(monde, id) if "combustible" in monde.objets[b].get("usages", [])
+            and _disponible_cru(monde, id, b)]
+    licites = [b for b in bois if porte_par(monde, b, id) or not illicite(monde, id, b)]
+    for f in foyers:
+        for resultat in (*(_plan_ranimer(monde, id, f, b) for b in [None, *licites]),
+                         _plan_part_de_bois(monde, id, f, bois),
+                         *(_plan_ranimer(monde, id, f, b) for b in bois if b not in licites and autorise(monde, id, b))):
+            if resultat:
+                return resultat
+    return None
+
+
+def _plan_ranimer(monde, id, foyer, bois):
+    """Recharger s'il le faut, allumer, se chauffer. Sans bois, seulement si le foyer est cru chargé."""
+    charge = (_cru(monde, id, foyer, "etat") or {}).get("charge")
+    if (bois is None) != bool(charge):
+        return None
+    p = Plan(monde, id)
+    try:
+        if bois:
+            p.obtenir(bois)
+        flamme = p.flamme(foyer)
+        salle = salle_crue(monde, id, foyer)
+        if salle is None:
+            raise Echec
+        p.aller(salle)
+    except Echec:
+        return None
+    if bois:
+        p.ajouter("alimenter", foyer, outil=bois)
+    p.ajouter("allumer", foyer, outil=flamme)
+    p.ajouter("chauffer", foyer)
+    return {"type": "chaleur", "objet": foyer}, p.etapes
+
+
+def _plan_part_de_bois(monde, id, foyer, bois):
+    """Une part de bois promise s'attend près du feu, où le donneur viendra l'entretenir ; sinon on
+    la demande au propriétaire du bois, sauf s'il vient de refuser."""
+    from .vol import proprietaire
+    for b in bois:
+        donneur = proprietaire(monde, monde.objets[b])
+        if donneur in (None, id, "joueur") or not profil(monde, donneur):
+            continue
+        p = Plan(monde, id)
+        try:
+            if promesse_en_cours(monde, id, b) == donneur:
+                salle = salle_crue(monde, id, foyer)
+                if salle is None:
+                    raise Echec
+                p.aller(salle)
+            elif refuse_recemment(monde, id, donneur, "demander", b):
+                continue
+            elif p.rejoindre(donneur):
+                p.ajouter("demander", donneur, outil=b, contenu={"foyer": foyer})
+        except Echec:
+            continue
+        return {"type": "part", "objet": b, "de": donneur}, p.etapes
     return None
 
 

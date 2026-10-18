@@ -34,11 +34,11 @@ def refusee(monde, id="brune", par="marchand"):
 
 
 def sans_evacues(monde):
-    """Placement d'auteur : le Relais des jalons A à C, sans Ilse, Aubin ni le fanal du refuge.
+    """Placement d'auteur : le Relais des jalons A à C, sans Ilse, Aubin, ses planches ni le fanal.
 
     Ces tests isolent Gorm et Brune ; la vie à quatre PNJ est couverte par test_social.
     """
-    for id in ("ilse", "aubin", "fanal"):
+    for id in ("ilse", "aubin", "planches", "fanal"):
         monde.objets.pop(id, None)
         for table in monde.data.values():
             if isinstance(table, dict):
