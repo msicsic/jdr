@@ -32,6 +32,7 @@ REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient
 ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
 REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu
+INERTIE = 5            # points au-delà du seuil avant qu'un besoin interrompe un plan en cours
 STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
 
@@ -645,10 +646,17 @@ def retabli_par_son_plan(monde, id, condition):
 
 def candidats(monde, id):
     """Buts envisageables, du besoin le plus pressant au moins pressant ; la routine (rondes,
-    surveillance) passe après ce qui presse vraiment et après une tâche acceptée."""
+    surveillance) passe après ce qui presse vraiment et après une tâche acceptée.
+
+    Un besoin qui vient à peine de franchir son seuil laisse finir le plan en cours d'un autre
+    motif : on achève le geste entamé avant de céder à la fatigue ou à la faim naissantes."""
     p, e = profil(monde, id), esprit(monde, id)
     buts = []
+    en_cours = e["intention"]["motif"] if e["intention"] and e["intention"]["plan"] else None
     for besoin in urgents(monde, id):
+        if (en_cours and besoin != en_cours
+                and e["besoins"][besoin] < p["besoins"][besoin]["urgence"] + INERTIE):
+            continue
         if besoin == "faim":
             buts.append((besoin, _plan_manger, False))
             continue
