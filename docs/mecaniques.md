@@ -316,25 +316,49 @@ surpris et les gestes remarqués.
 Un PNJ peut porter un `profil` d'auteur (`donjon/deliberation.py`) : `caracteristiques`
 (FOR, DEX, INT, PER, CHA), `traits` (prose destinée à Luna), `limites` (`ne_vole_pas`,
 `ne_blesse_pas`, `ne_ment_pas`), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
-`faim`, `repos`, chacun avec `depart`, `derive_heure`, `urgence`) et `pulsions` : des
-conditions sur le monde (`{"objet", "lieu"}` ou `{"objet", "verrouillee": true}`) liées à
-un besoin, éventuellement `delegue_a` le joueur, ou des rondes (`{"lieu", "periode"}` :
-avoir inspecté ce lieu depuis moins de `periode` minutes).
+`faim`, `repos`, `chaleur`, chacun avec `depart`, `derive_heure`, `urgence`) et `pulsions` : des
+conditions sur le monde (`{"objet", "lieu"}`, `{"objet", "verrouillee": true}` ou un feu
+entretenu `{"objet", "allume": true}`) liées à un besoin, éventuellement `delegue_a` le
+joueur, ou des rondes (`{"lieu", "periode"}` : avoir inspecté ce lieu depuis moins de
+`periode` minutes).
 
 Chaque minute écoulée, le moteur fait dériver les besoins. Une pulsion qui cesse d'être
 satisfaite *selon les croyances du PNJ* relance son besoin de 30, de 60 s'il s'agit de ses
-biens (un vol découvert, même sans coupable) ; une ronde expire sans rien relancer. Un vol
-vu par sa victime relance ses biens de 60 ; l'absence constatée d'un objet qui lui
-appartient, de 30. Le PNJ retient alors le
-besoin urgent (valeur ≥ urgence) le plus en dépassement pour lequel il trouve un plan :
-manger pour la faim, se reposer là où il est pour le repos (2 points par minute, jusqu'à
-20, sauf plus pressant), rétablir une pulsion, ou garder le lieu de ses biens ; sans urgence
-qui ait un plan, il tient ses engagements et referme à clé ce qu'il garde sous clé et a
-lui-même ouvert dans les 30 dernières minutes. Un plan qui accède à un contenant qu'il garde
-sous clé se termine en le refermant. Il ne s'alarme pas de ce qu'il vient de défaire
+biens (un vol découvert, même sans coupable) ; une ronde qui expire ou un feu qui baisse ne
+relancent rien. Un vol vu par sa victime relance ses biens de 60 ; l'absence constatée d'un
+objet qui lui appartient, de 30.
+
+Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
+1. Ce qui presse vraiment, du besoin urgent (valeur ≥ urgence) le plus en dépassement au moins
+   pressant :
+   - manger pour la faim. Il mange d'abord ce qui est à lui ou à personne. Sinon, il demande une
+     part au propriétaire des vivres : il va là où il le croit, ou, s'il en a perdu la trace, le
+     cherche dans la salle qu'il a parcourue le moins récemment, celle où il se tient comprise.
+     Une part promise s'attend près des vivres, 60 minutes au plus. Sinon, sans `ne_vole_pas`,
+     il prend le bien d'autrui ;
+   - se reposer là où il est pour le repos (2 points par minute, jusqu'à 20) ;
+   - se chauffer près d'un foyer qu'il croit allumé pour la chaleur (3 points par minute,
+     jusqu'à 20) ;
+   - rétablir une pulsion.
+2. Ses engagements.
+3. Refermer à clé ce qu'il garde sous clé et a lui-même ouvert dans les 30 dernières minutes.
+4. Finir de se reposer ou de se chauffer.
+5. La routine : ses rondes et la garde du lieu de ses biens. Un besoin toujours urgent, comme
+   la sécurité qui fait tourner les rondes, ne retient donc plus un affamé ou un transi.
+
+Un plan qui accède à un contenant qu'il garde sous clé se termine en le refermant. Ce qu'il
+défait lui-même pour un plan qui le rétablit n'est pas à réparer d'abord, tant que le motif
+du plan presse encore : Gorm qui déverrouille sa réserve pour servir une part ne la
+reverrouille pas avant d'avoir servi. Il ne s'alarme pas de ce qu'il vient de défaire
 lui-même (sa clé, sa main) : ce n'est pas une atteinte. Une pulsion déléguée au joueur
 attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est repris qu'après 60
 minutes.
+
+Un feu entretenu (pulsion `allume`) se juge sur ce que le PNJ en voit : le feu qui baisse se
+voit 45 minutes avant de s'éteindre, et un foyer froid montre s'il lui reste du combustible.
+Un feu vu vif il y a plus de 30 minutes, ou jamais vu, doit être revu : il va le voir. Vu
+baisser, il va chercher un combustible qu'il peut prendre et le recharge ; éteint, il le
+recharge s'il est vide puis l'allume s'il porte de quoi l'allumer, sinon il n'y touche pas.
 
 Le plan est cherché sur les croyances, jamais sur la vérité, par décomposition bornée
 (profondeur 4) : obtenir un objet, accéder à un contenant (l'ouvrir, le déverrouiller avec
@@ -344,9 +368,10 @@ les autres ne le sont que par croyance. Un geste sur le bien d'autrui est interd
 `ne_vole_pas` ; sinon il porte la garde `sans_temoin`. Le plan est recalculé chaque minute.
 
 Exécution : un geste par minute (aller d'une salle, s'approcher au contact, prendre, poser,
-ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger, inspecter : gagner la case
-libre la plus proche du centre de la salle pour la parcourir des yeux, ce qui accomplit la
-ronde), revalidé sur l'état réel ;
+ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger, alimenter un foyer avec un
+combustible porté, l'allumer avec un outil d'allumage, se chauffer dans la salle d'un foyer
+allumé, inspecter : gagner la case libre la plus proche du centre de la salle pour la
+parcourir des yeux, ce qui accomplit la ronde), revalidé sur l'état réel ;
 un échec corrige la croyance qui l'avait motivé. Crocheter est un jet de DEX du PNJ contre
 14 + 4 par niveau de lumière manquant, comme pour le joueur. Une étape `sans_temoin` attend
 que le PNJ ne perçoive plus personne depuis la case de son geste ; au-delà de 30 minutes, il
@@ -359,12 +384,16 @@ est la victime, voit ses biens relancés. Le moteur annonce au joueur ce qu'il p
 
 Le réflexe `reaction_son` reste une intention `alerte` prioritaire jusqu'à son terme.
 
-Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, rondes au
-refuge et aux vannes, réserve de vivres sous clé), Brune, batelière évacuée, affamée et
-capable de crocheter, Ilse, meunière bavarde qui va et vient entre le refuge et le brasero,
-et Aubin, vieux passeur qui surveille l'eau aux vannes. Les évacués savent Gorm à l'échoppe
-et le tiennent pour fiable ; Gorm les sait au refuge. Un fanal éclaire le refuge pendant
-douze heures. Le banc `python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche` fait
+Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, d'entretenir
+le brasero de l'échoppe et de faire ses rondes au refuge et aux vannes, réserve de vivres
+sous clé), Brune, batelière évacuée, affamée et capable de crocheter, Ilse, meunière bavarde
+qui va et vient entre le refuge et le brasero, et Aubin, vieux passeur qui surveille l'eau
+aux vannes. Les trois évacués sont trempés : leur besoin de chaleur monte de 10 par heure.
+Tous ont faim avant la fin de la nuit, et la réserve ne compte que 4 parts ; Gorm garde la
+dernière pour lui. Le brasero brûle 150 minutes ; deux charges de fagots, rangés aux vannes
+et qui sont à Gorm, l'entretiennent chacune 120 minutes de plus. Les évacués savent Gorm à
+l'échoppe, le brasero allumé et les vivres dans la réserve ; Gorm les sait au refuge et les
+tient pour fiables. Un fanal éclaire le refuge pendant douze heures. Le banc `python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche` fait
 vivre le scénario sans joueur actif et imprime chronique et mesures (gestes, événements
 distincts hors routine, échanges, minutes de besoin urgent sans intention, renoncements,
 gestes illicites vus, confidences, rumeurs crues ou doutées, méfiances), sans appel à Luna
@@ -434,7 +463,8 @@ croit connaître, jamais la vérité du monde, et renvoie un plan typé (1 à 6 
 moteur pour une heure ; une autre voie qui échoue le laisse revenir). Le moteur valide chaque geste : identifiants
 connus du PNJ, salles, capacités, `ne_vole_pas`, `ne_ment_pas` (dire seulement ce qu'il
 croit), demander seulement à qui il croit porter l'objet, remettre seulement ce qu'il porte
-ou aura obtenu ; on ne redemande pas pendant 2 heures la même chose à qui vient de refuser.
+ou aura obtenu ; on ne redemande pas pendant 2 heures le même objet à qui vient de le
+refuser, mais on peut lui demander autre chose. On peut confier un feu à entretenir.
 Le stratège dit quoi, le moteur dit comment : le planificateur complète chaque geste de ce
 qu'il suppose d'après les croyances du PNJ (aller là où il faut, ouvrir ou déverrouiller le
 contenant de l'objet visé, aller chercher la clé ou les crochets) et ajoute la garde
@@ -618,8 +648,12 @@ pénombre diffuse jusqu'à 3. Depuis l'obscurité, une zone éclairée reste don
 (`donjon/perception.py`, `CarteLumiere`). Sans cases, le modèle par pièce s'applique.
 
 Pour obtenir le noir complet : aller à l'ouest, éteindre le brasero, revenir à l'est puis éteindre
-la lanterne. La rallumer restaure la visibilité. Le combustible diminue avec le temps de jeu ;
-les commandes d'observation ne le consomment pas. Le ravitaillement n'est pas encore simulé.
+la lanterne. La rallumer restaure la visibilité. Le combustible diminue avec le temps de jeu,
+minute par minute avec la vie des PNJ : un feu qu'un PNJ recharge pendant une attente ne
+s'éteint pas entre-temps. Les commandes d'observation ne le consomment pas. Un foyer
+(`foyer: true`, le brasero) se recharge avec un combustible porté (`usages: ["combustible"]`,
+`charges`, `duree_combustion` en minutes par charge) ; les autres sources ne se rechargent
+pas encore.
 
 Avec le MJ, les phrases libres passent par `repondre_au_joueur` : soit une réponse narrative,
 soit une proposition d’action. Le MJ rédige sa réponse à partir des faits publics, des événements
@@ -679,7 +713,9 @@ compteur sauvegardés. Les échecs consomment aussi le temps prévu et produisen
 Le MJ peut proposer `action: composer` avec une à six étapes au lieu d'un verbe spécialisé.
 Le langage comprend `patienter`, `deplacer`, `detacher`, `allumer`, `eteindre`, les gestes
 d'appui et de son, ainsi que `ouvrir`, `fermer`, `deverrouiller`, `crocheter`, `couper`,
-`frapper`, `bloquer` et `debloquer`, compilés avec les règles de l'action seule : « je crochète
+`frapper`, `bloquer` et `debloquer`, compilés avec les règles de l'action seule, et `alimenter`
+(recharger un foyer avec un combustible porté, une minute, sans jet ; une charge prolonge le
+feu sans le rallumer ; commande locale `alimenter brasero avec fagots`) : « je crochète
 la porte, je l'ouvre et je la cale avec le marteau » forme une seule séquence.
 Les commandes locales `prendre`, `poser`, `voler`, `retirer`, `allumer` et `éteindre` sont traduites
 vers ces mêmes opérations ; elles ne possèdent plus leur propre chemin de résolution.

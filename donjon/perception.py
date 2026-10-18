@@ -197,6 +197,28 @@ class CarteLumiere:
         return _resultat(contributions)
 
 
+FEU_FAIBLE = 45   # minutes de combustible en deçà desquelles on voit le feu baisser
+
+
+def faible(o):
+    return bool(o.get("allume")) and o.get("combustible", 0) <= FEU_FAIBLE
+
+
+def combustible(o):
+    """Une réserve qui peut recharger un foyer : une charge par geste, tant qu'il en reste."""
+    return "combustible" in o.get("usages", []) and o.get("charges", 0) > 0
+
+
+def alimenter(monde, foyer, bois):
+    """Une charge de combustible prolonge le feu d'un foyer, allumé ou non."""
+    f, b = monde.objets[foyer], monde.objets[bois]
+    if not f.get("foyer") or not combustible(b):
+        return False
+    b["charges"] -= 1
+    f["combustible"] += b["duree_combustion"]
+    return True
+
+
 def avancer_combustion(monde, minutes, lignes):
     for o in monde.objets.values():
         if not o.get("allume"):

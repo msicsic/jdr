@@ -374,7 +374,7 @@ class Moteur:
     @staticmethod
     def _terminer_etape(travail, plan, lignes):
         Moteur._stabiliser(travail, lignes)
-        avancer_combustion(travail, plan.minutes, lignes)
+        # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         travail.data["minutes"] += plan.minutes
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour.
@@ -506,6 +506,11 @@ class Moteur:
         elif op == "allumage":
             o["allume"] = valeur
             lignes.append(designer(o, debut=True) + (" s'allume." if valeur else " s'éteint."))
+        elif op == "alimentation":
+            from .perception import alimenter
+            alimenter(m, cible, valeur)
+            lignes.append(designer(o, debut=True) + " est " + accorder(o, "rechargé") + " avec "
+                          + designer(m.objets[valeur]) + ".")
         elif op == "deplacer":
             deplacer(m, cible, valeur)
             lignes.append(designer(o, debut=True) + (" rejoint votre besace." if valeur == "joueur" else " est " + accorder(o, "posé") + " au sol."))

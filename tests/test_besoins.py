@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tests.support import sans_evacues
+from tests.support import refusee, sans_evacues
 from donjon import banc_pnj
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percoit
@@ -24,7 +24,7 @@ def recharger(monde):
 
 
 def relais():
-    m = sans_evacues(nouveau_defi())
+    m = refusee(sans_evacues(nouveau_defi()))
     installer(m)
     return m
 
@@ -52,7 +52,7 @@ class GardeMangerTests(unittest.TestCase):
         self.assertEqual(m.objets["crochets"]["lieu"], "brune")
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         self.assertTrue(m.objets["reserve"]["ouverte"])
-        self.assertEqual(m.objets["vivres"]["portions"], 5)
+        self.assertEqual(m.objets["vivres"]["portions"], 3)
         self.assertLess(lire(m, "brune")["besoins"]["faim"], 70)
         textes = chronique(m)
         self.assertIn("Brune, batelière évacuée prend la trousse de crochets.", textes)
@@ -67,7 +67,7 @@ class GardeMangerTests(unittest.TestCase):
         m.joueur["position"] = [6, 4]
         m, texte = attendre(m, 8)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
-        self.assertEqual(m.objets["vivres"]["portions"], 6)
+        self.assertEqual(m.objets["vivres"]["portions"], 4)
         self.assertEqual(m.objets["crochets"]["lieu"], "brune")
         self.assertIn("renoncement", [s["type"] for s in lire(m, "brune")["memoire"]])
         self.assertTrue(m.visible("brune"))
@@ -83,7 +83,7 @@ class GardeMangerTests(unittest.TestCase):
         self.assertIn("absence", [s["type"] for s in lire(m, "brune")["memoire"]])
         self.assertIsNone(lire(m, "brune")["intention"])
         self.assertTrue(m.objets["reserve"]["verrouillee"])
-        self.assertEqual(m.objets["vivres"]["portions"], 6)
+        self.assertEqual(m.objets["vivres"]["portions"], 4)
 
     def test_le_joueur_tapi_dans_l_ombre_la_surprend(self):
         m = relais()
@@ -178,15 +178,19 @@ class ProfilTests(unittest.TestCase):
         with self.assertRaises(ErreurMonde):
             Monde(mauvais)
         m, _ = attendre(absent(m), 12)
-        self.assertAlmostEqual(lire(m, "marchand")["besoins"]["faim"], 20 + 4, places=1)
+        faim = m.objets["marchand"]["profil"]["besoins"]["faim"]
+        self.assertAlmostEqual(lire(m, "marchand")["besoins"]["faim"], faim["depart"] + faim["derive_heure"], places=1)
 
     def test_banc_sans_joueur(self):
         with patch("sys.stdout", io.StringIO()) as sortie:
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche"]), 0)
-        # Relais complet : affamée, Brune finit par crocheter sous les yeux des évacués, qui le disent à Gorm.
-        self.assertIn("crochète la serrure", sortie.getvalue())
-        self.assertIn("dit à Gorm que Brune", sortie.getvalue())
+        # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
+        # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.
+        self.assertIn("Brune demande une part des vivres du refuge à Gorm (promis).", sortie.getvalue())
+        self.assertIn("Gorm appelle Brune et lui donne une part des vivres du refuge.", sortie.getvalue())
         self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())
+        self.assertIn("se chauffe près du brasero.", sortie.getvalue())
+        self.assertIn("Gorm, gardien du relais alimente le brasero.", sortie.getvalue())
         self.assertIn("Mesures :", sortie.getvalue())
 
 

@@ -10,12 +10,13 @@ par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 from .esprits import RECENT, esprit, lire, memoriser
 from .spatial import porte_par
 
-BESOINS = ("devoir", "biens", "securite", "faim", "repos")
+BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger", "inspecter", "reposer", "servir", "dire", "demander", "confier", "remettre")
-PROGRESSIFS = ("aller", "reposer")  # gestes qui durent : une minute sans les finir n'est pas un échec
+              "crocheter", "manger", "inspecter", "reposer", "chauffer", "alimenter", "allumer", "servir",
+              "dire", "demander", "confier", "remettre")
+PROGRESSIFS = ("aller", "reposer", "chauffer")  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "confier", "remettre")
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
@@ -25,6 +26,11 @@ VOL = 60               # un vol vu par sa victime
 SATIETE = 50           # un repas
 REPOS_MINUTE = 2       # repos regagné par minute passée à se reposer
 REPOS_FIN = 20         # reposé : il se relève
+CHALEUR_MINUTE = 3     # chaleur regagnée par minute passée près d'un foyer allumé
+CHALEUR_FIN = 20       # réchauffé : il s'écarte du feu
+REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient de refuser
+ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
+REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu
 STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
@@ -52,13 +58,15 @@ def verifier_profil(monde, id, p):
 
 def condition_valide(monde, c):
     """Vocabulaire commun des buts : un objet en un lieu, un objet verrouillé, une ronde,
-    une part de nourriture servie à quelqu'un."""
+    une part de nourriture servie à quelqu'un, un feu entretenu."""
     return isinstance(c, dict) and (
         (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
         or (set(c) == {"objet", "servir"} and c["objet"] in monde.objets
             and monde.objets[c["objet"]]["type"] == "nourriture" and c["servir"] in monde.objets
             and monde.objets[c["servir"]]["type"] == "personnage")
         or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
+        or (set(c) == {"objet", "allume"} and c["objet"] in monde.objets and "allume" in monde.objets[c["objet"]]
+            and c["allume"] is True)
         or (set(c) == {"lieu", "periode"} and c["lieu"] in monde.data["salles"]
             and type(c["periode"]) is int and c["periode"] > 0))
 
@@ -126,12 +134,46 @@ def periodique(condition):
     return "periode" in condition
 
 
+def s_use(condition):
+    """Une ronde expire, un feu baisse : d'eux-mêmes, sans que personne y ait porté atteinte."""
+    return periodique(condition) or "allume" in condition
+
+
+def _disponible_cru(monde, id, objet):
+    """Une nourriture ou une réserve qu'il a vue épuisée ne lui sert plus."""
+    etat = _cru(monde, id, objet, "etat")
+    return not etat or etat.get("disponible", True)
+
+
+def refuse_recemment(monde, id, autre, operation, objet=None):
+    """Le dernier refus de cet échange, s'il date de moins de ``REDEMANDE`` minutes."""
+    return next((s for s in reversed(lire(monde, id)["memoire"])
+                 if s["type"] == "refus" and s["de"] == autre and s["operation"] == operation
+                 and s.get("objet", objet) == objet and monde.data["minutes"] - s["minute"] < REDEMANDE), None)
+
+
+def promesse_en_cours(monde, id, objet):
+    """Une part promise et pas encore servie, dans le délai où il l'attend."""
+    for s in reversed(lire(monde, id)["memoire"]):
+        if s["type"] == "nourri" and s.get("objet") == objet:
+            return None
+        if s["type"] == "promis" and s["objet"] == objet:
+            return s["de"] if monde.data["minutes"] - s["minute"] < ATTENTE_PART else None
+    return None
+
+
 def satisfaite(monde, id, condition):
     if "servir" in condition:
         return False  # Une part servie solde l'engagement au moment du geste.
     if periodique(condition):
         vu = lire(monde, id)["visites"].get(condition["lieu"])
         return vu is not None and monde.data["minutes"] - vu < condition["periode"]
+    if "allume" in condition:
+        # Un feu qui baisse n'est plus entretenu ; un feu vu vif il y a longtemps n'est plus sûr :
+        # il faut aller le voir, et le recharger tant qu'il reste le temps d'aller chercher du bois.
+        c = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
+        return bool(c and c["valeur"].get("allume") and not c["valeur"].get("faible")
+                    and monde.data["minutes"] - c["minute"] < REVOIR_FEU)
     if "lieu" in condition:
         # Le tenir soi-même ne suffit pas : l'objet doit être déposé (ou tenu par un autre) sur place.
         return (not porte_par(monde, condition["objet"], id)
@@ -199,6 +241,23 @@ class Plan:
         self.ajouter("aller", lieu=cible)
         self.salle = cible
 
+    def rejoindre(self, sujet):
+        """Aller là où il croit trouver quelqu'un ; s'il en a perdu la trace, le chercher dans la
+        salle accessible qu'il a parcourue le moins récemment. Vrai s'il sait où le trouver."""
+        from .pnj import chemin
+        salle = salle_crue(self.monde, self.id, sujet)
+        if salle is not None:
+            self.aller(salle)
+            return True
+        visites = lire(self.monde, self.id)["visites"]
+        routes = {s: chemin(self.monde, self.id, self.salle, s, self.portes) for s in self.monde.data["salles"]}
+        routes = {s: r for s, r in routes.items() if r is not None}
+        # La salle où il se tient compte : il la parcourt des yeux avant d'aller plus loin.
+        salle = min(routes, key=lambda s: (visites.get(s, -1), len(routes[s]), s))
+        self.aller(salle)
+        self.ajouter("inspecter", lieu=salle)
+        return False
+
     def cle(self, cible):
         return next((k for k in _connus(self.monde, self.id)
                      if cible in self.monde.objets[k].get("ouvre", [])
@@ -206,7 +265,7 @@ class Plan:
 
     def outil(self, usage):
         return next((k for k in _connus(self.monde, self.id)
-                     if usage in self.monde.objets[k].get("usages", [])
+                     if usage in self.monde.objets[k].get("usages", []) and _disponible_cru(self.monde, self.id, k)
                      and (k in self.portes or autorise(self.monde, self.id, k))), None)
 
     def obtenir(self, objet, profondeur=0):
@@ -254,28 +313,58 @@ class Plan:
 
 
 def _plan_manger(monde, id):
-    for f in _connus(monde, id):
-        o = monde.objets[f]
-        etat = _cru(monde, id, f, "etat")
-        if o["type"] != "nourriture" or (etat and not etat.get("disponible", True)):
-            continue
-        if not (porte_par(monde, f, id) or autorise(monde, id, f)):
+    """Ce qui est à lui ou à personne ; sinon une part promise ou demandée à qui possède les
+    vivres ; sinon, s'il n'a pas de scrupule, le bien d'autrui."""
+    nourritures = [f for f in _connus(monde, id)
+                   if monde.objets[f]["type"] == "nourriture" and _disponible_cru(monde, id, f)]
+    licites = [f for f in nourritures if porte_par(monde, f, id) or not illicite(monde, id, f)]
+    for resultat in (*(_plan_repas(monde, id, f) for f in licites), _plan_part(monde, id, nourritures),
+                     *(_plan_repas(monde, id, f) for f in nourritures if f not in licites and autorise(monde, id, f))):
+        if resultat:
+            return resultat
+    return None
+
+
+def _plan_repas(monde, id, f):
+    p = Plan(monde, id)
+    try:
+        if f not in p.portes:
+            lieu = _lieu_cru(monde, id, f)
+            if lieu in monde.data["salles"]:
+                p.aller(lieu)
+            elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
+                p.acceder(lieu)
+            else:
+                raise Echec
+        p.ajouter("manger", f, condition="" if f in p.portes else p.condition(f))
+        p.retablir()
+    except Echec:
+        return None
+    return {"type": "manger", "objet": f}, p.etapes
+
+
+def _plan_part(monde, id, nourritures):
+    """Une part promise s'attend près des vivres, où le donneur viendra la servir ; sinon on la
+    demande à leur propriétaire, sauf s'il vient de refuser."""
+    from .vol import proprietaire
+    for f in nourritures:
+        donneur = proprietaire(monde, monde.objets[f])
+        if donneur in (None, id, "joueur") or not profil(monde, donneur):
             continue
         p = Plan(monde, id)
         try:
-            if f not in p.portes:
-                lieu = _lieu_cru(monde, id, f)
-                if lieu in monde.data["salles"]:
-                    p.aller(lieu)
-                elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
-                    p.acceder(lieu)
-                else:
+            if promesse_en_cours(monde, id, f) == donneur:
+                salle = salle_crue(monde, id, f)
+                if salle is None:
                     raise Echec
-            p.ajouter("manger", f, condition="" if f in p.portes else p.condition(f))
-            p.retablir()
-            return {"type": "manger", "objet": f}, p.etapes
+                p.aller(salle)
+            elif refuse_recemment(monde, id, donneur, "demander", f):
+                continue
+            elif p.rejoindre(donneur):
+                p.ajouter("demander", donneur, outil=f)
         except Echec:
             continue
+        return {"type": "part", "objet": f, "de": donneur}, p.etapes
     return None
 
 
@@ -300,6 +389,30 @@ def _plan_pulsion(monde, id, condition):
             p.obtenir(condition["objet"])
             p.aller(condition["lieu"])
             p.ajouter("poser", condition["objet"], lieu=condition["lieu"])
+        elif "allume" in condition:
+            # Recharger le feu avec un combustible qu'il peut prendre ; le rallumer s'il est éteint.
+            foyer, bois = condition["objet"], p.outil("combustible")
+            salle, etat = salle_crue(monde, id, foyer), _cru(monde, id, foyer, "etat") or {}
+            if salle is None:
+                raise Echec
+            if not etat or etat.get("allume") and not etat.get("faible"):
+                p.aller(salle)  # Vu vif il y a longtemps, ou jamais vu : il va voir où il en est.
+                p.ajouter("inspecter", lieu=salle)
+                return {"type": "pulsion", **condition}, p.etapes
+            # Un feu qui baisse, ou un foyer froid et vide, attend du bois ; éteint, il faut l'allumer.
+            eteint = etat.get("allume") is False
+            vide = etat.get("faible") or not etat.get("charge", True)
+            briquet = p.outil("allumage") if eteint else None
+            if vide and bois is None or eteint and briquet is None:
+                raise Echec
+            for outil in (bois if vide else None, briquet):
+                if outil:
+                    p.obtenir(outil)
+            p.aller(salle)
+            if vide:
+                p.ajouter("alimenter", foyer, outil=bois)
+            if briquet:
+                p.ajouter("allumer", foyer, outil=briquet)
         else:
             cible = condition["objet"]
             cle = p.cle(cible)
@@ -322,6 +435,24 @@ def _plan_reposer(monde, id):
     p = Plan(monde, id)
     p.ajouter("reposer")
     return {"type": "repos"}, p.etapes
+
+
+def _plan_chauffer(monde, id):
+    """Aller se tenir près d'un foyer qu'il croit allumé."""
+    for f in _connus(monde, id):
+        if not monde.objets[f].get("foyer") or not (_cru(monde, id, f, "etat") or {}).get("allume"):
+            continue
+        salle = salle_crue(monde, id, f)
+        p = Plan(monde, id)
+        try:
+            if salle is None:
+                raise Echec
+            p.aller(salle)
+        except Echec:
+            continue
+        p.ajouter("chauffer", f)
+        return {"type": "chaleur", "objet": f}, p.etapes
+    return None
 
 
 def ouvert_par_soi(monde, id, objet, depuis):
@@ -372,36 +503,61 @@ def confie_a_autrui(monde, id, objet):
     return bool(p) and any(x["condition"].get("objet") == objet and _delegue(monde, id, x) for x in p["pulsions"])
 
 
+# Besoins qu'un geste qui dure apaise : la méthode, et le seuil où il s'achève.
+PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_chauffer, CHALEUR_FIN)}
+
+
+def retabli_par_son_plan(monde, id, condition):
+    """Ce qu'il défait lui-même pour un plan qui le rétablit n'est pas à réparer d'abord, tant
+    que le motif de ce plan presse encore (un besoin urgent, une parole à tenir)."""
+    e = lire(monde, id)
+    i = e["intention"]
+    if not (condition.get("verrouillee") and i and any(
+            x["operation"] == "verrouiller" and x["cible"] == condition["objet"] for x in i["plan"])):
+        return False
+    but = {k: v for k, v in i["but"].items() if k != "type"}
+    return i["motif"] in urgents(monde, id) or i["motif"] == "engagement" and any(
+        x["condition"] == but for x in e["engagements"])
+
+
 def candidats(monde, id):
-    """Buts envisageables, du besoin le plus pressant au moins pressant, puis les engagements."""
+    """Buts envisageables, du besoin le plus pressant au moins pressant ; la routine (rondes,
+    surveillance) passe après ce qui presse vraiment et après une tâche acceptée."""
     p, e = profil(monde, id), esprit(monde, id)
+    buts = []
     for besoin in urgents(monde, id):
         if besoin == "faim":
-            yield besoin, _plan_manger
+            buts.append((besoin, _plan_manger, False))
             continue
-        if besoin == "repos":
-            yield besoin, _plan_reposer
+        if besoin in PROGRES:
+            buts.append((besoin, PROGRES[besoin][0], False))
             continue
         pulsions = [x for x in p["pulsions"] if x["besoin"] == besoin]
         for x in pulsions:
-            if not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x):
-                yield besoin, lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c)
+            if (not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)
+                    and not retabli_par_son_plan(monde, id, x["condition"])):
+                # Une ronde peut attendre qu'il ait tenu parole ; un feu à voir ou à recharger, non.
+                buts.append((besoin, lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c),
+                             periodique(x["condition"])))
         if besoin == "biens":
             for x in pulsions:
                 if periodique(x["condition"]):
                     continue
-                yield besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c)
-    # Une tâche acceptée se fait quand rien de plus pressant n'a de plan.
-    for engagement in e["engagements"]:
-        yield "engagement", lambda m, i, c=engagement["condition"]: _plan_pulsion(m, i, c)
+                buts.append((besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True))
+    buts += [("engagement", lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), False) for x in e["engagements"]]
     # Ce qu'il garde sous clé et a lui-même ouvert, il le referme sans attendre l'urgence.
     for x in p["pulsions"]:
         c = x["condition"]
-        if c.get("verrouillee") and ouvert_par_soi(monde, id, c["objet"], RECENT) and not satisfaite(monde, id, c):
-            yield x["besoin"], lambda m, i, c=c: _plan_pulsion(m, i, c)
-    # Assis pour se reposer, il ne se relève qu'une fois reposé, ou pour plus pressant.
-    if e["intention"] and e["intention"]["but"] == {"type": "repos"} and e["besoins"].get("repos", 0) > REPOS_FIN:
-        yield "repos", _plan_reposer
+        if (c.get("verrouillee") and ouvert_par_soi(monde, id, c["objet"], RECENT) and not satisfaite(monde, id, c)
+                and not retabli_par_son_plan(monde, id, c)):
+            buts.append((x["besoin"], lambda m, i, c=c: _plan_pulsion(m, i, c), False))
+    # Assis pour se reposer, ou près du feu, il ne s'en va qu'une fois remis, ou pour plus pressant.
+    for besoin, (methode, fin) in PROGRES.items():
+        if e["intention"] and e["intention"]["motif"] == besoin and e["besoins"].get(besoin, 0) > fin:
+            buts.append((besoin, methode, False))
+    # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.
+    for besoin, methode, _ in sorted(buts, key=lambda x: x[2]):
+        yield besoin, methode
 
 
 def deliberer(monde, id, minute):
@@ -415,8 +571,8 @@ def deliberer(monde, id, minute):
         e["besoins"][nom] = round(min(100.0, max(0.0, e["besoins"][nom] + b["derive_heure"] / 60)), 3)
     for i, x in enumerate(p["pulsions"]):
         etat = satisfaite(monde, id, x["condition"])
-        # Une ronde expire d'elle-même : ce n'est pas une atteinte.
-        if (e["pulsions"][i] and not etat and not periodique(x["condition"])
+        # Une ronde expire, un feu baisse d'eux-mêmes : ce n'est pas une atteinte.
+        if (e["pulsions"][i] and not etat and not s_use(x["condition"])
                 and not de_son_fait(monde, id, x["condition"])):
             # Ses biens forcés ou déplacés : un vol découvert, même sans coupable.
             relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)

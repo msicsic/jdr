@@ -56,7 +56,9 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             morceaux.append(o["humeur"])
     if o.get("cale_de"):
         complements.append("Cet objet maintient la porte ouverte")
-    if "charges" in o and technique:
+    if o.get("charges") == 0:
+        complements.append("Il n'en reste plus")
+    elif "charges" in o and technique:
         complements.append(f'Il reste {o["charges"]} utilisation' + ("s" if o["charges"] > 1 else ""))
     if "allume" in o:
         morceaux.append(accorder(o, "allumé" if o["allume"] else "éteint"))
@@ -121,7 +123,8 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             noms = {"levier_fin": "petit levier fragile", "couper": "couper",
                     "levier": "levier robuste", "percussion": "frapper",
                     "cale": "caler", "crochetage": "crocheter", "empreinte": "prendre une empreinte",
-                    "allumage": "allumer une source de lumière", "couper_bois": "découper du bois"}
+                    "allumage": "allumer une source de lumière", "couper_bois": "découper du bois",
+                    "combustible": "recharger un feu"}
             texte += " Usages usuels : " + ", ".join(noms[u] for u in o["usages"]) + "."
     return texte
 

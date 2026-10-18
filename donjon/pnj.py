@@ -20,7 +20,7 @@ CHRONIQUE_MAX = 300
 NATURES = ("deplacement", "geste", "social", "decision")
 # Gestes qui demandent d'être au contact de la cible : un objet, ou celui à qui l'on parle.
 CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger",
-                         "servir", "remettre", "dire", "demander", "confier"), True)
+                         "alimenter", "allumer", "servir", "remettre", "dire", "demander", "confier"), True)
 
 
 def verifier(monde):
@@ -299,7 +299,10 @@ def _executer(monde, id, etape, lignes, gestes):
     c = monde.objets.get(cible)
     if c is None:
         return False
-    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "servir", "prendre"):
+    if op == "chauffer":
+        return _chauffer(monde, id, cible, lignes)
+    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "servir", "prendre",
+              "alimenter", "allumer"):
         if not _accessible(monde, id, cible):
             return _rate(monde, id, cible)
     if outil and not _porte(monde, outil, id):
@@ -356,10 +359,41 @@ def _executer(monde, id, etape, lignes, gestes):
         from .echanges import servir
         if not servir(monde, id, cible, etape.get("contenu", {}).get("pour"), lignes):
             return False
+    elif op == "alimenter":
+        from .perception import alimenter
+        if not alimenter(monde, cible, outil):
+            croire(monde, id, outil, "etat", {"disponible": False}, "essai")
+            return False
+        _raconter(monde, id, "alimente", c, lignes)
+    elif op == "allumer":
+        if c.get("allume") is not False or c["integrite"] == 0 or "allumage" not in monde.objets[outil].get("usages", []):
+            return False
+        if c.get("combustible", 0) <= 0:
+            return _rate(monde, id, cible, "etat", {"allume": False, "faible": False, "charge": False})
+        c["allume"] = True
+        _raconter(monde, id, "allume", c, lignes)
     if faute:
         gestes.append((id, op, cible))
         _temoigner(monde, id, op, cible)
     return True
+
+
+def _chauffer(monde, id, foyer, lignes):
+    """Une minute près d'un foyer allumé de sa salle ; le geste s'achève quand il est réchauffé."""
+    from .deliberation import CHALEUR_FIN, CHALEUR_MINUTE
+    e, f = esprit(monde, id), monde.objets[foyer]
+    if "chaleur" not in e["besoins"]:
+        return True
+    if not monde.present_physique(foyer, salle=monde.objets[id]["lieu"]):
+        return _rate(monde, id, foyer)
+    if not f.get("allume"):
+        return _rate(monde, id, foyer, "etat", {"allume": False, "faible": False, "charge": f["combustible"] > 0})
+    depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
+    if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in e["memoire"]):
+        memoriser(monde, id, {"type": "se_chauffe", "objet": foyer})
+        _raconter(monde, id, "se chauffe près de", f, lignes)
+    e["besoins"]["chaleur"] = max(0.0, e["besoins"]["chaleur"] - CHALEUR_MINUTE)
+    return e["besoins"]["chaleur"] <= CHALEUR_FIN
 
 
 def _reposer(monde, id, lignes):
@@ -453,6 +487,7 @@ def _annoncer_presences(monde, vus, apparus, lignes):
 def avancer(monde, minutes, lignes):
     """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
     from .deliberation import deliberer
+    from .perception import avancer_combustion
     from .social import bavarder
     fin = monde.data["minutes"]
     ids = pnjs(monde)
@@ -460,6 +495,7 @@ def avancer(monde, minutes, lignes):
     apparus = []
     for k in range(minutes):
         minute = monde.data["minutes"] = fin - minutes + k + 1
+        avancer_combustion(monde, 1, lignes)
         gestes = []
         for id in ids:
             if monde.objets[id].get("profil"):

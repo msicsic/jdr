@@ -16,6 +16,7 @@ from donjon.paroles import esprits_interlocuteurs
 from donjon.social import RANG_MAX
 from donjon.spatial import installer
 from donjon.vol import mefiance
+from tests.support import refusee
 
 
 def recharger(monde):
@@ -178,7 +179,7 @@ class VolDecouvertTests(unittest.TestCase):
         self.assertNotIn("fiable", lire(m, "marchand")["croyances"].get("joueur", {}))
 
     def test_temoin_qui_entre_pendant_le_geste(self):
-        m = calme(relais(), "marchand", "ilse", "aubin")
+        m = calme(refusee(relais()), "marchand", "ilse", "aubin")
         # Placement d'auteur : Brune, crochets en main, mange dans la réserve ouverte ; Ilse est
         # derrière le pilier et va parcourir le refuge des yeux pendant cette minute.
         m.objets["reserve"].update(verrouillee=False, ouverte=True)
@@ -213,7 +214,7 @@ class RondeTests(unittest.TestCase):
 
     def test_aubin_va_aux_vannes_et_revient(self):
         m = calme(relais(), "marchand", "brune", "ilse")
-        lire(m, "aubin")["besoins"]["securite"] = 70.0
+        lire(m, "aubin")["besoins"].update(securite=70.0, chaleur=0.0)
         m.joueur.update(salle="chambre_cloche", position=[1, 3])
         m, _ = attendre(recharger(m), 2)
         textes = chronique(m)
@@ -229,7 +230,7 @@ class RondeTests(unittest.TestCase):
 
 class DesespoirTests(unittest.TestCase):
     def brune_devant_ilse(self, faim):
-        m = calme(relais(), "marchand", "ilse", "aubin")
+        m = calme(refusee(relais()), "marchand", "ilse", "aubin")
         m.objets["crochets"]["lieu"] = "brune"
         m.objets["crochets"].pop("position", None)
         lire(m, "brune")["besoins"]["faim"] = faim
