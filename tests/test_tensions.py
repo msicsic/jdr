@@ -13,7 +13,7 @@ from donjon.deliberation import REDEMANDE, candidats
 from donjon.defi import nouveau_defi
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import demander
-from donjon.esprits import croire, lire, percevoir_tous
+from donjon.esprits import croire, lire, memoriser, percevoir_tous
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
@@ -198,16 +198,47 @@ class FeuTests(unittest.TestCase):
 
     def test_sans_briquet_il_rallume_le_brasero_a_la_torche(self):
         m = self.eteint_sans_briquet()
+        # Placement d'auteur : la torche brûle au refuge.
+        m.objets["torche"]["allume"] = True
         percevoir_tous(m)
         m, _ = vivre(m, 8)
         self.assertTrue(m.objets["brasero"]["allume"])
         self.assertEqual(m.objets["torche"]["lieu"], "marchand")
-        self.assertTrue(m.objets["torche"]["allume"])
+        # Le feu pris, la torche ne sert plus : il l'éteint et la garde pour plus tard.
+        self.assertFalse(m.objets["torche"]["allume"])
+        self.assertGreater(m.objets["torche"]["combustible"], 0)
         textes = chronique(m)
+        self.assertLess(textes.index("Gorm, gardien du relais allume le brasero."),
+                        textes.index("Gorm, gardien du relais éteint la torche."))
         self.assertLess(textes.index("Gorm, gardien du relais prend la torche."),
                         textes.index("Gorm, gardien du relais alimente le brasero."))
         self.assertLess(textes.index("Gorm, gardien du relais alimente le brasero."),
                         textes.index("Gorm, gardien du relais allume le brasero."))
+
+    def test_le_joueur_voit_gorm_rallumer_le_feu_a_la_torche_du_fanal(self):
+        m = self.eteint_sans_briquet()
+        m.objets["torche"]["allume"] = False
+        # Le joueur, dans la conduite, sa lanterne allumée, assiste au retour du feu.
+        m.joueur.update(salle="echoppe", position=[4, 5])
+        percevoir_tous(m)
+        m, texte = attendre(recharger(m), 3)
+        self.assertTrue(m.objets["brasero"]["allume"])
+        self.assertIn("Gorm, gardien du relais allume le brasero.", texte)
+        self.assertIn("Gorm, gardien du relais éteint la torche.", texte)
+        self.assertFalse(m.objets["torche"]["allume"])
+
+    def test_une_flamme_employee_qui_ne_sert_plus_est_eteinte_et_gardee(self):
+        m = self.gorm(150)
+        # Placement d'auteur : Gorm tient la torche qui lui a servi, et une lanterne pour y voir.
+        for id in ("torche", "lanterne"):
+            deplacer(m, id, "marchand")
+            m.objets[id]["allume"] = True
+        memoriser(m, "marchand", {"type": "flamme_employee", "objet": "torche"})
+        m, _ = vivre(m, 2)
+        self.assertFalse(m.objets["torche"]["allume"])
+        self.assertEqual(m.objets["torche"]["lieu"], "marchand")
+        self.assertTrue(m.objets["lanterne"]["allume"])
+        self.assertIn("Gorm, gardien du relais éteint la torche.", chronique(m))
 
     def test_torche_eteinte_il_l_allume_au_fanal_puis_rallume_le_brasero(self):
         m = self.eteint_sans_briquet()

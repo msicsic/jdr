@@ -14,7 +14,7 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger", "inspecter", "reposer", "chauffer", "alimenter", "allumer", "servir",
+              "crocheter", "manger", "inspecter", "reposer", "chauffer", "alimenter", "allumer", "eteindre", "servir",
               "dire", "demander", "confier", "remettre")
 PROGRESSIFS = ("aller", "reposer", "chauffer")  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "confier", "remettre")
@@ -735,6 +735,27 @@ def deliberer(monde, id, minute):
         return
     e["intention"] = None
     stratege.desoeuvre(monde, id, minute, urgents(monde, id))
+
+
+def menager_flamme(monde, id, minute):
+    """Une flamme portable qu'il a allumée ou employée pour allumer, et que son plan n'emploie
+    plus, se consume pour rien : il l'éteint d'abord, et la garde pour plus tard. Une lanterne
+    portée pour y voir n'est pas concernée."""
+    from .perception import allumee
+    e = esprit(monde, id)
+    plan = e["intention"]["plan"] if e["intention"] else []
+    vises = {x["cible"] for x in plan} | {x["outil"] for x in plan}
+    allumees = {s["objet"] for s in e["memoire"] if s["type"] == "flamme_employee"}
+    flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
+                   and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
+    if flamme is None:
+        return
+    geste = {"operation": "eteindre", "cible": flamme, "outil": "", "lieu": "", "condition": ""}
+    if e["intention"]:
+        plan.insert(0, geste)
+    else:
+        e["intention"] = {"but": {"type": "menager", "objet": flamme}, "motif": "menager", "plan": [geste],
+                          "depuis": minute, "attente": 0}
 
 
 def renoncer(monde, id, minute):
