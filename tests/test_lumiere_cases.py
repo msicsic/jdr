@@ -53,7 +53,7 @@ class LumiereCasesTests(unittest.TestCase):
         m = relais()
         Moteur(m).executer(Moteur(m).preparer(proposition("eteindre", "lanterne")))
         # Placement d'auteur : la torche allumée brûle au fond du refuge.
-        m.objets["torche"]["position"] = [8, 1]
+        m.objets["torche"].update(position=[8, 1], allume=True)
         reprise = recharger(m)
         self.assertEqual(eclairage(reprise)["niveau"], 1)
         self.assertIn("Dans la pénombre", regarder(reprise))

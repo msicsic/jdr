@@ -302,11 +302,13 @@ def _executer(monde, id, etape, lignes, gestes):
     if op == "chauffer":
         return _chauffer(monde, id, cible, lignes)
     if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "servir", "prendre",
-              "alimenter", "allumer"):
+              "alimenter", "allumer", "eteindre"):
         if not _accessible(monde, id, cible):
             return _rate(monde, id, cible)
     if outil and not _porte(monde, outil, id):
-        return _rate(monde, id, outil)
+        # Une flamme fixe ne se déplace pas : on lui apporte, en main, la source à allumer.
+        if not (op == "allumer" and _porte(monde, cible, id) and _accessible(monde, id, outil)):
+            return _rate(monde, id, outil)
     faute = illicite(monde, id, cible)
     if op == "prendre":
         if not c.get("mobile"):
@@ -366,12 +368,34 @@ def _executer(monde, id, etape, lignes, gestes):
             return False
         _raconter(monde, id, "alimente", c, lignes)
     elif op == "allumer":
-        if c.get("allume") is not False or c["integrite"] == 0 or "allumage" not in monde.objets[outil].get("usages", []):
+        from .perception import flamme
+        t = monde.objets[outil]
+        if c.get("allume") is not False or c["integrite"] == 0 or outil == cible:
+            return False
+        if not flamme(t):
+            # La flamme sur laquelle il comptait s'est éteinte : il le constate.
+            if "allume" in t:
+                return _rate(monde, id, outil, "etat", {"allume": False, "faible": False,
+                                                         "charge": t.get("combustible", 0) > 0})
             return False
         if c.get("combustible", 0) <= 0:
             return _rate(monde, id, cible, "etat", {"allume": False, "faible": False, "charge": False})
         c["allume"] = True
         _raconter(monde, id, "allume", c, lignes)
+        # Une flamme portable allumée ou employée pour ce geste : il saura la ménager ensuite.
+        for flamme in (cible, outil):
+            if monde.objets[flamme].get("mobile") and "allume" in monde.objets[flamme]:
+                memoriser(monde, id, {"type": "flamme_employee", "objet": flamme})
+    elif op == "eteindre":
+        if not c.get("allume"):
+            return True
+        c["allume"] = False
+        _raconter(monde, id, "éteint", c, lignes)
+    # Ce qu'il vient de faire de ses mains, il le sait, même dans le noir.
+    from .esprits import constater
+    for objet in (cible, outil):
+        if objet in monde.objets:
+            constater(monde, id, objet, "essai")
     if faute:
         gestes.append((id, op, cible))
         _temoigner(monde, id, op, cible)
@@ -486,7 +510,7 @@ def _annoncer_presences(monde, vus, apparus, lignes):
 
 def avancer(monde, minutes, lignes):
     """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
-    from .deliberation import deliberer
+    from .deliberation import deliberer, menager_flamme
     from .perception import avancer_combustion
     from .social import bavarder
     fin = monde.data["minutes"]
@@ -500,6 +524,7 @@ def avancer(monde, minutes, lignes):
         for id in ids:
             if monde.objets[id].get("profil"):
                 deliberer(monde, id, minute)
+                menager_flamme(monde, id, minute)
             intention = lire(monde, id)["intention"]
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):

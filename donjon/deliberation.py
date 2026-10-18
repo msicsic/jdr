@@ -14,7 +14,7 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger", "inspecter", "reposer", "chauffer", "alimenter", "allumer", "servir",
+              "crocheter", "manger", "inspecter", "reposer", "chauffer", "alimenter", "allumer", "eteindre", "servir",
               "dire", "demander", "confier", "remettre")
 PROGRESSIFS = ("aller", "reposer", "chauffer")  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "confier", "remettre")
@@ -32,6 +32,7 @@ REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient
 ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
 REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu
+INERTIE = 5            # points au-delà du seuil avant qu'un besoin interrompe un plan en cours
 STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
 
@@ -39,9 +40,27 @@ def profil(monde, id):
     return monde.objets[id].get("profil")
 
 
+def reserve(monde, id):
+    """Parts qu'un personnage garde pour lui de chaque ressource comptée qu'il possède."""
+    return (profil(monde, id) or {}).get("reserve", 1)
+
+
+def besoin_de_part(o):
+    """Le besoin qu'une part de cette ressource apaise : la faim des vivres, le froid du combustible."""
+    if o["type"] == "nourriture":
+        return "faim"
+    return "chaleur" if "combustible" in o.get("usages", []) else None
+
+
+def parts(o):
+    return o.get("portions", o.get("charges", 0))
+
+
 def verifier_profil(monde, id, p):
-    assert (isinstance(p, dict) and set(p) == {"caracteristiques", "traits", "limites", "capacites",
-                                               "besoins", "pulsions"}), "Profil de PNJ mal formé"
+    assert (isinstance(p, dict) and {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions"}
+            <= set(p) <= {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions",
+                          "reserve"}), "Profil de PNJ mal formé"
+    assert type(p.get("reserve", 1)) is int and 0 <= p.get("reserve", 1) <= 10, "Réserve de PNJ invalide"
     assert set(p["caracteristiques"]) == set(STATS) and all(
         type(v) is int and 1 <= v <= 20 for v in p["caracteristiques"].values()), "Caractéristiques de PNJ invalides"
     assert isinstance(p["traits"], str) and len(p["traits"]) <= 600, "Traits de PNJ invalides"
@@ -268,6 +287,49 @@ class Plan:
                      if usage in self.monde.objets[k].get("usages", []) and _disponible_cru(self.monde, self.id, k)
                      and (k in self.portes or autorise(self.monde, self.id, k))), None)
 
+    def _etat(self):
+        return (self.salle, set(self.portes), set(self.ouverts), set(self.deverrouilles),
+                list(self.etapes), set(self.touches))
+
+    def _restaurer(self, etat):
+        (self.salle, self.portes, self.ouverts, self.deverrouilles,
+         self.etapes, self.touches) = etat
+
+    def flamme(self, cible):
+        """De quoi allumer ``cible``, qu'il aura en main ou à portée en l'atteignant.
+
+        Un outil d'allumage, sinon une source qu'il croit allumée et qu'il peut prendre, sinon
+        une source éteinte qu'il croit chargée, allumée à une flamme fixe qu'il croit vive : une
+        source fixe ne se déplace pas, on lui apporte de quoi prendre feu.
+        """
+        briquet = self.outil("allumage")
+        if briquet:
+            self.obtenir(briquet)
+            return briquet
+        sources = [k for k in _connus(self.monde, self.id)
+                   if k != cible and "allume" in self.monde.objets[k]
+                   and (k in self.portes or autorise(self.monde, self.id, k))]
+        etat = lambda k: _cru(self.monde, self.id, k, "etat") or {}
+        vives = [k for k in sources if etat(k).get("allume")]
+        mobiles = [k for k in sources if self.monde.objets[k].get("mobile")]
+        essais = [(k, None) for k in vives if k in mobiles]
+        essais += [(k, f) for k in mobiles if not etat(k).get("allume") and etat(k).get("charge")
+                   for f in vives if not self.monde.objets[f].get("mobile")]
+        for source, fixe in essais:
+            avant = self._etat()
+            try:
+                self.obtenir(source)
+                if fixe:
+                    salle = salle_crue(self.monde, self.id, fixe)
+                    if salle is None:
+                        raise Echec
+                    self.aller(salle)
+                    self.ajouter("allumer", source, outil=fixe)
+                return source
+            except Echec:
+                self._restaurer(avant)
+        raise Echec
+
     def obtenir(self, objet, profondeur=0):
         if objet in self.portes:
             return
@@ -402,17 +464,17 @@ def _plan_pulsion(monde, id, condition):
             # Un feu qui baisse, ou un foyer froid et vide, attend du bois ; éteint, il faut l'allumer.
             eteint = etat.get("allume") is False
             vide = etat.get("faible") or not etat.get("charge", True)
-            briquet = p.outil("allumage") if eteint else None
-            if vide and bois is None or eteint and briquet is None:
+            if vide and bois is None:
                 raise Echec
-            for outil in (bois if vide else None, briquet):
-                if outil:
-                    p.obtenir(outil)
+            if vide:
+                p.obtenir(bois)
+            # La flamme vient en dernier : une torche se consume pendant le trajet.
+            flamme = p.flamme(foyer) if eteint else None
             p.aller(salle)
             if vide:
                 p.ajouter("alimenter", foyer, outil=bois)
-            if briquet:
-                p.ajouter("allumer", foyer, outil=briquet)
+            if flamme:
+                p.ajouter("allumer", foyer, outil=flamme)
         else:
             cible = condition["objet"]
             cle = p.cle(cible)
@@ -452,6 +514,68 @@ def _plan_chauffer(monde, id):
             continue
         p.ajouter("chauffer", f)
         return {"type": "chaleur", "objet": f}, p.etapes
+    # Aucun feu vif : ranimer un foyer froid, comme la faim cherche des vivres. Son bois ou celui
+    # de personne d'abord ; sinon une part demandée à qui en possède ; sinon, sans scrupule, le
+    # bien d'autrui, sans témoin.
+    foyers = [f for f in _connus(monde, id) if monde.objets[f].get("foyer")
+              and (_cru(monde, id, f, "etat") or {}).get("allume") is False]
+    bois = [b for b in _connus(monde, id) if "combustible" in monde.objets[b].get("usages", [])
+            and _disponible_cru(monde, id, b)]
+    licites = [b for b in bois if porte_par(monde, b, id) or not illicite(monde, id, b)]
+    for f in foyers:
+        for resultat in (*(_plan_ranimer(monde, id, f, b) for b in [None, *licites]),
+                         _plan_part_de_bois(monde, id, f, bois),
+                         *(_plan_ranimer(monde, id, f, b) for b in bois if b not in licites and autorise(monde, id, b))):
+            if resultat:
+                return resultat
+    return None
+
+
+def _plan_ranimer(monde, id, foyer, bois):
+    """Recharger s'il le faut, allumer, se chauffer. Sans bois, seulement si le foyer est cru chargé."""
+    charge = (_cru(monde, id, foyer, "etat") or {}).get("charge")
+    if (bois is None) != bool(charge):
+        return None
+    p = Plan(monde, id)
+    try:
+        if bois:
+            p.obtenir(bois)
+        flamme = p.flamme(foyer)
+        salle = salle_crue(monde, id, foyer)
+        if salle is None:
+            raise Echec
+        p.aller(salle)
+    except Echec:
+        return None
+    if bois:
+        p.ajouter("alimenter", foyer, outil=bois)
+    p.ajouter("allumer", foyer, outil=flamme)
+    p.ajouter("chauffer", foyer)
+    return {"type": "chaleur", "objet": foyer}, p.etapes
+
+
+def _plan_part_de_bois(monde, id, foyer, bois):
+    """Une part de bois promise s'attend près du feu, où le donneur viendra l'entretenir ; sinon on
+    la demande au propriétaire du bois, sauf s'il vient de refuser."""
+    from .vol import proprietaire
+    for b in bois:
+        donneur = proprietaire(monde, monde.objets[b])
+        if donneur in (None, id, "joueur") or not profil(monde, donneur):
+            continue
+        p = Plan(monde, id)
+        try:
+            if promesse_en_cours(monde, id, b) == donneur:
+                salle = salle_crue(monde, id, foyer)
+                if salle is None:
+                    raise Echec
+                p.aller(salle)
+            elif refuse_recemment(monde, id, donneur, "demander", b):
+                continue
+            elif p.rejoindre(donneur):
+                p.ajouter("demander", donneur, outil=b, contenu={"foyer": foyer})
+        except Echec:
+            continue
+        return {"type": "part", "objet": b, "de": donneur}, p.etapes
     return None
 
 
@@ -522,10 +646,17 @@ def retabli_par_son_plan(monde, id, condition):
 
 def candidats(monde, id):
     """Buts envisageables, du besoin le plus pressant au moins pressant ; la routine (rondes,
-    surveillance) passe après ce qui presse vraiment et après une tâche acceptée."""
+    surveillance) passe après ce qui presse vraiment et après une tâche acceptée.
+
+    Un besoin qui vient à peine de franchir son seuil laisse finir le plan en cours d'un autre
+    motif : on achève le geste entamé avant de céder à la fatigue ou à la faim naissantes."""
     p, e = profil(monde, id), esprit(monde, id)
     buts = []
+    en_cours = e["intention"]["motif"] if e["intention"] and e["intention"]["plan"] else None
     for besoin in urgents(monde, id):
+        if (en_cours and besoin != en_cours
+                and e["besoins"][besoin] < p["besoins"][besoin]["urgence"] + INERTIE):
+            continue
         if besoin == "faim":
             buts.append((besoin, _plan_manger, False))
             continue
@@ -604,6 +735,27 @@ def deliberer(monde, id, minute):
         return
     e["intention"] = None
     stratege.desoeuvre(monde, id, minute, urgents(monde, id))
+
+
+def menager_flamme(monde, id, minute):
+    """Une flamme portable qu'il a allumée ou employée pour allumer, et que son plan n'emploie
+    plus, se consume pour rien : il l'éteint d'abord, et la garde pour plus tard. Une lanterne
+    portée pour y voir n'est pas concernée."""
+    from .perception import allumee
+    e = esprit(monde, id)
+    plan = e["intention"]["plan"] if e["intention"] else []
+    vises = {x["cible"] for x in plan} | {x["outil"] for x in plan}
+    allumees = {s["objet"] for s in e["memoire"] if s["type"] == "flamme_employee"}
+    flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
+                   and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
+    if flamme is None:
+        return
+    geste = {"operation": "eteindre", "cible": flamme, "outil": "", "lieu": "", "condition": ""}
+    if e["intention"]:
+        plan.insert(0, geste)
+    else:
+        e["intention"] = {"but": {"type": "menager", "objet": flamme}, "motif": "menager", "plan": [geste],
+                          "depuis": minute, "attente": 0}
 
 
 def renoncer(monde, id, minute):

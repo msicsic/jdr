@@ -386,6 +386,17 @@ def _vu(m, origine, lumiere, cible):
     return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
 
 
+def dans_le_regard(m, salle, case, acteur="joueur"):
+    """Une case sous le regard de l'acteur, même dans le noir : une flamme y serait vue de loin."""
+    origine, lumiere = _vue(m, acteur)
+    if salle not in lumiere.salles:
+        return False
+    cible = _global(m.data["salles"][salle], case)
+    if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > PORTEE_VUE[2]:
+        return False
+    return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
+
+
 def sortie_visible(m, salle, direction, acteur="joueur"):
     """Retourne si le seuil est visible, même si une porte le ferme."""
     sortie = m.data["salles"].get(salle, {}).get("sorties", {}).get(direction)

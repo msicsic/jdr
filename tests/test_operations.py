@@ -69,10 +69,23 @@ class OperationsTests(unittest.TestCase):
                                   ("torche", "combustible", 0), ("torche", "integrite", 0)):
             self.m.data = copy.deepcopy(initial)
             self.m.objets[id][champ] = valeur
+            # Aucune autre flamme : une source allumée suffirait à allumer la torche.
+            for o in self.m.objets.values():
+                if o["id"] != "torche" and o.get("allume"):
+                    o["allume"] = False
             avant = copy.deepcopy(self.m.data)
             with self.assertRaises(ErreurMonde):
                 self.moteur.preparer(sequence(etape("deplacer", "torche", "joueur"), etape("allumer", "torche")))
             self.assertEqual(self.m.data, avant)
+
+    def test_une_flamme_portee_allume_la_torche_sans_briquet(self):
+        self.m.objets["briquet"]["lieu"] = "echoppe"
+        self.assertTrue(self.m.objets["lanterne"]["allume"])
+        plan = self.moteur.preparer(sequence(etape("deplacer", "torche", "joueur"), etape("allumer", "torche")))
+        self.assertEqual(plan.plans[1].titre, "Allumer la torche avec la lanterne.")
+        self.moteur.executer(plan)
+        self.assertTrue(self.m.objets["torche"]["allume"])
+        self.assertTrue(self.m.objets["lanterne"]["allume"])
 
     def test_allumer_permet_ensuite_une_extraction_dans_le_noir(self):
         for salle in self.m.data["salles"].values():

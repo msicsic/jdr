@@ -4,13 +4,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- `main` contient les jalons PNJ A à F (`docs/plan-pnj.md`, tableau « Jalons » et sections
-  « Écarts retenus »). Le dernier fusionné est **F. Tensions du Relais** :
-  - faim pour tous et 4 parts de vivres ;
-  - froid des évacués et brasero entretenu par Gorm avec des fagots comptés ;
-  - un affamé demande une part avant de voler, cherche Gorm s'il l'a perdu de vue ;
-  - geste `alimenter` commun au joueur et aux PNJ ;
-  - ordre des buts : ce qui presse, parole donnée, ce qu'on finit, routine.
+- `main` contient les jalons PNJ A à G (`docs/plan-pnj.md`, tableau « Jalons » et sections
+  « Écarts retenus »). Le dernier fusionné est **G. Le feu partagé** :
+  - une flamme en allume une autre (outil d'allumage ou source allumée, l'une des deux
+    portée), pour le joueur et les PNJ ; la torche du refuge porte la flamme du fanal ;
+  - la part vaut pour toute ressource comptée (vivres, bois) ; une part de bois acceptée est
+    l'engagement d'entretenir le feu ; la réserve gardée est la donnée de profil `reserve` ;
+  - le froid suit les recours de la faim ; les planches d'Aubin rallument le feu mort ;
+  - perception d'une flamme dans le noir, inertie d'un plan en cours, flamme ménagée.
 - Luna (`gpt-6-luna`) reste le MJ. Le stratège Luna des PNJ (jalon E) est optionnel
   (`--stratege`), désactivé par défaut. Remesuré sur le Relais de F, il n'apporte presque
   plus rien : +5 % d'événements, −1 % d'oisiveté urgente. Le moteur fait désormais seul
@@ -19,14 +20,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (`deplacer` vers un foyer devient `alimenter`) ; le combustible peut être porté ou à portée
   de main ; le titre de `deplacer` vers le joueur dit « Prendre », sans rangement que l'état
   ne modélise pas. Détail et vérification réelle dans `docs/plan-pnj.md` (écarts du jalon F).
-- La suite de tests passe : 517 tests, 31 ignorés, sans clé ni connexion.
+- La suite de tests passe : 525 tests, 31 ignorés, sans clé ni connexion.
 
 ## Décisions en attente
 
 - **Suite du plan PNJ**, au choix :
-  - une sécurité qui se gagne autrement que par les rondes ;
-  - un feu que les PNJ peuvent rallumer sans le briquet du joueur ;
-  - partager le bois, d'autres remèdes au froid ;
+  - une sécurité qui se gagne autrement que par les rondes (piste du jalon H) ;
+  - un événement qui éteint le feu en laissant du bois (les `horloges` existent, aucun
+    scénario n'en déclare encore) ;
+  - d'autres remèdes au froid ; le joueur qui demande une part ;
   - la priorité du stratège aux PNJ que le joueur perçoit.
 - **Branches d'essai**, poussées sur `origin` et non fusionnées :
   - `essai-code` : le MJ écrit un script Python borné au lieu du JSON ;

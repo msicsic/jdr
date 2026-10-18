@@ -28,6 +28,11 @@ def allumee(o):
     return bool(o.get("allume")) and o.get("combustible", 0) > 0 and o["integrite"] > 0
 
 
+def flamme(o):
+    """Ce qui allume une autre source : un outil d'allumage intact, ou une source allumée."""
+    return ("allumage" in o.get("usages", []) and o.get("integrite", 0) > 0) or ("allume" in o and allumee(o))
+
+
 def eclairage(monde, salle=None, position=None):
     """Niveau perçu à la position du joueur ; en mode cases, calculé case par case."""
     salle = salle or monde.joueur["salle"]

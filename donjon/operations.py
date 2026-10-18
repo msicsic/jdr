@@ -104,6 +104,16 @@ def sous_arbre(monde, id):
         ids.update(ajout)
 
 
+def a_portee(monde, id):
+    """Porté, ou à portée de main : ce qu'on emploie sans l'emporter (une brassée, une flamme)."""
+    if monde.est_porte(id):
+        return monde.accessible(id)
+    if not monde.accessible(id):
+        return False
+    from .spatial import proche
+    return not monde.data.get("mode_cases") or proche(monde, id)
+
+
 def compiler(monde, e, precedent=None, justification="", origine="règles"):
     from .moteur import Plan
     verifier_etape(e)
@@ -170,12 +180,16 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.")
             if o["combustible"] <= 0:
                 raise ErreurMonde(designer(o, debut=True) + " n'a plus de combustible.")
+            from .perception import flamme
+            # Un outil d'allumage, ou une autre source allumée : on réunit la flamme et la cible.
             if not outil:
-                t = next((e for e in monde.objets.values() if monde.est_porte(e["id"]) and monde.accessible(e["id"])
-                          and "allumage" in e.get("usages", []) and e["integrite"] > 0), None)
-            if (not t or not monde.est_porte(t["id"]) or not monde.accessible(t["id"])
-                    or not t["integrite"] or "allumage" not in t.get("usages", []) or t["id"] == cible):
-                raise ErreurMonde("Il faut un outil d'allumage utilisable et accessible dans votre inventaire.")
+                candidats = sorted((e for e in monde.objets.values() if e["id"] != cible and flamme(e)),
+                                   key=lambda e: ("allumage" not in e.get("usages", []), not monde.est_porte(e["id"]), e["id"]))
+                t = next((e for e in candidats if a_portee(monde, e["id"])), None)
+            if t and t["id"] != cible and flamme(t) and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
+                exiger(monde, t["id"])
+            if not t or t["id"] == cible or not flamme(t) or not a_portee(monde, t["id"]):
+                raise ErreurMonde("Il faut un outil d'allumage utilisable, ou une autre flamme, porté ou à portée de main.")
         elif outil:
             raise ErreurMonde("Éteindre cette source ne demande pas d'outil.")
         p.titre = ("Allumer " if allumer else "Éteindre ") + designer(o) + (" avec " + designer(t) if t else "") + "."
@@ -187,20 +201,13 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde("Alimenter un feu n'a pas de destination et se fait simplement.")
         if not o.get("foyer"):
             raise ErreurMonde(designer(o, debut=True) + " n'est pas un foyer qu'on recharge.")
-        def a_portee(id):
-            # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
-            if monde.est_porte(id):
-                return monde.accessible(id)
-            if not monde.accessible(id):
-                return False
-            from .spatial import proche
-            return not monde.data.get("mode_cases") or proche(monde, id)
+        # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
         t = monde.objets.get(outil) if outil else next(
             (e for e in sorted(monde.objets.values(), key=lambda e: not monde.est_porte(e["id"]))
-             if combustible(e) and a_portee(e["id"])), None)
+             if combustible(e) and a_portee(monde, e["id"])), None)
         if t and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
             exiger(monde, t["id"])
-        if not t or not combustible(t) or not a_portee(t["id"]):
+        if not t or not combustible(t) or not a_portee(monde, t["id"]):
             raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.")
         victime = proprietaire(monde, t)
         if (not monde.est_porte(t["id"]) and victime not in (None, "joueur")

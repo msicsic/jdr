@@ -268,6 +268,34 @@ def _vu_porter(monde, id, sujet):
     relancer(monde, id, "biens", VOL)
 
 
+def constater(monde, id, sujet, source):
+    """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main."""
+    o = monde.objets[sujet]
+    etats = ETATS_VISIBLES.get(o["type"])
+    if etats:
+        from .perception import faible
+        valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
+                   "charge": o.get("combustible", 0) > 0}
+        croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, source)
+
+
+def _flamme_sous_les_yeux(monde, id, sujet, lieu):
+    """La place où il croit la source est-elle sous son regard ? Un objet fixe ne bouge pas."""
+    o = monde.objets[sujet]
+    if lieu and lieu["valeur"] is not None:
+        salle, case = lieu.get("salle"), lieu.get("case")
+    elif not o.get("mobile") and o["lieu"] in monde.data["salles"]:
+        salle, case = o["lieu"], o.get("position")
+    else:
+        return False
+    if salle is None or salle not in monde.data["salles"]:
+        return False
+    if not monde.data.get("mode_cases"):
+        return monde.objets[id]["lieu"] == salle
+    from .spatial import dans_le_regard
+    return case is not None and dans_le_regard(monde, salle, case, id)
+
+
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
     vus, champ = percus(monde, id)
@@ -282,14 +310,19 @@ def percevoir(monde, id):
         if o["type"] != "porte":
             reviser(monde, id, sujet, "lieu", o["lieu"], salle=salle, case=case)
             _vu_porter(monde, id, sujet)
-        etats = ETATS_VISIBLES.get(o["type"])
-        if etats:
-            from .perception import faible
-            valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
-                       "charge": o.get("combustible", 0) > 0}
-            croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, "vu")
+        constater(monde, id, sujet, "vu")
         if o["type"] in ("porte", "contenant") and o.get("ouverte"):
             reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
+    for sujet, attributs in list(croyances.items()):
+        etat = attributs.get("etat")
+        if (sujet not in vus and sujet in monde.objets and "allume" in monde.objets[sujet]
+                and etat and etat["valeur"].get("allume") and _flamme_sous_les_yeux(monde, id, sujet, attributs.get("lieu"))):
+            # Une flamme se voit de loin, même dans le noir : là où il regarde, rien ne brille.
+            # Ce qui reste à brûler ne se voit pas : un feu vu baisser s'est consumé ; un feu vu
+            # vif a pu être éteint, il garde ce qu'il en croyait.
+            valeur = etat["valeur"]
+            reviser(monde, id, sujet, "etat", {**valeur, "allume": False, "faible": False,
+                                               "charge": bool(valeur.get("charge")) and not valeur.get("faible")})
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
         if sujet in vus or not lieu or lieu["valeur"] is None or not _observe(monde, champ, lieu):

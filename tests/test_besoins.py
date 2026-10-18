@@ -89,7 +89,7 @@ class GardeMangerTests(unittest.TestCase):
         m = relais()
         m.objets["lanterne"]["allume"] = False
         # Placement d'auteur : la torche brûle près de la réserve ; le joueur reste dans l'angle nord-ouest.
-        m.objets["torche"]["position"] = [8, 4]
+        m.objets["torche"].update(position=[8, 4], allume=True)
         m.joueur["position"] = [2, 1]
         m, texte = attendre(m, 4)
         self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", texte)
@@ -99,7 +99,8 @@ class GardeMangerTests(unittest.TestCase):
     def test_gorm_dans_l_ombre_la_voit_et_garde_sa_reserve(self):
         m = absent(relais())
         m.objets["lanterne"]["lieu"] = "joueur"
-        m.objets["torche"]["position"] = [8, 4]
+        # Placement d'auteur : la torche brûle près de la réserve.
+        m.objets["torche"].update(position=[8, 4], allume=True)
         # Placement d'auteur : Gorm se repose dans l'angle sombre du refuge.
         m.objets["marchand"].update(lieu="antichambre", position_salle="antichambre", position=[2, 1])
         m, _ = attendre(m, 4)
