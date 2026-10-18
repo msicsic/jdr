@@ -12,7 +12,7 @@ from .vol import proprietaire
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
 ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper", "frapper",
                        "bloquer", "debloquer")
-OPERATIONS = ("patienter", "deplacer", "detacher", "allumer", "eteindre", "franchir_obstacle", "emettre_son",
+OPERATIONS = ("patienter", "deplacer", "detacher", "allumer", "eteindre", "alimenter", "franchir_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement")
 
@@ -180,6 +180,19 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde("Éteindre cette source ne demande pas d'outil.")
         p.titre = ("Allumer " if allumer else "Éteindre ") + designer(o) + (" avec " + designer(t) if t else "") + "."
         p.effets = [("allumage", cible, allumer)]
+        return p
+    if op == "alimenter":
+        from .perception import combustible
+        if destination or methode != "simple":
+            raise ErreurMonde("Alimenter un feu n'a pas de destination et se fait simplement.")
+        if not o.get("foyer"):
+            raise ErreurMonde(designer(o, debut=True) + " n'est pas un foyer qu'on recharge.")
+        t = monde.objets.get(outil) if outil else next(
+            (e for e in monde.objets.values() if monde.est_porte(e["id"]) and monde.accessible(e["id"]) and combustible(e)), None)
+        if not t or not monde.est_porte(t["id"]) or not monde.accessible(t["id"]) or not combustible(t):
+            raise ErreurMonde("Il faut porter un combustible dont il reste une charge.")
+        p.titre = "Alimenter " + designer(o) + " avec " + designer(t) + "."
+        p.effets = [("alimentation", cible, t["id"])]
         return p
     if op == "deplacer":
         if outil or methode not in ("simple", "discret"):

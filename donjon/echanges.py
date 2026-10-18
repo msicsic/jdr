@@ -79,13 +79,16 @@ def demander(monde, demandeur, auditeur, objet):
         if monde.objets[objet].get("portions", 0) < 2 or "faim" in urgents(monde, auditeur):
             return "necessaire"
         condition = {"objet": objet, "servir": demandeur}
-        if _plan_pulsion(monde, auditeur, condition) is None:
-            return "impossible"
-        if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
-            return "refus"
-        esprit(monde, auditeur)["engagements"].append(
-            {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
-        memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
+        engagements = esprit(monde, auditeur)["engagements"]
+        if not any(x["condition"] == condition for x in engagements):
+            if _plan_pulsion(monde, auditeur, condition) is None:
+                return "impossible"
+            if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
+                return "refus"
+            engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
+            memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
+        if demandeur != "joueur":
+            memoriser(monde, demandeur, {"type": "promis", "de": auditeur, "objet": objet})
         return "promis"
     if necessaire(monde, auditeur, objet):
         return "necessaire"
@@ -164,7 +167,7 @@ def phrase_condition(monde, condition):
         return f"{o} soit dans {monde.data['salles'][condition['lieu']]['nom']}"
     x = monde.objets[condition["objet"]]
     pluriel = x.get("pluriel")
-    return (f"{o} {'soient' if pluriel else 'soit'} verrouillé"
+    return (f"{o} {'soient' if pluriel else 'soit'} {'allumé' if 'allume' in condition else 'verrouillé'}"
             + ("e" if x.get("genre") == "f" else "") + ("s" if pluriel else ""))
 
 
@@ -238,5 +241,7 @@ def executer(monde, id, etape, lignes):
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
     faire_entendre(monde, id, autre, clair, [x for x in cites if x and (x in monde.objets or x == "joueur")], lignes)
     if not reussi:
-        memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue})
+        vise = objet["id"] if objet else contenu.get("objet")
+        memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue,
+                              **({"objet": vise} if vise else {})})
     return reussi

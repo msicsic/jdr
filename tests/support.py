@@ -23,6 +23,16 @@ def sans_budget(monde):
     return monde
 
 
+def refusee(monde, id="brune", par="marchand"):
+    """Placement d'auteur : le propriétaire des vivres vient de lui refuser une part.
+
+    Un affamé demande avant de voler ; ces tests portent sur ce qui suit le refus.
+    """
+    from donjon.esprits import memoriser
+    memoriser(monde, id, {"type": "refus", "de": par, "operation": "demander", "raison": "refus", "objet": "vivres"})
+    return monde
+
+
 def sans_evacues(monde):
     """Placement d'auteur : le Relais des jalons A à C, sans Ilse, Aubin ni le fanal du refuge.
 

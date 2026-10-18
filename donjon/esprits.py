@@ -17,8 +17,8 @@ from .perception import eclairage
 MEMOIRE_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
 SOURCES = ("vu", "savoir", "essai")
-ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume",),
-                  "nourriture": ("disponible",)}
+ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume", "faible", "charge"),
+                  "nourriture": ("disponible",), "consommable": ("disponible",)}
 # Un objet porté par quelqu'un d'autre ne se remarque que s'il est encombrant ou allumé.
 MASSE_APPARENTE_KG = 1
 LONGUEUR_APPARENTE_CM = 50
@@ -284,7 +284,9 @@ def percevoir(monde, id):
             _vu_porter(monde, id, sujet)
         etats = ETATS_VISIBLES.get(o["type"])
         if etats:
-            valeurs = {**o, "disponible": o.get("portions", 0) > 0}
+            from .perception import faible
+            valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
+                       "charge": o.get("combustible", 0) > 0}
             croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, "vu")
         if o["type"] in ("porte", "contenant") and o.get("ouverte"):
             reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.

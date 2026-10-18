@@ -18,19 +18,19 @@
   },
   "dialogues_pnj": {
     "marchand": {
-      "intentions": "Gorm veut que la cloche du relais revienne au refuge avant la crue.",
+      "intentions": "Gorm veut que la cloche du relais revienne au refuge avant la crue, et que le feu de l'échoppe tienne pour les évacués.",
       "ton": "Il parle clairement et s'en tient à ce qu'il sait du relais."
     },
     "brune": {
-      "intentions": "Brune veut manger et se faire oublier jusqu'à la décrue.",
+      "intentions": "Brune veut manger, se sécher et se faire oublier jusqu'à la décrue.",
       "ton": "Elle reste évasive sur ce qu'elle a vu et sur ce qu'elle compte faire."
     },
     "ilse": {
-      "intentions": "Ilse veut savoir ce qui se passe au relais et que chacun soit à l'abri de la crue.",
+      "intentions": "Ilse veut savoir ce qui se passe au relais, se réchauffer et que chacun soit à l'abri de la crue.",
       "ton": "Elle raconte volontiers ce qu'elle a vu, et le tient pour vrai."
     },
     "aubin": {
-      "intentions": "Aubin veut surveiller l'eau et se reposer.",
+      "intentions": "Aubin veut surveiller l'eau, se réchauffer et se reposer.",
       "ton": "Il répond brièvement et ne dit que ce dont il est sûr."
     }
   },
@@ -248,7 +248,7 @@
         "foyer"
       ],
       "allume": true,
-      "combustible": 180,
+      "combustible": 150,
       "id": "brasero",
       "integrite": 10,
       "lieu": "echoppe",
@@ -263,7 +263,8 @@
         4
       ],
       "position_salle": "echoppe",
-      "type": "luminaire"
+      "type": "luminaire",
+      "foyer": true
     },
     "briquet": {
       "aliases": [
@@ -653,7 +654,7 @@
           "PER": 13,
           "CHA": 9
         },
-        "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il ne quitte pas le relais tant que des évacués y sont attendus.",
+        "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
         "limites": [
           "ne_vole_pas",
           "ne_blesse_pas",
@@ -677,8 +678,8 @@
             "urgence": 60
           },
           "faim": {
-            "depart": 20,
-            "derive_heure": 4,
+            "depart": 30,
+            "derive_heure": 6,
             "urgence": 70
           },
           "repos": {
@@ -695,6 +696,13 @@
               "lieu": "antichambre"
             },
             "delegue_a": "joueur"
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "objet": "brasero",
+              "allume": true
+            }
           },
           {
             "besoin": "biens",
@@ -952,6 +960,11 @@
             "depart": 40,
             "derive_heure": 3,
             "urgence": 80
+          },
+          "chaleur": {
+            "depart": 50,
+            "derive_heure": 10,
+            "urgence": 70
           }
         },
         "pulsions": []
@@ -998,7 +1011,7 @@
       "maximum": 10,
       "mobile": true,
       "nom": "vivres du refuge",
-      "portions": 6,
+      "portions": 4,
       "proprietaire": "marchand",
       "type": "nourriture",
       "pluriel": true
@@ -1070,9 +1083,14 @@
             "urgence": 60
           },
           "faim": {
-            "depart": 30,
-            "derive_heure": 3,
-            "urgence": 85
+            "depart": 45,
+            "derive_heure": 6,
+            "urgence": 70
+          },
+          "chaleur": {
+            "depart": 60,
+            "derive_heure": 10,
+            "urgence": 70
           }
         },
         "pulsions": [
@@ -1143,9 +1161,14 @@
             "urgence": 80
           },
           "faim": {
-            "depart": 20,
-            "derive_heure": 3,
-            "urgence": 85
+            "depart": 35,
+            "derive_heure": 6,
+            "urgence": 70
+          },
+          "chaleur": {
+            "depart": 65,
+            "derive_heure": 10,
+            "urgence": 70
           }
         },
         "pulsions": [
@@ -1189,6 +1212,36 @@
       ],
       "position_salle": "antichambre",
       "type": "luminaire"
+    },
+    "bois": {
+      "aliases": [
+        "fagots",
+        "fagot",
+        "bois",
+        "bois sec"
+      ],
+      "charges": 2,
+      "duree_combustion": 120,
+      "genre": "m",
+      "id": "bois",
+      "integrite": 10,
+      "lieu": "crypte",
+      "masse": 6,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "fagots de bois sec",
+      "pluriel": true,
+      "position": [
+        7,
+        2
+      ],
+      "position_salle": "crypte",
+      "proprietaire": "marchand",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ]
     }
   },
   "personnages_version": 1,
@@ -1565,6 +1618,12 @@
               7,
               1
             ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
           }
         },
         "ilse": {
@@ -1578,6 +1637,12 @@
               3,
               5
             ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
           }
         },
         "aubin": {
@@ -1591,6 +1656,48 @@
               1,
               5
             ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "bois": {
+          "lieu": {
+            "valeur": "crypte",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "crypte",
+            "case": [
+              7,
+              2
+            ]
+          }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
           }
         }
       },
@@ -1659,6 +1766,29 @@
             "minute": 0,
             "confiance": 0.7
           }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -1684,6 +1814,58 @@
             "minute": 0,
             "confiance": 0.7
           }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -1708,6 +1890,58 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.7
+          }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
           }
         }
       },

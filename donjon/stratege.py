@@ -12,7 +12,7 @@ Le moteur valide chaque geste : identifiants connus du PNJ, limites (``ne_vole_p
 de jeu. Rien de ce qu'écrit Luna n'est montré au joueur, qui ne perçoit que les gestes.
 """
 from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, confie_a_autrui,
-                           illicite, profil, salle_crue)
+                           illicite, profil, refuse_recemment, salle_crue)
 from .echanges import demande_de_part
 from .esprits import esprit, lire, memoriser, percoit, pnjs
 from .monde import ErreurMonde
@@ -21,14 +21,13 @@ ATTENTE = 60            # minutes entre deux consultations pour un même PNJ
 BUDGET_HEURE = 2        # consultations par heure de jeu pour tout le scénario
 OISIVETE = 60           # minutes désœuvré avant de chercher un but dans sa personnalité
 ETAPES_MAX = 6
-REDEMANDE = 120         # minutes avant de redemander la même chose à qui vient de refuser
 DECLENCHEURS = {
     "besoin_sans_plan": "un besoin urgent sans plan connu",
     "plan_illicite": "le seul plan trouvé touche au bien d'autrui (plan_moteur)",
     "desoeuvre": "désœuvré depuis une heure, sans besoin urgent",
 }
 GESTES = ("aller", "inspecter", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-          "crocheter", "manger", "reposer", "servir", *SOCIALES)
+          "crocheter", "manger", "reposer", "chauffer", "alimenter", "servir", *SOCIALES)
 APPELANT = None         # (instructions, entree, intention, fonction, schema) -> dict ; posé par le jeu ou le banc
 
 INSTRUCTIONS = """Tu es le stratège d'un personnage non joueur d'un jeu de rôle. Le dossier est
@@ -43,14 +42,17 @@ Gestes (champs inutiles vides) :
 - prendre {cible} ; poser {cible, lieu} ; ouvrir, fermer {cible} ;
 - deverrouiller, verrouiller {cible, outil: la clé} ; crocheter {cible, outil} (capacité crochetage) ;
 - manger {cible: une nourriture} ; reposer {} : se reposer là où il est, jusqu'à être reposé ;
+- chauffer {cible: un foyer allumé} : se tenir près du feu jusqu'à être réchauffé ;
+- alimenter {cible: un foyer, outil: un combustible} : recharger le feu (il ne le rallume pas) ;
 - servir {cible: une nourriture à portée, sujet: personnage présent} : lui en donner une part ;
 - dire {cible: personnage, sujet, attribut: lieu | verrouillee | fiable, valeur: identifiant
   de salle ou de porteur pour lieu, oui ou non sinon} : lui affirmer quelque chose ;
 - demander {cible: personnage, outil: un objet qu'il porte} : lui demander de te le remettre ;
   ou, pour un affamé, une part d'une nourriture qui appartient à ce personnage (champ a du
   dossier), même rangée ailleurs : s'il accepte, il viendra la servir ;
-- confier {cible: personnage, sujet: objet, attribut: lieu (valeur: salle) ou verrouillee
-  (valeur: oui)} : lui demander de faire en sorte que ce soit vrai ;
+- confier {cible: personnage, sujet: objet, attribut: lieu (valeur: salle), verrouillee
+  (valeur: oui) ou allume (valeur: oui, un feu à entretenir)} : lui demander de faire en sorte
+  que ce soit vrai ;
 - remettre {cible: personnage, outil: un objet que tu portes}.
 Un geste social se fait dans la salle du personnage visé : va d'abord là où tu le crois.
 On ne demande un objet qu'à celui que le dossier dit le porter (lieu_cru), et l'on ne remet
@@ -134,6 +136,8 @@ def _pulsion(monde, x):
         texte = f"inspecter {_nom(monde, c['lieu'])} au moins toutes les {c['periode']} minutes"
     elif "lieu" in c:
         texte = f"{_nom(monde, c['objet'])} doit être dans {_nom(monde, c['lieu'])}"
+    elif "allume" in c:
+        texte = f"{_nom(monde, c['objet'])} doit rester allumé : le recharger quand il baisse"
     else:
         texte = f"{_nom(monde, c['objet'])} doit rester verrouillé"
     return texte + f" ({x['besoin']})" + (", tâche confiée au joueur" if x.get("delegue_a") else "")
@@ -189,7 +193,7 @@ def schema(monde, id):
                 "properties": {"operation": {"type": "string", "enum": list(GESTES)},
                                "cible": chaine(connus), "outil": chaine(connus), "lieu": chaine(salles),
                                "sujet": chaine(connus),
-                               "attribut": {"type": "string", "enum": ["", "lieu", "verrouillee", "fiable"]},
+                               "attribut": {"type": "string", "enum": ["", "lieu", "verrouillee", "fiable", "allume"]},
                                "valeur": chaine([*salles, *connus, "oui", "non"])},
                 "required": ["operation", "cible", "outil", "lieu", "sujet", "attribut", "valeur"]}},
             "justification": {"type": "string"},
@@ -233,13 +237,14 @@ def _etape(monde, id, n, x, obtenus):
         etape["cible"] = connu("cible", ("personnage",))
         if not monde.objets[etape["cible"]].get("profil"):
             raise faute("ce personnage ne prend part à aucun échange")
-        refus = [s for s in lire(monde, id)["memoire"] if s["type"] == "refus" and s["de"] == etape["cible"]
-                 and s["operation"] == op and monde.data["minutes"] - s["minute"] < REDEMANDE]
-        if refus and op != "dire":
-            raise faute(f"ce personnage a refusé il y a {monde.data['minutes'] - refus[-1]['minute']} minutes "
-                        f"({refus[-1]['raison']}) : ne lui redemande pas déjà la même chose")
         if op in ("demander", "remettre"):
             etape["outil"] = connu("outil")
+        vise = etape["outil"] or (x.get("sujet") if op == "confier" else None)
+        refus = op in ("demander", "confier") and refuse_recemment(monde, id, etape["cible"], op, vise or None)
+        if refus:
+            raise faute(f"ce personnage a refusé il y a {monde.data['minutes'] - refus['minute']} minutes "
+                        f"({refus['raison']}) : ne lui redemande pas déjà la même chose")
+        if op in ("demander", "remettre"):
             if (op == "demander" and _lieu_cru(monde, id, etape["outil"]) != etape["cible"]
                     and not demande_de_part(monde, id, etape["cible"], etape["outil"])):
                 raise faute("il ne croit pas que ce personnage porte cet objet (voir lieu_cru), et ce n'est pas"
@@ -266,8 +271,11 @@ def _etape(monde, id, n, x, obtenus):
                 etape["contenu"] = {"objet": objet, "lieu": x["valeur"]}
             elif x.get("attribut") == "verrouillee" and x.get("valeur") == "oui":
                 etape["contenu"] = {"objet": objet, "verrouillee": True}
+            elif x.get("attribut") == "allume" and x.get("valeur") == "oui" and "allume" in monde.objets[objet]:
+                etape["contenu"] = {"objet": objet, "allume": True}
             else:
-                raise faute("une tâche est un objet dans une salle (lieu) ou un objet verrouillé (verrouillee oui)")
+                raise faute("une tâche est un objet dans une salle (lieu), un objet verrouillé (verrouillee oui) "
+                            "ou un feu entretenu (allume oui)")
     else:
         cible = connu("cible")
         o = monde.objets[cible]
@@ -277,6 +285,16 @@ def _etape(monde, id, n, x, obtenus):
         if op == "servir":
             pour = connu("sujet", ("personnage",))
             etape["contenu"] = {"pour": pour}
+        if op in ("chauffer", "alimenter") and not o.get("foyer"):
+            raise faute("on ne se chauffe qu'à un foyer, on ne recharge qu'un foyer")
+        if op == "chauffer" and "chaleur" not in p["besoins"]:
+            raise faute("ce personnage n'a pas froid")
+        if op == "alimenter":
+            etape["outil"] = connu("outil")
+            if "combustible" not in monde.objets[etape["outil"]].get("usages", []):
+                raise faute("l'outil d'alimenter est un combustible")
+            if not autorise(monde, id, etape["outil"]):
+                raise faute("il ne vole pas : ce combustible est à un autre")
         if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter") and o["type"] not in ("porte", "contenant"):
             raise faute("on n'ouvre ou ne verrouille qu'une porte ou un contenant")
         if op in ("prendre", "poser") and not o.get("mobile"):
@@ -359,7 +377,8 @@ def completer(monde, id, gestes):
                 salle = salle_crue(monde, id, cible)
                 if salle is None:
                     raise Echec
-                if etape["outil"] and etape["outil"] not in p.portes and op in ("deverrouiller", "verrouiller", "crocheter"):
+                if (etape["outil"] and etape["outil"] not in p.portes
+                        and op in ("deverrouiller", "verrouiller", "crocheter", "alimenter")):
                     p.obtenir(etape["outil"])
                 p.aller(salle)
         except Echec:

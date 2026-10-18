@@ -271,6 +271,57 @@ critère, baissent de 340 à 199 (−41 %). Aucune violation, aucune usurpation.
   qu'un stratège plus fin ; une sécurité qui se gagne autrement que par des rondes ; la
   priorité aux PNJ que le joueur perçoit (le budget va aujourd'hui au premier besoin).
 
+## Écarts retenus au jalon F
+
+Tensions ajoutées au Relais, comme données du scénario sur des mécanismes communs :
+- tous ont faim avant la fin de la nuit, et la réserve n'a que 4 parts ;
+- les évacués trempés ont froid et vont se chauffer au brasero de l'échoppe ;
+- le brasero brûle 150 minutes, plus deux charges de fagots que Gorm garde aux vannes.
+
+Banc moteur seul, 4 graines × 8 h, avant → après F (pas de critère fixé d'avance : la mesure
+décrit le changement, elle ne tranche rien).
+
+| Graine | Événements distincts | Échanges | Vols vus | Oisiveté urgente | Sans recours |
+|---|---|---|---|---|---|
+| 1985 | 10 → 17 | 2 → 8 | 14 → 0 | 1125 → 1120 | 305 → 650 |
+| 7 | 10 → 24 | 2 → 9 | 16 → 12 | 1125 → 950 | 305 → 340 |
+| 42 | 10 → 20 | 2 → 8 | 10 → 0 | 1125 → 1175 | 305 → 530 |
+| 2024 | 10 → 19 | 2 → 8 | 16 → 0 | 1265 → 1180 | 445 → 650 |
+
+- Les histoires divergent maintenant d'une graine à l'autre. Avant F, c'était toujours Brune
+  qui crochetait vers 190 minutes. Selon les graines :
+  - Gorm sert Brune, ou la refuse, et elle crochète ;
+  - Ilse refusée attend et redemande ;
+  - Gorm garde la dernière part et finit par la manger ;
+  - Brune, devenue suspecte, se voit refuser une part par méfiance.
+  Le feu tient jusque vers 390 minutes, puis le bois manque.
+- Les minutes urgentes sans recours augmentent : c'est la rareté voulue (parts refusées, feu
+  mort en fin de nuit), pas une panne du planificateur.
+- Défauts généraux trouvés en lisant les chroniques et corrigés :
+  - le feu se consumait d'un bloc au début d'une attente, et non minute par minute avec les PNJ ;
+  - un PNJ croyait vif un feu vu une heure plus tôt ;
+  - qui cherchait quelqu'un ne regardait jamais la salle où il arrivait ;
+  - Gorm reverrouillait sa réserve au milieu du service, en boucle ;
+  - après avoir mangé, il la laissait ouverte ;
+  - un refus sur la nourriture interdisait de demander autre chose ;
+  - une ronde, toujours urgente, passait avant la faim et la parole donnée.
+- Banc A/B du stratège sur le Relais de F, critère d'E inchangé : 20 → 21 événements
+  (+5 %), 1106 → 1100 minutes d'oisiveté urgente (−1 %), 2 appels par heure, aucune
+  violation. Sur 4 graines de robustesse : 18,25 → 17,75 événements, 1164 → 991 minutes. Le
+  moteur fait désormais seul ce qui était l'apport principal du stratège (demander avant de
+  voler) ; il reste optionnel.
+- Luna, en vrai, sur la chaîne du joueur :
+  - « Je remets du bois dans le brasero » (fagots portés) et « Je prends les fagots puis je
+    recharge le brasero avec » (fagots au sol) deviennent `alimenter`, précédé de `deplacer`
+    dans le second cas ; l'état rechargé est juste ;
+  - « Je ramasse les fagots et j'en mets une brassée dans le feu du brasero » échoue deux fois :
+    Luna y voit une pose dans le brasero et ne propose rien. Limite connue, non corrigée par
+    une consigne propre à cette tournure.
+- Non fait :
+  - les PNJ ne se rallument pas un feu sans outil d'allumage (seul le joueur a un briquet) ;
+  - on ne se partage pas le bois, et le froid n'a d'autre recours que le brasero ;
+  - la sécurité reste satisfaite par les seules rondes, désormais rangées en routine.
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -284,6 +335,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **C. On peut lui parler** — *fait* | ta réplique est rendue selon INT et CHA (« Tu dis : « … » »), mot pour mot entre guillemets ; un mensonge cru change le plan de Gorm et se découvre quand il voit la vérité ; un mensonge démenti par ce qu'il vient de voir est rejeté ; une INT faible transmet moins ; une demande d'objet est refusée s'il en a besoin ou se méfie ; Luna fait parler les PNJ d'après leurs croyances | mode `parole_joueur`, bande d'expression, contenu typé résolu par identifiant ou par nom, jet de CHA et confiance, `mensonge_decouvert`, contrôle des mentions sur la réplique ; objets portés discrets cachés au joueur ; profil des PNJ retiré du contexte de Luna | 3 appels par réplique (interprétation, réponse, audit) |
 | **D. Plusieurs PNJ** — *fait* | Ilse et Aubin voient Brune, à bout de faim, crocheter la réserve et le disent à Gorm, qui les croit ou non, referme et verrouille ; ce qu'Ilse voit de toi passe à Gorm puis à Aubin, et Gorm se méfie, reprend la cloche à son compte et te surveille ; Gorm reconnaît son bien entre d'autres mains ; tu entends ce qui se dit dans ta salle | nouvelles et rumeurs typées (jet de CHA du locuteur, confiance décroissante, trois relais au plus), `vu_porter`, rondes `{lieu, periode}` et geste `inspecter`, témoins de toute la minute du geste, besoin extrême plus fort que la crainte d'être vu, Ilse, Aubin et le fanal du refuge, mesures sociales au banc | aucun appel |
 | **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, demande une part à Gorm avant de voler, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Gorm qui accepte ouvre sa réserve, sert et referme à clé ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; Aubin se repose ; tu entends ces échanges | gestes sociaux `dire`, `demander` (dont une part de nourriture), `confier`, `remettre`, `servir`, `reposer`, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ et complété par le planificateur, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
+| **F. Tensions du Relais** — *fait* | les évacués trempés quittent le refuge pour se chauffer au brasero ; Gorm revoit son feu, va chercher ses fagots aux vannes et le recharge, jusqu'à épuiser le bois ; tous ont faim pour 4 parts : on demande une part à Gorm avant de voler, il sert, refuse ou garde la dernière ; Brune refusée crochète, Ilse refusée redemande deux heures plus tard ; on cherche Gorm quand on l'a perdu de vue ; tu recharges toi-même le brasero | besoin `chaleur`, foyer et combustible (`alimenter`, commun au joueur et aux PNJ, `allumer` pour les PNJ), feu consumé minute par minute avec les PNJ, pulsion de feu entretenu, part demandée par le moteur et attendue près des vivres, refus par objet, recherche d'un personnage, ordre des buts (ce qui presse, parole donnée, ce qu'on finit, routine) | aucun appel ; stratège remesuré |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune

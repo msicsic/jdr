@@ -172,8 +172,8 @@ quand son schéma est disponible, sans remplacer l'intention par une action diff
 INSTRUCTIONS = INTRO_ARBITRE + REGLES_ACTIONS + "Appelle proposer_action exactement une fois."
 
 REGLES_COMPOSITION = """
-MANŒUVRES COMPOSÉES — pour prendre, poser, voler, retirer une fixation, ranger, allumer, éteindre ou
-combiner ces gestes, utilise mode action avec action composer, plutôt qu'un verbe spécialisé.
+MANŒUVRES COMPOSÉES — pour prendre, poser, voler, retirer une fixation, ranger, allumer, éteindre,
+alimenter un feu ou combiner ces gestes, utilise mode action avec action composer, plutôt qu'un verbe spécialisé.
 proposition={"action":"composer", "justification":"Arbitrage bref sans résultat anticipé", "etapes":[...]}
 Chaque étape a EXACTEMENT operation, cible, destination, outil, methode, difficulte.
 Les identifiants viennent des faits. Une à six étapes, exécutées dans l'ordre ; arrêt au
@@ -198,6 +198,9 @@ Opérations :
   et un outil d'allumage possédé accessible ; outil peut être vide, le moteur choisit alors
   un outil d'allumage disponible. Eteindre exige outil vide. Ne brûle pas un objet quelconque.
   Prendre puis allumer une source exige les deux étapes, dans cet ordre.
+- alimenter : cible foyer accessible (un feu qu'on recharge), outil un combustible porté
+  (facultatif ; le moteur en choisit un porté si omis), destination vide, methode simple,
+  difficulte 0. Coût une minute, sans jet ; une charge prolonge le feu sans le rallumer.
   Ces opérations sont combinables avec les autres, notamment allumer avant une extraction
   qui exige de la lumière, ou éteindre puis poser une lanterne.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : mêmes

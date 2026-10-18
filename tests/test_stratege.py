@@ -16,6 +16,7 @@ from donjon.geometrie import placer, position_entree
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde
 from donjon.pnj import avancer
+from tests.support import refusee
 
 
 def relais():
@@ -67,7 +68,7 @@ class StrategeTests(unittest.TestCase):
         return lignes
 
     def test_un_plan_illicite_laisse_le_caractere_choisir_puis_la_demande_aboutit(self):
-        m = relais()
+        m = refusee(relais())
         deplacer(m, "pied_de_biche", "marchand")
         reunir(m, "brune", "marchand")
         m.joueur.update(salle="antichambre", position=[3, 4])
@@ -94,7 +95,7 @@ class StrategeTests(unittest.TestCase):
         self.assertEqual(reprise.data["stratege"]["bilan"]["plan"], 1)
 
     def test_en_jeu_le_joueur_entend_la_demande_et_la_partie_rechargee_la_garde(self):
-        m = relais()
+        m = refusee(relais())
         deplacer(m, "pied_de_biche", "marchand")
         reunir(m, "brune", "marchand")
         m.joueur.update(salle="antichambre", position=[3, 4])
@@ -125,7 +126,7 @@ class StrategeTests(unittest.TestCase):
         self.assertEqual(reprise.data["stratege"]["bilan"]["plan"], 1)
 
     def test_un_refus_abandonne_la_strategie(self):
-        m = relais()
+        m = refusee(relais())
         deplacer(m, "pied_de_biche", "marchand")
         reunir(m, "brune", "marchand")
         faux = Faux(plan("faim", "demander le pied-de-biche à Gorm",
@@ -186,7 +187,7 @@ class StrategeTests(unittest.TestCase):
                                           etape("remettre", cible="ilse", outil="crochets")))
 
     def test_a_bout_le_besoin_passe_outre_les_scrupules(self):
-        m = relais()
+        m = refusee(relais())
         faux = Faux()
         stratege.activer(faux)
         lire(m, "brune")["besoins"]["faim"] = 96
@@ -257,7 +258,7 @@ class LeviersTests(unittest.TestCase):
 
     def test_un_besoin_de_repos_se_satisfait_en_s_asseyant(self):
         m = relais()
-        lire(m, "aubin")["besoins"].update(repos=85, securite=0)
+        lire(m, "aubin")["besoins"].update(repos=85, securite=0, chaleur=0)
         lignes = []
         m.data["minutes"] += 40
         avancer(m, 40, lignes)
@@ -321,10 +322,14 @@ class LeviersTests(unittest.TestCase):
         stratege.adopter(m, "brune", decision, m.data["minutes"])
         m.data["minutes"] += 2
         avancer(m, 2, [])
-        self.assertIn({"type": "refus", "de": "marchand", "operation": "demander", "raison": "mefiance"},
+        self.assertIn({"type": "refus", "de": "marchand", "operation": "demander", "raison": "mefiance", "objet": "vivres"},
                       [{k: v for k, v in x.items() if k != "minute"} for x in lire(m, "brune")["memoire"]])
         with self.assertRaisesRegex(stratege.ErreurStrategie, "a refusé il y a"):
             stratege.valider(m, "brune", plan("faim", "redemander", etape("demander", cible="marchand", outil="vivres")))
+        # Un refus porte sur ce qui était demandé : autre chose peut se demander.
+        deplacer(m, "pied_de_biche", "marchand")
+        croire(m, "brune", "pied_de_biche", "lieu", "marchand", "vu", salle="antichambre", case=None)
+        stratege.valider(m, "brune", plan("faim", "emprunter", etape("demander", cible="marchand", outil="pied_de_biche")))
 
     def test_le_moteur_ajoute_le_deplacement_qu_un_geste_suppose(self):
         m = relais()

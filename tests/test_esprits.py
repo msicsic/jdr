@@ -48,11 +48,12 @@ class PerceptionParActeurTests(unittest.TestCase):
         self.assertEqual(croyance(reprise, "crochets")["valeur"], "echoppe")
         self.assertEqual(croyance(reprise, "crochets")["case"], [8, 5])
         self.assertEqual(croyance(reprise, "crochets")["source"], "vu")
-        # La poutre de la conduite lui cache le brasero.
-        self.assertIsNone(croyance(reprise, "brasero", "etat"))
+        # La poutre de la conduite lui cache le brasero : il n'en sait que ce qu'il savait.
+        self.assertEqual(croyance(reprise, "brasero", "etat")["source"], "savoir")
         reprise.objets["marchand"]["position"] = [4, 2]
         reprise = attendre(reprise)
-        self.assertEqual(croyance(reprise, "brasero", "etat")["valeur"], {"allume": True})
+        self.assertEqual(croyance(reprise, "brasero", "etat")["valeur"], {"allume": True, "faible": False, "charge": True})
+        self.assertEqual(croyance(reprise, "brasero", "etat")["source"], "vu")
         self.assertNotIn("barbe_gorm", lire(reprise, "marchand")["croyances"])
 
     def test_gorm_ne_voit_rien_dans_le_noir(self):

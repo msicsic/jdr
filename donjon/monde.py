@@ -404,6 +404,10 @@ class Monde:
                             and type(o["combustible"]) is int and o["combustible"] >= 0
                             and type(o["allume"]) is bool), "Source lumineuse invalide"
                     assert not o["allume"] or (o["combustible"] > 0 and o["integrite"] > 0), "Source allumée sans combustible ou détruite"
+                assert "foyer" not in o or (o["foyer"] is True and "luminosite" in o), "Foyer invalide"
+                if "combustible" in o.get("usages", []):
+                    assert (type(o.get("charges")) is int and o["charges"] >= 0
+                            and type(o.get("duree_combustion")) is int and 1 <= o["duree_combustion"] <= 240), "Combustible invalide"
                 if "sonorite" in o:
                     assert type(o["sonorite"]) is int and 1 <= o["sonorite"] <= 3, "Sonorité invalide"
                 if "usages" in o:
