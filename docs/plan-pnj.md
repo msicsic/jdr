@@ -58,7 +58,7 @@ Déterminisme : aucune part aléatoire hors des jets du moteur, déjà reproduct
   `demande` (une condition-but). Le moteur l'enregistre comme croyance ou comme but candidat ;
   il l'adopte si la confiance et les besoins du PNJ le justifient. Mensonge et persuasion
   deviennent des mécaniques : convaincre Gorm que la cloche est déjà au refuge change son plan.
-- Le garde-fou existant s'applique : Luna ne nomme que ce que le joueur perçoit ; ce que la
+- Le garde-fou existant s'applique : Luna ne nomme que ce que le joueur perçoit ; ce que le
   PNJ dit croire est une parole, pas un fait.
 
 ## Stratégies établies par Luna
@@ -66,7 +66,7 @@ Déterminisme : aucune part aléatoire hors des jets du moteur, déjà reproduct
 La délibération a deux étages, interchangeables derrière le même contrat de plan :
 
 - **Planificateur du moteur** (déterministe, gratuit) : routines et buts simples, par chaînage
-  arrière sur les préconditions des actions (manger ← avoir de la nourriture ← ouvrir la
+  arrière sur les préconditions des actions (manger ← avoir de la nourriture ← ouvrir le
   garde-manger ← crocheter ← avoir des crochets ← aller les prendre).
 - **Stratège Luna** : appelé seulement quand un besoin devient urgent sans plan évident, ou
   pour un PNJ important proche du joueur. Il reçoit l'esprit du PNJ (croyances, besoins,
@@ -220,14 +220,14 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
   suffit. À reprendre si un scénario multiplie les PNJ ou les longues attentes.
 - Pas de demande ni de don entre PNJ (Ilse affamée ne demande pas à Gorm) : les nouvelles
   suffisent aux histoires de D ; les promesses et les accusations directes restent à faire.
-- `relations_pnj.soupcon` et `humeur` ne sont pas encore migrés : la méfiance envers la
+- `relations_pnj.soupcon` et `humeur` ne sont pas encore migrés : la méfiance envers le
   joueur en est dérivée (`vol.mefiance`), sans les remplacer.
 - Au banc, l'histoire est toujours celle de Brune : sur quatre graines, elle crochète vers
   190 minutes sous les yeux d'Ilse et d'Aubin, et seuls les jets de persuasion varient (Gorm
   croit Aubin, ou doute des deux mais verrouille quand même). La variété viendra du joueur
   et de nouveaux besoins.
 - `securite` n'a encore pour méthode que les rondes déclarées ; `repos` aucune.
-- Les tests des jalons A à C isolent Gorm et Brune (`tests.support.sans_evacues`) ; la
+- Les tests des jalons A à C isolent Gorm et Brune (`tests.support.sans_evacues`) ; le
   Relais à quatre est couvert par `tests/test_social.py` et le banc.
 
 ## Écarts retenus au jalon E
@@ -243,10 +243,10 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
   sécurité et le repos n'ont aucun geste qui les fasse baisser, si bien que l'oisiveté
   urgente reste hors de portée ; 5 à 7 des 16 appels d'une partie corrigent une proposition
   refusée par le moteur (geste contredit par les croyances, mensonge d'un honnête).
-- Un premier essai a montré que Luna refusait de faire voler Brune, même affamée : la
+- Un premier essai a montré que Luna refusait de faire voler Brune, même affamée : le
   stratège joue désormais le caractère tel qu'il est écrit, et un besoin à 95 passe outre
   ses scrupules comme la crainte d'être vu.
-- Pistes avant de reprendre le stratège : une méthode pour la sécurité et le repos, la
+- Pistes avant de reprendre le stratège : une méthode pour la sécurité et le repos, le
   partage d'une part de nourriture, des évacués qui connaissent Gorm dès le départ ; la
   priorité aux PNJ que le joueur perçoit n'est pas faite (le budget va au premier besoin).
 
