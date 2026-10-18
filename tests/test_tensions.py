@@ -160,12 +160,77 @@ class FeuTests(unittest.TestCase):
         # Sans rien pour l'allumer, il ne gaspille pas son bois dans un foyer froid.
         m = self.gorm(0)
         m.objets["brasero"]["allume"] = False
+        # Placement d'auteur : aucune autre flamme au Relais, ni la torche ni le fanal.
+        m.objets["torche"]["allume"] = False
+        m.objets["fanal"]["allume"] = False
         deplacer(m, "bois", "marchand")
         placer(m, "marchand", "echoppe", [3, 5])
         percevoir_tous(m)
         m, _ = vivre(m, 5)
         self.assertEqual(m.objets["bois"]["charges"], 2)
         self.assertFalse(m.objets["brasero"]["allume"])
+
+    def eteint_sans_briquet(self):
+        """Brasero froid et vide, Gorm et ses fagots devant, sans outil d'allumage."""
+        m = self.gorm(0)
+        m.objets["brasero"]["allume"] = False
+        deplacer(m, "bois", "marchand")
+        placer(m, "marchand", "echoppe", [3, 5])
+        return m
+
+    def test_dans_le_noir_il_voit_que_le_feu_ne_brille_plus(self):
+        m = self.eteint_sans_briquet()
+        m.objets["torche"]["allume"] = False
+        croire(m, "marchand", "brasero", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
+        percevoir_tous(m)
+        m = recharger(m)
+        # Rien ne brille là où il regarde : éteint ; ce qui reste à brûler ne se voit pas.
+        self.assertEqual(lire(m, "marchand")["croyances"]["brasero"]["etat"]["valeur"],
+                         {"allume": False, "faible": False, "charge": True})
+        # Hors de son regard, dans la galerie de la cloche, il garde ce qu'il croyait.
+        placer(m, "marchand", "chambre_cloche", [1, 3])
+        croire(m, "marchand", "brasero", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
+        percevoir_tous(m)
+        self.assertTrue(lire(m, "marchand")["croyances"]["brasero"]["etat"]["valeur"]["allume"])
+
+    def test_sans_briquet_il_rallume_le_brasero_a_la_torche(self):
+        m = self.eteint_sans_briquet()
+        percevoir_tous(m)
+        m, _ = vivre(m, 8)
+        self.assertTrue(m.objets["brasero"]["allume"])
+        self.assertEqual(m.objets["torche"]["lieu"], "marchand")
+        self.assertTrue(m.objets["torche"]["allume"])
+        textes = chronique(m)
+        self.assertLess(textes.index("Gorm, gardien du relais prend la torche."),
+                        textes.index("Gorm, gardien du relais alimente le brasero."))
+        self.assertLess(textes.index("Gorm, gardien du relais alimente le brasero."),
+                        textes.index("Gorm, gardien du relais allume le brasero."))
+
+    def test_torche_eteinte_il_l_allume_au_fanal_puis_rallume_le_brasero(self):
+        m = self.eteint_sans_briquet()
+        # Placement d'auteur : la torche est éteinte mais chargée ; seul le fanal brûle encore.
+        m.objets["torche"]["allume"] = False
+        percevoir_tous(m)
+        m, _ = vivre(m, 12)
+        self.assertTrue(m.objets["brasero"]["allume"])
+        self.assertTrue(m.objets["fanal"]["allume"])
+        textes = chronique(m)
+        self.assertLess(textes.index("Gorm, gardien du relais allume la torche."),
+                        textes.index("Gorm, gardien du relais allume le brasero."))
+
+    def test_la_flamme_meurt_en_route_il_le_constate(self):
+        m = self.eteint_sans_briquet()
+        # Placement d'auteur : la torche n'a plus que deux minutes, le fanal est éteint.
+        m.objets["torche"]["combustible"] = 2
+        m.objets["fanal"]["allume"] = False
+        percevoir_tous(m)
+        m, _ = vivre(m, 12)
+        self.assertFalse(m.objets["brasero"]["allume"])
+        self.assertFalse(m.objets["torche"]["allume"])
+        etat = lire(m, "marchand")["croyances"]["torche"]["etat"]["valeur"]
+        self.assertFalse(etat["allume"])
+        self.assertFalse(etat["charge"])
+
 
 
 class JoueurFeuTests(unittest.TestCase):
@@ -189,6 +254,28 @@ class JoueurFeuTests(unittest.TestCase):
             Moteur(m).preparer(sequence(etape("alimenter", "brasero", outil="bois")))
         with self.assertRaisesRegex(ErreurMonde, "n'est pas un foyer"):
             Moteur(m).preparer(sequence(etape("alimenter", "lanterne", outil="bois")))
+
+    def test_le_joueur_allume_sa_lanterne_au_brasero_sans_briquet(self):
+        m = relais()
+        m.joueur.update(salle="echoppe", position=[3, 5])
+        # Placement d'auteur : le briquet est resté au refuge, la lanterne s'est éteinte.
+        placer(m, "briquet", "antichambre", (2, 2))
+        m.objets["lanterne"]["allume"] = False
+        plan = Moteur(m).preparer(sequence(etape("allumer", "lanterne")))
+        self.assertEqual(plan.plans[0].titre, "Allumer la lanterne avec le brasero.")
+        Moteur(m).executer(plan)
+        m = recharger(m)
+        self.assertTrue(m.objets["lanterne"]["allume"])
+        self.assertTrue(m.objets["brasero"]["allume"])
+        # Loin du brasero, la flamme n'est pas à portée ; une source fixe ne vient pas à soi.
+        m.objets["lanterne"]["allume"] = False
+        m.joueur.update(position=[5, 2])
+        with self.assertRaisesRegex(ErreurMonde, "autre flamme"):
+            Moteur(m).preparer(sequence(etape("allumer", "lanterne")))
+        m.joueur.update(position=[3, 5])
+        m.objets["brasero"]["allume"] = False
+        with self.assertRaisesRegex(ErreurMonde, "autre flamme"):
+            Moteur(m).preparer(sequence(etape("allumer", "brasero", outil="fanal")))
 
     def bois_au_sol(self, case=(4, 5), proprietaire="joueur"):
         m = relais()

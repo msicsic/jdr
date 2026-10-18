@@ -268,6 +268,23 @@ def _vu_porter(monde, id, sujet):
     relancer(monde, id, "biens", VOL)
 
 
+def _flamme_sous_les_yeux(monde, id, sujet, lieu):
+    """La place où il croit la source est-elle sous son regard ? Un objet fixe ne bouge pas."""
+    o = monde.objets[sujet]
+    if lieu and lieu["valeur"] is not None:
+        salle, case = lieu.get("salle"), lieu.get("case")
+    elif not o.get("mobile") and o["lieu"] in monde.data["salles"]:
+        salle, case = o["lieu"], o.get("position")
+    else:
+        return False
+    if salle is None or salle not in monde.data["salles"]:
+        return False
+    if not monde.data.get("mode_cases"):
+        return monde.objets[id]["lieu"] == salle
+    from .spatial import dans_le_regard
+    return case is not None and dans_le_regard(monde, salle, case, id)
+
+
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
     vus, champ = percus(monde, id)
@@ -290,6 +307,13 @@ def percevoir(monde, id):
             croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, "vu")
         if o["type"] in ("porte", "contenant") and o.get("ouverte"):
             reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
+    for sujet, attributs in list(croyances.items()):
+        etat = attributs.get("etat")
+        if (sujet not in vus and sujet in monde.objets and "allume" in monde.objets[sujet]
+                and etat and etat["valeur"].get("allume") and _flamme_sous_les_yeux(monde, id, sujet, attributs.get("lieu"))):
+            # Une flamme se voit de loin, même dans le noir : là où il regarde, rien ne brille.
+            # Ce qui reste à brûler ne se voit pas : il garde ce qu'il en croyait.
+            reviser(monde, id, sujet, "etat", {**etat["valeur"], "allume": False, "faible": False})
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
         if sujet in vus or not lieu or lieu["valeur"] is None or not _observe(monde, champ, lieu):

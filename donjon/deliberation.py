@@ -268,6 +268,49 @@ class Plan:
                      if usage in self.monde.objets[k].get("usages", []) and _disponible_cru(self.monde, self.id, k)
                      and (k in self.portes or autorise(self.monde, self.id, k))), None)
 
+    def _etat(self):
+        return (self.salle, set(self.portes), set(self.ouverts), set(self.deverrouilles),
+                list(self.etapes), set(self.touches))
+
+    def _restaurer(self, etat):
+        (self.salle, self.portes, self.ouverts, self.deverrouilles,
+         self.etapes, self.touches) = etat
+
+    def flamme(self, cible):
+        """De quoi allumer ``cible``, qu'il aura en main ou à portée en l'atteignant.
+
+        Un outil d'allumage, sinon une source qu'il croit allumée et qu'il peut prendre, sinon
+        une source éteinte qu'il croit chargée, allumée à une flamme fixe qu'il croit vive : une
+        source fixe ne se déplace pas, on lui apporte de quoi prendre feu.
+        """
+        briquet = self.outil("allumage")
+        if briquet:
+            self.obtenir(briquet)
+            return briquet
+        sources = [k for k in _connus(self.monde, self.id)
+                   if k != cible and "allume" in self.monde.objets[k]
+                   and (k in self.portes or autorise(self.monde, self.id, k))]
+        etat = lambda k: _cru(self.monde, self.id, k, "etat") or {}
+        vives = [k for k in sources if etat(k).get("allume")]
+        mobiles = [k for k in sources if self.monde.objets[k].get("mobile")]
+        essais = [(k, None) for k in vives if k in mobiles]
+        essais += [(k, f) for k in mobiles if not etat(k).get("allume") and etat(k).get("charge")
+                   for f in vives if not self.monde.objets[f].get("mobile")]
+        for source, fixe in essais:
+            avant = self._etat()
+            try:
+                self.obtenir(source)
+                if fixe:
+                    salle = salle_crue(self.monde, self.id, fixe)
+                    if salle is None:
+                        raise Echec
+                    self.aller(salle)
+                    self.ajouter("allumer", source, outil=fixe)
+                return source
+            except Echec:
+                self._restaurer(avant)
+        raise Echec
+
     def obtenir(self, objet, profondeur=0):
         if objet in self.portes:
             return
@@ -402,17 +445,17 @@ def _plan_pulsion(monde, id, condition):
             # Un feu qui baisse, ou un foyer froid et vide, attend du bois ; éteint, il faut l'allumer.
             eteint = etat.get("allume") is False
             vide = etat.get("faible") or not etat.get("charge", True)
-            briquet = p.outil("allumage") if eteint else None
-            if vide and bois is None or eteint and briquet is None:
+            if vide and bois is None:
                 raise Echec
-            for outil in (bois if vide else None, briquet):
-                if outil:
-                    p.obtenir(outil)
+            if vide:
+                p.obtenir(bois)
+            # La flamme vient en dernier : une torche se consume pendant le trajet.
+            flamme = p.flamme(foyer) if eteint else None
             p.aller(salle)
             if vide:
                 p.ajouter("alimenter", foyer, outil=bois)
-            if briquet:
-                p.ajouter("allumer", foyer, outil=briquet)
+            if flamme:
+                p.ajouter("allumer", foyer, outil=flamme)
         else:
             cible = condition["objet"]
             cle = p.cle(cible)

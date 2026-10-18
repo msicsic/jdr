@@ -306,7 +306,9 @@ def _executer(monde, id, etape, lignes, gestes):
         if not _accessible(monde, id, cible):
             return _rate(monde, id, cible)
     if outil and not _porte(monde, outil, id):
-        return _rate(monde, id, outil)
+        # Une flamme fixe ne se déplace pas : on lui apporte, en main, la source à allumer.
+        if not (op == "allumer" and _porte(monde, cible, id) and _accessible(monde, id, outil)):
+            return _rate(monde, id, outil)
     faute = illicite(monde, id, cible)
     if op == "prendre":
         if not c.get("mobile"):
@@ -366,7 +368,15 @@ def _executer(monde, id, etape, lignes, gestes):
             return False
         _raconter(monde, id, "alimente", c, lignes)
     elif op == "allumer":
-        if c.get("allume") is not False or c["integrite"] == 0 or "allumage" not in monde.objets[outil].get("usages", []):
+        from .perception import flamme
+        t = monde.objets[outil]
+        if c.get("allume") is not False or c["integrite"] == 0 or outil == cible:
+            return False
+        if not flamme(t):
+            # La flamme sur laquelle il comptait s'est éteinte : il le constate.
+            if "allume" in t:
+                return _rate(monde, id, outil, "etat", {"allume": False, "faible": False,
+                                                         "charge": t.get("combustible", 0) > 0})
             return False
         if c.get("combustible", 0) <= 0:
             return _rate(monde, id, cible, "etat", {"allume": False, "faible": False, "charge": False})
