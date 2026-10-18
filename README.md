@@ -44,6 +44,8 @@ récit de Luna (un appel de moins par action). Installation : `python -m venv .v
 
 ## Documentation
 
+- [docs/etat-dev.md](docs/etat-dev.md) : où en est le développement, décisions en attente, reprise sur un autre poste.
+- [docs/plan-pnj.md](docs/plan-pnj.md) : PNJ comportementaux, jalons A à F et leurs bilans.
 - [docs/mecaniques.md](docs/mecaniques.md) : scènes, carte et cases, lumière, fabrication,
   franchissements, sons, manœuvres composées, dialogues, vol, savoirs des PNJ, limites.
 - [docs/contrat-mj.md](docs/contrat-mj.md) : ce que le MJ peut affirmer, comment le moteur le contrôle.
