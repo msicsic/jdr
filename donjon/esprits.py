@@ -29,7 +29,8 @@ def pnjs(monde):
 
 
 CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
-          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict}
+          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list}
+ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
 
@@ -99,6 +100,12 @@ def verifier(monde):
                 and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
+        for engagement in e["engagements"]:
+            from .deliberation import condition_valide
+            assert (isinstance(engagement, dict) and set(engagement) == {"condition", "pour", "minute"}
+                    and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
+                    and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
+                    and type(engagement["minute"]) is int), "Engagement de PNJ invalide"
         for sujet, attributs in e["croyances"].items():
             assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
             for attribut, c in attributs.items():
@@ -115,8 +122,9 @@ def verifier(monde):
         if i:
             from .deliberation import OPERATIONS
             for etape in i["plan"]:
-                assert (isinstance(etape, dict) and set(etape) == {"operation", "cible", "outil", "lieu", "condition"}
-                        and etape["operation"] in OPERATIONS
+                # Un geste social porte son contenu : ce qui est affirmé, ou la tâche confiée.
+                assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
+                        and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
                         and etape["condition"] in ("", "sans_temoin")), "Étape de plan invalide"
 
 

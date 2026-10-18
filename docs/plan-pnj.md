@@ -58,7 +58,7 @@ Déterminisme : aucune part aléatoire hors des jets du moteur, déjà reproduct
   `demande` (une condition-but). Le moteur l'enregistre comme croyance ou comme but candidat ;
   il l'adopte si la confiance et les besoins du PNJ le justifient. Mensonge et persuasion
   deviennent des mécaniques : convaincre Gorm que la cloche est déjà au refuge change son plan.
-- Le garde-fou existant s'applique : Luna ne nomme que ce que le joueur perçoit ; ce que le
+- Le garde-fou existant s'applique : Luna ne nomme que ce que le joueur perçoit ; ce que la
   PNJ dit croire est une parole, pas un fait.
 
 ## Stratégies établies par Luna
@@ -66,7 +66,7 @@ Déterminisme : aucune part aléatoire hors des jets du moteur, déjà reproduct
 La délibération a deux étages, interchangeables derrière le même contrat de plan :
 
 - **Planificateur du moteur** (déterministe, gratuit) : routines et buts simples, par chaînage
-  arrière sur les préconditions des actions (manger ← avoir de la nourriture ← ouvrir le
+  arrière sur les préconditions des actions (manger ← avoir de la nourriture ← ouvrir la
   garde-manger ← crocheter ← avoir des crochets ← aller les prendre).
 - **Stratège Luna** : appelé seulement quand un besoin devient urgent sans plan évident, ou
   pour un PNJ important proche du joueur. Il reçoit l'esprit du PNJ (croyances, besoins,
@@ -220,15 +220,35 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
   suffit. À reprendre si un scénario multiplie les PNJ ou les longues attentes.
 - Pas de demande ni de don entre PNJ (Ilse affamée ne demande pas à Gorm) : les nouvelles
   suffisent aux histoires de D ; les promesses et les accusations directes restent à faire.
-- `relations_pnj.soupcon` et `humeur` ne sont pas encore migrés : la méfiance envers le
+- `relations_pnj.soupcon` et `humeur` ne sont pas encore migrés : la méfiance envers la
   joueur en est dérivée (`vol.mefiance`), sans les remplacer.
 - Au banc, l'histoire est toujours celle de Brune : sur quatre graines, elle crochète vers
   190 minutes sous les yeux d'Ilse et d'Aubin, et seuls les jets de persuasion varient (Gorm
   croit Aubin, ou doute des deux mais verrouille quand même). La variété viendra du joueur
   et de nouveaux besoins.
 - `securite` n'a encore pour méthode que les rondes déclarées ; `repos` aucune.
-- Les tests des jalons A à C isolent Gorm et Brune (`tests.support.sans_evacues`) ; le
+- Les tests des jalons A à C isolent Gorm et Brune (`tests.support.sans_evacues`) ; la
   Relais à quatre est couvert par `tests/test_social.py` et le banc.
+
+## Écarts retenus au jalon E
+
+- Banc A/B, 4 graines × 8 h, critère fixé avant les mesures : aucune violation (atteint),
+  +50 % d'événements distincts hors routine (mesuré : 9 → 10, +11 %), −30 % de minutes de
+  besoin urgent sans intention (1170 → 1071, −8 %), au plus 2 appels par heure (2,09 : la
+  correction d'une proposition refusée échappait au budget, corrigé depuis). Le stratège
+  n'est donc pas activé par défaut : il reste l'option `--stratege` du jeu et du banc.
+- Ce qui limite l'apport : le stratège refait surtout ce que le planificateur trouve déjà
+  (crocheter la réserve, faire une ronde) ; le Relais offre peu de leviers sociaux (les
+  vivres sont sous clé, la clé de Gorm est trop discrète pour qu'on la lui demande) ; la
+  sécurité et le repos n'ont aucun geste qui les fasse baisser, si bien que l'oisiveté
+  urgente reste hors de portée ; 5 à 7 des 16 appels d'une partie corrigent une proposition
+  refusée par le moteur (geste contredit par les croyances, mensonge d'un honnête).
+- Un premier essai a montré que Luna refusait de faire voler Brune, même affamée : la
+  stratège joue désormais le caractère tel qu'il est écrit, et un besoin à 95 passe outre
+  ses scrupules comme la crainte d'être vu.
+- Pistes avant de reprendre le stratège : une méthode pour la sécurité et le repos, la
+  partage d'une part de nourriture, des évacués qui connaissent Gorm dès le départ ; la
+  priorité aux PNJ que le joueur perçoit n'est pas faite (le budget va au premier besoin).
 
 ## Jalons
 
@@ -242,7 +262,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **B. Gorm veut** — *fait* | Brune, affamée, va chercher les crochets, attend que personne ne la voie, crochète la réserve et mange ; sous les yeux du joueur elle renonce ; sans crochets elle reste sans plan ; surprise depuis l'ombre (joueur ou Gorm) ; Gorm volé garde ses biens, cesse de déléguer la cloche, va chercher la clé, déverrouille et la rapporte ; sans clé, il renonce | profils, besoins, pulsions (dont déléguées), délibération par urgence, planificateur borné sur croyances, gestes prendre/poser/ouvrir/fermer/(dé)verrouiller/crocheter/manger, garde `sans_temoin`, témoins réels, chronique, `banc_pnj` | aucun appel |
 | **C. On peut lui parler** — *fait* | ta réplique est rendue selon INT et CHA (« Tu dis : « … » »), mot pour mot entre guillemets ; un mensonge cru change le plan de Gorm et se découvre quand il voit la vérité ; un mensonge démenti par ce qu'il vient de voir est rejeté ; une INT faible transmet moins ; une demande d'objet est refusée s'il en a besoin ou se méfie ; Luna fait parler les PNJ d'après leurs croyances | mode `parole_joueur`, bande d'expression, contenu typé résolu par identifiant ou par nom, jet de CHA et confiance, `mensonge_decouvert`, contrôle des mentions sur la réplique ; objets portés discrets cachés au joueur ; profil des PNJ retiré du contexte de Luna | 3 appels par réplique (interprétation, réponse, audit) |
 | **D. Plusieurs PNJ** — *fait* | Ilse et Aubin voient Brune, à bout de faim, crocheter la réserve et le disent à Gorm, qui les croit ou non, referme et verrouille ; ce qu'Ilse voit de toi passe à Gorm puis à Aubin, et Gorm se méfie, reprend la cloche à son compte et te surveille ; Gorm reconnaît son bien entre d'autres mains ; tu entends ce qui se dit dans ta salle | nouvelles et rumeurs typées (jet de CHA du locuteur, confiance décroissante, trois relais au plus), `vu_porter`, rondes `{lieu, periode}` et geste `inspecter`, témoins de toute la minute du geste, besoin extrême plus fort que la crainte d'être vu, Ilse, Aubin et le fanal du refuge, mesures sociales au banc | aucun appel |
-| **E. Luna stratège** | buts tirés d'une personnalité en prose, stratégies sociales | stratège à pas de temps long, A/B contre D sur le banc | budget plafonné ; gardé seulement si la chronique s'améliore de façon mesurable |
+| **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, pèse le vol, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; un PNJ demande un objet, confie une tâche, remet ce qu'il porte ; tu entends ces échanges | gestes sociaux `dire`, `demander`, `confier`, `remettre` communs au joueur et aux PNJ, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune

@@ -59,6 +59,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--save", type=Path, default=BASE / "sauvegardes" / "partie.json")
     parser.add_argument("--model", default=os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT))
     parser.add_argument("--effort", choices=["low", "medium", "high"], default="medium")
+    parser.add_argument("--stratege", action="store_true",
+                        help="Luna conseille les PNJ quand le moteur n'a pas de plan (appels plafonnés par heure de jeu)")
     parser.add_argument("--debug", action="store_true", help="autorise etat <objet> pour inspecter le monde")
     parser.add_argument("--compare-model", nargs="?", const="gpt-6-luna", metavar="MODELE",
                         help="compare en arrière-plan avec ce modèle (gpt-6-luna si omis)")
@@ -132,6 +134,9 @@ def main(argv=None, interface=None):
             connexion = "chatgpt" if Coffre().compte() else "api"
         actif = not args.offline and (connexion == "chatgpt" or bool(os.environ.get("OPENAI_API_KEY")))
         mj = MJOpenAI(args.model, args.effort, connexion=connexion) if actif else None
+        from donjon import stratege
+        # Le stratège passe par la connexion du MJ principal, jamais par le modèle comparé.
+        stratege.activer(mj._appeler_brut if mj and args.stratege else None)
         if mj:
             mj = comparer(mj)
         if isinstance(mj, Comparateur):
@@ -230,7 +235,9 @@ def main(argv=None, interface=None):
                     connexion, actif = "chatgpt", True
                     if isinstance(mj, Comparateur):
                         mj.fermer()
-                    mj = comparer(MJOpenAI(args.model, args.effort, connexion="chatgpt"))
+                    principal = MJOpenAI(args.model, args.effort, connexion="chatgpt")
+                    stratege.activer(principal._appeler_brut if args.stratege else None)
+                    mj = comparer(principal)
                     pending = None
                     continue
                 if cmd in ("comparaison", "debug"):

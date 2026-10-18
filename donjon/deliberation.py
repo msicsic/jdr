@@ -11,10 +11,11 @@ from .esprits import esprit, lire, memoriser
 from .spatial import porte_par
 
 BESOINS = ("devoir", "biens", "securite", "faim", "repos")
-LIMITES = ("ne_vole_pas", "ne_blesse_pas")
+LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger", "inspecter")
+              "crocheter", "manger", "inspecter", "dire", "demander", "confier", "remettre")
+SOCIALES = ("dire", "demander", "confier", "remettre")
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
 REPIT = 60             # minutes avant de reprendre un but abandonné
@@ -41,13 +42,18 @@ def verifier_profil(monde, id, p):
                 and all(isinstance(b[k], (int, float)) for k in b)
                 and 0 <= b["depart"] <= 100 and 0 < b["urgence"] <= 100), "Besoin de PNJ invalide"
     for pulsion in p["pulsions"]:
-        c = pulsion.get("condition", {})
         assert (set(pulsion) <= {"besoin", "condition", "delegue_a"} and pulsion.get("besoin") in p["besoins"]
-                and ((set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
-                     or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
-                     or (set(c) == {"lieu", "periode"} and c["lieu"] in monde.data["salles"]
-                         and type(c["periode"]) is int and c["periode"] > 0))
+                and condition_valide(monde, pulsion.get("condition"))
                 and pulsion.get("delegue_a", "joueur") == "joueur"), "Pulsion de PNJ invalide"
+
+
+def condition_valide(monde, c):
+    """Vocabulaire commun des buts : un objet en un lieu, un objet verrouillé, une ronde."""
+    return isinstance(c, dict) and (
+        (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
+        or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
+        or (set(c) == {"lieu", "periode"} and c["lieu"] in monde.data["salles"]
+            and type(c["periode"]) is int and c["periode"] > 0))
 
 
 def installer(monde, id):
@@ -292,12 +298,17 @@ def _delegue(monde, id, pulsion):
     return pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
 
 
-def candidats(monde, id):
-    """Buts envisageables, du besoin le plus pressant au moins pressant."""
+def urgents(monde, id):
+    """Besoins au-delà de leur seuil, du plus pressant au moins pressant."""
     p, e = profil(monde, id), esprit(monde, id)
-    urgents = sorted((b for b in p["besoins"] if e["besoins"][b] >= p["besoins"][b]["urgence"]),
-                     key=lambda b: (p["besoins"][b]["urgence"] - e["besoins"][b], BESOINS.index(b)))
-    for besoin in urgents:
+    return sorted((b for b in p["besoins"] if e["besoins"][b] >= p["besoins"][b]["urgence"]),
+                  key=lambda b: (p["besoins"][b]["urgence"] - e["besoins"][b], BESOINS.index(b)))
+
+
+def candidats(monde, id):
+    """Buts envisageables, du besoin le plus pressant au moins pressant, puis les engagements."""
+    p, e = profil(monde, id), esprit(monde, id)
+    for besoin in urgents(monde, id):
         if besoin == "faim":
             yield besoin, _plan_manger
             continue
@@ -310,6 +321,9 @@ def candidats(monde, id):
                 if periodique(x["condition"]):
                     continue
                 yield besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c)
+    # Une tâche acceptée se fait quand rien de plus pressant n'a de plan.
+    for engagement in e["engagements"]:
+        yield "engagement", lambda m, i, c=engagement["condition"]: _plan_pulsion(m, i, c)
 
 
 def deliberer(monde, id, minute):
@@ -329,9 +343,14 @@ def deliberer(monde, id, minute):
             relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)
             memoriser(monde, id, {"type": "atteinte", "condition": dict(x["condition"])})
         e["pulsions"][i] = etat
+    from .echanges import engagements_echus
+    from . import stratege
+    engagements_echus(monde, id)
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":
         return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
+    if intention and intention["but"]["type"] == "strategie" and intention["plan"]:
+        return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
     for besoin, methode in candidats(monde, id):
         if e["renoncements"].get(besoin, -REPIT) + REPIT > minute:
             continue
@@ -339,12 +358,17 @@ def deliberer(monde, id, minute):
         if not resultat:
             continue
         but, etapes = resultat
+        if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
+            return
+        intention = e["intention"]
         meme = bool(intention) and intention["but"] == but
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0}
+        stratege.occupe(monde, id)
         return
     e["intention"] = None
+    stratege.desoeuvre(monde, id, minute, urgents(monde, id))
 
 
 def renoncer(monde, id, minute):

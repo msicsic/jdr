@@ -15,7 +15,11 @@ from .francais import complement_de, designer
 from .geometrie import cases, placer, position_entree
 
 CHRONIQUE_MAX = 300
-CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger"), True)
+# deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
+# social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ.
+NATURES = ("deplacement", "geste", "social", "decision")
+CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger",
+                         "remettre"), True)
 
 
 def verifier(monde):
@@ -26,9 +30,12 @@ def verifier(monde):
         assert reaction is None or (isinstance(reaction, dict) and set(reaction) == {"seuil"}
                                     and type(reaction["seuil"]) is int
                                     and 1 <= reaction["seuil"] <= 5), "Réaction de PNJ invalide"
+    from .stratege import verifier as verifier_stratege
+    verifier_stratege(monde)
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) == {"minute", "pnj", "texte"} for c in chronique)), "Chronique invalide"
+            and all(isinstance(c, dict) and set(c) - {"nature"} == {"minute", "pnj", "texte"}
+                    and c.get("nature", "geste") in NATURES for c in chronique)), "Chronique invalide"
 
 
 def _etape(operation, cible="", outil="", lieu="", condition=""):
@@ -106,9 +113,9 @@ def portes_closes(monde, id, depart, arrivee):
 
 # --- Annonces et chronique ----------------------------------------------------------------
 
-def _chroniquer(monde, id, texte):
+def _chroniquer(monde, id, texte, nature="geste"):
     chronique = monde.data.setdefault("chronique", [])
-    chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte})
+    chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte, "nature": nature})
     del chronique[:-CHRONIQUE_MAX]
 
 
@@ -123,7 +130,7 @@ def _raconter(monde, id, verbe, objet, lignes):
 
 def _annoncer_porte(monde, id, porte, verbe, texte_porte, lignes):
     texte = designer(monde.objets[id], debut=True) + " " + verbe + " " + designer(porte) + "."
-    _chroniquer(monde, id, texte)
+    _chroniquer(monde, id, texte, "deplacement")
     if monde.visible(id):
         lignes.append(texte)
     elif monde.visible(porte["id"]):
@@ -244,7 +251,8 @@ def _pas(monde, id, sortie, lignes):
     depuis, o["lieu"] = o["lieu"], sortie["vers"]
     if "position" in o:
         placer(o, o["lieu"], position_entree(monde, o["lieu"], depuis))
-    _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][o["lieu"]]["nom"] + ".")
+    _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][o["lieu"]]["nom"] + ".",
+                "deplacement")
 
 
 def _rate(monde, id, cible, attribut="lieu", valeur=None):
@@ -281,6 +289,10 @@ def _executer(monde, id, etape, lignes, gestes):
             return False
         _inspecter(monde, id)
         return True
+    from .deliberation import SOCIALES
+    if op in SOCIALES:
+        from .echanges import executer
+        return executer(monde, id, etape, lignes)
     c = monde.objets.get(cible)
     if c is None:
         return False
@@ -354,14 +366,21 @@ def agir(monde, id, minute, lignes, gestes=None):
     intention = e["intention"]
     if not intention:
         return
+    from .stratege import terminer
     etapes, o = intention["plan"], monde.objets[id]
+    strategie = intention["but"]["type"] == "strategie"
     while etapes and etapes[0]["operation"] == "aller" and etapes[0]["lieu"] == o["lieu"]:
         etapes.pop(0)
     if not etapes:
         if intention["motif"] == "alerte":
             e["intention"] = None
+        elif strategie:
+            terminer(monde, id, True)
         return
     etape = etapes[0]
+    if strategie and etape["operation"] == "aller" and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
+        terminer(monde, id, False, etape)  # Aucun passage qu'il croie ouvert : la stratégie tombe.
+        return
     contact = CONTACT.get(etape["operation"])
     if contact and monde.data.get("mode_cases") and etape["cible"] in monde.objets:
         from .spatial import proche
@@ -379,6 +398,10 @@ def agir(monde, id, minute, lignes, gestes=None):
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
             e["intention"] = None
+        elif strategie and not etapes:
+            terminer(monde, id, True)
+    elif strategie and etape["operation"] != "aller":
+        terminer(monde, id, False, etape)  # Un geste manqué, ou un refus : il n'insiste pas.
 
 
 def _annoncer_presences(monde, vus, apparus, lignes):
