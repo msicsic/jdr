@@ -499,6 +499,28 @@ aucune violation ni usurpation. Pas d'appel à Luna : aucune phrase du joueur ne
 3. Les rondes restent des pulsions ; accomplies, elles apaisent. Une ronde manquée n'inquiète
    pas en soi (seul ce qui est perçu inquiète).
 
+## Écarts retenus au jalon H
+
+- La sécurité redevient satisfaisable : banc moteur seul, 8 graines, 8 heures, `main` (après G)
+  → H : minutes urgentes oisives 1063 → 498 (−53 %), égales désormais aux minutes sans recours
+  (466 → 498, +7 %) ; événements distincts 28,6 → 27,5, échanges 9,8 → 8,8, gestes illicites
+  vus 1,6 → 2,2, déplacements 100 → 119, mises à l'abri 4,1 par partie, aucune usurpation.
+- Rondes en routine même quand le besoin est calme (décision du plan) : Gorm, dont le devoir
+  n'est urgent qu'après la première heure, patrouille désormais dès le début. Les tests qui
+  le supposaient à son poste le déclarent en placement d'auteur (rondes faites).
+- Défauts trouvés et corrigés :
+  - reprendre un geste qui dure (se reposer, se chauffer, s'abriter) exigeait seulement le
+    même motif : une ronde, de motif sécurité, basculait en abri au passage d'une salle
+    éclairée ; le plan doit désormais comporter ce geste ;
+  - un PNJ ne savait une salle éclairée que s'il en avait vu la source : il sait désormais si
+    la salle où il se tient est éclairée.
+- Données du Relais : les trois évacués, voisins, se croient fiables entre eux (sans cela,
+  seuls Gorm rassurait, et tous le suivaient dans ses rondes).
+- Coût : la sécurité perçue teste la vue des seuls personnages de la salle, case par case ;
+  une partie de 8 heures prend le même temps que sur `main`.
+- Non fait : la crue comme événement (complémentaire, s'appuiera sur H1) ; protéger autrui ;
+  fuir une menace qui se déplace.
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -514,7 +536,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, demande une part à Gorm avant de voler, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Gorm qui accepte ouvre sa réserve, sert et referme à clé ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; Aubin se repose ; tu entends ces échanges | gestes sociaux `dire`, `demander` (dont une part de nourriture), `confier`, `remettre`, `servir`, `reposer`, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ et complété par le planificateur, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
 | **F. Tensions du Relais** — *fait* | les évacués trempés quittent le refuge pour se chauffer au brasero ; Gorm revoit son feu, va chercher ses fagots aux vannes et le recharge, jusqu'à épuiser le bois ; tous ont faim pour 4 parts : on demande une part à Gorm avant de voler, il sert, refuse ou garde la dernière ; Brune refusée crochète, Ilse refusée redemande deux heures plus tard ; on cherche Gorm quand on l'a perdu de vue ; tu recharges toi-même le brasero | besoin `chaleur`, foyer et combustible (`alimenter`, commun au joueur et aux PNJ, `allumer` pour les PNJ), feu consumé minute par minute avec les PNJ, pulsion de feu entretenu, part demandée par le moteur et attendue près des vivres, refus par objet, recherche d'un personnage, ordre des buts (ce qui presse, parole donnée, ce qu'on finit, routine) | aucun appel ; stratège remesuré |
 | **G. Le feu partagé** — *fait* | Gorm, sans briquet, rallume le brasero avec la torche allumée au fanal ; tu allumes ta lanterne au brasero ; quand Gorm garde sa dernière brassée, les évacués demandent une part des planches d'Aubin, qui va lui-même entretenir le feu ; Aubin rallume le brasero mort avec ses planches et la torche allumée au fanal, puis l'éteint et la garde ; tu allumes ta lanterne au feu | une source allumée sert d'outil d'allumage (joueur et PNJ) ; part généralisée aux ressources comptées (`portions`, `charges`), réserve gardée en donnée de profil (`reserve`) ; recours au froid ordonnés comme ceux de la faim ; perception d'une flamme dans le noir, inertie d'un plan en cours, flamme ménagée | aucun appel |
-| **H. Se sentir en sécurité** — *proposé* | les évacués se regroupent dans la lumière près de qui ils croient fiable ; le noir d'un feu mort les pousse vers le fanal ou vers toi ; Ilse s'écarte de Brune qu'elle a vue crocheter ; ta présence rassure ou inquiète selon la confiance | sécurité mue par la perception (noir, bruit, geste illicite, méfiance ; compagnie fiable, lumière, ronde accomplie), nuancée par profil (`securite`) ; geste qui dure « se mettre à l'abri » | aucun appel |
+| **H. Se sentir en sécurité** — *fait* | les évacués se regroupent dans la lumière près de qui ils croient fiable ; le noir d'un feu mort les pousse vers le fanal ou vers toi ; Ilse s'écarte de Brune qu'elle a vue crocheter ; ta présence rassure ou inquiète selon la confiance | sécurité mue par la perception (noir, bruit, geste illicite, méfiance ; compagnie fiable, lumière, ronde accomplie), nuancée par profil (`securite`) ; geste qui dure « se mettre à l'abri » | aucun appel |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune

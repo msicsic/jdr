@@ -337,6 +337,9 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
      Une part promise s'attend près des vivres, 60 minutes au plus. Sinon, sans `ne_vole_pas`,
      il prend le bien d'autrui ;
    - se reposer là où il est pour le repos (2 points par minute, jusqu'à 20) ;
+   - se mettre à l'abri pour la sécurité : rejoindre une salle qu'il croit éclairée où se tient
+     quelqu'un qu'il croit fiable, là où il est d'abord, et y rester jusqu'à 30 ; ses rondes
+     restent des recours ;
    - pour la chaleur, se chauffer près d'un foyer qu'il croit allumé (3 points par minute,
      jusqu'à 20). Sans feu vif, il ranime un foyer qu'il croit éteint, avec les recours de la
      faim : son bois ou celui de personne, puis une part de bois demandée au propriétaire, puis,
@@ -346,8 +349,16 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
 2. Ses engagements.
 3. Refermer à clé ce qu'il garde sous clé et a lui-même ouvert dans les 30 dernières minutes.
 4. Finir de se reposer ou de se chauffer.
-5. La routine : ses rondes et la garde du lieu de ses biens. Un besoin toujours urgent, comme
-   la sécurité qui fait tourner les rondes, ne retient donc plus un affamé ou un transi.
+5. La routine : ses rondes et la garde du lieu de ses biens. Les rondes se font aussi quand le
+   besoin qu'elles servent ne presse pas ; elles passent après tout le reste.
+
+La sécurité suit ce que le PNJ perçoit, minute par minute, en plus de sa dérive : le noir sur
+sa case (+0,5) et la vue de quelqu'un qu'il ne croit pas fiable (+0,3) l'inquiètent, la lumière
+(−0,2) et la vue, dans sa salle, de quelqu'un qu'il croit fiable, le joueur compris (−0,5), le
+rassurent. D'un coup : un bruit fort venu d'une autre salle (+15), un geste illicite vu (+20),
+une ronde accomplie (−20). Ces valeurs par défaut (`SECURITE`) se nuancent par profil, donnée
+`securite`. Un PNJ sait si la salle où il se tient est éclairée (croyance d'état `eclairee`
+sur la salle), même sans en voir la source.
 
 Un plan qui accède à un contenant qu'il garde sous clé se termine en le refermant. Ce qu'il
 défait lui-même pour un plan qui le rétablit n'est pas à réparer d'abord, tant que le motif
@@ -410,7 +421,7 @@ Tous ont faim avant la fin de la nuit, et la réserve ne compte que 4 parts ; Go
 dernière pour lui. Le brasero brûle 150 minutes ; deux charges de fagots, rangés aux vannes
 et qui sont à Gorm, l'entretiennent chacune 120 minutes de plus, et les planches de bac
 d'Aubin, au refuge, deux charges de 90 minutes. La torche du refuge attend éteinte, avec 60
-minutes de combustible : elle porte la flamme du fanal jusqu'au brasero. Les évacués savent Gorm à
+minutes de combustible : elle porte la flamme du fanal jusqu'au brasero. Les trois évacués, voisins, se croient fiables entre eux. Les évacués savent Gorm à
 l'échoppe, le brasero allumé et les vivres dans la réserve ; Gorm les sait au refuge et les
 tient pour fiables. Un fanal éclaire le refuge pendant douze heures. Le banc `python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche` fait
 vivre le scénario sans joueur actif et imprime chronique et mesures (gestes, événements

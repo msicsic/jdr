@@ -44,3 +44,17 @@ def sans_evacues(monde):
             if isinstance(table, dict):
                 table.pop(id, None)
     return monde
+
+
+def calme(monde, *ids):
+    """Placement d'auteur : ces PNJ n'ont aucun besoin pressant et restent où ils sont ; leurs
+    rondes viennent d'être faites, la routine ne les fait pas bouger de sitôt."""
+    from donjon.esprits import lire
+    for id in ids:
+        besoins = lire(monde, id)["besoins"]
+        for b in besoins:
+            besoins[b] = 0.0
+        for x in monde.objets[id]["profil"]["pulsions"]:
+            if "periode" in x["condition"]:
+                lire(monde, id)["visites"][x["condition"]["lieu"]] = monde.data["minutes"]
+    return monde

@@ -4,14 +4,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- `main` contient les jalons PNJ A à G (`docs/plan-pnj.md`, tableau « Jalons » et sections
-  « Écarts retenus »). Le dernier fusionné est **G. Le feu partagé** :
-  - une flamme en allume une autre (outil d'allumage ou source allumée, l'une des deux
-    portée), pour le joueur et les PNJ ; la torche du refuge porte la flamme du fanal ;
-  - la part vaut pour toute ressource comptée (vivres, bois) ; une part de bois acceptée est
-    l'engagement d'entretenir le feu ; la réserve gardée est la donnée de profil `reserve` ;
-  - le froid suit les recours de la faim ; les planches d'Aubin rallument le feu mort ;
-  - perception d'une flamme dans le noir, inertie d'un plan en cours, flamme ménagée.
+- `main` contient les jalons PNJ A à H (`docs/plan-pnj.md`, tableau « Jalons » et sections
+  « Écarts retenus »). Le dernier fusionné est **H. Se sentir en sécurité** :
+  - la sécurité suit la perception : le noir, un bruit venu d'ailleurs, un geste illicite vu,
+    la méfiance inquiètent ; la lumière, une compagnie fiable (le joueur compris), une ronde
+    accomplie rassurent ; valeurs nuancées par profil (`securite`) ;
+  - se mettre à l'abri : rejoindre la lumière près de qui l'on croit fiable ;
+  - les rondes se font en routine, même quand rien ne presse ;
+  - avant H, **G. Le feu partagé** : une flamme en allume une autre, la part de bois, les
+    recours au froid, l'inertie d'un plan en cours, la flamme ménagée.
 - Luna (`gpt-6-luna`) reste le MJ. Le stratège Luna des PNJ (jalon E) est optionnel
   (`--stratege`), désactivé par défaut. Remesuré sur le Relais de F, il n'apporte presque
   plus rien : +5 % d'événements, −1 % d'oisiveté urgente. Le moteur fait désormais seul
@@ -20,12 +21,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (`deplacer` vers un foyer devient `alimenter`) ; le combustible peut être porté ou à portée
   de main ; le titre de `deplacer` vers le joueur dit « Prendre », sans rangement que l'état
   ne modélise pas. Détail et vérification réelle dans `docs/plan-pnj.md` (écarts du jalon F).
-- La suite de tests passe : 525 tests, 31 ignorés, sans clé ni connexion.
+- La suite de tests passe : 534 tests, 31 ignorés, sans clé ni connexion.
 
 ## Décisions en attente
 
 - **Suite du plan PNJ**, au choix :
-  - une sécurité qui se gagne autrement que par les rondes (piste du jalon H) ;
+  - la crue du Relais, événement de scénario qui s'appuie sur H pour inquiéter ;
   - un événement qui éteint le feu en laissant du bois (les `horloges` existent, aucun
     scénario n'en déclare encore) ;
   - d'autres remèdes au froid ; le joueur qui demande une part ;

@@ -101,8 +101,9 @@ class GardeMangerTests(unittest.TestCase):
         m.objets["lanterne"]["lieu"] = "joueur"
         # Placement d'auteur : la torche brûle près de la réserve.
         m.objets["torche"].update(position=[8, 4], allume=True)
-        # Placement d'auteur : Gorm se repose dans l'angle sombre du refuge.
+        # Placement d'auteur : Gorm se repose dans l'angle sombre du refuge, ses rondes faites.
         m.objets["marchand"].update(lieu="antichambre", position_salle="antichambre", position=[2, 1])
+        lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)
         m, _ = attendre(m, 4)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         souvenirs = [s for s in lire(m, "marchand")["memoire"] if s["type"] == "vu_agir"]

@@ -25,8 +25,10 @@ def recharger(monde):
 def relais():
     m = sans_evacues(nouveau_defi())
     installer(m)
-    # Placement d'auteur : Brune a déjà mangé ; ces tests ne portent que sur Gorm.
+    # Placement d'auteur : Brune a déjà mangé ; ces tests ne portent que sur Gorm, qui vient de
+    # faire ses rondes et reste à son poste.
     lire(m, "brune")["besoins"]["faim"] = 0
+    lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)
     return m
 
 
@@ -68,7 +70,9 @@ class PerceptionParActeurTests(unittest.TestCase):
         c = nouveau_monde()
         c.objets["marchand"].update(lieu="crypte", position_salle="crypte")
         c = attendre(c)
-        self.assertEqual(lire(c, "marchand")["croyances"], {})
+        # Il ne voit rien ; il sait seulement que la crypte est noire.
+        self.assertEqual({s: a["etat"]["valeur"] for s, a in lire(c, "marchand")["croyances"].items()},
+                         {"crypte": {"eclairee": False}})
         c.objets["torche"].update(lieu="marchand", allume=True)
         c = attendre(c)
         self.assertEqual(croyance(c, "porte", "etat")["valeur"], {"ouverte": False})

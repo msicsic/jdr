@@ -22,6 +22,8 @@ from tests.support import refusee
 def relais():
     m = creer("relais")
     m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
+    # Placement d'auteur : Gorm vient de faire ses rondes, il est à son poste.
+    lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)
     return m
 
 
@@ -118,8 +120,8 @@ class StrategeTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--connexion", "api", "--save", str(chemin), "--stratege"]), 0)
             reprise = Monde.charger(chemin)
-        # Brune pèse le vol, Ilse cherche à se rassurer ; le budget de l'heure est alors épuisé.
-        self.assertEqual(appels, [("proposer_strategie", "brune"), ("proposer_strategie", "ilse")])
+        # Brune pèse le vol ; Ilse, inquiète, se met à l'abri d'elle-même, sans stratège.
+        self.assertEqual(appels, [("proposer_strategie", "brune")])
         self.assertIn("Brune demande le pied-de-biche à Gorm. Gorm lui remet le pied-de-biche.", sortie.getvalue())
         self.assertNotIn("décide", sortie.getvalue())
         self.assertEqual(reprise.objets["pied_de_biche"]["lieu"], "brune")

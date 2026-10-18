@@ -1819,6 +1819,22 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "ilse": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "aubin": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
         }
       },
       "memoire": [],
@@ -1896,6 +1912,22 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "brune": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "aubin": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
         }
       },
       "memoire": [],
@@ -1972,6 +2004,22 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
+          }
+        },
+        "brune": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "ilse": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
           }
         }
       },
