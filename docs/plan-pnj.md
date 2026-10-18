@@ -314,9 +314,16 @@ décrit le changement, elle ne tranche rien).
   - « Je remets du bois dans le brasero » (fagots portés) et « Je prends les fagots puis je
     recharge le brasero avec » (fagots au sol) deviennent `alimenter`, précédé de `deplacer`
     dans le second cas ; l'état rechargé est juste ;
-  - « Je ramasse les fagots et j'en mets une brassée dans le feu du brasero » échoue deux fois :
-    Luna y voit une pose dans le brasero et ne propose rien. Limite connue, non corrigée par
-    une consigne propre à cette tournure.
+  - « Je ramasse les fagots et j'en mets une brassée dans le feu du brasero » échouait deux
+    fois. Deux causes générales, corrigées après le jalon (branche `recharger-foyer`) :
+    `deplacer` un combustible vers un foyer était refusé (un foyer n'est pas un contenant), et
+    le titre de `deplacer` vers le joueur annonçait un rangement « dans ta besace » que l'état
+    ne modélise pas, si bien que la contre-revue refusait « ramasser » comme un changement non
+    demandé. Désormais : mettre un combustible dans un foyer, c'est l'alimenter ; le combustible
+    est porté ou à portée de main ; le titre dit « Prendre ». Vérifié avec Luna en console
+    réelle et après rechargement (`tools/test_brasero_reel.py`) : la phrase d'origine, « je
+    jette une brassée de fagots dans le brasero » (fagots au sol) et « je mets du bois dans le
+    feu » (fagots portés) rechargent le brasero d'une charge.
 - Non fait :
   - les PNJ ne se rallument pas un feu sans outil d'allumage (seul le joueur a un briquet) ;
   - on ne se partage pas le bois, et le froid n'a d'autre recours que le brasero ;

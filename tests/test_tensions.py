@@ -190,6 +190,79 @@ class JoueurFeuTests(unittest.TestCase):
         with self.assertRaisesRegex(ErreurMonde, "n'est pas un foyer"):
             Moteur(m).preparer(sequence(etape("alimenter", "lanterne", outil="bois")))
 
+    def bois_au_sol(self, case=(4, 5), proprietaire="joueur"):
+        m = relais()
+        m.joueur.update(salle="echoppe", position=[3, 5])
+        placer(m, "bois", "echoppe", case)
+        # Placement d'auteur : Gorm a donné ses fagots au joueur, posés près du brasero.
+        m.objets["bois"]["proprietaire"] = proprietaire
+        return m
+
+    def test_mettre_du_bois_dans_le_brasero_le_recharge_sans_emporter_le_tas(self):
+        for geste in (etape("deplacer", "bois", "brasero"), etape("alimenter", "brasero", outil="bois"),
+                      etape("alimenter", "brasero")):
+            with self.subTest(geste=geste["operation"], outil=geste["outil"]):
+                m = self.bois_au_sol()
+                avant = m.objets["brasero"]["combustible"]
+                texte = Moteur(m).executer(Moteur(m).preparer(sequence(geste)))
+                m = recharger(m)
+                self.assertIn("Le brasero est rechargé avec les fagots de bois sec.", texte)
+                self.assertEqual(m.objets["bois"]["charges"], 1)
+                self.assertEqual(m.objets["brasero"]["combustible"], avant + 120 - 1)
+                # La brassée est prise sur le tas : les fagots restent au sol, près du brasero.
+                self.assertEqual(m.objets["bois"]["lieu"], "echoppe")
+                self.assertEqual(m.objets["bois"]["position"], [4, 5])
+
+    def test_ramasser_le_tas_puis_le_mettre_au_feu(self):
+        m = self.bois_au_sol()
+        Moteur(m).executer(Moteur(m).preparer(sequence(etape("deplacer", "bois", "joueur"),
+                                                       etape("deplacer", "bois", "brasero"))))
+        m = recharger(m)
+        self.assertEqual(m.objets["bois"]["lieu"], "joueur")
+        self.assertEqual(m.objets["bois"]["charges"], 1)
+
+    def test_le_foyer_ne_recoit_que_du_combustible_a_portee_et_a_soi(self):
+        m = self.bois_au_sol(case=(5, 2))
+        with self.assertRaisesRegex(ErreurMonde, "Approche-toi des fagots"):
+            Moteur(m).preparer(sequence(etape("deplacer", "bois", "brasero")))
+        m = self.bois_au_sol(proprietaire="marchand")
+        with self.assertRaisesRegex(ErreurMonde, "appartient à autrui"):
+            Moteur(m).preparer(sequence(etape("deplacer", "bois", "brasero")))
+        m = self.bois_au_sol()
+        m.objets["bois"]["charges"] = 0
+        with self.assertRaisesRegex(ErreurMonde, "Il faut porter un combustible"):
+            Moteur(m).preparer(sequence(etape("deplacer", "bois", "brasero")))
+        with self.assertRaisesRegex(ErreurMonde, "n'est pas un contenant"):
+            Moteur(m).preparer(sequence(etape("deplacer", "lanterne", "brasero")))
+
+    def test_console_mettre_une_brassee_au_feu_enregistre_avant_affichage(self):
+        import io
+        import jeu
+        from donjon.mj import MJOpenAI
+        m = self.bois_au_sol()
+        avant = m.objets["brasero"]["combustible"]
+        proposee = sequence(etape("deplacer", "bois", "brasero"))
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "defi.json"
+            m.sauver(chemin)
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *a: (
+                      {"conforme": True, "motif": ""} if a[3] == "auditer_action" else
+                      {"mode": "action", "texte": "", "faits": [], "proposition": proposee})),
+                  patch("builtins.input", side_effect=[
+                      "je ramasse les fagots et j'en mets une brassée dans le feu du brasero", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--defi", "--save", str(chemin),
+                                           "--connexion", "api"]), 0)
+            reprise = Monde.charger(chemin)
+        self.assertIn("Le brasero est rechargé avec les fagots de bois sec.", sortie.getvalue())
+        self.assertEqual(reprise.objets["bois"]["charges"], 1)
+        self.assertEqual(reprise.objets["brasero"]["combustible"], avant + 120 - 1)
+        self.assertEqual(reprise.objets["bois"]["lieu"], "echoppe")
+        echange = reprise.data["conversation"][-1]
+        self.assertEqual(echange["nature"], "resultat_moteur")
+        self.assertIn("Le brasero est rechargé avec les fagots de bois sec.", echange["reponse"])
+
 
 class PartTests(unittest.TestCase):
     def affamee(self, id, faim=85.0):

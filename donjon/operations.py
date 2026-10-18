@@ -187,13 +187,36 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde("Alimenter un feu n'a pas de destination et se fait simplement.")
         if not o.get("foyer"):
             raise ErreurMonde(designer(o, debut=True) + " n'est pas un foyer qu'on recharge.")
+        def a_portee(id):
+            # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
+            if monde.est_porte(id):
+                return monde.accessible(id)
+            if not monde.accessible(id):
+                return False
+            from .spatial import proche
+            return not monde.data.get("mode_cases") or proche(monde, id)
         t = monde.objets.get(outil) if outil else next(
-            (e for e in monde.objets.values() if monde.est_porte(e["id"]) and monde.accessible(e["id"]) and combustible(e)), None)
-        if not t or not monde.est_porte(t["id"]) or not monde.accessible(t["id"]) or not combustible(t):
-            raise ErreurMonde("Il faut porter un combustible dont il reste une charge.")
+            (e for e in sorted(monde.objets.values(), key=lambda e: not monde.est_porte(e["id"]))
+             if combustible(e) and a_portee(e["id"])), None)
+        if t and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
+            exiger(monde, t["id"])
+        if not t or not combustible(t) or not a_portee(t["id"]):
+            raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.")
+        victime = proprietaire(monde, t)
+        if (not monde.est_porte(t["id"]) and victime not in (None, "joueur")
+                and t.get("vole_par") != "joueur"):
+            raise ErreurMonde(designer(t, debut=True) + " appartient à autrui : il faut d'abord l'obtenir.")
         p.titre = "Alimenter " + designer(o) + " avec " + designer(t) + "."
         p.effets = [("alimentation", cible, t["id"])]
         return p
+    if op == "deplacer" and monde.objets.get(destination, {}).get("foyer"):
+        # Mettre un combustible dans un foyer, c'est le recharger : le geste d'alimenter.
+        foyer = monde.objets[destination]
+        if "combustible" not in o.get("usages", []):
+            raise ErreurMonde(designer(foyer, debut=True) + " n'est pas un contenant : "
+                              "on n'y met qu'un combustible, pour le recharger.")
+        return compiler(monde, {**e, "operation": "alimenter", "cible": destination,
+                                "destination": "", "outil": cible}, precedent, justification, origine)
     if op == "deplacer":
         if outil or methode not in ("simple", "discret"):
             raise ErreurMonde("Déplacer un objet se fait à la main, simplement ou discrètement.")
@@ -224,8 +247,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         illicite = victime not in (None, "joueur") and o.get("vole_par") != "joueur"
         if illicite and methode != "discret":
             raise ErreurMonde("Cet objet appartient à autrui. Il faut l'acheter ou annoncer une tentative discrète.")
-        p.titre = "Déplacer " + designer(o) + (" dans ta besace." if destination == "joueur" else
-                  " au sol." if destination == monde.joueur["salle"] else " dans " + designer(monde.objets[destination]) + ".")
+        # Porter ne distingue pas la main du sac : le titre n'affirme pas un rangement.
+        p.titre = ("Prendre " + designer(o) + "." if destination == "joueur" else
+                   "Déplacer " + designer(o) + (" au sol." if destination == monde.joueur["salle"] else
+                                                " dans " + designer(monde.objets[destination]) + "."))
         if destination == "joueur" and o.get("longueur_cm", 0) >= 100:
             p.titre = "Prendre et porter " + designer(o) + "."
         if precedent and precedent["operation"] == "detacher" and precedent["cible"] == cible:
