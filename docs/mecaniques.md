@@ -651,9 +651,12 @@ Pour obtenir le noir complet : aller à l'ouest, éteindre le brasero, revenir �
 la lanterne. La rallumer restaure la visibilité. Le combustible diminue avec le temps de jeu,
 minute par minute avec la vie des PNJ : un feu qu'un PNJ recharge pendant une attente ne
 s'éteint pas entre-temps. Les commandes d'observation ne le consomment pas. Un foyer
-(`foyer: true`, le brasero) se recharge avec un combustible porté (`usages: ["combustible"]`,
-`charges`, `duree_combustion` en minutes par charge) ; les autres sources ne se rechargent
-pas encore.
+(`foyer: true`, le brasero) se recharge avec un combustible porté ou à portée de main
+(`usages: ["combustible"]`, `charges`, `duree_combustion` en minutes par charge) : une
+brassée se prend sur le tas sans emporter le stock. Le combustible d'autrui qu'on ne porte
+pas doit d'abord être obtenu. Mettre un combustible dans un foyer (`deplacer` vers le foyer)
+est le même geste ; un autre objet n'y entre pas, le feu ne brûle pas encore les objets
+quelconques. Les autres sources ne se rechargent pas encore.
 
 Avec le MJ, les phrases libres passent par `repondre_au_joueur` : soit une réponse narrative,
 soit une proposition d’action. Le MJ rédige sa réponse à partir des faits publics, des événements
@@ -714,7 +717,8 @@ Le MJ peut proposer `action: composer` avec une à six étapes au lieu d'un verb
 Le langage comprend `patienter`, `deplacer`, `detacher`, `allumer`, `eteindre`, les gestes
 d'appui et de son, ainsi que `ouvrir`, `fermer`, `deverrouiller`, `crocheter`, `couper`,
 `frapper`, `bloquer` et `debloquer`, compilés avec les règles de l'action seule, et `alimenter`
-(recharger un foyer avec un combustible porté, une minute, sans jet ; une charge prolonge le
+(recharger un foyer avec un combustible porté ou à portée, une minute, sans jet ; `deplacer`
+un combustible vers un foyer est ce geste ; une charge prolonge le
 feu sans le rallumer ; commande locale `alimenter brasero avec fagots`) : « je crochète
 la porte, je l'ouvre et je la cale avec le marteau » forme une seule séquence.
 Les commandes locales `prendre`, `poser`, `voler`, `retirer`, `allumer` et `éteindre` sont traduites

@@ -15,15 +15,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (`--stratege`), désactivé par défaut. Remesuré sur le Relais de F, il n'apporte presque
   plus rien : +5 % d'événements, −1 % d'oisiveté urgente. Le moteur fait désormais seul
   ce qui était son apport principal.
-- La suite de tests passe : 513 tests, 31 ignorés.
+- Après F, branche `recharger-foyer` : mettre un combustible dans un foyer, c'est le recharger
+  (`deplacer` vers un foyer devient `alimenter`) ; le combustible peut être porté ou à portée
+  de main ; le titre de `deplacer` vers le joueur dit « Prendre », sans rangement que l'état
+  ne modélise pas. Détail et vérification réelle dans `docs/plan-pnj.md` (écarts du jalon F).
+- La suite de tests passe : 517 tests, 31 ignorés. Trois tests console demandent
+  `OPENAI_API_KEY` dans l'environnement (une valeur factice suffit) : sans elle, le MJ simulé
+  n'est pas activé.
 
 ## Décisions en attente
 
-- **Tournure non comprise par Luna** : « je ramasse les fagots et j'en mets une brassée dans
-  le feu du brasero » échoue, car Luna y voit une pose dans le brasero et ne propose rien. Deux
-  options :
-  - une règle générale du moteur (mettre un combustible dans un foyer, c'est le recharger) ;
-  - garder la limite. Pas de consigne propre à cette tournure (AGENTS.md).
 - **Suite du plan PNJ**, au choix :
   - une sécurité qui se gagne autrement que par les rondes ;
   - un feu que les PNJ peuvent rallumer sans le briquet du joueur ;

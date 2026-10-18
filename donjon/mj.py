@@ -199,8 +199,9 @@ Opérations :
   un outil d'allumage disponible. Eteindre exige outil vide. Ne brûle pas un objet quelconque.
   Prendre puis allumer une source exige les deux étapes, dans cet ordre.
 - alimenter : cible foyer accessible (un feu qu'on recharge), outil un combustible porté
-  (facultatif ; le moteur en choisit un porté si omis), destination vide, methode simple,
-  difficulte 0. Coût une minute, sans jet ; une charge prolonge le feu sans le rallumer.
+  ou à portée de main (facultatif ; le moteur en choisit un si omis), destination vide,
+  methode simple, difficulte 0. Coût une minute, sans jet ; une charge prolonge le feu sans
+  le rallumer. Un deplacer d'un combustible vers un foyer est ce même geste.
   Ces opérations sont combinables avec les autres, notamment allumer avant une extraction
   qui exige de la lumière, ou éteindre puis poser une lanterne.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : mêmes
