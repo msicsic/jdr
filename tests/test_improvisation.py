@@ -196,7 +196,8 @@ class ImprovisationTests(unittest.TestCase):
     def test_console_applique_et_sauve_geste_sans_confirmation(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp)/"partie.json"
-            with patch("builtins.input", side_effect=["je fredonne pour passer le temps", "quitter"]), \
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+                 patch("builtins.input", side_effect=["je fredonne pour passer le temps", "quitter"]), \
                  patch("jeu.MJOpenAI.echanger", return_value=reponse(chant())), \
                  patch("jeu.MJOpenAI.raconter_resultat", side_effect=AssertionError("Pas de second appel de narration")), \
                  patch("sys.stdout", new_callable=io.StringIO) as output:

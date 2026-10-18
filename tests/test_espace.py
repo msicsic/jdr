@@ -168,7 +168,8 @@ class EspaceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp)/"test.json"
             m.sauver(chemin)
-            with patch("builtins.input", side_effect=["mj je remonte mon échelle puis je descends de l'autre côté", "tenter", "quitter"]), \
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+                 patch("builtins.input", side_effect=["mj je remonte mon échelle puis je descends de l'autre côté", "tenter", "quitter"]), \
                  patch("jeu.MJOpenAI.echanger", return_value=r), patch("jeu.MJOpenAI.raconter_resultat", return_value={"mode": "dialogue", "texte": "Tu descends au nord."}), \
                  patch.object(Monde, "d20", return_value=20), patch("sys.stdout", new_callable=io.StringIO):
                 jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(chemin)])

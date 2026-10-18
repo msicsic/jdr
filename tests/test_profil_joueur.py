@@ -95,7 +95,8 @@ class ProfilJoueurTests(unittest.TestCase):
         r = {"mode": "enrichir_joueur", "texte": "", "faits": ["profil_joueur_a_completer"], "proposition": TAILLE}
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp)/"m.json"
-            with patch("builtins.input", side_effect=["je mesure combien ?", "quitter"]), \
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+                 patch("builtins.input", side_effect=["je mesure combien ?", "quitter"]), \
                  patch.object(MJOpenAI, "_appeler", return_value=r), \
                  patch("sys.stdout", new_callable=io.StringIO) as output:
                 jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(p)])

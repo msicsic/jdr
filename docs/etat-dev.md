@@ -19,9 +19,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (`deplacer` vers un foyer devient `alimenter`) ; le combustible peut être porté ou à portée
   de main ; le titre de `deplacer` vers le joueur dit « Prendre », sans rangement que l'état
   ne modélise pas. Détail et vérification réelle dans `docs/plan-pnj.md` (écarts du jalon F).
-- La suite de tests passe : 517 tests, 31 ignorés. Trois tests console demandent
-  `OPENAI_API_KEY` dans l'environnement (une valeur factice suffit) : sans elle, le MJ simulé
-  n'est pas activé.
+- La suite de tests passe : 517 tests, 31 ignorés, sans clé ni connexion.
 
 ## Décisions en attente
 
