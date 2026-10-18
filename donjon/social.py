@@ -127,18 +127,23 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     return "crue"
 
 
-def _entendu(monde, id, auditeur, noyau, lignes):
-    """Ce que le joueur perçoit de l'échange."""
+def faire_entendre(monde, id, auditeur, texte, cites, lignes):
+    """Ce que le joueur perçoit d'un échange : en clair s'il connaît chacun de ceux dont on parle."""
     from .paroles import _connu_du_joueur
     a, b = monde.objets[id], monde.objets[auditeur]
     if a["lieu"] == monde.joueur["salle"]:
-        cites = [x for x in (accuse(noyau), noyau.get("objet")) if x and x != "joueur"]
-        if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites]):
-            lignes.append(_qui(monde, id) + " glisse à " + _qui(monde, auditeur) + " que " + phrase(monde, noyau) + ".")
+        if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
+            lignes.append(texte)
         else:
             lignes.append(designer(a, debut=True) + " parle à voix basse avec " + designer(b) + ".")
     elif monde.visible(id):
         lignes.append(designer(a, debut=True) + " parle avec " + designer(b) + ".")
+
+
+def _entendu(monde, id, auditeur, noyau, lignes):
+    cites = [x for x in (accuse(noyau), noyau.get("objet")) if x]
+    faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse à " + _qui(monde, auditeur) + " que "
+                   + phrase(monde, noyau) + ".", cites, lignes)
 
 
 def bavarder(monde, id, lignes):
@@ -167,7 +172,8 @@ def bavarder(monde, id, lignes):
             if siens:
                 from .deliberation import VOL, relancer
                 relancer(monde, auditeur, "biens", 30 if all(x["type"] == "absence" for x in siens) else VOL // 2)
-        _chroniquer(monde, id, f"{_qui(monde, id)} dit à {_qui(monde, auditeur)} que {phrase(monde, noyau)} ({issue}).")
+        _chroniquer(monde, id, f"{_qui(monde, id)} dit à {_qui(monde, auditeur)} que {phrase(monde, noyau)} ({issue}).",
+                    "social")
         _entendu(monde, id, auditeur, noyau, lignes)
         return True
     return False

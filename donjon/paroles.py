@@ -106,19 +106,25 @@ def _nom(monde, id):
         return "toi"
     if id in monde.data["salles"]:
         return monde.data["salles"][id]["nom"]
+    if id in monde.objets and monde.objets[id]["type"] == "personnage":
+        return monde.objets[id]["nom"].split(",")[0]
     return designer(monde.objets[id]) if id in monde.objets else id
 
 
 def _phrase(monde, sujet, attribut, valeur):
+    o = monde.objets.get(sujet, {})
+    est = "sont" if o.get("pluriel") else "est"
+    accord = ("e" if o.get("genre") == "f" else "") + ("s" if o.get("pluriel") else "")
     if attribut == "lieu":
         if valeur is None:
-            return f"{_nom(monde, sujet)} n'est plus là où il l'attendait"
+            return f"{_nom(monde, sujet)} {'ne sont' if o.get('pluriel') else "n'est"} plus là où il l'attendait"
         porte = valeur == "joueur" or valeur in monde.objets and monde.objets[valeur]["type"] == "personnage"
-        return f"{_nom(monde, sujet)} est {'porté par' if porte else 'dans'} {_nom(monde, valeur)}"
+        return f"{_nom(monde, sujet)} {est} {'porté' + accord + ' par' if porte else 'dans'} {_nom(monde, valeur)}"
     if attribut == "verrouillee":
-        return f"{_nom(monde, sujet)} est {'verrouillé' if valeur else 'déverrouillé'}"
+        return f"{_nom(monde, sujet)} {est} {'verrouillé' if valeur else 'déverrouillé'}{accord}"
     if attribut == "fiable":
-        return f"{_nom(monde, sujet)} est {'digne de confiance' if valeur else 'peu fiable'}"
+        pluriel = "s" if o.get("pluriel") else ""
+        return f"{_nom(monde, sujet)} {est} {'digne' + pluriel + ' de confiance' if valeur else 'peu fiable' + pluriel}"
     return ""
 
 
@@ -226,70 +232,32 @@ def _typer(monde, c):
     return {"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}
 
 
-def _jet(monde, auditeur, dd_base):
-    return jet_persuasion(monde, auditeur, "joueur", dd_base)
-
-
-def _affirmer(travail, auditeur, sujet, attribut, valeur, clarte, faits):
-    e = esprit(travail, auditeur)
+def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
+    from .echanges import affirmer
     nom = travail.objets[auditeur]["nom"]
-    if dementi(travail, auditeur, sujet, attribut, valeur):
-        croire(travail, auditeur, "joueur", "fiable", False, "vu")
-        memoriser(travail, auditeur, {"type": "mensonge_dementi", "locuteur": "joueur",
-                                      "sujet": sujet, "attribut": attribut})
-        faits.append(f"{nom} sait de ses propres yeux que c'est faux et cesse de te croire fiable.")
-        return
-    reussi, dd = _jet(travail, auditeur, 10)
-    if not reussi:
-        memoriser(travail, auditeur, {"type": "parole_doutee", "sujet": sujet, "attribut": attribut})
-        faits.append(f"{nom} ne te croit pas ({_phrase(travail, sujet, attribut, valeur)}).")
-        return
-    lieu = {"salle": valeur if valeur in travail.data["salles"] else None, "case": None} if attribut == "lieu" else {}
-    croire(travail, auditeur, sujet, attribut, valeur, "dit:joueur", round(0.7 * clarte, 2), **lieu)
-    memoriser(travail, auditeur, {"type": "parole_crue", "sujet": sujet, "attribut": attribut})
-    # Ce qu'il a sous les yeux peut le démentir aussitôt.
-    percevoir(travail, auditeur)
-    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet
-           for s in e["memoire"][-3:]):
-        faits.append(f"{nom} voit bien que c'est faux et cesse de te croire fiable.")
-    else:
-        faits.append(f"{nom} te croit : il tient désormais pour vrai que {_phrase(travail, sujet, attribut, valeur)}.")
-
-
-def _necessaire(travail, auditeur, objet):
-    """Un objet qui sert son plan en cours ou une de ses pulsions (l'objet, sa clé) n'est pas prêté."""
-    intention = lire(travail, auditeur)["intention"]
-    if intention and any(objet in (e["cible"], e["outil"]) for e in intention["plan"]):
-        return True
-    profil = travail.objets[auditeur].get("profil")
-    for pulsion in (profil or {}).get("pulsions", []):
-        cible = pulsion["condition"].get("objet")
-        if cible and (objet == cible or cible in travail.objets[objet].get("ouvre", [])):
-            return True
-    return False
+    issue = affirmer(travail, "joueur", auditeur, sujet, attribut, valeur)
+    faits.append({
+        "dementi": f"{nom} sait de ses propres yeux que c'est faux et cesse de te croire fiable.",
+        "doute": f"{nom} ne te croit pas ({_phrase(travail, sujet, attribut, valeur)}).",
+        "decouvert": f"{nom} voit bien que c'est faux et cesse de te croire fiable.",
+        "crue": f"{nom} te croit : il tient désormais pour vrai que {_phrase(travail, sujet, attribut, valeur)}.",
+    }[issue])
 
 
 def _demander(travail, auditeur, objet, faits):
-    from .deplacement_objet import deplacer
-    from .spatial import porte_par
+    from .echanges import demander
     nom = travail.objets[auditeur]["nom"]
-    if objet not in travail.objets or not porte_par(travail, objet, auditeur):
-        faits.append(f"{nom} n'a pas cet objet sur lui.")
-        return
-    confiance = lire(travail, auditeur)["croyances"].get("joueur", {}).get("fiable")
-    if confiance and not confiance["valeur"]:
-        faits.append(f"{nom} refuse : il ne te fait pas confiance.")
-        return
-    if _necessaire(travail, auditeur, objet):
-        faits.append(f"{nom} refuse de se séparer de {designer(travail.objets[objet])}, qui lui sert.")
-        return
-    reussi, _ = _jet(travail, auditeur, 12)
-    if not reussi:
-        faits.append(f"{nom} n'est pas convaincu et garde {designer(travail.objets[objet])}.")
-        return
-    deplacer(travail, objet, "joueur")
-    memoriser(travail, auditeur, {"type": "pret", "objet": objet, "a": "joueur"})
-    faits.append(f"{nom} te remet {designer(travail.objets[objet])}.")
+    issue = demander(travail, "joueur", auditeur, objet)
+    o = designer(travail.objets[objet]) if objet in travail.objets else ""
+    faits.append({
+        "absent": f"{nom} n'a pas cet objet sur lui.",
+        "mefiance": f"{nom} refuse : il ne te fait pas confiance.",
+        "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
+        "refus": f"{nom} n'est pas convaincu et garde {o}.",
+        "remis": f"{nom} te remet {o}.",
+        "promis": f"{nom} accepte de t'en donner une part.",
+        "impossible": f"{nom} ne voit pas comment te donner {o}.",
+    }[issue])
 
 
 def preparer_parole(monde, p, revision=None):
@@ -317,13 +285,12 @@ def preparer_parole(monde, p, revision=None):
     stats_auditeur = _stats_pnj(travail, auditeur)
     capacite = min(capacite_transmission(travail.joueur["stats"]["INT"]),
                    capacite_transmission(stats_auditeur["INT"]))
-    clarte = 0.5 if stats_auditeur["INT"] <= 8 else 1.0
     faits = []
     transmis = [x for x in (_typer(travail, c) for c in p["contenu"]) if x]
     perdus = transmis[capacite:]
     for c in transmis[:capacite]:
         if c["type"] == "affirmation":
-            _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], clarte, faits)
+            _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
         else:
             _demander(travail, auditeur, c["sujet"], faits)
     if perdus:

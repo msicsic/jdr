@@ -315,7 +315,7 @@ surpris et les gestes remarqués.
 
 Un PNJ peut porter un `profil` d'auteur (`donjon/deliberation.py`) : `caracteristiques`
 (FOR, DEX, INT, PER, CHA), `traits` (prose destinée à Luna), `limites` (`ne_vole_pas`,
-`ne_blesse_pas`), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
+`ne_blesse_pas`, `ne_ment_pas`), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
 `faim`, `repos`, chacun avec `depart`, `derive_heure`, `urgence`) et `pulsions` : des
 conditions sur le monde (`{"objet", "lieu"}` ou `{"objet", "verrouillee": true}`) liées à
 un besoin, éventuellement `delegue_a` le joueur, ou des rondes (`{"lieu", "periode"}` :
@@ -327,9 +327,14 @@ biens (un vol découvert, même sans coupable) ; une ronde expire sans rien rela
 vu par sa victime relance ses biens de 60 ; l'absence constatée d'un objet qui lui
 appartient, de 30. Le PNJ retient alors le
 besoin urgent (valeur ≥ urgence) le plus en dépassement pour lequel il trouve un plan :
-manger pour la faim, rétablir une pulsion, ou garder le lieu de ses biens. Une pulsion
-déléguée au joueur attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est
-repris qu'après 60 minutes.
+manger pour la faim, se reposer là où il est pour le repos (2 points par minute, jusqu'à
+20, sauf plus pressant), rétablir une pulsion, ou garder le lieu de ses biens ; sans urgence
+qui ait un plan, il tient ses engagements et referme à clé ce qu'il garde sous clé et a
+lui-même ouvert dans les 30 dernières minutes. Un plan qui accède à un contenant qu'il garde
+sous clé se termine en le refermant. Il ne s'alarme pas de ce qu'il vient de défaire
+lui-même (sa clé, sa main) : ce n'est pas une atteinte. Une pulsion déléguée au joueur
+attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est repris qu'après 60
+minutes.
 
 Le plan est cherché sur les croyances, jamais sur la vérité, par décomposition bornée
 (profondeur 4) : obtenir un objet, accéder à un contenant (l'ouvrir, le déverrouiller avec
@@ -357,10 +362,14 @@ Le réflexe `reaction_son` reste une intention `alerte` prioritaire jusqu'à son
 Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, rondes au
 refuge et aux vannes, réserve de vivres sous clé), Brune, batelière évacuée, affamée et
 capable de crocheter, Ilse, meunière bavarde qui va et vient entre le refuge et le brasero,
-et Aubin, vieux passeur qui surveille l'eau aux vannes. Un fanal éclaire le refuge pendant
+et Aubin, vieux passeur qui surveille l'eau aux vannes. Les évacués savent Gorm à l'échoppe
+et le tiennent pour fiable ; Gorm les sait au refuge. Un fanal éclaire le refuge pendant
 douze heures. Le banc `python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche` fait
-vivre le scénario sans joueur actif et imprime chronique et mesures (gestes, renoncements,
-gestes illicites vus, confidences, rumeurs crues ou doutées, méfiances), sans appel à Luna.
+vivre le scénario sans joueur actif et imprime chronique et mesures (gestes, événements
+distincts hors routine, échanges, minutes de besoin urgent sans intention, renoncements,
+gestes illicites vus, confidences, rumeurs crues ou doutées, méfiances), sans appel à Luna
+sauf avec `--stratege` ; `--graine` choisit les jets, `--sortie` écrit un JSON. Le banc A/B
+`python tools/banc_stratege.py` compare les deux sur plusieurs graines.
 
 Les témoins d'un geste discret du joueur sont les personnages qui le perçoivent au moment
 du geste. En `--debug`, `esprit <personnage>` affiche croyances, mémoire et intention.
@@ -395,6 +404,45 @@ part des vivres du refuge. » si Corvus connaît chacun de ceux dont on parle, s
 à voix basse ; d'une autre salle, il voit seulement deux personnages parler. Arrivées et
 départs sont annoncés à la minute où ils se produisent. Luna reçoit les croyances des
 personnages présents avec leur source (« Ilse le lui a dit ») si Corvus connaît ce témoin.
+
+#### Échanges entre PNJ et stratège
+
+Un plan de PNJ peut contenir quatre gestes sociaux (`donjon/echanges.py`), d'une minute
+chacun, dans la salle d'un personnage qu'il perçoit et qui le perçoit : `dire` (affirmer un
+lieu, un verrou ou la fiabilité de quelqu'un, avec la règle des paroles du joueur : démenti
+par ce que l'auditeur a vu récemment, sinon jet de CHA du locuteur contre 10), `demander`
+(un objet que l'autre porte : refusé s'il se méfie ou s'en sert, sinon jet contre 12 ; un
+PNJ qui a faim peut aussi demander une part d'une nourriture qui appartient à l'autre, même
+rangée sous clé : refusée s'il se méfie, a faim lui-même ou n'a plus qu'une part, sinon jet
+contre 12, et l'autre s'engage à venir la servir),
+`confier` (faire en sorte qu'un objet soit en un lieu, ou verrouillé : refusé s'il se méfie
+ou ne voit pas comment s'y prendre d'après ce qu'il croit, sinon jet contre 12) et
+`remettre` (un objet porté, au contact). On s'approche de celui à qui l'on parle. Le geste
+`servir` donne une part à quelqu'un de la même salle, appelé s'il est hors de vue : il la
+mange et tient désormais le donneur pour fiable. Le joueur et les PNJ passent par les mêmes
+fonctions ; le joueur, qui n'a pas faim, ne demande pas de part. Une tâche acceptée devient un engagement : le PNJ l'exécute avec son
+planificateur quand rien d'urgent n'a de plan, et l'oublie après 240 minutes ou dès qu'il
+la croit accomplie. Le joueur entend ces échanges comme les confidences.
+
+Le stratège (`donjon/stratege.py`, option `--stratege` du jeu et du banc, désactivé par
+défaut) est Luna consultée pour un PNJ dans trois cas : un besoin urgent sans plan du
+moteur ; un seul plan qui touche au bien d'autrui (voler ou non dépend du caractère, sauf à
+bout de besoin, à 95 ou plus, où le moteur passe outre) ; une heure désœuvré. Il reçoit les
+traits, besoins, pulsions, engagements, croyances, souvenirs récents et objets que le PNJ
+croit connaître, jamais la vérité du monde, et renvoie un plan typé (1 à 6 gestes),
+« suivre » le plan du moteur ou « attendre » (seul « attendre » écarte le plan illicite du
+moteur pour une heure ; une autre voie qui échoue le laisse revenir). Le moteur valide chaque geste : identifiants
+connus du PNJ, salles, capacités, `ne_vole_pas`, `ne_ment_pas` (dire seulement ce qu'il
+croit), demander seulement à qui il croit porter l'objet, remettre seulement ce qu'il porte
+ou aura obtenu ; on ne redemande pas pendant 2 heures la même chose à qui vient de refuser.
+Le stratège dit quoi, le moteur dit comment : le planificateur complète chaque geste de ce
+qu'il suppose d'après les croyances du PNJ (aller là où il faut, ouvrir ou déverrouiller le
+contenant de l'objet visé, aller chercher la clé ou les crochets) et ajoute la garde
+`sans_temoin` ; un geste qu'il ne sait pas rendre possible est refusé avec sa raison. Un écart est renvoyé une
+fois au stratège. Adopté, le plan devient l'intention du PNJ jusqu'à son terme ; un geste
+manqué ou refusé l'abandonne. Budget : une consultation par PNJ et par heure de jeu, deux
+appels par heure pour tout le scénario, correction comprise. Le joueur ne voit que les
+gestes qu'il perçoit ; les buts et justifications de Luna restent dans la chronique.
 
 #### Paroles du joueur aux PNJ
 

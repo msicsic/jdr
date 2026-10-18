@@ -656,7 +656,8 @@
         "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il ne quitte pas le relais tant que des évacués y sont attendus.",
         "limites": [
           "ne_vole_pas",
-          "ne_blesse_pas"
+          "ne_blesse_pas",
+          "ne_ment_pas"
         ],
         "capacites": [],
         "besoins": {
@@ -1058,7 +1059,8 @@
         "traits": "Meunière évacuée, bavarde et curieuse ; elle répète ce qu'elle a vu et s'inquiète de la crue. Honnête, elle ne prend rien qui ne soit à elle.",
         "limites": [
           "ne_vole_pas",
-          "ne_blesse_pas"
+          "ne_blesse_pas",
+          "ne_ment_pas"
         ],
         "capacites": [],
         "besoins": {
@@ -1125,7 +1127,8 @@
         "traits": "Vieux passeur évacué, taciturne et honnête ; il surveille le niveau de l'eau aux vannes et dit à Gorm ce qu'il a vu.",
         "limites": [
           "ne_vole_pas",
-          "ne_blesse_pas"
+          "ne_blesse_pas",
+          "ne_ment_pas"
         ],
         "capacites": [],
         "besoins": {
@@ -1550,6 +1553,45 @@
               3
             ]
           }
+        },
+        "brune": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
+          }
+        },
+        "ilse": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              3,
+              5
+            ]
+          }
+        },
+        "aubin": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              1,
+              5
+            ]
+          }
         }
       },
       "memoire": [],
@@ -1598,18 +1640,77 @@
               5
             ]
           }
+        },
+        "marchand": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
         }
       },
       "memoire": [],
       "intention": null
     },
     "ilse": {
-      "croyances": {},
+      "croyances": {
+        "marchand": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        }
+      },
       "memoire": [],
       "intention": null
     },
     "aubin": {
-      "croyances": {},
+      "croyances": {
+        "marchand": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        }
+      },
       "memoire": [],
       "intention": null
     }

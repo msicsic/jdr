@@ -7,20 +7,24 @@ le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur
 croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
 par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 """
-from .esprits import esprit, lire, memoriser
+from .esprits import RECENT, esprit, lire, memoriser
 from .spatial import porte_par
 
 BESOINS = ("devoir", "biens", "securite", "faim", "repos")
-LIMITES = ("ne_vole_pas", "ne_blesse_pas")
+LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-              "crocheter", "manger", "inspecter")
+              "crocheter", "manger", "inspecter", "reposer", "servir", "dire", "demander", "confier", "remettre")
+PROGRESSIFS = ("aller", "reposer")  # gestes qui durent : une minute sans les finir n'est pas un échec
+SOCIALES = ("dire", "demander", "confier", "remettre")
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
 REPIT = 60             # minutes avant de reprendre un but abandonné
 ATTEINTE = 30          # une pulsion qui cesse d'être satisfaite relance son besoin
 VOL = 60               # un vol vu par sa victime
 SATIETE = 50           # un repas
+REPOS_MINUTE = 2       # repos regagné par minute passée à se reposer
+REPOS_FIN = 20         # reposé : il se relève
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu
 STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
@@ -41,13 +45,22 @@ def verifier_profil(monde, id, p):
                 and all(isinstance(b[k], (int, float)) for k in b)
                 and 0 <= b["depart"] <= 100 and 0 < b["urgence"] <= 100), "Besoin de PNJ invalide"
     for pulsion in p["pulsions"]:
-        c = pulsion.get("condition", {})
         assert (set(pulsion) <= {"besoin", "condition", "delegue_a"} and pulsion.get("besoin") in p["besoins"]
-                and ((set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
-                     or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
-                     or (set(c) == {"lieu", "periode"} and c["lieu"] in monde.data["salles"]
-                         and type(c["periode"]) is int and c["periode"] > 0))
+                and condition_valide(monde, pulsion.get("condition"))
                 and pulsion.get("delegue_a", "joueur") == "joueur"), "Pulsion de PNJ invalide"
+
+
+def condition_valide(monde, c):
+    """Vocabulaire commun des buts : un objet en un lieu, un objet verrouillé, une ronde,
+    une part de nourriture servie à quelqu'un."""
+    return isinstance(c, dict) and (
+        (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
+        or (set(c) == {"objet", "servir"} and c["objet"] in monde.objets
+            and monde.objets[c["objet"]]["type"] == "nourriture" and c["servir"] in monde.objets
+            and monde.objets[c["servir"]]["type"] == "personnage")
+        or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
+        or (set(c) == {"lieu", "periode"} and c["lieu"] in monde.data["salles"]
+            and type(c["periode"]) is int and c["periode"] > 0))
 
 
 def installer(monde, id):
@@ -62,10 +75,10 @@ def installer(monde, id):
 
 
 def relancer(monde, id, besoin, montant):
-    """Un événement (vol, atteinte à une pulsion) accroît un besoin déclaré."""
+    """Un événement (vol, atteinte à une pulsion) accroît un besoin déclaré ; un apaisement le réduit."""
     e = esprit(monde, id)
     if besoin in e["besoins"]:
-        e["besoins"][besoin] = min(100.0, e["besoins"][besoin] + montant)
+        e["besoins"][besoin] = max(0.0, min(100.0, e["besoins"][besoin] + montant))
 
 
 # --- Croyances utiles au plan -------------------------------------------------------------
@@ -114,6 +127,8 @@ def periodique(condition):
 
 
 def satisfaite(monde, id, condition):
+    if "servir" in condition:
+        return False  # Une part servie solde l'engagement au moment du geste.
     if periodique(condition):
         vu = lire(monde, id)["visites"].get(condition["lieu"])
         return vu is not None and monde.data["minutes"] - vu < condition["periode"]
@@ -147,10 +162,23 @@ class Plan:
         self.salle = monde.objets[id]["lieu"]
         self.portes = {o for o in monde.objets if porte_par(monde, o, id)}
         self.ouverts, self.deverrouilles, self.etapes = set(), set(), []
+        self.touches = set()  # contenants auxquels le plan accède, ouverts par lui ou déjà ouverts
 
-    def ajouter(self, operation, cible="", outil="", lieu="", condition=""):
+    def ajouter(self, operation, cible="", outil="", lieu="", condition="", contenu=None):
         self.etapes.append({"operation": operation, "cible": cible, "outil": outil,
-                            "lieu": lieu, "condition": condition})
+                            "lieu": lieu, "condition": condition, **({"contenu": contenu} if contenu else {})})
+
+    def retablir(self):
+        """Ce qu'il garde sous clé et auquel le plan accède, il le referme à clé avant de finir."""
+        for x in profil(self.monde, self.id)["pulsions"]:
+            cible = x["condition"].get("objet")
+            if not x["condition"].get("verrouillee") or cible not in self.touches:
+                continue
+            if cible in self.ouverts or _ouvert_cru(self.monde, self.id, cible):
+                self.ajouter("fermer", cible)
+            cle = self.cle(cible)
+            if cle in self.portes and (cible in self.deverrouilles or _cru(self.monde, self.id, cible, "verrouillee") is not True):
+                self.ajouter("verrouiller", cible, outil=cle)
 
     def condition(self, objet):
         return "sans_temoin" if illicite(self.monde, self.id, objet) else ""
@@ -203,6 +231,7 @@ class Plan:
         salle = salle_crue(self.monde, self.id, contenant)
         if salle is None or profondeur > PROFONDEUR:
             raise Echec
+        self.touches.add(contenant)
         if _ouvert_cru(self.monde, self.id, contenant) or contenant in self.ouverts:
             self.aller(salle, profondeur)
             return
@@ -243,6 +272,7 @@ def _plan_manger(monde, id):
                 else:
                     raise Echec
             p.ajouter("manger", f, condition="" if f in p.portes else p.condition(f))
+            p.retablir()
             return {"type": "manger", "objet": f}, p.etapes
         except Echec:
             continue
@@ -255,6 +285,17 @@ def _plan_pulsion(monde, id, condition):
         if periodique(condition):
             p.aller(condition["lieu"])
             p.ajouter("inspecter", lieu=condition["lieu"])
+        elif "servir" in condition:
+            f = condition["objet"]
+            if f not in p.portes:
+                lieu = _lieu_cru(monde, id, f)
+                if lieu in monde.data["salles"]:
+                    p.aller(lieu)
+                elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
+                    p.acceder(lieu)
+                else:
+                    raise Echec
+            p.ajouter("servir", f, condition=p.condition(f), contenu={"pour": condition["servir"]})
         elif "lieu" in condition:
             p.obtenir(condition["objet"])
             p.aller(condition["lieu"])
@@ -270,9 +311,35 @@ def _plan_pulsion(monde, id, condition):
             if _ouvert_cru(monde, id, cible):
                 p.ajouter("fermer", cible)
             p.ajouter("verrouiller", cible, outil=cle)
+        p.retablir()
     except Echec:
         return None
     return {"type": "pulsion", **condition}, p.etapes
+
+
+def _plan_reposer(monde, id):
+    """Se reposer là où l'on est."""
+    p = Plan(monde, id)
+    p.ajouter("reposer")
+    return {"type": "repos"}, p.etapes
+
+
+def ouvert_par_soi(monde, id, objet, depuis):
+    """A-t-il lui-même ouvert ou déverrouillé cet objet dans les ``depuis`` dernières minutes ?"""
+    return any(s["type"] == "ouvert_par_soi" and s["objet"] == objet and monde.data["minutes"] - s["minute"] <= depuis
+               for s in lire(monde, id)["memoire"])
+
+
+def garde_sous_cle(monde, id, objet):
+    p = profil(monde, id)
+    return bool(p) and any(x["condition"] == {"objet": objet, "verrouillee": True} for x in p["pulsions"])
+
+
+def de_son_fait(monde, id, condition):
+    """On ne s'alarme pas de ce qu'on vient de défaire soi-même : sa clé, sa main."""
+    if condition.get("verrouillee"):
+        return ouvert_par_soi(monde, id, condition["objet"], 2)
+    return "lieu" in condition and "objet" in condition and porte_par(monde, condition["objet"], id)
 
 
 def _plan_garder(monde, id, condition):
@@ -292,14 +359,28 @@ def _delegue(monde, id, pulsion):
     return pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
 
 
-def candidats(monde, id):
-    """Buts envisageables, du besoin le plus pressant au moins pressant."""
+def urgents(monde, id):
+    """Besoins au-delà de leur seuil, du plus pressant au moins pressant."""
     p, e = profil(monde, id), esprit(monde, id)
-    urgents = sorted((b for b in p["besoins"] if e["besoins"][b] >= p["besoins"][b]["urgence"]),
-                     key=lambda b: (p["besoins"][b]["urgence"] - e["besoins"][b], BESOINS.index(b)))
-    for besoin in urgents:
+    return sorted((b for b in p["besoins"] if e["besoins"][b] >= p["besoins"][b]["urgence"]),
+                  key=lambda b: (p["besoins"][b]["urgence"] - e["besoins"][b], BESOINS.index(b)))
+
+
+def confie_a_autrui(monde, id, objet):
+    """Ce qu'il a confié à quelqu'un qu'il croit fiable, il ne le fait pas à sa place."""
+    p = profil(monde, id)
+    return bool(p) and any(x["condition"].get("objet") == objet and _delegue(monde, id, x) for x in p["pulsions"])
+
+
+def candidats(monde, id):
+    """Buts envisageables, du besoin le plus pressant au moins pressant, puis les engagements."""
+    p, e = profil(monde, id), esprit(monde, id)
+    for besoin in urgents(monde, id):
         if besoin == "faim":
             yield besoin, _plan_manger
+            continue
+        if besoin == "repos":
+            yield besoin, _plan_reposer
             continue
         pulsions = [x for x in p["pulsions"] if x["besoin"] == besoin]
         for x in pulsions:
@@ -310,6 +391,17 @@ def candidats(monde, id):
                 if periodique(x["condition"]):
                     continue
                 yield besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c)
+    # Une tâche acceptée se fait quand rien de plus pressant n'a de plan.
+    for engagement in e["engagements"]:
+        yield "engagement", lambda m, i, c=engagement["condition"]: _plan_pulsion(m, i, c)
+    # Ce qu'il garde sous clé et a lui-même ouvert, il le referme sans attendre l'urgence.
+    for x in p["pulsions"]:
+        c = x["condition"]
+        if c.get("verrouillee") and ouvert_par_soi(monde, id, c["objet"], RECENT) and not satisfaite(monde, id, c):
+            yield x["besoin"], lambda m, i, c=c: _plan_pulsion(m, i, c)
+    # Assis pour se reposer, il ne se relève qu'une fois reposé, ou pour plus pressant.
+    if e["intention"] and e["intention"]["but"] == {"type": "repos"} and e["besoins"].get("repos", 0) > REPOS_FIN:
+        yield "repos", _plan_reposer
 
 
 def deliberer(monde, id, minute):
@@ -324,14 +416,20 @@ def deliberer(monde, id, minute):
     for i, x in enumerate(p["pulsions"]):
         etat = satisfaite(monde, id, x["condition"])
         # Une ronde expire d'elle-même : ce n'est pas une atteinte.
-        if e["pulsions"][i] and not etat and not periodique(x["condition"]):
+        if (e["pulsions"][i] and not etat and not periodique(x["condition"])
+                and not de_son_fait(monde, id, x["condition"])):
             # Ses biens forcés ou déplacés : un vol découvert, même sans coupable.
             relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)
             memoriser(monde, id, {"type": "atteinte", "condition": dict(x["condition"])})
         e["pulsions"][i] = etat
+    from .echanges import engagements_echus
+    from . import stratege
+    engagements_echus(monde, id)
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":
         return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
+    if intention and intention["but"]["type"] == "strategie" and intention["plan"]:
+        return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
     for besoin, methode in candidats(monde, id):
         if e["renoncements"].get(besoin, -REPIT) + REPIT > minute:
             continue
@@ -339,12 +437,17 @@ def deliberer(monde, id, minute):
         if not resultat:
             continue
         but, etapes = resultat
+        if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
+            return
+        intention = e["intention"]
         meme = bool(intention) and intention["but"] == but
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0}
+        stratege.occupe(monde, id)
         return
     e["intention"] = None
+    stratege.desoeuvre(monde, id, minute, urgents(monde, id))
 
 
 def renoncer(monde, id, minute):

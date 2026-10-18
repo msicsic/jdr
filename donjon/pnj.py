@@ -15,7 +15,12 @@ from .francais import complement_de, designer
 from .geometrie import cases, placer, position_entree
 
 CHRONIQUE_MAX = 300
-CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger"), True)
+# deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
+# social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ.
+NATURES = ("deplacement", "geste", "social", "decision")
+# Gestes qui demandent d'être au contact de la cible : un objet, ou celui à qui l'on parle.
+CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger",
+                         "servir", "remettre", "dire", "demander", "confier"), True)
 
 
 def verifier(monde):
@@ -26,9 +31,12 @@ def verifier(monde):
         assert reaction is None or (isinstance(reaction, dict) and set(reaction) == {"seuil"}
                                     and type(reaction["seuil"]) is int
                                     and 1 <= reaction["seuil"] <= 5), "Réaction de PNJ invalide"
+    from .stratege import verifier as verifier_stratege
+    verifier_stratege(monde)
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) == {"minute", "pnj", "texte"} for c in chronique)), "Chronique invalide"
+            and all(isinstance(c, dict) and set(c) - {"nature"} == {"minute", "pnj", "texte"}
+                    and c.get("nature", "geste") in NATURES for c in chronique)), "Chronique invalide"
 
 
 def _etape(operation, cible="", outil="", lieu="", condition=""):
@@ -106,9 +114,9 @@ def portes_closes(monde, id, depart, arrivee):
 
 # --- Annonces et chronique ----------------------------------------------------------------
 
-def _chroniquer(monde, id, texte):
+def _chroniquer(monde, id, texte, nature="geste"):
     chronique = monde.data.setdefault("chronique", [])
-    chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte})
+    chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte, "nature": nature})
     del chronique[:-CHRONIQUE_MAX]
 
 
@@ -123,7 +131,7 @@ def _raconter(monde, id, verbe, objet, lignes):
 
 def _annoncer_porte(monde, id, porte, verbe, texte_porte, lignes):
     texte = designer(monde.objets[id], debut=True) + " " + verbe + " " + designer(porte) + "."
-    _chroniquer(monde, id, texte)
+    _chroniquer(monde, id, texte, "deplacement")
     if monde.visible(id):
         lignes.append(texte)
     elif monde.visible(porte["id"]):
@@ -244,7 +252,8 @@ def _pas(monde, id, sortie, lignes):
     depuis, o["lieu"] = o["lieu"], sortie["vers"]
     if "position" in o:
         placer(o, o["lieu"], position_entree(monde, o["lieu"], depuis))
-    _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][o["lieu"]]["nom"] + ".")
+    _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][o["lieu"]]["nom"] + ".",
+                "deplacement")
 
 
 def _rate(monde, id, cible, attribut="lieu", valeur=None):
@@ -281,10 +290,16 @@ def _executer(monde, id, etape, lignes, gestes):
             return False
         _inspecter(monde, id)
         return True
+    if op == "reposer":
+        return _reposer(monde, id, lignes)
+    from .deliberation import SOCIALES
+    if op in SOCIALES:
+        from .echanges import executer
+        return executer(monde, id, etape, lignes)
     c = monde.objets.get(cible)
     if c is None:
         return False
-    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "prendre"):
+    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "servir", "prendre"):
         if not _accessible(monde, id, cible):
             return _rate(monde, id, cible)
     if outil and not _porte(monde, outil, id):
@@ -305,6 +320,7 @@ def _executer(monde, id, etape, lignes, gestes):
             return _rate(monde, id, cible, "verrouillee", True)
         c["ouverte"] = True
         _raconter(monde, id, "ouvre", c, lignes)
+        _ouvert_par_soi(monde, id, cible)
     elif op == "fermer":
         c["ouverte"] = False
         _raconter(monde, id, "ferme", c, lignes)
@@ -314,6 +330,8 @@ def _executer(monde, id, etape, lignes, gestes):
         c["verrouillee"] = op == "verrouiller"
         croire(monde, id, cible, "verrouillee", c["verrouillee"], "essai")
         _raconter(monde, id, "déverrouille" if op == "deverrouiller" else "verrouille", c, lignes)
+        if op == "deverrouiller":
+            _ouvert_par_soi(monde, id, cible)
     elif op == "crocheter":
         if not c.get("verrouillee"):
             return _rate(monde, id, cible, "verrouillee", False) or True
@@ -334,10 +352,36 @@ def _executer(monde, id, etape, lignes, gestes):
         besoins = esprit(monde, id)["besoins"]
         besoins["faim"] = max(0.0, besoins.get("faim", 0) - SATIETE)
         _raconter(monde, id, "mange une part de", c, lignes)
+    elif op == "servir":
+        from .echanges import servir
+        if not servir(monde, id, cible, etape.get("contenu", {}).get("pour"), lignes):
+            return False
     if faute:
         gestes.append((id, op, cible))
         _temoigner(monde, id, op, cible)
     return True
+
+
+def _reposer(monde, id, lignes):
+    """Une minute de repos ; le geste s'achève quand le PNJ est reposé."""
+    from .deliberation import REPOS_FIN, REPOS_MINUTE
+    besoins, intention = esprit(monde, id)["besoins"], esprit(monde, id)["intention"]
+    if "repos" not in besoins:
+        return True
+    if intention and intention["depuis"] == monde.data["minutes"]:
+        texte = designer(monde.objets[id], debut=True) + " s'assoit pour se reposer."
+        _chroniquer(monde, id, texte)
+        if monde.visible(id):
+            lignes.append(texte)
+    besoins["repos"] = max(0.0, besoins["repos"] - REPOS_MINUTE)
+    return besoins["repos"] <= REPOS_FIN
+
+
+def _ouvert_par_soi(monde, id, cible):
+    """Ce qu'il garde sous clé et ouvre lui-même : il s'en souvient pour le refermer."""
+    from .deliberation import garde_sous_cle
+    if garde_sous_cle(monde, id, cible):
+        memoriser(monde, id, {"type": "ouvert_par_soi", "objet": cible})
 
 
 def desespere(monde, id):
@@ -354,14 +398,22 @@ def agir(monde, id, minute, lignes, gestes=None):
     intention = e["intention"]
     if not intention:
         return
+    from .stratege import terminer
     etapes, o = intention["plan"], monde.objets[id]
+    from .deliberation import PROGRESSIFS
+    strategie = intention["but"]["type"] == "strategie"
     while etapes and etapes[0]["operation"] == "aller" and etapes[0]["lieu"] == o["lieu"]:
         etapes.pop(0)
     if not etapes:
         if intention["motif"] == "alerte":
             e["intention"] = None
+        elif strategie:
+            terminer(monde, id, True)
         return
     etape = etapes[0]
+    if strategie and etape["operation"] == "aller" and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
+        terminer(monde, id, False, etape)  # Aucun passage qu'il croie ouvert : la stratégie tombe.
+        return
     contact = CONTACT.get(etape["operation"])
     if contact and monde.data.get("mode_cases") and etape["cible"] in monde.objets:
         from .spatial import proche
@@ -379,6 +431,10 @@ def agir(monde, id, minute, lignes, gestes=None):
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
             e["intention"] = None
+        elif strategie and not etapes:
+            terminer(monde, id, True)
+    elif strategie and etape["operation"] not in PROGRESSIFS:
+        terminer(monde, id, False, etape)  # Un geste manqué, ou un refus : il n'insiste pas.
 
 
 def _annoncer_presences(monde, vus, apparus, lignes):
