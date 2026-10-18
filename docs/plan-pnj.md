@@ -329,6 +329,87 @@ décrit le changement, elle ne tranche rien).
   - on ne se partage pas le bois, et le froid n'a d'autre recours que le brasero ;
   - la sécurité reste satisfaite par les seules rondes, désormais rangées en routine.
 
+## Jalon G — le feu partagé (proposition, à valider)
+
+**Constat après F.** Seul le briquet du joueur allume une flamme : un feu éteint ne se rallume
+que si le joueur l'a laissé à Gorm. Le bois tient en un tas de deux charges (240 minutes) qui
+appartient à Gorm ; le brasero en a 150. Au plus tard vers la septième heure, le feu meurt, et
+le froid des évacués n'a plus de recours : `_plan_chauffer` ne cherche qu'un foyer cru allumé.
+Le Relais contient pourtant d'autres flammes : le fanal du refuge (720 minutes, fixe), la
+torche de l'antichambre (30 minutes, mobile), la lanterne du joueur.
+
+### G1. Une flamme en allume une autre
+
+Règle générale, commune au joueur et aux PNJ : pour allumer une source, il faut un outil
+d'allumage **ou une autre source allumée et intacte**, portée ou à portée. La source qui
+donne la flamme ne se consume pas pour autant ; la cible garde ses conditions (combustible,
+intégrité). Une source fixe ne se déplace pas : on lui apporte la cible (la torche au fanal),
+jamais l'inverse.
+
+- Joueur : `allumer` dans `operations.py` accepte cette source comme outil, choisie par le
+  moteur si l'outil est omis, comme le briquet aujourd'hui.
+- PNJ : `pnj.py` accepte la même source ; le planificateur cherche, sur ses croyances, une
+  flamme qu'il croit allumée : portée, à prendre (la torche), ou fixe et rejointe avec la
+  cible en main. Chaîne attendue de Gorm, brasero éteint, sans briquet : prendre la torche,
+  l'allumer au fanal si elle est éteinte, aller à l'échoppe, allumer le brasero.
+- Une flamme crue allumée peut s'être éteinte en route (la torche n'a que 30 minutes) : le
+  geste échoue, la croyance est révisée, le plan est recalculé, comme pour une porte.
+
+En jeu : Gorm rallume seul ; tu allumes ta lanterne au brasero sans briquet ; porter la flamme
+d'une salle à l'autre devient un enjeu.
+
+### G2. Le bois se demande comme une part
+
+La part devient une notion commune à toute ressource à usages comptés qui appartient à un
+autre : les `portions` des vivres, les `charges` du bois. On la demande à son propriétaire ;
+s'il accepte, il fait lui-même l'usage pour le demandeur, comme il sert une part de vivres :
+il recharge le foyer (et le rallume grâce à G1). Mêmes règles que les vivres : il ne donne pas
+ce dont il a lui-même besoin, se méfie de qui l'a trompé, et un refus est mémorisé par objet.
+
+Ce qu'il garde pour lui devient une donnée de profil, au lieu de la règle écrite aujourd'hui
+dans `echanges.demander` (`portions < 2` : chacun garde exactement une part) :
+`reserve`, le nombre de parts que ce personnage garde de toute ressource comptée qu'il
+possède, 1 par défaut. La règle des vivres migre vers cette donnée dans le même jalon, sans
+changer le comportement des parties existantes : un Gorm prévoyant en garde 2, un généreux
+aucune, et le moteur n'a aucune branche propre au bois ou aux vivres.
+
+Le froid gagne le même ordre de recours que la faim, au lieu de se limiter à rejoindre un feu
+allumé :
+1. un foyer cru allumé : s'y chauffer (inchangé) ;
+2. un foyer froid ou qui baisse, avec du combustible à soi ou à personne et une flamme :
+   l'alimenter, l'allumer ;
+3. du combustible à un autre : lui en demander une part ;
+4. sans scrupule (pas de `ne_vole_pas`), le bien d'autrui, sans témoin ; à bout, le besoin
+   l'emporte sur la crainte d'être vu, comme pour la faim.
+
+En jeu : quand le feu baisse et que Gorm garde sa dernière brassée, les évacués la lui
+demandent ; Brune peut la prendre aux vannes ; tu peux demander du bois à Gorm, ou lui en
+apporter.
+
+### Hors périmètre
+
+D'autres remèdes au froid (couvertures, vêtements secs), du bois tiré de la poutre (la coupe
+ne crée pas encore de fragments), une sécurité gagnée autrement que par les rondes (piste
+d'un jalon H).
+
+### Fin de jalon
+
+Comme les précédents : le cas réel et un autre cas de même nature, état et affichage après
+rechargement. Banc moteur seul sur les 8 graines habituelles, sans appel à Luna : nombre de
+feux rallumés sans le joueur, minutes de froid urgent sans plan, aucune violation des
+limites. Luna en vrai sur les phrases du joueur : « j'allume ma lanterne au brasero »,
+« je demande du bois à Gorm ».
+
+### Décisions
+
+1. Ce qu'un propriétaire garde pour lui est la donnée de profil `reserve` (1 par défaut, la
+   règle actuelle des vivres y migre). Gorm garde sa dernière charge de bois comme sa dernière
+   part de vivres : c'est elle qui crée la tension.
+2. Le bois d'autrui suit les règles générales du vol, sans cas propre au bois ; qui vole
+   dépend des limites de chaque profil (`ne_vole_pas`), données du scénario.
+3. Allumer à une source fixe se fait en lui apportant la cible : règle physique du moteur,
+   déduite de `mobile` et de la portée, valable pour toute source de tout scénario.
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -343,6 +424,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **D. Plusieurs PNJ** — *fait* | Ilse et Aubin voient Brune, à bout de faim, crocheter la réserve et le disent à Gorm, qui les croit ou non, referme et verrouille ; ce qu'Ilse voit de toi passe à Gorm puis à Aubin, et Gorm se méfie, reprend la cloche à son compte et te surveille ; Gorm reconnaît son bien entre d'autres mains ; tu entends ce qui se dit dans ta salle | nouvelles et rumeurs typées (jet de CHA du locuteur, confiance décroissante, trois relais au plus), `vu_porter`, rondes `{lieu, periode}` et geste `inspecter`, témoins de toute la minute du geste, besoin extrême plus fort que la crainte d'être vu, Ilse, Aubin et le fanal du refuge, mesures sociales au banc | aucun appel |
 | **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, demande une part à Gorm avant de voler, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Gorm qui accepte ouvre sa réserve, sert et referme à clé ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; Aubin se repose ; tu entends ces échanges | gestes sociaux `dire`, `demander` (dont une part de nourriture), `confier`, `remettre`, `servir`, `reposer`, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ et complété par le planificateur, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
 | **F. Tensions du Relais** — *fait* | les évacués trempés quittent le refuge pour se chauffer au brasero ; Gorm revoit son feu, va chercher ses fagots aux vannes et le recharge, jusqu'à épuiser le bois ; tous ont faim pour 4 parts : on demande une part à Gorm avant de voler, il sert, refuse ou garde la dernière ; Brune refusée crochète, Ilse refusée redemande deux heures plus tard ; on cherche Gorm quand on l'a perdu de vue ; tu recharges toi-même le brasero | besoin `chaleur`, foyer et combustible (`alimenter`, commun au joueur et aux PNJ, `allumer` pour les PNJ), feu consumé minute par minute avec les PNJ, pulsion de feu entretenu, part demandée par le moteur et attendue près des vivres, refus par objet, recherche d'un personnage, ordre des buts (ce qui presse, parole donnée, ce qu'on finit, routine) | aucun appel ; stratège remesuré |
+| **G. Le feu partagé** — *proposé* | Gorm, sans briquet, rallume le brasero avec la torche allumée au fanal ; tu allumes ta lanterne au brasero ; quand Gorm garde sa dernière brassée, les évacués la lui demandent et Brune peut la prendre ; tu peux demander du bois ou en apporter | une source allumée sert d'outil d'allumage (joueur et PNJ) ; part généralisée aux ressources comptées (`portions`, `charges`), réserve gardée en donnée de profil (`reserve`) ; recours au froid ordonnés comme ceux de la faim | aucun appel |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune
