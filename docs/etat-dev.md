@@ -29,7 +29,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - un feu que les PNJ peuvent rallumer sans le briquet du joueur ;
   - partager le bois, d'autres remèdes au froid ;
   - la priorité du stratège aux PNJ que le joueur perçoit.
-- **Branches d'essai** (locales au premier poste, non poussées) :
+- **Branches d'essai**, poussées sur `origin` et non fusionnées :
   - `essai-code` : le MJ écrit un script Python borné au lieu du JSON ;
   - `essai-haiku` : adaptateur Anthropic pour évaluer Claude Haiku.
   Les mesures sont rapportées dans leurs commits. Rien n'en est retenu dans `main`.
