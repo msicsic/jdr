@@ -53,15 +53,40 @@ def necessaire(monde, auditeur, objet):
     return False
 
 
+def demande_de_part(monde, demandeur, auditeur, objet):
+    """Un affamé peut demander une part d'une nourriture qui appartient à l'autre, même rangée ailleurs."""
+    from .social import _proprietaire
+    from .spatial import porte_par
+    o = monde.objets.get(objet)
+    besoins = lire(monde, demandeur)["besoins"] if demandeur != "joueur" else {}
+    return bool(o and o["type"] == "nourriture" and "faim" in besoins and not porte_par(monde, objet, auditeur)
+                and _proprietaire(monde, {"objet": objet}) == auditeur)
+
+
 def demander(monde, demandeur, auditeur, objet):
-    """« absent », « mefiance », « necessaire », « refus » ou « remis »."""
+    """« absent », « mefiance », « necessaire », « impossible », « refus », « remis » ou « promis »."""
+    from .deliberation import _plan_pulsion, urgents
     from .deplacement_objet import deplacer
     from .spatial import porte_par
-    if objet not in monde.objets or not porte_par(monde, objet, auditeur):
+    part = demande_de_part(monde, demandeur, auditeur, objet)
+    if objet not in monde.objets or not (part or porte_par(monde, objet, auditeur)):
         return "absent"
     confiance = lire(monde, auditeur)["croyances"].get(demandeur, {}).get("fiable")
     if confiance and not confiance["valeur"]:
         return "mefiance"
+    if part:
+        # Il garde la dernière part, et ne donne pas ce dont il a lui-même besoin.
+        if monde.objets[objet].get("portions", 0) < 2 or "faim" in urgents(monde, auditeur):
+            return "necessaire"
+        condition = {"objet": objet, "servir": demandeur}
+        if _plan_pulsion(monde, auditeur, condition) is None:
+            return "impossible"
+        if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
+            return "refus"
+        esprit(monde, auditeur)["engagements"].append(
+            {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
+        memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
+        return "promis"
     if necessaire(monde, auditeur, objet):
         return "necessaire"
     if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
@@ -99,6 +124,37 @@ def remettre(monde, donneur, receveur, objet):
     deplacer(monde, objet, receveur)
     if receveur != "joueur":
         memoriser(monde, receveur, {"type": "recu", "objet": objet, "de": donneur})
+
+
+def servir(monde, id, nourriture, pour, lignes):
+    """Donner une part à quelqu'un de la même salle, qu'on appelle s'il est hors de vue : il la
+    mange, et sait gré de l'avoir reçue."""
+    from .deliberation import SATIETE
+    from .esprits import percoit
+    from .francais import complement_de
+    from .pnj import _chroniquer
+    from .social import _qui, faire_entendre
+    o, autre = monde.objets[nourriture], monde.objets.get(pour)
+    if (o.get("portions", 0) <= 0 or not autre or autre["type"] != "personnage"
+            or autre["lieu"] != monde.objets[id]["lieu"]):
+        return False
+    appel = "" if percoit(monde, id, pour) and percoit(monde, pour, id) else f"appelle {_qui(monde, pour)} et lui "
+    o["portions"] -= 1
+    besoins = esprit(monde, pour)["besoins"]
+    if "faim" in besoins:
+        besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
+    memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
+    croire(monde, pour, id, "fiable", True, "vu")
+    e = esprit(monde, id)
+    tenus = [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": pour}]
+    for x in tenus:
+        e["engagements"].remove(x)
+        memoriser(monde, id, {"type": "engagement_tenu", "pour": pour, "condition": x["condition"]})
+    texte = (f"{_qui(monde, id)} {appel}donne une part {complement_de(o)}"
+             + ("." if appel else f" à {_qui(monde, pour)}."))
+    _chroniquer(monde, id, texte, "social")
+    faire_entendre(monde, id, pour, texte, [nourriture], lignes)
+    return True
 
 
 def phrase_condition(monde, condition):
@@ -141,7 +197,7 @@ def engagements_echus(monde, id):
 
 def executer(monde, id, etape, lignes):
     """Un geste social d'une minute ; renvoie True s'il a obtenu ce qu'il visait."""
-    from .francais import designer
+    from .francais import complement_de, designer
     from .pnj import _chroniquer
     from .esprits import percoit
     from .social import _qui, faire_entendre
@@ -162,9 +218,11 @@ def executer(monde, id, etape, lignes):
         if objet is None:
             return False
         issue = demander(monde, id, autre, objet["id"])
-        recit = f"{a} demande {designer(objet)} à {b}"
-        clair = recit + "." + (f" {b} lui remet {designer(objet)}." if issue == "remis" else f" {b} refuse.")
-        cites, reussi = [objet["id"]], issue == "remis"
+        part = demande_de_part(monde, id, autre, objet["id"])
+        recit = f"{a} demande {'une part ' + complement_de(objet) if part else designer(objet)} à {b}"
+        clair = recit + "." + {"remis": f" {b} lui remet {designer(objet)}.",
+                               "promis": f" {b} accepte de lui en donner."}.get(issue, f" {b} refuse.")
+        cites, reussi = [objet["id"]], issue in ("remis", "promis")
     elif op == "confier":
         issue = confier(monde, id, autre, contenu)
         recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
@@ -179,4 +237,6 @@ def executer(monde, id, etape, lignes):
         clair, cites, reussi = recit + ".", [objet["id"]], True
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
     faire_entendre(monde, id, autre, clair, [x for x in cites if x and (x in monde.objets or x == "joueur")], lignes)
+    if not reussi:
+        memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue})
     return reussi

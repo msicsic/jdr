@@ -255,6 +255,8 @@ def _demander(travail, auditeur, objet, faits):
         "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
         "refus": f"{nom} n'est pas convaincu et garde {o}.",
         "remis": f"{nom} te remet {o}.",
+        "promis": f"{nom} accepte de t'en donner une part.",
+        "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
 
 

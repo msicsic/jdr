@@ -232,23 +232,44 @@ Données d'auteur ; tout le comportement en découle par le mécanisme commun.
 
 ## Écarts retenus au jalon E
 
-- Banc A/B, 4 graines × 8 h, critère fixé avant les mesures : aucune violation (atteint),
-  +50 % d'événements distincts hors routine (mesuré : 9 → 10, +11 %), −30 % de minutes de
-  besoin urgent sans intention (1170 → 1071, −8 %), au plus 2 appels par heure (2,09 : la
-  correction d'une proposition refusée échappait au budget, corrigé depuis). Le stratège
-  n'est donc pas activé par défaut : il reste l'option `--stratege` du jeu et du banc.
-- Ce qui limite l'apport : le stratège refait surtout ce que le planificateur trouve déjà
-  (crocheter la réserve, faire une ronde) ; le Relais offre peu de leviers sociaux (les
-  vivres sont sous clé, la clé de Gorm est trop discrète pour qu'on la lui demande) ; la
-  sécurité et le repos n'ont aucun geste qui les fasse baisser, si bien que l'oisiveté
-  urgente reste hors de portée ; 5 à 7 des 16 appels d'une partie corrigent une proposition
-  refusée par le moteur (geste contredit par les croyances, mensonge d'un honnête).
-- Un premier essai a montré que Luna refusait de faire voler Brune, même affamée : le
-  stratège joue désormais le caractère tel qu'il est écrit, et un besoin à 95 passe outre
-  ses scrupules comme la crainte d'être vu.
-- Pistes avant de reprendre le stratège : une méthode pour la sécurité et le repos, le
-  partage d'une part de nourriture, des évacués qui connaissent Gorm dès le départ ; la
-  priorité aux PNJ que le joueur perçoit n'est pas faite (le budget va au premier besoin).
+Critère fixé avant toute mesure, sur 4 graines (1985, 7, 42, 2024) × 8 h sans joueur : aucune
+violation, +50 % d'événements distincts hors routine, −30 % de minutes de besoin urgent sans
+intention, au plus 2 appels par heure. Cinq bancs, chaque fois après correction d'un défaut
+général trouvé en lisant les chroniques ; le critère n'a pas changé.
+
+| Banc | Ce qui a changé | Événements D → E | Oisiveté urgente D → E | Appels/h |
+|---|---|---|---|---|
+| e1 | premier stratège | 9 → 10 (+11 %) | 1170 → 1071 (−8 %) | 2,09 |
+| e2 | leviers : repos, part de nourriture servie, évacués qui connaissent Gorm | 10 → 12,75 (+28 %) | 1160 → 1084 (−7 %) | 2,0 |
+| e3 | refus mémorisé, une autre voie ne bloque plus le moteur | 10 → 11,25 (+13 %) | 1160 → 1064 (−8 %) | 2,0 |
+| e4 | le moteur complète chaque geste (ouvrir, aller, outil) | 10 → 13,5 (+35 %) | 1160 → 1011 (−13 %) | 2,0 |
+| e5 | une tâche confiée au joueur n'est pas faite à sa place | 10 → 10,75 (+8 %) | 1160 → 1016 (−12 %) | 2,0 |
+
+Le banc e4 est faussé : dans 3 graines sur 8, Gorm allait chercher la cloche confiée au
+joueur, ce que la validation du stratège laissait passer et que l'état valide ne trahissait
+pas ; le banc compte désormais ces usurpations comme des violations. Sur e5, 4 graines de
+robustesse (3, 11, 99, 500) donnent 10 → 11,5 événements et 1125 → 1123 minutes ; les minutes
+où un besoin urgent avait quelque chose à faire sans plan, mesure ajoutée après e1 et hors
+critère, baissent de 340 à 199 (−41 %). Aucune violation, aucune usurpation.
+
+- Le critère n'est pas atteint : le stratège n'est pas activé par défaut, il reste l'option
+  `--stratege` du jeu et du banc. Avec les règles d'e5, il ne dégrade aucune partie.
+- Ce qu'il apporte : Brune demande d'abord une part à Gorm, puis vole s'il refuse ; Gorm,
+  s'il accepte, ouvre sa réserve, la sert et la referme à clé ; Ilse prévient Gorm et lui
+  demande de garder la réserve fermée ; personne ne reste affamé sans rien tenter.
+- Ce qui le limite : la plupart de ses décisions sont des rondes que le moteur ferait aussi ;
+  le Relais n'a qu'une tension, la faim de Brune ; la sécurité d'Ilse et d'Aubin est urgente
+  en permanence par conception (c'est elle qui fait tourner leurs rondes), si bien que
+  l'oisiveté urgente compte des minutes où il n'y a rien à faire.
+- Essayé et retiré : apaiser un besoin quand sa pulsion est rétablie. Une ronde rassurait
+  Ilse et Aubin pour des heures ; leurs rondes cessaient, Brune volait sans témoin dès la
+  dixième minute et il ne se passait plus rien : le monde du moteur seul s'appauvrissait,
+  ce qui aurait faussé la comparaison.
+- Luna refusait d'abord de faire voler Brune, même affamée : le stratège joue le caractère
+  tel qu'il est écrit, et un besoin à 95 passe outre ses scrupules.
+- Pistes : plus de tensions dans le scénario (besoins concurrents, ressources rares) plutôt
+  qu'un stratège plus fin ; une sécurité qui se gagne autrement que par des rondes ; la
+  priorité aux PNJ que le joueur perçoit (le budget va aujourd'hui au premier besoin).
 
 ## Jalons
 
@@ -262,7 +283,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **B. Gorm veut** — *fait* | Brune, affamée, va chercher les crochets, attend que personne ne la voie, crochète la réserve et mange ; sous les yeux du joueur elle renonce ; sans crochets elle reste sans plan ; surprise depuis l'ombre (joueur ou Gorm) ; Gorm volé garde ses biens, cesse de déléguer la cloche, va chercher la clé, déverrouille et la rapporte ; sans clé, il renonce | profils, besoins, pulsions (dont déléguées), délibération par urgence, planificateur borné sur croyances, gestes prendre/poser/ouvrir/fermer/(dé)verrouiller/crocheter/manger, garde `sans_temoin`, témoins réels, chronique, `banc_pnj` | aucun appel |
 | **C. On peut lui parler** — *fait* | ta réplique est rendue selon INT et CHA (« Tu dis : « … » »), mot pour mot entre guillemets ; un mensonge cru change le plan de Gorm et se découvre quand il voit la vérité ; un mensonge démenti par ce qu'il vient de voir est rejeté ; une INT faible transmet moins ; une demande d'objet est refusée s'il en a besoin ou se méfie ; Luna fait parler les PNJ d'après leurs croyances | mode `parole_joueur`, bande d'expression, contenu typé résolu par identifiant ou par nom, jet de CHA et confiance, `mensonge_decouvert`, contrôle des mentions sur la réplique ; objets portés discrets cachés au joueur ; profil des PNJ retiré du contexte de Luna | 3 appels par réplique (interprétation, réponse, audit) |
 | **D. Plusieurs PNJ** — *fait* | Ilse et Aubin voient Brune, à bout de faim, crocheter la réserve et le disent à Gorm, qui les croit ou non, referme et verrouille ; ce qu'Ilse voit de toi passe à Gorm puis à Aubin, et Gorm se méfie, reprend la cloche à son compte et te surveille ; Gorm reconnaît son bien entre d'autres mains ; tu entends ce qui se dit dans ta salle | nouvelles et rumeurs typées (jet de CHA du locuteur, confiance décroissante, trois relais au plus), `vu_porter`, rondes `{lieu, periode}` et geste `inspecter`, témoins de toute la minute du geste, besoin extrême plus fort que la crainte d'être vu, Ilse, Aubin et le fanal du refuge, mesures sociales au banc | aucun appel |
-| **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, pèse le vol, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; un PNJ demande un objet, confie une tâche, remet ce qu'il porte ; tu entends ces échanges | gestes sociaux `dire`, `demander`, `confier`, `remettre` communs au joueur et aux PNJ, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
+| **E. Luna stratège** — *fait, non retenu par défaut* | Brune, peu scrupuleuse, demande une part à Gorm avant de voler, ment à Gorm (« la réserve est déverrouillée »), qui la croit et va la verrouiller ; Gorm qui accepte ouvre sa réserve, sert et referme à clé ; Ilse demande à Gorm de garder la réserve fermée et lui dit que Brune n'est pas fiable ; Aubin se repose ; tu entends ces échanges | gestes sociaux `dire`, `demander` (dont une part de nourriture), `confier`, `remettre`, `servir`, `reposer`, engagements, limite `ne_ment_pas`, stratège consulté sur besoin urgent sans plan, plan illicite ou désœuvrement, plan validé sur les croyances du PNJ et complété par le planificateur, banc A/B | 2 appels par heure de jeu au plus ; option `--stratege` |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune

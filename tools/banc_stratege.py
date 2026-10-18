@@ -52,6 +52,8 @@ def moyenne(parties, cle):
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--graines", type=int, nargs="+", default=[1985, 7, 42, 2024])
+    p.add_argument("--graines-sup", type=int, nargs="*", default=[],
+                   help="graines de robustesse, rapportées à part du verdict")
     p.add_argument("--heures", type=float, default=8)
     p.add_argument("--connexion", choices=("chatgpt", "api"), default="chatgpt")
     p.add_argument("--etiquette", default="ab")
@@ -61,10 +63,13 @@ def main(argv=None):
     dossier.mkdir(parents=True, exist_ok=True)
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
     resultats = {"D": [], "E": []}
-    for graine in args.graines:
+    for graine in [*args.graines, *args.graines_sup]:
         for nom, actif in (("D", False), ("E", True)):
             r = partie(graine, args.heures, actif, args.connexion)
-            resultats[nom].append(r)
+            if graine in args.graines:
+                resultats[nom].append(r)
+            else:
+                resultats.setdefault(nom + "_sup", []).append(r)
             chemin = dossier / f"{horodatage}-{args.etiquette}-{nom}-{graine}.json"
             chemin.write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
             m = r["mesures"]
@@ -72,16 +77,24 @@ def main(argv=None):
                   f"événements {m.get('evenements_distincts')}, oisiveté urgente {m.get('minutes_urgentes_oisives')}, "
                   f"échanges {m.get('echanges')}, appels {m.get('stratege_appels', 0)}", flush=True)
     d, e = resultats["D"], resultats["E"]
-    verdict = {"violations": sum(bool(r["violation"]) for r in d + e)}
+    # Une tâche confiée au joueur et faite à sa place est une violation, même si l'état reste valide.
+    verdict = {"violations": sum(bool(r["violation"]) or r["mesures"].get("usurpations", 0) > 0 for r in d + e)}
     for cle, seuil in SEUILS.items():
         a, b = moyenne(d, cle), moyenne(e, cle)
         ecart = (b - a) / a if a else 0.0
         verdict[cle] = {"D": a, "E": b, "ecart": round(ecart, 3),
                         "atteint": ecart >= seuil if seuil > 0 else ecart <= seuil}
+    # Information, hors critère : un besoin urgent qui avait quelque chose à faire, sans plan.
+    a, b = moyenne(d, "minutes_urgentes_sans_recours"), moyenne(e, "minutes_urgentes_sans_recours")
+    verdict["information_minutes_urgentes_sans_recours"] = {"D": a, "E": b, "ecart": round((b - a) / a, 3) if a else 0.0}
     appels = moyenne(e, "stratege_appels") / args.heures
     verdict["appels_par_heure"] = {"E": round(appels, 2), "atteint": appels <= APPELS_PAR_HEURE}
     verdict["garde"] = (verdict["violations"] == 0 and appels <= APPELS_PAR_HEURE
                         and all(verdict[c]["atteint"] for c in SEUILS))
+    if args.graines_sup:
+        ds, es = resultats["D_sup"], resultats["E_sup"]
+        verdict["robustesse"] = {c: {"D": moyenne(ds, c), "E": moyenne(es, c)}
+                                 for c in (*SEUILS, "minutes_urgentes_sans_recours", "stratege_appels")}
     (dossier / f"{horodatage}-{args.etiquette}-verdict.json").write_text(
         json.dumps(verdict, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(verdict, ensure_ascii=False, indent=1))

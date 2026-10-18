@@ -30,22 +30,40 @@ def creer(scenario, graine=1985):
 
 
 def _oisifs_urgents(monde):
-    """PNJ qu'un besoin urgent presse et qui n'ont rien entrepris."""
-    from .deliberation import urgents
-    return sum(1 for id in pnjs(monde) if monde.objets[id].get("profil")
-               and lire(monde, id)["intention"] is None and urgents(monde, id))
+    """PNJ qu'un besoin urgent presse et qui n'ont rien entrepris ; puis ceux d'entre eux pour
+    qui ce besoin a vraiment quelque chose à faire (une pulsion rompue, ou aucune pulsion)."""
+    from .deliberation import satisfaite, urgents
+    oisifs = bloques = 0
+    for id in pnjs(monde):
+        p = monde.objets[id].get("profil")
+        if not p or lire(monde, id)["intention"] is not None or not urgents(monde, id):
+            continue
+        oisifs += 1
+        bloques += any(not all(satisfaite(monde, id, x["condition"]) for x in p["pulsions"] if x["besoin"] == b)
+                       or not any(x["besoin"] == b for x in p["pulsions"]) for b in urgents(monde, id))
+    return oisifs, bloques
+
+
+def _usurpations(monde):
+    """PNJ qui portent l'objet d'une tâche confiée à quelqu'un qu'ils croient encore fiable."""
+    from .deliberation import _delegue
+    from .spatial import porte_par
+    return sum(1 for id in pnjs(monde) for x in (monde.objets[id].get("profil") or {}).get("pulsions", [])
+               if x.get("delegue_a") and _delegue(monde, id, x) and porte_par(monde, x["condition"]["objet"], id))
 
 
 def executer(monde, minutes):
     """Avance le monde ; renvoie la chronique produite et les mesures du banc."""
-    chronique, vue, oisivete = [], monde.data["minutes"], 0
+    chronique, vue, oisivete, blocage, usurpations = [], monde.data["minutes"], 0, 0, 0
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
         monde.verifier()
         # La chronique est bornée : on recueille à chaque pas ce qui vient de s'y ajouter.
         chronique += [c for c in monde.data.get("chronique", []) if c["minute"] > vue]
         vue = monde.data["minutes"]
-        oisivete += PAS * _oisifs_urgents(monde)
+        oisifs, bloques = _oisifs_urgents(monde)
+        oisivete, blocage = oisivete + PAS * oisifs, blocage + PAS * bloques
+        usurpations += _usurpations(monde)
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
     mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
@@ -56,6 +74,9 @@ def executer(monde, minutes):
                                             if c.get("nature", "geste") in ("geste", "social")}),
                "echanges": natures["social"], "decisions": natures["decision"],
                "minutes_urgentes_oisives": oisivete,
+               # Mesure d'information ajoutée après le premier banc E, hors critère de décision.
+               "minutes_urgentes_sans_recours": blocage,
+               "usurpations": usurpations,
                "renoncements": memoire["renoncement"],
                "vols_vus": memoire["vu_agir"], "absences": memoire["absence"],
                "confidences": sum(" dit à " in c["texte"] for c in chronique),

@@ -18,8 +18,9 @@ CHRONIQUE_MAX = 300
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ.
 NATURES = ("deplacement", "geste", "social", "decision")
+# Gestes qui demandent d'être au contact de la cible : un objet, ou celui à qui l'on parle.
 CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger",
-                         "remettre"), True)
+                         "servir", "remettre", "dire", "demander", "confier"), True)
 
 
 def verifier(monde):
@@ -289,6 +290,8 @@ def _executer(monde, id, etape, lignes, gestes):
             return False
         _inspecter(monde, id)
         return True
+    if op == "reposer":
+        return _reposer(monde, id, lignes)
     from .deliberation import SOCIALES
     if op in SOCIALES:
         from .echanges import executer
@@ -296,7 +299,7 @@ def _executer(monde, id, etape, lignes, gestes):
     c = monde.objets.get(cible)
     if c is None:
         return False
-    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "prendre"):
+    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "servir", "prendre"):
         if not _accessible(monde, id, cible):
             return _rate(monde, id, cible)
     if outil and not _porte(monde, outil, id):
@@ -317,6 +320,7 @@ def _executer(monde, id, etape, lignes, gestes):
             return _rate(monde, id, cible, "verrouillee", True)
         c["ouverte"] = True
         _raconter(monde, id, "ouvre", c, lignes)
+        _ouvert_par_soi(monde, id, cible)
     elif op == "fermer":
         c["ouverte"] = False
         _raconter(monde, id, "ferme", c, lignes)
@@ -326,6 +330,8 @@ def _executer(monde, id, etape, lignes, gestes):
         c["verrouillee"] = op == "verrouiller"
         croire(monde, id, cible, "verrouillee", c["verrouillee"], "essai")
         _raconter(monde, id, "déverrouille" if op == "deverrouiller" else "verrouille", c, lignes)
+        if op == "deverrouiller":
+            _ouvert_par_soi(monde, id, cible)
     elif op == "crocheter":
         if not c.get("verrouillee"):
             return _rate(monde, id, cible, "verrouillee", False) or True
@@ -346,10 +352,36 @@ def _executer(monde, id, etape, lignes, gestes):
         besoins = esprit(monde, id)["besoins"]
         besoins["faim"] = max(0.0, besoins.get("faim", 0) - SATIETE)
         _raconter(monde, id, "mange une part de", c, lignes)
+    elif op == "servir":
+        from .echanges import servir
+        if not servir(monde, id, cible, etape.get("contenu", {}).get("pour"), lignes):
+            return False
     if faute:
         gestes.append((id, op, cible))
         _temoigner(monde, id, op, cible)
     return True
+
+
+def _reposer(monde, id, lignes):
+    """Une minute de repos ; le geste s'achève quand le PNJ est reposé."""
+    from .deliberation import REPOS_FIN, REPOS_MINUTE
+    besoins, intention = esprit(monde, id)["besoins"], esprit(monde, id)["intention"]
+    if "repos" not in besoins:
+        return True
+    if intention and intention["depuis"] == monde.data["minutes"]:
+        texte = designer(monde.objets[id], debut=True) + " s'assoit pour se reposer."
+        _chroniquer(monde, id, texte)
+        if monde.visible(id):
+            lignes.append(texte)
+    besoins["repos"] = max(0.0, besoins["repos"] - REPOS_MINUTE)
+    return besoins["repos"] <= REPOS_FIN
+
+
+def _ouvert_par_soi(monde, id, cible):
+    """Ce qu'il garde sous clé et ouvre lui-même : il s'en souvient pour le refermer."""
+    from .deliberation import garde_sous_cle
+    if garde_sous_cle(monde, id, cible):
+        memoriser(monde, id, {"type": "ouvert_par_soi", "objet": cible})
 
 
 def desespere(monde, id):
@@ -368,6 +400,7 @@ def agir(monde, id, minute, lignes, gestes=None):
         return
     from .stratege import terminer
     etapes, o = intention["plan"], monde.objets[id]
+    from .deliberation import PROGRESSIFS
     strategie = intention["but"]["type"] == "strategie"
     while etapes and etapes[0]["operation"] == "aller" and etapes[0]["lieu"] == o["lieu"]:
         etapes.pop(0)
@@ -400,7 +433,7 @@ def agir(monde, id, minute, lignes, gestes=None):
             e["intention"] = None
         elif strategie and not etapes:
             terminer(monde, id, True)
-    elif strategie and etape["operation"] != "aller":
+    elif strategie and etape["operation"] not in PROGRESSIFS:
         terminer(monde, id, False, etape)  # Un geste manqué, ou un refus : il n'insiste pas.
 
 

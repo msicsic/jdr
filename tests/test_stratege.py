@@ -11,7 +11,7 @@ from donjon import stratege
 from donjon.banc_pnj import creer
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import confier
-from donjon.esprits import croire, lire, percevoir_tous
+from donjon.esprits import croire, lire, percevoir_tous, percoit
 from donjon.geometrie import placer, position_entree
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde
@@ -49,6 +49,9 @@ class Faux:
 
     def __call__(self, instructions, entree, intention, fonction, schema):
         self.recus.append((entree, schema))
+        if not self.reponses:  # Les autres PNJ consultés attendent.
+            return {"decision": "attendre", "besoin": next(iter(entree["dossier"]["besoins"])), "but": "",
+                    "etapes": [], "justification": "."}
         return self.reponses.pop(0)
 
 
@@ -86,8 +89,8 @@ class StrategeTests(unittest.TestCase):
         self.assertIn("strategie_aboutie", types)
         self.assertIn({"type": "pret", "objet": "pied_de_biche", "a": "brune"},
                       [{k: v for k, v in s.items() if k != "minute"} for s in lire(reprise, "marchand")["memoire"]])
-        # Le vol est seulement remis à plus tard : le répit court depuis la décision.
-        self.assertEqual(lire(reprise, "brune")["renoncements"]["faim"], 1)
+        # Une autre voie que le vol ne bloque pas le moteur : si elle avait échoué, il reprenait.
+        self.assertNotIn("faim", lire(reprise, "brune")["renoncements"])
         self.assertEqual(reprise.data["stratege"]["bilan"]["plan"], 1)
 
     def test_en_jeu_le_joueur_entend_la_demande_et_la_partie_rechargee_la_garde(self):
@@ -161,7 +164,10 @@ class StrategeTests(unittest.TestCase):
             stratege.valider(m, "ilse", plan("faim", "forcer", etape("crocheter", cible="reserve", outil="crochets")))
         # Brune peut mentir et voler, mais le geste attend de n'être vu de personne.
         decision = stratege.valider(m, "brune", plan("faim", "manger", etape("manger", cible="vivres")))
-        self.assertEqual(decision["etapes"][0]["condition"], "sans_temoin")
+        # Le moteur dit comment : aller prendre les crochets, crocheter et ouvrir la réserve, puis manger.
+        self.assertEqual([x["operation"] for x in decision["etapes"]][-4:], ["aller", "crocheter", "ouvrir", "manger"])
+        self.assertIn("prendre", [x["operation"] for x in decision["etapes"]])
+        self.assertEqual(decision["etapes"][-1]["condition"], "sans_temoin")
         mensonge = stratege.valider(m, "brune", plan("securite", "accuser Ilse",
                                                      etape("dire", cible="ilse", sujet="ilse", attribut="fiable", valeur="non")))
         self.assertEqual(mensonge["etapes"][0]["contenu"]["valeur"], False)
@@ -187,6 +193,19 @@ class StrategeTests(unittest.TestCase):
         self.vivre(m, 1, faux)
         self.assertEqual(faux.recus, [])
         self.assertEqual(lire(m, "brune")["intention"]["but"]["type"], "manger")
+
+    def test_ce_qu_il_a_confie_au_joueur_il_ne_le_fait_pas_a_sa_place(self):
+        # Cas du banc A/B : Gorm, stratège en main, allait chercher la cloche confiée au joueur.
+        m = relais()
+        reunir(m, "marchand", "aubin")
+        for proposition in (plan("devoir", "rapporter la cloche", etape("prendre", cible="cloche")),
+                            plan("devoir", "confier la cloche à Aubin", etape("confier", cible="aubin", sujet="cloche",
+                                                                              attribut="lieu", valeur="antichambre"))):
+            with self.assertRaisesRegex(stratege.ErreurStrategie, "il a confié cette tâche"):
+                stratege.valider(m, "marchand", proposition)
+        # S'il cesse de croire le joueur fiable, la tâche lui revient.
+        croire(m, "marchand", "joueur", "fiable", False, "vu")
+        stratege.valider(m, "marchand", plan("devoir", "rapporter la cloche", etape("prendre", cible="cloche")))
 
     def test_le_dossier_ne_contient_que_ce_que_le_pnj_sait(self):
         m = relais()
@@ -229,6 +248,120 @@ class StrategeTests(unittest.TestCase):
         self.vivre(m, 60, None)
         self.assertNotIn("stratege", m.data)
         self.assertFalse(any(c.get("nature") == "decision" for c in m.data.get("chronique", [])))
+
+
+
+class LeviersTests(unittest.TestCase):
+    def tearDown(self):
+        stratege.activer(None)
+
+    def test_un_besoin_de_repos_se_satisfait_en_s_asseyant(self):
+        m = relais()
+        lire(m, "aubin")["besoins"].update(repos=85, securite=0)
+        lignes = []
+        m.data["minutes"] += 40
+        avancer(m, 40, lignes)
+        self.assertLessEqual(lire(m, "aubin")["besoins"]["repos"], 20)
+        self.assertIn("Aubin, vieux passeur s'assoit pour se reposer.", [c["texte"] for c in m.data["chronique"]])
+        self.assertNotEqual((lire(m, "aubin")["intention"] or {}).get("but"), {"type": "repos"})
+
+    def test_une_part_demandee_au_proprietaire_est_servie_puis_la_reserve_refermee(self):
+        from donjon.echanges import demander
+        m = relais()
+        reunir(m, "brune", "marchand")
+        m.joueur.update(salle="antichambre", position=[3, 4])
+        m.data["connus"] = sorted({*m.data["connus"], "brune", "marchand", "vivres"})
+        for id in ("marchand", "brune", "ilse", "aubin"):
+            lire(m, id)["besoins"].update({b: 0 for b in lire(m, id)["besoins"] if b != "faim"})
+        lire(m, "marchand")["besoins"]["faim"] = 0
+        lire(m, "brune")["besoins"]["faim"] = 60
+        with patch.object(Monde, "d20", return_value=20):
+            self.assertEqual(demander(m, "brune", "marchand", "vivres"), "promis")
+        self.assertEqual(lire(m, "marchand")["engagements"][0]["condition"], {"objet": "vivres", "servir": "brune"})
+        portions, biens = m.objets["vivres"]["portions"], lire(m, "marchand")["besoins"]["biens"]
+        lignes = []
+        m.data["minutes"] += 15
+        avancer(m, 15, lignes)
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            m.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        self.assertEqual(reprise.objets["vivres"]["portions"], portions - 1)
+        self.assertLessEqual(lire(reprise, "brune")["besoins"]["faim"], 60 - 50 + 2)
+        self.assertIs(lire(reprise, "brune")["croyances"]["marchand"]["fiable"]["valeur"], True)
+        self.assertEqual(lire(reprise, "marchand")["engagements"], [])
+        # Ce qu'il a ouvert lui-même, il le referme à clé, sans s'en alarmer.
+        self.assertTrue(reprise.objets["reserve"]["verrouillee"])
+        self.assertFalse(reprise.objets["reserve"].get("ouverte"))
+        self.assertEqual(lire(reprise, "marchand")["besoins"]["biens"], biens)
+        self.assertNotIn("atteinte", [s["type"] for s in lire(reprise, "marchand")["memoire"]])
+        self.assertIn("Gorm appelle Brune et lui donne une part des vivres du refuge.", lignes)
+        self.assertNotIn("vu_agir", [s["type"] for x in ("brune", "ilse", "aubin") for s in lire(reprise, x)["memoire"]])
+
+    def test_une_part_se_refuse_au_mefiant_ou_quand_il_a_faim(self):
+        from donjon.echanges import demander
+        m = relais()
+        reunir(m, "brune", "marchand")
+        lire(m, "marchand")["besoins"]["faim"] = 90
+        with patch.object(Monde, "d20", return_value=20):
+            self.assertEqual(demander(m, "brune", "marchand", "vivres"), "necessaire")
+            lire(m, "marchand")["besoins"]["faim"] = 0
+            croire(m, "marchand", "brune", "fiable", False, "vu")
+            self.assertEqual(demander(m, "brune", "marchand", "vivres"), "mefiance")
+            # Le joueur, qui n'a pas faim, ne demande pas une part : la règle d'avant demeure.
+            self.assertEqual(demander(m, "joueur", "marchand", "vivres"), "absent")
+
+    def test_qui_vient_de_refuser_ne_se_voit_pas_redemander_la_meme_chose(self):
+        m = relais()
+        reunir(m, "brune", "marchand")
+        croire(m, "marchand", "brune", "fiable", False, "vu")
+        faux = Faux(plan("faim", "demander une part à Gorm", etape("demander", cible="marchand", outil="vivres")))
+        stratege.activer(faux)
+        decision = stratege.consulter(m, "brune", "besoin_sans_plan", "faim")
+        stratege.adopter(m, "brune", decision, m.data["minutes"])
+        m.data["minutes"] += 2
+        avancer(m, 2, [])
+        self.assertIn({"type": "refus", "de": "marchand", "operation": "demander", "raison": "mefiance"},
+                      [{k: v for k, v in x.items() if k != "minute"} for x in lire(m, "brune")["memoire"]])
+        with self.assertRaisesRegex(stratege.ErreurStrategie, "a refusé il y a"):
+            stratege.valider(m, "brune", plan("faim", "redemander", etape("demander", cible="marchand", outil="vivres")))
+
+    def test_le_moteur_ajoute_le_deplacement_qu_un_geste_suppose(self):
+        m = relais()
+        decision = stratege.valider(m, "ilse", plan("securite", "inspecter l'échoppe", etape("inspecter", lieu="echoppe")))
+        self.assertEqual([(x["operation"], x["lieu"]) for x in decision["etapes"]],
+                         [("aller", "echoppe"), ("inspecter", "echoppe")])
+        decision = stratege.valider(m, "brune", plan("faim", "demander une part à Gorm",
+                                                     etape("demander", cible="marchand", outil="vivres")))
+        self.assertEqual([x["operation"] for x in decision["etapes"]], ["aller", "demander"])
+
+    def test_hors_de_vue_dans_la_salle_il_s_approche_pour_parler(self):
+        m = relais()
+        m.objets["marchand"]["lieu"] = "antichambre"
+        placer(m.objets["marchand"], "antichambre", [7, 2])
+        placer(m.objets["brune"], "antichambre", [1, 4])
+        percevoir_tous(m)
+        # Elle l'a vu passer derrière le pilier : elle le sait dans le refuge, sans le voir.
+        croire(m, "brune", "marchand", "lieu", "antichambre", "vu", salle="antichambre", case=[7, 2])
+        lire(m, "marchand")["besoins"].update(devoir=0, biens=0, faim=0)
+        self.assertFalse(percoit(m, "brune", "marchand") and percoit(m, "marchand", "brune"))
+        faux = Faux(plan("faim", "demander une part à Gorm", etape("demander", cible="marchand", outil="vivres")))
+        stratege.activer(faux)
+        with patch.object(Monde, "d20", return_value=20):
+            lignes = []
+            m.data["minutes"] += 5
+            avancer(m, 5, lignes)
+        self.assertIn("Brune demande une part des vivres du refuge à Gorm (promis).", [c["texte"] for c in m.data["chronique"]])
+
+    def test_le_stratege_peut_demander_une_part_au_proprietaire(self):
+        m = relais()
+        reunir(m, "brune", "ilse")
+        decision = stratege.valider(m, "brune", plan("faim", "demander une part à Gorm",
+                                                     etape("aller", lieu="echoppe"),
+                                                     etape("demander", cible="marchand", outil="vivres")))
+        self.assertEqual(decision["etapes"][1]["outil"], "vivres")
+        with self.assertRaisesRegex(stratege.ErreurStrategie, "part d'une nourriture"):
+            stratege.valider(m, "brune", plan("faim", "demander", etape("demander", cible="ilse", outil="vivres")))
 
 
 if __name__ == "__main__":

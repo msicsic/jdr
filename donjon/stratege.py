@@ -11,8 +11,9 @@ Le moteur valide chaque geste : identifiants connus du PNJ, limites (``ne_vole_p
 échoue à l'exécution abandonne la stratégie. Le budget est plafonné par PNJ et par heure
 de jeu. Rien de ce qu'écrit Luna n'est montré au joueur, qui ne perçoit que les gestes.
 """
-from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, illicite, profil,
-                           salle_crue)
+from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, confie_a_autrui,
+                           illicite, profil, salle_crue)
+from .echanges import demande_de_part
 from .esprits import esprit, lire, memoriser, percoit, pnjs
 from .monde import ErreurMonde
 
@@ -20,13 +21,14 @@ ATTENTE = 60            # minutes entre deux consultations pour un même PNJ
 BUDGET_HEURE = 2        # consultations par heure de jeu pour tout le scénario
 OISIVETE = 60           # minutes désœuvré avant de chercher un but dans sa personnalité
 ETAPES_MAX = 6
+REDEMANDE = 120         # minutes avant de redemander la même chose à qui vient de refuser
 DECLENCHEURS = {
     "besoin_sans_plan": "un besoin urgent sans plan connu",
     "plan_illicite": "le seul plan trouvé touche au bien d'autrui (plan_moteur)",
     "desoeuvre": "désœuvré depuis une heure, sans besoin urgent",
 }
 GESTES = ("aller", "inspecter", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-          "crocheter", "manger", *SOCIALES)
+          "crocheter", "manger", "reposer", "servir", *SOCIALES)
 APPELANT = None         # (instructions, entree, intention, fonction, schema) -> dict ; posé par le jeu ou le banc
 
 INSTRUCTIONS = """Tu es le stratège d'un personnage non joueur d'un jeu de rôle. Le dossier est
@@ -40,10 +42,13 @@ Gestes (champs inutiles vides) :
 - aller {lieu} ; inspecter {lieu} : parcourir des yeux la salle où il se trouve ;
 - prendre {cible} ; poser {cible, lieu} ; ouvrir, fermer {cible} ;
 - deverrouiller, verrouiller {cible, outil: la clé} ; crocheter {cible, outil} (capacité crochetage) ;
-- manger {cible: une nourriture} ;
+- manger {cible: une nourriture} ; reposer {} : se reposer là où il est, jusqu'à être reposé ;
+- servir {cible: une nourriture à portée, sujet: personnage présent} : lui en donner une part ;
 - dire {cible: personnage, sujet, attribut: lieu | verrouillee | fiable, valeur: identifiant
   de salle ou de porteur pour lieu, oui ou non sinon} : lui affirmer quelque chose ;
 - demander {cible: personnage, outil: un objet qu'il porte} : lui demander de te le remettre ;
+  ou, pour un affamé, une part d'une nourriture qui appartient à ce personnage (champ a du
+  dossier), même rangée ailleurs : s'il accepte, il viendra la servir ;
 - confier {cible: personnage, sujet: objet, attribut: lieu (valeur: salle) ou verrouillee
   (valeur: oui)} : lui demander de faire en sorte que ce soit vrai ;
 - remettre {cible: personnage, outil: un objet que tu portes}.
@@ -221,14 +226,24 @@ def _etape(monde, id, n, x, obtenus):
 
     if op in ("aller", "inspecter"):
         etape["lieu"] = salle()
+    elif op == "reposer":
+        if "repos" not in p["besoins"]:
+            raise faute("ce personnage n'a pas besoin de repos")
     elif op in SOCIALES:
         etape["cible"] = connu("cible", ("personnage",))
         if not monde.objets[etape["cible"]].get("profil"):
             raise faute("ce personnage ne prend part à aucun échange")
+        refus = [s for s in lire(monde, id)["memoire"] if s["type"] == "refus" and s["de"] == etape["cible"]
+                 and s["operation"] == op and monde.data["minutes"] - s["minute"] < REDEMANDE]
+        if refus and op != "dire":
+            raise faute(f"ce personnage a refusé il y a {monde.data['minutes'] - refus[-1]['minute']} minutes "
+                        f"({refus[-1]['raison']}) : ne lui redemande pas déjà la même chose")
         if op in ("demander", "remettre"):
             etape["outil"] = connu("outil")
-            if op == "demander" and _lieu_cru(monde, id, etape["outil"]) != etape["cible"]:
-                raise faute("il ne croit pas que ce personnage porte cet objet (voir lieu_cru)")
+            if (op == "demander" and _lieu_cru(monde, id, etape["outil"]) != etape["cible"]
+                    and not demande_de_part(monde, id, etape["cible"], etape["outil"])):
+                raise faute("il ne croit pas que ce personnage porte cet objet (voir lieu_cru), et ce n'est pas"
+                            " une part d'une nourriture qui lui appartient")
             if op == "demander":
                 obtenus.add(etape["outil"])
             elif not (porte_par(monde, etape["outil"], id) or etape["outil"] in obtenus):
@@ -257,8 +272,11 @@ def _etape(monde, id, n, x, obtenus):
         cible = connu("cible")
         o = monde.objets[cible]
         etape["cible"] = cible
-        if op == "manger" and o["type"] != "nourriture":
-            raise faute("on ne mange qu'une nourriture")
+        if op in ("manger", "servir") and o["type"] != "nourriture":
+            raise faute("on ne mange ou ne sert qu'une nourriture")
+        if op == "servir":
+            pour = connu("sujet", ("personnage",))
+            etape["contenu"] = {"pour": pour}
         if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter") and o["type"] not in ("porte", "contenant"):
             raise faute("on n'ouvre ou ne verrouille qu'une porte ou un contenant")
         if op in ("prendre", "poser") and not o.get("mobile"):
@@ -271,7 +289,7 @@ def _etape(monde, id, n, x, obtenus):
                 raise faute("il ne sait pas crocheter")
         if op == "prendre":
             obtenus.add(cible)
-        if op in ("prendre", "ouvrir", "crocheter", "manger") and illicite(monde, id, cible):
+        if op in ("prendre", "ouvrir", "crocheter", "manger", "servir") and illicite(monde, id, cible):
             if not autorise(monde, id, cible) or op != "prendre" and "ne_vole_pas" in p["limites"]:
                 raise faute("il ne vole pas : ce bien est à un autre")
             etape["condition"] = "sans_temoin"
@@ -298,8 +316,67 @@ def valider(monde, id, proposition, plan_moteur=None):
     if not isinstance(etapes, list) or not 1 <= len(etapes) <= ETAPES_MAX or not but:
         raise ErreurStrategie(f"un plan a un but et de 1 à {ETAPES_MAX} gestes")
     obtenus = set()
-    return {"decision": "plan", "besoin": besoin, "but": but,
-            "etapes": [_etape(monde, id, n + 1, x, obtenus) for n, x in enumerate(etapes)]}
+    gestes = [_etape(monde, id, n + 1, x, obtenus) for n, x in enumerate(etapes)]
+    for n, etape in enumerate(gestes, 1):
+        vise = {etape["cible"], etape["outil"], etape.get("contenu", {}).get("objet")} - {""}
+        if etape["operation"] not in ("aller", "inspecter", "reposer", "dire") and any(
+                confie_a_autrui(monde, id, o) for o in vise):
+            raise ErreurStrategie(f"étape {n} ({etape['operation']}) : il a confié cette tâche à quelqu'un qu'il croit "
+                                  "fiable, il ne la fait pas à sa place et ne la confie pas à un autre")
+    return {"decision": "plan", "besoin": besoin, "but": but, "etapes": completer(monde, id, gestes)}
+
+
+def completer(monde, id, gestes):
+    """Le stratège dit quoi, le moteur dit comment : chaque geste reçoit ce qu'il suppose.
+
+    Le planificateur du moteur, sur les croyances du PNJ, ajoute les déplacements, ouvre ou
+    déverrouille le contenant d'un objet visé, va chercher la clé ou l'outil. Un geste qu'il ne
+    sait pas rendre possible est refusé avec sa raison.
+    """
+    from .deliberation import Echec, Plan
+    p = Plan(monde, id)
+    for n, etape in enumerate(gestes, 1):
+        op, cible = etape["operation"], etape["cible"]
+        try:
+            if op == "aller":
+                p.aller(etape["lieu"])
+                continue
+            if op == "prendre":
+                if cible not in p.portes:
+                    p.obtenir(cible)
+                continue
+            if op in ("inspecter", "poser"):
+                p.aller(etape["lieu"])
+            elif op in ("manger", "servir") and cible not in p.portes:
+                lieu = _lieu_cru(monde, id, cible)
+                if lieu in monde.data["salles"]:
+                    p.aller(lieu)
+                elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
+                    p.acceder(lieu)
+                else:
+                    raise Echec
+            elif cible and op != "reposer":
+                salle = salle_crue(monde, id, cible)
+                if salle is None:
+                    raise Echec
+                if etape["outil"] and etape["outil"] not in p.portes and op in ("deverrouiller", "verrouiller", "crocheter"):
+                    p.obtenir(etape["outil"])
+                p.aller(salle)
+        except Echec:
+            raise ErreurStrategie(f"étape {n} ({op}) : il ne voit pas comment y parvenir d'après ce qu'il croit "
+                                  "(chemin, contenant fermé sans clé ni outil, objet introuvable)") from None
+        p.etapes.append(etape)
+        if op == "ouvrir":
+            p.ouverts.add(cible)
+        elif op in ("deverrouiller", "crocheter"):
+            p.deverrouilles.add(cible)
+        elif op == "demander":
+            p.portes.add(etape["outil"])
+        elif op == "remettre":
+            p.portes.discard(etape["outil"])
+    if len(p.etapes) > 3 * ETAPES_MAX:
+        raise ErreurStrategie("plan trop long une fois complété : vise un but plus proche")
+    return p.etapes
 
 
 # --- Consultation et adoption -------------------------------------------------------------
@@ -372,8 +449,10 @@ def plan_illicite(monde, id, besoin, but, etapes, minute):
     if not decision or decision["decision"] == "suivre":
         s["suivis"][id] = dict(but)
         return False
-    # Il y renonce pour l'instant : le moteur ne le lui reproposera qu'après le répit.
-    esprit(monde, id)["renoncements"][besoin] = minute
+    if decision["decision"] == "attendre":
+        # Il s'en abstient pour l'instant : le moteur ne le lui reproposera qu'après le répit.
+        esprit(monde, id)["renoncements"][besoin] = minute
+    # Une autre voie : si elle échoue, le plan du moteur revient, sans nouvelle consultation avant l'heure.
     adopter(monde, id, decision, minute)
     return True
 
