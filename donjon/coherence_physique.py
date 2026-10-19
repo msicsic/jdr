@@ -26,7 +26,10 @@ Les seuils de capacité (coupe, puissance) ne sont déclarés que lors de la cr�
 objet ; ne les infère pas de la seule matière d'un objet déjà établi. Une description physique
 (forme, matière, dimensions, nombre de pièces) peut en revanche décrire un objet existant : juge
 si elle correspond à son nom, à sa description et à ce qu'un tel objet est d'ordinaire ; le
-moteur vérifie à part qu'elle s'accorde avec sa masse. Ne suppose pas que l'intention du joueur rend
+moteur vérifie à part qu'elle s'accorde avec sa masse. De même, un contenu proposé (ce que l'objet
+contient ou consomme : une lanterne brûle de l'huile) établit un fait encore inconnu : juge
+seulement s'il est plausible pour un tel objet, sans le refuser parce qu'il n'était pas déjà
+décrit. Une qualification sert précisément à établir ce qui manque. Ne suppose pas que l'intention du joueur rend
 la proposition vraie. Si la description est trop vague pour juger, refuse.
 Réponds par un jugement pour chaque qualification, dans l'ordre. Aucun récit.
 """
