@@ -47,24 +47,23 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
            (20, "brillante : charme, à-propos, art de convaincre"))
 
 REGLES = """
-Mode parole_joueur : le joueur fait parler Corvus à un personnage présent (affirmer, mentir,
-demander un objet, ou simplement converser) sans récompense à négocier. proposition =
-{"personnage": identifiant, "replique": ce que Corvus prononce, "contenu": [...]}, texte vide.
-La réplique traduit l'intention du joueur dans la bande expression_joueur : la précision suit
-l'INT, l'aisance le CHA. Une INT faible simplifie et perd des détails, un CHA faible rend
-maladroit ; une bande élevée enrichit sans ajouter d'idée. L'écart entre deux bandes doit
-s'entendre : très pauvre = quelques mots, hésitations ; riche et brillante = formules
-choisies, images, tact. Si le joueur écrit ses mots entre
-guillemets, ils sont dits tels quels. contenu type ce que la réplique transmet (3 au plus) :
-affirmation {sujet: identifiant d'objet, de personnage ou "joueur", attribut: lieu (valeur =
-identifiant de salle ou de porteur), verrouillee (valeur oui/non) ou fiable (valeur oui/non)} ;
-demande {sujet: objet que le personnage porte, ou ressource à lui (vivres, bois) dont Corvus
-lui demande une part, attribut "", valeur ""} ;
-propos {sujet "", attribut "", valeur ""} pour le reste. Une affirmation peut être fausse :
-c'est au personnage d'y croire ou non, et au moteur d'en décider. Le moteur te renvoie
-conversation_validee : fais répondre le personnage d'après ce résultat, ses croyances et ses
-traits (esprits_interlocuteurs). Ce qu'un personnage croit n'est pas un fait : il peut le
-dire, se tromper ou le taire ; il n'avoue son intention que si ses traits s'y prêtent.
+## 7. Faire parler Corvus (parole_joueur)
+proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le
+personnage est celui à qui le joueur s'adresse ; si le joueur écrit ses mots entre guillemets ou
+interpelle directement le personnage (« Gorm, … »), ce sont ses mots, dits tels quels. Sinon,
+la réplique traduit son intention dans la bande expression_joueur : la précision suit l'INT,
+l'aisance le CHA (très pauvre : quelques mots, des hésitations ; brillante : formules choisies,
+images, tact ; une bande élevée enrichit sans ajouter d'idée).
+contenu (3 éléments au plus) dit ce que la réplique transmet :
+- affirmation {sujet : un objet, un personnage ou "joueur" ; attribut : lieu (valeur = une
+  salle ou un porteur), verrouillee ou fiable (valeur oui ou non)} ; elle peut être fausse,
+  au personnage d'y croire ou non ;
+- demande {sujet : un objet que le personnage porte, ou une ressource à lui (vivres, bois)
+  dont Corvus demande une part ; attribut et valeur vides} ;
+- propos {sujet, attribut et valeur vides} pour tout le reste.
+Le moteur te renvoie conversation_validee : fais répondre le personnage d'après ce résultat,
+ses croyances et ses traits (esprits_interlocuteurs). Ce qu'il croit n'est pas un fait : il
+peut le dire, se tromper ou le taire, et n'avoue son intention que si ses traits s'y prêtent.
 """
 
 

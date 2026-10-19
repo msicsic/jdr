@@ -51,14 +51,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   refusé raconté comme tenté (audit), voix d'auteur dans le texte affiché (contrôle
   déterministe). Comparaison des textes : Luna ~190 caractères, sobre ; Haiku ~340, plus
   descriptif, et plus de dérives que les corrections encadrent.
-- La suite de tests passe : 593 tests, sans clé ni connexion.
+- Branche `instructions-mj` : consignes du MJ réécrites (`donjon/consignes.py`), dans l'ordre de
+  la décision (ton, autorité, mode, puis une section par mode), une règle à un seul endroit,
+  sans anciens raccourcis ni rustines d'exemples ; ~15 000 caractères au lieu de ~24 000.
+  Bancs multiples (même code, consignes seules) : Haiku 3 passes, 3,06 appels et 22 s par tour
+  MJ contre 3,20 et 23,7, refus 1,3 contre 2,0, coût −8 % ; Luna 2 passes, 3,24 appels et 17 s
+  contre 3,50 et 20,2, 0 repli contre 1, refus 4,5 contre 6.
+- Outillage : `tools/banc_multi.py` joue des variantes (références git) en plusieurs passes et
+  en parallèle, et résume moyenne et étendue ; le forfait ChatGPT a tenu 4 passes simultanées.
+- La suite de tests passe : 598 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
-- **Instructions du MJ** (en cours) : 28 000 caractères sans plan de décision, doublons,
-  couches contradictoires (anciens raccourcis), rustines d'exemples, 61 tournures négatives.
-  Réécriture structurée, mesurée sur les bancs Luna et Haiku ; ensuite seulement, instructions
-  conditionnées à l'état du monde.
+- **Fabrication générale** (en cours) : seule l'échelle à barreaux existe, avec des matériaux
+  que l'auteur déclare (`ressource`, longueur, charge, dans `scenario_atelier.json`). Le MJ ne
+  peut pas qualifier un objet existant comme matériau (planches du Relais). Étape 1 : cette
+  qualification par `etablir_faits`, contrôlée comme les capacités.
+- **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
+  règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
+  selon un lieu ou un scénario.
 - **Suite du plan PNJ**, au choix :
   - la crue du Relais, événement de scénario qui s'appuie sur H pour inquiéter ;
   - un événement qui éteint le feu en laissant du bois (les `horloges` existent, aucun
