@@ -98,7 +98,9 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
   des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements) ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; donne son
-  identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux ;
+  identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux.
+  Rappeler ce qu'un personnage a déjà dit (paroles_entendues, conversation) n'est pas une parole :
+  c'est mecanique, avec cette source ; cela atteste qu'il l'a dit, pas que c'est vrai ;
 - invention_protegee : crée ou suppose un élément mécanique absent des faits (objet utilisable,
   passage, personnage, ressource, indice, résultat), même plausible ou décoratif ;
 - contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus.
