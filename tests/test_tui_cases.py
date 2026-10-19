@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 TEXTUAL = all(importlib.util.find_spec(m) is not None for m in ("textual", "pyperclip"))
 if TEXTUAL:
-    from donjon.tui import SeuilApp, SOL_VISIBLE, SOL_MEMORISE, SOUVENIR_OBJET, coloriser_plan, coloriser_legende
+    from donjon.tui import (SeuilApp, SOL_VISIBLE, SOL_MEMORISE, SOL_PENOMBRE, SOUVENIR_OBJET,
+                            coloriser_plan, coloriser_legende)
     from textual.widgets import Input
 
 
@@ -25,6 +26,24 @@ class TUIExplorationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("visible", legende.plain)
         self.assertIn("exploré hors de vue", legende.plain)
         self.assertNotIn(". terrain", legende.plain)
+
+    def test_la_penombre_reelle_se_colore_sans_ponctuation(self):
+        # La carte réelle, lanterne éteinte : pénombre en vert sombre, ni « , » ni « . » affichés.
+        from donjon.carte import carte
+        from donjon.defi import nouveau_defi
+        from donjon.spatial import installer
+        m = nouveau_defi(1985)
+        installer(m)
+        m.objets["lanterne"]["allume"] = False
+        plan, legende = carte(m).split("=== LEGENDE ===")
+        rendu = coloriser_plan(plan)
+        cases = " ".join(l[5:] for l in rendu.plain.splitlines() if l[:4].strip().lstrip("-").isdigit())
+        self.assertNotIn(",", cases)
+        self.assertNotIn(".", cases)
+        self.assertTrue(any(SOL_PENOMBRE[0] in str(s.style) or SOL_PENOMBRE[1] in str(s.style) for s in rendu.spans))
+        texte = coloriser_legende(legende.strip()).plain
+        self.assertIn("visible dans la pénombre", texte)
+        self.assertNotIn(", terrain", texte)
 
     def test_repere_souvenu_a_une_couleur_distincte(self):
         rendu = coloriser_plan("NIVEAU +0\n   0 ~k! ~XX ")
