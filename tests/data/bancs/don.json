@@ -1,0 +1,11 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {"salle": "echoppe", "position": [1, 2], "lieux": {"cloche": "joueur"}},
+ "tours": [
+  "regarder",
+  "je donne la cloche à Gorm",
+  "inventaire",
+  "Gorm, qu'est-ce que tu vas en faire ?"
+ ]
+}

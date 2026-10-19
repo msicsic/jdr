@@ -109,11 +109,11 @@ class DialoguesTests(unittest.TestCase):
 
     def test_aucun_paiement_sans_accord_objet_et_presence(self):
         self.porter_anneau()
-        with self.assertRaises(ErreurMonde):
-            Moteur(self.m).preparer(proposition("remettre", "anneau"))
-        self.parler()
-        with self.assertRaises(ErreurMonde):
-            Moteur(self.m).preparer(proposition("remettre", "anneau"))
+        # Sans accord accepté, remettre est un don : l'objet change de mains, sans paiement.
+        for _ in range(2):
+            plan = Moteur(self.m).preparer(proposition("remettre", "anneau"))
+            self.assertEqual(plan.effets, [("donner", "anneau", "marchand")])
+            self.parler()
         self.parler("accepter")
         self.m.joueur["salle"] = "antichambre"
         with self.assertRaises(ErreurMonde):

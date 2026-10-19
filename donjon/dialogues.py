@@ -134,6 +134,33 @@ def preparer_conversation(monde, p, revision=None):
     return travail, rapport
 
 
+def remise_convenue(monde, objet_id, destinataire=""):
+    """La mission dont l'accord accepté attend cet objet, auprès d'un donneur présent ; sinon None."""
+    candidats = [id for id, m in monde.data["missions"].items()
+                 if m["objet"] == objet_id and (not destinataire or m["donneur"] == destinataire)
+                 and m["donneur"] in interlocuteurs(monde)
+                 and monde.data["engagements"].get(id, {}).get("statut") == "accepte"]
+    return candidats[0] if len(candidats) == 1 else None
+
+
+def verifier_don(monde, objet_id, destinataire=""):
+    """Donner un objet porté à un personnage présent : le geste ordinaire, sans contrepartie."""
+    if objet_id not in monde.objets or monde.objets[objet_id]["lieu"] != "joueur":
+        portes = sorted(i for i, o in monde.objets.items() if o["lieu"] == "joueur")
+        raise ErreurMonde("Tu dois porter l'objet pour le donner.",
+                          f"remettre vise un objet porté, parmi {', '.join(portes) or 'aucun'} (reçu « {objet_id} »).")
+    presents = sorted(interlocuteurs(monde))
+    if not destinataire and len(presents) == 1:
+        destinataire = presents[0]
+    if destinataire not in presents:
+        raise ErreurMonde("Il n'y a personne ici pour le recevoir." if not presents else
+                          "Précise à qui tu le donnes." if not destinataire else
+                          designer(monde.objets[destinataire], debut=True) + " n'est pas là pour le recevoir."
+                          if destinataire in monde.objets else "Précise à qui tu le donnes.",
+                          f"outil = le personnage qui reçoit, parmi les présents : {', '.join(presents) or 'aucun'}.")
+    return destinataire
+
+
 def verifier_remise(monde, objet_id, destinataire=""):
     if objet_id not in monde.objets or monde.objets[objet_id]["lieu"] != "joueur":
         portes = sorted(i for i, o in monde.objets.items() if o["lieu"] == "joueur")

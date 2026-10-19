@@ -155,6 +155,9 @@ def preparer(donnees, sauvegarde):
         if cle in prep:
             m.joueur[cle] = prep[cle]
     m.data["connus"].extend(prep.get("connus", []))
+    for id, lieu in prep.get("lieux", {}).items():
+        # Placement d'auteur : un objet déjà en main ou ailleurs, pour cibler une scène.
+        m.objets[id]["lieu"] = lieu
     for id, besoins in prep.get("besoins", {}).items():
         esprit(m, id)["besoins"].update(besoins)
     m.verifier()

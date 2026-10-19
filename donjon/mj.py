@@ -407,7 +407,7 @@ class MJOpenAI:
                     correction_utilisee = True
                 if correction_utilisee:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
-                              "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé. Ne conclus pas que l'intention entière est impossible."}
+                              "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
                     try:
                         explication = self._echanger(monde, intention, proposition_en_attente,
                                                     enrichir=False, retour_moteur=retour)
@@ -808,6 +808,12 @@ ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplac
                     continue
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
                                "fondement_paroles": paroles}
+                retour = faits.get("retour_moteur")
+                if isinstance(retour, dict) and "propositions_refusees" in retour and rapport["paroles"]:
+                    # Le motif d'un refus vient du moteur : aucun personnage ne le connaît ni ne le dit.
+                    obstacles.append({"partie": nom, "segment": None, "texte": texte,
+                                      "motif": "Une explication de refus raconte l'obstacle ; elle ne fait parler "
+                                               "aucun personnage, qui n'en connaît pas la raison."})
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
             if monde is not None:
                 obstacles.extend(mentions_proposees(monde, reponse, base, paroles))

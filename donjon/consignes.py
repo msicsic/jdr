@@ -78,9 +78,10 @@ court (méthode, risque), jamais un résultat.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.
-- remettre : un objet porté, outil = le destinataire (vide s'il est unique). Il faut un accord
-  accepté et le personnage présent ; le moteur verse alors la récompense, une seule fois. Une
-  question sur le paiement n'est pas une remise.
+- remettre : donner un objet porté à un personnage présent, outil = le destinataire (vide s'il
+  est seul). Avec un accord accepté pour cet objet, le moteur verse la récompense convenue, une
+  seule fois ; sinon c'est un don, sans contrepartie. Une question sur le paiement n'est pas une
+  remise.
 - clarifier, impossible : identifiants vides ; justification = la question ou la limite, que le
   joueur lit telle quelle : écris-la à la deuxième personne, dans la fiction. Une règle
   manquante n'est pas une impossibilité physique : utilise improviser. Un refus final explique
