@@ -144,6 +144,9 @@ def preparer(donnees, sauvegarde):
     if donnees["scenario"] == "relais":
         from donjon.defi import nouveau_defi
         m = nouveau_defi(seed)
+    elif donnees["scenario"] == "atelier":
+        from donjon.atelier import nouveau_atelier
+        m = nouveau_atelier()
     else:
         from donjon.monde import nouveau_monde
         m = nouveau_monde(seed)
