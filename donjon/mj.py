@@ -503,6 +503,9 @@ class MJOpenAI:
                     premier_refus = dernier_refus
                 retour = {"proposition_refusee": p, "obstacle": str(exc),
                           "consigne": "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue."}
+                if getattr(exc, "attendu", ""):
+                    # Ce que le moteur accepterait, en champs et identifiants : le guide de la correction.
+                    retour["attendu"] = exc.attendu
                 if isinstance(exc, QualificationRequise):
                     retour["qualification_requise"] = {"objet": exc.cible,
                                                        "capacite": exc.capacite,
@@ -715,7 +718,9 @@ class MJOpenAI:
             if espace:
                 instructions += REGLES_ESPACE
         if retour_moteur:
-            instructions += "\nLe retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
+            instructions += ("\nLe retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
+                             "\nSon champ attendu, quand il existe, dit en champs et identifiants ce qu'une proposition corrigée "
+                             "doit contenir : suis-le ; il ne s'adresse jamais au joueur.")
         if enrichir:
             instructions += REGLES_PROFIL
             if social:

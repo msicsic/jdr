@@ -7,6 +7,7 @@ from .monde import ErreurMonde
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
+from .refus import inaccessible, liste, portes_avec_usage
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
@@ -53,32 +54,48 @@ def traduire(monde, p):
         return [etape("detacher", cible, outil=p["outil"], methode=p["methode"], difficulte=p["difficulte"]),
                 etape("deplacer", cible, "joueur")]
     if p["outil"]:
-        raise ErreurMonde("Ce déplacement se fait à la main, sans outil.")
+        raise ErreurMonde("Ce déplacement se fait à la main, sans outil.", f"{action} : outil vide.")
     if action == "voler":
         if p["methode"] not in ("simple", "finesse"):
-            raise ErreurMonde("Le vol se tente directement ou en attendant une occasion (finesse).")
+            raise ErreurMonde("Le vol se tente directement ou en attendant une occasion (finesse).",
+                              f"voler : methode simple ou finesse (reçu « {p['methode']} »).")
         o = monde.objets.get(cible, {})
-        if not o or not proprietaire(monde, o):
-            raise ErreurMonde("Aucun propriétaire ne revendique cet objet ; utilise prendre.")
+        if not o:
+            raise inaccessible(monde, cible)
+        if not proprietaire(monde, o):
+            raise ErreurMonde("Personne ne revendique " + designer(o) + " : il suffit de le prendre.",
+                              f"{cible} n'appartient à personne : composer avec une étape deplacer {cible} vers joueur.")
         if proprietaire(monde, o) == "joueur" or o.get("vole_par") == "joueur" or o["lieu"] == "joueur":
-            raise ErreurMonde("Cet objet est déjà en ta possession.")
+            raise ErreurMonde("Cet objet est déjà en ta possession.", f"{cible} est déjà au joueur : rien à voler.")
         return ([etape("patienter")] if p["methode"] == "finesse" else []) + [etape("deplacer", cible, "joueur", methode="discret")]
     if action == "poser" and monde.objets.get(cible, {}).get("lieu") != "joueur":
-        raise ErreurMonde("Vous ne portez pas cet objet.")
+        portes = sorted(i for i, x in monde.objets.items() if x["lieu"] == "joueur")
+        raise ErreurMonde("Tu ne portes pas cet objet.", f"poser vise un objet porté, parmi {liste(portes)}.")
     return [etape("deplacer", cible, "joueur" if action == "prendre" else monde.joueur["salle"])]
 
 
 def verifier_etape(e):
-    if not isinstance(e, dict) or set(e) != set(etape("deplacer")):
-        raise ErreurMonde("Étape mal formée ; aucun effet arbitraire n'est accepté.")
-    if any(not isinstance(e[k], str) or len(e[k]) > 100 for k in ("operation", "cible", "destination", "outil", "methode")):
-        raise ErreurMonde("Identifiants d'étape invalides.")
-    if e["operation"] not in OPERATIONS or e["methode"] not in METHODES:
-        raise ErreurMonde("Cette opération élémentaire n'est pas prise en charge.")
+    attendus = set(etape("deplacer"))
+    if not isinstance(e, dict) or set(e) != attendus:
+        recus = sorted(e) if isinstance(e, dict) else type(e).__name__
+        raise ErreurMonde("Étape mal formée ; aucun effet arbitraire n'est accepté.",
+                          f"une étape a exactement les champs {', '.join(sorted(attendus))} ; reçu : {recus}.")
+    fautifs = [k for k in ("operation", "cible", "destination", "outil", "methode")
+               if not isinstance(e[k], str) or len(e[k]) > 100]
+    if fautifs:
+        raise ErreurMonde("Identifiants d'étape invalides.",
+                          f"champ(s) {', '.join(fautifs)} : un identifiant texte de 100 caractères au plus.")
+    if e["operation"] not in OPERATIONS:
+        raise ErreurMonde("Cette opération élémentaire n'est pas prise en charge.",
+                          f"operation « {e['operation']} » inconnue ; opérations : {', '.join(OPERATIONS)}.")
+    if e["methode"] not in METHODES:
+        raise ErreurMonde("Je ne connais pas cette façon de faire.",
+                          f"methode « {e['methode']} » inconnue ; méthodes : {', '.join(METHODES)}.")
     if type(e["difficulte"]) is not int or not 0 <= e["difficulte"] <= 25:
-        raise ErreurMonde("Difficulté d'étape invalide.")
+        raise ErreurMonde("Difficulté d'étape invalide.", f"difficulte : un entier de 0 à 25 (reçu {e['difficulte']!r}).")
     if e["operation"] not in ("detacher", "franchir_obstacle") and e["difficulte"]:
-        raise ErreurMonde("Seules une extraction ou un franchissement improvisé acceptent une estimation de difficulté.")
+        raise ErreurMonde("Seules une extraction ou un franchissement improvisé acceptent une estimation de difficulté.",
+                          f"{e['operation']} : difficulte 0 ; le moteur fixe le jet.")
 
 
 def canoniser_appui(monde, e):
@@ -129,7 +146,9 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             return compiler(monde, {**e, "operation": "deplacer", "destination": e["destination"] or "joueur"},
                             precedent, justification, origine)
         if e["methode"] != "simple" or e["difficulte"] or e["destination"] not in ("", monde.joueur["salle"] if op == "soulever" else ""):
-            raise ErreurMonde("Soulever dépose ici ; appuyer et franchir utilisent l'appui, sans destination arbitraire.")
+            raise ErreurMonde("Soulever dépose ici ; appuyer et franchir utilisent l'appui, sans destination arbitraire.",
+                              f"{op} : methode simple, difficulte 0, destination "
+                              + ("vide ou la salle du joueur" if op == "soulever" else "vide") + " ; l'appui va dans outil.")
         return preparer_usage(monde, proposition({"soulever": "desinstaller", "appuyer": "installer", "franchir": "franchir"}[op],
                               e["cible"], outil=e["outil"], justification=justification), origine)
     if e["operation"] == "emettre_son":
@@ -141,45 +160,55 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
     if e["operation"] in ACTIONS_COMPOSABLES:
         from .moteur import Moteur, METHODES as METHODES_ACTION, proposition
         if e["destination"] or e["methode"] not in METHODES_ACTION:
-            raise ErreurMonde("Cette opération n'a pas de destination et garde les méthodes de l'action seule.")
+            raise ErreurMonde("Cette opération n'a pas de destination et garde les méthodes de l'action seule.",
+                              f"{e['operation']} dans un composer : destination vide, methode parmi {', '.join(METHODES_ACTION)}.")
         return Moteur(monde).preparer(proposition(e["operation"], e["cible"], e["outil"], e["methode"],
                                                   e["difficulte"], justification), origine)
     p = Plan({"action": "composer", "justification": justification}, monde.data["revision"], "", origine=origine)
     op, cible, destination, outil, methode = (e[k] for k in ("operation", "cible", "destination", "outil", "methode"))
     if op == "patienter":
         if cible or destination or outil or methode != "simple":
-            raise ErreurMonde("Patienter ne peut pas imposer un geste ou un changement d'attention à un PNJ.")
+            raise ErreurMonde("Patienter n'a ni cible, ni outil, ni destination.",
+                              "patienter : cible, destination et outil vides, methode simple ; attendre ne commande "
+                              "aucun geste à un PNJ.")
         p.titre, p.minutes, p.effort = "Guetter une occasion pendant deux minutes.", 2, False
         return p
     if not monde.accessible(cible):
-        raise ErreurMonde("La cible est absente ou inaccessible depuis ici.")
+        raise inaccessible(monde, cible)
     from .proximite import exiger
     exiger(monde, cible)
     o = monde.objets[cible]
     if op in ("allumer", "eteindre"):
         if destination or methode != "simple":
-            raise ErreurMonde("L'allumage et l'extinction n'ont pas de destination et utilisent la méthode simple.")
+            raise ErreurMonde("L'allumage et l'extinction n'ont pas de destination et utilisent la méthode simple.",
+                              f"{op} : destination vide, methode simple.")
         if "allume" not in o:
             if op == "allumer":
                 if o["integrite"] == 0:
-                    raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.")
+                    raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.", f"{cible} est brisé.")
                 from .capacites_objet import statut as statut_capacite, absence as absence_capacite
                 etat = statut_capacite(o, "lumiere")
                 if etat == "inconnue":
                     from .moteur import QualificationRequise
                     raise QualificationRequise(cible, "lumiere")
                 if etat == "ecartee":
-                    raise ErreurMonde(absence_capacite(o, "lumiere") + ".")
-            raise ErreurMonde("Cet objet n'est pas une source lumineuse modélisée.")
+                    raise ErreurMonde(absence_capacite(o, "lumiere") + ".",
+                                      f"{cible} n'éclaire pas (qualification établie) : ne re-propose pas cet allumage.")
+            sources = sorted(i for i, x in monde.objets.items() if "allume" in x and monde.accessible(i))
+            raise ErreurMonde(designer(o, debut=True) + " ne s'allume ni ne s'éteint.",
+                              f"{op} vise une source lumineuse, parmi {liste(sources)}.")
         allumer = op == "allumer"
         if o["allume"] == allumer:
-            raise ErreurMonde("Cette source est déjà " + ("allumée." if allumer else "éteinte."))
+            raise ErreurMonde("Cette source est déjà " + ("allumée." if allumer else "éteinte."),
+                              f"{cible} est déjà {'allumé' if allumer else 'éteint'} : rien à faire.")
         t = monde.objets.get(outil) if outil else None
         if allumer:
             if o["integrite"] == 0:
-                raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.")
+                raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.", f"{cible} est brisé.")
             if o["combustible"] <= 0:
-                raise ErreurMonde(designer(o, debut=True) + " n'a plus de combustible.")
+                raise ErreurMonde(designer(o, debut=True) + " n'a plus de combustible.",
+                                  f"{cible} est épuisé" + (" : alimenter d'abord avec un combustible." if o.get("foyer")
+                                                          else " : choisis une autre source."))
             from .perception import flamme
             # Un outil d'allumage, ou une autre source allumée : on réunit la flamme et la cible.
             if not outil:
@@ -189,18 +218,25 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             if t and t["id"] != cible and flamme(t) and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
                 exiger(monde, t["id"])
             if not t or t["id"] == cible or not flamme(t) or not a_portee(monde, t["id"]):
-                raise ErreurMonde("Il faut un outil d'allumage utilisable, ou une autre flamme, porté ou à portée de main.")
+                flammes = sorted(x["id"] for x in monde.objets.values()
+                                 if x["id"] != cible and flamme(x) and a_portee(monde, x["id"]))
+                raise ErreurMonde("Il faut un outil d'allumage utilisable, ou une autre flamme, porté ou à portée de main.",
+                                  f"outil : un briquet ou une flamme portée ou à portée de main, parmi {liste(flammes)}"
+                                  + (f" ; {outil} ne donne pas de flamme" if outil else "") + ".")
         elif outil:
-            raise ErreurMonde("Éteindre cette source ne demande pas d'outil.")
+            raise ErreurMonde("Éteindre cette source ne demande pas d'outil.", "eteindre : outil vide.")
         p.titre = ("Allumer " if allumer else "Éteindre ") + designer(o) + (" avec " + designer(t) if t else "") + "."
         p.effets = [("allumage", cible, allumer)]
         return p
     if op == "alimenter":
         from .perception import combustible
         if destination or methode != "simple":
-            raise ErreurMonde("Alimenter un feu n'a pas de destination et se fait simplement.")
+            raise ErreurMonde("Alimenter un feu n'a pas de destination et se fait simplement.",
+                              "alimenter : cible = le foyer, outil = le combustible (ou vide), destination vide, methode simple.")
         if not o.get("foyer"):
-            raise ErreurMonde(designer(o, debut=True) + " n'est pas un foyer qu'on recharge.")
+            foyers = sorted(i for i, x in monde.objets.items() if x.get("foyer") and monde.accessible(i))
+            raise ErreurMonde(designer(o, debut=True) + " n'est pas un foyer qu'on recharge.",
+                              f"alimenter : cible = un foyer, parmi {liste(foyers)} ; le combustible va dans outil.")
         # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
         t = monde.objets.get(outil) if outil else next(
             (e for e in sorted(monde.objets.values(), key=lambda e: not monde.est_porte(e["id"]))
@@ -208,25 +244,35 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if t and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
             exiger(monde, t["id"])
         if not t or not combustible(t) or not a_portee(monde, t["id"]):
-            raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.")
+            combustibles = sorted(x["id"] for x in monde.objets.values()
+                                  if combustible(x) and a_portee(monde, x["id"]))
+            raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.",
+                              f"outil : un combustible porté ou à portée de main, parmi {liste(combustibles)}.")
         victime = proprietaire(monde, t)
         if (not monde.est_porte(t["id"]) and victime not in (None, "joueur")
                 and t.get("vole_par") != "joueur"):
-            raise ErreurMonde(designer(t, debut=True) + " appartient à autrui : il faut d'abord l'obtenir.")
+            raise ErreurMonde(designer(t, debut=True) + " appartient à autrui : il faut d'abord l'obtenir.",
+                              f"{t['id']} appartient à {victime} : obtiens-le d'abord (acheter, parole_joueur, ou voler "
+                              "si le joueur l'a voulu).")
         p.titre = "Alimenter " + designer(o) + " avec " + designer(t) + "."
         p.effets = [("alimentation", cible, t["id"])]
         return p
     if op == "manger":
         from .francais import complement_de
         if destination or outil or methode != "simple":
-            raise ErreurMonde("Manger se fait simplement, sans destination ni outil.")
+            raise ErreurMonde("Manger se fait simplement, sans destination ni outil.",
+                              "manger : destination et outil vides, methode simple.")
         if o["type"] != "nourriture":
-            raise ErreurMonde(designer(o, debut=True) + " ne se mange pas.")
+            vivres = sorted(i for i, x in monde.objets.items() if x["type"] == "nourriture" and monde.accessible(i))
+            raise ErreurMonde(designer(o, debut=True) + " ne se mange pas.",
+                              f"manger vise une nourriture, parmi {liste(vivres)}.")
         if o.get("portions", 0) <= 0:
-            raise ErreurMonde("Il ne reste rien " + complement_de(o) + ".")
+            raise ErreurMonde("Il ne reste rien " + complement_de(o) + ".", f"{cible} n'a plus de portion.")
         victime = proprietaire(monde, o)
         if victime not in (None, "joueur") and o.get("vole_par") != "joueur" and not monde.est_porte(cible):
-            raise ErreurMonde(designer(o, debut=True) + " appartient à autrui : demandes-en une part, ou prends-en.")
+            raise ErreurMonde(designer(o, debut=True) + " appartient à autrui.",
+                              f"{cible} appartient à {victime} : demande une part en mode parole_joueur, achète-le, "
+                              "ou voler si le joueur l'a voulu.")
         p.titre, p.minutes, p.effort = "Manger une part " + complement_de(o) + ".", 5, False
         p.effets = [("manger", cible, 1)]
         return p
@@ -235,39 +281,62 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         foyer = monde.objets[destination]
         if "combustible" not in o.get("usages", []):
             raise ErreurMonde(designer(foyer, debut=True) + " n'est pas un contenant : "
-                              "on n'y met qu'un combustible, pour le recharger.")
+                              "on n'y met qu'un combustible, pour le recharger.",
+                              f"{cible} n'est pas un combustible : destination joueur, la salle, ou un contenant ouvert.")
         return compiler(monde, {**e, "operation": "alimenter", "cible": destination,
                                 "destination": "", "outil": cible}, precedent, justification, origine)
     if op == "deplacer":
         if outil or methode not in ("simple", "discret"):
-            raise ErreurMonde("Déplacer un objet se fait à la main, simplement ou discrètement.")
-        if not o["mobile"] or o.get("attache") or o.get("cale_de") or o.get("installation"):
-            raise ErreurMonde("Cet objet doit d'abord être détaché ou débloqué.")
+            raise ErreurMonde("Déplacer un objet se fait à la main, simplement ou discrètement.",
+                              f"deplacer : outil vide, methode simple ou discret (reçu outil « {outil} », methode « {methode} »).")
+        if not o["mobile"]:
+            raise ErreurMonde(designer(o, debut=True) + " ne se déplace pas.", f"{cible} est fixe : on ne peut pas le déplacer.")
+        if o.get("attache"):
+            raise ErreurMonde(designer(o, debut=True) + " est encore attaché.",
+                              f"etape detacher {cible} avant deplacer, dans le même composer.")
+        if o.get("cale_de"):
+            raise ErreurMonde(designer(o, debut=True) + " cale " + designer(monde.objets[o["cale_de"]]) + ".",
+                              f"debloquer {o['cale_de']} avant deplacer, dans le même composer.")
+        if o.get("installation"):
+            raise ErreurMonde(designer(o, debut=True) + " est installé.",
+                              f"soulever {cible} pour le reprendre (opération soulever).")
         if destination == o["lieu"]:
-            raise ErreurMonde("Cet objet se trouve déjà à cette destination.")
+            raise ErreurMonde("Cet objet se trouve déjà à cette destination.", f"{cible} est déjà dans {destination} : rien à faire.")
         if destination not in ("joueur", monde.joueur["salle"]):
             contenant = monde.objets.get(destination)
             if (not contenant or contenant["type"] != "contenant" or not contenant.get("ouverte")
                     or not monde.accessible(destination)):
-                raise ErreurMonde("La destination doit être ta besace, le sol ici ou un contenant ouvert et accessible.")
+                ouverts = sorted(i for i, x in monde.objets.items()
+                                 if x["type"] == "contenant" and x.get("ouverte") and monde.accessible(i) and i != cible)
+                raise ErreurMonde("La destination doit être ta besace, le sol ici ou un contenant ouvert et accessible.",
+                                  f"destination : joueur, {monde.joueur['salle']} (le sol), ou un contenant ouvert parmi "
+                                  f"{liste(ouverts)} ; reçu « {destination} »"
+                                  + (" (fermé : ouvre-le d'abord)" if contenant and contenant["type"] == "contenant"
+                                     and not contenant.get("ouverte") else "") + ".")
             exiger(monde, destination)
         ids = sous_arbre(monde, cible)
         if destination in ids:
-            raise ErreurMonde("Un objet ne peut pas être placé dans lui-même ou dans son contenu.")
+            raise ErreurMonde("Un objet ne peut pas être placé dans lui-même ou dans son contenu.",
+                              f"destination {destination} est {cible} ou son contenu.")
         masse = sum(monde.objets[id]["masse"] for id in ids)
         charge_autres = monde.charge() - sum(monde.objets[id]["masse"] for id in ids if monde.est_porte(id))
         if charge_autres + masse > monde.joueur["capacite"]:
-            raise ErreurMonde("Cet objet et son contenu dépassent ta capacité de portage.")
+            raise ErreurMonde("Cet objet et son contenu dépassent ta capacité de portage.",
+                              f"charge {charge_autres} + masse {masse} > capacité {monde.joueur['capacite']} : "
+                              f"pose d'abord quelque chose (deplacer vers {monde.joueur['salle']}).")
         # Contrôle aussi la destination et le poids imbriqué, sans toucher au monde réel.
         projection = monde.copier()
         from .deplacement_objet import deplacer
         deplacer(projection, cible, destination)
         if projection.charge() > monde.joueur["capacite"]:
-            raise ErreurMonde("Ce déplacement dépasse ta capacité de portage.")
+            raise ErreurMonde("Ce déplacement dépasse ta capacité de portage.",
+                              f"charge après déplacement {projection.charge()} > capacité {monde.joueur['capacite']}.")
         victime = proprietaire(monde, o)
         illicite = victime not in (None, "joueur") and o.get("vole_par") != "joueur"
         if illicite and methode != "discret":
-            raise ErreurMonde("Cet objet appartient à autrui. Il faut l'acheter ou annoncer une tentative discrète.")
+            raise ErreurMonde("Cet objet appartient à autrui. Il faut l'acheter ou annoncer une tentative discrète.",
+                              f"{cible} appartient à {victime} : acheter, ou deplacer methode discret si le joueur a "
+                              "voulu le voler.")
         # Porter ne distingue pas la main du sac : le titre n'affirme pas un rangement.
         p.titre = ("Prendre " + designer(o) + "." if destination == "joueur" else
                    "Déplacer " + designer(o) + (" au sol." if destination == monde.joueur["salle"] else
@@ -298,25 +367,38 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         p.effets.append(("transferer", cible, destination))
         return p
     if destination:
-        raise ErreurMonde("Détacher libère la fixation sur place ; ajoute deplacer pour la ranger.")
+        raise ErreurMonde("Détacher libère la fixation sur place ; ajoute deplacer pour la ranger.",
+                          f"detacher : destination vide ; puis une étape deplacer {cible} vers joueur.")
     if not o.get("attache") or not o.get("amovible"):
-        raise ErreurMonde("Cet objet n'est pas une fixation amovible encore attachée.")
+        fixations = sorted(i for i, x in monde.objets.items()
+                           if x.get("attache") and x.get("amovible") and monde.accessible(i))
+        raise ErreurMonde(designer(o, debut=True) + " n'est pas une fixation amovible encore attachée.",
+                          f"detacher vise une fixation amovible attachée, parmi {liste(fixations)}"
+                          + (f" ; {cible} est libre : deplacer suffit" if o["mobile"] and not o.get("attache") else "") + ".")
     if o.get("extraction", "main") == "main":
         if outil or methode != "simple" or e["difficulte"]:
-            raise ErreurMonde("Cette attache se libère à la main, sans outil ni jet.")
+            raise ErreurMonde("Cette attache se libère à la main, sans outil ni jet.",
+                              "detacher : outil vide, methode simple, difficulte 0.")
         p.titre = "Détacher " + designer(o) + "."
         p.effets = [("liberer", cible, monde.joueur["salle"])]
         return p
     if o["extraction"] != "outil":
-        raise ErreurMonde("Mode d'extraction inconnu.")
+        raise ErreurMonde("Mode d'extraction inconnu.", f"{cible} ne se détache pas.")
     if eclairage(monde)["niveau"] < 2:
-        raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise.")
+        raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise.",
+                          "detacher avec un outil exige une lumière franche : allume d'abord une source.")
+    leviers = sorted(set(portes_avec_usage(monde, "levier")) | set(portes_avec_usage(monde, "levier_fin"))
+                     | set(portes_avec_usage(monde, "percussion")))
     t = monde.objets.get(outil)
     if not t or t["lieu"] != "joueur" or not t["integrite"]:
-        raise ErreurMonde("Il faut posséder un outil utilisable pour cette extraction.")
+        raise ErreurMonde("Il faut posséder un outil utilisable pour cette extraction.",
+                          f"outil : un objet en main d'usage levier, levier_fin ou percussion, parmi {liste(leviers)}"
+                          + (f" ; {outil} n'est pas en main ou est brisé" if outil else "") + ".")
     usages = t.get("usages", [])
     if methode not in ("levier", "finesse", "percussion") or (methode == "percussion" and "percussion" not in usages) or (methode != "percussion" and not {"levier", "levier_fin"}.intersection(usages)):
-        raise ErreurMonde("L'outil et la méthode ne permettent pas cette extraction.")
+        raise ErreurMonde("L'outil et la méthode ne permettent pas cette extraction.",
+                          f"usages de {outil} : {', '.join(usages) or 'aucun'} ; methode levier ou finesse avec un "
+                          "outil levier/levier_fin, percussion avec un outil percussion.")
     fragile = "levier_fin" in usages
     minimum, maximum = (17, 22) if fragile else (11, 16)
     p.stat, p.bonus = ("DEX" if fragile or methode == "finesse" else "FOR"), (0 if fragile else 3)
@@ -342,19 +424,29 @@ def preparer(monde, proposition, origine):
     from .moteur import Moteur, Plan
     if proposition["action"] == "composer":
         if set(proposition) != {"action", "etapes", "justification"}:
-            raise ErreurMonde("Manœuvre mal formée.")
+            raise ErreurMonde("Manœuvre mal formée.",
+                              f"composer a exactement les champs action, etapes, justification ; reçu : {sorted(proposition)}.")
         etapes = proposition["etapes"]
     else:
         etapes = traduire(monde, proposition)
     if (not isinstance(etapes, list) or not 1 <= len(etapes) <= 6
             or not isinstance(proposition.get("justification"), str) or len(proposition["justification"]) > 1000):
-        raise ErreurMonde("Une manœuvre contient une à six opérations et une justification courte.")
+        raise ErreurMonde("Une manœuvre contient une à six opérations et une justification courte.",
+                          f"etapes : une liste de 1 à 6 étapes (reçu {len(etapes) if isinstance(etapes, list) else type(etapes).__name__}) ; "
+                          "justification : texte de 1000 caractères au plus.")
     simulation, plans, precedent = monde.copier(), [], None
     etapes = copy.deepcopy(etapes)
     for numero, brut in enumerate(etapes):
-        e = canoniser_appui(simulation, brut)
-        etapes[numero] = e
-        p = compiler(simulation, e, precedent, proposition["justification"], origine)
+        try:
+            e = canoniser_appui(simulation, brut)
+            etapes[numero] = e
+            p = compiler(simulation, e, precedent, proposition["justification"], origine)
+        except ErreurMonde as exc:
+            if len(etapes) > 1:
+                # Dans une manœuvre, le MJ doit savoir quelle étape corriger.
+                nom = brut.get("operation", "?") if isinstance(brut, dict) else "?"
+                exc.attendu = f"étape {numero + 1} ({nom}) : " + (exc.attendu or str(exc))
+            raise
         plans.append(p)
         for effet in p.effets:
             Moteur._appliquer(simulation, effet, [])
