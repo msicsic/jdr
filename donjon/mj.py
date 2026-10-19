@@ -399,6 +399,9 @@ class MJOpenAI:
         self.observateur = None
         self._audit_courant = None
         self._monde_controle = None
+        self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
+        self.reflexion = "imposee"     # Claude : outil imposé sans réflexion, ou « libre » avec réflexion
+        self.sans_strict = set()       # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
         import uuid
@@ -989,6 +992,34 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 
     def _appeler_brut(self, instructions, entree, intention, fonction, schema):
+        """Un appel au fournisseur. Avec ``journal_complet`` et un observateur, chaque appel laisse
+        une trace entière : instructions, entrée, schéma, réponse brute, usage et durée."""
+        if self.erreur_auth:
+            raise ErreurMonde(self.erreur_auth)
+        debut, brut, erreur = time.monotonic(), None, None
+        self.dernier_brut = None
+        try:
+            if self.connexion == "anthropic":
+                from .claude import appeler
+                p, brut = appeler(self, instructions, entree, fonction, schema)
+            else:
+                p, brut = self._appeler_openai(instructions, entree, intention, fonction, schema)
+            return p
+        except ErreurMonde as exc:
+            erreur = str(exc)
+            raise
+        finally:
+            if self.observateur and self.journal_complet:
+                self.observateur({"etape": "appel", "fonction": fonction, "modele": self.modele,
+                                  "connexion": self.connexion, "effort": self.effort,
+                                  "intention": intention, "revision": (entree.get("faits") or {}).get("revision", 0),
+                                  "instructions": instructions, "entree": copy.deepcopy(entree),
+                                  "schema": schema, "brut": brut if brut is not None else self.dernier_brut,
+                                  "erreur": erreur,
+                                  "usage": copy.deepcopy(self.derniere_utilisation),
+                                  "secondes": round(time.monotonic() - debut, 3)})
+
+    def _appeler_openai(self, instructions, entree, intention, fonction, schema):
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
         if self.connexion == "chatgpt" and not self.catalogue_verifie:
@@ -1071,6 +1102,6 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             p = json.loads(appels[0]["arguments"])
             if not isinstance(p, dict):
                 raise ValueError("La proposition doit être un objet")
-            return p
+            return p, resultat["output"]
         except (ValueError, KeyError, TypeError):
             raise ErreurMonde("Proposition du MJ illisible. Aucune action appliquée.") from None
