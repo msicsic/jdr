@@ -145,8 +145,10 @@ def main(argv=None):
     for v in args.variante:
         nom, _, ref = v.partition("=")
         variantes[nom] = ref or nom
-    racine = Path(tempfile.gettempdir()) / "seuil-bancs"
-    sortie = BASE / "artifacts" / "bancs-multi" / datetime.now().strftime("%Y%m%d-%H%M%S")
+    horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
+    # Un dossier de worktrees par lancement : deux bancs simultanés ne se marchent pas dessus.
+    racine = Path(tempfile.gettempdir()) / "seuil-bancs" / f"{horodatage}-{os.getpid()}"
+    sortie = BASE / "artifacts" / "bancs-multi" / f"{horodatage}-{os.getpid()}"
     depots = {nom: preparer_variante(nom, ref, racine) for nom, ref in variantes.items()}
     # Les passes s'entrelacent : la première de chaque variante part d'abord.
     travaux = [(nom, i) for i in range(1, args.repetitions + 1) for nom in variantes]
