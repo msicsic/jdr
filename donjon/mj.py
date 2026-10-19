@@ -31,7 +31,8 @@ from .narration import (schema_audit, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION,
                         REGLE_MATERIALISATION, ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
                         attestations as attestations_narratives,
-                        fondement as fondement_narratif, mentions as mentions_narratives,
+                        fondement as fondement_narratif, fondement_paroles,
+                        mentions as mentions_narratives,
                         mentions_proposees)
 from .portee_narrative import (SCHEMA as SCHEMA_PORTEE, INSTRUCTIONS as INSTRUCTIONS_PORTEE,
                                descriptions as descriptions_proposees,
@@ -861,11 +862,11 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 passages = [("justification", reponse["proposition"]["justification"], None)]
             obstacles = []
             audits = {}
-            base = fondement_narratif(entree)
+            base, paroles = fondement_narratif(entree), fondement_paroles(entree)
             monde = self._monde_controle
             for nom, texte, effets in passages:
                 if monde is not None:
-                    obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base))
+                    obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
                 faits = dict(entree.get("faits", {}))
                 if effets is not None:
                     faits["effets_prevus"] = {"branche": nom, "effets": effets,
@@ -885,7 +886,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base}
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
             if monde is not None:
-                obstacles.extend(mentions_proposees(monde, reponse, base))
+                obstacles.extend(mentions_proposees(monde, reponse, base, paroles))
             try:
                 ajouts = descriptions_proposees(reponse)
                 if ajouts:

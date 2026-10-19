@@ -35,7 +35,10 @@ cachées, et les noms des salles forment un lexique dérivé de l'état
 absent de tout ce que Luna a reçu (faits, conversation récente, message du joueur) entraîne
 une révision, quel que soit le verdict de l'auditeur. Le même contrôle s'applique aux
 textes des ajouts persistants (détail, objet, inscription, parole, portrait, savoir), le
-nom de l'élément créé faisant partie de l'ajout. Il est refait au moment de l'enregistrement.
+nom de l'élément créé faisant partie de l'ajout. Il est refait au moment de l'enregistrement. Ce que croient les
+personnages présents (`esprits_interlocuteurs`) n'est pas un fondement pour la narration : un
+nom connu seulement par leurs croyances n'est admis que dans une réplique, entre guillemets.
+Ce qu'un personnage croit ne se dit que par sa bouche.
 
 Une réponse refusée est révisée au plus deux fois ; aucun texte refusé n'est affiché. Après
 trois échecs, le jeu affiche une phrase sûre du moteur. La réponse acceptée, ses paroles et
