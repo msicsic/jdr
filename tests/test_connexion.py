@@ -39,7 +39,8 @@ class SessionTests(unittest.TestCase):
             data = {"host": "urn:uuid:test", "actif": "a", "comptes": {"a": {"access_token": "secret-test-unique"}}}
             with coffre.verrou():
                 coffre.ecrire(data)
-                with self.assertRaises(ErreurMonde):
+                # Tenu par ailleurs, le verrou finit par refuser (attente raccourcie ici).
+                with patch("donjon.connexion.ATTENTE_VERROU", 0.2), self.assertRaises(ErreurMonde):
                     with coffre.verrou():
                         pass
             self.assertEqual(coffre.lire(), data)
@@ -212,3 +213,48 @@ class ConnexionConsoleTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class VerrouTests(unittest.TestCase):
+    """Le coffre se partage entre processus : on attend son tour, un verrou orphelin est repris."""
+
+    def test_un_verrou_libere_pendant_l_attente_laisse_passer(self):
+        import threading
+        from donjon.connexion import Coffre
+        with tempfile.TemporaryDirectory() as dossier:
+            coffre = Coffre(dossier)
+            pris, relache = threading.Event(), threading.Event()
+
+            def tenir():
+                with coffre.verrou():
+                    pris.set()
+                    relache.wait(2)
+            fil = threading.Thread(target=tenir)
+            fil.start()
+            pris.wait(2)
+            threading.Timer(0.2, relache.set).start()
+            with coffre.verrou():
+                pass
+            fil.join()
+
+    def test_un_verrou_tenu_trop_longtemps_echoue_clairement(self):
+        from donjon import connexion
+        with tempfile.TemporaryDirectory() as dossier, patch.object(connexion, "ATTENTE_VERROU", 0.2):
+            coffre = connexion.Coffre(dossier)
+            with coffre.verrou():
+                with self.assertRaisesRegex(ErreurMonde, "déjà en cours"):
+                    with coffre.verrou():
+                        pass
+
+    def test_un_verrou_orphelin_est_repris(self):
+        import os
+        import time
+        from donjon.connexion import Coffre, VERROU_ORPHELIN
+        with tempfile.TemporaryDirectory() as dossier:
+            verrou = Path(dossier) / "connexion.lock"
+            verrou.write_text("99999")
+            ancien = time.time() - VERROU_ORPHELIN - 10
+            os.utime(verrou, (ancien, ancien))
+            with Coffre(dossier).verrou():
+                pass
+            self.assertFalse(verrou.exists())
