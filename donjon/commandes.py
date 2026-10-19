@@ -11,6 +11,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   allumer <source> | éteindre <source>  utiliser un outil d'allumage porté
   alimenter <foyer> avec <combustible>  recharger un feu avec un combustible porté ou à portée
   manger <nourriture>                   une part de ce qui est à toi ou à personne (5 min)
+  écouter                               tendre l'oreille (3 min), mieux collé à une porte
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
   pas nord / pas sud / pas est / pas ouest  déplacer d'une case (sans IA)
   examiner <objet>                     voir les composants accessibles
@@ -154,6 +155,9 @@ def analyser(monde, texte):
             return proposition("remettre", monde.trouver(objet), monde.trouver(destinataire) if sep else "")
     if texte in ("contexte", "histoire", "objectif"):
         return proposition("observer", "contexte")
+    if texte in ("ecouter", "j'ecoute", "tendre l'oreille", "je tends l'oreille", "ecouter a la porte",
+                 "j'ecoute a la porte", "ecouter derriere la porte"):
+        return proposition("ecouter")
     if texte in ("lumiere", "eclairage", "observer", "observer scene", "observer la scene"):
         return proposition("observer", "lumiere")
     directions = {"n": "nord", "s": "sud", "e": "est", "o": "ouest"}

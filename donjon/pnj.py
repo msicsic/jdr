@@ -118,6 +118,10 @@ def _chroniquer(monde, id, texte, nature="geste"):
     chronique = monde.data.setdefault("chronique", [])
     chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte, "nature": nature})
     del chronique[:-CHRONIQUE_MAX]
+    # Un pas, un geste font du bruit ; les paroles le font par ``social.faire_entendre``.
+    from .ecoute import NATURES, bruit
+    if nature in NATURES:
+        bruit(monde, id, NATURES[nature])
 
 
 def _raconter(monde, id, verbe, objet, lignes):

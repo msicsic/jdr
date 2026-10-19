@@ -373,6 +373,8 @@ class Monde:
             verifier_esprits(self)
             from .corps import verifier as verifier_corps
             verifier_corps(self)
+            from .ecoute import verifier as verifier_ecoute
+            verifier_ecoute(self)
             from .horloges import verifier as verifier_horloges
             verifier_horloges(self)
             from .narration import verifier as verifier_narration

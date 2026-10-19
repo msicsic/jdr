@@ -224,7 +224,8 @@ def preparer(m, p, origine):
     if any(e[0] == "endommager" for e in effets+echec) and not p["stat"]:
         raise ErreurMonde("Un risque pour l'outil doit être annoncé avant confirmation.")
     if p["approche"] == "observation" and p["cibles"] and not effets and not echec:
-        raise ErreurMonde("L'observation d'une cible existante doit passer par une action de perception du moteur.")
+        raise ErreurMonde("L'observation d'une cible existante doit passer par une action de perception du moteur "
+                          "(observer, examiner, toucher, lire ou ecouter).")
     # Le libellé vient uniquement des champs validés ; le brouillon du MJ ne décrit pas le monde.
     libelle = libelle_geste(m, p)
     plan = Plan(copy.deepcopy(p), m.data["revision"], libelle + ".", origine=origine)

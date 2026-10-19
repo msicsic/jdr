@@ -116,6 +116,9 @@ risque, demande laquelle le joueur vise.
 
 REGLES_ACTIONS = """Actions disponibles :
 observer : cible lumiere, contexte ou scene selon la question, sans outil ; rapport immédiat sans modification du monde.
+ecouter : action simple (pas une étape de composer), cible et outil vides ; Corvus tend
+  l'oreille trois minutes là où il se tient, mieux s'il est déjà contre une porte. Le moteur
+  rend ce qui parvient (pas, voix, paroles nettes) ; n'annonce aucun bruit toi-même.
 allumer/eteindre : cible luminaire accessible. Allumer demande du combustible et un outil
   d'allumage possédé (facultatif ; le moteur en sélectionne un si omis). N'allume pas n'importe quel objet.
 examiner/toucher/lire : cible objet, sans outil. Examiner n'exige pas de jet.

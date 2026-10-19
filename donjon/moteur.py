@@ -18,7 +18,7 @@ from .capacites_objet import statut as statut_capacite, absence as absence_capac
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
-           "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "clarifier", "impossible"]
+           "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "ecouter", "clarifier", "impossible"]
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
 
 
@@ -145,6 +145,11 @@ class Moteur:
             plan.titre, plan.minutes = "Observer la scène.", 0
             plan.information = (decrire_contexte(m) if cible == "contexte" else
                                 regarder(m) if cible == "scene" else decrire_perception(m))
+            return plan
+        if action == "ecouter":
+            if cible or outil:
+                raise ErreurMonde("Écouter se fait sur place, sans cible ni outil : on tend l'oreille.")
+            plan.titre, plan.minutes, plan.effort = "Tendre l'oreille quelques minutes.", 3, False
             return plan
         if action == "attendre":
             plan.titre, plan.minutes, plan.effort = "Attendre cinq minutes.", 5, False
@@ -392,6 +397,14 @@ class Moteur:
         percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, plan.minutes, lignes)
+        # Ce qui parvient à ses oreilles : le fort de lui-même, le bas en écoutant.
+        from .ecoute import ECOUTE, ENTENDU, entendus, rendre
+        ecoute = plan.proposition.get("action") == "ecouter"
+        entendu = rendre(travail, entendus(travail, travail.data["minutes"] - plan.minutes,
+                                           ECOUTE if ecoute else ENTENDU))
+        lignes.extend(entendu)
+        if ecoute and not entendu:
+            lignes.append("Tu tends l'oreille : rien de particulier ne te parvient.")
         if any(e[0] == "emettre_son" for e in plan.effets) and not apparus:
             lignes.append("Pour l'instant, aucune réponse ne te parvient.")
         from .horloges import declencher as declencher_horloges

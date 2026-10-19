@@ -129,7 +129,9 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
 
 def faire_entendre(monde, id, auditeur, texte, cites, lignes):
     """Ce que le joueur perçoit d'un échange : en clair s'il connaît chacun de ceux dont on parle."""
+    from .ecoute import bruit
     from .paroles import _connu_du_joueur
+    bruit(monde, id, "voix", texte, [auditeur, *cites])
     a, b = monde.objets[id], monde.objets[auditeur]
     if a["lieu"] == monde.joueur["salle"]:
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):

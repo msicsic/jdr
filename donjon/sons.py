@@ -27,29 +27,35 @@ ce qui se passerait reste un dialogue. Ces opérations se combinent aux autres g
 """
 
 
-def portee(m, source, intensite):
-    """Une ouverture coûte 1, une porte fermée 2 ; pas de son entre lieux non reliés."""
-    liens = {id: [] for id in m.data["salles"]}
+def liens(m):
+    """Passages du son entre salles : une ouverture coûte 1, une porte fermée 2."""
+    resultat = {id: [] for id in m.data["salles"]}
     for id, salle in m.data["salles"].items():
         for sortie in salle["sorties"].values():
             porte = m.objets.get(sortie.get("porte"), {})
             cout = 2 if porte and not porte.get("ouverte") else 1
             destination = sortie["vers"]
-            liens[id].append((destination, cout))
-            liens[destination].append((id, cout))
+            resultat[id].append((destination, cout))
+            resultat[destination].append((id, cout))
     # Un appui vertical donne aussi sur son palier, même sans échelle installée.
     for o in m.objets.values():
         a = o.get("appui_vertical", {})
         bas, haut = a.get("bas"), a.get("haut")
-        if bas in liens and haut in liens:
-            liens[bas].append((haut, 1))
-            liens[haut].append((bas, 1))
+        if bas in resultat and haut in resultat:
+            resultat[bas].append((haut, 1))
+            resultat[haut].append((bas, 1))
+    return resultat
+
+
+def portee(m, source, intensite):
+    """Une ouverture coûte 1, une porte fermée 2 ; pas de son entre lieux non reliés."""
+    liens_salles = liens(m)
     distances, file = {source: 0}, [(0, source)]
     while file:
         cout, lieu = heapq.heappop(file)
         if cout != distances[lieu]:
             continue
-        for destination, perte in liens[lieu]:
+        for destination, perte in liens_salles[lieu]:
             suivant = cout + perte
             if suivant < intensite and suivant < distances.get(destination, intensite):
                 distances[destination] = suivant
