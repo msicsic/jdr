@@ -895,6 +895,11 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             base, paroles = fondement_narratif(entree), fondement_paroles(entree)
             monde = self._monde_controle
             for nom, texte, effets in passages:
+                if not texte.strip():
+                    # Rien à contrôler : l'audit d'un texte vide ne peut qu'échouer.
+                    obstacles.append({"partie": nom, "segment": None, "texte": "",
+                                      "motif": "Le texte est vide : écris dans texte la réponse destinée au joueur."})
+                    continue
                 if monde is not None:
                     obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
                 faits = dict(entree.get("faits", {}))

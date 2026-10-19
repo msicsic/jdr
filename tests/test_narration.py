@@ -1,3 +1,4 @@
+import json
 import io
 from pathlib import Path
 import tempfile
@@ -63,6 +64,20 @@ class NarrationTests(unittest.TestCase):
             reponse = mj._appeler("instr", {"faits": {}, "conversation": [], "message": "je sens ?"},
                                   "je sens ?", "repondre_au_joueur", {})
         self.assertEqual(appel.call_count, 3)
+        self.assertEqual(reponse["texte"], texte)
+
+    def test_dialogue_vide_corrige_sans_audit(self):
+        texte = "Une odeur de cire flotte."
+        lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+                                      "entites": [], "motif": ""}}}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler_brut", side_effect=[dialogue(""), dialogue(texte), lisible]) as appel:
+            reponse = mj._appeler("instr", {"faits": {}, "conversation": [], "message": "je sens ?"},
+                                  "je sens ?", "repondre_au_joueur", {})
+        # Aucun audit du texte vide : la révision reçoit un motif qui dit quoi corriger.
+        fonctions = [c.args[3] for c in appel.call_args_list]
+        self.assertEqual(fonctions, ["repondre_au_joueur", "repondre_au_joueur", "auditer_narration"])
+        self.assertIn("Le texte est vide", json.dumps(appel.call_args_list[1].args[1], ensure_ascii=False))
         self.assertEqual(reponse["texte"], texte)
 
     def test_mecanique_exige_une_source_et_invention_refusee(self):
