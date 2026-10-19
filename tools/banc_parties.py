@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -18,7 +19,8 @@ import tempfile
 import time
 
 BASE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(BASE))
+# SEUIL_CODE : le code du jeu à mesurer (un worktree), joué par l'outil de banc de ce dépôt.
+sys.path.insert(0, os.environ.get("SEUIL_CODE") or str(BASE))
 
 import jeu  # noqa: E402
 from donjon import lexique  # noqa: E402
@@ -215,15 +217,18 @@ def main(argv=None):
     p.add_argument("--effort", choices=("low", "medium", "high"), default="medium")
     p.add_argument("--reflexion", choices=("libre", "imposee"), default="libre",
                    help="Claude : réflexion adaptative et outil libre (défaut), ou outil imposé sans réflexion")
+    p.add_argument("--sortie", type=Path, default=BASE / "artifacts" / "bancs",
+                   help="dossier des résultats (par défaut artifacts/bancs du dépôt)")
     p.add_argument("--fil", action="store_true",
                    help="garde le prompt et la réponse de chaque appel, et écrit un rapport HTML du fil")
     args = p.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8")
     compteur = Compteur(args.max_appels, args.fil, args.reflexion, args.effort)
     compteur.installer()
-    sortie = BASE / "artifacts" / "bancs"
+    sortie = args.sortie
     sortie.mkdir(parents=True, exist_ok=True)
-    horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
+    # Le numéro de processus distingue des bancs lancés à la même seconde.
+    horodatage = datetime.now().strftime("%Y%m%d-%H%M%S") + f"-{os.getpid()}"
     resumes = []
     for script in args.scripts:
         partie = jouer(script, compteur, args.offline, args.connexion)

@@ -29,7 +29,11 @@ AUTHORIZE = ISSUER + "/api/accounts/authorize"
 TOKEN = ISSUER + "/api/accounts/oauth/token"
 RESOURCE = "https://api.openai.com/v1"
 SCOPES = "openid profile email offline_access resource.invoke chatgpt.tokens.use.direct"
-DOSSIER = Path(__file__).resolve().parents[1] / ".seuil-auth"
+# SEUIL_AUTH désigne le coffre d'un autre dépôt : des bancs lancés depuis des worktrees partagent
+# ainsi la connexion du dépôt principal.
+DOSSIER = Path(os.environ.get("SEUIL_AUTH") or Path(__file__).resolve().parents[1] / ".seuil-auth")
+ATTENTE_VERROU = 30      # secondes à attendre qu'un autre processus libère le coffre
+VERROU_ORPHELIN = 120    # un verrou plus ancien vient d'un processus interrompu
 _ACCES_JETON = Lock()
 
 
@@ -85,10 +89,23 @@ class Coffre:
     def verrou(self):
         self.dossier.mkdir(mode=0o700, parents=True, exist_ok=True)
         verrou = self.dossier / "connexion.lock"
-        try:
-            fd = os.open(verrou, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-        except FileExistsError:
-            raise ErreurMonde("Une connexion ChatGPT est déjà en cours. Fermez-la avant de réessayer.") from None
+        # Le verrou ne couvre que la lecture et le rafraîchissement du jeton : plusieurs parties
+        # ou bancs simultanés attendent leur tour au lieu d'échouer.
+        limite = time.monotonic() + ATTENTE_VERROU
+        while True:
+            try:
+                fd = os.open(verrou, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+                break
+            except FileExistsError:
+                try:
+                    if time.time() - verrou.stat().st_mtime > VERROU_ORPHELIN:
+                        verrou.unlink(missing_ok=True)
+                        continue
+                except FileNotFoundError:
+                    continue
+                if time.monotonic() > limite:
+                    raise ErreurMonde("Une connexion ChatGPT est déjà en cours. Fermez-la avant de réessayer.") from None
+                time.sleep(0.05)
         try:
             os.write(fd, str(os.getpid()).encode())
             os.close(fd)
