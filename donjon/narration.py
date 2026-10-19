@@ -186,7 +186,8 @@ def mentions(monde, texte, base, paroles=""):
             for m in trouves]
 
 
-AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b", re.IGNORECASE)
+AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
+                    r"|\bscénario\b", re.IGNORECASE)
 
 
 def voix_auteur(texte):

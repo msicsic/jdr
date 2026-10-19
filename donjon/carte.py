@@ -20,8 +20,28 @@ def symbole_porte_cases(porte):
         "/" if porte["ouverte"] else "X" if porte["verrouillee"] else "+")
 
 
-def symbole_objet_cases(objet, salle):
+RESERVES = set("OHX")  # obstacle, échelle, porte verrouillée
+
+
+def symbole_personnage(monde, objet):
+    """Initiale du personnage, distincte des repères de salles et des autres personnages.
+
+    L'attribution parcourt les personnages dans un ordre fixe : un même personnage garde la
+    même lettre d'un affichage à l'autre, souvenirs compris."""
+    import unicodedata
+    pris = RESERVES | {s.get("plan", {}).get("repere", id[:1].upper()) for id, s in monde.data["salles"].items()}
+    attribues = {}
+    for id in sorted(i for i, o in monde.objets.items() if o["type"] == "personnage"):
+        nom = unicodedata.normalize("NFD", monde.objets[id]["nom"])
+        lettres = [c.upper() for c in nom if c.isascii() and c.isalpha()]
+        attribues[id] = next((c for c in lettres if c not in pris and c not in attribues.values()), "G")
+    return attribues.get(objet["id"], "G")
+
+
+def symbole_objet_cases(objet, salle, monde=None):
     """Symbole d'un objet tel qu'il était au moment où il a été vu."""
+    if objet["type"] == "personnage" and monde is not None:
+        return symbole_personnage(monde, objet)
     if objet.get("bloque_vue") or objet.get("bloque_passage"):
         return "O"
     if objet["type"] == "surface" and objet.get("appui_vertical"):
@@ -235,6 +255,11 @@ def _carte_cases(monde):
     objets_aux_pieds = []
     souvenirs_dessines = []
 
+    # Une case vue montre sa lumière : la vue porte à 8 cases sur une case éclairée, 3 dans la pénombre.
+    from .perception import CarteLumiere
+    lumiere = CarteLumiere(monde, joueur_salle)
+    penombre_vue = False
+
     for niveau in sorted(etages):
         dessin = {}
         coords_absolues = set()
@@ -248,7 +273,12 @@ def _carte_cases(monde):
             for x, y in connu:
                 p = (ox + x, oy + y)
                 coords_absolues.add(p)
-                dessin[p] = (". " if (x, y) in vu else ": ")
+                if (x, y) in vu:
+                    eclaire = lumiere.niveau(p) == 2 or lumiere.directe(p)
+                    penombre_vue = penombre_vue or not eclaire
+                    dessin[p] = ". " if eclaire else ", "
+                else:
+                    dessin[p] = ": "
 
             # A threshold is remembered after its inner floor is explored,
             # while its current state is shown only when the threshold is seen.
@@ -267,7 +297,7 @@ def _carte_cases(monde):
             repere = piece.get("plan", {}).get("repere", salle[:1].upper())
             # A room tag marks only a cell already known to the player.
             libre = next((p for p in sorted(coords_absolues, key=lambda p: (p[1], p[0]))
-                          if dessin.get(p) == ". " and (p[0] - ox, p[1] - oy) in connu), None)
+                          if dessin.get(p) in (". ", ", ") and (p[0] - ox, p[1] - oy) in connu), None)
             if libre:
                 dessin[libre] = repere + " "
             largeur = max((len(row) for row in piece.get("plan", {}).get("sol", [])), default=0)
@@ -331,6 +361,9 @@ def _carte_cases(monde):
                     or contact in visible.get(salle, set()) or monde.est_porte(id)):
                 continue
             ox, oy = salles[salle]["plan"]["origine"]
+            if monde.objets.get(id, {}).get("type") == "personnage":
+                # La lettre d'un personnage se recalcule : un ancien aperçu garde la même que sa présence.
+                souvenir = {**souvenir, "symbole": symbole_personnage(monde, monde.objets[id])}
             souvenirs_positions[(ox + pos[0], oy + pos[1])].append(souvenir)
         for p, groupe in souvenirs_positions.items():
             symbole = "&" if len(groupe) > 1 else groupe[0]["symbole"]
@@ -352,7 +385,7 @@ def _carte_cases(monde):
             p = ox + pos[0], oy + pos[1]
             objets_positions[(p, salle)].append(objet)
         for (p, salle_groupe), groupe in objets_positions.items():
-            symbole = "&" if len(groupe) > 1 else symbole_objet_cases(groupe[0], salle_groupe)
+            symbole = "&" if len(groupe) > 1 else symbole_objet_cases(groupe[0], salle_groupe, monde)
             dessin[p] = symbole + ("#" if any(o.get("ancrage_carte") for o in groupe) else " ")
             legendes[symbole].extend(designer(objet) for objet in groupe)
 
@@ -398,7 +431,9 @@ def _carte_cases(monde):
 
     lignes = ["PLAN — 1 case = 1 m", *dessin_panneaux]
     legende = [" | ".join(dict.fromkeys(details_salles)),
-               "@ toi   ## mur   . terrain visible   : terrain mémorisé ou passage connu   cases vides : inconnues",
+               "@ toi   ## mur   . terrain visible et éclairé" + ("   , terrain visible dans la pénombre (vue courte)"
+                                                                  if penombre_vue else "")
+               + "   : terrain mémorisé ou passage connu   cases vides : inconnues",
                "F6 puis flèches : marcher · Échap/Entrée : commande · Ctrl+flèches actifs",
                "O obstacle solide   ^/v appui vertical   H1 échelle · axes x,y ; une case par pas"]
     if passages:
