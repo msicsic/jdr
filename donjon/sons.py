@@ -12,19 +12,6 @@ VOIX = {
     "sifflement": ("Siffler.", "Tu émets un sifflement.", 2),
 }
 
-REGLES = """
-SONS : crier, appeler à l'aide, siffler et faire sonner un objet sonore sont possibles, sans jet.
-Compose emettre_son avec cible joueur, destination et outil vides, difficulte 0 ;
-methode appel pour appeler à l'aide/au secours, cri pour un cri, sifflement pour siffler.
-Pour un objet ayant une sonorite dans les faits, cible = son identifiant, methode simple,
-destination et outil vides. Le moteur vérifie la proximité, l'intégrité et l'audition.
-« Je crie à l'aide » = une étape emettre_son(joueur,appel). Ce n'est pas une conversation
-avec un PNJ absent ni une impossibilité. Le moteur produit le son, détermine qui peut
-l'entendre et conserve ce souvenir. Une réponse, une arrivée ou un déplacement de PNJ n'est
-affirmé que si les faits l'établissent. L'absence de PNJ visible n'empêche pas
-d'appeler ; n'affirme pas non plus que personne n'existe aux alentours. Une question sur
-ce qui se passerait reste un dialogue. Ces opérations se combinent aux autres gestes.
-"""
 
 
 def liens(m):

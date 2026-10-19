@@ -25,16 +25,6 @@ faits contient uniquement les clés publiques utilisées. Appelle repondre_au_jo
 """
 
 
-REGLES_REPRISE = """
-La derniere_tentative est le dernier essai réellement résolu, pas une proposition.
-« Je retente », « je réessaie » reprend cette tentative lorsqu'elle vient d'échouer :
-ne demande pas de la nommer à nouveau. Conserve sa méthode et son rythme, sauf demande
-explicite de changement (par exemple prendre son temps). Pour une séquence, les étapes
-déjà réussies ne doivent pas être rejouées ; la reprise proposée part de l'étape échouée.
-Si aucune tentative n'est identifiable, pose une question. Vérifie les ressources actuelles.
-Un échec n'implique pas une pénurie : compare les quantités restantes aux besoins calculés.
-Ne dis pas que la ficelle manque quand le dossier montre qu'il en reste suffisamment.
-"""
 
 
 def derniere_tentative(monde):

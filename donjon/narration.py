@@ -133,13 +133,6 @@ de faits, de données ou de ce qui est « établi ».
 """
 
 
-REGLE_MATERIALISATION = """
-Un élément de ambiance_etablie a été décrit mais n'existe pas comme objet. Si le joueur veut
-le manipuler, le prendre ou l'utiliser (ambiance_ciblee le signale), établis-le d'abord par
-etablir_faits comme objet ou détail ancré sur un support réel, si sa nature le permet ;
-l'intention sera réexaminée ensuite sans que le joueur la répète. S'il ne se manipule pas
-(une odeur, une lueur, un son), dis-le simplement.
-"""
 
 
 def segments(texte):

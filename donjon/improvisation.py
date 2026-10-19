@@ -56,44 +56,6 @@ SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
     "reussite": SCHEMA_ISSUE, "echec": SCHEMA_ISSUE},
     "required": list(proposition("", issue("")))}
 
-REGLES = """
-ARBITRAGE SOMMAIRE : l'absence de règle spécialisée n'est pas une impossibilité physique.
-Pour une initiative plausible hors du catalogue, utilise action improviser, sans annoncer
-une limite du logiciel. Privilégie les actions spécialisées quand elles résolvent l'intention.
-improviser : intention courte, cibles = identifiants existants impliqués (hors joueur), outil
-possédé ou vide, approche expression/manipulation/effort/adresse/observation, minutes 0..15,
-bruit 0..3. stat vide et difficulte 0 pour les gestes simples ; sinon FOR/DEX/INT/PER/CHA,
-difficulte 10..18, proportionnée. Aucun jet pour chanter, s'étirer, frapper un rythme ou
-graver un repère grossier dans du bois avec un couteau disponible.
-reussite et echec contiennent recit (brouillon non affiché) et effets (liste, éventuellement vide).
-Le moteur raconte le geste et les effets validés après l'action ; recit n'établit aucun fait.
-Sans jet, echec={recit:"",effets:[]}. L'intention peut décrire un geste volontaire sans changement
-durable. Les conséquences perceptibles que le monde doit retenir exigent néanmoins un effet
-typé ; un récit ou un bruit chiffré ne remplace pas cet effet. Ne remplace pas tout geste nouveau
-par un échec ou « rien ne se passe ». Ne rends pas le joueur muet, ne crée pas de vide mortel.
-Les faits établis restent prioritaires. Ne crée dans le brouillon ni objet, trésor, PNJ, lieu,
-accès, savoir secret, réponse de PNJ, guérison, bonus ou état physique non représenté.
-Tout changement durable exige un effet typé. Chaque effet a operation,cible,destination,texte,valeur.
-- marquer : support existant dans cible, texte = contenu littéral d'une marque/inscription
-  courte (par exemple « flèche vers le nord »), valeur 0, destination vide. Exige l'outil
-  renseigné capable de graver/marquer. Le moteur crée un détail examinable et persistant.
-- deplacer : objet libre et accessible dans cible, destination joueur/sol actuel/contenant
-  ouvert. texte vide, valeur 0. Réutilise les contrôles de poids, attaches et propriété.
-  N'utilise pas cet effet pour le vol ni pour voyager ; utilise leurs règles.
-- son : cible joueur, valeur intensité 1..3, destination vide. texte indique une forme
-  acoustique observable parmi indetermine, voix_melodique, voix_breve, souffle,
-  corps_rythmique, corps_bref. Le moteur garde cette forme dans le souvenir des PNJ ;
-  elle ne porte ni paroles ni fait sur l'origine d'un bruit. Aucune réponse garantie.
-- user : cible outil possédé, valeur 1, texte/destination vides ; seulement risque justifié.
-- blesser : cible joueur, valeur 1..3, texte/destination vides ; seulement risque physique
-  explicite, jamais punition pour une donnée absente. Impossible de tuer via cet arbitrage.
-Avec un jet, une branche d'échec doit décrire un résultat plausible, sans ajouter des dangers
-gratuits. Les mouvements d'objets doivent y avoir des effets si tu les racontes réellement.
-Une question reste un dialogue sans effets. Les inconnues spatiales passent par espace ;
-l'improvisation ne permet pas de téléporter le joueur ni de déclarer une construction réussie.
-Une incapacité technique initiale doit être réexaminée avec ce schéma. Un refus final doit
-expliquer un obstacle concret de la fiction ; aucune liste fermée de verbes n'est une raison.
-"""
 
 
 def texte_valide(s, maxi, vide=False):
