@@ -39,8 +39,9 @@ class BudgetEpuise(RuntimeError):
 
 
 class Compteur:
-    def __init__(self, maximum):
+    def __init__(self, maximum, fil=False, reflexion="imposee", effort="medium"):
         self.maximum, self.total, self.appels, self.traces = maximum, 0, [], []
+        self.fil, self.reflexion, self.effort = fil, reflexion, effort
 
     def installer(self):
         compteur, origine_brut, origine_init = self, MJOpenAI._appeler_brut, MJOpenAI.__init__
@@ -61,6 +62,7 @@ class Compteur:
         def init(mj, *a, **k):
             origine_init(mj, *a, **k)
             mj.observateur = compteur.traces.append
+            mj.journal_complet, mj.reflexion = compteur.fil, compteur.reflexion
 
         MJOpenAI._appeler_brut, MJOpenAI.__init__ = appeler_brut, init
 
@@ -101,6 +103,10 @@ class Interface:
                     mentions_sans_fondement=mentions,
                     propositions=[t["reponse"]["proposition"] for t in traces
                                   if isinstance(t.get("reponse"), dict) and t["reponse"].get("proposition")])
+        if self.compteur.fil:
+            # Le fil entier du tour : chaque appel (prompt, réponse) et chaque verdict, dans l'ordre.
+            tour["fil"] = [t for t in traces if t.get("etape") in ("appel", "validation", "contrôle narratif",
+                                                                   "couverture de l'action") or t.get("erreur")]
         self.affiches.append(texte)
         self.tours.append(tour)
 
@@ -153,7 +159,7 @@ def preparer(donnees, sauvegarde):
     m.sauver(sauvegarde)
 
 
-def jouer(script, compteur, offline):
+def jouer(script, compteur, offline, connexion="chatgpt"):
     donnees = json.loads(Path(script).read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as dossier:
         sauvegarde = Path(dossier) / "banc.json"
@@ -166,7 +172,7 @@ def jouer(script, compteur, offline):
         if offline:
             argv.append("--offline")
         else:
-            argv += ["--connexion", "chatgpt"]
+            argv += ["--connexion", connexion, "--effort", compteur.effort]
         arret = None
         try:
             jeu.main(argv, interface=interface)
@@ -204,18 +210,28 @@ def main(argv=None):
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle")
     p.add_argument("--max-appels", type=int, default=150)
     p.add_argument("--etiquette", default="")
+    p.add_argument("--connexion", choices=("chatgpt", "anthropic"), default="chatgpt",
+                   help="anthropic : essai de Claude (ANTHROPIC_API_KEY), jamais choisi par défaut")
+    p.add_argument("--effort", choices=("low", "medium", "high"), default="medium")
+    p.add_argument("--reflexion", choices=("imposee", "libre"), default="imposee",
+                   help="Claude : outil imposé sans réflexion, ou réflexion adaptative et outil libre")
+    p.add_argument("--fil", action="store_true",
+                   help="garde le prompt et la réponse de chaque appel, et écrit un rapport HTML du fil")
     args = p.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8")
-    compteur = Compteur(args.max_appels)
+    compteur = Compteur(args.max_appels, args.fil, args.reflexion, args.effort)
     compteur.installer()
     sortie = BASE / "artifacts" / "bancs"
     sortie.mkdir(parents=True, exist_ok=True)
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
     resumes = []
     for script in args.scripts:
-        partie = jouer(script, compteur, args.offline)
+        partie = jouer(script, compteur, args.offline, args.connexion)
         nom = f"{horodatage}-{args.etiquette + '-' if args.etiquette else ''}{partie['script']}.json"
         (sortie / nom).write_text(json.dumps(partie, ensure_ascii=False, indent=1), encoding="utf-8")
+        if args.fil:
+            from rapport_fil import ecrire
+            ecrire(sortie / nom)
         resumes.append(resumer(partie))
         print(json.dumps(resumes[-1], ensure_ascii=False))
         if partie["arret"]:

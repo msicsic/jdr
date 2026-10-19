@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 from donjon.commandes import AIDE, analyser, est_question
-from donjon.config import charger_env, MODELE_PAR_DEFAUT
+from donjon.config import charger_env, MODELE_CLAUDE, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
@@ -49,7 +49,7 @@ def main(argv=None, interface=None):
     charger_env()
     parser = argparse.ArgumentParser(description="Le Seuil — donjon ASCII et maître du jeu IA")
     parser.add_argument("--offline", action="store_true", help="aucun appel au LLM")
-    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt"], default="auto",
+    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", "anthropic"], default="auto",
                         help="auto privilégie le compte ChatGPT enregistré, sinon la clé API")
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
@@ -132,7 +132,10 @@ def main(argv=None, interface=None):
         connexion = args.connexion
         if connexion == "auto" and not args.offline:
             connexion = "chatgpt" if Coffre().compte() else "api"
-        actif = not args.offline and (connexion == "chatgpt" or bool(os.environ.get("OPENAI_API_KEY")))
+        if connexion == "anthropic" and args.model == MODELE_PAR_DEFAUT:
+            args.model = MODELE_CLAUDE  # essai de Claude : jamais choisi par défaut
+        cle = "ANTHROPIC_API_KEY" if connexion == "anthropic" else "OPENAI_API_KEY"
+        actif = not args.offline and (connexion == "chatgpt" or bool(os.environ.get(cle)))
         mj = MJOpenAI(args.model, args.effort, connexion=connexion) if actif else None
         from donjon import stratege
         # Le stratège passe par la connexion du MJ principal, jamais par le modèle comparé.
@@ -148,7 +151,9 @@ def main(argv=None, interface=None):
             imprimer("\nLE SEUIL — prototype testvrac | " + str(BASE))
             imprimer("MJ : " + (f"{args.model} / {args.effort} / {connexion}" if actif else "hors ligne (commandes locales)"))
             if actif:
-                imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else "la clé API OpenAI, avec une facturation séparée."))
+                imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
+                                                      "la clé API Anthropic, à titre d'essai." if connexion == "anthropic" else
+                                                      "la clé API OpenAI, avec une facturation séparée."))
         imprimer(m.data["scenario"]["objectif"] + " « aide » : commandes disponibles.")
         if not m.data["journal"]:
             imprimer(m.data["scenario"]["debut"])
