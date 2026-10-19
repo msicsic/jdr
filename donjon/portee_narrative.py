@@ -151,6 +151,11 @@ def descriptions(reponse):
                             for phrase in segments(ajout["texte"]))
         elif mode == "enrichir":
             if not isinstance(ajout.get("description"), str):
+                if "type" in ajout:
+                    # La forme trahit le mode voulu : un ajout typé décrit un objet ou un lieu.
+                    raise ErreurMonde("Ajout typé sous le mode enrichir : mode = etablir_faits (enrichir ne décrit "
+                                      "que la facette d'un personnage : personnage, facette, description).",
+                                      "mode = etablir_faits pour des ajouts typés.")
                 raise ErreurMonde("Description proposée mal formée.", "enrichir : description est une chaîne.")
             sujet = {"nature": "facette d'un personnage",
                      "personnage": ajout.get("personnage"), "facette": ajout.get("facette"),

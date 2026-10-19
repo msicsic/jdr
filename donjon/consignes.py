@@ -49,8 +49,10 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
 - parole_joueur : le joueur fait parler Corvus à un personnage présent.
 - conversation_pnj : le joueur discute ou négocie la récompense d'une mission avec un
   personnage présent.
-- etablir_faits, enrichir, enrichir_savoirs, enrichir_joueur : la réponse a besoin d'un détail
-  persistant encore absent ; le moteur l'enregistre, puis tu le racontes.
+- un détail persistant encore absent, que le moteur enregistre avant que tu le racontes :
+  etablir_faits pour un objet, un support ou un lieu (détail, objet, description physique) ;
+  enrichir pour la facette d'un personnage ; enrichir_savoirs pour ce qu'il sait ;
+  enrichir_joueur pour le corps de Corvus.
 
 ## 4. Mode action
 Propose le geste que le joueur demande, pas un geste voisin plus facile à valider.
