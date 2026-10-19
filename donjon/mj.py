@@ -374,6 +374,14 @@ SCHEMA = {
 }
 
 
+def retour_refus(proposition, exc, consigne):
+    """Ce que la boucle de correction transmet au MJ : le refus, et ce que le moteur accepterait."""
+    retour = {"proposition_refusee": proposition, "obstacle": str(exc), "consigne": consigne}
+    if getattr(exc, "attendu", ""):
+        retour["attendu"] = exc.attendu
+    return retour
+
+
 def expliquer_refus(premier, dernier):
     """Une proposition rejetée ne prouve rien sur les capacités de Corvus."""
     return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
@@ -490,22 +498,21 @@ class MJOpenAI:
                 if p.get("action") in ("clarifier", "impossible"):
                     break
                 if est_question(intention) and p.get("action") not in ("observer", "examiner"):
-                    raise ErreurMonde("Le joueur pose une question de faisabilité. Réponds en dialogue sans exécuter d'action.")
+                    raise ErreurMonde("Le joueur pose une question de faisabilité. Réponds en dialogue sans exécuter d'action.",
+                                      "mode dialogue : réponds à la question, sans proposition d'action.")
                 plan = Moteur(monde).preparer(p, "MJ")
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
-                    raise ErreurMonde("La proposition corrigée ne réalise aucun effet de la manœuvre demandée.")
+                    raise ErreurMonde("La proposition corrigée ne réalise aucun effet de la manœuvre demandée.",
+                                      "garde les gestes de l'intention qui changent le monde ; si aucun n'est possible, "
+                                      "réponds en dialogue sur l'obstacle.")
                 self._auditer_action(intention, plan, revision)
                 break
             except ErreurMonde as exc:
                 dernier_refus = (p, str(exc))
                 if premier_refus is None:
                     premier_refus = dernier_refus
-                retour = {"proposition_refusee": p, "obstacle": str(exc),
-                          "consigne": "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue."}
-                if getattr(exc, "attendu", ""):
-                    # Ce que le moteur accepterait, en champs et identifiants : le guide de la correction.
-                    retour["attendu"] = exc.attendu
+                retour = retour_refus(p, exc, "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue.")
                 if isinstance(exc, QualificationRequise):
                     retour["qualification_requise"] = {"objet": exc.cible,
                                                        "capacite": exc.capacite,
@@ -548,8 +555,7 @@ class MJOpenAI:
             try:
                 travail, texte, _ = preparer_faits(monde, p, revision)
             except ErreurMonde as exc:
-                retour = {"proposition_refusee": p, "obstacle": str(exc),
-                          "consigne": "Revois les ancrages et les faits actuels. Ne raconte pas un fait refusé."}
+                retour = retour_refus(p, exc, "Revois les ancrages et les faits actuels. Ne raconte pas un fait refusé.")
                 reponse = self._echanger(monde, intention, proposition_en_attente,
                                          enrichir=True, retour_moteur=retour)
                 if reponse["mode"] != "etablir_faits":
@@ -601,9 +607,9 @@ class MJOpenAI:
                         return {"mode": "dialogue", "texte": "Corvus cherche ses mots sans parvenir à le dire "
                                 "ainsi. Reformule ta réplique avec ce qu'il connaît.", "faits": [],
                                 "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
-                    retour = {"proposition_refusee": reponse["proposition"], "obstacle": str(exc),
-                              "consigne": "Corrige la parole : la réplique ne nomme que ce que Corvus connaît "
-                                          "d'après les faits, le message et la conversation."}
+                    retour = retour_refus(reponse["proposition"], exc,
+                                          "Corrige la parole : la réplique ne nomme que ce que Corvus connaît "
+                                          "d'après les faits, le message et la conversation.")
                     if self.observateur:
                         self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                           "revision": revision, "tentative": 1, **retour})

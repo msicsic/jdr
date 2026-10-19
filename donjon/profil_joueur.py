@@ -60,25 +60,32 @@ def catalogue(m):
 
 def preparer(m, p, revision=None):
     if revision is not None and revision != m.data["revision"]:
-        raise ErreurMonde("Le personnage a changé avant l'enregistrement de ce détail.")
+        raise ErreurMonde("Le personnage a changé avant l'enregistrement de ce détail.", "re-propose à partir des faits actuels.")
     if not isinstance(p, dict) or set(p) != {"profil_joueur"}:
-        raise ErreurMonde("Complément de personnage mal formé.")
+        recus = sorted(p) if isinstance(p, dict) else type(p).__name__
+        raise ErreurMonde("Complément de personnage mal formé.", f"enrichir_joueur a exactement le champ profil_joueur ; reçu : {recus}.")
     ajouts = p["profil_joueur"]
     if not isinstance(ajouts, list) or not 1 <= len(ajouts) <= len(CHAMPS)+len(TRAITS):
-        raise ErreurMonde("Nombre de détails personnels invalide.")
+        raise ErreurMonde("Nombre de détails personnels invalide.",
+                          f"profil_joueur : une liste de 1 à {len(CHAMPS) + len(TRAITS)} éléments {{champ, valeur}}.")
     travail, libres, vus = m.copier(), catalogue(m), set()
     for a in ajouts:
         if (not isinstance(a, dict) or set(a) != {"champ", "valeur"}
                 or not isinstance(a["champ"], str) or a["champ"] not in libres
                 or a["champ"] in vus):
-            raise ErreurMonde("Ce détail personnel est déjà établi ou n'est pas disponible.")
+            recu = a.get("champ") if isinstance(a, dict) else type(a).__name__
+            raise ErreurMonde("Ce détail personnel est déjà établi ou n'est pas disponible.",
+                              f"chaque élément a exactement champ et valeur ; champ parmi "
+                              f"{', '.join(c for c in libres if c not in vus) or 'aucun'}, une seule fois (reçu « {recu} »).")
         champ, valeur = a["champ"], a["valeur"]
         if champ in CHAMPS:
             bas, haut = CHAMPS[champ]
             if type(valeur) is not int or not bas <= valeur <= haut:
-                raise ErreurMonde("Cette valeur ne correspond pas au cadre du personnage.")
+                raise ErreurMonde("Cette valeur ne correspond pas au cadre du personnage.",
+                                  f"{champ} : entier de {bas} à {haut} (reçu {valeur!r}).")
         elif not isinstance(valeur, str) or valeur not in TRAITS[champ]:
-            raise ErreurMonde("Ce trait ne correspond pas au cadre humain du personnage.")
+            raise ErreurMonde("Ce trait ne correspond pas au cadre humain du personnage.",
+                              f"{champ} parmi {', '.join(TRAITS[champ])} (reçu {valeur!r}).")
         vus.add(champ)
         travail.joueur[champ] = valeur
     travail.data["revision"] += 1

@@ -283,15 +283,20 @@ def _demander(travail, auditeur, objet, faits):
 def preparer_parole(monde, p, revision=None):
     from .dialogues import interlocuteurs
     if revision is not None and revision != monde.data["revision"]:
-        raise ErreurMonde("Le monde a changé avant la fin de la conversation.")
+        raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
     if (not isinstance(p, dict) or not set(SCHEMA_PAROLE["required"]) <= set(p)
             or not isinstance(p["replique"], str) or not 1 <= len(p["replique"].strip()) <= 400
             or not isinstance(p["contenu"], list) or len(p["contenu"]) > 3
             or set(p) - set(SCHEMA_PAROLE["required"]) - {"_intention"}):
-        raise ErreurMonde("Parole mal formée.")
+        recus = sorted(k for k in p if k != "_intention") if isinstance(p, dict) else type(p).__name__
+        raise ErreurMonde("Parole mal formée.",
+                          f"parole_joueur a exactement les champs {', '.join(SCHEMA_PAROLE['required'])} ; replique de "
+                          f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
     auditeur = p["personnage"]
-    if auditeur not in interlocuteurs(monde):
-        raise ErreurMonde("Ce personnage n'est pas ici pour t'entendre.")
+    presents = sorted(interlocuteurs(monde))
+    if auditeur not in presents:
+        raise ErreurMonde("Ce personnage n'est pas ici pour t'entendre.",
+                          f"personnage : un interlocuteur présent, parmi {', '.join(presents) or 'aucun'} (reçu « {auditeur} »).")
     from . import lexique
     replique = p["replique"].strip()
     # La réplique affichée obéit au contrôle des mentions : rien que Corvus ne connaisse.
@@ -306,8 +311,11 @@ def preparer_parole(monde, p, revision=None):
             if part:
                 o = monde.objets[part]
                 fondement += " " + " ".join([o["nom"], *o.get("aliases", [])])
-    if lexique.mentions_sans_fondement(monde, replique, fondement):
-        raise ErreurMonde("La réplique de Corvus nomme ce qu'il ne connaît pas.")
+    inconnus = lexique.mentions_sans_fondement(monde, replique, fondement)
+    if inconnus:
+        raise ErreurMonde("La réplique de Corvus nomme ce qu'il ne connaît pas.",
+                          "retire de replique : " + ", ".join(f"« {m['terme']} »" for m in inconnus)
+                          + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     travail = monde.copier()
     stats_auditeur = _stats_pnj(travail, auditeur)
     capacite = min(capacite_transmission(travail.joueur["stats"]["INT"]),

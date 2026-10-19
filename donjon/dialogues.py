@@ -61,28 +61,39 @@ def disponible(monde, donneur, sauf=None):
 
 def preparer_conversation(monde, p, revision=None):
     if revision is not None and revision != monde.data["revision"]:
-        raise ErreurMonde("Le monde a changé avant la fin de la conversation.")
-    if not isinstance(p, dict) or set(p) != set(SCHEMA_CONVERSATION["required"]):
-        raise ErreurMonde("Conversation mal formée.")
+        raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
+    champs = SCHEMA_CONVERSATION["required"]
+    if not isinstance(p, dict) or set(p) != set(champs):
+        recus = sorted(p) if isinstance(p, dict) else type(p).__name__
+        raise ErreurMonde("Conversation mal formée.", f"conversation_pnj a exactement les champs {', '.join(champs)} ; reçu : {recus}.")
     if (any(not isinstance(p[k], str) or len(p[k]) > 600 for k in ("personnage", "sujet", "operation", "mission"))
             or type(p["montant_demande"]) is not int or not 0 <= p["montant_demande"] <= 1_000_000):
-        raise ErreurMonde("Conversation mal formée.")
+        raise ErreurMonde("Conversation mal formée.",
+                          "personnage, sujet, operation, mission : textes de 600 caractères au plus ; montant_demande : "
+                          "entier de 0 à 1 000 000.")
     acteur, op, mission_id = p["personnage"], p["operation"], p["mission"]
-    if acteur not in interlocuteurs(monde):
-        raise ErreurMonde("Ce personnage n'est pas ici pour te répondre.")
+    presents = sorted(interlocuteurs(monde))
+    if acteur not in presents:
+        raise ErreurMonde("Ce personnage n'est pas ici pour te répondre.",
+                          f"personnage : un interlocuteur présent, parmi {', '.join(presents) or 'aucun'} (reçu « {acteur} »).")
     if op not in OPERATIONS:
-        raise ErreurMonde("Cet engagement n'est pas pris en charge.")
+        raise ErreurMonde("Cet engagement n'est pas pris en charge.", f"operation parmi {', '.join(OPERATIONS)} (reçu « {op} »).")
     travail = monde.copier()
     rapport = {"personnage": acteur, "sujet": p["sujet"], "operation": op, "faits": []}
     if op == "discuter":
         if mission_id or p["montant_demande"]:
-            raise ErreurMonde("Une discussion simple ne modifie pas un accord.")
+            raise ErreurMonde("Une discussion simple ne modifie pas un accord.",
+                              "discuter : mission vide et montant_demande 0 ; pour un accord : proposer, negocier, accepter ou refuser.")
     else:
         mission = travail.data["missions"].get(mission_id)
         if not mission or mission["donneur"] != acteur:
-            raise ErreurMonde("Ce personnage ne propose pas cette mission.")
+            siennes = sorted(id for id, x in travail.data["missions"].items() if x["donneur"] == acteur)
+            raise ErreurMonde("Ce personnage ne propose pas cette mission.",
+                              f"mission : une mission de {acteur}, parmi {', '.join(siennes) or 'aucune'} "
+                              f"(reçu « {mission_id} »)" + ("" if siennes else " ; sans mission : operation discuter") + ".")
         if op != "negocier" and p["montant_demande"]:
-            raise ErreurMonde("Un montant demandé appartient à une négociation.")
+            raise ErreurMonde("Un montant demandé appartient à une négociation.",
+                              f"{op} : montant_demande 0 ; pour demander un montant : negocier.")
         engagements = travail.data["engagements"]
         accord = engagements.get(mission_id)
         statut = accord["statut"] if accord else None
@@ -92,7 +103,8 @@ def preparer_conversation(monde, p, revision=None):
             rapport["faits"].append(f"L'accord accepté reste de {accord['montant']} pièces, payables contre la remise de l'objet. Il ne change pas pendant cette discussion.")
         elif op in ("accepter", "refuser"):
             if statut != "propose":
-                raise ErreurMonde("Il n'y a aucune offre en attente à accepter ou refuser.")
+                raise ErreurMonde("Il n'y a aucune offre en attente à accepter ou refuser.",
+                                  f"aucune offre proposée pour {mission_id} : proposer ou negocier d'abord.")
             accord["statut"] = "accepte" if op == "accepter" else "refuse"
             rapport["faits"].append(f"Offre de {accord['montant']} pièces " + ("acceptée. Le paiement aura lieu à la remise de l'objet." if op == "accepter" else "refusée. Aucun engagement ni paiement."))
         else:
@@ -123,20 +135,27 @@ def preparer_conversation(monde, p, revision=None):
 
 def verifier_remise(monde, objet_id, destinataire=""):
     if objet_id not in monde.objets or monde.objets[objet_id]["lieu"] != "joueur":
-        raise ErreurMonde("Tu dois porter l'objet pour le remettre.")
+        portes = sorted(i for i, o in monde.objets.items() if o["lieu"] == "joueur")
+        raise ErreurMonde("Tu dois porter l'objet pour le remettre.",
+                          f"remettre vise un objet porté, parmi {', '.join(portes) or 'aucun'} (reçu « {objet_id} »).")
     candidats = [(id, m) for id, m in monde.data["missions"].items() if m["objet"] == objet_id
                   and (not destinataire or m["donneur"] == destinataire)]
     candidats = [(id, m) for id, m in candidats if m["donneur"] in interlocuteurs(monde)]
     if len(candidats) != 1:
-        raise ErreurMonde("Le destinataire doit être présent ; précise à qui remettre cet objet.")
+        donneurs = sorted({m["donneur"] for m in monde.data["missions"].values() if m["objet"] == objet_id})
+        raise ErreurMonde("Le destinataire doit être présent ; précise à qui remettre cet objet.",
+                          f"{objet_id} est attendu par {', '.join(donneurs) or 'personne'} ; présents : "
+                          f"{', '.join(sorted(interlocuteurs(monde))) or 'aucun'}.")
     id, mission = candidats[0]
     from .proximite import exiger
     exiger(monde, mission["donneur"])
     accord = monde.data["engagements"].get(id)
     if not accord or accord["statut"] != "accepte":
-        raise ErreurMonde("Il faut d'abord convenir d'une récompense et accepter l'offre.")
+        raise ErreurMonde("Il faut d'abord convenir d'une récompense et accepter l'offre.",
+                          f"mission {id} sans offre acceptée : conversation_pnj (proposer ou negocier, puis accepter) avant remettre.")
     if monde.data["finances_pnj"].get(mission["donneur"], 0) < accord["montant"]:
-        raise ErreurMonde("Le destinataire n'a pas l'argent promis. Aucun objet n'a été remis.")
+        raise ErreurMonde("Le destinataire n'a pas l'argent promis. Aucun objet n'a été remis.",
+                          f"{mission['donneur']} ne peut pas payer {accord['montant']} pièces : la remise attendra.")
     return id
 
 
