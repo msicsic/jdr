@@ -931,7 +931,7 @@ ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplac
         if not cle:
             raise ErreurMonde("OPENAI_API_KEY absente. Les commandes hors ligne restent disponibles (aide).")
         if len(intention) > 2000:
-            raise ErreurMonde("Limitez votre action à 2 000 caractères.")
+            raise ErreurMonde("Limite ton action à 2 000 caractères.")
         payload = {
             "model": self.modele,
             "instructions": instructions,

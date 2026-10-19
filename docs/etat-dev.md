@@ -59,14 +59,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   contre 3,50 et 20,2, 0 repli contre 1, refus 4,5 contre 6.
 - Outillage : `tools/banc_multi.py` joue des variantes (références git) en plusieurs passes et
   en parallèle, et résume moyenne et étendue ; le forfait ChatGPT a tenu 4 passes simultanées.
-- La suite de tests passe : 598 tests, sans clé ni connexion.
+- Branche `fabrication-generale`, étapes 1 et 2 : tout objet peut recevoir une description
+  physique (`donjon/matiere.py` : forme, dimensions, matière, pièces) établie par le MJ
+  (`etablir_faits`, qualification) ; le moteur vérifie l'accord avec la masse et en déduit
+  longueur et charge ; l'atelier y est migré. Ce qu'un objet contient ou consomme (la lanterne
+  brûle de l'huile). Lots : un nom de pièce, un seul compte (pièces = utilisations), opération
+  `prelever` qui réutilise les règles de `deplacer`. Correctifs trouvés en route : boucle de
+  correction pour conversation, savoirs et description de personnage ; `enrichir` (personnage)
+  et `etablir_faits` (objet) distingués ; l'audit physique juge un contenu sur sa plausibilité ;
+  messages du moteur au tutoiement, sans rangement prétendu. Vérifié en bancs : Haiku et Luna
+  décrivent planches, torche et lanterne, et prélèvent une planche (vol discret).
+- Lisibilité : carte avec la pénombre (vert sombre dans l'interface), une lettre par personnage,
+  méta-langage refusé dans le texte affiché.
+- La suite de tests passe : 618 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
-- **Fabrication générale** (en cours) : seule l'échelle à barreaux existe, avec des matériaux
-  que l'auteur déclare (`ressource`, longueur, charge, dans `scenario_atelier.json`). Le MJ ne
-  peut pas qualifier un objet existant comme matériau (planches du Relais). Étape 1 : cette
-  qualification par `etablir_faits`, contrôlée comme les capacités.
+- **Fabrication générale** (en cours, `docs/plan-fabrication.md`) : étapes 1 et 2 fusionnées
+  (description physique, contenu, lots et prélèvement) ; reste l'étape 3, assemblage générique
+  et découpe, puis d'autres usages.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

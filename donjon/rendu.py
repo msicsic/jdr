@@ -234,7 +234,7 @@ def fiche(monde):
         if champ in j:
             profil.append(titre + " : " + j[champ])
     stats = "  ".join(f"{k} {v} ({(v - 10) // 2:+d})" for k, v in j["stats"].items())
-    sac = [decrire(monde, o["id"], article="indefini") if monde.visible(o["id"]) else designer(o, "indefini", debut=True) + " (dans votre besace, non visible)"
+    sac = [decrire(monde, o["id"], article="indefini") if monde.visible(o["id"]) else designer(o, "indefini", debut=True) + " (sur toi, non visible)"
            for o in monde.objets.values() if o["lieu"] == "joueur"]
     return (f'\nPERSONNAGE — {j["nom"]}\nPV {j["pv"]}/{j["pv_max"]} | {j["or"]} pièces | '
             f'{monde.charge():.1f}/{j["capacite"]} kg | {monde.data["minutes"]} min\n'
@@ -262,7 +262,7 @@ def decrire_perception(monde):
     lignes.append([
         "Il fait noir là où tu te tiens : tu ne peux rien lire, mais une zone éclairée reste visible plus loin."
         if monde.presents() else
-        "Il fait entièrement noir : aucune lumière ne vous parvient. Vous ne pouvez pas voir les objets ni lire les inscriptions.",
+        "Il fait entièrement noir : aucune lumière ne te parvient. Tu ne peux ni voir les objets ni lire les inscriptions.",
         "Il ne fait pas entièrement noir : une pénombre permet de distinguer les objets, mais pas de lire les inscriptions.",
         "Il ne fait pas noir : la lumière est suffisante pour voir les objets et leurs détails.",
     ][lumiere["niveau"]])
@@ -274,7 +274,7 @@ def decrire_perception(monde):
             causes.add("La pièce reçoit de la lumière naturelle.")
         else:
             o = monde.objets[contribution["source"]]
-            causes.add(designer(o, debut=True) + (", que vous portez, éclaire la pièce." if o["lieu"] == "joueur" else " éclaire la pièce."))
+            causes.add(designer(o, debut=True) + (", que tu portes, éclaire la pièce." if o["lieu"] == "joueur" else " éclaire la pièce."))
     lignes.extend(sorted(causes))
     if lumiere["niveau"] > 0:
         for o in monde.presents():
@@ -285,7 +285,7 @@ def decrire_perception(monde):
 
 def toucher(monde, id):
     if not monde.accessible(id):
-        raise ErreurMonde("Vous ne savez pas où trouver cet objet au toucher.")
+        raise ErreurMonde("Tu ne sais pas où trouver cet objet au toucher.")
     o = monde.objets[id]
     if o["type"] == "contenant" and o["ouverte"]:
         contenu = [e for e in monde.enfants(id) if monde.present_physique(e["id"])]

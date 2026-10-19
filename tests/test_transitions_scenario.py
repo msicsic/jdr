@@ -94,7 +94,7 @@ class TransactionsNarrativesTests(unittest.TestCase):
             repris = Monde.charger(chemin)
             self.assertEqual(repris.objets[id]["lieu"], "joueur")
             self.assertNotIn(id, [o["id"] for o, _, _ in objets_visibles_cases(repris, champ_visible(repris))])
-            self.assertIn("besace", sortie.getvalue())
+            self.assertIn("Tu prends le pendentif", sortie.getvalue())
 
     def test_transition_conditionnelle_deplace_objet_et_change_objectif(self):
         m = nouveau_defi()

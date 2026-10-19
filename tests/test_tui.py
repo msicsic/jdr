@@ -368,7 +368,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.commande(app, pilot, "mj je ramasse le pied de biche", 1)
                 self.assertNotIn("le pied-de-biche", app.derniere_vue["carte"])
                 self.assertIn("pied-de-biche", app.derniere_vue["fiche"])
-                self.assertIn("Le pied-de-biche rejoint votre besace", " ".join(app.sorties))
+                self.assertIn("Tu prends le pied-de-biche", " ".join(app.sorties))
                 await self.fermer(app)
             self.assertEqual(api.call_count, 1)
             entree = api.call_args_list[0].args[1]
@@ -432,7 +432,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("clé du veilleur", app.derniere_vue["scene"])
                 self.assertIn("clé du veilleur", app.derniere_vue["fiche"])
                 self.assertEqual(app.query_one(TabbedContent).active, "onglet-carte")
-                self.assertIn("La clé du veilleur rejoint votre besace.", app.sorties)
+                self.assertIn("Tu prends la clé du veilleur.", app.sorties)
                 await self.commande(app, pilot, "poser clé", 2)
                 self.assertIn("À tes pieds (@) : la clé", app.derniere_vue["carte"])
                 self.assertNotIn("clé du veilleur", app.derniere_vue["fiche"])
@@ -748,7 +748,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(app.is_running)
                 await self.commande(app, pilot, "prendre clé", 1)
                 await pilot.press("f4")
-                copier.assert_called_once_with("Corvus > prendre clé\n\nLa clé du veilleur rejoint votre besace.")
+                copier.assert_called_once_with("Corvus > prendre clé\n\nTu prends la clé du veilleur.")
                 self.assertEqual(app.derniere_vue["minutes"], 1)
                 await self.fermer(app)
 

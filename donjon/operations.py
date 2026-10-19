@@ -295,7 +295,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         p.effets = [("prelever_piece", cible, piece_id)] + p.effets
         # Un vol manqué vise le lot : la pièce n'en a pas été séparée.
         p.echec = [(a, b, cible if c == piece_id else c) for a, b, c in p.echec]
-        p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + " dans " + designer(o) + "."
+        p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + "."
         return p
     if op == "deplacer" and monde.objets.get(destination, {}).get("foyer"):
         # Mettre un combustible dans un foyer, c'est le recharger : le geste d'alimenter.

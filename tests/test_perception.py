@@ -30,7 +30,7 @@ class EclairageTests(unittest.TestCase):
         texte = decrire_perception(self.m)
         self.assertIn("pas de fenêtre", texte)
         self.assertIn("Il ne fait pas noir", texte)
-        self.assertIn("La lanterne, que vous portez", texte)
+        self.assertIn("La lanterne, que tu portes", texte)
         self.assertIn("La torche est éteinte", texte)
         self.assertEqual(eclairage(self.m)["niveau"], 2)
 

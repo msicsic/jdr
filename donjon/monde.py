@@ -245,7 +245,7 @@ class Monde:
             return candidats[0]
         if candidats:
             raise ErreurMonde("Précisez : " + ", ".join(designer(self.objets[i]) for i in candidats) + ".")
-        raise ErreurMonde("Vous ne voyez pas cet objet ici. Tapez « regarder ».")
+        raise ErreurMonde("Tu ne vois pas cet objet ici. Tape « regarder ».")
 
     def charge(self):
         return sum(o["masse"] for o in self.objets.values() if self.est_porte(o["id"]))
