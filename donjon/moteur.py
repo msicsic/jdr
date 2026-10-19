@@ -13,6 +13,7 @@ from .perception import avancer_combustion, eclairage
 from .dialogues import verifier_remise, payer_remise
 from .vol import proprietaire, appliquer as appliquer_vol
 from .capacites_objet import statut as statut_capacite, absence as absence_capacite
+from .refus import inaccessible, liste, portes_avec_usage
 
 
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
@@ -28,7 +29,9 @@ class QualificationRequise(ErreurMonde):
     def __init__(self, cible, capacite):
         self.cible = cible
         self.capacite = capacite
-        super().__init__(f"La capacité {capacite} de {cible} reste à établir.")
+        super().__init__(f"La capacité {capacite} de {cible} reste à établir.",
+                         f"propose d'abord etablir_faits avec une qualification de « {capacite} » pour {cible} "
+                         "(pour une coupe : objet, moyen et coupe_possible) ; l'intention sera réexaminée ensuite.")
 
 
 def proposition(action, cible="", outil="", methode="simple", difficulte=0, justification=""):
@@ -109,18 +112,29 @@ class Moteur:
             return preparer(self.monde, p, origine)
         if isinstance(p, dict) and p.get("action") == "composer":
             return preparer_operations(self.monde, p, origine)
-        if not isinstance(p, dict) or set(p) != set(proposition("examiner")):
-            raise ErreurMonde("Proposition mal formée : aucune modification.")
-        if any(not isinstance(p[k], str) or len(p[k]) > 1000
-               for k in ("action", "cible", "outil", "methode", "justification")):
-            raise ErreurMonde("Proposition mal formée.")
+        attendus = set(proposition("examiner"))
+        if not isinstance(p, dict) or set(p) != attendus:
+            recus = sorted(p) if isinstance(p, dict) else type(p).__name__
+            raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
+                              f"une action simple a exactement les champs {', '.join(sorted(attendus))} ; reçu : {recus}.")
+        fautifs = [k for k in ("action", "cible", "outil", "methode", "justification")
+                   if not isinstance(p[k], str) or len(p[k]) > 1000]
+        if fautifs:
+            raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
+                              f"champ(s) {', '.join(fautifs)} : du texte, 1000 caractères au plus.")
         if type(p["difficulte"]) is not int or not 0 <= p["difficulte"] <= 25:
-            raise ErreurMonde("Difficulté invalide.")
+            raise ErreurMonde("Difficulté invalide.", f"difficulte : un entier de 0 à 25 (reçu {p['difficulte']!r}).")
         action, cible, outil = p["action"], p["cible"], p["outil"]
-        if action not in ACTIONS or p["methode"] not in METHODES:
-            raise ErreurMonde("Cette opération n'est pas prise en charge.")
+        if action not in ACTIONS:
+            raise ErreurMonde("Je ne connais pas ce geste.",
+                              f"action « {action} » inconnue ; actions : {', '.join(ACTIONS[:-2])} ; ou composer pour "
+                              "enchaîner des opérations, ou improviser pour un geste hors de ces actions.")
+        if p["methode"] not in METHODES:
+            raise ErreurMonde("Je ne connais pas cette façon de faire.",
+                              f"methode « {p['methode']} » inconnue pour une action simple ; méthodes : {', '.join(METHODES)}.")
         if action in ("clarifier", "impossible"):
-            raise ErreurMonde("Aucune action exécutable n'a été proposée.")
+            raise ErreurMonde("Aucune action exécutable n'a été proposée.",
+                              f"{action} ne s'exécute pas : réponds en mode dialogue.")
         if action in ("prendre", "poser", "voler", "detacher", "allumer", "eteindre"):
             return preparer_operations(self.monde, p, origine)
         if action in ("installer", "franchir", "desinstaller"):
@@ -131,9 +145,11 @@ class Moteur:
         if action == "marcher" or (action == "aller" and m.data.get("mode_cases")):
             from .spatial import preparer_pas
             if not m.data.get("mode_cases"):
-                raise ErreurMonde("Lance cette partie avec --cases pour te déplacer case par case.")
+                sorties = ", ".join(m.data["salles"][m.joueur["salle"]]["sorties"]) or "aucune"
+                raise ErreurMonde("Lance cette partie avec --cases pour te déplacer case par case.",
+                                  f"partie sans cases : utilise aller avec une sortie ({sorties}).")
             if outil or p["methode"] != "simple" or p["difficulte"]:
-                raise ErreurMonde("Un pas se fait sans outil ni jet.")
+                raise ErreurMonde("Un pas se fait sans outil ni jet.", "un pas : outil vide, methode simple, difficulte 0.")
             destination = preparer_pas(m, cible)
             plan.titre = "Avancer d'un pas vers " + cible + "."
             plan.minutes = 1 if m.data.get("pas_depuis_minute", 0) == 9 else 0
@@ -141,14 +157,17 @@ class Moteur:
             return plan
         if action == "observer":
             if cible not in ("", "scene", "lumiere", "contexte") or outil:
-                raise ErreurMonde("Une observation de la scène ne modifie aucun objet.")
+                raise ErreurMonde("On observe la scène, la lumière ou le contexte, pas un objet précis.",
+                                  f"observer : cible vide, scene, lumiere ou contexte (reçu « {cible} »), outil vide ; "
+                                  "pour un objet précis : examiner, toucher ou lire avec son identifiant.")
             plan.titre, plan.minutes = "Observer la scène.", 0
             plan.information = (decrire_contexte(m) if cible == "contexte" else
                                 regarder(m) if cible == "scene" else decrire_perception(m))
             return plan
         if action == "ecouter":
             if cible or outil:
-                raise ErreurMonde("Écouter se fait sur place, sans cible ni outil : on tend l'oreille.")
+                raise ErreurMonde("Écouter se fait sur place, sans cible ni outil : on tend l'oreille.",
+                                  "ecouter : cible et outil vides.")
             plan.titre, plan.minutes, plan.effort = "Tendre l'oreille quelques minutes.", 3, False
             return plan
         if action == "attendre":
@@ -156,12 +175,16 @@ class Moteur:
             plan.effets = [("calmer", "", 3)]
             return plan
         if action == "aller":
-            sortie = m.data["salles"][m.joueur["salle"]]["sorties"].get(cible)
+            sorties = m.data["salles"][m.joueur["salle"]]["sorties"]
+            sortie = sorties.get(cible)
             if not sortie:
-                raise ErreurMonde("Il n'y a pas de sortie dans cette direction.")
+                raise ErreurMonde(f"Il n'y a pas de sortie vers « {cible} » d'ici.",
+                                  f"aller : cible = une direction de sortie parmi {', '.join(sorties) or 'aucune'}.")
             porte = m.objets.get(sortie["porte"])
             if porte and not porte["ouverte"]:
-                raise ErreurMonde("La porte fermée vous barre le passage.")
+                raise ErreurMonde(designer(porte, debut=True) + " fermée te barre le passage.",
+                                  f"ouvre d'abord {porte['id']} (ouvrir, ou deverrouiller avec sa clé si elle est "
+                                  "verrouillée), éventuellement dans un composer.")
             plan.titre = "Aller vers " + cible + "."
             plan.effets = [("voyager", sortie["vers"], None)]
             return plan
@@ -173,22 +196,35 @@ class Moteur:
             plan.effets = [("remettre", mission, None)]
             return plan
         if not m.accessible(cible):
-            raise ErreurMonde("La cible est absente ou inaccessible depuis ici.")
+            raise inaccessible(m, cible)
         if action not in ("examiner", "parler"):
             from .proximite import exiger
             exiger(m, cible)
         if action == "examiner" and not m.visible(cible):
-            raise ErreurMonde("Il fait trop noir pour examiner cet objet. Vous pouvez toucher vos affaires ou allumer une lumière.")
+            raise ErreurMonde("Il fait trop noir pour examiner cet objet. Tu peux toucher tes affaires ou allumer une lumière.",
+                              "examiner exige de voir : toucher fonctionne dans le noir, ou allume d'abord une source.")
         if action in ("lire", "detacher", "copier") and eclairage(m)["niveau"] < 2:
-            raise ErreurMonde("La lumière est insuffisante pour cette manœuvre précise.")
+            raise ErreurMonde(f"La lumière est trop faible pour {action} avec précision.",
+                              f"{action} exige une lumière franche : allume d'abord une source (allumer), "
+                              "éventuellement dans un composer.")
         o = m.objets[cible]
         t = None
         if outil:
             t = m.objets.get(outil)
-            if not t or t["lieu"] != "joueur" or t["integrite"] == 0:
-                raise ErreurMonde("Il faut posséder cet outil en état de servir.")
+            if not t:
+                portes = sorted(i for i, x in m.objets.items() if x["lieu"] == "joueur")
+                raise ErreurMonde("Tu n'as rien de tel en main.",
+                                  f"outil « {outil} » n'est pas un identifiant connu ; objets portés : {', '.join(portes) or 'aucun'}.")
+            if t["lieu"] != "joueur":
+                portes = sorted(i for i, x in m.objets.items() if x["lieu"] == "joueur")
+                raise ErreurMonde("Tu n'as pas " + designer(t) + " en main.",
+                                  f"prends d'abord {outil} : composer avec une étape deplacer {outil} vers joueur, puis ce geste."
+                                  if m.accessible(outil) else
+                                  f"{outil} n'est pas à portée ; objets portés : {liste(portes)}.")
+            if t["integrite"] == 0:
+                raise ErreurMonde(designer(t, debut=True) + " est hors d'usage.", "choisis un autre outil.")
             if outil == cible:
-                raise ErreurMonde("La cible ne peut pas être son propre outil.")
+                raise ErreurMonde("La cible ne peut pas être son propre outil.", "outil : un autre objet que la cible, ou vide.")
         verbe = {"detacher": "Détacher", "deverrouiller": "Déverrouiller", "debloquer": "Débloquer", "eteindre": "Éteindre", "parler": "Parler à"}.get(action, action.capitalize())
         plan.titre = verbe + " " + designer(o) + (" avec " + designer(t) if t else "") + "."
         if action in ("examiner", "toucher"):
@@ -206,62 +242,101 @@ class Moteur:
                                    for enfant in m.enfants(cible) if m.present_physique(enfant["id"]))
         elif action == "parler":
             if o["type"] != "personnage":
-                raise ErreurMonde("Cet objet ne peut pas vous répondre.")
+                raise ErreurMonde(designer(o, debut=True) + " ne peut pas te répondre.",
+                                  "parler vise un personnage présent ; pour un objet : examiner.")
             raise ErreurMonde("Pour discuter librement, active le MJ et adresse ta question au personnage. "
-                              "Hors ligne : offre <personnage>, negocier <personnage> <montant>, accepter offre, remettre <objet>.")
+                              "Hors ligne : offre <personnage>, negocier <personnage> <montant>, accepter offre, remettre <objet>.",
+                              "pour faire parler Corvus à ce personnage : mode parole_joueur ; pour une récompense "
+                              "de mission : mode conversation_pnj.")
         elif action == "acheter":
             possesseur = proprietaire(m, o)
             if possesseur not in (None, "joueur") and o.get("vole_par") != "joueur" and not o.get("en_vente"):
-                raise ErreurMonde("Cet objet appartient à " + designer(m.objets[possesseur]) + ". Utilise acheter ou tente explicitement de le voler.")
+                raise ErreurMonde(designer(o, debut=True) + " appartient à " + designer(m.objets[possesseur])
+                                  + " et n'est pas à vendre.",
+                                  f"{cible} n'est pas en vente : demande-le en mode parole_joueur, ou propose voler "
+                                  "si le joueur l'a explicitement voulu.")
             if not o["mobile"] or o.get("attache") or o.get("cale_de"):
-                raise ErreurMonde("Cet objet doit d'abord être détaché ou débloqué.")
+                raise ErreurMonde(designer(o, debut=True) + " ne peut pas être emporté en l'état.",
+                                  f"{cible} est fixe, attaché ou sert de cale : detacher ou debloquer d'abord, "
+                                  "s'il est mobile.")
             if o["lieu"] == "joueur":
-                raise ErreurMonde("Vous possédez déjà cet objet.")
+                raise ErreurMonde("Tu as déjà " + designer(o) + ".", f"{cible} est déjà porté : rien à acheter.")
             if m.charge() + o["masse"] > m.joueur["capacite"]:
-                raise ErreurMonde("Cet objet dépasse votre capacité de portage.")
+                raise ErreurMonde(designer(o, debut=True) + " est trop lourd pour ce que tu portes déjà.",
+                                  f"charge {m.charge()} + masse {o['masse']} > capacité {m.joueur['capacite']} : "
+                                  "pose d'abord quelque chose (composer, étape deplacer vers la salle).")
             vendeur_id = o.get("vendeur")
             vendeur = m.objets.get(vendeur_id) if vendeur_id else None
             if not o.get("en_vente") or not vendeur or vendeur["type"] != "personnage":
-                raise ErreurMonde("Cet objet n'est pas à vendre ici.")
+                en_vente = sorted(i for i, x in m.objets.items() if x.get("en_vente") and m.accessible(i))
+                raise ErreurMonde(designer(o, debut=True) + " n'est pas à vendre ici.",
+                                  f"acheter vise un objet en vente, parmi {liste(en_vente)}.")
             if not m.present_physique(vendeur_id):
-                raise ErreurMonde(designer(vendeur, debut=True) + " doit être présent pour cette vente.")
+                raise ErreurMonde(designer(vendeur, debut=True) + " doit être présent pour cette vente.",
+                                  f"le vendeur {vendeur_id} n'est pas dans la salle : rien à acheter tant qu'il est absent.")
             from .proximite import exiger
             exiger(m, vendeur_id)
             if (vendeur.get("refuse_ventes_apres_vol")
                     and m.data["relations_pnj"][vendeur_id]["vols_surpris"]):
-                raise ErreurMonde(designer(vendeur, debut=True) + " refuse de te vendre quoi que ce soit depuis ta tentative de vol.")
+                raise ErreurMonde(designer(vendeur, debut=True) + " refuse de te vendre quoi que ce soit depuis ta tentative de vol.",
+                                  f"{vendeur_id} ne vend plus au joueur : aucune vente possible avec lui.")
             cout = prix(m, o)
             if cout > m.joueur["or"]:
-                raise ErreurMonde("Vous n'avez pas assez de pièces.")
+                raise ErreurMonde(f"Il te faudrait {cout} pièces ; tu n'en as que {m.joueur['or']}.",
+                                  f"prix {cout} > or {m.joueur['or']} : achat impossible ; une négociation passe par "
+                                  "le mode parole_joueur.")
             plan.effets.append(("payer", cible, {"vendeur": vendeur_id, "montant": cout}))
             plan.effets.append(("deplacer", cible, "joueur"))
         elif action in ("ouvrir", "fermer", "deverrouiller"):
             if o["type"] not in ("porte", "contenant"):
-                raise ErreurMonde("Cet objet n'a pas d'ouverture modélisée.")
+                ouvrables = sorted(i for i, x in m.objets.items()
+                                   if x["type"] in ("porte", "contenant") and m.accessible(i))
+                raise ErreurMonde(designer(o, debut=True) + " ne s'ouvre ni ne se ferme.",
+                                  f"{action} vise une porte ou un contenant, parmi {liste(ouvrables)} ; "
+                                  f"{cible} est de type {o['type']}.")
             if action == "deverrouiller" or (action == "ouvrir" and o["verrouillee"] and t):
+                cles = sorted(i for i, x in m.objets.items() if x["lieu"] == "joueur" and cible in x.get("ouvre", []))
                 if not t or cible not in t.get("ouvre", []):
-                    raise ErreurMonde("Cette clé ne convient pas à cette serrure.")
+                    raise ErreurMonde(("Il te faut une clé pour cela." if not t else
+                                       designer(t, debut=True) + " ne convient pas à cette serrure."),
+                                      f"outil : une clé en main qui ouvre {cible}, parmi {liste(cles)}"
+                                      + ("" if cles else " ; sinon crocheter avec un outil de crochetage, ou forcer"
+                                         " (frapper)") + ".")
                 if not o["verrouillee"]:
-                    raise ErreurMonde("Ce n'est pas verrouillé.")
+                    raise ErreurMonde(designer(o, debut=True) + " n'est pas verrouillé.",
+                                      f"{cible} n'est pas verrouillé : ouvrir suffit.")
                 plan.effets.append(("deverrouiller", cible, None))
             elif action == "ouvrir" and o["verrouillee"]:
-                raise ErreurMonde("C'est verrouillé. Il faut une clé adaptée ou une autre manœuvre.")
+                cles = sorted(i for i, x in m.objets.items() if x["lieu"] == "joueur" and cible in x.get("ouvre", []))
+                raise ErreurMonde("C'est verrouillé. Il faut une clé adaptée ou une autre manœuvre.",
+                                  f"{cible} est verrouillé : " + (f"outil = {cles[0]} (clé en main qui l'ouvre)" if cles else
+                                  "aucune clé en main ne l'ouvre ; crocheter avec un outil de crochetage, ou forcer (frapper)")
+                                  + ".")
             if action != "deverrouiller":
                 ouvrir = action == "ouvrir"
                 if o["ouverte"] == ouvrir:
-                    raise ErreurMonde("C'est déjà " + ("ouvert." if ouvrir else "fermé."))
-                if not ouvrir and (o["integrite"] == 0 or o.get("detachee") or o.get("bloque_par")):
-                    raise ErreurMonde("Impossible de refermer : battant brisé, détaché ou calé.")
+                    raise ErreurMonde("C'est déjà " + ("ouvert." if ouvrir else "fermé."),
+                                      f"{cible} est déjà {'ouvert' if ouvrir else 'fermé'} : rien à faire.")
+                if not ouvrir and o.get("bloque_par"):
+                    raise ErreurMonde("Impossible de refermer : " + designer(o) + " est calé.",
+                                      f"debloquer {cible} d'abord, éventuellement dans un composer.")
+                if not ouvrir and (o["integrite"] == 0 or o.get("detachee")):
+                    raise ErreurMonde("Impossible de refermer : le battant est brisé ou détaché.",
+                                      f"{cible} ne peut plus être fermé.")
                 plan.effets.append(("ouverture", cible, ouvrir))
         elif action == "crocheter":
             parent_id = o["lieu"] if o["type"] == "serrure" else cible
             parent = m.objets.get(parent_id, {})
             if not parent.get("verrouillee"):
-                raise ErreurMonde("Aucun verrou fermé à crocheter ici.")
+                verrous = sorted(i for i, x in m.objets.items() if x.get("verrouillee") and m.accessible(i))
+                raise ErreurMonde("Il n'y a rien de verrouillé à crocheter là.",
+                                  f"crocheter vise une porte ou un contenant verrouillé (ou sa serrure), parmi {liste(verrous)}.")
             if o.get("bloquee") or any(e.get("bloquee") for e in m.enfants(parent_id)):
-                raise ErreurMonde("La serrure est bloquée ; le crochetage ne peut plus fonctionner.")
+                raise ErreurMonde("La serrure est bloquée ; le crochetage ne peut plus fonctionner.",
+                                  f"serrure de {parent_id} grippée : il faut sa clé, ou forcer (frapper).")
             if not t or "crochetage" not in t.get("usages", []):
-                raise ErreurMonde("Il faut un outil utilisable pour le crochetage.")
+                raise ErreurMonde("Il faut un outil adapté pour crocheter.",
+                                  f"outil : un objet en main d'usage crochetage, parmi {liste(portes_avec_usage(m, 'crochetage'))}.")
             lumiere = eclairage(m)["niveau"]
             plan.stat, plan.dd, plan.minutes = "DEX", 14 + 4 * (2 - lumiere), 3 + 2 * (2 - lumiere)
             if lumiere < 2:
@@ -273,9 +348,10 @@ class Moteur:
                 plan.echec_critique.append(("gripper", serrure, None))
         elif action in ("frapper", "couper"):
             if o["type"] in ("personnage", "partie_corps", "motif", "tresor"):
-                raise ErreurMonde("Cette destruction ou ce combat n'est pas simulé dans ce prototype.")
+                raise ErreurMonde("Cette destruction ou ce combat n'est pas simulé dans ce prototype.",
+                                  f"{action} ne vise pas un {o['type']} : aucune proposition de ce geste n'est possible.")
             if o["integrite"] == 0:
-                raise ErreurMonde("C'est déjà brisé.")
+                raise ErreurMonde("C'est déjà brisé.", f"{cible} est déjà détruit : rien à faire.")
             usages = set(t.get("usages", [])) if t else set()
             puissance = t.get("puissance", 0) if t else 0
             coupe = bool(usages & {"couper", "couper_bois"}) and (
@@ -283,7 +359,10 @@ class Moteur:
                 statut_capacite(o, "tranchable", t) == "etablie")
             choc = bool(usages & {"percussion", "levier"})
             if action == "couper" and not usages & {"couper", "couper_bois"}:
-                raise ErreurMonde("Il faut un outil de coupe utilisable.")
+                tranchants = sorted(set(portes_avec_usage(m, "couper")) | set(portes_avec_usage(m, "couper_bois")))
+                raise ErreurMonde("Il faut un outil de coupe utilisable.",
+                                  f"outil : un objet en main d'usage couper ou couper_bois, parmi {liste(tranchants)}"
+                                  + (f" ; {outil} n'a pas cet usage" if outil else "") + ".")
             if usages & {"couper", "couper_bois"} and (action == "couper" or not choc):
                 etat_coupe = statut_capacite(o, "tranchable", t)
                 if etat_coupe == "inconnue":
@@ -291,11 +370,18 @@ class Moteur:
                 if etat_coupe == "ecartee":
                     from .capacites_objet import constat as constat_capacite
                     raise ErreurMonde(absence_capacite(
-                        o, "tranchable", constat_capacite(o, "tranchable", t)) + ".")
+                        o, "tranchable", constat_capacite(o, "tranchable", t)) + ".",
+                        f"{cible} ne se coupe pas avec {outil} (qualification établie) : ne re-propose pas cette coupe.")
             if action == "couper" and not coupe:
-                raise ErreurMonde("Cet outil ne peut pas entamer " + designer(o) + ".")
+                raise ErreurMonde(designer(t, debut=True) + " ne peut pas entamer " + designer(o) + ".",
+                                  f"puissance de {outil} : {puissance}"
+                                  + (f", seuil de coupe de {cible} : {o['seuil_coupe']}" if "seuil_coupe" in o else "")
+                                  + " ; il faut un outil plus puissant.")
             if action == "frapper" and not (coupe or choc):
-                raise ErreurMonde("Il faut un outil adapté à cette cible pour la frapper ou l'entamer.")
+                chocs = sorted(set(portes_avec_usage(m, "percussion")) | set(portes_avec_usage(m, "levier")))
+                raise ErreurMonde("Il faut un outil adapté à cette cible pour la frapper ou l'entamer.",
+                                  f"outil : un objet en main d'usage percussion ou levier, parmi {liste(chocs)}"
+                                  + (f" ; {outil} ne convient pas" if outil else " ; outil vide refusé") + ".")
             if action == "couper":
                 plan.titre = "Entailler " + designer(o) + " avec " + designer(t) + "."
             plan.stat, plan.dd = "FOR", 10
@@ -304,34 +390,49 @@ class Moteur:
             plan.effets = [("endommager", cible, degats)]
             plan.echec_critique = [("endommager", outil, 1)]
         elif action == "bloquer":
-            if o["type"] != "porte" or not o["ouverte"] or o["detachee"] or o["integrite"] == 0:
-                raise ErreurMonde("Il faut une porte ouverte encore montée.")
+            if o["type"] != "porte":
+                raise ErreurMonde("On ne cale qu'une porte.", f"bloquer vise une porte ; {cible} est de type {o['type']}.")
+            if not o["ouverte"]:
+                raise ErreurMonde(designer(o, debut=True) + " est fermée : on cale une porte ouverte.",
+                                  f"ouvre d'abord {cible}, éventuellement dans un composer.")
+            if o["detachee"] or o["integrite"] == 0:
+                raise ErreurMonde(designer(o, debut=True) + " n'est plus montée : rien à caler.",
+                                  f"{cible} est brisée ou détachée.")
             if o["bloque_par"]:
-                raise ErreurMonde("La porte est déjà calée.")
+                raise ErreurMonde("La porte est déjà calée.", f"{cible} est déjà calée par {o['bloque_par']}.")
             if not t or "cale" not in t.get("usages", []):
-                raise ErreurMonde("Il faut un objet utilisable comme cale.")
+                raise ErreurMonde("Il faut un objet utilisable comme cale.",
+                                  f"outil : un objet en main d'usage cale, parmi {liste(portes_avec_usage(m, 'cale'))}.")
             plan.effets = [("caler", cible, outil)]
         elif action == "debloquer":
             porte_id = o.get("cale_de") or cible
             if not m.objets[porte_id].get("bloque_par"):
-                raise ErreurMonde("Cette porte n'est pas calée.")
+                raise ErreurMonde("Cette porte n'est pas calée.", f"{porte_id} n'est pas calée : rien à débloquer.")
             plan.effets = [("decaler", porte_id, m.joueur["salle"])]
         elif action == "copier":
             if not o.get("motif"):
-                raise ErreurMonde("Il n'y a pas de motif à copier sur cet objet.")
+                motifs = sorted(i for i, x in m.objets.items() if x.get("motif") and m.accessible(i))
+                raise ErreurMonde("Il n'y a pas de motif à copier sur " + designer(o) + ".",
+                                  f"copier vise un objet portant un motif, parmi {liste(motifs)}.")
             parent = m.objets.get(o["lieu"])
             if parent and parent["integrite"] == 0:
-                raise ErreurMonde("Le support brisé ne permet plus une empreinte lisible.")
+                raise ErreurMonde("Le support brisé ne permet plus une empreinte lisible.",
+                                  f"{cible} n'est plus copiable.")
             if not t or "empreinte" not in t.get("usages", []) or t.get("charges", 0) < 1:
-                raise ErreurMonde("Il faut un matériau à empreinte encore utilisable.")
+                raise ErreurMonde("Il faut un matériau à empreinte encore utilisable.",
+                                  "outil : un objet en main d'usage empreinte et avec des charges, parmi "
+                                  f"{liste(i for i in portes_avec_usage(m, 'empreinte') if m.objets[i].get('charges', 0) > 0)}.")
             plan.minutes = 2
             plan.effets = [("empreinte", cible, outil)]
         elif action == "lire":
             if not o.get("inscription"):
-                raise ErreurMonde("Cet objet ne porte pas d'inscription lisible.")
+                lisibles = sorted(i for i, x in m.objets.items() if x.get("inscription") and m.accessible(i))
+                raise ErreurMonde(designer(o, debut=True) + " ne porte pas d'inscription lisible.",
+                                  f"lire vise un objet portant une inscription, parmi {liste(lisibles)} ; "
+                                  f"pour décrire {cible} : examiner.")
             parent = m.objets.get(o["lieu"])
             if parent and parent["integrite"] == 0:
-                raise ErreurMonde("L'inscription a été détruite avec son support.")
+                raise ErreurMonde("L'inscription a été détruite avec son support.", f"{cible} n'est plus lisible.")
             if cible in m.data["lus"]:
                 plan.minutes = 0
                 plan.information = decrire(m, cible, detail=True)
@@ -339,7 +440,7 @@ class Moteur:
                 plan.stat, plan.dd, plan.minutes = "INT", 12, 2
                 plan.effets = [("dechiffrer", cible, None)]
         else:
-            raise ErreurMonde("Action non implémentée.")
+            raise ErreurMonde("Action non implémentée.", f"action « {action} » sans règle : choisis une autre action.")
         return plan
 
     def executer(self, plan):

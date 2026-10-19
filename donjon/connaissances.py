@@ -58,27 +58,32 @@ def catalogue(monde):
 
 def preparer_savoirs(monde, proposition, revision=None):
     if revision is not None and revision != monde.data["revision"]:
-        raise ErreurMonde("Le monde a changé avant l'enregistrement des connaissances.")
+        raise ErreurMonde("Le monde a changé avant l'enregistrement des connaissances.", "re-propose à partir des faits actuels.")
     if not isinstance(proposition, dict) or set(proposition) != {"personnage", "savoirs"}:
-        raise ErreurMonde("Connaissances mal formées.")
+        recus = sorted(proposition) if isinstance(proposition, dict) else type(proposition).__name__
+        raise ErreurMonde("Connaissances mal formées.", f"enrichir_savoirs a exactement personnage et savoirs ; reçu : {recus}.")
     id, ajouts = proposition["personnage"], proposition["savoirs"]
     autorises = catalogue(monde)
     if not isinstance(id, str) or id not in autorises:
-        raise ErreurMonde("Ce personnage n'est pas présent ou n'a aucun savoir à compléter.")
+        raise ErreurMonde("Ce personnage n'est pas présent ou n'a aucun savoir à compléter.",
+                          f"personnage parmi {', '.join(sorted(autorises)) or 'aucun'} (reçu « {id} »).")
     if not isinstance(ajouts, list) or not 1 <= len(ajouts) <= 3:
-        raise ErreurMonde("Nombre de connaissances invalide.")
+        raise ErreurMonde("Nombre de connaissances invalide.", "savoirs : une liste de 1 à 3 éléments {sujet, texte}.")
     travail = monde.copier()
     connus = travail.data["savoirs_pnj"][id]
     revision_suivante = monde.data["revision"] + 1
     for ajout in ajouts:
         if (not isinstance(ajout, dict) or set(ajout) != {"sujet", "texte"}
                 or any(not isinstance(v, str) for v in ajout.values())):
-            raise ErreurMonde("Connaissance mal formée.")
+            raise ErreurMonde("Connaissance mal formée.", "chaque savoir a exactement sujet et texte (textes).")
         sujet, texte = ajout["sujet"], ajout["texte"].strip()
         if sujet not in autorises[id]["sujets"] or sujet in connus:
-            raise ErreurMonde("Ce sujet est déjà établi ou n'est pas ouvert à l'invention.")
+            libres = [s for s in autorises[id]["sujets"] if s not in connus]
+            raise ErreurMonde("Ce sujet est déjà établi ou n'est pas ouvert à l'invention.",
+                              f"sujet parmi {', '.join(libres) or 'aucun'} (reçu « {sujet} »).")
         if not 3 <= len(texte) <= 600 or any(ord(c) < 32 for c in texte):
-            raise ErreurMonde("Texte de connaissance vide, trop long ou contenant des caractères de contrôle.")
+            raise ErreurMonde("Texte de connaissance vide, trop long ou contenant des caractères de contrôle.",
+                              "texte : 3 à 600 caractères, sans saut de ligne.")
         connus[sujet] = {"texte": texte, "origine": "MJ", "revision": revision_suivante}
     travail.data["revision"] = revision_suivante
     travail.data["ajouts_savoirs"].append({"revision": revision_suivante, **copy.deepcopy(proposition)})

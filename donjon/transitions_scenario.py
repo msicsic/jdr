@@ -104,16 +104,18 @@ def appliquer_effet(travail, effet):
 
 def preparer(monde, identifiant):
     if identifiant not in disponibles(monde):
-        raise ErreurMonde("Cette évolution du scénario n'est pas établie par l'état actuel.")
+        raise ErreurMonde("Cette évolution du scénario n'est pas établie par l'état actuel.",
+                          f"evolution : ancrage parmi les évolutions disponibles ({', '.join(disponibles(monde)) or 'aucune'}), "
+                          f"reçu « {identifiant} » ; sinon un autre type de fait.")
     transition = next(t for t in monde.data["transitions_scenario"] if t["id"] == identifiant)
     travail = monde.copier()
     for effet in transition["effets"]:
         if effet["operation"] == "deplacer" and not applicable(travail, effet):
-            raise ErreurMonde("L'objet n'est plus à la position prévue par cette évolution.")
+            raise ErreurMonde("L'objet n'est plus à la position prévue par cette évolution.", f"{identifiant} ne s'applique plus : retire-la.")
         if effet["operation"] == "objectif" and travail.data.get("objectif_atteint"):
-            raise ErreurMonde("L'objectif de cette partie est déjà accompli.")
+            raise ErreurMonde("L'objectif de cette partie est déjà accompli.", f"{identifiant} ne s'applique plus : retire-la.")
         if not applicable(travail, effet):
-            raise ErreurMonde("L'objectif actuel ne correspond plus à cette évolution.")
+            raise ErreurMonde("L'objectif actuel ne correspond plus à cette évolution.", f"{identifiant} ne s'applique plus : retire-la.")
         appliquer_effet(travail, effet)
     travail.data.setdefault("transitions_effectuees", []).append(identifiant)
     travail.verifier()

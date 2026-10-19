@@ -14,7 +14,12 @@ from .geometrie import cases
 
 
 class ErreurMonde(ValueError):
-    pass
+    """Refus du moteur. Le message s'adresse au joueur ; ``attendu`` dit au MJ, en champs et
+    identifiants, ce qu'une proposition corrigée doit contenir (voir ``refus.py``)."""
+
+    def __init__(self, message="", attendu=""):
+        super().__init__(message)
+        self.attendu = attendu
 
 
 def normaliser(texte: str) -> str:

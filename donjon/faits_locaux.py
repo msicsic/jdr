@@ -7,6 +7,7 @@ from .francais import designer, relation_physique
 from .geometrie import placer
 from .monde import ErreurMonde, normaliser, objet, reference_exacte
 from .perception import eclairage
+from .refus import liste
 from .capacites_objet import (SCHEMA as SCHEMA_CAPACITES,
                              CAPACITES_REVUE, absence as absence_capacite,
                              aptitude_coupe,
@@ -144,13 +145,17 @@ def _respecter_potentiel(monde, capacites, masse=None, nouvel_objet=False):
     if budget is None:
         return
     if nouvel_objet and not budget["objets_restants"]:
-        raise ErreurMonde("Ce lieu ne recèle plus rien de nouveau : ce qui s'y trouve est déjà connu.")
+        raise ErreurMonde("Ce lieu ne recèle plus rien de nouveau : ce qui s'y trouve est déjà connu.",
+                          "potentiel_invention épuisé : plus aucun type objet ici ; un detail sans propriété reste possible.")
     if masse is not None and masse > budget["masse_max_kg"]:
         raise ErreurMonde("Un objet de plus de " + str(budget["masse_max_kg"]).replace(".", ",")
-                          + " kg ne peut pas apparaître ici.")
+                          + " kg ne peut pas apparaître ici.",
+                          f"masse au plus {budget['masse_max_kg']} (reçu {masse}).")
     interdites = sorted(set(noms_capacites(capacites)) - set(budget["capacites"]))
     if interdites:
-        raise ErreurMonde("Ce lieu ne peut pas fournir d'objet doté de : " + ", ".join(interdites) + ".")
+        raise ErreurMonde("Ce lieu ne peut pas fournir d'objet doté de : " + ", ".join(interdites) + ".",
+                          f"capacites permises ici : {', '.join(budget['capacites']) or 'aucune'} ; retire "
+                          f"{', '.join(interdites)}.")
 
 
 def _texte(texte, maximum):
@@ -164,26 +169,34 @@ def _outil_de_coupe(monde, cible, identifiant):
     if (not moyen or resolution == cible or moyen.get("lieu") != "joueur"
             or moyen.get("integrite", 0) <= 0
             or statut_capacite(moyen, "couper") != "etablie"):
-        raise ErreurMonde("La qualification de coupe exige un outil possédé et utilisable.")
+        outils = sorted(i for i, o in monde.objets.items() if o.get("lieu") == "joueur" and i != cible
+                        and o.get("integrite", 0) > 0 and statut_capacite(o, "couper") == "etablie")
+        raise ErreurMonde("La qualification de coupe exige un outil possédé et utilisable.",
+                          f"moyen : un outil tranchant en main, parmi {liste(outils)} (reçu « {identifiant} »).")
     return moyen
 
 
 def preparer_faits(monde, proposition, revision=None):
     """Valide plusieurs faits liés et les applique atomiquement sur une copie."""
     if revision is not None and revision != monde.data["revision"]:
-        raise ErreurMonde("Le monde a changé avant l'enregistrement des faits.")
+        raise ErreurMonde("Le monde a changé avant l'enregistrement des faits.", "re-propose à partir des faits actuels.")
     if not isinstance(proposition, dict) or set(proposition) != {"ajouts"}:
-        raise ErreurMonde("Faits narratifs mal formés.")
+        recus = sorted(proposition) if isinstance(proposition, dict) else type(proposition).__name__
+        raise ErreurMonde("Faits narratifs mal formés.", f"etablir_faits a exactement le champ ajouts ; reçu : {recus}.")
     ajouts = proposition["ajouts"]
     if not isinstance(ajouts, list) or not 1 <= len(ajouts) <= 3:
-        raise ErreurMonde("Nombre de faits narratifs invalide.")
+        raise ErreurMonde("Nombre de faits narratifs invalide.", "ajouts : une liste de 1 à 3 faits.")
     autorises = catalogue(monde)
     travail = monde.copier()
     rendus = []
     etablis = []
     for index, ajout in enumerate(ajouts, 1):
+        def refus(message, attendu):
+            nature = ajout.get("type", "?") if isinstance(ajout, dict) else "?"
+            return ErreurMonde(message, f"ajout {index} ({nature}) : {attendu}")
         if not isinstance(ajout, dict) or ajout.get("type") not in TYPES:
-            raise ErreurMonde("Fait narratif mal formé.")
+            recu = ajout.get("type") if isinstance(ajout, dict) else type(ajout).__name__
+            raise refus("Fait narratif mal formé.", f"type parmi {', '.join(TYPES)} (reçu « {recu} »).")
         nature = ajout["type"]
         champs = ({"type", "ancrage"} if nature == "evolution" else
                   {"type", "ancrage", "moyen", "coupe_possible"}
@@ -195,7 +208,8 @@ def preparer_faits(monde, proposition, revision=None):
                   if nature == "objet" else
                   {"type", "ancrage", "nom", "genre", "texte"})
         if set(ajout) != champs or not isinstance(ajout["ancrage"], str):
-            raise ErreurMonde("Fait narratif mal formé.")
+            raise refus("Fait narratif mal formé.",
+                        f"champs exacts {', '.join(sorted(champs))} ; reçu : {', '.join(sorted(ajout))}.")
         ancrage = ajout["ancrage"]
         if nature == "evolution":
             from .transitions_scenario import preparer as preparer_transition
@@ -206,14 +220,17 @@ def preparer_faits(monde, proposition, revision=None):
         ancrage = reference_exacte(travail.objets.values(), ancrage) or ancrage
         if nature == "qualification":
             if ancrage not in autorises["qualifiables"]:
-                raise ErreurMonde("Cet objet ne peut pas être qualifié depuis ici.")
+                raise refus("Cet objet ne peut pas être qualifié depuis ici.",
+                            f"ancrage « {ancrage} » : un objet qualifiable d'ici, parmi {liste(sorted(autorises['qualifiables']))}.")
             cible = travail.objets[ancrage]
             if "coupe_possible" in ajout:
                 if type(ajout["coupe_possible"]) is not bool:
-                    raise ErreurMonde("Jugement de coupe mal formé.")
+                    raise refus("Jugement de coupe mal formé.", f"coupe_possible : true ou false (reçu {ajout['coupe_possible']!r}).")
                 moyen = _outil_de_coupe(travail, ancrage, ajout["moyen"])
                 if statut_capacite(cible, "tranchable", moyen) != "inconnue":
-                    raise ErreurMonde("La coupe avec cet outil est déjà établie.")
+                    raise refus("La coupe avec cet outil est déjà établie.",
+                                f"la coupe de {ancrage} par {moyen['id']} est déjà {statut_capacite(cible, 'tranchable', moyen)} : "
+                                "ne la qualifie plus ; re-propose directement l'action.")
                 positive = ajout["coupe_possible"]
                 observation = {
                     "capacite": "tranchable", "issue": "etablie" if positive else "ecartee",
@@ -235,10 +252,13 @@ def preparer_faits(monde, proposition, revision=None):
                                or capacite == "tranchable"
                                for capacite in exclusions)
                         or len(exclusions) != len(set(exclusions))):
-                    raise ErreurMonde("Constat physique mal formé.")
-                if any(statut_capacite(cible, capacite) != "inconnue"
-                       for capacite in exclusions):
-                    raise ErreurMonde("Une capacité connue ne peut pas être écartée à nouveau.")
+                    raise refus("Constat physique mal formé.",
+                                f"ecartees : liste sans doublon parmi {', '.join(c for c in CAPACITES_REVUE if c != 'tranchable')} "
+                                "(la coupe se qualifie avec moyen et coupe_possible).")
+                connues = [c for c in exclusions if statut_capacite(cible, c) != "inconnue"]
+                if connues:
+                    raise refus("Une capacité connue ne peut pas être écartée à nouveau.",
+                                f"{', '.join(connues)} déjà établie(s) ou écartée(s) pour {ancrage} : retire-les de ecartees.")
                 for capacite in exclusions:
                     observation = {"capacite": capacite, "issue": "ecartee",
                                    "empreinte": empreinte_capacite(cible),
@@ -252,18 +272,21 @@ def preparer_faits(monde, proposition, revision=None):
             _respecter_potentiel(travail, ajout["capacites"])
             nouvelles = proprietes_capacites(ajout["capacites"], cible["masse"], cible["mobile"])
             if not nouvelles:
-                raise ErreurMonde("Aucune propriété physique proposée.")
+                raise refus("Aucune propriété physique proposée.", "capacites : au moins une capacité renseignée.")
             if "tranchable" in noms_capacites(ajout["capacites"]):
-                raise ErreurMonde("La coupe d'un objet existant se qualifie avec un outil précis.")
+                raise refus("La coupe d'un objet existant se qualifie avec un outil précis.",
+                            "pour la coupe : qualification avec moyen (outil en main) et coupe_possible, sans capacites.")
             for capacite in noms_capacites(ajout["capacites"]):
                 if statut_capacite(cible, capacite) == "ecartee":
-                    raise ErreurMonde("Une capacité écartée ne peut pas être rétablie sans changement physique.")
+                    raise refus("Une capacité écartée ne peut pas être rétablie sans changement physique.",
+                                f"{capacite} est écartée pour {ancrage} : retire-la.")
             conflits = (set(nouvelles) & set(cible)) - {"integrite", "maximum"}
             if "maximum" in nouvelles and nouvelles["maximum"] != cible["maximum"]:
-                raise ErreurMonde("La ténacité proposée doit reprendre le maximum établi : "
-                                  + str(cible["maximum"]) + ".")
+                raise refus("La ténacité proposée doit reprendre le maximum établi : "
+                            + str(cible["maximum"]) + ".", f"tenacite = {cible['maximum']}.")
             if conflits:
-                raise ErreurMonde("Une propriété physique établie ne peut pas être réécrite.")
+                raise refus("Une propriété physique établie ne peut pas être réécrite.",
+                            f"déjà établi pour {ancrage} : {', '.join(sorted(conflits))} ; retire ces capacités.")
             if "integrite" in nouvelles:
                 nouvelles["integrite"] = cible["integrite"]
             cible.update(nouvelles)
@@ -272,13 +295,17 @@ def preparer_faits(monde, proposition, revision=None):
                             "proprietes": sorted(nouvelles)})
             continue
         if any(not isinstance(ajout[k], str) for k in ("nom", "genre", "texte")):
-            raise ErreurMonde("Fait narratif mal formé.")
+            raise refus("Fait narratif mal formé.", "nom, genre et texte : des chaînes.")
         nom, genre, texte = ajout["nom"].strip(), ajout["genre"], ajout["texte"].strip()
         if not _texte(texte, 300):
-            raise ErreurMonde("Type ou texte du fait narratif invalide.")
+            raise refus("Type ou texte du fait narratif invalide.", "texte : 3 à 300 caractères, sans saut de ligne.")
         if nature == "parole":
-            if nom or genre or ancrage not in autorises["locuteurs"] or len(texte) > 240:
-                raise ErreurMonde("Cette parole ne peut pas être attribuée à ce personnage ici.")
+            if ancrage not in autorises["locuteurs"]:
+                raise refus("Cette parole ne peut pas être attribuée à ce personnage ici.",
+                            f"ancrage : un personnage présent, parmi {liste(sorted(autorises['locuteurs']))}.")
+            if nom or genre or len(texte) > 240:
+                raise refus("Cette parole ne peut pas être attribuée à ce personnage ici.",
+                            "parole : nom et genre vides, texte de 240 caractères au plus.")
             from .sons import auditeurs
             source = travail.joueur["salle"]
             entendants = auditeurs(travail, source, 2)
@@ -292,12 +319,16 @@ def preparer_faits(monde, proposition, revision=None):
             etablis.append({"type": nature, "locuteur": ancrage})
             continue
         if ancrage not in autorises["supports"]:
-            raise ErreurMonde("Ce support n'est pas observable d'assez près et sous assez de lumière.")
+            raise refus("Ce support n'est pas observable d'assez près et sous assez de lumière.",
+                        f"ancrage « {ancrage} » : un support observable, parmi {liste(sorted(autorises['supports']))}.")
         support = travail.objets[ancrage]
         if nature == "inscription":
-            if nom or genre or len(texte) > 240 or any(e["lieu"] == ancrage and e.get("inscription")
-                                              for e in travail.objets.values()):
-                raise ErreurMonde("Une inscription est déjà établie sur ce support, ou sa forme est invalide.")
+            if any(e["lieu"] == ancrage and e.get("inscription") for e in travail.objets.values()):
+                raise refus("Une inscription est déjà établie sur ce support.",
+                            f"{ancrage} porte déjà une inscription : lire, ou un autre support.")
+            if nom or genre or len(texte) > 240:
+                raise refus("La forme de cette inscription est invalide.",
+                            "inscription : nom et genre vides, texte de 240 caractères au plus.")
             nom_support = designer(support)
             detail = objet("", "inscription sur " + nom_support, "motif", ancrage,
                            aliases=["inscription", "gravure", "gravure sur " + nom_support],
@@ -310,7 +341,9 @@ def preparer_faits(monde, proposition, revision=None):
             if (genre not in ("m", "f") or not _texte(nom, 60)
                     or any(normaliser(e["nom"]) == normaliser(nom)
                                              for e in travail.enfants(ancrage))):
-                raise ErreurMonde("Cet élément n'a pas de nom distinct sur son support.")
+                raise refus("Cet élément n'a pas de nom distinct sur son support.",
+                            "genre m ou f ; nom de 3 à 60 caractères, différent des éléments déjà sur "
+                            f"{ancrage} ({liste(e['nom'] for e in travail.enfants(ancrage))}).")
             if nature == "objet":
                 masse, mobile, materiau, relation = (ajout[k] for k in ("masse", "mobile", "materiau", "relation"))
                 if (type(masse) not in (int, float) or not math.isfinite(masse)
@@ -321,7 +354,12 @@ def preparer_faits(monde, proposition, revision=None):
                         or relation not in autorises["supports"][ancrage]["relations"]
                         or (relation == "contenu" and
                             (support["type"] != "contenant" or not support.get("ouverte")))):
-                    raise ErreurMonde("Propriétés physiques de l'objet invalides.")
+                    relations = autorises["supports"][ancrage]["relations"]
+                    raise refus("Propriétés physiques de l'objet invalides.",
+                                f"masse 0 à 500 (> 0 si mobile), mobile booléen, materiau 1 à 40 caractères, relation "
+                                f"parmi {', '.join(relations)} pour {ancrage}"
+                                + (" (contenu seulement dans un contenant ouvert)" if "contenu" in relations else "")
+                                + f" ; reçu masse {masse!r}, mobile {mobile!r}, relation {relation!r}.")
                 _respecter_potentiel(travail, ajout["capacites"], masse, nouvel_objet=True)
                 salle = travail.joueur["salle"]
                 if potentiel(travail) is not None:
@@ -342,7 +380,7 @@ def preparer_faits(monde, proposition, revision=None):
                           + ". " + texte)
         id = f'fait_{monde.data["revision"] + 1}_{index}'
         if id in travail.objets:
-            raise ErreurMonde("Ce détail existe déjà.")
+            raise refus("Ce détail existe déjà.", "re-propose à partir des faits actuels.")
         detail.update(id=id, origine_description="MJ", scene_detail=True)
         if nature != "objet":
             detail["detail_local"] = True
@@ -352,7 +390,8 @@ def preparer_faits(monde, proposition, revision=None):
                 from .spatial import position_cible
                 position = position_cible(travail, ancrage)
                 if position is None:
-                    raise ErreurMonde("Le support n'a pas de position observable.")
+                    raise refus("Le support n'a pas de position observable.",
+                                f"{ancrage} n'est pas sur le plan : choisis un autre support, ou un detail.")
                 placer(detail, travail.joueur["salle"], position)
                 detail["position_autonome"] = True
                 detail["ancrage_initial"] = ancrage

@@ -73,22 +73,25 @@ def compiler(m, e, justification, origine):
     from .moteur import Plan
     if e["cible"] in m.objets and e["methode"] == "simple":
         if e["destination"] or e["outil"] or e["difficulte"]:
-            raise ErreurMonde("Un son d'objet ne demande ni destination ni outil imposé.")
+            raise ErreurMonde("Un son d'objet ne demande ni destination ni outil imposé.",
+                              "emettre_son avec un objet : destination et outil vides, methode simple, difficulte 0.")
         id = e["cible"]
         o = m.objets[id]
         from .proximite import exiger
         if not m.accessible(id):
-            raise ErreurMonde("Cet objet est inaccessible depuis ici.")
+            from .refus import inaccessible
+            raise inaccessible(m, id)
         exiger(m, id)
         if o["integrite"] <= 0:
-            raise ErreurMonde("Cet objet ne peut pas produire ce son.")
+            raise ErreurMonde("Cet objet ne peut pas produire ce son.", f"{id} est brisé.")
         from .capacites_objet import statut as statut_capacite, absence as absence_capacite
         etat = statut_capacite(o, "son")
         if etat == "inconnue":
             from .moteur import QualificationRequise
             raise QualificationRequise(id, "son")
         if etat == "ecartee":
-            raise ErreurMonde(absence_capacite(o, "son") + ".")
+            raise ErreurMonde(absence_capacite(o, "son") + ".",
+                              f"{id} ne produit pas de son (qualification établie) : ne re-propose pas ce son.")
         p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
                  "Produire un son avec " + designer(o) + ".", origine=origine)
         p.minutes, p.bruit = 1, o["sonorite"]
@@ -96,9 +99,13 @@ def compiler(m, e, justification, origine):
         return p
     if (e["cible"] not in ("", "joueur") or e["destination"] or e["outil"]
             or e["methode"] not in VOIX or e["difficulte"]):
-        raise ErreurMonde("Une émission vocale vient du joueur, sans outil ni destination imposée : appel, cri ou sifflement.")
+        raise ErreurMonde("Une émission vocale vient du joueur, sans outil ni destination imposée : appel, cri ou sifflement.",
+                          f"emettre_son vocal : cible vide ou joueur, destination et outil vides, difficulte 0, methode parmi "
+                          f"{', '.join(VOIX)} (reçu cible « {e['cible']} », methode « {e['methode']} ») ; pour un objet : "
+                          "cible = son identifiant, methode simple.")
     if m.joueur.get("peut_parler") is False or m.joueur["pv"] <= 0:
-        raise ErreurMonde("Tu n'es pas en état d'émettre cet appel.")
+        raise ErreurMonde("Tu n'es pas en état d'émettre cet appel.",
+                          "le joueur ne peut pas émettre de son vocal : improviser un son corporel (corps_bref, corps_rythmique).")
     titre, _, intensite = VOIX[e["methode"]]
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"], titre, origine=origine)
     p.minutes, p.bruit = 1, intensite

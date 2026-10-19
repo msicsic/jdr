@@ -1,0 +1,134 @@
+"""Des refus qui guident : chaque refus dit au MJ, en champs et identifiants, ce qui serait accepté."""
+import unittest
+from unittest.mock import patch
+
+from donjon.mj import MJOpenAI
+from donjon.monde import ErreurMonde, nouveau_monde
+from donjon.moteur import Moteur, proposition
+from donjon.improvisation import effet, issue, proposition as improviser
+from donjon.operations import etape, sequence
+
+
+def refus(m, p):
+    try:
+        Moteur(m).preparer(p)
+    except ErreurMonde as exc:
+        return exc
+    raise AssertionError("refus attendu")
+
+
+class AttenduTests(unittest.TestCase):
+    def test_observer_un_objet_oriente_vers_examiner(self):
+        exc = refus(nouveau_monde(), proposition("observer", "antichambre_sol"))
+        self.assertIn("reçu « antichambre_sol »", exc.attendu)
+        self.assertIn("examiner", exc.attendu)
+
+    def test_identifiant_inconnu_liste_les_cibles_valables(self):
+        exc = refus(nouveau_monde(), proposition("examiner", "sol"))
+        self.assertIn("« sol » n'est pas un identifiant connu", exc.attendu)
+        self.assertIn("antichambre_sol", exc.attendu)
+
+    def test_objet_d_une_autre_salle_est_dit_absent(self):
+        exc = refus(nouveau_monde(), proposition("examiner", "marteau"))
+        self.assertIn("n'est pas ici", str(exc))
+        self.assertIn("marteau n'est pas dans la salle du joueur", exc.attendu)
+
+    def test_objet_dans_un_contenant_ferme_demande_de_l_ouvrir(self):
+        m = nouveau_monde()
+        m.joueur["salle"] = "crypte"
+        exc = refus(m, proposition("examiner", "anneau"))
+        self.assertIn("ouvre d'abord coffre", exc.attendu)
+
+    def test_sortie_inconnue_liste_les_sorties(self):
+        exc = refus(nouveau_monde(), proposition("aller", "sud"))
+        self.assertIn("nord, ouest", exc.attendu)
+
+    def test_porte_fermee_nomme_la_porte_a_ouvrir(self):
+        exc = refus(nouveau_monde(), proposition("aller", "nord"))
+        self.assertIn("ouvre d'abord porte", exc.attendu)
+
+    def test_outil_absent_distingue_inconnu_et_non_porte(self):
+        m = nouveau_monde()
+        inconnu = refus(m, proposition("frapper", "porte", "massue"))
+        self.assertIn("objets portés", inconnu.attendu)
+        self.assertIn("couteau", inconnu.attendu)
+        ailleurs = refus(m, proposition("crocheter", "porte", "crochets"))
+        self.assertIn("crochets n'est pas à portée", ailleurs.attendu)
+        m.objets["crochets"]["lieu"] = "antichambre"
+        ici = refus(m, proposition("crocheter", "porte", "crochets"))
+        self.assertIn("prends d'abord crochets", ici.attendu)
+
+    def test_outil_inadapte_liste_les_outils_qui_conviennent(self):
+        exc = refus(nouveau_monde(), proposition("crocheter", "porte", "couteau"))
+        self.assertIn("usage crochetage", exc.attendu)
+
+    def test_action_inconnue_liste_les_actions(self):
+        exc = refus(nouveau_monde(), proposition("fouiller", "antichambre_sol"))
+        self.assertIn("examiner", exc.attendu)
+        self.assertNotIn("clarifier", exc.attendu)
+
+    def test_l_etape_fautive_est_numerotee(self):
+        exc = refus(nouveau_monde(), sequence(etape("deplacer", "cle", "joueur"),
+                                              etape("allumer", "cle")))
+        self.assertTrue(exc.attendu.startswith("étape 2 (allumer)"))
+
+    def test_patienter_dit_ses_champs(self):
+        exc = refus(nouveau_monde(), sequence(etape("patienter", "marchand")))
+        self.assertIn("cible, destination et outil vides", exc.attendu)
+
+
+class ImprovisationTests(unittest.TestCase):
+    def test_un_jet_sans_recit_d_echec_le_dit(self):
+        p = improviser("Forcer le battant.", issue("Le battant cède."), cibles=["porte"],
+                       approche="effort", stat="FOR", difficulte=12)
+        exc = refus(nouveau_monde(), p)
+        self.assertIn("echec.recit", exc.attendu)
+
+    def test_l_effet_fautif_est_situe(self):
+        p = improviser("Graver une flèche.", issue("Une flèche.", [effet("marquer", "antichambre_murs", texte="flèche")]),
+                       cibles=["antichambre_murs"], approche="manipulation")
+        exc = refus(nouveau_monde(), p)
+        self.assertTrue(exc.attendu.startswith("branche reussite, effet 1 (marquer)"), exc.attendu)
+        self.assertIn("couteau", exc.attendu)
+
+    def test_une_cible_hors_salle_est_nommee(self):
+        p = improviser("Siffler vers Gorm.", issue("Tu siffles."), cibles=["marchand"])
+        exc = refus(nouveau_monde(), p)
+        self.assertIn("cibles", exc.attendu)
+        self.assertIn("marchand n'est pas dans la salle", exc.attendu)
+
+
+class FaitsTests(unittest.TestCase):
+    def test_le_fait_fautif_est_situe_et_les_ancrages_listes(self):
+        from donjon.faits_locaux import preparer_faits
+        m = nouveau_monde()
+        ajouts = [{"type": "detail", "ancrage": "antichambre_murs", "nom": "fissure", "genre": "f",
+                   "texte": "Une fissure court le long du mur."},
+                  {"type": "qualification", "ancrage": "poutre", "capacites": [{"nature": "son", "intensite": 1}]}]
+        try:
+            preparer_faits(m, {"ajouts": ajouts})
+        except ErreurMonde as exc:
+            self.assertTrue(exc.attendu.startswith("ajout 2 (qualification)"), exc.attendu)
+            self.assertIn("torche", exc.attendu)
+        else:
+            self.fail("refus attendu")
+
+
+class TransmissionTests(unittest.TestCase):
+    def test_le_mj_recoit_attendu_dans_le_retour_moteur(self):
+        m = nouveau_monde()
+        mauvaise = {"mode": "action", "texte": "", "faits": [],
+                    "proposition": proposition("observer", "antichambre_sol")}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler", side_effect=[mauvaise, ErreurMonde("indisponible")]) as appel:
+            try:
+                mj._echanger_prepare(m, "j'observe le sol")
+            except ErreurMonde:
+                pass
+        retour = appel.call_args_list[1].args[1]["faits"]["retour_moteur"]
+        self.assertIn("examiner", retour["attendu"])
+        self.assertNotIn("examiner", retour["obstacle"])
+
+
+if __name__ == "__main__":
+    unittest.main()
