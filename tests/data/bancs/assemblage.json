@@ -1,0 +1,14 @@
+{
+ "scenario": "atelier",
+ "seed": 1985,
+ "preparation": {"position": [2, 2], "lieux": {"ficelle": "joueur"}},
+ "tours": [
+  "regarder",
+  "je fabrique une échelle de 3 m avec les perches 1 et 2 comme montants, la perche 3 pour les barreaux, et la ficelle",
+  "tenter",
+  "examiner échelle",
+  "je coupe un mètre de ficelle",
+  "tenter",
+  "examiner ficelle"
+ ]
+}

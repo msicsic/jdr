@@ -107,9 +107,12 @@ class Moteur:
         if isinstance(p, dict) and p.get("action") == "improviser":
             from .improvisation import preparer
             return preparer(self.monde, p, origine)
-        if isinstance(p, dict) and p.get("action") == "fabriquer":
+        if isinstance(p, dict) and p.get("action") in ("fabriquer", "assembler"):
             from .artisanat import preparer
             return preparer(self.monde, p, origine)
+        if isinstance(p, dict) and p.get("action") == "decouper":
+            from .artisanat import preparer_decoupe
+            return preparer_decoupe(self.monde, p, origine)
         if isinstance(p, dict) and p.get("action") == "composer":
             return preparer_operations(self.monde, p, origine)
         attendus = set(proposition("examiner"))
@@ -621,7 +624,7 @@ class Moteur:
             m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)
             lignes.append(f"Tu retombes au pied de l'obstacle et perds {valeur} PV.")
             return
-        if op in ("assembler", "perdre_lien", "installer_assemblage", "retirer_assemblage"):
+        if op in ("assembler", "decouper", "perdre_lien", "installer_assemblage", "retirer_assemblage"):
             from .artisanat import appliquer
             appliquer(m, effet, lignes)
             return

@@ -246,7 +246,12 @@ def retirer_piece(o):
         o["masse"] = round(o["masse"] - o["masse"] / p["pieces"], 3)
         p["pieces"] -= 1
         if p["pieces"] == 1:
-            p.pop("nom_piece", None)
+            # La dernière pièce du lot porte désormais son nom (« planche de bac »), au singulier.
+            nom = p.pop("nom_piece", None)
+            if nom:
+                o["aliases"] = list(dict.fromkeys([*o.get("aliases", []), o["nom"], nom]))
+                o["nom"] = nom
+                o["pluriel"] = False
 
 
 def id_piece(m, lot):

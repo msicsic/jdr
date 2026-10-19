@@ -146,6 +146,18 @@ action spécialisée quand elle convient.
   passage, ni savoir, ni guérison, ne déplace pas Corvus et ne déclare pas une construction
   réussie : ce qui reste inconnu de l'espace passe par les règles d'espace.
 
+### Assembler et découper : construire avec ce qui est là
+- assembler : construire un objet dont le moteur modélise l'usage ; aujourd'hui usage echelle.
+  proposition = {action:"assembler", usage, pieces:{montants:[deux barres], barreaux: une barre
+  où tailler les barreaux}, lien, outil (qui coupe le bois), longueur_cm 100 à 500, largeur_cm 25
+  à 60, difficulte 10 à 18 (0 si rythme soigne), rythme normal ou soigne, justification}. Toute
+  pièce décrite convient : une barre (perche, planche…) d'une seule pièce, un lien assez long. Un
+  objet encore sans description se décrit d'abord (etablir_faits) ; un lot se prélève d'abord.
+  Le moteur calcule barreaux, longueurs consommées, durée et charge ; il refuse ce qui manque et
+  dit pourquoi. Une question sur la faisabilité reste un dialogue.
+- decouper : couper une barre ou un lien à une longueur : {action:"decouper", cible, outil,
+  longueur_cm, justification} ; le morceau devient une pièce à part, le reste raccourcit.
+
 ### Reprendre une tentative
 derniere_tentative est le dernier essai réellement résolu. « Je retente » le reprend après un
 échec, avec la même méthode et le même rythme sauf demande contraire ; une séquence repart de
@@ -176,7 +188,7 @@ précise le monde sans fournir d'objectif, de solution ni d'indice de quête.
   ancrage, moyen (l'outil) et coupe_possible, jugés pour cet outil et leur état présent ;
   sinon capacites, ou ecartees pour ce que l'objet ne sait pas faire.
 - qualification avec physique : décrire ce qu'est concrètement un objet existant quand ses
-  dimensions servent (fabriquer, mesurer, porter) et que qualifiables le marque « inconnue » :
+  dimensions servent (assembler, mesurer, porter) et que qualifiables le marque « inconnue » :
   forme (barre, plaque, lien, bloc, etoffe), matiere, dimensions en cm (0 pour celles qui ne
   s'appliquent pas ; une barre ronde a un diametre, une barre plate une largeur et une épaisseur),
   pieces (le nombre de pièces d'un lot, 1 sinon ; égal à ce qu'il en reste si les faits le

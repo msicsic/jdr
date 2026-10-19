@@ -21,7 +21,8 @@ from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, prepa
 from .operations import SCHEMA_SEQUENCE
 from .config import MODELE_PAR_DEFAUT
 from .francais import designer
-from .artisanat import SCHEMA_FABRICATION, dossier as dossier_atelier, REGLES as REGLES_ATELIER
+from .artisanat import (SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, dossier as dossier_atelier,
+                        REGLES as REGLES_ATELIER)
 from .harnais import derniere_tentative
 from .consignes import INTERPRETATION
 from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_FRANCHISSEMENT
@@ -606,7 +607,7 @@ class MJOpenAI:
                 "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj", "parole_joueur"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION] if enrichir else []) + ([SCHEMA_FABRICATION] if atelier else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION, SCHEMA_PAROLE] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION, SCHEMA_PAROLE] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }

@@ -38,13 +38,61 @@ SCHEMA_FABRICATION = {
     }, "required": list(fabrication([], "", "", "")),
 }
 
+# Usages modélisés d'un assemblage : le moteur ne simule que ceux-là. Une autre construction
+# reste un objet ordinaire (voir docs/plan-fabrication.md).
+USAGES = ("echelle",)
+SCHEMA_ASSEMBLAGE = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "action": {"type": "string", "enum": ["assembler"]},
+        "usage": {"type": "string", "enum": list(USAGES)},
+        "pieces": {"type": "object", "additionalProperties": False,
+                   "properties": {"montants": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "string"}},
+                                  "barreaux": {"type": "string"}},
+                   "required": ["montants", "barreaux"]},
+        "lien": {"type": "string"}, "outil": {"type": "string"},
+        "longueur_cm": {"type": "integer", "minimum": 100, "maximum": 500},
+        "largeur_cm": {"type": "integer", "minimum": 25, "maximum": 60},
+        "difficulte": {"type": "integer", "minimum": 0, "maximum": 18},
+        "rythme": {"type": "string", "enum": ["normal", "soigne"]},
+        "justification": {"type": "string"},
+    },
+    "required": ["action", "usage", "pieces", "lien", "outil", "longueur_cm", "largeur_cm", "difficulte",
+                 "rythme", "justification"],
+}
+SCHEMA_DECOUPE = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"action": {"type": "string", "enum": ["decouper"]}, "cible": {"type": "string"},
+                   "outil": {"type": "string"}, "longueur_cm": {"type": "integer", "minimum": 5},
+                   "justification": {"type": "string"}},
+    "required": ["action", "cible", "outil", "longueur_cm", "justification"],
+}
+
+
+def normaliser(p):
+    """Une proposition assembler (usage, pièces par rôle) ramenée à la forme de calcul de l'échelle."""
+    if not isinstance(p, dict) or p.get("action") != "assembler":
+        return p
+    if set(p) != set(SCHEMA_ASSEMBLAGE["required"]):
+        raise ErreurMonde("Proposition d'assemblage invalide.",
+                          f"assembler a exactement les champs {', '.join(SCHEMA_ASSEMBLAGE['required'])} ; reçu : {sorted(p)}.")
+    if p["usage"] not in USAGES:
+        raise ErreurMonde("Cet usage n'est pas modélisé.", f"usage parmi {', '.join(USAGES)} (reçu « {p['usage']} »).")
+    pieces = p["pieces"]
+    if not isinstance(pieces, dict) or set(pieces) != {"montants", "barreaux"}:
+        raise ErreurMonde("Pièces mal désignées.", "pieces : montants (deux identifiants) et barreaux (un identifiant).")
+    return dict(action="fabriquer", profil="barreaux", montants=pieces["montants"], traverses=pieces["barreaux"],
+                lien=p["lien"], outil=p["outil"], longueur_cm=p["longueur_cm"], largeur_cm=p["largeur_cm"],
+                difficulte=p["difficulte"], justification=p["justification"], rythme=p["rythme"])
+
+
 REGLES = """
 FABRICATION ET INSTALLATION (conventions de jeu, pas conseils de construction réelle) :
 Le dossier atelier sépare ressources connues, inconnues et assemblages possibles.
 Pour une question de faisabilité, réponds en dialogue sans rien fabriquer. Explique ce qui
-manque réellement. Pour une volonté de fabriquer une échelle, propose action fabriquer,
-profil barreaux, deux identifiants montants distincts, un troisième dans traverses, lien,
-outil, longueur_cm, largeur_cm, difficulte 10..18, justification courte (méthode et risque).
+manque réellement. Pour une volonté de fabriquer une échelle, propose action assembler, usage
+echelle (voir Assembler et découper) : deux montants distincts, une barre pour les barreaux, un
+lien, un outil, longueur_cm, largeur_cm, difficulte 10..18, justification courte (méthode et risque).
 Choisis aussi rythme : normal = 26 min et jet pour l'échelle de 3 m ; soigne = deux fois
 plus de temps, sans jet, si le dossier l'autorise (difficulte=0). « Je prends mon temps »,
 « soigneusement », « sans me presser » demandent soigne. Sans urgence ni préférence du joueur,
@@ -215,8 +263,9 @@ def preparer(m, p, origine):
     if eclairage(m)["niveau"] < 2:
         raise ErreurMonde("Il faut assez de lumière pour préparer et assembler les pièces.",
                           "fabriquer exige une lumière franche : allume d'abord une source.")
+    proposee, p = p, normaliser(p)
     bilan = calculer(m, p)
-    plan = Plan(copy.deepcopy(p), m.data["revision"],
+    plan = Plan(copy.deepcopy(proposee), m.data["revision"],
                 f"Fabriquer une échelle de {bilan['longueur_cm'] / 100:g} m avec {bilan['barreaux']} barreaux.",
                 origine="arbitrage mémorisé" if bilan["memorise"] else origine)
     plan.stat, plan.dd, plan.minutes, plan.bruit = "DEX", bilan["dd"], bilan["minutes"], 2
@@ -363,9 +412,12 @@ def appliquer(m, effet, lignes):
             masse += prelever(m, source, longueur)
             if m.objets[source].get("incorpore"):
                 entiers.append(source)
-        o = objet(id, "échelle de branches", "assemblage", m.joueur["salle"],
+        montant, lien = m.objets[p["montants"][0]], m.objets[p["lien"]]
+        matiere = montant.get("physique", {}).get("matiere") or montant.get("materiau") or "bois"
+        materiaux = " et ".join(dict.fromkeys(x for x in (matiere, lien.get("materiau")) if x))
+        o = objet(id, "échelle", "assemblage", m.joueur["salle"],
                   aliases=["echelle", "échelle", "assemblage"], genre="f", mobile=True,
-                  proprietaire="joueur", masse=round(masse, 6), materiau="bois et ficelle",
+                  proprietaire="joueur", masse=round(masse, 6), materiau=materiaux,
                   assemblage="barreaux", longueur_cm=b["longueur_cm"], largeur_cm=b["largeur_cm"],
                   barreaux=b["barreaux"], charge_jeu_kg=b["charge_jeu_kg"],
                   composants=copy.deepcopy(b["consommes"]), arbitrage=b["cle"])
@@ -377,6 +429,9 @@ def appliquer(m, effet, lignes):
         lignes.append(f"Tu fabriques une échelle de {b['longueur_cm'] / 100:g} m et {b['barreaux']} barreaux, puis la poses au sol. Les matériaux employés ont été prélevés.")
         if b.get("rythme") == "soigne":
             lignes.append(f"Tu y consacres {b['minutes']} minutes de travail soigné, sans jet de dés.")
+    elif op == "decouper":
+        decouper(m, cible, valeur["longueur"], valeur["morceau"])
+        lignes.append(f"Tu coupes {designer(m.objets[cible])} : un morceau de {valeur['longueur']} cm s'en détache.")
     elif op == "perdre_lien":
         prelever(m, cible, valeur)
         lignes.append("Deux mètres de lien sont perdus dans les essais d'assemblage ; aucune échelle n'est créée.")
@@ -490,3 +545,66 @@ def verifier(m):
             a = m.objets[o["installation"]["support"]]["appui_vertical"]
             assert o["lieu"] == a["bas"], "Installation déplacée sans retrait préalable"
             assert a["haut"] in m.data["salles"], "Palier inconnu"
+
+
+def preparer_decoupe(m, p, origine):
+    """Couper une pièce à une longueur : un morceau à part, le reste raccourci."""
+    from .moteur import Plan
+    from .proximite import exiger
+    from .refus import inaccessible, portes_avec_usage
+    if not isinstance(p, dict) or set(p) != set(SCHEMA_DECOUPE["required"]):
+        raise ErreurMonde("Découpe mal formée.", f"decouper a exactement les champs {', '.join(SCHEMA_DECOUPE['required'])}.")
+    cible, outil, longueur = p["cible"], p["outil"], p["longueur_cm"]
+    if not m.accessible(cible):
+        raise inaccessible(m, cible)
+    exiger(m, cible)
+    o = m.objets[cible]
+    physique = o.get("physique")
+    if not physique:
+        raise ErreurMonde(designer(o, debut=True) + " n'est pas encore décrit.",
+                          f"décris d'abord {cible} (etablir_faits, qualification avec physique), puis decouper.")
+    if physique["forme"] not in ("barre", "lien"):
+        raise ErreurMonde("Seule une barre ou un lien se coupe à longueur.", f"{cible} est une {physique['forme']}.")
+    if physique["pieces"] > 1:
+        raise ErreurMonde(designer(o, debut=True) + " forme un lot.", f"prélève d'abord une pièce de {cible} (prelever).")
+    if o.get("attache") or o.get("incorpore") or proprietaire(m, o) not in (None, "joueur"):
+        raise ErreurMonde("Tu ne disposes pas librement de " + designer(o) + ".",
+                          f"{cible} est attaché, incorporé ou à autrui : obtiens-le ou détache-le d'abord.")
+    total = physique["dimensions"]["longueur_cm"]
+    if type(longueur) is not int or not 5 <= longueur <= total - 5:
+        raise ErreurMonde("Cette longueur ne se coupe pas dans cette pièce.",
+                          f"longueur_cm de 5 à {total - 5} : {cible} mesure {total} cm.")
+    usages = {"couper_bois"} if physique["forme"] == "barre" else {"couper", "couper_bois"}
+    t = m.objets.get(outil)
+    if not t or t["lieu"] != "joueur" or not t.get("integrite") or not usages & set(t.get("usages", [])):
+        tranchants = sorted(set().union(*(portes_avec_usage(m, u) for u in usages)))
+        raise ErreurMonde("Il faut un outil adapté pour couper " + designer(o) + ".",
+                          f"outil : un objet en main d'usage {' ou '.join(sorted(usages))}, parmi {', '.join(tranchants) or 'aucun'}.")
+    if eclairage(m)["niveau"] < 2:
+        raise ErreurMonde("Il faut assez de lumière pour couper à la bonne longueur.",
+                          "decouper exige une lumière franche : allume d'abord une source.")
+    from .matiere import id_piece
+    plan = Plan(copy.deepcopy(p), m.data["revision"],
+                f"Couper {designer(o)} à {longueur} cm avec {designer(t)}.", origine=origine)
+    plan.minutes, plan.bruit = (5 if physique["forme"] == "barre" else 1), 2
+    plan.effets = [("decouper", cible, {"longueur": longueur, "morceau": id_piece(m, cible)})]
+    return plan
+
+
+def decouper(m, cible, longueur, morceau_id):
+    """Le morceau coupé devient un objet décrit ; la pièce d'origine garde le reste."""
+    from .matiere import deduire, fixer_longueur
+    o = m.objets[cible]
+    total = o["physique"]["dimensions"]["longueur_cm"]
+    masse = round(o["masse"] * longueur / total, 3)
+    morceau = objet(morceau_id, "morceau de " + o["nom"], o["type"], o["lieu"], aliases=["morceau"],
+                    genre="m", materiau=o["materiau"], masse=masse, mobile=True,
+                    physique={**o["physique"], "dimensions": {**o["physique"]["dimensions"], "longueur_cm": longueur}})
+    for cle in ("usages", "proprietaire", "position", "position_salle", "seuil_coupe", "duree_combustion"):
+        if cle in o:
+            morceau[cle] = list(o[cle]) if isinstance(o[cle], list) else o[cle]
+    deduire(morceau)
+    m.objets[morceau_id] = morceau
+    o["masse"] = round(o["masse"] - masse, 3)
+    fixer_longueur(o, total - longueur)
+    return morceau
