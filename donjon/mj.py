@@ -389,6 +389,10 @@ class MJOpenAI:
         self.observateur = None
         self._audit_courant = None
         self._monde_controle = None
+        # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
+        # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
+        import uuid
+        self.cle_cache = str(uuid.uuid4())
 
     def proposer(self, monde, intention):
         return self._appeler(INSTRUCTIONS, {"monde": monde.contexte(), "intention": intention},
@@ -982,6 +986,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             "max_output_tokens": 3000,
             "store": False,
         }
+        if self.cle_cache:
+            payload["prompt_cache_key"] = self.cle_cache
         if self.connexion == "chatgpt":
             outil = payload["tools"][0]
             payload["tools"] = [{"type": "namespace", "name": "donjon",
@@ -993,7 +999,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         requete = urllib.request.Request(
             "https://api.openai.com/v1/responses",
             data=json.dumps(payload).encode("utf-8"),
-            headers={"Authorization": "Bearer " + cle, "Content-Type": "application/json"},
+            headers={"Authorization": "Bearer " + cle, "Content-Type": "application/json",
+                     **({"session_id": self.cle_cache} if self.cle_cache else {})},
             method="POST",
         )
         try:
