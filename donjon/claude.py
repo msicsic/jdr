@@ -4,7 +4,8 @@ Activé seulement par ``--connexion anthropic`` ; Luna reste le MJ par défaut. 
 contrat du MJ : une fonction, un schéma strict, des arguments JSON que le moteur contrôle comme
 pour Luna. Deux modes (``mj.reflexion``) :
 - « imposee » : l'outil est imposé ; le modèle répond sans réflexion préalable ;
-- « libre » : réflexion adaptative (résumée), outil libre ; une réponse sans appel est refusée.
+- « libre » : réflexion adaptative (résumée), outil libre ; une réponse rendue en texte au lieu
+  de l'appel est renvoyée au modèle, réflexion comprise, pour être transcrite en appel imposé.
 Les instructions, stables d'un appel à l'autre, sont mises en cache.
 """
 import json
@@ -104,15 +105,32 @@ def appeler(mj, instructions, entree, fonction, schema):
         raise ErreurMonde(f"MJ indisponible : HTTP {exc.status_code}. Monde inchangé.") from None
     except anthropic.APIConnectionError:
         raise ErreurMonde("Le MJ n'a pas répondu (réseau ou délai). Aucune action appliquée.") from None
-    u = reponse.usage
+    contenu = [b.model_dump(mode="json", exclude_none=True) for b in reponse.content]
+    usages = [reponse.usage]
+    if (mj.reflexion == "libre" and reponse.stop_reason == "end_turn"
+            and not any(b.type == "tool_use" for b in reponse.content)):
+        # Réflexion faite, mais réponse rendue en texte : le modèle la transcrit en appel imposé,
+        # avec sa propre réflexion sous les yeux. Le sens reste le sien ; seul le format change.
+        suite = {**requete, "tool_choice": {"type": "tool", "name": fonction, "disable_parallel_tool_use": True},
+                 "messages": [*requete["messages"], {"role": "assistant", "content": contenu},
+                              {"role": "user", "content": f"Transcris exactement cette réponse en appelant {fonction} "
+                                                          "une fois, sans en changer le sens."}]}
+        try:
+            reponse = _client(mj).messages.create(**suite)
+        except anthropic.APIError as exc:
+            raise ErreurMonde("Le MJ n'a pas fourni une proposition unique. Aucune action appliquée.") from exc
+        usages.append(reponse.usage)
+        contenu = contenu + [{"type": "transcription"}] + [
+            b.model_dump(mode="json", exclude_none=True) for b in reponse.content]
+    entree_t = sum(u.input_tokens for u in usages)
+    sortie_t = sum(u.output_tokens for u in usages)
+    lu = sum(u.cache_read_input_tokens or 0 for u in usages)
+    ecrit = sum(u.cache_creation_input_tokens or 0 for u in usages)
     mj.derniere_utilisation = {
-        "input_tokens": u.input_tokens, "output_tokens": u.output_tokens,
-        "cache_read_input_tokens": u.cache_read_input_tokens or 0,
-        "cache_creation_input_tokens": u.cache_creation_input_tokens or 0,
-        "total_tokens": u.input_tokens + (u.cache_read_input_tokens or 0)
-                        + (u.cache_creation_input_tokens or 0) + u.output_tokens}
-    brut = {"stop_reason": reponse.stop_reason, "strict": strict,
-            "contenu": [b.model_dump(mode="json", exclude_none=True) for b in reponse.content]}
+        "input_tokens": entree_t, "output_tokens": sortie_t,
+        "cache_read_input_tokens": lu, "cache_creation_input_tokens": ecrit,
+        "total_tokens": entree_t + lu + ecrit + sortie_t}
+    brut = {"stop_reason": reponse.stop_reason, "strict": strict, "contenu": contenu}
     mj.dernier_brut = brut  # gardé pour la trace, même si la réponse est refusée ci-dessous
     if reponse.stop_reason == "refusal":
         raise ErreurMonde("Le MJ a décliné la demande. Aucune action appliquée.")

@@ -49,7 +49,9 @@ def _reponse(brut):
     for b in blocs:
         if not isinstance(b, dict):
             continue
-        if b.get("type") == "thinking":
+        if b.get("type") == "transcription":
+            morceaux.append("<div class='avis'>Réponse rendue en texte : relance pour la transcrire en appel.</div>")
+        elif b.get("type") == "thinking":
             morceaux.append("<div class='pense'>Réflexion :</div>" + _pre(b.get("thinking") or "(non affichée)"))
         elif b.get("type") == "tool_use":
             morceaux.append("<div>Réponse (" + html.escape(str(b.get("name"))) + ") :</div>" + _pre(b.get("input")))
