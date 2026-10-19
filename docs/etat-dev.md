@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-19.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-20.
 
 ## Où on en est
 
@@ -77,13 +77,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   refus ne fait parler aucun personnage ; un déplacement vers un personnage oriente vers
   remettre ; la contre-revue voit « nom (identifiant) » au lieu d'identifiants nus (« marchand »
   lu comme un marchand). Bancs : don de la cloche 3/3 avec Haiku et avec Luna.
-- La suite de tests passe : 623 tests, sans clé ni connexion.
+- Branche `fabrication-generale`, étape 3 : action `assembler` (usage, pièces par rôle, lien,
+  outil) avec n'importe quelle pièce décrite ; `fabriquer` en reste un alias ; l'échelle prend
+  le nom « échelle » et sa matière de ses pièces. Action `decouper` : une barre ou un lien
+  coupé à longueur donne un morceau, le reste garde la masse complémentaire ; l'outil doit
+  pouvoir couper cette matière. Un lot se prélève d'abord pièce par pièce (prélever sur place
+  ne déplace rien) ; la dernière pièce garde le nom de pièce. Bancs : échelle de perches et
+  ficelle coupée d'un mètre, 3/3 avec Luna et avec Haiku.
+- La suite de tests passe : 628 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
-- **Fabrication générale** (en cours, `docs/plan-fabrication.md`) : étapes 1 et 2 fusionnées
-  (description physique, contenu, lots et prélèvement) ; reste l'étape 3, assemblage générique
-  et découpe, puis d'autres usages.
+- **Fabrication générale** (`docs/plan-fabrication.md`) : étapes 1 à 3 fusionnées ; l'étape 4
+  (d'autres usages : passerelle, cale…) attend un accord. Limite : les planches du Relais ne
+  suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
+  test sur l'atelier, pas en partie au Relais.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

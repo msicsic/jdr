@@ -34,5 +34,14 @@ rien. L'objectif est de sortir d'une fabrication scriptée.
    l'atelier et avec les planches du Relais.
 4. D'autres usages, un par un.
 
+## Avancement
+
+- Étapes 1 à 3 faites. `assembler` remplace `fabriquer` (gardé comme alias) ; `decouper`
+  complète le prélèvement. Bancs `materiaux`, `lots` et `assemblage` (tests/data/bancs), 3
+  passes avec Luna et avec Haiku.
+- Écart : la vérification « avec les planches du Relais » n'a pas été faite en partie. Le
+  Relais n'a que deux planches, propriété d'Aubin : de quoi deux montants, rien pour les
+  barreaux. Un test assemble une échelle de planches décrites dans l'atelier et la recharge.
+
 Les conventions physiques (densités, résistances) sont des règles de jeu, pas un calcul
 d'ingénierie.
