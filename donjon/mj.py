@@ -514,9 +514,8 @@ class MJOpenAI:
                     travail = preparer_complements(monde, complements, revision)
             except ErreurMonde as exc:
                 if recadre:
-                    # Un seul recadrage par tour ; jamais de message technique au joueur.
-                    return {"mode": "dialogue", "texte": "Je ne peux pas encore répondre avec certitude.",
-                            "faits": [], "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
+                    # Un seul recadrage par tour : le second refus remonte, comme avant le recadrage.
+                    raise
                 retour = retour_refus(reponse["proposition"], exc,
                                       "Corrige la proposition, ou choisis le mode qui convient à la demande "
                                       "(etablir_faits pour décrire un objet, dialogue pour répondre).")

@@ -78,8 +78,8 @@ def preparer_complements(monde, proposition, revision=None):
                               "chaque ajout a exactement personnage, facette, description (textes).")
         id, facette, texte = ajout["personnage"], ajout["facette"], ajout["description"].strip()
         if id not in autorises:
-            objet = monde.objets.get(id)
-            if objet is not None and objet["type"] != "personnage":
+            designe = monde.objets.get(id)
+            if designe is not None and designe["type"] != "personnage":
                 raise ErreurMonde("Ce n'est pas un personnage.",
                                   f"« {id} » est un objet : pour le décrire, etablir_faits (detail, ou qualification "
                                   "avec physique pour sa forme et ses dimensions).")
