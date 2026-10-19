@@ -642,6 +642,10 @@ class Moteur:
         elif op == "allumage":
             o["allume"] = valeur
             lignes.append(designer(o, debut=True) + (" s'allume." if valeur else " s'éteint."))
+        elif op == "prelever_piece":
+            from .matiere import prelever_piece
+            piece = prelever_piece(m, cible, valeur)
+            lignes.append("Tu prends " + designer(piece, "indefini") + " dans " + designer(o) + ".")
         elif op == "alimentation":
             from .perception import alimenter
             alimenter(m, cible, valeur)

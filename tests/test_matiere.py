@@ -11,8 +11,9 @@ from donjon.monde import ErreurMonde, Monde
 from donjon.rendu import decrire
 
 
-def planches(pieces=3, longueur=150, largeur=15, epaisseur=2):
-    return {"forme": "barre", "matiere": "bois", "pieces": pieces,
+def planches(pieces=2, longueur=150, largeur=20, epaisseur=2.5):
+    # Le lot du Relais compte 2 utilisations et pèse 8 kg : 2 planches de 4,5 kg chacune.
+    return {"forme": "barre", "matiere": "bois", "pieces": pieces, "nom_piece": "planche de bac",
             "dimensions": {"longueur_cm": longueur, "largeur_cm": largeur, "epaisseur_cm": epaisseur,
                            "diametre_cm": 0, "hauteur_cm": 0}}
 
@@ -33,22 +34,22 @@ class DescriptionTests(unittest.TestCase):
         m = relais_avec_planches()
         travail, texte, _ = qualifier(m, "planches", planches())
         o = travail.objets["planches"]
-        self.assertEqual(o["physique"]["pieces"], 3)
+        self.assertEqual(o["physique"]["pieces"], 2)
         # Le moteur déduit ce qui découle de la description : rôle, longueur, charge.
         self.assertEqual((o["ressource"], o["longueur_cm"]), ("perche", 150))
         self.assertEqual(o["charge_jeu_kg"], charge_deduite(o["physique"]))
-        self.assertIn("3 pièces de 1,5 m × 15 cm × 2 cm", texte)
+        self.assertIn("2 pièces de 1,5 m × 20 cm × 2,5 cm", texte)
         with tempfile.TemporaryDirectory() as dossier:
             chemin = Path(dossier) / "partie.json"
             travail.sauver(chemin)
             recharge = Monde.charger(chemin)
         self.assertEqual(recharge.objets["planches"]["physique"], o["physique"])
-        self.assertIn("3 pièces", decrire(recharge, "planches", detail=True))
+        self.assertIn("2 pièces", decrire(recharge, "planches", detail=True))
 
     def test_une_description_qui_contredit_la_masse_est_refusee_avec_la_masse_deduite(self):
         m = relais_avec_planches()
         with self.assertRaises(ErreurMonde) as refus:
-            qualifier(m, "planches", planches(pieces=6, longueur=200, largeur=20, epaisseur=2.5))
+            qualifier(m, "planches", planches(longueur=250, largeur=30, epaisseur=4))
         self.assertIn("pèse 8 kg", refus.exception.attendu)
         self.assertIn("ajuste dimensions ou pieces", refus.exception.attendu)
 
@@ -116,7 +117,7 @@ class RecadrageTests(unittest.TestCase):
         retour = appel.call_args_list[1].kwargs["retour_moteur"]
         self.assertIn("est un objet", retour["attendu"])
         self.assertNotIn("personnage", reponse["texte"])
-        self.assertIn("3 pièces", reponse["texte"])
+        self.assertIn("2 pièces", reponse["texte"])
 
 
 class ContenuTests(unittest.TestCase):
@@ -146,3 +147,61 @@ class ContenuTests(unittest.TestCase):
         with self.assertRaises(ErreurMonde) as refus:
             self.contenu(travail, "suif")
         self.assertIn("ne le redonne pas", refus.exception.attendu)
+
+
+class LotTests(unittest.TestCase):
+    """Un lot décrit fournit des pièces distinctes ; il ne se compte que d'une façon."""
+
+    def lot_decrit(self):
+        m = relais_avec_planches()
+        travail, _, _ = qualifier(m, "planches", planches())
+        travail.objets["planches"]["proprietaire"] = None
+        return travail
+
+    def test_le_nombre_de_pieces_suit_ce_qu_il_reste(self):
+        with self.assertRaises(ErreurMonde) as refus:
+            qualifier(relais_avec_planches(), "planches", planches(pieces=3, longueur=100))
+        self.assertIn("pieces = 2", refus.exception.attendu)
+
+    def test_prelever_une_planche_la_porte_et_diminue_le_lot(self):
+        from unittest.mock import patch
+        from donjon.moteur import Moteur
+        from donjon.operations import etape, sequence
+        m = self.lot_decrit()
+        masse_avant = m.objets["planches"]["masse"]
+        plan = Moteur(m).preparer(sequence(etape("prelever", "planches", "joueur")))
+        with patch.object(Monde, "d20", return_value=20):
+            Moteur(m).executer(plan)
+        piece = m.objets["planches_1"]
+        self.assertEqual((piece["nom"], piece["lieu"], piece["physique"]["pieces"]), ("planche de bac", "joueur", 1))
+        self.assertEqual(piece["longueur_cm"], 150)
+        lot = m.objets["planches"]
+        self.assertEqual((lot["physique"]["pieces"], lot["charges"]), (1, 1))
+        self.assertAlmostEqual(lot["masse"] + piece["masse"], masse_avant, places=2)
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "partie.json"
+            m.sauver(chemin)
+            recharge = Monde.charger(chemin)
+        self.assertEqual(recharge.objets["planches_1"]["lieu"], "joueur")
+        self.assertIn("1,5 m", decrire(recharge, "planches_1", detail=True))
+
+    def test_un_objet_seul_ne_se_preleve_pas(self):
+        from donjon.moteur import Moteur
+        from donjon.operations import etape, sequence
+        m = relais_avec_planches()
+        with self.assertRaises(ErreurMonde) as refus:
+            Moteur(m).preparer(sequence(etape("prelever", "planches", "joueur")))
+        self.assertIn("décris d'abord planches", refus.exception.attendu)
+
+    def test_bruler_une_planche_retire_une_piece(self):
+        from donjon.perception import alimenter
+        m = self.lot_decrit()
+        self.assertTrue(alimenter(m, "brasero", "planches"))
+        self.assertEqual((m.objets["planches"]["charges"], m.objets["planches"]["physique"]["pieces"]), (1, 1))
+
+    def test_un_lot_ne_sert_pas_de_montant_avant_le_prelevement(self):
+        from donjon.artisanat import ressource
+        m = self.lot_decrit()
+        with self.assertRaises(ErreurMonde) as refus:
+            ressource(m, "planches", "perche")
+        self.assertIn("prélève d'abord une pièce", refus.exception.attendu)

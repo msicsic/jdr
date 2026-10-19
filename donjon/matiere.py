@@ -47,8 +47,9 @@ SCHEMA = {
                        "properties": {d: {"type": "number"} for d in DIMENSIONS},
                        "required": list(DIMENSIONS)},
         "pieces": {"type": "integer"},
+        "nom_piece": {"type": "string", "description": "Nom d'une pièce d'un lot (« planche de bac »), vide pour un objet seul."},
     },
-    "required": ["forme", "matiere", "dimensions", "pieces"],
+    "required": ["forme", "matiere", "dimensions", "pieces", "nom_piece"],
 }
 
 
@@ -91,9 +92,9 @@ def charge_deduite(physique):
 
 def valider(o, physique):
     """Refus explicite si la description n'est pas utilisable pour cet objet ; sinon la forme normalisée."""
-    if not isinstance(physique, dict) or set(physique) != {"forme", "matiere", "dimensions", "pieces"}:
+    if not isinstance(physique, dict) or set(physique) != {"forme", "matiere", "dimensions", "pieces", "nom_piece"}:
         raise ErreurMonde("Description physique mal formée.",
-                          "physique : exactement forme, matiere, dimensions, pieces.")
+                          "physique : exactement forme, matiere, dimensions, pieces, nom_piece.")
     forme, matiere, pieces = physique["forme"], physique["matiere"], physique["pieces"]
     if forme not in FORMES:
         raise ErreurMonde("Forme inconnue.", f"forme parmi {', '.join(FORMES)} (reçu « {forme} »).")
@@ -104,6 +105,14 @@ def valider(o, physique):
                           f"{o['id']} est en {o['materiau']} : matiere = {o['materiau']}.")
     if type(pieces) is not int or not 1 <= pieces <= PIECES_MAX:
         raise ErreurMonde("Nombre de pièces invalide.", f"pieces : entier de 1 à {PIECES_MAX} (1 pour un objet seul).")
+    if "charges" in o and pieces != o["charges"]:
+        # Un lot ne se compte que d'une façon : ses pièces sont ses utilisations.
+        raise ErreurMonde("Le nombre de pièces contredit ce qu'il reste.",
+                          f"{o['id']} compte {o['charges']} unités : pieces = {o['charges']}.")
+    nom_piece = physique["nom_piece"].strip() if isinstance(physique["nom_piece"], str) else None
+    if nom_piece is None or (pieces > 1 and not 3 <= len(nom_piece) <= 60):
+        raise ErreurMonde("Il manque le nom d'une pièce.",
+                          "nom_piece : le nom d'une pièce du lot (« planche de bac »), 3 à 60 caractères ; vide pour un objet seul.")
     dims = physique["dimensions"]
     if (not isinstance(dims, dict) or set(dims) - set(DIMENSIONS)
             or any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in dims.values())):
@@ -122,6 +131,8 @@ def valider(o, physique):
         if not bas <= v <= haut:
             raise ErreurMonde("Une dimension n'est pas plausible.", f"{d} d'une {forme} : de {bas} à {haut} cm (reçu {v:g}).")
     normale = {"forme": forme, "matiere": matiere, "pieces": pieces, "dimensions": utiles}
+    if pieces > 1:
+        normale["nom_piece"] = nom_piece
     masse = o.get("masse", 0)
     if masse > 0:
         deduite = masse_deduite(normale)
@@ -223,5 +234,45 @@ def decrire_contenu(o):
     c = o.get("contenu")
     if not c:
         return ""
-    article = SUBSTANCES[c["matiere"]]["article"]
-    return ("Elle brûle " if o.get("genre") == "f" else "Il brûle ") + article if "combustible" in o else            ("Elle contient " if o.get("genre") == "f" else "Il contient ") + article
+    from .francais import designer
+    verbe = " brûle " if "combustible" in o else " contient "
+    return designer(o, debut=True) + verbe + SUBSTANCES[c["matiere"]]["article"]
+
+
+def retirer_piece(o):
+    """Une pièce quitte le lot (prélevée ou brûlée) : sa masse part avec elle."""
+    p = o.get("physique")
+    if p and p["pieces"] > 1:
+        o["masse"] = round(o["masse"] - o["masse"] / p["pieces"], 3)
+        p["pieces"] -= 1
+        if p["pieces"] == 1:
+            p.pop("nom_piece", None)
+
+
+def id_piece(m, lot):
+    k = 1
+    while f"{lot}_{k}" in m.objets:
+        k += 1
+    return f"{lot}_{k}"
+
+
+def prelever_piece(m, lot_id, piece_id):
+    """Crée une pièce du lot, à sa place, avec sa description ; le lot diminue d'autant."""
+    from .monde import objet
+    lot = m.objets[lot_id]
+    p = lot["physique"]
+    nom = p["nom_piece"]
+    piece = objet(piece_id, nom, lot["type"], lot["lieu"], aliases=[nom], genre=lot.get("genre", "m"),
+                  materiau=lot["materiau"], masse=round(lot["masse"] / p["pieces"], 3), mobile=True,
+                  physique={"forme": p["forme"], "matiere": p["matiere"], "pieces": 1,
+                            "dimensions": dict(p["dimensions"])})
+    for cle in ("usages", "duree_combustion", "proprietaire", "position", "position_salle", "seuil_coupe"):
+        if cle in lot:
+            piece[cle] = list(lot[cle]) if isinstance(lot[cle], list) else lot[cle]
+    if "charges" in lot:
+        piece["charges"] = 1
+        lot["charges"] -= 1
+    deduire(piece)
+    m.objets[piece_id] = piece
+    retirer_piece(lot)
+    return piece

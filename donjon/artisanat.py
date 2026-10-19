@@ -98,6 +98,9 @@ def ressource(m, id, nature):
         raise ErreurMonde(f"{designer(o, debut=True)} n'est pas encore décrit.",
                           f"décris d'abord {id} (etablir_faits, qualification avec physique : forme, matiere, "
                           f"dimensions, pieces), puis re-propose ; {libres}")
+    if o.get("physique", {}).get("pieces", 1) > 1:
+        raise ErreurMonde(f"{designer(o, debut=True)} forme un lot de plusieurs pièces.",
+                          f"prélève d'abord une pièce de {id} (étape prelever), puis emploie-la ; {libres}")
     if o.get("ressource") != nature or o["integrite"] < o["maximum"]:
         raise ErreurMonde(f"{designer(o, debut=True)} ne convient pas comme {nature} intact.",
                           f"{id} n'est pas un {nature} intact ; {libres}")

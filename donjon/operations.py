@@ -13,7 +13,7 @@ from .refus import inaccessible, liste, portes_avec_usage
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
 ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper", "frapper",
                        "bloquer", "debloquer")
-OPERATIONS = ("patienter", "deplacer", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "emettre_son",
+OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement")
 
@@ -275,6 +275,27 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                               "ou voler si le joueur l'a voulu.")
         p.titre, p.minutes, p.effort = "Manger une part " + complement_de(o) + ".", 5, False
         p.effets = [("manger", cible, 1)]
+        return p
+    if op == "prelever":
+        # Une pièce d'un lot décrit : créée à la place du lot, puis déplacée selon les règles de deplacer.
+        from .matiere import id_piece, prelever_piece
+        physique = o.get("physique")
+        if not physique:
+            raise ErreurMonde(designer(o, debut=True) + " n'est pas encore décrit.",
+                              f"décris d'abord {cible} (etablir_faits, qualification avec physique, pieces et nom_piece), "
+                              "puis prelever.")
+        if physique["pieces"] < 2:
+            raise ErreurMonde(designer(o, debut=True) + " ne forme qu'une pièce.",
+                              f"{cible} est un objet seul : deplacer, pas prelever.")
+        piece_id = id_piece(monde, cible)
+        avec_piece = monde.copier()
+        prelever_piece(avec_piece, cible, piece_id)
+        p = compiler(avec_piece, etape("deplacer", piece_id, destination or "joueur", methode=methode),
+                     precedent, justification, origine)
+        p.effets = [("prelever_piece", cible, piece_id)] + p.effets
+        # Un vol manqué vise le lot : la pièce n'en a pas été séparée.
+        p.echec = [(a, b, cible if c == piece_id else c) for a, b, c in p.echec]
+        p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + " dans " + designer(o) + "."
         return p
     if op == "deplacer" and monde.objets.get(destination, {}).get("foyer"):
         # Mettre un combustible dans un foyer, c'est le recharger : le geste d'alimenter.
