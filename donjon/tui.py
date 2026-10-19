@@ -16,6 +16,7 @@ from .comparaison import texte_resultat, texte_comparaison
 # Deux nuances discrètes par terrain gardent le pas d'un mètre lisible sans ponctuation.
 SOL_VISIBLE = ("#35594d", "#395e50")
 SOL_MEMORISE = ("#293942", "#2c3d46")
+SOL_PENOMBRE = ("#22392f", "#253d33")  # visible dans la pénombre : vue courte
 SOUVENIR_OBJET = "#aebbc3"
 
 
@@ -41,6 +42,8 @@ def coloriser_plan(dessin):
             nuance = ((colonne - 5) // 2 + y) % 2
             if case_complete == ". ":
                 rendu.append(" " * len(case), style=f"on {SOL_VISIBLE[nuance]}")
+            elif case_complete == ", ":
+                rendu.append(" " * len(case), style=f"on {SOL_PENOMBRE[nuance]}")
             elif case_complete == ": ":
                 rendu.append(" " * len(case), style=f"on {SOL_MEMORISE[nuance]}")
             elif case_complete == "##":
@@ -67,7 +70,6 @@ def coloriser_plan(dessin):
 
 def coloriser_legende(legende):
     """Remplace les repères techniques par les couleurs affichées sur le plan."""
-    ancienne = "@ toi   ## mur   . terrain visible   : terrain mémorisé ou passage connu   cases vides : inconnues"
     rendu = Text()
     for numero, ligne in enumerate(legende.splitlines()):
         if numero:
@@ -86,12 +88,15 @@ def coloriser_legende(legende):
                 else:
                     rendu.append(morceau)
             continue
-        if ligne != ancienne:
+        if not ligne.startswith("@ toi   ## mur"):
             rendu.append(ligne)
             continue
         rendu.append("@ toi   ## mur   ")
         rendu.append("  ", style=f"on {SOL_VISIBLE[0]}")
-        rendu.append(" visible   ")
+        rendu.append(" visible, éclairé   ")
+        if "pénombre" in ligne:
+            rendu.append("  ", style=f"on {SOL_PENOMBRE[0]}")
+            rendu.append(" visible dans la pénombre (vue courte)   ")
         rendu.append("  ", style=f"on {SOL_MEMORISE[0]}")
         rendu.append(" exploré hors de vue   cases vides : inconnues")
     return rendu
