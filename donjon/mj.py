@@ -332,13 +332,15 @@ class MJOpenAI:
         return ajouter_transaction(reponse, "espace", monde.data["revision"], p, debut=True)
 
     def _echanger_prepare(self, monde, intention, proposition_en_attente=None,
-                          suite_fait=False):
+                          suite_fait=False, reponse=None, recadre=False):
         """Interprétation, une correction au plus, puis narration si enrichissement.
 
+        ``reponse`` : une réponse déjà obtenue (corrigée après un refus), traitée par le chemin
+        de son mode ; ``recadre`` interdit un second recadrage dans le même tour.
         Aucune écriture : seule la boucle de jeu applique les propositions validées.
         """
         revision = monde.data["revision"]
-        if (not est_question(intention) and proposition_en_attente is None and
+        if (reponse is None and not est_question(intention) and proposition_en_attente is None and
                 normaliser(intention) in ("je retente", "je rentente", "je reessaie", "je recommence", "retenter", "reessayer")):
             dernier = derniere_tentative(monde)
             if dernier and not dernier["reussite"]:
@@ -358,7 +360,8 @@ class MJOpenAI:
                                       "revision": revision, "intention": intention, "reponse": copy.deepcopy(r),
                                       "usage": None, "secondes": 0})
                 return r
-        reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
+        if reponse is None:
+            reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
         correction_utilisee = False
         premier_refus = None
         for tentative in range(2):
@@ -496,16 +499,33 @@ class MJOpenAI:
                         if reponse["mode"] == "dialogue":
                             return reponse
                         raise ErreurMonde("La correction de la parole n'a pas abouti.")
-        elif reponse["mode"] == "conversation_pnj":
-            if complements.get("operation") in ("accepter", "refuser") and est_question(intention):
-                raise ErreurMonde("Une question ne suffit pas à accepter ou refuser une offre.")
-            travail, rapport = preparer_conversation(monde, complements, revision)
-        elif reponse["mode"] == "enrichir_savoirs":
-            travail = preparer_savoirs(monde, complements, revision)
-            rapport = {"personnage": complements["personnage"], "sujet": intention,
-                       "operation": "raconter", "faits": ["Les connaissances proposées sont enregistrées dans connaissances_pnj. Répondre à partir de ces savoirs."]}
         else:
-            travail = preparer_complements(monde, complements, revision)
+            try:
+                if reponse["mode"] == "conversation_pnj":
+                    if complements.get("operation") in ("accepter", "refuser") and est_question(intention):
+                        raise ErreurMonde("Une question ne suffit pas à accepter ou refuser une offre.",
+                                          "une question appelle discuter ou proposer, pas accepter ni refuser.")
+                    travail, rapport = preparer_conversation(monde, complements, revision)
+                elif reponse["mode"] == "enrichir_savoirs":
+                    travail = preparer_savoirs(monde, complements, revision)
+                    rapport = {"personnage": complements["personnage"], "sujet": intention,
+                               "operation": "raconter", "faits": ["Les connaissances proposées sont enregistrées dans connaissances_pnj. Répondre à partir de ces savoirs."]}
+                else:
+                    travail = preparer_complements(monde, complements, revision)
+            except ErreurMonde as exc:
+                if recadre:
+                    # Un seul recadrage par tour ; jamais de message technique au joueur.
+                    return {"mode": "dialogue", "texte": "Je ne peux pas encore répondre avec certitude.",
+                            "faits": [], "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
+                retour = retour_refus(reponse["proposition"], exc,
+                                      "Corrige la proposition, ou choisis le mode qui convient à la demande "
+                                      "(etablir_faits pour décrire un objet, dialogue pour répondre).")
+                if self.observateur:
+                    self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
+                                      "revision": revision, "tentative": 1, **retour})
+                corrigee = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
+                return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
+                                              reponse=corrigee, recadre=True)
         narration = self._echanger(travail, intention, proposition_en_attente, enrichir=False, conversation_validee=rapport)
         if narration["mode"] != "dialogue":
             raise ErreurMonde("Le MJ n'a pas terminé la description. Aucun complément enregistré.")

@@ -96,3 +96,24 @@ class AtelierTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RecadrageTests(unittest.TestCase):
+    def test_un_objet_pris_pour_un_personnage_est_recadre_vers_sa_description(self):
+        # Cas du banc Luna : « elles font quelle taille, ces planches de bac ? » proposé en mode
+        # enrichir, comme pour un personnage ; le refus partait tel quel au joueur.
+        from unittest.mock import patch
+        from donjon.mj import MJOpenAI
+        m = relais_avec_planches()
+        enrichir = {"mode": "enrichir", "texte": "", "faits": [], "proposition": {"ajouts": [
+            {"personnage": "planches", "facette": "silhouette", "description": "Des planches longues."}]}}
+        decrire_planches = {"mode": "etablir_faits", "texte": "", "faits": [], "proposition": {"ajouts": [
+            {"type": "qualification", "ancrage": "planches", "physique": planches()}]}}
+        dialogue = {"mode": "dialogue", "texte": "Elles font un mètre et demi.", "faits": [], "proposition": None}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_echanger", side_effect=[enrichir, decrire_planches, dialogue]) as appel:
+            reponse = mj._echanger_prepare(m, "elles font quelle taille, ces planches de bac ?")
+        retour = appel.call_args_list[1].kwargs["retour_moteur"]
+        self.assertIn("est un objet", retour["attendu"])
+        self.assertNotIn("personnage", reponse["texte"])
+        self.assertIn("3 pièces", reponse["texte"])
