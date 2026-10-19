@@ -180,8 +180,9 @@ class ProfilTests(unittest.TestCase):
         with self.assertRaises(ErreurMonde):
             Monde(mauvais)
         m, _ = attendre(absent(m), 12)
-        faim = m.objets["marchand"]["profil"]["besoins"]["faim"]
-        self.assertAlmostEqual(lire(m, "marchand")["besoins"]["faim"], faim["depart"] + faim["derive_heure"], places=1)
+        # La faim suit le corps commun : 6 par heure, moitié plus à l'effort.
+        faim = lire(m, "marchand")["besoins"]["faim"]
+        self.assertTrue(30 + 6 - 0.1 <= faim <= 30 + 6 * 1.5 + 0.1, faim)
 
     def test_banc_sans_joueur(self):
         with patch("sys.stdout", io.StringIO()) as sortie:

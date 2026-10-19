@@ -58,7 +58,8 @@ choisies, images, tact. Si le joueur écrit ses mots entre
 guillemets, ils sont dits tels quels. contenu type ce que la réplique transmet (3 au plus) :
 affirmation {sujet: identifiant d'objet, de personnage ou "joueur", attribut: lieu (valeur =
 identifiant de salle ou de porteur), verrouillee (valeur oui/non) ou fiable (valeur oui/non)} ;
-demande {sujet: objet que le personnage porte et que Corvus lui demande, attribut "", valeur ""} ;
+demande {sujet: objet que le personnage porte, ou ressource à lui (vivres, bois) dont Corvus
+lui demande une part, attribut "", valeur ""} ;
 propos {sujet "", attribut "", valeur ""} pour le reste. Une affirmation peut être fausse :
 c'est au personnage d'y croire ou non, et au moteur d'en décider. Le moteur te renvoie
 conversation_validee : fais répondre le personnage d'après ce résultat, ses croyances et ses
@@ -142,6 +143,7 @@ def _ouidire(monde, source):
 
 def esprits_interlocuteurs(monde, presents):
     """Ce que Luna peut savoir d'un PNJ présent pour lui donner une voix : ses croyances, pas la vérité."""
+    from .deliberation import urgents
     resultat = {}
     for id in presents:
         e, profil = lire(monde, id), monde.objets[id].get("profil")
@@ -156,8 +158,7 @@ def esprits_interlocuteurs(monde, presents):
             "traits": profil["traits"] if profil else "",
             "croit": [texte for *_, texte in sorted(croyances)[:12]],
             "but_actuel": copy.deepcopy(e["intention"]["but"]) if e["intention"] else None,
-            "besoins_pressants": sorted(b for b, v in e["besoins"].items()
-                                        if profil and v >= profil["besoins"][b]["urgence"]),
+            "besoins_pressants": urgents(monde, id) if profil else [],
         }
     return resultat
 
@@ -247,15 +248,18 @@ def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
 def _demander(travail, auditeur, objet, faits):
     from .echanges import demander
     nom = travail.objets[auditeur]["nom"]
+    from .deliberation import besoin_de_part
     issue = demander(travail, "joueur", auditeur, objet)
     o = designer(travail.objets[objet]) if objet in travail.objets else ""
+    vivres = objet in travail.objets and besoin_de_part(travail.objets[objet]) == "faim"
     faits.append({
         "absent": f"{nom} n'a pas cet objet sur lui.",
         "mefiance": f"{nom} refuse : il ne te fait pas confiance.",
         "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
         "refus": f"{nom} n'est pas convaincu et garde {o}.",
         "remis": f"{nom} te remet {o}.",
-        "promis": f"{nom} accepte de t'en donner une part.",
+        "promis": (f"{nom} accepte de t'en donner une part : il te la servira là où sont les vivres."
+                   if vivres else f"{nom} accepte : il va entretenir le feu."),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
 

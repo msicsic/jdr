@@ -10,6 +10,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   lumière                              expliquer les conditions de visibilité
   allumer <source> | éteindre <source>  utiliser un outil d'allumage porté
   alimenter <foyer> avec <combustible>  recharger un feu avec un combustible porté ou à portée
+  manger <nourriture>                   une part de ce qui est à toi ou à personne (5 min)
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
   pas nord / pas sud / pas est / pas ouest  déplacer d'une case (sans IA)
   examiner <objet>                     voir les composants accessibles
@@ -135,6 +136,9 @@ def analyser(monde, texte):
         from .operations import etape, sequence
         foyer, _, bois = texte[10:].partition(" avec ")
         return sequence(etape("alimenter", monde.trouver(foyer), outil=monde.trouver(bois)))
+    if texte.startswith("manger "):
+        from .operations import etape, sequence
+        return sequence(etape("manger", monde.trouver(texte[7:])))
     if texte.startswith("sonner "):
         from .operations import etape, sequence
         return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))

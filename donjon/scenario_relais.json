@@ -676,16 +676,6 @@
             "depart": 10,
             "derive_heure": -5,
             "urgence": 60
-          },
-          "faim": {
-            "depart": 30,
-            "derive_heure": 6,
-            "urgence": 70
-          },
-          "repos": {
-            "depart": 10,
-            "derive_heure": 3,
-            "urgence": 80
           }
         },
         "pulsions": [
@@ -733,6 +723,11 @@
             }
           }
         ]
+      },
+      "corps": {
+        "repas": 300,
+        "veille": 200,
+        "trempe": 0
       }
     },
     "marteau": {
@@ -946,28 +941,18 @@
           "crochetage"
         ],
         "besoins": {
-          "faim": {
-            "depart": 80,
-            "derive_heure": 6,
-            "urgence": 70
-          },
           "securite": {
             "depart": 20,
             "derive_heure": -5,
             "urgence": 60
-          },
-          "repos": {
-            "depart": 40,
-            "derive_heure": 3,
-            "urgence": 80
-          },
-          "chaleur": {
-            "depart": 50,
-            "derive_heure": 10,
-            "urgence": 70
           }
         },
         "pulsions": []
+      },
+      "corps": {
+        "repas": 800,
+        "veille": 800,
+        "trempe": 300
       }
     },
     "reserve": {
@@ -1081,16 +1066,6 @@
             "depart": 65,
             "derive_heure": 2,
             "urgence": 60
-          },
-          "faim": {
-            "depart": 45,
-            "derive_heure": 6,
-            "urgence": 70
-          },
-          "chaleur": {
-            "depart": 60,
-            "derive_heure": 10,
-            "urgence": 70
           }
         },
         "pulsions": [
@@ -1109,6 +1084,11 @@
             }
           }
         ]
+      },
+      "corps": {
+        "repas": 450,
+        "veille": 480,
+        "trempe": 360
       }
     },
     "aubin": {
@@ -1154,21 +1134,6 @@
             "depart": 58,
             "derive_heure": 4,
             "urgence": 60
-          },
-          "repos": {
-            "depart": 60,
-            "derive_heure": 3,
-            "urgence": 80
-          },
-          "faim": {
-            "depart": 35,
-            "derive_heure": 6,
-            "urgence": 70
-          },
-          "chaleur": {
-            "depart": 65,
-            "derive_heure": 10,
-            "urgence": 70
           }
         },
         "pulsions": [
@@ -1188,7 +1153,12 @@
           }
         ]
       },
-      "genre": "m"
+      "genre": "m",
+      "corps": {
+        "repas": 350,
+        "veille": 1200,
+        "trempe": 390
+      }
     },
     "fanal": {
       "aliases": [

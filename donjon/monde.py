@@ -88,6 +88,8 @@ class Monde:
         installer_vol(self)
         from .esprits import installer as installer_esprits
         installer_esprits(self)
+        from .corps import installer as installer_corps
+        installer_corps(self)
         from .franchissement import installer as installer_franchissements
         installer_franchissements(self)
         from .artisanat import installer as installer_artisanat
@@ -291,6 +293,10 @@ class Monde:
         salle["id"] = self.joueur["salle"]
         joueur = copy.deepcopy(self.joueur)
         joueur["salle_nom"] = salle["nom"]
+        # Le corps se lit en mots : faim, froid, fatigue légers, supportables, pressants, extrêmes.
+        from .corps import etat as etat_corps
+        joueur.pop("besoins", None)
+        joueur["corps"] = etat_corps(self)
         lieux_connus = {id: s["nom"] for id, s in self.data["salles"].items()
                        if id == self.joueur["salle"] or id in self.data["visitees"]}
         souvenirs_visuels = []
@@ -365,6 +371,8 @@ class Monde:
             verifier_pnj(self)
             from .esprits import verifier as verifier_esprits
             verifier_esprits(self)
+            from .corps import verifier as verifier_corps
+            verifier_corps(self)
             from .horloges import verifier as verifier_horloges
             verifier_horloges(self)
             from .narration import verifier as verifier_narration

@@ -202,6 +202,9 @@ Opérations :
   ou à portée de main (facultatif ; le moteur en choisit un si omis), destination vide,
   methode simple, difficulte 0. Coût une minute, sans jet ; une charge prolonge le feu sans
   le rallumer. Un deplacer d'un combustible vers un foyer est ce même geste.
+- manger : cible une nourriture portée ou à portée, à Corvus ou à personne (celle d'autrui se
+  demande ou se prend d'abord) ; destination et outil vides, methode simple, difficulte 0.
+  Cinq minutes, sans jet ; une part apaise la faim.
   Ces opérations sont combinables avec les autres, notamment allumer avant une extraction
   qui exige de la lumière, ou éteindre puis poser une lanterne.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : mêmes

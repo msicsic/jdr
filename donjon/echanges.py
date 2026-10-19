@@ -59,8 +59,9 @@ def demande_de_part(monde, demandeur, auditeur, objet):
     from .deliberation import besoin_de_part
     from .social import _proprietaire
     from .spatial import porte_par
+    from .corps import valeurs
     o = monde.objets.get(objet)
-    besoins = lire(monde, demandeur)["besoins"] if demandeur != "joueur" else {}
+    besoins = valeurs(monde, demandeur) if demandeur == "joueur" else lire(monde, demandeur)["besoins"]
     return bool(o and besoin_de_part(o) in besoins and not porte_par(monde, objet, auditeur)
                 and _proprietaire(monde, {"objet": objet}) == auditeur)
 
@@ -159,6 +160,8 @@ def servir(monde, id, nourriture, pour, lignes):
     from .pnj import _chroniquer
     from .social import _qui, faire_entendre
     o, autre = monde.objets[nourriture], monde.objets.get(pour)
+    if pour == "joueur":
+        return _servir_joueur(monde, id, nourriture, lignes)
     if (o.get("portions", 0) <= 0 or not autre or autre["type"] != "personnage"
             or autre["lieu"] != monde.objets[id]["lieu"]):
         return False
@@ -178,6 +181,28 @@ def servir(monde, id, nourriture, pour, lignes):
              + ("." if appel else f" à {_qui(monde, pour)}."))
     _chroniquer(monde, id, texte, "social")
     faire_entendre(monde, id, pour, texte, [nourriture], lignes)
+    return True
+
+
+def _servir_joueur(monde, id, nourriture, lignes):
+    """La part promise au joueur : servie quand il est là, dans la salle des vivres ; sinon on
+    l'attend."""
+    from .corps import SATIETE, valeurs
+    from .francais import complement_de
+    from .pnj import _chroniquer
+    from .social import _qui
+    o = monde.objets[nourriture]
+    if o.get("portions", 0) <= 0 or monde.joueur["salle"] != monde.objets[id]["lieu"]:
+        return False
+    o["portions"] -= 1
+    v = valeurs(monde, "joueur")
+    v["faim"] = max(0.0, v["faim"] - SATIETE)
+    e = esprit(monde, id)
+    for x in [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": "joueur"}]:
+        e["engagements"].remove(x)
+        memoriser(monde, id, {"type": "engagement_tenu", "pour": "joueur", "condition": x["condition"]})
+    _chroniquer(monde, id, f"{_qui(monde, id)} donne une part {complement_de(o)} au joueur.", "social")
+    lignes.append(f"{_qui(monde, id)} te sert une part {complement_de(o)} ; tu manges.")
     return True
 
 

@@ -55,6 +55,7 @@ class Plan:
     origine: str = "règles"
     etapes: list = field(default_factory=list)
     plans: list = field(default_factory=list)
+    effort: bool = True        # le geste creuse et fatigue (``corps``)
 
     def resume(self, monde, afficher_avis=True):
         if self.etapes:
@@ -68,8 +69,10 @@ class Plan:
             return "\n".join(lignes)
         lignes = [self.titre]
         if self.stat:
-            mod = (monde.joueur["stats"][self.stat] - 10) // 2
-            lignes.append(f'Test {self.stat} ({mod:+d}), outil {self.bonus:+d}, difficulté {self.dd}.')
+            from .corps import malus
+            mod, corps = (monde.joueur["stats"][self.stat] - 10) // 2, malus(monde, self.stat)
+            lignes.append(f'Test {self.stat} ({mod:+d}), outil {self.bonus:+d}'
+                          + (f', faim, froid ou fatigue {corps:+d}' if corps else '') + f', difficulté {self.dd}.')
         else:
             lignes.append("Pas de jet nécessaire.")
         if self.echec_critique:
@@ -144,7 +147,7 @@ class Moteur:
                                 regarder(m) if cible == "scene" else decrire_perception(m))
             return plan
         if action == "attendre":
-            plan.titre, plan.minutes = "Attendre cinq minutes.", 5
+            plan.titre, plan.minutes, plan.effort = "Attendre cinq minutes.", 5, False
             plan.effets = [("calmer", "", 3)]
             return plan
         if action == "aller":
@@ -347,13 +350,15 @@ class Moteur:
         lignes = []
         reussite, jet = True, None
         if plan.stat:
+            from .corps import malus
             jet = travail.d20()
-            mod = (travail.joueur["stats"][plan.stat] - 10) // 2
-            total = jet + mod + plan.bonus
+            mod, corps = (travail.joueur["stats"][plan.stat] - 10) // 2, malus(travail, plan.stat)
+            total = jet + mod + plan.bonus + corps
             # Pas de réussite automatique sur 20 : les impossibilités sont rejetées avant le jet.
             reussite = jet != 1 and total >= plan.dd
             lignes.append(f'1d20({jet}) + {plan.stat}({mod:+d}) + outil({plan.bonus:+d}) '
-                          f'= {total} contre {plan.dd} : ' + ("REUSSITE" if reussite else "ECHEC"))
+                          + (f'+ corps({corps:+d}) ' if corps else '')
+                          + f'= {total} contre {plan.dd} : ' + ("REUSSITE" if reussite else "ECHEC"))
         effets = plan.effets if reussite else plan.echec + (plan.echec_critique if jet == 1 else [])
         for effet in effets:
             self._appliquer(travail, effet, lignes)
@@ -377,6 +382,11 @@ class Moteur:
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         travail.data["minutes"] += plan.minutes
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
+        # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose.
+        from .corps import CALMES, vivre_joueur
+        action = plan.proposition.get("action")
+        vivre_joueur(travail, plan.minutes, effort=plan.effort and action not in CALMES,
+                     repos=action == "attendre", lignes=lignes)
         # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour.
         from .esprits import percevoir_tous
         percevoir_tous(travail)
@@ -418,12 +428,15 @@ class Moteur:
             p = compiler(travail, e, precedent, sequence.proposition["justification"], sequence.origine)
             details, jet = [], None
             if p.stat:
+                from .corps import malus
                 jet = travail.d20()
-                mod = (travail.joueur["stats"][p.stat] - 10) // 2
-                total = jet + mod + p.bonus
+                mod, corps = (travail.joueur["stats"][p.stat] - 10) // 2, malus(travail, p.stat)
+                total = jet + mod + p.bonus + corps
                 reussite = jet != 1 and total >= p.dd
                 dernier_jet, dernier_dd = jet, p.dd
-                details.append(f"1d20({jet}) + {p.stat}({mod:+d}) + outil({p.bonus:+d}) = {total} contre {p.dd} : " + ("REUSSITE" if reussite else "ECHEC"))
+                details.append(f"1d20({jet}) + {p.stat}({mod:+d}) + outil({p.bonus:+d}) "
+                               + (f"+ corps({corps:+d}) " if corps else "")
+                               + f"= {total} contre {p.dd} : " + ("REUSSITE" if reussite else "ECHEC"))
             effets = p.effets if reussite else p.echec + (p.echec_critique if jet == 1 else [])
             for effet in effets:
                 self._appliquer(travail, effet, details)
@@ -452,6 +465,15 @@ class Moteur:
     @staticmethod
     def _appliquer(m, effet, lignes):
         op, cible, valeur = effet
+        if op == "manger":
+            from .corps import SATIETE, valeurs
+            o = m.objets[cible]
+            o["portions"] -= 1
+            v = valeurs(m, "joueur")
+            v["faim"] = max(0.0, v["faim"] - SATIETE)
+            lignes.append("Tu manges une part " + complement_de(o) + "."
+                          + (" Il n'en reste plus." if o["portions"] == 0 else ""))
+            return
         if op == "marcher":
             ancienne = m.joueur["salle"]
             m.joueur["salle"], m.joueur["position"] = valeur["salle"], list(valeur["position"])

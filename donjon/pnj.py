@@ -413,7 +413,7 @@ def _executer(monde, id, etape, lignes, gestes):
 
 def _chauffer(monde, id, foyer, lignes):
     """Une minute près d'un foyer allumé de sa salle ; le geste s'achève quand il est réchauffé."""
-    from .deliberation import CHALEUR_FIN, CHALEUR_MINUTE
+    from .deliberation import CHALEUR_FIN
     e, f = esprit(monde, id), monde.objets[foyer]
     if "chaleur" not in e["besoins"]:
         return True
@@ -425,7 +425,7 @@ def _chauffer(monde, id, foyer, lignes):
     if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in e["memoire"]):
         memoriser(monde, id, {"type": "se_chauffe", "objet": foyer})
         _raconter(monde, id, "se chauffe près de", f, lignes)
-    e["besoins"]["chaleur"] = max(0.0, e["besoins"]["chaleur"] - CHALEUR_MINUTE)
+    # La chaleur du feu agit d'elle-même dans sa salle (``corps``) : il reste jusqu'à être réchauffé.
     return e["besoins"]["chaleur"] <= CHALEUR_FIN
 
 
@@ -455,7 +455,7 @@ def _abriter(monde, id, lieu, lignes):
 
 def _reposer(monde, id, lignes):
     """Une minute de repos ; le geste s'achève quand le PNJ est reposé."""
-    from .deliberation import REPOS_FIN, REPOS_MINUTE
+    from .deliberation import REPOS_FIN
     besoins, intention = esprit(monde, id)["besoins"], esprit(monde, id)["intention"]
     if "repos" not in besoins:
         return True
@@ -464,7 +464,7 @@ def _reposer(monde, id, lignes):
         _chroniquer(monde, id, texte)
         if monde.visible(id):
             lignes.append(texte)
-    besoins["repos"] = max(0.0, besoins["repos"] - REPOS_MINUTE)
+    # Le repos délasse par le corps (``corps.vivre``), tant que ce geste est en cours.
     return besoins["repos"] <= REPOS_FIN
 
 
