@@ -352,6 +352,26 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
 5. La routine : ses rondes et la garde du lieu de ses biens. Les rondes se font aussi quand le
    besoin qu'elles servent ne presse pas ; elles passent après tout le reste.
 
+Le corps est commun à tous, joueur compris (`donjon/corps.py`) : la faim monte de 6 par heure,
+la fatigue de 3, le froid de 2 au sec et de 10 trempé ; l'effort (marcher, porter, agir)
+multiplie faim et fatigue par 1,5 ; dans la salle d'un foyer allumé, le froid baisse de 3 par
+minute et l'on sèche en 30 minutes ; attendre repose. Seuils : 70 (faim, froid), 80 (fatigue).
+Le scénario déclare des états (`corps` : minutes depuis le dernier repas, de veille, trempé),
+dont découlent les valeurs de départ ; le profil d'un PNJ ne règle plus le corps. Pour le
+joueur, un état qui presse coûte 2 aux jets de FOR et de DEX ; à 95, la faim ou le froid ôtent
+1 PV par heure, jamais en deçà de 1 ; `manger <nourriture>` (cinq minutes) mange une part de ce
+qui est à lui ou à personne. Il peut demander une part de vivres (servie là où ils sont) ou de
+bois (le feu entretenu) à qui les possède, même sans les avoir vus.
+
+Les PNJ font du bruit (`donjon/ecoute.py`) : pas et gestes (1), voix (2), appel à l'aide (3),
+propagés comme les autres sons. Le joueur entend de lui-même ce qui lui parvient au niveau 2 ;
+en écoutant (`ecouter`, trois minutes), jusqu'au niveau 1, un cran de mieux contre une porte.
+Une parole n'est rendue en clair qu'au niveau 2 et si elle ne nomme que ce qu'il connaît.
+
+Un PNJ protège ceux que déclare son profil (`protege`) : à bout d'inquiétude et sans abri, un
+protégé appelle à l'aide, et son protecteur accourt ; un geste illicite vu contre un protégé
+relance le devoir du protecteur, qui va prévenir la victime.
+
 La sécurité suit ce que le PNJ perçoit, minute par minute, en plus de sa dérive : le noir sur
 sa case (+0,5) et la vue de quelqu'un qu'il ne croit pas fiable (+0,3) l'inquiètent, la lumière
 (−0,2) et la vue, dans sa salle, de quelqu'un qu'il croit fiable, le joueur compris (−0,5), le
