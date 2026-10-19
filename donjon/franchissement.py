@@ -11,6 +11,7 @@ from .monde import ErreurMonde
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
+from .refus import liste
 
 
 REGLES = """
@@ -49,40 +50,64 @@ def installer(m):
 def conditions(m, cible, outil, destination, tenu=True):
     o, t = m.objets.get(cible, {}), m.objets.get(outil, {})
     a = o.get("appui_vertical", {})
+    def perches():
+        return liste(sorted(i for i, x in m.objets.items() if m.accessible(i) and x.get("mobile")
+                            and (x.get("ressource") == "perche" or "appui_mobile" in x.get("usages", []))
+                            and not x.get("attache") and not x.get("installation") and not x.get("incorpore")))
     if not m.accessible(cible) or not o.get("integrite") or not a:
-        raise ErreurMonde("L'obstacle et son palier doivent être accessibles et établis.")
+        obstacles = sorted(i for i, x in m.objets.items() if x.get("appui_vertical") and m.accessible(i))
+        raise ErreurMonde("L'obstacle et son palier doivent être accessibles et établis.",
+                          f"cible : un obstacle établi, parmi {liste(obstacles)} (reçu « {cible} ») ; un obstacle "
+                          "inconnu s'établit d'abord par espace.")
     if m.joueur["salle"] != a.get("bas") or destination != a.get("haut") or destination not in m.data["salles"]:
-        raise ErreurMonde("Ce mouvement part du pied de l'obstacle et mène uniquement à son palier établi.")
+        raise ErreurMonde("Ce mouvement part du pied de l'obstacle et mène uniquement à son palier établi.",
+                          f"depuis {a.get('bas')} (le joueur est en {m.joueur['salle']}), destination = {a.get('haut')} "
+                          f"(reçu « {destination} »).")
     if eclairage(m)["niveau"] < 2:
-        raise ErreurMonde("Tu ne vois pas assez bien l'obstacle pour tenter ce mouvement.")
+        raise ErreurMonde("Tu ne vois pas assez bien l'obstacle pour tenter ce mouvement.",
+                          "ce franchissement exige une lumière franche : allume d'abord une source.")
     if not m.accessible(outil) or (tenu and not m.est_porte(outil)):
-        raise ErreurMonde("Il faut d'abord prendre l'objet qui servira d'appui.")
+        raise ErreurMonde("Il faut d'abord prendre l'objet qui servira d'appui.",
+                          f"outil : une perche portée ; étape deplacer {outil or '<perche>'} vers joueur avant, dans le "
+                          f"même composer ; perches à portée : {perches()}.")
     if (not t.get("mobile") or t.get("attache") or t.get("installation") or t.get("incorpore")
             or t.get("integrite", 0) < t.get("maximum", 1)):
-        raise ErreurMonde("L'appui mobile doit être libre et intact.")
+        raise ErreurMonde("L'appui mobile doit être libre et intact.", f"{outil} est fixé, installé ou abîmé ; perches libres : {perches()}.")
     if t.get("ressource") != "perche" and "appui_mobile" not in t.get("usages", []):
-        raise ErreurMonde("Cet objet ne peut pas servir d'appui mobile long dans cet arbitrage.")
+        raise ErreurMonde("Cet objet ne peut pas servir d'appui mobile long dans cet arbitrage.",
+                          f"outil : une perche ou un objet d'usage appui_mobile, parmi {perches()}.")
     if proprietaire(m, t) not in (None, "joueur"):
-        raise ErreurMonde("Cet objet appartient à autrui ; tu ne peux pas l'employer librement.")
+        raise ErreurMonde("Cet objet appartient à autrui ; tu ne peux pas l'employer librement.",
+                          f"{outil} appartient à {proprietaire(m, t)} : obtiens-le d'abord.")
     valeurs = {}
     for nom, source, champ in (("hauteur", a, "hauteur_cm"), ("elan", a, "elan_cm"),
                                ("longueur", t, "longueur_cm"), ("charge", t, "charge_jeu_kg"),
                                ("poids", m.joueur, "masse_kg")):
         x = source.get(champ)
         if type(x) not in (int, float) or not math.isfinite(x) or x <= 0:
-            raise ErreurMonde(f"Il manque une donnée établie pour apprécier la tentative : {champ}.")
+            porteur = "joueur" if source is m.joueur else (outil if source is t else cible)
+            raise ErreurMonde(f"Il manque une donnée établie pour apprécier la tentative : {champ}.",
+                              f"établis d'abord {porteur}.{champ} ("
+                              + ("mode enrichir_joueur" if porteur == "joueur" else "mode etablir_faits") + "), puis re-propose.")
         valeurs[nom] = x
     if a.get("sol_stable") is not True or a.get("reception_stable") is not True:
-        raise ErreurMonde("Il faut un sol d'élan et une zone de réception établis comme stables.")
+        raise ErreurMonde("Il faut un sol d'élan et une zone de réception établis comme stables.",
+                          f"{cible} n'offre pas d'élan ou de réception stables : un autre moyen (échelle, autre obstacle).")
     if valeurs["elan"] < 300:
-        raise ErreurMonde("L'espace d'élan disponible est trop court pour cette tentative.")
+        raise ErreurMonde("L'espace d'élan disponible est trop court pour cette tentative.",
+                          f"élan {valeurs['elan']:g} cm < 300 cm : un autre moyen (échelle, autre obstacle).")
     if valeurs["hauteur"] > 300 or valeurs["longueur"] < valeurs["hauteur"] + 30:
-        raise ErreurMonde("L'obstacle est trop haut ou l'appui trop court pour cette méthode.")
+        raise ErreurMonde("L'obstacle est trop haut ou l'appui trop court pour cette méthode.",
+                          f"hauteur {valeurs['hauteur']:g} cm (300 au plus) ; appui d'au moins hauteur + 30 = "
+                          f"{valeurs['hauteur'] + 30:g} cm ({outil} : {valeurs['longueur']:g}).")
     charge = m.charge() + (0 if m.est_porte(outil) else t["masse"])
     if charge > m.joueur["capacite"]:
-        raise ErreurMonde("Tu ne peux pas porter cet appui avec ton équipement actuel.")
+        raise ErreurMonde("Tu ne peux pas porter cet appui avec ton équipement actuel.",
+                          f"charge {charge} > capacité {m.joueur['capacite']} : pose d'abord des affaires.")
     if (valeurs["poids"] + charge) * 1.25 > valeurs["charge"]:
-        raise ErreurMonde("L'appui est trop faible pour la charge dynamique retenue dans cet arbitrage.")
+        raise ErreurMonde("L'appui est trop faible pour la charge dynamique retenue dans cet arbitrage.",
+                          f"(poids {valeurs['poids']:g} + charge {charge}) × 1,25 > {valeurs['charge']:g} kg admis par {outil} : "
+                          "allège-toi ou un appui plus solide.")
     valeurs["charge_portee"] = charge
     return a, valeurs
 
@@ -90,7 +115,8 @@ def conditions(m, cible, outil, destination, tenu=True):
 def compiler(m, e, justification, origine):
     from .moteur import Plan
     if e["methode"] != "appui_mobile" or not 16 <= e["difficulte"] <= 22:
-        raise ErreurMonde("Un franchissement avec appui mobile exige une difficulté entre 16 et 22.")
+        raise ErreurMonde("Un franchissement avec appui mobile exige une difficulté entre 16 et 22.",
+                          f"franchir_obstacle : methode appui_mobile, difficulte 16 à 22 (reçu « {e['methode']} », {e['difficulte']}).")
     a, valeurs = conditions(m, e["cible"], e["outil"], e["destination"])
     from .proximite import exiger
     exiger(m, e["cible"])

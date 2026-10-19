@@ -9,6 +9,7 @@ import math
 from .monde import ErreurMonde, objet
 from .geometrie import cases
 from .perception import eclairage
+from .refus import liste
 
 
 TERRAINS = ("terre", "pierre", "herbe")
@@ -91,19 +92,25 @@ def a_completer(m):
 
 def preparer(m, proposition, revision=None):
     if revision is not None and revision != m.data["revision"]:
-        raise ErreurMonde("Le monde a changé avant la description des abords.")
+        raise ErreurMonde("Le monde a changé avant la description des abords.", "re-propose à partir des faits actuels.")
     if not isinstance(proposition, dict) or set(proposition) != {"abords"}:
-        raise ErreurMonde("Complément spatial mal formé.")
+        recus = sorted(proposition) if isinstance(proposition, dict) else type(proposition).__name__
+        raise ErreurMonde("Complément spatial mal formé.", f"espace a exactement le champ abords ; reçu : {recus}.")
     ajouts, autorises = proposition["abords"], a_completer(m)
     if not isinstance(ajouts, list) or not 1 <= len(ajouts) <= 4:
-        raise ErreurMonde("Nombre d'abords invalide.")
+        raise ErreurMonde("Nombre d'abords invalide.", "abords : une liste de 1 à 4 éléments {cadre, terrain}.")
     travail, vus = m.copier(), set()
     for ajout in ajouts:
         if (not isinstance(ajout, dict) or set(ajout) != {"cadre", "terrain"}
-                or any(not isinstance(v, str) for v in ajout.values())
-                or ajout["cadre"] not in autorises or ajout["cadre"] in vus
-                or ajout["terrain"] not in TERRAINS):
-            raise ErreurMonde("Cet abord est déjà établi ou n'est pas autorisé.")
+                or any(not isinstance(v, str) for v in ajout.values())):
+            raise ErreurMonde("Complément spatial mal formé.", "chaque abord a exactement les champs cadre et terrain (textes).")
+        if ajout["cadre"] not in autorises or ajout["cadre"] in vus:
+            raise ErreurMonde("Cet abord est déjà établi ou n'est pas autorisé.",
+                              f"cadre « {ajout['cadre']} » : un cadre à compléter, une seule fois, parmi "
+                              f"{liste(sorted(set(autorises) - vus))}.")
+        if ajout["terrain"] not in TERRAINS:
+            raise ErreurMonde("Ce terrain n'est pas connu.",
+                              f"terrain parmi {', '.join(TERRAINS)} (reçu « {ajout['terrain']} »).")
         id, terrain = ajout["cadre"], ajout["terrain"]
         vus.add(id)
         c = travail.data["cadres_spatiaux"][id]
@@ -111,10 +118,10 @@ def preparer(m, proposition, revision=None):
         plan = haut["plan"]
         w, h = len(plan["sol"][0]), len(plan["sol"])
         if any(l != "." * w for l in plan["sol"]):
-            raise ErreurMonde("Ce cadre demande une plateforme rectangulaire.")
+            raise ErreurMonde("Ce cadre demande une plateforme rectangulaire.", f"cadre {id} non complétable : retire-le des abords.")
         profondeur, direction = c["profondeur_m"], c["direction"]
         if type(profondeur) is not int or not 2 <= profondeur <= 8 or direction not in ("nord", "sud", "est", "ouest"):
-            raise ErreurMonde("Cadre spatial invalide.")
+            raise ErreurMonde("Cadre spatial invalide.", f"cadre {id} non complétable : retire-le des abords.")
         x, y = plan["origine"]
         nx, ny, nw, nh = {"nord": (x, y-profondeur-1, w, profondeur),
                           "sud": (x, y+h+1, w, profondeur),
@@ -123,17 +130,17 @@ def preparer(m, proposition, revision=None):
         altitude = c["altitude_cm"]
         hauteur = haut["altitude_cm"] - altitude
         if type(hauteur) is not int or not 1 <= hauteur <= 1000:
-            raise ErreurMonde("Dénivelé absent ou incohérent.")
+            raise ErreurMonde("Dénivelé absent ou incohérent.", f"cadre {id} non complétable : retire-le des abords.")
         nouveaux = {(nx+i, ny+j) for i in range(nw) for j in range(nh)}
         for salle in travail.data["salles"].values():
             if salle.get("altitude_cm", 0) != altitude:
                 continue
             ox, oy = salle["plan"]["origine"]
             if nouveaux & {(ox+i, oy+j) for i, j in cases(salle)}:
-                raise ErreurMonde("L'extension chevaucherait un lieu existant.")
+                raise ErreurMonde("L'extension chevaucherait un lieu existant.", f"cadre {id} non complétable : retire-le des abords.")
         bas, support = "abord_" + id, "appui_" + id
         if bas in travail.data["salles"] or support in travail.objets or bas + "_sol" in travail.objets:
-            raise ErreurMonde("Un identifiant spatial est déjà utilisé.")
+            raise ErreurMonde("Un identifiant spatial est déjà utilisé.", f"cadre {id} déjà complété : retire-le des abords.")
         travail.data["salles"][bas] = {"nom": "Passage extérieur au " + direction,
             "sorties": {}, "fenetres": 0, "exterieur": True, "lumiere_naturelle": 2,
             "altitude_cm": altitude, "niveau": altitude / 240,
@@ -208,15 +215,24 @@ def description(m):
 def compiler_saut(m, e, justification, origine):
     from .moteur import Plan
     from .artisanat import appui
-    if e["outil"] or e["methode"] != "simple" or e["difficulte"] or not m.accessible(e["cible"]):
-        raise ErreurMonde("Il faut un bord visible et identifié pour ce saut.")
+    if e["outil"] or e["methode"] != "simple" or e["difficulte"]:
+        raise ErreurMonde("Un saut se fait sans outil ni jet annoncé.", "sauter : outil vide, methode simple, difficulte 0.")
+    if not m.accessible(e["cible"]):
+        bords = sorted(i for i, x in m.objets.items() if x.get("appui_vertical") and m.accessible(i))
+        raise ErreurMonde("Il faut un bord visible et identifié pour ce saut.",
+                          f"cible : un bord établi, parmi {liste(bords)} (reçu « {e['cible']} »).")
     a = appui(m, e["cible"])
     from .proximite import exiger
     exiger(m, e["cible"])
-    if m.joueur["pv"] <= 0 or m.joueur["salle"] != a["haut"] or e["destination"] != a["bas"]:
-        raise ErreurMonde("Ce saut doit partir du bord et rejoindre son sol en contrebas.")
+    if m.joueur["pv"] <= 0:
+        raise ErreurMonde("Tu n'es plus en état de sauter.", "le joueur est hors de combat : aucun saut.")
+    if m.joueur["salle"] != a["haut"] or e["destination"] != a["bas"]:
+        raise ErreurMonde("Ce saut doit partir du bord et rejoindre son sol en contrebas.",
+                          f"depuis {a['haut']} (le joueur est en {m.joueur['salle']}), destination = {a['bas']} "
+                          f"(reçu « {e['destination']} »).")
     if eclairage(m)["niveau"] < 2:
-        raise ErreurMonde("Tu ne distingues pas suffisamment la zone de réception.")
+        raise ErreurMonde("Tu ne distingues pas suffisamment la zone de réception.",
+                          "sauter exige une lumière franche : allume d'abord une source.")
     hauteur = a["hauteur_cm"]
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
              f"Sauter {hauteur/100:g} m en contrebas vers {m.data['salles'][a['bas']]['nom'].lower()}.", origine=origine)

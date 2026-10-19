@@ -5,6 +5,7 @@ from unittest.mock import patch
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, nouveau_monde
 from donjon.moteur import Moteur, proposition
+from donjon.improvisation import effet, issue, proposition as improviser
 from donjon.operations import etape, sequence
 
 
@@ -74,6 +75,27 @@ class AttenduTests(unittest.TestCase):
     def test_patienter_dit_ses_champs(self):
         exc = refus(nouveau_monde(), sequence(etape("patienter", "marchand")))
         self.assertIn("cible, destination et outil vides", exc.attendu)
+
+
+class ImprovisationTests(unittest.TestCase):
+    def test_un_jet_sans_recit_d_echec_le_dit(self):
+        p = improviser("Forcer le battant.", issue("Le battant cède."), cibles=["porte"],
+                       approche="effort", stat="FOR", difficulte=12)
+        exc = refus(nouveau_monde(), p)
+        self.assertIn("echec.recit", exc.attendu)
+
+    def test_l_effet_fautif_est_situe(self):
+        p = improviser("Graver une flèche.", issue("Une flèche.", [effet("marquer", "antichambre_murs", texte="flèche")]),
+                       cibles=["antichambre_murs"], approche="manipulation")
+        exc = refus(nouveau_monde(), p)
+        self.assertTrue(exc.attendu.startswith("branche reussite, effet 1 (marquer)"), exc.attendu)
+        self.assertIn("couteau", exc.attendu)
+
+    def test_une_cible_hors_salle_est_nommee(self):
+        p = improviser("Siffler vers Gorm.", issue("Tu siffles."), cibles=["marchand"])
+        exc = refus(nouveau_monde(), p)
+        self.assertIn("cibles", exc.attendu)
+        self.assertIn("marchand n'est pas dans la salle", exc.attendu)
 
 
 class TransmissionTests(unittest.TestCase):

@@ -13,6 +13,7 @@ from .francais import designer
 from .geometrie import placer
 from .perception import eclairage
 from .vol import proprietaire
+from .refus import inaccessible, liste
 
 
 def fabrication(montants, traverses, lien, outil, longueur_cm=300, largeur_cm=35,
@@ -70,20 +71,36 @@ La résistance est un arbitrage de jeu persisté, pas une certitude d'ingénieri
 """
 
 
+def ressources_libres(m, nature):
+    return sorted(i for i, o in m.objets.items()
+                  if o.get("ressource") == nature and m.accessible(i) and not o.get("incorpore")
+                  and not o.get("attache") and o["mobile"] and o["integrite"] >= o["maximum"]
+                  and proprietaire(m, o) in (None, "joueur"))
+
+
 def ressource(m, id, nature):
     o = m.objets.get(id)
     if not o or not m.accessible(id):
-        raise ErreurMonde(f"Le matériau {id} est absent ou inaccessible.")
+        raise inaccessible(m, id, champ=nature, filtre=lambda x: x.get("ressource") == nature)
     from .proximite import exiger
     exiger(m, id)
-    if (o.get("incorpore") or o.get("attache") or not o["mobile"]
-            or proprietaire(m, o) not in (None, "joueur")):
-        raise ErreurMonde(f"Tu ne disposes pas librement de {designer(o)}.")
+    libres = f"{nature} libres ici : {liste(ressources_libres(m, nature))}."
+    if o.get("incorpore"):
+        raise ErreurMonde(f"{designer(o, debut=True)} fait déjà partie d'un assemblage.", f"{id} est incorporé ; {libres}")
+    if o.get("attache"):
+        raise ErreurMonde(f"{designer(o, debut=True)} est encore attaché.", f"detacher {id} d'abord, ou choisis parmi les {libres}")
+    if not o["mobile"]:
+        raise ErreurMonde(f"Tu ne disposes pas librement de {designer(o)}.", f"{id} est fixe ; {libres}")
+    if proprietaire(m, o) not in (None, "joueur"):
+        raise ErreurMonde(f"Tu ne disposes pas librement de {designer(o)}.",
+                          f"{id} appartient à {proprietaire(m, o)} : obtiens-le d'abord, ou choisis parmi les {libres}")
     if o.get("ressource") != nature or o["integrite"] < o["maximum"]:
-        raise ErreurMonde(f"{designer(o, debut=True)} ne convient pas comme {nature} intact.")
+        raise ErreurMonde(f"{designer(o, debut=True)} ne convient pas comme {nature} intact.",
+                          f"{id} n'est pas un {nature} intact ; {libres}")
     for champ in ("longueur_cm", "charge_jeu_kg"):
         if not isinstance(o.get(champ), (int, float)) or isinstance(o.get(champ), bool) or not math.isfinite(o[champ]) or o[champ] <= 0:
-            raise ErreurMonde(f"Il manque une mesure ou une estimation établie : {id}.{champ}.")
+            raise ErreurMonde(f"Il manque une mesure ou une estimation établie : {id}.{champ}.",
+                              f"établis d'abord {id}.{champ} (mode etablir_faits), puis re-propose la fabrication.")
     return o
 
 
@@ -91,38 +108,57 @@ def calculer(m, p):
     champs = set(fabrication([], "", "", ""))
     if (not isinstance(p, dict) or set(p) not in (champs, champs - {"rythme"})
             or p["action"] != "fabriquer" or p["profil"] != "barreaux"):
-        raise ErreurMonde("Proposition d'assemblage invalide.")
+        recus = sorted(p) if isinstance(p, dict) else type(p).__name__
+        raise ErreurMonde("Proposition d'assemblage invalide.",
+                          f"fabriquer a les champs {', '.join(sorted(champs))} (rythme facultatif), action fabriquer, "
+                          f"profil barreaux ; reçu : {recus}.")
     if (not isinstance(p["montants"], list) or len(p["montants"]) != 2
             or any(not isinstance(i, str) for i in p["montants"])
             or any(not isinstance(p[k], str) for k in ("traverses", "lien", "outil", "justification"))
             or len(p["justification"]) > 1000):
-        raise ErreurMonde("Précise deux montants, les traverses, le lien et l'outil.")
+        raise ErreurMonde("Précise deux montants, les traverses, le lien et l'outil.",
+                          "montants : liste de deux identifiants ; traverses, lien, outil : un identifiant chacun ; "
+                          f"justification ≤ 1000 caractères ; perches libres : {liste(ressources_libres(m, 'perche'))} ; "
+                          f"liens libres : {liste(ressources_libres(m, 'lien'))}.")
     ids = [*p["montants"], p["traverses"], p["lien"], p["outil"]]
     if len(set(ids)) != 5:
-        raise ErreurMonde("Chaque rôle exige une ressource distincte ; on ne peut pas compter deux fois une perche.")
+        raise ErreurMonde("Chaque rôle exige une ressource distincte ; on ne peut pas compter deux fois une perche.",
+                          f"cinq identifiants distincts (2 montants, traverses, lien, outil) ; reçu {', '.join(ids)} ; "
+                          f"perches libres : {liste(ressources_libres(m, 'perche'))}.")
     rythme = p.get("rythme", "normal")  # Compatibilité avec les propositions déjà sauvegardées.
     if rythme not in ("normal", "soigne"):
-        raise ErreurMonde("Choisis une fabrication normale ou soignée.")
+        raise ErreurMonde("Choisis une fabrication normale ou soignée.", f"rythme : normal ou soigne (reçu « {rythme} »).")
     for cle, bas, haut in (("longueur_cm", 100, 500), ("largeur_cm", 25, 60), ("difficulte", 0 if rythme == "soigne" else 10, 18)):
         if type(p[cle]) is not int or not bas <= p[cle] <= haut:
-            raise ErreurMonde(f"{cle} doit être un entier entre {bas} et {haut}.")
+            raise ErreurMonde(f"{cle} doit être un entier entre {bas} et {haut}.",
+                              f"{cle} : entier de {bas} à {haut} (reçu {p[cle]!r})"
+                              + (" ; le rythme soigne accepte difficulte 0" if cle == "difficulte" and rythme == "normal" else "") + ".")
     bois = [ressource(m, id, "perche") for id in ids[:3]]
     lien = ressource(m, p["lien"], "lien")
     t = m.objets.get(p["outil"], {})
     if (not m.accessible(p["outil"]) or not m.est_porte(p["outil"])
             or not t.get("integrite") or "couper_bois" not in t.get("usages", [])):
-        raise ErreurMonde("Il faut tenir un outil utilisable pour couper du bois, par exemple une hache.")
+        haches = sorted(i for i, x in m.objets.items() if m.est_porte(i) and x.get("integrite")
+                        and "couper_bois" in x.get("usages", []))
+        raise ErreurMonde("Il faut tenir un outil utilisable pour couper du bois, par exemple une hache.",
+                          f"outil : un objet porté d'usage couper_bois, parmi {liste(haches)}"
+                          + ("" if haches else " ; prends-en un d'abord") + ".")
     longueur, largeur = p["longueur_cm"], p["largeur_cm"]
     if any(o["longueur_cm"] < longueur for o in bois[:2]):
-        raise ErreurMonde("Les montants disponibles sont trop courts pour cette longueur.")
+        plus_court = min(o["longueur_cm"] for o in bois[:2])
+        raise ErreurMonde("Les montants disponibles sont trop courts pour cette longueur.",
+                          f"longueur_cm au plus {plus_court} avec ces montants, ou des montants plus longs.")
     # Espacement maximal conventionnel de 35 cm, perte de coupe de 1 cm par barreau.
     barreaux = math.ceil(longueur / 35) - 1
     coupe = barreaux * (largeur + 1)
     liens = barreaux * 2 * 60
     if bois[2]["longueur_cm"] < coupe:
-        raise ErreurMonde(f"Il faut {coupe} cm pour {barreaux} barreaux (pertes comprises), mais cette perche n'a que {bois[2]['longueur_cm']} cm. Réduis largeur ou longueur.")
+        raise ErreurMonde(f"Il faut {coupe} cm pour {barreaux} barreaux (pertes comprises), mais cette perche n'a que {bois[2]['longueur_cm']} cm. Réduis largeur ou longueur.",
+                          f"barreaux = ceil(longueur_cm / 35) - 1 ; coupe = barreaux × (largeur_cm + 1) ≤ {bois[2]['longueur_cm']} : "
+                          "réduis largeur_cm ou longueur_cm, ou une traverse plus longue.")
     if lien["longueur_cm"] < liens:
-        raise ErreurMonde(f"Il faut {liens} cm de lien pour les attaches ; il n'en reste que {lien['longueur_cm']} cm.")
+        raise ErreurMonde(f"Il faut {liens} cm de lien pour les attaches ; il n'en reste que {lien['longueur_cm']} cm.",
+                          f"lien nécessaire = barreaux × 120 cm ≤ {lien['longueur_cm']} : réduis longueur_cm, ou un lien plus long.")
     consommes = dict(zip(ids[:4], [longueur, longueur, coupe, liens]))
     charge = min(o["charge_jeu_kg"] for o in [*bois, lien]) * .8
     signature = {"version": 1, "profil": p["profil"], "longueur": longueur, "largeur": largeur,
@@ -135,7 +171,7 @@ def calculer(m, p):
     if rythme == "soigne":
         raison = obstacle_soin(m, minutes)
         if raison:
-            raise ErreurMonde(raison)
+            raise ErreurMonde(raison, "rythme normal (avec un jet), ou réunis d'abord la condition manquante.")
         dd = 0
     return dict(consommes=consommes, barreaux=barreaux, charge_jeu_kg=charge,
                 longueur_cm=longueur, largeur_cm=largeur, dd=dd, cle=cle,
@@ -169,7 +205,8 @@ def installer(m):
 def preparer(m, p, origine):
     from .moteur import Plan
     if eclairage(m)["niveau"] < 2:
-        raise ErreurMonde("Il faut assez de lumière pour préparer et assembler les pièces.")
+        raise ErreurMonde("Il faut assez de lumière pour préparer et assembler les pièces.",
+                          "fabriquer exige une lumière franche : allume d'abord une source.")
     bilan = calculer(m, p)
     plan = Plan(copy.deepcopy(p), m.data["revision"],
                 f"Fabriquer une échelle de {bilan['longueur_cm'] / 100:g} m avec {bilan['barreaux']} barreaux.",
@@ -191,12 +228,17 @@ def appui(m, support):
     a = o.get("appui_vertical", {})
     if (not a or not o.get("integrite") or a.get("bas") not in m.data["salles"]
             or a.get("haut") not in m.data["salles"] or a["bas"] == a["haut"]):
-        raise ErreurMonde("Il faut un appui établi reliant un sol et un palier accessible en hauteur.")
+        appuis = sorted(i for i, x in m.objets.items() if x.get("appui_vertical") and m.accessible(i))
+        raise ErreurMonde("Il faut un appui établi reliant un sol et un palier accessible en hauteur.",
+                          f"outil : un appui vertical établi, parmi {liste(appuis)} (reçu « {support} ») ; "
+                          "un appui inconnu s'établit d'abord par espace.")
     if not a.get("sol_stable") or not a.get("sommet_stable"):
-        raise ErreurMonde("Le pied et le sommet doivent offrir des appuis stables.")
+        raise ErreurMonde("Le pied et le sommet doivent offrir des appuis stables.",
+                          f"{support} n'offre pas d'appui stable : choisis un autre appui.")
     for k in ("hauteur_cm", "recul_cm"):
         if type(a.get(k)) is not int or a[k] <= 0:
-            raise ErreurMonde("La hauteur et le recul disponibles doivent être établis.")
+            raise ErreurMonde("La hauteur et le recul disponibles doivent être établis.",
+                              f"établis d'abord {support}.{k} (espace), puis re-propose ce geste.")
     return a
 
 
@@ -205,57 +247,74 @@ def preparer_usage(m, p, origine):
     id, action = p["cible"], p["action"]
     o = m.objets.get(id, {})
     if not m.accessible(id) or not o.get("assemblage") or not o["integrite"]:
-        raise ErreurMonde("Il faut une échelle accessible et en état de servir.")
+        echelles = sorted(i for i, x in m.objets.items() if x.get("assemblage") and x.get("integrite") and m.accessible(i))
+        raise ErreurMonde("Il faut une échelle accessible et en état de servir.",
+                          f"cible : un assemblage accessible et intact, parmi {liste(echelles)} (reçu « {id} »).")
     from .proximite import exiger
     exiger(m, id)
     if p["methode"] != "simple" or p["difficulte"] != 0:
-        raise ErreurMonde("L'installation et le passage utilisent la méthode simple et une difficulté fixée par les appuis.")
+        raise ErreurMonde("L'installation et le passage utilisent la méthode simple et une difficulté fixée par les appuis.",
+                          f"{action} : methode simple, difficulte 0.")
     plan = Plan(copy.deepcopy(p), m.data["revision"], "", origine=origine)
     if action == "installer":
         if o.get("installation"):
-            raise ErreurMonde("Cette échelle est déjà installée ; retire-la d'abord.")
+            raise ErreurMonde("Cette échelle est déjà installée ; retire-la d'abord.",
+                              f"{id} est déjà contre {o['installation'].get('support')} : franchir pour passer, ou "
+                              "desinstaller (soulever) avant de la déplacer.")
         a = appui(m, p["outil"])
         exiger(m, p["outil"])
         if not m.accessible(p["outil"]) or m.joueur["salle"] not in (a["bas"], a["haut"]):
-            raise ErreurMonde("Il faut atteindre le pied ou le sommet de cet appui.")
+            raise ErreurMonde("Il faut atteindre le pied ou le sommet de cet appui.",
+                              f"installer contre {p['outil']} depuis {a['bas']} ou {a['haut']} ; le joueur est en {m.joueur['salle']}.")
         if m.joueur["salle"] == a["haut"] and not a.get("prise_sommet"):
-            raise ErreurMonde("Il manque une prise au sommet pour abaisser cet assemblage.")
+            raise ErreurMonde("Il manque une prise au sommet pour abaisser cet assemblage.",
+                              f"installer contre {p['outil']} depuis le pied ({a['bas']}).")
         if proprietaire(m, o) not in (None, "joueur"):
-            raise ErreurMonde("Cette échelle appartient à autrui.")
+            raise ErreurMonde("Cette échelle appartient à autrui.", f"{id} appartient à {proprietaire(m, o)} : obtiens-la d'abord.")
         if o["masse"] > m.joueur["capacite"]:
-            raise ErreurMonde("Cette structure est trop lourde pour que tu l'installes seul.")
+            raise ErreurMonde("Cette structure est trop lourde pour que tu l'installes seul.",
+                              f"masse {o['masse']} > capacité {m.joueur['capacite']} : impossible seul.")
         if o["longueur_cm"] ** 2 < a["hauteur_cm"] ** 2 + a["recul_cm"] ** 2:
-            raise ErreurMonde("Cette échelle est trop courte pour atteindre le palier avec ce recul.")
+            raise ErreurMonde("Cette échelle est trop courte pour atteindre le palier avec ce recul.",
+                              f"il faut longueur_cm ≥ √(hauteur² + recul²) = {math.ceil(math.hypot(a['hauteur_cm'], a['recul_cm']))} ; "
+                              f"{id} mesure {o['longueur_cm']} : une échelle plus longue, ou un autre appui.")
         plan.titre, plan.minutes = "Installer " + designer(o) + " contre " + designer(m.objets[p["outil"]]) + ".", 2
         plan.effets = [("installer_assemblage", id, p["outil"])]
         return plan
     if p["outil"]:
-        raise ErreurMonde("Cette action ne demande aucun outil supplémentaire.")
+        raise ErreurMonde("Cette action ne demande aucun outil supplémentaire.", f"{action} : outil vide.")
     support = o.get("installation", {}).get("support")
     a = appui(m, support)
     if o["lieu"] != a["bas"] or m.joueur["salle"] not in (a["bas"], a["haut"]):
-        raise ErreurMonde("Cette installation n'est pas accessible depuis ici.")
+        raise ErreurMonde("Cette installation n'est pas accessible depuis ici.",
+                          f"{id} se rejoint depuis {a['bas']} ou {a['haut']} ; le joueur est en {m.joueur['salle']}.")
     if action == "desinstaller":
         if proprietaire(m, o) not in (None, "joueur") or o.get("attache"):
-            raise ErreurMonde("Cette structure n'est pas libre de ses attaches ou ne t'appartient pas.")
+            raise ErreurMonde("Cette structure n'est pas libre de ses attaches ou ne t'appartient pas.",
+                              f"{id} est attachée ou à autrui : rien à desinstaller.")
         if o["masse"] > m.joueur["capacite"]:
-            raise ErreurMonde("Cette structure est trop lourde pour être soulevée seul.")
+            raise ErreurMonde("Cette structure est trop lourde pour être soulevée seul.",
+                              f"masse {o['masse']} > capacité {m.joueur['capacite']} : impossible seul.")
         if m.joueur["salle"] == a["haut"] and not a.get("prise_sommet"):
-            raise ErreurMonde("Le sommet n'offre pas de prise pour remonter cette structure.")
+            raise ErreurMonde("Le sommet n'offre pas de prise pour remonter cette structure.",
+                              f"desinstaller {id} depuis le pied ({a['bas']}).")
         plan.titre = "Retirer " + designer(o) + " de son appui et la laisser au sol."
         if m.joueur["salle"] == a["haut"]:
             plan.titre = "Soulever " + designer(o) + " et la remonter sur le palier."
         plan.effets = [("retirer_assemblage", id, None)]
     else:
         if o["integrite"] < o["maximum"]:
-            raise ErreurMonde("L'assemblage est endommagé ; ses appuis ne permettent plus ce passage.")
+            raise ErreurMonde("L'assemblage est endommagé ; ses appuis ne permettent plus ce passage.",
+                              f"{id} est endommagée : plus de franchissement possible avec elle.")
         if o["longueur_cm"] ** 2 < a["hauteur_cm"] ** 2 + a["recul_cm"] ** 2:
-            raise ErreurMonde("L'échelle n'atteint plus le palier.")
+            raise ErreurMonde("L'échelle n'atteint plus le palier.", f"{id} est trop courte pour {support}.")
         poids = m.joueur.get("masse_kg")
         if not isinstance(poids, (int, float)) or isinstance(poids, bool) or not math.isfinite(poids) or poids <= 0:
-            raise ErreurMonde("Le poids du personnage doit être établi avant d'évaluer la charge.")
+            raise ErreurMonde("Le poids du personnage doit être établi avant d'évaluer la charge.",
+                              "établis d'abord joueur.masse_kg (mode enrichir_joueur), puis re-propose franchir.")
         if poids + m.charge() > o["charge_jeu_kg"]:
-            raise ErreurMonde("Ton poids et ton équipement dépassent la charge retenue pour cet assemblage.")
+            raise ErreurMonde("Ton poids et ton équipement dépassent la charge retenue pour cet assemblage.",
+                              f"poids {poids} + charge {m.charge()} > {o['charge_jeu_kg']:g} kg : pose d'abord des affaires.")
         destination = a["haut"] if m.joueur["salle"] == a["bas"] else a["bas"]
         plan.titre = ("Monter par " if destination == a["haut"] else "Redescendre par ") + designer(o) + "."
         plan.stat, plan.dd = "DEX", 10
