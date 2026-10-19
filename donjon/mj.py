@@ -74,8 +74,26 @@ def lire_flux(reponse):
                 resultat["_types_evenements"] = sorted(types)
                 return resultat
             if evenement.get("type") in ("response.failed", "response.incomplete", "error"):
-                raise ErreurMonde("Le MJ ChatGPT n'a pas terminé la réponse. Vérifiez les limites du forfait dans ChatGPT > Paramètres > Utilisation.")
+                raise ErreurMonde("Le MJ ChatGPT n'a pas terminé la réponse (" + raison_interruption(evenement) + ").")
     raise ErreurMonde("Flux du MJ interrompu avant la fin. Aucune action appliquée.")
+
+
+def raison_interruption(evenement):
+    """La raison donnée par l'API d'une réponse en échec ou incomplète, pour le diagnostic."""
+    reponse = evenement.get("response") or {}
+    erreur = reponse.get("error") or evenement.get("error") or {}
+    incomplete = reponse.get("incomplete_details") or {}
+    if isinstance(erreur, dict) and (erreur.get("code") or erreur.get("message")):
+        raison = " : ".join(str(x) for x in (erreur.get("code"), erreur.get("message")) if x)
+    elif incomplete.get("reason"):
+        raison = "incomplète : " + str(incomplete["reason"])
+    elif evenement.get("message") or evenement.get("code"):
+        raison = " : ".join(str(x) for x in (evenement.get("code"), evenement.get("message")) if x)
+    else:
+        raison = "raison non précisée par l'API, peut-être une limite d'usage"
+    if any(mot in raison.lower() for mot in ("rate", "quota", "limit", "usage")):
+        raison += " ; vérifiez les limites du forfait dans ChatGPT > Paramètres > Utilisation"
+    return raison[:300]
 
 
 def additionner_usage(total, ajout):
