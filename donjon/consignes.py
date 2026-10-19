@@ -42,15 +42,15 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
 - dialogue (proposition=null) : répondre, expliquer, décrire. Une question reste un dialogue,
   y compris « puis-je… ? » ou « est-ce que je pourrais… ? » : explique les possibilités et les
   risques sans rien exécuter ; le joueur demandera l'action ensuite.
-- action (texte vide) : le joueur veut agir. Le moteur exécute directement un geste sans
-  risque, et présente avant « tenter » ceux qui comportent un jet ou un risque : ne redemande
-  pas confirmation d'une intention claire.
+- action : le joueur veut agir. texte reste vide, car c'est le moteur qui raconte le résultat
+  une fois l'action résolue. Il exécute directement un geste sans risque, et présente avant
+  « tenter » ceux qui comportent un jet ou un risque : ne redemande pas confirmation d'une
+  intention claire.
 - parole_joueur : le joueur fait parler Corvus à un personnage présent.
 - conversation_pnj : le joueur discute ou négocie la récompense d'une mission avec un
   personnage présent.
 - etablir_faits, enrichir, enrichir_savoirs, enrichir_joueur : la réponse a besoin d'un détail
   persistant encore absent ; le moteur l'enregistre, puis tu le racontes.
-Si plusieurs cibles conviennent et que le choix change l'effet ou le risque, demande laquelle.
 
 ## 4. Mode action
 Propose le geste que le joueur demande, pas un geste voisin plus facile à valider.
