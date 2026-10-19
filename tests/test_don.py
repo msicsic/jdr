@@ -84,5 +84,5 @@ class OrientationTests(unittest.TestCase):
         from donjon.couverture_action import entree
         m = relais_avec_cloche()
         plan = Moteur(m).preparer(proposition("remettre", "cloche", "marchand"))
-        noms = entree("je donne la cloche à Gorm", plan, m)["noms"]
-        self.assertIn("Gorm", noms["marchand"])
+        effets = entree("je donne la cloche à Gorm", plan, m)["plan"]["effets_reussite"]
+        self.assertEqual(effets, [["donner", "cloche d'alarme (cloche)", "Gorm, gardien du relais (marchand)"]])

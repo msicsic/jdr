@@ -95,6 +95,7 @@ l'ordre et s'arrêtent au premier échec ; celles qui ont réussi restent acquis
 les gestes demandés, une étape par fixation ou par objet, et rien de plus : ranger une fixation
 détachée, par exemple, n'est une étape que si le joueur le demande. Au-delà de six étapes ou des
 opérations disponibles, examine improviser plutôt que de tronquer la demande.
+- Donner un objet à un personnage n'est pas un déplacement : action remettre (voir plus haut).
 - deplacer : prendre (destination joueur), poser (destination = salle.id) ou ranger (un
   contenant ouvert). Un article en vente s'achète (acheter). methode discret pour un bien
   d'autrui : le moteur en déduit le vol, les témoins et leurs soupçons ; pour ses propres
