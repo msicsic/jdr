@@ -26,7 +26,9 @@ Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
 - un changement durable demandé qu'aucune opération ne produit ;
 - un changement durable ajouté que le joueur n'a pas demandé.
-Une action sans changement durable est conforme si le geste suffit à la demande.
+Une action sans changement durable est conforme si le geste suffit à la demande. Un geste
+improvisé (geste_improvise) accomplit le geste demandé sur ses cibles : sa forme (coup de
+pied, poussée, caresse, air sifflé) relève du récit ; juge seulement ses changements durables.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
@@ -36,8 +38,12 @@ Appelle auditer_action une fois.
 
 
 def _operations(plan):
+    improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        **({"geste_improvise": {"approche": plan.proposition.get("approche"),
+                                "cibles": plan.proposition.get("cibles", []),
+                                "outil": plan.proposition.get("outil", "")}} if improvise else {}),
         "effets_reussite": [list(e) for e in plan.effets if e[0] != "recit_improvise"],
         "effets_echec": [list(e) for e in plan.echec if e[0] != "recit_improvise"],
         "information": plan.information,

@@ -3,6 +3,11 @@ from .monde import ErreurMonde
 from .francais import complement_de
 
 
+class HorsDePortee(ErreurMonde):
+    """La cible est trop loin : seul un déplacement du joueur lève l'obstacle, aucune autre
+    proposition du MJ ne le peut."""
+
+
 def exiger(monde, id):
     if not monde.data.get("mode_cases"):
         return
@@ -15,4 +20,4 @@ def exiger(monde, id):
             ox, oy = monde.data["salles"][monde.joueur["salle"]]["plan"]["origine"]
             position = position[0] + ox, position[1] + oy
         indication = f" (case {position[0]}, {position[1]} du plan)" if position and monde.visible(id) else ""
-        raise ErreurMonde("Approche-toi " + nom + indication + " : il faut être sur sa case ou juste à côté pour agir.")
+        raise HorsDePortee("Approche-toi " + nom + indication + " : il faut être sur sa case ou juste à côté pour agir.")
