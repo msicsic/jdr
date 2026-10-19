@@ -9,7 +9,7 @@ from .esprits import entendre
 VOIX = {
     "appel": ("Appeler à l'aide.", "Tu cries à l'aide.", 3),
     "cri": ("Pousser un cri.", "Tu pousses un cri.", 3),
-    "sifflement": ("Siffler pour se signaler.", "Tu émets un sifflement.", 2),
+    "sifflement": ("Siffler.", "Tu émets un sifflement.", 2),
 }
 
 REGLES = """

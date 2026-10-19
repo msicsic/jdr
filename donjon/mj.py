@@ -41,6 +41,7 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
                                  propositions as qualifications_proposees,
                                  controler as controler_physique)
 from .moteur import QualificationRequise
+from .proximite import HorsDePortee
 from .transactions import ajouter as ajouter_transaction
 
 
@@ -512,6 +513,9 @@ class MJOpenAI:
                 if self.observateur:
                     self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                       "revision": revision, "tentative": tentative + 1, **retour})
+                if isinstance(exc, HorsDePortee):
+                    # Aucune proposition ne rapproche le joueur : on explique sans redemander.
+                    correction_utilisee = True
                 if correction_utilisee:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
                               "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne conclus pas que l'intention entière est impossible."}

@@ -201,7 +201,9 @@ def preparer(m, p, origine):
         raise ErreurMonde("Tu n'es plus en état d'entreprendre ce geste.")
     if any(not m.accessible(id) for id in p["cibles"]):
         raise ErreurMonde("L'une des cibles n'est pas accessible ici.")
-    if p["approche"] == "manipulation":
+    if p["approche"] in ("manipulation", "effort"):
+        # Un geste de contact (saisir, pousser, frapper du pied) exige d'être à portée ; l'adresse
+        # (lancer), l'expression et l'observation peuvent viser de loin.
         from .proximite import exiger
         for id in p["cibles"]:
             exiger(m, id)
