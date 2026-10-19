@@ -59,6 +59,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--save", type=Path, default=BASE / "sauvegardes" / "partie.json")
     parser.add_argument("--model", default=os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT))
     parser.add_argument("--effort", choices=["low", "medium", "high"], default="medium")
+    parser.add_argument("--reflexion", choices=["libre", "imposee"], default="libre",
+                        help="anthropic : réflexion adaptative (défaut), ou outil imposé sans réflexion, plus rapide")
     parser.add_argument("--stratege", action="store_true",
                         help="Luna conseille les PNJ quand le moteur n'a pas de plan (appels plafonnés par heure de jeu)")
     parser.add_argument("--debug", action="store_true", help="autorise etat <objet> pour inspecter le monde")
@@ -137,6 +139,8 @@ def main(argv=None, interface=None):
         cle = "ANTHROPIC_API_KEY" if connexion == "anthropic" else "OPENAI_API_KEY"
         actif = not args.offline and (connexion == "chatgpt" or bool(os.environ.get(cle)))
         mj = MJOpenAI(args.model, args.effort, connexion=connexion) if actif else None
+        if mj:
+            mj.reflexion = args.reflexion
         from donjon import stratege
         # Le stratège passe par la connexion du MJ principal, jamais par le modèle comparé.
         stratege.activer(mj._appeler_brut if mj and args.stratege else None)

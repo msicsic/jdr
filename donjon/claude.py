@@ -2,9 +2,9 @@
 
 Activé seulement par ``--connexion anthropic`` ; Luna reste le MJ par défaut. L'appel garde le
 contrat du MJ : une fonction, un schéma strict, des arguments JSON que le moteur contrôle comme
-pour Luna. Deux modes (``mj.reflexion``) :
-- « imposee » : l'outil est imposé ; le modèle répond sans réflexion préalable ;
-- « libre » : réflexion adaptative (résumée), outil libre ; une réponse rendue en texte au lieu
+pour Luna. Deux modes (``mj.reflexion``, option ``--reflexion``) :
+- « imposee » : l'outil est imposé ; le modèle répond sans réflexion préalable, plus vite ;
+- « libre », par défaut : réflexion adaptative (résumée), outil libre ; une réponse rendue en texte au lieu
   de l'appel est renvoyée au modèle, réflexion comprise, pour être transcrite en appel imposé.
 Les instructions, stables d'un appel à l'autre, sont mises en cache.
 """

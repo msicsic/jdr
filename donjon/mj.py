@@ -401,7 +401,7 @@ class MJOpenAI:
         self._audit_courant = None
         self._monde_controle = None
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
-        self.reflexion = "imposee"     # Claude : outil imposé sans réflexion, ou « libre » avec réflexion
+        self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
         self.sans_strict = set()       # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
