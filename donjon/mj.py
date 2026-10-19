@@ -167,8 +167,8 @@ detacher : cible fixation amovible encore attachée. Si extraction=main, outil v
   méthode levier/finesse/percussion. Estime la difficulté, une seule fixation par action.
   Un outil fragile (usage levier_fin) appelle DD 17..22, avec risque pour l'outil.
   Un outil adapté à l'extraction appelle DD 11..16 ; le moteur gère le bonus.
-  Ce raccourci range ensuite la fixation dans la besace ; pour la laisser tomber au sol,
-  utilise composer avec la seule étape detacher.
+  La fixation libérée reste sur place ; pour la prendre aussi, si le joueur le demande,
+  utilise composer avec detacher puis deplacer vers joueur.
   Ne remplace pas silencieusement une demande de soulever un objet lourd par le retrait
   d'une fixation. Le moteur vérifie la charge ; suggère une autre manœuvre dans l'avis.
 frapper : cible matérielle, outil de percussion ou levier ; une lame peut aussi entamer une cible tranchable.
@@ -411,16 +411,28 @@ class MJOpenAI:
     def _auditer_action(self, intention, plan, revision):
         from .couverture_action import (SCHEMA as SCHEMA_COUVERTURE,
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
-                                        entree as entree_couverture,
+                                        RapportInvalide, entree as entree_couverture,
                                         verifier as verifier_couverture)
-        rapport = self._appeler_brut(
-            INSTRUCTIONS_COUVERTURE, entree_couverture(intention, plan),
-            "Contrôler la fidélité du plan", "auditer_action", SCHEMA_COUVERTURE)
-        verifier_couverture(rapport)
-        if self.observateur:
-            self.observateur({"etape": "couverture de l'action", "modele": self.modele,
-                              "revision": revision, "intention": intention,
-                              "rapport": copy.deepcopy(rapport)})
+        for essai in range(2):
+            rapport = self._appeler_brut(
+                INSTRUCTIONS_COUVERTURE, entree_couverture(intention, plan),
+                "Contrôler la fidélité du plan", "auditer_action", SCHEMA_COUVERTURE)
+            if self.observateur:
+                self.observateur({"etape": "couverture de l'action", "modele": self.modele,
+                                  "revision": revision, "intention": intention,
+                                  "rapport": copy.deepcopy(rapport)})
+            try:
+                verifier_couverture(rapport)
+                return
+            except RapportInvalide:
+                # Une revue illisible ne juge pas la proposition : on la redemande une fois,
+                # puis le plan déjà validé par le moteur passe, comme dans le doute.
+                if essai:
+                    if self.observateur:
+                        self.observateur({"etape": "couverture de l'action", "modele": self.modele,
+                                          "revision": revision, "intention": intention,
+                                          "erreur": "Contre-revue illisible deux fois : plan accepté sans elle."})
+                    return
 
     def raconter_resultat(self, monde, resultat):
         """Narration seule : le résultat est déjà résolu et sauvegardé par la boucle de jeu."""

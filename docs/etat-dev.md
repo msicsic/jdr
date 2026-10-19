@@ -26,7 +26,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'effet ou l'ajout fautif est numéroté. Mesure Haiku A/B sur les trois bancs : les refus
   corrigeables passent de 4 répétés et jamais corrigés à 2 corrigés dès la première relance.
   Restent hors périmètre : les messages d'audit (contrôle narratif, contre-revue).
-- La suite de tests passe : 576 tests, sans clé ni connexion.
+- Branche `contre-revue` : le raccourci `detacher` libère la fixation sur place (la prendre
+  est une étape `deplacer` explicite) ; un rapport de contre-revue mal formé est redemandé
+  une fois puis le plan validé passe, au lieu d'être renvoyé au MJ comme un refus. Cas réel
+  « fais levier sous l'axe » : 2 appels, conforme du premier coup (contre 4 à 8 avant).
+- La suite de tests passe : 582 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
