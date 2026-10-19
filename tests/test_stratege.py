@@ -311,8 +311,10 @@ class LeviersTests(unittest.TestCase):
             lire(m, "marchand")["besoins"]["faim"] = 0
             croire(m, "marchand", "brune", "fiable", False, "vu")
             self.assertEqual(demander(m, "brune", "marchand", "vivres"), "mefiance")
-            # Le joueur, qui n'a pas faim, ne demande pas une part : la règle d'avant demeure.
-            self.assertEqual(demander(m, "joueur", "marchand", "vivres"), "absent")
+            # Le joueur a un corps lui aussi : il peut demander une part, que Gorm s'engage à servir.
+            self.assertEqual(demander(m, "joueur", "marchand", "vivres"), "promis")
+            self.assertIn({"objet": "vivres", "servir": "joueur"},
+                          [x["condition"] for x in lire(m, "marchand")["engagements"]])
 
     def test_qui_vient_de_refuser_ne_se_voit_pas_redemander_la_meme_chose(self):
         m = relais()

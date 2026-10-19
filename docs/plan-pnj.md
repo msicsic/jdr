@@ -521,6 +521,109 @@ aucune violation ni usurpation. Pas d'appel à Luna : aucune phrase du joueur ne
 - Non fait : la crue comme événement (complémentaire, s'appuiera sur H1) ; protéger autrui ;
   fuir une menace qui se déplace.
 
+## Jalon I — demander, écouter, protéger
+
+Trois manques relevés aux jalons G et H et dans la migration du MJ, qui rapprochent le joueur
+de la vie du Relais. Ordre de réalisation : I1, I2, puis I3, qui s'appuie sur I2.
+
+### I1. Le corps : faim, froid, fatigue, et la part demandée
+
+Aujourd'hui, faim, froid et fatigue sont des jauges réglées par profil (départ, vitesse,
+seuil) : Brune a faim parce que l'auteur fait monter sa jauge vite, pas parce que le moteur
+constate qu'elle n'a pas mangé. Le joueur n'en a aucune, si bien qu'une part demandée n'aurait
+pas de sens.
+
+- Un modèle commun du corps, pour tous les personnages, joueur compris :
+  - la faim monte avec le temps, plus vite avec l'effort (marcher, porter, travailler) ; un
+    repas la fait baisser ;
+  - le froid monte loin d'un feu, plus vite trempé ; il baisse près d'un foyer allumé ;
+  - la fatigue monte avec le temps et l'effort ; le repos la fait baisser ;
+  - rythmes et seuils sont ceux du moteur, les mêmes pour tous.
+- Le scénario déclare des états, pas des traits : le dernier repas de Brune la veille, les
+  évacués trempés. La faim élevée de Brune en découle. Le profil ne garde que le caractère :
+  ce qu'on est prêt à faire pour manger, se chauffer ou se reposer.
+- Pour le joueur : ses états figurent sur sa fiche ; un état qui presse donne un malus aux
+  jets de FOR et de DEX ; à l'extrême, la faim et le froid font perdre des PV. Il mange ce
+  qu'il porte ou ce qu'on lui sert, se chauffe près d'un feu, se repose en attendant.
+- La part demandée par le joueur : une part de toute ressource comptée qui appartient à
+  l'autre et apaise un de ses états (vivres, bois). La suite est commune aux PNJ : réserve,
+  besoin propre du donneur, méfiance, jet de CHA, engagement. Une part de vivres est servie et
+  mangée ; une part de bois entretient le feu. Luna peut demander, pour le joueur, une
+  ressource que le PNJ possède sans la porter, si le joueur la connaît.
+- Les besoins de l'esprit (devoir, biens, sécurité) restent propres à chaque profil.
+
+### I2. Écouter
+
+« J'écoute à la porte » est refusé : aucune action de perception auditive. Les gestes et les
+paroles des PNJ hors de vue n'atteignent jamais le joueur, alors que les sons se propagent
+déjà de salle en salle pour les PNJ (`sons.portee`).
+
+- Les PNJ font du bruit : une parole porte comme une voix, un pas ou un geste plus bas, une
+  porte forcée plus fort ; chaque événement se propage par `sons.portee`.
+- Le joueur entend de lui-même ce qui est fort (un appel, un cri) ; il entend ce qui est bas
+  (voix, pas) en écoutant : action `ecouter`, une minute, renforcée au contact d'une porte.
+- Ce qu'il entend se rend selon le niveau et ce qu'il connaît : « des pas », « deux voix à
+  l'est », ou la parole en clair si elle est assez nette et ne nomme que ce qu'il connaît
+  (même règle que `faire_entendre`). Commande locale `écouter`, sans appel à Luna.
+
+### I3. Protéger autrui
+
+Gorm se dit protecteur des évacués ; rien ne le code.
+
+- Donnée de profil `protege` : les personnages qu'un PNJ protège.
+- Un PNJ à bout d'inquiétude, sans abri, appelle à l'aide : un son fort, entendu par les PNJ
+  et par le joueur (I2).
+- Un protecteur qui entend l'appel d'un protégé accourt (intention d'alerte existante) ; sa
+  présence, fiable, rassure (H).
+- Un geste illicite vu contre un protégé touche le protecteur comme une atteinte : son devoir
+  est relancé, et il le fait savoir à la victime.
+
+### Hors périmètre
+
+La crue (jalon suivant) ; protéger par la force.
+
+### Fin de jalon
+
+Le cas réel et un autre cas de même nature, état et affichage après rechargement. Luna en
+vrai : « Gorm, tu peux me donner une part de vivres ? », « …du bois pour le feu ? »,
+« j'écoute à la porte ». Banc moteur seul : appels à l'aide, protecteurs venus, minutes
+urgentes oisives, aucune violation.
+
+### Décisions
+
+1. Faim, froid et fatigue suivent un modèle commun du corps, joueur compris (validé) : malus
+   aux jets de FOR et DEX quand un état presse, PV perdus à l'extrême de la faim et du froid ;
+   le scénario déclare des états, le profil le caractère.
+2. Le joueur entend de lui-même les sons forts, et les sons bas seulement en écoutant (validé).
+3. Protéger : donnée de profil `protege` ; appel à l'aide d'un PNJ à bout ; le protecteur
+   accourt ; un geste illicite contre un protégé relance son devoir et il prévient la victime.
+   Validé comme un début : la protection sera enrichie dans un jalon ultérieur.
+
+## Écarts retenus au jalon I
+
+- I1, le corps : `donjon/corps.py` porte les rythmes et seuils communs (faim 6 par heure,
+  fatigue 3, froid 2 au sec et 10 trempé ; effort ×1,5 ; −3 par minute dans la salle d'un
+  foyer allumé, sec après 30 minutes) ; le Relais déclare des états (repas, veille, minutes
+  trempé) reprenant les valeurs de départ d'avant ; les anciennes parties migrent au
+  chargement. Joueur : états sur la fiche et, en mots, dans le contexte de Luna ; −2 aux jets
+  de FOR et DEX par état pressant ; à l'extrême, 1 PV par heure, jamais en deçà de 1 ; manger.
+- I1, la part du joueur : une demande peut nommer une ressource comptée que possède celui
+  qu'on interroge sans l'avoir vue (on demande du pain sans connaître l'étagère). Sans cette
+  règle générale, « une part de vivres » était refusée par le contrôle des mentions et Luna
+  inventait le refus. Vérifié avec Luna en console réelle (`tools/test_part_reel.py`).
+- I2 : consigne de Luna corrigée en cours de route (« place d'abord Corvus contre la porte »
+  lui faisait proposer un déplacement) ; vérifié avec Luna (`tools/test_ecoute_reel.py`).
+- Banc moteur seul, 8 graines, 8 heures, `main` (après H) → I : minutes urgentes oisives
+  498 → 398, événements distincts 27,5 → 26,1, échanges 8,8 → 9,6, gestes illicites vus
+  2,2 → 3,8, repas 1,1 → 1,6 par partie, appels à l'aide 0,25 par partie, aucune usurpation.
+  Moins de « se chauffe » (6,1 → 2,1) : le feu réchauffe quiconque se tient dans sa salle, et
+  les évacués secs se refroidissent lentement.
+- Défaut relevé, non corrigé : quand le moteur refuse une demande sur un jet raté, Luna
+  invente parfois un motif (« sans la clé » alors que Gorm la porte, « prends-en là-bas ») ;
+  le contrôle de la prose ne juge pas le contenu d'une réplique de PNJ. À traiter avec la voix
+  des PNJ.
+- Non fait : la crue ; protéger par la force ; une protection plus riche (piste ultérieure).
+
 ## Jalons
 
 Une branche par jalon, fusionnée avant d'ouvrir la suivante. Aucun nouveau mécanisme en
@@ -537,6 +640,7 @@ cours de jalon sans accord. Fin de jalon : le cas réel et un autre cas de même
 | **F. Tensions du Relais** — *fait* | les évacués trempés quittent le refuge pour se chauffer au brasero ; Gorm revoit son feu, va chercher ses fagots aux vannes et le recharge, jusqu'à épuiser le bois ; tous ont faim pour 4 parts : on demande une part à Gorm avant de voler, il sert, refuse ou garde la dernière ; Brune refusée crochète, Ilse refusée redemande deux heures plus tard ; on cherche Gorm quand on l'a perdu de vue ; tu recharges toi-même le brasero | besoin `chaleur`, foyer et combustible (`alimenter`, commun au joueur et aux PNJ, `allumer` pour les PNJ), feu consumé minute par minute avec les PNJ, pulsion de feu entretenu, part demandée par le moteur et attendue près des vivres, refus par objet, recherche d'un personnage, ordre des buts (ce qui presse, parole donnée, ce qu'on finit, routine) | aucun appel ; stratège remesuré |
 | **G. Le feu partagé** — *fait* | Gorm, sans briquet, rallume le brasero avec la torche allumée au fanal ; tu allumes ta lanterne au brasero ; quand Gorm garde sa dernière brassée, les évacués demandent une part des planches d'Aubin, qui va lui-même entretenir le feu ; Aubin rallume le brasero mort avec ses planches et la torche allumée au fanal, puis l'éteint et la garde ; tu allumes ta lanterne au feu | une source allumée sert d'outil d'allumage (joueur et PNJ) ; part généralisée aux ressources comptées (`portions`, `charges`), réserve gardée en donnée de profil (`reserve`) ; recours au froid ordonnés comme ceux de la faim ; perception d'une flamme dans le noir, inertie d'un plan en cours, flamme ménagée | aucun appel |
 | **H. Se sentir en sécurité** — *fait* | les évacués se regroupent dans la lumière près de qui ils croient fiable ; le noir d'un feu mort les pousse vers le fanal ou vers toi ; Ilse s'écarte de Brune qu'elle a vue crocheter ; ta présence rassure ou inquiète selon la confiance | sécurité mue par la perception (noir, bruit, geste illicite, méfiance ; compagnie fiable, lumière, ronde accomplie), nuancée par profil (`securite`) ; geste qui dure « se mettre à l'abri » | aucun appel |
+| **I. Demander, écouter, protéger** — *fait* | tu as faim, froid, sommeil comme eux ; tu demandes une part de vivres ou de bois à Gorm ; tu écoutes à la porte et entends des pas, des voix, une parole nette ; un évacué à bout appelle à l'aide, Gorm accourt et le rassure | modèle commun du corps (faim, froid, fatigue) pour tous, joueur compris ; part demandée par le joueur ; sons des PNJ propagés, action `ecouter` ; donnée de profil `protege`, appel à l'aide, réaction du protecteur | phrases du joueur vérifiées |
 
 Chaque jalon migre ce qu'il remplace (`humeur`, `soupcon`, `vigilance` dérivés) et garde les
 parties existantes rechargeables ; le banc des voix (cohérence avec les croyances, aucune

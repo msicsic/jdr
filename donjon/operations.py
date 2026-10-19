@@ -12,7 +12,7 @@ from .vol import proprietaire
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
 ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper", "frapper",
                        "bloquer", "debloquer")
-OPERATIONS = ("patienter", "deplacer", "detacher", "allumer", "eteindre", "alimenter", "franchir_obstacle", "emettre_son",
+OPERATIONS = ("patienter", "deplacer", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement")
 
@@ -149,7 +149,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
     if op == "patienter":
         if cible or destination or outil or methode != "simple":
             raise ErreurMonde("Patienter ne peut pas imposer un geste ou un changement d'attention à un PNJ.")
-        p.titre, p.minutes = "Guetter une occasion pendant deux minutes.", 2
+        p.titre, p.minutes, p.effort = "Guetter une occasion pendant deux minutes.", 2, False
         return p
     if not monde.accessible(cible):
         raise ErreurMonde("La cible est absente ou inaccessible depuis ici.")
@@ -215,6 +215,20 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde(designer(t, debut=True) + " appartient à autrui : il faut d'abord l'obtenir.")
         p.titre = "Alimenter " + designer(o) + " avec " + designer(t) + "."
         p.effets = [("alimentation", cible, t["id"])]
+        return p
+    if op == "manger":
+        from .francais import complement_de
+        if destination or outil or methode != "simple":
+            raise ErreurMonde("Manger se fait simplement, sans destination ni outil.")
+        if o["type"] != "nourriture":
+            raise ErreurMonde(designer(o, debut=True) + " ne se mange pas.")
+        if o.get("portions", 0) <= 0:
+            raise ErreurMonde("Il ne reste rien " + complement_de(o) + ".")
+        victime = proprietaire(monde, o)
+        if victime not in (None, "joueur") and o.get("vole_par") != "joueur" and not monde.est_porte(cible):
+            raise ErreurMonde(designer(o, debut=True) + " appartient à autrui : demandes-en une part, ou prends-en.")
+        p.titre, p.minutes, p.effort = "Manger une part " + complement_de(o) + ".", 5, False
+        p.effets = [("manger", cible, 1)]
         return p
     if op == "deplacer" and monde.objets.get(destination, {}).get("foyer"):
         # Mettre un combustible dans un foyer, c'est le recharger : le geste d'alimenter.

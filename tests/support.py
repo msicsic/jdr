@@ -43,6 +43,9 @@ def sans_evacues(monde):
         for table in monde.data.values():
             if isinstance(table, dict):
                 table.pop(id, None)
+    for o in monde.objets.values():
+        if "protege" in o.get("profil", {}):
+            o["profil"]["protege"] = [x for x in o["profil"]["protege"] if x in monde.objets]
     return monde
 
 

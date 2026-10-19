@@ -58,7 +58,8 @@ choisies, images, tact. Si le joueur écrit ses mots entre
 guillemets, ils sont dits tels quels. contenu type ce que la réplique transmet (3 au plus) :
 affirmation {sujet: identifiant d'objet, de personnage ou "joueur", attribut: lieu (valeur =
 identifiant de salle ou de porteur), verrouillee (valeur oui/non) ou fiable (valeur oui/non)} ;
-demande {sujet: objet que le personnage porte et que Corvus lui demande, attribut "", valeur ""} ;
+demande {sujet: objet que le personnage porte, ou ressource à lui (vivres, bois) dont Corvus
+lui demande une part, attribut "", valeur ""} ;
 propos {sujet "", attribut "", valeur ""} pour le reste. Une affirmation peut être fausse :
 c'est au personnage d'y croire ou non, et au moteur d'en décider. Le moteur te renvoie
 conversation_validee : fais répondre le personnage d'après ce résultat, ses croyances et ses
@@ -142,6 +143,7 @@ def _ouidire(monde, source):
 
 def esprits_interlocuteurs(monde, presents):
     """Ce que Luna peut savoir d'un PNJ présent pour lui donner une voix : ses croyances, pas la vérité."""
+    from .deliberation import urgents
     resultat = {}
     for id in presents:
         e, profil = lire(monde, id), monde.objets[id].get("profil")
@@ -156,8 +158,7 @@ def esprits_interlocuteurs(monde, presents):
             "traits": profil["traits"] if profil else "",
             "croit": [texte for *_, texte in sorted(croyances)[:12]],
             "but_actuel": copy.deepcopy(e["intention"]["but"]) if e["intention"] else None,
-            "besoins_pressants": sorted(b for b, v in e["besoins"].items()
-                                        if profil and v >= profil["besoins"][b]["urgence"]),
+            "besoins_pressants": urgents(monde, id) if profil else [],
         }
     return resultat
 
@@ -211,11 +212,27 @@ def resoudre(monde, reference):
     return candidats.pop() if len(candidats) == 1 else None
 
 
-def _typer(monde, c):
+def part_nommee(monde, auditeur, reference):
+    """Ressource comptée de l'auditeur que nomme une demande : on peut demander une part de ce
+    qu'un autre possède sans l'avoir vu, comme on demande du pain sans connaître l'étagère."""
+    from . import lexique
+    from .deliberation import besoin_de_part, parts
+    from .vol import proprietaire
+    if not isinstance(reference, str) or not reference.strip():
+        return None
+    ids = {reference} if reference in monde.objets else lexique.entites_citees(monde, reference)
+    ressources = {i for i in ids if i in monde.objets and besoin_de_part(monde.objets[i])
+                  and parts(monde.objets[i]) > 0 and proprietaire(monde, monde.objets[i]) == auditeur}
+    return ressources.pop() if len(ressources) == 1 else None
+
+
+def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
     if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande"):
         return None
     sujet = resoudre(monde, c.get("sujet"))
+    if sujet is None and c["type"] == "demande" and auditeur:
+        sujet = part_nommee(monde, auditeur, c.get("sujet"))
     if sujet is None:
         return None
     if c["type"] == "demande":
@@ -247,15 +264,18 @@ def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
 def _demander(travail, auditeur, objet, faits):
     from .echanges import demander
     nom = travail.objets[auditeur]["nom"]
+    from .deliberation import besoin_de_part
     issue = demander(travail, "joueur", auditeur, objet)
     o = designer(travail.objets[objet]) if objet in travail.objets else ""
+    vivres = objet in travail.objets and besoin_de_part(travail.objets[objet]) == "faim"
     faits.append({
         "absent": f"{nom} n'a pas cet objet sur lui.",
         "mefiance": f"{nom} refuse : il ne te fait pas confiance.",
         "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
         "refus": f"{nom} n'est pas convaincu et garde {o}.",
         "remis": f"{nom} te remet {o}.",
-        "promis": f"{nom} accepte de t'en donner une part.",
+        "promis": (f"{nom} accepte de t'en donner une part : il te la servira là où sont les vivres."
+                   if vivres else f"{nom} accepte : il va entretenir le feu."),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
 
@@ -279,6 +299,13 @@ def preparer_parole(monde, p, revision=None):
                                monde.data.get("paroles_joueur", []))
     if p.get("_intention"):
         fondement += " " + lexique.corpus(p["_intention"])
+    # Une part demandée à son propriétaire se nomme sans avoir été vue.
+    for c in p["contenu"]:
+        if isinstance(c, dict) and c.get("type") == "demande":
+            part = part_nommee(monde, auditeur, c.get("sujet"))
+            if part:
+                o = monde.objets[part]
+                fondement += " " + " ".join([o["nom"], *o.get("aliases", [])])
     if lexique.mentions_sans_fondement(monde, replique, fondement):
         raise ErreurMonde("La réplique de Corvus nomme ce qu'il ne connaît pas.")
     travail = monde.copier()
@@ -286,7 +313,7 @@ def preparer_parole(monde, p, revision=None):
     capacite = min(capacite_transmission(travail.joueur["stats"]["INT"]),
                    capacite_transmission(stats_auditeur["INT"]))
     faits = []
-    transmis = [x for x in (_typer(travail, c) for c in p["contenu"]) if x]
+    transmis = [x for x in (_typer(travail, c, auditeur) for c in p["contenu"]) if x]
     perdus = transmis[capacite:]
     for c in transmis[:capacite]:
         if c["type"] == "affirmation":

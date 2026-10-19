@@ -7,6 +7,7 @@ le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur
 croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
 par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 """
+from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
 from .esprits import RECENT, esprit, lire, memoriser
 from .spatial import porte_par
 
@@ -17,17 +18,15 @@ OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", 
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir",
               "dire", "demander", "confier", "remettre")
-PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
+PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
+EFFORTS = ("aller", "prendre", "poser", "crocheter", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "confier", "remettre")
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
 REPIT = 60             # minutes avant de reprendre un but abandonné
 ATTEINTE = 30          # une pulsion qui cesse d'être satisfaite relance son besoin
 VOL = 60               # un vol vu par sa victime
-SATIETE = 50           # un repas
-REPOS_MINUTE = 2       # repos regagné par minute passée à se reposer
 REPOS_FIN = 20         # reposé : il se relève
-CHALEUR_MINUTE = 3     # chaleur regagnée par minute passée près d'un foyer allumé
 CHALEUR_FIN = 20       # réchauffé : il s'écarte du feu
 SECURITE_FIN = 30      # rassuré : il quitte l'abri
 # Ce qui inquiète (+) ou rassure (−) la sécurité, valeurs par défaut que chaque profil nuance
@@ -37,13 +36,21 @@ SECURITE = {"noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # in
 REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient de refuser
 ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
 REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
-DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu
+DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
+APPEL_REPIT = 10       # minutes entre deux appels à l'aide
 INERTIE = 5            # points au-delà du seuil avant qu'un besoin interrompe un plan en cours
 STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
 
 def profil(monde, id):
     return monde.objets[id].get("profil")
+
+
+def seuils(monde, id):
+    """Seuil d'urgence de chaque besoin : ceux du corps, communs ; ceux de l'esprit, du profil."""
+    p = profil(monde, id)
+    return {**{nom: regle["urgence"] for nom, regle in CORPS.items()},
+            **{nom: b["urgence"] for nom, b in (p or {}).get("besoins", {}).items()}}
 
 
 def reserve(monde, id):
@@ -65,7 +72,10 @@ def parts(o):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions",
-                          "reserve", "securite"}), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege"}), "Profil de PNJ mal formé"
+    assert (isinstance(p.get("protege", []), list) and all(
+        x in monde.objets and monde.objets[x]["type"] == "personnage" and x != id
+        for x in p.get("protege", []))), "Protégés de PNJ invalides"
     assert type(p.get("reserve", 1)) is int and 0 <= p.get("reserve", 1) <= 10, "Réserve de PNJ invalide"
     assert (isinstance(p.get("securite", {}), dict) and set(p.get("securite", {})) <= set(SECURITE)
             and all(isinstance(v, (int, float)) and 0 <= v <= 100 for v in p.get("securite", {}).values())),         "Sécurité de PNJ invalide"
@@ -74,11 +84,12 @@ def verifier_profil(monde, id, p):
     assert isinstance(p["traits"], str) and len(p["traits"]) <= 600, "Traits de PNJ invalides"
     assert set(p["limites"]) <= set(LIMITES) and set(p["capacites"]) <= set(CAPACITES), "Limite ou capacité inconnue"
     for nom, b in p["besoins"].items():
-        assert (nom in BESOINS and set(b) == {"depart", "derive_heure", "urgence"}
+        # Faim, froid et fatigue relèvent du corps, commun à tous : le profil ne les règle pas.
+        assert (nom in BESOINS and nom not in CORPS and set(b) == {"depart", "derive_heure", "urgence"}
                 and all(isinstance(b[k], (int, float)) for k in b)
                 and 0 <= b["depart"] <= 100 and 0 < b["urgence"] <= 100), "Besoin de PNJ invalide"
     for pulsion in p["pulsions"]:
-        assert (set(pulsion) <= {"besoin", "condition", "delegue_a"} and pulsion.get("besoin") in p["besoins"]
+        assert (set(pulsion) <= {"besoin", "condition", "delegue_a"} and pulsion.get("besoin") in seuils(monde, id)
                 and condition_valide(monde, pulsion.get("condition"))
                 and pulsion.get("delegue_a", "joueur") == "joueur"), "Pulsion de PNJ invalide"
 
@@ -89,8 +100,9 @@ def condition_valide(monde, c):
     return isinstance(c, dict) and (
         (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
         or (set(c) == {"objet", "servir"} and c["objet"] in monde.objets
-            and monde.objets[c["objet"]]["type"] == "nourriture" and c["servir"] in monde.objets
-            and monde.objets[c["servir"]]["type"] == "personnage")
+            and monde.objets[c["objet"]]["type"] == "nourriture"
+            and (c["servir"] == "joueur" or c["servir"] in monde.objets
+                 and monde.objets[c["servir"]]["type"] == "personnage"))
         or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
         or (set(c) == {"objet", "allume"} and c["objet"] in monde.objets and "allume" in monde.objets[c["objet"]]
             and c["allume"] is True)
@@ -543,6 +555,44 @@ def inquieter(monde, id, cause, signe=1):
         relancer(monde, id, "securite", signe * taux(monde, id, cause))
 
 
+def protecteurs(monde, protege):
+    """Ceux dont le profil déclare protéger ce personnage."""
+    return [x for x, o in monde.objets.items() if protege in (o.get("profil") or {}).get("protege", [])]
+
+
+def appeler_a_l_aide(monde, id, minute):
+    """À bout d'inquiétude et sans abri, il appelle : un son fort, que d'autres entendent."""
+    e = esprit(monde, id)
+    if (e["besoins"].get("securite", 0) < DESESPOIR
+            or e["intention"] and e["intention"]["but"]["type"] == "abri"
+            or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in e["memoire"])):
+        return
+    memoriser(monde, id, {"type": "appel"})
+    from .ecoute import appel
+    appel(monde, id)
+
+
+def _plan_prevenir(monde, id):
+    """Un geste illicite vu contre un protégé : aller le lui dire."""
+    e = esprit(monde, id)
+    for s in reversed(e["memoire"]):
+        if s["type"] != "a_prevenir":
+            continue
+        dit = any(x["type"] == "dit" and x["a"] == s["victime"] and x["sujet"] == s["auteur"]
+                  and x["minute"] >= s["minute"] for x in e["memoire"])
+        if dit or s["victime"] not in monde.objets:
+            continue
+        p = Plan(monde, id)
+        try:
+            if not p.rejoindre(s["victime"]):
+                return {"type": "prevenir", "qui": s["victime"]}, p.etapes
+        except Echec:
+            continue
+        p.ajouter("dire", s["victime"], contenu={"sujet": s["auteur"], "attribut": "fiable", "valeur": False})
+        return {"type": "prevenir", "qui": s["victime"]}, p.etapes
+    return None
+
+
 def _eclairee_crue(monde, id, salle):
     """Éclairée quand il y était, ou par une source qu'il y croit allumée."""
     vue = _cru(monde, id, salle, "etat")
@@ -701,9 +751,9 @@ def _delegue(monde, id, pulsion):
 
 def urgents(monde, id):
     """Besoins au-delà de leur seuil, du plus pressant au moins pressant."""
-    p, e = profil(monde, id), esprit(monde, id)
-    return sorted((b for b in p["besoins"] if e["besoins"][b] >= p["besoins"][b]["urgence"]),
-                  key=lambda b: (p["besoins"][b]["urgence"] - e["besoins"][b], BESOINS.index(b)))
+    s, e = seuils(monde, id), esprit(monde, id)
+    return sorted((b for b in s if e["besoins"].get(b, 0) >= s[b]),
+                  key=lambda b: (s[b] - e["besoins"][b], BESOINS.index(b)))
 
 
 def confie_a_autrui(monde, id, objet):
@@ -743,7 +793,7 @@ def candidats(monde, id):
     pressants = urgents(monde, id)
     for besoin in pressants:
         if (en_cours and besoin != en_cours
-                and e["besoins"][besoin] < p["besoins"][besoin]["urgence"] + INERTIE):
+                and e["besoins"][besoin] < seuils(monde, id)[besoin] + INERTIE):
             continue
         if besoin == "faim":
             buts.append((besoin, _plan_manger, False))
@@ -764,6 +814,9 @@ def candidats(monde, id):
                     continue
                 buts.append((besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True))
     buts += [("engagement", lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), False) for x in e["engagements"]]
+    # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
+    if any(s["type"] == "a_prevenir" for s in e["memoire"]):
+        buts.append(("devoir", _plan_prevenir, False))
     # Ce qu'il garde sous clé et a lui-même ouvert, il le referme sans attendre l'urgence.
     for x in p["pulsions"]:
         c = x["condition"]
@@ -795,6 +848,10 @@ def deliberer(monde, id, minute):
     installer(monde, id)
     for nom, b in p["besoins"].items():
         e["besoins"][nom] = round(min(100.0, max(0.0, e["besoins"][nom] + b["derive_heure"] / 60)), 3)
+    # Le corps suit le geste en cours : l'effort creuse, le repos délasse.
+    from .corps import vivre
+    geste = e["intention"]["plan"][0]["operation"] if e["intention"] and e["intention"]["plan"] else None
+    vivre(monde, id, 1, effort=geste in EFFORTS, repos=geste == "reposer")
     ressentir(monde, id)
     for i, x in enumerate(p["pulsions"]):
         etat = satisfaite(monde, id, x["condition"])

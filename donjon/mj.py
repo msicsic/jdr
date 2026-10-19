@@ -74,8 +74,26 @@ def lire_flux(reponse):
                 resultat["_types_evenements"] = sorted(types)
                 return resultat
             if evenement.get("type") in ("response.failed", "response.incomplete", "error"):
-                raise ErreurMonde("Le MJ ChatGPT n'a pas terminé la réponse. Vérifiez les limites du forfait dans ChatGPT > Paramètres > Utilisation.")
+                raise ErreurMonde("Le MJ ChatGPT n'a pas terminé la réponse (" + raison_interruption(evenement) + ").")
     raise ErreurMonde("Flux du MJ interrompu avant la fin. Aucune action appliquée.")
+
+
+def raison_interruption(evenement):
+    """La raison donnée par l'API d'une réponse en échec ou incomplète, pour le diagnostic."""
+    reponse = evenement.get("response") or {}
+    erreur = reponse.get("error") or evenement.get("error") or {}
+    incomplete = reponse.get("incomplete_details") or {}
+    if isinstance(erreur, dict) and (erreur.get("code") or erreur.get("message")):
+        raison = " : ".join(str(x) for x in (erreur.get("code"), erreur.get("message")) if x)
+    elif incomplete.get("reason"):
+        raison = "incomplète : " + str(incomplete["reason"])
+    elif evenement.get("message") or evenement.get("code"):
+        raison = " : ".join(str(x) for x in (evenement.get("code"), evenement.get("message")) if x)
+    else:
+        raison = "raison non précisée par l'API, peut-être une limite d'usage"
+    if any(mot in raison.lower() for mot in ("rate", "quota", "limit", "usage")):
+        raison += " ; vérifiez les limites du forfait dans ChatGPT > Paramètres > Utilisation"
+    return raison[:300]
 
 
 def additionner_usage(total, ajout):
@@ -116,6 +134,9 @@ risque, demande laquelle le joueur vise.
 
 REGLES_ACTIONS = """Actions disponibles :
 observer : cible lumiere, contexte ou scene selon la question, sans outil ; rapport immédiat sans modification du monde.
+ecouter : action simple (pas une étape de composer), cible et outil vides ; Corvus tend
+  l'oreille trois minutes là où il se tient, mieux s'il est déjà contre une porte. Le moteur
+  rend ce qui parvient (pas, voix, paroles nettes) ; n'annonce aucun bruit toi-même.
 allumer/eteindre : cible luminaire accessible. Allumer demande du combustible et un outil
   d'allumage possédé (facultatif ; le moteur en sélectionne un si omis). N'allume pas n'importe quel objet.
 examiner/toucher/lire : cible objet, sans outil. Examiner n'exige pas de jet.
@@ -202,6 +223,9 @@ Opérations :
   ou à portée de main (facultatif ; le moteur en choisit un si omis), destination vide,
   methode simple, difficulte 0. Coût une minute, sans jet ; une charge prolonge le feu sans
   le rallumer. Un deplacer d'un combustible vers un foyer est ce même geste.
+- manger : cible une nourriture portée ou à portée, à Corvus ou à personne (celle d'autrui se
+  demande ou se prend d'abord) ; destination et outil vides, methode simple, difficulte 0.
+  Cinq minutes, sans jet ; une part apaise la faim.
   Ces opérations sont combinables avec les autres, notamment allumer avant une extraction
   qui exige de la lumière, ou éteindre puis poser une lanterne.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : mêmes

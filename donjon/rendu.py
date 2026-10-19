@@ -215,6 +215,7 @@ def regarder(monde):
 
 
 def fiche(monde):
+    from .corps import etat as etat_corps
     j = monde.joueur
     profil = []
     if j.get("espece"):
@@ -232,6 +233,7 @@ def fiche(monde):
     return (f'\nPERSONNAGE — {j["nom"]}\nPV {j["pv"]}/{j["pv_max"]} | {j["or"]} pièces | '
             f'{monde.charge():.1f}/{j["capacite"]} kg | {monde.data["minutes"]} min\n'
             + stats + ("\n" + " | ".join(profil) if profil else "")
+            + "\n" + " | ".join(f"{nom.capitalize()} : {niveau}" for nom, niveau in etat_corps(monde).items())
             + "\nBesace :\n  " + "\n  ".join(sac) + "\n\n" + decrire_accords(monde))
 
 

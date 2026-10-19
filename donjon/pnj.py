@@ -43,11 +43,13 @@ def _etape(operation, cible="", outil="", lieu="", condition=""):
     return {"operation": operation, "cible": cible, "outil": outil, "lieu": lieu, "condition": condition}
 
 
-def reagir(monde, id, origine, niveau):
-    """Réflexe déclaré par l'auteur : un son assez fort donne l'intention d'aller voir."""
+def reagir(monde, id, origine, niveau, auteur=None):
+    """Réflexe déclaré par l'auteur : un son assez fort donne l'intention d'aller voir. L'appel
+    d'un protégé fait accourir son protecteur."""
     pnj = monde.objets[id]
     reaction = pnj.get("reaction_son")
-    if reaction and niveau >= reaction["seuil"] and origine != pnj["lieu"]:
+    protege = auteur in (pnj.get("profil") or {}).get("protege", [])
+    if (protege or reaction and niveau >= reaction["seuil"]) and origine != pnj["lieu"]:
         esprit(monde, id)["intention"] = {"but": {"type": "rejoindre", "lieu": origine}, "motif": "alerte",
                                           "plan": [_etape("aller", lieu=origine)],
                                           "depuis": monde.data["minutes"], "attente": 0}
@@ -118,6 +120,10 @@ def _chroniquer(monde, id, texte, nature="geste"):
     chronique = monde.data.setdefault("chronique", [])
     chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte, "nature": nature})
     del chronique[:-CHRONIQUE_MAX]
+    # Un pas, un geste font du bruit ; les paroles le font par ``social.faire_entendre``.
+    from .ecoute import NATURES, bruit
+    if nature in NATURES:
+        bruit(monde, id, NATURES[nature])
 
 
 def _raconter(monde, id, verbe, objet, lignes):
@@ -165,6 +171,11 @@ def _temoigner(monde, id, operation, objet):
             inquieter(monde, autre, "illicite")
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
+            elif victime in (monde.objets[autre].get("profil") or {}).get("protege", []):
+                # Un protégé atteint : son devoir est touché, il ira le prévenir.
+                from .deliberation import ATTEINTE
+                relancer(monde, autre, "devoir", ATTEINTE)
+                memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id})
 
 
 # --- Gestes -------------------------------------------------------------------------------
@@ -413,7 +424,7 @@ def _executer(monde, id, etape, lignes, gestes):
 
 def _chauffer(monde, id, foyer, lignes):
     """Une minute près d'un foyer allumé de sa salle ; le geste s'achève quand il est réchauffé."""
-    from .deliberation import CHALEUR_FIN, CHALEUR_MINUTE
+    from .deliberation import CHALEUR_FIN
     e, f = esprit(monde, id), monde.objets[foyer]
     if "chaleur" not in e["besoins"]:
         return True
@@ -425,7 +436,7 @@ def _chauffer(monde, id, foyer, lignes):
     if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in e["memoire"]):
         memoriser(monde, id, {"type": "se_chauffe", "objet": foyer})
         _raconter(monde, id, "se chauffe près de", f, lignes)
-    e["besoins"]["chaleur"] = max(0.0, e["besoins"]["chaleur"] - CHALEUR_MINUTE)
+    # La chaleur du feu agit d'elle-même dans sa salle (``corps``) : il reste jusqu'à être réchauffé.
     return e["besoins"]["chaleur"] <= CHALEUR_FIN
 
 
@@ -455,7 +466,7 @@ def _abriter(monde, id, lieu, lignes):
 
 def _reposer(monde, id, lignes):
     """Une minute de repos ; le geste s'achève quand le PNJ est reposé."""
-    from .deliberation import REPOS_FIN, REPOS_MINUTE
+    from .deliberation import REPOS_FIN
     besoins, intention = esprit(monde, id)["besoins"], esprit(monde, id)["intention"]
     if "repos" not in besoins:
         return True
@@ -464,7 +475,7 @@ def _reposer(monde, id, lignes):
         _chroniquer(monde, id, texte)
         if monde.visible(id):
             lignes.append(texte)
-    besoins["repos"] = max(0.0, besoins["repos"] - REPOS_MINUTE)
+    # Le repos délasse par le corps (``corps.vivre``), tant que ce geste est en cours.
     return besoins["repos"] <= REPOS_FIN
 
 
@@ -543,7 +554,7 @@ def _annoncer_presences(monde, vus, apparus, lignes):
 
 def avancer(monde, minutes, lignes):
     """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
-    from .deliberation import deliberer, menager_flamme
+    from .deliberation import appeler_a_l_aide, deliberer, menager_flamme
     from .perception import avancer_combustion
     from .social import bavarder
     fin = monde.data["minutes"]
@@ -558,6 +569,7 @@ def avancer(monde, minutes, lignes):
             if monde.objets[id].get("profil"):
                 deliberer(monde, id, minute)
                 menager_flamme(monde, id, minute)
+                appeler_a_l_aide(monde, id, minute)
             intention = lire(monde, id)["intention"]
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):

@@ -12,7 +12,7 @@ Le moteur valide chaque geste : identifiants connus du PNJ, limites (``ne_vole_p
 de jeu. Rien de ce qu'écrit Luna n'est montré au joueur, qui ne perçoit que les gestes.
 """
 from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, confie_a_autrui,
-                           illicite, profil, refuse_recemment, salle_crue)
+                           illicite, profil, refuse_recemment, salle_crue, seuils)
 from .echanges import demande_de_part
 from .esprits import esprit, lire, memoriser, percoit, pnjs
 from .monde import ErreurMonde
@@ -159,8 +159,8 @@ def dossier(monde, id, declencheur, besoin=None, plan_moteur=None):
                        "capacites": p["capacites"], "salle": monde.objets[id]["lieu"]},
         "minute": minute,
         "declencheur": {"nature": declencheur, "sens": DECLENCHEURS[declencheur], "besoin": besoin or ""},
-        "besoins": {b: {"valeur": round(e["besoins"].get(b, 0)), "urgence": v["urgence"]}
-                    for b, v in p["besoins"].items()},
+        "besoins": {b: {"valeur": round(e["besoins"].get(b, 0)), "urgence": u}
+                    for b, u in seuils(monde, id).items()},
         "pulsions": [_pulsion(monde, x) for x in p["pulsions"]],
         "engagements": [{"pour": x["pour"], "condition": x["condition"]} for x in e["engagements"]],
         "croyances": [{"sujet": s, "attribut": a, "valeur": c["valeur"], "source": c["source"],
@@ -178,7 +178,7 @@ def dossier(monde, id, declencheur, besoin=None, plan_moteur=None):
 def schema(monde, id):
     connus = sorted({*_connus(monde, id), *_personnages(monde, id)} - {id})
     salles = list(monde.data["salles"])
-    besoins = [b for b in BESOINS if b in profil(monde, id)["besoins"]]
+    besoins = [b for b in BESOINS if b in seuils(monde, id)]
     if lire(monde, id)["engagements"]:
         besoins.append("engagement")
     chaine = lambda valeurs: {"type": "string", "enum": ["", *valeurs]}
@@ -231,7 +231,7 @@ def _etape(monde, id, n, x, obtenus):
     if op in ("aller", "inspecter"):
         etape["lieu"] = salle()
     elif op == "reposer":
-        if "repos" not in p["besoins"]:
+        if lire(monde, id)["besoins"].get("repos", 0) <= 0:
             raise faute("ce personnage n'a pas besoin de repos")
     elif op in SOCIALES:
         etape["cible"] = connu("cible", ("personnage",))
@@ -287,7 +287,7 @@ def _etape(monde, id, n, x, obtenus):
             etape["contenu"] = {"pour": pour}
         if op in ("chauffer", "alimenter") and not o.get("foyer"):
             raise faute("on ne se chauffe qu'à un foyer, on ne recharge qu'un foyer")
-        if op == "chauffer" and "chaleur" not in p["besoins"]:
+        if op == "chauffer" and lire(monde, id)["besoins"].get("chaleur", 0) <= 0:
             raise faute("ce personnage n'a pas froid")
         if op == "alimenter":
             etape["outil"] = connu("outil")
@@ -319,7 +319,7 @@ def valider(monde, id, proposition, plan_moteur=None):
         raise ErreurStrategie("proposition illisible")
     decision, besoin = proposition.get("decision"), proposition.get("besoin")
     p = profil(monde, id)
-    if besoin not in p["besoins"] and not (besoin == "engagement" and lire(monde, id)["engagements"]):
+    if besoin not in seuils(monde, id) and not (besoin == "engagement" and lire(monde, id)["engagements"]):
         raise ErreurStrategie(f"besoin « {besoin} » inconnu de ce personnage")
     but = " ".join(str(proposition.get("but") or "").split())[:120]
     if decision == "suivre":

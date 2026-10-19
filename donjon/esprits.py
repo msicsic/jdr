@@ -94,7 +94,8 @@ def verifier(monde):
         if p is not None:
             from .deliberation import verifier_profil
             verifier_profil(monde, id, p)
-        assert (isinstance(e["besoins"], dict) and set(e["besoins"]) <= set(p["besoins"] if p else ())
+        from .deliberation import seuils
+        assert (isinstance(e["besoins"], dict) and set(e["besoins"]) <= (set(seuils(monde, id)) if p else set())
                 and all(isinstance(v, (int, float)) and 0 <= v <= 100 for v in e["besoins"].values())), "Besoins de PNJ invalides"
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
@@ -153,7 +154,7 @@ def entendre(monde, id, evenement, niveau):
         from .deliberation import inquieter
         inquieter(monde, id, "bruit")
     from .pnj import reagir
-    reagir(monde, id, evenement["origine"], niveau)
+    reagir(monde, id, evenement["origine"], niveau, evenement.get("auteur"))
 
 
 def _porteur(monde, o):
