@@ -63,5 +63,29 @@ class ContreRevueTests(unittest.TestCase):
             Moteur(m).preparer(coup)
 
 
+class CroyancesTests(unittest.TestCase):
+    def test_ce_qu_un_personnage_croit_ne_se_dit_que_par_sa_bouche(self):
+        from donjon.defi import nouveau_defi
+        from donjon.narration import fondement, fondement_paroles, mentions
+        from donjon.spatial import installer
+        m = nouveau_defi()
+        installer(m)
+        # Le joueur, au refuge, n'a pas vu la conduite ; Ilse croit Gorm dans la Conduite basse.
+        mj, recu = MJOpenAI("gpt-6-luna"), []
+
+        def capter(instructions, entree, *_):
+            recu.append(entree)
+            raise RuntimeError
+        mj._appeler = capter
+        with self.assertRaises(RuntimeError):
+            mj._echanger(m, "Ilse, où est Gorm ?", None, enrichir=True)
+        entree = recu[0]
+        self.assertIn("Conduite basse", str(entree["faits"]["esprits_interlocuteurs"]))
+        base, paroles = fondement(entree), fondement_paroles(entree)
+        self.assertTrue(mentions(m, "Ilse croit que Gorm est dans la Conduite basse.", base, paroles))
+        self.assertEqual(mentions(m, "Ilse hausse les épaules : « Gorm doit être dans la Conduite basse. »",
+                                  base, paroles), [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -149,20 +149,35 @@ def segments(texte):
 
 
 def fondement(entree):
-    """Tout ce que le MJ a reçu pour répondre, normalisé pour le contrôle lexical."""
-    return lexique.corpus(entree.get("faits", {}), entree.get("conversation", []),
-                          entree.get("message", ""))
+    """Ce que le MJ a reçu pour répondre, hors des croyances des personnages présents,
+    normalisé pour le contrôle lexical."""
+    faits = {k: v for k, v in entree.get("faits", {}).items() if k != "esprits_interlocuteurs"}
+    return lexique.corpus(faits, entree.get("conversation", []), entree.get("message", ""))
 
 
-def mentions(monde, texte, base):
-    """Obstacles déterministes : noms d'entités absents de ce que le MJ a reçu."""
+def fondement_paroles(entree):
+    """Ce que croient les personnages présents : seule leur bouche peut le dire."""
+    return lexique.corpus(entree.get("faits", {}).get("esprits_interlocuteurs", {}))
+
+
+CITATIONS = re.compile(r"«[^»]*»|“[^”]*”|\"[^\"]*\"")
+
+
+def mentions(monde, texte, base, paroles=""):
+    """Obstacles déterministes : noms d'entités absents de ce que le MJ a reçu. Ce qu'un
+    personnage croit ne se dit que par sa bouche, entre guillemets ; la narration n'en use pas."""
+    citations = " ".join(CITATIONS.findall(texte))
+    recit = CITATIONS.sub(" ", texte)
+    trouves = (lexique.mentions_sans_fondement(monde, recit, base)
+               + lexique.mentions_sans_fondement(monde, citations, base + " " + paroles))
     return [{"segment": None, "texte": texte,
              "motif": "« " + m["terme"] + " » n'apparaît dans rien de ce que Corvus perçoit "
-                      "ou sait. Ne l'introduis pas sans fait établi."}
-            for m in lexique.mentions_sans_fondement(monde, texte, base)]
+                      "ou sait. Ne l'introduis pas sans fait établi ; ce qu'un personnage croit "
+                      "ne se dit que dans sa propre réplique."}
+            for m in trouves]
 
 
-def mentions_proposees(monde, reponse, base):
+def mentions_proposees(monde, reponse, base, paroles=""):
     """Même contrôle pour les textes d'un ajout persistant : détail, objet, inscription,
     parole, portrait ou savoir. Le nom propre de l'élément créé fait partie de l'ajout."""
     proposition = reponse.get("proposition") if isinstance(reponse, dict) else None
@@ -174,6 +189,9 @@ def mentions_proposees(monde, reponse, base):
         if not isinstance(ajout, dict):
             continue
         propre = lexique.corpus(ajout.get("nom", "")) if isinstance(ajout.get("nom"), str) else ""
+        # Un savoir prêté à un personnage peut reprendre ce qu'il croit.
+        if ajout in proposition.get("savoirs", []):
+            propre += " " + paroles
         for champ in ("texte", "description"):
             if isinstance(ajout.get(champ), str) and ajout[champ].strip():
                 obstacles.extend({"partie": "description", **o}
