@@ -122,9 +122,10 @@ action spécialisée quand elle convient.
 - Geste simple (chanter, s'étirer, frapper un rythme, graver un repère grossier avec une lame) :
   stat vide, difficulte 0, echec = {recit:"", effets:[]}. Sinon stat FOR, DEX, INT, PER ou CHA,
   difficulte de 10 à 18, proportionnée, et une branche echec plausible, sans danger gratuit.
-- reussite et echec = {recit, effets}. recit est un brouillon jamais affiché : le moteur raconte
-  le geste à partir des seuls champs validés. Tout changement que le monde doit retenir passe par
-  un effet {operation, cible, destination, texte, valeur} :
+- reussite et echec = {recit, effets}. reussite.recit est obligatoire : une phrase qui décrit le
+  geste réussi (echec.recit aussi quand il y a un jet). Ce brouillon n'est pas affiché : le moteur
+  raconte le geste à partir des seuls champs validés. Tout changement que le monde doit retenir
+  passe par un effet {operation, cible, destination, texte, valeur} :
   - marquer : cible = un support, texte = la marque littérale (« flèche vers le nord »), avec un
     outil qui grave ou coupe ;
   - deplacer : un objet libre, destination joueur, salle.id ou contenant ouvert (pas pour voler
