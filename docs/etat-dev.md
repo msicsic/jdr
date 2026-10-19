@@ -30,7 +30,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   est une étape `deplacer` explicite) ; un rapport de contre-revue mal formé est redemandé
   une fois puis le plan validé passe, au lieu d'être renvoyé au MJ comme un refus. Cas réel
   « fais levier sous l'axe » : 2 appels, conforme du premier coup (contre 4 à 8 avant).
-- La suite de tests passe : 582 tests, sans clé ni connexion.
+- Branche `banc-haiku` : Claude Haiku 5.5 est une option du jeu (`--connexion anthropic`,
+  `donjon/claude.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
+  communs révélés par le fil complet des appels (`tools/banc_parties.py --fil`) : citation de
+  fait inconnue écartée au lieu d'invalider la réponse ; audit narratif à une entrée
+  obligatoire par segment, audit illisible redemandé ; texte vide signalé sans audit ;
+  apparence d'un personnage acceptée en aspect ou portrait ; rappel d'une parole déjà
+  entendue classé mécanique. Comparatif final sur les trois bancs (31 tours MJ) : Luna
+  3,55 appels et 20 s par tour MJ, Haiku 3,68 appels et 12 s, 1 repli chacun (celui de
+  Haiku corrigé ensuite), Haiku 0,17 $ les trois parties. Ni l'un ni l'autre ne réfléchit
+  dans le jeu : Haiku ne le peut pas sous outil imposé, Luna en medium ne produit aucun jeton
+  de réflexion. `tools/sonde_reflexion.py` vérifie hors jeu qu'une réflexion se constate.
+- La suite de tests passe : 585 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -44,8 +55,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - la priorité du stratège aux PNJ que le joueur perçoit.
 - **Branches d'essai**, poussées sur `origin` et non fusionnées :
   - `essai-code` : le MJ écrit un script Python borné au lieu du JSON ;
-  - `essai-haiku` : adaptateur Anthropic pour évaluer Claude Haiku.
-  Les mesures sont rapportées dans leurs commits. Rien n'en est retenu dans `main`.
+  - `essai-haiku` : premier adaptateur Anthropic, remplacé par celui de `banc-haiku`.
+  Les mesures sont rapportées dans leurs commits.
 
 ## Reprendre sur un autre poste
 
@@ -55,7 +66,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
    `docs/connexion.md`). L'autorisation (`.seuil-auth/`) n'est pas versionnée et se refait
    sur chaque poste.
 3. Clés éventuelles dans `.env`, non versionné : `OPENAI_API_KEY` pour `--connexion api`.
-   `ANTHROPIC_API_KEY` ne sert qu'à la branche `essai-haiku`.
+   `ANTHROPIC_API_KEY` pour `--connexion anthropic` (Haiku, `requirements-claude.txt`).
 4. Vérifier : `python -m unittest discover -s tests -q`.
 
 Non versionnés, donc absents d'un nouveau poste :
