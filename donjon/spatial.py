@@ -507,7 +507,7 @@ def memoriser(m):
     observations = {objet["id"]: {
         "salle": salle, "position": list(pos),
         "contact": list(position_cible(m, objet["id"], salle)),
-        "symbole": symbole_objet_cases(objet, salle), "nom": designer(objet),
+        "symbole": symbole_objet_cases(objet, salle, m), "nom": designer(objet),
     } for objet, salle, pos in objets_visibles_cases(m, champ)}
     for id, souvenir in list(souvenirs.items()):
         salle = souvenir["salle"]
