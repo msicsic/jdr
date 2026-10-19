@@ -251,3 +251,32 @@ class DemandesTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DestinataireTests(unittest.TestCase):
+    """Le joueur choisit à qui Corvus parle, et ses mots directs sont la réplique."""
+
+    def test_un_autre_destinataire_que_celui_interpelle_est_refuse(self):
+        from donjon.defi import nouveau_defi
+        from donjon.paroles import preparer_parole
+        m = nouveau_defi(1985)
+        m.joueur["salle"] = m.objets["brune"]["lieu"]
+        p = {"personnage": "brune", "replique": "Brune, tu connais le beffroi ?", "contenu": [],
+             "_intention": "Gorm, tu peux me décrire le beffroi ?"}
+        with self.assertRaises(ErreurMonde) as refus:
+            preparer_parole(m, p)
+        self.assertIn("personnage = marchand", refus.exception.attendu)
+        self.assertNotIn("brune", refus.exception.attendu)
+
+    def test_un_destinataire_absent_ne_suggere_personne_d_autre(self):
+        from donjon.defi import nouveau_defi
+        from donjon.paroles import preparer_parole
+        m = nouveau_defi(1985)
+        m.joueur["salle"] = m.objets["brune"]["lieu"]
+        p = {"personnage": "marchand", "replique": "Gorm ?", "contenu": [], "_intention": "Gorm, tu es là ?"}
+        from donjon.dialogues import interlocuteurs
+        self.assertNotIn("marchand", interlocuteurs(m))
+        with self.assertRaises(ErreurMonde) as refus:
+            preparer_parole(m, p)
+        self.assertIn("mode dialogue", refus.exception.attendu)
+        self.assertNotIn("brune", refus.exception.attendu)

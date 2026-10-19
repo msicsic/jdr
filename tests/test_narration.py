@@ -80,6 +80,53 @@ class NarrationTests(unittest.TestCase):
         self.assertIn("Le texte est vide", json.dumps(appel.call_args_list[1].args[1], ensure_ascii=False))
         self.assertEqual(reponse["texte"], texte)
 
+    def test_une_reponse_auditee_avec_les_croyances_du_locuteur_s_enregistre(self):
+        # Cas du banc Luna : Gorm nomme un lieu qu'il est seul à connaître ; l'audit l'acceptait
+        # avec ses croyances, l'enregistrement le refusait sans elles.
+        from donjon.defi import nouveau_defi
+        from donjon import lexique
+        from donjon.narration import consigner
+        m = nouveau_defi(1985)
+        m.joueur["salle"] = m.objets["marchand"]["lieu"]
+        citation = "La cloche est dans la galerie de ronde."
+        texte = f"Gorm répond : « {citation} »"
+        faits = {"interlocuteurs": {"marchand": {"nom": "Gorm"}}}
+        ligne = {"indice": 0, "verdict": "parole", "sources": [], "locuteur": "marchand", "citation": citation,
+                 "entites": [], "motif": ""}
+        reponse = {"texte": texte, "_audit": {"segments": [ligne], "faits": faits, "texte_initial": texte,
+                                              "fondement": lexique.corpus("Gorm, la cloche"),
+                                              "fondement_paroles": lexique.corpus("galerie de ronde")}}
+        consigner(m, reponse)
+        self.assertEqual(m.data["paroles_pnj"][-1]["texte"], citation)
+        sans = {**reponse, "_audit": {**reponse["_audit"], "fondement_paroles": ""}}
+        with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):
+            consigner(m, sans)
+
+    def test_voix_d_auteur_refusee_hors_citation(self):
+        from donjon.narration import voix_auteur
+        # Textes réels du banc Haiku : des notes internes affichées au joueur.
+        for texte in ("Corvus doit d'abord s'en approcher avant tout coup. Aucune cible n'est engagée.",
+                      "Le joueur doit d'abord le localiser sur place avant de le prendre.",
+                      "Il faudrait t'approcher, et le moteur déterminera alors si Gorm la remarque."):
+            with self.subTest(texte=texte):
+                self.assertTrue(voix_auteur(texte))
+        # La deuxième personne et une réplique citée restent libres.
+        self.assertFalse(voix_auteur("Tu dois d'abord t'approcher de la poutre."))
+        self.assertFalse(voix_auteur("Gorm répond : « Corvus, reviens demain. »"))
+
+    def test_voix_d_auteur_renvoyee_en_revision(self):
+        texte = "Une odeur de cire flotte."
+        lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+                                      "entites": [], "motif": ""}}}
+        auteur = {"segments": {"0": {**lisible["segments"]["0"]}}}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler_brut", side_effect=[
+                dialogue("Le joueur sent une odeur de cire."), auteur, dialogue(texte), lisible]) as appel:
+            reponse = mj._appeler("instr", {"faits": {}, "conversation": [], "message": "je sens ?"},
+                                  "je sens ?", "repondre_au_joueur", {})
+        self.assertIn("deuxième personne", json.dumps(appel.call_args_list[2].args[1], ensure_ascii=False))
+        self.assertEqual(reponse["texte"], texte)
+
     def test_mecanique_exige_une_source_et_invention_refusee(self):
         faits = {"objet:cloche": {"nom": "cloche"}}
         phrase = "La cloche est dans le beffroi."
