@@ -229,22 +229,23 @@ class NarrationTests(unittest.TestCase):
         self.assertNotIn(invention, str(reprise.data["journal"]))
         self.assertNotIn("seconde_cloche", reprise.objets)
 
-    def test_intention_improvisee_libre_sans_effet_est_refusee(self):
+    def test_intention_improvisee_libre_n_etablit_rien(self):
+        # Un geste d'expression sans effet est permis ; son brouillon libre n'établit rien :
+        # le libellé affiché et enregistré vient des seuls champs structurés.
         invention = "Une seconde cloche apparaît sous le plancher."
         reponse = {"mode": "action", "texte": "", "faits": [],
                    "proposition": improviser(invention, issue("Elle résonne.", []))}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
-                  patch.object(MJOpenAI, "_appeler_brut", return_value=reponse),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *a: (
+                      {"conforme": True, "motif": ""} if a[3] == "auditer_action" else reponse)),
                   patch("builtins.input", side_effect=["mj je tape des mains", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("Corvus n'a rien tenté", sortie.getvalue())
-        self.assertEqual(reprise.data["revision"], 0)
-        self.assertFalse(reprise.data.get("gestes_improvises"))
+        self.assertIn("Tu réalises ce geste d'expression.", sortie.getvalue())
         self.assertNotIn(invention, sortie.getvalue())
         self.assertNotIn(invention, str(reprise.data["conversation"]))
         self.assertNotIn(invention, str(reprise.data.get("gestes_improvises", [])))

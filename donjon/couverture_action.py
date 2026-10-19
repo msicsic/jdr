@@ -56,11 +56,22 @@ def entree(intention, plan):
     return {"demande": intention, "plan": _operations(plan)}
 
 
+MOTIF_MAX = 300
+
+
+class RapportInvalide(ErreurMonde):
+    """Le rapport de la revue est mal formé : une faute de l'auditeur, pas de la proposition."""
+
+
 def verifier(rapport):
     if (not isinstance(rapport, dict) or set(rapport) != {"conforme", "motif"}
-            or type(rapport["conforme"]) is not bool
-            or not isinstance(rapport["motif"], str) or len(rapport["motif"]) > 300):
-        raise ErreurMonde("La contre-revue de la manœuvre est invalide.")
+            or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)):
+        raise RapportInvalide("La contre-revue de la manœuvre est invalide.")
     if not rapport["conforme"]:
+        # Le motif n'est qu'une explication transmise au MJ : un motif trop long est abrégé.
+        motif = rapport["motif"].strip()
+        if len(motif) > MOTIF_MAX:
+            motif = motif[:MOTIF_MAX - 1].rstrip() + "…"
         raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : " +
-                          (rapport["motif"].strip() or "une conséquence demandée manque."))
+                          (motif or "une conséquence demandée manque."),
+                          "retire du plan le changement non demandé, ou ajoute celui qui manque, d'après ce motif.")

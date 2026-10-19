@@ -154,7 +154,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("bouton de cuivre", app.derniere_vue["fiche"])
                 await self.fermer(app)
 
-    async def test_objet_fixe_est_detache_et_range_par_la_commande_composee(self):
+    async def test_objet_fixe_est_detache_sur_place_puis_pris(self):
         reponse = {"mode": "etablir_faits", "texte": "",
                    "faits": ["faits_narratifs_proposables"],
                    "proposition": {"ajouts": [{
@@ -185,7 +185,11 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("crochet de cuivre", app.derniere_vue["carte"])
                 await self.commande(app, pilot, "détacher crochet de cuivre")
                 libere = Monde.charger(chemin)
+                # Détacher libère sur place, sans ranger : prendre est un geste distinct.
                 self.assertFalse(libere.objets[id]["attache"])
+                self.assertEqual(libere.objets[id]["lieu"], libere.joueur["salle"])
+                await self.commande(app, pilot, "prendre crochet de cuivre")
+                libere = Monde.charger(chemin)
                 self.assertEqual(libere.objets[id]["lieu"], "joueur")
                 self.assertNotIn("relation_support", libere.objets[id])
                 self.assertEqual(position_carte(libere, id), tuple(libere.joueur["position"]))

@@ -40,7 +40,7 @@ class OperationsTests(unittest.TestCase):
     def test_anciens_raccourcis_utilisent_les_memes_operations(self):
         for ancien, nouveau in (
             (proposition("prendre", "cle"), sequence(etape("deplacer", "cle", "joueur"))),
-            (proposition("detacher", "axe_haut", "couteau", "levier", 18), sequence(extraire("axe_haut"), etape("deplacer", "axe_haut", "joueur"))),
+            (proposition("detacher", "axe_haut", "couteau", "levier", 18), sequence(extraire("axe_haut"))),
         ):
             a, b = nouveau_monde(), nouveau_monde()
             with patch.object(Monde, "d20", return_value=20):

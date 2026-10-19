@@ -51,8 +51,8 @@ def traduire(monde, p):
     if action in ("allumer", "eteindre"):
         return [etape(action, cible, outil=p["outil"], methode=p["methode"], difficulte=p["difficulte"])]
     if action == "detacher":
-        return [etape("detacher", cible, outil=p["outil"], methode=p["methode"], difficulte=p["difficulte"]),
-                etape("deplacer", cible, "joueur")]
+        # Détacher libère sur place ; prendre la fixation est un geste distinct, s'il est demandé.
+        return [etape("detacher", cible, outil=p["outil"], methode=p["methode"], difficulte=p["difficulte"])]
     if p["outil"]:
         raise ErreurMonde("Ce déplacement se fait à la main, sans outil.", f"{action} : outil vide.")
     if action == "voler":
