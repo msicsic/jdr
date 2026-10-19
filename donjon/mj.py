@@ -27,7 +27,7 @@ from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_
 from .sons import REGLES as REGLES_SONS
 from .improvisation import SCHEMA as SCHEMA_IMPROVISATION, REGLES as REGLES_IMPROVISATION, contexte as contexte_improvisation
 from .profil_joueur import SCHEMA as SCHEMA_PROFIL, REGLES as REGLES_PROFIL, catalogue as catalogue_profil, preparer as preparer_profil, reponse as reponse_profil
-from .narration import (schema_audit, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
+from .narration import (AuditIllisible, schema_audit, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         REGLE_MATERIALISATION, ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
                         attestations as attestations_narratives,
@@ -399,6 +399,9 @@ class MJOpenAI:
         self.observateur = None
         self._audit_courant = None
         self._monde_controle = None
+        self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
+        self.reflexion = "imposee"     # Claude : outil imposé sans réflexion, ou « libre » avec réflexion
+        self.sans_strict = set()       # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
         import uuid
@@ -814,6 +817,10 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                 self.observateur(trace)
         # L'audit sémantique de la prose est effectué par _appeler avant ce contrôle de forme.
         champs_reponse = {"mode", "texte", "faits", "proposition"}
+        if isinstance(reponse, dict) and isinstance(reponse.get("faits"), list):
+            # Une citation de fait inconnue ne prouve rien : elle est écartée, comme une source
+            # inconnue de l'audit, sans invalider la réponse.
+            reponse["faits"] = [f for f in reponse["faits"] if isinstance(f, str) and f in faits]
         if (set(reponse) not in (champs_reponse, champs_reponse | {"_texte_moteur"})
                 or ("_texte_moteur" in reponse and reponse["mode"] != "dialogue")
                 or not isinstance(reponse["texte"], str) or len(reponse["texte"]) > 4000
@@ -888,23 +895,40 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             base, paroles = fondement_narratif(entree), fondement_paroles(entree)
             monde = self._monde_controle
             for nom, texte, effets in passages:
+                if not texte.strip():
+                    # Rien à contrôler : l'audit d'un texte vide ne peut qu'échouer.
+                    obstacles.append({"partie": nom, "segment": None, "texte": "",
+                                      "motif": "Le texte est vide : écris dans texte la réponse destinée au joueur."})
+                    continue
                 if monde is not None:
                     obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
                 faits = dict(entree.get("faits", {}))
                 if effets is not None:
                     faits["effets_prevus"] = {"branche": nom, "effets": effets,
                                                "intention": reponse["proposition"].get("intention")}
-                audit = appeler_brut(
-                    INSTRUCTIONS_AUDIT,
-                    {"faits": faits, "segments": segments_narratifs(texte),
-                     "nature": "récit conditionnel d'action" if effets is not None else "réponse du MJ"},
-                    "Contrôler chaque segment de la réponse", "auditer_narration",
-                    schema_audit(faits))
-                try:
-                    rapport = controler_narration(texte, audit, faits)
-                except ErreurMonde as exc:
-                    obstacles.append({"partie": nom, "segment": None, "texte": texte,
-                                      "motif": str(exc)})
+                decoupage = segments_narratifs(texte)
+                rapport = None
+                for essai in range(2):
+                    audit = appeler_brut(
+                        INSTRUCTIONS_AUDIT,
+                        {"faits": faits, "segments": {str(i): s for i, s in enumerate(decoupage)},
+                         "nature": "récit conditionnel d'action" if effets is not None else "réponse du MJ"},
+                        "Contrôler chaque segment de la réponse", "auditer_narration",
+                        schema_audit(faits, len(decoupage)))
+                    try:
+                        rapport = controler_narration(texte, audit, faits)
+                        break
+                    except AuditIllisible as exc:
+                        # Un rapport illisible ne juge pas le texte : l'audit est redemandé une
+                        # fois ; ensuite le texte reste non contrôlé, donc refusé.
+                        if essai:
+                            obstacles.append({"partie": nom, "segment": None, "texte": texte,
+                                              "motif": str(exc)})
+                    except ErreurMonde as exc:
+                        obstacles.append({"partie": nom, "segment": None, "texte": texte,
+                                          "motif": str(exc)})
+                        break
+                if rapport is None:
                     continue
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base}
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
@@ -958,6 +982,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             if tentative == 2:
                 champs = {"mode", "texte", "faits", "proposition"}
                 faits_connus = entree.get("faits", {})
+                if isinstance(reponse, dict) and isinstance(reponse.get("faits"), list):
+                    reponse["faits"] = [f for f in reponse["faits"] if isinstance(f, str) and f in faits_connus]
                 if (not isinstance(reponse, dict) or set(reponse) != champs
                         or not isinstance(reponse["faits"], list)
                         or any(not isinstance(f, str) or f not in faits_connus
@@ -989,6 +1015,34 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 
     def _appeler_brut(self, instructions, entree, intention, fonction, schema):
+        """Un appel au fournisseur. Avec ``journal_complet`` et un observateur, chaque appel laisse
+        une trace entière : instructions, entrée, schéma, réponse brute, usage et durée."""
+        if self.erreur_auth:
+            raise ErreurMonde(self.erreur_auth)
+        debut, brut, erreur = time.monotonic(), None, None
+        self.dernier_brut = None
+        try:
+            if self.connexion == "anthropic":
+                from .claude import appeler
+                p, brut = appeler(self, instructions, entree, fonction, schema)
+            else:
+                p, brut = self._appeler_openai(instructions, entree, intention, fonction, schema)
+            return p
+        except ErreurMonde as exc:
+            erreur = str(exc)
+            raise
+        finally:
+            if self.observateur and self.journal_complet:
+                self.observateur({"etape": "appel", "fonction": fonction, "modele": self.modele,
+                                  "connexion": self.connexion, "effort": self.effort,
+                                  "intention": intention, "revision": (entree.get("faits") or {}).get("revision", 0),
+                                  "instructions": instructions, "entree": copy.deepcopy(entree),
+                                  "schema": schema, "brut": brut if brut is not None else self.dernier_brut,
+                                  "erreur": erreur,
+                                  "usage": copy.deepcopy(self.derniere_utilisation),
+                                  "secondes": round(time.monotonic() - debut, 3)})
+
+    def _appeler_openai(self, instructions, entree, intention, fonction, schema):
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
         if self.connexion == "chatgpt" and not self.catalogue_verifie:
@@ -1071,6 +1125,6 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
             p = json.loads(appels[0]["arguments"])
             if not isinstance(p, dict):
                 raise ValueError("La proposition doit être un objet")
-            return p
+            return p, resultat["output"]
         except (ValueError, KeyError, TypeError):
             raise ErreurMonde("Proposition du MJ illisible. Aucune action appliquée.") from None

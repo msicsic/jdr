@@ -63,13 +63,25 @@ SCHEMA_AUDIT = {
 CHAMPS_AUDIT = set(SCHEMA_AUDIT["properties"]["segments"]["items"]["required"])
 
 
-def schema_audit(faits):
+def schema_audit(faits, nombre):
     """Les sources citables sont exactement les clés fournies : une référence inventée
-    ou un chemin approximatif ne peut pas être produit."""
-    schema = copy.deepcopy(SCHEMA_AUDIT)
-    schema["properties"]["segments"]["items"]["properties"]["sources"]["items"] = {
-        "type": "string", "enum": sorted(faits)}
-    return schema
+    ou un chemin approximatif ne peut pas être produit. Une entrée obligatoire par segment,
+    sous la clé de son indice : un rapport ne peut ni sauter, ni fusionner, ni ajouter un segment."""
+    def ligne():
+        item = copy.deepcopy(SCHEMA_AUDIT["properties"]["segments"]["items"])
+        item["properties"]["sources"]["items"] = {"type": "string", "enum": sorted(faits)}
+        del item["properties"]["indice"]
+        item["required"] = [k for k in item["required"] if k != "indice"]
+        return item
+    cles = [str(i) for i in range(nombre)]
+    return {"type": "object", "additionalProperties": False,
+            "properties": {"segments": {"type": "object", "additionalProperties": False,
+                                        "properties": {c: ligne() for c in cles}, "required": cles}},
+            "required": ["segments"]}
+
+
+class AuditIllisible(ErreurMonde):
+    """Le rapport de l'auditeur est mal formé : une faute de l'auditeur, pas du texte contrôlé."""
 
 INSTRUCTIONS_AUDIT = """Tu contrôles une réponse du maître du jeu avant qu'un joueur la voie.
 Le jeu distingue deux sortes d'affirmations sur le monde.
@@ -86,7 +98,9 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
   des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements) ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; donne son
-  identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux ;
+  identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux.
+  Rappeler ce qu'un personnage a déjà dit (paroles_entendues, conversation) n'est pas une parole :
+  c'est mecanique, avec cette source ; cela atteste qu'il l'a dit, pas que c'est vrai ;
 - invention_protegee : crée ou suppose un élément mécanique absent des faits (objet utilisable,
   passage, personnage, ressource, indice, résultat), même plausible ou décoratif ;
 - contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus.
@@ -94,7 +108,7 @@ Si un segment mêle plusieurs catégories, choisis la plus contraignante : contr
 invention_protegee, parole, mecanique, ambiance, hypothese, neutre.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. Hors parole, locuteur et citation sont vides ; hors ambiance, entites est vide.
-Rends un contrôle pour chaque indice, dans l'ordre, sans réécrire les segments.
+Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
 
 INSTRUCTIONS_REVISION = """\nLe contrôle de la réponse précédente a relevé des affirmations
@@ -203,9 +217,15 @@ def controler(texte, rapport, faits):
     """Valide le rapport de l'auditeur et renvoie ses obstacles, jamais sa seule assurance."""
     passages = segments(texte)
     lignes = rapport.get("segments") if isinstance(rapport, dict) else None
+    if isinstance(lignes, dict):
+        # Forme demandée à l'auditeur : une entrée par segment, sous la clé de son indice.
+        if set(lignes) != {str(i) for i in range(len(passages))}:
+            raise AuditIllisible("Contrôle narratif incomplet.")
+        lignes = [{**lignes[str(i)], "indice": i} if isinstance(lignes[str(i)], dict) else lignes[str(i)]
+                  for i in range(len(passages))]
     if (not passages or len(passages) > 24 or not isinstance(lignes, list)
             or len(lignes) != len(passages)):
-        raise ErreurMonde("Contrôle narratif incomplet.")
+        raise AuditIllisible("Contrôle narratif incomplet.")
     obstacles, paroles, ambiances, lignes_validees = [], [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
         if (not isinstance(ligne, dict) or set(ligne) != CHAMPS_AUDIT
@@ -216,7 +236,7 @@ def controler(texte, rapport, faits):
                 or not isinstance(ligne["entites"], list)
                 or any(not isinstance(e, str) for e in ligne["entites"])
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "motif"))):
-            raise ErreurMonde("Contrôle narratif mal formé.")
+            raise AuditIllisible("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
         # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
         # mécanique sans source restante est refusée plus bas.

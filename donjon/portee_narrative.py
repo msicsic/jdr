@@ -40,11 +40,11 @@ SCHEMA = {
 
 INSTRUCTIONS = """Tu fais la contre-revue de descriptions proposées par le MJ.
 Avant d'évaluer les preuves, détermine quelle représentation une phrase impose au jeu :
-- aspect : propriété visuelle locale du sujet ou de son support, sans autre objet autonome ni message à lire ;
+- aspect : propriété visuelle locale d'un objet, d'un détail ou de son support, sans autre objet autonome ni message à lire ;
 - objet : chose distincte dont l'existence, la position et les interactions doivent être suivies ;
 - texte_lisible : signes portant un contenu littéral que le joueur peut lire ;
 - etat_du_monde : événement, savoir, lieu, déplacement ou conséquence au-delà du sujet ;
-- portrait : seule apparence de la partie du personnage indiquée ;
+- portrait : seule apparence de la partie du personnage indiquée (l'aspect d'un personnage est un portrait) ;
 - savoir_pnj : souvenir, motivation ou croyance personnelle attribuée au personnage ;
   cela établit son point de vue, pas la vérité des référents extérieurs ;
 - indetermine : portée impossible à trancher.
@@ -155,8 +155,10 @@ def descriptions(reponse):
             sujet = {"nature": "facette d'un personnage",
                      "personnage": ajout.get("personnage"), "facette": ajout.get("facette"),
                      "mutation_autorisee": ["enregistrer cette facette du personnage"]}
+            # L'apparence d'un personnage, qu'on la nomme portrait ou aspect, porte la même
+            # garantie : rien d'autre que le sujet décrit.
             resultat.extend({"sujet": sujet, "texte": phrase,
-                             "representations_autorisees": ["portrait"]}
+                             "representations_autorisees": ["portrait", "aspect"]}
                             for phrase in segments(ajout["description"]))
     if mode == "enrichir_savoirs":
         ajouts = proposition.get("savoirs")

@@ -31,6 +31,8 @@ un fichier `.bak`. `--offline` interdit tout appel au modèle ; les commandes lo
 disponibles. `--recit-moteur` affiche les résultats d'action rédigés par le moteur au lieu du
 récit de Luna (un appel de moins par action). Installation : `python -m venv .venv`, puis
 `.\.venv\Scripts\python.exe -m pip install -r requirements-tui.txt -r requirements-chatgpt.txt`.
+Claude Haiku peut remplacer Luna : `--connexion anthropic`, avec `ANTHROPIC_API_KEY` dans `.env`
+et `-r requirements-claude.txt`.
 
 ## Jouer
 

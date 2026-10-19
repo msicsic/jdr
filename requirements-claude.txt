@@ -1,0 +1,2 @@
+# Uniquement pour l'essai d'un autre fournisseur (--connexion anthropic) ; Luna n'en a pas besoin.
+anthropic>=1.15,<2
