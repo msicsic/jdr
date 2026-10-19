@@ -107,7 +107,9 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
 invention_protegee, parole, mecanique, ambiance, hypothese, neutre.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
-contenu. Hors parole, locuteur et citation sont vides ; hors ambiance, entites est vide.
+contenu. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
+commencé un geste du joueur (frapper, saisir, attendre, s'approcher) est contradictoire : seule
+l'explication de ce qui l'en empêche est permise. Hors parole, locuteur et citation sont vides ; hors ambiance, entites est vide.
 Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
 
@@ -189,6 +191,21 @@ def mentions(monde, texte, base, paroles=""):
                       "ou sait. Ne l'introduis pas sans fait établi ; ce qu'un personnage croit "
                       "ne se dit que dans sa propre réplique."}
             for m in trouves]
+
+
+AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b", re.IGNORECASE)
+
+
+def voix_auteur(texte):
+    """Obstacles déterministes : le texte affiché parle au joueur, à la deuxième personne, dans la
+    fiction ; il ne parle ni du joueur, ni du moteur, ni de Corvus à la troisième personne. Les
+    répliques citées des personnages restent libres."""
+    trouves = sorted({m.group(0) for m in AUTEUR.finditer(CITATIONS.sub(" ", texte))}, key=str.lower)
+    if not trouves:
+        return []
+    return [{"segment": None, "texte": texte,
+             "motif": "Le joueur lit ce texte tel quel : écris-le à la deuxième personne, dans la fiction, "
+                      "sans " + ", ".join(f"« {t} »" for t in trouves) + "."}]
 
 
 def mentions_proposees(monde, reponse, base, paroles=""):
@@ -289,8 +306,9 @@ def consigner(monde, reponse):
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
     if (rapport["obstacles"] or rapport["texte_controle"] != texte
-            or mentions(monde, texte, audit["fondement"])):
-        raise ErreurMonde("Une narration refusée ne peut pas être enregistrée.")
+            or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""))):
+        # Même base que l'audit : ce qu'un personnage croit peut figurer dans sa propre réplique.
+        raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.")
     paroles = []
     if rapport["paroles"]:
         from .sons import auditeurs

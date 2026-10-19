@@ -15,7 +15,7 @@ from .connexion import jeton, modeles
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
 from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
-from .paroles import REGLES as REGLES_PAROLE, SCHEMA_PAROLE, citation, contexte as contexte_paroles, preparer_parole
+from .paroles import REGLES as REGLES_PAROLE, SCHEMA_PAROLE, citation, contexte as contexte_paroles, destinataire_nomme, preparer_parole
 from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
@@ -27,7 +27,7 @@ from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_
 from .sons import REGLES as REGLES_SONS
 from .improvisation import SCHEMA as SCHEMA_IMPROVISATION, REGLES as REGLES_IMPROVISATION, contexte as contexte_improvisation
 from .profil_joueur import SCHEMA as SCHEMA_PROFIL, REGLES as REGLES_PROFIL, catalogue as catalogue_profil, preparer as preparer_profil, reponse as reponse_profil
-from .narration import (AuditIllisible, schema_audit, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
+from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         REGLE_MATERIALISATION, ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
                         attestations as attestations_narratives,
@@ -184,6 +184,7 @@ remettre : cible objet porté, outil = identifiant du destinataire (exception au
   La remise transfère l'objet et verse une seule fois la récompense convenue. Une simple
   Question sur le paiement ou déclaration de possession ne signifient pas remise.
 clarifier/impossible : identifiants vides, justification courte expliquant la limite ou la question.
+  Le joueur lit cette justification telle quelle : écris-la à la deuxième personne, dans la fiction.
 
 La difficulté vaut 0 hors detacher ; le moteur résout les jets et les transitions.
 La justification est un avis court en français, pas une narration : pas de réussite anticipée,
@@ -400,7 +401,7 @@ class MJOpenAI:
         self._audit_courant = None
         self._monde_controle = None
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
-        self.reflexion = "imposee"     # Claude : outil imposé sans réflexion, ou « libre » avec réflexion
+        self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
         self.sans_strict = set()       # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
@@ -544,7 +545,7 @@ class MJOpenAI:
                     correction_utilisee = True
                 if correction_utilisee:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
-                              "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne conclus pas que l'intention entière est impossible."}
+                              "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé. Ne conclus pas que l'intention entière est impossible."}
                     try:
                         explication = self._echanger(monde, intention, proposition_en_attente,
                                                     enrichir=False, retour_moteur=retour)
@@ -611,7 +612,9 @@ class MJOpenAI:
             for essai in range(2):
                 # Des mots cités par le joueur sont dits tels quels, sans réécriture.
                 complements = {**reponse["proposition"],
-                               "replique": citation(intention) or reponse["proposition"].get("replique", ""),
+                               "replique": (citation(intention)
+                                            or (intention.strip() if destinataire_nomme(monde, intention) else None)
+                                            or reponse["proposition"].get("replique", "")),
                                "_intention": intention[:600]}
                 try:
                     travail, rapport = preparer_parole(monde, complements, revision)
@@ -900,6 +903,7 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                     obstacles.append({"partie": nom, "segment": None, "texte": "",
                                       "motif": "Le texte est vide : écris dans texte la réponse destinée au joueur."})
                     continue
+                obstacles.extend({"partie": nom, **o} for o in voix_auteur(texte))
                 if monde is not None:
                     obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
                 faits = dict(entree.get("faits", {}))
@@ -930,7 +934,8 @@ connus à distance. N'invente ni déplacement, ni objet derrière un mur, ni tra
                         break
                 if rapport is None:
                     continue
-                audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base}
+                audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
+                               "fondement_paroles": paroles}
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
             if monde is not None:
                 obstacles.extend(mentions_proposees(monde, reponse, base, paroles))

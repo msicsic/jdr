@@ -178,6 +178,18 @@ def citation(intention):
     return m.group(1) if m else None
 
 
+VOCATIF = re.compile(r"^\s*([^,!?:«»\"“”]{2,40}?)\s*[,:]\s*\S")
+
+
+def destinataire_nomme(monde, intention):
+    """Personnage que le joueur interpelle en tête de son message (« Gorm, … »), s'il le connaît.
+
+    Le message est alors sa réplique, mot pour mot, et ce personnage en est le destinataire."""
+    m = VOCATIF.match(intention or "")
+    id = resoudre(monde, m.group(1).strip()) if m else None
+    return id if id in monde.objets and monde.objets[id]["type"] == "personnage" else None
+
+
 def _connu_du_joueur(monde, id):
     """Le joueur ne parle que de ce dont il a connaissance : perçu, examiné, vu ou entendu nommer."""
     from . import lexique
@@ -293,10 +305,17 @@ def preparer_parole(monde, p, revision=None):
                           f"parole_joueur a exactement les champs {', '.join(SCHEMA_PAROLE['required'])} ; replique de "
                           f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
     auditeur = p["personnage"]
+    nomme = destinataire_nomme(monde, p.get("_intention", ""))
+    if nomme and nomme != auditeur:
+        # Le joueur choisit à qui Corvus parle : le MJ ne lui substitue personne.
+        raise ErreurMonde("Tu t'adresses à " + designer(monde.objets[nomme]) + ".",
+                          f"personnage = {nomme}, que le joueur interpelle ; s'il n'est pas là pour entendre, "
+                          "réponds en mode dialogue, sans parler à un autre à sa place.")
     presents = sorted(interlocuteurs(monde))
     if auditeur not in presents:
         raise ErreurMonde("Ce personnage n'est pas ici pour t'entendre.",
-                          f"personnage : un interlocuteur présent, parmi {', '.join(presents) or 'aucun'} (reçu « {auditeur} »).")
+                          f"{auditeur} n'est pas là pour entendre Corvus : réponds en mode dialogue qu'il est trop "
+                          "loin ; ne fais pas parler Corvus à un autre personnage à sa place.")
     from . import lexique
     replique = p["replique"].strip()
     # La réplique affichée obéit au contrôle des mentions : rien que Corvus ne connaisse.

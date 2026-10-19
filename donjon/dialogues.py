@@ -75,7 +75,8 @@ def preparer_conversation(monde, p, revision=None):
     presents = sorted(interlocuteurs(monde))
     if acteur not in presents:
         raise ErreurMonde("Ce personnage n'est pas ici pour te répondre.",
-                          f"personnage : un interlocuteur présent, parmi {', '.join(presents) or 'aucun'} (reçu « {acteur} »).")
+                          f"{acteur} n'est pas là pour répondre : réponds en mode dialogue qu'il est trop loin ; "
+                          "ne mène pas la conversation avec un autre personnage à sa place.")
     if op not in OPERATIONS:
         raise ErreurMonde("Cet engagement n'est pas pris en charge.", f"operation parmi {', '.join(OPERATIONS)} (reçu « {op} »).")
     travail = monde.copier()

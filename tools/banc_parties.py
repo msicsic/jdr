@@ -39,7 +39,7 @@ class BudgetEpuise(RuntimeError):
 
 
 class Compteur:
-    def __init__(self, maximum, fil=False, reflexion="imposee", effort="medium"):
+    def __init__(self, maximum, fil=False, reflexion="libre", effort="medium"):
         self.maximum, self.total, self.appels, self.traces = maximum, 0, [], []
         self.fil, self.reflexion, self.effort = fil, reflexion, effort
 
@@ -172,7 +172,7 @@ def jouer(script, compteur, offline, connexion="chatgpt"):
         if offline:
             argv.append("--offline")
         else:
-            argv += ["--connexion", connexion, "--effort", compteur.effort]
+            argv += ["--connexion", connexion, "--effort", compteur.effort, "--reflexion", compteur.reflexion]
         arret = None
         try:
             jeu.main(argv, interface=interface)
@@ -213,8 +213,8 @@ def main(argv=None):
     p.add_argument("--connexion", choices=("chatgpt", "anthropic"), default="chatgpt",
                    help="anthropic : essai de Claude (ANTHROPIC_API_KEY), jamais choisi par défaut")
     p.add_argument("--effort", choices=("low", "medium", "high"), default="medium")
-    p.add_argument("--reflexion", choices=("imposee", "libre"), default="imposee",
-                   help="Claude : outil imposé sans réflexion, ou réflexion adaptative et outil libre")
+    p.add_argument("--reflexion", choices=("libre", "imposee"), default="libre",
+                   help="Claude : réflexion adaptative et outil libre (défaut), ou outil imposé sans réflexion")
     p.add_argument("--fil", action="store_true",
                    help="garde le prompt et la réponse de chaque appel, et écrit un rapport HTML du fil")
     args = p.parse_args(argv)

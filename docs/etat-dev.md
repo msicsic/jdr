@@ -41,10 +41,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Haiku corrigé ensuite), Haiku 0,17 $ les trois parties. Ni l'un ni l'autre ne réfléchit
   dans le jeu : Haiku ne le peut pas sous outil imposé, Luna en medium ne produit aucun jeton
   de réflexion. `tools/sonde_reflexion.py` vérifie hors jeu qu'une réflexion se constate.
-- La suite de tests passe : 585 tests, sans clé ni connexion.
+- Branches `haiku-reflexion` et `narration-fidele` : Haiku joue par défaut avec réflexion
+  adaptative (`--reflexion libre` ; `imposee` reste plus rapide, sans réflexion). Une réponse
+  rendue en texte au lieu de l'appel est retranscrite en appel imposé. Banc (31 tours MJ) :
+  0 repli, 1 tour refusé (contre 8 sans réflexion, 5 pour Luna), 22 s par tour MJ, 0,18 $
+  les trois parties. Narration fidèle, quatre défauts communs corrigés : message technique
+  affiché au joueur (consigner sans les croyances du locuteur), réplique du joueur réécrite
+  (le personnage interpellé en tête est le destinataire, ses mots sont la réplique), geste
+  refusé raconté comme tenté (audit), voix d'auteur dans le texte affiché (contrôle
+  déterministe). Comparaison des textes : Luna ~190 caractères, sobre ; Haiku ~340, plus
+  descriptif, et plus de dérives que les corrections encadrent.
+- La suite de tests passe : 593 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
+- **Instructions du MJ** (en cours) : 28 000 caractères sans plan de décision, doublons,
+  couches contradictoires (anciens raccourcis), rustines d'exemples, 61 tournures négatives.
+  Réécriture structurée, mesurée sur les bancs Luna et Haiku ; ensuite seulement, instructions
+  conditionnées à l'état du monde.
 - **Suite du plan PNJ**, au choix :
   - la crue du Relais, événement de scénario qui s'appuie sur H pour inquiéter ;
   - un événement qui éteint le feu en laissant du bois (les `horloges` existent, aucun
