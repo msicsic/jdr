@@ -71,7 +71,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   décrivent planches, torche et lanterne, et prélèvent une planche (vol discret).
 - Lisibilité : carte avec la pénombre (vert sombre dans l'interface), une lettre par personnage,
   méta-langage refusé dans le texte affiché.
-- La suite de tests passe : 618 tests, sans clé ni connexion.
+- Branche `don-et-refus` (vu en partie : la cloche ne pouvait pas être donnée à Gorm, et Luna
+  lui prêtait un motif inventé) : `remettre` est le geste de donner, avec récompense si un accord
+  est accepté, sinon un don (l'objet passe au personnage, qui s'en souvient) ; une explication de
+  refus ne fait parler aucun personnage ; un déplacement vers un personnage oriente vers
+  remettre ; la contre-revue voit « nom (identifiant) » au lieu d'identifiants nus (« marchand »
+  lu comme un marchand). Bancs : don de la cloche 3/3 avec Haiku et avec Luna.
+- La suite de tests passe : 623 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
