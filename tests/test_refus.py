@@ -98,6 +98,22 @@ class ImprovisationTests(unittest.TestCase):
         self.assertIn("marchand n'est pas dans la salle", exc.attendu)
 
 
+class FaitsTests(unittest.TestCase):
+    def test_le_fait_fautif_est_situe_et_les_ancrages_listes(self):
+        from donjon.faits_locaux import preparer_faits
+        m = nouveau_monde()
+        ajouts = [{"type": "detail", "ancrage": "antichambre_murs", "nom": "fissure", "genre": "f",
+                   "texte": "Une fissure court le long du mur."},
+                  {"type": "qualification", "ancrage": "poutre", "capacites": [{"nature": "son", "intensite": 1}]}]
+        try:
+            preparer_faits(m, {"ajouts": ajouts})
+        except ErreurMonde as exc:
+            self.assertTrue(exc.attendu.startswith("ajout 2 (qualification)"), exc.attendu)
+            self.assertIn("torche", exc.attendu)
+        else:
+            self.fail("refus attendu")
+
+
 class TransmissionTests(unittest.TestCase):
     def test_le_mj_recoit_attendu_dans_le_retour_moteur(self):
         m = nouveau_monde()

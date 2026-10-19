@@ -53,7 +53,7 @@ def resume_constats(objet, objets=None):
 def statut(objet, capacite, moyen=None):
     """Etat d'une aptitude physique : établie, écartée ou encore inconnue."""
     if capacite not in CAPACITES_REVUE:
-        raise ErreurMonde("Capacité physique inconnue.")
+        raise ErreurMonde("Capacité physique inconnue.", f"capacité parmi {', '.join(CAPACITES_REVUE)} (reçu « {capacite} »).")
     proprietes = {"son": "sonorite", "lumiere": "luminosite",
                   "tranchable": "seuil_coupe"}
     if capacite in proprietes:
@@ -84,7 +84,7 @@ def absence(objet, capacite, observation=None):
         "allumage": ("ne peut pas", "ne peuvent pas", " servir à allumer"),
     }
     if capacite not in suffixes:
-        raise ErreurMonde("Capacité physique inconnue.")
+        raise ErreurMonde("Capacité physique inconnue.", f"capacité parmi {', '.join(suffixes)} (reçu « {capacite} »).")
     singulier, plusieurs, fin = suffixes[capacite]
     if capacite == "tranchable" and observation:
         fin = " à " + observation["moyen_nom"]
@@ -130,21 +130,26 @@ def noms(capacites):
 
 def proprietes(capacites, masse, mobile=True):
     if not isinstance(capacites, list) or len(capacites) > 4:
-        raise ErreurMonde("Capacités physiques invalides.")
+        raise ErreurMonde("Capacités physiques invalides.", "capacites : une liste de 0 à 4 capacités.")
     resultat = {}
     vues = set()
     for capacite in capacites:
         if not isinstance(capacite, dict):
-            raise ErreurMonde("Capacité physique mal formée.")
+            raise ErreurMonde("Capacité physique mal formée.",
+                              "chaque capacité est un objet {nature, …} : son, lumiere, outil ou tranchable.")
         nature = capacite.get("nature")
-        if not isinstance(nature, str) or nature in vues or masse <= 0:
-            raise ErreurMonde("Capacité physique incompatible avec cet objet.")
+        if masse <= 0:
+            raise ErreurMonde("Capacité physique incompatible avec cet objet.",
+                              "un objet sans masse ne porte aucune capacité : capacites vide, ou une masse > 0.")
+        if not isinstance(nature, str) or nature in vues:
+            raise ErreurMonde("Capacité physique incompatible avec cet objet.",
+                              f"nature « {nature} » : une seule capacité par nature (son, lumiere, outil, tranchable).")
         vues.add(nature)
         if nature == "son":
             if (set(capacite) != {"nature", "intensite"}
                     or type(capacite["intensite"]) is not int
                     or not 1 <= capacite["intensite"] <= 3):
-                raise ErreurMonde("Intensité sonore invalide.")
+                raise ErreurMonde("Intensité sonore invalide.", "son : {nature, intensite 1 à 3}.")
             resultat["sonorite"] = capacite["intensite"]
         elif nature == "lumiere":
             if (set(capacite) != {"nature", "niveau", "combustible"}
@@ -152,7 +157,7 @@ def proprietes(capacites, masse, mobile=True):
                     or not 1 <= capacite["niveau"] <= 2
                     or type(capacite["combustible"]) is not int
                     or not 1 <= capacite["combustible"] <= 240):
-                raise ErreurMonde("Source lumineuse invalide.")
+                raise ErreurMonde("Source lumineuse invalide.", "lumiere : {nature, niveau 1 à 2, combustible 1 à 240 minutes}.")
             resultat.update(allume=False, luminosite=capacite["niveau"],
                             combustible=capacite["combustible"])
         elif nature == "outil":
@@ -165,7 +170,10 @@ def proprietes(capacites, masse, mobile=True):
                     or len(usages) != len(set(usages))
                     or type(puissance) is not int or not 0 <= puissance <= 7
                     or ({"couper", "levier"} & set(usages) and puissance < 1)):
-                raise ErreurMonde("Usages physiques de l'outil invalides.")
+                raise ErreurMonde("Usages physiques de l'outil invalides.",
+                                  f"outil : {{nature, usages (1 à 3, sans doublon, parmi {', '.join(USAGES_OUTIL)}), "
+                                  "puissance 0 à 7 (au moins 1 pour couper ou levier)} ; objet mobile de 0,1 à 20 kg "
+                                  f"(reçu masse {masse}, mobile {mobile}).")
             resultat.update(usages=usages, puissance=puissance)
         elif nature == "tranchable":
             if (set(capacite) != {"nature", "seuil", "tenacite"}
@@ -173,9 +181,9 @@ def proprietes(capacites, masse, mobile=True):
                     or not 1 <= capacite["seuil"] <= 7
                     or type(capacite["tenacite"]) is not int
                     or not 1 <= capacite["tenacite"] <= 20):
-                raise ErreurMonde("Résistance à la coupe invalide.")
+                raise ErreurMonde("Résistance à la coupe invalide.", "tranchable : {nature, seuil 1 à 7, tenacite 1 à 20}.")
             resultat.update(seuil_coupe=capacite["seuil"],
                             integrite=capacite["tenacite"], maximum=capacite["tenacite"])
         else:
-            raise ErreurMonde("Capacité physique inconnue.")
+            raise ErreurMonde("Capacité physique inconnue.", f"nature parmi son, lumiere, outil, tranchable (reçu « {nature} »).")
     return resultat

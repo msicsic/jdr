@@ -120,15 +120,16 @@ def descriptions(reponse):
     resultat = []
     for ajout in proposition.get("ajouts", []):
         if not isinstance(ajout, dict):
-            raise ErreurMonde("Description proposée mal formée.")
+            raise ErreurMonde("Description proposée mal formée.", "chaque ajout est un objet JSON.")
         if mode == "etablir_faits" and ajout.get("type") in ("detail", "objet"):
             if not isinstance(ajout.get("nom"), str) or not isinstance(ajout.get("texte"), str):
-                raise ErreurMonde("Description proposée mal formée.")
+                raise ErreurMonde("Description proposée mal formée.", f"{ajout['type']} : nom et texte sont des chaînes.")
             autonome = ajout["type"] == "objet"
             if autonome and (not isinstance(ajout.get("capacites"), list)
                             or any(not isinstance(c, dict) or not isinstance(c.get("nature"), str)
                                    for c in ajout["capacites"])):
-                raise ErreurMonde("Capacités proposées mal formées.")
+                raise ErreurMonde("Capacités proposées mal formées.",
+                                  "objet : capacites est une liste (éventuellement vide) d'objets {nature, …}.")
             sujet = {"nature": "élément proposé sur un support",
                      "support": ajout.get("ancrage"), "nom": ajout["nom"]}
             sujet["mutation_autorisee"] = (["créer un objet physique", "lier au support",
@@ -150,7 +151,7 @@ def descriptions(reponse):
                             for phrase in segments(ajout["texte"]))
         elif mode == "enrichir":
             if not isinstance(ajout.get("description"), str):
-                raise ErreurMonde("Description proposée mal formée.")
+                raise ErreurMonde("Description proposée mal formée.", "enrichir : description est une chaîne.")
             sujet = {"nature": "facette d'un personnage",
                      "personnage": ajout.get("personnage"), "facette": ajout.get("facette"),
                      "mutation_autorisee": ["enregistrer cette facette du personnage"]}
@@ -160,11 +161,11 @@ def descriptions(reponse):
     if mode == "enrichir_savoirs":
         ajouts = proposition.get("savoirs")
         if not isinstance(ajouts, list):
-            raise ErreurMonde("Savoirs proposés mal formés.")
+            raise ErreurMonde("Savoirs proposés mal formés.", "enrichir_savoirs : savoirs est une liste.")
         for ajout in ajouts:
             if (not isinstance(ajout, dict) or not isinstance(ajout.get("sujet"), str)
                     or not isinstance(ajout.get("texte"), str)):
-                raise ErreurMonde("Savoir proposé mal formé.")
+                raise ErreurMonde("Savoir proposé mal formé.", "chaque savoir a sujet et texte (chaînes).")
             sujet = {"nature": "savoir subjectif d'un personnage",
                      "personnage": proposition.get("personnage"),
                      "sujet": ajout["sujet"],
@@ -174,7 +175,8 @@ def descriptions(reponse):
                             for phrase in segments(ajout["texte"]))
     if (len(resultat) > 24 or any(not isinstance(e["texte"], str) or not e["texte"].strip()
                                    for e in resultat)):
-        raise ErreurMonde("Description proposée mal formée.")
+        raise ErreurMonde("Description proposée mal formée.",
+                          f"au plus 24 phrases descriptives au total (reçu {len(resultat)}), aucune vide : raccourcis les textes.")
     return resultat
 
 
