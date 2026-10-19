@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-18.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-19.
 
 ## Où on en est
 
@@ -20,7 +20,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (`deplacer` vers un foyer devient `alimenter`) ; le combustible peut être porté ou à portée
   de main ; le titre de `deplacer` vers le joueur dit « Prendre », sans rangement que l'état
   ne modélise pas. Détail et vérification réelle dans `docs/plan-pnj.md` (écarts du jalon F).
-- La suite de tests passe : 555 tests, 31 ignorés, sans clé ni connexion.
+- Branche `messages-refus` : les refus du moteur guident la correction du MJ. Chaque
+  `ErreurMonde` porte `attendu` (champ fautif, valeur reçue, identifiants valables), transmis
+  dans `retour_moteur` et jamais au joueur ; les causes fusionnées sont séparées ; l'étape,
+  l'effet ou l'ajout fautif est numéroté. Mesure Haiku A/B sur les trois bancs : les refus
+  corrigeables passent de 4 répétés et jamais corrigés à 2 corrigés dès la première relance.
+  Restent hors périmètre : les messages d'audit (contrôle narratif, contre-revue).
+- La suite de tests passe : 576 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
