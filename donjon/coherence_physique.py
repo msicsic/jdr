@@ -22,8 +22,14 @@ indiqué. Il peut établir que cet outil peut l'entamer ou qu'il n'y parvient pa
 Il ne prouve rien sur un autre outil. Refuse ce jugement si la matière, la forme,
 la description ou les propriétés connues ne le justifient pas. Ne déduis jamais
 l'impossibilité du seul fait que la capacité manque dans le contexte.
-Les seuils numériques ne sont déclarés que lors de la création d'un nouvel objet ;
-ne les infère pas de la seule matière d'un objet déjà établi. Ne suppose pas que l'intention du joueur rend
+Les seuils de capacité (coupe, puissance) ne sont déclarés que lors de la création d'un nouvel
+objet ; ne les infère pas de la seule matière d'un objet déjà établi. Une description physique
+(forme, matière, dimensions, nombre de pièces) peut en revanche décrire un objet existant : juge
+si elle correspond à son nom, à sa description et à ce qu'un tel objet est d'ordinaire ; le
+moteur vérifie à part qu'elle s'accorde avec sa masse. De même, un contenu proposé (ce que l'objet
+contient ou consomme : une lanterne brûle de l'huile) établit un fait encore inconnu : juge
+seulement s'il est plausible pour un tel objet, sans le refuser parce qu'il n'était pas déjà
+décrit. Une qualification sert précisément à établir ce qui manque. Ne suppose pas que l'intention du joueur rend
 la proposition vraie. Si la description est trop vague pour juger, refuse.
 Réponds par un jugement pour chaque qualification, dans l'ordre. Aucun récit.
 """
@@ -54,6 +60,8 @@ def propositions(reponse, faits):
                         "capacites_proposees": ajout.get("capacites", []),
                         "constats_proposes": ajout.get("ecartees", []),
                         "coupe_possible": ajout.get("coupe_possible"),
+                        "physique_proposee": ajout.get("physique"),
+                        "contenu_propose": ajout.get("contenu"),
                         "moyen": faits.get("objet:" + str(moyen_id), {})})
     return entrees
 

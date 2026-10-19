@@ -629,8 +629,10 @@ class Moteur:
             lignes.append(designer(o, debut=True) + " est libéré et déposé au sol.")
         elif op == "transferer":
             deplacer(m, cible, valeur)
-            lignes.append("Tu portes maintenant " + designer(o) + "." if valeur == "joueur" and o.get("longueur_cm", 0) >= 100 else designer(o, debut=True) + (" rejoint votre besace." if valeur == "joueur" else
-                          " est " + accorder(o, "posé") + " au sol." if valeur in m.data["salles"] else
+            # Porter ne distingue pas la main du sac : le message ne prétend à aucun rangement.
+            lignes.append("Tu portes maintenant " + designer(o) + "." if valeur == "joueur" and o.get("longueur_cm", 0) >= 100 else
+                          "Tu prends " + designer(o) + "." if valeur == "joueur" else
+                          designer(o, debut=True) + (" est " + accorder(o, "posé") + " au sol." if valeur in m.data["salles"] else
                           " est " + accorder(o, "placé") + " dans " + designer(m.objets[valeur]) + "."))
         elif op == "remarquer":
             from .esprits import memoriser
@@ -642,6 +644,11 @@ class Moteur:
         elif op == "allumage":
             o["allume"] = valeur
             lignes.append(designer(o, debut=True) + (" s'allume." if valeur else " s'éteint."))
+        elif op == "prelever_piece":
+            from .matiere import prelever_piece
+            piece = prelever_piece(m, cible, valeur)
+            reste = o.get("physique", {}).get("pieces", 1)
+            lignes.append("Tu prends " + designer(piece, "indefini") + " ; il en reste " + str(reste) + ".")
         elif op == "alimentation":
             from .perception import alimenter
             alimenter(m, cible, valeur)
@@ -649,7 +656,7 @@ class Moteur:
                           + designer(m.objets[valeur]) + ".")
         elif op == "deplacer":
             deplacer(m, cible, valeur)
-            lignes.append(designer(o, debut=True) + (" rejoint votre besace." if valeur == "joueur" else " est " + accorder(o, "posé") + " au sol."))
+            lignes.append("Tu prends " + designer(o) + "." if valeur == "joueur" else designer(o, debut=True) + " est " + accorder(o, "posé") + " au sol.")
         elif op == "payer":
             montant, vendeur = valeur["montant"], valeur["vendeur"]
             m.joueur["or"] -= montant
@@ -657,14 +664,14 @@ class Moteur:
             o["en_vente"] = False
             o["proprietaire"] = "joueur"
             o.pop("vendeur", None)
-            lignes.append(f"Vous payez {montant} pièces à {m.objets[vendeur]['nom']}.")
+            lignes.append(f"Tu paies {montant} pièces à {m.objets[vendeur]['nom']}.")
         elif op == "voyager":
             position = valeur if isinstance(valeur, (list, tuple)) else position_entree(m, cible, m.joueur["salle"])
             m.joueur["salle"] = cible
             m.joueur["position"] = list(position)
             if cible not in m.data["visitees"]:
                 m.data["visitees"].append(cible)
-            lignes.append("Vous entrez dans : " + m.data["salles"][cible]["nom"] + ".")
+            lignes.append("Tu entres dans : " + m.data["salles"][cible]["nom"] + ".")
         elif op == "ouverture":
             o["ouverte"] = valeur
             lignes.append(designer(o, debut=True) + (" s'ouvre." if valeur else " se ferme."))
@@ -673,7 +680,7 @@ class Moteur:
             lignes.append(designer(o, debut=True) + " est " + accorder(o, "déverrouillé") + ".")
         elif op == "detacher":
             deplacer(m, cible, "joueur")
-            lignes.append(designer(o, debut=True) + " est " + accorder(o, "retiré") + " et " + accorder(o, "rangé") + " dans votre besace.")
+            lignes.append("Tu retires " + designer(o) + " et tu l'emportes.")
         elif op == "endommager":
             o["integrite"] = max(0, o["integrite"] - valeur)
             lignes.append(designer(o, debut=True) + " est "
@@ -708,12 +715,12 @@ class Moteur:
                           inscription=o.get("inscription", ""), sens=o.get("sens", ""),
                           source=cible)
             m.objets[id] = copie
-            lignes.append(designer(copie, debut=True) + " rejoint votre besace. "
+            lignes.append("Tu emportes " + designer(copie) + ". "
                           + designer(materiau, debut=True) + " a été "
                           + accorder(materiau, "consommé") + " en partie.")
         elif op == "dechiffrer":
             m.data["lus"].append(cible)
-            lignes.append("Vous comprenez : " + o.get("sens", o["inscription"]))
+            lignes.append("Tu comprends : " + o.get("sens", o["inscription"]))
         elif op == "calmer":
             m.data["bruit"] = max(0, m.data["bruit"] - valeur)
             lignes.append("Cinq minutes passent. Le calme revient peu à peu.")

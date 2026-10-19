@@ -220,6 +220,8 @@ def alimenter(monde, foyer, bois):
     if not f.get("foyer") or not combustible(b):
         return False
     b["charges"] -= 1
+    from .matiere import retirer_piece
+    retirer_piece(b)
     f["combustible"] += b["duree_combustion"]
     return True
 

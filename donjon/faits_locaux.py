@@ -8,6 +8,9 @@ from .geometrie import placer
 from .monde import ErreurMonde, normaliser, objet, reference_exacte
 from .perception import eclairage
 from .refus import liste
+from .matiere import (SCHEMA as SCHEMA_PHYSIQUE, SCHEMA_CONTENU, appliquer as appliquer_physique,
+                      decrire as decrire_physique, decrire_contenu, valider as valider_physique,
+                      valider_contenu)
 from .capacites_objet import (SCHEMA as SCHEMA_CAPACITES,
                              CAPACITES_REVUE, absence as absence_capacite,
                              aptitude_coupe,
@@ -74,12 +77,25 @@ SCHEMA_AJOUT_COUPE = {
                    "coupe_possible": {"type": "boolean"}},
     "required": ["type", "ancrage", "moyen", "coupe_possible"],
 }
+SCHEMA_AJOUT_PHYSIQUE = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"type": {"type": "string", "enum": ["qualification"]},
+                   "ancrage": {"type": "string"}, "physique": SCHEMA_PHYSIQUE},
+    "required": ["type", "ancrage", "physique"],
+}
+SCHEMA_AJOUT_CONTENU = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"type": {"type": "string", "enum": ["qualification"]},
+                   "ancrage": {"type": "string"}, "contenu": SCHEMA_CONTENU},
+    "required": ["type", "ancrage", "contenu"],
+}
 SCHEMA_FAITS = {
     "type": "object", "additionalProperties": False,
     "properties": {"ajouts": {"type": "array", "minItems": 1, "maxItems": 3,
         "items": {"anyOf": [SCHEMA_AJOUT_SIMPLE, SCHEMA_AJOUT_OBJET,
                             SCHEMA_AJOUT_EVOLUTION, SCHEMA_AJOUT_QUALIFICATION,
-                            SCHEMA_AJOUT_EXCLUSION, SCHEMA_AJOUT_COUPE]}}},
+                            SCHEMA_AJOUT_EXCLUSION, SCHEMA_AJOUT_COUPE, SCHEMA_AJOUT_PHYSIQUE,
+                            SCHEMA_AJOUT_CONTENU]}}},
     "required": ["ajouts"],
 }
 
@@ -113,7 +129,10 @@ def catalogue(monde):
                                   "maximum": monde.objets[id]["maximum"],
                                   "capacites": {capacite: statut_capacite(monde.objets[id], capacite)
                                                 for capacite in CAPACITES_REVUE},
-                                  "constats": resume_constats(monde.objets[id], monde.objets)}
+                                  "constats": resume_constats(monde.objets[id], monde.objets),
+                                  "masse": monde.objets[id]["masse"],
+                                  "physique": monde.objets[id].get("physique", "inconnue"),
+                                  "contenu": monde.objets[id].get("contenu", "inconnu")}
                              for id in accessibles if monde.objets[id].get("masse", 0) > 0},
             "locuteurs": {
         id: {"nom": p["nom"]} for id, p in interlocuteurs(monde).items()},
@@ -201,6 +220,10 @@ def preparer_faits(monde, proposition, revision=None):
         champs = ({"type", "ancrage"} if nature == "evolution" else
                   {"type", "ancrage", "moyen", "coupe_possible"}
                   if nature == "qualification" and "coupe_possible" in ajout else
+                  {"type", "ancrage", "physique"}
+                  if nature == "qualification" and "physique" in ajout else
+                  {"type", "ancrage", "contenu"}
+                  if nature == "qualification" and "contenu" in ajout else
                   {"type", "ancrage", "ecartees"}
                   if nature == "qualification" and "ecartees" in ajout else
                   {"type", "ancrage", "capacites"} if nature == "qualification" else
@@ -223,6 +246,31 @@ def preparer_faits(monde, proposition, revision=None):
                 raise refus("Cet objet ne peut pas être qualifié depuis ici.",
                             f"ancrage « {ancrage} » : un objet qualifiable d'ici, parmi {liste(sorted(autorises['qualifiables']))}.")
             cible = travail.objets[ancrage]
+            if "physique" in ajout:
+                # Le MJ dit ce qu'est concrètement l'objet ; le moteur vérifie la masse et déduit le reste.
+                if "physique" in cible:
+                    raise refus("Cet objet est déjà décrit.",
+                                f"{ancrage} a déjà sa description physique ({decrire_physique(cible)}) : "
+                                "ne la redonne pas ; re-propose directement l'action.")
+                try:
+                    physique = valider_physique(cible, ajout["physique"])
+                except ErreurMonde as exc:
+                    raise refus(str(exc), exc.attendu) from None
+                appliquer_physique(cible, physique)
+                rendus.append(designer(cible, debut=True) + " : " + decrire_physique(cible) + ".")
+                etablis.append({"type": nature, "objet": ancrage, "physique": physique})
+                continue
+            if "contenu" in ajout:
+                if "contenu" in cible:
+                    raise refus("Ce contenu est déjà établi.",
+                                f"{ancrage} : {decrire_contenu(cible)} ; ne le redonne pas.")
+                try:
+                    cible["contenu"] = valider_contenu(cible, ajout["contenu"])
+                except ErreurMonde as exc:
+                    raise refus(str(exc), exc.attendu) from None
+                rendus.append(decrire_contenu(cible) + ".")
+                etablis.append({"type": nature, "objet": ancrage, "contenu": cible["contenu"]})
+                continue
             if "coupe_possible" in ajout:
                 if type(ajout["coupe_possible"]) is not bool:
                     raise refus("Jugement de coupe mal formé.", f"coupe_possible : true ou false (reçu {ajout['coupe_possible']!r}).")

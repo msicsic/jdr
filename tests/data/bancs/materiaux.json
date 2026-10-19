@@ -1,0 +1,16 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "tours": [
+  "regarder",
+  "il faut quoi comme combustible pour ma lanterne ?",
+  "examiner lanterne",
+  "et la torche, elle mesure combien ?",
+  "examiner torche",
+  "sud",
+  "examiner planches",
+  "elles font quelle taille, ces planches de bac ?",
+  "examiner planches",
+  "combien de planches y a-t-il dans le tas ?"
+ ]
+}

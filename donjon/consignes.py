@@ -49,8 +49,12 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
 - parole_joueur : le joueur fait parler Corvus à un personnage présent.
 - conversation_pnj : le joueur discute ou négocie la récompense d'une mission avec un
   personnage présent.
-- etablir_faits, enrichir, enrichir_savoirs, enrichir_joueur : la réponse a besoin d'un détail
-  persistant encore absent ; le moteur l'enregistre, puis tu le racontes.
+- un détail persistant encore absent, que le moteur enregistre avant que tu le racontes :
+  etablir_faits pour un objet, un support ou un lieu (détail, objet, description physique) ;
+  enrichir pour la facette d'un personnage ; enrichir_savoirs pour ce qu'il sait ;
+  enrichir_joueur pour le corps de Corvus. Une question sur la taille, le nombre de pièces ou
+  le contenu d'un objet que Corvus voit appelle sa description (etablir_faits, qualification) :
+  il le voit, il peut en juger comme n'importe qui, plutôt que de dire qu'il l'ignore.
 
 ## 4. Mode action
 Propose le geste que le joueur demande, pas un geste voisin plus facile à valider.
@@ -94,6 +98,8 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
   contenant ouvert). Un article en vente s'achète (acheter). methode discret pour un bien
   d'autrui : le moteur en déduit le vol, les témoins et leurs soupçons ; pour ses propres
   affaires, discret n'accuse personne.
+- prelever : prendre une pièce d'un lot décrit (une planche du tas), destination comme pour
+  deplacer ; le lot diminue d'autant. Un objet seul se déplace (deplacer).
 - patienter : guetter deux minutes ; le deplacer discret qui suit devient plus facile, sans
   que le témoin soit pour autant détourné. Voler en attendant une occasion = patienter, puis
   deplacer discret.
@@ -167,6 +173,19 @@ précise le monde sans fournir d'objectif, de solution ni d'indice de quête.
 - qualification : pour un objet existant dont une capacité est inconnue. Pour la coupe :
   ancrage, moyen (l'outil) et coupe_possible, jugés pour cet outil et leur état présent ;
   sinon capacites, ou ecartees pour ce que l'objet ne sait pas faire.
+- qualification avec physique : décrire ce qu'est concrètement un objet existant quand ses
+  dimensions servent (fabriquer, mesurer, porter) et que qualifiables le marque « inconnue » :
+  forme (barre, plaque, lien, bloc, etoffe), matiere, dimensions en cm (0 pour celles qui ne
+  s'appliquent pas ; une barre ronde a un diametre, une barre plate une largeur et une épaisseur),
+  pieces (le nombre de pièces d'un lot, 1 sinon ; égal à ce qu'il en reste si les faits le
+  disent), nom_piece (le nom d'une pièce d'un lot, « planche de bac » ; vide pour un objet seul).
+  Décris-le comme un tel objet est d'ordinaire,
+  d'après son nom et sa description : le moteur vérifie l'accord avec sa masse et en déduit
+  longueur et charge.
+- qualification avec contenu : ce qu'un objet existant contient ou consomme, quand on le demande
+  et que qualifiables le marque « inconnu » (une lanterne brûle de l'huile, une gourde contient
+  de l'eau) : contenu = {matiere}. Une source de lumière brûle un combustible ; la quantité
+  reste celle que les faits donnent.
 - evolution : type et ancrage = une évolution déclarée.
 ### enrichir : une facette libre de descriptions_a_completer qui aide à répondre
 proposition = {"ajouts":[{"personnage", "facette", "description"}]} : une phrase autonome sur

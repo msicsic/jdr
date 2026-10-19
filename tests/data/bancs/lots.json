@@ -1,0 +1,14 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "tours": [
+  "regarder",
+  "sud",
+  "elles font quelle taille, ces planches de bac ?",
+  "je prends discrètement une planche du tas",
+  "tenter",
+  "inventaire",
+  "examiner planches",
+  "combien de planches reste-t-il dans le tas ?"
+ ]
+}

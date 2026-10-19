@@ -97,6 +97,8 @@ class Monde:
         installer_corps(self)
         from .franchissement import installer as installer_franchissements
         installer_franchissements(self)
+        from .matiere import installer as installer_matiere
+        installer_matiere(self)
         from .artisanat import installer as installer_artisanat
         installer_artisanat(self)
         from .espace import installer as installer_espace
@@ -243,7 +245,7 @@ class Monde:
             return candidats[0]
         if candidats:
             raise ErreurMonde("Précisez : " + ", ".join(designer(self.objets[i]) for i in candidats) + ".")
-        raise ErreurMonde("Vous ne voyez pas cet objet ici. Tapez « regarder ».")
+        raise ErreurMonde("Tu ne vois pas cet objet ici. Tape « regarder ».")
 
     def charge(self):
         return sum(o["masse"] for o in self.objets.values() if self.est_porte(o["id"]))
@@ -360,6 +362,8 @@ class Monde:
                 verifier_spatial(self)
             from .espace import verifier as verifier_espace
             verifier_espace(self)
+            from .matiere import verifier as verifier_matiere
+            verifier_matiere(self)
             from .artisanat import verifier as verifier_artisanat
             verifier_artisanat(self)
             from .connaissances import verifier as verifier_savoirs

@@ -195,7 +195,8 @@ class DialoguesTests(unittest.TestCase):
         self.assertEqual(self.m.data, avant)
 
     def test_question_ne_peut_pas_accepter_et_panne_narration_ne_cree_pas_offre(self):
-        for message, sorties in (("Puis-je accepter ?", [reponse(conversation("accepter"))]),
+        # Le refus est d'abord recadré : le MJ reçoit son attendu et peut corriger une fois.
+        for message, sorties in (("Puis-je accepter ?", [reponse(conversation("accepter"))] * 2),
                                  ("Je demande la récompense", [reponse(conversation()), ErreurMonde("Réseau")])):
             avant = copy.deepcopy(self.m.data)
             with patch.object(MJOpenAI, "_appeler", side_effect=sorties), self.assertRaises(ErreurMonde):

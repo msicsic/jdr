@@ -95,24 +95,30 @@
         "ficelle",
         "bobine"
       ],
-      "charge_jeu_kg": 110,
       "genre": "f",
       "id": "ficelle",
       "integrite": 10,
       "lieu": "cour",
-      "longueur_cm": 2000,
       "masse": 0.3,
       "materiau": "fibres",
       "maximum": 10,
       "mobile": true,
       "nom": "bobine de ficelle solide",
+      "physique": {
+        "dimensions": {
+          "diametre_cm": 0.4,
+          "longueur_cm": 2000
+        },
+        "forme": "lien",
+        "matiere": "fibres",
+        "pieces": 1
+      },
       "position": [
         4,
         2
       ],
       "position_salle": "cour",
       "proprietaire": "joueur",
-      "ressource": "lien",
       "type": "materiau"
     },
     "hache": {
@@ -185,26 +191,31 @@
         "branche 1",
         "tronc 1"
       ],
-      "charge_jeu_kg": 110,
-      "diametre_cm": 5,
       "genre": "f",
       "id": "perche_1",
       "integrite": 10,
       "lieu": "cour",
-      "longueur_cm": 300,
       "masse": 3,
       "materiau": "bois",
-      "seuil_coupe": 2,
       "maximum": 10,
       "mobile": true,
       "nom": "perche de bois 1",
+      "physique": {
+        "dimensions": {
+          "diametre_cm": 5,
+          "longueur_cm": 300
+        },
+        "forme": "barre",
+        "matiere": "bois",
+        "pieces": 1
+      },
       "position": [
         1,
         1
       ],
       "position_salle": "cour",
       "proprietaire": "joueur",
-      "ressource": "perche",
+      "seuil_coupe": 2,
       "type": "materiau"
     },
     "perche_2": {
@@ -213,26 +224,31 @@
         "branche 2",
         "tronc 2"
       ],
-      "charge_jeu_kg": 110,
-      "diametre_cm": 5,
       "genre": "f",
       "id": "perche_2",
       "integrite": 10,
       "lieu": "cour",
-      "longueur_cm": 300,
       "masse": 3,
       "materiau": "bois",
-      "seuil_coupe": 2,
       "maximum": 10,
       "mobile": true,
       "nom": "perche de bois 2",
+      "physique": {
+        "dimensions": {
+          "diametre_cm": 5,
+          "longueur_cm": 300
+        },
+        "forme": "barre",
+        "matiere": "bois",
+        "pieces": 1
+      },
       "position": [
         2,
         1
       ],
       "position_salle": "cour",
       "proprietaire": "joueur",
-      "ressource": "perche",
+      "seuil_coupe": 2,
       "type": "materiau"
     },
     "perche_3": {
@@ -241,26 +257,31 @@
         "branche 3",
         "tronc 3"
       ],
-      "charge_jeu_kg": 110,
-      "diametre_cm": 5,
       "genre": "f",
       "id": "perche_3",
       "integrite": 10,
       "lieu": "cour",
-      "longueur_cm": 300,
       "masse": 3,
       "materiau": "bois",
-      "seuil_coupe": 2,
       "maximum": 10,
       "mobile": true,
       "nom": "perche de bois 3",
+      "physique": {
+        "dimensions": {
+          "diametre_cm": 5,
+          "longueur_cm": 300
+        },
+        "forme": "barre",
+        "matiere": "bois",
+        "pieces": 1
+      },
       "position": [
         3,
         1
       ],
       "position_salle": "cour",
       "proprietaire": "joueur",
-      "ressource": "perche",
+      "seuil_coupe": 2,
       "type": "materiau"
     },
     "terrasse_sol": {
@@ -305,16 +326,16 @@
           "......"
         ]
       },
-      "sorties": {},
-      "travail_calme": true,
       "potentiel_invention": {
-        "objets_max": 2,
-        "masse_max_kg": 3,
         "capacites": [
           "son",
           "tranchable"
-        ]
-      }
+        ],
+        "masse_max_kg": 3,
+        "objets_max": 2
+      },
+      "sorties": {},
+      "travail_calme": true
     },
     "terrasse": {
       "altitude_cm": 240,
@@ -339,15 +360,15 @@
           "......"
         ]
       },
-      "sorties": {},
       "potentiel_invention": {
-        "objets_max": 2,
-        "masse_max_kg": 3,
         "capacites": [
           "son",
           "tranchable"
-        ]
-      }
+        ],
+        "masse_max_kg": 3,
+        "objets_max": 2
+      },
+      "sorties": {}
     }
   },
   "savoirs_pnj": {},
@@ -358,12 +379,12 @@
     "objectif": "Atteindre la terrasse puis revenir, par les moyens de ton choix.",
     "version": 1
   },
+  "scenario_id": "atelier",
   "seed": 1985,
   "souvenirs_personnages": {},
   "sujets_savoirs_pnj": {},
   "version": 1,
   "visitees": [
     "cour"
-  ],
-  "scenario_id": "atelier"
+  ]
 }
