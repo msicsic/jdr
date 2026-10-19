@@ -69,3 +69,20 @@ class ExplicationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OrientationTests(unittest.TestCase):
+    def test_deplacer_vers_un_personnage_oriente_vers_remettre(self):
+        from donjon.operations import etape, sequence
+        m = relais_avec_cloche()
+        with self.assertRaises(ErreurMonde) as refus:
+            Moteur(m).preparer(sequence(etape("deplacer", "cloche", "marchand")))
+        self.assertIn("action remettre, cible cloche, outil marchand", refus.exception.attendu)
+
+    def test_la_contre_revue_recoit_les_noms_des_identifiants(self):
+        # Cas du banc Luna : « la cloche est donnée au marchand, et non à Gorm ».
+        from donjon.couverture_action import entree
+        m = relais_avec_cloche()
+        plan = Moteur(m).preparer(proposition("remettre", "cloche", "marchand"))
+        noms = entree("je donne la cloche à Gorm", plan, m)["noms"]
+        self.assertIn("Gorm", noms["marchand"])

@@ -325,6 +325,9 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             raise ErreurMonde("Cet objet se trouve déjà à cette destination.", f"{cible} est déjà dans {destination} : rien à faire.")
         if destination not in ("joueur", monde.joueur["salle"]):
             contenant = monde.objets.get(destination)
+            if contenant and contenant["type"] == "personnage":
+                raise ErreurMonde("On ne pose pas un objet sur un personnage.",
+                                  f"pour donner {cible} à {destination} : action remettre, cible {cible}, outil {destination}.")
             if (not contenant or contenant["type"] != "contenant" or not contenant.get("ouverte")
                     or not monde.accessible(destination)):
                 ouverts = sorted(i for i, x in monde.objets.items()

@@ -18,6 +18,8 @@ SCHEMA = {
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
+Les opérations citent des identifiants internes ; noms donne le nom de chacun, celui que le
+joueur emploie (un identifiant et son nom désignent la même chose).
 Le plan représente l'état du monde : action, cibles, outil, et changements durables
 (objet déplacé, détaché, allumé, marqué, son émis, blessure, usure). La manière du geste
 (position des mains, style, intention affichée, caractère d'un son ou d'un air) relève du
@@ -52,8 +54,27 @@ def _operations(plan):
     }
 
 
-def entree(intention, plan):
-    return {"demande": intention, "plan": _operations(plan)}
+def _identifiants(valeur):
+    if isinstance(valeur, str):
+        yield valeur
+    elif isinstance(valeur, (list, tuple)):
+        for v in valeur:
+            yield from _identifiants(v)
+    elif isinstance(valeur, dict):
+        for v in valeur.values():
+            yield from _identifiants(v)
+
+
+def entree(intention, plan, monde=None):
+    """La demande et les opérations du plan ; les identifiants cités viennent avec leur nom, que le
+    joueur emploie (« Gorm » pour marchand), pour que la revue ne les prenne pas pour d'autres."""
+    operations = _operations(plan)
+    resultat = {"demande": intention, "plan": operations}
+    if monde is not None:
+        noms = {i: monde.objets[i]["nom"] for i in _identifiants(operations) if i in monde.objets}
+        if noms:
+            resultat["noms"] = noms
+    return resultat
 
 
 MOTIF_MAX = 300
