@@ -290,6 +290,14 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         piece_id = id_piece(monde, cible)
         avec_piece = monde.copier()
         prelever_piece(avec_piece, cible, piece_id)
+        if (destination or "joueur") == avec_piece.objets[piece_id]["lieu"]:
+            # Séparer une pièce là où est le lot : rien à déplacer.
+            if outil or methode != "simple":
+                raise ErreurMonde("Séparer une pièce du lot se fait à la main.", "prelever sur place : outil vide, methode simple.")
+            p = Plan({"action": "composer", "justification": justification}, monde.data["revision"], "", origine=origine)
+            p.effets = [("prelever_piece", cible, piece_id)]
+            p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + "."
+            return p
         p = compiler(avec_piece, etape("deplacer", piece_id, destination or "joueur", methode=methode),
                      precedent, justification, origine)
         p.effets = [("prelever_piece", cible, piece_id)] + p.effets
