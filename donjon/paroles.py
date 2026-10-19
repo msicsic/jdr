@@ -212,11 +212,27 @@ def resoudre(monde, reference):
     return candidats.pop() if len(candidats) == 1 else None
 
 
-def _typer(monde, c):
+def part_nommee(monde, auditeur, reference):
+    """Ressource comptée de l'auditeur que nomme une demande : on peut demander une part de ce
+    qu'un autre possède sans l'avoir vu, comme on demande du pain sans connaître l'étagère."""
+    from . import lexique
+    from .deliberation import besoin_de_part, parts
+    from .vol import proprietaire
+    if not isinstance(reference, str) or not reference.strip():
+        return None
+    ids = {reference} if reference in monde.objets else lexique.entites_citees(monde, reference)
+    ressources = {i for i in ids if i in monde.objets and besoin_de_part(monde.objets[i])
+                  and parts(monde.objets[i]) > 0 and proprietaire(monde, monde.objets[i]) == auditeur}
+    return ressources.pop() if len(ressources) == 1 else None
+
+
+def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
     if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande"):
         return None
     sujet = resoudre(monde, c.get("sujet"))
+    if sujet is None and c["type"] == "demande" and auditeur:
+        sujet = part_nommee(monde, auditeur, c.get("sujet"))
     if sujet is None:
         return None
     if c["type"] == "demande":
@@ -283,6 +299,13 @@ def preparer_parole(monde, p, revision=None):
                                monde.data.get("paroles_joueur", []))
     if p.get("_intention"):
         fondement += " " + lexique.corpus(p["_intention"])
+    # Une part demandée à son propriétaire se nomme sans avoir été vue.
+    for c in p["contenu"]:
+        if isinstance(c, dict) and c.get("type") == "demande":
+            part = part_nommee(monde, auditeur, c.get("sujet"))
+            if part:
+                o = monde.objets[part]
+                fondement += " " + " ".join([o["nom"], *o.get("aliases", [])])
     if lexique.mentions_sans_fondement(monde, replique, fondement):
         raise ErreurMonde("La réplique de Corvus nomme ce qu'il ne connaît pas.")
     travail = monde.copier()
@@ -290,7 +313,7 @@ def preparer_parole(monde, p, revision=None):
     capacite = min(capacite_transmission(travail.joueur["stats"]["INT"]),
                    capacite_transmission(stats_auditeur["INT"]))
     faits = []
-    transmis = [x for x in (_typer(travail, c) for c in p["contenu"]) if x]
+    transmis = [x for x in (_typer(travail, c, auditeur) for c in p["contenu"]) if x]
     perdus = transmis[capacite:]
     for c in transmis[:capacite]:
         if c["type"] == "affirmation":

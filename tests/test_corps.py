@@ -144,6 +144,24 @@ class PartDuJoueurTests(unittest.TestCase):
         self.assertIn("Gorm te sert une part des vivres du refuge ; tu manges.", lignes)
         self.assertEqual(lire(m, "marchand")["engagements"], [])
 
+    def test_on_demande_une_part_sans_l_avoir_vue(self):
+        from donjon.paroles import preparer_parole
+        m = relais()
+        m.joueur.update(salle="echoppe", position=[1, 2])
+        # Les vivres sont dans la réserve verrouillée : le joueur ne les a jamais vus.
+        self.assertNotIn("vivres", m.data["connus"])
+        p = {"personnage": "marchand", "replique": "Gorm, peux-tu me donner une part de vivres ?",
+             "contenu": [{"type": "demande", "sujet": "vivres", "attribut": "", "valeur": ""}]}
+        with patch.object(Monde, "d20", return_value=20):
+            travail, rapport = preparer_parole(m, p)
+        self.assertIn("il te la servira là où sont les vivres", rapport["faits"][0])
+        self.assertEqual([x["condition"] for x in lire(recharger(travail), "marchand")["engagements"]],
+                         [{"objet": "vivres", "servir": "joueur"}])
+        # Ce qui n'est pas une ressource à lui reste soumis à la règle : on ne nomme que ce qu'on connaît.
+        p["replique"], p["contenu"][0]["sujet"] = "Gorm, donne-moi les crochets.", "crochets"
+        with self.assertRaises(ErreurMonde):
+            preparer_parole(m, p)
+
     def test_une_part_de_bois_entretient_le_feu(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         corps.valeurs(m, "joueur")["chaleur"] = 60.0
