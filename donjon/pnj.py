@@ -43,11 +43,13 @@ def _etape(operation, cible="", outil="", lieu="", condition=""):
     return {"operation": operation, "cible": cible, "outil": outil, "lieu": lieu, "condition": condition}
 
 
-def reagir(monde, id, origine, niveau):
-    """Réflexe déclaré par l'auteur : un son assez fort donne l'intention d'aller voir."""
+def reagir(monde, id, origine, niveau, auteur=None):
+    """Réflexe déclaré par l'auteur : un son assez fort donne l'intention d'aller voir. L'appel
+    d'un protégé fait accourir son protecteur."""
     pnj = monde.objets[id]
     reaction = pnj.get("reaction_son")
-    if reaction and niveau >= reaction["seuil"] and origine != pnj["lieu"]:
+    protege = auteur in (pnj.get("profil") or {}).get("protege", [])
+    if (protege or reaction and niveau >= reaction["seuil"]) and origine != pnj["lieu"]:
         esprit(monde, id)["intention"] = {"but": {"type": "rejoindre", "lieu": origine}, "motif": "alerte",
                                           "plan": [_etape("aller", lieu=origine)],
                                           "depuis": monde.data["minutes"], "attente": 0}
@@ -169,6 +171,11 @@ def _temoigner(monde, id, operation, objet):
             inquieter(monde, autre, "illicite")
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
+            elif victime in (monde.objets[autre].get("profil") or {}).get("protege", []):
+                # Un protégé atteint : son devoir est touché, il ira le prévenir.
+                from .deliberation import ATTEINTE
+                relancer(monde, autre, "devoir", ATTEINTE)
+                memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id})
 
 
 # --- Gestes -------------------------------------------------------------------------------
@@ -547,7 +554,7 @@ def _annoncer_presences(monde, vus, apparus, lignes):
 
 def avancer(monde, minutes, lignes):
     """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
-    from .deliberation import deliberer, menager_flamme
+    from .deliberation import appeler_a_l_aide, deliberer, menager_flamme
     from .perception import avancer_combustion
     from .social import bavarder
     fin = monde.data["minutes"]
@@ -562,6 +569,7 @@ def avancer(monde, minutes, lignes):
             if monde.objets[id].get("profil"):
                 deliberer(monde, id, minute)
                 menager_flamme(monde, id, minute)
+                appeler_a_l_aide(monde, id, minute)
             intention = lire(monde, id)["intention"]
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):

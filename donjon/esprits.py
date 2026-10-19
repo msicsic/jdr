@@ -154,7 +154,7 @@ def entendre(monde, id, evenement, niveau):
         from .deliberation import inquieter
         inquieter(monde, id, "bruit")
     from .pnj import reagir
-    reagir(monde, id, evenement["origine"], niveau)
+    reagir(monde, id, evenement["origine"], niveau, evenement.get("auteur"))
 
 
 def _porteur(monde, o):

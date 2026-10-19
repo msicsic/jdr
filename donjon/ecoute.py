@@ -27,6 +27,25 @@ def bruit(monde, id, nature, texte="", cites=()):
     del bruits[:-BRUITS_MAX]
 
 
+def appel(monde, id):
+    """Un appel à l'aide : le joueur l'entend comme les autres bruits ; les PNJ à portée
+    l'entendent aussi, et un protecteur accourt (``pnj.reagir``)."""
+    from .esprits import entendre, pnjs
+    from .pnj import _chroniquer
+    from .social import _qui
+    from .sons import portee
+    salle = monde.objets[id]["lieu"]
+    _chroniquer(monde, id, f"{_qui(monde, id)} appelle à l'aide.", "social")
+    bruit(monde, id, "appel")
+    niveaux = portee(monde, salle, INTENSITES["appel"])
+    evenement = {"minute": monde.data["minutes"], "origine": salle, "nature": "appel",
+                 "intensite": INTENSITES["appel"], "auteur": id}
+    for autre in pnjs(monde):
+        o = monde.objets[autre]
+        if autre != id and o["lieu"] in niveaux and o.get("entend", True):
+            entendre(monde, autre, evenement, niveaux[o["lieu"]])
+
+
 def _chemins(monde):
     """Coût du son depuis la salle du joueur vers chaque salle, et la sortie par où il arrive."""
     from .sons import liens
