@@ -1,0 +1,185 @@
+"""Description physique commune des objets : forme, dimensions, matière, nombre de pièces.
+
+Le MJ (ou l'auteur du scénario) décrit ce qu'est concrètement un objet ; le moteur vérifie la
+cohérence de cette description avec la masse connue et en déduit ce qui en découle (longueur
+disponible, charge supportée). Les densités et résistances sont des conventions de jeu,
+pas un calcul d'ingénierie.
+"""
+import math
+
+from .monde import ErreurMonde
+
+# Densité en kg/m³ ; flexion et traction en kg de charge de jeu par cm² de section.
+MATIERES = {
+    "bois": {"densite": 600, "flexion": 5.6, "traction": 60},
+    "chene": {"densite": 750, "flexion": 7, "traction": 80},
+    "fer": {"densite": 7800, "flexion": 60, "traction": 400},
+    "acier": {"densite": 7850, "flexion": 80, "traction": 600},
+    "bronze": {"densite": 8700, "flexion": 40, "traction": 250},
+    "pierre": {"densite": 2500, "flexion": 2, "traction": 3},
+    "fibres": {"densite": 1300, "flexion": 0, "traction": 875},
+    "chanvre": {"densite": 1400, "flexion": 0, "traction": 900},
+    "cuir": {"densite": 900, "flexion": 0.5, "traction": 150},
+    "tissu": {"densite": 1300, "flexion": 0, "traction": 40},
+}
+# Dimensions attendues par forme, avec leurs bornes en cm. Une barre a soit un diamètre, soit
+# une largeur et une épaisseur.
+FORMES = {
+    "barre": {"longueur_cm": (10, 1500), "diametre_cm": (0.5, 80), "largeur_cm": (0.5, 80), "epaisseur_cm": (0.3, 80)},
+    "plaque": {"longueur_cm": (10, 500), "largeur_cm": (10, 300), "epaisseur_cm": (0.2, 30)},
+    "lien": {"longueur_cm": (10, 10000), "diametre_cm": (0.1, 5)},
+    "bloc": {"longueur_cm": (1, 300), "largeur_cm": (1, 300), "hauteur_cm": (1, 300)},
+    "etoffe": {"longueur_cm": (10, 1000), "largeur_cm": (10, 500), "epaisseur_cm": (0.05, 2)},
+}
+DIMENSIONS = ("longueur_cm", "largeur_cm", "epaisseur_cm", "diametre_cm", "hauteur_cm")
+REMPLISSAGE_LIEN = 0.75   # un lien tressé n'est pas plein
+ECART_MASSE = (0.5, 2.0)  # tolérance entre masse connue et masse déduite de la description
+PIECES_MAX = 100
+# Rôle d'une forme dans la fabrication actuelle (``artisanat``) : une donnée déduite.
+ROLES = {"barre": "perche", "lien": "lien"}
+
+SCHEMA = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "forme": {"type": "string", "enum": list(FORMES)},
+        "matiere": {"type": "string", "enum": list(MATIERES)},
+        "dimensions": {"type": "object", "additionalProperties": False,
+                       "properties": {d: {"type": "number"} for d in DIMENSIONS},
+                       "required": list(DIMENSIONS)},
+        "pieces": {"type": "integer"},
+    },
+    "required": ["forme", "matiere", "dimensions", "pieces"],
+}
+
+
+def _dimensions_utiles(forme, dimensions):
+    """Les dimensions qui comptent pour cette forme ; 0 marque une dimension sans objet."""
+    utiles = {d: v for d, v in dimensions.items() if d in FORMES[forme] and v}
+    if forme == "barre":
+        if "diametre_cm" in utiles:
+            utiles = {d: v for d, v in utiles.items() if d in ("longueur_cm", "diametre_cm")}
+        else:
+            utiles.pop("diametre_cm", None)
+    return utiles
+
+
+def section_cm2(physique):
+    d = physique["dimensions"]
+    if "diametre_cm" in d:
+        return math.pi * (d["diametre_cm"] / 2) ** 2
+    if physique["forme"] == "bloc":
+        return d["largeur_cm"] * d["hauteur_cm"]
+    return d["largeur_cm"] * d["epaisseur_cm"]
+
+
+def masse_deduite(physique):
+    """Masse d'après la description : volume × densité, pour toutes les pièces."""
+    d = physique["dimensions"]
+    volume = section_cm2(physique) * d["longueur_cm"]
+    if physique["forme"] == "lien":
+        volume *= REMPLISSAGE_LIEN
+    return volume * MATIERES[physique["matiere"]]["densite"] / 1e6 * physique["pieces"]
+
+
+def charge_deduite(physique):
+    """Charge de jeu d'une pièce : en flexion pour une barre ou une plaque, en traction pour un lien."""
+    m = MATIERES[physique["matiere"]]
+    if physique["forme"] in ("lien", "etoffe"):
+        return round(section_cm2(physique) * m["traction"])
+    return round(section_cm2(physique) * m["flexion"])
+
+
+def valider(o, physique):
+    """Refus explicite si la description n'est pas utilisable pour cet objet ; sinon la forme normalisée."""
+    if not isinstance(physique, dict) or set(physique) != {"forme", "matiere", "dimensions", "pieces"}:
+        raise ErreurMonde("Description physique mal formée.",
+                          "physique : exactement forme, matiere, dimensions, pieces.")
+    forme, matiere, pieces = physique["forme"], physique["matiere"], physique["pieces"]
+    if forme not in FORMES:
+        raise ErreurMonde("Forme inconnue.", f"forme parmi {', '.join(FORMES)} (reçu « {forme} »).")
+    if matiere not in MATIERES:
+        raise ErreurMonde("Matière inconnue.", f"matiere parmi {', '.join(MATIERES)} (reçu « {matiere} »).")
+    if o.get("materiau") in MATIERES and matiere != o["materiau"]:
+        raise ErreurMonde("Cette matière contredit l'objet.",
+                          f"{o['id']} est en {o['materiau']} : matiere = {o['materiau']}.")
+    if type(pieces) is not int or not 1 <= pieces <= PIECES_MAX:
+        raise ErreurMonde("Nombre de pièces invalide.", f"pieces : entier de 1 à {PIECES_MAX} (1 pour un objet seul).")
+    dims = physique["dimensions"]
+    if (not isinstance(dims, dict) or set(dims) - set(DIMENSIONS)
+            or any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in dims.values())):
+        raise ErreurMonde("Dimensions mal formées.",
+                          f"dimensions : {', '.join(DIMENSIONS)} en cm, nombres positifs, 0 pour une dimension sans objet.")
+    utiles = _dimensions_utiles(forme, dims)
+    requises = ({"longueur_cm", "diametre_cm"} if forme == "barre" and "diametre_cm" in utiles else
+                {"longueur_cm", "largeur_cm", "epaisseur_cm"} if forme == "barre" else
+                set(FORMES[forme]))
+    if set(utiles) != requises:
+        raise ErreurMonde("Il manque une dimension.",
+                          f"{forme} : {', '.join(sorted(requises))} non nuls"
+                          + (" (ou longueur_cm et diametre_cm pour une barre ronde)" if forme == "barre" else "") + ".")
+    for d, v in utiles.items():
+        bas, haut = FORMES[forme][d]
+        if not bas <= v <= haut:
+            raise ErreurMonde("Une dimension n'est pas plausible.", f"{d} d'une {forme} : de {bas} à {haut} cm (reçu {v:g}).")
+    normale = {"forme": forme, "matiere": matiere, "pieces": pieces, "dimensions": utiles}
+    masse = o.get("masse", 0)
+    if masse > 0:
+        deduite = masse_deduite(normale)
+        if not ECART_MASSE[0] <= masse / deduite <= ECART_MASSE[1]:
+            raise ErreurMonde("Cette description ne correspond pas au poids de l'objet.",
+                              f"{o['id']} pèse {masse:g} kg ; la description donne {deduite:.2g} kg "
+                              f"(volume × densité de {matiere}) : ajuste dimensions ou pieces.")
+    return normale
+
+
+def appliquer(o, physique):
+    """Enregistre la description et ce que le moteur en déduit."""
+    o["physique"] = physique
+    deduire(o)
+
+
+def deduire(o):
+    p = o["physique"]
+    if p["forme"] in ROLES:
+        o["ressource"] = ROLES[p["forme"]]
+        o["longueur_cm"] = p["dimensions"]["longueur_cm"]
+        o["charge_jeu_kg"] = charge_deduite(p)
+        if "diametre_cm" in p["dimensions"]:
+            o["diametre_cm"] = p["dimensions"]["diametre_cm"]
+
+
+def fixer_longueur(o, longueur_cm):
+    """Une pièce raccourcie : la description et ce qui en découle suivent."""
+    o["longueur_cm"] = longueur_cm
+    if "physique" in o:
+        o["physique"]["dimensions"]["longueur_cm"] = longueur_cm
+
+
+def installer(m):
+    """Les descriptions fournies par l'auteur reçoivent leurs grandeurs déduites."""
+    for o in m.objets.values():
+        if "physique" in o and "charge_jeu_kg" not in o and o["physique"]["forme"] in ROLES:
+            deduire(o)
+
+
+def decrire(o):
+    """Ce que l'examen montre de la description physique."""
+    p = o.get("physique")
+    if not p:
+        return ""
+    d = p["dimensions"]
+    def cm(v):
+        return (f"{v / 100:g} m" if v >= 100 else f"{v:g} cm").replace(".", ",")
+    if "diametre_cm" in d:
+        taille = f"{cm(d['longueur_cm'])} de long, {cm(d['diametre_cm'])} de diamètre"
+    else:
+        taille = " × ".join(cm(d[k]) for k in ("longueur_cm", "largeur_cm", "epaisseur_cm", "hauteur_cm") if k in d)
+    return (f"{p['pieces']} pièces de {taille} chacune" if p["pieces"] > 1 else taille.capitalize())
+
+
+def verifier(m):
+    for o in m.objets.values():
+        if "physique" in o:
+            p = o["physique"]
+            assert p["forme"] in FORMES and p["matiere"] in MATIERES, "Description physique inconnue"
+            assert 1 <= p["pieces"] <= PIECES_MAX, "Nombre de pièces invalide"

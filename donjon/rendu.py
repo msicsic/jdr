@@ -18,7 +18,10 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     matiere_deja_nommee = matiere and any(p + matiere in o["nom"] for p in ("de ", "d'", "en "))
     nom = designer(o, article, debut=True) + (f' en {matiere}' if matiere and not matiere_deja_nommee else "")
     morceaux, complements = [], []
-    if o.get("ressource"):
+    if o.get("physique"):
+        from .matiere import decrire as decrire_physique
+        complements.append(decrire_physique(o))
+    elif o.get("ressource"):
         if "longueur_cm" in o:
             complements.append(f"Longueur disponible : {o['longueur_cm'] / 100:g} m")
         if "diametre_cm" in o:

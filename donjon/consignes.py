@@ -167,6 +167,13 @@ précise le monde sans fournir d'objectif, de solution ni d'indice de quête.
 - qualification : pour un objet existant dont une capacité est inconnue. Pour la coupe :
   ancrage, moyen (l'outil) et coupe_possible, jugés pour cet outil et leur état présent ;
   sinon capacites, ou ecartees pour ce que l'objet ne sait pas faire.
+- qualification avec physique : décrire ce qu'est concrètement un objet existant quand ses
+  dimensions servent (fabriquer, mesurer, porter) et que qualifiables le marque « inconnue » :
+  forme (barre, plaque, lien, bloc, etoffe), matiere, dimensions en cm (0 pour celles qui ne
+  s'appliquent pas ; une barre ronde a un diametre, une barre plate une largeur et une épaisseur),
+  pieces (le nombre de pièces d'un lot, 1 sinon). Décris-le comme un tel objet est d'ordinaire,
+  d'après son nom et sa description : le moteur vérifie l'accord avec sa masse et en déduit
+  longueur et charge.
 - evolution : type et ancrage = une évolution déclarée.
 ### enrichir : une facette libre de descriptions_a_completer qui aide à répondre
 proposition = {"ajouts":[{"personnage", "facette", "description"}]} : une phrase autonome sur

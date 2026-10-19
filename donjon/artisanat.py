@@ -94,13 +94,18 @@ def ressource(m, id, nature):
     if proprietaire(m, o) not in (None, "joueur"):
         raise ErreurMonde(f"Tu ne disposes pas librement de {designer(o)}.",
                           f"{id} appartient à {proprietaire(m, o)} : obtiens-le d'abord, ou choisis parmi les {libres}")
+    if "physique" not in o and not o.get("ressource"):
+        raise ErreurMonde(f"{designer(o, debut=True)} n'est pas encore décrit.",
+                          f"décris d'abord {id} (etablir_faits, qualification avec physique : forme, matiere, "
+                          f"dimensions, pieces), puis re-propose ; {libres}")
     if o.get("ressource") != nature or o["integrite"] < o["maximum"]:
         raise ErreurMonde(f"{designer(o, debut=True)} ne convient pas comme {nature} intact.",
                           f"{id} n'est pas un {nature} intact ; {libres}")
     for champ in ("longueur_cm", "charge_jeu_kg"):
         if not isinstance(o.get(champ), (int, float)) or isinstance(o.get(champ), bool) or not math.isfinite(o[champ]) or o[champ] <= 0:
             raise ErreurMonde(f"Il manque une mesure ou une estimation établie : {id}.{champ}.",
-                              f"établis d'abord {id}.{champ} (mode etablir_faits), puis re-propose la fabrication.")
+                              f"décris d'abord {id} (etablir_faits, qualification avec physique : forme, matiere, "
+                              "dimensions, pieces), puis re-propose la fabrication.")
     return o
 
 
@@ -333,7 +338,8 @@ def prelever(m, id, longueur):
     if not 0 < longueur <= avant:
         raise ErreurMonde("La quantité disponible a changé.")
     masse = o["masse"] * longueur / avant
-    o["longueur_cm"] -= longueur
+    from .matiere import fixer_longueur
+    fixer_longueur(o, avant - longueur)
     o["masse"] = max(0, o["masse"] - masse)
     if not o["longueur_cm"]:
         o["incorpore"] = True
