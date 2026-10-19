@@ -60,11 +60,14 @@ class RecitTests(unittest.TestCase):
         self.assertIsNone(resultat["proposition"])
         self.assertEqual(avant, m.data)
 
-    def test_reference_inventee_ou_cachee_refusee(self):
+    def test_reference_inventee_ou_cachee_ecartee(self):
+        # Une citation de fait inconnue ou cachée ne prouve rien : elle est écartée, sans
+        # invalider une réponse dont le texte a passé le contrôle.
         for reference in ("objet:dragon", "objet:anneau", {"invalide": 1}):
-            with self.subTest(reference=reference), self.assertRaises(ErreurMonde):
-                self.appel(nouveau_monde(), {"mode": "dialogue", "texte": "Une affirmation.",
-                                          "faits": [reference], "proposition": None})
+            with self.subTest(reference=reference):
+                r = self.appel(nouveau_monde(), {"mode": "dialogue", "texte": "Une affirmation.",
+                                                 "faits": [reference, "attestations"], "proposition": None})
+                self.assertEqual(r["faits"], ["attestations"])
 
     def test_action_ne_peut_pas_inclure_un_resultat_narre(self):
         with self.assertRaises(ErreurMonde):

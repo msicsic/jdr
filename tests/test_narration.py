@@ -35,9 +35,35 @@ class NarrationTests(unittest.TestCase):
 
     def test_schema_d_audit_limite_les_sources_aux_cles_fournies(self):
         from donjon.narration import schema_audit
-        schema = schema_audit({"salle": {}, "objet:cloche": {}})
-        sources = schema["properties"]["segments"]["items"]["properties"]["sources"]["items"]
+        schema = schema_audit({"salle": {}, "objet:cloche": {}}, 2)
+        segments = schema["properties"]["segments"]
+        # Une entrée obligatoire par segment, sous la clé de son indice.
+        self.assertEqual(segments["required"], ["0", "1"])
+        sources = segments["properties"]["1"]["properties"]["sources"]["items"]
         self.assertEqual(sources["enum"], ["objet:cloche", "salle"])
+
+    def test_rapport_par_cle_d_indice(self):
+        from donjon.narration import AuditIllisible
+        texte = "La porte est fermée. Une odeur de cire flotte."
+        ligne = {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "", "entites": [], "motif": ""}
+        rapport = controler(texte, {"segments": {"0": ligne, "1": ligne}}, {})
+        self.assertEqual([l["indice"] for l in rapport["segments"]], [0, 1])
+        # Un segment sauté ou ajouté rend le rapport illisible : une faute de l'auditeur.
+        for cles in (["0"], ["0", "1", "2"], ["1", "2"]):
+            with self.subTest(cles=cles), self.assertRaises(AuditIllisible):
+                controler(texte, {"segments": {c: ligne for c in cles}}, {})
+
+    def test_audit_illisible_redemande_avant_de_refuser_le_texte(self):
+        texte = "Une odeur de cire flotte."
+        illisible = {"segments": {}}
+        lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+                                      "entites": [], "motif": ""}}}
+        mj = MJOpenAI("gpt-6-luna")
+        with patch.object(mj, "_appeler_brut", side_effect=[dialogue(texte), illisible, lisible]) as appel:
+            reponse = mj._appeler("instr", {"faits": {}, "conversation": [], "message": "je sens ?"},
+                                  "je sens ?", "repondre_au_joueur", {})
+        self.assertEqual(appel.call_count, 3)
+        self.assertEqual(reponse["texte"], texte)
 
     def test_mecanique_exige_une_source_et_invention_refusee(self):
         faits = {"objet:cloche": {"nom": "cloche"}}
@@ -194,7 +220,7 @@ class NarrationTests(unittest.TestCase):
     def test_refus_repetes_ne_montrent_aucune_invention(self):
         invention = "Une seconde cloche est cachée sous le plancher."
         sorties = [item for _ in range(3) for item in
-                   (dialogue(invention), segment("nouveau", motif="Fait absent du monde."))]
+                   (dialogue(invention), segment("invention_protegee", motif="Fait absent du monde."))]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
