@@ -78,9 +78,10 @@ court (méthode, risque), jamais un résultat.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.
-- remettre : un objet porté, outil = le destinataire (vide s'il est unique). Il faut un accord
-  accepté et le personnage présent ; le moteur verse alors la récompense, une seule fois. Une
-  question sur le paiement n'est pas une remise.
+- remettre : donner un objet porté à un personnage présent, outil = le destinataire (vide s'il
+  est seul). Avec un accord accepté pour cet objet, le moteur verse la récompense convenue, une
+  seule fois ; sinon c'est un don, sans contrepartie. Une question sur le paiement n'est pas une
+  remise.
 - clarifier, impossible : identifiants vides ; justification = la question ou la limite, que le
   joueur lit telle quelle : écris-la à la deuxième personne, dans la fiction. Une règle
   manquante n'est pas une impossibilité physique : utilise improviser. Un refus final explique
@@ -94,6 +95,7 @@ l'ordre et s'arrêtent au premier échec ; celles qui ont réussi restent acquis
 les gestes demandés, une étape par fixation ou par objet, et rien de plus : ranger une fixation
 détachée, par exemple, n'est une étape que si le joueur le demande. Au-delà de six étapes ou des
 opérations disponibles, examine improviser plutôt que de tronquer la demande.
+- Donner un objet à un personnage n'est pas un déplacement : action remettre (voir plus haut).
 - deplacer : prendre (destination joueur), poser (destination = salle.id) ou ranger (un
   contenant ouvert). Un article en vente s'achète (acheter). methode discret pour un bien
   d'autrui : le moteur en déduit le vol, les témoins et leurs soupçons ; pour ses propres

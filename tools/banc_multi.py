@@ -116,7 +116,7 @@ def jouer_passe(nom, i, depot, sortie, args):
                 "--fil", "--sortie", str(dossier), "--etiquette", f"{nom}-r{i}",
                 "--max-appels", str(args.max_appels), "--connexion", args.connexion,
                 "--effort", args.effort, "--reflexion", args.reflexion] + (["--offline"] if args.offline else [])
-    env = {**os.environ, "SEUIL_AUTH": str(BASE / ".seuil-auth"), "SEUIL_CODE": str(depot),
+    env = {**os.environ, "SEUIL_AUTH": os.environ.get("SEUIL_AUTH") or str(BASE / ".seuil-auth"), "SEUIL_CODE": str(depot),
            "PYTHONIOENCODING": "utf-8"}
     with open(dossier / "journal.txt", "w", encoding="utf-8") as journal:
         code = subprocess.run(commande, cwd=depot, env=env, stdout=journal, stderr=subprocess.STDOUT).returncode

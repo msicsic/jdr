@@ -189,11 +189,19 @@ class Moteur:
             plan.effets = [("voyager", sortie["vers"], None)]
             return plan
         if action == "remettre":
-            mission = verifier_remise(m, cible, outil)
             from .proximite import exiger
-            exiger(m, m.data["missions"][mission]["donneur"])
-            plan.titre = "Remettre " + designer(m.objets[cible]) + " contre la récompense convenue."
-            plan.effets = [("remettre", mission, None)]
+            from .dialogues import remise_convenue, verifier_don
+            if remise_convenue(m, cible, outil):
+                # Un accord accepté : la remise verse la récompense convenue, une seule fois.
+                mission = verifier_remise(m, cible, outil)
+                exiger(m, m.data["missions"][mission]["donneur"])
+                plan.titre = "Remettre " + designer(m.objets[cible]) + " contre la récompense convenue."
+                plan.effets = [("remettre", mission, None)]
+                return plan
+            destinataire = verifier_don(m, cible, outil)
+            exiger(m, destinataire)
+            plan.titre = "Donner " + designer(m.objets[cible]) + " à " + designer(m.objets[destinataire]) + "."
+            plan.effets = [("donner", cible, destinataire)]
             return plan
         if not m.accessible(cible):
             raise inaccessible(m, cible)
@@ -622,6 +630,16 @@ class Moteur:
             return
         if op == "remettre":
             payer_remise(m, cible, lignes)
+            return
+        if op == "donner":
+            # L'objet change de mains ; le personnage s'en souvient. Aucune récompense n'est due.
+            from .esprits import memoriser
+            o = m.objets[cible]
+            deplacer(m, cible, valeur)
+            o["proprietaire"] = valeur
+            o.pop("vole_par", None)
+            memoriser(m, valeur, {"type": "don", "de": "joueur", "objet": cible})
+            lignes.append("Tu donnes " + designer(o) + " à " + m.objets[valeur]["nom"] + ".")
             return
         o = m.objets.get(cible)
         if op == "liberer":

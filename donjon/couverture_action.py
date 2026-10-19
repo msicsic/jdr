@@ -18,6 +18,8 @@ SCHEMA = {
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
+Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
+emploie, l'identifiant n'est qu'une étiquette technique.
 Le plan représente l'état du monde : action, cibles, outil, et changements durables
 (objet déplacé, détaché, allumé, marqué, son émis, blessure, usure). La manière du geste
 (position des mains, style, intention affichée, caractère d'un son ou d'un air) relève du
@@ -52,8 +54,30 @@ def _operations(plan):
     }
 
 
-def entree(intention, plan):
-    return {"demande": intention, "plan": _operations(plan)}
+
+def _nommer(valeur, monde):
+    """Un identifiant devient « nom (identifiant) » : un identifiant nu (« marchand ») se lit
+    comme un mot et ne désigne plus le personnage que le joueur nomme (« Gorm »)."""
+    if isinstance(valeur, str) and valeur in monde.objets:
+        return f"{monde.objets[valeur]['nom']} ({valeur})"
+    if isinstance(valeur, (list, tuple)):
+        return [_nommer(v, monde) for v in valeur]
+    return valeur
+
+
+def entree(intention, plan, monde=None):
+    """La demande et les opérations du plan, chaque identifiant cité accompagné de son nom."""
+    operations = _operations(plan)
+    if monde is not None:
+        def nommer_plan(op):
+            return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
+                    "etapes": [nommer_plan(e) for e in op["etapes"]],
+                    **({"geste_improvise": {**op["geste_improvise"],
+                                            "cibles": _nommer(op["geste_improvise"]["cibles"], monde),
+                                            "outil": _nommer(op["geste_improvise"]["outil"], monde)}}
+                       if "geste_improvise" in op else {})}
+        operations = nommer_plan(operations)
+    return {"demande": intention, "plan": operations}
 
 
 MOTIF_MAX = 300
