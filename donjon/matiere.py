@@ -179,7 +179,49 @@ def decrire(o):
 
 def verifier(m):
     for o in m.objets.values():
+        if "contenu" in o:
+            assert o["contenu"].get("matiere") in SUBSTANCES, "Contenu inconnu"
         if "physique" in o:
             p = o["physique"]
             assert p["forme"] in FORMES and p["matiere"] in MATIERES, "Description physique inconnue"
             assert 1 <= p["pieces"] <= PIECES_MAX, "Nombre de pièces invalide"
+
+
+# Ce qu'un objet contient ou consomme. La quantité reste celle que le moteur suit déjà
+# (minutes de combustible d'une source de lumière) ; seule la nature est décrite ici.
+SUBSTANCES = {
+    "huile": {"combustible": True, "article": "de l'huile"},
+    "suif": {"combustible": True, "article": "du suif"},
+    "cire": {"combustible": True, "article": "de la cire"},
+    "poix": {"combustible": True, "article": "de la poix"},
+    "bois": {"combustible": True, "article": "du bois"},
+    "charbon": {"combustible": True, "article": "du charbon"},
+    "eau": {"combustible": False, "article": "de l'eau"},
+    "vin": {"combustible": False, "article": "du vin"},
+    "grain": {"combustible": False, "article": "du grain"},
+    "sable": {"combustible": False, "article": "du sable"},
+}
+SCHEMA_CONTENU = {"type": "object", "additionalProperties": False,
+                  "properties": {"matiere": {"type": "string", "enum": list(SUBSTANCES)}},
+                  "required": ["matiere"]}
+
+
+def valider_contenu(o, contenu):
+    if not isinstance(contenu, dict) or set(contenu) != {"matiere"}:
+        raise ErreurMonde("Contenu mal formé.", "contenu : exactement matiere.")
+    matiere = contenu["matiere"]
+    if matiere not in SUBSTANCES:
+        raise ErreurMonde("Substance inconnue.", f"matiere parmi {', '.join(SUBSTANCES)} (reçu « {matiere} »).")
+    if "combustible" in o and not SUBSTANCES[matiere]["combustible"]:
+        brulables = ", ".join(s for s, v in SUBSTANCES.items() if v["combustible"])
+        raise ErreurMonde("Une source de lumière brûle un combustible.",
+                          f"{o['id']} consomme du combustible : matiere parmi {brulables}.")
+    return {"matiere": matiere}
+
+
+def decrire_contenu(o):
+    c = o.get("contenu")
+    if not c:
+        return ""
+    article = SUBSTANCES[c["matiere"]]["article"]
+    return ("Elle brûle " if o.get("genre") == "f" else "Il brûle ") + article if "combustible" in o else            ("Elle contient " if o.get("genre") == "f" else "Il contient ") + article

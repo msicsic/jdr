@@ -21,6 +21,9 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o.get("physique"):
         from .matiere import decrire as decrire_physique
         complements.append(decrire_physique(o))
+    if o.get("contenu"):
+        from .matiere import decrire_contenu
+        complements.append(decrire_contenu(o))
     elif o.get("ressource"):
         if "longueur_cm" in o:
             complements.append(f"Longueur disponible : {o['longueur_cm'] / 100:g} m")

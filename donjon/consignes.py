@@ -176,6 +176,10 @@ précise le monde sans fournir d'objectif, de solution ni d'indice de quête.
   pieces (le nombre de pièces d'un lot, 1 sinon). Décris-le comme un tel objet est d'ordinaire,
   d'après son nom et sa description : le moteur vérifie l'accord avec sa masse et en déduit
   longueur et charge.
+- qualification avec contenu : ce qu'un objet existant contient ou consomme, quand on le demande
+  et que qualifiables le marque « inconnu » (une lanterne brûle de l'huile, une gourde contient
+  de l'eau) : contenu = {matiere}. Une source de lumière brûle un combustible ; la quantité
+  reste celle que les faits donnent.
 - evolution : type et ancrage = une évolution déclarée.
 ### enrichir : une facette libre de descriptions_a_completer qui aide à répondre
 proposition = {"ajouts":[{"personnage", "facette", "description"}]} : une phrase autonome sur

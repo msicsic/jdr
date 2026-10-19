@@ -117,3 +117,32 @@ class RecadrageTests(unittest.TestCase):
         self.assertIn("est un objet", retour["attendu"])
         self.assertNotIn("personnage", reponse["texte"])
         self.assertIn("3 pièces", reponse["texte"])
+
+
+class ContenuTests(unittest.TestCase):
+    """Cas d'une partie : « il faut quoi comme combustible pour ma lanterne ? »."""
+
+    def contenu(self, m, matiere):
+        return preparer_faits(m, {"ajouts": [{"type": "qualification", "ancrage": "lanterne",
+                                              "contenu": {"matiere": matiere}}]})
+
+    def test_la_lanterne_brule_de_l_huile_et_le_garde(self):
+        m = relais_avec_planches()
+        travail, texte, _ = self.contenu(m, "huile")
+        self.assertIn("brûle de l'huile", texte)
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "partie.json"
+            travail.sauver(chemin)
+            recharge = Monde.charger(chemin)
+        self.assertIn("brûle de l'huile", decrire(recharge, "lanterne", detail=True))
+
+    def test_une_source_de_lumiere_ne_brule_pas_de_l_eau(self):
+        with self.assertRaises(ErreurMonde) as refus:
+            self.contenu(relais_avec_planches(), "eau")
+        self.assertIn("huile", refus.exception.attendu)
+
+    def test_un_contenu_etabli_ne_se_redonne_pas(self):
+        travail, _, _ = self.contenu(relais_avec_planches(), "huile")
+        with self.assertRaises(ErreurMonde) as refus:
+            self.contenu(travail, "suif")
+        self.assertIn("ne le redonne pas", refus.exception.attendu)

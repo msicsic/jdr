@@ -58,6 +58,7 @@ def propositions(reponse, faits):
                         "constats_proposes": ajout.get("ecartees", []),
                         "coupe_possible": ajout.get("coupe_possible"),
                         "physique_proposee": ajout.get("physique"),
+                        "contenu_propose": ajout.get("contenu"),
                         "moyen": faits.get("objet:" + str(moyen_id), {})})
     return entrees
 
