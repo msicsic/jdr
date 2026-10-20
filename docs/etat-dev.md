@@ -102,7 +102,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `temps-fin-etat` (relecture du jalon temps fin, `docs/plan-temps.md`, dernière
+  section) : tout ce dont dépend la suite est dans `data` ; le même laps, attendu d'un bloc ou
+  découpé en rotations et rechargé en route, donne le même monde (`tests/test_temps_etat.py`).
+  Tour d'horizon dans l'esprit du PNJ ; un registre des gestes en cours, joueur compris, jusqu'à
+  leur fin (témoin : quiconque voit l'auteur pendant le geste) ; bruits datés à l'instant ;
+  interlocuteur = personnage perçu (vu, ou entendu pendant le dernier geste) ; perception des
+  PNJ après chaque événement. Banc : aucune usurpation, plus d'échanges et de confidences.
+- La suite de tests passe : 675 tests, sans clé ni connexion.
 
 ## Décisions en attente
 

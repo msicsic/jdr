@@ -83,6 +83,55 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
 - **Le rendu** : la carte, le récit de Luna et le contrôle narratif doivent suivre le cône du
   joueur, sans fuite de ce qu'il ne voit pas.
 
+## Après relecture : le temps sans état caché (branche `temps-fin-etat`)
+
+Une relecture du jalon a montré que le monde dépendait du découpage des actions du joueur :
+chaque action travaille sur une copie de `data`, et des états rangés hors de `data` étaient
+perdus à chaque action. Règle retenue : **tout ce dont dépend la suite est dans `data`**,
+sauvegardé et contrôlé par `Monde.verifier` ; le même laps de temps, attendu d'un bloc ou
+découpé en petits gestes, rechargé ou non en route, donne le même monde.
+
+- **Tour d'horizon** avant un geste sans témoin : dans l'esprit du PNJ (`balayage` : salle,
+  case, instant). Avant, Brune refaisait un tour à chaque rotation du joueur et ne crochetait
+  jamais.
+- **Pas feutré** : il se lit dans l'intention (une étape `sans_temoin`), sans autre état.
+- **Gestes en cours** : un seul registre, joueur compris (`data["gestes_en_cours"]` : auteur,
+  geste, objet, instant de fin, témoins), gardé jusqu'à l'instant de fin, d'une action du joueur
+  à l'autre. Un témoin est quiconque voit l'auteur pendant la durée du geste. Pour le joueur, ceux
+  qui le regardent quand il commence sont départagés par son jet (comme avant) ; qui se tourne
+  vers lui ensuite est témoin comme d'un geste de PNJ, et le joueur le sait s'il le voit
+  (« X t'a vu faire »). Le message de vol ne promet plus « sans être remarqué ».
+- **Bruits datés à l'instant** (dixièmes de seconde) et filtrés depuis le début du geste du
+  joueur : une voix pendant une rotation de 2 s s'entend, même sans minute franchie. Les bruits
+  des anciennes sauvegardes sont migrés (minute × 600).
+- **Interlocuteur** : un personnage que le joueur perçoit, vu, ou entendu pendant son dernier
+  geste (`data["entendus"]`) et assez près pour l'entendre. Qui se tait dans son dos ou dans le
+  noir n'est plus livré au MJ (contexte, locuteurs autorisés, conversations).
+- **Perception par événement** : après chaque geste d'un PNJ, tous les PNJ revoient ce qu'ils
+  voient (la vue est en cache), au lieu d'attendre leur propre geste ou la minute. Sans cela,
+  les actions du joueur, qui font percevoir tout le monde, rafraîchissaient les croyances plus
+  souvent quand elles étaient courtes.
+
+Vérifié (`tests/test_temps_etat.py`, après rechargement) : Brune et la réserve, puis le Relais
+livré à lui-même (5 min d'un bloc contre 150 rotations rechargées en route, état des PNJ, objets,
+chronique, registre et jets identiques ; 30 min vérifiées hors suite) ; voix pendant une rotation
+et pendant un pas ; PNJ muet dans le dos, PNJ devant lui dans le noir, PNJ entendu ; témoin
+tardif d'un vol du joueur ; geste de PNJ à cheval sur deux actions. Banc (4 graines × 8 h) :
+identique à `main` avant la perception par événement ; après, aucune usurpation, minutes
+urgentes sans recours 370 (400), échanges 10 (6,5), confidences 4,5 (1), rumeurs crues 3,25
+(0,75), vols vus 4 (1,5).
+
+Limites :
+- L'humeur affichée d'un PNJ (calme, inquiet, méfiant) est recalculée à chaque action du joueur
+  pour ceux qui sont à portée de voix : c'est un rendu, sans effet sur les PNJ, mais il dépend
+  du découpage.
+- Le joueur garde un jet de DEX contre ceux qui le regardent quand il commence ; un PNJ n'en a
+  pas. Le seul geste illicite du joueur au registre est le vol (prendre le bien d'autrui).
+- Un PNJ dont le geste n'a jamais été daté (partie neuve, ancienne sauvegarde) agit à l'instant
+  même où commence la première action : ce bruit-là n'est pas entendu.
+- « Entendu » vaut pour le dernier geste du joueur : un tour de dialogue sans action garde ce
+  qu'il a entendu ; l'action suivante le remplace.
+
 ## Hors périmètre
 
 Assommer, tuer, ligoter, l'affrontement (étape « corps et force » de `docs/plan-social.md`) ;
