@@ -226,6 +226,14 @@ class Monde:
         return (self.visible(id) or self.objets[id]["lieu"] == "joueur"
                 or id in self.data["connus"])
 
+    def designable(self, id):
+        """Ce que le joueur peut nommer pour agir : ce qui lui est accessible, et ce qu'il verrait en
+        se tournant (le geste le tournera d'abord)."""
+        if self.accessible(id):
+            return True
+        from .spatial import regard_vers
+        return bool(self.data.get("mode_cases") and regard_vers(self, id))
+
     def presents(self):
         """Ce que le joueur voit maintenant ; une consultation : sa vue n'est calculée qu'une fois."""
         from .spatial import etat_fige, vue_memorisee
@@ -239,10 +247,8 @@ class Monde:
                 texte = texte[len(article):]
                 break
         candidats, exacts = [], []
-        from .spatial import regard_vers
         for o in self.objets.values():
-            # Ce qu'il verrait en se tournant se nomme aussi : le geste le tournera d'abord.
-            if not self.accessible(o["id"]) and not (self.data.get("mode_cases") and regard_vers(self, o["id"])):
+            if not self.designable(o["id"]):
                 continue
             if texte == normaliser(o["id"]):
                 return o["id"]
@@ -324,10 +330,13 @@ class Monde:
                 if ((salle_souvenir, *souvenir.get("contact", souvenir["position"])) in champ_vision
                         or self.est_porte(id)):
                     continue
-                souvenirs_visuels.append({
-                    "nom": souvenir["nom"],
-                    "derniere_salle": lieux_connus.get(salle_souvenir, "lieu encore sans nom"),
-                })
+                entree = {"id": id, "nom": souvenir["nom"],
+                          "derniere_salle": lieux_connus.get(salle_souvenir, "lieu encore sans nom")}
+                if salle_souvenir == self.joueur["salle"]:
+                    # Là où il l'a vu, par rapport à lui maintenant : un souvenir, pas une présence.
+                    from .localisation import relatif
+                    entree["vu_a"] = relatif(self, salle_souvenir, souvenir.get("contact", souvenir["position"]))[1]
+                souvenirs_visuels.append(entree)
         if self.data.get("mode_cases"):
             from .spatial import sortie_connue
             salle.pop("plan", None)  # Le MJ ne reçoit pas la géométrie des recoins invisibles.

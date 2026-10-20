@@ -115,15 +115,16 @@ class Moteur:
 
     def _regard(self, p):
         """La direction vers laquelle le joueur doit se tourner pour voir ce qu'il vise (la cible ou
-        l'outil d'un geste, la première étape d'une manœuvre), s'il ne le voit pas de face mais le
-        verrait en se tournant ; None sinon."""
+        l'outil d'un geste, la première étape d'une manœuvre qui vise un objet, après une attente
+        par exemple), s'il ne le voit pas de face mais le verrait en se tournant ; None sinon."""
         if not isinstance(p, dict):
             return None
         from .spatial import regard_vers
         etapes = p.get("etapes") if isinstance(p.get("etapes"), list) else []
         cibles = p.get("cibles") if isinstance(p.get("cibles"), list) else []
-        vises = [p.get("cible"), p.get("outil"), *cibles,
-                 *(e.get("cible") for e in etapes[:1] if isinstance(e, dict))]
+        premiere = next((e.get("cible") for e in etapes
+                         if isinstance(e, dict) and e.get("cible") in self.monde.objets), None)
+        vises = [p.get("cible"), p.get("outil"), *cibles, premiere]
         return next((vers for id in vises if isinstance(id, str) for vers in [regard_vers(self.monde, id)] if vers),
                     None)
 
