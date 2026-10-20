@@ -2,7 +2,8 @@
 
 Le joueur écrit ce qu'il veut faire dire à Corvus. Le moteur fixe la bande d'expression
 (précision selon l'INT, aisance selon le CHA) ; Luna écrit la réplique dans cette bande et
-type son contenu : affirmations (sujet, attribut, valeur), demandes d'objet, simples propos.
+type son contenu : affirmations (sujet, attribut, valeur), demandes d'objet, demandes de passage
+(s'écarter, laisser passer), simples propos.
 Une réplique entre guillemets est dite mot pour mot. L'effet ne dépend jamais des mots
 choisis par Luna : le moteur le calcule sur le contenu typé, les caractéristiques, la
 confiance de l'auditeur et un jet de CHA. Une INT faible, chez celui qui parle ou chez celui
@@ -17,7 +18,7 @@ from .francais import designer
 from .monde import ErreurMonde
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
-TYPES = ("propos", "affirmation", "demande")
+TYPES = ("propos", "affirmation", "demande", "passage")
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -60,6 +61,9 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
   au personnage d'y croire ou non ;
 - demande {sujet : un objet que le personnage porte, ou une ressource à lui (vivres, bois)
   dont Corvus demande une part ; attribut et valeur vides} ;
+- passage {sujet, attribut et valeur vides} : Corvus demande au personnage de s'écarter, de se
+  pousser, de le laisser passer. Le moteur décide s'il bouge et le dit dans les faits ; sa
+  réplique dit cette issue, sans promettre de bouger plus tard ;
 - propos {sujet, attribut et valeur vides} pour tout le reste.
 Le moteur te renvoie conversation_validee : fais répondre le personnage d'après ce résultat,
 ses croyances, ses traits et ses valeurs (esprits_interlocuteurs, valeurs de 0 à 100). Ce qu'il
@@ -243,6 +247,10 @@ def part_nommee(monde, auditeur, reference):
 
 def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
+    if isinstance(c, dict) and c.get("type") == "passage":
+        # On demande le passage à celui à qui l'on parle : le sujet, s'il est donné, est lui.
+        sujet = c.get("sujet")
+        return {"type": "passage"} if not sujet or resoudre(monde, sujet) == auditeur else None
     if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande"):
         return None
     sujet = resoudre(monde, c.get("sujet"))
@@ -292,6 +300,22 @@ def _demander(travail, auditeur, objet, faits):
         "promis": (f"{nom} accepte de t'en donner une part : il te la servira là où sont les vivres."
                    if vivres else f"{nom} accepte : il va entretenir le feu."),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
+    }[issue])
+
+
+def _demander_passage(travail, auditeur, faits):
+    from .passage import demander_passage
+    o = travail.objets[auditeur]
+    nom, il = o["nom"], "elle" if o.get("genre") == "f" else "il"
+    e = "e" if o.get("genre") == "f" else ""
+    issue = demander_passage(travail, auditeur, "joueur", [])
+    faits.append({
+        "ecarte": f"{nom} s'écarte d'un pas pour te laisser passer.",
+        "geste": f"{nom} ne s'écarte pas : {il} est occupé{e} à ce qu'{il} fait là.",
+        "mefiance": f"{nom} refuse de s'écarter : {il} ne te fait pas confiance.",
+        "place": f"{nom} n'a pas la place de s'écarter.",
+        "refus": f"{nom} n'est pas convaincu{e} et reste où {il} est.",
+        "inutile": f"{nom} ne te barre pas le passage.",
     }[issue])
 
 
@@ -348,6 +372,8 @@ def preparer_parole(monde, p, revision=None):
     for c in transmis[:capacite]:
         if c["type"] == "affirmation":
             _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
+        elif c["type"] == "passage":
+            _demander_passage(travail, auditeur, faits)
         else:
             _demander(travail, auditeur, c["sujet"], faits)
     if perdus:

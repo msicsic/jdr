@@ -90,6 +90,8 @@ class CaseOccupeeTests(unittest.TestCase):
         m = tranquilles()
         x, y = m.objets["ilse"]["position"]
         m.joueur.update(salle="antichambre", position=[x + 1, y], orientation="ouest")
+        # Méfiante, Ilse ne s'écarte pas (``passage`` : sinon, elle laisserait passer).
+        croire(m, "ilse", "joueur", "fiable", False, "vu")
         with self.assertRaises(ErreurMonde) as refus:
             faire(m, "marcher", "ouest")
         self.assertIn("ilse", refus.exception.attendu)

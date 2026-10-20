@@ -26,6 +26,8 @@ AIDE = """COMMANDES LOCALES — sans appel API
   offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
   remettre <objet> à <personnage>       remet l'objet contre le paiement convenu
+  pousser <personnage> [vers <direction>]  bousculer quelqu'un au contact (FOR opposée, 3 s) ;
+                                       réussi, il recule d'un pas. Il ne te fera plus confiance.
   ouvrir <objet> avec <clé> | fermer <objet>
   crocheter <serrure> avec <outil>
   retirer <fixation> avec <outil>
@@ -60,6 +62,7 @@ En mode cases : Ctrl+flèches pour marcher (on se tourne puis on avance), Maj+fl
 chassé sans se tourner, Alt+flèches pour un pas feutré ; F6 pour piloter depuis la carte. Tu vois devant toi (120°) et sur les
 côtés immédiats, pas derrière.
 Manipuler exige d'être sur la case de l'objet ou juste à côté ; voir exige une ligne de vue.
+Un personnage sur ta route s'écarte s'il le veut bien ; sinon demande-le-lui (MJ) ou pousse-le.
 « etat <objet> » affiche les données internes avec --debug uniquement ;
 « esprit <personnage> » affiche ses croyances, sa mémoire et son intention.
 """
@@ -169,6 +172,20 @@ def analyser(monde, texte):
         if texte.startswith(prefixe):
             objet, sep, destinataire = texte[len(prefixe):].partition(" a ")
             return proposition("remettre", monde.trouver(objet), monde.trouver(destinataire) if sep else "")
+    if texte.startswith("pousser "):
+        # « pousser brune », « pousser brune vers l'ouest » : la direction est facultative.
+        from .spatial import VECTEURS
+        mots = texte[8:].split()
+        dernier = mots[-1][2:] if mots and mots[-1].startswith("l'") else mots[-1] if mots else ""
+        direction = dernier if len(mots) > 1 and dernier in VECTEURS else ""
+        if direction:
+            mots.pop()
+            while mots and mots[-1] in ("vers", "le", "au"):
+                mots.pop()
+        cible = monde.trouver(" ".join(mots))
+        if monde.objets[cible]["type"] != "personnage":
+            return None
+        return proposition("pousser", cible, direction)
     if texte in ("contexte", "histoire", "objectif"):
         return proposition("observer", "contexte")
     if texte in ("ecouter", "j'ecoute", "tendre l'oreille", "je tends l'oreille", "ecouter a la porte",

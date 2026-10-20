@@ -18,7 +18,7 @@ GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer
           "deverrouiller": "a déverrouillé", "verrouiller": "a verrouillé",
           "crocheter": "a crocheté la serrure de", "forcer": "a tenté de crocheter la serrure de",
           "manger": "a mangé une part de", "servir": "a servi une part de", "alimenter": "a rechargé",
-          "allumer": "a allumé", "eteindre": "a éteint"}
+          "allumer": "a allumé", "eteindre": "a éteint", "pousser": "a poussé"}
 
 
 def _noyau(evenement):
@@ -62,7 +62,8 @@ def nouvelles(monde, id):
             noyau, rang, source = souvenir["evenement"], souvenir["rang"], souvenir["de"]
         else:
             continue
-        if any(k not in monde.objets for k in (noyau.get("objet"),) if k) or not _croit_encore(monde, id, noyau):
+        if (any(k not in monde.objets for k in (noyau.get("objet"),) if k and k != "joueur")
+                or not _croit_encore(monde, id, noyau)):
             continue  # L'objet n'existe plus, ou il a changé d'avis : il n'y a plus rien à en dire.
         yield souvenir, noyau, rang, source
 
@@ -106,6 +107,8 @@ def phrase(monde, noyau):
     if t == "vu_porter":
         return qui + " porte " + designer(o) + ", qui n'est pas à " + ("lui" if monde.objets.get(accuse(noyau), {}).get("genre") != "f" else "elle")
     verbe = GESTES[noyau["operation"]]
+    if noyau.get("objet") == "joueur":
+        return qui + " " + verbe + " " + monde.joueur["nom"]  # Un geste contre lui (``pnj.CONTRAINTES``).
     return qui + " " + (verbe[:-3] + " " + complement_de(o) if verbe.endswith(" de") else verbe + " " + designer(o))
 
 

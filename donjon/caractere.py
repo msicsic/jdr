@@ -10,7 +10,7 @@ règle qui emploie une caractéristique lit sa valeur modulée (``caracteristiqu
 Valeurs (0 à 100, dans le profil d'un PNJ) : le caractère, stable. Ce sont des poids, pas des
 interdits : elles entrent dans les coûts du planificateur et dans les choix sociaux, et la
 détresse les use. Seule une valeur à son comble interdit : honnêteté 100, il ne vole ni ne
-ment ; douceur 100, il ne blesse pas. Les anciennes limites tout ou rien (``ne_vole_pas``,
+ment ; douceur 100, il ne blesse ni ne pousse personne. Les anciennes limites tout ou rien (``ne_vole_pas``,
 ``ne_ment_pas``, ``ne_blesse_pas``) deviennent ces valeurs extrêmes.
 
 Le joueur a des caractéristiques mais pas de valeurs : il décide lui-même de ce qu'il fait.
@@ -21,8 +21,9 @@ VALEURS = ("altruisme", "empathie", "honnetete", "douceur", "ambition", "courage
 NEUTRE = 50            # une valeur que rien ne déclare
 COMBLE = 100           # une valeur à son comble interdit ce qu'elle réprouve
 LIMITES = {"ne_vole_pas": "honnetete", "ne_ment_pas": "honnetete", "ne_blesse_pas": "douceur"}
-# Une faute (léser quelqu'un : prendre, ouvrir, manger son bien) coûte au plan, en minutes,
-# FAUTE × h / (100 − h) pour une honnêteté h : 5 à 20, 20 à 50, 80 à 80, 180 à 90. La détresse
+# Une faute (léser quelqu'un : prendre, ouvrir, manger son bien ; le contraindre : le pousser)
+# coûte au plan, en minutes, FAUTE × h / (100 − h) pour la valeur h qu'elle heurte (honnêteté,
+# douceur) : 5 à 20, 20 à 50, 80 à 80, 180 à 90. La détresse
 # du besoin qu'il sert l'use, jusqu'à USURE à son comble, moins vite pour qui a de la volonté.
 # Une faute qui coûte plus que l'ENJEU d'un besoin n'est pas envisagée.
 FAUTE = 20
@@ -69,7 +70,8 @@ def valeur(monde, id, nom):
 
 
 def interdit(monde, id, nom):
-    """Une valeur à son comble : honnêteté 100 ne vole ni ne ment, douceur 100 ne blesse pas."""
+    """Une valeur à son comble : honnêteté 100 ne vole ni ne ment, douceur 100 ne blesse ni ne
+    pousse."""
     return valeur(monde, id, nom) >= COMBLE
 
 
@@ -82,9 +84,11 @@ def detresse(monde, id, besoin=None):
     return max([min(1.0, max(0.0, (v.get(b, 0) - s[b]) / (100 - s[b]))) for b in noms if s[b] < 100] or [0.0])
 
 
-def prix_faute(monde, id, besoin=None):
-    """Ce que coûte au plan, en minutes, de léser une personne ; None s'il ne l'envisage pas."""
-    h = valeur(monde, id, "honnetete")
+def prix_faute(monde, id, besoin=None, nom="honnetete"):
+    """Ce que coûte au plan, en minutes, de léser une personne ; None s'il ne l'envisage pas.
+    La valeur que la faute heurte : l'honnêteté (prendre, ouvrir, manger le bien d'autrui), la
+    douceur (contraindre : pousser)."""
+    h = valeur(monde, id, nom)
     if h >= COMBLE:
         return None
     usure = min(1.0, detresse(monde, id, besoin) * BASE / caracteristique(monde, id, "VOL"))

@@ -20,7 +20,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
-           "ecouter",
+           "ecouter", "pousser",
            "clarifier", "impossible"]
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
 
@@ -63,6 +63,7 @@ class Plan:
     plans: list = field(default_factory=list)
     regard: str = ""            # le joueur se tourne d'abord vers ce qu'il vise (spatial.orientation_vers)
     effort: bool = True        # le geste creuse et fatigue (``corps``)
+    oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
 
     def resume(self, monde, afficher_avis=True):
         if self.etapes:
@@ -78,8 +79,14 @@ class Plan:
         if self.stat:
             from .corps import malus
             mod, corps = (monde.joueur["stats"][self.stat] - 10) // 2, malus(monde, self.stat)
+            if self.oppose:
+                from .caractere import modificateur
+                adverse = f"contre la {self.stat} de {monde.objets[self.oppose]['nom'].split(',')[0]} " \
+                          f"({modificateur(monde, self.oppose, self.stat):+d}, un d20 aussi)"
+            else:
+                adverse = f"difficulté {self.dd}"
             lignes.append(f'Test {self.stat} ({mod:+d}), outil {self.bonus:+d}'
-                          + (f', faim, froid ou fatigue {corps:+d}' if corps else '') + f', difficulté {self.dd}.')
+                          + (f', faim, froid ou fatigue {corps:+d}' if corps else '') + f', {adverse}.')
         else:
             lignes.append("Pas de jet nécessaire.")
         if self.echec_critique:
@@ -225,9 +232,19 @@ class Moteur:
                 duree = QUART * quarts(regard, vers) + PAS_JOUEUR
                 if vers:
                     destination["orientation"] = vers
+            if "ecart" in destination:
+                # Celui qui se tenait là s'écarte d'abord, le temps d'un pas de côté.
+                from .passage import ECART
+                qui = m.objets[destination["ecart"]["personnage"]]
+                plan.titre = plan.titre[:-1] + " ; " + (sujet(qui) if m.visible(qui["id"]) else "quelqu'un") \
+                    + " s'écarte pour te laisser passer."
+                duree += ECART
             plan.minutes, plan.dixiemes = 0, duree
             plan.effets = [("marcher", "", destination)]
             return plan
+        if action == "pousser":
+            from .passage import preparer_poussee
+            return preparer_poussee(m, p, plan)
         if action == "observer":
             if cible not in ("", "scene", "lumiere", "contexte") or outil:
                 raise ErreurMonde("On observe la scène, la lumière ou le contexte, pas un objet précis.",
@@ -549,11 +566,21 @@ class Moteur:
             jet = travail.d20()
             mod, corps = (travail.joueur["stats"][plan.stat] - 10) // 2, malus(travail, plan.stat)
             total = jet + mod + plan.bonus + corps
-            # Pas de réussite automatique sur 20 : les impossibilités sont rejetées avant le jet.
-            reussite = jet != 1 and total >= plan.dd
+            contre = str(plan.dd)
+            if plan.oppose:
+                # Jet opposé : l'autre lance aussi, avec sa caractéristique modulée ; l'égalité lui reste.
+                from .caractere import modificateur
+                adverse = travail.d20()
+                bonus = modificateur(travail, plan.oppose, plan.stat)
+                plan.dd = adverse + bonus
+                contre = f"1d20({adverse}) + {plan.stat}({bonus:+d}) = {plan.dd}"
+                reussite = jet != 1 and total > plan.dd
+            else:
+                # Pas de réussite automatique sur 20 : les impossibilités sont rejetées avant le jet.
+                reussite = jet != 1 and total >= plan.dd
             lignes.append(f'1d20({jet}) + {plan.stat}({mod:+d}) + outil({plan.bonus:+d}) '
                           + (f'+ corps({corps:+d}) ' if corps else '')
-                          + f'= {total} contre {plan.dd} : ' + ("REUSSITE" if reussite else "ECHEC"))
+                          + f'= {total} contre {contre} : ' + ("REUSSITE" if reussite else "ECHEC"))
         effets = plan.effets if reussite else plan.echec + (plan.echec_critique if jet == 1 else [])
         for effet in effets:
             self._appliquer(travail, effet, lignes)
@@ -603,6 +630,9 @@ class Moteur:
         gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
                                   exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")])
                   for op, cible, _ in effets if op == "voler"]
+        # Une bousculade n'a rien de discret : quiconque voit Corvus pendant le geste en est témoin.
+        gestes += [commencer_geste(travail, "joueur", "pousser", cible, debut + duree(plan))
+                   for op, cible, _ in effets if op == "pousser"]
         minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
@@ -729,7 +759,17 @@ class Moteur:
             m.joueur["orientation"] = valeur
             lignes.append("Tu te tournes vers " + ("l'" if valeur[0] in "eo" else "le ") + valeur + ".")
             return
+        if op == "pousser":
+            from .passage import appliquer_poussee
+            appliquer_poussee(m, "joueur", cible, None if valeur is None else (valeur["salle"], tuple(valeur["position"])),
+                              lignes)
+            return
         if op == "marcher":
+            if valeur.get("ecart"):
+                # Celui qui se tenait sur la case s'écarte d'abord (``passage.laisser_passer``).
+                from .passage import s_ecarter
+                ecart = valeur["ecart"]
+                s_ecarter(m, ecart["personnage"], (ecart["salle"], tuple(ecart["position"])), "joueur", lignes)
             ancienne = m.joueur["salle"]
             m.joueur["salle"], m.joueur["position"] = valeur["salle"], list(valeur["position"])
             if valeur.get("orientation"):

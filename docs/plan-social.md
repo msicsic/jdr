@@ -118,7 +118,10 @@ des objets.
 - **La force** se mesure : FOR, ce qu'on a en main qui peut servir d'arme, l'état du corps, et
   le nombre, c'est-à-dire ceux qui prendront parti.
 - **Gestes de contrainte**, des gestes comme les autres, avec leur coût moral (douceur) et leur
-  risque :
+  risque. Le premier existe : **pousser** (branche `laisser-passer`, `donjon/passage.py`), jet
+  de FOR opposé, la victime recule d'une case ; victime et témoins cessent de croire l'auteur
+  fiable ; douceur 100 l'interdit, sinon faute au prix de la douceur ; un PNJ ne l'emploie que
+  pour passer, après avoir demandé en vain. Les autres restent à faire :
   - **priver** : garder les vivres, le bois, la clé, l'accès au feu ;
   - **enfermer** : verrouiller quelqu'un dans une salle (portes et clés existent) ;
   - **saisir, retenir, ligoter** ;

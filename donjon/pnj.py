@@ -185,6 +185,9 @@ def temoins_crus(monde, id):
 
 
 TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, huit fois 45°
+# Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
+# qui sait ce qu'elle a subi ; ceux qui voient faire en sont témoins comme d'un geste illicite.
+CONTRAINTES = ("pousser",)
 
 
 def commencer_geste(monde, auteur, operation, objet, fin, exclus=()):
@@ -212,7 +215,8 @@ def temoigner_en_cours(monde):
     from .temps import instant
     finir_gestes(monde, instant(monde))
     for geste in monde.data.get("gestes_en_cours", []):
-        if geste["objet"] in monde.objets and (geste["auteur"] == "joueur" or geste["auteur"] in monde.objets):
+        if ((geste["objet"] in monde.objets or geste["objet"] == "joueur")
+                and (geste["auteur"] == "joueur" or geste["auteur"] in monde.objets)):
             _temoigner(monde, geste)
 
 
@@ -238,7 +242,7 @@ def _temoigner(monde, geste):
     """
     from .vol import proprietaire
     id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
-    victime = proprietaire(monde, monde.objets[objet])
+    victime = objet if operation in CONTRAINTES else proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
     from .spatial import etat_fige
     with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
@@ -256,6 +260,8 @@ def _temoins(monde, geste, souvenir, victime):
             memoriser(monde, autre, souvenir)
             croire(monde, autre, id, "fiable", False, "vu")
             inquieter(monde, autre, "illicite")
+            if geste["operation"] in CONTRAINTES:
+                continue  # La victime l'a subi (``passage.subir``) ; ses biens ne sont pas en cause.
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
             elif victime in (monde.objets[autre].get("profil") or {}).get("protege", []):
@@ -664,7 +670,7 @@ def a_pas_feutres(monde, id):
     return bool(intention) and any(x["condition"] == "sans_temoin" for x in intention["plan"])
 
 
-def _marcher(monde, id, arrivee, lignes):
+def _marcher(monde, id, arrivee, lignes, gestes=None):
     """Un pas d'une case vers une case libre où ``arrivee(salle, case)``, ou la porte fermée qu'il
     rencontre en chemin ; renvoie la durée du geste, 0 s'il y est déjà, None s'il ne voit aucun
     passage. Qui prépare un geste qu'il veut sans témoin marche à pas feutrés : plus lent, il ne
@@ -672,7 +678,10 @@ def _marcher(monde, id, arrivee, lignes):
 
     Aucun geste ne s'achève sur une case occupée. On croise les autres en chemin : le pas qui
     mène sur la case de quelqu'un se poursuit, dans le même geste, jusqu'à la case libre qui
-    suit. Si une porte fermée l'en empêche, il contourne, ou attend qu'on lui laisse le passage."""
+    suit. Si une porte fermée l'en empêche, il contourne. Sinon, ou s'il n'atteint ce qu'il vise
+    que d'une case occupée, celui qui s'y tient doit lui faire place : avec ``gestes`` (le
+    registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
+    (``passage.faire_place``) ; sans, il attend."""
     from .spatial import trajet
     o = monde.objets[id]
     feutre = a_pas_feutres(monde, id)
@@ -681,11 +690,18 @@ def _marcher(monde, id, arrivee, lignes):
     # Il ne cherche pas de chemin par une salle qu'il a vue noyée ; il peut quitter la sienne.
     from .eau import noyee_crue
     noyees = {s for s in monde.data["salles"] if s != o["lieu"] and noyee_crue(monde, id, s)}
+    franchissable = lambda porte: _franchissable(monde, id, porte)
     chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
-                     franchissable=lambda porte: _franchissable(monde, id, porte),
-                     libre=lambda salle, case: salle not in noyees)
+                     franchissable=franchissable, libre=lambda salle, case: salle not in noyees)
     if chemin_ is None:
-        return None
+        if gestes is None:
+            return None
+        # Il n'atteindrait ce qu'il vise que d'une case où quelqu'un se tient.
+        plein = trajet(monde, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees)
+        if not plein or plein[-1][:2] not in occupees:
+            return None
+        from .passage import faire_place
+        return faire_place(monde, id, occupees[plein[-1][:2]], [c[:2] for c in plein], lignes, gestes)
     if not chemin_:
         return 0
     n = 0
@@ -693,12 +709,16 @@ def _marcher(monde, id, arrivee, lignes):
         n += 1  # La case de quelqu'un : il la traverse sans s'y arrêter.
     if any(porte for _, _, porte, _ in chemin_[1:n + 1]):
         # Une porte à ouvrir juste après la case d'un autre : il ne peut pas s'y arrêter pour l'ouvrir.
-        chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
-                         franchissable=lambda porte: _franchissable(monde, id, porte),
-                         libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees)
-        if not chemin_:
-            return PAS  # Il attend qu'on lui laisse le passage.
-        n = 0
+        detour = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
+                        franchissable=franchissable,
+                        libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees)
+        if not detour:
+            if gestes is None:
+                return PAS  # Il attend qu'on lui laisse le passage.
+            k = next(k for k in range(1, n + 1) if chemin_[k][2])
+            from .passage import faire_place
+            return faire_place(monde, id, occupees[chemin_[k - 1][:2]], [c[:2] for c in chemin_], lignes, gestes)
+        chemin_, n = detour, 0
     # Au seuil d'une salle noyée qu'il ne savait pas telle, il voit l'eau et n'y entre pas.
     entree = next((salle for salle, _, _, _ in chemin_[:n + 1] if salle != o["lieu"]), None)
     if entree is not None and _arrete_par_l_eau(monde, id, entree):
@@ -800,10 +820,11 @@ def _a_portee_de(monde, salle, case, cible):
                                or _case_libre(monde, salle, (case[0], case[1] + dy)))
 
 
-def _approcher(monde, id, etape, lignes):
+def _approcher(monde, id, etape, lignes, gestes=None):
     """Il marche vers ce que le geste touche, là où il le croit, jusqu'à l'avoir à portée de main ;
     sur place, le geste constate s'il y est. Renvoie la durée du pas, 0 s'il n'a plus à marcher,
-    None s'il ne voit aucun chemin (``trajet``)."""
+    None s'il ne voit aucun chemin (``trajet``). Celui qui se tient sur la seule case d'où
+    l'atteindre doit lui faire place (``_marcher``)."""
     o = monde.objets[id]
     loin = [x for x in _a_toucher(monde, id, etape) if not _accessible(monde, id, x)]
     if not loin:
@@ -821,7 +842,7 @@ def _approcher(monde, id, etape, lignes):
         return 0
     ici = o["lieu"]
     arrivee = lambda salle, case: salle == ici and all(_a_portee_de(monde, salle, case, c) for c in crues)
-    pas = _marcher(monde, id, arrivee, lignes)
+    pas = _marcher(monde, id, arrivee, lignes, gestes)
     return _impasse(monde, id, etape, arrivee) if pas is None else pas
 
 
@@ -948,6 +969,7 @@ def agir(monde, id, t, lignes, gestes=None):
     from .stratege import terminer
     reste = _jusqu_a_la_minute(t)
     en_cases = bool(monde.data.get("mode_cases"))
+    gestes = [] if gestes is None else gestes
     e = esprit(monde, id)
     intention = e["intention"]
     if not intention:
@@ -972,13 +994,13 @@ def agir(monde, id, t, lignes, gestes=None):
         # Le seul juge du passage est le chemin en cases : sans chemin, c'est un geste manqué.
         lieu = etape["lieu"]
         arrivee = lambda salle, case: salle == lieu
-        pas = _marcher(monde, id, arrivee, lignes)
+        pas = _marcher(monde, id, arrivee, lignes, gestes)
         if pas is None:
             _impasse(monde, id, etape, arrivee)
         return pas or reste
     if en_place:
         # Il s'approche pas à pas de ce qu'il va toucher ; l'absence de témoin se juge sur place.
-        pas = _approcher(monde, id, etape, lignes)
+        pas = _approcher(monde, id, etape, lignes, gestes)
         if pas is None:
             return reste
         if pas:
@@ -1021,7 +1043,7 @@ def agir(monde, id, t, lignes, gestes=None):
     cible = etape["cible"]
     tourner = (_faire_face(monde, id, cible) if en_cases and cible and (
         cible in monde.objets and _accessible(monde, id, cible) or percoit(monde, id, cible)) else 0)
-    fait = _executer(monde, id, etape, lignes, [] if gestes is None else gestes)
+    fait = _executer(monde, id, etape, lignes, gestes)
     if fait:
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
@@ -1191,6 +1213,10 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 duree = agir(monde, id, t, lignes, gestes)
                 for _, operation, objet in gestes:
                     commencer_geste(monde, id, operation, objet, t + max(1, duree))
+                # Qui s'est écarté devant lui, ou qu'il a poussé, finit ce pas avant son geste suivant.
+                for autre in ids:
+                    if autre != id and esprit(monde, autre)["libre"] > libre[autre]:
+                        libre[autre] = esprit(monde, autre)["libre"]
                 # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
                 # est en cache). Les croyances ne dépendent pas des instants où le joueur agit.
                 percevoir_tous(monde)
