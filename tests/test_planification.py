@@ -177,8 +177,8 @@ class MemoireTests(unittest.TestCase):
         self.assertIsNone(planifier(m, "brune", "faim"))
         croire(m, "brune", "crochets", "lieu", "echoppe", "vu")
         self.assertIn(crocheter, gestes(planifier(m, "brune", "faim")))
-        # Une limite nouvelle : voler n'est plus permis.
-        m.objets["brune"]["profil"]["limites"].append("ne_vole_pas")
+        # Une honnêteté à son comble : voler n'est plus permis.
+        m.objets["brune"]["profil"]["valeurs"]["honnetete"] = 100
         self.assertIsNone(planifier(m, "brune", "faim"))
         # Le refus s'oublie avec le temps : elle peut redemander sa part ; un nouveau refus l'en empêche.
         m.data["minutes"] += REDEMANDE
