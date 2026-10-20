@@ -73,7 +73,7 @@ def _porte(monde, objet, id):
 
 def _cle_portee(monde, id, cible, cles=()):
     return next((c for c, o in monde.objets.items()
-                 if (c in cles or _porte(monde, c, id)) and cible in o.get("ouvre", [])), None)
+                 if cible in o.get("ouvre", []) and (c in cles or _porte(monde, c, id))), None)
 
 
 def _verrouillee_crue(monde, id, porte):

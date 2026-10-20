@@ -6,7 +6,7 @@ from tests.support import refusee, sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import croire, lire, memoriser
 from donjon.deliberation import REDEMANDE
-from donjon.planification import diagnostics, planifier
+from donjon.planification import a_mange, chercher, diagnostics, planifier
 from donjon.spatial import installer
 
 
@@ -134,6 +134,27 @@ class FroidTests(unittest.TestCase):
                          [("aller", "echoppe", ""), ("chauffer", "brasero", "")])
 
 
+class PertinenceTests(unittest.TestCase):
+    def test_ce_qui_ne_sert_pas_le_but_n_est_pas_porte_et_le_resultat_reste(self):
+        # Aubin a faim, ne sait pas crocheter ; le marchand vient de lui refuser une part. Porter
+        # la torche, le bois, les crochets ou le marteau ne change rien : sans les explorer, la
+        # recherche aboutit au même résultat, ici aucun plan.
+        m = nouveau_defi()
+        installer(m)
+        for o in ("torche", "bois", "crochets", "cle", "marteau"):
+            croire(m, "aubin", o, "lieu", m.objets[o]["lieu"], "vu")
+        for refus in (False, True):
+            if refus:
+                memoriser(m, "aubin", {"type": "refus", "de": "marchand", "operation": "demander",
+                                       "raison": "necessaire", "objet": "vivres"})
+            with diagnostics() as recherches:
+                complet = chercher(m, "aubin", a_mange)
+                borne = chercher(m, "aubin", a_mange, emplois=("manger",))
+            self.assertEqual(complet, borne)
+            self.assertLess(recherches[1]["noeuds"], recherches[0]["noeuds"])
+        self.assertIsNone(borne)
+
+
 class MemoireTests(unittest.TestCase):
     """Un résultat se reprend sans chercher tant que rien de ce que lit la recherche n'a changé."""
 
@@ -167,7 +188,9 @@ class MemoireTests(unittest.TestCase):
                                "objet": "vivres"})
         self.assertIsNone(planifier(m, "brune", "faim"))
 
-    def test_une_nuit_ou_chaque_resultat_repris_est_recalcule(self):
+    def test_une_nuit_ou_chaque_resultat_repris_ou_borne_est_recalcule(self):
+        # Repris de la mémoire, ou cherché parmi ce qu'il vaut la peine de porter : une recherche
+        # complète, sur tout ce qu'il connaît, rend le même résultat.
         from donjon import planification
         from donjon.banc_pnj import creer, executer
         from donjon.geometrie import position_entree
