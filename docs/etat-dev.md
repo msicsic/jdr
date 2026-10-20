@@ -102,6 +102,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
+- Branche `scenario-auberge` : second scénario, l'auberge du Col-Pendu (`donjon/scenario_auberge.json`,
+  `donjon/auberge.py`, `banc_pnj --scenario auberge --joueur dortoir`, `jeu.py --auberge`). Une nuit de
+  tempête, huit salles sur trois niveaux, huit PNJ aux buts concurrents (aubergiste, cuisinière,
+  enfant, palefrenier, marchand et son ballot, ancien soldat, pèlerine, voyageur au crochet qui cache
+  un reliquaire), bois et vivres comptés, trois foyers, une rafale qui éteint l'âtre (horloge). Écrit
+  seulement avec des données ; un seul correctif de moteur, `social.GESTES` (une rumeur sur un feu
+  allumé, éteint ou rechargé par un autre faisait planter le banc). Mécaniques qui manquent, relevées
+  en l'écrivant : demander du combustible pour une pulsion de feu (aujourd'hui seulement pour le
+  froid de soi), un objet prêté encore illicite pour l'emprunteur s'il a un propriétaire déclaré, une
+  nouvelle sans lieu (le marchand ne retrouve pas son ballot), aucun recours au bruit pour retrouver
+  quelqu'un dans le noir, le froid sec trop lent (2 par heure) pour menacer qui est au sec.
 - La suite de tests passe : 645 tests, sans clé ni connexion.
 
 ## Décisions en attente

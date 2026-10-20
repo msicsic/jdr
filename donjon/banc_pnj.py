@@ -28,6 +28,12 @@ def creer(scenario, graine=1985):
         m = nouveau_defi(graine)
         installer(m)
         return m
+    if scenario == "auberge":
+        from .auberge import nouveau_auberge
+        from .spatial import installer
+        m = nouveau_auberge(graine)
+        installer(m)
+        return m
     from .monde import nouveau_monde
     return nouveau_monde(graine)
 
@@ -148,7 +154,7 @@ def tableau(graines, mesures):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--scenario", choices=("relais", "crypte"), default="relais")
+    parser.add_argument("--scenario", choices=("relais", "auberge", "crypte"), default="relais")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)

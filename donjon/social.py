@@ -17,7 +17,8 @@ RANG_MAX = 2           # une rumeur entendue de troisième main n'est plus rép�
 GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer": "a fermé",
           "deverrouiller": "a déverrouillé", "verrouiller": "a verrouillé",
           "crocheter": "a crocheté la serrure de", "forcer": "a tenté de crocheter la serrure de",
-          "manger": "a mangé une part de"}
+          "manger": "a mangé une part de", "servir": "a servi une part de", "alimenter": "a rechargé",
+          "allumer": "a allumé", "eteindre": "a éteint"}
 
 
 def _noyau(evenement):

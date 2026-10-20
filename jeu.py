@@ -54,6 +54,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
     parser.add_argument("--defi", action="store_true", help="Le Relais des crues, défi d'exploration avec sauvegarde séparée")
+    parser.add_argument("--auberge", action="store_true",
+                        help="L'auberge du Col-Pendu, une nuit de tempête avec huit personnages ; sauvegarde séparée auberge.json")
     parser.add_argument("--cases", action="store_true", help="déplacements case par case, proximité et ligne de vue")
     parser.add_argument("--seed", type=int, default=1985, help="graine d'une nouvelle partie")
     parser.add_argument("--save", type=Path, default=BASE / "sauvegardes" / "partie.json")
@@ -74,8 +76,10 @@ def main(argv=None, interface=None):
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
-    if args.atelier and args.defi:
-        parser.error("Choisis --atelier ou --defi.")
+    if args.atelier + args.defi + args.auberge > 1:
+        parser.error("Choisis --atelier, --defi ou --auberge.")
+    if args.auberge and args.save == BASE / "sauvegardes" / "partie.json":
+        args.save = BASE / "sauvegardes" / "auberge.json"
     if args.defi and args.save == BASE / "sauvegardes" / "partie.json":
         args.save = BASE / "sauvegardes" / "defi.json"
     if args.atelier and args.save == BASE / "sauvegardes" / "partie.json":
@@ -125,9 +129,12 @@ def main(argv=None, interface=None):
             elif args.atelier:
                 from donjon.atelier import nouveau_atelier
                 m = nouveau_atelier(args.seed)
+            elif args.auberge:
+                from donjon.auberge import nouveau_auberge
+                m = nouveau_auberge(args.seed)
             else:
                 m = nouveau_monde(args.seed)
-        if args.cases or args.defi or m.data.get("mode_cases"):
+        if args.cases or args.defi or args.auberge or m.data.get("mode_cases"):
             from donjon.spatial import installer as installer_cases
             installer_cases(m)
         moteur = Moteur(m)
