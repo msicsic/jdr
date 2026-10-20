@@ -9,7 +9,8 @@ from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percevoir_tous, percoit
 from donjon.geometrie import placer
 from donjon.monde import Monde
-from donjon.pnj import PAS, _marcher, alerter, tour_d_horizon
+from donjon.ouie import retentir
+from donjon.pnj import PAS, _marcher, tour_d_horizon
 from donjon.spatial import QUART, dans_le_cone, installer, quarts
 
 
@@ -53,11 +54,12 @@ class RetournerTests(unittest.TestCase):
         poser(m, "marchand", "antichambre", [5, 5])
         poser(m, "ilse", "antichambre", [3, 5])
         regarder(m, "marchand", [8, 5])
-        libre = {id: 0 for id in ("marchand", "brune", "ilse", "aubin")}
-        alerter(m, "ilse", 100, libre)
+        lire(m, "marchand")["croyances"].pop("ilse")  # Il ne la sait pas là.
+        m.data["dixiemes"] = 100
+        retentir(m, "ilse", "aller")
         self.assertEqual(m.objets["marchand"]["orientation"], "ouest")
         self.assertTrue(percoit(m, "marchand", "ilse"))
-        self.assertEqual(libre["marchand"], 100 + 4 * QUART)  # Un demi-tour : 2 s.
+        self.assertEqual(lire(m, "marchand")["libre"], 100 + 4 * QUART)  # Un demi-tour : 2 s.
 
     def test_tourner_s_ajoute_au_pas(self):
         m = relais()

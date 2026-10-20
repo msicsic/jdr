@@ -46,9 +46,19 @@ def absent(monde):
     return monde
 
 
+def aux_vannes(monde):
+    """Placement d'auteur : Gorm, ses rondes faites et son feu vu vif, se tient aux vannes, trop loin
+    du refuge pour entendre crocheter (``ouie``)."""
+    from donjon.esprits import croire
+    from tests.support import calme
+    monde.objets["marchand"].update(lieu="crypte", position_salle="crypte", position=[4, 3])
+    croire(monde, "marchand", "brasero", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
+    return calme(monde, "marchand")
+
+
 class GardeMangerTests(unittest.TestCase):
     def test_brune_affamee_crochete_la_reserve_quand_personne_ne_la_voit(self):
-        m, _ = attendre(absent(relais()), 3)
+        m, _ = attendre(absent(aux_vannes(relais())), 3)
         self.assertEqual(m.objets["crochets"]["lieu"], "brune")
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         self.assertTrue(m.objets["reserve"]["ouverte"])
@@ -87,7 +97,7 @@ class GardeMangerTests(unittest.TestCase):
         self.assertEqual(m.objets["vivres"]["portions"], 4)
 
     def test_le_joueur_tapi_dans_l_ombre_la_surprend(self):
-        m = relais()
+        m = aux_vannes(relais())
         m.objets["lanterne"]["allume"] = False
         # Placement d'auteur : la torche brûle près de la réserve ; le joueur reste dans l'angle nord-ouest.
         m.objets["torche"].update(position=[8, 4], allume=True)
@@ -102,9 +112,14 @@ class GardeMangerTests(unittest.TestCase):
         m.objets["lanterne"]["lieu"] = "joueur"
         # Placement d'auteur : la torche brûle près de la réserve.
         m.objets["torche"].update(position=[8, 4], allume=True)
-        # Placement d'auteur : Gorm se repose dans l'angle sombre du refuge, ses rondes faites.
+        # Placement d'auteur : Gorm se repose dans l'angle sombre du refuge, ses rondes faites ; au
+        # repos, il entend moins bien (``ouie``) et ne se lève pas pour des pas.
         m.objets["marchand"].update(lieu="antichambre", position_salle="antichambre", position=[2, 1])
         lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)
+        lire(m, "marchand")["besoins"]["repos"] = 40.0
+        lire(m, "marchand")["intention"] = {"but": {"type": "repos"}, "motif": "repos", "depuis": 0, "attente": 0,
+                                            "plan": [{"operation": "reposer", "cible": "", "outil": "", "lieu": "",
+                                                      "condition": ""}]}
         m, _ = attendre(m, 4)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         souvenirs = [s for s in lire(m, "marchand")["memoire"] if s["type"] == "vu_agir"]

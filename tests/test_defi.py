@@ -83,7 +83,19 @@ class DefiRelaisTests(unittest.TestCase):
                     file.append((p, trajet + [direction]))
         self.assertIsNotNone(chemin, "Aucun chemin réel vers " + str(destination))
         for direction in chemin:
-            self.agir("marcher", direction)
+            self.pas(direction)
+
+    def pas(self, direction):
+        """Un pas ; si un PNJ se tient sur la case visée, le joueur attend qu'il lui laisse le passage
+        (les PNJ vivent pendant son chemin : ses pas les font se retourner, aller voir)."""
+        for _ in range(6):
+            try:
+                return self.agir("marcher", direction)
+            except ErreurMonde as exc:
+                if "sur ton passage" not in str(exc):
+                    raise
+                self.agir("attendre")
+        return self.agir("marcher", direction)
 
     def aller_dans(self, destination):
         salle = self.m.data["salles"][self.m.joueur["salle"]]
@@ -92,7 +104,7 @@ class DefiRelaisTests(unittest.TestCase):
         dx, dy = {"nord": (0, -1), "sud": (0, 1), "est": (1, 0), "ouest": (-1, 0)}[direction]
         case = sortie["case"]
         self.marcher_jusqua((case[0] - dx, case[1] - dy))
-        self.agir("marcher", direction)
+        self.pas(direction)
         self.assertEqual(self.m.joueur["salle"], destination)
 
     def test_route_interieure_avec_cle_et_retour(self):

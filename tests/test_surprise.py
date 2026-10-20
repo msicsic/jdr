@@ -5,11 +5,12 @@ import unittest
 from tests.support import calme, regarder
 from donjon.commandes import analyser
 from donjon.defi import nouveau_defi
-from donjon.esprits import lire, percoit
+from donjon.esprits import croire, lire, percoit
 from donjon.geometrie import placer
 from donjon.moteur import Moteur
 from donjon.operations import etape, sequence
-from donjon.pnj import OUIE_FEUTRE, _marcher, alerter
+from donjon.ouie import retentir
+from donjon.pnj import _marcher
 from donjon.spatial import installer
 from donjon.temps import PAS_FEUTRE
 
@@ -27,10 +28,11 @@ def scene():
                                position_salle="antichambre")
     m.joueur.update(salle="antichambre", position=[1, 5], orientation="est")
     m.objets["lanterne"]["allume"] = False
-    # Les autres sont à la salle des vannes : seuls Gorm et le joueur sont au refuge.
+    # Les autres sont à la salle des vannes, et Gorm le sait : seuls Gorm et le joueur sont au refuge.
     for n, id in enumerate(("brune", "ilse", "aubin")):
         m.objets[id]["lieu"] = "crypte"
         placer(m.objets[id], "crypte", [2 + n, 3])
+        croire(m, "marchand", id, "lieu", "crypte", "vu", salle="crypte", case=[2 + n, 3])
     return m
 
 
@@ -74,11 +76,12 @@ class PasFeutresTests(unittest.TestCase):
         lire(m, "brune")["intention"] = {"but": {"type": "manger", "objet": "vivres"}, "motif": "faim",
                                           "depuis": 0, "attente": 0, "plan": [
             {"operation": "crocheter", "cible": "reserve", "outil": "crochets", "lieu": "", "condition": "sans_temoin"}]}
+        lire(m, "marchand")["croyances"].pop("brune")  # Il ne la sait pas là.
         duree = _marcher(m, "brune", lambda salle, case: salle == "antichambre" and case == (2, 5), [])
         self.assertEqual(duree, PAS_FEUTRE)
-        libre = {id: 0 for id in ("marchand", "brune", "ilse", "aubin")}
-        alerter(m, "brune", 0, libre, OUIE_FEUTRE)
         self.assertEqual(m.objets["marchand"]["orientation"], "est")  # Trois cases : il n'entend rien.
+        retentir(m, "brune", "aller")  # Le même pas, ordinaire : il se retourne.
+        self.assertEqual(m.objets["marchand"]["orientation"], "ouest")
 
 
 if __name__ == "__main__":

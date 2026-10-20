@@ -9,6 +9,7 @@ from donjon.deliberation import SECURITE, SECURITE_FIN, verifier_profil
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.moteur import Moteur
 from donjon.operations import etape, sequence
+from donjon.ouie import INTENSITES, parvenu, propager
 from tests.support import calme, refusee
 from tests.test_tensions import attendre, chronique, placer, recharger, relais, vivre
 
@@ -67,10 +68,15 @@ class RessentirTests(unittest.TestCase):
         # Placement d'auteur : le joueur crie depuis le refuge ; Gorm est à l'échoppe.
         m.joueur.update(salle="antichambre", position=[3, 4])
         avant = lire(m, "marchand")["besoins"]["securite"]
+        # Il s'inquiète à la mesure de ce qui lui parvient du cri, à travers le passage (``ouie``).
+        o = m.objets["marchand"]
+        niveau, _ = parvenu(propager(m, "antichambre", (3, 4), INTENSITES["appel"]), o["lieu"], tuple(o["position"]))
         Moteur(m).executer(Moteur(m).preparer(sequence(etape("emettre_son", "joueur", methode="cri"))))
         m = recharger(m)
         self.assertIn("son", [s["type"] for s in lire(m, "marchand")["memoire"]])
-        self.assertGreaterEqual(lire(m, "marchand")["besoins"]["securite"], avant + SECURITE["bruit"] - 1)
+        self.assertIn("antichambre", [s["salle"] for s in lire(m, "marchand")["memoire"] if s["type"] == "bruit"])
+        self.assertGreaterEqual(lire(m, "marchand")["besoins"]["securite"],
+                                avant + SECURITE["bruit"] * niveau / INTENSITES["appel"] - 1)
 
     def test_un_geste_illicite_vu_inquiete_le_temoin(self):
         # Gorm a déjà refusé une part à Brune : elle se sert.

@@ -5,8 +5,9 @@ Chaque test vérifie ce que le joueur lit, et l'état après rechargement.
 import unittest
 
 from donjon.commandes import analyser
-from donjon.ecoute import ENTENDU, bruit, rendre
+from donjon.ecoute import ENTENDU, rendre
 from donjon.moteur import Moteur, proposition
+from donjon.ouie import retentir
 from donjon.social import faire_entendre
 from tests.support import calme
 from tests.test_tensions import placer, recharger, relais, vivre
@@ -30,20 +31,22 @@ def au_palier(monde, case):
 def parler_pendant(monde, minutes_plus_tard=1):
     """Une parole d'Aubin à Gorm, datée pendant le geste que le joueur va faire."""
     monde.data["minutes"] += minutes_plus_tard
-    bruit(monde, "aubin", "voix", "Aubin dit à Gorm que l'eau monte aux vannes.", ["marchand"])
+    retentir(monde, "aubin", "dire", texte="Aubin dit à Gorm que l'eau monte aux vannes.", cites=["marchand"])
     monde.data["minutes"] -= minutes_plus_tard
 
 
 class BruitsTests(unittest.TestCase):
     def test_les_pas_et_les_paroles_des_pnj_font_du_bruit(self):
         m = calme(relais(), "brune", "ilse", "aubin")
-        # De garde, Gorm part en ronde : ses pas résonnent.
+        # Le joueur au refuge, dos à l'échoppe ; de garde, Gorm part en ronde : ses pas résonnent.
+        m.joueur.update(salle="antichambre", position=[1, 3], orientation="est")
         m, _ = vivre(m, 3)
-        self.assertIn("pas", [b["nature"] for b in m.data["bruits"] if b["pnj"] == "marchand"])
+        self.assertIn("pas", [b["nature"] for b in m.data["bruits"] if b["auteur"] == "marchand"])
+        m.joueur["orientation"] = "nord"
         faire_entendre(m, "aubin", "marchand", "Aubin dit à Gorm que l'eau monte.", [], [])
         m = recharger(m)
         voix = [b for b in m.data["bruits"] if b["nature"] == "voix"][-1]
-        self.assertEqual((voix["pnj"], voix["cites"], voix["intensite"]), ("aubin", ["marchand"], 2))
+        self.assertEqual((voix["auteur"], voix["cites"]), ("aubin", ["marchand"]))
 
 
 class EcouterTests(unittest.TestCase):
@@ -71,15 +74,16 @@ class EcouterTests(unittest.TestCase):
         m.joueur.update(salle="antichambre", position=[3, 4])
         placer(m, "ilse", "echoppe", (3, 5))
         m.data["minutes"] += 1
-        bruit(m, "ilse", "appel")
+        retentir(m, "ilse", "appel")
         m.data["minutes"] -= 1
         m, texte = executer(m, proposition("attendre"))
-        self.assertIn("Tu entends un appel à l'aide à l'ouest.", texte)
+        self.assertTrue(any(l.startswith("Tu entends un appel à l'aide") and l.endswith(" à l'ouest.")
+                            for l in texte.splitlines()))
 
     def test_une_parole_nette_ne_dit_que_ce_que_le_joueur_connait(self):
         m = relais()
-        nette = {"pnj": "aubin", "nature": "voix", "texte": "Aubin dit à Gorm que l'eau monte.",
-                 "cites": ["marchand"], "salle": "antichambre", "minute": 1, "intensite": 2}
+        nette = {"auteur": "aubin", "nature": "voix", "texte": "Aubin dit à Gorm que l'eau monte.",
+                 "cites": ["marchand"], "salle": "antichambre", "instant": 600, "niveau": ENTENDU, "par": None}
         m.data["connus"] = sorted({*m.data["connus"], "aubin", "marchand"})
         self.assertEqual(rendre(m, [(nette, ENTENDU, None)]),
                          ["Tu entends, tout près : Aubin dit à Gorm que l'eau monte."])

@@ -136,7 +136,8 @@ class ValeursTests(unittest.TestCase):
             return attendre(recharger(m), 4)[0]
 
         def gestes(m):
-            return [c["texte"] for c in m.data["chronique"] if c["pnj"] == "brune" and c["nature"] != "deplacement"]
+            return [c["texte"] for c in m.data["chronique"]
+                    if c["pnj"] == "brune" and c["nature"] not in ("deplacement", "ouie")]
 
         avide, honnete = situation(20), situation(50)
         self.assertEqual(gestes(avide), ["Brune, batelière évacuée mange une part des vivres du refuge."])

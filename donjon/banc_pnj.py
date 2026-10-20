@@ -101,7 +101,7 @@ def executer(monde, minutes, recit=None):
     mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
                     if c.get("fiable", {}).get("valeur") is False)
     bilan = monde.data.get("stratege", {}).get("bilan", {})
-    mesures = {"gestes": len(chronique),
+    mesures = {"gestes": sum(c.get("nature") != "ouie" for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique
                                             if c.get("nature", "geste") in ("geste", "social")}),
                "echanges": natures["social"], "decisions": natures["decision"],
@@ -121,6 +121,10 @@ def executer(monde, minutes, recit=None):
                "passages_demandes": sum(" demande à " in c["texte"] and "laisser passer" in c["texte"]
                                         for c in chronique),
                "poussees": sum(" pousse " in c["texte"] for c in chronique),
+               # L'ouïe : se retourner au bruit, retenir un bruit inconnu, aller le voir.
+               "retournements": sum(c["texte"].endswith("se retourne au bruit.") for c in chronique),
+               "bruits_inconnus": sum(" entend un bruit : " in c["texte"] for c in chronique),
+               "alles_voir": sum(" va voir d'où venait le bruit : " in c["texte"] for c in chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.

@@ -10,12 +10,12 @@ import donjon.pnj as P
 from donjon.commandes import analyser
 from donjon.defi import nouveau_defi
 from donjon.dialogues import interlocuteurs
-from donjon.ecoute import bruit
 from donjon.esprits import esprit, lire
 from donjon.faits_locaux import catalogue
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur
 from donjon.operations import etape, sequence
+from donjon.ouie import retentir
 from donjon.paroles import preparer_parole
 from donjon.spatial import installer
 from donjon.temps import MINUTE, instant
@@ -127,7 +127,7 @@ class DecoupageTests(unittest.TestCase):
 def voix_d_aubin(monde, minutes, lignes, dixiemes, original=P._avancer):
     """Pendant le geste du joueur, Aubin, dans son dos, marmonne."""
     resultat = original(monde, minutes, lignes, dixiemes)
-    bruit(monde, "aubin", "voix", "Aubin marmonne.", [])
+    retentir(monde, "aubin", "dire", texte="Aubin marmonne.")
     return resultat
 
 
@@ -167,15 +167,16 @@ class BruitsTests(unittest.TestCase):
         self.assertEqual(m.data["minutes"], 0)
         self.assertIn("Aubin marmonne.", texte)
 
-    def test_les_bruits_dates_a_la_minute_sont_migres(self):
+    def test_les_bruits_des_anciennes_parties_sont_passes(self):
         data = copy.deepcopy(aubin_dans_le_dos().data)
         data["minutes"] = 4
         data["bruits"] = [{"minute": 3, "pnj": "aubin", "salle": "antichambre", "nature": "voix", "intensite": 2,
-                           "texte": "Aubin marmonne.", "cites": []}]
+                           "texte": "Aubin marmonne.", "cites": []},
+                          {"instant": 3 * MINUTE, "pnj": "aubin", "salle": "antichambre", "nature": "voix",
+                           "intensite": 2, "texte": "Aubin marmonne.", "cites": []}]
         m = Monde(data)
-        self.assertEqual(m.data["bruits"], [{"pnj": "aubin", "salle": "antichambre", "nature": "voix", "intensite": 2,
-                                             "texte": "Aubin marmonne.", "cites": [], "instant": 3 * MINUTE}])
-        # Un bruit d'avant le geste du joueur ne lui parvient pas pendant ce geste.
+        # Ils ne disent pas ce qui en parvenait au joueur ; d'avant son geste, ils ne lui parviennent plus.
+        self.assertEqual(m.data["bruits"], [])
         self.assertNotIn("Aubin marmonne", faire(m, "tourner nord"))
 
 

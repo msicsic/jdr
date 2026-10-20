@@ -8,7 +8,7 @@ from tests.support import calme, regarder
 from donjon.carte import carte
 from donjon.commandes import analyser
 from donjon.defi import nouveau_defi
-from donjon.esprits import lire, percoit
+from donjon.esprits import croire, lire, percoit
 from donjon.geometrie import placer
 from donjon.monde import Monde
 from donjon.moteur import Moteur
@@ -82,6 +82,11 @@ class RegardTests(unittest.TestCase):
         m.objets["marchand"]["lieu"] = "antichambre"
         placer(m.objets["marchand"], "antichambre", [6, 5])
         regarder(m, "marchand", [8, 5])
+        # Placement d'auteur : les autres sont aux vannes, et Gorm le sait ; personne n'est derrière lui.
+        for n, id in enumerate(("brune", "ilse", "aubin")):
+            m.objets[id]["lieu"] = "crypte"
+            placer(m.objets[id], "crypte", [2 + n, 3])
+            croire(m, "marchand", id, "lieu", "crypte", "vu", salle="crypte", case=[2 + n, 3])
         m.joueur.update(salle="antichambre", position=[3, 5], orientation="est")
         self.assertFalse(percoit(m, "marchand", "joueur"))
         faire(m, "pas est")

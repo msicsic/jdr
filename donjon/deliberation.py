@@ -314,6 +314,43 @@ def appeler_a_l_aide(monde, id, minute):
     appel(monde, id)
 
 
+def de_garde(monde, id, salle):
+    """Le lieu relève de son devoir de garde : il y fait une ronde, y garde un bien ou y entretient
+    quelque chose (une pulsion du devoir ou des biens), ou un protégé s'y trouve, à ce qu'il croit."""
+    p = profil(monde, id) or {}
+    for x in p.get("pulsions", []):
+        c = x["condition"]
+        if x["besoin"] in ("devoir", "biens") and (
+                c.get("lieu") == salle or "objet" in c and salle_crue(monde, id, c["objet"]) == salle):
+            return True
+    return any(salle_crue(monde, id, x) == salle for x in p.get("protege", []))
+
+
+def bruit_a_voir(monde, id):
+    """(lieu, motif) du plus récent bruit inconnu, venu d'un autre lieu, qu'il ira voir : son devoir
+    de garde l'y envoie ; un bruit inhabituel (un fracas, un appel), son courage aussi, s'il en a
+    plus que la moyenne. None s'il n'ira pas (``ouie``)."""
+    from .caractere import NEUTRE, valeur
+    from .ouie import HABITUDE, HABITUELS, resolu
+    courageux = valeur(monde, id, "courage") > NEUTRE
+    e = lire(monde, id)
+    ici, minute = monde.objets[id]["lieu"], monde.data["minutes"]
+    # Celui qu'il est en train d'aller voir passe d'abord : il ne court pas d'un bruit à l'autre.
+    en_cours = e["intention"]["but"].get("lieu") if e["intention"] and e["intention"]["but"]["type"] == "voir" else None
+    a_voir = []
+    for s in reversed(e["memoire"]):
+        if s["type"] != "bruit" or s["salle"] == ici or resolu(monde, id, s):
+            continue
+        inhabituel = s["nature"] not in HABITUELS
+        if not inhabituel and minute - e["visites"].get(s["salle"], -HABITUDE - 1) <= HABITUDE:
+            continue  # Il en revient : un pas de plus ne l'y renvoie pas.
+        if de_garde(monde, id, s["salle"]):
+            a_voir.append((s["salle"], "devoir"))
+        elif courageux and inhabituel:
+            a_voir.append((s["salle"], "securite"))
+    return next((x for x in a_voir if x[0] == en_cours), a_voir[0] if a_voir else None)
+
+
 def _plan_prevenir(monde, id):
     """Un geste illicite vu contre un protégé : aller le lui dire."""
     e = esprit(monde, id)
@@ -493,6 +530,11 @@ def candidats(monde, id):
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
         buts.append(("devoir", _plan_prevenir, False))
+    # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine.
+    a_voir = bruit_a_voir(monde, id)
+    if a_voir:
+        from .planification import voir
+        buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False))
     # Ce qu'il garde sous clé et a lui-même ouvert, il le referme sans attendre l'urgence.
     for x in p["pulsions"]:
         c = x["condition"]

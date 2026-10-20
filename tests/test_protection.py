@@ -45,7 +45,9 @@ class AppelTests(unittest.TestCase):
         m.joueur.update(salle="antichambre", position=[3, 4])
         texte = Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))
         m = recharger(m)
-        self.assertIn("Tu entends un appel à l'aide à l'ouest.", texte)
+        # Gorm, qui accourt, se fait entendre aussi : l'appel et ses pas viennent de l'ouest.
+        self.assertTrue(any(ligne.startswith("Tu entends un appel à l'aide") and ligne.endswith(" à l'ouest.")
+                            for ligne in texte.splitlines()), texte)
         self.assertIn("appel", [b["nature"] for b in m.data["bruits"]])
 
     def test_qui_n_est_pas_protecteur_n_accourt_pas(self):

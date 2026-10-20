@@ -490,7 +490,7 @@ def preparer(monde, proposition, origine):
         plans.append(p)
         for effet in p.effets:
             Moteur._appliquer(simulation, effet, [])
-        Moteur._terminer_etape(simulation, p, [])
+        Moteur._terminer_etape(simulation, p, [], (), e["operation"], e["methode"])
         simulation.verifier()
         precedent = e
     canonique = copy.deepcopy(proposition)
