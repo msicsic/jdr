@@ -467,7 +467,8 @@ class Moteur:
                 plan.titre = "Entailler " + designer(o) + " avec " + designer(t) + "."
             plan.stat, plan.dd = "FOR", 10
             plan.bonus, plan.bruit = (2 if action == "frapper" and "percussion" in usages else 0), 3
-            degats = puissance + max(0, (m.joueur["stats"]["FOR"] - 10) // 2)
+            from .caractere import modificateur
+            degats = puissance + max(0, modificateur(m, "joueur", "FOR"))
             plan.effets = [("endommager", cible, degats)]
             plan.echec_critique = [("endommager", outil, 1)]
         elif action == "bloquer":

@@ -91,6 +91,8 @@ class Monde:
         installer_savoirs(self)
         from .vol import installer as installer_vol
         installer_vol(self)
+        from .caractere import installer as installer_caractere
+        installer_caractere(self)
         from .esprits import installer as installer_esprits
         installer_esprits(self)
         from .corps import installer as installer_corps
@@ -389,6 +391,8 @@ class Monde:
             verifier_esprits(self)
             from .corps import verifier as verifier_corps
             verifier_corps(self)
+            from .caractere import verifier as verifier_caractere
+            verifier_caractere(self)
             from .ecoute import verifier as verifier_ecoute
             verifier_ecoute(self)
             from .horloges import verifier as verifier_horloges

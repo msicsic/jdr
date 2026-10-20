@@ -5,9 +5,10 @@ Rythmes et seuils sont ceux du moteur, les mêmes pour tous. Le scénario ne dé
 passées trempé), dont découlent les valeurs de départ ; le profil d'un PNJ ne garde que son
 caractère. Les valeurs vivent dans ``esprit["besoins"]`` pour un PNJ, dans
 ``joueur["besoins"]`` pour le joueur, sous les noms ``faim``, ``chaleur`` (le froid) et
-``repos`` (la fatigue).
+``repos`` (la fatigue). Un état qui presse coûte aux jets des caractéristiques qu'il touche,
+comme la volonté brisée à ceux de VOL (``malus``, lu par ``caractere``).
 """
-from .esprits import esprit, pnjs
+from .esprits import esprit, lire, pnjs
 
 # Par heure : faim et fatigue montent avec le temps, plus vite à l'effort ; le froid monte loin
 # d'un feu, plus vite trempé. Un besoin presse à partir de son seuil.
@@ -21,7 +22,11 @@ SECHAGE = 30           # minutes au chaud pour sécher
 REPOS_MINUTE = 2       # fatigue perdue par minute de repos
 SATIETE = 50           # un repas
 EXTREME = 95           # au-delà, la faim et le froid épuisent le joueur
-MALUS = 2              # par état qui presse, aux jets de FOR et de DEX
+MALUS = 2              # par état qui presse, aux jets des caractéristiques qu'il touche
+# Ce que chaque état qui presse touche : la faim et le froid affaiblissent et rendent maladroit ;
+# la fatigue aussi, et rend confus et moins attentif. Les mêmes pour tous, joueur compris.
+TOUCHE = {"faim": ("FOR", "DEX"), "chaleur": ("FOR", "DEX"), "repos": ("FOR", "DEX", "INT", "PER")}
+BRISURE_MAX = 5        # points de jet de VOL qu'une volonté brisée peut perdre
 FAITS = {"repas": 180, "veille": 480, "trempe": 0}    # joueur ou PNJ sans état déclaré
 CALMES = ("attendre", "observer", "examiner", "lire", "parler", "toucher", "copier")  # sans effort
 
@@ -60,6 +65,7 @@ def installer(monde):
         for nom, valeur in depart(faits).items():
             v.setdefault(nom, round(valeur, 3))
         faits.setdefault("seche", 0)
+        faits.setdefault("volonte_brisee", 0)
         if id == "joueur":
             faits.setdefault("peine", 0)
 
@@ -95,9 +101,20 @@ def pressants(monde, id):
     return [nom for nom, regle in CORPS.items() if v.get(nom, 0) >= regle["urgence"]]
 
 
-def malus(monde, stat):
-    """Un état qui presse coûte aux gestes physiques du joueur."""
-    return -MALUS * len(pressants(monde, "joueur")) if stat in ("FOR", "DEX") else 0
+def malus(monde, stat, id="joueur"):
+    """Ce que les états coûtent aux jets d'une caractéristique, pour tout personnage : chaque
+    état qui presse et la touche, et la volonté brisée (en points de jet)."""
+    v = monde.joueur.get("besoins", {}) if id == "joueur" else lire(monde, id)["besoins"]
+    presse = sum(stat in TOUCHE[nom] for nom, regle in CORPS.items() if v.get(nom, 0) >= regle["urgence"])
+    faits = (monde.joueur if id == "joueur" else monde.objets[id]).get("corps", {})
+    return -MALUS * presse - (faits.get("volonte_brisee", 0) if stat == "VOL" else 0)
+
+
+def briser(monde, id, points):
+    """Une contrainte entame la volonté (points de jet de VOL perdus) ; le répit la rend (points
+    négatifs). Aucune contrainte ne la brise encore : la donnée et son effet sont prêts."""
+    faits = corps(monde, id)
+    faits["volonte_brisee"] = max(0, min(BRISURE_MAX, faits.get("volonte_brisee", 0) + points))
 
 
 def vivre_joueur(monde, minutes, effort=False, repos=False, lignes=None):
@@ -143,4 +160,5 @@ def verifier(monde):
         faits, v = corps(monde, id), valeurs(monde, id)
         assert set(CORPS) <= set(v) and all(0 <= v[nom] <= 100 for nom in CORPS), "Corps invalide"
         assert (all(type(faits.get(k)) is int and faits[k] >= 0 for k in (*FAITS, "seche"))
+                and type(faits.get("volonte_brisee", 0)) is int and 0 <= faits.get("volonte_brisee", 0) <= BRISURE_MAX
                 and (id != "joueur" or type(faits.get("peine")) is int)), "États du corps invalides"

@@ -57,7 +57,7 @@ class FaimTests(unittest.TestCase):
 
     def test_qui_ne_vole_pas_ne_trouve_rien_apres_un_refus(self):
         m = relais()
-        m.objets["brune"]["profil"]["limites"].append("ne_vole_pas")
+        m.objets["brune"]["profil"]["valeurs"]["honnetete"] = 100
         self.assertIsNone(planifier(m, "brune", "faim"))
 
 

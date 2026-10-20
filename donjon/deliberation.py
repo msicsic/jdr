@@ -1,18 +1,18 @@
 """Besoins, pulsions et délibération des PNJ ; planificateur borné sur leurs croyances.
 
-Le profil d'auteur (``objet["profil"]``) déclare caractéristiques, traits, limites,
-capacités, besoins et pulsions. Le moteur fait évoluer les besoins minute par minute ;
+Le profil d'auteur (``objet["profil"]``) déclare caractéristiques, traits, valeurs
+(``caractere``), capacités, besoins et pulsions. Le moteur fait évoluer les besoins minute par minute ;
 une pulsion qui cesse d'être satisfaite aux yeux du PNJ relance son besoin. Chaque minute,
 le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur ce qu'il
 croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
 par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 """
+from .caractere import STATS, interdit, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
 from .esprits import RECENT, esprit, lire, memoriser
 from .spatial import porte_par
 
 BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
-LIMITES = ("ne_vole_pas", "ne_blesse_pas", "ne_ment_pas")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
@@ -39,7 +39,6 @@ REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui rest
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
 APPEL_REPIT = 10       # minutes entre deux appels à l'aide
 INERTIE = 5            # points au-delà du seuil avant qu'un besoin interrompe un plan en cours
-STATS = ("FOR", "DEX", "INT", "PER", "CHA")
 
 
 def profil(monde, id):
@@ -70,8 +69,8 @@ def parts(o):
 
 
 def verifier_profil(monde, id, p):
-    assert (isinstance(p, dict) and {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions"}
-            <= set(p) <= {"caracteristiques", "traits", "limites", "capacites", "besoins", "pulsions",
+    assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
+            <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
                           "reserve", "securite", "protege"}), "Profil de PNJ mal formé"
     assert (isinstance(p.get("protege", []), list) and all(
         x in monde.objets and monde.objets[x]["type"] == "personnage" and x != id
@@ -82,7 +81,8 @@ def verifier_profil(monde, id, p):
     assert set(p["caracteristiques"]) == set(STATS) and all(
         type(v) is int and 1 <= v <= 20 for v in p["caracteristiques"].values()), "Caractéristiques de PNJ invalides"
     assert isinstance(p["traits"], str) and len(p["traits"]) <= 600, "Traits de PNJ invalides"
-    assert set(p["limites"]) <= set(LIMITES) and set(p["capacites"]) <= set(CAPACITES), "Limite ou capacité inconnue"
+    verifier_valeurs(p["valeurs"])
+    assert set(p["capacites"]) <= set(CAPACITES), "Capacité inconnue"
     for nom, b in p["besoins"].items():
         # Faim, froid et fatigue relèvent du corps, commun à tous : le profil ne les règle pas.
         assert (nom in BESOINS and nom not in CORPS and set(b) == {"depart", "derive_heure", "urgence"}
@@ -226,7 +226,9 @@ def illicite(monde, id, objet):
 
 
 def autorise(monde, id, objet):
-    return not (illicite(monde, id, objet) and "ne_vole_pas" in profil(monde, id)["limites"])
+    """Le bien d'autrui est interdit à qui a l'honnêteté à son comble ; pour les autres, c'est
+    une faute dont le planificateur pèse le prix (``caractere.prix_faute``)."""
+    return not (illicite(monde, id, objet) and interdit(monde, id, "honnetete"))
 
 
 # --- Plans ---------------------------------------------------------------------------------

@@ -309,11 +309,11 @@ def _rate(monde, id, cible, attribut="lieu", valeur=None):
 
 
 def _crocheter(monde, id, cible, outil):
+    from .caractere import modificateur
     from .perception import eclairage
     o = monde.objets[id]
-    stats = o["profil"]["caracteristiques"]
     lumiere = eclairage(monde, o["lieu"], o.get("position") if monde.data.get("mode_cases") else None)["niveau"]
-    return monde.d20() + (stats["DEX"] - 10) // 2 >= 14 + 4 * (2 - lumiere)
+    return monde.d20() + modificateur(monde, id, "DEX") >= 14 + 4 * (2 - lumiere)
 
 
 def _executer(monde, id, etape, lignes, gestes):
