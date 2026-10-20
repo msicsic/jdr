@@ -102,7 +102,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `caracteres-valeurs` (étape 1 de `docs/plan-social.md`, `donjon/caractere.py`) : VOL,
+  ELO et PSY pour tous ; les états modulent les caractéristiques par une règle commune (la
+  fatigue touche aussi INT et PER ; volonté brisée prévue en donnée) ; persuasion d20 + CHA + ELO
+  contre la VOL de l'auditeur. Huit valeurs de 0 à 100 dans le profil ; les limites deviennent
+  honnêteté ou douceur 100 (profils et sauvegardes migrés au chargement). Une faute a un prix
+  en minutes selon l'honnêteté, usé par la détresse, moins vite avec de la volonté ; l'altruisme
+  de qui donne facilite une demande. Banc : même ordre, plus d'échanges, moins de vols dans
+  certaines nuits ; bilan et limites dans `docs/plan-social.md`.
+- La suite de tests passe : 674 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -112,8 +120,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   test sur l'atelier, pas en partie au Relais.
 - **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
-  Prochain jalon décidé : **temps fin et orientation** (`docs/plan-temps.md`), avant les
-  caractères et valeurs.
+  Faits : **temps fin et orientation** (`docs/plan-temps.md`), puis l'étape 1, caractères et
+  valeurs (sans l'empathie). Suite de l'ordre proposé : la crue, niveau d'eau.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

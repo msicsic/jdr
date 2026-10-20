@@ -151,7 +151,9 @@ Fait sur la branche `planificateur`, étapes 1 à 5.
 Limites :
 - la chance d'une demande est une constante (`PRET`), pas encore ce que le PNJ croit de l'autre ;
 - le caractère ne pèse que par les limites et la faute comptée par personne lésée ; la détresse
-  ne la rend pas moins coûteuse (`desespere` ne joue toujours que sur l'attente d'une occasion) ;
+  ne la rend pas moins coûteuse (`desespere` ne joue toujours que sur l'attente d'une occasion).
+  Levé depuis par l'étape 1 de `docs/plan-social.md` : la faute a un prix, selon l'honnêteté,
+  que la détresse use (`caractere.prix_faute`) ;
 - les gestes ouverts par un seul but (`vises`) restent une liste écrite dans `planifier_pulsion` ;
 - le banc mesure un Relais où ces nouveautés pèsent peu : c'est la crue qui doit les mettre à
   l'épreuve.

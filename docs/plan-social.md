@@ -8,6 +8,8 @@ déclarés, en coûts et en buts, jamais en comportements écrits pour un person
 
 ## Ce qui existe
 
+Avant l'étape 1 ; ce qu'elle a changé est dans « Bilan de l'étape 1 ».
+
 - **Caractéristiques** : FOR, DEX, INT, PER, CHA dans le profil. CHA décide si l'on est cru et
   si une demande est acceptée ; INT règle ce qu'on retient de ce qu'on entend ; DEX sert au
   crochetage. FOR et PER ne servent presque à rien pour les PNJ.
@@ -194,7 +196,7 @@ et orientation** (`docs/plan-temps.md`), fondation de la discrétion et de la fo
 
 1. **Caractères et valeurs** : éloquence, volonté, perspicacité ; caractéristiques modulées par
    les états ; valeurs en poids dans les coûts et les buts ; les limites deviennent des valeurs ;
-   l'empathie fait des besoins d'autrui des buts.
+   l'empathie fait des besoins d'autrui des buts. Fait, sauf l'empathie (voir le bilan).
 2. **La crue, niveau d'eau** (`docs/plan-crue.md`) : la menace commune et le froid.
 3. **Relations graduées, lire les autres, influence par la parole** : relations et émotions,
    leurs signes et leur lecture, propositions, avis, disputes. Des relations qu'on ne perçoit
@@ -213,3 +215,72 @@ et orientation** (`docs/plan-temps.md`), fondation de la discrétion et de la fo
   peut mourir ; la mort du joueur termine la partie, sans reprise pour l'instant.
 - Orientation en huit directions, cône de 120° et côtés immédiats, rotations qui prennent du
   temps : jalon « temps fin et orientation », avant les caractères et valeurs.
+
+## Bilan de l'étape 1 : caractères et valeurs
+
+Fait sur la branche `caracteres-valeurs` (`donjon/caractere.py`, détail dans
+`docs/mecaniques.md`, « Caractéristiques et valeurs »).
+
+- **Caractéristiques** : VOL, ELO et PSY rejoignent FOR, DEX, INT, PER, CHA, pour tous, joueur
+  compris (10 par défaut). Les états les modulent par une règle commune (`corps.malus`) :
+  faim et froid qui pressent, −2 aux jets de FOR et DEX ; la fatigue aussi, et à ceux d'INT et
+  de PER ; la volonté brisée (donnée `volonte_brisee`, 0 à 5) ôte à la VOL, sans contrainte qui
+  la brise encore. Toute règle lit la valeur modulée : crochetage, ce qu'on retient (INT),
+  vigilance d'un témoin (PER), dégâts du joueur (FOR). La persuasion devient d20 + CHA + ELO
+  contre un DD que la VOL de l'auditeur élève.
+- **Valeurs** : les huit valeurs du tableau, de 0 à 100. Les limites deviennent des valeurs à
+  leur comble (honnêteté 100 : ni voler ni mentir ; douceur 100) ; profils et sauvegardes
+  anciens migrent au chargement, les autres valeurs à 50.
+- **Le prix d'une faute** remplace « le moins fautif d'abord » : léser une personne coûte
+  20 × h / (100 − h) minutes au plan (5 à h = 20, 20 à 50, 180 à 90), usé par la détresse du
+  besoin servi jusqu'à 90 %, moins vite pour qui a de la volonté (usure = détresse × 10 / VOL) ;
+  au-delà de 60 minutes, la faute n'est pas envisagée. Un plan fautif peut donc l'emporter sur
+  une longue démarche honnête, et un honnête (90) ne vole qu'à bout.
+- **Altruisme** : le DD d'une demande (part, objet prêté) baisse d'un point par dizaine
+  au-dessus de 50 chez celui qui donne.
+- **Mentir** : aucun geste du moteur n'a encore de raison de mentir. L'honnêteté décide de ce
+  que le stratège peut faire dire (100 : seulement ce qu'il croit) ; le MJ reçoit les valeurs
+  avec les traits et ne fait mentir un personnage que si son honnêteté le permet.
+- **Relais** : Gorm altruiste (70), tenace (VOL 13), peu éloquent (ELO 8) ; Brune peu
+  scrupuleuse (honnêteté 20) ; Ilse bavarde (ELO 12), peu de volonté (VOL 9), peu courageuse ;
+  Aubin taciturne (ELO 9), loyal (80). Honnêteté et douceur à 100 pour Gorm, Ilse et Aubin
+  (traits écrits), douceur 100 pour Brune. La crypte et l'atelier n'ont pas de profil de PNJ.
+
+Banc (8 h, joueur à la galerie), avant → après :
+
+| graines | événements distincts | échanges | vols vus | méfiances | renoncements | minutes urgentes oisives |
+|---|---|---|---|---|---|---|
+| 1985, 7, 42, 2024 | 20 → 20,75 | 6,5 → 7,25 | 1,5 → 1,5 | 2,25 → 2,25 | 1,25 → 0,75 | 400 → 429 |
+| 3, 11, 99, 500 | 21,5 → 22,75 | 6,75 → 7 | 1 → 0,5 | 1,5 → 0,75 | 1,25 → 0,5 | 395 → 490 |
+
+Aucune violation ni usurpation. Les différences, lues dans le récit :
+- graine 3 : Gorm, plus altruiste, accepte la première demande de Brune ; elle ne force pas la
+  réserve, personne ne la voit, aucune rumeur ; Gorm nourrit les trois évacués et demande ses
+  planches à Aubin. Les minutes oisives montent parce que Gorm, sans vol à surveiller, reste au
+  devoir urgent sans rien à faire (défaut déjà noté du Relais) ;
+- graines 7, 42, 2024 (vers 372 min) : Brune, qui ne sait plus où est Gorm, va droit à la réserve
+  plutôt que de le chercher dans tout le relais (la faute lui coûte moins que la recherche) ; Gorm,
+  qu'elle y trouve, refuse par méfiance ; la réserve qu'elle croyait ouverte est fermée, son
+  geste échoue sans qu'elle la voie fermée, elle en conclut que les vivres n'y sont plus et reste
+  sans plan (avant, elle guettait une occasion, sans manger non plus) ;
+- graine 500 : affamée, Brune a les mains moins sûres (DEX modulée) ; elle s'acharne dix fois
+  sur la serrure avant de l'ouvrir.
+
+Cas comparatif (`tests/test_caractere.py`) : Brune devant la réserve ouverte, Gorm à la salle
+des vannes, mêmes moyens. À honnêteté 20, elle se sert ; à 50, elle va demander sa part à Gorm,
+qui la lui sert. Refusée, à 90 elle ne vole pas à 80 de faim, vole à 97, et tient encore à 97
+avec une VOL de 18.
+
+Limites et questions ouvertes :
+- empathie, ambition, courage, loyauté, fierté et PSY sont des données sans règle : l'empathie
+  demande de percevoir le besoin d'autrui (étape 3, lire les autres), l'ambition un besoin de
+  statut (étape 6) ;
+- FOR ne règle pas encore ce qu'on porte (la capacité du joueur est une donnée à part, les PNJ
+  n'ont pas de limite) ;
+- une sauvegarde qui n'aurait que `ne_ment_pas` ou que `ne_vole_pas` migre à honnêteté 100 :
+  elle gagne l'autre interdit ;
+- le prix d'une faute et l'usure par la détresse sont des constantes du moteur à régler au banc,
+  sur la crue plutôt que sur le Relais, où seule Brune peut fauter ;
+- un geste manqué sur ce qu'un contenant fermé cache, sans voir ce contenant, fait croire
+  l'objet disparu (`pnj._rate`) : la croyance corrigée n'est pas la bonne, ce qui laisse Brune
+  sans plan. Défaut antérieur, plus visible depuis que Brune va droit à la réserve.

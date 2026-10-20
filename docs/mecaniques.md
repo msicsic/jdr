@@ -314,8 +314,9 @@ surpris et les gestes remarqués.
 #### Besoins, pulsions et plans des PNJ
 
 Un PNJ peut porter un `profil` d'auteur (`donjon/deliberation.py`) : `caracteristiques`
-(FOR, DEX, INT, PER, CHA), `traits` (prose destinée à Luna), `limites` (`ne_vole_pas`,
-`ne_blesse_pas`, `ne_ment_pas`), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
+(FOR, DEX, INT, PER, CHA, VOL, ELO, PSY), `traits` (prose destinée à Luna), `valeurs`
+(altruisme, empathie, honnêteté, douceur, ambition, courage, loyauté, fierté, de 0 à 100 ;
+voir « Caractéristiques et valeurs »), `capacites` (`crochetage`), `besoins` (`devoir`, `biens`, `securite`,
 `faim`, `repos`, `chaleur`, chacun avec `depart`, `derive_heure`, `urgence`) et `pulsions` : des
 conditions sur le monde (`{"objet", "lieu"}`, `{"objet", "verrouillee": true}` ou un feu
 entretenu `{"objet", "allume": true}`) liées à un besoin, éventuellement `delegue_a` le
@@ -334,8 +335,9 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
    - manger pour la faim. Il mange d'abord ce qui est à lui ou à personne. Sinon, il demande une
      part au propriétaire des vivres : il va là où il le croit, ou, s'il en a perdu la trace, le
      cherche dans la salle qu'il a parcourue le moins récemment, celle où il se tient comprise.
-     Une part promise s'attend près des vivres, 60 minutes au plus. Sinon, sans `ne_vole_pas`,
-     il prend le bien d'autrui ;
+     Une part promise s'attend près des vivres, 60 minutes au plus. Sinon, si son honnêteté le
+     permet, il prend le bien d'autrui ; un plan qui lèse quelqu'un peut aussi l'emporter sur une
+     longue démarche honnête, selon le prix de la faute ;
    - se reposer là où il est pour le repos (2 points par minute, jusqu'à 20) ;
    - se mettre à l'abri pour la sécurité : rejoindre une salle qu'il croit éclairée où se tient
      quelqu'un qu'il croit fiable, là où il est d'abord, et y rester jusqu'à 30 ; ses rondes
@@ -343,7 +345,7 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
    - pour la chaleur, se chauffer près d'un foyer qu'il croit allumé (3 points par minute,
      jusqu'à 20). Sans feu vif, il ranime un foyer qu'il croit éteint, avec les recours de la
      faim : son bois ou celui de personne, puis une part de bois demandée au propriétaire, puis,
-     sans `ne_vole_pas`, le bois d'autrui. Une part de bois acceptée est l'engagement
+     si son honnêteté le permet, le bois d'autrui. Une part de bois acceptée est l'engagement
      d'entretenir ce feu : le donneur va lui-même le recharger et l'allumer ;
    - rétablir une pulsion.
 2. Ses engagements.
@@ -358,7 +360,8 @@ multiplie faim et fatigue par 1,5 ; dans la salle d'un foyer allumé, le froid b
 minute et l'on sèche en 30 minutes ; attendre repose. Seuils : 70 (faim, froid), 80 (fatigue).
 Le scénario déclare des états (`corps` : minutes depuis le dernier repas, de veille, trempé),
 dont découlent les valeurs de départ ; le profil d'un PNJ ne règle plus le corps. Pour le
-joueur, un état qui presse coûte 2 aux jets de FOR et de DEX ; à 95, la faim ou le froid ôtent
+joueur comme pour les PNJ, un état qui presse coûte 2 aux jets de FOR et de DEX, et la fatigue
+aussi à ceux d'INT et de PER (« Caractéristiques et valeurs ») ; à 95, la faim ou le froid ôtent
 1 PV par heure, jamais en deçà de 1 ; `manger <nourriture>` (cinq minutes) mange une part de ce
 qui est à lui ou à personne. Il peut demander une part de vivres (servie là où ils sont) ou de
 bois (le feu entretenu) à qui les possède, même sans les avoir vus.
@@ -411,8 +414,8 @@ Le plan est cherché sur les croyances, jamais sur la vérité, par décompositi
 (profondeur 4) : obtenir un objet, accéder à un contenant (l'ouvrir, le déverrouiller avec
 une clé connue ou le crocheter si le PNJ en a la capacité et l'outil), aller dans une salle
 (une porte crue verrouillée fait chercher sa clé). Les objets fixes sont connus de lieu ;
-les autres ne le sont que par croyance. Un geste sur le bien d'autrui est interdit par
-`ne_vole_pas` ; sinon il porte la garde `sans_temoin`. Le plan est recalculé chaque minute.
+les autres ne le sont que par croyance. Un geste sur le bien d'autrui est interdit à
+l'honnêteté 100 ; sinon il coûte le prix d'une faute et porte la garde `sans_temoin`. Le plan est recalculé chaque minute.
 
 Exécution : un geste par minute (aller d'une salle, s'approcher au contact, prendre, poser,
 ouvrir, fermer, déverrouiller, verrouiller, crocheter, manger, alimenter un foyer avec un
@@ -466,7 +469,7 @@ croit encore. Ce qu'il sait d'un même accusé se dit d'un coup, en une confiden
 
 L'auditeur l'adopte avec la règle des paroles du joueur : une disparition démentie par ce
 qu'il a vu dans les 30 dernières minutes est rejetée et il cesse de croire le locuteur
-fiable ; sinon, jet de d20 + CHA du locuteur contre 10, avec les mêmes modificateurs de
+fiable ; sinon, jet de persuasion du locuteur contre 10, avec les mêmes modificateurs de
 confiance. Crue, l'accusation devient `fiable` faux (source `dit:<locuteur>`) ; la victime
 voit ses biens relancés de 30. La confiance vaut 0,7 (0,35 pour une INT ≤ 8), multipliée
 par 0,8 à chaque relais ; une rumeur de troisième main n'est plus répétée. Une croyance
@@ -484,16 +487,48 @@ part des vivres du refuge. » si Corvus connaît chacun de ceux dont on parle, s
 départs sont annoncés à la minute où ils se produisent. Luna reçoit les croyances des
 personnages présents avec leur source (« Ilse le lui a dit ») si Corvus connaît ce témoin.
 
+#### Caractéristiques et valeurs
+
+Tout personnage, joueur compris, a huit caractéristiques (`donjon/caractere.py`) : FOR, DEX,
+INT, PER, CHA, et VOL (volonté), ELO (éloquence), PSY (perspicacité) ; 10 quand rien ne les
+déclare (anciennes parties, joueur). Les états les modulent, par la même règle pour tous
+(`corps.malus`) : chaque état qui presse coûte 2 points de jet aux caractéristiques qu'il
+touche (faim et froid : FOR, DEX ; fatigue : FOR, DEX, INT, PER), et la volonté brisée
+(`corps["volonte_brisee"]`, 0 à 5 points, qu'aucune contrainte n'entame encore) en ôte à la
+VOL. Toute règle lit la valeur modulée : crochetage d'un PNJ (DEX), INT de ce qu'on retient,
+vigilance d'un témoin contre un geste discret (PER), dégâts du joueur (FOR). Le jet de
+persuasion (croire une affirmation, accepter une demande ou une tâche) est d20 + CHA + ELO du
+locuteur contre un DD que la confiance règle et que la VOL de l'auditeur élève. PSY n'est
+encore employée par aucune règle.
+
+Les valeurs d'un PNJ (0 à 100) sont des poids, stables. Une valeur à 100 interdit : honnêteté
+100, ni voler ni mentir ; douceur 100, ne pas blesser (aucun geste violent n'existe encore).
+Les anciennes limites deviennent ces valeurs à leur comble au chargement (`ne_vole_pas` et
+`ne_ment_pas` : honnêteté 100 ; `ne_blesse_pas` : douceur 100), les autres valeurs à 50.
+
+- **Honnêteté** : léser une personne (prendre, ouvrir, manger son bien) coûte au plan
+  20 × h / (100 − h) minutes, compté une fois par personne lésée. La détresse du besoin servi
+  (0 au seuil d'urgence, 1 à 100) l'use jusqu'à 90 %, d'autant moins que la VOL est haute
+  (usure = détresse × 10 / VOL). Une faute qui coûterait plus de 60 minutes n'est pas
+  envisagée : à 90, on ne vole qu'à bout ; à 20, on se sert plutôt que de traverser le relais
+  pour demander.
+- **Altruisme** : le DD d'une demande (objet prêté, part de vivres ou de bois) baisse d'un
+  point par dizaine au-dessus de 50 chez celui qui donne, monte en dessous.
+- Les valeurs vont au stratège et au MJ avec les traits (le MJ ne fait mentir un personnage
+  que si son honnêteté le permet). Empathie, ambition, courage, loyauté et fierté ne pèsent
+  encore sur aucune règle du moteur.
+
 #### Échanges entre PNJ et stratège
 
 Un plan de PNJ peut contenir quatre gestes sociaux (`donjon/echanges.py`), d'une minute
 chacun, dans la salle d'un personnage qu'il perçoit et qui le perçoit : `dire` (affirmer un
 lieu, un verrou ou la fiabilité de quelqu'un, avec la règle des paroles du joueur : démenti
-par ce que l'auditeur a vu récemment, sinon jet de CHA du locuteur contre 10), `demander`
-(un objet que l'autre porte : refusé s'il se méfie ou s'en sert, sinon jet contre 12 ; un
-PNJ qui a faim peut aussi demander une part d'une nourriture qui appartient à l'autre, même
-rangée sous clé : refusée s'il se méfie, a faim lui-même ou n'a plus qu'une part, sinon jet
-contre 12, et l'autre s'engage à venir la servir),
+par ce que l'auditeur a vu récemment, sinon jet de persuasion du locuteur contre 10),
+`demander` (un objet que l'autre porte : refusé s'il se méfie ou s'en sert, sinon jet contre
+12, abaissé d'un point par dizaine d'altruisme au-dessus de 50 chez celui qui donne, relevé
+en dessous ; un PNJ qui a faim peut aussi demander une part d'une nourriture qui appartient à
+l'autre, même rangée sous clé : refusée s'il se méfie, a faim lui-même ou n'a plus qu'une
+part, sinon même jet, et l'autre s'engage à venir la servir),
 `confier` (faire en sorte qu'un objet soit en un lieu, ou verrouillé : refusé s'il se méfie
 ou ne voit pas comment s'y prendre d'après ce qu'il croit, sinon jet contre 12) et
 `remettre` (un objet porté, au contact). On s'approche de celui à qui l'on parle. Le geste
@@ -511,8 +546,8 @@ traits, besoins, pulsions, engagements, croyances, souvenirs récents et objets 
 croit connaître, jamais la vérité du monde, et renvoie un plan typé (1 à 6 gestes),
 « suivre » le plan du moteur ou « attendre » (seul « attendre » écarte le plan illicite du
 moteur pour une heure ; une autre voie qui échoue le laisse revenir). Le moteur valide chaque geste : identifiants
-connus du PNJ, salles, capacités, `ne_vole_pas`, `ne_ment_pas` (dire seulement ce qu'il
-croit), demander seulement à qui il croit porter l'objet, remettre seulement ce qu'il porte
+connus du PNJ, salles, capacités, honnêteté 100 (ni le bien d'autrui, ni dire autre chose que
+ce qu'il croit), demander seulement à qui il croit porter l'objet, remettre seulement ce qu'il porte
 ou aura obtenu ; on ne redemande pas pendant 2 heures le même objet à qui vient de le
 refuser, mais on peut lui demander autre chose. On peut confier un feu à entretenir.
 Le stratège dit quoi, le moteur dit comment : le planificateur complète chaque geste de ce
@@ -540,8 +575,9 @@ entité perçue, examinée, vue auparavant ou nommée devant lui, lieu visité. 
 plus 1 idée avec une INT ≤ 9, 2 jusqu'à 12, 3 au-delà ; l'auditeur retient selon sa propre
 INT, et une INT ≤ 8 diminue sa confiance dans ce qu'il retient. Une affirmation contredite
 par ce que l'auditeur a vu ou essayé dans les 30 dernières minutes est rejetée sans jet et
-il cesse de croire le joueur fiable. Sinon, jet de d20 + modificateur de CHA contre 10
-(−2 s'il croit le joueur fiable, +2 s'il n'en sait rien, +6 s'il le croit peu fiable) :
+il cesse de croire le joueur fiable. Sinon, jet de d20 + modificateurs de CHA et d'ELO contre
+10 (−2 s'il croit le joueur fiable, +2 s'il n'en sait rien, +6 s'il le croit peu fiable, plus
+le modificateur de VOL de l'auditeur) :
 réussi, la croyance devient `dit:joueur` ; ce qu'il a sous les yeux peut la démentir
 aussitôt. Une croyance `dit:` que la perception ou un essai contredit plus tard est un
 `mensonge_decouvert` : il cesse de croire le locuteur fiable. Une demande d'objet réussit
