@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections import deque
 from contextlib import contextmanager
+import threading
 
 from .geometrie import cases, position_entree, position_objet, placer
 
@@ -386,42 +387,124 @@ def _globales(m, salles):
 
 
 def _los_global(m, a, b, terrain, opaques):
-    points = _ligne(a, b)
-    for i, p in enumerate(points[1:], 1):
+    """Le tracé de ``_ligne`` de a vers b, case après case sans le construire : chaque case doit être
+    du terrain, aucune avant b ne doit être opaque, et une diagonale ne passe pas entre deux coins
+    bouchés."""
+    x, y = a
+    x1, y1 = b
+    dx, sx = abs(x1 - x), 1 if x < x1 else -1
+    dy, sy = -abs(y1 - y), 1 if y < y1 else -1
+    err = dx + dy
+    while x != x1 or y != y1:
+        avant_x, avant_y = x, y
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x += sx
+        if e2 <= dx:
+            err += dx
+            y += sy
+        p = (x, y)
         if p not in terrain:
             return False
-        if i < len(points) - 1 and p in opaques:
+        if p in opaques and (x != x1 or y != y1):
             return False
-        avant = points[i - 1]
-        if p[0] != avant[0] and p[1] != avant[1]:
-            c1, c2 = (p[0], avant[1]), (avant[0], p[1])
+        if x != avant_x and y != avant_y:
+            c1, c2 = (x, avant_y), (avant_x, y)
             if ((c1 not in terrain or c1 in opaques)
                     and (c2 not in terrain or c2 in opaques)):
                 return False
     return True
 
 
-def _los_mutuelle(m, a, b, terrain, opaques):
-    """Vue symétrique : Bresenham diffère selon le sens, on exige les deux tracés libres."""
-    return _los_global(m, a, b, terrain, opaques) and _los_global(m, b, a, terrain, opaques)
-
-
 def visible(m, id, acteur="joueur", champ=None):
     if id not in m.objets or id == acteur:
         return False
-    champ = champ_visible(m, acteur) if champ is None else champ
+    memo = _memo_vue(m)
+    champ_propre = champ is None
+    champ = _champ(m, acteur, memo) if champ is None else champ
     o = m.objets[id]
-    if o["type"] == "surface" and o.get("lieu") == position_acteur(m, acteur)[0]:
+    if o["type"] == "surface" and o.get("lieu") == (m.joueur["salle"] if acteur == "joueur" else m.objets[acteur]["lieu"]):
         # Les murs, le sol, le plafond de sa pièce : on en voit toujours une part, où qu'on regarde.
         return any(c[0] == o["lieu"] for c in champ)
+    vu = _vu_dans(m, id, acteur, champ, memo if champ_propre else None, memo)[1]
+    if memo is not None and champ_propre and a_verifier():
+        with sans_memoire(m):
+            assert visible(m, id, acteur) == vu, f"Vue mémorisée périmée : {acteur} / {id}"
+    return vu
+
+
+def _vu_dans(m, id, acteur, champ, memo_champ, memo, salles_du_champ=None):
+    """(première place de l'objet dans le champ, vu ou non). Une place hors du champ ne compte pas :
+    on ne cherche l'objet que dans les salles que le champ touche. Un objet accroché au mur n'est vu
+    que si ce mur l'est. ``memo_champ`` : le mémo de l'état quand ``champ`` est le champ propre de
+    l'acteur (ses murs vus y sont gardés)."""
+    if salles_du_champ is None:
+        salles_du_champ = {c[0] for c in champ}
+    premiere = None
     for salle in m.data["salles"]:
-        position = position_cible(m, id, salle)
+        if salle not in salles_du_champ:
+            continue
+        position = _position_vue(m, memo, id, salle)
         if position is not None and (salle, position[0], position[1]) in champ:
+            if premiere is None:
+                premiere = (salle, position)
             ancrage = m.objets[id].get("ancrage_carte")
-            if ancrage and tuple(ancrage) not in murs_visibles(m, champ, acteur).get(salle, set()):
+            if ancrage and tuple(ancrage) not in _murs(m, champ, acteur, memo_champ).get(salle, set()):
                 continue
-            return True
-    return False
+            return premiere, True
+    return premiere, False
+
+
+def _murs(m, champ, acteur, memo_champ):
+    if memo_champ is None:
+        return murs_visibles(m, champ, acteur)
+    if ("murs", acteur) not in memo_champ:
+        memo_champ["murs", acteur] = murs_visibles(m, champ, acteur)
+    return memo_champ["murs", acteur]
+
+
+def _position_vue(m, memo, id, salle):
+    """position_cible, gardée le temps d'un état inchangé (voir ``etat_vue``) ; pour un objet
+    simplement posé dans cette salle, d'une étape à l'autre, par tout ce qui fixe sa case."""
+    if memo is None:
+        return position_cible(m, id, salle)
+    positions = memo.setdefault("positions", {})
+    if (id, salle) not in positions:
+        o = m.objets[id]
+        if poses(m, memo)[id] == salle and o["type"] != "surface":
+            p = o.get("position")
+            # ``_salle_position`` d'un objet posé dans la salle qu'on regarde ne lit que ces clés (une
+            # surface, sol ou plafond, peut suivre le joueur : elle n'est gardée que pour l'état).
+            cle = (id, salle, o["type"], o.get("incorpore"), o.get("cote"), o.get("attache"),
+                   o.get("position_salle"), None if p is None else tuple(p))
+            places = m._cache_vue["persistant"]["places"]
+            if cle not in places:
+                places[cle] = position_cible(m, id, salle)
+            positions[id, salle] = places[cle]
+        else:
+            positions[id, salle] = position_cible(m, id, salle)
+    return positions[id, salle]
+
+
+# Ce qui peut placer un objet posé dans une salle ailleurs que dans cette salle (``_salle_position``).
+AILLEURS = frozenset(("appui_vertical", "installation"))
+
+
+def poses(m, memo=None):
+    """Pour chaque objet, la salle où il est posé, sans rien qui le place ailleurs : il n'a de place
+    que dans cette salle, et personne ne le porte ; None pour les autres. Gardé pour l'état."""
+    if memo is not None and "poses" in memo:
+        return memo["poses"]
+    salles, objets = m.data["salles"], m.objets
+    resultat = {}
+    for id, o in objets.items():
+        lieu = o["lieu"]
+        resultat[id] = (lieu if lieu in salles and lieu not in objets and o["type"] != "porte"
+                        and AILLEURS.isdisjoint(o) else None)
+    if memo is not None:
+        memo["poses"] = resultat
+    return resultat
 
 
 def eclairage_niveau(m):
@@ -434,29 +517,214 @@ def eclairage_niveau(m):
 PORTEE_VUE = {1: 3, 2: 8}
 
 
-def signature_vue(m):
+def signature_vue(m, lumiere=True, allumees=None):
     """Tout ce dont dépendent la lumière et les lignes de vue, hors géométrie des salles : portes
     et contenants ouverts, sources allumées et la case d'où elles éclairent, objets qui bloquent
-    la vue. Deux états de même signature se voient de la même façon."""
+    la vue. Deux états de même signature se voient de la même façon. Sans ``lumiere``, ce qui
+    borne seulement la vue (``VueGeometrique``) ; ``allumees`` recueille alors les sources."""
     from .perception import allumee, salle_source
     cle = []
+    salles = m.data["salles"]
     for id, o in m.objets.items():
-        if o["type"] in ("porte", "contenant"):
-            cle.append((id, bool(o.get("ouverte"))))
-        if allumee(o):
+        if o["type"] in ("porte", "contenant") or "ouverte" in o:
+            cle.append(("ouverte", id, bool(o.get("ouverte"))))
+        if allumees is not None and o.get("allume") and allumee(o):
+            allumees.append((id, o))
+        if lumiere and allumee(o):
             source = salle_source(m, o)
-            cle.append((id, source, position_cible(m, id, source) if source else None, o.get("luminosite")))
+            cle.append(("source", id, source, position_cible(m, id, source) if source else None,
+                        o.get("luminosite")))
         if o.get("bloque_vue"):
-            cle.append((id, o.get("lieu"), tuple(o.get("position") or ()), bool(o.get("incorpore"))))
+            if o.get("lieu") in salles and o["type"] not in ("porte", "surface") and _COMPOSEES_PLACE.isdisjoint(o):
+                # Posé dans une salle : sa case ne dépend que de ces clés (``_salle_position``).
+                cle.append(("opaque", id, o.get("lieu"), o.get("position_salle"), tuple(o.get("position") or ()),
+                            bool(o.get("incorpore"))))
+            else:
+                cle.append(("opaque_place", id, bool(o.get("incorpore")), o.get("lieu") == "joueur",
+                            tuple(position_cible(m, id, salle) for salle in salles)))
     return tuple(cle)
+
+
+# Ce qui place un objet autrement que sa salle et sa case.
+_COMPOSEES_PLACE = frozenset(("appui_vertical", "installation", "cote", "position_autonome"))
+
+
+class VueGeometrique:
+    """Ce qui borne la vue autour d'une salle, lumière à part : les salles reliées, leurs cases et
+    seuils, les obstacles opaques. Les lignes de vue s'y calculent une fois ; dans
+    ``vue_memorisee``, elle est partagée par toutes les cartes de lumière de même géométrie."""
+
+    def __init__(self, m, salle):
+        self.salles = _salles_relies(m, salle)
+        # Les salles d'où une lueur peut parvenir, par des passages ouverts (``_eclairage_pieces``).
+        self.atteintes = _salles_atteintes(m, salle)
+        self.terrain, self.opaques = _globales(m, self.salles)
+        self._lignes = {}
+        # Les cases du sol des salles reliées : ((salle, x, y), case globale).
+        self.sol = [((salle, x, y), _global(m.data["salles"][salle], (x, y)))
+                    for salle in self.salles for x, y in cases(m.data["salles"][salle])]
+
+    def ligne(self, a, b):
+        """``_los_global`` de a vers b. Seule l'extrémité b peut être ajoutée un instant au terrain
+        (un seuil qu'on regarde) : sa présence fait partie de la clé."""
+        cle = (a, b, b in self.terrain)
+        resultat = self._lignes.get(cle)
+        if resultat is None:
+            resultat = self._lignes[cle] = _los_global(None, a, b, self.terrain, self.opaques)
+        return resultat
+
+    def mutuelle(self, a, b):
+        """Vue symétrique : Bresenham diffère selon le sens, on exige les deux tracés libres."""
+        return self.ligne(a, b) and self.ligne(b, a)
+
+
+def _salles_atteintes(m, salle):
+    """Les salles reliées à une salle par des passages sans porte fermée, à tout niveau."""
+    vus, file = {salle}, deque([salle])
+    while file:
+        courante = file.popleft()
+        for sortie in m.data["salles"][courante]["sorties"].values():
+            porte = m.objets.get(sortie.get("porte"))
+            if porte and not porte.get("ouverte"):
+                continue
+            if sortie.get("vers") not in vus:
+                vus.add(sortie.get("vers"))
+                file.append(sortie.get("vers"))
+    return vus
+
+
+def vue_geometrique(m, salle, geometrie=None):
+    """La géométrie de la vue d'une salle, gardée dans ``vue_memorisee`` par signature sans lumière
+    (``geometrie``, si elle est déjà calculée)."""
+    cache = getattr(m, "_cache_vue", None)
+    if cache is None:
+        return VueGeometrique(m, salle)
+    geometries = cache["persistant"]["geometries"]
+    cle = (salle, signature_vue(m, lumiere=False) if geometrie is None else geometrie)
+    if cle not in geometries:
+        geometries[cle] = VueGeometrique(m, salle)
+    return geometries[cle]
+
+
+def signature_salle(m, salle):
+    """La signature de la vue depuis une salle : la géométrie (signature sans lumière) et les
+    seules sources dont la lumière peut y parvenir. D'une salle reliée, une source éclaire
+    directement : sa case compte ; d'une salle atteinte par des passages ouverts, elle n'envoie
+    qu'une lueur diffuse : sa salle et sa force comptent. Une lanterne qu'on promène ailleurs ne
+    change pas ce qu'on voit ici."""
+    from .perception import allumee, salle_source
+    allumees = []
+    geometrie = signature_vue(m, lumiere=False, allumees=allumees)
+    vue = vue_geometrique(m, salle, geometrie)
+    sources = []
+    for id, o in allumees:
+        origine = salle_source(m, o)
+        if origine in vue.atteintes:
+            sources.append((id, origine, o.get("luminosite"),
+                            position_cible(m, id, origine) if origine in vue.salles else None))
+    return geometrie, tuple(sources)
+
+
+# Ce que lit la perception sur chaque objet (``percus``, ``visible``, ``position_cible``, la lumière
+# et les lignes de vue) : ce qui le place, le montre ou le cache, l'éclaire ou bloque la vue.
+CLES_VUE = ("id", "type", "lieu", "position_salle", "orientation", "detail_local", "incorpore", "allume",
+            "luminosite", "ouverte", "bloque_vue", "masse", "longueur_cm", "mobile", "cote", "attache", "nom",
+            "position_autonome", "ancrage_initial")
+# Valeurs composées, rares, figées par leur texte : une modification en place change l'empreinte.
+CLES_VUE_COMPOSEES = ("ancrage_carte", "positions_salles", "appui_vertical", "installation")
+_COMPOSEES = frozenset(CLES_VUE_COMPOSEES)
+ETATS_GARDES = 8      # états récents dont on garde la perception (un regard tourné puis rendu revient au même)
+
+
+def etat_vue(m):
+    """Empreinte de tout ce dont dépend la perception, hors géométrie des salles : pour chaque objet,
+    les clés de ``CLES_VUE``, s'il éclaire, sa case et ses clés de ``CLES_VUE_COMPOSEES`` ; le joueur.
+    Deux états de même empreinte se perçoivent de la même façon, par tout acteur."""
+    from .perception import allumee
+    j = m.joueur
+    p = j.get("position")
+    return (j.get("salle"), None if p is None else tuple(p), j.get("orientation"), tuple([
+        (cle, tuple(map(o.get, CLES_VUE)), bool(o.get("allume")) and allumee(o),
+         None if (p := o.get("position")) is None else tuple(p),
+         None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES))))
+        for cle, o in m.objets.items()]))
+
+
+def _memo_vue(m):
+    """Le mémo de l'état courant (positions, champs, perceptions des acteurs), à l'intérieur de
+    ``vue_memorisee`` ; None ailleurs. La clé est l'empreinte complète de l'état (``etat_vue``) ;
+    dans ``etat_fige``, celle calculée en entrant."""
+    cache = getattr(m, "_cache_vue", None)
+    if cache is None:
+        return None
+    if "fige" in cache:
+        return cache["fige"]
+    etat = etat_vue(m)
+    etats = cache.setdefault("etats", {})
+    memo = etats.get(etat)
+    if memo is None:
+        if len(etats) >= ETATS_GARDES:
+            del etats[next(iter(etats))]
+        memo = etats[etat] = {}
+    return memo
+
+
+@contextmanager
+def etat_fige(m):
+    """Un bloc qui ne touche ni aux objets ni au joueur (il ne révise que des esprits) : l'empreinte
+    de l'état n'y est calculée qu'une fois. En vérification, on contrôle qu'il n'a rien changé."""
+    cache = getattr(m, "_cache_vue", None)
+    if cache is None or "fige" in cache:
+        yield
+        return
+    cache["fige"] = _memo_vue(m)
+    avant = etat_vue(m) if VERIFICATION else None
+    try:
+        yield
+    finally:
+        del cache["fige"]
+    assert avant is None or etat_vue(m) == avant, "État modifié dans un bloc figé"
+
+
+# Part des lectures mémorisées recomparées à un calcul de zéro (0 : aucune, 1 : toutes) ; un écart
+# lève une AssertionError. Réservé aux tests et aux bancs de vérification.
+VERIFICATION = 0.0
+
+
+def a_verifier():
+    if not VERIFICATION:
+        return False
+    import random
+    global _TIRAGE
+    if _TIRAGE is None:
+        _TIRAGE = random.Random(1985)
+    return _TIRAGE.random() < VERIFICATION
+
+
+_TIRAGE = None
+
+
+@contextmanager
+def sans_memoire(m):
+    """Le temps du bloc, tout est recalculé de zéro (vérification de la mémoire de la vue)."""
+    cache = m.__dict__.pop("_cache_vue", None)
+    try:
+        yield
+    finally:
+        if cache is not None:
+            m._cache_vue = cache
 
 
 @contextmanager
 def vue_memorisee(m):
     """Pendant la vie des PNJ, la géométrie ne change pas : cartes de lumière et champs de vision
-    sont gardés tant que la signature de la vue ne change pas. Hors de ce bloc, tout est recalculé."""
+    sont gardés tant que la signature de la vue ne change pas ; positions et perceptions, tant que
+    l'état ne change pas (``etat_vue``). Hors de ce bloc, tout est recalculé.
+
+    Lignes de vue, ce qu'on voit autour d'une case et champs de vision ne dépendent que des salles
+    et de la signature : ils restent gardés d'un bloc à l'autre (``_memoire_geometrie``)."""
     ancien = getattr(m, "_cache_vue", None)
-    m._cache_vue = {} if ancien is None else ancien
+    m._cache_vue = {"persistant": _memoire_geometrie(m)} if ancien is None else ancien
     try:
         yield
     finally:
@@ -464,18 +732,60 @@ def vue_memorisee(m):
             del m._cache_vue
 
 
-def _vue(m, acteur="joueur", signature=None):
-    """Origine globale du regard d'un acteur, terrain et carte de lumière des salles reliées."""
+_MEMOIRE = threading.local()   # par fil d'exécution : rien n'est partagé entre deux fils
+GEOMETRIES_GARDEES = 4
+ENTREES_MAX = 5000             # par sorte d'entrée et par géométrie ; au-delà, on repart de zéro
+
+
+def _memoire_geometrie(m):
+    """La mémoire de la vue pour la géométrie actuelle des salles (plans, sorties, niveaux, jour),
+    clé : le texte complet des salles. Deux mondes de mêmes salles et de même signature se voient
+    de la même façon : la mémoire ne garde rien d'autre qui leur soit propre."""
+    memoires = getattr(_MEMOIRE, "geometries", None)
+    if memoires is None:
+        memoires = _MEMOIRE.geometries = {}
+    cle = repr(m.data["salles"])
+    if cle not in memoires:
+        if len(memoires) >= GEOMETRIES_GARDEES:
+            del memoires[next(iter(memoires))]
+        memoires[cle] = {"geometries": {}, "alentours": {}, "portees": {}, "champs": {}, "places": {}}
+    memoire = memoires[cle]
+    for entrees in memoire.values():
+        if len(entrees) > ENTREES_MAX:
+            entrees.clear()
+    return memoire
+
+
+def _signature(m, memo, salle):
+    if memo is None:
+        return signature_salle(m, salle)
+    if ("signature", salle) not in memo:
+        memo["signature", salle] = signature_salle(m, salle)
+    return memo["signature", salle]
+
+
+def carte_lumiere(m, salle, memo=None):
+    """La carte de lumière d'une salle, gardée par signature de la vue dans ``vue_memorisee``."""
     from .perception import CarteLumiere
-    salle, position = position_acteur(m, acteur)
     cache = getattr(m, "_cache_vue", None)
     if cache is None:
-        lumiere = CarteLumiere(m, salle)
-    else:
-        cle = ("lumiere", salle, signature or signature_vue(m))
-        if cle not in cache:
-            cache[cle] = CarteLumiere(m, salle)
-        lumiere = cache[cle]
+        return CarteLumiere(m, salle)
+    # Hors d'un état figé, la signature seule coûte moins que l'empreinte complète.
+    signature = _signature(m, cache.get("fige") if memo is None else memo, salle)
+    cle = ("lumiere", salle, signature)
+    if cle not in cache:
+        carte = cache[cle] = CarteLumiere(m, salle, vue_geometrique(m, salle, signature[0]))
+        # Ce qu'on voit autour de chaque case, jusqu'où porte la vue sur chaque case : ils ne
+        # dépendent que des salles et de la signature.
+        carte.alentours = cache["persistant"]["alentours"].setdefault((salle, signature), {})
+        carte.portees = cache["persistant"]["portees"].setdefault((salle, signature), {})
+    return cache[cle]
+
+
+def _vue(m, acteur="joueur", memo=None):
+    """Origine globale du regard d'un acteur, terrain et carte de lumière des salles reliées."""
+    salle, position = position_acteur(m, acteur)
+    lumiere = carte_lumiere(m, salle, memo)
     origine = _global(m.data["salles"][salle], position)
     return origine, lumiere
 
@@ -483,11 +793,22 @@ def _vue(m, acteur="joueur", signature=None):
 def _vu(m, origine, lumiere, cible, orientation=None):
     if not dans_le_cone(origine, orientation, cible):
         return False
-    niveau = lumiere.niveau(cible)
-    portee = PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
-    if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > portee:
+    distance = max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1]))
+    if distance > PORTEE_VUE[2]:
+        return False  # Au-delà de la plus longue vue, inutile de chercher la lumière.
+    if distance > _portee(lumiere, cible):
         return False
-    return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
+    return lumiere.geometrie.mutuelle(origine, cible)
+
+
+def _portee(lumiere, cible):
+    """Jusqu'où l'on voit une case : loin si elle est éclairée ou reçoit une lumière directe, de
+    près dans la pénombre, pas du tout dans le noir. Gardé par la carte de lumière."""
+    portee = lumiere.portees.get(cible)
+    if portee is None:
+        niveau = lumiere.niveau(cible)
+        portee = lumiere.portees[cible] = PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
+    return portee
 
 
 def acteurs_vus(m, acteur, autres):
@@ -522,7 +843,7 @@ def dans_le_regard(m, salle, case, acteur="joueur"):
         return False
     if not dans_le_cone(origine, orientation_acteur(m, acteur), cible):
         return False
-    return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
+    return lumiere.geometrie.mutuelle(origine, cible)
 
 
 def sortie_visible(m, salle, direction, acteur="joueur"):
@@ -575,24 +896,45 @@ def sortie_connue(m, salle, direction):
 
 def champ_visible(m, acteur="joueur"):
     """Cases vues maintenant par l'acteur, incluant les paliers d'une porte ouverte."""
+    return set(_champ(m, acteur, _memo_vue(m)))
+
+
+def _champ(m, acteur, memo):
+    """Le champ de l'acteur, à ne pas modifier : gardé dans ``vue_memorisee`` par état (``memo``),
+    et par position, regard et signature de la vue d'un état à l'autre."""
+    if memo is not None and ("champ", acteur) in memo:
+        return memo["champ", acteur]
     cache = getattr(m, "_cache_vue", None)
-    signature = cle = None
+    cle = None
     orientation = orientation_acteur(m, acteur)
     if cache is not None:
-        signature = signature_vue(m)
-        cle = ("champ", *position_acteur(m, acteur), orientation, signature)
-        if cle in cache:
-            return set(cache[cle])
-    origine, lumiere = _vue(m, acteur, signature)
-    vus = set()
-    for salle in lumiere.salles:
-        piece = m.data["salles"][salle]
-        for x, y in cases(piece):
-            if _vu(m, origine, lumiere, _global(piece, (x, y)), orientation):
-                vus.add((salle, x, y))
+        champs = cache["persistant"]["champs"]
+        salle, position = position_acteur(m, acteur)
+        cle = (salle, position, orientation, _signature(m, memo, salle))
+        if cle in champs:
+            memo["champ", acteur] = champs[cle]
+            return champs[cle]
+    origine, lumiere = _vue(m, acteur, memo)
+    vus = {case for case, cible in _alentour(m, origine, lumiere) if dans_le_cone(origine, orientation, cible)}
     if cache is not None:
-        cache[cle] = frozenset(vus)
+        champs[cle] = memo["champ", acteur] = frozenset(vus)
     return vus
+
+
+def _alentour(m, origine, lumiere):
+    """Ce qu'on verrait d'une case en regardant tout autour : [((salle, x, y), case globale)]. Le
+    regard ne fait que retrancher ce qui sort du cône : gardé par la carte de lumière, pour toute
+    orientation et tout acteur qui se tient là."""
+    if origine not in lumiere.alentours:
+        geometrie, vues = lumiere.geometrie, []
+        ox, oy = origine
+        for case, cible in geometrie.sol:
+            distance = max(abs(cible[0] - ox), abs(cible[1] - oy))
+            if (distance <= PORTEE_VUE[2] and distance <= _portee(lumiere, cible)
+                    and geometrie.mutuelle(origine, cible)):
+                vues.append((case, cible))
+        lumiere.alentours[origine] = vues
+    return lumiere.alentours[origine]
 
 
 def murs_visibles(m, champ=None, acteur="joueur"):
@@ -624,6 +966,13 @@ def murs_visibles(m, champ=None, acteur="joueur"):
 
 
 def memoriser(m):
+    """Ce que le joueur voit maintenant devient connu : cases, murs, objets et portes vus. Ne touche
+    ni aux objets ni au joueur : sa vue n'y est calculée qu'une fois."""
+    with vue_memorisee(m), etat_fige(m):
+        return _memoriser(m)
+
+
+def _memoriser(m):
     from .carte import objets_visibles_cases, symbole_objet_cases, symbole_porte_cases
     from .francais import designer
 

@@ -147,6 +147,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   4 nuits identique ; nœuds examinés 185 000 → 11 700 ; une nuit 10,1 s → 5,6 s (processeur).
   `planification.VERIFIER` refait chaque résultat repris ou borné par une recherche complète :
   toute lecture nouvelle de la recherche (un coût, une croyance) doit entrer dans `_entrees`.
+- Branche `perception-rapide` : ce que perçoit un acteur, les places des objets et les champs
+  sont gardés tant que l'empreinte complète de l'état ne change pas (`spatial.etat_vue` : chaque
+  clé que lit la perception) ; une consultation qui ne révise que des esprits la calcule une fois
+  (`etat_fige`). Lignes de vue, vue autour d'une case et champs ne dépendent que des salles et de
+  la signature d'une salle (seules les sources qui peuvent l'éclairer) : gardés d'une étape à
+  l'autre, clé le texte des salles. `spatial.VERIFICATION` recompare les lectures mémorisées à un
+  calcul de zéro. Empreintes des 4 nuits identiques, aussi en vérification complète. Perception :
+  2,7 s → 1,0 s par nuit (30 % → 13 %), au profil 33 % → 11 % ; une nuit 9,1 s → 7,4 s ; 4 nuits
+  12,2 s → 10,1 s.
 - La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente

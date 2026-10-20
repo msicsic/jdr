@@ -234,11 +234,17 @@ def _temoigner(monde, geste):
     Appelé tant que le geste dure, il compte aussi ceux qui arrivent ou se retournent
     entre-temps ; chacun n'en est témoin qu'une fois (``geste["temoins"]``).
     """
-    from .deliberation import VOL, relancer
     from .vol import proprietaire
     id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
     victime = proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
+    from .spatial import etat_fige
+    with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
+        _temoins(monde, id, souvenir, victime)
+
+
+def _temoins(monde, id, souvenir, victime):
+    from .deliberation import VOL, inquieter, relancer
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
             geste["temoins"].append(autre)
@@ -246,7 +252,6 @@ def _temoigner(monde, geste):
                 geste["se_sait_vu"].append(autre)
             memoriser(monde, autre, souvenir)
             croire(monde, autre, id, "fiable", False, "vu")
-            from .deliberation import inquieter
             inquieter(monde, autre, "illicite")
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
@@ -1023,11 +1028,14 @@ def _observer_presences(monde, suivi):
     ou la quitter est un passage perçu s'il le voit franchir le seuil : y être vu en entrant, ou
     y être vu juste avant d'en sortir. Un tel passage qu'il ne voit pas efface le précédent ;
     aller d'une autre salle à une autre n'y change rien."""
+    from .spatial import etat_fige
     ici, vus = monde.joueur["salle"], {}
+    with etat_fige(monde):  # Rien ne change pendant ce relevé : l'état n'est lu qu'une fois.
+        perception = {id: monde.visible(id) for id in suivi if id in monde.objets}
     for id, s in suivi.items():
         if id not in monde.objets:
             continue
-        visible, lieu = monde.visible(id), monde.objets[id]["lieu"]
+        visible, lieu = perception[id], monde.objets[id]["lieu"]
         avant_visible, avant_lieu, avant_ici = s["dernier"]
         if lieu != avant_lieu and lieu == ici:
             s["passage"] = "entree" if visible else None

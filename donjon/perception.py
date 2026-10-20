@@ -37,12 +37,13 @@ def eclairage(monde, salle=None, position=None):
     """Niveau perçu à la position du joueur ; en mode cases, calculé case par case."""
     salle = salle or monde.joueur["salle"]
     if _par_case(monde, salle):
+        from .spatial import carte_lumiere
         if position is None and salle == monde.joueur["salle"]:
             position = monde.joueur["position"]
         if position is not None:
-            return CarteLumiere(monde, salle).eclairage(salle, position)
+            return carte_lumiere(monde, salle).eclairage(salle, position)
         from .geometrie import cases
-        carte = CarteLumiere(monde, salle)
+        carte = carte_lumiere(monde, salle)
         return max((carte.eclairage(salle, p) for p in cases(monde.data["salles"][salle])),
                    key=lambda e: e["niveau"])
     return _eclairage_pieces(monde, salle, _sources(monde) + _jour(monde))
@@ -112,11 +113,12 @@ class CarteLumiere:
     lumière du jour garde le modèle par pièce.
     """
 
-    def __init__(self, monde, salle):
-        from .spatial import _global, _globales, _salles_relies, position_cible
+    def __init__(self, monde, salle, geometrie=None):
+        from .spatial import _global, position_cible, vue_geometrique
         self.monde = monde
-        self.salles = _salles_relies(monde, salle)
-        self.terrain, self.opaques = _globales(monde, self.salles)
+        # Salles reliées, terrain et obstacles : la géométrie de la vue, partagée à lumière près.
+        self.geometrie = vue_geometrique(monde, salle) if geometrie is None else geometrie
+        self.salles, self.terrain, self.opaques = self.geometrie.salles, self.geometrie.terrain, self.geometrie.opaques
         self.sources = []
         for o in monde.objets.values():
             if not allumee(o):
@@ -129,12 +131,13 @@ class CarteLumiere:
                 self.sources.append((o["id"], origine, _global(monde.data["salles"][origine], p),
                                      PORTEES[max(1, min(3, o["luminosite"]))]))
         self._ambiance, self._cache = {}, {}
+        self.alentours = {}   # par case d'origine : ce qu'on y voit tout autour (``spatial._alentour``)
+        self.portees = {}     # par case : jusqu'où porte la vue (``spatial._portee``)
 
     def directes(self, cible):
         """Lumière directe reçue par une case globale, une entrée par source."""
         if cible in self._cache:
             return self._cache[cible]
-        from .spatial import _los_global
         ajoute = cible not in self.terrain
         if ajoute:
             self.terrain[cible] = None
@@ -143,7 +146,7 @@ class CarteLumiere:
             dx, dy = origine[0] - cible[0], origine[1] - cible[1]
             distance = max(abs(dx), abs(dy))
             niveau = 2 if distance <= plein else 1 if distance <= penombre else 0
-            if niveau and (distance == 0 or _los_global(self.monde, origine, cible, self.terrain, self.opaques)):
+            if niveau and (distance == 0 or self.geometrie.ligne(origine, cible)):
                 resultat.append({"source": id, "niveau": niveau,
                                  "direction": BOUSSOLE.get(((dx > 0) - (dx < 0), (dy > 0) - (dy < 0)), "")})
         if ajoute:
