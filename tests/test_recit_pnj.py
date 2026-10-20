@@ -46,5 +46,15 @@ class RecitTests(unittest.TestCase):
                          "obtenir une part (les planches de bac) d'Aubin")
 
 
+class NuitsTests(unittest.TestCase):
+    def test_des_nuits_en_parallele_comme_une_a_une(self):
+        from donjon.banc_pnj import nuit, nuits, tableau
+        ensemble = nuits("relais", [7, 42], 1, "chambre_cloche")
+        seule = nuit("relais", 42, 1, "chambre_cloche")
+        self.assertEqual(ensemble[1][1], seule[1])
+        self.assertEqual(ensemble[1][0], seule[0])
+        self.assertIn("moyenne", tableau([7, 42], [m for _, m, _ in ensemble]))
+
+
 if __name__ == "__main__":
     unittest.main()
