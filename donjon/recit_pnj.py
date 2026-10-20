@@ -19,7 +19,7 @@ MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim"
           "chaleur": "froid", "engagement": "parole donnée", "alerte": "alerte", "menager": "ménager la flamme"}
 BESOINS = {"securite": "sécurité", "repos": "fatigue", "chaleur": "froid"}
 GESTES = {"prendre": "prendre", "ouvrir": "ouvrir", "crocheter": "crocheter", "manger": "manger",
-          "deverrouiller": "déverrouiller", "poser": "poser"}
+          "deverrouiller": "déverrouiller", "poser": "poser", "pousser": "pousser"}
 
 
 def court(monde, id):
@@ -33,6 +33,8 @@ def _salle(monde, id):
 
 
 def _objet(monde, id):
+    if id == "joueur":
+        return court(monde, id)
     return designer(monde.objets[id]) if id in monde.objets else str(id)
 
 

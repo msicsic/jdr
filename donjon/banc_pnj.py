@@ -16,6 +16,7 @@ from collections import Counter
 import json
 
 from .esprits import lire, pnjs
+from .pnj import CONTRAINTES
 from .moteur import Moteur, proposition
 
 PAS = 5
@@ -109,10 +110,17 @@ def executer(monde, minutes, recit=None):
                "minutes_urgentes_sans_recours": blocage,
                "usurpations": usurpations,
                "renoncements": memoire["renoncement"],
-               "vols_vus": memoire["vu_agir"], "absences": memoire["absence"],
+               "vols_vus": sum(1 for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+                               if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES),
+               "absences": memoire["absence"],
                "confidences": sum(" dit à " in c["texte"] for c in chronique),
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
                "mefiances": mefiances, "jets": monde.data["jets"],
+               # Laisser passer (``passage``) : pas de côté, demandes de passage, poussées.
+               "ecarts": sum("s'écarte pour laisser passer" in c["texte"] for c in chronique),
+               "passages_demandes": sum(" demande à " in c["texte"] and "laisser passer" in c["texte"]
+                                        for c in chronique),
+               "poussees": sum(" pousse " in c["texte"] for c in chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.

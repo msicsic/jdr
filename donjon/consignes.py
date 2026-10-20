@@ -82,6 +82,11 @@ court (méthode, risque), jamais un résultat.
   est seul). Avec un accord accepté pour cet objet, le moteur verse la récompense convenue, une
   seule fois ; sinon c'est un don, sans contrepartie. Une question sur le paiement n'est pas une
   remise.
+- pousser : bousculer un personnage au contact de Corvus, outil = la direction de la poussée
+  (exception au champ outil), vide pour l'écarter de son chemin. Le moteur tranche par un jet de
+  FOR opposé ; réussi, le personnage recule d'une case. Réussie ou non, la bousculade coûte la
+  confiance de la victime et des témoins. Demander à quelqu'un de se pousser, de s'écarter ou de
+  laisser passer est une parole (parole_joueur, contenu passage), pas cette action.
 - clarifier, impossible : identifiants vides ; justification = la question ou la limite, que le
   joueur lit telle quelle : écris-la à la deuxième personne, dans la fiction. Une règle
   manquante n'est pas une impossibilité physique : utilise improviser. Un refus final explique

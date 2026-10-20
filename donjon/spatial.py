@@ -1036,21 +1036,45 @@ def preparer_pas(m, direction):
     if type(dx) is not int or type(dy) is not int or max(abs(dx), abs(dy)) != 1:
         _erreur("Le déplacement doit avancer d'une case.")
     pas = pas_vers(m, m.joueur["salle"], tuple(m.joueur["position"]), (dx, dy))
-    # Aucun pas ne s'achève sur la case d'un autre : on ne s'arrête pas sur quelqu'un.
-    from .pnj import occupants
-    occupant = occupants(m, "joueur").get((pas["salle"], tuple(pas["position"])))
-    if occupant is not None:
-        from .francais import designer
-        from .monde import ErreurMonde
-        if m.visible(occupant):
-            raise ErreurMonde(designer(m.objets[occupant], debut=True) + " se tient là, sur ton passage.",
-                              f"la case visée est occupée par {occupant} ; un pas mène sur une case libre.")
-        raise ErreurMonde("Quelqu'un se tient là, sur ton passage.",
-                          "la case visée est occupée par un personnage ; un pas mène sur une case libre.")
     if pas["salle"] != m.joueur["salle"]:
         from .eau import refuser_entree
         refuser_entree(m, pas["salle"])
-    return {"salle": pas["salle"], "position": pas["position"]}
+    destination = {"salle": pas["salle"], "position": pas["position"]}
+    # Aucun pas ne s'achève sur la case d'un autre : on ne s'arrête pas sur quelqu'un. Celui qui
+    # s'y tient s'écarte de lui-même, sauf raison de rester (``passage.laisser_passer``).
+    from .pnj import occupants
+    arrivee = (pas["salle"], tuple(pas["position"]))
+    occupant = occupants(m, "joueur").get(arrivee)
+    if occupant is not None:
+        from .passage import laisser_passer
+        case, raison = laisser_passer(m, occupant, "joueur", [arrivee])
+        if case is None:
+            raise _sur_le_passage(m, occupant, raison)
+        destination["ecart"] = {"personnage": occupant, "salle": case[0], "position": list(case[1])}
+    return destination
+
+
+def _sur_le_passage(m, occupant, raison):
+    """Le refus d'un pas sur la case d'un personnage qui ne s'écarte pas : le joueur voit ce qu'il
+    ne fait pas, pas ce qu'il pense ; le MJ reçoit la raison et ce qui reste possible."""
+    from .francais import designer
+    from .monde import ErreurMonde
+    o = m.objets[occupant]
+    vu = m.visible(occupant)
+    nom = designer(o, debut=True) if vu else "Quelqu'un"
+    message = {"geste": " se tient là, sur ton passage, occupé" + ("e" if o.get("genre") == "f" else "")
+                        + " à ce qu'" + ("elle" if o.get("genre") == "f" else "il") + " fait.",
+               "place": " se tient là, sur ton passage, sans place pour s'écarter."}.get(
+        raison, " se tient là, sur ton passage, et ne s'écarte pas.")
+    pourquoi = {"geste": "un geste en cours le retient sur sa case", "mefiance": "il se méfie de Corvus",
+                "orgueil": "sa fierté l'emporte de loin sur son altruisme",
+                "place": "aucune case voisine libre hors du chemin"}.get(raison, raison)
+    qui = occupant if vu else "un personnage"
+    return ErreurMonde(nom + message,
+                       f"la case visée est occupée par {qui}, qui ne s'écarte pas de lui-même ({pourquoi}) ; "
+                       "un pas mène sur une case libre. Pour passer : le lui demander (parole_joueur, contenu "
+                       f"{{type passage}} adressé à {qui}), ou le pousser (action pousser, cible {qui}), "
+                       "ou passer ailleurs.")
 
 
 def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):

@@ -184,6 +184,9 @@ remettre : cible objet porté, outil = identifiant du destinataire (exception au
   ou vide si le destinataire est sans ambiguïté. Exige un accord accepté et le PNJ présent.
   La remise transfère l'objet et verse une seule fois la récompense convenue. Une simple
   Question sur le paiement ou déclaration de possession ne signifient pas remise.
+pousser : cible personnage au contact, outil = direction de la poussée (exception au champ outil)
+  ou vide pour l'écarter du chemin. Jet de FOR opposé résolu par le moteur. Demander de s'écarter est une
+  parole (contenu passage), pas cette action.
 clarifier/impossible : identifiants vides, justification courte expliquant la limite ou la question.
   Le joueur lit cette justification telle quelle : écris-la à la deuxième personne, dans la fiction.
 
@@ -225,7 +228,7 @@ SCHEMA = {
     "properties": {
         "action": {"type": "string", "enum": ACTIONS},
         "cible": {"type": "string", "description": "Identifiant exact de la cible visible, direction, ou chaîne vide."},
-        "outil": {"type": "string", "description": "Identifiant d'un outil possédé, ou chaîne vide. Pour remettre seulement : identifiant du PNJ destinataire."},
+        "outil": {"type": "string", "description": "Identifiant d'un outil possédé, ou chaîne vide. Pour remettre : identifiant du PNJ destinataire ; pour pousser : direction de la poussée ou vide."},
         "methode": {"type": "string", "enum": METHODES},
         "difficulte": {"type": "integer", "description": "0 hors détachement ; estimation entre 11 et 22 pour une fixation."},
         "justification": {"type": "string", "description": "Avis d'arbitrage bref ; ne décrire aucun résultat."},
