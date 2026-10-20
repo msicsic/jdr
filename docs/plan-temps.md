@@ -127,10 +127,78 @@ Limites :
 - le chemin par salles ne connaît d'un obstacle que le seuil qu'il barre : un obstacle qui
   coupe une salle en deux donne un geste manqué à chaque minute, jusqu'au renoncement ;
 - personne ne s'écarte pour laisser passer : un PNJ qui doit s'arrêter sur la case d'un autre
-  pour ouvrir une porte attend ;
+  pour ouvrir une porte attend. Corrigé ensuite (branche `laisser-passer`, voir « Correctif :
+  laisser passer ») ;
 - les autres façons de placer le joueur (escalade, appui) ne vérifient pas encore la case.
 - Mesure : le banc ne recueille pas la chronique de la première minute de chaque pas de cinq
   minutes (`c["minute"] > vue`) ; constaté, non corrigé ici.
+## Correctif : laisser passer (branche `laisser-passer`)
+
+Cas réel (partie de l'utilisateur) : Brune, désœuvrée sur le seuil du refuge, barrait la seule
+sortie au joueur. « Je demande à Brune de se pousser » : Luna lui faisait promettre de bouger,
+mais rien ne la déplaçait, et Luna répétait ensuite qu'elle l'avait promis ; « je la pousse »
+était refusé, faute d'action. Un PNJ ne bougeait que pour ses propres buts ; un PNJ en attendait
+un autre qui le bloquait. Trois règles communes, joueur compris (`donjon/passage.py`, détail dans
+`docs/mecaniques.md`, « Laisser passer, demander le passage, pousser ») :
+
+- **Laisser passer.** Qui doit s'arrêter sur la case d'un PNJ (le pas du joueur, la case d'où un
+  PNJ ouvre une porte ou atteint ce qu'il touche) le voit s'écarter d'une case, hors de son
+  chemin, le temps d'un pas de côté, et passer d'abord ; sauf raison de rester (un geste en cours
+  là où il se tient, dont la porte qu'il va ouvrir) ou refus d'aider (méfiance, fierté qui
+  l'emporte de 30 points sur l'altruisme). Le pas du joueur attend ce pas de côté, ou il est
+  refusé avec un `attendu` qui dit pourquoi et ce qui reste possible.
+- **Demander le passage** : contenu de parole typé `passage` ; le moteur tranche (méfiance,
+  raison de rester, place, puis jet de persuasion pour l'orgueilleux) et le PNJ s'écarte
+  vraiment avant que Luna ne fasse répondre le personnage d'après cette issue.
+- **Pousser** : action `pousser` (commande `pousser <personnage> [vers <direction>]`), jet de
+  FOR opposé, 3 s ; réussi, la victime recule d'une case hors du chemin de l'auteur. Contrainte
+  légère : victime et témoins (registre des gestes en cours) cessent de croire l'auteur fiable.
+  La douceur 100 l'interdit ; sinon c'est une faute au prix de la douceur. Un PNJ bloqué attend
+  qu'on s'écarte, demande, puis pousse si ses valeurs le permettent, sinon patiente et renonce à
+  la longue ; il prie le joueur de le laisser passer, et ne le pousse qu'après 30 s sans
+  réponse.
+
+Vérifié (`tests/test_passage.py`, état et texte lu après rechargement) : le cas réel reconstruit
+(Brune s'écarte du seuil, le joueur sort du refuge) et Ilse au milieu du refuge ; Brune méfiante,
+ou occupée à prendre les planches, qui reste ; la demande acceptée, refusée au jet, refusée par
+méfiance ; la poussée réussie (Brune écartée du seuil, Ilse témoin, Aubin qui l'apprend d'elle)
+et manquée ; deux PNJ à la porte étroite du palier (Aubin s'écarte pour Gorm ; méfiant, il
+refuse et Gorm, doux, patiente ; un Gorm brutal le pousse sous les yeux d'Ilse ; deux qui vont à
+la même porte passent l'un après l'autre) ; le joueur sur la case de la porte, prié de laisser
+passer, puis poussé par un Gorm brutal. Luna, sur la sauvegarde réelle : « je demande à Brune de
+se pousser » donne une parole typée `passage`, Brune s'écarte et la sortie est libre ; méfiante,
+elle refuse et la réplique le dit ; « je la pousse » donne l'action `pousser`, présentée avec son
+jet opposé avant « tenter ».
+
+Bancs : Relais (8 graines), mine et auberge (4 graines) identiques à `main`, aucune violation ni
+usurpation : personne n'y reste immobile sur la case d'arrêt d'un autre (les PNJ se traversent en
+marchant). Un premier essai faisait s'écarter, à l'auberge, Odile et Hugues l'un pour l'autre
+devant la porte de l'étable, sans fin (530 écarts par nuit) : d'où les deux règles « la porte
+qu'il va ouvrir le retient » et « celui qu'il laisse passer passe d'abord ». Joueur posté sur une
+porte : au Relais (`--joueur crypte`), 1,25 demande de passage par nuit, renoncements 1 → 1,25 ;
+à l'auberge (`--joueur cuisine`, la porte du cellier), 6,25 demandes, renoncements 1 → 7 (avant,
+ils attendaient sans fin, sans rien entreprendre d'autre), minutes urgentes oisives 778 → 988 ;
+aucune poussée, ces PNJ ayant la douceur entière.
+
+Limites :
+- les PNJ se traversent toujours en marchant ; seules la case où l'on s'arrête (porte à ouvrir,
+  ce qu'on touche) et le pas du joueur appellent ces règles ;
+- le choix de pousser se fait sur place, dans la marche, au prix que le planificateur donne aux
+  fautes (`caractere.prix_faute`, douceur) ; la recherche du planificateur, qui raisonne par
+  salles, ne prévoit ni de pousser ni de contourner quelqu'un qui refuse ;
+- on ne s'écarte que d'une case, dans sa salle : dans une impasse large d'une case, personne ne
+  peut laisser passer (« place ») ;
+- s'écarter de soi-même ne demande pas de percevoir le passant (il est au contact) ;
+- garder un lieu ne retient pas sur une case (garder, c'est se tenir dans la salle) ;
+- demander à un tiers de faire bouger quelqu'un n'est pas modélisé (un `passage` dont le sujet
+  n'est pas l'interlocuteur reste un propos) ; qu'une réplique ne promette pas un déplacement
+  non décidé n'est garanti que par la consigne et le contenu typé (Luna a repris une fois « je
+  vais me pousser » de la conversation, alors que Brune bougeait) ;
+- un essai avec Luna sur trois s'est conclu par la réponse de repli « Je ne peux pas encore
+  répondre avec certitude » (contrôle narratif, sans trace : cause non établie), comme deux fois
+  dans la partie réelle ;
+- le joueur prié de laisser passer n'a pas de réponse typée : rester 30 s vaut refus.
+
 ## Après relecture : le temps sans état caché (branche `temps-fin-etat`)
 
 Une relecture du jalon a montré que le monde dépendait du découpage des actions du joueur :

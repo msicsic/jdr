@@ -502,7 +502,8 @@ locuteur contre un DD que la confiance règle et que la VOL de l'auditeur élèv
 encore employée par aucune règle.
 
 Les valeurs d'un PNJ (0 à 100) sont des poids, stables. Une valeur à 100 interdit : honnêteté
-100, ni voler ni mentir ; douceur 100, ne pas blesser (aucun geste violent n'existe encore).
+100, ni voler ni mentir ; douceur 100, ni blesser ni pousser (pousser est le seul geste de
+contrainte du moteur, voir « Laisser passer, demander le passage, pousser »).
 Les anciennes limites deviennent ces valeurs à leur comble au chargement (`ne_vole_pas` et
 `ne_ment_pas` : honnêteté 100 ; `ne_blesse_pas` : douceur 100), les autres valeurs à 50.
 
@@ -512,11 +513,14 @@ Les anciennes limites deviennent ces valeurs à leur comble au chargement (`ne_v
   (usure = détresse × 10 / VOL). Une faute qui coûterait plus de 60 minutes n'est pas
   envisagée : à 90, on ne vole qu'à bout ; à 20, on se sert plutôt que de traverser le relais
   pour demander.
+- **Douceur** : pousser quelqu'un est une faute au même prix, calculé sur la douceur ; une
+  douceur de 75 ou moins l'envisage sans détresse, 90 seulement à bout.
 - **Altruisme** : le DD d'une demande (objet prêté, part de vivres ou de bois) baisse d'un
   point par dizaine au-dessus de 50 chez celui qui donne, monte en dessous.
 - Les valeurs vont au stratège et au MJ avec les traits (le MJ ne fait mentir un personnage
-  que si son honnêteté le permet). Empathie, ambition, courage, loyauté et fierté ne pèsent
-  encore sur aucune règle du moteur.
+  que si son honnêteté le permet). La fierté, avec l'altruisme, décide si l'on s'écarte de
+  soi-même pour laisser passer. Empathie, ambition, courage et loyauté ne pèsent encore sur
+  aucune règle du moteur.
 
 #### Échanges entre PNJ et stratège
 
@@ -567,7 +571,7 @@ précision selon l'INT (très pauvre ≤ 7, pauvre ≤ 9, courante ≤ 12, préc
 aisance selon le CHA (même découpage, de très maladroite à brillante). Luna écrit la réplique
 dans cette bande et type son contenu, trois éléments au plus : `affirmation` (sujet, attribut
 `lieu`, `verrouillee` ou `fiable`, valeur), `demande` (un objet que le personnage porte),
-`propos`. Des mots du joueur entre guillemets sont prononcés tels quels. La réplique est
+`passage` (qu'il s'écarte, se pousse, laisse passer : voir ci-dessous), `propos`. Des mots du joueur entre guillemets sont prononcés tels quels. La réplique est
 enregistrée avant l'affichage, qui commence par « Tu dis : « … » ».
 
 L'effet ne dépend pas des mots de Luna. Corvus ne peut parler que de ce qu'il connaît :
@@ -589,6 +593,48 @@ croyances au plus, celles qu'on leur a dites d'abord), leur but actuel et leurs 
 pressants : jamais la vérité à leur place, jamais leur profil brut. Les objets qu'un
 personnage porte ne sont pas perçus par le joueur s'ils sont petits et éteints, avec la
 même règle que pour les PNJ.
+
+#### Laisser passer, demander le passage, pousser
+
+Trois règles communes au joueur et aux PNJ (`donjon/passage.py`), en mode cases.
+
+- **Laisser passer.** Personne ne s'arrête sur la case d'un autre. Quand quelqu'un doit
+  s'arrêter sur la case d'un PNJ (un pas du joueur ; pour un PNJ, la case d'où il ouvre une
+  porte, ou la seule d'où il atteint ce qu'il veut toucher), ce PNJ s'écarte de lui-même d'une
+  case, le temps d'un pas de côté (3 s), puis laisse l'autre passer d'abord : vers une case
+  voisine libre de sa salle, hors du
+  chemin de l'autre (ni sa case, ni celle qui suit dans le sens du passage), de côté d'abord.
+  Il reste s'il a une raison de rester : un geste en cours là où il se tient (ce qu'il touche
+  est à portée de sa main), ou la porte qu'il s'apprête à ouvrir ; ou s'il ne veut pas aider
+  ce passant : il le croit peu fiable, ou sa fierté dépasse son altruisme de 30 points ou plus
+  (qui le croit fiable l'aide toujours). Garder un lieu, pour le moteur, c'est se tenir dans
+  une salle : un pas de côté ne l'en fait pas sortir. Le joueur lit « Brune s'écarte pour te
+  laisser passer. » puis « Tu avances d'un pas. » ; sinon le pas est refusé (« Brune se tient
+  là, sur ton passage, et ne s'écarte pas. »), et le MJ reçoit la raison et ce qui reste
+  possible : le lui demander ou le pousser.
+- **Demander le passage.** Une demande typée (contenu `passage` d'une parole du joueur ; geste
+  d'un PNJ bloqué), que le moteur tranche : refusée s'il a une raison de rester ou se méfie du
+  demandeur, impossible s'il n'a pas la place ; acceptée sans jet par qui s'écarterait de
+  lui-même ; l'orgueilleux se laisse convaincre par le jet de persuasion contre 8, moins un
+  point par dizaine d'altruisme au-dessus de 50, plus un par dizaine de fierté. Acceptée, il
+  s'écarte réellement avant la réponse du personnage, que Luna écrit d'après cette issue
+  (« Brune s'écarte d'un pas pour te laisser passer. ») ; une réplique ne promet pas de bouger
+  plus tard.
+- **Pousser.** Un geste de 3 s au contact (action `pousser`, commande `pousser <personnage>
+  [vers <direction>]`) : d20 + FOR modulée contre d20 + FOR modulée de la victime, l'égalité
+  ne déplace pas. Réussi, la victime recule d'une case libre dans le sens de la poussée, jamais
+  vers celui qui pousse ; sans direction, elle est écartée du chemin : de biais, de côté, droit
+  devant en dernier. Réussie ou non, c'est une contrainte légère : la victime cesse de croire
+  l'auteur fiable et s'en inquiète ; ceux qui voient faire pendant le geste (registre des gestes
+  en cours, `vu_agir` de l'opération `pousser`) aussi, et peuvent le raconter.
+- **Un PNJ bloqué** attend d'abord que l'autre s'écarte de lui-même, ou qu'il ait fini le geste
+  qui le retient là ; sinon il le lui demande (une parole de 10 s, s'ils se voient), puis,
+  refusé, le pousse hors de son chemin si sa
+  douceur le permet (au prix de la faute, voir « Caractéristiques et valeurs ») ; sinon il
+  patiente, minute par minute, et un but ordinaire finit par être abandonné (`PATIENCE`). Le
+  joueur sur son passage n'est jamais déplacé d'office : il est prié de le laisser passer
+  (« Gorm te demande de le laisser passer. ») ; s'il n'a pas bougé 30 s plus tard, c'est un refus,
+  et un PNJ peu doux peut le pousser (« Gorm te pousse : tu recules d'un pas. »).
 
 #### Horloges d'environnement
 

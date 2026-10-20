@@ -195,7 +195,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   → ~4,7 s (4 nuits en parallèle). Constat : combinées, la marche et la perception par événement
   redonnent au Relais une nuit proche de celle d'avant (mêmes mesures), alors que chacune seule
   multipliait échanges et vols vus ; à examiner avec le rejeu.
-- La suite de tests passe : 759 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `laisser-passer` (vu en partie : Brune, désœuvrée sur le seuil du refuge, barrait la
+  sortie ; Luna lui faisait promettre de se pousser sans que rien ne la déplace, et « je la
+  pousse » était refusé) : trois règles communes, joueur compris (`donjon/passage.py`). Un PNJ
+  sur la case où l'on doit s'arrêter s'écarte d'une case hors du chemin, sauf geste en cours
+  (dont la porte qu'il va ouvrir), méfiance ou fierté qui l'emporte de 30 sur l'altruisme ;
+  sinon le pas du joueur est refusé avec un `attendu`. Demander le passage est un contenu de
+  parole typé (`passage`) que le moteur tranche ; acceptée, le PNJ bouge vraiment. Pousser :
+  action et commande, jet de FOR opposé, la victime recule d'une case ; victime et témoins
+  cessent de croire l'auteur fiable ; douceur 100 l'interdit, sinon faute au prix de la
+  douceur. Un PNJ bloqué attend, demande, pousse si ses valeurs le permettent, sinon patiente et
+  renonce ; il prie le joueur de le laisser passer. Bancs Relais (8 graines), mine et auberge :
+  identiques à `main` (personne n'y bloque quelqu'un d'immobile). Joueur posté sur une porte
+  (`--joueur crypte` au Relais, `--joueur cuisine` à l'auberge) : les PNJ le prient de les
+  laisser passer (1,25 et 6,25 demandes par nuit), puis renoncent au bout de 30 min au lieu
+  d'attendre sans fin (renoncements 1 → 1,25 et 1 → 7) ; aucune poussée, tous ces PNJ ayant la
+  douceur entière. Luna (3 parties courtes) type la demande `passage` et l'action `pousser`.
+  Détail, cas vérifiés et limites dans `docs/plan-temps.md`, « Correctif : laisser passer ».
+- La suite de tests passe : 777 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
