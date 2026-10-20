@@ -2,11 +2,12 @@
 moins coûteuse qui atteint son but.
 
 Chaque geste est déclaré une fois : ses conditions sur l'état cru, ses effets, son coût. Le
-caractère entre dans les coûts : une limite interdit un geste ; s'en prendre au bien d'autrui
-est une faute, comptée une fois par personne lésée, et un plan qui en a moins passe toujours
-avant ; demander coûte un peu ; un geste difficile coûte selon sa chance de réussir. La recherche part de ce que le PNJ
-croit (jamais de la vérité du monde) et simule ce que le plan change à mesure : ce qu'il aura
-pris, ouvert, déverrouillé, allumé, où il se tiendra.
+caractère entre dans les coûts : s'en prendre au bien d'autrui est une faute, comptée une fois
+par personne lésée, dont le prix vient de ses valeurs (``caractere.prix_faute``) ; à
+l'honnêteté entière, le geste est interdit ; demander coûte un peu ; un geste difficile coûte
+selon sa chance de réussir. La recherche part de ce que le PNJ croit (jamais de la vérité du
+monde) et simule ce que le plan change à mesure : ce qu'il aura pris, ouvert, déverrouillé,
+allumé, où il se tiendra.
 
 Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par geste revalidé sur
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
@@ -248,8 +249,8 @@ def _etape(operation, cible="", outil="", lieu="", condition="", contenu=None):
 
 def chance_crochetage(monde, id, lumiere):
     """Comme le jet de ``pnj._crocheter`` : d20 + DEX contre 14, plus 4 par niveau de lumière manquant."""
-    dex = profil(monde, id)["caracteristiques"]["DEX"]
-    reussites = 21 - (14 + 4 * (2 - lumiere) - (dex - 10) // 2)
+    from .caractere import modificateur
+    reussites = 21 - (14 + 4 * (2 - lumiere) - modificateur(monde, id, "DEX"))
     return min(1.0, max(CHANCE_MIN, reussites / 20))
 
 
@@ -422,7 +423,7 @@ def _entrees(v, vises, profondeur, noeuds):
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
-             emplois=None):
+             emplois=None, motif=None):
     """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None,
     depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant). ``nom`` désigne le but
     dans les diagnostics.
@@ -434,14 +435,19 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     résultat : tant que rien de ce que lit la recherche n'a changé (``_entrees``), le même but
     rend le même résultat sans refaire la recherche.
 
-    Le coût est (personnes lésées, minutes) : le moins fautif d'abord. Renvoie
-    (coût, étapes, état final)."""
+    Le coût est en minutes ; chaque personne lésée y ajoute le prix d'une faute, selon son
+    honnêteté et la détresse du besoin ``motif`` (``caractere.prix_faute``) ; une faute qu'il
+    n'envisage pas écarte le geste. Renvoie (coût, étapes, état final)."""
+    from .caractere import modificateur, prix_faute
     debut = perf_counter()
     v = Vue(monde, id)
+    faute = prix_faute(monde, id, motif)
     v.emplois = None if emplois is None else frozenset(emplois)
     garde = None
     if memo is not None and depuis is None:
-        entrees = _entrees(v, vises, profondeur, noeuds)
+        # Ce que la recherche lit de son caractère et de son état : le prix d'une faute, et
+        # l'adresse modulée qui fait la chance de crocheter.
+        entrees = json.dumps([_entrees(v, vises, profondeur, noeuds), faute, modificateur(monde, id, "DEX")])
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
@@ -452,14 +458,14 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         trouve = None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
     else:
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
-                                                          noeuds)
+                                                          noeuds, faute)
         issue = "plan" if trouve else "borne" if examines >= noeuds else "epuise"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
                                issue)
     if VERIFIER and (garde is not None or v.emplois is not None):
         brute = Vue(monde, id)
-        refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds)[0]
+        refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute)[0]
         assert refait == trouve, (f"Recherche de {id} ({nom}, {'mémoire' if garde else 'emplois'}) : {trouve} "
                                   f"au lieu de {refait}")
     if DIAGNOSTIC is not None:
@@ -470,12 +476,13 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     return trouve
 
 
-def _explorer(v, depart_, but, vises, profondeur, noeuds):
-    """A* sur les états crus : (trouvé ou None, nœuds examinés, états vus, profondeur atteinte)."""
+def _explorer(v, depart_, but, vises, profondeur, noeuds, faute):
+    """A* sur les états crus : (trouvé ou None, nœuds examinés, états vus, profondeur atteinte).
+    ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas."""
     ordre = count()
-    infini = (float("inf"), float("inf"))
-    file = [((0, 0), next(ordre), depart_, [], 0)]
-    vus = {depart_: (0, 0)}
+    infini = float("inf")
+    file = [(0, next(ordre), depart_, [], 0)]
+    vus = {depart_: 0}
     examines = plus_profond = 0
     trouve = None
     while file and examines < noeuds:
@@ -492,9 +499,11 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds):
         # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
         brule = sum(1 for k in e.portes if e.fait("allume", k))
         for fautes, minutes, ajout, suivant in gestes(v, e, vises, but):
+            if fautes and faute is None:
+                continue
             if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
                 continue
-            total = (cout[0] + fautes, cout[1] + minutes * (1 + FLAMME_EN_MAIN * brule))
+            total = cout + fautes * (faute or 0) + minutes * (1 + FLAMME_EN_MAIN * brule)
             if total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1))
@@ -548,7 +557,7 @@ def planifier(monde, id, besoin):
     """(but, étapes) pour apaiser la faim ou le froid, ou None."""
     but = {"faim": a_mange, "chaleur": rechauffe}[besoin]
     trouve = chercher(monde, id, but, nom=besoin, memo=["besoin", besoin],
-                      emplois={"faim": ("manger",), "chaleur": ("feu",)}[besoin])
+                      emplois={"faim": ("manger",), "chaleur": ("feu",)}[besoin], motif=besoin)
     if trouve is None:
         return None
     _, etapes, e = trouve

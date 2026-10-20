@@ -4,13 +4,17 @@ Les mêmes règles valent pour le joueur et pour les PNJ. Une affirmation démen
 l'auditeur a vu récemment est rejetée et le locuteur perd sa confiance ; sinon un jet de CHA
 du locuteur, contre un DD que la confiance de l'auditeur abaisse ou relève, décide s'il la
 croit. Un objet n'est remis que par celui qui le porte, s'il fait confiance au demandeur et
-n'en a pas besoin. Une tâche confiée devient un engagement que le planificateur du moteur
+n'en a pas besoin ; son altruisme rend le partage plus facile, sa volonté (``jet_persuasion``)
+le rend plus dur à convaincre. Une tâche confiée devient un engagement que le planificateur du moteur
 exécute quand rien de plus urgent ne presse. Tout est déterministe hors des jets du moteur.
 """
+from .caractere import penchant
 from .esprits import croire, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
 
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
+PARTAGE = 12           # DD d'une demande (une part, un objet prêté), que l'altruisme de celui qui donne abaisse
+TACHE = 12             # DD d'une tâche confiée
 
 
 def clarte(monde, auditeur):
@@ -105,7 +109,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None):
         if not any(x["condition"] == condition for x in engagements):
             if _plan_pulsion(monde, auditeur, condition) is None:
                 return "impossible"
-            if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
+            if not jet_persuasion(monde, auditeur, demandeur, PARTAGE - penchant(monde, auditeur, "altruisme"))[0]:
                 return "refus"
             engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
             memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
@@ -114,7 +118,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None):
         return "promis"
     if necessaire(monde, auditeur, objet):
         return "necessaire"
-    if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
+    if not jet_persuasion(monde, auditeur, demandeur, PARTAGE - penchant(monde, auditeur, "altruisme"))[0]:
         return "refus"
     deplacer(monde, objet, demandeur)
     memoriser(monde, auditeur, {"type": "pret", "objet": objet, "a": demandeur})
@@ -133,7 +137,7 @@ def confier(monde, demandeur, auditeur, condition):
         return "deja"
     if _plan_pulsion(monde, auditeur, condition) is None:
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
-    if not jet_persuasion(monde, auditeur, demandeur, 12)[0]:
+    if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
         return "refus"
     esprit(monde, auditeur)["engagements"].append(
         {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]})

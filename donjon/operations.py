@@ -385,7 +385,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                        and percoit(monde, id, "joueur")]
             if temoins:
                 p.stat = "DEX"
-                vigilance = max(monde.objets[id]["vigilance"] + 2 * mefiance(monde, id) for id in temoins)
+                # Remarquer relève de la PER : les états du témoin (fatigue) la modulent.
+                from .corps import malus
+                vigilance = max(monde.objets[id]["vigilance"] + 2 * mefiance(monde, id)
+                                + (malus(monde, "PER", id) if monde.objets[id].get("profil") else 0) for id in temoins)
                 occasion = 2 if precedent and precedent["operation"] == "patienter" else 0
                 p.dd = min(25, max(2, vigilance + (2 if masse > 1 else 0) + (2 if monde.data["bruit"] >= 6 else 0) - occasion))
                 if illicite:

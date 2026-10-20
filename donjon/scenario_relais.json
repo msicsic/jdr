@@ -652,14 +652,22 @@
           "DEX": 10,
           "INT": 11,
           "PER": 13,
-          "CHA": 9
+          "CHA": 9,
+          "VOL": 13,
+          "ELO": 8,
+          "PSY": 11
         },
         "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
-        "limites": [
-          "ne_vole_pas",
-          "ne_blesse_pas",
-          "ne_ment_pas"
-        ],
+        "valeurs": {
+          "altruisme": 70,
+          "empathie": 55,
+          "honnetete": 100,
+          "douceur": 100,
+          "ambition": 30,
+          "courage": 70,
+          "loyaute": 85,
+          "fierte": 60
+        },
         "capacites": [],
         "besoins": {
           "devoir": {
@@ -936,12 +944,22 @@
           "DEX": 15,
           "INT": 12,
           "PER": 11,
-          "CHA": 11
+          "CHA": 11,
+          "VOL": 11,
+          "ELO": 10,
+          "PSY": 12
         },
         "traits": "Batelière évacuée, affamée depuis la veille, débrouillarde et peu scrupuleuse ; elle évite la violence.",
-        "limites": [
-          "ne_blesse_pas"
-        ],
+        "valeurs": {
+          "altruisme": 35,
+          "empathie": 40,
+          "honnetete": 20,
+          "douceur": 100,
+          "ambition": 50,
+          "courage": 60,
+          "loyaute": 40,
+          "fierte": 50
+        },
         "capacites": [
           "crochetage"
         ],
@@ -1057,14 +1075,22 @@
           "DEX": 11,
           "INT": 12,
           "PER": 14,
-          "CHA": 13
+          "CHA": 13,
+          "VOL": 9,
+          "ELO": 12,
+          "PSY": 12
         },
         "traits": "Meunière évacuée, bavarde et curieuse ; elle répète ce qu'elle a vu et s'inquiète de la crue. Honnête, elle ne prend rien qui ne soit à elle.",
-        "limites": [
-          "ne_vole_pas",
-          "ne_blesse_pas",
-          "ne_ment_pas"
-        ],
+        "valeurs": {
+          "altruisme": 55,
+          "empathie": 65,
+          "honnetete": 100,
+          "douceur": 100,
+          "ambition": 30,
+          "courage": 30,
+          "loyaute": 55,
+          "fierte": 40
+        },
         "capacites": [],
         "besoins": {
           "securite": {
@@ -1125,14 +1151,22 @@
           "DEX": 9,
           "INT": 9,
           "PER": 12,
-          "CHA": 8
+          "CHA": 8,
+          "VOL": 13,
+          "ELO": 9,
+          "PSY": 12
         },
         "traits": "Vieux passeur évacué, taciturne et honnête ; il surveille le niveau de l'eau aux vannes et dit à Gorm ce qu'il a vu.",
-        "limites": [
-          "ne_vole_pas",
-          "ne_blesse_pas",
-          "ne_ment_pas"
-        ],
+        "valeurs": {
+          "altruisme": 50,
+          "empathie": 45,
+          "honnetete": 100,
+          "douceur": 100,
+          "ambition": 20,
+          "courage": 60,
+          "loyaute": 80,
+          "fierte": 55
+        },
         "capacites": [],
         "besoins": {
           "securite": {

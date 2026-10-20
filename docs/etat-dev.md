@@ -167,6 +167,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   froid de soi), un objet prêté encore illicite pour l'emprunteur s'il a un propriétaire déclaré, une
   nouvelle sans lieu (le marchand ne retrouve pas son ballot), aucun recours au bruit pour retrouver
   quelqu'un dans le noir, le froid sec trop lent (2 par heure) pour menacer qui est au sec.
+- Branche `caracteres-valeurs` (étape 1 de `docs/plan-social.md`, `donjon/caractere.py`) : VOL,
+  ELO et PSY pour tous ; les états modulent les caractéristiques par une règle commune (la
+  fatigue touche aussi INT et PER ; volonté brisée prévue en donnée) ; persuasion d20 + CHA + ELO
+  contre la VOL de l'auditeur. Huit valeurs de 0 à 100 dans le profil ; les limites deviennent
+  honnêteté ou douceur 100 (profils et sauvegardes migrés au chargement). Une faute a un prix
+  en minutes selon l'honnêteté, usé par la détresse, moins vite avec de la volonté ; l'altruisme
+  de qui donne facilite une demande. Banc : même ordre, plus d'échanges, moins de vols dans
+  certaines nuits ; bilan et limites dans `docs/plan-social.md`.
 - La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
@@ -178,6 +186,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
   Après le jeu dans le navigateur : les caractères et valeurs.
+  Faits : **temps fin et orientation** (`docs/plan-temps.md`), puis l'étape 1, caractères et
+  valeurs (sans l'empathie). Suite de l'ordre proposé : la crue, niveau d'eau.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

@@ -97,7 +97,9 @@ class JoueurTests(unittest.TestCase):
         m.joueur.update(salle="echoppe", position=[3, 5])
         corps.valeurs(m, "joueur").update(faim=80.0, repos=85.0)
         self.assertEqual(corps.malus(m, "DEX"), -2 * corps.MALUS)
-        self.assertEqual(corps.malus(m, "INT"), 0)
+        # La fatigue rend aussi confus ; ni la faim ni la fatigue ne touchent la présence.
+        self.assertEqual(corps.malus(m, "INT"), -corps.MALUS)
+        self.assertEqual(corps.malus(m, "CHA"), 0)
         # Un sifflement n'a pas de jet ; un vol discret sous les yeux de Gorm en a un.
         deplacer(m, "bois", "echoppe")
         placer(m, "bois", "echoppe", (4, 5))

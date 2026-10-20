@@ -6,13 +6,14 @@ dépend de son caractère), ou qui reste désœuvré une heure. Il reçoit les t
 les besoins, les croyances, les souvenirs récents et les gestes possibles du PNJ ; jamais la
 vérité du monde. Il renvoie un plan typé, « suivre » le plan du moteur, ou « attendre ».
 
-Le moteur valide chaque geste : identifiants connus du PNJ, limites (``ne_vole_pas``,
-``ne_ment_pas``) et capacités ; un écart est renvoyé une fois au stratège. Une étape qui
+Le moteur valide chaque geste : identifiants connus du PNJ, valeurs à leur comble (une
+honnêteté de 100 ne vole ni ne ment) et capacités ; un écart est renvoyé une fois au stratège. Une étape qui
 échoue à l'exécution abandonne la stratégie. Le budget est plafonné par PNJ et par heure
 de jeu. Rien de ce qu'écrit Luna n'est montré au joueur, qui ne perçoit que les gestes.
 """
 from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, confie_a_autrui,
                            illicite, profil, refuse_recemment, salle_crue, seuils)
+from .caractere import caracteristiques, interdit
 from .echanges import demande_de_part
 from .esprits import esprit, lire, memoriser, percoit, pnjs
 from .monde import ErreurMonde
@@ -59,12 +60,13 @@ On ne demande un objet qu'à celui que le dossier dit le porter (lieu_cru), et l
 que ce que l'on porte ou que le plan aura obtenu.
 Les autres décident eux-mêmes de te croire, de te remettre un objet ou d'accepter une tâche.
 Le moteur ajoute seul la précaution de n'être vu de personne pour un geste sur le bien
-d'autrui. Respecte les limites : ne_vole_pas interdit de prendre, ouvrir, crocheter ou manger
-le bien d'autrui ; ne_ment_pas interdit de dire autre chose que ce qu'il croit. N'emploie que
+d'autrui. Les valeurs (0 à 100) pèsent ses choix ; une honnêteté de 100 interdit de prendre,
+ouvrir, crocheter ou manger le bien d'autrui et de dire autre chose que ce qu'il croit. N'emploie que
 des identifiants du dossier. besoin : celui que sert la stratégie. but : une courte phrase à
 l'infinitif (« demander la clé à Gorm »). justification : une phrase, d'après ses traits.
 Joue le personnage tel que ses traits le décrivent, même peu recommandable : c'est une
-fiction, et un caractère sans scrupule peut tricher, mentir ou voler s'il n'en a pas la limite.
+fiction, et un caractère sans scrupule peut tricher, mentir ou voler, d'autant plus que son
+honnêteté est basse.
 Si refus_precedent est présent, corrige la proposition d'après l'erreur indiquée.
 """
 
@@ -155,7 +157,7 @@ def dossier(monde, id, declencheur, besoin=None, plan_moteur=None):
               for o in _connus(monde, id) if monde.objets[o]["type"] != "personnage"]
     return {
         "personnage": {"id": id, "nom": monde.objets[id]["nom"], "traits": p["traits"],
-                       "caracteristiques": p["caracteristiques"], "limites": p["limites"],
+                       "caracteristiques": caracteristiques(monde, id), "valeurs": p["valeurs"],
                        "capacites": p["capacites"], "salle": monde.objets[id]["lieu"]},
         "minute": minute,
         "declencheur": {"nature": declencheur, "sens": DECLENCHEURS[declencheur], "besoin": besoin or ""},
@@ -262,7 +264,7 @@ def _etape(monde, id, n, x, obtenus):
                 valeur = valeur == "oui"
             else:
                 raise faute("attribut lieu, verrouillee ou fiable, avec une valeur qui lui convient")
-            if "ne_ment_pas" in p["limites"] and _cru(monde, id, sujet, attribut) != valeur:
+            if interdit(monde, id, "honnetete") and _cru(monde, id, sujet, attribut) != valeur:
                 raise faute("il ne ment pas : il ne peut dire que ce qu'il croit, et il ne croit pas cela")
             etape["contenu"] = {"sujet": sujet, "attribut": attribut, "valeur": valeur}
         else:
@@ -308,7 +310,7 @@ def _etape(monde, id, n, x, obtenus):
         if op == "prendre":
             obtenus.add(cible)
         if op in ("prendre", "ouvrir", "crocheter", "manger", "servir") and illicite(monde, id, cible):
-            if not autorise(monde, id, cible) or op != "prendre" and "ne_vole_pas" in p["limites"]:
+            if not autorise(monde, id, cible):
                 raise faute("il ne vole pas : ce bien est à un autre")
             etape["condition"] = "sans_temoin"
     return etape

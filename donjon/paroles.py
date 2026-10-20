@@ -62,8 +62,9 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
   dont Corvus demande une part ; attribut et valeur vides} ;
 - propos {sujet, attribut et valeur vides} pour tout le reste.
 Le moteur te renvoie conversation_validee : fais répondre le personnage d'après ce résultat,
-ses croyances et ses traits (esprits_interlocuteurs). Ce qu'il croit n'est pas un fait : il
-peut le dire, se tromper ou le taire, et n'avoue son intention que si ses traits s'y prêtent.
+ses croyances, ses traits et ses valeurs (esprits_interlocuteurs, valeurs de 0 à 100). Ce qu'il
+croit n'est pas un fait : il peut le dire, se tromper ou le taire, et n'avoue son intention que
+si ses traits s'y prêtent ; il ne ment que si son honnêteté le permet (jamais à 100).
 """
 
 
@@ -81,17 +82,19 @@ def capacite_transmission(intelligence):
 
 
 def _stats_pnj(monde, id):
-    if id == "joueur":
-        return monde.joueur["stats"]
-    profil = monde.objets[id].get("profil")
-    return profil["caracteristiques"] if profil else {"FOR": 10, "DEX": 10, "INT": 10, "PER": 10, "CHA": 10}
+    """Les caractéristiques d'un personnage (joueur compris), modulées par ses états."""
+    from .caractere import caracteristiques
+    return caracteristiques(monde, id)
 
 
 def jet_persuasion(monde, auditeur, locuteur, dd_base):
-    """d20 + CHA du locuteur contre un DD que la confiance de l'auditeur abaisse ou relève."""
+    """d20 + présence (CHA) et éloquence (ELO) du locuteur, contre un DD que la confiance de
+    l'auditeur abaisse ou relève et que sa volonté (VOL) élève ; caractéristiques modulées."""
+    from .caractere import modificateur
     confiance = lire(monde, auditeur)["croyances"].get(locuteur, {}).get("fiable")
-    dd = dd_base + (-2 if confiance and confiance["valeur"] else 6 if confiance else 2)
-    return monde.d20() + (_stats_pnj(monde, locuteur)["CHA"] - 10) // 2 >= dd, dd
+    dd = (dd_base + (-2 if confiance and confiance["valeur"] else 6 if confiance else 2)
+          + modificateur(monde, auditeur, "VOL"))
+    return monde.d20() + modificateur(monde, locuteur, "CHA") + modificateur(monde, locuteur, "ELO") >= dd, dd
 
 
 def dementi(monde, auditeur, sujet, attribut, valeur):
@@ -155,6 +158,7 @@ def esprits_interlocuteurs(monde, presents):
                                       + _ouidire(monde, c["source"])))
         resultat[id] = {
             "traits": profil["traits"] if profil else "",
+            "valeurs": dict(profil["valeurs"]) if profil else {},
             "croit": [texte for *_, texte in sorted(croyances)[:12]],
             "but_actuel": copy.deepcopy(e["intention"]["but"]) if e["intention"] else None,
             "besoins_pressants": urgents(monde, id) if profil else [],
@@ -336,7 +340,7 @@ def preparer_parole(monde, p, revision=None):
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     travail = monde.copier()
     stats_auditeur = _stats_pnj(travail, auditeur)
-    capacite = min(capacite_transmission(travail.joueur["stats"]["INT"]),
+    capacite = min(capacite_transmission(_stats_pnj(travail, "joueur")["INT"]),
                    capacite_transmission(stats_auditeur["INT"]))
     faits = []
     transmis = [x for x in (_typer(travail, c, auditeur) for c in p["contenu"]) if x]
