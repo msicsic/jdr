@@ -180,7 +180,9 @@ def scene_percue(monde):
                 o["porte"] = [{"id": k, "nom": designer(monde.objets[k]), "type": monde.objets[k]["type"],
                                **({"allume": bool(monde.objets[k]["allume"])} if "allume" in monde.objets[k] else {})}
                               for k in sorted(monde.objets)
-                              if k != objet["id"] and porte_par(monde, k, objet["id"]) and monde.visible(k)]
+                              if k != objet["id"] and porte_par(monde, k, objet["id"]) and monde.visible(k)
+                              # Son corps n'est pas ce qu'il tient : barbe, mains, détails incorporés.
+                              and monde.objets[k]["type"] != "partie_corps" and not monde.objets[k].get("incorpore")]
             objets.append(o)
         # Les bouts d'une échelle installée, connus du joueur, portent le même code de liaison.
         for support in monde.objets.values():

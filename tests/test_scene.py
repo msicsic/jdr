@@ -55,7 +55,7 @@ class ScenePercueTests(unittest.TestCase):
         m.objets["pied_de_biche"].pop("position", None)
         gorm = objets(scene_percue(m))["marchand"]
         self.assertEqual(gorm["orientation"], "est")
-        self.assertIn("pied_de_biche", [x["id"] for x in gorm["porte"]])
+        self.assertEqual([x["id"] for x in gorm["porte"]], ["pied_de_biche"])  # Ni sa barbe ni ses mains.
 
     def test_ce_qu_il_ne_voit_plus_reste_un_souvenir_a_sa_place(self):
         m = relais()
