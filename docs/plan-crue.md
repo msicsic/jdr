@@ -55,7 +55,9 @@ provisoires.
 ```
 
 Données à changer : les altitudes (aujourd'hui toutes les salles sont à 0, sauf la galerie à
-240 cm ; les salles basses doivent passer sous le refuge), la barque, l'introduction.
+240 cm ; les salles basses doivent passer sous le refuge), la barque, l'introduction. Les
+altitudes et l'introduction le sont dans le scénario dérivé `crue` (voir « Étape 3 faite ») ; le
+Relais reste tel quel pour les tests et son banc.
 
 ## La menace
 
@@ -240,7 +242,7 @@ Le joueur reste passif pendant ce travail ; tout est observé au banc sans joueu
    ne rien perdre (événements, 0 violation, minutes sans recours, temps de calcul), puis voir
    si un affamé sans recours trouve d'autres voies sans qu'on les lui écrive.
 3. **Niveau d'eau**, avec un banc : les PNJ fuient l'eau, montent, perdent le feu, sans autre
-   ajout.
+   ajout. Fait (branche `crue-eau`), voir ci-dessous.
 4. **Influence et relations** : disputes et persuasion entre PNJ.
 5. **Agir ensemble**, puis **quitter la scène**.
 6. **Passerelle et cale** (fabrication, étape 4) si une salle coupée le demande.
@@ -248,6 +250,61 @@ Le joueur reste passif pendant ce travail ; tout est observé au banc sans joueu
    disputes vues, alliances, aucune violation.
 
 Chaque étape reste mesurée au banc et peut s'arrêter là si elle n'apporte rien.
+
+## Étape 3 faite : le niveau d'eau
+
+Branche `crue-eau`. Mécanisme décrit dans `docs/mecaniques.md` (« Crue : le niveau d'eau »).
+
+**Le moteur** (`donjon/eau.py`) : un niveau tiré de la graine (`seed:crue`), parti d'un niveau de
+départ déclaré, qui monte jusqu'à l'heure du pic sans dépasser sa hauteur, puis baisse. Une
+salle mouillée trempe qui s'y tient ; noyée (100 cm), elle ne se traverse plus et un feu posé y
+meurt. Mêmes règles pour le joueur (pas, `aller`, échelle, `allumer`) et pour les PNJ (chemins,
+trajets, gestes).
+
+**Le scénario `crue`** (`donjon/scenario_crue.json`, `donjon/crue.py`), dérivé du Relais :
+refuge 0, conduite basse -120 (le brasero), salle des vannes -100, palier -60, galerie +240 ;
+eau au départ à -150 ; montée 20 à 50 cm/h, pic entre la 3e et la 6e heure, plafond -100 à
++80 cm, baisse 5 à 20 cm/h. Sur 2 000 graines : la conduite est noyée (feu perdu, galerie coupée
+du refuge) dans 36 % des nuits, le refuge mouillé dans 22 %. Le refuge ne communique qu'avec la
+conduite : monter à la galerie, c'est passer par les salles les plus menacées, avant qu'elles ne
+soient noyées.
+
+**Règles générales ajoutées**, aucune propre à un lieu ou à un personnage :
+- la croyance `eau` d'une salle (sa hauteur, le niveau, un repère) ; revue quinze minutes plus
+  tard, l'eau donne sa vitesse, et le PNJ l'attend là où elle arrivera dans l'heure ;
+- l'eau où l'on se tient inquiète selon sa hauteur, l'eau attendue aussi, la voir gagner un lieu
+  d'un coup ;
+- l'abri : un lieu où l'on croit ou attend l'eau n'en est pas un ; tant qu'on voit l'eau
+  monter, c'est le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie ;
+- debout dans l'eau, on ne sèche pas, même près du feu ;
+- un réflexe d'alerte sans passage cru tombe (révélé ici : Gorm restait des heures à vouloir
+  accourir vers la galerie coupée).
+
+**Banc** (16 graines × 8 h, `--scenario crue --joueur chambre_cloche`) : le feu se noie dans 5
+nuits ; quelqu'un monte à la galerie dans 14 (Aubin 11 fois, Gorm 6, Ilse 3, Brune jamais). Vers
+la 170e minute, le plus souvent : Aubin et Ilse, inquiets, voient l'eau monter dans la conduite,
+puis Brune forcer la réserve ; le premier qui prend la clé de la porte étanche monte, l'autre
+trouve la porte verrouillée et reste. On redescend quand l'eau cesse de monter, s'il reste un
+passage. Graine 8 : Gorm monte à 137 avec la clé, Ilse et Aubin à 172 par la porte qu'il a
+ouverte ; Brune, qui crochetait la réserve, reste au refuge, mouillé à partir de 202, et appelle
+à l'aide vingt-deux fois ; en haut, sans feu, Aubin finit à 91 de froid. Graine 9 : Aubin monte
+avec la clé ; le brasero se noie à 186, le refuge est mouillé à 216 ; Gorm, Brune et Ilse
+finissent dans 41 cm d'eau, sans feu, et appellent à l'aide. Le banc du Relais est inchangé
+(sortie identique octet pour octet sur 4 graines).
+
+Deux défauts communs révélés en route et corrigés : un PNJ prenait un objet dans la main d'un
+autre (la même clé, prise tour à tour par Aubin et Ilse) ; un PNJ demandait du bois pour un feu
+qu'il croit sous l'eau.
+
+**Limites** :
+- les salles à des altitudes différentes ne se voient plus entre elles (le moteur spatial les
+  traite comme des étages) : la lumière du brasero n'éclaire plus la salle des vannes ;
+- l'eau ne touche pas aux objets (bois mouillé, objets légers emportés) ; une salle inondée ne
+  refroidit pas plus selon la hauteur : être trempé suffit (10 de froid par heure) ;
+- un personnage dans une salle noyée sans issue y reste, sans danger propre (pas de nage,
+  pas de noyade) ; le bruit de l'eau n'est pas un son du monde ;
+- tous jugent la crue de la même façon (même horizon, même règle) : les avis divergents
+  viennent seulement de ce que chacun a vu ; les avis vrais relèvent de l'étape 4.
 
 ## Questions ouvertes
 

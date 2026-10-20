@@ -24,7 +24,11 @@ En ligne de commande :
 .\.venv\Scripts\python.exe jeu.py --defi --tui
 .\.venv\Scripts\python.exe jeu.py --atelier --cases --tui --debug
 .\.venv\Scripts\python.exe jeu.py --cases --console --offline
+.\.venv\Scripts\python.exe jeu.py --crue --tui --offline
 ```
+
+`--crue` joue le Relais dont l'eau monte selon la graine (`--seed`), sauvegardé dans
+`sauvegardes/crue.json`.
 
 La partie reprend automatiquement. `--new` recommence en conservant l'ancienne sauvegarde dans
 un fichier `.bak`. `--offline` interdit tout appel au modèle ; les commandes locales restent

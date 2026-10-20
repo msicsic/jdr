@@ -102,7 +102,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `crue-eau` (étape 3 de `docs/plan-crue.md`, non fusionnée) : un niveau d'eau tiré de la
+  graine par un tirage à part (`donjon/eau.py`) ; salles mouillées puis noyées (100 cm) selon
+  leur altitude ; l'eau trempe, éteint un feu posé, barre le passage, pour le joueur comme pour
+  les PNJ. Les PNJ voient l'eau, en jugent la vitesse, l'attendent dans l'heure ; l'eau inquiète,
+  un lieu menacé n'est pas un abri, et tant qu'elle monte l'abri est le plus haut lieu éclairé.
+  Scénario dérivé `crue` (`donjon/scenario_crue.json`, `jeu.py --crue`, `banc_pnj --scenario
+  crue`) ; le Relais et son banc sont inchangés. Banc 16 graines : feu noyé 5 fois, quelqu'un
+  monte à la galerie 14 fois. Corrigés en route : un réflexe d'alerte sans passage tombe ; un PNJ
+  ne prend rien dans la main d'autrui ; pas de bois demandé pour un feu cru sous l'eau.
+- La suite de tests passe : 680 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -110,7 +119,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (d'autres usages : passerelle, cale…) attend un accord. Limite : les planches du Relais ne
   suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
   test sur l'atelier, pas en partie au Relais.
-- **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`) ;
+- **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`,
+  étape 3, le niveau d'eau, faite sur `crue-eau` ; suite : influence et relations) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
   Prochain jalon décidé : **temps fin et orientation** (`docs/plan-temps.md`), avant les
   caractères et valeurs.
@@ -150,6 +160,8 @@ Non versionnés, donc absents d'un nouveau poste :
 - Banc moteur seul, sans appel à Luna, avec son récit (`--chronique` pour chaque pas) :
   `python -m donjon.banc_pnj --heures 8 --graine 1985 --joueur chambre_cloche` ; plusieurs nuits
   en parallèle, avec le tableau des mesures et leur moyenne : `--graines 1985 7 42 2024`.
+  `--scenario crue` joue la crue : récit de l'eau (tirage, salles gagnées, feux noyés, où chacun
+  finit) et mesures `minutes_dans_l_eau`, `feux_noyes`, `trempes_fin`, `au_sec_fin`.
 - Banc A/B du stratège, avec Luna, environ 15 minutes pour 8 graines :
   `python tools/banc_stratege.py --graines 1985 7 42 2024 --graines-sup 3 11 99 500`
   Plusieurs exécutions Luna peuvent tourner en même temps (le coffre sérialise le renouvellement

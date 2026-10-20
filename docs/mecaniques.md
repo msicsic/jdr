@@ -563,6 +563,31 @@ Les effets sont ceux des transitions de scénario : `deplacer`, `objectif` et `e
 (sources allumées des salles citées). Un effet devenu sans objet est ignoré
 (`donjon/horloges.py`). Aucun scénario fourni n'en déclare pour l'instant.
 
+#### Crue : le niveau d'eau
+
+Un scénario peut déclarer une `crue` (`donjon/eau.py`) : `depart_cm` (niveau au départ) et des
+bornes `[min, max]` pour `montee_cm_heure`, `heure_pic`, `hauteur_pic_cm` et, facultative,
+`baisse_cm_heure`. Les valeurs sont tirées une fois de la graine, par un tirage à part
+(`random.Random(f"{seed}:crue")`) que les jets ne décalent pas, et gardées dans la sauvegarde.
+L'eau monte de sa montée jusqu'à l'heure du pic sans dépasser sa hauteur, puis baisse.
+
+- Comparée à `altitude_cm`, une salle est **mouillée** dès qu'il y a de l'eau, **noyée** à
+  100 cm : on n'y entre plus (pas du joueur, `aller`, échelle ou saut, chemins et trajets des
+  PNJ ; on peut quitter celle où l'on est), et un feu posé que personne ne porte s'y éteint et
+  ne s'y rallume pas. Une source portée reste allumée.
+- Entrer ou se tenir dans l'eau trempe, joueur et PNJ ; debout dans l'eau, on ne sèche pas, même
+  près d'un feu (`corps`). Le joueur lit la hauteur d'eau dans la scène et sur les sorties
+  (« sous l'eau », « eau trop haute pour passer ») ; le MJ la reçoit dans `salle.eau`.
+- Un PNJ sent l'eau de sa salle et voit celle des salles voisines par un passage ouvert
+  (croyance `eau` de la salle). Revue quinze minutes plus tard, elle lui donne une vitesse : il
+  attend l'eau là où elle arrivera dans l'heure (à tort si le pic est proche). Se tenir dans
+  l'eau inquiète (2 par minute à 50 cm), l'attendre aussi (1), la voir gagner un lieu d'un coup
+  (10). Un lieu où il croit ou attend l'eau n'est pas un abri ; tant qu'il voit l'eau monter,
+  l'abri est le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie.
+- `python jeu.py --crue` (sauvegarde `crue.json`) et `python -m donjon.banc_pnj --scenario crue`
+  jouent le Relais dérivé (`donjon/scenario_crue.json`) : salles basses sous le refuge, galerie
+  au-dessus, brasero dans la conduite, la plus basse.
+
 `tools/test_cri_reel.py` vérifie la phrase exacte avec Luna seul, sans sauvegarde utilisateur.
 
 Depuis ce dossier :
