@@ -130,10 +130,11 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
 
 
 def faire_entendre(monde, id, auditeur, texte, cites, lignes):
-    """Ce que le joueur perçoit d'un échange : en clair s'il connaît chacun de ceux dont on parle."""
-    from .ecoute import bruit
+    """Une parole retentit avec ses mots (``ouie``) ; ce que le joueur perçoit de l'échange, s'il
+    le voit : en clair s'il connaît chacun de ceux dont on parle."""
+    from .ouie import retentir
     from .paroles import _connu_du_joueur
-    bruit(monde, id, "voix", texte, [auditeur, *cites])
+    retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites])
     a, b = monde.objets[id], monde.objets[auditeur]
     if a["lieu"] == monde.joueur["salle"]:
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):

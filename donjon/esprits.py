@@ -17,7 +17,7 @@ from .perception import eclairage
 
 MEMOIRE_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
-SOURCES = ("vu", "savoir", "essai")
+SOURCES = ("vu", "savoir", "essai", "entendu")
 ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume", "faible", "charge"),
                   "nourriture": ("disponible",), "consommable": ("disponible",)}
 # Un objet porté par quelqu'un d'autre ne se remarque que s'il est encombrant ou allumé.
@@ -162,12 +162,9 @@ def dernier_son(monde, id):
 
 
 def entendre(monde, id, evenement, niveau):
-    """Un PNJ entend un son : souvenir, puis réflexe déclaré s'il y en a un."""
+    """Un PNJ entend un son émis (un appel, un cri, le son d'un objet) : souvenir, puis réflexe
+    déclaré s'il y en a un. Ce que le bruit lui fait craindre relève de l'ouïe commune (``ouie``)."""
     memoriser(monde, id, {"type": "son", **{k: v for k, v in evenement.items() if k != "auditeurs"}, "niveau": niveau})
-    if niveau >= 2 and evenement["origine"] != monde.objets[id]["lieu"]:
-        # Un bruit fort venu d'ailleurs, dont il ne voit pas la cause, inquiète.
-        from .deliberation import inquieter
-        inquieter(monde, id, "bruit")
     from .pnj import reagir
     reagir(monde, id, evenement["origine"], niveau, evenement.get("auteur"))
 

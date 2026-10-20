@@ -59,6 +59,8 @@ def _but(monde, but):
         return "prévenir " + court(monde, but["qui"])
     if t == "rejoindre":
         return "accourir : " + _salle(monde, but["lieu"])
+    if t == "voir":
+        return "aller voir d'où venait un bruit : " + _salle(monde, but["lieu"])
     if t == "strategie":
         return "stratégie : " + but.get("resume", "")
     if t == "menager":
@@ -150,7 +152,7 @@ class Recit:
         noms = sorted({monde.objets[id]["nom"], court(monde, id)}, key=len, reverse=True)
         gestes = []
         for c in chronique:
-            if c["pnj"] != id or not debut <= c["minute"] <= fin or c.get("nature") == "deplacement":
+            if c["pnj"] != id or not debut <= c["minute"] <= fin or c.get("nature") in ("deplacement", "ouie"):
                 continue
             texte = c["texte"].rstrip(".")
             for nom in noms:
@@ -192,7 +194,26 @@ class Recit:
             lignes.append("  Rondes : " + ", ".join(f"{s} ×{n}" for s, n in rondes.most_common()))
         for mots, debuts in sans_geste.items():
             lignes.append(f"  Sans geste à faire : {mots} ×{len(debuts)} ({', '.join(map(str, debuts))})")
+        lignes += self._ouie(id, chronique)
         return lignes
+
+    @staticmethod
+    def _ouie(id, chronique):
+        """Ce qu'il a entendu : combien de fois il s'est retourné au bruit, les bruits inconnus qu'il
+        a retenus, par lieu, et ceux qu'il est allé voir."""
+        ouie = [c for c in chronique if c["pnj"] == id and c.get("nature") == "ouie"]
+        if not ouie:
+            return []
+        tours = sum(c["texte"].endswith("se retourne au bruit.") for c in ouie)
+        lieux, vus = Counter(), Counter()
+        for c in ouie:
+            for marque, compte in ((" entend un bruit : ", lieux), (" va voir d'où venait le bruit : ", vus)):
+                if marque in c["texte"]:
+                    compte[c["texte"].split(marque, 1)[1].rstrip(".")] += 1
+        parties = [f"se retourne au bruit ×{tours}"] if tours else []
+        parties += [f"bruit inconnu : {s} ×{n}" for s, n in lieux.most_common()]
+        parties += [f"va voir : {s} ×{n}" for s, n in vus.most_common()]
+        return ["  Ouïe : " + ", ".join(parties)]
 
     def entre_eux(self, monde, chronique):
         lignes = ["== Entre eux =="]

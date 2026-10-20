@@ -353,6 +353,9 @@ def preparer_parole(monde, p, revision=None):
     if perdus:
         faits.append(f"{travail.objets[auditeur]['nom']} ne retient pas tout : une partie de ce que tu as dit se perd.")
     memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "texte": replique[:240]})
+    # Sa voix retentit : d'autres que son interlocuteur peuvent l'entendre (``ouie``).
+    from .ouie import retentir
+    retentir(travail, "joueur", "parler")
     travail.data["revision"] += 1
     travail.data.setdefault("paroles_joueur", []).append(
         {"revision": travail.data["revision"], "auditeur": auditeur, "texte": replique,

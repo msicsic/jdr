@@ -561,7 +561,7 @@ class Moteur:
             lignes.append("La tentative n'aboutit pas.")
         elif plan.information:
             lignes.append(plan.information)
-        self._terminer_etape(travail, plan, lignes, effets)
+        self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
         self._clore_bilan(travail, lignes)
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
@@ -590,7 +590,7 @@ class Moteur:
         lignes.extend(ligne for id, ligne in humeurs.items() if travail.visible(id))
 
     @staticmethod
-    def _terminer_etape(travail, plan, lignes, effets=()):
+    def _terminer_etape(travail, plan, lignes, effets=(), geste=None, methode=None):
         Moteur._stabiliser(travail, lignes)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         from .temps import duree, ecouler, instant
@@ -603,6 +603,11 @@ class Moteur:
         gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
                                   exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")])
                   for op, cible, _ in effets if op == "voler"]
+        # Son geste retentit (``ouie``) : qui l'entend sans le voir l'interprète, se retourne de près.
+        from .ouie import retentir
+        retournes = retentir(travail, "joueur", methode if geste == "emettre_son" and methode in ("appel", "cri", "sifflement")
+                             else geste, discret=methode == "discret", bruit=plan.bruit)
+        lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
         minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
@@ -690,7 +695,7 @@ class Moteur:
             effets = p.effets if reussite else p.echec + (p.echec_critique if jet == 1 else [])
             for effet in effets:
                 self._appliquer(travail, effet, details)
-            self._terminer_etape(travail, p, details, effets)
+            self._terminer_etape(travail, p, details, effets, e["operation"], e["methode"])
             if e["operation"] == "patienter":
                 details.append("Deux minutes passent à guetter une occasion ; rien ne garantit que le geste passera inaperçu.")
             if not reussite:
@@ -734,9 +739,6 @@ class Moteur:
             m.joueur["salle"], m.joueur["position"] = valeur["salle"], list(valeur["position"])
             if valeur.get("orientation"):
                 m.joueur["orientation"] = valeur["orientation"]
-            # Ses pas s'entendent : qui les entend de près sans le voir se tourne vers lui.
-            from .pnj import OUIE, OUIE_FEUTRE, alerter
-            alerter(m, "joueur", 0, None, OUIE_FEUTRE if valeur.get("feutre") else OUIE)
             if valeur["salle"] not in m.data["visitees"]:
                 m.data["visitees"].append(valeur["salle"])
             lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + "."

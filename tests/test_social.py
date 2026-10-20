@@ -241,7 +241,11 @@ class DesespoirTests(unittest.TestCase):
 
     def test_affamee_a_l_extreme_elle_crochete_sous_les_yeux_d_ilse(self):
         m, _ = attendre(self.brune_devant_ilse(97.0), jet=20)
-        self.assertFalse(m.objets["reserve"]["verrouillee"])
+        textes = [c["texte"] for c in m.data["chronique"]]
+        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", textes)
+        self.assertIn("Brune, batelière évacuée mange une part des vivres du refuge.", textes)
+        # Gorm, à l'échoppe, a entendu crocheter au refuge qu'il garde : il est venu, et a refermé.
+        self.assertIn("Gorm entend un bruit : Refuge du relais.", textes)
         souvenirs = [s for s in lire(m, "ilse")["memoire"] if s["type"] == "vu_agir"]
         self.assertEqual(souvenirs[0]["auteur"], "brune")
         self.assertFalse(lire(m, "ilse")["croyances"]["brune"]["fiable"]["valeur"])

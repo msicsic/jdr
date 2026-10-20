@@ -625,6 +625,16 @@ def _nom_condition(c):
     return f"{sorte}:{c.get('objet') or c.get('lieu')}"
 
 
+def voir(monde, id, salle):
+    """(but, étapes) pour aller voir d'où venait un bruit inconnu : y parcourir le lieu des yeux ;
+    None s'il n'y croit aucun passage."""
+    trouve = chercher(monde, id, lambda v, e: e.fait("inspecte", salle), {"inspecter": (salle,)},
+                      nom="voir:" + salle, memo=["voir", salle], emplois=())
+    if trouve is None:
+        return None
+    return {"type": "voir", "lieu": salle}, _couper(trouve[1])
+
+
 def aller(monde, id, salle):
     """Les étapes pour se rendre dans une salle, ou None s'il n'y croit aucun passage."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="aller", memo=["aller", salle], emplois=())

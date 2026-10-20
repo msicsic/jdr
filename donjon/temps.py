@@ -37,10 +37,10 @@ def installer(monde):
     if pas is not None and "dixiemes" not in monde.data:
         monde.data["dixiemes"] = pas * PAS_ANCIEN
     monde.data.setdefault("dixiemes", 0)
-    # Les bruits d'avant le temps fin étaient datés à la minute : ils le sont à l'instant.
-    for b in monde.data.get("bruits", []):
-        if "minute" in b:
-            b["instant"] = b.pop("minute") * MINUTE
+    # Les bruits d'avant l'ouïe commune ne disent pas ce qui en parvenait au joueur ; tous passés,
+    # ils ne lui parviennent plus.
+    if "bruits" in monde.data:
+        monde.data["bruits"] = [b for b in monde.data["bruits"] if "auteur" in b]
     # Aucun geste ne s'achève sur une case occupée : qui s'y trouvait déjà s'écarte.
     from .pnj import ecarter
     ecarter(monde)
