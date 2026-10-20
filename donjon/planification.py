@@ -59,7 +59,9 @@ class Etat:
 
 
 class Vue:
-    """Ce que le PNJ croit, corrigé de ce que le plan a déjà changé."""
+    """Ce que le PNJ croit, corrigé de ce que le plan a déjà changé.
+
+    Ses croyances ne bougent pas pendant une recherche : chaque lecture est faite une fois."""
 
     def __init__(self, monde, id):
         from .vol import proprietaire
@@ -69,7 +71,24 @@ class Vue:
         self.illicite = {o: illicite(monde, id, o) for o in self.connus}
         self.autorise = {o: autorise(monde, id, o) for o in self.connus}
         self.proprietaire = {o: proprietaire(monde, monde.objets[o]) for o in self.connus}
-        self._routes = {}
+        self._routes, self._crus = {}, {}
+
+    def _memo(self, cle, calcul):
+        if cle not in self._crus:
+            self._crus[cle] = calcul()
+        return self._crus[cle]
+
+    def cru(self, sujet, attribut):
+        return self._memo((sujet, attribut), lambda: _cru(self.monde, self.id, sujet, attribut))
+
+    def disponible(self, o):
+        return self._memo((o, "disponible"), lambda: _disponible_cru(self.monde, self.id, o))
+
+    def refuse(self, autre, o):
+        return self._memo((autre, o, "refus"), lambda: refuse_recemment(self.monde, self.id, autre, "demander", o))
+
+    def promesse(self, o):
+        return self._memo((o, "promesse"), lambda: promesse_en_cours(self.monde, self.id, o))
 
     def route(self, depart, arrivee, portes):
         from .pnj import chemin
@@ -83,7 +102,9 @@ class Vue:
         if o in e.portes:
             return self.id
         lieu = e.fait("lieu", o)
-        return _lieu_cru(self.monde, self.id, o) if lieu is None else lieu
+        if lieu is not None:
+            return lieu
+        return self._memo((o, "lieu_cru"), lambda: _lieu_cru(self.monde, self.id, o))
 
     def salle(self, e, sujet, profondeur=0):
         if sujet in e.portes or sujet == self.id:
@@ -94,23 +115,23 @@ class Vue:
         if lieu in self.salles:
             return lieu
         if lieu == "joueur":
-            return _lieu_cru(self.monde, self.id, "joueur")
+            return self._memo(("joueur", "lieu_cru"), lambda: _lieu_cru(self.monde, self.id, "joueur"))
         return self.salle(e, lieu, profondeur + 1)
 
     def ouvert(self, e, c):
         v = e.fait("ouvert", c)
         if v is not None:
             return v
-        etat = _cru(self.monde, self.id, c, "etat")
+        etat = self.cru(c, "etat")
         return bool(etat and etat.get("ouverte"))
 
     def verrouille(self, e, c):
         v = e.fait("verrou", c)
-        return v if v is not None else bool(_cru(self.monde, self.id, c, "verrouillee"))
+        return v if v is not None else bool(self.cru(c, "verrouillee"))
 
     def feu(self, e, f):
         """(allumé, chargé) tels qu'il les croit ; inconnus : None."""
-        etat = _cru(self.monde, self.id, f, "etat") or {}
+        etat = self.cru(f, "etat") or {}
         allume, charge = e.fait("allume", f), e.fait("charge", f)
         return (etat.get("allume") if allume is None else allume,
                 (etat.get("charge") and not etat.get("faible")) if charge is None else charge)
@@ -185,12 +206,12 @@ def gestes(v, e, vises=None, but=None):
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (x.get("ouvre") or set(x.get("usages", [])) & set(USAGES) or x["type"] == "nourriture"
                  or "allume" in x or o in vises.get("prendre", ()))
-        if ici and o not in e.portes and x.get("mobile") and v.autorise[o] and _disponible_cru(monde, id, o) and utile:
+        if ici and o not in e.portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=e.portes | {o}, faits=touche)
         # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
         porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
         if (utile and porteur and porteur != id and profil(monde, porteur) and v.salle(e, porteur) == e.salle
-                and o not in e.portes and not refuse_recemment(monde, id, porteur, "demander", o)):
+                and o not in e.portes and not v.refuse(porteur, o)):
             yield 0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)], e.apres(portes=e.portes | {o})
         touche = [x for x in touche if x[0][0] == "faute"]
         if o in vises.get("poser", ()) and o in e.portes:
@@ -203,7 +224,7 @@ def gestes(v, e, vises=None, but=None):
                 for cle in sorted(k for k in e.portes if o in objets[k].get("ouvre", [])):
                     yield 0, 1, [_etape("verrouiller", o, outil=cle)], e.apres(faits=[(("verrou", o), True)])
         for pour in vises.get("servir", {}).get(o, ()):
-            if ici and _disponible_cru(monde, id, o):
+            if ici and v.disponible(o):
                 dedans = [(("touche", contenant), True)] if contenant else []
                 yield (mal, 1, [_etape("servir", o, condition=faute, contenu={"pour": pour})],
                        e.apres(faits=[(("servi", o), pour), *dedans, *touche]))
@@ -222,7 +243,7 @@ def gestes(v, e, vises=None, but=None):
                         yield (mal, 1 / chance, [_etape("crocheter", o, outil=outil, condition=faute)],
                                e.apres(faits=[(("verrou", o), False), (("touche", o), True), *touche]))
         # Manger ce qui est à portée.
-        if x["type"] == "nourriture" and ici and _disponible_cru(monde, id, o) and v.autorise[o]:
+        if x["type"] == "nourriture" and ici and v.disponible(o) and v.autorise[o]:
             porte = o in e.portes
             dedans = [(("touche", contenant), True)] if contenant else []
             yield (0 if porte else mal, 1, [_etape("manger", o, condition="" if porte else faute)],
@@ -232,7 +253,7 @@ def gestes(v, e, vises=None, but=None):
             allume, charge = v.feu(e, o)
             if not (allume and charge):
                 for bois in sorted(k for k in e.portes if "combustible" in objets[k].get("usages", [])
-                                   and _disponible_cru(monde, id, k)):
+                                   and v.disponible(k)):
                     yield 0, 1, [_etape("alimenter", o, outil=bois)], e.apres(faits=[(("charge", o), True)])
             if allume is False and charge:
                 for flamme in sorted(k for k in e.portes if k != o and v.flamme(e, k)):
@@ -241,21 +262,21 @@ def gestes(v, e, vises=None, but=None):
                 yield 0, 1, [_etape("chauffer", o)], e.apres(faits=[(("chauffe", o), True)])
         # Une source portable éteinte et chargée s'allume à une flamme fixe qu'il croit vive.
         if (o in e.portes and "allume" in x and x.get("mobile") and v.feu(e, o)[0] is False
-                and (_cru(monde, id, o, "etat") or {}).get("charge")):
+                and (v.cru(o, "etat") or {}).get("charge")):
             for fixe in v.connus:
                 if (fixe != o and "allume" in objets[fixe] and not objets[fixe].get("mobile")
                         and v.salle(e, fixe) == e.salle and v.feu(e, fixe)[0]):
                     yield 0, 1, [_etape("allumer", o, outil=fixe)], e.apres(faits=[(("allume", o), True)])
         # Une part : l'attendre si elle est promise, là où le donneur viendra la servir (près des
         # vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire.
-        if besoin_de_part(x) and _disponible_cru(monde, id, o):
+        if besoin_de_part(x) and v.disponible(o):
             donneur = v.proprietaire[o]
             foyer = v.foyer_froid() if besoin_de_part(x) == "chaleur" else None
             if donneur not in (None, id, "joueur") and profil(monde, donneur):
-                if promesse_en_cours(monde, id, o) == donneur:
+                if v.promesse(o) == donneur:
                     if e.salle == (v.salle(e, foyer) if foyer else v.salle(e, o)):
                         yield 0, 0, [], e.apres(faits=[(("part", o), donneur)])
-                elif not refuse_recemment(monde, id, donneur, "demander", o):
+                elif not v.refuse(donneur, o):
                     ou = v.salle(e, donneur)
                     if ou == e.salle:
                         yield (0, 1 + DEMANDE, [_etape("demander", donneur, outil=o,

@@ -537,6 +537,12 @@ def _annoncer_presences(monde, vus, apparus, lignes):
 
 def avancer(monde, minutes, lignes):
     """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
+    from .spatial import vue_memorisee
+    with vue_memorisee(monde):
+        return _avancer(monde, minutes, lignes)
+
+
+def _avancer(monde, minutes, lignes):
     from .deliberation import appeler_a_l_aide, deliberer, menager_flamme
     from .perception import avancer_combustion
     from .social import bavarder

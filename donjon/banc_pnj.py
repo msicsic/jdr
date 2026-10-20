@@ -2,12 +2,14 @@
 
     python -m donjon.banc_pnj --heures 3 --joueur chambre_cloche
     python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche --stratege --graine 7
+    python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche --graines 1985 7 42 2024
 
 Le joueur reste passif dans la salle choisie (par défaut, celle du départ) ; le temps
 avance par le moteur réel, cinq minutes à la fois, et l'état est vérifié à chaque pas. Sans
 ``--stratege``, aucun appel à Luna. Le banc imprime le récit (``recit_pnj``) : buts, gestes,
 besoins de chaque PNJ, échanges entre eux. ``--chronique`` ajoute chaque pas : gestes,
-échanges et leur issue, décisions du stratège.
+échanges et leur issue, décisions du stratège. ``--graines`` joue plusieurs nuits en
+parallèle (une par processus, sans stratège) et termine par leurs mesures et leur moyenne.
 """
 import argparse
 from collections import Counter
@@ -101,17 +103,72 @@ def appelant(connexion="chatgpt", modele=None, effort="medium"):
     return MJOpenAI(modele, effort, timeout=90, connexion=connexion)._appeler_brut
 
 
+def nuit(scenario, graine, heures, joueur, chronique=False):
+    """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie)."""
+    monde = creer(scenario, graine)
+    if joueur:
+        from .geometrie import position_entree
+        monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
+    from .recit_pnj import Recit
+    recit = Recit(monde)
+    pas, mesures = executer(monde, int(heures * 60), recit)
+    lignes = [f'[{c["minute"]:>4} min] {c["texte"]}' for c in pas] + [""] if chronique else []
+    lignes += [recit.texte(monde, pas), ""]
+    for id in pnjs(monde):
+        e = lire(monde, id)
+        besoins = ", ".join(f"{k} {v:.0f}" for k, v in e["besoins"].items())
+        but = e["intention"]["but"] if e["intention"] else None
+        lignes.append(f'{monde.objets[id]["nom"]} : {besoins or "sans profil"} ; intention : {but}')
+    lignes.append("Mesures : " + ", ".join(f"{k} {v}" for k, v in mesures.items()))
+    donnees = {"graine": graine, "heures": heures, "chronique": pas, "mesures": mesures,
+               "recit": recit.donnees(monde, pas), "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)}}
+    return "\n".join(lignes), mesures, donnees
+
+
+def _nuit(arguments):
+    return nuit(*arguments)
+
+
+def nuits(scenario, graines, heures, joueur, chronique=False):
+    """Plusieurs nuits en parallèle, une par processus ; les résultats dans l'ordre des graines."""
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(max_workers=min(len(graines), 16)) as pool:
+        return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique) for g in graines]))
+
+
+def tableau(graines, mesures):
+    """Les mesures de chaque graine, puis leur moyenne."""
+    cles = list(mesures[0])
+    lignes = ["graine " + " ".join(cles)]
+    for g, m in zip(graines, mesures):
+        lignes.append(f"{g} " + " ".join(str(m[k]) for k in cles))
+    lignes.append("moyenne " + " ".join(f"{sum(m[k] for m in mesures) / len(mesures):g}" for k in cles))
+    return "\n".join(lignes)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=("relais", "crypte"), default="relais")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)
+    parser.add_argument("--graines", type=int, nargs="+", help="plusieurs nuits en parallèle, sans stratège")
     parser.add_argument("--stratege", action="store_true", help="Luna conseille les PNJ (appels plafonnés)")
     parser.add_argument("--connexion", choices=("chatgpt", "api"), default="chatgpt")
     parser.add_argument("--sortie", help="fichier JSON où écrire chronique, récit et mesures")
     parser.add_argument("--chronique", action="store_true", help="imprime aussi chaque pas")
     args = parser.parse_args(argv)
+    if args.graines:
+        if args.stratege:
+            parser.error("le stratège consulte Luna, une nuit à la fois : --graine, pas --graines")
+        resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique)
+        for g, (texte, _, _) in zip(args.graines, resultats):
+            print(f"######## graine {g}\n{texte}\n")
+        print(tableau(args.graines, [m for _, m, _ in resultats]))
+        if args.sortie:
+            with open(args.sortie, "w", encoding="utf-8") as f:
+                json.dump([d for _, _, d in resultats], f, ensure_ascii=False, indent=1)
+        return 0
     from . import stratege
     stratege.activer(appelant(args.connexion) if args.stratege else None)
     try:

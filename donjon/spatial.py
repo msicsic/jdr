@@ -7,6 +7,7 @@ et place le personnage sur la case intérieure de la salle voisine.
 from __future__ import annotations
 
 from collections import deque
+from contextlib import contextmanager
 
 from .geometrie import cases, position_entree, position_objet, placer
 
@@ -369,11 +370,48 @@ def eclairage_niveau(m):
 PORTEE_VUE = {1: 3, 2: 8}
 
 
-def _vue(m, acteur="joueur"):
+def signature_vue(m):
+    """Tout ce dont dépendent la lumière et les lignes de vue, hors géométrie des salles : portes
+    et contenants ouverts, sources allumées et la case d'où elles éclairent, objets qui bloquent
+    la vue. Deux états de même signature se voient de la même façon."""
+    from .perception import allumee, salle_source
+    cle = []
+    for id, o in m.objets.items():
+        if o["type"] in ("porte", "contenant"):
+            cle.append((id, bool(o.get("ouverte"))))
+        if allumee(o):
+            source = salle_source(m, o)
+            cle.append((id, source, position_cible(m, id, source) if source else None, o.get("luminosite")))
+        if o.get("bloque_vue"):
+            cle.append((id, o.get("lieu"), tuple(o.get("position") or ()), bool(o.get("incorpore"))))
+    return tuple(cle)
+
+
+@contextmanager
+def vue_memorisee(m):
+    """Pendant la vie des PNJ, la géométrie ne change pas : cartes de lumière et champs de vision
+    sont gardés tant que la signature de la vue ne change pas. Hors de ce bloc, tout est recalculé."""
+    ancien = getattr(m, "_cache_vue", None)
+    m._cache_vue = {} if ancien is None else ancien
+    try:
+        yield
+    finally:
+        if ancien is None:
+            del m._cache_vue
+
+
+def _vue(m, acteur="joueur", signature=None):
     """Origine globale du regard d'un acteur, terrain et carte de lumière des salles reliées."""
     from .perception import CarteLumiere
     salle, position = position_acteur(m, acteur)
-    lumiere = CarteLumiere(m, salle)
+    cache = getattr(m, "_cache_vue", None)
+    if cache is None:
+        lumiere = CarteLumiere(m, salle)
+    else:
+        cle = ("lumiere", salle, signature or signature_vue(m))
+        if cle not in cache:
+            cache[cle] = CarteLumiere(m, salle)
+        lumiere = cache[cle]
     origine = _global(m.data["salles"][salle], position)
     return origine, lumiere
 
@@ -440,13 +478,22 @@ def sortie_visible(m, salle, direction, acteur="joueur"):
 
 def champ_visible(m, acteur="joueur"):
     """Cases vues maintenant par l'acteur, incluant les paliers d'une porte ouverte."""
-    origine, lumiere = _vue(m, acteur)
+    cache = getattr(m, "_cache_vue", None)
+    signature = cle = None
+    if cache is not None:
+        signature = signature_vue(m)
+        cle = ("champ", *position_acteur(m, acteur), signature)
+        if cle in cache:
+            return set(cache[cle])
+    origine, lumiere = _vue(m, acteur, signature)
     vus = set()
     for salle in lumiere.salles:
         piece = m.data["salles"][salle]
         for x, y in cases(piece):
             if _vu(m, origine, lumiere, _global(piece, (x, y))):
                 vus.add((salle, x, y))
+    if cache is not None:
+        cache[cle] = frozenset(vus)
     return vus
 
 
