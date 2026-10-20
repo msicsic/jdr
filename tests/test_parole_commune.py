@@ -1,0 +1,290 @@
+"""À qui parle le joueur, et qui l'entend (``donjon/paroles.py``, ``donjon/ouie.py``, ``social``).
+
+Le moteur fixe le destinataire : celui que le joueur nomme, sinon celui qui est en face de lui ;
+« à tous » s'adresse à tous ceux qui l'entendent ; un chuchotement, à un seul, au contact. Tous
+ceux qui saisissent les mots d'une parole à voix haute la retiennent, destinataires ou non, et
+ce qu'elle transmet les touche par la même règle ; seuls les destinataires répondent.
+
+Cas réel : « je dis : pouvez-vous m'aider à faire bouger Brune ? » devant Ilse et Aubin ; Luna
+choisissait un seul destinataire, et l'autre n'enregistrait rien. Chaque cas vérifie l'état après
+rechargement et ce que lit le joueur."""
+import unittest
+from unittest.mock import patch
+
+from donjon.esprits import croire, lire, memoriser
+from donjon.monde import Monde
+from donjon.narration import controler
+from donjon.paroles import analyser
+from donjon.social import bavarder, nouvelles
+from tests.test_marche import tranquilles
+from tests.test_paroles import jouer, parole, reponse_pnj
+from tests.test_tensions import placer, recharger
+
+
+def scene(ilse=(2, 4), aubin=(1, 5), brune=(7, 1)):
+    """Le refuge : Corvus en (2, 2) regarde vers le sud ; Gorm est dans la conduite."""
+    m = tranquilles()
+    m.joueur.update(salle="antichambre", position=[2, 2], orientation="sud")
+    placer(m, "ilse", "antichambre", ilse)
+    placer(m, "aubin", "antichambre", aubin)
+    placer(m, "brune", "antichambre", brune)
+    placer(m, "marchand", "echoppe", (4, 1))
+    return recharger(m)
+
+
+def paroles_retenues(m, id):
+    return [(s["locuteur"], s.get("a"), s["texte"]) for s in lire(m, id)["memoire"] if s["type"] == "parole"]
+
+
+def action(nom, cible="", outil=""):
+    return {"mode": "action", "texte": "", "faits": [],
+            "proposition": {"action": nom, "cible": cible, "outil": outil, "methode": "simple", "difficulte": 0,
+                            "justification": ""}}
+
+
+class FormeTests(unittest.TestCase):
+    """Les formes de la parole, lues dans la saisie : données de l'analyse, en un seul endroit."""
+
+    def test_formes(self):
+        m = scene(brune=(2, 3))
+        cas = {
+            "je dis : pouvez-vous m'aider ?": (False, None, "voix", "pouvez-vous m'aider ?", True),
+            "à tous : il faut monter": (True, None, "voix", "il faut monter", True),
+            "je dis à tous qu'il faut monter": (True, None, "voix", None, True),
+            "« Brune, pousse-toi »": (False, "brune", "voix", "Brune, pousse-toi", True),
+            "« Bonsoir »": (False, None, "voix", "Bonsoir", True),
+            "je chuchote à Brune : viens": (False, "brune", "chuchote", "viens", True),
+            "je murmure que la cloche est en haut": (False, None, "chuchote", None, True),
+            "Ilse, tu viens ?": (False, "ilse", "voix", "Ilse, tu viens ?", False),
+            "je demande à la meunière de venir": (False, "ilse", "voix", None, False),
+            "je prends la torche": (False, None, "voix", None, False),
+        }
+        for saisie, attendu in cas.items():
+            f = analyser(m, saisie)
+            self.assertEqual((f["groupe"], f["nomme"], f["maniere"], f["mots"], f["explicite"]), attendu, saisie)
+
+
+class DestinataireTests(unittest.TestCase):
+    def test_cas_reel_celui_d_en_face_repond_l_autre_retient(self):
+        m = scene()
+        saisie = "je dis : pouvez-vous m'aider à faire bouger Brune ?"
+        reprise, sortie, appels = jouer(m, saisie, [
+            parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse"),
+            reponse_pnj("Ilse : « Je ne sais pas. »")])
+        mots = "pouvez-vous m'aider à faire bouger Brune ?"
+        # Le moteur fixe le destinataire avant Luna, et le lui dit.
+        self.assertEqual(appels[0]["faits"]["parole_prevue"]["personnage"], "ilse")
+        validee = appels[1]["faits"]["conversation_validee"]
+        self.assertEqual((validee["destinataires"], validee["temoins"]), (["ilse"], ["aubin"]))
+        self.assertIn(f"Tu dis à Ilse : « {mots} »", sortie)
+        # Après rechargement : Ilse a reçu la parole, Aubin l'a entendue sans qu'elle lui soit adressée.
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["ilse"], mots))
+        self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["ilse"], mots))
+        # Luna voit ce qu'Aubin a entendu, pour lui donner voix plus tard.
+        from donjon.paroles import paroles_retenues as vues
+        self.assertEqual(vues(reprise, "aubin")[-1], {"de": "Corvus", "a": ["Ilse"], "mots": mots})
+
+    def test_deux_a_egalite_le_joueur_precise(self):
+        m = scene(aubin=(0, 4))
+        reprise, sortie, appels = jouer(m, "je dis : pouvez-vous m'aider ?", [
+            parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse")])
+        self.assertEqual(len(appels), 1)
+        self.assertIn("Aubin et Ilse sont aussi près de toi l'un que l'autre : précise à qui tu parles", sortie)
+        self.assertNotIn("Tu dis", sortie)
+        self.assertEqual((paroles_retenues(reprise, "ilse"), paroles_retenues(reprise, "aubin")), ([], []))
+
+    def test_luna_ne_choisit_pas_un_autre_destinataire(self):
+        m = scene()
+        reprise, sortie, appels = jouer(m, "je dis : bonsoir", [
+            parole("Bonsoir.", ("propos", "", "", ""), personnage="aubin"),
+            parole("Bonsoir.", ("propos", "", "", ""), personnage="ilse"),
+            reponse_pnj("Ilse hoche la tête.")])
+        self.assertIn("personnage = ilse", appels[1]["faits"]["retour_moteur"]["attendu"])
+        self.assertIn("Tu dis à Ilse : « bonsoir »", sortie)
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][1], ["ilse"])
+
+    def test_a_tous_chacun_decide_par_le_moteur(self):
+        m = scene()
+        # Placement d'auteur : Ilse se méfie de Corvus, Aubin non.
+        croire(m, "ilse", "joueur", "fiable", False, "vu")
+        reprise, sortie, appels = jouer(m, "à tous : écartez-vous", [
+            parole("écartez-vous", ("passage", "", "", ""), personnage="tous"),
+            reponse_pnj("Aubin s'écarte ; Ilse ne bouge pas.")], jet=20)
+        validee = appels[1]["faits"]["conversation_validee"]
+        self.assertEqual((validee["personnage"], validee["destinataires"], validee["temoins"]),
+                         ("tous", ["aubin", "ilse"], []))
+        faits = " ".join(validee["faits"])
+        # Chacun en a décidé comme d'une demande individuelle : pas de décision collective.
+        self.assertIn("Ilse, meunière évacuée refuse de s'écarter : elle ne te fait pas confiance.", faits)
+        self.assertIn("Aubin, vieux passeur", faits)
+        self.assertIn("Tu dis à tous : « écartez-vous »", sortie)
+        for id in ("ilse", "aubin"):
+            self.assertEqual(paroles_retenues(reprise, id)[-1], ("joueur", ["aubin", "ilse"], "écartez-vous"))
+
+    def test_a_tous_il_faut_monter(self):
+        m = scene()
+        reprise, sortie, appels = jouer(m, "à tous : il faut monter", [
+            parole("il faut monter", ("propos", "", "", ""), personnage="tous"),
+            reponse_pnj("Ilse et Aubin échangent un regard.")])
+        self.assertIn("Tu dis à tous : « il faut monter »", sortie)
+        for id in ("ilse", "aubin"):
+            self.assertEqual(paroles_retenues(reprise, id)[-1], ("joueur", ["aubin", "ilse"], "il faut monter"))
+        # Un propos n'engage personne à rien : ni intention ni engagement nouveaux.
+        self.assertEqual([lire(reprise, id)["engagements"] for id in ("ilse", "aubin")], [[], []])
+
+    def test_derriere_le_pilier_a_la_cantonade_ceux_qui_entendent_retiennent(self):
+        # La sauvegarde réelle : Ilse et Aubin à trois cases, derrière le pilier ; Corvus ne les voit pas.
+        m = scene(ilse=(5, 2), aubin=(5, 3), brune=(0, 3))
+        m.joueur.update(position=[2, 3], orientation="est")
+        m = recharger(m)
+        reprise, sortie, appels = jouer(m, "à tous : il faut monter", [
+            {"mode": "dialogue", "texte": "Ta voix porte dans le refuge : « Il faut monter ! »", "faits": [],
+             "proposition": None},
+            parole("il faut monter", ("propos", "", "", ""), personnage="tous"),
+            reponse_pnj("Ta voix résonne contre la pierre.")])
+        # Luna racontait la parole elle-même : le moteur la lui fait proposer, puis la fait entendre.
+        self.assertIn("mode parole_joueur", appels[1]["faits"]["retour_moteur"]["attendu"])
+        validee = appels[2]["faits"]["conversation_validee"]
+        self.assertEqual((validee["destinataires"], validee["temoins"]), ([], []))
+        self.assertIn("Tu dis à tous : « il faut monter »", sortie)
+        for id in ("ilse", "aubin", "brune"):
+            self.assertEqual(paroles_retenues(reprise, id)[-1], ("joueur", [], "il faut monter"), id)
+
+    def test_seuls_les_destinataires_repondent(self):
+        faits = {"interlocuteurs": {"ilse": {}, "aubin": {}},
+                 "conversation_validee": {"personnage": "ilse", "destinataires": ["ilse"], "temoins": ["aubin"],
+                                          "faits": []}}
+
+        def audit(locuteur):
+            return {"segments": [{"indice": 0, "verdict": "parole", "sources": [], "locuteur": locuteur,
+                                  "citation": "Non.", "entites": [], "motif": ""}]}
+        self.assertTrue(controler("Aubin : « Non. »", audit("aubin"), faits)["obstacles"])
+        self.assertFalse(controler("Ilse : « Non. »", audit("ilse"), faits)["obstacles"])
+
+
+class GuillemetsTests(unittest.TestCase):
+    def test_guillemets_et_vocatif_restent_une_parole(self):
+        m = scene()
+        placer(m, "marchand", "antichambre", (1, 3))
+        m.objets["cloche"].update(lieu="joueur")
+        m.objets["cloche"].pop("position", None)
+        m.objets["cloche"].pop("position_salle", None)
+        m.data["connus"].append("marchand")
+        m = recharger(m)
+        reprise, sortie, appels = jouer(m, "« Gorm, je te donne la cloche »", [
+            action("remettre", "cloche", "marchand"),
+            parole("Gorm, je te donne la cloche", ("propos", "", "", ""), personnage="marchand"),
+            reponse_pnj("Gorm tend la main.")])
+        # Luna proposait le don : le moteur le refuse, la saisie est une parole.
+        self.assertIn("mode parole_joueur", appels[1]["faits"]["retour_moteur"]["attendu"])
+        self.assertIn("Tu dis à Gorm : « Gorm, je te donne la cloche »", sortie)
+        self.assertEqual(reprise.objets["cloche"]["lieu"], "joueur")
+        self.assertEqual(paroles_retenues(reprise, "marchand")[-1], ("joueur", ["marchand"], "Gorm, je te donne la cloche"))
+        # Ilse et Aubin, à portée, l'ont entendu.
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "Gorm, je te donne la cloche")
+
+
+class ChuchoterTests(unittest.TestCase):
+    def test_au_contact_seul_le_destinataire_saisit_les_mots(self):
+        # Brune au contact ; Ilse à trois cases, hors du regard de Corvus.
+        m = scene(brune=(2, 3), ilse=(5, 2))
+        m.data["connus"].append("brune")
+        reprise, sortie, appels = jouer(m, "je chuchote à Brune : Gorm n'est pas fiable", [
+            parole("Gorm n'est pas fiable", ("affirmation", "marchand", "fiable", "non"), personnage="brune"),
+            reponse_pnj("Brune plisse les yeux.")], jet=20)
+        self.assertEqual(appels[1]["faits"]["conversation_validee"]["temoins"], [])
+        self.assertIn("Tu chuchotes à Brune : « Gorm n'est pas fiable »", sortie)
+        self.assertEqual(paroles_retenues(reprise, "brune")[-1], ("joueur", ["brune"], "Gorm n'est pas fiable"))
+        self.assertEqual(lire(reprise, "brune")["croyances"]["marchand"]["fiable"]["source"], "dit:joueur")
+        # Ilse n'en saisit pas les mots : ni souvenir de parole, ni croyance.
+        self.assertEqual(paroles_retenues(reprise, "ilse"), [])
+        self.assertEqual(lire(reprise, "ilse")["croyances"]["marchand"]["fiable"]["source"], "savoir")
+
+    def test_a_distance_refuse(self):
+        m = scene(brune=(2, 5))
+        m.data["connus"].append("brune")
+        reprise, sortie, appels = jouer(m, "je chuchote à Brune : viens", [
+            parole("viens", ("propos", "", "", ""), personnage="brune")])
+        self.assertIn("Brune est trop loin : approche-toi pour lui chuchoter", sortie)
+        self.assertEqual(len(appels), 1)
+        self.assertEqual(paroles_retenues(reprise, "brune"), [])
+        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+
+    def test_jamais_a_un_groupe(self):
+        m = scene(brune=(2, 3))
+        _, sortie, _ = jouer(m, "je chuchote à tous : on file", [
+            parole("on file", ("propos", "", "", ""), personnage="tous")])
+        self.assertIn("On ne chuchote qu'à une seule personne", sortie)
+
+
+class AveuTests(unittest.TestCase):
+    def test_un_aveu_a_voix_haute_devant_un_temoin(self):
+        m = scene()
+        # Placement d'auteur : Corvus a pris la clé de la réserve de Gorm, qui ne le sait pas.
+        cle = m.objets["cle_reserve"]
+        cle["lieu"] = "joueur"
+        m.data["connus"].append("cle_reserve")
+        m = recharger(m)
+        reprise, sortie, appels = jouer(m, "je dis à Ilse : c'est moi qui ai pris la clé de la réserve", [
+            parole("c'est moi qui ai pris la clé de la réserve", ("aveu", "cle_reserve", "", "prendre"),
+                   personnage="ilse"),
+            reponse_pnj("Ilse recule d'un pas.")])
+        self.assertIn("Ilse, meunière évacuée l'entend : elle ne te tient plus pour fiable.",
+                      appels[1]["faits"]["conversation_validee"]["faits"])
+        noyau = {"type": "vu_agir", "auteur": "joueur", "operation": "prendre", "objet": "cle_reserve"}
+        for id in ("ilse", "aubin"):
+            self.assertFalse(lire(reprise, id)["croyances"]["joueur"]["fiable"]["valeur"])
+            rumeurs = [s for s in lire(reprise, id)["memoire"] if s["type"] == "rumeur"]
+            self.assertEqual((rumeurs[-1]["de"], rumeurs[-1]["rang"], rumeurs[-1]["evenement"]), ("joueur", 0, noyau))
+        # Le témoin s'en sert plus tard par les mécanismes existants : il le confie au propriétaire.
+        self.assertIn(noyau, [x[1] for x in nouvelles(reprise, "aubin")])
+        placer(reprise, "marchand", "antichambre", (1, 4))
+        # Brune, à cinq cases, l'a entendu aussi : il ne reste à l'apprendre que Gorm, rentré de la conduite.
+        self.assertIn("joueur", [s["de"] for s in lire(reprise, "brune")["memoire"] if s["type"] == "rumeur"])
+        croire(reprise, "aubin", "ilse", "fiable", False, "vu")   # Placement d'auteur : à Gorm, pas à Ilse.
+        with patch.object(Monde, "d20", return_value=20):
+            # Brune, la première à qui il se confierait, le sait déjà : la minute suivante, Gorm.
+            self.assertFalse(bavarder(reprise, "aubin", []))
+            self.assertTrue(bavarder(reprise, "aubin", []))
+        reprise = recharger(reprise)
+        gorm = lire(reprise, "marchand")
+        self.assertEqual(gorm["croyances"]["joueur"]["fiable"]["source"], "dit:aubin")
+        self.assertIn(noyau, [s["evenement"] for s in gorm["memoire"] if s["type"] == "rumeur"])
+
+    def test_avouer_un_geste_permis_n_apprend_rien(self):
+        m = scene()
+        m.objets["cle_reserve"].update(lieu="joueur", proprietaire="joueur")
+        m.data["connus"].append("cle_reserve")
+        m = recharger(m)
+        reprise, _, appels = jouer(m, "je dis à Ilse : j'ai pris cette clé", [
+            parole("j'ai pris cette clé", ("aveu", "cle_reserve", "", "prendre"), personnage="ilse"),
+            reponse_pnj("Ilse hausse les épaules.")])
+        self.assertEqual(appels[1]["faits"]["conversation_validee"]["faits"], [])
+        self.assertNotIn("joueur", lire(reprise, "aubin")["croyances"])
+
+
+class EntreEuxTests(unittest.TestCase):
+    """Les PNJ entendent les paroles des autres PNJ par la même règle."""
+
+    def test_une_confidence_surprise_devient_une_rumeur(self):
+        m = scene(ilse=(5, 5), aubin=(4, 5), brune=(7, 1))
+        placer(m, "marchand", "antichambre", (3, 5))
+        noyau = {"type": "vu_agir", "auteur": "brune", "operation": "crocheter", "objet": "reserve"}
+        memoriser(m, "aubin", noyau)
+        croire(m, "aubin", "brune", "fiable", False, "vu")
+        croire(m, "aubin", "ilse", "fiable", False, "vu")   # Placement d'auteur : il se confie à Gorm.
+        with patch.object(Monde, "d20", return_value=20):
+            self.assertTrue(bavarder(m, "aubin", []))
+        m = recharger(m)
+        # Ilse, à côté, a saisi les mots : elle retient la parole et adopte la rumeur, de seconde main.
+        self.assertEqual(paroles_retenues(m, "ilse")[-1][:2], ("aubin", ["marchand"]))
+        rumeur = [s for s in lire(m, "ilse")["memoire"] if s["type"] == "rumeur"][-1]
+        self.assertEqual((rumeur["de"], rumeur["rang"], rumeur["evenement"]), ("aubin", 1, noyau))
+        self.assertEqual(lire(m, "ilse")["croyances"]["brune"]["fiable"]["source"], "dit:aubin")
+        # Brune, l'accusée, trop loin pour saisir les mots ou non, ne la colporte pas.
+        self.assertNotIn(noyau, [x[1] for x in nouvelles(m, "brune")])
+        self.assertIn("Ilse surprend les mots d'Aubin à Gorm (crue).", [c["texte"] for c in m.data["chronique"]])
+
+
+if __name__ == "__main__":
+    unittest.main()

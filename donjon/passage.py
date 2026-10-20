@@ -284,8 +284,8 @@ def _prier(monde, id, autre, chemin, lignes):
         _chroniquer(monde, id, f"{a} demande à {b} de {le} laisser passer.", "social")
         if monde.visible(id):
             lignes.append(texte)  # Il le voit le lui demander : c'est dit, sans écho à rendre.
-        else:
-            retentir(monde, id, "dire", texte=texte, cites=["joueur"])  # Il l'entend (``ecoute.rendre``).
+        # Sa voix retentit : le joueur qui ne le voit pas l'entend (``ecoute.rendre``), les autres aussi.
+        retentir(monde, id, "dire", texte=texte, cites=["joueur"], parole={"a": ["joueur"], "contenu": []})
         return
     issue = demander_passage(monde, autre, id, [], chemin)  # Ce qu'il en voit est dit ci-dessous.
     _chroniquer(monde, id, f"{a} demande à {b} de {le} laisser passer ({issue}).", "social")

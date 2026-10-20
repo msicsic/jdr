@@ -238,9 +238,19 @@ def engagements_prevus(faits, locuteur):
     esprit = (faits.get("esprits_interlocuteurs") or {}).get(locuteur) or {}
     prevus = list(esprit.get("engagements") or [])
     validee = faits.get("conversation_validee")
-    if isinstance(validee, dict) and validee.get("personnage") == locuteur:
+    if isinstance(validee, dict) and (validee.get("personnage") == locuteur
+                                      or locuteur in (validee.get("destinataires") or [])):
         prevus += list(validee.get("faits") or [])
     return {p.strip() for p in prevus if isinstance(p, str) and p.strip()}
+
+
+def destinataires_parole(faits, locuteur):
+    """Ceux à qui Corvus vient de parler (conversation_validee.destinataires), seuls à lui répondre ;
+    sans parole de Corvus validée, rien ne restreint ``locuteur``."""
+    validee = faits.get("conversation_validee")
+    if isinstance(validee, dict) and isinstance(validee.get("destinataires"), list):
+        return [x for x in validee["destinataires"] if isinstance(x, str)]
+    return [locuteur]
 
 
 def citations_nouvelles(texte, faits):
@@ -295,6 +305,12 @@ def controler(texte, rapport, faits):
             obstacles.append({"segment": indice, "texte": passage,
                               "motif": "Seul un personnage présent peut parler ; aucun locuteur présent "
                                        "ne correspond à cette parole."})
+        elif verdict in ("parole", "engagement") and locuteur not in destinataires_parole(faits, locuteur):
+            # Le moteur a décidé l'issue de la parole de Corvus pour ses destinataires seulement.
+            obstacles.append({"segment": indice, "texte": passage,
+                              "motif": "Corvus s'adressait à " + ", ".join(destinataires_parole(faits, locuteur))
+                                       + " : eux seuls lui répondent ; les autres l'ont entendu sans être "
+                                         "interpellés et se taisent."})
         elif verdict == "engagement" and (not ligne["entites"] or any(
                 e.strip() not in engagements_prevus(faits, locuteur) for e in ligne["entites"])):
             # Sa parole atteste qu'il l'a dit ; ce qu'il fera, seul le moteur le décide.

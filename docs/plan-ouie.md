@@ -142,6 +142,81 @@ faisaient basculer la nuit dans une panique générale (minutes sans recours 1 0
 1 100 min contre 186) ; l'inquiétude à la mesure du niveau reçu et le correctif du geste social l'ont
 ramenée au niveau d'avant.
 
+## Paroles : à qui, et qui les entend (branche `parole`)
+
+Avant : une parole du joueur avait un seul destinataire, nommé en tête ou choisi par Luna ; les
+autres présents n'en retenaient rien, et une parole entre PNJ ne touchait que son destinataire.
+On ne pouvait ni parler à un groupe ni chuchoter.
+
+**Règle acceptée.** Le moteur fixe le destinataire (`paroles.analyser`, `paroles.destinataires`) :
+celui que le joueur nomme ; sinon celui qui est en face de lui (dans son regard, le plus proche
+à portée de voix) ; à égalité, le joueur précise. « à tous » s'adresse à tous les présents qui
+saisiraient ses mots, chacun décidant comme d'une demande individuelle. Une saisie qui commence
+par des guillemets vaut « je dis … ». Chuchoter ou murmurer : un seul destinataire, au contact,
+jamais un groupe ; le chuchotement est feutré (1) et ses mots ne vont qu'à lui.
+
+**Qui l'entend.** La parole retentit avec ses mots (`ouie.retentir`, `parole` : destinataires et
+contenu typé). Un PNJ en saisit les mots s'ils lui parviennent au seuil commun, et qu'il les
+entend (`ouie.mots_saisis` : niveau ≥ max(1, son seuil) ; au repos il lui faut un cran de plus,
+aux aguets il n'entend pas mieux les mots). Qui en saisit les mots sans en être le destinataire
+la retient (`social.retenir_parole` : souvenir `parole`, chronique « X surprend les mots de Y à
+Z ») et en reçoit le contenu par la règle du destinataire (`social.recevoir`) : affirmation jugée
+comme une confidence (`echanges.affirmer`), nouvelle comme une rumeur (`_adopter`, d'une main de
+plus), aveu cru (méfiance, rumeur de première main). Rien de ce qu'on dit de lui-même ne
+l'atteint ; une demande adressée à un autre ne l'engage pas. Les PNJ entendent les paroles des
+autres PNJ par la même règle : confidences (`social.bavarder`), affirmations (`echanges`, dire),
+demandes, prières de passage.
+
+Une parole sans conteste (guillemets, à tous, deux-points) que nul présent perçu ne saisirait est
+dite à la cantonade (personnage « personne ») : aucun destinataire, qui l'entend la retient. Le MJ
+ne peut ni la remplacer par une action ni la raconter lui-même en dialogue : le moteur la lui fait
+proposer. Seuls les destinataires répondent (`narration.destinataires_parole`, contrôle
+déterministe) ; Luna voit ce que chaque présent a entendu (`a_entendu`).
+
+Correctif commun révélé (banc de la mine) : Mathe, qui venait de voir Odon manger le pain de
+Lucien, entendait Rémy le dire et sa méfiance « vu » devenait un ouï-dire « dit:remy ». Une parole
+qui confirme ce qu'on vient de voir ou d'essayer ne change plus la croyance (`echanges.affirmer`),
+et une rumeur ou un aveu n'abaissent plus une méfiance de première main (`social._adopter`,
+`recevoir`).
+
+Vérifié (`tests/test_parole_commune.py`, après rechargement, et ce que lit le joueur) : le cas
+réel devant Ilse et Aubin (Ilse en face répond, Aubin retient) ; deux à égalité (le joueur
+précise, rien n'est dit) ; Luna qui choisit un autre destinataire (refusé, `attendu`) ; « à
+tous : écartez-vous » (Ilse, méfiante, refuse ; Aubin décide pour lui) ; « à tous : il faut
+monter » (retenu, personne engagé) ; derrière le pilier, à la cantonade ; « « Gorm, je te donne
+la cloche » » (le don proposé par Luna est refusé, la cloche reste au joueur) ; chuchoter à Brune
+au contact (Ilse à trois cases ne retient ni les mots ni l'affirmation), à distance et à tous
+(refusés) ; un aveu devant Aubin, qui le confie ensuite à Gorm ; une confidence entre PNJ surprise
+par Ilse, qui l'adopte de seconde main.
+
+Avec Luna, sur des copies de la sauvegarde réelle (placements d'auteur sur la copie) : à la
+cantonade derrière le pilier, Brune, Ilse et Aubin retiennent « pouvez-vous m'aider à faire bouger
+Brune ? » ; en face d'Ilse, elle répond, Aubin et Brune retiennent ; l'aveu « c'est moi qui ai
+forcé la réserve de vivres » rend les trois méfiants, rumeur de première main ; « « Gorm, je te
+donne la cloche » » reste une parole (la cloche reste portée) ; chuchoter à Ilse au contact :
+Aubin, à deux cases, ne retient rien ; « à tous : écartez-vous » : Aubin, Ilse et Gorm décident
+chacun et s'écartent ; égalité Ilse/Gorm et chuchoter à tous : message du moteur, sans réponse
+inventée.
+
+Bancs (8 h, graines 1985 7 42 2024, avant → après) :
+
+| | Relais | Mine | Auberge |
+|---|---|---|---|
+| paroles surprises | — → 9,75 | — → 62,25 | — → 32,75 |
+| confidences | 1,25 → 1,25 | 5,25 → 3,75 | 8,5 → 4,75 |
+| rumeurs crues | 1 → 1 | 2,75 → 2,75 | 4 → 4,25 |
+| méfiances | 2,25 → 2,25 | 5,25 → 5,25 | 6,5 → 7,75 |
+| jets | 8,25 → 8,25 | 11,5 → 12,25 | 161 → 196 |
+| minutes sans recours | 394 → 394 | 604 → 678 | 584 → 663 |
+| retournements | 129,5 → 129,5 | 239 → 231 | 227 → 188 |
+
+Aucune usurpation. Au Relais, rien ne change hors des paroles surprises (des demandes de part, qui
+n'engagent pas le témoin). Ailleurs, les témoins apprennent directement : moins de confidences à
+faire, une rumeur qui court plus tôt (auberge : Hugues accuse Lucien à 200 minutes au lieu de
+262). Les écarts de minutes sans recours viennent de jets décalés : à la mine, graine 2024, une
+part refusée à Gaspard à 221 minutes au lieu d'être promise le laisse affamé (+300 minutes) ; à
+l'auberge, graine 7, une nuit de panique (453 retournements) n'a plus lieu (213).
+
 ## Limites
 
 - Les réflexes déclarés (`reaction_son`, le protecteur qui accourt) et le souvenir « son » restent
@@ -157,6 +232,13 @@ ramenée au niveau d'avant.
   rien.
 - Le joueur ne fait pas de jet d'ouïe ; ses gestes ont la nature de la table, plus l'arbitrage du
   bruit (3 : fracas).
+- Paroles : un destinataire doit être perçu par le joueur ; qui l'entend sans être vu (derrière le
+  pilier) n'est que témoin, et le nommer est refusé (« pas ici pour t'entendre »). Les répliques
+  que Luna prête aux PNJ (`paroles_pnj`) ne sont pas entendues des autres PNJ. Un PNJ tout près
+  d'un chuchotement n'en retient qu'un bruit feutré, pas qu'on chuchote. Sans cases, deux présents
+  font toujours une ambiguïté, et l'on chuchote à quiconque est là. « je lui dis » vise le dernier
+  à qui Corvus a parlé. Les paroles entendues occupent la mémoire des PNJ (40 souvenirs ; une
+  soixantaine de paroles surprises par nuit à la mine).
 
 ## Réglages à trancher
 

@@ -9,7 +9,7 @@ le rend plus dur à convaincre. Une tâche confiée devient un engagement que le
 exécute quand rien de plus urgent ne presse. Tout est déterministe hors des jets du moteur.
 """
 from .caractere import penchant
-from .esprits import croire, esprit, lire, memoriser, percevoir
+from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
 
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
@@ -25,6 +25,10 @@ def clarte(monde, auditeur):
 def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     """« dementi », « doute », « crue » ou « decouvert » (crue puis démentie sous ses yeux)."""
     e = esprit(monde, auditeur)
+    actuelle = e["croyances"].get(sujet, {}).get(attribut)
+    if (actuelle and actuelle["valeur"] == valeur and actuelle["source"] in ("vu", "essai")
+            and monde.data["minutes"] - actuelle["minute"] <= RECENT):
+        return "crue"  # Il vient de le voir lui-même : la parole le confirme sans rien lui apprendre.
     if dementi(monde, auditeur, sujet, attribut, valeur):
         croire(monde, auditeur, locuteur, "fiable", False, "vu")
         memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur,
@@ -267,11 +271,13 @@ def executer(monde, id, etape, lignes):
         return False  # Ils ne peuvent se voir : rien ne se dit.
     a, b, contenu = _qui(monde, id), _qui(monde, autre), etape.get("contenu", {})
     objet = monde.objets.get(etape["outil"])
+    transmis = []  # Ce que la parole transmet à qui l'entend sans en être le destinataire.
     if op == "dire":
         issue = affirmer(monde, id, autre, contenu["sujet"], contenu["attribut"], contenu["valeur"])
         recit = f"{a} dit à {b} que {phrase_affirmee(monde, contenu['sujet'], contenu['attribut'], contenu['valeur'], False)}"
         clair = f"{a} dit à {b} que {phrase_affirmee(monde, contenu['sujet'], contenu['attribut'], contenu['valeur'], True)}."
         cites, reussi = [contenu["sujet"], contenu["valeur"] if isinstance(contenu["valeur"], str) else None], True
+        transmis = [{"type": "affirmation", **{k: contenu[k] for k in ("sujet", "attribut", "valeur")}}]
         memoriser(monde, id, {"type": "dit", "a": autre, "sujet": contenu["sujet"], "attribut": contenu["attribut"]})
     elif op == "demander":
         if objet is None:
@@ -296,7 +302,8 @@ def executer(monde, id, etape, lignes):
         issue, recit = "remis", f"{a} remet {designer(objet)} à {b}"
         clair, cites, reussi = recit + ".", [objet["id"]], True
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
-    faire_entendre(monde, id, autre, clair, [x for x in cites if x and (x in monde.objets or x == "joueur")], lignes)
+    faire_entendre(monde, id, autre, clair, [x for x in cites if x and (x in monde.objets or x == "joueur")], lignes,
+                   transmis)
     if not reussi:
         vise = objet["id"] if objet else contenu.get("objet")
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue,

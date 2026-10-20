@@ -7,7 +7,12 @@ ordinaire < voix < geste bruyant < appel. Un geste fait pour n'être pas remarqu
 en douce) est feutré, sauf s'il est bruyant par nature ; un geste du joueur que l'arbitrage dit
 fracassant (bruit 3) est bruyant. Le moteur le fait retentir là où il accomplit le geste, du
 joueur (``moteur``) comme d'un PNJ (``pnj``) ; une parole retentit avec ses mots
-(``social.faire_entendre``).
+(``social.faire_entendre``, ``paroles.preparer_parole``), un chuchotement est feutré.
+
+Paroles. Qui saisit les mots d'une parole (``mots_saisis`` : elle lui parvient au seuil commun, et
+il l'entend) la retient, même sans en être le destinataire (``social.retenir_parole``) ; plus loin,
+ou derrière une porte, il n'entend qu'une voix. Les mots d'un chuchotement ne vont qu'à son
+destinataire.
 
 Atténuation. Un cran par palier de distance (``PALIERS`` : un cran ≈ une distance doublée) ; d'une
 salle à l'autre, le bruit gagne le seuil (la distance compte), passe (``OUVERTURE``, ``PORTE``
@@ -44,7 +49,7 @@ NATURES = {
     **dict.fromkeys(("attendre", "patienter", "tourner", "orienter", "observer", "examiner", "lire", "ecouter",
                      "inspecter", "reposer", "chauffer", "abriter"), None),
     **dict.fromkeys(("aller", "marcher", "chasser"), "pas"),
-    **dict.fromkeys(("faufiler", "toucher"), "feutre"),
+    **dict.fromkeys(("faufiler", "toucher", "chuchoter"), "feutre"),
     **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "sifflement"), "voix"),
     **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle"), "bruyant"),
     **dict.fromkeys(("appel", "cri"), "appel"),
@@ -183,9 +188,37 @@ def seuil(monde, id):
     return s
 
 
-def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=()):
+def mots_saisis(monde, id, niveau):
+    """Un PNJ saisit les mots d'une parole qui lui parvient au seuil commun, s'il l'entend lui-même
+    (au repos, il lui faut un cran de plus) ; en deçà, il n'entend qu'une voix."""
+    return niveau >= max(SEUIL, seuil(monde, id))
+
+
+def saisissent(monde, auteur, geste="parler"):
+    """Les personnages qui saisiraient, ici et maintenant, les mots d'une parole de ``auteur`` :
+    {id: niveau parvenu}."""
+    from .esprits import pnjs
+    n = nature(geste)
+    salle, case = _place(monde, auteur)
+    if n is None or salle not in monde.data["salles"]:
+        return {}
+    entrees = propager(monde, salle, case, INTENSITES[n])
+    resultat = {}
+    for id in pnjs(monde):
+        o = monde.objets[id]
+        if id == auteur or not o.get("entend", True) or o["lieu"] not in entrees:
+            continue
+        parvient = parvenu(entrees, *_place(monde, id))
+        if parvient is not None and mots_saisis(monde, id, parvient[0]):
+            resultat[id] = parvient[0]
+    return resultat
+
+
+def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
-    l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Renvoie ceux qui se sont
+    l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :
+    ses destinataires, contenu : ce qu'elle transmet, typé}) est retenue par ceux qui en saisissent
+    les mots sans en être les destinataires (``social.retenir_parole``). Renvoie ceux qui se sont
     retournés."""
     n = nature(geste, discret, bruit)
     salle, case = _place(monde, auteur)
@@ -197,15 +230,22 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=()):
     t = instant(monde)
     if auteur != "joueur":
         _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, [c for c in cites if c])
-    retournes = []
+    retournes, temoins = [], []
     for id in pnjs(monde):
         o = monde.objets[id]
         if id == auteur or not o.get("profil") or not o.get("entend", True) or o["lieu"] not in entrees:
             continue
         parvient = parvenu(entrees, *_place(monde, id))
-        if parvient is not None and parvient[0] >= seuil(monde, id) and entendre(monde, id, auteur, salle, case, n, t,
-                                                                                 parvient[0]):
+        if parvient is None:
+            continue
+        if parole is not None and id not in parole["a"] and mots_saisis(monde, id, parvient[0]):
+            temoins.append(id)
+        if parvient[0] >= seuil(monde, id) and entendre(monde, id, auteur, salle, case, n, t, parvient[0]):
             retournes.append(id)
+    if temoins:
+        from .social import retenir_parole
+        for id in temoins:
+            retenir_parole(monde, id, auteur, parole["a"], texte, [c for c in cites if c], parole["contenu"])
     return retournes
 
 

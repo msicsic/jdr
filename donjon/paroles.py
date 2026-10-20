@@ -1,28 +1,34 @@
-"""Paroles du joueur aux PNJ : réplique rendue selon INT et CHA, contenu typé, croyances.
+"""Paroles du joueur aux PNJ : à qui, comment, réplique selon INT et CHA, contenu typé, croyances.
 
-Le joueur écrit ce qu'il veut faire dire à Corvus. Le moteur fixe la bande d'expression
-(précision selon l'INT, aisance selon le CHA) ; Luna écrit la réplique dans cette bande et
-type son contenu : affirmations (sujet, attribut, valeur), demandes d'objet, demandes de passage
-(s'écarter, laisser passer), simples propos.
-Une réplique entre guillemets est dite mot pour mot. L'effet ne dépend jamais des mots
-choisis par Luna : le moteur le calcule sur le contenu typé, les caractéristiques, la
-confiance de l'auditeur et un jet de CHA. Une INT faible, chez celui qui parle ou chez celui
-qui écoute, réduit ce qui est transmis. Une affirmation démentie par ce que le PNJ perçoit ou
-a vu récemment est rejetée et il cesse de croire le joueur fiable.
+Le joueur écrit ce qu'il veut faire dire à Corvus. Le moteur lit dans sa saisie la forme de la
+parole (``analyser``) et en fixe les destinataires (``destinataires``) : celui qu'il nomme, sinon
+celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ; un chuchotement, un seul,
+au contact. Il fixe la bande d'expression (précision selon l'INT, aisance selon le CHA) ; Luna
+écrit la réplique dans cette bande et type son contenu : affirmations (sujet, attribut, valeur),
+demandes d'objet, demandes de passage (s'écarter, laisser passer), aveux, simples propos.
+Des mots imposés par le joueur (entre guillemets, après un deux-points, une interpellation) sont
+dits mot pour mot. L'effet ne dépend jamais des mots choisis par Luna : le moteur le calcule sur
+le contenu typé, les caractéristiques, la confiance de l'auditeur et un jet de CHA. Une INT
+faible, chez celui qui parle ou chez celui qui écoute, réduit ce qui est transmis. Une
+affirmation démentie par ce que le PNJ perçoit ou a vu récemment est rejetée et il cesse de
+croire le joueur fiable. Tous ceux qui saisissent les mots d'une parole à voix haute la
+retiennent, destinataires ou non (``ouie``, ``social.retenir_parole``) ; seuls ses destinataires
+y répondent.
 """
 import copy
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
 from .francais import designer
-from .monde import ErreurMonde
+from .monde import ErreurMonde, normaliser
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
-TYPES = ("propos", "affirmation", "demande", "passage")
+TYPES = ("propos", "affirmation", "demande", "passage", "aveu")
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "personnage": {"type": "string"},
+        "personnage": {"type": "string",
+                       "description": "parole_prevue.personnage : le destinataire fixé par le moteur, ou tous."},
         "replique": {"type": "string", "description": "Ce que Corvus prononce, dans la bande d'expression."},
         "contenu": {"type": "array", "maxItems": 3, "items": {
             "type": "object", "additionalProperties": False,
@@ -49,9 +55,15 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
 
 REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
-proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le
-personnage est celui à qui le joueur s'adresse ; si le joueur écrit ses mots entre guillemets ou
-interpelle directement le personnage (« Gorm, … »), ce sont ses mots, dits tels quels. Sinon,
+proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le moteur
+fixe à qui Corvus parle et te le donne dans parole_prevue, si la saisie est une parole : celui
+que le joueur nomme, sinon celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ;
+chuchoter ou murmurer, un seul, au contact. personnage = parole_prevue.personnage (un
+identifiant, tous, ou personne quand nul en vue ne l'entend : il parle à la cantonade, et
+personne ne lui répond). Une saisie entre guillemets, adressée à tous ou chuchotée est une parole,
+même si ses mots annoncent un geste : donner un objet se fait par l'action remettre. Les mots
+imposés par le joueur (parole_prevue.mots : entre guillemets, après un deux-points ou une
+interpellation comme « Gorm, … ») sont dits tels quels. Sinon,
 la réplique traduit son intention dans la bande expression_joueur : la précision suit l'INT,
 l'aisance le CHA (très pauvre : quelques mots, des hésitations ; brillante : formules choisies,
 images, tact ; une bande élevée enrichit sans ajouter d'idée).
@@ -64,11 +76,17 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
 - passage {sujet, attribut et valeur vides} : Corvus demande au personnage de s'écarter, de se
   pousser, de le laisser passer. Le moteur décide s'il bouge et le dit dans les faits ; sa
   réplique dit cette issue, sans promettre de bouger plus tard ;
+- aveu {sujet : un objet qui n'est pas à Corvus ; attribut vide ; valeur : le geste qu'il avoue
+  y avoir fait, parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter,
+  forcer, manger, servir, alimenter, allumer, eteindre} ;
 - propos {sujet, attribut et valeur vides} pour tout le reste.
-Le moteur te renvoie conversation_validee : fais répondre le personnage d'après ce résultat,
-ses croyances, ses traits et ses valeurs (esprits_interlocuteurs, valeurs de 0 à 100). Ce qu'il
-croit n'est pas un fait : il peut le dire, se tromper ou le taire, et n'avoue son intention que
-si ses traits s'y prêtent ; il ne ment que si son honnêteté le permet (jamais à 100).
+Tous ceux qui en saisissent les mots retiennent une parole à voix haute ; le moteur en a tiré
+les conséquences et te renvoie conversation_validee : fais répondre ses destinataires, et eux
+seuls, d'après ce résultat, leurs croyances, leurs traits et leurs valeurs
+(esprits_interlocuteurs, valeurs de 0 à 100) ; les temoins ont entendu sans être interpellés
+et se taisent. Ce qu'un personnage croit n'est pas un fait : il peut le dire, se tromper ou le
+taire, et n'avoue son intention que si ses traits s'y prêtent ; il ne ment que si son honnêteté
+le permet (jamais à 100).
 """
 
 
@@ -167,8 +185,30 @@ def esprits_interlocuteurs(monde, presents):
             "but_actuel": copy.deepcopy(e["intention"]["but"]) if e["intention"] else None,
             "besoins_pressants": urgents(monde, id) if profil else [],
             "engagements": engagements_enregistres(monde, id),
+            "a_entendu": paroles_retenues(monde, id),
         }
     return resultat
+
+
+def paroles_retenues(monde, id):
+    """Les dernières paroles que ce personnage a entendues, qu'elles lui fussent adressées ou non :
+    qui parlait, à qui, ses mots. Elles attestent qu'elles ont été dites, pas qu'elles sont vraies.
+    Une parole qui nomme ce que le joueur ne connaît pas reste tue."""
+    from .social import _qui
+    retenues = []
+    for s in reversed(lire(monde, id)["memoire"]):
+        if len(retenues) == 4:
+            break
+        if s["type"] != "parole":
+            continue
+        a = s.get("a") or [id]
+        if all(_connu_du_joueur(monde, x) for x in [s["locuteur"], *a, *s.get("cites", [])]
+               if x == "joueur" or x in monde.objets):
+            retenues.append({"de": _qui(monde, s["locuteur"]) if s["locuteur"] in monde.objets
+                             or s["locuteur"] == "joueur" else s["locuteur"],
+                             "a": [_qui(monde, x) for x in a if x == "joueur" or x in monde.objets],
+                             "mots": s["texte"]})
+    return retenues[::-1]
 
 
 def engagements_enregistres(monde, id):
@@ -191,13 +231,17 @@ def engagements_enregistres(monde, id):
     return phrases
 
 
-def contexte(monde):
+def contexte(monde, intention=None):
     from .dialogues import interlocuteurs
     presents = list(interlocuteurs(monde))
-    if not presents:
+    # Une parole sans conteste se dit même sans personne en vue : qui l'entend la retient.
+    if not presents and not (intention is not None and analyser(monde, intention)["explicite"]):
         return None
-    return {"expression_joueur": bande_expression(monde.joueur["stats"]),
-            "esprits_interlocuteurs": esprits_interlocuteurs(monde, presents)}
+    resultat = {"expression_joueur": bande_expression(monde.joueur["stats"]),
+                "esprits_interlocuteurs": esprits_interlocuteurs(monde, presents)}
+    if intention is not None:
+        resultat["parole_prevue"] = prevue(monde, intention)
+    return resultat
 
 
 def citation(intention):
@@ -206,16 +250,232 @@ def citation(intention):
     return m.group(1) if m else None
 
 
+# --- À qui Corvus parle, et comment ------------------------------------------------------------
+# Les formes de la parole que l'analyse de la saisie reconnaît, en un seul endroit.
+GUILLEMETS = "«\"“"
+GROUPE = ("tous", "tout le monde", "vous tous")                 # « à tous : … », « tous, … »
+PREPOSITIONS = ("a", "au", "aux")
+VERBES_PAROLE = {**dict.fromkeys(("dis", "dit", "dire", "demande", "demander", "parle", "parler", "reponds",
+                                  "repondre", "lance", "explique", "annonce", "raconte", "avoue", "confie",
+                                  "affirme", "repete"), "voix"),
+                 **dict.fromkeys(("chuchote", "chuchoter", "murmure", "murmurer"), "chuchote")}
+PRONOMS = {"lui": False, "leur": True}                          # le pronom désigne-t-il un groupe ?
+ARTICLES_NOM = ("le ", "la ", "l'", "les ")
 VOCATIF = re.compile(r"^\s*([^,!?:«»\"“”]{2,40}?)\s*[,:]\s*\S")
+JETON = re.compile(r"[^\W\d_](?:[\w'’-]*\w)?|[:,«»\"“”]")
 
 
-def destinataire_nomme(monde, intention):
-    """Personnage que le joueur interpelle en tête de son message (« Gorm, … »), s'il le connaît.
+class ParoleImpossible(ErreurMonde):
+    """Un refus qui tient à la saisie (à qui parler, chuchoter de loin ou à plusieurs) : le joueur
+    précise ou s'approche ; aucune correction du MJ n'y changerait rien, son message lui est rendu."""
 
-    Le message est alors sa réplique, mot pour mot, et ce personnage en est le destinataire."""
-    m = VOCATIF.match(intention or "")
-    id = resoudre(monde, m.group(1).strip()) if m else None
-    return id if id in monde.objets and monde.objets[id]["type"] == "personnage" else None
+
+def _personnage(monde, fragment):
+    """Le personnage connu du joueur que ``fragment`` nomme exactement (identifiant, nom, prénom,
+    alias, avec ou sans article) ; sinon None."""
+    texte = normaliser(fragment or "")
+    for article in ARTICLES_NOM:
+        if texte.startswith(article):
+            texte = texte[len(article):]
+            break
+    if not texte:
+        return None
+    trouves = {id for id, o in monde.objets.items() if o["type"] == "personnage"
+               and texte in {normaliser(n) for n in (id, o["nom"], o["nom"].split(",")[0], *o.get("aliases", []))}
+               and _connu_du_joueur(monde, id)}
+    return trouves.pop() if len(trouves) == 1 else None
+
+
+def _interpeller(monde, forme, texte):
+    """Une interpellation en tête de ``texte`` (« Brune, … », « à tous : … ») : le personnage nommé
+    ou le groupe. Renvoie la longueur d'une adresse marquée par « à », qui n'est pas dite ; 0 sinon."""
+    m = VOCATIF.match(texte or "")
+    if not m:
+        return 0
+    tete = m.group(1).strip().split(None, 1)
+    marque = len(tete) == 2 and normaliser(tete[0]) in PREPOSITIONS
+    nom = tete[1] if marque else m.group(1)
+    if normaliser(nom) in GROUPE:
+        forme["groupe"] = True
+    elif _personnage(monde, nom):
+        forme["nomme"] = _personnage(monde, nom)
+    else:
+        return 0
+    return m.end(1) if marque else 0
+
+
+def _groupe_en(mots, i):
+    """Nombre de mots d'une désignation du groupe (« tous », « tout le monde ») à partir de ``i``."""
+    for g in sorted(GROUPE, key=len, reverse=True):
+        if mots[i:i + len(g.split())] == g.split():
+            return len(g.split())
+    return 0
+
+
+def analyser(monde, intention):
+    """La forme de la parole que la saisie annonce : manière (voix ou chuchotement), personnage
+    nommé ou groupe (« à tous »), pronom (« je lui dis »), mots imposés (entre guillemets, après un
+    deux-points ou une interpellation), et si elle est sans conteste une parole (``explicite`` :
+    entre guillemets, à tous, chuchotée, mots après un deux-points)."""
+    s = (intention or "").strip()
+    forme = {"maniere": "voix", "groupe": False, "nomme": None, "pronom": False, "mots": None, "explicite": False}
+    if s[:1] in GUILLEMETS:
+        forme.update(explicite=True, mots=citation(s) or s.strip("«»\"“” ") or None)
+        _interpeller(monde, forme, forme["mots"])
+        return forme
+    jetons = list(JETON.finditer(s))
+    mots = [normaliser(j.group()) for j in jetons]
+    i = 1 if mots[:1] == ["je"] else 0
+    if len(mots) > i + 1 and mots[i] in PRONOMS and mots[i + 1] in VERBES_PAROLE:
+        forme["groupe"], forme["pronom"] = PRONOMS[mots[i]], not PRONOMS[mots[i]]
+        i += 1
+    if i < len(mots) and mots[i] in VERBES_PAROLE:
+        forme["maniere"] = VERBES_PAROLE[mots[i]]
+        i += 1
+        if i < len(mots) and mots[i] in PREPOSITIONS:
+            n = _groupe_en(mots, i + 1)
+            if n:
+                forme["groupe"], i = True, i + 1 + n
+            else:
+                for k in range(min(4, len(jetons) - i - 1), 0, -1):
+                    id = _personnage(monde, s[jetons[i + 1].start():jetons[i + k].end()])
+                    if id:
+                        forme["nomme"], i = id, i + 1 + k
+                        break
+        if i < len(jetons) and jetons[i].group() == ":":
+            reste = s[jetons[i].end():].strip()
+            forme.update(explicite=True, mots=(citation(reste) if reste[:1] in GUILLEMETS else reste) or None)
+    else:
+        debut = _interpeller(monde, forme, s)
+        if forme["groupe"] or forme["nomme"]:
+            forme["mots"] = s[debut:].lstrip(" ,:") or None if debut else s
+    if forme["mots"] is None and citation(s):
+        forme["mots"] = citation(s)
+        if not (forme["groupe"] or forme["nomme"]):
+            _interpeller(monde, forme, forme["mots"])
+    if forme["groupe"] or forme["maniere"] == "chuchote":
+        forme["explicite"] = True
+    return forme
+
+
+def _nom_court(monde, id):
+    return monde.objets[id]["nom"].split(",")[0]
+
+
+def _contact(monde, id):
+    """Au contact de Corvus (une case voisine) ; sans cases, quiconque est là."""
+    if not monde.data.get("mode_cases"):
+        return True
+    from .passage import au_contact
+    return au_contact(monde, "joueur", id)
+
+
+def _face(monde, id):
+    """(hors de son regard, distance) : le plus petit est celui à qui Corvus fait face."""
+    from .ouie import distance
+    from .spatial import dans_le_regard
+    o, j = monde.objets[id], monde.joueur
+    if not monde.data.get("mode_cases") or o.get("position") is None or j.get("position") is None:
+        return 0, 0
+    regard = dans_le_regard(monde, o["lieu"], tuple(o["position"]), "joueur")
+    return (0 if regard else 1), (distance(tuple(o["position"]), tuple(j["position"])) if o["lieu"] == j["salle"] else 99)
+
+
+def en_face(monde, candidats, pronom=False):
+    """Celui à qui Corvus parle sans le nommer, parmi ``candidats`` : celui que désigne un pronom
+    (« je lui dis »), s'il est le dernier à qui il a parlé ; sinon celui qu'il a sous les yeux, le
+    plus proche. À égalité, le joueur précise."""
+    from .refus import liste
+    derniere = (monde.data.get("paroles_joueur") or [None])[-1]
+    if pronom and derniere:
+        auditeurs = derniere.get("auditeurs") or [derniere["auditeur"]]
+        if len(auditeurs) == 1 and auditeurs[0] in candidats:
+            return auditeurs[0]
+    rangs = {id: _face(monde, id) for id in candidats}
+    face = sorted(id for id, r in rangs.items() if r == min(rangs.values()))
+    if len(face) > 1:
+        noms = ", ".join(_nom_court(monde, x) for x in face[:-1]) + " et " + _nom_court(monde, face[-1])
+        raise ParoleImpossible(f"{noms} sont aussi près de toi l'un que l'autre : précise à qui tu parles "
+                               f"(« {_nom_court(monde, face[0])}, … »), ou parle à tous (« à tous : … »).",
+                               f"destinataire ambigu entre {liste(face)} : le joueur doit le nommer ; réponds en "
+                               "mode dialogue, sans choisir à sa place.")
+    return face[0]
+
+
+def destinataires(monde, forme):
+    """Ceux à qui s'adresse la parole que décrit ``forme`` (``analyser``) : celui que le joueur
+    nomme, sinon celui qui est en face de lui, à portée de voix ; à tous, tous les présents qui en
+    saisiraient les mots ; un chuchotement, un seul, au contact. Une parole sans conteste (à tous,
+    entre guillemets…) que nul présent ne saisirait est dite à la cantonade : aucun destinataire,
+    qui l'entend la retient. ParoleImpossible si le joueur doit préciser ou s'approcher."""
+    from .dialogues import interlocuteurs
+    from .ouie import saisissent
+    from .refus import liste
+    presents = sorted(interlocuteurs(monde))
+    chuchote = forme["maniere"] == "chuchote"
+    cantonade = forme["explicite"] and not forme["nomme"] and not chuchote
+    if not presents and not cantonade:
+        raise ParoleImpossible("Il n'y a personne ici pour t'entendre.",
+                               "aucun interlocuteur présent : réponds en mode dialogue.")
+    if forme["groupe"] and chuchote:
+        raise ParoleImpossible("On ne chuchote qu'à une seule personne, à son oreille.",
+                               "chuchoter : un seul destinataire, nommé ou en face, au contact ; à plusieurs, "
+                               "Corvus parle à voix haute (« à tous : … »).")
+    nets = saisissent(monde, "joueur")
+    entendent = [id for id in presents if id in nets]
+    contact = [id for id in presents if _contact(monde, id)]
+    if forme["groupe"]:
+        return entendent
+    id = forme["nomme"]
+    if id and id not in presents:
+        raise ParoleImpossible("Ce personnage n'est pas ici pour t'entendre.",
+                               f"{id} n'est pas là pour entendre Corvus : réponds en mode dialogue qu'il est trop "
+                               "loin ; ne fais pas parler Corvus à un autre personnage à sa place.")
+    if id and chuchote and id not in contact:
+        raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin : approche-toi pour lui chuchoter quoi que "
+                               "ce soit.", f"chuchoter exige le contact (une case voisine) avec {id} ; au contact de "
+                               f"Corvus : {liste(contact)}.")
+    if id and not chuchote and id not in entendent:
+        raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin pour t'entendre.",
+                               f"{id} ne saisirait pas les mots de Corvus d'ici ; à portée de voix : "
+                               f"{liste(entendent)}.")
+    if id:
+        return [id]
+    candidats = contact if chuchote else entendent
+    if not candidats and cantonade:
+        return []
+    if not candidats:
+        raise ParoleImpossible("Personne n'est assez près de toi pour que tu lui chuchotes quoi que ce soit."
+                               if chuchote else "Personne n'est assez près pour t'entendre.",
+                               f"{'au contact' if chuchote else 'à portée de voix'} : personne parmi les présents "
+                               f"({liste(presents)}) ; réponds en mode dialogue.")
+    return [en_face(monde, candidats, forme["pronom"])]
+
+
+def prevue(monde, intention):
+    """Ce que le moteur fixe de la parole que la saisie annonce, pour Luna (``parole_prevue``)."""
+    forme = analyser(monde, intention)
+    try:
+        dest = destinataires(monde, forme)
+    except ParoleImpossible as exc:
+        return {"impossible": str(exc)}
+    return {"personnage": personnage(forme, dest), "destinataires": dest,
+            "maniere": "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute",
+            **({"mots": forme["mots"]} if forme["mots"] else {})}
+
+
+def personnage(forme, dest):
+    """Le champ personnage qu'attend le moteur : un identifiant, tous, ou personne (à la cantonade)."""
+    return "tous" if forme["groupe"] else dest[0] if dest else "personne"
+
+
+def annonce(monde, rapport):
+    """Ce que le joueur lit de sa propre parole : à qui, et comment."""
+    verbe = "chuchotes" if rapport.get("maniere") == "chuchotement" else "dis"
+    if rapport["personnage"] == "personne":
+        return f"Tu {verbe} : « {rapport['replique_joueur']} »"
+    a = "tous" if rapport["personnage"] == "tous" else _nom_court(monde, rapport["personnage"])
+    return f"Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
 
 
 def _connu_du_joueur(monde, id):
@@ -272,7 +532,7 @@ def _typer(monde, c, auditeur=None):
         # On demande le passage à celui à qui l'on parle : le sujet, s'il est donné, est lui.
         sujet = c.get("sujet")
         return {"type": "passage"} if not sujet or resoudre(monde, sujet) == auditeur else None
-    if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande"):
+    if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande", "aveu"):
         return None
     sujet = resoudre(monde, c.get("sujet"))
     if sujet is None and c["type"] == "demande" and auditeur:
@@ -281,6 +541,8 @@ def _typer(monde, c, auditeur=None):
         return None
     if c["type"] == "demande":
         return {"type": "demande", "sujet": sujet}
+    if c["type"] == "aveu":
+        return aveu(monde, "joueur", sujet, normaliser(c.get("valeur") or ""))
     attribut, valeur = c.get("attribut"), c.get("valeur")
     if attribut == "lieu":
         valeur = resoudre(monde, valeur)
@@ -291,6 +553,26 @@ def _typer(monde, c, auditeur=None):
     else:
         return None
     return {"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}
+
+
+def aveu(monde, locuteur, objet, geste):
+    """L'aveu typé d'un geste illicite (``social.GESTES``) fait par ``locuteur`` sur un objet qui
+    appartient à un autre, ou None : avouer un geste permis n'apprend rien de lui."""
+    from .social import GESTES
+    from .vol import proprietaire
+    o = monde.objets.get(objet)
+    if not o or o["type"] == "personnage" or geste not in GESTES or proprietaire(monde, o) in (None, locuteur):
+        return None
+    return {"type": "aveu", "evenement": {"type": "vu_agir", "auteur": locuteur, "operation": geste, "objet": objet}}
+
+
+def _avouer(travail, auditeur, c, faits):
+    from .social import recevoir
+    o = travail.objets[auditeur]
+    il = "elle" if o.get("genre") == "f" else "il"
+    issue = recevoir(travail, auditeur, "joueur", c)
+    faits.append(f"{o['nom']} l'entend : {il} ne te tient plus pour fiable." if issue
+                 else f"{o['nom']} le savait déjà.")
 
 
 def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
@@ -352,18 +634,20 @@ def preparer_parole(monde, p, revision=None):
         raise ErreurMonde("Parole mal formée.",
                           f"parole_joueur a exactement les champs {', '.join(SCHEMA_PAROLE['required'])} ; replique de "
                           f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
-    auditeur = p["personnage"]
-    nomme = destinataire_nomme(monde, p.get("_intention", ""))
-    if nomme and nomme != auditeur:
-        # Le joueur choisit à qui Corvus parle : le MJ ne lui substitue personne.
-        raise ErreurMonde("Tu t'adresses à " + designer(monde.objets[nomme]) + ".",
-                          f"personnage = {nomme}, que le joueur interpelle ; s'il n'est pas là pour entendre, "
-                          "réponds en mode dialogue, sans parler à un autre à sa place.")
-    presents = sorted(interlocuteurs(monde))
-    if auditeur not in presents:
-        raise ErreurMonde("Ce personnage n'est pas ici pour t'entendre.",
-                          f"{auditeur} n'est pas là pour entendre Corvus : réponds en mode dialogue qu'il est trop "
-                          "loin ; ne fais pas parler Corvus à un autre personnage à sa place.")
+    # Le moteur fixe à qui Corvus parle : le MJ ne lui substitue personne.
+    forme = analyser(monde, p.get("_intention", ""))
+    dest = destinataires(monde, forme)
+    attendu = personnage(forme, dest)
+    if p["personnage"] != attendu:
+        raise ErreurMonde("Tu t'adresses à tous ceux qui t'entendent." if forme["groupe"]
+                          else "Tu ne t'adresses à personne en particulier." if not dest
+                          else "Tu t'adresses à " + designer(monde.objets[attendu]) + ".",
+                          f"personnage = {attendu} (parole_prevue.personnage : "
+                          + ("tous ceux qui entendent Corvus" if forme["groupe"] else
+                             "personne en vue : il parle à la cantonade" if not dest else
+                             "celui que le joueur nomme, sinon celui qui est en face de Corvus")
+                          + ") ; s'il n'est pas là pour entendre, réponds en mode dialogue, sans parler à un autre "
+                          "à sa place.")
     from . import lexique
     replique = p["replique"].strip()
     # La réplique affichée obéit au contrôle des mentions : rien que Corvus ne connaisse.
@@ -373,8 +657,9 @@ def preparer_parole(monde, p, revision=None):
         fondement += " " + lexique.corpus(p["_intention"])
     # Une part demandée à son propriétaire se nomme sans avoir été vue.
     for c in p["contenu"]:
-        if isinstance(c, dict) and c.get("type") == "demande":
-            part = part_nommee(monde, auditeur, c.get("sujet"))
+        for auditeur in dest:
+            part = part_nommee(monde, auditeur, c.get("sujet")) if isinstance(c, dict) and c.get("type") == "demande" \
+                else None
             if part:
                 o = monde.objets[part]
                 fondement += " " + " ".join([o["nom"], *o.get("aliases", [])])
@@ -383,32 +668,43 @@ def preparer_parole(monde, p, revision=None):
         raise ErreurMonde("La réplique de Corvus nomme ce qu'il ne connaît pas.",
                           "retire de replique : " + ", ".join(f"« {m['terme']} »" for m in inconnus)
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
+    from .ouie import retentir, saisissent
     travail = monde.copier()
-    stats_auditeur = _stats_pnj(travail, auditeur)
-    capacite = min(capacite_transmission(_stats_pnj(travail, "joueur")["INT"]),
-                   capacite_transmission(stats_auditeur["INT"]))
+    chuchote = forme["maniere"] == "chuchote"
+    # Ce qu'en retient qui l'entend sans en être le destinataire : ce qui ne s'adresse pas qu'à lui.
+    publics = [x for x in (_typer(travail, c) for c in p["contenu"]) if x and x["type"] in ("affirmation", "aveu")]
+    temoins = [] if chuchote else sorted(id for id in saisissent(travail, "joueur")
+                                         if id not in dest and travail.objets[id].get("profil"))
+    expression = capacite_transmission(_stats_pnj(travail, "joueur")["INT"])
     faits = []
-    transmis = [x for x in (_typer(travail, c, auditeur) for c in p["contenu"]) if x]
-    perdus = transmis[capacite:]
-    for c in transmis[:capacite]:
-        if c["type"] == "affirmation":
-            _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
-        elif c["type"] == "passage":
-            _demander_passage(travail, auditeur, faits)
-        else:
-            _demander(travail, auditeur, c["sujet"], faits)
-    if perdus:
-        faits.append(f"{travail.objets[auditeur]['nom']} ne retient pas tout : une partie de ce que tu as dit se perd.")
-    memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "texte": replique[:240]})
-    # Sa voix retentit : d'autres que son interlocuteur peuvent l'entendre (``ouie``).
-    from .ouie import retentir
-    retentir(travail, "joueur", "parler")
+    for auditeur in dest:
+        capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
+        transmis = [x for x in (_typer(travail, c, auditeur) for c in p["contenu"]) if x]
+        for c in transmis[:capacite]:
+            if c["type"] == "affirmation":
+                _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
+            elif c["type"] == "passage":
+                _demander_passage(travail, auditeur, faits)
+            elif c["type"] == "aveu":
+                _avouer(travail, auditeur, c, faits)
+            else:
+                _demander(travail, auditeur, c["sujet"], faits)
+        if transmis[capacite:]:
+            faits.append(f"{travail.objets[auditeur]['nom']} ne retient pas tout : une partie de ce que tu as dit se perd.")
+        memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
+                                      "cites": []})
+    # Sa voix retentit : qui en saisit les mots la retient (``ouie``) ; un chuchotement ne va qu'à son destinataire.
+    retentir(travail, "joueur", "chuchoter" if chuchote else "parler", texte=replique,
+             parole=None if chuchote else {"a": list(dest), "contenu": publics})
     travail.data["revision"] += 1
     travail.data.setdefault("paroles_joueur", []).append(
-        {"revision": travail.data["revision"], "auditeur": auditeur, "texte": replique,
+        {"revision": travail.data["revision"], "auditeur": attendu, "auditeurs": list(dest), "texte": replique,
          "minute": travail.data["minutes"]})
     travail.data["paroles_joueur"] = travail.data["paroles_joueur"][-40:]
     travail.verifier()
-    rapport = {"personnage": auditeur, "sujet": replique, "operation": "parole_joueur",
-               "replique_joueur": replique, "faits": faits}
+    presents = interlocuteurs(monde)
+    rapport = {"personnage": attendu, "destinataires": list(dest),
+               "temoins": [id for id in temoins if id in presents],
+               "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
+               "operation": "parole_joueur", "replique_joueur": replique, "faits": faits}
     return travail, rapport
