@@ -103,6 +103,8 @@ class Monde:
         installer_artisanat(self)
         from .espace import installer as installer_espace
         installer_espace(self)
+        from .temps import installer as installer_temps
+        installer_temps(self)
         self.verifier()
 
     def _installer_recit(self):
@@ -357,6 +359,8 @@ class Monde:
     def verifier(self):
         d = self.data
         try:
+            from .temps import verifier as verifier_temps
+            verifier_temps(self)
             if d.get("mode_cases"):
                 from .spatial import verifier as verifier_spatial
                 verifier_spatial(self)

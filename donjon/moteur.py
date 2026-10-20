@@ -48,6 +48,7 @@ class Plan:
     dd: int = 0
     bonus: int = 0
     minutes: int = 1
+    dixiemes: int | None = None    # durée à la seconde près ; sinon, ses minutes (temps.duree)
     bruit: int = 0
     effets: list = field(default_factory=list)
     echec_critique: list = field(default_factory=list)
@@ -155,7 +156,8 @@ class Moteur:
                 raise ErreurMonde("Un pas se fait sans outil ni jet.", "un pas : outil vide, methode simple, difficulte 0.")
             destination = preparer_pas(m, cible)
             plan.titre = "Avancer d'un pas vers " + cible + "."
-            plan.minutes = 1 if m.data.get("pas_depuis_minute", 0) == 9 else 0
+            from .temps import PAS_JOUEUR
+            plan.minutes, plan.dixiemes = 0, PAS_JOUEUR
             plan.effets = [("marcher", "", destination)]
             return plan
         if action == "observer":
@@ -497,22 +499,23 @@ class Moteur:
     def _terminer_etape(travail, plan, lignes):
         Moteur._stabiliser(travail, lignes)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
-        travail.data["minutes"] += plan.minutes
+        from .temps import duree, ecouler
+        minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose.
         from .corps import CALMES, vivre_joueur
         action = plan.proposition.get("action")
-        vivre_joueur(travail, plan.minutes, effort=plan.effort and action not in CALMES,
+        vivre_joueur(travail, minutes, effort=plan.effort and action not in CALMES,
                      repos=action == "attendre", lignes=lignes)
         # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour.
         from .esprits import percevoir_tous
         percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
-        apparus = avancer_pnj(travail, plan.minutes, lignes)
+        apparus = avancer_pnj(travail, minutes, lignes)
         # Ce qui parvient à ses oreilles : le fort de lui-même, le bas en écoutant.
         from .ecoute import ECOUTE, ENTENDU, entendus, rendre
         ecoute = plan.proposition.get("action") == "ecouter"
-        entendu = rendre(travail, entendus(travail, travail.data["minutes"] - plan.minutes,
+        entendu = rendre(travail, entendus(travail, travail.data["minutes"] - minutes,
                                            ECOUTE if ecoute else ENTENDU))
         lignes.extend(entendu)
         if ecoute and not entendu:
@@ -602,7 +605,6 @@ class Moteur:
         if op == "marcher":
             ancienne = m.joueur["salle"]
             m.joueur["salle"], m.joueur["position"] = valeur["salle"], list(valeur["position"])
-            m.data["pas_depuis_minute"] = (m.data.get("pas_depuis_minute", 0) + 1) % 10
             if valeur["salle"] not in m.data["visitees"]:
                 m.data["visitees"].append(valeur["salle"])
             lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + "."
