@@ -657,9 +657,11 @@ redimensionnables ; l’envoi d’une seconde action est désactivé pour évite
 Quitter pendant un appel attend sa fin, puis sauvegarde. La fermeture brutale du terminal
 ne peut pas assurer cette dernière sauvegarde.
 
-Pour choisir explicitement l’affichage :
+Dans un terminal, la partie se joue par défaut dans le navigateur (`--web`, serveur local
+127.0.0.1). Pour choisir explicitement l’affichage :
 
 ```powershell
+python jeu.py --web
 python jeu.py --tui
 python jeu.py --console
 ```

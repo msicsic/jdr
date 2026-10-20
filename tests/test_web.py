@@ -97,6 +97,36 @@ class PartieWebTests(unittest.TestCase):
             serveur.arreter()
 
 
+class InterfaceParDefautTests(unittest.TestCase):
+    """Dans un terminal, on joue dans le navigateur ; --tui et --console restent au choix."""
+
+    @staticmethod
+    def terminal(oui):
+        from unittest import mock
+        return mock.patch("sys.stdin.isatty", return_value=oui), mock.patch("sys.stdout.isatty", return_value=oui)
+
+    def test_le_navigateur_par_defaut_dans_un_terminal(self):
+        from unittest import mock
+        with mock.patch.object(jeu, "lancer_web", return_value="web"), \
+                mock.patch.object(jeu, "lancer_tui", return_value="tui"):
+            for oui, argv, attendu in ((True, [], "web"), (True, ["--tui"], "tui"), (False, ["--web"], "web")):
+                entree, sortie = self.terminal(oui)
+                with entree, sortie:
+                    self.assertEqual(jeu.main(["--defi", "--offline", *argv]), attendu, argv)
+
+    def test_sans_terminal_ou_en_console_la_boucle_ligne_par_ligne(self):
+        from unittest import mock
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier, \
+                mock.patch.object(jeu, "lancer_web") as web, mock.patch.object(jeu, "lancer_tui") as tui, \
+                mock.patch("builtins.print"):
+            for oui, argv in ((False, []), (True, ["--console"])):
+                entree, sortie = self.terminal(oui)
+                with entree, sortie, mock.patch("builtins.input", side_effect=["quitter"]):
+                    jeu.main(["--defi", "--offline", "--save", str(Path(dossier) / "defi.json"), *argv])
+            web.assert_not_called()
+            tui.assert_not_called()
+
+
 def jouer(monde, commandes):
     for texte in commandes:
         moteur = Moteur(monde)

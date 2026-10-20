@@ -21,11 +21,17 @@ Sous Windows, double-cliquer sur un lanceur :
 En ligne de commande :
 
 ```powershell
-.\.venv\Scripts\python.exe jeu.py --defi --tui
+.\.venv\Scripts\python.exe jeu.py --defi
 .\.venv\Scripts\python.exe jeu.py --atelier --cases --tui --debug
 .\.venv\Scripts\python.exe jeu.py --cases --console --offline
-.\.venv\Scripts\python.exe jeu.py --crue --tui --offline
+.\.venv\Scripts\python.exe jeu.py --crue --offline
 ```
+
+Par défaut, la partie se joue dans le navigateur : le jeu lance un serveur local (127.0.0.1,
+seulement depuis cette machine) et ouvre la page (récit, saisie, carte où un clic mène ou propose
+un geste). `--tui` garde l'interface plein écran du terminal (et ses panneaux de `--debug`),
+`--console` l'affichage ligne par ligne, choisi d'office quand l'entrée est redirigée.
+`lancer.cmd` et `lancer-defi.cmd` ouvrent la page ; les lanceurs avec `--debug` gardent la TUI.
 
 `--crue` joue le Relais dont l'eau monte selon la graine (`--seed`), sauvegardé dans
 `sauvegardes/crue.json`.

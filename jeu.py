@@ -97,8 +97,9 @@ def main(argv=None, interface=None):
                         help="effort du second modèle ; identique au principal par défaut")
     parser.add_argument("--demo", action="store_true", help="joue une démonstration sans API et sans sauvegarde")
     parser.add_argument("--console", action="store_true", help="ancien affichage ligne par ligne")
-    parser.add_argument("--tui", action="store_true", help="interface plein écran")
-    parser.add_argument("--web", action="store_true", help="jouer dans le navigateur (serveur local 127.0.0.1)")
+    parser.add_argument("--tui", action="store_true", help="interface plein écran dans le terminal")
+    parser.add_argument("--web", action="store_true",
+                        help="jouer dans le navigateur (serveur local 127.0.0.1) ; le défaut dans un terminal")
     parser.add_argument("--port", type=int, default=8765, help="port local de --web")
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
@@ -118,10 +119,14 @@ def main(argv=None, interface=None):
         sys.stdout.reconfigure(encoding="utf-8")
     if args.demo:
         return demo()
-    if args.web and interface is None:
-        return lancer_web(list(argv) if argv is not None else sys.argv[1:], args.port)
-    if interface is None and not args.console and (args.tui or (sys.stdin.isatty() and sys.stdout.isatty())):
-        return lancer_tui(list(argv) if argv is not None else sys.argv[1:])
+    if interface is None and not args.console:
+        # Dans un terminal, on joue dans le navigateur, sauf --tui ; sans terminal (entrée
+        # redirigée, scripts), l'affichage ligne par ligne.
+        interactif = sys.stdin.isatty() and sys.stdout.isatty()
+        if args.tui:
+            return lancer_tui(list(argv) if argv is not None else sys.argv[1:])
+        if args.web or interactif:
+            return lancer_web(list(argv) if argv is not None else sys.argv[1:], args.port)
     imprimer = interface.ecrire if interface else print
     lire = interface.lire if interface else input
     def afficher(vue):
