@@ -32,6 +32,9 @@ def installer(monde):
     if pas is not None and "dixiemes" not in monde.data:
         monde.data["dixiemes"] = pas * PAS_ANCIEN
     monde.data.setdefault("dixiemes", 0)
+    # Aucun geste ne s'achève sur une case occupée : qui s'y trouvait déjà s'écarte.
+    from .pnj import ecarter
+    ecarter(monde)
 
 
 def verifier(monde):

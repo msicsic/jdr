@@ -46,13 +46,14 @@ class RegardTests(unittest.TestCase):
 
     def test_un_pas_chasse_garde_le_regard_et_prend_le_double(self):
         m = relais()
-        m.joueur.update(salle="antichambre", position=[5, 5], orientation="est")
+        # Placement d'auteur : une rangée sans personne (Ilse se tient en (3, 5)).
+        m.joueur.update(salle="antichambre", position=[5, 1], orientation="est")
         avant = instant(m)
         faire(m, "chasse ouest")
-        self.assertEqual((m.joueur["position"], m.joueur["orientation"]), ([4, 5], "est"))
+        self.assertEqual((m.joueur["position"], m.joueur["orientation"]), ([4, 1], "est"))
         self.assertEqual(instant(m) - avant, 30)
         faire(m, "pas ouest")  # Se tourner (2 s), puis avancer (1,5 s).
-        self.assertEqual((m.joueur["position"], m.joueur["orientation"]), ([3, 5], "ouest"))
+        self.assertEqual((m.joueur["position"], m.joueur["orientation"]), ([3, 1], "ouest"))
         self.assertEqual(instant(m) - avant, 30 + 20 + 15)
 
     def test_la_carte_montre_le_regard(self):

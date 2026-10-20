@@ -29,9 +29,9 @@ DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ.
 NATURES = ("deplacement", "geste", "social", "decision")
-# Gestes qui demandent d'être au contact de la cible : un objet, ou celui à qui l'on parle.
-CONTACT = dict.fromkeys(("prendre", "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger",
-                         "alimenter", "allumer", "servir", "remettre", "dire", "demander", "confier"), True)
+# Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
+# agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
+A_DISTANCE = ("chauffer",)
 
 
 def verifier(monde):
@@ -42,6 +42,7 @@ def verifier(monde):
         assert reaction is None or (isinstance(reaction, dict) and set(reaction) == {"seuil"}
                                     and type(reaction["seuil"]) is int
                                     and 1 <= reaction["seuil"] <= 5), "Réaction de PNJ invalide"
+    verifier_places(monde)
     from .stratege import verifier as verifier_stratege
     verifier_stratege(monde)
     chronique = monde.data.get("chronique", [])
@@ -81,12 +82,37 @@ def _verrouillee_crue(monde, id, porte):
     return bool(cru and cru["valeur"])
 
 
+def _cases_barrees_crues(monde, id):
+    """Les cases où il croit un obstacle qui barre le passage : vu, ou buté dessus (``_impasse``)."""
+    barrees = set()
+    for sujet, attributs in lire(monde, id)["croyances"].items():
+        lieu = attributs.get("lieu")
+        if (lieu and lieu["valeur"] is not None and lieu.get("case")
+                and monde.objets.get(sujet, {}).get("bloque_passage")):
+            barrees.add((lieu["salle"], tuple(lieu["case"])))
+    return barrees
+
+
+def _seuil_barre(monde, salle, sortie, barrees):
+    """Un obstacle qu'il croit sur le seuil, d'un côté ou de l'autre, barre ce passage."""
+    from .spatial import _case_interieure
+    vers = sortie["vers"]
+    retour = next((s for s in monde.data["salles"][vers].get("sorties", {}).values()
+                   if s.get("vers") == salle and s.get("porte") == sortie.get("porte")), None)
+    seuils = {(salle, _case_interieure(monde, salle, sortie))}
+    if retour is not None:
+        seuils.add((vers, _case_interieure(monde, vers, retour)))
+    return bool(seuils & barrees)
+
+
 def chemin(monde, id, depart, arrivee, cles=()):
-    """Sorties à emprunter selon ce que le PNJ croit des portes ; None si aucun passage cru.
+    """Sorties à emprunter selon ce que le PNJ croit des portes et des obstacles ; None si aucun
+    passage cru.
 
     Le PNJ tente toute porte, sauf celle qu'il sait verrouillée sans en porter (ou prévoir
-    d'en porter) la clé.
+    d'en porter) la clé, et tout passage, sauf celui dont il croit un seuil barré.
     """
+    barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
     precedent, file = {depart: None}, deque([depart])
     while file:
         lieu = file.popleft()
@@ -94,7 +120,8 @@ def chemin(monde, id, depart, arrivee, cles=()):
             vers, porte = sortie["vers"], sortie.get("porte")
             if (vers in precedent or vers not in monde.data["salles"]
                     or porte and _verrouillee_crue(monde, id, porte)
-                    and _cle_portee(monde, id, porte, cles) is None):
+                    and _cle_portee(monde, id, porte, cles) is None
+                    or barrees and _seuil_barre(monde, lieu, sortie, barrees)):
                 continue
             precedent[vers] = (lieu, sortie)
             file.append(vers)
@@ -205,38 +232,60 @@ def _au_seuil(monde, o, sortie):
         return
     from .spatial import _case_interieure, _case_libre
     case = _case_interieure(monde, o["lieu"], sortie)
-    if case is not None and _case_libre(monde, o["lieu"], case):
+    if case is not None and _case_libre(monde, o["lieu"], case) and not _occupee(monde, o["id"], o["lieu"], case):
         placer(o, o["lieu"], list(case))
+
+
+def occupants(monde, sauf=None):
+    """{(salle, case): qui s'y tient} : le joueur et les personnages placés, hormis ``sauf``."""
+    places = {}
+    j = monde.joueur
+    if sauf != "joueur" and j.get("position") is not None:
+        places[j["salle"], tuple(j["position"])] = "joueur"
+    for k, o in monde.objets.items():
+        if (o["type"] == "personnage" and k != sauf and o.get("lieu") in monde.data["salles"]
+                and o.get("position") is not None):
+            places.setdefault((o["lieu"], tuple(o["position"])), k)
+    return places
 
 
 def _occupee(monde, id, salle, case):
     """Un autre personnage, ou le joueur, se tient déjà sur la case."""
-    j = monde.joueur
-    return (j["salle"] == salle and tuple(j["position"]) == tuple(case)) or any(
-        o["type"] == "personnage" and k != id and o["lieu"] == salle and tuple(o.get("position", ())) == tuple(case)
-        for k, o in monde.objets.items())
+    return (salle, tuple(case)) in occupants(monde, id)
 
 
-def _approcher(monde, id, cible):
-    """Rejoint une case libre au contact de la cible, dans la même salle (une minute)."""
-    from .spatial import _case_libre, position_cible, proche
-    o = monde.objets[id]
-    if not monde.data.get("mode_cases") or proche(monde, cible, id):
-        return proche(monde, cible, id) or not monde.data.get("mode_cases")
-    p = position_cible(monde, cible, o["lieu"])
-    if p is None:
-        return False
-    depart = tuple(o.get("position", p))
-    voisines = sorted((c for c in cases(monde.data["salles"][o["lieu"]])
-                       if max(abs(c[0] - p[0]), abs(c[1] - p[1])) == 1 and _case_libre(monde, o["lieu"], c)
-                       and not _occupee(monde, id, o["lieu"], c)),
-                      key=lambda c: (max(abs(c[0] - depart[0]), abs(c[1] - depart[1])), c))
-    for case in voisines:
-        placer(o, o["lieu"], list(case))
-        if proche(monde, cible, id):
-            return True
-    placer(o, o["lieu"], list(depart))
-    return False
+def verifier_places(monde):
+    """Aucun geste ne s'achève sur une case occupée : deux personnages, joueur compris, ne se
+    tiennent jamais sur la même case."""
+    if not monde.data.get("mode_cases"):
+        return
+    places = [("joueur", (monde.joueur["salle"], tuple(monde.joueur["position"])))]
+    places += [(k, (o["lieu"], tuple(o["position"]))) for k, o in monde.objets.items()
+               if o["type"] == "personnage" and o.get("lieu") in monde.data["salles"] and o.get("position") is not None]
+    vues = {}
+    for k, place in places:
+        assert place not in vues, f"Deux personnages sur la même case : {vues.get(place)}/{k}"
+        vues[place] = k
+
+
+def ecarter(monde):
+    """Anciennes parties : un personnage arrivé sur une case occupée s'écarte vers la case libre
+    la plus proche de sa salle."""
+    if not monde.data.get("mode_cases"):
+        return
+    from .spatial import _case_libre
+    for k in pnjs(monde):
+        o = monde.objets[k]
+        if o.get("lieu") not in monde.data["salles"] or o.get("position") is None:
+            continue
+        prises = occupants(monde, k)
+        if (o["lieu"], tuple(o["position"])) not in prises:
+            continue
+        x, y = o["position"]
+        libres = [c for c in cases(monde.data["salles"][o["lieu"]])
+                  if (o["lieu"], tuple(c)) not in prises and _case_libre(monde, o["lieu"], tuple(c))]
+        if libres:
+            placer(o, o["lieu"], list(min(libres, key=lambda c: (max(abs(c[0] - x), abs(c[1] - y)), tuple(c)))))
 
 
 def _centre(monde, id):
@@ -264,11 +313,33 @@ def _inspecter(monde, id):
 
 
 def _accessible(monde, id, objet):
-    """L'objet est-il à portée de main du PNJ, hors de tout contenant fermé ?"""
+    """L'objet est-il à portée de main du PNJ, là où il se tient, hors de tout contenant fermé ?
+    Il ne se déplace pas pour le vérifier : c'est sa marche qui l'en approche (``agir``)."""
+    from .spatial import proche
     if _porte(monde, objet, id):
         return True
-    salle = monde.objets[id]["lieu"]
-    return monde.present_physique(objet, salle=salle) and _approcher(monde, id, objet)
+    o = monde.objets[id]
+    return (monde.present_physique(objet, salle=o["lieu"])
+            and (not monde.data.get("mode_cases") or "position" not in o or proche(monde, objet, id)))
+
+
+def _a_toucher(monde, id, etape):
+    """Ce que le geste touche sans qu'il le porte : il doit l'avoir à portée de main. Un geste
+    touche sa cible (objet, ou personne à qui l'on parle), sauf s'il agit à distance ; un outil
+    fixe s'emploie sur place, un outil mobile se tient en main (on ne marche pas vers lui)."""
+    from .deliberation import SOCIALES
+    op = etape["operation"]
+    if op in A_DISTANCE:
+        return []
+    touches = []
+    for role in ("cible", "outil"):
+        x = etape[role]
+        if x not in monde.objets or _porte(monde, x, id):
+            continue
+        if role == "outil" and (op in SOCIALES or monde.objets[x].get("mobile")):
+            continue
+        touches.append(x)
+    return touches
 
 
 def _pas(monde, id, sortie, lignes):
@@ -345,14 +416,11 @@ def _executer(monde, id, etape, lignes, gestes):
         return False
     if op == "chauffer":
         return _chauffer(monde, id, cible, lignes)
-    if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "manger", "servir", "prendre",
-              "alimenter", "allumer", "eteindre"):
-        if not _accessible(monde, id, cible):
-            return _rate(monde, id, cible)
-    if outil and not _porte(monde, outil, id):
-        # Une flamme fixe ne se déplace pas : on lui apporte, en main, la source à allumer.
-        if not (op == "allumer" and _porte(monde, cible, id) and _accessible(monde, id, outil)):
-            return _rate(monde, id, outil)
+    for objet in _a_toucher(monde, id, etape):
+        if not _accessible(monde, id, objet):
+            return _rate(monde, id, objet)
+    if outil and not _porte(monde, outil, id) and monde.objets.get(outil, {}).get("mobile", True):
+        return _rate(monde, id, outil)  # Un outil mobile s'emploie en main.
     faute = illicite(monde, id, cible)
     if op == "prendre":
         if not c.get("mobile"):
@@ -529,36 +597,61 @@ def _franchissable(monde, id, porte):
 
 def _marcher(monde, id, arrivee, lignes):
     """Un pas d'une case vers une case libre où ``arrivee(salle, case)``, ou la porte fermée qu'il
-    rencontre en chemin ; renvoie la durée du geste, None s'il ne voit aucun passage. On croise
-    les autres en chemin ; on ne s'arrête pas sur leur case. Qui prépare un geste qu'il veut sans
-    témoin marche à pas feutrés : plus lent, il ne s'entend que de tout près."""
+    rencontre en chemin ; renvoie la durée du geste, 0 s'il y est déjà, None s'il ne voit aucun
+    passage. Qui prépare un geste qu'il veut sans témoin marche à pas feutrés : plus lent, il ne
+    s'entend que de tout près.
+
+    Aucun geste ne s'achève sur une case occupée. On croise les autres en chemin : le pas qui
+    mène sur la case de quelqu'un se poursuit, dans le même geste, jusqu'à la case libre qui
+    suit. Si une porte fermée l'en empêche, il contourne, ou attend qu'on lui laisse le passage."""
     from .spatial import trajet
-    from .temps import PAS_FEUTRE
     o = monde.objets[id]
     intention = lire(monde, id)["intention"]
     feutre = bool(intention) and any(x["condition"] == "sans_temoin" for x in intention["plan"])
     monde.__dict__.setdefault("_pas_feutres", {})[id] = feutre
-    chemin_ = trajet(monde, o["lieu"], tuple(o["position"]),
-                     lambda salle, case: arrivee(salle, case) and not _occupee(monde, id, salle, case),
+    occupees = occupants(monde, id)
+    depart = (o["lieu"], tuple(o["position"]))
+    chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                      franchissable=lambda porte: _franchissable(monde, id, porte))
-    if not chemin_:
+    if chemin_ is None:
         return None
-    salle, case, porte, sens = chemin_[0]
-    # Il se tourne d'abord dans le sens du pas : le temps de la rotation s'ajoute.
+    if not chemin_:
+        return 0
+    n = 0
+    while chemin_[n][:2] in occupees:
+        n += 1  # La case de quelqu'un : il la traverse sans s'y arrêter.
+    if any(porte for _, _, porte, _ in chemin_[1:n + 1]):
+        # Une porte à ouvrir juste après la case d'un autre : il ne peut pas s'y arrêter pour l'ouvrir.
+        chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
+                         franchissable=lambda porte: _franchissable(monde, id, porte),
+                         libre=lambda salle, case: (salle, case) not in occupees)
+        if not chemin_:
+            return PAS  # Il attend qu'on lui laisse le passage.
+        n = 0
+    return _avancer_de(monde, id, chemin_[:n + 1], feutre, lignes)
+
+
+def _avancer_de(monde, id, pas, feutre, lignes):
+    """Les pas d'un même geste, chacun précédé de sa rotation ; une porte fermée s'ouvre sur place."""
     from .spatial import QUART, quarts
-    vers = next(nom for nom, v in VECTEURS.items() if v == sens)
-    tourner = QUART * quarts(o.get("orientation"), vers)
-    o["orientation"] = vers
-    if porte:
-        return tourner + _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
-    if salle != o["lieu"]:
-        o["lieu"] = salle
-        placer(o, salle, list(case))
-        _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][salle]["nom"] + ".",
-                    "deplacement")
-    else:
-        placer(o, salle, list(case))
-    return tourner + (PAS_FEUTRE if feutre else PAS)
+    from .temps import PAS_FEUTRE
+    o, duree = monde.objets[id], 0
+    for salle, case, porte, sens in pas:
+        # Il se tourne d'abord dans le sens du pas : le temps de la rotation s'ajoute.
+        vers = next(nom for nom, v in VECTEURS.items() if v == sens)
+        duree += QUART * quarts(o.get("orientation"), vers)
+        o["orientation"] = vers
+        if porte:
+            return duree + _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
+        if salle != o["lieu"]:
+            o["lieu"] = salle
+            placer(o, salle, list(case))
+            _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][salle]["nom"] + ".",
+                        "deplacement")
+        else:
+            placer(o, salle, list(case))
+        duree += PAS_FEUTRE if feutre else PAS
+    return duree
 
 
 def _ouvrir_en_chemin(monde, id, porte, lignes):
@@ -584,21 +677,106 @@ def _rejoindre_un_proche(monde, id, lignes):
     """Un pas vers la personne la plus proche qu'il croit fiable et croit dans sa salle ; None
     s'il est déjà près d'elle ou n'en connaît aucune."""
     from .deliberation import _cru, salle_crue
-    from .spatial import position_cible
     o = monde.objets[id]
     ici, depart = o["lieu"], tuple(o["position"])
     proches = []
     for x in [*pnjs(monde), "joueur"]:
         if x == id or _cru(monde, id, x, "fiable") is not True or salle_crue(monde, id, x) != ici:
             continue
-        p = tuple(monde.joueur["position"]) if x == "joueur" else position_cible(monde, x, ici)
-        if p is not None and (monde.joueur["salle"] if x == "joueur" else monde.objets[x]["lieu"]) == ici:
+        p = _case_crue(monde, id, x)  # Là où il l'a vu : il le cherche des yeux en chemin.
+        if p is not None:
             proches.append((max(abs(p[0] - depart[0]), abs(p[1] - depart[1])), x, p))
     if not proches or min(proches)[0] <= 1:
         return None
     _, _, p = min(proches)
     return _marcher(monde, id, lambda salle, case: salle == ici and max(abs(case[0] - p[0]), abs(case[1] - p[1])) == 1,
                     lignes)
+
+
+def _case_crue(monde, id, x):
+    """La case où il croit trouver ``x`` dans sa salle : là où il l'a vu. Une porte, un objet
+    fixe font partie du lieu (``deliberation._lieu_cru``) : il sait leur place sans les avoir
+    revus. None s'il ne sait où."""
+    from .spatial import position_cible
+    ici, o = monde.objets[id]["lieu"], monde.objets.get(x)
+    fixe = o is not None and o["type"] != "personnage" and not o.get("mobile")
+    cru = lire(monde, id)["croyances"].get(x, {}).get("lieu")
+    if cru and (o is None or o["type"] != "porte"):  # Le joueur n'est pas un objet.
+        if cru["valeur"] is None or cru.get("salle") != ici:
+            return None
+        if cru.get("case"):
+            return tuple(cru["case"])
+    if not fixe:
+        return None
+    p = position_cible(monde, x, ici)
+    return tuple(p) if p is not None else None
+
+
+def _a_portee_de(monde, salle, case, cible):
+    """De ``case``, la main atteint-elle ``cible`` ? Comme ``spatial.proche`` : une case voisine,
+    sans passer en biais entre deux obstacles."""
+    from .spatial import _case_libre
+    dx, dy = cible[0] - case[0], cible[1] - case[1]
+    if max(abs(dx), abs(dy)) > 1:
+        return False
+    return not (dx and dy) or (_case_libre(monde, salle, (case[0] + dx, case[1]))
+                               or _case_libre(monde, salle, (case[0], case[1] + dy)))
+
+
+def _approcher(monde, id, etape, lignes):
+    """Il marche vers ce que le geste touche, là où il le croit, jusqu'à l'avoir à portée de main ;
+    sur place, le geste constate s'il y est. Renvoie la durée du pas, 0 s'il n'a plus à marcher,
+    None s'il ne voit aucun chemin (``trajet``)."""
+    o = monde.objets[id]
+    loin = [x for x in _a_toucher(monde, id, etape) if not _accessible(monde, id, x)]
+    if not loin:
+        return 0
+    crues = [_case_crue(monde, id, x) for x in loin]
+    if None in crues:
+        # Il le croit dans cette salle sans savoir où : il la parcourt des yeux. Ne le voyant
+        # pas, c'est en essayant le geste qu'il constate son absence.
+        croyances = lire(monde, id)["croyances"]
+        if "orientation" in o and any(c is None and (croyances.get(x, {}).get("lieu") or {}).get("salle") == o["lieu"]
+                                      for x, c in zip(loin, crues)):
+            tour_d_horizon(monde, id)
+            if None not in [_case_crue(monde, id, x) for x in loin]:
+                return TOUR
+        return 0
+    ici = o["lieu"]
+    arrivee = lambda salle, case: salle == ici and all(_a_portee_de(monde, salle, case, c) for c in crues)
+    pas = _marcher(monde, id, arrivee, lignes)
+    return _impasse(monde, id, etape, arrivee) if pas is None else pas
+
+
+def _impasse(monde, id, etape, arrivee):
+    """Aucun chemin en cases vers où il va : c'est un geste manqué. Il apprend ce qui le barre,
+    les obstacles du chemin qu'ils coupent (le chemin par salles en tiendra compte), puis la
+    stratégie tombe, le réflexe cesse, ou il patiente avant de renoncer. Renvoie None."""
+    from .deliberation import PATIENCE, renoncer
+    from .spatial import position_cible, trajet
+    from .stratege import terminer
+    o = monde.objets[id]
+    occupees = occupants(monde, id)
+    obstacles = [k for k, x in monde.objets.items()
+                 if x.get("bloque_passage") and not x.get("incorpore") and x.get("lieu") in monde.data["salles"]]
+    libre = trajet(monde, o["lieu"], tuple(o["position"]),
+                   lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
+                   franchissable=lambda porte: _franchissable(monde, id, porte), solides=False)
+    for salle, case, _, _ in libre or []:
+        for k in obstacles:
+            if monde.objets[k]["lieu"] == salle and position_cible(monde, k, salle) == case:
+                croire(monde, id, k, "lieu", salle, "essai", salle=salle, case=list(case))
+    e = esprit(monde, id)
+    intention = e["intention"]
+    if intention["motif"] == "alerte":
+        e["intention"] = None
+    elif intention["but"]["type"] == "strategie":
+        terminer(monde, id, False, etape)
+    else:
+        intention["attente"] += 1
+        if intention["attente"] > PATIENCE:
+            renoncer(monde, id, monde.data["minutes"])
+    return None
 
 
 def _faire_face(monde, id, cible):
@@ -709,33 +887,25 @@ def agir(monde, id, t, lignes, gestes=None):
         return reste
     etape = etapes[0]
     operation = etape["operation"]
-    if strategie and operation == "aller" and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
+    en_place = en_cases and "position" in o
+    if strategie and operation == "aller" and not en_place and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
         terminer(monde, id, False, etape)  # Aucun passage qu'il croie ouvert : la stratégie tombe.
         return reste
-    if en_cases and "position" in o and operation == "aller":
+    if en_place and operation == "aller":
+        # Le seul juge du passage est le chemin en cases : sans chemin, c'est un geste manqué.
         lieu = etape["lieu"]
-        return _marcher(monde, id, lambda salle, case: salle == lieu, lignes) or reste
-    if CONTACT.get(operation) and en_cases and etape["cible"] in monde.objets:
-        from .spatial import position_cible, proche
-        cru = lire(monde, id)["croyances"].get(etape["cible"], {}).get("lieu")
-        if (not monde.present_physique(etape["cible"], salle=o["lieu"]) and cru and cru.get("salle") == o["lieu"]
-                and cru.get("case") and "position" in o):
-            # Il regarde là où il le croyait : s'il n'y est plus, il le constate.
-            from .spatial import QUART, orientation_vers, quarts
-            vers = orientation_vers(tuple(o["position"]), tuple(cru["case"]))
-            if vers and vers != o.get("orientation"):
-                duree = QUART * quarts(o.get("orientation"), vers)
-                o["orientation"] = vers
-                percevoir(monde, id)
-                return duree
-        if (not _porte(monde, etape["cible"], id) and not proche(monde, etape["cible"], id)
-                and monde.present_physique(etape["cible"], salle=o["lieu"])):
-            # Il s'approche pas à pas ; l'absence de témoin se juge ensuite sur place.
-            p = position_cible(monde, etape["cible"], o["lieu"])
-            ici = o["lieu"]
-            pas = p is not None and _marcher(monde, id, lambda salle, case: salle == ici and max(
-                abs(case[0] - p[0]), abs(case[1] - p[1])) == 1, lignes)
-            return pas or reste
+        arrivee = lambda salle, case: salle == lieu
+        pas = _marcher(monde, id, arrivee, lignes)
+        if pas is None:
+            _impasse(monde, id, etape, arrivee)
+        return pas or reste
+    if en_place:
+        # Il s'approche pas à pas de ce qu'il va toucher ; l'absence de témoin se juge sur place.
+        pas = _approcher(monde, id, etape, lignes)
+        if pas is None:
+            return reste
+        if pas:
+            return pas
     if operation == "inspecter" and en_cases and "position" in o and o["lieu"] == etape["lieu"]:
         # Il gagne le centre de la salle pas à pas avant de la parcourir des yeux.
         centre = _centre(monde, id)
@@ -770,7 +940,10 @@ def agir(monde, id, t, lignes, gestes=None):
             if intention["attente"] > PATIENCE:
                 renoncer(monde, id, monde.data["minutes"])
             return reste
-    tourner = _faire_face(monde, id, etape["cible"]) if en_cases else 0
+    # Il se tourne vers ce qu'il touche ou voit, jamais vers ce qu'il ignore.
+    cible = etape["cible"]
+    tourner = (_faire_face(monde, id, cible) if en_cases and cible and (
+        cible in monde.objets and _accessible(monde, id, cible) or percoit(monde, id, cible)) else 0)
     fait = _executer(monde, id, etape, lignes, [] if gestes is None else gestes)
     if fait:
         etapes.pop(0)

@@ -126,6 +126,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   fait qu'apercevoir (`pnj.bilan_presences`). « Entre dans la pièce » ou « quitte la pièce »
   seulement s'il a vu le passage ; sinon « Tu aperçois… » ou « Tu ne vois plus… », ce qui couvre
   aussi son propre regard. L'humeur remarquée suit ce bilan. Banc identique à `main`.
+- Branche `temps-fin-marche` (relecture du jalon temps fin) : aucun geste ne s'achève sur une
+  case occupée (le pas qui mène sur quelqu'un se poursuit jusqu'à la case libre suivante ; le
+  joueur ne marche pas sur un PNJ ; contrôlé par `Monde.verifier`, anciennes parties écartées au
+  chargement) ; tout ce qu'un geste touche (cible, outil fixe) se rejoint par la marche, sans
+  bond (`_a_toucher`, `_approcher`) ; le trajet en cases est le seul juge du passage : sans
+  chemin, geste manqué, obstacle appris, et le chemin par salles évite un seuil qu'on croit
+  barré ; on marche vers la case crue, puis on constate. Détail dans `docs/plan-temps.md`.
 - La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
