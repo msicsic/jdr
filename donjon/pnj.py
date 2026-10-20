@@ -240,11 +240,12 @@ def _temoigner(monde, geste):
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
     from .spatial import etat_fige
     with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
-        _temoins(monde, id, souvenir, victime)
+        _temoins(monde, geste, souvenir, victime)
 
 
-def _temoins(monde, id, souvenir, victime):
+def _temoins(monde, geste, souvenir, victime):
     from .deliberation import VOL, inquieter, relancer
+    id = geste["auteur"]
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
             geste["temoins"].append(autre)
