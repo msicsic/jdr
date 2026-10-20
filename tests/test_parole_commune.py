@@ -184,6 +184,48 @@ class GuillemetsTests(unittest.TestCase):
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "Gorm, je te donne la cloche")
 
 
+class SuiteTests(unittest.TestCase):
+    """Des mots entre guillemets sans interpellation, « je lui dis », « je leur dis » : la suite de
+    l'échange, à qui Corvus parlait s'il l'entend encore ; sinon la règle commune."""
+
+    def a_qui(self, m, saisie):
+        from donjon.paroles import destinataires
+        return destinataires(m, analyser(m, saisie))
+
+    def test_des_guillemets_poursuivent_l_echange_avec_le_dernier_interlocuteur(self):
+        m = scene()
+        reprise, sortie, appels = jouer(m, "Aubin, bonsoir", [
+            parole("bonsoir", ("propos", "", "", ""), personnage="aubin"), reponse_pnj("Aubin hoche la tête.")])
+        self.assertIn("Tu dis à Aubin", sortie)
+        # Ilse est en face, mais Corvus parlait à Aubin : les guillemets s'adressent à lui.
+        reprise, sortie, appels = jouer(reprise, "« tu viens avec moi ? »", [
+            parole("tu viens avec moi ?", ("propos", "", "", ""), personnage="aubin"),
+            reponse_pnj("Aubin acquiesce.")])
+        self.assertEqual(len(appels), 2)
+        self.assertIn("Tu dis à Aubin : « tu viens avec moi ? »", sortie)
+        self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["aubin"], "tu viens avec moi ?"))
+
+    def test_apres_a_tous_les_guillemets_et_je_leur_dis_vont_au_groupe(self):
+        m = scene()
+        m.data["paroles_joueur"] = [{"revision": 0, "auditeur": "tous", "auditeurs": ["aubin", "ilse"],
+                                     "texte": "il faut monter", "minute": 0}]
+        self.assertEqual(self.a_qui(m, "« on y va »"), ["aubin", "ilse"])
+        self.assertEqual(self.a_qui(m, "je leur dis qu'on part"), ["aubin", "ilse"])
+        # « je lui dis » vise un seul : à deux, c'est celui d'en face.
+        self.assertEqual(self.a_qui(m, "je lui dis qu'on part"), ["ilse"])
+
+    def test_sans_echange_en_cours_ou_s_il_n_entend_plus_la_regle_commune(self):
+        m = scene()
+        self.assertEqual(self.a_qui(m, "« bonsoir »"), ["ilse"])  # Personne avant : celle d'en face.
+        m.data["paroles_joueur"] = [{"revision": 0, "auditeur": "brune", "auditeurs": ["brune"],
+                                     "texte": "bonsoir", "minute": 0}]
+        placer(m, "brune", "echoppe", (7, 1))  # Partie dans la conduite : hors de portée de voix.
+        self.assertEqual(self.a_qui(recharger(m), "« tu es là ? »"), ["ilse"])
+        # Une interpellation dans les guillemets l'emporte sur la suite de l'échange.
+        m.data["paroles_joueur"][0].update(auditeur="aubin", auditeurs=["aubin"])
+        self.assertEqual(self.a_qui(m, "« Ilse, tu viens ? »"), ["ilse"])
+
+
 class ChuchoterTests(unittest.TestCase):
     def test_au_contact_seul_le_destinataire_saisit_les_mots(self):
         # Brune au contact ; Ilse à trois cases, hors du regard de Corvus.

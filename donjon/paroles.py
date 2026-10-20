@@ -314,20 +314,22 @@ def _groupe_en(mots, i):
 
 def analyser(monde, intention):
     """La forme de la parole que la saisie annonce : manière (voix ou chuchotement), personnage
-    nommé ou groupe (« à tous »), pronom (« je lui dis »), mots imposés (entre guillemets, après un
+    nommé ou groupe (« à tous »), suite de l'échange (``suite`` : « lui », « leur », ou « echange »
+    pour des mots entre guillemets sans interpellation), mots imposés (entre guillemets, après un
     deux-points ou une interpellation), et si elle est sans conteste une parole (``explicite`` :
     entre guillemets, à tous, chuchotée, mots après un deux-points)."""
     s = (intention or "").strip()
-    forme = {"maniere": "voix", "groupe": False, "nomme": None, "pronom": False, "mots": None, "explicite": False}
+    forme = {"maniere": "voix", "groupe": False, "nomme": None, "suite": False, "mots": None, "explicite": False}
     if s[:1] in GUILLEMETS:
         forme.update(explicite=True, mots=citation(s) or s.strip("«»\"“” ") or None)
         _interpeller(monde, forme, forme["mots"])
+        forme["suite"] = "echange" if not (forme["groupe"] or forme["nomme"]) else False
         return forme
     jetons = list(JETON.finditer(s))
     mots = [normaliser(j.group()) for j in jetons]
     i = 1 if mots[:1] == ["je"] else 0
     if len(mots) > i + 1 and mots[i] in PRONOMS and mots[i + 1] in VERBES_PAROLE:
-        forme["groupe"], forme["pronom"] = PRONOMS[mots[i]], not PRONOMS[mots[i]]
+        forme["groupe"], forme["suite"] = PRONOMS[mots[i]], "leur" if PRONOMS[mots[i]] else "lui"
         i += 1
     if i < len(mots) and mots[i] in VERBES_PAROLE:
         forme["maniere"] = VERBES_PAROLE[mots[i]]
@@ -381,16 +383,20 @@ def _face(monde, id):
     return (0 if regard else 1), (distance(tuple(o["position"]), tuple(j["position"])) if o["lieu"] == j["salle"] else 99)
 
 
-def en_face(monde, candidats, pronom=False):
-    """Celui à qui Corvus parle sans le nommer, parmi ``candidats`` : celui que désigne un pronom
-    (« je lui dis »), s'il est le dernier à qui il a parlé ; sinon celui qu'il a sous les yeux, le
-    plus proche. À égalité, le joueur précise."""
-    from .refus import liste
+def precedents(monde, candidats, seul=False):
+    """Ceux à qui Corvus a parlé en dernier et qui l'entendent encore (parmi ``candidats``) : la
+    suite de l'échange. ``seul`` : un seul est admis (« je lui dis », un chuchotement)."""
     derniere = (monde.data.get("paroles_joueur") or [None])[-1]
-    if pronom and derniere:
-        auditeurs = derniere.get("auditeurs") or [derniere["auditeur"]]
-        if len(auditeurs) == 1 and auditeurs[0] in candidats:
-            return auditeurs[0]
+    if not derniere:
+        return []
+    auditeurs = [a for a in derniere.get("auditeurs") or [derniere.get("auditeur")] if a in candidats]
+    return auditeurs if auditeurs and (len(auditeurs) == 1 or not seul) else []
+
+
+def en_face(monde, candidats):
+    """Celui à qui Corvus parle sans le nommer, parmi ``candidats`` : celui qu'il a sous les yeux,
+    le plus proche. À égalité, le joueur précise."""
+    from .refus import liste
     rangs = {id: _face(monde, id) for id in candidats}
     face = sorted(id for id, r in rangs.items() if r == min(rangs.values()))
     if len(face) > 1:
@@ -424,6 +430,12 @@ def destinataires(monde, forme):
     nets = saisissent(monde, "joueur")
     entendent = [id for id in presents if id in nets]
     contact = [id for id in presents if _contact(monde, id)]
+    if forme["suite"]:
+        # La suite de l'échange : à qui il parlait, s'ils l'entendent encore ; sinon la règle commune.
+        suite = precedents(monde, contact if chuchote else entendent, seul=chuchote or forme["suite"] == "lui")
+        if suite and (forme["suite"] != "leur" or len(suite) > 1):
+            forme["groupe"] = len(suite) > 1  # Poursuivre avec plusieurs, c'est leur parler à tous.
+            return suite
     if forme["groupe"]:
         return entendent
     id = forme["nomme"]
@@ -449,7 +461,7 @@ def destinataires(monde, forme):
                                if chuchote else "Personne n'est assez près pour t'entendre.",
                                f"{'au contact' if chuchote else 'à portée de voix'} : personne parmi les présents "
                                f"({liste(presents)}) ; réponds en mode dialogue.")
-    return [en_face(monde, candidats, forme["pronom"])]
+    return [en_face(monde, candidats)]
 
 
 def prevue(monde, intention):

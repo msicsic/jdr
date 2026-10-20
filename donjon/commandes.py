@@ -59,7 +59,8 @@ MJ — conversation et actions
 
 PARLER (MJ) — le moteur fixe à qui Corvus parle
   Brune, … | je dis à Brune : …         à celui que tu nommes ; sinon à celui qui est en face de toi
-  « … »                                 vaut « je dis … » : tes mots, dits tels quels
+  « … » | je lui dis … | je leur dis …  la suite de l'échange : à qui tu parlais, s'il t'entend
+                                        encore ; sinon à celui qui est en face de toi
   à tous : … | je dis à tous …          à tous ceux qui t'entendent ; chacun décide pour lui
   je chuchote à Brune : … | je murmure …  à l'oreille, au contact : les autres n'en saisissent pas les mots
   Tous ceux qui entendent ta voix retiennent ce que tu dis ; seuls ceux à qui tu parles répondent.
