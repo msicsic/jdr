@@ -344,58 +344,62 @@ def valider(monde, id, proposition, plan_moteur=None):
     return {"decision": "plan", "besoin": besoin, "but": but, "etapes": completer(monde, id, gestes)}
 
 
+def _prealable(v, e, etape):
+    """Ce que le geste suppose, comme but de recherche : être dans la bonne salle, avoir l'objet
+    ou l'outil en main, avoir les vivres à portée. None : rien à préparer."""
+    op, cible, outil = etape["operation"], etape["cible"], etape["outil"]
+    if op in ("aller", "inspecter", "poser"):
+        lieu = etape["lieu"]
+        tenu = cible if op == "poser" else None
+        return lambda v, e: e.salle == lieu and (tenu is None or tenu in e.portes)
+    if op == "prendre":
+        return lambda v, e: cible in e.portes
+    if op in ("manger", "servir"):
+        return lambda v, e: v.a_portee(e, cible)
+    if not cible or op == "reposer":
+        return None
+    salle = v.salle(e, cible)
+    if salle is None:
+        return lambda v, e: False
+    besoin_outil = outil if op in ("deverrouiller", "verrouiller", "crocheter", "alimenter") else None
+    return lambda v, e: e.salle == salle and (besoin_outil is None or besoin_outil in e.portes)
+
+
 def completer(monde, id, gestes):
     """Le stratège dit quoi, le moteur dit comment : chaque geste reçoit ce qu'il suppose.
 
-    Le planificateur du moteur, sur les croyances du PNJ, ajoute les déplacements, ouvre ou
-    déverrouille le contenant d'un objet visé, va chercher la clé ou l'outil. Un geste qu'il ne
-    sait pas rendre possible est refusé avec sa raison.
+    Le planificateur (``planification``), sur les croyances du PNJ, ajoute les déplacements,
+    ouvre ou déverrouille le contenant d'un objet visé, va chercher la clé ou l'outil. Un geste
+    qu'il ne sait pas rendre possible est refusé avec sa raison.
     """
-    from .deliberation import Echec, Plan
-    p = Plan(monde, id)
+    from .planification import Vue, chercher, depart
+    v = Vue(monde, id)
+    e, etapes = depart(monde, id, v), []
     for n, etape in enumerate(gestes, 1):
         op, cible = etape["operation"], etape["cible"]
-        try:
-            if op == "aller":
-                p.aller(etape["lieu"])
-                continue
-            if op == "prendre":
-                if cible not in p.portes:
-                    p.obtenir(cible)
-                continue
-            if op in ("inspecter", "poser"):
-                p.aller(etape["lieu"])
-            elif op in ("manger", "servir") and cible not in p.portes:
-                lieu = _lieu_cru(monde, id, cible)
-                if lieu in monde.data["salles"]:
-                    p.aller(lieu)
-                elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
-                    p.acceder(lieu)
-                else:
-                    raise Echec
-            elif cible and op != "reposer":
-                salle = salle_crue(monde, id, cible)
-                if salle is None:
-                    raise Echec
-                if (etape["outil"] and etape["outil"] not in p.portes
-                        and op in ("deverrouiller", "verrouiller", "crocheter", "alimenter")):
-                    p.obtenir(etape["outil"])
-                p.aller(salle)
-        except Echec:
-            raise ErreurStrategie(f"étape {n} ({op}) : il ne voit pas comment y parvenir d'après ce qu'il croit "
-                                  "(chemin, contenant fermé sans clé ni outil, objet introuvable)") from None
-        p.etapes.append(etape)
+        but = _prealable(v, e, etape)
+        if but is not None:
+            vises = {"prendre": (cible,)} if op in ("prendre", "poser") else {}
+            trouve = chercher(monde, id, but, vises, depuis=e)
+            if trouve is None:
+                raise ErreurStrategie(f"étape {n} ({op}) : il ne voit pas comment y parvenir d'après ce qu'il croit "
+                                      "(chemin, contenant fermé sans clé ni outil, objet introuvable)")
+            _, prepare, e = trouve
+            etapes += prepare
+        if op in ("aller", "prendre"):
+            continue  # La recherche a fait le geste lui-même.
+        etapes.append(etape)
         if op == "ouvrir":
-            p.ouverts.add(cible)
+            e = e.apres(faits=[(("ouvert", cible), True)])
         elif op in ("deverrouiller", "crocheter"):
-            p.deverrouilles.add(cible)
-        elif op == "demander":
-            p.portes.add(etape["outil"])
-        elif op == "remettre":
-            p.portes.discard(etape["outil"])
-    if len(p.etapes) > 3 * ETAPES_MAX:
+            e = e.apres(faits=[(("verrou", cible), False)])
+        elif op == "demander" and etape["outil"]:
+            e = e.apres(portes=e.portes | {etape["outil"]})
+        elif op in ("remettre", "poser"):
+            e = e.apres(portes=e.portes - {etape["outil"] or cible})
+    if len(etapes) > 3 * ETAPES_MAX:
         raise ErreurStrategie("plan trop long une fois complété : vise un but plus proche")
-    return p.etapes
+    return etapes
 
 
 # --- Consultation et adoption -------------------------------------------------------------

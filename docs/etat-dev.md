@@ -89,7 +89,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   échanges et témoins, méfiances à la fin ; `--chronique` ajoute chaque pas. Il montre un Relais
   surtout fait de rondes, une vie sociale réduite aux parts demandées, Gorm au devoir urgent en
   permanence sans rien à faire, un affamé honnête refusé sans autre idée.
-- La suite de tests passe : 633 tests, sans clé ni connexion.
+- Branche `planificateur` : les plans des PNJ viennent d'une recherche sur des gestes déclarés
+  une fois (`donjon/planification.py` : conditions sur ce que le PNJ croit, effets, coût ; faute
+  comptée par personne lésée, chance de crocheter selon la lumière, flamme qui se consume).
+  Faim, froid, pulsions, paroles données, garder, prévenir, s'abriter et la complétion du stratège
+  y passent ; les méthodes écrites sont retirées. Comparées avant retrait : 6 800 plans
+  identiques, deux ordres différents gardés. Banc identique à `main`, +33 % de temps. Trouvé sans
+  être écrit : de la lumière avant de crocheter dans le noir ; demander un objet que porte un
+  autre (Gorm demande ses planches à Aubin pour le feu). Bilan dans `docs/plan-planificateur.md`.
+- La suite de tests passe : 644 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -98,8 +106,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
   test sur l'atelier, pas en partie au Relais.
 - **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md` :
-  cadre, menace, barque, eau et feu, influence, mécanismes à ajouter, questions ouvertes) ; premier
-  jalon, le planificateur par recherche (`docs/plan-planificateur.md`), mesuré au banc et au récit.
+  cadre, menace, barque, eau et feu, influence, mécanismes à ajouter, questions ouvertes). Le
+  planificateur par recherche est fait ; suite proposée, le niveau d'eau puis l'influence.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.
