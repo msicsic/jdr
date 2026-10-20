@@ -55,6 +55,16 @@ def _usurpations(monde):
                if x.get("delegue_a") and _delegue(monde, id, x) and porte_par(monde, x["condition"]["objet"], id))
 
 
+def _nouvelles(avant, apres):
+    """Ce qui s'est ajouté à la chronique bornée : ``apres`` reprend la fin d'``avant`` (moins ce
+    que la borne a fait tomber), puis les entrées nouvelles. Les dater ne suffit pas : les gestes
+    de la première minute d'un pas portent la minute où il commence."""
+    for commun in range(min(len(avant), len(apres)), 0, -1):
+        if apres[:commun] == avant[len(avant) - commun:]:
+            return apres[commun:]
+    return list(apres)
+
+
 def executer(monde, minutes, recit=None):
     """Avance le monde ; renvoie la chronique produite et les mesures du banc. Un ``recit``
     observe chaque PNJ au passage."""
@@ -63,13 +73,14 @@ def executer(monde, minutes, recit=None):
             resultat = executer(monde, minutes)
         recit.clore(monde)
         return resultat
-    chronique, vue, oisivete, blocage, usurpations = [], monde.data["minutes"], 0, 0, 0
+    chronique, oisivete, blocage, usurpations = [], 0, 0, 0
+    vue = list(monde.data.get("chronique", []))
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
         monde.verifier()
-        # La chronique est bornée : on recueille à chaque pas ce qui vient de s'y ajouter.
-        chronique += [c for c in monde.data.get("chronique", []) if c["minute"] > vue]
-        vue = monde.data["minutes"]
+        courante = monde.data.get("chronique", [])
+        chronique += _nouvelles(vue, courante)
+        vue = list(courante)
         oisifs, bloques = _oisifs_urgents(monde)
         oisivete, blocage = oisivete + PAS * oisifs, blocage + PAS * bloques
         usurpations += _usurpations(monde)
