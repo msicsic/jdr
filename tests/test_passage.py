@@ -130,7 +130,7 @@ class DemanderLePassageTests(unittest.TestCase):
             reponse_pnj("Brune s'écarte en maugréant.")], jet=20)
         faits = appels[1]["faits"]["conversation_validee"]["faits"]
         self.assertIn("Brune, batelière évacuée s'écarte d'un pas pour te laisser passer.", faits)
-        self.assertIn("Tu dis : « Brune, pousse-toi, s'il te plaît. »", sortie)
+        self.assertIn("Tu dis à Brune : « Brune, pousse-toi, s'il te plaît. »", sortie)
         brune = reprise.objets["brune"]
         self.assertEqual(distance(brune["position"], SEUIL), 1)
         self.assertEqual(brune["position"][0], 0)

@@ -57,6 +57,13 @@ MJ — conversation et actions
   tenter : exécuter sa proposition ; annuler : abandonner sans effet.
   Une nouvelle action remplace la proposition ; discuter avec le MJ la conserve.
 
+PARLER (MJ) — le moteur fixe à qui Corvus parle
+  Brune, … | je dis à Brune : …         à celui que tu nommes ; sinon à celui qui est en face de toi
+  « … »                                 vaut « je dis … » : tes mots, dits tels quels
+  à tous : … | je dis à tous …          à tous ceux qui t'entendent ; chacun décide pour lui
+  je chuchote à Brune : … | je murmure …  à l'oreille, au contact : les autres n'en saisissent pas les mots
+  Tous ceux qui entendent ta voix retiennent ce que tu dis ; seuls ceux à qui tu parles répondent.
+
 L'objectif de ta partie est indiqué par « contexte ».
 En mode cases : Ctrl+flèches pour marcher (on se tourne puis on avance), Maj+flèches pour un pas
 chassé sans se tourner, Alt+flèches pour un pas feutré ; F6 pour piloter depuis la carte. Tu vois devant toi (120°) et sur les

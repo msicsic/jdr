@@ -125,6 +125,8 @@ def executer(monde, minutes, recit=None):
                "retournements": sum(c["texte"].endswith("se retourne au bruit.") for c in chronique),
                "bruits_inconnus": sum(" entend un bruit : " in c["texte"] for c in chronique),
                "alles_voir": sum(" va voir d'où venait le bruit : " in c["texte"] for c in chronique),
+               # Les paroles entendues sans en être le destinataire (``social.retenir_parole``).
+               "paroles_surprises": sum(" surprend les mots " in c["texte"] for c in chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.

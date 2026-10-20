@@ -15,7 +15,8 @@ from .connexion import jeton, modeles
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
 from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
-from .paroles import REGLES as REGLES_PAROLE, SCHEMA_PAROLE, citation, contexte as contexte_paroles, destinataire_nomme, preparer_parole
+from .paroles import (REGLES as REGLES_PAROLE, SCHEMA_PAROLE, ParoleImpossible, analyser as analyser_parole,
+                      annonce as annonce_parole, contexte as contexte_paroles, preparer_parole)
 from .commandes import est_question
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
@@ -213,8 +214,9 @@ pas de contenu caché. Une possibilité n'est pas une réussite.
 
 Si conversation_validee est présente, fais parler directement le personnage indiqué, en lui
 attribuant clairement ses mots entre « et ». Si elle contient replique_joueur, cette réplique
-de Corvus est déjà affichée : ne la répète pas ; le personnage y répond d'après
-conversation_validee.faits et ce qu'il croit (esprits_interlocuteurs). Réponds à son sujet avec ses savoirs
+de Corvus est déjà affichée : ne la répète pas ; ses destinataires (conversation_validee.destinataires),
+et eux seuls, y répondent d'après conversation_validee.faits et ce qu'ils croient
+(esprits_interlocuteurs) ; les temoins l'ont entendue sans être interpellés et se taisent. Réponds à son sujet avec ses savoirs
 (connaissances_pnj), son profil, ses intentions et sa relation au joueur. Une liste
 conversation_validee.faits vide signifie seulement qu'aucun accord n'a changé : le personnage
 doit quand même répondre. Reprends exactement les montants, conditions et refus validés ; une
@@ -239,6 +241,16 @@ SCHEMA = {
     "required": ["action", "cible", "outil", "methode", "difficulte", "justification"],
     "additionalProperties": False,
 }
+
+
+ATTENDU_PAROLE = ("la saisie est une parole (entre guillemets, à tous, chuchotée ou après un deux-points) : "
+                  "mode parole_joueur, personnage = parole_prevue.personnage")
+
+
+def parole_attendue(monde, intention):
+    """La saisie est sans conteste une parole que le moteur peut faire entendre (``paroles.prevue``)."""
+    from .paroles import prevue
+    return analyser_parole(monde, intention)["explicite"] and "personnage" in prevue(monde, intention)
 
 
 def retour_refus(proposition, exc, consigne):
@@ -369,6 +381,15 @@ class MJOpenAI:
                 return r
         if reponse is None:
             reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
+            if reponse["mode"] == "dialogue" and parole_attendue(monde, intention):
+                # Une parole sans conteste passe par le moteur, qui la fait entendre avant qu'on la raconte.
+                retour = retour_refus(None, ErreurMonde("Corvus le dit : c'est une parole.", ATTENDU_PAROLE),
+                                      "Propose la parole ; ne la raconte pas toi-même.")
+                if self.observateur:
+                    self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
+                                      "revision": revision, "tentative": 1, **retour})
+                reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
+                                         retour_moteur=retour)
         correction_utilisee = False
         premier_refus = None
         for tentative in range(2):
@@ -382,6 +403,10 @@ class MJOpenAI:
                         raise ErreurMonde("Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible.")
                 if p.get("action") in ("clarifier", "impossible"):
                     break
+                if parole_attendue(monde, intention):
+                    # Entre guillemets, à tous, chuchotée : Corvus le dit, même si ses mots annoncent un geste.
+                    raise ErreurMonde("Corvus le dit ; il ne le fait pas.", ATTENDU_PAROLE
+                                      + " ; le geste annoncé attend que le joueur le fasse.")
                 if est_question(intention) and p.get("action") not in ("observer", "examiner"):
                     raise ErreurMonde("Le joueur pose une question de faisabilité. Réponds en dialogue sans exécuter d'action.",
                                       "mode dialogue : réponds à la question, sans proposition d'action.")
@@ -479,15 +504,19 @@ class MJOpenAI:
         rapport = None
         if reponse["mode"] == "parole_joueur":
             for essai in range(2):
-                # Des mots cités par le joueur sont dits tels quels, sans réécriture.
+                # Des mots imposés par le joueur (guillemets, deux-points, interpellation) sont dits
+                # tels quels, sans réécriture.
                 complements = {**reponse["proposition"],
-                               "replique": (citation(intention)
-                                            or (intention.strip() if destinataire_nomme(monde, intention) else None)
+                               "replique": (analyser_parole(monde, intention)["mots"]
                                             or reponse["proposition"].get("replique", "")),
                                "_intention": intention[:600]}
                 try:
                     travail, rapport = preparer_parole(monde, complements, revision)
                     break
+                except ParoleImpossible as exc:
+                    # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
+                    return {"mode": "dialogue", "texte": str(exc), "faits": [], "proposition": None,
+                            "_texte_moteur": True, "_validation_refusee": True}
                 except ErreurMonde as exc:
                     if essai:
                         # Rien n'est dit : le joueur reformule, sans message technique.
@@ -538,7 +567,7 @@ class MJOpenAI:
         nature = {"conversation_pnj": "conversation_pnj", "enrichir": "complements",
                   "enrichir_savoirs": "savoirs", "parole_joueur": "parole"}[reponse["mode"]]
         if nature == "parole":
-            narration["_prefixe_moteur"] = "Tu dis : « " + rapport["replique_joueur"] + " »"
+            narration["_prefixe_moteur"] = annonce_parole(travail, rapport)
         return ajouter_transaction(narration, nature, revision, complements,
                                    rapport if reponse["mode"] in ("conversation_pnj", "parole_joueur") else None)
 
@@ -602,7 +631,9 @@ class MJOpenAI:
             faits["resultat_resolu"] = resultat_resolu
             faits["attestations"].extend(resultat_resolu.get("faits", []))
         social = enrichir and bool(faits["interlocuteurs"])
-        paroles = contexte_paroles(monde)
+        paroles = contexte_paroles(monde, intention)
+        # Une parole sans conteste se dit même sans personne en vue (``paroles.destinataires``).
+        parler = social or (enrichir and "personnage" in (paroles or {}).get("parole_prevue", {}))
         if paroles:
             # Chaque bloc que les règles nomment est un fait citable de premier niveau.
             faits.update(paroles)
@@ -610,10 +641,10 @@ class MJOpenAI:
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj", "parole_joueur"] if social else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
+                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION, SCHEMA_PAROLE] if social else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_PAROLE] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
@@ -630,7 +661,7 @@ class MJOpenAI:
                              "doit contenir : suis-le ; il ne s'adresse jamais au joueur."
                              "\nSi tu réponds en dialogue, rien n'a eu lieu : c'est toi qui expliques l'obstacle, aucun "
                              "personnage ne parle ni ne réagit.")
-        if enrichir and social:
+        if parler:
             instructions += REGLES_PAROLE
         if not enrichir:
             instructions = NARRATION
@@ -736,7 +767,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
             if not social or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Conversation invalide. Aucun engagement enregistré.")
         elif reponse["mode"] == "parole_joueur":
-            if not social or reponse["texte"] or not isinstance(reponse["proposition"], dict):
+            if not parler or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Parole invalide. Rien n'a été dit.")
         elif reponse["mode"] == "enrichir_savoirs":
             if not savoirs_disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):

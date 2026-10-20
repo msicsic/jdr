@@ -46,7 +46,8 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
   une fois l'action résolue. Il exécute directement un geste sans risque, et présente avant
   « tenter » ceux qui comportent un jet ou un risque : ne redemande pas confirmation d'une
   intention claire.
-- parole_joueur : le joueur fait parler Corvus à un personnage présent.
+- parole_joueur : le joueur fait parler Corvus, à un personnage présent, à tous, ou en
+  chuchotant ; une saisie entre guillemets est une parole.
 - conversation_pnj : le joueur discute ou négocie la récompense d'une mission avec un
   personnage présent.
 - un détail persistant encore absent, que le moteur enregistre avant que tu le racontes :

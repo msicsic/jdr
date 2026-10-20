@@ -8,9 +8,15 @@ des paroles du joueur : ce qu'il a vu récemment prime, sinon jet de CHA du locu
 sa confiance. Une rumeur passe de proche en proche jusqu'au troisième relais, en perdant de
 sa confiance. Le joueur entend ce qui se dit dans sa salle, en clair s'il connaît ce dont on
 parle, sinon comme un échange à voix basse. Tout est déterministe ; Luna n'intervient pas.
+
+Une parole, du joueur comme d'un PNJ, est entendue de tous ceux qui en saisissent les mots
+(``ouie``) : qui n'en est pas le destinataire la retient aussi (``retenir_parole``), et ce
+qu'elle transmet le touche par la même règle que le destinataire (``recevoir``) : une
+affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu se croit.
 """
 from .esprits import croire, lire, memoriser, percoit, pnjs
 from .francais import complement_de, designer
+from .monde import normaliser
 
 NOUVELLES = ("vu_agir", "vol_surpris", "vu_porter", "mensonge_decouvert", "mensonge_dementi", "absence")
 RANG_MAX = 2           # une rumeur entendue de troisième main n'est plus répétée
@@ -128,16 +134,21 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     if noyau["type"] == "absence":
         croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
     elif accuse(noyau) != auditeur:
-        croire(monde, auditeur, accuse(noyau), "fiable", False, source, confiance)
+        actuelle = lire(monde, auditeur)["croyances"].get(accuse(noyau), {}).get("fiable")
+        # Une méfiance qu'il tient de ses propres yeux ne devient pas un ouï-dire.
+        if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
+            croire(monde, auditeur, accuse(noyau), "fiable", False, source, confiance)
     return "crue"
 
 
-def faire_entendre(monde, id, auditeur, texte, cites, lignes):
-    """Une parole retentit avec ses mots (``ouie``) ; ce que le joueur perçoit de l'échange, s'il
-    le voit : en clair s'il connaît chacun de ceux dont on parle."""
+def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=()):
+    """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
+    destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). Ce que le joueur
+    perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de ceux dont on parle."""
     from .ouie import retentir
     from .paroles import _connu_du_joueur
-    retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites])
+    retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites],
+             parole={"a": [auditeur], "contenu": list(contenu)})
     a, b = monde.objets[id], monde.objets[auditeur]
     if a["lieu"] == monde.joueur["salle"]:
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
@@ -148,10 +159,58 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes):
         lignes.append(designer(a, debut=True) + " parle avec " + designer(b) + ".")
 
 
-def _entendu(monde, id, auditeur, noyau, lignes):
+def _entendu(monde, id, auditeur, noyau, rang, lignes):
     cites = [x for x in (accuse(noyau), noyau.get("objet")) if x]
     faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse à " + _qui(monde, auditeur) + " que "
-                   + phrase(monde, noyau) + ".", cites, lignes)
+                   + phrase(monde, noyau) + ".", cites, lignes,
+                   [{"type": "rumeur", "evenement": noyau, "rang": rang}])
+
+
+def recevoir(monde, id, locuteur, c):
+    """Ce qu'une parole transmet à ``id``, qui l'entend, destinataire ou non ; renvoie l'issue, ou
+    None s'il n'y a rien à apprendre. Une affirmation se juge comme une confidence
+    (``echanges.affirmer``) ; une nouvelle, comme une rumeur (``_adopter``) ; un aveu (le locuteur
+    dit avoir fait un geste illicite) se croit : il ne le tient plus pour fiable et le sait de
+    première main. Ce qu'on dit de lui-même ne lui apprend rien."""
+    if c["type"] == "affirmation":
+        if c["sujet"] == id:
+            return None
+        from .echanges import affirmer
+        return affirmer(monde, locuteur, id, c["sujet"], c["attribut"], c["valeur"])
+    noyau = c["evenement"]
+    if accuse(noyau) == id or _sait(monde, id, noyau):
+        return None
+    if c["type"] == "aveu":
+        actuelle = lire(monde, id)["croyances"].get(locuteur, {}).get("fiable")
+        if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
+            croire(monde, id, locuteur, "fiable", False, "entendu")
+        issue, rang = "crue", 0
+    else:
+        issue, rang = _adopter(monde, id, locuteur, noyau, c["rang"]), c["rang"] + 1
+    if issue == "crue":
+        memoriser(monde, id, {"type": "rumeur", "de": locuteur, "rang": rang, "evenement": noyau})
+        if _proprietaire(monde, noyau) == id:
+            from .deliberation import VOL, relancer
+            relancer(monde, id, "biens", 30 if noyau["type"] == "absence" else VOL // 2)
+    return issue
+
+
+def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
+    """``id`` saisit les mots d'une parole qui ne lui était pas adressée : il retient qu'elle a été
+    dite, et à qui ; ce qu'elle transmet le touche comme le destinataire (``recevoir``), dans la
+    limite de ce que l'INT de l'un et de l'autre fait passer. Une demande ou une prière adressée
+    à un autre ne l'engage à rien."""
+    from .paroles import _stats_pnj, capacite_transmission
+    from .pnj import _chroniquer
+    memoriser(monde, id, {"type": "parole", "locuteur": locuteur, "a": list(destinataires), "texte": texte[:240],
+                          "cites": list(cites)})
+    capacite = min(capacite_transmission(_stats_pnj(monde, x)["INT"]) for x in (locuteur, id))
+    issues = [i for i in (recevoir(monde, id, locuteur, c) for c in contenu[:capacite]) if i]
+    de = _qui(monde, locuteur)
+    de = ("d'" if normaliser(de)[:1] in "aeiouyh" else "de ") + de
+    _chroniquer(monde, id, f"{_qui(monde, id)} surprend les mots {de} à "
+                + ", ".join(_qui(monde, x) for x in destinataires)
+                + (f" ({', '.join(issues)})" if issues else "") + ".", "ouie")
 
 
 def bavarder(monde, id, lignes):
@@ -182,6 +241,6 @@ def bavarder(monde, id, lignes):
                 relancer(monde, auditeur, "biens", 30 if all(x["type"] == "absence" for x in siens) else VOL // 2)
         _chroniquer(monde, id, f"{_qui(monde, id)} dit à {_qui(monde, auditeur)} que {phrase(monde, noyau)} ({issue}).",
                     "social")
-        _entendu(monde, id, auditeur, noyau, lignes)
+        _entendu(monde, id, auditeur, noyau, rang, lignes)
         return True
     return False

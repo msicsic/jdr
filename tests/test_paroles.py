@@ -115,14 +115,14 @@ class ExpressionTests(unittest.TestCase):
         self.assertIn("Bourru", gorm["traits"])
         self.assertNotIn("brune", paroles["esprits_interlocuteurs"])
         self.assertEqual(appels[1]["faits"]["conversation_validee"]["replique_joueur"], "Tout va bien, Gorm ?")
-        self.assertIn("Tu dis : « Tout va bien, Gorm ? »", sortie)
-        self.assertLess(sortie.index("Tu dis :"), sortie.index("Gorm : « Ça ira. »"))
+        self.assertIn("Tu dis à Gorm : « Tout va bien, Gorm ? »", sortie)
+        self.assertLess(sortie.index("Tu dis à Gorm :"), sortie.index("Gorm : « Ça ira. »"))
 
     def test_mots_entre_guillemets_dits_tels_quels(self):
         m = relais()
         reprise, sortie, _ = jouer(m, "je lui dis « Bonsoir, vieux grincheux. »", [
             parole("Bonsoir à toi, Gorm.", ("propos", "", "", "")), reponse_pnj("Gorm grogne.")])
-        self.assertIn("Tu dis : « Bonsoir, vieux grincheux. »", sortie)
+        self.assertIn("Tu dis à Gorm : « Bonsoir, vieux grincheux. »", sortie)
         self.assertEqual(reprise.data["paroles_joueur"][-1]["texte"], "Bonsoir, vieux grincheux.")
         self.assertEqual(lire(reprise, "marchand")["memoire"][-1]["texte"], "Bonsoir, vieux grincheux.")
 
@@ -264,6 +264,7 @@ class DestinataireTests(unittest.TestCase):
         from donjon.paroles import preparer_parole
         m = nouveau_defi(1985)
         m.joueur["salle"] = m.objets["brune"]["lieu"]
+        m.objets["marchand"]["lieu"] = m.objets["brune"]["lieu"]   # Placement d'auteur : Gorm est là aussi.
         p = {"personnage": "brune", "replique": "Brune, tu connais le beffroi ?", "contenu": [],
              "_intention": "Gorm, tu peux me décrire le beffroi ?"}
         with self.assertRaises(ErreurMonde) as refus:
