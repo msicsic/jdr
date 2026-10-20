@@ -31,6 +31,13 @@ def designer(objet, article="defini", debut=False):
     return texte[:1].upper() + texte[1:] if debut else texte
 
 
+def sujet(objet):
+    """En tête de phrase, devant son verbe : une apposition (« Gorm, gardien du relais ») se
+    referme par une virgule."""
+    texte = designer(objet, debut=True)
+    return texte + "," if "," in texte else texte
+
+
 def de(nom):
     """« de Gorm », « d'Aubin » : la préposition devant un nom sans article."""
     return ("d'" if nom[:1].lower() in "aàâäeéèêëiîïoôöuùûüyœæh" else "de ") + nom

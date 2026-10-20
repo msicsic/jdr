@@ -5,7 +5,7 @@ import copy
 from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
-from .francais import accorder, complement_de, designer
+from .francais import accorder, complement_de, designer, sujet
 from .geometrie import position_entree, position_objet
 from .deplacement_objet import deplacer
 from .rendu import decrire, decrire_contexte, decrire_perception, regarder, prix, toucher
@@ -535,6 +535,7 @@ class Moteur:
             return plan.information
         travail = self.monde.copier()
         lignes = []
+        self._ouvrir_bilan(travail)
         if plan.regard:
             travail.joueur["orientation"] = plan.regard
             lignes.append("Tu te tournes vers " + ("l'" if plan.regard[0] in "eo" else "le ") + plan.regard + ".")
@@ -557,6 +558,7 @@ class Moteur:
         elif plan.information:
             lignes.append(plan.information)
         self._terminer_etape(travail, plan, lignes)
+        self._clore_bilan(travail, lignes)
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
             "minutes": travail.data["minutes"], "action": self._action_journal(travail, plan.proposition),
@@ -565,6 +567,23 @@ class Moteur:
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Action accomplie."
+
+    @staticmethod
+    def _ouvrir_bilan(travail):
+        """Pendant une action, les personnages entrent dans le regard du joueur et en sortent pas
+        à pas, et leur humeur peut changer : on n'en dit que le bilan, à la fin de l'action."""
+        from .pnj import suivre_presences
+        suivre_presences(travail)
+        travail._humeurs = {}
+
+    @staticmethod
+    def _clore_bilan(travail, lignes):
+        """Qui le joueur voit désormais ou ne voit plus (``pnj.bilan_presences``), puis l'humeur
+        qu'il a remarquée chez ceux qu'il voit encore."""
+        from .pnj import bilan_presences
+        lignes.extend(bilan_presences(travail))
+        humeurs = travail.__dict__.pop("_humeurs", {})
+        lignes.extend(ligne for id, ligne in humeurs.items() if travail.visible(id))
 
     @staticmethod
     def _terminer_etape(travail, plan, lignes):
@@ -606,7 +625,12 @@ class Moteur:
             from .vol import mefiance
             humeur = "méfiant" if mefiance(travail, id) else "inquiet" if travail.data["bruit"] >= 6 else "calme"
             if pnj.get("humeur") != humeur and travail.visible(id):
-                lignes.append(pnj["nom"] + " semble " + humeur + ".")
+                ligne = sujet(pnj) + " semble " + humeur + "."
+                humeurs = getattr(travail, "_humeurs", None)
+                if humeurs is None:
+                    lignes.append(ligne)
+                else:
+                    humeurs[id] = ligne
             pnj["humeur"] = humeur
         travail.actualiser_souvenirs_personnages()
         from .objectifs import actualiser as actualiser_objectif
@@ -621,6 +645,8 @@ class Moteur:
     def _executer_operations(self, sequence):
         from .operations import compiler
         travail, lignes, trace, precedent = self.monde.copier(), [], [], None
+        # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
+        self._ouvrir_bilan(travail)
         if sequence.regard:
             travail.joueur["orientation"] = sequence.regard
             lignes.append("Tu te tournes vers " + ("l'" if sequence.regard[0] in "eo" else "le ") + sequence.regard + ".")
@@ -655,6 +681,7 @@ class Moteur:
             if not reussite:
                 break
             precedent = e
+        self._clore_bilan(travail, lignes)
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"], "minutes": travail.data["minutes"],
             "action": self._action_journal(travail, sequence.proposition),

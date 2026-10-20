@@ -163,7 +163,7 @@ class VolDecouvertTests(unittest.TestCase):
         m, texte = attendre(recharger(m))
         self.assertFalse(lire(m, "marchand")["croyances"]["joueur"]["fiable"]["valeur"])
         self.assertEqual(mefiance(m, "marchand"), 1)
-        self.assertIn("Gorm, gardien du relais semble méfiant.", texte)
+        self.assertIn("Gorm, gardien du relais, semble méfiant.", texte)
 
     def test_un_objet_prete_n_est_pas_un_vol(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")

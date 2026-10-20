@@ -102,7 +102,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `annonces-presence` (vu en partie : « Aubin, Gorm et Brune arrivent puis s'éloignent »
+  pendant qu'on allume une torche) : les présences se disent en bilan, à la fin de l'action du
+  joueur (une manœuvre entière comprise) : qui il voit désormais, qui il ne voit plus, qui il n'a
+  fait qu'apercevoir (`pnj.bilan_presences`). « Entre dans la pièce » ou « quitte la pièce »
+  seulement s'il a vu le passage ; sinon « Tu aperçois… » ou « Tu ne vois plus… », ce qui couvre
+  aussi son propre regard. L'humeur remarquée suit ce bilan. Banc identique à `main`.
+- La suite de tests passe : 669 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
