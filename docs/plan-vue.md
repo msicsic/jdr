@@ -81,6 +81,31 @@ son besoin pressant et ses croyances utiles (où il croit les autres), pour « v
   des objets et des PNJ sont hors de son champ, dans son dos, dans le noir).
 - Le rejeu montre, à chaque instant, les positions et orientations enregistrées.
 
+## Bilan
+
+Les cinq étapes sont faites.
+- La scène perçue (`donjon/scene.py`) : la carte du terminal en est tirée, comparée sans écart
+  à l'ancien rendu ; la page en reçoit le JSON. Chaque case vue porte son degré de lumière
+  (pleine, lueur directe, diffuse, noir), sans rien interpoler ; ce qu'un objet bloque ou s'il se
+  déplace n'y figure que pour ce que le joueur voit ou a vu.
+- Le client : `jeu.py --web [--port]`, serveur local (`donjon/web/serveur.py`), `PontWeb` au même
+  contrat que le terminal ; essai réel avec Luna joué de bout en bout et rechargé.
+- La carte riche : icônes et piles, couleurs, noms, regards, ce que tient un personnage ; ton
+  cône sur les cases que tu vois ; ceux des autres par la règle du moteur, sur les cases connues,
+  sans les obstacles (case à cocher) ; fiche de chaque case au survol.
+- Le rejeu : `donjon/rejeu.py` observe la nuit sans la changer (même empreinte) ; pistes de
+  changements (positions, regards, portes, flammes ; cases vues par chaque PNJ ; but, besoins,
+  croyances de lieu) ; ~260 Ko pour 8 h ; page autonome `web/rejeu.html`.
+- Agir par clic : marche pas à pas par les commandes « pas » (chemin le plus court sur le sol
+  connu, seuils franchis droit comme `spatial.pas_vers`), arrêt si un pas échoue ou si quelqu'un
+  entre dans le champ ; menu de gestes devenus commandes ; un geste de contact approche d'abord.
+  Test : chaque geste proposé sur une vraie scène est compris et à portée (script de la page sous
+  Node).
+
+Limites : le chemin du clic ne connaît que le sol vu ; un obstacle jamais vu fait échouer le pas
+et arrête la marche. Le rejeu ne montre pas la lumière ; ses croyances sont celles de lieu. Le
+rejeu se fait une nuit à la fois (pas avec `--graines`).
+
 ## Hors périmètre
 
 Des graphismes élaborés (sprites, animations) ; le jeu à plusieurs ; l'accès depuis une autre

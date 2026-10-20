@@ -111,7 +111,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   1,5 s, pas chassé (Maj), pas feutré (Alt), « tourner », regard sur la carte ; un geste sur ce
   qu'il a dans le dos le tourne d'abord ; les sorties connues restent listées. Les scènes de test
   posent l'orientation avec la position. Banc 4 graines : une nuit ~6 s, aucune violation.
-- La suite de tests passe : 663 tests, sans clé ni connexion.
+- Jalon `vue-web` (`docs/plan-vue.md`) : `jeu.py --web` joue dans une page locale (127.0.0.1,
+  commandes refusées d'un autre hôte) avec le même contrat que le terminal. Une scène perçue
+  (`donjon/scene.py`) est la source unique de la carte du terminal et de la page : rien de ce que
+  le joueur ne perçoit pas. La carte dessine chaque objet et personnage (icône, couleur, nom,
+  regard, ce qu'il tient), le degré de lumière de chaque case tel que le moteur le calcule et le
+  cône réel du joueur ; un clic mène à une case (commandes « pas », arrêt si quelqu'un entre dans
+  le champ) ou propose les gestes possibles sur ce qui s'y trouve, en s'approchant d'abord.
+  `banc_pnj --rejeu page.html` enregistre une nuit sans la changer et la rejoue : barre de temps,
+  but, besoins, regard réel et croyances de chaque PNJ (fausses en rouge).
+- La suite de tests passe : 677 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -121,8 +130,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   test sur l'atelier, pas en partie au Relais.
 - **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
-  Prochain jalon proposé : **jouer dans le navigateur** (`docs/plan-vue.md`) : saisie, récit et
-  carte fidèle dans une page locale, puis rejeu du banc ; ensuite les caractères et valeurs.
+  Après le jeu dans le navigateur : les caractères et valeurs.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.
