@@ -223,7 +223,10 @@ class Monde:
                 or id in self.data["connus"])
 
     def presents(self):
-        return [o for o in self.objets.values() if self.visible(o["id"])]
+        """Ce que le joueur voit maintenant ; une consultation : sa vue n'est calculée qu'une fois."""
+        from .spatial import etat_fige, vue_memorisee
+        with vue_memorisee(self), etat_fige(self):
+            return [o for o in self.objets.values() if self.visible(o["id"])]
 
     def trouver(self, texte):
         texte = normaliser(texte)

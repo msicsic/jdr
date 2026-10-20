@@ -966,6 +966,13 @@ def murs_visibles(m, champ=None, acteur="joueur"):
 
 
 def memoriser(m):
+    """Ce que le joueur voit maintenant devient connu : cases, murs, objets et portes vus. Ne touche
+    ni aux objets ni au joueur : sa vue n'y est calculée qu'une fois."""
+    with vue_memorisee(m), etat_fige(m):
+        return _memoriser(m)
+
+
+def _memoriser(m):
     from .carte import objets_visibles_cases, symbole_objet_cases, symbole_porte_cases
     from .francais import designer
 
