@@ -114,15 +114,48 @@ def appelant(connexion="chatgpt", modele=None, effort="medium"):
     return MJOpenAI(modele, effort, timeout=90, connexion=connexion)._appeler_brut
 
 
-def nuit(scenario, graine, heures, joueur, chronique=False):
+def resume_diagnostic(recherches):
+    """Les recherches du planificateur regroupées par PNJ et par but, les plus coûteuses d'abord :
+    nombre, issues (plan, borne de nœuds atteinte, espace épuisé), résultats repris de la
+    mémoire sans chercher, nœuds, profondeur, durée."""
+    groupes = {}
+    for r in recherches:
+        g = groupes.setdefault((r["pnj"], r["but"]), {"pnj": r["pnj"], "but": r["but"], "recherches": 0, "plan": 0,
+                                                      "borne": 0, "epuise": 0, "memoire": 0, "noeuds": 0, "noeuds_max": 0,
+                                                      "profondeur_max": 0, "duree": 0.0})
+        g["recherches"] += 1
+        g[r["issue"]] += 1
+        g["memoire"] += bool(r.get("memoire"))
+        g["noeuds"] += r["noeuds"]
+        g["noeuds_max"] = max(g["noeuds_max"], r["noeuds"])
+        g["profondeur_max"] = max(g["profondeur_max"], r["profondeur"])
+        g["duree"] += r["duree"]
+    lignes = sorted(groupes.values(), key=lambda g: (-g["duree"], g["pnj"], g["but"]))
+    for g in lignes:
+        g["duree"] = round(g["duree"], 3)
+    return lignes
+
+
+def texte_diagnostic(resume):
+    cles = ("recherches", "plan", "borne", "epuise", "memoire", "noeuds", "noeuds_max", "profondeur_max", "duree")
+    lignes = ["Planificateur : pnj but " + " ".join(cles)]
+    lignes += [f'{g["pnj"]} {g["but"] or "-"} ' + " ".join(str(g[k]) for k in cles) for g in resume]
+    total = {k: sum(g[k] for g in resume) for k in cles if k not in ("noeuds_max", "profondeur_max")}
+    lignes.append("total " + " ".join(f"{k} {round(v, 3)}" for k, v in total.items()))
+    return "\n".join(lignes)
+
+
+def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False):
     """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie)."""
+    from .planification import diagnostics
     monde = creer(scenario, graine)
     if joueur:
         from .geometrie import position_entree
         monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
     from .recit_pnj import Recit
     recit = Recit(monde)
-    pas, mesures = executer(monde, int(heures * 60), recit)
+    with diagnostics() as recherches:
+        pas, mesures = executer(monde, int(heures * 60), recit)
     lignes = [f'[{c["minute"]:>4} min] {c["texte"]}' for c in pas] + [""] if chronique else []
     lignes += [recit.texte(monde, pas), ""]
     for id in pnjs(monde):
@@ -133,6 +166,10 @@ def nuit(scenario, graine, heures, joueur, chronique=False):
     lignes.append("Mesures : " + ", ".join(f"{k} {v}" for k, v in mesures.items()))
     donnees = {"graine": graine, "heures": heures, "chronique": pas, "mesures": mesures,
                "recit": recit.donnees(monde, pas), "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)}}
+    if diagnostic:
+        resume = resume_diagnostic(recherches)
+        lignes.append(texte_diagnostic(resume))
+        donnees["diagnostic"] = {"resume": resume, "recherches": recherches}
     return "\n".join(lignes), mesures, donnees
 
 
@@ -140,11 +177,11 @@ def _nuit(arguments):
     return nuit(*arguments)
 
 
-def nuits(scenario, graines, heures, joueur, chronique=False):
+def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False):
     """Plusieurs nuits en parallèle, une par processus ; les résultats dans l'ordre des graines."""
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(max_workers=min(len(graines), 16)) as pool:
-        return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique) for g in graines]))
+        return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic) for g in graines]))
 
 
 def tableau(graines, mesures):
@@ -169,11 +206,13 @@ def main(argv=None):
     parser.add_argument("--sortie", help="fichier JSON où écrire chronique, récit et mesures")
     parser.add_argument("--chronique", action="store_true", help="imprime aussi chaque pas")
     parser.add_argument("--rejeu", help="page HTML où rejouer la nuit (positions, regards, buts, croyances)")
+    parser.add_argument("--diagnostic", action="store_true",
+                        help="mesure chaque recherche du planificateur (nœuds, durée, issue), par PNJ et par but")
     args = parser.parse_args(argv)
     if args.graines:
         if args.stratege or args.rejeu:
             parser.error("le stratège et le rejeu suivent une nuit à la fois : --graine, pas --graines")
-        resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique)
+        resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
         print(tableau(args.graines, [m for _, m, _ in resultats]))
@@ -182,6 +221,7 @@ def main(argv=None):
                 json.dump([d for _, _, d in resultats], f, ensure_ascii=False, indent=1)
         return 0
     from . import stratege
+    from .planification import diagnostics
     stratege.activer(appelant(args.connexion) if args.stratege else None)
     try:
         monde = creer(args.scenario, args.graine)
@@ -193,7 +233,7 @@ def main(argv=None):
         from contextlib import nullcontext
         from .rejeu import Enregistreur
         enregistreur = Enregistreur(monde) if args.rejeu else None
-        with enregistreur.observer() if enregistreur else nullcontext():
+        with diagnostics() as recherches, enregistreur.observer() if enregistreur else nullcontext():
             chronique, mesures = executer(monde, int(args.heures * 60), recit)
     finally:
         stratege.activer(None)
@@ -215,11 +255,16 @@ def main(argv=None):
         with open(args.rejeu, "w", encoding="utf-8") as f:
             f.write(page(enregistreur.donnees(monde, chronique, titre)))
         print("Rejeu :", args.rejeu)
+    diagnostic = None
+    if args.diagnostic:
+        diagnostic = {"resume": resume_diagnostic(recherches), "recherches": recherches}
+        print(texte_diagnostic(diagnostic["resume"]))
     if args.sortie:
         with open(args.sortie, "w", encoding="utf-8") as f:
             json.dump({"graine": args.graine, "heures": args.heures, "stratege": args.stratege,
                        "chronique": chronique, "mesures": mesures, "recit": recit.donnees(monde, chronique),
-                       "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)}},
+                       "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)},
+                       **({"diagnostic": diagnostic} if diagnostic else {})},
                       f, ensure_ascii=False, indent=1)
     return 0
 

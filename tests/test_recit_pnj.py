@@ -78,6 +78,16 @@ class NuitsTests(unittest.TestCase):
         self.assertEqual(ensemble[1][0], seule[0])
         self.assertIn("moyenne", tableau([7, 42], [m for _, m, _ in ensemble]))
 
+    def test_diagnostic_du_planificateur(self):
+        from donjon.banc_pnj import nuit
+        texte, mesures, donnees = nuit("relais", 42, 1, "chambre_cloche", diagnostic=True)
+        self.assertEqual(mesures, nuit("relais", 42, 1, "chambre_cloche")[1])
+        recherches, resume = donnees["diagnostic"]["recherches"], donnees["diagnostic"]["resume"]
+        self.assertTrue(recherches)
+        self.assertTrue(all(r["issue"] in ("plan", "borne", "epuise") and r["but"] for r in recherches))
+        self.assertEqual(sum(g["recherches"] for g in resume), len(recherches))
+        self.assertIn("Planificateur :", texte)
+
 
 if __name__ == "__main__":
     unittest.main()

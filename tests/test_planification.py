@@ -5,7 +5,8 @@ import unittest
 from tests.support import refusee, sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import croire, lire, memoriser
-from donjon.planification import planifier
+from donjon.deliberation import REDEMANDE
+from donjon.planification import a_mange, chercher, diagnostics, planifier
 from donjon.spatial import installer
 
 
@@ -131,6 +132,77 @@ class FroidTests(unittest.TestCase):
         m.objets["ilse"]["lieu"] = "antichambre"
         self.assertEqual(gestes(planifier(m, "ilse", "chaleur")),
                          [("aller", "echoppe", ""), ("chauffer", "brasero", "")])
+
+
+class PertinenceTests(unittest.TestCase):
+    def test_ce_qui_ne_sert_pas_le_but_n_est_pas_porte_et_le_resultat_reste(self):
+        # Aubin a faim, ne sait pas crocheter ; le marchand vient de lui refuser une part. Porter
+        # la torche, le bois, les crochets ou le marteau ne change rien : sans les explorer, la
+        # recherche aboutit au même résultat, ici aucun plan.
+        m = nouveau_defi()
+        installer(m)
+        for o in ("torche", "bois", "crochets", "cle", "marteau"):
+            croire(m, "aubin", o, "lieu", m.objets[o]["lieu"], "vu")
+        for refus in (False, True):
+            if refus:
+                memoriser(m, "aubin", {"type": "refus", "de": "marchand", "operation": "demander",
+                                       "raison": "necessaire", "objet": "vivres"})
+            with diagnostics() as recherches:
+                complet = chercher(m, "aubin", a_mange)
+                borne = chercher(m, "aubin", a_mange, emplois=("manger",))
+            self.assertEqual(complet, borne)
+            self.assertLess(recherches[1]["noeuds"], recherches[0]["noeuds"])
+        self.assertIsNone(borne)
+
+
+class MemoireTests(unittest.TestCase):
+    """Un résultat se reprend sans chercher tant que rien de ce que lit la recherche n'a changé."""
+
+    def test_meme_situation_meme_resultat_sans_chercher(self):
+        m = relais()
+        with diagnostics() as recherches:
+            premier = planifier(m, "brune", "faim")
+            second = planifier(m, "brune", "faim")
+            second[1].append("modifié par l'appelant")
+            troisieme = planifier(m, "brune", "faim")
+        self.assertEqual(premier, troisieme)
+        self.assertEqual([r["memoire"] for r in recherches], [False, True, True])
+
+    def test_une_croyance_une_limite_ou_l_horloge_relancent_la_recherche(self):
+        m = relais()
+        crocheter = ("crocheter", "reserve", "crochets")
+        self.assertIn(crocheter, gestes(planifier(m, "brune", "faim")))
+        # Elle ne sait plus où sont les crochets, puis les revoit.
+        croire(m, "brune", "crochets", "lieu", None, "vu")
+        self.assertIsNone(planifier(m, "brune", "faim"))
+        croire(m, "brune", "crochets", "lieu", "echoppe", "vu")
+        self.assertIn(crocheter, gestes(planifier(m, "brune", "faim")))
+        # Une limite nouvelle : voler n'est plus permis.
+        m.objets["brune"]["profil"]["limites"].append("ne_vole_pas")
+        self.assertIsNone(planifier(m, "brune", "faim"))
+        # Le refus s'oublie avec le temps : elle peut redemander sa part ; un nouveau refus l'en empêche.
+        m.data["minutes"] += REDEMANDE
+        self.assertEqual(gestes(planifier(m, "brune", "faim")), [("aller", "echoppe", ""),
+                                                                 ("demander", "marchand", "vivres")])
+        memoriser(m, "brune", {"type": "refus", "de": "marchand", "operation": "demander", "raison": "necessaire",
+                               "objet": "vivres"})
+        self.assertIsNone(planifier(m, "brune", "faim"))
+
+    def test_une_nuit_ou_chaque_resultat_repris_ou_borne_est_recalcule(self):
+        # Repris de la mémoire, ou cherché parmi ce qu'il vaut la peine de porter : une recherche
+        # complète, sur tout ce qu'il connaît, rend le même résultat.
+        from donjon import planification
+        from donjon.banc_pnj import creer, executer
+        from donjon.geometrie import position_entree
+        m = creer("relais", 42)
+        m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
+        avant, planification.VERIFIER = planification.VERIFIER, True
+        try:
+            with diagnostics() as recherches:
+                executer(m, 240)
+        finally:
+            planification.VERIFIER = avant
+        self.assertTrue(any(r["memoire"] for r in recherches))
 
 
 if __name__ == "__main__":
