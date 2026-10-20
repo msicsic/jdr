@@ -76,6 +76,7 @@ def main(argv=None, interface=None):
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
     parser.add_argument("--defi", action="store_true", help="Le Relais des crues, défi d'exploration avec sauvegarde séparée")
+    parser.add_argument("--mine", action="store_true", help="La mine de Cendrefer, camp coupé du monde, avec sauvegarde séparée")
     parser.add_argument("--cases", action="store_true", help="déplacements case par case, proximité et ligne de vue")
     parser.add_argument("--seed", type=int, default=1985, help="graine d'une nouvelle partie")
     parser.add_argument("--save", type=Path, default=BASE / "sauvegardes" / "partie.json")
@@ -98,8 +99,10 @@ def main(argv=None, interface=None):
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
-    if args.atelier and args.defi:
-        parser.error("Choisis --atelier ou --defi.")
+    if args.atelier + args.defi + args.mine > 1:
+        parser.error("Choisis --atelier, --defi ou --mine.")
+    if args.mine and args.save == BASE / "sauvegardes" / "partie.json":
+        args.save = BASE / "sauvegardes" / "mine.json"
     if args.defi and args.save == BASE / "sauvegardes" / "partie.json":
         args.save = BASE / "sauvegardes" / "defi.json"
     if args.atelier and args.save == BASE / "sauvegardes" / "partie.json":
@@ -148,12 +151,15 @@ def main(argv=None, interface=None):
             if args.defi:
                 from donjon.defi import nouveau_defi
                 m = nouveau_defi(args.seed)
+            elif args.mine:
+                from donjon.mine import nouveau_mine
+                m = nouveau_mine(args.seed)
             elif args.atelier:
                 from donjon.atelier import nouveau_atelier
                 m = nouveau_atelier(args.seed)
             else:
                 m = nouveau_monde(args.seed)
-        if args.cases or args.defi or m.data.get("mode_cases"):
+        if args.cases or args.defi or args.mine or m.data.get("mode_cases"):
             from donjon.spatial import installer as installer_cases
             installer_cases(m)
         moteur = Moteur(m)

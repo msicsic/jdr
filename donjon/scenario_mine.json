@@ -1,0 +1,3836 @@
+{
+ "ajouts_savoirs": [],
+ "arbitrages": {},
+ "bruit": 0,
+ "connus": [],
+ "conversation": [],
+ "dialogues_pnj": {
+  "bram": {
+   "intentions": "Bram veut que la paie reste dans son coffre et se réchauffer sans quitter son bureau des yeux.",
+   "ton": "Il parle bas, pèse ses mots, soupçonne le pire des inconnus."
+  },
+  "gaspard": {
+   "intentions": "Gaspard veut savoir si l'on creuse de l'autre côté et garder une lampe allumée pour sonder la roche.",
+   "ton": "Il parle peu, lentement, et ne dit que ce dont il est sûr."
+  },
+  "josse": {
+   "intentions": "Josse veut tenir le camp ensemble, garder le poêle vivant et que le blessé survive jusqu'au dégagement.",
+   "ton": "Il parle net et bas, sans promesse qu'il ne puisse tenir."
+  },
+  "lucien": {
+   "intentions": "Lucien veut qu'on le garde au chaud, qu'on reste près de lui et que le noir ne revienne pas.",
+   "ton": "Il parle bas, par souffles, et s'interrompt pour reprendre haleine."
+  },
+  "mathe": {
+   "intentions": "Mathe veut que les vivres durent, que Lucien mange d'abord, et que personne ne force son garde-manger.",
+   "ton": "Elle parle franc, en s'affairant, et ne dit que ce qu'elle sait."
+  },
+  "odon": {
+   "intentions": "Odon veut manger, se faire accepter et ne pas être le coupable désigné.",
+   "ton": "Il parle peu, d'une voix égale, et mesure ce qu'il confie."
+  },
+  "remy": {
+   "intentions": "Rémy veut rester près de Lucien, manger, et se tenir loin du noir et de l'inconnu.",
+   "ton": "Il parle vite et fort, à cran, et l'avoue mal quand il a peur."
+  }
+ },
+ "dialogues_version": 1,
+ "eclairage_version": 1,
+ "engagements": {},
+ "esprits": {
+  "bram": {
+   "croyances": {
+    "biscuits": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "etais": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "gaspard": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "galerie",
+      "source": "savoir",
+      "valeur": "galerie"
+     }
+    },
+    "josse": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "lucien": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "mathe": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "odon": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": false
+     },
+     "lieu": {
+      "case": [
+       8,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "porte_reserve": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "remy": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       2,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  },
+  "gaspard": {
+   "croyances": {
+    "biscuits": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "bois_gaspard": {
+     "lieu": {
+      "case": [
+       9,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "bram": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "bureau"
+     }
+    },
+    "etais": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "josse": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "lampe_rechange_1": {
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "lampe_rechange_2": {
+     "lieu": {
+      "case": [
+       2,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "lucien": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "mathe": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "odon": {
+     "lieu": {
+      "case": [
+       8,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "pain_lucien": {
+     "lieu": {
+      "case": [
+       1,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "pioche": {
+     "lieu": {
+      "case": [
+       2,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "entree",
+      "source": "savoir",
+      "valeur": "entree"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "porte_reserve": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "remy": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       2,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  },
+  "josse": {
+   "croyances": {
+    "biscuits": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "bois_gaspard": {
+     "lieu": {
+      "case": [
+       9,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "bram": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "bureau"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "etais": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "gaspard": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "galerie",
+      "source": "savoir",
+      "valeur": "galerie"
+     }
+    },
+    "lampe_rechange_1": {
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "lampe_rechange_2": {
+     "lieu": {
+      "case": [
+       2,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "lucien": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "mathe": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "odon": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       8,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "pain_lucien": {
+     "lieu": {
+      "case": [
+       1,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "pioche": {
+     "lieu": {
+      "case": [
+       2,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "entree",
+      "source": "savoir",
+      "valeur": "entree"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "porte_reserve": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "remy": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       2,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  },
+  "lucien": {
+   "croyances": {
+    "bram": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "bureau"
+     }
+    },
+    "etais": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "gaspard": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "galerie",
+      "source": "savoir",
+      "valeur": "galerie"
+     }
+    },
+    "josse": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "mathe": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "odon": {
+     "fiable": {
+      "confiance": 0.6,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": false
+     },
+     "lieu": {
+      "case": [
+       8,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "porte_reserve": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "remy": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       2,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  },
+  "mathe": {
+   "croyances": {
+    "bois_gaspard": {
+     "lieu": {
+      "case": [
+       9,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "bram": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "bureau"
+     }
+    },
+    "etais": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "gaspard": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "galerie",
+      "source": "savoir",
+      "valeur": "galerie"
+     }
+    },
+    "josse": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "lucien": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "odon": {
+     "lieu": {
+      "case": [
+       8,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "pain_lucien": {
+     "lieu": {
+      "case": [
+       1,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "porte_reserve": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "remy": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       2,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  },
+  "odon": {
+   "croyances": {
+    "bois_gaspard": {
+     "lieu": {
+      "case": [
+       9,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "bram": {
+     "lieu": {
+      "case": [
+       3,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "bureau"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "gaspard": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "galerie",
+      "source": "savoir",
+      "valeur": "galerie"
+     }
+    },
+    "josse": {
+     "fiable": {
+      "confiance": 0.8,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "lucien": {
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "mathe": {
+     "lieu": {
+      "case": [
+       3,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "pain_lucien": {
+     "lieu": {
+      "case": [
+       1,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "remy": {
+     "lieu": {
+      "case": [
+       2,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  },
+  "remy": {
+   "croyances": {
+    "biscuits": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "bois_gaspard": {
+     "lieu": {
+      "case": [
+       9,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "bram": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "bureau"
+     }
+    },
+    "etais": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "garde_manger": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "gaspard": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "galerie",
+      "source": "savoir",
+      "valeur": "galerie"
+     }
+    },
+    "josse": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       6,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "lampe_rechange_1": {
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "lampe_rechange_2": {
+     "lieu": {
+      "case": [
+       2,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     }
+    },
+    "lucien": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       1,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "mathe": {
+     "fiable": {
+      "confiance": 0.7,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     },
+     "lieu": {
+      "case": [
+       3,
+       4
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "odon": {
+     "fiable": {
+      "confiance": 0.8,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": false
+     },
+     "lieu": {
+      "case": [
+       8,
+       3
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "pain_lucien": {
+     "lieu": {
+      "case": [
+       1,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "baraquement"
+     }
+    },
+    "poele": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": true,
+       "charge": true,
+       "faible": false
+      }
+     }
+    },
+    "porte_bureau": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "porte_reserve": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
+    },
+    "vivres": {
+     "lieu": {
+      "case": [
+       2,
+       5
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "baraquement",
+      "source": "savoir",
+      "valeur": "garde_manger"
+     }
+    }
+   },
+   "intention": null,
+   "memoire": []
+  }
+ },
+ "finances_pnj": {
+  "bram": 300,
+  "josse": 20
+ },
+ "geometrie_version": 1,
+ "jets": 0,
+ "joueur": {
+  "capacite": 12,
+  "espece": "humain",
+  "masse_kg": 70,
+  "nom": "Corvus",
+  "or": 12,
+  "position": [
+   6,
+   5
+  ],
+  "pv": 18,
+  "pv_max": 18,
+  "salle": "baraquement",
+  "stade_vie": "adulte",
+  "stats": {
+   "CHA": 12,
+   "DEX": 14,
+   "FOR": 12,
+   "INT": 14,
+   "PER": 12
+  }
+ },
+ "journal": [],
+ "lus": [],
+ "minutes": 0,
+ "missions": {},
+ "objets": {
+  "baraquement_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "baraquement_murs",
+   "integrite": 100,
+   "lieu": "baraquement",
+   "masse": 0,
+   "materiau": "planches et roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "baraquement_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "baraquement_plafond",
+   "integrite": 100,
+   "lieu": "baraquement",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "baraquement_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "baraquement_sol",
+   "integrite": 100,
+   "lieu": "baraquement",
+   "masse": 0,
+   "materiau": "planches",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "benne": {
+   "aliases": [
+    "benne",
+    "wagonnet"
+   ],
+   "bloque_passage": true,
+   "genre": "f",
+   "id": "benne",
+   "integrite": 10,
+   "lieu": "galerie",
+   "masse": 150,
+   "materiau": "fer",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "benne renversée",
+   "position": [
+    9,
+    0
+   ],
+   "position_salle": "galerie",
+   "type": "meuble"
+  },
+  "biscuits": {
+   "aliases": [
+    "biscuits",
+    "galettes",
+    "rations de secours"
+   ],
+   "genre": "m",
+   "id": "biscuits",
+   "integrite": 10,
+   "lieu": "coffre_paie",
+   "masse": 1,
+   "materiau": "galette sèche",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "biscuits de secours",
+   "pluriel": true,
+   "portions": 2,
+   "proprietaire": "bram",
+   "type": "nourriture"
+  },
+  "bois_gaspard": {
+   "aliases": [
+    "bûches",
+    "buches",
+    "bois de Gaspard"
+   ],
+   "charges": 2,
+   "duree_combustion": 60,
+   "genre": "f",
+   "id": "bois_gaspard",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "masse": 5,
+   "materiau": "bois",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "bûches de Gaspard",
+   "pluriel": true,
+   "position": [
+    9,
+    4
+   ],
+   "position_salle": "baraquement",
+   "proprietaire": "gaspard",
+   "type": "consommable",
+   "usages": [
+    "combustible"
+   ]
+  },
+  "bram": {
+   "aliases": [
+    "bram",
+    "payeur",
+    "caissier"
+   ],
+   "corps": {
+    "repas": 540,
+    "trempe": 0,
+    "veille": 500
+   },
+   "genre": "m",
+   "humeur": "nerveux",
+   "id": "bram",
+   "integrite": 10,
+   "lieu": "bureau",
+   "maniere_de_parler": "Bram parle à voix feutrée, en pesant chaque mot, la main toujours près de sa clé.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Bram, payeur",
+   "portrait": "Bram est un homme maigre et pâle, la trentaine, des lunettes cerclées sur un nez fin, des manchettes protégeant ses poignets.",
+   "position": [
+    3,
+    1
+   ],
+   "position_salle": "bureau",
+   "profil": {
+    "besoins": {
+     "biens": {
+      "depart": 30,
+      "derive_heure": 2,
+      "urgence": 50
+     },
+     "devoir": {
+      "depart": 35,
+      "derive_heure": 3,
+      "urgence": 60
+     },
+     "securite": {
+      "depart": 35,
+      "derive_heure": 3,
+      "urgence": 55
+     }
+    },
+    "capacites": [],
+    "caracteristiques": {
+     "CHA": 10,
+     "DEX": 12,
+     "FOR": 8,
+     "INT": 15,
+     "PER": 13
+    },
+    "limites": [
+     "ne_vole_pas",
+     "ne_blesse_pas"
+    ],
+    "pulsions": [
+     {
+      "besoin": "biens",
+      "condition": {
+       "objet": "coffre_paie",
+       "verrouillee": true
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "bureau",
+       "periode": 40
+      }
+     }
+    ],
+    "securite": {
+     "mefiance": 0.6,
+     "noir": 0.8
+    },
+    "traits": "Payeur de la compagnie, il répond de la paie de tous et ne la quitte pas des yeux. Soupçonneux et peureux, il ne vole pas et ne lève pas la main, mais il croit volontiers le pire des nouveaux venus. Il supporte mal le froid de son bureau."
+   },
+   "type": "personnage",
+   "vigilance": 13
+  },
+  "briquet": {
+   "aliases": [
+    "briquet",
+    "amadou"
+   ],
+   "id": "briquet",
+   "integrite": 10,
+   "lieu": "gaspard",
+   "masse": 0.1,
+   "materiau": "fer et silex",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "briquet à amadou",
+   "proprietaire": "gaspard",
+   "type": "outil",
+   "usages": [
+    "allumage"
+   ]
+  },
+  "bureau_contremaitre": {
+   "aliases": [
+    "bureau",
+    "pupitre"
+   ],
+   "bloque_passage": true,
+   "id": "bureau_contremaitre",
+   "integrite": 10,
+   "lieu": "bureau",
+   "masse": 50,
+   "materiau": "chêne",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "bureau du contremaître",
+   "position": [
+    2,
+    1
+   ],
+   "position_salle": "bureau",
+   "type": "meuble"
+  },
+  "bureau_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "bureau_murs",
+   "integrite": 100,
+   "lieu": "bureau",
+   "masse": 0,
+   "materiau": "planches et roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "bureau_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "bureau_plafond",
+   "integrite": 100,
+   "lieu": "bureau",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "bureau_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "bureau_sol",
+   "integrite": 100,
+   "lieu": "bureau",
+   "masse": 0,
+   "materiau": "planches",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "chandelle": {
+   "aliases": [
+    "lampe",
+    "lampe de bureau"
+   ],
+   "allume": true,
+   "combustible": 300,
+   "genre": "f",
+   "id": "chandelle",
+   "integrite": 10,
+   "lieu": "bureau",
+   "luminosite": 1,
+   "masse": 1,
+   "materiau": "laiton",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "lampe de bureau",
+   "position": [
+    1,
+    0
+   ],
+   "position_salle": "bureau",
+   "type": "luminaire"
+  },
+  "cle_garde_manger": {
+   "aliases": [
+    "clé du garde-manger"
+   ],
+   "genre": "f",
+   "id": "cle_garde_manger",
+   "integrite": 10,
+   "lieu": "mathe",
+   "masse": 0.05,
+   "materiau": "fer",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "clé du garde-manger",
+   "ouvre": [
+    "garde_manger"
+   ],
+   "proprietaire": "mathe",
+   "type": "cle"
+  },
+  "cle_paie": {
+   "aliases": [
+    "clé de la paie",
+    "clé du coffre"
+   ],
+   "genre": "f",
+   "id": "cle_paie",
+   "integrite": 10,
+   "lieu": "bram",
+   "masse": 0.05,
+   "materiau": "acier",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "clé de la paie",
+   "ouvre": [
+    "coffre_paie",
+    "porte_bureau"
+   ],
+   "proprietaire": "bram",
+   "type": "cle"
+  },
+  "coffre_paie": {
+   "aliases": [
+    "coffre",
+    "coffre de la paie",
+    "caisse"
+   ],
+   "id": "coffre_paie",
+   "integrite": 40,
+   "lieu": "bureau",
+   "masse": 90,
+   "materiau": "chêne et fer",
+   "maximum": 40,
+   "mobile": false,
+   "nom": "coffre de la paie",
+   "ouverte": false,
+   "position": [
+    4,
+    1
+   ],
+   "position_salle": "bureau",
+   "proprietaire": "bram",
+   "type": "contenant",
+   "verrouillee": true
+  },
+  "couchette": {
+   "aliases": [
+    "couchette",
+    "paillasse"
+   ],
+   "genre": "f",
+   "id": "couchette",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "masse": 10,
+   "materiau": "planches et paille",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "couchette du blessé",
+   "position": [
+    1,
+    1
+   ],
+   "position_salle": "baraquement",
+   "type": "meuble"
+  },
+  "crochets": {
+   "aliases": [
+    "crochets",
+    "crochet",
+    "trousse"
+   ],
+   "id": "crochets",
+   "integrite": 10,
+   "lieu": "odon",
+   "masse": 0.1,
+   "materiau": "acier",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "outils de serrurier",
+   "proprietaire": "odon",
+   "puissance": 0,
+   "type": "outil",
+   "usages": [
+    "crochetage"
+   ]
+  },
+  "eboulis_1": {
+   "aliases": [
+    "éboulis",
+    "eboulis",
+    "blocs",
+    "éboulement"
+   ],
+   "bloque_passage": true,
+   "bloque_vue": true,
+   "id": "eboulis_1",
+   "integrite": 10,
+   "lieu": "entree",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "éboulis",
+   "pluriel": true,
+   "position": [
+    0,
+    0
+   ],
+   "position_salle": "entree",
+   "type": "meuble"
+  },
+  "eboulis_2": {
+   "aliases": [
+    "éboulis",
+    "eboulis",
+    "blocs",
+    "éboulement"
+   ],
+   "bloque_passage": true,
+   "bloque_vue": true,
+   "id": "eboulis_2",
+   "integrite": 10,
+   "lieu": "entree",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "éboulis",
+   "pluriel": true,
+   "position": [
+    0,
+    1
+   ],
+   "position_salle": "entree",
+   "type": "meuble"
+  },
+  "eboulis_3": {
+   "aliases": [
+    "éboulis",
+    "eboulis",
+    "blocs",
+    "éboulement"
+   ],
+   "bloque_passage": true,
+   "bloque_vue": true,
+   "id": "eboulis_3",
+   "integrite": 10,
+   "lieu": "entree",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "éboulis",
+   "pluriel": true,
+   "position": [
+    0,
+    2
+   ],
+   "position_salle": "entree",
+   "type": "meuble"
+  },
+  "entree_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "entree_murs",
+   "integrite": 100,
+   "lieu": "entree",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "entree_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "entree_plafond",
+   "integrite": 100,
+   "lieu": "entree",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "entree_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "entree_sol",
+   "integrite": 100,
+   "lieu": "entree",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "etai_brise": {
+   "aliases": [
+    "étai",
+    "etai"
+   ],
+   "bloque_passage": true,
+   "id": "etai_brise",
+   "integrite": 10,
+   "lieu": "filon",
+   "masse": 0,
+   "materiau": "bois",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "étai brisé",
+   "position": [
+    4,
+    3
+   ],
+   "position_salle": "filon",
+   "type": "meuble"
+  },
+  "etais": {
+   "aliases": [
+    "étais",
+    "etais",
+    "bois",
+    "boisage",
+    "poutrelles"
+   ],
+   "charges": 3,
+   "duree_combustion": 90,
+   "id": "etais",
+   "integrite": 10,
+   "lieu": "reserve",
+   "masse": 18,
+   "materiau": "bois",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "étais de boisage",
+   "pluriel": true,
+   "position": [
+    4,
+    1
+   ],
+   "position_salle": "reserve",
+   "proprietaire": "josse",
+   "type": "consommable",
+   "usages": [
+    "combustible"
+   ]
+  },
+  "filon_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "filon_murs",
+   "integrite": 100,
+   "lieu": "filon",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "filon_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "filon_plafond",
+   "integrite": 100,
+   "lieu": "filon",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "filon_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "filon_sol",
+   "integrite": 100,
+   "lieu": "filon",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "galerie_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "galerie_murs",
+   "integrite": 100,
+   "lieu": "galerie",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "galerie_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "galerie_plafond",
+   "integrite": 100,
+   "lieu": "galerie",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "galerie_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "galerie_sol",
+   "integrite": 100,
+   "lieu": "galerie",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "garde_manger": {
+   "aliases": [
+    "garde-manger",
+    "garde manger",
+    "armoire"
+   ],
+   "id": "garde_manger",
+   "integrite": 25,
+   "lieu": "baraquement",
+   "masse": 60,
+   "materiau": "bois cerclé de fer",
+   "maximum": 25,
+   "mobile": false,
+   "nom": "garde-manger de la cuisinière",
+   "ouverte": false,
+   "position": [
+    2,
+    5
+   ],
+   "position_salle": "baraquement",
+   "proprietaire": "mathe",
+   "type": "contenant",
+   "verrouillee": true
+  },
+  "gaspard": {
+   "aliases": [
+    "gaspard",
+    "vieux mineur",
+    "vieux",
+    "mineur"
+   ],
+   "corps": {
+    "repas": 600,
+    "trempe": 120,
+    "veille": 900
+   },
+   "genre": "m",
+   "humeur": "stoïque",
+   "id": "gaspard",
+   "integrite": 10,
+   "lieu": "galerie",
+   "maniere_de_parler": "Gaspard parle lentement, d'une voix rauque, en regardant la roche plutôt que les gens.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Gaspard, vieux mineur",
+   "portrait": "Gaspard est un vieil homme sec, les mains fendues, le visage ridé couleur de charbon sous un casque cabossé.",
+   "position": [
+    6,
+    1
+   ],
+   "position_salle": "galerie",
+   "profil": {
+    "besoins": {
+     "devoir": {
+      "depart": 35,
+      "derive_heure": 3,
+      "urgence": 65
+     },
+     "securite": {
+      "depart": 10,
+      "derive_heure": -5,
+      "urgence": 70
+     }
+    },
+    "capacites": [],
+    "caracteristiques": {
+     "CHA": 8,
+     "DEX": 9,
+     "FOR": 12,
+     "INT": 11,
+     "PER": 14
+    },
+    "limites": [
+     "ne_vole_pas",
+     "ne_ment_pas"
+    ],
+    "protege": [
+     "remy"
+    ],
+    "pulsions": [
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "entree",
+       "periode": 60
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "galerie",
+       "periode": 90
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "puits",
+       "periode": 120
+      }
+     }
+    ],
+    "securite": {
+     "noir": 0.0
+    },
+    "traits": "Trente ans de fond : il connaît la roche et ne craint pas le noir. Il sonde l'éboulis et le puits à intervalles réguliers pour en entendre les progrès. Taciturne, honnête, il ne ment pas et ne prend rien qui ne soit à lui."
+   },
+   "type": "personnage",
+   "vigilance": 13
+  },
+  "josse": {
+   "aliases": [
+    "josse",
+    "contremaître",
+    "contremaitre",
+    "chef"
+   ],
+   "corps": {
+    "repas": 480,
+    "trempe": 0,
+    "veille": 600
+   },
+   "genre": "m",
+   "humeur": "grave",
+   "id": "josse",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "maniere_de_parler": "Josse parle net et bas, comme on donne un ordre sans lever le ton.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Josse, contremaître",
+   "portrait": "Josse est un homme taillé en bloc, la cinquantaine, la barbe poivre et sel, la veste de cuir râpée aux coudes.",
+   "position": [
+    6,
+    2
+   ],
+   "position_salle": "baraquement",
+   "profil": {
+    "besoins": {
+     "devoir": {
+      "depart": 55,
+      "derive_heure": 8,
+      "urgence": 65
+     },
+     "securite": {
+      "depart": 15,
+      "derive_heure": -3,
+      "urgence": 60
+     }
+    },
+    "capacites": [],
+    "caracteristiques": {
+     "CHA": 13,
+     "DEX": 10,
+     "FOR": 14,
+     "INT": 12,
+     "PER": 13
+    },
+    "limites": [
+     "ne_vole_pas",
+     "ne_blesse_pas"
+    ],
+    "protege": [
+     "lucien",
+     "remy",
+     "bram"
+    ],
+    "pulsions": [
+     {
+      "besoin": "devoir",
+      "condition": {
+       "allume": true,
+       "objet": "poele"
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "baraquement",
+       "periode": 40
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "galerie",
+       "periode": 90
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "entree",
+       "periode": 75
+      }
+     }
+    ],
+    "traits": "Contremaître juste mais dur, il tient le camp par le rationnement et l'exemple. Il veut garder le poêle vivant et tout le monde ensemble jusqu'au dégagement, et il répond du blessé. Il ne vole pas et ne lève pas la main ; lent à retirer sa confiance, lent à la rendre."
+   },
+   "type": "personnage",
+   "vigilance": 14
+  },
+  "lampe_baraque": {
+   "aliases": [
+    "lampe suspendue",
+    "lampe du baraquement"
+   ],
+   "allume": true,
+   "combustible": 330,
+   "genre": "f",
+   "id": "lampe_baraque",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "luminosite": 1,
+   "masse": 2,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "lampe à huile du baraquement",
+   "position": [
+    8,
+    1
+   ],
+   "position_salle": "baraquement",
+   "type": "luminaire"
+  },
+  "lampe_filon": {
+   "aliases": [
+    "lampe oubliée",
+    "lampe"
+   ],
+   "allume": true,
+   "combustible": 70,
+   "genre": "f",
+   "id": "lampe_filon",
+   "integrite": 10,
+   "lieu": "filon",
+   "luminosite": 1,
+   "masse": 0.8,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "lampe laissée au filon",
+   "position": [
+    6,
+    2
+   ],
+   "position_salle": "filon",
+   "type": "luminaire"
+  },
+  "lampe_gaspard": {
+   "aliases": [
+    "lampe de Gaspard",
+    "lampe"
+   ],
+   "allume": true,
+   "combustible": 170,
+   "genre": "f",
+   "id": "lampe_gaspard",
+   "integrite": 10,
+   "lieu": "gaspard",
+   "luminosite": 1,
+   "masse": 0.8,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "lampe de Gaspard",
+   "proprietaire": "gaspard",
+   "type": "luminaire"
+  },
+  "lampe_josse": {
+   "aliases": [
+    "lampe de Josse",
+    "lampe"
+   ],
+   "allume": false,
+   "combustible": 300,
+   "genre": "f",
+   "id": "lampe_josse",
+   "integrite": 10,
+   "lieu": "josse",
+   "luminosite": 1,
+   "masse": 0.8,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "lampe du contremaître",
+   "proprietaire": "josse",
+   "type": "luminaire"
+  },
+  "lampe_rechange_1": {
+   "aliases": [
+    "lampe de rechange",
+    "lampe"
+   ],
+   "allume": false,
+   "combustible": 240,
+   "genre": "f",
+   "id": "lampe_rechange_1",
+   "integrite": 10,
+   "lieu": "reserve",
+   "luminosite": 1,
+   "masse": 0.8,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "lampe de mineur de rechange",
+   "position": [
+    1,
+    2
+   ],
+   "position_salle": "reserve",
+   "type": "luminaire"
+  },
+  "lampe_rechange_2": {
+   "aliases": [
+    "lampe de rechange",
+    "lampe"
+   ],
+   "allume": false,
+   "combustible": 240,
+   "genre": "f",
+   "id": "lampe_rechange_2",
+   "integrite": 10,
+   "lieu": "reserve",
+   "luminosite": 1,
+   "masse": 0.8,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "lampe de mineur de rechange",
+   "position": [
+    2,
+    2
+   ],
+   "position_salle": "reserve",
+   "type": "luminaire"
+  },
+  "lampe_remy": {
+   "aliases": [
+    "lampe de Rémy",
+    "lampe"
+   ],
+   "allume": true,
+   "combustible": 120,
+   "genre": "f",
+   "id": "lampe_remy",
+   "integrite": 10,
+   "lieu": "remy",
+   "luminosite": 1,
+   "masse": 0.8,
+   "materiau": "laiton et verre",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "lampe de Rémy",
+   "proprietaire": "remy",
+   "type": "luminaire"
+  },
+  "lucien": {
+   "aliases": [
+    "lucien",
+    "blessé",
+    "blesse",
+    "mineur blessé"
+   ],
+   "corps": {
+    "repas": 640,
+    "trempe": 300,
+    "veille": 1500
+   },
+   "genre": "m",
+   "humeur": "fiévreux",
+   "id": "lucien",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "maniere_de_parler": "Lucien parle bas, par souffles, et s'interrompt pour reprendre haleine.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Lucien, mineur blessé",
+   "portrait": "Lucien est un mineur de vingt-cinq ans, livide, la jambe prise dans des attelles de fortune, le front luisant de sueur.",
+   "position": [
+    1,
+    2
+   ],
+   "position_salle": "baraquement",
+   "profil": {
+    "besoins": {
+     "securite": {
+      "depart": 60,
+      "derive_heure": 5,
+      "urgence": 55
+     }
+    },
+    "capacites": [],
+    "caracteristiques": {
+     "CHA": 11,
+     "DEX": 8,
+     "FOR": 8,
+     "INT": 11,
+     "PER": 12
+    },
+    "limites": [
+     "ne_vole_pas",
+     "ne_blesse_pas"
+    ],
+    "pulsions": [],
+    "securite": {
+     "compagnie": 0.2,
+     "mefiance": 1.5,
+     "noir": 1.5
+    },
+    "traits": "Pris sous l'éboulement, il ne peut ni marcher ni se défendre. Honnête et reconnaissant envers ceux qui veillent sur lui, il redoute le noir et les inconnus qui s'approchent de sa couchette."
+   },
+   "type": "personnage",
+   "vigilance": 11
+  },
+  "margelle": {
+   "aliases": [
+    "puits",
+    "ouverture",
+    "margelle"
+   ],
+   "bloque_passage": true,
+   "genre": "f",
+   "id": "margelle",
+   "integrite": 10,
+   "lieu": "puits",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "ouverture du puits",
+   "position": [
+    3,
+    2
+   ],
+   "position_salle": "puits",
+   "type": "meuble"
+  },
+  "mathe": {
+   "aliases": [
+    "mathe",
+    "cuisinière",
+    "cuisiniere"
+   ],
+   "corps": {
+    "repas": 300,
+    "trempe": 0,
+    "veille": 700
+   },
+   "genre": "f",
+   "humeur": "tendue",
+   "id": "mathe",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "maniere_de_parler": "Mathe parle sans s'arrêter de s'affairer, par phrases courtes et franches.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Mathe, cuisinière",
+   "portrait": "Mathe est une femme large d'épaules, la quarantaine, les avant-bras marqués de brûlures, un tablier de toile sur sa veste.",
+   "position": [
+    3,
+    4
+   ],
+   "position_salle": "baraquement",
+   "profil": {
+    "besoins": {
+     "biens": {
+      "depart": 15,
+      "derive_heure": -5,
+      "urgence": 50
+     },
+     "securite": {
+      "depart": 30,
+      "derive_heure": 0,
+      "urgence": 60
+     }
+    },
+    "capacites": [],
+    "caracteristiques": {
+     "CHA": 12,
+     "DEX": 11,
+     "FOR": 11,
+     "INT": 12,
+     "PER": 12
+    },
+    "limites": [
+     "ne_vole_pas",
+     "ne_blesse_pas",
+     "ne_ment_pas"
+    ],
+    "protege": [
+     "lucien"
+    ],
+    "pulsions": [
+     {
+      "besoin": "biens",
+      "condition": {
+       "objet": "garde_manger",
+       "verrouillee": true
+      }
+     }
+    ],
+    "traits": "Cuisinière du camp et maîtresse du garde-manger : elle compte chaque part et sert d'abord le blessé. Franche et têtue, elle ne ment pas et ne prend pas ce qui n'est pas à elle, mais elle tient les cordons de la bourse de vivres et se méfie des inconnus qui mangent comme quatre."
+   },
+   "type": "personnage",
+   "vigilance": 12
+  },
+  "odon": {
+   "aliases": [
+    "odon",
+    "nouveau",
+    "nouveau venu",
+    "inconnu"
+   ],
+   "corps": {
+    "repas": 780,
+    "trempe": 60,
+    "veille": 1000
+   },
+   "genre": "m",
+   "humeur": "réservé",
+   "id": "odon",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "maniere_de_parler": "Odon parle peu, d'une voix égale, en gardant ses mains dans ses poches.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Odon, nouveau venu",
+   "portrait": "Odon est un homme de trente-cinq ans, râblé, le teint hâlé d'un autre pays, une cicatrice à la lèvre.",
+   "position": [
+    8,
+    3
+   ],
+   "position_salle": "baraquement",
+   "profil": {
+    "besoins": {
+     "devoir": {
+      "depart": 40,
+      "derive_heure": 2,
+      "urgence": 70
+     },
+     "securite": {
+      "depart": 40,
+      "derive_heure": 2,
+      "urgence": 55
+     }
+    },
+    "capacites": [
+     "crochetage"
+    ],
+    "caracteristiques": {
+     "CHA": 10,
+     "DEX": 15,
+     "FOR": 12,
+     "INT": 12,
+     "PER": 14
+    },
+    "limites": [
+     "ne_blesse_pas"
+    ],
+    "pulsions": [
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "filon",
+       "periode": 100
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "entree",
+       "periode": 80
+      }
+     }
+    ],
+    "securite": {
+     "mefiance": 0.0
+    },
+    "traits": "Embauché il y a trois jours, sans papiers ni répondants. Il a connu la prison et les serrures. Honnête tant qu'il peut l'être, il demande avant de prendre ; affamé depuis deux jours, il ne mourra pas de scrupules. Il ne lève pas la main."
+   },
+   "type": "personnage",
+   "vigilance": 15
+  },
+  "paie": {
+   "aliases": [
+    "paie",
+    "bourse",
+    "gages"
+   ],
+   "genre": "f",
+   "id": "paie",
+   "integrite": 10,
+   "lieu": "coffre_paie",
+   "masse": 3,
+   "materiau": "cuir et pièces",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "bourse de la paie",
+   "proprietaire": "bram",
+   "type": "tresor"
+  },
+  "pain_lucien": {
+   "aliases": [
+    "croûte",
+    "croute",
+    "pain de Lucien"
+   ],
+   "genre": "f",
+   "id": "pain_lucien",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "masse": 0.4,
+   "materiau": "pain",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "croûte de pain de Lucien",
+   "portions": 1,
+   "position": [
+    1,
+    1
+   ],
+   "position_salle": "baraquement",
+   "proprietaire": "lucien",
+   "type": "nourriture"
+  },
+  "passe": {
+   "aliases": [
+    "passe",
+    "clé de la réserve",
+    "clés"
+   ],
+   "id": "passe",
+   "integrite": 10,
+   "lieu": "josse",
+   "masse": 0.1,
+   "materiau": "bronze",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "passe du contremaître",
+   "ouvre": [
+    "porte_reserve",
+    "porte_bureau"
+   ],
+   "proprietaire": "josse",
+   "type": "cle"
+  },
+  "pioche": {
+   "aliases": [
+    "pioche"
+   ],
+   "genre": "f",
+   "id": "pioche",
+   "integrite": 10,
+   "lieu": "entree",
+   "masse": 3,
+   "materiau": "fer et bois",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "pioche",
+   "position": [
+    2,
+    1
+   ],
+   "position_salle": "entree",
+   "puissance": 6,
+   "type": "outil",
+   "usages": [
+    "percussion"
+   ]
+  },
+  "poele": {
+   "aliases": [
+    "poêle",
+    "poele",
+    "foyer"
+   ],
+   "allume": true,
+   "combustible": 120,
+   "foyer": true,
+   "id": "poele",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "luminosite": 2,
+   "masse": 60,
+   "materiau": "fonte",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "poêle à bois",
+   "position": [
+    5,
+    3
+   ],
+   "position_salle": "baraquement",
+   "type": "luminaire"
+  },
+  "porte_bureau": {
+   "aliases": [
+    "porte du bureau",
+    "porte"
+   ],
+   "bloque_par": null,
+   "detachee": false,
+   "genre": "f",
+   "id": "porte_bureau",
+   "integrite": 25,
+   "lieu": "baraquement",
+   "masse": 50,
+   "materiau": "chêne",
+   "maximum": 25,
+   "mobile": false,
+   "nom": "porte du bureau",
+   "ouverte": false,
+   "relie": [
+    "bureau",
+    "baraquement"
+   ],
+   "type": "porte",
+   "verrouillee": true
+  },
+  "porte_reserve": {
+   "aliases": [
+    "porte de la réserve",
+    "porte"
+   ],
+   "bloque_par": null,
+   "detachee": false,
+   "genre": "f",
+   "id": "porte_reserve",
+   "integrite": 30,
+   "lieu": "baraquement",
+   "masse": 60,
+   "materiau": "chêne cerclé",
+   "maximum": 30,
+   "mobile": false,
+   "nom": "porte de la réserve",
+   "ouverte": false,
+   "relie": [
+    "reserve",
+    "baraquement"
+   ],
+   "type": "porte",
+   "verrouillee": true
+  },
+  "puits_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "puits_murs",
+   "integrite": 100,
+   "lieu": "puits",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "puits_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "puits_plafond",
+   "integrite": 100,
+   "lieu": "puits",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "puits_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "puits_sol",
+   "integrite": 100,
+   "lieu": "puits",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "rayonnage": {
+   "aliases": [
+    "rayonnage",
+    "étagères"
+   ],
+   "bloque_passage": true,
+   "id": "rayonnage",
+   "integrite": 10,
+   "lieu": "reserve",
+   "masse": 30,
+   "materiau": "bois",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "rayonnage de la réserve",
+   "position": [
+    3,
+    0
+   ],
+   "position_salle": "reserve",
+   "type": "meuble"
+  },
+  "remy": {
+   "aliases": [
+    "rémy",
+    "remy",
+    "jeune mineur",
+    "jeune"
+   ],
+   "corps": {
+    "repas": 720,
+    "trempe": 180,
+    "veille": 800
+   },
+   "genre": "m",
+   "humeur": "à cran",
+   "id": "remy",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "maniere_de_parler": "Rémy parle vite, trop fort, et finit ses phrases par des questions.",
+   "masse": 0,
+   "materiau": "",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "Rémy, jeune mineur",
+   "portrait": "Rémy est un garçon d'une vingtaine d'années, long et nerveux, le visage mangé de poussière, les poings serrés.",
+   "position": [
+    2,
+    3
+   ],
+   "position_salle": "baraquement",
+   "profil": {
+    "besoins": {
+     "devoir": {
+      "depart": 40,
+      "derive_heure": 2,
+      "urgence": 60
+     },
+     "securite": {
+      "depart": 40,
+      "derive_heure": 3,
+      "urgence": 55
+     }
+    },
+    "capacites": [],
+    "caracteristiques": {
+     "CHA": 11,
+     "DEX": 13,
+     "FOR": 13,
+     "INT": 10,
+     "PER": 12
+    },
+    "limites": [
+     "ne_ment_pas"
+    ],
+    "protege": [
+     "lucien"
+    ],
+    "pulsions": [
+     {
+      "besoin": "devoir",
+      "condition": {
+       "lieu": "baraquement",
+       "periode": 25
+      }
+     }
+    ],
+    "securite": {
+     "mefiance": 0.6,
+     "noir": 1.0
+    },
+    "traits": "Ami de Lucien, il ne le quitte pas d'une semelle et ne supporte pas qu'on s'approche de lui. Impulsif, il se méfie du nouveau venu et le dit ; il a peur du noir mais l'avoue mal. Il ne ment pas."
+   },
+   "type": "personnage",
+   "vigilance": 12
+  },
+  "reserve_murs": {
+   "aliases": [
+    "murs",
+    "mur",
+    "paroi"
+   ],
+   "id": "reserve_murs",
+   "integrite": 100,
+   "lieu": "reserve",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "murs",
+   "type": "surface"
+  },
+  "reserve_plafond": {
+   "aliases": [
+    "plafond",
+    "voûte",
+    "voute"
+   ],
+   "id": "reserve_plafond",
+   "integrite": 100,
+   "lieu": "reserve",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "plafond",
+   "type": "surface"
+  },
+  "reserve_sol": {
+   "aliases": [
+    "sol"
+   ],
+   "id": "reserve_sol",
+   "integrite": 100,
+   "lieu": "reserve",
+   "masse": 0,
+   "materiau": "roche",
+   "maximum": 100,
+   "mobile": false,
+   "nom": "sol",
+   "support_pose": true,
+   "type": "surface"
+  },
+  "sacs": {
+   "aliases": [
+    "sacs",
+    "sacs de sable"
+   ],
+   "bloque_passage": true,
+   "bloque_vue": true,
+   "id": "sacs",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "masse": 200,
+   "materiau": "toile",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "tas de sacs de sable",
+   "pluriel": true,
+   "position": [
+    8,
+    5
+   ],
+   "position_salle": "baraquement",
+   "type": "meuble"
+  },
+  "table": {
+   "aliases": [
+    "table"
+   ],
+   "bloque_passage": true,
+   "genre": "f",
+   "id": "table",
+   "integrite": 10,
+   "lieu": "baraquement",
+   "masse": 40,
+   "materiau": "planches",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "grande table",
+   "position": [
+    4,
+    5
+   ],
+   "position_salle": "baraquement",
+   "type": "meuble"
+  },
+  "treuil": {
+   "aliases": [
+    "treuil",
+    "câble",
+    "cable"
+   ],
+   "bloque_passage": true,
+   "id": "treuil",
+   "integrite": 10,
+   "lieu": "puits",
+   "masse": 200,
+   "materiau": "fer",
+   "maximum": 10,
+   "mobile": false,
+   "nom": "treuil du puits",
+   "position": [
+    3,
+    0
+   ],
+   "position_salle": "puits",
+   "type": "meuble"
+  },
+  "vivres": {
+   "aliases": [
+    "vivres",
+    "pain",
+    "provisions",
+    "lard"
+   ],
+   "genre": "m",
+   "id": "vivres",
+   "integrite": 10,
+   "lieu": "garde_manger",
+   "masse": 4,
+   "materiau": "pain, lard et fromage",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "vivres de la cuisine",
+   "pluriel": true,
+   "portions": 4,
+   "proprietaire": "mathe",
+   "type": "nourriture"
+  }
+ },
+ "personnages_version": 1,
+ "relations_pnj": {},
+ "revision": 0,
+ "salles": {
+  "baraquement": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Baraquement",
+   "plan": {
+    "origine": [
+     0,
+     0
+    ],
+    "repere": "B",
+    "sol": [
+     "..........",
+     "..........",
+     "..........",
+     "..........",
+     "..........",
+     "..........",
+     ".........."
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "est": {
+     "case": [
+      10,
+      3
+     ],
+     "porte": null,
+     "vers": "galerie"
+    },
+    "nord": {
+     "case": [
+      4,
+      -1
+     ],
+     "porte": "porte_bureau",
+     "vers": "bureau"
+    },
+    "ouest": {
+     "case": [
+      -1,
+      3
+     ],
+     "porte": null,
+     "vers": "entree"
+    },
+    "sud": {
+     "case": [
+      3,
+      7
+     ],
+     "porte": "porte_reserve",
+     "vers": "reserve"
+    }
+   }
+  },
+  "bureau": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Bureau du contremaître",
+   "plan": {
+    "origine": [
+     2,
+     -5
+    ],
+    "repere": "U",
+    "sol": [
+     "......",
+     "......",
+     "......",
+     "......"
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "sud": {
+     "case": [
+      2,
+      4
+     ],
+     "porte": "porte_bureau",
+     "vers": "baraquement"
+    }
+   }
+  },
+  "entree": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Couloir d'entrée",
+   "plan": {
+    "origine": [
+     -9,
+     2
+    ],
+    "repere": "E",
+    "sol": [
+     "........",
+     "........",
+     "........"
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "est": {
+     "case": [
+      8,
+      1
+     ],
+     "porte": null,
+     "vers": "baraquement"
+    }
+   }
+  },
+  "filon": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Galerie du filon",
+   "plan": {
+    "origine": [
+     24,
+     1
+    ],
+    "repere": "F",
+    "sol": [
+     "    ......",
+     "  ........",
+     "..........",
+     "  ........",
+     "    ......"
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "ouest": {
+     "case": [
+      -1,
+      2
+     ],
+     "porte": null,
+     "vers": "galerie"
+    }
+   }
+  },
+  "galerie": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Galerie principale",
+   "plan": {
+    "origine": [
+     11,
+     2
+    ],
+    "repere": "G",
+    "sol": [
+     "............",
+     "............",
+     "............"
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "est": {
+     "case": [
+      12,
+      1
+     ],
+     "porte": null,
+     "vers": "filon"
+    },
+    "ouest": {
+     "case": [
+      -1,
+      1
+     ],
+     "porte": null,
+     "vers": "baraquement"
+    },
+    "sud": {
+     "case": [
+      6,
+      3
+     ],
+     "porte": null,
+     "vers": "puits"
+    }
+   }
+  },
+  "puits": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Puits de remontée",
+   "plan": {
+    "origine": [
+     15,
+     6
+    ],
+    "repere": "P",
+    "sol": [
+     " ..... ",
+     ".......",
+     ".......",
+     ".......",
+     " ..... "
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "nord": {
+     "case": [
+      2,
+      -1
+     ],
+     "porte": null,
+     "vers": "galerie"
+    }
+   }
+  },
+  "reserve": {
+   "altitude_cm": 0,
+   "fenetres": 0,
+   "lumiere_naturelle": 0,
+   "nom": "Réserve",
+   "plan": {
+    "origine": [
+     1,
+     8
+    ],
+    "repere": "R",
+    "sol": [
+     "......",
+     "......",
+     "......",
+     "......"
+    ]
+   },
+   "potentiel_invention": {
+    "capacites": [
+     "son",
+     "tranchable"
+    ],
+    "masse_max_kg": 3,
+    "objets_max": 2
+   },
+   "sorties": {
+    "nord": {
+     "case": [
+      2,
+      -1
+     ],
+     "porte": "porte_reserve",
+     "vers": "baraquement"
+    }
+   }
+  }
+ },
+ "savoirs_pnj": {},
+ "savoirs_version": 1,
+ "scenario": {
+  "debut": "Tu étais descendu à la mine de Cendrefer livrer des lampes et du sel quand la galerie d'entrée s'est effondrée derrière toi, avec un grondement qui a fait trembler la vaisselle. Depuis, le camp du fond attend le dégagement : sept personnes autour d'un poêle, un blessé sur sa couchette, des vivres comptés dans le garde-manger, du bois sous clé, et une paie qui n'a pas quitté son coffre. Les lampes baissent. Personne ne sait si l'on creuse de l'autre côté.",
+  "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. Aucun compte à rebours ne s'écoule.",
+  "objectif": "Tenir avec le camp de Cendrefer jusqu'au dégagement de l'éboulis.",
+  "version": 1
+ },
+ "scenario_id": "mine",
+ "seed": 1985,
+ "souvenirs_personnages": {},
+ "sujets_savoirs_pnj": {},
+ "version": 1,
+ "visitees": [
+  "baraquement"
+ ]
+}
