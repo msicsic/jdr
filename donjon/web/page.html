@@ -7,7 +7,8 @@
 <style>
   :root {
     --fond: #121614; --panneau: #1a201d; --bord: #2c3531; --texte: #dfe6e1; --doux: #93a39a;
-    --eclaire: #35503f; --eclaire2: #3a5745; --penombre: #22392f; --penombre2: #253d33;
+    --pleine: #3e5c49; --pleine2: #43624e; --directe: #314a3b; --directe2: #354f3f;
+    --diffuse: #243a30; --diffuse2: #273e33; --noire: #18221e; --noire2: #1a2520;
     --memorise: #2a2e2c; --memorise2: #2d3230;
   }
   * { box-sizing: border-box; }
@@ -36,6 +37,8 @@
   aside li .sous { color: var(--doux); font-size: 12px; }
   aside li.souvenir { opacity: .55; }
   aside label { display: flex; gap: 6px; align-items: center; color: var(--doux); margin-top: 3px; }
+  .legende { display: grid; grid-template-columns: 16px 1fr; gap: 3px 8px; align-items: center; font-size: 12px; color: var(--doux); margin-bottom: 10px; }
+  .legende span.sol { width: 16px; height: 12px; border-radius: 2px; border: 1px solid #0006; }
   #fiche { white-space: pre-wrap; font-size: 13px; color: #cfd8d2; }
   #recit { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 8px 12px;
            display: flex; flex-direction: column; gap: 6px; min-height: 0; }
@@ -70,8 +73,16 @@
     <h2>Souvenirs</h2>
     <ul id="souvenirs"></ul>
     <h2>Affichage</h2>
-    <label><input type="checkbox" id="cones"> cônes de vision des personnages</label>
+    <label><input type="checkbox" id="cones"> cônes de regard des personnages <span class="aide">(sans les obstacles)</span></label>
     <label><input type="checkbox" id="noms" checked> noms des personnages</label>
+    <h2>Lumière</h2>
+    <div class="legende">
+      <span class="sol" style="background:var(--pleine)"></span>pleine lumière
+      <span class="sol" style="background:var(--directe)"></span>lueur directe d'une source, faible
+      <span class="sol" style="background:var(--diffuse)"></span>lueur diffuse (reflets, pièce voisine)
+      <span class="sol" style="background:var(--noire)"></span>dans le noir, vu de tout près
+      <span class="sol" style="background:var(--memorise)"></span>hors de vue : souvenir
+    </div>
     <h2>Personnage</h2>
     <div id="fiche"></div>
   </aside>
@@ -97,11 +108,12 @@ const NOMS_TYPE = {cle: "clé", outil: "outil", nourriture: "nourriture", consom
 const SYMBOLES_SOUVENIR = {"*": "🔥", "t": "🕯️", "!": "📜", "O": "🪨", "k": "🔑", "c": "📦", "o": "🔔", "&": "🧰", "H": "🪜", "b": "🧱"};
 const DIRS = {"nord": [0, -1], "sud": [0, 1], "est": [1, 0], "ouest": [-1, 0], "nord-est": [1, -1], "nord-ouest": [-1, -1],
               "sud-est": [1, 1], "sud-ouest": [-1, 1]};
+const LUMIERES = {pleine: "pleine lumière", directe: "lueur directe, faible", diffuse: "lueur diffuse", noire: "dans le noir"};
 const ETATS_PORTE = {ouverte: "ouverte", fermee: "fermée", verrouillee: "verrouillée", liberee: "passage libéré"};
 const $ = id => document.getElementById(id);
 const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
-const parCase = {};
+const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
 
 function echapper(t) { return String(t).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
@@ -145,14 +157,23 @@ function fleche(cx, cy, r, orientation, teinte) {
   ctx.lineTo(cx + Math.cos(a - 2.5) * r * .55, cy + Math.sin(a - 2.5) * r * .55);
   ctx.closePath(); ctx.fill();
 }
-function cone(gx, gy, orientation, teinte, portee) {
-  const d = DIRS[orientation]; if (!d) return;
-  const a = Math.atan2(d[1], d[0]), cx = X(gx) + CS / 2, cy = Y(gy) + CS / 2;
-  ctx.fillStyle = teinte; ctx.beginPath(); ctx.moveTo(cx, cy);
-  ctx.arc(cx, cy, portee * CS, a - Math.PI / 3, a + Math.PI / 3); ctx.closePath(); ctx.fill();
+function dansLeCone(o, orientation, c) {
+  // La règle du moteur (spatial.dans_le_cone) : 120° devant soi, plus les cases voisines sur les côtés.
+  const f = DIRS[orientation]; if (!f) return true;
+  const dx = c[0] - o[0], dy = c[1] - o[1];
+  if (!dx && !dy) return true;
+  const produit = dx * f[0] + dy * f[1];
+  if (Math.max(Math.abs(dx), Math.abs(dy)) === 1 && produit >= 0) return true;
+  return produit * 2 >= Math.sqrt((dx * dx + dy * dy) * (f[0] * f[0] + f[1] * f[1]));
+}
+function cone(o, orientation, teinte, cases) {
+  // Seulement sur des cases données : celles que tu vois pour toi, celles que tu connais pour un autre.
+  ctx.fillStyle = teinte;
+  cases.forEach(c => { if (dansLeCone(o, orientation, c)) ctx.fillRect(X(c[0]), Y(c[1]), CS, CS); });
 }
 function dessiner() {
   for (const k in parCase) delete parCase[k];
+  for (const k in sols) delete sols[k];
   if (!niveau) return;
   const styles = getComputedStyle(document.documentElement);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -160,8 +181,9 @@ function dessiner() {
   // Le sol : sa couleur dit la lumière (éclairé, pénombre) ou le souvenir.
   niveau.salles.forEach(s => s.cases.forEach(c => {
     const alt = (c.globale[0] + c.globale[1]) % 2 ? "2" : "";
-    ctx.fillStyle = styles.getPropertyValue({eclaire: "--eclaire", penombre: "--penombre", memorise: "--memorise"}[c.etat] + alt);
+    ctx.fillStyle = styles.getPropertyValue("--" + (c.lumiere || "memorise") + alt);
     ctx.fillRect(X(c.globale[0]), Y(c.globale[1]), CS, CS);
+    sols[cle(c.globale)] = c.lumiere ? LUMIERES[c.lumiere] : "hors de vue : souvenir";
   }));
   niveau.murs.forEach(m => { ctx.fillStyle = "#5c6862"; ctx.fillRect(X(m.globale[0]) + 1, Y(m.globale[1]) + 1, CS - 2, CS - 2); });
   niveau.sorties.forEach(s => {
@@ -189,8 +211,11 @@ function dessiner() {
     ctx.fillText(s.nom.toUpperCase(), X(mx) + CS / 2, Y(my) + CS / 2);
   });
   const j = scene.joueur;
-  if (j.globale && j.niveau === niveau.niveau) cone(j.globale[0], j.globale[1], j.orientation, "rgba(255,209,102,.10)", 8);
-  if ($("cones").checked) personnes.forEach(p => cone(p.globale[0], p.globale[1], p.orientation, couleur[p.id] + "22", 6));
+  const vues = [], connues = [];
+  niveau.salles.forEach(s => s.cases.forEach(c => { connues.push(c.globale); if (c.lumiere) vues.push(c.globale); }));
+  if (j.globale && j.niveau === niveau.niveau) cone(j.globale, j.orientation, "rgba(255,209,102,.09)", vues);
+  if ($("cones").checked) personnes.forEach(p => cone(p.globale, p.orientation, couleur[p.id] + "26",
+    connues.filter(c => Math.max(Math.abs(c[0] - p.globale[0]), Math.abs(c[1] - p.globale[1])) <= 6)));
   niveau.souvenirs.forEach(s => {
     const x = X(s.globale[0]), y = Y(s.globale[1]);
     ctx.globalAlpha = .4;
@@ -345,8 +370,10 @@ canvas.addEventListener("mousemove", e => {
   const r = canvas.getBoundingClientRect();
   const gx = Math.floor((e.clientX - r.left) / CS) + bornes.xmin, gy = Math.floor((e.clientY - r.top) / CS) + bornes.ymin;
   const choses = parCase[gx + "," + gy];
-  if (!choses) { bulle.style.display = "none"; return; }
-  bulle.innerHTML = [...new Set(choses)].join("<hr style='border:0;border-top:1px solid #333;margin:5px 0'>");
+  if (!choses && !sols[gx + "," + gy]) { bulle.style.display = "none"; return; }
+  const sol = sols[gx + "," + gy];
+  bulle.innerHTML = [...new Set(choses || [])].join("<hr style='border:0;border-top:1px solid #333;margin:5px 0'>") +
+    (sol ? `<div class=gris style="font-size:12px;margin-top:${choses ? 5 : 0}px">${sol}</div>` : "");
   bulle.style.display = "block"; bulle.style.left = (e.clientX + 14) + "px"; bulle.style.top = (e.clientY + 14) + "px";
 });
 canvas.addEventListener("mouseleave", () => bulle.style.display = "none");

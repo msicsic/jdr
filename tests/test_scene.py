@@ -75,6 +75,23 @@ class ScenePercueTests(unittest.TestCase):
         ox, oy = m.data["salles"]["antichambre"]["plan"]["origine"]
         self.assertEqual((j["orientation"], j["globale"]), ("nord-est", [ox + 2, oy + 3]))
 
+    def test_la_lumiere_de_chaque_case_vue_suit_le_moteur(self):
+        m = relais()
+        m.joueur.update(salle="antichambre", position=[1, 3], orientation="est")
+
+        def degres():
+            salle = next(s for n in scene_percue(m)["niveaux"] for s in n["salles"] if s["id"] == "antichambre")
+            return {tuple(c["case"]): c.get("lumiere") for c in salle["cases"]}
+
+        memoriser(m)
+        self.assertEqual(degres()[tuple(m.objets["fanal"]["position"])], "pleine")
+        for o in m.objets.values():
+            if o.get("allume"):
+                o["allume"] = False
+        self.assertFalse({"pleine", "directe"} & set(degres().values()))
+        m.joueur["orientation"] = "ouest"
+        self.assertIsNone(degres()[(4, 5)])  # Hors de vue : un souvenir, sans lumière.
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -106,11 +106,16 @@ def scene_percue(monde):
             cases_connues = []
             for x, y in connu:
                 g = (ox + x, oy + y)
+                case = {"case": [x, y], "globale": list(g)}
                 if (x, y) in vu:
-                    etat = "eclaire" if lumiere.niveau(g) == 2 or lumiere.directe(g) else "penombre"
+                    niveau_lumiere, directe = lumiere.niveau(g), lumiere.directe(g)
+                    case["etat"] = "eclaire" if niveau_lumiere == 2 or directe else "penombre"
+                    # Les degrés du moteur, du plus clair au plus sombre : rien d'interpolé.
+                    case["lumiere"] = ("pleine" if niveau_lumiere == 2 else "directe" if directe
+                                       else "diffuse" if niveau_lumiere else "noire")
                 else:
-                    etat = "memorise"
-                cases_connues.append({"case": [x, y], "globale": list(g), "etat": etat})
+                    case["etat"] = "memorise"
+                cases_connues.append(case)
             largeur = max((len(r) for r in piece.get("plan", {}).get("sol", [])), default=0)
             hauteur = len(piece.get("plan", {}).get("sol", []))
             pieces.append({"id": salle, "nom": piece["nom"], "repere": piece.get("plan", {}).get("repere", salle[:1].upper()),
