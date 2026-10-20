@@ -84,7 +84,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pouvoir couper cette matière. Un lot se prélève d'abord pièce par pièce (prélever sur place
   ne déplace rien) ; la dernière pièce garde le nom de pièce. Bancs : échelle de perches et
   ficelle coupée d'un mètre, 3/3 avec Luna et avec Haiku.
-- La suite de tests passe : 628 tests, sans clé ni connexion.
+- Branche `recit-pnj` : le banc sans joueur imprime un récit (`donjon/recit_pnj.py`) : buts et
+  gestes de chaque PNJ, rondes résumées, besoins pressants et minutes sans rien entreprendre,
+  échanges et témoins, méfiances à la fin ; `--chronique` ajoute chaque pas. Il montre un Relais
+  surtout fait de rondes, une vie sociale réduite aux parts demandées, Gorm au devoir urgent en
+  permanence sans rien à faire, un affamé honnête refusé sans autre idée.
+- La suite de tests passe : 633 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -92,11 +97,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (d'autres usages : passerelle, cale…) attend un accord. Limite : les planches du Relais ne
   suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
   test sur l'atelier, pas en partie au Relais.
+- **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md` :
+  cadre, menace, barque, eau et feu, influence, mécanismes à ajouter, questions ouvertes) ; premier
+  jalon, le planificateur par recherche (`docs/plan-planificateur.md`), mesuré au banc et au récit.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.
-- **Suite du plan PNJ**, au choix :
-  - la crue du Relais, événement de scénario qui s'appuie sur H pour inquiéter ;
+- **Suite du plan PNJ**, au choix (la crue est reprise dans `docs/plan-crue.md`) :
   - un événement qui éteint le feu en laissant du bois (les `horloges` existent, aucun
     scénario n'en déclare encore) ;
   - la voix des PNJ : Luna donne voix aux échanges entre PNJ dont le joueur est témoin, et
@@ -126,7 +133,7 @@ Non versionnés, donc absents d'un nouveau poste :
 
 ## Outils de mesure
 
-- Banc moteur seul, sans appel à Luna :
+- Banc moteur seul, sans appel à Luna, avec son récit (`--chronique` pour chaque pas) :
   `python -m donjon.banc_pnj --heures 8 --graine 1985 --joueur chambre_cloche`
 - Banc A/B du stratège, avec Luna, environ 15 minutes pour 8 graines :
   `python tools/banc_stratege.py --graines 1985 7 42 2024 --graines-sup 3 11 99 500`
