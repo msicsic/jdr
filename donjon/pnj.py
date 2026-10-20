@@ -15,6 +15,7 @@ from collections import deque
 from .esprits import croire, esprit, lire, memoriser, percevoir, percoit, percus, pnjs
 from .francais import complement_de, de, designer
 from .geometrie import cases, placer, position_entree
+from .spatial import VECTEURS
 
 CHRONIQUE_MAX = 300
 # Durées en dixièmes de seconde. Un pas d'une case ; les gestes ; ceux qui durent (se reposer,
@@ -143,6 +144,31 @@ def temoins_crus(monde, id):
             if s == "joueur" or monde.objets[s]["type"] == "personnage"]
 
 
+TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, huit fois 45°
+
+
+def temoigner_en_cours(monde):
+    """Ceux qui voient maintenant l'auteur d'un geste illicite qu'il n'a pas fini en sont témoins."""
+    for gestes in list(monde.__dict__.get("_gestes_en_cours", {}).values()):
+        for geste in gestes:
+            if geste[2] in monde.objets:
+                _temoigner(monde, *geste)
+
+
+def tour_d_horizon(monde, id):
+    """Il regarde tout autour de lui, le temps d'un tour complet : ce qu'il voit devient croyance.
+    Renvoie ceux par qui il se croit observé ; il reprend ensuite son orientation."""
+    o = monde.objets[id]
+    orientation = o.pop("orientation", None)
+    try:
+        percevoir(monde, id)
+        temoigner_en_cours(monde)
+        return temoins_crus(monde, id)
+    finally:
+        if orientation is not None:
+            o["orientation"] = orientation
+
+
 def _temoigner(monde, id, operation, objet):
     """Les PNJ qui perçoivent réellement l'auteur d'un geste illicite s'en souviennent.
 
@@ -213,18 +239,23 @@ def _approcher(monde, id, cible):
     return False
 
 
-def _inspecter(monde, id):
-    """Gagne la case libre la plus proche du centre de la salle pour la parcourir des yeux."""
+def _centre(monde, id):
+    """La case libre la plus proche du centre de sa salle, d'où la parcourir des yeux."""
+    from .spatial import _case_libre
     o = monde.objets[id]
-    if monde.data.get("mode_cases") and "position" in o:
-        from .spatial import _case_libre
-        sol = cases(monde.data["salles"][o["lieu"]])
-        cx, cy = sum(x for x, _ in sol) / len(sol), sum(y for _, y in sol) / len(sol)
-        libres = [c for c in sol if tuple(c) == tuple(o["position"])
-                  or _case_libre(monde, o["lieu"], c) and not _occupee(monde, id, o["lieu"], c)]
-        if libres:
-            placer(o, o["lieu"], list(min(libres, key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, tuple(c)))))
+    sol = cases(monde.data["salles"][o["lieu"]])
+    cx, cy = sum(x for x, _ in sol) / len(sol), sum(y for _, y in sol) / len(sol)
+    libres = [c for c in sol if tuple(c) == tuple(o["position"])
+              or _case_libre(monde, o["lieu"], c) and not _occupee(monde, id, o["lieu"], c)]
+    return min(libres, key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, tuple(c))) if libres else None
+
+
+def _inspecter(monde, id):
+    """Depuis le centre de la salle (où il a marché), il la parcourt des yeux."""
+    o = monde.objets[id]
     esprit(monde, id)["visites"][o["lieu"]] = monde.data["minutes"]
+    if "orientation" in o:
+        tour_d_horizon(monde, id)  # Il parcourt la salle des yeux, tout autour de lui.
     # Une ronde accomplie rassure : le lieu qu'il surveille est tel qu'il doit être.
     if any(x["condition"].get("lieu") == o["lieu"] and "periode" in x["condition"]
            for x in (o.get("profil") or {}).get("pulsions", [])):
@@ -507,9 +538,14 @@ def _marcher(monde, id, arrivee, lignes):
                      franchissable=lambda porte: _franchissable(monde, id, porte))
     if not chemin_:
         return None
-    salle, case, porte = chemin_[0]
+    salle, case, porte, sens = chemin_[0]
+    # Il se tourne d'abord dans le sens du pas : le temps de la rotation s'ajoute.
+    from .spatial import QUART, quarts
+    vers = next(nom for nom, v in VECTEURS.items() if v == sens)
+    tourner = QUART * quarts(o.get("orientation"), vers)
+    o["orientation"] = vers
     if porte:
-        return _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
+        return tourner + _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
     if salle != o["lieu"]:
         o["lieu"] = salle
         placer(o, salle, list(case))
@@ -517,7 +553,7 @@ def _marcher(monde, id, arrivee, lignes):
                     "deplacement")
     else:
         placer(o, salle, list(case))
-    return PAS
+    return tourner + PAS
 
 
 def _ouvrir_en_chemin(monde, id, porte, lignes):
@@ -560,6 +596,81 @@ def _rejoindre_un_proche(monde, id, lignes):
                     lignes)
 
 
+def _faire_face(monde, id, cible):
+    """Il se tourne vers ce qu'il manipule ou vers celui à qui il parle ; renvoie la durée de la
+    rotation."""
+    from .spatial import QUART, orientation_vers, position_cible, quarts
+    o = monde.objets[id]
+    if cible == "joueur":
+        p = tuple(monde.joueur["position"]) if monde.joueur["salle"] == o["lieu"] else None
+    else:
+        p = position_cible(monde, cible, o["lieu"]) if cible in monde.objets and not _porte(monde, cible, id) else None
+    vers = orientation_vers(tuple(o["position"]), p) if p is not None and "position" in o else None
+    if vers is None:
+        return 0
+    duree = QUART * quarts(o.get("orientation"), vers)
+    o["orientation"] = vers
+    return duree
+
+
+OUIE = 6               # cases : un pas, un geste, une voix s'entendent d'aussi près, même dans le dos
+
+
+def de_pres(monde, a, b):
+    """Assez près pour s'entendre : même salle, à moins de ``OUIE`` cases (ou sans cases, la
+    même salle). ``b`` peut être le joueur."""
+    def place(x):
+        if x == "joueur":
+            return monde.joueur["salle"], monde.joueur.get("position")
+        return monde.objets[x]["lieu"], monde.objets[x].get("position")
+    (sa, pa), (sb, pb) = place(a), place(b)
+    if sa != sb:
+        return False
+    if not monde.data.get("mode_cases") or pa is None or pb is None:
+        return True
+    return max(abs(pa[0] - pb[0]), abs(pa[1] - pb[1])) <= OUIE
+
+
+def pourraient_se_parler(monde, a, b):
+    """Ils se voient, ou sont assez près pour s'entendre : il suffira de se tourner l'un vers l'autre."""
+    return percoit(monde, a, b) and percoit(monde, b, a) or de_pres(monde, a, b)
+
+
+def se_parler(monde, a, b):
+    """Pour se parler, chacun se tourne vers l'autre s'il l'entend sans le voir ; vrai s'ils se
+    voient alors (il faut y voir)."""
+    if percoit(monde, a, b) and percoit(monde, b, a):
+        return True
+    if not monde.data.get("mode_cases") or not de_pres(monde, a, b):
+        return False
+    for x, y in ((a, b), (b, a)):
+        if x != "joueur" and "position" in monde.objets[x]:
+            _faire_face(monde, x, y)
+            percevoir(monde, x)
+    return percoit(monde, a, b) and percoit(monde, b, a)
+
+
+def alerter(monde, auteur, t, libre):
+    """Ceux qui, tout près, entendent l'auteur sans le voir se tournent vers lui : le temps de la
+    rotation retarde la fin de leur geste en cours."""
+    from .spatial import QUART, orientation_vers, quarts
+    a = monde.objets[auteur]
+    if "position" not in a:
+        return
+    for id in pnjs(monde):
+        o = monde.objets[id]
+        if (id == auteur or o["lieu"] != a["lieu"] or "position" not in o or not o.get("profil")
+                or max(abs(o["position"][0] - a["position"][0]), abs(o["position"][1] - a["position"][1])) > OUIE
+                or percoit(monde, id, auteur)):
+            continue
+        vers = orientation_vers(tuple(o["position"]), tuple(a["position"]))
+        if vers is None:
+            continue
+        libre[id] = max(libre[id], t) + QUART * quarts(o.get("orientation"), vers)
+        o["orientation"] = vers
+        percevoir(monde, id)
+
+
 def agir(monde, id, t, lignes, gestes=None):
     """Le geste qui commence à l'instant ``t`` (en dixièmes de seconde) selon l'intention
     courante ; renvoie sa durée. Sans le mode cases, un geste prend la minute, comme avant."""
@@ -591,6 +702,17 @@ def agir(monde, id, t, lignes, gestes=None):
         return _marcher(monde, id, lambda salle, case: salle == lieu, lignes) or reste
     if CONTACT.get(operation) and en_cases and etape["cible"] in monde.objets:
         from .spatial import position_cible, proche
+        cru = lire(monde, id)["croyances"].get(etape["cible"], {}).get("lieu")
+        if (not monde.present_physique(etape["cible"], salle=o["lieu"]) and cru and cru.get("salle") == o["lieu"]
+                and cru.get("case") and "position" in o):
+            # Il regarde là où il le croyait : s'il n'y est plus, il le constate.
+            from .spatial import QUART, orientation_vers, quarts
+            vers = orientation_vers(tuple(o["position"]), tuple(cru["case"]))
+            if vers and vers != o.get("orientation"):
+                duree = QUART * quarts(o.get("orientation"), vers)
+                o["orientation"] = vers
+                percevoir(monde, id)
+                return duree
         if (not _porte(monde, etape["cible"], id) and not proche(monde, etape["cible"], id)
                 and monde.present_physique(etape["cible"], salle=o["lieu"])):
             # Il s'approche pas à pas ; l'absence de témoin se juge ensuite sur place.
@@ -599,17 +721,41 @@ def agir(monde, id, t, lignes, gestes=None):
             pas = p is not None and _marcher(monde, id, lambda salle, case: salle == ici and max(
                 abs(case[0] - p[0]), abs(case[1] - p[1])) == 1, lignes)
             return pas or reste
+    if operation == "inspecter" and en_cases and "position" in o and o["lieu"] == etape["lieu"]:
+        # Il gagne le centre de la salle pas à pas avant de la parcourir des yeux.
+        centre = _centre(monde, id)
+        if centre is not None and tuple(centre) != tuple(o["position"]):
+            ici = o["lieu"]
+            pas = _marcher(monde, id, lambda salle, case: salle == ici and tuple(case) == tuple(centre), lignes)
+            if pas:
+                return pas
     if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
         # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
         pas = _rejoindre_un_proche(monde, id, lignes)
         if pas:
             return pas
-    if etape["condition"] == "sans_temoin" and temoins_crus(monde, id) and not desespere(monde, id):
-        # Il guette une occasion jusqu'à la minute suivante.
-        intention["attente"] += 1
-        if intention["attente"] > PATIENCE:
-            renoncer(monde, id, monde.data["minutes"])
-        return reste
+    if etape["condition"] == "sans_temoin" and not desespere(monde, id):
+        if en_cases and "orientation" in o:
+            # Avant un geste qu'il veut sans témoin, il regarde tout autour de lui ; il n'agit
+            # qu'au geste suivant, si personne ne l'a vu entre-temps.
+            balayages = monde.__dict__.setdefault("_balayages", {})
+            ici = (o["lieu"], tuple(o["position"]))
+            dernier = balayages.get(id)
+            observe = None
+            if not dernier or dernier[0] != ici or t - dernier[1] > 2 * TOUR:
+                balayages[id] = (ici, t)
+                observe = bool(tour_d_horizon(monde, id))
+                if not observe:
+                    return TOUR
+        else:
+            observe = None
+        if observe or (observe is None and temoins_crus(monde, id)):
+            # Il guette une occasion jusqu'à la minute suivante.
+            intention["attente"] += 1
+            if intention["attente"] > PATIENCE:
+                renoncer(monde, id, monde.data["minutes"])
+            return reste
+    tourner = _faire_face(monde, id, etape["cible"]) if en_cases else 0
     fait = _executer(monde, id, etape, lignes, [] if gestes is None else gestes)
     if fait:
         etapes.pop(0)
@@ -622,7 +768,7 @@ def agir(monde, id, t, lignes, gestes=None):
     if not en_cases or operation in DURABLES or operation == "aller" or not fait:
         # Un geste manqué ne se retente pas aussitôt : il reconsidère à la minute suivante.
         return reste
-    return DUREES.get(operation, 20)
+    return tourner + DUREES.get(operation, 20)
 
 
 def _annoncer_presences(monde, vus, apparus, lignes):
@@ -660,7 +806,10 @@ def _avancer(monde, minutes, lignes, dixiemes):
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
     ids = pnjs(monde)
     vus = {id: monde.visible(id) for id in ids}
-    apparus, temoignages = [], {}
+    apparus = []
+    # Les gestes illicites en cours : quiconque voit leur auteur avant qu'il ait fini en est témoin.
+    temoignages = monde.__dict__.setdefault("_gestes_en_cours", {})
+    temoignages.clear()
     libre = {id: max(debut, esprit(monde, id)["libre"]) for id in ids}
     t = debut
     while True:
@@ -686,26 +835,27 @@ def _avancer(monde, minutes, lignes, dixiemes):
             if libre[id] != t:
                 continue
             # Ceux qui l'ont vu pendant son geste précédent s'en souviennent aussi.
-            for geste in temoignages.pop(id, []):
-                if geste[2] in monde.objets:
-                    _temoigner(monde, *geste)
+            temoignages.pop(id, None)
             intention = lire(monde, id)["intention"]
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
                 duree = DUREES["dire"] if monde.data.get("mode_cases") else _jusqu_a_la_minute(t)
             elif intention:
                 gestes = []
+                avant = (monde.objets[id]["lieu"], list(monde.objets[id].get("position", [])))
                 duree = agir(monde, id, t, lignes, gestes)
                 temoignages[id] = gestes
                 percevoir(monde, id)
+                if gestes or avant != (monde.objets[id]["lieu"], monde.objets[id].get("position", [])):
+                    # Un pas, un geste font du bruit : qui l'entend de près sans le voir se retourne.
+                    alerter(monde, id, t, libre)
+                temoigner_en_cours(monde)
                 _annoncer_presences(monde, vus, apparus, lignes)
             else:
                 duree = _jusqu_a_la_minute(t)
             libre[id] = t + max(1, duree)
-    for gestes in temoignages.values():
-        for geste in gestes:
-            if geste[2] in monde.objets:
-                _temoigner(monde, *geste)
+    temoigner_en_cours(monde)
+    temoignages.clear()
     for id in ids:
         esprit(monde, id)["libre"] = libre[id]
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes

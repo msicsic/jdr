@@ -32,7 +32,7 @@ class RecitTests(unittest.TestCase):
     def test_entre_eux_et_temoins(self):
         # Placement d'auteur : Brune, gelée et sans scrupule, près des planches d'Aubin, sous les
         # yeux de Gorm (la scène de test_protection).
-        from tests.support import calme
+        from tests.support import calme, regarder
         from donjon.esprits import croire, lire, memoriser, percevoir_tous
         from tests.test_tensions import placer, relais
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
@@ -40,7 +40,10 @@ class RecitTests(unittest.TestCase):
         placer(m, "brune", "antichambre", (3, 5))
         placer(m, "marchand", "antichambre", (4, 5))
         placer(m, "aubin", "crypte", (5, 3))
+        regarder(m, "marchand", "brune")
         lire(m, "brune")["besoins"]["chaleur"] = 99.0
+        from donjon.pnj import tour_d_horizon
+        tour_d_horizon(m, "brune")  # Elle a parcouru le refuge des yeux : torche, fanal, planches.
         percevoir_tous(m)
         croire(m, "brune", "brasero", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
         croire(m, "brune", "fanal", "etat", {"allume": True, "faible": False, "charge": True}, "vu")

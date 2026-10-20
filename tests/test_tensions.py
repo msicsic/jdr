@@ -19,7 +19,7 @@ from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
 from donjon.pnj import avancer
 from donjon.spatial import installer
-from tests.support import calme
+from tests.support import calme, regarder
 
 
 def recharger(monde):
@@ -178,6 +178,7 @@ class FeuTests(unittest.TestCase):
         m.objets["brasero"]["allume"] = False
         deplacer(m, "bois", "marchand")
         placer(m, "marchand", "echoppe", [3, 5])
+        regarder(m, "marchand", "brasero")
         return m
 
     def test_dans_le_noir_il_voit_que_le_feu_ne_brille_plus(self):
@@ -253,9 +254,13 @@ class FeuTests(unittest.TestCase):
 
     def test_la_flamme_meurt_en_route_il_le_constate(self):
         m = self.eteint_sans_briquet()
-        # Placement d'auteur : la torche brûle ses dernières secondes, le fanal est éteint.
+        # Placement d'auteur : la torche brûle ses dernières secondes au refuge, où Gorm l'a vue ;
+        # le fanal est éteint.
         m.objets["torche"].update(allume=True, combustible=1)
         m.objets["fanal"]["allume"] = False
+        croire(m, "marchand", "torche", "lieu", "antichambre", "vu", salle="antichambre",
+               case=list(m.objets["torche"]["position"]))
+        croire(m, "marchand", "torche", "etat", {"allume": True, "faible": True, "charge": True}, "vu")
         m.data["dixiemes"] = 550
         percevoir_tous(m)
         m, _ = vivre(m, 12)

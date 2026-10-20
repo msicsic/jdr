@@ -247,7 +247,7 @@ def taux(monde, id, cause):
 
 def autour(monde, id):
     """Ce qui, dans sa salle, l'inquiète ou le rassure : la lumière sur sa case, ceux qu'il y voit
-    et croit fiables, ceux qu'il y voit et ne croit pas fiables."""
+    ou y entend tout près et croit fiables, ceux qu'il y voit ou entend et ne croit pas fiables."""
     from .esprits import pnjs
     from .perception import eclairage
     o = monde.objets[id]
@@ -255,8 +255,11 @@ def autour(monde, id):
     presents = [x for x in [*pnjs(monde), "joueur"] if x != id
                 and (monde.joueur["salle"] if x == "joueur" else monde.objets[x]["lieu"]) == o["lieu"]]
     if monde.data.get("mode_cases"):
+        from .pnj import de_pres
         from .spatial import acteurs_vus
-        autres = acteurs_vus(monde, id, presents)
+        vus = acteurs_vus(monde, id, presents)
+        # Ceux qu'il voit, et ceux qu'il entend tout près, même dans son dos.
+        autres = [x for x in presents if x in vus or de_pres(monde, id, x)]
     else:
         autres = presents if niveau else []
     return {"lumiere": niveau > 0,

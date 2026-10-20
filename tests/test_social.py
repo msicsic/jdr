@@ -16,7 +16,7 @@ from donjon.paroles import esprits_interlocuteurs
 from donjon.social import RANG_MAX
 from donjon.spatial import installer
 from donjon.vol import mefiance
-from tests.support import calme, refusee
+from tests.support import calme, regarder, refusee
 
 
 def recharger(monde):
@@ -65,6 +65,7 @@ class RumeurTests(unittest.TestCase):
         placer(m, "marchand", "crypte", [4, 3])
         placer(m, "brune", "echoppe", [7, 1])
         placer(m, "aubin", "crypte", [5, 3])
+        regarder(m, "ilse", "joueur")
         self.assertTrue(percoit(m, "ilse", "joueur"))
         with patch.object(Monde, "d20", return_value=1):
             Moteur(m).executer(Moteur(m).preparer(
@@ -114,7 +115,8 @@ class RumeurTests(unittest.TestCase):
         placer(m, "marchand", "crypte", [4, 3])
         placer(m, "brune", "antichambre", [2, 6])
         m, _ = attendre(m, 2, jet=15)
-        self.assertNotIn("fiable", lire(m, "brune")["croyances"].get("joueur", {}))
+        # De troisième main, Aubin ne la répète plus (Ilse a pu, elle, la lui dire en repassant).
+        self.assertFalse(any(r["de"] == "aubin" for r in rumeurs(m, "brune")))
 
     def test_on_ne_dit_rien_a_l_accuse_ni_a_qui_on_se_mefie(self):
         m = self.ilse_a_vu_le_joueur()
@@ -157,6 +159,7 @@ class VolDecouvertTests(unittest.TestCase):
         m.objets["marteau"].update(proprietaire="marchand", lieu="joueur")
         m.objets["marteau"].pop("position", None)
         placer(m, "marchand", "antichambre", [2, 4])
+        regarder(m, "marchand", "joueur")
         m, texte = attendre(recharger(m))
         self.assertFalse(lire(m, "marchand")["croyances"]["joueur"]["fiable"]["valeur"])
         self.assertEqual(mefiance(m, "marchand"), 1)
@@ -173,12 +176,13 @@ class VolDecouvertTests(unittest.TestCase):
 
     def test_temoin_qui_entre_pendant_le_geste(self):
         m = calme(refusee(relais()), "marchand", "ilse", "aubin")
-        # Placement d'auteur : Brune, crochets en main, mange dans la réserve ouverte ; Ilse est
-        # derrière le pilier et va parcourir le refuge des yeux pendant cette minute.
+        # Placement d'auteur : Brune, crochets en main, mange dans la réserve ouverte ; Ilse, dans
+        # la conduite, vient parcourir le refuge des yeux pendant ce temps : ses pas ne s'entendent
+        # pas d'aussi loin.
         m.objets["reserve"].update(verrouillee=False, ouverte=True)
         lire(m, "brune")["besoins"]["faim"] = 90.0
         placer(m, "brune", "antichambre", [7, 3])
-        placer(m, "ilse", "antichambre", [0, 4])
+        placer(m, "ilse", "echoppe", [7, 1])
         placer(m, "aubin", "crypte", [5, 3])
         m.joueur.update(salle="chambre_cloche", position=[1, 3])
         croire(m, "brune", "reserve", "verrouillee", False, "vu")

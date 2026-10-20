@@ -28,10 +28,14 @@ def relais():
 
 
 def reunir(m, *ids, salle="antichambre"):
-    """Place les personnages côte à côte dans une salle, puis les laisse se percevoir."""
+    """Place les personnages côte à côte dans une salle, tournés les uns vers les autres, puis
+    les laisse se percevoir."""
+    from tests.support import regarder
     for n, id in enumerate(ids):
         m.objets[id]["lieu"] = salle
         placer(m.objets[id], salle, [1 + n, 4])
+    for n, id in enumerate(ids):
+        regarder(m, id, [1 + (n + 1 if n + 1 < len(ids) else n - 1), 4])
     percevoir_tous(m)
 
 

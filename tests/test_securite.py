@@ -56,10 +56,10 @@ class RessentirTests(unittest.TestCase):
     def test_une_ronde_accomplie_rassure(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         lire(m, "aubin")["besoins"]["securite"] = 50.0
-        # Sa ronde du refuge est due : il la fait sur place.
+        # Sa ronde du refuge est due : il la fait sur place, le temps de gagner le centre.
         lire(m, "aubin")["visites"].pop("antichambre")
-        m, _ = vivre(m, 1)
-        self.assertEqual(lire(m, "aubin")["visites"]["antichambre"], m.data["minutes"])
+        m, _ = vivre(m, 2)
+        self.assertGreaterEqual(lire(m, "aubin")["visites"]["antichambre"], m.data["minutes"] - 1)
         self.assertLess(lire(m, "aubin")["besoins"]["securite"], 50.0 - SECURITE["ronde"] + 1)
 
     def test_un_bruit_venu_d_ailleurs_inquiete_qui_n_en_voit_pas_la_cause(self):

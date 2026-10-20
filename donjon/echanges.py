@@ -253,9 +253,10 @@ def executer(monde, id, etape, lignes):
     from .spatial import porte_par
     autre, op = etape["cible"], etape["operation"]
     o = monde.objets.get(autre)
+    from .pnj import se_parler
     if (not o or o["type"] != "personnage" or not o.get("profil") or o["lieu"] != monde.objets[id]["lieu"]
-            or not percoit(monde, id, autre) or not percoit(monde, autre, id)):
-        return False  # Il n'est pas là, ou ils ne se voient pas : rien ne se dit.
+            or not se_parler(monde, id, autre)):
+        return False  # Il n'est pas là, ou ils ne peuvent se voir : rien ne se dit.
     a, b, contenu = _qui(monde, id), _qui(monde, autre), etape.get("contenu", {})
     objet = monde.objets.get(etape["outil"])
     if op == "dire":
