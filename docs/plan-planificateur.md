@@ -122,3 +122,36 @@ déclarer les actions.
 L'influence (proposition jugée sur les buts, avis, confier un but), les relations graduées, la
 crue, la fabrication par les PNJ, l'apprentissage de méthodes. Le planificateur les rend
 possibles sans méthode nouvelle ; ils viennent aux jalons suivants.
+
+## Bilan
+
+Fait sur la branche `planificateur`, étapes 1 à 5.
+
+- **Comparaison avant bascule**, sans effet, à chaque plan demandé : 8 graines × 8 h et la suite
+  de tests. Faim 2 811 accords, froid 585, pulsions et paroles données 3 425 ; restent deux
+  écarts d'ordre, gardés parce qu'équivalents ou plus économes (prendre la torche puis les
+  planches dans la même salle ; recharger le brasero avant d'aller chercher la torche). Deux
+  défauts trouvés et corrigés en route : servir dans une réserve déjà ouverte ne la faisait plus
+  refermer à clé ; un bois cru épuisé servait encore à recharger.
+- **Critère A** : banc 4 graines × 8 h, mesures identiques à `main` après la bascule de tout ce
+  que faisaient les méthodes ; 57 s contre 43 s (+33 %, sous le double). La suite passe ; un test
+  supposait l'ordre de la méthode (sa fenêtre passe de 2 à 4 minutes).
+- **Critère B** : les chaînes écrites à la main sont retrouvées sans elles (clé, crochetage, part
+  promise attendue près des vivres ou du feu, torche allumée au fanal, refermer à clé). Trouvées
+  sans être écrites nulle part :
+  - dans le noir, Brune va allumer une torche au brasero avant de crocheter la réserve (chance
+    5 % sans lumière, 45 % avec) ;
+  - demander un objet que porte quelqu'un : sans crochets, Brune demande la clé à Gorm ; au banc
+    (graine 42), Gorm, à court de bois, demande ses planches à Aubin, qui les lui remet, puis
+    recharge le brasero.
+- **Critère C** : `deliberation.py` passe de 931 à 572 lignes ; `planification.py` en a 432 ;
+  net +71 lignes. Le gain n'est pas dans le compte : un geste nouveau se déclare une fois, au
+  lieu d'une méthode par besoin qui l'emploie.
+
+Limites :
+- la chance d'une demande est une constante (`PRET`), pas encore ce que le PNJ croit de l'autre ;
+- le caractère ne pèse que par les limites et la faute comptée par personne lésée ; la détresse
+  ne la rend pas moins coûteuse (`desespere` ne joue toujours que sur l'attente d'une occasion) ;
+- les gestes ouverts par un seul but (`vises`) restent une liste écrite dans `planifier_pulsion` ;
+- le banc mesure un Relais où ces nouveautés pèsent peu : c'est la crue qui doit les mettre à
+  l'épreuve.

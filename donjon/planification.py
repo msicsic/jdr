@@ -22,6 +22,7 @@ from .spatial import porte_par
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
 DEMANDE = 3            # demander : on préfère ce qu'on peut faire seul
+PRET = 0.5             # chance qu'il prête à quelqu'un qui demande un objet qu'il porte
 CHERCHER = 3           # chercher quelqu'un qu'on a perdu de vue : on n'est pas sûr de le trouver
 FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se consume en main
 CHANCE_MIN = 0.05
@@ -182,10 +183,15 @@ def gestes(v, e, vises=None, but=None):
         if lese:
             touche = touche + [(("faute", lese), True)]
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
-        if (ici and o not in e.portes and x.get("mobile") and v.autorise[o] and _disponible_cru(monde, id, o)
-                and (x.get("ouvre") or set(x.get("usages", [])) & set(USAGES) or x["type"] == "nourriture"
-                     or "allume" in x or o in vises.get("prendre", ()))):
+        utile = (x.get("ouvre") or set(x.get("usages", [])) & set(USAGES) or x["type"] == "nourriture"
+                 or "allume" in x or o in vises.get("prendre", ()))
+        if ici and o not in e.portes and x.get("mobile") and v.autorise[o] and _disponible_cru(monde, id, o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=e.portes | {o}, faits=touche)
+        # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
+        porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
+        if (utile and porteur and porteur != id and profil(monde, porteur) and v.salle(e, porteur) == e.salle
+                and o not in e.portes and not refuse_recemment(monde, id, porteur, "demander", o)):
+            yield 0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)], e.apres(portes=e.portes | {o})
         touche = [x for x in touche if x[0][0] == "faute"]
         if o in vises.get("poser", ()) and o in e.portes:
             yield (0, 1, [_etape("poser", o, lieu=e.salle)],

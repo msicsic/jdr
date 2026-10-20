@@ -84,6 +84,29 @@ class LumiereTests(unittest.TestCase):
         self.assertNotIn("torche", [x[1] for x in gestes(planifier(m, "brune", "faim"))])
 
 
+class DemanderTests(unittest.TestCase):
+    def test_sans_crochets_elle_demande_la_cle_a_qui_la_porte(self):
+        # Aucune méthode ne l'écrit : demander un objet porté est un geste comme un autre.
+        m = relais()
+        del m.objets["crochets"]
+        lire(m, "brune")["croyances"].pop("crochets", None)
+        croire(m, "brune", "cle_reserve", "lieu", "marchand", "vu")
+        m.objets["marchand"]["lieu"] = "echoppe"
+        croire(m, "brune", "marchand", "lieu", "echoppe", "vu")
+        self.assertEqual(gestes(planifier(m, "brune", "faim")), [
+            ("aller", "echoppe", ""), ("demander", "marchand", "cle_reserve"), ("aller", "antichambre", ""),
+            ("deverrouiller", "reserve", "cle_reserve"), ("ouvrir", "reserve", ""), ("manger", "vivres", "")])
+
+    def test_apres_un_refus_elle_ne_redemande_pas(self):
+        m = relais()
+        del m.objets["crochets"]
+        lire(m, "brune")["croyances"].pop("crochets", None)
+        croire(m, "brune", "cle_reserve", "lieu", "marchand", "vu")
+        memoriser(m, "brune", {"type": "refus", "de": "marchand", "operation": "demander", "raison": "necessaire",
+                               "objet": "cle_reserve"})
+        self.assertIsNone(planifier(m, "brune", "faim"))
+
+
 class FroidTests(unittest.TestCase):
     def test_un_feu_eteint_se_rallume_avec_une_torche_allumee_au_fanal(self):
         m = nouveau_defi()
