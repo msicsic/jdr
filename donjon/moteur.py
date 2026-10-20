@@ -258,6 +258,8 @@ class Moteur:
                 raise ErreurMonde(designer(porte, debut=True) + " fermée te barre le passage.",
                                   f"ouvre d'abord {porte['id']} (ouvrir, ou deverrouiller avec sa clé si elle est "
                                   "verrouillée), éventuellement dans un composer.")
+            from .eau import refuser_entree
+            refuser_entree(m, sortie["vers"])
             plan.titre = "Aller vers " + cible + "."
             plan.effets = [("voyager", sortie["vers"], None)]
             return plan
@@ -603,8 +605,11 @@ class Moteur:
                   for op, cible, _ in effets if op == "voler"]
         minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
-        # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose.
+        # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
+        # l'eau trempe aussitôt.
         from .corps import CALMES, vivre_joueur
+        from .eau import tremper
+        tremper(travail, "joueur", lignes)
         action = plan.proposition.get("action")
         vivre_joueur(travail, minutes, effort=plan.effort and action not in CALMES,
                      repos=action == "attendre", lignes=lignes)
@@ -817,6 +822,8 @@ class Moteur:
             o.pop("vendeur", None)
             lignes.append(f"Tu paies {montant} pièces à {m.objets[vendeur]['nom']}.")
         elif op == "voyager":
+            from .eau import refuser_entree
+            refuser_entree(m, cible)  # Par une échelle, un saut, un passage : on n'arrive pas sous l'eau.
             position = valeur if isinstance(valeur, (list, tuple)) else position_entree(m, cible, m.joueur["salle"])
             m.joueur["salle"] = cible
             m.joueur["position"] = list(position)

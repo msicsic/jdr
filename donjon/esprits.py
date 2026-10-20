@@ -9,6 +9,7 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
+- ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 """
 import copy
 
@@ -82,6 +83,12 @@ def _croyance_valide(monde, attribut, c):
                 and (c["case"] is None or (isinstance(c["case"], list) and len(c["case"]) == 2))), "Croyance de lieu invalide"
     elif attribut == "etat":
         assert isinstance(c.get("valeur"), dict) and all(type(v) is bool for v in c["valeur"].values()), "Croyance d'état invalide"
+    elif attribut == "eau":
+        # La hauteur vue ; le niveau qu'elle donnait, le repère et la vitesse qu'on en tire.
+        assert (type(c.get("valeur")) is int and c["valeur"] >= 0
+                and all(c.get(k) is None or type(c[k]) is int for k in ("niveau", "montee"))
+                and (c.get("repere") is None or isinstance(c["repere"], list) and len(c["repere"]) == 2
+                     and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
     else:
         assert attribut in ("verrouillee", "fiable") and type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
 
@@ -367,6 +374,8 @@ def _percevoir(monde, id):
         from .perception import eclairage
         position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
         croire(monde, id, salle, "etat", {"eclairee": eclairage(monde, salle, position)["niveau"] > 0}, "vu")
+    from .eau import percevoir as percevoir_eau
+    percevoir_eau(monde, id)
     for sujet, (salle, case) in vus.items():
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)

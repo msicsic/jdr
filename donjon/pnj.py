@@ -121,15 +121,17 @@ def chemin(monde, id, depart, arrivee, cles=()):
     passage cru.
 
     Le PNJ tente toute porte, sauf celle qu'il sait verrouillée sans en porter (ou prévoir
-    d'en porter) la clé, et tout passage, sauf celui dont il croit un seuil barré.
+    d'en porter) la clé ; tout passage, sauf celui dont il croit un seuil barré ; et il ne passe
+    pas par une salle qu'il a vue noyée.
     """
+    from .eau import noyee_crue
     barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
     precedent, file = {depart: None}, deque([depart])
     while file:
         lieu = file.popleft()
         for sortie in monde.data["salles"][lieu]["sorties"].values():
             vers, porte = sortie["vers"], sortie.get("porte")
-            if (vers in precedent or vers not in monde.data["salles"]
+            if (vers in precedent or vers not in monde.data["salles"] or noyee_crue(monde, id, vers)
                     or porte and _verrouillee_crue(monde, id, porte)
                     and _cle_portee(monde, id, porte, cles) is None
                     or barrees and _seuil_barre(monde, lieu, sortie, barrees)):
@@ -352,11 +354,15 @@ def _inspecter(monde, id):
 
 
 def _accessible(monde, id, objet):
-    """L'objet est-il à portée de main du PNJ, là où il se tient, hors de tout contenant fermé ?
-    Il ne se déplace pas pour le vérifier : c'est sa marche qui l'en approche (``agir``)."""
+    """L'objet est-il à portée de main du PNJ, là où il se tient, hors de tout contenant fermé et
+    des mains d'autrui ? Il ne se déplace pas pour le vérifier : c'est sa marche qui l'en approche
+    (``agir``)."""
     from .spatial import proche
     if _porte(monde, objet, id):
         return True
+    from .esprits import _porteur
+    if _porteur(monde, monde.objets[objet]) is not None:
+        return False
     o = monde.objets[id]
     return (monde.present_physique(objet, salle=o["lieu"])
             and (not monde.data.get("mode_cases") or "position" not in o or proche(monde, objet, id)))
@@ -401,11 +407,24 @@ def _pas(monde, id, sortie, lignes):
         croire(monde, id, porte["id"], "verrouillee", False, "essai")
         _annoncer_porte(monde, id, porte, "ouvre", " s'ouvre.", lignes)
         return
+    if _arrete_par_l_eau(monde, id, sortie["vers"]):
+        return
     depuis, o["lieu"] = o["lieu"], sortie["vers"]
     if "position" in o:
         placer(o, o["lieu"], position_entree(monde, o["lieu"], depuis))
     _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][o["lieu"]]["nom"] + ".",
                 "deplacement")
+    from .eau import tremper
+    tremper(monde, id)
+
+
+def _arrete_par_l_eau(monde, id, salle):
+    """Au seuil d'une salle noyée, il voit l'eau et n'y entre pas : il l'apprend par l'essai."""
+    from .eau import noyee, observer
+    if not noyee(monde, salle):
+        return False
+    observer(monde, id, salle, "essai")
+    return True
 
 
 def _rate(monde, id, cible, attribut="lieu", valeur=None):
@@ -522,6 +541,9 @@ def _executer(monde, id, etape, lignes, gestes):
         t = monde.objets[outil]
         if c.get("allume") is not False or c["integrite"] == 0 or outil == cible:
             return False
+        from .eau import sous_l_eau
+        if sous_l_eau(monde, c):
+            return False  # Sous l'eau, aucune flamme ne prend.
         if not flamme(t):
             # La flamme sur laquelle il comptait s'est éteinte : il le constate.
             if "allume" in t:
@@ -579,6 +601,9 @@ def _abriter(monde, id, lieu, lignes):
         return True
     if monde.objets[id]["lieu"] != lieu:
         return False
+    from .eau import menacee
+    if menacee(monde, id, lieu):
+        return False  # L'eau gagne le lieu, ou va le gagner : ce n'est plus un abri.
     a = autour(monde, id)
     if not a["fiables"] and not a["lumiere"]:
         return False  # Ni lumière ni personne de sûr : ce n'est pas un abri.
@@ -653,8 +678,12 @@ def _marcher(monde, id, arrivee, lignes):
     feutre = a_pas_feutres(monde, id)
     occupees = occupants(monde, id)
     depart = (o["lieu"], tuple(o["position"]))
+    # Il ne cherche pas de chemin par une salle qu'il a vue noyée ; il peut quitter la sienne.
+    from .eau import noyee_crue
+    noyees = {s for s in monde.data["salles"] if s != o["lieu"] and noyee_crue(monde, id, s)}
     chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
-                     franchissable=lambda porte: _franchissable(monde, id, porte))
+                     franchissable=lambda porte: _franchissable(monde, id, porte),
+                     libre=lambda salle, case: salle not in noyees)
     if chemin_ is None:
         return None
     if not chemin_:
@@ -666,10 +695,14 @@ def _marcher(monde, id, arrivee, lignes):
         # Une porte à ouvrir juste après la case d'un autre : il ne peut pas s'y arrêter pour l'ouvrir.
         chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                          franchissable=lambda porte: _franchissable(monde, id, porte),
-                         libre=lambda salle, case: (salle, case) not in occupees)
+                         libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees)
         if not chemin_:
             return PAS  # Il attend qu'on lui laisse le passage.
         n = 0
+    # Au seuil d'une salle noyée qu'il ne savait pas telle, il voit l'eau et n'y entre pas.
+    entree = next((salle for salle, _, _, _ in chemin_[:n + 1] if salle != o["lieu"]), None)
+    if entree is not None and _arrete_par_l_eau(monde, id, entree):
+        return PAS
     return _avancer_de(monde, id, chemin_[:n + 1], feutre, lignes)
 
 
@@ -690,6 +723,8 @@ def _avancer_de(monde, id, pas, feutre, lignes):
             placer(o, salle, list(case))
             _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][salle]["nom"] + ".",
                         "deplacement")
+            from .eau import tremper
+            tremper(monde, id)
         else:
             placer(o, salle, list(case))
         duree += PAS_FEUTRE if feutre else PAS
@@ -1092,6 +1127,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     à chaque minute franchie, le feu se consume et chacun délibère. On traite toujours ce qui
     arrive en premier ; quand rien ne bouge, on saute à l'événement suivant."""
     from .deliberation import appeler_a_l_aide, deliberer, menager_flamme
+    from .eau import inonder
     from .perception import avancer_combustion
     from .social import bavarder
     from .temps import MINUTE
@@ -1129,6 +1165,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
             monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
             minute = monde.data["minutes"]
             avancer_combustion(monde, 1, lignes)
+            inonder(monde, lignes)
             for id in ids:
                 if monde.objets[id].get("profil"):
                     deliberer(monde, id, minute)

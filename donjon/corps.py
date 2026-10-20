@@ -2,7 +2,8 @@
 
 Rythmes et seuils sont ceux du moteur, les mêmes pour tous. Le scénario ne déclare que des
 états (``corps`` du personnage : minutes depuis le dernier repas, minutes de veille, minutes
-passées trempé), dont découlent les valeurs de départ ; le profil d'un PNJ ne garde que son
+passées trempé ; se tenir dans l'eau d'une crue en ajoute, ``eau.py``), dont découlent les
+valeurs de départ ; le profil d'un PNJ ne garde que son
 caractère. Les valeurs vivent dans ``esprit["besoins"]`` pour un PNJ, dans
 ``joueur["besoins"]`` pour le joueur, sous les noms ``faim``, ``chaleur`` (le froid) et
 ``repos`` (la fatigue). Un état qui presse coûte aux jets des caractéristiques qu'il touche,
@@ -84,9 +85,16 @@ def vivre(monde, id, minutes=1, effort=False, repos=False):
     facteur = EFFORT if effort else 1
     v["faim"] += CORPS["faim"]["heure"] / 60 * facteur * minutes
     v["repos"] += (-REPOS_MINUTE if repos else CORPS["repos"]["heure"] / 60 * facteur) * minutes
+    # Debout dans l'eau, on se trempe et l'on ne sèche pas, même près d'un feu.
+    from .eau import lieu, profondeur
+    dans_l_eau = profondeur(monde, lieu(monde, id)) > 0
+    if dans_l_eau:
+        faits["trempe"] += minutes
+        faits["seche"] = 0
     if au_chaud(monde, id):
         v["chaleur"] -= FEU_MINUTE * minutes
-        faits["seche"] += minutes
+        if not dans_l_eau:
+            faits["seche"] += minutes
         if faits["trempe"] and faits["seche"] >= SECHAGE:
             faits["trempe"] = 0
     else:

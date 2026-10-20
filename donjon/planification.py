@@ -236,6 +236,16 @@ class Vue:
                                               and (self.cru(f, "etat") or {}).get("allume") is False), None)
         return self._crus["foyer_froid"]
 
+    def feu_noye(self):
+        """Tous les foyers qu'il connaît sont dans une salle qu'il croit noyée : une part de
+        combustible n'y brûlerait pas."""
+        def calcul():
+            from .eau import noyee_crue
+            foyers = [f for f in self.connus if self.monde.objets[f].get("foyer")]
+            return bool(foyers) and all(noyee_crue(self.monde, self.id, _lieu_cru(self.monde, self.id, f))
+                                        for f in foyers)
+        return self._memo(("feu_noye",), calcul)
+
     def lumiere(self, e):
         if any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes):
             return 2
@@ -349,7 +359,7 @@ def gestes(v, e, vises=None, but=None):
                     yield 0, 1, [_etape("allumer", o, outil=fixe)], e.apres(faits=[(("allume", o), True)])
         # Une part : l'attendre si elle est promise, là où le donneur viendra la servir (près des
         # vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire.
-        if besoin_de_part(x) and v.disponible(o):
+        if besoin_de_part(x) and v.disponible(o) and not (besoin_de_part(x) == "chaleur" and v.feu_noye()):
             donneur = v.proprietaire[o]
             foyer = v.foyer_froid() if besoin_de_part(x) == "chaleur" else None
             if donneur not in (None, id, "joueur") and profil(monde, donneur):

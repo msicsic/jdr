@@ -1039,6 +1039,9 @@ def preparer_pas(m, direction):
                               f"la case visée est occupée par {occupant} ; un pas mène sur une case libre.")
         raise ErreurMonde("Quelqu'un se tient là, sur ton passage.",
                           "la case visée est occupée par un personnage ; un pas mène sur une case libre.")
+    if pas["salle"] != m.joueur["salle"]:
+        from .eau import refuser_entree
+        refuser_entree(m, pas["salle"])
     return {"salle": pas["salle"], "position": pas["position"]}
 
 

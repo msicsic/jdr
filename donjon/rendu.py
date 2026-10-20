@@ -180,6 +180,12 @@ def regarder(monde):
                 if o.get("appui_vertical"):
                     if salle == o["appui_vertical"]["bas"]:
                         lignes.append(f"Un palier borde le sommet du mur, à {o['appui_vertical']['hauteur_cm'] / 100:g} m du sol.")
+    from .eau import decrire as decrire_eau
+    eau = decrire_eau(monde, salle)
+    if eau:
+        # L'eau se sent, même dans le noir.
+        lignes.append(("L'eau a noyé la salle : elle t'arrive " if eau["etat"] == "noyee" else "L'eau couvre le sol : elle t'arrive ")
+                      + eau["hauteur"] + f" ({eau['profondeur_cm']} cm).")
     for o in monde.presents():
         if o["lieu"] == "joueur" or o["type"] == "surface":
             continue
@@ -210,6 +216,10 @@ def regarder(monde):
             arrivee = monde.data["salles"][sortie["vers"]]
             monte = arrivee.get("altitude_cm", arrivee.get("niveau", 0) * 240) > depart.get("altitude_cm", depart.get("niveau", 0) * 240)
             nom = ("escalier montant, " if monte else "escalier descendant, ") + nom
+        from .eau import voisines
+        if sortie["vers"] in voisines(monde, salle) and decrire_eau(monde, sortie["vers"]):
+            nom += (", eau trop haute pour passer" if decrire_eau(monde, sortie["vers"])["etat"] == "noyee"
+                    else ", sous l'eau")
         sorties.append(f"{direction} ({nom})")
     for o in monde.presents():
         if o.get("installation") and o["integrite"] == o["maximum"]:

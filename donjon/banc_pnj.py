@@ -22,10 +22,11 @@ PAS = 5
 
 
 def creer(scenario, graine=1985):
-    if scenario == "relais":
+    if scenario in ("relais", "crue"):
+        from .crue import nouvelle_crue
         from .defi import nouveau_defi
         from .spatial import installer
-        m = nouveau_defi(graine)
+        m = (nouveau_defi if scenario == "relais" else nouvelle_crue)(graine)
         installer(m)
         return m
     if scenario in ("mine", "auberge"):
@@ -80,7 +81,9 @@ def executer(monde, minutes, recit=None):
             resultat = executer(monde, minutes)
         recit.clore(monde)
         return resultat
-    chronique, oisivete, blocage, usurpations = [], 0, 0, 0
+    from .eau import active, lieu, profondeur
+    vivants = [id for id in pnjs(monde) if monde.objets[id].get("profil")]
+    chronique, oisivete, blocage, usurpations, mouilles = [], 0, 0, 0, 0
     vue = list(monde.data.get("chronique", []))
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
@@ -91,6 +94,7 @@ def executer(monde, minutes, recit=None):
         oisifs, bloques = _oisifs_urgents(monde)
         oisivete, blocage = oisivete + PAS * oisifs, blocage + PAS * bloques
         usurpations += _usurpations(monde)
+        mouilles += PAS * sum(1 for id in vivants if profondeur(monde, lieu(monde, id)))
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
     mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
@@ -110,6 +114,12 @@ def executer(monde, minutes, recit=None):
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
                "mefiances": mefiances, "jets": monde.data["jets"],
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
+    if active(monde):
+        # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.
+        mesures.update(minutes_dans_l_eau=mouilles,
+                       feux_noyes=sum("eteint" in h for h in monde.data["crue"]["historique"]),
+                       trempes_fin=sum(1 for id in vivants if monde.objets[id]["corps"]["trempe"]),
+                       au_sec_fin=sum(1 for id in vivants if not profondeur(monde, lieu(monde, id))))
     return chronique, mesures
 
 
@@ -203,7 +213,7 @@ def tableau(graines, mesures):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--scenario", choices=("relais", "crypte", "mine", "auberge"), default="relais")
+    parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge"), default="relais")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)
