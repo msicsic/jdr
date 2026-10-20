@@ -152,8 +152,8 @@ Non versionnés, donc absents d'un nouveau poste :
   en parallèle, avec le tableau des mesures et leur moyenne : `--graines 1985 7 42 2024`.
 - Banc A/B du stratège, avec Luna, environ 15 minutes pour 8 graines :
   `python tools/banc_stratege.py --graines 1985 7 42 2024 --graines-sup 3 11 99 500`
-  Ne pas lancer deux exécutions Luna en parallèle : la connexion ChatGPT n'en accepte
-  qu'une.
+  Plusieurs exécutions Luna peuvent tourner en même temps (le coffre sérialise le renouvellement
+  du jeton ; 4 vérifiées) : en rester à quelques-unes, et mesurer les temps au calme.
 
 ## Règles de travail
 
