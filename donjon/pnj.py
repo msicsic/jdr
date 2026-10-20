@@ -175,10 +175,16 @@ def _temoigner(monde, id, operation, objet):
     Un geste occupe sa minute : appelé de nouveau en fin de minute, il compte aussi ceux qui
     sont arrivés entre-temps, sans doubler le souvenir des premiers.
     """
-    from .deliberation import VOL, relancer
     from .vol import proprietaire
     victime = proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
+    from .spatial import etat_fige
+    with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
+        _temoins(monde, id, souvenir, victime)
+
+
+def _temoins(monde, id, souvenir, victime):
+    from .deliberation import VOL, inquieter, relancer
     for autre in pnjs(monde):
         if autre != id and percoit(monde, autre, id):
             if any(s["minute"] == monde.data["minutes"] and all(s.get(k) == v for k, v in souvenir.items())
@@ -186,7 +192,6 @@ def _temoigner(monde, id, operation, objet):
                 continue
             memoriser(monde, autre, souvenir)
             croire(monde, autre, id, "fiable", False, "vu")
-            from .deliberation import inquieter
             inquieter(monde, autre, "illicite")
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
@@ -788,8 +793,11 @@ def agir(monde, id, t, lignes, gestes=None):
 
 def _annoncer_presences(monde, vus, apparus, lignes):
     """Arrivées et départs à la minute où le joueur les perçoit, avant ce qui suit."""
+    from .spatial import etat_fige
+    with etat_fige(monde):
+        perception = {id: monde.visible(id) for id in vus}
     for id, avant in vus.items():
-        maintenant = monde.visible(id)
+        maintenant = perception[id]
         if maintenant and not avant:
             lignes.append(designer(monde.objets[id], debut=True) + " arrive.")
             if id not in apparus:
@@ -820,7 +828,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
     fin = fin_minutes * MINUTE + fin_dixiemes
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
     ids = pnjs(monde)
-    vus = {id: monde.visible(id) for id in ids}
+    from .spatial import etat_fige
+    with etat_fige(monde):
+        vus = {id: monde.visible(id) for id in ids}
     apparus = []
     # Les gestes illicites en cours : quiconque voit leur auteur avant qu'il ait fini en est témoin.
     temoignages = monde.__dict__.setdefault("_gestes_en_cours", {})

@@ -190,8 +190,26 @@ def _pertinent(monde, acteur, o):
 
 
 def percus(monde, acteur):
-    """Entités perçues maintenant par un PNJ et lieux observés : {id: (salle, case)}, champ."""
-    from .spatial import porte_par, position_cible
+    """Entités perçues maintenant par un PNJ et lieux observés : {id: (salle, case)}, champ.
+
+    Pendant la vie des PNJ (``spatial.vue_memorisee``), la perception d'un acteur est gardée tant
+    que l'état dont elle dépend n'a pas changé (``spatial.etat_vue``)."""
+    from .spatial import _memo_vue, a_verifier, sans_memoire
+    memo = _memo_vue(monde) if monde.data.get("mode_cases") else None
+    if memo is None:
+        return _percus(monde, acteur, None)
+    if ("percus", acteur) not in memo:
+        memo["percus", acteur] = _percus(monde, acteur, memo)
+    vus, champ = memo["percus", acteur]
+    if a_verifier():
+        with sans_memoire(monde):
+            frais = _percus(monde, acteur, None)
+        assert frais == (vus, champ), f"Perception mémorisée périmée : {acteur}"
+    return {id: (s, None if c is None else list(c)) for id, (s, c) in vus.items()}, set(champ)
+
+
+def _percus(monde, acteur, memo):
+    from .spatial import porte_par
     salle = monde.objets[acteur]["lieu"]
     # Ce qu'il porte lui-même, il le sait sans le voir.
     vus = {id: (None, None) for id, o in monde.objets.items()
@@ -199,18 +217,38 @@ def percus(monde, acteur):
     if salle not in monde.data["salles"]:
         return vus, set()
     if monde.data.get("mode_cases"):
-        from .spatial import champ_visible, visible
-        champ = champ_visible(monde, acteur)
+        from .spatial import _champ, _murs, position_cible
+        champ = _champ(monde, acteur, memo)
+        salles_du_champ = {c[0] for c in champ}
+        salles_vues = [s for s in monde.data["salles"] if s in salles_du_champ]
+        # Les places des objets sont gardées pour l'état (``spatial._position_vue``).
+        positions = {} if memo is None else memo.setdefault("positions", {})
         for id, o in monde.objets.items():
-            if id in vus or not _pertinent(monde, acteur, o) or not visible(monde, id, acteur, champ):
+            if id in vus:
                 continue
-            vus[id] = next(((s, list(p)) for s in monde.data["salles"]
-                            for p in [position_cible(monde, id, s)]
-                            if p is not None and (s, p[0], p[1]) in champ), (salle, None))
+            # ``visible``, sans le cas des surfaces, qui ne sont pas pertinentes : la première place
+            # dans le champ, et l'objet accroché au mur n'est vu que si ce mur l'est.
+            premiere, vu = None, False
+            for s in salles_vues:
+                if (id, s) in positions:
+                    p = positions[id, s]
+                else:
+                    p = positions[id, s] = position_cible(monde, id, s)
+                if p is None or (s, p[0], p[1]) not in champ:
+                    continue
+                if premiere is None:
+                    premiere = (s, list(p))
+                ancrage = o.get("ancrage_carte")
+                if ancrage and tuple(ancrage) not in _murs(monde, champ, acteur, memo).get(s, set()):
+                    continue
+                vu = True
+                break
+            if vu and _pertinent(monde, acteur, o):
+                vus[id] = premiere
         j = monde.joueur
         if (j["salle"], *j["position"]) in champ:
             vus["joueur"] = (j["salle"], list(j["position"]))
-        return vus, champ
+        return vus, set(champ)
     if eclairage(monde, salle)["niveau"] == 0:
         return vus, set()
     for id, o in monde.objets.items():
@@ -305,6 +343,12 @@ def _flamme_sous_les_yeux(monde, id, sujet, lieu):
 
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
+    from .spatial import etat_fige
+    with etat_fige(monde):  # Percevoir ne révise que son esprit.
+        _percevoir(monde, id)
+
+
+def _percevoir(monde, id):
     vus, champ = percus(monde, id)
     croyances = esprit(monde, id)["croyances"]
     for sujet in [s for s in croyances if s != "joueur" and s not in monde.objets and s not in monde.data["salles"]]:
@@ -357,5 +401,7 @@ def percevoir(monde, id):
 
 
 def percevoir_tous(monde):
-    for id in pnjs(monde):
-        percevoir(monde, id)
+    from .spatial import vue_memorisee
+    with vue_memorisee(monde):
+        for id in pnjs(monde):
+            percevoir(monde, id)
