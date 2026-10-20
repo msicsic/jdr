@@ -10,6 +10,8 @@ avance par le moteur réel, cinq minutes à la fois, et l'état est vérifié à
 besoins de chaque PNJ, échanges entre eux. ``--chronique`` ajoute chaque pas : gestes,
 échanges et leur issue, décisions du stratège. ``--graines`` joue plusieurs nuits en
 parallèle (une par processus, sans stratège) et termine par leurs mesures et leur moyenne.
+``--rejeu page.html`` écrit en plus la page où rejouer la nuit ; avec ``--graines``, une page par
+graine (``page_<graine>.html``, ou ``rejeu_<graine>.html`` dans le dossier donné).
 """
 import argparse
 from collections import Counter
@@ -176,8 +178,29 @@ def texte_diagnostic(resume):
     return "\n".join(lignes)
 
 
-def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False):
-    """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie)."""
+def page_rejeu(rejeu, graine, plusieurs):
+    """Où écrire la page d'une nuit : le fichier donné ; pour plusieurs graines, un fichier par graine
+    (``page.html`` donne ``page_<graine>.html``, un dossier donne ``rejeu_<graine>.html``)."""
+    from pathlib import Path
+    if not plusieurs:
+        return rejeu
+    chemin = Path(rejeu)
+    if chemin.suffix == ".html":
+        return str(chemin.with_name(f"{chemin.stem}_{graine}.html"))
+    chemin.mkdir(parents=True, exist_ok=True)
+    return str(chemin / f"rejeu_{graine}.html")
+
+
+def ecrire_rejeu(chemin, enregistreur, monde, chronique, titre):
+    from .rejeu import page
+    with open(chemin, "w", encoding="utf-8") as f:
+        f.write(page(enregistreur.donnees(monde, chronique, titre)))
+
+
+def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None):
+    """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie). Avec ``rejeu``
+    (un chemin), la page de rejeu y est écrite."""
+    from contextlib import nullcontext
     from .planification import diagnostics
     monde = creer(scenario, graine)
     if joueur:
@@ -185,8 +208,13 @@ def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False):
         monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
     from .recit_pnj import Recit
     recit = Recit(monde)
-    with diagnostics() as recherches:
+    if rejeu:
+        from .rejeu import Enregistreur
+        enregistreur = Enregistreur(monde)
+    with diagnostics() as recherches, enregistreur.observer() if rejeu else nullcontext():
         pas, mesures = executer(monde, int(heures * 60), recit)
+    if rejeu:
+        ecrire_rejeu(rejeu, enregistreur, monde, pas, f"Rejeu : {scenario}, graine {graine}, {heures:g} h")
     lignes = [f'[{c["minute"]:>4} min] {c["texte"]}' for c in pas] + [""] if chronique else []
     lignes += [recit.texte(monde, pas), ""]
     for id in pnjs(monde):
@@ -208,11 +236,13 @@ def _nuit(arguments):
     return nuit(*arguments)
 
 
-def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False):
-    """Plusieurs nuits en parallèle, une par processus ; les résultats dans l'ordre des graines."""
+def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False, rejeu=None):
+    """Plusieurs nuits en parallèle, une par processus ; les résultats dans l'ordre des graines.
+    Avec ``rejeu``, une page par graine (``page_rejeu``)."""
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(max_workers=min(len(graines), 16)) as pool:
-        return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic) for g in graines]))
+        return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic,
+                                      page_rejeu(rejeu, g, True) if rejeu else None) for g in graines]))
 
 
 def tableau(graines, mesures):
@@ -236,16 +266,19 @@ def main(argv=None):
     parser.add_argument("--connexion", choices=("chatgpt", "api"), default="chatgpt")
     parser.add_argument("--sortie", help="fichier JSON où écrire chronique, récit et mesures")
     parser.add_argument("--chronique", action="store_true", help="imprime aussi chaque pas")
-    parser.add_argument("--rejeu", help="page HTML où rejouer la nuit (positions, regards, buts, croyances)")
+    parser.add_argument("--rejeu", help="page HTML où rejouer la nuit (positions, regards, lumière, bruits, buts, croyances) ; "
+                                        "avec --graines, une page par graine (page_<graine>.html, ou un dossier)")
     parser.add_argument("--diagnostic", action="store_true",
                         help="mesure chaque recherche du planificateur (nœuds, durée, issue), par PNJ et par but")
     args = parser.parse_args(argv)
     if args.graines:
-        if args.stratege or args.rejeu:
-            parser.error("le stratège et le rejeu suivent une nuit à la fois : --graine, pas --graines")
-        resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic)
+        if args.stratege:
+            parser.error("le stratège suit une nuit à la fois : --graine, pas --graines")
+        resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic, args.rejeu)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
+            if args.rejeu:
+                print("Rejeu :", page_rejeu(args.rejeu, g, True))
         print(tableau(args.graines, [m for _, m, _ in resultats]))
         if args.sortie:
             with open(args.sortie, "w", encoding="utf-8") as f:
@@ -281,10 +314,8 @@ def main(argv=None):
         print(f'{monde.objets[id]["nom"]} : {besoins or "sans profil"} ; intention : {but}')
     print("Mesures :", ", ".join(f"{k} {v}" for k, v in mesures.items()))
     if args.rejeu:
-        from .rejeu import page
-        titre = f"Rejeu : {args.scenario}, graine {args.graine}, {args.heures:g} h"
-        with open(args.rejeu, "w", encoding="utf-8") as f:
-            f.write(page(enregistreur.donnees(monde, chronique, titre)))
+        ecrire_rejeu(args.rejeu, enregistreur, monde, chronique,
+                     f"Rejeu : {args.scenario}, graine {args.graine}, {args.heures:g} h")
         print("Rejeu :", args.rejeu)
     diagnostic = None
     if args.diagnostic:
