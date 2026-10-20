@@ -14,7 +14,7 @@ tient une chronique complète, réservée au débogage et au banc. Luna n'interv
 """
 from collections import deque
 
-from .esprits import croire, esprit, lire, memoriser, percevoir, percoit, percus, pnjs
+from .esprits import croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit, percus, pnjs
 from .francais import complement_de, de, designer
 from .geometrie import cases, placer, position_entree
 from .spatial import VECTEURS
@@ -879,6 +879,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     menager_flamme(monde, id, minute)
                     appeler_a_l_aide(monde, id, minute)
                     percevoir(monde, id)
+            percevoir_tous(monde)  # Ce que la minute a changé (un feu, une flamme ménagée), tous le voient.
             continue
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
@@ -897,7 +898,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 duree = agir(monde, id, t, lignes, gestes)
                 for _, operation, objet in gestes:
                     commencer_geste(monde, id, operation, objet, t + max(1, duree))
-                percevoir(monde, id)
+                # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
+                # est en cache). Les croyances ne dépendent pas des instants où le joueur agit.
+                percevoir_tous(monde)
                 if gestes or avant != (monde.objets[id]["lieu"], monde.objets[id].get("position", [])):
                     # Un pas, un geste font du bruit : qui l'entend de près sans le voir se retourne.
                     feutre = not gestes and a_pas_feutres(monde, id)

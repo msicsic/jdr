@@ -81,6 +81,13 @@ def brune_affamee():
     return m
 
 
+def relais_libre():
+    m = nouveau_defi()
+    installer(m)
+    m.joueur.update(salle="chambre_cloche", position=[3, 7], orientation="nord")
+    return m
+
+
 class DecoupageTests(unittest.TestCase):
     def test_un_geste_sans_temoin_ne_depend_pas_du_decoupage(self):
         # Cas réel : en rotations de 2 s, Brune refaisait un tour d'horizon à chaque action du
@@ -88,6 +95,13 @@ class DecoupageTests(unittest.TestCase):
         d_un_bloc, morcele = decouper(brune_affamee, 5)
         self.assertIn("Brune, batelière évacuée s'acharne sur la serrure de la réserve de vivres.",
                       [c["texte"] for c in morcele.data["chronique"]])
+        self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
+
+    def test_la_vie_du_relais_ne_depend_pas_du_decoupage(self):
+        # Autre cas de même nature : quatre PNJ livrés à eux-mêmes, qui se voient les uns les
+        # autres pendant que le joueur, loin, se tourne sur place.
+        d_un_bloc, morcele = decouper(relais_libre, 5)
+        self.assertGreater(len(morcele.data["chronique"]), 10)
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
 
     def test_le_dernier_tour_d_horizon_est_dans_son_esprit(self):
