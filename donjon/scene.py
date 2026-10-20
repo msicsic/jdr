@@ -170,9 +170,16 @@ def scene_percue(monde):
                  "symbole": symbole_objet_cases(objet, salle, monde)}
             if "allume" in objet:
                 o["allume"] = bool(objet["allume"])
+                if objet["allume"]:
+                    from .perception import faible
+                    o["luminosite"], o["faible"] = objet.get("luminosite", 1), faible(objet)
+            if objet.get("foyer"):
+                o["foyer"] = True
             if objet["type"] == "personnage":
                 o["orientation"] = objet.get("orientation")
-                o["porte"] = [{"id": k, "nom": designer(monde.objets[k])} for k in sorted(monde.objets)
+                o["porte"] = [{"id": k, "nom": designer(monde.objets[k]), "type": monde.objets[k]["type"],
+                               **({"allume": bool(monde.objets[k]["allume"])} if "allume" in monde.objets[k] else {})}
+                              for k in sorted(monde.objets)
                               if k != objet["id"] and porte_par(monde, k, objet["id"]) and monde.visible(k)]
             objets.append(o)
         # Les bouts d'une échelle installée, connus du joueur, portent le même code de liaison.
