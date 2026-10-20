@@ -438,7 +438,7 @@ def _carte_cases(monde):
                                                                   if penombre_vue else "")
                + "   : terrain mémorisé ou passage connu   cases vides : inconnues",
                "La flèche à côté de @ : ton regard. Tu vois devant toi (120°) et à tes côtés, pas derrière.",
-               "F6 puis flèches : marcher · Maj+flèches : pas chassé · Échap/Entrée : commande · Ctrl+flèches actifs",
+               "F6 puis flèches : marcher · Maj+flèches : pas chassé · Alt+flèches : pas feutré · Échap/Entrée : commande",
                "O obstacle solide   ^/v appui vertical   H1 échelle · axes x,y ; une case par pas"]
     if passages:
         etats = {"X": "porte verrouillée", "+": "porte fermée", "/": "porte ouverte", "x": "passage libéré"}

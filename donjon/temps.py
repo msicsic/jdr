@@ -10,6 +10,7 @@ franchit.
 MINUTE = 600           # dixièmes de seconde dans une minute
 PAS_JOUEUR = 15        # un pas en avant : 1,5 s
 PAS_CHASSE = 30        # un pas de côté ou en arrière, sans se tourner : 3 s
+PAS_FEUTRE = 30        # un pas feutré, qui ne s'entend que de tout près : 3 s
 PAS_ANCIEN = 60        # le pas des parties d'avant le temps fin (6 s), pour les migrer
 
 

@@ -344,7 +344,7 @@ class Monde:
                 "ambiance_etablie": ambiance_etablie(self),
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],
                 "evenements_recents": [e for e in self.data["journal"]
-                    if e["action"]["action"] not in (("marcher", "chasser", "tourner", "aller")
+                    if e["action"]["action"] not in (("marcher", "chasser", "faufiler", "tourner", "aller")
                                                      if self.data.get("mode_cases") else ("marcher",))][-6:]}
 
     def contexte_scenario(self):

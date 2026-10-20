@@ -15,6 +15,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
   pas nord / pas sud / pas est / pas ouest  te tourner vers la direction puis avancer d'une case (1,5 s)
   chasse <direction>                    pas chassé sans te tourner (3 s de côté ou en arrière)
+  faufiler <direction>                  pas feutré (3 s) : ne s'entend que de la case voisine
   tourner <direction> | demi-tour       te tourner sans avancer (0,5 s par huitième de tour)
   examiner <objet>                     voir les composants accessibles
   lire <inscription>                   tenter d'en comprendre le sens
@@ -56,7 +57,7 @@ MJ — conversation et actions
 
 L'objectif de ta partie est indiqué par « contexte ».
 En mode cases : Ctrl+flèches pour marcher (on se tourne puis on avance), Maj+flèches pour un pas
-chassé sans se tourner ; F6 pour piloter depuis la carte. Tu vois devant toi (120°) et sur les
+chassé sans se tourner, Alt+flèches pour un pas feutré ; F6 pour piloter depuis la carte. Tu vois devant toi (120°) et sur les
 côtés immédiats, pas derrière.
 Manipuler exige d'être sur la case de l'objet ou juste à côté ; voir exige une ligne de vue.
 « etat <objet> » affiche les données internes avec --debug uniquement ;
@@ -121,6 +122,8 @@ def analyser(monde, texte):
         if len(correspondances) == 1:
             return proposition("prendre", correspondances[0])
         return None
+    if texte.startswith(("pas feutre ", "faufiler ", "se faufiler ")):
+        return proposition("faufiler", texte.rsplit(" ", 1)[-1])
     if texte.startswith(("pas chasse ", "chasse ")):
         return proposition("chasser", texte.split(" ", 2)[-1] if texte.startswith("pas ") else texte[7:])
     if texte.startswith("pas "):

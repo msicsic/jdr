@@ -530,9 +530,14 @@ def _franchissable(monde, id, porte):
 def _marcher(monde, id, arrivee, lignes):
     """Un pas d'une case vers une case libre où ``arrivee(salle, case)``, ou la porte fermée qu'il
     rencontre en chemin ; renvoie la durée du geste, None s'il ne voit aucun passage. On croise
-    les autres en chemin ; on ne s'arrête pas sur leur case."""
+    les autres en chemin ; on ne s'arrête pas sur leur case. Qui prépare un geste qu'il veut sans
+    témoin marche à pas feutrés : plus lent, il ne s'entend que de tout près."""
     from .spatial import trajet
+    from .temps import PAS_FEUTRE
     o = monde.objets[id]
+    intention = lire(monde, id)["intention"]
+    feutre = bool(intention) and any(x["condition"] == "sans_temoin" for x in intention["plan"])
+    monde.__dict__.setdefault("_pas_feutres", {})[id] = feutre
     chemin_ = trajet(monde, o["lieu"], tuple(o["position"]),
                      lambda salle, case: arrivee(salle, case) and not _occupee(monde, id, salle, case),
                      franchissable=lambda porte: _franchissable(monde, id, porte))
@@ -553,7 +558,7 @@ def _marcher(monde, id, arrivee, lignes):
                     "deplacement")
     else:
         placer(o, salle, list(case))
-    return tourner + PAS
+    return tourner + (PAS_FEUTRE if feutre else PAS)
 
 
 def _ouvrir_en_chemin(monde, id, porte, lignes):
@@ -614,6 +619,7 @@ def _faire_face(monde, id, cible):
 
 
 OUIE = 6               # cases : un pas, un geste, une voix s'entendent d'aussi près, même dans le dos
+OUIE_FEUTRE = 1        # case : un pas feutré ne s'entend que de la case voisine
 
 
 def de_pres(monde, a, b):
@@ -650,7 +656,7 @@ def se_parler(monde, a, b):
     return percoit(monde, a, b) and percoit(monde, b, a)
 
 
-def alerter(monde, auteur, t, libre):
+def alerter(monde, auteur, t, libre, portee=OUIE):
     """Ceux qui, tout près, entendent l'auteur (un PNJ ou le joueur) sans le voir se tournent vers
     lui : le temps de la rotation retarde la fin de leur geste en cours (``libre`` pendant la vie
     des PNJ, sinon l'instant mémorisé de chacun)."""
@@ -664,7 +670,7 @@ def alerter(monde, auteur, t, libre):
     for id in pnjs(monde):
         o = monde.objets[id]
         if (id == auteur or o["lieu"] != salle or "position" not in o or not o.get("profil")
-                or max(abs(o["position"][0] - position[0]), abs(o["position"][1] - position[1])) > OUIE
+                or max(abs(o["position"][0] - position[0]), abs(o["position"][1] - position[1])) > portee
                 or percoit(monde, id, auteur)):
             continue
         vers = orientation_vers(tuple(o["position"]), tuple(position))
@@ -857,7 +863,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 percevoir(monde, id)
                 if gestes or avant != (monde.objets[id]["lieu"], monde.objets[id].get("position", [])):
                     # Un pas, un geste font du bruit : qui l'entend de près sans le voir se retourne.
-                    alerter(monde, id, t, libre)
+                    feutre = not gestes and monde.__dict__.get("_pas_feutres", {}).pop(id, False)
+                    alerter(monde, id, t, libre, OUIE_FEUTRE if feutre else OUIE)
                 temoigner_en_cours(monde)
                 _annoncer_presences(monde, vus, apparus, lignes)
             else:

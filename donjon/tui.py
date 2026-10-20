@@ -384,6 +384,12 @@ class SeuilApp(App[int]):
         directions_ctrl = {"ctrl+up": "nord", "ctrl+down": "sud",
                            "ctrl+right": "est", "ctrl+left": "ouest"}
         chasses = {"shift+up": "nord", "shift+down": "sud", "shift+right": "est", "shift+left": "ouest"}
+        feutres = {"alt+up": "nord", "alt+down": "sud", "alt+right": "est", "alt+left": "ouest"}
+        if self.mode_cases and not self.occupe and event.key in feutres:
+            self._marcher(feutres[event.key], feutre=True)
+            event.prevent_default()
+            event.stop()
+            return
         if self.mode_cases and not self.occupe and event.key in directions_ctrl:
             self._marcher(directions_ctrl[event.key])
             event.prevent_default()
@@ -434,13 +440,14 @@ class SeuilApp(App[int]):
             "Carte active · flèches : marcher · Maj+flèches : pas chassé · Échap/Entrée : commande" if self.focus_carte
             else "Commande active · F6 pour déplacer sur la carte")
 
-    def _marcher(self, direction, chasse=False):
+    def _marcher(self, direction, chasse=False, feutre=False):
         if not self.mode_cases or self.occupe:
             return
         saisie = self.query_one("#commande", Input)
         brouillon, curseur = saisie.value, saisie.cursor_position
         self.saisie_a_restaurer = (brouillon, curseur)
-        self.soumettre(("chasse " if chasse else "pas ") + direction, enregistrer_historique=False)
+        self.soumettre(("chasse " if chasse else "faufiler " if feutre else "pas ") + direction,
+                       enregistrer_historique=False)
         saisie.value = brouillon
         saisie.cursor_position = min(curseur, len(brouillon))
 

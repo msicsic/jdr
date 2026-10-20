@@ -19,7 +19,8 @@ from .refus import inaccessible, liste, portes_avec_usage
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
-           "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "tourner", "ecouter",
+           "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
+           "ecouter",
            "clarifier", "impossible"]
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
 
@@ -195,7 +196,7 @@ class Moteur:
             plan.minutes, plan.dixiemes = 0, QUART * quarts(m.joueur.get("orientation"), cible)
             plan.effets = [("orienter", "", cible)]
             return plan
-        if action in ("marcher", "chasser") or (action == "aller" and m.data.get("mode_cases")):
+        if action in ("marcher", "chasser", "faufiler") or (action == "aller" and m.data.get("mode_cases")):
             from .spatial import preparer_pas
             if not m.data.get("mode_cases"):
                 sorties = ", ".join(m.data["salles"][m.joueur["salle"]]["sorties"]) or "aucune"
@@ -205,10 +206,17 @@ class Moteur:
                 raise ErreurMonde("Un pas se fait sans outil ni jet.", "un pas : outil vide, methode simple, difficulte 0.")
             destination = preparer_pas(m, cible)
             from .spatial import QUART, VECTEURS, quarts
-            from .temps import PAS_CHASSE, PAS_JOUEUR
+            from .temps import PAS_CHASSE, PAS_FEUTRE, PAS_JOUEUR
             regard = m.joueur.get("orientation")
             vers = cible if cible in VECTEURS else None
-            if action == "chasser":
+            if action == "faufiler":
+                # À pas feutrés : il se tourne vers où il va, avance lentement, ne s'entend que de près.
+                plan.titre = "Avancer à pas feutrés vers " + cible + "."
+                duree = QUART * quarts(regard, vers) + PAS_FEUTRE
+                destination["feutre"] = True
+                if vers:
+                    destination["orientation"] = vers
+            elif action == "chasser":
                 # Un pas chassé garde le regard : de côté ou en arrière, il prend le double.
                 plan.titre = "Faire un pas chassé vers " + cible + "."
                 duree = PAS_JOUEUR if vers is None or vers == regard else PAS_CHASSE
@@ -678,12 +686,13 @@ class Moteur:
             if valeur.get("orientation"):
                 m.joueur["orientation"] = valeur["orientation"]
             # Ses pas s'entendent : qui les entend de près sans le voir se tourne vers lui.
-            from .pnj import alerter
-            alerter(m, "joueur", 0, None)
+            from .pnj import OUIE, OUIE_FEUTRE, alerter
+            alerter(m, "joueur", 0, None, OUIE_FEUTRE if valeur.get("feutre") else OUIE)
             if valeur["salle"] not in m.data["visitees"]:
                 m.data["visitees"].append(valeur["salle"])
             lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + "."
-                          if ancienne != valeur["salle"] else "Tu avances d'un pas.")
+                          if ancienne != valeur["salle"] else
+                          "Tu avances à pas feutrés." if valeur.get("feutre") else "Tu avances d'un pas.")
             return
         if op in ("recit_improvise", "marque_improvisee", "blessure_improvisee", "son_improvise"):
             from .improvisation import appliquer

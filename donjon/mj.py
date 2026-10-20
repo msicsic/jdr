@@ -659,6 +659,8 @@ ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplac
 Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
 objets_perceptibles. Pour regarder ailleurs sans bouger : action tourner, cible une direction
 (nord, sud-est…). Un geste sur un objet qu'il verrait en se tournant le tourne d'abord vers lui.
+Ses pas s'entendent de près et font se retourner ; à pas feutrés (action faufiler, cible une
+direction), plus lents, ils ne s'entendent que de tout près.
 """
         conversation = monde.data["conversation"][-2 if resultat_resolu is not None else -6:]
         if enrichir and not est_question(intention) and proposition_en_attente is None:
