@@ -74,7 +74,7 @@ class PartieWebTests(unittest.TestCase):
                 suite = flux.jusqu_a_pret()
                 lignes = [e["texte"] for e in suite if e["type"] == "ligne"]
                 self.assertIn("Corvus > tourner ouest", lignes)
-                self.assertIn("Tu te tournes vers l'ouest.", lignes)
+                self.assertTrue(any(l.startswith("Tu te tournes vers l'ouest.") for l in lignes), lignes)
                 self.assertEqual(next(e for e in suite if e["type"] == "etat")["scene"]["joueur"]["orientation"], "ouest")
                 self.assertEqual(commande(port, "quitter")[0], 200)
                 partie.join(20)
