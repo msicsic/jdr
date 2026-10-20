@@ -195,7 +195,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   → ~4,7 s (4 nuits en parallèle). Constat : combinées, la marche et la perception par événement
   redonnent au Relais une nuit proche de celle d'avant (mêmes mesures), alors que chacune seule
   multipliait échanges et vols vus ; à examiner avec le rejeu.
-- La suite de tests passe : 759 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `don-et-promesses` (vu en partie : « je donne la cloche a Gorm » partait au MJ ; Brune
+  répondait « Je vais me pousser » sans que rien ne la fasse bouger, puis le MJ le rappelait
+  comme acquis) : l'analyse locale reconnaît donner et remettre à la première personne et à
+  l'impératif, avec « à », « au » ou « a », le destinataire avant ou après l'objet, chaque nom
+  désignant exactement un objet et un personnage ; le moteur refuse ce qui manque. Après un
+  refus, quelle que soit la voie, la réponse ne cite aucune parole nouvelle (contrôle
+  déterministe, sans dépendre du verdict de l'auditeur). Une promesse d'agir d'un PNJ (verdict
+  d'audit `engagement`) doit recopier ce que le moteur a enregistré : engagements pris, intention
+  en cours, accords (`esprits_interlocuteurs.<id>.engagements`) ou l'issue qu'il vient de valider
+  (`conversation_validee`) ; sinon elle est reformulée sans promesse. Luna sur la sauvegarde
+  réelle : « Je vais me pousser » (Brune) et « je peux garder un œil sur la réserve » (Ilse)
+  refusés puis reformulés. Limite : repérer une promesse reste un jugement de l'auditeur ; seul
+  son appui est vérifié de façon déterministe.
+- La suite de tests passe : 773 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
