@@ -194,244 +194,97 @@ def _carte_ancienne(monde):
     return "\n".join(lignes)
 
 
+ETATS_SOUVENIR_PORTE = {"X": "porte verrouillée", "+": "porte fermée", "/": "porte ouverte", "x": "passage libéré"}
+
+
 def _carte_cases(monde):
-    """Carte métrique fondée sur la vision courante et les cases mémorisées."""
-    from .spatial import champ_visible, murs_visibles, position_cible, sortie_visible
-
-    salles = monde.data["salles"]
-    exploration = monde.data.get("exploration", {})
-    visible_brut = champ_visible(monde)
-    visible = defaultdict(set)
-    if isinstance(visible_brut, dict):
-        visible.update({s: {tuple(p) for p in coords} for s, coords in visible_brut.items()})
-    else:
-        for salle, x, y in visible_brut:
-            visible[salle].add((x, y))
-    champ = {(s, x, y) for s, coords in visible.items() for x, y in coords}
-    # Accepte le format canonique (salle -> listes de coordonnées) et l'ancien
-    # dictionnaire vide pendant les premiers instants d'une nouvelle partie.
-    memorisees = {}
-    for salle, valeurs in exploration.items():
-        if salle not in salles:
-            continue
-        try:
-            memorisees[salle] = {tuple(p) for p in valeurs}
-        except (TypeError, ValueError):
-            memorisees[salle] = set()
-    for salle, coords in visible.items():
-        memorisees.setdefault(salle, set()).update(coords)
-    memorisees.setdefault(monde.joueur["salle"], set())
-    memorisees[monde.joueur["salle"]].update(visible.get(monde.joueur["salle"], set()))
-
-    # Each level uses the same world coordinate scale. Rooms with no remembered
-    # floor stay entirely absent, so their shape and contents remain unknown.
-    connus = {s: coords for s, coords in memorisees.items() if coords}
-    etages = defaultdict(list)
-    for salle in connus:
-        etages[salles[salle].get("niveau", 0)].append(salle)
-    # Dans le noir, la nouvelle salle peut n'avoir aucune case mémorisée.
-    # Le personnage doit malgré tout figurer sur le panneau de son niveau.
-    etages[salles[monde.joueur["salle"]].get("niveau", 0)].append(monde.joueur["salle"])
-    liens_installes = {}
-    for support in monde.objets.values():
-        appui = support.get("appui_vertical", {})
-        echelle = next((o for o in monde.objets.values()
-                        if o.get("installation", {}).get("support") == support["id"]
-                        and o.get("integrite", 0) > 0), None)
-        if appui and echelle:
-            liens_installes[support["id"]] = echelle
-            for salle in (appui.get("bas"), appui.get("haut")):
-                if salle in salles:
-                    etages[salles[salle].get("niveau", 0)].append(salle)
-    if not etages:
-        etages[salles[monde.joueur["salle"]].get("niveau", 0)].append(monde.joueur["salle"])
-
-    joueur_salle = monde.joueur["salle"]
-    joueur_pos = tuple(monde.joueur.get("position", ()))
-    dessin_panneaux = []
-    legendes = defaultdict(list)
-    details_salles = []
-    passages = set()
-    echelles = []
-    marqueurs_lien = {}
-    escaliers = []
-    objets_aux_pieds = []
-    souvenirs_dessines = []
-
-    # Une case vue montre sa lumière : la vue porte à 8 cases sur une case éclairée, 3 dans la pénombre.
-    from .perception import CarteLumiere
-    lumiere = CarteLumiere(monde, joueur_salle)
+    """Carte métrique : la scène perçue (``scene.scene_percue``) rendue en deux caractères par case."""
+    from .scene import scene_percue
+    scene = scene_percue(monde)
+    joueur = scene["joueur"]
+    dessin_panneaux, legendes, details_salles = [], defaultdict(list), []
+    passages, echelles, escaliers, objets_aux_pieds, souvenirs_dessines = set(), [], [], [], []
     penombre_vue = False
-
-    for niveau in sorted(etages):
-        dessin = {}
-        coords_absolues = set()
-        sorties_connues = []
-        salles_etage = sorted(set(etages[niveau]), key=lambda s: (salles[s].get("plan", {}).get("origine", [0, 0])[1], s))
-        for salle in salles_etage:
-            piece = salles[salle]
-            ox, oy = piece["plan"]["origine"]
-            vu = visible.get(salle, set())
-            connu = memorisees[salle]
-            for x, y in connu:
-                p = (ox + x, oy + y)
+    for niveau in scene["niveaux"]:
+        dessin, coords_absolues = {}, set()
+        for piece in niveau["salles"]:
+            ox, oy = piece["origine"]
+            connu = set()
+            for c in piece["cases"]:
+                p = tuple(c["globale"])
+                connu.add(tuple(c["case"]))
                 coords_absolues.add(p)
-                if (x, y) in vu:
-                    eclaire = lumiere.niveau(p) == 2 or lumiere.directe(p)
-                    penombre_vue = penombre_vue or not eclaire
-                    dessin[p] = ". " if eclaire else ", "
-                else:
-                    dessin[p] = ": "
-
-            # A threshold is remembered after its inner floor is explored,
-            # while its current state is shown only when the threshold is seen.
-            for direction, sortie in piece["sorties"].items():
-                x, y = sortie.get("case", (None, None))
-                if x is None:
-                    continue
-                p = (ox + x, oy + y)
-                dx, dy = DIRECTIONS[direction]
-                interieur = (x - dx, y - dy)
-                if sortie_visible(monde, salle, direction):
-                    sorties_connues.append((p, salle, direction, sortie, True))
-                elif interieur in connu:
-                    sorties_connues.append((p, salle, direction, sortie, False))
-
-            repere = piece.get("plan", {}).get("repere", salle[:1].upper())
-            # A room tag marks only a cell already known to the player.
+                penombre_vue = penombre_vue or c["etat"] == "penombre"
+                dessin[p] = {"eclaire": ". ", "penombre": ", ", "memorise": ": "}[c["etat"]]
+            # Le repère d'une salle ne marque qu'une case déjà vue.
             libre = next((p for p in sorted(coords_absolues, key=lambda p: (p[1], p[0]))
                           if dessin.get(p) in (". ", ", ") and (p[0] - ox, p[1] - oy) in connu), None)
             if libre:
-                dessin[libre] = repere + " "
-            largeur = max((len(row) for row in piece.get("plan", {}).get("sol", [])), default=0)
-            hauteur = len(piece.get("plan", {}).get("sol", []))
-            if salle in monde.data.get("visitees", []) or salle == joueur_salle:
-                dimensions = (f" ({largeur} x {hauteur} m)"
-                              if cases(piece).issubset(connu) else "")
-                details_salles.append(f'{repere} : {piece["nom"]}{dimensions}')
-
-        # Les murs sont des observations persistées, jamais déduites du sol caché.
-        murs = {s: {tuple(p) for p in coords}
-                for s, coords in monde.data.get("murs_memorises", {}).items() if s in salles}
-        for salle, positions in murs_visibles(monde, champ).items():
-            murs.setdefault(salle, set()).update(positions)
-        for salle in salles_etage:
-            ox, oy = salles[salle]["plan"]["origine"]
-            for x, y in murs.get(salle, set()):
-                dessin.setdefault((ox + x, oy + y), "##")
-        souvenirs_niveau = []
-        seuils_visibles = set()
-        portes_souvenues_positions = set()
-        for p, source, direction, sortie, visible_sortie in sorties_connues:
-            if visible_sortie:
+                dessin[libre] = piece["repere"] + " "
+            if piece["connue"]:
+                largeur, hauteur = piece["dimensions"]
+                details_salles.append(f'{piece["repere"]} : {piece["nom"]}'
+                                      + (f" ({largeur} x {hauteur} m)" if piece["entiere"] else ""))
+        for mur in niveau["murs"]:
+            dessin.setdefault(tuple(mur["globale"]), "##")
+        souvenirs_niveau, seuils_visibles, portes_souvenues = [], set(), set()
+        for s in niveau["sorties"]:
+            p = tuple(s["globale"])
+            if s["visible"]:
                 seuils_visibles.add(p)
             elif p in seuils_visibles:
                 continue
-            souvenir_porte = False
-            if sortie.get("escalier"):
-                vers = sortie.get("vers")
-                monte = salles.get(vers, {}).get("niveau", 0) > salles[source].get("niveau", 0)
-                symbole = "^" if monte else "v"
-                escaliers.append((symbole, vers, monte))
-            elif visible_sortie:
-                porte = monde.objets.get(sortie.get("porte"))
-                symbole = symbole_porte_cases(porte) if porte else "."
+            porte = s.get("porte")
+            if "escalier" in s:
+                symbole = "^" if s["escalier"] == "monte" else "v"
+                escaliers.append((symbole, s["vers"], s["escalier"] == "monte", s["vers_nom"]))
+                dessin[p] = symbole + " "
+            elif porte and porte.get("souvenir"):
+                if p not in portes_souvenues:
+                    souvenirs_niveau.append((p, porte["symbole"], False, [ETATS_SOUVENIR_PORTE[porte["symbole"]]]))
+                    portes_souvenues.add(p)
+                dessin[p] = "~" + porte["symbole"]
+            elif s["visible"]:
                 if porte:
-                    passages.add(symbole)
+                    passages.add(porte["symbole"])
+                dessin[p] = (porte["symbole"] if porte else ".") + " "
             else:
-                symbole = monde.data.get("souvenirs_portes", {}).get(sortie.get("porte"))
-                if symbole:
-                    souvenir_porte = True
-                    etat = {"X": "porte verrouillée", "+": "porte fermée",
-                            "/": "porte ouverte", "x": "passage libéré"}[symbole]
-                    if p not in portes_souvenues_positions:
-                        souvenirs_niveau.append((p, symbole, False, [etat]))
-                        portes_souvenues_positions.add(p)
-                else:
-                    symbole = ":"
-            dessin[p] = "~" + symbole if souvenir_porte else symbole + " "
-
-        # A last sighting remains at its observed position until that tile is
-        # seen empty again. Never infer the current location of an unseen item.
-        souvenirs_positions = defaultdict(list)
-        for id, souvenir in monde.data.get("souvenirs_visuels", {}).items():
-            salle = souvenir["salle"]
-            pos = tuple(souvenir["position"])
-            contact = tuple(souvenir.get("contact", souvenir["position"]))
-            ancre_mur = pos != contact
-            if (salle not in salles_etage or contact not in memorisees.get(salle, set())
-                    or (ancre_mur and pos not in murs.get(salle, set()))
-                    or contact in visible.get(salle, set()) or monde.est_porte(id)):
-                continue
-            ox, oy = salles[salle]["plan"]["origine"]
-            if monde.objets.get(id, {}).get("type") == "personnage":
-                # La lettre d'un personnage se recalcule : un ancien aperçu garde la même que sa présence.
-                souvenir = {**souvenir, "symbole": symbole_personnage(monde, monde.objets[id])}
-            souvenirs_positions[(ox + pos[0], oy + pos[1])].append(souvenir)
-        for p, groupe in souvenirs_positions.items():
+                dessin[p] = ": "
+        groupes = defaultdict(list)
+        for souvenir in niveau["souvenirs"]:
+            groupes[tuple(souvenir["globale"])].append(souvenir)
+        for p, groupe in groupes.items():
             symbole = "&" if len(groupe) > 1 else groupe[0]["symbole"]
-            ancre_mur = any(tuple(s["position"]) != tuple(s.get("contact", s["position"]))
-                            for s in groupe)
+            ancre_mur = any(s["ancre_mur"] for s in groupe)
             dessin[p] = symbole + "~" if ancre_mur else "~" + symbole
-            souvenirs_niveau.append((p, symbole, ancre_mur, [souvenir["nom"] for souvenir in groupe]))
-
-        # Current visible objects are positioned through the shared spatial API.
-        # This keeps dropped or picked up items in sync with the world state.
-        objets_positions = defaultdict(list)
-        for objet, salle, pos in objets_visibles_cases(monde, champ):
-            if salle not in salles_etage:
+            souvenirs_niveau.append((p, symbole, ancre_mur, [s["nom"] for s in groupe]))
+        groupes = defaultdict(list)
+        for o in niveau["objets"]:
+            if o["aux_pieds"]:
+                objets_aux_pieds.append(o["nom"])
                 continue
-            if salle == joueur_salle and pos == joueur_pos:
-                objets_aux_pieds.append(objet)
-                continue
-            ox, oy = salles[salle]["plan"]["origine"]
-            p = ox + pos[0], oy + pos[1]
-            objets_positions[(p, salle)].append(objet)
-        for (p, salle_groupe), groupe in objets_positions.items():
-            symbole = "&" if len(groupe) > 1 else symbole_objet_cases(groupe[0], salle_groupe, monde)
-            dessin[p] = symbole + ("#" if any(o.get("ancrage_carte") for o in groupe) else " ")
-            legendes[symbole].extend(designer(objet) for objet in groupe)
-
-        # Ladder endpoints only appear when the support and that endpoint are
-        # known. The same link code on both panels makes a vertical route clear.
-        for support in monde.objets.values():
-            appui = support.get("appui_vertical", {})
-            if not appui:
-                continue
-            if support["id"] not in liens_installes:
-                continue
-            for salle in (appui.get("bas"), appui.get("haut")):
-                if salle not in salles_etage:
-                    continue
-                endpoint = position_cible(monde, support["id"], salle)
-                if endpoint is None:
-                    continue
-                endpoint = tuple(endpoint)
-                if memorisees.get(salle) and endpoint not in memorisees[salle]:
-                    continue
-                code = marqueurs_lien.setdefault(support["id"], f"H{len(marqueurs_lien) + 1}")
-                ox, oy = salles[salle]["plan"]["origine"]
-                dessin[ox + endpoint[0], oy + endpoint[1]] = code
-                echelles.append((code, salle, support["id"]))
-
-        if joueur_salle in salles_etage:
-            ox, oy = salles[joueur_salle]["plan"]["origine"]
-            dessin[ox + joueur_pos[0], oy + joueur_pos[1]] = "@" + REGARD.get(monde.joueur.get("orientation"), " ")
-
+            groupes[(tuple(o["globale"]), o["salle"])].append(o)
+        for (p, _), groupe in groupes.items():
+            symbole = "&" if len(groupe) > 1 else groupe[0]["symbole"]
+            dessin[p] = symbole + ("#" if any(o["ancre_mur"] for o in groupe) else " ")
+            legendes[symbole].extend(o["nom"] for o in groupe)
+        for e in niveau["echelles"]:
+            dessin[tuple(e["globale"])] = e["code"]
+            echelles.append((e["code"], e["salle"], e["nom"]))
+        if joueur["salle"] in {piece["id"] for piece in niveau["salles"]} and "globale" in joueur:
+            dessin[tuple(joueur["globale"])] = "@" + REGARD.get(joueur["orientation"], " ")
         souvenirs_dessines.extend((symbole, noms) for p, symbole, mur, noms in souvenirs_niveau
                                   if dessin.get(p) == (symbole + "~" if mur else "~" + symbole))
-
         if dessin:
             xmin = min(x for x, _ in dessin)
             xmax = max(x for x, _ in dessin)
             ymin = min(y for _, y in dessin)
             ymax = max(y for _, y in dessin)
-            lignes = [f"NIVEAU {niveau:+g} — coordonnées (x, y), 1 case = 1 m",
+            lignes = [f"NIVEAU {niveau['niveau']:+g} — coordonnées (x, y), 1 case = 1 m",
                       "     " + "".join(f"{x:2d}" if x % 5 == 0 else "  " for x in range(xmin, xmax + 1))]
             lignes.extend(f"{y:>4} " + "".join(dessin.get((x, y), "  ") for x in range(xmin, xmax + 1)).rstrip()
                           for y in range(ymin, ymax + 1))
             dessin_panneaux.append("\n".join(lignes))
-
     lignes = ["PLAN — 1 case = 1 m", *dessin_panneaux]
     legende = [" | ".join(dict.fromkeys(details_salles)),
                "@ toi   ## mur   . terrain visible et éclairé" + ("   , terrain visible dans la pénombre (vue courte)"
@@ -441,24 +294,21 @@ def _carte_cases(monde):
                "F6 puis flèches : marcher · Maj+flèches : pas chassé · Alt+flèches : pas feutré · Échap/Entrée : commande",
                "O obstacle solide   ^/v appui vertical   H1 échelle · axes x,y ; une case par pas"]
     if passages:
-        etats = {"X": "porte verrouillée", "+": "porte fermée", "/": "porte ouverte", "x": "passage libéré"}
-        legende.append("   ".join(s + " " + etats[s] for s in sorted(passages)))
+        legende.append("   ".join(s + " " + ETATS_SOUVENIR_PORTE[s] for s in sorted(passages)))
     if legendes:
         legende.append("   ".join(s + " " + enumerer(noms) for s, noms in legendes.items()))
     if souvenirs_dessines:
         legende.append("~ : dernier aperçu, présence ou état actuels non confirmés")
-        legende.append("   ".join("~" + s + " " + enumerer(noms)
-                                   for s, noms in souvenirs_dessines))
-    for symbole, destination, monte in dict.fromkeys(escaliers):
-        phrase = "escalier montant" if monte else "escalier descendant"
-        if memorisees.get(destination):
-            phrase += " vers " + salles[destination]["nom"]
-        legende.append(f"{symbole} {phrase}")
+        legende.append("   ".join("~" + s + " " + enumerer(noms) for s, noms in souvenirs_dessines))
+    for symbole, _, monte, vers_nom in dict.fromkeys(escaliers):
+        legende.append(f"{symbole} " + ("escalier montant" if monte else "escalier descendant")
+                       + (" vers " + vers_nom if vers_nom else ""))
     if objets_aux_pieds:
-        legende.append("À tes pieds (@) : " + enumerer(designer(o) for o in objets_aux_pieds) + ".")
-    for code, salle, support_id in dict.fromkeys(echelles):
-        if salle in monde.data.get("visitees", []) or salle == joueur_salle:
-            legende.append(f"{code} : liaison verticale par {designer(liens_installes[support_id])} à {salles[salle]['nom']}.")
+        legende.append("À tes pieds (@) : " + enumerer(objets_aux_pieds) + ".")
+    salles = monde.data["salles"]
+    for code, salle, nom in dict.fromkeys(echelles):
+        if salle in monde.data.get("visitees", []) or salle == joueur["salle"]:
+            legende.append(f"{code} : liaison verticale par {nom} à {salles[salle]['nom']}.")
     return "\n".join(lignes) + "\n\n=== LEGENDE ===\n" + "\n".join(legende)
 
 

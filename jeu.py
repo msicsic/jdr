@@ -45,6 +45,28 @@ def lancer_tui(argv):
     return SeuilApp(argv).run() or 0
 
 
+def lancer_web(argv, port):
+    """La partie dans le navigateur : un serveur local (127.0.0.1) et la boucle de jeu branchée sur
+    la page par un PontWeb, comme le terminal par son pont."""
+    import threading
+    import webbrowser
+    from donjon.web.pont import PontWeb
+    from donjon.web.serveur import Serveur
+    pont = PontWeb()
+    try:
+        serveur = Serveur(pont, port)
+    except OSError:
+        serveur = Serveur(pont, 0)  # Le port demandé est pris : un autre, libre.
+    threading.Thread(target=serveur.serve_forever, daemon=True).start()
+    print("Le Seuil se joue dans le navigateur : " + serveur.adresse + "  (Ctrl+C ou « quitter » pour finir)")
+    webbrowser.open(serveur.adresse)
+    try:
+        return main([a for a in argv if a != "--web"], interface=pont)
+    finally:
+        pont.termine = True
+        serveur.arreter()
+
+
 def main(argv=None, interface=None):
     charger_env()
     parser = argparse.ArgumentParser(description="Le Seuil — donjon ASCII et maître du jeu IA")
@@ -71,6 +93,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--demo", action="store_true", help="joue une démonstration sans API et sans sauvegarde")
     parser.add_argument("--console", action="store_true", help="ancien affichage ligne par ligne")
     parser.add_argument("--tui", action="store_true", help="interface plein écran")
+    parser.add_argument("--web", action="store_true", help="jouer dans le navigateur (serveur local 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8765, help="port local de --web")
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
@@ -84,6 +108,8 @@ def main(argv=None, interface=None):
         sys.stdout.reconfigure(encoding="utf-8")
     if args.demo:
         return demo()
+    if args.web and interface is None:
+        return lancer_web(list(argv) if argv is not None else sys.argv[1:], args.port)
     if interface is None and not args.console and (args.tui or (sys.stdin.isatty() and sys.stdout.isatty())):
         return lancer_tui(list(argv) if argv is not None else sys.argv[1:])
     imprimer = interface.ecrire if interface else print

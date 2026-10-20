@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-20.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-21.
 
 ## Où on en est
 
@@ -102,7 +102,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Jalon `temps-fin` (`docs/plan-temps.md`) : l'horloge compte à la seconde (minutes et dixièmes) ;
+  les PNJ vivent par événements, geste après geste avec leur durée, et marchent case par case
+  par la règle du pas du joueur ; orientation en huit directions, cône de 120° et côtés
+  immédiats, rotation 0,5 s par huitième de tour ; un pas s'entend à 6 cases et fait se retourner,
+  un pas feutré (3 s) seulement de la case voisine ; tour d'horizon avant un geste sans témoin ;
+  témoins pendant toute la durée d'un geste illicite. Le joueur est sur la même horloge : pas
+  1,5 s, pas chassé (Maj), pas feutré (Alt), « tourner », regard sur la carte ; un geste sur ce
+  qu'il a dans le dos le tourne d'abord ; les sorties connues restent listées. Les scènes de test
+  posent l'orientation avec la position. Banc 4 graines : une nuit ~6 s, aucune violation.
+- Jalon `vue-web` (`docs/plan-vue.md`) : `jeu.py --web` joue dans une page locale (127.0.0.1,
+  commandes refusées d'un autre hôte) avec le même contrat que le terminal. Une scène perçue
+  (`donjon/scene.py`) est la source unique de la carte du terminal et de la page : rien de ce que
+  le joueur ne perçoit pas. La carte dessine chaque objet et personnage (icône, couleur, nom,
+  regard, ce qu'il tient), le degré de lumière de chaque case tel que le moteur le calcule et le
+  cône réel du joueur ; un clic mène à une case (commandes « pas », arrêt si quelqu'un entre dans
+  le champ) ou propose les gestes possibles sur ce qui s'y trouve, en s'approchant d'abord.
+  `banc_pnj --rejeu page.html` enregistre une nuit sans la changer et la rejoue : barre de temps,
+  but, besoins, regard réel et croyances de chaque PNJ (fausses en rouge).
+- La suite de tests passe : 677 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -112,8 +130,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   test sur l'atelier, pas en partie au Relais.
 - **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
-  Prochain jalon décidé : **temps fin et orientation** (`docs/plan-temps.md`), avant les
-  caractères et valeurs.
+  Après le jeu dans le navigateur : les caractères et valeurs.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

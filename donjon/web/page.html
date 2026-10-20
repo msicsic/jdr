@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Seuil</title>
+<style>
+  :root {
+    --fond: #121614; --panneau: #1a201d; --bord: #2c3531; --texte: #dfe6e1; --doux: #93a39a;
+    --pleine: #3e5c49; --pleine2: #43624e; --directe: #314a3b; --directe2: #354f3f;
+    --diffuse: #243a30; --diffuse2: #273e33; --noire: #18221e; --noire2: #1a2520;
+    --memorise: #2a2e2c; --memorise2: #2d3230;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  header { padding: 7px 14px; border-bottom: 1px solid var(--bord); display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; letter-spacing: .5px; }
+  header .etat { color: var(--doux); }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: minmax(0, 1fr) minmax(170px, 34vh);
+         gap: 10px; padding: 10px; height: calc(100% - 40px); }
+  #carte-cadre { background: #0b0d0c; border: 1px solid var(--bord); border-radius: 6px; overflow: auto; outline: none; }
+  #carte-cadre:focus { border-color: #5a6b62; }
+  canvas { display: block; }
+  #carte-texte { margin: 10px; white-space: pre; font: 13px/1.25 Consolas, monospace; }
+  #infobulle { position: fixed; pointer-events: none; background: #0e1210ee; border: 1px solid #44514a; border-radius: 6px;
+               padding: 6px 9px; max-width: 300px; display: none; font-size: 13px; z-index: 5; }
+  #infobulle b { color: #fff; }
+  #menu { position: fixed; background: #141a17; border: 1px solid #4d5c54; border-radius: 6px; padding: 5px; display: none;
+          z-index: 6; min-width: 170px; box-shadow: 0 4px 14px #0008; }
+  #menu .titre { font-size: 12px; color: var(--doux); padding: 4px 6px 2px; }
+  #menu button { display: block; width: 100%; text-align: left; margin: 2px 0; padding: 4px 8px; }
+  .gris { color: var(--doux); }
+  aside { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 10px 12px; overflow: auto; grid-row: 1 / 3; grid-column: 2; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--doux); margin: 6px 0 6px; }
+  aside ul { list-style: none; padding: 0; margin: 0 0 12px; }
+  aside li { display: flex; gap: 8px; align-items: center; padding: 3px 4px; border-radius: 4px; }
+  aside li:hover { background: #2a332e; }
+  aside li .pastille { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  aside li .icone { width: 18px; text-align: center; flex: none; }
+  aside li .sous { color: var(--doux); font-size: 12px; }
+  aside li.souvenir { opacity: .55; }
+  aside label { display: flex; gap: 6px; align-items: center; color: var(--doux); margin-top: 3px; }
+  .legende { display: grid; grid-template-columns: 16px 1fr; gap: 3px 8px; align-items: center; font-size: 12px; color: var(--doux); margin-bottom: 10px; }
+  .legende span.sol { width: 16px; height: 12px; border-radius: 2px; border: 1px solid #0006; }
+  #fiche { white-space: pre-wrap; font-size: 13px; color: #cfd8d2; }
+  #recit { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 8px 12px;
+           display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+  #journal { flex: 1; overflow: auto; min-height: 0; }
+  #journal p { margin: 3px 0; white-space: pre-wrap; }
+  #journal .moi { color: #ddc694; }
+  #proposition { display: none; border: 1px solid #5a5233; background: #26241a; border-radius: 6px; padding: 6px 9px; }
+  #proposition pre { margin: 0 0 6px; white-space: pre-wrap; font: inherit; }
+  #saisie { display: flex; gap: 8px; }
+  #saisie input { flex: 1; background: #0f1311; color: var(--texte); border: 1px solid #3a4540; border-radius: 4px; padding: 7px 9px; font: inherit; }
+  button { background: #2d3a33; color: var(--texte); border: 1px solid #3f4d46; border-radius: 4px; padding: 5px 12px; font: inherit; cursor: pointer; }
+  button.principal { background: #3d5a49; border-color: #57806a; }
+  button:disabled, input:disabled { opacity: .5; cursor: default; }
+  .aide { color: var(--doux); font-size: 12px; }
+  #statut { font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Le Seuil</h1>
+  <span class="etat" id="lieu"></span>
+  <span class="etat" id="compteurs"></span>
+  <span class="etat" id="statut">connexion…</span>
+</header>
+<main>
+  <div id="carte-cadre" tabindex="0"><canvas id="carte"></canvas><div id="carte-texte" hidden></div></div>
+  <aside>
+    <h2>Autour de toi</h2>
+    <ul id="personnes"></ul>
+    <h2>Objets en vue</h2>
+    <ul id="objets"></ul>
+    <h2>Souvenirs</h2>
+    <ul id="souvenirs"></ul>
+    <h2>Affichage</h2>
+    <label><input type="checkbox" id="cones"> cônes de regard des personnages <span class="aide">(sans les obstacles)</span></label>
+    <label><input type="checkbox" id="noms" checked> noms des personnages</label>
+    <h2>Lumière</h2>
+    <div class="legende">
+      <span class="sol" style="background:var(--pleine)"></span>pleine lumière
+      <span class="sol" style="background:var(--directe)"></span>lueur directe d'une source, faible
+      <span class="sol" style="background:var(--diffuse)"></span>lueur diffuse (reflets, pièce voisine)
+      <span class="sol" style="background:var(--noire)"></span>dans le noir, vu de tout près
+      <span class="sol" style="background:var(--memorise)"></span>hors de vue : souvenir
+    </div>
+    <h2>Personnage</h2>
+    <div id="fiche"></div>
+  </aside>
+  <section id="recit">
+    <div id="journal"></div>
+    <div id="proposition"><pre id="proposition-texte"></pre>
+      <button class="principal" id="tenter">Lancer la tentative</button> <button id="annuler">Tout annuler</button></div>
+    <div id="saisie"><input id="commande" autocomplete="off" placeholder="Que fais-tu ?"><button id="envoyer">Envoyer</button></div>
+    <div class="aide">Clic sur la carte : y aller, ou un geste sur ce qui s'y trouve (Échap arrête la marche) · Flèches : marcher (saisie vide ou carte active) · Maj+flèches : pas chassé · Alt+flèches : pas feutré ·
+      « tourner est », « demi-tour » · Haut/Bas dans une saisie : historique · « aide » : commandes</div>
+  </section>
+</main>
+<div id="infobulle"></div>
+<div id="menu"></div>
+<script>
+"use strict";
+const CS = 40;            // pixels par case (1 m)
+const PALETTE = ["#e07a5f", "#7fb8a4", "#c9a0dc", "#7aa6d6", "#e8b84a", "#d68b8b", "#9bc36b"];
+const ICONES = {cle: "🔑", outil: "🔧", nourriture: "🍞", consommable: "🪵", contenant: "📦", tresor: "🔔",
+                motif: "📜", assemblage: "🪜", materiau: "🧱", meuble: "🪨", surface: "⤴️"};
+const NOMS_TYPE = {cle: "clé", outil: "outil", nourriture: "nourriture", consommable: "consommable", contenant: "contenant",
+                   tresor: "objet précieux", motif: "inscription", assemblage: "assemblage", materiau: "matériau",
+                   meuble: "obstacle", surface: "rebord", luminaire: "source de lumière", personnage: "personnage"};
+const SYMBOLES_SOUVENIR = {"*": "🔥", "t": "🕯️", "!": "📜", "O": "🪨", "k": "🔑", "c": "📦", "o": "🔔", "&": "🧰", "H": "🪜", "b": "🧱"};
+const DIRS = {"nord": [0, -1], "sud": [0, 1], "est": [1, 0], "ouest": [-1, 0], "nord-est": [1, -1], "nord-ouest": [-1, -1],
+              "sud-est": [1, 1], "sud-ouest": [-1, 1]};
+const LUMIERES = {pleine: "pleine lumière", directe: "lueur directe, faible", diffuse: "lueur diffuse", noire: "dans le noir"};
+const ETATS_PORTE = {ouverte: "ouverte", fermee: "fermée", verrouillee: "verrouillée", liberee: "passage libéré"};
+const $ = id => document.getElementById(id);
+const canvas = $("carte"), ctx = canvas.getContext("2d");
+let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
+const parCase = {}, sols = {};
+let occupe = true, historique = [], indice = 0, brouillon = "";
+
+function echapper(t) { return String(t).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
+function icone(o) { if (o.type === "luminaire") return o.foyer ? "🔥" : "🕯️"; return ICONES[o.type] || "❔"; }
+function court(nom) { return nom.split(",")[0]; }
+function cle(p) { return p[0] + "," + p[1]; }
+
+// --- Carte ---------------------------------------------------------------------------------
+function preparer(s) {
+  scene = s;
+  if (!s) { niveau = null; return; }
+  niveau = s.niveaux.find(n => n.niveau === s.joueur.niveau) || s.niveaux[0];
+  personnes = niveau.objets.filter(o => o.type === "personnage");
+  const ids = [...new Set(s.niveaux.flatMap(n => [...n.objets.filter(o => o.type === "personnage").map(o => o.id),
+                                                 ...n.souvenirs.filter(x => x.personnage).map(x => x.id)]))].sort();
+  ids.forEach((id, i) => couleur[id] = couleur[id] || PALETTE[Object.keys(couleur).length % PALETTE.length]);
+  const pts = [];
+  niveau.salles.forEach(x => x.cases.forEach(c => pts.push(c.globale)));
+  niveau.murs.forEach(m => pts.push(m.globale));
+  niveau.sorties.forEach(x => pts.push(x.globale));
+  if (s.joueur.globale) pts.push(s.joueur.globale);
+  bornes = {xmin: Math.min(...pts.map(p => p[0])) - 1, ymin: Math.min(...pts.map(p => p[1])) - 1,
+            xmax: Math.max(...pts.map(p => p[0])) + 1, ymax: Math.max(...pts.map(p => p[1])) + 1};
+  const dpr = window.devicePixelRatio || 1, W = (bornes.xmax - bornes.xmin + 1) * CS, H = (bornes.ymax - bornes.ymin + 1) * CS;
+  canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+const X = gx => (gx - bornes.xmin) * CS, Y = gy => (gy - bornes.ymin) * CS;
+function noter(p, chose) { (parCase[cle(p)] = parCase[cle(p)] || []).push(chose); }
+function texteIcone(t, x, y) { ctx.fillStyle = "#000"; ctx.fillText(t, x, y); }  // un emoji prend l'opacité du remplissage
+function iconeSouvenir(s) {
+  const o = niveau.objets.find(x => x.id === s.id);
+  return o ? icone(o) : (SYMBOLES_SOUVENIR[s.symbole] || "❔");
+}
+function fleche(cx, cy, r, orientation, teinte) {
+  const d = DIRS[orientation]; if (!d) return;
+  const a = Math.atan2(d[1], d[0]);
+  ctx.fillStyle = teinte; ctx.beginPath();
+  ctx.moveTo(cx + Math.cos(a) * (r + 7), cy + Math.sin(a) * (r + 7));
+  ctx.lineTo(cx + Math.cos(a + 2.5) * r * .55, cy + Math.sin(a + 2.5) * r * .55);
+  ctx.lineTo(cx + Math.cos(a - 2.5) * r * .55, cy + Math.sin(a - 2.5) * r * .55);
+  ctx.closePath(); ctx.fill();
+}
+function dansLeCone(o, orientation, c) {
+  // La règle du moteur (spatial.dans_le_cone) : 120° devant soi, plus les cases voisines sur les côtés.
+  const f = DIRS[orientation]; if (!f) return true;
+  const dx = c[0] - o[0], dy = c[1] - o[1];
+  if (!dx && !dy) return true;
+  const produit = dx * f[0] + dy * f[1];
+  if (Math.max(Math.abs(dx), Math.abs(dy)) === 1 && produit >= 0) return true;
+  return produit * 2 >= Math.sqrt((dx * dx + dy * dy) * (f[0] * f[0] + f[1] * f[1]));
+}
+function cone(o, orientation, teinte, cases) {
+  // Seulement sur des cases données : celles que tu vois pour toi, celles que tu connais pour un autre.
+  ctx.fillStyle = teinte;
+  cases.forEach(c => { if (dansLeCone(o, orientation, c)) ctx.fillRect(X(c[0]), Y(c[1]), CS, CS); });
+}
+function dessiner() {
+  for (const k in parCase) delete parCase[k];
+  for (const k in sols) delete sols[k];
+  if (!niveau) return;
+  const styles = getComputedStyle(document.documentElement);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  // Le sol : sa couleur dit la lumière (éclairé, pénombre) ou le souvenir.
+  niveau.salles.forEach(s => s.cases.forEach(c => {
+    const alt = (c.globale[0] + c.globale[1]) % 2 ? "2" : "";
+    ctx.fillStyle = styles.getPropertyValue("--" + (c.lumiere || "memorise") + alt);
+    ctx.fillRect(X(c.globale[0]), Y(c.globale[1]), CS, CS);
+    sols[cle(c.globale)] = c.lumiere ? LUMIERES[c.lumiere] : "hors de vue : souvenir";
+  }));
+  niveau.murs.forEach(m => { ctx.fillStyle = "#5c6862"; ctx.fillRect(X(m.globale[0]) + 1, Y(m.globale[1]) + 1, CS - 2, CS - 2); });
+  niveau.sorties.forEach(s => {
+    const x = X(s.globale[0]), y = Y(s.globale[1]);
+    ctx.fillStyle = "#2a2f2c"; ctx.fillRect(x, y, CS, CS);
+    const vers = `<br><span class=gris>vers ${echapper(s.vers_nom || "inexploré")}</span>`;
+    if (s.porte) {
+      ctx.globalAlpha = s.porte.souvenir ? .5 : 1;
+      ctx.strokeStyle = {ouverte: "#6fbf8e", fermee: "#c99a5b", verrouillee: "#d16060", liberee: "#8a8a8a"}[s.porte.etat];
+      ctx.lineWidth = 4; ctx.strokeRect(x + 5, y + 5, CS - 10, CS - 10);
+      if (s.porte.etat === "verrouillee") { ctx.font = "16px serif"; texteIcone("🔒", x + CS / 2, y + CS / 2 + 6); }
+      ctx.globalAlpha = 1;
+      noter(s.globale, `<b>${echapper(s.porte.nom)}</b><br>${ETATS_PORTE[s.porte.etat]}` + (s.porte.souvenir ? " <span class=gris>(dernier aperçu)</span>" : "") + vers);
+    } else if (s.escalier) {
+      ctx.font = "20px serif"; texteIcone(s.escalier === "monte" ? "⬆️" : "⬇️", x + CS / 2, y + CS / 2 + 7);
+      noter(s.globale, `<b>escalier ${s.escalier === "monte" ? "montant" : "descendant"}</b>` + vers);
+    } else {
+      noter(s.globale, "<b>passage</b>" + vers);
+    }
+  });
+  niveau.salles.forEach(s => {
+    if (!s.cases.length || !s.connue) return;
+    const mx = s.cases.reduce((a, c) => a + c.globale[0], 0) / s.cases.length, my = s.cases.reduce((a, c) => a + c.globale[1], 0) / s.cases.length;
+    ctx.font = "600 13px system-ui"; ctx.fillStyle = "rgba(230,240,235,.28)";
+    ctx.fillText(s.nom.toUpperCase(), X(mx) + CS / 2, Y(my) + CS / 2);
+  });
+  const j = scene.joueur;
+  const vues = [], connues = [];
+  niveau.salles.forEach(s => s.cases.forEach(c => { connues.push(c.globale); if (c.lumiere) vues.push(c.globale); }));
+  if (j.globale && j.niveau === niveau.niveau) cone(j.globale, j.orientation, "rgba(255,209,102,.09)", vues);
+  if ($("cones").checked) personnes.forEach(p => cone(p.globale, p.orientation, couleur[p.id] + "26",
+    connues.filter(c => Math.max(Math.abs(c[0] - p.globale[0]), Math.abs(c[1] - p.globale[1])) <= 6)));
+  niveau.souvenirs.forEach(s => {
+    const x = X(s.globale[0]), y = Y(s.globale[1]);
+    ctx.globalAlpha = .4;
+    if (s.personnage) {
+      ctx.setLineDash([3, 3]); ctx.strokeStyle = couleur[s.id]; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x + CS / 2, y + CS / 2, CS * .32, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    } else {
+      ctx.font = (s.ancre_mur ? 15 : 20) + "px serif"; texteIcone(iconeSouvenir(s), x + CS / 2, y + CS / 2 + 7);
+    }
+    ctx.globalAlpha = 1;
+    noter(s.globale, `<b>${echapper(s.nom)}</b><br><span class=gris>vu ici ; présence actuelle non confirmée</span>`);
+  });
+  const groupes = {};
+  niveau.objets.filter(o => o.type !== "personnage").forEach(o => (groupes[cle(o.globale)] = groupes[cle(o.globale)] || []).push(o));
+  Object.values(groupes).forEach(g => {
+    const o = g[0], x = X(o.globale[0]), y = Y(o.globale[1]);
+    const surPersonne = personnes.some(p => cle(p.globale) === cle(o.globale)) || (j.globale && cle(j.globale) === cle(o.globale));
+    if (g.length === 1) {
+      ctx.font = (o.ancre_mur ? 17 : surPersonne ? 15 : 22) + "px serif";
+      texteIcone(icone(o), x + CS / 2 + (surPersonne ? CS * .28 : 0), y + CS / 2 + 8 - (surPersonne ? CS * .26 : 0));
+    } else {
+      // Une pile : chaque objet en petit ; le liseré la signale sans couvrir la couleur de la lumière.
+      const montres = g.length > 4 ? g.slice(0, 3) : g;
+      const places = montres.length === 2 ? [[.27, .5], [.73, .5]] : [[.27, .29], [.73, .29], [.27, .73], [.73, .73]];
+      ctx.strokeStyle = "rgba(233,210,122,.75)"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 2.5, y + 2.5, CS - 5, CS - 5);
+      ctx.font = "17px serif";
+      montres.forEach((m, i) => texteIcone(icone(m), x + CS * places[i][0], y + CS * places[i][1] + 6));
+      if (g.length > 4) { ctx.fillStyle = "#e9d27a"; ctx.font = "bold 11px system-ui"; ctx.fillText("+" + (g.length - 3), x + CS * .73, y + CS * .73 + 4); }
+    }
+    if (g.some(m => m.ancre_mur)) { ctx.setLineDash([2, 3]); ctx.strokeStyle = "#aab"; ctx.lineWidth = 1; ctx.strokeRect(x + 3, y + 3, CS - 6, CS - 6); ctx.setLineDash([]); }
+    g.forEach(m => noter(m.globale, `${icone(m)} <b>${echapper(m.nom)}</b><br><span class=gris>${NOMS_TYPE[m.type] || m.type}` +
+      (m.allume ? (m.faible ? ", allumé, il baisse" : ", allumé") : "") + (m.ancre_mur ? ", fixé au mur" : "") + (m.aux_pieds ? ", à tes pieds" : "") + "</span>"));
+  });
+  personnes.forEach(p => {
+    const cx = X(p.globale[0]) + CS / 2, cy = Y(p.globale[1]) + CS / 2, r = CS * .32;
+    ctx.fillStyle = couleur[p.id]; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill();
+    fleche(cx, cy, r, p.orientation, "#fff");
+    (p.porte || []).forEach((x, i) => { ctx.font = "13px serif"; texteIcone(icone(x), cx - r + 2 + i * 12, cy + r + 2); });
+    if ($("noms").checked) {
+      ctx.font = "600 12px system-ui";
+      const n = court(p.nom), w = ctx.measureText(n).width + 8;
+      ctx.fillStyle = "rgba(10,12,11,.75)"; ctx.fillRect(cx - w / 2, cy - r - 19, w, 15);
+      ctx.fillStyle = couleur[p.id]; ctx.fillText(n, cx, cy - r - 8);
+    }
+    noter(p.globale, `<span style="color:${couleur[p.id]}">●</span> <b>${echapper(p.nom)}</b><br><span class=gris>regarde vers le ${p.orientation}` +
+      ((p.porte || []).length ? "<br>tient : " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span>");
+  });
+  if (j.globale && j.niveau === niveau.niveau) {
+    const cx = X(j.globale[0]) + CS / 2, cy = Y(j.globale[1]) + CS / 2, r = CS * .34;
+    ctx.fillStyle = "#ffd166"; ctx.strokeStyle = "#5a4310"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    fleche(cx, cy, r, j.orientation, "#3b2a05");
+    noter(j.globale, `<b>Toi</b><br><span class=gris>tu regardes vers le ${j.orientation}</span>`);
+  }
+  if (surligne) {
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.arc(X(surligne[0]) + CS / 2, Y(surligne[1]) + CS / 2, CS * .55, 0, 2 * Math.PI); ctx.stroke();
+  }
+}
+function listes() {
+  for (const id of ["personnes", "objets", "souvenirs"]) $(id).innerHTML = "";
+  if (!niveau) return;
+  const ligne = (liste, html, globale, classe) => {
+    const li = document.createElement("li"); li.innerHTML = html; if (classe) li.className = classe;
+    li.onmouseenter = () => { surligne = globale; dessiner(); };
+    li.onmouseleave = () => { surligne = null; dessiner(); };
+    $(liste).appendChild(li);
+  };
+  personnes.forEach(p => ligne("personnes", `<span class="pastille" style="background:${couleur[p.id]}"></span><span>${echapper(p.nom)}<br><span class="sous">regarde vers le ${p.orientation}` +
+    ((p.porte || []).length ? " · tient " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span></span>", p.globale));
+  if (!personnes.length) ligne("personnes", "<span class=sous>personne en vue</span>", null);
+  niveau.objets.filter(o => o.type !== "personnage").forEach(o => ligne("objets", `<span class="icone">${icone(o)}</span><span>${echapper(o.nom)}<br><span class="sous">${NOMS_TYPE[o.type] || o.type}${o.allume ? ", allumé" : ""}${o.ancre_mur ? ", au mur" : ""}${o.aux_pieds ? ", à tes pieds" : ""}</span></span>`, o.globale));
+  niveau.souvenirs.forEach(s => ligne("souvenirs", s.personnage
+    ? `<span class="pastille" style="background:${couleur[s.id]}"></span><span>${echapper(s.nom)}</span>`
+    : `<span class="icone">${iconeSouvenir(s)}</span><span>${echapper(s.nom)}</span>`, s.globale, "souvenir"));
+}
+
+// --- Récit, état, commandes ---------------------------------------------------------------
+function ajouterLigne(texte) {
+  const journal = $("journal"), suivre = journal.scrollTop + journal.clientHeight >= journal.scrollHeight - 30;
+  const p = document.createElement("p"); p.textContent = texte;
+  if (texte.startsWith("Corvus > ")) p.className = "moi";
+  journal.appendChild(p);
+  while (journal.children.length > 500) journal.removeChild(journal.firstChild);
+  if (suivre) journal.scrollTop = journal.scrollHeight;
+}
+function appliquerEtat(e) {
+  $("lieu").textContent = e.salle;
+  $("compteurs").textContent = `PV ${e.pv} · ${e.or} pièces · ${e.minutes} min · MJ : ${e.connexion}`;
+  $("fiche").textContent = e.fiche;
+  $("proposition").style.display = e.proposition ? "block" : "none";
+  $("proposition-texte").textContent = e.proposition;
+  if (e.scene) {
+    $("carte-texte").hidden = true; canvas.hidden = false;
+    preparer(e.scene); dessiner(); listes();
+  } else {
+    canvas.hidden = true; $("carte-texte").hidden = false; $("carte-texte").textContent = e.carte_texte;
+    preparer(null); listes();
+  }
+}
+function etatOccupe(oui) {
+  occupe = oui;
+  $("commande").disabled = oui; $("envoyer").disabled = oui; $("tenter").disabled = oui; $("annuler").disabled = oui;
+  $("statut").textContent = oui ? "En cours…" : "À toi de jouer";
+  if (!oui && document.activeElement !== $("carte-cadre")) $("commande").focus();
+}
+async function envoyer(texte, historiser = true) {
+  texte = texte.trim();
+  if (!texte || occupe) return;
+  if (historiser) { historique.push(texte); historique = historique.slice(-100); indice = historique.length; brouillon = ""; }
+  etatOccupe(true);
+  try {
+    const r = await fetch("/commande", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({texte})});
+    if (r.status === 409) $("statut").textContent = "Attends la fin de l'action en cours.";
+  } catch (err) { $("statut").textContent = "Le jeu ne répond plus."; }
+}
+const flux = new EventSource("/flux");
+flux.onmessage = m => {
+  const e = JSON.parse(m.data);
+  if (e.type === "ligne") ajouterLigne(e.texte);
+  else if (e.type === "etat") appliquerEtat(e);
+  else if (e.type === "pret") { etatOccupe(false); poursuivre(); }
+  else if (e.type === "occupe") etatOccupe(true);
+};
+flux.onerror = () => { $("statut").textContent = "Partie terminée ou interrompue."; etatOccupe(true); };
+
+$("envoyer").onclick = () => { envoyer($("commande").value); $("commande").value = ""; };
+$("tenter").onclick = () => envoyer("tenter");
+$("annuler").onclick = () => envoyer("annuler");
+$("cones").onchange = dessiner;
+$("noms").onchange = dessiner;
+const FLECHES = {ArrowUp: "nord", ArrowDown: "sud", ArrowRight: "est", ArrowLeft: "ouest"};
+document.addEventListener("keydown", ev => {
+  const saisie = $("commande"), dansSaisie = document.activeElement === saisie;
+  if (ev.key === "Escape") { arreter(marche ? "Tu t'arrêtes." : null); fermerMenu(); return; }
+  if (dansSaisie && ev.key === "Enter") { arreter(null); envoyer(saisie.value); saisie.value = ""; ev.preventDefault(); return; }
+  const dir = FLECHES[ev.key];
+  if (!dir) return;
+  // Haut/Bas dans une saisie non vide : l'historique, comme au terminal.
+  if (dansSaisie && saisie.value && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && !ev.shiftKey && !ev.altKey) {
+    if (indice === historique.length) brouillon = saisie.value;
+    indice = Math.max(0, Math.min(historique.length, indice + (ev.key === "ArrowUp" ? -1 : 1)));
+    saisie.value = indice < historique.length ? historique[indice] : brouillon;
+    ev.preventDefault(); return;
+  }
+  if (dansSaisie && saisie.value) return;
+  ev.preventDefault();
+  envoyer((ev.altKey ? "faufiler " : ev.shiftKey ? "chasse " : "pas ") + dir, false);
+});
+const bulle = $("infobulle");
+canvas.addEventListener("mousemove", e => {
+  if (!bornes) return;
+  const r = canvas.getBoundingClientRect();
+  const gx = Math.floor((e.clientX - r.left) / CS) + bornes.xmin, gy = Math.floor((e.clientY - r.top) / CS) + bornes.ymin;
+  const choses = parCase[gx + "," + gy];
+  if (!choses && !sols[gx + "," + gy]) { bulle.style.display = "none"; return; }
+  const sol = sols[gx + "," + gy];
+  bulle.innerHTML = [...new Set(choses || [])].join("<hr style='border:0;border-top:1px solid #333;margin:5px 0'>") +
+    (sol ? `<div class=gris style="font-size:12px;margin-top:${choses ? 5 : 0}px">${sol}</div>` : "");
+  bulle.style.display = "block"; bulle.style.left = (e.clientX + 14) + "px"; bulle.style.top = (e.clientY + 14) + "px";
+});
+canvas.addEventListener("mouseleave", () => bulle.style.display = "none");
+
+// --- Agir par clic : chaque choix devient la commande qu'on taperait --------------------------
+const VERS = Object.fromEntries(Object.entries(DIRS).map(([nom, d]) => [d.join(","), nom]));
+let marche = null;
+function praticables() {
+  // Le sol que tu connais, sans personne ni obstacle vu ou dont tu te souviens.
+  const ok = new Set();
+  niveau.salles.forEach(s => s.cases.forEach(c => ok.add(cle(c.globale))));
+  personnes.forEach(p => ok.delete(cle(p.globale)));
+  niveau.objets.filter(o => o.bloque_passage).forEach(o => ok.delete(cle(o.globale)));
+  niveau.souvenirs.filter(s => s.personnage || s.bloque_passage).forEach(s => ok.delete(cle(s.globale)));
+  return ok;
+}
+function passages() {
+  // Un seuil se franchit d'un pas droit, de la case intérieure d'un côté à celle de l'autre (spatial.pas_vers).
+  const liens = {};
+  niveau.sorties.forEach(s => {
+    if (s.escalier || (s.porte && !["ouverte", "liberee"].includes(s.porte.etat))) return;
+    const d = DIRS[s.direction], g = s.globale;
+    (liens[cle([g[0] - d[0], g[1] - d[1]])] = liens[cle([g[0] - d[0], g[1] - d[1]])] || []).push([s.direction, [g[0] + d[0], g[1] + d[1]]]);
+  });
+  return liens;
+}
+function chemin(depart, arrivee) {
+  // Le plus court en pas sur ce que tu connais : diagonales sans couper l'angle d'un mur, seuils franchis droit.
+  // ``arrivee`` : une case, ou une fonction qui dit si une case convient.
+  const ok = praticables(), liens = passages();
+  const convient = typeof arrivee === "function" ? arrivee : q => cle(q) === cle(arrivee);
+  const precedent = {[cle(depart)]: null}, file = [depart];
+  let fin = convient(depart) ? depart : null;
+  while (file.length && !fin) {
+    const p = file.shift();
+    const voisins = Object.entries(DIRS).map(([nom, d]) => [nom, [p[0] + d[0], p[1] + d[1]], d])
+      .filter(([, q, d]) => !(d[0] && d[1]) || ok.has(cle([p[0] + d[0], p[1]])) && ok.has(cle([p[0], p[1] + d[1]])))
+      .concat((liens[cle(p)] || []).map(([nom, q]) => [nom, q]));
+    for (const [nom, q] of voisins) {
+      if (!ok.has(cle(q)) || cle(q) in precedent) continue;
+      precedent[cle(q)] = [p, nom]; file.push(q);
+      if (convient(q)) { fin = q; break; }
+    }
+  }
+  if (!fin) return null;
+  const pas = [];
+  for (let q = fin; precedent[cle(q)]; q = precedent[cle(q)][0]) pas.unshift(precedent[cle(q)][1]);
+  return pas;
+}
+function arreter(message) {
+  if (marche && message) ajouterLigne(message);
+  marche = null;
+}
+function poursuivre() {
+  // Un pas à la fois : on s'arrête si le pas n'a pas eu lieu, si quelqu'un entre dans ton champ, ou si le MJ attend.
+  if (!marche || !scene) return;
+  const ici = cle(scene.joueur.globale || []);
+  if (marche.ici !== null && ici === marche.ici) return arreter("Tu t'arrêtes : ce pas n'a pas pu se faire.");
+  const nouveau = personnes.find(p => !marche.vus.has(p.id));
+  if (nouveau) return arreter(`Tu t'arrêtes : ${court(nouveau.nom)} entre dans ton champ.`);
+  if ($("proposition").style.display === "block") return arreter(null);
+  if (!marche.pas.length) { const puis = marche.puis; arreter(null); if (puis) envoyer(puis); return; }
+  marche.ici = ici;
+  envoyer("pas " + marche.pas.shift(), false);
+}
+function allerA(g, puis = null) {
+  // ``puis`` : la commande à donner une fois arrivé (un geste qui demande d'être à portée de main).
+  const pas = scene.joueur.globale && chemin(scene.joueur.globale, g);
+  if (!pas) { ajouterLigne("Tu ne connais pas de chemin jusque-là."); return; }
+  marche = {pas, vus: new Set(personnes.map(p => p.id)), ici: null, puis};
+  poursuivre();
+}
+const A_DISTANCE = ["examiner", "lire", "parler"];   // le reste se fait sur la case ou juste à côté
+function aPortee(g, commande) {
+  const j = scene.joueur.globale;
+  if (A_DISTANCE.includes(commande.split(" ")[0]) || Math.max(Math.abs(j[0] - g[0]), Math.abs(j[1] - g[1])) <= 1) {
+    arreter(null); envoyer(commande); return;
+  }
+  allerA(q => Math.max(Math.abs(q[0] - g[0]), Math.abs(q[1] - g[1])) <= 1, commande);
+}
+function vers(g) {
+  const j = scene.joueur.globale, a = Math.atan2(g[1] - j[1], g[0] - j[0]);
+  return VERS[[Math.round(Math.cos(a)), Math.round(Math.sin(a))].join(",")];
+}
+function gestes(o) {
+  const liste = [["examiner", "Examiner"]];
+  if (o.type === "personnage") return [...liste, ["parler", "Lui parler"]];
+  if (o.type === "motif") liste.push(["lire", "Lire"]);
+  if (o.type === "luminaire") liste.push(o.allume ? ["eteindre", "Éteindre"] : ["allumer", "Allumer"]);
+  if (o.type === "nourriture") liste.push(["manger", "Manger"]);
+  if (o.type === "contenant") liste.push(["ouvrir", "Ouvrir"], ["fermer", "Fermer"]);
+  if (o.mobile) liste.push(["prendre", "Prendre"]);
+  return liste;
+}
+function gestesPorte(p) {
+  const liste = [["examiner", "Examiner"]];
+  if (p.etat === "fermee") liste.push(["ouvrir", "Ouvrir"]);
+  if (p.etat === "ouverte") liste.push(["fermer", "Fermer"]);
+  if (p.etat === "verrouillee") liste.push(["deverrouiller", "Déverrouiller"], ["crocheter", "Crocheter"]);
+  return liste;
+}
+function fermerMenu() { $("menu").style.display = "none"; }
+function ouvrirMenu(x, y, sections) {
+  const menu = $("menu");
+  menu.innerHTML = "";
+  sections.forEach(([titre, choix]) => {
+    if (titre) { const d = document.createElement("div"); d.className = "titre"; d.textContent = titre; menu.appendChild(d); }
+    choix.forEach(([libelle, action]) => {
+      const b = document.createElement("button"); b.textContent = libelle;
+      b.onclick = () => { fermerMenu(); action(); }; menu.appendChild(b);
+    });
+  });
+  menu.style.display = "block";
+  menu.style.left = Math.min(x, window.innerWidth - 200) + "px";
+  menu.style.top = Math.max(8, Math.min(y, window.innerHeight - menu.offsetHeight - 8)) + "px";
+}
+function choixCase(g) {
+  // Ce qu'on peut faire sur une case : un geste par chose qui s'y trouve, y aller, regarder par là.
+  const k = cle(g), j = scene.joueur.globale, ici = j && cle(j) === k;
+  const commande = texte => () => { arreter(null); envoyer(texte); };
+  const geste = texte => () => aPortee(g, texte);
+  const sections = [];
+  niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
+    sections.push([o.nom, gestes(o).map(([verbe, libelle]) => [libelle, geste(`${verbe} ${o.id}`), `${verbe} ${o.id}`])]));
+  niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
+    sections.push([s.porte.nom, gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(`${verbe} ${s.porte.id}`), `${verbe} ${s.porte.id}`])]));
+  const autres = [];
+  if (!ici && praticables().has(k)) autres.push(["Aller ici", () => allerA(g), "aller"]);
+  if (!ici && j && vers(g)) autres.push(["Regarder par là", commande("tourner " + vers(g)), "tourner " + vers(g)]);
+  return {sections, autres};
+}
+canvas.addEventListener("click", e => {
+  if (!bornes || !scene || occupe) return;
+  const r = canvas.getBoundingClientRect();
+  const g = [Math.floor((e.clientX - r.left) / CS) + bornes.xmin, Math.floor((e.clientY - r.top) / CS) + bornes.ymin];
+  const {sections, autres} = choixCase(g);
+  e.stopPropagation();
+  // Une case de sol libre : on y va tout de suite, sans menu.
+  if (!sections.length && autres.length && autres[0][0] === "Aller ici") { fermerMenu(); allerA(g); return; }
+  if (autres.length) sections.push([sections.length ? "Ici" : "", autres]);
+  if (sections.length) ouvrirMenu(e.clientX + 6, e.clientY + 6, sections); else fermerMenu();
+});
+document.addEventListener("click", e => { if (!$("menu").contains(e.target)) fermerMenu(); });
+</script>
+</body>
+</html>
