@@ -157,10 +157,11 @@ def main(argv=None):
     parser.add_argument("--connexion", choices=("chatgpt", "api"), default="chatgpt")
     parser.add_argument("--sortie", help="fichier JSON où écrire chronique, récit et mesures")
     parser.add_argument("--chronique", action="store_true", help="imprime aussi chaque pas")
+    parser.add_argument("--rejeu", help="page HTML où rejouer la nuit (positions, regards, buts, croyances)")
     args = parser.parse_args(argv)
     if args.graines:
-        if args.stratege:
-            parser.error("le stratège consulte Luna, une nuit à la fois : --graine, pas --graines")
+        if args.stratege or args.rejeu:
+            parser.error("le stratège et le rejeu suivent une nuit à la fois : --graine, pas --graines")
         resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
@@ -178,7 +179,11 @@ def main(argv=None):
             monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
         from .recit_pnj import Recit
         recit = Recit(monde)
-        chronique, mesures = executer(monde, int(args.heures * 60), recit)
+        from contextlib import nullcontext
+        from .rejeu import Enregistreur
+        enregistreur = Enregistreur(monde) if args.rejeu else None
+        with enregistreur.observer() if enregistreur else nullcontext():
+            chronique, mesures = executer(monde, int(args.heures * 60), recit)
     finally:
         stratege.activer(None)
     if args.chronique:
@@ -193,6 +198,12 @@ def main(argv=None):
         but = e["intention"]["but"] if e["intention"] else None
         print(f'{monde.objets[id]["nom"]} : {besoins or "sans profil"} ; intention : {but}')
     print("Mesures :", ", ".join(f"{k} {v}" for k, v in mesures.items()))
+    if args.rejeu:
+        from .rejeu import page
+        titre = f"Rejeu : {args.scenario}, graine {args.graine}, {args.heures:g} h"
+        with open(args.rejeu, "w", encoding="utf-8") as f:
+            f.write(page(enregistreur.donnees(monde, chronique, titre)))
+        print("Rejeu :", args.rejeu)
     if args.sortie:
         with open(args.sortie, "w", encoding="utf-8") as f:
             json.dump({"graine": args.graine, "heures": args.heures, "stratege": args.stratege,

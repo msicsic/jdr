@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rejeu du banc</title>
+<style>
+  :root { --fond: #121614; --panneau: #1a201d; --bord: #2c3531; --texte: #dfe6e1; --doux: #93a39a; --sol: #2f4337; --sol2: #33493c; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  header { padding: 7px 14px; border-bottom: 1px solid var(--bord); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; }
+  #heure { font: 600 15px Consolas, monospace; min-width: 92px; }
+  #temps { flex: 1; min-width: 200px; }
+  button, select { background: #2d3a33; color: var(--texte); border: 1px solid #3f4d46; border-radius: 4px; padding: 4px 10px; font: inherit; cursor: pointer; }
+  button.actif { background: #3d5a49; border-color: #57806a; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: minmax(0, 1fr) minmax(140px, 28vh);
+         gap: 10px; padding: 10px; height: calc(100% - 46px); }
+  #carte-cadre { background: #0b0d0c; border: 1px solid var(--bord); border-radius: 6px; overflow: auto; position: relative; }
+  #niveaux { position: sticky; top: 6px; left: 6px; display: flex; gap: 4px; padding: 6px; z-index: 2; width: max-content; }
+  canvas { display: block; cursor: pointer; }
+  aside { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 10px 12px; overflow: auto; grid-row: 1 / 3; grid-column: 2; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--doux); margin: 8px 0 6px; }
+  .pnj { padding: 6px; border-radius: 5px; cursor: pointer; border: 1px solid transparent; margin-bottom: 3px; }
+  .pnj:hover { background: #242c28; }
+  .pnj.choisi { border-color: #6b7d73; background: #222a26; }
+  .pnj .nom { font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .pastille { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
+  .but { color: #cfd8d2; font-size: 13px; }
+  .motif { color: var(--doux); font-size: 12px; }
+  .besoins { display: flex; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--doux); margin-top: 2px; }
+  .jauge { display: inline-block; width: 34px; height: 5px; background: #333; border-radius: 3px; vertical-align: middle; margin-left: 3px; overflow: hidden; }
+  .jauge i { display: block; height: 100%; }
+  #croyances { font-size: 12.5px; }
+  #croyances div { padding: 1px 0; }
+  .faux { color: #e59a8a; }
+  .gris { color: var(--doux); }
+  #journal { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 8px 12px; overflow: auto; font-size: 13px; }
+  #journal p { margin: 2px 0; }
+  #journal .min { color: var(--doux); font-family: Consolas, monospace; margin-right: 6px; }
+  #journal .maintenant { color: #fff; }
+  #infobulle { position: fixed; pointer-events: none; background: #0e1210ee; border: 1px solid #44514a; border-radius: 6px;
+               padding: 6px 9px; max-width: 320px; display: none; font-size: 13px; z-index: 5; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="titre">Rejeu</h1>
+  <button id="lecture">▶</button>
+  <select id="vitesse">
+    <option value="100">10 s par seconde</option>
+    <option value="600" selected>1 min par seconde</option>
+    <option value="3000">5 min par seconde</option>
+    <option value="12000">20 min par seconde</option>
+  </select>
+  <span id="heure"></span>
+  <input type="range" id="temps" min="0" value="0">
+  <span class="gris">Clic sur un personnage : son regard et ce qu'il croit · ←/→ : une minute</span>
+</header>
+<main>
+  <div id="carte-cadre"><div id="niveaux"></div><canvas id="carte"></canvas></div>
+  <aside>
+    <h2>Personnages</h2>
+    <div id="pnjs"></div>
+    <h2 id="titre-croyances" hidden>Ce qu'il croit</h2>
+    <div id="croyances"></div>
+  </aside>
+  <section id="journal"></section>
+</main>
+<div id="infobulle"></div>
+<script>
+"use strict";
+const D = /*DONNEES*/null;
+const CS = 34;
+const PALETTE = ["#e07a5f", "#7fb8a4", "#c9a0dc", "#7aa6d6", "#e8b84a", "#d68b8b", "#9bc36b", "#8fd3e8", "#f2a65a"];
+const ICONES = {cle: "🔑", outil: "🔧", nourriture: "🍞", consommable: "🪵", contenant: "📦", tresor: "🔔",
+                motif: "📜", assemblage: "🪜", materiau: "🧱", meuble: "🪨", surface: "⤴️"};
+const DIRS = {"nord": [0, -1], "sud": [0, 1], "est": [1, 0], "ouest": [-1, 0], "nord-est": [1, -1], "nord-ouest": [-1, -1],
+              "sud-est": [1, 1], "sud-ouest": [-1, 1]};
+const $ = id => document.getElementById(id);
+const canvas = $("carte"), ctx = canvas.getContext("2d");
+const couleur = {};
+D.personnages.forEach((id, i) => couleur[id] = PALETTE[i % PALETTE.length]);
+let t = 0, niveau = null, choisi = null, lecture = false, bornes = null;
+const parCase = {};
+
+function echapper(x) { return String(x).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
+function icone(id) {
+  const o = D.objets[id];
+  if (o.type === "luminaire") return o.foyer ? "🔥" : "🕯️";
+  return ICONES[o.type] || "❔";
+}
+function chez(id) {
+  // Une chose chez quelqu'un, ou dans un contenant.
+  return D.objets[id].type === "personnage" ? "chez " + court(id) : "dans " + D.objets[id].nom;
+}
+function marque(id) {
+  return D.objets[id].type === "personnage" ? `<span class="pastille" style="background:${couleur[id] || "#999"}"></span>` : icone(id);
+}
+function court(id) { return D.objets[id].nom.split(",")[0].replace(/^(le|la|les|l')\s*/i, "").replace(/^./, c => c.toUpperCase()); }
+function heure(dix) {
+  const m = Math.floor(dix / D.minute), s = Math.floor(dix % D.minute / 10);
+  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min ${String(s).padStart(2, "0")} s`;
+}
+
+// --- L'état à un instant : chaque piste appliquée jusqu'à t ---------------------------------
+function rejouer(piste, jusqua) {
+  const etat = {};
+  for (const [instant, changes] of piste) {
+    if (instant > jusqua) break;
+    for (const k in changes) { if (changes[k] === null) delete etat[k]; else etat[k] = changes[k]; }
+  }
+  return etat;
+}
+function globale(salle, c) { const s = D.salles[salle]; return s && c ? [s.origine[0] + c[0], s.origine[1] + c[1]] : null; }
+function place(etats, id, profondeur = 0) {
+  // Où est une chose : sa case dans une salle, ou celle de qui la porte ou la contient.
+  const e = etats[id]; if (!e || profondeur > 5) return null;
+  const lieu = e[0];
+  if (D.salles[lieu]) return e[1] ? {salle: lieu, g: globale(lieu, e[1])} : null;
+  if (etats[lieu]) { const p = place(etats, lieu, profondeur + 1); return p && {...p, porte_par: lieu}; }
+  return null;
+}
+
+// --- Carte -----------------------------------------------------------------------------------
+const niveaux = [...new Set(D.cases.map(c => c[0]))].sort((a, b) => a - b);
+function preparer() {
+  const pts = D.cases.filter(c => c[0] === niveau);
+  Object.values(D.salles).filter(s => s.niveau === niveau).forEach(s => s.sorties.forEach(x => pts.push([niveau, ...x.globale])));
+  bornes = {xmin: Math.min(...pts.map(p => p[1])) - 1, ymin: Math.min(...pts.map(p => p[2])) - 1,
+            xmax: Math.max(...pts.map(p => p[1])) + 1, ymax: Math.max(...pts.map(p => p[2])) + 1};
+  const dpr = window.devicePixelRatio || 1, W = (bornes.xmax - bornes.xmin + 1) * CS, H = (bornes.ymax - bornes.ymin + 1) * CS;
+  canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  $("niveaux").innerHTML = "";
+  if (niveaux.length > 1) niveaux.forEach(n => {
+    const b = document.createElement("button"); b.textContent = "niveau " + n; if (n === niveau) b.className = "actif";
+    b.onclick = () => { niveau = n; preparer(); dessiner(); }; $("niveaux").appendChild(b);
+  });
+}
+const X = gx => (gx - bornes.xmin) * CS, Y = gy => (gy - bornes.ymin) * CS;
+const cle = p => p[0] + "," + p[1];
+function noter(p, html) { (parCase[cle(p)] = parCase[cle(p)] || []).push(html); }
+function texteIcone(x, cx, cy) { ctx.fillStyle = "#000"; ctx.fillText(x, cx, cy); }
+function fleche(cx, cy, r, orientation, teinte) {
+  const d = DIRS[orientation]; if (!d) return;
+  const a = Math.atan2(d[1], d[0]);
+  ctx.fillStyle = teinte; ctx.beginPath();
+  ctx.moveTo(cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6));
+  ctx.lineTo(cx + Math.cos(a + 2.5) * r * .55, cy + Math.sin(a + 2.5) * r * .55);
+  ctx.lineTo(cx + Math.cos(a - 2.5) * r * .55, cy + Math.sin(a - 2.5) * r * .55);
+  ctx.closePath(); ctx.fill();
+}
+function dessiner() {
+  for (const k in parCase) delete parCase[k];
+  const etats = rejouer(D.etats, t), vues = rejouer(D.vues, t), esprits = rejouer(D.esprits, t);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  const sol = new Set();
+  D.cases.forEach(c => { if (c[0] !== niveau) return; sol.add(c[1] + "," + c[2]);
+    ctx.fillStyle = (c[1] + c[2]) % 2 ? "#33493c" : "#2f4337"; ctx.fillRect(X(c[1]), Y(c[2]), CS, CS); });
+  const seuils = new Set();
+  Object.entries(D.salles).forEach(([id, s]) => { if (s.niveau !== niveau) return;
+    s.sorties.forEach(x => { seuils.add(cle(x.globale)); });
+  });
+  // Les murs : ce qui borde le sol sans être ni sol ni seuil.
+  ctx.fillStyle = "#5c6862";
+  for (const k of sol) { const [x, y] = k.split(",").map(Number);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      const v = (x + dx) + "," + (y + dy);
+      if (!sol.has(v) && !seuils.has(v)) ctx.fillRect(X(x + dx) + 1, Y(y + dy) + 1, CS - 2, CS - 2);
+    } }
+  Object.entries(D.salles).forEach(([id, s]) => { if (s.niveau !== niveau) return;
+    s.sorties.forEach(x => {
+      const px = X(x.globale[0]), py = Y(x.globale[1]);
+      ctx.fillStyle = "#2a2f2c"; ctx.fillRect(px, py, CS, CS);
+      const vers = x.vers && D.salles[x.vers] ? " vers " + echapper(D.salles[x.vers].nom) : "";
+      if (x.porte && etats[x.porte]) {
+        const [ouverte, verrou] = etats[x.porte];
+        ctx.strokeStyle = ouverte ? "#6fbf8e" : verrou ? "#d16060" : "#c99a5b"; ctx.lineWidth = 4;
+        ctx.strokeRect(px + 5, py + 5, CS - 10, CS - 10);
+        noter(x.globale, `<b>${echapper(D.objets[x.porte].nom)}</b> : ${ouverte ? "ouverte" : verrou ? "verrouillée" : "fermée"}${vers}`);
+      } else {
+        if (x.escalier) { ctx.font = "16px serif"; texteIcone("🪜", px + CS / 2, py + CS / 2 + 6); }
+        noter(x.globale, (x.escalier ? "escalier" : "passage") + vers);
+      }
+    });
+  });
+  Object.entries(D.salles).forEach(([id, s]) => { if (s.niveau !== niveau) return;
+    const mes = D.cases.filter(c => c[3] === id);
+    if (!mes.length) return;
+    const mx = mes.reduce((a, c) => a + c[1], 0) / mes.length, my = mes.reduce((a, c) => a + c[2], 0) / mes.length;
+    ctx.font = "600 12px system-ui"; ctx.fillStyle = "rgba(230,240,235,.25)"; ctx.fillText(s.nom.toUpperCase(), X(mx) + CS / 2, Y(my) + CS / 2);
+  });
+  // Son regard : les cases qu'il voit vraiment à cet instant.
+  if (choisi && vues[choisi]) {
+    ctx.fillStyle = couleur[choisi] + "38";
+    vues[choisi].forEach(i => { const c = D.cases[i]; if (c[0] === niveau) ctx.fillRect(X(c[1]), Y(c[2]), CS, CS); });
+  }
+  // Les choses, à leur vraie place (atténuées quand on regarde par les yeux de quelqu'un).
+  const groupes = {};
+  Object.keys(etats).forEach(id => {
+    const o = D.objets[id]; if (!o || o.type === "personnage" || o.type === "porte" || o.type === "partie_corps") return;
+    const p = place(etats, id); if (!p || p.porte_par || D.salles[p.salle].niveau !== niveau) return;
+    (groupes[cle(p.g)] = groupes[cle(p.g)] || []).push(id);
+  });
+  ctx.globalAlpha = choisi ? .45 : 1;
+  Object.values(groupes).forEach(g => {
+    const p = place(etats, g[0]).g;
+    g.slice(0, 4).forEach((id, i) => {
+      const dx = g.length === 1 ? .5 : [.28, .72, .28, .72][i], dy = g.length === 1 ? .5 : [.3, .3, .74, .74][i];
+      ctx.font = (g.length === 1 ? 19 : 14) + "px serif"; texteIcone(icone(id), X(p[0]) + CS * dx, Y(p[1]) + CS * dy + 6);
+    });
+    g.forEach(id => noter(p, `${icone(id)} ${echapper(D.objets[id].nom)}${etats[id][2] ? " <span class=gris>(allumé)</span>" : ""}`));
+  });
+  ctx.globalAlpha = 1;
+  // Ce que croit le personnage choisi : chaque chose là où il la croit, cerclée de sa couleur.
+  if (choisi) Object.entries(esprits).forEach(([k, v]) => {
+    const [qui, objet] = k.split("|"); if (qui !== choisi || objet.startsWith(":") || !v || !v[0] || !D.objets[objet]) return;
+    const g = globale(v[1], v[2]); if (!g || D.salles[v[1]].niveau !== niveau) return;
+    const personne = D.objets[objet].type === "personnage";
+    const vraie = personne ? (etats[objet] && D.salles[etats[objet][0]] && {g: globale(etats[objet][0], etats[objet][1])}) : place(etats, objet);
+    const juste = vraie && !vraie.porte_par && vraie.g && cle(vraie.g) === cle(g);
+    ctx.setLineDash([3, 3]); ctx.strokeStyle = juste ? couleur[choisi] : "#ff8a7a"; ctx.lineWidth = 2;
+    ctx.strokeRect(X(g[0]) + 3, Y(g[1]) + 3, CS - 6, CS - 6); ctx.setLineDash([]);
+    if (personne) {
+      ctx.strokeStyle = couleur[objet] || "#999"; ctx.setLineDash([2, 3]); ctx.beginPath();
+      ctx.arc(X(g[0]) + CS / 2, Y(g[1]) + CS / 2, CS * .28, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    } else { ctx.font = "17px serif"; texteIcone(icone(objet), X(g[0]) + CS / 2, Y(g[1]) + CS / 2 + 6); }
+    noter(g, `<span style="color:${couleur[choisi]}">●</span> ${court(choisi)} croit ici : ${echapper(D.objets[objet].nom)}` + (juste ? "" : " <span class=faux>(faux)</span>"));
+  });
+  // Les personnages.
+  const tous = [...D.personnages];
+  tous.forEach(id => {
+    const e = etats[id]; if (!e || !D.salles[e[0]] || D.salles[e[0]].niveau !== niveau || !e[1]) return;
+    const g = globale(e[0], e[1]), cx = X(g[0]) + CS / 2, cy = Y(g[1]) + CS / 2, r = CS * .32;
+    ctx.globalAlpha = choisi && choisi !== id ? .75 : 1;
+    ctx.fillStyle = couleur[id]; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill();
+    if (id === choisi) { ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); }
+    fleche(cx, cy, r, e[2], "#fff");
+    const tenus = Object.keys(etats).filter(o => etats[o][0] === id && D.objets[o] && D.objets[o].type !== "partie_corps");
+    tenus.slice(0, 3).forEach((o, i) => { ctx.font = "12px serif"; texteIcone(icone(o), cx - r + 2 + i * 11, cy + r + 3); });
+    ctx.font = "600 11px system-ui"; const n = court(id), w = ctx.measureText(n).width + 8;
+    ctx.fillStyle = "rgba(10,12,11,.75)"; ctx.fillRect(cx - w / 2, cy - r - 17, w, 14);
+    ctx.fillStyle = couleur[id]; ctx.fillText(n, cx, cy - r - 6);
+    ctx.globalAlpha = 1;
+    const but = esprits[id + "|:but"];
+    noter(g, `<span style="color:${couleur[id]}">●</span> <b>${echapper(D.objets[id].nom)}</b><br><span class=gris>regarde vers le ${e[2] || "?"}` +
+      (but ? "<br>" + echapper(but[0]) : "") + (tenus.length ? "<br>tient : " + tenus.map(o => echapper(D.objets[o].nom)).join(", ") : "") + "</span>");
+  });
+  const j = D.joueur;
+  if (D.salles[j.salle] && D.salles[j.salle].niveau === niveau && j.case) {
+    const g = globale(j.salle, j.case), cx = X(g[0]) + CS / 2, cy = Y(g[1]) + CS / 2;
+    ctx.fillStyle = "#ffd166"; ctx.beginPath(); ctx.arc(cx, cy, CS * .3, 0, 2 * Math.PI); ctx.fill();
+    noter(g, "<b>Le joueur</b> <span class=gris>(passif pendant le banc)</span>");
+  }
+  panneau(etats, esprits);
+  journal();
+  $("heure").textContent = heure(t);
+  $("temps").value = t;
+}
+
+// --- Panneau et journal ------------------------------------------------------------------------
+function jauge(v) {
+  const teinte = v >= 70 ? "#d16060" : v >= 40 ? "#e8b84a" : "#6fbf8e";
+  return `<span class="jauge"><i style="width:${Math.min(100, v)}%;background:${teinte}"></i></span>`;
+}
+function panneau(etats, esprits) {
+  $("pnjs").innerHTML = "";
+  D.personnages.forEach(id => {
+    const d = document.createElement("div"); d.className = "pnj" + (id === choisi ? " choisi" : "");
+    const but = esprits[id + "|:but"], besoins = esprits[id + "|:besoins"] || {}, e = etats[id];
+    const ou = e && D.salles[e[0]] ? D.salles[e[0]].nom : "?";
+    d.innerHTML = `<div class="nom"><span class="pastille" style="background:${couleur[id]}"></span>${echapper(D.objets[id].nom)}</div>` +
+      `<div class="motif">${echapper(ou)}${e && e[2] ? ", regarde vers le " + e[2] : ""}</div>` +
+      `<div class="but">${but ? echapper(but[0]) : "<span class=gris>sans but</span>"}</div>` +
+      (but && but[1] ? `<div class="motif">${echapper(but[1])}</div>` : "") +
+      `<div class="besoins">${Object.entries(besoins).map(([k, v]) => `<span>${k} ${v}${jauge(v)}</span>`).join("")}</div>`;
+    d.onclick = () => { choisi = choisi === id ? null : id; const e2 = etats[choisi];
+      if (e2 && D.salles[e2[0]] && D.salles[e2[0]].niveau !== niveau) { niveau = D.salles[e2[0]].niveau; preparer(); }
+      dessiner(); };
+    $("pnjs").appendChild(d);
+  });
+  $("titre-croyances").hidden = !choisi;
+  $("croyances").innerHTML = "";
+  if (!choisi) return;
+  $("titre-croyances").textContent = "Ce que croit " + court(choisi);
+  const lignes = [];
+  Object.entries(esprits).forEach(([k, v]) => {
+    const [qui, objet] = k.split("|"); if (qui !== choisi || objet.startsWith(":") || !v || !v[0] || !D.objets[objet]) return;
+    const cru = D.salles[v[0]] ? D.salles[v[0]].nom + (v[2] ? ` [${v[2]}]` : "") : D.objets[v[0]] ? chez(v[0]) : String(v[0]);
+    const vraie = place(etats, objet), reel = etats[objet] ? etats[objet][0] : null;
+    const juste = reel === v[0] && (!v[2] || !etats[objet][1] || cle(etats[objet][1]) === cle(v[2]));
+    lignes.push(`<div class="${juste ? "" : "faux"}">${marque(objet)} ${echapper(D.objets[objet].nom)} : ${echapper(cru)}` +
+      (juste ? "" : ` <span class=gris>(en réalité : ${reel && D.salles[reel] ? echapper(D.salles[reel].nom) : reel && D.objets[reel] ? echapper(chez(reel)) : "?"})</span>`) + "</div>");
+  });
+  $("croyances").innerHTML = lignes.join("") || "<span class=gris>rien de localisé</span>";
+}
+function journal() {
+  const minute = Math.floor(t / D.minute), j = $("journal");
+  const passes = D.chronique.filter(c => c.minute <= minute).slice(-60);
+  j.innerHTML = passes.map(c => `<p class="${c.minute === minute ? "maintenant" : ""}"><span class="min">${String(c.minute).padStart(3)} min</span>` +
+    (c.pnj && couleur[c.pnj] ? `<span class="pastille" style="background:${couleur[c.pnj]}"></span> ` : "") + echapper(c.texte) + "</p>").join("");
+  j.scrollTop = j.scrollHeight;
+}
+
+// --- Lecture -----------------------------------------------------------------------------------
+$("titre").textContent = D.titre || "Rejeu";
+$("temps").max = D.fin;
+$("temps").oninput = e => { t = Number(e.target.value); dessiner(); };
+let avant = null;
+function boucle(maintenant) {
+  if (!lecture) return;
+  if (avant !== null) t = Math.min(D.fin, t + (maintenant - avant) / 1000 * Number($("vitesse").value));
+  avant = maintenant;
+  dessiner();
+  if (t >= D.fin) { lecture = false; $("lecture").textContent = "▶"; return; }
+  requestAnimationFrame(boucle);
+}
+$("lecture").onclick = () => { lecture = !lecture; $("lecture").textContent = lecture ? "⏸" : "▶"; avant = null;
+  if (lecture) { if (t >= D.fin) t = 0; requestAnimationFrame(boucle); } };
+document.addEventListener("keydown", e => {
+  if (e.key === " ") { $("lecture").click(); e.preventDefault(); }
+  else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+    t = Math.max(0, Math.min(D.fin, t + (e.key === "ArrowRight" ? 1 : -1) * D.minute)); dessiner(); e.preventDefault(); }
+});
+const bulle = $("infobulle");
+canvas.addEventListener("mousemove", e => {
+  const r = canvas.getBoundingClientRect();
+  const gx = Math.floor((e.clientX - r.left) / CS) + bornes.xmin, gy = Math.floor((e.clientY - r.top) / CS) + bornes.ymin;
+  const choses = parCase[gx + "," + gy];
+  if (!choses) { bulle.style.display = "none"; return; }
+  bulle.innerHTML = [...new Set(choses)].join("<hr style='border:0;border-top:1px solid #333;margin:5px 0'>");
+  bulle.style.display = "block"; bulle.style.left = (e.clientX + 14) + "px"; bulle.style.top = (e.clientY + 14) + "px";
+});
+canvas.addEventListener("mouseleave", () => bulle.style.display = "none");
+canvas.addEventListener("click", e => {
+  const r = canvas.getBoundingClientRect();
+  const gx = Math.floor((e.clientX - r.left) / CS) + bornes.xmin, gy = Math.floor((e.clientY - r.top) / CS) + bornes.ymin;
+  const etats = rejouer(D.etats, t);
+  const qui = D.personnages.find(id => { const x = etats[id]; if (!x || !D.salles[x[0]] || !x[1]) return false;
+    const g = globale(x[0], x[1]); return g[0] === gx && g[1] === gy && D.salles[x[0]].niveau === niveau; });
+  choisi = qui ? (choisi === qui ? null : qui) : null;
+  dessiner();
+});
+// Le niveau de départ : celui où sont le plus de personnages.
+const depart = rejouer(D.etats, 0), compte = {};
+D.personnages.forEach(id => { const x = depart[id]; if (x && D.salles[x[0]]) compte[D.salles[x[0]].niveau] = (compte[D.salles[x[0]].niveau] || 0) + 1; });
+niveau = niveaux.reduce((a, b) => (compte[b] || 0) > (compte[a] || 0) ? b : a, niveaux[0]);
+preparer();
+dessiner();
+</script>
+</body>
+</html>
