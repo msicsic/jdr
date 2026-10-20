@@ -224,7 +224,7 @@ class CarteCasesTests(unittest.TestCase):
         self.assertFalse(any(v["salle"] == nouveau[0] and tuple(v["position"]) == nouveau[1:]
                              for v in self.monde.data["souvenirs_visuels"].values()))
         with patch("donjon.spatial.champ_visible", return_value={(salle, 1, 2)}):
-            self.assertIn({"nom": "la clé du veilleur", "derniere_salle": "Antichambre"},
+            self.assertIn({"nom": "la clé du veilleur", "derniere_salle": "Antichambre", "hors_de_vue": True},
                           self.monde.contexte()["souvenirs_visuels"])
 
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:

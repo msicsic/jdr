@@ -324,9 +324,11 @@ class Monde:
                 if ((salle_souvenir, *souvenir.get("contact", souvenir["position"])) in champ_vision
                         or self.est_porte(id)):
                     continue
+                # Hors du champ de Corvus : il ne le voit pas maintenant, ce que le fait dit lui-même.
                 souvenirs_visuels.append({
                     "nom": souvenir["nom"],
                     "derniere_salle": lieux_connus.get(salle_souvenir, "lieu encore sans nom"),
+                    "hors_de_vue": True,
                 })
         if self.data.get("mode_cases"):
             from .spatial import sortie_connue

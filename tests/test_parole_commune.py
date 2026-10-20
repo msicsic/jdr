@@ -88,7 +88,7 @@ class DestinataireTests(unittest.TestCase):
         m = scene(aubin=(1, 4))  # Tous deux sous ses yeux, à la même distance réelle.
         reprise, sortie, appels = jouer(m, "je dis : pouvez-vous m'aider ?", [
             parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse")])
-        self.assertEqual(len(appels), 1)
+        self.assertEqual(len(appels), 0)  # Le joueur précise ; le moteur le dit sans appeler le MJ.
         self.assertIn("Aubin et Ilse sont aussi près de toi l'un que l'autre : précise à qui tu parles", sortie)
         self.assertNotIn("Tu dis", sortie)
         self.assertEqual((paroles_retenues(reprise, "ilse"), paroles_retenues(reprise, "aubin")), ([], []))
@@ -248,7 +248,8 @@ class ChuchoterTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "je chuchote à Brune : viens", [
             parole("viens", ("propos", "", "", ""), personnage="brune")])
         self.assertIn("Brune est trop loin : approche-toi pour lui chuchoter", sortie)
-        self.assertEqual(len(appels), 1)
+        # Le moteur le dit avant tout appel : aucune proposition n'y changerait rien.
+        self.assertEqual(len(appels), 0)
         self.assertEqual(paroles_retenues(reprise, "brune"), [])
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 

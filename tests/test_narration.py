@@ -294,8 +294,10 @@ class NarrationTests(unittest.TestCase):
         self.assertNotIn(invention, sortie.getvalue())
         self.assertNotIn("Le MJ n'a pas pu formuler", sortie.getvalue())
         self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])
+        # Le repli dit ce qui manque, sans rien inventer.
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"],
-                         "Je ne peux pas encore répondre avec certitude.")
+                         "Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude. "
+                         "Précise ce que tu veux regarder, examiner ou tenter.")
         self.assertIn(reprise.data["narrations_mj"][-1]["texte"], sortie.getvalue())
 
     def test_avis_d_action_libre_ne_devient_pas_un_fait_affiche(self):
@@ -408,7 +410,8 @@ class NarrationTests(unittest.TestCase):
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
                       dialogue(texte), segment("parole", locuteur="marchand", citation=citation)]),
-                  patch("builtins.input", side_effect=["mj Gorm, salut.", "quitter"]),
+                  # Un geste, pas une parole de Corvus : le MJ peut faire parler Gorm de lui-même.
+                  patch("builtins.input", side_effect=["mj je fais un signe de tête à Gorm", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
@@ -432,7 +435,7 @@ class NarrationTests(unittest.TestCase):
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
                       dialogue(texte), segment("parole", locuteur="marchand", citation=citation)]),
-                  patch("builtins.input", side_effect=["mj Gorm, que sais-tu de cette crypte ?", "quitter"]),
+                  patch("builtins.input", side_effect=["mj j'interroge Gorm du regard sur la crypte", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
@@ -452,7 +455,7 @@ class NarrationTests(unittest.TestCase):
             monde.sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=sorties) as appel,
-                  patch("builtins.input", side_effect=["mj Gorm, où est la cloche ?", "quitter"]),
+                  patch("builtins.input", side_effect=["mj je cherche la cloche en observant Gorm", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)

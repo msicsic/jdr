@@ -181,12 +181,16 @@ class ConnaissancesTests(unittest.TestCase):
             "placement": "aucun", "impact_scenario": "solution", "capacites": [],
             "fragments": [{"texte": invention, "portee": "sans_preuve",
                            "preuve": "", "motif": "Objet de quête inexistant."}]}]}
+        # Le savoir refusé trois fois, la parole de Corvus reste due : le moteur la prononce, Gorm répond.
+        reponse = {"mode": "dialogue", "texte": "Gorm hausse les épaules.", "faits": [], "proposition": None}
+        audit = {"segments": [{"indice": 0, "verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
+                               "entites": [], "motif": ""}]}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             self.m.sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut",
-                               side_effect=[candidat, revue] * 3),
+                               side_effect=[candidat, revue] * 3 + [reponse, audit]),
                   patch("builtins.input", side_effect=["mj Gorm, parle-moi de la cloche", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
@@ -195,7 +199,9 @@ class ConnaissancesTests(unittest.TestCase):
         self.assertNotIn(invention, sortie.getvalue())
         self.assertNotIn("souvenir_personnel", reprise.data["savoirs_pnj"]["marchand"])
         self.assertNotIn("seconde_cloche", reprise.objets)
-        self.assertIn("Je ne peux pas encore répondre avec certitude.", sortie.getvalue())
+        self.assertIn("Tu dis à Gorm le marchand : « Gorm, parle-moi de la cloche »", sortie.getvalue())
+        self.assertIn("Gorm hausse les épaules.", sortie.getvalue())
+        self.assertEqual(reprise.data["paroles_joueur"][-1]["texte"], "Gorm, parle-moi de la cloche")
 
     def test_comparaison_isole_les_inventions(self):
         fini = Event()
