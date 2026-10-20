@@ -163,7 +163,8 @@ def scene_percue(monde):
             symbole = symbole_personnage(monde, monde.objets[id]) if personnage else souvenir["symbole"]
             souvenirs.append({"id": id, "nom": souvenir["nom"], "salle": salle, "case": list(pos),
                               "globale": [ox + pos[0], oy + pos[1]], "ancre_mur": ancre_mur,
-                              "personnage": personnage, "symbole": symbole})
+                              "personnage": personnage, "symbole": symbole,
+                              "bloque_passage": bool(monde.objets.get(id, {}).get("bloque_passage"))})
         # Ce qu'il voit maintenant, un par un, à sa position observée.
         for objet, salle, pos in objets_visibles:
             if salle not in ordre:
@@ -172,7 +173,8 @@ def scene_percue(monde):
             o = {"id": objet["id"], "nom": designer(objet), "type": objet["type"], "salle": salle, "case": list(pos),
                  "globale": [ox + pos[0], oy + pos[1]], "ancre_mur": bool(objet.get("ancrage_carte")),
                  "aux_pieds": salle == joueur_salle and tuple(pos) == joueur_pos,
-                 "symbole": symbole_objet_cases(objet, salle, monde)}
+                 "symbole": symbole_objet_cases(objet, salle, monde),
+                 "bloque_passage": bool(objet.get("bloque_passage")), "mobile": bool(objet.get("mobile"))}
             if "allume" in objet:
                 o["allume"] = bool(objet["allume"])
                 if objet["allume"]:
