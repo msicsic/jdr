@@ -31,6 +31,11 @@ def designer(objet, article="defini", debut=False):
     return texte[:1].upper() + texte[1:] if debut else texte
 
 
+def de(nom):
+    """« de Gorm », « d'Aubin » : la préposition devant un nom sans article."""
+    return ("d'" if nom[:1].lower() in "aàâäeéèêëiîïoôöuùûüyœæh" else "de ") + nom
+
+
 def complement_de(objet):
     """Forme le complément nominal avec les contractions françaises usuelles."""
     nom = designer(objet)

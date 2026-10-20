@@ -1,0 +1,244 @@
+"""Récit du banc sans joueur : ce que chaque PNJ a voulu, tenté et obtenu, et ce qui s'est
+passé entre eux.
+
+La chronique dit chaque pas ; le récit en tire l'histoire. Pour chaque PNJ : ses buts
+successifs avec les gestes faits pour eux, les rondes résumées, les besoins qui l'ont pressé
+et les minutes où rien ne s'offrait à lui. Entre eux : les échanges et leur issue, les gestes
+illicites vus, ce qu'ils pensent les uns des autres à la fin. Le banc observe chaque PNJ
+après sa délibération de la minute, sans rien changer au monde.
+"""
+from collections import Counter
+from contextlib import contextmanager
+import json
+from unittest.mock import patch
+
+from .esprits import lire, pnjs
+from .francais import de, designer
+
+MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim": "faim", "repos": "fatigue",
+          "chaleur": "froid", "engagement": "parole donnée", "alerte": "alerte", "menager": "ménager la flamme"}
+BESOINS = {"securite": "sécurité", "repos": "fatigue", "chaleur": "froid"}
+GESTES = {"prendre": "prendre", "ouvrir": "ouvrir", "crocheter": "crocheter", "manger": "manger",
+          "deverrouiller": "déverrouiller", "poser": "poser"}
+
+
+def court(monde, id):
+    if id == "joueur":
+        return "le joueur"
+    return monde.objets[id]["nom"].split(",")[0] if id in monde.objets else id
+
+
+def _salle(monde, id):
+    return monde.data["salles"][id]["nom"] if id in monde.data["salles"] else str(id)
+
+
+def _objet(monde, id):
+    return designer(monde.objets[id]) if id in monde.objets else str(id)
+
+
+def but_en_mots(monde, but):
+    mots = _but(monde, but)
+    return mots.replace(" à le ", " au ").replace(" à les ", " aux ")
+
+
+def _but(monde, but):
+    t, o = but.get("type"), but.get("objet")
+    if t == "manger":
+        return "manger " + _objet(monde, o)
+    if t == "part":
+        return f"obtenir une part ({_objet(monde, o)}) {de(court(monde, but['de']))}"
+    if t == "chaleur":
+        return "se chauffer à " + _objet(monde, o)
+    if t == "repos":
+        return "se reposer"
+    if t == "abri":
+        return "se mettre à l'abri : " + _salle(monde, but["lieu"])
+    if t == "garder":
+        return "garder ses biens : " + _salle(monde, but["lieu"])
+    if t == "prevenir":
+        return "prévenir " + court(monde, but["qui"])
+    if t == "rejoindre":
+        return "accourir : " + _salle(monde, but["lieu"])
+    if t == "strategie":
+        return "stratégie : " + but.get("resume", "")
+    if t == "menager":
+        return "éteindre " + _objet(monde, o)
+    if t == "pulsion":
+        if "periode" in but:
+            return "ronde : " + _salle(monde, but["lieu"])
+        if "servir" in but:
+            return f"servir {_objet(monde, o)} à {court(monde, but['servir'])}"
+        if "allume" in but:
+            return "entretenir " + _objet(monde, o)
+        if "verrouillee" in but:
+            return f"garder {_objet(monde, o)} sous clé"
+        if "lieu" in but:
+            return f"mettre {_objet(monde, o)} : {_salle(monde, but['lieu'])}"
+    return json.dumps(but, ensure_ascii=False)
+
+
+class Recit:
+    def __init__(self, monde):
+        ids = [id for id in pnjs(monde) if monde.objets[id].get("profil")]
+        self.ids = ids
+        self.episodes = {id: [] for id in ids}
+        self.souvenirs = {id: [] for id in ids}
+        self._vus = {id: set() for id in ids}
+        self._derniere = {id: -1 for id in ids}
+        self.urgence = {id: Counter() for id in ids}
+        self.maximum = {id: Counter() for id in ids}
+        self.sans_recours = Counter()
+
+    @contextmanager
+    def observer(self):
+        from . import deliberation
+        originale = deliberation.deliberer
+
+        def deliberer(monde, id, minute):
+            resultat = originale(monde, id, minute)
+            if id in self.episodes:
+                self._noter(monde, id, minute)
+            return resultat
+        with patch.object(deliberation, "deliberer", deliberer):
+            yield self
+
+    def _noter(self, monde, id, minute):
+        from .deliberation import seuils, urgents
+        e = lire(monde, id)
+        # Souvenirs nouveaux depuis sa dernière délibération (les sons sont le fond du monde).
+        for s in e["memoire"]:
+            cle = json.dumps(s, sort_keys=True, ensure_ascii=False)
+            if s["minute"] >= self._derniere[id] and cle not in self._vus[id] and s["type"] != "son":
+                self._vus[id].add(cle)
+                self.souvenirs[id].append(dict(s))
+        self._vus[id] = {c for c in self._vus[id] if json.loads(c)["minute"] >= minute - 1}
+        self._derniere[id] = minute
+        limites = seuils(monde, id)
+        for nom, valeur in e["besoins"].items():
+            self.maximum[id][nom] = max(self.maximum[id][nom], valeur)
+            if valeur >= limites.get(nom, 101):
+                self.urgence[id][nom] += 1
+        i = e["intention"]
+        if i is None and urgents(monde, id):
+            self.sans_recours[id] += 1
+        cle = (json.dumps(i["but"], sort_keys=True), i["motif"]) if i else None
+        episodes = self.episodes[id]
+        courant = episodes[-1] if episodes and episodes[-1]["fin"] is None else None
+        if courant and courant["cle"] == cle:
+            return
+        if courant:
+            courant["fin"] = minute - 1
+        if cle is None:
+            return
+        precedent = episodes[-1] if episodes else None
+        if precedent and precedent["cle"] == cle and minute - precedent["fin"] <= 2:
+            precedent["fin"] = None  # Un battement d'une minute ne coupe pas le même but.
+            return
+        episodes.append({"cle": cle, "but": dict(i["but"]), "motif": i["motif"], "debut": minute, "fin": None})
+
+    def clore(self, monde):
+        for id in self.ids:
+            for ep in self.episodes[id]:
+                if ep["fin"] is None:
+                    ep["fin"] = monde.data["minutes"]
+                ep["abandon"] = any(s["type"] == "renoncement" and s["but"] == ep["but"]
+                                    and ep["debut"] <= s["minute"] <= ep["fin"] + 1 for s in self.souvenirs[id])
+
+    # --- Rendu ------------------------------------------------------------------------------
+
+    def _gestes(self, monde, id, chronique, debut, fin):
+        noms = sorted({monde.objets[id]["nom"], court(monde, id)}, key=len, reverse=True)
+        gestes = []
+        for c in chronique:
+            if c["pnj"] != id or not debut <= c["minute"] <= fin or c.get("nature") == "deplacement":
+                continue
+            texte = c["texte"].rstrip(".")
+            for nom in noms:
+                if texte.startswith(nom + " "):
+                    texte = texte[len(nom) + 1:]
+                    break
+            gestes.append(texte)
+        return gestes
+
+    def personnage(self, monde, id, chronique):
+        lignes = [f"== {monde.objets[id]['nom']} =="]
+        pressants = [f"{BESOINS.get(n, n)} {m} min (max {self.maximum[id][n]:.0f})"
+                     for n, m in sorted(self.urgence[id].items(), key=lambda x: -x[1]) if m]
+        lignes.append("  Pressé par : " + (", ".join(pressants) if pressants else "rien"))
+        if self.sans_recours[id]:
+            lignes.append(f"  Pressé sans rien entreprendre : {self.sans_recours[id]} min")
+        rondes, sans_geste, faits = Counter(), {}, []
+        for ep in self.episodes[id]:
+            mots = but_en_mots(monde, ep["but"])
+            gestes = self._gestes(monde, id, chronique, ep["debut"], ep["fin"])
+            if ep["but"].get("periode") and not ep["abandon"] and all(g.startswith("inspecte") for g in gestes):
+                rondes[mots.removeprefix("ronde : ")] += 1
+                continue
+            if not gestes and not ep["abandon"]:
+                # Aller voir sans avoir à agir : résumé comme les rondes.
+                sans_geste.setdefault(f"{mots} ({MOTIFS.get(ep['motif'], ep['motif'])})", []).append(ep["debut"])
+                continue
+            mots = f"{mots} ({MOTIFS.get(ep['motif'], ep['motif'])})"
+            if faits and faits[-1]["mots"] == mots and not faits[-1]["abandon"] and ep["debut"] - faits[-1]["fin"] <= 3:
+                faits[-1].update(fin=ep["fin"], abandon=ep["abandon"], gestes=faits[-1]["gestes"] + gestes)
+                continue
+            faits.append({"mots": mots, "debut": ep["debut"], "fin": ep["fin"], "abandon": ep["abandon"],
+                          "gestes": gestes})
+        for f in faits:
+            issue = " — abandonné" if f["abandon"] else ""
+            detail = " : " + " ; ".join(f["gestes"]) if f["gestes"] else ""
+            lignes.append(f"  {f['debut']:>4}–{f['fin']:<4} {f['mots']}{issue}{detail}")
+        if rondes:
+            lignes.append("  Rondes : " + ", ".join(f"{s} ×{n}" for s, n in rondes.most_common()))
+        for mots, debuts in sans_geste.items():
+            lignes.append(f"  Sans geste à faire : {mots} ×{len(debuts)} ({', '.join(map(str, debuts))})")
+        return lignes
+
+    def entre_eux(self, monde, chronique):
+        lignes = ["== Entre eux =="]
+        sociaux = [c for c in chronique if c.get("nature") == "social"]
+        vus = [(s["minute"], f"{court(monde, id)} voit {court(monde, s['auteur'])} "
+                f"{GESTES.get(s['operation'], s['operation'])} {_objet(monde, s['objet'])}")
+               for id in self.ids for s in self.souvenirs[id] if s["type"] == "vu_agir"]
+        tenus = [(s["minute"], f"{court(monde, id)} "
+                 f"{'tient' if s['type'] == 'engagement_tenu' else 'abandonne'} sa parole envers {court(monde, s['pour'])}")
+                 for id in self.ids for s in self.souvenirs[id] if s["type"] in ("engagement_tenu", "engagement_abandonne")]
+        evenements = sorted([(c["minute"], c["texte"].rstrip(".")) for c in sociaux] + vus + tenus)
+        # Une même scène répétée se lit une fois, avec ses minutes.
+        groupes = {}
+        for minute, texte in evenements:
+            if minute not in groupes.get(texte, []):
+                groupes.setdefault(texte, []).append(minute)
+        for texte, minutes in sorted(groupes.items(), key=lambda x: x[1][0]):
+            quand = ", ".join(str(m) for m in minutes)
+            lignes.append(f"  {texte}" + (f" ×{len(minutes)} ({quand})" if len(minutes) > 1 else f" ({quand})"))
+        if len(lignes) == 1:
+            lignes.append("  aucun échange")
+        lignes.append("== Ce qu'ils pensent les uns des autres ==")
+        avant = len(lignes)
+        for id in self.ids:
+            for autre, c in sorted(lire(monde, id)["croyances"].items()):
+                f = c.get("fiable")
+                if not f or autre == id or (autre not in self.ids and autre != "joueur"):
+                    continue
+                if f["minute"] == 0 and f["valeur"]:
+                    continue  # La confiance de départ ne raconte rien.
+                avis = "fait confiance à" if f["valeur"] else "se méfie de"
+                depuis = "depuis le début" if f["minute"] == 0 else f"depuis {f['minute']}, {f['source']}"
+                lignes.append(f"  {court(monde, id)} {avis} {court(monde, autre)} ({depuis})")
+        if len(lignes) == avant:
+            lignes.append("  rien n'a changé : chacun fait confiance aux autres, comme au départ")
+        return lignes
+
+    def texte(self, monde, chronique):
+        lignes = []
+        for id in self.ids:
+            lignes += self.personnage(monde, id, chronique) + [""]
+        return "\n".join(lignes + self.entre_eux(monde, chronique))
+
+    def donnees(self, monde, chronique):
+        return {"episodes": {id: [{k: v for k, v in ep.items() if k != "cle"} | {"mots": but_en_mots(monde, ep["but"])}
+                                  for ep in self.episodes[id]] for id in self.ids},
+                "urgence": {id: dict(self.urgence[id]) for id in self.ids},
+                "sans_recours": dict(self.sans_recours),
+                "souvenirs": self.souvenirs}

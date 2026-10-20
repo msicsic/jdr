@@ -11,7 +11,7 @@ chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 from collections import deque
 
 from .esprits import croire, esprit, lire, memoriser, percevoir, percoit, percus, pnjs
-from .francais import complement_de, designer
+from .francais import complement_de, de, designer
 from .geometrie import cases, placer, position_entree
 
 CHRONIQUE_MAX = 300
@@ -456,7 +456,7 @@ def _abriter(monde, id, lieu, lignes):
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
     if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
         memoriser(monde, id, {"type": "abrite", "lieu": lieu})
-        texte = (f"{_qui(monde, id)} reste près de {_qui(monde, a['fiables'][0])}." if a["fiables"]
+        texte = (f"{_qui(monde, id)} reste près {de(_qui(monde, a['fiables'][0]))}." if a["fiables"]
                  else f"{_qui(monde, id)} reste dans la lumière.")
         _chroniquer(monde, id, texte)
         if monde.visible(id):

@@ -186,7 +186,7 @@ class ProfilTests(unittest.TestCase):
 
     def test_banc_sans_joueur(self):
         with patch("sys.stdout", io.StringIO()) as sortie:
-            self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche"]), 0)
+            self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
         # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.
         self.assertIn("Brune demande une part des vivres du refuge à Gorm (promis).", sortie.getvalue())
@@ -194,6 +194,7 @@ class ProfilTests(unittest.TestCase):
         self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())
         self.assertIn("se chauffe près du brasero.", sortie.getvalue())
         self.assertIn("Gorm, gardien du relais alimente le brasero.", sortie.getvalue())
+        self.assertIn("== Entre eux ==", sortie.getvalue())
         self.assertIn("Mesures :", sortie.getvalue())
 
 
