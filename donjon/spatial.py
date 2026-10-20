@@ -580,16 +580,26 @@ def preparer_pas(m, direction):
     dx, dy = vecteur
     if type(dx) is not int or type(dy) is not int or max(abs(dx), abs(dy)) != 1:
         _erreur("Le déplacement doit avancer d'une case.")
-    salle = m.joueur["salle"]
-    x, y = m.joueur["position"]
+    pas = pas_vers(m, m.joueur["salle"], tuple(m.joueur["position"]), (dx, dy))
+    return {"salle": pas["salle"], "position": pas["position"]}
+
+
+def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
+    """Où mène un pas d'une case depuis (salle, position), pour le joueur comme pour un PNJ :
+    {"salle", "position", "porte"}. ``porte`` est la porte fermée à franchir, si
+    ``porte_fermee`` l'admet ; sinon une porte fermée bloque, comme un mur ou un obstacle.
+    ``case_libre`` remplace ``_case_libre`` par une version mémorisée le temps d'une recherche."""
+    _case_libre_ = case_libre or (lambda s, c: _case_libre(m, s, c))
+    dx, dy = vecteur
+    x, y = position
     destination = (x + dx, y + dy)
     if destination in cases(m.data["salles"][salle]):
-        if dx and dy and not (_case_libre(m, salle, (x + dx, y))
-                              and _case_libre(m, salle, (x, y + dy))):
+        if dx and dy and not (_case_libre_(salle, (x + dx, y))
+                              and _case_libre_(salle, (x, y + dy))):
             _erreur("Un mur ou un obstacle bloque le passage en diagonale.")
-        if not _case_libre(m, salle, destination):
+        if not _case_libre_(salle, destination):
             _erreur("Un obstacle solide occupe cette case.")
-        return {"salle": salle, "position": [destination[0], destination[1]]}
+        return {"salle": salle, "position": [destination[0], destination[1]], "porte": None}
     if dx and dy:
         _erreur("Le mur bloque ce déplacement en diagonale.")
     sortie = next((s for d, s in m.data["salles"][salle].get("sorties", {}).items()
@@ -598,7 +608,8 @@ def preparer_pas(m, direction):
     if not sortie:
         _erreur("Un mur bloque le passage.")
     porte = m.objets.get(sortie.get("porte"))
-    if porte and not porte.get("ouverte"):
+    fermee = bool(porte and not porte.get("ouverte"))
+    if fermee and not porte_fermee:
         _erreur("La porte fermée bloque le passage.")
     vers = sortie.get("vers")
     piece_vers = m.data["salles"].get(vers, {})
@@ -607,9 +618,46 @@ def preparer_pas(m, direction):
     pos = _case_interieure(m, vers, retour) if retour else None
     if pos is None:
         _erreur("Aucun sol ne rejoint ce passage.")
-    if not _case_libre(m, vers, pos):
+    if not _case_libre_(vers, pos):
         _erreur("Un obstacle solide bloque l'autre côté du passage.")
-    return {"salle": vers, "position": [pos[0], pos[1]]}
+    return {"salle": vers, "position": [pos[0], pos[1]], "porte": porte["id"] if fermee else None}
+
+
+def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True):
+    """Le plus court chemin en cases, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
+    [(salle, case, porte fermée à franchir ou None)], vide si l'on y est déjà, None sans passage.
+    Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées."""
+    from .monde import ErreurMonde
+    libres = {}
+
+    def case_libre(s, c):
+        if (s, c) not in libres:
+            libres[s, c] = _case_libre(m, s, c)
+        return libres[s, c]
+    depart = (salle, tuple(position))
+    if arrivee(*depart):
+        return []
+    precedent, file = {depart: None}, deque([depart])
+    while file:
+        courant = file.popleft()
+        for vecteur in sorted(VECTEURS.values()):
+            try:
+                pas = pas_vers(m, courant[0], courant[1], vecteur, porte_fermee=True, case_libre=case_libre)
+            except ErreurMonde:
+                continue
+            suivant = (pas["salle"], tuple(pas["position"]))
+            if suivant in precedent or not libre(*suivant) or pas["porte"] and not franchissable(pas["porte"]):
+                continue
+            precedent[suivant] = (courant, pas["porte"])
+            if arrivee(*suivant):
+                chemin = []
+                while precedent[suivant]:
+                    avant, porte = precedent[suivant]
+                    chemin.append((suivant[0], suivant[1], porte))
+                    suivant = avant
+                return chemin[::-1]
+            file.append(suivant)
+    return None
 
 
 def destination_appui(m, support, salle):

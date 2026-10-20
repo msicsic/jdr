@@ -511,7 +511,7 @@ class Moteur:
         from .esprits import percevoir_tous
         percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
-        apparus = avancer_pnj(travail, minutes, lignes)
+        apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
         # Ce qui parvient à ses oreilles : le fort de lui-même, le bas en écoutant.
         from .ecoute import ECOUTE, ENTENDU, entendus, rendre
         ecoute = plan.proposition.get("action") == "ecouter"

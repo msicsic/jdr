@@ -85,7 +85,9 @@ class RumeurTests(unittest.TestCase):
         self.assertEqual(mefiance(m, "marchand"), 1)
         lire(m, "marchand")["besoins"]["devoir"] = 80.0
         m, _ = attendre(m)
-        self.assertEqual(lire(m, "marchand")["intention"]["but"].get("objet"), "cloche")
+        # Il va lui-même chercher la cloche à la galerie et la repose au refuge.
+        self.assertIn("Gorm, gardien du relais prend la cloche d'alarme.", chronique(m))
+        self.assertEqual(m.objets["cloche"]["lieu"], "antichambre")
         # Luna le fait parler d'après ce qu'on lui a dit, en nommant la source.
         self.assertIn("croit que toi est peu fiable (Ilse le lui a dit)",
                       esprits_interlocuteurs(m, ["marchand"])["marchand"]["croit"])

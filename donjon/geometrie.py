@@ -2,9 +2,16 @@
 DIRECTIONS = {"nord": (0, -1), "sud": (0, 1), "est": (1, 0), "ouest": (-1, 0)}
 
 
+_CASES = {}
+
+
 def cases(piece):
-    return {(x, y) for y, ligne in enumerate(piece["plan"]["sol"])
-            for x, case in enumerate(ligne) if case == "."}
+    """Les cases de sol d'une pièce, lues une fois par plan (le plan d'une pièce ne change pas
+    sans être remplacé)."""
+    sol = tuple(piece["plan"]["sol"])
+    if sol not in _CASES:
+        _CASES[sol] = frozenset((x, y) for y, ligne in enumerate(sol) for x, case in enumerate(ligne) if case == ".")
+    return _CASES[sol]
 
 
 def placer(objet, salle, position):

@@ -30,9 +30,29 @@ class RecitTests(unittest.TestCase):
         self.assertGreater(self.recit.urgence["brune"]["faim"], 0)
 
     def test_entre_eux_et_temoins(self):
-        self.assertIn("== Entre eux ==", self.texte)
-        self.assertIn("Ilse voit Brune crocheter la réserve de vivres", self.texte)
-        self.assertIn("se méfie de Brune", self.texte)
+        # Placement d'auteur : Brune, gelée et sans scrupule, près des planches d'Aubin, sous les
+        # yeux de Gorm (la scène de test_protection).
+        from tests.support import calme
+        from donjon.esprits import croire, lire, memoriser, percevoir_tous
+        from tests.test_tensions import placer, relais
+        m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        m.objets["brasero"].update(allume=False, combustible=0)
+        placer(m, "brune", "antichambre", (3, 5))
+        placer(m, "marchand", "antichambre", (4, 5))
+        placer(m, "aubin", "crypte", (5, 3))
+        lire(m, "brune")["besoins"]["chaleur"] = 99.0
+        percevoir_tous(m)
+        croire(m, "brune", "brasero", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
+        croire(m, "brune", "fanal", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
+        for de, objet in (("aubin", "planches"), ("marchand", "bois")):
+            memoriser(m, "brune", {"type": "refus", "de": de, "operation": "demander", "raison": "refus",
+                                   "objet": objet})
+        recit = Recit(m)
+        chronique, _ = executer(m, m.data["minutes"] + 20, recit)
+        texte = recit.texte(m, chronique)
+        self.assertIn("== Entre eux ==", texte)
+        self.assertIn("Gorm voit Brune prendre les planches de bac", texte)
+        self.assertIn("Gorm se méfie de Brune", texte)
 
     def test_rondes_resumees(self):
         self.assertIn("Rondes :", self.texte)

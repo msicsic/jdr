@@ -29,7 +29,8 @@ def pnjs(monde):
 
 
 CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
-          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list}
+          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
+          "libre": int}   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -100,6 +101,7 @@ def verifier(monde):
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
         for engagement in e["engagements"]:
             from .deliberation import condition_valide
@@ -343,6 +345,8 @@ def percevoir(monde, id):
             continue  # Un contenant fermé peut toujours le cacher.
         if lieu["valeur"] == "joueur" or contenant and contenant["type"] == "personnage":
             continue  # Porté par quelqu'un : son absence de la case ne prouve rien.
+        if sujet in monde.objets and monde.objets[sujet]["type"] != "personnage" and not monde.objets[sujet].get("mobile"):
+            continue  # Un objet fixe fait partie du lieu : ne pas le voir d'ici ne le déplace pas.
         reviser(monde, id, sujet, "lieu", None, salle=None, case=None)
         if sujet != "joueur" and monde.objets[sujet]["type"] != "personnage":
             memoriser(monde, id, {"type": "absence", "objet": sujet, "salle": lieu["salle"]})

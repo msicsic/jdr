@@ -1,8 +1,10 @@
 """Actions des PNJ : le moteur exécute leurs intentions avec les règles physiques du joueur.
 
-Chaque minute, un PNJ doté d'un profil délibère (``deliberation.py``), puis accomplit au
-plus un geste de son plan : aller, prendre, poser, ouvrir, fermer, déverrouiller,
-verrouiller, crocheter ou manger. Le chemin est cherché sur ce qu'il croit des portes ;
+Chaque minute, un PNJ doté d'un profil délibère (``deliberation.py``). Entre-temps, il
+accomplit son plan geste après geste, chacun avec sa durée, à la seconde près : un pas d'une
+case, ouvrir, prendre, crocheter… (``temps``). Il marche case par case, par les mêmes règles
+que le pas du joueur, et franchit les portes en les ouvrant. Le chemin est cherché sur ce
+qu'il croit des portes ;
 chaque geste est revalidé sur l'état réel et un échec devient une croyance apprise par
 l'essai. Une étape `sans_temoin` attend que le PNJ ne perçoive personne ; les témoins
 réels sont ceux qui le perçoivent. Le moteur annonce ce que le joueur perçoit et tient une
@@ -15,6 +17,14 @@ from .francais import complement_de, de, designer
 from .geometrie import cases, placer, position_entree
 
 CHRONIQUE_MAX = 300
+# Durées en dixièmes de seconde. Un pas d'une case ; les gestes ; ceux qui durent (se reposer,
+# se chauffer, s'abriter) et l'attente d'une occasion vont jusqu'à la minute suivante, où il
+# délibère de nouveau.
+PAS = 15
+DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
+          "crocheter": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
+          "inspecter": 100, "dire": 100, "demander": 100, "confier": 100, "remettre": 50}
+DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ.
 NATURES = ("deplacement", "geste", "social", "decision")
@@ -476,16 +486,92 @@ def desespere(monde, id):
     return bool(e["intention"]) and e["besoins"].get(e["intention"]["motif"], 0) >= DESESPOIR
 
 
-def agir(monde, id, minute, lignes, gestes=None):
-    """Un geste d'une minute selon l'intention courante."""
-    from .deliberation import PATIENCE, renoncer
+def _jusqu_a_la_minute(t):
+    from .temps import MINUTE
+    return MINUTE - t % MINUTE
+
+
+def _franchissable(monde, id, porte):
+    """Une porte se tente, sauf celle qu'il sait verrouillée sans en porter la clé."""
+    return not (_verrouillee_crue(monde, id, porte) and _cle_portee(monde, id, porte) is None)
+
+
+def _marcher(monde, id, arrivee, lignes):
+    """Un pas d'une case vers une case libre où ``arrivee(salle, case)``, ou la porte fermée qu'il
+    rencontre en chemin ; renvoie la durée du geste, None s'il ne voit aucun passage. On croise
+    les autres en chemin ; on ne s'arrête pas sur leur case."""
+    from .spatial import trajet
+    o = monde.objets[id]
+    chemin_ = trajet(monde, o["lieu"], tuple(o["position"]),
+                     lambda salle, case: arrivee(salle, case) and not _occupee(monde, id, salle, case),
+                     franchissable=lambda porte: _franchissable(monde, id, porte))
+    if not chemin_:
+        return None
+    salle, case, porte = chemin_[0]
+    if porte:
+        return _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
+    if salle != o["lieu"]:
+        o["lieu"] = salle
+        placer(o, salle, list(case))
+        _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][salle]["nom"] + ".",
+                    "deplacement")
+    else:
+        placer(o, salle, list(case))
+    return PAS
+
+
+def _ouvrir_en_chemin(monde, id, porte, lignes):
+    """La porte fermée qu'il rencontre : il l'ouvre, la déverrouille s'il en porte la clé, ou
+    l'apprend verrouillée en la poussant."""
+    if porte.get("verrouillee"):
+        cle = _cle_portee(monde, id, porte["id"])
+        if cle is None:
+            croire(monde, id, porte["id"], "verrouillee", True, "essai")
+            _annoncer_porte(monde, id, porte, "tente d'ouvrir", " résiste à une poussée.", lignes)
+            return DUREES["ouvrir"]
+        porte["verrouillee"] = False
+        croire(monde, id, porte["id"], "verrouillee", False, "essai")
+        _annoncer_porte(monde, id, porte, "déverrouille", " se déverrouille.", lignes)
+        return DUREES["deverrouiller"]
+    porte["ouverte"] = True
+    croire(monde, id, porte["id"], "verrouillee", False, "essai")
+    _annoncer_porte(monde, id, porte, "ouvre", " s'ouvre.", lignes)
+    return DUREES["ouvrir"]
+
+
+def _rejoindre_un_proche(monde, id, lignes):
+    """Un pas vers la personne la plus proche qu'il croit fiable et croit dans sa salle ; None
+    s'il est déjà près d'elle ou n'en connaît aucune."""
+    from .deliberation import _cru, salle_crue
+    from .spatial import position_cible
+    o = monde.objets[id]
+    ici, depart = o["lieu"], tuple(o["position"])
+    proches = []
+    for x in [*pnjs(monde), "joueur"]:
+        if x == id or _cru(monde, id, x, "fiable") is not True or salle_crue(monde, id, x) != ici:
+            continue
+        p = tuple(monde.joueur["position"]) if x == "joueur" else position_cible(monde, x, ici)
+        if p is not None and (monde.joueur["salle"] if x == "joueur" else monde.objets[x]["lieu"]) == ici:
+            proches.append((max(abs(p[0] - depart[0]), abs(p[1] - depart[1])), x, p))
+    if not proches or min(proches)[0] <= 1:
+        return None
+    _, _, p = min(proches)
+    return _marcher(monde, id, lambda salle, case: salle == ici and max(abs(case[0] - p[0]), abs(case[1] - p[1])) == 1,
+                    lignes)
+
+
+def agir(monde, id, t, lignes, gestes=None):
+    """Le geste qui commence à l'instant ``t`` (en dixièmes de seconde) selon l'intention
+    courante ; renvoie sa durée. Sans le mode cases, un geste prend la minute, comme avant."""
+    from .deliberation import PATIENCE, PROGRESSIFS, renoncer
+    from .stratege import terminer
+    reste = _jusqu_a_la_minute(t)
+    en_cases = bool(monde.data.get("mode_cases"))
     e = esprit(monde, id)
     intention = e["intention"]
     if not intention:
-        return
-    from .stratege import terminer
+        return reste
     etapes, o = intention["plan"], monde.objets[id]
-    from .deliberation import PROGRESSIFS
     strategie = intention["but"]["type"] == "strategie"
     while etapes and etapes[0]["operation"] == "aller" and etapes[0]["lieu"] == o["lieu"]:
         etapes.pop(0)
@@ -494,32 +580,49 @@ def agir(monde, id, minute, lignes, gestes=None):
             e["intention"] = None
         elif strategie:
             terminer(monde, id, True)
-        return
+        return reste
     etape = etapes[0]
-    if strategie and etape["operation"] == "aller" and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
+    operation = etape["operation"]
+    if strategie and operation == "aller" and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
         terminer(monde, id, False, etape)  # Aucun passage qu'il croie ouvert : la stratégie tombe.
-        return
-    contact = CONTACT.get(etape["operation"])
-    if contact and monde.data.get("mode_cases") and etape["cible"] in monde.objets:
-        from .spatial import proche
+        return reste
+    if en_cases and "position" in o and operation == "aller":
+        lieu = etape["lieu"]
+        return _marcher(monde, id, lambda salle, case: salle == lieu, lignes) or reste
+    if CONTACT.get(operation) and en_cases and etape["cible"] in monde.objets:
+        from .spatial import position_cible, proche
         if (not _porte(monde, etape["cible"], id) and not proche(monde, etape["cible"], id)
                 and monde.present_physique(etape["cible"], salle=o["lieu"])):
-            # S'approcher prend la minute ; l'absence de témoin se juge ensuite sur place.
-            _approcher(monde, id, etape["cible"])
-            return
+            # Il s'approche pas à pas ; l'absence de témoin se juge ensuite sur place.
+            p = position_cible(monde, etape["cible"], o["lieu"])
+            ici = o["lieu"]
+            pas = p is not None and _marcher(monde, id, lambda salle, case: salle == ici and max(
+                abs(case[0] - p[0]), abs(case[1] - p[1])) == 1, lignes)
+            return pas or reste
+    if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
+        # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
+        pas = _rejoindre_un_proche(monde, id, lignes)
+        if pas:
+            return pas
     if etape["condition"] == "sans_temoin" and temoins_crus(monde, id) and not desespere(monde, id):
+        # Il guette une occasion jusqu'à la minute suivante.
         intention["attente"] += 1
         if intention["attente"] > PATIENCE:
-            renoncer(monde, id, minute)
-        return
-    if _executer(monde, id, etape, lignes, [] if gestes is None else gestes):
+            renoncer(monde, id, monde.data["minutes"])
+        return reste
+    fait = _executer(monde, id, etape, lignes, [] if gestes is None else gestes)
+    if fait:
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
             e["intention"] = None
         elif strategie and not etapes:
             terminer(monde, id, True)
-    elif strategie and etape["operation"] not in PROGRESSIFS:
+    elif strategie and operation not in PROGRESSIFS:
         terminer(monde, id, False, etape)  # Un geste manqué, ou un refus : il n'insiste pas.
+    if not en_cases or operation in DURABLES or operation == "aller" or not fait:
+        # Un geste manqué ne se retente pas aussitôt : il reconsidère à la minute suivante.
+        return reste
+    return DUREES.get(operation, 20)
 
 
 def _annoncer_presences(monde, vus, apparus, lignes):
@@ -535,41 +638,76 @@ def _annoncer_presences(monde, vus, apparus, lignes):
         vus[id] = maintenant
 
 
-def avancer(monde, minutes, lignes):
-    """Fait vivre les PNJ minute par minute ; renvoie ceux apparus dans la perception du joueur."""
+def avancer(monde, minutes, lignes, dixiemes=None):
+    """Fait vivre les PNJ pendant le temps qui vient de s'écouler (``minutes``, ou ``dixiemes``
+    à la seconde près), jusqu'à l'heure courante ; renvoie ceux apparus dans la perception du
+    joueur."""
     from .spatial import vue_memorisee
     with vue_memorisee(monde):
-        return _avancer(monde, minutes, lignes)
+        return _avancer(monde, minutes, lignes, dixiemes)
 
 
-def _avancer(monde, minutes, lignes):
+def _avancer(monde, minutes, lignes, dixiemes):
+    """La vie des PNJ par événements : chacun commence un geste dès qu'il a fini le précédent ;
+    à chaque minute franchie, le feu se consume et chacun délibère. On traite toujours ce qui
+    arrive en premier ; quand rien ne bouge, on saute à l'événement suivant."""
     from .deliberation import appeler_a_l_aide, deliberer, menager_flamme
     from .perception import avancer_combustion
     from .social import bavarder
-    fin = monde.data["minutes"]
+    from .temps import MINUTE
+    fin_minutes, fin_dixiemes = monde.data["minutes"], monde.data.get("dixiemes", 0)
+    fin = fin_minutes * MINUTE + fin_dixiemes
+    debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
     ids = pnjs(monde)
     vus = {id: monde.visible(id) for id in ids}
-    apparus = []
-    for k in range(minutes):
-        minute = monde.data["minutes"] = fin - minutes + k + 1
-        avancer_combustion(monde, 1, lignes)
-        gestes = []
+    apparus, temoignages = [], {}
+    libre = {id: max(debut, esprit(monde, id)["libre"]) for id in ids}
+    t = debut
+    while True:
+        frontiere = (t // MINUTE + 1) * MINUTE
+        prochain = min(libre.values(), default=fin + 1)
+        if min(frontiere, prochain) > fin:
+            break
+        if frontiere <= prochain:
+            t = frontiere
+            monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
+            minute = monde.data["minutes"]
+            avancer_combustion(monde, 1, lignes)
+            for id in ids:
+                if monde.objets[id].get("profil"):
+                    deliberer(monde, id, minute)
+                    menager_flamme(monde, id, minute)
+                    appeler_a_l_aide(monde, id, minute)
+                    percevoir(monde, id)
+            continue
+        t = prochain
+        monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
         for id in ids:
-            if monde.objets[id].get("profil"):
-                deliberer(monde, id, minute)
-                menager_flamme(monde, id, minute)
-                appeler_a_l_aide(monde, id, minute)
+            if libre[id] != t:
+                continue
+            # Ceux qui l'ont vu pendant son geste précédent s'en souviennent aussi.
+            for geste in temoignages.pop(id, []):
+                if geste[2] in monde.objets:
+                    _temoigner(monde, *geste)
             intention = lire(monde, id)["intention"]
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
-                continue
-            if intention:
-                agir(monde, id, minute, lignes, gestes)
+                duree = DUREES["dire"] if monde.data.get("mode_cases") else _jusqu_a_la_minute(t)
+            elif intention:
+                gestes = []
+                duree = agir(monde, id, t, lignes, gestes)
+                temoignages[id] = gestes
                 percevoir(monde, id)
                 _annoncer_presences(monde, vus, apparus, lignes)
+            else:
+                duree = _jusqu_a_la_minute(t)
+            libre[id] = t + max(1, duree)
+    for gestes in temoignages.values():
         for geste in gestes:
             if geste[2] in monde.objets:
                 _temoigner(monde, *geste)
-    monde.data["minutes"] = fin
+    for id in ids:
+        esprit(monde, id)["libre"] = libre[id]
+    monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     _annoncer_presences(monde, vus, apparus, lignes)
     return apparus
