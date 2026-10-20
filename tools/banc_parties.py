@@ -154,9 +154,22 @@ def preparer(donnees, sauvegarde):
         from donjon.spatial import installer
         installer(m)
     m.joueur["stats"].update(prep.get("stats", {}))
-    for cle in ("salle", "position"):
+    for cle in ("salle", "position", "orientation"):
         if cle in prep:
             m.joueur[cle] = prep[cle]
+    for id, place in prep.get("personnages", {}).items():
+        # Placement d'auteur : un personnage à une case, tourné vers une direction.
+        m.objets[id].update(lieu=place["salle"], position=list(place["position"]), position_salle=place["salle"])
+        if "orientation" in place:
+            m.objets[id]["orientation"] = place["orientation"]
+    for id in prep.get("calmes", []):
+        # Placement d'auteur : aucun besoin pressant, rondes faites ; le personnage reste où il est.
+        besoins = esprit(m, id)["besoins"]
+        for b in besoins:
+            besoins[b] = 0.0
+        for x in m.objets[id]["profil"]["pulsions"]:
+            if "periode" in x["condition"]:
+                esprit(m, id)["visites"][x["condition"]["lieu"]] = m.data["minutes"]
     m.data["connus"].extend(prep.get("connus", []))
     for id, lieu in prep.get("lieux", {}).items():
         # Placement d'auteur : un objet déjà en main ou ailleurs, pour cibler une scène.
