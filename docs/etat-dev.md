@@ -225,7 +225,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   réelle : « Je vais me pousser » (Brune) et « je peux garder un œil sur la réserve » (Ilse)
   refusés puis reformulés. Limite : repérer une promesse reste un jugement de l'auditeur ; seul
   son appui est vérifié de façon déterministe.
-- Branche `ouie` (`docs/plan-ouie.md`, `donjon/ouie.py`), non fusionnée : une règle d'ouïe commune
+- Branche `ouie` (`docs/plan-ouie.md`, `donjon/ouie.py`) : une règle d'ouïe commune
   au joueur et aux PNJ remplace `pnj.alerter`. Tout geste retentit selon sa nature, déclarée une
   fois (pas feutré < pas, geste ordinaire < voix < bruyant < appel) ; la distance et les passages
   l'atténuent ; seuil mieux aux aguets, moins bien au repos, modulé par la PER. Un bruit ordinaire
@@ -237,14 +237,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   corrige la croyance. Bancs : aucune usurpation ; vols vus au Relais 1 → 2,9 ; minutes sans
   recours égales ou moindres (auberge 584 → 584, mine 680 → 604). Limite : les réflexes déclarés
   gardent l'ancienne portée des sons.
-- Branche `diagonales`, non fusionnée : un pas en diagonale dure √2 fois un pas droit, à toute
+- Branche `diagonales` : un pas en diagonale dure √2 fois un pas droit, à toute
   allure, pour le joueur et les PNJ (`temps.duree_pas`, 15 → 21 dixièmes) ; les chemins
   (`spatial.trajet`, le clic de la page) sont les plus courts en temps ; lumière, vue, ouïe et voix
   se mesurent en distance réelle arrondie à la case (`geometrie.distance`) : halos ronds, une
   diagonale voisine reste au contact. Bancs sans usurpation ni violation, même temps de calcul ;
   Brune, arrivée face aux témoins, attend avant de crocheter (plus de vols aboutis et vus). Détail
   et limites dans `docs/plan-temps.md` (« Correctif : les diagonales »).
-- Branche `parole` (`docs/plan-ouie.md`, section Paroles), non fusionnée : le moteur fixe à qui
+- Branche `parole` (`docs/plan-ouie.md`, section Paroles) : le moteur fixe à qui
   parle le joueur (`paroles.analyser`, `paroles.destinataires`), celui qu'il nomme, sinon celui
   qui est en face de lui ; à égalité, le joueur précise. « à tous » vise tous les présents qui
   l'entendent, chacun décidant pour lui ; des guillemets en tête valent « je dis » ; chuchoter ou
@@ -270,8 +270,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   étape 3, le niveau d'eau, faite ; suite : influence et relations) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
   Faits : temps fin et orientation, jeu dans le navigateur, caractères et valeurs (sans
-  l'empathie), niveau d'eau. **L'ouïe** est faite sur la branche `ouie` (`docs/plan-ouie.md`), à
-  relire avant fusion ; réglages à trancher : l'échelle, le crochetage en geste bruyant,
+  l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
