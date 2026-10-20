@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from donjon import deliberation  # noqa: E402
 from donjon.planification import planifier  # noqa: E402
 
-METHODES = {"faim": "_plan_manger", "chaleur": "_plan_chauffer"}
+METHODES = {"faim": "_plan_manger", "chaleur": "_plan_chauffer"}  # les méthodes écrites, gardées pour comparer
 
 
 def resume(resultat):

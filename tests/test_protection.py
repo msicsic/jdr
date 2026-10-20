@@ -74,7 +74,8 @@ class PrevenirTests(unittest.TestCase):
         for de, objet in (("aubin", "planches"), ("marchand", "bois")):
             memoriser(m, "brune", {"type": "refus", "de": de, "operation": "demander", "raison": "refus", "objet": objet})
         avant = lire(m, "marchand")["besoins"]["devoir"]
-        m, _ = vivre(m, 2)
+        # Elle prend la torche et les planches, dans l'ordre que son plan retient : Gorm la voit.
+        m, _ = vivre(m, 4)
         self.assertIn("vu_agir", [s["type"] for s in lire(m, "marchand")["memoire"]])
         self.assertGreater(lire(m, "marchand")["besoins"]["devoir"], avant + 20)
         m, _ = vivre(m, 12)

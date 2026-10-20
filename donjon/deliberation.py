@@ -762,8 +762,20 @@ def confie_a_autrui(monde, id, objet):
     return bool(p) and any(x["condition"].get("objet") == objet and _delegue(monde, id, x) for x in p["pulsions"])
 
 
+def _plan_faim(monde, id):
+    """Apaiser la faim : le plan le moins coûteux trouvé par la recherche (``planification``)."""
+    from .planification import planifier
+    return planifier(monde, id, "faim")
+
+
+def _plan_froid(monde, id):
+    """Se réchauffer : le plan le moins coûteux trouvé par la recherche (``planification``)."""
+    from .planification import planifier
+    return planifier(monde, id, "chaleur")
+
+
 # Besoins qu'un geste qui dure apaise : la méthode, et le seuil où il s'achève.
-PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_chauffer, CHALEUR_FIN),
+PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_froid, CHALEUR_FIN),
            "securite": (_plan_abri, SECURITE_FIN)}
 GESTE_PROGRES = {"repos": "reposer", "chaleur": "chauffer", "securite": "abriter"}
 
@@ -796,7 +808,7 @@ def candidats(monde, id):
                 and e["besoins"][besoin] < seuils(monde, id)[besoin] + INERTIE):
             continue
         if besoin == "faim":
-            buts.append((besoin, _plan_manger, False))
+            buts.append((besoin, _plan_faim, False))
             continue
         if besoin in PROGRES:
             # Le geste qui apaise d'abord ; les pulsions du même besoin (les rondes) restent des recours.
