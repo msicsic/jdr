@@ -237,7 +237,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   corrige la croyance. Bancs : aucune usurpation ; vols vus au Relais 1 → 2,9 ; minutes sans
   recours égales ou moindres (auberge 584 → 584, mine 680 → 604). Limite : les réflexes déclarés
   gardent l'ancienne portée des sons.
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 808 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
