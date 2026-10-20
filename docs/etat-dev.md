@@ -195,7 +195,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   → ~4,7 s (4 nuits en parallèle). Constat : combinées, la marche et la perception par événement
   redonnent au Relais une nuit proche de celle d'avant (mêmes mesures), alors que chacune seule
   multipliait échanges et vols vus ; à examiner avec le rejeu.
-- La suite de tests passe : 759 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `ouie` (`docs/plan-ouie.md`, `donjon/ouie.py`), non fusionnée : une règle d'ouïe commune
+  au joueur et aux PNJ remplace `pnj.alerter`. Tout geste retentit selon sa nature, déclarée une
+  fois (pas feutré < pas, geste ordinaire < voix < bruyant < appel) ; la distance et les passages
+  l'atténuent ; seuil mieux aux aguets, moins bien au repos, modulé par la PER. Un bruit ordinaire
+  de qui l'on croit là est attribué ; inconnu ou inhabituel, on se retourne de près (témoin par le
+  registre), sinon on retient un bruit vers ce lieu, qui inquiète à la mesure de ce qu'on entend ;
+  aller voir est un but du planificateur que décident le devoir de garde et, pour un fracas ou un
+  appel, le courage ; le bruit de qui l'on se méfie se surveille. Le joueur entend par le même
+  calcul et lit qui se retourne vers lui. Correctif révélé : un geste social vers qui n'est pas là
+  corrige la croyance. Bancs : aucune usurpation ; vols vus au Relais 1 → 2,9 ; minutes sans
+  recours égales ou moindres (auberge 584 → 584, mine 680 → 604). Limite : les réflexes déclarés
+  gardent l'ancienne portée des sons.
+- La suite de tests passe : 773 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -207,10 +219,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   étape 3, le niveau d'eau, faite ; suite : influence et relations) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
   Faits : temps fin et orientation, jeu dans le navigateur, caractères et valeurs (sans
-  l'empathie), niveau d'eau. Prochain, accepté : **l'ouïe** (tout geste fait un bruit selon sa
-  nature, atténué par la distance ; bruit connu, d'une personne crue là, sans effet ; inconnu ou
-  inhabituel, on se retourne de près, on s'inquiète de loin et le courage décide d'aller voir ;
-  un bruit d'une personne dont on se méfie se surveille).
+  l'empathie), niveau d'eau. **L'ouïe** est faite sur la branche `ouie` (`docs/plan-ouie.md`), à
+  relire avant fusion ; réglages à trancher : l'échelle, le crochetage en geste bruyant,
+  l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
+  déclarés et le souvenir « son » dans l'ouïe commune.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
   pour entretenir un feu ; chercher quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et
   permissions déléguées ; l'argent ; un protégé nourri en boucle ; `pnj._rate` croit disparu un

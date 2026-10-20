@@ -366,10 +366,16 @@ aussi à ceux d'INT et de PER (« Caractéristiques et valeurs ») ; à 95, la f
 qui est à lui ou à personne. Il peut demander une part de vivres (servie là où ils sont) ou de
 bois (le feu entretenu) à qui les possède, même sans les avoir vus.
 
-Les PNJ font du bruit (`donjon/ecoute.py`) : pas et gestes (1), voix (2), appel à l'aide (3),
-propagés comme les autres sons. Le joueur entend de lui-même ce qui lui parvient au niveau 2 ;
-en écoutant (`ecouter`, trois minutes), jusqu'au niveau 1, un cran de mieux contre une porte.
-Une parole n'est rendue en clair qu'au niveau 2 et si elle ne nomme que ce qu'il connaît.
+Tout geste fait un bruit, du joueur comme d'un PNJ (`donjon/ouie.py`, `docs/plan-ouie.md`) : pas
+feutré (1) < pas, geste ordinaire (3) < voix (4) < geste bruyant (7 : crocheter, forcer, frapper…)
+< appel, cri (9). Un cran se perd par distance doublée dans une salle, un en passant une ouverture,
+trois une porte fermée. Chacun entend ce qui lui parvient au niveau 1 ; le joueur, en écoutant
+(`ecouter`, trois minutes), un cran plus bas, et un de mieux contre la porte par où le bruit
+arrive (`donjon/ecoute.py`). Une parole n'est rendue en clair qu'au niveau 1 et si elle ne nomme
+que ce qu'il connaît. Un PNJ interprète le bruit selon ce qu'il croit : celui de qui il croit là
+ne le fait pas se retourner ; un bruit inconnu ou inhabituel, si, de près ; de plus loin, il s'en
+inquiète, et son devoir de garde ou, pour un fracas ou un appel, son courage l'envoie voir. Le
+joueur lit qui se retourne vers lui.
 
 Un PNJ protège ceux que déclare son profil (`protege`) : à bout d'inquiétude et sans abri, un
 protégé appelle à l'aide, et son protecteur accourt ; un geste illicite vu contre un protégé

@@ -28,7 +28,8 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
 - **Champ de vision** : un cône de 120° devant soi, plus les cases immédiatement voisines sur les
   côtés. Derrière, rien. Joueur et PNJ ont la même règle.
 - **L'ouïe ne dépend pas de l'orientation.** Un bruit proche venu d'une case qu'on ne voit pas
-  fait se retourner : réflexe commun, qui prend le temps d'une rotation.
+  fait se retourner : réflexe commun, qui prend le temps d'une rotation. (Remplacé depuis par une
+  règle d'ouïe commune, qui interprète le bruit selon ce qu'on croit : `docs/plan-ouie.md`.)
 - **Simulation par événements.** Chaque personnage a l'instant où son geste en cours finit ; le
   moteur traite toujours le prochain geste qui se termine. Quand le joueur agit, le monde avance
   de la durée de son geste, et tout ce qui se termine entre-temps est traité dans l'ordre. Quand
