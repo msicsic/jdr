@@ -3,8 +3,8 @@
 Document de discussion, pas encore un jalon. Il décrit une situation qui doit mettre à
 l'épreuve les PNJ (buts opposés, relations, menace commune) et en tire les mécanismes
 généraux qui manquent au moteur. Rien n'y est un script : le scénario déclare des données
-(personnages, croyances de départ, rythme de la menace, ressources), et ce qui arrive doit
-naître des mécanismes communs.
+(personnages, croyances de départ, bornes de la crue, ressources), et ce qui arrive doit
+naître des mécanismes communs. Les PNJ seront d'abord étudiés sans joueur, au banc.
 
 ## Ce que le scénario doit éprouver
 
@@ -14,151 +14,244 @@ naître des mécanismes communs.
 - **Des relations qui pèsent** : qui l'on croit, qui l'on aide, avec qui l'on part.
 - **Une menace commune** que personne ne peut ignorer, qui force à choisir, et qu'aucun ne
   peut affronter seul.
-- **Des issues variées** d'une graine à l'autre et selon le joueur, à partir d'un petit
-  nombre de règles.
+- **Des issues variées** d'une graine à l'autre, à partir d'un petit nombre de règles.
 
-Critère principal, repris de la piste de planification : des comportements cohérents, variés
-et adaptatifs, sans méthode écrite pour ce scénario.
+Critère principal : des comportements cohérents, variés et adaptatifs, sans méthode écrite
+pour ce scénario.
 
-## Situation
+## Le cadre
 
-La nuit de la crue. Le Relais est la maison des vannes : la conduite basse et la salle des
-vannes sont au plus bas, le refuge au-dessus, le palier des vannes et la galerie de ronde en
-haut. Gorm le garde ; Brune, Ilse et Aubin y ont été évacués. La cloche d'alarme, qui prévient
-le village en aval, est restée dans la galerie (l'objectif actuel du joueur).
+Aujourd'hui, le scénario n'établit presque rien autour du Relais : l'introduction (« Après la
+rupture du pont, tu as rejoint à pied le Relais des crues par la digue […] Gorm préparait
+l'accueil des habitants évacués »), les noms des salles, et la cloche qui « devait servir à
+donner le signal depuis le refuge ». Le cadre qui suit est une proposition ; les noms sont
+provisoires.
 
-L'eau monte. Personne ne sait jusqu'où ni quand elle cessera.
+- **La vallée.** Une rivière en crue. D'un côté de la digue, le hameau des bateliers, sur la
+  berge. De l'autre, en contrebas, le bourg, protégé par la digue, et le canal qui l'alimente
+  et fait tourner le moulin d'Ilse. Derrière le bourg, le coteau, au sec.
+- **Le Relais des crues** est la maison de garde de la digue, bâtie dans la digue : le refuge
+  sur la crête, la conduite basse et la salle des vannes dans l'épaisseur du talus, au niveau
+  du canal, la galerie de ronde en haut pour guetter l'eau. On y vend aussi aux bateliers qui
+  passent (l'échoppe de Gorm).
+- **Les vannes** sont des portes de bois dans la digue, entre la rivière et le canal. En crue
+  on les ferme, mais elles sont vieilles et fuient. Si elles cèdent, l'eau envahit les salles
+  basses, puis le canal, puis le bourg. Barrer les vannes, c'est les renforcer de planches et
+  d'étais.
+- **Les évacués** viennent du hameau, noyé le premier. Le pont est rompu ; ils ont suivi la
+  digue jusqu'au Relais, seul bâtiment en dur.
+- **La cloche** prévient le bourg, depuis la galerie, que les vannes vont céder, pour qu'il
+  monte au coteau.
+- **La barque** du Relais est amarrée à la salle des vannes pour l'entretien. Le Relais est
+  une île : pont rompu, digue submergée par endroits. La barque ne descend pas la rivière (le
+  courant charrie des troncs) : elle traverse les prés noyés jusqu'au coteau.
+
+```
+          coteau (sec)
+              ↑   traversée en barque : prés noyés, courant de travers
+   bourg ── canal ── moulin
+              ║ digue ── RELAIS ── digue (submergée par endroits) ── pont rompu
+   ~~~~~~~~~~ rivière en crue ~~~~~~~~~~
+```
+
+Données à changer : les altitudes (aujourd'hui toutes les salles sont à 0, sauf la galerie à
+240 cm ; les salles basses doivent passer sous le refuge), la barque, l'introduction.
 
 ## La menace
 
-- **Un niveau d'eau**, quantité du monde, comparé à l'altitude de chaque salle (`altitude_cm`
-  existe déjà). Au-dessus du sol, une salle est **mouillée** (froid, feu menacé), puis
-  **noyée** : impraticable, feu éteint, objets légers perdus ou gâtés.
-- **Un rythme déclaré par le scénario** : montée par heure et heure du pic, tirées dans des
-  bornes selon la graine. Le pic peut tomber avant le refuge ou après : Gorm peut avoir raison.
-- **Ce qu'on en perçoit** : l'eau vue dans une salle, son bruit, et la mesure aux vannes qui
-  donne une tendance. Chacun s'en fait une croyance (niveau, vitesse) qui peut être fausse ou
-  périmée, comme les autres croyances.
-- **Ce qui la change** : barrer les vannes ralentit la montée dans les salles basses tant que
-  le barrage tient. Le barrage peut céder si on l'a fait avec trop peu.
+- **Un niveau d'eau**, quantité du monde, comparé à l'altitude de chaque salle. Une salle est
+  d'abord **mouillée**, puis **noyée** : impraticable, feu éteint, objets légers perdus ou
+  trempés.
+- **Bornes déclarées, valeurs tirées.** Le scénario déclare des bornes pour la montée par
+  heure, l'heure du pic et sa hauteur ; les valeurs sont tirées au départ de la graine, par un
+  tirage séparé (`seed:crue`) que les jets de la partie ne décalent pas. Personne ne les connaît,
+  ni l'auteur pour une graine donnée, ni le joueur qui rejoue : selon la partie, Gorm a raison
+  de croire que le Relais tient, ou Aubin de craindre les vannes. Aujourd'hui la graine ne sert
+  qu'aux jets de dés (`Monde.d20`) ; c'en serait un usage nouveau.
+- **Ce qu'on en perçoit** : l'eau vue dans une salle, son bruit, la mesure aux vannes qui donne
+  une tendance. Chacun s'en fait une croyance (niveau, vitesse), qui peut être fausse ou
+  périmée.
+- **Ce qui la change** : barrer les vannes ralentit la montée dans les salles basses tant que le
+  barrage tient ; un barrage fait avec trop peu peut céder.
+- **Les vannes cèdent, pas la digue** : le Relais est en pierre, il tient. L'eau monte dans les
+  salles basses, puis dans le refuge. **La galerie reste toujours sèche** : dernier abri, froid,
+  sans feu. Personne ne meurt de ce seul fait ; le danger passe par les règles du corps (le
+  froid, la faim, la fatigue extrêmes coûtent des PV) et par le courant (une traversée ratée).
+  L'enjeu est l'état dans lequel on passe la nuit, et qui l'on a laissé derrière soi.
+- **Le bourg**, hors scène : si l'alarme a sonné, il est monté au coteau ; sinon il est surpris.
+  Le bilan de fin le dit.
+
+## L'eau, le froid et le feu
+
+- **Ce qui existe** (`donjon/corps.py`) : un personnage peut être trempé ; trempé, le froid
+  monte de 10 par heure au lieu de 2. On sèche en restant 30 minutes de suite dans la salle d'un
+  feu allumé. Aujourd'hui, seul l'état de départ mouille quelqu'un.
+- **À ajouter** : entrer dans l'eau mouille ; une salle inondée refroidit selon la hauteur
+  d'eau, ralentit, et empêche d'y faire du feu ou d'y poser un objet sans le mouiller.
+- **Le feu devient vital**, et dispute le bois au barrage. Le brasero est dans la conduite
+  basse, parmi les premières salles noyées.
+- **Le brasero est déclaré fixe** (`mobile: false`, 20 kg de fer), un choix fait quand il n'était
+  qu'un décor. Proposition : le rendre transportable, avec deux règles du moteur, un feu allumé
+  ne se transporte pas, et une charge au-delà de ce qu'on porte demande deux personnes (le
+  joueur porte 12 kg). Le monter à la galerie passe par la conduite, la salle des vannes, la
+  porte étanche et l'escalier du palier : par les salles les plus menacées, donc avant de savoir
+  si les vannes tiendront.
+- **Un foyer improvisé** : du combustible sec, un sol hors de l'eau, de quoi allumer. N'importe
+  quel lieu peut avoir un feu, la galerie comprise, si l'on y monte du bois resté sec. C'est un
+  usage de plus pour la fabrication.
+- Le bois sec devient la ressource de la nuit : brûler en bas maintenant, brûler en haut plus
+  tard, ou barrer les vannes.
 
 ## Les recours
 
-Chacun a un coût, et ils se disputent les mêmes moyens.
-
 | Recours | Il faut | Ce que ça coûte |
 |---|---|---|
-| Barrer les vannes | des planches, un marteau, deux personnes, du temps | les planches ne brûleront pas ; du travail dans l'eau froide |
-| Monter en haut | rien | froid, pas de feu sans bois monté, vivres à emporter |
-| Partir en barque | la barque de service, quelqu'un qui sait la mener | deux places ; laisser les autres |
-| Sonner l'alarme | la cloche, de là-haut | rien pour soi : c'est pour le village |
+| Barrer les vannes | des planches, un marteau, deux personnes, du temps | les planches ne brûleront pas ; on en sort trempé |
+| Monter à la galerie | rien | froid, pas de feu sans bois monté ou brasero porté |
+| Partir en barque | la clé de la chaîne, une lumière, un équipage de deux | deux places ; laisser les autres |
+| Sonner l'alarme | la cloche, de la galerie | rien pour soi : c'est pour le bourg |
 | Garder le feu | du bois ou des planches | ce qui brûle ne barre plus |
 
-Ressources disputées : les **planches** d'Aubin (barrage, feu, ou passerelle si une salle est
-coupée), le **bois** de Gorm, les **4 parts** de vivres, les **2 places** de la barque.
+Ressources disputées : les **planches** d'Aubin, le **bois** de Gorm, les **4 parts** de vivres,
+les **2 places** de la barque, la **lumière** (la lanterne du joueur, la torche, le fanal).
+
+## La barque
+
+Rien d'interdit à Brune en particulier : le départ a des conditions générales, et chacune
+croise les buts des autres.
+
+1. **Elle ne se mène pas seule dans le courant** : l'une rame, l'autre écarte les débris à la
+   gaffe. Il faut convaincre un compagnon, qui prend l'une des deux places.
+2. **Elle est enchaînée, et c'est Gorm qui garde la clé.** On la demande, on la vole, ou l'on
+   crochète le cadenas, au risque d'être vu.
+3. **La nuit, sans lumière**, la traversée est presque impossible. Le risque est un jet dont la
+   difficulté dépend du courant, de la lumière et de l'équipage.
+4. **Affamé ou gelé**, on a un malus (déjà dans le modèle du corps).
+
+Partir, c'est quitter la partie : on est sauf, ses biens partent avec soi, la scène continue
+sans soi, et le bilan dit qui est parti, avec qui.
 
 ## Les personnages
 
 Chacun a un avis de départ, un but qui en découle, et ce qui pourrait le faire changer.
 
-**Gorm**, gardien. Croit que le Relais tient : il l'a vu tenir à chaque crue. Son devoir : ne
-pas partir tant que des évacués sont attendus, garder le feu pour eux. Il tient son bois et ses
-vivres. Respecte Aubin de longue date ; se méfie de Brune. *Levier* : l'eau vue dans le
-refuge ; la parole d'Aubin, s'il le croit encore ; un service rendu au refuge.
+**Gorm**, gardien. Croit que la digue tient : elle a toujours tenu. Son devoir : ne pas partir
+tant que des évacués sont attendus, garder le feu pour eux. Il tient son bois, ses vivres et la
+clé de la barque. Respecte Aubin de longue date ; se méfie de Brune. *Levier* : l'eau vue dans
+le refuge ; la parole d'Aubin, s'il le croit encore ; un service rendu au refuge.
 
-**Aubin**, passeur. Croit que les vannes céderont avant le pic si on ne les barre pas. Veut
-ses planches pour le barrage, ce qui le met face à Gorm (le feu) et à quiconque en a besoin
-ailleurs. Ne peut pas barrer seul. Taciturne : il dit ce qu'il a vu, sans insister.
+**Aubin**, passeur. Il surveille les vannes et les voit fuir : il croit qu'elles céderont avant
+le pic si on ne les barre pas. Il veut ses planches pour le barrage, ce qui le met face à Gorm
+(le feu). Il ne peut pas barrer seul. Taciturne : il dit ce qu'il a vu, sans insister.
 *Levier* : quelqu'un qui accepte de l'aider ; la vue d'un barrage qui cède.
 
-**Brune**, batelière. Croit que seule la barque sauve. Elle sait la mener ; personne d'autre
-ne le fait sans risque. Affamée, peu scrupuleuse. Deux places : elle peut partir seule,
-emmener qui la paie (une part, un objet), ou qui elle préfère. *Levier* : de quoi manger ; une
-dette ; l'eau qui baisse.
+**Brune**, batelière. Sa maison est noyée ; elle croit que seule la barque sauve. Elle sait la
+mener ; personne d'autre ne le fait sans risque. Affamée, peu scrupuleuse. *Levier* : de quoi
+manger ; une dette ; l'eau qui baisse.
 
-**Ilse**, meunière. A peur. Suit celui qu'elle croit le plus fiable, et répète ce qu'elle a vu
-et entendu : son avis fait pencher le groupe. Si elle prend la seconde place, la barque est
-pleine. *Levier* : la confiance ; la peur, que le noir et l'eau aggravent.
+**Ilse**, meunière. Pense à son moulin, donc au bourg. A peur ; suit celui qu'elle croit le plus
+fiable, et répète ce qu'elle a vu et entendu : son avis fait pencher le groupe. *Levier* : la
+confiance ; la peur, que le noir et l'eau aggravent.
 
 Relations de départ (à régler) : Gorm et Aubin se font confiance ; Gorm se méfie de Brune ;
 Ilse craint Brune et s'en remet à Gorm ; Aubin doit à Gorm son hébergement.
 
-## Le joueur
+## S'influencer
 
-Il a les mêmes besoins que les PNJ et la même menace. Il peut convaincre, mentir, arbitrer
-entre Gorm et Aubin, aider au barrage, négocier une place, sonner l'alarme, ou partir seul.
-Il n'a pas de rôle réservé : les PNJ le traitent selon ce qu'ils croient de lui.
+**Ce qui existe** (`donjon/echanges.py`, `donjon/social.py`) : affirmer un fait (lieu, verrou,
+fiabilité), rapporter ce qu'on a vu (rumeurs, trois bouches au plus), demander un objet ou une
+part, confier une tâche (un objet dans une salle, verrouillé, un feu entretenu). Un jet de CHA
+tranche, plus facile si l'auditeur croit le locuteur fiable. Une demande est refusée d'office
+si l'auditeur se méfie, ou si l'objet lui est nécessaire (il sert son plan, c'est ce qu'il garde
+ou sa clé).
+
+**Ce que ça donne** : Brune ne peut pas obtenir la clé de Gorm (nécessaire, et méfiance), ni
+demander à Ilse de la demander pour elle : une tâche confiée ne porte que sur l'état d'un objet,
+le planificateur d'Ilse ne sait pas obtenir un objet porté par quelqu'un, et le moteur ne fait
+jamais demander un objet (seulement des parts ; le reste vient du stratège, désactivé). On
+donne des faits, pas des raisons ; l'influence ne fait qu'un pas ; une méfiance ne remonte
+jamais.
+
+**À ajouter** :
+- **Une demande est une proposition** : ce que je demande, et pourquoi tu y gagnes. L'auditeur
+  la juge d'après ses croyances et ses buts : ce qu'il perd, ce qu'il y gagne (un but servi,
+  une contrepartie, une dette honorée), sa confiance que la promesse sera tenue. Le jet de CHA
+  penche la balance.
+- **Des avis** : une croyance sur ce qu'il faut faire (« les vannes céderont », « la digue
+  tient »), avec sa confiance. On s'en convainc ; ce qu'on voit soi-même pèse plus que ce qu'on
+  entend ; deux avis opposés font une dispute.
+- **Obtenir un objet porté par quelqu'un** comme but que le planificateur sait atteindre
+  (demander, échanger, prendre sans être vu, selon le caractère), et qu'on peut confier à un
+  autre.
+- **Des relations graduées** : affection, dette (un service rendu), rancune (un refus, un vol,
+  un mensonge découvert) ; la confiance perdue peut se regagner.
+
+Chemins de Brune vers la clé, avec ces règles : convaincre Gorm que les vannes vont céder (dur :
+elle n'est pas fiable à ses yeux ; la parole d'Aubin ou l'eau vue pèseraient plus) ; servir ses
+buts (« j'emmène Ilse au coteau »), avec une condition qu'il pose ; passer par Ilse, qu'il croit ;
+regagner sa confiance par un service ; voler ou crocheter. Aucun n'est écrit pour elle.
 
 ## Déroulés possibles
 
 Des exemples de ce qui devrait pouvoir arriver, pas des branches à écrire.
 
-- Le pic tombe bas. Gorm garde le feu avec les planches, Aubin cède à contrecœur ; Brune,
-  partie seule à minuit, a eu tort ; Ilse en parle à tout le monde.
-- Le pic tombe haut. Aubin convainc le joueur, ils barrent les vannes ; le refuge reste sec
-  deux heures de plus ; Gorm, qui a vu l'eau monter, cède son bois pour les étayer.
+- Le pic tombe bas. Gorm garde le feu avec les planches, Aubin cède à contrecœur ; Brune, partie
+  à minuit avec Ilse, a pris un risque pour rien ; le bilan le dit.
+- Le pic tombe haut. Aubin convainc le joueur, ils barrent les vannes ; le refuge reste sec deux
+  heures de plus ; Gorm, qui a vu l'eau monter, cède son bois pour les étayer.
 - Brune propose une place à Ilse contre sa part de vivres ; Gorm le voit, refuse de servir
-  Brune ; Ilse hésite entre les deux ; le joueur prend la place à sa façon.
-- Personne ne s'entend : chacun pour soi, le feu meurt, tout le monde monte en haut, et la
-  cloche est la seule chose qui reste à faire.
+  Brune ; Ilse hésite entre les deux.
+- Personne ne s'entend : le feu meurt dans la conduite noyée, tout le monde monte trempé à la
+  galerie, et la cloche est la seule chose qui reste à faire.
 
 ## Mécanismes généraux à ajouter
 
-Chacun est commun au moteur ; le scénario n'en fournit que les données.
-
-1. **Niveau d'eau** : quantité du monde, rythme et pic déclarés, salles mouillées puis noyées
-   selon leur altitude, effets sur le feu, les objets et le corps (froid). Perception de l'eau
-   et de sa tendance, croyances qui en découlent. Les `horloges` existent mais ne portent que
-   des événements ponctuels.
-2. **Avis sur ce qu'il faut faire** : une croyance sur un recours (« barrer les vannes nous
-   sauve », « le Relais tient »), avec sa confiance. On se convainc les uns les autres
-   (parole typée, CHA, confiance, ce qu'on a vu soi-même). Deux avis opposés font une dispute
-   que le joueur peut voir et entendre.
-3. **Relations graduées** : au-delà de « fiable » oui ou non, une affection, une dette (un
-   service rendu), une rancune (un refus, un vol, un mensonge découvert). Elles pèsent sur
-   qui l'on croit, ce qu'on accepte, ce qu'on donne.
-4. **Agir ensemble** : une tâche qui demande plusieurs personnes ; on demande de l'aide pour
-   elle, l'autre accepte ou refuse selon ses buts et la relation ; la tâche avance quand tous
-   y sont.
-5. **Quitter la scène** : un départ (la barque) fait sortir des personnages de la partie, avec
-   leurs biens. Places comptées ; une capacité (mener une barque) comme `crochetage`.
-6. **Ressource à plusieurs usages** : les planches brûlent, barrent ou font passerelle. C'est
-   là que la fabrication (étape 4, passerelle et cale) et la planification se rejoignent.
-7. **Fin de partie** : le pic passé, l'eau baisse ; le bilan dit qui est resté, qui est parti,
-   qui a eu froid ou faim, si l'alarme a sonné. Pas de fin écrite.
+1. **Planification par recherche** (piste GOAP) : les opérations déclarent conditions et effets
+   sur les croyances, le profil donne les coûts. Préalable aux comportements nouveaux, sinon
+   chaque recours devient une méthode écrite à la main.
+2. **Niveau d'eau** : bornes déclarées, valeurs tirées, salles mouillées puis noyées,
+   perception et croyances ; entrer dans l'eau mouille ; effets sur le feu et les objets.
+3. **Le feu déplacé ou improvisé** : un feu allumé ne se transporte pas ; charge à deux ; foyer
+   improvisé.
+4. **Influence** : proposition jugée sur les buts de l'auditeur, avis, obtenir un objet porté
+   par autrui, confier ce but.
+5. **Relations graduées** : affection, dette, rancune, confiance qui se regagne.
+6. **Agir ensemble** : une tâche à plusieurs (barrer, porter le brasero, mener la barque).
+7. **Quitter la scène** : un départ fait sortir des personnages avec leurs biens ; places
+   comptées ; une capacité (mener une barque).
+8. **Fin de partie** : le pic passé, l'eau baisse ; un bilan, pas de fin écrite.
 
 ## Ce qui serait un script, à éviter
 
 - Un événement déclenché par la présence du joueur, ou à une minute fixée pour faire avancer
-  l'histoire (hors rythme de l'eau, donnée de scénario).
+  l'histoire (hors la crue elle-même, donnée du scénario).
 - Une règle propre à un personnage (« si Gorm voit l'eau, il cède »). Gorm change d'avis par le
-  mécanisme commun des avis : ce qu'il voit pèse plus que ce qu'on lui dit.
+  mécanisme commun des avis.
 - Des répliques écrites ; un ordre des recours codé par personnage.
-- Une méthode de planification par recours (barrer, fuir, monter) : voir plus bas.
+- Une méthode de planification par recours (barrer, fuir, monter).
 
 ## Ordre proposé
 
-1. **Planificateur par recherche** (piste GOAP) : les opérations déclarent conditions et
-   effets sur les croyances, le profil donne les coûts. D'abord sur la faim et le froid, au
-   banc du Relais actuel : ne rien perdre (événements, 0 violation, minutes sans recours,
-   temps de calcul). Sinon chaque recours ci-dessus deviendrait une méthode de plus.
-2. **Niveau d'eau** et sa perception, avec un banc sans joueur : les PNJ fuient l'eau, montent,
-   perdent le feu, sans autre ajout.
-3. **Relations graduées** et **avis** : disputes et persuasion entre PNJ.
-4. **Agir ensemble**, puis **quitter la scène**.
-5. **Passerelle et cale** (fabrication, étape 4) si une salle coupée le demande.
-6. Mesure finale sur la crue complète : issues par graine (qui part, barrage fait ou non, feu,
-   alarme), disputes vues, alliances, aucune violation.
+Le joueur reste passif pendant ce travail ; tout est observé au banc sans joueur.
+
+1. **Un récit du banc lisible** : qui voulait quoi, ce qu'il a tenté, qui l'a aidé ou contrarié,
+   ce qui a changé entre eux. La chronique actuelle noie cela dans les déplacements.
+2. **Planificateur par recherche**, d'abord sur la faim et le froid, au banc du Relais actuel :
+   ne rien perdre (événements, 0 violation, minutes sans recours, temps de calcul), puis voir
+   si un affamé sans recours trouve d'autres voies sans qu'on les lui écrive.
+3. **Niveau d'eau**, avec un banc : les PNJ fuient l'eau, montent, perdent le feu, sans autre
+   ajout.
+4. **Influence et relations** : disputes et persuasion entre PNJ.
+5. **Agir ensemble**, puis **quitter la scène**.
+6. **Passerelle et cale** (fabrication, étape 4) si une salle coupée le demande.
+7. Mesure sur la crue complète : issues par graine (qui part, barrage fait ou non, feu, alarme),
+   disputes vues, alliances, aucune violation.
 
 Chaque étape reste mesurée au banc et peut s'arrêter là si elle n'apporte rien.
 
 ## Questions ouvertes
 
-- Le pic : tiré dans des bornes selon la graine, ou fixé par l'auteur et seulement ignoré des
-  personnages ?
-- La barque : partir est-il une fin pour ceux qui partent (ils quittent la partie), ou un trajet
-  vers une autre scène ?
 - Le barrage : effet chiffré (ralentir la montée) ou seuil (tenir jusqu'à un niveau) ?
 - Le joueur peut-il partir en barque, ce qui finit sa partie ?
-- Un cinquième personnage (un enfant à protéger, quelqu'un d'attendu qui n'arrive pas) pour
-  plus de tension, ou rester à quatre ?
+- Un cinquième personnage (un enfant à protéger, quelqu'un d'attendu qui n'arrive pas) ?
+- D'autres moyens de sécher que le feu (se changer, une couverture) avec la crue, ou plus tard ?
