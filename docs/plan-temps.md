@@ -20,7 +20,8 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
   `data["instant"]`. `data["minutes"]` reste, dérivé de l'instant, pour tout ce qui vit à la
   minute (besoins, croyances, rondes, feu, horloges).
 - **Durées** (constantes du moteur, à régler au banc) : un pas en avant 1,5 s ; un pas de côté ou
-  en arrière 3 s ; une rotation de 45° 0,5 s (un demi-tour 2 s). Les gestes ont leur durée :
+  en arrière 3 s ; en diagonale, √2 fois plus (voir « Correctif : les diagonales ») ; une rotation
+  de 45° 0,5 s (un demi-tour 2 s). Les gestes ont leur durée :
   prendre ou poser quelques secondes, ouvrir, verrouiller, alimenter un feu un peu plus ;
   crocheter, manger, se chauffer, attendre gardent leurs minutes.
 - **Huit directions.** Chacun fait face à une direction ; il se tourne vers où il va, vers celui à
@@ -248,6 +249,84 @@ Limites :
   même où commence la première action : ce bruit-là n'est pas entendu.
 - « Entendu » vaut pour le dernier geste du joueur : un tour de dialogue sans action garde ce
   qu'il a entendu ; l'action suivante le remplace.
+
+## Correctif : les diagonales (branche `diagonales`)
+
+Constat de l'utilisateur : un pas durait 1,5 s quelle que soit sa direction et les chemins prenaient
+le moins de pas, si bien qu'un trajet en diagonale allait ~41 % trop vite ; les portées (lumière,
+ouïe, parole « de près ») se mesuraient en Tchebychev : une diagonale portait 41 % plus loin et les
+halos de lumière étaient carrés. Trois règles communes, joueur et PNJ :
+
+- **Durée d'un pas selon son vecteur** (`temps.duree_pas`) : l'allure pour un pas droit (pas 1,5 s,
+  chassé ou feutré 3 s, `pnj.PAS`), √2 fois l'allure en diagonale, arrondie au dixième de seconde le
+  plus proche, en entiers (`geometrie.racine` : 15 → 21, 30 → 42). Employée par le pas du joueur
+  à toute allure, chaque pas d'un geste de PNJ (pas enchaînés compris) et le pas de côté de qui
+  laisse passer (`passage.duree_ecart`).
+- **Chemins au plus court en temps** : `spatial.trajet` est une recherche au moindre coût (le coût
+  d'un pas est sa durée ; à coût égal, l'ordre de découverte, sens dans l'ordre trié de
+  `VECTEURS`) ; le chemin du clic de la page (`chemin`) suit la même règle et le même ordre. On ne
+  coupe toujours pas l'angle d'un mur en diagonale. Le planificateur raisonne par salles (coût
+  d'aller : nombre de salles) : il n'estime pas de durée en cases, rien n'y change.
+- **Portées en distance réelle** (`geometrie.distance` : euclidienne arrondie à la case la plus
+  proche, en entiers) : lumière directe (`PORTEES` pleine/pénombre), portée de vue (`PORTEE_VUE`),
+  murs vus, ouïe (`ouie.distance` : paliers, `PROCHE`, `PRES_DE`), parole « de près »
+  (`pnj.de_pres`), rejoindre un proche, la case libre la plus proche ; dans la page, le rayon des
+  cônes des autres. Les seuils restent en cases ; une case voisine en diagonale est à 1, donc au
+  contact (prendre, toucher, `proche`, inchangés). Deux cases en diagonale sont à 3, quatre à 6.
+  Le cône de vision est inchangé.
+
+Vérifié (`tests/test_diagonales.py`, état après rechargement) : quatre pas droits 6 s, quatre en
+diagonale 8,4 s, pour le joueur au pas, au pas chassé et au pas feutré ; pour un PNJ au pas et au
+pas feutré, et un geste de deux pas enchaînés à travers la case d'Ilse (4,2 s en biais, 3 s droit) ;
+le chemin le plus rapide plutôt que le moins de pas (deux buts : trois diagonales, 6,3 s, ou quatre
+pas droits, 6 s ; un plan où le moins de pas, 12,3 s, passe au sud et le plus rapide, 12 s, au nord),
+par le moteur et par la page ; le halo de la lanterne est rond ; des pas qui s'achèvent à cinq cases
+dans le dos d'Aubin le font se retourner, à cinq cases en diagonale (7 en distance réelle) non ; la
+voix « de près » en disque. Les caches (`spatial.VERIFICATION = 1`, `planification.VERIFIER`) ont
+tenu une nuit du Relais (graine 1985) et une de l'auberge (graine 42) sans écart. Un test d'avant
+(Brune marche vers le marteau qu'elle croit là) suivait le zigzag du moins de pas : en allant droit,
+elle voit dès son premier pas qu'il n'y est pas ; le test suit désormais sa croyance.
+
+Bancs (8 h ; Relais 8 graines, mine, auberge, crue 4), avant → après : aucune usurpation, aucune
+violation (l'état est vérifié à chaque pas), même temps de calcul (Relais 12 → 10 s, mine 17 → 17,
+auberge 38 → 36, crue 14 → 13).
+
+| | Relais (8) | Mine (4) | Auberge (4) | Crue (4) |
+|---|---|---|---|---|
+| gestes | 148 → 145 | 193 → 190 | 494 → 467 | 255 → 207 |
+| minutes urgentes sans recours | 432 → 428 | 604 → 668 | 584 → 589 | 275 → 335 |
+| échanges | 7,8 → 7,6 | 38,5 → 33,5 | 22 → 28,8 | 8 → 9,5 |
+| vols vus | 2,9 → 8,1 | 1,8 → 0,5 | 2,3 → 3 | 2,5 → 7,3 |
+| retournements au bruit | 125 → 150 | 239 → 230 | 227 → 167 | 151 → 120 |
+| bruits inconnus retenus | 48 → 54 | 82 → 71 | 169 → 163 | 111 → 93 |
+| allés voir | 7,6 → 10 | 29,5 → 27,5 | 85 → 76 | 32 → 20 |
+| jets | 7,6 → 8,1 | 11,5 → 9 | 161 → 127 | 11 → 9,8 |
+
+Écarts :
+- **Vols vus (Relais, crue)** : avant, Brune gagnait la réserve par le zigzag du moins de pas et
+  crochetait à la minute 7 tournée vers le mur, sous les yeux d'Aubin et d'Ilse qu'elle ne voyait
+  pas. Par le chemin direct, elle arrive face à eux, les voit et attend (`sans_temoin`) ; elle
+  s'y remet vers la minute 122, quand elle se croit seule, mais Gorm et Ilse la voient depuis
+  l'ombre ; cette fois elle réussit : crocheter, ouvrir et manger font trois gestes vus par deux
+  témoins (graine 500 : 9 → 30). Moins de méfiances précoces, plus de vols aboutis.
+- **Ouïe** : un bruit en diagonale vient de plus loin ; à l'auberge et à la crue, moins de
+  retournements, de bruits retenus et d'allers voir (d'où, à la crue, moins de gestes et plus de
+  minutes urgentes sans recours, et à l'auberge moins de jets : Lucien s'acharne moins souvent sur
+  le coffre). Au Relais, davantage, par la scène de Brune ci-dessus.
+- **Mine** : minutes sans recours 604 → 668 en moyenne, mais d'une graine à l'autre de −405 à +430 :
+  des jets à d'autres instants ; pas de tendance propre à la géométrie.
+
+Limites :
+- Le coût d'un chemin ne compte que les pas : le temps de se tourner (0,5 s par 45°) n'y entre
+  pas ; deux chemins de même durée de pas sont départagés par l'ordre de découverte, pas par le
+  nombre de rotations.
+- L'ouïe perd un cran par distance doublée (paliers 1, 3, 6, 12, 24) : à quatre cases, droit
+  (4) ou en diagonale (6), le palier est le même ; la différence se voit à trois cases (3 contre
+  4) et à cinq (5 contre 7).
+- La distance est arrondie à la case : un disque de rayon r contient les cases à moins de r + ½ ;
+  la lumière porte à 6 cases en diagonale pour une portée de 8 (8,5 réel), pas 5,66.
+- Le pas de côté de qui laisse passer prend sa durée ; le passant attend toujours un `PAS` droit
+  après lui (`passage.s_ecarter`), et la poussée garde sa durée fixe (`POUSSEE`).
 
 ## Hors périmètre
 

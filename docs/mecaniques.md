@@ -66,7 +66,16 @@ de souvenir. Il peut avoir changé depuis ; la carte l'actualise quand le seuil 
 Dans le noir, la case que Corvus vient de fouler reste connue : sa position et l'escalier
 emprunté demeurent sur le niveau d'arrivée, sans révéler le reste de la pièce.
 
-Dix pas dépensent une minute et consomment le combustible correspondant. Franchir un seuil
+Un pas en avant dure 1,5 s ; un pas chassé (de côté ou en arrière, sans se tourner) ou feutré,
+3 s ; se tourner de 45°, 0,5 s. Un pas en diagonale dure √2 fois un pas droit, à toute allure,
+arrondi au dixième de seconde le plus proche (2,1 s, 4,2 s), pour le joueur comme pour les PNJ
+(`temps.duree_pas`) : un trajet en diagonale n'est plus plus rapide qu'en vrai. Les chemins (la
+marche des PNJ, `spatial.trajet` ; le clic sur la carte) sont les plus courts en temps, pas en
+nombre de pas. On ne coupe pas l'angle d'un mur ou d'un obstacle en diagonale. Toute portée en
+cases (lumière, vue, ouïe, voix) se mesure en distance réelle, arrondie à la case la plus proche
+(`geometrie.distance`) : une case voisine, même en diagonale, est au contact (1) ; deux cases en
+diagonale sont à 3, quatre à 6. Les portées dessinent des disques, pas des carrés. Le temps
+consomme le combustible minute par minute. Franchir un seuil
 ou un escalier est une transition vers la première case de l'autre côté. La lumière, la ligne
 de vue et les obstacles sont calculés case par case (voir « Lumière en cases » plus bas).
 Les touches de déplacement, les collisions, la visibilité et les commandes locales sont
@@ -368,7 +377,7 @@ bois (le feu entretenu) à qui les possède, même sans les avoir vus.
 
 Tout geste fait un bruit, du joueur comme d'un PNJ (`donjon/ouie.py`, `docs/plan-ouie.md`) : pas
 feutré (1) < pas, geste ordinaire (3) < voix (4) < geste bruyant (7 : crocheter, forcer, frapper…)
-< appel, cri (9). Un cran se perd par distance doublée dans une salle, un en passant une ouverture,
+< appel, cri (9). Un cran se perd par distance doublée (en distance réelle) dans une salle, un en passant une ouverture,
 trois une porte fermée. Chacun entend ce qui lui parvient au niveau 1 ; le joueur, en écoutant
 (`ecouter`, trois minutes), un cran plus bas, et un de mieux contre la porte par où le bruit
 arrive (`donjon/ecoute.py`). Une parole n'est rendue en clair qu'au niveau 1 et si elle ne nomme
@@ -803,7 +812,8 @@ accessible peut être crochetée au toucher dans la pénombre, avec un jet plus 
 
 En mode cases (Relais, `--cases`), chaque source allumée éclaire directement les cases qu'elle
 voit : pleine lumière jusqu'à 4 cases, pénombre jusqu'à 8 pour une lanterne, une torche ou un
-brasero (`luminosite` 2 ; 2 et 4 cases pour 1, 6 et 12 pour 3). Murs, portes fermées et
+brasero (`luminosite` 2 ; 2 et 4 cases pour 1, 6 et 12 pour 3), en distance réelle : les halos
+sont ronds (pleine lumière à 4 cases droit devant, à 3 en diagonale). Murs, portes fermées et
 obstacles opaques projettent une ombre. Une source éclaire aussi sa pièce, et la pièce voisine
 par une ouverture, d'une lumière diffuse qui ne dépasse pas la pénombre. La lumière du jour
 garde le modèle par pièce. Le niveau perçu, celui qu'exigent la lecture ou un geste précis, est
