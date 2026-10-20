@@ -14,6 +14,17 @@ PAS_FEUTRE = 30        # un pas feutré, qui ne s'entend que de tout près : 3 s
 PAS_ANCIEN = 60        # le pas des parties d'avant le temps fin (6 s), pour les migrer
 
 
+def duree_pas(allure, vecteur):
+    """La durée d'un pas d'une case selon son vecteur, pour le joueur comme pour un PNJ : l'allure
+    (``PAS_JOUEUR``, ``PAS_CHASSE``, ``PAS_FEUTRE``, ``pnj.PAS``) pour un pas droit ; √2 fois
+    l'allure en diagonale, arrondi au dixième de seconde le plus proche (``geometrie.racine`` :
+    15 → 21, 30 → 42). Les chemins au plus court en temps (``spatial.trajet``) en prennent leur
+    coût."""
+    from .geometrie import racine
+    dx, dy = vecteur
+    return racine(2 * allure * allure) if dx and dy else allure
+
+
 def duree(plan):
     """Durée d'un plan en dixièmes de seconde : la sienne, sinon ses minutes."""
     return plan.dixiemes if plan.dixiemes is not None else plan.minutes * MINUTE

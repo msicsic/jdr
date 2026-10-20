@@ -237,7 +237,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   corrige la croyance. Bancs : aucune usurpation ; vols vus au Relais 1 → 2,9 ; minutes sans
   recours égales ou moindres (auberge 584 → 584, mine 680 → 604). Limite : les réflexes déclarés
   gardent l'ancienne portée des sons.
-- La suite de tests passe : 808 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `diagonales`, non fusionnée : un pas en diagonale dure √2 fois un pas droit, à toute
+  allure, pour le joueur et les PNJ (`temps.duree_pas`, 15 → 21 dixièmes) ; les chemins
+  (`spatial.trajet`, le clic de la page) sont les plus courts en temps ; lumière, vue, ouïe et voix
+  se mesurent en distance réelle arrondie à la case (`geometrie.distance`) : halos ronds, une
+  diagonale voisine reste au contact. Bancs sans usurpation ni violation, même temps de calcul ;
+  Brune, arrivée face aux témoins, attend avant de crocheter (plus de vols aboutis et vus). Détail
+  et limites dans `docs/plan-temps.md` (« Correctif : les diagonales »).
+- La suite de tests passe : 821 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

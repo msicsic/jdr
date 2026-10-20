@@ -1,5 +1,5 @@
 // Fait tourner le script de la page sur un état reçu en entrée (sans navigateur) et rend, en JSON,
-// ce que propose un clic sur chaque case, le chemin vers la case connue la plus lointaine, et
+// ce que propose un clic sur chaque case, le chemin vers la case connue la plus lointaine (et vers des buts donnés), et
 // l'approche de chaque chose pour un geste à portée de main, et la commande de chaque flèche. Utilisé par tests/test_web.py.
 const fs = require("fs");
 const noop = new Proxy(function () {}, { get: (t, k) => k === "measureText" ? () => ({ width: 30 }) : noop, apply: () => noop, set: () => true });
@@ -28,6 +28,8 @@ cases.forEach(g => {
 });
 praticables().forEach(k => { const g = k.split(",").map(Number), p = chemin(scene.joueur.globale, g);
   if (p && (!sortie.chemin || p.length > sortie.chemin.length)) { sortie.cible = g; sortie.chemin = p; } });
+// Avec sonde_buts (cases globales), le chemin de la page jusqu'à la première qu'elle juge la plus rapide.
+if (ETAT.sonde_buts) sortie.vers_buts = chemin(scene.joueur.globale, q => ETAT.sonde_buts.some(b => cle(b) === cle(q)));
 const approche = g => chemin(scene.joueur.globale, q => Math.max(Math.abs(q[0] - g[0]), Math.abs(q[1] - g[1])) <= 1);
 niveau.objets.forEach(o => sortie.approches[o.id] = approche(o.globale));
 niveau.sorties.filter(s => s.porte).forEach(s => sortie.approches[s.porte.id] = approche(s.globale));

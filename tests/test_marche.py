@@ -192,7 +192,10 @@ class CroyanceTests(unittest.TestCase):
         intention(m, "brune", [{"operation": "prendre", "cible": "marteau"}], {"type": "prendre", "objet": "marteau"},
                   "biens")
         depart = (1, 1)
-        for _, case in gestes(m, "brune", 2):
+        for _ in range(2):
+            if lire(m, "brune")["croyances"]["marteau"]["lieu"]["case"] != [1, 5]:
+                break  # Elle a vu qu'il n'y est pas.
+            _, case = gestes(m, "brune", 1)[0]
             # Tant qu'elle ne l'a pas vu ailleurs, elle se rapproche de là où elle le croit.
             self.assertLess(distance(case, (1, 5)), distance(depart, (1, 5)))
             self.assertGreaterEqual(distance(case, (7, 5)), distance(depart, (7, 5)) - 1)

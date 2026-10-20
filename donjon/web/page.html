@@ -220,7 +220,7 @@ function dessiner() {
   niveau.salles.forEach(s => s.cases.forEach(c => { connues.push(c.globale); if (c.lumiere) vues.push(c.globale); }));
   if (j.globale && j.niveau === niveau.niveau) cone(j.globale, j.orientation, "rgba(255,209,102,.09)", vues);
   if ($("cones").checked) personnes.forEach(p => cone(p.globale, p.orientation, couleur[p.id] + "26",
-    connues.filter(c => Math.max(Math.abs(c[0] - p.globale[0]), Math.abs(c[1] - p.globale[1])) <= 6)));
+    connues.filter(c => distance(c, p.globale) <= 6)));
   niveau.souvenirs.forEach(s => {
     const x = X(s.globale[0]), y = Y(s.globale[1]);
     ctx.globalAlpha = .4;
@@ -419,22 +419,38 @@ function passages() {
   });
   return liens;
 }
+// La durée d'un pas, en dixièmes (temps.duree_pas) : en diagonale, √2 fois un pas droit, arrondi (15 → 21).
+const PAS_DROIT = 15, PAS_BIAIS = 21;
+function distance(a, b) {
+  // La distance réelle en cases (geometrie.distance) : euclidienne, arrondie à la case la plus proche.
+  return Math.round(Math.hypot(a[0] - b[0], a[1] - b[1]));
+}
 function chemin(depart, arrivee) {
-  // Le plus court en pas sur ce que tu connais : diagonales sans couper l'angle d'un mur, seuils franchis droit.
+  // Le plus court en temps sur ce que tu connais (spatial.trajet) : une diagonale coûte √2 pas droits ; diagonales
+  // sans couper l'angle d'un mur, seuils franchis droit. À durée égale, l'ordre de découverte départage.
   // ``arrivee`` : une case, ou une fonction qui dit si une case convient.
   const ok = praticables(), liens = passages();
   const convient = typeof arrivee === "function" ? arrivee : q => cle(q) === cle(arrivee);
-  const precedent = {[cle(depart)]: null}, file = [depart];
-  let fin = convient(depart) ? depart : null;
+  const precedent = {[cle(depart)]: null}, couts = {[cle(depart)]: 0}, faits = new Set();
+  const file = [[0, 0, depart]];
+  let fin = null, ordre = 0;
   while (file.length && !fin) {
-    const p = file.shift();
+    // La file est courte (le sol connu d'un niveau) : on y prend le moins coûteux, le plus ancien à égalité.
+    let i = 0;
+    for (let k = 1; k < file.length; k++)
+      if (file[k][0] < file[i][0] || file[k][0] === file[i][0] && file[k][1] < file[i][1]) i = k;
+    const [cout, , p] = file.splice(i, 1)[0];
+    if (faits.has(cle(p))) continue;
+    faits.add(cle(p));
+    if (convient(p)) { fin = p; break; }
     const voisins = Object.entries(DIRS).map(([nom, d]) => [nom, [p[0] + d[0], p[1] + d[1]], d])
       .filter(([, q, d]) => !(d[0] && d[1]) || ok.has(cle([p[0] + d[0], p[1]])) && ok.has(cle([p[0], p[1] + d[1]])))
-      .concat((liens[cle(p)] || []).map(([nom, q]) => [nom, q]));
-    for (const [nom, q] of voisins) {
-      if (!ok.has(cle(q)) || cle(q) in precedent) continue;
-      precedent[cle(q)] = [p, nom]; file.push(q);
-      if (convient(q)) { fin = q; break; }
+      .concat((liens[cle(p)] || []).map(([nom, q]) => [nom, q, DIRS[nom]]))
+      .sort((u, v) => u[2][0] - v[2][0] || u[2][1] - v[2][1]);  // les sens dans l'ordre du moteur
+    for (const [nom, q, d] of voisins) {
+      const total = cout + (d[0] && d[1] ? PAS_BIAIS : PAS_DROIT);
+      if (!ok.has(cle(q)) || faits.has(cle(q)) || cle(q) in couts && couts[cle(q)] <= total) continue;
+      couts[cle(q)] = total; precedent[cle(q)] = [p, nom]; file.push([total, ++ordre, q]);
     }
   }
   if (!fin) return null;

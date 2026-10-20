@@ -7,10 +7,11 @@ et place le personnage sur la case intérieure de la salle voisine.
 from __future__ import annotations
 
 from collections import deque
+import heapq
 from contextlib import contextmanager
 import threading
 
-from .geometrie import cases, position_entree, position_objet, placer
+from .geometrie import cases, distance, position_entree, position_objet, placer
 
 
 VECTEURS = {
@@ -520,8 +521,9 @@ def eclairage_niveau(m):
     return eclairage(m)["niveau"]
 
 
-# Distance de vue d'une case, si rien ne s'interpose : 8 si elle reçoit une lumière directe
-# ou la pleine lumière du jour, 3 si elle n'est que dans la pénombre diffuse de la pièce.
+# Distance de vue d'une case, si rien ne s'interpose, en distance réelle (``geometrie.distance``) :
+# 8 si elle reçoit une lumière directe ou la pleine lumière du jour, 3 si elle n'est que dans la
+# pénombre diffuse de la pièce.
 PORTEE_VUE = {1: 3, 2: 8}
 
 
@@ -801,10 +803,10 @@ def _vue(m, acteur="joueur", memo=None):
 def _vu(m, origine, lumiere, cible, orientation=None):
     if not dans_le_cone(origine, orientation, cible):
         return False
-    distance = max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1]))
-    if distance > PORTEE_VUE[2]:
+    loin = distance(cible, origine)
+    if loin > PORTEE_VUE[2]:
         return False  # Au-delà de la plus longue vue, inutile de chercher la lumière.
-    if distance > _portee(lumiere, cible):
+    if loin > _portee(lumiere, cible):
         return False
     return lumiere.geometrie.mutuelle(origine, cible)
 
@@ -847,7 +849,7 @@ def dans_le_regard(m, salle, case, acteur="joueur"):
     if salle not in lumiere.salles:
         return False
     cible = _global(m.data["salles"][salle], case)
-    if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > PORTEE_VUE[2]:
+    if distance(cible, origine) > PORTEE_VUE[2]:
         return False
     if not dans_le_cone(origine, orientation_acteur(m, acteur), cible):
         return False
@@ -935,10 +937,9 @@ def _alentour(m, origine, lumiere):
     orientation et tout acteur qui se tient là."""
     if origine not in lumiere.alentours:
         geometrie, vues = lumiere.geometrie, []
-        ox, oy = origine
         for case, cible in geometrie.sol:
-            distance = max(abs(cible[0] - ox), abs(cible[1] - oy))
-            if (distance <= PORTEE_VUE[2] and distance <= _portee(lumiere, cible)
+            loin = distance(cible, origine)
+            if (loin <= PORTEE_VUE[2] and loin <= _portee(lumiere, cible)
                     and geometrie.mutuelle(origine, cible)):
                 vues.append((case, cible))
         lumiere.alentours[origine] = vues
@@ -962,8 +963,7 @@ def murs_visibles(m, champ=None, acteur="joueur"):
         ox, oy = m.data["salles"][salle]["plan"]["origine"]
         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             cible = ox + x + dx, oy + y + dy
-            if (cible in terrain or
-                    max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > rayon):
+            if cible in terrain or distance(cible, origine) > rayon:
                 continue
             terrain[cible] = None
             visible = _los_global(m, origine, cible, terrain, opaques)
@@ -1118,12 +1118,15 @@ def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
 
 def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True,
            solides=True):
-    """Le plus court chemin en cases, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
+    """Le chemin le plus court en temps, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
     [(salle, case, porte fermée à franchir ou None, sens du pas)], vide si l'on y est déjà, None
-    sans passage.
+    sans passage. Chaque pas coûte sa durée (``temps.duree_pas`` : en diagonale, √2 fois un pas
+    droit) ; à durée égale, l'ordre de découverte départage (les sens dans l'ordre de ``VECTEURS``
+    triés), sans hasard.
     Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées.
     Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
     from .monde import ErreurMonde
+    from .temps import PAS_JOUEUR, duree_pas
     libres = {}
 
     def case_libre(s, c):
@@ -1133,26 +1136,34 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
     depart = (salle, tuple(position))
     if arrivee(*depart):
         return []
-    precedent, file = {depart: None}, deque([depart])
+    sens = [(vecteur, duree_pas(PAS_JOUEUR, vecteur)) for vecteur in sorted(set(VECTEURS.values()))]
+    couts, precedent, ordre = {depart: 0}, {depart: None}, 0
+    file, faits = [(0, 0, depart)], set()
     while file:
-        courant = file.popleft()
-        for vecteur in sorted(VECTEURS.values()):
+        cout, _, courant = heapq.heappop(file)
+        if courant in faits:
+            continue
+        faits.add(courant)
+        if courant != depart and arrivee(*courant):
+            chemin = []
+            while precedent[courant]:
+                avant, porte, vecteur = precedent[courant]
+                chemin.append((courant[0], courant[1], porte, vecteur))
+                courant = avant
+            return chemin[::-1]
+        for vecteur, duree in sens:
             try:
                 pas = pas_vers(m, courant[0], courant[1], vecteur, porte_fermee=True, case_libre=case_libre)
             except ErreurMonde:
                 continue
             suivant = (pas["salle"], tuple(pas["position"]))
-            if suivant in precedent or not libre(*suivant) or pas["porte"] and not franchissable(pas["porte"]):
+            if (suivant in faits or cout + duree >= couts.get(suivant, cout + duree + 1) or not libre(*suivant)
+                    or pas["porte"] and not franchissable(pas["porte"])):
                 continue
+            couts[suivant] = cout + duree
             precedent[suivant] = (courant, pas["porte"], vecteur)
-            if arrivee(*suivant):
-                chemin = []
-                while precedent[suivant]:
-                    avant, porte, sens = precedent[suivant]
-                    chemin.append((suivant[0], suivant[1], porte, sens))
-                    suivant = avant
-                return chemin[::-1]
-            file.append(suivant)
+            ordre += 1
+            heapq.heappush(file, (cout + duree, ordre, suivant))
     return None
 
 

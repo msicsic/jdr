@@ -26,9 +26,9 @@ dépend la suite est dans ``data`` (positions, esprits, registre des gestes).
 from .caractere import interdit, penchant, prix_faute, valeur
 from .esprits import croire, esprit, lire, memoriser
 from .francais import designer, sujet
-from .temps import MINUTE, PAS_CHASSE, instant
+from .temps import MINUTE, PAS_CHASSE, duree_pas, instant
 
-ECART = PAS_CHASSE     # s'écarter : un pas de côté, 3 s
+ECART = PAS_CHASSE     # s'écarter : un pas de côté, 3 s (en biais, √2 fois plus : ``duree_ecart``)
 POUSSEE = 30           # pousser quelqu'un : 3 s
 DEMANDE = 100          # demander le passage : comme les autres paroles d'un PNJ, 10 s
 REPONSE = 300          # le joueur prié de laisser passer qui n'a pas bougé 30 s plus tard a refusé
@@ -185,20 +185,28 @@ def _qui(monde, x):
     return qui(monde, x)
 
 
+def duree_ecart(monde, id, case):
+    """La durée du pas de côté de ``id`` vers ``case`` (salle, case) de sa salle : ``ECART``, √2
+    fois plus en biais (``temps.duree_pas``)."""
+    ici = place(monde, id)[1]
+    return duree_pas(ECART, (case[1][0] - ici[0], case[1][1] - ici[1]))
+
+
 def s_ecarter(monde, id, case, passant, lignes):
     """Il fait un pas de côté vers ``case`` pour laisser passer ``passant`` ; son geste suivant
     attend la fin de ce pas, puis le temps d'un pas de l'autre : celui qu'il laisse passer passe
-    d'abord, au lieu de lui voir reprendre la place."""
+    d'abord, au lieu de lui voir reprendre la place. Renvoie la durée du pas de côté."""
     from .geometrie import placer
     from .pnj import _chroniquer
     o = monde.objets[id]
     vu = monde.visible(id)
+    duree = duree_ecart(monde, id, case)
     placer(o, case[0], list(case[1]))
     from .ouie import retentir
     retentir(monde, id, "marcher")  # Un pas de côté s'entend comme un autre pas.
     e = esprit(monde, id)
     from .pnj import PAS
-    e["libre"] = max(e["libre"], instant(monde) + ECART + PAS)
+    e["libre"] = max(e["libre"], instant(monde) + duree + PAS)
     _chroniquer(monde, id, f"{_qui(monde, id)} s'écarte pour laisser passer {_qui(monde, passant)}.", "deplacement")
     if vu or monde.visible(id):
         lignes.append(sujet(o) + " s'écarte pour "
@@ -206,6 +214,7 @@ def s_ecarter(monde, id, case, passant, lignes):
                          else "laisser passer " + _designer(monde, passant) + "."))
     elif passant == "joueur":
         lignes.append("Quelqu'un s'écarte devant toi.")
+    return duree
 
 
 def _designer(monde, x):
@@ -483,8 +492,7 @@ def faire_place(monde, id, autre, chemin, lignes, gestes):
     if autre != "joueur":
         case, raison = laisser_passer(monde, autre, id, chemin)
         if case is not None:
-            s_ecarter(monde, autre, case, id, lignes)
-            return ECART
+            return s_ecarter(monde, autre, case, id, lignes)
         if raison == "geste":
             return PAS  # Il est occupé là (la porte qu'il ouvre, ce qu'il touche) : on attend qu'il ait fini.
     if not refus_de_passage(monde, id, autre):
