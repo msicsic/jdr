@@ -110,9 +110,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (d'autres usages : passerelle, cale…) attend un accord. Limite : les planches du Relais ne
   suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
   test sur l'atelier, pas en partie au Relais.
-- **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md` :
-  cadre, menace, barque, eau et feu, influence, mécanismes à ajouter, questions ouvertes). Le
-  planificateur par recherche est fait ; suite proposée, le niveau d'eau puis l'influence.
+- **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`) ;
+  caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
+  Prochain jalon décidé : **temps fin et orientation** (`docs/plan-temps.md`), avant les
+  caractères et valeurs.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.
