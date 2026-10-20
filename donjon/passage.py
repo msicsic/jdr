@@ -194,6 +194,8 @@ def s_ecarter(monde, id, case, passant, lignes):
     o = monde.objets[id]
     vu = monde.visible(id)
     placer(o, case[0], list(case[1]))
+    from .ouie import retentir
+    retentir(monde, id, "marcher")  # Un pas de côté s'entend comme un autre pas.
     e = esprit(monde, id)
     from .pnj import PAS
     e["libre"] = max(e["libre"], instant(monde) + ECART + PAS)
@@ -263,7 +265,7 @@ def _demande_en_cours(monde, id, autre):
 
 def _prier(monde, id, autre, chemin, lignes):
     """Le PNJ ``id`` demande à ``autre`` de le laisser passer : un geste social."""
-    from .ecoute import bruit
+    from .ouie import retentir
     from .pnj import _chroniquer
     a, b = _qui(monde, id), _qui(monde, autre)
     le = "la" if monde.objets[id].get("genre") == "f" else "le"
@@ -274,7 +276,7 @@ def _prier(monde, id, autre, chemin, lignes):
         if monde.visible(id):
             lignes.append(texte)  # Il le voit le lui demander : c'est dit, sans écho à rendre.
         else:
-            bruit(monde, id, "voix", texte, ["joueur"])  # Il l'entend (``ecoute.rendre``).
+            retentir(monde, id, "dire", texte=texte, cites=["joueur"])  # Il l'entend (``ecoute.rendre``).
         return
     issue = demander_passage(monde, autre, id, [], chemin)  # Ce qu'il en voit est dit ci-dessous.
     _chroniquer(monde, id, f"{a} demande à {b} de {le} laisser passer ({issue}).", "social")
@@ -394,6 +396,8 @@ def pousser(monde, id, victime, lignes, gestes, chemin=()):
     from .pnj import _faire_face
     _faire_face(monde, id, victime)
     reussie = jet_oppose(monde, id, victime)
+    from .ouie import retentir
+    retentir(monde, id, "pousser")
     appliquer_poussee(monde, id, victime, arrivee if reussie else None, lignes)
     memoriser(monde, id, {"type": "a_pousse", "victime": victime})
     gestes.append((id, "pousser", victime))

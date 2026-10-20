@@ -1201,10 +1201,6 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 duree = agir(monde, id, t, lignes, gestes)
                 for _, operation, objet in gestes:
                     commencer_geste(monde, id, operation, objet, t + max(1, duree))
-                # Qui s'est écarté devant lui, ou qu'il a poussé, finit ce pas avant son geste suivant.
-                for autre in ids:
-                    if autre != id and esprit(monde, autre)["libre"] > libre[autre]:
-                        libre[autre] = esprit(monde, autre)["libre"]
                 # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
                 # est en cache). Les croyances ne dépendent pas des instants où le joueur agit.
                 percevoir_tous(monde)

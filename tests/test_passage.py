@@ -70,7 +70,7 @@ class LaisserPasserJoueurTests(unittest.TestCase):
         self.assertEqual(brune["lieu"], "antichambre")
         self.assertEqual(distance(brune["position"], SEUIL), 1)
         self.assertEqual(brune["position"][0], 0)
-        self.assertIn("s'écarte pour laisser passer", m.data["chronique"][-1]["texte"])
+        self.assertTrue(any("s'écarte pour laisser passer" in c["texte"] for c in m.data["chronique"]))
         # La sortie est libre : le pas suivant mène dans la conduite basse.
         self.assertIn("Tu entres dans : Conduite basse.", faire(m, "marcher", "ouest"))
         self.assertEqual(recharger(m).joueur["salle"], "echoppe")
