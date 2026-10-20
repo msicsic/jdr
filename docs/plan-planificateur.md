@@ -155,3 +155,24 @@ Limites :
 - les gestes ouverts par un seul but (`vises`) restent une liste écrite dans `planifier_pulsion` ;
 - le banc mesure un Relais où ces nouveautés pèsent peu : c'est la crue qui doit les mettre à
   l'épreuve.
+
+## Vitesse (branche `planif-rapide`)
+
+Mesuré d'abord (`banc_pnj --diagnostic`) : 41 % d'une nuit dans les recherches, surtout celles
+qui échouent en épuisant l'espace (jamais la borne de nœuds) ; l'espace venait de ce qu'il
+pouvait porter d'inutile au but. Trois changements, sans effet sur les comportements (empreinte
+des 4 nuits identique) :
+- le dernier résultat de chaque PNJ pour chaque but est repris tant que rien de ce que lit la
+  recherche n'a changé (`_entrees` : croyances, refus et promesses selon l'horloge, ce qu'il
+  porte, les objets hors de ce qui change à chaque minute, les salles) ;
+- chaque but dit ce qu'il peut employer (repas, feu) ; on ne prend ou ne demande que ce qui peut
+  le servir (`Vue.pertinent`), et l'on ne parcourt que les objets sur lesquels un geste est
+  possible ;
+- des lectures moins chères.
+
+`planification.VERIFIER` refait par une recherche complète chaque résultat repris ou borné ; la
+suite et une nuit de test le font. Limites : une lecture nouvelle de la recherche (un coût qui
+lirait l'urgence d'un besoin, l'heure, l'esprit d'un autre, l'état vrai d'un objet) doit entrer
+dans `_entrees`, sinon un résultat périmé serait repris ; la pertinence suppose que porter un objet de plus ne rend aucun
+geste moins cher, et qu'un but sans emplois déclarés (le stratège) cherche sur tout ; une
+recherche qui atteignait la borne de nœuds pourrait désormais aboutir.

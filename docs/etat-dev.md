@@ -102,7 +102,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `planif-rapide` : le planificateur des PNJ ne pèse plus que 7 % d'une nuit (41 %
+  avant). Diagnostics des recherches au banc (`--diagnostic`) ; le dernier résultat de chaque PNJ
+  pour chaque but est repris tant que rien de ce que lit la recherche n'a changé ; chaque but dit
+  ce qu'il peut employer (repas, feu) et l'on ne porte que ce qui peut le servir. Empreinte des
+  4 nuits identique ; nœuds examinés 185 000 → 11 700 ; une nuit 10,1 s → 5,6 s (processeur).
+  `planification.VERIFIER` refait chaque résultat repris ou borné par une recherche complète :
+  toute lecture nouvelle de la recherche (un coût, une croyance) doit entrer dans `_entrees`.
+- La suite de tests passe : 668 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -150,6 +157,8 @@ Non versionnés, donc absents d'un nouveau poste :
 - Banc moteur seul, sans appel à Luna, avec son récit (`--chronique` pour chaque pas) :
   `python -m donjon.banc_pnj --heures 8 --graine 1985 --joueur chambre_cloche` ; plusieurs nuits
   en parallèle, avec le tableau des mesures et leur moyenne : `--graines 1985 7 42 2024`.
+  `--diagnostic` ajoute les recherches du planificateur par PNJ et par but (issue, reprises de
+  la mémoire, nœuds, durée), aussi dans `--sortie`.
 - Banc A/B du stratège, avec Luna, environ 15 minutes pour 8 graines :
   `python tools/banc_stratege.py --graines 1985 7 42 2024 --graines-sup 3 11 99 500`
   Plusieurs exécutions Luna peuvent tourner en même temps (le coffre sérialise le renouvellement
