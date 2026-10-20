@@ -1,0 +1,4032 @@
+{
+  "version": 1,
+  "seed": 1985,
+  "jets": 0,
+  "revision": 0,
+  "minutes": 0,
+  "bruit": 0,
+  "geometrie_version": 1,
+  "eclairage_version": 1,
+  "personnages_version": 1,
+  "savoirs_version": 1,
+  "dialogues_version": 1,
+  "arbitrages": {},
+  "connus": [],
+  "lus": [],
+  "journal": [],
+  "conversation": [],
+  "missions": {},
+  "engagements": {},
+  "ajouts_savoirs": [],
+  "finances_pnj": {
+    "anselme": 200,
+    "odile": 60
+  },
+  "dialogues_pnj": {
+    "odile": {
+      "intentions": "Odile veut garder son âtre allumé jusqu'à l'aube, nourrir ses hôtes sans vider le cellier et que personne ne touche à ses clés.",
+      "ton": "Elle répond net, en comptant ses bûches et ses parts à voix haute."
+    },
+    "mireille": {
+      "intentions": "Mireille veut que personne n'ait faim dans sa cuisine, et que Joss ne s'attire pas d'ennuis.",
+      "ton": "Elle bavarde, chantonne et tutoie ; elle esquive ce qui pourrait nuire à Joss."
+    },
+    "tilo": {
+      "intentions": "Tilo veut manger, se réchauffer et ne pas rester seul dans le noir.",
+      "ton": "Il parle vite, pose des questions et n'avoue jamais tout de suite."
+    },
+    "joss": {
+      "intentions": "Joss veut manger, se chauffer et que l'aubergiste lui paie ses gages.",
+      "ton": "Il répond par des demi-mots et des grognements."
+    },
+    "anselme": {
+      "intentions": "Anselme veut que son ballot de soie passe la nuit en sûreté et que sa chambre reste chaude.",
+      "ton": "Il pèse ses mots, ne dit jamais ce que contient son coffre et évite de prêter."
+    },
+    "hugues": {
+      "intentions": "Hugues veut veiller sur Anselme, le garçon et la pèlerine jusqu'à l'aube.",
+      "ton": "Il parle bref, comme on rend compte à un officier, et ne ment pas."
+    },
+    "mathurine": {
+      "intentions": "Mathurine veut se réchauffer et dire ce qu'elle a vu à qui voudra l'entendre.",
+      "ton": "Elle raconte tout, le tient pour vrai et bénit son auditoire."
+    },
+    "lucien": {
+      "intentions": "Lucien veut passer la nuit sans éveiller de soupçons, garder son coffret du grenier et profiter de la nuit.",
+      "ton": "Il est charmant, disert, et détourne les questions avec un sourire."
+    }
+  },
+  "scenario_id": "auberge_du_col",
+  "joueur": {
+    "nom": "Corvus",
+    "espece": "humain",
+    "stade_vie": "adulte",
+    "salle": "dortoir",
+    "position": [
+      2,
+      2
+    ],
+    "pv": 18,
+    "pv_max": 18,
+    "or": 12,
+    "capacite": 12,
+    "masse_kg": 70,
+    "stats": {
+      "FOR": 12,
+      "DEX": 14,
+      "INT": 13,
+      "PER": 13,
+      "CHA": 12
+    },
+    "corps": {
+      "repas": 300,
+      "veille": 480,
+      "trempe": 120
+    }
+  },
+  "objectif_partie": null,
+  "scenario": {
+    "debut": "La neige est tombée d'un coup sur le col, un peu avant la nuit. Tu as eu juste le temps de gagner l'auberge du Col-Pendu avant que la tempête ferme la route : les congères montent contre la porte d'entrée, la barre est mise et personne ne repartira avant le jour. Dans la salle commune, Odile l'aubergiste compte ses bûches ; une vieille pèlerine, un voyageur au manteau gris et un ancien soldat se pressent près de l'âtre. Le marchand drapier s'est enfermé dans la chambre au poêle, avec son coffre. On t'a laissé un lit de camp au dortoir, sans feu.",
+    "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. La tempête dure toute la nuit.",
+    "objectif": "Passer la nuit au col sans y laisser ta peau ni ta bourse.",
+    "version": 1
+  },
+  "salles": {
+    "cellier": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Cellier",
+      "plan": {
+        "origine": [
+          0,
+          0
+        ],
+        "repere": "L",
+        "sol": [
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ]
+      },
+      "sorties": {
+        "sud": {
+          "case": [
+            2,
+            4
+          ],
+          "vers": "cuisine",
+          "porte": "porte_cellier"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "cuisine": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Cuisine",
+      "plan": {
+        "origine": [
+          0,
+          5
+        ],
+        "repere": "K",
+        "sol": [
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          "......."
+        ]
+      },
+      "sorties": {
+        "nord": {
+          "case": [
+            2,
+            -1
+          ],
+          "vers": "cellier",
+          "porte": "porte_cellier"
+        },
+        "est": {
+          "case": [
+            7,
+            2
+          ],
+          "vers": "salle_commune",
+          "porte": null
+        },
+        "sud": {
+          "case": [
+            3,
+            6
+          ],
+          "vers": "etable",
+          "porte": "porte_etable"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "salle_commune": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Salle commune",
+      "plan": {
+        "origine": [
+          8,
+          5
+        ],
+        "repere": "S",
+        "sol": [
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          "..........",
+          ".........."
+        ]
+      },
+      "sorties": {
+        "ouest": {
+          "case": [
+            -1,
+            2
+          ],
+          "vers": "cuisine",
+          "porte": null
+        },
+        "nord": {
+          "case": [
+            7,
+            -1
+          ],
+          "vers": "couloir",
+          "porte": null,
+          "escalier": true
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "etable": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Étable",
+      "plan": {
+        "origine": [
+          0,
+          12
+        ],
+        "repere": "E",
+        "sol": [
+          ".........",
+          ".........",
+          ".........",
+          ".........",
+          "........."
+        ]
+      },
+      "sorties": {
+        "nord": {
+          "case": [
+            3,
+            -1
+          ],
+          "vers": "cuisine",
+          "porte": "porte_etable"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "couloir": {
+      "altitude_cm": 240,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Couloir de l'étage",
+      "niveau": 1,
+      "plan": {
+        "origine": [
+          8,
+          0
+        ],
+        "repere": "C",
+        "sol": [
+          ".........",
+          ".........",
+          "........."
+        ]
+      },
+      "sorties": {
+        "sud": {
+          "case": [
+            7,
+            3
+          ],
+          "vers": "salle_commune",
+          "porte": null,
+          "escalier": true
+        },
+        "est": {
+          "case": [
+            9,
+            1
+          ],
+          "vers": "chambre_chaude",
+          "porte": "porte_chambre"
+        },
+        "ouest": {
+          "case": [
+            -1,
+            1
+          ],
+          "vers": "dortoir",
+          "porte": null
+        },
+        "nord": {
+          "case": [
+            4,
+            -1
+          ],
+          "vers": "grenier",
+          "porte": null,
+          "escalier": true
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "chambre_chaude": {
+      "altitude_cm": 240,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Chambre au poêle",
+      "niveau": 1,
+      "plan": {
+        "origine": [
+          18,
+          0
+        ],
+        "repere": "P",
+        "sol": [
+          ".....",
+          ".....",
+          ".....",
+          "....."
+        ]
+      },
+      "sorties": {
+        "ouest": {
+          "case": [
+            -1,
+            1
+          ],
+          "vers": "couloir",
+          "porte": "porte_chambre"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "dortoir": {
+      "altitude_cm": 240,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Dortoir",
+      "niveau": 1,
+      "plan": {
+        "origine": [
+          1,
+          0
+        ],
+        "repere": "D",
+        "sol": [
+          "......",
+          "......",
+          "......",
+          "......"
+        ]
+      },
+      "sorties": {
+        "est": {
+          "case": [
+            6,
+            1
+          ],
+          "vers": "couloir",
+          "porte": null
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    },
+    "grenier": {
+      "altitude_cm": 480,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Grenier",
+      "niveau": 2,
+      "plan": {
+        "origine": [
+          8,
+          0
+        ],
+        "repere": "G",
+        "sol": [
+          ".........",
+          ".........",
+          ".........",
+          "........."
+        ]
+      },
+      "sorties": {
+        "sud": {
+          "case": [
+            4,
+            4
+          ],
+          "vers": "couloir",
+          "porte": null,
+          "escalier": true
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      }
+    }
+  },
+  "objets": {
+    "cellier_murs": {
+      "id": "cellier_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "cellier",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "cellier_plafond": {
+      "id": "cellier_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "cellier",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "cellier_sol": {
+      "id": "cellier_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "cellier",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "cuisine_murs": {
+      "id": "cuisine_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "cuisine",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "cuisine_plafond": {
+      "id": "cuisine_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "cuisine",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "cuisine_sol": {
+      "id": "cuisine_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "cuisine",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "salle_commune_murs": {
+      "id": "salle_commune_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "salle_commune_plafond": {
+      "id": "salle_commune_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "salle_commune_sol": {
+      "id": "salle_commune_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "etable_murs": {
+      "id": "etable_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "etable",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "bois et pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "etable_plafond": {
+      "id": "etable_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "etable",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "etable_sol": {
+      "id": "etable_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "etable",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "couloir_murs": {
+      "id": "couloir_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "couloir",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "couloir_plafond": {
+      "id": "couloir_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "couloir",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "couloir_sol": {
+      "id": "couloir_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "couloir",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "chambre_chaude_murs": {
+      "id": "chambre_chaude_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "chambre_chaude_plafond": {
+      "id": "chambre_chaude_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "chambre_chaude_sol": {
+      "id": "chambre_chaude_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "dortoir_murs": {
+      "id": "dortoir_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "dortoir",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "dortoir_plafond": {
+      "id": "dortoir_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "dortoir",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "dortoir_sol": {
+      "id": "dortoir_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "dortoir",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "grenier_murs": {
+      "id": "grenier_murs",
+      "nom": "murs",
+      "type": "surface",
+      "lieu": "grenier",
+      "genre": "m",
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "pluriel": true
+    },
+    "grenier_plafond": {
+      "id": "grenier_plafond",
+      "nom": "plafond",
+      "type": "surface",
+      "lieu": "grenier",
+      "genre": "m",
+      "aliases": [
+        "plafond",
+        "poutres"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100
+    },
+    "grenier_sol": {
+      "id": "grenier_sol",
+      "nom": "sol",
+      "type": "surface",
+      "lieu": "grenier",
+      "genre": "m",
+      "aliases": [
+        "sol",
+        "plancher"
+      ],
+      "masse": 0,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 100,
+      "maximum": 100,
+      "support_pose": true
+    },
+    "porte_cellier": {
+      "id": "porte_cellier",
+      "nom": "porte du cellier",
+      "type": "porte",
+      "lieu": "cuisine",
+      "genre": "f",
+      "aliases": [
+        "porte du cellier",
+        "porte"
+      ],
+      "masse": 30,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 20,
+      "maximum": 20,
+      "ouverte": false,
+      "verrouillee": false,
+      "relie": [
+        "cuisine",
+        "cellier"
+      ],
+      "bloque_par": null,
+      "detachee": false,
+      "fixations": [],
+      "description_visuelle": "Une porte de chêne basse qui mène au cellier."
+    },
+    "porte_etable": {
+      "id": "porte_etable",
+      "nom": "porte de l'étable",
+      "type": "porte",
+      "lieu": "cuisine",
+      "genre": "f",
+      "aliases": [
+        "porte de l'étable",
+        "porte"
+      ],
+      "masse": 30,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 20,
+      "maximum": 20,
+      "ouverte": false,
+      "verrouillee": false,
+      "relie": [
+        "cuisine",
+        "etable"
+      ],
+      "bloque_par": null,
+      "detachee": false,
+      "fixations": [],
+      "description_visuelle": "Une porte de planches qui ferme mal sur l'étable."
+    },
+    "porte_chambre": {
+      "id": "porte_chambre",
+      "nom": "porte de la chambre au poêle",
+      "type": "porte",
+      "lieu": "couloir",
+      "genre": "f",
+      "aliases": [
+        "porte de la chambre",
+        "porte"
+      ],
+      "masse": 30,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 20,
+      "maximum": 20,
+      "ouverte": false,
+      "verrouillee": false,
+      "relie": [
+        "couloir",
+        "chambre_chaude"
+      ],
+      "bloque_par": null,
+      "detachee": false,
+      "fixations": [],
+      "description_visuelle": "Une porte de chêne, au seuil usé, d'où filtre un peu de chaleur."
+    },
+    "atre": {
+      "id": "atre",
+      "nom": "âtre",
+      "type": "luminaire",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [
+        "âtre",
+        "atre",
+        "cheminée",
+        "cheminee",
+        "feu"
+      ],
+      "masse": 400,
+      "materiau": "pierre",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        9,
+        3
+      ],
+      "position_salle": "salle_commune",
+      "allume": true,
+      "combustible": 120,
+      "luminosite": 2,
+      "foyer": true,
+      "description_visuelle": "Un large âtre de pierre noircie où brûlent des bûches ; sa lueur rousse éclaire toute la salle commune."
+    },
+    "comptoir": {
+      "id": "comptoir",
+      "nom": "comptoir",
+      "type": "meuble",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [],
+      "masse": 80,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        2,
+        1
+      ],
+      "position_salle": "salle_commune",
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Un comptoir de chêne ciré, creusé par les coudes, derrière lequel pendent chopes et clés."
+    },
+    "table_longue": {
+      "id": "table_longue",
+      "nom": "longue table",
+      "type": "meuble",
+      "lieu": "salle_commune",
+      "genre": "f",
+      "aliases": [
+        "table"
+      ],
+      "masse": 60,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        5,
+        4
+      ],
+      "position_salle": "salle_commune",
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Une longue table de chêne entourée de bancs, encore marquée par le souper."
+    },
+    "lampe_comptoir": {
+      "id": "lampe_comptoir",
+      "nom": "lampe à huile",
+      "type": "luminaire",
+      "lieu": "salle_commune",
+      "genre": "f",
+      "aliases": [
+        "lampe",
+        "lampe du comptoir"
+      ],
+      "masse": 1.5,
+      "materiau": "laiton",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "salle_commune",
+      "allume": true,
+      "combustible": 500,
+      "luminosite": 1,
+      "description_visuelle": "Une lampe à huile de laiton, accrochée au bout du comptoir, qui jette une lueur jaune et basse."
+    },
+    "fourneau": {
+      "id": "fourneau",
+      "nom": "fourneau",
+      "type": "luminaire",
+      "lieu": "cuisine",
+      "genre": "m",
+      "aliases": [
+        "fourneau",
+        "poêle de la cuisine",
+        "foyer"
+      ],
+      "masse": 150,
+      "materiau": "fonte",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        0,
+        2
+      ],
+      "position_salle": "cuisine",
+      "allume": true,
+      "combustible": 60,
+      "luminosite": 2,
+      "foyer": true,
+      "description_visuelle": "Un fourneau de fonte sur lequel mijote la soupe ; sa porte entrouverte laisse voir les braises."
+    },
+    "marmite": {
+      "id": "marmite",
+      "nom": "marmite de soupe",
+      "type": "nourriture",
+      "lieu": "cuisine",
+      "genre": "f",
+      "aliases": [
+        "marmite",
+        "soupe",
+        "potée"
+      ],
+      "masse": 4,
+      "materiau": "soupe de lard et de choux",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "cuisine",
+      "portions": 3,
+      "proprietaire": "mireille",
+      "description_visuelle": "Une marmite noircie de soupe au lard et aux choux, posée au coin du fourneau."
+    },
+    "bois_cuisine": {
+      "id": "bois_cuisine",
+      "nom": "bûches de hêtre",
+      "type": "consommable",
+      "lieu": "cuisine",
+      "genre": "f",
+      "aliases": [
+        "bûches",
+        "buches",
+        "bois",
+        "bois de la cuisine",
+        "tas de bois"
+      ],
+      "masse": 12,
+      "materiau": "bois",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        6,
+        4
+      ],
+      "position_salle": "cuisine",
+      "pluriel": true,
+      "charges": 4,
+      "duree_combustion": 60,
+      "usages": [
+        "combustible"
+      ],
+      "description_visuelle": "Un tas de bûches de hêtre empilées contre le mur de la cuisine, pour la nuit."
+    },
+    "table_cuisine": {
+      "id": "table_cuisine",
+      "nom": "table de cuisine",
+      "type": "meuble",
+      "lieu": "cuisine",
+      "genre": "f",
+      "aliases": [
+        "table"
+      ],
+      "masse": 50,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        3,
+        3
+      ],
+      "position_salle": "cuisine",
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Une grosse table de cuisine entaillée de coups de couteau."
+    },
+    "garde_manger": {
+      "id": "garde_manger",
+      "nom": "garde-manger",
+      "type": "contenant",
+      "lieu": "cellier",
+      "genre": "m",
+      "aliases": [
+        "garde-manger",
+        "garde manger",
+        "huche"
+      ],
+      "masse": 60,
+      "materiau": "bois cerclé de fer",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        4,
+        1
+      ],
+      "position_salle": "cellier",
+      "ouverte": false,
+      "verrouillee": true,
+      "proprietaire": "odile",
+      "description_visuelle": "Un garde-manger de bois cerclé de fer, fermé par une serrure à clé."
+    },
+    "vivres": {
+      "id": "vivres",
+      "nom": "vivres du cellier",
+      "type": "nourriture",
+      "lieu": "garde_manger",
+      "genre": "m",
+      "aliases": [
+        "vivres",
+        "pain",
+        "lard",
+        "provisions"
+      ],
+      "masse": 5,
+      "materiau": "pain, lard et fromage",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "pluriel": true,
+      "portions": 4,
+      "proprietaire": "odile",
+      "description_visuelle": "Du pain rassis, du lard fumé et un fromage entamé, comptés pour la nuit."
+    },
+    "tonneau": {
+      "id": "tonneau",
+      "nom": "tonneau de cidre",
+      "type": "meuble",
+      "lieu": "cellier",
+      "genre": "m",
+      "aliases": [
+        "tonneau",
+        "cidre"
+      ],
+      "masse": 120,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        0,
+        1
+      ],
+      "position_salle": "cellier",
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Un tonneau de cidre posé sur des cales."
+    },
+    "lanterne_etable": {
+      "id": "lanterne_etable",
+      "nom": "lanterne d'écurie",
+      "type": "luminaire",
+      "lieu": "etable",
+      "genre": "f",
+      "aliases": [
+        "lanterne",
+        "lanterne de l'étable",
+        "lampe"
+      ],
+      "masse": 0.8,
+      "materiau": "fer et verre",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        4,
+        0
+      ],
+      "position_salle": "etable",
+      "allume": true,
+      "combustible": 400,
+      "luminosite": 1,
+      "description_visuelle": "Une lanterne d'écurie accrochée à une poutre, dont la flamme tremble au vent qui passe sous la porte."
+    },
+    "fagots_etable": {
+      "id": "fagots_etable",
+      "nom": "fagots de l'écurie",
+      "type": "consommable",
+      "lieu": "etable",
+      "genre": "m",
+      "aliases": [
+        "fagots",
+        "fagot",
+        "bois de l'étable"
+      ],
+      "masse": 5,
+      "materiau": "bois",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        7,
+        3
+      ],
+      "position_salle": "etable",
+      "pluriel": true,
+      "charges": 2,
+      "duree_combustion": 45,
+      "usages": [
+        "combustible"
+      ],
+      "proprietaire": "joss",
+      "description_visuelle": "Quelques fagots de bois mort que le palefrenier garde pour lui, près de sa paillasse."
+    },
+    "stalles": {
+      "id": "stalles",
+      "nom": "stalles",
+      "type": "meuble",
+      "lieu": "etable",
+      "genre": "f",
+      "aliases": [
+        "stalles",
+        "chevaux",
+        "mule",
+        "bêtes"
+      ],
+      "masse": 200,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "etable",
+      "pluriel": true,
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Deux stalles de bois où dorment un cheval de selle et une mule, serrés l'un contre l'autre."
+    },
+    "paillasse_joss": {
+      "id": "paillasse_joss",
+      "nom": "paillasse du palefrenier",
+      "type": "meuble",
+      "lieu": "etable",
+      "genre": "f",
+      "aliases": [
+        "paillasse",
+        "litière"
+      ],
+      "masse": 4,
+      "materiau": "paille",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        7,
+        1
+      ],
+      "position_salle": "etable",
+      "description_visuelle": "Une paillasse défoncée sous une couverture mangée aux mites."
+    },
+    "lanterne_couloir": {
+      "id": "lanterne_couloir",
+      "nom": "lanterne du couloir",
+      "type": "luminaire",
+      "lieu": "couloir",
+      "genre": "f",
+      "aliases": [
+        "lanterne",
+        "lampe"
+      ],
+      "masse": 2,
+      "materiau": "fer et corne",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        4,
+        1
+      ],
+      "position_salle": "couloir",
+      "allume": true,
+      "combustible": 500,
+      "luminosite": 1,
+      "description_visuelle": "Une lanterne de corne qui éclaire le couloir de l'étage d'une lueur jaunâtre."
+    },
+    "poele": {
+      "id": "poele",
+      "nom": "poêle de fonte",
+      "type": "luminaire",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "poêle",
+        "poele",
+        "foyer"
+      ],
+      "masse": 90,
+      "materiau": "fonte",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        4,
+        2
+      ],
+      "position_salle": "chambre_chaude",
+      "allume": true,
+      "combustible": 120,
+      "luminosite": 1,
+      "foyer": true,
+      "description_visuelle": "Un petit poêle de fonte ronflant, dont la chaleur remplit la chambre."
+    },
+    "bois_anselme": {
+      "id": "bois_anselme",
+      "nom": "bûches de chêne sec",
+      "type": "consommable",
+      "lieu": "chambre_chaude",
+      "genre": "f",
+      "aliases": [
+        "bûches",
+        "buches",
+        "bois",
+        "bois d'Anselme"
+      ],
+      "masse": 8,
+      "materiau": "bois",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        3,
+        0
+      ],
+      "position_salle": "chambre_chaude",
+      "pluriel": true,
+      "charges": 2,
+      "duree_combustion": 60,
+      "usages": [
+        "combustible"
+      ],
+      "proprietaire": "anselme",
+      "description_visuelle": "Quelques bûches de chêne sec, mises en réserve contre le poêle."
+    },
+    "lit_chaud": {
+      "id": "lit_chaud",
+      "nom": "lit à rideaux",
+      "type": "meuble",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "lit"
+      ],
+      "masse": 60,
+      "materiau": "chêne",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        0
+      ],
+      "position_salle": "chambre_chaude",
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Un lit à rideaux de serge, le seul de l'auberge qui soit vraiment chaud."
+    },
+    "coffre_marchand": {
+      "id": "coffre_marchand",
+      "nom": "coffre ferré",
+      "type": "contenant",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "coffre",
+        "coffre du marchand"
+      ],
+      "masse": 40,
+      "materiau": "chêne ferré",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        0,
+        3
+      ],
+      "position_salle": "chambre_chaude",
+      "ouverte": false,
+      "verrouillee": true,
+      "proprietaire": "anselme",
+      "description_visuelle": "Un coffre ferré de chêne, fermé par une grosse serrure, au pied du lit."
+    },
+    "ballot": {
+      "id": "ballot",
+      "nom": "ballot de soie",
+      "type": "tresor",
+      "lieu": "coffre_marchand",
+      "genre": "m",
+      "aliases": [
+        "ballot",
+        "soie",
+        "marchandise",
+        "ballot d'Anselme"
+      ],
+      "masse": 6,
+      "materiau": "soie de Lyon",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "proprietaire": "anselme",
+      "description_visuelle": "Un ballot de soie lourde, enveloppé de toile cirée et ficelé de cordes plombées."
+    },
+    "besace_anselme": {
+      "id": "besace_anselme",
+      "nom": "besace de cuir",
+      "type": "contenant",
+      "lieu": "chambre_chaude",
+      "genre": "f",
+      "aliases": [
+        "besace",
+        "sac"
+      ],
+      "masse": 2,
+      "materiau": "cuir",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        2,
+        3
+      ],
+      "position_salle": "chambre_chaude",
+      "ouverte": false,
+      "verrouillee": false,
+      "proprietaire": "anselme",
+      "description_visuelle": "Une besace de cuir râpé, fermée par une boucle."
+    },
+    "provisions_anselme": {
+      "id": "provisions_anselme",
+      "nom": "saucisses et galettes",
+      "type": "nourriture",
+      "lieu": "besace_anselme",
+      "genre": "f",
+      "aliases": [
+        "provisions",
+        "saucisses",
+        "galettes",
+        "vivres d'Anselme"
+      ],
+      "masse": 1.2,
+      "materiau": "saucisse sèche",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "pluriel": true,
+      "portions": 2,
+      "proprietaire": "anselme"
+    },
+    "coffret_lucien": {
+      "id": "coffret_lucien",
+      "nom": "coffret de fer",
+      "type": "contenant",
+      "lieu": "grenier",
+      "genre": "m",
+      "aliases": [
+        "coffret",
+        "coffret de Lucien"
+      ],
+      "masse": 3,
+      "materiau": "fer",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        7,
+        1
+      ],
+      "position_salle": "grenier",
+      "ouverte": false,
+      "verrouillee": true,
+      "proprietaire": "lucien",
+      "description_visuelle": "Un petit coffret de fer sans ornement, glissé dans un coin sombre sous la charpente."
+    },
+    "reliquaire": {
+      "id": "reliquaire",
+      "nom": "reliquaire d'argent",
+      "type": "tresor",
+      "lieu": "coffret_lucien",
+      "genre": "m",
+      "aliases": [
+        "reliquaire",
+        "relique"
+      ],
+      "masse": 0.6,
+      "materiau": "argent",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "proprietaire": "lucien",
+      "description_visuelle": "Un reliquaire d'argent ciselé, aux émaux ternis, qui ne ressemble à rien de ce qu'on emporte en voyage."
+    },
+    "caisses": {
+      "id": "caisses",
+      "nom": "caisses de fruits secs",
+      "type": "meuble",
+      "lieu": "grenier",
+      "genre": "f",
+      "aliases": [
+        "caisses"
+      ],
+      "masse": 40,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        3,
+        2
+      ],
+      "position_salle": "grenier",
+      "pluriel": true,
+      "bloque_passage": true,
+      "bloque_vue": false,
+      "description_visuelle": "Des caisses de fruits secs empilées sous la charpente."
+    },
+    "foin": {
+      "id": "foin",
+      "nom": "meule de foin",
+      "type": "meuble",
+      "lieu": "grenier",
+      "genre": "f",
+      "aliases": [
+        "foin",
+        "paille"
+      ],
+      "masse": 30,
+      "materiau": "foin",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "grenier",
+      "description_visuelle": "Une meule de foin entassée sous le toit."
+    },
+    "lits_dortoir": {
+      "id": "lits_dortoir",
+      "nom": "lits de camp",
+      "type": "meuble",
+      "lieu": "dortoir",
+      "genre": "m",
+      "aliases": [
+        "lits",
+        "lit"
+      ],
+      "masse": 40,
+      "materiau": "bois",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        1
+      ],
+      "position_salle": "dortoir",
+      "pluriel": true,
+      "description_visuelle": "Des lits de camp alignés sous les poutres, que la neige glace par les fentes du toit."
+    },
+    "cle_garde_manger": {
+      "id": "cle_garde_manger",
+      "nom": "clé du garde-manger",
+      "type": "cle",
+      "lieu": "odile",
+      "genre": "f",
+      "aliases": [
+        "clé du garde-manger",
+        "cle du garde-manger",
+        "clé"
+      ],
+      "masse": 0.05,
+      "materiau": "fer",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "ouvre": [
+        "garde_manger"
+      ],
+      "proprietaire": "odile"
+    },
+    "briquet_odile": {
+      "id": "briquet_odile",
+      "nom": "briquet à silex",
+      "type": "outil",
+      "lieu": "odile",
+      "genre": "m",
+      "aliases": [
+        "briquet",
+        "silex"
+      ],
+      "masse": 0.1,
+      "materiau": "fer et silex",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "usages": [
+        "allumage"
+      ]
+    },
+    "cle_coffre": {
+      "id": "cle_coffre",
+      "nom": "clé du coffre",
+      "type": "cle",
+      "lieu": "anselme",
+      "genre": "f",
+      "aliases": [
+        "clé du coffre",
+        "cle du coffre",
+        "clé"
+      ],
+      "masse": 0.05,
+      "materiau": "fer",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "ouvre": [
+        "coffre_marchand"
+      ],
+      "proprietaire": "anselme"
+    },
+    "cle_coffret": {
+      "id": "cle_coffret",
+      "nom": "clé du coffret",
+      "type": "cle",
+      "lieu": "lucien",
+      "genre": "f",
+      "aliases": [
+        "clé du coffret",
+        "cle du coffret",
+        "clé"
+      ],
+      "masse": 0.03,
+      "materiau": "laiton",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "ouvre": [
+        "coffret_lucien"
+      ],
+      "proprietaire": "lucien"
+    },
+    "crochets_lucien": {
+      "id": "crochets_lucien",
+      "nom": "fins crochets",
+      "type": "outil",
+      "lieu": "lucien",
+      "genre": "m",
+      "aliases": [
+        "crochets",
+        "crochet",
+        "trousse"
+      ],
+      "masse": 0.1,
+      "materiau": "acier",
+      "mobile": true,
+      "integrite": 3,
+      "maximum": 3,
+      "usages": [
+        "crochetage"
+      ],
+      "proprietaire": "lucien"
+    },
+    "lanterne_hugues": {
+      "id": "lanterne_hugues",
+      "nom": "lanterne sourde",
+      "type": "luminaire",
+      "lieu": "hugues",
+      "genre": "f",
+      "aliases": [
+        "lanterne",
+        "lanterne sourde",
+        "lampe"
+      ],
+      "masse": 0.7,
+      "materiau": "fer",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "allume": true,
+      "combustible": 480,
+      "luminosite": 1,
+      "description_visuelle": "Une lanterne sourde de soldat, au volet tourné vers le bas."
+    },
+    "rations_hugues": {
+      "id": "rations_hugues",
+      "nom": "biscuits de soldat",
+      "type": "nourriture",
+      "lieu": "hugues",
+      "genre": "m",
+      "aliases": [
+        "biscuits",
+        "rations"
+      ],
+      "masse": 0.5,
+      "materiau": "biscuit",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "pluriel": true,
+      "portions": 1,
+      "proprietaire": "hugues"
+    },
+    "bougeoir_mireille": {
+      "id": "bougeoir_mireille",
+      "nom": "bougeoir",
+      "type": "luminaire",
+      "lieu": "mireille",
+      "genre": "m",
+      "aliases": [
+        "bougeoir",
+        "chandelle",
+        "bougie"
+      ],
+      "masse": 0.3,
+      "materiau": "étain",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "allume": true,
+      "combustible": 240,
+      "luminosite": 1,
+      "description_visuelle": "Un bougeoir d'étain à la chandelle courte."
+    },
+    "briquet": {
+      "id": "briquet",
+      "nom": "briquet du voyageur",
+      "type": "outil",
+      "lieu": "joueur",
+      "genre": "m",
+      "aliases": [
+        "briquet",
+        "silex"
+      ],
+      "masse": 0.1,
+      "materiau": "fer et silex",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "usages": [
+        "allumage"
+      ]
+    },
+    "chandelle_corvus": {
+      "id": "chandelle_corvus",
+      "nom": "chandelle",
+      "type": "luminaire",
+      "lieu": "joueur",
+      "genre": "f",
+      "aliases": [
+        "chandelle",
+        "bougie"
+      ],
+      "masse": 0.1,
+      "materiau": "suif",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "allume": false,
+      "combustible": 120,
+      "luminosite": 1
+    },
+    "odile": {
+      "id": "odile",
+      "nom": "Odile, aubergiste du Col-Pendu",
+      "type": "personnage",
+      "lieu": "salle_commune",
+      "genre": "f",
+      "aliases": [
+        "odile",
+        "aubergiste",
+        "patronne",
+        "maîtresse"
+      ],
+      "humeur": "soucieuse",
+      "maniere_de_parler": "Odile parle net, sans élever la voix, en comptant sur ses doigts.",
+      "portrait": "Odile est une femme solide d'une cinquantaine d'années, le tablier noué haut, les clés à la ceinture.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        3,
+        2
+      ],
+      "position_salle": "salle_commune",
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 11,
+          "DEX": 10,
+          "INT": 13,
+          "PER": 14,
+          "CHA": 12
+        },
+        "traits": "Aubergiste économe et juste : elle nourrit ses hôtes mais compte ses bûches et ses parts. Elle tient son âtre allumé et son garde-manger sous clé, veille sur son neveu Tilo et sur Mireille, et se méfie de qui l'a volée.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas",
+          "ne_ment_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "devoir": {
+            "depart": 60,
+            "derive_heure": 8,
+            "urgence": 70
+          },
+          "biens": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 30,
+            "derive_heure": 3,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "devoir",
+            "condition": {
+              "objet": "atre",
+              "allume": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "garde_manger",
+              "verrouillee": true
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "salle_commune",
+              "periode": 40
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "cuisine",
+              "periode": 60
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "couloir",
+              "periode": 120
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "etable",
+              "periode": 150
+            }
+          }
+        ],
+        "reserve": 2,
+        "protege": [
+          "tilo",
+          "mireille"
+        ]
+      },
+      "corps": {
+        "repas": 240,
+        "veille": 600,
+        "trempe": 0
+      }
+    },
+    "mireille": {
+      "id": "mireille",
+      "nom": "Mireille, cuisinière",
+      "type": "personnage",
+      "lieu": "cuisine",
+      "genre": "f",
+      "aliases": [
+        "mireille",
+        "cuisinière",
+        "cuisiniere",
+        "servante"
+      ],
+      "humeur": "affairée",
+      "maniere_de_parler": "Mireille chantonne entre deux phrases et tutoie tout le monde.",
+      "portrait": "Mireille est une grande fille de vingt-huit ans aux avant-bras rouges, les cheveux sous un linge.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        2,
+        3
+      ],
+      "position_salle": "cuisine",
+      "vigilance": 13,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 10,
+          "DEX": 12,
+          "INT": 11,
+          "PER": 12,
+          "CHA": 13
+        },
+        "traits": "Cuisinière loyale et vive : elle garde son fourneau allumé et sa marmite en place, donne à qui a faim sans compter, aime Joss et ne le trahit pas. Elle ne vole pas.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "devoir": {
+            "depart": 60,
+            "derive_heure": 6,
+            "urgence": 70
+          },
+          "biens": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 25,
+            "derive_heure": 2,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "devoir",
+            "condition": {
+              "objet": "fourneau",
+              "allume": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "marmite",
+              "lieu": "cuisine"
+            }
+          },
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "cuisine",
+              "periode": 45
+            }
+          }
+        ],
+        "reserve": 0,
+        "protege": [
+          "tilo"
+        ]
+      },
+      "corps": {
+        "repas": 300,
+        "veille": 600,
+        "trempe": 0
+      }
+    },
+    "tilo": {
+      "id": "tilo",
+      "nom": "Tilo, neveu de l'aubergiste",
+      "type": "personnage",
+      "lieu": "cuisine",
+      "genre": "m",
+      "aliases": [
+        "tilo",
+        "garçon",
+        "gamin",
+        "enfant",
+        "neveu"
+      ],
+      "humeur": "inquiet",
+      "maniere_de_parler": "Tilo parle vite, en avalant la moitié de ses mots, et finit souvent par une question.",
+      "portrait": "Tilo est un garçon de neuf ans, maigre, les genoux écorchés et les cheveux en pointes.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        4,
+        1
+      ],
+      "position_salle": "cuisine",
+      "vigilance": 15,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 5,
+          "DEX": 13,
+          "INT": 9,
+          "PER": 14,
+          "CHA": 12
+        },
+        "traits": "Garçon de neuf ans, affamé et effrayé par la tempête : il cherche la lumière et la compagnie, quémande, et chaparde quand personne ne regarde. Il n'a jamais levé la main sur personne.",
+        "limites": [
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "securite": {
+            "depart": 55,
+            "derive_heure": 3,
+            "urgence": 55
+          }
+        },
+        "pulsions": []
+      },
+      "corps": {
+        "repas": 540,
+        "veille": 480,
+        "trempe": 0
+      }
+    },
+    "joss": {
+      "id": "joss",
+      "nom": "Joss, palefrenier",
+      "type": "personnage",
+      "lieu": "etable",
+      "genre": "m",
+      "aliases": [
+        "joss",
+        "palefrenier",
+        "valet d'écurie"
+      ],
+      "humeur": "rancunier",
+      "maniere_de_parler": "Joss crache plus qu'il ne parle et répond par des demi-mots.",
+      "portrait": "Joss est un grand gaillard de vingt-deux ans aux mains gercées, la paille collée à ses vêtements.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        6,
+        2
+      ],
+      "position_salle": "etable",
+      "vigilance": 12,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 14,
+          "DEX": 13,
+          "INT": 10,
+          "PER": 11,
+          "CHA": 9
+        },
+        "traits": "Palefrenier rancunier : Odile lui doit trois mois de gages. Il dort à l'étable, a faim et froid, n'a guère de scrupules mais déteste la violence. Il aime Mireille.",
+        "limites": [
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "devoir": {
+            "depart": 30,
+            "derive_heure": 4,
+            "urgence": 70
+          },
+          "biens": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 20,
+            "derive_heure": 0,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "fagots_etable",
+              "lieu": "etable"
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "etable",
+              "periode": 60
+            }
+          }
+        ]
+      },
+      "corps": {
+        "repas": 600,
+        "veille": 540,
+        "trempe": 240
+      }
+    },
+    "anselme": {
+      "id": "anselme",
+      "nom": "Anselme, marchand drapier",
+      "type": "personnage",
+      "lieu": "chambre_chaude",
+      "genre": "m",
+      "aliases": [
+        "anselme",
+        "marchand",
+        "drapier"
+      ],
+      "humeur": "méfiant",
+      "maniere_de_parler": "Anselme pèse chaque mot comme une pièce et ne répond qu'après avoir regardé la porte.",
+      "portrait": "Anselme est un homme maigre d'une quarantaine d'années, vêtu de drap fin taché de neige fondue.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        2,
+        2
+      ],
+      "position_salle": "chambre_chaude",
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 9,
+          "DEX": 10,
+          "INT": 15,
+          "PER": 11,
+          "CHA": 11
+        },
+        "traits": "Marchand drapier soigneux et méfiant : son ballot de soie vaut plus que l'auberge. Il paie sa chambre chaude et son bois, ne partage ni l'un ni l'autre, et ne quitte pas son coffre des yeux.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "biens": {
+            "depart": 30,
+            "derive_heure": 1,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 35,
+            "derive_heure": 2,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "coffre_marchand",
+              "verrouillee": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "ballot",
+              "lieu": "chambre_chaude"
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "poele",
+              "allume": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "lieu": "chambre_chaude",
+              "periode": 40
+            }
+          }
+        ],
+        "reserve": 2
+      },
+      "corps": {
+        "repas": 360,
+        "veille": 700,
+        "trempe": 240
+      }
+    },
+    "hugues": {
+      "id": "hugues",
+      "nom": "Hugues, ancien soldat",
+      "type": "personnage",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [
+        "hugues",
+        "soldat",
+        "escorte",
+        "garde"
+      ],
+      "humeur": "las",
+      "maniere_de_parler": "Hugues parle comme on donne un ordre, par phrases courtes, sans gestes.",
+      "portrait": "Hugues est un homme large d'une quarantaine d'années, le manteau militaire déchiré et la barbe givrée.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        7,
+        5
+      ],
+      "position_salle": "salle_commune",
+      "vigilance": 16,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 15,
+          "DEX": 12,
+          "INT": 10,
+          "PER": 14,
+          "CHA": 9
+        },
+        "traits": "Ancien soldat engagé pour escorter Anselme jusqu'à la vallée : discipliné, honnête, bourru. Il protège le garçon, la vieille pèlerine et son employeur, fait ses rondes malgré la fatigue, et soupçonne Lucien sans preuve.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas",
+          "ne_ment_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "devoir": {
+            "depart": 40,
+            "derive_heure": 6,
+            "urgence": 70
+          },
+          "securite": {
+            "depart": 15,
+            "derive_heure": 0,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "salle_commune",
+              "periode": 30
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "couloir",
+              "periode": 45
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "chambre_chaude",
+              "periode": 75
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "etable",
+              "periode": 90
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "grenier",
+              "periode": 120
+            }
+          }
+        ],
+        "protege": [
+          "anselme",
+          "tilo",
+          "mathurine"
+        ]
+      },
+      "corps": {
+        "repas": 480,
+        "veille": 900,
+        "trempe": 300
+      },
+      "reaction_son": {
+        "seuil": 2
+      }
+    },
+    "mathurine": {
+      "id": "mathurine",
+      "nom": "Mathurine, pèlerine",
+      "type": "personnage",
+      "lieu": "salle_commune",
+      "genre": "f",
+      "aliases": [
+        "mathurine",
+        "pèlerine",
+        "pelerine",
+        "vieille",
+        "vieille femme"
+      ],
+      "humeur": "transie",
+      "maniere_de_parler": "Mathurine soupire avant chaque phrase et la termine par une bénédiction.",
+      "portrait": "Mathurine est une vieille femme menue d'une soixantaine d'années, la coiffe collée par la neige.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        8,
+        2
+      ],
+      "position_salle": "salle_commune",
+      "vigilance": 12,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 6,
+          "DEX": 7,
+          "INT": 11,
+          "PER": 12,
+          "CHA": 14
+        },
+        "traits": "Pèlerine pieuse et bavarde : elle raconte tout ce qu'elle voit et le tient pour vrai. Transie, elle n'ose rien demander avant d'avoir longuement soupiré. Elle ne prend rien qui ne soit à elle.",
+        "limites": [
+          "ne_vole_pas",
+          "ne_blesse_pas",
+          "ne_ment_pas"
+        ],
+        "capacites": [],
+        "besoins": {
+          "securite": {
+            "depart": 45,
+            "derive_heure": 2,
+            "urgence": 60
+          }
+        },
+        "pulsions": []
+      },
+      "corps": {
+        "repas": 540,
+        "veille": 840,
+        "trempe": 420
+      }
+    },
+    "lucien": {
+      "id": "lucien",
+      "nom": "Lucien, voyageur au manteau gris",
+      "type": "personnage",
+      "lieu": "salle_commune",
+      "genre": "m",
+      "aliases": [
+        "lucien",
+        "voyageur",
+        "manteau gris",
+        "homme au manteau gris"
+      ],
+      "humeur": "affable",
+      "maniere_de_parler": "Lucien parle avec aisance, sourit beaucoup et ne répond jamais tout à fait à la question posée.",
+      "portrait": "Lucien est un homme svelte d'une trentaine d'années, au sourire facile et aux mains très propres.",
+      "masse": 0,
+      "materiau": "",
+      "mobile": false,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        4,
+        4
+      ],
+      "position_salle": "salle_commune",
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 11,
+          "DEX": 15,
+          "INT": 14,
+          "PER": 13,
+          "CHA": 15
+        },
+        "traits": "Voyageur aimable et disert, il cache au grenier un reliquaire pris à une chapelle, convoite le ballot d'Anselme et sait crocheter une serrure. Il évite la violence et compte repartir avant l'aube.",
+        "limites": [
+          "ne_blesse_pas"
+        ],
+        "capacites": [
+          "crochetage"
+        ],
+        "besoins": {
+          "biens": {
+            "depart": 25,
+            "derive_heure": 8,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 40,
+            "derive_heure": 0,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "coffret_lucien",
+              "verrouillee": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "ballot",
+              "lieu": "etable"
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "lieu": "grenier",
+              "periode": 120
+            }
+          }
+        ]
+      },
+      "corps": {
+        "repas": 420,
+        "veille": 600,
+        "trempe": 200
+      }
+    }
+  },
+  "visitees": [
+    "dortoir"
+  ],
+  "relations_pnj": {},
+  "savoirs_pnj": {},
+  "sujets_savoirs_pnj": {},
+  "souvenirs_personnages": {},
+  "esprits": {
+    "odile": {
+      "croyances": {
+        "vivres": {
+          "lieu": {
+            "valeur": "garde_manger",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "garde_manger": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "marmite": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "bois_cuisine": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              6,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "fagots_etable": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              7,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "lanterne_etable": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "fourneau": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "poele": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "bois_anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              3,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "mireille": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              2,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "tilo": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "joss": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.5
+          }
+        },
+        "anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              2,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "hugues": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              7,
+              5
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "mathurine": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              8,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "lucien": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              4,
+              4
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "mireille": {
+      "croyances": {
+        "marmite": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "bois_cuisine": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              6,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "fourneau": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "garde_manger",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "garde_manger": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "lanterne_etable": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.8
+          }
+        },
+        "tilo": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "joss": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "tilo": {
+      "croyances": {
+        "marmite": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "fourneau": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "garde_manger": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "garde_manger",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "mireille": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              2,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "joss": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "joss": {
+      "croyances": {
+        "marmite": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "bois_cuisine": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              6,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "fourneau": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "fagots_etable": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              7,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "garde_manger": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "garde_manger",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "lanterne_etable": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": false,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "mireille": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              2,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "tilo": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "anselme": {
+      "croyances": {
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "poele": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "bois_anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              3,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "coffre_marchand": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "ballot": {
+          "lieu": {
+            "valeur": "coffre_marchand",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              0,
+              3
+            ]
+          }
+        },
+        "besace_anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              2,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": false,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "provisions_anselme": {
+          "lieu": {
+            "valeur": "besace_anselme",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              2,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "hugues": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              7,
+              5
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "lucien": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              4,
+              4
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.5
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "hugues": {
+      "croyances": {
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "poele": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              2,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.8
+          }
+        },
+        "lucien": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              4,
+              4
+            ]
+          },
+          "fiable": {
+            "valeur": false,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "tilo": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "mathurine": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              8,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "mathurine": {
+      "croyances": {
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "tilo": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "hugues": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              7,
+              5
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              2,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "lucien": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              4,
+              4
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "marmite": {
+          "lieu": {
+            "valeur": "cuisine",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cuisine",
+            "case": [
+              1,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "garde_manger",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              4,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "garde_manger": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    },
+    "lucien": {
+      "croyances": {
+        "atre": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "poele": {
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "coffre_marchand": {
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "ballot": {
+          "lieu": {
+            "valeur": "coffre_marchand",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              0,
+              3
+            ]
+          }
+        },
+        "anselme": {
+          "lieu": {
+            "valeur": "chambre_chaude",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_chaude",
+            "case": [
+              2,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          }
+        },
+        "hugues": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              7,
+              5
+            ]
+          },
+          "fiable": {
+            "valeur": false,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "odile": {
+          "lieu": {
+            "valeur": "salle_commune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "salle_commune",
+            "case": [
+              3,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.6
+          }
+        },
+        "coffret_lucien": {
+          "lieu": {
+            "valeur": "grenier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "grenier",
+            "case": [
+              7,
+              1
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "reliquaire": {
+          "lieu": {
+            "valeur": "coffret_lucien",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "grenier",
+            "case": [
+              7,
+              1
+            ]
+          }
+        }
+      },
+      "memoire": [],
+      "intention": null
+    }
+  },
+  "horloges": [
+    {
+      "id": "rafale",
+      "minute": 200,
+      "effets": [
+        {
+          "operation": "eteindre",
+          "salles": [
+            "salle_commune"
+          ]
+        }
+      ],
+      "annonce": "Une rafale s'engouffre dans la cheminée et rabat la cendre : l'âtre s'éteint et la salle commune plonge dans le noir.",
+      "lieux": [
+        "salle_commune"
+      ]
+    }
+  ]
+}
