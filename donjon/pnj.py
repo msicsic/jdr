@@ -651,22 +651,31 @@ def se_parler(monde, a, b):
 
 
 def alerter(monde, auteur, t, libre):
-    """Ceux qui, tout près, entendent l'auteur sans le voir se tournent vers lui : le temps de la
-    rotation retarde la fin de leur geste en cours."""
+    """Ceux qui, tout près, entendent l'auteur (un PNJ ou le joueur) sans le voir se tournent vers
+    lui : le temps de la rotation retarde la fin de leur geste en cours (``libre`` pendant la vie
+    des PNJ, sinon l'instant mémorisé de chacun)."""
     from .spatial import QUART, orientation_vers, quarts
-    a = monde.objets[auteur]
-    if "position" not in a:
+    if auteur == "joueur":
+        salle, position = monde.joueur["salle"], monde.joueur.get("position")
+    else:
+        salle, position = monde.objets[auteur]["lieu"], monde.objets[auteur].get("position")
+    if position is None:
         return
     for id in pnjs(monde):
         o = monde.objets[id]
-        if (id == auteur or o["lieu"] != a["lieu"] or "position" not in o or not o.get("profil")
-                or max(abs(o["position"][0] - a["position"][0]), abs(o["position"][1] - a["position"][1])) > OUIE
+        if (id == auteur or o["lieu"] != salle or "position" not in o or not o.get("profil")
+                or max(abs(o["position"][0] - position[0]), abs(o["position"][1] - position[1])) > OUIE
                 or percoit(monde, id, auteur)):
             continue
-        vers = orientation_vers(tuple(o["position"]), tuple(a["position"]))
+        vers = orientation_vers(tuple(o["position"]), tuple(position))
         if vers is None:
             continue
-        libre[id] = max(libre[id], t) + QUART * quarts(o.get("orientation"), vers)
+        rotation = QUART * quarts(o.get("orientation"), vers)
+        if libre is None:
+            e = esprit(monde, id)
+            e["libre"] = max(e["libre"], t) + rotation
+        else:
+            libre[id] = max(libre[id], t) + rotation
         o["orientation"] = vers
         percevoir(monde, id)
 

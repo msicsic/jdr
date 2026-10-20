@@ -34,7 +34,8 @@ class LumiereCasesTests(unittest.TestCase):
             chemin = Path(tmp) / "defi.json"
             m.sauver(chemin)
             with (patch("builtins.input", side_effect=[
-                      "éteindre lanterne", "éteindre torche", "regarder", "lire consigne", "quitter"]),
+                      "éteindre lanterne", "éteindre torche", "tourner ouest", "regarder", "lire consigne",
+                      "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--defi", "--console", "--offline", "--save", str(chemin)]), 0)
             reprise = Monde.charger(chemin)

@@ -8,6 +8,9 @@ from .geometrie import DIRECTIONS, cases, position_entree, position_objet
 SYMBOLES = {"cle": "k", "personnage": "G", "contenant": "c", "tresor": "o",
             "outil": "!", "consommable": "!", "motif": "!", "assemblage": "H", "materiau": "b"}
 FLECHES = {"nord": "^", "sud": "v", "est": ">", "ouest": "<"}
+# La direction du regard du joueur, accolée à son @.
+REGARD = {"nord": "↑", "sud": "↓", "est": "→", "ouest": "←",
+          "nord-est": "↗", "sud-est": "↘", "sud-ouest": "↙", "nord-ouest": "↖"}
 
 
 def symbole_porte(porte):
@@ -154,7 +157,7 @@ def _carte_ancienne(monde):
             symbole = SYMBOLES.get(o["type"], "!")
         dessin[position] = symbole + ("#" if any(o.get("ancrage_carte") for o in groupe) else " ")
         legendes[symbole].extend(designer(o) for o in groupe)
-    dessin[joueur] = "@ "
+    dessin[joueur] = "@" + REGARD.get(monde.joueur.get("orientation"), " ")
     pieces = []
     for id in connues:
         piece = salles[id]
@@ -413,7 +416,7 @@ def _carte_cases(monde):
 
         if joueur_salle in salles_etage:
             ox, oy = salles[joueur_salle]["plan"]["origine"]
-            dessin[ox + joueur_pos[0], oy + joueur_pos[1]] = "@ "
+            dessin[ox + joueur_pos[0], oy + joueur_pos[1]] = "@" + REGARD.get(monde.joueur.get("orientation"), " ")
 
         souvenirs_dessines.extend((symbole, noms) for p, symbole, mur, noms in souvenirs_niveau
                                   if dessin.get(p) == (symbole + "~" if mur else "~" + symbole))
@@ -434,7 +437,8 @@ def _carte_cases(monde):
                "@ toi   ## mur   . terrain visible et éclairé" + ("   , terrain visible dans la pénombre (vue courte)"
                                                                   if penombre_vue else "")
                + "   : terrain mémorisé ou passage connu   cases vides : inconnues",
-               "F6 puis flèches : marcher · Échap/Entrée : commande · Ctrl+flèches actifs",
+               "La flèche à côté de @ : ton regard. Tu vois devant toi (120°) et à tes côtés, pas derrière.",
+               "F6 puis flèches : marcher · Maj+flèches : pas chassé · Échap/Entrée : commande · Ctrl+flèches actifs",
                "O obstacle solide   ^/v appui vertical   H1 échelle · axes x,y ; une case par pas"]
     if passages:
         etats = {"X": "porte verrouillée", "+": "porte fermée", "/": "porte ouverte", "x": "passage libéré"}

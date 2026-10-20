@@ -148,6 +148,7 @@ class CarteCasesTests(unittest.TestCase):
     def test_objet_invente_sur_un_autre_mur_garde_son_ancrage_dans_le_noir(self):
         m = nouveau_monde()
         installer(m)
+        m.joueur["orientation"] = "ouest"  # Placement d'auteur : il regarde le mur ouest.
         m, _, etablis = preparer_faits(m, {"ajouts": [{
             "type": "objet", "ancrage": "antichambre_murs",
             "nom": "anneau de fer", "genre": "m", "texte": "Le fer est rouillé.",

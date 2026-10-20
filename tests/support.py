@@ -64,8 +64,14 @@ def calme(monde, *ids):
 
 
 def regarder(monde, qui, vers):
-    """Placement d'auteur : ``qui`` regarde vers un personnage, le joueur ou une case de sa salle."""
+    """Placement d'auteur : ``qui`` (un PNJ ou le joueur) regarde vers un personnage, le joueur, un
+    objet ou une case de sa salle."""
     from donjon.spatial import orientation_vers, position_cible
+    if qui == "joueur":
+        o = {**monde.joueur, "lieu": monde.joueur["salle"]}
+        cible = tuple(vers) if not isinstance(vers, str) else position_cible(monde, vers, o["lieu"])
+        monde.joueur["orientation"] = orientation_vers(tuple(o["position"]), cible) or monde.joueur.get("orientation")
+        return monde
     o = monde.objets[qui]
     if vers == "joueur":
         cible = tuple(monde.joueur["position"])

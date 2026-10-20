@@ -77,7 +77,7 @@ class LocalisationTests(unittest.TestCase):
         self.m = nouveau_monde()
         self.m.data['visitees'] = ['antichambre']
         installer(self.m)
-        self.m.joueur['position'] = [0, 1]
+        self.m.joueur.update(position=[0, 1], orientation='ouest')  # Il regarde par la sortie.
         self.m.objets['marteau'].update(position=[4, 3], position_salle='echoppe')
         o = self.objets()['marteau']
         self.assertFalse(o['a_portee'])

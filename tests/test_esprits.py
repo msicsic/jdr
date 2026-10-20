@@ -98,7 +98,7 @@ class PerceptionParActeurTests(unittest.TestCase):
             m.objets[id]["allume"] = False
         # Placement d'auteur : la trousse a glissé dans l'angle nord-est de la conduite.
         m.objets["crochets"]["position"] = [8, 3]
-        m.joueur.update(salle="echoppe", position=[8, 2])
+        m.joueur.update(salle="echoppe", position=[8, 2], orientation="ouest")
         m.objets["marchand"]["position"] = [3, 1]
         m = recharger(m)
         self.assertTrue(m.visible("marchand"))

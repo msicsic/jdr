@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tests.support import refusee, sans_evacues
+from tests.support import refusee, regarder, sans_evacues
 from donjon import banc_pnj
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percoit
@@ -63,8 +63,9 @@ class GardeMangerTests(unittest.TestCase):
 
     def test_sous_les_yeux_du_joueur_elle_attend_puis_renonce(self):
         m = relais()
-        # Placement d'auteur : le joueur s'est assis près de la réserve, sa lanterne allumée.
+        # Placement d'auteur : le joueur s'est assis près de la réserve, sa lanterne allumée, et la regarde.
         m.joueur["position"] = [6, 4]
+        regarder(m, "joueur", "reserve")
         m, texte = attendre(m, 8)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
         self.assertEqual(m.objets["vivres"]["portions"], 4)

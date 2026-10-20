@@ -8,7 +8,9 @@ franchit.
 """
 
 MINUTE = 600           # dixièmes de seconde dans une minute
-PAS_JOUEUR = 60        # un pas du joueur : 6 s, une minute tous les dix pas
+PAS_JOUEUR = 15        # un pas en avant : 1,5 s
+PAS_CHASSE = 30        # un pas de côté ou en arrière, sans se tourner : 3 s
+PAS_ANCIEN = 60        # le pas des parties d'avant le temps fin (6 s), pour les migrer
 
 
 def duree(plan):
@@ -27,7 +29,7 @@ def installer(monde):
     """Anciennes parties : le compte des pas dans la minute devient des dixièmes."""
     pas = monde.data.pop("pas_depuis_minute", None)
     if pas is not None and "dixiemes" not in monde.data:
-        monde.data["dixiemes"] = pas * PAS_JOUEUR
+        monde.data["dixiemes"] = pas * PAS_ANCIEN
     monde.data.setdefault("dixiemes", 0)
 
 

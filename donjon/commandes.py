@@ -13,7 +13,9 @@ AIDE = """COMMANDES LOCALES — sans appel API
   manger <nourriture>                   une part de ce qui est à toi ou à personne (5 min)
   écouter                               tendre l'oreille (3 min), mieux collé à une porte
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
-  pas nord / pas sud / pas est / pas ouest  déplacer d'une case (sans IA)
+  pas nord / pas sud / pas est / pas ouest  te tourner vers la direction puis avancer d'une case (1,5 s)
+  chasse <direction>                    pas chassé sans te tourner (3 s de côté ou en arrière)
+  tourner <direction> | demi-tour       te tourner sans avancer (0,5 s par huitième de tour)
   examiner <objet>                     voir les composants accessibles
   lire <inscription>                   tenter d'en comprendre le sens
   prendre <objet> | poser <objet>
@@ -53,7 +55,9 @@ MJ — conversation et actions
   Une nouvelle action remplace la proposition ; discuter avec le MJ la conserve.
 
 L'objectif de ta partie est indiqué par « contexte ».
-En mode cases : Ctrl+flèches pour marcher ; F6 pour piloter depuis la carte.
+En mode cases : Ctrl+flèches pour marcher (on se tourne puis on avance), Maj+flèches pour un pas
+chassé sans se tourner ; F6 pour piloter depuis la carte. Tu vois devant toi (120°) et sur les
+côtés immédiats, pas derrière.
 Manipuler exige d'être sur la case de l'objet ou juste à côté ; voir exige une ligne de vue.
 « etat <objet> » affiche les données internes avec --debug uniquement ;
 « esprit <personnage> » affiche ses croyances, sa mémoire et son intention.
@@ -117,8 +121,17 @@ def analyser(monde, texte):
         if len(correspondances) == 1:
             return proposition("prendre", correspondances[0])
         return None
+    if texte.startswith(("pas chasse ", "chasse ")):
+        return proposition("chasser", texte.split(" ", 2)[-1] if texte.startswith("pas ") else texte[7:])
     if texte.startswith("pas "):
         return proposition("marcher", texte[4:])
+    if texte.startswith(("tourner ", "se tourner ", "me tourner ")):
+        return proposition("tourner", texte.rsplit(" ", 1)[-1])
+    if texte in ("demi-tour", "faire demi-tour"):
+        from .spatial import VECTEURS
+        regard = monde.joueur.get("orientation")
+        dos = next((nom for nom, v in VECTEURS.items() if regard and v == tuple(-x for x in VECTEURS[regard])), "")
+        return proposition("tourner", dos)
     if texte in ("fabriquer echelle", "fabriquer une echelle"):
         from .artisanat import dossier
         from .monde import ErreurMonde

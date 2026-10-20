@@ -64,10 +64,17 @@ def dans_le_cone(origine, orientation, cible):
 
 
 def orientation_acteur(m, acteur="joueur"):
-    """L'orientation d'un PNJ ; le joueur voit encore tout autour de lui (étape 4 du jalon)."""
+    """L'orientation du joueur ou d'un PNJ ; sans orientation, on voit tout autour de soi."""
     if acteur == "joueur":
-        return None
+        return m.joueur.get("orientation")
     return m.objets[acteur].get("orientation")
+
+
+def regard_initial(m, salle, position):
+    """Sans orientation connue, on fait face au centre de la salle."""
+    sol = cases(m.data["salles"][salle])
+    centre = (round(sum(x for x, _ in sol) / len(sol)), round(sum(y for _, y in sol) / len(sol)))
+    return orientation_vers(tuple(position), centre) or "sud"
 
 
 def _erreur(texte):
@@ -118,9 +125,10 @@ def installer(m):
     for o in m.objets.values():
         if (o.get("type") == "personnage" and "orientation" not in o and o.get("lieu") in m.data["salles"]
                 and "plan" in m.data["salles"][o["lieu"]] and "position" in o):
-            sol = cases(m.data["salles"][o["lieu"]])
-            centre = (round(sum(x for x, _ in sol) / len(sol)), round(sum(y for _, y in sol) / len(sol)))
-            o["orientation"] = orientation_vers(tuple(o["position"]), centre) or "sud"
+            o["orientation"] = regard_initial(m, o["lieu"], o["position"])
+    j = m.joueur
+    if "orientation" not in j and "plan" in m.data["salles"].get(j["salle"], {}) and j.get("position"):
+        j["orientation"] = regard_initial(m, j["salle"], j["position"])
     verifier(m)
     memoriser(m)
 
@@ -402,6 +410,10 @@ def visible(m, id, acteur="joueur", champ=None):
     if id not in m.objets or id == acteur:
         return False
     champ = champ_visible(m, acteur) if champ is None else champ
+    o = m.objets[id]
+    if o["type"] == "surface" and o.get("lieu") == position_acteur(m, acteur)[0]:
+        # Les murs, le sol, le plafond de sa pièce : on en voit toujours une part, où qu'on regarde.
+        return any(c[0] == o["lieu"] for c in champ)
     for salle in m.data["salles"]:
         position = position_cible(m, id, salle)
         if position is not None and (salle, position[0], position[1]) in champ:
@@ -530,6 +542,35 @@ def sortie_visible(m, salle, direction, acteur="joueur"):
     finally:
         if ajoute:
             del lumiere.terrain[cible]
+
+
+def regard_vers(m, id):
+    """La direction vers laquelle le joueur doit se tourner pour voir ``id``, qu'il ne voit pas de
+    face mais verrait en se tournant ; None sinon."""
+    j = m.joueur
+    if (not m.data.get("mode_cases") or not j.get("orientation") or id not in m.objets or m.est_porte(id)
+            or visible(m, id) or not m.present_physique(id)):
+        return None
+    case = position_cible(m, id, j["salle"])
+    vers = orientation_vers(tuple(j["position"]), tuple(case)) if case is not None else None
+    if vers is None:
+        return None
+    ancien = j["orientation"]
+    j["orientation"] = vers
+    try:
+        return vers if visible(m, id) else None
+    finally:
+        j["orientation"] = ancien
+
+
+def sortie_connue(m, salle, direction):
+    """Une sortie qu'il voit, ou dont il a déjà vu ou foulé le seuil : il sait qu'elle est là,
+    même dans son dos."""
+    if sortie_visible(m, salle, direction):
+        return True
+    sortie = m.data["salles"].get(salle, {}).get("sorties", {}).get(direction)
+    pos = _case_interieure(m, salle, sortie) if sortie else None
+    return pos is not None and list(pos) in m.data.get("exploration", {}).get(salle, [])
 
 
 def champ_visible(m, acteur="joueur"):
@@ -736,9 +777,9 @@ def destination_appui(m, support, salle):
 
 def verifier(m):
     """Valide coordonnées spatiales présentes, tout en acceptant les vieilles parties."""
-    for o in m.objets.values():
+    for o in [*m.objets.values(), m.joueur]:
         if "orientation" in o and o["orientation"] not in VECTEURS:
-            raise AssertionError(f"Orientation invalide : {o['id']}")
+            raise AssertionError(f"Orientation invalide : {o.get('id', 'joueur')}")
     for salle, piece in m.data["salles"].items():
         if "plan" not in piece:
             continue

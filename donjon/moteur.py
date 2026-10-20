@@ -19,7 +19,8 @@ from .refus import inaccessible, liste, portes_avec_usage
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
-           "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "ecouter", "clarifier", "impossible"]
+           "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "tourner", "ecouter",
+           "clarifier", "impossible"]
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
 
 
@@ -59,6 +60,7 @@ class Plan:
     origine: str = "règles"
     etapes: list = field(default_factory=list)
     plans: list = field(default_factory=list)
+    regard: str = ""            # le joueur se tourne d'abord vers ce qu'il vise (spatial.orientation_vers)
     effort: bool = True        # le geste creuse et fatigue (``corps``)
 
     def resume(self, monde, afficher_avis=True):
@@ -103,7 +105,41 @@ class Moteur:
             action = action_persistante(monde, action)
         return action
 
+    def _regard(self, p):
+        """La direction vers laquelle le joueur doit se tourner pour voir ce qu'il vise (la cible ou
+        l'outil d'un geste, la première étape d'une manœuvre), s'il ne le voit pas de face mais le
+        verrait en se tournant ; None sinon."""
+        if not isinstance(p, dict):
+            return None
+        from .spatial import regard_vers
+        etapes = p.get("etapes") if isinstance(p.get("etapes"), list) else []
+        cibles = p.get("cibles") if isinstance(p.get("cibles"), list) else []
+        vises = [p.get("cible"), p.get("outil"), *cibles,
+                 *(e.get("cible") for e in etapes[:1] if isinstance(e, dict))]
+        return next((vers for id in vises if isinstance(id, str) for vers in [regard_vers(self.monde, id)] if vers),
+                    None)
+
     def preparer(self, p, origine="règles"):
+        """Comme ``_preparer`` ; si le joueur doit d'abord se tourner vers ce qu'il vise, le geste est
+        jugé tourné vers lui, et la rotation s'ajoute à sa durée."""
+        vers = self._regard(p)
+        if vers is None:
+            return self._preparer(p, origine)
+        from .spatial import QUART, quarts
+        from .temps import duree
+        j = self.monde.joueur
+        ancien = j["orientation"]
+        j["orientation"] = vers
+        try:
+            plan = self._preparer(p, origine)
+        finally:
+            j["orientation"] = ancien
+        plan.regard = vers
+        if not plan.etapes:
+            plan.dixiemes = duree(plan) + QUART * quarts(ancien, vers)
+        return plan
+
+    def _preparer(self, p, origine="règles"):
         from .operations import preparer as preparer_operations
         if isinstance(p, dict) and p.get("action") == "improviser":
             from .improvisation import preparer
@@ -146,7 +182,20 @@ class Moteur:
             return preparer_usage(self.monde, p, origine)
         m = self.monde
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
-        if action == "marcher" or (action == "aller" and m.data.get("mode_cases")):
+        if action == "tourner":
+            from .spatial import QUART, VECTEURS, quarts
+            if not m.data.get("mode_cases"):
+                raise ErreurMonde("Lance cette partie avec --cases pour te tourner vers une direction.",
+                                  "partie sans cases : pas d'orientation.")
+            if cible not in VECTEURS or outil or p["methode"] != "simple" or p["difficulte"]:
+                raise ErreurMonde("Tourne-toi vers une direction : nord, sud, est, ouest, nord-est…",
+                                  f"tourner : cible parmi {', '.join(VECTEURS)} (reçu « {cible} »), outil vide, "
+                                  "methode simple, difficulte 0.")
+            plan.titre = "Te tourner vers " + ("l'" if cible[0] in "eo" else "le ") + cible + "."
+            plan.minutes, plan.dixiemes = 0, QUART * quarts(m.joueur.get("orientation"), cible)
+            plan.effets = [("orienter", "", cible)]
+            return plan
+        if action in ("marcher", "chasser") or (action == "aller" and m.data.get("mode_cases")):
             from .spatial import preparer_pas
             if not m.data.get("mode_cases"):
                 sorties = ", ".join(m.data["salles"][m.joueur["salle"]]["sorties"]) or "aucune"
@@ -155,9 +204,20 @@ class Moteur:
             if outil or p["methode"] != "simple" or p["difficulte"]:
                 raise ErreurMonde("Un pas se fait sans outil ni jet.", "un pas : outil vide, methode simple, difficulte 0.")
             destination = preparer_pas(m, cible)
-            plan.titre = "Avancer d'un pas vers " + cible + "."
-            from .temps import PAS_JOUEUR
-            plan.minutes, plan.dixiemes = 0, PAS_JOUEUR
+            from .spatial import QUART, VECTEURS, quarts
+            from .temps import PAS_CHASSE, PAS_JOUEUR
+            regard = m.joueur.get("orientation")
+            vers = cible if cible in VECTEURS else None
+            if action == "chasser":
+                # Un pas chassé garde le regard : de côté ou en arrière, il prend le double.
+                plan.titre = "Faire un pas chassé vers " + cible + "."
+                duree = PAS_JOUEUR if vers is None or vers == regard else PAS_CHASSE
+            else:
+                plan.titre = "Avancer d'un pas vers " + cible + "."
+                duree = QUART * quarts(regard, vers) + PAS_JOUEUR
+                if vers:
+                    destination["orientation"] = vers
+            plan.minutes, plan.dixiemes = 0, duree
             plan.effets = [("marcher", "", destination)]
             return plan
         if action == "observer":
@@ -467,6 +527,9 @@ class Moteur:
             return plan.information
         travail = self.monde.copier()
         lignes = []
+        if plan.regard:
+            travail.joueur["orientation"] = plan.regard
+            lignes.append("Tu te tournes vers " + ("l'" if plan.regard[0] in "eo" else "le ") + plan.regard + ".")
         reussite, jet = True, None
         if plan.stat:
             from .corps import malus
@@ -550,6 +613,9 @@ class Moteur:
     def _executer_operations(self, sequence):
         from .operations import compiler
         travail, lignes, trace, precedent = self.monde.copier(), [], [], None
+        if sequence.regard:
+            travail.joueur["orientation"] = sequence.regard
+            lignes.append("Tu te tournes vers " + ("l'" if sequence.regard[0] in "eo" else "le ") + sequence.regard + ".")
         reussite, dernier_jet, dernier_dd = True, None, 0
         for numero, e in enumerate(sequence.etapes, 1):
             # Revalider sur l'état issu des étapes précédentes, jamais sur les effets du LLM.
@@ -602,9 +668,18 @@ class Moteur:
             lignes.append("Tu manges une part " + complement_de(o) + "."
                           + (" Il n'en reste plus." if o["portions"] == 0 else ""))
             return
+        if op == "orienter":
+            m.joueur["orientation"] = valeur
+            lignes.append("Tu te tournes vers " + ("l'" if valeur[0] in "eo" else "le ") + valeur + ".")
+            return
         if op == "marcher":
             ancienne = m.joueur["salle"]
             m.joueur["salle"], m.joueur["position"] = valeur["salle"], list(valeur["position"])
+            if valeur.get("orientation"):
+                m.joueur["orientation"] = valeur["orientation"]
+            # Ses pas s'entendent : qui les entend de près sans le voir se tourne vers lui.
+            from .pnj import alerter
+            alerter(m, "joueur", 0, None)
             if valeur["salle"] not in m.data["visitees"]:
                 m.data["visitees"].append(valeur["salle"])
             lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + "."

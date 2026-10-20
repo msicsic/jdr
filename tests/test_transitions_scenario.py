@@ -20,6 +20,7 @@ class TransactionsNarrativesTests(unittest.TestCase):
     def test_transition_deplace_objets_fixe_et_pose_sans_garder_leur_ancrage(self):
         m = nouveau_monde()
         installer_cases(m)
+        m.joueur["orientation"] = "ouest"  # Placement d'auteur : il regarde le mur ouest.
         ajouts = [
             {"type": "objet", "ancrage": "antichambre_murs", "nom": "grelot de fer",
              "genre": "m", "texte": "Un petit grelot est fixé à la pierre.",

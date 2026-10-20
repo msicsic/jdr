@@ -106,8 +106,9 @@ class FeuTests(unittest.TestCase):
 
     def test_gorm_va_chercher_son_bois_et_recharge_le_feu_qui_baisse(self):
         m = self.gorm(40)
-        # Le joueur, dans la conduite, voit Gorm revenir avec son bois.
+        # Le joueur, dans la conduite, regarde le brasero : il voit Gorm revenir avec son bois.
         m.joueur.update(salle="echoppe", position=[4, 5])
+        regarder(m, "joueur", "brasero")
         m, texte = attendre(recharger(m), 5)
         self.assertEqual(m.objets["bois"]["lieu"], "marchand")
         self.assertEqual(m.objets["bois"]["charges"], 1)

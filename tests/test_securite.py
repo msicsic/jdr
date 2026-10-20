@@ -93,7 +93,7 @@ class AbriTests(unittest.TestCase):
         m = dans_le_noir(calme(relais(), "marchand", "brune", "ilse", "aubin"), "ilse", 75.0)
         # Le joueur, au refuge éclairé par le fanal, la voit arriver ; sa lanterne éteinte ne
         # jette pas de lueur dans l'échoppe.
-        m.joueur.update(salle="antichambre", position=[3, 4])
+        m.joueur.update(salle="antichambre", position=[3, 4], orientation="ouest")
         m.objets["lanterne"]["allume"] = False
         m, texte = attendre(recharger(m), 3)
         self.assertEqual(m.objets["ilse"]["lieu"], "antichambre")
