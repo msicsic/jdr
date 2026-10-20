@@ -679,6 +679,17 @@ def preparer_pas(m, direction):
     if type(dx) is not int or type(dy) is not int or max(abs(dx), abs(dy)) != 1:
         _erreur("Le déplacement doit avancer d'une case.")
     pas = pas_vers(m, m.joueur["salle"], tuple(m.joueur["position"]), (dx, dy))
+    # Aucun pas ne s'achève sur la case d'un autre : on ne s'arrête pas sur quelqu'un.
+    from .pnj import occupants
+    occupant = occupants(m, "joueur").get((pas["salle"], tuple(pas["position"])))
+    if occupant is not None:
+        from .francais import designer
+        from .monde import ErreurMonde
+        if m.visible(occupant):
+            raise ErreurMonde(designer(m.objets[occupant], debut=True) + " se tient là, sur ton passage.",
+                              f"la case visée est occupée par {occupant} ; un pas mène sur une case libre.")
+        raise ErreurMonde("Quelqu'un se tient là, sur ton passage.",
+                          "la case visée est occupée par un personnage ; un pas mène sur une case libre.")
     return {"salle": pas["salle"], "position": pas["position"]}
 
 
@@ -721,17 +732,19 @@ def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
     return {"salle": vers, "position": [pos[0], pos[1]], "porte": porte["id"] if fermee else None}
 
 
-def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True):
+def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True,
+           solides=True):
     """Le plus court chemin en cases, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
     [(salle, case, porte fermée à franchir ou None, sens du pas)], vide si l'on y est déjà, None
     sans passage.
-    Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées."""
+    Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées.
+    Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
     from .monde import ErreurMonde
     libres = {}
 
     def case_libre(s, c):
         if (s, c) not in libres:
-            libres[s, c] = _case_libre(m, s, c)
+            libres[s, c] = _case_libre(m, s, c) if solides else c in cases(m.data["salles"][s])
         return libres[s, c]
     depart = (salle, tuple(position))
     if arrivee(*depart):

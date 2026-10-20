@@ -83,6 +83,55 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
 - **Le rendu** : la carte, le récit de Luna et le contrôle narratif doivent suivre le cône du
   joueur, sans fuite de ce qu'il ne voit pas.
 
+## Correctif : la marche (branche `temps-fin-marche`)
+
+Une relecture du jalon a montré quatre défauts de la marche des PNJ ; chacun est corrigé par une
+règle commune, vérifiée sur le cas réel et un autre cas de même nature (`tests/test_marche.py`,
+état du monde après rechargement).
+
+- **Aucun geste ne s'achève sur une case occupée** (joueur ou personnage). Le trajet traverse
+  les autres ; le pas qui mène sur la case de quelqu'un se poursuit, dans le même geste et pour
+  la durée des deux pas, jusqu'à la case libre suivante. Si une porte fermée suit cette case, il
+  contourne, ou attend qu'on lui laisse le passage. Arriver dans une salle, c'est donc s'arrêter
+  sur une case libre. Le joueur ne marche pas non plus sur un PNJ (refus avec `attendu`).
+  `Monde.verifier` refuse deux personnages sur une case ; une ancienne partie superposée
+  s'écarte vers la case libre la plus proche au chargement. Cas réels : Gorm alerté vers
+  l'antichambre dont le joueur, puis Aubin, occupe le seuil.
+- **Tout contact passe par la marche.** Ce qu'un geste touche se déduit du geste
+  (`_a_toucher`) : sa cible, objet ou personne à qui l'on parle, sauf se chauffer qui agit à
+  distance ; un outil fixe s'emploie sur place, un outil mobile en main. Le PNJ marche jusqu'à
+  avoir tout à portée ; la vérification de portée ne le déplace plus (`_approcher` d'un bond
+  est retiré). Cas réels : allumer sa lanterne au brasero, éteindre le brasero (absent de
+  l'ancienne liste de contact).
+- **Le trajet en cases est le seul juge du passage** quand le PNJ a une position. Sans trajet,
+  c'est un geste manqué : il apprend les obstacles qui coupent le chemin (croyance de lieu,
+  source « essai ») ; le chemin par salles, qui sert à planifier, évite tout passage dont il
+  croit un seuil barré ; le réflexe cesse, la stratégie tombe, un autre but patiente puis
+  renonce (`PATIENCE`). Cas réels : obstacle sur le seuil, de chaque côté du passage.
+- **On marche vers ce qu'on croit, puis on constate sur place.** La destination est la case
+  crue (là où il l'a vu ; une porte ou un objet fixe, à sa place connue du lieu) ; il n'est
+  jamais guidé par la position réelle d'une chose qu'il ne perçoit pas. S'il la croit dans la
+  salle sans savoir où, il la parcourt des yeux. Il ne se tourne vers la cible que s'il la
+  touche ou la voit. Cas réels : le marteau déplacé hors de sa vue ; Ilse partie ailleurs.
+
+Banc (4 graines × 8 h) : aucune violation (le contrôle des cases tourne à chaque pas du banc),
+aucune usurpation. Moyennes avant → après : gestes 121 → 129, événements distincts 20 → 22,
+échanges 6,5 → 8, vols vus 1,5 → 5,3, confidences 1 → 3,5, minutes urgentes oisives 400 → 420
+(graine 7 −60, graine 2024 +110). Marcher jusqu'à la réserve ou jusqu'à quelqu'un prend du
+temps : les gestes illicites ont plus de témoins, qui en parlent. Les minutes oisives suivent
+des jets différents (graine 2024 : la demande d'Ilse à Gorm est refusée au jet à la minute 250
+au lieu d'être promise, elle n'est servie qu'à 371). Même temps de calcul par nuit.
+
+Limites :
+- le trajet lui-même contourne les obstacles réels, même ceux que le PNJ n'a pas vus ;
+- le chemin par salles ne connaît d'un obstacle que le seuil qu'il barre : un obstacle qui
+  coupe une salle en deux donne un geste manqué à chaque minute, jusqu'au renoncement ;
+- personne ne s'écarte pour laisser passer : un PNJ qui doit s'arrêter sur la case d'un autre
+  pour ouvrir une porte attend ;
+- les autres façons de placer le joueur (escalade, appui) ne vérifient pas encore la case.
+- Mesure : le banc ne recueille pas la chronique de la première minute de chaque pas de cinq
+  minutes (`c["minute"] > vue`) ; constaté, non corrigé ici.
+
 ## Hors périmètre
 
 Assommer, tuer, ligoter, l'affrontement (étape « corps et force » de `docs/plan-social.md`) ;

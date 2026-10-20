@@ -102,7 +102,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `temps-fin-marche` (relecture du jalon temps fin) : aucun geste ne s'achève sur une
+  case occupée (le pas qui mène sur quelqu'un se poursuit jusqu'à la case libre suivante ; le
+  joueur ne marche pas sur un PNJ ; contrôlé par `Monde.verifier`, anciennes parties écartées au
+  chargement) ; tout ce qu'un geste touche (cible, outil fixe) se rejoint par la marche, sans
+  bond (`_a_toucher`, `_approcher`) ; le trajet en cases est le seul juge du passage : sans
+  chemin, geste manqué, obstacle appris, et le chemin par salles évite un seuil qu'on croit
+  barré ; on marche vers la case crue, puis on constate. Détail dans `docs/plan-temps.md`.
+- La suite de tests passe : 675 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
