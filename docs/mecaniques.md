@@ -372,7 +372,11 @@ feutré (1) < pas, geste ordinaire (3) < voix (4) < geste bruyant (7 : crocheter
 trois une porte fermée. Chacun entend ce qui lui parvient au niveau 1 ; le joueur, en écoutant
 (`ecouter`, trois minutes), un cran plus bas, et un de mieux contre la porte par où le bruit
 arrive (`donjon/ecoute.py`). Une parole n'est rendue en clair qu'au niveau 1 et si elle ne nomme
-que ce qu'il connaît. Un PNJ interprète le bruit selon ce qu'il croit : celui de qui il croit là
+que ce qu'il connaît. Un PNJ saisit les mots d'une parole à la même condition (niveau 1, un cran
+de plus au repos) : il la retient, qu'elle lui soit adressée ou non, et ce qu'elle transmet le
+touche comme son destinataire (une affirmation se juge comme une confidence, une nouvelle comme
+une rumeur, un aveu se croit) ; plus loin ou derrière une porte, il n'entend qu'une voix. Un
+chuchotement est feutré (1) et ses mots ne vont qu'à son destinataire. Un PNJ interprète le bruit selon ce qu'il croit : celui de qui il croit là
 ne le fait pas se retourner ; un bruit inconnu ou inhabituel, si, de près ; de plus loin, il s'en
 inquiète, et son devoir de garde ou, pour un fracas ou un appel, son courage l'envoie voir. Le
 joueur lit qui se retourne vers lui.
@@ -572,13 +576,55 @@ gestes qu'il perçoit ; les buts et justifications de Luna restent dans la chron
 #### Paroles du joueur aux PNJ
 
 Quand le joueur fait parler Corvus à un personnage présent, Luna choisit le mode
-`parole_joueur` (`donjon/paroles.py`). Le moteur lui fournit la bande d'expression de Corvus :
+`parole_joueur` (`donjon/paroles.py`). **À qui** : le moteur le fixe, pas Luna, d'après la
+saisie (`paroles.analyser`, les formes reconnues sont des données en un seul endroit) :
+
+- celui que le joueur nomme : en tête (« Brune, … », « à Brune : … »), après un verbe de parole
+  (« je dis à Gorm que… », « je demande à la meunière… »), ou en tête des mots entre guillemets ;
+  « je lui dis » désigne le dernier à qui Corvus a parlé, s'il est encore là ;
+- sinon celui qui est en face de lui : parmi les présents qu'il perçoit et qui saisiraient ses
+  mots, celui qu'il a dans son regard, le plus proche ; deux à égalité (ou, sans cases, deux
+  présents), le joueur précise : « Aubin et Ilse sont aussi près de toi l'un que l'autre :
+  précise à qui tu parles… » ;
+- « à tous : … », « à tous, … », « je dis à tous… », « je leur dis… » : tous les présents qui
+  saisiraient ses mots ; chacun décide de ce qui lui est demandé comme d'une demande
+  individuelle (pas de décision collective) ;
+- « je chuchote à Brune… », « je murmure… » : un seul destinataire, nommé ou en face, au contact
+  (une case voisine ; sans cases, quiconque est là). Jamais à un groupe. Les mots ne vont qu'à
+  lui ; le chuchotement retentit comme un bruit feutré (1).
+- une parole sans conteste (guillemets, à tous, deux-points) que nul présent perçu ne saisirait
+  est dite à la cantonade : aucun destinataire, personne ne répond, qui l'entend la retient.
+
+Une saisie qui commence par des guillemets vaut « je dis … » ; entre guillemets, après un
+deux-points ou une interpellation, les mots du joueur sont prononcés tels quels. Une saisie
+entre guillemets, à tous ou chuchotée est une parole même si ses mots annoncent un geste : le
+moteur refuse une action à sa place (« « Gorm, je te donne la cloche » » reste une parole ; le
+don passe par `donner`). Un nom absent, trop loin pour entendre, un chuchotement à distance ou à
+plusieurs sont refusés avec un `attendu`, et le message est rendu au joueur sans relance du MJ.
+Luna reçoit ce que le moteur a fixé (`parole_prevue` : personnage, destinataires, manière, mots
+imposés) et doit le reprendre ; un autre personnage est refusé.
+
+Le moteur lui fournit la bande d'expression de Corvus :
 précision selon l'INT (très pauvre ≤ 7, pauvre ≤ 9, courante ≤ 12, précise ≤ 15, riche),
 aisance selon le CHA (même découpage, de très maladroite à brillante). Luna écrit la réplique
 dans cette bande et type son contenu, trois éléments au plus : `affirmation` (sujet, attribut
 `lieu`, `verrouillee` ou `fiable`, valeur), `demande` (un objet que le personnage porte),
-`passage` (qu'il s'écarte, se pousse, laisse passer : voir ci-dessous), `propos`. Des mots du joueur entre guillemets sont prononcés tels quels. La réplique est
-enregistrée avant l'affichage, qui commence par « Tu dis : « … » ».
+`passage` (qu'il s'écarte, se pousse, laisse passer : voir ci-dessous), `aveu` (un geste
+illicite que Corvus avoue avoir fait sur un objet qui n'est pas à lui), `propos`. La réplique est
+enregistrée avant l'affichage, qui commence par « Tu dis à Gorm : « … » » (« Tu dis à tous »,
+« Tu chuchotes à Brune »).
+
+**Qui l'entend.** Une parole à voix haute retentit par l'ouïe commune avec ses mots : tous ceux
+qui les saisissent la retiennent (souvenir `parole` : qui parlait, à qui, ses mots), destinataires
+ou non ; ce qu'elle transmet touche un témoin par la même règle que le destinataire (une
+affirmation se juge comme une confidence, avec son jet ; un aveu se croit : il ne tient plus Corvus
+pour fiable et le sait de première main, de quoi le confier au propriétaire comme une rumeur).
+Une demande ou une prière adressée à un autre n'engage pas le témoin. Les PNJ entendent les
+paroles des autres PNJ par la même règle : une confidence surprise devient une rumeur, une
+affirmation entendue se juge comme si on la leur avait dite. Seuls les destinataires répondent :
+le contrôle narratif refuse une parole d'un témoin (`conversation_validee.destinataires`) ;
+Luna voit ce que chaque présent a entendu récemment (`a_entendu`), sauf ce qui nomme ce que le
+joueur ne connaît pas.
 
 L'effet ne dépend pas des mots de Luna. Corvus ne peut parler que de ce qu'il connaît :
 entité perçue, examinée, vue auparavant ou nommée devant lui, lieu visité. Il transmet au

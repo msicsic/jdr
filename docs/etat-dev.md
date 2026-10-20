@@ -237,7 +237,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   corrige la croyance. Bancs : aucune usurpation ; vols vus au Relais 1 → 2,9 ; minutes sans
   recours égales ou moindres (auberge 584 → 584, mine 680 → 604). Limite : les réflexes déclarés
   gardent l'ancienne portée des sons.
-- La suite de tests passe : 808 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `parole` (`docs/plan-ouie.md`, section Paroles), non fusionnée : le moteur fixe à qui
+  parle le joueur (`paroles.analyser`, `paroles.destinataires`), celui qu'il nomme, sinon celui
+  qui est en face de lui ; à égalité, le joueur précise. « à tous » vise tous les présents qui
+  l'entendent, chacun décidant pour lui ; des guillemets en tête valent « je dis » ; chuchoter ou
+  murmurer, à un seul, au contact. Toute parole à voix haute, du joueur ou d'un PNJ, est retenue
+  de tous ceux qui en saisissent les mots (`ouie.mots_saisis`, `social.retenir_parole`) : une
+  affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu (nouveau
+  contenu typé) se croit ; seuls les destinataires répondent (contrôle narratif déterministe).
+  Sans personne en vue, une parole sans conteste est dite à la cantonade ; le MJ ne peut plus la
+  raconter lui-même ni la changer en geste. Vérifié avec Luna sur des copies de la sauvegarde
+  réelle (cas réel, aveu, guillemets, chuchotement, à tous). Correctif révélé : une parole qui confirme ce qu'on vient de voir ne le change plus en ouï-dire.
+  Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
+  confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
+  minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
+- La suite de tests passe : 823 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
