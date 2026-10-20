@@ -152,7 +152,9 @@ On ne pouvait ni parler à un groupe ni chuchoter.
 celui que le joueur nomme ; sinon celui qui est en face de lui (dans son regard, le plus proche
 à portée de voix) ; à égalité, le joueur précise. « à tous » s'adresse à tous les présents qui
 saisiraient ses mots, chacun décidant comme d'une demande individuelle. Une saisie qui commence
-par des guillemets vaut « je dis … ». Chuchoter ou murmurer : un seul destinataire, au contact,
+par des guillemets vaut « je dis … », ou, quand un ou plusieurs interlocuteurs précédents
+saisissent encore ses mots, « je lui/leur dis … » : elle poursuit l'échange avec eux (de même
+« je lui dis », un seul, et « je leur dis », plusieurs). Chuchoter ou murmurer : un seul destinataire, au contact,
 jamais un groupe ; le chuchotement est feutré (1) et ses mots ne vont qu'à lui.
 
 **Qui l'entend.** La parole retentit avec ses mots (`ouie.retentir`, `parole` : destinataires et

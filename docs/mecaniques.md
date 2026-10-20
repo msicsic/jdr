@@ -590,12 +590,16 @@ saisie (`paroles.analyser`, les formes reconnues sont des données en un seul en
 
 - celui que le joueur nomme : en tête (« Brune, … », « à Brune : … »), après un verbe de parole
   (« je dis à Gorm que… », « je demande à la meunière… »), ou en tête des mots entre guillemets ;
-  « je lui dis » désigne le dernier à qui Corvus a parlé, s'il est encore là ;
+- la suite de l'échange : des mots entre guillemets sans interpellation, « je lui dis… », « je
+  leur dis… » s'adressent à ceux à qui Corvus a parlé en dernier, s'ils saisissent encore ses
+  mots (« lui » : un seul ; « leur » : plusieurs ; les guillemets : un ou plusieurs) ; sinon la
+  règle suivante ;
 - sinon celui qui est en face de lui : parmi les présents qu'il perçoit et qui saisiraient ses
   mots, celui qu'il a dans son regard, le plus proche ; deux à égalité (ou, sans cases, deux
   présents), le joueur précise : « Aubin et Ilse sont aussi près de toi l'un que l'autre :
   précise à qui tu parles… » ;
-- « à tous : … », « à tous, … », « je dis à tous… », « je leur dis… » : tous les présents qui
+- « à tous : … », « à tous, … », « je dis à tous… », et « je leur dis… » sans échange à
+  plusieurs en cours : tous les présents qui
   saisiraient ses mots ; chacun décide de ce qui lui est demandé comme d'une demande
   individuelle (pas de décision collective) ;
 - « je chuchote à Brune… », « je murmure… » : un seul destinataire, nommé ou en face, au contact
@@ -604,7 +608,8 @@ saisie (`paroles.analyser`, les formes reconnues sont des données en un seul en
 - une parole sans conteste (guillemets, à tous, deux-points) que nul présent perçu ne saisirait
   est dite à la cantonade : aucun destinataire, personne ne répond, qui l'entend la retient.
 
-Une saisie qui commence par des guillemets vaut « je dis … » ; entre guillemets, après un
+Une saisie qui commence par des guillemets vaut « je dis … », ou « je lui/leur dis … » quand un
+échange est en cours ; entre guillemets, après un
 deux-points ou une interpellation, les mots du joueur sont prononcés tels quels. Une saisie
 entre guillemets, à tous ou chuchotée est une parole même si ses mots annoncent un geste : le
 moteur refuse une action à sa place (« « Gorm, je te donne la cloche » » reste une parole ; le
