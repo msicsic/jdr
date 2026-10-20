@@ -300,7 +300,9 @@ def controler(texte, rapport, faits):
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
         lignes_validees.append(ligne)
-        locuteur, citation = ligne["locuteur"], ligne["citation"]
+        # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle
+        # ne la rendent pas fausse (« D'accord » cité « « D'accord » »).
+        locuteur, citation = ligne["locuteur"], ligne["citation"].strip().strip("«»\"“”  ")
         if verdict == "mecanique" and not ligne["sources"]:
             obstacles.append({"segment": indice, "texte": passage,
                               "motif": "Cette affirmation mécanique ne cite aucun fait du moteur."})
