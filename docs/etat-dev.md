@@ -102,7 +102,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas changé ; `--graines` joue plusieurs nuits en parallèle. Résultats identiques (empreinte de
   la chronique, des mesures et de l'état final sur 4 graines). Une nuit : 9,2 s → 6,4 s en
   moyenne ; 4 nuits : 57 s → 11 s ; la suite de tests : 236 s → 135 s.
-- La suite de tests passe : 645 tests, sans clé ni connexion.
+- Branche `perception-rapide` : ce que perçoit un acteur, les places des objets et les champs
+  sont gardés tant que l'empreinte complète de l'état ne change pas (`spatial.etat_vue` : chaque
+  clé que lit la perception) ; une consultation qui ne révise que des esprits la calcule une fois
+  (`etat_fige`). Lignes de vue, vue autour d'une case et champs ne dépendent que des salles et de
+  la signature d'une salle (seules les sources qui peuvent l'éclairer) : gardés d'une étape à
+  l'autre, clé le texte des salles. `spatial.VERIFICATION` recompare les lectures mémorisées à un
+  calcul de zéro. Empreintes des 4 nuits identiques, aussi en vérification complète. Perception :
+  2,7 s → 1,0 s par nuit (30 % → 13 %), au profil 33 % → 11 % ; une nuit 9,1 s → 7,4 s ; 4 nuits
+  12,2 s → 10,1 s.
+- La suite de tests passe : 668 tests, sans clé ni connexion.
 
 ## Décisions en attente
 
