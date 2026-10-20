@@ -114,7 +114,10 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
 invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
-contenu. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
+contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
+moteur : les raconter, dans la manière que demande resultat_resolu.intention (style, rythme,
+posture, mots choisis), est mecanique, source resultat_resolu ; leurs suites sont celles de
+resultat_resolu.faits, sans autre effet. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
 commencé un geste du joueur (frapper, saisir, attendre, s'approcher) est contradictoire : seule
 l'explication de ce qui l'en empêche est permise. Hors parole et engagement, locuteur et citation
 sont vides ; hors ambiance et engagement, entites est vide.

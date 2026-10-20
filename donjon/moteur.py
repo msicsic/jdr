@@ -98,6 +98,16 @@ class Plan:
         return "\n".join(lignes)
 
 
+def gestes_accomplis(plan, monde):
+    """Les gestes que le joueur vient d'entreprendre, en mots du moteur : le titre du plan, ou ceux
+    des étapes exécutées d'une manœuvre (elle s'arrête au premier échec). Leurs suites sont dans
+    le résultat ; le récit peut raconter ces gestes sans autre fait."""
+    if not plan.etapes:
+        return [plan.titre] if plan.titre else []
+    faites = len(monde.data["journal"][-1].get("etapes", [])) if monde.data["journal"] else 0
+    return [p.titre for p in plan.plans[:faites] if p.titre]
+
+
 class Moteur:
     def __init__(self, monde):
         self.monde = monde
@@ -662,14 +672,18 @@ class Moteur:
             lignes.extend(designer(travail.objets[id], debut=True) + " t'a vu faire."
                           for id in geste["se_sait_vu"])
         # Ce qui parvient à ses oreilles pendant son geste : le fort de lui-même, le bas en écoutant.
-        from .ecoute import ECOUTE, ENTENDU, entendus, rendre, retenir
+        from .ecoute import ECOUTE, ENTENDU, entendus, portes_contre, rendre, retenir
         ecoute = plan.proposition.get("action") == "ecouter"
         parvenus = entendus(travail, debut, ECOUTE if ecoute else ENTENDU)
         retenir(travail, parvenus)
         entendu = rendre(travail, parvenus)
+        if ecoute:
+            # Le résultat dit la condition que l'ouïe a prise en compte : l'oreille collée à une porte.
+            contre = portes_contre(travail)
+            lignes.append("Tu tends l'oreille" + (" contre " + " et ".join(designer(travail.objets[p]) for p in contre)
+                                                  if contre else "")
+                          + (" : rien de particulier ne te parvient." if not entendu else "."))
         lignes.extend(entendu)
-        if ecoute and not entendu:
-            lignes.append("Tu tends l'oreille : rien de particulier ne te parvient.")
         if any(e[0] == "emettre_son" for e in plan.effets) and not apparus:
             lignes.append("Pour l'instant, aucune réponse ne te parvient.")
         from .horloges import declencher as declencher_horloges

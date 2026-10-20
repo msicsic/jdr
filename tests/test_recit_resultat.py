@@ -69,6 +69,27 @@ class RecitResultatTests(unittest.TestCase):
         self.assertEqual(reprise.data["conversation"][-1]["reponse"], recit)
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], recit)
 
+    def test_le_recit_recoit_les_gestes_accomplis(self):
+        """Banc Luna : « je ramasse la bobine » racontée « Tu ramasses la bobine » était jugée
+        contradictoire, le résultat ne disant que « Tu portes maintenant… » ; le geste exécuté est
+        désormais un fait du résultat. Une manœuvre arrêtée au premier échec ne donne que ses
+        étapes exécutées."""
+        _, _, _, vus = jouer(["je m'étire"], "Tu t'étires.", ETIREMENT)
+        # Le geste dans les mots du moteur ; la manière demandée reste dans l'intention.
+        self.assertEqual((vus[0]["gestes"], vus[0]["intention"]), (["Geste d'effort."], "je m'étire"))
+        from donjon.moteur import Moteur, gestes_accomplis
+        m = nouveau_monde()
+        etape = lambda op, cible, **k: {"operation": op, "cible": cible, "destination": "", "outil": "",
+                                        "methode": "simple", "difficulte": 0, **k}
+        prises = [o for o, x in m.objets.items() if x.get("mobile") and x["lieu"] == m.joueur["salle"]
+                  and m.accessible(o)]
+        moteur = Moteur(m)
+        plan = moteur.preparer({"action": "composer", "justification": "", "etapes": [
+            etape("deplacer", prises[0], destination="joueur")]})
+        moteur.executer(plan)
+        self.assertEqual(gestes_accomplis(plan, m), [plan.plans[0].titre])
+        self.assertTrue(plan.plans[0].titre.startswith("Prendre "))
+
     def test_nombre_invente_rend_le_texte_du_moteur(self):
         recit = "Tu t'étires et perds 5 PV dans un faux mouvement."
         _, sortie, reprise, _ = jouer(["je m'étire"], recit, ETIREMENT)

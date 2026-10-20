@@ -673,8 +673,8 @@ class MJOpenAI:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie")}
                 schema["properties"]["faits"]["items"]["enum"] = list(faits)
                 instructions = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
-Le fait resultat_resolu contient exactement les événements survenus et la demande du joueur
-(intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
+Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
+événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
 La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
 comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
 les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
