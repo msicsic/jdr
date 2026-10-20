@@ -25,7 +25,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   parler <personnage>
   offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
-  remettre <objet> à <personnage>       remet l'objet contre le paiement convenu
+  donner <objet> à <personnage>         un objet porté ; avec un accord, contre le paiement convenu
   ouvrir <objet> avec <clé> | fermer <objet>
   crocheter <serrure> avec <outil>
   retirer <fixation> avec <outil>
@@ -100,6 +100,54 @@ def est_question(texte):
     return "combien" in mots[1:] or mots[-1] in {"ou", "quand", "pourquoi", "comment"}
 
 
+# Donner, comme prendre : l'infinitif de la commande, l'impératif et la première personne.
+DONNER = ("je donne ", "je remets ", "je remet ", "donne ", "remets ", "donner ", "remettre ")
+ARTICLES = ("le ", "la ", "les ", "l'", "un ", "une ", "mon ", "ma ", "mes ")
+
+
+def _nomme(monde, texte, personnage):
+    """L'objet accessible, ou le personnage, que ``texte`` nomme exactement ; sinon None."""
+    for article in ARTICLES:
+        if texte.startswith(article):
+            texte = texte[len(article):]
+            break
+    if not texte:
+        return None
+    if personnage:
+        from .dialogues import interlocuteurs
+        candidats = set(interlocuteurs(monde)) | {i for i, o in monde.objets.items()
+                                                   if o["type"] == "personnage" and monde.accessible(i)}
+    else:
+        candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.accessible(i)}
+    trouves = [i for i in candidats
+               if texte in [normaliser(n) for n in (i, monde.objets[i]["nom"], *monde.objets[i]["aliases"])]]
+    return trouves[0] if len(trouves) == 1 else None
+
+
+def don(monde, reste):
+    """« <objet> à <personnage> », « à <personnage> <objet> » ou « <objet> » seul (« au », « aux »
+    comptent pour « à le », « à les ») : le geste de
+    donner. Chaque nom doit désigner exactement un objet et un personnage ; une phrase qui dit
+    autre chose (un complément, une seconde action, « un coup de pied ») va au MJ."""
+    mots = reste.split()
+    lectures = [(reste, "")]
+    for i, mot in enumerate(mots):
+        if mot not in ("a", "au", "aux"):
+            continue
+        if i:
+            lectures.append((" ".join(mots[:i]), " ".join(mots[i + 1:])))
+        else:
+            lectures.extend((" ".join(mots[j:]), " ".join(mots[1:j])) for j in range(2, len(mots)))
+    dons = {(objet, destinataire) for objet, destinataire in
+            ((_nomme(monde, o, False), _nomme(monde, d, True) if d else "") for o, d in lectures)
+            if objet and destinataire is not None}
+    if len(dons) != 1:
+        from .monde import ErreurMonde
+        raise ErreurMonde("Précise l'objet que tu donnes et à qui, par leur nom : donner <objet> à <personnage>.")
+    objet, destinataire = dons.pop()
+    return proposition("remettre", objet, destinataire)
+
+
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
     if est_question(texte):
@@ -165,10 +213,9 @@ def analyser(monde, texte):
     for prefixe, action in (("monter ", "franchir"), ("descendre ", "franchir"), ("desinstaller ", "desinstaller")):
         if texte.startswith(prefixe):
             return proposition(action, monde.trouver(texte[len(prefixe):]))
-    for prefixe in ("remettre ", "donner "):
+    for prefixe in DONNER:
         if texte.startswith(prefixe):
-            objet, sep, destinataire = texte[len(prefixe):].partition(" a ")
-            return proposition("remettre", monde.trouver(objet), monde.trouver(destinataire) if sep else "")
+            return don(monde, texte[len(prefixe):])
     if texte in ("contexte", "histoire", "objectif"):
         return proposition("observer", "contexte")
     if texte in ("ecouter", "j'ecoute", "tendre l'oreille", "je tends l'oreille", "ecouter a la porte",
