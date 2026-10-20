@@ -30,9 +30,22 @@ déclarés, en coûts et en buts, jamais en comportements écrits pour un person
   arguments ; l'ascendant.
 - **Éloquence**, nouvelle : l'art des mots, convaincre par le discours, présenter une demande
   comme servant l'autre. Elle s'ajoute à l'INT pour trouver le bon argument.
+- **Volonté (VOL)**, nouvelle : tenir face à la peur, à la persuasion, à la douleur, à la
+  contrainte ; ne pas céder à un besoin pressant.
+- **Perspicacité**, nouvelle : lire les autres (voir « Lire les autres ») ; s'oppose à la
+  **dissimulation** de celui qu'on observe.
 
 Présence et éloquence se séparent : un avocat froid convainc sans être suivi ; un chef
-taciturne est suivi sans convaincre ; le leader manipulateur a les deux.
+taciturne est suivi sans convaincre ; le leader manipulateur a les deux. Perspicacité et
+empathie aussi : l'une comprend l'autre, l'autre s'en soucie ; le manipulateur a beaucoup de la
+première et peu de la seconde.
+
+**Ce qui change, ce qui reste.** Les valeurs (ci-dessous) sont le caractère : elles restent
+stables. Les caractéristiques ont une valeur de base, que des états modulent, chacun réglé par
+le moteur et commun à tous : une blessure ou la faim affaiblit la FOR, la fatigue ou la fièvre
+rendent confus (INT), une contrainte prolongée **brise la volonté** (la VOL baisse, et ne
+remonte que lentement, à l'abri de ce qui l'a brisée). Le corps commun (faim, froid, fatigue)
+donne déjà des malus aux jets du joueur ; c'est le même mécanisme, étendu.
 
 ## Valeurs
 
@@ -61,6 +74,31 @@ vol, un mensonge découvert, une violence), **peur** (ce qu'il pourrait lui fair
 évoluent avec ce qu'on vit et ce qu'on voit faire, s'estompent avec le temps, et pèsent sur
 tout le reste : qui l'on croit, qui l'on aide, à qui l'on cède, de qui l'on se venge. La
 confiance perdue peut se regagner.
+
+## Lire les autres
+
+Sans cette lecture, les relations seraient invisibles : il faudrait interroger chacun sur ce
+qu'il pense de chaque autre. C'est une perception étendue aux esprits, construite comme celle
+des objets.
+
+- **Des signes observables**, produits par le moteur à partir des états cachés : la peur fait
+  s'écarter et baisser les yeux ; la rancune durcit le regard et met de la distance ; la
+  confiance et l'affection rapprochent ; celui qui suit regarde son chef avant de répondre et se
+  range à son avis ; une intention cachée se trahit (il guette la réserve, attend que la salle se
+  vide). Les signes ne sont pas des états nouveaux, seulement leur trace ; ils ne se voient que
+  si l'on voit la scène (lumière, ligne de vue).
+- **Une lecture**, perspicacité de l'observateur contre dissimulation de l'observé, qui en tire
+  une croyance de source « deviné », avec sa confiance : plus fragile que « vu », et qui peut se
+  tromper (un timide paraît hostile) ou être trompée (un menteur habile ne trahit rien).
+- **Pour le joueur** : le moteur donne à Luna les signes perçus, jamais la vérité ; Luna les
+  raconte comme des observations (« Ilse évite le regard de Brune et reste près de Gorm »). Selon
+  la perspicacité du joueur, le moteur ajoute une impression présentée comme telle (« elle semble
+  la craindre »). Un signe est un fait observé ; son interprétation n'est jamais affirmée vraie.
+- **Pour les PNJ** : choisir qui croire et qui suivre, voir venir une trahison, flairer un
+  mensonge, viser juste en persuadant (on sait ce que l'autre veut). Le leader recrute bien parce
+  qu'il a compris chacun.
+- **Mesure au banc** : le récit compare ce que chacun devine des autres à ce qui est vrai ;
+  justesse selon la perspicacité, erreurs qui en naissent.
 
 ## Influencer par la parole
 
@@ -99,6 +137,15 @@ confiance perdue peut se regagner.
   monde et laisse un corps.
 - **La torture** reste abstraite : une contrainte par la douleur, avec son coût moral, ses
   témoins et ses suites ; la narration reste sobre, sans détail gratuit.
+
+## Le joueur
+
+Il reste libre de ses actions : le moteur ne décide jamais pour lui, sinon il ne serait que
+spectateur. Il est soumis aux mêmes perceptions et aux mêmes contraintes que les autres : on
+peut le priver, l'enfermer, le menacer, le frapper ; une porte verrouillée l'arrête ; ses
+caractéristiques sont modulées par les mêmes états. Les PNJ le jugent, le recrutent ou le
+craignent avec les mêmes règles qu'entre eux. Sa volonté ne choisit pas à sa place : elle pèse
+sur ce que la contrainte lui coûte (malus, jets), pas sur ce qu'il décide.
 
 ## Statut et groupes
 
@@ -139,19 +186,25 @@ confiance perdue peut se regagner.
 
 Chaque étape est un jalon mesuré au banc sans joueur et à son récit.
 
-1. **Caractères et valeurs** : éloquence ; valeurs en poids dans les coûts et les buts ; les
-   limites deviennent des valeurs ; l'empathie fait des besoins d'autrui des buts.
+1. **Caractères et valeurs** : éloquence, volonté, perspicacité ; caractéristiques modulées par
+   les états ; valeurs en poids dans les coûts et les buts ; les limites deviennent des valeurs ;
+   l'empathie fait des besoins d'autrui des buts.
 2. **La crue, niveau d'eau** (`docs/plan-crue.md`) : la menace commune et le froid.
-3. **Relations graduées et influence par la parole** : propositions, avis, disputes.
+3. **Relations graduées, lire les autres, influence par la parole** : relations et émotions,
+   leurs signes et leur lecture, propositions, avis, disputes. Des relations qu'on ne perçoit
+   pas ne s'éprouvent ni au banc ni en jeu.
 4. **Le corps des PNJ et la force** : PV, blessures, états (retenu, enfermé, mort), affrontement.
 5. **Contrainte et menace** : priver, enfermer, menacer, frapper ; la peur ; les suites.
 6. **Statut, suivre, groupes** : sur une crue à six ou huit personnages.
 
+## Décisions
+
+- Une caractéristique de volonté : oui.
+- Les valeurs restent stables ; les caractéristiques sont modulées par les états (blessure,
+  faim, fatigue, confusion), et la volonté peut être brisée.
+- Le joueur reste libre de ses actions, soumis aux mêmes perceptions et contraintes.
+
 ## Questions ouvertes
 
-- Faut-il une caractéristique de volonté (résister à la peur, à la persuasion), ou le courage
-  et la fierté suffisent-ils ?
-- Les valeurs sont-elles fixes, ou peuvent-elles bouger avec ce qu'on vit (un honnête qui vole
-  une fois vole plus facilement ensuite) ?
-- La mort d'un PNJ : jusqu'où la permettre, et comment la rendre lisible et lourde de suites ?
-- Le joueur peut-il être recruté, menacé, contraint par un groupe, avec les mêmes règles ?
+- La mort (voir la discussion) : ce qui peut la causer, qui peut décider de tuer, ce qui suit la
+  mort du joueur.
