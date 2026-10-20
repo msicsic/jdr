@@ -31,6 +31,7 @@ from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profi
 from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
+                        citations_nouvelles,
                         attestations as attestations_narratives,
                         fondement as fondement_narratif, fondement_paroles,
                         mentions as mentions_narratives,
@@ -218,7 +219,9 @@ conversation_validee.faits et ce qu'il croit (esprits_interlocuteurs). Réponds 
 conversation_validee.faits vide signifie seulement qu'aucun accord n'a changé : le personnage
 doit quand même répondre. Reprends exactement les montants, conditions et refus validés ; une
 offre n'est pas un accord, un accord n'est pas un paiement. Un personnage absent ne parle pas.
-Sinon, décris les faits enrichis déjà validés pour répondre au joueur, sans nouvel ajout ;
+Le personnage ne promet d'agir (se déplacer, donner, aider…) que si conversation_validee ou ses
+engagements (esprits_interlocuteurs) le prévoient : sinon il répond sans rien promettre.
+Sans conversation_validee, décris les faits enrichis déjà validés pour répondre au joueur, sans nouvel ajout ;
 présente comme souvenirs les descriptions de personnages absents.
 """
 
@@ -624,7 +627,9 @@ class MJOpenAI:
         if retour_moteur:
             instructions += ("\nLe retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
                              "\nSon champ attendu, quand il existe, dit en champs et identifiants ce qu'une proposition corrigée "
-                             "doit contenir : suis-le ; il ne s'adresse jamais au joueur.")
+                             "doit contenir : suis-le ; il ne s'adresse jamais au joueur."
+                             "\nSi tu réponds en dialogue, rien n'a eu lieu : c'est toi qui expliques l'obstacle, aucun "
+                             "personnage ne parle ni ne réagit.")
         if enrichir and social:
             instructions += REGLES_PAROLE
         if not enrichir:
@@ -788,6 +793,14 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 if monde is not None:
                     obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
                 faits = dict(entree.get("faits", {}))
+                if isinstance(faits.get("retour_moteur"), dict) and citations_nouvelles(texte, faits):
+                    # Après un refus, rien n'a eu lieu : le motif vient du moteur, aucun personnage ne
+                    # le connaît, ne le dit ni ne réagit. Contrôle déterministe, quelle que soit la voie
+                    # (action, parole, conversation, faits) et sans dépendre du verdict de l'auditeur.
+                    obstacles.append({"partie": nom, "segment": None, "texte": texte,
+                                      "motif": "Aucune action ni parole n'a eu lieu : c'est toi qui expliques "
+                                               "l'obstacle. Aucun personnage ne parle ni ne réagit ; ne cite "
+                                               "entre guillemets que des paroles déjà entendues."})
                 if effets is not None:
                     faits["effets_prevus"] = {"branche": nom, "effets": effets,
                                                "intention": reponse["proposition"].get("intention")}
@@ -817,12 +830,6 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     continue
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
                                "fondement_paroles": paroles}
-                retour = faits.get("retour_moteur")
-                if isinstance(retour, dict) and "propositions_refusees" in retour and rapport["paroles"]:
-                    # Le motif d'un refus vient du moteur : aucun personnage ne le connaît ni ne le dit.
-                    obstacles.append({"partie": nom, "segment": None, "texte": texte,
-                                      "motif": "Une explication de refus raconte l'obstacle ; elle ne fait parler "
-                                               "aucun personnage, qui n'en connaît pas la raison."})
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
             if monde is not None:
                 obstacles.extend(mentions_proposees(monde, reponse, base, paroles))

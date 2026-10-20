@@ -15,7 +15,7 @@ from .monde import ErreurMonde
 from . import lexique
 
 
-VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "mecanique",
+VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique",
             "invention_protegee", "contradictoire")
 AMBIANCES_PAR_LIEU = 30
 
@@ -101,15 +101,23 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
   identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux.
   Rappeler ce qu'un personnage a déjà dit (paroles_entendues, conversation) n'est pas une parole :
   c'est mecanique, avec cette source ; cela atteste qu'il l'a dit, pas que c'est vrai ;
+- engagement : un personnage présent s'engage à faire ce qui changerait le monde (se déplacer,
+  donner, apporter, ouvrir, payer, aider) ou accepte de le faire, de sa bouche (« je vais me
+  pousser », « je te l'apporte », « d'accord, j'y vais ») ou annoncé par le récit (« il va
+  s'écarter ») ; locuteur = ce personnage ; citation = ses mots littéraux s'il parle, sinon vide ;
+  entites = l'engagement qui le prévoit, recopié mot pour mot de
+  esprits_interlocuteurs.<locuteur>.engagements ou de conversation_validee.faits, vide si rien ne
+  le prévoit. Rappeler un engagement déjà dit (paroles_entendues) reste mecanique ;
 - invention_protegee : crée ou suppose un élément mécanique absent des faits (objet utilisable,
   passage, personnage, ressource, indice, résultat), même plausible ou décoratif ;
 - contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus.
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
-invention_protegee, parole, mecanique, ambiance, hypothese, neutre.
+invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
 commencé un geste du joueur (frapper, saisir, attendre, s'approcher) est contradictoire : seule
-l'explication de ce qui l'en empêche est permise. Hors parole, locuteur et citation sont vides ; hors ambiance, entites est vide.
+l'explication de ce qui l'en empêche est permise. Hors parole et engagement, locuteur et citation
+sont vides ; hors ambiance et engagement, entites est vide.
 Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
 
@@ -224,6 +232,26 @@ def mentions_proposees(monde, reponse, base, paroles=""):
     return obstacles
 
 
+def engagements_prevus(faits, locuteur):
+    """Ce que le moteur a prévu que ce personnage fera : ses engagements enregistrés et l'issue
+    qu'il vient de valider pour lui (conversation_validee)."""
+    esprit = (faits.get("esprits_interlocuteurs") or {}).get(locuteur) or {}
+    prevus = list(esprit.get("engagements") or [])
+    validee = faits.get("conversation_validee")
+    if isinstance(validee, dict) and validee.get("personnage") == locuteur:
+        prevus += list(validee.get("faits") or [])
+    return {p.strip() for p in prevus if isinstance(p, str) and p.strip()}
+
+
+def citations_nouvelles(texte, faits):
+    """Mots cités entre guillemets que rien de ce que le MJ a reçu ne contient : une parole
+    nouvelle, et non le rappel d'une parole entendue ou d'une inscription. Le retour du moteur
+    n'en fait pas partie : une proposition refusée n'a rien fait dire à personne."""
+    connus = lexique.corpus({k: v for k, v in faits.items() if k != "retour_moteur"})
+    cites = [(c, lexique.corpus(c.strip("«»“”\" "))) for c in CITATIONS.findall(texte)]
+    return [c for c, mots in cites if mots and mots not in connus]
+
+
 def controler(texte, rapport, faits):
     """Valide le rapport de l'auditeur et renvoie ses obstacles, jamais sa seule assurance."""
     passages = segments(texte)
@@ -254,22 +282,30 @@ def controler(texte, rapport, faits):
         ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
-        if verdict != "parole":
+        if verdict not in ("parole", "engagement"):
             ligne = {**ligne, "locuteur": "", "citation": ""}
-        if verdict != "ambiance":
+        if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
         lignes_validees.append(ligne)
+        locuteur, citation = ligne["locuteur"], ligne["citation"]
         if verdict == "mecanique" and not ligne["sources"]:
             obstacles.append({"segment": indice, "texte": passage,
                               "motif": "Cette affirmation mécanique ne cite aucun fait du moteur."})
-        elif verdict == "parole":
+        elif verdict in ("parole", "engagement") and locuteur not in faits.get("interlocuteurs", {}):
+            obstacles.append({"segment": indice, "texte": passage,
+                              "motif": "Seul un personnage présent peut parler ; aucun locuteur présent "
+                                       "ne correspond à cette parole."})
+        elif verdict == "engagement" and (not ligne["entites"] or any(
+                e.strip() not in engagements_prevus(faits, locuteur) for e in ligne["entites"])):
+            # Sa parole atteste qu'il l'a dit ; ce qu'il fera, seul le moteur le décide.
+            obstacles.append({"segment": indice, "texte": passage,
+                              "motif": "Ce personnage s'engage à agir sans que le moteur l'ait prévu : rien "
+                                       "dans esprits_interlocuteurs.engagements ni conversation_validee ne le "
+                                       "dit. Fais-le répondre sans rien promettre (il peut répondre, hésiter, "
+                                       "refuser ou se taire), et n'annonce pas qu'il le fera."})
+        elif verdict == "parole" or (verdict == "engagement" and citation):
             from .faits_locaux import LONGUEUR_PAROLE
-            locuteur, citation = ligne["locuteur"], ligne["citation"]
-            if locuteur not in faits.get("interlocuteurs", {}):
-                obstacles.append({"segment": indice, "texte": passage,
-                                  "motif": "Seul un personnage présent peut parler ; aucun locuteur présent "
-                                           "ne correspond à cette parole."})
-            elif (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
+            if (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
                     or f"« {citation} »" not in passage):
                 obstacles.append({"segment": indice, "texte": passage,
                                   "motif": "Une parole doit être citée entre « et », en entier, dans le segment."})

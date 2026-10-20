@@ -212,7 +212,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   d'attendre sans fin (renoncements 1 → 1,25 et 1 → 7) ; aucune poussée, tous ces PNJ ayant la
   douceur entière. Luna (3 parties courtes) type la demande `passage` et l'action `pousser`.
   Détail, cas vérifiés et limites dans `docs/plan-temps.md`, « Correctif : laisser passer ».
-- La suite de tests passe : 777 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `don-et-promesses` (vu en partie : « je donne la cloche a Gorm » partait au MJ ; Brune
+  répondait « Je vais me pousser » sans que rien ne la fasse bouger, puis le MJ le rappelait
+  comme acquis) : l'analyse locale reconnaît donner et remettre à la première personne et à
+  l'impératif, avec « à », « au » ou « a », le destinataire avant ou après l'objet, chaque nom
+  désignant exactement un objet et un personnage ; le moteur refuse ce qui manque. Après un
+  refus, quelle que soit la voie, la réponse ne cite aucune parole nouvelle (contrôle
+  déterministe, sans dépendre du verdict de l'auditeur). Une promesse d'agir d'un PNJ (verdict
+  d'audit `engagement`) doit recopier ce que le moteur a enregistré : engagements pris, intention
+  en cours, accords (`esprits_interlocuteurs.<id>.engagements`) ou l'issue qu'il vient de valider
+  (`conversation_validee`) ; sinon elle est reformulée sans promesse. Luna sur la sauvegarde
+  réelle : « Je vais me pousser » (Brune) et « je peux garder un œil sur la réserve » (Ilse)
+  refusés puis reformulés. Limite : repérer une promesse reste un jugement de l'auditeur ; seul
+  son appui est vérifié de façon déterministe.
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 

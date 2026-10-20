@@ -166,8 +166,29 @@ def esprits_interlocuteurs(monde, presents):
             "croit": [texte for *_, texte in sorted(croyances)[:12]],
             "but_actuel": copy.deepcopy(e["intention"]["but"]) if e["intention"] else None,
             "besoins_pressants": urgents(monde, id) if profil else [],
+            "engagements": engagements_enregistres(monde, id),
         }
     return resultat
+
+
+def engagements_enregistres(monde, id):
+    """Ce que le moteur a enregistré que ce personnage fera : les engagements qu'il a pris (une
+    part promise, une tâche acceptée), son intention en cours et les accords de mission qu'il a
+    proposés ou conclus. Une réplique ne l'engage à agir que sur l'un d'eux : sa parole établit
+    qu'elle a été dite, pas qu'il le fera."""
+    from .recit_pnj import but_en_mots
+    e = lire(monde, id)
+    phrases = [f"engagement pris envers {_nom(monde, x['pour'])} : "
+               + but_en_mots(monde, {"type": "pulsion", **x["condition"]}) for x in e["engagements"]]
+    if e["intention"]:
+        phrases.append("intention en cours : " + but_en_mots(monde, e["intention"]["but"]))
+    for mission_id, accord in monde.data.get("engagements", {}).items():
+        mission = monde.data.get("missions", {}).get(mission_id)
+        if mission and mission["donneur"] == id and accord["statut"] in ("propose", "accepte"):
+            objet = designer(monde.objets[mission["objet"]]) if mission["objet"] in monde.objets else mission["objet"]
+            phrases.append(f"{'accord conclu' if accord['statut'] == 'accepte' else 'offre faite'} : "
+                           f"{accord['montant']} pièces à la remise de {objet}")
+    return phrases
 
 
 def contexte(monde):
