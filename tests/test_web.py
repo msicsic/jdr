@@ -173,6 +173,30 @@ class ClicTests(unittest.TestCase):
             except ErreurMonde as e:
                 self.assertNotIn("Approche-toi", str(e), texte)  # Refusé pour une autre raison, pas la distance.
 
+    def test_les_fleches_suivent_le_regard(self):
+        from donjon.spatial import VECTEURS
+        f = self.clic["fleches"]
+        self.assertEqual(f["nord"]["gauche"], "tourner nord-ouest")
+        self.assertEqual(f["nord-ouest"]["droite"], "tourner nord")
+        self.assertEqual(f["est"]["haut"], "pas est")
+        self.assertEqual(f["est"]["alt_haut"], "faufiler est")
+        self.assertEqual(f["sud-est"]["bas"], "chasse nord-ouest")
+        self.assertEqual(f["nord"]["maj_droite"], "chasse est")
+        self.assertEqual(f["nord-est"]["maj_gauche"], "chasse nord-ouest")
+        # Au refuge, face à l'est sur une case dégagée : ↑ avance d'un pas devant soi, ↓ recule en
+        # gardant le regard, Maj+→ fait un pas de côté, ← tourne d'un huitième ; après rechargement.
+        m = self.monde
+        m.joueur.update(position=[6, 4], orientation="est")
+        for touche, decalage, regard in (("haut", (1, 0), "est"), ("bas", (-1, 0), "est"),
+                                         ("maj_droite", (0, 1), "est"), ("gauche", (0, 0), "nord-est")):
+            essai = Monde(copy.deepcopy(m.data))
+            jouer(essai, [f["est"][touche]])
+            with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+                essai.sauver(Path(dossier) / "f.json")
+                essai = Monde.charger(Path(dossier) / "f.json")
+            self.assertEqual(essai.joueur["position"], [6 + decalage[0], 4 + decalage[1]], touche)
+            self.assertEqual(essai.joueur["orientation"], regard, touche)
+
     def test_la_marche_par_clic_arrive_et_se_recharge(self):
         m = self.monde
         self.assertNotEqual(self.clic["chemin"], [])

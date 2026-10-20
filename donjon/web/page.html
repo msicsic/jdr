@@ -95,8 +95,8 @@
     <div id="proposition"><pre id="proposition-texte"></pre>
       <button class="principal" id="tenter">Lancer la tentative</button> <button id="annuler">Tout annuler</button></div>
     <div id="saisie"><input id="commande" autocomplete="off" placeholder="Que fais-tu ?"><button id="envoyer">Envoyer</button></div>
-    <div class="aide">Clic sur la carte : y aller, ou un geste sur ce qui s'y trouve (Échap arrête la marche) · Flèches : marcher (saisie vide ou carte active) · Maj+flèches : pas chassé · Alt+flèches : pas feutré ·
-      « tourner est », « demi-tour » · Haut/Bas dans une saisie : historique · « aide » : commandes</div>
+    <div class="aide">Clic sur la carte : y aller, ou un geste sur ce qui s'y trouve (Échap arrête la marche) · Flèches (saisie vide) : ↑ avancer, ↓ reculer, ←/→ tourner de 45° ·
+      Maj+←/→ : pas de côté · Alt+↑ : pas feutré · « tourner est », « demi-tour » · Haut/Bas dans une saisie : historique · « aide » : commandes</div>
   </section>
 </main>
 <div id="infobulle"></div>
@@ -353,6 +353,19 @@ $("annuler").onclick = () => envoyer("annuler");
 $("cones").onchange = dessiner;
 $("noms").onchange = dessiner;
 const FLECHES = {ArrowUp: "nord", ArrowDown: "sud", ArrowRight: "est", ArrowLeft: "ouest"};
+const ROSE = ["nord", "nord-est", "est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest"];
+function tourne(regard, huitiemes) { return ROSE[(ROSE.indexOf(regard) + huitiemes + 8) % 8]; }
+function commandeFleche(ev) {
+  // Par rapport au regard : ←/→ tournent d'un huitième de tour, ↑ avance, ↓ recule d'un pas
+  // chassé, Maj+←/→ fait un pas de côté ; Alt+↑ avance à pas feutrés. Sans regard (partie sans
+  // orientation), les flèches gardent les points cardinaux.
+  const regard = scene && scene.joueur.orientation;
+  if (!ROSE.includes(regard)) return (ev.altKey ? "faufiler " : ev.shiftKey ? "chasse " : "pas ") + FLECHES[ev.key];
+  const cote = ev.key === "ArrowLeft" ? -2 : 2;
+  if (ev.key === "ArrowUp") return (ev.altKey ? "faufiler " : "pas ") + regard;
+  if (ev.key === "ArrowDown") return "chasse " + tourne(regard, 4);
+  return ev.shiftKey ? "chasse " + tourne(regard, cote) : "tourner " + tourne(regard, cote / 2);
+}
 document.addEventListener("keydown", ev => {
   const saisie = $("commande"), dansSaisie = document.activeElement === saisie;
   if (ev.key === "Escape") { arreter(marche ? "Tu t'arrêtes." : null); fermerMenu(); return; }
@@ -368,7 +381,7 @@ document.addEventListener("keydown", ev => {
   }
   if (dansSaisie && saisie.value) return;
   ev.preventDefault();
-  envoyer((ev.altKey ? "faufiler " : ev.shiftKey ? "chasse " : "pas ") + dir, false);
+  envoyer(commandeFleche(ev), false);
 });
 const bulle = $("infobulle");
 canvas.addEventListener("mousemove", e => {
