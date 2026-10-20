@@ -534,6 +534,7 @@ class Moteur:
         if plan.proposition["action"] == "observer":
             return plan.information
         travail = self.monde.copier()
+        travail.data["entendus"] = []
         lignes = []
         self._ouvrir_bilan(travail)
         if plan.regard:
@@ -557,7 +558,7 @@ class Moteur:
             lignes.append("La tentative n'aboutit pas.")
         elif plan.information:
             lignes.append(plan.information)
-        self._terminer_etape(travail, plan, lignes)
+        self._terminer_etape(travail, plan, lignes, effets)
         self._clore_bilan(travail, lignes)
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
@@ -586,10 +587,19 @@ class Moteur:
         lignes.extend(ligne for id, ligne in humeurs.items() if travail.visible(id))
 
     @staticmethod
-    def _terminer_etape(travail, plan, lignes):
+    def _terminer_etape(travail, plan, lignes, effets=()):
         Moteur._stabiliser(travail, lignes)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
-        from .temps import duree, ecouler
+        from .temps import duree, ecouler, instant
+        debut = instant(travail)
+        # Un geste illicite du joueur dure autant que son étape : quiconque le voit faire d'ici
+        # là en est témoin, comme d'un geste de PNJ. Ceux qui le regardaient déjà ont été
+        # départagés par son jet.
+        from .esprits import percoit, pnjs
+        from .pnj import commencer_geste
+        gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
+                                  exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")])
+                  for op, cible, _ in effets if op == "voler"]
         minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose.
@@ -602,11 +612,16 @@ class Moteur:
         percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
-        # Ce qui parvient à ses oreilles : le fort de lui-même, le bas en écoutant.
-        from .ecoute import ECOUTE, ENTENDU, entendus, rendre
+        # Qui l'a vu faire sous ses yeux à lui : il le sait ; un témoin dans son dos, non.
+        for geste in gestes:
+            lignes.extend(designer(travail.objets[id], debut=True) + " t'a vu faire."
+                          for id in geste["se_sait_vu"])
+        # Ce qui parvient à ses oreilles pendant son geste : le fort de lui-même, le bas en écoutant.
+        from .ecoute import ECOUTE, ENTENDU, entendus, rendre, retenir
         ecoute = plan.proposition.get("action") == "ecouter"
-        entendu = rendre(travail, entendus(travail, travail.data["minutes"] - minutes,
-                                           ECOUTE if ecoute else ENTENDU))
+        parvenus = entendus(travail, debut, ECOUTE if ecoute else ENTENDU)
+        retenir(travail, parvenus)
+        entendu = rendre(travail, parvenus)
         lignes.extend(entendu)
         if ecoute and not entendu:
             lignes.append("Tu tends l'oreille : rien de particulier ne te parvient.")
@@ -647,6 +662,7 @@ class Moteur:
         travail, lignes, trace, precedent = self.monde.copier(), [], [], None
         # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
         self._ouvrir_bilan(travail)
+        travail.data["entendus"] = []
         if sequence.regard:
             travail.joueur["orientation"] = sequence.regard
             lignes.append("Tu te tournes vers " + ("l'" if sequence.regard[0] in "eo" else "le ") + sequence.regard + ".")
@@ -668,7 +684,7 @@ class Moteur:
             effets = p.effets if reussite else p.echec + (p.echec_critique if jet == 1 else [])
             for effet in effets:
                 self._appliquer(travail, effet, details)
-            self._terminer_etape(travail, p, details)
+            self._terminer_etape(travail, p, details, effets)
             if e["operation"] == "patienter":
                 details.append("Deux minutes passent à guetter une occasion ; rien ne garantit que le geste passera inaperçu.")
             if not reussite:

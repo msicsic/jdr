@@ -37,7 +37,9 @@ def appliquer(monde, effet, lignes):
         o = monde.objets[cible]
         o.update(proprietaire=valeur, vole_a=valeur, vole_par="joueur", en_vente=False)
         o.pop("vendeur", None)
-        lignes.append("Tu dérobes " + designer(o) + " sans être remarqué.")
+        # Ceux qui le regardaient ne l'ont pas remarqué (son jet) ; qui le verra faire d'ici la fin
+        # du geste en sera témoin (``pnj.commencer_geste``) : rien n'est promis au-delà.
+        lignes.append("Tu dérobes " + designer(o) + ".")
     else:
         relation = monde.data["relations_pnj"][cible]
         relation["soupcon"] = min(3, relation["soupcon"] + 1)

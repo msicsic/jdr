@@ -30,7 +30,8 @@ def pnjs(monde):
 
 CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
-          "libre": int}   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
+          "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
+          "balayage": lambda: None}   # son dernier tour d'horizon : {salle, case, instant}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -102,6 +103,11 @@ def verifier(monde):
                 and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
+        b = e["balayage"]
+        assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
+                             and b["salle"] in monde.data["salles"] and isinstance(b["case"], list)
+                             and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
+                             and type(b["instant"]) is int and b["instant"] >= 0), "Tour d'horizon de PNJ invalide"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
         for engagement in e["engagements"]:
             from .deliberation import condition_valide

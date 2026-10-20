@@ -19,6 +19,11 @@ def duree(plan):
     return plan.dixiemes if plan.dixiemes is not None else plan.minutes * MINUTE
 
 
+def instant(monde):
+    """L'instant courant, en dixièmes de seconde depuis le début de la partie."""
+    return monde.data["minutes"] * MINUTE + monde.data.get("dixiemes", 0)
+
+
 def ecouler(monde, dixiemes):
     """Fait passer ``dixiemes`` ; renvoie les minutes entières franchies."""
     minutes, monde.data["dixiemes"] = divmod(monde.data.get("dixiemes", 0) + dixiemes, MINUTE)
@@ -32,6 +37,10 @@ def installer(monde):
     if pas is not None and "dixiemes" not in monde.data:
         monde.data["dixiemes"] = pas * PAS_ANCIEN
     monde.data.setdefault("dixiemes", 0)
+    # Les bruits d'avant le temps fin étaient datés à la minute : ils le sont à l'instant.
+    for b in monde.data.get("bruits", []):
+        if "minute" in b:
+            b["instant"] = b.pop("minute") * MINUTE
     # Aucun geste ne s'achève sur une case occupée : qui s'y trouvait déjà s'écarte.
     from .pnj import ecarter
     ecarter(monde)

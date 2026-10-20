@@ -133,6 +133,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   bond (`_a_toucher`, `_approcher`) ; le trajet en cases est le seul juge du passage : sans
   chemin, geste manqué, obstacle appris, et le chemin par salles évite un seuil qu'on croit
   barré ; on marche vers la case crue, puis on constate. Détail dans `docs/plan-temps.md`.
+- Branche `temps-fin-etat` (relecture du jalon temps fin, `docs/plan-temps.md`, dernière
+  section) : tout ce dont dépend la suite est dans `data` ; le même laps, attendu d'un bloc ou
+  découpé en rotations et rechargé en route, donne le même monde (`tests/test_temps_etat.py`).
+  Tour d'horizon dans l'esprit du PNJ ; un registre des gestes en cours, joueur compris, jusqu'à
+  leur fin (témoin : quiconque voit l'auteur pendant le geste) ; bruits datés à l'instant ;
+  interlocuteur = personnage perçu (vu, ou entendu pendant le dernier geste) ; perception des
+  PNJ après chaque événement. Banc : aucune usurpation, plus d'échanges et de confidences.
 - La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
