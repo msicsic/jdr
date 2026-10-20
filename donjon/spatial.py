@@ -465,13 +465,46 @@ def _murs(m, champ, acteur, memo_champ):
 
 
 def _position_vue(m, memo, id, salle):
-    """position_cible, gardée le temps d'un état inchangé (voir ``etat_vue``)."""
+    """position_cible, gardée le temps d'un état inchangé (voir ``etat_vue``) ; pour un objet
+    simplement posé dans cette salle, d'une étape à l'autre, par tout ce qui fixe sa case."""
     if memo is None:
         return position_cible(m, id, salle)
     positions = memo.setdefault("positions", {})
     if (id, salle) not in positions:
-        positions[id, salle] = position_cible(m, id, salle)
+        o = m.objets[id]
+        if poses(m, memo)[id] == salle and o["type"] != "surface":
+            p = o.get("position")
+            # ``_salle_position`` d'un objet posé dans la salle qu'on regarde ne lit que ces clés (une
+            # surface, sol ou plafond, peut suivre le joueur : elle n'est gardée que pour l'état).
+            cle = (id, salle, o["type"], o.get("incorpore"), o.get("cote"), o.get("attache"),
+                   o.get("position_salle"), None if p is None else tuple(p))
+            places = m._cache_vue["persistant"]["places"]
+            if cle not in places:
+                places[cle] = position_cible(m, id, salle)
+            positions[id, salle] = places[cle]
+        else:
+            positions[id, salle] = position_cible(m, id, salle)
     return positions[id, salle]
+
+
+# Ce qui peut placer un objet posé dans une salle ailleurs que dans cette salle (``_salle_position``).
+AILLEURS = frozenset(("appui_vertical", "installation"))
+
+
+def poses(m, memo=None):
+    """Pour chaque objet, la salle où il est posé, sans rien qui le place ailleurs : il n'a de place
+    que dans cette salle, et personne ne le porte ; None pour les autres. Gardé pour l'état."""
+    if memo is not None and "poses" in memo:
+        return memo["poses"]
+    salles, objets = m.data["salles"], m.objets
+    resultat = {}
+    for id, o in objets.items():
+        lieu = o["lieu"]
+        resultat[id] = (lieu if lieu in salles and lieu not in objets and o["type"] != "porte"
+                        and AILLEURS.isdisjoint(o) else None)
+    if memo is not None:
+        memo["poses"] = resultat
+    return resultat
 
 
 def eclairage_niveau(m):
@@ -715,7 +748,7 @@ def _memoire_geometrie(m):
     if cle not in memoires:
         if len(memoires) >= GEOMETRIES_GARDEES:
             del memoires[next(iter(memoires))]
-        memoires[cle] = {"geometries": {}, "alentours": {}, "portees": {}, "champs": {}}
+        memoires[cle] = {"geometries": {}, "alentours": {}, "portees": {}, "champs": {}, "places": {}}
     memoire = memoires[cle]
     for entrees in memoire.values():
         if len(entrees) > ENTREES_MAX:

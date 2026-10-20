@@ -157,8 +157,9 @@ class VueMemoriseeTests(unittest.TestCase):
                                      ligne_reference(a, b, terrain, opaques), (a, b))
 
     def test_un_changement_d_etat_renouvelle_la_perception(self):
-        """Clé sûre : une porte, une flamme, un objet déplacé, un regard tourné, chacun change ce
-        que voit un PNJ dès la lecture suivante, dans le même bloc de mémoire."""
+        """Clé sûre : un regard tourné, un objet déplacé, chaque flamme, chaque porte, le joueur qui
+        marche, un PNJ qui change de salle : la lecture suivante, dans le même bloc de mémoire, est
+        celle d'un calcul de zéro, pour chaque PNJ et pour le joueur."""
         m = nuit(1985)
         executer(m, 30)
         id = pnjs(m)[0]
@@ -171,23 +172,41 @@ class VueMemoriseeTests(unittest.TestCase):
                     o.pop("orientation")
                 else:
                     o["orientation"] = orientation
-                with spatial.sans_memoire(m):
-                    attendu = percus_reference(m, id)
-                self.assertEqual(percus(m, id), attendu, orientation)
+                self.comparer(m)
             objet = next(k for k, x in m.objets.items() if x.get("mobile") and x["lieu"] in m.data["salles"]
                          and k not in percus(m, id)[0])
             m.objets[objet].update(lieu=o["lieu"], position_salle=o["lieu"], position=list(o["position"]))
             self.assertIn(objet, percus(m, id)[0])
-            for source in [k for k, x in m.objets.items() if x.get("allume")]:
-                m.objets[source]["allume"] = False
-            with spatial.sans_memoire(m):
-                attendu = percus_reference(m, id)
-            self.assertEqual(percus(m, id), attendu)
-            for porte in [k for k, x in m.objets.items() if x["type"] == "porte"]:
-                m.objets[porte]["ouverte"] = not m.objets[porte].get("ouverte")
-                with spatial.sans_memoire(m):
-                    attendu = percus_reference(m, id)
-                self.assertEqual(percus(m, id), attendu, porte)
+            self.comparer(m)
+            # Seul son lieu change : pris en main, puis rangé dans un contenant fermé, puis reposé.
+            m.objets[objet]["lieu"] = id
+            self.assertEqual(percus(m, id)[0][objet], (None, None))
+            self.comparer(m)
+            contenant = next(k for k, x in m.objets.items() if x["type"] == "contenant")
+            ouvert = m.objets[contenant]["ouverte"]
+            m.objets[contenant]["ouverte"] = False
+            m.objets[objet]["lieu"] = contenant
+            self.comparer(m)
+            m.objets[contenant]["ouverte"] = ouvert
+            m.objets[objet]["lieu"] = o["lieu"]
+            self.comparer(m)
+            # Seule la salle de sa case change : sa case n'y vaut plus, il revient à l'entrée.
+            m.objets[objet]["position_salle"] = next(s for s in m.data["salles"] if s != o["lieu"])
+            self.comparer(m)
+            for source in [k for k, x in m.objets.items() if "allume" in x]:
+                for allume in (not m.objets[source]["allume"], m.objets[source]["allume"]):
+                    m.objets[source]["allume"] = allume
+                    self.comparer(m)
+            for porte in [k for k, x in m.objets.items() if "ouverte" in x]:
+                m.objets[porte]["ouverte"] = not m.objets[porte]["ouverte"]
+                self.comparer(m)
+            j = m.joueur
+            for case in sorted(cases(m.data["salles"][j["salle"]]))[:12]:
+                j["position"] = list(case)
+                self.comparer(m)
+            ailleurs = next(s for s in m.data["salles"] if s != o["lieu"])
+            o.update(lieu=ailleurs, position_salle=ailleurs, position=list(position_entree(m, ailleurs)))
+            self.comparer(m)
 
     def test_recharger_en_cours_de_nuit_ne_change_rien(self):
         """Une partie rechargée (un autre monde, mêmes salles) reprend la mémoire de la géométrie :

@@ -182,11 +182,14 @@ def cache_par_porteur(monde, o, observateur):
     return (porteur not in (None, observateur) and o["type"] != "partie_corps" and not apparent(o))
 
 
+def _remarquable(acteur, o):
+    """Ni lui-même, ni un détail, ni ce qui est incorporé, ni une surface ou une partie du corps."""
+    return not (o["id"] == acteur or o.get("detail_local") or o.get("incorpore")
+                or o["type"] in ("surface", "partie_corps"))
+
+
 def _pertinent(monde, acteur, o):
-    if (o["id"] == acteur or o.get("detail_local") or o.get("incorpore")
-            or o["type"] in ("surface", "partie_corps")):
-        return False
-    return not cache_par_porteur(monde, o, acteur)
+    return _remarquable(acteur, o) and not cache_par_porteur(monde, o, acteur)
 
 
 def percus(monde, acteur):
@@ -208,44 +211,22 @@ def percus(monde, acteur):
     return {id: (s, None if c is None else list(c)) for id, (s, c) in vus.items()}, set(champ)
 
 
-# Ce qui peut placer un objet posé dans une salle ailleurs que dans cette salle (``_salle_position``).
-AILLEURS = frozenset(("appui_vertical", "installation"))
-
-
-def _poses(monde, memo):
-    """Pour chaque objet, la salle où il est posé, sans rien qui le place ailleurs : il n'a de place
-    que dans cette salle, et personne ne le porte ; None pour les autres. Gardé pour l'état."""
-    if memo is not None and "poses" in memo:
-        return memo["poses"]
-    salles, objets = monde.data["salles"], monde.objets
-    poses = {}
-    for id, o in objets.items():
-        lieu = o["lieu"]
-        poses[id] = (lieu if lieu in salles and lieu not in objets and o["type"] != "porte"
-                     and AILLEURS.isdisjoint(o) else None)
-    if memo is not None:
-        memo["poses"] = poses
-    return poses
-
-
 def _percus(monde, acteur, memo):
-    from .spatial import porte_par
+    from .spatial import porte_par, poses as salles_posees
     salle = monde.objets[acteur]["lieu"]
-    poses = _poses(monde, memo)
+    poses = salles_posees(monde, memo)
     # Ce qu'il porte lui-même, il le sait sans le voir.
     vus = {id: (None, None) for id, o in monde.objets.items()
            if poses[id] in (None, acteur) and porte_par(monde, id, acteur) and _pertinent(monde, acteur, o)}
     if salle not in monde.data["salles"]:
         return vus, set()
     if monde.data.get("mode_cases"):
-        from .spatial import _champ, _murs, position_cible
+        from .spatial import _champ, _murs, _position_vue
         champ = _champ(monde, acteur, memo)
         salles_du_champ = {c[0] for c in champ}
         salles_vues = [s for s in monde.data["salles"] if s in salles_du_champ]
-        # Les places des objets sont gardées pour l'état (``spatial._position_vue``).
-        positions = {} if memo is None else memo.setdefault("positions", {})
         for id, o in monde.objets.items():
-            if id in vus:
+            if id in vus or not _remarquable(acteur, o):
                 continue
             # ``visible``, sans le cas des surfaces, qui ne sont pas pertinentes : la première place
             # dans le champ, et l'objet accroché au mur n'est vu que si ce mur l'est.
@@ -254,10 +235,7 @@ def _percus(monde, acteur, memo):
                 continue
             premiere, vu = None, False
             for s in salles_vues if pose is None else (pose,):
-                if (id, s) in positions:
-                    p = positions[id, s]
-                else:
-                    p = positions[id, s] = position_cible(monde, id, s)
+                p = _position_vue(monde, memo, id, s)
                 if p is None or (s, p[0], p[1]) not in champ:
                     continue
                 if premiere is None:
@@ -267,7 +245,7 @@ def _percus(monde, acteur, memo):
                     continue
                 vu = True
                 break
-            if vu and _pertinent(monde, acteur, o):
+            if vu and not cache_par_porteur(monde, o, acteur):
                 vus[id] = premiere
         j = monde.joueur
         if (j["salle"], *j["position"]) in champ:
