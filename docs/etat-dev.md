@@ -258,7 +258,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
   confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
-- La suite de tests passe : 839 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `rejeu-enrichi` (observation seule : `rejeu.py`, `web/rejeu.html`, option du banc) : le rejeu
+  note la lumière de chaque case (même degrés que la page de jeu, recalculés quand sources, portes ou
+  obstacles changent), chaque bruit émis avec ce que chacun qui l'a entendu en a fait (vu, attribué,
+  retourné, bruit retenu, parole saisie, avec le niveau parvenu), les gestes illicites (qui était là, qui
+  les voyait, qui en a été témoin et quand) et les « aller voir ». La page colore le sol, dessine une onde
+  par bruit, montre ce que le personnage choisi entend et filtre le journal par personnage et par nature.
+  `--rejeu` avec `--graines` écrit une page par graine. Une nuit de 8 h pèse 420 à 450 Ko (bruits 77 Ko,
+  esprits 134 Ko, vues 73 Ko, lumière 4 Ko) ; la nuit reste identique (empreinte). Constats sur le Relais
+  (graines 7 et 1985) : un « vol vu » compte un souvenir par geste d'une minute et par témoin, d'où 12 pour un
+  seul cambriolage vu par deux personnes (graine 7, min 122 à 128, Brune forçant la réserve de l'antichambre) ;
+  Brune guette 31 min sans rien tenter tant qu'un témoin est en vue, jusqu'à la faim à 95 (`DESESPOIR`),
+  qui lève la précaution ; le fracas du crochetage (geste bruyant, même « sans témoin ») fait se retourner
+  Ilse, de dos, qui devient témoin. Les 8 échanges de chaque nuit sont 6 demandes de part à Gorm, plus des
+  dons ou la rumeur d'Ilse, au rythme de la faim, pas de la perception. Détail dans
+  `docs/plan-vue.md`.
+- La suite de tests passe : 845 tests, sans clé ni connexion (ceux du clic et du rejeu demandent Node).
 
 ## Décisions en attente
 
