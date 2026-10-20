@@ -1,6 +1,6 @@
 // Fait tourner le script de la page sur un état reçu en entrée (sans navigateur) et rend, en JSON,
 // ce que propose un clic sur chaque case, le chemin vers la case connue la plus lointaine, et
-// l'approche de chaque chose pour un geste à portée de main. Utilisé par tests/test_web.py.
+// l'approche de chaque chose pour un geste à portée de main, et la commande de chaque flèche. Utilisé par tests/test_web.py.
 const fs = require("fs");
 const noop = new Proxy(function () {}, { get: (t, k) => k === "measureText" ? () => ({ width: 30 }) : noop, apply: () => noop, set: () => true });
 const elements = {};
@@ -31,5 +31,14 @@ praticables().forEach(k => { const g = k.split(",").map(Number), p = chemin(scen
 const approche = g => chemin(scene.joueur.globale, q => Math.max(Math.abs(q[0] - g[0]), Math.abs(q[1] - g[1])) <= 1);
 niveau.objets.forEach(o => sortie.approches[o.id] = approche(o.globale));
 niveau.sorties.filter(s => s.porte).forEach(s => sortie.approches[s.porte.id] = approche(s.globale));
+sortie.fleches = {};
+for (const regard of ROSE) {
+  scene.joueur.orientation = regard;
+  sortie.fleches[regard] = {};
+  for (const [nom, ev] of [["gauche", {key: "ArrowLeft"}], ["droite", {key: "ArrowRight"}], ["haut", {key: "ArrowUp"}],
+                           ["bas", {key: "ArrowDown"}], ["maj_gauche", {key: "ArrowLeft", shiftKey: true}],
+                           ["maj_droite", {key: "ArrowRight", shiftKey: true}], ["alt_haut", {key: "ArrowUp", altKey: true}]])
+    sortie.fleches[regard][nom] = commandeFleche(ev);
+}
 console.log(JSON.stringify(sortie));
 `);

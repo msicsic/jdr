@@ -97,6 +97,36 @@ class PartieWebTests(unittest.TestCase):
             serveur.arreter()
 
 
+class InterfaceParDefautTests(unittest.TestCase):
+    """Dans un terminal, on joue dans le navigateur ; --tui et --console restent au choix."""
+
+    @staticmethod
+    def terminal(oui):
+        from unittest import mock
+        return mock.patch("sys.stdin.isatty", return_value=oui), mock.patch("sys.stdout.isatty", return_value=oui)
+
+    def test_le_navigateur_par_defaut_dans_un_terminal(self):
+        from unittest import mock
+        with mock.patch.object(jeu, "lancer_web", return_value="web"), \
+                mock.patch.object(jeu, "lancer_tui", return_value="tui"):
+            for oui, argv, attendu in ((True, [], "web"), (True, ["--tui"], "tui"), (False, ["--web"], "web")):
+                entree, sortie = self.terminal(oui)
+                with entree, sortie:
+                    self.assertEqual(jeu.main(["--defi", "--offline", *argv]), attendu, argv)
+
+    def test_sans_terminal_ou_en_console_la_boucle_ligne_par_ligne(self):
+        from unittest import mock
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier, \
+                mock.patch.object(jeu, "lancer_web") as web, mock.patch.object(jeu, "lancer_tui") as tui, \
+                mock.patch("builtins.print"):
+            for oui, argv in ((False, []), (True, ["--console"])):
+                entree, sortie = self.terminal(oui)
+                with entree, sortie, mock.patch("builtins.input", side_effect=["quitter"]):
+                    jeu.main(["--defi", "--offline", "--save", str(Path(dossier) / "defi.json"), *argv])
+            web.assert_not_called()
+            tui.assert_not_called()
+
+
 def jouer(monde, commandes):
     for texte in commandes:
         moteur = Moteur(monde)
@@ -142,6 +172,30 @@ class ClicTests(unittest.TestCase):
                 jouer(essai, ["pas " + d for d in approche] + [texte])
             except ErreurMonde as e:
                 self.assertNotIn("Approche-toi", str(e), texte)  # Refusé pour une autre raison, pas la distance.
+
+    def test_les_fleches_suivent_le_regard(self):
+        from donjon.spatial import VECTEURS
+        f = self.clic["fleches"]
+        self.assertEqual(f["nord"]["gauche"], "tourner nord-ouest")
+        self.assertEqual(f["nord-ouest"]["droite"], "tourner nord")
+        self.assertEqual(f["est"]["haut"], "pas est")
+        self.assertEqual(f["est"]["alt_haut"], "faufiler est")
+        self.assertEqual(f["sud-est"]["bas"], "chasse nord-ouest")
+        self.assertEqual(f["nord"]["maj_droite"], "chasse est")
+        self.assertEqual(f["nord-est"]["maj_gauche"], "chasse nord-ouest")
+        # Au refuge, face à l'est sur une case dégagée : ↑ avance d'un pas devant soi, ↓ recule en
+        # gardant le regard, Maj+→ fait un pas de côté, ← tourne d'un huitième ; après rechargement.
+        m = self.monde
+        m.joueur.update(position=[6, 4], orientation="est")
+        for touche, decalage, regard in (("haut", (1, 0), "est"), ("bas", (-1, 0), "est"),
+                                         ("maj_droite", (0, 1), "est"), ("gauche", (0, 0), "nord-est")):
+            essai = Monde(copy.deepcopy(m.data))
+            jouer(essai, [f["est"][touche]])
+            with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+                essai.sauver(Path(dossier) / "f.json")
+                essai = Monde.charger(Path(dossier) / "f.json")
+            self.assertEqual(essai.joueur["position"], [6 + decalage[0], 4 + decalage[1]], touche)
+            self.assertEqual(essai.joueur["orientation"], regard, touche)
 
     def test_la_marche_par_clic_arrive_et_se_recharge(self):
         m = self.monde
