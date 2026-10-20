@@ -97,23 +97,6 @@ def chemin(monde, id, depart, arrivee, cles=()):
     return etapes[::-1]
 
 
-def portes_closes(monde, id, depart, arrivee):
-    """Portes crues verrouillées sur la route la plus courte, toutes portes ignorées."""
-    precedent, file = {depart: None}, deque([depart])
-    while file:
-        lieu = file.popleft()
-        for sortie in monde.data["salles"][lieu]["sorties"].values():
-            if sortie["vers"] not in precedent and sortie["vers"] in monde.data["salles"]:
-                precedent[sortie["vers"]] = (lieu, sortie)
-                file.append(sortie["vers"])
-    portes = []
-    while arrivee in precedent and precedent[arrivee]:
-        arrivee, sortie = precedent[arrivee]
-        if sortie.get("porte") and _verrouillee_crue(monde, id, sortie["porte"]):
-            portes.append(sortie["porte"])
-    return portes[::-1]
-
-
 # --- Annonces et chronique ----------------------------------------------------------------
 
 def _chroniquer(monde, id, texte, nature="geste"):

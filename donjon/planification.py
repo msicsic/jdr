@@ -9,7 +9,7 @@ croit (jamais de la vérité du monde) et simule ce que le plan change à mesure
 pris, ouvert, déverrouillé, allumé, où il se tiendra.
 
 Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par geste revalidé sur
-l'état réel, à ``pnj.agir``. Les étapes produites ont la forme de celles des méthodes.
+l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
 import heapq
 from itertools import count
@@ -27,7 +27,7 @@ FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se 
 CHANCE_MIN = 0.05
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
-TERMINAUX = ("mange", "part", "chauffe", "inspecte")
+TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
 USAGES = ("crochetage", "allumage", "combustible")
 
@@ -152,10 +152,16 @@ def chance_crochetage(monde, id, lumiere):
     return min(1.0, max(CHANCE_MIN, reussites / 20))
 
 
-def gestes(v, e, inspecter=(), but=None):
+def gestes(v, e, vises=None, but=None):
     """Les gestes possibles depuis cet état : (fautes, minutes, étapes, état suivant). Les
-    fautes comptent les personnes lésées."""
+    fautes comptent les personnes lésées.
+
+    ``vises`` ouvre les gestes que seul un but demande, sur les objets ou lieux qu'il vise :
+    inspecter une salle, prendre un objet qui ne sert à aucun geste, poser, fermer et
+    verrouiller, servir une part à quelqu'un. Les offrir partout élargirait la recherche sans
+    rien lui apprendre."""
     monde, id = v.monde, v.id
+    vises = vises or {}
     p = profil(monde, id)
     objets = monde.objets
     # Aller : un trajet vers toute salle qu'il croit atteindre avec ce qu'il porte.
@@ -178,9 +184,23 @@ def gestes(v, e, inspecter=(), but=None):
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         if (ici and o not in e.portes and x.get("mobile") and v.autorise[o] and _disponible_cru(monde, id, o)
                 and (x.get("ouvre") or set(x.get("usages", [])) & set(USAGES) or x["type"] == "nourriture"
-                     or "allume" in x)):
+                     or "allume" in x or o in vises.get("prendre", ()))):
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=e.portes | {o}, faits=touche)
         touche = [x for x in touche if x[0][0] == "faute"]
+        if o in vises.get("poser", ()) and o in e.portes:
+            yield (0, 1, [_etape("poser", o, lieu=e.salle)],
+                   e.apres(portes=e.portes - {o}, faits=[(("lieu", o), e.salle)]))
+        if o in vises.get("fermer", ()) and v.salle(e, o) == e.salle:
+            if v.ouvert(e, o):
+                yield 0, 1, [_etape("fermer", o)], e.apres(faits=[(("ouvert", o), False)])
+            elif not v.verrouille(e, o):
+                for cle in sorted(k for k in e.portes if o in objets[k].get("ouvre", [])):
+                    yield 0, 1, [_etape("verrouiller", o, outil=cle)], e.apres(faits=[(("verrou", o), True)])
+        for pour in vises.get("servir", {}).get(o, ()):
+            if ici and _disponible_cru(monde, id, o):
+                dedans = [(("touche", contenant), True)] if contenant else []
+                yield (mal, 1, [_etape("servir", o, condition=faute, contenu={"pour": pour})],
+                       e.apres(faits=[(("servi", o), pour), *dedans, *touche]))
         if x["type"] == "contenant" and v.salle(e, o) == e.salle:
             ouvert, verrou = v.ouvert(e, o), v.verrouille(e, o)
             if not ouvert and not verrou and v.autorise[o]:
@@ -205,7 +225,8 @@ def gestes(v, e, inspecter=(), but=None):
         if x.get("foyer") and v.salle(e, o) == e.salle:
             allume, charge = v.feu(e, o)
             if not (allume and charge):
-                for bois in sorted(k for k in e.portes if "combustible" in objets[k].get("usages", [])):
+                for bois in sorted(k for k in e.portes if "combustible" in objets[k].get("usages", [])
+                                   and _disponible_cru(monde, id, k)):
                     yield 0, 1, [_etape("alimenter", o, outil=bois)], e.apres(faits=[(("charge", o), True)])
             if allume is False and charge:
                 for flamme in sorted(k for k in e.portes if k != o and v.flamme(e, k)):
@@ -238,7 +259,7 @@ def gestes(v, e, inspecter=(), but=None):
                           and (but is None or but(v, e.apres(faits=[(("part", o), donneur)])))):
                         # Le chercher ne sert que si sa part atteint le but.
                         yield _chercher(v, e, donneur)
-    for salle in inspecter:
+    for salle in vises.get("inspecter", ()):
         if salle == e.salle and not e.fait("inspecte", salle):
             yield 0, 1, [_etape("inspecter", lieu=salle)], e.apres(faits=[(("inspecte", salle), True)])
 
@@ -256,17 +277,23 @@ def _chercher(v, e, sujet):
         salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
 
 
-def chercher(monde, id, but, inspecter=(), profondeur=PROFONDEUR, noeuds=NOEUDS):
-    """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None.
+def depart(monde, id, v=None):
+    v = v or Vue(monde, id)
+    return Etat(monde.objets[id]["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {})
 
-    Le coût est (gestes sur le bien d'autrui, minutes) : le moins fautif d'abord. Renvoie
+
+def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS):
+    """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None,
+    depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant).
+
+    Le coût est (personnes lésées, minutes) : le moins fautif d'abord. Renvoie
     (coût, étapes, état final)."""
     v = Vue(monde, id)
-    depart = Etat(monde.objets[id]["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {})
+    depart_ = depuis or depart(monde, id, v)
     ordre = count()
     infini = (float("inf"), float("inf"))
-    file = [((0, 0), next(ordre), depart, [], 0)]
-    vus = {depart: (0, 0)}
+    file = [((0, 0), next(ordre), depart_, [], 0)]
+    vus = {depart_: (0, 0)}
     examines = 0
     while file and examines < noeuds:
         cout, _, e, etapes, n = heapq.heappop(file)
@@ -277,7 +304,7 @@ def chercher(monde, id, but, inspecter=(), profondeur=PROFONDEUR, noeuds=NOEUDS)
             return cout, etapes, e
         if n >= profondeur:
             continue
-        for fautes, minutes, ajout, suivant in gestes(v, e, inspecter, but):
+        for fautes, minutes, ajout, suivant in gestes(v, e, vises, but):
             if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
                 continue
             # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
@@ -339,5 +366,67 @@ def planifier(monde, id, besoin):
     if trouve is None:
         return None
     _, etapes, e = trouve
+    return _resultat(Vue(monde, id), e, _couper(etapes), besoin)
+
+
+def _couper(etapes):
+    """Après une recherche de quelqu'un, le plan s'arrête : la suite se décide sur ce qu'il aura vu."""
     fin = next((i + 1 for i, x in enumerate(etapes) if x.pop("suppose", False)), len(etapes))
-    return _resultat(Vue(monde, id), e, etapes[:fin], besoin)
+    return etapes[:fin]
+
+
+def planifier_pulsion(monde, id, condition):
+    """(but, étapes) pour rétablir une pulsion (ou tenir une parole donnée), ou None.
+
+    Une ronde : aller inspecter le lieu. Une part à servir. Un objet à remettre en place. Un feu
+    à entretenir : aller le voir s'il n'en a pas de nouvelles sûres, sinon le recharger et le
+    rallumer. Un objet à garder sous clé : le fermer et le verrouiller."""
+    from .deliberation import salle_crue
+    v = Vue(monde, id)
+    o = condition.get("objet")
+    if "periode" in condition:
+        lieu = condition["lieu"]
+        but, vises = (lambda v, e: e.fait("inspecte", lieu)), {"inspecter": (lieu,)}
+    elif "servir" in condition:
+        but, vises = (lambda v, e: e.fait("servi", o)), {"servir": {o: (condition["servir"],)}}
+    elif "allume" in condition:
+        etat = _cru(monde, id, o, "etat") or {}
+        salle = salle_crue(monde, id, o)
+        if salle is None:
+            return None
+        if not etat or etat.get("allume") and not etat.get("faible"):
+            # Vu vif il y a longtemps, ou jamais vu : il va voir où il en est.
+            but, vises = (lambda v, e: e.fait("inspecte", salle)), {"inspecter": (salle,)}
+        else:
+            but, vises = (lambda v, e: v.feu(e, o) == (True, True)), {}
+    elif "lieu" in condition:
+        lieu = condition["lieu"]
+        but = lambda v, e: o not in e.portes and v.lieu(e, o) == lieu  # noqa: E731
+        vises = {"prendre": (o,), "poser": (o,)}
+    else:
+        but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
+        vises = {"fermer": (o,)}
+    trouve = chercher(monde, id, but, vises)
+    if trouve is None:
+        return None
+    _, etapes, e = trouve
+    return {"type": "pulsion", **condition}, retablir(v, e, _couper(etapes))
+
+
+def aller(monde, id, salle):
+    """Les étapes pour se rendre dans une salle, ou None s'il n'y croit aucun passage."""
+    trouve = chercher(monde, id, lambda v, e: e.salle == salle)
+    return None if trouve is None else trouve[1]
+
+
+def rejoindre(monde, id, sujet):
+    """(étapes, trouvé) : aller là où il croit quelqu'un, sinon le chercher là où il est passé le
+    moins récemment ; None si rien n'est atteignable."""
+    v = Vue(monde, id)
+    e = depart(monde, id, v)
+    salle = v.salle(e, sujet)
+    if salle is not None:
+        etapes = aller(monde, id, salle)
+        return None if etapes is None else (etapes, True)
+    _, _, etapes, _ = _chercher(v, e, sujet)
+    return _couper(etapes), False

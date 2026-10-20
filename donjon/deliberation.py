@@ -229,287 +229,14 @@ def autorise(monde, id, objet):
     return not (illicite(monde, id, objet) and "ne_vole_pas" in profil(monde, id)["limites"])
 
 
-# --- Planificateur ------------------------------------------------------------------------
-
-class Echec(Exception):
-    pass
-
-
-class Plan:
-    """Simulation du plan : où sera le PNJ, ce qu'il portera, ce qu'il aura ouvert."""
-
-    def __init__(self, monde, id):
-        self.monde, self.id = monde, id
-        self.salle = monde.objets[id]["lieu"]
-        self.portes = {o for o in monde.objets if porte_par(monde, o, id)}
-        self.ouverts, self.deverrouilles, self.etapes = set(), set(), []
-        self.touches = set()  # contenants auxquels le plan accède, ouverts par lui ou déjà ouverts
-
-    def ajouter(self, operation, cible="", outil="", lieu="", condition="", contenu=None):
-        self.etapes.append({"operation": operation, "cible": cible, "outil": outil,
-                            "lieu": lieu, "condition": condition, **({"contenu": contenu} if contenu else {})})
-
-    def retablir(self):
-        """Ce qu'il garde sous clé et auquel le plan accède, il le referme à clé avant de finir."""
-        for x in profil(self.monde, self.id)["pulsions"]:
-            cible = x["condition"].get("objet")
-            if not x["condition"].get("verrouillee") or cible not in self.touches:
-                continue
-            if cible in self.ouverts or _ouvert_cru(self.monde, self.id, cible):
-                self.ajouter("fermer", cible)
-            cle = self.cle(cible)
-            if cle in self.portes and (cible in self.deverrouilles or _cru(self.monde, self.id, cible, "verrouillee") is not True):
-                self.ajouter("verrouiller", cible, outil=cle)
-
-    def condition(self, objet):
-        return "sans_temoin" if illicite(self.monde, self.id, objet) else ""
-
-    def aller(self, cible, profondeur=0):
-        from .pnj import chemin, portes_closes
-        if self.salle == cible:
-            return
-        if chemin(self.monde, self.id, self.salle, cible, self.portes) is None:
-            # Une porte crue verrouillée barre la route : la clé connue devient un sous-but.
-            for porte in portes_closes(self.monde, self.id, self.salle, cible):
-                cle = self.cle(porte)
-                if cle and profondeur < PROFONDEUR:
-                    self.obtenir(cle, profondeur + 1)
-                    break
-            if chemin(self.monde, self.id, self.salle, cible, self.portes) is None:
-                raise Echec
-        self.ajouter("aller", lieu=cible)
-        self.salle = cible
-
-    def rejoindre(self, sujet):
-        """Aller là où il croit trouver quelqu'un ; s'il en a perdu la trace, le chercher dans la
-        salle accessible qu'il a parcourue le moins récemment. Vrai s'il sait où le trouver."""
-        from .pnj import chemin
-        salle = salle_crue(self.monde, self.id, sujet)
-        if salle is not None:
-            self.aller(salle)
-            return True
-        visites = lire(self.monde, self.id)["visites"]
-        routes = {s: chemin(self.monde, self.id, self.salle, s, self.portes) for s in self.monde.data["salles"]}
-        routes = {s: r for s, r in routes.items() if r is not None}
-        # La salle où il se tient compte : il la parcourt des yeux avant d'aller plus loin.
-        salle = min(routes, key=lambda s: (visites.get(s, -1), len(routes[s]), s))
-        self.aller(salle)
-        self.ajouter("inspecter", lieu=salle)
-        return False
-
-    def cle(self, cible):
-        return next((k for k in _connus(self.monde, self.id)
-                     if cible in self.monde.objets[k].get("ouvre", [])
-                     and (k in self.portes or autorise(self.monde, self.id, k))), None)
-
-    def outil(self, usage):
-        return next((k for k in _connus(self.monde, self.id)
-                     if usage in self.monde.objets[k].get("usages", []) and _disponible_cru(self.monde, self.id, k)
-                     and (k in self.portes or autorise(self.monde, self.id, k))), None)
-
-    def _etat(self):
-        return (self.salle, set(self.portes), set(self.ouverts), set(self.deverrouilles),
-                list(self.etapes), set(self.touches))
-
-    def _restaurer(self, etat):
-        (self.salle, self.portes, self.ouverts, self.deverrouilles,
-         self.etapes, self.touches) = etat
-
-    def flamme(self, cible):
-        """De quoi allumer ``cible``, qu'il aura en main ou à portée en l'atteignant.
-
-        Un outil d'allumage, sinon une source qu'il croit allumée et qu'il peut prendre, sinon
-        une source éteinte qu'il croit chargée, allumée à une flamme fixe qu'il croit vive : une
-        source fixe ne se déplace pas, on lui apporte de quoi prendre feu.
-        """
-        briquet = self.outil("allumage")
-        if briquet:
-            self.obtenir(briquet)
-            return briquet
-        sources = [k for k in _connus(self.monde, self.id)
-                   if k != cible and "allume" in self.monde.objets[k]
-                   and (k in self.portes or autorise(self.monde, self.id, k))]
-        etat = lambda k: _cru(self.monde, self.id, k, "etat") or {}
-        vives = [k for k in sources if etat(k).get("allume")]
-        mobiles = [k for k in sources if self.monde.objets[k].get("mobile")]
-        essais = [(k, None) for k in vives if k in mobiles]
-        essais += [(k, f) for k in mobiles if not etat(k).get("allume") and etat(k).get("charge")
-                   for f in vives if not self.monde.objets[f].get("mobile")]
-        for source, fixe in essais:
-            avant = self._etat()
-            try:
-                self.obtenir(source)
-                if fixe:
-                    salle = salle_crue(self.monde, self.id, fixe)
-                    if salle is None:
-                        raise Echec
-                    self.aller(salle)
-                    self.ajouter("allumer", source, outil=fixe)
-                return source
-            except Echec:
-                self._restaurer(avant)
-        raise Echec
-
-    def obtenir(self, objet, profondeur=0):
-        if objet in self.portes:
-            return
-        o = self.monde.objets.get(objet)
-        if (profondeur > PROFONDEUR or not o or not o.get("mobile")
-                or not autorise(self.monde, self.id, objet)):
-            raise Echec
-        lieu = _lieu_cru(self.monde, self.id, objet)
-        if lieu in self.monde.data["salles"]:
-            self.aller(lieu, profondeur)
-        elif lieu in self.monde.objets and self.monde.objets[lieu]["type"] == "contenant":
-            self.acceder(lieu, profondeur + 1)
-        else:
-            raise Echec
-        self.ajouter("prendre", objet, condition=self.condition(objet))
-        self.portes.add(objet)
-
-    def acceder(self, contenant, profondeur=0):
-        """Se tenir devant un contenant ouvert, en l'ouvrant au besoin."""
-        salle = salle_crue(self.monde, self.id, contenant)
-        if salle is None or profondeur > PROFONDEUR:
-            raise Echec
-        self.touches.add(contenant)
-        if _ouvert_cru(self.monde, self.id, contenant) or contenant in self.ouverts:
-            self.aller(salle, profondeur)
-            return
-        condition = self.condition(contenant)
-        if _cru(self.monde, self.id, contenant, "verrouillee") and contenant not in self.deverrouilles:
-            cle, crochet = self.cle(contenant), None
-            if cle is None and "crochetage" in profil(self.monde, self.id)["capacites"]:
-                crochet = self.outil("crochetage")
-            if cle is None and crochet is None:
-                raise Echec
-            self.obtenir(cle or crochet, profondeur + 1)
-            self.aller(salle, profondeur)
-            self.ajouter("deverrouiller" if cle else "crocheter", contenant, outil=cle or crochet,
-                         condition=condition)
-            self.deverrouilles.add(contenant)
-        else:
-            self.aller(salle, profondeur)
-        self.ajouter("ouvrir", contenant, condition=condition)
-        self.ouverts.add(contenant)
-
-
-def _plan_manger(monde, id):
-    """Ce qui est à lui ou à personne ; sinon une part promise ou demandée à qui possède les
-    vivres ; sinon, s'il n'a pas de scrupule, le bien d'autrui."""
-    nourritures = [f for f in _connus(monde, id)
-                   if monde.objets[f]["type"] == "nourriture" and _disponible_cru(monde, id, f)]
-    licites = [f for f in nourritures if porte_par(monde, f, id) or not illicite(monde, id, f)]
-    for resultat in (*(_plan_repas(monde, id, f) for f in licites), _plan_part(monde, id, nourritures),
-                     *(_plan_repas(monde, id, f) for f in nourritures if f not in licites and autorise(monde, id, f))):
-        if resultat:
-            return resultat
-    return None
-
-
-def _plan_repas(monde, id, f):
-    p = Plan(monde, id)
-    try:
-        if f not in p.portes:
-            lieu = _lieu_cru(monde, id, f)
-            if lieu in monde.data["salles"]:
-                p.aller(lieu)
-            elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
-                p.acceder(lieu)
-            else:
-                raise Echec
-        p.ajouter("manger", f, condition="" if f in p.portes else p.condition(f))
-        p.retablir()
-    except Echec:
-        return None
-    return {"type": "manger", "objet": f}, p.etapes
-
-
-def _plan_part(monde, id, nourritures):
-    """Une part promise s'attend près des vivres, où le donneur viendra la servir ; sinon on la
-    demande à leur propriétaire, sauf s'il vient de refuser."""
-    from .vol import proprietaire
-    for f in nourritures:
-        donneur = proprietaire(monde, monde.objets[f])
-        if donneur in (None, id, "joueur") or not profil(monde, donneur):
-            continue
-        p = Plan(monde, id)
-        try:
-            if promesse_en_cours(monde, id, f) == donneur:
-                salle = salle_crue(monde, id, f)
-                if salle is None:
-                    raise Echec
-                p.aller(salle)
-            elif refuse_recemment(monde, id, donneur, "demander", f):
-                continue
-            elif p.rejoindre(donneur):
-                p.ajouter("demander", donneur, outil=f)
-        except Echec:
-            continue
-        return {"type": "part", "objet": f, "de": donneur}, p.etapes
-    return None
+# --- Plans ---------------------------------------------------------------------------------
+# Les plans viennent de la recherche (``planification``) ; ce module choisit le but.
 
 
 def _plan_pulsion(monde, id, condition):
-    p = Plan(monde, id)
-    try:
-        if periodique(condition):
-            p.aller(condition["lieu"])
-            p.ajouter("inspecter", lieu=condition["lieu"])
-        elif "servir" in condition:
-            f = condition["objet"]
-            if f not in p.portes:
-                lieu = _lieu_cru(monde, id, f)
-                if lieu in monde.data["salles"]:
-                    p.aller(lieu)
-                elif lieu in monde.objets and monde.objets[lieu]["type"] == "contenant":
-                    p.acceder(lieu)
-                else:
-                    raise Echec
-            p.ajouter("servir", f, condition=p.condition(f), contenu={"pour": condition["servir"]})
-        elif "lieu" in condition:
-            p.obtenir(condition["objet"])
-            p.aller(condition["lieu"])
-            p.ajouter("poser", condition["objet"], lieu=condition["lieu"])
-        elif "allume" in condition:
-            # Recharger le feu avec un combustible qu'il peut prendre ; le rallumer s'il est éteint.
-            foyer, bois = condition["objet"], p.outil("combustible")
-            salle, etat = salle_crue(monde, id, foyer), _cru(monde, id, foyer, "etat") or {}
-            if salle is None:
-                raise Echec
-            if not etat or etat.get("allume") and not etat.get("faible"):
-                p.aller(salle)  # Vu vif il y a longtemps, ou jamais vu : il va voir où il en est.
-                p.ajouter("inspecter", lieu=salle)
-                return {"type": "pulsion", **condition}, p.etapes
-            # Un feu qui baisse, ou un foyer froid et vide, attend du bois ; éteint, il faut l'allumer.
-            eteint = etat.get("allume") is False
-            vide = etat.get("faible") or not etat.get("charge", True)
-            if vide and bois is None:
-                raise Echec
-            if vide:
-                p.obtenir(bois)
-            # La flamme vient en dernier : une torche se consume pendant le trajet.
-            flamme = p.flamme(foyer) if eteint else None
-            p.aller(salle)
-            if vide:
-                p.ajouter("alimenter", foyer, outil=bois)
-            if flamme:
-                p.ajouter("allumer", foyer, outil=flamme)
-        else:
-            cible = condition["objet"]
-            cle = p.cle(cible)
-            salle = salle_crue(monde, id, cible)
-            if cle is None or salle is None:
-                raise Echec
-            p.obtenir(cle)
-            p.aller(salle)
-            if _ouvert_cru(monde, id, cible):
-                p.ajouter("fermer", cible)
-            p.ajouter("verrouiller", cible, outil=cle)
-        p.retablir()
-    except Echec:
-        return None
-    return {"type": "pulsion", **condition}, p.etapes
+    """Rétablir une pulsion ou tenir une parole donnée : la recherche (``planification``)."""
+    from .planification import planifier_pulsion
+    return planifier_pulsion(monde, id, condition)
 
 
 # --- Sécurité ----------------------------------------------------------------------------
@@ -582,14 +309,15 @@ def _plan_prevenir(monde, id):
                   and x["minute"] >= s["minute"] for x in e["memoire"])
         if dit or s["victime"] not in monde.objets:
             continue
-        p = Plan(monde, id)
-        try:
-            if not p.rejoindre(s["victime"]):
-                return {"type": "prevenir", "qui": s["victime"]}, p.etapes
-        except Echec:
+        from .planification import _etape, rejoindre
+        chemin = rejoindre(monde, id, s["victime"])
+        if chemin is None:
             continue
-        p.ajouter("dire", s["victime"], contenu={"sujet": s["auteur"], "attribut": "fiable", "valeur": False})
-        return {"type": "prevenir", "qui": s["victime"]}, p.etapes
+        etapes, trouve = chemin
+        if trouve:
+            etapes.append(_etape("dire", s["victime"],
+                                 contenu={"sujet": s["auteur"], "attribut": "fiable", "valeur": False}))
+        return {"type": "prevenir", "qui": s["victime"]}, etapes
     return None
 
 
@@ -616,102 +344,19 @@ def _plan_abri(monde, id):
         salle = salle_crue(monde, id, x)
         if salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle):
             salles.append(salle)
+    from .planification import _etape, aller
     for salle in sorted(salles, key=lambda s: s != ici):
-        p = Plan(monde, id)
-        try:
-            p.aller(salle)
-        except Echec:
+        etapes = aller(monde, id, salle)
+        if etapes is None:
             continue
-        p.ajouter("abriter", lieu=salle)
-        return {"type": "abri", "lieu": salle}, p.etapes
+        return {"type": "abri", "lieu": salle}, etapes + [_etape("abriter", lieu=salle)]
     return None
 
 
 def _plan_reposer(monde, id):
     """Se reposer là où l'on est."""
-    p = Plan(monde, id)
-    p.ajouter("reposer")
-    return {"type": "repos"}, p.etapes
-
-
-def _plan_chauffer(monde, id):
-    """Aller se tenir près d'un foyer qu'il croit allumé."""
-    for f in _connus(monde, id):
-        if not monde.objets[f].get("foyer") or not (_cru(monde, id, f, "etat") or {}).get("allume"):
-            continue
-        salle = salle_crue(monde, id, f)
-        p = Plan(monde, id)
-        try:
-            if salle is None:
-                raise Echec
-            p.aller(salle)
-        except Echec:
-            continue
-        p.ajouter("chauffer", f)
-        return {"type": "chaleur", "objet": f}, p.etapes
-    # Aucun feu vif : ranimer un foyer froid, comme la faim cherche des vivres. Son bois ou celui
-    # de personne d'abord ; sinon une part demandée à qui en possède ; sinon, sans scrupule, le
-    # bien d'autrui, sans témoin.
-    foyers = [f for f in _connus(monde, id) if monde.objets[f].get("foyer")
-              and (_cru(monde, id, f, "etat") or {}).get("allume") is False]
-    bois = [b for b in _connus(monde, id) if "combustible" in monde.objets[b].get("usages", [])
-            and _disponible_cru(monde, id, b)]
-    licites = [b for b in bois if porte_par(monde, b, id) or not illicite(monde, id, b)]
-    for f in foyers:
-        for resultat in (*(_plan_ranimer(monde, id, f, b) for b in [None, *licites]),
-                         _plan_part_de_bois(monde, id, f, bois),
-                         *(_plan_ranimer(monde, id, f, b) for b in bois if b not in licites and autorise(monde, id, b))):
-            if resultat:
-                return resultat
-    return None
-
-
-def _plan_ranimer(monde, id, foyer, bois):
-    """Recharger s'il le faut, allumer, se chauffer. Sans bois, seulement si le foyer est cru chargé."""
-    charge = (_cru(monde, id, foyer, "etat") or {}).get("charge")
-    if (bois is None) != bool(charge):
-        return None
-    p = Plan(monde, id)
-    try:
-        if bois:
-            p.obtenir(bois)
-        flamme = p.flamme(foyer)
-        salle = salle_crue(monde, id, foyer)
-        if salle is None:
-            raise Echec
-        p.aller(salle)
-    except Echec:
-        return None
-    if bois:
-        p.ajouter("alimenter", foyer, outil=bois)
-    p.ajouter("allumer", foyer, outil=flamme)
-    p.ajouter("chauffer", foyer)
-    return {"type": "chaleur", "objet": foyer}, p.etapes
-
-
-def _plan_part_de_bois(monde, id, foyer, bois):
-    """Une part de bois promise s'attend près du feu, où le donneur viendra l'entretenir ; sinon on
-    la demande au propriétaire du bois, sauf s'il vient de refuser."""
-    from .vol import proprietaire
-    for b in bois:
-        donneur = proprietaire(monde, monde.objets[b])
-        if donneur in (None, id, "joueur") or not profil(monde, donneur):
-            continue
-        p = Plan(monde, id)
-        try:
-            if promesse_en_cours(monde, id, b) == donneur:
-                salle = salle_crue(monde, id, foyer)
-                if salle is None:
-                    raise Echec
-                p.aller(salle)
-            elif refuse_recemment(monde, id, donneur, "demander", b):
-                continue
-            elif p.rejoindre(donneur):
-                p.ajouter("demander", donneur, outil=b, contenu={"foyer": foyer})
-        except Echec:
-            continue
-        return {"type": "part", "objet": b, "de": donneur}, p.etapes
-    return None
+    from .planification import _etape
+    return {"type": "repos"}, [_etape("reposer")]
 
 
 def ouvert_par_soi(monde, id, objet, depuis):
@@ -733,15 +378,10 @@ def de_son_fait(monde, id, condition):
 
 
 def _plan_garder(monde, id, condition):
+    from .planification import aller
     salle = salle_crue(monde, id, condition["objet"])
-    if salle is None:
-        return None
-    p = Plan(monde, id)
-    try:
-        p.aller(salle)
-    except Echec:
-        return None
-    return {"type": "garder", "lieu": salle}, p.etapes
+    etapes = None if salle is None else aller(monde, id, salle)
+    return None if etapes is None else ({"type": "garder", "lieu": salle}, etapes)
 
 
 def _delegue(monde, id, pulsion):
