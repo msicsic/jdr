@@ -64,8 +64,8 @@ def niveau(monde, minute=None):
 
 
 def altitude(monde, salle):
-    from .spatial import _niveau
-    return _niveau(monde, salle)
+    from .spatial import altitude as sol
+    return sol(monde, salle)
 
 
 def profondeur(monde, salle):

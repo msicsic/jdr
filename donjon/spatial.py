@@ -322,14 +322,22 @@ def _los(m, salle, origine, cible, cible_id=None):
 
 
 def _meme_niveau(m, a, b):
-    return _niveau(m, a) == _niveau(m, b)
+    """Même étage du plan : on s'y voit par une ouverture. Une différence d'altitude du sol
+    (quelques marches, une pente) n'en fait pas un autre étage ; un escalier y mène (la vue ne
+    le suit pas, ``_salles_relies``)."""
+    return _etage(m, a) == _etage(m, b)
 
 
-def _niveau(m, salle):
+def _etage(m, salle):
+    return m.data["salles"][salle].get("niveau") or 0
+
+
+def altitude(m, salle):
+    """Hauteur du sol en cm : déclarée, sinon celle de son étage."""
     piece = m.data["salles"][salle]
     if "altitude_cm" in piece:
         return piece["altitude_cm"]
-    return piece.get("niveau", 0) * 240
+    return _etage(m, salle) * 240
 
 
 def _global(salle, position):
@@ -350,7 +358,7 @@ def _salles_relies(m, depart):
             vers = sortie.get("vers")
             porte = m.objets.get(sortie.get("porte"))
             if (vers not in m.data["salles"] or porte and not porte.get("ouverte")
-                    or not _meme_niveau(m, salle, vers)):
+                    or sortie.get("escalier") or not _meme_niveau(m, salle, vers)):
                 continue
             reciproque = next((s for s in m.data["salles"][vers].get("sorties", {}).values()
                                if s.get("vers") == salle and s.get("porte") == sortie.get("porte")), None)
@@ -1159,7 +1167,7 @@ def verifier(m):
         ax, ay = pa["plan"]["origine"]
         cases_a = {(ax + x, ay + y) for x, y in cases(pa)}
         for b, pb in plans[i + 1:]:
-            if _niveau(m, a) != _niveau(m, b):
+            if _etage(m, a) != _etage(m, b):
                 continue
             bx, by = pb["plan"]["origine"]
             cases_b = {(bx + x, by + y) for x, y in cases(pb)}
@@ -1183,7 +1191,7 @@ def verifier(m):
             if (not sortie.get("case") or len(sortie["case"]) != 2
                     or not retour.get("case") or len(retour["case"]) != 2):
                 raise AssertionError(f"Seuil spatial incomplet : {salle}/{direction}")
-            if not (sortie.get("escalier") and _niveau(m, salle) != _niveau(m, vers)):
+            if not sortie.get("escalier"):  # Les deux bouts d'un escalier sont à des étages différents.
                 if _global(piece, sortie["case"]) != _global(dest, retour["case"]):
                     raise AssertionError(f"Seuils globaux divergents : {salle}/{direction}")
     salle_joueur = m.joueur.get("salle")

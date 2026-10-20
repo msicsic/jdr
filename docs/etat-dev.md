@@ -175,7 +175,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   en minutes selon l'honnêteté, usé par la détresse, moins vite avec de la volonté ; l'altruisme
   de qui donne facilite une demande. Banc : même ordre, plus d'échanges, moins de vols dans
   certaines nuits ; bilan et limites dans `docs/plan-social.md`.
-- Branche `crue-eau` (étape 3 de `docs/plan-crue.md`, non fusionnée) : un niveau d'eau tiré de la
+- Branche `crue-eau` (étape 3 de `docs/plan-crue.md`) : un niveau d'eau tiré de la
   graine par un tirage à part (`donjon/eau.py`) ; salles mouillées puis noyées (100 cm) selon
   leur altitude ; l'eau trempe, éteint un feu posé, barre le passage, pour le joueur comme pour
   les PNJ. Les PNJ voient l'eau, en jugent la vitesse, l'attendent dans l'heure ; l'eau inquiète,
@@ -184,7 +184,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   crue`) ; le Relais et son banc sont inchangés. Banc 16 graines : feu noyé 5 fois, quelqu'un
   monte à la galerie 14 fois. Corrigés en route : un réflexe d'alerte sans passage tombe ; un PNJ
   ne prend rien dans la main d'autrui ; pas de bois demandé pour un feu cru sous l'eau.
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- Intégration du 2026-10-20 (branche `integration`, une fusion par branche, suite et banc après
+  chacune) : chronique du banc, vue web, présences, marche, temps fin sans état caché,
+  planificateur et perception rapides, mine, auberge, caractères et valeurs, crue. Correctifs de
+  fusion : les témoins reçoivent le geste en cours ; la mémoire du planificateur lit aussi le prix
+  d'une faute et l'adresse modulée (contrôle `VERIFIER` sur 4 nuits). Défaut d'origine corrigé :
+  l'étage d'une salle est celui du plan (`niveau`), pas l'altitude de son sol ; deux salles d'un
+  même étage à des hauteurs différentes se voient et s'éclairent, un escalier change d'étage.
+  Relais : empreinte des 4 nuits inchangée par les optimisations et par la crue ; une nuit ~13,7 s
+  → ~4,7 s (4 nuits en parallèle). Constat : combinées, la marche et la perception par événement
+  redonnent au Relais une nuit proche de celle d'avant (mêmes mesures), alors que chacune seule
+  multipliait échanges et vols vus ; à examiner avec le rejeu.
+- La suite de tests passe : 759 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -193,11 +204,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
   test sur l'atelier, pas en partie au Relais.
 - **PNJ d'abord, joueur passif** : la crue du Relais comme scénario d'étude (`docs/plan-crue.md`,
-  étape 3, le niveau d'eau, faite sur `crue-eau` ; suite : influence et relations) ;
+  étape 3, le niveau d'eau, faite ; suite : influence et relations) ;
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
-  Après le jeu dans le navigateur : les caractères et valeurs.
-  Faits : **temps fin et orientation** (`docs/plan-temps.md`), puis l'étape 1, caractères et
-  valeurs (sans l'empathie). Suite de l'ordre proposé : la crue, niveau d'eau.
+  Faits : temps fin et orientation, jeu dans le navigateur, caractères et valeurs (sans
+  l'empathie), niveau d'eau. Prochain, accepté : **l'ouïe** (tout geste fait un bruit selon sa
+  nature, atténué par la distance ; bruit connu, d'une personne crue là, sans effet ; inconnu ou
+  inhabituel, on se retourne de près, on s'inquiète de loin et le courage décide d'aller voir ;
+  un bruit d'une personne dont on se méfie se surveille).
+- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
+  pour entretenir un feu ; chercher quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et
+  permissions déléguées ; l'argent ; un protégé nourri en boucle ; `pnj._rate` croit disparu un
+  objet caché dans un contenant fermé.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

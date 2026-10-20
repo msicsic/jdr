@@ -325,5 +325,24 @@ class AutreLieuTests(unittest.TestCase):
         self.assertEqual(recharger(m).data["crue"]["etats"]["cuisine"], "mouillee")
 
 
+
+class AltitudeTests(unittest.TestCase):
+    """L'altitude du sol est celle que l'eau atteint ; elle ne fait pas un autre étage."""
+
+    def test_des_salles_basses_du_meme_etage_se_voient_et_s_eclairent(self):
+        from donjon.perception import CarteLumiere
+        from donjon.spatial import _salles_relies
+        m = recharger(crue())
+        self.assertNotEqual(eau.altitude(m, "echoppe"), eau.altitude(m, "crypte"))
+        self.assertTrue(m.objets["brasero"]["allume"])
+        # La lueur du brasero de la conduite basse passe dans la salle des vannes, un peu plus haute,
+        # et au refuge ; pas jusqu'à la galerie, à l'étage, au bout d'un escalier.
+        self.assertTrue({"antichambre", "crypte", "echoppe"} <= _salles_relies(m, "crypte"))
+        lueurs = {c["source"] for c in CarteLumiere(m, "crypte").ambiance("crypte")}
+        self.assertIn("brasero", lueurs)
+        self.assertNotIn("chambre_cloche", _salles_relies(m, "beffroi"))
+        self.assertNotIn("brasero", {c["source"] for c in CarteLumiere(m, "chambre_cloche").ambiance("chambre_cloche")})
+
+
 if __name__ == "__main__":
     unittest.main()
