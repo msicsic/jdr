@@ -5,8 +5,9 @@
 
 Le joueur reste passif dans la salle choisie (par défaut, celle du départ) ; le temps
 avance par le moteur réel, cinq minutes à la fois, et l'état est vérifié à chaque pas. Sans
-``--stratege``, aucun appel à Luna. La chronique montre gestes, échanges entre PNJ et leur
-issue, décisions du stratège.
+``--stratege``, aucun appel à Luna. Le banc imprime le récit (``recit_pnj``) : buts, gestes,
+besoins de chaque PNJ, échanges entre eux. ``--chronique`` ajoute chaque pas : gestes,
+échanges et leur issue, décisions du stratège.
 """
 import argparse
 from collections import Counter
@@ -52,8 +53,14 @@ def _usurpations(monde):
                if x.get("delegue_a") and _delegue(monde, id, x) and porte_par(monde, x["condition"]["objet"], id))
 
 
-def executer(monde, minutes):
-    """Avance le monde ; renvoie la chronique produite et les mesures du banc."""
+def executer(monde, minutes, recit=None):
+    """Avance le monde ; renvoie la chronique produite et les mesures du banc. Un ``recit``
+    observe chaque PNJ au passage."""
+    if recit is not None:
+        with recit.observer():
+            resultat = executer(monde, minutes)
+        recit.clore(monde)
+        return resultat
     chronique, vue, oisivete, blocage, usurpations = [], monde.data["minutes"], 0, 0, 0
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
@@ -102,7 +109,8 @@ def main(argv=None):
     parser.add_argument("--graine", type=int, default=1985)
     parser.add_argument("--stratege", action="store_true", help="Luna conseille les PNJ (appels plafonnés)")
     parser.add_argument("--connexion", choices=("chatgpt", "api"), default="chatgpt")
-    parser.add_argument("--sortie", help="fichier JSON où écrire chronique et mesures")
+    parser.add_argument("--sortie", help="fichier JSON où écrire chronique, récit et mesures")
+    parser.add_argument("--chronique", action="store_true", help="imprime aussi chaque pas")
     args = parser.parse_args(argv)
     from . import stratege
     stratege.activer(appelant(args.connexion) if args.stratege else None)
@@ -111,11 +119,16 @@ def main(argv=None):
         if args.joueur:
             from .geometrie import position_entree
             monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
-        chronique, mesures = executer(monde, int(args.heures * 60))
+        from .recit_pnj import Recit
+        recit = Recit(monde)
+        chronique, mesures = executer(monde, int(args.heures * 60), recit)
     finally:
         stratege.activer(None)
-    for c in chronique:
-        print(f'[{c["minute"]:>4} min] {c["texte"]}')
+    if args.chronique:
+        for c in chronique:
+            print(f'[{c["minute"]:>4} min] {c["texte"]}')
+        print()
+    print(recit.texte(monde, chronique))
     print()
     for id in pnjs(monde):
         e = lire(monde, id)
@@ -126,7 +139,7 @@ def main(argv=None):
     if args.sortie:
         with open(args.sortie, "w", encoding="utf-8") as f:
             json.dump({"graine": args.graine, "heures": args.heures, "stratege": args.stratege,
-                       "chronique": chronique, "mesures": mesures,
+                       "chronique": chronique, "mesures": mesures, "recit": recit.donnees(monde, chronique),
                        "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)}},
                       f, ensure_ascii=False, indent=1)
     return 0

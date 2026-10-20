@@ -97,8 +97,8 @@ class AbriTests(unittest.TestCase):
         m.objets["lanterne"]["allume"] = False
         m, texte = attendre(recharger(m), 3)
         self.assertEqual(m.objets["ilse"]["lieu"], "antichambre")
-        self.assertTrue(any(t.startswith("Ilse reste près de") for t in chronique(m)))
-        self.assertTrue(any(t.startswith("Ilse reste près de") for t in texte.splitlines()))
+        self.assertTrue(any(t.startswith("Ilse reste près d") for t in chronique(m)))
+        self.assertTrue(any(t.startswith("Ilse reste près d") for t in texte.splitlines()))
         # À l'abri, elle se calme : la lumière et la compagnie l'emportent sur la dérive.
         self.assertLess(lire(m, "ilse")["besoins"]["securite"], 75.0 - 5)
 
