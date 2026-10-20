@@ -27,7 +27,7 @@ class VolTests(unittest.TestCase):
         self.assertEqual((plan.stat, plan.dd, plan.minutes), ("DEX", 12, 3))
         self.assertIn("méfiants", plan.resume(self.m))
         self.assertIn("la trousse", carte(self.m))
-        self.assertIn("sans être remarqué", self.voler(20))
+        self.assertIn("Tu dérobes la trousse", self.voler(20))
         self.assertEqual(self.m.joueur["or"], 24)
         self.assertEqual(self.m.data["finances_pnj"]["marchand"], 50)
         self.assertEqual(self.m.objets["crochets"]["lieu"], "joueur")

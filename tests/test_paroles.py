@@ -143,6 +143,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
         lire(m, "marchand")["besoins"].update(devoir=95, biens=0)
         lire(m, "marchand")["intention"] = None
         m.objets["marchand"].update(lieu="echoppe", position_salle="echoppe", position=[6, 2])
+        regarder(m, "joueur", "marchand")  # On parle à qui l'on perçoit : Corvus se tourne vers lui.
         return m
 
     def test_mensonge_credible_change_son_plan_puis_se_decouvre(self):

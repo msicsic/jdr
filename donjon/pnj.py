@@ -7,8 +7,10 @@ que le pas du joueur, et franchit les portes en les ouvrant. Le chemin est cherc
 qu'il croit des portes ;
 chaque geste est revalidé sur l'état réel et un échec devient une croyance apprise par
 l'essai. Une étape `sans_temoin` attend que le PNJ ne perçoive personne ; les témoins
-réels sont ceux qui le perçoivent. Le moteur annonce ce que le joueur perçoit et tient une
-chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
+réels sont ceux qui voient l'auteur pendant la durée de son geste, joueur compris
+(``data["gestes_en_cours"]``). Tout ce dont dépend la suite est dans ``data`` : le monde ne
+dépend pas du découpage des actions du joueur. Le moteur annonce ce que le joueur perçoit et
+tient une chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 """
 from collections import deque
 
@@ -44,6 +46,15 @@ def verifier(monde):
                                     and 1 <= reaction["seuil"] <= 5), "Réaction de PNJ invalide"
     from .stratege import verifier as verifier_stratege
     verifier_stratege(monde)
+    gestes = monde.data.get("gestes_en_cours", [])
+    personnages = {id for id, o in monde.objets.items() if o["type"] == "personnage"}
+    assert isinstance(gestes, list) and all(
+        isinstance(g, dict) and set(g) == {"auteur", "operation", "objet", "fin", "temoins", "se_sait_vu", "exclus"}
+        and g["auteur"] in personnages | {"joueur"} and isinstance(g["operation"], str)
+        and isinstance(g["objet"], str) and type(g["fin"]) is int and g["fin"] >= 0
+        and all(isinstance(g[k], list) for k in ("temoins", "se_sait_vu", "exclus"))
+        and set(g["se_sait_vu"]) <= set(g["temoins"])
+        and set(g["temoins"]) | set(g["exclus"]) <= personnages for g in gestes), "Gestes en cours invalides"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
             and all(isinstance(c, dict) and set(c) - {"nature"} == {"minute", "pnj", "texte"}
@@ -147,12 +158,33 @@ def temoins_crus(monde, id):
 TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, huit fois 45°
 
 
+def commencer_geste(monde, auteur, operation, objet, fin, exclus=()):
+    """Un geste illicite de ``auteur`` (un PNJ ou le joueur), en cours jusqu'à l'instant ``fin`` :
+    il entre au registre commun, et ceux qui le voient faire en sont témoins dès maintenant.
+    ``exclus`` : ceux qui le regardaient déjà et dont le jet du joueur a tranché le sort ;
+    ``se_sait_vu`` : les témoins que l'auteur a vus le regarder."""
+    geste = {"auteur": auteur, "operation": operation, "objet": objet, "fin": fin, "temoins": [],
+             "se_sait_vu": [], "exclus": sorted(exclus)}
+    monde.data.setdefault("gestes_en_cours", []).append(geste)
+    _temoigner(monde, geste)
+    return geste
+
+
+def finir_gestes(monde, avant, auteur=None):
+    """Les gestes achevés avant l'instant ``avant`` (ou à cet instant, pour un ``auteur`` qui en
+    commence un autre) quittent le registre."""
+    gestes = monde.data.get("gestes_en_cours")
+    if gestes:
+        gestes[:] = [g for g in gestes if not (g["fin"] < avant or g["auteur"] == auteur and g["fin"] <= avant)]
+
+
 def temoigner_en_cours(monde):
     """Ceux qui voient maintenant l'auteur d'un geste illicite qu'il n'a pas fini en sont témoins."""
-    for gestes in list(monde.__dict__.get("_gestes_en_cours", {}).values()):
-        for geste in gestes:
-            if geste[2] in monde.objets:
-                _temoigner(monde, *geste)
+    from .temps import instant
+    finir_gestes(monde, instant(monde))
+    for geste in monde.data.get("gestes_en_cours", []):
+        if geste["objet"] in monde.objets and (geste["auteur"] == "joueur" or geste["auteur"] in monde.objets):
+            _temoigner(monde, geste)
 
 
 def tour_d_horizon(monde, id):
@@ -169,21 +201,22 @@ def tour_d_horizon(monde, id):
             o["orientation"] = orientation
 
 
-def _temoigner(monde, id, operation, objet):
-    """Les PNJ qui perçoivent réellement l'auteur d'un geste illicite s'en souviennent.
+def _temoigner(monde, geste):
+    """Les PNJ qui perçoivent réellement l'auteur d'un geste illicite en cours s'en souviennent.
 
-    Un geste occupe sa minute : appelé de nouveau en fin de minute, il compte aussi ceux qui
-    sont arrivés entre-temps, sans doubler le souvenir des premiers.
+    Appelé tant que le geste dure, il compte aussi ceux qui arrivent ou se retournent
+    entre-temps ; chacun n'en est témoin qu'une fois (``geste["temoins"]``).
     """
     from .deliberation import VOL, relancer
     from .vol import proprietaire
+    id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
     victime = proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
     for autre in pnjs(monde):
-        if autre != id and percoit(monde, autre, id):
-            if any(s["minute"] == monde.data["minutes"] and all(s.get(k) == v for k, v in souvenir.items())
-                   for s in lire(monde, autre)["memoire"]):
-                continue
+        if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
+            geste["temoins"].append(autre)
+            if monde.visible(autre) if id == "joueur" else percoit(monde, id, autre):
+                geste["se_sait_vu"].append(autre)
             memoriser(monde, autre, souvenir)
             croire(monde, autre, id, "fiable", False, "vu")
             from .deliberation import inquieter
@@ -388,7 +421,6 @@ def _executer(monde, id, etape, lignes, gestes):
             _raconter(monde, id, "s'acharne sur la serrure de", c, lignes)
             if faute:
                 gestes.append((id, "forcer", cible))
-                _temoigner(monde, id, "forcer", cible)
             return False
         c["verrouillee"] = False
         croire(monde, id, cible, "verrouillee", False, "essai")
@@ -441,8 +473,7 @@ def _executer(monde, id, etape, lignes, gestes):
         if objet in monde.objets:
             constater(monde, id, objet, "essai")
     if faute:
-        gestes.append((id, op, cible))
-        _temoigner(monde, id, op, cible)
+        gestes.append((id, op, cible))  # Au registre des gestes en cours, avec sa durée (``_avancer``).
     return True
 
 
@@ -527,6 +558,13 @@ def _franchissable(monde, id, porte):
     return not (_verrouillee_crue(monde, id, porte) and _cle_portee(monde, id, porte) is None)
 
 
+def a_pas_feutres(monde, id):
+    """Qui prépare un geste qu'il veut sans témoin marche à pas feutrés : cela se lit dans son
+    intention, sans autre état."""
+    intention = lire(monde, id)["intention"]
+    return bool(intention) and any(x["condition"] == "sans_temoin" for x in intention["plan"])
+
+
 def _marcher(monde, id, arrivee, lignes):
     """Un pas d'une case vers une case libre où ``arrivee(salle, case)``, ou la porte fermée qu'il
     rencontre en chemin ; renvoie la durée du geste, None s'il ne voit aucun passage. On croise
@@ -535,9 +573,7 @@ def _marcher(monde, id, arrivee, lignes):
     from .spatial import trajet
     from .temps import PAS_FEUTRE
     o = monde.objets[id]
-    intention = lire(monde, id)["intention"]
-    feutre = bool(intention) and any(x["condition"] == "sans_temoin" for x in intention["plan"])
-    monde.__dict__.setdefault("_pas_feutres", {})[id] = feutre
+    feutre = a_pas_feutres(monde, id)
     chemin_ = trajet(monde, o["lieu"], tuple(o["position"]),
                      lambda salle, case: arrivee(salle, case) and not _occupee(monde, id, salle, case),
                      franchissable=lambda porte: _franchissable(monde, id, porte))
@@ -752,13 +788,13 @@ def agir(monde, id, t, lignes, gestes=None):
     if etape["condition"] == "sans_temoin" and not desespere(monde, id):
         if en_cases and "orientation" in o:
             # Avant un geste qu'il veut sans témoin, il regarde tout autour de lui ; il n'agit
-            # qu'au geste suivant, si personne ne l'a vu entre-temps.
-            balayages = monde.__dict__.setdefault("_balayages", {})
-            ici = (o["lieu"], tuple(o["position"]))
-            dernier = balayages.get(id)
+            # qu'au geste suivant, si personne ne l'a vu entre-temps. Son dernier tour d'horizon
+            # est dans son esprit : il ne dépend pas du découpage des actions du joueur.
+            ici = {"salle": o["lieu"], "case": list(o["position"])}
+            dernier = e["balayage"]
             observe = None
-            if not dernier or dernier[0] != ici or t - dernier[1] > 2 * TOUR:
-                balayages[id] = (ici, t)
+            if not dernier or {k: dernier[k] for k in ici} != ici or t - dernier["instant"] > 2 * TOUR:
+                e["balayage"] = {**ici, "instant": t}
                 observe = bool(tour_d_horizon(monde, id))
                 if not observe:
                     return TOUR
@@ -822,9 +858,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
     ids = pnjs(monde)
     vus = {id: monde.visible(id) for id in ids}
     apparus = []
-    # Les gestes illicites en cours : quiconque voit leur auteur avant qu'il ait fini en est témoin.
-    temoignages = monde.__dict__.setdefault("_gestes_en_cours", {})
-    temoignages.clear()
+    # Les gestes illicites en cours (``data["gestes_en_cours"]``, joueur compris) : quiconque voit
+    # leur auteur avant qu'il ait fini en est témoin, même d'une action du joueur à l'autre.
+    finir_gestes(monde, debut)
     libre = {id: max(debut, esprit(monde, id)["libre"]) for id in ids}
     t = debut
     while True:
@@ -849,8 +885,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
         for id in ids:
             if libre[id] != t:
                 continue
-            # Ceux qui l'ont vu pendant son geste précédent s'en souviennent aussi.
-            temoignages.pop(id, None)
+            # Son geste précédent est fini : ceux qui l'ont vu jusque-là s'en souviennent.
+            finir_gestes(monde, t, id)
             intention = lire(monde, id)["intention"]
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
@@ -859,11 +895,12 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 gestes = []
                 avant = (monde.objets[id]["lieu"], list(monde.objets[id].get("position", [])))
                 duree = agir(monde, id, t, lignes, gestes)
-                temoignages[id] = gestes
+                for _, operation, objet in gestes:
+                    commencer_geste(monde, id, operation, objet, t + max(1, duree))
                 percevoir(monde, id)
                 if gestes or avant != (monde.objets[id]["lieu"], monde.objets[id].get("position", [])):
                     # Un pas, un geste font du bruit : qui l'entend de près sans le voir se retourne.
-                    feutre = not gestes and monde.__dict__.get("_pas_feutres", {}).pop(id, False)
+                    feutre = not gestes and a_pas_feutres(monde, id)
                     alerter(monde, id, t, libre, OUIE_FEUTRE if feutre else OUIE)
                 temoigner_en_cours(monde)
                 _annoncer_presences(monde, vus, apparus, lignes)
@@ -871,9 +908,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 duree = _jusqu_a_la_minute(t)
             libre[id] = t + max(1, duree)
     temoigner_en_cours(monde)
-    temoignages.clear()
     for id in ids:
         esprit(monde, id)["libre"] = libre[id]
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
+    finir_gestes(monde, fin)  # Ceux qui durent encore attendent l'action suivante du joueur.
     _annoncer_presences(monde, vus, apparus, lignes)
     return apparus

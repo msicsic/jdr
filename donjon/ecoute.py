@@ -1,11 +1,12 @@
 """Ce que le joueur entend des PNJ : pas, gestes, voix, appels, propagés de salle en salle.
 
-Chaque geste ou parole d'un PNJ laisse un bruit daté dans ``data["bruits"]``, avec sa salle
-d'origine et une intensité (pas et gestes 1, voix 2, appel 3). Il se propage comme les autres
-sons (``sons.liens`` : une ouverture coûte 1, une porte fermée 2). Le joueur entend de
-lui-même ce qui lui parvient au niveau 2 ou plus ; en écoutant, jusqu'au niveau 1, et un cran
-de mieux collé à une porte. Une parole n'est rendue en clair que si elle est nette (niveau 2)
-et ne nomme que ce qu'il connaît ; sinon il entend « des voix ».
+Chaque geste ou parole d'un PNJ laisse un bruit daté à l'instant (dixièmes de seconde) dans
+``data["bruits"]``, avec sa salle d'origine et une intensité (pas et gestes 1, voix 2, appel 3).
+Il se propage comme les autres sons (``sons.liens`` : une ouverture coûte 1, une porte fermée
+2). Le joueur entend de lui-même ce qui lui parvient au niveau 2 ou plus ; en écoutant,
+jusqu'au niveau 1, et un cran de mieux collé à une porte. Une parole n'est rendue en clair que
+si elle est nette (niveau 2) et ne nomme que ce qu'il connaît ; sinon il entend « des voix ».
+Ceux qu'il a entendus pendant son dernier geste sont retenus (``data["entendus"]``).
 """
 import heapq
 
@@ -21,8 +22,9 @@ def bruit(monde, id, nature, texte="", cites=()):
     salle = monde.objets[id]["lieu"]
     if salle not in monde.data["salles"]:
         return
+    from .temps import instant
     bruits = monde.data.setdefault("bruits", [])
-    bruits.append({"minute": monde.data["minutes"], "pnj": id, "salle": salle, "nature": nature,
+    bruits.append({"instant": instant(monde), "pnj": id, "salle": salle, "nature": nature,
                    "intensite": INTENSITES[nature], "texte": texte, "cites": [c for c in cites if c]})
     del bruits[:-BRUITS_MAX]
 
@@ -73,13 +75,15 @@ def au_contact_d_une_porte(monde):
 
 
 def entendus(monde, depuis, seuil):
-    """Bruits survenus après la minute ``depuis`` qui parviennent au joueur au moins à ``seuil``,
-    hors de ce qu'il voit déjà : [(bruit, niveau, direction)]."""
+    """Bruits survenus après l'instant ``depuis`` (en dixièmes de seconde : le début du geste du
+    joueur) qui lui parviennent au moins à ``seuil``, hors de ce qu'il voit déjà :
+    [(bruit, niveau, direction)]. Le monde a traité jusqu'à cet instant compris pendant le geste
+    précédent, et ce qu'il a fait entendre l'a été alors."""
     couts, par = _chemins(monde)
     bonus = 1 if seuil == ECOUTE and au_contact_d_une_porte(monde) else 0
     resultat = []
     for b in monde.data.get("bruits", []):
-        if b["minute"] <= depuis or b["salle"] not in couts or b["pnj"] not in monde.objets:
+        if b["instant"] <= depuis or b["salle"] not in couts or b["pnj"] not in monde.objets:
             continue
         if b["salle"] == monde.joueur["salle"] and monde.visible(b["pnj"]):
             continue  # Il le voit faire : les lignes du geste le disent déjà.
@@ -127,4 +131,15 @@ def verifier(monde):
     bruits = monde.data.get("bruits", [])
     assert isinstance(bruits, list) and len(bruits) <= BRUITS_MAX and all(
         isinstance(b, dict) and b.get("nature") in INTENSITES and b.get("salle") in monde.data["salles"]
-        and type(b.get("minute")) is int and isinstance(b.get("cites"), list) for b in bruits), "Bruits invalides"
+        and type(b.get("instant")) is int and b["instant"] >= 0 and isinstance(b.get("cites"), list)
+        for b in bruits), "Bruits invalides"
+    entendus_ = monde.data.get("entendus", [])
+    assert isinstance(entendus_, list) and all(
+        id in monde.objets and monde.objets[id]["type"] == "personnage" for id in entendus_), "Bruits entendus invalides"
+
+
+def retenir(monde, entendus_):
+    """Ceux dont un bruit est parvenu au joueur pendant son geste : il les sait là, même sans les
+    voir (``dialogues.interlocuteurs``)."""
+    retenus = monde.data.setdefault("entendus", [])
+    retenus.extend(sorted({b["pnj"] for b, _, _ in entendus_} - set(retenus)))

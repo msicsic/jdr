@@ -28,7 +28,9 @@ def installer(monde):
 
 def interlocuteurs(monde):
     # Une voix porte dans la même pièce ; elle ne traverse pas automatiquement les sorties. On parle
-    # à qui l'on voit, ou à qui se tient assez près pour entendre, même dans son dos.
+    # à qui l'on perçoit : qu'on voit, ou qu'on vient d'entendre (un bruit parvenu au joueur pendant
+    # son dernier geste, ``ecoute.retenir``) et qui se tient assez près pour entendre la réponse.
+    # Qui se tait dans son dos ou dans le noir n'est pas là pour lui, ni pour le MJ.
     from .pnj import de_pres
     return {id: {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
                  "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
@@ -39,7 +41,7 @@ def interlocuteurs(monde):
                  "humeur": o.get("humeur", "non précisée")}
             for id, o in monde.objets.items()
             if o["type"] == "personnage" and monde.present_physique(id)
-            and (not monde.data.get("mode_cases") or monde.visible(id) or de_pres(monde, id, "joueur"))}
+            and (monde.visible(id) or id in monde.data.get("entendus", []) and de_pres(monde, id, "joueur"))}
 
 
 def contrats_publics(monde):
