@@ -85,7 +85,7 @@ class DestinataireTests(unittest.TestCase):
         self.assertEqual(vues(reprise, "aubin")[-1], {"de": "Corvus", "a": ["Ilse"], "mots": mots})
 
     def test_deux_a_egalite_le_joueur_precise(self):
-        m = scene(aubin=(0, 4))
+        m = scene(aubin=(1, 4))  # Tous deux sous ses yeux, à la même distance réelle.
         reprise, sortie, appels = jouer(m, "je dis : pouvez-vous m'aider ?", [
             parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse")])
         self.assertEqual(len(appels), 1)
@@ -243,8 +243,7 @@ class AveuTests(unittest.TestCase):
         self.assertIn("joueur", [s["de"] for s in lire(reprise, "brune")["memoire"] if s["type"] == "rumeur"])
         croire(reprise, "aubin", "ilse", "fiable", False, "vu")   # Placement d'auteur : à Gorm, pas à Ilse.
         with patch.object(Monde, "d20", return_value=20):
-            # Brune, la première à qui il se confierait, le sait déjà : la minute suivante, Gorm.
-            self.assertFalse(bavarder(reprise, "aubin", []))
+            # Brune le sait déjà et se tient trop loin pour une confidence : il le confie à Gorm.
             self.assertTrue(bavarder(reprise, "aubin", []))
         reprise = recharger(reprise)
         gorm = lire(reprise, "marchand")

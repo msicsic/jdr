@@ -258,7 +258,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
   confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 836 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
