@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Seuil</title>
+<style>
+  :root {
+    --fond: #121614; --panneau: #1a201d; --bord: #2c3531; --texte: #dfe6e1; --doux: #93a39a;
+    --eclaire: #35503f; --eclaire2: #3a5745; --penombre: #22392f; --penombre2: #253d33;
+    --memorise: #2a2e2c; --memorise2: #2d3230;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  header { padding: 7px 14px; border-bottom: 1px solid var(--bord); display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; letter-spacing: .5px; }
+  header .etat { color: var(--doux); }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: minmax(0, 1fr) minmax(170px, 34vh);
+         gap: 10px; padding: 10px; height: calc(100% - 40px); }
+  #carte-cadre { background: #0b0d0c; border: 1px solid var(--bord); border-radius: 6px; overflow: auto; outline: none; }
+  #carte-cadre:focus { border-color: #5a6b62; }
+  canvas { display: block; }
+  #carte-texte { margin: 10px; white-space: pre; font: 13px/1.25 Consolas, monospace; }
+  #infobulle { position: fixed; pointer-events: none; background: #0e1210ee; border: 1px solid #44514a; border-radius: 6px;
+               padding: 6px 9px; max-width: 300px; display: none; font-size: 13px; z-index: 5; }
+  #infobulle b { color: #fff; }
+  .gris { color: var(--doux); }
+  aside { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 10px 12px; overflow: auto; grid-row: 1 / 3; grid-column: 2; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--doux); margin: 6px 0 6px; }
+  aside ul { list-style: none; padding: 0; margin: 0 0 12px; }
+  aside li { display: flex; gap: 8px; align-items: center; padding: 3px 4px; border-radius: 4px; }
+  aside li:hover { background: #2a332e; }
+  aside li .pastille { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  aside li .icone { width: 18px; text-align: center; flex: none; }
+  aside li .sous { color: var(--doux); font-size: 12px; }
+  aside li.souvenir { opacity: .55; }
+  aside label { display: flex; gap: 6px; align-items: center; color: var(--doux); margin-top: 3px; }
+  #fiche { white-space: pre-wrap; font-size: 13px; color: #cfd8d2; }
+  #recit { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 8px 12px;
+           display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+  #journal { flex: 1; overflow: auto; min-height: 0; }
+  #journal p { margin: 3px 0; white-space: pre-wrap; }
+  #journal .moi { color: #ddc694; }
+  #proposition { display: none; border: 1px solid #5a5233; background: #26241a; border-radius: 6px; padding: 6px 9px; }
+  #proposition pre { margin: 0 0 6px; white-space: pre-wrap; font: inherit; }
+  #saisie { display: flex; gap: 8px; }
+  #saisie input { flex: 1; background: #0f1311; color: var(--texte); border: 1px solid #3a4540; border-radius: 4px; padding: 7px 9px; font: inherit; }
+  button { background: #2d3a33; color: var(--texte); border: 1px solid #3f4d46; border-radius: 4px; padding: 5px 12px; font: inherit; cursor: pointer; }
+  button.principal { background: #3d5a49; border-color: #57806a; }
+  button:disabled, input:disabled { opacity: .5; cursor: default; }
+  .aide { color: var(--doux); font-size: 12px; }
+  #statut { font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Le Seuil</h1>
+  <span class="etat" id="lieu"></span>
+  <span class="etat" id="compteurs"></span>
+  <span class="etat" id="statut">connexion…</span>
+</header>
+<main>
+  <div id="carte-cadre" tabindex="0"><canvas id="carte"></canvas><div id="carte-texte" hidden></div></div>
+  <aside>
+    <h2>Autour de toi</h2>
+    <ul id="personnes"></ul>
+    <h2>Objets en vue</h2>
+    <ul id="objets"></ul>
+    <h2>Souvenirs</h2>
+    <ul id="souvenirs"></ul>
+    <h2>Affichage</h2>
+    <label><input type="checkbox" id="cones"> cônes de vision des personnages</label>
+    <label><input type="checkbox" id="noms" checked> noms des personnages</label>
+    <h2>Personnage</h2>
+    <div id="fiche"></div>
+  </aside>
+  <section id="recit">
+    <div id="journal"></div>
+    <div id="proposition"><pre id="proposition-texte"></pre>
+      <button class="principal" id="tenter">Lancer la tentative</button> <button id="annuler">Tout annuler</button></div>
+    <div id="saisie"><input id="commande" autocomplete="off" placeholder="Que fais-tu ?"><button id="envoyer">Envoyer</button></div>
+    <div class="aide">Flèches : marcher (saisie vide ou carte active) · Maj+flèches : pas chassé · Alt+flèches : pas feutré ·
+      « tourner est », « demi-tour » · Haut/Bas dans une saisie : historique · « aide » : commandes</div>
+  </section>
+</main>
+<div id="infobulle"></div>
+<script>
+"use strict";
+const CS = 40;            // pixels par case (1 m)
+const PALETTE = ["#e07a5f", "#7fb8a4", "#c9a0dc", "#7aa6d6", "#e8b84a", "#d68b8b", "#9bc36b"];
+const ICONES = {cle: "🔑", outil: "🔧", nourriture: "🍞", consommable: "🪵", contenant: "📦", tresor: "🔔",
+                motif: "📜", assemblage: "🪜", materiau: "🧱", meuble: "🪨", surface: "⤴️"};
+const NOMS_TYPE = {cle: "clé", outil: "outil", nourriture: "nourriture", consommable: "consommable", contenant: "contenant",
+                   tresor: "objet précieux", motif: "inscription", assemblage: "assemblage", materiau: "matériau",
+                   meuble: "obstacle", surface: "rebord", luminaire: "source de lumière", personnage: "personnage"};
+const SYMBOLES_SOUVENIR = {"*": "🔥", "t": "🕯️", "!": "📜", "O": "🪨", "k": "🔑", "c": "📦", "o": "🔔", "&": "🧰", "H": "🪜", "b": "🧱"};
+const DIRS = {"nord": [0, -1], "sud": [0, 1], "est": [1, 0], "ouest": [-1, 0], "nord-est": [1, -1], "nord-ouest": [-1, -1],
+              "sud-est": [1, 1], "sud-ouest": [-1, 1]};
+const ETATS_PORTE = {ouverte: "ouverte", fermee: "fermée", verrouillee: "verrouillée", liberee: "passage libéré"};
+const $ = id => document.getElementById(id);
+const canvas = $("carte"), ctx = canvas.getContext("2d");
+let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
+const parCase = {};
+let occupe = true, historique = [], indice = 0, brouillon = "";
+
+function echapper(t) { return String(t).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
+function icone(o) { if (o.type === "luminaire") return o.foyer ? "🔥" : "🕯️"; return ICONES[o.type] || "❔"; }
+function court(nom) { return nom.split(",")[0]; }
+function cle(p) { return p[0] + "," + p[1]; }
+
+// --- Carte ---------------------------------------------------------------------------------
+function preparer(s) {
+  scene = s;
+  if (!s) { niveau = null; return; }
+  niveau = s.niveaux.find(n => n.niveau === s.joueur.niveau) || s.niveaux[0];
+  personnes = niveau.objets.filter(o => o.type === "personnage");
+  const ids = [...new Set(s.niveaux.flatMap(n => [...n.objets.filter(o => o.type === "personnage").map(o => o.id),
+                                                 ...n.souvenirs.filter(x => x.personnage).map(x => x.id)]))].sort();
+  ids.forEach((id, i) => couleur[id] = couleur[id] || PALETTE[Object.keys(couleur).length % PALETTE.length]);
+  const pts = [];
+  niveau.salles.forEach(x => x.cases.forEach(c => pts.push(c.globale)));
+  niveau.murs.forEach(m => pts.push(m.globale));
+  niveau.sorties.forEach(x => pts.push(x.globale));
+  if (s.joueur.globale) pts.push(s.joueur.globale);
+  bornes = {xmin: Math.min(...pts.map(p => p[0])) - 1, ymin: Math.min(...pts.map(p => p[1])) - 1,
+            xmax: Math.max(...pts.map(p => p[0])) + 1, ymax: Math.max(...pts.map(p => p[1])) + 1};
+  const dpr = window.devicePixelRatio || 1, W = (bornes.xmax - bornes.xmin + 1) * CS, H = (bornes.ymax - bornes.ymin + 1) * CS;
+  canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+const X = gx => (gx - bornes.xmin) * CS, Y = gy => (gy - bornes.ymin) * CS;
+function noter(p, chose) { (parCase[cle(p)] = parCase[cle(p)] || []).push(chose); }
+function texteIcone(t, x, y) { ctx.fillStyle = "#000"; ctx.fillText(t, x, y); }  // un emoji prend l'opacité du remplissage
+function iconeSouvenir(s) {
+  const o = niveau.objets.find(x => x.id === s.id);
+  return o ? icone(o) : (SYMBOLES_SOUVENIR[s.symbole] || "❔");
+}
+function fleche(cx, cy, r, orientation, teinte) {
+  const d = DIRS[orientation]; if (!d) return;
+  const a = Math.atan2(d[1], d[0]);
+  ctx.fillStyle = teinte; ctx.beginPath();
+  ctx.moveTo(cx + Math.cos(a) * (r + 7), cy + Math.sin(a) * (r + 7));
+  ctx.lineTo(cx + Math.cos(a + 2.5) * r * .55, cy + Math.sin(a + 2.5) * r * .55);
+  ctx.lineTo(cx + Math.cos(a - 2.5) * r * .55, cy + Math.sin(a - 2.5) * r * .55);
+  ctx.closePath(); ctx.fill();
+}
+function cone(gx, gy, orientation, teinte, portee) {
+  const d = DIRS[orientation]; if (!d) return;
+  const a = Math.atan2(d[1], d[0]), cx = X(gx) + CS / 2, cy = Y(gy) + CS / 2;
+  ctx.fillStyle = teinte; ctx.beginPath(); ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, portee * CS, a - Math.PI / 3, a + Math.PI / 3); ctx.closePath(); ctx.fill();
+}
+function dessiner() {
+  for (const k in parCase) delete parCase[k];
+  if (!niveau) return;
+  const styles = getComputedStyle(document.documentElement);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  // Le sol : sa couleur dit la lumière (éclairé, pénombre) ou le souvenir.
+  niveau.salles.forEach(s => s.cases.forEach(c => {
+    const alt = (c.globale[0] + c.globale[1]) % 2 ? "2" : "";
+    ctx.fillStyle = styles.getPropertyValue({eclaire: "--eclaire", penombre: "--penombre", memorise: "--memorise"}[c.etat] + alt);
+    ctx.fillRect(X(c.globale[0]), Y(c.globale[1]), CS, CS);
+  }));
+  niveau.murs.forEach(m => { ctx.fillStyle = "#5c6862"; ctx.fillRect(X(m.globale[0]) + 1, Y(m.globale[1]) + 1, CS - 2, CS - 2); });
+  niveau.sorties.forEach(s => {
+    const x = X(s.globale[0]), y = Y(s.globale[1]);
+    ctx.fillStyle = "#2a2f2c"; ctx.fillRect(x, y, CS, CS);
+    const vers = `<br><span class=gris>vers ${echapper(s.vers_nom || "inexploré")}</span>`;
+    if (s.porte) {
+      ctx.globalAlpha = s.porte.souvenir ? .5 : 1;
+      ctx.strokeStyle = {ouverte: "#6fbf8e", fermee: "#c99a5b", verrouillee: "#d16060", liberee: "#8a8a8a"}[s.porte.etat];
+      ctx.lineWidth = 4; ctx.strokeRect(x + 5, y + 5, CS - 10, CS - 10);
+      if (s.porte.etat === "verrouillee") { ctx.font = "16px serif"; texteIcone("🔒", x + CS / 2, y + CS / 2 + 6); }
+      ctx.globalAlpha = 1;
+      noter(s.globale, `<b>${echapper(s.porte.nom)}</b><br>${ETATS_PORTE[s.porte.etat]}` + (s.porte.souvenir ? " <span class=gris>(dernier aperçu)</span>" : "") + vers);
+    } else if (s.escalier) {
+      ctx.font = "20px serif"; texteIcone(s.escalier === "monte" ? "⬆️" : "⬇️", x + CS / 2, y + CS / 2 + 7);
+      noter(s.globale, `<b>escalier ${s.escalier === "monte" ? "montant" : "descendant"}</b>` + vers);
+    } else {
+      noter(s.globale, "<b>passage</b>" + vers);
+    }
+  });
+  niveau.salles.forEach(s => {
+    if (!s.cases.length || !s.connue) return;
+    const mx = s.cases.reduce((a, c) => a + c.globale[0], 0) / s.cases.length, my = s.cases.reduce((a, c) => a + c.globale[1], 0) / s.cases.length;
+    ctx.font = "600 13px system-ui"; ctx.fillStyle = "rgba(230,240,235,.28)";
+    ctx.fillText(s.nom.toUpperCase(), X(mx) + CS / 2, Y(my) + CS / 2);
+  });
+  const j = scene.joueur;
+  if (j.globale && j.niveau === niveau.niveau) cone(j.globale[0], j.globale[1], j.orientation, "rgba(255,209,102,.10)", 8);
+  if ($("cones").checked) personnes.forEach(p => cone(p.globale[0], p.globale[1], p.orientation, couleur[p.id] + "22", 6));
+  niveau.souvenirs.forEach(s => {
+    const x = X(s.globale[0]), y = Y(s.globale[1]);
+    ctx.globalAlpha = .4;
+    if (s.personnage) {
+      ctx.setLineDash([3, 3]); ctx.strokeStyle = couleur[s.id]; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x + CS / 2, y + CS / 2, CS * .32, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    } else {
+      ctx.font = (s.ancre_mur ? 15 : 20) + "px serif"; texteIcone(iconeSouvenir(s), x + CS / 2, y + CS / 2 + 7);
+    }
+    ctx.globalAlpha = 1;
+    noter(s.globale, `<b>${echapper(s.nom)}</b><br><span class=gris>vu ici ; présence actuelle non confirmée</span>`);
+  });
+  const groupes = {};
+  niveau.objets.filter(o => o.type !== "personnage").forEach(o => (groupes[cle(o.globale)] = groupes[cle(o.globale)] || []).push(o));
+  Object.values(groupes).forEach(g => {
+    const o = g[0], x = X(o.globale[0]), y = Y(o.globale[1]);
+    const surPersonne = personnes.some(p => cle(p.globale) === cle(o.globale)) || (j.globale && cle(j.globale) === cle(o.globale));
+    if (g.length === 1) {
+      ctx.font = (o.ancre_mur ? 17 : surPersonne ? 15 : 22) + "px serif";
+      texteIcone(icone(o), x + CS / 2 + (surPersonne ? CS * .28 : 0), y + CS / 2 + 8 - (surPersonne ? CS * .26 : 0));
+    } else {
+      // Une pile : chaque objet en petit ; le liseré la signale sans couvrir la couleur de la lumière.
+      const montres = g.length > 4 ? g.slice(0, 3) : g;
+      const places = montres.length === 2 ? [[.27, .5], [.73, .5]] : [[.27, .29], [.73, .29], [.27, .73], [.73, .73]];
+      ctx.strokeStyle = "rgba(233,210,122,.75)"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 2.5, y + 2.5, CS - 5, CS - 5);
+      ctx.font = "17px serif";
+      montres.forEach((m, i) => texteIcone(icone(m), x + CS * places[i][0], y + CS * places[i][1] + 6));
+      if (g.length > 4) { ctx.fillStyle = "#e9d27a"; ctx.font = "bold 11px system-ui"; ctx.fillText("+" + (g.length - 3), x + CS * .73, y + CS * .73 + 4); }
+    }
+    if (g.some(m => m.ancre_mur)) { ctx.setLineDash([2, 3]); ctx.strokeStyle = "#aab"; ctx.lineWidth = 1; ctx.strokeRect(x + 3, y + 3, CS - 6, CS - 6); ctx.setLineDash([]); }
+    g.forEach(m => noter(m.globale, `${icone(m)} <b>${echapper(m.nom)}</b><br><span class=gris>${NOMS_TYPE[m.type] || m.type}` +
+      (m.allume ? (m.faible ? ", allumé, il baisse" : ", allumé") : "") + (m.ancre_mur ? ", fixé au mur" : "") + (m.aux_pieds ? ", à tes pieds" : "") + "</span>"));
+  });
+  personnes.forEach(p => {
+    const cx = X(p.globale[0]) + CS / 2, cy = Y(p.globale[1]) + CS / 2, r = CS * .32;
+    ctx.fillStyle = couleur[p.id]; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill();
+    fleche(cx, cy, r, p.orientation, "#fff");
+    (p.porte || []).forEach((x, i) => { ctx.font = "13px serif"; texteIcone(icone(x), cx - r + 2 + i * 12, cy + r + 2); });
+    if ($("noms").checked) {
+      ctx.font = "600 12px system-ui";
+      const n = court(p.nom), w = ctx.measureText(n).width + 8;
+      ctx.fillStyle = "rgba(10,12,11,.75)"; ctx.fillRect(cx - w / 2, cy - r - 19, w, 15);
+      ctx.fillStyle = couleur[p.id]; ctx.fillText(n, cx, cy - r - 8);
+    }
+    noter(p.globale, `<span style="color:${couleur[p.id]}">●</span> <b>${echapper(p.nom)}</b><br><span class=gris>regarde vers le ${p.orientation}` +
+      ((p.porte || []).length ? "<br>tient : " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span>");
+  });
+  if (j.globale && j.niveau === niveau.niveau) {
+    const cx = X(j.globale[0]) + CS / 2, cy = Y(j.globale[1]) + CS / 2, r = CS * .34;
+    ctx.fillStyle = "#ffd166"; ctx.strokeStyle = "#5a4310"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    fleche(cx, cy, r, j.orientation, "#3b2a05");
+    noter(j.globale, `<b>Toi</b><br><span class=gris>tu regardes vers le ${j.orientation}</span>`);
+  }
+  if (surligne) {
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.arc(X(surligne[0]) + CS / 2, Y(surligne[1]) + CS / 2, CS * .55, 0, 2 * Math.PI); ctx.stroke();
+  }
+}
+function listes() {
+  for (const id of ["personnes", "objets", "souvenirs"]) $(id).innerHTML = "";
+  if (!niveau) return;
+  const ligne = (liste, html, globale, classe) => {
+    const li = document.createElement("li"); li.innerHTML = html; if (classe) li.className = classe;
+    li.onmouseenter = () => { surligne = globale; dessiner(); };
+    li.onmouseleave = () => { surligne = null; dessiner(); };
+    $(liste).appendChild(li);
+  };
+  personnes.forEach(p => ligne("personnes", `<span class="pastille" style="background:${couleur[p.id]}"></span><span>${echapper(p.nom)}<br><span class="sous">regarde vers le ${p.orientation}` +
+    ((p.porte || []).length ? " · tient " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span></span>", p.globale));
+  if (!personnes.length) ligne("personnes", "<span class=sous>personne en vue</span>", null);
+  niveau.objets.filter(o => o.type !== "personnage").forEach(o => ligne("objets", `<span class="icone">${icone(o)}</span><span>${echapper(o.nom)}<br><span class="sous">${NOMS_TYPE[o.type] || o.type}${o.allume ? ", allumé" : ""}${o.ancre_mur ? ", au mur" : ""}${o.aux_pieds ? ", à tes pieds" : ""}</span></span>`, o.globale));
+  niveau.souvenirs.forEach(s => ligne("souvenirs", s.personnage
+    ? `<span class="pastille" style="background:${couleur[s.id]}"></span><span>${echapper(s.nom)}</span>`
+    : `<span class="icone">${iconeSouvenir(s)}</span><span>${echapper(s.nom)}</span>`, s.globale, "souvenir"));
+}
+
+// --- Récit, état, commandes ---------------------------------------------------------------
+function ajouterLigne(texte) {
+  const journal = $("journal"), suivre = journal.scrollTop + journal.clientHeight >= journal.scrollHeight - 30;
+  const p = document.createElement("p"); p.textContent = texte;
+  if (texte.startsWith("Corvus > ")) p.className = "moi";
+  journal.appendChild(p);
+  while (journal.children.length > 500) journal.removeChild(journal.firstChild);
+  if (suivre) journal.scrollTop = journal.scrollHeight;
+}
+function appliquerEtat(e) {
+  $("lieu").textContent = e.salle;
+  $("compteurs").textContent = `PV ${e.pv} · ${e.or} pièces · ${e.minutes} min · MJ : ${e.connexion}`;
+  $("fiche").textContent = e.fiche;
+  $("proposition").style.display = e.proposition ? "block" : "none";
+  $("proposition-texte").textContent = e.proposition;
+  if (e.scene) {
+    $("carte-texte").hidden = true; canvas.hidden = false;
+    preparer(e.scene); dessiner(); listes();
+  } else {
+    canvas.hidden = true; $("carte-texte").hidden = false; $("carte-texte").textContent = e.carte_texte;
+    preparer(null); listes();
+  }
+}
+function etatOccupe(oui) {
+  occupe = oui;
+  $("commande").disabled = oui; $("envoyer").disabled = oui; $("tenter").disabled = oui; $("annuler").disabled = oui;
+  $("statut").textContent = oui ? "En cours…" : "À toi de jouer";
+  if (!oui && document.activeElement !== $("carte-cadre")) $("commande").focus();
+}
+async function envoyer(texte, historiser = true) {
+  texte = texte.trim();
+  if (!texte || occupe) return;
+  if (historiser) { historique.push(texte); historique = historique.slice(-100); indice = historique.length; brouillon = ""; }
+  etatOccupe(true);
+  try {
+    const r = await fetch("/commande", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({texte})});
+    if (r.status === 409) $("statut").textContent = "Attends la fin de l'action en cours.";
+  } catch (err) { $("statut").textContent = "Le jeu ne répond plus."; }
+}
+const flux = new EventSource("/flux");
+flux.onmessage = m => {
+  const e = JSON.parse(m.data);
+  if (e.type === "ligne") ajouterLigne(e.texte);
+  else if (e.type === "etat") appliquerEtat(e);
+  else if (e.type === "pret") etatOccupe(false);
+  else if (e.type === "occupe") etatOccupe(true);
+};
+flux.onerror = () => { $("statut").textContent = "Partie terminée ou interrompue."; etatOccupe(true); };
+
+$("envoyer").onclick = () => { envoyer($("commande").value); $("commande").value = ""; };
+$("tenter").onclick = () => envoyer("tenter");
+$("annuler").onclick = () => envoyer("annuler");
+$("cones").onchange = dessiner;
+$("noms").onchange = dessiner;
+const FLECHES = {ArrowUp: "nord", ArrowDown: "sud", ArrowRight: "est", ArrowLeft: "ouest"};
+document.addEventListener("keydown", ev => {
+  const saisie = $("commande"), dansSaisie = document.activeElement === saisie;
+  if (dansSaisie && ev.key === "Enter") { envoyer(saisie.value); saisie.value = ""; ev.preventDefault(); return; }
+  const dir = FLECHES[ev.key];
+  if (!dir) return;
+  // Haut/Bas dans une saisie non vide : l'historique, comme au terminal.
+  if (dansSaisie && saisie.value && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && !ev.shiftKey && !ev.altKey) {
+    if (indice === historique.length) brouillon = saisie.value;
+    indice = Math.max(0, Math.min(historique.length, indice + (ev.key === "ArrowUp" ? -1 : 1)));
+    saisie.value = indice < historique.length ? historique[indice] : brouillon;
+    ev.preventDefault(); return;
+  }
+  if (dansSaisie && saisie.value) return;
+  ev.preventDefault();
+  envoyer((ev.altKey ? "faufiler " : ev.shiftKey ? "chasse " : "pas ") + dir, false);
+});
+const bulle = $("infobulle");
+canvas.addEventListener("mousemove", e => {
+  if (!bornes) return;
+  const r = canvas.getBoundingClientRect();
+  const gx = Math.floor((e.clientX - r.left) / CS) + bornes.xmin, gy = Math.floor((e.clientY - r.top) / CS) + bornes.ymin;
+  const choses = parCase[gx + "," + gy];
+  if (!choses) { bulle.style.display = "none"; return; }
+  bulle.innerHTML = [...new Set(choses)].join("<hr style='border:0;border-top:1px solid #333;margin:5px 0'>");
+  bulle.style.display = "block"; bulle.style.left = (e.clientX + 14) + "px"; bulle.style.top = (e.clientY + 14) + "px";
+});
+canvas.addEventListener("mouseleave", () => bulle.style.display = "none");
+</script>
+</body>
+</html>
