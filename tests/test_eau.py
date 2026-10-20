@@ -166,6 +166,8 @@ class JoueurTests(unittest.TestCase):
     def test_une_salle_noyee_ne_se_traverse_plus(self):
         m, _ = attendre(crue(FIXES), 140)
         m.joueur.update(salle="antichambre", position=[0, 3], orientation="ouest")
+        from donjon.pnj import ecarter
+        ecarter(m)  # Placement d'auteur : qui se tenait sur ce seuil s'écarte.
         self.assertIn("ouest (inexploré, eau trop haute pour passer)", regarder(m))
         with self.assertRaises(ErreurMonde) as refus:
             Moteur(m).preparer(proposition("marcher", "ouest"))

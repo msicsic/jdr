@@ -294,5 +294,29 @@ class CourageTests(unittest.TestCase):
         self.assertIn(("brune", "reserve"), vu_agir(m, "aubin"))
 
 
+class CroyanceEntendueTests(unittest.TestCase):
+    """Révélé par l'ouïe à l'auberge : entendre quelqu'un dans le noir entretient la croyance qu'il
+    est là ; un geste social vers lui qui reste sans réponse doit la corriger, comme tout geste
+    manqué, sans quoi le PNJ le redemande sans fin."""
+
+    def test_demander_a_qui_n_est_pas_la_corrige_la_croyance(self):
+        m = refusee(calme(relais(), "marchand", "brune", "ilse", "aubin"), id="ilse")
+        for n, id in enumerate(("ilse", "aubin")):
+            placer(m, id, "crypte", (2 + n, 3))
+        placer(m, "marchand", "crypte", (5, 3))
+        placer(m, "brune", "antichambre", (6, 1))
+        # Brune croit Gorm près d'elle au refuge, entendu à l'instant ; il est aux vannes.
+        croire(m, "brune", "marchand", "lieu", "antichambre", "entendu", salle="antichambre", case=[7, 1])
+        lire(m, "brune")["besoins"]["faim"] = 80.0
+        intention(m, "brune", {"operation": "demander", "cible": "marchand", "outil": "vivres", "lieu": "",
+                               "condition": ""}, but="part", motif="faim")
+        m = recharger(m)
+        faire(m, "attendre")
+        m = recharger(m)
+        crue = lire(m, "brune")["croyances"]["marchand"]["lieu"]
+        self.assertNotEqual((crue["valeur"], crue["source"]), ("antichambre", "entendu"))
+        self.assertNotIn("Brune demande une part des vivres du refuge à Gorm (refus).", chronique(m))
+
+
 if __name__ == "__main__":
     unittest.main()
