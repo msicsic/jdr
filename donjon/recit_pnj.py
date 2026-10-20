@@ -13,7 +13,7 @@ import json
 from unittest.mock import patch
 
 from .esprits import lire, pnjs
-from .francais import de, designer
+from .francais import accorder, de, designer
 
 MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim": "faim", "repos": "fatigue",
           "chaleur": "froid", "engagement": "parole donnée", "alerte": "alerte", "menager": "ménager la flamme"}
@@ -230,11 +230,43 @@ class Recit:
             lignes.append("  rien n'a changé : chacun fait confiance aux autres, comme au départ")
         return lignes
 
+    def crue(self, monde):
+        """Ce que l'eau a fait : le tirage, les salles gagnées puis noyées, les feux éteints, et où
+        chacun se trouve à la fin."""
+        from .eau import active, altitude, niveau, profondeur
+        if not active(monde):
+            return []
+        crue = monde.data["crue"]
+        x = crue["tirage"]
+        lignes = ["== La crue ==",
+                  f"  Tirage : montée {x['montee_cm_heure']} cm/h, pic à {x['minute_pic']} min, plafond "
+                  f"{x['hauteur_pic_cm']:+d} cm, baisse {x['baisse_cm_heure']} cm/h ; niveau {niveau(monde, 0):+d} cm "
+                  f"au départ, {niveau(monde, x['minute_pic']):+d} cm au pic, {niveau(monde):+d} cm à la fin."]
+        mots = {"seche": "au sec", "mouillee": "mouillée", "noyee": "noyée"}
+        for salle in sorted(monde.data["salles"], key=lambda s: altitude(monde, s)):
+            etapes = [f"{mots[h['etat']]} à {h['minute']}" for h in crue["historique"]
+                      if h.get("salle") == salle and "etat" in h]
+            lignes.append(f"  {_salle(monde, salle)} ({altitude(monde, salle):+d} cm) : "
+                          + (", ".join(etapes) if etapes else "au sec"))
+        for h in crue["historique"]:
+            if "eteint" in h:
+                lignes.append(f"  {_objet(monde, h['eteint'])[:1].upper() + _objet(monde, h['eteint'])[1:]} "
+                              f"s'éteint sous l'eau à {h['minute']} ({_salle(monde, h['salle'])}).")
+        for id in self.ids:
+            salle = monde.objets[id]["lieu"]
+            p = profondeur(monde, salle)
+            trempe = monde.objets[id].get("corps", {}).get("trempe")
+            lignes.append(f"  À la fin, {court(monde, id)} : {_salle(monde, salle)}, "
+                          + (f"dans {p} cm d'eau" if p else "au sec")
+                          + (", " + accorder(monde.objets[id], "trempé") if trempe else ""))
+        return lignes
+
     def texte(self, monde, chronique):
         lignes = []
         for id in self.ids:
             lignes += self.personnage(monde, id, chronique) + [""]
-        return "\n".join(lignes + self.entre_eux(monde, chronique))
+        crue = self.crue(monde)
+        return "\n".join((crue + [""] if crue else []) + lignes + self.entre_eux(monde, chronique))
 
     def donnees(self, monde, chronique):
         return {"episodes": {id: [{k: v for k, v in ep.items() if k != "cle"} | {"mots": but_en_mots(monde, ep["but"])}

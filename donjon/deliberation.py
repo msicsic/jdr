@@ -32,6 +32,8 @@ SECURITE_FIN = 30      # rassuré : il quitte l'abri
 # Ce qui inquiète (+) ou rassure (−) la sécurité, valeurs par défaut que chaque profil nuance
 # (donnée ``securite``) : par minute pour ce qui dure, d'un coup pour un événement.
 SECURITE = {"noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
+            "eau": 2, "menace": 1, "crue": 10,     # par minute : 50 cm d'eau, l'eau attendue bientôt ;
+                                                   # d'un coup : la voir gagner un lieu
             "lumiere": 0.2, "compagnie": 0.5, "ronde": 20}                 # rassure
 REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient de refuser
 ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
@@ -268,14 +270,22 @@ def autour(monde, id):
 
 
 def ressentir(monde, id):
-    """Une minute de sécurité perçue : le noir et la méfiance inquiètent, la lumière et la
-    compagnie de qui l'on croit fiable rassurent."""
+    """Une minute de sécurité perçue : le noir, la méfiance et l'eau où l'on se tient inquiètent,
+    la lumière et la compagnie de qui l'on croit fiable rassurent."""
     if "securite" not in esprit(monde, id)["besoins"] or monde.objets[id]["lieu"] not in monde.data["salles"]:
         return
     a = autour(monde, id)
     ecart = (-taux(monde, id, "lumiere") if a["lumiere"] else taux(monde, id, "noir"))
     ecart += taux(monde, id, "mefiance") if a["mefiants"] else 0
     ecart -= taux(monde, id, "compagnie") if a["fiables"] else 0
+    # L'eau où il se tient, d'autant plus qu'elle est haute ; sinon l'eau qu'il y attend bientôt.
+    from .eau import NOYEE_CM, menacee, profondeur
+    ici = monde.objets[id]["lieu"]
+    p = profondeur(monde, ici)
+    if p:
+        ecart += 2 * taux(monde, id, "eau") * min(p, NOYEE_CM) / NOYEE_CM
+    elif menacee(monde, id, ici):
+        ecart += taux(monde, id, "menace")
     relancer(monde, id, "securite", ecart)
 
 
@@ -337,18 +347,27 @@ def _eclairee_crue(monde, id, salle):
 
 def _plan_abri(monde, id):
     """Se mettre à l'abri : rejoindre un lieu qu'il croit éclairé où se tient quelqu'un qu'il croit
-    fiable, et y rester ; là où il est d'abord, s'il l'est déjà."""
+    fiable, et y rester ; là où il est d'abord, s'il l'est déjà. Un lieu où il croit l'eau, ou l'y
+    attend bientôt (``eau.menacee``), n'est pas un abri. Tant qu'il voit l'eau monter, l'abri est
+    le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie : elle monte par le bas."""
+    from .eau import altitude, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
-    salles = []
-    for x in [*pnjs(monde), "joueur"]:
-        if x == id or _cru(monde, id, x, "fiable") is not True:
-            continue
-        salle = salle_crue(monde, id, x)
-        if salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle):
-            salles.append(salle)
+    if menacee(monde, id, ici) or monte(monde, id):
+        salles = sorted((s for s in monde.data["salles"] if not menacee(monde, id, s)
+                         and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
+    else:
+        salles = []
+        for x in [*pnjs(monde), "joueur"]:
+            if x == id or _cru(monde, id, x, "fiable") is not True:
+                continue
+            salle = salle_crue(monde, id, x)
+            if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
+                    and not menacee(monde, id, salle)):
+                salles.append(salle)
+        salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
-    for salle in sorted(salles, key=lambda s: s != ici):
+    for salle in salles:
         etapes = aller(monde, id, salle)
         if etapes is None:
             continue
@@ -522,7 +541,10 @@ def deliberer(monde, id, minute):
     engagements_echus(monde, id)
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":
-        return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
+        from .pnj import chemin
+        if chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None:
+            return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
+        e["intention"] = None  # Plus aucun passage qu'il croie ouvert : il ne peut accourir.
     if intention and intention["but"]["type"] == "strategie" and intention["plan"]:
         return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
     for besoin, methode in candidats(monde, id):

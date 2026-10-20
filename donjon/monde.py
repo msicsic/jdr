@@ -105,6 +105,8 @@ class Monde:
         installer_espace(self)
         from .temps import installer as installer_temps
         installer_temps(self)
+        from .eau import installer as installer_eau
+        installer_eau(self)
         self.verifier()
 
     def _installer_recit(self):
@@ -328,6 +330,13 @@ class Monde:
                                 if sortie_connue(self, self.joueur["salle"], direction)}
         for sortie in salle["sorties"].values():
             sortie["nom_destination"] = lieux_connus.get(sortie["vers"], "inexploré")
+        from .eau import active, decrire as decrire_eau, voisines
+        if active(self):
+            # L'eau est un fait mécanique : celle de la salle, et celle qu'on voit par un passage ouvert.
+            salle["eau"] = decrire_eau(self, self.joueur["salle"])
+            for sortie in salle["sorties"].values():
+                if sortie["vers"] in voisines(self, self.joueur["salle"]):
+                    sortie["eau_destination"] = decrire_eau(self, sortie["vers"])
         return {"revision": self.data["revision"], "joueur": joueur, "lieux_connus": lieux_connus,
                 "mode_cases": bool(self.data.get("mode_cases")), "salle": salle,
                 "objets_perceptibles": objets,
@@ -393,6 +402,8 @@ class Monde:
             verifier_ecoute(self)
             from .horloges import verifier as verifier_horloges
             verifier_horloges(self)
+            from .eau import verifier as verifier_eau
+            verifier_eau(self)
             from .narration import verifier as verifier_narration
             verifier_narration(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"

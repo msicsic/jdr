@@ -54,6 +54,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
     parser.add_argument("--defi", action="store_true", help="Le Relais des crues, défi d'exploration avec sauvegarde séparée")
+    parser.add_argument("--crue", action="store_true",
+                        help="la crue du Relais : l'eau monte selon la graine, sauvegarde séparée crue.json")
     parser.add_argument("--cases", action="store_true", help="déplacements case par case, proximité et ligne de vue")
     parser.add_argument("--seed", type=int, default=1985, help="graine d'une nouvelle partie")
     parser.add_argument("--save", type=Path, default=BASE / "sauvegardes" / "partie.json")
@@ -74,10 +76,12 @@ def main(argv=None, interface=None):
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
-    if args.atelier and args.defi:
-        parser.error("Choisis --atelier ou --defi.")
+    if args.atelier + args.defi + args.crue > 1:
+        parser.error("Choisis --atelier, --defi ou --crue.")
     if args.defi and args.save == BASE / "sauvegardes" / "partie.json":
         args.save = BASE / "sauvegardes" / "defi.json"
+    if args.crue and args.save == BASE / "sauvegardes" / "partie.json":
+        args.save = BASE / "sauvegardes" / "crue.json"
     if args.atelier and args.save == BASE / "sauvegardes" / "partie.json":
         args.save = BASE / "sauvegardes" / "atelier.json"
     if hasattr(sys.stdout, "reconfigure"):
@@ -122,12 +126,15 @@ def main(argv=None, interface=None):
             if args.defi:
                 from donjon.defi import nouveau_defi
                 m = nouveau_defi(args.seed)
+            elif args.crue:
+                from donjon.crue import nouvelle_crue
+                m = nouvelle_crue(args.seed)
             elif args.atelier:
                 from donjon.atelier import nouveau_atelier
                 m = nouveau_atelier(args.seed)
             else:
                 m = nouveau_monde(args.seed)
-        if args.cases or args.defi or m.data.get("mode_cases"):
+        if args.cases or args.defi or args.crue or m.data.get("mode_cases"):
             from donjon.spatial import installer as installer_cases
             installer_cases(m)
         moteur = Moteur(m)

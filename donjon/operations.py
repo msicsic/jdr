@@ -209,6 +209,11 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 raise ErreurMonde(designer(o, debut=True) + " n'a plus de combustible.",
                                   f"{cible} est épuisé" + (" : alimenter d'abord avec un combustible." if o.get("foyer")
                                                           else " : choisis une autre source."))
+            from .eau import NOYEE_CM, sous_l_eau
+            if sous_l_eau(monde, o):
+                raise ErreurMonde(designer(o, debut=True) + " est sous l'eau : aucune flamme n'y prend.",
+                                  f"{cible} est posé dans une salle noyée ({NOYEE_CM} cm d'eau ou plus) : "
+                                  "allume une source que tu portes, ou attends que l'eau baisse.")
             from .perception import flamme
             # Un outil d'allumage, ou une autre source allumée : on réunit la flamme et la cible.
             if not outil:

@@ -679,6 +679,9 @@ def preparer_pas(m, direction):
     if type(dx) is not int or type(dy) is not int or max(abs(dx), abs(dy)) != 1:
         _erreur("Le déplacement doit avancer d'une case.")
     pas = pas_vers(m, m.joueur["salle"], tuple(m.joueur["position"]), (dx, dy))
+    if pas["salle"] != m.joueur["salle"]:
+        from .eau import refuser_entree
+        refuser_entree(m, pas["salle"])
     return {"salle": pas["salle"], "position": pas["position"]}
 
 
