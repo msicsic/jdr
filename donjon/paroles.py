@@ -233,6 +233,10 @@ def engagements_enregistres(monde, id):
 
 def contexte(monde, intention=None):
     from .dialogues import interlocuteurs
+    # Celui qu'il nomme dans son dos : la parole le tournera vers lui, et le MJ le connaît déjà ainsi.
+    vers = regard(monde, analyser(monde, intention)) if intention is not None else None
+    if vers:
+        monde = tourne(monde, vers)
     presents = list(interlocuteurs(monde))
     # Une parole sans conteste se dit même sans personne en vue : qui l'entend la retient.
     if not presents and not (intention is not None and analyser(monde, intention)["explicite"]):
@@ -240,7 +244,7 @@ def contexte(monde, intention=None):
     resultat = {"expression_joueur": bande_expression(monde.joueur["stats"]),
                 "esprits_interlocuteurs": esprits_interlocuteurs(monde, presents)}
     if intention is not None:
-        resultat["parole_prevue"] = prevue(monde, intention)
+        resultat["parole_prevue"] = {**prevue(monde, intention), **({"regard": vers} if vers else {})}
     return resultat
 
 
@@ -373,14 +377,41 @@ def _contact(monde, id):
 
 
 def _face(monde, id):
-    """(hors de son regard, distance) : le plus petit est celui à qui Corvus fait face."""
+    """(hors de son regard, distance, écart à son regard en huitièmes de tour) : le plus petit est
+    celui à qui Corvus fait face ; à même distance, celui qui est droit devant lui plutôt qu'à son
+    côté."""
     from .ouie import distance
-    from .spatial import dans_le_regard
+    from .spatial import dans_le_regard, orientation_vers, quarts
     o, j = monde.objets[id], monde.joueur
     if not monde.data.get("mode_cases") or o.get("position") is None or j.get("position") is None:
-        return 0, 0
+        return 0, 0, 0
     regard = dans_le_regard(monde, o["lieu"], tuple(o["position"]), "joueur")
-    return (0 if regard else 1), (distance(tuple(o["position"]), tuple(j["position"])) if o["lieu"] == j["salle"] else 99)
+    if o["lieu"] != j["salle"]:
+        return (0 if regard else 1), 99, 0
+    ecart = quarts(j.get("orientation"), orientation_vers(tuple(j["position"]), tuple(o["position"])))
+    return (0 if regard else 1), distance(tuple(o["position"]), tuple(j["position"])), ecart
+
+
+def regard(monde, forme):
+    """Corvus nomme quelqu'un qu'il ne voit pas de face mais verrait en se tournant : il se tourne
+    d'abord vers lui, comme pour tout geste (``Moteur.preparer``). La direction, sinon None."""
+    from .dialogues import interlocuteurs
+    from .spatial import regard_vers
+    id = forme.get("nomme")
+    if not id or id in interlocuteurs(monde):
+        return None
+    return regard_vers(monde, id)
+
+
+def tourne(monde, vers):
+    """Une copie du monde où Corvus regarde ``vers``."""
+    vu = monde.copier()
+    vu.joueur["orientation"] = vers
+    return vu
+
+
+def phrase_regard(vers):
+    return "Tu te tournes vers " + ("l'" if vers[0] in "eo" else "le ") + vers + "."
 
 
 def precedents(monde, candidats, seul=False):
@@ -467,8 +498,9 @@ def destinataires(monde, forme):
 def prevue(monde, intention):
     """Ce que le moteur fixe de la parole que la saisie annonce, pour Luna (``parole_prevue``)."""
     forme = analyser(monde, intention)
+    vers = regard(monde, forme)
     try:
-        dest = destinataires(monde, forme)
+        dest = destinataires(tourne(monde, vers) if vers else monde, forme)
     except ParoleImpossible as exc:
         return {"impossible": str(exc)}
     return {"personnage": personnage(forme, dest), "destinataires": dest,
@@ -484,10 +516,11 @@ def personnage(forme, dest):
 def annonce(monde, rapport):
     """Ce que le joueur lit de sa propre parole : à qui, et comment."""
     verbe = "chuchotes" if rapport.get("maniere") == "chuchotement" else "dis"
+    tour = phrase_regard(rapport["regard"]) + "\n" if rapport.get("regard") else ""
     if rapport["personnage"] == "personne":
-        return f"Tu {verbe} : « {rapport['replique_joueur']} »"
+        return f"{tour}Tu {verbe} : « {rapport['replique_joueur']} »"
     a = "tous" if rapport["personnage"] == "tous" else _nom_court(monde, rapport["personnage"])
-    return f"Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
+    return f"{tour}Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
 
 
 def _connu_du_joueur(monde, id):
@@ -648,6 +681,10 @@ def preparer_parole(monde, p, revision=None):
                           f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
     # Le moteur fixe à qui Corvus parle : le MJ ne lui substitue personne.
     forme = analyser(monde, p.get("_intention", ""))
+    vers = regard(monde, forme)
+    if vers:
+        # Il se tourne d'abord vers celui qu'il nomme dans son dos.
+        monde = tourne(monde, vers)
     dest = destinataires(monde, forme)
     attendu = personnage(forme, dest)
     if p["personnage"] != attendu:
@@ -718,5 +755,6 @@ def preparer_parole(monde, p, revision=None):
     rapport = {"personnage": attendu, "destinataires": list(dest),
                "temoins": [id for id in temoins if id in presents],
                "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
-               "operation": "parole_joueur", "replique_joueur": replique, "faits": faits}
+               "operation": "parole_joueur", "replique_joueur": replique, "faits": faits,
+               **({"regard": vers} if vers else {})}
     return travail, rapport
