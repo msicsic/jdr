@@ -213,32 +213,35 @@ class Moteur:
                 raise ErreurMonde("Un pas se fait sans outil ni jet.", "un pas : outil vide, methode simple, difficulte 0.")
             destination = preparer_pas(m, cible)
             from .spatial import QUART, VECTEURS, quarts
-            from .temps import PAS_CHASSE, PAS_FEUTRE, PAS_JOUEUR
+            from .temps import PAS_CHASSE, PAS_FEUTRE, PAS_JOUEUR, duree_pas
             regard = m.joueur.get("orientation")
             vers = cible if cible in VECTEURS else None
+            # Un pas en diagonale dure √2 fois un pas droit, à toute allure (``temps.duree_pas``).
+            vecteur = VECTEURS[vers] if vers else (0, 0)
             if action == "faufiler":
                 # À pas feutrés : il se tourne vers où il va, avance lentement, ne s'entend que de près.
                 plan.titre = "Avancer à pas feutrés vers " + cible + "."
-                duree = QUART * quarts(regard, vers) + PAS_FEUTRE
+                duree = QUART * quarts(regard, vers) + duree_pas(PAS_FEUTRE, vecteur)
                 destination["feutre"] = True
                 if vers:
                     destination["orientation"] = vers
             elif action == "chasser":
                 # Un pas chassé garde le regard : de côté ou en arrière, il prend le double.
                 plan.titre = "Faire un pas chassé vers " + cible + "."
-                duree = PAS_JOUEUR if vers is None or vers == regard else PAS_CHASSE
+                duree = duree_pas(PAS_JOUEUR if vers is None or vers == regard else PAS_CHASSE, vecteur)
             else:
                 plan.titre = "Avancer d'un pas vers " + cible + "."
-                duree = QUART * quarts(regard, vers) + PAS_JOUEUR
+                duree = QUART * quarts(regard, vers) + duree_pas(PAS_JOUEUR, vecteur)
                 if vers:
                     destination["orientation"] = vers
             if "ecart" in destination:
-                # Celui qui se tenait là s'écarte d'abord, le temps d'un pas de côté.
-                from .passage import ECART
-                qui = m.objets[destination["ecart"]["personnage"]]
+                # Celui qui se tenait là s'écarte d'abord, le temps de son pas de côté.
+                from .passage import duree_ecart
+                ecart = destination["ecart"]
+                qui = m.objets[ecart["personnage"]]
                 plan.titre = plan.titre[:-1] + " ; " + (sujet(qui) if m.visible(qui["id"]) else "quelqu'un") \
                     + " s'écarte pour te laisser passer."
-                duree += ECART
+                duree += duree_ecart(m, qui["id"], (ecart["salle"], ecart["position"]))
             plan.minutes, plan.dixiemes = 0, duree
             plan.effets = [("marcher", "", destination)]
             return plan

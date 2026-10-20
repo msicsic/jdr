@@ -13,7 +13,7 @@ import unittest
 from donjon import pnj, spatial
 from donjon.banc_pnj import creer, executer
 from donjon.esprits import _pertinent, percevoir, percus, pnjs
-from donjon.geometrie import cases, position_entree
+from donjon.geometrie import cases, distance, position_entree
 from donjon.monde import Monde
 from donjon.perception import CarteLumiere, eclairage
 
@@ -47,7 +47,7 @@ def champ_reference(m, acteur):
                 continue
             niveau = lumiere.niveau(cible)
             portee = spatial.PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
-            if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > portee:
+            if distance(cible, origine) > portee:
                 continue
             if (ligne_reference(origine, cible, lumiere.terrain, lumiere.opaques)
                     and ligne_reference(cible, origine, lumiere.terrain, lumiere.opaques)):

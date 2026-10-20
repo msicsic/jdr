@@ -71,7 +71,10 @@ def nature(geste, discret=False, bruit=0):
 
 
 def distance(a, b):
-    return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+    """En distance réelle, comme toute portée en cases (``geometrie.distance``) : un bruit à quatre
+    cases en diagonale vient de plus loin qu'à quatre cases droites."""
+    from .geometrie import distance as reelle
+    return reelle(a, b)
 
 
 def perte(a, b):

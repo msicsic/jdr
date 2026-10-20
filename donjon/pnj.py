@@ -16,7 +16,7 @@ from collections import deque
 
 from .esprits import croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit, percus, pnjs
 from .francais import complement_de, de, designer, sujet
-from .geometrie import cases, placer, position_entree
+from .geometrie import cases, distance, placer, position_entree
 from .spatial import VECTEURS
 
 CHRONIQUE_MAX = 300
@@ -332,7 +332,7 @@ def ecarter(monde):
         libres = [c for c in cases(monde.data["salles"][o["lieu"]])
                   if (o["lieu"], tuple(c)) not in prises and _case_libre(monde, o["lieu"], tuple(c))]
         if libres:
-            placer(o, o["lieu"], list(min(libres, key=lambda c: (max(abs(c[0] - x), abs(c[1] - y)), tuple(c)))))
+            placer(o, o["lieu"], list(min(libres, key=lambda c: (distance(c, (x, y)), tuple(c)))))
 
 
 def _centre(monde, id):
@@ -738,11 +738,12 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
 
 
 def _avancer_de(monde, id, pas, feutre, lignes):
-    """Les pas d'un même geste, chacun précédé de sa rotation ; une porte fermée s'ouvre sur place.
+    """Les pas d'un même geste, chacun précédé de sa rotation et de la durée que lui donne son sens
+    (en diagonale, √2 fois un pas droit : ``temps.duree_pas``) ; une porte fermée s'ouvre sur place.
     Ses pas retentissent là où il s'arrête."""
     from .ouie import retentir
     from .spatial import QUART, quarts
-    from .temps import PAS_FEUTRE
+    from .temps import PAS_FEUTRE, duree_pas
     o, duree, marche = monde.objets[id], 0, False
     for salle, case, porte, sens in pas:
         # Il se tourne d'abord dans le sens du pas : le temps de la rotation s'ajoute.
@@ -762,7 +763,7 @@ def _avancer_de(monde, id, pas, feutre, lignes):
             tremper(monde, id)
         else:
             placer(o, salle, list(case))
-        duree += PAS_FEUTRE if feutre else PAS
+        duree += duree_pas(PAS_FEUTRE if feutre else PAS, sens)
         marche = True
     if marche:
         retentir(monde, id, "aller", discret=feutre)
@@ -800,12 +801,12 @@ def _rejoindre_un_proche(monde, id, lignes):
             continue
         p = _case_crue(monde, id, x)  # Là où il l'a vu : il le cherche des yeux en chemin.
         if p is not None:
-            proches.append((max(abs(p[0] - depart[0]), abs(p[1] - depart[1])), x, p))
+            proches.append((distance(p, depart), x, p))
     if not proches or min(proches)[0] <= 1:
         return None
     _, _, p = min(proches)
-    return _marcher(monde, id, lambda salle, case: salle == ici and max(abs(case[0] - p[0]), abs(case[1] - p[1])) == 1,
-                    lignes)
+    # Au contact : une case voisine, même en diagonale (distance 1).
+    return _marcher(monde, id, lambda salle, case: salle == ici and distance(case, p) == 1, lignes)
 
 
 def _case_crue(monde, id, x):
@@ -913,8 +914,8 @@ def _faire_face(monde, id, cible):
 
 
 def de_pres(monde, a, b):
-    """Assez près pour s'entendre : même salle, à moins de ``ouie.PROCHE`` cases (ou sans cases, la
-    même salle). ``b`` peut être le joueur."""
+    """Assez près pour s'entendre : même salle, à moins de ``ouie.PROCHE`` cases en distance réelle
+    (``geometrie.distance`` ; sans cases, la même salle). ``b`` peut être le joueur."""
     from .ouie import PROCHE
     def place(x):
         if x == "joueur":
@@ -925,7 +926,7 @@ def de_pres(monde, a, b):
         return False
     if not monde.data.get("mode_cases") or pa is None or pb is None:
         return True
-    return max(abs(pa[0] - pb[0]), abs(pa[1] - pb[1])) <= PROCHE
+    return distance(pa, pb) <= PROCHE
 
 
 def pourraient_se_parler(monde, a, b):

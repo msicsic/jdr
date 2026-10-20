@@ -94,7 +94,8 @@ def _eclairage_pieces(monde, salle, sources):
     return _resultat(contributions)
 
 
-# Portée directe d'une source en cases (distance de Tchebychev) : pleine lumière, puis pénombre.
+# Portée directe d'une source en cases, en distance réelle (``geometrie.distance``) : pleine
+# lumière, puis pénombre. Les halos sont ronds.
 PORTEES = {1: (2, 4), 2: (4, 8), 3: (6, 12)}
 BOUSSOLE = {(0, -1): "nord", (0, 1): "sud", (1, 0): "est", (-1, 0): "ouest",
             (1, -1): "nord-est", (-1, -1): "nord-ouest", (1, 1): "sud-est", (-1, 1): "sud-ouest"}
@@ -115,6 +116,8 @@ class CarteLumiere:
 
     def __init__(self, monde, salle, geometrie=None):
         from .spatial import _global, position_cible, vue_geometrique
+        from .geometrie import distance
+        self._distance = distance
         self.monde = monde
         # Salles reliées, terrain et obstacles : la géométrie de la vue, partagée à lumière près.
         self.geometrie = vue_geometrique(monde, salle) if geometrie is None else geometrie
@@ -144,7 +147,7 @@ class CarteLumiere:
         resultat = []
         for id, _, origine, (plein, penombre) in self.sources:
             dx, dy = origine[0] - cible[0], origine[1] - cible[1]
-            distance = max(abs(dx), abs(dy))
+            distance = self._distance(origine, cible)
             niveau = 2 if distance <= plein else 1 if distance <= penombre else 0
             if niveau and (distance == 0 or self.geometrie.ligne(origine, cible)):
                 resultat.append({"source": id, "niveau": niveau,
