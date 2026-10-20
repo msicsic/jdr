@@ -120,7 +120,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   le champ) ou propose les gestes possibles sur ce qui s'y trouve, en s'approchant d'abord.
   `banc_pnj --rejeu page.html` enregistre une nuit sans la changer et la rejoue : barre de temps,
   but, besoins, regard réel et croyances de chaque PNJ (fausses en rouge).
-- La suite de tests passe : 677 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `annonces-presence` (vu en partie : « Aubin, Gorm et Brune arrivent puis s'éloignent »
+  pendant qu'on allume une torche) : les présences se disent en bilan, à la fin de l'action du
+  joueur (une manœuvre entière comprise) : qui il voit désormais, qui il ne voit plus, qui il n'a
+  fait qu'apercevoir (`pnj.bilan_presences`). « Entre dans la pièce » ou « quitte la pièce »
+  seulement s'il a vu le passage ; sinon « Tu aperçois… » ou « Tu ne vois plus… », ce qui couvre
+  aussi son propre regard. L'humeur remarquée suit ce bilan. Banc identique à `main`.
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 

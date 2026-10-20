@@ -13,7 +13,7 @@ chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 from collections import deque
 
 from .esprits import croire, esprit, lire, memoriser, percevoir, percoit, percus, pnjs
-from .francais import complement_de, de, designer
+from .francais import complement_de, de, designer, sujet
 from .geometrie import cases, placer, position_entree
 from .spatial import VECTEURS
 
@@ -786,23 +786,84 @@ def agir(monde, id, t, lignes, gestes=None):
     return tourner + DUREES.get(operation, 20)
 
 
-def _annoncer_presences(monde, vus, apparus, lignes):
-    """Arrivées et départs à la minute où le joueur les perçoit, avant ce qui suit."""
-    for id, avant in vus.items():
-        maintenant = monde.visible(id)
-        if maintenant and not avant:
-            lignes.append(designer(monde.objets[id], debut=True) + " arrive.")
-            if id not in apparus:
-                apparus.append(id)
-        elif avant and not maintenant:
-            lignes.append(designer(monde.objets[id], debut=True) + " s'éloigne.")
-        vus[id] = maintenant
+# --- Présences perçues par le joueur -------------------------------------------------------
+# Pendant une action du joueur, les PNJ entrent dans son champ de vision et en sortent pas à
+# pas. On n'en annonce que le bilan, à la fin de l'action : qui il voit désormais, qui il ne
+# voit plus, qui il n'a fait qu'apercevoir. Entrer dans la pièce ou la quitter ne se dit que
+# si le joueur a vu le passage ; sinon, il sait seulement qu'il voit, ou ne voit plus, quelqu'un.
+
+def _ouvrir_presences(monde):
+    from .spatial import vue_memorisee
+    ici, suivi = monde.joueur["salle"], {}
+    with vue_memorisee(monde):
+        for id in pnjs(monde):
+            visible, lieu = monde.visible(id), monde.objets[id]["lieu"]
+            suivi[id] = {"debut": visible, "lieu": lieu, "vu": visible, "passage": None, "dernier": (visible, lieu, ici)}
+    return suivi
+
+
+def suivre_presences(monde):
+    """Ouvre le bilan des présences d'une action du joueur, avant tout ce qu'elle change (son
+    regard compris). ``bilan_presences`` le clôt ; entre-temps, ``pnj.avancer`` l'alimente."""
+    monde._presences = _ouvrir_presences(monde)
+    return monde._presences
+
+
+def _observer_presences(monde, suivi):
+    """Ce que le joueur voit à cet instant ; renvoie qui il voit. Entrer dans la salle du joueur
+    ou la quitter est un passage perçu s'il le voit franchir le seuil : y être vu en entrant, ou
+    y être vu juste avant d'en sortir. Un tel passage qu'il ne voit pas efface le précédent ;
+    aller d'une autre salle à une autre n'y change rien."""
+    ici, vus = monde.joueur["salle"], {}
+    for id, s in suivi.items():
+        if id not in monde.objets:
+            continue
+        visible, lieu = monde.visible(id), monde.objets[id]["lieu"]
+        avant_visible, avant_lieu, avant_ici = s["dernier"]
+        if lieu != avant_lieu and lieu == ici:
+            s["passage"] = "entree" if visible else None
+        elif lieu != avant_lieu and avant_lieu == avant_ici:
+            s["passage"] = "sortie" if avant_visible else None
+        s["vu"] = s["vu"] or visible
+        s["dernier"] = (visible, lieu, ici)
+        vus[id] = visible
+    return vus
+
+
+def bilan_presences(monde, suivi=None):
+    """Les lignes du bilan perçu depuis ``suivre_presences``, une par personnage concerné."""
+    suivi = monde.__dict__.pop("_presences", None) if suivi is None else suivi
+    if not suivi:
+        return []
+    from .spatial import vue_memorisee
+    with vue_memorisee(monde):
+        vus = _observer_presences(monde, suivi)
+    piece = monde.data["salles"].get(monde.joueur["salle"], {})
+    entre, quitte = ((" arrive.", " s'en va.") if piece.get("exterieur") else
+                     (" entre dans la pièce.", " quitte la pièce."))
+    lignes = []
+    for id, visible in vus.items():
+        s, o = suivi[id], monde.objets[id]
+        nom = sujet(o)
+        deplace = s["passage"] and o["lieu"] != s["lieu"]
+        if visible and (not s["debut"] or deplace) and s["passage"] == "entree":
+            lignes.append(nom + entre)
+        elif visible and s["debut"] and deplace:
+            lignes.append(nom + quitte)  # Il l'a vu sortir et le voit encore, au-delà du passage.
+        elif visible and not s["debut"]:
+            lignes.append("Tu aperçois " + ("" if o["lieu"] == monde.joueur["salle"] else "au-delà du passage ")
+                          + designer(o) + ".")
+        elif s["debut"] and not visible:
+            lignes.append(nom + quitte if s["passage"] == "sortie" else "Tu ne vois plus " + designer(o) + ".")
+        elif not visible and s["vu"]:
+            lignes.append("Tu aperçois un instant " + designer(o) + ".")
+    return lignes
 
 
 def avancer(monde, minutes, lignes, dixiemes=None):
     """Fait vivre les PNJ pendant le temps qui vient de s'écouler (``minutes``, ou ``dixiemes``
-    à la seconde près), jusqu'à l'heure courante ; renvoie ceux apparus dans la perception du
-    joueur."""
+    à la seconde près), jusqu'à l'heure courante ; renvoie ceux que le joueur a vus à un moment
+    de cette période sans les voir à son début (une réponse à son appel, par exemple)."""
     from .spatial import vue_memorisee
     with vue_memorisee(monde):
         return _avancer(monde, minutes, lignes, dixiemes)
@@ -820,8 +881,21 @@ def _avancer(monde, minutes, lignes, dixiemes):
     fin = fin_minutes * MINUTE + fin_dixiemes
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
     ids = pnjs(monde)
-    vus = {id: monde.visible(id) for id in ids}
+    # Le bilan des présences est celui de l'action du joueur, ouvert par le moteur ; appelée
+    # seule, la vie des PNJ fait son propre bilan. Les apparus sont ceux que le joueur voit à un
+    # moment de cette période sans les avoir vus à son début.
+    suivi = getattr(monde, "_presences", None)
+    propre = suivi is None
+    if propre:
+        suivi = _ouvrir_presences(monde)
+    vus = _observer_presences(monde, suivi)
     apparus = []
+
+    def observer():
+        for id, visible in _observer_presences(monde, suivi).items():
+            if visible and not vus.get(id) and id not in apparus:
+                apparus.append(id)
+
     # Les gestes illicites en cours : quiconque voit leur auteur avant qu'il ait fini en est témoin.
     temoignages = monde.__dict__.setdefault("_gestes_en_cours", {})
     temoignages.clear()
@@ -866,7 +940,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     feutre = not gestes and monde.__dict__.get("_pas_feutres", {}).pop(id, False)
                     alerter(monde, id, t, libre, OUIE_FEUTRE if feutre else OUIE)
                 temoigner_en_cours(monde)
-                _annoncer_presences(monde, vus, apparus, lignes)
+                observer()
             else:
                 duree = _jusqu_a_la_minute(t)
             libre[id] = t + max(1, duree)
@@ -875,5 +949,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     for id in ids:
         esprit(monde, id)["libre"] = libre[id]
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
-    _annoncer_presences(monde, vus, apparus, lignes)
+    observer()
+    if propre:
+        lignes.extend(bilan_presences(monde, suivi))
     return apparus

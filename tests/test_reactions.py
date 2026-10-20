@@ -34,7 +34,7 @@ class ReactionsTests(unittest.TestCase):
         reprise, sortie = jouer(m, "je crie à l'aide")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
         self.assertIsNone(lire(reprise, "marchand")["intention"])
-        self.assertIn("Gorm le marchand arrive.", sortie)
+        self.assertIn("Gorm le marchand entre dans la pièce.", sortie)
         self.assertNotIn("aucune réponse", sortie)
 
     def test_gorm_ouvre_une_porte_fermee_pour_rejoindre_le_cri(self):
@@ -50,7 +50,7 @@ class ReactionsTests(unittest.TestCase):
         reprise, suite = jouer(reprise, "attendre")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
         self.assertIsNone(lire(reprise, "marchand")["intention"])
-        self.assertIn("Gorm le marchand arrive.", sortie + suite)
+        self.assertIn("Gorm le marchand entre dans la pièce.", sortie + suite)
 
     def test_gorm_deverrouille_avec_la_cle_qu_il_porte(self):
         m = nouveau_monde()
@@ -80,7 +80,7 @@ class ReactionsTests(unittest.TestCase):
         reprise.objets["porte"].update(verrouillee=False, ouverte=True)
         reprise, sortie = jouer(reprise, "attendre")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
-        self.assertIn("Gorm le marchand arrive.", sortie)
+        self.assertIn("Gorm le marchand entre dans la pièce.", sortie)
 
     def test_sans_reaction_declaree_le_pnj_reste_en_place(self):
         reprise, sortie = jouer(nouveau_monde(), "je crie à l'aide")
