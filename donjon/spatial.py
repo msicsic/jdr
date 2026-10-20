@@ -387,15 +387,30 @@ def _globales(m, salles):
 
 
 def _los_global(m, a, b, terrain, opaques):
-    points = _ligne(a, b)
-    for i, p in enumerate(points[1:], 1):
+    """Le tracé de ``_ligne`` de a vers b, case après case sans le construire : chaque case doit être
+    du terrain, aucune avant b ne doit être opaque, et une diagonale ne passe pas entre deux coins
+    bouchés."""
+    x, y = a
+    x1, y1 = b
+    dx, sx = abs(x1 - x), 1 if x < x1 else -1
+    dy, sy = -abs(y1 - y), 1 if y < y1 else -1
+    err = dx + dy
+    while x != x1 or y != y1:
+        avant_x, avant_y = x, y
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x += sx
+        if e2 <= dx:
+            err += dx
+            y += sy
+        p = (x, y)
         if p not in terrain:
             return False
-        if i < len(points) - 1 and p in opaques:
+        if p in opaques and (x != x1 or y != y1):
             return False
-        avant = points[i - 1]
-        if p[0] != avant[0] and p[1] != avant[1]:
-            c1, c2 = (p[0], avant[1]), (avant[0], p[1])
+        if x != avant_x and y != avant_y:
+            c1, c2 = (x, avant_y), (avant_x, y)
             if ((c1 not in terrain or c1 in opaques)
                     and (c2 not in terrain or c2 in opaques)):
                 return False
@@ -469,17 +484,19 @@ def eclairage_niveau(m):
 PORTEE_VUE = {1: 3, 2: 8}
 
 
-def signature_vue(m, lumiere=True):
+def signature_vue(m, lumiere=True, allumees=None):
     """Tout ce dont dépendent la lumière et les lignes de vue, hors géométrie des salles : portes
     et contenants ouverts, sources allumées et la case d'où elles éclairent, objets qui bloquent
     la vue. Deux états de même signature se voient de la même façon. Sans ``lumiere``, ce qui
-    borne seulement la vue (``VueGeometrique``)."""
+    borne seulement la vue (``VueGeometrique``) ; ``allumees`` recueille alors les sources."""
     from .perception import allumee, salle_source
     cle = []
     salles = m.data["salles"]
     for id, o in m.objets.items():
         if o["type"] in ("porte", "contenant") or "ouverte" in o:
             cle.append(("ouverte", id, bool(o.get("ouverte"))))
+        if allumees is not None and o.get("allume") and allumee(o):
+            allumees.append((id, o))
         if lumiere and allumee(o):
             source = salle_source(m, o)
             cle.append(("source", id, source, position_cible(m, id, source) if source else None,
@@ -506,6 +523,8 @@ class VueGeometrique:
 
     def __init__(self, m, salle):
         self.salles = _salles_relies(m, salle)
+        # Les salles d'où une lueur peut parvenir, par des passages ouverts (``_eclairage_pieces``).
+        self.atteintes = _salles_atteintes(m, salle)
         self.terrain, self.opaques = _globales(m, self.salles)
         self._lignes = {}
         # Les cases du sol des salles reliées : ((salle, x, y), case globale).
@@ -526,16 +545,51 @@ class VueGeometrique:
         return self.ligne(a, b) and self.ligne(b, a)
 
 
-def vue_geometrique(m, salle):
-    """La géométrie de la vue d'une salle, gardée dans ``vue_memorisee`` par signature sans lumière."""
+def _salles_atteintes(m, salle):
+    """Les salles reliées à une salle par des passages sans porte fermée, à tout niveau."""
+    vus, file = {salle}, deque([salle])
+    while file:
+        courante = file.popleft()
+        for sortie in m.data["salles"][courante]["sorties"].values():
+            porte = m.objets.get(sortie.get("porte"))
+            if porte and not porte.get("ouverte"):
+                continue
+            if sortie.get("vers") not in vus:
+                vus.add(sortie.get("vers"))
+                file.append(sortie.get("vers"))
+    return vus
+
+
+def vue_geometrique(m, salle, geometrie=None):
+    """La géométrie de la vue d'une salle, gardée dans ``vue_memorisee`` par signature sans lumière
+    (``geometrie``, si elle est déjà calculée)."""
     cache = getattr(m, "_cache_vue", None)
     if cache is None:
         return VueGeometrique(m, salle)
     geometries = cache["persistant"]["geometries"]
-    cle = (salle, signature_vue(m, lumiere=False))
+    cle = (salle, signature_vue(m, lumiere=False) if geometrie is None else geometrie)
     if cle not in geometries:
         geometries[cle] = VueGeometrique(m, salle)
     return geometries[cle]
+
+
+def signature_salle(m, salle):
+    """La signature de la vue depuis une salle : la géométrie (signature sans lumière) et les
+    seules sources dont la lumière peut y parvenir. D'une salle reliée, une source éclaire
+    directement : sa case compte ; d'une salle atteinte par des passages ouverts, elle n'envoie
+    qu'une lueur diffuse : sa salle et sa force comptent. Une lanterne qu'on promène ailleurs ne
+    change pas ce qu'on voit ici."""
+    from .perception import allumee, salle_source
+    allumees = []
+    geometrie = signature_vue(m, lumiere=False, allumees=allumees)
+    vue = vue_geometrique(m, salle, geometrie)
+    sources = []
+    for id, o in allumees:
+        origine = salle_source(m, o)
+        if origine in vue.atteintes:
+            sources.append((id, origine, o.get("luminosite"),
+                            position_cible(m, id, origine) if origine in vue.salles else None))
+    return geometrie, tuple(sources)
 
 
 # Ce que lit la perception sur chaque objet (``percus``, ``visible``, ``position_cible``, la lumière
@@ -555,15 +609,12 @@ def etat_vue(m):
     Deux états de même empreinte se perçoivent de la même façon, par tout acteur."""
     from .perception import allumee
     j = m.joueur
-    objets = []
-    ajouter = objets.append
-    for cle, o in m.objets.items():
-        p = o.get("position")
-        ajouter((cle, *map(o.get, CLES_VUE), bool(o.get("allume")) and allumee(o),
-                 None if p is None else tuple(p),
-                 None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES)))))
     p = j.get("position")
-    return j.get("salle"), None if p is None else tuple(p), j.get("orientation"), tuple(objets)
+    return (j.get("salle"), None if p is None else tuple(p), j.get("orientation"), tuple([
+        (cle, tuple(map(o.get, CLES_VUE)), bool(o.get("allume")) and allumee(o),
+         None if (p := o.get("position")) is None else tuple(p),
+         None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES))))
+        for cle, o in m.objets.items()]))
 
 
 def _memo_vue(m):
@@ -672,12 +723,12 @@ def _memoire_geometrie(m):
     return memoire
 
 
-def _signature(m, memo):
+def _signature(m, memo, salle):
     if memo is None:
-        return signature_vue(m)
-    if "signature" not in memo:
-        memo["signature"] = signature_vue(m)
-    return memo["signature"]
+        return signature_salle(m, salle)
+    if ("signature", salle) not in memo:
+        memo["signature", salle] = signature_salle(m, salle)
+    return memo["signature", salle]
 
 
 def carte_lumiere(m, salle, memo=None):
@@ -687,10 +738,10 @@ def carte_lumiere(m, salle, memo=None):
     if cache is None:
         return CarteLumiere(m, salle)
     # Hors d'un état figé, la signature seule coûte moins que l'empreinte complète.
-    signature = _signature(m, cache.get("fige") if memo is None else memo)
+    signature = _signature(m, cache.get("fige") if memo is None else memo, salle)
     cle = ("lumiere", salle, signature)
     if cle not in cache:
-        carte = cache[cle] = CarteLumiere(m, salle)
+        carte = cache[cle] = CarteLumiere(m, salle, vue_geometrique(m, salle, signature[0]))
         # Ce qu'on voit autour de chaque case, jusqu'où porte la vue sur chaque case : ils ne
         # dépendent que des salles et de la signature.
         carte.alentours = cache["persistant"]["alentours"].setdefault((salle, signature), {})
@@ -825,7 +876,8 @@ def _champ(m, acteur, memo):
     orientation = orientation_acteur(m, acteur)
     if cache is not None:
         champs = cache["persistant"]["champs"]
-        cle = (*position_acteur(m, acteur), orientation, _signature(m, memo))
+        salle, position = position_acteur(m, acteur)
+        cle = (salle, position, orientation, _signature(m, memo, salle))
         if cle in champs:
             memo["champ", acteur] = champs[cle]
             return champs[cle]

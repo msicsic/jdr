@@ -113,11 +113,11 @@ class CarteLumiere:
     lumière du jour garde le modèle par pièce.
     """
 
-    def __init__(self, monde, salle):
+    def __init__(self, monde, salle, geometrie=None):
         from .spatial import _global, position_cible, vue_geometrique
         self.monde = monde
         # Salles reliées, terrain et obstacles : la géométrie de la vue, partagée à lumière près.
-        self.geometrie = vue_geometrique(monde, salle)
+        self.geometrie = vue_geometrique(monde, salle) if geometrie is None else geometrie
         self.salles, self.terrain, self.opaques = self.geometrie.salles, self.geometrie.terrain, self.geometrie.opaques
         self.sources = []
         for o in monde.objets.values():

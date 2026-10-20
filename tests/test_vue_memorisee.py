@@ -18,6 +18,20 @@ from donjon.monde import Monde
 from donjon.perception import CarteLumiere, eclairage
 
 
+def ligne_reference(a, b, terrain, opaques):
+    """La ligne de vue d'avant : le tracé complet, puis chaque case."""
+    points = spatial._ligne(a, b)
+    for i, p in enumerate(points[1:], 1):
+        if p not in terrain or i < len(points) - 1 and p in opaques:
+            return False
+        avant = points[i - 1]
+        if p[0] != avant[0] and p[1] != avant[1]:
+            c1, c2 = (p[0], avant[1]), (avant[0], p[1])
+            if (c1 not in terrain or c1 in opaques) and (c2 not in terrain or c2 in opaques):
+                return False
+    return True
+
+
 def champ_reference(m, acteur):
     """Le champ de vision case par case, sans rien garder."""
     salle, position = spatial.position_acteur(m, acteur)
@@ -35,8 +49,8 @@ def champ_reference(m, acteur):
             portee = spatial.PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
             if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > portee:
                 continue
-            if (spatial._los_global(m, origine, cible, lumiere.terrain, lumiere.opaques)
-                    and spatial._los_global(m, cible, origine, lumiere.terrain, lumiere.opaques)):
+            if (ligne_reference(origine, cible, lumiere.terrain, lumiere.opaques)
+                    and ligne_reference(cible, origine, lumiere.terrain, lumiere.opaques)):
                 vus.add((s, x, y))
     return vus
 
@@ -129,6 +143,18 @@ class VueMemoriseeTests(unittest.TestCase):
             executer(m, 60)
         finally:
             spatial.VERIFICATION = 0.0
+
+    def test_ligne_de_vue_case_par_case_egale_le_trace_complet(self):
+        """Toutes les paires de cases d'une zone avec murs, obstacles et diagonales bouchées."""
+        hasard = random.Random(3)
+        cases_zone = [(x, y) for x in range(-1, 9) for y in range(-1, 9)]
+        for _ in range(20):
+            terrain = {c: None for c in cases_zone if hasard.random() < 0.8}
+            opaques = {c for c in cases_zone if hasard.random() < 0.15}
+            for a in hasard.sample(cases_zone, 15):
+                for b in cases_zone:
+                    self.assertEqual(spatial._los_global(None, a, b, terrain, opaques),
+                                     ligne_reference(a, b, terrain, opaques), (a, b))
 
     def test_un_changement_d_etat_renouvelle_la_perception(self):
         """Clé sûre : une porte, une flamme, un objet déplacé, un regard tourné, chacun change ce

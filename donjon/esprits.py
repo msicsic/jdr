@@ -208,12 +208,33 @@ def percus(monde, acteur):
     return {id: (s, None if c is None else list(c)) for id, (s, c) in vus.items()}, set(champ)
 
 
+# Ce qui peut placer un objet posé dans une salle ailleurs que dans cette salle (``_salle_position``).
+AILLEURS = frozenset(("appui_vertical", "installation"))
+
+
+def _poses(monde, memo):
+    """Pour chaque objet, la salle où il est posé, sans rien qui le place ailleurs : il n'a de place
+    que dans cette salle, et personne ne le porte ; None pour les autres. Gardé pour l'état."""
+    if memo is not None and "poses" in memo:
+        return memo["poses"]
+    salles, objets = monde.data["salles"], monde.objets
+    poses = {}
+    for id, o in objets.items():
+        lieu = o["lieu"]
+        poses[id] = (lieu if lieu in salles and lieu not in objets and o["type"] != "porte"
+                     and AILLEURS.isdisjoint(o) else None)
+    if memo is not None:
+        memo["poses"] = poses
+    return poses
+
+
 def _percus(monde, acteur, memo):
     from .spatial import porte_par
     salle = monde.objets[acteur]["lieu"]
+    poses = _poses(monde, memo)
     # Ce qu'il porte lui-même, il le sait sans le voir.
     vus = {id: (None, None) for id, o in monde.objets.items()
-           if porte_par(monde, id, acteur) and _pertinent(monde, acteur, o)}
+           if poses[id] in (None, acteur) and porte_par(monde, id, acteur) and _pertinent(monde, acteur, o)}
     if salle not in monde.data["salles"]:
         return vus, set()
     if monde.data.get("mode_cases"):
@@ -228,8 +249,11 @@ def _percus(monde, acteur, memo):
                 continue
             # ``visible``, sans le cas des surfaces, qui ne sont pas pertinentes : la première place
             # dans le champ, et l'objet accroché au mur n'est vu que si ce mur l'est.
+            pose = poses[id]
+            if pose is not None and pose not in salles_du_champ:
+                continue
             premiere, vu = None, False
-            for s in salles_vues:
+            for s in salles_vues if pose is None else (pose,):
                 if (id, s) in positions:
                     p = positions[id, s]
                 else:
