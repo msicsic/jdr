@@ -122,7 +122,12 @@ des objets.
   - **saisir, retenir, ligoter** ;
   - **frapper, blesser** ; **chasser** dans le froid ou dans l'eau ; **tuer**.
 - **Affrontement** : jets opposés (FOR, DEX, armes, nombre, corps) ; l'issue blesse, soumet,
-  fait fuir.
+  fait fuir. Frapper dans le dos de quelqu'un qui ne vous voit pas donne l'avantage
+  (orientation et cône de vision : `docs/plan-temps.md`).
+- **Assommer** met dans l'état inconscient pour un temps : on ne voit ni n'agit, et les autres
+  décident de ce qu'ils font de vous. **Tuer** est un geste délibéré. Un personnage ligoté ou
+  inconscient peut être tué sans jet. N'importe quel PNJ peut être tué, Gorm compris ; le
+  scénario continue sans lui. La mort du joueur termine la partie, sans reprise pour l'instant.
 - **La menace**, geste d'influence : « fais ceci, ou je ferai cela ». Le menacé juge sur ce qu'il
   croit : la menace est-elle crédible (force, ce qu'on l'a vu faire, sa réputation) ? Céder
   coûte-t-il moins que résister (courage, fierté, ce qu'il perd) ? Il cède, résiste, fuit, ou
@@ -184,7 +189,8 @@ sur ce que la contrainte lui coûte (malus, jets), pas sur ce qu'il décide.
 
 ## Ordre proposé
 
-Chaque étape est un jalon mesuré au banc sans joueur et à son récit.
+Chaque étape est un jalon mesuré au banc sans joueur et à son récit. Avant tout : **temps fin
+et orientation** (`docs/plan-temps.md`), fondation de la discrétion et de la force.
 
 1. **Caractères et valeurs** : éloquence, volonté, perspicacité ; caractéristiques modulées par
    les états ; valeurs en poids dans les coûts et les buts ; les limites deviennent des valeurs ;
@@ -203,8 +209,7 @@ Chaque étape est un jalon mesuré au banc sans joueur et à son récit.
 - Les valeurs restent stables ; les caractéristiques sont modulées par les états (blessure,
   faim, fatigue, confusion), et la volonté peut être brisée.
 - Le joueur reste libre de ses actions, soumis aux mêmes perceptions et contraintes.
-
-## Questions ouvertes
-
-- La mort (voir la discussion) : ce qui peut la causer, qui peut décider de tuer, ce qui suit la
-  mort du joueur.
+- On peut assommer ou tuer ; tuer est délibéré ; un personnage ligoté se tue sans jet ; tout PNJ
+  peut mourir ; la mort du joueur termine la partie, sans reprise pour l'instant.
+- Orientation en huit directions, cône de 120° et côtés immédiats, rotations qui prennent du
+  temps : jalon « temps fin et orientation », avant les caractères et valeurs.
