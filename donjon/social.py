@@ -73,12 +73,13 @@ def _sait(monde, id, noyau):
 
 def _auditeur(monde, id, souvenir, noyau, source):
     """Premier personnage présent à qui confier cette nouvelle, dans un ordre stable."""
+    from .pnj import pourraient_se_parler
     croyances = lire(monde, id)["croyances"]
     for autre in sorted(pnjs(monde)):
         if (autre == id or autre in souvenir.get("dit_a", ()) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
-                or not percoit(monde, id, autre) or not percoit(monde, autre, id)
+                or not pourraient_se_parler(monde, id, autre)
                 or croyances.get(autre, {}).get("fiable", {}).get("valeur") is False):
             continue
         if noyau["type"] == "absence" and _proprietaire(monde, noyau) != autre:

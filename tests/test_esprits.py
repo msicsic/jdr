@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
-from tests.support import sans_evacues
+from tests.support import regarder, sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percoit
 from donjon.monde import Monde, nouveau_monde
@@ -44,8 +44,9 @@ def croyance(monde, sujet, attribut="lieu"):
 class PerceptionParActeurTests(unittest.TestCase):
     def test_gorm_voit_ce_que_la_lumiere_et_la_ligne_de_vue_lui_montrent(self):
         m = relais()
-        # Placement d'auteur : Gorm se tient au milieu de la conduite.
+        # Placement d'auteur : Gorm se tient au milieu de la conduite, tourné vers les crochets.
         m.objets["marchand"]["position"] = [6, 2]
+        regarder(m, "marchand", "crochets")
         reprise = attendre(m)
         self.assertEqual(croyance(reprise, "crochets")["valeur"], "echoppe")
         self.assertEqual(croyance(reprise, "crochets")["case"], [8, 5])
@@ -53,6 +54,7 @@ class PerceptionParActeurTests(unittest.TestCase):
         # La poutre de la conduite lui cache le brasero : il n'en sait que ce qu'il savait.
         self.assertEqual(croyance(reprise, "brasero", "etat")["source"], "savoir")
         reprise.objets["marchand"]["position"] = [4, 2]
+        regarder(reprise, "marchand", "brasero")
         reprise = attendre(reprise)
         self.assertEqual(croyance(reprise, "brasero", "etat")["valeur"], {"allume": True, "faible": False, "charge": True})
         self.assertEqual(croyance(reprise, "brasero", "etat")["source"], "vu")
@@ -96,7 +98,7 @@ class PerceptionParActeurTests(unittest.TestCase):
             m.objets[id]["allume"] = False
         # Placement d'auteur : la trousse a glissé dans l'angle nord-est de la conduite.
         m.objets["crochets"]["position"] = [8, 3]
-        m.joueur.update(salle="echoppe", position=[8, 2])
+        m.joueur.update(salle="echoppe", position=[8, 2], orientation="ouest")
         m.objets["marchand"]["position"] = [3, 1]
         m = recharger(m)
         self.assertTrue(m.visible("marchand"))

@@ -201,8 +201,8 @@ def regarder(monde):
     sorties = []
     for direction, sortie in monde.data["salles"][salle]["sorties"].items():
         if monde.data.get("mode_cases"):
-            from .spatial import sortie_visible
-            if not sortie_visible(monde, salle, direction):
+            from .spatial import sortie_connue
+            if not sortie_connue(monde, salle, direction):
                 continue
         nom = monde.data["salles"][sortie["vers"]]["nom"] if sortie["vers"] in monde.data["visitees"] else "inexploré"
         if sortie.get("escalier"):

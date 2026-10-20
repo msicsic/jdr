@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
-from tests.support import sans_evacues
+from tests.support import refusee, regarder, sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire
 from donjon.mj import MJOpenAI
@@ -133,6 +133,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
         m.objets["marteau"]["proprietaire"] = "marchand"
         m.joueur["position"] = [7, 4]
         m.objets["marchand"]["position"] = [6, 2]
+        regarder(m, "marchand", "joueur")  # Placement d'auteur : Gorm le regarde faire.
         with patch.object(Monde, "d20", return_value=1):
             Moteur(m).executer(Moteur(m).preparer(
                 sequence(etape("deplacer", "marteau", "joueur", methode="discret"))))
@@ -241,6 +242,7 @@ class DemandesTests(unittest.TestCase):
             m.data["connus"].append("crochets")
             m.joueur.update(salle="antichambre", position=[6, 1])
             lire(m, "brune")["besoins"]["faim"] = faim
+            refusee(m)  # Placement d'auteur : Gorm vient de lui refuser une part.
             Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))
             reprise, _, _ = jouer(m, "je demande à Brune de me prêter la trousse de crochets", [
                 parole("Brune, tu me prêtes ta trousse de crochets ?", ("demande", "crochets", "", ""),

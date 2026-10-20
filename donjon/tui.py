@@ -293,7 +293,7 @@ class SeuilApp(App[int]):
         self.query_one("#statut", Static).update("MJ : " + vue["connexion"] + " · À toi de jouer")
         if self.focus_carte and self.mode_cases:
             self.query_one("#plan", Static).focus()
-            self.query_one("#statut", Static).update("Carte active · flèches pour marcher · Échap/Entrée : commande")
+            self.query_one("#statut", Static).update("Carte active · flèches : marcher · Maj+flèches : pas chassé · Échap/Entrée : commande")
         else:
             self.query_one("#commande", Input).focus()
         if self.saisie_a_restaurer is not None:
@@ -383,8 +383,21 @@ class SeuilApp(App[int]):
         saisie = self.query_one("#commande", Input)
         directions_ctrl = {"ctrl+up": "nord", "ctrl+down": "sud",
                            "ctrl+right": "est", "ctrl+left": "ouest"}
+        chasses = {"shift+up": "nord", "shift+down": "sud", "shift+right": "est", "shift+left": "ouest"}
+        feutres = {"alt+up": "nord", "alt+down": "sud", "alt+right": "est", "alt+left": "ouest"}
+        if self.mode_cases and not self.occupe and event.key in feutres:
+            self._marcher(feutres[event.key], feutre=True)
+            event.prevent_default()
+            event.stop()
+            return
         if self.mode_cases and not self.occupe and event.key in directions_ctrl:
             self._marcher(directions_ctrl[event.key])
+            event.prevent_default()
+            event.stop()
+            return
+        if self.mode_cases and not self.occupe and event.key in chasses and (self.focus_carte or not
+                                                                              self.query_one("#commande", Input).value):
+            self._marcher(chasses[event.key], chasse=True)
             event.prevent_default()
             event.stop()
             return
@@ -424,16 +437,17 @@ class SeuilApp(App[int]):
         self.focus_carte = not self.focus_carte
         (self.query_one("#plan", Static) if self.focus_carte else self.query_one("#commande", Input)).focus()
         self.query_one("#statut", Static).update(
-            "Carte active · flèches pour marcher · Échap/Entrée : commande" if self.focus_carte
+            "Carte active · flèches : marcher · Maj+flèches : pas chassé · Échap/Entrée : commande" if self.focus_carte
             else "Commande active · F6 pour déplacer sur la carte")
 
-    def _marcher(self, direction):
+    def _marcher(self, direction, chasse=False, feutre=False):
         if not self.mode_cases or self.occupe:
             return
         saisie = self.query_one("#commande", Input)
         brouillon, curseur = saisie.value, saisie.cursor_position
         self.saisie_a_restaurer = (brouillon, curseur)
-        self.soumettre("pas " + direction, enregistrer_historique=False)
+        self.soumettre(("chasse " if chasse else "faufiler " if feutre else "pas ") + direction,
+                       enregistrer_historique=False)
         saisie.value = brouillon
         saisie.cursor_position = min(curseur, len(brouillon))
 

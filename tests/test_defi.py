@@ -190,7 +190,7 @@ class DefiRelaisTests(unittest.TestCase):
         self.assertEqual(self.m.data["exploration"][PIED_BEFFROI], [[8, 3]])
         plan = carte(self.m).split("=== LEGENDE ===")[0]
         self.assertEqual(plan.count("@"), 1)
-        self.assertIn("@ ^", plan)
+        self.assertRegex(plan, r"@.\^")  # Le joueur, son regard, l'escalier voisin.
         self.assertIn("v ", plan)
 
     def test_action_du_relais_sans_objets_historiques_de_la_crypte(self):

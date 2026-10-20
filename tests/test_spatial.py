@@ -7,6 +7,7 @@ from donjon import spatial
 def monde_eclaire():
     m = nouveau_monde()
     spatial.installer(m)
+    m.joueur.pop("orientation")  # Géométrie des lignes de vue seule : le regard tout autour.
     m.objets["torche"]["allume"] = True
     m.objets["torche"]["combustible"] = 10
     return m
@@ -230,6 +231,7 @@ class SpatialTests(unittest.TestCase):
             "plan": {"origine": [9, 15], "sol": ["..."], "repere": "V"}}
         m.joueur["position"] = [2, 3]
         spatial.installer(m)
+        m.joueur["orientation"] = "sud"  # Il regarde par le portail.
         vus = {p for salle, x, y in spatial.champ_visible(m)
                if salle == "piece_voisine" for p in ((x, y),)}
         self.assertIn((1, 0), vus)

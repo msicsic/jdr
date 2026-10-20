@@ -287,7 +287,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
             await self.pret(app)
             await self.commande(app, pilot, "pas ouest", 0)
             self.assertEqual(app.derniere_vue["salle"], "Palier des vannes")
-            self.assertIn("@ ^", app.derniere_vue["carte"])
+            self.assertRegex(app.derniere_vue["carte"], r"@.\^")
             self.assertIn("@", app.query_one("#plan").render().plain)
             await self.fermer(app)
         charge = Monde.charger(chemin)

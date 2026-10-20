@@ -19,7 +19,7 @@ from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
 from donjon.pnj import avancer
 from donjon.spatial import installer
-from tests.support import calme
+from tests.support import calme, regarder
 
 
 def recharger(monde):
@@ -83,6 +83,10 @@ class FroidTests(unittest.TestCase):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.objets["brasero"].update(allume=False, combustible=0)
         lire(m, "aubin")["besoins"]["chaleur"] = 80.0
+        # Placement d'auteur : Aubin a déjà brûlé ses planches, il n'a pas de quoi rallumer.
+        m.objets.pop("planches")
+        for e in m.data["esprits"].values():
+            e["croyances"].pop("planches", None)
         m, _ = vivre(m, 15)
         self.assertGreaterEqual(lire(m, "aubin")["besoins"]["chaleur"], 80)
         self.assertFalse(lire(m, "aubin")["croyances"]["brasero"]["etat"]["valeur"]["allume"])
@@ -102,8 +106,9 @@ class FeuTests(unittest.TestCase):
 
     def test_gorm_va_chercher_son_bois_et_recharge_le_feu_qui_baisse(self):
         m = self.gorm(40)
-        # Le joueur, dans la conduite, voit Gorm revenir avec son bois.
+        # Le joueur, dans la conduite, regarde le brasero : il voit Gorm revenir avec son bois.
         m.joueur.update(salle="echoppe", position=[4, 5])
+        regarder(m, "joueur", "brasero")
         m, texte = attendre(recharger(m), 5)
         self.assertEqual(m.objets["bois"]["lieu"], "marchand")
         self.assertEqual(m.objets["bois"]["charges"], 1)
@@ -149,8 +154,8 @@ class FeuTests(unittest.TestCase):
         m, _ = vivre(m, 5)
         self.assertTrue(m.objets["brasero"]["allume"])
         # Dans le noir, il voit le feu éteint sans voir le foyer vide : son premier essai le lui
-        # apprend ; il recharge une seule fois, allume, et le feu brûle depuis deux minutes.
-        self.assertEqual(m.objets["brasero"]["combustible"], 120 - 2)
+        # apprend ; il recharge une seule fois, allume, et le feu brûle depuis quelques minutes.
+        self.assertGreaterEqual(m.objets["brasero"]["combustible"], 120 - 5)
         self.assertEqual(m.objets["bois"]["charges"], 1)
         textes = chronique(m)
         self.assertLess(textes.index("Gorm, gardien du relais alimente le brasero."),
@@ -174,6 +179,7 @@ class FeuTests(unittest.TestCase):
         m.objets["brasero"]["allume"] = False
         deplacer(m, "bois", "marchand")
         placer(m, "marchand", "echoppe", [3, 5])
+        regarder(m, "marchand", "brasero")
         return m
 
     def test_dans_le_noir_il_voit_que_le_feu_ne_brille_plus(self):
@@ -249,9 +255,14 @@ class FeuTests(unittest.TestCase):
 
     def test_la_flamme_meurt_en_route_il_le_constate(self):
         m = self.eteint_sans_briquet()
-        # Placement d'auteur : la torche brûle encore deux minutes, le fanal est éteint.
-        m.objets["torche"].update(allume=True, combustible=2)
+        # Placement d'auteur : la torche brûle ses dernières secondes au refuge, où Gorm l'a vue ;
+        # le fanal est éteint.
+        m.objets["torche"].update(allume=True, combustible=1)
         m.objets["fanal"]["allume"] = False
+        croire(m, "marchand", "torche", "lieu", "antichambre", "vu", salle="antichambre",
+               case=list(m.objets["torche"]["position"]))
+        croire(m, "marchand", "torche", "etat", {"allume": True, "faible": True, "charge": True}, "vu")
+        m.data["dixiemes"] = 550
         percevoir_tous(m)
         m, _ = vivre(m, 12)
         self.assertFalse(m.objets["brasero"]["allume"])

@@ -62,14 +62,16 @@ class IntegrationCasesTests(unittest.TestCase):
         self.assertNotIn("inscription", vue)
 
     def test_pas_locaux_sans_jet_et_temps_de_marche(self):
-        for _ in range(5):
-            for direction in ("est", "ouest"):
-                p = analyser(self.m, "pas " + direction)
-                self.moteur.executer(self.moteur.preparer(p))
+        # Un pas en avant 1,5 s, un pas chassé en arrière 3 s : quarante allers-retours, trois minutes.
+        self.m.joueur["orientation"] = "est"
+        for _ in range(40):
+            for commande in ("pas est", "chasse ouest"):
+                self.moteur.executer(self.moteur.preparer(analyser(self.m, commande)))
         self.assertEqual(self.m.joueur["position"], [1, 2])
-        self.assertEqual(self.m.data["minutes"], 1)
+        self.assertEqual(self.m.joueur["orientation"], "est")
+        self.assertEqual(self.m.data["minutes"], 3)
         self.assertEqual(self.m.data["jets"], 0)
-        self.assertEqual(self.m.objets["lanterne"]["combustible"], 59)
+        self.assertEqual(self.m.objets["lanterne"]["combustible"], 57)
         self.assertFalse(self.m.contexte()["evenements_recents"])
 
     def test_acheter_exige_aussi_proximite_du_marchand(self):
@@ -82,7 +84,7 @@ class IntegrationCasesTests(unittest.TestCase):
         self.assertEqual(self.m.objets["pied_de_biche"]["lieu"], "joueur")
 
     def test_sortie_visible_presente_dans_contexte(self):
-        self.m.joueur["position"] = [3, 1]
+        self.m.joueur.update(position=[3, 1], orientation="nord")
         self.assertIn("nord", self.m.contexte()["salle"]["sorties"])
         self.assertNotIn("plan", self.m.contexte()["salle"])
         self.agir("marcher", "nord")

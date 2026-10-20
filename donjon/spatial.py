@@ -24,6 +24,59 @@ def active(m):
     return bool(m.data.get("mode_cases", False))
 
 
+QUART = 5             # dixièmes de seconde pour tourner de 45° (un demi-tour : 2 s)
+
+
+def orientation_vers(depart, arrivee):
+    """La direction (parmi les huit) qui regarde le mieux d'une case vers une autre ; None si
+    c'est la même case."""
+    import math
+    dx, dy = arrivee[0] - depart[0], arrivee[1] - depart[1]
+    if dx == dy == 0:
+        return None
+    angle = round(math.atan2(dy, dx) / (math.pi / 4)) % 8
+    vecteur = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)][angle]
+    return next(nom for nom, v in VECTEURS.items() if v == vecteur)
+
+
+def quarts(de, vers):
+    """Nombre de huitièmes de tour (0 à 4) pour passer d'une orientation à une autre."""
+    if de is None or vers is None:
+        return 0
+    ordre = ["est", "sud-est", "sud", "sud-ouest", "ouest", "nord-ouest", "nord", "nord-est"]
+    ecart = abs(ordre.index(de) - ordre.index(vers)) % 8
+    return min(ecart, 8 - ecart)
+
+
+def dans_le_cone(origine, orientation, cible):
+    """Une case est vue si elle est dans le cône de 120° devant soi, ou immédiatement sur les
+    côtés ; derrière, rien. Sans orientation, on voit tout autour."""
+    if orientation is None:
+        return True
+    dx, dy = cible[0] - origine[0], cible[1] - origine[1]
+    if dx == dy == 0:
+        return True
+    fx, fy = VECTEURS[orientation]
+    produit = dx * fx + dy * fy
+    if max(abs(dx), abs(dy)) == 1 and produit >= 0:
+        return True
+    return produit * 2 >= ((dx * dx + dy * dy) * (fx * fx + fy * fy)) ** 0.5
+
+
+def orientation_acteur(m, acteur="joueur"):
+    """L'orientation du joueur ou d'un PNJ ; sans orientation, on voit tout autour de soi."""
+    if acteur == "joueur":
+        return m.joueur.get("orientation")
+    return m.objets[acteur].get("orientation")
+
+
+def regard_initial(m, salle, position):
+    """Sans orientation connue, on fait face au centre de la salle."""
+    sol = cases(m.data["salles"][salle])
+    centre = (round(sum(x for x, _ in sol) / len(sol)), round(sum(y for _, y in sol) / len(sol)))
+    return orientation_vers(tuple(position), centre) or "sud"
+
+
 def _erreur(texte):
     from .monde import ErreurMonde
     raise ErreurMonde(texte)
@@ -69,6 +122,13 @@ def installer(m):
                 and o.get("type") not in ("surface", "porte")
                 and (o.get("bloque_passage") or o.get("bloque_vue"))):
             placer(o, salle, position_objet(m, o))
+    for o in m.objets.values():
+        if (o.get("type") == "personnage" and "orientation" not in o and o.get("lieu") in m.data["salles"]
+                and "plan" in m.data["salles"][o["lieu"]] and "position" in o):
+            o["orientation"] = regard_initial(m, o["lieu"], o["position"])
+    j = m.joueur
+    if "orientation" not in j and "plan" in m.data["salles"].get(j["salle"], {}) and j.get("position"):
+        j["orientation"] = regard_initial(m, j["salle"], j["position"])
     verifier(m)
     memoriser(m)
 
@@ -350,6 +410,10 @@ def visible(m, id, acteur="joueur", champ=None):
     if id not in m.objets or id == acteur:
         return False
     champ = champ_visible(m, acteur) if champ is None else champ
+    o = m.objets[id]
+    if o["type"] == "surface" and o.get("lieu") == position_acteur(m, acteur)[0]:
+        # Les murs, le sol, le plafond de sa pièce : on en voit toujours une part, où qu'on regarde.
+        return any(c[0] == o["lieu"] for c in champ)
     for salle in m.data["salles"]:
         position = position_cible(m, id, salle)
         if position is not None and (salle, position[0], position[1]) in champ:
@@ -416,7 +480,9 @@ def _vue(m, acteur="joueur", signature=None):
     return origine, lumiere
 
 
-def _vu(m, origine, lumiere, cible):
+def _vu(m, origine, lumiere, cible, orientation=None):
+    if not dans_le_cone(origine, orientation, cible):
+        return False
     niveau = lumiere.niveau(cible)
     portee = PORTEE_VUE[2 if niveau == 2 or lumiere.directe(cible) else 1] if niveau else -1
     if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > portee:
@@ -441,7 +507,7 @@ def acteurs_vus(m, acteur, autres):
             continue
         if origine is None:
             origine, lumiere = _vue(m, acteur)
-        if _vu(m, origine, lumiere, _global(m.data["salles"][salle], case)):
+        if _vu(m, origine, lumiere, _global(m.data["salles"][salle], case), orientation_acteur(m, acteur)):
             vus.append(autre)
     return vus
 
@@ -453,6 +519,8 @@ def dans_le_regard(m, salle, case, acteur="joueur"):
         return False
     cible = _global(m.data["salles"][salle], case)
     if max(abs(cible[0] - origine[0]), abs(cible[1] - origine[1])) > PORTEE_VUE[2]:
+        return False
+    if not dans_le_cone(origine, orientation_acteur(m, acteur), cible):
         return False
     return _los_mutuelle(m, origine, cible, lumiere.terrain, lumiere.opaques)
 
@@ -470,19 +538,49 @@ def sortie_visible(m, salle, direction, acteur="joueur"):
     if ajoute:
         lumiere.terrain[cible] = None
     try:
-        return _vu(m, origine, lumiere, cible)
+        return _vu(m, origine, lumiere, cible, orientation_acteur(m, acteur))
     finally:
         if ajoute:
             del lumiere.terrain[cible]
+
+
+def regard_vers(m, id):
+    """La direction vers laquelle le joueur doit se tourner pour voir ``id``, qu'il ne voit pas de
+    face mais verrait en se tournant ; None sinon."""
+    j = m.joueur
+    if (not m.data.get("mode_cases") or not j.get("orientation") or id not in m.objets or m.est_porte(id)
+            or visible(m, id) or not m.present_physique(id)):
+        return None
+    case = position_cible(m, id, j["salle"])
+    vers = orientation_vers(tuple(j["position"]), tuple(case)) if case is not None else None
+    if vers is None:
+        return None
+    ancien = j["orientation"]
+    j["orientation"] = vers
+    try:
+        return vers if visible(m, id) else None
+    finally:
+        j["orientation"] = ancien
+
+
+def sortie_connue(m, salle, direction):
+    """Une sortie qu'il voit, ou dont il a déjà vu ou foulé le seuil : il sait qu'elle est là,
+    même dans son dos."""
+    if sortie_visible(m, salle, direction):
+        return True
+    sortie = m.data["salles"].get(salle, {}).get("sorties", {}).get(direction)
+    pos = _case_interieure(m, salle, sortie) if sortie else None
+    return pos is not None and list(pos) in m.data.get("exploration", {}).get(salle, [])
 
 
 def champ_visible(m, acteur="joueur"):
     """Cases vues maintenant par l'acteur, incluant les paliers d'une porte ouverte."""
     cache = getattr(m, "_cache_vue", None)
     signature = cle = None
+    orientation = orientation_acteur(m, acteur)
     if cache is not None:
         signature = signature_vue(m)
-        cle = ("champ", *position_acteur(m, acteur), signature)
+        cle = ("champ", *position_acteur(m, acteur), orientation, signature)
         if cle in cache:
             return set(cache[cle])
     origine, lumiere = _vue(m, acteur, signature)
@@ -490,7 +588,7 @@ def champ_visible(m, acteur="joueur"):
     for salle in lumiere.salles:
         piece = m.data["salles"][salle]
         for x, y in cases(piece):
-            if _vu(m, origine, lumiere, _global(piece, (x, y))):
+            if _vu(m, origine, lumiere, _global(piece, (x, y)), orientation):
                 vus.add((salle, x, y))
     if cache is not None:
         cache[cle] = frozenset(vus)
@@ -580,16 +678,26 @@ def preparer_pas(m, direction):
     dx, dy = vecteur
     if type(dx) is not int or type(dy) is not int or max(abs(dx), abs(dy)) != 1:
         _erreur("Le déplacement doit avancer d'une case.")
-    salle = m.joueur["salle"]
-    x, y = m.joueur["position"]
+    pas = pas_vers(m, m.joueur["salle"], tuple(m.joueur["position"]), (dx, dy))
+    return {"salle": pas["salle"], "position": pas["position"]}
+
+
+def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
+    """Où mène un pas d'une case depuis (salle, position), pour le joueur comme pour un PNJ :
+    {"salle", "position", "porte"}. ``porte`` est la porte fermée à franchir, si
+    ``porte_fermee`` l'admet ; sinon une porte fermée bloque, comme un mur ou un obstacle.
+    ``case_libre`` remplace ``_case_libre`` par une version mémorisée le temps d'une recherche."""
+    _case_libre_ = case_libre or (lambda s, c: _case_libre(m, s, c))
+    dx, dy = vecteur
+    x, y = position
     destination = (x + dx, y + dy)
     if destination in cases(m.data["salles"][salle]):
-        if dx and dy and not (_case_libre(m, salle, (x + dx, y))
-                              and _case_libre(m, salle, (x, y + dy))):
+        if dx and dy and not (_case_libre_(salle, (x + dx, y))
+                              and _case_libre_(salle, (x, y + dy))):
             _erreur("Un mur ou un obstacle bloque le passage en diagonale.")
-        if not _case_libre(m, salle, destination):
+        if not _case_libre_(salle, destination):
             _erreur("Un obstacle solide occupe cette case.")
-        return {"salle": salle, "position": [destination[0], destination[1]]}
+        return {"salle": salle, "position": [destination[0], destination[1]], "porte": None}
     if dx and dy:
         _erreur("Le mur bloque ce déplacement en diagonale.")
     sortie = next((s for d, s in m.data["salles"][salle].get("sorties", {}).items()
@@ -598,7 +706,8 @@ def preparer_pas(m, direction):
     if not sortie:
         _erreur("Un mur bloque le passage.")
     porte = m.objets.get(sortie.get("porte"))
-    if porte and not porte.get("ouverte"):
+    fermee = bool(porte and not porte.get("ouverte"))
+    if fermee and not porte_fermee:
         _erreur("La porte fermée bloque le passage.")
     vers = sortie.get("vers")
     piece_vers = m.data["salles"].get(vers, {})
@@ -607,9 +716,47 @@ def preparer_pas(m, direction):
     pos = _case_interieure(m, vers, retour) if retour else None
     if pos is None:
         _erreur("Aucun sol ne rejoint ce passage.")
-    if not _case_libre(m, vers, pos):
+    if not _case_libre_(vers, pos):
         _erreur("Un obstacle solide bloque l'autre côté du passage.")
-    return {"salle": vers, "position": [pos[0], pos[1]]}
+    return {"salle": vers, "position": [pos[0], pos[1]], "porte": porte["id"] if fermee else None}
+
+
+def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True):
+    """Le plus court chemin en cases, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
+    [(salle, case, porte fermée à franchir ou None, sens du pas)], vide si l'on y est déjà, None
+    sans passage.
+    Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées."""
+    from .monde import ErreurMonde
+    libres = {}
+
+    def case_libre(s, c):
+        if (s, c) not in libres:
+            libres[s, c] = _case_libre(m, s, c)
+        return libres[s, c]
+    depart = (salle, tuple(position))
+    if arrivee(*depart):
+        return []
+    precedent, file = {depart: None}, deque([depart])
+    while file:
+        courant = file.popleft()
+        for vecteur in sorted(VECTEURS.values()):
+            try:
+                pas = pas_vers(m, courant[0], courant[1], vecteur, porte_fermee=True, case_libre=case_libre)
+            except ErreurMonde:
+                continue
+            suivant = (pas["salle"], tuple(pas["position"]))
+            if suivant in precedent or not libre(*suivant) or pas["porte"] and not franchissable(pas["porte"]):
+                continue
+            precedent[suivant] = (courant, pas["porte"], vecteur)
+            if arrivee(*suivant):
+                chemin = []
+                while precedent[suivant]:
+                    avant, porte, sens = precedent[suivant]
+                    chemin.append((suivant[0], suivant[1], porte, sens))
+                    suivant = avant
+                return chemin[::-1]
+            file.append(suivant)
+    return None
 
 
 def destination_appui(m, support, salle):
@@ -630,6 +777,9 @@ def destination_appui(m, support, salle):
 
 def verifier(m):
     """Valide coordonnées spatiales présentes, tout en acceptant les vieilles parties."""
+    for o in [*m.objets.values(), m.joueur]:
+        if "orientation" in o and o["orientation"] not in VECTEURS:
+            raise AssertionError(f"Orientation invalide : {o.get('id', 'joueur')}")
     for salle, piece in m.data["salles"].items():
         if "plan" not in piece:
             continue

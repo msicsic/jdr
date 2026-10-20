@@ -44,13 +44,13 @@ class ReactionsTests(unittest.TestCase):
         m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
         reprise, sortie = jouer(m, "crier")
         self.assertTrue(reprise.objets["porte"]["ouverte"])
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "crypte")
         self.assertIn("s'ouvre.", sortie)
         self.assertFalse(lire(reprise, "marchand")["croyances"]["porte"]["verrouillee"]["valeur"])
-        reprise, sortie = jouer(reprise, "attendre")
+        # Il ouvre puis passe, pas à pas, sans attendre la minute suivante.
+        reprise, suite = jouer(reprise, "attendre")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
         self.assertIsNone(lire(reprise, "marchand")["intention"])
-        self.assertIn("Gorm le marchand arrive.", sortie)
+        self.assertIn("Gorm le marchand arrive.", sortie + suite)
 
     def test_gorm_deverrouille_avec_la_cle_qu_il_porte(self):
         m = nouveau_monde()

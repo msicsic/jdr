@@ -103,6 +103,8 @@ class Monde:
         installer_artisanat(self)
         from .espace import installer as installer_espace
         installer_espace(self)
+        from .temps import installer as installer_temps
+        installer_temps(self)
         self.verifier()
 
     def _installer_recit(self):
@@ -230,8 +232,10 @@ class Monde:
                 texte = texte[len(article):]
                 break
         candidats, exacts = [], []
+        from .spatial import regard_vers
         for o in self.objets.values():
-            if not self.accessible(o["id"]):
+            # Ce qu'il verrait en se tournant se nomme aussi : le geste le tournera d'abord.
+            if not self.accessible(o["id"]) and not (self.data.get("mode_cases") and regard_vers(self, o["id"])):
                 continue
             if texte == normaliser(o["id"]):
                 return o["id"]
@@ -318,10 +322,10 @@ class Monde:
                     "derniere_salle": lieux_connus.get(salle_souvenir, "lieu encore sans nom"),
                 })
         if self.data.get("mode_cases"):
-            from .spatial import sortie_visible
+            from .spatial import sortie_connue
             salle.pop("plan", None)  # Le MJ ne reçoit pas la géométrie des recoins invisibles.
             salle["sorties"] = {direction: sortie for direction, sortie in salle["sorties"].items()
-                                if sortie_visible(self, self.joueur["salle"], direction)}
+                                if sortie_connue(self, self.joueur["salle"], direction)}
         for sortie in salle["sorties"].values():
             sortie["nom_destination"] = lieux_connus.get(sortie["vers"], "inexploré")
         return {"revision": self.data["revision"], "joueur": joueur, "lieux_connus": lieux_connus,
@@ -340,7 +344,8 @@ class Monde:
                 "ambiance_etablie": ambiance_etablie(self),
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],
                 "evenements_recents": [e for e in self.data["journal"]
-                    if e["action"]["action"] not in (("marcher", "aller") if self.data.get("mode_cases") else ("marcher",))][-6:]}
+                    if e["action"]["action"] not in (("marcher", "chasser", "faufiler", "tourner", "aller")
+                                                     if self.data.get("mode_cases") else ("marcher",))][-6:]}
 
     def contexte_scenario(self):
         """Prémisse publique et déplacements réellement enregistrés."""
@@ -357,6 +362,8 @@ class Monde:
     def verifier(self):
         d = self.data
         try:
+            from .temps import verifier as verifier_temps
+            verifier_temps(self)
             if d.get("mode_cases"):
                 from .spatial import verifier as verifier_spatial
                 verifier_spatial(self)
