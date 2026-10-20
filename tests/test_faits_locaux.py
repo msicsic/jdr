@@ -157,8 +157,22 @@ class FaitsLocauxTests(unittest.TestCase):
             preparer_faits(m, {"ajouts": [{**FAITS["ajouts"][0], "mobile": True}]})
         m.objets["lanterne"]["allume"] = False
         self.assertNotIn("antichambre_murs", supports(m))
-        with self.assertRaises(ErreurMonde):
+        with self.assertRaises(ErreurMonde) as refus:
             preparer_inscription(m, PROPOSITION)
+        self.assertEqual(str(refus.exception), "Il fait trop sombre pour en distinguer les détails.")
+
+    def test_un_support_trop_loin_se_dit_sans_en_proposer_un_autre(self):
+        """Banc Luna : « à quoi ressemble le mur de l'atelier ? », le mur trop loin ; le refus
+        mêlait distance et lumière, et Luna détaillait à la place une perche voisine."""
+        m = nouveau_defi()
+        installer_cases(m)
+        self.assertTrue(m.visible("fanal"))
+        self.assertNotIn("fanal", supports(m))
+        with self.assertRaises(ErreurMonde) as refus:
+            preparer_faits(m, {"ajouts": [{"type": "detail", "ancrage": "fanal", "nom": "éclat", "genre": "m",
+                                           "texte": "Un éclat manque au verre."}]})
+        self.assertEqual(str(refus.exception), "Tu es trop loin pour en distinguer les détails.")
+        self.assertIn("ne le remplace pas par un autre support", refus.exception.attendu)
 
     def test_en_cases_le_detail_exige_proximite_et_lumiere(self):
         m = nouveau_defi()
