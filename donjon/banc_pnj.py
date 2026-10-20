@@ -105,14 +105,16 @@ def appelant(connexion="chatgpt", modele=None, effort="medium"):
 
 def resume_diagnostic(recherches):
     """Les recherches du planificateur regroupées par PNJ et par but, les plus coûteuses d'abord :
-    nombre, issues (plan, borne de nœuds atteinte, espace épuisé), nœuds, profondeur, durée."""
+    nombre, issues (plan, borne de nœuds atteinte, espace épuisé), résultats repris de la
+    mémoire sans chercher, nœuds, profondeur, durée."""
     groupes = {}
     for r in recherches:
         g = groupes.setdefault((r["pnj"], r["but"]), {"pnj": r["pnj"], "but": r["but"], "recherches": 0, "plan": 0,
-                                                      "borne": 0, "epuise": 0, "noeuds": 0, "noeuds_max": 0,
+                                                      "borne": 0, "epuise": 0, "memoire": 0, "noeuds": 0, "noeuds_max": 0,
                                                       "profondeur_max": 0, "duree": 0.0})
         g["recherches"] += 1
         g[r["issue"]] += 1
+        g["memoire"] += bool(r.get("memoire"))
         g["noeuds"] += r["noeuds"]
         g["noeuds_max"] = max(g["noeuds_max"], r["noeuds"])
         g["profondeur_max"] = max(g["profondeur_max"], r["profondeur"])
@@ -124,7 +126,7 @@ def resume_diagnostic(recherches):
 
 
 def texte_diagnostic(resume):
-    cles = ("recherches", "plan", "borne", "epuise", "noeuds", "noeuds_max", "profondeur_max", "duree")
+    cles = ("recherches", "plan", "borne", "epuise", "memoire", "noeuds", "noeuds_max", "profondeur_max", "duree")
     lignes = ["Planificateur : pnj but " + " ".join(cles)]
     lignes += [f'{g["pnj"]} {g["but"] or "-"} ' + " ".join(str(g[k]) for k in cles) for g in resume]
     total = {k: sum(g[k] for g in resume) for k in cles if k not in ("noeuds_max", "profondeur_max")}

@@ -11,13 +11,15 @@ pris, ouvert, déverrouillé, allumé, où il se tiendra.
 Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par geste revalidé sur
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
+import copy
 import heapq
+import json
 from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
 
-from .deliberation import (_connus, _cru, _disponible_cru, _eclairee_crue, _lieu_cru, autorise, besoin_de_part,
-                           illicite, profil, promesse_en_cours, refuse_recemment)
+from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, _cru, _disponible_cru, _eclairee_crue, _lieu_cru,
+                           autorise, besoin_de_part, illicite, profil, promesse_en_cours, refuse_recemment)
 from .esprits import lire
 from .spatial import porte_par
 
@@ -35,6 +37,10 @@ TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
 USAGES = ("crochetage", "allumage", "combustible")
 # Chaque recherche s'y consigne quand le banc le demande (``diagnostics``) ; sinon None.
 DIAGNOSTIC = None
+# Le dernier résultat de chaque PNJ pour chaque but, avec tout ce dont il dépendait. Il ne tient
+# pas à l'objet monde : le moteur agit sur une copie de travail à chaque action.
+_MEMOIRE = {}
+VERIFIER = False       # vrai : un résultat mémorisé est aussi recalculé et comparé (tests)
 
 
 @contextmanager
@@ -325,16 +331,73 @@ def depart(monde, id, v=None):
     return Etat(monde.objets[id]["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {})
 
 
-def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom=""):
+def _entrees(v, vises, profondeur, noeuds):
+    """Tout ce que lit une recherche hors de son but, en JSON (comme une sauvegarde) : où il se
+    tient et ce qu'il porte, ce qu'il croit (les valeurs, pas leur date), ses refus et promesses
+    avec ce qu'en dit l'horloge, ses visites, son profil, ce que sont les objets (nature, usages,
+    fixité, propriétaire) et les passages entre les salles."""
+    monde, id = v.monde, v.id
+    esprit_ = lire(monde, id)
+    croyances = esprit_["croyances"]
+    minute = monde.data["minutes"]
+    return json.dumps([
+        vises, profondeur, noeuds, monde.objets[id]["lieu"],
+        [k for k in v.connus if porte_par(monde, k, id)],
+        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
+        [[s, minute - s["minute"] < (REDEMANDE if s["type"] == "refus" else ATTENTE_PART)]
+         for s in esprit_["memoire"] if s["type"] in ("refus", "promis", "nourri")],
+        esprit_["visites"], profil(monde, id),
+        # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
+        [[k, o["type"], o.get("mobile"), o.get("foyer"), "allume" in o, o.get("usages"), o.get("ouvre"),
+          bool(o.get("profil")), None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
+         for k, o in monde.objets.items()],
+        [[o, v.proprietaire[o]] for o in v.connus],
+        [[s, x.get("lumiere_naturelle"), [[d, p["vers"], p.get("porte")] for d, p in x["sorties"].items()]]
+         for s, x in v.salles.items()]], ensure_ascii=False)
+
+
+def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None):
     """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None,
     depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant). ``nom`` désigne le but
     dans les diagnostics.
+
+    ``memo`` (une description JSON du but, qui le détermine avec ce qu'il croit) garde le
+    résultat : tant que rien de ce que lit la recherche n'a changé (``_entrees``), le même but
+    rend le même résultat sans refaire la recherche.
 
     Le coût est (personnes lésées, minutes) : le moins fautif d'abord. Renvoie
     (coût, étapes, état final)."""
     debut = perf_counter()
     v = Vue(monde, id)
-    depart_ = depuis or depart(monde, id, v)
+    if memo is not None and depuis is None:
+        entrees = _entrees(v, vises, profondeur, noeuds)
+        place = (id, json.dumps(memo, ensure_ascii=False))
+        garde = _MEMOIRE.get(place)
+        if garde is not None and garde[0] == entrees:
+            trouve, issue = garde[1], garde[2]
+            if VERIFIER:
+                refait = _explorer(v, depart(monde, id, v), but, vises, profondeur, noeuds)[0]
+                assert refait == trouve, f"Plan mémorisé périmé pour {id} ({memo}) : {trouve} au lieu de {refait}"
+            if DIAGNOSTIC is not None:
+                DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": 0, "etats": 0,
+                                   "profondeur": 0, "issue": issue, "memoire": True,
+                                   "etapes": len(trouve[1]) if trouve else None,
+                                   "duree": round(perf_counter() - debut, 6)})
+            return None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
+    trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur, noeuds)
+    issue = "plan" if trouve else "borne" if examines >= noeuds else "epuise"
+    if memo is not None and depuis is None:
+        _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]), issue)
+    if DIAGNOSTIC is not None:
+        DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
+                           "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": False,
+                           "etapes": len(trouve[1]) if trouve else None,
+                           "duree": round(perf_counter() - debut, 6)})
+    return trouve
+
+
+def _explorer(v, depart_, but, vises, profondeur, noeuds):
+    """A* sur les états crus : (trouvé ou None, nœuds examinés, états vus, profondeur atteinte)."""
     ordre = count()
     infini = (float("inf"), float("inf"))
     file = [((0, 0), next(ordre), depart_, [], 0)]
@@ -361,13 +424,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             if total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1))
-    if DIAGNOSTIC is not None:
-        DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
-                           "etats": len(vus), "profondeur": plus_profond,
-                           "issue": "plan" if trouve else "borne" if examines >= noeuds else "epuise",
-                           "etapes": len(trouve[1]) if trouve else None,
-                           "duree": round(perf_counter() - debut, 6)})
-    return trouve
+    return trouve, examines, len(vus), plus_profond
 
 
 # --- Buts ---------------------------------------------------------------------------------
@@ -416,7 +473,7 @@ def _resultat(v, e, etapes, sorte):
 def planifier(monde, id, besoin):
     """(but, étapes) pour apaiser la faim ou le froid, ou None."""
     but = {"faim": a_mange, "chaleur": rechauffe}[besoin]
-    trouve = chercher(monde, id, but, nom=besoin)
+    trouve = chercher(monde, id, but, nom=besoin, memo=["besoin", besoin])
     if trouve is None:
         return None
     _, etapes, e = trouve
@@ -460,7 +517,7 @@ def planifier_pulsion(monde, id, condition):
     else:
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
-    trouve = chercher(monde, id, but, vises, nom=_nom_condition(condition))
+    trouve = chercher(monde, id, but, vises, nom=_nom_condition(condition), memo=["pulsion", condition])
     if trouve is None:
         return None
     _, etapes, e = trouve
@@ -475,7 +532,7 @@ def _nom_condition(c):
 
 def aller(monde, id, salle):
     """Les étapes pour se rendre dans une salle, ou None s'il n'y croit aucun passage."""
-    trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="aller")
+    trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="aller", memo=["aller", salle])
     return None if trouve is None else trouve[1]
 
 
