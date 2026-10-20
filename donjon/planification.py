@@ -12,7 +12,9 @@ Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par ge
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
 import heapq
+from contextlib import contextmanager
 from itertools import count
+from time import perf_counter
 
 from .deliberation import (_connus, _cru, _disponible_cru, _eclairee_crue, _lieu_cru, autorise, besoin_de_part,
                            illicite, profil, promesse_en_cours, refuse_recemment)
@@ -31,6 +33,20 @@ CHANCE_MIN = 0.05
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
 USAGES = ("crochetage", "allumage", "combustible")
+# Chaque recherche s'y consigne quand le banc le demande (``diagnostics``) ; sinon None.
+DIAGNOSTIC = None
+
+
+@contextmanager
+def diagnostics():
+    """Consigne chaque recherche faite dans le bloc : qui, pour quel but, nœuds examinés,
+    durée, profondeur atteinte, issue (plan, borne de nœuds atteinte, espace épuisé)."""
+    global DIAGNOSTIC
+    precedent, DIAGNOSTIC = DIAGNOSTIC, []
+    try:
+        yield DIAGNOSTIC
+    finally:
+        DIAGNOSTIC = precedent
 
 
 class Etat:
@@ -309,26 +325,31 @@ def depart(monde, id, v=None):
     return Etat(monde.objets[id]["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {})
 
 
-def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS):
+def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom=""):
     """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None,
-    depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant).
+    depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant). ``nom`` désigne le but
+    dans les diagnostics.
 
     Le coût est (personnes lésées, minutes) : le moins fautif d'abord. Renvoie
     (coût, étapes, état final)."""
+    debut = perf_counter()
     v = Vue(monde, id)
     depart_ = depuis or depart(monde, id, v)
     ordre = count()
     infini = (float("inf"), float("inf"))
     file = [((0, 0), next(ordre), depart_, [], 0)]
     vus = {depart_: (0, 0)}
-    examines = 0
+    examines = plus_profond = 0
+    trouve = None
     while file and examines < noeuds:
         cout, _, e, etapes, n = heapq.heappop(file)
         if vus.get(e, infini) < cout:
             continue
         examines += 1
+        plus_profond = max(plus_profond, n)
         if but(v, e):
-            return cout, etapes, e
+            trouve = cout, etapes, e
+            break
         if n >= profondeur:
             continue
         for fautes, minutes, ajout, suivant in gestes(v, e, vises, but):
@@ -340,7 +361,13 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             if total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1))
-    return None
+    if DIAGNOSTIC is not None:
+        DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
+                           "etats": len(vus), "profondeur": plus_profond,
+                           "issue": "plan" if trouve else "borne" if examines >= noeuds else "epuise",
+                           "etapes": len(trouve[1]) if trouve else None,
+                           "duree": round(perf_counter() - debut, 6)})
+    return trouve
 
 
 # --- Buts ---------------------------------------------------------------------------------
@@ -389,7 +416,7 @@ def _resultat(v, e, etapes, sorte):
 def planifier(monde, id, besoin):
     """(but, étapes) pour apaiser la faim ou le froid, ou None."""
     but = {"faim": a_mange, "chaleur": rechauffe}[besoin]
-    trouve = chercher(monde, id, but)
+    trouve = chercher(monde, id, but, nom=besoin)
     if trouve is None:
         return None
     _, etapes, e = trouve
@@ -433,16 +460,22 @@ def planifier_pulsion(monde, id, condition):
     else:
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
-    trouve = chercher(monde, id, but, vises)
+    trouve = chercher(monde, id, but, vises, nom=_nom_condition(condition))
     if trouve is None:
         return None
     _, etapes, e = trouve
     return {"type": "pulsion", **condition}, retablir(v, e, _couper(etapes))
 
 
+def _nom_condition(c):
+    sorte = ("ronde" if "periode" in c else "servir" if "servir" in c else "feu" if "allume" in c
+             else "placer" if "lieu" in c else "sous_cle")
+    return f"{sorte}:{c.get('objet') or c.get('lieu')}"
+
+
 def aller(monde, id, salle):
     """Les étapes pour se rendre dans une salle, ou None s'il n'y croit aucun passage."""
-    trouve = chercher(monde, id, lambda v, e: e.salle == salle)
+    trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="aller")
     return None if trouve is None else trouve[1]
 
 

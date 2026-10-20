@@ -380,7 +380,7 @@ def completer(monde, id, gestes):
         but = _prealable(v, e, etape)
         if but is not None:
             vises = {"prendre": (cible,)} if op in ("prendre", "poser") else {}
-            trouve = chercher(monde, id, but, vises, depuis=e)
+            trouve = chercher(monde, id, but, vises, depuis=e, nom="stratege:" + op)
             if trouve is None:
                 raise ErreurStrategie(f"étape {n} ({op}) : il ne voit pas comment y parvenir d'après ce qu'il croit "
                                       "(chemin, contenant fermé sans clé ni outil, objet introuvable)")
