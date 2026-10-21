@@ -258,7 +258,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
   confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
-- La suite de tests passe : 839 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `banc-luna`, non fusionnée : Luna remesurée sur le moteur actuel (2 passes, `--fil`) et
+  un banc `echanges` (parler sans nommer, guillemets, à tous, chuchoter, passage, pousser, donner,
+  interpeller dans son dos ; la préparation d'un banc place des personnages et leur regard).
+  Défauts communs corrigés : ce que Corvus a dans son dos (vu plus tôt, hors du cône) se nomme et
+  se vise comme tout geste (`Monde.designable` : analyse du don, noms, liste d'un refus ; chaque
+  souvenir visuel porte son identifiant et `vu_a`) ; une parole se tourne vers celui qu'on nomme
+  dans son dos, et à même distance celui qui est droit devant est « en face » ; le récit d'un
+  résultat reçoit les gestes exécutés (`gestes_accomplis`), que l'auditeur admet comme le
+  narrateur ; écouter dit « contre la porte » ; un support trop loin se dit sans en détailler un
+  autre ; patienter a la cible vide ; une citation recopiée avec ses guillemets reste la parole ;
+  un refus d'improvisation nomme son seul champ fautif. Trois bancs (31 tours MJ), avant → après :
+  3,50 → 3,26 appels et 16,7 → 15,3 s par tour MJ, replis 1 → 0,5, obstacles 14 → 9,5 ; tours
+  avec refus 2 → 4, des « approche-toi » justes là où Luna supposait l'objet absent. Banc
+  échanges : 2,75 → 3,0 appels, 13,5 → 12,5 s, obstacles 3 → 0,5, et les huit saisies traitées
+  (avant : deux « précise à qui tu parles », deux « Ilse n'est pas ici » faux). Reste : la
+  faisabilité d'une échelle (« est-ce que je peux… ») sans fait qui l'établisse, décrire un objet
+  trop loin passe encore parfois par etablir_faits, un personnage dont la place connue s'est vidée
+  n'est plus reconnu par son nom (`paroles._connu_du_joueur`).
+- La suite de tests passe : 847 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
