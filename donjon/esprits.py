@@ -422,11 +422,14 @@ def _percevoir(monde, id):
     if salle in monde.data["salles"]:
         # Il sait si la salle où il se tient est éclairée, même sans en voir la source. C'est le
         # lieu qu'il juge : la lumière qu'on porte, lui ou un autre, n'y compte pas, elle suit
-        # son porteur (il sait ce qu'il porte, il voit ce que portent les autres).
+        # son porteur (il sait ce qu'il porte, il voit ce que portent les autres) ; la lueur
+        # d'une salle voisine non plus (``source`` None) : au seuil, il ne la prend pas pour
+        # celle de la salle, qu'il croirait sinon éclairée là où il s'y tiendrait dans le noir.
         from .perception import eclairage
         position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
-        eclairee = any(c["niveau"] > 0 and not (c["source"] in monde.objets
-                                                 and _porteur(monde, monde.objets[c["source"]]) is not None)
+        eclairee = any(c["niveau"] > 0 and c["source"] is not None
+                       and not (c["source"] in monde.objets
+                                and _porteur(monde, monde.objets[c["source"]]) is not None)
                        for c in eclairage(monde, salle, position)["contributions"])
         croire(monde, id, salle, "etat", {"eclairee": eclairee}, "vu")
     from .eau import percevoir as percevoir_eau

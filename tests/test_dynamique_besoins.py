@@ -123,16 +123,14 @@ class TenirTests(unittest.TestCase):
         return m
 
     def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self):
-        m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 8)
-        self.assertEqual(lieux[-1], "bureau")
-        self.assertEqual(changements(lieux), 2)
-        m, lieux = suivre(m, "bram", 60, pas=10)
-        self.assertEqual(lieux, ["bureau"] * 6)
-        self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
-        # Il y voit, là où il garde la paie.
         from donjon.deliberation import autour
+        m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 3)
+        self.assertEqual(lieux, ["bureau", "filon", "bureau"])
+        self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
         self.assertTrue(m.objets["lampe_filon"]["allume"])
+        # Il y voit, là où il garde la paie.
         self.assertTrue(autour(m, "bram")["lumiere"])
+        self.assertEqual(lire(m, "bram")["intention"]["but"], {"type": "garder", "lieu": "bureau"})
 
     def lucien_au_couloir_sans_lumiere(self):
         """Placement d'auteur : Lucien est au couloir éclairé ; il sait le grenier obscur et ne
