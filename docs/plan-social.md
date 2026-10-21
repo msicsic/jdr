@@ -203,7 +203,8 @@ et orientation** (`docs/plan-temps.md`), fondation de la discrétion et de la fo
 2. **La crue, niveau d'eau** (`docs/plan-crue.md`) : la menace commune et le froid.
 3. **Relations graduées, lire les autres, influence par la parole** : relations et émotions,
    leurs signes et leur lecture, propositions, avis, disputes. Des relations qu'on ne perçoit
-   pas ne s'éprouvent ni au banc ni en jeu.
+   pas ne s'éprouvent ni au banc ni en jeu. Conception détaillée, sous-étapes et décisions à
+   trancher : `docs/plan-relations.md`.
 4. **Le corps des PNJ et la force** : PV, blessures, états (retenu, enfermé, mort), affrontement.
 5. **Contrainte et menace** : priver, enfermer, menacer, frapper ; la peur ; les suites.
 6. **Statut, suivre, groupes** : sur une crue à six ou huit personnages.
