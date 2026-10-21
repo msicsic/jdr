@@ -313,6 +313,27 @@ noir, mais pas par un raccourci de distance ni d'après la place réelle de l'au
   voie détournée, mais parce que le poêle du baraquement, éteint par la scène, est désormais
   rallumé par Gaspard (branche `entretenir-feu`), dont la lampe éclairait Odon : la scène se tient
   maintenant dans la réserve noire.
+
+Bancs contre `integration` (c45dd52, lumière comme besoin comprise ; 8 h, mêmes graines ;
+`vols_vus` compte les vols distincts, `temoins_vols` leurs témoins) :
+
+| | Relais (8) | Mine (4) | Auberge (4) | Crue (4) |
+|---|---|---|---|---|
+| minutes sans recours | 400,6 → 404,4 | 636 → 665 | 581 → 628 | 272,5 → 292,5 |
+| appels / réponses | — → 4 / 1,6 | — → 7 / 0,8 | — → 17 / 2,3 | — → 9,8 / 4 |
+| échanges hors appels | 9,1 → 9,1 | 28,3 → 34 | 21,8 → 21,5 | 8,5 → 11,3 |
+| vols vus / témoins | 1 / 2,1 → 1 / 2 | 0,5 / 1 → 0,5 / 1 | 1 / 1,8 → 1 / 2,3 | 1,5 / 2,8 → 1,3 / 2 |
+| rumeurs crues | 0,4 → 0,3 | 2 → 2 | 3,8 → 1 | 1 → 1,5 |
+| paroles surprises | 12,8 → 10,6 | 88 → 110 | 39 → 37,8 | 11,3 → 15,3 |
+
+Aucune usurpation ni violation ; `planification.VERIFIER` passe sur une nuit de la mine et une de
+l'auberge. Les minutes sans recours montent par des recherches qui aboutissent plus tôt : Mireille
+(auberge, graine 2024) appelle Joss et obtient sa réponse en 34 minutes au lieu d'en tourner 50,
+puis attend sans rien entreprendre ; les nuits divergent ensuite (moins de rumeurs crues à
+l'auberge, Lucien plus longtemps inactif). À l'auberge, Hugues appelle encore Anselme sans fin
+quand celui-ci se tient derrière une porte fermée, dans une salle que sa recherche ne visite pas :
+la recherche, inchangée, tourne parmi les salles qu'il peut atteindre, et l'appel ne passe pas la
+porte fermée.
 - *Le joueur* : `ecoute` ne rend en clair qu'une parole nette d'une voix qu'il connaît (et qui ne
   nomme que ce qu'il connaît) ; sinon « une voix ». Seules les voix reconnues le font savoir qui
   est là (`data["entendus"]`, `ecoute.retenir`) : un pas, un fracas, une voix inconnue ne nomment

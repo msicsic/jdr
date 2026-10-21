@@ -280,10 +280,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   saisit les mots situe qui parle (`entendu`), une voix jamais entendue est un bruit inconnu. Le
   joueur : `ecoute` ne nomme qu'une voix connue, seules elles font savoir qui est là ; un échange
   qu'il ne voit pas ne s'écrit plus « X parle avec Y ». Salles désignées avec leur article
-  (`francais.lieu`). Bancs (8 h, avant → après) : aucune usurpation ni violation ; par nuit 4,6
-  appels au Relais, 6 à l'auberge, 6,5 à la crue ; minutes sans recours Relais 428 → 426, auberge
-  573 → 621, mine 668 → 688 (Mathe reconnaît Odon dans le noir et refuse : il force le
-  garde-manger), crue 300 → 316 ; moins de confidences dans le noir. Détail et limites dans
+  (`francais.lieu`). Accordée avec `integration` (jusqu'à la lumière comme besoin) : une seule
+  règle, `pnj.peuvent_se_parler`, pour toute parole échangée, y compris servir une part et la
+  parole du joueur (refus distincts) ; on identifie aussi qui l'on verrait en se tournant vers sa
+  voix (la lumière, pas le noir). Bancs contre `integration` (8 h) : aucune usurpation ni
+  violation ; par nuit 4 appels au Relais, 7 à la mine, 17 à l'auberge, 9,8 à la crue ; minutes
+  sans recours Relais 401 → 404, mine 636 → 665, auberge 581 → 628, crue 273 → 293 (des
+  recherches qui aboutissent plus tôt laissent attendre une part promise ou refusée) ; vols vus
+  inchangés hors la crue (1,5 → 1,3) ; minutes dans l'eau 318 → 259. Détail et limites dans
   `docs/plan-ouie.md`.
 - Branche `rejeu-enrichi` (observation seule : `rejeu.py`, `web/rejeu.html`, option du banc) : le rejeu
   note la lumière de chaque case (même degrés que la page de jeu, recalculés quand sources, portes ou
@@ -394,7 +398,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   garde et la lumière. Mine : la dernière flamme est le briquet de Gaspard, que personne ne
   retrouve dans le noir ; ceux qui craignent le noir vont vers la lumière dont ils se souviennent
   (le bureau) et Bram n'y est plus seul.
-- La suite de tests passe : 883 tests, sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 900 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
