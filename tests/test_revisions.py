@@ -68,7 +68,7 @@ class CroyancesTests(unittest.TestCase):
         from donjon.defi import nouveau_defi
         from donjon.narration import fondement, fondement_paroles, mentions
         from donjon.spatial import installer
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         # Le joueur, au refuge, n'a pas vu la conduite ; Ilse croit Gorm dans la Conduite basse.
         mj, recu = MJOpenAI("gpt-6-luna"), []

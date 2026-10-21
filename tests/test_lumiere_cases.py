@@ -22,7 +22,7 @@ def recharger(monde):
 
 
 def relais():
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     return m
 

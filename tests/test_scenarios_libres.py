@@ -104,7 +104,7 @@ class ScenariosLibresTests(unittest.TestCase):
 
     def test_relais_et_atelier_demarrent_sans_le_fichier_de_la_crypte(self):
         with patch.object(scenario_crypte, "ETAT_INITIAL", Path("absent.json")):
-            relais = nouveau_defi()
+            relais = nouveau_defi(depart="fixe")
             atelier = nouveau_atelier()
         self.assertIn("cloche", relais.objets)
         self.assertIn("perche_1", atelier.objets)

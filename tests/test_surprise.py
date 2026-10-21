@@ -18,7 +18,7 @@ from donjon.temps import PAS_FEUTRE
 def scene():
     """Gorm, au refuge, regarde vers l'est ; son marteau est posé derrière lui ; le joueur arrive
     de l'ouest."""
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     m = calme(m, "marchand", "brune", "ilse", "aubin")
     m.objets["marchand"]["lieu"] = "antichambre"

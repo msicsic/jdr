@@ -95,7 +95,7 @@ class CarteCasesTests(unittest.TestCase):
         self.assertIn("porte verrouillée", vue)
 
     def test_porte_vue_reste_un_souvenir_apres_deplacement_et_rechargement(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         self.assertNotIn("porte", m.data.get("souvenirs_portes", {}))
         m.joueur.update(salle="crypte", position=[4, 0])
@@ -124,7 +124,7 @@ class CarteCasesTests(unittest.TestCase):
         self.assertNotIn("~X", carte(reprise).split("=== LEGENDE ===")[0])
 
     def test_consigne_du_relais_est_dessinee_sur_le_mur_et_memorisee_apres_rechargement(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         dessin = carte(m).split("=== LEGENDE ===")[0]
         self.assertIn("!#", dessin)

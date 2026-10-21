@@ -117,13 +117,14 @@ def _seuil_barre(monde, salle, sortie, barrees):
     return bool(seuils & barrees)
 
 
-def chemin(monde, id, depart, arrivee, cles=()):
+def chemin(monde, id, depart, arrivee, cles=(), ouvertes=()):
     """Sorties à emprunter selon ce que le PNJ croit des portes et des obstacles ; None si aucun
     passage cru.
 
     Le PNJ tente toute porte, sauf celle qu'il sait verrouillée sans en porter (ou prévoir
-    d'en porter) la clé ; tout passage, sauf celui dont il croit un seuil barré ; et il ne passe
-    pas par une salle qu'il a vue noyée.
+    d'en porter) la clé, ni prévoir de la déverrouiller autrement (``ouvertes`` : crochetée par
+    son plan) ; tout passage, sauf celui dont il croit un seuil barré ; et il ne passe pas par une
+    salle qu'il a vue noyée.
     """
     from .eau import noyee_crue
     barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
@@ -133,7 +134,7 @@ def chemin(monde, id, depart, arrivee, cles=()):
         for sortie in monde.data["salles"][lieu]["sorties"].values():
             vers, porte = sortie["vers"], sortie.get("porte")
             if (vers in precedent or vers not in monde.data["salles"] or noyee_crue(monde, id, vers)
-                    or porte and _verrouillee_crue(monde, id, porte)
+                    or porte and porte not in ouvertes and _verrouillee_crue(monde, id, porte)
                     and _cle_portee(monde, id, porte, cles) is None
                     or barrees and _seuil_barre(monde, lieu, sortie, barrees)):
                 continue
@@ -545,12 +546,24 @@ def _hors_d_atteinte(monde, id, objet):
     return False
 
 
+def seuil_crochetage(lumiere):
+    """Ce que doit atteindre d20 + DEX pour crocheter une serrure : 14 en pleine lumière, 4 de
+    plus par niveau qui manque. Le jet (``_crocheter``) et la chance que le PNJ s'y croit
+    (``planification.chance_crochetage``) en partent tous deux."""
+    return 14 + 4 * (2 - lumiere)
+
+
 def _crocheter(monde, id, cible, outil):
     from .caractere import modificateur
+    from .esprits import constater_lumiere
     from .perception import eclairage
     o = monde.objets[id]
     lumiere = eclairage(monde, o["lieu"], o.get("position") if monde.data.get("mode_cases") else None)["niveau"]
-    return monde.d20() + modificateur(monde, id, "DEX") >= 14 + 4 * (2 - lumiere)
+    if monde.d20() + modificateur(monde, id, "DEX") >= seuil_crochetage(lumiere):
+        return True
+    # La serrure résiste : il constate la lumière dont il disposait là, celle qui fait sa chance.
+    constater_lumiere(monde, id)
+    return False
 
 
 def _executer(monde, id, etape, lignes, gestes):

@@ -22,7 +22,7 @@ from tests.support import simuler_couverture
 class DefiRelaisTests(unittest.TestCase):
     def setUp(self):
         simuler_couverture(self)
-        self.m = nouveau_defi()
+        self.m = nouveau_defi(depart="fixe")
         installer_spatial(self.m)
         self.moteur = Moteur(self.m)
 

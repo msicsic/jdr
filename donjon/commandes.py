@@ -117,6 +117,23 @@ def est_question(texte):
     return "combien" in mots[1:] or mots[-1] in {"ou", "quand", "pourquoi", "comment"}
 
 
+# Une question sur ce que Corvus peut faire (« puis-je… ? », « est-ce que je pourrais… ? », « est-il
+# possible de… ? ») : le moteur y répond, par la fiche du geste ou par la raison de son refus.
+FAISABILITE = re.compile(r"\b(?:est-ce que|est ce que) (?:je |j')(?:peux|pourrais|pourrai|arrive|arriverais|reussirais|saurais)\b"
+                         r"|\b(?:puis|pourrais|pourrai|peux|arriverais|saurais)-je\b"
+                         r"|^(?:et |mais |alors )?je (?:peux|pourrais|pourrai)\b"
+                         r"|\b(?:est-il|serait-il|c'est|ce serait|est-ce) possible de\b"
+                         r"|\by a-t-il moyen de\b|\bai-je moyen de\b")
+
+
+def faisabilite(texte):
+    """La saisie demande si Corvus peut accomplir un geste ; « qu'est-ce que je peux faire ? » demande
+    lesquels, ce n'en est pas une."""
+    forme = normaliser(texte)
+    return (est_question(texte) and not re.match(r"(?:et |mais |alors )?(?:qu'|que |quoi |quel)", forme)
+            and bool(FAISABILITE.search(forme)))
+
+
 # Donner, comme prendre : l'infinitif de la commande, l'impératif et la première personne.
 DONNER = ("je donne ", "je remets ", "je remet ", "donne ", "remets ", "donner ", "remettre ")
 ARTICLES = ("le ", "la ", "les ", "l'", "un ", "une ", "mon ", "ma ", "mes ")

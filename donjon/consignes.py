@@ -59,9 +59,11 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
 - un détail persistant encore absent, que le moteur enregistre avant que tu le racontes :
   etablir_faits pour un objet, un support ou un lieu (détail, objet, description physique) ;
   enrichir pour la facette d'un personnage ; enrichir_savoirs pour ce qu'il sait ;
-  enrichir_joueur pour le corps de Corvus. Une question sur la taille, le nombre de pièces ou
-  le contenu d'un objet que Corvus voit appelle sa description (etablir_faits, qualification) :
-  il le voit, il peut en juger comme n'importe qui, plutôt que de dire qu'il l'ignore.
+  enrichir_joueur pour le corps de Corvus. Une question sur l'aspect, la taille, le nombre de
+  pièces ou le contenu d'un objet à portée (faits_narratifs_proposables) appelle sa description
+  (etablir_faits, detail ou qualification) : il l'a sous les yeux, il peut en juger comme
+  n'importe qui, plutôt que de dire qu'il l'ignore. Un objet plus loin se décrit en dialogue par
+  ce que Corvus en voit d'ici, sans détail nouveau : de près, il en saura davantage.
 
 ## 4. Mode action
 Propose le geste que le joueur demande, pas un geste voisin plus facile à valider.

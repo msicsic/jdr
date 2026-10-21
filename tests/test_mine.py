@@ -13,7 +13,7 @@ from donjon.moteur import Moteur, proposition
 
 class MineTests(unittest.TestCase):
     def test_charge_et_verifie(self):
-        m = nouveau_mine(1985)
+        m = nouveau_mine(1985, "fixe")
         m.verifier()
         self.assertEqual(sorted(pnjs(m)), ["bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy"])
         for id in pnjs(m):
@@ -26,7 +26,7 @@ class MineTests(unittest.TestCase):
             self.assertEqual(m.objets[m.objets[cle]["lieu"]]["type"], "personnage")
 
     def test_sauvegarde_et_rechargement(self):
-        m = creer("mine", 7)
+        m = creer("mine", 7, "fixe")
         executer(m, 60)
         with tempfile.TemporaryDirectory() as dossier:
             chemin = Path(dossier) / "mine.json"
@@ -41,7 +41,7 @@ class MineTests(unittest.TestCase):
 
     def test_une_nuit_courte_sans_violation(self):
         for graine in (1985, 42):
-            m = creer("mine", graine)
+            m = creer("mine", graine, "fixe")
             chronique, mesures = executer(m, 150)
             m.verifier()
             self.assertEqual(mesures["usurpations"], 0)
@@ -54,7 +54,7 @@ class MineTests(unittest.TestCase):
             self.assertTrue(m.objets["coffre_paie"]["verrouillee"])
 
     def test_la_nuit_diverge_selon_la_graine(self):
-        a, b = creer("mine", 1985), creer("mine", 11)
+        a, b = creer("mine", 1985, "fixe"), creer("mine", 11, "fixe")
         ca, _ = executer(a, 240)
         cb, _ = executer(b, 240)
         self.assertNotEqual([c["texte"] for c in ca], [c["texte"] for c in cb])
@@ -65,7 +65,7 @@ class MineTests(unittest.TestCase):
         # noir inquiète vont vers la lumière dont ils se souviennent, celle du bureau : le payeur,
         # dans le noir, n'y est plus seul, ou il appelle à son tour.
         from donjon.deliberation import autour
-        m = creer("mine", 3)
+        m = creer("mine", 3, "fixe")
         executer(m, 600)
         self.assertFalse(m.objets["poele"]["allume"])
         appels = {id for id in pnjs(m) if any(s["type"] == "appel" for s in lire(m, id)["memoire"])}
@@ -73,6 +73,8 @@ class MineTests(unittest.TestCase):
         # Le payeur n'y est plus seul, ou il appelle ; selon la nuit, celui qui le rejoint lui porte
         # de la lumière (Josse et sa lampe, branche ``besoins``).
         bram = autour(m, "bram")
+        # La chandelle du bureau est morte ; la lumière qu'il a, c'est la lampe de qui l'a rejoint.
+        self.assertFalse(m.objets["chandelle"]["allume"])
         self.assertTrue("bram" in appels or bram["fiables"], (appels, bram))
 
 

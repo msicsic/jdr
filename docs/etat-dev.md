@@ -321,7 +321,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (avant : deux « précise à qui tu parles », deux « Ilse n'est pas ici » faux). Reste : la
   faisabilité d'une échelle (« est-ce que je peux… ») sans fait qui l'établisse, décrire un objet
   trop loin passe encore parfois par etablir_faits, un personnage dont la place connue s'est vidée
-  n'est plus reconnu par son nom (`paroles._connu_du_joueur`).
+  n'est plus reconnu par son nom (`paroles._connu_du_joueur`). Les deux premiers : branche `mj-restes`.
 - Branche `repli-et-appel`, non fusionnée (vu en partie : « pousse toi ca prend trop de temps »
   finissait sur « Je ne peux pas encore répondre avec certitude. » ; « Aubin, viens m'aider à
   porter l'échelle », Aubin derrière le pilier, finissait en dix appels ; « est-ce que je peux
@@ -465,6 +465,71 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun prêt ni vol de bourse au banc (Odon ne sait pas ouvrir la porte du bureau, personne ne
   connaît la bourse d'Anselme), une part payée non servie n'est pas remboursée, pas de
   marchandage ni de tâche payée entre PNJ.
+- Branche `mj-restes`, non fusionnée (`docs/plan-ouie.md`, « Correctif : ce que le MJ ne raconte
+  plus sans le moteur ») : les restes des bancs Luna. **Parole** : sans parole de Corvus validée ni
+  geste résolu, le récit ne fait pas parler Corvus (« tu demandes à Ilse… », « dis-tu » :
+  `narration.parole_racontee`) et, saisie adressée à quelqu'un ou après un refus, personne ne répond
+  par une citation nouvelle (`narration.paroles_sans_moteur`, déterministe) ; une interpellation libre
+  que son destinataire entendrait, répondue en dialogue, est renvoyée une fois sans contrôle
+  (`mj.renvoi`) : parole, geste (« Gorm, je te donne la cloche » → remettre), ou dialogue contrôlé.
+  **Détail de loin** : le refus du moteur (détail ou description physique d'un objet hors de portée,
+  une cause, `attendu`) passe avant la contre-revue sémantique (`mj.refus_assure`) ; les faits disent
+  que de loin les détails d'un objet échappent (un personnage reste décrit de souvenir) ; les
+  consignes ne promettent plus la description d'un objet seulement vu. **Faisabilité** : « puis-je… ? »
+  (`commandes.faisabilite`) répondu en dialogue est renvoyé une fois ; refusé par le moteur, le joueur
+  lit sa raison, pas une explication libre ; un rôle vide d'un assemblage ou d'un franchissement dit
+  ce qui manque et s'il y a de quoi le tenir parmi ce que Corvus peut désigner. Le cas « « Gorm, je te
+  donne la cloche » » reste une parole (voulu) : « Tu dis à Gorm : « … » », la cloche reste dans la
+  besace, Gorm répond sans la prendre. Luna, copies de la sauvegarde réelle : « est-ce que je peux
+  fabriquer une échelle ? » (« possible en principe… » → « il te manque un lien… rien de tel n'est à ta
+  disposition ici »), perches trop loin (« Oui, une échelle est une possibilité… » → « Approche-toi de
+  la perche de bois 1… », 1 appel), mur trop loin (trois refus de la contre-revue, 30 s → refus du
+  moteur puis réponse par ce que Corvus voit), « Gorm, je te donne la cloche » sans guillemets
+  (« Gorm acquiesce » sans rien changer → la cloche remise). Bancs contre `main` 789be7a, même
+  transport (WebSocket), 2 passes, relais + crypte + atelier + échanges (38 tours MJ) : 3,04 → 3,14
+  appels et 13,9 → 14,0 s par tour MJ, 0 repli des deux côtés, tours avec refus 6,5 → 6,5, obstacles
+  narratifs 2,5 → 5,0 (tous sémantiques, aucun des nouveaux contrôles ; l'étendue des passes couvre
+  l'écart) ; l'échelle de l'atelier 3 → 1,5 appel. Trois bancs écartés (coupures réseau, quota).
+  Limites : le récit d'une parole est repéré par ses formes (deuxième personne), une réaction sans
+  citation (« Gorm acquiesce ») n'est arrêtée que par le renvoi ; la faisabilité ne se juge pas à
+  distance (le joueur lit « approche-toi », pas la fiche) ; une règle d'auditeur « personne ne réagit
+  sans conversation_validee », essayée, faisait refuser à tort des réponses validées et a été retirée.
+- Branche `planif-defauts`, non fusionnée (`docs/plan-planificateur.md`, « Défauts corrigés ») :
+  trois défauts du planificateur des PNJ. **Chance crue** : la chance de crocheter est celle du jet
+  réel (`pnj.seuil_crochetage`) à la lumière qu'il croit là où il se tient (`lumiere_crue` ; la
+  croyance d'une salle porte son niveau, `esprits.constater_lumiere`) ; plus de chance plancher,
+  un geste impossible n'est pas envisagé, un essai manqué fait constater la lumière qu'il avait.
+  **Portes** : une porte qu'il croit verrouillée se crochète comme un contenant (même chance,
+  faute, bruit), puis la route y passe (`pnj.chemin`, `ouvertes`) ; la porte du bureau est à Bram.
+  **Pièces crues** : `enrichir` compte la croyance `pieces` (en tenant la bourse, ou savoir : la
+  paie de 200 que sait le camp), jamais l'objet. Cas réels et cas de même nature après
+  rechargement (`tests/test_planif_defauts.py`), `VERIFIER` sur une nuit de chaque scénario. Bancs
+  8 h contre `main` (au même moment) : sans recours Relais 294 → 296, mine 463 → 449, auberge
+  690 → 643, crue identique ; essais de crochetage mine 28,5 → 0,75, auberge 31,5 → 0,25 (Odon et
+  Lucien s'acharnaient dans le noir), Relais 3,6 → 3,5 ; achats égaux ; vols vus auberge 1 → 0,25
+  (plus de fracas à voir) ; aucune usurpation ; temps d'une nuit égal, auberge 28 → 32,5 s. Odon
+  envisage la porte du bureau mais le baraquement n'est jamais sans témoin : il renonce (aucune
+  porte crochetée au banc). Limites : lumière crue de la case où il se tenait (un essai perdu au
+  plus), pas de « forcer » pour les PNJ, contenu d'une bourse appris seulement en la tenant.
+- Branche `depart-tire`, non fusionnée (`docs/plan-crue.md`, « Le départ tiré de la graine ») : les
+  nuits étaient presque déterministes (au Relais, une seule nuit jusqu'à la minute 5, deux jusqu'à
+  120 sur 16 graines ; tout le hasard venait du d20). À la création du monde, le moteur tire le
+  départ de la graine par un tirage à part (`donjon/depart.py`, `seed:depart`, les d20 inchangés),
+  une fois, gardé dans `data["depart"]` : états du corps (repas, veille, trempé) à 20 % près, besoins
+  du profil à 10 points près, périodes de ronde à 20 % près et la prochaine ronde dans la première
+  moitié de sa période (au départ déclaré, toutes tombent à la minute 0), échéance des horloges à
+  25 % près ; aucun besoin tiré au-delà de 85, sauf déclaré plus haut. Bornes déclarées par les
+  quatre scénarios (`depart.bornes`), défauts du moteur sinon ; `depart="fixe"` (constructeurs,
+  `banc_pnj --depart fixe`) garde le départ déclaré, et les tests de scène partent de lui. Banc :
+  empreintes de l'état aux minutes 5, 60, 120, 240, 480 et issue de la nuit (`divergence`), jets
+  par heure ; une pulsion confiée à qui l'on croit fiable compte à part (`minutes_urgentes_confiees`),
+  plus « sans recours » ; `echanges` sans les appels ni leurs réponses. Bancs 8 h, fixe → tiré :
+  Relais (16 graines) nuits distinctes à 5/60/120/240/480 min 1/2/2/6/10 → 14/16/16/16/16, issues
+  4 → 13 ; mine 3/2/2/2/4 → 8 partout ; auberge 1/1/3/8/8 → 8 partout ; crue 2/4/6/7/8 → 8 partout.
+  Aucune usurpation ni violation, `VERIFIER` sur une nuit de chaque scénario. Limite relevée : au
+  Relais, Gorm n'est plus d'office au refuge à la première minute, et Brune affamée vole dès qu'il
+  s'éloigne (minute 3 dans une nuit sur 16, ~30 dans deux) ; jugé dans son caractère, à revoir si
+  l'on veut un premier acte plus long.
 - Branche `besoins`, non fusionnée (`docs/plan-planificateur.md`, « Dynamique des besoins » ; vu au
   banc : Lucien, à l'auberge, allait et venait entre le grenier noir où il garde ses affaires et le
   couloir éclairé, 19 changements de salle en 4 h). Trois règles communes. **L'effet de seuil**
@@ -501,7 +566,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests/test_tui.py` (« La TUI n'est pas redevenue disponible ») viennent de la charge de la machine
   (attente bornée à 5 s) : les mêmes cinq échouent sur `main` sous charge, tous passent au calme sur
   les deux.
-- La suite de tests passe : 952 tests, sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : NNN tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

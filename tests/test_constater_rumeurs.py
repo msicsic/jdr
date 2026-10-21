@@ -23,7 +23,7 @@ from tests.test_tensions import attendre, chronique, placer, recharger, relais
 
 
 def auberge():
-    m = nouveau_auberge(1985)
+    m = nouveau_auberge(1985, "fixe")
     installer(m)
     return m
 
@@ -396,7 +396,7 @@ class ParlerALaVoixTests(unittest.TestCase):
     def baraquement_noir(self, salle="baraquement"):
         from donjon.geometrie import cases
         from donjon.mine import nouveau_mine
-        m = nouveau_mine(1985)
+        m = nouveau_mine(1985, "fixe")
         installer(m)
         m = calme(m, "bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy")
         if salle == "baraquement":

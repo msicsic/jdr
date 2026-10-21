@@ -11,7 +11,7 @@ from donjon.spatial import installer
 
 
 def relais(refus=True):
-    m = sans_evacues(nouveau_defi())
+    m = sans_evacues(nouveau_defi(depart="fixe"))
     if refus:
         refusee(m)
     installer(m)
@@ -110,7 +110,7 @@ class DemanderTests(unittest.TestCase):
 
 class FroidTests(unittest.TestCase):
     def test_un_feu_eteint_se_rallume_avec_une_torche_allumee_au_fanal(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         m.objets["brasero"].update(allume=False)
         for id in ("ilse",):
@@ -126,7 +126,7 @@ class FroidTests(unittest.TestCase):
             ("allumer", "brasero", "torche"), ("chauffer", "brasero", "")])
 
     def test_un_feu_vif_suffit(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         croire(m, "ilse", "brasero", "etat", {"allume": True, "charge": True}, "vu")
         m.objets["ilse"]["lieu"] = "antichambre"
@@ -139,7 +139,7 @@ class PertinenceTests(unittest.TestCase):
         # Aubin a faim, ne sait pas crocheter ; le marchand vient de lui refuser une part. Porter
         # la torche, le bois, les crochets ou le marteau ne change rien : sans les explorer, la
         # recherche aboutit au même résultat, ici aucun plan.
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         for o in ("torche", "bois", "crochets", "cle", "marteau"):
             croire(m, "aubin", o, "lieu", m.objets[o]["lieu"], "vu")
@@ -194,7 +194,7 @@ class MemoireTests(unittest.TestCase):
         from donjon import planification
         from donjon.banc_pnj import creer, executer
         from donjon.geometrie import position_entree
-        m = creer("relais", 42)
+        m = creer("relais", 42, "fixe")
         m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
         avant, planification.VERIFIER = planification.VERIFIER, True
         try:

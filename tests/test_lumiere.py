@@ -25,7 +25,7 @@ def mine_noire(bois=False):
     """Placement d'auteur : la nuit est avancée, le poêle et la lampe du baraquement sont à sec et
     éteints ; personne ne presse, les rondes viennent d'être faites. Sans ``bois``, le bois du camp
     est brûlé : personne ne peut rallumer le poêle, le baraquement reste obscur."""
-    m = creer("mine", 1985)
+    m = creer("mine", 1985, "fixe")
     calme(m, *MINEURS)
     for k in ("lampe_baraque", "poele"):
         m.objets[k].update(allume=False, combustible=0)
@@ -90,8 +90,10 @@ class MineTests(unittest.TestCase):
         m, _ = vivre(inquiet(m), 4)
         allumees = [k for k in ("lampe_rechange_1", "lampe_rechange_2") if m.objets[k]["allume"]]
         self.assertEqual(len(allumees), 1)
-        self.assertEqual(m.objets["remy"]["lieu"], "reserve")
-        self.assertIn("Rémy, jeune mineur allume la lampe de mineur de rechange.", chronique(m))
+        # Il y est allé l'allumer ; la suite (le fracas d'Odon qui crochète la porte du bureau dans
+        # le noir l'inquiète) ne compte pas ici.
+        self.assertLess(chronique(m).index("Rémy, jeune mineur passe dans : Réserve."),
+                        chronique(m).index("Rémy, jeune mineur allume la lampe de mineur de rechange."))
 
     def test_une_lampe_vide_se_remplit_d_huile_puis_s_allume(self):
         m = avec_briquet(mine_noire())
@@ -118,7 +120,7 @@ class MineTests(unittest.TestCase):
         self.assertEqual(outils, {"etais"})
 
     def test_dans_la_lumiere_il_ne_cherche_rien(self):
-        m = avec_briquet(creer("mine", 1985))
+        m = avec_briquet(creer("mine", 1985, "fixe"))
         calme(m, *MINEURS)
         m.objets["lampe_remy"]["allume"] = False
         m, _ = vivre(inquiet(m), 3)
@@ -130,14 +132,14 @@ class MineTests(unittest.TestCase):
         self.assertTrue(m.objets["lampe_remy"]["allume"])
         self.assertTrue(necessaire(m, "remy", "lampe_remy"))
         # Dans la lumière, elle ne lui est pas nécessaire.
-        lumineuse = creer("mine", 1985)
+        lumineuse = creer("mine", 1985, "fixe")
         percevoir_tous(lumineuse)
         self.assertFalse(necessaire(lumineuse, "remy", "lampe_remy"))
 
     def test_avant_d_aller_dans_un_lieu_qu_il_sait_obscur_il_allume_sa_lampe(self):
         # Le poêle brûle au baraquement ; la galerie, Rémy l'a vue obscure. Le noir l'inquiète :
         # il allume sa lampe au poêle avant d'y aller. Gaspard, que le noir n'inquiète pas, y va tel quel.
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         calme(m, *MINEURS)
         m.objets["lampe_remy"]["allume"] = False
         m.objets["lampe_gaspard"]["allume"] = False
@@ -196,13 +198,13 @@ class RelaisTests(unittest.TestCase):
 
 class AubergeTests(unittest.TestCase):
     def test_au_cellier_obscur_elle_regagne_la_cuisine_eclairee(self):
-        m = creer("auberge", 1985)
+        m = creer("auberge", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         # Placement d'auteur : le bougeoir de Mireille s'est éteint au cellier.
         m.objets["bougeoir_mireille"]["allume"] = False
         m.objets["mireille"].update(lieu="cellier", position=[2, 3], position_salle="cellier")
         inquiet(m, "mireille")
-        self.assertEqual(lire(m, "mireille")["croyances"]["cellier"]["etat"]["valeur"], {"eclairee": False})
+        self.assertEqual(lire(m, "mireille")["croyances"]["cellier"]["etat"]["valeur"], {"eclairee": False, "niveau": 0, "propre": 0})
         m, _ = vivre(m, 1)
         self.assertEqual(but_en_mots(m, lire(m, "mireille")["intention"]["but"]), "avoir de la lumière")
         m, _ = vivre(m, 3)
@@ -212,7 +214,7 @@ class AubergeTests(unittest.TestCase):
 
 class JoueurTests(unittest.TestCase):
     def lampe_vide(self):
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         # Placement d'auteur : le joueur a pris une lampe de rechange, vide, et le bidon d'huile.
         for k in ("lampe_rechange_1", "bidon_huile"):
             deplacer(m, k, "joueur")

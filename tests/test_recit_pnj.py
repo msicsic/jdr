@@ -9,9 +9,9 @@ from donjon.recit_pnj import Recit, but_en_mots
 class RecitTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.temoin = creer("relais", 7)
+        cls.temoin = creer("relais", 7, "fixe")
         cls.chronique_temoin, cls.mesures_temoin = executer(cls.temoin, 240)
-        cls.monde = creer("relais", 7)
+        cls.monde = creer("relais", 7, "fixe")
         cls.recit = Recit(cls.monde)
         cls.chronique, cls.mesures = executer(cls.monde, 240, cls.recit)
         cls.texte = cls.recit.texte(cls.monde, cls.chronique)

@@ -14,7 +14,7 @@ from donjon.spatial import installer as installer_cases
 
 class AubergeTests(unittest.TestCase):
     def setUp(self):
-        self.m = creer("auberge", 1985)
+        self.m = creer("auberge", 1985, "fixe")
 
     def test_chargement_et_verification(self):
         self.m.verifier()
@@ -81,7 +81,7 @@ class AubergeTests(unittest.TestCase):
             self.assertTrue(texte.startswith("Lucien a "), (op, texte))
 
     def test_graine_propre_au_scenario(self):
-        autre = nouveau_auberge(7)
+        autre = nouveau_auberge(7, "fixe")
         self.assertEqual(autre.data["seed"], 7)
         self.assertEqual(autre.data["scenario_id"], "auberge_du_col")
 

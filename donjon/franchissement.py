@@ -67,6 +67,13 @@ def conditions(m, cible, outil, destination, tenu=True):
     if eclairage(m)["niveau"] < 2:
         raise ErreurMonde("Tu ne vois pas assez bien l'obstacle pour tenter ce mouvement.",
                           "ce franchissement exige une lumière franche : allume d'abord une source.")
+    if not str(outil or "").strip():
+        # Un rôle laissé vide : ce qui manque, et s'il y a ici de quoi le tenir (réponse à « puis-je… ? »).
+        disponibles = perches()
+        raise ErreurMonde("Il te faut un appui long à tenir, une perche par exemple"
+                          + (" : rien de tel n'est à ta disposition ici." if disponibles == liste([]) else "."),
+                          f"outil : une perche portée, parmi {disponibles} ; étape deplacer vers joueur avant, "
+                          "dans le même composer.")
     if not m.accessible(outil) or (tenu and not m.est_porte(outil)):
         raise ErreurMonde("Il faut d'abord prendre l'objet qui servira d'appui.",
                           f"outil : une perche portée ; étape deplacer {outil or '<perche>'} vers joueur avant, dans le "

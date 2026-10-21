@@ -63,6 +63,15 @@ def nouveau_monde(seed=1985):
     return creer_crypte(seed)
 
 
+def depuis_scenario(chemin, seed=1985, depart="tire"):
+    """Un monde créé de l'état initial déclaré d'un scénario. ``depart`` : ``"tire"``, le départ
+    tiré de la graine dans les bornes du scénario (``depart.py``) ; ``"fixe"``, le départ déclaré."""
+    data = json.loads(Path(chemin).read_text(encoding="utf-8"))
+    data["seed"] = seed
+    data.setdefault("depart", {})["mode"] = depart
+    return Monde(data)
+
+
 def nouveau_monde_libre(salles, objets, salle_depart, position, scenario, objectif=None, seed=1985):
     """Crée une aventure directement à partir de ses propres données."""
     return Monde({
@@ -80,6 +89,9 @@ def nouveau_monde_libre(salles, objets, salle_depart, position, scenario, object
 class Monde:
     def __init__(self, data):
         self.data = data
+        # Le départ tiré de la graine, avant que corps, besoins et rondes ne s'installent.
+        from .depart import installer as installer_depart
+        installer_depart(self)
         from .profil_joueur import installer as installer_profil
         installer_profil(self)
         self._installer_eclairage()
@@ -424,6 +436,8 @@ class Monde:
             verifier_horloges(self)
             from .eau import verifier as verifier_eau
             verifier_eau(self)
+            from .depart import verifier as verifier_depart
+            verifier_depart(self)
             from .biens import verifier as verifier_biens
             verifier_biens(self)
             from .narration import verifier as verifier_narration

@@ -164,7 +164,7 @@ class FaitsLocauxTests(unittest.TestCase):
     def test_un_support_trop_loin_se_dit_sans_en_proposer_un_autre(self):
         """Banc Luna : « à quoi ressemble le mur de l'atelier ? », le mur trop loin ; le refus
         mêlait distance et lumière, et Luna détaillait à la place une perche voisine."""
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer_cases(m)
         self.assertTrue(m.visible("fanal"))
         self.assertNotIn("fanal", supports(m))
@@ -175,7 +175,7 @@ class FaitsLocauxTests(unittest.TestCase):
         self.assertIn("ne le remplace pas par un autre support", refus.exception.attendu)
 
     def test_en_cases_le_detail_exige_proximite_et_lumiere(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer_cases(m)
         travail, id = preparer_inscription(m, PROPOSITION)
         self.assertTrue(travail.visible(id))
@@ -189,7 +189,7 @@ class FaitsLocauxTests(unittest.TestCase):
             Moteur(travail).preparer(proposition("lire", id))
 
     def test_gravure_sur_poutre_existante(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer_cases(m)
         poutre = objet("poutre", "poutre du refuge", "surface", "antichambre",
                        genre="f", materiau="chêne")

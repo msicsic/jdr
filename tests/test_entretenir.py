@@ -49,7 +49,7 @@ def sans_derive(monde, id, besoin, valeur):
 
 class EntretenirUnFeuTests(unittest.TestCase):
     def test_la_cuisiniere_demande_au_palefrenier_du_bois_pour_son_fourneau(self):
-        m = creer("auberge", 1985)
+        m = creer("auberge", 1985, "fixe")
         # Placement d'auteur : le bois de la cuisine est brûlé, le fourneau baisse ; Mireille sait
         # que Joss garde des fagots à l'étable (le banc le lui fait apprendre en cours de nuit).
         sans(m, "bois_cuisine")
@@ -75,7 +75,7 @@ class EntretenirUnFeuTests(unittest.TestCase):
         self.assertFalse(m.objets["fourneau"]["allume"])
 
     def test_le_contremaitre_tient_son_poele_sans_que_son_devoir_presse(self):
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         sans_derive(m, "josse", "devoir", 10)
         m.objets["poele"]["combustible"] = 8
         chronique, _ = executer(m, 10)
@@ -87,7 +87,7 @@ class EntretenirUnFeuTests(unittest.TestCase):
         self.assertLess(lire(m, "josse")["besoins"]["devoir"], 65)   # Son devoir ne presse toujours pas.
 
     def test_sans_bois_il_demande_les_buches_de_gaspard(self):
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         sans_derive(m, "josse", "devoir", 10)
         # Placement d'auteur : les étais sont brûlés ; Gaspard, qui a ses bûches, accepte (jet fixé).
         sans(m, "etais")
@@ -117,7 +117,7 @@ class EntretenirUnFeuTests(unittest.TestCase):
         from donjon.deplacement_objet import deplacer
         from donjon.esprits import percevoir_tous
         from tests.support import regarder
-        m = creer("relais", 1985)
+        m = creer("relais", 1985, "fixe")
         m.objets["brasero"].update(allume=False, combustible=0)
         deplacer(m, "bois", "marchand")
         m.objets["marchand"].update(lieu="echoppe", position=[3, 5], position_salle="echoppe")
@@ -136,7 +136,7 @@ class EntretenirUnFeuTests(unittest.TestCase):
 
 class ParoleTenueTests(unittest.TestCase):
     def test_un_feu_vu_vif_avant_la_demande_n_est_pas_un_feu_entretenu(self):
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         condition = {"objet": "poele", "allume": True}
         croire(m, "gaspard", "poele", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
         m.data["minutes"] += 10
@@ -151,7 +151,7 @@ class ParoleTenueTests(unittest.TestCase):
 
 class ServirUnProtegeTests(unittest.TestCase):
     def test_la_cuisiniere_sert_le_blesse_quand_il_a_faim_et_une_seule_fois(self):
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         # Au départ, Lucien n'a pas faim : Mathe ne le sert pas.
         chronique, _ = executer(m, 30)
         self.assertNotIn("Mathe donne une part des vivres de la cuisine à Lucien.", textes(chronique))
@@ -162,7 +162,10 @@ class ServirUnProtegeTests(unittest.TestCase):
         avant = m.objets["vivres"]["portions"]
         chronique, _ = executer(m, 120)
         m = recharger(m)
-        servis = textes(chronique).count("Mathe donne une part des vivres de la cuisine à Lucien.")
+        # Sous ses yeux, ou en l'appelant s'il ne la voit pas (``echanges.servir``).
+        servis = sum(t in ("Mathe donne une part des vivres de la cuisine à Lucien.",
+                           "Mathe appelle Lucien et lui donne une part des vivres de la cuisine.")
+                     for t in textes(chronique))
         self.assertEqual(servis, 1)
         self.assertLess(lire(m, "lucien")["besoins"]["faim"], 70)
         # Une seule part de plus est sortie du garde-manger (d'autres en ont acheté avant).

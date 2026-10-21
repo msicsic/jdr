@@ -98,7 +98,7 @@ class TransactionsNarrativesTests(unittest.TestCase):
             self.assertIn("Tu prends le pendentif", sortie.getvalue())
 
     def test_transition_conditionnelle_deplace_objet_et_change_objectif(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         secours = objet("secours", "cloche de secours", "tresor", "chambre_cloche",
                        genre="f", materiau="bronze", masse=1, mobile=True)
         m.objets["secours"] = secours

@@ -16,7 +16,7 @@ from donjon.spatial import installer
 
 class PrisesLocalesTests(unittest.TestCase):
     def setUp(self):
-        self.m = nouveau_defi()
+        self.m = nouveau_defi(depart="fixe")
         installer(self.m)
         self.m.joueur.update(salle='echoppe', position=[6, 5])
         self.m.memoriser('je prends le pied de biche',

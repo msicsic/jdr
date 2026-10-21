@@ -92,7 +92,7 @@ def percus_reference(m, acteur):
 
 
 def nuit(graine):
-    m = creer("relais", graine)
+    m = creer("relais", graine, "fixe")
     m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
     return m
 

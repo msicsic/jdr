@@ -15,7 +15,7 @@ from donjon.rejeu import Enregistreur, page
 
 
 def nuit(minutes, enregistrer):
-    m = creer("relais", 7)
+    m = creer("relais", 7, "fixe")
     m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
     enregistreur = Enregistreur(m) if enregistrer else None
     if enregistreur:
@@ -94,14 +94,14 @@ class RejeuTests(unittest.TestCase):
 class AutresNuitsTests(unittest.TestCase):
     def test_la_lumiere_suit_les_sources_dans_un_autre_scenario(self):
         for scenario in ("auberge", "mine"):
-            m = creer(scenario, 7)
+            m = creer(scenario, 7, "fixe")
             enregistreur = Enregistreur(m)
             with enregistreur.observer():
                 executer(m, 120)
             self.assertEqual(rejouer(enregistreur.lumiere, 10 ** 9), degres(m, enregistreur), scenario)
 
     def test_les_gestes_illicites_gardent_leurs_temoins(self):
-        m = creer("relais", 7)
+        m = creer("relais", 7, "fixe")
         m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
         enregistreur = Enregistreur(m)
         with enregistreur.observer():

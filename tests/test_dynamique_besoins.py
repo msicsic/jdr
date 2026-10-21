@@ -91,7 +91,7 @@ class TenirTests(unittest.TestCase):
         """Placement d'auteur, l'auberge telle qu'écrite : Lucien, qui craint le noir, garde son
         coffret au grenier sans lumière ; ses biens et sa sécurité pressent. Le cas réel : il
         allait au couloir éclairé, puis revenait garder ses biens, et ainsi de suite."""
-        m = creer("auberge", 1985)
+        m = creer("auberge", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         m.objets["poele"].update(allume=False, combustible=0)
         m.objets["bois_anselme"]["charges"] = 0
@@ -111,9 +111,12 @@ class TenirTests(unittest.TestCase):
     def bram_au_bureau_noir(self, lampe=True):
         """Placement d'auteur, la mine telle qu'écrite : la chandelle du bureau est à sec ; Bram, qui
         craint fort le noir, garde le coffre de la paie ; ses biens et sa sécurité pressent. Avec
-        ``lampe``, il sait la lampe du filon allumée."""
-        m = creer("mine", 1985)
+        ``lampe``, il sait la lampe du filon allumée. Odon, dont il se méfie, ne convoite pas la paie
+        (honnêteté entière) : il resterait sinon à la porte du bureau, qu'il sait crocheter, et Bram
+        s'abriterait de lui (une limite connue, ``docs/plan-planificateur.md``)."""
+        m = creer("mine", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
+        m.objets["odon"]["profil"]["valeurs"]["honnetete"] = 100
         m.objets["chandelle"].update(allume=False, combustible=0)
         percevoir_tous(m)
         if lampe:
@@ -136,7 +139,7 @@ class TenirTests(unittest.TestCase):
         """Placement d'auteur : Lucien est au couloir éclairé ; il sait le grenier obscur et ne
         connaît aucune lumière à emporter et ne se fie à personne (pas d'abri) ; il ne garde que son
         coffret (ni ballot convoité)."""
-        m = creer("auberge", 1985)
+        m = creer("auberge", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         p = m.objets["lucien"]["profil"]
         p["pulsions"] = [x for x in p["pulsions"] if x["condition"].get("objet") != "ballot"]
@@ -192,8 +195,14 @@ class AttenteTests(unittest.TestCase):
         e = lire(m, "marchand")
         self.assertIsNone(e["intention"])
         self.assertEqual(attentes(m, "marchand"), ["devoir"])
-        # Le banc le compte en attente (la cloche, confiée au joueur, reste à faire), pas sans recours.
-        self.assertEqual(_oisifs_urgents(m), (1, 0, 1))
+        # Le banc ne le compte pas sans recours : ce qui reste à faire (la cloche) est confié au
+        # joueur, une catégorie à part (oisifs, sans recours, en attente, confiées).
+        self.assertEqual(_oisifs_urgents(m), (1, 0, 0, 1))
+        # Qu'il cesse de croire le joueur fiable : la cloche lui revient ; sans plan pour elle sur ce
+        # qu'il croit, son devoir est en attente, pas sans recours.
+        autre = recharger(m)
+        croire(autre, "marchand", "joueur", "fiable", False, "vu")
+        self.assertEqual(_oisifs_urgents(autre), (1, 0, 1, 0))
         # Rien n'est oublié : la ronde du refuge échue, le devoir a de nouveau un plan.
         e["visites"]["antichambre"] = m.data["minutes"] - 100
         deliberer(m, "marchand", m.data["minutes"])
