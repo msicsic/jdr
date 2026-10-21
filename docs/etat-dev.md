@@ -822,7 +822,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   format affiché pour une question de faisabilité, silences affirmés après un refus de l'auditeur, « aucun passage
   praticable » quand aucune sortie n'est connue, « c'est moi, Brune » typé en se nommer, « as-tu du bois ? » sans
   les planches qu'on possède.
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 1133 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
