@@ -225,10 +225,13 @@ def _designer(monde, x):
 
 # --- Demander le passage ------------------------------------------------------------------------
 
-def demander_passage(monde, id, demandeur, lignes, chemin=()):
+def demander_passage(monde, id, demandeur, lignes, chemin=(), prix=0):
     """``demandeur`` prie le PNJ ``id`` de s'écarter. Renvoie l'issue, que le moteur décide seul :
-    « ecarte » (il s'écarte vraiment), « geste », « mefiance », « qui_va_la » (une voix qu'il ne
-    connaît pas, et il est prudent), « place », « refus », ou « inutile » sans cases ni places."""
+    « ecarte » (il s'écarte vraiment), « paye » (l'orgueilleux s'écarte et prend les ``prix``
+    pièces offertes, qui l'ont décidé), « geste », « mefiance », « qui_va_la » (une voix qu'il ne
+    connaît pas, et il est prudent), « place », « refus », ou « inutile » sans cases ni places. Ce
+    que valent pour lui les pièces offertes abaisse le DD (``biens.GENEROSITE`` minutes par point) ;
+    qui s'écarterait de lui-même ne les prend pas."""
     from .paroles import jet_persuasion
     if not (monde.data.get("mode_cases") and place_connue(monde, id) and place_connue(monde, demandeur)):
         return "inutile"
@@ -245,10 +248,20 @@ def demander_passage(monde, id, demandeur, lignes, chemin=()):
         return "place"
     # Qui s'écarterait de lui-même accepte ; l'orgueilleux se laisse convaincre, ou non.
     dd = PASSAGE - penchant(monde, id, "altruisme") + penchant(monde, id, "fierte")
-    if refus_d_aider(monde, id, demandeur) == "orgueil" and not jet_persuasion(monde, id, demandeur, dd)[0]:
+    orgueil = refus_d_aider(monde, id, demandeur) == "orgueil"
+    paye = orgueil and prix > 0
+    if paye:
+        from .biens import GENEROSITE, payer, richesse
+        from .caractere import valeur_pieces
+        if richesse(monde, demandeur) < prix:
+            return "refus"
+        dd -= round(valeur_pieces(monde, id, prix) / GENEROSITE)
+    if orgueil and not jet_persuasion(monde, id, demandeur, dd)[0]:
         return "refus"
+    if paye:
+        payer(monde, demandeur, id, prix)
     s_ecarter(monde, id, case, demandeur, lignes)
-    return "ecarte"
+    return "paye" if paye else "ecarte"
 
 
 def _demande(monde, id, autre):

@@ -16,7 +16,8 @@ from .esprits import lire, pnjs
 from .francais import accorder, de, designer
 
 MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim": "faim", "repos": "fatigue",
-          "chaleur": "froid", "engagement": "parole donnée", "alerte": "alerte", "menager": "ménager la flamme"}
+          "chaleur": "froid", "engagement": "parole donnée", "alerte": "alerte", "menager": "ménager la flamme",
+          "argent": "argent"}
 BESOINS = {"securite": "sécurité", "repos": "fatigue", "chaleur": "froid"}
 GESTES = {"prendre": "prendre", "ouvrir": "ouvrir", "crocheter": "crocheter", "manger": "manger",
           "deverrouiller": "déverrouiller", "poser": "poser", "pousser": "pousser"}
@@ -69,6 +70,8 @@ def _but(monde, but):
         return "stratégie : " + but.get("resume", "")
     if t == "menager":
         return "éteindre " + _objet(monde, o)
+    if t == "argent":
+        return "prendre des pièces : " + _objet(monde, o)
     if t == "pulsion":
         if "periode" in but:
             return "ronde : " + _salle(monde, but["lieu"])
@@ -76,6 +79,8 @@ def _but(monde, but):
             return f"servir {_objet(monde, o)} à {court(monde, but['servir'])}"
         if "allume" in but:
             return "entretenir " + _objet(monde, o)
+        if "rendre" in but:
+            return f"rendre {_objet(monde, o)} à {court(monde, but['rendre'])}"
         if "verrouillee" in but:
             return f"garder {_objet(monde, o)} sous clé"
         if "lieu" in but:

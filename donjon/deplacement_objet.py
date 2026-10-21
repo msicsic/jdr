@@ -10,6 +10,8 @@ def deplacer(monde, identifiant, destination, position=None):
     if destination not in (*monde.data["salles"], *monde.objets, "joueur"):
         raise ErreurMonde("Destination d'objet inconnue.")
     o["lieu"] = destination
+    from .biens import clore
+    clore(monde, identifiant, destination)  # Revenu à son propriétaire, un objet prêté n'est plus prêté.
     if "attache" in o:
         o["attache"] = False
     if o.get("relation_support"):

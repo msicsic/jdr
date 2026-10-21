@@ -19,7 +19,7 @@ from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
 from donjon.pnj import avancer
 from donjon.spatial import installer
-from tests.support import calme, regarder
+from tests.support import calme, regarder, sans_le_sou
 
 
 def recharger(monde):
@@ -423,7 +423,7 @@ class PartTests(unittest.TestCase):
         self.assertEqual(intention["plan"][-1]["condition"], "sans_temoin")
 
     def test_ilse_refusee_ne_vole_pas_et_redemande_plus_tard(self):
-        m = self.affamee("ilse")
+        m = sans_le_sou(self.affamee("ilse"), "ilse")
         m, _ = vivre(m, 10, jet=1)
         self.assertEqual(chronique(m).count("Ilse demande une part des vivres du refuge à Gorm (refus)."), 1)
         m, _ = vivre(m, REDEMANDE - 20, jet=1)
@@ -432,6 +432,22 @@ class PartTests(unittest.TestCase):
         self.assertEqual(m.objets["vivres"]["portions"], 4)
         m, _ = vivre(m, 30, jet=20)
         self.assertIn("Ilse demande une part des vivres du refuge à Gorm (promis).", chronique(m))
+
+    def test_refusee_ilse_achete_sa_part_avec_sa_bourse(self):
+        # Même refus, mais elle a huit pièces : elle paie le prix d'une part (2), que Gorm accepte
+        # sans se faire prier, et il la sert.
+        m = self.affamee("ilse")
+        self.assertEqual((m.data["finances_pnj"]["ilse"], m.data["finances_pnj"]["marchand"]), (8, 50))
+        m, _ = vivre(m, 20, jet=1)
+        textes = chronique(m)
+        self.assertEqual(textes.count("Ilse demande une part des vivres du refuge à Gorm (refus)."), 1)
+        self.assertIn("Ilse achète une part des vivres du refuge à Gorm pour 2 pièces (vendu).", textes)
+        self.assertTrue(any(t.startswith("Gorm") and "donne une part des vivres du refuge" in t and "Ilse" in t
+                            for t in textes))
+        self.assertEqual((m.data["finances_pnj"]["ilse"], m.data["finances_pnj"]["marchand"]), (6, 52))
+        self.assertEqual(m.objets["vivres"]["portions"], 3)
+        self.assertTrue(any(s["type"] == "vente" and s["a"] == "ilse" and s["prix"] == 2
+                            for s in lire(m, "marchand")["memoire"]))
 
     def test_elle_cherche_gorm_dont_elle_a_perdu_la_trace(self):
         m = self.affamee("ilse")

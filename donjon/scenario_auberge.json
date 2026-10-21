@@ -19,8 +19,14 @@
   "engagements": {},
   "ajouts_savoirs": [],
   "finances_pnj": {
-    "anselme": 200,
-    "odile": 60
+    "anselme": 30,
+    "odile": 60,
+    "mireille": 4,
+    "tilo": 0,
+    "joss": 1,
+    "hugues": 15,
+    "mathurine": 6,
+    "lucien": 10
   },
   "dialogues_pnj": {
     "odile": {
@@ -1093,7 +1099,8 @@
       "position_salle": "cuisine",
       "portions": 3,
       "proprietaire": "mireille",
-      "description_visuelle": "Une marmite noircie de soupe au lard et aux choux, posée au coin du fourneau."
+      "description_visuelle": "Une marmite noircie de soupe au lard et aux choux, posée au coin du fourneau.",
+      "prix_part": 1
     },
     "bois_cuisine": {
       "id": "bois_cuisine",
@@ -1124,7 +1131,8 @@
       "usages": [
         "combustible"
       ],
-      "description_visuelle": "Un tas de bûches de hêtre empilées contre le mur de la cuisine, pour la nuit."
+      "description_visuelle": "Un tas de bûches de hêtre empilées contre le mur de la cuisine, pour la nuit.",
+      "prix_part": 1
     },
     "table_cuisine": {
       "id": "table_cuisine",
@@ -1195,7 +1203,8 @@
       "pluriel": true,
       "portions": 4,
       "proprietaire": "odile",
-      "description_visuelle": "Du pain rassis, du lard fumé et un fromage entamé, comptés pour la nuit."
+      "description_visuelle": "Du pain rassis, du lard fumé et un fromage entamé, comptés pour la nuit.",
+      "prix_part": 2
     },
     "tonneau": {
       "id": "tonneau",
@@ -1275,7 +1284,8 @@
         "combustible"
       ],
       "proprietaire": "joss",
-      "description_visuelle": "Quelques fagots de bois mort que le palefrenier garde pour lui, près de sa paillasse."
+      "description_visuelle": "Quelques fagots de bois mort que le palefrenier garde pour lui, près de sa paillasse.",
+      "prix_part": 1
     },
     "stalles": {
       "id": "stalles",
@@ -1407,7 +1417,8 @@
         "combustible"
       ],
       "proprietaire": "anselme",
-      "description_visuelle": "Quelques bûches de chêne sec, mises en réserve contre le poêle."
+      "description_visuelle": "Quelques bûches de chêne sec, mises en réserve contre le poêle.",
+      "prix_part": 1
     },
     "lit_chaud": {
       "id": "lit_chaud",
@@ -1521,7 +1532,8 @@
       "maximum": 10,
       "pluriel": true,
       "portions": 2,
-      "proprietaire": "anselme"
+      "proprietaire": "anselme",
+      "prix_part": 2
     },
     "coffret_lucien": {
       "id": "coffret_lucien",
@@ -1776,7 +1788,8 @@
       "maximum": 10,
       "pluriel": true,
       "portions": 1,
-      "proprietaire": "hugues"
+      "proprietaire": "hugues",
+      "prix_part": 2
     },
     "bougeoir_mireille": {
       "id": "bougeoir_mireille",
@@ -1943,7 +1956,14 @@
         "protege": [
           "tilo",
           "mireille"
-        ]
+        ],
+        "situation": {
+          "dette": 30,
+          "proches": 1
+        },
+        "valeurs": {
+          "altruisme": 55
+        }
       },
       "corps": {
         "repas": 240,
@@ -2034,7 +2054,14 @@
         "reserve": 0,
         "protege": [
           "tilo"
-        ]
+        ],
+        "situation": {
+          "proches": 1
+        },
+        "valeurs": {
+          "altruisme": 80,
+          "loyaute": 80
+        }
       },
       "corps": {
         "repas": 300,
@@ -2167,7 +2194,10 @@
               "periode": 60
             }
           }
-        ]
+        ],
+        "situation": {
+          "projet": 30
+        }
       },
       "corps": {
         "repas": 600,
@@ -2256,7 +2286,14 @@
             }
           }
         ],
-        "reserve": 2
+        "reserve": 2,
+        "situation": {
+          "projet": 300
+        },
+        "valeurs": {
+          "altruisme": 20,
+          "ambition": 80
+        }
       },
       "corps": {
         "repas": 360,
@@ -2358,7 +2395,10 @@
           "anselme",
           "tilo",
           "mathurine"
-        ]
+        ],
+        "valeurs": {
+          "loyaute": 80
+        }
       },
       "corps": {
         "repas": 480,
@@ -2418,7 +2458,10 @@
             "urgence": 60
           }
         },
-        "pulsions": []
+        "pulsions": [],
+        "valeurs": {
+          "altruisme": 70
+        }
       },
       "corps": {
         "repas": 540,
@@ -2501,13 +2544,38 @@
               "periode": 120
             }
           }
-        ]
+        ],
+        "situation": {
+          "projet": 100
+        },
+        "valeurs": {
+          "ambition": 70
+        }
       },
       "corps": {
         "repas": 420,
         "veille": 600,
         "trempe": 200
       }
+    },
+    "bourse_anselme": {
+      "aliases": [
+        "bourse",
+        "bourse d'Anselme",
+        "bourse de voyage"
+      ],
+      "genre": "f",
+      "id": "bourse_anselme",
+      "integrite": 10,
+      "lieu": "coffre_marchand",
+      "masse": 1,
+      "materiau": "cuir et pièces",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bourse de voyage",
+      "proprietaire": "anselme",
+      "type": "tresor",
+      "pieces": 150
     }
   },
   "visitees": [

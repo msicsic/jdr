@@ -38,7 +38,10 @@
   "eclairage_version": 1,
   "engagements": {},
   "finances_pnj": {
-    "marchand": 50
+    "marchand": 50,
+    "brune": 3,
+    "ilse": 8,
+    "aubin": 6
   },
   "geometrie_version": 1,
   "jets": 0,
@@ -727,7 +730,10 @@
           "brune",
           "ilse",
           "aubin"
-        ]
+        ],
+        "situation": {
+          "projet": 40
+        }
       },
       "corps": {
         "repas": 300,
@@ -952,7 +958,11 @@
             "urgence": 60
           }
         },
-        "pulsions": []
+        "pulsions": [],
+        "situation": {
+          "dette": 20,
+          "projet": 40
+        }
       },
       "corps": {
         "repas": 800,
@@ -1004,7 +1014,8 @@
       "portions": 4,
       "proprietaire": "marchand",
       "type": "nourriture",
-      "pluriel": true
+      "pluriel": true,
+      "prix_part": 2
     },
     "cle_reserve": {
       "aliases": [
@@ -1088,7 +1099,10 @@
               "periode": 40
             }
           }
-        ]
+        ],
+        "situation": {
+          "proches": 2
+        }
       },
       "corps": {
         "repas": 450,
@@ -1216,7 +1230,8 @@
       "type": "consommable",
       "usages": [
         "combustible"
-      ]
+      ],
+      "prix_part": 1
     },
     "planches": {
       "aliases": [
@@ -1246,7 +1261,8 @@
       "type": "consommable",
       "usages": [
         "combustible"
-      ]
+      ],
+      "prix_part": 1
     }
   },
   "personnages_version": 1,
