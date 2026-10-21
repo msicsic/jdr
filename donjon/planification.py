@@ -446,8 +446,9 @@ def _chercher(v, e, sujet):
     routes = {s: v.route(e.salle, s, e.portes) for s in v.salles}
     routes = {s: r for s, r in routes.items() if r is not None}
     salle = min(routes, key=lambda s: (visites.get(s, -1), len(routes[s]), s))
-    etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [{**_etape("inspecter", lieu=salle),
-                                                                              "suppose": True}]
+    # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
+    etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
+        {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet}), "suppose": True}]
     return 0, len(routes[salle]) + 1 + CHERCHER, etapes, e.apres(
         salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)]), len(routes[salle]) + 1
 

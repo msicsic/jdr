@@ -284,6 +284,7 @@ Limites et questions ouvertes :
   elle gagne l'autre interdit ;
 - le prix d'une faute et l'usure par la détresse sont des constantes du moteur à régler au banc,
   sur la crue plutôt que sur le Relais, où seule Brune peut fauter ;
-- un geste manqué sur ce qu'un contenant fermé cache, sans voir ce contenant, fait croire
-  l'objet disparu (`pnj._rate`) : la croyance corrigée n'est pas la bonne, ce qui laisse Brune
-  sans plan. Défaut antérieur, plus visible depuis que Brune va droit à la réserve.
+- un geste manqué sur ce qu'un contenant fermé cache, sans voir ce contenant, faisait croire
+  l'objet disparu (`pnj._rate`) et laissait Brune sans plan ; corrigé sur la branche
+  `constater-et-rumeurs` : elle apprend le contenant fermé (`pnj._hors_d_atteinte`,
+  `docs/plan-ouie.md`).

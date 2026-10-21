@@ -239,6 +239,199 @@ d'Aubin, « Aubin, viens m'aider à porter l'échelle » devient une parole (3 a
 pilier, Luna répond qu'elle ne le voit pas (2 appels), et « je dis à Aubin : viens m'aider » reçoit
 le message du moteur sans appel. Une demande d'aide n'a pas de contenu typé : elle reste un propos.
 
+## Constater, raconter où, chercher quelqu'un (branche `constater-et-rumeurs`)
+
+Trois manques relevés en écrivant la mine et l'auberge (`docs/etat-dev.md`).
+
+**On constate ce que la main rencontre** (`pnj._hors_d_atteinte`). Avant, tout geste manqué sur un
+objet hors d'atteinte le faisait croire disparu (`pnj._rate`). Désormais, si l'objet est cru dans
+un contenant (ou plus loin dans ce qu'il croit le contenir) qui est fermé et à portée de main,
+c'est ce contenant que sa main rencontre : il le croit fermé, et verrouillé ou non, par l'essai ;
+l'objet reste cru dedans (rien ne lui montre qu'il n'y est plus). Sinon, l'objet n'est pas là où il
+le croyait, comme avant. Cas réel (Relais) : Brune croit la réserve ouverte, Gorm l'a refermée à
+clé ; dans la pénombre, elle apprend la serrure, va chercher ses crochets et force la réserve, au
+lieu de croire les vivres disparues et de rester sans plan. Même nature (auberge) : Lucien, dans
+la chambre au poêle éteint, trouve le coffre d'Anselme fermé à clé et s'y acharne. Ouvert et vide :
+l'absence, comme avant.
+
+**Le témoin d'un geste qui déplace un objet voit où il va** (`pnj._lieu_vu`, gestes `prendre` et
+`poser`, déclarés une fois : `pnj.DEPLACEMENTS`). Son souvenir `vu_agir` porte le lieu, comme une
+croyance (valeur, salle, case vue, minute) ; il le croit là (`vu`) ; pris, il le sait dans les
+mains de l'auteur. La nouvelle le dit (« Lucien a posé le ballot de soie dans l'étable ») ; qui la
+croit en tire une croyance de lieu à la confiance du ouï-dire (`social._apprendre_lieu`), sauf s'il
+a lui-même vu, essayé ou entendu l'objet après le geste rapporté ; ne pas l'avoir trouvé là où il
+l'attendait n'y fait pas obstacle (et ne dément plus qu'il soit ailleurs : `paroles.dementi`). Qui
+a appris depuis l'objet ailleurs dit le geste sans le lieu ; deux témoins du même geste racontent
+le même fait (`social._fait`). Le protecteur qui va prévenir la victime d'un geste vu lui dit aussi
+où il croit ses biens que l'auteur a déplacés (`deliberation._lieux_a_dire`, une affirmation
+`lieu`). La victime les reprend par ses pulsions (un bien à sa place). Cas réel (auberge, graine
+42) : Hugues voit Lucien poser le ballot à l'étable, prévient Anselme et lui dit où il est ; Anselme
+va le reprendre et le repose dans sa chambre. Même nature (Relais) : Ilse voit Brune poser les
+vivres de Gorm dans la conduite basse et le lui glisse aux vannes ; Gorm les rapporte au refuge.
+
+**Chercher quelqu'un, c'est aussi l'appeler** (`pnj.appeler`). Chercher quelqu'un qu'on a perdu de
+vue (`planification._chercher` : une part à demander, prévenir un protégé) parcourt une salle des
+yeux ; s'il ne l'y voit pas, il l'appelle par son nom (une voix, `ouie`). Qui s'entend appeler (il
+en saisit les mots, `ouie.saisit`) répond de la voix, sauf s'il reconnaît l'appelant et se méfie de
+lui ; l'appelant qui saisit la réponse et connaît cette voix le croit là d'où elle vient (la
+reconnaissance commune, ci-dessous). Le joueur entend l'appel et la réponse par `ecoute` ; appelé,
+il répond s'il le veut. Cas réel (auberge, graine 7) : Mireille tournait 70 minutes dans l'auberge
+sans voir Odile ; au grenier noir, elle l'appelle, Odile répond, Mireille lui demande sa part sans
+la voir et l'obtient. Même nature : Hugues cherche Anselme au dortoir noir pour le prévenir,
+l'appelle, et le prévient de vive voix. Odile, qui se méfie de Mireille, ne répond pas.
+
+**Se parler, c'est s'entendre et savoir qui parle** (accepté : deux PNJ peuvent se parler dans le
+noir, mais pas par un raccourci de distance ni d'après la place réelle de l'autre).
+- *S'entendre* (`ouie.saisit`, `ouie.s_entendent`) : chacun saisit les mots de l'autre par
+  l'atténuation commune (distance réelle, ouverture, porte fermée), au seuil des mots (un PNJ par
+  `mots_saisis`, le joueur au seuil d'une parole nette). On se parle par une porte ouverte, à
+  travers une porte fermée collé contre, pas à l'autre bout d'une grande salle (plus de 12 cases).
+  `pnj.de_pres` (même salle, 6 cases) n'en décide plus.
+- *Reconnaître une voix* (`ouie.entendre`) : chacun connaît ceux qu'il a vus ou entendus parler
+  (`esprits.connait` ; `voix` dans l'esprit d'un PNJ, `data["voix_connues"]` pour le joueur ; on
+  connaît qui l'on voit, `esprits.percevoir` et `pnj._observer_presences`). Qui saisit les mots
+  d'une voix connue reconnaît qui parle et le croit là d'où elle vient (`entendu`, sa case s'il est
+  dans la même salle). Une voix jamais entendue est une voix inconnue : un bruit inconnu, prêté à
+  personne. Migration : un PNJ connaît ceux dont il sait quelque chose de première main ou de
+  savoir (pas d'un ouï-dire) ; le joueur, ceux dont il garde le portrait ou a appris le nom.
+- *On ne parle qu'à qui l'on a identifié* (`pnj.identifie`, `pnj.se_parler`,
+  `pnj.pourraient_se_parler`) : celui qui parle s'adresse à qui il croit là (il le voit, ou l'a vu
+  ou reconnu à la voix dans sa salle depuis peu : `pnj.croit_present`) ; l'autre sait qui lui parle
+  s'il le voit ou reconnaît sa voix, et lui répond ; il faut que chacun s'entende. Sans se voir,
+  chacun se tourne vers la voix de l'autre et le croit là. Le PNJ qui prie le joueur de le laisser
+  passer (`passage._peut_prier`) suit la même règle.
+- *Une seule règle* (accord avec la branche `integration`) : `pnj.peuvent_se_parler` décide de
+  toute parole échangée — chacun saisit les mots de l'autre et sait qui lui parle (`identifie` :
+  il le voit, reconnaît sa voix, ou le verrait en se tournant vers elle, ce que la lumière permet et
+  le noir non). `se_parler` (demander, dire, confier, remettre), `pourraient_se_parler`
+  (confidences, prière de passage, qui y ajoutent `croit_present`), servir une part
+  (`echanges.servir`, `_servir_joueur` : on appelait qui était dans la salle sans le voir ni le
+  reconnaître) et la parole du joueur (`paroles.destinataires` : le destinataire doit saisir ses
+  mots, savoir qui lui parle, et Corvus saisir sa réponse ; refus distincts, « trop loin pour
+  t'entendre », « ne saurait pas qui lui parle », « tu n'entendrais pas … te répondre »)
+  l'emploient tous. Le test de la voix inconnue (Mathe, Odon) échouait après la fusion non par une
+  voie détournée, mais parce que le poêle du baraquement, éteint par la scène, est désormais
+  rallumé par Gaspard (branche `entretenir-feu`), dont la lampe éclairait Odon : la scène se tient
+  maintenant dans la réserve noire.
+
+Bancs contre `integration` (c45dd52, lumière comme besoin comprise ; 8 h, mêmes graines ;
+`vols_vus` compte les vols distincts, `temoins_vols` leurs témoins) :
+
+| | Relais (8) | Mine (4) | Auberge (4) | Crue (4) |
+|---|---|---|---|---|
+| minutes sans recours | 400,6 → 404,4 | 636 → 665 | 581 → 628 | 272,5 → 292,5 |
+| appels / réponses | — → 4 / 1,6 | — → 7 / 0,8 | — → 17 / 2,3 | — → 9,8 / 4 |
+| échanges hors appels | 9,1 → 9,1 | 28,3 → 34 | 21,8 → 21,5 | 8,5 → 11,3 |
+| vols vus / témoins | 1 / 2,1 → 1 / 2 | 0,5 / 1 → 0,5 / 1 | 1 / 1,8 → 1 / 2,3 | 1,5 / 2,8 → 1,3 / 2 |
+| rumeurs crues | 0,4 → 0,3 | 2 → 2 | 3,8 → 1 | 1 → 1,5 |
+| paroles surprises | 12,8 → 10,6 | 88 → 110 | 39 → 37,8 | 11,3 → 15,3 |
+
+Aucune usurpation ni violation ; `planification.VERIFIER` passe sur une nuit de la mine et une de
+l'auberge. Les minutes sans recours montent par des recherches qui aboutissent plus tôt : Mireille
+(auberge, graine 2024) appelle Joss et obtient sa réponse en 34 minutes au lieu d'en tourner 50,
+puis attend sans rien entreprendre ; les nuits divergent ensuite (moins de rumeurs crues à
+l'auberge, Lucien plus longtemps inactif). À l'auberge, Hugues appelle encore Anselme sans fin
+quand celui-ci se tient derrière une porte fermée, dans une salle que sa recherche ne visite pas :
+la recherche, inchangée, tourne parmi les salles qu'il peut atteindre, et l'appel ne passe pas la
+porte fermée.
+- *Le joueur* : `ecoute` ne rend en clair qu'une parole nette d'une voix qu'il connaît (et qui ne
+  nomme que ce qu'il connaît) ; sinon « une voix ». Seules les voix reconnues le font savoir qui
+  est là (`data["entendus"]`, `ecoute.retenir`) : un pas, un fracas, une voix inconnue ne nomment
+  personne. Ses interlocuteurs (`dialogues.interlocuteurs`) : qui il voit, ou dont il vient de
+  reconnaître la voix, si chacun saisit les mots de l'autre. Un échange entre PNJ dans sa salle
+  qu'il ne voit pas ne s'écrit plus « X parle à voix basse avec Y » : il n'en a que ce que son
+  ouïe lui en fait entendre (`social.faire_entendre`).
+- Correctif révélé : qui a entendu dire où était un objet, puis le voit dans les mains de
+  quelqu'un, ne tient plus le locuteur pour menteur (`esprits.reviser`) : l'objet a pu être
+  déplacé depuis. À l'auberge, Mireille et Joss accusaient Hugues de mentir après avoir vu Anselme
+  reprendre son ballot.
+- Les salles se désignent avec leur article (`francais.lieu` ; `genre` déclaré dans les
+  scénarios, noms de salle ajoutés à `FEMININS` pour les anciennes parties) : « dans l'étable »,
+  « dans la conduite basse ».
+- Autres usages de `pnj.de_pres` : `deliberation.autour` (se sentir accompagné ou menacé par ceux
+  qu'on entend tout près, même dans son dos) le garde : ce n'est pas une parole, et ce module est
+  repris par le chantier de la lumière ; il s'appuie encore sur la place réelle des autres.
+
+Vérifié (`tests/test_constater_rumeurs.py`, état après rechargement et ce que lit le joueur) : les
+cas ci-dessus ; le joueur lit en clair « Hugues dit à Anselme que le ballot de soie est dans
+l'étable. » et « Ilse glisse à Gorm que Brune a posé les vivres du refuge dans la conduite
+basse. », et entend au grenier « Mireille appelle : « Odile ? » » puis « Odile répond : « Ici ! » »
+quand il les connaît, « des voix » sans aucun nom sinon (et Odile n'est pas son interlocutrice).
+Par la porte du cellier : ouverte, Mireille et Odile se parlent à deux cases ; fermée, plus, sauf
+collées contre ; Mireille croit Odile au cellier, à sa case. Cas réel (mine, graine 1985, 420
+minutes) : au baraquement noir, Mathe reconnaît la voix d'Odon et lui refuse sa part ; Mathe qui
+n'a jamais vu ni entendu Odon ne lui répond pas et ne le croit nulle part. Une partie d'avant les
+voix est migrée.
+
+Bancs (8 h, mêmes graines, avant → après ; `appels` et `reponses` sont de nouvelles mesures, et les
+appels comptent parmi les échanges) :
+
+| | Relais (8) | Mine (4) | Auberge (4) | Crue (4) |
+|---|---|---|---|---|
+| appels / réponses | — → 5,1 / 2,3 | — → 0 / 0 | — → 6 / 1,5 | — → 9,5 / 2,5 |
+| échanges hors appels | 7,6 → 8,4 | 33,3 → 39 | 21,8 → 25,8 | 7,5 → 7,5 |
+| minutes sans recours | 428 → 426 | 668 → 696 | 573 → 634 | 300 → 339 |
+| rumeurs crues | 0,5 → 0,4 | 2,5 → 2,5 | 5,5 → 7,3 | 1 → 0,8 |
+| vols vus | 8,1 → 9,3 | 0,5 → 0,5 | 2,8 → 2,5 | 7,5 → 8,3 |
+| jets | 8,1 → 8,8 | 9,3 → 67 | 159 → 162 | 9,3 → 10,5 |
+
+Aucune usurpation, aucune violation. Le geste manqué sur un contenant fermé ne se produisait dans
+aucune nuit d'avant (il venait d'une partie jouée) ; après, une fois : crue, graine 7, Brune, qui a
+mangé dans la réserve ouverte, la retrouve refermée, l'apprend verrouillée et s'y remet. Une variante sans la parole
+dans le noir isole son effet : la mine retrouve exactement ses mesures d'avant, l'auberge 576
+minutes sans recours ; la parole dans le noir fait donc la hausse de ces deux bancs. À la mine,
+Odon, affamé, demandait sa part à Mathe dans le noir sans pouvoir lui parler et appelait à l'aide
+une heure ; elle l'entend désormais, refuse (méfiance), et il force le garde-manger dans le noir à
+5 % de chance, 60 minutes durant (les 58 jets de plus). À l'auberge, qui cherchait sans fin (Hugues
+194 minutes après Anselme, graine 42 ; Mireille 70 minutes après Odile, graine 7) trouve et parle,
+puis attend la part promise ou n'a plus de recours : ces minutes passent de « en chemin » à « sans
+rien entreprendre ». À la crue, la hausse vient de nuits qui divergent (graine 1985 : Ilse bien
+moins inquiète, sécurité pressante 102 → 26 minutes, froid 65 → 1, mais refusée et affamée plus
+longtemps) ; les minutes dans l'eau baissent (271 → 255).
+
+Bancs après la règle des voix (8 h, mêmes graines ; avant la branche → parole de près → voix) :
+
+| | Relais (8) | Mine (4) | Auberge (4) | Crue (4) |
+|---|---|---|---|---|
+| minutes sans recours | 428 → 426 → 426 | 668 → 696 → 688 | 573 → 634 → 621 | 300 → 339 → 316 |
+| appels / réponses | — → 5,1 / 2,3 → 4,6 / 2 | 0 | — → 6 / 1,5 → 6 / 1,5 | — → 9,5 / 2,5 → 6,5 / 2,3 |
+| échanges hors appels | 7,6 → 8,4 → 8,4 | 33,3 → 39 → 36 | 21,8 → 25,8 → 23 | 7,5 → 7,5 → 7 |
+| confidences | 0,8 → 0,6 → 0,6 | 2,5 → 2,8 → 1 | 5,5 → 6,8 → 5,8 | 1,3 → 0,5 → 0,3 |
+| rumeurs crues | 0,5 → 0,4 → 0,4 | 2,5 → 2,5 → 1,5 | 5,5 → 7,3 → 5,8 | 1 → 0,8 → 0 |
+| jets | 8,1 → 8,8 → 8,8 | 9,3 → 67 → 66 | 159 → 162 → 160 | 9,3 → 10,5 → 10,8 |
+
+Aucune usurpation ni violation. Les confidences baissent là où l'on se tient dans le noir (mine) :
+on ne se confie plus qu'à qui l'on voit ou vient de reconnaître. À la mine, Mathe connaît Odon :
+elle reconnaît sa voix dans le noir et lui refuse sa part, comme avec la parole de près ; Odon
+force encore le garde-manger. Plus personne n'est accusé de mentir pour avoir dit où était un objet
+qu'on a vu ensuite dans d'autres mains (2 accusations à l'auberge avec la parole de près, 0
+maintenant). Auberge, graine 42 : la nuit diverge (Tilo voit Lucien poser le ballot, pas Hugues) ;
+la nouvelle, avec le lieu, atteint Anselme à 469 minutes et il reprend son ballot.
+
+Limites :
+- On constate le contenant rencontré, pas son contenu : l'objet reste cru dedans même s'il n'y est
+  plus. Un contenant cru ouvert mais hors d'atteinte (déplacé) laisse l'objet cru disparu.
+- Le lieu d'une nouvelle est celui que le témoin a vu au moment du geste ; une croyance tirée d'un
+  ouï-dire n'en garde pas la date : de deux nouvelles entendues sur le même objet, la dernière
+  entendue l'emporte, même si elle rapporte un geste plus ancien. Le prévenu qui va reprendre son
+  bien et ne le trouve pas dans les 30 minutes tient le témoin pour menteur (`esprits.reviser`).
+- Seuls `prendre` et `poser` déplacent un objet aux yeux d'un témoin ; un objet remis ou servi ne
+  donne pas de lieu.
+- On n'appelle qu'en cherchant quelqu'un pour un plan (une part, prévenir) ; un bruit inconnu ne
+  fait toujours pas appeler. Qui ne veut pas être trouvé ne se tait que par méfiance. Le joueur
+  appelé ne répond pas pour le PNJ.
+- Une voix inconnue reste sans réponse, et rien ne le dit à celui qui parle : il redemande à la
+  minute suivante, en silence (sa demande ne retentit que si l'échange a lieu), comme avant quand
+  ils ne se voyaient pas. On ne demande pas « qui est là ? » ; une voix ne se fait pas connaître
+  en se nommant.
+- Reconnaître une voix, c'est connaître la personne (l'avoir vue suffit) ; aucune chance de se
+  tromper ni de ne pas reconnaître une voix connue, et pas de déguisement de la voix.
+- `deliberation.autour` compte encore ceux qu'on entend tout près d'après leur place réelle
+  (`pnj.de_pres`), sans les identifier ; `passage.pousser` accepte encore qui le joueur a reconnu
+  à la voix (`entendus`), désormais seulement une voix connue.
+- Forcer une serrure dans le noir à 5 % de chance reste un recours que le planificateur prend
+  quand il n'en a pas d'autre (mine, Odon) ; la lumière comme but est un autre chantier.
+
 ## Limites
 
 - Les réflexes déclarés (`reaction_son`, le protecteur qui accourt) et le souvenir « son » restent
@@ -247,9 +440,10 @@ le message du moteur sans appel. Une demande d'aide n'a pas de contenu typé : e
   l'ouïe commune). À fondre.
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la
   case de l'auteur, pas de l'objet.
-- Pas d'endormissement : seul le repos assourdit. La voix ne fait pas reconnaître qui parle ; dans
-  le noir, un bruit est attribué à qui l'on croit là, même s'il vient d'un autre, et la croyance
-  entretenue n'est corrigée que par la vue ou un geste manqué.
+- Pas d'endormissement : seul le repos assourdit. Une voix dont on saisit les mots fait reconnaître
+  qui l'on connaît (branche `constater-et-rumeurs`) ; un autre bruit, ou une voix trop faible pour
+  en saisir les mots, est attribué dans le noir à qui l'on croit là, même s'il vient d'un autre, et
+  la croyance entretenue n'est corrigée que par la vue, une voix reconnue ou un geste manqué.
 - Pas de diffraction, de hauteur ni de bruit de fond (la tempête, la crue) ; l'extérieur ne masque
   rien.
 - Le joueur ne fait pas de jet d'ouïe ; ses gestes ont la nature de la table, plus l'arbitrage du

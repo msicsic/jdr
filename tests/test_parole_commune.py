@@ -18,6 +18,7 @@ from donjon.paroles import analyser
 from donjon.social import bavarder, nouvelles
 from tests.test_marche import tranquilles
 from tests.test_paroles import jouer, parole, reponse_pnj
+from tests.support import regarder
 from tests.test_tensions import placer, recharger
 
 
@@ -358,6 +359,7 @@ class EntreEuxTests(unittest.TestCase):
         memoriser(m, "aubin", noyau)
         croire(m, "aubin", "brune", "fiable", False, "vu")
         croire(m, "aubin", "ilse", "fiable", False, "vu")   # Placement d'auteur : il se confie à Gorm.
+        regarder(m, "aubin", "marchand")                   # qu'il voit, à côté de lui.
         with patch.object(Monde, "d20", return_value=20):
             self.assertTrue(bavarder(m, "aubin", []))
         m = recharger(m)

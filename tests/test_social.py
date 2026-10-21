@@ -107,6 +107,7 @@ class RumeurTests(unittest.TestCase):
         # Placement d'auteur : Ilse s'éloigne ; Aubin rejoint Gorm, puis Brune rejoint Aubin.
         placer(m, "ilse", "echoppe", [1, 1])
         placer(m, "aubin", "antichambre", [1, 5])
+        regarder(m, "marchand", "aubin")  # Il le voit arriver près de lui.
         m, _ = attendre(m, jet=15)
         rumeur = rumeurs(m, "aubin")[0]
         self.assertEqual((rumeur["de"], rumeur["rang"]), ("marchand", RANG_MAX))
@@ -132,8 +133,10 @@ class RumeurTests(unittest.TestCase):
         # Placement d'auteur : Ilse a vu Brune crocheter la réserve ; elle retrouve Gorm dans la conduite.
         memoriser(m, "ilse", {"type": "vu_agir", "auteur": "brune", "operation": "crocheter", "objet": "reserve"})
         croire(m, "ilse", "brune", "fiable", False, "vu")
-        m.joueur.update(salle="echoppe", position=[1, 3])
+        m.joueur.update(salle="echoppe", position=[0, 3])
         placer(m, "ilse", "echoppe", [2, 1])
+        regarder(m, "ilse", "marchand")  # Elle le voit, à deux pas.
+        regarder(m, "joueur", "ilse")    # Le joueur les voit parler.
         placer(m, "brune", "crypte", [4, 3])
         m.data["visitees"] = ["echoppe"]
         m, texte = attendre(recharger(m), jet=15)

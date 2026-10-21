@@ -258,6 +258,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
   confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
+- Branche `constater-et-rumeurs`, non fusionnée (`docs/plan-ouie.md`, « Constater, raconter où,
+  chercher quelqu'un ») : trois manques de la mine et de l'auberge. **On constate ce que la main
+  rencontre** : un geste manqué sur un objet cru dans un contenant ouvert, alors fermé, apprend le
+  contenant fermé (verrouillé ou non, par l'essai) et garde l'objet cru dedans (`pnj._hors_d_atteinte`) ;
+  Brune force de nouveau la réserve au lieu de croire les vivres disparues. **Le témoin d'un geste
+  qui déplace un objet voit où il va** (`pnj._lieu_vu`, `prendre` et `poser`) : il le croit là, sa
+  nouvelle porte le lieu (« … a posé le ballot de soie dans l'étable »), qui la croit en tire une
+  croyance de lieu à confiance de ouï-dire, sauf constat propre postérieur (`social._apprendre_lieu`) ;
+  qui sait depuis l'objet ailleurs tait le lieu ; le protecteur qui prévient la victime lui dit
+  aussi où sont ses biens. Anselme reprend son ballot (graine 42). Ne pas avoir trouvé un objet ne
+  dément plus qu'il soit ailleurs (`paroles.dementi`), le voir dans d'autres mains non plus
+  (`esprits.reviser`). **Chercher quelqu'un** : en parcourant une salle où on le cherche sans le
+  voir, on l'appelle (`pnj.appeler`) ; il répond, sauf à qui il reconnaît et dont il se méfie.
+  Mireille trouve Odile au grenier noir au lieu de tourner une heure. **Se parler, c'est
+  s'entendre et savoir qui parle** (accepté) : chacun saisit les mots de l'autre par l'ouïe commune
+  (`ouie.s_entendent` : distance réelle, ouverture, porte fermée ; plus de `de_pres`) et le voit ou
+  reconnaît sa voix ; on ne s'adresse qu'à qui l'on a vu ou reconnu (`pnj.identifie`,
+  `croit_present`), jamais d'après sa place réelle. Chacun connaît ceux qu'il a vus ou entendus
+  parler (`voix` de l'esprit, `data["voix_connues"]` du joueur, migrées) ; une voix connue dont on
+  saisit les mots situe qui parle (`entendu`), une voix jamais entendue est un bruit inconnu. Le
+  joueur : `ecoute` ne nomme qu'une voix connue, seules elles font savoir qui est là ; un échange
+  qu'il ne voit pas ne s'écrit plus « X parle avec Y ». Salles désignées avec leur article
+  (`francais.lieu`). Accordée avec `integration` (jusqu'à la lumière comme besoin) : une seule
+  règle, `pnj.peuvent_se_parler`, pour toute parole échangée, y compris servir une part et la
+  parole du joueur (refus distincts) ; on identifie aussi qui l'on verrait en se tournant vers sa
+  voix (la lumière, pas le noir). Bancs contre `integration` (8 h) : aucune usurpation ni
+  violation ; par nuit 4 appels au Relais, 7 à la mine, 17 à l'auberge, 9,8 à la crue ; minutes
+  sans recours Relais 401 → 404, mine 636 → 665, auberge 581 → 628, crue 273 → 293 (des
+  recherches qui aboutissent plus tôt laissent attendre une part promise ou refusée) ; vols vus
+  inchangés hors la crue (1,5 → 1,3) ; minutes dans l'eau 318 → 259. Détail et limites dans
+  `docs/plan-ouie.md`.
 - Branche `rejeu-enrichi` (observation seule : `rejeu.py`, `web/rejeu.html`, option du banc) : le rejeu
   note la lumière de chaque case (même degrés que la page de jeu, recalculés quand sources, portes ou
   obstacles changent), chaque bruit émis avec ce que chacun qui l'a entendu en a fait (vu, attribué,
@@ -367,7 +398,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   garde et la lumière. Mine : la dernière flamme est le briquet de Gaspard, que personne ne
   retrouve dans le noir ; ceux qui craignent le noir vont vers la lumière dont ils se souviennent
   (le bureau) et Bram n'y est plus seul.
-- La suite de tests passe : 883 tests, sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 900 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -382,11 +413,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche `lumiere-besoin`) ; chercher
-  quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et permissions déléguées ; l'argent ;
-  `pnj._rate` croit disparu un objet caché dans un contenant fermé ; un besoin que rien n'apaise
-  (le devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé
-  nourri en boucle : branche `entretenir-feu`.
+- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
+  `lumiere-besoin`) ; prêter et permissions déléguées ; l'argent ; un besoin que rien n'apaise (le
+  devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé
+  nourri en boucle : branche `entretenir-feu`. Chercher quelqu'un dans le noir, le lieu dans une
+  rumeur et le contenant fermé cru ouvert : branche `constater-et-rumeurs`.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

@@ -381,8 +381,28 @@ def _plan_prevenir(monde, id):
         if trouve:
             etapes.append(_etape("dire", s["victime"],
                                  contenu={"sujet": s["auteur"], "attribut": "fiable", "valeur": False}))
+            etapes += [_etape("dire", s["victime"], contenu=c)
+                       for c in _lieux_a_dire(monde, id, s["victime"], s["auteur"])]
         return {"type": "prevenir", "qui": s["victime"]}, etapes
     return None
+
+
+def _lieux_a_dire(monde, id, victime, auteur):
+    """Les biens de ``victime`` qu'il a vu ``auteur`` déplacer : il lui dit où il les croit encore
+    (``pnj._lieu_vu``), pour qu'elle aille les reprendre."""
+    from .vol import proprietaire
+    objets = []
+    for s in lire(monde, id)["memoire"]:
+        o = s.get("objet")
+        if (s["type"] == "vu_agir" and s["auteur"] == auteur and "lieu" in s and o in monde.objets
+                and o not in objets and proprietaire(monde, monde.objets[o]) == victime):
+            objets.append(o)
+    contenus = []
+    for o in objets:
+        lieu = _lieu_cru(monde, id, o)
+        if lieu is not None and lieu != victime:
+            contenus.append({"sujet": o, "attribut": "lieu", "valeur": lieu})
+    return contenus
 
 
 def _eclairee_crue(monde, id, salle):

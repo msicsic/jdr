@@ -127,7 +127,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "m"
     },
     "cuisine": {
       "altitude_cm": 0,
@@ -182,7 +183,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "salle_commune": {
       "altitude_cm": 0,
@@ -231,7 +233,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "etable": {
       "altitude_cm": 0,
@@ -269,7 +272,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "couloir": {
       "altitude_cm": 240,
@@ -332,7 +336,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "m"
     },
     "chambre_chaude": {
       "altitude_cm": 240,
@@ -370,7 +375,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "dortoir": {
       "altitude_cm": 240,
@@ -408,7 +414,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "m"
     },
     "grenier": {
       "altitude_cm": 480,
@@ -447,7 +454,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "m"
     }
   },
   "objets": {

@@ -19,7 +19,7 @@ import copy
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
-from .francais import designer
+from .francais import designer, lieu
 from .monde import ErreurMonde, normaliser
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
@@ -123,9 +123,11 @@ def jet_persuasion(monde, auditeur, locuteur, dd_base):
 
 
 def dementi(monde, auditeur, sujet, attribut, valeur):
-    """Ce que l'auditeur a vu ou essayé récemment contredit-il ce qu'on lui dit ?"""
+    """Ce que l'auditeur a vu ou essayé récemment contredit-il ce qu'on lui dit ? Ne pas avoir
+    trouvé un objet là où on l'attendait ne contredit pas qu'il soit ailleurs."""
     actuelle = lire(monde, auditeur)["croyances"].get(sujet, {}).get(attribut)
     return bool(actuelle and actuelle["source"] in ("vu", "essai") and actuelle["valeur"] != valeur
+                and not (attribut == "lieu" and actuelle["valeur"] is None)
                 and monde.data["minutes"] - actuelle["minute"] <= RECENT)
 
 
@@ -133,7 +135,7 @@ def _nom(monde, id):
     if id == "joueur":
         return "toi"
     if id in monde.data["salles"]:
-        return monde.data["salles"][id]["nom"]
+        return lieu(monde.data["salles"][id])
     if id in monde.objets and monde.objets[id]["type"] == "personnage":
         return monde.objets[id]["nom"].split(",")[0]
     return designer(monde.objets[id]) if id in monde.objets else id
@@ -476,7 +478,11 @@ def destinataires(monde, forme):
                                "chuchoter : un seul destinataire, nommé ou en face, au contact ; à plusieurs, "
                                "Corvus parle à voix haute (« à tous : … »).")
     nets = saisissent(monde, "joueur")
-    entendent = [id for id in presents if id in nets]
+    # La règle commune de toute parole échangée (``pnj.peuvent_se_parler``) : il saisit les mots de
+    # Corvus, sait qui lui parle (il le voit, en se tournant au besoin, ou connaît sa voix), et
+    # Corvus saisirait sa réponse.
+    from .pnj import peuvent_se_parler
+    entendent = [id for id in presents if id in nets and peuvent_se_parler(monde, "joueur", id)]
     contact = [id for id in presents if _contact(monde, id)]
     if forme["suite"]:
         # La suite de l'échange : à qui il parlait, s'ils l'entendent encore ; sinon la règle commune.
@@ -497,9 +503,19 @@ def destinataires(monde, forme):
         raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin : approche-toi pour lui chuchoter quoi que "
                                "ce soit.", f"chuchoter exige le contact (une case voisine) avec {id} ; au contact de "
                                f"Corvus : {liste(contact)}.")
-    if id and not chuchote and id not in entendent:
+    if id and not chuchote and id not in nets:
         raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin pour t'entendre.",
                                f"{id} ne saisirait pas les mots de Corvus d'ici ; à portée de voix : "
+                               f"{liste(entendent)}.")
+    if id and not chuchote and id not in entendent:
+        from .pnj import identifie
+        if not identifie(monde, id, "joueur"):
+            raise ParoleImpossible(f"{_nom_court(monde, id)} ne saurait pas qui lui parle : il ne te voit pas et ne "
+                                   "connaît pas ta voix.",
+                                   f"{id} n'identifierait pas Corvus (ni vu, ni voix connue : esprits.connait) ; "
+                                   f"à qui Corvus peut parler : {liste(entendent)}.")
+        raise ParoleImpossible(f"Tu n'entendrais pas {_nom_court(monde, id)} te répondre d'ici.",
+                               f"Corvus ne saisirait pas les mots de {id} ; à qui Corvus peut parler : "
                                f"{liste(entendent)}.")
     if id:
         return [id]

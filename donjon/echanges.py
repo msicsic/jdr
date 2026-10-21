@@ -189,17 +189,18 @@ def remettre(monde, donneur, receveur, objet):
 
 def servir(monde, id, nourriture, pour, lignes):
     """Donner une part à quelqu'un de la même salle, qu'on appelle s'il est hors de vue : il la
-    mange, et sait gré de l'avoir reçue."""
+    mange, et sait gré de l'avoir reçue. Il faut pouvoir se parler (``pnj.peuvent_se_parler`` :
+    s'entendre et savoir qui parle), comme pour tout échange."""
     from .deliberation import SATIETE
     from .esprits import percoit
     from .francais import complement_de
-    from .pnj import _chroniquer
+    from .pnj import _chroniquer, peuvent_se_parler
     from .social import _qui, faire_entendre
     o, autre = monde.objets[nourriture], monde.objets.get(pour)
     if pour == "joueur":
         return _servir_joueur(monde, id, nourriture, lignes)
     if (o.get("portions", 0) <= 0 or not autre or autre["type"] != "personnage"
-            or autre["lieu"] != monde.objets[id]["lieu"]):
+            or autre["lieu"] != monde.objets[id]["lieu"] or not peuvent_se_parler(monde, id, pour)):
         return False
     appel = "" if percoit(monde, id, pour) and percoit(monde, pour, id) else f"appelle {_qui(monde, pour)} et lui "
     o["portions"] -= 1
@@ -222,14 +223,15 @@ def servir(monde, id, nourriture, pour, lignes):
 
 
 def _servir_joueur(monde, id, nourriture, lignes):
-    """La part promise au joueur : servie quand il est là, dans la salle des vivres ; sinon on
-    l'attend."""
+    """La part promise au joueur : servie quand il est là, dans la salle des vivres, et qu'ils
+    peuvent se parler (``pnj.peuvent_se_parler``) ; sinon on l'attend."""
     from .corps import SATIETE, valeurs
     from .francais import complement_de
-    from .pnj import _chroniquer
+    from .pnj import _chroniquer, peuvent_se_parler
     from .social import _qui
     o = monde.objets[nourriture]
-    if o.get("portions", 0) <= 0 or monde.joueur["salle"] != monde.objets[id]["lieu"]:
+    if (o.get("portions", 0) <= 0 or monde.joueur["salle"] != monde.objets[id]["lieu"]
+            or not peuvent_se_parler(monde, id, "joueur")):
         return False
     o["portions"] -= 1
     v = valeurs(monde, "joueur")
@@ -245,10 +247,10 @@ def _servir_joueur(monde, id, nourriture, lignes):
 
 
 def phrase_condition(monde, condition):
-    from .francais import designer
+    from .francais import designer, lieu
     o = designer(monde.objets[condition["objet"]])
     if "lieu" in condition:
-        return f"{o} soit dans {monde.data['salles'][condition['lieu']]['nom']}"
+        return f"{o} soit dans {lieu(monde.data['salles'][condition['lieu']])}"
     x = monde.objets[condition["objet"]]
     pluriel = x.get("pluriel")
     return (f"{o} {'soient' if pluriel else 'soit'} {'allumé' if 'allume' in condition else 'verrouillé'}"
@@ -297,7 +299,7 @@ def executer(monde, id, etape, lignes):
         # Personne ne lui répond là où il le croyait : il l'apprend, comme tout geste manqué.
         return _rate(monde, id, autre)
     if not se_parler(monde, id, autre):
-        return False  # Ils ne peuvent se voir : rien ne se dit.
+        return False  # Ils ne peuvent ni se voir ni s'entendre : rien ne se dit.
     a, b, contenu = _qui(monde, id), _qui(monde, autre), etape.get("contenu", {})
     objet = monde.objets.get(etape["outil"])
     transmis = []  # Ce que la parole transmet à qui l'entend sans en être le destinataire.
@@ -331,8 +333,8 @@ def executer(monde, id, etape, lignes):
         issue, recit = "remis", f"{a} remet {designer(objet)} à {b}"
         clair, cites, reussi = recit + ".", [objet["id"]], True
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
-    faire_entendre(monde, id, autre, clair, [x for x in cites if x and (x in monde.objets or x == "joueur")], lignes,
-                   transmis)
+    nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]
+    faire_entendre(monde, id, autre, clair, nommes, lignes, transmis)
     if not reussi:
         vise = objet["id"] if objet else contenu.get("objet")
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue,
