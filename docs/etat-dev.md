@@ -794,6 +794,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   tranchés par le moteur (3 chacun). Limites : le payeur paie la peine qu'il estime, sans marchandage ;
   ce qu'on consomme de ses biens pour une tâche n'est pas compté ; pas de tâche « aller voir » ; le
   joueur ne prête ni ne paie de tâche ; la réponse ne dit que ce qu'il croit avoir ; constantes à régler.
+- Branche `banc-luna-soir` (contrôle seul, rien corrigé ; [rapport](banc-luna-soir.md)) : Luna sur `main` 8c108c3,
+  3 passes des quatre bancs de référence : 3,14 appels et 11,1 s par tour MJ, 0 repli, relances 4,7, tours avec
+  refus 7,0 (audits-attendu : 3,08 / 11,3 / 0 / 4,0 / 6,5) ; bancs ciblés `soir-appel`, `soir-noir`, `soir-voix`.
+  Défauts relevés : vocatif en fin de phrase ignoré (« as-tu de quoi manger, Ilse ? » va à Aubin), vocatif d'un
+  inconnu ignoré, planche achetée donnée au feu, question à la cantonade dans le noir jamais répondue, refus de
+  format affiché pour une question de faisabilité, silences affirmés après un refus de l'auditeur, « aucun passage
+  praticable » quand aucune sortie n'est connue, « c'est moi, Brune » typé en se nommer, « as-tu du bois ? » sans
+  les planches qu'on possède.
 - La suite de tests passe : 1119 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente

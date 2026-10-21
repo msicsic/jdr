@@ -1,0 +1,72 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre",
+  "position": [
+   1,
+   3
+  ],
+  "orientation": "sud",
+  "personnages": {
+   "aubin": {
+    "salle": "antichambre",
+    "position": [
+     1,
+     4
+    ],
+    "orientation": "nord"
+   },
+   "brune": {
+    "salle": "antichambre",
+    "position": [
+     0,
+     3
+    ],
+    "orientation": "est"
+   },
+   "ilse": {
+    "salle": "antichambre",
+    "position": [
+     3,
+     5
+    ],
+    "orientation": "nord-ouest"
+   },
+   "marchand": {
+    "salle": "echoppe",
+    "position": [
+     4,
+     1
+    ]
+   }
+  },
+  "calmes": [
+   "brune",
+   "aubin",
+   "ilse",
+   "marchand"
+  ],
+  "dettes": [
+   {
+    "de": "aubin",
+    "a": "joueur",
+    "montant": 2,
+    "objet": "planches",
+    "quoi": "objet"
+   }
+  ]
+ },
+ "tours": [
+  "j'appelle Gorm",
+  "je réponds",
+  "est-ce que quelqu'un a du bois ?",
+  "as-tu de quoi manger, Ilse ?",
+  "je réclame à Aubin les deux pièces qu'il me doit",
+  "je paie Aubin trois pièces pour une de ses planches",
+  "ouest",
+  "ouest",
+  "je donne le briquet à Ilse",
+  "Ilse, tu m'entends ?"
+ ]
+}
