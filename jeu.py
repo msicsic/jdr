@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from donjon.commandes import AIDE, analyser, est_question
+from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
@@ -428,16 +428,15 @@ def main(argv=None, interface=None):
                         travail, _ = appliquer_transactions(m, transactions)
                         travail.sauver(args.save)
                         m.data = travail.data
-                    if question and p.get("action") not in ("observer", "examiner", "clarifier", "impossible"):
-                        imprimer("Le MJ a proposé une action à une question. Aucune action n'a été appliquée.")
-                        imprimer("Précisez une action si vous souhaitez la tenter, ou consultez contexte / regarder.")
-                        continue
                     pending = None
                     if p.get("action") in ("clarifier", "impossible"):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
                     pending = moteur.preparer(p, origine="reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele)
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
-                    if not pending.stat and not pending.echec_critique:
+                    # Une question sur un geste (« puis-je… ? ») le prépare sans l'exécuter : seule une
+                    # perception répond tout de suite.
+                    essai_a_blanc = question and p.get("action") not in PERCEPTIONS
+                    if not essai_a_blanc and not pending.stat and not pending.echec_critique:
                         plan = pending
                         resultat = moteur.executer(plan)
                         pending = None
@@ -449,8 +448,10 @@ def main(argv=None, interface=None):
                     imprimer("\n" + pending.resume(m))
                     m.memoriser(texte, pending.resume(m), "proposition_non_executee")
                     m.sauver(args.save)
-                    if not pending.etapes:
-                        imprimer("« tenter » pour agir ; « annuler » pour abandonner.")
+                    suite_fiche = "" if pending.etapes else "« tenter » pour agir ; « annuler » pour abandonner."
+                    if essai_a_blanc or suite_fiche:
+                        imprimer(" ".join(filter(None, ("Rien n'est encore tenté." if essai_a_blanc else "",
+                                                        suite_fiche))))
                 else:
                     if p["action"] != "observer":
                         pending = None

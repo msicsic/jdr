@@ -55,8 +55,14 @@ class FormeTests(unittest.TestCase):
             "« Bonsoir »": (False, None, "voix", "Bonsoir", True),
             "je chuchote à Brune : viens": (False, "brune", "chuchote", "viens", True),
             "je murmure que la cloche est en haut": (False, None, "chuchote", None, True),
+            # Sans guillemets, une interpellation reste du texte libre pour le MJ.
             "Ilse, tu viens ?": (False, "ilse", "voix", "Ilse, tu viens ?", False),
-            "je demande à la meunière de venir": (False, "ilse", "voix", None, False),
+            "Brune, Ilse et Aubin sont où ?": (False, "brune", "voix", "Brune, Ilse et Aubin sont où ?", False),
+            # Un verbe de parole en tête annonce une parole ; « lance » dit aussi un geste.
+            "je demande à la meunière de venir": (False, "ilse", "voix", None, True),
+            "je lui dis que la cloche est en haut": (False, None, "voix", None, True),
+            "je lance la pierre": (False, None, "voix", None, False),
+            "je lance à tous : on monte": (True, None, "voix", "on monte", True),
             "je prends la torche": (False, None, "voix", None, False),
         }
         for saisie, attendu in cas.items():
@@ -91,7 +97,7 @@ class DestinataireTests(unittest.TestCase):
         m = recharger(m)
         reprise, sortie, appels = jouer(m, "je dis : pouvez-vous m'aider ?", [
             parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse")])
-        self.assertEqual(len(appels), 1)
+        self.assertEqual(len(appels), 0)  # Le joueur précise ; le moteur le dit sans appeler le MJ.
         self.assertIn("Aubin et Ilse sont aussi près de toi l'un que l'autre : précise à qui tu parles", sortie)
         self.assertNotIn("Tu dis", sortie)
         self.assertEqual((paroles_retenues(reprise, "ilse"), paroles_retenues(reprise, "aubin")), ([], []))
@@ -285,7 +291,8 @@ class ChuchoterTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "je chuchote à Brune : viens", [
             parole("viens", ("propos", "", "", ""), personnage="brune")])
         self.assertIn("Brune est trop loin : approche-toi pour lui chuchoter", sortie)
-        self.assertEqual(len(appels), 1)
+        # Le moteur le dit avant tout appel : aucune proposition n'y changerait rien.
+        self.assertEqual(len(appels), 0)
         self.assertEqual(paroles_retenues(reprise, "brune"), [])
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 

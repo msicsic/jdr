@@ -24,6 +24,7 @@ Le plan représente l'état du monde : action, cibles, outil, et changements dur
 (objet déplacé, détaché, allumé, marqué, son émis, blessure, usure). La manière du geste
 (position des mains, style, intention affichée, caractère d'un son ou d'un air) relève du
 récit et n'a pas à figurer dans les opérations ; l'outil et la méthode la portent déjà.
+Une question sur la faisabilité d'un geste (« puis-je… ? ») se juge comme la demande de ce geste.
 Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
 - un changement durable demandé qu'aucune opération ne produit ;

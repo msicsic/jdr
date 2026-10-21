@@ -96,7 +96,9 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 - ambiance : description sensorielle libre ; liste dans entites les éléments évoqués,
   en quelques mots chacun (« odeur de vase », « gouttes au plafond ») ;
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
-  des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements) ;
+  des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements).
+  Corvus perçoit exactement les objets objet:<id> fournis : qu'il ne voie pas un objet dont il
+  n'a qu'un souvenir (souvenirs_visuels, hors_de_vue) est mecanique, avec cette source ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; donne son
   identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux.
   Rappeler ce qu'un personnage a déjà dit (paroles_entendues, conversation) n'est pas une parole :
@@ -124,11 +126,13 @@ sont vides ; hors ambiance et engagement, entites est vide.
 Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
 
-INSTRUCTIONS_REVISION = """\nLe contrôle de la réponse précédente a relevé des affirmations
-mécaniques non établies, contradictoires ou un nom absent de ce que Corvus perçoit ou sait.
+INSTRUCTIONS_REVISION = """\nLe contrôle de tes réponses précédentes dans ce tour (controle_narratif, chaque phrase
+refusée et son motif) a relevé des affirmations mécaniques non établies, contradictoires ou un
+nom absent de ce que Corvus perçoit ou sait.
 Réponds de nouveau à l'intention initiale, à partir de l'état actuel. L'ambiance reste libre.
 Tu peux proposer un ajout persistant par le protocole déjà disponible si l'état et
-la demande le permettent. Sinon, reformule sans présenter l'ajout comme un fait.
+la demande le permettent. Sinon, reformule sans présenter l'ajout comme un fait : ce que Corvus
+ne perçoit ni ne sait, dis simplement qu'il l'ignore.
 Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
@@ -340,6 +344,64 @@ def controler(texte, rapport, faits):
                               "motif": ligne["motif"] or "Affirmation mécanique non établie."})
     return {"segments": copy.deepcopy(lignes_validees), "paroles": paroles, "ambiances": ambiances,
             "obstacles": obstacles, "texte_controle": texte.strip()}
+
+
+SUBSTANCE = ("mecanique", "parole", "engagement")
+
+
+def rescape(texte, rapport, faits, fautif):
+    """Les segments d'une réponse que le contrôle a admis, réunis en une réponse qui passe le même
+    contrôle : un dernier recours quand aucune réponse entière n'est admise. Chaque segment est
+    contrôlé pour lui-même (une assertion mixte condamne son segment entier) : ce qui reste est
+    compatible avec l'état. ``fautif(texte)`` : les contrôles déterministes du texte entier (voix
+    d'auteur, noms sans fondement, paroles nouvelles), refaits sur chaque segment gardé. Renvoie
+    (texte, rapport, nombre d'affirmations), ou None s'il ne reste aucune affirmation mécanique ni
+    parole, seulement des politesses ou de l'ambiance qui ne répondent à rien."""
+    passages = segments(texte)
+    refuses = {o["segment"] for o in rapport["obstacles"]}
+    gardes = [(p, ligne) for i, (p, ligne) in enumerate(zip(passages, rapport["segments"]))
+              if i not in refuses and not fautif(p)]
+    substance = sum(ligne["verdict"] in SUBSTANCE for _, ligne in gardes)
+    if not substance:
+        return None
+    for separateur in (" ", "\n"):
+        nouveau = separateur.join(p for p, _ in gardes)
+        if segments(nouveau) == [p for p, _ in gardes]:
+            break
+    else:
+        return None
+    controle = controler(nouveau, {"segments": {str(k): {c: v for c, v in ligne.items() if c != "indice"}
+                                                for k, (_, ligne) in enumerate(gardes)}}, faits)
+    if controle["obstacles"] or fautif(nouveau):
+        return None
+    return nouveau, controle, substance
+
+
+def repli(monde, faits, message):
+    """Ce que dit le moteur quand aucune réponse du MJ n'est admise, sans rien inventer : à une parole,
+    que ses destinataires l'ont entendue sans répondre ; à une question, ce que Corvus perçoit de ce
+    qu'elle vise (les attestations du moteur qui le nomment), puis ce qui manque pour en dire plus."""
+    validee = faits.get("conversation_validee")
+    if isinstance(validee, dict) and validee.get("operation") == "parole_joueur":
+        noms = [monde.objets[d]["nom"].split(",")[0] for d in validee.get("destinataires") or []
+                if d in monde.objets]
+        if not noms:
+            return "Personne ne te répond."
+        qui = noms[0] if len(noms) == 1 else ", ".join(noms[:-1]) + " et " + noms[-1]
+        return f"{qui} t'{'a' if len(noms) == 1 else 'ont'} entendu, sans te répondre."
+    vises = lexique.entites_citees(monde, message or "")
+    phrases, vues = [], set()
+    for a in faits.get("attestations", []):
+        # Une même phrase du moteur revient avec un autre article (« Un brasero… », « Le brasero… »).
+        sans_article = re.sub(r"^(?:un|une|le|la|les|l')\s*", "", lexique.normaliser(a)) if isinstance(a, str) else ""
+        if sans_article and sans_article not in vues and vises & lexique.entites_citees(monde, a):
+            vues.add(sans_article)
+            phrases.append(a)
+    phrases = phrases[:3]
+    if phrases:
+        return " ".join(phrases) + " Ce que tu perçois et ce que tu sais n'en disent pas davantage."
+    return ("Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude. Précise ce que tu "
+            "veux regarder, examiner ou tenter.")
 
 
 def consigner(monde, reponse):

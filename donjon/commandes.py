@@ -91,6 +91,12 @@ VERBES = {
 }
 
 
+# Ce qu'une question peut faire exécuter : percevoir, sans rien changer au monde. Tout autre geste
+# qu'elle évoque (« puis-je allumer ? ») se prépare sans s'exécuter : le joueur voit ce qu'il
+# demanderait, puis le tente ou l'annule.
+PERCEPTIONS = ("observer", "examiner")
+
+
 def est_question(texte):
     """Reconnaît la ponctuation, les interrogatifs et l'inversion du sujet."""
     if "?" in texte:

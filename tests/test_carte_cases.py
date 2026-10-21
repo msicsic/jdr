@@ -226,7 +226,7 @@ class CarteCasesTests(unittest.TestCase):
         with patch("donjon.spatial.champ_visible", return_value={(salle, 1, 2)}):
             # Le souvenir, pas la place réelle : vu_a part de la case où il l'a vue.
             self.assertIn({"id": "cle", "nom": "la clé du veilleur", "derniere_salle": "Antichambre",
-                           "vu_a": "2 cases vers est"},
+                           "vu_a": "2 cases vers est", "hors_de_vue": True},
                           self.monde.contexte()["souvenirs_visuels"])
 
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:

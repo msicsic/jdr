@@ -28,7 +28,8 @@ from donjon.mj import MJOpenAI  # noqa: E402
 from donjon.monde import Monde  # noqa: E402
 
 # Formules de repli produites par le contrôle ou la boucle de jeu, pas par Luna.
-REPLIS = ("Je ne peux pas encore", "C'est une possibilité, pas un fait établi",
+REPLIS = ("Je ne peux pas encore", "Rien de ce que tu perçois ou sais ne permet",
+          "n'en disent pas davantage", "sans te répondre.", "C'est une possibilité, pas un fait établi",
           "Je n'ai pas pu déterminer une manœuvre", "Corvus n'a rien tenté",
           "Réponse du MJ invalide", "Le contrôle narratif n'a pas abouti",
           "n'a pas terminé", "Aucune action appliquée", "Aucun changement enregistré",
@@ -96,7 +97,11 @@ class Interface:
                     fonctions=[a["fonction"] for a in appels],
                     secondes=round(sum(a["secondes"] for a in appels), 2),
                     tokens=sum(a["tokens"] for a in appels),
-                    replis=[r for r in REPLIS if r in texte],
+                    # Un repli du contrôle narratif se lit dans sa trace, quelle qu'en soit la voie (ce
+                    # que le moteur a établi, les phrases admises d'une réponse, ou son propre texte).
+                    replis=[r for r in REPLIS if r in texte]
+                    + ["contrôle narratif : " + t["voie"] for t in traces
+                       if t.get("etape") == "repli du contrôle narratif"],
                     refus=[t.get("obstacle", "") for t in traces if t.get("etape") == "validation"],
                     erreurs=[t["erreur"] for t in traces if t.get("erreur")],
                     controle=[o.get("motif", "") + " | " + o.get("texte", "")[:160]
@@ -108,7 +113,8 @@ class Interface:
         if self.compteur.fil:
             # Le fil entier du tour : chaque appel (prompt, réponse) et chaque verdict, dans l'ordre.
             tour["fil"] = [t for t in traces if t.get("etape") in ("appel", "validation", "contrôle narratif",
-                                                                   "couverture de l'action") or t.get("erreur")]
+                                                                   "couverture de l'action",
+                                                                   "repli du contrôle narratif") or t.get("erreur")]
         self.affiches.append(texte)
         self.tours.append(tour)
 

@@ -277,13 +277,19 @@ class HarnaisTests(unittest.TestCase):
 
     def test_double_refus_sans_boucle_et_question_sans_action(self):
         m = nouveau_atelier()
-        for message, p in (("je fabrique une échelle", fabriquer(largeur_cm=50)),
-                           ("Puis-je fabriquer une échelle ?", fabriquer())):
-            with patch.object(MJOpenAI, "_appeler", return_value=action(p)) as api:
+        # Une demande et une question refusées par le moteur : deux refus, puis une explication.
+        for message in ("je fabrique une échelle", "Puis-je fabriquer une échelle ?"):
+            with patch.object(MJOpenAI, "_appeler", return_value=action(fabriquer(largeur_cm=50))) as api:
                 r = MJOpenAI().echanger(m, message)
             self.assertEqual(api.call_count, 3)
             self.assertEqual(r["mode"], "dialogue")
             self.assertEqual(m.data["revision"], 0)
+        # Une question valide se prépare comme la demande, sans rien fabriquer.
+        with (patch.object(MJOpenAI, "_appeler", return_value=action(fabriquer())) as api,
+              patch.object(MJOpenAI, "_auditer_action")):
+            r = MJOpenAI().echanger(m, "Puis-je fabriquer une échelle ?")
+        self.assertEqual((api.call_count, r["mode"]), (1, "action"))
+        self.assertEqual(m.data["revision"], 0)
 
     def test_narration_contexte_reduit_et_modele_unique_par_defaut(self):
         m = nouveau_atelier()
@@ -304,6 +310,19 @@ class HarnaisTests(unittest.TestCase):
             m = Monde.charger(path)
             self.assertEqual(m.objets[m.trouver("echelle")]["barreaux"], 8)
             self.assertEqual(len(m.data["journal"]), 1)
+
+    def test_question_de_faisabilite_montre_la_meme_fiche_sans_rien_fabriquer(self):
+        # « est-ce que je peux fabriquer une échelle ? » : la même fiche que la demande, rien de fait.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "atelier.json"
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", return_value=action(fabriquer())), patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Rien n'est raconté")), patch("builtins.input", side_effect=["est-ce que je peux fabriquer une échelle ?", "quitter"]), patch("sys.stdout", io.StringIO()) as out:
+                jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(path)])
+            self.assertIn("26 min", out.getvalue())
+            self.assertIn("Rien n'est encore tenté.", out.getvalue())
+            m = Monde.charger(path)
+            self.assertFalse(any(o["nom"].startswith("échelle") for o in m.objets.values()))
+            self.assertFalse(m.data["journal"])
+            self.assertEqual(m.data["conversation"][-1]["nature"], "proposition_non_executee")
 
 
 if __name__ == "__main__":

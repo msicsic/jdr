@@ -60,8 +60,11 @@ fixe à qui Corvus parle et te le donne dans parole_prevue, si la saisie est une
 que le joueur nomme, sinon celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ;
 chuchoter ou murmurer, un seul, au contact. personnage = parole_prevue.personnage (un
 identifiant, tous, ou personne quand nul en vue ne l'entend : il parle à la cantonade, et
-personne ne lui répond). Une saisie entre guillemets, adressée à tous ou chuchotée est une parole,
-même si ses mots annoncent un geste : donner un objet se fait par l'action remettre. Les mots
+personne ne lui répond). Une saisie qui commence par des guillemets, par un verbe de parole (« je
+dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou par « à tous » est une
+parole, même si ses mots annoncent un geste : donner un objet se fait par l'action remettre ; ce
+qu'elle demande au personnage est son contenu. Une interpellation sans guillemets (« Aubin, … »)
+est à interpréter : question, geste ou parole. Les mots
 imposés par le joueur (parole_prevue.mots : entre guillemets, après un deux-points ou une
 interpellation comme « Gorm, … ») sont dits tels quels. Sinon,
 la réplique traduit son intention dans la bande expression_joueur : la précision suit l'INT,
@@ -263,7 +266,10 @@ VERBES_PAROLE = {**dict.fromkeys(("dis", "dit", "dire", "demande", "demander", "
                                   "repondre", "lance", "explique", "annonce", "raconte", "avoue", "confie",
                                   "affirme", "repete"), "voix"),
                  **dict.fromkeys(("chuchote", "chuchoter", "murmure", "murmurer"), "chuchote")}
-PRONOMS = {"lui": False, "leur": True}                          # le pronom désigne-t-il un groupe ?
+# Verbes de parole qui disent aussi un geste (« je lance la pierre ») : une parole seulement avec un
+# destinataire ou un deux-points (« je lance à tous : … »).
+GESTES_HOMONYMES = ("lance",)
+PRONOMS = {"lui": False, "leur": True}                        # le pronom désigne-t-il un groupe ?
 ARTICLES_NOM = ("le ", "la ", "l'", "les ")
 VOCATIF = re.compile(r"^\s*([^,!?:«»\"“”]{2,40}?)\s*[,:]\s*\S")
 JETON = re.compile(r"[^\W\d_](?:[\w'’-]*\w)?|[:,«»\"“”]")
@@ -321,7 +327,11 @@ def analyser(monde, intention):
     nommé ou groupe (« à tous »), suite de l'échange (``suite`` : « lui », « leur », ou « echange »
     pour des mots entre guillemets sans interpellation), mots imposés (entre guillemets, après un
     deux-points ou une interpellation), et si elle est sans conteste une parole (``explicite`` :
-    entre guillemets, à tous, chuchotée, mots après un deux-points)."""
+    elle commence par des guillemets, par un verbe de parole — « je dis… », « je lui dis… », « je
+    demande à Gorm… », « je chuchote… » — ou par « à tous »). Une parole sans conteste passe par
+    le moteur, qui la fait entendre : le MJ ne la raconte pas lui-même et ne la change pas en geste.
+    Une interpellation sans guillemets (« Aubin, viens m'aider ») n'en est pas une : le MJ
+    l'interprète librement (question, geste ou parole)."""
     s = (intention or "").strip()
     forme = {"maniere": "voix", "groupe": False, "nomme": None, "suite": False, "mots": None, "explicite": False}
     if s[:1] in GUILLEMETS:
@@ -337,6 +347,7 @@ def analyser(monde, intention):
         i += 1
     if i < len(mots) and mots[i] in VERBES_PAROLE:
         forme["maniere"] = VERBES_PAROLE[mots[i]]
+        homonyme = mots[i] in GESTES_HOMONYMES
         i += 1
         if i < len(mots) and mots[i] in PREPOSITIONS:
             n = _groupe_en(mots, i + 1)
@@ -351,7 +362,12 @@ def analyser(monde, intention):
         if i < len(jetons) and jetons[i].group() == ":":
             reste = s[jetons[i].end():].strip()
             forme.update(explicite=True, mots=(citation(reste) if reste[:1] in GUILLEMETS else reste) or None)
+        # Un verbe de parole en tête (« je dis… », « je demande à Gorm… ») annonce une parole.
+        if not homonyme or forme["nomme"] or forme["groupe"]:
+            forme["explicite"] = True
     else:
+        # Une interpellation sans guillemets (« Brune, pousse-toi ») reste du texte libre : le MJ
+        # l'interprète ; s'il en fait une parole, le moteur en fixe le destinataire (nomme).
         debut = _interpeller(monde, forme, s)
         if forme["groupe"] or forme["nomme"]:
             forme["mots"] = s[debut:].lstrip(" ,:") or None if debut else s
@@ -451,9 +467,10 @@ def destinataires(monde, forme):
     presents = sorted(interlocuteurs(monde))
     chuchote = forme["maniere"] == "chuchote"
     cantonade = forme["explicite"] and not forme["nomme"] and not chuchote
-    if not presents and not cantonade:
-        raise ParoleImpossible("Il n'y a personne ici pour t'entendre.",
-                               "aucun interlocuteur présent : réponds en mode dialogue.")
+    if not presents and not cantonade and not forme["nomme"]:
+        raise ParoleImpossible("Tu ne vois personne à qui parler. À la cantonade (« à tous : … »), qui "
+                               "t'entend retiendra tes mots.",
+                               "aucun interlocuteur perçu : réponds en mode dialogue.")
     if forme["groupe"] and chuchote:
         raise ParoleImpossible("On ne chuchote qu'à une seule personne, à son oreille.",
                                "chuchoter : un seul destinataire, nommé ou en face, au contact ; à plusieurs, "
@@ -471,9 +488,11 @@ def destinataires(monde, forme):
         return entendent
     id = forme["nomme"]
     if id and id not in presents:
-        raise ParoleImpossible("Ce personnage n'est pas ici pour t'entendre.",
-                               f"{id} n'est pas là pour entendre Corvus : réponds en mode dialogue qu'il est trop "
-                               "loin ; ne fais pas parler Corvus à un autre personnage à sa place.")
+        # Ce qui manque au joueur : le voir, donc s'approcher ; à la cantonade, qui l'entend retient ses mots.
+        raise ParoleImpossible(f"Tu ne vois pas {_nom_court(monde, id)} d'ici : approche-toi pour lui parler. À la "
+                               "cantonade (« à tous : … »), qui t'entend retiendra tes mots.",
+                               f"{id} n'est pas perçu de Corvus : réponds en mode dialogue qu'il ne le voit pas ; ne "
+                               "fais pas parler Corvus à un autre personnage à sa place.")
     if id and chuchote and id not in contact:
         raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin : approche-toi pour lui chuchoter quoi que "
                                "ce soit.", f"chuchoter exige le contact (une case voisine) avec {id} ; au contact de "

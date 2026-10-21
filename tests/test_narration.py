@@ -294,8 +294,10 @@ class NarrationTests(unittest.TestCase):
         self.assertNotIn(invention, sortie.getvalue())
         self.assertNotIn("Le MJ n'a pas pu formuler", sortie.getvalue())
         self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])
+        # Le repli dit ce qui manque, sans rien inventer.
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"],
-                         "Je ne peux pas encore répondre avec certitude.")
+                         "Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude. "
+                         "Précise ce que tu veux regarder, examiner ou tenter.")
         self.assertIn(reprise.data["narrations_mj"][-1]["texte"], sortie.getvalue())
 
     def test_avis_d_action_libre_ne_devient_pas_un_fait_affiche(self):
