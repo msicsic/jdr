@@ -87,8 +87,13 @@ class Etat:
         return self._hash
 
     def apres(self, salle=None, portes=None, faits=()):
-        return Etat(self.salle if salle is None else salle, self.portes if portes is None else portes,
-                    {**self.faits, **dict(faits)})
+        suivant = Etat.__new__(Etat)
+        suivant.salle = self.salle if salle is None else salle
+        suivant.portes = self.portes if portes is None else frozenset(portes)
+        suivant.faits = {**self.faits, **dict(faits)}
+        suivant._cle = (suivant.salle, suivant.portes, frozenset(suivant.faits.items()))
+        suivant._hash = hash(suivant._cle)
+        return suivant
 
     def fait(self, *cle):
         return self.faits.get(cle)
@@ -169,7 +174,12 @@ class Vue:
         if noms not in self._agissables:
             objets = [o for o in self.connus if self.utile[o] or o in noms
                       or self.objets[o]["type"] in ("contenant", "porte") or self.objets[o].get("foyer")]
-            self._agissables[noms] = objets, {o for o in objets if self.pertinent(o, noms)}
+            a_porter = {o for o in objets if self.pertinent(o, noms)}
+            # Un objet qu'il ne vaut pas la peine de porter, que le but ne vise pas, et qui n'est ni
+            # une serrure, ni un repas, ni une source, ni une part à demander, n'offre aucun geste.
+            objets = [o for o in objets if o in a_porter and self.utile[o] or o in noms or self.besoin[o]
+                      or self.objets[o]["type"] in ("contenant", "porte", "nourriture") or "allume" in self.objets[o]]
+            self._agissables[noms] = objets, a_porter
         return self._agissables[noms]
 
     def pertinent(self, o, vises):
@@ -414,6 +424,9 @@ def gestes(v, e, vises=None, but=None):
             if route is not None:
                 yield 0, len(route), [_etape("aller", lieu=s)], e.apres(salle=s)
     agissables, a_porter = v.agissables(vises)
+    portes, faits, sa_salle = e.portes, e.faits, e.salle
+    v_prendre, v_entretenir = vises.get("prendre", ()), vises.get("entretenir", ())
+    v_poser, v_fermer, v_servir = vises.get("poser", ()), vises.get("fermer", ()), vises.get("servir", {})
     # Une source allumée en main l'éclaire et lui donne une flamme. À qui n'a que faire de lumière
     # (ni le noir, ni la lumière comme but, ni une serrure à crocheter), une lampe ou un briquet ne
     # sert que de flamme, pour un feu qu'il croit éteint : une flamme en main suffit, et sans feu à
@@ -427,28 +440,34 @@ def gestes(v, e, vises=None, but=None):
     for o in agissables:
         x = objets[o]
         superflu = (assez and ("allume" in x or "allumage" in x.get("usages", [])) and not x.get("foyer")
-                    and o not in vises.get("prendre", ()) and o not in vises.get("entretenir", ()))
-        ici = v.a_portee(e, o)
-        dans = v.lieu(e, o)
+                    and o not in v_prendre and o not in v_entretenir)
+        # ``Vue.lieu`` et ``Vue.a_portee`` : dans sa main, dans sa salle, ou dans un contenant ouvert
+        # de sa salle.
+        if o in portes:
+            ici, dans = True, v.id
+        else:
+            dans = v.lieu(e, o)
+            ici = dans == sa_salle or (dans in objets and objets[dans]["type"] == "contenant"
+                                   and v.salle(e, dans) == sa_salle and v.ouvert(e, dans))
         contenant = dans if dans in objets and objets[dans]["type"] == "contenant" else None
         touche = [(("touche", contenant), True)] if contenant else []
         # Prêté ou acheté par le plan, le bien d'autrui s'emploie sans faute ; rien ne permet de
         # le consommer, sauf ce qu'il a acheté.
-        illicite_ = v.illicite[o] and not e.fait("permis", o)
+        illicite_ = v.illicite[o] and not faits.get(("permis", o))
         faute = "sans_temoin" if illicite_ else ""
         lese = v.proprietaire[o] if illicite_ else None
-        mal = int(bool(lese) and not e.fait("faute", lese))
+        mal = int(bool(lese) and not faits.get(("faute", lese)))
         if lese:
             touche = touche + [(("faute", lese), True)]
-        conso = v.consomme_illicite[o] and not e.fait("achete", o)
+        conso = v.consomme_illicite[o] and not faits.get(("achete", o))
         faute_conso = "sans_temoin" if conso else ""
         lese_conso = v.proprietaire[o] if conso else None
-        mal_conso = int(bool(lese_conso) and not e.fait("faute", lese_conso))
+        mal_conso = int(bool(lese_conso) and not faits.get(("faute", lese_conso)))
         touche_conso = [(("faute", lese_conso), True)] if lese_conso else []
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
-        utile = (v.utile[o] or o in vises.get("prendre", ())) and o in a_porter and not superflu
-        if ici and o not in e.portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
-            yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=e.portes | {o}, faits=touche)
+        utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
+        if ici and o not in portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
+            yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=portes | {o}, faits=touche)
         # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
         porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
         # On ne demande un objet qu'à qui il appartient (ou s'il n'est à personne), ou ce qui est à
@@ -469,16 +488,16 @@ def gestes(v, e, vises=None, but=None):
                        e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
                                                              (("depense",), (e.fait("depense") or 0) + prix)]), 1)
         touche = [x for x in touche if x[0][0] == "faute"]
-        if o in vises.get("poser", ()) and o in e.portes:
-            yield (0, 1, [_etape("poser", o, lieu=e.salle)],
-                   e.apres(portes=e.portes - {o}, faits=[(("lieu", o), e.salle)]))
-        if o in vises.get("fermer", ()) and v.salle(e, o) == e.salle:
+        if o in v_poser and o in portes:
+            yield (0, 1, [_etape("poser", o, lieu=sa_salle)],
+                   e.apres(portes=portes - {o}, faits=[(("lieu", o), sa_salle)]))
+        if o in v_fermer and v.salle(e, o) == sa_salle:
             if v.ouvert(e, o):
                 yield 0, 1, [_etape("fermer", o)], e.apres(faits=[(("ouvert", o), False)])
             elif not v.verrouille(e, o):
                 for cle in sorted(k for k in e.portes if o in objets[k].get("ouvre", [])):
                     yield 0, 1, [_etape("verrouiller", o, outil=cle)], e.apres(faits=[(("verrou", o), True)])
-        for pour in vises.get("servir", {}).get(o, ()):
+        for pour in v_servir.get(o, ()):
             if ici and v.disponible(o):
                 dedans = [(("touche", contenant), True)] if contenant else []
                 yield (mal_conso, 1, [_etape("servir", o, condition=faute_conso, contenu={"pour": pour})],
@@ -529,10 +548,10 @@ def gestes(v, e, vises=None, but=None):
         # Une source (un foyer, une lampe) qu'il porte ou qui est dans sa salle : la recharger du
         # combustible qu'elle brûle, l'allumer à une flamme qu'il porte (ou à une flamme fixe de sa
         # salle, s'il la porte), se chauffer à un foyer allumé.
-        if "allume" in x and not superflu and (o in e.portes or ici or v.salle(e, o) == e.salle and not x.get("mobile")):
+        if "allume" in x and not superflu and (o in portes or ici or v.salle(e, o) == sa_salle and not x.get("mobile")):
             allume, charge = v.feu(e, o)
             # Un foyer se recharge tant qu'il n'est pas vif ; une lampe, quand elle est vide.
-            if brule(x) and not (allume and charge) and (x.get("foyer") or o in vises.get("entretenir", ()) or not charge):
+            if brule(x) and not (allume and charge) and (x.get("foyer") or o in v_entretenir or not charge):
                 for bois in sorted(k for k in e.portes if recharge(x, objets[k]) and v.disponible(k)):
                     yield (mal, 1, [_etape("alimenter", o, outil=bois, condition=faute)],
                            e.apres(faits=[(("charge", o), True), *touche]))
