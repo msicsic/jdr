@@ -32,8 +32,13 @@ interrompue, d'erreur ou de trames invalides. Le jeton est relu via le coffre
 existant ; une rotation de jeton ou de clé de session renouvelle la connexion
 avant l'envoi. Une socket déjà fermée est également renouvelée, ainsi qu'une
 socket âgée de 55 minutes, avant la limite documentée de 60 minutes.
-Une demande ayant pu être envoyée n'est jamais réessayée automatiquement.
-La consommation éventuelle d'une réponse perdue reste inconnue.
+Une coupure réseau ou l'erreur de limite de durée déclenche une reconnexion et
+une tentative supplémentaire du même appel LLM. Les fragments de la tentative
+perdue sont abandonnés ; le contexte complet est renvoyé à l'identique, sans
+parent. La fermeture est terminée avant d'ouvrir la nouvelle socket. Le budget
+de délai initial est partagé entre les deux tentatives, sans boucle illimitée.
+La consommation éventuelle d'une réponse perdue reste inconnue. L'action moteur
+est exécutée uniquement après le retour final validé, jamais lors du rejeu LLM.
 
 Les erreurs réseau du client sont remplacées par des messages sans ses objets
 ou en-têtes. Un refus d'authentification 401 coupe les appels suivants de ce MJ.
@@ -47,13 +52,13 @@ ce dernier ferme sa connexion quand son travail se termine.
 
 ## Validation
 
-Suite complète : **847 tests passent** (`python -m unittest discover -s tests`).
-Les 36 tests ciblés du transport, des parcours WebSocket, de la connexion et
-du cycle de fermeture ont aussi été relancés après le dernier renforcement
-de la corrélation des événements. Compilation Python vérifiée.
+Validation initiale (`fa342cd`) : **847 tests passent** sur la suite complète
+(`python -m unittest discover -s tests`). Après ajout de la reconnexion
+transparente : **82 tests ciblés passent** (transport, parcours WebSocket,
+connexion, comparaison, prototype et récit). Compilation Python vérifiée.
 
 Les tests couvrent la réutilisation entre rôles, le renouvellement des règles
-et du contexte, les coupures sans rejeu, l'authentification, le budget de délai,
+et du contexte, les coupures avec reconnexion transparente, l'authentification, le budget de délai,
 la limite de volume, les terminaux manquants ou étrangers, la rotation de jeton
 et la fermeture des connexions.
 
@@ -64,12 +69,39 @@ n'est affiché, aucune action partielle n'est créée et le repli de narration
 conserve l'action déjà exécutée. Les vérifications comparent aussi l'état et
 ce que le joueur voit après rechargement.
 
+Les coupures transitoires sont injectées aux quatre étapes (interprétation,
+audit d'action, narration, audit de narration) sur les deux scènes. Le même
+appel repart à l'identique et réussit sans message d'erreur au joueur. Le
+journal contient un seul commit moteur. Les contrôles couvrent aussi le refus
+`websocket_connection_limit_reached`, le renouvellement préventif à 55 minutes,
+l'échec initial d'ouverture, les deux échecs consécutifs et le budget de délai
+commun aux tentatives. Quota, authentification et trames invalides ne déclenchent
+pas cette reprise de transport.
+
 Deux parties réelles avec Luna medium ont également réussi : prendre la clé
 dans la crypte et prendre la ficelle dans l'atelier. Huit appels terminés,
 une ouverture et une fermeture par partie ; les quatre rôles successifs partagent
 chaque connexion. Les récits sont enregistrés avant affichage, puis l'état complet
 et l'inventaire sont vérifiés après reprise hors ligne. Ce contrôle valide
 l'intégration ; il ne mesure pas un nouveau gain de latence.
+
+Après ajout de la reconnexion transparente, deux autres parties réelles ont
+réussi avec une coupure volontaire après `output_item.done` et avant lecture
+du terminal de la première réponse. Dix demandes envoyées, deux réponses
+volontairement perdues et huit terminées ; quatre ouvertures et fermetures,
+soit une connexion initiale et une reconnexion par partie. Les deux actions
+ont un seul commit moteur, sont sauvegardées avant affichage et conservées
+après reprise. Voir [verification-websocket-reconnexion.json](verification-websocket-reconnexion.json).
+
+Une première passe réelle s'était arrêtée après la crypte sur une assertion
+trop étroite du vérificateur : elle exigeait une proposition simple `prendre`.
+Le contrôle compte désormais les commits moteur, indépendamment de la forme
+simple ou composée du plan. Les quatre autres réponses de cette passe étaient
+terminées, et la possession, la sauvegarde et la reprise étaient déjà vérifiées.
+Cette passe et ses deux ouvertures sont conservées séparément dans l'export.
+Total du contrôle réel de reconnexion : six ouvertures, 15 demandes dont trois
+réponses volontairement perdues, 12 terminées. Aucune règle du jeu ni instruction
+du modèle n'a été changée pour satisfaire le contrôle.
 
 Le résultat portable est dans [verification-websocket-jeu.json](verification-websocket-jeu.json). La dépendance
 de test réelle est `websockets 16.1.1`, déjà utilisée par les bancs ; l'installation
@@ -85,6 +117,9 @@ $env:PYTHONPATH = 'C:/Users/msics/donjon/tmp-worktrees/ttft-luna-medium/artifact
 & C:/Users/msics/donjon/.venv/Scripts/python.exe tools/verifier_websocket_jeu.py `
   --sortie artifacts/verification-websocket/NOUVELLE-PASSE --max-appels 24
 ```
+
+Ajouter `--simuler-coupure` pour vérifier la reprise transparente avant un
+terminal réel dans chacune des deux parties.
 
 Références de protocole : [WebSocket Responses](https://developers.openai.com/api/docs/guides/websocket-mode)
 et [limites de Sign in with ChatGPT](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations).

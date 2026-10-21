@@ -72,11 +72,11 @@ class ParcoursWebSocketTests(unittest.TestCase):
                                 {'type': 'response.output_text.delta', 'response_id': 'interrompue',
                                  'delta': 'FRAGMENT QUI NE DOIT PAS ÊTRE AFFICHÉ'}]
                         return self.repondre(cible, p)
-                    socket = FauxWebSocket(repondre)
+                    sockets = [FauxWebSocket(repondre) for _ in range(2)]
                     interface = Interface(['mj Je prends ' + monde.objets[cible]['nom'] + '.', 'quitter'], chemin)
                     with patch('donjon.mj.jeton', return_value='test'), \
                             patch('donjon.mj.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
-                            patch('donjon.transport_openai.ouvrir_websocket', return_value=socket) as ouvrir:
+                            patch('donjon.transport_openai.ouvrir_websocket', side_effect=sockets) as ouvrir:
                         self.assertEqual(jeu.main(['--save', str(chemin), '--console', '--connexion', 'chatgpt', '--cases'], interface=interface), 0)
                     recharge = Monde.charger(chemin)
                     if apres_action:
@@ -85,10 +85,42 @@ class ParcoursWebSocketTests(unittest.TestCase):
                     else:
                         self.assertEqual(recharge.data, avant)
                     self.assertNotIn('FRAGMENT QUI NE DOIT PAS ÊTRE AFFICHÉ', '\n'.join(interface.sorties))
-                    self.assertEqual(ouvrir.call_count, 1)
-                    self.assertEqual(socket.fermetures, 1)
+                    self.assertEqual(ouvrir.call_count, 2)
+                    self.assertTrue(all(s.fermetures == 1 for s in sockets))
                     etat = copy.deepcopy(recharge.data)
                     reprise = Interface(['inventaire', 'regarder', 'quitter'], chemin)
                     self.assertEqual(jeu.main(['--save', str(chemin), '--offline', '--console'], interface=reprise), 0)
                     self.assertEqual(Monde.charger(chemin).data, etat)
                     self.assertIn(recharge.objets[cible]['nom'].casefold(), '\n'.join(reprise.sorties).casefold())
+
+    def test_reconnexion_transparente_aux_quatre_etapes_execute_une_seule_action(self):
+        for cas in CAS:
+            for etape in ('interpretation', 'auditer_action', 'narration', 'auditer_narration'):
+                with self.subTest(cas=cas, etape=etape):
+                    cible = CAS[cas][1]
+                    coupee = False
+                    def repondre(p):
+                        nonlocal coupee
+                        fonction = p['tools'][0]['tools'][0]['name']
+                        e = json.loads(p['input'][0]['content'])
+                        phase = ('narration' if 'resultat_resolu' in e.get('faits', {}) else 'interpretation') if fonction == 'repondre_au_joueur' else fonction
+                        r = self.repondre(cible, p)
+                        if phase == etape and not coupee:
+                            coupee = True
+                            return [{'type': 'response.created', 'response': {'id': 'perdue'}},
+                                {'type': 'response.output_item.done', 'response_id': 'perdue',
+                                 'output_index': 0, 'item': r['output'][0]}]
+                        return r
+                    sockets = [FauxWebSocket(repondre) for _ in range(2)]
+                    with patch('donjon.mj.jeton', return_value='test'), \
+                            patch('donjon.mj.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
+                            patch('donjon.transport_openai.ouvrir_websocket', side_effect=sockets) as ouvrir:
+                        r = parcours(cas)
+                    self.assertTrue(coupee)
+                    self.assertEqual(ouvrir.call_count, 2)
+                    self.assertTrue(all(s.fermetures == 1 for s in sockets))
+                    self.assertEqual(sockets[0].envois[-1], sockets[1].envois[0])
+                    self.assertEqual(r['executions_action'], 1)
+                    self.assertTrue(r['recit_sauve_avant_affichage'])
+                    self.assertTrue(r['etat_identique_apres_reprise'])
+                    self.assertFalse(any('réseau' in t or 'Réessayez' in t for t in r['sorties']))

@@ -35,7 +35,7 @@ class TransportTests(unittest.TestCase):
             mj.fermer()
             self.assertEqual(socket.fermetures, 1)
 
-    def test_fragment_et_coupure_ne_sont_pas_rejoues_puis_prochain_appel_reconnecte(self):
+    def test_fragment_abandonne_et_reconnexion_transparente_du_meme_appel(self):
         casse = FauxWebSocket(lambda _: [{'type': 'response.created', 'response': {'id': 'r1'}},
             {'type': 'response.function_call_arguments.delta', 'response_id': 'r1', 'delta': '{"ok":true}'}])
         bon = FauxWebSocket(lambda p: resultat(p, {'ok': True}))
@@ -43,13 +43,11 @@ class TransportTests(unittest.TestCase):
         mj.catalogue_verifie = True
         with patch('donjon.mj.jeton', return_value='test'), \
                 patch('donjon.transport_openai.ouvrir_websocket', side_effect=[casse, bon]) as ouvrir:
-            with self.assertRaises(ErreurMonde):
-                mj._appeler_brut('règles', {}, 'intention', 'proposer', SCHEMA)
-            self.assertEqual(ouvrir.call_count, 1)
-            self.assertEqual(len(casse.envois), 1)
-            self.assertEqual(casse.fermetures, 1)
             self.assertEqual(mj._appeler_brut('règles', {'nouveau': True}, 'intention', 'proposer', SCHEMA), {'ok': True})
             self.assertEqual(ouvrir.call_count, 2)
+            self.assertEqual(len(casse.envois), 1)
+            self.assertEqual(casse.fermetures, 1)
+            self.assertEqual(casse.envois[0], bon.envois[0])
             self.assertEqual(json.loads(bon.envois[0]['input'][0]['content']), {'nouveau': True})
             mj.fermer()
 
@@ -116,7 +114,7 @@ class TransportTests(unittest.TestCase):
         socket = FauxWebSocket(lambda _: [])
         t = WebSocketResponses()
         with patch('donjon.transport_openai.ouvrir_websocket', return_value=socket), \
-                patch('donjon.transport_openai.time.monotonic', side_effect=[0, 0, 2]):
+                patch('donjon.transport_openai.time.monotonic', side_effect=[0, 0, 0, 2, 2]):
             with self.assertRaises(ErreurTransport):
                 t.appeler({}, 'test', 'session', 1)
         self.assertEqual(socket.fermetures, 1)
@@ -126,3 +124,40 @@ class TransportTests(unittest.TestCase):
             with self.assertRaises(ErreurTransport) as erreur:
                 WebSocketResponses().appeler({}, 'secret-test', 'session', 1)
         self.assertNotIn('secret-test', str(erreur.exception))
+
+    def test_limite_60_minutes_et_echec_initial_de_connexion_sont_transparents(self):
+        limite = FauxWebSocket(lambda _: [{'type': 'error', 'status': 400,
+            'error': {'code': 'websocket_connection_limit_reached', 'message': '60 minutes'}}])
+        for premiere in (limite, ErreurTransport(503, reessayable=True)):
+            with self.subTest(premiere=type(premiere).__name__):
+                bon = FauxWebSocket(lambda _: {'status': 'completed', 'output': []})
+                t = WebSocketResponses()
+                with patch('donjon.transport_openai.ouvrir_websocket', side_effect=[premiere, bon]) as ouvrir:
+                    self.assertEqual(t.appeler({'instructions': 'actuelles', 'input': []}, 'test', 'session', 5)['status'], 'completed')
+                    self.assertEqual(ouvrir.call_count, 2)
+                    self.assertEqual(len(bon.envois), 1)
+                    t.fermer()
+
+    def test_panne_persistante_bornee_a_deux_tentatives(self):
+        sockets = [FauxWebSocket(lambda _: []) for _ in range(2)]
+        t = WebSocketResponses()
+        with patch('donjon.transport_openai.ouvrir_websocket', side_effect=sockets) as ouvrir:
+            with self.assertRaises(ErreurTransport):
+                t.appeler({}, 'test', 'session', 5)
+            self.assertEqual(ouvrir.call_count, 2)
+        self.assertTrue(all(len(s.envois) == s.fermetures == 1 for s in sockets))
+
+    def test_reconnexion_partage_le_budget_de_delai_initial(self):
+        temps = [0]
+        casse = FauxWebSocket(lambda _: [])
+        bon = FauxWebSocket(lambda _: {'status': 'completed', 'output': []})
+        def couper(*a, **kw):
+            temps[0] = 2
+            raise OSError('coupure')
+        with patch.object(casse, 'recv', side_effect=couper), \
+                patch('donjon.transport_openai.time.monotonic', side_effect=lambda: temps[0]), \
+                patch('donjon.transport_openai.ouvrir_websocket', side_effect=[casse, bon]) as ouvrir:
+            t = WebSocketResponses()
+            self.assertEqual(t.appeler({}, 'test', 'session', 5)['status'], 'completed')
+            self.assertEqual([a.args[2] for a in ouvrir.call_args_list], [5, 3])
+            t.fermer()

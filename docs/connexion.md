@@ -47,9 +47,13 @@ n'est utilisé. Un fragment de réponse n'est jamais exécuté : seul `response.
 autorise la validation de la proposition par le moteur.
 La connexion est fermée à la sortie ou au remplacement du MJ. Un jeton OAuth renouvelé,
 une connexion déjà fermée ou son ancienneté provoquent une nouvelle ouverture avant le
-prochain envoi. Une coupure pendant une demande invalide cette réponse et ferme la
-connexion ; cette demande n'est pas rejouée automatiquement. Le prochain appel repart
-avec son contexte complet. Le délai couvre toute la réponse, pas chaque fragment séparément.
+prochain envoi. Une coupure pendant une demande abandonne ses fragments et déclenche
+une reconnexion transparente, puis une nouvelle tentative du même appel LLM avec son
+contexte complet. Seule la réponse terminée et validée rejoint le moteur, qui n'exécute
+l'action qu'une fois. La reprise est limitée à une tentative supplémentaire, dans le
+budget de délai initial. Une panne persistante finit donc par afficher l'erreur habituelle.
+Les refus d'authentification, de quota ou de validation ne sont pas rejoués comme des
+coupures réseau. Le délai couvre l'attente totale de la réponse, pas chaque fragment séparément.
 Les erreurs de forfait ne déclenchent aucun basculement vers une clé API facturée séparément.
 
 Par défaut, le jeu privilégie une inscription ChatGPT enregistrée. `--connexion api` choisit

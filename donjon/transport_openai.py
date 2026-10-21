@@ -10,6 +10,7 @@ from .monde import ErreurMonde
 
 LIMITE_REPONSE = 4_000_000
 DUREE_CONNEXION = 55 * 60
+STATUTS_TRANSITOIRES = (408, 500, 502, 503, 504)
 
 
 def raison_interruption(evenement):
@@ -56,9 +57,20 @@ def lire_evenements(evenements):
 
 
 class ErreurTransport(RuntimeError):
-    def __init__(self, statut=None):
+    def __init__(self, statut=None, reessayable=False):
         self.statut = statut
+        self.reessayable = reessayable
         super().__init__("transport_openai")
+
+
+def est_coupure(exc):
+    if isinstance(exc, (OSError, TimeoutError)):
+        return True
+    try:
+        from websockets.exceptions import ConnectionClosed
+    except ImportError:
+        return False
+    return isinstance(exc, ConnectionClosed)
 
 
 def ouvrir_websocket(cle, session, timeout):
@@ -75,7 +87,7 @@ def ouvrir_websocket(cle, session, timeout):
     except Exception as exc:
         # Les exceptions du client peuvent contenir les en-têtes d'authentification.
         statut = getattr(getattr(exc, "response", None), "status_code", None)
-        raise ErreurTransport(statut) from None
+        raise ErreurTransport(statut, statut in STATUTS_TRANSITOIRES or est_coupure(exc)) from None
 
 
 class WebSocketResponses:
@@ -103,51 +115,68 @@ class WebSocketResponses:
         if any(k in payload for k in ("previous_response_id", "conversation", "stream_id")):
             raise ErreurMonde("Le MJ doit envoyer le contexte complet de cet appel.")
         p = {k: v for k, v in payload.items() if k not in ("stream", "background")}
+        message = json.dumps({"type": "response.create", **p}, ensure_ascii=False)
         identite = (hashlib.sha256(cle.encode()).digest(), session)
         with self._verrou:
             limite = time.monotonic() + timeout
-            try:
-                if self._connexion is not None and (
-                        self._identite != identite or time.monotonic() - self._ouverture >= DUREE_CONNEXION
-                        or self._connexion.close_code is not None):
+            for tentative in range(2):
+                try:
+                    return self._echanger(message, cle, session, identite, limite)
+                except ErreurMonde:
                     self._fermer()
-                if self._connexion is None:
-                    self._connexion = ouvrir_websocket(cle, session, timeout)
-                    self._identite, self._ouverture = identite, time.monotonic()
-                self._connexion.send(json.dumps({"type": "response.create", **p}, ensure_ascii=False))
+                    raise
+                except ErreurTransport as exc:
+                    self._fermer()
+                    if not exc.reessayable or tentative or time.monotonic() >= limite:
+                        raise
+                except Exception as exc:
+                    self._fermer()
+                    if not est_coupure(exc) or tentative or time.monotonic() >= limite:
+                        raise ErreurTransport() from None
 
-                def evenements():
-                    reponse_id = None
-                    while True:
-                        restant = limite - time.monotonic()
-                        if restant <= 0:
-                            raise TimeoutError()
-                        e = json.loads(self._connexion.recv(timeout=restant))
-                        if not isinstance(e, dict):
-                            raise ValueError()
-                        type_e = e.get("type")
-                        if type_e == "error" and e.get("status") == 401:
-                            raise ErreurTransport(401)
-                        if type_e == "response.created":
-                            if reponse_id is not None:
-                                raise ValueError()
-                            reponse_id = e["response"]["id"]
-                            if not isinstance(reponse_id, str) or not reponse_id:
-                                raise ValueError()
-                        if type_e and type_e.startswith("response.output") and reponse_id is None:
-                            raise ValueError()
-                        if e.get("response_id") is not None and e["response_id"] != reponse_id:
-                            raise ValueError()
-                        if type_e in ("response.in_progress", "response.completed") and (
-                                reponse_id is None or e["response"]["id"] != reponse_id):
-                            raise ValueError()
-                        yield e
+    def _echanger(self, message, cle, session, identite, limite):
+        if self._connexion is not None and (
+                self._identite != identite or time.monotonic() - self._ouverture >= DUREE_CONNEXION
+                or self._connexion.close_code is not None):
+            self._fermer()
+        if self._connexion is None:
+            restant = limite - time.monotonic()
+            if restant <= 0:
+                raise ErreurTransport()
+            self._connexion = ouvrir_websocket(cle, session, restant)
+            self._identite, self._ouverture = identite, time.monotonic()
+        self._connexion.send(message)
 
-                return lire_evenements(evenements())
-            except (ErreurMonde, ErreurTransport):
-                self._fermer()
-                raise
-            except Exception:
-                # Une demande éventuellement déjà consommée n'est jamais rejouée ici.
-                self._fermer()
-                raise ErreurTransport() from None
+        def evenements():
+            reponse_id = None
+            while True:
+                restant = limite - time.monotonic()
+                if restant <= 0:
+                    raise TimeoutError()
+                e = json.loads(self._connexion.recv(timeout=restant))
+                if not isinstance(e, dict):
+                    raise ValueError()
+                type_e = e.get("type")
+                if type_e == "error":
+                    erreur = e.get("error") or {}
+                    if e.get("status") == 401:
+                        raise ErreurTransport(401)
+                    if (erreur.get("code") == "websocket_connection_limit_reached"
+                            or e.get("status") in STATUTS_TRANSITOIRES):
+                        raise ErreurTransport(e.get("status"), reessayable=True)
+                if type_e == "response.created":
+                    if reponse_id is not None:
+                        raise ValueError()
+                    reponse_id = e["response"]["id"]
+                    if not isinstance(reponse_id, str) or not reponse_id:
+                        raise ValueError()
+                if type_e and type_e.startswith("response.output") and reponse_id is None:
+                    raise ValueError()
+                if e.get("response_id") is not None and e["response_id"] != reponse_id:
+                    raise ValueError()
+                if type_e in ("response.in_progress", "response.completed") and (
+                        reponse_id is None or e["response"]["id"] != reponse_id):
+                    raise ValueError()
+                yield e
+
+        return lire_evenements(evenements())

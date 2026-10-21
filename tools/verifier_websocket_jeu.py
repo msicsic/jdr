@@ -74,7 +74,12 @@ def parcours(cas):
         assert jeu.main(['--save', str(chemin), '--offline', '--console'], interface=reprise) == 0
         assert Monde.charger(chemin).data == etat
         assert recharge.objets[cible]['nom'].casefold() in '\n'.join(reprise.sorties).casefold()
+        # Une exécution peut être un plan simple ou composé : compter les commits moteur.
+        executions = len(etat['journal']) - len(monde.data['journal'])
+        assert executions == 1
         return {'cas': cas, 'cible': cible, 'lieu': 'joueur', 'recit_sauve_avant_affichage': True,
+                'executions_action': executions,
+                'actions_journal': etat['journal'][len(monde.data['journal']):],
                 'etat_identique_apres_reprise': True, 'sorties': interface.sorties,
                 'sorties_apres_reprise': reprise.sorties, 'conversation': etat['conversation']}
 
@@ -83,10 +88,14 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--sortie', type=Path, required=True)
     p.add_argument('--max-appels', type=int, default=24)
+    p.add_argument('--simuler-coupure', action='store_true',
+                   help='Couper volontairement une réponse réelle par partie avant son terminal')
     args = p.parse_args()
     args.sortie.mkdir(parents=True, exist_ok=False)
     rapport = {'modele': 'gpt-6-luna', 'effort': 'medium', 'connexion': 'chatgpt',
-               'ouvertures': 0, 'fermetures': 0, 'appels': [], 'parcours': []}
+               'ouvertures': 0, 'fermetures': 0, 'appels': [], 'parcours': [],
+               'coupures_simulees': 0, 'simulation_coupure': args.simuler_coupure}
+    cas_courant, coupe_dans_partie = None, False
 
     class Observer:
         def __init__(self, socket):
@@ -104,14 +113,22 @@ def main():
             for interdit in ('previous_response_id', 'stream_id', 'conversation', 'stream'):
                 assert interdit not in payload
             rapport['appels'].append({'fonction': payload['tools'][0]['tools'][0]['name'],
+                'cas': cas_courant,
                 'modele': payload['model'], 'effort': payload['reasoning']['effort'],
                 'instructions_completes': bool(payload['instructions']),
                 'entrees': len(payload['input']), 'sans_parent': True})
             self.socket.send(texte)
 
         def recv(self, timeout):
+            nonlocal coupe_dans_partie
             texte = self.socket.recv(timeout=timeout)
             e = json.loads(texte)
+            if args.simuler_coupure and not coupe_dans_partie and e.get('type') == 'response.output_item.done':
+                coupe_dans_partie = True
+                rapport['coupures_simulees'] += 1
+                rapport['appels'][-1]['coupure_simulee'] = True
+                self.close()
+                raise OSError('Coupure volontaire de vérification avant le terminal')
             if e.get('type') == 'response.completed':
                 rapport['appels'][-1].update(terminal='completed', usage=e['response'].get('usage'))
             return texte
@@ -130,9 +147,10 @@ def main():
     try:
         with patch('donjon.transport_openai.ouvrir_websocket', side_effect=ouvrir):
             for cas in CAS:
+                cas_courant, coupe_dans_partie = cas, False
                 rapport['parcours'].append(parcours(cas))
-        assert rapport['ouvertures'] == rapport['fermetures'] == len(CAS)
-        assert all(a.get('terminal') == 'completed' for a in rapport['appels'])
+        assert rapport['ouvertures'] == rapport['fermetures'] == len(CAS) + rapport['coupures_simulees']
+        assert all(a.get('terminal') == 'completed' or a.get('coupure_simulee') for a in rapport['appels'])
         rapport['succes'] = True
     finally:
         (args.sortie / 'verification.json').write_text(json.dumps(rapport, ensure_ascii=False, indent=2), encoding='utf-8')
