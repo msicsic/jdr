@@ -179,7 +179,10 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
                 return "impossible"
             if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
                 return "refus"
-            engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
+            # Payée d'avance, la part est due : non servie à l'échéance, le prix est rendu ou dû
+            # (``engagements_echus``).
+            engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
+                                **({"paye": {"objet": objet, "prix": prix}} if vente else {})})
             memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
             if vente:
                 _vendre(monde, auditeur, demandeur, objet, prix)
@@ -353,10 +356,24 @@ def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
     return texte
 
 
+def empeche(monde, id, engagement):
+    """Une part payée qu'il ne peut plus donner : ce qu'il vendait n'existe plus, n'est plus à lui,
+    ou n'en a plus une part (``deliberation.parts``)."""
+    from .deliberation import parts
+    from .vol import proprietaire
+    paye = engagement.get("paye")
+    if not paye:
+        return False
+    o = monde.objets.get(paye["objet"])
+    return o is None or proprietaire(monde, o) != id or parts(o) <= 0
+
+
 def engagements_echus(monde, id):
-    """Retire les engagements tenus ou trop anciens ; les souvenirs gardent la trace. Une garde
-    finie, ce qu'il en porte encore (le bien, ses clés) lui reste prêté : il le rendra."""
-    from .biens import _cles, preter
+    """Retire les engagements tenus, trop anciens ou qu'il ne peut plus tenir ; les souvenirs gardent
+    la trace. Une part payée d'avance et non servie à l'échéance est rendue, ou due
+    (``biens.rembourser``). Une garde finie, ce qu'il en porte encore (le bien, ses clés) lui reste
+    prêté : il le rendra."""
+    from .biens import _cles, preter, rembourser
     from .spatial import porte_par
     from .vol import proprietaire
     e = esprit(monde, id)
@@ -366,10 +383,12 @@ def engagements_echus(monde, id):
             memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
             finis.append(engagement)
-        elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX:
+        elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX or empeche(monde, id, engagement):
             memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
             finis.append(engagement)
+            if engagement.get("paye"):
+                rembourser(monde, id, engagement["pour"], engagement["paye"]["prix"], engagement["paye"]["objet"])
         else:
             restants.append(engagement)
     e["engagements"] = restants

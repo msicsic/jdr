@@ -22,6 +22,7 @@ from time import perf_counter
 from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _lieu_cru,
                            autorise, besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
                            promesse_en_cours, refuse_recemment)
+from . import force
 from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
@@ -30,7 +31,7 @@ from .spatial import porte_par
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
 DEMANDE = 3            # demander : on préfère ce qu'on peut faire seul
-PRET = 0.5             # chance qu'il prête à quelqu'un qui demande un objet qu'il porte
+PRET = 0.5             # chance qu'on accède à une demande, d'un objet qu'il porte ou d'une part
 CHERCHER = 3           # chercher quelqu'un qu'on a perdu de vue : on n'est pas sûr de le trouver
 FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se consume en main
 NOIR = 3               # par minute passée dans le noir, fois ce que le noir l'inquiète (``peur_du_noir``)
@@ -40,7 +41,7 @@ RESTER = 30            # minutes qu'il compte passer là où le mène un but qui
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
-USAGES = ("crochetage", "allumage", "combustible")
+USAGES = ("crochetage", "allumage", "combustible", *force.CHOC, *force.COUPE)
 # Chaque recherche s'y consigne quand le banc le demande (``diagnostics``) ; sinon None.
 DIAGNOSTIC = None
 # Le dernier résultat de chaque PNJ pour chaque but, avec tout ce dont il dépendait. Il ne tient
@@ -104,6 +105,13 @@ class Vue:
         # manger, en servir une part), que rien ne permet.
         self.illicite = {o: illicite(monde, id, o) for o in self.connus}
         self.consomme_illicite = {o: illicite(monde, id, o, "manger") for o in self.connus}
+        self.brise_illicite = {o: illicite(monde, id, o, "frapper") for o in self.connus}
+        # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
+        # il ne l'envisage pas.
+        self.degat = None
+        # Une serrure qu'il croit fermée à clé : forcer peut servir, et ce qui force vaut d'être porté.
+        self.verrous = any(self.objets[o]["type"] in ("contenant", "porte") and _cru(monde, id, o, "verrouillee")
+                           for o in self.connus)
         self.autorise = {o: autorise(monde, id, o) for o in self.connus}
         self.proprietaire = {o: proprietaire(monde, monde.objets[o]) for o in self.connus}
         # Ce qu'il peut dépenser, et ce que vaut pour lui une pièce, en minutes (``caractere``).
@@ -156,7 +164,7 @@ class Vue:
         """Le porter peut-il servir le but ? Une clé (passages, contenants), un contenant, ce que
         vise le but (``vises`` : leurs noms) ; les vivres si le but peut employer un repas ;
         combustible et flammes s'il peut employer un feu ; outil de crochetage s'il sait
-        crocheter ; de quoi y voir (une source, une flamme pour l'allumer, ce qui la recharge)
+        crocheter ; un outil qui force (choc, coupe) s'il croit une serrure fermée ; de quoi y voir (une source, une flamme pour l'allumer, ce qui la recharge)
         si le but est la lumière, si le noir l'inquiète ou s'il sait crocheter.
 
         Porter autre chose ne change ni les gestes possibles ni leur coût : le prendre ne fait
@@ -169,6 +177,7 @@ class Vue:
         crochete = "crochetage" in profil(self.monde, self.id)["capacites"]
         voir = "lumiere" in self.emplois or self.peur > 0 or crochete
         return bool(x.get("ouvre") or x["type"] == "contenant" or o in vises
+                    or self.verrous and set(usages) & set(force.CHOC + force.COUPE)
                     or "manger" in self.emplois and x["type"] == "nourriture"
                     or "feu" in self.emplois and ("combustible" in usages or "allumage" in usages or "allume" in x)
                     or crochete and "crochetage" in usages
@@ -312,14 +321,28 @@ class Vue:
         """La lumière qu'il croit avoir là où il se tient (0 noir, 1 pénombre, 2 éclairé) : pleine
         avec une source allumée en main ou une source que le plan a allumée dans sa salle ; sinon
         celle qu'il croit à la salle (``lumiere_crue``)."""
-        if any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes):
-            return 2
-        if any(cle[0] == "allume" and allume and self.salle(e, cle[1]) == e.salle for cle, allume in e.faits.items()):
+        if self._eclaire_par_le_plan(e):
             return 2
         cle = (e.salle, "lumiere")
         if cle not in self._crus:
             self._crus[cle] = lumiere_crue(self.monde, self.id, e.salle)
         return self._crus[cle]
+
+    def lumiere_devant(self, e, o):
+        """La lumière qu'il croit avoir devant ``o``, là où un geste qui demande d'y voir se fait :
+        pleine avec la lumière du plan (``lumiere``) ; sinon celle qu'il y a vue en s'y tenant
+        (croyance ``lumiere`` de l'objet, ``esprits.constater_lumiere_devant``) ; à défaut, celle
+        de la salle."""
+        if self._eclaire_par_le_plan(e):
+            return 2
+        vue = self.cru(o, "lumiere")
+        return self.lumiere(e) if vue is None else vue
+
+    def _eclaire_par_le_plan(self, e):
+        """Une source allumée en main, ou une source que le plan a allumée dans sa salle."""
+        return (any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes)
+                or any(cle[0] == "allume" and allume and self.salle(e, cle[1]) == e.salle
+                       for cle, allume in e.faits.items()))
 
     def pression(self, e):
         """Ce que lui coûte une minute dans cet état, par ce qu'il y laisse monter : le noir, s'il le
@@ -352,10 +375,11 @@ def chance_crochetage(monde, id, lumiere):
 
 
 def gestes(v, e, vises=None, but=None):
-    """Les gestes possibles depuis cet état : (fautes, minutes, étapes, état suivant[, durée]).
-    Les fautes comptent les personnes lésées ; les minutes font le coût, et la durée réelle
-    (celle qu'il passerait dans le noir) n'est donnée que quand elle en diffère : demander, ou
-    chercher quelqu'un, coûte plus que le temps qu'il y passe.
+    """Les gestes possibles depuis cet état : (fautes, minutes, étapes, état suivant[, durée[,
+    surcoût]]). Les fautes comptent les personnes lésées ; les minutes font le coût, et la durée
+    réelle (celle qu'il passerait dans le noir) n'est donnée que quand elle en diffère : demander, ou
+    chercher quelqu'un, coûte plus que le temps qu'il y passe. Le surcoût est un prix qui n'est pas
+    du temps : abîmer le bien d'autrui, au prix de sa douceur.
 
     ``vises`` ouvre les gestes que seul un but demande, sur les objets ou lieux qu'il vise :
     inspecter une salle, prendre un objet qui ne sert à aucun geste, poser, fermer et
@@ -455,12 +479,30 @@ def gestes(v, e, vises=None, but=None):
                 for cle in sorted(k for k in e.portes if o in objets[k].get("ouvre", []) and not porte):
                     yield (0, 1, [_etape("deverrouiller", o, outil=cle, condition=faute)],
                            e.apres(faits=[(("verrou", o), False), (("touche", o), True)]))
-                # Sa chance est celle du jet à la lumière qu'il croit avoir ; nulle, il n'essaie pas.
-                chance = chance_crochetage(monde, id, v.lumiere(e)) if "crochetage" in p["capacites"] else 0
+                # Sa chance est celle du jet à la lumière qu'il croit avoir devant la serrure ; nulle,
+                # il n'essaie pas. L'étape retient cette lumière : devant, il la constate (``pnj.agir``).
+                lumiere = v.lumiere_devant(e, o)
+                chance = chance_crochetage(monde, id, lumiere) if "crochetage" in p["capacites"] else 0
                 if chance and v.autorise[o]:
                     for outil in sorted(k for k in e.portes if "crochetage" in objets[k].get("usages", [])):
-                        yield (mal, 1 / chance, [_etape("crocheter", o, outil=outil, condition=faute)],
+                        yield (mal, 1 / chance, [_etape("crocheter", o, outil=outil, condition=faute,
+                                                        contenu={"lumiere": lumiere})],
                                e.apres(faits=[(("verrou", o), False), (("touche", o), True), *touche]))
+                # La forcer, par la règle du joueur (``force``) : avec un outil qu'il porte qui l'entame,
+                # coup après coup jusqu'à la briser ; brisée, elle reste ouverte. Abîmer le bien
+                # d'autrui heurte aussi sa douceur, une fois par personne lésée (``degat``).
+                brise = v.proprietaire[o] if v.brise_illicite[o] else None
+                if v.autorise[o] and not (brise and v.degat is None):
+                    degat = [(("degat", brise), True)] if brise else []
+                    surcout = v.degat if brise and not e.fait("degat", brise) else 0
+                    for outil in sorted(k for k in e.portes if force.adapte(x, objets[k])):
+                        n, c = force.coups(monde, id, x, objets[outil]), force.chance(monde, id, objets[outil])
+                        if n and c:
+                            yield (int(bool(brise) and not e.fait("faute", brise)), n / c,
+                                   [_etape("frapper", o, outil=outil, condition="sans_temoin" if brise else "")],
+                                   e.apres(faits=[(("verrou", o), False), (("ouvert", o), True), (("touche", o), True),
+                                                  *([(("faute", brise), True)] if brise else []), *degat]),
+                                   n / c, surcout)
         # Manger ce qui est à portée.
         if x["type"] == "nourriture" and ici and v.disponible(o) and v.autorise[o]:
             porte = o in e.portes
@@ -516,7 +558,9 @@ def gestes(v, e, vises=None, but=None):
                                e.apres(faits=part + [(("depense",), (e.fait("depense") or 0) + prix)]), 1)
                 if v.promesse(o) != donneur and not v.refuse(donneur, o):
                     if ou == e.salle:
-                        yield (0, 1 + DEMANDE, [_etape("demander", donneur, outil=o,
+                        # Une part demandée n'est pas acquise : comme un objet demandé, elle coûte
+                        # selon la chance d'être accordée (``PRET``).
+                        yield (0, 1 + DEMANDE / PRET, [_etape("demander", donneur, outil=o,
                                                         contenu={"foyer": foyer} if foyer else None)],
                                e.apres(faits=part), 1)
                     elif (ou is None and not e.fait("cherche", donneur)
@@ -592,6 +636,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
+        [o for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece], ensure_ascii=False)
 
 
@@ -620,13 +665,14 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     debut = perf_counter()
     v = Vue(monde, id)
     faute = prix_faute(monde, id, motif)
+    v.degat = prix_faute(monde, id, motif, "douceur")
     v.emplois = None if emplois is None else frozenset(emplois)
     garde = None
     if memo is not None and depuis is None:
-        # Ce que la recherche lit de son caractère et de son état : le prix d'une faute, et
-        # l'adresse modulée qui fait la chance de crocheter.
-        entrees = json.dumps([_entrees(v, vises, profondeur, noeuds), faute, modificateur(monde, id, "DEX"),
-                              tenir, endurer])
+        # Ce que la recherche lit de son caractère et de son état : le prix d'une faute et celui
+        # d'abîmer, l'adresse modulée qui fait la chance de crocheter, la force celle de forcer.
+        entrees = json.dumps([_entrees(v, vises, profondeur, noeuds), faute, v.degat, modificateur(monde, id, "DEX"),
+                              modificateur(monde, id, "FOR"), tenir, endurer])
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
@@ -646,6 +692,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                issue)
     if VERIFIER and (garde is not None or v.emplois is not None):
         brute = Vue(monde, id)
+        brute.degat = v.degat
         refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute, tenir)[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
@@ -701,11 +748,12 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False):
         for geste in gestes(v, e, vises, but):
             fautes, minutes, ajout, suivant = geste[:4]
             duree = geste[4] if len(geste) > 4 else minutes
+            surcout = geste[5] if len(geste) > 5 else 0   # un prix qui n'est pas du temps (abîmer)
             if fautes and faute is None:
                 continue
             if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
                 continue
-            total = cout + fautes * (faute or 0) + minutes * (1 + FLAMME_EN_MAIN * en_feu)
+            total = cout + fautes * (faute or 0) + surcout + minutes * (1 + FLAMME_EN_MAIN * en_feu)
             if duree:
                 total += duree * v.pression(suivant)  # Le temps qu'il passe dans le noir, ou loin de ses biens.
             if total < vus.get(suivant, infini):
@@ -870,6 +918,39 @@ def enrichir(monde, id):
     if valeur_pieces(monde, id, crues[pris]) <= cout:
         return None  # Ces pièces ne valent pas, pour lui, ce qu'il lui en coûterait.
     return {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
+
+
+def reclamer(monde, id):
+    """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) là où il le croit,
+    quand ce qu'il lui doit vaut pour lui plus que le chemin ; None sinon, ou s'il est déjà près de
+    lui : se retrouver suffit, le débiteur rend ce qu'il peut (``biens.solder``). Un débiteur qu'il
+    vient de retrouver sans rien recevoir (il n'avait rien), il ne le relance pas de sitôt."""
+    from .biens import dettes
+    from .caractere import ARGENT, valeur_pieces
+    from .deliberation import REDEMANDE
+    if not profil(monde, id):
+        return None
+    du = {}
+    for d in dettes(monde):
+        if d["a"] == id and d["de"] in monde.objets:
+            du[d["de"]] = du.get(d["de"], 0) + d["montant"]
+    minute = monde.data["minutes"]
+    vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
+    v = Vue(monde, id)
+    e = depart(monde, id, v)
+    meilleur = None
+    for de in sorted(du):
+        salle = v.salle(e, de)
+        if de in vains or salle is None or salle == e.salle:
+            continue
+        trouve = chercher(monde, id, lambda v, e, s=salle: e.salle == s, nom="reclamer:" + de,
+                          memo=["reclamer", de, salle], emplois=(), motif=ARGENT)
+        if trouve is not None and valeur_pieces(monde, id, du[de]) > trouve[0] and (
+                meilleur is None or trouve[0] < meilleur[0]):
+            meilleur = (trouve[0], de, trouve[1])
+    if meilleur is None:
+        return None
+    return {"type": "reclamer", "qui": meilleur[1]}, _couper(meilleur[2])
 
 
 def voir(monde, id, salle):

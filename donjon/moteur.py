@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
 from .francais import accorder, complement_de, designer, sujet
-from .geometrie import position_entree, position_objet
+from .geometrie import position_entree
 from .deplacement_objet import deplacer
 from .rendu import decrire, decrire_contexte, decrire_perception, regarder, prix, toucher
 from .perception import avancer_combustion, eclairage
@@ -467,12 +467,10 @@ class Moteur:
                                   f"{action} ne vise pas un {o['type']} : aucune proposition de ce geste n'est possible.")
             if o["integrite"] == 0:
                 raise ErreurMonde("C'est déjà brisé.", f"{cible} est déjà détruit : rien à faire.")
+            from . import force
             usages = set(t.get("usages", [])) if t else set()
             puissance = t.get("puissance", 0) if t else 0
-            coupe = bool(usages & {"couper", "couper_bois"}) and (
-                puissance >= o["seuil_coupe"] if "seuil_coupe" in o else
-                statut_capacite(o, "tranchable", t) == "etablie")
-            choc = bool(usages & {"percussion", "levier"})
+            coupe, choc = force.coupe(o, t), force.choc(t)
             if action == "couper" and not usages & {"couper", "couper_bois"}:
                 tranchants = sorted(set(portes_avec_usage(m, "couper")) | set(portes_avec_usage(m, "couper_bois")))
                 raise ErreurMonde("Il faut un outil de coupe utilisable.",
@@ -499,11 +497,10 @@ class Moteur:
                                   + (f" ; {outil} ne convient pas" if outil else " ; outil vide refusé") + ".")
             if action == "couper":
                 plan.titre = "Entailler " + designer(o) + " avec " + designer(t) + "."
-            plan.stat, plan.dd = "FOR", 10
-            plan.bonus, plan.bruit = (2 if action == "frapper" and "percussion" in usages else 0), 3
-            from .caractere import modificateur
-            degats = puissance + max(0, modificateur(m, "joueur", "FOR"))
-            plan.effets = [("endommager", cible, degats)]
+            # La règle commune au joueur et aux PNJ (``force``).
+            plan.stat, plan.dd = "FOR", force.DD
+            plan.bonus, plan.bruit = (force.bonus(t) if action == "frapper" else 0), 3
+            plan.effets = [("endommager", cible, force.degats(m, "joueur", t))]
             plan.echec_critique = [("endommager", outil, 1)]
         elif action == "bloquer":
             if o["type"] != "porte":
@@ -977,10 +974,8 @@ class Moteur:
                 porte["ouverte"], porte["verrouillee"] = True, False
                 if porte.get("bloque_par"):
                     Moteur._appliquer(m, ("decaler", porte["id"], m.joueur["salle"]), lignes)
+        from .force import briser
         for o in list(m.objets.values()):
             if o["type"] == "contenant" and o["integrite"] == 0:
-                o["ouverte"], o["verrouillee"] = True, False
-                for enfant in m.enfants(o["id"]):
-                    deplacer(m, enfant["id"], o["lieu"], position_objet(m, o)
-                             if o["lieu"] in m.data["salles"] else None)
-                    lignes.append(designer(enfant, debut=True) + " tombe au sol.")
+                for enfant in briser(m, o["id"]):
+                    lignes.append(designer(m.objets[enfant], debut=True) + " tombe au sol.")

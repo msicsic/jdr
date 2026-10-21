@@ -20,7 +20,8 @@ MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim"
           "argent": "argent"}
 BESOINS = {"securite": "sécurité", "repos": "fatigue", "chaleur": "froid"}
 GESTES = {"prendre": "prendre", "ouvrir": "ouvrir", "crocheter": "crocheter", "manger": "manger",
-          "deverrouiller": "déverrouiller", "poser": "poser", "pousser": "pousser"}
+          "deverrouiller": "déverrouiller", "poser": "poser", "pousser": "pousser", "frapper": "forcer",
+          "briser": "forcer"}
 
 
 def court(monde, id):
@@ -74,6 +75,8 @@ def _but(monde, but):
         return "éteindre " + _objet(monde, o)
     if t == "argent":
         return "prendre des pièces : " + _objet(monde, o)
+    if t == "reclamer":
+        return "réclamer son dû à " + court(monde, but["qui"])
     if t == "pulsion":
         if "periode" in but:
             return "ronde : " + _salle(monde, but["lieu"])

@@ -17,10 +17,10 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
-              "servir",
+              "servir", "frapper",
               "dire", "demander", "acheter", "confier", "remettre")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
-EFFORTS = ("aller", "prendre", "poser", "crocheter", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
+EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "acheter", "confier", "remettre")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
@@ -785,6 +785,13 @@ def _plan_argent(monde, id):
     return enrichir(monde, id)
 
 
+def _plan_creance(monde, id):
+    """Ce qu'on lui doit (``biens.rembourser``), qui vaut pour lui plus que le chemin : aller trouver
+    son débiteur, pour qu'il le lui rende (``planification.reclamer``)."""
+    from .planification import reclamer
+    return reclamer(monde, id)
+
+
 def _plan_froid(monde, id):
     """Se réchauffer : le plan le moins coûteux trouvé par la recherche (``planification``)."""
     from .planification import planifier
@@ -877,6 +884,8 @@ def candidats(monde, id):
                 and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
             buts.append((x["besoin"], lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), True))
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
+    # Ce qu'on lui doit d'abord, puis des pièces à prendre.
+    buts.append((ARGENT, _plan_creance, True))
     buts.append((ARGENT, _plan_argent, True))
     # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.
     for besoin, methode, _ in sorted(buts, key=lambda x: x[2]):

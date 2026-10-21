@@ -386,10 +386,38 @@ Limites :
 - le planificateur lit le compte vrai des pièces d'une bourse qu'il connaît ;
 - prendre des pièces est le seul but que l'argent fait naître ; la valeur d'un objet (ballot,
   reliquaire) n'en est pas un : Lucien ne convoite le ballot qu'en mots ;
-- une part payée et jamais servie (engagement abandonné) n'est pas remboursée ; on ne marchande
-  pas, on ne vend pas de soi-même à qui ne demande rien ;
+- une part payée et jamais servie (engagement abandonné) n'est pas remboursée (levé par
+  `petits-correctifs-pnj`, ci-dessous) ; on ne marchande pas, on ne vend pas de soi-même à qui ne
+  demande rien ;
 - le joueur paie une part, un objet ou un passage ; un PNJ ne paie pas un autre pour une tâche ;
   un PNJ ne redemande pas au joueur ce qu'il lui a prêté ;
 - demander une ressource que son propriétaire porte la remet entière (comportement antérieur) :
   l'achat d'une part ne s'y applique pas ;
 - les constantes (5, 10, 6, 2) et les prix sont à régler au banc, jamais par personnage.
+
+## Une part payée et jamais servie (branche `petits-correctifs-pnj`)
+
+Invariant : un paiement dont la contrepartie n'est pas livrée à l'échéance est rendu, ou devient
+une dette que le payeur connaît et peut réclamer ; pour le joueur comme pour les PNJ.
+
+- Une part vendue garde son paiement dans l'engagement du vendeur (`paye : {objet, prix}`).
+- **Échéance** (`echanges.engagements_echus`, `empeche`) : la parole abandonnée (240 minutes), ou
+  plus tôt quand il ne peut plus la tenir (ce qu'il vendait est épuisé, perdu, n'est plus à lui).
+- **La dette** (`biens.rembourser`, `data["dettes"]`) : connue des deux (souvenirs `dette` et
+  `creance`), soldée dès qu'ils peuvent se parler et que l'un sait l'autre là (`biens.solder`, à
+  chaque minute) ; le vendeur rend ce qu'il peut, le reste demeure dû. Le joueur le lit (« Gorm te
+  rend 2 pièces : la part des vivres du refuge que tu avais payée ne t'a pas été servie. »).
+- **Réclamer** (`planification.reclamer`, but `reclamer` après la routine, avant l'argent à
+  prendre) : un PNJ créancier va trouver son débiteur là où il le croit quand ce qu'il lui doit
+  vaut pour lui plus que le chemin ; retrouvé sans le sou, il ne le relance pas de sitôt
+  (`creance_vaine`, 120 minutes).
+
+Cas vérifiés après rechargement (`tests/test_petits_correctifs.py`) : Ilse achète sa part à Gorm,
+les vivres sont épuisés : Gorm lui rend ses 2 pièces ; la promesse échoit, Gorm aux vannes : la
+dette est connue, Ilse va la réclamer et la reçoit ; le joueur paie sa part, les vivres manquent :
+Gorm la lui rend, et il le lit. Au banc (8 h, Relais 8 graines), un remboursement en 8 nuits (graine
+99 : Gorm rend 2 pièces à Aubin).
+
+Limites : tout débiteur rend ce qu'il doit, quelle que soit son honnêteté ; le joueur ne réclame
+pas par une parole typée (la dette se solde quand le vendeur le sait là) ; le joueur ne voit pas
+la dette avant qu'elle soit soldée ; seule une part vendue d'avance crée une dette.
