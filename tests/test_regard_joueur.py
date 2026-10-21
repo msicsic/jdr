@@ -10,9 +10,10 @@ from donjon.commandes import analyser
 from donjon.defi import nouveau_defi
 from donjon.esprits import croire, lire, percoit
 from donjon.geometrie import placer
-from donjon.monde import Monde
-from donjon.moteur import Moteur
+from donjon.monde import ErreurMonde, Monde
+from donjon.moteur import Moteur, proposition
 from donjon.spatial import installer
+from tests.test_tensions import recharger
 
 
 def relais():
@@ -69,6 +70,51 @@ class RegardTests(unittest.TestCase):
         texte = faire(m, "prendre torche")
         self.assertIn("Tu te tournes vers l'ouest.", texte)
         self.assertEqual((m.objets["torche"]["lieu"], m.joueur["orientation"]), ("joueur", "ouest"))
+
+    def test_ce_qu_il_a_vu_dans_son_dos_se_vise_par_son_identifiant(self):
+        """Cas réel (banc Luna) : « j'attends que Gorm ait le dos tourné pour prendre les crochets »,
+        la trousse vue plus tôt dans la pièce mais hors du cône ; le MJ n'en avait que le nom et la
+        visait par « trousse de crochets ». Le souvenir lui donne l'identifiant et où Corvus l'a vu ;
+        une manœuvre qui commence par une attente le tourne vers ce qu'elle vise ensuite."""
+        from donjon.spatial import memoriser
+        m = relais()
+        m.objets["torche"].update(position=[4, 5], position_salle="antichambre", lieu="antichambre")
+        m.joueur.update(salle="antichambre", position=[5, 5], orientation="ouest")
+        memoriser(m)
+        m.joueur["orientation"] = "est"
+        self.assertFalse(m.accessible("torche"))
+        souvenirs = m.contexte()["souvenirs_visuels"]
+        self.assertIn({"id": "torche", "nom": "la torche", "derniere_salle": "Refuge du relais",
+                       "vu_a": "1 case vers ouest"}, souvenirs)
+        # Le refus d'un identifiant inventé propose aussi ce qu'il verrait en se tournant.
+        moteur = Moteur(m)
+        with self.assertRaises(ErreurMonde) as refus:
+            moteur.preparer(proposition("examiner", "torche de résine"))
+        self.assertIn("torche", refus.exception.attendu)
+        plan = moteur.preparer({"action": "composer", "justification": "", "etapes": [
+            {"operation": "patienter", "cible": "", "destination": "", "outil": "", "methode": "simple",
+             "difficulte": 0},
+            {"operation": "deplacer", "cible": "torche", "destination": "joueur", "outil": "", "methode": "simple",
+             "difficulte": 0}]})
+        texte = moteur.executer(plan)
+        self.assertIn("Tu te tournes vers l'ouest.", texte)
+        m = recharger(m)
+        self.assertEqual((m.objets["torche"]["lieu"], m.joueur["orientation"]), ("joueur", "ouest"))
+        self.assertNotIn("torche", [s["id"] for s in m.contexte()["souvenirs_visuels"]])
+
+    def test_donner_a_quelqu_un_dans_son_dos_le_tourne_d_abord(self):
+        """« je donne le bloc de cire à Ilse », Ilse juste derrière lui : la saisie se comprend
+        comme tout geste (ce qu'il verrait en se tournant se nomme), et le don la tourne vers elle."""
+        m = relais()
+        placer(m.objets["ilse"], "antichambre", [4, 5])
+        m.objets["ilse"]["lieu"] = "antichambre"
+        m.joueur.update(salle="antichambre", position=[5, 5], orientation="est")
+        self.assertFalse(m.accessible("ilse"))
+        self.assertEqual(analyser(m, "je donne le bloc de cire à Ilse"), proposition("remettre", "cire", "ilse"))
+        texte = faire(m, "je donne le bloc de cire à Ilse")
+        self.assertIn("Tu te tournes vers l'ouest.", texte)
+        m = recharger(m)
+        self.assertEqual((m.objets["cire"]["lieu"], m.joueur["orientation"]), ("ilse", "ouest"))
 
     def test_une_sortie_deja_franchie_reste_connue_dans_son_dos(self):
         m = relais()

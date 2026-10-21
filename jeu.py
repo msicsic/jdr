@@ -12,7 +12,7 @@ from donjon.config import charger_env, MODELE_CLAUDE, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
-from donjon.moteur import Moteur, QualificationRequise
+from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
 from donjon.narration import (consigner as consigner_narration, rendre_resultat,
                               chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
@@ -225,12 +225,12 @@ def main(argv=None, interface=None):
             return next((e["joueur"] for e in reversed(m.data["conversation"])
                          if e.get("nature") == "proposition_non_executee"), intention)
 
-        def raconter(affichage, intention):
+        def raconter(affichage, intention, gestes):
             """Récit de Luna d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
             if mj is None or args.recit_moteur:
                 return None
             try:
-                recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention),
+                recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention), "gestes": gestes,
                                                  "faits": affichage.splitlines()})
             except ErreurMonde:
                 return None
@@ -243,7 +243,7 @@ def main(argv=None, interface=None):
             # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
             affichage = rendre_resultat(resultat)
             m.sauver(args.save)
-            recit = raconter(affichage, intention)
+            recit = raconter(affichage, intention, gestes_accomplis(plan, m))
             texte_affiche = recit["texte"] if recit else affichage
             m.memoriser(intention, texte_affiche, "resultat_moteur")
             if recit:

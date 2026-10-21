@@ -117,6 +117,18 @@ def supports(monde):
             and (not monde.data.get("mode_cases") or proche(monde, id))}
 
 
+def inobservable(monde, id):
+    """Pourquoi ``id`` ne peut pas recevoir de détail maintenant, en une seule cause."""
+    if eclairage(monde)["niveau"] < 2:
+        return "Il fait trop sombre pour en distinguer les détails."
+    o = monde.objets.get(id)
+    if o is None or not monde.visible(id):
+        return "Tu ne vois pas ce support d'ici."
+    if o["type"] in ("personnage", "partie_corps", "motif", "detail") or o["integrite"] <= 0:
+        return "On ne peut pas y ajouter de détail."
+    return "Tu es trop loin pour en distinguer les détails."
+
+
 def catalogue(monde):
     from .dialogues import interlocuteurs
     from .transitions_scenario import disponibles
@@ -367,8 +379,12 @@ def preparer_faits(monde, proposition, revision=None):
             etablis.append({"type": nature, "locuteur": ancrage})
             continue
         if ancrage not in autorises["supports"]:
-            raise refus("Ce support n'est pas observable d'assez près et sous assez de lumière.",
-                        f"ancrage « {ancrage} » : un support observable, parmi {liste(sorted(autorises['supports']))}.")
+            # Une cause par refus : la lumière, la vue ou la distance. Le support visé reste celui
+            # que le joueur demande : un autre support ne répondrait pas à sa question.
+            raise refus(inobservable(monde, ancrage),
+                        f"ancrage « {ancrage} » non observable de près ; ne le remplace pas par un autre support : "
+                        "réponds en dialogue avec ce que Corvus en perçoit d'ici, sans détail nouveau. Supports "
+                        f"observables : {liste(sorted(autorises['supports']))}.")
         support = travail.objets[ancrage]
         if nature == "inscription":
             if any(e["lieu"] == ancrage and e.get("inscription") for e in travail.objets.values()):

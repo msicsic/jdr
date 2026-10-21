@@ -84,6 +84,15 @@ class ImprovisationTests(unittest.TestCase):
         exc = refus(nouveau_monde(), p)
         self.assertIn("echec.recit", exc.attendu)
 
+    def test_une_difficulte_hors_bornes_est_seule_nommee(self):
+        """Banc Luna : un coup de pied (stat FOR, difficulte 0) refusé par « Durée, bruit ou
+        difficulté hors des limites » : trois causes pour une."""
+        p = improviser("Frapper du pied.", issue("Le coup porte."), issue("Le coup glisse."),
+                       cibles=["porte"], approche="effort", stat="FOR", difficulte=0)
+        exc = refus(nouveau_monde(), p)
+        self.assertEqual(str(exc), "La difficulté de ce geste sort des limites d'un arbitrage sommaire.")
+        self.assertIn("avec une stat, difficulte 10 à 18", exc.attendu)
+
     def test_l_effet_fautif_est_situe(self):
         p = improviser("Graver une flèche.", issue("Une flèche.", [effet("marquer", "antichambre_murs", texte="flèche")]),
                        cibles=["antichambre_murs"], approche="manipulation")

@@ -673,8 +673,8 @@ class MJOpenAI:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie")}
                 schema["properties"]["faits"]["items"]["enum"] = list(faits)
                 instructions = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
-Le fait resultat_resolu contient exactement les événements survenus et la demande du joueur
-(intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
+Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
+événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
 La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
 comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
 les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
@@ -696,7 +696,7 @@ proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur
 manipuler. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
 ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplace que par ses pas.
 Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
-objets_perceptibles. Pour regarder ailleurs sans bouger : action tourner, cible une direction
+objets_perceptibles, mais dans souvenirs_visuels s'il l'a déjà vu. Pour regarder ailleurs sans bouger : action tourner, cible une direction
 (nord, sud-est…). Un geste sur un objet qu'il verrait en se tournant le tourne d'abord vers lui.
 Ses pas s'entendent de près et font se retourner ; à pas feutrés (action faufiler, cible une
 direction), plus lents, ils ne s'entendent que de tout près.

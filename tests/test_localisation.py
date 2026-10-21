@@ -62,7 +62,7 @@ class LocalisationTests(unittest.TestCase):
         self.assertNotIn('position', faits['joueur'])
         self.assertNotIn('lieux_connus', faits)
         self.assertEqual(entree['conversation'], [])
-        self.assertIn({'nom': 'la consigne émaillée', 'derniere_salle': 'Refuge du relais'},
+        self.assertIn({'id': 'gravure', 'nom': 'la consigne émaillée', 'derniere_salle': 'Refuge du relais'},
                       faits['souvenirs_visuels'])
         self.assertTrue(faits['objet:pied_de_biche']['a_portee'])
         self.assertTrue(faits['objet:pied_de_biche']['localisation']['meme_salle'])

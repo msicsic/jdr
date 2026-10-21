@@ -108,7 +108,7 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
   affaires, discret n'accuse personne.
 - prelever : prendre une pièce d'un lot décrit (une planche du tas), destination comme pour
   deplacer ; le lot diminue d'autant. Un objet seul se déplace (deplacer).
-- patienter : guetter deux minutes ; le deplacer discret qui suit devient plus facile, sans
+- patienter : guetter deux minutes, cible vide comme le reste ; le deplacer discret qui suit devient plus facile, sans
   que le témoin soit pour autant détourné. Voler en attendant une occasion = patienter, puis
   deplacer discret.
 - detacher : une fixation amovible, laissée sur place. extraction=main : sans outil ni jet.

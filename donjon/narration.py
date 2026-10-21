@@ -114,7 +114,10 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
 invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
-contenu. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
+contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
+moteur : les raconter, dans la manière que demande resultat_resolu.intention (style, rythme,
+posture, mots choisis), est mecanique, source resultat_resolu ; leurs suites sont celles de
+resultat_resolu.faits, sans autre effet. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
 commencé un geste du joueur (frapper, saisir, attendre, s'approcher) est contradictoire : seule
 l'explication de ce qui l'en empêche est permise. Hors parole et engagement, locuteur et citation
 sont vides ; hors ambiance et engagement, entites est vide.
@@ -297,7 +300,9 @@ def controler(texte, rapport, faits):
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
         lignes_validees.append(ligne)
-        locuteur, citation = ligne["locuteur"], ligne["citation"]
+        # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle
+        # ne la rendent pas fausse (« D'accord » cité « « D'accord » »).
+        locuteur, citation = ligne["locuteur"], ligne["citation"].strip().strip("«»\"“”  ")
         if verdict == "mecanique" and not ligne["sources"]:
             obstacles.append({"segment": indice, "texte": passage,
                               "motif": "Cette affirmation mécanique ne cite aucun fait du moteur."})

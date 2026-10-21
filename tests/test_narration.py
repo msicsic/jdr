@@ -417,6 +417,27 @@ class NarrationTests(unittest.TestCase):
         self.assertIn("joueur", reprise.data["paroles_pnj"][-1]["auditeurs"])
         self.assertNotIn("seconde_cloche", reprise.objets)
 
+    def test_une_citation_recopiee_avec_ses_guillemets_reste_la_parole(self):
+        """Banc Luna : « D'accord, vas-y », te répond-elle ; l'auditeur citait « « D'accord, vas-y » »
+        et le contrôle refusait la parole deux fois, jusqu'au repli. La parole retenue est le texte
+        entre les guillemets."""
+        m = nouveau_monde()
+        m.joueur["salle"] = "echoppe"
+        citation = "D’accord, je te laisse la place."
+        texte = "« " + citation + " », te répond Gorm."
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            m.sauver(chemin)
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=[
+                      dialogue(texte), segment("parole", locuteur="marchand", citation="« " + citation + " »")]),
+                  patch("builtins.input", side_effect=["mj Gorm, salut.", "quitter"]),
+                  patch("sys.stdout", io.StringIO()) as sortie):
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
+            reprise = Monde.charger(chemin)
+        self.assertIn(texte, sortie.getvalue())
+        self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
+
     def test_parole_longue_d_un_pnj_sauvegardee_et_rechargee(self):
         # Cas réel du banc : une réponse de Gorm de plus de 240 caractères faisait échouer la sauvegarde.
         m = nouveau_monde()
