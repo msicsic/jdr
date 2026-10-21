@@ -1,0 +1,26 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "beffroi",
+  "position": [3, 3],
+  "orientation": "est",
+  "personnages": {
+   "ilse": {"salle": "beffroi", "position": [6, 3], "orientation": "ouest"},
+   "brune": {"salle": "antichambre", "position": [0, 3], "orientation": "est"},
+   "aubin": {"salle": "antichambre", "position": [1, 4], "orientation": "nord"},
+   "marchand": {"salle": "echoppe", "position": [4, 1]}
+  },
+  "calmes": ["brune", "aubin", "ilse", "marchand"],
+  "lieux": {"lanterne": "antichambre"}
+ },
+ "tours": [
+  "regarder",
+  "il y a quelqu'un ?",
+  "« Qui est là ? »",
+  "« Tu as de quoi manger ? »",
+  "« C'est moi, Brune. »",
+  "je demande à la voix comment elle s'appelle",
+  "écouter"
+ ]
+}

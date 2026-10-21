@@ -20,8 +20,9 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
 
 Voix (``voix.py``) : ``voix`` liste ceux dont il connaît la voix (il les a entendus parler en les
 voyant, ou le scénario les lui fait connaître) ; ``voix_entendues``, les voix inconnues qu'il a
-entendues et ce qu'elles ont prétendu. Le joueur a les mêmes dans ``data["voix_connues"]`` et
-``data["voix_entendues"]``. Voir quelqu'un ne fait pas connaître sa voix.
+entendues et ce qu'elles ont prétendu ou comment on les a appelées ; ``noms``, ceux dont il a retenu
+le nom en les reconnaissant ; ``echange``, les paroles nettes qu'il vient de saisir (``voix.lier``).
+Le joueur a ``data["voix_connues"]`` et ``data["voix_entendues"]``. Voir quelqu'un ne fait pas connaître sa voix.
 """
 import copy
 
@@ -49,6 +50,8 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
           "voix": list,   # ceux dont il connaît la voix (``voix.py``)
           "voix_entendues": dict,   # les voix inconnues qu'il a entendues, et ce qu'elles ont prétendu
+          "noms": list,   # ceux dont il a retenu le nom en les reconnaissant (``voix.apprendre_nom``)
+          "echange": list,   # les paroles nettes qu'il vient de saisir, le temps d'un échange (``voix.lier``)
           "urgences": dict,   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
           # qui l'a hélé et à qui il a répondu : il attend d'être rejoint (``deliberation.attendre``)
           "rejoint": lambda: None,
@@ -175,8 +178,10 @@ def verifier(monde):
         assert isinstance(e["voix"], list) and all(
             isinstance(x, str) for x in e["voix"]  # Comme une croyance, il survit à qui a quitté la partie.
         ) and len(set(e["voix"])) == len(e["voix"]), "Voix connues invalides"
-        from .voix import verifier_entrees
+        from .voix import verifier_echange, verifier_entrees
         verifier_entrees(e["voix_entendues"])
+        verifier_echange(e["echange"])
+        assert isinstance(e["noms"], list) and all(isinstance(x, str) for x in e["noms"]) and len(set(e["noms"])) == len(e["noms"]), "Noms retenus invalides"
         for engagement in e["engagements"]:
             from .deliberation import condition_valide
             # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix

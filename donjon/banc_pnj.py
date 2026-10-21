@@ -148,6 +148,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
     releves = {}
     vue = list(monde.data.get("chronique", []))
     debut = monde.data["minutes"]
+    voix_debut = sum(len(lire(monde, id)["voix"]) for id in pnjs(monde))
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
         monde.verifier()
@@ -222,6 +223,18 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "attentes_vaines": sum(c.get("nature") == "reponse" and " cesse d'attendre " in c["texte"]
                                       for c in chronique),
                "minutes_a_attendre": attendre_rejoint,
+               # Les voix (``voix``) : voix connues gagnées dans la nuit (vues parler), voix inconnues qui
+               # se sont dites quelqu'un, voix qu'une autre a appelées par un nom (``voix.lier``), noms
+               # retenus de qui l'on a reconnu (``voix.apprendre_nom``), en fin de nuit ; l'appelé qui se
+               # tourne vers qui l'avait hélé en l'entendant approcher.
+               "voix_apprises": sum(len(lire(monde, id)["voix"]) for id in pnjs(monde)) - voix_debut,
+               "voix_se_disant": sum(bool(x["se_dit"]) for id in pnjs(monde)
+                                     for x in lire(monde, id)["voix_entendues"].values()),
+               "voix_appelees": sum(bool(x.get("appelee")) for id in pnjs(monde)
+                                    for x in lire(monde, id)["voix_entendues"].values()),
+               "noms_retenus": sum(len(lire(monde, id).get("noms", [])) for id in pnjs(monde)),
+               "vers_qui_l_a_hele": sum(c["texte"].endswith(", qui l'avait hélé.") and " se tourne vers " in c["texte"]
+                                        for c in chronique),
                # Minutes passées dans le noir par qui le craint (PNJ × minutes).
                "minutes_dans_le_noir": noir,
                # L'argent et les prêts (``biens``) : achats conclus, refus de vendre, pièces payées,
