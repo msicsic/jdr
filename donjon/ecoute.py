@@ -19,9 +19,10 @@ import re
 
 from .ouie import BRUITS_MAX, INTENSITES, SEUIL, VOCALES
 
+from .voix import ECHANGE
+
 ENTENDU = SEUIL        # niveau perçu sans y prêter l'oreille, et parole nette
 ECOUTE = SEUIL - 1     # niveau perçu en écoutant
-ECHANGE = 600          # dixièmes de seconde : une parole et la réponse qui lui revient
 
 
 def appel(monde, id):
@@ -93,40 +94,42 @@ def connus(monde, bruit):
 
 
 def mots_percus(monde, bruit):
-    """Ce que le joueur saisit d'une parole nette : tout le texte d'une voix qu'il voit ou reconnaît
-    et qui ne nomme que ce qu'il connaît ; sinon les mots cités, tels qu'ils sont dits."""
-    if connus(monde, bruit) and (bruit.get("vu") or reconnue(monde, bruit, bruit["niveau"])):
-        return bruit["texte"]
-    return " ".join(MOTS.findall(bruit["texte"]))
+    """Ce que le joueur saisit d'une parole nette, par la règle commune (``voix.mots``) : tout le texte
+    d'une voix qu'il voit ou reconnaît et qui ne nomme que ce qu'il connaît ; sinon les mots cités,
+    tels qu'ils sont dits."""
+    from .voix import mots
+    return mots(monde, "joueur", bruit["auteur"], bruit["texte"], bruit["cites"], bool(bruit.get("vu")))
 
 
 def nomme(monde, bruit, id):
     """Les mots que le joueur saisit de cette parole nomment-ils ``id`` ?"""
-    from .monde import normaliser
-    if id not in bruit["cites"] or id not in monde.objets:
-        return False
-    nom = normaliser(monde.objets[id]["nom"].split(",")[0])
-    return re.search(BORNE + re.escape(nom) + BORNE, normaliser(mots_percus(monde, bruit))) is not None
+    from .voix import nom_dit
+    return id in bruit["cites"] and id in monde.objets and nom_dit(monde, id, mots_percus(monde, bruit))
+
+
+def _saisie(monde, bruit):
+    """La parole nette ``bruit`` telle que le joueur la retient pour relier les voix d'un échange
+    (``voix.parole_saisie``) : ce qu'en disent les mots qu'il en saisit."""
+    from .voix import parole_saisie
+    return parole_saisie(monde, "joueur", bruit["auteur"], bruit["instant"],
+                         [x for x in bruit.get("a", ()) if x in bruit["cites"]], bruit["texte"], bruit["cites"],
+                         bool(bruit.get("vu")))
 
 
 def lier(monde, bruit, contenu=()):
     """Ce que le joueur apprend des voix d'un échange, à la parole nette ``bruit`` qu'il vient de
     saisir. Une voix qui dit son propre nom se dit ainsi (``voix.se_nommer``). Une voix à qui une
-    autre s'adresse en la nommant (ses destinataires, ``a``), qu'il entend dans le même échange
-    (``ECHANGE``), avant ou après, est « une voix qu'on appelle … » (``voix.nommer``). Rien ne le lui
-    apprend d'une voix qu'il reconnaît ou voit."""
-    from .voix import nommer, se_nommer
+    autre s'adresse en la nommant, qu'il entend dans le même échange, est « une voix qu'on appelle
+    … » : la règle commune aux PNJ et au joueur (``voix.lier``). Rien ne le lui apprend d'une voix
+    qu'il reconnaît ou voit."""
+    from .voix import lier as lier_voix, se_nommer
     auteur = bruit["auteur"]
     recents = [b for b in monde.data.get("bruits", []) if b is not bruit and b["texte"] and b["nature"] in VOCALES
                and b["niveau"] >= ENTENDU and 0 <= bruit["instant"] - b["instant"] <= ECHANGE
                and b["auteur"] in monde.objets]
     if any(c.get("type") == "nom" and c.get("sujet") == auteur for c in contenu) and nomme(monde, bruit, auteur):
         se_nommer(monde, "joueur", auteur, auteur)
-    for x in bruit.get("a", ()):
-        if x != auteur and x in monde.objets and nomme(monde, bruit, x) and any(b["auteur"] == x for b in recents):
-            nommer(monde, "joueur", x, x)
-    if any(auteur in b.get("a", ()) and b["auteur"] != auteur and nomme(monde, b, auteur) for b in recents):
-        nommer(monde, "joueur", auteur, auteur)
+    lier_voix(monde, "joueur", _saisie(monde, bruit), [_saisie(monde, b) for b in recents])
 
 
 def _heler(bruit):

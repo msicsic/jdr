@@ -266,7 +266,8 @@ def entend(monde, auteur, auditeur, geste="dire", force=None):
     return parvient[0] if parvient is not None and parvient[0] >= seuil(monde, auditeur) else None
 
 
-def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None):
+def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None,
+             dits=None):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
     l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :
     ses destinataires, contenu : ce qu'elle transmet, typé}) est retenue par ceux qui en saisissent
@@ -274,7 +275,8 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     des mots qui ne transmettent rien (héler quelqu'un) : l'appelé qui les saisit se tourne vers la
     voix (``entendre``) ; le joueur s'en sert pour relier les voix d'un échange (``ecoute.lier``).
     ``force`` : la nature du bruit, quand elle ne tient pas au geste (le son d'un objet, ``SONS``).
-    Renvoie ceux qui se sont retournés."""
+    ``dits`` : les mots prononcés, quand ``texte`` est la parole même et non un récit qui les cite entre
+    guillemets (la réplique du joueur). Renvoie ceux qui se sont retournés."""
     n = force or nature(geste, discret, bruit)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
@@ -286,7 +288,7 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     if auteur != "joueur":
         _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, [c for c in cites if c],
                    list(parole["a"]) if parole else list(vers), list(parole["contenu"]) if parole else [])
-    retournes, temoins = [], []
+    retournes, temoins, saisis = [], [], []
     for id in pnjs(monde):
         o = monde.objets[id]
         if id == auteur or not o.get("entend", True) or o["lieu"] not in entrees:
@@ -299,8 +301,10 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
             if n not in HABITUELS and parvient[0] >= seuil(monde, id) and not percoit_(monde, id, auteur):
                 _retenir_seulement(monde, id, salle, n, parvient[0])
             continue
-        if parole is not None and id not in parole["a"] and mots_saisis(monde, id, parvient[0]):
-            temoins.append(id)
+        if n in VOCALES and texte and mots_saisis(monde, id, parvient[0]):
+            saisis.append(id)
+            if parole is not None and id not in parole["a"]:
+                temoins.append(id)
         if parvient[0] >= seuil(monde, id) and entendre(monde, id, auteur, salle, case, n, t, parvient[0],
                                                         vises=vers, par=parvient[1]):
             retournes.append(id)
@@ -308,6 +312,15 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
         from .social import retenir_parole
         for id in temoins:
             retenir_parole(monde, id, auteur, parole["a"], texte, [c for c in cites if c], parole["contenu"])
+    if saisis:
+        # Chacun relie les voix de l'échange par la règle du joueur (``voix.lier``) : une voix qu'une
+        # autre appelle par son nom, entendue dans le même échange, est « une voix qu'on appelle … ».
+        from .voix import lier, parole_saisie, retenir_echange
+        a = list(parole["a"]) if parole else list(vers)
+        for id in saisis:
+            saisie = parole_saisie(monde, id, auteur, t, a, texte, [c for c in cites if c], percoit_(monde, id, auteur),
+                                   dits)
+            lier(monde, id, saisie, retenir_echange(monde, id, saisie))
     return retournes
 
 
@@ -390,15 +403,16 @@ def _attribuer(monde, id, crus, salle, case):
            case=list(case) if case is not None else c.get("case"))
 
 
-def _se_tourner(monde, id, case, t, texte=" se retourne au bruit."):
+def _se_tourner(monde, id, case, t, texte=" se retourne au bruit.", depuis=None):
     """Il se tourne vers le bruit : la rotation retarde la fin de son geste en cours ; ce qu'il
-    voit alors devient croyance, et l'auteur d'un geste illicite en cours, un témoignage."""
+    voit alors devient croyance, et l'auteur d'un geste illicite en cours, un témoignage. ``depuis`` :
+    sa case dans le plan commun, quand ``case`` y est donnée (une autre salle)."""
     from .esprits import esprit, percevoir
     from .francais import designer
     from .pnj import _chroniquer, temoigner_en_cours
     from .spatial import QUART, orientation_vers, quarts
     o = monde.objets[id]
-    vers = orientation_vers(tuple(o["position"]), tuple(case))
+    vers = orientation_vers(tuple(depuis or o["position"]), tuple(case))
     if vers is None:
         return False
     e = esprit(monde, id)
@@ -478,9 +492,12 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     retourné. ``vises`` : ceux que l'auteur hèle ; ``par`` : la sortie de sa salle par où le bruit
     lui arrive (None de la sienne).
 
-    Hélé par son nom, il en saisit les mots : il se tourne vers la voix (vers l'auteur dans sa salle,
-    vers le seuil par où elle arrive d'ailleurs), le temps de la rotation, et peut ainsi le voir. Un
-    appel ou un cri, sans mots, porte la voix : qui la connaît sait qui crie, et le croit là."""
+    Hélé par son nom, il en saisit les mots : il se tourne vers la voix (vers l'appelant s'il le
+    verrait ainsi, dans sa salle ou au-delà d'un seuil ; sinon vers le seuil par où elle arrive
+    d'ailleurs), le temps de la rotation, et peut ainsi le voir. Qui attend d'être rejoint par
+    l'appelant (``deliberation.attendre_l_appelant``) se tourne vers lui quand il l'entend approcher,
+    dès qu'il peut le voir. Un appel ou un cri, sans mots, porte la voix : qui la connaît sait qui
+    crie, et le croit là."""
     from .esprits import croire, lire, percoit
     from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix, reconnaitre
     o = monde.objets[id]
@@ -493,10 +510,15 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     retourne = False
     if mots and n == "hele" and id in vises:
         # Il entend son nom : il se tourne vers la voix, et voit peut-être qui l'appelle.
-        retourne = _vers_la_voix(monde, id, salle, case if ici else None, par, t)
+        retourne = _vers_la_voix(monde, id, auteur, case if ici else None, par, t)
         if percoit(monde, id, auteur):
             connaitre(monde, id, auteur)
             return retourne
+    elif (lire(monde, id)["rejoint"] or {}).get("qui") == auteur and _vers_qui_l_a_hele(monde, id, auteur, t):
+        # Il attend qui l'a hélé : à son approche, il se tourne vers lui dès qu'il peut le voir.
+        if mots:
+            connaitre(monde, id, auteur)
+        return True
     reconnu = None
     if mots:
         # Il en saisit les mots : une voix connue, il croit son porteur là d'où elle vient ; une voix
@@ -535,14 +557,17 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     return retourne
 
 
-def _vers_la_voix(monde, id, salle, case, par, t):
-    """Il se tourne vers la voix qui l'appelle : vers sa case dans sa salle, vers le seuil de la
-    sortie par où elle arrive d'une autre ; rien s'il la regarde déjà (ou sans cases). Vrai s'il
-    s'est tourné."""
+def _vers_la_voix(monde, id, auteur, case, par, t):
+    """Il se tourne vers la voix qui l'appelle : vers l'appelant s'il le verrait ainsi (dans sa salle,
+    ou au-delà d'un seuil ouvert, ``_vers_qui_l_a_hele``) ; sinon vers sa case dans sa salle, ou vers
+    le seuil de la sortie par où la voix arrive d'une autre ; rien s'il la regarde déjà (ou sans
+    cases). Vrai s'il s'est tourné."""
     from .spatial import _case_interieure, dans_le_regard
     o = monde.objets[id]
     if o.get("position") is None:
         return False
+    if _vers_qui_l_a_hele(monde, id, auteur, t, " se tourne vers la voix qui l'appelle."):
+        return True
     cible = case
     if cible is None:
         sortie = monde.data["salles"][o["lieu"]]["sorties"].get(par) if par else None
@@ -550,3 +575,25 @@ def _vers_la_voix(monde, id, salle, case, par, t):
     if cible is None or tuple(cible) == tuple(o["position"]) or dans_le_regard(monde, o["lieu"], tuple(cible), id):
         return False
     return _se_tourner(monde, id, cible, t, " se tourne vers la voix qui l'appelle.")
+
+
+def _vers_qui_l_a_hele(monde, id, auteur, t, texte=None):
+    """Il ne voit pas ``auteur`` (qui l'a hélé, ou qu'il attend), mais le verrait en se tournant vers
+    lui, dans sa salle ou au-delà d'un seuil (``voix._verrait_en_se_tournant`` : la lumière le montre,
+    le noir non) : il se tourne vers lui, le temps de la rotation. Vrai s'il s'est tourné."""
+    from .esprits import percoit
+    from .spatial import _global
+    from .voix import _verrait_en_se_tournant
+    o = monde.objets[id]
+    if o.get("position") is None or percoit(monde, id, auteur) or not _verrait_en_se_tournant(monde, id, auteur):
+        return False
+    salle, case = _place(monde, auteur)
+    if case is None:
+        return False
+    salles = monde.data["salles"]
+    ici = _global(salles[o["lieu"]], o["position"])
+    la = _global(salles[salle], case)
+    if texte is None:
+        from .social import _qui
+        texte = f" se tourne vers {_qui(monde, auteur)}, qui l'avait hélé."
+    return _se_tourner(monde, id, la, t, texte, depuis=ici)
