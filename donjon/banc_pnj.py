@@ -103,6 +103,8 @@ def executer(monde, minutes, recit=None):
     mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
                     if c.get("fiable", {}).get("valeur") is False)
     bilan = monde.data.get("stratege", {}).get("bilan", {})
+    temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+               if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES]
     mesures = {"gestes": sum(c.get("nature") != "ouie" for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique
                                             if c.get("nature", "geste") in ("geste", "social")}),
@@ -112,8 +114,10 @@ def executer(monde, minutes, recit=None):
                "minutes_urgentes_sans_recours": blocage,
                "usurpations": usurpations,
                "renoncements": memoire["renoncement"],
-               "vols_vus": sum(1 for id in pnjs(monde) for s in lire(monde, id)["memoire"]
-                               if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES),
+               # Un vol vu se compte une fois (un auteur, un objet), quels que soient ses gestes d'une
+               # minute ; ses témoins à part.
+               "vols_vus": len({(s["auteur"], s["objet"]) for _, s in temoins}),
+               "temoins_vols": len({(s["auteur"], s["objet"], id) for id, s in temoins}),
                "absences": memoire["absence"],
                "confidences": sum(" dit à " in c["texte"] for c in chronique),
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
