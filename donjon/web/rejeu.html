@@ -101,7 +101,7 @@ const SOLS = [["#18221e", "#1a2520"], ["#243a30", "#273e33"], ["#314a3b", "#354f
 const NOMS_LUMIERE = ["dans le noir", "lueur diffuse", "lueur directe, faible", "pleine lumière"];
 const numero = new Map(); D.cases.forEach((c, i) => numero.set(c, i));// Un bruit : intensité en crans (ouie.INTENSITES), couleur, nom ; et ce que chaque issue veut dire.
 const BRUITS = {feutre: [1, "#8fd3e8", "feutré"], pas: [3, "#9bc36b", "pas"], geste: [3, "#9bc36b", "geste"], voix: [4, "#e8b84a", "voix"],
-                bruyant: [7, "#f2a65a", "bruyant"], appel: [9, "#ff6b6b", "appel"]};
+                bruyant: [7, "#f2a65a", "bruyant"], hele: [9, "#e88ad3", "héler"], appel: [9, "#ff6b6b", "appel"]};
 const ISSUES = {vu: "le voit faire", attribue: "l'attribue à qui il croit là", tourne: "se retourne", bruit: "retient un bruit vers ce lieu",
                 parole: "saisit les mots"};
 const FENETRE = 600;   // dixièmes : un bruit reste dessiné une minute
@@ -381,7 +381,7 @@ function nature(c) {
   if (c.nature === "voir" || c.nature === "decision") return "voir";
   if (c.nature === "illicite") return "illicite";
   if (c.nature === "deplacement") return "deplacement";
-  if (c.nature === "social") return "paroles";
+  if (c.nature === "social" || c.nature === "reponse") return "paroles";
   return c.nature || "geste";
 }
 const NOTABLES = ["tourne", "bruit", "parole"];

@@ -86,7 +86,7 @@ class RejeuTests(unittest.TestCase):
         racontes = sum("se retourne au bruit" in c["texte"] for c in self.chronique)
         self.assertEqual(retournes, racontes)
         for b in self.enregistreur.bruits:
-            self.assertIn(b["n"], ("feutre", "pas", "geste", "voix", "bruyant", "appel"))
+            self.assertIn(b["n"], ("feutre", "pas", "geste", "voix", "bruyant", "hele", "appel"))
             self.assertTrue(all(r[0] in self.enregistreur.personnages for r in b["r"]))
         self.assertEqual([b["t"] for b in self.enregistreur.bruits], sorted(b["t"] for b in self.enregistreur.bruits))
 

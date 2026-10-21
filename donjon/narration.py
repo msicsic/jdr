@@ -425,8 +425,10 @@ def consigner(monde, reponse):
     paroles = []
     if rapport["paroles"]:
         from .sons import auditeurs
+        from .voix import reel
         for parole in rapport["paroles"]:
-            locuteur = monde.objets[parole["locuteur"]]
+            # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
+            locuteur = monde.objets[reel(monde, parole["locuteur"])]
             if not monde.present_physique(locuteur["id"]):
                 raise ErreurMonde("Le locuteur n'est plus présent pour cette parole.")
             entendants = auditeurs(monde, salle, 2)
