@@ -108,7 +108,7 @@ class HelerTests(unittest.TestCase):
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
         self.assertEqual(len(appels(m, "hugues")), 1)
         self.assertIn("Tu entends, tout près : Hugues appelle : « Anselme ? »", texte)
-        self.assertIn("Tu entends, à l'est, une voix inconnue appeler : « Ici ! »", texte)
+        self.assertIn("Tu entends, à l'est, une voix inconnue répondre : « Ici ! »", texte)
         self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
 
     def test_aubin_hele_gorm_a_travers_la_porte_etanche(self):

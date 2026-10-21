@@ -27,7 +27,8 @@ Les faits reçus décrivent le monde tel qu'il est maintenant.
 - Perception : niveau 0 = noir, 1 = silhouettes, 2 = détails. Un objet connu au toucher
   (visible=false) n'est pas vu. Sans fenêtre ne veut pas dire sans lumière.
 - Mémoire : souvenirs_faits, souvenirs_personnages et souvenirs_visuels décrivent le passé,
-  pas l'état, l'humeur ou la position actuels ; paroles_entendues atteste qu'une chose a été
+  pas l'état, l'humeur ou la position actuels ; personnages_connus, ceux dont Corvus sait le
+  nom, sans dire où ils sont ; paroles_entendues atteste qu'une chose a été
   dite, pas qu'elle est vraie. Seule proposition_en_attente dit ce que « tenter » exécutera.
 - Personnages : connaissances_pnj sont les savoirs des personnages présents ; fais-les en user
   sans les étendre à l'état actuel d'un lieu hors de leur vue. Un personnage parle seulement à
@@ -132,7 +133,8 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : comme les
   actions simples. « Je déverrouille la porte, je l'ouvre et je la cale » forme une séquence.
 - emettre_son : crier (methode cri), appeler à l'aide (appel), siffler (sifflement), cible
-  joueur ; faire sonner un objet sonore : cible = l'objet, methode simple. Toujours possible,
+  joueur ; héler quelqu'un par son nom : methode heler, cible = l'identifiant de ce personnage ;
+  faire sonner un objet sonore : cible = l'objet, methode simple. Toujours possible,
   sans jet, même sans personne en vue ; le moteur décide qui entend. Une réponse ou une arrivée
   se raconte seulement quand les faits l'établissent, et l'absence de témoin visible ne prouve
   pas que personne n'est aux alentours.

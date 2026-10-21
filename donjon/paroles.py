@@ -410,6 +410,39 @@ def analyser(monde, intention):
     return forme
 
 
+# Héler quelqu'un par son nom : un cri, pas une parole à un destinataire (``pnj.heler``). Les formes
+# que l'analyse reconnaît, en un seul endroit : « j'appelle Gorm », « je hèle Gorm », « je crie le
+# nom de Gorm », « j'appelle Gorm par son nom », « je crie « Gorm ? » », « crier : Gorm ! », suivies
+# au plus d'un « fort » ou « à voix haute ».
+VERBES_HELER = ("appelle", "appeler", "hele", "heler", "crie", "crier")
+FORT = ("fort", "tres fort", "a voix haute", "a haute voix", "a pleine voix", "a tue-tete", "a pleins poumons",
+        "de toutes mes forces")
+PONCTUATION = (":", ",", "«", "»", '"', "“", "”")
+
+
+def hele(monde, intention):
+    """Le personnage que la saisie hèle par son nom, s'il est l'un de ceux que Corvus connaît
+    (``_personnage``) ; None si elle n'est pas un appel par le nom (« j'appelle à l'aide » est un
+    appel à l'aide, « je crie » un cri, une suite qui dit autre chose va au MJ)."""
+    mots = [normaliser(j.group()) for j in JETON.finditer(intention or "")]
+    if mots[:1] == ["je"]:
+        mots = mots[1:]
+    elif mots and mots[0].startswith(("j'", "j’")):
+        mots = [mots[0][2:], *mots[1:]]
+    if not mots or mots[0] not in VERBES_HELER:
+        return None
+    nom = " ".join(m for m in mots[1:] if m not in PONCTUATION)
+    for f in sorted(FORT, key=len, reverse=True):
+        if nom.endswith(" " + f):
+            nom = nom[:-len(f) - 1]
+            break
+    if nom.startswith(("le nom de ", "le nom d'")):
+        nom = nom[len("le nom d"):].lstrip("e '")
+    elif nom.endswith(" par son nom"):
+        nom = nom[:-len(" par son nom")]
+    return _personnage(monde, nom)
+
+
 def _nom_court(monde, id):
     return monde.objets[id]["nom"].split(",")[0]
 
@@ -596,11 +629,25 @@ def annonce(monde, rapport):
     return f"{tour}Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
 
 
+def identites(monde):
+    """Les personnages dont Corvus sait qui ils sont, d'après ce qu'il sait d'eux, jamais d'après une
+    place : il les a vus (``Monde.identifier``, ``souvenirs_personnages``), il connaît leur voix, ou
+    une voix s'est donné leur nom."""
+    from .voix import entendues
+    ids = {*monde.data.get("personnages_vus", ()), *monde.data.get("souvenirs_personnages", {}),
+           *monde.data.get("voix_connues", ()), *(e.get("se_dit") for e in entendues(monde, "joueur").values())}
+    return sorted(id for id in ids if id in monde.objets and monde.objets[id]["type"] == "personnage")
+
+
 def _connu_du_joueur(monde, id):
-    """Le joueur ne parle que de ce dont il a connaissance : perçu, examiné, vu ou entendu nommer."""
+    """Le joueur ne parle que de ce dont il a connaissance : perçu, examiné, vu ou entendu nommer.
+
+    Un personnage, il le connaît d'après ce qu'il sait de lui (``identites``) ; qu'il ne soit plus là
+    où on l'avait vu n'y change rien : le nommer quand il est absent donne le refus de la parole ou
+    du geste (« Tu ne vois pas … d'ici »), pas un inconnu."""
     from . import lexique
     if (id == "joueur" or id in monde.data["visitees"] or id in monde.data["connus"]
-            or id in monde.data.get("souvenirs_visuels", {}) or id in monde.data.get("souvenirs_personnages", {})):
+            or id in monde.data.get("souvenirs_visuels", {}) or id in identites(monde)):
         return True
     if id not in monde.objets and id not in monde.data["salles"]:
         return False
@@ -855,6 +902,7 @@ def preparer_parole(monde, p, revision=None):
         # Il se tourne d'abord vers celui qu'il nomme dans son dos.
         monde = tourne(monde, vers)
     dest = destinataires(monde, forme)
+    from .deliberation import rejoint
     from .voix import designation, identifie
     # Le MJ désigne une voix que Corvus ne sait à qui prêter comme le joueur : voix_<n>.
     attendu = designation(monde, personnage(forme, dest))
@@ -916,6 +964,7 @@ def preparer_parole(monde, p, revision=None):
                 _demander(travail, auditeur, c["sujet"], faits, c["prix"])
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
+        rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
                                                       else {"voix_inconnue": True})})

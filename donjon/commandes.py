@@ -150,9 +150,12 @@ def _nomme(monde, texte, personnage):
     # Les mêmes noms que pour tout geste (``Monde.designable``) : ce qu'il verrait en se tournant compte.
     if personnage:
         from .dialogues import interlocuteurs
-        # Un personnage qu'il sait nommer : pas une voix qu'il ne sait à qui prêter.
-        candidats = {d for d in interlocuteurs(monde) if d in monde.objets} | {i for i, o in monde.objets.items()
-                                                   if o["type"] == "personnage" and monde.designable(i)}
+        from .paroles import _connu_du_joueur
+        # Un personnage qu'il sait nommer : pas une voix qu'il ne sait à qui prêter. Celui qu'il
+        # connaît sans le voir ici se nomme aussi : le moteur dit qu'il n'est pas là.
+        candidats = {d for d in interlocuteurs(monde) if d in monde.objets} | {
+            i for i, o in monde.objets.items()
+            if o["type"] == "personnage" and (monde.designable(i) or _connu_du_joueur(monde, i))}
     else:
         candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.designable(i)}
     trouves = [i for i in candidats
@@ -184,8 +187,22 @@ def don(monde, reste):
     return proposition("remettre", objet, destinataire)
 
 
+def heler(monde, texte):
+    """Héler par son nom quelqu'un que Corvus connaît (``paroles.hele``) : un geste du moteur, jamais
+    une interprétation du MJ, même en forme de question (« je crie « Gorm ? » »)."""
+    from .paroles import hele
+    qui = hele(monde, texte)
+    if qui is None:
+        return None
+    from .operations import etape, sequence
+    return sequence(etape("emettre_son", qui, methode="heler"), justification="")
+
+
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
+    appel = heler(monde, texte)
+    if appel:
+        return appel
     if est_question(texte):
         return None
     texte = normaliser(texte)

@@ -43,6 +43,7 @@ REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui rest
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
 APPEL_REPIT = 10       # minutes entre deux appels à l'aide
 APPEL_OUBLI = 60       # minutes pendant lesquelles une salle où l'on a hélé en vain compte pour parcourue
+REJOINT = 5            # minutes pendant lesquelles qui a répondu à un appel attend sur place d'être rejoint
 # L'effet de seuil (``urgents``) : apaisé, un besoin ne presse de nouveau qu'à son seuil + REPRISE ;
 # il n'interrompt le plan en cours d'un autre besoin que s'il presse plus que lui d'INERTIE.
 REPRISE = 15
@@ -214,6 +215,92 @@ def appels_vains(monde, id, qui):
     minute = monde.data["minutes"]
     return {s["salle"] for s in e["memoire"] if s["type"] == "appel_sans_reponse" and s["qui"] == qui
             and s["minute"] >= depuis and minute - s["minute"] < APPEL_OUBLI}
+
+
+def cherche(monde, id, qui):
+    """Son but ou son plan vise ``qui`` : il le cherche, pour lui demander, le prévenir, le servir."""
+    i = lire(monde, id)["intention"]
+    if not i:
+        return False
+    return qui in i["but"].values() or any(
+        x.get("cible") == qui or (x.get("contenu") or {}).get("cherche") == qui for x in i["plan"])
+
+
+def attendre_l_appelant(monde, id, qui):
+    """Il vient de répondre à l'appel de ``qui`` : il s'attend à être rejoint. Il attend sur place,
+    un temps borné (``REJOINT``), sauf s'il cherche lui-même l'appelant et reconnaît sa voix : il
+    sait alors où il est, et va vers lui (sa recherche le mène là d'où vient l'appel). L'attente
+    vit dans son esprit (``rejoint``) ; ``attendre`` la clôt."""
+    from .voix import reconnaitre
+    if cherche(monde, id, qui) and reconnaitre(monde, id, qui)[0] == qui:
+        # Il sait désormais où le trouver : sa recherche ailleurs est caduque, il va là d'où vient
+        # sa voix ; la délibération de la minute suivante reprend son but sur ce qu'il croit.
+        i, salle = esprit(monde, id)["intention"], salle_crue(monde, id, qui)
+        if salle in monde.data["salles"] and any((x.get("contenu") or {}).get("cherche") == qui for x in i["plan"]):
+            i["plan"] = [{"operation": "aller", "cible": "", "outil": "", "lieu": salle, "condition": ""}]
+        return
+    minute = monde.data["minutes"]
+    e = esprit(monde, id)
+    e["rejoint"] = {"qui": qui, "depuis": minute, "jusqu_a": minute + REJOINT}
+    # Il s'arrête aussitôt, sauf pour ce qui passe avant l'attente (``candidats``) ; la délibération
+    # de chaque minute en décide ensuite.
+    resultat = _plan_attendre(monde, id)
+    if resultat and not _passe_avant(monde, id, e["intention"]):
+        e["intention"] = {"but": resultat[0], "motif": "rejoint", "plan": resultat[1], "depuis": minute, "attente": 0}
+
+
+def _sur_place(monde, id, intention):
+    """Assis pour se reposer, près du feu, à l'abri : un geste qui dure là où il se tient."""
+    return bool(intention) and intention["motif"] in PROGRES and any(
+        x["operation"] == GESTE_PROGRES[intention["motif"]] for x in intention["plan"])
+
+
+def _passe_avant(monde, id, intention):
+    """Ce qui passe avant l'attente d'être rejoint : un besoin qui presse, la parole donnée, prévenir
+    un protégé, un réflexe, une stratégie, et ce qu'il fait sur place (il y attend aussi bien).
+    La routine, aller voir un bruit, rétablir ce qui ne presse pas, l'argent lui cèdent."""
+    return bool(intention) and (intention["motif"] in urgents(monde, id)
+                                or intention["motif"] in ("engagement", "alerte", "strategie", "rejoint")
+                                or intention["but"]["type"] == "prevenir" or _sur_place(monde, id, intention))
+
+
+def rejoint(monde, id, qui):
+    """``id`` attendait d'être rejoint par ``qui`` : ils se voient ou se parlent, l'attente est finie."""
+    from .pnj import _chroniquer
+    from .social import _qui
+    r = lire(monde, id)["rejoint"]
+    if not r or r["qui"] != qui:
+        return
+    esprit(monde, id)["rejoint"] = None
+    _chroniquer(monde, id, f"{_qui(monde, id)} retrouve {_qui(monde, qui)}, qui l'avait hélé.", "reponse")
+
+
+def attendre(monde, id, minute):
+    """L'attente d'être rejoint prend fin quand ils se voient (ici) ou se parlent (``rejoint``), ou
+    à l'échéance ; tant qu'elle dure, c'est un but (``_plan_attendre``) qui cède à ce qui presse
+    davantage."""
+    from .esprits import percoit
+    from .pnj import _chroniquer
+    from .social import _qui
+    e = esprit(monde, id)
+    r = e["rejoint"]
+    if not r:
+        return
+    if r["qui"] != "joueur" and r["qui"] not in monde.objets:
+        e["rejoint"] = None
+    elif percoit(monde, id, r["qui"]):
+        rejoint(monde, id, r["qui"])
+    elif minute >= r["jusqu_a"]:
+        e["rejoint"] = None
+        _chroniquer(monde, id, f"{_qui(monde, id)} cesse d'attendre {_qui(monde, r['qui'])}.", "reponse")
+
+
+def _plan_attendre(monde, id):
+    """Attendre sur place d'être rejoint : aucun geste, il reste où il a répondu. Occupé sur place
+    (``_sur_place``), il y reste à ce qu'il fait : ce but-là le garde."""
+    e = lire(monde, id)
+    r = e["rejoint"]
+    return ({"type": "attendre", "qui": r["qui"]}, []) if r and not _sur_place(monde, id, e["intention"]) else None
 
 
 def promesse_en_cours(monde, id, objet):
@@ -760,6 +847,10 @@ def candidats(monde, id):
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
         buts.append(("devoir", _plan_prevenir, False))
+    # Il a répondu à un appel : il attend d'être rejoint (``attendre_l_appelant``), après ce qui
+    # presse et la parole due ; un bruit, ce qui ne presse pas et la routine attendent.
+    if e["rejoint"]:
+        buts.append(("rejoint", _plan_attendre, False))
     # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine.
     a_voir = bruit_a_voir(monde, id)
     if a_voir:
@@ -821,6 +912,7 @@ def deliberer(monde, id, minute):
     from . import stratege
     engagements_echus(monde, id)
     eveiller(monde, id, minute)
+    attendre(monde, id, minute)
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":
         from .pnj import chemin

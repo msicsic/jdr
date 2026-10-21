@@ -143,8 +143,17 @@ class Monde:
                             for e in self.enfants(personnage["id"])
                             if e.get("description_visuelle") and self.visible(e["id"])]}
 
+    def identifier(self, ids):
+        """Le joueur sait qui sont ces personnages : il les a vus, et la scène les nomme. Ce savoir
+        tient à eux, pas à une place : il dure quand leur place connue s'est vidée."""
+        vus = self.data.setdefault("personnages_vus", [])
+        for id in ids:
+            if id not in vus and self.objets.get(id, {}).get("type") == "personnage":
+                vus.append(id)
+
     def actualiser_souvenirs_personnages(self):
         """Appelé par le moteur après une action ; une consultation reste sans effet."""
+        self.identifier(o["id"] for o in self.presents() if o["type"] == "personnage")
         if eclairage(self)["niveau"] < 2:
             return
         for o in self.presents():
@@ -293,6 +302,7 @@ class Monde:
 
     def contexte(self):
         """Vue du MJ bornée à ce qui est perceptible : pas de trésor caché ni de sens secret."""
+        from .paroles import identites
         objets = []
         niveau = eclairage(self)["niveau"]
         if self.data.get("mode_cases"):
@@ -373,6 +383,8 @@ class Monde:
                 "perception": eclairage(self),
                 "scenario": self.contexte_scenario(),
                 "souvenirs_personnages": copy.deepcopy(self.data["souvenirs_personnages"]),
+                # Ceux dont Corvus sait qui ils sont, où qu'ils soient (``paroles.identites``).
+                "personnages_connus": {id: self.objets[id]["nom"] for id in identites(self)},
                 "interlocuteurs": interlocuteurs(self), "missions_discutables": missions_discutables(self),
                 "engagements": contrats_publics(self),
                 "connaissances_pnj": connaissances_pnj(self),

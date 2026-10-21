@@ -62,6 +62,8 @@ def _but(monde, but):
         return "garder ses biens : " + _salle(monde, but["lieu"])
     if t == "prevenir":
         return "prévenir " + court(monde, but["qui"])
+    if t == "attendre":
+        return "attendre que " + court(monde, but["qui"]) + " le rejoigne"
     if t == "rejoindre":
         return "accourir : " + _salle(monde, but["lieu"])
     if t == "voir":

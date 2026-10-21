@@ -321,7 +321,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (avant : deux « précise à qui tu parles », deux « Ilse n'est pas ici » faux). Reste : la
   faisabilité d'une échelle (« est-ce que je peux… ») sans fait qui l'établisse, décrire un objet
   trop loin passe encore parfois par etablir_faits, un personnage dont la place connue s'est vidée
-  n'est plus reconnu par son nom (`paroles._connu_du_joueur`). Les deux premiers : branche `mj-restes`.
+  n'est plus reconnu par son nom (`paroles._connu_du_joueur`). Les deux premiers : branche `mj-restes` ;
+  le troisième : branche `parole-voix`.
 - Branche `repli-et-appel`, non fusionnée (vu en partie : « pousse toi ca prend trop de temps »
   finissait sur « Je ne peux pas encore répondre avec certitude. » ; « Aubin, viens m'aider à
   porter l'échelle », Aubin derrière le pilier, finissait en dix appels ; « est-ce que je peux
@@ -572,8 +573,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   de Bram le rend honnête) ; pas de migration, le champ `urgences` vient par défaut. Les échecs de
   `tests/test_tui.py` (« La TUI n'est pas redevenue disponible ») viennent de la charge de la machine
   (attente bornée à 5 s) : les mêmes cinq échouent sur `main` sous charge, tous passent au calme sur
-  les deux.
-- La suite de tests passe : 985 tests, sans clé ni connexion (ceux du clic demandent Node).
+  les deux. Corrigé : branche `parole-voix`.
+- Branche `parole-voix`, non fusionnée (`docs/plan-ouie.md`, « Nommer, attendre, héler ») : quatre
+  correctifs. **Tests du terminal** : `tests/test_tui.py` attend un état (`attendre`, `pret`) avec un
+  délai de 60 s qui tient sous charge, au lieu de 250 tours de 20 ms ; un arrêt du jeu échoue aussitôt
+  et l'échec dit l'état observé. Démarrage du jeu ralenti de 20 s : `main` échoue, la branche passe ;
+  27 tests sous charge (deux bancs de 8 nuits, 30 processus) et au calme : verts. **Nommer qui l'on
+  connaît** : le joueur connaît un personnage vu (`data["personnages_vus"]`, `Monde.identifier`, aussi
+  qui n'a été qu'aperçu), dont il connaît la voix ou dont une voix s'est donné le nom
+  (`paroles.identites`), jamais d'après une place ; nommer un absent connu donne le refus juste (parole :
+  « Tu ne vois pas Ilse d'ici », don : « … n'est pas là pour le recevoir ») ; le MJ reçoit
+  `personnages_connus`, sans place. **Qui répond attend** (`deliberation.attendre_l_appelant`, esprit
+  `rejoint`) : 5 minutes sur place, sauf un besoin qui presse, la parole due, prévenir, ce qu'il fait sur
+  place ; la routine, un bruit à voir, l'argent cèdent aussitôt ; s'il cherche l'appelant et reconnaît sa
+  voix, il va vers lui ; fin quand ils se voient ou se parlent, ou à l'échéance. **Le joueur hèle** :
+  « j'appelle Gorm », « je hèle Gorm », « je crie le nom de Gorm », « je crie « Gorm ? » »… (analyse locale,
+  `paroles.hele`, même en forme de question) sont le geste `emettre_son` méthode `heler`, par la règle
+  des PNJ (`pnj.heler` puis `pnj.repondre`) : l'appelé répond « Ici ! » sauf méfiance et l'attend, le
+  joueur entend la réponse par l'ouïe commune (« Gorm répond », ou « une voix qui se dit Gorm
+  répondre »). Cas réels et cas de même nature après rechargement (`tests/test_parole_voix.py`),
+  `VERIFIER` sur une nuit de chaque scénario. Bancs 8 h contre `main` 1ee493b, lancés ensemble : appels
+  Relais 1,25 → 1, mine 2,75 → 2,5, auberge 6 → 6, crue 2,75 → 2,25 (12 graines : 2,33 → 1,67 ; graine 3,
+  7 → 3) ; 1 à 2 retrouvailles par nuit, attentes vaines 0 à 0,25 ; échanges, minutes sans recours, vols
+  vus identiques ; en attente Relais 67,5 → 68,1, crue 105 → 106,25 ; aucune usurpation ; temps égal.
+  Luna (copies de la sauvegarde réelle) : « j'appelle Gorm » derrière la porte, 4 appels et « tu ne peux
+  pas l'interpeller » → 0 appel et la réponse du moteur ; « j'appelle Ilse » absente, 6 appels → 0 ; « je
+  donne la cloche à Ilse » 2 → 0 (refus du moteur). Limites : une interpellation libre d'un absent reste
+  au MJ (2 à 10 appels selon les parties) ; l'attente se juge à la minute ; `REJOINT` constant.
+- La suite de tests passe : 998 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

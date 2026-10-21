@@ -84,6 +84,8 @@ def compiler(m, e, justification, origine):
         p.minutes, p.bruit = 1, o["sonorite"]
         p.effets = [("emettre_son", id, "objet")]
         return p
+    if e["methode"] == "heler":
+        return _compiler_heler(m, e, justification, origine)
     if (e["cible"] not in ("", "joueur") or e["destination"] or e["outil"]
             or e["methode"] not in VOIX or e["difficulte"]):
         raise ErreurMonde("Une émission vocale vient du joueur, sans outil ni destination imposée : appel, cri ou sifflement.",
@@ -97,6 +99,41 @@ def compiler(m, e, justification, origine):
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"], titre, origine=origine)
     p.minutes, p.bruit = 1, intensite
     p.effets = [("emettre_son", "joueur", e["methode"])]
+    return p
+
+
+HELER = 30   # dixièmes de seconde : crier un nom
+
+
+def _compiler_heler(m, e, justification, origine):
+    """Héler quelqu'un par son nom (``pnj.heler``) : un cri qui porte comme un appel, par la même
+    règle que pour un PNJ ; qui en saisit les mots y répond (``pnj.repondre``). On ne hèle que
+    quelqu'un que Corvus connaît (``paroles._connu_du_joueur``), présent ou non."""
+    from .moteur import Plan
+    from .paroles import _connu_du_joueur
+    from .refus import liste
+    qui = e["cible"]
+    if e["destination"] or e["outil"] or e["difficulte"]:
+        raise ErreurMonde("On hèle quelqu'un de sa voix, sans rien d'autre.",
+                          "emettre_son heler : cible = l'identifiant du personnage hélé ; destination et outil vides, "
+                          "difficulte 0.")
+    connus = sorted(i for i, o in m.objets.items() if o["type"] == "personnage" and _connu_du_joueur(m, i))
+    if qui in ("", "joueur"):
+        raise ErreurMonde("Dis qui tu appelles par son nom.",
+                          f"emettre_son heler : cible = l'identifiant du personnage hélé, pas joueur ; parmi "
+                          f"{liste(connus)} (reçu « {qui} »).")
+    if qui not in m.objets or m.objets[qui]["type"] != "personnage" or not _connu_du_joueur(m, qui):
+        raise ErreurMonde("Tu ne connais personne de ce nom à appeler.",
+                          f"emettre_son heler : cible = un personnage que Corvus connaît, parmi {liste(connus)} "
+                          f"(reçu « {qui} »).")
+    if m.joueur.get("peut_parler") is False or m.joueur["pv"] <= 0:
+        raise ErreurMonde("Tu n'es pas en état d'appeler qui que ce soit.",
+                          "le joueur ne peut pas émettre de son vocal : improviser un son corporel (corps_bref, "
+                          "corps_rythmique).")
+    p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
+             "Appeler " + designer(m.objets[qui]) + " par son nom.", origine=origine)
+    p.minutes, p.dixiemes, p.effort = 0, HELER, False
+    p.effets = [("heler", "joueur", qui)]
     return p
 
 
