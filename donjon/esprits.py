@@ -11,6 +11,8 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   qui presse son corps : ``{"faim", "chaleur", "repos"}`` ; d'une salle, sa lumière là où il se
   tenait et celle de ses propres sources : ``{"eclairee", "niveau", "propre"}``,
   ``constater_lumiere``).
+- ``lumiere`` (sujet : un objet) : la lumière qu'il a vue devant, là où il y portait un geste qui
+  demande d'y voir (``constater_lumiere_devant``).
 - ``pieces`` : ce qu'il croit qu'une bourse contient, su en la tenant ou par un savoir ; jamais
   lu sur l'objet (``planification.enrichir``).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
@@ -115,6 +117,9 @@ def _croyance_valide(monde, attribut, c):
         assert isinstance(c.get("valeur"), dict) and all(
             type(v) is bool or k in ("niveau", "propre") and type(v) is int and 0 <= v <= 2
             for k, v in c["valeur"].items()), "Croyance d'état invalide"
+    elif attribut == "lumiere":
+        # La lumière vue devant un objet, là où un geste demande d'y voir (0 à 2).
+        assert type(c.get("valeur")) is int and 0 <= c["valeur"] <= 2, "Croyance de lumière invalide"
     elif attribut == "pieces":
         # Ce qu'il croit qu'une bourse contient : appris en la tenant, ou un savoir du scénario.
         assert type(c.get("valeur")) is int and c["valeur"] >= 0, "Croyance de pièces invalide"
@@ -162,10 +167,15 @@ def verifier(monde):
         verifier_entrees(e["voix_entendues"])
         for engagement in e["engagements"]:
             from .deliberation import condition_valide
-            assert (isinstance(engagement, dict) and set(engagement) == {"condition", "pour", "minute"}
+            # ``paye`` : une part vendue d'avance, le bien et le prix reçu (``echanges.engagements_echus``).
+            paye = engagement.get("paye")
+            assert (isinstance(engagement, dict) and set(engagement) - {"paye"} == {"condition", "pour", "minute"}
                     and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
                     and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
-                    and type(engagement["minute"]) is int), "Engagement de PNJ invalide"
+                    and type(engagement["minute"]) is int
+                    and (paye is None or isinstance(paye, dict) and set(paye) == {"objet", "prix"}
+                         and isinstance(paye["objet"], str) and type(paye["prix"]) is int and paye["prix"] > 0)
+                    ), "Engagement de PNJ invalide"
         for sujet, attributs in e["croyances"].items():
             assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
             for attribut, c in attributs.items():
@@ -433,13 +443,37 @@ def constater_lumiere(monde, id):
     salle = monde.objets[id]["lieu"]
     if salle not in monde.data["salles"]:
         return
-    from .perception import eclairage
-    position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
-    lumieres = [c for c in eclairage(monde, salle, position)["contributions"]
-                if not (c["source"] in monde.objets and _porteur(monde, monde.objets[c["source"]]) is not None)]
-    niveau = max((c["niveau"] for c in lumieres), default=0)
-    propre = max((c["niveau"] for c in lumieres if c["source"] is not None), default=0)
+    niveau, propre = lumiere_ici(monde, id)
     croire(monde, id, salle, "etat", {"eclairee": propre > 0, "niveau": niveau, "propre": propre}, "vu")
+
+
+def lumiere_ici(monde, id):
+    """(niveau, propre) sur sa case, sans la lumière qu'on porte (``constater_lumiere``). ``propre``
+    est ce que la salle a partout : ses propres sources, et la lueur diffuse qui la baigne tout
+    entière (``perception.CarteLumiere.ambiance`` : jour, reflets d'une source voisine par une
+    ouverture) ; pas la lumière directe d'une source d'une autre salle, qui n'atteint que les
+    cases qu'elle voit (un seuil). Sans cases, la lueur d'une voisine baigne toute la salle."""
+    from .perception import _par_case
+    salle = monde.objets[id]["lieu"]
+    porte = lambda source: source in monde.objets and _porteur(monde, monde.objets[source]) is not None
+    position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
+    lumieres = [c for c in eclairage(monde, salle, position)["contributions"] if not porte(c["source"])]
+    niveau = max((c["niveau"] for c in lumieres), default=0)
+    if not _par_case(monde, salle):
+        return niveau, niveau
+    from .spatial import carte_lumiere
+    diffuse = max((c["niveau"] for c in carte_lumiere(monde, salle).ambiance(salle) if not porte(c["source"])),
+                  default=0)
+    return niveau, max(diffuse, max((c["niveau"] for c in lumieres if c["source"] is not None), default=0))
+
+
+def constater_lumiere_devant(monde, id, objet):
+    """Là où il accomplit un geste qui demande d'y voir, il constate la lumière de sa case et la
+    retient de ce qu'il touche (croyance ``lumiere`` : sans ce qu'on porte, comme celle d'une
+    salle). Sa salle aussi (``constater_lumiere``). De loin, sa chance devant cet objet se juge
+    sur ce qu'il y a vu (``planification.Vue.lumiere_devant``), pas sur la case d'où il partait."""
+    constater_lumiere(monde, id)
+    croire(monde, id, objet, "lumiere", lumiere_ici(monde, id)[0], "vu")
 
 
 def percevoir(monde, id):

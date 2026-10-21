@@ -25,7 +25,7 @@ CHRONIQUE_MAX = 300
 # délibère de nouveau.
 PAS = 15
 DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
-          "crocheter": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
+          "crocheter": 600, "frapper": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
           "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50}
 DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
@@ -553,16 +553,69 @@ def seuil_crochetage(lumiere):
     return 14 + 4 * (2 - lumiere)
 
 
-def _crocheter(monde, id, cible, outil):
-    from .caractere import modificateur
-    from .esprits import constater_lumiere
+def lumiere_du_geste(monde, id):
+    """La lumière qu'il a sur sa case, ce qu'il porte compris : celle du jet d'un geste qui demande
+    d'y voir (``_crocheter``)."""
     from .perception import eclairage
     o = monde.objets[id]
-    lumiere = eclairage(monde, o["lieu"], o.get("position") if monde.data.get("mode_cases") else None)["niveau"]
-    if monde.d20() + modificateur(monde, id, "DEX") >= seuil_crochetage(lumiere):
+    return eclairage(monde, o["lieu"], o.get("position") if monde.data.get("mode_cases") else None)["niveau"]
+
+
+def _crocheter(monde, id, cible, outil):
+    from .caractere import modificateur
+    from .esprits import constater_lumiere_devant
+    if monde.d20() + modificateur(monde, id, "DEX") >= seuil_crochetage(lumiere_du_geste(monde, id)):
         return True
     # La serrure résiste : il constate la lumière dont il disposait là, celle qui fait sa chance.
-    constater_lumiere(monde, id)
+    constater_lumiere_devant(monde, id, cible)
+    return False
+
+
+def _forcer(monde, id, cible, outil, lignes):
+    """Un coup, par la règle du joueur (``force``) : d20 + FOR + bonus de l'outil contre ``force.DD``,
+    un 1 abîme l'outil ; réussi, la cible perd la puissance de l'outil et la FOR qui aide. Renvoie
+    True quand elle est brisée (``force.briser`` : ouverte, ce qu'elle contenait au sol)."""
+    from . import force
+    from .caractere import modificateur
+    c, t = monde.objets[cible], monde.objets[outil]
+    if not force.adapte(c, t) or not t.get("integrite"):
+        return _rate(monde, id, outil, "etat", {"disponible": False})
+    jet = monde.d20()
+    if jet == 1 or jet + modificateur(monde, id, "FOR") + force.bonus(t) < force.DD:
+        if jet == 1:
+            t["integrite"] = max(0, t["integrite"] - 1)
+        _raconter(monde, id, "frappe en vain", c, lignes)
+        return False
+    c["integrite"] = max(0, c["integrite"] - force.degats(monde, id, t))
+    if c["integrite"] > 0:
+        _raconter(monde, id, "frappe", c, lignes)
+        return False
+    tombes = force.briser(monde, cible, monde.objets[id]["lieu"])
+    _raconter(monde, id, "force", c, lignes)
+    for objet in tombes:
+        from .esprits import constater
+        constater(monde, id, objet, "vu")
+    return True
+
+
+def _assez_de_lumiere(monde, id, etape):
+    """Avant un geste dont la chance tient à la lumière (``A_VUE``), il la constate là où il
+    l'accomplit, et la retient de ce qu'il touche (``esprits.constater_lumiere_devant``). Si elle
+    rend le geste impossible, ou moindre que celle sur laquelle son plan comptait (l'étape la
+    porte), il n'essaie pas : il reconsidère à la minute suivante, sur ce qu'il vient de voir."""
+    from .deliberation import A_VUE
+    from .esprits import constater_lumiere_devant
+    from .planification import chance_crochetage
+    if etape["operation"] not in A_VUE:
+        return True
+    lumiere = lumiere_du_geste(monde, id)
+    prevue = etape.get("contenu", {}).get("lumiere")
+    if chance_crochetage(monde, id, lumiere) > 0 and (prevue is None or lumiere >= prevue):
+        return True
+    constater_lumiere_devant(monde, id, etape["cible"])
+    cible = monde.objets.get(etape["cible"])
+    _chroniquer(monde, id, f"{designer(monde.objets[id], debut=True)} renonce à crocheter "
+                + (designer(cible) if cible else "la serrure") + " : trop sombre, là.", "decision")
     return False
 
 
@@ -642,6 +695,17 @@ def _executer(monde, id, etape, lignes, gestes):
         c["verrouillee"] = False
         croire(monde, id, cible, "verrouillee", False, "essai")
         _raconter(monde, id, "crochète la serrure de", c, lignes)
+    elif op == "frapper":
+        if not c.get("verrouillee") or c["integrite"] == 0:
+            return _rate(monde, id, cible, "verrouillee", False) or True
+        if not _forcer(monde, id, cible, outil, lignes):
+            if faute:
+                gestes.append((id, "frapper", cible))
+            return False
+        croire(monde, id, cible, "verrouillee", False, "essai")
+        if faute:
+            gestes.append((id, "briser", cible))
+            faute = False
     elif op == "manger":
         if c.get("portions", 0) <= 0:
             croire(monde, id, cible, "etat", {"disponible": False}, "essai")
@@ -1143,6 +1207,10 @@ def agir(monde, id, t, lignes, gestes=None):
         pas = _rejoindre_un_proche(monde, id, lignes)
         if pas:
             return pas
+    if not _assez_de_lumiere(monde, id, etape):
+        if strategie:
+            terminer(monde, id, False, etape)
+        return reste
     if etape["condition"] == "sans_temoin" and not desespere(monde, id):
         if en_cases and "orientation" in o:
             # Avant un geste qu'il veut sans témoin, il regarde tout autour de lui ; il n'agit
@@ -1324,6 +1392,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     appeler_a_l_aide(monde, id, minute)
                     percevoir(monde, id)
             percevoir_tous(monde)  # Ce que la minute a changé (un feu, une flamme ménagée), tous le voient.
+            if monde.data.get("dettes"):
+                from .biens import solder
+                solder(monde, lignes)  # Qui se retrouvent soldent ce que l'un doit à l'autre.
             continue
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)

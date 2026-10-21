@@ -573,7 +573,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests/test_tui.py` (« La TUI n'est pas redevenue disponible ») viennent de la charge de la machine
   (attente bornée à 5 s) : les mêmes cinq échouent sur `main` sous charge, tous passent au calme sur
   les deux.
-- La suite de tests passe : 985 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `petits-correctifs-pnj`, non fusionnée (poussée sous `claude/petits-correctifs-pnj-gtlo8g` ;
+  `docs/plan-planificateur.md`, « Petits correctifs », et `docs/plan-social.md`, « Une part payée et
+  jamais servie »). Quatre règles communes. **Lumière devant la serrure** (`pnj._assez_de_lumiere`) :
+  l'étape `crocheter` porte la lumière prévue ; devant, il constate la sienne et la retient de l'objet
+  (croyance `lumiere`) ; moindre ou nulle, il renonce sans essai et replanifie (Odon au coffre de la
+  paie, Brune à la réserve). **Part payée non servie** : à l'échéance (240 min) ou dès qu'il ne peut
+  plus la servir, le vendeur doit le prix (`data["dettes"]`, `biens.rembourser`, `solder`), rendu dès
+  qu'ils se savent ensemble ; le joueur le lit ; un PNJ va réclamer son dû (but `reclamer`).
+  **Forcer** pour les PNJ (`donjon/force.py`, geste `frapper`) : la règle du joueur partagée, faute
+  au prix de l'honnêteté et dégât au prix de la douceur sur le bien d'autrui ; Brune force la porte
+  étanche, Gorm sans clé la force pour la cloche. **Gorm et les planches** : diagnostiqué au coût des
+  plans ; les vannes, baignées de la lueur diffuse du brasero, étaient crues noires (`propre` compte
+  désormais la lueur diffuse, `esprits.lumiere_ici`) et une part demandée comptait comme accordée
+  (elle coûte désormais 1 + `DEMANDE` / `PRET`) ; quand ses biens le pressent, `GARDE` le fait encore
+  acheter. Bancs 8 h contre `main` (même moment) : sans recours auberge 67,5 → 15, autres égaux ;
+  achats en hausse partout (Relais 1,1 → 2, auberge 0,25 → 2,25) ; crochetages à l'auberge 13,5 →
+  3,75 essais ; aucun forçage au banc (les PNJ qui prendraient le bien d'autrui ont la douceur à 100) ;
+  un remboursement en 8 nuits au Relais ; nuits toutes distinctes ; aucune usurpation ni violation ;
+  `VERIFIER` sur une nuit de chaque scénario ; temps mine +20 %. Tests changés et pourquoi :
+  `test_entretenir` (Mireille achète au lieu de demander), `test_besoins` (Gorm force la porte, le cas
+  sans outil gardé), `test_auberge` (seuil d'événements à 12 : 14 dans cette nuit), `test_mine` (la
+  nuit 3, départ fixe : le blessé allume une lampe de rechange à la réserve ouverte au lieu d'appeler
+  dans le noir, et Bram est éclairé par celle d'Odon).
+- La suite de tests passe : 999 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

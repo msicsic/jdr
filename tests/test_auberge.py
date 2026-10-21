@@ -67,7 +67,10 @@ class AubergeTests(unittest.TestCase):
         # nouvelles qui circulent, et pas seulement des rondes.
         self.assertEqual(mesures["usurpations"], 0)
         self.assertGreater(mesures["echanges"], 5)
-        self.assertGreater(mesures["evenements_distincts"], 15)
+        # (Depuis que la lumière se constate devant la serrure et qu'une part s'achète plutôt que de
+        # risquer un refus, cette nuit en compte 14 : Lucien renonce au coffre trop sombre, et les
+        # refus suivis d'un achat deviennent un achat.)
+        self.assertGreater(mesures["evenements_distincts"], 12)
         acteurs = {c["pnj"] for c in chronique if c.get("nature", "geste") in ("geste", "social")}
         self.assertGreaterEqual(len(acteurs), 6)
 

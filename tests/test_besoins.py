@@ -163,14 +163,26 @@ class GormTests(unittest.TestCase):
 
     def test_sans_la_cle_la_porte_verrouillee_change_son_plan(self):
         m = self.surpris()
-        # Le joueur emporte la clé du relais avant que Gorm ne la cherche.
-        m.objets["cle"]["lieu"] = "joueur"
-        m.objets["cle"].pop("position")
+        # Le joueur emporte la clé du relais, et de quoi forcer la porte, avant que Gorm ne les cherche.
+        for k in ("cle", "pied_de_biche", "marteau"):
+            m.objets[k]["lieu"] = "joueur"
+            m.objets[k].pop("position")
         m, _ = attendre(m, 30)
         self.assertEqual(m.objets["cloche"]["lieu"], "chambre_cloche")
         self.assertIsNone(lire(m, "marchand")["croyances"]["cle"]["lieu"]["valeur"])
         self.assertTrue(m.objets["porte"]["verrouillee"])
         self.assertNotEqual((lire(m, "marchand")["intention"] or {}).get("motif"), "devoir")
+
+    def test_sans_la_cle_il_force_la_porte_qui_n_est_a_personne(self):
+        # Le pied-de-biche reste à la conduite : la porte étanche n'est à personne, la forcer ne
+        # lèse personne (``force``) ; il la force et rapporte la cloche.
+        m = self.surpris()
+        m.objets["cle"]["lieu"] = "joueur"
+        m.objets["cle"].pop("position")
+        m, _ = attendre(m, 30)
+        self.assertIn("Gorm, gardien du relais force la porte étanche du beffroi.", chronique(m))
+        self.assertEqual((m.objets["porte"]["integrite"], m.objets["porte"]["ouverte"]), (0, True))
+        self.assertEqual(m.objets["cloche"]["lieu"], "antichambre")
 
     def test_tant_qu_il_croit_le_joueur_fiable_il_lui_laisse_la_cloche(self):
         m, _ = attendre(absent(relais()), 24)

@@ -27,6 +27,7 @@ pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_pi
 BOURSE = 5             # pièces d'un PNJ dont rien ne déclare la bourse
 PRIX_PART = 2          # prix d'une part d'une ressource comptée qui n'en déclare pas
 CONSOMMER = ("manger", "servir")   # gestes qui consomment le bien : aucune permission ne les couvre
+BRISER = ("frapper",)              # gestes qui l'abîment (``force``) : aucune permission non plus
 # Ce qu'il rechigne à donner sans être payé : un point de DD par GENEROSITE minutes de ce que vaut,
 # pour lui, le prix qu'il n'est pas payé, au-delà de ce qu'il vaut pour qui vit modestement.
 GENEROSITE = 2
@@ -114,7 +115,7 @@ def permis(monde, id, objet, operation=None):
     """``id`` peut-il, sans faute, faire ce geste sur le bien d'un autre ? Un prêt ou une garde
     confiée par son propriétaire, hors ce qui le consomme. User d'une clé prêtée, c'est ouvrir et
     fermer ce qu'elle ouvre (pas en prendre le contenu, qui n'est pas prêté)."""
-    if operation in CONSOMMER:
+    if operation in CONSOMMER or operation in BRISER:
         return False
     de = proprietaire(monde, objet)
     for p in monde.data.get("permissions", ()):
@@ -183,6 +184,66 @@ def prix(monde, objet, part=False):
     return o.get("prix")
 
 
+def dettes(monde):
+    return monde.data.setdefault("dettes", [])
+
+
+def rembourser(monde, de, a, montant, objet):
+    """Une part payée d'avance que ``de`` n'a pas servie à l'échéance (``echanges.engagements_echus``) :
+    il doit rendre le prix à ``a``. La dette est connue des deux (souvenirs ``dette`` et ``creance``)
+    et soldée dès qu'ils peuvent se parler (``solder``) : tout de suite s'ils le peuvent déjà."""
+    from .esprits import memoriser
+    dettes(monde).append({"de": de, "a": a, "montant": montant, "objet": objet, "minute": monde.data["minutes"]})
+    memoriser(monde, de, {"type": "dette", "a": a, "montant": montant, "objet": objet})
+    if a != "joueur":
+        memoriser(monde, a, {"type": "creance", "de": de, "montant": montant, "objet": objet})
+
+
+def solder(monde, lignes):
+    """Chaque débiteur qui sait son créancier là et peut lui parler (``pnj.pourraient_se_parler``),
+    ou dont le créancier PNJ le sait là et le lui réclame, lui rend ce qu'il doit, autant qu'il le
+    peut ; le reste demeure dû. Le joueur créancier le lit. Un créancier qui le retrouve sans le sou
+    s'en souvient (``creance_vaine``)."""
+    from .deliberation import REDEMANDE
+    from .esprits import esprit, memoriser
+    from .francais import complement_de, designer
+    from .pnj import _chroniquer, pourraient_se_parler
+    from .social import _qui
+    restantes = []
+    for d in dettes(monde):
+        de, a = d["de"], d["a"]
+        # Le débiteur rend ce qu'il doit à qui il sait là ; un créancier PNJ qui le sait là le réclame.
+        ensemble = de in monde.objets and (a == "joueur" or a in monde.objets) and (
+            pourraient_se_parler(monde, de, a) or a != "joueur" and pourraient_se_parler(monde, a, de))
+        rendu = min(d["montant"], richesse(monde, de)) if ensemble else 0
+        if ensemble and not rendu and a != "joueur" and not any(
+                s["type"] == "creance_vaine" and s["de"] == de and monde.data["minutes"] - s["minute"] < REDEMANDE
+                for s in esprit(monde, a)["memoire"]):
+            # Retrouvé sans le sou : le créancier le sait, et ne le relance pas de sitôt.
+            memoriser(monde, a, {"type": "creance_vaine", "de": de})
+        if rendu:
+            payer(monde, de, a, rendu)
+            d["montant"] -= rendu
+            o = monde.objets.get(d["objet"])
+            pour = (" : la part " + complement_de(o) + " n'a pas été servie.") if o else "."
+            pieces = f"{rendu} pièce{'s' if rendu > 1 else ''}"
+            _chroniquer(monde, de, f"{_qui(monde, de)} rend {pieces} à {_qui(monde, a)}{pour}", "social")
+            memoriser(monde, de, {"type": "rembourse", "a": a, "montant": rendu})
+            if a != "joueur":
+                memoriser(monde, a, {"type": "rembourse_par", "de": de, "montant": rendu})
+            if a == "joueur":
+                from .voix import personne_pour_joueur
+                nom, pronom, _ = personne_pour_joueur(monde, de, court=True)
+                payee = (" : la part " + complement_de(o) + " que tu avais payée ne t'a pas été servie.") if o else "."
+                lignes.append(f"{nom} te rend {pieces}{payee}"
+                              + (f" {pronom.capitalize()} t'en doit encore {d['montant']}." if d["montant"] else ""))
+            elif monde.visible(de) or monde.visible(a):
+                lignes.append(f"{designer(monde.objets[de], debut=True)} rend {pieces} à {designer(monde.objets[a])}.")
+        if d["montant"] > 0:
+            restantes.append(d)
+    monde.data["dettes"] = restantes
+
+
 def reticence(monde, id, prix_, offre=0):
     """Ce qu'ajoute au DD d'une demande la part du prix qu'on ne lui paie pas : ce qu'elle vaut
     pour lui, au-delà de ce qu'elle vaut pour qui vit modestement. Un riche, pour qui une pièce
@@ -203,6 +264,11 @@ def verifier(monde):
                 and (p["a"] == "joueur" or p["a"] in d["objets"] and d["objets"][p["a"]]["type"] == "personnage")
                 and p["de"] in d["objets"] and d["objets"][p["de"]]["type"] == "personnage"
                 and type(p["minute"]) is int), "Prêt invalide"
+    for x in d.get("dettes", []):
+        assert (isinstance(x, dict) and set(x) == {"de", "a", "montant", "objet", "minute"}
+                and x["de"] in d["objets"] and (x["a"] == "joueur" or x["a"] in d["objets"])
+                and type(x["montant"]) is int and x["montant"] > 0 and isinstance(x["objet"], str)
+                and type(x["minute"]) is int), "Dette invalide"
     for o in d["objets"].values():
         for cle in ("pieces", "prix_part"):
             if cle in o:

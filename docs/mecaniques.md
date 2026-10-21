@@ -604,6 +604,14 @@ Les mêmes règles valent pour le joueur et pour les PNJ (`donjon/biens.py`).
   qu'elles valent pour lui abaisse le DD, il ne les prend que s'il s'écarte). Offrir plus que son
   or est refusé au MJ avec un `attendu`. Payée son prix, la part est vendue : « Gorm prend tes 2
   pièces et accepte de t'en donner une part » ; moins, Gorm dit son prix s'il refuse.
+- **Une part payée et jamais servie** (`biens.rembourser`, `solder`) : à l'échéance de sa parole
+  (240 minutes), ou dès qu'il ne peut plus la tenir (ce qu'il vendait est épuisé, perdu, n'est
+  plus à lui), le vendeur doit le prix. La dette (`data["dettes"]`) est connue des deux ; elle est
+  soldée dès qu'ils peuvent se parler et que l'un sait l'autre là : le vendeur rend ce qu'il peut,
+  le reste demeure dû. Le joueur le lit (« Gorm te rend 2 pièces : la part des vivres du refuge que
+  tu avais payée ne t'a pas été servie. ») ; un PNJ créancier va réclamer son dû quand il vaut
+  pour lui plus que le chemin (but `reclamer`, après la routine), et ne relance pas de sitôt un
+  débiteur retrouvé sans le sou.
 
 #### Échanges entre PNJ et stratège
 
@@ -1016,6 +1024,14 @@ et un risque d'endommagement sur un 1 naturel. Un levier adapté donne une diffi
 et un bonus d'outil. Le LLM choisit dans cette enveloppe : il ne peut pas accorder de réussite gratuite.
 L'arbitrage est mémorisé par cible, outil, méthode et propriétés. Reformuler une tentative identique
 ne change pas sa difficulté. Un changement réel de l'outil ou de la cible peut justifier un nouvel arbitrage.
+
+Forcer (`frapper`, alias « forcer » et « défoncer ») suit une règle commune au joueur et aux PNJ
+(`donjon/force.py`) : un outil qui fait choc (percussion, levier) ou qui coupe la cible ; d20 + FOR
+modulée + 2 pour un outil de percussion contre 10, un 1 abîme l'outil ; un coup réussi ôte la
+puissance de l'outil plus la FOR si elle aide. À zéro, une porte reste ouverte et déverrouillée, un
+contenant s'ouvre et ce qu'il tenait tombe au sol. Chaque coup est bruyant. Un PNJ l'emploie comme
+geste de son planificateur (`frapper`) : sur le bien d'autrui, c'est une faute au prix de son
+honnêteté, et l'abîmer en est une autre au prix de sa douceur ; à 100, l'une ou l'autre l'exclut.
 
 Les transitions sont préparées puis appliquées à une copie du monde, vérifiée avant validation.
 L'IA ne peut ni injecter du Python ni transmettre une liste arbitraire de mutations. Elle peut composer

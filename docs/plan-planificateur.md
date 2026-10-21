@@ -323,11 +323,13 @@ Aucune usurpation ni violation. À chaque essai des nuits contrôlées (Relais 7
 
 Limites :
 - la lumière crue d'une salle est celle de la case où il se tenait : la serrure peut être plus ou
-  moins éclairée ; il le constate au premier essai (au plus un essai perdu par arrivée) ;
+  moins éclairée ; il le constate au premier essai (au plus un essai perdu par arrivée). Levé par
+  `petits-correctifs-pnj` : il la constate devant la serrure, avant d'essayer ;
 - un essai à chance réelle faible mais non nulle (5 % avec DEX + 2 dans le noir) reste envisagé,
   à son coût (1 / chance minutes) : les jets sont indépendants, un échec n'apprend rien de plus ;
 - forcer une porte (frapper) n'est pas un geste des PNJ ; seuls la clé et le crochetage lèvent
-  une porte verrouillée, et le PNJ n'apprend une porte verrouillée qu'en l'essayant ou par savoir ;
+  une porte verrouillée, et le PNJ n'apprend une porte verrouillée qu'en l'essayant ou par savoir.
+  Forcer est devenu un geste des PNJ (`petits-correctifs-pnj`) ;
 - personne n'apprend le contenu d'une bourse autrement qu'en la tenant ou par un savoir déclaré :
   ni la voir compter, ni l'entendre dire ;
 - au banc, Lucien, dans la chambre noire, ne va pas chercher de lumière : sa recherche n'en trouve
@@ -454,7 +456,8 @@ Limites :
 - seuls le noir et la garde ont un coût par minute ; le froid, la compagnie et la méfiance n'entrent
   que dans le gain de l'abri ; se chauffer compte le séjour sans l'endurer ;
 - au Relais, Gorm demande les planches d'Aubin plutôt que d'aller chercher son bois à la crypte
-  (s'éloigner du refuge coûte `GARDE`) : cohérent avec la règle, à signaler ;
+  (s'éloigner du refuge coûte `GARDE`) : cohérent avec la règle, à signaler. Diagnostiqué dans
+  `petits-correctifs-pnj` : `GARDE` n'en est qu'une des causes ;
 - la lumière d'une salle se constate à la case où il se tient : une salle aux sources inégales se
   juge de loin à ce qu'il en a vu de sa case ;
 - la peur du noir ne s'émousse pas avec le temps passé ;
@@ -462,3 +465,127 @@ Limites :
   ne presse de nouveau qu'à seuil + `REPRISE` (au départ fixe, Ilse au Relais laissait monter son
   froid jusqu'à 85, puis hésitait deux fois entre l'abri et le brasero) ;
 - le planificateur coûte plus à qui garde ses biens (auberge +13 % de temps par nuit, ci-dessus).
+
+## Petits correctifs (branche `petits-correctifs-pnj`)
+
+Quatre écarts entre ce que le planificateur supposait et ce que le PNJ croit, voit ou peut faire.
+Règles communes, aucune branche propre à un personnage, un objet ou un lieu.
+
+**La lumière se constate devant la serrure** (`pnj._assez_de_lumiere`, `esprits.constater_lumiere_devant`,
+`planification.Vue.lumiere_devant`). L'étape `crocheter` porte la lumière sur laquelle le plan
+comptait (`contenu: {"lumiere": n}`). Arrivé devant, avant tout geste (le tour d'horizon compris),
+il constate la lumière de sa case (ce qu'il porte compris, celle du jet) et la retient de l'objet
+(croyance `lumiere`, sans ce qu'on porte, comme celle d'une salle). Si elle est moindre que prévu ou
+rend le geste impossible, il n'essaie pas (chronique « renonce à crocheter … : trop sombre, là »)
+et reconsidère à la minute suivante : de loin, la chance devant cet objet se juge sur ce qu'il y a
+vu, à défaut sur la salle, et pleine avec la lumière du plan (une source en main ou allumée là).
+Une étape sans lumière prévue (stratège) n'est arrêtée que si le geste est impossible.
+
+**Forcer** (`donjon/force.py`, geste `frapper` du planificateur, `pnj._forcer`). La règle de
+`frapper` du joueur, sortie du moteur et partagée : outil qui fait choc (percussion, levier) ou qui
+coupe la cible ; d20 + FOR modulée + 2 (percussion) contre 10, un 1 abîme l'outil ; un coup réussi
+ôte la puissance de l'outil plus la FOR qui aide ; à zéro, la porte reste ouverte et
+déverrouillée, le contenant s'ouvre et ce qu'il tenait tombe au sol (`force.briser`, aussi pour le
+joueur). Au plan : sur une serrure qu'il croit fermée à clé, avec un outil qu'il porte, coût =
+coups nécessaires / chance d'un coup, la serrure devient ouverte. Sur le bien d'autrui, deux prix :
+la faute (honnêteté, une fois par personne lésée) et le dégât (douceur, `caractere.prix_faute(…,
+"douceur")`, une fois par personne lésée, `Vue.degat`), chacun exclu à 100 ; aucune permission
+(prêt, garde) ne couvre ce qui brise (`biens.BRISER`). Chaque coup est bruyant (`ouie`), entre au
+registre des gestes illicites (`frapper`, puis `briser` quand elle cède) et se raconte (« a frappé
+pour forcer », « a forcé »). Un outil qui force n'est pertinent que s'il croit une serrure fermée
+à clé (`Vue.verrous`). Distinct du geste nommé `forcer` du registre, qui reste l'essai de
+crochetage manqué. `_entrees` lit le prix du dégât, la FOR modulée et ce qu'il est illicite de
+briser ; l'intégrité d'un objet y entrait déjà.
+
+**Gorm et les planches** (diagnostic par `--diagnostic` et une comparaison des coûts : le meilleur
+plan, le meilleur sans demander ni acheter, puis sans `GARDE`, puis sans `NOIR` ; Relais graines
+1985, 7, 42, 2024, 99 et 500 aux minutes où Gorm demande). Trois causes :
+- **la croyance** : les vannes, où est son bois, ne sont baignées que de la lueur diffuse du
+  brasero (pénombre partout, `CarteLumiere.ambiance`) ; de loin, il jugeait une salle à ses seules
+  sources (`propre`, branche `besoins`), et les croyait noires : deux minutes de noir lui coûtaient
+  3 (`NOIR` × 0,5). Désormais `propre` compte aussi la lueur diffuse qui baigne la salle entière
+  (`esprits.lumiere_ici`) ; seule la lumière directe d'une source voisine, qui n'atteint que les
+  cases qu'elle voit (un seuil), en reste exclue. Sans cases, la lueur d'une voisine baigne la
+  salle : elle compte ;
+- **le coût** : une part demandée comptait 1 + `DEMANDE` (4), comme si elle était accordée,
+  quand un objet demandé coûte 1 + `DEMANDE` / `PRET` (7). Elle coûte désormais comme l'objet ;
+  acheter (accepté sans jet) reste à 1 + `DEMANDE` + le prix ;
+- **`GARDE`** : quand ses biens le pressent (la réserve forcée par Brune), s'éloigner du refuge lui
+  coûte 2 par minute ; acheter une part à Aubin, présent, reste moins cher qu'aller aux vannes
+  (5,7 contre 15 à la graine 42). C'est la règle de la garde, gardée.
+Graine 1985, minute 106 : avant, demander 4 (puis acheter après un refus) contre son bois 7 ;
+après, son bois 4, acheter 4,7, demander 7.
+
+Cas vérifiés après rechargement (`tests/test_petits_correctifs.py`) :
+- lumière : Odon (mine, cas réel de `planif-defauts`) entre au bureau qu'il imaginait comme le
+  baraquement, renonce devant le coffre en pénombre sans essai, retient la lumière, puis essaie à
+  la minute suivante sur un plan qui la porte ; Brune devant la réserve en pénombre au fond du
+  refuge éclairé ; Brune aux vannes noires qu'elle croyait éclairées : elle n'essaie rien, et son
+  plan ne crochète plus sans lumière en main ;
+- forcer : Brune force la porte étanche, qui n'est à personne (même à douceur 100), passe et mange ;
+  à douceur 100 elle ne force pas la réserve de Gorm, à 60 elle la force et les vivres tombent au
+  sol ; Ilse qui la voit frapper cesse de la croire fiable ; le joueur frappe par la même règle ;
+  Gorm sans clé force la porte étanche avec le pied-de-biche pour rapporter la cloche
+  (`test_besoins`, qui garde aussi le cas sans outil : la cloche reste là-haut) ;
+- Gorm : les vannes baignées de lueur sont crues en pénombre, le cellier fermé reste noir ; Gorm
+  va prendre ses fagots, recharge le brasero, les planches d'Aubin restent entières ; une part
+  demandée coûte 1 + `DEMANDE` / `PRET`. À l'auberge, Mireille achète désormais la part de fagots
+  de Joss au lieu de la demander (`test_entretenir`). À la mine (graine 3, départ fixe, 10 h), le
+  blessé, qui appelait à l'aide dans le noir, va allumer une lampe de rechange à la réserve ouverte,
+  Odon en prend une autre et éclaire Bram au bureau (`test_mine` accepte désormais l'un ou l'autre) :
+  les deux lampes que personne n'allumait (manque relevé par `lumiere-besoin`) servent.
+
+`VERIFIER` passe sur une nuit de 8 h (graine 42) de chaque scénario. Bancs 8 h, `main` 1ee493b et la
+branche lancés au même moment (Relais 8 graines, joueur à la galerie ; mine, auberge et crue 4 ;
+départ tiré ; moyennes par nuit, `main` → branche) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| sans recours | 53,1 → 53,1 | 56,3 → 58,8 | 67,5 → 15 | 15 → 15 |
+| en attente | 67,5 → 62,5 | 303,8 → 288,8 | 622,5 → 540 | 105 → 88,8 |
+| événements distincts | 31,1 → 31,6 | 45,3 → 47 | 46,5 → 48,3 | 33,8 → 32,5 |
+| échanges | 11 → 11,1 | 28,3 → 30 | 23,8 → 26,5 | 10,8 → 10,3 |
+| achats | 1,1 → 2 | 1 → 1,5 | 0,25 → 2,25 | 1,75 → 2,5 |
+| crochetages : essais (réussis) | 4 (0,63) → 3,75 (0,5) | 2,75 (0,5) → 3,5 (0,25) | 13,5 (0,25) → 3,75 (0,25) | 6 (1,25) → 4,5 (1,25) |
+| renoncements devant une serrure trop sombre | 0 → 0 | 0 → 1,5 | 0 → 1,75 | 0 → 0 |
+| forçages : coups (réussis) | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| parts remboursées | 0 → 0,13 | 0 → 0 | 0 → 0 | 0 → 0 |
+| vols vus | 1 → 1 | 0,75 → 0,75 | 0,5 → 0,5 | 0,25 → 0,25 |
+| nuits distinctes (5/60/120/240/480 min, issues) | 8 partout → 8 partout | 4 → 4 | 4 → 4 | 4 → 4 |
+| temps d'une nuit (8 processus ou 4 par côté, 4 cœurs) | 32,7 → 35,2 s | 60,1 → 72,5 s | 76,1 → 83,7 s | 22 → 22,4 s |
+
+Aucune usurpation ni violation (le banc vérifie l'état à chaque pas). Écarts expliqués :
+- Gorm : avant, il demandait ou achetait une part des planches d'Aubin vers la minute 110 à 150
+  dans 6 nuits sur 8 alors que ses fagots étaient aux vannes ; après, il va les chercher dans les
+  nuits où ses biens ne le pressent pas (1985, 3, 11, 99 : premier achat de planches quand son bois
+  est épuisé, minute 348 à 361), et achète encore dans les quatre où ses biens le pressent
+  (7, 42, 2024 après que Brune a forcé la réserve, 500 : `GARDE`). Le compte des échanges de planches est égal (2,5 par nuit) : il
+  se déplace vers la fin de la nuit, quand son bois est épuisé ;
+- achats en hausse partout : une part demandée coûte désormais selon sa chance ; payer (sans jet)
+  devient souvent moins cher que demander (Mireille, Joss, Mathurine à l'auberge) ; les refus
+  suivis d'un achat deviennent un achat, d'où moins de minutes en attente ;
+- auberge : Lucien s'acharnait sur le coffre ferré à la lumière de la case d'où il partait (13,5
+  essais par nuit) ; il renonce devant la serrure plus sombre (1,75 par nuit), puis n'essaie plus que
+  là où sa chance le justifie (3,75). Les minutes sans recours tombent (67,5 → 15) : moins de guet
+  vain devant le coffre ;
+- mine : Odon renonce devant le coffre de la paie (1,5 par nuit) au lieu d'un premier essai perdu ;
+  le temps augmente (+20 %) : un outil qui force (la pioche) devient pertinent pour qui croit une
+  serrure fermée à clé, ce qui élargit des recherches, et la lueur diffuse se calcule à chaque
+  constat ;
+- aucun forçage au banc : dans les quatre scénarios, ceux qui prendraient le bien d'autrui ont la
+  douceur à 100, et la seule porte sans propriétaire qu'on trouve fermée sur son chemin s'ouvre à
+  la clé que Gorm porte ;
+- un remboursement (Relais, graine 99, minute 419) : Gorm rend 2 pièces à Aubin, la part de vivres
+  vendue n'ayant pas été servie (`docs/plan-social.md`).
+
+Limites :
+- la lumière devant une serrure est celle qu'il y a vue en dernier : une source posée près d'elle
+  depuis ne compte qu'avec la lumière du plan ou à son retour ; sa chance au geste se constate,
+  celle d'un autre geste (inspecter) non ;
+- la chance d'une demande reste une constante (`PRET`), pour un objet comme pour une part ;
+- forcer ne connaît que l'intégrité de la cible (vue, comme son aspect) ; abîmer ce qui n'est à
+  personne ou ce qui est à soi n'a d'autre prix que le temps et le bruit ; le geste ne sert qu'à
+  lever une serrure fermée à clé (pas une porte calée, ni une cloison) ;
+- la lueur diffuse est la même dans toute la salle (`ambiance`) ; une salle en L ou un recoin
+  qu'elle n'atteindrait pas serait cru en pénombre ;
+- Gorm achète encore les planches d'Aubin quand ses biens le pressent : c'est `GARDE`.
