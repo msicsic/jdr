@@ -1,12 +1,19 @@
-"""Échanges typés entre personnages : affirmer, demander un objet, confier une tâche, remettre.
+"""Échanges typés entre personnages : affirmer, demander un objet, l'acheter, confier une
+tâche, remettre.
 
 Les mêmes règles valent pour le joueur et pour les PNJ. Une affirmation démentie par ce que
 l'auditeur a vu récemment est rejetée et le locuteur perd sa confiance ; sinon un jet de CHA
 du locuteur, contre un DD que la confiance de l'auditeur abaisse ou relève, décide s'il la
 croit. Un objet n'est remis que par celui qui le porte, s'il fait confiance au demandeur et
 n'en a pas besoin ; son altruisme rend le partage plus facile, sa volonté (``jet_persuasion``)
-le rend plus dur à convaincre. Une tâche confiée devient un engagement que le planificateur du moteur
-exécute quand rien de plus urgent ne presse. Tout est déterministe hors des jets du moteur.
+le rend plus dur à convaincre, et ce que vaut pour lui le prix qu'on ne lui paie pas aussi
+(``biens.reticence``). Payé son prix (``biens.prix``), il vend sans se faire prier, s'il ne le
+garde pas et ne se méfie pas de l'acheteur. Remis par son propriétaire, un objet qui dure est
+prêté (``biens.preter`` : l'emprunteur en use sans faute et le rendra), ce qui se consomme est
+donné ; son propriétaire qui le redemande le récupère, sauf s'il sert encore. Une tâche confiée
+devient un engagement que le planificateur du moteur exécute quand rien de plus urgent ne
+presse ; sur un bien de celui qui la confie, elle en confie la garde (``biens.gardes``). Tout est
+déterministe hors des jets du moteur.
 """
 from .caractere import penchant
 from .esprits import RECENT, constater, croire, esprit, lire, memoriser, percevoir
@@ -50,9 +57,11 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
 
 def necessaire(monde, auditeur, objet):
     """Un objet qui sert son plan en cours ou une de ses pulsions (l'objet, sa clé) n'est pas
-    prêté, ni la source qui l'éclaire quand il a besoin d'y voir (``deliberation.lumiere_utile``)."""
+    prêté, ni la source qui l'éclaire quand il a besoin d'y voir (``deliberation.lumiere_utile``).
+    Le plan qui le rend à son propriétaire ne compte pas : ce n'est pas s'en servir."""
     intention = lire(monde, auditeur)["intention"]
-    if intention and any(objet in (e["cible"], e["outil"]) for e in intention["plan"]):
+    if (intention and "rendre" not in intention["but"]
+            and any(objet in (e["cible"], e["outil"]) for e in intention["plan"])):
         return True
     if "allume" in monde.objets[objet] and monde.objets[auditeur].get("profil"):
         from .deliberation import lumiere_utile
@@ -100,18 +109,38 @@ def garde(monde, id, o):
             and (parts(o) <= reserve(monde, id) or besoin_de_part(o) in urgents(monde, id)))
 
 
-def demander(monde, demandeur, auditeur, objet, foyer=None):
-    """« absent », « mefiance », « necessaire », « impossible », « refus », « remis » ou « promis »."""
+def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
+    """« absent », « mefiance », « necessaire », « impossible », « pauvre », « refus », « remis »,
+    « rendu », « promis » ou « vendu ».
+
+    ``prix`` : les pièces offertes. Au moins le prix (``biens.prix``) au propriétaire, c'est un
+    achat : accepté sans se faire prier, payé aussitôt. Moins, c'est une demande, que le prix non
+    payé rend plus dure à qui une pièce compte (``biens.reticence``)."""
+    from .biens import prix as prix_de, reticence, richesse
     from .deliberation import _plan_pulsion, besoin_de_part
-    from .deplacement_objet import deplacer
     from .spatial import porte_par
+    from .vol import proprietaire
     part = demande_de_part(monde, demandeur, auditeur, objet)
     if objet not in monde.objets or not (part or porte_par(monde, objet, auditeur)):
         return "absent"
+    o = monde.objets[objet]
+    if not part and proprietaire(monde, o) == demandeur:
+        # Son propriétaire le redemande : il le lui rend, sauf s'il s'en sert encore.
+        if necessaire(monde, auditeur, objet):
+            return "necessaire"
+        remettre(monde, auditeur, demandeur, objet)
+        return "rendu"
     confiance = lire(monde, auditeur)["croyances"].get(demandeur, {}).get("fiable")
     if confiance and not confiance["valeur"]:
         return "mefiance"
-    o = monde.objets[objet]
+    if prix and richesse(monde, demandeur) < prix:
+        return "pauvre"
+    prix_ = prix_de(monde, objet, part)
+    vente = bool(prix_) and prix >= prix_ and proprietaire(monde, o) == auditeur
+    # Ce qu'il perd à donner sans être payé : ce qui se consomme. Un objet qui dure, il le prête, et
+    # le récupérera.
+    perdu = part or besoin_de_part(o) is not None
+    dd = PARTAGE - penchant(monde, auditeur, "altruisme") + (reticence(monde, auditeur, prix_, prix) if perdu else 0)
     if part:
         if garde(monde, auditeur, o):
             return "necessaire"
@@ -124,27 +153,41 @@ def demander(monde, demandeur, auditeur, objet, foyer=None):
                 return "impossible"
             condition = {"objet": foyer, "allume": True}
         engagements = esprit(monde, auditeur)["engagements"]
+        paye = False
         if not any(x["condition"] == condition for x in engagements):
             if _plan_pulsion(monde, auditeur, condition) is None:
                 return "impossible"
-            if not jet_persuasion(monde, auditeur, demandeur, PARTAGE - penchant(monde, auditeur, "altruisme"))[0]:
+            if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
                 return "refus"
             engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
             memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
+            if vente:
+                _vendre(monde, auditeur, demandeur, objet, prix)
+                paye = True
         if demandeur != "joueur":
             memoriser(monde, demandeur, {"type": "promis", "de": auditeur, "objet": objet,
                                          **({"foyer": condition["objet"]} if "allume" in condition else {})})
-        return "promis"
+        return "vendu" if paye else "promis"
     # Prêter ce qui se consomme, c'est en donner les parts : il n'en prête pas ce qu'il garde.
     if necessaire(monde, auditeur, objet) or garde(monde, auditeur, o):
         return "necessaire"
-    if not jet_persuasion(monde, auditeur, demandeur, PARTAGE - penchant(monde, auditeur, "altruisme"))[0]:
+    if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
         return "refus"
-    deplacer(monde, objet, demandeur)
-    memoriser(monde, auditeur, {"type": "pret", "objet": objet, "a": demandeur})
-    if demandeur != "joueur":
-        memoriser(monde, demandeur, {"type": "recu", "objet": objet, "de": auditeur})
-    return "remis"
+    if vente:
+        from .biens import donner
+        _vendre(monde, auditeur, demandeur, objet, prix)
+        donner(monde, objet, demandeur)
+    remettre(monde, auditeur, demandeur, objet)
+    return "vendu" if vente else "remis"
+
+
+def _vendre(monde, vendeur, acheteur, objet, prix):
+    """L'acheteur paie ; chacun se souvient de la vente."""
+    from .biens import payer
+    payer(monde, acheteur, vendeur, prix)
+    memoriser(monde, vendeur, {"type": "vente", "objet": objet, "a": acheteur, "prix": prix})
+    if acheteur != "joueur":
+        memoriser(monde, acheteur, {"type": "achat", "objet": objet, "de": vendeur, "prix": prix})
 
 
 def tenu(monde, id, condition, depuis=None):
@@ -153,6 +196,8 @@ def tenu(monde, id, condition, depuis=None):
     mettre du bois n'est pas un feu entretenu. Une part à servir ne l'est qu'au geste qui la sert
     (``servir`` solde l'engagement), quoi qu'il croie de la faim de l'autre."""
     from .deliberation import satisfaite
+    if "rendre" in condition:
+        return satisfaite(monde, id, condition)  # Le prêt est clos : il le sait de sa main.
     if "servir" in condition or not satisfaite(monde, id, condition):
         return False
     nouvelles = lire(monde, id)["croyances"].get(condition.get("objet"), {}).values()
@@ -167,21 +212,39 @@ def confier(monde, demandeur, auditeur, condition):
         return "mefiance"
     if tenu(monde, auditeur, condition):
         return "deja"
+    # Une tâche sur un bien de celui qui la confie en confie la garde (``biens.gardes``) : il juge
+    # s'il peut s'y prendre avec ce que la garde lui permet.
+    engagements = esprit(monde, auditeur)["engagements"]
+    engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
+    engagements.append(engagement)
     if _plan_pulsion(monde, auditeur, condition) is None:
+        engagements.remove(engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
     if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
+        engagements.remove(engagement)
         return "refus"
-    esprit(monde, auditeur)["engagements"].append(
-        {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]})
     memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
     return "accepte"
 
 
 def remettre(monde, donneur, receveur, objet):
+    """Remis par son propriétaire, un objet qui dure est prêté, ce qui se consomme est donné ;
+    remis à son propriétaire, il lui est rendu (``deplacer`` clôt le prêt) ; remis par un autre,
+    il change seulement de mains."""
+    from .biens import donner, preter
+    from .deliberation import besoin_de_part
     from .deplacement_objet import deplacer
     from .vol import proprietaire
-    if proprietaire(monde, monde.objets[objet]) == donneur:
-        memoriser(monde, donneur, {"type": "pret", "objet": objet, "a": receveur})
+    o = monde.objets[objet]
+    if proprietaire(monde, o) == donneur:
+        if besoin_de_part(o):
+            donner(monde, objet, receveur)
+            memoriser(monde, donneur, {"type": "don", "objet": objet, "a": receveur})
+        else:
+            # Un bien sans propriétaire déclaré est à qui le porte : prêté, il reste au prêteur.
+            o["proprietaire"] = donneur
+            preter(monde, objet, receveur)
+            memoriser(monde, donneur, {"type": "pret", "objet": objet, "a": receveur})
     deplacer(monde, objet, receveur)
     if receveur != "joueur":
         memoriser(monde, receveur, {"type": "recu", "objet": objet, "de": donneur})
@@ -268,19 +331,32 @@ def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
 
 
 def engagements_echus(monde, id):
-    """Retire les engagements tenus ou trop anciens ; les souvenirs gardent la trace."""
+    """Retire les engagements tenus ou trop anciens ; les souvenirs gardent la trace. Une garde
+    finie, ce qu'il en porte encore (le bien, ses clés) lui reste prêté : il le rendra."""
+    from .biens import _cles, preter
+    from .spatial import porte_par
+    from .vol import proprietaire
     e = esprit(monde, id)
-    restants = []
+    restants, finis = [], []
     for engagement in e["engagements"]:
         if tenu(monde, id, engagement["condition"], engagement["minute"]):
             memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
+            finis.append(engagement)
         elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX:
             memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
+            finis.append(engagement)
         else:
             restants.append(engagement)
     e["engagements"] = restants
+    for engagement in finis:
+        o, de = engagement["condition"].get("objet"), engagement["pour"]
+        if "rendre" in engagement["condition"] or o not in monde.objets or proprietaire(monde, monde.objets[o]) != de:
+            continue
+        for k in sorted(_cles(monde, o, de)):
+            if porte_par(monde, k, id) and not any(p["objet"] == k for p in monde.data.get("permissions", ())):
+                preter(monde, k, id)
 
 
 def executer(monde, id, etape, lignes):
@@ -310,16 +386,21 @@ def executer(monde, id, etape, lignes):
         cites, reussi = [contenu["sujet"], contenu["valeur"] if isinstance(contenu["valeur"], str) else None], True
         transmis = [{"type": "affirmation", **{k: contenu[k] for k in ("sujet", "attribut", "valeur")}}]
         memoriser(monde, id, {"type": "dit", "a": autre, "sujet": contenu["sujet"], "attribut": contenu["attribut"]})
-    elif op == "demander":
+    elif op in ("demander", "acheter"):
         if objet is None:
             return False
         # La nature de la demande se juge avant l'échange : après un prêt, le demandeur porte l'objet.
         part = demande_de_part(monde, id, autre, objet["id"])
-        issue = demander(monde, id, autre, objet["id"], contenu.get("foyer"))
-        recit = f"{a} demande {'une part ' + complement_de(objet) if part else designer(objet)} à {b}"
+        prix = contenu.get("prix", 0) if op == "acheter" else 0
+        issue = demander(monde, id, autre, objet["id"], contenu.get("foyer"), prix)
+        quoi = "une part " + complement_de(objet) if part else designer(objet)
+        recit = (f"{a} achète {quoi} à {b} pour {prix} pièce{'s' if prix > 1 else ''}" if op == "acheter"
+                 else f"{a} demande {quoi} à {b}")
         clair = recit + "." + {"remis": f" {b} lui remet {designer(objet)}.",
+                               "rendu": f" {b} lui rend {designer(objet)}.",
+                               "vendu": f" {b} accepte et prend l'argent.",
                                "promis": f" {b} accepte de lui en donner."}.get(issue, f" {b} refuse.")
-        cites, reussi = [objet["id"]], issue in ("remis", "promis")
+        cites, reussi = [objet["id"]], issue in ("remis", "rendu", "promis", "vendu")
     elif op == "confier":
         issue = confier(monde, id, autre, contenu)
         recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
@@ -329,8 +410,11 @@ def executer(monde, id, etape, lignes):
     else:
         if objet is None or not porte_par(monde, objet["id"], id):
             return False
+        from .vol import proprietaire
+        rendu = proprietaire(monde, objet) == autre
         remettre(monde, id, autre, objet["id"])
-        issue, recit = "remis", f"{a} remet {designer(objet)} à {b}"
+        issue, recit = ("rendu", f"{a} rend {designer(objet)} à {b}") if rendu else (
+            "remis", f"{a} remet {designer(objet)} à {b}")
         clair, cites, reussi = recit + ".", [objet["id"]], True
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
     nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]

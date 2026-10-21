@@ -136,6 +136,15 @@ def executer(monde, minutes, recit=None):
                # Chercher quelqu'un sans le voir : l'appeler, et qui répond (``pnj.appeler``).
                "appels": sum(" appelle : « " in c["texte"] for c in chronique),
                "reponses": sum(" répond : « " in c["texte"] for c in chronique),
+               # L'argent et les prêts (``biens``) : achats conclus, refus de vendre, pièces payées,
+               # prêts et objets rendus, bourses prises par un autre que leur propriétaire.
+               "achats": sum(" achète " in c["texte"] and c["texte"].endswith("(vendu).") for c in chronique),
+               "refus_de_vente": sum(" achète " in c["texte"] and not c["texte"].endswith("(vendu).")
+                                     for c in chronique),
+               "pieces_payees": sum(s["prix"] for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+                                    if s["type"] == "vente"),
+               "prets": memoire["pret"], "rendus": sum(c["texte"].endswith("(rendu).") for c in chronique),
+               "vols_de_bourse": _vols_de_bourse(monde, chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.
@@ -144,6 +153,15 @@ def executer(monde, minutes, recit=None):
                        trempes_fin=sum(1 for id in vivants if monde.objets[id]["corps"]["trempe"]),
                        au_sec_fin=sum(1 for id in vivants if not profondeur(monde, lieu(monde, id))))
     return chronique, mesures
+
+
+def _vols_de_bourse(monde, chronique):
+    """Les fois qu'un PNJ prend un objet à pièces (une bourse, une paie) qui n'est pas à lui."""
+    from .francais import designer
+    from .vol import proprietaire
+    bourses = {k: (designer(o, debut=False), proprietaire(monde, o)) for k, o in monde.objets.items() if "pieces" in o}
+    return sum(1 for c in chronique for nom, a in bourses.values()
+               if c["pnj"] != a and c["texte"].endswith(" prend " + nom + "."))
 
 
 def appelant(connexion="chatgpt", modele=None, effort="medium"):

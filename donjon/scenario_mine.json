@@ -610,6 +610,35 @@
        "disponible": true
       }
      }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
     }
    },
    "intention": null,
@@ -1190,6 +1219,35 @@
       "source": "savoir",
       "valeur": "gaspard"
      }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
     }
    },
    "intention": null,
@@ -1426,6 +1484,35 @@
       "source": "savoir",
       "valeur": "gaspard"
      }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
     }
    },
    "intention": null,
@@ -1604,6 +1691,35 @@
       "salle": "baraquement",
       "source": "savoir",
       "valeur": "garde_manger"
+     }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
      }
     }
    },
@@ -1927,6 +2043,35 @@
       "source": "savoir",
       "valeur": "gaspard"
      }
+    },
+    "paie": {
+     "lieu": {
+      "case": [
+       4,
+       1
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "bureau",
+      "source": "savoir",
+      "valeur": "coffre_paie"
+     }
+    },
+    "coffre_paie": {
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "ouverte": false
+      }
+     },
+     "verrouillee": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": true
+     }
     }
    },
    "intention": null,
@@ -1934,8 +2079,13 @@
   }
  },
  "finances_pnj": {
-  "bram": 300,
-  "josse": 20
+  "bram": 40,
+  "josse": 20,
+  "gaspard": 15,
+  "lucien": 4,
+  "mathe": 10,
+  "odon": 0,
+  "remy": 6
  },
  "geometrie_version": 1,
  "jets": 0,
@@ -2053,7 +2203,8 @@
    "pluriel": true,
    "portions": 2,
    "proprietaire": "bram",
-   "type": "nourriture"
+   "type": "nourriture",
+   "prix_part": 3
   },
   "bois_gaspard": {
    "aliases": [
@@ -2082,7 +2233,8 @@
    "type": "consommable",
    "usages": [
     "combustible"
-   ]
+   ],
+   "prix_part": 2
   },
   "bram": {
    "aliases": [
@@ -2162,7 +2314,14 @@
      "mefiance": 0.6,
      "noir": 0.8
     },
-    "traits": "Payeur de la compagnie, il répond de la paie de tous et ne la quitte pas des yeux. Soupçonneux et peureux, il ne vole pas et ne lève pas la main, mais il croit volontiers le pire des nouveaux venus. Il supporte mal le froid de son bureau."
+    "traits": "Payeur de la compagnie, il répond de la paie de tous et ne la quitte pas des yeux. Soupçonneux et peureux, il ne vole pas et ne lève pas la main, mais il croit volontiers le pire des nouveaux venus. Il supporte mal le froid de son bureau.",
+    "situation": {
+     "proches": 1
+    },
+    "valeurs": {
+     "altruisme": 30,
+     "ambition": 40
+    }
    },
    "type": "personnage",
    "vigilance": 13
@@ -2558,7 +2717,8 @@
    "type": "consommable",
    "usages": [
     "combustible"
-   ]
+   ],
+   "prix_part": 2
   },
   "filon_murs": {
    "aliases": [
@@ -2761,7 +2921,10 @@
     "securite": {
      "noir": 0.0
     },
-    "traits": "Trente ans de fond : il connaît la roche et ne craint pas le noir. Il sonde l'éboulis et le puits à intervalles réguliers pour en entendre les progrès. Taciturne, honnête, il ne ment pas et ne prend rien qui ne soit à lui."
+    "traits": "Trente ans de fond : il connaît la roche et ne craint pas le noir. Il sonde l'éboulis et le puits à intervalles réguliers pour en entendre les progrès. Taciturne, honnête, il ne ment pas et ne prend rien qui ne soit à lui.",
+    "situation": {
+     "proches": 1
+    }
    },
    "type": "personnage",
    "vigilance": 13
@@ -2855,7 +3018,14 @@
       }
      }
     ],
-    "traits": "Contremaître juste mais dur, il tient le camp par le rationnement et l'exemple. Il veut garder le poêle vivant et tout le monde ensemble jusqu'au dégagement, et il répond du blessé. Il ne vole pas et ne lève pas la main ; lent à retirer sa confiance, lent à la rendre."
+    "traits": "Contremaître juste mais dur, il tient le camp par le rationnement et l'exemple. Il veut garder le poêle vivant et tout le monde ensemble jusqu'au dégagement, et il répond du blessé. Il ne vole pas et ne lève pas la main ; lent à retirer sa confiance, lent à la rendre.",
+    "situation": {
+     "proches": 3
+    },
+    "valeurs": {
+     "altruisme": 60,
+     "loyaute": 70
+    }
    },
    "type": "personnage",
    "vigilance": 14
@@ -3092,7 +3262,10 @@
      "mefiance": 1.5,
      "noir": 1.5
     },
-    "traits": "Pris sous l'éboulement, il ne peut ni marcher ni se défendre. Honnête et reconnaissant envers ceux qui veillent sur lui, il redoute le noir et les inconnus qui s'approchent de sa couchette."
+    "traits": "Pris sous l'éboulement, il ne peut ni marcher ni se défendre. Honnête et reconnaissant envers ceux qui veillent sur lui, il redoute le noir et les inconnus qui s'approchent de sa couchette.",
+    "situation": {
+     "proches": 2
+    }
    },
    "type": "personnage",
    "vigilance": 11
@@ -3198,7 +3371,10 @@
       }
      }
     ],
-    "traits": "Cuisinière du camp et maîtresse du garde-manger : elle compte chaque part et sert d'abord le blessé. Franche et têtue, elle ne ment pas et ne prend pas ce qui n'est pas à elle, mais elle tient les cordons de la bourse de vivres et se méfie des inconnus qui mangent comme quatre."
+    "traits": "Cuisinière du camp et maîtresse du garde-manger : elle compte chaque part et sert d'abord le blessé. Franche et têtue, elle ne ment pas et ne prend pas ce qui n'est pas à elle, mais elle tient les cordons de la bourse de vivres et se méfie des inconnus qui mangent comme quatre.",
+    "valeurs": {
+     "altruisme": 60
+    }
    },
    "type": "personnage",
    "vigilance": 12
@@ -3277,7 +3453,14 @@
     "securite": {
      "mefiance": 0.0
     },
-    "traits": "Embauché il y a trois jours, sans papiers ni répondants. Il a connu la prison et les serrures. Honnête tant qu'il peut l'être, il demande avant de prendre ; affamé depuis deux jours, il ne mourra pas de scrupules. Il ne lève pas la main."
+    "traits": "Embauché il y a trois jours, sans papiers ni répondants. Il a connu la prison et les serrures. Honnête tant qu'il peut l'être, il demande avant de prendre ; affamé depuis deux jours, il ne mourra pas de scrupules. Il ne lève pas la main.",
+    "situation": {
+     "dette": 40
+    },
+    "valeurs": {
+     "honnetete": 45,
+     "altruisme": 40
+    }
    },
    "type": "personnage",
    "vigilance": 15
@@ -3298,7 +3481,8 @@
    "mobile": true,
    "nom": "bourse de la paie",
    "proprietaire": "bram",
-   "type": "tresor"
+   "type": "tresor",
+   "pieces": 200
   },
   "pain_lucien": {
    "aliases": [
@@ -3322,7 +3506,8 @@
    ],
    "position_salle": "baraquement",
    "proprietaire": "lucien",
-   "type": "nourriture"
+   "type": "nourriture",
+   "prix_part": 2
   },
   "passe": {
    "aliases": [
@@ -3579,7 +3764,10 @@
      "mefiance": 0.6,
      "noir": 1.0
     },
-    "traits": "Ami de Lucien, il ne le quitte pas d'une semelle et ne supporte pas qu'on s'approche de lui. Impulsif, il se méfie du nouveau venu et le dit ; il a peur du noir mais l'avoue mal. Il ne ment pas."
+    "traits": "Ami de Lucien, il ne le quitte pas d'une semelle et ne supporte pas qu'on s'approche de lui. Impulsif, il se méfie du nouveau venu et le dit ; il a peur du noir mais l'avoue mal. Il ne ment pas.",
+    "situation": {
+     "projet": 20
+    }
    },
    "type": "personnage",
    "vigilance": 12
@@ -3716,7 +3904,8 @@
    "pluriel": true,
    "portions": 4,
    "proprietaire": "mathe",
-   "type": "nourriture"
+   "type": "nourriture",
+   "prix_part": 3
   },
   "bidon_huile": {
    "aliases": [
@@ -3746,7 +3935,8 @@
    "type": "consommable",
    "usages": [
     "combustible"
-   ]
+   ],
+   "prix_part": 1
   }
  },
  "personnages_version": 1,

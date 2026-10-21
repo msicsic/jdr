@@ -104,6 +104,26 @@ class DecoupageTests(unittest.TestCase):
         self.assertGreater(len(morcele.data["chronique"]), 10)
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
 
+    def test_un_achat_et_un_pret_ne_dependent_pas_du_decoupage(self):
+        # Ilse, refusée, achète sa part ; Aubin a emprunté la clé de Gorm et la lui rendra : bourses,
+        # prêts et paroles de rendre sont dans ``data``.
+        def scene():
+            m = calme(relais_libre(), "marchand", "brune", "ilse", "aubin")
+            lire(m, "ilse")["besoins"]["faim"] = 85.0
+            refusee(m, "ilse")
+            m.data["finances_pnj"]["ilse"] = 8
+            placer(m, "aubin", "echoppe", (2, 1))
+            from donjon.echanges import remettre
+            remettre(m, "marchand", "aubin", "cle_reserve")
+            return m
+        d_un_bloc, morcele = decouper(scene, 10)
+        self.assertIn("Ilse achète une part des vivres du refuge à Gorm pour 2 pièces (vendu).",
+                      [c["texte"] for c in morcele.data["chronique"]])
+        self.assertIn("Aubin rend la clé de la réserve à Gorm (rendu).", [c["texte"] for c in morcele.data["chronique"]])
+        self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
+        self.assertEqual((d_un_bloc.data["finances_pnj"], d_un_bloc.data["permissions"]),
+                         (morcele.data["finances_pnj"], morcele.data["permissions"]))
+
     def test_le_dernier_tour_d_horizon_est_dans_son_esprit(self):
         m = brune_affamee()
         tours = []

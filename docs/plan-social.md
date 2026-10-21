@@ -288,3 +288,103 @@ Limites et questions ouvertes :
   l'objet disparu (`pnj._rate`) et laissait Brune sans plan ; corrigé sur la branche
   `constater-et-rumeurs` : elle apprend le contenant fermé (`pnj._hors_d_atteinte`,
   `docs/plan-ouie.md`).
+
+## Argent, prêts et garde confiée (branche `echanges-argent`)
+
+Manques relevés par l'auberge et décidés avec l'utilisateur : un objet prêté restait illicite pour
+l'emprunteur ; l'argent n'existait que pour le joueur. Règles communes au joueur et aux PNJ
+(`donjon/biens.py`, `caractere.valeur_piece`, détail dans `docs/mecaniques.md`, « Prêter,
+confier, payer »).
+
+- **Permissions** (`biens.permis`, `deliberation.illicite(monde, id, objet, operation)`) : le
+  bien d'autrui est une faute sauf prêt (`data["permissions"]`, clos dès que l'objet revient à
+  son propriétaire, `deplacement_objet.deplacer`) ou garde confiée (une tâche acceptée sur un
+  bien de celui qui la confie, une pulsion déléguée) ; une clé prêtée ou gardée ouvre ce qu'elle
+  ouvre, pas le contenu ; rien ne permet de consommer. Le même jugement vaut au plan
+  (`Vue.illicite` ; un objet prêté ou acheté dans le plan s'emploie sans faute), à l'exécution
+  (`pnj._executer`, registre des gestes illicites), pour le témoin (`esprits._vu_porter`) et pour
+  le joueur (`biens.a_autrui` : déplacer, appui d'un franchissement, échelle). Un objet qui dure,
+  remis par son propriétaire, est prêté ; ce qui se consomme est donné (`echanges.remettre`).
+  L'emprunteur PNJ s'engage à rendre (`{"objet", "rendre"}`, `planification._rendre`) quand
+  l'objet ne lui sert plus ; une garde finie laisse en prêt ce qu'il en porte encore. On ne
+  demande un objet qu'à son propriétaire.
+- **Le prix d'une pièce**, en minutes de plan, par une règle commune : (10 + besoin hors de la
+  scène) / (10 + richesse), au plus 6, cumulé sur la somme (`valeur_pieces`). Le besoin hors de
+  la scène : 5 pour vivre, la dette, 10 par proche à charge × (altruisme + loyauté) / 100, le
+  projet × ambition / 50 (`profil["situation"]`). Ce n'est pas un besoin qui monte : un poids
+  permanent, que la recherche compare à ses minutes et à la faute.
+- **Moyens** : bourse par PNJ (`data["finances_pnj"]`, 5 sans déclaration), objets à pièces
+  (`pieces`), prix d'une part (`prix_part`, 2 sinon) ou d'un objet (`prix`). Geste du
+  planificateur `acheter` une part ou un objet à son propriétaire (coût : 1 + 3 + ce que lui
+  coûtent les pièces) ; le vendeur accepte le prix sans jet s'il ne garde pas ce bien et ne se
+  méfie pas ; moins que le prix, c'est une demande dont le DD monte avec ce que vaut pour lui le
+  prix non payé (`biens.reticence`, seulement pour ce qui se consomme). Un dernier but, après la
+  routine : prendre des pièces qui ne sont pas à lui si elles valent pour lui plus que le chemin
+  et la faute (`planification.enrichir`, faute sans usure par la détresse, `caractere.ARGENT`).
+- **Le joueur** paie dans une parole (`valeur` d'une demande ou d'une demande de passage) ;
+  offrir plus que son or est refusé au MJ avec un `attendu` (`paroles.verifier_offres`).
+- **Données** : Relais et crue — Gorm 50 pièces et un projet (remettre le relais en état, 40),
+  Brune 3 pièces, une dette (20) et un bac à racheter (40), Ilse 8 pièces et deux proches,
+  Aubin 6 ; vivres 2 la part, bois et planches 1. Mine — la paie (200 pièces au coffre du bureau,
+  que tout le camp sait là), Bram 40, Josse 20 et trois proches, Gaspard 15 et un proche, Lucien
+  4 et deux proches, Mathe 10, Rémy 6 et un projet, Odon sans le sou et endetté (40) ; parts de 1
+  à 3. Auberge — Odile 60, qui doit trente pièces de gages à Joss ; Joss 1 pièce et ses gages
+  pour projet ; Anselme 30 pièces sur lui et une bourse de voyage (150) dans son coffre, un
+  commerce à faire prospérer (300) ; Lucien 10 et un projet (100) ; Mireille 4 et un proche ;
+  Hugues 15 ; Mathurine 6 ; Tilo rien. **Valeurs changées** pour rendre ces profils plausibles :
+  mine, Odon honnêteté 45 et altruisme 40, Bram altruisme 30 et ambition 40, Josse altruisme 60 et
+  loyauté 70, Mathe altruisme 60 ; auberge, Anselme altruisme 20 et ambition 80, Mireille
+  altruisme et loyauté 80, Mathurine altruisme 70, Hugues loyauté 80, Lucien ambition 70, Odile
+  altruisme 55. Les sauvegardes anciennes ne sont pas migrées (décision de l'utilisateur).
+
+Cas vérifiés après rechargement (`tests/test_echanges_argent.py`, `test_tensions`,
+`test_temps_etat`) : Rémy emprunte la lampe de Gaspard, l'allume au briquet sans geste illicite
+sous les yeux de Gaspard, la rend quand le baraquement est rééclairé (le prêt est clos) ; Gaspard
+qui la redemande la récupère, sauf quand elle éclaire Rémy dans le noir ; le joueur emprunte la
+lampe de Gaspard et la pose sans vol ; Gorm confie à Ilse (honnêteté 100) de garder la réserve
+sous clé : elle prend la clé de Gorm, ferme et verrouille sans faute sous les yeux de Brune, puis
+lui rend la clé ; Ilse refusée achète sa part avec sa bourse (sans le sou, elle attend) ; une
+Brune d'honnêteté 50 refusée achète avec trois pièces et force la réserve sans le sou, celle du
+Relais (20, endettée) la force même avec huit pièces ; Gorm refuse de vendre sa dernière part et
+à qui il se méfie ; Anselme rechigne à donner, Odile non ; seul au bureau, Odon endetté prend la
+paie, Odon sans dette n'y touche pas ; le joueur paie sa part (Gorm la lui doit, bourses à jour),
+offre moins (Gorm dit son prix), offre plus que son or (refus au MJ) ; un achat et un prêt rendu
+donnent le même monde quel que soit le découpage du temps.
+
+Bancs (8 h, `main` → branche ; Relais 8 graines, joueur à la galerie ; mine, auberge et crue 4) :
+
+| scénario | sans recours | événements | échanges | achats | pièces payées | vols vus | méfiances | temps |
+|---|---|---|---|---|---|---|---|---|
+| Relais | 404 → 311 | 29,3 → 31,9 | 14,8 → 16 | 0 → 1,5 | 0 → 2,4 | 1 → 1 | 1,25 → 1,25 | 14,4 → 16,2 s |
+| mine | 665 → 461 | 44,5 → 40 | 41,8 → 37,8 | 0 → 1 | 0 → 2,5 | 0,5 → 0,75 | 4,5 → 5,25 | 43,3 → 43,4 s |
+| auberge | 628 → 635 | 49,3 → 47 | 40,8 → 42,5 | 0 → 1,5 | 0 → 1,75 | 1 → 1 | 5 → 6,75 | 35 → 38,8 s |
+| crue | 293 → 421 | 35,8 → 34,8 | 16,8 → 22 | 0 → 2 | 0 → 3,25 | 1,5 → 0,5 | 2,25 → 1,5 | 15,3 → 16 s |
+
+Aucune usurpation ni violation ; `VERIFIER` passe sur une nuit de chaque scénario. Prêts, objets
+rendus et bourses prises : 0 partout au banc. Ce qu'on lit dans les récits :
+- Relais : Ilse et Aubin, honnêtes, refusés, achètent leur part au lieu d'attendre ; Gorm vend
+  ce qu'il n'a pas donné, et achète ses planches à Aubin quand Aubin refuse de les donner ; Brune
+  (honnêteté 20, endettée) vole comme avant : ses pièces lui coûtent plus que la faute.
+- Mine : Rémy, Gaspard et Josse achètent des parts de vivres ou de bûches ; moins de minutes
+  urgentes sans recours. La paie ne bouge pas : Odon ne sait pas atteindre le bureau, dont il
+  croit la porte fermée à clé (le planificateur ne crochète pas une porte), et les autres sont
+  honnêtes.
+- Auberge : Mireille, Joss et Mathurine s'achètent soupe, fagots ou vivres ; plus de confidences
+  et de méfiances, des nuits décalées. Personne ne connaît la bourse d'Anselme.
+- Crue : Brune (honnêteté 50 par ses limites : la crue ne déclare pas de valeurs) achète sa part
+  dès la première minute au lieu de forcer la réserve vers la 127e : moins de vols, moins de
+  méfiance. Gorm, sans vol à surveiller ni abri à chercher, reste au devoir urgent sans rien à
+  faire (défaut connu du Relais), d'où les minutes sans recours ; Ilse, qu'aucun vol n'inquiète,
+  reste au refuge au lieu de monter à la galerie, d'où plus de minutes dans l'eau (251 → 350).
+
+Limites :
+- le planificateur lit le compte vrai des pièces d'une bourse qu'il connaît ;
+- prendre des pièces est le seul but que l'argent fait naître ; la valeur d'un objet (ballot,
+  reliquaire) n'en est pas un : Lucien ne convoite le ballot qu'en mots ;
+- une part payée et jamais servie (engagement abandonné) n'est pas remboursée ; on ne marchande
+  pas, on ne vend pas de soi-même à qui ne demande rien ;
+- le joueur paie une part, un objet ou un passage ; un PNJ ne paie pas un autre pour une tâche ;
+  un PNJ ne redemande pas au joueur ce qu'il lui a prêté ;
+- demander une ressource que son propriétaire porte la remet entière (comportement antérieur) :
+  l'achat d'une part ne s'y applique pas ;
+- les constantes (5, 10, 6, 2) et les prix sont à régler au banc, jamais par personnage.

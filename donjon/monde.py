@@ -422,6 +422,8 @@ class Monde:
             verifier_horloges(self)
             from .eau import verifier as verifier_eau
             verifier_eau(self)
+            from .biens import verifier as verifier_biens
+            verifier_biens(self)
             from .narration import verifier as verifier_narration
             verifier_narration(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"

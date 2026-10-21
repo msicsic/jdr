@@ -24,12 +24,21 @@ def sans_budget(monde):
 
 
 def refusee(monde, id="brune", par="marchand"):
-    """Placement d'auteur : le propriétaire des vivres vient de lui refuser une part.
+    """Placement d'auteur : le propriétaire des vivres vient de lui refuser une part, et elle n'a
+    pas de quoi la lui payer (``sans_le_sou``).
 
-    Un affamé demande avant de voler ; ces tests portent sur ce qui suit le refus.
+    Un affamé demande, puis achète s'il le peut, avant de voler ; ces tests portent sur ce qui
+    suit le refus quand il ne reste que voler ou attendre.
     """
     from donjon.esprits import memoriser
     memoriser(monde, id, {"type": "refus", "de": par, "operation": "demander", "raison": "refus", "objet": "vivres"})
+    return sans_le_sou(monde, id)
+
+
+def sans_le_sou(monde, *ids):
+    """Placement d'auteur : ils n'ont pas une pièce sur eux."""
+    for id in ids:
+        monde.data["finances_pnj"][id] = 0
     return monde
 
 

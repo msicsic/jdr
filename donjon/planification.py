@@ -22,6 +22,7 @@ from time import perf_counter
 from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, _cru, _disponible_cru, _eclairee_crue, _lieu_cru,
                            autorise, besoin_de_part, illicite, noir_cru, peur_du_noir, profil, promesse_en_cours,
                            refuse_recemment)
+from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
 from .spatial import porte_par
@@ -98,9 +99,18 @@ class Vue:
         self.objets = monde.objets
         self.salles = monde.data["salles"]
         self.connus = _connus(monde, id)
+        # Toucher au bien d'autrui, hors ce qu'un prêt ou une garde permettent ; le consommer (le
+        # manger, en servir une part), que rien ne permet.
         self.illicite = {o: illicite(monde, id, o) for o in self.connus}
+        self.consomme_illicite = {o: illicite(monde, id, o, "manger") for o in self.connus}
         self.autorise = {o: autorise(monde, id, o) for o in self.connus}
         self.proprietaire = {o: proprietaire(monde, monde.objets[o]) for o in self.connus}
+        # Ce qu'il peut dépenser, et ce que vaut pour lui une pièce, en minutes (``caractere``).
+        from .biens import richesse
+        from .caractere import valeur_piece
+        self.richesse = richesse(monde, id)
+        self.piece = valeur_piece(monde, id) if profil(monde, id) else 0
+        self._depenses = {}
         # Ce qu'un geste sait employer (``gestes``) : clé, outil, vivres, combustible, flamme portable.
         self.utile = {o: bool(x.get("ouvre") or set(x.get("usages", [])) & set(USAGES) or x["type"] == "nourriture"
                               or "allume" in x) for o in self.connus for x in [self.objets[o]]}
@@ -115,6 +125,13 @@ class Vue:
         self._chemin = chemin
         self._routes, self._trajets, self._crus, self._agissables = {}, {}, {}, {}
         self.emplois = None    # ce que le but peut employer (``chercher``) ; None : tout
+
+    def depense(self, prix):
+        """Ce que lui coûte de payer ce prix, en minutes (``caractere.valeur_pieces``)."""
+        if prix not in self._depenses:
+            from .caractere import valeur_pieces
+            self._depenses[prix] = valeur_pieces(self.monde, self.id, prix, depense=True)
+        return self._depenses[prix]
 
     def agissables(self, vises):
         """(objets, à porter) : les objets connus sur lesquels un geste est possible (``gestes``)
@@ -172,6 +189,15 @@ class Vue:
 
     def refuse(self, autre, o):
         return self._memo((autre, o, "refus"), lambda: refuse_recemment(self.monde, self.id, autre, "demander", o))
+
+    def refuse_achat(self, autre, o):
+        """Un refus récent de lui vendre ; ou de donner pour une raison que payer ne lève pas : il
+        le garde, ou se méfie de lui."""
+        def calcul():
+            refus = refuse_recemment(self.monde, self.id, autre, "demander", o)
+            return (refuse_recemment(self.monde, self.id, autre, "acheter", o)
+                    or refus and refus["raison"] in ("necessaire", "mefiance"))
+        return self._memo((autre, o, "refus_achat"), calcul)
 
     def promesse(self, o):
         return self._memo((o, "promesse"), lambda: promesse_en_cours(self.monde, self.id, o))
@@ -340,20 +366,42 @@ def gestes(v, e, vises=None, but=None):
         dans = v.lieu(e, o)
         contenant = dans if dans in objets and objets[dans]["type"] == "contenant" else None
         touche = [(("touche", contenant), True)] if contenant else []
-        faute = "sans_temoin" if v.illicite[o] else ""
-        lese = v.proprietaire[o] if v.illicite[o] else None
+        # Prêté ou acheté par le plan, le bien d'autrui s'emploie sans faute ; rien ne permet de
+        # le consommer, sauf ce qu'il a acheté.
+        illicite_ = v.illicite[o] and not e.fait("permis", o)
+        faute = "sans_temoin" if illicite_ else ""
+        lese = v.proprietaire[o] if illicite_ else None
         mal = int(bool(lese) and not e.fait("faute", lese))
         if lese:
             touche = touche + [(("faute", lese), True)]
+        conso = v.consomme_illicite[o] and not e.fait("achete", o)
+        faute_conso = "sans_temoin" if conso else ""
+        lese_conso = v.proprietaire[o] if conso else None
+        mal_conso = int(bool(lese_conso) and not e.fait("faute", lese_conso))
+        touche_conso = [(("faute", lese_conso), True)] if lese_conso else []
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (v.utile[o] or o in vises.get("prendre", ())) and o in a_porter and not superflu
         if ici and o not in e.portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=e.portes | {o}, faits=touche)
         # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
         porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
+        # On ne demande un objet qu'à qui il appartient (ou s'il n'est à personne), ou ce qui est à
+        # soi : recevoir le bien d'autrui de qui le détient n'en fait pas le sien.
         if (utile and porteur and porteur != id and profil(monde, porteur) and v.salle(e, porteur) == e.salle
-                and o not in e.portes and not v.refuse(porteur, o)):
-            yield 0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)], e.apres(portes=e.portes | {o}), 1
+                and o not in e.portes and v.proprietaire[o] in (porteur, None, id)):
+            # Prêté par son propriétaire, il s'en sert sans faute (``biens.permis``).
+            permis = [(("permis", o), True)]
+            if not v.refuse(porteur, o):
+                yield (0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)],
+                       e.apres(portes=e.portes | {o}, faits=permis), 1)
+            # L'acheter à son propriétaire, s'il a un prix et qu'il peut le payer.
+            prix = objets[o].get("prix")
+            if (prix and v.proprietaire[o] == porteur and v.piece and not v.refuse_achat(porteur, o)
+                    and v.richesse - (e.fait("depense") or 0) >= prix):
+                yield (0, 1 + DEMANDE + v.depense(prix),
+                       [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
+                       e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
+                                                             (("depense",), (e.fait("depense") or 0) + prix)]), 1)
         touche = [x for x in touche if x[0][0] == "faute"]
         if o in vises.get("poser", ()) and o in e.portes:
             yield (0, 1, [_etape("poser", o, lieu=e.salle)],
@@ -367,8 +415,8 @@ def gestes(v, e, vises=None, but=None):
         for pour in vises.get("servir", {}).get(o, ()):
             if ici and v.disponible(o):
                 dedans = [(("touche", contenant), True)] if contenant else []
-                yield (mal, 1, [_etape("servir", o, condition=faute, contenu={"pour": pour})],
-                       e.apres(faits=[(("servi", o), pour), *dedans, *touche]))
+                yield (mal_conso, 1, [_etape("servir", o, condition=faute_conso, contenu={"pour": pour})],
+                       e.apres(faits=[(("servi", o), pour), *dedans, *touche_conso]))
         if x["type"] == "contenant" and v.salle(e, o) == e.salle:
             ouvert, verrou = v.ouvert(e, o), v.verrouille(e, o)
             if not ouvert and not verrou and v.autorise[o]:
@@ -387,8 +435,8 @@ def gestes(v, e, vises=None, but=None):
         if x["type"] == "nourriture" and ici and v.disponible(o) and v.autorise[o]:
             porte = o in e.portes
             dedans = [(("touche", contenant), True)] if contenant else []
-            yield (0 if porte else mal, 1, [_etape("manger", o, condition="" if porte else faute)],
-                   e.apres(faits=[(("mange", o), True), *dedans, *([] if porte else touche)]))
+            yield (0 if porte else mal_conso, 1, [_etape("manger", o, condition="" if porte else faute_conso)],
+                   e.apres(faits=[(("mange", o), True), *dedans, *([] if porte else touche_conso)]))
         # Une source (un foyer, une lampe) qu'il porte ou qui est dans sa salle : la recharger du
         # combustible qu'elle brûle, l'allumer à une flamme qu'il porte (ou à une flamme fixe de sa
         # salle, s'il la porte), se chauffer à un foyer allumé.
@@ -424,8 +472,19 @@ def gestes(v, e, vises=None, but=None):
                 if v.promesse(o) == donneur:
                     if e.salle == (v.salle(e, foyer) if foyer else v.salle(e, o)):
                         yield 0, 0, [], e.apres(faits=part)
-                elif not v.refuse(donneur, o):
+                else:
                     ou = v.salle(e, donneur)
+                    # L'acheter s'il peut la payer : le prix lui coûte ce que valent ses pièces. Une
+                    # part se vend de ce qui est rangé ; ce que le donneur porte, il le remettrait
+                    # entier (``echanges.demande_de_part``).
+                    prix = objets[o].get("prix_part", PRIX_PART)
+                    if (ou == e.salle and v.piece and dans != donneur and not v.refuse_achat(donneur, o)
+                            and v.richesse - (e.fait("depense") or 0) >= prix):
+                        yield (0, 1 + DEMANDE + v.depense(prix),
+                               [_etape("acheter", donneur, outil=o,
+                                       contenu={"prix": prix, **({"foyer": foyer} if foyer else {})})],
+                               e.apres(faits=part + [(("depense",), (e.fait("depense") or 0) + prix)]), 1)
+                if v.promesse(o) != donneur and not v.refuse(donneur, o):
                     if ou == e.salle:
                         yield (0, 1 + DEMANDE, [_etape("demander", donneur, outil=o,
                                                         contenu={"foyer": foyer} if foyer else None)],
@@ -490,7 +549,11 @@ def _entrees(v, vises, profondeur, noeuds):
         [[k, {a: w for a, w in o.items() if a not in CHANGEANTS}, "allume" in o,
           None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
          for k, o in monde.objets.items()],
-        [[o, v.proprietaire[o]] for o in v.connus], v.salles], ensure_ascii=False)
+        [[o, v.proprietaire[o]] for o in v.connus], v.salles,
+        # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
+        # vaut pour lui une pièce.
+        [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
+        v.richesse, v.piece], ensure_ascii=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
@@ -653,8 +716,10 @@ def planifier_pulsion(monde, id, condition):
     rallumer, ou demander pour lui une part de combustible à qui en possède. Un objet à garder
     sous clé : le fermer et le verrouiller."""
     from .deliberation import salle_crue
-    v = Vue(monde, id)
     o = condition.get("objet")
+    if "rendre" in condition:
+        return _rendre(monde, id, o, condition)
+    v = Vue(monde, id)
     if "periode" in condition:
         lieu = condition["lieu"]
         but, vises = (lambda v, e: e.fait("inspecte", lieu)), {"inspecter": (lieu,)}
@@ -689,8 +754,44 @@ def planifier_pulsion(monde, id, condition):
 
 def _nom_condition(c):
     sorte = ("ronde" if "periode" in c else "servir" if "servir" in c else "feu" if "allume" in c
-             else "placer" if "lieu" in c else "sous_cle")
+             else "rendre" if "rendre" in c else "placer" if "lieu" in c else "sous_cle")
     return f"{sorte}:{c.get('objet') or c.get('lieu')}"
+
+
+def _rendre(monde, id, o, condition):
+    """Un objet prêté qui ne lui sert plus (``echanges.necessaire``) : rejoindre son propriétaire
+    et le lui rendre."""
+    from .echanges import necessaire
+    if not porte_par(monde, o, id) or necessaire(monde, id, o):
+        return None
+    chemin = rejoindre(monde, id, condition["rendre"])
+    if chemin is None:
+        return None
+    etapes, trouve = chemin
+    if trouve:
+        etapes.append(_etape("remettre", condition["rendre"], outil=o))
+    return {"type": "pulsion", **condition}, etapes
+
+
+def enrichir(monde, id):
+    """(but, étapes) pour prendre des pièces (un objet qui en contient, qui n'est pas à lui) qui
+    valent pour lui plus que ce qu'il en coûte d'aller les prendre, faute comprise ; None sinon.
+    L'argent ne presse jamais : aucune détresse n'use le prix de la faute (``caractere.ARGENT``)."""
+    from .caractere import ARGENT, valeur_pieces
+    v = Vue(monde, id)
+    bourses = tuple(o for o in v.connus if v.objets[o].get("pieces") and v.proprietaire[o] != id
+                    and not porte_par(monde, o, id) and v.disponible(o))
+    if not bourses or not profil(monde, id):
+        return None
+    trouve = chercher(monde, id, lambda v, e: any(b in e.portes for b in bourses), {"prendre": bourses},
+                      nom="argent", memo=["argent"], emplois=(), motif=ARGENT)
+    if trouve is None:
+        return None
+    cout, etapes, e = trouve
+    pris = next(b for b in bourses if b in e.portes)
+    if valeur_pieces(monde, id, v.objets[pris]["pieces"]) <= cout:
+        return None  # Ces pièces ne valent pas, pour lui, ce qu'il lui en coûterait.
+    return {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
 
 
 def voir(monde, id, salle):

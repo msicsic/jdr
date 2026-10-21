@@ -380,8 +380,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if projection.charge() > monde.joueur["capacite"]:
             raise ErreurMonde("Ce déplacement dépasse ta capacité de portage.",
                               f"charge après déplacement {projection.charge()} > capacité {monde.joueur['capacite']}.")
-        victime = proprietaire(monde, o)
-        illicite = victime not in (None, "joueur") and o.get("vole_par") != "joueur"
+        # Le bien d'autrui, hors ce qu'un prêt ou une garde confiée permettent (``biens.permis``).
+        from .biens import a_autrui
+        victime = a_autrui(monde, cible)
+        illicite = victime is not None
         if illicite and methode != "discret":
             raise ErreurMonde("Cet objet appartient à autrui. Il faut l'acheter ou annoncer une tentative discrète.",
                               f"{cible} appartient à {victime} : acheter, ou deplacer methode discret si le joueur a "

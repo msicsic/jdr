@@ -27,7 +27,7 @@ CHRONIQUE_MAX = 300
 PAS = 15
 DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
           "crocheter": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
-          "inspecter": 100, "dire": 100, "demander": 100, "confier": 100, "remettre": 50}
+          "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50}
 DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
@@ -583,7 +583,7 @@ def _executer(monde, id, etape, lignes, gestes):
     # Il y porte la main : le geste retentit, réussi ou non ; feutré s'il le veut sans témoin.
     from .ouie import retentir
     retentir(monde, id, op, discret=etape["condition"] == "sans_temoin")
-    faute = illicite(monde, id, cible)
+    faute = illicite(monde, id, cible, op)
     if op == "prendre":
         if not c.get("mobile"):
             return False
