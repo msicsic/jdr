@@ -704,10 +704,11 @@ def annonce(monde, rapport):
 def identites(monde):
     """Les personnages dont Corvus sait qui ils sont, d'après ce qu'il sait d'eux, jamais d'après une
     place : il les a vus (``Monde.identifier``, ``souvenirs_personnages``), il connaît leur voix, ou
-    une voix s'est donné leur nom."""
+    une voix s'est donné leur nom, ou une autre voix l'a appelée ainsi (``voix.nommer``)."""
     from .voix import entendues
     ids = {*monde.data.get("personnages_vus", ()), *monde.data.get("souvenirs_personnages", {}),
-           *monde.data.get("voix_connues", ()), *(e.get("se_dit") for e in entendues(monde, "joueur").values())}
+           *monde.data.get("voix_connues", ()),
+           *(e.get(k) for e in entendues(monde, "joueur").values() for k in ("se_dit", "appelee"))}
     return sorted(id for id in ids if id in monde.objets and monde.objets[id]["type"] == "personnage")
 
 
