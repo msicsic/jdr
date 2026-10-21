@@ -367,10 +367,14 @@ def _percevoir(monde, id):
         del croyances[sujet]  # Objet détruit ou consommé : plus rien à croire à son sujet.
     salle = monde.objets[id]["lieu"]
     if salle in monde.data["salles"]:
-        # Il sait si la salle où il se tient est éclairée, même sans en voir la source.
+        # Il sait si la salle où il se tient est éclairée, même sans en voir la source ; la lumière
+        # de ce qu'il porte n'y compte pas : elle le suit, et il sait ce qu'il porte.
         from .perception import eclairage
+        from .spatial import porte_par
         position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
-        croire(monde, id, salle, "etat", {"eclairee": eclairage(monde, salle, position)["niveau"] > 0}, "vu")
+        eclairee = any(c["niveau"] > 0 and not (c["source"] in monde.objets and porte_par(monde, c["source"], id))
+                       for c in eclairage(monde, salle, position)["contributions"])
+        croire(monde, id, salle, "etat", {"eclairee": eclairee}, "vu")
     from .eau import percevoir as percevoir_eau
     percevoir_eau(monde, id)
     for sujet, (salle, case) in vus.items():

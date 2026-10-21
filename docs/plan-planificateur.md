@@ -178,3 +178,67 @@ lirait l'urgence d'un besoin, l'heure, l'esprit d'un autre, l'état vrai d'un ob
 dans `_entrees`, sinon un résultat périmé serait repris ; la pertinence suppose que porter un objet de plus ne rend aucun
 geste moins cher, et qu'un but sans emplois déclarés (le stratège) cherche sur tout ; une
 recherche qui atteignait la borne de nœuds pourrait désormais aboutir.
+
+## Lumière (branche `lumiere-besoin`)
+
+Manque relevé par la mine : les lampes de Gaspard et Rémy s'éteignent, deux lampes de rechange
+restent à la réserve, et personne n'allume ni ne remplit une lampe. Règles communes retenues :
+
+- **Recharger ce qui consomme** (`perception.brule`, `substance`, `recharge`) : une source brûle
+  son contenu déclaré (`matiere.SUBSTANCES` : une lampe de l'huile, une chandelle de la cire) ;
+  un foyer sans contenu déclaré brûle du bois ; une source sans contenu déclaré (une torche) est
+  son propre réservoir. Une réserve de combustible fournit son contenu déclaré, sinon la
+  matière dont elle est faite. `alimenter` recharge toute source de ce qu'elle brûle, pour le
+  joueur (opération, commande locale, verser l'huile dans la lampe), le MJ (consignes), le
+  stratège et les PNJ ; un refus dit ce que brûle la source et quelles réserves conviennent
+  (`attendu`). La mine déclare l'huile de ses lampes, un bidon d'huile à la réserve, et ce que
+  le camp en sait (lampes de rechange prêtes, briquet de Gaspard).
+- **Avoir de la lumière** (`planification.eclairer`) : un recours de la sécurité, avant l'abri,
+  quand il se tient dans le noir (ce qu'il ressent) et que le noir l'inquiète
+  (`deliberation.peur_du_noir`). Aucune méthode écrite : les gestes déclarés suffisent.
+  Allumer une source qu'il porte ou qui est à portée, à une flamme qu'il porte (briquet, autre
+  source) ou à une flamme fixe de sa salle s'il porte la source ; la recharger ; la prendre ou
+  la demander à qui la porte ; rejoindre un lieu qu'il croit éclairé. Le but est atteint quand
+  il porte une source allumée, qu'une source allumée par le plan éclaire sa salle, ou que sa
+  salle est crue éclairée.
+- **Le noir comme coût** : chaque minute réelle (pas la préférence de demander ou chercher)
+  passée dans un lieu qu'il croit obscur coûte `NOIR` × sa peur du noir. Un lieu dont il ne sait
+  rien, il l'imagine comme celui où il se tient. D'où, sans règle de plus : allumer sa lampe au
+  poêle avant une ronde dans une galerie qu'il sait noire (Rémy, et pas Gaspard qui ne craint
+  pas le noir) ; au banc de l'auberge, Odile allume la lampe du comptoir pendant sa ronde.
+- **Garder la lumière qui sert** (`deliberation.lumiere_utile`) : là où il se tient, ou là où son
+  plan le mène, il croit le noir et le craint, ou un geste demande d'y voir (crocheter). Une
+  flamme employée n'est alors pas éteinte pour la ménager, sauf s'il porte une autre lumière ;
+  une source qui l'éclaire ainsi n'est pas prêtée (`echanges.necessaire`).
+- **La salle éclairée sans ce qu'on porte** : la croyance `eclairee` d'une salle ne compte plus
+  les sources qu'il porte (elles le suivent).
+- Toucher la source d'autrui (l'allumer, la recharger) est une faute comme la prendre.
+
+Mémoire et vitesse : les lectures nouvelles (peur, contenu, croyances de lumière, salle où il se
+tient) sont dans `_entrees` ; `VERIFIER` passe sur une nuit de chaque scénario. Ce que la lumière
+rend pertinent (sources, flammes, ce qui les recharge) ne l'est que s'il croit le noir quelque
+part, s'il sait crocheter ou si le but est la lumière ; une lampe ou un briquet de plus ne s'explore
+pas quand une source allumée est déjà en main, ou, pour qui n'a que faire de lumière, quand il a
+déjà une flamme ou qu'aucun feu n'est à allumer ; une lampe pleine ne se recharge pas. Sans ces
+élagages, la recherche du poêle de Josse atteignait la borne de nœuds. Temps d'une nuit
+(graine 42, processeur) : Relais 6,4 → 6,0 s, mine 10,5 → 13,3 s, auberge 41,5 → 27 s (autre
+nuit), crue 7,9 → 6,0 s.
+
+Bancs (8 h ; Relais 8 graines, mine, auberge et crue 4) : Relais identique. Mine : nuits
+décalées en fin de nuit, mesures voisines ; quand le poêle meurt, la dernière flamme est le
+briquet de Gaspard, que personne ne voit dans le noir : « avoir de la lumière » reste sans geste.
+Auberge : Lucien, dans le grenier noir, va au couloir éclairé au lieu d'y appeler à l'aide, puis
+revient garder ses biens : il va et vient (jusqu'à 39 fois dans une nuit) ; les lanternes
+restent allumées pour qui craint le noir, d'où plus de gestes vus (vols vus 2,75 → 11,25,
+confidences 5,5 → 16), moins de bruits allés voir (88,5 → 39). Crue : une nuit sur quatre se
+décale.
+
+Limites :
+- le va-et-vient entre deux besoins dont l'urgence dépend du lieu (la garde au grenier noir, la
+  lumière du couloir) : rien ne retient dans la lumière celui qui n'emporte pas de lumière ;
+  l'abri a la même faiblesse ;
+- demander une flamme suppose de croire son porteur là : dans le noir, on ne retrouve personne
+  (manque déjà relevé) ; on n'allume pas sa lampe à celle d'un autre sans la lui emprunter ;
+- inspecter dans le noir compte encore comme une ronde ; seul crocheter demande d'y voir ;
+- une lampe n'a pas de contenance : chaque charge ajoute sa durée ;
+- une lampe prêtée reste celle d'autrui : l'allumer est une faute (prêts, manque déjà relevé).

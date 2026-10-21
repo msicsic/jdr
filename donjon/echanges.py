@@ -49,10 +49,15 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
 
 
 def necessaire(monde, auditeur, objet):
-    """Un objet qui sert son plan en cours ou une de ses pulsions (l'objet, sa clé) n'est pas prêté."""
+    """Un objet qui sert son plan en cours ou une de ses pulsions (l'objet, sa clé) n'est pas
+    prêté, ni la source qui l'éclaire quand il a besoin d'y voir (``deliberation.lumiere_utile``)."""
     intention = lire(monde, auditeur)["intention"]
     if intention and any(objet in (e["cible"], e["outil"]) for e in intention["plan"]):
         return True
+    if "allume" in monde.objets[objet] and monde.objets[auditeur].get("profil"):
+        from .deliberation import lumiere_utile
+        if lumiere_utile(monde, auditeur):
+            return True
     profil = monde.objets[auditeur].get("profil")
     for pulsion in (profil or {}).get("pulsions", []):
         cible = pulsion["condition"].get("objet")

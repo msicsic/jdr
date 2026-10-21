@@ -258,7 +258,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
   confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
-- La suite de tests passe : 839 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `lumiere-besoin`, non fusionnée (manque relevé par la mine : dans le noir, personne
+  ne cherchait de lumière ; détail dans `docs/plan-planificateur.md`, « Lumière ») : une source
+  qui consomme se recharge de ce qu'elle brûle (`perception.recharge` : son contenu déclaré, un
+  foyer brûle du bois ; une source sans contenu déclaré, une torche, ne se recharge pas) ;
+  `alimenter` vaut pour le joueur, le MJ, le stratège et les PNJ, verser de l'huile dans la lampe
+  aussi. La mine déclare l'huile de ses lampes et un bidon d'huile à la réserve. Dans le noir,
+  qui le craint (`peur_du_noir`) cherche à avoir de la lumière (recours de la sécurité, avant
+  l'abri) ; le planificateur trouve les moyens par ses gestes : allumer une source à une flamme
+  portée ou fixe, la recharger, prendre une lampe, la demander, rejoindre un lieu éclairé. Toute
+  minute dans un lieu qu'il croit obscur lui coûte (`NOIR` × sa peur) : il allume sa lampe avant
+  une ronde dans le noir ; la lampe qui l'éclaire ne se ménage ni ne se prête. La croyance
+  « éclairée » d'une salle ne compte plus ce qu'on porte. Bancs : Relais identique (8 graines) ;
+  mine, auberge, crue décalées, aucune usurpation, `VERIFIER` sur une nuit de chaque. Auberge :
+  aux rondes, Odile allume la lampe du comptoir ; Lucien quitte le grenier noir pour le couloir
+  éclairé au lieu d'y appeler à l'aide, mais va et vient entre sa garde et la lumière ;
+  confidences 5,5 → 16, vols vus 2,75 → 11,25 (lanternes gardées allumées). Mine : à la fin de
+  la nuit, la dernière flamme est le briquet de Gaspard, que personne ne retrouve dans le noir.
+- La suite de tests passe : 851 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -273,7 +290,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
+- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
+  `lumiere-besoin`, à relire avant fusion) ; demander du bois
   pour entretenir un feu ; chercher quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et
   permissions déléguées ; l'argent ; un protégé nourri en boucle ; `pnj._rate` croit disparu un
   objet caché dans un contenant fermé.

@@ -281,6 +281,16 @@
       "source": "savoir",
       "valeur": "garde_manger"
      }
+    },
+    "briquet": {
+     "lieu": {
+      "case": null,
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": null,
+      "source": "savoir",
+      "valeur": "gaspard"
+     }
     }
    },
    "intention": null,
@@ -392,6 +402,16 @@
       "salle": "reserve",
       "source": "savoir",
       "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": false,
+       "charge": true,
+       "faible": false
+      }
      }
     },
     "lampe_rechange_2": {
@@ -405,6 +425,16 @@
       "salle": "reserve",
       "source": "savoir",
       "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": false,
+       "charge": true,
+       "faible": false
+      }
      }
     },
     "lucien": {
@@ -559,6 +589,27 @@
       "source": "savoir",
       "valeur": "garde_manger"
      }
+    },
+    "bidon_huile": {
+     "lieu": {
+      "case": [
+       3,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "disponible": true
+      }
+     }
     }
    },
    "intention": null,
@@ -686,6 +737,16 @@
       "salle": "reserve",
       "source": "savoir",
       "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": false,
+       "charge": true,
+       "faible": false
+      }
      }
     },
     "lampe_rechange_2": {
@@ -699,6 +760,16 @@
       "salle": "reserve",
       "source": "savoir",
       "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": false,
+       "charge": true,
+       "faible": false
+      }
      }
     },
     "lucien": {
@@ -871,6 +942,37 @@
       "salle": "baraquement",
       "source": "savoir",
       "valeur": "garde_manger"
+     }
+    },
+    "bidon_huile": {
+     "lieu": {
+      "case": [
+       3,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "disponible": true
+      }
+     }
+    },
+    "briquet": {
+     "lieu": {
+      "case": null,
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": null,
+      "source": "savoir",
+      "valeur": "gaspard"
      }
     }
    },
@@ -1077,6 +1179,16 @@
       "salle": "baraquement",
       "source": "savoir",
       "valeur": "garde_manger"
+     }
+    },
+    "briquet": {
+     "lieu": {
+      "case": null,
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": null,
+      "source": "savoir",
+      "valeur": "gaspard"
      }
     }
    },
@@ -1303,6 +1415,16 @@
       "salle": "baraquement",
       "source": "savoir",
       "valeur": "garde_manger"
+     }
+    },
+    "briquet": {
+     "lieu": {
+      "case": null,
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": null,
+      "source": "savoir",
+      "valeur": "gaspard"
      }
     }
    },
@@ -1613,6 +1735,16 @@
       "salle": "reserve",
       "source": "savoir",
       "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": false,
+       "charge": true,
+       "faible": false
+      }
      }
     },
     "lampe_rechange_2": {
@@ -1626,6 +1758,16 @@
       "salle": "reserve",
       "source": "savoir",
       "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "allume": false,
+       "charge": true,
+       "faible": false
+      }
      }
     },
     "lucien": {
@@ -1753,6 +1895,37 @@
       "salle": "baraquement",
       "source": "savoir",
       "valeur": "garde_manger"
+     }
+    },
+    "bidon_huile": {
+     "lieu": {
+      "case": [
+       3,
+       2
+      ],
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": "reserve",
+      "source": "savoir",
+      "valeur": "reserve"
+     },
+     "etat": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": {
+       "disponible": true
+      }
+     }
+    },
+    "briquet": {
+     "lieu": {
+      "case": null,
+      "confiance": 0.9,
+      "minute": 0,
+      "salle": null,
+      "source": "savoir",
+      "valeur": "gaspard"
      }
     }
    },
@@ -2103,7 +2276,10 @@
     0
    ],
    "position_salle": "bureau",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "cle_garde_manger": {
    "aliases": [
@@ -2706,7 +2882,10 @@
     1
    ],
    "position_salle": "baraquement",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lampe_filon": {
    "aliases": [
@@ -2730,7 +2909,10 @@
     2
    ],
    "position_salle": "filon",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lampe_gaspard": {
    "aliases": [
@@ -2750,7 +2932,10 @@
    "mobile": true,
    "nom": "lampe de Gaspard",
    "proprietaire": "gaspard",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lampe_josse": {
    "aliases": [
@@ -2770,7 +2955,10 @@
    "mobile": true,
    "nom": "lampe du contremaître",
    "proprietaire": "josse",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lampe_rechange_1": {
    "aliases": [
@@ -2794,7 +2982,10 @@
     2
    ],
    "position_salle": "reserve",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lampe_rechange_2": {
    "aliases": [
@@ -2818,7 +3009,10 @@
     2
    ],
    "position_salle": "reserve",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lampe_remy": {
    "aliases": [
@@ -2838,7 +3032,10 @@
    "mobile": true,
    "nom": "lampe de Rémy",
    "proprietaire": "remy",
-   "type": "luminaire"
+   "type": "luminaire",
+   "contenu": {
+    "matiere": "huile"
+   }
   },
   "lucien": {
    "aliases": [
@@ -3508,6 +3705,36 @@
    "portions": 4,
    "proprietaire": "mathe",
    "type": "nourriture"
+  },
+  "bidon_huile": {
+   "aliases": [
+    "bidon d'huile",
+    "bidon",
+    "huile",
+    "huile de lampe"
+   ],
+   "charges": 3,
+   "contenu": {
+    "matiere": "huile"
+   },
+   "duree_combustion": 120,
+   "id": "bidon_huile",
+   "integrite": 10,
+   "lieu": "reserve",
+   "masse": 3,
+   "materiau": "fer-blanc",
+   "maximum": 10,
+   "mobile": true,
+   "nom": "bidon d'huile à lampe",
+   "position": [
+    3,
+    2
+   ],
+   "position_salle": "reserve",
+   "type": "consommable",
+   "usages": [
+    "combustible"
+   ]
   }
  },
  "personnages_version": 1,
