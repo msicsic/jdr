@@ -320,6 +320,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'auditeur reste sémantique ; une interpellation libre peut encore être racontée par Luna sans
   rien faire dire ; « Gorm, je te donne la cloche » entre guillemets reste une parole. Détail dans
   `docs/plan-ouie.md` (« Correctif : ce qui est une parole sans conteste »).
+- Branche `entretenir-feu`, non fusionnée (manques de la mine et de l'auberge : Odile et Mireille
+  devant un foyer mort sans demander le bois de Joss ; le poêle de Josse tenu seulement par la
+  dérive de son devoir ; Mathe servant Lucien en boucle). Trois règles communes. Une pulsion qui
+  cesse d'être satisfaite est **rompue** (`esprit["pulsions"]` : True, False rompue, None désir
+  jamais satisfait) : il la rétablit sans attendre que son besoin presse, quelle qu'en soit la
+  cause (un feu qui baisse, un protégé qui a faim, ce qu'il a ouvert ou emporté lui-même) ; les
+  rondes gardent leur routine, un désir attend son besoin. Un feu à entretenir peut employer le
+  bois d'un autre : la part de combustible va au feu que le but entretient (le donneur le
+  recharge et le rallume), on ne demande pas ce qu'on a sur soi, on ne prête pas ce qu'on garde
+  (`echanges.garde`), une parole n'est tenue que sur ce qu'on a constaté depuis (un feu vu vif
+  avant la demande se revoit), une part de bois est servie quand on a revu le feu rechargé.
+  Servir un protégé : seulement s'il est cru affamé (la faim qui presse se voit, `etat` d'un
+  personnage), et il le voit manger ; la pulsion de Mathe est remise. Cas vérifiés après
+  rechargement (`tests/test_entretenir.py`) : Mireille demande les fagots de Joss, qui recharge
+  le fourneau puis garde sa dernière charge ; Josse, devoir à 10 sans dérive, recharge son poêle
+  de ses étais, puis sans étais obtient une part des bûches de Gaspard ; Mathe sert Lucien une
+  fois ; Gorm, bois en main et sans flamme, va allumer la torche au lieu de demander des planches.
+  Bancs (8 h ; `VERIFIER` sur 5 nuits) : Relais 8 graines, sans recours 428 → 401, événements
+  23,3 → 26,5 ; crue 300 → 281 ; mine 668 → 670, poêle allumé 385 → 448 min (Josse obtient le
+  bois de Gaspard), Odon, privé d'une part que Mathe a servie à Lucien, force le garde-manger ;
+  auberge 573 → 673 : les demandes ont lieu (Joss donne une charge par nuit, Anselme garde les
+  deux siennes), les trois foyers brûlent 622 → 710 min, mais le bois manque avant la fin de la
+  nuit et le devoir, que rien n'apaise, reste urgent (Odile et Mireille inchangées) ; Anselme
+  recharge son poêle à temps, ce qui déplace le crochetage de Lucien. Aucune usurpation. Limites :
+  on ne demande que le bois qu'on connaît ; une part de bois promise s'attend 60 minutes si l'on
+  n'a pas revu le feu ; une ancienne sauvegarde lit False comme rompue.
 - La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
@@ -335,10 +361,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
-  pour entretenir un feu ; chercher quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et
-  permissions déléguées ; l'argent ; un protégé nourri en boucle ; `pnj._rate` croit disparu un
-  objet caché dans un contenant fermé.
+- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; chercher
+  quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et permissions déléguées ; l'argent ;
+  `pnj._rate` croit disparu un objet caché dans un contenant fermé ; un besoin que rien n'apaise
+  (le devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé
+  nourri en boucle : branche `entretenir-feu`.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.
