@@ -14,7 +14,7 @@ from donjon.deliberation import autour, gardes, menaces
 from donjon.echanges import demander_feu
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.geometrie import position_entree
-from donjon.planification import Vue, depart, gestes, planifier, planifier_pulsion
+from donjon.planification import Vue, depart, gestes, planifier
 from tests.support import calme, regarder
 from tests.test_tensions import placer, recharger, relais, vivre
 
