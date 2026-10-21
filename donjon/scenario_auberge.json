@@ -2397,6 +2397,7 @@
           "tilo",
           "mathurine"
         ],
+        "alerte": 3,
         "valeurs": {
           "loyaute": 80
         }
@@ -2405,9 +2406,6 @@
         "repas": 480,
         "veille": 900,
         "trempe": 300
-      },
-      "reaction_son": {
-        "seuil": 2
       }
     },
     "mathurine": {

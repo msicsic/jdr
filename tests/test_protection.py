@@ -6,8 +6,8 @@ rechargement.
 import copy
 import unittest
 
-from donjon.deliberation import verifier_profil
-from donjon.esprits import croire, lire, memoriser, percevoir_tous
+from donjon.deliberation import alarme, verifier_profil
+from donjon.esprits import croire, dernier_son, lire, memoriser, percevoir_tous
 from donjon.moteur import Moteur, proposition
 from tests.support import calme, regarder
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
@@ -34,8 +34,12 @@ class AppelTests(unittest.TestCase):
         m = seule_et_a_bout(relais())
         m, _ = vivre(m, 1)
         self.assertIn("Ilse appelle à l'aide.", chronique(m))
-        self.assertEqual(lire(m, "marchand")["intention"]["motif"], "alerte")
-        m, _ = vivre(m, 5)
+        # Il reconnaît sa voix (l'ouïe commune) : à la minute suivante, il accourt avant tout le reste.
+        self.assertEqual(dernier_son(m, "marchand")["qui"], "ilse")
+        self.assertEqual(alarme(m, "marchand"), ("echoppe", "devoir"))
+        m, _ = vivre(m, 1)
+        self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "voir", "lieu": "echoppe"})
+        m, _ = vivre(m, 4)
         self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")
         # Elle n'appelle pas à chaque minute.
         self.assertEqual(chronique(m).count("Ilse appelle à l'aide."), 1)
@@ -55,8 +59,8 @@ class AppelTests(unittest.TestCase):
         m.objets["marchand"]["profil"]["protege"] = []
         m, _ = vivre(m, 1)
         self.assertIn("Ilse appelle à l'aide.", chronique(m))
-        intention = lire(m, "marchand")["intention"]
-        self.assertTrue(intention is None or intention["motif"] != "alerte")
+        # L'appel reste un bruit qu'il peut aller voir, par devoir ou courage, mais pas une alarme.
+        self.assertIsNone(alarme(m, "marchand"))
 
 
 class PrevenirTests(unittest.TestCase):

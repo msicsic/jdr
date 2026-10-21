@@ -649,17 +649,16 @@ class Moteur:
         gestes += [commencer_geste(travail, "joueur", "pousser", cible, debut + duree(plan))
                    for op, cible, _ in effets if op == "pousser"]
         # Son geste retentit (``ouie``) : qui l'entend sans le voir l'interprète, se retourne de près.
+        # Un appel, un cri, un sifflement, le son d'un objet ont leur nature déclarée (``sons``).
         from .ouie import retentir
+        from .sons import nature_emise
         heles = [valeur for op, _, valeur in effets if op == "heler"]
         # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``pnj.repondre_a``).
         retournes = [] if heles or any(op == "repondre" for op, _, _ in effets) else retentir(
-            travail, "joueur", methode if geste == "emettre_son" and methode in ("appel", "cri", "sifflement")
-            else geste, discret=methode == "discret", bruit=plan.bruit)
+            travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
+            force=nature_emise(travail, effets))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
         minutes = ecouler(travail, duree(plan))
-        # Qui a saisi son nom répond, le cri fini ; le joueur l'entend par l'ouïe commune (``ecoute``).
-        from .pnj import repondre
-        repondus = [qui for qui in heles if repondre(travail, "joueur", qui, lignes)]
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
         # l'eau trempe aussitôt.
@@ -674,6 +673,10 @@ class Moteur:
         percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
+        # Qui a saisi son nom répond, le cri fini : après avoir vécu ces secondes (tourné vers la voix,
+        # ou parti ailleurs). Le joueur l'entend par l'ouïe commune (``ecoute``).
+        from .pnj import repondre
+        repondus = [qui for qui in heles if repondre(travail, "joueur", qui, lignes)]
         # Qui l'a vu faire sous ses yeux à lui : il le sait ; un témoin dans son dos, non.
         for geste in gestes:
             lignes.extend(designer(travail.objets[id], debut=True) + " t'a vu faire."
@@ -699,8 +702,9 @@ class Moteur:
         from .horloges import declencher as declencher_horloges
         declencher_horloges(travail, lignes)
         percevoir_tous(travail)
-        from .sons import auditeurs
-        a_portee = set(auditeurs(travail, travail.joueur["salle"], 3))
+        # Qui entendrait d'ici un fracas du joueur (l'ouïe commune) : son humeur suit le tapage.
+        from .sons import entendants
+        a_portee = set(entendants(travail, "bruyant"))
         for id, relation in travail.data["relations_pnj"].items():
             if id not in a_portee or any(e[0] == "emettre_son" for e in plan.effets):
                 # L'audition a déjà été résolue spatialement, sans alerter tout le monde.

@@ -371,9 +371,11 @@ def preparer_faits(monde, proposition, revision=None):
             if nom or genre or len(texte) > 240:
                 raise refus("Cette parole ne peut pas être attribuée à ce personnage ici.",
                             "parole : nom et genre vides, texte de 240 caractères au plus.")
-            from .sons import auditeurs
+            from .ouie import saisissent
+            from .voix import reel as _reel
             source = travail.joueur["salle"]
-            entendants = auditeurs(travail, source, 2)
+            # Qui en saisit les mots, par l'ouïe commune ; le joueur, à qui elle s'adresse.
+            entendants = sorted(saisissent(travail, _reel(travail, ancrage)))
             if "joueur" not in entendants:
                 entendants.append("joueur")
             from .voix import nom_pour_joueur, reel

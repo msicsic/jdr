@@ -206,6 +206,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "poussees": sum(" pousse " in c["texte"] for c in chronique),
                # L'ouïe : se retourner au bruit, retenir un bruit inconnu, aller le voir.
                "retournements": sum(c["texte"].endswith("se retourne au bruit.") for c in chronique),
+               # L'appelé qui se tourne vers la voix qui l'appelle (``ouie._vers_la_voix``).
+               "vers_la_voix": sum(c["texte"].endswith("se tourne vers la voix qui l'appelle.") for c in chronique),
+               "appels_a_l_aide": sum(c["texte"].endswith(" appelle à l'aide.") for c in chronique),
                "bruits_inconnus": sum(" entend un bruit : " in c["texte"] for c in chronique),
                "alles_voir": sum(" va voir d'où venait le bruit : " in c["texte"] for c in chronique),
                # Les paroles entendues sans en être le destinataire (``social.retenir_parole``).

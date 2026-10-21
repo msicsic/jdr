@@ -12,7 +12,7 @@ from donjon.moteur import Moteur, proposition as action
 from donjon.improvisation import proposition, issue, effet
 from donjon.mj import MJOpenAI
 from donjon.rendu import decrire
-from donjon.esprits import dernier_son
+from donjon.esprits import dernier_son, lire
 
 
 def chant():
@@ -63,11 +63,15 @@ class ImprovisationTests(unittest.TestCase):
         self.assertFalse(self.m.data["sons"][-1]["auditeurs"])
         from donjon.monde import nouveau_monde
         crypte = nouveau_monde()
-        crypte.joueur["salle"] = "echoppe"
-        Moteur(crypte).executer(Moteur(crypte).preparer(chant()))
-        self.assertEqual(dernier_son(crypte, "marchand")["nature"], "geste sonore")
-        self.assertEqual(dernier_son(crypte, "marchand")["forme"], "voix_melodique")
-        self.assertNotIn("intention", dernier_son(crypte, "marchand"))
+        # Un rythme frappé dans l'antichambre : Gorm, dans l'échoppe, l'entend sans le voir (l'ouïe
+        # commune, ``ouie.SONS`` : un son franc comme un fracas) et le retient, sans rien inventer.
+        rythme = proposition("Taper des mains", issue("Un rythme.",
+            [effet("son", "joueur", texte="corps_rythmique", valeur=2)]), bruit=2)
+        Moteur(crypte).executer(Moteur(crypte).preparer(rythme))
+        self.assertEqual(crypte.data["sons"][-1]["auditeurs"], ["marchand"])
+        self.assertEqual({k: dernier_son(crypte, "marchand")[k] for k in ("salle", "nature")},
+                         {"salle": "antichambre", "nature": "bruyant"})
+        self.assertIsNone(lire(crypte, "marchand")["intention"])
         self.assertFalse(crypte.data["engagements"])
 
     def test_forme_sonore_structuree_et_souvenir_apres_rechargement(self):
@@ -93,8 +97,9 @@ class ImprovisationTests(unittest.TestCase):
             reprise = Monde.charger(chemin)
         self.assertEqual([s["forme"] for s in reprise.data["sons"][-2:]],
                          ["voix_melodique", "corps_rythmique"])
-        self.assertEqual(interlocuteurs(reprise)["marchand"]["dernier_son_entendu"]["forme"],
-                         "corps_rythmique")
+        # Gorm le voit faire : ce qu'il voit n'a pas besoin de l'ouïe, il n'en garde aucun bruit.
+        self.assertEqual(reprise.data["sons"][-1]["auditeurs"], ["marchand"])
+        self.assertIsNone(interlocuteurs(reprise)["marchand"]["dernier_son_entendu"])
 
     def test_marque_cree_detail_examinable_et_sauvegarde(self):
         avant = copy.deepcopy(self.m.data)
