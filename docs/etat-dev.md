@@ -258,7 +258,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bancs : Relais identique (9,75 paroles surprises par nuit) ; mine et auberge, moins de
   confidences (les témoins savent déjà), plus de rumeurs crues et de méfiances à l'auberge ;
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
-- La suite de tests passe : 839 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `constater-et-rumeurs`, non fusionnée (`docs/plan-ouie.md`, « Constater, raconter où,
+  chercher quelqu'un ») : trois manques de la mine et de l'auberge. **On constate ce que la main
+  rencontre** : un geste manqué sur un objet cru dans un contenant ouvert, alors fermé, apprend le
+  contenant fermé (verrouillé ou non, par l'essai) et garde l'objet cru dedans (`pnj._hors_d_atteinte`) ;
+  Brune force de nouveau la réserve au lieu de croire les vivres disparues. **Le témoin d'un geste
+  qui déplace un objet voit où il va** (`pnj._lieu_vu`, `prendre` et `poser`) : il le croit là, sa
+  nouvelle porte le lieu (« … a posé le ballot de soie dans Étable »), qui la croit en tire une
+  croyance de lieu à confiance de ouï-dire, sauf constat propre postérieur (`social._apprendre_lieu`) ;
+  qui sait depuis l'objet ailleurs tait le lieu ; le protecteur qui prévient la victime lui dit
+  aussi où sont ses biens. Anselme reprend son ballot (graine 42). Ne pas avoir trouvé un objet ne
+  dément plus qu'il soit ailleurs (`paroles.dementi`). **Chercher quelqu'un** : en parcourant une
+  salle où on le cherche sans le voir, on l'appelle (`pnj.appeler`) ; qui saisit son nom et ne se
+  méfie pas répond, et l'on croit sa voix (`entendu`) ; de près, on se parle même dans le noir
+  (`pnj.se_parler`, comme le joueur). Mireille trouve Odile au grenier noir au lieu de tourner une
+  heure. Bancs (8 h, avant → après) : aucune usurpation ni violation ; par nuit 5 appels au Relais,
+  6 à l'auberge, 9,5 à la crue ; minutes sans recours Relais 428 → 426, auberge 573 → 634, mine
+  668 → 696, crue 300 → 339. Détail des écarts et limites dans `docs/plan-ouie.md`.
+- La suite de tests passe : 848 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -274,9 +291,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
-  pour entretenir un feu ; chercher quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et
-  permissions déléguées ; l'argent ; un protégé nourri en boucle ; `pnj._rate` croit disparu un
-  objet caché dans un contenant fermé.
+  pour entretenir un feu ; prêter et permissions déléguées ; l'argent ; un protégé nourri en
+  boucle. Chercher quelqu'un dans le noir, le lieu dans une rumeur et le contenant fermé cru
+  ouvert sont traités sur la branche `constater-et-rumeurs`, à relire avant fusion.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

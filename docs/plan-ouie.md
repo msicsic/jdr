@@ -219,6 +219,98 @@ faire, une rumeur qui court plus tôt (auberge : Hugues accuse Lucien à 200 min
 part refusée à Gaspard à 221 minutes au lieu d'être promise le laisse affamé (+300 minutes) ; à
 l'auberge, graine 7, une nuit de panique (453 retournements) n'a plus lieu (213).
 
+## Constater, raconter où, chercher quelqu'un (branche `constater-et-rumeurs`)
+
+Trois manques relevés en écrivant la mine et l'auberge (`docs/etat-dev.md`).
+
+**On constate ce que la main rencontre** (`pnj._hors_d_atteinte`). Avant, tout geste manqué sur un
+objet hors d'atteinte le faisait croire disparu (`pnj._rate`). Désormais, si l'objet est cru dans
+un contenant (ou plus loin dans ce qu'il croit le contenir) qui est fermé et à portée de main,
+c'est ce contenant que sa main rencontre : il le croit fermé, et verrouillé ou non, par l'essai ;
+l'objet reste cru dedans (rien ne lui montre qu'il n'y est plus). Sinon, l'objet n'est pas là où il
+le croyait, comme avant. Cas réel (Relais) : Brune croit la réserve ouverte, Gorm l'a refermée à
+clé ; dans la pénombre, elle apprend la serrure, va chercher ses crochets et force la réserve, au
+lieu de croire les vivres disparues et de rester sans plan. Même nature (auberge) : Lucien, dans
+la chambre au poêle éteint, trouve le coffre d'Anselme fermé à clé et s'y acharne. Ouvert et vide :
+l'absence, comme avant.
+
+**Le témoin d'un geste qui déplace un objet voit où il va** (`pnj._lieu_vu`, gestes `prendre` et
+`poser`, déclarés une fois : `pnj.DEPLACEMENTS`). Son souvenir `vu_agir` porte le lieu, comme une
+croyance (valeur, salle, case vue, minute) ; il le croit là (`vu`) ; pris, il le sait dans les
+mains de l'auteur. La nouvelle le dit (« Lucien a posé le ballot de soie dans Étable ») ; qui la
+croit en tire une croyance de lieu à la confiance du ouï-dire (`social._apprendre_lieu`), sauf s'il
+a lui-même vu, essayé ou entendu l'objet après le geste rapporté ; ne pas l'avoir trouvé là où il
+l'attendait n'y fait pas obstacle (et ne dément plus qu'il soit ailleurs : `paroles.dementi`). Qui
+a appris depuis l'objet ailleurs dit le geste sans le lieu ; deux témoins du même geste racontent
+le même fait (`social._fait`). Le protecteur qui va prévenir la victime d'un geste vu lui dit aussi
+où il croit ses biens que l'auteur a déplacés (`deliberation._lieux_a_dire`, une affirmation
+`lieu`). La victime les reprend par ses pulsions (un bien à sa place). Cas réel (auberge, graine
+42) : Hugues voit Lucien poser le ballot à l'étable, prévient Anselme et lui dit où il est ; Anselme
+va le reprendre et le repose dans sa chambre. Même nature (Relais) : Ilse voit Brune poser les
+vivres de Gorm dans la conduite basse et le lui glisse aux vannes ; Gorm les rapporte au refuge.
+
+**Chercher quelqu'un, c'est aussi l'appeler** (`pnj.appeler`). Chercher quelqu'un qu'on a perdu de
+vue (`planification._chercher` : une part à demander, prévenir un protégé) parcourt une salle des
+yeux ; s'il ne l'y voit pas, il l'appelle par son nom (une voix, `ouie`). Qui s'entend appeler (il
+en saisit les mots, `ouie.saisissent`) et ne se méfie pas de lui répond de la voix ; s'il entend la
+réponse (`ouie.entend`), il le croit là d'où elle vient (`entendu` : sa case dans la même salle,
+sinon la salle), et l'ouïe commune attribue ensuite ses bruits. Ils se parlent alors de près même
+dans le noir (`pnj.se_parler` : la voix suffit, comme pour le joueur, `passage._peut_prier`). Le
+joueur entend l'appel et la réponse par `ecoute` ; appelé, il répond s'il le veut. Cas réel
+(auberge, graine 7) : Mireille tournait 70 minutes dans l'auberge sans voir Odile ; au grenier noir,
+elle l'appelle, Odile répond, Mireille lui demande sa part sans la voir et l'obtient. Même nature :
+Hugues cherche Anselme au dortoir noir pour le prévenir, l'appelle, et le prévient de vive voix.
+Odile, qui se méfie de Mireille, ne répond pas.
+
+Vérifié (`tests/test_constater_rumeurs.py`, état après rechargement et ce que lit le joueur) : les
+cas ci-dessus ; le joueur lit en clair « Hugues dit à Anselme que le ballot de soie est dans
+Étable. » et « Ilse glisse à Gorm que Brune a posé les vivres du refuge dans Conduite basse. »,
+et entend au grenier « « Odile ? » » puis « « Ici ! » ».
+
+Bancs (8 h, mêmes graines, avant → après ; `appels` et `reponses` sont de nouvelles mesures, et les
+appels comptent parmi les échanges) :
+
+| | Relais (8) | Mine (4) | Auberge (4) | Crue (4) |
+|---|---|---|---|---|
+| appels / réponses | — → 5,1 / 2,3 | — → 0 / 0 | — → 6 / 1,5 | — → 9,5 / 2,5 |
+| échanges hors appels | 7,6 → 8,4 | 33,3 → 39 | 21,8 → 25,8 | 7,5 → 7,5 |
+| minutes sans recours | 428 → 426 | 668 → 696 | 573 → 634 | 300 → 339 |
+| rumeurs crues | 0,5 → 0,4 | 2,5 → 2,5 | 5,5 → 7,3 | 1 → 0,8 |
+| vols vus | 8,1 → 9,3 | 0,5 → 0,5 | 2,8 → 2,5 | 7,5 → 8,3 |
+| jets | 8,1 → 8,8 | 9,3 → 67 | 159 → 162 | 9,3 → 10,5 |
+
+Aucune usurpation, aucune violation. Le geste manqué sur un contenant fermé ne se produisait dans
+aucune nuit d'avant (il venait d'une partie jouée) ; après, une fois : crue, graine 7, Brune, qui a
+mangé dans la réserve ouverte, la retrouve refermée, l'apprend verrouillée et s'y remet. Une variante sans la parole
+dans le noir isole son effet : la mine retrouve exactement ses mesures d'avant, l'auberge 576
+minutes sans recours ; la parole dans le noir fait donc la hausse de ces deux bancs. À la mine,
+Odon, affamé, demandait sa part à Mathe dans le noir sans pouvoir lui parler et appelait à l'aide
+une heure ; elle l'entend désormais, refuse (méfiance), et il force le garde-manger dans le noir à
+5 % de chance, 60 minutes durant (les 58 jets de plus). À l'auberge, qui cherchait sans fin (Hugues
+194 minutes après Anselme, graine 42 ; Mireille 70 minutes après Odile, graine 7) trouve et parle,
+puis attend la part promise ou n'a plus de recours : ces minutes passent de « en chemin » à « sans
+rien entreprendre ». À la crue, la hausse vient de nuits qui divergent (graine 1985 : Ilse bien
+moins inquiète, sécurité pressante 102 → 26 minutes, froid 65 → 1, mais refusée et affamée plus
+longtemps) ; les minutes dans l'eau baissent (271 → 255).
+
+Limites :
+- On constate le contenant rencontré, pas son contenu : l'objet reste cru dedans même s'il n'y est
+  plus. Un contenant cru ouvert mais hors d'atteinte (déplacé) laisse l'objet cru disparu.
+- Le lieu d'une nouvelle est celui que le témoin a vu au moment du geste ; une croyance tirée d'un
+  ouï-dire n'en garde pas la date : de deux nouvelles entendues sur le même objet, la dernière
+  entendue l'emporte, même si elle rapporte un geste plus ancien. Le prévenu qui va reprendre son
+  bien et ne le trouve pas dans les 30 minutes tient le témoin pour menteur (`esprits.reviser`).
+- Seuls `prendre` et `poser` déplacent un objet aux yeux d'un témoin ; un objet remis ou servi ne
+  donne pas de lieu.
+- On n'appelle qu'en cherchant quelqu'un pour un plan (une part, prévenir) ; un bruit inconnu ne
+  fait toujours pas appeler, et la voix d'un inconnu ne fait pas reconnaître qui parle. Qui ne veut
+  pas être trouvé ne se tait que par méfiance. Le joueur appelé ne répond pas pour le PNJ.
+- Les échanges que le joueur ne voit pas, dans sa salle, se lisent comme avant (« X parle à voix
+  basse avec Y ») en plus de ce que son ouïe lui en fait entendre ; ne les dire que vus changerait
+  le contrat de plusieurs tests du stratège : hors de ce chantier.
+- Forcer une serrure dans le noir à 5 % de chance reste un recours que le planificateur prend
+  quand il n'en a pas d'autre (mine, Odon) ; la lumière comme but est un autre chantier.
+
 ## Limites
 
 - Les réflexes déclarés (`reaction_son`, le protecteur qui accourt) et le souvenir « son » restent
