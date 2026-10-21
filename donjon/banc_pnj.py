@@ -16,6 +16,7 @@ graine (``page_<graine>.html``, ou ``rejeu_<graine>.html`` dans le dossier donn�
 import argparse
 from collections import Counter
 import json
+import os
 
 from .esprits import lire, pnjs
 from .pnj import CONTRAINTES
@@ -352,11 +353,30 @@ def _nuit(arguments):
     return nuit(*arguments)
 
 
-def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire"):
-    """Plusieurs nuits en parallèle, une par processus ; les résultats dans l'ordre des graines.
-    Avec ``rejeu``, une page par graine (``page_rejeu``)."""
+# Le banc tourne sur le poste de l'utilisateur : il en laisse la moitié libre, et cède la main.
+PROCESSUS = max(1, (os.cpu_count() or 2) // 2)
+
+
+def ceder():
+    """Le banc passe sous la priorité normale ; les processus de ses nuits en héritent. Ses résultats
+    n'en dépendent pas, seulement ses temps."""
+    try:
+        if os.name == "nt":
+            import ctypes
+            noyau = ctypes.windll.kernel32
+            noyau.SetPriorityClass(noyau.GetCurrentProcess(), 0x4000)  # BELOW_NORMAL_PRIORITY_CLASS
+        else:
+            os.nice(5)
+    except (OSError, AttributeError):
+        pass
+
+
+def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire",
+          processus=None):
+    """Plusieurs nuits en parallèle, au plus ``processus`` à la fois (``PROCESSUS`` par défaut) ; les
+    résultats dans l'ordre des graines. Avec ``rejeu``, une page par graine (``page_rejeu``)."""
     from concurrent.futures import ProcessPoolExecutor
-    with ProcessPoolExecutor(max_workers=min(len(graines), 16)) as pool:
+    with ProcessPoolExecutor(max_workers=max(1, min(len(graines), processus or PROCESSUS))) as pool:
         return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic,
                                       page_rejeu(rejeu, g, True) if rejeu else None, depart) for g in graines]))
 
@@ -399,12 +419,15 @@ def main(argv=None):
                         help="départ tiré de la graine dans les bornes du scénario (défaut), ou départ déclaré")
     parser.add_argument("--diagnostic", action="store_true",
                         help="mesure chaque recherche du planificateur (nœuds, durée, issue), par PNJ et par but")
+    parser.add_argument("--processus", type=int, default=PROCESSUS,
+                        help=f"nuits calculées à la fois avec --graines (défaut {PROCESSUS}, la moitié des cœurs)")
     args = parser.parse_args(argv)
+    ceder()
     if args.graines:
         if args.stratege:
             parser.error("le stratège suit une nuit à la fois : --graine, pas --graines")
         resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic,
-                          args.rejeu, args.depart)
+                          args.rejeu, args.depart, args.processus)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
             if args.rejeu:

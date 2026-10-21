@@ -21,3 +21,8 @@ Les règles de développement et le point de reprise sont tenus dans le dépôt 
   dépôt. Les fusions se font dans `.worktrees/integration` (branche `integration`), puis `main`
   avance en avance rapide. `tmp-worktrees/` est à Codex ; `.claude/worktrees/` reçoit les agents
   isolés de Claude Code. Supprimer le worktree et la branche une fois fusionnés.
+- Charge du poste : l'utilisateur travaille sur la machine qui calcule. `banc_pnj` cède la priorité
+  et plafonne ses nuits simultanées à la moitié des cœurs (`--processus`). Lancer les bancs de
+  `main` et de la branche l'un après l'autre, sauf quand le chantier mesure le temps de calcul ;
+  pas plus de deux agents qui font des bancs en même temps ; les autres processus Python lourds
+  (suite de tests longue) en priorité réduite.

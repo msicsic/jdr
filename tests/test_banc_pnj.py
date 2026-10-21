@@ -27,3 +27,32 @@ class ChroniqueDuBancTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ChargeDuBancTests(unittest.TestCase):
+    """Le banc tourne sur le poste de l'utilisateur : il plafonne ses nuits simultanées."""
+
+    def test_les_nuits_a_la_fois_sont_plafonnees(self):
+        from unittest.mock import patch
+        from donjon import banc_pnj
+        vus = []
+
+        class Pool:
+            def __init__(self, max_workers):
+                vus.append(max_workers)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+            def map(self, f, arguments):
+                return [None for _ in arguments]
+
+        with patch("concurrent.futures.ProcessPoolExecutor", Pool):
+            banc_pnj.nuits("relais", list(range(12)), 1, None, processus=3)
+            banc_pnj.nuits("relais", [1, 2], 1, None, processus=3)
+            banc_pnj.nuits("relais", list(range(64)), 1, None)
+        self.assertEqual(vus, [3, 2, min(64, banc_pnj.PROCESSUS)])
+        self.assertLessEqual(banc_pnj.PROCESSUS, max(1, (__import__("os").cpu_count() or 2) // 2))
