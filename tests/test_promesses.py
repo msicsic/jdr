@@ -23,12 +23,12 @@ from donjon.paroles import esprits_interlocuteurs
 
 def refuge():
     """Le refuge du Relais, hors cases : Brune, Ilse et Aubin présents, la besace de départ."""
-    return nouveau_defi(1985)
+    return nouveau_defi(1985, "fixe")
 
 
 def aupres_de_gorm():
     """Cas de la partie : la cloche rapportée, Gorm à côté du joueur, aucune mission au Relais."""
-    m = nouveau_defi(1985)
+    m = nouveau_defi(1985, "fixe")
     m.joueur["salle"] = m.objets["marchand"]["lieu"]
     m.objets["cloche"]["lieu"] = "joueur"
     return m

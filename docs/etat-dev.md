@@ -511,7 +511,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   envisage la porte du bureau mais le baraquement n'est jamais sans témoin : il renonce (aucune
   porte crochetée au banc). Limites : lumière crue de la case où il se tenait (un essai perdu au
   plus), pas de « forcer » pour les PNJ, contenu d'une bourse appris seulement en la tenant.
-- La suite de tests passe : 966 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `depart-tire`, non fusionnée (`docs/plan-crue.md`, « Le départ tiré de la graine ») : les
+  nuits étaient presque déterministes (au Relais, une seule nuit jusqu'à la minute 5, deux jusqu'à
+  120 sur 16 graines ; tout le hasard venait du d20). À la création du monde, le moteur tire le
+  départ de la graine par un tirage à part (`donjon/depart.py`, `seed:depart`, les d20 inchangés),
+  une fois, gardé dans `data["depart"]` : états du corps (repas, veille, trempé) à 20 % près, besoins
+  du profil à 10 points près, périodes de ronde à 20 % près et la prochaine ronde dans la première
+  moitié de sa période (au départ déclaré, toutes tombent à la minute 0), échéance des horloges à
+  25 % près ; aucun besoin tiré au-delà de 85, sauf déclaré plus haut. Bornes déclarées par les
+  quatre scénarios (`depart.bornes`), défauts du moteur sinon ; `depart="fixe"` (constructeurs,
+  `banc_pnj --depart fixe`) garde le départ déclaré, et les tests de scène partent de lui. Banc :
+  empreintes de l'état aux minutes 5, 60, 120, 240, 480 et issue de la nuit (`divergence`), jets
+  par heure ; une pulsion confiée à qui l'on croit fiable compte à part (`minutes_urgentes_confiees`),
+  plus « sans recours » ; `echanges` sans les appels ni leurs réponses. Bancs 8 h, fixe → tiré :
+  Relais (16 graines) nuits distinctes à 5/60/120/240/480 min 1/2/2/6/10 → 14/16/16/16/16, issues
+  4 → 13 ; mine 3/2/2/2/4 → 8 partout ; auberge 1/1/3/8/8 → 8 partout ; crue 2/4/6/7/8 → 8 partout.
+  Aucune usurpation ni violation, `VERIFIER` sur une nuit de chaque scénario. Limite relevée : au
+  Relais, Gorm n'est plus d'office au refuge à la première minute, et Brune affamée vole dès qu'il
+  s'éloigne (minute 3 dans une nuit sur 16, ~30 dans deux) ; jugé dans son caractère, à revoir si
+  l'on veut un premier acte plus long.
+- La suite de tests passe : 975 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

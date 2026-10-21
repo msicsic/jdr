@@ -81,7 +81,7 @@ class PretTests(unittest.TestCase):
         self.assertEqual((m.objets["lampe_gaspard"]["lieu"], m.data["permissions"]), ("gaspard", []))
 
     def test_le_joueur_emprunte_une_lampe_et_la_pose_sans_la_voler(self):
-        m = calme(creer("mine", 1985), "gaspard")
+        m = calme(creer("mine", 1985, "fixe"), "gaspard")
         salle, (x, y) = m.joueur["salle"], m.joueur["position"]
         placer(m, "gaspard", salle, (x + 1, y))
         percevoir_tous(m)
@@ -186,7 +186,7 @@ class AchatTests(unittest.TestCase):
         self.assertEqual((m.data["finances_pnj"]["brune"], m.objets["vivres"]["portions"]), (3, 4))
 
     def test_vendre_ou_donner_selon_ce_que_vaut_une_piece_pour_lui(self):
-        m = creer("auberge", 1985)
+        m = creer("auberge", 1985, "fixe")
         # Anselme, marchand ambitieux dont le commerce réclame tout : une pièce lui est chère, il
         # rechigne à donner sans être payé ; Odile, qui en a davantage pour elle, beaucoup moins.
         self.assertGreater(valeur_piece(m, "anselme"), valeur_piece(m, "odile"))
@@ -199,7 +199,7 @@ class ArgentTests(unittest.TestCase):
     def paie_a_portee(self, dette):
         """Mine : Odon est seul au bureau, devant le coffre de la paie, ses crochets en main ; il
         n'a pas faim. Seule sa dette change d'un cas à l'autre."""
-        m = creer("mine", 1985)
+        m = creer("mine", 1985, "fixe")
         calme(m, "bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy")
         p = m.objets["odon"]["profil"]
         p["valeurs"]["honnetete"] = 70

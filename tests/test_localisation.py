@@ -11,7 +11,7 @@ from donjon.spatial import installer
 
 class LocalisationTests(unittest.TestCase):
     def setUp(self):
-        self.m = nouveau_defi()
+        self.m = nouveau_defi(depart="fixe")
         installer(self.m)
 
     def objets(self):

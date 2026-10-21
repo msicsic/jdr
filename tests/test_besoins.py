@@ -24,7 +24,7 @@ def recharger(monde):
 
 
 def relais():
-    m = refusee(sans_evacues(nouveau_defi()))
+    m = refusee(sans_evacues(nouveau_defi(depart="fixe")))
     installer(m)
     return m
 

@@ -47,7 +47,7 @@ def placer(monde, id, salle, case):
 
 
 def relais():
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     return m
 

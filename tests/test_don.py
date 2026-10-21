@@ -12,7 +12,7 @@ from donjon.moteur import Moteur, proposition
 
 def relais_avec_cloche():
     """Cas d'une partie : la cloche rapportée au refuge, Gorm à côté, aucune mission au Relais."""
-    m = nouveau_defi(1985)
+    m = nouveau_defi(1985, "fixe")
     m.data["mode_cases"] = False
     m.joueur["salle"] = m.objets["marchand"]["lieu"]
     m.objets["cloche"]["lieu"] = "joueur"

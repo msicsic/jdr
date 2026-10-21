@@ -20,7 +20,7 @@ from tests.support import refusee, regarder
 
 
 def relais():
-    m = creer("relais")
+    m = creer("relais", depart="fixe")
     m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
     # Placement d'auteur : Gorm vient de faire ses rondes, il est à son poste.
     lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)

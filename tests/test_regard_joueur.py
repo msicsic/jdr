@@ -17,7 +17,7 @@ from tests.test_tensions import recharger
 
 
 def relais():
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     return calme(m, "marchand", "brune", "ilse", "aubin")
 

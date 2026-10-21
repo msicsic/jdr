@@ -19,7 +19,7 @@ def planches(pieces=2, longueur=150, largeur=20, epaisseur=2.5):
 
 
 def relais_avec_planches():
-    m = nouveau_defi(1985)
+    m = nouveau_defi(1985, "fixe")
     m.joueur["salle"] = m.objets["planches"]["lieu"]
     m.data["mode_cases"] = False
     return m
