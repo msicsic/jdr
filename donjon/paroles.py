@@ -120,9 +120,11 @@ def jet_persuasion(monde, auditeur, locuteur, dd_base):
 
 
 def dementi(monde, auditeur, sujet, attribut, valeur):
-    """Ce que l'auditeur a vu ou essayé récemment contredit-il ce qu'on lui dit ?"""
+    """Ce que l'auditeur a vu ou essayé récemment contredit-il ce qu'on lui dit ? Ne pas avoir
+    trouvé un objet là où on l'attendait ne contredit pas qu'il soit ailleurs."""
     actuelle = lire(monde, auditeur)["croyances"].get(sujet, {}).get(attribut)
     return bool(actuelle and actuelle["source"] in ("vu", "essai") and actuelle["valeur"] != valeur
+                and not (attribut == "lieu" and actuelle["valeur"] is None)
                 and monde.data["minutes"] - actuelle["minute"] <= RECENT)
 
 

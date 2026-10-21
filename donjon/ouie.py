@@ -214,6 +214,17 @@ def saisissent(monde, auteur, geste="parler"):
     return resultat
 
 
+def entend(monde, auteur, auditeur, geste="dire"):
+    """Le niveau auquel le PNJ ``auditeur`` entend, ici et maintenant, le geste d'``auteur`` (un PNJ
+    ou le joueur) ; None s'il ne l'entend pas (sous son seuil, ou trop loin)."""
+    n = nature(geste)
+    salle, case = _place(monde, auteur)
+    if n is None or salle not in monde.data["salles"] or not monde.objets[auditeur].get("entend", True):
+        return None
+    parvient = parvenu(propager(monde, salle, case, INTENSITES[n]), *_place(monde, auditeur))
+    return parvient[0] if parvient is not None and parvient[0] >= seuil(monde, auditeur) else None
+
+
 def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
     l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :

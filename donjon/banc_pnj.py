@@ -127,6 +127,9 @@ def executer(monde, minutes, recit=None):
                "alles_voir": sum(" va voir d'où venait le bruit : " in c["texte"] for c in chronique),
                # Les paroles entendues sans en être le destinataire (``social.retenir_parole``).
                "paroles_surprises": sum(" surprend les mots " in c["texte"] for c in chronique),
+               # Chercher quelqu'un sans le voir : l'appeler, et qui répond (``pnj.appeler``).
+               "appels": sum(" appelle : « " in c["texte"] for c in chronique),
+               "reponses": sum(" répond : « " in c["texte"] for c in chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.

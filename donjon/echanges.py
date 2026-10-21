@@ -268,7 +268,7 @@ def executer(monde, id, etape, lignes):
         # Personne ne lui répond là où il le croyait : il l'apprend, comme tout geste manqué.
         return _rate(monde, id, autre)
     if not se_parler(monde, id, autre):
-        return False  # Ils ne peuvent se voir : rien ne se dit.
+        return False  # Ils ne peuvent ni se voir ni s'entendre : rien ne se dit.
     a, b, contenu = _qui(monde, id), _qui(monde, autre), etape.get("contenu", {})
     objet = monde.objets.get(etape["outil"])
     transmis = []  # Ce que la parole transmet à qui l'entend sans en être le destinataire.
@@ -302,8 +302,8 @@ def executer(monde, id, etape, lignes):
         issue, recit = "remis", f"{a} remet {designer(objet)} à {b}"
         clair, cites, reussi = recit + ".", [objet["id"]], True
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
-    faire_entendre(monde, id, autre, clair, [x for x in cites if x and (x in monde.objets or x == "joueur")], lignes,
-                   transmis)
+    nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]
+    faire_entendre(monde, id, autre, clair, nommes, lignes, transmis)
     if not reussi:
         vise = objet["id"] if objet else contenu.get("objet")
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue,

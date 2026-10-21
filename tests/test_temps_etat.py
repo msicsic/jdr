@@ -268,8 +268,11 @@ class GestesEnCoursTests(unittest.TestCase):
         self.assertIn("Gorm, gardien du relais t'a vu faire.", texte)
         m = recharger(m)
         self.assertEqual(m.objets["marteau"]["lieu"], "joueur")
-        self.assertIn({"type": "vu_agir", "auteur": "joueur", "operation": "prendre", "objet": "marteau"},
+        # Il l'a vu prendre : il le sait dans les mains de Corvus (``pnj._lieu_vu``).
+        self.assertIn({"type": "vu_agir", "auteur": "joueur", "operation": "prendre", "objet": "marteau",
+                       "lieu": {"valeur": "joueur", "salle": None, "case": None, "minute": 0}},
                       [{k: v for k, v in s.items() if k != "minute"} for s in lire(m, "marchand")["memoire"]])
+        self.assertEqual(lire(m, "marchand")["croyances"]["marteau"]["lieu"]["valeur"], "joueur")
         self.assertFalse(lire(m, "marchand")["croyances"]["joueur"]["fiable"]["valeur"])
         # Le geste fini quitte le registre à l'action suivante.
         faire(m, "tourner sud")

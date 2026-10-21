@@ -32,6 +32,12 @@ def _noyau(evenement):
     return {k: v for k, v in evenement.items() if k not in ("minute", "dit_a")}
 
 
+def _fait(noyau):
+    """Le fait dont parle la nouvelle, sans le lieu où chacun a vu l'objet aller : deux témoins
+    du même geste racontent la même chose."""
+    return {k: v for k, v in noyau.items() if k != "lieu"}
+
+
 def accuse(evenement):
     if evenement["type"] in ("vu_agir", "vol_surpris", "vu_porter"):
         return evenement["auteur"]
@@ -71,11 +77,21 @@ def nouvelles(monde, id):
         if (any(k not in monde.objets for k in (noyau.get("objet"),) if k and k != "joueur")
                 or not _croit_encore(monde, id, noyau)):
             continue  # L'objet n'existe plus, ou il a changé d'avis : il n'y a plus rien à en dire.
+        if "lieu" in noyau and _cru_ailleurs(monde, id, noyau):
+            noyau = _fait(noyau)  # Il ne le croit plus là : il dit le geste, sans le lieu.
         yield souvenir, noyau, rang, source
 
 
+def _cru_ailleurs(monde, id, noyau):
+    """Depuis ce que dit la nouvelle, il a appris que l'objet n'est plus là où elle le met."""
+    lieu = lire(monde, id)["croyances"].get(noyau["objet"], {}).get("lieu")
+    return bool(lieu) and lieu["minute"] > noyau["lieu"]["minute"] and lieu["valeur"] != noyau["lieu"]["valeur"]
+
+
 def _sait(monde, id, noyau):
-    return any((_noyau(s) == noyau if s["type"] in NOUVELLES else s["type"] == "rumeur" and s["evenement"] == noyau)
+    fait = _fait(noyau)
+    return any((_fait(_noyau(s)) == fait if s["type"] in NOUVELLES
+                else s["type"] == "rumeur" and _fait(s["evenement"]) == fait)
                for s in lire(monde, id)["memoire"])
 
 
@@ -115,7 +131,25 @@ def phrase(monde, noyau):
     verbe = GESTES[noyau["operation"]]
     if noyau.get("objet") == "joueur":
         return qui + " " + verbe + " " + monde.joueur["nom"]  # Un geste contre lui (``pnj.CONTRAINTES``).
-    return qui + " " + (verbe[:-3] + " " + complement_de(o) if verbe.endswith(" de") else verbe + " " + designer(o))
+    return (qui + " " + (verbe[:-3] + " " + complement_de(o) if verbe.endswith(" de") else verbe + " " + designer(o))
+            + _ou(monde, noyau))
+
+
+def _ou(monde, noyau):
+    """Où l'objet est allé, s'il l'a vu poser : « dans <salle> », « dans <contenant> » ; porté par
+    l'auteur, la phrase le dit déjà (« a pris »)."""
+    lieu = (noyau.get("lieu") or {}).get("valeur")
+    if lieu in monde.data["salles"]:
+        return " dans " + monde.data["salles"][lieu]["nom"]
+    if lieu in monde.objets and monde.objets[lieu]["type"] != "personnage":
+        return " dans " + designer(monde.objets[lieu])
+    return ""
+
+
+def _lieu_dit(noyau):
+    """Le lieu que la nouvelle donne à son objet (``_ou``), pour qui l'entend."""
+    lieu = (noyau.get("lieu") or {}).get("valeur")
+    return [lieu] if lieu and lieu != accuse(noyau) else []
 
 
 def _adopter(monde, auditeur, locuteur, noyau, rang):
@@ -134,11 +168,30 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     if noyau["type"] == "absence":
         croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
     elif accuse(noyau) != auditeur:
+        _apprendre_lieu(monde, auditeur, noyau, source, confiance)
         actuelle = lire(monde, auditeur)["croyances"].get(accuse(noyau), {}).get("fiable")
         # Une méfiance qu'il tient de ses propres yeux ne devient pas un ouï-dire.
         if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
             croire(monde, auditeur, accuse(noyau), "fiable", False, source, confiance)
     return "crue"
+
+
+def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
+    """Une nouvelle qui dit où l'objet est allé donne au destinataire une croyance de lieu, à la
+    confiance du ouï-dire. Ce qu'il en a constaté lui-même après le geste rapporté (vu, essayé,
+    entendu après la minute ``lieu["minute"]``) prime ; ne pas l'avoir trouvé là où il l'attendait
+    ne dit pas qu'il n'est pas ailleurs, et un ouï-dire cède à la nouvelle qui le précise."""
+    lieu, objet = noyau.get("lieu"), noyau.get("objet")
+    if not lieu or objet not in monde.objets or lieu["valeur"] == auditeur:
+        return
+    if not (lieu["valeur"] in monde.data["salles"] or lieu["valeur"] in monde.objets or lieu["valeur"] == "joueur"):
+        return  # Le lieu a disparu depuis : il n'y a plus rien à en croire.
+    actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("lieu")
+    if (actuelle and actuelle["valeur"] is not None and actuelle["source"] in ("vu", "essai", "entendu")
+            and actuelle["minute"] > lieu["minute"]):
+        return
+    croire(monde, auditeur, objet, "lieu", lieu["valeur"], source, confiance, salle=lieu["salle"],
+           case=lieu["case"])
 
 
 def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=()):
@@ -160,7 +213,7 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=()):
 
 
 def _entendu(monde, id, auditeur, noyau, rang, lignes):
-    cites = [x for x in (accuse(noyau), noyau.get("objet")) if x]
+    cites = [x for x in (accuse(noyau), noyau.get("objet"), *_lieu_dit(noyau)) if x]
     faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse à " + _qui(monde, auditeur) + " que "
                    + phrase(monde, noyau) + ".", cites, lignes,
                    [{"type": "rumeur", "evenement": noyau, "rang": rang}])

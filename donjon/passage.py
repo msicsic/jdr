@@ -510,7 +510,7 @@ def faire_place(monde, id, autre, chemin, lignes, gestes):
 
 
 def _peut_prier(monde, id, autre):
-    """Pour demander, ils se tournent l'un vers l'autre et doivent se voir (``pnj.se_parler``) ;
+    """Pour demander, ils se tournent l'un vers l'autre et s'entendent de près (``pnj.se_parler``) ;
     le joueur, assez près, entend la voix de qui se tourne vers lui."""
     from .pnj import _faire_face, de_pres, se_parler
     if autre != "joueur":
