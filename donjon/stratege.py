@@ -28,7 +28,8 @@ DECLENCHEURS = {
     "desoeuvre": "désœuvré depuis une heure, sans besoin urgent",
 }
 GESTES = ("aller", "inspecter", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
-          "crocheter", "manger", "reposer", "chauffer", "alimenter", "servir", *SOCIALES)
+          "crocheter", "manger", "reposer", "chauffer", "alimenter", "servir",
+          *(x for x in SOCIALES if x != "demander_feu"))   # demander du feu : un geste du planificateur
 APPELANT = None         # (instructions, entree, intention, fonction, schema) -> dict ; posé par le jeu ou le banc
 
 INSTRUCTIONS = """Tu es le stratège d'un personnage non joueur d'un jeu de rôle. Le dossier est

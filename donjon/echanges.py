@@ -204,6 +204,29 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
     return "vendu" if vente else "remis"
 
 
+def demander_feu(monde, demandeur, auditeur, flamme, source):
+    """« absent », « mefiance », « qui_va_la », « eteinte », « impossible » ou « allume ». Le
+    demandeur tend sa source ; l'auditeur l'allume à la flamme qu'il porte. Cela ne lui ôte rien,
+    ni prêt ni part : il le fait sans se faire prier, sauf s'il se méfie de lui ou ne sait qui
+    lui parle (``accueil``)."""
+    from .eau import sous_l_eau
+    from .perception import flamme as donne_feu
+    from .spatial import porte_par
+    if flamme not in monde.objets or not porte_par(monde, flamme, auditeur):
+        return "absent"
+    arret = accueil(monde, demandeur, auditeur)
+    if arret:
+        return arret
+    if not donne_feu(monde.objets[flamme]):
+        return "eteinte"
+    s = monde.objets.get(source)
+    if (s is None or not porte_par(monde, source, demandeur) or s.get("allume") is not False
+            or s.get("integrite", 1) == 0 or s.get("combustible", 0) <= 0 or sous_l_eau(monde, s)):
+        return "impossible"
+    s["allume"] = True
+    return "allume"
+
+
 def _vendre(monde, vendeur, acheteur, objet, prix):
     """L'acheteur paie ; chacun se souvient de la vente."""
     from .biens import payer
@@ -443,6 +466,24 @@ def executer(monde, id, etape, lignes):
                                "vendu": f" {b} accepte et prend l'argent.",
                                "promis": f" {b} accepte de lui en donner."}.get(issue, f" {b} refuse.")
         cites, reussi = [objet["id"]], issue in ("remis", "rendu", "promis", "vendu")
+    elif op == "demander_feu":
+        source = monde.objets.get(contenu.get("allumer"))
+        if objet is None or source is None:
+            return False
+        issue = demander_feu(monde, id, autre, objet["id"], source["id"])
+        recit = f"{a} demande du feu à {b} pour {designer(source)}"
+        clair = recit + "." + (f" {b} l'allume à {designer(objet)}." if issue == "allume" else f" {b} refuse.")
+        cites, reussi = [objet["id"], source["id"]], issue == "allume"
+        if reussi:
+            # Allumée dans sa main : il la ménagera quand elle ne lui servira plus (``menager_flamme``).
+            memoriser(monde, id, {"type": "flamme_employee", "objet": source["id"]})
+        elif issue == "absent":
+            from .pnj import _rate
+            _rate(monde, id, objet["id"])   # Il ne la porte pas : il l'apprend.
+        if issue in ("allume", "eteinte", "impossible"):
+            constater(monde, id, source["id"], "essai")
+            if objet["id"] in monde.objets:
+                constater(monde, id, objet["id"], "vu")
     elif op == "confier":
         issue = confier(monde, id, autre, contenu)
         recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
@@ -469,7 +510,8 @@ def executer(monde, id, etape, lignes):
     nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]
     faire_entendre(monde, id, autre, clair, nommes, lignes, transmis)
     if not reussi:
-        vise = objet["id"] if objet else contenu.get("objet")
+        # Un feu refusé l'est pour cette source ; un objet demandé, pour cet objet.
+        vise = contenu.get("allumer") if op == "demander_feu" else objet["id"] if objet else contenu.get("objet")
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue,
                               **({"objet": vise} if vise else {})})
     return reussi

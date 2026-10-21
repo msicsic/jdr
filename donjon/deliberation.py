@@ -18,10 +18,11 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper",
-              "dire", "demander", "acheter", "confier", "remettre")
+              "dire", "demander", "acheter", "confier", "remettre", "demander_feu")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
-SOCIALES = ("dire", "demander", "acheter", "confier", "remettre")
+# demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
+SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
@@ -427,9 +428,15 @@ def protecteurs(monde, protege):
 
 
 def appeler_a_l_aide(monde, id, minute):
-    """À bout d'inquiétude et sans abri, il appelle : un son fort, que d'autres entendent."""
+    """À bout d'inquiétude et sans abri, il appelle : un son fort, que d'autres entendent. Celui
+    qui voit menacé ce qu'il garde, là où il se tient (``menaces``), n'attend pas d'être à bout :
+    il appelle dès que l'inquiétude le presse, si elle l'emporte sur son courage
+    (``voix.prudent``) ; plus courageux, il reste et surveille."""
+    from .voix import prudent
     e = esprit(monde, id)
-    if (e["besoins"].get("securite", 0) < DESESPOIR
+    menace = ("securite" in urgents(monde, id) and prudent(monde, id)
+              and monde.objets[id]["lieu"] in menaces(monde, id))
+    if (e["besoins"].get("securite", 0) < DESESPOIR and not menace
             or e["intention"] and e["intention"]["but"]["type"] == "abri"
             or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in e["memoire"])):
         return
@@ -529,6 +536,53 @@ def _eclairee_crue(monde, id, salle):
     return any("allume" in monde.objets[k] and (_cru(monde, id, k, "etat") or {}).get("allume")
                and not porte_par(monde, k, id) and _lieu_cru(monde, id, k) not in porteurs
                and salle_crue(monde, id, k) == salle for k in _connus(monde, id))
+
+
+def sources_posees_crues(monde, id, salle):
+    """{source: case ou None} : les sources qu'il croit allumées et posées dans cette salle (pas
+    dans une main : elles suivent leur porteur), avec la case où il les croit."""
+    croyances = lire(monde, id)["croyances"]
+    trouvees = {}
+    for k in _connus(monde, id):
+        o = monde.objets[k]
+        etat = (croyances.get(k, {}).get("etat") or {}).get("valeur") or {}
+        if "allume" not in o or not etat.get("allume") or porte_par(monde, k, id):
+            continue
+        lieu = croyances.get(k, {}).get("lieu")
+        if lieu is not None:
+            if lieu["valeur"] != salle:
+                continue
+            trouvees[k] = lieu.get("case")
+        elif not o.get("mobile") and o["lieu"] == salle:
+            trouvees[k] = o.get("position")   # Un objet fixe fait partie du lieu.
+    return trouvees
+
+
+def apport_cru(monde, id, objet):
+    """La lumière qu'il croit, devant ``objet``, d'une source allumée ou posée près de lui depuis
+    qu'il y a vu clair ou sombre (croyance ``lumiere``, qui retient les sources qu'il croyait alors
+    allumées là, ``allumees``) : selon la distance qu'il croit entre elles (portée d'une source,
+    ``perception.PORTEES``), sans ce qui pourrait faire ombre, qu'il constatera devant
+    (``pnj._assez_de_lumiere``). 0 si rien n'a changé à sa connaissance."""
+    from .geometrie import distance
+    from .perception import PORTEES
+    c = lire(monde, id)["croyances"].get(objet, {})
+    vue = c.get("lumiere")
+    if vue is None:
+        return 0
+    salle = salle_crue(monde, id, objet)
+    lieu = c.get("lieu")
+    case = lieu.get("case") if lieu else monde.objets[objet].get("position") if not monde.objets[objet].get("mobile") else None
+    if salle not in monde.data["salles"] or case is None:
+        return 0
+    apport = 0
+    for k, ou in sources_posees_crues(monde, id, salle).items():
+        if k in vue.get("allumees", ()) or ou is None:
+            continue
+        plein, penombre = PORTEES[max(1, min(3, monde.objets[k].get("luminosite", 1)))]
+        d = distance(ou, case)
+        apport = max(apport, 2 if d <= plein else 1 if d <= penombre else 0)
+    return apport
 
 
 def lumiere_crue(monde, id, salle):
@@ -671,15 +725,35 @@ def de_son_fait(monde, id, condition):
     return "lieu" in condition and "objet" in condition and porte_par(monde, condition["objet"], id)
 
 
+def _lieux_gardes(monde, id, siens=False):
+    """Les salles où il croit ce qu'il garde : ses pulsions de biens sur un objet, hors rondes.
+    ``siens`` : seulement ce dont il a la charge, le sien ou celui qu'on lui a confié (y toucher
+    n'est pas une faute, ``illicite``), pas ce qu'il convoite."""
+    p = profil(monde, id) or {}
+    return {s for x in p.get("pulsions", []) if x["besoin"] == "biens" and not periodique(x["condition"])
+            and "objet" in x["condition"] and not (siens and illicite(monde, id, x["condition"]["objet"]))
+            for s in [salle_crue(monde, id, x["condition"]["objet"])] if s in monde.data["salles"]}
+
+
+def menaces(monde, id):
+    """Les salles où il croit un bien dont il a la charge et, avec, quelqu'un dont il se méfie : ce
+    bien est menacé à ses yeux. S'en éloigner, c'est le lui laisser (``gardes``) ; ce n'est pas
+    s'abriter de lui (``planification.abri``)."""
+    from .esprits import pnjs
+    lieux = _lieux_gardes(monde, id, siens=True)
+    if not lieux:
+        return ()
+    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and _cru(monde, id, x, "fiable") is False]
+    return tuple(sorted(s for s in lieux if any(salle_crue(monde, id, x) == s for x in mefiants)))
+
+
 def gardes(monde, id):
     """Les salles où il croit ce qu'il garde (ses pulsions de biens qui ne sont pas des rondes),
-    quand ses biens le pressent : s'en tenir loin lui coûte (``planification.GARDE``)."""
-    p = profil(monde, id) or {}
-    if "biens" not in urgents(monde, id):
-        return ()
-    return tuple(sorted({s for x in p.get("pulsions", []) if x["besoin"] == "biens" and not periodique(x["condition"])
-                         and "objet" in x["condition"]
-                         for s in [salle_crue(monde, id, x["condition"]["objet"])] if s in monde.data["salles"]}))
+    quand ses biens le pressent, ou quand il y croit quelqu'un dont il se méfie (``menaces``) :
+    s'en tenir loin lui coûte (``planification.GARDE``), quel que soit le plan."""
+    if "biens" in urgents(monde, id):
+        return tuple(sorted(_lieux_gardes(monde, id)))
+    return menaces(monde, id)
 
 
 def _plan_garder(monde, id, condition):

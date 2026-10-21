@@ -58,7 +58,7 @@ NATURES = {
                      "inspecter", "reposer", "chauffer", "abriter"), None),
     **dict.fromkeys(("aller", "marcher", "chasser"), "pas"),
     **dict.fromkeys(("faufiler", "toucher", "chuchoter"), "feutre"),
-    **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "sifflement"), "voix"),
+    **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "demander_feu", "sifflement"), "voix"),
     **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle"), "bruyant"),
     # Héler quelqu'un par son nom est un cri : même portée qu'un appel ; ce sont les mots qui
     # l'en distinguent, pour qui les saisit (``entendre``).

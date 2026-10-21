@@ -632,7 +632,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pressent (`GARDE`) ; tout débiteur rembourse, quelle que soit son honnêteté ; le joueur ne réclame
   pas par une parole typée et ne voit la dette qu'au remboursement ; seule une part vendue d'avance
   crée une dette.
-- La suite de tests passe : 1012 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `pnj-lumiere-garde`, non fusionnée (`docs/plan-planificateur.md`, « Lumière et garde ») :
+  quatre limites des branches précédentes, diagnostiquées sur les bancs et des copies de leurs états.
+  **Lumière dans le noir** : quand le but emploie lui-même un objet (ce qu'il vise, une source ou une
+  flamme pour la lumière), on cherche et appelle son porteur perdu de vue, comme pour une part ; et
+  l'on **demande du feu** (`demander_feu`, `echanges.demander_feu`) : on tend sa source à qui porte
+  une flamme, qui l'y allume sans rien prêter, sauf méfiance (Rémy, le camp éteint, appelle Gaspard
+  et allume une lampe de rechange à son briquet ; Joss à l'auberge, au briquet d'Odile). Mine de 11 h :
+  appels à l'aide 192 → 96, minutes dans le noir 812 → 696 par nuit. **Lumière devant une serrure** :
+  une source qu'il sait allumée ou posée près de l'objet depuis compte de loin (`apport_cru`, la
+  croyance `lumiere` retient les sources `allumees`) ; la lueur diffuse par case, le moteur ne la
+  connaît que par salle (limite du modèle). **L'échange compte l'éloignement** : Gorm achetait les
+  planches d'Aubin parce que le plan d'échange s'arrêtait à l'achat, sans compter l'attente près du
+  brasero, loin de ses biens (même sans `GARDE`, 5,66 contre 7) ; une part promise s'attend là où elle
+  se sert, ce temps compte avec ce qu'il laisse monter (`Vue.attente_part`), et ne s'explore que si
+  elle atteint le but ; Gorm prend ses fagots (Relais 7, 42, 2024). **Un gardien ne laisse pas son
+  bien à qui le menace** (`deliberation.menaces`) : un bien dont il a la charge, avec quelqu'un dont il
+  se méfie, coûte `GARDE` à tout plan qui s'en éloigne, l'abri n'y gagne pas de quitter cette personne,
+  et il appelle à l'aide si sa crainte l'emporte sur son courage (Bram reste, Josse accourt). Cas réels
+  et cas de même nature après rechargement (`tests/test_lumiere_garde.py`), `VERIFIER` sur une nuit de
+  chaque scénario. Bancs 8 h contre `main` 888bbc4 (lancés ensemble ; mesure `minutes_dans_le_noir`
+  ajoutée des deux côtés) : sans recours Relais 53 → 54, mine 59 → 55, auberge 15 → 44 (appels à
+  l'aide de Lucien et d'Anselme près de leurs biens menacés, d'où des témoins et des renoncements),
+  crue 15 → 15 ; en attente 63 → 66, 290 → 281, 536 → 541, 89 → 108 ; vols vus égaux à 0,25 près ;
+  aucune usurpation ni violation ; temps égal à ±14 %. Tests changés : `test_planification` (le plan
+  d'une part mène l'attendre près des vivres), `test_constater_rumeurs` (lampe de Josse vide pour
+  garder le baraquement noir ; Odon honnête face à la voix inconnue). Limites : chercher le porteur
+  seulement pour la lumière et ce que le but vise (pas pour un feu : sinon la borne de nœuds) ; pas de
+  feu demandé pour une source fixe ; rejoindre qui porte une lampe n'est ni abri ni lumière ; l'apport
+  d'une source ignore l'ombre ; l'attente d'une part reste une estimation ; la menace se juge sur où il
+  croit les autres.
+- La suite de tests passe : 1022 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

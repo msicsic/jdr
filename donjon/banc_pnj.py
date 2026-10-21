@@ -138,10 +138,11 @@ def executer(monde, minutes, recit=None, empreintes=None):
             resultat = executer(monde, minutes, empreintes=empreintes)
         recit.clore(monde)
         return resultat
+    from .deliberation import autour, peur_du_noir
     from .eau import active, lieu, profondeur
     vivants = [id for id in pnjs(monde) if monde.objets[id].get("profil")]
     chronique, oisivete, blocage, attente, confiance, usurpations, mouilles = [], 0, 0, 0, 0, 0, 0
-    attendre_rejoint = 0
+    attendre_rejoint, noir = 0, 0
     releves = {}
     vue = list(monde.data.get("chronique", []))
     debut = monde.data["minutes"]
@@ -160,6 +161,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
         usurpations += _usurpations(monde)
         attendre_rejoint += PAS * sum(1 for id in vivants if (lire(monde, id)["intention"] or {}).get("but", {}).get("type") == "attendre")
         mouilles += PAS * sum(1 for id in vivants if profondeur(monde, lieu(monde, id)))
+        # Qui craint le noir et n'y voit pas, là où il se tient (``deliberation.autour``).
+        noir += PAS * sum(1 for id in vivants if peur_du_noir(monde, id) and monde.objets[id]["lieu"] in monde.data["salles"]
+                          and not autour(monde, id)["lumiere"])
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
     mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
@@ -213,6 +217,8 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "attentes_vaines": sum(c.get("nature") == "reponse" and " cesse d'attendre " in c["texte"]
                                       for c in chronique),
                "minutes_a_attendre": attendre_rejoint,
+               # Minutes passées dans le noir par qui le craint (PNJ × minutes).
+               "minutes_dans_le_noir": noir,
                # L'argent et les prêts (``biens``) : achats conclus, refus de vendre, pièces payées,
                # prêts et objets rendus, bourses prises par un autre que leur propriétaire.
                "achats": sum(" achète " in c["texte"] and c["texte"].endswith("(vendu).") for c in chronique),
