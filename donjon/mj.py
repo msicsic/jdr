@@ -47,6 +47,8 @@ from .moteur import QualificationRequise
 from .proximite import HorsDePortee
 from .transactions import ajouter as ajouter_transaction
 
+LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
+
 
 def additionner_usage(total, ajout):
     """Conserve le coût de toutes les passes d'une réponse dans la trace debug."""
@@ -1132,6 +1134,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
         self.dernier_brut = self.derniere_utilisation = None
         self.derniere_sortie = []
         try:
+            # Règle du jeu, commune à tous les fournisseurs : une action tient en 2 000 caractères.
+            if len(intention) > LIMITE_INTENTION:
+                raise ErreurMonde("Limite ton action à 2 000 caractères.")
             demande = Demande(instructions, copy.deepcopy(entree), intention, fonction,
                               copy.deepcopy(schema), self.modele, self.effort, self.timeout,
                               self.cle_cache, self.reflexion)

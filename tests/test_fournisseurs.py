@@ -63,6 +63,18 @@ class ContratTests(unittest.TestCase):
                 if isinstance(reponse, Reponse):
                     self.assertEqual(mj.dernier_brut, ['brut'])
 
+    def test_la_limite_d_une_action_vaut_pour_tout_fournisseur(self):
+        """Règle du jeu, pas du transport : aucun fournisseur n'est appelé au-delà de 2 000 caractères."""
+        for connexion in ('api', 'anthropic', 'mimo'):
+            with self.subTest(connexion=connexion):
+                fournisseur = Mock(appeler=Mock(return_value=Reponse({'ok': True}, ['brut'])))
+                mj = MJ(connexion=connexion, fournisseur=fournisseur)
+                with self.assertRaisesRegex(ErreurMonde, '2 000 caractères'):
+                    mj._appeler_brut('', {}, 'x' * 2001, 'f', SCHEMA)
+                fournisseur.appeler.assert_not_called()
+                mj._appeler_brut('', {}, 'x' * 2000, 'f', SCHEMA)
+                fournisseur.appeler.assert_called_once()
+
     def test_fabrique_et_etat_propres_a_chaque_instance(self):
         self.assertIsInstance(creer('api'), OpenAI)
         self.assertTrue(creer('chatgpt').chatgpt)

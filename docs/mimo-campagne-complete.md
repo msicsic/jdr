@@ -111,7 +111,8 @@ disponible, pas nécessairement le monde avant toute saisie. Les réponses et pr
 [Métriques](verification-mimo-complete/metriques.json) ·
 [Vérifications](verification-mimo-complete/verification.json) ·
 [Observations avec références aux captures](verification-mimo-complete/observations.json) ·
-[Archive intégrale](verification-mimo-complete/campagne.zip)
+archive intégrale : `artifacts/mimo/campagne-complete.zip`, non versionnée (20 Mo ; poste de
+l’auteur seulement, voir `archive.json` pour son empreinte)
 
 Décompresser l’archive puis ouvrir `index.html`. Elle contient les 120 requêtes et réponses complètes,
 les octets SSE exacts, les événements horodatés, les diagnostics, les propositions transmises au jeu,

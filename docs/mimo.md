@@ -109,7 +109,7 @@ La campagne complète ultérieure vérifie maintenant sept corrections réussies
 Un essai supplémentaire distinct sur les six rejets antérieurs avait été refusé par le contrôle automatique d'autorisation, qui jugeait
 le renvoi des contextes et sorties capturés insuffisamment autorisé. Aucun de ces six appels n'a été envoyé.
 
-[Résultats structurés](verification-mimo-fini/resultats.json) · [Archive complète des deux essais réels](verification-mimo-fini/essai-reel.zip)
+[Résultats structurés](verification-mimo-fini/resultats.json) · archive complète des deux essais réels : `artifacts/mimo/essai-reel.zip`, non versionnée
 
 Décompresser l'archive et ouvrir `index.html` pour les messages, prompts, validations et sauvegardes.
 Les empreintes SHA-256 permettent de vérifier les fichiers de la campagne et la version de code copiée avant les appels.

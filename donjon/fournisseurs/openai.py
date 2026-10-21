@@ -23,7 +23,7 @@ class OpenAI(Fournisseur):
 
     def _appeler(self, demande):
         instructions, entree = demande.instructions, demande.entree
-        intention, fonction, schema = demande.intention, demande.fonction, demande.schema
+        fonction, schema = demande.fonction, demande.schema
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
         if self.chatgpt and not self.catalogue_verifie:
@@ -34,8 +34,6 @@ class OpenAI(Fournisseur):
         cle = jeton() if self.chatgpt else os.environ.get("OPENAI_API_KEY")
         if not cle:
             raise ErreurMonde("OPENAI_API_KEY absente. Les commandes hors ligne restent disponibles (aide).")
-        if len(intention) > 2000:
-            raise ErreurMonde("Limite ton action à 2 000 caractères.")
         payload = {
             "model": demande.modele,
             "instructions": instructions,
