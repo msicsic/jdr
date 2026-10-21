@@ -16,8 +16,8 @@ class TransportTests(unittest.TestCase):
     def test_mj_audits_et_nouvelles_regles_utilisent_la_meme_connexion_sans_historique(self):
         socket = FauxWebSocket(lambda p: resultat(p, {'ok': True}))
         mj = MJOpenAI(connexion='chatgpt')
-        with patch('donjon.mj.jeton', return_value='test-prive'), \
-                patch('donjon.mj.modeles', return_value=[{'slug': mj.modele}]), \
+        with patch('donjon.fournisseurs.openai.jeton', return_value='test-prive'), \
+                patch('donjon.fournisseurs.openai.modeles', return_value=[{'slug': mj.modele}]), \
                 patch('donjon.transport_openai.ouvrir_websocket', return_value=socket) as ouvrir:
             for i, (fonction, regles) in enumerate([('proposer', 'A'), ('auditer', 'B'), ('proposer', 'C')]):
                 schema = {**SCHEMA, 'description': 'contrat ' + regles}
@@ -40,8 +40,8 @@ class TransportTests(unittest.TestCase):
             {'type': 'response.function_call_arguments.delta', 'response_id': 'r1', 'delta': '{"ok":true}'}])
         bon = FauxWebSocket(lambda p: resultat(p, {'ok': True}))
         mj = MJOpenAI(connexion='chatgpt')
-        mj.catalogue_verifie = True
-        with patch('donjon.mj.jeton', return_value='test'), \
+        mj.fournisseur.catalogue_verifie = True
+        with patch('donjon.fournisseurs.openai.jeton', return_value='test'), \
                 patch('donjon.transport_openai.ouvrir_websocket', side_effect=[casse, bon]) as ouvrir:
             self.assertEqual(mj._appeler_brut('règles', {'nouveau': True}, 'intention', 'proposer', SCHEMA), {'ok': True})
             self.assertEqual(ouvrir.call_count, 2)
@@ -55,9 +55,9 @@ class TransportTests(unittest.TestCase):
         for ouverture in (ErreurTransport(401), FauxWebSocket(lambda _: [{'type': 'error', 'status': 401}])):
             with self.subTest(ouverture=type(ouverture).__name__):
                 mj = MJOpenAI(connexion='chatgpt')
-                mj.catalogue_verifie = True
+                mj.fournisseur.catalogue_verifie = True
                 kwargs = {'side_effect': ouverture} if isinstance(ouverture, Exception) else {'return_value': ouverture}
-                with patch('donjon.mj.jeton', return_value='secret-a-ne-pas-afficher'), \
+                with patch('donjon.fournisseurs.openai.jeton', return_value='secret-a-ne-pas-afficher'), \
                         patch('donjon.transport_openai.ouvrir_websocket', **kwargs) as ouvrir:
                     for _ in range(2):
                         with self.assertRaisesRegex(ErreurMonde, 'MJ déconnecté') as erreur:

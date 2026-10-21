@@ -4,6 +4,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
+  Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
+  Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
+  Adaptateur MiMo terminé : choix explicite `--connexion mimo`, flux complet, une correction JSON bornée,
+  banc migré, 998 tests passent et deux actions réelles réussies en 8 appels. Voir [MiMo](mimo.md).
+  [Campagne complète de l'adaptateur final](mimo-campagne-complete.md) : 90 saisies, 38 tours MJ,
+  120 requêtes réelles, sept rejets de format corrigés, aucun tour en erreur technique ; TTFT médian
+  2,18 s et quatre reprises vérifiées. Défaut restant confirmé : MiMo ajoute des idées à la parole du joueur.
 - `main` contient les jalons PNJ A à I (`docs/plan-pnj.md`, tableau « Jalons » et sections
   « Écarts retenus »). Le dernier fusionné est **I. Demander, écouter, protéger** :
   - le corps commun (faim, froid, fatigue) pour tous, joueur compris (`donjon/corps.py`) ;
@@ -31,7 +39,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   une fois puis le plan validé passe, au lieu d'être renvoyé au MJ comme un refus. Cas réel
   « fais levier sous l'axe » : 2 appels, conforme du premier coup (contre 4 à 8 avant).
 - Branche `banc-haiku` : Claude Haiku 5.5 est une option du jeu (`--connexion anthropic`,
-  `donjon/claude.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
+  `donjon/fournisseurs/anthropic.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
   communs révélés par le fil complet des appels (`tools/banc_parties.py --fil`) : citation de
   fait inconnue écartée au lieu d'invalider la réponse ; audit narratif à une entrée
   obligatoire par segment, audit illisible redemandé ; texte vide signalé sans audit ;
@@ -632,7 +640,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pressent (`GARDE`) ; tout débiteur rembourse, quelle que soit son honnêteté ; le joueur ne réclame
   pas par une parole typée et ne voit la dette qu'au remboursement ; seule une part vendue d'avance
   crée une dette.
-- La suite de tests passe : 1012 tests, sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 1036 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

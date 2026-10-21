@@ -1,0 +1,68 @@
+{
+  "base": "87c1ed5",
+  "tests_avant": {
+    "nombre": 975,
+    "resultat": "OK"
+  },
+  "tests_apres": {
+    "nombre": 984,
+    "secondes": 437.4,
+    "resultat": "OK",
+    "dependances_optionnelles_anthropic_et_mimo_presentes": true
+  },
+  "equivalence_requetes": "equivalence.json",
+  "rejeu_mimo": "rejeu-mimo-112.json",
+  "parcours_complets": {
+    "scenes": [
+      "crypte",
+      "atelier"
+    ],
+    "fournisseurs": [
+      "openai_http",
+      "anthropic",
+      "mimo"
+    ],
+    "websocket": "parcours existants conservés, reconnexion et coupures incluses",
+    "verifications": [
+      "une exécution moteur",
+      "sauvegarde avant affichage",
+      "inventaire visible après reprise",
+      "état identique après rechargement"
+    ]
+  },
+  "prevol": [
+    {
+      "script": "atelier",
+      "saisies": 15,
+      "appels": 0,
+      "arret": null,
+      "erreur_rechargement": null
+    },
+    {
+      "script": "crypte",
+      "saisies": 42,
+      "appels": 0,
+      "arret": null,
+      "erreur_rechargement": null
+    },
+    {
+      "script": "echanges",
+      "saisies": 10,
+      "appels": 0,
+      "arret": null,
+      "erreur_rechargement": null
+    },
+    {
+      "script": "relais",
+      "saisies": 23,
+      "appels": 0,
+      "arret": null,
+      "erreur_rechargement": null
+    }
+  ],
+  "appels_reels_aux_fournisseurs": 0,
+  "limites": [
+    "Aucune nouvelle mesure de latence ou de qualité de modèle : réponses simulées ou capturées.",
+    "Les anciens outils MiMo qui surchargeaient _appeler_openai doivent adopter le point d’injection fournisseur."
+  ]
+}

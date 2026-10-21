@@ -43,6 +43,8 @@ récit de Luna (un appel de moins par action). Installation : `python -m venv .v
 `.\.venv\Scripts\python.exe -m pip install -r requirements-tui.txt -r requirements-chatgpt.txt`.
 Claude Haiku peut remplacer Luna : `--connexion anthropic`, avec `ANTHROPIC_API_KEY` dans `.env`
 et `-r requirements-claude.txt`.
+MiMo v2.6 Flash est disponible en essai explicite avec `--connexion mimo`, `MIMO_API_KEY`
+et `-r requirements-mimo.txt`. Sa réflexion est désactivée par défaut. [Accès et banc MiMo](docs/mimo.md).
 
 ## Jouer
 

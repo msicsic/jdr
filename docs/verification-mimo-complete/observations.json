@@ -1,0 +1,40 @@
+[
+  {
+    "type": "defaut_semantique_confirme",
+    "constat": "Échanges, tour 5 : MiMo ajoute à la parole du joueur une raison de se méfier d’Aubin et la demande « Garde ça pour toi », absentes de la saisie. Cette réplique est acceptée, affichée et conservée après reprise. Le format JSON est valide : la correction de format ne traite pas ce défaut de fidélité à l’intention.",
+    "saisie": "je chuchote à Brune que je me méfie d'Aubin",
+    "replique_acceptee": "À voix basse : je me méfie d'Aubin. Il veille sur l'eau, dit-il, mais je le trouve trop pressé de parler à ma place. Garde ça pour toi.",
+    "preuves": ["transport/appels/108-repondre_au_joueur/proposition-remise-au-jeu.json", "parties/echanges/etats/005.json", "parties/echanges/reprise.json"]
+  },
+  {
+    "type": "corrections_format",
+    "constat": "Sept premières sorties sont rejetées par le contrat JSON/schéma ; chacune est corrigée au premier et unique essai autorisé. Aucun de ces objets rejetés n’est remis au moteur. Les sept relances ajoutent sept requêtes physiques aux 113 appels MJ.",
+    "appels_rejetes": [20, 38, 62, 71, 73, 75, 85],
+    "appels_corriges": [21, 39, 63, 72, 74, 76, 86],
+    "limite": "La correction peut réécrire du sens : l’appel 63 remplace la proposition patienter de l’appel 62 par une composition patienter puis prendre. Cette composition est ensuite refusée par le moteur car les crochets sont trop loin."
+  },
+  {
+    "type": "controle_narratif_effectif",
+    "constat": "Crypte, tour 2 : les contrôles font retirer le nom d’un lieu non connu et une affirmation non fondée sur l’obscurité derrière la porte fermée. La réponse finalement affichée reste limitée à la lumière perçue et à l’inconnue au-delà de l’ouverture.",
+    "preuves": ["parties/crypte.json", "parties/crypte/etats/002.json"]
+  },
+  {
+    "type": "ancien_defaut_non_reproduit",
+    "constat": "Atelier, tour 14 : après le refus du saut à la perche depuis une position trop éloignée, la réponse invite à s’approcher, sans raconter de déplacement. Position [3, 2], minutes 2 et révision 7 identiques avant et après. Le défaut de l’ancienne campagne ne se reproduit pas sur cette passe, avec une autre version du moteur ; cela ne prouve pas une correction générale de la narration.",
+    "preuves": ["parties/atelier.json", "parties/atelier/etats/013.json", "parties/atelier/etats/014.json", "parties/atelier/reprise.json"]
+  },
+  {
+    "type": "alerte_lexicale_sans_fuite_constatee",
+    "constat": "L’unique alerte lexicale porte sur le pied-de-biche au Relais, tour 23. Le joueur en demande un ; le MJ dit ne pas en trouver dans les affaires ni autour de lui. Cette mention négative n’établit ni l’existence ni la position d’un objet caché.",
+    "preuves": ["parties/relais.json"]
+  },
+  {
+    "type": "point_a_examiner",
+    "constat": "Relais, tour 6 : deux propositions observer/contexte obtiennent des verdicts de couverture différents. La seconde observation est exécutée et le récit conclut à l’absence d’empreintes, plus précisément que le résultat moteur explicite. Ce point mérite revue ; l’absence de changement de temps ou de révision pour une observation ne prouve pas une action fictivement exécutée.",
+    "preuves": ["parties/relais.json", "transport/appels/009-repondre_au_joueur/proposition-remise-au-jeu.json", "transport/appels/011-repondre_au_joueur/proposition-remise-au-jeu.json"]
+  },
+  {
+    "type": "reprise",
+    "constat": "Les quatre sauvegardes sont chargées exactement avant toute commande. Après inventaire/regarder, Échanges actualise uniquement exploration, murs_memorises et souvenirs_visuels. Objets, joueur, minutes, journal, engagements et finances restent identiques dans les quatre parties."
+  }
+]

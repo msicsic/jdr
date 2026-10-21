@@ -3,7 +3,6 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import MagicMock
 
-from donjon import claude
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde
 
@@ -27,8 +26,8 @@ def reponse(stop, *blocs):
 def mj_libre(*reponses):
     mj = MJOpenAI("claude-haiku-5-5", connexion="anthropic")
     mj.reflexion = "libre"
-    mj._client_claude = MagicMock()
-    mj._client_claude.messages.create.side_effect = list(reponses)
+    mj.fournisseur.client = MagicMock()
+    mj.fournisseur.client.messages.create.side_effect = list(reponses)
     return mj
 
 
@@ -42,9 +41,10 @@ class TranscriptionTests(unittest.TestCase):
             reponse("end_turn", bloc("thinking", thinking="Une question : dialogue.", signature="s"),
                     bloc("text", text="Le mur est en pierre.")),
             reponse("tool_use", bloc("tool_use", name="repondre_au_joueur", input={"mode": "dialogue"}, id="t")))
-        arguments, brut = claude.appeler(mj, "instr", {"message": "le mur ?"}, "repondre_au_joueur", SCHEMA)
+        arguments = mj._appeler_brut("instr", {"message": "le mur ?"}, "le mur ?", "repondre_au_joueur", SCHEMA)
+        brut = mj.dernier_brut
         self.assertEqual(arguments, {"mode": "dialogue"})
-        suite = mj._client_claude.messages.create.call_args_list[1].kwargs
+        suite = mj.fournisseur.client.messages.create.call_args_list[1].kwargs
         # La relance impose l'outil et renvoie la réponse du modèle, réflexion comprise.
         self.assertEqual(suite["tool_choice"]["name"], "repondre_au_joueur")
         self.assertEqual([b["type"] for b in suite["messages"][1]["content"]], ["thinking", "text"])
@@ -54,14 +54,14 @@ class TranscriptionTests(unittest.TestCase):
     def test_appel_direct_sans_relance(self):
         mj = mj_libre(reponse("tool_use", bloc("tool_use", name="repondre_au_joueur",
                                                input={"mode": "action"}, id="t")))
-        arguments, _ = claude.appeler(mj, "instr", {}, "repondre_au_joueur", SCHEMA)
+        arguments = mj._appeler_brut("instr", {}, "intention", "repondre_au_joueur", SCHEMA)
         self.assertEqual(arguments, {"mode": "action"})
-        self.assertEqual(mj._client_claude.messages.create.call_count, 1)
+        self.assertEqual(mj.fournisseur.client.messages.create.call_count, 1)
 
     def test_transcription_qui_echoue_reste_un_refus(self):
         mj = mj_libre(reponse("end_turn", bloc("text", text="Rien.")), reponse("end_turn", bloc("text", text="Rien.")))
         with self.assertRaisesRegex(ErreurMonde, "proposition unique"):
-            claude.appeler(mj, "instr", {}, "repondre_au_joueur", SCHEMA)
+            mj._appeler_brut("instr", {}, "intention", "repondre_au_joueur", SCHEMA)
 
 
 if __name__ == "__main__":

@@ -200,8 +200,8 @@ class ImprovisationTests(unittest.TestCase):
             p = Path(tmp)/"partie.json"
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
                  patch("builtins.input", side_effect=["je fredonne pour passer le temps", "quitter"]), \
-                 patch("jeu.MJOpenAI.echanger", return_value=reponse(chant())), \
-                 patch("jeu.MJOpenAI.raconter_resultat", side_effect=AssertionError("Pas de second appel de narration")), \
+                 patch("jeu.MJ.echanger", return_value=reponse(chant())), \
+                 patch("jeu.MJ.raconter_resultat", side_effect=AssertionError("Pas de second appel de narration")), \
                  patch("sys.stdout", new_callable=io.StringIO) as output:
                 jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(p)])
             m = Monde.charger(p)

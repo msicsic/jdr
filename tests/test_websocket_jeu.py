@@ -37,8 +37,8 @@ class ParcoursWebSocketTests(unittest.TestCase):
             with self.subTest(cas=cas):
                 cible = CAS[cas][1]
                 socket = FauxWebSocket(lambda p: self.repondre(cible, p))
-                with patch('donjon.mj.jeton', return_value='test'), \
-                        patch('donjon.mj.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
+                with patch('donjon.fournisseurs.openai.jeton', return_value='test'), \
+                        patch('donjon.fournisseurs.openai.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
                         patch('donjon.transport_openai.ouvrir_websocket', return_value=socket) as ouvrir:
                     r = parcours(cas)
                 self.assertTrue(r['etat_identique_apres_reprise'])
@@ -74,8 +74,8 @@ class ParcoursWebSocketTests(unittest.TestCase):
                         return self.repondre(cible, p)
                     sockets = [FauxWebSocket(repondre) for _ in range(2)]
                     interface = Interface(['mj Je prends ' + monde.objets[cible]['nom'] + '.', 'quitter'], chemin)
-                    with patch('donjon.mj.jeton', return_value='test'), \
-                            patch('donjon.mj.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
+                    with patch('donjon.fournisseurs.openai.jeton', return_value='test'), \
+                            patch('donjon.fournisseurs.openai.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
                             patch('donjon.transport_openai.ouvrir_websocket', side_effect=sockets) as ouvrir:
                         self.assertEqual(jeu.main(['--save', str(chemin), '--console', '--connexion', 'chatgpt', '--cases'], interface=interface), 0)
                     recharge = Monde.charger(chemin)
@@ -112,8 +112,8 @@ class ParcoursWebSocketTests(unittest.TestCase):
                                  'output_index': 0, 'item': r['output'][0]}]
                         return r
                     sockets = [FauxWebSocket(repondre) for _ in range(2)]
-                    with patch('donjon.mj.jeton', return_value='test'), \
-                            patch('donjon.mj.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
+                    with patch('donjon.fournisseurs.openai.jeton', return_value='test'), \
+                            patch('donjon.fournisseurs.openai.modeles', return_value=[{'slug': 'gpt-6-luna'}]), \
                             patch('donjon.transport_openai.ouvrir_websocket', side_effect=sockets) as ouvrir:
                         r = parcours(cas)
                     self.assertTrue(coupee)

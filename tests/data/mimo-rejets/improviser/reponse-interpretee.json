@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "output": [
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"mode\": \"improviser\", \"texte\": \"\", \"faits\": [\"minutes\", \"bruit\", \"expression_joueur\"], \"proposition\": {\"action\": \"improviser\", \"intention\": \"fredonner doucement une mélodie\", \"cibles\": [], \"outil\": \"\", \"approche\": \"expression\", \"stat\": \"\", \"difficulte\": 0, \"minutes\": 1, \"bruit\": 1, \"reussite\": {\"recit\": \"Une mélodie sans paroles s'échappe de tes lèvres, à voix basse, à peine plus qu'un souffle entonné.\", \"effets\": [{\"operation\": \"son\", \"cible\": \"joueur\", \"destination\": \"\", \"texte\": \"voix_melodique\", \"valeur\": 1}]}, \"echec\": {\"recit\": \"\", \"effets\": []}}}"
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "completion_tokens": 204,
+    "prompt_tokens": 19645,
+    "total_tokens": 19849,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 8192
+    }
+  },
+  "model": "mimo-v2.6-flash"
+}
