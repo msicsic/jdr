@@ -27,22 +27,47 @@ def installer(monde):
 
 
 def interlocuteurs(monde):
-    # On parle à qui l'on perçoit : qu'on voit, ou dont on vient de reconnaître la voix (une parole
-    # parvenue au joueur pendant son dernier geste, d'une voix qu'il connaît : ``ecoute.retenir``),
-    # si chacun saisit les mots de l'autre (``ouie.s_entendent`` : distance, passages, portes). Qui
-    # se tait dans son dos ou dans le noir, ou dont il ne connaît pas la voix, n'est pas là pour
-    # lui, ni pour le MJ.
+    """Ceux à qui le joueur peut parler, sous le nom qu'il leur connaît (``voix.designation``).
+
+    On parle à qui l'on perçoit : qu'on voit, ou dont on vient d'entendre la voix (une parole nette
+    parvenue au joueur pendant son dernier geste : ``ecoute.retenir``), si chacun saisit les mots de
+    l'autre (``ouie.s_entendent`` : distance, passages, portes). Qui se tait dans son dos ou dans le
+    noir n'est pas là pour lui, ni pour le MJ. Une voix qu'il ne sait à qui prêter est un
+    interlocuteur comme un autre, désigné « voix_<n> » : rien de ce qu'il en reçoit ne la trahit,
+    seulement ce qu'elle prétend et d'où elle vient (``reels`` rend les personnages)."""
     from .ouie import s_entendent
-    return {id: {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
-                 "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
-                 "dernier_son_entendu": dernier_son(monde, id),
-                 "paroles_entendues": copy.deepcopy([
-                     p for p in monde.data.get("paroles_pnj", []) if id in p["auditeurs"]][-4:]),
-                  "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
-                 "humeur": o.get("humeur", "non précisée")}
-            for id, o in monde.objets.items()
-            if o["type"] == "personnage" and monde.present_physique(id)
-            and (monde.visible(id) or id in monde.data.get("entendus", []) and s_entendent(monde, id, "joueur"))}
+    from .voix import designation, nom_pour_joueur
+    resultat = {}
+    for id, o in monde.objets.items():
+        if not (o["type"] == "personnage" and monde.present_physique(id)):
+            continue
+        if not (monde.visible(id) or id in monde.data.get("entendus", []) and s_entendent(monde, id, "joueur")):
+            continue
+        cle = designation(monde, id)
+        if cle != id:
+            resultat[cle] = {"nom": nom_pour_joueur(monde, id), "voix_inconnue": True, "entendue": _d_ou(monde, id)}
+            continue
+        resultat[id] = {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
+                        "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
+                        "dernier_son_entendu": dernier_son(monde, id),
+                        "paroles_entendues": copy.deepcopy([
+                            p for p in monde.data.get("paroles_pnj", []) if id in p["auditeurs"]][-4:]),
+                        "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
+                        "humeur": o.get("humeur", "non précisée")}
+    return resultat
+
+
+def _d_ou(monde, id):
+    """D'où le joueur a entendu cette voix en dernier : « tout près », « au nord »…"""
+    from .ecoute import _lieu
+    dernier = next((b for b in reversed(monde.data.get("bruits", [])) if b["auteur"] == id), None)
+    return _lieu(dernier["par"]) if dernier else "tout près"
+
+
+def reels(monde):
+    """Les personnages derrière ``interlocuteurs`` : leurs identifiants, voix inconnues comprises."""
+    from .voix import reel
+    return [reel(monde, d) for d in interlocuteurs(monde)]
 
 
 def contrats_publics(monde):
@@ -157,6 +182,9 @@ def verifier_don(monde, objet_id, destinataire=""):
     presents = sorted(interlocuteurs(monde))
     if not destinataire and len(presents) == 1:
         destinataire = presents[0]
+    from .voix import reel
+    if destinataire in presents and reel(monde, destinataire) != destinataire:
+        return reel(monde, destinataire)  # Une voix qu'il ne sait à qui prêter, dans le noir.
     if destinataire not in presents:
         raise ErreurMonde("Il n'y a personne ici pour le recevoir." if not presents else
                           "Précise à qui tu le donnes." if not destinataire else

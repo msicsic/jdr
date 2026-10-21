@@ -409,7 +409,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   appel −17,5 % contre HTTP. Vérifié après fusion : deux parties réelles avec une coupure
   simulée chacune (4 ouvertures, 4 fermetures, une seule exécution de l'action).
   Dépendance `websockets` (`requirements-chatgpt.txt`).
-- La suite de tests passe : 912 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `voix` (`docs/plan-ouie.md`, « Les voix » ; `donjon/voix.py`). Deux manques :
+  l'appel par le nom ne passait pas une porte fermée (Hugues appelait Anselme en boucle, Aubin Gorm
+  à chaque minute) ; une voix inconnue n'était qu'un bruit, et voir quelqu'un faisait connaître sa
+  voix. **Héler** est un cri (nature `hele`, 9 crans) : les mots saisis disent qu'on appelle tel nom,
+  sans alarme ; le cri seul est un bruit fort inconnu ; « Ici ! » répond, hélé, et vaut se nommer ; un
+  appel sans réponse compte la salle pour parcourue dans la recherche (`deliberation.appels_vains`,
+  60 min). **Se parler** = s'entendre (`pnj.peuvent_se_parler`, règle unique) : une voix qu'on ne sait
+  à qui prêter est un étranger (`voix.fiabilite`, `voix.INCONNU`), à qui le prudent répond « Qui va
+  là ? » (`echanges.accueil`) ; le joueur parle dans le noir, le refus « ne saurait pas qui lui parle »
+  disparaît. **Voix** : on connaît la voix de qui l'on a entendu parler en le voyant, ou que le
+  scénario fait connaître (un savoir) ; plus à la simple vue ; chacun retient les voix inconnues et ce
+  qu'elles prétendent ; toute reconnaissance passe par `voix.reconnaitre` (où se brancheront
+  l'imitation et la méfiance). **Se nommer** (contenu `nom`, et `qui` pour « Qui est là ? ») : démasqué
+  par la vraie voix, sinon cru sur parole (lieu `se_dit`) sans jamais plus de confiance qu'un inconnu,
+  démasqué après coup quand on entend la vraie voix, puis le menteur reconnu. Le MJ ne connaît une voix
+  inconnue que comme « voix_<n> » (« une voix qui se dit Brune »), sans identifiant ni traits ; contrôle
+  déterministe : sa réplique ne nomme personne au-delà de ce que le moteur a établi, le récit ne lui
+  donne pas son nom prétendu (`narration.voix_inconnues`). Plus de migration des anciennes sauvegardes
+  (décision de l'utilisateur). Bancs (8 h, 4 graines, avant → après) : sans recours Relais 362,5 → 335,
+  mine 665 → 655, auberge 627,5 → 670, crue 292,5 → 301 ; appels / réponses auberge 17 / 2,25 → 3,5 /
+  2,75, mine 7 / 0,75 → 2,5 / 2,5 ; aucune usurpation. Luna (copies de scènes) : demande refusée à la
+  voix dans le noir, « c'est Corvus » cru sans confiance, « c'est moi, Brune » démasqué, une voix
+  inconnue nommée par le moteur puis « la voix » dans le récit ; deux défauts de Luna vus et corrigés
+  par le contrôle (voix qui se disait Brune d'elle-même, « Brune répond » dans le récit). Limites dans
+  `docs/plan-ouie.md`.
+- La suite de tests passe : 920 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -429,6 +454,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé
   nourri en boucle : branche `entretenir-feu`. Chercher quelqu'un dans le noir, le lieu dans une
   rumeur et le contenant fermé cru ouvert : branche `constater-et-rumeurs`.
+- **Voix** (branche `voix`) : imiter une voix, plus ou moins bien (un changelin qui dupe les PNJ),
+  puis des PNJ qui, sachant qu'un imitateur rôde, se méfient même d'une voix connue. Préparé : toute
+  reconnaissance passe par `voix.reconnaitre` (`docs/plan-ouie.md`, « Suite prévue »).
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

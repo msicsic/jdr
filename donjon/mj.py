@@ -33,7 +33,7 @@ from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profi
 from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
-                        citations_nouvelles, rescape as rescape_narratif, repli as repli_narratif,
+                        citations_nouvelles, voix_inconnues, rescape as rescape_narratif, repli as repli_narratif,
                         attestations as attestations_narratives,
                         fondement as fondement_narratif, fondement_paroles,
                         mentions as mentions_narratives,
@@ -890,6 +890,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
                                "fondement_paroles": paroles}
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
+                if monde is not None:
+                    # Une voix inconnue ne se nomme ni ne nomme personne sans le moteur (déterministe).
+                    obstacles.extend({"partie": nom, **o} for o in voix_inconnues(monde, rapport["paroles"], faits, texte))
                 if nom == "texte" and rapport["obstacles"]:
                     def fautif(morceau, faits=faits):
                         return bool(voix_auteur(morceau)

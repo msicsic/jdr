@@ -14,7 +14,6 @@ import unittest
 from donjon.auberge import nouveau_auberge
 from donjon.esprits import connaitre, croire, lire, memoriser, percevoir_tous
 from donjon.geometrie import position_entree
-from donjon.monde import Monde
 from donjon.perception import eclairage
 from donjon.pnj import se_parler
 from donjon.spatial import installer
@@ -221,18 +220,28 @@ class ChercherQuelquUnTests(unittest.TestCase):
         self.assertIn("Odile appelle Mireille et lui donne une part des vivres du cellier.", chronique(m))
 
     def test_le_joueur_qui_ne_les_connait_pas_n_entend_que_des_voix(self):
-        """Le joueur dans le noir, qui n'a jamais vu Mireille ni Odile : il entend des voix, sans
-        que rien ne les nomme, et ne peut s'adresser à elles."""
+        """Le joueur dans le noir, qui n'a jamais entendu Mireille ni Odile : il entend des voix
+        inconnues, sans que rien ne dise qui parle. Il saisit les mots d'un appel (le nom appelé est
+        celui d'une personne dont il a entendu parler) ; il pourrait répondre à ces voix, que le MJ
+        ne connaît que comme des voix inconnues (``voix.designation``)."""
+        import json
         m = self.mireille_cherche_odile()
         m.joueur.update(salle="grenier", position=[6, 3])
         m.data["visitees"] = sorted(set(m.data["visitees"]) | {"grenier"})
         m, texte = attendre(recharger(m))
         self.assertIn("Mireille demande une part des vivres du cellier à Odile (promis).", chronique(m))
-        self.assertIn("Tu entends des voix", texte)
+        self.assertIn("Tu entends, tout près, une voix inconnue appeler : « Odile ? »", texte)
         self.assertNotIn("Mireille", texte)
-        self.assertNotIn("Odile", texte)
-        self.assertEqual(m.data["entendus"], [])
-        self.assertNotIn("odile", m.contexte()["interlocuteurs"])
+        self.assertNotIn("Odile répond", texte)
+        self.assertEqual(sorted(m.data["entendus"]), ["mireille", "odile"])
+        from donjon.voix import designation, nom_pour_joueur
+        for x in ("mireille", "odile"):
+            self.assertTrue(designation(m, x).startswith("voix_"))
+            self.assertEqual(nom_pour_joueur(m, x), "une voix inconnue")
+        interlocuteurs = m.contexte()["interlocuteurs"]
+        self.assertTrue(all(k.startswith("voix_") for k in interlocuteurs))
+        self.assertNotIn("Mireille", json.dumps(interlocuteurs, ensure_ascii=False))
+        self.assertNotIn("Odile", json.dumps(interlocuteurs, ensure_ascii=False))
 
     def test_qui_se_mefie_ne_repond_pas(self):
         m = self.mireille_cherche_odile()
@@ -298,32 +307,42 @@ class ParlerALaVoixTests(unittest.TestCase):
         self.assertEqual(lieu_cru(m, "mathe", "odon")[0], "baraquement")
 
     def test_une_voix_jamais_entendue_ne_se_reconnait_pas(self):
-        """Même nature, mais Mathe n'a jamais vu ni entendu Odon : c'est une voix inconnue, un bruit
-        qu'elle ne prête à personne ; elle ne sait qui lui parle, et ne lui répond pas. Ils sont
-        dans la réserve noire (au baraquement, le poêle qu'on viendrait rallumer les éclairerait)."""
+        """Même nature, mais Mathe n'a jamais entendu Odon : c'est une voix inconnue, qu'elle ne
+        prête à personne. Elle l'entend pourtant lui demander sa part ; inquiète (sa sécurité presse
+        plus que son courage ne la retient), elle répond « Qui va là ? » ; Odon se nomme, et elle le
+        croit là sur sa parole, sans lui accorder plus qu'à un inconnu. Ils sont dans la réserve
+        noire (au baraquement, le poêle qu'on viendrait rallumer les éclairerait)."""
         m = self.baraquement_noir(salle="reserve")
         lire(m, "mathe")["voix"].remove("odon")
         lire(m, "mathe")["croyances"].pop("odon", None)
+        lire(m, "mathe")["besoins"]["securite"] = 60.0
         m, _ = attendre(recharger(m))
-        self.assertFalse(any(t.startswith("Odon demande") for t in chronique(m)))
+        self.assertIn("Odon demande une part des vivres de la cuisine à Mathe (qui_va_la).", chronique(m))
         self.assertNotIn("odon", lire(m, "mathe")["voix"])
-        self.assertIsNone(lieu_cru(m, "mathe", "odon"))
+        self.assertEqual(lire(m, "mathe")["voix_entendues"]["odon"]["se_dit"], "odon")
+        self.assertEqual(lieu_cru(m, "mathe", "odon"), ("reserve", "se_dit"))
+        self.assertNotIn("fiable", lire(m, "mathe")["croyances"]["odon"])
+        # Nommé, il redemande aussitôt : plus de « Qui va là ? ».
+        self.assertEqual(sum("(qui_va_la)" in t for t in chronique(m)), 1)
 
     def test_servir_une_part_suit_la_meme_regle(self):
         """Donner une part à qui l'on appelle hors de vue est un échange comme un autre
-        (``pnj.peuvent_se_parler``) : dans la réserve noire, Mathe ne sert pas une voix inconnue ;
-        elle sert Odon dont elle connaît la voix."""
+        (``pnj.peuvent_se_parler`` : s'entendre). Dans la réserve noire, Mathe sert Odon qu'elle
+        appelle, qu'elle connaisse sa voix ou non ; Odon, qui ne sait pas qui le sert, ne lui en sait
+        pas gré."""
         from donjon.echanges import servir
         m = self.baraquement_noir(salle="reserve")
-        lire(m, "mathe")["voix"].remove("odon")
+        lire(m, "odon")["voix"].remove("mathe")
+        lire(m, "odon")["croyances"]["mathe"].pop("fiable", None)
         portions = m.objets["vivres"]["portions"]
-        self.assertFalse(servir(m, "mathe", "vivres", "odon", []))
-        self.assertEqual(m.objets["vivres"]["portions"], portions)
-        connaitre(m, "mathe", "odon")
         self.assertTrue(servir(m, "mathe", "vivres", "odon", []))
         m = recharger(m)
         self.assertEqual(m.objets["vivres"]["portions"], portions - 1)
         self.assertIn("Mathe appelle Odon et lui donne une part des vivres de la cuisine.", chronique(m))
+        self.assertNotIn("fiable", lire(m, "odon")["croyances"]["mathe"])
+        connaitre(m, "odon", "mathe")
+        self.assertTrue(servir(m, "mathe", "vivres", "odon", []))
+        self.assertTrue(lire(recharger(m), "odon")["croyances"]["mathe"]["fiable"]["valeur"])
 
     def test_dans_la_lumiere_on_se_tourne_vers_une_voix_inconnue(self):
         """Une voix inconnue dans son dos, en pleine lumière : il se tourne vers elle et voit qui
@@ -338,18 +357,25 @@ class ParlerALaVoixTests(unittest.TestCase):
         percevoir_tous(m)
         m = recharger(m)
         self.assertIn("anselme", lire(m, "mireille")["voix"])
-        # Au grenier noir, ni l'un ni l'autre ne voit l'autre : rien ne se dit.
+        # Au grenier noir, ni l'un ni l'autre ne voit l'autre : ils se parlent, mais Mireille
+        # n'entend qu'une voix inconnue, qu'elle retient sans savoir à qui elle est ; Anselme, qui
+        # s'adressait à elle, la croit là sur sa parole (``voix.se_nommer``), sans connaître sa voix.
         m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
         m.objets["bougeoir_mireille"]["allume"] = False
         placer(m, "mireille", "grenier", [2, 2])
         placer(m, "anselme", "grenier", [4, 2])
-        self.assertFalse(se_parler(m, "anselme", "mireille"))
+        self.assertTrue(se_parler(m, "anselme", "mireille"))
+        m = recharger(m)
+        self.assertNotIn("anselme", lire(m, "mireille")["voix"])
+        self.assertIn("anselme", lire(m, "mireille")["voix_entendues"])
+        self.assertIsNone(lieu_cru(m, "mireille", "anselme"))
+        self.assertNotIn("mireille", lire(m, "anselme")["voix"])
+        self.assertEqual(lieu_cru(m, "anselme", "mireille"), ("grenier", "se_dit"))
 
     def test_le_joueur_dans_le_noir_face_a_qui_ne_le_connait_pas(self):
         """Corvus, au grenier noir, s'adresse à Odile, qu'il connaît mais qui ne l'a jamais vu ni
-        entendu : elle ne saurait pas qui lui parle ; le moteur le dit, sans appel au MJ. Une fois
-        qu'elle le connaît, il lui parle."""
-        from donjon.paroles import ParoleImpossible, analyser, destinataires
+        entendu : il lui parle ; elle entend une voix inconnue (``test_voix``)."""
+        from donjon.paroles import analyser, destinataires
         m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
         placer(m, "odile", "grenier", [4, 2])
         m.joueur.update(salle="grenier", position=[6, 2], orientation="ouest")
@@ -358,24 +384,14 @@ class ParlerALaVoixTests(unittest.TestCase):
         m.data["entendus"] = ["odile"]  # Il vient de reconnaître sa voix.
         m = recharger(m)
         self.assertNotIn("joueur", lire(m, "odile")["voix"])
-        with self.assertRaises(ParoleImpossible) as refus:
-            destinataires(m, analyser(m, "je dis à Odile : c'est moi"))
-        self.assertIn("ne saurait pas qui lui parle", str(refus.exception))
-        connaitre(m, "odile", "joueur")
-        self.assertEqual(destinataires(recharger(m), analyser(m, "je dis à Odile : c'est moi")), ["odile"])
+        self.assertEqual(destinataires(m, analyser(m, "je dis à Odile : c'est moi")), ["odile"])
 
-    def test_anciennes_parties_migrees(self):
-        """Une partie d'avant les voix : chacun connaît ceux dont il sait quelque chose de première
-        main ou de savoir ; le joueur, ceux dont il garde le portrait ou le nom."""
+    def test_le_scenario_declare_qui_se_connait(self):
+        """Au début d'une partie, chacun connaît la voix de ceux que le scénario lui fait connaître
+        (un savoir à leur sujet) ; le joueur, étranger, n'en connaît aucune."""
         m = relais()
-        m.data["souvenirs_personnages"]["ilse"] = {"nom": "Ilse"}
-        croire(m, "brune", "joueur", "fiable", False, "dit:ilse")  # Un ouï-dire ne fait pas connaître.
-        for e in m.data["esprits"].values():
-            del e["voix"]
-        del m.data["voix_connues"]
-        m = recharger(Monde(m.data))  # Le chargement installe ce qui manque, puis vérifie.
         self.assertEqual(lire(m, "brune")["voix"], ["aubin", "ilse", "marchand"])
-        self.assertEqual(m.data["voix_connues"], ["ilse", "marchand"])
+        self.assertEqual(m.data["voix_connues"], [])
 
     def baraquement_noir(self, salle="baraquement"):
         from donjon.geometrie import cases
