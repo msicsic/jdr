@@ -410,7 +410,7 @@ class NarrationTests(unittest.TestCase):
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
                       dialogue(texte), segment("parole", locuteur="marchand", citation=citation)]),
-                  patch("builtins.input", side_effect=["mj Gorm, salut.", "quitter"]),
+                  patch("builtins.input", side_effect=["mj je regarde Gorm.", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
@@ -433,7 +433,7 @@ class NarrationTests(unittest.TestCase):
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
                       dialogue(texte), segment("parole", locuteur="marchand", citation="« " + citation + " »")]),
-                  patch("builtins.input", side_effect=["mj Gorm, salut.", "quitter"]),
+                  patch("builtins.input", side_effect=["mj je regarde Gorm.", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
@@ -455,7 +455,7 @@ class NarrationTests(unittest.TestCase):
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
                       dialogue(texte), segment("parole", locuteur="marchand", citation=citation)]),
-                  patch("builtins.input", side_effect=["mj Gorm, que sais-tu de cette crypte ?", "quitter"]),
+                  patch("builtins.input", side_effect=["mj que fait Gorm ?", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
@@ -475,7 +475,7 @@ class NarrationTests(unittest.TestCase):
             monde.sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=sorties) as appel,
-                  patch("builtins.input", side_effect=["mj Gorm, où est la cloche ?", "quitter"]),
+                  patch("builtins.input", side_effect=["mj et Gorm ?", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)

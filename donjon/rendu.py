@@ -93,8 +93,12 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     from .spatial import proche
     a_portee = not monde.data.get("mode_cases") or proche(monde, id)
     if not a_portee:
-        complements.append(designer(o, debut=True) + " est trop loin pour être "
-                           + accorder(o, "manipulé") + " d'ici")
+        # De loin, ni la main ni l'œil n'atteignent le détail : le moteur n'en livre aucun (aspect fin,
+        # inscription, portrait) et n'en laisse établir aucun (``faits_locaux.supports``).
+        complements.append(designer(o, debut=True) + (" sont" if pluriel(o) else " est") + (
+            " trop loin pour que tu distingues ses traits" if o["type"] == "personnage" else
+            " trop loin pour être " + accorder(o, "manipulé") + " d'ici ; de là, "
+            + ("leurs" if pluriel(o) else "ses") + " détails t'échappent"))
     texte = nom + ((" sont " if pluriel(o) else " est ") + enumerer(morceaux) if morceaux else "") + "."
     if complements:
         texte += " " + ". ".join(complements) + "."

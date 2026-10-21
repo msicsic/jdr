@@ -255,8 +255,13 @@ def preparer_faits(monde, proposition, revision=None):
         ancrage = reference_exacte(travail.objets.values(), ancrage) or ancrage
         if nature == "qualification":
             if ancrage not in autorises["qualifiables"]:
-                raise refus("Cet objet ne peut pas être qualifié depuis ici.",
-                            f"ancrage « {ancrage} » : un objet qualifiable d'ici, parmi {liste(sorted(autorises['qualifiables']))}.")
+                # Une cause par refus : la lumière, la vue ou la distance, comme pour un détail ; un objet
+                # que l'on voit de près sans masse (un mur, un sol) ne se qualifie pas.
+                raise refus(inobservable(monde, ancrage) if ancrage not in autorises["supports"]
+                            else "Cet objet ne peut pas être qualifié.",
+                            f"ancrage « {ancrage} » : un objet qualifiable d'ici, parmi "
+                            f"{liste(sorted(autorises['qualifiables']))} ; ne le remplace pas par un autre : "
+                            "réponds en dialogue avec ce que Corvus en perçoit d'ici, sans détail nouveau.")
             cible = travail.objets[ancrage]
             if "physique" in ajout:
                 # Le MJ dit ce qu'est concrètement l'objet ; le moteur vérifie la masse et déduit le reste.

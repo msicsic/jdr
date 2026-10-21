@@ -277,13 +277,19 @@ class HarnaisTests(unittest.TestCase):
 
     def test_double_refus_sans_boucle_et_question_sans_action(self):
         m = nouveau_atelier()
-        # Une demande et une question refusées par le moteur : deux refus, puis une explication.
-        for message in ("je fabrique une échelle", "Puis-je fabriquer une échelle ?"):
-            with patch.object(MJOpenAI, "_appeler", return_value=action(fabriquer(largeur_cm=50))) as api:
-                r = MJOpenAI().echanger(m, message)
-            self.assertEqual(api.call_count, 3)
-            self.assertEqual(r["mode"], "dialogue")
-            self.assertEqual(m.data["revision"], 0)
+        # Une demande refusée deux fois par le moteur : deux refus, puis une explication du MJ.
+        with patch.object(MJOpenAI, "_appeler", return_value=action(fabriquer(largeur_cm=50))) as api:
+            r = MJOpenAI().echanger(m, "je fabrique une échelle")
+        self.assertEqual(api.call_count, 3)
+        self.assertEqual(r["mode"], "dialogue")
+        self.assertEqual(m.data["revision"], 0)
+        # Une question : après la correction, c'est le moteur qui répond, par la raison de son refus.
+        with patch.object(MJOpenAI, "_appeler", return_value=action(fabriquer(largeur_cm=50))) as api:
+            r = MJOpenAI().echanger(m, "Puis-je fabriquer une échelle ?")
+        self.assertEqual(api.call_count, 2)
+        self.assertEqual((r["mode"], r["_texte_moteur"]), ("dialogue", True))
+        self.assertIn("408 cm", r["texte"])
+        self.assertEqual(m.data["revision"], 0)
         # Une question valide se prépare comme la demande, sans rien fabriquer.
         with (patch.object(MJOpenAI, "_appeler", return_value=action(fabriquer())) as api,
               patch.object(MJOpenAI, "_auditer_action")):

@@ -177,6 +177,20 @@ def calculer(m, p):
                           f"justification ≤ 1000 caractères ; perches libres : {liste(ressources_libres(m, 'perche'))} ; "
                           f"liens libres : {liste(ressources_libres(m, 'lien'))}.")
     ids = [*p["montants"], p["traverses"], p["lien"], p["outil"]]
+    # Un rôle laissé vide : ce qui manque, dans l'ordre de l'assemblage, une cause par refus. C'est aussi
+    # la réponse à « puis-je fabriquer une échelle ? » quand rien ne peut tenir ce rôle ici.
+    for vides, nature, besoin in ((sum(not i.strip() for i in p["montants"]), "perche",
+                                   "deux montants, deux barres libres d'une seule pièce"),
+                                  (not p["traverses"].strip(), "perche", "une barre libre où tailler les barreaux"),
+                                  (not p["lien"].strip(), "lien", "un lien pour attacher les barreaux")):
+        if vides:
+            libres = [i for i in ressources_libres(m, nature) if i not in ids]
+            besoin = "un second montant, une barre libre d'une seule pièce" if vides == 1 and nature == "perche" \
+                and besoin.startswith("deux") else besoin
+            raise ErreurMonde(f"Pour une échelle, il te manque {besoin}"
+                              + ("." if libres else " : rien de tel n'est à ta disposition ici."),
+                              f"désigne {besoin.split(',')[0]} parmi {liste(libres)} ; un objet qui pourrait servir "
+                              "mais n'est pas encore décrit se décrit d'abord (etablir_faits, qualification avec physique).")
     if len(set(ids)) != 5:
         raise ErreurMonde("Chaque rôle exige une ressource distincte ; on ne peut pas compter deux fois une perche.",
                           f"cinq identifiants distincts (2 montants, traverses, lien, outil) ; reçu {', '.join(ids)} ; "

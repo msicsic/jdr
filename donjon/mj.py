@@ -17,7 +17,7 @@ from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_f
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
 from .paroles import (REGLES as REGLES_PAROLE, SCHEMA_PAROLE, ParoleImpossible, analyser as analyser_parole,
                       annonce as annonce_parole, contexte as contexte_paroles, preparer_parole)
-from .commandes import est_question
+from .commandes import PERCEPTIONS, est_question, faisabilite
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
 from .config import MODELE_PAR_DEFAUT
@@ -32,7 +32,7 @@ from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profi
 from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
-                        citations_nouvelles, rescape as rescape_narratif, repli as repli_narratif,
+                        paroles_sans_moteur, rescape as rescape_narratif, repli as repli_narratif,
                         attestations as attestations_narratives,
                         fondement as fondement_narratif, fondement_paroles,
                         mentions as mentions_narratives,
@@ -274,12 +274,84 @@ def parole_du_moteur(monde, intention):
             "faits": [], "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
 
 
+ATTENDU_FAISABILITE = ("la saisie demande si Corvus peut faire un geste : mode action, la proposition de ce geste "
+                       "telle que s'il le demandait (le moteur la prépare sans l'exécuter, puis montre au joueur ce "
+                       "qu'elle demande ou pourquoi elle est impossible) ; clarifier si le geste visé est ambigu")
+
+
+def geste_en_question(monde, intention):
+    """« Puis-je… ? » : une question sur un geste de Corvus (``commandes.faisabilite``), qui n'est pas
+    une parole adressée à quelqu'un (« Gorm, est-ce que je peux entrer ? »)."""
+    if not faisabilite(intention):
+        return False
+    forme = analyser_parole(monde, intention)
+    return not (forme["explicite"] or forme["nomme"] or forme["groupe"])
+
+
+def interpellation_entendue(monde, intention):
+    """« Gorm, … » sans guillemets ni verbe de parole : une saisie adressée à un personnage (ou à tous) qui
+    l'entendrait, à interpréter (``paroles.analyser``). Rien n'est encore dit : le nom de celui qui
+    l'entendrait, ou None."""
+    from .paroles import _nom_court, prevue
+    forme = analyser_parole(monde, intention)
+    if forme["explicite"] or not (forme["nomme"] or forme["groupe"]):
+        return None
+    qui = prevue(monde, intention).get("personnage")
+    if qui in (None, "personne"):
+        return None
+    return "tous" if qui == "tous" else _nom_court(monde, qui)
+
+
+def renvoi(monde, intention):
+    """Un dialogue qui répond à cette saisie avant que le moteur ait agi est renvoyé une fois au MJ, sans
+    être contrôlé : (obstacle, attendu), ou None. « Puis-je… ? » : le moteur juge le geste. « Gorm, … »
+    (Gorm l'entendrait) : rien n'est encore dit, ni fait ; personne ne répond ni ne réagit à des mots
+    que le moteur n'a pas fait entendre. S'il revient, le dialogue est contrôlé comme tout autre."""
+    if geste_en_question(monde, intention):
+        return "C'est au moteur de dire si Corvus le peut.", ATTENDU_FAISABILITE
+    qui = interpellation_entendue(monde, intention)
+    if qui:
+        return (f"Rien n'a encore été dit à {qui}.",
+                f"la saisie s'adresse à {qui}, qui l'entendrait, et rien n'a encore été dit ni fait : "
+                "parole_joueur (personnage = parole_prevue.personnage) si Corvus parle ; l'action si c'est un "
+                "geste (donner un objet : remettre) ; un dialogue seulement pour ce que Corvus perçoit, sans "
+                "que personne lui réponde ni réagisse à ses mots")
+    return None
+
+
+def refus_assure(monde, intention, reponse, deja_renvoyee=False):
+    """Pourquoi le moteur refusera cette réponse d'interprétation, quelle qu'en soit la prose, ou "" :
+    un dialogue quand la saisie est une parole sans conteste (le moteur la fait entendre), un ajout
+    persistant que sa validation écarte (détail d'un objet hors de portée, savoir mal formé…). Les mêmes
+    validations, sur copie, que la suite du tour : rien n'est appliqué."""
+    mode, p = reponse.get("mode"), reponse.get("proposition")
+    if mode == "dialogue" and "_texte_moteur" not in reponse and parole_attendue(monde, intention):
+        return "Corvus le dit : c'est une parole."
+    if mode == "dialogue" and not deja_renvoyee and renvoi(monde, intention):
+        return renvoi(monde, intention)[0]
+    preparer = {"etablir_faits": preparer_faits, "enrichir": preparer_complements,
+                "enrichir_savoirs": preparer_savoirs}.get(mode)
+    if preparer is None or not isinstance(p, dict):
+        return ""
+    try:
+        preparer(monde, p, monde.data["revision"])
+    except ErreurMonde as exc:
+        return str(exc)
+    return ""
+
+
 def retour_refus(proposition, exc, consigne):
     """Ce que la boucle de correction transmet au MJ : le refus, et ce que le moteur accepterait."""
     retour = {"proposition_refusee": proposition, "obstacle": str(exc), "consigne": consigne}
     if getattr(exc, "attendu", ""):
         retour["attendu"] = exc.attendu
     return retour
+
+
+def reponse_du_moteur(exc):
+    """Le refus du moteur, tel qu'il s'adresse au joueur (son ``attendu`` reste au MJ)."""
+    return {"mode": "dialogue", "texte": str(exc), "faits": [], "proposition": None,
+            "_texte_moteur": True, "_validation_refusee": True}
 
 
 def expliquer_refus(premier, dernier):
@@ -299,6 +371,9 @@ class MJOpenAI:
         self.observateur = None
         self._audit_courant = None
         self._monde_controle = None
+        self._interpretation = False   # l'appel en cours interprète une saisie (et non raconte)
+        self._sans_dialogue = False    # un dialogue serait remplacé par le refus du moteur : pas d'audit
+        self._faisabilite_renvoyee = False  # « puis-je… ? » déjà renvoyé : un dialogue se contrôle
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
         self.sans_strict = set()       # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
@@ -424,8 +499,27 @@ class MJOpenAI:
                     reponse = parole_du_moteur(monde, intention)
                     if reponse["mode"] == "dialogue":
                         return reponse
+            elif (reponse["mode"] == "dialogue" and not ({"_audit", "_texte_moteur"} & set(reponse))
+                  and renvoi(monde, intention)):
+                # « Puis-je… ? », « Gorm, … » : le dialogue, non contrôlé (``refus_assure``), est renvoyé une
+                # fois avec ce qu'attend le moteur. S'il revient, il est contrôlé comme tout autre.
+                obstacle, attendu = renvoi(monde, intention)
+                retour = retour_refus(None, ErreurMonde(obstacle, attendu),
+                                      "Propose ce que le moteur attend ; ne raconte rien qu'il n'ait validé.")
+                if self.observateur:
+                    self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
+                                      "revision": revision, "tentative": 1, **retour})
+                self._faisabilite_renvoyee = True
+                try:
+                    reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
+                                             retour_moteur=retour)
+                finally:
+                    self._faisabilite_renvoyee = False
         correction_utilisee = False
         premier_refus = None
+        # Une question sur la faisabilité d'un geste (« puis-je… ? ») : c'est le moteur qui y répond, par
+        # la fiche du geste ou par la raison de son refus, jamais une explication libre du MJ.
+        faisabilite, refus_du_moteur = est_question(intention), None
         for tentative in range(2):
             if reponse["mode"] != "action":
                 break
@@ -444,7 +538,12 @@ class MJOpenAI:
                     break
                 # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
                 # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.
-                plan = Moteur(monde).preparer(p, "MJ")
+                try:
+                    plan = Moteur(monde).preparer(p, "MJ")
+                except ErreurMonde as exc:
+                    if p.get("action") not in PERCEPTIONS and not isinstance(exc, QualificationRequise):
+                        refus_du_moteur = exc
+                    raise
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
                     raise ErreurMonde("La proposition corrigée ne réalise aucun effet de la manœuvre demandée.",
@@ -457,6 +556,10 @@ class MJOpenAI:
                 if premier_refus is None:
                     premier_refus = dernier_refus
                 retour = retour_refus(p, exc, "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue.")
+                if faisabilite and refus_du_moteur is exc:
+                    retour["consigne"] = ("C'est une question de faisabilité : corrige la proposition si elle visait mal "
+                                          "(identifiants, champs) d'après attendu ; sinon renvoie-la telle quelle, et le "
+                                          "moteur dira lui-même au joueur ce qui manque.")
                 if isinstance(exc, QualificationRequise):
                     retour["qualification_requise"] = {"objet": exc.cible,
                                                        "capacite": exc.capacite,
@@ -477,6 +580,9 @@ class MJOpenAI:
                     if reponse["mode"] == "dialogue":
                         return reponse
                     break
+                if correction_utilisee and faisabilite and refus_du_moteur is not None:
+                    # Rien n'est tenté : le joueur lit pourquoi le moteur ne le permet pas, tel quel.
+                    return reponse_du_moteur(refus_du_moteur)
                 if correction_utilisee:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
                               "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
@@ -493,7 +599,18 @@ class MJOpenAI:
                             "faits": [], "proposition": None, "_validation_refusee": True,
                             "_texte_moteur": True}
                 correction_utilisee = True
-                reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
+                # Une question dont le geste est refusé par le moteur : seule une proposition corrigée peut
+                # encore y répondre ; un dialogue serait remplacé par ce refus, il n'est pas contrôlé.
+                self._sans_dialogue = faisabilite and refus_du_moteur is exc
+                try:
+                    reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
+                                             retour_moteur=retour)
+                finally:
+                    self._sans_dialogue = False
+        if (reponse["mode"] == "dialogue" and faisabilite and refus_du_moteur is not None
+                and not reponse.get("_validation_refusee")):
+            # Corrigée en dialogue après le refus d'un geste demandé en question : la raison du moteur.
+            return reponse_du_moteur(refus_du_moteur)
         if (reponse["mode"] == "dialogue" and not reponse.get("_validation_refusee")
                 and parole_attendue(monde, intention)):
             # Corrigée en dialogue après un geste refusé (ou repli du contrôle) : la parole reste au moteur.
@@ -515,6 +632,10 @@ class MJOpenAI:
                 reponse = self._echanger(monde, intention, proposition_en_attente,
                                          enrichir=True, retour_moteur=retour)
                 if reponse["mode"] != "etablir_faits":
+                    if reponse["mode"] == "dialogue" and "_audit" not in reponse and parole_attendue(monde, intention):
+                        # Un dialogue non contrôlé (``refus_assure``) : la parole reste au moteur.
+                        return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
+                                                      reponse=parole_du_moteur(monde, intention), recadre=True)
                     if reponse["mode"] == "dialogue":
                         return reponse
                     raise ErreurMonde("La correction des faits narratifs n'a pas abouti.")
@@ -774,14 +895,14 @@ direction), plus lents, ils ne s'entendent que de tout près.
         try:
             self._audit_courant = None
             # Le monde sert au contrôle lexical de la prose, jamais à la requête.
-            self._monde_controle = monde
+            self._monde_controle, self._interpretation = monde, enrichir
             reponse = self._appeler(instructions, entree, intention, "repondre_au_joueur", schema)
             trace["reponse"] = copy.deepcopy(reponse)
         except ErreurMonde as exc:
             trace["erreur"] = str(exc)
             raise
         finally:
-            self._monde_controle = None
+            self._monde_controle, self._interpretation = None, False
             if self.observateur:
                 trace["secondes"] = round(time.monotonic() - debut, 3)
                 trace["usage"] = copy.deepcopy(self.derniere_utilisation)
@@ -870,6 +991,23 @@ direction), plus lents, ils ne s'entendent que de tout près.
             audits = {}
             base, paroles = fondement_narratif(entree), fondement_paroles(entree)
             monde = self._monde_controle
+            # La saisie s'adresse-t-elle à quelqu'un (« Ilse, … », « à tous ») ? Sans parole que le moteur
+            # a fait entendre, personne ne lui répond.
+            forme = analyser_parole(monde, intention) if monde is not None else {}
+            adresse = bool(forme.get("nomme") or forme.get("groupe"))
+            # « Puis-je… ? » n'est renvoyé qu'une fois, au premier appel : ensuite un dialogue se contrôle.
+            refus = (refus_assure(monde, intention, reponse, self._faisabilite_renvoyee
+                                  or "retour_moteur" in entree.get("faits", {}))
+                     if self._interpretation and monde is not None else "")
+            if self._sans_dialogue and reponse.get("mode") == "dialogue":
+                refus = "Un dialogue ne répond pas à cette question : le refus du moteur y répond."
+            if refus:
+                # Le moteur refusera cette réponse quelle qu'en soit la prose : son refus, qui dit ce
+                # qu'il accepterait, passe avant toute contre-revue sémantique, qui ne serait pas lue.
+                if self.observateur:
+                    self.observateur({"etape": "prévalidation", "modele": self.modele, "intention": intention,
+                                      "mode": reponse.get("mode"), "refus": refus})
+                return reponse
             for nom, texte, effets in passages:
                 if not texte.strip():
                     # Rien à contrôler : l'audit d'un texte vide ne peut qu'échouer.
@@ -880,14 +1018,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 if monde is not None:
                     obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
                 faits = dict(entree.get("faits", {}))
-                if isinstance(faits.get("retour_moteur"), dict) and citations_nouvelles(texte, faits):
-                    # Après un refus, rien n'a eu lieu : le motif vient du moteur, aucun personnage ne
-                    # le connaît, ne le dit ni ne réagit. Contrôle déterministe, quelle que soit la voie
-                    # (action, parole, conversation, faits) et sans dépendre du verdict de l'auditeur.
-                    obstacles.append({"partie": nom, "segment": None, "texte": texte,
-                                      "motif": "Aucune action ni parole n'a eu lieu : c'est toi qui expliques "
-                                               "l'obstacle. Aucun personnage ne parle ni ne réagit ; ne cite "
-                                               "entre guillemets que des paroles déjà entendues."})
+                # Une parole n'a lieu que par le moteur : contrôle déterministe, quelle que soit la voie
+                # (action, parole, conversation, faits) et sans dépendre du verdict de l'auditeur.
+                obstacles.extend({"partie": nom, **o} for o in paroles_sans_moteur(texte, faits, adresse))
                 if effets is not None:
                     faits["effets_prevus"] = {"branche": nom, "effets": effets,
                                                "intention": reponse["proposition"].get("intention")}
@@ -922,8 +1055,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     def fautif(morceau, faits=faits):
                         return bool(voix_auteur(morceau)
                                     or (monde is not None and mentions_narratives(monde, morceau, base, paroles))
-                                    or (isinstance(faits.get("retour_moteur"), dict)
-                                        and citations_nouvelles(morceau, faits)))
+                                    or paroles_sans_moteur(morceau, faits, adresse))
                     garde = rescape_narratif(texte, rapport, faits, fautif)
                     if garde:
                         rescapes.append((garde[2], tentative, garde[0],

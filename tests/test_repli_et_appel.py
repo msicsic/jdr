@@ -118,11 +118,14 @@ class InterpellationTests(unittest.TestCase):
     """Sans guillemets ni verbe de parole, une interpellation est du texte libre pour le MJ."""
 
     def test_le_mj_peut_repondre_sans_parole(self):
+        # Aubin l'entendrait : un premier dialogue est renvoyé une fois (rien n'est encore dit,
+        # branche mj-restes) ; s'il revient, contrôlé, il s'affiche.
         m = scene()
         reprise, sortie, appels = jouer(m, "Aubin, viens m'aider à porter l'échelle",
-                                        [dialogue("Aubin est à quelques pas.")], [verdicts(NEUTRE)])
-        self.assertEqual(len(mj(appels)), 1)
+                                        [dialogue("Aubin est à quelques pas.")] * 2, [verdicts(NEUTRE)])
+        self.assertEqual(len(mj(appels)), 2)
         self.assertNotIn("retour_moteur", mj(appels)[0]["faits"])
+        self.assertEqual(mj(appels)[1]["faits"]["retour_moteur"]["obstacle"], "Rien n'a encore été dit à Aubin.")
         self.assertIn("Aubin est à quelques pas.", sortie)
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 
