@@ -865,6 +865,7 @@ def preparer_parole(monde, p, revision=None):
         # Il se tourne d'abord vers celui qu'il nomme dans son dos.
         monde = tourne(monde, vers)
     dest = destinataires(monde, forme)
+    from .deliberation import rejoint
     from .voix import designation, identifie
     # Le MJ désigne une voix que Corvus ne sait à qui prêter comme le joueur : voix_<n>.
     attendu = designation(monde, personnage(forme, dest))
@@ -926,6 +927,7 @@ def preparer_parole(monde, p, revision=None):
                 _demander(travail, auditeur, c["sujet"], faits, c["prix"])
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
+        rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
                                                       else {"voix_inconnue": True})})

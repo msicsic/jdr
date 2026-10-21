@@ -3,18 +3,26 @@
 - Le joueur nomme un personnage d'après ce qu'il sait de lui (vu, voix connue, nom qu'une voix
   s'est donné), jamais d'après une place connue : cas réel du banc Luna, un personnage vu de loin
   dont la place connue s'est vidée n'était plus reconnu par son nom.
+- Qui répond à un appel s'attend à être rejoint : il attend sur place un temps borné, sauf pour
+  plus pressant, ou va vers l'appelant s'il le cherche aussi. Cas réel de la crue : l'appelé
+  répondait « Ici ! » puis poursuivait sa ronde ou allait voir un bruit, d'où des chassés-croisés.
 Chaque cas vérifie l'état après rechargement et ce que lit le joueur."""
 import unittest
 
 from donjon import lexique
 from donjon.commandes import analyser as commande
+from donjon.deliberation import REJOINT
+from donjon.esprits import croire, lire
+from donjon.geometrie import position_entree
 from donjon.monde import ErreurMonde
 from donjon.paroles import _connu_du_joueur, analyser
+from donjon.pnj import appeler
 from donjon.voix import connaitre, entendues
 from tests.support import calme
 from tests.test_repli_et_appel import jouer
-from tests.test_tensions import placer, recharger, relais
-from tests.test_temps_etat import faire
+from tests.test_tensions import chronique, placer, recharger, relais, vivre
+from tests.test_temps_etat import decouper, etat_pnj, faire
+from tests.test_voix import appels, aubin_cherche_gorm
 
 
 def cite(monde, id):
@@ -87,6 +95,103 @@ class NommerTests(unittest.TestCase):
         with self.assertRaises(ErreurMonde):
             commande(m, "je donne la cloche à Ilse")
 
+
+
+def gorm_en_ronde():
+    """Cas réel, rejoué au Relais : Aubin a faim et hèle Gorm, qu'il ne sait où trouver ; Gorm, à
+    la salle des vannes, s'en va faire sa ronde du refuge (routine). Avant, il répondait puis
+    partait : Aubin le cherchait là d'où venait la voix, rappelait, et le trouvait plus tard."""
+    m = aubin_cherche_gorm()
+    lire(m, "marchand")["visites"]["antichambre"] = m.data["minutes"] - 46
+    return recharger(m)
+
+
+def lieux(m):
+    return m.objets["marchand"]["lieu"], m.objets["aubin"]["lieu"]
+
+
+class RejointTests(unittest.TestCase):
+    def test_cas_reel_l_appele_attend_et_l_appelant_le_trouve_au_premier_appel(self):
+        m = gorm_en_ronde()
+        m, _ = vivre(m, 2)  # Aubin hèle, Gorm répond.
+        self.assertIn("Gorm répond : « Ici ! »", chronique(m))
+        r = lire(m, "marchand")["rejoint"]
+        self.assertEqual((r["qui"], r["jusqu_a"] - r["depuis"]), ("aubin", REJOINT))
+        self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "attendre", "qui": "aubin"})
+        attendu_la = m.objets["marchand"]["lieu"]
+        m = recharger(m)
+        for _ in range(4):
+            m, _ = vivre(m, 1)
+            if not lire(m, "marchand")["rejoint"]:
+                break
+            self.assertEqual(m.objets["marchand"]["lieu"], attendu_la)  # Il attend là où il a répondu.
+        m = recharger(m)
+        self.assertEqual(len(appels(m, "aubin")), 1)
+        self.assertIn("Gorm retrouve Aubin, qui l'avait hélé.", chronique(m))
+        self.assertIn("Aubin demande une part des vivres du refuge à Gorm (promis).", chronique(m))
+        self.assertIsNone(lire(m, "marchand")["rejoint"])
+
+    def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
+        d_un_bloc, morcele = decouper(gorm_en_ronde, 6)
+        self.assertIn("Gorm retrouve Aubin, qui l'avait hélé.", chronique(morcele))
+        self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
+
+    def test_sans_personne_qui_vienne_il_cesse_d_attendre_a_l_echeance(self):
+        m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        placer(m, "marchand", "crypte", (5, 2))
+        placer(m, "aubin", "beffroi", position_entree(m, "beffroi"))
+        lire(m, "marchand")["visites"]["antichambre"] = -46  # Sa ronde l'attend.
+        appeler(m, "aubin", "marchand", [])  # Aubin, sans rien vouloir de plus, ne vient pas.
+        self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
+        m = recharger(m)
+        ici = m.objets["marchand"]["lieu"]
+        for _ in range(REJOINT - 1):
+            m, _ = vivre(m, 1)
+            self.assertEqual(m.objets["marchand"]["lieu"], ici)
+        for _ in range(3):
+            m, _ = vivre(m, 1)
+        m = recharger(m)
+        self.assertIn("Gorm cesse d'attendre Aubin.", chronique(m))
+        self.assertIsNone(lire(m, "marchand")["rejoint"])
+        self.assertGreaterEqual(lire(m, "marchand")["visites"]["antichambre"], REJOINT)  # Puis sa ronde.
+
+    def test_un_besoin_plus_pressant_passe_avant(self):
+        """Gorm a répondu à Aubin ; sa faim presse : il va manger d'abord, puis attend Aubin."""
+        m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        placer(m, "marchand", "crypte", (5, 2))
+        placer(m, "aubin", "beffroi", position_entree(m, "beffroi"))
+        appeler(m, "aubin", "marchand", [])
+        lire(m, "marchand")["besoins"]["faim"] = 95.0
+        m = recharger(m)
+        m, _ = vivre(m, 1)
+        self.assertEqual(lire(m, "marchand")["intention"]["motif"], "faim")
+        self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
+        while lire(m, "marchand")["intention"]["motif"] == "faim":
+            m, _ = vivre(m, 1)
+        self.assertLess(m.data["minutes"], REJOINT)
+        self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "attendre", "qui": "aubin"})
+
+    def test_s_il_le_cherche_aussi_il_va_vers_lui(self):
+        """Gorm hèle Aubin ; Aubin, qui cherche Gorm pour sa part et connaît sa voix, sait d'où vient
+        l'appel : il va vers lui au lieu d'attendre."""
+        m = aubin_cherche_gorm()
+        self.assertIn("marchand", lire(m, "aubin")["voix"])
+        # Aubin, affamé, cherche Gorm à la conduite basse (la délibération de la minute passée).
+        lire(m, "aubin")["intention"] = {
+            "but": {"type": "part", "objet": "vivres", "de": "marchand"}, "motif": "faim", "depuis": 2, "attente": 0,
+            "plan": [{"operation": "aller", "cible": "", "outil": "", "lieu": "echoppe", "condition": ""},
+                     {"operation": "inspecter", "cible": "", "outil": "", "lieu": "echoppe", "condition": "",
+                      "contenu": {"cherche": "marchand"}}]}
+        appeler(m, "marchand", "aubin", [])
+        self.assertIn("Aubin répond : « Ici ! »", chronique(m))
+        self.assertIsNone(lire(m, "aubin")["rejoint"])
+        self.assertEqual(lire(m, "aubin")["croyances"]["marchand"]["lieu"]["valeur"], "crypte")
+        m = recharger(m)
+        for _ in range(4):
+            m, _ = vivre(m, 1)
+        m = recharger(m)
+        self.assertIn("Aubin demande une part des vivres du refuge à Gorm (promis).", chronique(m))
+        self.assertEqual(appels(m, "aubin"), [])
 
 if __name__ == "__main__":
     unittest.main()

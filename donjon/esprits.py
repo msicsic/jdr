@@ -45,7 +45,9 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
           "voix": list,   # ceux dont il connaît la voix (``voix.py``)
           "voix_entendues": dict,   # les voix inconnues qu'il a entendues, et ce qu'elles ont prétendu
-          "urgences": dict}   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
+          "urgences": dict,   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
+          # qui l'a hélé et à qui il a répondu : il attend d'être rejoint (``deliberation.attendre``)
+          "rejoint": lambda: None}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -155,6 +157,10 @@ def verifier(monde):
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
                              and type(b["instant"]) is int and b["instant"] >= 0), "Tour d'horizon de PNJ invalide"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
+        r = e["rejoint"]
+        assert r is None or (isinstance(r, dict) and set(r) == {"qui", "depuis", "jusqu_a"}
+                             and (r["qui"] == "joueur" or r["qui"] in monde.objets)
+                             and type(r["depuis"]) is int and type(r["jusqu_a"]) is int), "Attente de PNJ invalide"
         assert isinstance(e["voix"], list) and all(
             isinstance(x, str) for x in e["voix"]  # Comme une croyance, il survit à qui a quitté la partie.
         ) and len(set(e["voix"])) == len(e["voix"]), "Voix connues invalides"

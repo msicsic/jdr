@@ -106,6 +106,11 @@ def issue(monde, chronique):
     return hashlib.sha1(texte.encode()).hexdigest()[:12]
 
 
+def _attente(c):
+    """Une entrée de la chronique qui clôt l'attente d'être rejoint (``deliberation.attendre``)."""
+    return c.get("nature") == "reponse" and (" retrouve " in c["texte"] or " cesse d'attendre " in c["texte"])
+
+
 def _usurpations(monde):
     """PNJ qui portent l'objet d'une tâche confiée à quelqu'un qu'ils croient encore fiable."""
     from .deliberation import _delegue
@@ -136,6 +141,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
     from .eau import active, lieu, profondeur
     vivants = [id for id in pnjs(monde) if monde.objets[id].get("profil")]
     chronique, oisivete, blocage, attente, confiance, usurpations, mouilles = [], 0, 0, 0, 0, 0, 0
+    attendre_rejoint = 0
     releves = {}
     vue = list(monde.data.get("chronique", []))
     debut = monde.data["minutes"]
@@ -152,6 +158,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
         oisivete, blocage = oisivete + PAS * oisifs, blocage + PAS * bloques
         attente, confiance = attente + PAS * attendent, confiance + PAS * confies
         usurpations += _usurpations(monde)
+        attendre_rejoint += PAS * sum(1 for id in vivants if (lire(monde, id)["intention"] or {}).get("but", {}).get("type") == "attendre")
         mouilles += PAS * sum(1 for id in vivants if profondeur(monde, lieu(monde, id)))
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
@@ -166,7 +173,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
                # Les échanges entre PNJ, sans les appels de qui cherche quelqu'un ni leurs réponses
                # (comptés à part, ``appels`` et ``reponses``).
                "echanges": natures["social"] + natures["reponse"] - sum(
-                   " appelle : « " in c["texte"] or " répond : « " in c["texte"] for c in chronique),
+                   " appelle : « " in c["texte"] or " répond : « " in c["texte"] or _attente(c) for c in chronique),
                "decisions": natures["decision"],
                "minutes_urgentes_oisives": oisivete,
                # Mesure d'information ajoutée après le premier banc E, hors critère de décision. Une
@@ -201,6 +208,11 @@ def executer(monde, minutes, recit=None, empreintes=None):
                # Chercher quelqu'un sans le voir : l'appeler, et qui répond (``pnj.appeler``).
                "appels": sum(" appelle : « " in c["texte"] for c in chronique),
                "reponses": sum(" répond : « " in c["texte"] for c in chronique),
+               # Qui a répondu attend d'être rejoint (``deliberation.attendre``) : rejoint, ou en vain.
+               "retrouvailles": sum(c.get("nature") == "reponse" and " retrouve " in c["texte"] for c in chronique),
+               "attentes_vaines": sum(c.get("nature") == "reponse" and " cesse d'attendre " in c["texte"]
+                                      for c in chronique),
+               "minutes_a_attendre": attendre_rejoint,
                # L'argent et les prêts (``biens``) : achats conclus, refus de vendre, pièces payées,
                # prêts et objets rendus, bourses prises par un autre que leur propriétaire.
                "achats": sum(" achète " in c["texte"] and c["texte"].endswith("(vendu).") for c in chronique),
