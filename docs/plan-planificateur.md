@@ -676,8 +676,9 @@ Cas vérifiés après rechargement (`tests/test_lumiere_garde.py`) :
   s'abriter près d'Aubin) ; Brune ailleurs, il va s'abriter.
 Tests changés et pourquoi : `test_planification` (le plan d'une part demandée mène attendre près des
 vivres) ; `test_constater_rumeurs` (le baraquement noir : la lampe de Josse vide, sinon il demande du
-feu et rallume le poêle ; la voix inconnue : Odon honnête, demander et attendre coûtant à peine moins
-que forcer le garde-manger).
+feu et rallume le poêle ; la réserve noire : Odon honnête, car demander puis attendre sa part dans le
+baraquement noir lui coûte un peu plus que forcer le garde-manger, 10,5 contre 9,95 ; la scène, qui sert
+aussi à `tests/test_voix_inconnues.py`, éprouve ainsi le jugement d'une demande venue d'une voix).
 
 `VERIFIER` passe sur une nuit de 8 h (graine 42) de chaque scénario.
 

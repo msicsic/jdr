@@ -720,7 +720,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   crue 15 → 15 ; en attente 63 → 66, 290 → 281, 536 → 541, 89 → 108 ; vols vus égaux à 0,25 près ;
   aucune usurpation ni violation ; temps égal à ±14 %. Tests changés : `test_planification` (le plan
   d'une part mène l'attendre près des vivres), `test_constater_rumeurs` (lampe de Josse vide pour
-  garder le baraquement noir ; Odon honnête face à la voix inconnue). Limites : chercher le porteur
+  garder le baraquement noir ; Odon honnête dans la réserve noire, scène partagée avec
+  `test_voix_inconnues`, car attendre sa part dans le noir lui coûte un peu plus que forcer le garde-manger). Limites : chercher le porteur
   seulement pour la lumière et ce que le but vise (pas pour un feu : sinon la borne de nœuds) ; pas de
   feu demandé pour une source fixe ; rejoindre qui porte une lampe n'est ni abri ni lumière ; l'apport
   d'une source ignore l'ombre ; l'attente d'une part reste une estimation ; la menace se juge sur où il
