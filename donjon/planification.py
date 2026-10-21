@@ -19,8 +19,8 @@ from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
 
-from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _lieu_cru,
-                           besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
+from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
+                           _lieu_cru, besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
                            promesse_en_cours, refuse_recemment)
 from . import force
 from .biens import PRIX_PART
@@ -134,6 +134,9 @@ class Vue:
                               or "allume" in x) for o in self.connus for x in [self.objets[o]]}
         # Les sources qu'il connaît et qu'un combustible recharge (``perception.recharge``).
         self.rechargeables = [o for o in self.connus if brule(self.objets[o])]
+        # Ce qui donne du feu de main en main : un outil d'allumage, une source portable.
+        self.flammes_portables = [o for o in self.connus if "allumage" in self.objets[o].get("usages", [])
+                                  or "allume" in self.objets[o] and self.objets[o].get("mobile")]
         self.foyers = [o for o in self.connus if self.objets[o].get("foyer")]
         # Ce que le noir l'inquiète : chaque minute qu'il y passe lui coûte (``NOIR``), s'il croit
         # le noir quelque part (``noir_cru``) ; sinon, rien ne lui coûte d'y être.
@@ -201,6 +204,18 @@ class Vue:
                     or crochete and "crochetage" in usages
                     or voir and ("allume" in x or "allumage" in usages or "combustible" in usages and any(
                         recharge(self.objets[s], x) for s in self.rechargeables)))
+
+    def moyen_du_but(self, o, vises):
+        """Ce qui vaut d'aller chercher qui le porte : ce que le but vise lui-même, ou, pour avoir de
+        la lumière, une source ou une flamme. Pas ce qui ne servirait qu'en chemin (une lampe pour
+        qui craint le noir, une clé), ni les moyens d'un feu ou d'un repas : leur part se cherche
+        déjà chez son propriétaire (``_chercher``), et chercher quiconque porte un combustible ou
+        une flamme élargit chaque recherche d'un feu sans la servir (voir les limites)."""
+        if o in vises:
+            return True
+        x = self.objets[o]
+        return bool(self.emplois is not None and "lumiere" in self.emplois
+                    and ("allume" in x or "allumage" in x.get("usages", [])))
 
     def _memo(self, cle, calcul):
         crus = self._crus
@@ -358,6 +373,23 @@ class Vue:
         o = self.objets[k]
         return k in e.portes and ("allumage" in o.get("usages", []) or "allume" in o and self.feu(e, k)[0])
 
+    def flammes_d_autrui(self, e):
+        """(porteur, flamme) : les flammes qu'il croit aux mains d'un autre qui se tient là où il
+        est (un outil d'allumage, ou une source portable qu'il croit allumée)."""
+        trouvees = []
+        for k in self.flammes_portables:
+            autre = self.lieu(e, k)
+            if (k in e.portes or autre not in self.objets or self.objets[autre]["type"] != "personnage"
+                    or autre == self.id or not profil(self.monde, autre) or self.salle(e, autre) != e.salle):
+                continue
+            if "allumage" in self.objets[k].get("usages", []) or self.feu(e, k)[0]:
+                trouvees.append((autre, k))
+        return trouvees
+
+    def refuse_feu(self, autre, source):
+        return self._memo((autre, source, "refus_feu"),
+                          lambda: refuse_recemment(self.monde, self.id, autre, "demander_feu", source))
+
     def flammes_fixes(self, e):
         """Les sources fixes qu'il croit allumées dans la salle où il se tient : il y porte ce
         qu'il veut allumer."""
@@ -370,6 +402,32 @@ class Vue:
             self._crus["foyer_froid"] = next((f for f in self.connus if self.objets[f].get("foyer")
                                               and (self.cru(f, "etat") or {}).get("allume") is False), None)
         return self._crus["foyer_froid"]
+
+    def attente_part(self, e, donneur, o, service):
+        """Les minutes qu'il attendra la part ``o`` promise, là où elle se sert (``service``) : que le
+        donneur aille d'où il le croit jusqu'à elle, la prenne s'il faut la porter, vienne la servir.
+        Promise dans le plan, le donneur s'est mis en route en même temps que lui : le chemin qu'il a
+        fait lui-même depuis la promesse (``promis_ou``) n'est plus à attendre. Au moins le geste de
+        servir."""
+        reserve = self.salle(e, o)
+        depuis = self.salle(e, donneur) or reserve or service
+        temps = 1 + self.trajet(depuis, reserve or depuis) + self.trajet(reserve or depuis, service)
+        if reserve not in (None, service) and self.lieu(e, o) != donneur:
+            temps += 1   # La prendre, pour la porter là où elle se sert.
+        promis_ou = e.fait("promis_ou", o)
+        if promis_ou is not None:
+            temps -= self.trajet(promis_ou, service)
+        return max(1, temps)
+
+    def trajet(self, depart_, arrivee):
+        """Les sorties d'une salle à une autre, par le chemin qu'il en connaît ; 0 sans chemin."""
+        if depart_ == arrivee:
+            return 0
+        cle = ("trajet", depart_, arrivee)
+        if cle not in self._crus:
+            route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset())
+            self._crus[cle] = 0 if route is None else len(route)
+        return self._crus[cle]
 
     def feu_noye(self):
         """Tous les foyers qu'il connaît sont dans une salle qu'il croit noyée : une part de
@@ -396,12 +454,16 @@ class Vue:
     def lumiere_devant(self, e, o):
         """La lumière qu'il croit avoir devant ``o``, là où un geste qui demande d'y voir se fait :
         pleine avec la lumière du plan (``lumiere``) ; sinon celle qu'il y a vue en s'y tenant
-        (croyance ``lumiere`` de l'objet, ``esprits.constater_lumiere_devant``) ; à défaut, celle
-        de la salle."""
+        (croyance ``lumiere`` de l'objet, ``esprits.constater_lumiere_devant``), et ce qu'y apporte
+        une source qu'il sait allumée ou posée près de lui depuis (``deliberation.apport_cru``) ; à
+        défaut, celle de la salle."""
         if self._eclaire_par_le_plan(e):
             return 2
         vue = self.cru(o, "lumiere")
-        return self.lumiere(e) if vue is None else vue
+        return self.lumiere(e) if vue is None else max(vue, self.apport(o))
+
+    def apport(self, o):
+        return self._memo((o, "apport"), lambda: apport_cru(self.monde, self.id, o))
 
     def _eclaire_par_le_plan(self, e):
         """Une source allumée en main, ou une source que le plan a allumée dans sa salle."""
@@ -465,6 +527,7 @@ def gestes(v, e, vises=None, but=None):
     portes, faits, sa_salle = e.portes, e.faits, e.salle
     v_prendre, v_entretenir = vises.get("prendre", ()), vises.get("entretenir", ())
     v_poser, v_fermer, v_servir = vises.get("poser", ()), vises.get("fermer", ()), vises.get("servir", {})
+    noms_vises = frozenset(o for k in ("prendre", "poser", "fermer", "servir") for o in vises.get(k, ()))
     # Une source allumée en main l'éclaire et lui donne une flamme. À qui n'a que faire de lumière
     # (ni le noir, ni la lumière comme but, ni une serrure à crocheter), une lampe ou un briquet ne
     # sert que de flamme, pour un feu qu'il croit éteint : une flamme en main suffit, et sans feu à
@@ -519,8 +582,18 @@ def gestes(v, e, vises=None, but=None):
         porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
         # On ne demande un objet qu'à qui il appartient (ou s'il n'est à personne), ou ce qui est à
         # soi : recevoir le bien d'autrui de qui le détient n'en fait pas le sien.
-        if (utile and porteur and porteur != id and v.profil_de(porteur) and v.salle(e, porteur) == e.salle
-                and o not in e.portes and v.proprietaire[o] in (porteur, None, id)):
+        demandable = (utile and porteur and porteur != id and v.profil_de(porteur) and o not in e.portes
+                      and v.proprietaire[o] in (porteur, None, id))
+        if (demandable and v.salle(e, porteur) is None and not e.fait("cherche", porteur)
+                and v.moyen_du_but(o, noms_vises) and not v.refuse(porteur, o)):
+            # Il ne sait où est celui qui porte ce que le but emploie : il va le chercher, comme pour
+            # une part, et l'appelle là où il ne le voit pas (``_chercher``). La suite se décide sur
+            # ce qu'il aura trouvé ; la recherche l'y suppose pour la suite du plan (le lui demander,
+            # y prendre du feu).
+            recherche = _chercher(v, e, porteur)
+            if recherche is not None:
+                yield recherche
+        if demandable and v.salle(e, porteur) == e.salle:
             # Prêté par son propriétaire, il s'en sert sans faute (``biens.permis``).
             permis = [(("permis", o), True)]
             if not v.refuse(porteur, o):
@@ -610,6 +683,16 @@ def gestes(v, e, vises=None, but=None):
                     # La source d'autrui : y toucher est une faute, comme la prendre.
                     yield (mal, 1, [_etape("allumer", o, outil=flamme, condition=faute)],
                            e.apres(faits=[(("allume", o), True), *touche]))
+                # Une flamme que porte un autre, là où il se tient : il lui tend sa source et lui
+                # demande du feu. Cela n'ôte rien au porteur, ni prêt ni part : il l'accorde, sauf
+                # méfiance (``echanges.demander_feu``). Seulement sa source, ou une qu'il peut
+                # employer sans faute : l'autre ne prête pas la main au bien d'autrui.
+                if o in e.portes and not illicite_:
+                    for autre, flamme in v.flammes_d_autrui(e):
+                        if not v.refuse_feu(autre, o):
+                            yield (0, 1 + DEMANDE, [_etape("demander_feu", autre, outil=flamme,
+                                                           contenu={"allumer": o})],
+                                   e.apres(faits=[(("allume", o), True)]), 1)
             if allume and x.get("foyer"):
                 yield 0, 1, [_etape("chauffer", o)], e.apres(faits=[(("chauffe", o), True)])
         if v.besoin[o]:
@@ -624,7 +707,11 @@ def _parts(v, e, o, dans, vises, but):
     vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire. Une part de
     combustible va au feu que le but entretient, sinon au premier qu'il croit éteint : le donneur le
     recharge et l'allume lui-même. On ne demande pas ce qu'on a sur soi. ``dans`` : où est ``o``
-    (``Vue.lieu``)."""
+    (``Vue.lieu``).
+
+    Promise ou vendue, elle n'est pas encore là : il l'attend où elle se sert, le temps que le
+    donneur y vienne (``attente_part``), et ce temps-là compte comme tout autre, avec ce qu'il y
+    laisse monter (loin de ses biens, dans le noir)."""
     besoin, id = v.besoin[o], v.id
     if not (besoin and v.disponible(o) and not (besoin == "chaleur" and v.feu_noye())
             and not v.sur_soi(besoin, e.portes)):
@@ -635,28 +722,36 @@ def _parts(v, e, o, dans, vises, but):
     part = [(("part", o), donneur)] + ([(("charge", foyer), True), (("allume", foyer), True)]
                                        if foyer else [])
     if donneur not in (None, id, "joueur") and v.profil_de(donneur):
-        if v.promesse(o) == donneur:
-            if e.salle == (v.salle(e, foyer) if foyer else v.salle(e, o)):
-                yield 0, 0, [], e.apres(faits=part)
-        else:
+        promise = v.promesse(o) == donneur or e.fait("promis", o) == donneur
+        if promise:
+            service = v.salle(e, foyer) if foyer else v.salle(e, o)
+            if e.salle == service:
+                attente = v.attente_part(e, donneur, o, service)
+                yield 0, attente, [], e.apres(faits=part), attente
+        elif not e.fait("promis", o):
             ou = v.salle(e, donneur)
+            promis = [(("promis", o), donneur), (("promis_ou", o), e.salle)]
+            # Promise, elle ne mène qu'à l'attendre là où elle se sert : la demander ou
+            # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``).
+            service = v.salle(e, foyer) if foyer else v.salle(e, o)
+            utile_part = but is None or service is not None and but(v, e.apres(salle=service, faits=part))
             # L'acheter s'il peut la payer : le prix lui coûte ce que valent ses pièces. Une
             # part se vend de ce qui est rangé ; ce que le donneur porte, il le remettrait
             # entier (``echanges.demande_de_part``).
             prix = v.objets[o].get("prix_part", PRIX_PART)
-            if (ou == e.salle and v.piece and dans != donneur and not v.refuse_achat(donneur, o)
+            if (utile_part and ou == e.salle and v.piece and dans != donneur and not v.refuse_achat(donneur, o)
                     and v.richesse - (e.fait("depense") or 0) >= prix):
                 yield (0, 1 + DEMANDE + v.depense(prix),
                        [_etape("acheter", donneur, outil=o,
                                contenu={"prix": prix, **({"foyer": foyer} if foyer else {})})],
-                       e.apres(faits=part + [(("depense",), (e.fait("depense") or 0) + prix)]), 1)
-        if v.promesse(o) != donneur and not v.refuse(donneur, o):
-            if ou == e.salle:
+                       e.apres(faits=promis + [(("depense",), (e.fait("depense") or 0) + prix)]), 1)
+        if not promise and not e.fait("promis", o) and not v.refuse(donneur, o):
+            if ou == e.salle and utile_part:
                 # Une part demandée n'est pas acquise : comme un objet demandé, elle coûte
                 # selon la chance d'être accordée (``PRET``).
                 yield (0, 1 + DEMANDE / PRET, [_etape("demander", donneur, outil=o,
                                                 contenu={"foyer": foyer} if foyer else None)],
-                       e.apres(faits=part), 1)
+                       e.apres(faits=promis), 1)
             elif (ou is None and not e.fait("cherche", donneur)
                   and (but is None or but(v, e.apres(faits=part)))):
                 # Le chercher ne sert que si sa part atteint le but.
@@ -728,7 +823,9 @@ def _entrees(v, vises, profondeur, noeuds):
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
         [o for o in v.connus if v.brise_illicite[o]],
-        v.richesse, v.piece], ensure_ascii=False)
+        v.richesse, v.piece,
+        # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
+        [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())]], ensure_ascii=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
@@ -1134,14 +1231,19 @@ def abri(monde, id, salles):
     tient), le moins coûteux avec ce qu'il y laissera monter en y restant ; None s'il n'en atteint
     aucun, ou si y aller lui coûte plus que d'endurer où il est : ce que l'abri lui apporte (y voir,
     ne plus côtoyer qui l'inquiète, une compagnie sûre, aux taux de son profil, ``NOIR`` par
-    point) ne vaut pas ce qu'il laisse (ses biens)."""
-    from .deliberation import taux
+    point) ne vaut pas ce qu'il laisse (ses biens).
+
+    Quitter qui l'inquiète n'est pas un gain là où il garde un bien que cette présence menace
+    (``deliberation.menaces``) : s'en aller, c'est le lui laisser, et cet éloignement lui coûte
+    (``GARDE``) comme à tout plan."""
+    from .deliberation import menaces, taux
     v = Vue(monde, id)
     e = depart(monde, id, v)
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
+    fuir = any(v.cru(x, "fiable") is False for x in ici) and e.salle not in menaces(monde, id)
     gain = ((taux(monde, id, "noir") + taux(monde, id, "lumiere") if v.peur and v.noir(e) else 0)
-            + (taux(monde, id, "mefiance") if any(v.cru(x, "fiable") is False for x in ici) else 0)
+            + (taux(monde, id, "mefiance") if fuir else 0)
             + (0 if any(v.cru(x, "fiable") is True for x in ici) else taux(monde, id, "compagnie")))
     trouve = chercher(monde, id, lambda v, e: e.salle in salles, nom="abri", memo=["abri", sorted(salles)],
                       emplois=(), motif="securite", tenir=True, endurer=RESTER * NOIR * gain)

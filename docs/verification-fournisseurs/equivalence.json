@@ -1,0 +1,120 @@
+{
+  "base": "87c1ed5",
+  "methodes_metier_AST_identiques": 9,
+  "variantes_requetes_comparees": 16,
+  "aucun_appel_reseau": true,
+  "comparaisons": [
+    {
+      "fournisseur": "openai",
+      "connexion": "api",
+      "effort": "low",
+      "fonction": "proposer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "api",
+      "effort": "low",
+      "fonction": "auditer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "api",
+      "effort": "medium",
+      "fonction": "proposer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "api",
+      "effort": "medium",
+      "fonction": "auditer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "chatgpt",
+      "effort": "low",
+      "fonction": "proposer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "chatgpt",
+      "effort": "low",
+      "fonction": "auditer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "chatgpt",
+      "effort": "medium",
+      "fonction": "proposer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "openai",
+      "connexion": "chatgpt",
+      "effort": "medium",
+      "fonction": "auditer",
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "libre",
+      "effort": "low",
+      "transcription_demandee": false,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "libre",
+      "effort": "low",
+      "transcription_demandee": true,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "libre",
+      "effort": "medium",
+      "transcription_demandee": false,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "libre",
+      "effort": "medium",
+      "transcription_demandee": true,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "imposee",
+      "effort": "low",
+      "transcription_demandee": false,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "imposee",
+      "effort": "low",
+      "transcription_demandee": true,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "imposee",
+      "effort": "medium",
+      "transcription_demandee": false,
+      "requetes_identiques": true
+    },
+    {
+      "fournisseur": "anthropic",
+      "reflexion": "imposee",
+      "effort": "medium",
+      "transcription_demandee": true,
+      "requetes_identiques": true
+    }
+  ]
+}

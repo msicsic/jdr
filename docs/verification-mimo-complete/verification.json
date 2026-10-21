@@ -1,0 +1,78 @@
+{
+  "saisies": 90,
+  "tours_mj": 38,
+  "appels_mj": 113,
+  "requetes_physiques": 120,
+  "premieres_reponses_valides": 106,
+  "corrections": 7,
+  "corrections_reussies": 7,
+  "appels_rejetes": [
+    20,
+    38,
+    62,
+    71,
+    73,
+    75,
+    85
+  ],
+  "appels_corriges": [
+    21,
+    39,
+    63,
+    72,
+    74,
+    76,
+    86
+  ],
+  "reponses_valides_revalidees_avec_schema": 113,
+  "liens_html_verifies": 727,
+  "instantanes_monde_verifies": 87,
+  "premiers_regarder_avant_creation_sauvegarde": [
+    {
+      "script": "relais",
+      "tour": 1,
+      "saisie": "regarder"
+    },
+    {
+      "script": "crypte",
+      "tour": 1,
+      "saisie": "regarder"
+    },
+    {
+      "script": "atelier",
+      "tour": 1,
+      "saisie": "regarder"
+    }
+  ],
+  "version_capturee_conforme_a_git": true,
+  "cle_absente_des_captures": true,
+  "reprises": [
+    {
+      "script": "relais",
+      "champs_modifies_par_regarder": []
+    },
+    {
+      "script": "crypte",
+      "champs_modifies_par_regarder": []
+    },
+    {
+      "script": "atelier",
+      "champs_modifies_par_regarder": []
+    },
+    {
+      "script": "echanges",
+      "champs_modifies_par_regarder": [
+        "exploration",
+        "murs_memorises",
+        "souvenirs_visuels"
+      ]
+    }
+  ],
+  "defaut_parole_joueur_persiste_apres_reprise": true,
+  "temps_reponses_corrigees_ajoute_s": 30.99390170001425,
+  "duree_cumulee_appels_par_tour_mj_s": {
+    "mediane": 20.189999999999998,
+    "moyenne": 21.088947368421053,
+    "max": 60.07
+  }
+}

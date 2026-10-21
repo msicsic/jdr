@@ -5,10 +5,15 @@ de seconde), dans ``data["bruits"]`` : l'auteur, la salle d'origine, la nature, 
 d'où il arrive. Le joueur entend de lui-même ce qui lui parvient au seuil commun (``ENTENDU``) ; en
 écoutant, un cran plus bas, et un de mieux collé à la porte par où le bruit arrive. Une parole n'est
 rendue en clair que si elle est nette (au seuil commun), d'une voix qu'il reconnaît
-(``voix.reconnaitre``) et ne nomme que ce qu'il connaît ; d'une voix inconnue, il en saisit les mots
-cités sans savoir qui parle (« une voix inconnue : « Ici ! » ») ; sinon il entend « une voix ».
-Ceux dont il a entendu nettement la voix pendant son dernier geste sont retenus
+(``voix.reconnaitre``) et ne nomme que ce qu'il connaît ; sinon, nette, il en saisit les mots cités
+tels qu'ils sont dits, sans savoir qui parle (« une voix inconnue : « Ici ! » ») ; sinon il entend
+« une voix ». Ceux dont il a entendu nettement la voix pendant son dernier geste sont retenus
 (``data["entendus"]``) : il peut leur répondre, sous le nom qu'il leur connaît (``voix``).
+
+Les voix d'un échange (``lier``) : une voix qui dit son propre nom se dit ainsi (``voix.se_nommer``) ;
+une voix à qui une autre s'adresse en la nommant, et qu'il entend dans le même échange (« Gorm ? »
+puis « Ici ! »), est « une voix qu'on appelle Gorm » (``voix.nommer``) : un ouï-dire, jamais une
+identité. Une parole qu'il voit dire (``vu``) compte dans l'échange sans être rendue de nouveau.
 """
 import re
 
@@ -16,6 +21,7 @@ from .ouie import BRUITS_MAX, INTENSITES, SEUIL, VOCALES
 
 ENTENDU = SEUIL        # niveau perçu sans y prêter l'oreille, et parole nette
 ECOUTE = SEUIL - 1     # niveau perçu en écoutant
+ECHANGE = 600          # dixièmes de seconde : une parole et la réponse qui lui revient
 
 
 def appel(monde, id):
@@ -63,7 +69,7 @@ def entendus(monde, depuis, seuil):
     ecoute, seuil = seuil <= ECOUTE, seuil - finesse(monde, "joueur")
     resultat = []
     for b in monde.data.get("bruits", []):
-        if b["instant"] <= depuis or b["auteur"] not in monde.objets:
+        if b["instant"] <= depuis or b["auteur"] not in monde.objets or b.get("vu"):
             continue
         niveau = b["niveau"] + (1 if ecoute and _a_la_porte(monde, b["par"]) else 0)
         if niveau >= seuil:
@@ -87,7 +93,51 @@ def reconnue(monde, bruit, niveau):
     return nette(bruit, niveau) and reconnaitre(monde, "joueur", bruit["auteur"])[1] == RECONNUE
 
 
+BORNE = r"\b"   # une borne de mot
 MOTS = re.compile(r"«\s*(.+?)\s*»")
+
+
+def connus(monde, bruit):
+    """Tout ce que la parole nomme, le joueur le connaît (``paroles._connu_du_joueur``)."""
+    from .paroles import _connu_du_joueur
+    return bool(bruit["texte"]) and all(_connu_du_joueur(monde, x) for x in bruit["cites"] if x != "joueur")
+
+
+def mots_percus(monde, bruit):
+    """Ce que le joueur saisit d'une parole nette : tout le texte d'une voix qu'il voit ou reconnaît
+    et qui ne nomme que ce qu'il connaît ; sinon les mots cités, tels qu'ils sont dits."""
+    if connus(monde, bruit) and (bruit.get("vu") or reconnue(monde, bruit, bruit["niveau"])):
+        return bruit["texte"]
+    return " ".join(MOTS.findall(bruit["texte"]))
+
+
+def nomme(monde, bruit, id):
+    """Les mots que le joueur saisit de cette parole nomment-ils ``id`` ?"""
+    from .monde import normaliser
+    if id not in bruit["cites"] or id not in monde.objets:
+        return False
+    nom = normaliser(monde.objets[id]["nom"].split(",")[0])
+    return re.search(BORNE + re.escape(nom) + BORNE, normaliser(mots_percus(monde, bruit))) is not None
+
+
+def lier(monde, bruit, contenu=()):
+    """Ce que le joueur apprend des voix d'un échange, à la parole nette ``bruit`` qu'il vient de
+    saisir. Une voix qui dit son propre nom se dit ainsi (``voix.se_nommer``). Une voix à qui une
+    autre s'adresse en la nommant (ses destinataires, ``a``), qu'il entend dans le même échange
+    (``ECHANGE``), avant ou après, est « une voix qu'on appelle … » (``voix.nommer``). Rien ne le lui
+    apprend d'une voix qu'il reconnaît ou voit."""
+    from .voix import nommer, se_nommer
+    auteur = bruit["auteur"]
+    recents = [b for b in monde.data.get("bruits", []) if b is not bruit and b["texte"] and b["nature"] in VOCALES
+               and b["niveau"] >= ENTENDU and 0 <= bruit["instant"] - b["instant"] <= ECHANGE
+               and b["auteur"] in monde.objets]
+    if any(c.get("type") == "nom" and c.get("sujet") == auteur for c in contenu) and nomme(monde, bruit, auteur):
+        se_nommer(monde, "joueur", auteur, auteur)
+    for x in bruit.get("a", ()):
+        if x != auteur and x in monde.objets and nomme(monde, bruit, x) and any(b["auteur"] == x for b in recents):
+            nommer(monde, "joueur", x, x)
+    if any(auteur in b.get("a", ()) and b["auteur"] != auteur and nomme(monde, b, auteur) for b in recents):
+        nommer(monde, "joueur", auteur, auteur)
 
 
 def _heler(bruit):
@@ -95,16 +145,36 @@ def _heler(bruit):
     return " répondre" if " répond : « " in bruit["texte"] else " appeler"
 
 
+REPONDRE = 600         # dixièmes de seconde : on répond « juste après » un appel
+
+
+def appels(monde):
+    """Ceux qui viennent de héler Corvus par son nom, et dont il a saisi le cri : leur dernière
+    parole est cet appel, entendu pendant son dernier geste (``data["entendus"]``) ou il y a moins
+    d'une minute (``REPONDRE``, aussi d'un appelant qu'il voit). Le plus récent d'abord : il peut
+    leur répondre (``pnj.repondre_a``)."""
+    from .temps import instant
+    maintenant, entendus_ = instant(monde), monde.data.get("entendus", [])
+    derniers, appelants = set(), []
+    for b in reversed(monde.data.get("bruits", [])):
+        if b["nature"] not in VOCALES or b["niveau"] < ENTENDU or not b["texte"] or b["auteur"] in derniers:
+            continue
+        derniers.add(b["auteur"])
+        if (b["nature"] == "hele" and b.get("a") == ["joueur"] and _heler(b) == " appeler"
+                and b["auteur"] in monde.objets
+                and (b["auteur"] in entendus_ or maintenant - b["instant"] <= REPONDRE)):
+            appelants.append(b["auteur"])
+    return appelants
+
+
 def rendre(monde, entendus_):
     """Ce que le joueur entend, par direction : un appel, un grand bruit, des voix, des pas, ou une
     parole nette d'une voix qu'il reconnaît, qui ne nomme que ce qu'il connaît."""
-    from .paroles import _connu_du_joueur
     from .voix import nom_pour_joueur
     lignes, groupes = [], {}
     for b, niveau, direction in entendus_:
-        connus = b["texte"] and all(_connu_du_joueur(monde, x) for x in b["cites"] if x != "joueur")
-        mots = MOTS.search(b["texte"]) if connus and nette(b, niveau) else None
-        if connus and reconnue(monde, b, niveau):
+        mots = MOTS.search(b["texte"]) if nette(b, niveau) else None
+        if connus(monde, b) and reconnue(monde, b, niveau):
             texte = f"Tu entends, {_lieu(direction)} : {b['texte']}"
         elif mots:
             # Une voix qu'il ne sait à qui prêter : ses mots, sans le nom de qui parle.
@@ -138,10 +208,14 @@ def rendre(monde, entendus_):
     return lignes
 
 
+CHAMPS = {"instant", "auteur", "salle", "nature", "niveau", "par", "texte", "cites"}
+
+
 def verifier(monde):
     bruits = monde.data.get("bruits", [])
     assert isinstance(bruits, list) and len(bruits) <= BRUITS_MAX and all(
-        isinstance(b, dict) and set(b) == {"instant", "auteur", "salle", "nature", "niveau", "par", "texte", "cites"}
+        isinstance(b, dict) and CHAMPS <= set(b) <= CHAMPS | {"a", "vu"}
+        and isinstance(b.get("a", []), list) and b.get("vu", True) is True
         and b["nature"] in INTENSITES and b["salle"] in monde.data["salles"] and isinstance(b["auteur"], str)
         and type(b["instant"]) is int and b["instant"] >= 0 and type(b["niveau"]) is int
         and (b["par"] is None or isinstance(b["par"], str)) and isinstance(b["texte"], str)

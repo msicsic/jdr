@@ -4,6 +4,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
+  Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
+  Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
+  Adaptateur MiMo terminé : choix explicite `--connexion mimo`, flux complet, une correction JSON bornée,
+  banc migré, 998 tests passent et deux actions réelles réussies en 8 appels. Voir [MiMo](mimo.md).
+  [Campagne complète de l'adaptateur final](mimo-campagne-complete.md) : 90 saisies, 38 tours MJ,
+  120 requêtes réelles, sept rejets de format corrigés, aucun tour en erreur technique ; TTFT médian
+  2,18 s et quatre reprises vérifiées. Défaut restant confirmé : MiMo ajoute des idées à la parole du joueur.
 - `main` contient les jalons PNJ A à I (`docs/plan-pnj.md`, tableau « Jalons » et sections
   « Écarts retenus »). Le dernier fusionné est **I. Demander, écouter, protéger** :
   - le corps commun (faim, froid, fatigue) pour tous, joueur compris (`donjon/corps.py`) ;
@@ -25,13 +33,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   dans `retour_moteur` et jamais au joueur ; les causes fusionnées sont séparées ; l'étape,
   l'effet ou l'ajout fautif est numéroté. Mesure Haiku A/B sur les trois bancs : les refus
   corrigeables passent de 4 répétés et jamais corrigés à 2 corrigés dès la première relance.
-  Restent hors périmètre : les messages d'audit (contrôle narratif, contre-revue).
+  Restent hors périmètre : les messages d'audit (contrôle narratif, contre-revue) ; faits ensuite,
+  branche `audits-attendu`.
 - Branche `contre-revue` : le raccourci `detacher` libère la fixation sur place (la prendre
   est une étape `deplacer` explicite) ; un rapport de contre-revue mal formé est redemandé
   une fois puis le plan validé passe, au lieu d'être renvoyé au MJ comme un refus. Cas réel
   « fais levier sous l'axe » : 2 appels, conforme du premier coup (contre 4 à 8 avant).
 - Branche `banc-haiku` : Claude Haiku 5.5 est une option du jeu (`--connexion anthropic`,
-  `donjon/claude.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
+  `donjon/fournisseurs/anthropic.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
   communs révélés par le fil complet des appels (`tools/banc_parties.py --fil`) : citation de
   fait inconnue écartée au lieu d'invalider la réponse ; audit narratif à une entrée
   obligatoire par segment, audit illisible redemandé ; texte vide signalé sans audit ;
@@ -632,6 +641,91 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pressent (`GARDE`) ; tout débiteur rembourse, quelle que soit son honnêteté ; le joueur ne réclame
   pas par une parole typée et ne voit la dette qu'au remboursement ; seule une part vendue d'avance
   crée une dette.
+- Branche `voix-inconnues`, non fusionnée (`docs/plan-ouie.md`, « Les voix inconnues ») : trois limites de
+  la branche `voix`. **Demande d'une voix inconnue** : revue, la part « impossible » de la mine venait de la
+  réserve verrouillée (même issue pour une voix connue) ; la règle tenait (étranger, `voix.INCONNU`), vérifiée
+  dans le noir comme pour un inconnu vu ; corrigé en route, une part de bois va au feu de la salle d'où vient
+  la demande, joueur compris (`echanges.foyer_de`). **Répliques d'une voix inconnue**
+  (`narration.voix_inconnues`, `voix.connait_nom`) : le moteur sait qui parle ; la réplique nomme qui son
+  locuteur connaît (Corvus seulement s'il lui a donné son nom ou qu'il en a entendu parler), jamais
+  elle-même au-delà de ce qui est établi, et ne se dit personne (« je suis… »). **Côté joueur** : voir parler
+  quelqu'un fait connaître sa voix (la réponse d'un PNJ à un autre retentit de sa propre voix,
+  `social.faire_entendre` ; « Qui va là ? » et « C'est … » chacun de sa voix ; une réplique du MJ d'un
+  personnage vu) ; une voix nommée par une autre qui s'adresse à elle dans le même échange est « une voix
+  qu'on appelle Gorm » (`ecoute.lier`, `voix.nommer`, ouï-dire), une voix qui dit son nom se dit ainsi ; les
+  mots cités d'une parole nette s'entendent tels quels ; juste après un appel de Corvus par son nom, « je
+  réponds », « « Ici ! » »… sont le geste de réponse commun (`emettre_son` méthode `repondre`,
+  `pnj.repondre_a`), sans le MJ, et l'appelant le croit là. Bancs 8 h contre `main` 888bbc4 (Relais 4 graines
+  `--joueur chambre_cloche`, auberge `--joueur dortoir`) : aucune usurpation ni violation, échanges, appels
+  et réponses identiques ; trois nuits du Relais et deux de l'auberge identiques, les autres divergent sur
+  une réponse qui retentit (auberge : bruits inconnus 117 → 115,75, allés voir 29,75 → 30,5). Luna (copies de
+  scènes) : « Qui es-tu ? » à une voix fait nommer Gorm par le moteur, aucun refus du contrôle, Luna ne nomme
+  pas de tiers (elle ne sait pas qui la voix connaît) ; « je réponds » 0 appel ; une réponse libre (« je lui
+  crie que je suis là ») reste au MJ, qui a fait un cri sans mots ou échoué. Limites : aucun scénario ne fait
+  chercher le joueur (cas réel placé d'autorité) ; le nom de Corvus vu se nommer n'est pas retenu ; le MJ
+  ignore ce que sait une voix et son genre.
+- Branche `audits-attendu`, non fusionnée (`docs/contrat-mj.md`, « Ce que le MJ reçoit d'un refus
+  d'audit ») : les refus d'audit suivent le contrat des refus du moteur. Chaque refus du contrôle
+  narratif (texte vide, voix d'auteur, nom sans fondement, parole racontée ou citation nouvelle sans
+  moteur, voix inconnue, verdicts de l'auditeur), de la portée des ajouts, des capacités et de la
+  contre-revue d'action porte un `attendu` (`refus.audit`, `refus.attendu_audit`) : la partie et le
+  segment (ou le champ de l'ajout, `proposition.ajouts[0].texte`), la phrase, le nom ou la citation
+  reçus tels qu'écrits (`narration.tel_quel`), le verdict et le motif de l'auditeur donnés pour ce
+  qu'ils sont, et ce qui serait accepté en identifiants ou citations exactes (destinataires,
+  présents, engagements prévus mot pour mot, `parole_prevue.personnage`, clés `objet:<id>` qui
+  nomment ce que vise une affirmation sans source, plan reçu de la contre-revue) ; une cause par
+  refus (un mot, un nom, une parole racontée, une citation chacun : avant, un refus pour tous). Un
+  rapport illisible (`refus.RapportIllisible`, dont `AuditIllisible` et `RapportInvalide`) ne
+  reproche rien au texte et le dit ; une proposition mal formée relevée pendant un audit garde
+  l'`attendu` du moteur (`refus.depuis_refus`). Le nom d'une entité cachée n'est jamais accompagné de
+  son identifiant. `INSTRUCTIONS_REVISION` dit à Luna de suivre `attendu`. Le joueur ne lit jamais
+  `attendu` (texte refusé jamais affiché ; repli inchangé). `banc_multi` compte aussi les relances
+  narratives et les refus ; `rapport_fil` montre `attendu`. Cas réels et un autre de même nature,
+  chaînes complètes après rechargement (`tests/test_audits_attendu.py`) : Ilse et « Pas
+  maintenant », « Je vais me pousser », « les faits ne disent… », la voix qui se disait Brune,
+  « Prise non demandée » ; invention refusée trois fois (repli), audit illisible, contre-revue non
+  conforme puis corrigée. Luna, bancs `main` 4c53791 puis la branche, l'un après l'autre, 2 passes
+  chacun, relais + crypte + atelier + échanges (38 tours MJ) : 3,08 → 3,07 appels et 11,3 → 11,5 s
+  par tour MJ, 0 repli des deux côtés, relances narratives 4,0 → 3,0 (étendue 2 à 4), tours avec
+  refus 6,5 → 7,0, refus du moteur et de la contre-revue 10 → 10,5. Des deux côtés, chaque réponse
+  refusée a été corrigée dès la première relance : le banc ne peut pas montrer de gain sur la
+  correction, et le nombre de relances dépend surtout des premières réponses, qu'`attendu` ne
+  touche pas ; l'écart est dans le bruit. Limites : le verdict de l'auditeur reste sémantique (un
+  refus juste ou non reste le sien, cité tel quel) ; les clés proposées pour une affirmation sans
+  source sont une indication par le premier mot du nom ; le récit d'une parole de Corvus est cité en
+  mots retrouvés dans le texte, sinon sous forme normalisée ; les refus du moteur hors audit sans
+  `attendu` (« Réexamine l'intention entière… ») restent tels quels.
+- Branche `pnj-lumiere-garde`, non fusionnée (`docs/plan-planificateur.md`, « Lumière et garde ») :
+  quatre limites des branches précédentes, diagnostiquées sur les bancs et des copies de leurs états.
+  **Lumière dans le noir** : quand le but emploie lui-même un objet (ce qu'il vise, une source ou une
+  flamme pour la lumière), on cherche et appelle son porteur perdu de vue, comme pour une part ; et
+  l'on **demande du feu** (`demander_feu`, `echanges.demander_feu`) : on tend sa source à qui porte
+  une flamme, qui l'y allume sans rien prêter, sauf méfiance (Rémy, le camp éteint, appelle Gaspard
+  et allume une lampe de rechange à son briquet ; Joss à l'auberge, au briquet d'Odile). Mine de 11 h :
+  appels à l'aide 192 → 96, minutes dans le noir 812 → 696 par nuit. **Lumière devant une serrure** :
+  une source qu'il sait allumée ou posée près de l'objet depuis compte de loin (`apport_cru`, la
+  croyance `lumiere` retient les sources `allumees`) ; la lueur diffuse par case, le moteur ne la
+  connaît que par salle (limite du modèle). **L'échange compte l'éloignement** : Gorm achetait les
+  planches d'Aubin parce que le plan d'échange s'arrêtait à l'achat, sans compter l'attente près du
+  brasero, loin de ses biens (même sans `GARDE`, 5,66 contre 7) ; une part promise s'attend là où elle
+  se sert, ce temps compte avec ce qu'il laisse monter (`Vue.attente_part`), et ne s'explore que si
+  elle atteint le but ; Gorm prend ses fagots (Relais 7, 42, 2024). **Un gardien ne laisse pas son
+  bien à qui le menace** (`deliberation.menaces`) : un bien dont il a la charge, avec quelqu'un dont il
+  se méfie, coûte `GARDE` à tout plan qui s'en éloigne, l'abri n'y gagne pas de quitter cette personne,
+  et il appelle à l'aide si sa crainte l'emporte sur son courage (Bram reste, Josse accourt). Cas réels
+  et cas de même nature après rechargement (`tests/test_lumiere_garde.py`), `VERIFIER` sur une nuit de
+  chaque scénario. Bancs 8 h contre `main` 888bbc4 (lancés ensemble ; mesure `minutes_dans_le_noir`
+  ajoutée des deux côtés) : sans recours Relais 53 → 54, mine 59 → 55, auberge 15 → 44 (appels à
+  l'aide de Lucien et d'Anselme près de leurs biens menacés, d'où des témoins et des renoncements),
+  crue 15 → 15 ; en attente 63 → 66, 290 → 281, 536 → 541, 89 → 108 ; vols vus égaux à 0,25 près ;
+  aucune usurpation ni violation ; temps égal à ±14 %. Tests changés : `test_planification` (le plan
+  d'une part mène l'attendre près des vivres), `test_constater_rumeurs` (lampe de Josse vide pour
+  garder le baraquement noir ; Odon honnête dans la réserve noire, scène partagée avec
+  `test_voix_inconnues`, car attendre sa part dans le noir lui coûte un peu plus que forcer le garde-manger). Limites : chercher le porteur
+  seulement pour la lumière et ce que le but vise (pas pour un feu : sinon la borne de nœuds) ; pas de
+  feu demandé pour une source fixe ; rejoindre qui porte une lampe n'est ni abri ni lumière ; l'apport
+  d'une source ignore l'ombre ; l'attente d'une part reste une estimation ; la menace se juge sur où il
+  croit les autres.
 - Branche `planif-cout`, non fusionnée (`docs/plan-planificateur.md`, « Coût de calcul ») : le temps
   d'une nuit, sans rien changer à ce que décident les PNJ. Points chauds : des recherches refaites à
   chaque minute alors que seul le prix d'une faute ou d'abîmer avait changé avec la détresse (Lucien à
@@ -654,7 +748,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   toujours ~100 µs par état (mine graine 7 : Josse, deux recherches de 4 000 nœuds par minute en fin de
   nuit) ; une croyance nouvelle refait tout ; pic de mémoire 30 → 59 Mo (mine, graine 7) ; la
   perception reste un tiers d'une nuit.
-- La suite de tests passe : 1015 tests, sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 1088 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

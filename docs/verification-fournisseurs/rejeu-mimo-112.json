@@ -1,0 +1,681 @@
+{
+  "source": "campagne MiMo du 21 octobre 2026, base moteur 789be7a",
+  "appels": 112,
+  "acceptes": 106,
+  "rejetes": 6,
+  "aucun_appel_reseau": true,
+  "resultats": [
+    {
+      "appel": "001-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "002-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "003-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "004-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "005-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": false,
+      "requete_identique": true
+    },
+    {
+      "appel": "006-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "007-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "008-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "009-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "010-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "011-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "012-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "013-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "014-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "015-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "016-auditer_portee",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "017-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "018-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "019-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "020-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": false,
+      "requete_identique": true
+    },
+    {
+      "appel": "021-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "022-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "023-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "024-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "025-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": false,
+      "requete_identique": true
+    },
+    {
+      "appel": "026-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": false,
+      "requete_identique": true
+    },
+    {
+      "appel": "027-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "028-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "029-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "030-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "031-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "032-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "033-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "034-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "035-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "036-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "037-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "038-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "039-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "040-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "041-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "042-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "043-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "044-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "045-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "046-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "047-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "048-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "049-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "050-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "051-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "052-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "053-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "054-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "055-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "056-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "057-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "058-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "059-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "060-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "061-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "062-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "063-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "064-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "065-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "066-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "067-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "068-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "069-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "070-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "071-auditer_action",
+      "decision_identique": true,
+      "schema_valide": false,
+      "requete_identique": true
+    },
+    {
+      "appel": "072-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "073-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "074-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "075-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "076-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "077-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "078-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "079-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "080-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "081-auditer_action",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "082-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "083-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "084-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "085-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "086-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "087-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "088-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "089-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "090-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "091-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "092-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "093-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "094-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "095-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "096-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "097-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "098-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "099-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "100-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "101-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "102-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "103-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "104-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "105-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "106-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "107-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": false,
+      "requete_identique": true
+    },
+    {
+      "appel": "108-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "109-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "110-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "111-repondre_au_joueur",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    },
+    {
+      "appel": "112-auditer_narration",
+      "decision_identique": true,
+      "schema_valide": true,
+      "requete_identique": true
+    }
+  ]
+}

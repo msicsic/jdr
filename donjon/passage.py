@@ -307,16 +307,16 @@ def _prier(monde, id, autre, chemin, lignes):
         return
     issue = demander_passage(monde, autre, id, [], chemin)  # Ce qu'il en voit est dit ci-dessous.
     _chroniquer(monde, id, f"{a} demande à {b} de {le} laisser passer ({issue}).", "social")
-    from .social import faire_entendre
-    texte = f"{a} demande à {b} de {le} laisser passer." + (f" {b} s'écarte." if issue == "ecarte" else f" {b} refuse.")
-    contenu = []
+    from .social import faire_entendre, qui_va_la
+    texte = f"{a} demande à {b} de {le} laisser passer."
     if issue == "qui_va_la":
         # Une voix qu'il ne connaît pas : « Qui va là ? » ; l'autre se nomme, et redemandera.
-        from .voix import se_nommer
-        texte = f"{a} demande à {b} de {le} laisser passer. {b} : « Qui va là ? » {a} : « C'est {a}. »"
-        contenu = [{"type": "nom", "sujet": id}]
-        se_nommer(monde, autre, id, id)
-    faire_entendre(monde, id, autre, texte, [], lignes, contenu)
+        faire_entendre(monde, id, autre, texte, [], lignes)
+        qui_va_la(monde, id, autre, lignes)
+    else:
+        # S'écarter est un geste ; refuser se dit.
+        faire_entendre(monde, id, autre, texte, [], lignes, (),
+                       f"{b} s'écarte." if issue == "ecarte" else f"{b} refuse.", issue != "ecarte")
     if issue != "ecarte":
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": "passage", "raison": issue})
 

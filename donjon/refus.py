@@ -60,3 +60,65 @@ def inaccessible(m, id, champ="cible", filtre=None):
     return ErreurMonde("Tu ne distingues pas " + designer(o) + " d'ici.",
                        f"{id} n'est pas perçu (obscurité ou ligne de vue) ; allume une source ou "
                        f"vise ce qui est perçu : {candidats}.")
+
+
+# Les refus d'audit : contrôle narratif (contrôles déterministes et verdicts de l'auditeur),
+# contre-revue des ajouts et des capacités. Même contrat qu'un refus du moteur : ``motif`` est la
+# règle en mots de la fiction ; ``attendu`` dit au MJ où (partie, segment), ce qui a été reçu (la
+# phrase ou la valeur fautive, citée exactement) et ce qui serait accepté. Une cause par refus.
+# Aucun des deux ne s'affiche au joueur : un texte refusé n'est jamais montré.
+
+CITATION_MAX = 200
+
+
+def citer(texte, longueur=CITATION_MAX):
+    """« texte », abrégé au-delà de ``longueur`` caractères."""
+    texte = " ".join(str(texte).split())
+    if len(texte) > longueur:
+        texte = texte[:longueur - 1].rstrip() + "…"
+    return f"« {texte} »"
+
+
+def lieu_audit(partie="texte", segment=None):
+    """Où est la faute : la partie contrôlée (texte, justification, description, qualification) et,
+    s'il y a lieu, l'indice du segment, tel que l'auditeur l'a reçu."""
+    return partie + (f", segment {segment}" if segment is not None else "")
+
+
+def attendu_audit(lieu, recu, accepte, verdict=None):
+    """``lieu`` : où ; ``recu`` : la phrase ou la valeur fautive ; ``accepte`` : ce qui passerait.
+    ``verdict`` : la catégorie d'un auditeur sémantique et son motif, donnés pour ce qu'ils sont, un
+    jugement, sans plus de certitude."""
+    juge = ""
+    if verdict:
+        categorie, motif = verdict if isinstance(verdict, tuple) else (verdict, "")
+        juge = f" ; selon l'auditeur (verdict {categorie})" + (f" : {citer(motif)}" if motif.strip() else "")
+    return f"{lieu}, reçu {citer(recu) if recu else 'un texte vide'}{juge} ; accepté : {accepte}"
+
+
+def audit(motif, accepte, *, partie="texte", segment=None, texte="", recu=None, verdict=None, lieu=None):
+    """Un refus d'audit, tel que la boucle de correction le transmet au MJ (``controle_narratif``) :
+    ``texte`` est le passage contrôlé (le segment), ``recu`` ce qui y est fautif s'il n'est qu'une
+    partie (un nom, une citation)."""
+    return {"partie": partie, "segment": segment, "texte": texte, "motif": motif,
+            "attendu": attendu_audit(lieu or lieu_audit(partie, segment),
+                                     texte if recu is None else recu, accepte, verdict)}
+
+
+def audit_illisible(motif, *, partie="texte", texte="", lieu=None):
+    """Le contrôle n'a pas pu lire son propre rapport : rien n'est reproché au texte."""
+    return {"partie": partie, "segment": None, "texte": texte, "motif": motif,
+            "attendu": f"{lieu or partie} : aucune phrase n'est en cause, le contrôle n'a pas pu lire son "
+                       f"propre rapport ; accepté : la même réponse, renvoyée telle quelle, ou une autre."}
+
+
+class RapportIllisible(ErreurMonde):
+    """Le rapport d'un auditeur (contrôle narratif, portée, capacités, contre-revue) est mal formé :
+    une faute de l'auditeur, pas de la réponse contrôlée."""
+
+
+def depuis_refus(exc, partie, lieu=None):
+    """Un refus du moteur levé pendant un audit (proposition mal formée, ancrage inconnu) : son message
+    et son ``attendu``, rattachés à la partie contrôlée. Sans ``attendu``, la règle seule."""
+    return {"partie": partie, "segment": None, "texte": "", "motif": str(exc),
+            "attendu": f"{lieu or partie} : " + (getattr(exc, "attendu", "") or str(exc))}

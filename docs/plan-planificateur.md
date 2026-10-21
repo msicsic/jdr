@@ -251,7 +251,8 @@ Limites :
   lumière du couloir) : rien ne retient dans la lumière celui qui n'emporte pas de lumière ;
   l'abri a la même faiblesse ;
 - demander une flamme suppose de croire son porteur là : dans le noir, on ne retrouve personne
-  (manque déjà relevé) ; on n'allume pas sa lampe à celle d'un autre sans la lui emprunter ;
+  (manque déjà relevé) ; on n'allume pas sa lampe à celle d'un autre sans la lui emprunter. Levé
+  par `pnj-lumiere-garde` : on cherche (et appelle) qui porte la flamme, et on lui demande du feu ;
 - inspecter dans le noir compte encore comme une ronde ; seul crocheter demande d'y voir ;
 - une lampe n'a pas de contenance : chaque charge ajoute sa durée ;
 - une lampe prêtée reste celle d'autrui : l'allumer est une faute (prêts, manque déjà relevé).
@@ -333,7 +334,9 @@ Limites :
 - personne n'apprend le contenu d'une bourse autrement qu'en la tenant ou par un savoir déclaré :
   ni la voir compter, ni l'entendre dire ;
 - au banc, Lucien, dans la chambre noire, ne va pas chercher de lumière : sa recherche n'en trouve
-  aucun moyen ; il retourne garder ses biens.
+  aucun moyen ; il retourne garder ses biens. Diagnostiqué dans `pnj-lumiere-garde` : ses plans de
+  lumière existent (le couloir éclairé) mais coûtent plus que ses biens laissés (`GARDE`), et la
+  seule lampe portable qu'il connaît est à Hugues, qui se méfie de lui.
 
 ## Dynamique des besoins (branche `besoins`)
 
@@ -452,7 +455,7 @@ Limites :
   biens ne pèse pas sur la garde : à la mine, Bram revenu avec la lampe part s'abriter quand Odon,
   dont il se méfie, entre au bureau (méfiance et compagnie l'emportent sur `GARDE`) ; depuis que la
   porte du bureau se crochète (`planif-defauts`), Odon y vient pour la paie : le test de Bram le
-  rend honnête pour isoler la garde ;
+  rend honnête pour isoler la garde. Levé par `pnj-lumiere-garde` (la menace sur le bien) ;
 - seuls le noir et la garde ont un coût par minute ; le froid, la compagnie et la méfiance n'entrent
   que dans le gain de l'abri ; se chauffer compte le séjour sans l'endurer ;
 - au Relais, Gorm demande les planches d'Aubin plutôt que d'aller chercher son bois à la crypte
@@ -581,14 +584,167 @@ Aucune usurpation ni violation (le banc vérifie l'état à chaque pas). Écarts
 Limites :
 - la lumière devant une serrure est celle qu'il y a vue en dernier : une source posée près d'elle
   depuis ne compte qu'avec la lumière du plan ou à son retour ; sa chance au geste se constate,
-  celle d'un autre geste (inspecter) non ;
+  celle d'un autre geste (inspecter) non. Levé par `pnj-lumiere-garde` pour une source qu'il sait
+  allumée ou posée près d'elle depuis ;
 - la chance d'une demande reste une constante (`PRET`), pour un objet comme pour une part ;
 - forcer ne connaît que l'intégrité de la cible (vue, comme son aspect) ; abîmer ce qui n'est à
   personne ou ce qui est à soi n'a d'autre prix que le temps et le bruit ; le geste ne sert qu'à
   lever une serrure fermée à clé (pas une porte calée, ni une cloison) ;
 - la lueur diffuse est la même dans toute la salle (`ambiance`) ; une salle en L ou un recoin
-  qu'elle n'atteindrait pas serait cru en pénombre ;
-- Gorm achète encore les planches d'Aubin quand ses biens le pressent : c'est `GARDE`.
+  qu'elle n'atteindrait pas serait cru en pénombre (c'est le modèle du moteur lui-même, voir
+  `pnj-lumiere-garde`) ;
+- Gorm achète encore les planches d'Aubin quand ses biens le pressent : c'est `GARDE`. Corrigé par
+  `pnj-lumiere-garde` : l'attente de la part, loin de ses biens, n'était pas comptée.
+
+## Lumière et garde (branche `pnj-lumiere-garde`)
+
+Quatre limites des branches précédentes. Règles communes, aucune branche propre à un personnage, un
+objet ou un lieu ; diagnostics faits sur les bancs (`--chronique`, `--diagnostic`) et sur des copies
+de leurs états (coûts des plans comparés, gestes écartés un à un).
+
+**Trouver de la lumière dans le noir.** Diagnostic (mine, nuits de 11 h, graines 1985, 7, 42, 2024 ;
+le poêle meurt vers la minute 450) : la dernière flamme est le briquet de Gaspard ; ceux qui craignent
+le noir connaissent les lampes de rechange de la réserve, pas toujours où est Gaspard. Deux gestes
+manquaient. *Chercher qui porte ce qu'il faut* : une part se cherchait chez son propriétaire perdu de
+vue, pas un objet ; désormais, quand le but l'emploie lui-même (ce que le but vise, ou une source ou
+une flamme pour avoir de la lumière, `Vue.moyen_du_but`), on va chercher son porteur et on l'appelle
+là où on ne le voit pas (`_chercher`, `pnj.appeler`) ; la suite se décide sur ce qu'on a trouvé.
+*Demander du feu* (`demander_feu`, geste social, `echanges.demander_feu`) : on tend sa source (en main,
+chargée, qu'on peut employer sans faute) à qui porte une flamme là où l'on se tient ; il l'y allume
+sans rien prêter ni donner, sauf méfiance ou voix inconnue (`accueil`) ; coût 1 + `DEMANDE`, sans
+jet ; un refus se retient pour cette source ; la lampe allumée ainsi se ménage ensuite
+(`flamme_employee`). Une lampe d'autrui qui l'éclaire ne se prête pas (`echanges.necessaire`) : la
+lui demander restait vain ; le feu, lui, se partage. Chercher le porteur n'est offert que pour les
+moyens du but : l'offrir aussi pour un feu ou un repas faisait atteindre la borne de nœuds aux
+recherches `feu` de l'auberge (Mireille, Odile : nœuds × 2 à 3) sans les servir.
+Auberge : Lucien dans le noir (graine 7, minute 390) a des plans de lumière (le couloir éclairé) ;
+il les endure : rester au grenier lui coûte 3,5 par minute (noir 1,5, `GARDE` 2), partir 4 (le
+grenier et la chambre du ballot qu'il convoite) ; la seule lampe portable qu'il connaît est à Hugues,
+qui se méfie de lui. Rien à corriger là, sinon ce qu'il sait.
+
+**La lumière devant une serrure** (`deliberation.apport_cru`, `sources_posees_crues`). Constatée devant
+l'objet, la croyance `lumiere` retient aussi les sources qu'il croyait alors allumées et posées dans
+la salle (`allumees`). De loin, une source qu'il croit allumée et posée dans cette salle, absente de
+cette liste (allumée ou posée depuis), y ajoute ce qu'elle donne à la distance qu'il croit entre elles
+(portée, `perception.PORTEES`), sans ce qui ferait ombre : devant, il le constate
+(`pnj._assez_de_lumiere`), et la source entre alors dans la liste (pas de boucle). `_entrees` lit cet
+apport. La lueur diffuse par case : le moteur lui-même ne la connaît que par salle
+(`CarteLumiere.ambiance`, « communs à toutes les cases d'une salle ») ; la croyance l'égale déjà.
+
+**L'échange compte l'éloignement** (Gorm et les planches). Diagnostic (Relais, graine 42, minute 149,
+réserve forcée, biens pressants) : sur `main`, acheter une part à Aubin coûtait 5,66 (aller au refuge
+1, acheter 1 + `DEMANDE` + 0,66), aller chercher ses fagots 15 (4 minutes loin du refuge, `GARDE` 2 et
+noir 1,5 par minute) ; sans `GARDE`, 5,66 contre 7 : `GARDE` n'était pas seul en cause. Le plan
+d'échange s'arrêtait à l'achat, au refuge, la part tenue pour servie ; or Gorm retournait ensuite
+attendre près du brasero, loin de ses biens (minute 151), et ce temps n'était compté nulle part
+(l'attente d'une part promise valait 0 minute). Règle commune : promise ou vendue, une part n'est pas
+acquise ; elle s'attend là où elle se sert (le feu qu'elle entretient, les vivres), et ce temps compte
+comme tout autre, avec ce qu'il y laisse monter (`Vue.attente_part` : que le donneur aille d'où on le
+croit jusqu'à la part, la prenne s'il faut la porter, vienne la servir, moins le chemin qu'on a fait
+soi-même depuis la promesse). La demander ou l'acheter ne s'explore que si, servie là, elle atteint le
+but (comme `TERMINAUX`). Même minute : acheter 16,16, ses fagots 15 (sans `GARDE` : 10,16 contre 7).
+Une minute plus tard, le brasero mort, l'achat (Aubin apporte aussi la flamme) redevient moins cher
+que les fagots plus une torche à allumer au fanal (16,16 contre 22) : c'est la règle.
+
+**Un gardien ne laisse pas son bien à qui le menace** (`deliberation.menaces`, `gardes`,
+`planification.abri`, `appeler_a_l_aide`). Diagnostic (mine, Bram au bureau, lampe en main, biens
+non pressants, sécurité pressante, Josse cru au baraquement éclairé) : sur `main`, quand Odon, dont
+il se méfie, est au bureau, l'abri gagne « quitter qui l'inquiète » (méfiance) plus la compagnie, et
+rien ne coûte l'éloignement (`GARDE` ne vaut que quand les biens pressent) : Bram part au baraquement
+et laisse Odon avec la paie. (Ses biens pressants, l'abri atteignait la borne de nœuds et rendait
+None : il restait, mais par accident.) Règles : un bien dont il a la charge (le sien, ou confié : y
+toucher n'est pas une faute ; pas ce qu'il convoite) est *menacé* là où il croit quelqu'un dont il se
+méfie ; s'éloigner d'un lieu menacé coûte `GARDE` à tout plan, biens pressants ou non ; quitter qui
+l'inquiète n'est pas un gain de l'abri quand cette présence menace ce qu'il garde là ; près de son
+bien menacé, il appelle à l'aide dès que sa sécurité presse, si sa crainte l'emporte sur son courage
+(`voix.prudent`) ; plus courageux, il reste et surveille. Le protecteur accourt (Josse pour Bram), et
+le voleur, vu, renonce.
+
+Cas vérifiés après rechargement (`tests/test_lumiere_garde.py`) :
+- mine, le camp éteint (cas réel) : Rémy prend une lampe de rechange, appelle Gaspard, le rejoint et
+  lui demande du feu ; le briquet reste à Gaspard (sur `main` : il va au baraquement, qu'il croyait
+  éclairé, et y reste dans le noir) ; auberge (même nature) : Joss, sa lanterne éteinte, trouve les
+  foyers morts, appelle Odile et allume sa lanterne à son briquet ; qui se méfie refuse, et le refus
+  se retient ;
+- Odon compte la chandelle rallumée à trois pas du coffre (pénombre), et non ce qu'il savait déjà
+  allumé ; Brune compte la torche posée près de la réserve (pleine lumière, son plan la porte) ;
+- Gorm (Relais 42, cas réel) prend ses fagots et recharge le brasero, les planches d'Aubin restent
+  entières ; Brune attend sa part promise près des vivres, ce temps est compté (le refuge noir le
+  renchérit), et Gorm la sert ;
+- Bram reste au bureau, appelle à l'aide, Josse accourt, la paie reste au coffre ; plus courageux
+  (90), il reste sans appeler ; Gorm au refuge ne laisse pas sa réserve à Brune (sur `main`, il allait
+  s'abriter près d'Aubin) ; Brune ailleurs, il va s'abriter.
+Tests changés et pourquoi : `test_planification` (le plan d'une part demandée mène attendre près des
+vivres) ; `test_constater_rumeurs` (le baraquement noir : la lampe de Josse vide, sinon il demande du
+feu et rallume le poêle ; la réserve noire : Odon honnête, car demander puis attendre sa part dans le
+baraquement noir lui coûte un peu plus que forcer le garde-manger, 10,5 contre 9,95 ; la scène, qui sert
+aussi à `tests/test_voix_inconnues.py`, éprouve ainsi le jugement d'une demande venue d'une voix).
+
+`VERIFIER` passe sur une nuit de 8 h (graine 42) de chaque scénario.
+
+Bancs 8 h, `main` 888bbc4 (avec la seule mesure `minutes_dans_le_noir` ajoutée) et la branche lancés au
+même moment (Relais 8 graines, joueur à la galerie ; mine, auberge et crue 4 ; départ tiré ; moyennes
+par nuit, `main` → branche) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| sans recours | 53,1 → 53,8 | 58,8 → 55 | 15 → 43,8 | 15 → 15 |
+| en attente | 63,1 → 66,3 | 290 → 281,3 | 536,3 → 541,3 | 88,8 → 107,5 |
+| confiées | 159,4 → 188,8 | 0 → 0 | 0 → 0 | 267,5 → 290 |
+| événements distincts | 33 → 30,8 | 48,5 → 50,8 | 50,3 → 52 | 33,8 → 35,8 |
+| échanges | 11,1 → 10,3 | 30 → 30,5 | 25,8 → 28,3 | 10,3 → 10 |
+| achats | 2 → 2 | 1,5 → 1,5 | 2,3 → 2,5 | 2,5 → 2,5 |
+| vols vus | 1 → 0,9 | 0,75 → 1 | 0,5 → 0,5 | 0,25 → 0 |
+| minutes dans le noir (qui le craint) | 9,4 → 5 | 282,5 → 270 | 1303,8 → 1276,3 | 8,8 → 8,8 |
+| appels (chercher quelqu'un) | 2 → 1,1 | 2,75 → 2,75 | 3,5 → 6,75 | 2,25 → 2,5 |
+| appels à l'aide (total des nuits) | 2 → 3 | 11 → 12 | 4 → 9 | 0 → 0 |
+| usurpations, violations | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| nuits distinctes (5/60/120/240/480 min, issues) | 8 partout → 8 partout | 4 → 4 | 4 → 4 | 4 → 4 |
+| temps d'une nuit | 22,8 → 20,2 s | 89,9 → 96,1 s | 96,1 → 82,7 s | 18,3 → 19,5 s |
+
+Mine prolongée à 11 h (le camp s'éteint vers 450 ; 4 graines, lancées ensemble) : appels à l'aide
+192 → 96, minutes dans le noir 812,5 → 696,3 par nuit, 2 feux demandés (Rémy à la minute 489 au lieu
+de 581 en 1985 ; à 477 en 7, après un briquet refusé) ; en 2024, Gaspard rallume le poêle à 466 (sur
+`main`, à 541).
+
+Écarts expliqués :
+- Gorm : dans les trois nuits du Relais où ses biens le pressent quand le brasero baisse (7, 42,
+  2024), il achetait une part des planches (minutes 123, 150, 111) ; il va désormais prendre ses
+  fagots, et n'achète que son bois épuisé (346 à 356), comme dans les autres nuits. Graine 500
+  (minute 239), il essaie encore d'acheter (refusé : Aubin garde ses planches) : l'achat l'éloigne
+  2 minutes de ses biens, ses fagots 4 (11,66 contre 12, `GARDE` compté des deux côtés) ;
+- le plan d'une part promise mène attendre là où elle se sert : le demandeur y va aussitôt, et non
+  plus à la minute suivante ; les nuits se décalent dès la première part (Relais 11 : Brune rejoint
+  le refuge avant Gorm). D'où des écarts sans cause propre : les minutes « confiées » (le devoir de
+  Gorm, la cloche confiée au joueur) au Relais et à la crue, moins d'événements au Relais ;
+- auberge : la menace sur le bien fait appeler à l'aide Lucien (son coffret, Hugues présent) et
+  Anselme (son ballot, Lucien présent) quand leur sécurité presse et l'emporte sur leur courage (4 → 9
+  appels à l'aide sur quatre nuits) ; ces appels font aller voir (29,8 → 39,8 par nuit) et mettent des
+  témoins sous les yeux de Lucien, qui renonce plus souvent à son vol (sans recours 15 → 43,8 :
+  l'heure qui suit un renoncement). Anselme, volé, cherche Lucien pour reprendre son ballot (appels
+  3,5 → 6,75) ;
+- mine : le feu demandé n'apparaît qu'en fin de nuit ; les nuits de 8 h changent peu. Temps : mine
+  +7 %, auberge −14 %, Relais −11 % (des nuits différentes) ; sur des états identiques de la mine et
+  de l'auberge (minutes 120, 240, 360, graine 7), la délibération de tous coûte 1,17 → 1,73 s, surtout
+  Lucien, à la mine, qui trouve un plan de lumière là où il endurait.
+
+Limites :
+- chercher le porteur n'est offert que pour la lumière et ce que le but vise : pour un feu, on ne
+  cherche que le propriétaire d'une part de bois, pas qui porte une flamme ; Josse, poêle mort, ne
+  retrouve pas Gaspard pour le briquet (il le demande s'il le sait là) ;
+- demander du feu suppose sa source en main : on ne fait pas allumer une source fixe (un poêle) par
+  qui porte une flamme ; rejoindre qui porte une lampe n'est ni un abri ni une lumière (elle suit son
+  porteur) ;
+- l'apport d'une source devant une serrure ignore ce qui ferait ombre ; il se constate devant ; une
+  ancienne croyance `lumiere` sans `allumees` compte une fois toutes les sources crues allumées ;
+- l'attente d'une part est une estimation (chemins crus, un geste pour servir) : le donneur peut
+  tarder (aller d'abord chercher une flamme) ; l'achat et la marche restent comparés de près
+  (Relais 500) ;
+- la menace sur le bien se juge sur où il croit les autres, et ne fait appeler qu'en sa présence ; un
+  voleur qui garde aussi ses propres biens (Lucien) appelle à l'aide comme un autre ; on ne chasse ni
+  n'affronte qui menace ;
+- qui ne répond pas à un chercheur qu'il reconnaît et dont il se méfie lui fait parcourir une salle
+  par minute (Anselme cherchant Lucien), comme pour une part.
 
 ## Coût de calcul (branche `planif-cout`)
 

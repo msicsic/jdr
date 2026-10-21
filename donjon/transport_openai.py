@@ -56,6 +56,25 @@ def lire_evenements(evenements):
     raise ErreurMonde("Flux du MJ interrompu avant la fin. Aucune action appliquée.")
 
 
+def lire_flux(reponse):
+    """Décoder les trames SSE, puis appliquer le même contrat terminal que WebSocket."""
+    def evenements():
+        bloc, taille = [], 0
+        for ligne in reponse:
+            taille += len(ligne)
+            if taille > 4_000_000:
+                raise ErreurMonde("Réponse du MJ trop volumineuse. Aucune action appliquée.")
+            texte = ligne.decode("utf-8").rstrip("\r\n")
+            if texte.startswith("data:"):
+                bloc.append(texte[5:].lstrip())
+            elif not texte and bloc:
+                donnees, bloc = "\n".join(bloc), []
+                if donnees == "[DONE]":
+                    return
+                yield json.loads(donnees)
+    return lire_evenements(evenements())
+
+
 class ErreurTransport(RuntimeError):
     def __init__(self, statut=None, reessayable=False):
         self.statut = statut

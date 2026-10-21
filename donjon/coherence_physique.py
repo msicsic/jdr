@@ -1,6 +1,9 @@
 """Contre revue des capacités et constats physiques d'un objet existant."""
 
+import json
+
 from .monde import ErreurMonde, reference_exacte
+from .refus import RapportIllisible, audit
 
 
 SCHEMA = {
@@ -50,7 +53,8 @@ def propositions(reponse, faits):
         cible_id = reference_exacte(objets, ajout.get("ancrage"))
         cible = faits.get("objet:" + str(cible_id))
         if cible is None:
-            raise ErreurMonde("L'objet à qualifier n'existe pas.")
+            raise ErreurMonde("L'objet à qualifier n'existe pas.",
+                              f"ancrage : un identifiant parmi les objets fournis (objet:<id>), reçu « {ajout.get('ancrage')} ».")
         moyen_id = reference_exacte(objets, ajout.get("moyen", ""))
         entrees.append({"objet": {cle: cible.get(cle) for cle in
                                     ("id", "nom", "type", "materiau", "masse", "mobile",
@@ -72,7 +76,19 @@ def controler(entrees, rapport):
             or any(not isinstance(j, dict) or set(j) != {"compatible", "motif"}
                    or type(j["compatible"]) is not bool or not isinstance(j["motif"], str)
                    for j in jugements)):
-        raise ErreurMonde("Contre revue physique incomplète.")
-    return [{"partie": "qualification", "segment": i, "texte": "",
-             "motif": j["motif"] or "Propriété incompatible avec l'objet établi."}
+        raise RapportIllisible("Contre revue physique incomplète.")
+    return [audit(j["motif"] or "Propriété incompatible avec l'objet établi.",
+                  "une qualification accordée à ce que l'objet est déjà (matière, description, masse, état), "
+                  "ou aucune", partie="qualification", segment=i, recu=_propose(entrees[i]),
+                  verdict=("incompatible", j["motif"]),
+                  lieu=f"qualification {i} (objet {(entrees[i].get('objet') or {}).get('id')})")
             for i, j in enumerate(jugements) if not j["compatible"]]
+
+
+def _propose(entree):
+    """Ce que la qualification propose, en champs : ce que l'auditeur a jugé."""
+    champs = {"capacites": entree.get("capacites_proposees"), "ecartees": entree.get("constats_proposes"),
+              "coupe_possible": entree.get("coupe_possible"), "physique": entree.get("physique_proposee"),
+              "contenu": entree.get("contenu_propose")}
+    return "; ".join(f"{k} = {json.dumps(v, ensure_ascii=False)}" for k, v in champs.items()
+                     if v not in (None, [], {}, ""))
