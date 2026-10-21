@@ -340,7 +340,8 @@ def preparer_usage(m, p, origine):
         if m.joueur["salle"] == a["haut"] and not a.get("prise_sommet"):
             raise ErreurMonde("Il manque une prise au sommet pour abaisser cet assemblage.",
                               f"installer contre {p['outil']} depuis le pied ({a['bas']}).")
-        if proprietaire(m, o) not in (None, "joueur"):
+        from .biens import a_autrui
+        if a_autrui(m, id) is not None:  # Prêtée ou confiée à sa garde, elle s'emploie librement.
             raise ErreurMonde("Cette échelle appartient à autrui.", f"{id} appartient à {proprietaire(m, o)} : obtiens-la d'abord.")
         if o["masse"] > m.joueur["capacite"]:
             raise ErreurMonde("Cette structure est trop lourde pour que tu l'installes seul.",
@@ -360,7 +361,8 @@ def preparer_usage(m, p, origine):
         raise ErreurMonde("Cette installation n'est pas accessible depuis ici.",
                           f"{id} se rejoint depuis {a['bas']} ou {a['haut']} ; le joueur est en {m.joueur['salle']}.")
     if action == "desinstaller":
-        if proprietaire(m, o) not in (None, "joueur") or o.get("attache"):
+        from .biens import a_autrui
+        if a_autrui(m, id) is not None or o.get("attache"):
             raise ErreurMonde("Cette structure n'est pas libre de ses attaches ou ne t'appartient pas.",
                               f"{id} est attachée ou à autrui : rien à desinstaller.")
         if o["masse"] > m.joueur["capacite"]:

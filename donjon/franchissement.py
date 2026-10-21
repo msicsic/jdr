@@ -84,7 +84,8 @@ def conditions(m, cible, outil, destination, tenu=True):
     if t.get("ressource") != "perche" and "appui_mobile" not in t.get("usages", []):
         raise ErreurMonde("Cet objet ne peut pas servir d'appui mobile long dans cet arbitrage.",
                           f"outil : une perche ou un objet d'usage appui_mobile, parmi {perches()}.")
-    if proprietaire(m, t) not in (None, "joueur"):
+    from .biens import a_autrui
+    if a_autrui(m, t["id"]) is not None:  # Prêté ou confié à sa garde, il s'emploie librement.
         raise ErreurMonde("Cet objet appartient à autrui ; tu ne peux pas l'employer librement.",
                           f"{outil} appartient à {proprietaire(m, t)} : obtiens-le d'abord.")
     valeurs = {}

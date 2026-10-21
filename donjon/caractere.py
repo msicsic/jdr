@@ -14,6 +14,13 @@ ment ; douceur 100, il ne blesse ni ne pousse personne. Les anciennes limites to
 ``ne_ment_pas``, ``ne_blesse_pas``) deviennent ces valeurs extrêmes.
 
 Le joueur a des caractéristiques mais pas de valeurs : il décide lui-même de ce qu'il fait.
+
+L'argent n'est pas un besoin qui monte à la minute : c'est un poids permanent. Une pièce vaut, au
+plan, un nombre de minutes propre à chacun (``valeur_piece``), par une règle commune : ses besoins
+hors de la scène (``profil["situation"]`` : une dette, des proches à charge, un projet, en
+pièces), pondérés par ses valeurs (ses proches par l'altruisme et la loyauté, son projet par
+l'ambition), contre ce qu'il possède déjà (rendement décroissant). Sans déclaration, une
+situation modeste : vivre une fois sorti d'ici.
 """
 STATS = ("FOR", "DEX", "INT", "PER", "CHA", "VOL", "ELO", "PSY")
 BASE = 10              # une caractéristique que rien ne déclare : la moyenne
@@ -29,6 +36,16 @@ LIMITES = {"ne_vole_pas": "honnetete", "ne_ment_pas": "honnetete", "ne_blesse_pa
 FAUTE = 20
 USURE = 0.9
 ENJEU = 60
+ARGENT = "argent"      # le motif d'un plan qui ne sert que l'argent : aucune détresse n'y use la faute
+# Une pièce vaut PIECE minutes à qui vit modestement (il lui faut VIVRE pièces pour vivre une fois
+# sorti d'ici, et il a la bourse ordinaire, ``biens.BOURSE``) ; chaque proche à charge en demande
+# PROCHE ; AISANCE règle le rendement décroissant de ce qu'il possède ; jamais plus de PLAFOND.
+PIECE = 1.0
+VIVRE = 5
+PROCHE = 10
+AISANCE = 10
+PLAFOND = 6.0
+SITUATION = ("dette", "proches", "projet")
 
 
 # --- Caractéristiques -------------------------------------------------------------------
@@ -91,7 +108,8 @@ def prix_faute(monde, id, besoin=None, nom="honnetete"):
     h = valeur(monde, id, nom)
     if h >= COMBLE:
         return None
-    usure = min(1.0, detresse(monde, id, besoin) * BASE / caracteristique(monde, id, "VOL"))
+    # Ce qui ne sert que l'argent ne presse jamais : rien n'y use le scrupule.
+    usure = 0 if besoin == ARGENT else min(1.0, detresse(monde, id, besoin) * BASE / caracteristique(monde, id, "VOL"))
     prix = FAUTE * h / (COMBLE - h) * (1 - USURE * usure)
     return prix if prix <= ENJEU else None
 
@@ -99,6 +117,39 @@ def prix_faute(monde, id, besoin=None, nom="honnetete"):
 def penchant(monde, id, nom):
     """Ce qu'une valeur ajoute à un jet qui la sollicite : ±1 par dizaine autour de la moyenne."""
     return (valeur(monde, id, nom) - NEUTRE) // 10
+
+
+# --- Argent -------------------------------------------------------------------------------
+
+def besoin_d_argent(monde, id):
+    """Les pièces qu'il lui faudrait hors de la scène : vivre, sa dette, ses proches à charge
+    (pesés par son altruisme et sa loyauté), son projet (pesé par son ambition)."""
+    s = (_profil(monde, id) or {}).get("situation", {})
+    proches = (valeur(monde, id, "altruisme") + valeur(monde, id, "loyaute")) / (2 * NEUTRE)
+    return (VIVRE + s.get("dette", 0) + s.get("proches", 0) * PROCHE * proches
+            + s.get("projet", 0) * valeur(monde, id, "ambition") / NEUTRE)
+
+
+def valeur_piece(monde, id):
+    """Ce que vaut une pièce de plus pour lui, en minutes de plan : ce qui lui manque hors de la
+    scène, contre ce qu'il peut déjà dépenser (``biens.richesse``)."""
+    from .biens import richesse
+    v = PIECE * (AISANCE + besoin_d_argent(monde, id)) / (AISANCE + richesse(monde, id))
+    return round(min(PLAFOND, v), 3)
+
+
+def valeur_pieces(monde, id, n, depense=False):
+    """Ce que valent pour lui ``n`` pièces gagnées (ou dépensées, ``depense``), en minutes : la
+    somme de ce que vaut chaque pièce à mesure que sa richesse change, chacune au plus PLAFOND.
+    Une grosse somme vaut moins que son nombre de pièces au prix de la première."""
+    import math
+    from .biens import richesse
+    if n <= 0:
+        return 0.0
+    besoin, avoir = AISANCE + besoin_d_argent(monde, id), AISANCE + richesse(monde, id)
+    apres = avoir - min(n, avoir - AISANCE) if depense else avoir + n
+    v = PIECE * besoin * abs(math.log(avoir / apres)) if apres > 0 else PLAFOND * n
+    return round(min(PLAFOND * n, v), 3)
 
 
 # --- Migration et vérification -----------------------------------------------------------
@@ -125,6 +176,11 @@ def installer(monde):
         p = monde.objets[id].get("profil")
         if p:
             migrer(p)
+
+
+def verifier_situation(situation):
+    assert (isinstance(situation, dict) and set(situation) <= set(SITUATION)
+            and all(type(v) is int and 0 <= v <= 10000 for v in situation.values())), "Situation de PNJ invalide"
 
 
 def verifier_valeurs(valeurs):

@@ -197,7 +197,9 @@ class VoixInconnueTests(unittest.TestCase):
             parole("Gorm, une part des vivres, s'il te plaît.", ("demande", "vivres", "", "")),
             reponse_pnj("Gorm ne bouge pas.")], jet=12)
         faits = entrees[1]["faits"]["conversation_validee"]["faits"]
-        self.assertIn("Gorm, gardien du relais n'est pas convaincu et garde les vivres du refuge.", faits)
+        # Refusée, la part reste à vendre : il dit son prix (``echanges-argent``).
+        self.assertIn("Gorm, gardien du relais n'est pas convaincu et garde les vivres du refuge ; il en veut "
+                      "2 pièces.", faits)
         gorm = lire(reprise, "marchand")
         self.assertIn("joueur", gorm["voix_entendues"])
         self.assertNotIn("joueur", gorm["voix"])

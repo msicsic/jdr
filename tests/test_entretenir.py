@@ -159,12 +159,14 @@ class ServirUnProtegeTests(unittest.TestCase):
         # Placement d'auteur : la fièvre l'a creusé, et Odon a mangé sa croûte de pain.
         lire(m, "lucien")["besoins"]["faim"] = 85.0
         sans(m, "pain_lucien")
+        avant = m.objets["vivres"]["portions"]
         chronique, _ = executer(m, 120)
         m = recharger(m)
         servis = textes(chronique).count("Mathe donne une part des vivres de la cuisine à Lucien.")
         self.assertEqual(servis, 1)
         self.assertLess(lire(m, "lucien")["besoins"]["faim"], 70)
-        self.assertEqual(m.objets["vivres"]["portions"], 3)
+        # Une seule part de plus est sortie du garde-manger (d'autres en ont acheté avant).
+        self.assertEqual(m.objets["vivres"]["portions"], avant - 1)
         # Elle l'a vu manger : elle ne le croit plus affamé, et rien ne reste à faire.
         self.assertFalse(lire(m, "mathe")["croyances"]["lucien"]["etat"]["valeur"]["faim"])
         self.assertTrue(lire(m, "mathe")["pulsions"][1])

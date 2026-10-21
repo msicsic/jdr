@@ -75,10 +75,12 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
   salle ou un porteur), verrouillee ou fiable (valeur oui ou non)} ; elle peut être fausse,
   au personnage d'y croire ou non ;
 - demande {sujet : un objet que le personnage porte, ou une ressource à lui (vivres, bois)
-  dont Corvus demande une part ; attribut et valeur vides} ;
-- passage {sujet, attribut et valeur vides} : Corvus demande au personnage de s'écarter, de se
-  pousser, de le laisser passer. Le moteur décide s'il bouge et le dit dans les faits ; sa
-  réplique dit cette issue, sans promettre de bouger plus tard ;
+  dont Corvus demande une part ; attribut vide ; valeur : vide, ou le nombre de pièces que
+  Corvus offre pour la payer (en chiffres, au plus ce qu'il a)} ; payée son prix, c'est un achat ;
+- passage {sujet et attribut vides ; valeur : vide, ou les pièces que Corvus offre} : Corvus
+  demande au personnage de s'écarter, de se pousser, de le laisser passer. Le moteur décide s'il
+  bouge, et s'il prend l'argent, et le dit dans les faits ; sa réplique dit cette issue, sans
+  promettre de bouger plus tard ;
 - aveu {sujet : un objet qui n'est pas à Corvus ; attribut vide ; valeur : le geste qu'il avoue
   y avoir fait, parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter,
   forcer, manger, servir, alimenter, allumer, eteindre} ;
@@ -663,7 +665,8 @@ def _typer(monde, c, auditeur=None):
     if isinstance(c, dict) and c.get("type") == "passage":
         # On demande le passage à celui à qui l'on parle : le sujet, s'il est donné, est lui.
         sujet = c.get("sujet")
-        return {"type": "passage"} if not sujet or resoudre(monde, sujet) == auditeur else None
+        return ({"type": "passage", "prix": offre(c)} if not sujet or resoudre(monde, sujet) == auditeur
+                else None)
     if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande", "aveu"):
         return None
     sujet = resoudre(monde, c.get("sujet"))
@@ -672,7 +675,7 @@ def _typer(monde, c, auditeur=None):
     if sujet is None:
         return None
     if c["type"] == "demande":
-        return {"type": "demande", "sujet": sujet}
+        return {"type": "demande", "sujet": sujet, "prix": offre(c)}
     if c["type"] == "aveu":
         return aveu(monde, "joueur", sujet, normaliser(c.get("valeur") or ""))
     attribut, valeur = c.get("attribut"), c.get("valeur")
@@ -685,6 +688,25 @@ def _typer(monde, c, auditeur=None):
     else:
         return None
     return {"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}
+
+
+def offre(c):
+    """Les pièces qu'une demande ou un passage offre en paiement (``valeur``, en chiffres) ; 0 sans
+    offre."""
+    valeur = str(c.get("valeur") or "").strip()
+    return int(valeur) if valeur.isdigit() else 0
+
+
+def verifier_offres(monde, contenu):
+    """Corvus n'offre pas plus qu'il n'a : une cause par refus, l'élément fautif nommé."""
+    total = 0
+    for i, c in enumerate(contenu):
+        if isinstance(c, dict) and c.get("type") in ("demande", "passage"):
+            total += offre(c)
+            if total > monde.joueur["or"]:
+                raise ErreurMonde(f"Tu n'as que {monde.joueur['or']} pièces.",
+                                  f"contenu[{i}].valeur : les pièces offertes, en tout de 0 à {monde.joueur['or']} "
+                                  f"(or du joueur) ; reçu {offre(c)}, soit {total} avec les offres précédentes.")
 
 
 def aveu(monde, locuteur, objet, geste):
@@ -765,34 +787,47 @@ def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
     }[issue])
 
 
-def _demander(travail, auditeur, objet, faits):
-    from .echanges import demander
+def _demander(travail, auditeur, objet, faits, prix=0):
+    from .biens import prix as prix_de
+    from .echanges import demande_de_part, demander
+    from .vol import proprietaire
     nom, il, e = _personne(travail, auditeur)
     from .deliberation import besoin_de_part
-    issue = demander(travail, "joueur", auditeur, objet)
+    part = demande_de_part(travail, "joueur", auditeur, objet)
+    issue = demander(travail, "joueur", auditeur, objet, prix=prix)
     o = designer(travail.objets[objet]) if objet in travail.objets else ""
     vivres = objet in travail.objets and besoin_de_part(travail.objets[objet]) == "faim"
+    # Ce qu'il en demanderait, s'il le vend : une part, ou un objet qui a un prix et qui est à lui.
+    vend = (objet in travail.objets and proprietaire(travail, travail.objets[objet]) == auditeur
+            and prix_de(travail, objet, part))
+    servie = (f"{il} te la servira là où sont les vivres." if vivres else f"{il} va entretenir le feu.")
     lui = "elle" if il == "elle" else "lui"
     faits.append({
         "absent": f"{nom} n'a pas cet objet sur {lui}.",
         "mefiance": f"{nom} refuse : {il} ne te fait pas confiance.",
         "qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
         "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
-        "refus": f"{nom} n'est pas convaincu{e} et garde {o}.",
-        "remis": f"{nom} te remet {o}.",
-        "promis": (f"{nom} accepte de t'en donner une part : {il} te la servira là où sont les vivres."
-                   if vivres else f"{nom} accepte : {il} va entretenir le feu."),
+        "pauvre": f"Tu n'as pas les {prix} pièces que tu lui offres.",
+        "refus": f"{nom} n'est pas convaincu{e} et garde {o}"
+                 + (f" ; {il} en veut {vend} pièce{'s' if vend > 1 else ''}." if vend and prix < vend else "."),
+        "remis": f"{nom} te remet {o}" + (f" : {il} te le prête." if any(
+            p["objet"] == objet and p["a"] == "joueur" for p in travail.data.get("permissions", ())) else "."),
+        "rendu": f"{nom} te rend {o}.",
+        "vendu": (f"{nom} prend tes {prix} pièces et accepte de t'en donner une part : " + servie if part
+                  else f"{nom} prend tes {prix} pièces et te remet {o}."),
+        "promis": f"{nom} accepte de t'en donner une part : " + servie,
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
 
 
-def _demander_passage(travail, auditeur, faits):
+def _demander_passage(travail, auditeur, faits, prix=0):
     from .passage import demander_passage
     nom, il, e = _personne(travail, auditeur)
-    issue = demander_passage(travail, auditeur, "joueur", [])
+    issue = demander_passage(travail, auditeur, "joueur", [], prix=prix)
     faits.append({
         "qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
         "ecarte": f"{nom} s'écarte d'un pas pour te laisser passer.",
+        "paye": f"{nom} prend tes {prix} pièces et s'écarte d'un pas pour te laisser passer.",
         "geste": f"{nom} ne s'écarte pas : {il} est occupé{e} à ce qu'{il} fait là.",
         "mefiance": f"{nom} refuse de s'écarter : {il} ne te fait pas confiance.",
         "place": f"{nom} n'a pas la place de s'écarter.",
@@ -853,6 +888,7 @@ def preparer_parole(monde, p, revision=None):
         raise ErreurMonde("La réplique de Corvus nomme ce qu'il ne connaît pas.",
                           "retire de replique : " + ", ".join(f"« {m['terme']} »" for m in inconnus)
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
+    verifier_offres(monde, p["contenu"])
     from .ouie import retentir, saisissent
     travail = monde.copier()
     chuchote = forme["maniere"] == "chuchote"
@@ -869,7 +905,7 @@ def preparer_parole(monde, p, revision=None):
             if c["type"] == "affirmation":
                 _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
             elif c["type"] == "passage":
-                _demander_passage(travail, auditeur, faits)
+                _demander_passage(travail, auditeur, faits, c["prix"])
             elif c["type"] == "aveu":
                 _avouer(travail, auditeur, c, faits)
             elif c["type"] == "nom":
@@ -877,7 +913,7 @@ def preparer_parole(monde, p, revision=None):
             elif c["type"] == "qui":
                 _qui_est_la(travail, auditeur, faits)
             else:
-                _demander(travail, auditeur, c["sujet"], faits)
+                _demander(travail, auditeur, c["sujet"], faits, c["prix"])
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],

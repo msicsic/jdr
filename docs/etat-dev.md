@@ -434,7 +434,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   inconnue nommée par le moteur puis « la voix » dans le récit ; deux défauts de Luna vus et corrigés
   par le contrôle (voix qui se disait Brune d'elle-même, « Brune répond » dans le récit). Limites dans
   `docs/plan-ouie.md`.
-- La suite de tests passe : 920 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `echanges-argent`, non fusionnée (manques de l'auberge : un objet prêté restait illicite
+  pour l'emprunteur ; l'argent n'existait que pour le joueur ; détail et bancs dans
+  `docs/plan-social.md`, « Argent, prêts et garde confiée », règles du joueur dans
+  `docs/mecaniques.md`, « Prêter, confier, payer »). **Permissions** (`donjon/biens.py`) : un
+  prêt (`data["permissions"]`, clos quand l'objet revient à son propriétaire) ou une garde
+  confiée (tâche acceptée sur un bien de qui la confie, pulsion déléguée) font user du bien
+  d'autrui sans faute, au plan, à l'exécution, aux yeux des témoins et pour le joueur ; une clé
+  prêtée ouvre ce qu'elle ouvre, pas le contenu ; rien ne permet de consommer. Remis par son
+  propriétaire, un objet qui dure est prêté, ce qui se consomme donné ; l'emprunteur PNJ le rend
+  quand il ne lui sert plus, le propriétaire le récupère en le redemandant ; on ne demande un
+  objet qu'à son propriétaire. **Argent** : bourse par PNJ (`finances_pnj`, 5 par défaut),
+  objets à pièces, prix d'une part ou d'un objet ; une pièce vaut pour chacun (10 + dette,
+  proches, projet pesés par ses valeurs) / (10 + richesse) minutes, au plus 6
+  (`caractere.valeur_piece`) ; geste `acheter` du planificateur, vente acceptée au prix sans jet
+  sauf ce qu'il garde ou méfiance, don d'autant plus dur que la pièce lui est chère ; dernier but,
+  prendre des pièces qui valent plus que le chemin et la faute ; le joueur paie une part, un
+  objet ou un passage dans sa parole (`valeur`), au plus son or (`attendu` sinon). Situations,
+  bourses et prix déclarés dans les quatre scénarios ; valeurs retouchées à la mine (Odon, Bram,
+  Josse, Mathe) et à l'auberge (Anselme, Mireille, Mathurine, Hugues, Lucien, Odile) ; la paie de
+  la mine (200) et une bourse d'Anselme (150) ; pas de migration des anciennes sauvegardes.
+  Accordée avec `main` après `voix` : une voix inconnue qui offre de payer ou réclame son bien
+  s'entend d'abord demander « Qui va là ? » (`echanges.accueil`), puis la vente vaut. Bancs contre
+  `main` 1e96cb6 (8 h) : minutes urgentes sans recours Relais 393 → 294, mine 655 → 463, auberge
+  670 → 690, crue 301 → 445 ; achats par nuit 1,6 / 1 / 0,75 / 2 ; aucune usurpation ;
+  `VERIFIER` sur une nuit de chaque scénario. Au Relais, Ilse et Aubin refusés achètent leur part,
+  Brune (honnêteté 20, endettée) vole encore ; à la mine, Odon endetté guette la paie et s'acharne
+  sur le coffre dans le noir (mine 15 → 23 s) ; à la crue Brune (50) achète au lieu de voler, d'où
+  Gorm au devoir sans rien à faire et Ilse au refuge, dans l'eau, au lieu de la galerie. Limites :
+  aucun prêt ni vol de bourse au banc (Odon ne sait pas ouvrir la porte du bureau, personne ne
+  connaît la bourse d'Anselme), une part payée non servie n'est pas remboursée, pas de
+  marchandage ni de tâche payée entre PNJ.
+- La suite de tests passe : 942 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -450,7 +481,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
-  `lumiere-besoin`) ; prêter et permissions déléguées ; l'argent ; un besoin que rien n'apaise (le
+  `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
+  besoin que rien n'apaise (le
   devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé
   nourri en boucle : branche `entretenir-feu`. Chercher quelqu'un dans le noir, le lieu dans une
   rumeur et le contenant fermé cru ouvert : branche `constater-et-rumeurs`.

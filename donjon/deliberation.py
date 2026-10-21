@@ -8,7 +8,7 @@ le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur
 croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
 par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 """
-from .caractere import STATS, interdit, verifier_valeurs
+from .caractere import ARGENT, STATS, interdit, verifier_situation, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
 from .esprits import esprit, lire, memoriser
 from .spatial import porte_par
@@ -18,10 +18,10 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir",
-              "dire", "demander", "confier", "remettre")
+              "dire", "demander", "acheter", "confier", "remettre")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
-SOCIALES = ("dire", "demander", "confier", "remettre")
+SOCIALES = ("dire", "demander", "acheter", "confier", "remettre")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
@@ -76,7 +76,8 @@ def parts(o):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
-                          "reserve", "securite", "protege"}), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege", "situation"}), "Profil de PNJ mal formé"
+    verifier_situation(p.get("situation", {}))
     assert (isinstance(p.get("protege", []), list) and all(
         x in monde.objets and monde.objets[x]["type"] == "personnage" and x != id
         for x in p.get("protege", []))), "Protégés de PNJ invalides"
@@ -101,8 +102,10 @@ def verifier_profil(monde, id, p):
 
 def condition_valide(monde, c):
     """Vocabulaire commun des buts : un objet en un lieu, un objet verrouillé, une ronde,
-    une part de nourriture servie à quelqu'un, un feu entretenu."""
+    une part de nourriture servie à quelqu'un, un feu entretenu, un objet prêté à rendre."""
     return isinstance(c, dict) and (
+        (set(c) == {"objet", "rendre"} and c["objet"] in monde.objets and c["rendre"] in monde.objets
+         and monde.objets[c["rendre"]]["type"] == "personnage") or
         (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
         or (set(c) == {"objet", "servir"} and c["objet"] in monde.objets
             and monde.objets[c["objet"]]["type"] == "nourriture"
@@ -227,6 +230,10 @@ def promesse_en_cours(monde, id, objet):
 
 
 def satisfaite(monde, id, condition):
+    if "rendre" in condition:
+        # Un objet prêté : rendu quand le prêt est clos (il est revenu à son propriétaire).
+        from .biens import prets
+        return not any(p["objet"] == condition["objet"] and p["a"] == id for p in prets(monde))
     if "servir" in condition:
         # Nourrir quelqu'un : tant qu'il ne le croit pas affamé (ce qu'il a vu de lui), rien à faire.
         # Une part promise, elle, se solde au geste (``echanges.tenu``).
@@ -247,9 +254,11 @@ def satisfaite(monde, id, condition):
     return _cru(monde, id, condition["objet"], "verrouillee") is True and not _ouvert_cru(monde, id, condition["objet"])
 
 
-def illicite(monde, id, objet):
-    from .vol import proprietaire
-    return proprietaire(monde, monde.objets[objet]) not in (None, id)
+def illicite(monde, id, objet, operation=None):
+    """Ce geste sur cet objet lèse-t-il quelqu'un ? Le bien d'autrui, hors ce qu'un prêt ou une
+    garde confiée permettent (``biens.permis``) ; rien ne permet de consommer le bien d'autrui."""
+    from .biens import a_autrui
+    return a_autrui(monde, objet, id, operation) is not None
 
 
 def autorise(monde, id, objet):
@@ -562,6 +571,13 @@ def _plan_faim(monde, id):
     return planifier(monde, id, "faim")
 
 
+def _plan_argent(monde, id):
+    """Des pièces à prendre qui valent, pour lui, plus que ce qu'il lui en coûte : la recherche
+    (``planification.enrichir``)."""
+    from .planification import enrichir
+    return enrichir(monde, id)
+
+
 def _plan_froid(monde, id):
     """Se réchauffer : le plan le moins coûteux trouvé par la recherche (``planification``)."""
     from .planification import planifier
@@ -651,6 +667,8 @@ def candidats(monde, id):
         if (periodique(x["condition"]) and x["besoin"] not in pressants
                 and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
             buts.append((x["besoin"], lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), True))
+    # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
+    buts.append((ARGENT, _plan_argent, True))
     # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.
     for besoin, methode, _ in sorted(buts, key=lambda x: x[2]):
         yield besoin, methode
