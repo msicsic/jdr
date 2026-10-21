@@ -261,13 +261,23 @@ def destinataires_parole(faits, locuteur):
     return [locuteur]
 
 
+# Les formes par lesquelles une réplique dit qui parle (texte normalisé) : ce qui suit est un nom
+# que seul le moteur peut donner à une voix inconnue.
+SE_NOMMER = re.compile(r"\b(?:je suis|je m'appelle|on m'appelle|mon nom est|mon nom,|c'est moi,?|moi,? c'est)"
+                       r"\s+((?:\w|['-])+(?:\s+(?:\w|['-])+)?)")
+
+
 def voix_inconnues(monde, paroles, faits, texte=""):
     """Obstacles déterministes : une voix que Corvus ne sait à qui prêter (un interlocuteur
-    ``voix_inconnue``) ne dit pas qui elle est ni ne nomme personne de plus que ce que le moteur
-    lui fait dire : le nom qu'elle s'est donné (son nom d'interlocuteur) et ce qu'établit l'issue
-    de cette parole (``conversation_validee``). Qui elle est, c'est au moteur de le décider
-    (``voix.se_nommer``) ; le MJ ne le sait pas. Le récit, hors des répliques, ne lui donne pas
-    non plus le nom qu'elle s'est donné : c'est « la voix qui se dit … », pas cette personne."""
+    ``voix_inconnue``) ne dit pas qui elle est au-delà de ce que le moteur lui fait dire : le nom
+    qu'elle s'est donné (son nom d'interlocuteur) et ce qu'établit l'issue de cette parole
+    (``conversation_validee``, la réplique de Corvus). Qui elle est, c'est au moteur de le décider
+    (``voix.se_nommer``) ; le MJ ne le sait pas. Le moteur, lui, sait qui parle (``voix.reel``) et
+    ce qu'il sait : elle nomme qui elle connaît (``voix.connait_nom`` ; Corvus, seulement s'il lui a
+    donné son nom ou qu'elle a entendu parler de lui), jamais elle-même. Une voix que le moteur ne
+    relie à personne ne nomme rien de plus que ce qui est établi. Le récit, hors des répliques, ne
+    lui donne pas non plus le nom qu'elle s'est donné : c'est « la voix qui se dit … », pas cette
+    personne."""
     interlocuteurs = faits.get("interlocuteurs") or {}
     validee = faits.get("conversation_validee") or {}
     obstacles = []
@@ -290,16 +300,30 @@ def voix_inconnues(monde, paroles, faits, texte=""):
         etabli = " ".join([entree.get("nom", ""), *map(str, validee.get("faits") or []),
                            str(validee.get("replique_joueur", ""))])
         permis = lexique.entites_citees(monde, etabli)
+        from .voix import connait_nom, reel
+        qui = reel(monde, parole["locuteur"])
+        qui = qui if qui in monde.objets and monde.objets[qui]["type"] == "personnage" else None
+
+        def tait(x):
+            # Son propre nom, seulement s'il est établi ; un autre, s'il le sait ou s'il est établi.
+            return x not in permis and (qui is None or x == qui or not connait_nom(monde, qui, x))
         nommes = sorted(x for x in lexique.entites_citees(monde, parole["texte"])
-                        if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis)
+                        if x in monde.objets and monde.objets[x]["type"] == "personnage" and tait(x))
+        # Se dire quelqu'un, c'est se nommer : seul le moteur en décide (``voix.se_nommer``).
+        nommes += sorted(x for x in lexique.entites_citees(monde, " ".join(
+            m.group(1) for m in SE_NOMMER.finditer(lexique.normaliser(parole["texte"]))))
+            if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis
+            and x not in nommes)
         corvus = re.compile(r"\b" + re.escape(lexique.normaliser(monde.joueur["nom"].split(",")[0])) + r"\b")
-        if corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli)):
-            nommes.append("joueur")  # Elle ne sait pas davantage à qui elle parle.
+        if (corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli))
+                and (qui is None or not connait_nom(monde, qui, "joueur"))):
+            nommes.append("joueur")  # Elle ne sait pas son nom.
         if nommes:
             obstacles.append({"segment": None, "texte": parole["texte"],
                               "motif": f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa "
-                                       "réplique ne nomme personne de plus que ce que le moteur a établi (son nom "
-                                       "d'interlocuteur, conversation_validee) : retire "
+                                       "réplique ne se nomme pas au-delà de ce que le moteur a établi (son nom "
+                                       "d'interlocuteur, conversation_validee) et ne nomme que qui elle connaît : "
+                                       "retire "
                                        + ", ".join(f"« {(monde.joueur if x == 'joueur' else monde.objets[x])['nom'].split(',')[0]} »"
                                                    for x in nommes)
                                        + "."})
@@ -534,12 +558,14 @@ def consigner(monde, reponse):
     paroles = []
     if rapport["paroles"]:
         from .sons import auditeurs
-        from .voix import reel
+        from .voix import connaitre, reel
         for parole in rapport["paroles"]:
             # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
             locuteur = monde.objets[reel(monde, parole["locuteur"])]
             if not monde.present_physique(locuteur["id"]):
                 raise ErreurMonde("Le locuteur n'est plus présent pour cette parole.")
+            if monde.visible(locuteur["id"]):
+                connaitre(monde, "joueur", locuteur["id"])  # Il le voit parler : il saura reconnaître sa voix.
             entendants = auditeurs(monde, salle, 2)
             if "joueur" not in entendants:
                 entendants.append("joueur")

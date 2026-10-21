@@ -40,6 +40,10 @@ def _replie(titre, valeur, ouvert=False):
 def _reponse(brut):
     """Réflexion résumée et appel d'outil d'une réponse brute (Claude ou OpenAI)."""
     morceaux = []
+    if isinstance(brut, dict) and brut.get("tentatives"):
+        return "".join(_replie(f"Appel fournisseur {a.get('numero')} — essai {a.get('essai', 0) + 1}", a.get('requete'))
+                       + _reponse(a) + _replie("Événements complets", a.get('evenements', []))
+                       for a in brut['tentatives'])
     if isinstance(brut, dict):
         morceaux.append(f"<div>arrêt : {html.escape(str(brut.get('stop_reason')))}"
                         f"{'' if brut.get('strict', True) else ' — schéma non strict'}</div>")
@@ -63,6 +67,10 @@ def _reponse(brut):
             morceaux.append("<div>Réponse (" + html.escape(str(b.get("name"))) + ") :</div>" + _pre(arguments))
         elif b.get("type") == "text" and b.get("text"):
             morceaux.append("<div>Texte hors outil :</div>" + _pre(b["text"]))
+        elif b.get("type") == "message":
+            for contenu in b.get("content", []):
+                if contenu.get("type") == "output_text":
+                    morceaux.append("<div>Message LLM (canal texte) :</div>" + _pre(contenu.get("text", "")))
         elif b.get("type") == "reasoning" and b.get("summary"):
             morceaux.append("<div class='pense'>Réflexion :</div>" + _pre(b["summary"]))
     return "".join(morceaux) or "<div class='ko'>Aucune réponse reçue.</div>"
@@ -71,9 +79,11 @@ def _reponse(brut):
 def _etape(t):
     if t.get("etape") == "appel":
         u = t.get("usage") or {}
-        cache = u.get("cache_read_input_tokens") or (u.get("input_tokens_details") or {}).get("cached_tokens") or 0
+        cache = (u.get("cache_read_input_tokens") or (u.get("input_tokens_details") or {}).get("cached_tokens")
+                 or (u.get("prompt_tokens_details") or {}).get("cached_tokens") or 0)
         tete = (f"<div class='titre'>Appel {html.escape(t['fonction'])} — {t.get('secondes', 0)} s, "
-                f"{u.get('input_tokens', 0)} tokens en entrée dont {cache} en cache, {u.get('output_tokens', 0)} en sortie</div>")
+                f"{u.get('input_tokens', u.get('prompt_tokens', 0))} tokens en entrée dont {cache} en cache, "
+                f"{u.get('output_tokens', u.get('completion_tokens', 0))} en sortie</div>")
         if t.get("erreur"):
             tete += f"<div class='ko'>Erreur : {html.escape(t['erreur'])}</div>"
         corps = (_replie("Instructions", t.get("instructions", "")) + _replie("Entrée (faits, message)", t.get("entree"))

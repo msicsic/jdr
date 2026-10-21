@@ -1,0 +1,2 @@
+# Facultatif, pour l'adaptateur expérimental MiMo et ses bancs.
+jsonschema==4.26.0

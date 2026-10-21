@@ -168,7 +168,7 @@ class FluxTests(unittest.TestCase):
             self.assertEqual(payload["tools"][0]["type"], "namespace")
             return resultat
         socket = FauxWebSocket(repondre)
-        with patch("donjon.mj.jeton", return_value="oauth-test"), patch("donjon.mj.modeles", return_value=[{"slug": "test"}]), patch("donjon.transport_openai.ouvrir_websocket", return_value=socket) as ouvrir:
+        with patch("donjon.fournisseurs.openai.jeton", return_value="oauth-test"), patch("donjon.fournisseurs.openai.modeles", return_value=[{"slug": "test"}]), patch("donjon.transport_openai.ouvrir_websocket", return_value=socket) as ouvrir:
             mj = MJOpenAI("test", connexion="chatgpt")
             self.assertEqual(mj.proposer(nouveau_monde(), "comment je suis arrivé ici ?"), p)
             self.assertEqual(ouvrir.call_args.args[0], "oauth-test")
@@ -186,12 +186,12 @@ class FluxTests(unittest.TestCase):
     def test_echec_flux_conserve_erreur_de_forfait(self):
         mj = MJOpenAI("test", connexion="chatgpt")
         socket = FauxWebSocket(lambda _: [{"type": "response.failed"}])
-        with patch("donjon.mj.jeton", return_value="oauth-test"), patch("donjon.mj.modeles", return_value=[{"slug": "test"}]), patch("donjon.transport_openai.ouvrir_websocket", return_value=socket):
+        with patch("donjon.fournisseurs.openai.jeton", return_value="oauth-test"), patch("donjon.fournisseurs.openai.modeles", return_value=[{"slug": "test"}]), patch("donjon.transport_openai.ouvrir_websocket", return_value=socket):
             with self.assertRaisesRegex(ErreurMonde, "limites du forfait"):
                 mj.proposer(nouveau_monde(), "bonjour")
 
     def test_modele_absent_du_forfait_ne_declenche_pas_inference(self):
-        with patch("donjon.mj.modeles", return_value=[]), patch("urllib.request.urlopen") as api:
+        with patch("donjon.fournisseurs.openai.modeles", return_value=[]), patch("urllib.request.urlopen") as api:
             with self.assertRaisesRegex(ErreurMonde, "pas disponible"):
                 MJOpenAI("absent", connexion="chatgpt").proposer(nouveau_monde(), "bonjour")
             api.assert_not_called()

@@ -1,0 +1,6 @@
+{
+  "scenario": "atelier",
+  "seed": 1985,
+  "preparation": {"salle": "cour", "position": [3, 2], "orientation": "est"},
+  "tours": ["mj Je prends la bobine de ficelle solide.", "inventaire"]
+}

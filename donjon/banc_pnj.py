@@ -252,9 +252,9 @@ def _vols_de_bourse(monde, chronique):
 def appelant(connexion="chatgpt", modele=None, effort="medium"):
     """Luna en stratège, par la même connexion que le MJ du jeu."""
     from .config import charger_env
-    from .mj import MJOpenAI
+    from .mj import MJ
     charger_env()
-    return MJOpenAI(modele, effort, timeout=90, connexion=connexion)._appeler_brut
+    return MJ(modele, effort, timeout=90, connexion=connexion)._appeler_brut
 
 
 def resume_diagnostic(recherches):

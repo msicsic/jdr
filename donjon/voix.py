@@ -10,8 +10,10 @@ ne fait pas connaître sa voix.
 Le moteur sait à qui est chaque voix : sa signature est l'identifiant de son porteur, jamais
 montrée au joueur ni au MJ comme une identité. Un personnage ne relie une voix qu'à ce qu'il en a
 lui-même entendu. Il retient les voix inconnues qu'il a entendues (``voix_entendues`` de son
-esprit, ``data["voix_entendues"]`` du joueur) : le nom qu'elles se sont donné (``se_dit``) et
-s'il se méfie d'elles (``mefiance`` : elles ont menti, ou avoué une faute).
+esprit, ``data["voix_entendues"]`` du joueur) : le nom qu'elles se sont donné (``se_dit``), s'il
+se méfie d'elles (``mefiance`` : elles ont menti, ou avoué une faute), et pour le joueur le nom
+qu'une autre voix leur a donné en s'adressant à elles (``appelee``, ``nommer`` : « une voix qu'on
+appelle Gorm », un ouï-dire).
 
 Toute reconnaissance d'une voix passe par ``reconnaitre`` : qui l'auditeur croit entendre, et avec
 quelle certitude. L'imitation d'une voix, ou la méfiance envers une voix connue quand on sait
@@ -39,6 +41,7 @@ VOIX_MAX = 24          # voix inconnues retenues ; au-delà, la plus anciennemen
 INCONNU = 2            # DD : une demande d'une voix qu'il ne sait à qui prêter pèse moins
 VU_AILLEURS = RECENT   # minutes : « c'est X », de qui il a vu X ailleurs depuis moins, est douteux
 CHAMPS_VOIX = {"minute", "se_dit", "mefiance", "n"}
+OPTIONNELS = {"appelee"}   # le nom qu'une autre voix lui a donné en s'adressant à elle (``nommer``)
 
 
 # --- Ce que chacun connaît -----------------------------------------------------------------
@@ -58,6 +61,21 @@ def connait(monde, qui, autre):
     """La voix d'``autre`` est-elle connue de ``qui`` ? Lecture brute : toute reconnaissance passe
     par ``reconnaitre``."""
     return autre in _connues(monde, qui)
+
+
+def connait_nom(monde, qui, autre):
+    """``qui`` (un PNJ) sait-il le nom d'``autre`` ? Un personnage dont il a une croyance, dont il
+    connaît la voix ou dont une voix s'est dite : le scénario, ce qu'il a vu, entendu ou s'est laissé
+    dire. Le joueur arrive en étranger : on ne sait son nom que s'il l'a donné (``se_nommer``) ou
+    qu'on a entendu parler de lui (un ouï-dire : ``dit:…``)."""
+    if autre == qui:
+        return True
+    e = lire(monde, qui)
+    dites = {x["se_dit"] for x in e["voix_entendues"].values() if x["se_dit"] and not x["mefiance"]}
+    if autre == "joueur":
+        return "joueur" in dites or any(
+            c["source"] == "se_dit" or c["source"].startswith("dit:") for c in e["croyances"].get("joueur", {}).values())
+    return autre in e["croyances"] or autre in e["voix"] or autre in dites
 
 
 def reconnaitre(monde, auditeur, locuteur):
@@ -138,6 +156,20 @@ def retenir(monde, qui, signature):
             del voix[vieille]
     entree["minute"] = monde.data["minutes"]
     return entree
+
+
+def nommer(monde, qui, signature, nom):
+    """``qui`` (le joueur) a entendu une autre voix s'adresser à la voix ``signature`` en l'appelant
+    ``nom`` : « une voix qu'on appelle Gorm », un ouï-dire, jamais une identité. Rien s'il sait déjà
+    à qui est cette voix, si elle s'est elle-même nommée, ou s'il connaît la vraie voix de ``nom`` :
+    ce n'est pas elle, quoi qu'on dise. Renvoie vrai s'il l'a appris."""
+    if identifie(monde, qui, signature) or nom == qui or connait(monde, qui, nom):
+        return False
+    entree = retenir(monde, qui, signature)
+    if entree["se_dit"] or entree["mefiance"] or entree.get("appelee") == nom:
+        return False
+    entree["appelee"] = nom
+    return True
 
 
 def _clarte(monde, id):
@@ -296,18 +328,19 @@ def reel(monde, designation_):
 def nom_pour_joueur(monde, id, court=True):
     """Le nom que le joueur donne à ``id`` : son nom s'il sait qui c'est ; sinon « une voix
     inconnue », « une voix qui se dit Brune », et s'il connaît la vraie voix de Brune, « une voix qui
-    se dit Brune (ce n'est pas la voix de Brune) »."""
+    se dit Brune (ce n'est pas la voix de Brune) » ; nommée par une autre voix, « une voix qu'on
+    appelle Gorm »."""
     if designation(monde, id) == id:
         nom = monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"]
         return nom.split(",")[0] if court else nom
     entree = monde.data.get("voix_entendues", {}).get(id) or {}
-    nom = entree.get("se_dit")
+    nom, appelee = entree.get("se_dit"), not entree.get("se_dit") and entree.get("appelee")
+    nom = nom or appelee
     if not nom or nom not in monde.objets and nom != "joueur":
         return "une voix inconnue"
     dit = monde.joueur["nom"] if nom == "joueur" else monde.objets[nom]["nom"].split(",")[0]
-    if connait(monde, "joueur", nom):
-        return f"une voix qui se dit {dit} (ce n'est pas la voix de {dit})"
-    return f"une voix qui se dit {dit}"
+    nom_ = f"une voix qu'on appelle {dit}" if appelee else f"une voix qui se dit {dit}"
+    return nom_ + f" (ce n'est pas la voix de {dit})" if connait(monde, "joueur", nom) else nom_
 
 
 def personne_pour_joueur(monde, id, court=False):
@@ -321,7 +354,8 @@ def personne_pour_joueur(monde, id, court=False):
 
 def verifier_entrees(voix):
     assert isinstance(voix, dict) and all(
-        isinstance(s, str) and isinstance(e, dict) and set(e) == CHAMPS_VOIX and type(e["minute"]) is int
-        and (e["se_dit"] is None or isinstance(e["se_dit"], str)) and type(e["mefiance"]) is bool
+        isinstance(s, str) and isinstance(e, dict) and CHAMPS_VOIX <= set(e) <= CHAMPS_VOIX | OPTIONNELS
+        and type(e["minute"]) is int and (e["se_dit"] is None or isinstance(e["se_dit"], str))
+        and isinstance(e.get("appelee", ""), str) and type(e["mefiance"]) is bool
         and type(e["n"]) is int and e["n"] >= 1 for s, e in voix.items()), "Voix entendues invalides"
     assert len({e["n"] for e in voix.values()}) == len(voix), "Voix entendues invalides"

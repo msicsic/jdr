@@ -651,7 +651,8 @@ class Moteur:
         # Son geste retentit (``ouie``) : qui l'entend sans le voir l'interprète, se retourne de près.
         from .ouie import retentir
         heles = [valeur for op, _, valeur in effets if op == "heler"]
-        retournes = [] if heles else retentir(  # Le cri d'un nom a déjà retenti (``pnj.heler``).
+        # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``pnj.repondre_a``).
+        retournes = [] if heles or any(op == "repondre" for op, _, _ in effets) else retentir(
             travail, "joueur", methode if geste == "emettre_son" and methode in ("appel", "cri", "sifflement")
             else geste, discret=methode == "discret", bruit=plan.bruit)
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
@@ -730,7 +731,6 @@ class Moteur:
         travail, lignes, trace, precedent = self.monde.copier(), [], [], None
         # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
         self._ouvrir_bilan(travail)
-        travail.data["entendus"] = []
         if sequence.regard:
             travail.joueur["orientation"] = sequence.regard
             lignes.append("Tu te tournes vers " + ("l'" if sequence.regard[0] in "eo" else "le ") + sequence.regard + ".")
@@ -738,6 +738,10 @@ class Moteur:
         for numero, e in enumerate(sequence.etapes, 1):
             # Revalider sur l'état issu des étapes précédentes, jamais sur les effets du LLM.
             p = compiler(travail, e, precedent, sequence.proposition["justification"], sequence.origine)
+            if numero == 1:
+                # Ce qu'il a entendu pendant son geste précédent a servi à juger le premier (répondre à
+                # qui vient de l'appeler, ``ecoute.appels``) ; la manœuvre retient ce qu'elle entend.
+                travail.data["entendus"] = []
             details, jet = [], None
             if p.stat:
                 from .corps import malus
@@ -827,6 +831,10 @@ class Moteur:
         if op == "heler":
             from .pnj import heler
             heler(m, cible, valeur, lignes)  # Le cri ; la réponse vient le cri fini (``_terminer_etape``).
+            return
+        if op == "repondre":
+            from .pnj import repondre_a
+            repondre_a(m, cible, valeur, lignes)  # « Ici ! » à qui l'a hélé : il le croit là.
             return
         if op == "blessure_franchissement":
             m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)

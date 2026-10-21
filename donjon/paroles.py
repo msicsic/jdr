@@ -443,6 +443,78 @@ def hele(monde, intention):
     return _personnage(monde, nom)
 
 
+# Répondre à qui vient de héler Corvus par son nom (``pnj.repondre_a``) : les formes que l'analyse
+# reconnaît, en un seul endroit. « je réponds », « je lui réponds », « je réponds à Gorm », « je réponds
+# à l'appel », suivies au plus des mots d'une réponse ou d'un « fort » ; « je crie « Ici ! » » ; ou les
+# seuls mots d'une réponse entre guillemets (« « Ici ! » »).
+VERBES_REPONDRE = ("reponds", "repondre")
+MOTS_REPONSE = ("je suis ici", "je suis la", "par ici", "me voici", "me voila", "c'est moi", "ici", "present",
+                "oui", "moi")
+APPEL = ("l'appel", "cet appel", "son appel", "la voix", "cette voix")
+
+
+def _mots(texte):
+    return [m for m in (normaliser(j.group()) for j in JETON.finditer(texte or "")) if m not in PONCTUATION]
+
+
+def _reponse(mots):
+    """Ces mots ne disent rien d'autre qu'une réponse à un appel (« Ici ! », « Oui, je suis là ! »)."""
+    reste = " ".join(mots)
+    while reste:
+        tete = next((r for r in MOTS_REPONSE if reste == r or reste.startswith(r + " ")), None)
+        if tete is None:
+            return False
+        reste = reste[len(tete):].strip()
+    return bool(mots)
+
+
+def repond(monde, intention):
+    """Celui à qui la saisie répond, juste après qu'il a hélé Corvus par son nom
+    (``ecoute.appels``) ; None si personne ne vient de l'appeler ou si la saisie n'est pas une
+    réponse (une parole qui dit autre chose, une autre suite, va au MJ ou à l'analyse des paroles)."""
+    from .ecoute import appels
+    from .voix import reel
+    appelants = appels(monde)
+    texte = (intention or "").strip()
+    if not appelants or not texte:
+        return None
+    cite = citation(texte)
+    if texte[0] in GUILLEMETS:
+        # Les seuls mots d'une réponse, entre guillemets.
+        fin = max(texte.rfind(c) for c in "»\"”")
+        return appelants[0] if (cite is not None and fin > 0 and not texte[fin + 1:].strip(" .!?")
+                                and _reponse(_mots(cite))) else None
+    mots = _mots(texte[:texte.find(cite)] if cite is not None else texte)
+    if mots[:1] == ["je"]:
+        mots = mots[1:]
+    elif mots and mots[0].startswith(("j'", "j’")):
+        mots = [mots[0][2:], *mots[1:]]
+    if mots[:1] in (["lui"], ["leur"]):
+        mots = mots[1:]
+    if not mots or mots[0] not in (*VERBES_REPONDRE, *VERBES_HELER):
+        return None
+    verbe, reste = mots[0], " ".join(mots[1:])
+    for f in sorted(FORT, key=len, reverse=True):
+        if reste == f or reste.endswith(" " + f):
+            reste = reste[:-len(f)].strip()
+            break
+    if cite is not None and not _reponse(_mots(cite)):
+        return None  # D'autres mots qu'une réponse : une parole.
+    if cite is None and reste and _reponse(reste.split()):
+        reste = ""  # « je réponds : ici », « je crie ici »
+    elif cite is None and verbe in VERBES_HELER:
+        return None  # Un cri sans les mots d'une réponse, ou un appel (``hele``).
+    if not reste:
+        return appelants[0]
+    prep, _, nom = reste.partition(" ")
+    if prep not in PREPOSITIONS or not nom:
+        return None
+    if nom in APPEL:
+        return appelants[0]
+    vise = _personnage(monde, nom) or reel(monde, nom)
+    return vise if vise in appelants else None
+
+
 def _nom_court(monde, id):
     return monde.objets[id]["nom"].split(",")[0]
 
@@ -632,10 +704,11 @@ def annonce(monde, rapport):
 def identites(monde):
     """Les personnages dont Corvus sait qui ils sont, d'après ce qu'il sait d'eux, jamais d'après une
     place : il les a vus (``Monde.identifier``, ``souvenirs_personnages``), il connaît leur voix, ou
-    une voix s'est donné leur nom."""
+    une voix s'est donné leur nom, ou une autre voix l'a appelée ainsi (``voix.nommer``)."""
     from .voix import entendues
     ids = {*monde.data.get("personnages_vus", ()), *monde.data.get("souvenirs_personnages", {}),
-           *monde.data.get("voix_connues", ()), *(e.get("se_dit") for e in entendues(monde, "joueur").values())}
+           *monde.data.get("voix_connues", ()),
+           *(e.get(k) for e in entendues(monde, "joueur").values() for k in ("se_dit", "appelee"))}
     return sorted(id for id in ids if id in monde.objets and monde.objets[id]["type"] == "personnage")
 
 

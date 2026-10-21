@@ -96,7 +96,8 @@ class HelerTests(unittest.TestCase):
         """Cas réel (auberge) : Hugues appelait Anselme sans fin, derrière la porte fermée de sa
         chambre. Héler porte comme un cri : Anselme l'entend, répond, Hugues le croit là d'où vient
         sa voix (il la connaît), entre et le prévient. Le joueur, au couloir, entend l'appel d'Hugues
-        dont il connaît la voix, et la réponse d'une voix qu'il ne connaît pas."""
+        dont il connaît la voix, et la réponse d'une voix qu'il ne connaît pas : celle qu'Hugues appelle
+        Anselme (branche ``voix-inconnues`` : ce qu'il surprend lui nomme la voix, comme un ouï-dire)."""
         m = hugues_cherche_anselme()
         m.joueur.update(salle="couloir", position=[1, 2])
         m.data["visitees"] = sorted({*m.data["visitees"], "couloir"})
@@ -108,7 +109,9 @@ class HelerTests(unittest.TestCase):
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
         self.assertEqual(len(appels(m, "hugues")), 1)
         self.assertIn("Tu entends, tout près : Hugues appelle : « Anselme ? »", texte)
-        self.assertIn("Tu entends, à l'est, une voix inconnue répondre : « Ici ! »", texte)
+        self.assertIn("Tu entends, à l'est, une voix qu'on appelle Anselme répondre : « Ici ! »", texte)
+        self.assertEqual(m.data["voix_entendues"]["anselme"]["appelee"], "anselme")
+        self.assertNotIn("anselme", m.data["voix_connues"])
         self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
 
     def test_aubin_hele_gorm_a_travers_la_porte_etanche(self):

@@ -8,14 +8,15 @@ from pathlib import Path
 import sys
 
 from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question, heler
-from donjon.config import charger_env, MODELE_CLAUDE, MODELE_PAR_DEFAUT
+from donjon.config import charger_env, MODELE_CLAUDE, MODELE_MIMO, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
-from donjon.mj import MJOpenAI
+from donjon.mj import MJ
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
 from donjon.narration import (consigner as consigner_narration, rendre_resultat,
                               chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
+from donjon.commandes import repondre as repondre_appel
 from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.rendu import carte, fiche, regarder, decrire_accords
@@ -71,7 +72,7 @@ def main(argv=None, interface=None):
     charger_env()
     parser = argparse.ArgumentParser(description="Le Seuil — donjon ASCII et maître du jeu IA")
     parser.add_argument("--offline", action="store_true", help="aucun appel au LLM")
-    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", "anthropic"], default="auto",
+    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", "anthropic", "mimo"], default="auto",
                         help="auto privilégie le compte ChatGPT enregistré, sinon la clé API")
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
@@ -84,8 +85,9 @@ def main(argv=None, interface=None):
     parser.add_argument("--cases", action="store_true", help="déplacements case par case, proximité et ligne de vue")
     parser.add_argument("--seed", type=int, default=1985, help="graine d'une nouvelle partie")
     parser.add_argument("--save", type=Path, default=BASE / "sauvegardes" / "partie.json")
-    parser.add_argument("--model", default=os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT))
-    parser.add_argument("--effort", choices=["low", "medium", "high"], default="medium")
+    parser.add_argument("--model", default=None)
+    parser.add_argument("--effort", choices=["none", "low", "medium", "high"], default=None,
+                        help="MiMo : none désactive la réflexion (défaut) ; les autres niveaux l'activent")
     parser.add_argument("--reflexion", choices=["libre", "imposee"], default="libre",
                         help="anthropic : réflexion adaptative (défaut), ou outil imposé sans réflexion, plus rapide")
     parser.add_argument("--stratege", action="store_true",
@@ -104,6 +106,10 @@ def main(argv=None, interface=None):
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
+    if args.model is None:
+        args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
+    if args.effort is None:
+        args.effort = "none" if args.connexion == "mimo" else "medium"
     if args.atelier + args.defi + args.mine + args.auberge + args.crue > 1:
         parser.error("Choisis --atelier, --defi, --mine, --auberge ou --crue.")
     for scenario in ("mine", "auberge", "crue"):
@@ -142,7 +148,7 @@ def main(argv=None, interface=None):
                                                   publier=interface.comparaison if interface else None,
                                                   effort=principal.effort)
             return principal
-        secondaire = MJOpenAI(args.compare_model, args.compare_effort or args.effort,
+        secondaire = MJ(args.compare_model, args.compare_effort or args.effort,
                               connexion=principal.connexion)
         return Comparateur(principal, secondaire,
                            publier=interface.comparaison if interface else None,
@@ -186,9 +192,9 @@ def main(argv=None, interface=None):
             connexion = "chatgpt" if Coffre().compte() else "api"
         if connexion == "anthropic" and args.model == MODELE_PAR_DEFAUT:
             args.model = MODELE_CLAUDE  # essai de Claude : jamais choisi par défaut
-        cle = "ANTHROPIC_API_KEY" if connexion == "anthropic" else "OPENAI_API_KEY"
-        actif = not args.offline and (connexion == "chatgpt" or bool(os.environ.get(cle)))
-        mj = MJOpenAI(args.model, args.effort, connexion=connexion) if actif else None
+        cles = {"anthropic": ("ANTHROPIC_API_KEY",), "mimo": ("MIMO_API_KEY", "XIAOMI_API_KEY")}.get(connexion, ("OPENAI_API_KEY",))
+        actif = not args.offline and (connexion == "chatgpt" or any(os.environ.get(cle) for cle in cles))
+        mj = MJ(args.model, args.effort, connexion=connexion) if actif else None
         if mj:
             mj.reflexion = args.reflexion
         from donjon import stratege
@@ -207,6 +213,7 @@ def main(argv=None, interface=None):
             if actif:
                 imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
                                                       "la clé API Anthropic, à titre d'essai." if connexion == "anthropic" else
+                                                      "la clé API Xiaomi MiMo, à titre d'essai." if connexion == "mimo" else
                                                       "la clé API OpenAI, avec une facturation séparée."))
         imprimer(m.data["scenario"]["objectif"] + " « aide » : commandes disponibles.")
         if not m.data["journal"]:
@@ -295,7 +302,7 @@ def main(argv=None, interface=None):
                     fermer = getattr(mj, "fermer", None)
                     if fermer:
                         fermer()
-                    principal = MJOpenAI(args.model, args.effort, connexion="chatgpt")
+                    principal = MJ(args.model, args.effort, connexion="chatgpt")
                     stratege.activer(principal._appeler_brut if args.stratege else None)
                     mj = comparer(principal)
                     pending = None
@@ -368,8 +375,9 @@ def main(argv=None, interface=None):
                         imprimer(json.dumps(esprit(m, id), ensure_ascii=False, indent=2))
                     continue
                 force_mj = cmd.startswith("mj ")
-                # Héler par son nom n'est pas une question au MJ, même avec « ? » (« je crie « Gorm ? » »).
-                question = est_question(texte) and not heler(m, texte)
+                # Héler par son nom, ou répondre à qui vient de héler Corvus, n'est pas une question au MJ,
+                # même avec « ? » (« je crie « Gorm ? » », « « Oui ? » »).
+                question = est_question(texte) and not (heler(m, texte) or repondre_appel(m, texte))
                 try:
                     p = None if force_mj or question else analyser(m, texte)
                 except ErreurMonde:

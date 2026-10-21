@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "output": [
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"mode\": \"action\", \"texte\": \"\", \"faits\": [\"objet:couteau\"], \"proposition\": {\"action\": \"clarifier\", \"cible\": \"\", \"outil\": \"\", \"methode\": \"\", \"difficulte\": 0, \"justification\": \"Tu n'as pas de pied-de-biche sur toi, ni rien de ce nom dans la conduite — qu'as-tu en tête : lever quelque chose avec le couteau comme levier, ou parler d'une autre pièce ?\"}}"
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "completion_tokens": 111,
+    "prompt_tokens": 19432,
+    "total_tokens": 19543,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 14336
+    }
+  },
+  "model": "mimo-v2.6-flash"
+}

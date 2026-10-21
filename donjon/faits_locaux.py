@@ -380,6 +380,9 @@ def preparer_faits(monde, proposition, revision=None):
             nom = nom_pour_joueur(travail, reel(travail, ancrage), court=False)
             # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
             designe, ancrage = ancrage, reel(travail, ancrage)
+            if travail.visible(ancrage):
+                from .voix import connaitre
+                connaitre(travail, "joueur", ancrage)  # Il le voit parler : il saura reconnaître sa voix.
             evenement = {"locuteur": ancrage, "texte": texte, "salle": source,
                          "minute": travail.data["minutes"], "auditeurs": entendants,
                          "revision": monde.data["revision"] + 1}
