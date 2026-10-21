@@ -1,0 +1,225 @@
+"""La dynamique des besoins : l'effet de seuil (un besoin apaisé ne presse de nouveau que nettement
+au-dessus de son seuil ; il n'interrompt le plan d'un autre que s'il presse nettement plus), ce
+qu'un plan laisse monter chez les autres besoins (un but qui se tient en restant compte ce que le
+lieu laisse monter ; à défaut d'un plan qui serve les deux, le plus fort l'emporte et l'autre
+s'endure), et l'attente d'un besoin qu'aucun plan ne peut apaiser.
+
+Chaque cas vérifie l'état du monde après rechargement."""
+import unittest
+
+from donjon.banc_pnj import _oisifs_urgents, creer
+from donjon.deliberation import (INERTIE, REPRISE, attentes, deliberer, eveiller, gardes, seuils, urgents)
+from donjon.esprits import croire, lire, percevoir_tous
+from donjon.planification import GARDE, NOIR
+from tests.support import calme
+from tests.test_tensions import placer, recharger, relais, vivre
+
+
+def suivre(m, id, minutes, pas=1):
+    """Fait vivre le monde et relève la salle de ``id`` après chaque pas (rechargé à chaque pas)."""
+    lieux = []
+    for _ in range(0, minutes, pas):
+        m, _ = vivre(m, pas)
+        lieux.append(m.objets[id]["lieu"])
+    return m, lieux
+
+
+def changements(lieux):
+    return sum(a != b for a, b in zip(lieux, lieux[1:]))
+
+
+class SeuilTests(unittest.TestCase):
+    """L'effet de seuil, comme un thermostat."""
+
+    def gorm(self):
+        m = relais()
+        calme(m, "marchand", "brune", "ilse", "aubin")
+        return m
+
+    def test_apaise_il_ne_presse_de_nouveau_que_nettement_au_dessus_de_son_seuil(self):
+        m = self.gorm()
+        b = lire(m, "marchand")["besoins"]
+        seuil = seuils(m, "marchand")["devoir"]
+        b["devoir"] = seuil + 1.0
+        eveiller(m, "marchand", 1)
+        self.assertIn("devoir", urgents(m, "marchand"))
+        b["devoir"] = seuil - 1.0
+        eveiller(m, "marchand", 2)
+        m = recharger(m)
+        self.assertEqual(lire(m, "marchand")["urgences"]["devoir"], {"etat": "apaise", "depuis": 2})
+        lire(m, "marchand")["besoins"]["devoir"] = seuil + REPRISE - 1
+        eveiller(m, "marchand", 3)
+        self.assertNotIn("devoir", urgents(m, "marchand"))
+        lire(m, "marchand")["besoins"]["devoir"] = seuil + REPRISE
+        eveiller(m, "marchand", 4)
+        m = recharger(m)
+        self.assertIn("devoir", urgents(m, "marchand"))
+        self.assertEqual(lire(m, "marchand")["urgences"]["devoir"]["etat"], "presse")
+
+    def test_comble_un_besoin_retrouve_son_seuil(self):
+        # Un repas, un feu, le repos : bien redescendu, il presse de nouveau à son seuil.
+        m = self.gorm()
+        b = lire(m, "marchand")["besoins"]
+        seuil = seuils(m, "marchand")["faim"]
+        b["faim"] = seuil + 5.0
+        eveiller(m, "marchand", 1)
+        b["faim"] = seuil - REPRISE - 1
+        eveiller(m, "marchand", 2)
+        self.assertNotIn("faim", lire(m, "marchand")["urgences"])
+        b["faim"] = float(seuil)
+        self.assertIn("faim", urgents(m, "marchand"))
+
+    def test_un_besoin_n_interrompt_le_plan_d_un_autre_que_s_il_presse_nettement_plus(self):
+        m = self.gorm()
+        s = seuils(m, "ilse")
+        b = lire(m, "ilse")["besoins"]
+        b.update(securite=s["securite"] + 14.0, chaleur=s["chaleur"] + 12.0)
+        lire(m, "ilse")["intention"] = {"but": {"type": "abri", "lieu": "antichambre"}, "motif": "securite",
+                                        "plan": [{"operation": "abriter", "cible": "", "outil": "", "lieu": "antichambre",
+                                                  "condition": ""}], "depuis": 0, "attente": 0}
+        # Le froid presse presque autant : il laisse finir l'abri (et ne le reprend pas à chaque minute).
+        self.assertEqual(urgents(m, "ilse", inertie=True), ["securite"])
+        self.assertEqual(urgents(m, "ilse")[:2], ["securite", "chaleur"])
+        b["chaleur"] = s["chaleur"] + 14.0 + INERTIE
+        self.assertEqual(urgents(m, "ilse", inertie=True)[0], "chaleur")
+
+
+class TenirTests(unittest.TestCase):
+    """Un but qui se tient en restant compte ce que le lieu laisse monter chez les autres besoins."""
+
+    def lucien_au_grenier_noir(self):
+        """Placement d'auteur, l'auberge telle qu'écrite : Lucien, qui craint le noir, garde son
+        coffret au grenier sans lumière ; ses biens et sa sécurité pressent. Le cas réel : il
+        allait au couloir éclairé, puis revenait garder ses biens, et ainsi de suite."""
+        m = creer("auberge", 1985)
+        calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
+        m.objets["poele"].update(allume=False, combustible=0)
+        m.objets["bois_anselme"]["charges"] = 0
+        placer(m, "lucien", "grenier", (2, 2))
+        percevoir_tous(m)
+        lire(m, "lucien")["besoins"].update(biens=65.0, securite=70.0)
+        return m
+
+    def test_lucien_rapporte_la_lanterne_de_l_etable_au_grenier_au_lieu_d_aller_et_venir(self):
+        m, lieux = suivre(self.lucien_au_grenier_noir(), "lucien", 150, pas=5)
+        self.assertEqual(m.objets["lucien"]["lieu"], "grenier")
+        self.assertEqual(m.objets["lanterne_etable"]["lieu"], "lucien")
+        self.assertTrue(m.objets["lanterne_etable"]["allume"])
+        self.assertEqual(lieux[-5:], ["grenier"] * 5)
+        self.assertLessEqual(changements(lieux), 6)
+
+    def bram_au_bureau_noir(self, lampe=True):
+        """Placement d'auteur, la mine telle qu'écrite : la chandelle du bureau est à sec ; Bram, qui
+        craint fort le noir, garde le coffre de la paie ; ses biens et sa sécurité pressent. Avec
+        ``lampe``, il sait la lampe du filon allumée."""
+        m = creer("mine", 1985)
+        calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
+        m.objets["chandelle"].update(allume=False, combustible=0)
+        percevoir_tous(m)
+        if lampe:
+            croire(m, "bram", "lampe_filon", "lieu", "filon", "savoir", salle="filon", case=None)
+            croire(m, "bram", "lampe_filon", "etat", {"allume": True, "faible": False, "charge": True}, "savoir")
+        lire(m, "bram")["besoins"].update(biens=70.0, securite=70.0)
+        return m
+
+    def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self):
+        m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 8)
+        self.assertEqual(lieux[-1], "bureau")
+        self.assertEqual(changements(lieux), 2)
+        m, lieux = suivre(m, "bram", 60, pas=10)
+        self.assertEqual(lieux, ["bureau"] * 6)
+        self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
+        # Dans la lumière, la sécurité retombe ; il garde la paie.
+        self.assertLess(lire(m, "bram")["besoins"]["securite"], 70)
+        self.assertEqual(lire(m, "bram")["intention"]["but"]["type"], "garder")
+
+    def lucien_au_couloir_sans_lumiere(self):
+        """Placement d'auteur : Lucien est au couloir éclairé ; il sait le grenier obscur et ne
+        connaît aucune lumière à emporter et ne se fie à personne (pas d'abri) ; il ne garde que son
+        coffret (ni ballot convoité)."""
+        m = creer("auberge", 1985)
+        calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
+        p = m.objets["lucien"]["profil"]
+        p["pulsions"] = [x for x in p["pulsions"] if x["condition"].get("objet") != "ballot"]
+        lire(m, "lucien")["pulsions"] = []
+        placer(m, "lucien", "couloir", (2, 1))
+        percevoir_tous(m)
+        croyances = lire(m, "lucien")["croyances"]
+        for k in ("lanterne_hugues", "bougeoir_mireille", "lanterne_etable"):
+            croyances.pop(k, None)
+        for attributs in croyances.values():
+            attributs.pop("fiable", None)
+        croire(m, "lucien", "grenier", "etat", {"eclairee": False}, "vu")
+        lire(m, "lucien")["besoins"]["biens"] = 65.0
+        return m
+
+    def test_sans_lumiere_a_emporter_le_plus_fort_l_emporte_et_l_autre_s_endure(self):
+        # Aucun plan ne sert les deux. Ses biens laissés lui coûtent plus (GARDE) que le noir à sa
+        # peur (0,5) : il retourne au grenier et y reste quand la sécurité presse, qui attend.
+        from donjon.planification import garder
+        m = self.lucien_au_couloir_sans_lumiere()
+        self.assertEqual(gardes(m, "lucien"), ("grenier",))
+        self.assertGreater(GARDE, NOIR * 0.5)
+        self.assertEqual([x["operation"] for x in garder(m, "lucien", "grenier")], ["aller"])
+        m, lieux = suivre(m, "lucien", 10, pas=5)
+        self.assertEqual(lieux[-1], "grenier")
+        lire(m, "lucien")["besoins"]["securite"] = 70.0
+        m, lieux = suivre(m, "lucien", 30, pas=10)
+        self.assertEqual(lieux, ["grenier"] * 3)
+        self.assertIn("securite", attentes(m, "lucien"))
+
+    def test_qui_craint_plus_le_noir_reste_dans_la_lumiere_et_endure_ses_biens(self):
+        from donjon.planification import garder
+        m = self.lucien_au_couloir_sans_lumiere()
+        m.objets["lucien"]["profil"]["securite"] = {"noir": 0.8}
+        self.assertGreater(NOIR * 0.8, GARDE)
+        self.assertIsNone(garder(m, "lucien", "grenier"))
+        m, lieux = suivre(m, "lucien", 30, pas=10)
+        self.assertEqual(lieux, ["couloir"] * 3)
+        self.assertIn("biens", attentes(m, "lucien"))
+        self.assertEqual(lire(m, "lucien")["urgences"]["biens"]["etat"], "attente")
+
+
+class AttenteTests(unittest.TestCase):
+    """Un besoin qu'aucun plan ne peut apaiser attend, sans être oublié."""
+
+    def test_le_devoir_de_gorm_sans_tache_possible_attend_puis_reprend_a_la_ronde_echue(self):
+        m = relais()
+        calme(m, "marchand", "brune", "ilse", "aubin")
+        lire(m, "marchand")["besoins"]["devoir"] = 85.0
+        croire(m, "marchand", "brasero", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
+        deliberer(m, "marchand", m.data["minutes"])
+        m = recharger(m)
+        e = lire(m, "marchand")
+        self.assertIsNone(e["intention"])
+        self.assertEqual(attentes(m, "marchand"), ["devoir"])
+        # Le banc le compte en attente (la cloche, confiée au joueur, reste à faire), pas sans recours.
+        self.assertEqual(_oisifs_urgents(m), (1, 0, 1))
+        # Rien n'est oublié : la ronde du refuge échue, le devoir a de nouveau un plan.
+        e["visites"]["antichambre"] = m.data["minutes"] - 100
+        deliberer(m, "marchand", m.data["minutes"])
+        m = recharger(m)
+        self.assertEqual(lire(m, "marchand")["intention"]["motif"], "devoir")
+        self.assertEqual(lire(m, "marchand")["urgences"]["devoir"]["etat"], "presse")
+        self.assertEqual(attentes(m, "marchand"), [])
+
+    def test_la_faim_refusee_attend_puis_redemande_quand_le_refus_a_vieilli(self):
+        from donjon.deliberation import REDEMANDE
+        from donjon.esprits import memoriser
+        m = relais()
+        calme(m, "marchand", "brune", "ilse", "aubin")
+        lire(m, "ilse")["besoins"]["faim"] = 80.0
+        memoriser(m, "ilse", {"type": "refus", "de": "marchand", "operation": "demander", "objet": "vivres"})
+        deliberer(m, "ilse", m.data["minutes"])
+        m = recharger(m)
+        self.assertIsNone(lire(m, "ilse")["intention"])
+        self.assertEqual(attentes(m, "ilse"), ["faim"])
+        m.data["minutes"] += REDEMANDE
+        deliberer(m, "ilse", m.data["minutes"])
+        m = recharger(m)
+        self.assertEqual(lire(m, "ilse")["intention"]["motif"], "faim")
+        self.assertEqual(attentes(m, "ilse"), [])
+
+
+if __name__ == "__main__":
+    unittest.main()

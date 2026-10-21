@@ -94,6 +94,7 @@ class Recit:
         self.urgence = {id: Counter() for id in ids}
         self.maximum = {id: Counter() for id in ids}
         self.sans_recours = Counter()
+        self.en_attente = Counter()
 
     @contextmanager
     def observer(self):
@@ -109,7 +110,7 @@ class Recit:
             yield self
 
     def _noter(self, monde, id, minute):
-        from .deliberation import seuils, urgents
+        from .deliberation import attentes, seuils, urgents
         e = lire(monde, id)
         # Souvenirs nouveaux depuis sa dernière délibération (les sons sont le fond du monde).
         for s in e["memoire"]:
@@ -126,7 +127,10 @@ class Recit:
                 self.urgence[id][nom] += 1
         i = e["intention"]
         if i is None and urgents(monde, id):
-            self.sans_recours[id] += 1
+            if set(urgents(monde, id)) <= set(attentes(monde, id)):
+                self.en_attente[id] += 1
+            else:
+                self.sans_recours[id] += 1
         cle = (json.dumps(i["but"], sort_keys=True), i["motif"]) if i else None
         episodes = self.episodes[id]
         courant = episodes[-1] if episodes and episodes[-1]["fin"] is None else None
@@ -173,6 +177,8 @@ class Recit:
         lignes.append("  Pressé par : " + (", ".join(pressants) if pressants else "rien"))
         if self.sans_recours[id]:
             lignes.append(f"  Pressé sans rien entreprendre : {self.sans_recours[id]} min")
+        if self.en_attente[id]:
+            lignes.append(f"  Pressé, en attente d'un moyen : {self.en_attente[id]} min")
         rondes, sans_geste, faits = Counter(), {}, []
         for ep in self.episodes[id]:
             mots = but_en_mots(monde, ep["but"])
@@ -297,5 +303,5 @@ class Recit:
         return {"episodes": {id: [{k: v for k, v in ep.items() if k != "cle"} | {"mots": but_en_mots(monde, ep["but"])}
                                   for ep in self.episodes[id]] for id in self.ids},
                 "urgence": {id: dict(self.urgence[id]) for id in self.ids},
-                "sans_recours": dict(self.sans_recours),
+                "sans_recours": dict(self.sans_recours), "en_attente": dict(self.en_attente),
                 "souvenirs": self.souvenirs}

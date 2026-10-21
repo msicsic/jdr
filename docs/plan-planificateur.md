@@ -255,3 +255,81 @@ Limites :
 - inspecter dans le noir compte encore comme une ronde ; seul crocheter demande d'y voir ;
 - une lampe n'a pas de contenance : chaque charge ajoute sa durée ;
 - une lampe prêtée reste celle d'autrui : l'allumer est une faute (prêts, manque déjà relevé).
+
+## Dynamique des besoins (branche `besoins`)
+
+Décidé avec l'utilisateur, trois volets ; aucune branche propre à un personnage, un lieu ou la
+lumière.
+
+**L'effet de seuil** (`deliberation.urgents`, `eveiller`, état `esprit["urgences"]`). Un seul effet
+de seuil : un besoin presse quand il dépasse un repère d'une marge. Son repère est son seuil ;
+repassé au-dessous, il est apaisé et ne presse de nouveau qu'à son seuil + `REPRISE` (15), comme un
+thermostat, à moins d'être d'abord bien redescendu (seuil − `REPRISE`) : un repas, un feu, le repos
+rendent le seuil ordinaire. Au choix du but (`inertie`), le plan en cours d'un autre besoin est
+aussi un repère : un besoin ne l'interrompt que s'il presse plus que lui d'`INERTIE` (5) ; l'ancienne
+`INERTIE` (un besoin qui vient de franchir son seuil laisse finir le plan en cours) en est le cas
+où le besoin servi ne presse plus. L'état (« presse », « apaise », « attente », et depuis quand) est
+dans l'esprit. `REPRISE` à 15 : à 10, les rondes de Lucien (mine) qui le rassurent de 20 le
+refaisaient battre ; au-delà de 15 un besoin apaisé tarde trop (le froid d'Ilse au Relais restait
+entre 70 et 85 avant le seuil redescendu, corrigé par la remise à zéro sous seuil − 15).
+
+**Ce qu'un plan laisse monter** (`planification.Vue.pression`, `RESTER`, `GARDE`). Une minute dans
+un état coûte ce qu'il y laisse monter : le noir pour qui le craint (`NOIR` × peur, déjà compté en
+chemin), et l'éloignement de chaque lieu où il garde ses biens quand ils le pressent (`GARDE` = 2,
+`deliberation.gardes`). Un but qui se tient en restant (la lumière, garder ses biens, l'abri, se
+chauffer) compte en plus `RESTER` (30) minutes de ce que son état final laisse monter ; la recherche
+explore au-delà du premier état qui atteint le but, d'où, sans règle de plus, rapporter une lampe là
+où il garde ses biens. Pour la lumière et la garde (`endurer`), il ne part que si le plan coûte moins
+que rester où il est ; sinon il endure, et le besoin attend. L'abri y ajoute ce qu'il apporte (y
+voir, quitter qui l'inquiète, une compagnie sûre, aux taux du profil). Le plan de lumière se tient
+jusqu'au lieu choisi : la lampe en main en chemin, il va jusqu'au bout. `GARDE` à 2 : plus que le
+noir à la peur ordinaire (0,5 × 3) et que la compagnie (0,5 × 3), moins que pour qui craint fort le
+noir (Bram, 0,8 × 3) ; à 1, Bram quittait son bureau pour la compagnie de la galerie, la lampe en
+main.
+
+**L'attente** (`deliberation._classer`, `attentes`). Un besoin qui presse et dont chaque recours a été
+essayé sans plan (ou qui n'en a aucun) se met en attente ; dès qu'un recours aboutit, il presse de
+nouveau. Rien ne l'oublie : ses recours sont repris à chaque minute, à leur rang, et la mémoire du
+planificateur ne refait une recherche que si ce qu'il croit a changé. Un recours qu'on n'a pas
+essayé (un but plus pressant a abouti, un renoncement récent) ne décide rien. Dans le moteur actuel,
+un besoin sans plan ne bloquait aucun autre but (les candidats passent au suivant) : ce qu'il
+faussait, c'est la mesure (« sans recours ») et le récit. Le banc distingue désormais
+`minutes_urgentes_sans_recours` (un plan possible, qu'il n'entreprend pas : au banc, tous des
+renoncements après une occasion guettée en vain) de `minutes_urgentes_en_attente` (aucun plan sur ce
+qu'il croit : le devoir de Gorm, d'Odile et de Mireille sans bois ni tâche, la faim sans vivres connus
+ou après un refus) ; le stratège est toujours appelé pour un besoin sans plan.
+
+Cas vérifiés après rechargement (`tests/test_dynamique_besoins.py`) :
+- Lucien, l'auberge telle qu'écrite, au grenier noir, biens et sécurité pressants : il allait au
+  couloir et revenait (19 changements de salle en 4 h sur `main`) ; il va prendre la lanterne de
+  l'étable et la rapporte au grenier, où il reste (5 changements, dont le vol du ballot).
+- Bram, la mine, la chandelle du bureau à sec, sachant la lampe du filon allumée : sur `main`, abri
+  au baraquement deux heures, puis retour au bureau ; il va prendre la lampe et revient garder la paie.
+- Sans lumière à emporter : à la peur ordinaire, ses biens l'emportent, il retourne au grenier et
+  y endure le noir (la sécurité attend) ; qui craint fort le noir reste dans la lumière (les biens
+  attendent).
+- L'effet de seuil, le besoin comblé qui retrouve son seuil, l'interruption d'un plan.
+- Le devoir de Gorm sans tâche possible attend, puis reprend à la ronde échue ; la faim refusée
+  attend, puis redemande quand le refus a vieilli.
+
+Bancs (8 h ; Relais 8 graines, mine, auberge et crue 4 ; `main` → `besoins`). Minutes urgentes
+sans rien entreprendre, sans recours + en attente : Relais 404 → 64 + 346, mine 665 → 83 + 581,
+auberge 628 → 90 + 504, crue 293 → 60 + 193. Événements 29,3 → 29,9, 44,5 → 44, 49,3 → 54,3,
+35,8 → 37,5 ; échanges 14,8 → 15,9, 41,8 → 41,5, 40,8 → 41,3, 16,8 → 15,5 ; vols vus égaux (crue
+1,5 → 1,75) ; aucune usurpation ni violation ; `VERIFIER` sur une nuit de chaque scénario. Va-et-vient
+entre deux besoins (épisodes A, B, A en moins de 30 min) : mine 5,75 → 0,5 (Lucien entre l'abri et le
+repos), crue 13,5 → 9,5, auberge 0,75 → 1, Relais 5,9 → 8,6 (les visites de Gorm au brasero
+entre deux gardes, un devoir, et Ilse entre l'abri et le feu : une interruption au lieu de cinq).
+Temps (nuits en parallèle) : Relais 14 → 13 s, mine 28 → 27 s, auberge 33 → 39 s, crue 15 → 16 s.
+
+Limites :
+- sur `main`, Lucien ne va-et-vient plus au banc (il force le coffre d'Anselme) : le cas réel est
+  rejoué en placement d'auteur ; au banc de l'auberge, Anselme revient de la lumière quand il entend
+  forcer son coffre (un bruit à aller voir, légitime) ;
+- `GARDE` est une constante du moteur, pas encore une valeur du profil ; seuls le noir et la garde
+  ont un coût par minute ; le froid, la compagnie et la méfiance n'entrent que dans le gain de
+  l'abri ; se chauffer compte le séjour sans l'endurer ;
+- la croyance « salle éclairée » se forme à la case où il se tient : à l'auberge (graine 7),
+  Mathurine voit la cuisine éclairée depuis le seuil et obscure à sa place, et va et vient chaque
+  minute entre la lumière et l'abri, comme sur `main`, plus longtemps ;
+- la peur du noir ne s'émousse pas avec le temps passé.

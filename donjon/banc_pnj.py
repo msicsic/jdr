@@ -44,18 +44,25 @@ def creer(scenario, graine=1985):
 
 
 def _oisifs_urgents(monde):
-    """PNJ qu'un besoin urgent presse et qui n'ont rien entrepris ; puis ceux d'entre eux pour
-    qui ce besoin a vraiment quelque chose à faire (une pulsion rompue, ou aucune pulsion)."""
-    from .deliberation import satisfaite, urgents
-    oisifs = bloques = 0
+    """PNJ qu'un besoin urgent presse et qui n'ont rien entrepris ; ceux d'entre eux pour qui ce
+    besoin a vraiment quelque chose à faire (une pulsion rompue, ou aucune pulsion) et un plan
+    possible, qu'ils n'ont pas entrepris (sans recours) ; et ceux pour qui il n'en existe aucun
+    sur ce qu'ils croient (en attente, ``deliberation.attentes``)."""
+    from .deliberation import attentes, satisfaite, urgents
+    oisifs = bloques = attente = 0
     for id in pnjs(monde):
         p = monde.objets[id].get("profil")
         if not p or lire(monde, id)["intention"] is not None or not urgents(monde, id):
             continue
         oisifs += 1
-        bloques += any(not all(satisfaite(monde, id, x["condition"]) for x in p["pulsions"] if x["besoin"] == b)
-                       or not any(x["besoin"] == b for x in p["pulsions"]) for b in urgents(monde, id))
-    return oisifs, bloques
+        a_faire = [b for b in urgents(monde, id) if not any(x["besoin"] == b for x in p["pulsions"]) or not all(
+            satisfaite(monde, id, x["condition"]) for x in p["pulsions"] if x["besoin"] == b)]
+        sans_plan = attentes(monde, id)
+        if any(b not in sans_plan for b in a_faire):
+            bloques += 1
+        elif a_faire:
+            attente += 1
+    return oisifs, bloques, attente
 
 
 def _usurpations(monde):
@@ -86,7 +93,7 @@ def executer(monde, minutes, recit=None):
         return resultat
     from .eau import active, lieu, profondeur
     vivants = [id for id in pnjs(monde) if monde.objets[id].get("profil")]
-    chronique, oisivete, blocage, usurpations, mouilles = [], 0, 0, 0, 0
+    chronique, oisivete, blocage, attente, usurpations, mouilles = [], 0, 0, 0, 0, 0
     vue = list(monde.data.get("chronique", []))
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
@@ -94,8 +101,8 @@ def executer(monde, minutes, recit=None):
         courante = monde.data.get("chronique", [])
         chronique += _nouvelles(vue, courante)
         vue = list(courante)
-        oisifs, bloques = _oisifs_urgents(monde)
-        oisivete, blocage = oisivete + PAS * oisifs, blocage + PAS * bloques
+        oisifs, bloques, attendent = _oisifs_urgents(monde)
+        oisivete, blocage, attente = oisivete + PAS * oisifs, blocage + PAS * bloques, attente + PAS * attendent
         usurpations += _usurpations(monde)
         mouilles += PAS * sum(1 for id in vivants if profondeur(monde, lieu(monde, id)))
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
@@ -112,6 +119,8 @@ def executer(monde, minutes, recit=None):
                "minutes_urgentes_oisives": oisivete,
                # Mesure d'information ajoutée après le premier banc E, hors critère de décision.
                "minutes_urgentes_sans_recours": blocage,
+               # Pressé, sans rien entreprendre, faute d'aucun plan sur ce qu'il croit (``attentes``).
+               "minutes_urgentes_en_attente": attente,
                "usurpations": usurpations,
                "renoncements": memoire["renoncement"],
                # Un vol vu se compte une fois (un auteur, un objet), quels que soient ses gestes d'une

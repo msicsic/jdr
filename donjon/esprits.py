@@ -38,7 +38,8 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
-          "voix": list}   # ceux qu'il connaît, vus ou entendus parler : il reconnaît leur voix
+          "voix": list,   # ceux qu'il connaît, vus ou entendus parler : il reconnaît leur voix
+          "urgences": dict}   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -145,6 +146,9 @@ def verifier(monde):
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(v is None or type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        assert all(b in seuils(monde, id) and isinstance(u, dict) and set(u) == {"etat", "depuis"}
+                   and u["etat"] in ("presse", "apaise", "attente") and type(u["depuis"]) is int
+                   for b, u in e["urgences"].items()), "Urgences de PNJ invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
         b = e["balayage"]
         assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
