@@ -763,9 +763,9 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         # Ce que la recherche lit de son caractère et de son état : l'adresse modulée qui fait la
         # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
         # coûts en dépendent, non du prix d'une faute ni de celui d'abîmer (``_explorer``).
-        base = json.dumps([_entrees(v, vises, profondeur, noeuds), modificateur(monde, id, "DEX"),
-                           modificateur(monde, id, "FOR"), tenir, v.degat is None])
-        entrees = json.dumps([base, faute, v.degat, endurer])
+        base = (_entrees(v, vises, profondeur, noeuds),
+                json.dumps([modificateur(monde, id, "DEX"), modificateur(monde, id, "FOR"), tenir, v.degat is None]))
+        entrees = (base, json.dumps([faute, v.degat, endurer]))
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
