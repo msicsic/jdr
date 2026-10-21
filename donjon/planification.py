@@ -106,7 +106,7 @@ class Vue:
 
     def __init__(self, monde, id):
         from .caractere import interdit
-        from .pnj import chemin
+        from .pnj import chemin, parcours
         from .vol import proprietaire
         self.monde, self.id = monde, id
         self.objets = monde.objets
@@ -148,7 +148,7 @@ class Vue:
         # Les lieux où il garde ses biens, quand ils le pressent : chaque minute loin de l'un d'eux
         # lui coûte (``GARDE``).
         self.gardes = gardes(monde, id)
-        self._chemin = chemin
+        self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         self.salles_triees = sorted(self.salles)
         # Le besoin qu'une part de chaque objet apaise (``besoin_de_part``).
@@ -251,7 +251,12 @@ class Vue:
         cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
         cle = (e.salle, arrivee, cles, trajet[3])
         if cle not in self._routes:
-            self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3])
+            # Le parcours depuis sa salle vaut pour toutes les arrivées (``pnj.parcours``).
+            depuis = (e.salle, cles, trajet[3])
+            if depuis not in self._parcours:
+                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3])
+            self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3],
+                                             self._parcours[depuis])
         self._trajets[trajet] = self._routes[cle]
         return self._routes[cle]
 
