@@ -420,4 +420,103 @@ Gorm la lui rend, et il le lit. Au banc (8 h, Relais 8 graines), un remboursemen
 
 Limites : tout débiteur rend ce qu'il doit, quelle que soit son honnêteté ; le joueur ne réclame
 pas par une parole typée (la dette se solde quand le vendeur le sait là) ; le joueur ne voit pas
-la dette avant qu'elle soit soldée ; seule une part vendue d'avance crée une dette.
+la dette avant qu'elle soit soldée ; seule une part vendue d'avance crée une dette. (Levées par
+`echanges-suite`, ci-dessous.)
+
+## Suite des échanges (branche `echanges-suite`)
+
+Six limites des branches `echanges-argent` et `petits-correctifs-pnj`, levées par des règles communes
+au joueur et aux PNJ (`biens.py`, `echanges.py`, `planification.py`, `paroles.py`, `social.py`). Règles
+du joueur dans `docs/mecaniques.md`, « Prêter, confier, payer ».
+
+- **Rendre est un choix** (`biens.garde_du`, `regler`) : garder l'argent dû est une faute au prix de
+  son honnêteté, sans usure (l'argent ne presse pas, `caractere.ARGENT`), contre ce que valent pour
+  lui ces pièces dépensées (`valeur_pieces`). Le débiteur qui garde ne dit rien ; réclamé (un PNJ
+  créancier qui le sait là, le joueur par la parole), il refuse : le créancier ne le croit plus
+  fiable et retient une nouvelle `dette_niee` (« Brune garde les 2 pièces qu'elle doit à Ilse »),
+  qu'il confie comme une rumeur ; il ne redemande pas avant `REDEMANDE` (`nie_recemment`).
+- **Une seule règle pour toute contrepartie** : l'engagement payé porte `paye : {objet, prix,
+  quoi}` (`part`, `objet`, `tache`) ; à l'échéance (240 minutes) ou dès qu'il ne peut plus livrer
+  (`echanges.empeche` : la part ou l'objet vendu n'est plus à lui ; une tâche ne se juge qu'à
+  l'échéance), le prix est dû (`data["dettes"]` porte `quoi`). Un objet acheté que son propriétaire
+  ne porte pas se vend d'avance (`echanges.differee`) : il s'engage à le remettre (condition
+  `{"objet", "remettre"}`, `planification._remettre` : l'aller chercher, rejoindre l'acheteur, joueur
+  compris, `echanges._avec_joueur`) ; remis, l'objet est donné, pas prêté.
+- **Tâche payée** (`echanges.engager`, geste `engager` du planificateur, `planification._engager`,
+  déclaré une fois) : pour une pulsion à lui (feu, sous clé, objet en place) qu'il pourrait rétablir
+  sans faute, on offre des pièces à qui se tient là (une pièce par `SALAIRE` = 3 minutes de la peine
+  estimée : le chemin et `TACHE` = 5 minutes) ; le coût au plan est la demande (d'autant plus chère
+  que d'autres viennent de refuser, `Vue.refus_taches`), les pièces et l'attente de cette peine.
+  L'autre accepte sans jet si ces pièces valent pour lui ce que la tâche lui coûterait
+  (`planification.devis_pulsion` ; un feu compté à recharger), sauf méfiance ou s'il y emploierait
+  ce qu'il garde ; sinon « cher », « impossible », « necessaire ». Acceptée : son engagement, payé
+  d'avance, garde confiée du bien ; le payeur ne la fait pas à sa place tant qu'elle court
+  (`deliberation.tache_payee`, compté avec les pulsions confiées).
+- **Le prêt réclamé** : un prêt échu (`biens.echu`, 240 minutes) se réclame par le but `reclamer`,
+  comme une dette (un objet sans prix vaut `VALEUR_OBJET` = 5 pièces), au joueur comme à un PNJ
+  (le planificateur redemande son bien au joueur, `echanges._avec_joueur`) ; l'emprunteur PNJ qui le
+  garde, ou le joueur qui ne l'a pas rendu `RENDRE` (30) minutes après (`biens.prets_reclames`),
+  perd la confiance du prêteur, qui retient une nouvelle `pret_garde`.
+- **Le joueur réclame** par la parole (contenu `reclamer`, `paroles._reclamer`) et voit ses comptes
+  sur sa fiche (`biens.comptes_joueur`, `rendu.decrire_comptes`) ; un sujet que le moteur ne sait
+  résoudre est refusé au MJ avec un `attendu` (`paroles.verifier_contenus`).
+- **Demander ce qu'on ne connaît pas** (`echanges.enqueter`, `planification.s_enquerir`, recours
+  `deliberation._plan_enquete` de la faim, du froid et d'un feu à entretenir, quand le plan ordinaire
+  échoue) : à qui on ne connaît rien de tel, le plus proche, une fois par `REDEMANDE` ; il répond par
+  ses ressources comptées pour ce besoin, qu'il croit avoir et là où il les croit, sauf méfiance ; le
+  demandeur en tire une croyance de lieu par ouï-dire. Le joueur : contenu `ressource`.
+
+Cas vérifiés après rechargement (`tests/test_echanges_suite.py`) : Brune (honnêteté 20, endettée)
+refuse de rendre 2 pièces à Ilse, qui s'en méfie et le confie à Aubin, et honnête elle les rend ; à
+l'auberge, Joss (50) rend 1 pièce, Lucien (50) en garde 4 ; le joueur réclame à Gorm (rendu, la fiche
+le montrait), à Brune (refus, la dette demeure), à Ilse (rien), son couteau à Brune (rendu), un sujet
+inconnu (refus au MJ) ; Gorm vend le marteau qu'il ne porte pas, va le prendre et le remet au joueur,
+ou, l'échéance passée, lui en rend le prix ; Mireille, sans bois, paie qui veut bien entretenir le
+fourneau (fait), Odile refuse (« cher »), une tâche non faite est due puis rendue ; Gaspard réclame sa
+lampe échue au joueur, qui la garde et perd sa confiance, ou la rend à temps ; Rémy, qui la garde
+dans le noir, perd aussi sa confiance ; Mireille sans le sou apprend de Joss ses fagots et lui en
+demande une part ; au Relais, Gorm apprend d'Aubin ses planches et en obtient une part qui rallume le
+brasero ; le joueur demande à Joss s'il a du bois. `VERIFIER` passe sur une nuit de chaque scénario.
+
+Tests changés, et pourquoi : `test_petits_correctifs` (la dette et le paiement portent `quoi`),
+`test_entretenir` (refusée par Joss, Mireille demande à d'autres s'ils ont du bois et paie qui veut
+bien entretenir le fourneau), `test_dynamique_besoins` (la faim refusée attend une fois les autres
+interrogés ; Lucien au grenier noir : Anselme n'enquête ni ne paie, sans quoi sa chambre s'éclaire),
+`test_tensions` (le feu éteint : Gorm n'a plus de bois non plus ; à la torche : Gorm sans le sou, sans
+quoi il paie Aubin), `test_marche` et `test_securite` (Gorm sans le sou et ayant déjà interrogé chacun,
+sans quoi il quitte la scène pour enquêter ou payer).
+
+Bancs 8 h, départ tiré, `main` 099dad8 puis la branche, l'un après l'autre (Relais 8 graines
+`--joueur chambre_cloche`, mine `--joueur galerie`, auberge `--joueur dortoir`, crue 4 graines) :
+
+| scénario | tâches proposées / acceptées / faites | « as-tu… ? » | achats | sans recours | en attente | méfiances | vols vus | échanges | temps |
+|---|---|---|---|---|---|---|---|---|---|
+| Relais | 0 → 2,6 / 0,4 / 0 | 0 → 2,4 | 2 → 2 | 53,8 → 53,8 | 66,3 → 58,1 | 1,25 → 1,25 | 0,88 → 0,88 | 10,3 → 15,8 | 8,7 → 9,3 s |
+| mine | 0 → 4,8 / 0,25 / 0 | 0 → 13 | 1,5 → 2 | 55 → 52,5 | 278,8 → 272,5 | 5,25 → 4,5 | 1 → 0,75 | 30 → 48,3 | 24,9 → 25,2 s |
+| auberge | 0 → 38 / 1 / 1 | 0 → 22 | 2,5 → 2,25 | 30 → 60 | 541,3 → 297,5 | 6,75 → 10,25 | 0,75 → 1,25 | 30,5 → 97,8 | 20 → 26,2 s |
+| crue | 0 → 2,75 / 1 / 0 | 0 → 2 | 2,5 → 2,5 | 15 → 15 | 107,5 → 68,8 | 0 → 0 | 0 → 0 | 10 → 16 | 9,2 → 10 s |
+
+Dettes, remboursements, refus de rembourser, réclamations et prêts gardés : 0 partout au banc (aucune
+part vendue n'y échoit, les tâches acceptées au Relais et à la crue le sont vers la minute 440, après
+quoi la nuit finit avant l'échéance) ; aucune usurpation ni violation. Ce qu'on lit dans les récits :
+au Relais et à la crue, Gorm paie Brune pour le brasero en fin de nuit ; à la mine, Josse paie Odon
+pour le poêle ; à l'auberge, Odile paie Mireille pour l'âtre et Mireille paie Joss pour le fourneau,
+chaque fois fait en quelques minutes ; les questions « as-tu du bois ? » font connaître le bois de
+l'autre (minutes en attente en baisse partout : un recours de plus) ; à l'auberge, à court de bois,
+les offres reçoivent surtout « impossible » (personne n'a de bois) et se répètent toutes les deux
+heures, d'où les 38 offres, les échanges et le temps (+30 %).
+
+Limites :
+- le payeur ne sait pas ce que vaut une pièce pour l'autre : il paie la peine qu'il estime ; pas de
+  marchandage, un refus « cher » se répète après 120 minutes au même prix ;
+- le coût d'une tâche pour celui qu'on paie ne compte pas ce qu'il y consomme de ses biens (seulement
+  ce qu'il garde : il refuse alors) ; le joueur ne paie pas de tâche, et ne prête pas (donner reste un
+  don) ;
+- une tâche « aller voir » n'est pas payable : le payeur n'en apprendrait rien ;
+- un débiteur joueur n'existe pas (aucune vente ne le fait débiteur) ; un PNJ qui garde l'argent dû
+  sans être réclamé ne s'en cache pas davantage ;
+- la réponse à « as-tu du bois ? » est vraie et ne dit que ses croyances (un objet qu'il n'a jamais vu
+  n'y est pas) ; on ne ment pas sur ce qu'on a ; le joueur n'en garde pas de croyance durable, il le
+  lit (une part de ce qu'un autre possède se nomme déjà sans l'avoir vue) ; les témoins n'en
+  apprennent rien ;
+- les constantes (`TACHE`, `SALAIRE`, `RENDRE`, `VALEUR_OBJET`) sont à régler au banc.

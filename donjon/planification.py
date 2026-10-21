@@ -251,6 +251,16 @@ class Vue:
         return self._memo((autre, o, "refus_tache"),
                           lambda: refuse_recemment(self.monde, self.id, autre, "engager", o))
 
+    def refus_taches(self, o):
+        """Combien ont refusé, depuis ``REDEMANDE`` minutes, une tâche sur ``o`` qu'il leur offrait :
+        chaque refus lui apprend qu'un autre acceptera moins sûrement (``_engager``)."""
+        def compter():
+            minute = self.monde.data["minutes"]
+            return sum(1 for s in lire(self.monde, self.id)["memoire"]
+                       if s["type"] == "refus" and s["operation"] == "engager" and s.get("objet") == o
+                       and minute - s["minute"] < REDEMANDE)
+        return self._memo((o, "refus_taches"), compter)
+
     def personnes(self):
         """Les PNJ qu'il connaît, dans un ordre stable."""
         return self._memo(("personnes",), lambda: [x for x in self.connus if self.objets[x]["type"] == "personnage"
@@ -746,7 +756,7 @@ def _engager(v, e, condition):
     """Payer quelqu'un, là où il se tient avec lui, pour qu'il fasse en sorte que ``condition`` soit
     vraie (``echanges.engager``), sur ce qu'il pourrait faire lui-même sans faute : il propose ses
     pièces à qui il ne se méfie pas et qui ne vient pas de refuser ; l'autre accepte si ces pièces valent pour lui la peine. Comme une demande, ce n'est pas
-    acquis (``PRET``) ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
+    acquis (``PRET``), d'autant moins que d'autres viennent de refuser (``Vue.refus_taches``) ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
     que l'autre ait fait la tâche (sa peine). La tâche faite, son but est atteint ; il ne la fait pas
     à sa place tant qu'elle court (``deliberation.tache_payee``)."""
     o = condition["objet"]
@@ -763,7 +773,7 @@ def _engager(v, e, condition):
     for autre in v.personnes():
         if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False or v.refuse_tache(autre, o):
             continue
-        yield (0, 1 + DEMANDE / PRET + v.depense(prix) + peine,
+        yield (0, 1 + DEMANDE * (1 + v.refus_taches(o)) / PRET + v.depense(prix) + peine,
                [_etape("engager", autre, contenu={"condition": dict(condition), "prix": prix})],
                e.apres(faits=effets_tache(condition) + [(("engage", o), autre),
                                                         (("depense",), (e.fait("depense") or 0) + prix)]), 1)

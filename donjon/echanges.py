@@ -311,6 +311,10 @@ def enqueter(monde, demandeur, auditeur, besoin):
     from .vol import proprietaire
     arret = accueil(monde, demandeur, auditeur)
     if arret:
+        if demandeur != "joueur" and arret != "qui_va_la":
+            # Refusé, il ne lui redemande pas de sitôt (``planification.s_enquerir``) ; à « Qui va
+            # là ? », il se nomme et redemande.
+            memoriser(monde, demandeur, {"type": "enquete", "de": auditeur, "besoin": besoin, "objets": []})
         return arret, []
     dit = [(k, auditeur if porte_par(monde, k, auditeur) else _lieu_cru(monde, auditeur, k))
            for k in _connus(monde, auditeur) if k in monde.objets and besoin_de_part(monde.objets[k]) == besoin
@@ -615,7 +619,7 @@ def engagements_echus(monde, id):
                 from .pnj import _chroniquer
                 from .social import _qui
                 _chroniquer(monde, id, f"{_qui(monde, id)} a fait le travail que {_qui(monde, engagement['pour'])} "
-                                       f"lui avait payé : {phrase_condition(monde, engagement['condition'])}.", "compte")
+                                       f"lui avait payé pour que {phrase_condition(monde, engagement['condition'])}.", "compte")
         elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX or empeche(monde, id, engagement):
             memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
