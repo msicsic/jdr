@@ -627,7 +627,10 @@ class Moteur:
         """Qui le joueur voit désormais ou ne voit plus (``pnj.bilan_presences``), puis l'humeur
         qu'il a remarquée chez ceux qu'il voit encore."""
         from .pnj import bilan_presences
+        suivi = travail.__dict__.get("_presences") or {}
         lignes.extend(bilan_presences(travail))
+        # Qui il a vu pendant l'action, même un instant, il sait qui c'est (``Monde.identifier``).
+        travail.identifier(id for id, s in suivi.items() if s["vu"])
         humeurs = travail.__dict__.pop("_humeurs", {})
         lignes.extend(ligne for id, ligne in humeurs.items() if travail.visible(id))
 

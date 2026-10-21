@@ -143,8 +143,17 @@ class Monde:
                             for e in self.enfants(personnage["id"])
                             if e.get("description_visuelle") and self.visible(e["id"])]}
 
+    def identifier(self, ids):
+        """Le joueur sait qui sont ces personnages : il les a vus, et la scène les nomme. Ce savoir
+        tient à eux, pas à une place : il dure quand leur place connue s'est vidée."""
+        vus = self.data.setdefault("personnages_vus", [])
+        for id in ids:
+            if id not in vus and self.objets.get(id, {}).get("type") == "personnage":
+                vus.append(id)
+
     def actualiser_souvenirs_personnages(self):
         """Appelé par le moteur après une action ; une consultation reste sans effet."""
+        self.identifier(o["id"] for o in self.presents() if o["type"] == "personnage")
         if eclairage(self)["niveau"] < 2:
             return
         for o in self.presents():

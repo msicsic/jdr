@@ -597,10 +597,20 @@ def annonce(monde, rapport):
 
 
 def _connu_du_joueur(monde, id):
-    """Le joueur ne parle que de ce dont il a connaissance : perçu, examiné, vu ou entendu nommer."""
+    """Le joueur ne parle que de ce dont il a connaissance : perçu, examiné, vu ou entendu nommer.
+
+    Un personnage, il le connaît d'après ce qu'il sait de lui, jamais d'après une place : il l'a vu
+    (``Monde.identifier``), il connaît sa voix, ou une voix s'est donnée son nom. Qu'il ne soit plus
+    là où on l'avait vu n'y change rien ; le nommer quand il est absent donne le refus de la parole
+    ou du geste (« Tu ne vois pas … d'ici »), pas un inconnu."""
     from . import lexique
+    from .voix import connait, entendues
     if (id == "joueur" or id in monde.data["visitees"] or id in monde.data["connus"]
-            or id in monde.data.get("souvenirs_visuels", {}) or id in monde.data.get("souvenirs_personnages", {})):
+            or id in monde.data.get("souvenirs_visuels", {}) or id in monde.data.get("souvenirs_personnages", {})
+            or id in monde.data.get("personnages_vus", ())):
+        return True
+    if id in monde.objets and monde.objets[id]["type"] == "personnage" and (
+            connait(monde, "joueur", id) or any(e.get("se_dit") == id for e in entendues(monde, "joueur").values())):
         return True
     if id not in monde.objets and id not in monde.data["salles"]:
         return False

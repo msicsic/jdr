@@ -150,9 +150,12 @@ def _nomme(monde, texte, personnage):
     # Les mêmes noms que pour tout geste (``Monde.designable``) : ce qu'il verrait en se tournant compte.
     if personnage:
         from .dialogues import interlocuteurs
-        # Un personnage qu'il sait nommer : pas une voix qu'il ne sait à qui prêter.
-        candidats = {d for d in interlocuteurs(monde) if d in monde.objets} | {i for i, o in monde.objets.items()
-                                                   if o["type"] == "personnage" and monde.designable(i)}
+        from .paroles import _connu_du_joueur
+        # Un personnage qu'il sait nommer : pas une voix qu'il ne sait à qui prêter. Celui qu'il
+        # connaît sans le voir ici se nomme aussi : le moteur dit qu'il n'est pas là.
+        candidats = {d for d in interlocuteurs(monde) if d in monde.objets} | {
+            i for i, o in monde.objets.items()
+            if o["type"] == "personnage" and (monde.designable(i) or _connu_du_joueur(monde, i))}
     else:
         candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.designable(i)}
     trouves = [i for i in candidats
