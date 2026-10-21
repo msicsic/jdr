@@ -197,14 +197,16 @@ def _ouidire(monde, source):
 def esprits_interlocuteurs(monde, presents):
     """Ce que Luna peut savoir d'un PNJ présent pour lui donner une voix : ses croyances, pas la
     vérité ; sous la désignation du joueur (``voix.designation``). D'une voix que le joueur ne sait
-    à qui prêter, rien qui la trahisse : ni traits, ni croyances, seulement ce qu'elle prétend."""
+    à qui prêter, rien qui la trahisse : ni traits, ni croyances, seulement ce qu'elle prétend et le
+    genre où elle parle d'elle-même (``voix.genre``)."""
     from .deliberation import urgents
-    from .voix import designation, nom_pour_joueur
+    from .voix import designation, genre, nom_pour_joueur
     resultat = {}
     for id in presents:
         cle = designation(monde, id)
         if cle != id:
-            resultat[cle] = {"voix_inconnue": nom_pour_joueur(monde, id), "traits": "", "valeurs": {}, "croit": [],
+            resultat[cle] = {"voix_inconnue": nom_pour_joueur(monde, id), "genre": genre(monde, id),
+                             "traits": "", "valeurs": {}, "croit": [],
                              "but_actuel": None, "besoins_pressants": [], "engagements": [], "a_entendu": []}
             continue
         e, profil = lire(monde, id), monde.objets[id].get("profil")
@@ -1139,7 +1141,7 @@ def preparer_parole(monde, p, revision=None):
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
                                                       else {"voix_inconnue": True})})
     # Sa voix retentit : qui en saisit les mots la retient (``ouie``) ; un chuchotement ne va qu'à son destinataire.
-    retentir(travail, "joueur", "chuchoter" if chuchote else "parler", texte=replique,
+    retentir(travail, "joueur", "chuchoter" if chuchote else "parler", texte=replique, dits=replique,
              parole=None if chuchote else {"a": list(dest), "contenu": publics})
     travail.data["revision"] += 1
     travail.data.setdefault("paroles_joueur", []).append(
