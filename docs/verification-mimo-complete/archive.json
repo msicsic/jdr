@@ -1,0 +1,9 @@
+{
+  "archive": "campagne.zip",
+  "sha256": "96f08d4dfc083183c692f87c4b3347c7b7f0acc9469e64dc884a5ce11aa856e8",
+  "octets": 20614962,
+  "fichiers_dans_archive": 1092,
+  "fichiers_avec_empreinte": 1091,
+  "verification_zip_et_empreintes": "OK",
+  "base_jeu": "4af828bbdf845129c8920589d63448cccab0c9a5"
+}

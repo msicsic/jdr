@@ -9,6 +9,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
   Adaptateur MiMo terminé : choix explicite `--connexion mimo`, flux complet, une correction JSON bornée,
   banc migré, 998 tests passent et deux actions réelles réussies en 8 appels. Voir [MiMo](mimo.md).
+  [Campagne complète de l'adaptateur final](mimo-campagne-complete.md) : 90 saisies, 38 tours MJ,
+  120 requêtes réelles, sept rejets de format corrigés, aucun tour en erreur technique ; TTFT médian
+  2,18 s et quatre reprises vérifiées. Défaut restant confirmé : MiMo ajoute des idées à la parole du joueur.
 - `main` contient les jalons PNJ A à I (`docs/plan-pnj.md`, tableau « Jalons » et sections
   « Écarts retenus »). Le dernier fusionné est **I. Demander, écouter, protéger** :
   - le corps commun (faim, froid, fatigue) pour tous, joueur compris (`donjon/corps.py`) ;

@@ -1,0 +1,656 @@
+{
+  "modele": "mimo-v2.6-flash",
+  "effort": "none",
+  "appels": 120,
+  "tours_mj": 38,
+  "tours_avec_erreur": 0,
+  "schema_valide": 113,
+  "erreurs_transport_ou_schema": 7,
+  "ttft_s": {
+    "n": 120,
+    "mediane": 2.177315550012281,
+    "moyenne": 2.539968925834789,
+    "min": 0.7335586000117473,
+    "max": 12.618797700008145
+  },
+  "reponse_complete_s": {
+    "n": 120,
+    "mediane": 6.3163272499950835,
+    "moyenne": 6.655347685835295,
+    "min": 1.9009578000113834,
+    "max": 18.40218529998674
+  },
+  "tokens_reflexion": 0,
+  "reponses_avec_reflexion_visible": 0,
+  "narrations_resultat": 6,
+  "narrations_resultat_en_erreur": 0,
+  "gardes_numeriques_declenchees": 0,
+  "parties": [
+    {
+      "script": "relais",
+      "tours": 23,
+      "tours_mj": 11,
+      "appels": 36,
+      "appels_par_tour_mj": 3.27,
+      "secondes_par_tour_mj": 25.4,
+      "tours_avec_repli": 0,
+      "tours_avec_refus": 2,
+      "tours_avec_erreur": 0,
+      "mentions_sans_fondement": 1,
+      "arret": null,
+      "erreur_rechargement": null,
+      "appels_mj": 35,
+      "appels_mj_par_tour": 3.18,
+      "reprise_etat_identique": true,
+      "rechargement_exact": true,
+      "reprise_objets_et_joueur_identiques": true,
+      "ttft_s": {
+        "n": 36,
+        "mediane": 3.046000600006664,
+        "moyenne": 3.7090292277781476,
+        "min": 0.9751342000090517,
+        "max": 12.618797700008145
+      },
+      "duree_tour_s": {
+        "n": 11,
+        "mediane": 24.22,
+        "moyenne": 25.37272727272727,
+        "min": 12.28,
+        "max": 51.85
+      },
+      "reprise": {
+        "etat_identique_avant_commandes": true,
+        "etat_identique": true,
+        "champs_modifies_par_observation": [],
+        "objets_et_joueur_identiques": true
+      },
+      "affichages_constates_dans_sauvegarde": 14
+    },
+    {
+      "script": "crypte",
+      "tours": 42,
+      "tours_mj": 9,
+      "appels": 31,
+      "appels_par_tour_mj": 3.44,
+      "secondes_par_tour_mj": 24.6,
+      "tours_avec_repli": 0,
+      "tours_avec_refus": 1,
+      "tours_avec_erreur": 0,
+      "mentions_sans_fondement": 0,
+      "arret": null,
+      "erreur_rechargement": null,
+      "appels_mj": 29,
+      "appels_mj_par_tour": 3.22,
+      "reprise_etat_identique": true,
+      "rechargement_exact": true,
+      "reprise_objets_et_joueur_identiques": true,
+      "ttft_s": {
+        "n": 31,
+        "mediane": 2.1890914000105113,
+        "moyenne": 2.154897761288955,
+        "min": 0.754828200006159,
+        "max": 4.481512199999997
+      },
+      "duree_tour_s": {
+        "n": 9,
+        "mediane": 22.85,
+        "moyenne": 24.557777777777776,
+        "min": 7.74,
+        "max": 60.07
+      },
+      "reprise": {
+        "etat_identique_avant_commandes": true,
+        "etat_identique": true,
+        "champs_modifies_par_observation": [],
+        "objets_et_joueur_identiques": true
+      },
+      "affichages_constates_dans_sauvegarde": 12
+    },
+    {
+      "script": "atelier",
+      "tours": 15,
+      "tours_mj": 11,
+      "appels": 31,
+      "appels_par_tour_mj": 2.82,
+      "secondes_par_tour_mj": 14.6,
+      "tours_avec_repli": 0,
+      "tours_avec_refus": 3,
+      "tours_avec_erreur": 0,
+      "mentions_sans_fondement": 0,
+      "arret": null,
+      "erreur_rechargement": null,
+      "appels_mj": 27,
+      "appels_mj_par_tour": 2.45,
+      "reprise_etat_identique": true,
+      "rechargement_exact": true,
+      "reprise_objets_et_joueur_identiques": true,
+      "ttft_s": {
+        "n": 31,
+        "mediane": 1.672070500004338,
+        "moyenne": 1.8253054677456197,
+        "min": 0.7335586000117473,
+        "max": 3.4240609999978915
+      },
+      "duree_tour_s": {
+        "n": 11,
+        "mediane": 14.38,
+        "moyenne": 14.569090909090908,
+        "min": 2.1,
+        "max": 24.04
+      },
+      "reprise": {
+        "etat_identique_avant_commandes": true,
+        "etat_identique": true,
+        "champs_modifies_par_observation": [],
+        "objets_et_joueur_identiques": true
+      },
+      "affichages_constates_dans_sauvegarde": 11
+    },
+    {
+      "script": "echanges",
+      "tours": 10,
+      "tours_mj": 7,
+      "appels": 22,
+      "appels_par_tour_mj": 3.14,
+      "secondes_par_tour_mj": 20.1,
+      "tours_avec_repli": 0,
+      "tours_avec_refus": 0,
+      "tours_avec_erreur": 0,
+      "mentions_sans_fondement": 0,
+      "arret": null,
+      "erreur_rechargement": null,
+      "appels_mj": 22,
+      "appels_mj_par_tour": 3.14,
+      "reprise_etat_identique": false,
+      "rechargement_exact": true,
+      "reprise_objets_et_joueur_identiques": true,
+      "ttft_s": {
+        "n": 22,
+        "mediane": 2.016287350008497,
+        "moyenne": 2.1765872181858867,
+        "min": 0.7477209000207949,
+        "max": 4.814619500015397
+      },
+      "duree_tour_s": {
+        "n": 7,
+        "mediane": 20.32,
+        "moyenne": 20.142857142857142,
+        "min": 9.3,
+        "max": 38.6
+      },
+      "reprise": {
+        "etat_identique_avant_commandes": true,
+        "etat_identique": false,
+        "champs_modifies_par_observation": [
+          "exploration",
+          "murs_memorises",
+          "souvenirs_visuels"
+        ],
+        "objets_et_joueur_identiques": true
+      },
+      "affichages_constates_dans_sauvegarde": 12
+    }
+  ],
+  "liaisons_tours_appels": [
+    {
+      "script": "relais",
+      "tour": 2,
+      "saisie": "ça sent quoi, ici ?",
+      "appels": [
+        1,
+        2
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 3,
+      "saisie": "je fredonne doucement",
+      "appels": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 5,
+      "saisie": "que dit la consigne, exactement ?",
+      "appels": [
+        7,
+        8
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 6,
+      "saisie": "je cherche des traces de pas sur le sol",
+      "appels": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 17,
+      "saisie": "Gorm, tu peux me décrire le beffroi ?",
+      "appels": [
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 18,
+      "saisie": "de quelle couleur sont les yeux de Gorm ?",
+      "appels": [
+        18,
+        19,
+        20,
+        21,
+        22
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 19,
+      "saisie": "Gorm, pourquoi tiens-tu tant à cette cloche ?",
+      "appels": [
+        23,
+        24,
+        25
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 20,
+      "saisie": "décris-moi l'ambiance de cette conduite",
+      "appels": [
+        26,
+        27
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 21,
+      "saisie": "est-ce que je pourrais passer sous la poutre effondrée ?",
+      "appels": [
+        28,
+        29
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 22,
+      "saisie": "je donne un coup de pied dans la poutre",
+      "appels": [
+        30,
+        31,
+        32,
+        33,
+        34
+      ]
+    },
+    {
+      "script": "relais",
+      "tour": 23,
+      "saisie": "je prends le pied-de-biche",
+      "appels": [
+        35,
+        36
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 2,
+      "saisie": "il fait sombre ici ?",
+      "appels": [
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 9,
+      "saisie": "que représente la gravure ?",
+      "appels": [
+        44,
+        45
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 10,
+      "saisie": "j'écoute à la porte pour savoir s'il y a quelque chose derrière",
+      "appels": [
+        46,
+        47,
+        48,
+        49
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 11,
+      "saisie": "je glisse mon couteau sous la tête de l'axe supérieur et fais levier",
+      "appels": [
+        50,
+        51
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 24,
+      "saisie": "Gorm, que sais-tu de cette crypte ?",
+      "appels": [
+        52,
+        53,
+        54
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 25,
+      "saisie": "Gorm, combien me donnes-tu pour l'anneau ?",
+      "appels": [
+        55,
+        56,
+        57,
+        58,
+        59
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 26,
+      "saisie": "décris-moi l'échoppe",
+      "appels": [
+        60,
+        61
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 27,
+      "saisie": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+      "appels": [
+        62,
+        63,
+        64,
+        65
+      ]
+    },
+    {
+      "script": "crypte",
+      "tour": 42,
+      "saisie": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+      "appels": [
+        66,
+        67
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 2,
+      "saisie": "quel temps fait-il ?",
+      "appels": [
+        68,
+        69
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 3,
+      "saisie": "est-ce que je peux fabriquer une échelle avec ces perches ?",
+      "appels": [
+        70
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 5,
+      "saisie": "je grave une flèche sur la perche avec mon couteau",
+      "appels": [
+        71,
+        72
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 6,
+      "saisie": "je m'étire",
+      "appels": [
+        73,
+        74,
+        75,
+        76,
+        77,
+        78
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 8,
+      "saisie": "je ramasse la bobine de ficelle",
+      "appels": [
+        79,
+        80,
+        81,
+        82
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 9,
+      "saisie": "à quoi ressemble le mur de l'atelier ?",
+      "appels": [
+        83,
+        84
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 10,
+      "saisie": "y a-t-il des outils qui traînent dans la cour ?",
+      "appels": [
+        85,
+        86,
+        87
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 11,
+      "saisie": "je siffle un air joyeux",
+      "appels": [
+        88,
+        89,
+        90,
+        91,
+        92
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 12,
+      "saisie": "je mesure combien ?",
+      "appels": [
+        93
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 13,
+      "saisie": "je cherche une pierre pour caler une échelle",
+      "appels": [
+        94,
+        95
+      ]
+    },
+    {
+      "script": "atelier",
+      "tour": 14,
+      "saisie": "je prends une perche et je tente un saut à la perche pour monter sur la terrasse",
+      "appels": [
+        96,
+        97,
+        98
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 2,
+      "saisie": "bonsoir, vous tenez le coup ?",
+      "appels": [
+        99,
+        100,
+        101
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 3,
+      "saisie": "« Tu sais où est passé le gardien ? »",
+      "appels": [
+        102,
+        103,
+        104
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 4,
+      "saisie": "je dis à tous que l'eau monte et qu'il faut garder le feu",
+      "appels": [
+        105,
+        106,
+        107
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 5,
+      "saisie": "je chuchote à Brune que je me méfie d'Aubin",
+      "appels": [
+        108,
+        109,
+        110,
+        111,
+        112
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 6,
+      "saisie": "Brune, laisse-moi passer s'il te plaît",
+      "appels": [
+        113,
+        114,
+        115
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 7,
+      "saisie": "je pousse Aubin",
+      "appels": [
+        116,
+        117
+      ]
+    },
+    {
+      "script": "echanges",
+      "tour": 9,
+      "saisie": "Ilse, qu'est-ce que tu vas en faire ?",
+      "appels": [
+        118,
+        119,
+        120
+      ]
+    }
+  ],
+  "observations_manuelles": [
+    {
+      "type": "defaut_semantique_confirme",
+      "constat": "Échanges, tour 5 : MiMo ajoute à la parole du joueur une raison de se méfier d’Aubin et la demande « Garde ça pour toi », absentes de la saisie. Cette réplique est acceptée, affichée et conservée après reprise. Le format JSON est valide : la correction de format ne traite pas ce défaut de fidélité à l’intention.",
+      "saisie": "je chuchote à Brune que je me méfie d'Aubin",
+      "replique_acceptee": "À voix basse : je me méfie d'Aubin. Il veille sur l'eau, dit-il, mais je le trouve trop pressé de parler à ma place. Garde ça pour toi.",
+      "preuves": [
+        "transport/appels/108-repondre_au_joueur/proposition-remise-au-jeu.json",
+        "parties/echanges/etats/005.json",
+        "parties/echanges/reprise.json"
+      ]
+    },
+    {
+      "type": "corrections_format",
+      "constat": "Sept premières sorties sont rejetées par le contrat JSON/schéma ; chacune est corrigée au premier et unique essai autorisé. Aucun de ces objets rejetés n’est remis au moteur. Les sept relances ajoutent sept requêtes physiques aux 113 appels MJ.",
+      "appels_rejetes": [
+        20,
+        38,
+        62,
+        71,
+        73,
+        75,
+        85
+      ],
+      "appels_corriges": [
+        21,
+        39,
+        63,
+        72,
+        74,
+        76,
+        86
+      ],
+      "limite": "La correction peut réécrire du sens : l’appel 63 remplace la proposition patienter de l’appel 62 par une composition patienter puis prendre. Cette composition est ensuite refusée par le moteur car les crochets sont trop loin."
+    },
+    {
+      "type": "controle_narratif_effectif",
+      "constat": "Crypte, tour 2 : les contrôles font retirer le nom d’un lieu non connu et une affirmation non fondée sur l’obscurité derrière la porte fermée. La réponse finalement affichée reste limitée à la lumière perçue et à l’inconnue au-delà de l’ouverture.",
+      "preuves": [
+        "parties/crypte.json",
+        "parties/crypte/etats/002.json"
+      ]
+    },
+    {
+      "type": "ancien_defaut_non_reproduit",
+      "constat": "Atelier, tour 14 : après le refus du saut à la perche depuis une position trop éloignée, la réponse invite à s’approcher, sans raconter de déplacement. Position [3, 2], minutes 2 et révision 7 identiques avant et après. Le défaut de l’ancienne campagne ne se reproduit pas sur cette passe, avec une autre version du moteur ; cela ne prouve pas une correction générale de la narration.",
+      "preuves": [
+        "parties/atelier.json",
+        "parties/atelier/etats/013.json",
+        "parties/atelier/etats/014.json",
+        "parties/atelier/reprise.json"
+      ]
+    },
+    {
+      "type": "alerte_lexicale_sans_fuite_constatee",
+      "constat": "L’unique alerte lexicale porte sur le pied-de-biche au Relais, tour 23. Le joueur en demande un ; le MJ dit ne pas en trouver dans les affaires ni autour de lui. Cette mention négative n’établit ni l’existence ni la position d’un objet caché.",
+      "preuves": [
+        "parties/relais.json"
+      ]
+    },
+    {
+      "type": "point_a_examiner",
+      "constat": "Relais, tour 6 : deux propositions observer/contexte obtiennent des verdicts de couverture différents. La seconde observation est exécutée et le récit conclut à l’absence d’empreintes, plus précisément que le résultat moteur explicite. Ce point mérite revue ; l’absence de changement de temps ou de révision pour une observation ne prouve pas une action fictivement exécutée.",
+      "preuves": [
+        "parties/relais.json",
+        "transport/appels/009-repondre_au_joueur/proposition-remise-au-jeu.json",
+        "transport/appels/011-repondre_au_joueur/proposition-remise-au-jeu.json"
+      ]
+    },
+    {
+      "type": "reprise",
+      "constat": "Les quatre sauvegardes sont chargées exactement avant toute commande. Après inventaire/regarder, Échanges actualise uniquement exploration, murs_memorises et souvenirs_visuels. Objets, joueur, minutes, journal, engagements et finances restent identiques dans les quatre parties."
+    }
+  ]
+}

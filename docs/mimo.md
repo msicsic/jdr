@@ -3,6 +3,11 @@
 L'adaptateur est disponible sur `refactor/adaptateurs-fournisseurs`, sans fusion dans `main`.
 Il utilise `mimo-v2.6-flash` par choix explicite. Luna reste le MJ par défaut et la comparaison reste désactivée.
 
+La [campagne complète avec cet adaptateur](mimo-campagne-complete.md) est maintenant terminée :
+90 saisies, 38 tours MJ, 120 requêtes réelles, sept rejets de format tous corrigés et aucun tour
+en erreur technique. TTFT médian : 2,18 s. Un défaut sémantique reste confirmé : le modèle ajoute
+des idées à une parole du joueur, que le jeu accepte et enregistre. Les quatre reprises sont vérifiées.
+
 ## Jouer
 
 Installer les dépendances facultatives dans l'environnement Python utilisé pour jouer :
@@ -33,7 +38,8 @@ Une réponse complète qui échoue à cette validation peut être renvoyée **un
 Le fournisseur ne soumet aucun de ces objets au moteur avant validation. Si la correction échoue, le joueur reçoit une erreur neutre.
 Cette relance concerne le contrat de sortie. Le MJ et le moteur conservent ensuite leurs propres contrôles et leurs boucles métier.
 La correction de format ne prouve pas que le modèle a conservé exactement le sens de sa première sortie ; les arguments et les deux
-messages restent disponibles pour audit. La contradiction narrative observée dans la grande campagne reste à traiter.
+messages restent disponibles pour audit. Le défaut du saut à la perche observé dans la première
+campagne n'est pas reproduit dans la nouvelle passe ; la fidélité sémantique reste partiellement garantie.
 
 L'adaptateur distingue une erreur JSON d'un flux invalide ou incomplet : une coupure, un terminal manquant, une sortie tronquée
 ou un refus ne déclenchent pas cette correction. Un HTTP 401 coupe les appels de la session ; aucune bascule vers un autre fournisseur.
@@ -98,8 +104,9 @@ Deux essais **réels** Xiaomi, réflexion désactivée, ont ensuite réussi :
 Aucune erreur, correction de format ou substitution de narration sur ces deux essais.
 Sur les huit appels : TTFT médian **2,03 s**, réponse complète médiane **4,52 s**, zéro token de réflexion déclaré et aucun contenu de réflexion reçu.
 Ce petit essai confirme le raccord technique sur ces actions ; il ne mesure pas la fiabilité générale de la narration.
-La correction de format est vérifiée avec des réponses simulées ; aucun nouvel essai de correction par le service n'a été réalisé.
-Un essai supplémentaire sur les six rejets antérieurs a été refusé par le contrôle automatique d'autorisation, qui jugeait
+À ce stade de l'essai court, la correction de format était vérifiée avec des réponses simulées.
+La campagne complète ultérieure vérifie maintenant sept corrections réussies sur le service réel.
+Un essai supplémentaire distinct sur les six rejets antérieurs avait été refusé par le contrôle automatique d'autorisation, qui jugeait
 le renvoi des contextes et sorties capturés insuffisamment autorisé. Aucun de ces six appels n'a été envoyé.
 
 [Résultats structurés](verification-mimo-fini/resultats.json) · [Archive complète des deux essais réels](verification-mimo-fini/essai-reel.zip)
