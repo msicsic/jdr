@@ -17,3 +17,7 @@ Les règles de développement et le point de reprise sont tenus dans le dépôt 
   refus : ne fusionne pas des causes distinctes dans un même message.
 - Une branche par jalon ou correctif, fusionnée dans `main` avec un commit « Fusion du … ».
   Tenir `docs/etat-dev.md` à jour à chaque fin de jalon.
+- Worktrees : dans `.worktrees/<nom>` à la racine du dépôt (ignoré par git), jamais à côté du
+  dépôt. Les fusions se font dans `.worktrees/integration` (branche `integration`), puis `main`
+  avance en avance rapide. `tmp-worktrees/` est à Codex ; `.claude/worktrees/` reçoit les agents
+  isolés de Claude Code. Supprimer le worktree et la branche une fois fusionnés.

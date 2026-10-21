@@ -7,3 +7,5 @@ sauvegardes/
 artifacts/
 tmp*/
 .pytest_cache/
+.worktrees/
+.claude/worktrees/
