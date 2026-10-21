@@ -1,4 +1,4 @@
-"""MJ distant : un appel Responses, une proposition typée, aucun accès direct au monde."""
+"""MJ commun : intentions, propositions et contrôles, indépendamment du fournisseur."""
 from __future__ import annotations
 
 import json
@@ -6,13 +6,11 @@ import copy
 import hashlib
 import os
 import time
-import urllib.error
-import urllib.request
 
 from .monde import ErreurMonde, normaliser
 from .moteur import ACTIONS, METHODES, Moteur
-from .connexion import jeton, modeles
-from .transport_openai import WebSocketResponses, ErreurTransport, lire_evenements
+from .fournisseurs import Demande, Reponse, ErreurFournisseur, creer as creer_fournisseur
+from .transport_openai import lire_flux  # réexport pour les anciens outils de diagnostic
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
 from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
@@ -48,25 +46,6 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
 from .moteur import QualificationRequise
 from .proximite import HorsDePortee
 from .transactions import ajouter as ajouter_transaction
-
-
-def lire_flux(reponse):
-    """Décoder les trames SSE, puis appliquer le même contrat terminal que WebSocket."""
-    def evenements():
-        bloc, taille = [], 0
-        for ligne in reponse:
-            taille += len(ligne)
-            if taille > 4_000_000:
-                raise ErreurMonde("Réponse du MJ trop volumineuse. Aucune action appliquée.")
-            texte = ligne.decode("utf-8").rstrip("\r\n")
-            if texte.startswith("data:"):
-                bloc.append(texte[5:].lstrip())
-            elif not texte and bloc:
-                donnees, bloc = "\n".join(bloc), []
-                if donnees == "[DONE]":
-                    return
-                yield json.loads(donnees)
-    return lire_evenements(evenements())
 
 
 def additionner_usage(total, ajout):
@@ -327,14 +306,13 @@ def expliquer_refus(premier, dernier):
     return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
 
 
-class MJOpenAI:
-    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api"):
+class MJ:
+    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api", *, fournisseur=None):
         self.modele = modele or os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
         self.effort, self.timeout = effort, timeout
         self.derniere_utilisation = None
         self.connexion = connexion
         self.erreur_auth = None
-        self.catalogue_verifie = False
         self.derniere_sortie = []
         self.observateur = None
         self._audit_courant = None
@@ -344,15 +322,14 @@ class MJOpenAI:
         self._faisabilite_renvoyee = False  # « puis-je… ? » déjà renvoyé : un dialogue se contrôle
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
-        self.sans_strict = set()       # fonctions dont le schéma dépasse la grammaire stricte du fournisseur
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
         import uuid
         self.cle_cache = str(uuid.uuid4())
-        self._websocket = WebSocketResponses()
+        self.fournisseur = fournisseur if fournisseur is not None else creer_fournisseur(connexion)
 
     def fermer(self):
-        self._websocket.fermer()
+        self.fournisseur.fermer()
 
     def proposer(self, monde, intention):
         return self._appeler(INSTRUCTIONS, {"monde": monde.contexte(), "intention": intention},
@@ -1151,14 +1128,28 @@ direction), plus lents, ils ne s'entendent que de tout près.
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
         debut, brut, erreur = time.monotonic(), None, None
-        self.dernier_brut = None
+        self.dernier_brut = self.derniere_utilisation = None
+        self.derniere_sortie = []
         try:
-            if self.connexion == "anthropic":
-                from .claude import appeler
-                p, brut = appeler(self, instructions, entree, fonction, schema)
-            else:
-                p, brut = self._appeler_openai(instructions, entree, intention, fonction, schema)
-            return p
+            demande = Demande(instructions, copy.deepcopy(entree), intention, fonction,
+                              copy.deepcopy(schema), self.modele, self.effort, self.timeout,
+                              self.cle_cache, self.reflexion)
+            reponse = self.fournisseur.appeler(demande)
+            if not isinstance(reponse, Reponse):
+                raise ErreurMonde("Réponse du fournisseur mal formée. Aucune action appliquée.")
+            brut = self.dernier_brut = reponse.brut
+            self.derniere_utilisation = reponse.utilisation
+            self.derniere_sortie = reponse.sortie
+            if not isinstance(reponse.arguments, dict):
+                raise ErreurMonde("Réponse du fournisseur mal formée. Aucune action appliquée.")
+            return reponse.arguments
+        except ErreurFournisseur as exc:
+            brut = self.dernier_brut = exc.brut
+            self.derniere_utilisation = exc.utilisation
+            self.derniere_sortie = exc.sortie
+            self.erreur_auth = exc.erreur_auth
+            erreur = str(exc)
+            raise
         except ErreurMonde as exc:
             erreur = str(exc)
             raise
@@ -1173,101 +1164,6 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                   "usage": copy.deepcopy(self.derniere_utilisation),
                                   "secondes": round(time.monotonic() - debut, 3)})
 
-    def _appeler_openai(self, instructions, entree, intention, fonction, schema):
-        if self.erreur_auth:
-            raise ErreurMonde(self.erreur_auth)
-        if self.connexion == "chatgpt" and not self.catalogue_verifie:
-            disponibles = modeles()
-            if self.modele not in [m["slug"] for m in disponibles]:
-                raise ErreurMonde("Ce modèle n'est pas disponible sur ce forfait. Lancez python connexion.py modeles, puis choisissez avec --model.")
-            self.catalogue_verifie = True
-        cle = jeton() if self.connexion == "chatgpt" else os.environ.get("OPENAI_API_KEY")
-        if not cle:
-            raise ErreurMonde("OPENAI_API_KEY absente. Les commandes hors ligne restent disponibles (aide).")
-        if len(intention) > 2000:
-            raise ErreurMonde("Limite ton action à 2 000 caractères.")
-        payload = {
-            "model": self.modele,
-            "instructions": instructions,
-            "input": [{"role": "user", "content": json.dumps(entree, ensure_ascii=False)}],
-            "tools": [{"type": "function", "name": fonction,
-                       "description": "Répond au joueur ou soumet une manœuvre au moteur, sans modifier le monde.",
-                       "parameters": schema, "strict": True}],
-            "tool_choice": {"type": "function", "name": fonction},
-            "parallel_tool_calls": False,
-            "reasoning": {"effort": self.effort},
-            "max_output_tokens": 3000,
-            "store": False,
-        }
-        if self.cle_cache:
-            payload["prompt_cache_key"] = self.cle_cache
-        if self.connexion == "chatgpt":
-            outil = payload["tools"][0]
-            payload["tools"] = [{"type": "namespace", "name": "donjon",
-                                 "description": "Proposer une action ou une observation au moteur.",
-                                 "tools": [outil]}]
-            payload["tool_choice"] = "required"
-            payload["stream"] = True
-            payload.pop("max_output_tokens")  # non accepté par le contrat Sign in with ChatGPT
-        requete = urllib.request.Request(
-            "https://api.openai.com/v1/responses",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Authorization": "Bearer " + cle, "Content-Type": "application/json",
-                     **({"session_id": self.cle_cache} if self.cle_cache else {})},
-            method="POST",
-        )
-        try:
-            if self.connexion == "chatgpt":
-                resultat = self._websocket.appeler(payload, cle, self.cle_cache, self.timeout)
-            else:
-                with urllib.request.urlopen(requete, timeout=self.timeout) as reponse:
-                    resultat = json.load(reponse)
-        except ErreurTransport as exc:
-            if exc.statut == 401:
-                self.erreur_auth = ("MJ déconnecté : Reconnectez le forfait : python connexion.py connecter, puis relancez le jeu."
-                                    " Aucun nouvel appel ne sera tenté dans cette session.")
-                raise ErreurMonde(self.erreur_auth) from None
-            if exc.statut:
-                raise ErreurMonde(f"MJ indisponible : HTTP {exc.statut}. Aucune action appliquée.") from None
-            raise ErreurMonde("Le MJ n'a pas répondu correctement (réseau ou délai). "
-                              "Aucune action appliquée. Réessayez ou utilisez les commandes locales.") from None
-        except urllib.error.HTTPError as exc:
-            # Ne jamais afficher les en-têtes ou une clé dans le journal.
-            try:
-                code = json.loads(exc.read()).get("error", {}).get("code", "erreur_api")
-            except (ValueError, AttributeError):
-                code = "erreur_api"
-            status = exc.code
-            exc.close()
-            if status == 401:
-                conseil = ("Reconnectez le forfait : python connexion.py connecter, puis relancez le jeu."
-                           if self.connexion == "chatgpt" else
-                           "La clé API est refusée. Remplacez-la localement, ou utilisez python connexion.py connecter pour le forfait ChatGPT.")
-                self.erreur_auth = "MJ déconnecté : " + conseil + " Aucun nouvel appel ne sera tenté dans cette session."
-                raise ErreurMonde(self.erreur_auth) from None
-            raise ErreurMonde(f"MJ indisponible : HTTP {status} ({code}). "
-                              "Monde inchangé ; utilisez contexte, lumière, regarder ou journal.") from None
-        except ErreurMonde:
-            raise
-        except (urllib.error.URLError, TimeoutError, OSError, ValueError):
-            raise ErreurMonde("Le MJ n'a pas répondu correctement (réseau ou délai). "
-                              "Aucune action appliquée. Réessayez ou utilisez les commandes locales.") from None
-        if not isinstance(resultat, dict) or not isinstance(resultat.get("output"), list):
-            raise ErreurMonde("Réponse du MJ mal formée. Aucune action appliquée.")
-        self.derniere_utilisation = resultat.get("usage")
-        if resultat.get("status") != "completed":
-            raise ErreurMonde("Réponse du MJ incomplète. Aucune action appliquée.")
-        self.derniere_sortie = [{k: item.get(k) for k in ("type", "name", "namespace", "status")}
-                               for item in resultat["output"] if isinstance(item, dict)]
-        if not self.derniere_sortie:
-            self.derniere_sortie = [{"types_evenements": resultat.get("_types_evenements", [])}]
-        appels = [item for item in resultat["output"] if isinstance(item, dict) and item.get("type") == "function_call"]
-        if len(appels) != 1 or appels[0].get("name") != fonction:
-            raise ErreurMonde("Le MJ n'a pas fourni une proposition unique. Aucune action appliquée.")
-        try:
-            p = json.loads(appels[0]["arguments"])
-            if not isinstance(p, dict):
-                raise ValueError("La proposition doit être un objet")
-            return p, resultat["output"]
-        except (ValueError, KeyError, TypeError):
-            raise ErreurMonde("Proposition du MJ illisible. Aucune action appliquée.") from None
+
+# Compatibilité des imports des bancs existants ; le MJ ne dépend plus d’OpenAI.
+MJOpenAI = MJ

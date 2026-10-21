@@ -1,0 +1,2 @@
+# Ces preuves de réponses réseau doivent conserver leurs octets sous Windows.
+tests/data/mimo-rejets/**/reponse.sse binary

@@ -4,6 +4,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
+  Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
+  Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
 - `main` contient les jalons PNJ A à I (`docs/plan-pnj.md`, tableau « Jalons » et sections
   « Écarts retenus »). Le dernier fusionné est **I. Demander, écouter, protéger** :
   - le corps commun (faim, froid, fatigue) pour tous, joueur compris (`donjon/corps.py`) ;
@@ -31,7 +34,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   une fois puis le plan validé passe, au lieu d'être renvoyé au MJ comme un refus. Cas réel
   « fais levier sous l'axe » : 2 appels, conforme du premier coup (contre 4 à 8 avant).
 - Branche `banc-haiku` : Claude Haiku 5.5 est une option du jeu (`--connexion anthropic`,
-  `donjon/claude.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
+  `donjon/fournisseurs/anthropic.py`, `requirements-claude.txt`) ; Luna reste le MJ par défaut. Correctifs
   communs révélés par le fil complet des appels (`tools/banc_parties.py --fil`) : citation de
   fait inconnue écartée au lieu d'invalider la réponse ; audit narratif à une entrée
   obligatoire par segment, audit illisible redemandé ; texte vide signalé sans audit ;
