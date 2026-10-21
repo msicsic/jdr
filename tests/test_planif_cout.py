@@ -50,16 +50,19 @@ class GrapheReprisTests(unittest.TestCase):
         m = lucien_au_grenier_noir()
         with patch.object(planification, "_GRAPHES", {}), patch.object(planification, "_MEMOIRE", {}), \
                 patch.object(planification, "VERIFIER", True), diagnostics() as recherches:
-            premier = garder(m, "lucien", "grenier")
-            faute = prix_faute(m, "lucien", "biens")
-            lire(m, "lucien")["besoins"]["biens"] = 80.0
-            self.assertNotEqual(prix_faute(m, "lucien", "biens"), faute)
-            second = garder(m, "lucien", "grenier")
-        self.assertEqual([(r["graphe"], r["memoire"]) for r in recherches], [(False, False), (True, False)])
-        self.assertEqual(recherches[0]["noeuds"], recherches[1]["noeuds"])
+            # Le graphe est gardé à la deuxième recherche sur les mêmes entrées, repris à la troisième.
+            fautes, plans = [], []
+            for biens in (65.0, 72.0, 80.0):
+                lire(m, "lucien")["besoins"]["biens"] = biens
+                fautes.append(prix_faute(m, "lucien", "biens"))
+                plans.append(garder(m, "lucien", "grenier"))
+        self.assertEqual(len(set(fautes)), 3)
+        self.assertEqual([(r["graphe"], r["memoire"]) for r in recherches],
+                         [(False, False), (False, False), (True, False)])
+        self.assertEqual(recherches[1]["noeuds"], recherches[2]["noeuds"])
         with patch.object(planification, "_GRAPHES", Oublieux()), patch.object(planification, "_MEMOIRE", {}):
-            self.assertEqual(garder(m, "lucien", "grenier"), second)
-        self.assertEqual([x["operation"] for x in premier], [x["operation"] for x in second])
+            self.assertEqual(garder(m, "lucien", "grenier"), plans[2])
+        self.assertEqual([x["operation"] for x in plans[0]], [x["operation"] for x in plans[2]])
 
     def assertMemeMonde(self, cree, minutes, pas, qui):
         avec, recherches = vivre_par_pas(cree(), minutes, pas, {})

@@ -48,8 +48,9 @@ DIAGNOSTIC = None
 # pas à l'objet monde : le moteur agit sur une copie de travail à chaque action.
 _MEMOIRE = {}
 # Le graphe de la dernière recherche de chaque PNJ pour chaque but (``_explorer``), avec tout ce dont
-# il dépendait : quand seuls le prix d'une faute ou celui d'abîmer ont changé (la détresse qui monte),
-# la recherche se refait sur lui sans recalculer un seul geste.
+# il dépendait (None : des entrées vues une fois, sans graphe gardé) : quand seuls le prix d'une faute
+# ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
+# recalculer un seul geste.
 _GRAPHES = {}
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
 # porter est recalculé par une recherche complète, et comparé.
@@ -770,12 +771,17 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
             garde = None
-        graphe = _GRAPHES.get(place)
-        if graphe is not None and graphe[0] == base:
-            graphe, repris = graphe[1], True
-        else:
-            graphe = {}
-            _GRAPHES[place] = (base, graphe)
+        if garde is None:
+            # Le graphe n'est gardé qu'à la deuxième recherche de suite sur les mêmes entrées : celles
+            # qui changent à chaque fois n'en encombrent pas la mémoire.
+            vu = _GRAPHES.get(place)
+            if vu is None or vu[0] != base:
+                _GRAPHES[place] = (base, None)
+            elif vu[1] is None:
+                graphe = {}
+                _GRAPHES[place] = (base, graphe)
+            else:
+                graphe, repris = vu[1], True
     if garde is not None:
         _, trouve, issue = garde
         examines = etats = plus_profond = 0
@@ -821,14 +827,14 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     Un état qui atteint le but s'explore encore : plus loin, un autre peut le tenir à moindre prix
     (rapporter une lanterne là où il garde ses biens).
 
-    ``graphe`` (un dictionnaire) garde, pour chaque état développé, s'il atteint le but, ce qu'il
-    laisse monter et ses gestes avec chaque terme de leur coût (``_suites``). Ils ne dépendent que de
-    ce que lit la recherche (``_entrees``), pas du prix d'une faute ni de celui d'abîmer, qui
-    n'entrent qu'ici, dans la même somme : repris d'une recherche à l'autre, le graphe rend
-    exactement la recherche qu'on aurait refaite, comparaisons et égalités comprises."""
+    ``graphe`` (un dictionnaire, ou None pour n'en rien garder) garde, pour chaque état développé,
+    s'il atteint le but, ce qu'il laisse monter et ses gestes avec chaque terme de leur coût
+    (``_suites``). Ils ne dépendent que de ce que lit la recherche (``_entrees``), pas du prix d'une
+    faute ni de celui d'abîmer, qui n'entrent qu'ici, dans la même somme : repris d'une recherche à
+    l'autre, le graphe rend exactement la recherche qu'on aurait refaite, comparaisons et égalités
+    comprises."""
     ordre = count()
     infini = float("inf")
-    graphe = {} if graphe is None else graphe
     degat = v.degat
     file = [(0, next(ordre), depart_, [], 0, False)]
     vus = {depart_: 0}
@@ -843,9 +849,11 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
             continue
         examines += 1
         plus_profond = max(plus_profond, n)
-        noeud = graphe.get(e)
+        noeud = None if graphe is None else graphe.get(e)
         if noeud is None:
-            noeud = graphe[e] = [but(v, e), None, None, None]
+            noeud = [but(v, e), None, None, None]
+            if graphe is not None:
+                graphe[e] = noeud
         if noeud[0]:
             if not tenir:
                 trouve = cout, copy.deepcopy(etapes), e
