@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question, heler
+from donjon.commandes import AIDE, PERCEPTIONS, analyser, cri, est_question
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
@@ -368,8 +368,9 @@ def main(argv=None, interface=None):
                         imprimer(json.dumps(esprit(m, id), ensure_ascii=False, indent=2))
                     continue
                 force_mj = cmd.startswith("mj ")
-                # Héler par son nom n'est pas une question au MJ, même avec « ? » (« je crie « Gorm ? » »).
-                question = est_question(texte) and not heler(m, texte)
+                # Héler par son nom, ou répondre à qui vient de héler Corvus, n'est pas une question au MJ,
+                # même avec « ? » (« je crie « Gorm ? » », « « Oui ? » »).
+                question = est_question(texte) and not cri(m, texte)
                 try:
                     p = None if force_mj or question else analyser(m, texte)
                 except ErreurMonde:

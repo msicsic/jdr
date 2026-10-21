@@ -258,12 +258,13 @@ def entend(monde, auteur, auditeur, geste="dire"):
     return parvient[0] if parvient is not None and parvient[0] >= seuil(monde, auditeur) else None
 
 
-def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None):
+def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=()):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
     l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :
     ses destinataires, contenu : ce qu'elle transmet, typé}) est retenue par ceux qui en saisissent
-    les mots sans en être les destinataires (``social.retenir_parole``). Renvoie ceux qui se sont
-    retournés."""
+    les mots sans en être les destinataires (``social.retenir_parole``). ``vers`` : à qui s'adressent
+    des mots qui ne transmettent rien (héler quelqu'un) ; le joueur s'en sert pour relier les voix
+    d'un échange (``ecoute.lier``). Renvoie ceux qui se sont retournés."""
     n = nature(geste, discret, bruit)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
@@ -273,7 +274,8 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     entrees = propager(monde, salle, case, INTENSITES[n])
     t = instant(monde)
     if auteur != "joueur":
-        _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, [c for c in cites if c])
+        _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, [c for c in cites if c],
+                   list(parole["a"]) if parole else list(vers), list(parole["contenu"]) if parole else [])
     retournes, temoins = [], []
     for id in pnjs(monde):
         o = monde.objets[id]
@@ -298,24 +300,30 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
 BRUITS_MAX = 80
 
 
-def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites):
-    """Ce qui parvient au joueur, s'il ne voit pas l'auteur faire : son niveau, d'où il arrive
-    (``par`` : une sortie de sa salle, ``None`` tout près, « piece » plus loin dans la pièce). Le
-    même bruit sans paroles, au même niveau et d'où il venait déjà, ne se range qu'une fois."""
+def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), contenu=()):
+    """Ce qui parvient au joueur : son niveau, d'où il arrive (``par`` : une sortie de sa salle,
+    ``None`` tout près, « piece » plus loin dans la pièce). Le même bruit sans paroles, au même
+    niveau et d'où il venait déjà, ne se range qu'une fois. Une parole dont il saisit les mots se
+    range même s'il voit qui parle (``vu`` : il le voit parler, il connaîtra sa voix ; rien à en
+    rendre de plus), avec ses destinataires (``a``) : c'est par elle qu'il relie les voix d'un
+    échange et les noms qu'elles se donnent (``ecoute.lier``)."""
     ici, position = _place(monde, "joueur")
     parvient = parvenu(entrees, ici, position)
     if parvient is None:
         return
-    if monde.visible(auteur):
-        if n in VOCALES and parvient[0] >= SEUIL:
+    vu = monde.visible(auteur)
+    mots = n in VOCALES and parvient[0] >= SEUIL
+    if vu:
+        if mots:
             from .voix import connaitre
             connaitre(monde, "joueur", auteur)  # Il le voit parler : il saura reconnaître sa voix.
-        return
+        if not (mots and texte):
+            return
     niveau, par = parvient
     if ici == salle:
         par = None if case is None or position is None or distance(case, position) <= PROCHE else "piece"
     entree = {"instant": t, "auteur": auteur, "salle": salle, "nature": n, "niveau": niveau, "par": par,
-              "texte": texte, "cites": cites}
+              "texte": texte, "cites": cites, **({"a": list(a)} if a and mots else {}), **({"vu": True} if vu else {})}
     bruits = monde.data.setdefault("bruits", [])
     if not texte:
         semblable = next((i for i, b in enumerate(bruits) if not b["texte"] and all(
@@ -324,6 +332,9 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites):
             del bruits[semblable]
     bruits.append(entree)
     del bruits[:-BRUITS_MAX]
+    if mots and texte:
+        from .ecoute import lier
+        lier(monde, entree, contenu)
 
 
 # --- Les PNJ ------------------------------------------------------------------------------
