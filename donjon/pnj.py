@@ -32,7 +32,7 @@ DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
 # retourner au bruit, retenir un bruit inconnu, aller le voir (``ouie``).
-NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie")   # reponse : répondre à qui l'appelle
+NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie", "compte")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
 A_DISTANCE = ("chauffer",)

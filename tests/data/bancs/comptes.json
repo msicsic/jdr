@@ -1,0 +1,24 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "echoppe",
+  "position": [2, 1],
+  "orientation": "ouest",
+  "personnages": {
+   "marchand": {"salle": "echoppe", "position": [1, 1], "orientation": "est"},
+   "brune": {"salle": "echoppe", "position": [3, 1], "orientation": "ouest"},
+   "ilse": {"salle": "antichambre", "position": [3, 5]},
+   "aubin": {"salle": "antichambre", "position": [1, 5]}
+  },
+  "calmes": ["brune", "aubin", "ilse", "marchand"],
+  "dettes": [{"de": "marchand", "a": "joueur", "montant": 2, "objet": "vivres", "quoi": "part"},
+             {"de": "brune", "a": "joueur", "montant": 2, "objet": "vivres", "quoi": "part"}]
+ },
+ "tours": [
+  "fiche",
+  "Gorm, rends-moi les deux pièces que tu me dois.",
+  "« Brune, tu me dois deux pièces, rends-les-moi. »",
+  "fiche"
+ ]
+}

@@ -210,6 +210,11 @@ def rembourser(monde, de, a, montant, objet, quoi="part"):
     monde.data.setdefault("dettes", []).append({"de": de, "a": a, "montant": montant, "objet": objet, "quoi": quoi,
                                                 "minute": monde.data["minutes"]})
     memoriser(monde, de, {"type": "dette", "a": a, "montant": montant, "objet": objet, "quoi": quoi})
+    from .pnj import _chroniquer
+    from .social import _qui
+    ce = _ce_qui(monde, {"objet": objet, "quoi": quoi})
+    _chroniquer(monde, de, f"{_qui(monde, de)} doit désormais {_pieces(montant)} à {_qui(monde, a)}"
+                + (f" : {ce}." if ce else "."), "compte")
     if a != "joueur":
         memoriser(monde, a, {"type": "creance", "de": de, "montant": montant, "objet": objet, "quoi": quoi})
 
@@ -279,6 +284,9 @@ def regler(monde, d, reclamee, lignes):
                 for s in esprit(monde, a)["memoire"]):
             memoriser(monde, a, {"type": "creance_vaine", "de": de})
         return "sans_le_sou"
+    if reclamee and a != "joueur":
+        _chroniquer(monde, a, f"{_qui(monde, a)} réclame à {_qui(monde, de)} les {_pieces(d['montant'])} qu'on lui doit.",
+                    "compte")
     if garde_du(monde, de, possible):
         if not reclamee:
             return "silence"

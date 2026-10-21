@@ -608,14 +608,48 @@ Les mêmes règles valent pour le joueur et pour les PNJ (`donjon/biens.py`).
   qu'elles valent pour lui abaisse le DD, il ne les prend que s'il s'écarte). Offrir plus que son
   or est refusé au MJ avec un `attendu`. Payée son prix, la part est vendue : « Gorm prend tes 2
   pièces et accepte de t'en donner une part » ; moins, Gorm dit son prix s'il refuse.
-- **Une part payée et jamais servie** (`biens.rembourser`, `solder`) : à l'échéance de sa parole
-  (240 minutes), ou dès qu'il ne peut plus la tenir (ce qu'il vendait est épuisé, perdu, n'est
-  plus à lui), le vendeur doit le prix. La dette (`data["dettes"]`) est connue des deux ; elle est
-  soldée dès qu'ils peuvent se parler et que l'un sait l'autre là : le vendeur rend ce qu'il peut,
-  le reste demeure dû. Le joueur le lit (« Gorm te rend 2 pièces : la part des vivres du refuge que
-  tu avais payée ne t'a pas été servie. ») ; un PNJ créancier va réclamer son dû quand il vaut
-  pour lui plus que le chemin (but `reclamer`, après la routine), et ne relance pas de sitôt un
-  débiteur retrouvé sans le sou.
+- **Une contrepartie payée et jamais livrée** (`biens.rembourser`, `solder`) : une part vendue
+  d'avance, un objet acheté que le vendeur ne portait pas (il s'engage à l'aller chercher et à le
+  remettre, `echanges.differee`), une tâche payée. À l'échéance de la parole (240 minutes), ou
+  dès qu'il ne peut plus la tenir (ce qu'il vendait est épuisé, perdu, n'est plus à lui), le
+  vendeur doit le prix. La dette (`data["dettes"]`, sa nature `quoi` : part, objet, tâche) est
+  connue des deux. Quand ils se retrouvent, le débiteur rend ce qu'il peut, s'il le veut ; le reste
+  demeure dû. Le joueur le lit (« Gorm te rend 7 pièces : le marteau que tu avais payé ne t'a pas
+  été remis. ») ; un PNJ créancier va réclamer son dû quand il vaut pour lui plus que le chemin
+  (but `reclamer`, après la routine), et ne relance pas de sitôt un débiteur retrouvé sans le sou.
+- **Rendre est un choix** (`biens.garde_du`) : garder l'argent dû est une faute au prix de son
+  honnêteté (comme prendre des pièces, sans usure par la détresse), contre ce que valent pour lui
+  ces pièces. À l'honnêteté entière on rend toujours ; Brune (honnêteté 20, endettée) garde 2
+  pièces, Lucien (50) en garde 4, Joss (50) rend la sienne. Le débiteur qui garde ne dit rien ;
+  réclamé, il refuse : le créancier cesse de le croire fiable et peut le confier comme une nouvelle
+  (« Brune garde les 2 pièces qu'elle doit à Ilse »), qu'on adopte comme une rumeur. Il ne lui
+  redemande pas avant 120 minutes.
+- **Le joueur réclame** dans une parole (contenu `reclamer` : sujet vide pour les pièces qu'on lui
+  doit, ou un objet à lui que l'autre porte) ; le moteur tranche : « Gorm te rend 2 pièces… »,
+  « Brune refuse de te rendre les 2 pièces qu'elle te doit. », « … ne te doit rien. » ; un sujet que
+  le moteur ne sait résoudre est refusé au MJ avec un `attendu`. La fiche (`fiche`, `inventaire`)
+  montre ses comptes : ce qu'on lui doit, ce qu'on lui a prêté (`biens.comptes_joueur`).
+- **Le prêt réclamé** : passé l'échéance (240 minutes), le prêteur va redemander son objet à qui
+  le garde, PNJ ou joueur (but `reclamer`), comme il le redemande quand il en a besoin. Un PNJ
+  emprunteur qui s'en sert encore refuse ; le joueur lit « Gaspard te demande de lui rendre la
+  lampe… » et décide. L'emprunteur qui garde un prêt échu qu'on lui réclame (le PNJ qui refuse, le
+  joueur qui ne l'a pas rendu 30 minutes après) perd la confiance du prêteur, qui peut le dire.
+- **Tâche payée entre PNJ** (`echanges.engager`, geste `engager` du planificateur) : pour une de
+  ses pulsions (un feu à entretenir, un bien sous clé, un objet à remettre en place) sur ce qu'il
+  pourrait faire lui-même sans faute, un PNJ peut offrir des pièces à qui se tient avec lui, une
+  par 3 minutes de la peine qu'il estime (le chemin et 5 minutes de travail) ; dans son plan, cela
+  coûte la demande, ses pièces et l'attente de cette peine. L'autre accepte, sans jet, si ces
+  pièces valent pour lui au moins ce que la tâche lui coûterait (un feu, il le compte à recharger),
+  sauf méfiance, s'il n'y emploie pas ce qu'il garde, et refuse sinon (« cher », « impossible »,
+  « necessaire »). Acceptée, elle devient son engagement, payé d'avance, et lui confie la garde du
+  bien ; le payeur ne la fait pas à sa place tant qu'elle court. Non faite à l'échéance, le prix
+  est dû (ci-dessus).
+- **Demander ce qu'on ne connaît pas** (`echanges.enqueter`) : « as-tu du bois ? », « de quoi
+  manger ? ». Quand rien de ce qu'il connaît n'apaise sa faim, son froid ou le feu qu'il entretient,
+  un PNJ le demande à qui il ne connaît rien de tel (le plus proche, une fois par 120 minutes).
+  L'autre répond par ce qu'il a vraiment (ses ressources comptées pour ce besoin, qu'il croit avoir
+  encore, et où), sauf méfiance ; le demandeur l'apprend par ouï-dire, et rien de plus. Le joueur
+  le demande par la parole (contenu `ressource`, sujet `faim` ou `chaleur`) et lit la réponse.
 
 #### Échanges entre PNJ et stratège
 
@@ -700,7 +734,9 @@ aisance selon le CHA (même découpage, de très maladroite à brillante). Luna 
 dans cette bande et type son contenu, trois éléments au plus : `affirmation` (sujet, attribut
 `lieu`, `verrouillee` ou `fiable`, valeur), `demande` (un objet que le personnage porte),
 `passage` (qu'il s'écarte, se pousse, laisse passer : voir ci-dessous), `aveu` (un geste
-illicite que Corvus avoue avoir fait sur un objet qui n'est pas à lui), `propos`. La réplique est
+illicite que Corvus avoue avoir fait sur un objet qui n'est pas à lui), `reclamer` (son dû :
+les pièces qu'on lui doit, ou un objet à lui), `ressource` (« as-tu du bois ? » : `faim` ou
+`chaleur`), `propos`. La réplique est
 enregistrée avant l'affichage, qui commence par « Tu dis à Gorm : « … » » (« Tu dis à tous »,
 « Tu chuchotes à Brune »).
 

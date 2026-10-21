@@ -1135,13 +1135,13 @@ def planifier_pulsion(monde, id, condition, tache=False):
     return None if trouve is None else trouve[1:]
 
 
-def cout_pulsion(monde, id, condition):
-    """Ce que lui coûterait de rétablir ``condition`` (minutes de son plan, fautes comprises), ou
-    None s'il ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûte (``echanges.engager``).
-    Un feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
+def devis_pulsion(monde, id, condition):
+    """(coût, étapes) de rétablir ``condition`` (minutes de son plan, fautes comprises), ou None s'il
+    ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un
+    feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
     voir : celui qui le paie le sait à entretenir."""
     trouve = _pulsion(monde, id, condition, False, entretenir=True)
-    return None if trouve is None else trouve[0]
+    return None if trouve is None else (trouve[0], trouve[2])
 
 
 def _pulsion(monde, id, condition, tache, entretenir=False):
@@ -1183,7 +1183,11 @@ def _pulsion(monde, id, condition, tache, entretenir=False):
         vises = {"fermer": (o,)}
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
-    trouve = chercher(monde, id, but, vises, nom=_nom_condition(condition),
+    depuis = None
+    if entretenir and "allume" in condition:
+        # Celui qui le paie le sait à recharger : il le compte comme tel, quoi qu'il en ait vu.
+        depuis = depart(monde, id).apres(faits=[(("charge", o), False)])
+    trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
                       memo=["pulsion", condition, "confier" in vises, entretenir],
                       emplois=("feu",) if "allume" in condition else ())
     if trouve is None:

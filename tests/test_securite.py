@@ -102,6 +102,12 @@ class AbriTests(unittest.TestCase):
         # jette pas de lueur dans l'échoppe.
         m.joueur.update(salle="antichambre", position=[3, 4], orientation="ouest")
         m.objets["lanterne"]["allume"] = False
+        # Placement d'auteur : Gorm a déjà demandé à chacun s'il avait du bois et n'a pas de quoi payer
+        # (``echanges.enqueter``, ``engager``) : il n'emmène pas Aubin rallumer le brasero.
+        m.data["finances_pnj"]["marchand"] = 0
+        from donjon.esprits import memoriser
+        for autre in ("brune", "ilse", "aubin"):
+            memoriser(m, "marchand", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
         m, texte = attendre(recharger(m), 3)
         self.assertEqual(m.objets["ilse"]["lieu"], "antichambre")
         self.assertTrue(any(t.startswith("Ilse reste près d") for t in chronique(m)))

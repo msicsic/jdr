@@ -289,6 +289,7 @@ class TachePayeeTests(unittest.TestCase):
         # honnête) quand ils se retrouvent ; Mireille cesse alors de compter sur lui.
         m = calme(creer("auberge", 1985, "fixe"), "anselme", "mireille")
         m.objets["fourneau"]["combustible"] = 8
+        m.objets["bois_anselme"]["charges"] = 5   # Placement d'auteur : il a de quoi, sans toucher à sa réserve.
         ensemble(m, "mireille", "anselme", "cuisine")
         with patch.object(Monde, "d20", return_value=20):
             issue = engager(m, "mireille", "anselme", {"objet": "fourneau", "allume": True}, 2)
@@ -381,6 +382,23 @@ class EnqueteTests(unittest.TestCase):
         self.assertIn({"de": "joss", "besoin": "chaleur", "objets": ["fagots_etable"]},
                       [{k: s[k] for k in ("de", "besoin", "objets")} for s in memoires(m, "mireille", "enquete")])
         self.assertTrue(any(t.startswith("Mireille demande une part des fagots de l'écurie à Joss") for t in textes), textes)
+
+    def test_au_relais_gorm_apprend_les_planches_d_aubin(self):
+        # Autre cas de même nature, au Relais : le brasero est mort, Gorm (sans le sou) ignore les
+        # planches d'Aubin ; il lui demande s'il a du bois, l'apprend, et en obtient une part.
+        from tests.test_securite import dans_le_noir
+        m = dans_le_noir(calme(relais(), "marchand", "brune", "ilse", "aubin"), "ilse", 75.0)
+        m.data["finances_pnj"]["marchand"] = 0
+        self.assertNotIn("planches", lire(m, "marchand")["croyances"])
+        from tests.test_tensions import attendre
+        m.joueur.update(salle="antichambre", position=[3, 4], orientation="ouest")
+        m.objets["lanterne"]["allume"] = False
+        m, _ = attendre(recharger(m), 4)
+        self.assertIn("Gorm demande à Aubin s'il a du bois (dit).", chronique(m))
+        self.assertIn({"de": "aubin", "besoin": "chaleur", "objets": ["planches"]},
+                      [{k: s[k] for k in ("de", "besoin", "objets")} for s in memoires(m, "marchand", "enquete")])
+        self.assertIn("Gorm demande une part des planches de bac à Aubin (promis).", chronique(m))
+        self.assertTrue(m.objets["brasero"]["allume"])
 
     def test_rien_a_dire_et_la_mefiance(self):
         # Autre cas de même nature : qui n'a rien le dit ; qui se méfie ne répond pas.

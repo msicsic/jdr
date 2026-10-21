@@ -182,6 +182,12 @@ def preparer(donnees, sauvegarde):
         m.objets[id]["lieu"] = lieu
     for id, besoins in prep.get("besoins", {}).items():
         esprit(m, id)["besoins"].update(besoins)
+    for id, valeurs in prep.get("valeurs", {}).items():
+        m.objets[id]["profil"]["valeurs"].update(valeurs)   # Placement d'auteur : un caractère retouché.
+    from donjon.biens import rembourser
+    for d in prep.get("dettes", []):
+        # Placement d'auteur : une contrepartie payée et jamais livrée, comme l'échéance la fait naître.
+        rembourser(m, d["de"], d["a"], d["montant"], d["objet"], d.get("quoi", "part"))
     m.verifier()
     m.sauver(sauvegarde)
 

@@ -251,18 +251,19 @@ def tache(condition):
 
 
 def engager(monde, payeur, autre, condition, prix):
-    """« mefiance », « qui_va_la », « deja », « pauvre », « impossible », « cher » ou « accepte ».
+    """« mefiance », « qui_va_la », « deja », « pauvre », « impossible », « necessaire », « cher » ou
+    « accepte ».
 
     ``payeur`` offre ``prix`` pièces pour qu'``autre`` fasse en sorte que ``condition`` soit vraie
     (un feu entretenu, un bien sous clé, un objet remis en place). Il accepte si ces pièces valent pour
     lui (``caractere.valeur_pieces``) au moins ce que la tâche lui coûte (son plan, comme s'il l'avait
-    prise : ``planification.cout_pulsion``), sans jet : c'est un marché. Acceptée, elle devient son
+    prise : ``planification.devis_pulsion``), sans jet, s'il n'y emploie pas ce qu'il garde (``garde``) : c'est un marché. Acceptée, elle devient son
     engagement, payé d'avance ; sur un bien du payeur, elle lui en confie la garde (``biens.gardes``).
     Non faite à l'échéance, le prix est dû (``engagements_echus``, ``biens.rembourser``)."""
     from .biens import payer, richesse
     from .caractere import valeur_pieces
     from .deliberation import illicite
-    from .planification import cout_pulsion
+    from .planification import devis_pulsion
     if payeur != "joueur" and condition["objet"] in monde.objets and illicite(monde, payeur, condition["objet"]):
         return "impossible"   # On ne fait pas faire à un autre ce qui serait, pour soi, une faute.
     arret = accueil(monde, payeur, autre)
@@ -279,10 +280,16 @@ def engager(monde, payeur, autre, condition, prix):
     engagement = {"condition": dict(condition), "pour": payeur, "minute": monde.data["minutes"],
                   "paye": {"objet": condition.get("objet") or condition["lieu"], "prix": prix, "quoi": "tache"}}
     engagements.append(engagement)
-    cout = cout_pulsion(monde, autre, condition)
-    if cout is None:
+    devis = devis_pulsion(monde, autre, condition)
+    if devis is None:
         engagements.remove(engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
+    cout, etapes = devis
+    # Ce qu'il garde (sa dernière part, ce dont il a besoin), il ne le donne pas, payé ou non.
+    if any(monde.objets.get(x) and garde(monde, autre, monde.objets[x])
+           for e in etapes if e["operation"] in ("alimenter", "manger", "servir") for x in (e["cible"], e["outil"])):
+        engagements.remove(engagement)
+        return "necessaire"
     if valeur_pieces(monde, autre, prix) < cout:
         engagements.remove(engagement)
         return "cher"
@@ -299,13 +306,14 @@ def enqueter(monde, demandeur, auditeur, besoin):
     connaître de ce qu'il a. Il répond par ce qu'il a vraiment : ses ressources comptées pour ce
     besoin (``deliberation.besoin_de_part``) qu'il croit avoir encore, et où il les croit. Le
     demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)]."""
-    from .deliberation import _disponible_cru, _lieu_cru, besoin_de_part, parts
+    from .deliberation import _connus, _disponible_cru, _lieu_cru, besoin_de_part, parts
+    from .spatial import porte_par
     from .vol import proprietaire
     arret = accueil(monde, demandeur, auditeur)
     if arret:
         return arret, []
-    dit = [(k, _lieu_cru(monde, auditeur, k)) for k in sorted(lire(monde, auditeur)["croyances"])
-           if k in monde.objets and besoin_de_part(monde.objets[k]) == besoin
+    dit = [(k, auditeur if porte_par(monde, k, auditeur) else _lieu_cru(monde, auditeur, k))
+           for k in _connus(monde, auditeur) if k in monde.objets and besoin_de_part(monde.objets[k]) == besoin
            and proprietaire(monde, monde.objets[k]) == auditeur and parts(monde.objets[k]) > 0
            and _disponible_cru(monde, auditeur, k)]
     dit = [(k, lieu) for k, lieu in dit if lieu is not None]
@@ -603,6 +611,11 @@ def engagements_echus(monde, id):
             memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
             finis.append(engagement)
+            if (engagement.get("paye") or {}).get("quoi") == "tache":
+                from .pnj import _chroniquer
+                from .social import _qui
+                _chroniquer(monde, id, f"{_qui(monde, id)} a fait le travail que {_qui(monde, engagement['pour'])} "
+                                       f"lui avait payé : {phrase_condition(monde, engagement['condition'])}.", "compte")
         elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX or empeche(monde, id, engagement):
             memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
