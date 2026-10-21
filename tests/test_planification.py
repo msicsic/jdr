@@ -5,7 +5,7 @@ import unittest
 from tests.support import refusee, sans_evacues
 from donjon.defi import nouveau_defi
 from donjon.esprits import croire, lire, memoriser
-from donjon.deliberation import REDEMANDE
+from donjon.deliberation import REDEMANDE, retenir_refus
 from donjon.planification import a_mange, chercher, diagnostics, planifier
 from donjon.spatial import installer
 
@@ -104,8 +104,7 @@ class DemanderTests(unittest.TestCase):
         del m.objets["crochets"]
         lire(m, "brune")["croyances"].pop("crochets", None)
         croire(m, "brune", "cle_reserve", "lieu", "marchand", "vu")
-        memoriser(m, "brune", {"type": "refus", "de": "marchand", "operation": "demander", "raison": "necessaire",
-                               "objet": "cle_reserve"})
+        retenir_refus(m, "brune", "marchand", "demander", "necessaire", objet="cle_reserve")
         self.assertIsNone(planifier(m, "brune", "faim"))
 
 
@@ -146,8 +145,7 @@ class PertinenceTests(unittest.TestCase):
             croire(m, "aubin", o, "lieu", m.objets[o]["lieu"], "vu")
         for refus in (False, True):
             if refus:
-                memoriser(m, "aubin", {"type": "refus", "de": "marchand", "operation": "demander",
-                                       "raison": "necessaire", "objet": "vivres"})
+                retenir_refus(m, "aubin", "marchand", "demander", "necessaire", objet="vivres")
             with diagnostics() as recherches:
                 complet = chercher(m, "aubin", a_mange)
                 borne = chercher(m, "aubin", a_mange, emplois=("manger",))
@@ -186,8 +184,7 @@ class MemoireTests(unittest.TestCase):
         self.assertEqual(gestes(planifier(m, "brune", "faim")), [("aller", "echoppe", ""),
                                                                  ("demander", "marchand", "vivres"),
                                                                  ("aller", "antichambre", "")])
-        memoriser(m, "brune", {"type": "refus", "de": "marchand", "operation": "demander", "raison": "necessaire",
-                               "objet": "vivres"})
+        retenir_refus(m, "brune", "marchand", "demander", "necessaire", objet="vivres")
         self.assertIsNone(planifier(m, "brune", "faim"))
 
     def test_une_nuit_ou_chaque_resultat_repris_ou_borne_est_recalcule(self):

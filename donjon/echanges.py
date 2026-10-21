@@ -173,6 +173,10 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
             return "necessaire"
         if besoin_de_part(o) == "faim":
             condition = {"objet": objet, "servir": demandeur}
+        elif vente and foyer is None:
+            # Achetée sans qu'aucun feu soit nommé, une part de combustible est un bien qu'on achète :
+            # il en détache une et la remet à l'acheteur. Seule une part demandée pour un feu va au feu.
+            return _vendre_part(monde, auditeur, demandeur, objet, prix)
         else:
             # Une part de bois se donne au feu : il l'entretient lui-même pour celui qui a froid.
             foyer = foyer_de(monde, auditeur, demandeur, foyer)
@@ -227,6 +231,61 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
         donner(monde, objet, demandeur)
     remettre(monde, auditeur, demandeur, objet)
     return "vendu" if vente else "remis"
+
+
+def detacher_part(monde, lot):
+    """Une part d'une réserve comptée devient un objet, à sa place : une pièce du lot s'il la décrit
+    (``matiere.prelever_piece``), sinon une réserve d'une charge, du même nom ; la réserve diminue
+    d'autant. Renvoie son identifiant."""
+    import copy
+    from .matiere import id_piece, prelever_piece
+    o = monde.objets[lot]
+    piece = id_piece(monde, lot)
+    if o.get("physique"):
+        prelever_piece(monde, lot, piece)
+        return piece
+    part = copy.deepcopy(o)
+    part.update(id=piece, charges=1, masse=round(o["masse"] / max(1, o["charges"]), 3))
+    o["charges"] -= 1
+    o["masse"] = round(o["masse"] - part["masse"], 3)
+    monde.objets[piece] = part
+    return piece
+
+
+def _vendre_part(monde, vendeur, acheteur, lot, prix):
+    """« vendu » ou « impossible » : l'acheteur paie une part de la réserve ``lot`` ; le vendeur la
+    détache et la lui remet, aussitôt s'il la porte, sinon il s'engage à l'aller chercher (comme un
+    objet vendu d'avance, ``differee``) : non remise à l'échéance, le prix est dû."""
+    from .biens import donner
+    from .deliberation import _plan_pulsion
+    from .spatial import porte_par
+    import copy
+    avant = copy.deepcopy(monde.objets[lot])
+    piece = detacher_part(monde, lot)
+    o = monde.objets[piece]
+    # Il sait où il la met de côté.
+    salle = o["lieu"] if o["lieu"] in monde.data["salles"] else None
+    croire(monde, vendeur, piece, "lieu", o["lieu"], "vu", salle=salle,
+           case=list(o["position"]) if salle and o.get("position") else None)
+    if porte_par(monde, piece, vendeur):
+        _vendre(monde, vendeur, acheteur, piece, prix)
+        donner(monde, piece, acheteur)
+        remettre(monde, vendeur, acheteur, piece)
+        return "vendu"
+    condition = {"objet": piece, "remettre": acheteur}
+    engagement = {"condition": condition, "pour": acheteur, "minute": monde.data["minutes"],
+                  "paye": {"objet": piece, "prix": prix, "quoi": "objet"}}
+    engagements = esprit(monde, vendeur)["engagements"]
+    engagements.append(engagement)
+    if _plan_pulsion(monde, vendeur, condition) is None:
+        engagements.remove(engagement)
+        del monde.objets[piece]
+        del esprit(monde, vendeur)["croyances"][piece]
+        monde.objets[lot] = avant
+        return "impossible"
+    memoriser(monde, vendeur, {"type": "engagement_pris", "pour": acheteur, "condition": condition})
+    _vendre(monde, vendeur, acheteur, piece, prix)
+    return "vendu"
 
 
 def differee(monde, auditeur, objet, prix):
@@ -300,21 +359,50 @@ def engager(monde, payeur, autre, condition, prix):
     return "accepte"
 
 
+def siens_a_portee(monde, id):
+    """Il sait ce qu'il porte et ce qui est à lui à portée de main (dans sa salle, hors de tout contenant
+    fermé), même sans l'avoir regardé : il le constate (lieu et état). Renvoie ces objets."""
+    from .spatial import porte_par
+    from .vol import proprietaire
+    salle = monde.objets[id]["lieu"]
+    siens = []
+    for k, o in monde.objets.items():
+        if o["type"] == "personnage" or proprietaire(monde, o) != id:
+            continue
+        lieu, vus = o["lieu"], set()
+        while lieu in monde.objets and lieu not in vus and monde.objets[lieu]["type"] == "contenant"                 and monde.objets[lieu].get("ouverte", True) is not False:
+            vus.add(lieu)
+            lieu = monde.objets[lieu]["lieu"]
+        if not (porte_par(monde, k, id) or lieu == salle):
+            continue
+        ici = o["lieu"] in monde.data["salles"]
+        croire(monde, id, k, "lieu", o["lieu"], "vu", salle=o["lieu"] if ici else None,
+               case=list(o["position"]) if ici and o.get("position") else None)
+        constater(monde, id, k, "vu")
+        siens.append(k)
+    return siens
+
+
 def enqueter(monde, demandeur, auditeur, besoin):
     """(« mefiance », « qui_va_la », « rien » ou « dit », ce qui a été dit) : ``demandeur`` demande à
     ``auditeur`` s'il a de quoi apaiser ``besoin`` (« As-tu des vivres ? », « du bois ? ») sans rien
     connaître de ce qu'il a. Il répond par ce qu'il a vraiment : ses ressources comptées pour ce
-    besoin (``deliberation.besoin_de_part``) qu'il croit avoir encore, et où il les croit. Le
+    besoin (``deliberation.besoin_de_part``) qu'il croit avoir encore, et où il les croit ; ce qu'il
+    porte et ce qui est à lui à portée de main, il le sait (``siens_a_portee``). Le
     demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)]."""
     from .deliberation import _connus, _disponible_cru, _lieu_cru, besoin_de_part, parts
     from .spatial import porte_par
     from .vol import proprietaire
+    from .deliberation import oublier_refus, retenir_refus
     arret = accueil(monde, demandeur, auditeur)
+    if not arret:
+        siens_a_portee(monde, auditeur)
     if arret:
         if demandeur != "joueur" and arret != "qui_va_la":
             # Refusé, il ne lui redemande pas de sitôt (``planification.s_enquerir``) ; à « Qui va
             # là ? », il se nomme et redemande.
             memoriser(monde, demandeur, {"type": "enquete", "de": auditeur, "besoin": besoin, "objets": []})
+            retenir_refus(monde, demandeur, auditeur, "enqueter", arret, besoin=besoin, souvenir=False)
         return arret, []
     dit = [(k, auditeur if porte_par(monde, k, auditeur) else _lieu_cru(monde, auditeur, k))
            for k in _connus(monde, auditeur) if k in monde.objets and besoin_de_part(monde.objets[k]) == besoin
@@ -330,6 +418,12 @@ def enqueter(monde, demandeur, auditeur, besoin):
                    salle=salle, case=None)
         memoriser(monde, demandeur, {"type": "enquete", "de": auditeur, "besoin": besoin,
                                      "objets": [k for k, _ in dit]})
+        # « Je n'en ai pas » se retient tant que rien de ce qu'il croit de ces ressources n'a changé ;
+        # ce qu'il a dit avoir, il le sait désormais.
+        if dit:
+            oublier_refus(monde, demandeur, auditeur, "enqueter", besoin=besoin)
+        else:
+            retenir_refus(monde, demandeur, auditeur, "enqueter", "rien", besoin=besoin, souvenir=False)
     return ("dit" if dit else "rien"), dit
 
 
@@ -560,9 +654,9 @@ def _avec_joueur(monde, id, etape, lignes):
     retentir(monde, id, "dire", texte=texte, cites=["joueur", objet["id"]], vers=["joueur"])
     memoriser(monde, id, {"type": "pret_reclame", "objet": objet["id"], "a": "joueur", "pret": p["minute"],
                           "echu": echu(monde, objet["id"])})
-    # La réponse est au joueur : il ne le redemande pas de sitôt (``refuse_recemment``).
-    memoriser(monde, id, {"type": "refus", "de": "joueur", "operation": "demander", "raison": "attente",
-                          "objet": objet["id"]})
+    # La réponse est au joueur : il ne le redemande pas de sitôt (``deliberation.tient``).
+    from .deliberation import retenir_refus
+    retenir_refus(monde, id, "joueur", "demander", "attente", objet=objet["id"])
     return False
 
 
@@ -748,11 +842,20 @@ def executer(monde, id, etape, lignes):
         qui_va_la(monde, id, autre, lignes)
     else:
         faire_entendre(monde, id, autre, clair, nommes, lignes, transmis, reponse, dite)
-    if not reussi and "ressource" not in contenu:
+    if "ressource" not in contenu:   # « As-tu… ? » retient sa réponse (``enqueter``).
         # Un feu refusé l'est pour cette source ; un objet demandé, pour cet objet ; une tâche, pour ce
-        # qu'elle vise.
+        # qu'elle vise. Le refus se retient selon sa cause (``deliberation.retenir_refus``) ; accordée,
+        # la demande n'a plus de refus qui tienne.
+        from .deliberation import oublier_refus, retenir_refus
         vise = (contenu.get("allumer") if op == "demander_feu" else objet["id"] if objet
                 else contenu["condition"]["objet"] if op == "engager" else contenu.get("objet"))
-        memoriser(monde, id, {"type": "refus", "de": autre, "operation": op, "raison": issue,
-                              **({"objet": vise} if vise else {})})
+        if reussi:
+            for x in (("demander", "acheter") if op in ("demander", "acheter") else (op,)):
+                oublier_refus(monde, id, autre, x, vise)
+        else:
+            condition = contenu["condition"] if op == "engager" else contenu if op == "confier" else None
+            retenir_refus(monde, id, autre, op, issue, objet=vise,
+                          prix=contenu["prix"] if op == "engager" else None,
+                          tache=tache(condition) if condition else None,
+                          flamme=objet["id"] if op == "demander_feu" and objet else None)
     return reussi

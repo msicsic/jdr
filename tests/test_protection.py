@@ -6,8 +6,8 @@ rechargement.
 import copy
 import unittest
 
-from donjon.deliberation import alarme, verifier_profil
-from donjon.esprits import croire, dernier_son, lire, memoriser, percevoir_tous
+from donjon.deliberation import alarme, retenir_refus, verifier_profil
+from donjon.esprits import croire, dernier_son, lire, percevoir_tous
 from donjon.moteur import Moteur, proposition
 from tests.support import calme, regarder
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
@@ -81,7 +81,7 @@ class PrevenirTests(unittest.TestCase):
         croire(m, "brune", "brasero", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
         croire(m, "brune", "fanal", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
         for de, objet in (("aubin", "planches"), ("marchand", "bois")):
-            memoriser(m, "brune", {"type": "refus", "de": de, "operation": "demander", "raison": "refus", "objet": objet})
+            retenir_refus(m, "brune", de, "demander", "refus", objet=objet)
         avant = lire(m, "marchand")["besoins"]["devoir"]
         # Elle prend la torche et les planches, dans l'ordre que son plan retient : Gorm la voit.
         m, _ = vivre(m, 4)

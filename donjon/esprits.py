@@ -51,7 +51,10 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "voix_entendues": dict,   # les voix inconnues qu'il a entendues, et ce qu'elles ont prétendu
           "urgences": dict,   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
           # qui l'a hélé et à qui il a répondu : il attend d'être rejoint (``deliberation.attendre``)
-          "rejoint": lambda: None}
+          "rejoint": lambda: None,
+          # la dernière réponse refusée de chaque demande, et ce qu'il croyait de sa cause
+          # (``deliberation.retenir_refus``)
+          "refus": list}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -192,6 +195,14 @@ def verifier(monde):
             assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
+        from .deliberation import DETAILS_REFUS
+        assert isinstance(e.get("refus", []), list) and all(
+            isinstance(s, dict) and set(s) <= {"de", "operation", "raison", "minute", "cause", *DETAILS_REFUS}
+            and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
+            and type(s["minute"]) is int and type(s.get("prix", 0)) is int
+            and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
+            for s in e.get("refus", [])
+        ), "Refus retenus de PNJ invalides"
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"

@@ -30,8 +30,8 @@ def refusee(monde, id="brune", par="marchand"):
     Un affamé demande, puis achète s'il le peut, avant de voler ; ces tests portent sur ce qui
     suit le refus quand il ne reste que voler ou attendre.
     """
-    from donjon.esprits import memoriser
-    memoriser(monde, id, {"type": "refus", "de": par, "operation": "demander", "raison": "refus", "objet": "vivres"})
+    from donjon.deliberation import retenir_refus
+    retenir_refus(monde, id, par, "demander", "refus", objet="vivres")
     return sans_le_sou(monde, id)
 
 

@@ -34,7 +34,8 @@ class RecitTests(unittest.TestCase):
         # Placement d'auteur : Brune, gelée et sans scrupule, près des planches d'Aubin, sous les
         # yeux de Gorm (la scène de test_protection).
         from tests.support import calme, regarder
-        from donjon.esprits import croire, lire, memoriser, percevoir_tous
+        from donjon.deliberation import retenir_refus
+        from donjon.esprits import croire, lire, percevoir_tous
         from tests.test_tensions import placer, relais
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.objets["brasero"].update(allume=False, combustible=0)
@@ -49,8 +50,7 @@ class RecitTests(unittest.TestCase):
         croire(m, "brune", "brasero", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
         croire(m, "brune", "fanal", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
         for de, objet in (("aubin", "planches"), ("marchand", "bois")):
-            memoriser(m, "brune", {"type": "refus", "de": de, "operation": "demander", "raison": "refus",
-                                   "objet": objet})
+            retenir_refus(m, "brune", de, "demander", "refus", objet=objet)
         recit = Recit(m)
         chronique, _ = executer(m, m.data["minutes"] + 20, recit)
         texte = recit.texte(m, chronique)

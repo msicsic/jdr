@@ -19,9 +19,9 @@ from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
 
-from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
-                           _lieu_cru, besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
-                           promesse_en_cours, refuse_recemment)
+from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
+                           _lieu_cru, besoin_de_part, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
+                           peur_du_noir, profil, promesse_en_cours, refus_retenu, tient)
 from . import force
 from .biens import PRIX_PART
 from .esprits import lire
@@ -39,6 +39,7 @@ GARDE = 2              # par minute loin de chaque lieu où il garde ses biens, 
 RESTER = 30            # minutes qu'il compte passer là où le mène un but qui se tient en restant
 TACHE = 5              # minutes de travail d'une tâche payée, en plus du chemin (``_engager``)
 SALAIRE = 3            # minutes de peine qu'il paie une pièce, à qui fait une tâche pour lui
+SURENCHERE = 2         # refusé pour un prix trop bas, il offre au moins tant de fois ce prix (``_engager``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
@@ -239,26 +240,53 @@ class Vue:
             crus[cle] = _disponible_cru(self.monde, self.id, o)
         return crus[cle]
 
+    def refus_tenus(self):
+        """[(refus, s'il tient)] : la dernière réponse refusée de chaque demande
+        (``deliberation.retenir_refus``), jugée une fois (``deliberation.tient``)."""
+        def juger():
+            # Les refus d'une même demande faite à plusieurs (une tâche, une part) ont les mêmes moyens :
+            # ils ne se lisent qu'une fois.
+            moyens = {}
+            tenus = []
+            for s in lire(self.monde, self.id).get("refus", ()):
+                if s["raison"] in CAUSES and "cause" in s:
+                    cle = (s["operation"], s.get("objet"), s.get("besoin"), s.get("tache"), s.get("flamme"),
+                           s["de"] if s["operation"] == "enqueter" else None)
+                    if cle not in moyens:
+                        moyens[cle] = {tuple(f) for f in moyens_crus(self.monde, self.id, s, self.connus)}
+                    tenus.append((s, moyens[cle] <= {tuple(f) for f in s["cause"]}))
+                else:
+                    tenus.append((s, tient(self.monde, self.id, s, self.connus)))
+            return tenus
+        return self._memo(("refus_tenus",), juger)
+
+    def retenu(self, autre, operations, o):
+        """Le refus d'``autre`` qui tient encore pour cette demande (``deliberation.refus_retenu``)."""
+        def chercher_refus():
+            refus = [(s, tenu) for s, tenu in self.refus_tenus() if s["de"] == autre and s["operation"] in operations
+                     and s.get("objet", o) == o and s.get("besoin") is None]
+            dernier = max(refus, key=lambda x: x[0]["minute"], default=None)
+            return dernier[0] if dernier is not None and dernier[1] else None
+        return self._memo((autre, o, operations, "retenu"), chercher_refus)
+
     def refuse(self, autre, o):
-        cle = (autre, o, "refus")
-        crus = self._crus
-        if cle not in crus:
-            crus[cle] = refuse_recemment(self.monde, self.id, autre, "demander", o)
-        return crus[cle]
+        """Il ne le lui redemande pas : un refus qui tient, demandé ou à vendre ; sauf faute d'argent
+        pour l'acheter, ce qui n'empêche pas de le demander."""
+        refus = self.retenu(autre, ("demander", "acheter"), o)
+        return refus if refus and refus["raison"] != "pauvre" else None
 
     def refuse_tache(self, autre, o):
-        """Un refus récent de faire pour lui une tâche sur ``o`` (``echanges.engager``)."""
-        return self._memo((autre, o, "refus_tache"),
-                          lambda: refuse_recemment(self.monde, self.id, autre, "engager", o))
+        """Un refus qui tient de faire pour lui une tâche sur ``o`` (``echanges.engager``) ; « cher »
+        ne tient que pour son prix."""
+        return self.retenu(autre, ("engager",), o)
 
     def refus_taches(self, o):
         """Combien ont refusé, depuis ``REDEMANDE`` minutes, une tâche sur ``o`` qu'il leur offrait :
         chaque refus lui apprend qu'un autre acceptera moins sûrement (``_engager``)."""
         def compter():
             minute = self.monde.data["minutes"]
-            return sum(1 for s in lire(self.monde, self.id)["memoire"]
-                       if s["type"] == "refus" and s["operation"] == "engager" and s.get("objet") == o
-                       and minute - s["minute"] < REDEMANDE)
+            return sum(1 for s, _ in self.refus_tenus()
+                       if s["operation"] == "engager" and s.get("objet") == o and minute - s["minute"] < REDEMANDE)
         return self._memo((o, "refus_taches"), compter)
 
     def personnes(self):
@@ -267,15 +295,11 @@ class Vue:
                                                     and x != self.id and profil(self.monde, x)])
 
     def refuse_achat(self, autre, o):
-        """Un refus récent de lui vendre ; ou de donner pour une raison que payer ne lève pas : il
-        le garde, ou se méfie de lui."""
-        cle = (autre, o, "refus_achat")
-        crus = self._crus
-        if cle not in crus:
-            refus = refuse_recemment(self.monde, self.id, autre, "demander", o)
-            crus[cle] = (refuse_recemment(self.monde, self.id, autre, "acheter", o)
-                         or refus and refus["raison"] in ("necessaire", "mefiance"))
-        return crus[cle]
+        """Un refus qui tient, de lui vendre ou de donner, pour une raison que payer ne lève pas : il le
+        garde, ne peut pas, ou se méfie de lui. Payer lève un refus d'humeur ; un achat refusé faute
+        d'argent dépend de ce qu'il a (``richesse``)."""
+        refus = self.retenu(autre, ("acheter", "demander"), o)
+        return bool(refus and refus["raison"] not in ("refus", "pauvre"))
 
     def promesse(self, o):
         cle = (o, "promesse")
@@ -409,8 +433,7 @@ class Vue:
         return trouvees
 
     def refuse_feu(self, autre, source):
-        return self._memo((autre, source, "refus_feu"),
-                          lambda: refuse_recemment(self.monde, self.id, autre, "demander_feu", source))
+        return self.retenu(autre, ("demander_feu",), source)
 
     def flammes_fixes(self, e):
         """Les sources fixes qu'il croit allumées dans la salle où il se tient : il y porte ce
@@ -771,12 +794,21 @@ def _engager(v, e, condition):
     if v.richesse - (e.fait("depense") or 0) < prix:
         return
     for autre in v.personnes():
-        if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False or v.refuse_tache(autre, o):
+        if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False:
             continue
-        yield (0, 1 + DEMANDE * (1 + v.refus_taches(o)) / PRET + v.depense(prix) + peine,
-               [_etape("engager", autre, contenu={"condition": dict(condition), "prix": prix})],
+        # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre plus,
+        # s'il le peut (``SURENCHERE``).
+        offre, refus = prix, v.refuse_tache(autre, o)
+        if refus:
+            if refus["raison"] != "cher":
+                continue
+            offre = prix if prix > refus["prix"] else SURENCHERE * refus["prix"]
+            if v.richesse - (e.fait("depense") or 0) < offre:
+                continue
+        yield (0, 1 + DEMANDE * (1 + v.refus_taches(o)) / PRET + v.depense(offre) + peine,
+               [_etape("engager", autre, contenu={"condition": dict(condition), "prix": offre})],
                e.apres(faits=effets_tache(condition) + [(("engage", o), autre),
-                                                        (("depense",), (e.fait("depense") or 0) + prix)]), 1)
+                                                        (("depense",), (e.fait("depense") or 0) + offre)]), 1)
 
 
 def _parts(v, e, o, dans, vises, but):
@@ -886,10 +918,12 @@ def _entrees(v, vises, profondeur, noeuds):
         # Les salles hélées en vain (``_chercher``), tant qu'elles comptent.
         [[q, sorted(appels_vains(monde, id, q))] for q in sorted({s["qui"] for s in esprit_["memoire"]
                                                                    if s["type"] == "appel_sans_reponse"})],
-        [[s, minute - s["minute"] < (REDEMANDE if s["type"] == "refus" else ATTENTE_PART),
+        [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
-         for s in esprit_["memoire"] if s["type"] in ("refus", "promis", "nourri")],
+         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri")],
+        # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
+        [[s, tenu, minute - s["minute"] < REDEMANDE] for s, tenu in v.refus_tenus()],
         esprit_["visites"],
         # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
         [[k, {a: w for a, w in o.items() if a not in CHANGEANTS}, "allume" in o,
@@ -1300,7 +1334,7 @@ def reclamer(monde, id):
     for p in prets(monde):
         if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
                 and echu(monde, p["objet"])
-                and not refuse_recemment(monde, id, p["a"], "demander", p["objet"])):
+                and not refus_retenu(monde, id, p["a"], ("demander",), p["objet"])):
             objets.setdefault(p["a"], []).append(p["objet"])
     if not du and not objets:
         return None
@@ -1330,16 +1364,16 @@ def reclamer(monde, id):
 def s_enquerir(monde, id, besoin):
     """(but, étapes) pour demander à quelqu'un s'il a de quoi apaiser ``besoin`` (des vivres, du
     bois : ``echanges.enqueter``), quand rien de ce qu'il connaît n'y pourvoit : à qui il ne connaît
-    rien de tel, qu'il ne se méfie pas et qu'il n'a pas interrogé depuis ``REDEMANDE`` minutes, le
-    plus proche de là où il le croit. None s'il n'a personne à qui le demander."""
-    from .deliberation import REDEMANDE
+    rien de tel, qu'il ne se méfie pas et dont la réponse refusée ne tient plus (``deliberation.tient``),
+    le plus proche de là où il le croit. None s'il n'a personne à qui le demander."""
     if not profil(monde, id):
         return None
     v = Vue(monde, id)
     e = depart(monde, id, v)
-    minute = monde.data["minutes"]
-    interroges = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "enquete" and s["besoin"] == besoin
-                  and minute - s["minute"] < REDEMANDE}
+    # Qui n'en a pas, il ne le lui redemande pas tant que rien de ce qu'il croit de ces ressources n'a
+    # changé ; qui s'est méfié, pas avant ``REDEMANDE`` minutes (``deliberation.tient``).
+    interroges = {s["de"] for s in lire(monde, id).get("refus", ()) if s["operation"] == "enqueter"
+                  and s.get("besoin") == besoin and tient(monde, id, s, v.connus)}
     connus = {v.proprietaire[o] for o in v.connus if v.besoin[o] == besoin}
     candidats = []
     for autre in v.personnes():
