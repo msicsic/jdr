@@ -178,13 +178,10 @@ class CroyancesTests(unittest.TestCase):
         m = nouveau_monde()
         data = m.data
         data["esprits"] = {}
-        data["objets"]["marchand"]["dernier_son_entendu"] = {
-            "tour": 3, "minute": 2, "origine": "antichambre", "nature": "appel", "intensite": 3}
-        data["objets"]["marchand"]["reaction_son"] = {"seuil": 2}
+        # Le dernier son et le réflexe sonore d'une ancienne partie ne sont plus migrés (``ouie``).
         data["objets"]["marchand"]["trajet"] = {"vers": "antichambre", "minutes": 0}
         reprise = Monde(data)
         self.assertNotIn("trajet", reprise.objets["marchand"])
-        self.assertEqual(lire(reprise, "marchand")["memoire"][0]["nature"], "appel")
         self.assertEqual(lire(reprise, "marchand")["intention"]["but"]["lieu"], "antichambre")
         reprise = attendre(reprise)
         self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")

@@ -653,7 +653,7 @@ def consigner(monde, reponse):
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.")
     paroles = []
     if rapport["paroles"]:
-        from .sons import auditeurs
+        from .ouie import saisissent
         from .voix import connaitre, reel
         for parole in rapport["paroles"]:
             # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
@@ -662,7 +662,8 @@ def consigner(monde, reponse):
                 raise ErreurMonde("Le locuteur n'est plus présent pour cette parole.")
             if monde.visible(locuteur["id"]):
                 connaitre(monde, "joueur", locuteur["id"])  # Il le voit parler : il saura reconnaître sa voix.
-            entendants = auditeurs(monde, salle, 2)
+            # Qui en saisit les mots, par l'ouïe commune ; le joueur, à qui elle s'adresse.
+            entendants = sorted(saisissent(monde, locuteur["id"]))
             if "joueur" not in entendants:
                 entendants.append("joueur")
             paroles.append({

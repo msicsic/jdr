@@ -897,12 +897,108 @@ Limites :
   n'apprend un nom que d'une voix qui se nomme. Les répliques que Luna prête aux PNJ ne relient pas les
   voix entre elles (elles s'adressent à Corvus).
 
+## L'ancien son fondu dans l'ouïe commune (branche `ouie-commune`)
+
+Deux systèmes coexistaient : l'ouïe commune (pas, gestes, voix, héler) et l'ancien son
+(`sons.appliquer`, `portee`, `auditeurs`) pour l'appel à l'aide, le cri, le sifflement du joueur et
+le son d'un objet, avec sa portée salle par salle (une ouverture 1, une porte 2, sans distance), une
+humeur « inquiet » ou « méfiant » forcée à qui l'entendait, un souvenir `son` à part et un réflexe
+déclaré (`reaction_son`) qui faisait rejoindre l'origine d'office, ou accourir le protecteur d'un
+protégé (connu de façon omnisciente). Un même cri ne s'entendait pas pareil selon qu'il venait du
+joueur ou d'un PNJ ; la cloche ignorait la distance ; le réflexe court-circuitait le devoir et le
+courage. Règles retenues :
+
+- **Une seule ouïe.** Les sons du joueur et des objets retentissent par `ouie.retentir` (depuis
+  `moteur._terminer_etape`, nature donnée par `sons.nature_emise`) : appel à l'aide et cri sont des
+  appels (9 crans), un sifflement un fracas (7, inhabituel, sans mots), le son d'un objet selon sa
+  sonorité (`ouie.SONS` : 1 un geste, 2 un fracas, 3 un appel ; la cloche d'alarme), un son improvisé
+  de même selon son intensité. `sons.portee`, `liens` et `auditeurs` disparaissent ; `data["sons"]`
+  garde l'historique de ce qui est émis, avec ceux qui l'entendent par l'ouïe commune
+  (`sons.entendants`) ; les paroles que le MJ prête aux PNJ sont entendues de ceux qui en saisissent
+  les mots (`ouie.saisissent`, `narration`, `faits_locaux`) ; l'humeur liée au tapage du joueur se
+  calcule sur ceux qui entendraient un fracas.
+- **Un appel porte la voix.** Sans mots, un appel ou un cri fait savoir qui crie à qui connaît cette
+  voix (`voix.reconnaitre`) : il le croit là (`entendu`) et le bruit qu'il retient le nomme (`qui`).
+- **Plus de réflexe, une alarme délibérée** (`deliberation.alarme`) : le seuil d'alerte devient une
+  donnée du profil (`alerte`, en crans de l'ouïe commune). Un bruit inconnu d'un autre lieu qui lui
+  est parvenu à ce niveau, ou l'appel d'un protégé dont il a reconnu la voix, l'envoie voir avant tout
+  le reste (le but `voir` du planificateur, motif devoir) ; les autres bruits suivent `bruit_a_voir`
+  (devoir de garde, courage). Sans passage cru, aucun plan : il ne part pas. Un personnage sans profil
+  (la crypte) ne délibère pas : il retient le bruit inhabituel qu'il entend sans le voir, sans bouger.
+  Données migrées : à l'auberge, le `reaction_son` d'Hugues (seuil 2 de l'ancienne échelle : un appel
+  d'une salle voisine ouverte) devient `alerte` 3 (le même appel lui parvient à 3 crans depuis la
+  cuisine) ; une partie qui porte encore `reaction_son` est refusée au chargement (pas de migration).
+- **Plus d'humeur forcée** : l'inquiétude ne vient que de l'ouïe commune, à la mesure de ce qui
+  parvient (`deliberation.inquieter`, déjà en place pour les autres bruits).
+- **Un seul souvenir** : le souvenir `bruit` de l'ouïe commune (lieu, nature, niveau le plus fort,
+  `qui` d'un appel reconnu) ; `esprits.dernier_son`, que le MJ reçoit (`dernier_son_entendu`), le lit.
+  `esprits.entendre` et `pnj.reagir` disparaissent. Ce qu'un PNJ voit faire n'a pas besoin de l'ouïe :
+  un joueur qui chante sous ses yeux ne laisse aucun bruit retenu.
+- **L'appelé se tourne vers la voix** (`ouie._vers_la_voix`) : hélé par son nom, il se tourne vers
+  l'appelant dans sa salle, ou vers le seuil par où la voix arrive d'une autre, le temps de la
+  rotation, et peut ainsi le voir (« se tourne vers la voix qui l'appelle » ; mesure `vers_la_voix`).
+- **La réponse au joueur vient à la fin de son cri** : le moteur décide qui répond après que les PNJ
+  ont vécu les 3 secondes du cri (`moteur._terminer_etape`, `pnj.repondre` après `avancer`).
+
+Vérifié après rechargement (`tests/test_ouie_commune.py`, et les tests adaptés de `test_sons`,
+`test_reactions`, `test_protection`, `test_improvisation`, `test_narration`, `test_securite`,
+`test_eau`, `test_esprits`, `test_rejeu`) : l'appel du joueur derrière la porte étanche fermée
+parvient à 6 crans contre la porte et à 3 au fond des vannes (avant : 1 partout) ; au seuil d'alerte
+5, le proche accourt, le lointain non ; d'un bloc ou découpé en rotations rechargées, Gorm alerté va
+chercher la clé du relais et le monde est le même ; la cloche, sonnée de la galerie, parvient au
+refuge comme un appel, et Gorm ira voir (devoir) ; Ilse à bout appelle, Gorm reconnaît sa voix et
+accourt, il ne le fait pas s'il ne connaît pas sa voix ; Hugues (alerte 3, cas réel) accourt à l'appel
+du couloir, Odile non ; Gorm hélé dans son dos se tourne, voit le joueur et répond, et appelé d'une
+autre salle se tourne vers le passage ; la réponse du joueur hélant est datée de la fin de ses 3
+secondes. `VERIFIER` sur une nuit de chaque scénario.
+
+Bancs 8 h, `main` cd38352 puis la branche (Relais 8 graines, joueur à la galerie ; mine, auberge et
+crue 4 ; moyennes par nuit, `main` → branche) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| appels (héler) / réponses | 1,25 / 1,13 → 1,25 / 1,13 | 2,75 / 2,25 → 2,75 / 2,25 | 6,75 / 2,25 → 5,25 / 1,75 | 2,5 / 2,5 → 2,5 / 2,5 |
+| retrouvailles | 1 → 1,13 | 2,25 → 2,25 | 2 → 1,5 | 2,25 → 2,25 |
+| appels à l'aide | 0,38 → 0,38 | 3 → 3,25 | 2,25 → 3,25 | 0 → 0 |
+| allés voir | 9,25 → 9,25 | 13,75 → 18,25 | 39,25 → 35,25 | 12,75 → 12,75 |
+| bruits inconnus | 50,25 → 50,25 | 57,5 → 62 | 134,5 → 126,75 | 75 → 75 |
+| retournements | 145,1 → 144,9 | 164,5 → 167,3 | 119 → 113 | 153 → 153 |
+| tournés vers la voix (nouveau) | → 0,88 | → 1,5 | → 1,25 | → 0,75 |
+| sécurité en fin de nuit (moyenne des PNJ) | 0,1 → 0,1 | 33,3 → 29,9 | 19,3 → 21,9 | 5,4 → 5,4 |
+| vols vus | 0,88 → 0,88 | 1 → 1 | 0,5 → 0,75 | 0 → 0 |
+| sans recours / en attente | 53,8 / 66,3 → 53,8 / 66,3 | 55 / 281 → 55 / 279 | 43,8 / 541 → 30 / 541 | 15 / 107,5 → 15 / 107,5 |
+| nuits distinctes | 8 partout → 8 partout | 4 → 4 | 4 → 4 | 4 → 4 |
+| temps d'une nuit | 6,3 → 6,2 s | 23,7 → 22,3 s | 17,9 → 17,8 s | 7,9 → 8,4 s |
+
+Aucune usurpation ni violation (le banc vérifie l'état à chaque pas). Le temps de `main` a été mesuré
+pendant que la suite de tests tournait, celui de la branche au calme : écarts de temps non
+significatifs. Écarts expliqués :
+- Relais et crue : mêmes nuits, à ceci près que l'appelé se tourne vers la voix (une rotation de plus,
+  un retournement de moins quand il voyait déjà) ; une retrouvaille de plus au Relais (graine 3 :
+  Aubin, hélé par Gorm, se tourne vers sa voix et le retrouve, au lieu de cesser de l'attendre) ;
+- mine : Lucien, blessé, appelle à l'aide ; Rémy, son ami qui le protège, et Mathe reconnaissent sa
+  voix et accourent par le but « voir » (Rémy 7 → 17 « va voir » sur les quatre nuits) : avant, le
+  réflexe faisait rejoindre l'origine sans passer par ce but ni être compté ; la sécurité finit plus
+  basse ;
+- auberge : Hugues n'accourt plus qu'aux bruits qui lui parviennent à 3 crans (68 → 54 « va voir ») ;
+  les nuits se décalent ensuite (moins d'appels par le nom, plus d'appels à l'aide d'Anselme, moins
+  de minutes sans recours).
+
+Limites :
+- un personnage sans profil ne délibère pas : il retient le bruit, sans y réagir (la crypte) ;
+- le seuil d'alerte est une constante par personnage, pas encore un état (fatigue, garde) ; il ne
+  vaut que pour un bruit venu d'un autre lieu ;
+- un appel fait reconnaître qui crie à qui connaît sa voix, sans retenir une voix inconnue ; un cri du
+  joueur n'est reconnu que de qui connaît sa voix ;
+- la nature d'un son d'objet tient à sa sonorité en trois paliers (`ouie.SONS`) ;
+- l'appelé dans une autre salle se tourne vers le seuil par où la voix arrive, pas vers l'appelant ;
+  rien de nouveau s'il regarde déjà par là ;
+- dans la scène de test de la protection (Ilse à bout dans l'échoppe obscure), découper le temps
+  change la minute d'une croyance (l'état du brasero éteint revu) sans en changer la valeur : défaut
+  déjà présent sur `main`, hors de ce chantier.
+
 ## Limites
 
-- Les réflexes déclarés (`reaction_son`, le protecteur qui accourt) et le souvenir « son » restent
-  sur l'ancienne portée (`sons.portee`, échelle 1 à 3) : pour les émissions vocales du joueur, les
-  sons d'objets et les appels de PNJ, deux portées coexistent (l'inquiétude, elle, ne vient que de
-  l'ouïe commune). À fondre.
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la
   case de l'auteur, pas de l'objet.
 - Pas d'endormissement : seul le repos assourdit. Une voix dont on saisit les mots fait reconnaître

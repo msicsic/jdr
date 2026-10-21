@@ -83,7 +83,8 @@ class RejeuTests(unittest.TestCase):
 
     def test_les_retournements_enregistres_sont_ceux_de_la_chronique(self):
         retournes = sum("tourne" in r[2].split("+") for b in self.enregistreur.bruits for r in b["r"])
-        racontes = sum("se retourne au bruit" in c["texte"] for c in self.chronique)
+        racontes = sum("se retourne au bruit" in c["texte"] or "se tourne vers la voix" in c["texte"]
+                       for c in self.chronique)
         self.assertEqual(retournes, racontes)
         for b in self.enregistreur.bruits:
             self.assertIn(b["n"], ("feutre", "pas", "geste", "voix", "bruyant", "hele", "appel"))

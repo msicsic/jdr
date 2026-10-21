@@ -251,17 +251,20 @@ class PnjTests(unittest.TestCase):
         # Au refuge, ceux qui ne l'ont pas vue monter assez longtemps y restent.
         self.assertEqual(m.objets["brune"]["lieu"], "antichambre")
 
-    def test_un_reflexe_sans_passage_tombe(self):
-        from donjon.deliberation import deliberer
-        from donjon.pnj import reagir
+    def test_une_alarme_sans_passage_tombe(self):
+        from donjon.deliberation import alarme, deliberer
+        from donjon.esprits import memoriser
         m, _ = attendre(calme(crue(FIXES), "marchand", "brune", "ilse", "aubin"), 140)
         placer(m, "marchand", "antichambre", (2, 2))
         percevoir(m, "marchand")
-        # Un appel de la galerie : Gorm voudrait accourir, mais il croit la conduite noyée.
-        reagir(m, "marchand", "chambre_cloche", 3, "ilse")
-        self.assertEqual(lire(m, "marchand")["intention"]["motif"], "alerte")
+        # Placement d'auteur : un appel d'Ilse, sa protégée, venu de la galerie (``ouie``) ; Gorm
+        # voudrait accourir, mais il croit la conduite noyée : aucun plan, il ne part pas.
+        memoriser(m, "marchand", {"type": "bruit", "salle": "chambre_cloche", "nature": "appel", "niveau": 3,
+                                  "qui": "ilse"})
+        self.assertEqual(alarme(m, "marchand"), ("chambre_cloche", "devoir"))
         deliberer(m, "marchand", m.data["minutes"])
-        self.assertNotEqual((lire(m, "marchand")["intention"] or {}).get("motif"), "alerte")
+        self.assertNotEqual((lire(m, "marchand")["intention"] or {}).get("but"),
+                            {"type": "voir", "lieu": "chambre_cloche"})
 
 
 class ReveleParLaCrueTests(unittest.TestCase):

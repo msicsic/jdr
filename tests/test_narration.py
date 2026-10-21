@@ -367,7 +367,8 @@ class NarrationTests(unittest.TestCase):
         self.assertIn("rythme avec ton corps", sortie.getvalue())
         self.assertTrue(reprise.data["sons"][-1]["auditeurs"])
         self.assertEqual(reprise.data["sons"][-1]["forme"], "corps_rythmique")
-        self.assertNotIn("intention", dernier_son(reprise, "marchand"))
+        # Gorm le voit faire : il n'en garde aucun bruit (``ouie``), et rien d'inventé.
+        self.assertNotIn("intention", dernier_son(reprise, "marchand") or {})
         for texte in (sortie.getvalue(), str(reprise.data["gestes_improvises"]),
                       str(reprise.data["sons"]), str(reprise.data["journal"]),
                       str(reprise.data["arbitrages"]), str(reprise.contexte()),
