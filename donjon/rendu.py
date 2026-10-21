@@ -260,7 +260,14 @@ def fiche(monde):
             f'{monde.charge():.1f}/{j["capacite"]} kg | {monde.data["minutes"]} min\n'
             + stats + ("\n" + " | ".join(profil) if profil else "")
             + "\n" + " | ".join(f"{nom.capitalize()} : {niveau}" for nom, niveau in etat_corps(monde).items())
-            + "\nBesace :\n  " + "\n  ".join(sac) + "\n\n" + decrire_accords(monde))
+            + "\nBesace :\n  " + "\n  ".join(sac) + "\n\n" + decrire_accords(monde) + decrire_comptes(monde))
+
+
+def decrire_comptes(monde):
+    """Ce qu'on doit au joueur, ce qu'il a prêté et ce qu'on lui a prêté (``biens.comptes_joueur``)."""
+    from .biens import comptes_joueur
+    lignes = comptes_joueur(monde)
+    return ("\nComptes :\n  " + "\n  ".join(lignes)) if lignes else ""
 
 
 def decrire_accords(monde):

@@ -1,0 +1,21 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre",
+  "position": [1, 3],
+  "orientation": "sud",
+  "personnages": {
+   "aubin": {"salle": "antichambre", "position": [1, 4], "orientation": "nord"},
+   "brune": {"salle": "antichambre", "position": [0, 3], "orientation": "est"},
+   "ilse": {"salle": "antichambre", "position": [3, 5], "orientation": "nord-ouest"},
+   "marchand": {"salle": "echoppe", "position": [4, 1]}
+  },
+  "calmes": ["brune", "aubin", "ilse", "marchand"]
+ },
+ "tours": [
+  "Aubin, as-tu du bois ?",
+  "je demande à Brune si elle a de quoi manger",
+  "Aubin, tu me dois quelque chose ?"
+ ]
+}

@@ -144,7 +144,7 @@ class PartPayeeTests(unittest.TestCase):
         percevoir_tous(m)
         self.assertEqual(demander(m, "ilse", "marchand", "vivres", prix=2), "vendu")
         self.assertEqual((bourse(m, "ilse"), bourse(m, "marchand")), (6, 52))
-        self.assertEqual(lire(m, "marchand")["engagements"][0]["paye"], {"objet": "vivres", "prix": 2})
+        self.assertEqual(lire(m, "marchand")["engagements"][0]["paye"], {"objet": "vivres", "prix": 2, "quoi": "part"})
         return m
 
     def test_les_vivres_epuises_gorm_rend_les_pieces(self):
@@ -171,7 +171,7 @@ class PartPayeeTests(unittest.TestCase):
         lire(m, "ilse")["besoins"]["faim"] = 0.0
         m, _ = vivre(recharger(m), 1)
         self.assertEqual(m.data["dettes"], [{"de": "marchand", "a": "ilse", "montant": 2, "objet": "vivres",
-                                             "minute": 1}])
+                                             "quoi": "part", "minute": 1}])
         self.assertEqual((bourse(m, "ilse"), bourse(m, "marchand")), (6, 52))
         self.assertIn("creance", [s["type"] for s in lire(m, "ilse")["memoire"]])
         self.assertIn("dette", [s["type"] for s in lire(m, "marchand")["memoire"]])

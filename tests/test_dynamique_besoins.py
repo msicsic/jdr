@@ -95,6 +95,12 @@ class TenirTests(unittest.TestCase):
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         m.objets["poele"].update(allume=False, combustible=0)
         m.objets["bois_anselme"]["charges"] = 0
+        # Anselme ne paie personne pour rallumer son poêle (``echanges.engager``) et a déjà demandé à
+        # chacun s'il avait du bois (``echanges.enqueter``) : la chambre reste noire.
+        m.data["finances_pnj"]["anselme"] = 0
+        from donjon.esprits import memoriser
+        for autre in ("odile", "mireille", "tilo", "joss", "hugues", "mathurine", "lucien"):
+            memoriser(m, "anselme", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
         placer(m, "lucien", "grenier", (2, 2))
         percevoir_tous(m)
         lire(m, "lucien")["besoins"].update(biens=65.0, securite=70.0)
@@ -219,6 +225,9 @@ class AttenteTests(unittest.TestCase):
         lire(m, "ilse")["besoins"]["faim"] = 80.0
         memoriser(m, "ilse", {"type": "refus", "de": "marchand", "operation": "demander", "objet": "vivres",
                                 "raison": "necessaire"})
+        # Elle a déjà demandé aux autres s'ils avaient à manger (``echanges.enqueter``) : rien.
+        for autre in ("aubin", "brune"):
+            memoriser(m, "ilse", {"type": "enquete", "de": autre, "besoin": "faim", "objets": []})
         deliberer(m, "ilse", m.data["minutes"])
         m = recharger(m)
         self.assertIsNone(lire(m, "ilse")["intention"])

@@ -764,7 +764,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   voir », sans recours 43,8 → 30 ; aucune usurpation ni violation ; `VERIFIER` sur une nuit de chaque
   scénario. Limites : un personnage sans profil retient le bruit sans réagir ; seuil d'alerte
   constant ; l'appelé d'une autre salle se tourne vers le seuil.
-- La suite de tests passe : 1098 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `echanges-suite`, non fusionnée, accordée avec `main` 099dad8 (`docs/plan-social.md`, « Suite
+  des échanges » ; règles du joueur dans `docs/mecaniques.md`, « Prêter, confier, payer ») : six limites
+  de `echanges-argent` et `petits-correctifs-pnj`. **Rendre est un choix** (`biens.garde_du`, `regler`) :
+  garder l'argent dû est une faute au prix de l'honnêteté contre ce que valent ces pièces ; réclamé, le
+  débiteur qui garde refuse, le créancier s'en méfie et le confie (nouvelle `dette_niee`). **Une règle
+  pour toute contrepartie** : `paye` et la dette portent `quoi` (part, objet, tâche) ; un objet que le
+  vendeur ne porte pas se vend d'avance et se remet (`echanges.differee`, condition `remettre`,
+  `planification._remettre`). **Tâche payée entre PNJ** (`echanges.engager`, geste `engager`) : pour une
+  pulsion à soi sur ce qu'on pourrait faire sans faute ; acceptée si les pièces valent pour l'autre ce
+  que la tâche lui coûte (`devis_pulsion`), sauf méfiance ou ce qu'il garde ; engagement payé d'avance,
+  dû à l'échéance ; le payeur ne la fait pas à sa place (`deliberation.tache_payee`). **Prêt réclamé** :
+  un prêt échu (240 min) se réclame au joueur comme à un PNJ (but `reclamer`, `echanges._avec_joueur`) ;
+  qui le garde perd la confiance (`biens.prets_reclames`, nouvelle `pret_garde`). **Le joueur réclame**
+  par la parole (contenu `reclamer`, `attendu` si le sujet est inconnu) et voit ses comptes sur sa fiche
+  (`biens.comptes_joueur`). **« As-tu du bois ? »** (`echanges.enqueter`, `planification.s_enquerir`,
+  contenu `ressource` pour le joueur) : recours de la faim, du froid et d'un feu quand le plan échoue ; la
+  réponse dit ce qu'il a vraiment, le demandeur l'apprend par ouï-dire. Cas réels et cas de même nature
+  après rechargement (`tests/test_echanges_suite.py`, 21 tests), `VERIFIER` sur une nuit de chaque
+  scénario. Bancs 8 h contre `main` 099dad8, l'un après l'autre : tâches proposées / acceptées par nuit
+  Relais 2,6 / 0,4, mine 4,8 / 0,25, auberge 38 / 1 (faite), crue 2,75 / 1 ; « as-tu… ? » 2,4 / 13 / 22 /
+  2 ; minutes en attente 66 → 58, 279 → 273, 541 → 298, 108 → 69 ; sans recours égales sauf l'auberge
+  30 → 60 ; achats égaux ; aucune dette née au banc ; aucune usurpation ni violation ; temps Relais 8,7 →
+  9,3 s, mine 24,9 → 25,2 s, auberge 20 → 26,2 s (offres « impossible » répétées, l'auberge à court de
+  bois), crue 9,2 → 10 s. Luna (2 parties courtes sur des copies, `tests/data/bancs/comptes.json`,
+  `ressources.json`) : « Gorm, rends-moi… » typé `reclamer`, Gorm rend (5 appels) ; « « Brune, tu me dois
+  deux pièces… » » : refus du moteur, Brune refuse (3) ; « Aubin, as-tu du bois ? », « je demande à Brune
+  si elle a de quoi manger », « Aubin, tu me dois quelque chose ? » typés `ressource` et `reclamer`,
+  tranchés par le moteur (3 chacun). Limites : le payeur paie la peine qu'il estime, sans marchandage ;
+  ce qu'on consomme de ses biens pour une tâche n'est pas compté ; pas de tâche « aller voir » ; le
+  joueur ne prête ni ne paie de tâche ; la réponse ne dit que ce qu'il croit avoir ; constantes à régler.
+- La suite de tests passe : 1119 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

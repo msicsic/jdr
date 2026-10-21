@@ -13,6 +13,7 @@ parallèle (une par processus, sans stratège) et termine par leurs mesures et l
 ``--rejeu page.html`` écrit en plus la page où rejouer la nuit ; avec ``--graines``, une page par
 graine (``page_<graine>.html``, ou ``rejeu_<graine>.html`` dans le dossier donné).
 """
+import re
 import argparse
 from collections import Counter
 import json
@@ -231,6 +232,17 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "pieces_payees": sum(s["prix"] for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                                     if s["type"] == "vente"),
                "prets": memoire["pret"], "rendus": sum(c["texte"].endswith("(rendu).") for c in chronique),
+               # Dettes, tâches payées, réclamations et demandes de ce qu'on ne connaît pas (``echanges-suite``).
+               "dettes": sum(" doit désormais " in c["texte"] for c in chronique),
+               "remboursements": sum(bool(re.search(r" rend \d+ pièces? à ", c["texte"])) for c in chronique),
+               "refus_de_rembourser": sum(" refuse de rendre à " in c["texte"] for c in chronique),
+               "reclamations": sum(" réclame à " in c["texte"] or " de lui rendre " in c["texte"] for c in chronique),
+               "prets_gardes": sum(" ne se fie plus à " in c["texte"] for c in chronique),
+               "taches_proposees": sum(" offre " in c["texte"] and " fasse en sorte que " in c["texte"] for c in chronique),
+               "taches_acceptees": sum(" fasse en sorte que " in c["texte"] and c["texte"].endswith("(accepte).")
+                                       for c in chronique),
+               "taches_faites": sum(" a fait le travail que " in c["texte"] for c in chronique),
+               "demandes_ressource": sum(bool(re.search(r" demande à .* (s'il|si elle) a ", c["texte"])) for c in chronique),
                "vols_de_bourse": _vols_de_bourse(monde, chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):

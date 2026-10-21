@@ -20,7 +20,10 @@ from .esprits import croire, lire, memoriser, percoit, pnjs
 from .francais import complement_de, designer
 from .monde import normaliser
 
-NOUVELLES = ("vu_agir", "vol_surpris", "vu_porter", "mensonge_decouvert", "mensonge_dementi", "absence")
+# ``dette_niee`` : un débiteur refuse de rendre ce qu'il doit ; ``pret_garde`` : un emprunteur garde un
+# prêt échu qu'on lui réclame (``biens``).
+NOUVELLES = ("vu_agir", "vol_surpris", "vu_porter", "mensonge_decouvert", "mensonge_dementi", "absence",
+             "dette_niee", "pret_garde")
 RANG_MAX = 2           # une rumeur entendue de troisième main n'est plus répétée
 GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer": "a fermé",
           "deverrouiller": "a déverrouillé", "verrouiller": "a verrouillé",
@@ -42,7 +45,7 @@ def _fait(noyau):
 
 
 def accuse(evenement):
-    if evenement["type"] in ("vu_agir", "vol_surpris", "vu_porter"):
+    if evenement["type"] in ("vu_agir", "vol_surpris", "vu_porter", "dette_niee", "pret_garde"):
         return evenement["auteur"]
     if evenement["type"] in ("mensonge_decouvert", "mensonge_dementi"):
         return evenement.get("locuteur", "joueur")
@@ -129,6 +132,13 @@ def phrase(monde, noyau):
         return qui + " ment"
     if t == "vol_surpris":
         return qui + " a tenté de dérober " + designer(o)
+    il = "elle" if monde.objets.get(accuse(noyau), {}).get("genre") == "f" else "il"
+    if t == "dette_niee":
+        n = noyau["montant"]
+        return f"{qui} garde les {n} pièce{'s' if n > 1 else ''} qu'{il} doit à {_qui(monde, noyau['victime'])}"
+    if t == "pret_garde":
+        return (f"{qui} garde {designer(o)} que {_qui(monde, noyau['victime'])} lui a "
+                + ("prêtée" if o.get("genre") == "f" else "prêté"))
     if t == "vu_porter":
         return qui + " porte " + designer(o) + ", qui n'est pas à " + ("lui" if monde.objets.get(accuse(noyau), {}).get("genre") != "f" else "elle")
     verbe = GESTES[noyau["operation"]]
