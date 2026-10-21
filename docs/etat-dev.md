@@ -346,7 +346,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   recharge son poêle à temps, ce qui déplace le crochetage de Lucien. Aucune usurpation. Limites :
   on ne demande que le bois qu'on connaît ; une part de bois promise s'attend 60 minutes si l'on
   n'a pas revu le feu ; une ancienne sauvegarde lit False comme rompue.
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 870 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
