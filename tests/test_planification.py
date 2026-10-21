@@ -37,7 +37,8 @@ class FaimTests(unittest.TestCase):
         m.objets["brune"]["lieu"] = m.objets["marchand"]["lieu"]
         but, etapes = planifier(m, "brune", "faim")
         self.assertEqual(but, {"type": "part", "objet": "vivres", "de": "marchand"})
-        self.assertEqual(gestes((but, etapes)), [("demander", "marchand", "vivres")])
+        # Promise, la part s'attend près des vivres : le plan l'y mène, et ce temps compte.
+        self.assertEqual(gestes((but, etapes)), [("demander", "marchand", "vivres"), ("aller", "antichambre", "")])
 
     def test_une_part_promise_s_attend_pres_des_vivres(self):
         m = relais(refus=False)
@@ -183,7 +184,8 @@ class MemoireTests(unittest.TestCase):
         # Le refus s'oublie avec le temps : elle peut redemander sa part ; un nouveau refus l'en empêche.
         m.data["minutes"] += REDEMANDE
         self.assertEqual(gestes(planifier(m, "brune", "faim")), [("aller", "echoppe", ""),
-                                                                 ("demander", "marchand", "vivres")])
+                                                                 ("demander", "marchand", "vivres"),
+                                                                 ("aller", "antichambre", "")])
         memoriser(m, "brune", {"type": "refus", "de": "marchand", "operation": "demander", "raison": "necessaire",
                                "objet": "vivres"})
         self.assertIsNone(planifier(m, "brune", "faim"))

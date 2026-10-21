@@ -121,7 +121,10 @@ def _croyance_valide(monde, attribut, c):
             for k, v in c["valeur"].items()), "Croyance d'état invalide"
     elif attribut == "lumiere":
         # La lumière vue devant un objet, là où un geste demande d'y voir (0 à 2).
-        assert type(c.get("valeur")) is int and 0 <= c["valeur"] <= 2, "Croyance de lumière invalide"
+        # ``allumees`` : les sources qu'il croyait alors allumées et posées dans la salle.
+        assert (type(c.get("valeur")) is int and 0 <= c["valeur"] <= 2
+                and isinstance(c.get("allumees", []), list)
+                and all(isinstance(k, str) for k in c.get("allumees", []))), "Croyance de lumière invalide"
     elif attribut == "pieces":
         # Ce qu'il croit qu'une bourse contient : appris en la tenant, ou un savoir du scénario.
         assert type(c.get("valeur")) is int and c["valeur"] >= 0, "Croyance de pièces invalide"
@@ -477,9 +480,15 @@ def constater_lumiere_devant(monde, id, objet):
     """Là où il accomplit un geste qui demande d'y voir, il constate la lumière de sa case et la
     retient de ce qu'il touche (croyance ``lumiere`` : sans ce qu'on porte, comme celle d'une
     salle). Sa salle aussi (``constater_lumiere``). De loin, sa chance devant cet objet se juge
-    sur ce qu'il y a vu (``planification.Vue.lumiere_devant``), pas sur la case d'où il partait."""
+    sur ce qu'il y a vu (``planification.Vue.lumiere_devant``), pas sur la case d'où il partait.
+
+    Il retient aussi les sources qu'il croyait alors allumées et posées dans la salle
+    (``allumees``) : une source allumée ou posée depuis près de l'objet compte de loin dans ce
+    qu'il en croit (``deliberation.apport_cru``)."""
+    from .deliberation import sources_posees_crues
     constater_lumiere(monde, id)
-    croire(monde, id, objet, "lumiere", lumiere_ici(monde, id)[0], "vu")
+    croire(monde, id, objet, "lumiere", lumiere_ici(monde, id)[0], "vu",
+           allumees=sorted(sources_posees_crues(monde, id, monde.objets[id]["lieu"])))
 
 
 def percevoir(monde, id):
