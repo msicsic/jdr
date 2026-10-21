@@ -465,7 +465,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun prêt ni vol de bourse au banc (Odon ne sait pas ouvrir la porte du bureau, personne ne
   connaît la bourse d'Anselme), une part payée non servie n'est pas remboursée, pas de
   marchandage ni de tâche payée entre PNJ.
-- La suite de tests passe : 942 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `planif-defauts`, non fusionnée (`docs/plan-planificateur.md`, « Défauts corrigés ») :
+  trois défauts du planificateur des PNJ. **Chance crue** : la chance de crocheter est celle du jet
+  réel (`pnj.seuil_crochetage`) à la lumière qu'il croit là où il se tient (`lumiere_crue` ; la
+  croyance d'une salle porte son niveau, `esprits.constater_lumiere`) ; plus de chance plancher,
+  un geste impossible n'est pas envisagé, un essai manqué fait constater la lumière qu'il avait.
+  **Portes** : une porte qu'il croit verrouillée se crochète comme un contenant (même chance,
+  faute, bruit), puis la route y passe (`pnj.chemin`, `ouvertes`) ; la porte du bureau est à Bram.
+  **Pièces crues** : `enrichir` compte la croyance `pieces` (en tenant la bourse, ou savoir : la
+  paie de 200 que sait le camp), jamais l'objet. Cas réels et cas de même nature après
+  rechargement (`tests/test_planif_defauts.py`), `VERIFIER` sur une nuit de chaque scénario. Bancs
+  8 h contre `main` (au même moment) : sans recours Relais 294 → 296, mine 463 → 449, auberge
+  690 → 643, crue identique ; essais de crochetage mine 28,5 → 0,75, auberge 31,5 → 0,25 (Odon et
+  Lucien s'acharnaient dans le noir), Relais 3,6 → 3,5 ; achats égaux ; vols vus auberge 1 → 0,25
+  (plus de fracas à voir) ; aucune usurpation ; temps d'une nuit égal, auberge 28 → 32,5 s. Odon
+  envisage la porte du bureau mais le baraquement n'est jamais sans témoin : il renonce (aucune
+  porte crochetée au banc). Limites : lumière crue de la case où il se tenait (un essai perdu au
+  plus), pas de « forcer » pour les PNJ, contenu d'une bourse appris seulement en la tenant.
+- La suite de tests passe : 950 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
