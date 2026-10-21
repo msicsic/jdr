@@ -255,13 +255,38 @@ class VoixInconnueTests(unittest.TestCase):
         validee = entrees[1]["faits"]["conversation_validee"]
         self.assertEqual((validee["personnage"], validee["destinataires"]), (alias, [alias]))
         self.assertIn("Une voix inconnue se nomme : « Brune ».", validee["faits"])
-        self.assertIn("Tu dis à une voix qui se dit Brune : « Qui est là ? »", sortie)
+        self.assertIn("Tu dis à une voix inconnue : « Qui est là ? »", sortie)
         self.assertEqual(nom_pour_joueur(reprise, "brune"), "une voix qui se dit Brune")
         self.assertEqual(reprise.contexte()["interlocuteurs"][alias]["nom"], "une voix qui se dit Brune")
         # Un nom n'est pas une identité : il ne peut s'adresser à « Brune » qu'il ne sait pas là.
         from donjon.paroles import ParoleImpossible, analyser, destinataires
         with self.assertRaises(ParoleImpossible):
             destinataires(reprise, analyser(reprise, "je dis à Brune : approche"))
+
+
+class NarrationTests(unittest.TestCase):
+    def test_une_voix_inconnue_ne_se_nomme_pas_sans_le_moteur(self):
+        """Vu avec Luna : à « Approche-toi, que je te voie », la voix inconnue répondait « Je suis
+        Brune, oui », sans que le moteur l'ait fait se nommer (Luna reprenait la question du joueur).
+        Le contrôle déterministe refuse qu'une voix inconnue nomme qui que ce soit au-delà de ce que
+        le moteur a établi ; nommée, elle peut redire son nom."""
+        from donjon.narration import voix_inconnues
+        m = VoixInconnueTests().gorm_dans_le_noir()
+        parole_ = [{"locuteur": "voix_1", "texte": "Je suis Brune, oui."}]
+        inconnue = {"interlocuteurs": {"voix_1": {"nom": "une voix inconnue", "voix_inconnue": True}}}
+        self.assertEqual(len(voix_inconnues(m, parole_, inconnue)), 1)
+        nommee = {"interlocuteurs": {"voix_1": {"nom": "une voix qui se dit Brune", "voix_inconnue": True}}}
+        self.assertEqual(voix_inconnues(m, parole_, nommee), [])
+        validee = {**inconnue, "conversation_validee": {"faits": ["Une voix inconnue se nomme : « Brune »."]}}
+        self.assertEqual(voix_inconnues(m, parole_, validee), [])
+        # Vu ensuite avec Luna : la voix demandait « Tu dis t'appeler Corvus ? » sans qu'il se soit nommé.
+        self.assertEqual(len(voix_inconnues(m, [{"locuteur": "voix_1", "texte": "Tu dis t'appeler Corvus ?"}],
+                                            nommee)), 1)
+        # Vu ensuite avec Luna : « Brune répond tout près de toi » ; le récit ne lui donne pas ce nom.
+        self.assertEqual(len(voix_inconnues(m, [], nommee, "Brune répond tout près de toi : « Oui. »")), 1)
+        self.assertEqual(voix_inconnues(m, [], nommee, "La voix qui se dit Brune répond : « Oui. »"), [])
+        connue = {"interlocuteurs": {"brune": {"nom": "Brune, batelière évacuée"}}}
+        self.assertEqual(voix_inconnues(m, [{"locuteur": "brune", "texte": "Je suis Brune."}], connue), [])
 
 
 def gorm_et_une_voix(qui="brune"):

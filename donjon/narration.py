@@ -260,6 +260,51 @@ def destinataires_parole(faits, locuteur):
     return [locuteur]
 
 
+def voix_inconnues(monde, paroles, faits, texte=""):
+    """Obstacles déterministes : une voix que Corvus ne sait à qui prêter (un interlocuteur
+    ``voix_inconnue``) ne dit pas qui elle est ni ne nomme personne de plus que ce que le moteur
+    lui fait dire : le nom qu'elle s'est donné (son nom d'interlocuteur) et ce qu'établit l'issue
+    de cette parole (``conversation_validee``). Qui elle est, c'est au moteur de le décider
+    (``voix.se_nommer``) ; le MJ ne le sait pas. Le récit, hors des répliques, ne lui donne pas
+    non plus le nom qu'elle s'est donné : c'est « la voix qui se dit … », pas cette personne."""
+    interlocuteurs = faits.get("interlocuteurs") or {}
+    validee = faits.get("conversation_validee") or {}
+    obstacles = []
+    recit = lexique.normaliser(CITATIONS.sub(" ", texte))
+    for entree in interlocuteurs.values():
+        nom = entree.get("nom", "") if isinstance(entree, dict) and entree.get("voix_inconnue") else ""
+        pretendu = lexique.normaliser(nom.split("(")[0]).replace("une voix", "voix").strip()
+        reste = recit.replace(pretendu, " ") if pretendu else recit
+        dits = sorted(x for x in lexique.entites_citees(monde, nom)
+                      if x in monde.objets and monde.objets[x]["type"] == "personnage")
+        if dits and any(x in lexique.entites_citees(monde, reste) for x in dits):
+            obstacles.append({"segment": None, "texte": texte,
+                              "motif": f"Corvus ne sait pas qui parle : c'est {nom}, pas cette personne. Dans le "
+                                       "récit, désigne-la comme une voix (« la voix qui se dit … »), sans lui "
+                                       "donner ce nom."})
+    for parole in paroles:
+        entree = interlocuteurs.get(parole["locuteur"]) or {}
+        if not entree.get("voix_inconnue"):
+            continue
+        etabli = " ".join([entree.get("nom", ""), *map(str, validee.get("faits") or []),
+                           str(validee.get("replique_joueur", ""))])
+        permis = lexique.entites_citees(monde, etabli)
+        nommes = sorted(x for x in lexique.entites_citees(monde, parole["texte"])
+                        if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis)
+        corvus = re.compile(r"\b" + re.escape(lexique.normaliser(monde.joueur["nom"].split(",")[0])) + r"\b")
+        if corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli)):
+            nommes.append("joueur")  # Elle ne sait pas davantage à qui elle parle.
+        if nommes:
+            obstacles.append({"segment": None, "texte": parole["texte"],
+                              "motif": f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa "
+                                       "réplique ne nomme personne de plus que ce que le moteur a établi (son nom "
+                                       "d'interlocuteur, conversation_validee) : retire "
+                                       + ", ".join(f"« {(monde.joueur if x == 'joueur' else monde.objets[x])['nom'].split(',')[0]} »"
+                                                   for x in nommes)
+                                       + "."})
+    return obstacles
+
+
 def citations_nouvelles(texte, faits):
     """Mots cités entre guillemets que rien de ce que le MJ a reçu ne contient : une parole
     nouvelle, et non le rappel d'une parole entendue ou d'une inscription. Le retour du moteur
@@ -419,7 +464,8 @@ def consigner(monde, reponse):
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
     if (rapport["obstacles"] or rapport["texte_controle"] != texte
-            or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""))):
+            or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""))
+            or voix_inconnues(monde, rapport["paroles"], audit["faits"], texte)):
         # Même base que l'audit : ce qu'un personnage croit peut figurer dans sa propre réplique.
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.")
     paroles = []

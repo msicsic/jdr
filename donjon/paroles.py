@@ -588,7 +588,9 @@ def annonce(monde, rapport):
     if rapport["personnage"] == "personne":
         return f"{tour}Tu {verbe} : « {rapport['replique_joueur']} »"
     from .voix import nom_pour_joueur, reel
-    a = "tous" if rapport["personnage"] == "tous" else nom_pour_joueur(monde, reel(monde, rapport["personnage"]))
+    # Le nom qu'il lui donnait en parlant (``a_qui``), pas celui qu'elle s'est donné en répondant.
+    a = ("tous" if rapport["personnage"] == "tous"
+         else rapport.get("a_qui") or nom_pour_joueur(monde, reel(monde, rapport["personnage"])))
     return f"{tour}Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
 
 
@@ -893,7 +895,9 @@ def preparer_parole(monde, p, revision=None):
     travail.verifier()
     from .voix import reel
     presents = {reel(monde, d) for d in interlocuteurs(monde)}
+    from .voix import nom_pour_joueur
     rapport = {"personnage": attendu, "destinataires": [designation(monde, x) for x in dest],
+               **({"a_qui": nom_pour_joueur(monde, dest[0])} if len(dest) == 1 and not forme["groupe"] else {}),
                "temoins": [designation(monde, id) for id in temoins if id in presents],
                "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
                "operation": "parole_joueur", "replique_joueur": replique, "faits": faits,
