@@ -219,22 +219,25 @@ faire, une rumeur qui court plus tôt (auberge : Hugues accuse Lucien à 200 min
 part refusée à Gaspard à 221 minutes au lieu d'être promise le laisse affamé (+300 minutes) ; à
 l'auberge, graine 7, une nuit de panique (453 retournements) n'a plus lieu (213).
 
-**Correctif : une parole adressée reste une parole (branche `repli-et-appel`).** Vu sur `main` :
+**Correctif : ce qui est une parole sans conteste (branche `repli-et-appel`).** Vu sur `main` :
 « Aubin, viens m'aider à porter l'échelle », Aubin derrière le pilier, finissait en dix appels sur
 un refus, et « Ilse, tu peux m'aider à déplacer les planches ? » sur un dialogue où Luna racontait
-« Tu appelles Ilse et lui demandes… » sans que rien ne soit dit. Deux trous : un destinataire
-impossible laissait le MJ libre (`parole_prevue` sans personnage), et seule une parole sans
-conteste (guillemets, à tous, deux-points, chuchotement) interdisait le dialogue. Règle : une
-saisie qui interpelle un personnage ou dit à qui Corvus parle (« Aubin, … », « je demande à Gorm
-… », « je lui dis … ») est une parole (`paroles.adressee`), même une question ou une demande d'aide :
-ni dialogue du MJ, ni geste. Si le moteur ne peut pas la faire entendre, il le dit sans appel ; si
-le MJ s'obstine à la raconter ou à en faire un geste, le moteur prononce les mots du joueur tels
-quels, sans contenu typé (`mj.parole_du_moteur`) ; sans mots imposés (« je demande à Ilse de
-m'aider »), il demande au joueur de les donner plutôt que de les inventer. Une demande d'aide n'a
-pas de contenu typé : elle reste un propos, que le PNJ accepte ou non sans que rien ne l'engage.
-Limites : « Gorm, je te donne la cloche » est désormais une parole, comme entre guillemets ; le
-don se fait par « je donne la cloche à Gorm ». L'interpellation se lit en tête de saisie : « Brune,
-Ilse et Aubin sont où ? » devient une parole à Brune si elle est en vue.
+« Tu appelles Ilse et lui demandes… » sans que rien ne soit dit. Règle retenue par l'utilisateur :
+une saisie est une parole sans conteste (`paroles.analyser`, `explicite`) seulement si elle
+commence par des guillemets, par un verbe de parole (« je dis… », « je dis à Brune… », « je lui
+dis… », « je demande à Gorm… », « je chuchote… » ; « lance », qui dit aussi un geste, demande un
+destinataire ou un deux-points : `GESTES_HOMONYMES`) ou par « à tous ». Celle-là n'est ni un
+dialogue du MJ ni un geste : si le moteur ne peut pas la faire entendre, il le dit sans appel
+(« Tu ne vois pas Aubin d'ici : approche-toi pour lui parler », la cantonade proposée) ; si le MJ
+s'obstine à la raconter ou à en faire un geste, le moteur prononce les mots du joueur tels quels,
+sans contenu typé (`mj.parole_du_moteur`) ; sans mots imposés (« je demande à Ilse de m'aider »),
+il demande au joueur de les donner plutôt que de les inventer. Une interpellation sans guillemets
+(« Brune, pousse-toi », « Aubin, viens m'aider… ») reste du texte libre : Luna en fait une
+question, un geste ou une parole ; si elle en fait une parole, le moteur en fixe le destinataire
+(celui qu'elle nomme) et en garde les mots. Avec Luna (copies de la sauvegarde réelle) : en face
+d'Aubin, « Aubin, viens m'aider à porter l'échelle » devient une parole (3 appels) ; derrière le
+pilier, Luna répond qu'elle ne le voit pas (2 appels), et « je dis à Aubin : viens m'aider » reçoit
+le message du moteur sans appel. Une demande d'aide n'a pas de contenu typé : elle reste un propos.
 
 ## Limites
 
@@ -252,8 +255,8 @@ Ilse et Aubin sont où ? » devient une parole à Brune si elle est en vue.
 - Le joueur ne fait pas de jet d'ouïe ; ses gestes ont la nature de la table, plus l'arbitrage du
   bruit (3 : fracas).
 - Paroles : un destinataire doit être perçu par le joueur ; qui l'entend sans être vu (derrière le
-  pilier) n'est que témoin, et le nommer est refusé par le moteur, sans appel au MJ (« Tu ne vois
-  pas Aubin d'ici : approche-toi… », la cantonade proposée). Les répliques
+  pilier) n'est que témoin ; le nommer dans une parole sans conteste est refusé par le moteur, sans
+  appel au MJ (« Tu ne vois pas Aubin d'ici : approche-toi… », la cantonade proposée). Les répliques
   que Luna prête aux PNJ (`paroles_pnj`) ne sont pas entendues des autres PNJ. Un PNJ tout près
   d'un chuchotement n'en retient qu'un bruit feutré, pas qu'on chuchote. Sans cases, deux présents
   font toujours une ambiguïté, et l'on chuchote à quiconque est là. « je lui dis » vise le dernier

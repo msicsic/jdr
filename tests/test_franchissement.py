@@ -110,12 +110,14 @@ class FranchissementTests(unittest.TestCase):
             MJOpenAI().echanger(self.m, "Je vole par-dessus le mur")
         self.assertEqual(api.call_count, 2)
 
-    def test_question_ne_declenche_ni_prise_ni_saut(self):
+    def test_question_prepare_le_saut_sans_prise_ni_saut(self):
+        # Une question sur un geste se propose comme ce geste ; la boucle de jeu ne l'exécute pas.
         r = {"mode": "action", "texte": "", "faits": ["franchissements"], "proposition": saut()}
-        with patch.object(MJOpenAI, "_appeler", return_value=r) as api:
+        with (patch.object(MJOpenAI, "_appeler", return_value=r) as api,
+              patch.object(MJOpenAI, "_auditer_action")):
             reponse = MJOpenAI().echanger(self.m, "Puis-je sauter avec la perche ?")
-        self.assertEqual(api.call_count, 3)
-        self.assertEqual(reponse["mode"], "dialogue")
+        self.assertEqual(api.call_count, 1)
+        self.assertEqual((reponse["mode"], reponse["proposition"]), ("action", saut()))
         self.assertEqual(self.m.data["revision"], 0)
         self.assertEqual(self.m.objets["perche_1"]["lieu"], "cour")
 

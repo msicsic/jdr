@@ -60,10 +60,11 @@ fixe à qui Corvus parle et te le donne dans parole_prevue, si la saisie est une
 que le joueur nomme, sinon celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ;
 chuchoter ou murmurer, un seul, au contact. personnage = parole_prevue.personnage (un
 identifiant, tous, ou personne quand nul en vue ne l'entend : il parle à la cantonade, et
-personne ne lui répond). Une saisie qui interpelle un personnage (« Aubin, … ») ou dit à qui Corvus
-parle, entre guillemets, adressée à tous ou chuchotée est une parole, même une question ou une
-demande d'aide, et même si ses mots annoncent un geste : donner un objet se fait par l'action
-remettre ; ce qu'elle demande au personnage est son contenu. Les mots
+personne ne lui répond). Une saisie qui commence par des guillemets, par un verbe de parole (« je
+dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou par « à tous » est une
+parole, même si ses mots annoncent un geste : donner un objet se fait par l'action remettre ; ce
+qu'elle demande au personnage est son contenu. Une interpellation sans guillemets (« Aubin, … »)
+est à interpréter : question, geste ou parole. Les mots
 imposés par le joueur (parole_prevue.mots : entre guillemets, après un deux-points ou une
 interpellation comme « Gorm, … ») sont dits tels quels. Sinon,
 la réplique traduit son intention dans la bande expression_joueur : la précision suit l'INT,
@@ -261,7 +262,10 @@ VERBES_PAROLE = {**dict.fromkeys(("dis", "dit", "dire", "demande", "demander", "
                                   "repondre", "lance", "explique", "annonce", "raconte", "avoue", "confie",
                                   "affirme", "repete"), "voix"),
                  **dict.fromkeys(("chuchote", "chuchoter", "murmure", "murmurer"), "chuchote")}
-PRONOMS = {"lui": False, "leur": True}                          # le pronom désigne-t-il un groupe ?
+# Verbes de parole qui disent aussi un geste (« je lance la pierre ») : une parole seulement avec un
+# destinataire ou un deux-points (« je lance à tous : … »).
+GESTES_HOMONYMES = ("lance",)
+PRONOMS = {"lui": False, "leur": True}                        # le pronom désigne-t-il un groupe ?
 ARTICLES_NOM = ("le ", "la ", "l'", "les ")
 VOCATIF = re.compile(r"^\s*([^,!?:«»\"“”]{2,40}?)\s*[,:]\s*\S")
 JETON = re.compile(r"[^\W\d_](?:[\w'’-]*\w)?|[:,«»\"“”]")
@@ -319,7 +323,11 @@ def analyser(monde, intention):
     nommé ou groupe (« à tous »), suite de l'échange (``suite`` : « lui », « leur », ou « echange »
     pour des mots entre guillemets sans interpellation), mots imposés (entre guillemets, après un
     deux-points ou une interpellation), et si elle est sans conteste une parole (``explicite`` :
-    entre guillemets, à tous, chuchotée, mots après un deux-points)."""
+    elle commence par des guillemets, par un verbe de parole — « je dis… », « je lui dis… », « je
+    demande à Gorm… », « je chuchote… » — ou par « à tous »). Une parole sans conteste passe par
+    le moteur, qui la fait entendre : le MJ ne la raconte pas lui-même et ne la change pas en geste.
+    Une interpellation sans guillemets (« Aubin, viens m'aider ») n'en est pas une : le MJ
+    l'interprète librement (question, geste ou parole)."""
     s = (intention or "").strip()
     forme = {"maniere": "voix", "groupe": False, "nomme": None, "suite": False, "mots": None, "explicite": False}
     if s[:1] in GUILLEMETS:
@@ -335,6 +343,7 @@ def analyser(monde, intention):
         i += 1
     if i < len(mots) and mots[i] in VERBES_PAROLE:
         forme["maniere"] = VERBES_PAROLE[mots[i]]
+        homonyme = mots[i] in GESTES_HOMONYMES
         i += 1
         if i < len(mots) and mots[i] in PREPOSITIONS:
             n = _groupe_en(mots, i + 1)
@@ -349,7 +358,12 @@ def analyser(monde, intention):
         if i < len(jetons) and jetons[i].group() == ":":
             reste = s[jetons[i].end():].strip()
             forme.update(explicite=True, mots=(citation(reste) if reste[:1] in GUILLEMETS else reste) or None)
+        # Un verbe de parole en tête (« je dis… », « je demande à Gorm… ») annonce une parole.
+        if not homonyme or forme["nomme"] or forme["groupe"]:
+            forme["explicite"] = True
     else:
+        # Une interpellation sans guillemets (« Brune, pousse-toi ») reste du texte libre : le MJ
+        # l'interprète ; s'il en fait une parole, le moteur en fixe le destinataire (nomme).
         debut = _interpeller(monde, forme, s)
         if forme["groupe"] or forme["nomme"]:
             forme["mots"] = s[debut:].lstrip(" ,:") or None if debut else s
@@ -360,15 +374,6 @@ def analyser(monde, intention):
     if forme["groupe"] or forme["maniere"] == "chuchote":
         forme["explicite"] = True
     return forme
-
-
-def adressee(forme):
-    """La saisie est une parole : sans conteste (``explicite``), ou elle dit à qui Corvus parle, un
-    personnage qu'elle interpelle ou nomme après un verbe de parole (« Aubin, viens m'aider », « je
-    demande à Gorm de… »), ou « je lui dis ». Elle passe alors par le moteur, qui la fait entendre :
-    le MJ ne la raconte pas lui-même et ne la change pas en geste ; ce qu'elle demande à son
-    destinataire est son contenu typé."""
-    return bool(forme["explicite"] or forme["nomme"] or forme["groupe"] or forme["suite"])
 
 
 def _nom_court(monde, id):

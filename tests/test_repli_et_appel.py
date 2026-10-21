@@ -1,13 +1,15 @@
-"""Une parole adressée reste une parole ; un repli du contrôle narratif reste utile.
+"""Une parole sans conteste reste une parole ; un repli du contrôle narratif reste utile.
 
-Cas réels : « Aubin, viens m'aider à porter l'échelle » recevait une réponse du MJ en dialogue
-(Luna racontait « Tu appelles Ilse et lui demandes… » sans que rien ne soit dit), et « pousse toi ça
-prend trop de temps » finissait sur « Je ne peux pas encore répondre avec certitude. » quand les trois
-réponses de Luna étaient refusées. Une saisie qui interpelle quelqu'un, ou dit à qui Corvus parle, est
-une parole : le moteur la fait entendre, et la prononce lui-même si le MJ s'obstine à la raconter ou à
-en faire un geste. Quand aucune réponse n'est admise, le joueur lit ce que le moteur a établi, les
-phrases admises de la réponse, ou ce que Corvus perçoit de ce qu'il vise et ce qui manque.
-Chaque cas vérifie ce que lit le joueur et l'état après rechargement."""
+Cas réels : « pousse toi ça prend trop de temps » finissait sur « Je ne peux pas encore répondre
+avec certitude. » quand les trois réponses de Luna étaient refusées ; « Aubin, viens m'aider à
+porter l'échelle » (Aubin derrière le pilier) finissait en dix appels. Une saisie qui commence par
+des guillemets, par un verbe de parole (« je dis… », « je demande à Gorm… ») ou par « à tous » est
+une parole : le moteur la fait entendre, et la prononce lui-même si le MJ s'obstine à la raconter ou
+à en faire un geste. Une interpellation sans guillemets (« Aubin, … ») reste du texte libre pour le
+MJ ; s'il en fait une parole, le moteur en fixe le destinataire. Quand aucune réponse n'est admise,
+le joueur lit ce que le moteur a établi, les phrases admises de la réponse, ou ce que Corvus perçoit
+de ce qu'il vise et ce qui manque. Chaque cas vérifie ce que lit le joueur et l'état après
+rechargement."""
 import io
 from pathlib import Path
 import tempfile
@@ -68,10 +70,10 @@ def mj(appels):
     return [entree for fonction, entree in appels if fonction == "repondre_au_joueur"]
 
 
-class InterpellationTests(unittest.TestCase):
-    def test_cas_reel_le_mj_raconte_l_appel_le_moteur_le_prononce(self):
+class ParoleExpliciteTests(unittest.TestCase):
+    def test_le_mj_raconte_une_parole_explicite_le_moteur_la_prononce(self):
         m = scene()
-        saisie = "Aubin, viens m'aider à porter l'échelle"
+        saisie, mots = "je dis à Aubin : viens m'aider à porter l'échelle", "viens m'aider à porter l'échelle"
         reprise, sortie, appels = jouer(m, saisie, [
             dialogue("Tu appelles Aubin et lui demandes son aide."),
             dialogue("Tu demandes à Aubin de t'aider à porter l'échelle."),
@@ -80,35 +82,25 @@ class InterpellationTests(unittest.TestCase):
         self.assertIn("parole_joueur", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
         self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "aubin")
         # Le MJ s'obstine : le moteur prononce les mots du joueur, et Aubin répond.
-        self.assertIn(f"Tu dis à Aubin : « {saisie} »", sortie)
+        self.assertIn(f"Tu dis à Aubin : « {mots} »", sortie)
         self.assertIn("Aubin hoche la tête.", sortie)
         self.assertNotIn("Tu appelles Aubin", sortie)
         self.assertNotIn("Tu demandes à Aubin", sortie)
         # Après rechargement : Aubin a reçu la parole, Ilse l'a entendue sans qu'elle lui soit adressée.
-        self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["aubin"], saisie))
-        self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["aubin"], saisie))
-        self.assertEqual(reprise.data["paroles_joueur"][-1]["texte"], saisie)
+        self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["aubin"], mots))
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["aubin"], mots))
         self.assertEqual(reprise.data["conversation"][-1]["nature"], "parole_joueur")
 
-    def test_une_question_adressee_est_une_parole(self):
+    def test_un_geste_propose_pour_une_parole_explicite_laisse_parler_le_moteur(self):
         m = scene()
-        saisie = "Ilse, tu peux m'aider à déplacer les planches ?"
-        reprise, sortie, appels = jouer(m, saisie, [
-            parole(saisie, ("propos", "", "", ""), personnage="ilse"),
-            dialogue("Ilse hésite.")], [verdicts(NEUTRE)])
-        self.assertIn(f"Tu dis à Ilse : « {saisie} »", sortie)
-        self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["ilse"], saisie))
-
-    def test_un_geste_propose_pour_une_parole_adressee_laisse_parler_le_moteur(self):
-        m = scene()
-        saisie = "Aubin, aide-moi à porter l'échelle"
+        saisie = "« Aubin, aide-moi à porter l'échelle »"
         attendre = {"mode": "action", "texte": "", "faits": [], "proposition": proposition("attendre", "")}
         reprise, sortie, appels = jouer(m, saisie, [attendre, attendre, dialogue("Aubin te regarde.")],
                                         [verdicts(NEUTRE)])
         self.assertIn("le geste annoncé attend que le joueur le fasse",
                       mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
-        self.assertIn(f"Tu dis à Aubin : « {saisie} »", sortie)
-        self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["aubin"], saisie))
+        self.assertIn("Tu dis à Aubin : « Aubin, aide-moi à porter l'échelle »", sortie)
+        self.assertEqual(paroles_retenues(reprise, "aubin")[-1][1], ["aubin"])
         self.assertFalse(reprise.data["journal"])  # Aucun geste n'a eu lieu.
 
     def test_sans_mots_le_moteur_ne_les_invente_pas(self):
@@ -121,20 +113,48 @@ class InterpellationTests(unittest.TestCase):
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
         self.assertEqual(paroles_retenues(reprise, "ilse"), [])
 
-    def test_celui_qu_on_ne_voit_pas_le_moteur_dit_ce_qui_manque_sans_appel(self):
+
+class InterpellationTests(unittest.TestCase):
+    """Sans guillemets ni verbe de parole, une interpellation est du texte libre pour le MJ."""
+
+    def test_le_mj_peut_repondre_sans_parole(self):
+        m = scene()
+        reprise, sortie, appels = jouer(m, "Aubin, viens m'aider à porter l'échelle",
+                                        [dialogue("Aubin est à quelques pas.")], [verdicts(NEUTRE)])
+        self.assertEqual(len(mj(appels)), 1)
+        self.assertNotIn("retour_moteur", mj(appels)[0]["faits"])
+        self.assertIn("Aubin est à quelques pas.", sortie)
+        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+
+    def test_s_il_en_fait_une_parole_le_moteur_fixe_le_destinataire_et_garde_les_mots(self):
+        m = scene()
+        saisie = "Ilse, tu peux m'aider à déplacer les planches ?"
+        reprise, sortie, appels = jouer(m, saisie, [
+            parole("Tu peux m'aider ?", ("propos", "", "", ""), personnage="aubin"),
+            parole("Tu peux m'aider ?", ("propos", "", "", ""), personnage="ilse"),
+            dialogue("Ilse hésite.")], [verdicts(NEUTRE)])
+        self.assertIn("personnage = ilse", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
+        self.assertIn(f"Tu dis à Ilse : « {saisie} »", sortie)
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["ilse"], saisie))
+
+    def test_celui_qu_on_ne_voit_pas(self):
         # La sauvegarde réelle : Ilse et Aubin derrière le pilier, Corvus tourné vers eux.
         m = scene(ilse=(5, 2), aubin=(5, 3), brune=(0, 3))
         m.joueur.update(position=[2, 3], orientation="est")
         m.data["connus"].extend(["aubin", "ilse"])
         m = recharger(m)
-        for saisie, nom in (("Aubin, viens m'aider à porter l'échelle", "Aubin"),
-                            ("Ilse, tu peux m'aider à déplacer les planches ?", "Ilse")):
-            with self.subTest(saisie=saisie):
-                reprise, sortie, appels = jouer(m, saisie, [], [])
-                self.assertEqual(appels, [])
-                self.assertIn(f"Tu ne vois pas {nom} d'ici : approche-toi pour lui parler.", sortie)
-                self.assertEqual(reprise.data.get("paroles_joueur", []), [])
-                self.assertEqual(reprise.data["conversation"][-1]["nature"], "refus_avant_action")
+        manque = "Tu ne vois pas Aubin d'ici : approche-toi pour lui parler."
+        # Une parole explicite : le moteur le dit sans appel.
+        reprise, sortie, appels = jouer(m, "je dis à Aubin : viens m'aider à porter l'échelle", [], [])
+        self.assertEqual(appels, [])
+        self.assertIn(manque, sortie)
+        self.assertEqual(reprise.data["conversation"][-1]["nature"], "refus_avant_action")
+        # Une interpellation libre va au MJ, qui l'interprète (personne en vue : pas de parole possible).
+        reprise, sortie, appels = jouer(m, "Aubin, viens m'aider à porter l'échelle",
+                                        [dialogue("Tu ne vois pas Aubin d'ici.")], [verdicts(NEUTRE)])
+        self.assertEqual(len(mj(appels)), 1)
+        self.assertNotIn("parole_joueur", str(mj(appels)[0].get("faits", {}).get("retour_moteur", "")))
+        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 
 
 class ReplisTests(unittest.TestCase):

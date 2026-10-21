@@ -260,28 +260,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   minutes sans recours en hausse par des jets décalés (une part refusée à Gaspard, mine 2024).
 - Branche `repli-et-appel`, non fusionnée (vu en partie : « pousse toi ca prend trop de temps »
   finissait sur « Je ne peux pas encore répondre avec certitude. » ; « Aubin, viens m'aider à
-  porter l'échelle », Aubin derrière le pilier, finissait en dix appels sur un refus, et « Ilse, tu
-  peux m'aider… ? » sur un dialogue où Luna racontait l'appel sans que rien ne soit dit). Une
-  saisie qui interpelle quelqu'un ou dit à qui Corvus parle (« Aubin, … », « je demande à Gorm… »,
-  « je lui dis… ») est une parole (`paroles.adressee`), même une question ou une demande d'aide : ni
-  dialogue du MJ ni geste ; un destinataire que Corvus ne voit pas est dit par le moteur sans
-  appel ; si le MJ s'obstine, le moteur prononce lui-même les mots du joueur
-  (`mj.parole_du_moteur`). Le repli du contrôle narratif (trois réponses refusées) : chaque relance
-  reçoit tous les refus du tour ; le joueur lit ce que le moteur a établi (résultat, issue d'une
-  parole), sinon les phrases admises de la meilleure réponse (`narration.rescape`), sinon ce que
-  Corvus perçoit de ce qu'il vise et ce qui manque (`narration.repli`). Contrat MJ/auditeur
-  accordé : une question de faisabilité dit ce que Corvus perçoit et ignore, sans prédire chances
-  ni risques que les faits ne donnent pas ; un souvenir visuel est marqué `hors_de_vue` (l'auditeur
-  refusait « tu ne la vois pas d'ici »). Luna, copies de la sauvegarde réelle : Aubin derrière le
-  pilier, message du moteur sans appel (avant : 10 appels, refus) ; en face, parole et réponse en 3
-  appels ; « pousse toi… » devant Brune méfiante, parole et refus en 3 appels. Questions ciblées
-  (3 passes) : « passer sous la poutre » 4,7 appels et 1 repli → 2 appels sans relance. Bancs de
-  référence (1 passe, 31 tours MJ) : replis 3 → 0, relances narratives 9 → 6, 3,32 → 3,26 appels
-  par tour. Limites : l'auditeur reste sémantique (une question de faisabilité sur l'échelle se
-  relance encore, finissant parfois sur des phrases admises partielles) ; « Gorm, je te donne la
-  cloche » est une parole, le don passe par « je donne la cloche à Gorm ». Détail dans
-  `docs/plan-ouie.md` (« Correctif : une parole adressée reste une parole »).
-- La suite de tests passe : 848 tests, sans clé ni connexion (ceux du clic demandent Node).
+  porter l'échelle », Aubin derrière le pilier, finissait en dix appels ; « est-ce que je peux
+  fabriquer une échelle ? » partait en conversation où Luna devinait). Trois règles communes.
+  **Parole sans conteste** (décidé par l'utilisateur) : une saisie qui commence par des guillemets,
+  un verbe de parole (« je dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou « à
+  tous » (`paroles.analyser`, `explicite`) n'est ni un dialogue du MJ ni un geste ; destinataire
+  hors de vue : message du moteur sans appel ; MJ obstiné : le moteur prononce les mots du joueur
+  (`mj.parole_du_moteur`). Une interpellation sans guillemets (« Brune, pousse-toi ») reste du
+  texte libre ; si Luna en fait une parole, le moteur en fixe le destinataire. **Repli du contrôle
+  narratif** (trois réponses refusées) : chaque relance reçoit tous les refus du tour ; le joueur
+  lit ce que le moteur a établi (résultat, issue d'une parole), sinon les phrases admises de la
+  meilleure réponse (`narration.rescape`), sinon ce que Corvus perçoit de ce qu'il vise et ce qui
+  manque (`narration.repli`) ; un souvenir visuel est marqué `hors_de_vue` (l'auditeur refusait
+  « tu ne la vois pas d'ici »). **Question de faisabilité** (« puis-je… ? ») : Luna propose le
+  geste comme s'il était demandé, le moteur le prépare ou le refuse avec sa raison, et le joueur
+  voit la même fiche sans rien exécuter (« Rien n'est encore tenté », puis tenter ou annuler) ;
+  seules les perceptions répondent tout de suite (`commandes.PERCEPTIONS`). Luna, copies de la
+  sauvegarde réelle et bancs ciblés : Aubin en face, « Aubin, viens m'aider… » devient une parole
+  (3 appels) ; derrière le pilier, Luna répond qu'elle ne le voit pas (2 appels), « je dis à Aubin :
+  … » reçoit le message du moteur (0 appel) ; devant les perches, « est-ce que je peux fabriquer
+  une échelle ? » montre la fiche (52 min, sans jet) en 2 appels, « tenter » la fabrique ; trop
+  loin, le moteur dit « Approche-toi de la perche… » ; « qu'est-ce que je vois au nord ? » reste
+  une conversation (2 appels). Bancs de référence (1 passe, 31 tours MJ) : avant 3 replis, 9
+  relances narratives, 3,32 appels par tour ; après 0 repli, 5 relances, 3,35 appels par tour
+  (refus du moteur 3 → 7 : les questions de faisabilité passent désormais par lui). Limites :
+  l'auditeur reste sémantique ; une interpellation libre peut encore être racontée par Luna sans
+  rien faire dire ; « Gorm, je te donne la cloche » entre guillemets reste une parole. Détail dans
+  `docs/plan-ouie.md` (« Correctif : ce qui est une parole sans conteste »).
+- La suite de tests passe : 850 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

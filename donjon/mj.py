@@ -130,8 +130,8 @@ Ne complète pas les faits absents. La perception fournie fait autorité : sans 
 ne veut pas dire sans lumière. N'invente pas une ouverture ou une torche pour expliquer la scène.
 Les objets marqués visible=false sont connus au toucher, pas vus actuellement. Un éclairage de
 niveau 0 interdit l'examen visuel ; niveau 1 permet des silhouettes, pas les détails ou inscriptions.
-Une question n'autorise jamais une action physique : « puis-je allumer ? » doit clarifier ou
-observer, pas allumer. Le joueur demandera ensuite l'action explicitement.
+Une question sur la faisabilité d'un geste (« puis-je allumer ? ») propose ce geste : le moteur
+le prépare sans l'exécuter, et le joueur le tente ou l'annule ensuite.
 Si plusieurs manœuvres sont nécessaires, ne propose que la première et annonce cette limite.
 Si plusieurs cibles correspondent à l'intention et que le choix change les effets ou le
 risque, demande laquelle le joueur vise.
@@ -243,16 +243,15 @@ SCHEMA = {
 }
 
 
-ATTENDU_PAROLE = ("la saisie est une parole (elle interpelle ou nomme celui à qui Corvus parle, ou elle est entre "
-                  "guillemets, à tous, chuchotée, après un deux-points) : mode parole_joueur, personnage = "
-                  "parole_prevue.personnage, contenu = ce qu'elle demande ou affirme")
+ATTENDU_PAROLE = ("la saisie est une parole (elle commence par des guillemets, un verbe de parole ou « à tous ») : "
+                  "mode parole_joueur, personnage = parole_prevue.personnage, contenu = ce qu'elle demande ou affirme")
 
 
 def parole_annoncee(monde, intention):
-    """Ce que le moteur fixe de la parole que la saisie annonce (``paroles.prevue``), ou None si elle
-    n'est pas une parole (``paroles.adressee``). ``impossible`` : le joueur doit préciser ou s'approcher."""
-    from .paroles import adressee, prevue
-    return prevue(monde, intention) if adressee(analyser_parole(monde, intention)) else None
+    """Ce que le moteur fixe de la parole que la saisie annonce sans conteste (``paroles.analyser``,
+    ``explicite``), ou None. ``impossible`` : le joueur doit préciser ou s'approcher."""
+    from .paroles import prevue
+    return prevue(monde, intention) if analyser_parole(monde, intention)["explicite"] else None
 
 
 def parole_attendue(monde, intention):
@@ -434,7 +433,7 @@ class MJOpenAI:
             try:
                 from .moteur import Moteur
                 if parole_attendue(monde, intention):
-                    # Une parole (interpellation, guillemets, à tous…) : Corvus le dit, même si ses mots
+                    # Une parole sans conteste (guillemets, « je dis… », à tous…) : Corvus le dit, même si ses mots
                     # annoncent un geste ; le moteur a déjà fixé à qui, il n'y a rien à clarifier.
                     raise ErreurMonde("Corvus le dit ; il ne le fait pas.", ATTENDU_PAROLE
                                       + " ; le geste annoncé attend que le joueur le fasse.")
@@ -443,9 +442,8 @@ class MJOpenAI:
                         raise ErreurMonde("Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible.")
                 if p.get("action") in ("clarifier", "impossible"):
                     break
-                if est_question(intention) and p.get("action") not in ("observer", "examiner"):
-                    raise ErreurMonde("Le joueur pose une question de faisabilité. Réponds en dialogue sans exécuter d'action.",
-                                      "mode dialogue : réponds à la question, sans proposition d'action.")
+                # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
+                # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.
                 plan = Moteur(monde).preparer(p, "MJ")
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
@@ -702,7 +700,7 @@ class MJOpenAI:
             "required": ["mode", "texte", "faits", "proposition"],
         }
         instructions = INTERPRETATION
-        if atelier and not est_question(intention):
+        if atelier:
             instructions += REGLES_ATELIER
         if franchissements:
             instructions += REGLES_FRANCHISSEMENT

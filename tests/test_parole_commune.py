@@ -55,8 +55,14 @@ class FormeTests(unittest.TestCase):
             "« Bonsoir »": (False, None, "voix", "Bonsoir", True),
             "je chuchote à Brune : viens": (False, "brune", "chuchote", "viens", True),
             "je murmure que la cloche est en haut": (False, None, "chuchote", None, True),
+            # Sans guillemets, une interpellation reste du texte libre pour le MJ.
             "Ilse, tu viens ?": (False, "ilse", "voix", "Ilse, tu viens ?", False),
-            "je demande à la meunière de venir": (False, "ilse", "voix", None, False),
+            "Brune, Ilse et Aubin sont où ?": (False, "brune", "voix", "Brune, Ilse et Aubin sont où ?", False),
+            # Un verbe de parole en tête annonce une parole ; « lance » dit aussi un geste.
+            "je demande à la meunière de venir": (False, "ilse", "voix", None, True),
+            "je lui dis que la cloche est en haut": (False, None, "voix", None, True),
+            "je lance la pierre": (False, None, "voix", None, False),
+            "je lance à tous : on monte": (True, None, "voix", "on monte", True),
             "je prends la torche": (False, None, "voix", None, False),
         }
         for saisie, attendu in cas.items():
