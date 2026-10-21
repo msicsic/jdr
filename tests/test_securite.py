@@ -111,8 +111,10 @@ class AbriTests(unittest.TestCase):
     def test_rassuree_elle_quitte_l_abri(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         lire(m, "ilse")["besoins"]["securite"] = 65.0
-        m, _ = vivre(m, 1)
-        self.assertEqual(lire(m, "ilse")["intention"]["but"]["type"], "abri")
+        # Elle a vu le refuge éclairé (sa première minute) : elle s'y abrite près d'Aubin et de
+        # Brune, sans aller chercher Gorm ailleurs (ce que l'abri lui apporterait de plus, rien).
+        m, _ = vivre(m, 2)
+        self.assertEqual(lire(m, "ilse")["intention"]["but"], {"type": "abri", "lieu": "antichambre"})
         m, _ = vivre(m, 60)
         self.assertLessEqual(lire(m, "ilse")["besoins"]["securite"], SECURITE_FIN + 5)
         intention = lire(m, "ilse")["intention"]

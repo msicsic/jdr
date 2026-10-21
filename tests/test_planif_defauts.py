@@ -113,7 +113,7 @@ class ChanceCrueTests(unittest.TestCase):
         with patch.object(Monde, "d20", return_value=20):
             self.assertFalse(pnj._crocheter(m, "brune", "reserve", "crochets"))
         m = recharger(m)
-        self.assertEqual(lire(m, "brune")["croyances"]["crypte"]["etat"]["valeur"], {"eclairee": False, "niveau": 0})
+        self.assertEqual(lire(m, "brune")["croyances"]["crypte"]["etat"]["valeur"], {"eclairee": False, "niveau": 0, "propre": 0})
         self.assertIsNone(planifier(m, "brune", "faim"))
 
 

@@ -43,7 +43,10 @@ REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui rest
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
 APPEL_REPIT = 10       # minutes entre deux appels à l'aide
 APPEL_OUBLI = 60       # minutes pendant lesquelles une salle où l'on a hélé en vain compte pour parcourue
-INERTIE = 5            # points au-delà du seuil avant qu'un besoin interrompe un plan en cours
+# L'effet de seuil (``urgents``) : apaisé, un besoin ne presse de nouveau qu'à son seuil + REPRISE ;
+# il n'interrompt le plan en cours d'un autre besoin que s'il presse plus que lui d'INERTIE.
+REPRISE = 15
+INERTIE = 5
 
 
 def profil(monde, id):
@@ -443,18 +446,27 @@ def _eclairee_crue(monde, id, salle):
 
 def lumiere_crue(monde, id, salle):
     """Le niveau de lumière qu'il croit là (0 noir, 1 pénombre, 2 éclairé), sans ce qu'on y porte :
-    celui qu'il y a vu en s'y tenant (``esprits.constater_lumiere``). Un lieu dont il ne sait rien :
+    celui qu'il y a vu en s'y tenant (``esprits.constater_lumiere`` ; d'ailleurs, sans la lueur
+    d'une voisine qu'il y avait sur sa case, ``_niveau_cru``). Un lieu dont il ne sait rien :
     éclairé à plein s'il y croit le jour ou une source allumée (``_eclairee_crue``), sinon il
     l'imagine comme celui où il se tient (``noir_cru``) ; sans rien savoir d'aucun, rien ne lui
     fait croire le noir."""
+    ici = monde.objets[id]["lieu"]
     vue = _cru(monde, id, salle, "etat")
     if vue is not None:
-        return vue.get("niveau", 2 if vue.get("eclairee") else 0)
+        return _niveau_cru(vue, salle == ici)
     if _eclairee_crue(monde, id, salle):
         return 2
-    ici = monde.objets[id]["lieu"]
     vue = _cru(monde, id, ici, "etat") if ici != salle and ici in monde.data["salles"] else None
-    return 2 if vue is None else vue.get("niveau", 2 if vue.get("eclairee") else 0)
+    return 2 if vue is None else _niveau_cru(vue, False)
+
+
+def _niveau_cru(vue, sur_place):
+    """Sur place, la lumière qu'il a vue sur sa case ; d'ailleurs, celle que la salle tient de ses
+    propres sources (``esprits.constater_lumiere`` : la lueur d'une voisine n'éclaire que le seuil)."""
+    if not sur_place and "propre" in vue:
+        return vue["propre"]
+    return vue.get("niveau", 2 if vue.get("eclairee") else 0)
 
 
 def noir_cru(monde, id, salle):
@@ -513,6 +525,13 @@ def _plan_abri(monde, id):
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
                     and not menacee(monde, id, salle)):
                 salles.append(salle)
+        if salles and ici not in salles:
+            # Il y restera : la recherche compte ce que chaque abri laisse monter (le noir, ses
+            # biens laissés loin) et prend le moins coûteux.
+            from .planification import _etape, abri
+            trouve = abri(monde, id, salles)
+            return None if trouve is None else ({"type": "abri", "lieu": trouve[0]},
+                                                trouve[1] + [_etape("abriter", lieu=trouve[0])])
         salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
     for salle in salles:
@@ -525,9 +544,18 @@ def _plan_abri(monde, id):
 
 def _plan_lumiere(monde, id):
     """Avoir de la lumière, quand il se tient dans le noir (ce qu'il ressent, ``autour``) et que
-    le noir l'inquiète : la recherche (``planification.eclairer``)."""
-    if not peur_du_noir(monde, id) or autour(monde, id)["lumiere"]:
+    le noir l'inquiète : la recherche (``planification.eclairer``). La lumière se tient là où le
+    plan l'a choisie (``planification.RESTER``) : sa lumière en main en chemin, il la porte
+    jusqu'au bout, là où il garde ses biens. La lumière d'un autre ne le suit pas : rien ne se
+    poursuit alors."""
+    if not peur_du_noir(monde, id):
         return None
+    if autour(monde, id)["lumiere"]:
+        from .perception import allumee
+        i = lire(monde, id)["intention"]
+        porte = any(porte_par(monde, k, id) and "allume" in o and allumee(o) for k, o in monde.objets.items())
+        return ((i["but"], i["plan"]) if porte and i and i["but"]["type"] == "lumiere" and i["plan"]
+                and all(x["operation"] == "aller" for x in i["plan"]) else None)
     from .planification import eclairer
     return eclairer(monde, id)
 
@@ -556,10 +584,22 @@ def de_son_fait(monde, id, condition):
     return "lieu" in condition and "objet" in condition and porte_par(monde, condition["objet"], id)
 
 
+def gardes(monde, id):
+    """Les salles où il croit ce qu'il garde (ses pulsions de biens qui ne sont pas des rondes),
+    quand ses biens le pressent : s'en tenir loin lui coûte (``planification.GARDE``)."""
+    p = profil(monde, id) or {}
+    if "biens" not in urgents(monde, id):
+        return ()
+    return tuple(sorted({s for x in p.get("pulsions", []) if x["besoin"] == "biens" and not periodique(x["condition"])
+                         and "objet" in x["condition"]
+                         for s in [salle_crue(monde, id, x["condition"]["objet"])] if s in monde.data["salles"]}))
+
+
 def _plan_garder(monde, id, condition):
-    from .planification import aller
+    """Rester près de ce qu'il garde, en comptant ce que le lieu laisse monter (``planification.garder``)."""
+    from .planification import garder
     salle = salle_crue(monde, id, condition["objet"])
-    etapes = None if salle is None else aller(monde, id, salle)
+    etapes = None if salle not in monde.data["salles"] else garder(monde, id, salle)
     return None if etapes is None else ({"type": "garder", "lieu": salle}, etapes)
 
 
@@ -568,11 +608,75 @@ def _delegue(monde, id, pulsion):
     return pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
 
 
-def urgents(monde, id):
-    """Besoins au-delà de leur seuil, du plus pressant au moins pressant."""
+def _etat_urgence(e, besoin):
+    return e["urgences"].get(besoin, {}).get("etat")
+
+
+def urgents(monde, id, inertie=False):
+    """Besoins qui pressent, du plus pressant (le plus au-delà de son seuil) au moins pressant,
+    qu'il ait ou non un moyen de les apaiser (``attentes``).
+
+    Un seul effet de seuil : un besoin presse quand il dépasse un repère d'une marge. Son repère
+    est son seuil ; apaisé (``eveiller``), il ne presse de nouveau que nettement au-dessus
+    (``REPRISE``), comme un thermostat. Avec ``inertie`` (le choix du but), le plan en cours d'un
+    autre besoin est aussi un repère : un besoin ne l'interrompt que s'il presse plus que lui
+    (de combien ce besoin dépasse encore son seuil, 0 s'il ne presse plus) d'``INERTIE`` au
+    moins. On achève le geste entamé avant de céder à la faim naissante, et deux besoins qui
+    pressent ensemble ne s'interrompent pas l'un l'autre à chaque minute."""
+    s, e = seuils(monde, id), lire(monde, id)
+    v = e["besoins"]
+    i = e["intention"]
+    en_cours = i["motif"] if inertie and i and i["plan"] else None
+    avance = max(0.0, v.get(en_cours, 0) - s[en_cours]) if en_cours in s else 0.0
+
+    def presse(b):
+        ecart = v.get(b, 0) - s[b]
+        return (ecart >= (REPRISE if _etat_urgence(e, b) == "apaise" else 0)
+                and (en_cours in (None, b) or ecart >= avance + INERTIE))
+    return sorted((b for b in s if presse(b)), key=lambda b: (s[b] - v[b], BESOINS.index(b)))
+
+
+def attentes(monde, id):
+    """Ceux des besoins qui pressent pour lesquels il n'a trouvé aucun plan sur ce qu'il croit : ils
+    attendent que quelque chose change dans ce qu'il croit, sans être oubliés (``deliberer``)."""
+    e = lire(monde, id)
+    return [b for b in urgents(monde, id) if _etat_urgence(e, b) == "attente"]
+
+
+def eveiller(monde, id, minute):
+    """L'effet de seuil de chaque besoin, d'après sa valeur, comme un thermostat : il presse à son
+    seuil ; repassé au-dessous, il est apaisé et ne presse de nouveau qu'à son seuil + ``REPRISE``,
+    à moins d'être d'abord bien redescendu (à son seuil − ``REPRISE``) : un besoin comblé (un
+    repas, un feu, le repos) retrouve son seuil, celui qui frôle son seuil ne bat plus à chaque
+    minute. L'état vit dans l'esprit (``urgences``) : le même laps, découpé autrement, donne le
+    même monde."""
     s, e = seuils(monde, id), esprit(monde, id)
-    return sorted((b for b in s if e["besoins"].get(b, 0) >= s[b]),
-                  key=lambda b: (s[b] - e["besoins"][b], BESOINS.index(b)))
+    u = e["urgences"]
+    for b in s:
+        v, etat = e["besoins"].get(b, 0), _etat_urgence(e, b)
+        if etat in ("presse", "attente") and v < s[b]:
+            u[b] = {"etat": "apaise", "depuis": minute}
+        if _etat_urgence(e, b) == "apaise" and v < s[b] - REPRISE:
+            del u[b]
+        elif etat is None and v >= s[b] or etat == "apaise" and v >= s[b] + REPRISE:
+            u[b] = {"etat": "presse", "depuis": minute}
+
+
+def _classer(monde, id, pressants, liste, essais, minute):
+    """Un besoin qui presse et dont chaque recours a été essayé sans plan (ou qui n'en a aucun) se
+    met en attente ; dès qu'un recours aboutit, il presse de nouveau. Un recours qu'on n'a pas
+    essayé (un but plus pressant a abouti avant, ou il y a renoncé pour un temps) ne décide rien."""
+    u = esprit(monde, id)["urgences"]
+    for b in pressants:
+        issues = [essais.get(i) for i, (motif, _) in enumerate(liste) if motif == b]
+        if "plan" in issues:
+            etat = "presse"
+        elif all(x == "rien" for x in issues):
+            etat = "attente"
+        else:
+            continue
+        if u.get(b, {}).get("etat") != etat:
+            u[b] = {"etat": etat, "depuis": minute}
 
 
 def confie_a_autrui(monde, id, objet):
@@ -626,15 +730,13 @@ def candidats(monde, id):
     surveillance) passe après ce qui presse vraiment et après une tâche acceptée.
 
     Un besoin qui vient à peine de franchir son seuil laisse finir le plan en cours d'un autre
-    motif : on achève le geste entamé avant de céder à la fatigue ou à la faim naissantes."""
+    motif, et un besoin apaisé ne presse de nouveau que nettement au-dessus (``urgents``)."""
     p, e = profil(monde, id), esprit(monde, id)
     buts = []
-    en_cours = e["intention"]["motif"] if e["intention"] and e["intention"]["plan"] else None
+    # Ceux qui laissent finir le plan en cours n'y ajoutent rien, mais restent pressants : ni
+    # routine ni pulsion rompue de leur fait ne passe devant ce plan.
     pressants = urgents(monde, id)
-    for besoin in pressants:
-        if (en_cours and besoin != en_cours
-                and e["besoins"][besoin] < seuils(monde, id)[besoin] + INERTIE):
-            continue
+    for besoin in urgents(monde, id, inertie=True):
         if besoin == "faim":
             buts.append((besoin, _plan_faim, False))
             continue
@@ -718,6 +820,7 @@ def deliberer(monde, id, minute):
     from .echanges import engagements_echus
     from . import stratege
     engagements_echus(monde, id)
+    eveiller(monde, id, minute)
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":
         from .pnj import chemin
@@ -726,12 +829,18 @@ def deliberer(monde, id, minute):
         e["intention"] = None  # Plus aucun passage qu'il croie ouvert : il ne peut accourir.
     if intention and intention["but"]["type"] == "strategie" and intention["plan"]:
         return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
-    for besoin, methode in candidats(monde, id):
+    pressants = urgents(monde, id, inertie=True)
+    liste = list(candidats(monde, id))
+    essais = {}
+    for n, (besoin, methode) in enumerate(liste):
         if e["renoncements"].get(besoin, -REPIT) + REPIT > minute:
+            essais[n] = "renonce"
             continue
         resultat = methode(monde, id)
         if not resultat:
+            essais[n] = "rien"
             continue
+        essais[n] = "plan"
         but, etapes = resultat
         if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
             return
@@ -740,9 +849,11 @@ def deliberer(monde, id, minute):
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0}
+        _classer(monde, id, pressants, liste, essais, minute)
         stratege.occupe(monde, id)
         return
     e["intention"] = None
+    _classer(monde, id, pressants, liste, essais, minute)
     stratege.desoeuvre(monde, id, minute, urgents(monde, id))
 
 

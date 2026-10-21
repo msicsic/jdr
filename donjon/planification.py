@@ -20,7 +20,7 @@ from itertools import count
 from time import perf_counter
 
 from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _lieu_cru,
-                           autorise, besoin_de_part, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
+                           autorise, besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
                            promesse_en_cours, refuse_recemment)
 from .biens import PRIX_PART
 from .esprits import lire
@@ -34,6 +34,8 @@ PRET = 0.5             # chance qu'il prête à quelqu'un qui demande un objet q
 CHERCHER = 3           # chercher quelqu'un qu'on a perdu de vue : on n'est pas sûr de le trouver
 FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se consume en main
 NOIR = 3               # par minute passée dans le noir, fois ce que le noir l'inquiète (``peur_du_noir``)
+GARDE = 2              # par minute loin de chaque lieu où il garde ses biens, quand ils le pressent
+RESTER = 30            # minutes qu'il compte passer là où le mène un but qui se tient en restant
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
@@ -121,6 +123,9 @@ class Vue:
         self.peur = peur_du_noir(monde, id)
         if self.peur and not any(noir_cru(monde, id, s) for s in self.salles):
             self.peur = 0
+        # Les lieux où il garde ses biens, quand ils le pressent : chaque minute loin de l'un d'eux
+        # lui coûte (``GARDE``).
+        self.gardes = gardes(monde, id)
         self._chemin = chemin
         self._routes, self._trajets, self._crus, self._agissables = {}, {}, {}, {}
         # Les portes de chaque salle : celles qu'il peut crocheter de là.
@@ -315,6 +320,12 @@ class Vue:
         if cle not in self._crus:
             self._crus[cle] = lumiere_crue(self.monde, self.id, e.salle)
         return self._crus[cle]
+
+    def pression(self, e):
+        """Ce que lui coûte une minute dans cet état, par ce qu'il y laisse monter : le noir, s'il le
+        craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``GARDE``)."""
+        p = NOIR * self.peur if self.peur and self.noir(e) else 0
+        return p + GARDE * sum(1 for g in self.gardes if g != e.salle)
 
     def noir(self, e):
         """S'y croit-il dans le noir ? Sans lumière, dans un lieu qu'il croit obscur (``noir_cru``)."""
@@ -577,7 +588,7 @@ def _entrees(v, vises, profondeur, noeuds):
         [[k, {a: w for a, w in o.items() if a not in CHANGEANTS}, "allume" in o,
           None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
          for k, o in monde.objets.items()],
-        [[o, v.proprietaire[o]] for o in v.connus], v.salles,
+        [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
@@ -585,7 +596,7 @@ def _entrees(v, vises, profondeur, noeuds):
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
-             emplois=None, motif=None):
+             emplois=None, motif=None, tenir=False, endurer=None):
     """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None,
     depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant). ``nom`` désigne le but
     dans les diagnostics.
@@ -599,7 +610,12 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
 
     Le coût est en minutes ; chaque personne lésée y ajoute le prix d'une faute, selon son
     honnêteté et la détresse du besoin ``motif`` (``caractere.prix_faute``) ; une faute qu'il
-    n'envisage pas écarte le geste. Renvoie (coût, étapes, état final)."""
+    n'envisage pas écarte le geste. Renvoie (coût, étapes, état final).
+
+    ``tenir`` : le but se tient en restant (``_explorer``). ``endurer`` (un gain, en minutes, ou
+    None) : s'il ne s'y tient pas déjà, il n'y va que si cela coûte moins que rester où il est
+    (``RESTER`` minutes de ce que son état présent laisse monter, plus ce que le but lui apporte
+    d'autre, ``endurer``) ; sinon il endure, et rien n'est rendu."""
     from .caractere import modificateur, prix_faute
     debut = perf_counter()
     v = Vue(monde, id)
@@ -609,7 +625,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     if memo is not None and depuis is None:
         # Ce que la recherche lit de son caractère et de son état : le prix d'une faute, et
         # l'adresse modulée qui fait la chance de crocheter.
-        entrees = json.dumps([_entrees(v, vises, profondeur, noeuds), faute, modificateur(monde, id, "DEX")])
+        entrees = json.dumps([_entrees(v, vises, profondeur, noeuds), faute, modificateur(monde, id, "DEX"),
+                              tenir, endurer])
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
@@ -620,14 +637,18 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         trouve = None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
     else:
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
-                                                          noeuds, faute)
+                                                          noeuds, faute, tenir)
         issue = "plan" if trouve else "borne" if examines >= noeuds else "epuise"
+        if endurer is not None and _endure(v, trouve, depuis, endurer):
+            trouve, issue = None, "endure"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
                                issue)
     if VERIFIER and (garde is not None or v.emplois is not None):
         brute = Vue(monde, id)
-        refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute)[0]
+        refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute, tenir)[0]
+        if endurer is not None and _endure(brute, refait, depuis, endurer):
+            refait = None
         assert refait == trouve, (f"Recherche de {id} ({nom}, {'mémoire' if garde else 'emplois'}) : {trouve} "
                                   f"au lieu de {refait}")
     if DIAGNOSTIC is not None:
@@ -638,24 +659,41 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     return trouve
 
 
-def _explorer(v, depart_, but, vises, profondeur, noeuds, faute):
+def _endure(v, trouve, depuis, gain):
+    """Le plan trouvé lui coûte-t-il autant que de rester où il est, avec ce que son état présent
+    laisse monter, plus le ``gain`` que le but apporte d'autre ? Il ne s'y tient pas déjà (le plan
+    a des étapes)."""
+    return bool(trouve and trouve[1]) and trouve[0] >= RESTER * v.pression(depuis or depart(v.monde, v.id, v)) + gain
+
+
+def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False):
     """A* sur les états crus : (trouvé ou None, nœuds examinés, états vus, profondeur atteinte).
-    ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas."""
+    ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
+
+    ``tenir`` : le but se tient en restant là où il mène (la lumière, ses biens, le feu, l'abri) ;
+    y rester ``RESTER`` minutes compte, avec ce que l'état final laisse monter (``Vue.pression``).
+    Un état qui atteint le but s'explore encore : plus loin, un autre peut le tenir à moindre prix
+    (rapporter une lanterne là où il garde ses biens)."""
     ordre = count()
     infini = float("inf")
-    file = [(0, next(ordre), depart_, [], 0)]
+    file = [(0, next(ordre), depart_, [], 0, False)]
     vus = {depart_: 0}
     examines = plus_profond = 0
     trouve = None
     while file and examines < noeuds:
-        cout, _, e, etapes, n = heapq.heappop(file)
+        cout, _, e, etapes, n, final = heapq.heappop(file)
+        if final:
+            trouve = cout, etapes, e
+            break
         if vus.get(e, infini) < cout:
             continue
         examines += 1
         plus_profond = max(plus_profond, n)
         if but(v, e):
-            trouve = cout, etapes, e
-            break
+            if not tenir:
+                trouve = cout, etapes, e
+                break
+            heapq.heappush(file, (cout + RESTER * v.pression(e), next(ordre), e, etapes, n, True))
         if n >= profondeur:
             continue
         # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
@@ -668,11 +706,11 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute):
             if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
                 continue
             total = cout + fautes * (faute or 0) + minutes * (1 + FLAMME_EN_MAIN * en_feu)
-            if v.peur and duree and v.noir(suivant):
-                total += duree * NOIR * v.peur  # Le temps qu'il passe dans le noir, qui l'inquiète.
+            if duree:
+                total += duree * v.pression(suivant)  # Le temps qu'il passe dans le noir, ou loin de ses biens.
             if total < vus.get(suivant, infini):
                 vus[suivant] = total
-                heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1))
+                heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1, False))
     return trouve, examines, len(vus), plus_profond
 
 
@@ -722,8 +760,10 @@ def _resultat(v, e, etapes, sorte):
 def planifier(monde, id, besoin):
     """(but, étapes) pour apaiser la faim ou le froid, ou None."""
     but = {"faim": a_mange, "chaleur": rechauffe}[besoin]
+    # Se chauffer se tient près du feu : ce que ce lieu laisse monter compte.
     trouve = chercher(monde, id, but, nom=besoin, memo=["besoin", besoin],
-                      emplois={"faim": ("manger",), "chaleur": ("feu",)}[besoin], motif=besoin)
+                      emplois={"faim": ("manger",), "chaleur": ("feu",)}[besoin], motif=besoin,
+                      tenir=besoin == "chaleur")
     if trouve is None:
         return None
     _, etapes, e = trouve
@@ -855,11 +895,40 @@ def eclairer(monde, id):
     v = Vue(monde, id)
     if not peur_du_noir(monde, id) or eclaire(v, depart(monde, id, v)):
         return None
-    trouve = chercher(monde, id, eclaire, nom="lumiere", memo=["lumiere"], emplois=("lumiere",), motif="securite")
+    trouve = chercher(monde, id, eclaire, nom="lumiere", memo=["lumiere"], emplois=("lumiere",), motif="securite",
+                      tenir=True, endurer=0)
     if trouve is None:
         return None
     _, etapes, e = trouve
     return {"type": "lumiere"}, retablir(v, e, _couper(etapes))
+
+
+def garder(monde, id, salle):
+    """Les étapes pour se tenir là où il garde ses biens, ou None. Il y restera : ce que le lieu
+    laisse monter compte (le noir qu'il craint : il y porte de la lumière s'il le peut) ; s'il n'y
+    est pas, il n'y va que si cela lui coûte moins que rester où il est, sinon il endure."""
+    trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="garder:" + salle, memo=["garder", salle],
+                      emplois=(), motif="biens", tenir=True, endurer=0)
+    return None if trouve is None else retablir(Vue(monde, id), trouve[2], _couper(trouve[1]))
+
+
+def abri(monde, id, salles):
+    """(salle, étapes) pour gagner l'un des abris ``salles`` (éclairés, quelqu'un de sûr s'y
+    tient), le moins coûteux avec ce qu'il y laissera monter en y restant ; None s'il n'en atteint
+    aucun, ou si y aller lui coûte plus que d'endurer où il est : ce que l'abri lui apporte (y voir,
+    ne plus côtoyer qui l'inquiète, une compagnie sûre, aux taux de son profil, ``NOIR`` par
+    point) ne vaut pas ce qu'il laisse (ses biens)."""
+    from .deliberation import taux
+    v = Vue(monde, id)
+    e = depart(monde, id, v)
+    ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
+           and v.salle(e, x) == e.salle]
+    gain = ((taux(monde, id, "noir") + taux(monde, id, "lumiere") if v.peur and v.noir(e) else 0)
+            + (taux(monde, id, "mefiance") if any(v.cru(x, "fiable") is False for x in ici) else 0)
+            + (0 if any(v.cru(x, "fiable") is True for x in ici) else taux(monde, id, "compagnie")))
+    trouve = chercher(monde, id, lambda v, e: e.salle in salles, nom="abri", memo=["abri", sorted(salles)],
+                      emplois=(), motif="securite", tenir=True, endurer=RESTER * NOIR * gain)
+    return None if trouve is None else (trouve[2].salle, _couper(trouve[1]))
 
 
 def aller(monde, id, salle):

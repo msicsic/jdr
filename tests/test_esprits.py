@@ -74,7 +74,7 @@ class PerceptionParActeurTests(unittest.TestCase):
         c = attendre(c)
         # Il ne voit rien ; il sait seulement que la crypte est noire.
         self.assertEqual({s: a["etat"]["valeur"] for s, a in lire(c, "marchand")["croyances"].items()},
-                         {"crypte": {"eclairee": False, "niveau": 0}})
+                         {"crypte": {"eclairee": False, "niveau": 0, "propre": 0}})
         c.objets["torche"].update(lieu="marchand", allume=True)
         c = attendre(c)
         self.assertEqual(croyance(c, "porte", "etat")["valeur"], {"ouverte": False})

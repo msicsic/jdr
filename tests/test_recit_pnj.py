@@ -84,9 +84,19 @@ class NuitsTests(unittest.TestCase):
         self.assertEqual(mesures, nuit("relais", 42, 1, "chambre_cloche")[1])
         recherches, resume = donnees["diagnostic"]["recherches"], donnees["diagnostic"]["resume"]
         self.assertTrue(recherches)
-        self.assertTrue(all(r["issue"] in ("plan", "borne", "epuise") and r["but"] for r in recherches))
+        self.assertTrue(all(r["issue"] in ("plan", "borne", "epuise", "endure") and r["but"] for r in recherches))
         self.assertEqual(sum(g["recherches"] for g in resume), len(recherches))
         self.assertIn("Planificateur :", texte)
+
+    def test_diagnostic_compte_chaque_issue_d_une_recherche(self):
+        # Une recherche qui trouve un plan mais où il endure plutôt que d'y aller (``endurer``) a
+        # son issue propre : le résumé la compte comme les autres.
+        from donjon.banc_pnj import resume_diagnostic, texte_diagnostic
+        recherches = [{"pnj": "bram", "but": "lumiere", "issue": issue, "memoire": False, "noeuds": 3,
+                       "profondeur": 1, "duree": 0.001} for issue in ("plan", "borne", "epuise", "endure")]
+        resume = resume_diagnostic(recherches)
+        self.assertEqual([(g["plan"], g["borne"], g["epuise"], g["endure"]) for g in resume], [(1, 1, 1, 1)])
+        self.assertIn("endure", texte_diagnostic(resume))
 
 
 if __name__ == "__main__":

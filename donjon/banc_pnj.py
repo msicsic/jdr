@@ -48,10 +48,13 @@ def creer(scenario, graine=1985, depart="tire"):
 def _oisifs_urgents(monde):
     """PNJ qu'un besoin urgent presse et qui n'ont rien entrepris ; ceux d'entre eux pour qui ce
     besoin a vraiment quelque chose à faire eux-mêmes (une pulsion rompue qui n'est confiée à
-    personne, ou aucune pulsion) ; enfin ceux qui n'attendent que ce qu'ils ont confié à un autre
-    qu'ils croient fiable (Gorm et la cloche confiée au joueur, qui reste passif au banc)."""
-    from .deliberation import _delegue, satisfaite, urgents
-    oisifs = bloques = confies = 0
+    personne, ou aucune pulsion) et un plan possible, qu'ils n'ont pas entrepris (sans recours) ;
+    ceux pour qui il n'en existe aucun sur ce qu'ils croient (en attente, ``deliberation.attentes``) ;
+    enfin ceux qui n'attendent que ce qu'ils ont confié à un autre qu'ils croient fiable (Gorm et la
+    cloche confiée au joueur, qui reste passif au banc). Chaque PNJ oisif compte dans une seule de
+    ces catégories, dans cet ordre."""
+    from .deliberation import _delegue, attentes, satisfaite, urgents
+    oisifs = bloques = attente = confies = 0
     for id in pnjs(monde):
         p = monde.objets[id].get("profil")
         if not p or lire(monde, id)["intention"] is not None or not urgents(monde, id):
@@ -59,11 +62,16 @@ def _oisifs_urgents(monde):
         oisifs += 1
         rompues = {b: [x for x in p["pulsions"] if x["besoin"] == b and not satisfaite(monde, id, x["condition"])]
                    for b in urgents(monde, id)}
-        a_faire = any(any(not _delegue(monde, id, x) for x in r) or not any(x["besoin"] == b for x in p["pulsions"])
-                      for b, r in rompues.items())
-        bloques += a_faire
-        confies += not a_faire and any(rompues.values())
-    return oisifs, bloques, confies
+        a_faire = [b for b, r in rompues.items()
+                   if any(not _delegue(monde, id, x) for x in r) or not any(x["besoin"] == b for x in p["pulsions"])]
+        sans_plan = attentes(monde, id)
+        if any(b not in sans_plan for b in a_faire):
+            bloques += 1
+        elif a_faire:
+            attente += 1
+        elif any(rompues.values()):
+            confies += 1
+    return oisifs, bloques, attente, confies
 
 
 # Les minutes où l'on prend l'empreinte de la nuit (``empreinte``) pour compter les nuits distinctes.
@@ -127,7 +135,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
         return resultat
     from .eau import active, lieu, profondeur
     vivants = [id for id in pnjs(monde) if monde.objets[id].get("profil")]
-    chronique, oisivete, blocage, confiance, usurpations, mouilles = [], 0, 0, 0, 0, 0
+    chronique, oisivete, blocage, attente, confiance, usurpations, mouilles = [], 0, 0, 0, 0, 0, 0
     releves = {}
     vue = list(monde.data.get("chronique", []))
     debut = monde.data["minutes"]
@@ -140,8 +148,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
         for repere in REPERES:
             if repere not in releves and monde.data["minutes"] >= repere:
                 releves[repere] = empreinte(monde)
-        oisifs, bloques, confies = _oisifs_urgents(monde)
-        oisivete, blocage, confiance = oisivete + PAS * oisifs, blocage + PAS * bloques, confiance + PAS * confies
+        oisifs, bloques, attendent, confies = _oisifs_urgents(monde)
+        oisivete, blocage = oisivete + PAS * oisifs, blocage + PAS * bloques
+        attente, confiance = attente + PAS * attendent, confiance + PAS * confies
         usurpations += _usurpations(monde)
         mouilles += PAS * sum(1 for id in vivants if profondeur(monde, lieu(monde, id)))
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
@@ -163,6 +172,8 @@ def executer(monde, minutes, recit=None, empreintes=None):
                # Mesure d'information ajoutée après le premier banc E, hors critère de décision. Une
                # pulsion confiée à un autre que l'on croit fiable n'en est pas : elle attend (à part).
                "minutes_urgentes_sans_recours": blocage,
+               # Pressé, sans rien entreprendre, faute d'aucun plan sur ce qu'il croit (``attentes``).
+               "minutes_urgentes_en_attente": attente,
                "minutes_urgentes_confiees": confiance,
                # Le hasard de la nuit : jets de d20 par heure.
                "jets_par_heure": round(monde.data["jets"] * 60 / max(1, monde.data["minutes"] - debut), 2),
@@ -230,12 +241,12 @@ def appelant(connexion="chatgpt", modele=None, effort="medium"):
 
 def resume_diagnostic(recherches):
     """Les recherches du planificateur regroupées par PNJ et par but, les plus coûteuses d'abord :
-    nombre, issues (plan, borne de nœuds atteinte, espace épuisé), résultats repris de la
-    mémoire sans chercher, nœuds, profondeur, durée."""
+    nombre, issues (plan, borne de nœuds atteinte, espace épuisé, plan trouvé mais il endure plutôt
+    que d'y aller), résultats repris de la mémoire sans chercher, nœuds, profondeur, durée."""
     groupes = {}
     for r in recherches:
         g = groupes.setdefault((r["pnj"], r["but"]), {"pnj": r["pnj"], "but": r["but"], "recherches": 0, "plan": 0,
-                                                      "borne": 0, "epuise": 0, "memoire": 0, "noeuds": 0, "noeuds_max": 0,
+                                                      "borne": 0, "epuise": 0, "endure": 0, "memoire": 0, "noeuds": 0, "noeuds_max": 0,
                                                       "profondeur_max": 0, "duree": 0.0})
         g["recherches"] += 1
         g[r["issue"]] += 1
@@ -251,7 +262,7 @@ def resume_diagnostic(recherches):
 
 
 def texte_diagnostic(resume):
-    cles = ("recherches", "plan", "borne", "epuise", "memoire", "noeuds", "noeuds_max", "profondeur_max", "duree")
+    cles = ("recherches", "plan", "borne", "epuise", "endure", "memoire", "noeuds", "noeuds_max", "profondeur_max", "duree")
     lignes = ["Planificateur : pnj but " + " ".join(cles)]
     lignes += [f'{g["pnj"]} {g["but"] or "-"} ' + " ".join(str(g[k]) for k in cles) for g in resume]
     total = {k: sum(g[k] for g in resume) for k in cles if k not in ("noeuds_max", "profondeur_max")}

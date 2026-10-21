@@ -530,7 +530,50 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Relais, Gorm n'est plus d'office au refuge à la première minute, et Brune affamée vole dès qu'il
   s'éloigne (minute 3 dans une nuit sur 16, ~30 dans deux) ; jugé dans son caractère, à revoir si
   l'on veut un premier acte plus long.
-- La suite de tests passe : 975 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `besoins`, non fusionnée (`docs/plan-planificateur.md`, « Dynamique des besoins » ; vu au
+  banc : Lucien, à l'auberge, allait et venait entre le grenier noir où il garde ses affaires et le
+  couloir éclairé, 19 changements de salle en 4 h). Trois règles communes. **L'effet de seuil**
+  (`deliberation.urgents`, `eveiller`, `esprit["urgences"]`) : apaisé, un besoin ne presse de
+  nouveau qu'à son seuil + `REPRISE` (15), sauf s'il est d'abord descendu sous seuil − 15 (comblé) ;
+  au choix du but, un besoin n'interrompt le plan d'un autre que s'il presse plus que lui
+  d'`INERTIE` (5). **Ce qu'un plan laisse monter** (`planification.Vue.pression`, `RESTER` 30,
+  `GARDE` 2) : une minute coûte le noir pour qui le craint et chaque lieu gardé dont on est loin ;
+  un but qui se tient en restant (lumière, garder, abri, se chauffer) compte 30 minutes de ce que son
+  état final laisse monter, et la recherche continue au-delà du premier état qui l'atteint ; pour la
+  lumière et la garde, on ne part que si le plan coûte moins que rester (sinon on endure : issue
+  « endure » du diagnostic, que `--diagnostic` compte désormais au lieu de planter) ; l'abri compte
+  aussi ce qu'il apporte. **L'attente** (`deliberation._classer`, `attentes`) : un besoin dont chaque
+  recours a été essayé sans plan attend, sans être oublié ; le banc distingue
+  `minutes_urgentes_en_attente` (aucun plan sur ce qu'il croit) de `minutes_urgentes_sans_recours`
+  (un plan possible, non entrepris) et des pulsions confiées (`depart-tire`) : chaque PNJ oisif dans
+  une seule catégorie. Correctif commun révélé, accordé avec la croyance à niveaux de
+  `planif-defauts` en une seule règle (`esprits.constater_lumiere`) : sur place, il juge à la lumière
+  de sa case, lueur voisine comprise (`niveau`, chance du crochetage) ; de loin, à ce que la salle
+  tient de ses propres sources (`propre`, `eclairee`, `deliberation.lumiere_crue`) : le seuil d'une
+  salle obscure ne la fait plus croire éclairée (alternances lumière ↔ abri à l'auberge 15,75 → 0
+  par nuit). Cas vérifiés après rechargement (`tests/test_dynamique_besoins.py`) :
+  Lucien rapporte la lanterne de l'étable au grenier et y reste (5 changements de salle) ; Bram
+  (mine) prend la lampe du filon et revient garder la paie ; sans lumière à emporter, le plus fort
+  l'emporte et l'autre besoin attend ; le devoir de Gorm attend puis reprend ; la faim refusée attend
+  puis redemande (scènes en départ fixe). Bancs 8 h, départ tiré, contre `main` 87c1ed5 (Relais 8
+  graines, autres 4, lancés ensemble) : minutes sans recours Relais 117 → 53, mine 369 → 56, auberge
+  665 → 68, crue 81 → 45, le reste passe en attente (oisives totales égales à 2 % près, confiées
+  inchangées) ; événements égaux ou en hausse, échanges égaux sauf l'auberge 20,25 → 23,75 ;
+  va-et-vient entre deux besoins Relais 8,25 → 8,1, mine 13 → 6, auberge 19,25 → 2,25 (le cas réel de
+  Lucien, revenu au banc avec le départ tiré : 70 → 3 en quatre nuits), crue 4,75 → 5,5 (les rondes
+  de Gorm) ; vols vus égaux (Relais 0,9 → 1, crue 0,5 → 0,75) ; aucune usurpation ni violation ;
+  `VERIFIER` sur une nuit de chaque scénario. Temps d'une nuit (`main` et branche lancés ensemble) :
+  Relais 4,8 → 5 s, mine 16,6 → 17,2 s, auberge 18,7 → 21,1 s, crue 6,6 → 6,8 s ; aucun élagage
+  exact trouvé pour l'auberge (Lucien refait chaque minute une recherche `garder` que la mémoire ne
+  reprend pas, le prix d'une faute variant avec la détresse). Limites : `GARDE` est une constante du
+  moteur ; seuls le noir et la garde coûtent par minute ; un besoin apaisé sans être comblé monte
+  jusqu'à seuil + 15 (au départ fixe, Ilse hésitait deux fois entre l'abri et le brasero) ; la peur
+  du noir ne s'émousse pas ; Odon, qui sait crocheter la porte du bureau, y fait fuir Bram (le test
+  de Bram le rend honnête) ; pas de migration, le champ `urgences` vient par défaut. Les échecs de
+  `tests/test_tui.py` (« La TUI n'est pas redevenue disponible ») viennent de la charge de la machine
+  (attente bornée à 5 s) : les mêmes cinq échouent sur `main` sous charge, tous passent au calme sur
+  les deux.
+- La suite de tests passe : 985 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -547,8 +590,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   déclarés et le souvenir « son » dans l'ouïe commune.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
   `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
-  besoin que rien n'apaise (le
-  devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé
+  besoin que rien n'apaise (le devoir reste urgent une fois franchi son seuil ; il attend désormais
+  sans compter comme « sans recours », branche `besoins`). Demander du bois pour un feu et le protégé
   nourri en boucle : branche `entretenir-feu`. Chercher quelqu'un dans le noir, le lieu dans une
   rumeur et le contenant fermé cru ouvert : branche `constater-et-rumeurs`.
 - **Voix** (branche `voix`) : imiter une voix, plus ou moins bien (un changelin qui dupe les PNJ),

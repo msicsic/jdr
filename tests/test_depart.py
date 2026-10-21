@@ -155,12 +155,12 @@ class DivergenceDuBancTests(unittest.TestCase):
         lire(m, "marchand")["croyances"].setdefault("brasero", {})["etat"] = {
             "valeur": {"allume": True}, "source": "vu", "minute": 0, "confiance": 1.0}
         from donjon.banc_pnj import _oisifs_urgents
-        oisifs, sans_recours, confies = _oisifs_urgents(m)
-        self.assertEqual((oisifs, sans_recours, confies), (1, 0, 1))
+        oisifs, sans_recours, attente, confies = _oisifs_urgents(m)
+        self.assertEqual((oisifs, sans_recours, attente, confies), (1, 0, 0, 1))
         # Qu'il cesse de croire le joueur fiable : la cloche lui revient, il est sans recours.
         lire(m, "marchand")["croyances"].setdefault("joueur", {})["fiable"] = {
             "valeur": False, "source": "vu", "minute": 0, "confiance": 1.0}
-        self.assertEqual(_oisifs_urgents(m), (1, 1, 0))
+        self.assertEqual(_oisifs_urgents(m), (1, 1, 0, 0))
 
 
 if __name__ == "__main__":

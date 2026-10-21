@@ -9,7 +9,8 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé ; d'un personnage, ce
   qui presse son corps : ``{"faim", "chaleur", "repos"}`` ; d'une salle, sa lumière là où il se
-  tenait : ``{"eclairee", "niveau"}``).
+  tenait et celle de ses propres sources : ``{"eclairee", "niveau", "propre"}``,
+  ``constater_lumiere``).
 - ``pieces`` : ce qu'il croit qu'une bourse contient, su en la tenant ou par un savoir ; jamais
   lu sur l'objet (``planification.enrichir``).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
@@ -43,7 +44,8 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
           "voix": list,   # ceux dont il connaît la voix (``voix.py``)
-          "voix_entendues": dict}   # les voix inconnues qu'il a entendues, et ce qu'elles ont prétendu
+          "voix_entendues": dict,   # les voix inconnues qu'il a entendues, et ce qu'elles ont prétendu
+          "urgences": dict}   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -109,9 +111,9 @@ def _croyance_valide(monde, attribut, c):
                 and (c["salle"] is None or c["salle"] in monde.data["salles"])
                 and (c["case"] is None or (isinstance(c["case"], list) and len(c["case"]) == 2))), "Croyance de lieu invalide"
     elif attribut == "etat":
-        # Des états vrais ou faux ; d'une salle, aussi le niveau de lumière vu (0 à 2).
+        # Des états vrais ou faux ; d'une salle, aussi les niveaux de lumière vus (0 à 2).
         assert isinstance(c.get("valeur"), dict) and all(
-            type(v) is bool or k == "niveau" and type(v) is int and 0 <= v <= 2
+            type(v) is bool or k in ("niveau", "propre") and type(v) is int and 0 <= v <= 2
             for k, v in c["valeur"].items()), "Croyance d'état invalide"
     elif attribut == "pieces":
         # Ce qu'il croit qu'une bourse contient : appris en la tenant, ou un savoir du scénario.
@@ -143,6 +145,9 @@ def verifier(monde):
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(v is None or type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        assert all(b in seuils(monde, id) and isinstance(u, dict) and set(u) == {"etat", "depuis"}
+                   and u["etat"] in ("presse", "apaise", "attente") and type(u["depuis"]) is int
+                   for b, u in e["urgences"].items()), "Urgences de PNJ invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
         b = e["balayage"]
         assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
@@ -415,19 +420,26 @@ def _flamme_sous_les_yeux(monde, id, sujet, lieu):
 
 
 def constater_lumiere(monde, id):
-    """Il sait quelle lumière il y a là où il se tient, même sans en voir la source : éclairée ou
-    non, et le niveau (0 noir, 1 pénombre, 2 éclairé, ``perception``). C'est le lieu qu'il juge :
-    la lumière qu'on porte, lui ou un autre, n'y compte pas, elle suit son porteur (il sait ce
-    qu'il porte, il voit ce que portent les autres)."""
+    """Il sait quelle lumière il y a là où il se tient, même sans en voir la source (0 noir,
+    1 pénombre, 2 éclairé, ``perception``). La lumière qu'on porte, lui ou un autre, n'y compte
+    pas : elle suit son porteur (il sait ce qu'il porte, il voit ce que portent les autres).
+
+    Une seule règle pour ce qu'il en retient : ``niveau`` est ce qu'il a sur sa case, lueur d'une
+    salle voisine comprise (sa chance au crochetage, celle du jet) ; ``propre`` est ce que la
+    salle tient de ses propres sources, et ``eclairee`` en dit autant (``propre`` > 0). La lueur
+    d'une autre salle n'éclaire que les cases où elle entre : de loin, il juge la salle à sa
+    propre lumière (``deliberation.lumiere_crue``), et ne la prend pas pour un lieu éclairé
+    parce qu'il en a vu le seuil (ni abri, ni lumière à rejoindre)."""
     salle = monde.objets[id]["lieu"]
     if salle not in monde.data["salles"]:
         return
     from .perception import eclairage
     position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
-    niveau = max((c["niveau"] for c in eclairage(monde, salle, position)["contributions"]
-                  if not (c["source"] in monde.objets and _porteur(monde, monde.objets[c["source"]]) is not None)),
-                 default=0)
-    croire(monde, id, salle, "etat", {"eclairee": niveau > 0, "niveau": niveau}, "vu")
+    lumieres = [c for c in eclairage(monde, salle, position)["contributions"]
+                if not (c["source"] in monde.objets and _porteur(monde, monde.objets[c["source"]]) is not None)]
+    niveau = max((c["niveau"] for c in lumieres), default=0)
+    propre = max((c["niveau"] for c in lumieres if c["source"] is not None), default=0)
+    croire(monde, id, salle, "etat", {"eclairee": propre > 0, "niveau": niveau, "propre": propre}, "vu")
 
 
 def percevoir(monde, id):

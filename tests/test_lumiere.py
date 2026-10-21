@@ -204,7 +204,7 @@ class AubergeTests(unittest.TestCase):
         m.objets["bougeoir_mireille"]["allume"] = False
         m.objets["mireille"].update(lieu="cellier", position=[2, 3], position_salle="cellier")
         inquiet(m, "mireille")
-        self.assertEqual(lire(m, "mireille")["croyances"]["cellier"]["etat"]["valeur"], {"eclairee": False, "niveau": 0})
+        self.assertEqual(lire(m, "mireille")["croyances"]["cellier"]["etat"]["valeur"], {"eclairee": False, "niveau": 0, "propre": 0})
         m, _ = vivre(m, 1)
         self.assertEqual(but_en_mots(m, lire(m, "mireille")["intention"]["but"]), "avoir de la lumière")
         m, _ = vivre(m, 3)
