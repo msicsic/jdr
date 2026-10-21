@@ -33,7 +33,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   dans `retour_moteur` et jamais au joueur ; les causes fusionnées sont séparées ; l'étape,
   l'effet ou l'ajout fautif est numéroté. Mesure Haiku A/B sur les trois bancs : les refus
   corrigeables passent de 4 répétés et jamais corrigés à 2 corrigés dès la première relance.
-  Restent hors périmètre : les messages d'audit (contrôle narratif, contre-revue).
+  Restent hors périmètre : les messages d'audit (contrôle narratif, contre-revue) ; faits ensuite,
+  branche `audits-attendu`.
 - Branche `contre-revue` : le raccourci `detacher` libère la fixation sur place (la prendre
   est une étape `deplacer` explicite) ; un rapport de contre-revue mal formé est redemandé
   une fois puis le plan validé passe, au lieu d'être renvoyé au MJ comme un refus. Cas réel
@@ -663,7 +664,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   crie que je suis là ») reste au MJ, qui a fait un cri sans mots ou échoué. Limites : aucun scénario ne fait
   chercher le joueur (cas réel placé d'autorité) ; le nom de Corvus vu se nommer n'est pas retenu ; le MJ
   ignore ce que sait une voix et son genre.
-- La suite de tests passe : 1060 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `audits-attendu`, non fusionnée (`docs/contrat-mj.md`, « Ce que le MJ reçoit d'un refus
+  d'audit ») : les refus d'audit suivent le contrat des refus du moteur. Chaque refus du contrôle
+  narratif (texte vide, voix d'auteur, nom sans fondement, parole racontée ou citation nouvelle sans
+  moteur, voix inconnue, verdicts de l'auditeur), de la portée des ajouts, des capacités et de la
+  contre-revue d'action porte un `attendu` (`refus.audit`, `refus.attendu_audit`) : la partie et le
+  segment (ou le champ de l'ajout, `proposition.ajouts[0].texte`), la phrase, le nom ou la citation
+  reçus tels qu'écrits (`narration.tel_quel`), le verdict et le motif de l'auditeur donnés pour ce
+  qu'ils sont, et ce qui serait accepté en identifiants ou citations exactes (destinataires,
+  présents, engagements prévus mot pour mot, `parole_prevue.personnage`, clés `objet:<id>` qui
+  nomment ce que vise une affirmation sans source, plan reçu de la contre-revue) ; une cause par
+  refus (un mot, un nom, une parole racontée, une citation chacun : avant, un refus pour tous). Un
+  rapport illisible (`refus.RapportIllisible`, dont `AuditIllisible` et `RapportInvalide`) ne
+  reproche rien au texte et le dit ; une proposition mal formée relevée pendant un audit garde
+  l'`attendu` du moteur (`refus.depuis_refus`). Le nom d'une entité cachée n'est jamais accompagné de
+  son identifiant. `INSTRUCTIONS_REVISION` dit à Luna de suivre `attendu`. Le joueur ne lit jamais
+  `attendu` (texte refusé jamais affiché ; repli inchangé). `banc_multi` compte aussi les relances
+  narratives et les refus ; `rapport_fil` montre `attendu`. Cas réels et un autre de même nature,
+  chaînes complètes après rechargement (`tests/test_audits_attendu.py`) : Ilse et « Pas
+  maintenant », « Je vais me pousser », « les faits ne disent… », la voix qui se disait Brune,
+  « Prise non demandée » ; invention refusée trois fois (repli), audit illisible, contre-revue non
+  conforme puis corrigée. Luna, bancs `main` 4c53791 puis la branche, l'un après l'autre, 2 passes
+  chacun, relais + crypte + atelier + échanges (38 tours MJ) : 3,08 → 3,07 appels et 11,3 → 11,5 s
+  par tour MJ, 0 repli des deux côtés, relances narratives 4,0 → 3,0 (étendue 2 à 4), tours avec
+  refus 6,5 → 7,0, refus du moteur et de la contre-revue 10 → 10,5. Des deux côtés, chaque réponse
+  refusée a été corrigée dès la première relance : le banc ne peut pas montrer de gain sur la
+  correction, et le nombre de relances dépend surtout des premières réponses, qu'`attendu` ne
+  touche pas ; l'écart est dans le bruit. Limites : le verdict de l'auditeur reste sémantique (un
+  refus juste ou non reste le sien, cité tel quel) ; les clés proposées pour une affirmation sans
+  source sont une indication par le premier mot du nom ; le récit d'une parole de Corvus est cité en
+  mots retrouvés dans le texte, sinon sous forme normalisée ; les refus du moteur hors audit sans
+  `attendu` (« Réexamine l'intention entière… ») restent tels quels.
+- La suite de tests passe : 1078 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

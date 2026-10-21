@@ -11,8 +11,9 @@ Le texte accepté est affiché tel que Luna l'a écrit.
 import copy
 import re
 
-from .monde import ErreurMonde
+from .monde import ErreurMonde, normaliser
 from . import lexique
+from .refus import RapportIllisible, audit, liste as en_liste
 
 
 VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique",
@@ -80,7 +81,7 @@ def schema_audit(faits, nombre):
             "required": ["segments"]}
 
 
-class AuditIllisible(ErreurMonde):
+class AuditIllisible(RapportIllisible):
     """Le rapport de l'auditeur est mal formé : une faute de l'auditeur, pas du texte contrôlé."""
 
 INSTRUCTIONS_AUDIT = """Tu contrôles une réponse du maître du jeu avant qu'un joueur la voie.
@@ -129,7 +130,9 @@ Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni r
 
 INSTRUCTIONS_REVISION = """\nLe contrôle de tes réponses précédentes dans ce tour (controle_narratif, chaque phrase
 refusée et son motif) a relevé des affirmations mécaniques non établies, contradictoires ou un
-nom absent de ce que Corvus perçoit ou sait.
+nom absent de ce que Corvus perçoit ou sait. Chaque refus a son attendu : où (partie, segment),
+ce qui a été reçu (la phrase ou la valeur en cause, citée), le verdict de l'auditeur s'il vient de
+lui, et ce qui serait accepté. Corrige ce qu'il désigne, garde le reste ; il ne s'adresse jamais au joueur.
 Réponds de nouveau à l'intention initiale, à partir de l'état actuel. L'ambiance reste libre.
 Tu peux proposer un ajout persistant par le protocole déjà disponible si l'état et
 la demande le permettent. Sinon, reformule sans présenter l'ajout comme un fait : ce que Corvus
@@ -188,34 +191,68 @@ def fondement_paroles(entree):
 CITATIONS = re.compile(r"«[^»]*»|“[^”]*”|\"[^\"]*\"")
 
 
-def mentions(monde, texte, base, paroles=""):
+def tel_quel(passage, extrait):
+    """Les mots du passage, tels qu'écrits, dont la forme normalisée est ``extrait`` (« tu demandes a
+    ilse » → « Tu demandes à Ilse ») : un refus cite le texte exact. À défaut, ``extrait``."""
+    for i in range(len(passage)):
+        if normaliser(passage[i]) != extrait[:1]:
+            continue
+        for j in range(i + len(extrait), min(len(passage), i + 2 * len(extrait) + 4) + 1):
+            if normaliser(passage[i:j]) == extrait:
+                return passage[i:j]
+    return extrait
+
+
+def mentions(monde, texte, base, paroles="", partie="texte", lieu=None):
     """Obstacles déterministes : noms d'entités absents de ce que le MJ a reçu. Ce qu'un
-    personnage croit ne se dit que par sa bouche, entre guillemets ; la narration n'en use pas."""
-    citations = " ".join(CITATIONS.findall(texte))
-    recit = CITATIONS.sub(" ", texte)
-    trouves = (lexique.mentions_sans_fondement(monde, recit, base)
-               + lexique.mentions_sans_fondement(monde, citations, base + " " + paroles))
-    return [{"segment": None, "texte": texte,
-             "motif": "« " + m["terme"] + " » n'apparaît dans rien de ce que Corvus perçoit "
-                      "ou sait. Ne l'introduis pas sans fait établi ; ce qu'un personnage croit "
-                      "ne se dit que dans sa propre réplique."}
-            for m in trouves]
+    personnage croit ne se dit que par sa bouche, entre guillemets ; la narration n'en use pas.
+    Un obstacle par nom, au premier segment qui le porte. ``lieu`` remplace « partie, segment »
+    quand le texte n'est pas une réponse découpée pour l'auditeur (le texte d'un ajout)."""
+    obstacles, vus = [], set()
+    for indice, passage in enumerate(segments(texte)):
+        citations = " ".join(CITATIONS.findall(passage))
+        recit = CITATIONS.sub(" ", passage)
+        trouves = ([(m, False) for m in lexique.mentions_sans_fondement(monde, recit, base)]
+                   + [(m, True) for m in lexique.mentions_sans_fondement(monde, citations, base + " " + paroles)])
+        for m, cite in trouves:
+            if m["terme"] in vus:
+                continue
+            vus.add(m["terme"])
+            mot = tel_quel(passage, m["terme"])
+            if not cite and paroles and lexique._motif(m["terme"]).search(paroles):
+                # Un personnage présent le croit : sa bouche peut le dire, pas le récit.
+                accepte = (f"« {mot} » seulement entre guillemets, dans la réplique d'un personnage "
+                           "présent qui le croit (esprits_interlocuteurs), ou le passage sans ce nom")
+            else:
+                accepte = (f"le passage sans « {mot} » : ni ce que Corvus perçoit ou sait, ni ce que croient "
+                           "les personnages présents ne le nomment")
+            obstacles.append(audit("« " + mot + " » n'apparaît dans rien de ce que Corvus perçoit "
+                                   "ou sait. Ne l'introduis pas sans fait établi ; ce qu'un personnage croit "
+                                   "ne se dit que dans sa propre réplique.", accepte, partie=partie,
+                                   segment=indice, texte=passage, recu=mot,
+                                   lieu=lieu and f"{lieu}, segment {indice}"))
+    return obstacles
 
 
 AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
                     r"|\bscénario\b", re.IGNORECASE)
 
 
-def voix_auteur(texte):
+def voix_auteur(texte, partie="texte"):
     """Obstacles déterministes : le texte affiché parle au joueur, à la deuxième personne, dans la
     fiction ; il ne parle ni du joueur, ni du moteur, ni de Corvus à la troisième personne. Les
     répliques citées des personnages restent libres."""
-    trouves = sorted({m.group(0) for m in AUTEUR.finditer(CITATIONS.sub(" ", texte))}, key=str.lower)
-    if not trouves:
-        return []
-    return [{"segment": None, "texte": texte,
-             "motif": "Le joueur lit ce texte tel quel : écris-le à la deuxième personne, dans la fiction, "
-                      "sans " + ", ".join(f"« {t} »" for t in trouves) + "."}]
+    obstacles, vus = [], set()
+    for indice, passage in enumerate(segments(texte)):
+        for terme in sorted({m.group(0) for m in AUTEUR.finditer(CITATIONS.sub(" ", passage))}, key=str.lower):
+            if terme.lower() in vus:
+                continue
+            vus.add(terme.lower())
+            obstacles.append(audit(
+                f"Le joueur lit ce texte tel quel : écris-le à la deuxième personne, dans la fiction, sans « {terme} ».",
+                f"le passage à la deuxième personne (tu), dans la fiction, sans « {terme} » hors d'une réplique "
+                "entre guillemets", partie=partie, segment=indice, texte=passage, recu=terme))
+    return obstacles
 
 
 def mentions_proposees(monde, reponse, base, paroles=""):
@@ -226,17 +263,21 @@ def mentions_proposees(monde, reponse, base, paroles=""):
             or not isinstance(proposition, dict)):
         return []
     obstacles = []
-    for ajout in [*proposition.get("ajouts", []), *proposition.get("savoirs", [])]:
+    groupes = [("ajouts", a) for a in proposition.get("ajouts", [])] + [("savoirs", a) for a in proposition.get("savoirs", [])]
+    rangs = {"ajouts": 0, "savoirs": 0}
+    for groupe, ajout in groupes:
+        rang = rangs[groupe]
+        rangs[groupe] += 1
         if not isinstance(ajout, dict):
             continue
         propre = lexique.corpus(ajout.get("nom", "")) if isinstance(ajout.get("nom"), str) else ""
         # Un savoir prêté à un personnage peut reprendre ce qu'il croit.
-        if ajout in proposition.get("savoirs", []):
+        if groupe == "savoirs":
             propre += " " + paroles
         for champ in ("texte", "description"):
             if isinstance(ajout.get(champ), str) and ajout[champ].strip():
-                obstacles.extend({"partie": "description", **o}
-                                 for o in mentions(monde, ajout[champ], base + " " + propre))
+                obstacles.extend(mentions(monde, ajout[champ], base + " " + propre, partie="description",
+                                          lieu=f"proposition.{groupe}[{rang}].{champ}"))
     return obstacles
 
 
@@ -267,7 +308,7 @@ SE_NOMMER = re.compile(r"\b(?:je suis|je m'appelle|on m'appelle|mon nom est|mon 
                        r"\s+((?:\w|['-])+(?:\s+(?:\w|['-])+)?)")
 
 
-def voix_inconnues(monde, paroles, faits, texte=""):
+def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
     """Obstacles déterministes : une voix que Corvus ne sait à qui prêter (un interlocuteur
     ``voix_inconnue``) ne dit pas qui elle est au-delà de ce que le moteur lui fait dire : le nom
     qu'elle s'est donné (son nom d'interlocuteur) et ce qu'établit l'issue de cette parole
@@ -281,18 +322,27 @@ def voix_inconnues(monde, paroles, faits, texte=""):
     interlocuteurs = faits.get("interlocuteurs") or {}
     validee = faits.get("conversation_validee") or {}
     obstacles = []
-    recit = lexique.normaliser(CITATIONS.sub(" ", texte))
-    for entree in interlocuteurs.values():
+    passages = segments(texte) if texte.strip() else []
+
+    def nom_court(x):
+        return (monde.joueur if x == "joueur" else monde.objets[x])["nom"].split(",")[0]
+    for cle, entree in interlocuteurs.items():
         nom = entree.get("nom", "") if isinstance(entree, dict) and entree.get("voix_inconnue") else ""
         pretendu = lexique.normaliser(nom.split("(")[0]).replace("une voix", "voix").strip()
-        reste = recit.replace(pretendu, " ") if pretendu else recit
         dits = sorted(x for x in lexique.entites_citees(monde, nom)
                       if x in monde.objets and monde.objets[x]["type"] == "personnage")
-        if dits and any(x in lexique.entites_citees(monde, reste) for x in dits):
-            obstacles.append({"segment": None, "texte": texte,
-                              "motif": f"Corvus ne sait pas qui parle : c'est {nom}, pas cette personne. Dans le "
-                                       "récit, désigne-la comme une voix (« la voix qui se dit … »), sans lui "
-                                       "donner ce nom."})
+        for indice, passage in enumerate(passages if dits else []):
+            recit = lexique.normaliser(CITATIONS.sub(" ", passage))
+            reste = recit.replace(pretendu, " ") if pretendu else recit
+            nommes = [x for x in dits if x in lexique.entites_citees(monde, reste)]
+            if nommes:
+                obstacles.append(audit(
+                    f"Corvus ne sait pas qui parle : c'est {nom}, pas cette personne. Dans le récit, désigne-la "
+                    "comme une voix (« la voix qui se dit … »), sans lui donner ce nom.",
+                    f"dans le récit, cette voix ({cle}) se désigne comme dans interlocuteurs.{cle}.nom, « {nom} », "
+                    f"jamais par « {nom_court(nommes[0])} » seul", partie=partie, segment=indice, texte=passage,
+                    recu=nom_court(nommes[0])))
+                break
     for parole in paroles:
         entree = interlocuteurs.get(parole["locuteur"]) or {}
         if not entree.get("voix_inconnue"):
@@ -318,15 +368,18 @@ def voix_inconnues(monde, paroles, faits, texte=""):
         if (corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli))
                 and (qui is None or not connait_nom(monde, qui, "joueur"))):
             nommes.append("joueur")  # Elle ne sait pas son nom.
-        if nommes:
-            obstacles.append({"segment": None, "texte": parole["texte"],
-                              "motif": f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa "
-                                       "réplique ne se nomme pas au-delà de ce que le moteur a établi (son nom "
-                                       "d'interlocuteur, conversation_validee) et ne nomme que qui elle connaît : "
-                                       "retire "
-                                       + ", ".join(f"« {(monde.joueur if x == 'joueur' else monde.objets[x])['nom'].split(',')[0]} »"
-                                                   for x in nommes)
-                                       + "."})
+        # La réplique est citée telle quelle dans un segment : c'est lui qui est en cause.
+        indice = next((i for i, p in enumerate(passages) if f"« {parole['texte']} »" in p
+                       or parole["texte"] in p), None)
+        for x in nommes:
+            obstacles.append(audit(
+                f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa réplique ne se nomme pas "
+                "au-delà de ce que le moteur a établi (son nom d'interlocuteur, conversation_validee) et ne nomme "
+                f"que qui elle connaît : retire « {nom_court(x)} ».",
+                f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » : elle ne se nomme que par "
+                f"interlocuteurs.{parole['locuteur']}.nom et conversation_validee, et ne nomme que qui elle connaît",
+                partie=partie, segment=indice, texte=passages[indice] if indice is not None else parole["texte"],
+                recu=nom_court(x)))
     return obstacles
 
 
@@ -371,7 +424,7 @@ def parole_racontee(texte):
             if not HYPOTHESE.search(recit[max(0, m.start() - 14):m.start()])]
 
 
-def paroles_sans_moteur(texte, faits, adresse=False):
+def paroles_sans_moteur(texte, faits, adresse=False, partie="texte"):
     """Obstacles déterministes : une parole n'a lieu que si le moteur l'a fait entendre. Sans parole de
     Corvus validée dans ce tour (conversation_validee) ni geste résolu (resultat_resolu), le récit ne
     fait pas parler Corvus ; et quand rien n'a été dit — après un refus (retour_moteur), ou quand la
@@ -379,30 +432,59 @@ def paroles_sans_moteur(texte, faits, adresse=False):
     personne ne lui répond : aucune citation nouvelle."""
     if isinstance(faits.get("conversation_validee"), dict) or isinstance(faits.get("resultat_resolu"), dict):
         return []
+    prevu = (faits.get("parole_prevue") or {}).get("personnage") if isinstance(faits.get("parole_prevue"), dict) else None
+    parler = "mode parole_joueur" + (f" (personnage = {prevu})" if prevu and prevu != "personne" else "")
+    refus = isinstance(faits.get("retour_moteur"), dict)
     obstacles = []
-    if parole_racontee(texte):
-        obstacles.append({"segment": None, "texte": texte,
-                          "motif": "Corvus n'a rien dit dans ce tour : le récit ne le fait pas parler ("
-                                   + ", ".join(f"« {p} »" for p in parole_racontee(texte)) + "). Si le "
-                                   "joueur fait parler Corvus, propose parole_joueur : le moteur fixe à qui "
-                                   "il parle et la fait entendre ; s'il agit, propose l'action."})
-    if isinstance(faits.get("retour_moteur"), dict) and citations_nouvelles(texte, faits):
-        # Après un refus, rien n'a eu lieu : le motif vient du moteur, aucun personnage ne le connaît,
-        # ne le dit ni ne réagit, quelle que soit la voie (action, parole, conversation, faits).
-        obstacles.append({"segment": None, "texte": texte,
-                          "motif": "Aucune action ni parole n'a eu lieu : c'est toi qui expliques "
-                                   "l'obstacle. Aucun personnage ne parle ni ne réagit ; ne cite "
-                                   "entre guillemets que des paroles déjà entendues."})
-    elif adresse and citations_nouvelles(texte, faits):
-        obstacles.append({"segment": None, "texte": texte,
-                          "motif": "Le joueur s'adresse à un personnage, mais rien n'a encore été dit : "
-                                   "personne ne répond à une parole que le moteur n'a pas fait entendre. "
-                                   "Si Corvus parle, propose parole_joueur ; le personnage répondra ensuite."})
+    for indice, passage in enumerate(segments(texte)):
+        for dit in map(lambda d: tel_quel(passage, d), parole_racontee(passage)):
+            obstacles.append(audit(
+                f"Corvus n'a rien dit dans ce tour : le récit ne le fait pas parler (« {dit} »). Si le joueur fait "
+                "parler Corvus, propose parole_joueur : le moteur fixe à qui il parle et la fait entendre ; s'il "
+                "agit, propose l'action.",
+                f"{parler} si Corvus parle, le moteur la fait entendre ; mode action s'il agit ; sinon un récit où "
+                "Corvus ne parle pas", partie=partie, segment=indice, texte=passage, recu=dit))
+        for citation in citations_nouvelles(passage, faits) if refus or adresse else []:
+            if refus:
+                # Après un refus, rien n'a eu lieu : le motif vient du moteur, aucun personnage ne le connaît,
+                # ne le dit ni ne réagit, quelle que soit la voie (action, parole, conversation, faits).
+                obstacles.append(audit(
+                    "Aucune action ni parole n'a eu lieu : c'est toi qui expliques l'obstacle. Aucun personnage "
+                    "ne parle ni ne réagit ; ne cite entre guillemets que des paroles déjà entendues.",
+                    "le passage sans cette citation : tu expliques toi-même l'obstacle de retour_moteur ; entre "
+                    "guillemets, seulement des paroles déjà entendues (paroles_entendues, conversation)",
+                    partie=partie, segment=indice, texte=passage, recu=citation.strip("«»“”\" ")))
+            else:
+                obstacles.append(audit(
+                    "Le joueur s'adresse à un personnage, mais rien n'a encore été dit : personne ne répond à "
+                    "une parole que le moteur n'a pas fait entendre. Si Corvus parle, propose parole_joueur ; "
+                    "le personnage répondra ensuite.",
+                    f"{parler} si Corvus parle (le personnage répondra ensuite) ; sinon le passage sans cette "
+                    "citation", partie=partie, segment=indice, texte=passage, recu=citation.strip("«»“”\" ")))
     return obstacles
 
 
-def controler(texte, rapport, faits):
-    """Valide le rapport de l'auditeur et renvoie ses obstacles, jamais sa seule assurance."""
+def _cles_visees(faits, passage):
+    """Les clés objet:<id> fournies dont le nom (son premier mot, « brasero » de « brasero en fer »)
+    figure dans ce passage : celles qui pourraient l'appuyer. Une indication, pas une preuve."""
+    mots = set(re.findall(r"[a-z0-9]+", normaliser(passage)))
+    tetes = {k: re.findall(r"[a-z0-9]+", normaliser(v["nom"].split(",")[0]))[:1] for k, v in faits.items()
+             if k.startswith("objet:") and isinstance(v, dict) and isinstance(v.get("nom"), str)}
+    return sorted(k for k, tete in tetes.items() if tete and len(tete[0]) > 2 and tete[0] in mots)
+
+
+ACCEPTE_VERDICT = {
+    "invention_protegee": ("le passage sans cet élément : ce que Corvus ne perçoit ni ne sait, dis qu'il l'ignore ; "
+                           "un élément nouveau passe par un fait proposé (etablir_faits) quand le mode est offert"),
+    "contradictoire": ("le passage accordé aux faits fournis (perception, salle, objet:<id>, ambiance_etablie, "
+                       "retour_moteur), ou sans cette affirmation"),
+}
+
+
+def controler(texte, rapport, faits, partie="texte"):
+    """Valide le rapport de l'auditeur et renvoie ses obstacles, jamais sa seule assurance. Chaque
+    obstacle porte un ``attendu`` (``refus.audit``) : le segment, la phrase ou la valeur en cause, le
+    verdict de l'auditeur tel quel, et ce qui serait accepté."""
     passages = segments(texte)
     lignes = rapport.get("segments") if isinstance(rapport, dict) else None
     if isinstance(lignes, dict):
@@ -439,41 +521,55 @@ def controler(texte, rapport, faits):
         # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle
         # ne la rendent pas fausse (« D'accord » cité « « D'accord » »).
         locuteur, citation = ligne["locuteur"], ligne["citation"].strip().strip("«»\"“”  ")
+        def refuser(motif, accepte, recu=None):
+            # Le verdict est celui de l'auditeur, rendu tel quel avec son motif : rien de plus sûr.
+            obstacles.append(audit(motif, accepte, partie=partie, segment=indice, texte=passage, recu=recu,
+                                   verdict=(verdict, ligne["motif"])))
         if verdict == "mecanique" and not ligne["sources"]:
-            obstacles.append({"segment": indice, "texte": passage,
-                              "motif": "Cette affirmation mécanique ne cite aucun fait du moteur."})
+            visees = _cles_visees(faits, passage)
+            refuser("Cette affirmation mécanique ne cite aucun fait du moteur.",
+                    "une affirmation que soutient un fait fourni, dite comme lui"
+                    + (f" (clés qui nomment ce qu'elle vise : {en_liste(visees)})" if visees else "")
+                    + ", ou le passage sans elle")
         elif verdict in ("parole", "engagement") and locuteur not in faits.get("interlocuteurs", {}):
-            obstacles.append({"segment": indice, "texte": passage,
-                              "motif": "Seul un personnage présent peut parler ; aucun locuteur présent "
-                                       "ne correspond à cette parole."})
+            presents = en_liste(faits.get("interlocuteurs") or {})
+            refuser("Seul un personnage présent peut parler ; aucun locuteur présent ne correspond à cette parole.",
+                    f"un locuteur parmi les interlocuteurs présents ({presents}), ou le passage sans parole",
+                    f"locuteur {locuteur}" if locuteur else None)
         elif verdict in ("parole", "engagement") and locuteur not in destinataires_parole(faits, locuteur):
             # Le moteur a décidé l'issue de la parole de Corvus pour ses destinataires seulement.
-            obstacles.append({"segment": indice, "texte": passage,
-                              "motif": "Corvus s'adressait à " + ", ".join(destinataires_parole(faits, locuteur))
-                                       + " : eux seuls lui répondent ; les autres l'ont entendu sans être "
-                                         "interpellés et se taisent."})
+            destinataires = destinataires_parole(faits, locuteur)
+            refuser("Corvus s'adressait à " + ", ".join(destinataires) + " : eux seuls lui répondent ; les autres "
+                    "l'ont entendu sans être interpellés et se taisent.",
+                    f"une réponse de {en_liste(destinataires)} seulement (conversation_validee.destinataires) ; "
+                    f"{locuteur} se tait", f"locuteur {locuteur}")
         elif verdict == "engagement" and (not ligne["entites"] or any(
                 e.strip() not in engagements_prevus(faits, locuteur) for e in ligne["entites"])):
             # Sa parole atteste qu'il l'a dit ; ce qu'il fera, seul le moteur le décide.
-            obstacles.append({"segment": indice, "texte": passage,
-                              "motif": "Ce personnage s'engage à agir sans que le moteur l'ait prévu : rien "
-                                       "dans esprits_interlocuteurs.engagements ni conversation_validee ne le "
-                                       "dit. Fais-le répondre sans rien promettre (il peut répondre, hésiter, "
-                                       "refuser ou se taire), et n'annonce pas qu'il le fera."})
+            prevus = sorted(engagements_prevus(faits, locuteur))
+            accepte = (f"seulement ce que le moteur a prévu pour {locuteur} : "
+                       + " ; ".join(f"« {e} »" for e in prevus) + " ; sinon une réponse sans promesse"
+                       if prevus else
+                       f"aucun engagement n'est prévu pour {locuteur} : une réponse sans promesse (répondre, "
+                       "hésiter, refuser, se taire)")
+            refuser("Ce personnage s'engage à agir sans que le moteur l'ait prévu : rien dans "
+                    "esprits_interlocuteurs.engagements ni conversation_validee ne le dit. Fais-le répondre sans "
+                    "rien promettre (il peut répondre, hésiter, refuser ou se taire), et n'annonce pas qu'il le fera.",
+                    accepte, citation or None)
         elif verdict == "parole" or (verdict == "engagement" and citation):
             from .faits_locaux import LONGUEUR_PAROLE
             if (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
                     or f"« {citation} »" not in passage):
-                obstacles.append({"segment": indice, "texte": passage,
-                                  "motif": "Une parole doit être citée entre « et », en entier, dans le segment."})
+                refuser("Une parole doit être citée entre « et », en entier, dans le segment.",
+                        f"la réplique de {locuteur} entière entre « et » dans ce segment, de 3 à {LONGUEUR_PAROLE} "
+                        "caractères", f"citation {citation}" if citation else "citation vide")
             else:
                 paroles.append({"locuteur": locuteur, "texte": citation})
         elif verdict == "ambiance":
             ambiances.append({"texte": passage,
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
         elif verdict in ("invention_protegee", "contradictoire"):
-            obstacles.append({"segment": indice, "texte": passage,
-                              "motif": ligne["motif"] or "Affirmation mécanique non établie."})
+            refuser(ligne["motif"] or "Affirmation mécanique non établie.", ACCEPTE_VERDICT[verdict])
     return {"segments": copy.deepcopy(lignes_validees), "paroles": paroles, "ambiances": ambiances,
             "obstacles": obstacles, "texte_controle": texte.strip()}
 
