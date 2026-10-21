@@ -5,6 +5,7 @@ une partie observable de l'intention. Son avis ne modifie jamais le monde.
 """
 
 from .monde import ErreurMonde
+from .refus import RapportIllisible, attendu_audit
 
 
 SCHEMA = {
@@ -84,11 +85,13 @@ def entree(intention, plan, monde=None):
 MOTIF_MAX = 300
 
 
-class RapportInvalide(ErreurMonde):
+class RapportInvalide(RapportIllisible):
     """Le rapport de la revue est mal formé : une faute de l'auditeur, pas de la proposition."""
 
 
-def verifier(rapport):
+def verifier(rapport, plan=None):
+    """Le verdict de la contre-revue. Non conforme : un refus dont ``attendu`` (``refus.attendu_audit``)
+    cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
     if (not isinstance(rapport, dict) or set(rapport) != {"conforme", "motif"}
             or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)):
         raise RapportInvalide("La contre-revue de la manœuvre est invalide.")
@@ -97,6 +100,14 @@ def verifier(rapport):
         motif = rapport["motif"].strip()
         if len(motif) > MOTIF_MAX:
             motif = motif[:MOTIF_MAX - 1].rstrip() + "…"
+        recu = ""
+        if plan is not None:
+            p = plan.proposition if isinstance(plan.proposition, dict) else {}
+            cibles = p.get("cible") or ", ".join(map(str, p.get("cibles") or []))
+            recu = f"{plan.titre} (action {p.get('action')}" + (f", cible {cibles}" if cibles else "") + ")"
         raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : " +
                           (motif or "une conséquence demandée manque."),
-                          "retire du plan le changement non demandé, ou ajoute celui qui manque, d'après ce motif.")
+                          attendu_audit("proposition", recu or "le plan proposé",
+                                        "le même geste, dont les changements durables sont ceux de la demande : "
+                                        "retire celui qu'elle ne demande pas, ou ajoute l'étape qui manque",
+                                        ("non conforme", motif)))

@@ -44,6 +44,33 @@ Une réponse refusée est révisée au plus deux fois ; aucun texte refusé n'es
 trois échecs, le jeu affiche une phrase sûre du moteur. La réponse acceptée, ses paroles et
 ses ambiances sont enregistrées et sauvegardées avant l'affichage.
 
+**Ce que le MJ reçoit d'un refus d'audit** (branche `audits-attendu`). Un refus d'audit suit le
+contrat des refus du moteur (`donjon/refus.py`) : un `motif`, la règle, et un `attendu`, qui dit
+où (`partie`, `segment` : l'indice du segment tel que l'auditeur l'a reçu, ou le champ d'un
+ajout comme `proposition.ajouts[0].texte`), ce qui a été reçu (la phrase, le nom ou la citation
+en cause, tels qu'écrits) et ce qui serait accepté, en identifiants ou citations exactes ; une
+cause par refus (un mot d'auteur, un nom sans fondement, une parole racontée, une citation
+nouvelle : chacun le sien). Pour un verdict d'auditeur (narratif, portée, capacités, contre-revue
+d'action), `attendu` donne sa catégorie et son motif tels quels (« selon l'auditeur (verdict
+invention_protegee) : « … » »), sans prétendre à plus de certitude que ce jugement. Un rapport
+illisible (`refus.RapportIllisible`) ne reproche rien au texte : son `attendu` le dit. Chaque
+relance reçoit tous les refus du tour dans `controle_narratif`, et la contre-revue d'action passe
+par `retour_moteur` comme un refus du moteur. Ni le motif ni `attendu` ne s'affichent : un texte
+refusé n'est jamais montré, et le repli ne cite que le moteur ou des phrases admises.
+
+| Voie | Refus (une cause chacun) | `attendu` cite |
+|---|---|---|
+| texte vide | texte vide | la partie |
+| voix d'auteur (`voix_auteur`) | un mot (« Corvus », « les faits »…) | segment, mot |
+| nom sans fondement (`mentions`, `mentions_proposees`) | un nom | segment ou champ de l'ajout, nom tel qu'écrit ; jamais l'identifiant de l'entité cachée |
+| parole sans moteur (`paroles_sans_moteur`) | une parole racontée de Corvus ; une citation nouvelle | segment, mots ou citation ; `parole_prevue.personnage` |
+| voix inconnue (`voix_inconnues`) | le récit la nomme ; sa réplique nomme quelqu'un | segment, nom, `interlocuteurs.<voix>.nom` |
+| verdicts (`controler`) | mécanique sans source, locuteur absent ou non destinataire, engagement sans appui, parole mal citée, invention, contradiction | segment, phrase, verdict et motif de l'auditeur ; clés `objet:<id>` qui la nommeraient, présents, destinataires, engagements prévus mot pour mot |
+| portée (`portee_narrative.controler`) | représentation, capacité, fixation, impact, preuve, fragment sans preuve | description et sujet, ce que l'auditeur a lu |
+| capacités (`coherence_physique.controler`) | qualification incompatible | qualification, objet, champs proposés |
+| contre-revue d'action (`couverture_action.verifier`) | plan non conforme | titre, action et cible du plan, motif de la revue |
+| rapport illisible | — | « aucune phrase n'est en cause » |
+
 **Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
 mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
 qu'elle est éclairée), ou un objet manipulable présenté comme ambiance, dépend de son

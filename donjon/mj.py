@@ -45,6 +45,7 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
                                  controler as controler_physique)
 from .moteur import QualificationRequise
 from .proximite import HorsDePortee
+from .refus import RapportIllisible, audit as refus_audit, audit_illisible, depuis_refus
 from .transactions import ajouter as ajouter_transaction
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
@@ -352,7 +353,7 @@ class MJ:
                                   "revision": revision, "intention": intention,
                                   "rapport": copy.deepcopy(rapport)})
             try:
-                verifier_couverture(rapport)
+                verifier_couverture(rapport, plan)
                 return
             except RapportInvalide:
                 # Une revue illisible ne juge pas la proposition : on la redemande une fois,
@@ -963,16 +964,17 @@ direction), plus lents, ils ne s'entendent que de tout près.
             for nom, texte, effets in passages:
                 if not texte.strip():
                     # Rien à contrôler : l'audit d'un texte vide ne peut qu'échouer.
-                    obstacles.append({"partie": nom, "segment": None, "texte": "",
-                                      "motif": "Le texte est vide : écris dans texte la réponse destinée au joueur."})
+                    obstacles.append(refus_audit("Le texte est vide : écris dans texte la réponse destinée au joueur.",
+                                                 f"dans {nom}, la réponse destinée au joueur, non vide",
+                                                 partie=nom, recu=""))
                     continue
-                obstacles.extend({"partie": nom, **o} for o in voix_auteur(texte))
+                obstacles.extend(voix_auteur(texte, nom))
                 if monde is not None:
-                    obstacles.extend({"partie": nom, **o} for o in mentions_narratives(monde, texte, base, paroles))
+                    obstacles.extend(mentions_narratives(monde, texte, base, paroles, partie=nom))
                 faits = dict(entree.get("faits", {}))
                 # Une parole n'a lieu que par le moteur : contrôle déterministe, quelle que soit la voie
                 # (action, parole, conversation, faits) et sans dépendre du verdict de l'auditeur.
-                obstacles.extend({"partie": nom, **o} for o in paroles_sans_moteur(texte, faits, adresse))
+                obstacles.extend(paroles_sans_moteur(texte, faits, adresse, partie=nom))
                 if effets is not None:
                     faits["effets_prevus"] = {"branche": nom, "effets": effets,
                                                "intention": reponse["proposition"].get("intention")}
@@ -986,26 +988,25 @@ direction), plus lents, ils ne s'entendent que de tout près.
                         "Contrôler chaque segment de la réponse", "auditer_narration",
                         schema_audit(faits, len(decoupage)))
                     try:
-                        rapport = controler_narration(texte, audit, faits)
+                        rapport = controler_narration(texte, audit, faits, nom)
                         break
                     except AuditIllisible as exc:
                         # Un rapport illisible ne juge pas le texte : l'audit est redemandé une
                         # fois ; ensuite le texte reste non contrôlé, donc refusé.
                         if essai:
-                            obstacles.append({"partie": nom, "segment": None, "texte": texte,
-                                              "motif": str(exc)})
+                            obstacles.append(audit_illisible(str(exc), partie=nom, texte=texte))
                     except ErreurMonde as exc:
-                        obstacles.append({"partie": nom, "segment": None, "texte": texte,
-                                          "motif": str(exc)})
+                        # Le texte n'a pas été jugé (appel de l'auditeur manqué) : rien ne lui est reproché.
+                        obstacles.append(audit_illisible(str(exc), partie=nom, texte=texte))
                         break
                 if rapport is None:
                     continue
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
                                "fondement_paroles": paroles}
-                obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
+                obstacles.extend(rapport["obstacles"])
                 if monde is not None:
                     # Une voix inconnue ne se nomme ni ne nomme personne sans le moteur (déterministe).
-                    obstacles.extend({"partie": nom, **o} for o in voix_inconnues(monde, rapport["paroles"], faits, texte))
+                    obstacles.extend(voix_inconnues(monde, rapport["paroles"], faits, texte, nom))
                 if nom == "texte" and rapport["obstacles"]:
                     def fautif(morceau, faits=faits):
                         return bool(voix_auteur(morceau)
@@ -1034,9 +1035,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                         "auditer_portee", SCHEMA_PORTEE)
                     obstacles.extend(controler_portee(
                         ajouts, audit, faits.get("attestations", [])))
+            except (RapportIllisible, ErreurFournisseur) as exc:
+                # L'auditeur n'a pas rendu de jugement lisible : rien n'est reproché à la proposition.
+                obstacles.append(audit_illisible(str(exc), partie="description"))
             except ErreurMonde as exc:
-                obstacles.append({"partie": "description", "segment": None,
-                                  "texte": "", "motif": str(exc)})
+                obstacles.append(depuis_refus(exc, "description"))
             try:
                 qualifications = qualifications_proposees(reponse, entree.get("faits", {}))
                 if qualifications:
@@ -1046,9 +1049,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                         "Contrôler les capacités proposées",
                                         "auditer_capacites", SCHEMA_PHYSIQUE)
                     obstacles.extend(controler_physique(qualifications, audit))
+            except (RapportIllisible, ErreurFournisseur) as exc:
+                # L'auditeur n'a pas rendu de jugement lisible : rien n'est reproché à la proposition.
+                obstacles.append(audit_illisible(str(exc), partie="qualification"))
             except ErreurMonde as exc:
-                obstacles.append({"partie": "qualification", "segment": None,
-                                  "texte": "", "motif": str(exc)})
+                obstacles.append(depuis_refus(exc, "qualification"))
             if not obstacles:
                 if "texte" in audits:
                     self._audit_courant = audits["texte"]
