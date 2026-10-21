@@ -71,7 +71,8 @@ class MineTests(unittest.TestCase):
         appels = {id for id in pnjs(m) if any(s["type"] == "appel" for s in lire(m, id)["memoire"])}
         self.assertIn("lucien", appels)
         bram = autour(m, "bram")
-        self.assertFalse(bram["lumiere"])
+        # La chandelle du bureau est morte ; la lumière qu'il a, c'est la lampe de qui l'a rejoint.
+        self.assertFalse(m.objets["chandelle"]["allume"])
         self.assertTrue("bram" in appels or bram["fiables"], (appels, bram))
 
 

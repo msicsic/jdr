@@ -255,3 +255,80 @@ Limites :
 - inspecter dans le noir compte encore comme une ronde ; seul crocheter demande d'y voir ;
 - une lampe n'a pas de contenance : chaque charge ajoute sa durée ;
 - une lampe prêtée reste celle d'autrui : l'allumer est une faute (prêts, manque déjà relevé).
+
+## Défauts corrigés (branche `planif-defauts`)
+
+Trois écarts entre ce que la recherche supposait et ce que le PNJ croit ou ce que le geste réel
+permet. Règles communes, sans branche propre à un cas :
+
+- **La chance crue est celle du jet réel.** `planification.chance_crochetage` et `pnj._crocheter`
+  partent du même seuil (`pnj.seuil_crochetage` : 14, plus 4 par niveau de lumière manquant) ; la
+  lumière est celle qu'il croit là où il se tient (`deliberation.lumiere_crue`). Plus de chance
+  plancher (`CHANCE_MIN`, 5 %) : quand aucun jet ne réussit, le geste n'est pas envisagé, et le
+  plan passe par la lumière (en prendre, en demander, en allumer) ou n'existe pas. La croyance de
+  lumière d'une salle porte désormais son niveau (`etat` : `{"eclairee", "niveau"}`, 0 noir,
+  1 pénombre, 2 éclairé), vu là où il se tient, sans les sources portées
+  (`esprits.constater_lumiere`). Un lieu dont il ne sait rien : éclairé s'il y croit une source
+  allumée, sinon imaginé comme celui où il se tient (la règle de `noir_cru`). Un essai manqué fait
+  constater la lumière qu'il avait (le niveau de sa case) : un plan fait sur la lueur vue de
+  l'entrée se corrige au premier échec. Une lampe allumée pour crocheter reste utile tant que le
+  lieu n'est pas cru en pleine lumière (`lumiere_utile`).
+- **Une porte verrouillée est une serrure comme un contenant.** Une porte qui sort de sa salle et
+  qu'il croit verrouillée se crochète (même chance, même faute selon son propriétaire, même bruit,
+  `ouie` : crocheter est bruyant) ; le trajet passe ensuite par les portes que le plan a
+  déverrouillées (`pnj.chemin`, `ouvertes` ; `Vue.route`). La clé qu'il porte l'ouvre toujours en
+  chemin, et demander la clé reste demander un objet. Données de la mine : la porte du bureau est
+  à Bram (la crocheter est une faute, qui attend de n'être vue de personne).
+- **Les pièces se comptent sur ce qu'il croit.** `enrichir` lit la croyance `pieces` d'une bourse
+  (sue en la tenant : `esprits.constater` ; ou un savoir du scénario : la mine déclare que le camp
+  sait la paie de 200 pièces), jamais le compte de l'objet ; une bourse dont il ne sait rien ne le
+  tente pas. `pieces` entre dans `CHANGEANTS` : la recherche ne lit le vrai compte que de ce qu'il
+  peut dépenser (`richesse`).
+
+Cas vérifiés après rechargement (`tests/test_planif_defauts.py`) : Odon au bureau noir n'essaie
+plus le coffre (cas réel, mine 1985, une heure d'essais), et dans la pénombre sa chance crue est
+la vraie ; Brune devant la réserve placée aux vannes noires n'essaie pas, et l'essaie dans la
+pénombre du brasero ; un échec lui apprend la lumière qu'elle avait. Odon crochète la porte du
+bureau pour la paie ; Brune crochète la porte étanche pour une réserve placée au palier. Odon
+convoite la paie qu'il croit pleine même vide, pas celle qu'il croit vide même pleine, et sait le
+compte en la tenant ; Lucien ne convoite la bourse d'Anselme qu'en sachant ce qu'elle contient.
+`VERIFIER` passe sur une nuit de 8 h de chaque scénario.
+
+Bancs 8 h contre `main`, lancés au même moment (Relais 8 graines, mine, auberge et crue 4 ;
+moyennes par nuit, avant → après) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| minutes sans recours | 293,75 → 296,25 | 462,5 → 448,75 | 690 → 642,5 | 417,5 → 417,5 |
+| achats | 1,62 → 1,5 | 1 → 1 | 0,75 → 0,75 | 2 → 2 |
+| vols vus | 1 → 1 | 0,75 → 0,75 | 1 → 0,25 | 0 → 0 |
+| crochetages : essais (réussis) | 3,62 (0,62) → 3,5 (0,62) | 28,5 (0) → 0,75 (0) | 31,5 (0,75) → 0,25 (0,25) | 0 → 0 |
+| événements distincts | 31,88 → 31,75 | 43,5 → 43,75 | 47,75 → 38,75 | 36,25 → 36,25 |
+| renoncements | 1 → 1,25 | 3,75 → 6 | 2,25 → 1,25 | 0,25 → 0,25 |
+| temps processeur d'une nuit | 10,8 → 10,7 s | 33,3 → 31,4 s | 27,9 → 32,5 s | 11,3 → 11,5 s |
+
+Aucune usurpation ni violation. À chaque essai des nuits contrôlées (Relais 7 et 500, mine 7 et
+1985, auberge 42 et 1985), la chance crue égale la chance réelle. Écarts expliqués :
+- mine : les 28 à 30 essais d'Odon au coffre dans le bureau noir (minute 450, aucun possible)
+  tombent à un seul, celui qui lui apprend le noir (il avait vu la lueur du baraquement depuis la
+  porte) ; il n'y a plus de fracas à aller voir (alles voir 18,5 → 15). Odon envisage désormais de
+  crocheter la porte du bureau, mais le baraquement n'est jamais sans témoin : il guette, puis
+  renonce (deux renoncements de plus par nuit) ; aucune porte crochetée au banc ;
+- auberge : Lucien s'acharnait 35 à 52 fois sur le coffre ferré de la chambre noire pour le
+  ballot (graines 7, 42, 2024) ; ce fracas faisait se retourner, aller voir, en être témoin (vols vus). Sans lui, moins d'événements et d'échanges ; la graine 1985, où il
+  réussit d'un coup en pleine lumière, est identique. Le temps augmente : ses recherches du ballot,
+  sans issue dans le noir, épuisent l'espace au lieu de reprendre un plan ;
+- Relais : la pénombre du refuge compte pour 15 % (DEX 0) et non plus 35 % : trois nuits décalent
+  le moment où Brune force la réserve ; la crue est identique.
+
+Limites :
+- la lumière crue d'une salle est celle de la case où il se tenait : la serrure peut être plus ou
+  moins éclairée ; il le constate au premier essai (au plus un essai perdu par arrivée) ;
+- un essai à chance réelle faible mais non nulle (5 % avec DEX + 2 dans le noir) reste envisagé,
+  à son coût (1 / chance minutes) : les jets sont indépendants, un échec n'apprend rien de plus ;
+- forcer une porte (frapper) n'est pas un geste des PNJ ; seuls la clé et le crochetage lèvent
+  une porte verrouillée, et le PNJ n'apprend une porte verrouillée qu'en l'essayant ou par savoir ;
+- personne n'apprend le contenu d'une bourse autrement qu'en la tenant ou par un savoir déclaré :
+  ni la voir compter, ni l'entendre dire ;
+- au banc, Lucien, dans la chambre noire, ne va pas chercher de lumière : sa recherche n'en trouve
+  aucun moyen ; il retourne garder ses biens.

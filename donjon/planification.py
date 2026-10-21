@@ -19,9 +19,9 @@ from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
 
-from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _eclairee_crue, _lieu_cru,
-                           autorise, besoin_de_part, illicite, noir_cru, peur_du_noir, profil, promesse_en_cours,
-                           refuse_recemment)
+from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _lieu_cru,
+                           autorise, besoin_de_part, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
+                           promesse_en_cours, refuse_recemment)
 from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
@@ -34,7 +34,6 @@ PRET = 0.5             # chance qu'il prête à quelqu'un qui demande un objet q
 CHERCHER = 3           # chercher quelqu'un qu'on a perdu de vue : on n'est pas sûr de le trouver
 FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se consume en main
 NOIR = 3               # par minute passée dans le noir, fois ce que le noir l'inquiète (``peur_du_noir``)
-CHANCE_MIN = 0.05
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
@@ -124,6 +123,9 @@ class Vue:
             self.peur = 0
         self._chemin = chemin
         self._routes, self._trajets, self._crus, self._agissables = {}, {}, {}, {}
+        # Les portes de chaque salle : celles qu'il peut crocheter de là.
+        self.portes_de = {s: frozenset(x["porte"] for x in d["sorties"].values() if x.get("porte"))
+                          for s, d in self.salles.items()}
         self.emplois = None    # ce que le but peut employer (``chercher``) ; None : tout
 
     def depense(self, prix):
@@ -135,12 +137,13 @@ class Vue:
 
     def agissables(self, vises):
         """(objets, à porter) : les objets connus sur lesquels un geste est possible (``gestes``)
-        — ce qu'un geste sait employer, un contenant, un foyer, ce que vise le but ; les autres ne
-        donnent jamais rien — et, parmi eux, ceux qu'il vaut la peine de porter (``pertinent``)."""
+        — ce qu'un geste sait employer, un contenant, une porte, un foyer, ce que vise le but ; les
+        autres ne donnent jamais rien — et, parmi eux, ceux qu'il vaut la peine de porter
+        (``pertinent``)."""
         noms = frozenset(o for k in ("prendre", "poser", "fermer", "servir") for o in vises.get(k, ()))
         if noms not in self._agissables:
             objets = [o for o in self.connus if self.utile[o] or o in noms
-                      or self.objets[o]["type"] == "contenant" or self.objets[o].get("foyer")]
+                      or self.objets[o]["type"] in ("contenant", "porte") or self.objets[o].get("foyer")]
             self._agissables[noms] = objets, {o for o in objets if self.pertinent(o, noms)}
         return self._agissables[noms]
 
@@ -202,16 +205,23 @@ class Vue:
     def promesse(self, o):
         return self._memo((o, "promesse"), lambda: promesse_en_cours(self.monde, self.id, o))
 
-    def route(self, depart, arrivee, portes):
-        trajet = (depart, arrivee, portes)
+    def route(self, e, arrivee):
+        """Les sorties de sa salle jusqu'à ``arrivee``, avec les clés qu'il porte et les portes que
+        le plan a déverrouillées (crochetées) ; None s'il n'y croit aucun passage."""
+        trajet = (e.salle, arrivee, e.portes, self.ouvertes(e))
         if trajet in self._trajets:
             return self._trajets[trajet]
-        cles = frozenset(k for k in portes if self.objets[k].get("ouvre"))
-        cle = (depart, arrivee, cles)
+        cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
+        cle = (e.salle, arrivee, cles, trajet[3])
         if cle not in self._routes:
-            self._routes[cle] = self._chemin(self.monde, self.id, depart, arrivee, cles)
+            self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3])
         self._trajets[trajet] = self._routes[cle]
         return self._routes[cle]
+
+    def ouvertes(self, e):
+        """Les portes que le plan a déverrouillées."""
+        return frozenset(cle[1] for cle, valeur in e.faits.items()
+                         if cle[0] == "verrou" and valeur is False and self.objets[cle[1]]["type"] == "porte")
 
     def lieu(self, e, o):
         if o in e.portes:
@@ -294,16 +304,17 @@ class Vue:
         return self._memo(("feu_noye",), calcul)
 
     def lumiere(self, e):
-        """Y voit-il là où il se tient ? Une source allumée en main, une source que le plan a
-        allumée dans sa salle, ou une salle qu'il croit éclairée."""
+        """La lumière qu'il croit avoir là où il se tient (0 noir, 1 pénombre, 2 éclairé) : pleine
+        avec une source allumée en main ou une source que le plan a allumée dans sa salle ; sinon
+        celle qu'il croit à la salle (``lumiere_crue``)."""
         if any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes):
             return 2
         if any(cle[0] == "allume" and allume and self.salle(e, cle[1]) == e.salle for cle, allume in e.faits.items()):
             return 2
-        cle = (e.salle, "eclairee")
+        cle = (e.salle, "lumiere")
         if cle not in self._crus:
-            self._crus[cle] = _eclairee_crue(self.monde, self.id, e.salle)
-        return 2 if self._crus[cle] else 0
+            self._crus[cle] = lumiere_crue(self.monde, self.id, e.salle)
+        return self._crus[cle]
 
     def noir(self, e):
         """S'y croit-il dans le noir ? Sans lumière, dans un lieu qu'il croit obscur (``noir_cru``)."""
@@ -321,10 +332,12 @@ def _etape(operation, cible="", outil="", lieu="", condition="", contenu=None):
 
 
 def chance_crochetage(monde, id, lumiere):
-    """Comme le jet de ``pnj._crocheter`` : d20 + DEX contre 14, plus 4 par niveau de lumière manquant."""
+    """Sa chance au jet de ``pnj._crocheter`` à la lumière qu'il croit avoir : d20 + DEX contre
+    ``pnj.seuil_crochetage``. 0 quand aucun jet ne l'atteint : il ne l'envisage pas."""
     from .caractere import modificateur
-    reussites = 21 - (14 + 4 * (2 - lumiere) - modificateur(monde, id, "DEX"))
-    return min(1.0, max(CHANCE_MIN, reussites / 20))
+    from .pnj import seuil_crochetage
+    reussites = 21 - (seuil_crochetage(lumiere) - modificateur(monde, id, "DEX"))
+    return min(1.0, max(0.0, reussites / 20))
 
 
 def gestes(v, e, vises=None, but=None):
@@ -341,10 +354,11 @@ def gestes(v, e, vises=None, but=None):
     vises = vises or {}
     p = profil(monde, id)
     objets = v.objets
-    # Aller : un trajet vers toute salle qu'il croit atteindre avec ce qu'il porte.
+    # Aller : un trajet vers toute salle qu'il croit atteindre avec ce qu'il porte, par les portes
+    # qu'il ne croit pas verrouillées ou que le plan a déverrouillées.
     for s in sorted(v.salles):
         if s != e.salle:
-            route = v.route(e.salle, s, e.portes)
+            route = v.route(e, s)
             if route is not None:
                 yield 0, len(route), [_etape("aller", lieu=s)], e.apres(salle=s)
     agissables, a_porter = v.agissables(vises)
@@ -417,18 +431,23 @@ def gestes(v, e, vises=None, but=None):
                 dedans = [(("touche", contenant), True)] if contenant else []
                 yield (mal_conso, 1, [_etape("servir", o, condition=faute_conso, contenu={"pour": pour})],
                        e.apres(faits=[(("servi", o), pour), *dedans, *touche_conso]))
-        if x["type"] == "contenant" and v.salle(e, o) == e.salle:
+        # Une serrure : un contenant de sa salle, ou une porte qui en sort. Une porte verrouillée est
+        # un obstacle comme un contenant : la clé qu'il porte l'ouvre en chemin (``Vue.route``), le
+        # crochetage la déverrouille ; la demander, c'est demander la clé.
+        porte = x["type"] == "porte"
+        if (x["type"] == "contenant" and v.salle(e, o) == e.salle) or porte and o in v.portes_de[e.salle]:
             ouvert, verrou = v.ouvert(e, o), v.verrouille(e, o)
-            if not ouvert and not verrou and v.autorise[o]:
+            if not porte and not ouvert and not verrou and v.autorise[o]:
                 yield (mal, 1, [_etape("ouvrir", o, condition=faute)],
                        e.apres(faits=[(("ouvert", o), True), (("touche", o), True), *touche]))
             if verrou and not ouvert:
-                for cle in sorted(k for k in e.portes if o in objets[k].get("ouvre", [])):
+                for cle in sorted(k for k in e.portes if o in objets[k].get("ouvre", []) and not porte):
                     yield (0, 1, [_etape("deverrouiller", o, outil=cle, condition=faute)],
                            e.apres(faits=[(("verrou", o), False), (("touche", o), True)]))
-                if "crochetage" in p["capacites"] and v.autorise[o]:
+                # Sa chance est celle du jet à la lumière qu'il croit avoir ; nulle, il n'essaie pas.
+                chance = chance_crochetage(monde, id, v.lumiere(e)) if "crochetage" in p["capacites"] else 0
+                if chance and v.autorise[o]:
                     for outil in sorted(k for k in e.portes if "crochetage" in objets[k].get("usages", [])):
-                        chance = chance_crochetage(monde, id, v.lumiere(e))
                         yield (mal, 1 / chance, [_etape("crocheter", o, outil=outil, condition=faute)],
                                e.apres(faits=[(("verrou", o), False), (("touche", o), True), *touche]))
         # Manger ce qui est à portée.
@@ -506,7 +525,7 @@ def _chercher(v, e, sujet):
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
     visites = lire(v.monde, v.id)["visites"]
     vaines = appels_vains(v.monde, v.id, sujet)
-    routes = {s: v.route(e.salle, s, e.portes) for s in v.salles if s not in vaines}
+    routes = {s: v.route(e, s) for s in v.salles if s not in vaines}
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
         return None
@@ -525,9 +544,9 @@ def depart(monde, id, v=None):
 
 # Ce qui change d'une minute à l'autre dans un objet, et qu'une recherche ne lit jamais : elle lit
 # ce qu'il en croit. Le lieu vrai n'y entre que par ce qu'il porte, les propriétaires et les
-# objets fixes (``_entrees``).
+# objets fixes (``_entrees``) ; les pièces d'une bourse, que par ce qu'il peut dépenser.
 CHANGEANTS = frozenset(("lieu", "position", "position_salle", "orientation", "corps", "humeur", "combustible",
-                        "portions", "charges", "ouverte", "verrouillee", "allume"))
+                        "portions", "charges", "ouverte", "verrouillee", "allume", "pieces"))
 
 
 def _entrees(v, vises, profondeur, noeuds):
@@ -783,20 +802,23 @@ def _rendre(monde, id, o, condition):
 
 
 def enrichir(monde, id):
-    """(but, étapes) pour prendre des pièces (un objet qui en contient, qui n'est pas à lui) qui
-    valent pour lui plus que ce qu'il en coûte d'aller les prendre, faute comprise ; None sinon.
-    L'argent ne presse jamais : aucune détresse n'use le prix de la faute (``caractere.ARGENT``)."""
+    """(but, étapes) pour prendre des pièces (un objet qu'il croit en contenir, qui n'est pas à lui)
+    qui valent pour lui plus que ce qu'il en coûte d'aller les prendre, faute comprise ; None sinon.
+    L'argent ne presse jamais : aucune détresse n'use le prix de la faute (``caractere.ARGENT``).
+
+    Il compte les pièces qu'il croit dedans (croyance ``pieces`` : su en la tenant, ou un savoir
+    du scénario), jamais celles qui y sont : une bourse dont il ne sait rien ne le tente pas."""
     from .caractere import ARGENT, prix_faute, valeur_pieces
     if not profil(monde, id):
         return None
     v = Vue(monde, id)
     faute = prix_faute(monde, id, ARGENT)
+    crues = {o: _cru(monde, id, o, "pieces") for o in v.connus}
     # Ce qu'il ne peut prendre (son honnêteté l'interdit, la faute passe l'enjeu), ou qui vaut moins
     # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine.
-    bourses = tuple(o for o in v.connus if v.objets[o].get("pieces") and v.proprietaire[o] != id
+    bourses = tuple(o for o in v.connus if crues[o] and v.proprietaire[o] != id
                     and not porte_par(monde, o, id) and v.disponible(o) and v.autorise[o]
-                    and (not v.illicite[o] or faute is not None
-                         and valeur_pieces(monde, id, v.objets[o]["pieces"]) > faute))
+                    and (not v.illicite[o] or faute is not None and valeur_pieces(monde, id, crues[o]) > faute))
     if not bourses:
         return None
     trouve = chercher(monde, id, lambda v, e: any(b in e.portes for b in bourses), {"prendre": bourses},
@@ -805,7 +827,7 @@ def enrichir(monde, id):
         return None
     cout, etapes, e = trouve
     pris = next(b for b in bourses if b in e.portes)
-    if valeur_pieces(monde, id, v.objets[pris]["pieces"]) <= cout:
+    if valeur_pieces(monde, id, crues[pris]) <= cout:
         return None  # Ces pièces ne valent pas, pour lui, ce qu'il lui en coûterait.
     return {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
 

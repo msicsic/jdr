@@ -441,6 +441,22 @@ def _eclairee_crue(monde, id, salle):
                and salle_crue(monde, id, k) == salle for k in _connus(monde, id))
 
 
+def lumiere_crue(monde, id, salle):
+    """Le niveau de lumière qu'il croit là (0 noir, 1 pénombre, 2 éclairé), sans ce qu'on y porte :
+    celui qu'il y a vu en s'y tenant (``esprits.constater_lumiere``). Un lieu dont il ne sait rien :
+    éclairé à plein s'il y croit le jour ou une source allumée (``_eclairee_crue``), sinon il
+    l'imagine comme celui où il se tient (``noir_cru``) ; sans rien savoir d'aucun, rien ne lui
+    fait croire le noir."""
+    vue = _cru(monde, id, salle, "etat")
+    if vue is not None:
+        return vue.get("niveau", 2 if vue.get("eclairee") else 0)
+    if _eclairee_crue(monde, id, salle):
+        return 2
+    ici = monde.objets[id]["lieu"]
+    vue = _cru(monde, id, ici, "etat") if ici != salle and ici in monde.data["salles"] else None
+    return 2 if vue is None else vue.get("niveau", 2 if vue.get("eclairee") else 0)
+
+
 def noir_cru(monde, id, salle):
     """S'y croit-il dans le noir, sans ce qu'il porte ? Un lieu qu'il a vu obscur ; un lieu dont il
     ne sait rien, il l'imagine comme celui où il se tient."""
@@ -461,7 +477,7 @@ def peur_du_noir(monde, id):
 def lumiere_utile(monde, id):
     """A-t-il besoin d'y voir, maintenant ou pour son plan ? Là où il se tient, ou là où son plan
     le mène, il croit le noir (``noir_cru`` : sans ce qu'il porte), et le noir l'inquiète ; ou il
-    y a un geste qui demande d'y voir (crocheter)."""
+    y a un geste qui demande d'y voir (crocheter) là où il ne croit pas la pleine lumière."""
     e = lire(monde, id)
     salle, peur = monde.objets[id]["lieu"], peur_du_noir(monde, id) > 0
     if salle not in monde.data["salles"]:
@@ -472,7 +488,7 @@ def lumiere_utile(monde, id):
         if etape["operation"] == "aller" and etape["lieu"] in monde.data["salles"]:
             salle = etape["lieu"]
         if (peur and noir_cru(monde, id, salle)
-                or etape["operation"] in A_VUE and not _eclairee_crue(monde, id, salle)):
+                or etape["operation"] in A_VUE and lumiere_crue(monde, id, salle) < 2):
             return True  # Sa chance au geste compte sur la lumière qu'il croit (``chance_crochetage``).
     return False
 

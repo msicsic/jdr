@@ -90,8 +90,10 @@ class MineTests(unittest.TestCase):
         m, _ = vivre(inquiet(m), 4)
         allumees = [k for k in ("lampe_rechange_1", "lampe_rechange_2") if m.objets[k]["allume"]]
         self.assertEqual(len(allumees), 1)
-        self.assertEqual(m.objets["remy"]["lieu"], "reserve")
-        self.assertIn("Rémy, jeune mineur allume la lampe de mineur de rechange.", chronique(m))
+        # Il y est allé l'allumer ; la suite (le fracas d'Odon qui crochète la porte du bureau dans
+        # le noir l'inquiète) ne compte pas ici.
+        self.assertLess(chronique(m).index("Rémy, jeune mineur passe dans : Réserve."),
+                        chronique(m).index("Rémy, jeune mineur allume la lampe de mineur de rechange."))
 
     def test_une_lampe_vide_se_remplit_d_huile_puis_s_allume(self):
         m = avec_briquet(mine_noire())
@@ -202,7 +204,7 @@ class AubergeTests(unittest.TestCase):
         m.objets["bougeoir_mireille"]["allume"] = False
         m.objets["mireille"].update(lieu="cellier", position=[2, 3], position_salle="cellier")
         inquiet(m, "mireille")
-        self.assertEqual(lire(m, "mireille")["croyances"]["cellier"]["etat"]["valeur"], {"eclairee": False})
+        self.assertEqual(lire(m, "mireille")["croyances"]["cellier"]["etat"]["valeur"], {"eclairee": False, "niveau": 0})
         m, _ = vivre(m, 1)
         self.assertEqual(but_en_mots(m, lire(m, "mireille")["intention"]["but"]), "avoir de la lumière")
         m, _ = vivre(m, 3)
