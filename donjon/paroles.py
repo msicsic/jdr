@@ -629,21 +629,25 @@ def annonce(monde, rapport):
     return f"{tour}Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
 
 
+def identites(monde):
+    """Les personnages dont Corvus sait qui ils sont, d'après ce qu'il sait d'eux, jamais d'après une
+    place : il les a vus (``Monde.identifier``, ``souvenirs_personnages``), il connaît leur voix, ou
+    une voix s'est donné leur nom."""
+    from .voix import entendues
+    ids = {*monde.data.get("personnages_vus", ()), *monde.data.get("souvenirs_personnages", {}),
+           *monde.data.get("voix_connues", ()), *(e.get("se_dit") for e in entendues(monde, "joueur").values())}
+    return sorted(id for id in ids if id in monde.objets and monde.objets[id]["type"] == "personnage")
+
+
 def _connu_du_joueur(monde, id):
     """Le joueur ne parle que de ce dont il a connaissance : perçu, examiné, vu ou entendu nommer.
 
-    Un personnage, il le connaît d'après ce qu'il sait de lui, jamais d'après une place : il l'a vu
-    (``Monde.identifier``), il connaît sa voix, ou une voix s'est donnée son nom. Qu'il ne soit plus
-    là où on l'avait vu n'y change rien ; le nommer quand il est absent donne le refus de la parole
-    ou du geste (« Tu ne vois pas … d'ici »), pas un inconnu."""
+    Un personnage, il le connaît d'après ce qu'il sait de lui (``identites``) ; qu'il ne soit plus là
+    où on l'avait vu n'y change rien : le nommer quand il est absent donne le refus de la parole ou
+    du geste (« Tu ne vois pas … d'ici »), pas un inconnu."""
     from . import lexique
-    from .voix import connait, entendues
     if (id == "joueur" or id in monde.data["visitees"] or id in monde.data["connus"]
-            or id in monde.data.get("souvenirs_visuels", {}) or id in monde.data.get("souvenirs_personnages", {})
-            or id in monde.data.get("personnages_vus", ())):
-        return True
-    if id in monde.objets and monde.objets[id]["type"] == "personnage" and (
-            connait(monde, "joueur", id) or any(e.get("se_dit") == id for e in entendues(monde, "joueur").values())):
+            or id in monde.data.get("souvenirs_visuels", {}) or id in identites(monde)):
         return True
     if id not in monde.objets and id not in monde.data["salles"]:
         return False

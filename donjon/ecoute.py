@@ -90,6 +90,11 @@ def reconnue(monde, bruit, niveau):
 MOTS = re.compile(r"«\s*(.+?)\s*»")
 
 
+def _heler(bruit):
+    """Un cri qui porte des mots : un appel, ou la réponse à un appel (``pnj.repondre``)."""
+    return " répondre" if " répond : « " in bruit["texte"] else " appeler"
+
+
 def rendre(monde, entendus_):
     """Ce que le joueur entend, par direction : un appel, un grand bruit, des voix, des pas, ou une
     parole nette d'une voix qu'il reconnaît, qui ne nomme que ce qu'il connaît."""
@@ -104,7 +109,7 @@ def rendre(monde, entendus_):
         elif mots:
             # Une voix qu'il ne sait à qui prêter : ses mots, sans le nom de qui parle.
             texte = (f"Tu entends, {_lieu(direction)}, {nom_pour_joueur(monde, b['auteur'])}"
-                     + (" appeler" if b["nature"] == "hele" else "") + f" : « {mots.group(1)} »")
+                     + (_heler(b) if b["nature"] == "hele" else "") + f" : « {mots.group(1)} »")
         else:
             texte = None
         if texte:

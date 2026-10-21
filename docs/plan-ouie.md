@@ -645,7 +645,7 @@ Limites :
   l'inquiétude étant à la mesure du niveau reçu, il inquiète peu ; il fait surtout aller voir.
 - L'appelé ne s'attend pas : il reprend son but après avoir répondu ; deux PNJ qui se cherchent
   peuvent se croiser (crue, graine 1985 : Aubin et Gorm se hèlent et se répondent six fois en dix
-  minutes avant de se trouver).
+  minutes avant de se trouver). Corrigé ensuite : branche `parole-voix`, « Qui répond attend ».
 - Une demande de part à une voix inconnue est « impossible » quand l'auditeur ne sait rien de qui
   la fait (ni où, ni sa faim) : la demande ne dit pas la faim. Une voix inconnue ne peut pas recevoir
   un don du joueur sous son nom ; elle peut être désignée en face.
@@ -654,7 +654,7 @@ Limites :
   aux vannes »).
 - Le joueur ne retient le nom d'une voix que par une parole qui le lui donne directement (contenu `qui`) ;
   ce qu'il surprend entre PNJ (« Ici ! » à un appel) ne lui nomme pas la voix, et il ne hèle personne
-  par son nom (seul l'appel à l'aide est un cri pour lui).
+  par son nom (seul l'appel à l'aide est un cri pour lui). Héler : branche `parole-voix`.
 
 ## Limites
 

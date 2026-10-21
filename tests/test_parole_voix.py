@@ -31,8 +31,10 @@ from tests.test_voix import appels, aubin_cherche_gorm
 
 
 def cite(monde, id):
-    """Le nom d'``id`` figure-t-il dans ce que le MJ et le joueur ont lu récemment ?"""
-    corpus = lexique.corpus(monde.contexte(), monde.data.get("conversation", []))
+    """Le nom d'``id`` figure-t-il dans ce que le MJ et le joueur ont lu récemment, hors de ce que
+    Corvus sait de qui il est (``personnages_connus``) ?"""
+    contexte = {k: v for k, v in monde.contexte().items() if k != "personnages_connus"}
+    corpus = lexique.corpus(contexte, monde.data.get("conversation", []))
     return id in lexique.entites_citees(monde, corpus)
 
 
@@ -61,6 +63,8 @@ class NommerTests(unittest.TestCase):
         self.assertFalse(cite(m, "ilse"))
         self.assertIn("ilse", m.data["personnages_vus"])
         self.assertTrue(_connu_du_joueur(m, "ilse"))
+        # Le MJ sait que Corvus la connaît, sans savoir où elle est.
+        self.assertEqual(m.contexte()["personnages_connus"]["ilse"], m.objets["ilse"]["nom"])
         self.assertEqual(analyser(m, "je dis à Ilse : viens m'aider")["nomme"], "ilse")
         reprise, sortie, appels = jouer(m, "je dis à Ilse : viens m'aider", [], [])
         self.assertEqual(appels, [])
@@ -231,7 +235,7 @@ class HelerJoueurTests(unittest.TestCase):
         self.assertEqual(appels, [])  # Le moteur, jamais une interprétation du MJ.
         self.assertIn("Tu appelles : « Gorm ? »", sortie)
         # Une voix qu'il n'a jamais entendue : il entend ce qu'elle dit et le nom qu'elle se donne.
-        self.assertIn("Tu entends, à l'ouest, une voix qui se dit Gorm appeler : « Ici ! »", sortie)
+        self.assertIn("Tu entends, à l'ouest, une voix qui se dit Gorm répondre : « Ici ! »", sortie)
         self.assertEqual([e["se_dit"] for e in reprise.data["voix_entendues"].values()], ["marchand"])
         self.assertEqual(lire(reprise, "marchand")["rejoint"]["qui"], "joueur")
         self.assertEqual(lire(reprise, "marchand")["intention"]["but"], {"type": "attendre", "qui": "joueur"})
