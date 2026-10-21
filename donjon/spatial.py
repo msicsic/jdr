@@ -227,16 +227,15 @@ def position_carte(m, id, salle=None):
     return contact
 
 
+def _bloquantes(m, salle, vue=False, sauf=None):
+    """Les cases des objets de la salle qui bloquent le passage (ou la vue), hors ``sauf``."""
+    return [position_cible(m, id, salle) for id, o in m.objets.items()
+            if id != sauf and not o.get("incorpore") and o.get("lieu") == salle
+            and (o.get("bloque_vue") if vue else o.get("bloque_passage"))]
+
+
 def _bloque(m, salle, position, vue=False, sauf=None):
-    for id, o in m.objets.items():
-        if id == sauf or o.get("incorpore"):
-            continue
-        if o.get("lieu") != salle:
-            continue
-        if (o.get("bloque_vue") if vue else o.get("bloque_passage")):
-            if position_cible(m, id, salle) == position:
-                return True
-    return False
+    return any(p == position for p in _bloquantes(m, salle, vue, sauf))
 
 
 def _case_libre(m, salle, position):
@@ -1127,11 +1126,14 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
     Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
     from .monde import ErreurMonde
     from .temps import PAS_JOUEUR, duree_pas
-    libres = {}
+    libres, bloquantes = {}, {}
 
     def case_libre(s, c):
+        # ``_case_libre``, les obstacles de chaque salle relevés une fois.
         if (s, c) not in libres:
-            libres[s, c] = _case_libre(m, s, c) if solides else c in cases(m.data["salles"][s])
+            if solides and s not in bloquantes:
+                bloquantes[s] = _bloquantes(m, s)
+            libres[s, c] = c in cases(m.data["salles"][s]) and not (solides and any(p == c for p in bloquantes[s]))
         return libres[s, c]
     depart = (salle, tuple(position))
     if arrivee(*depart):

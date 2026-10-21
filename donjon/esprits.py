@@ -541,7 +541,7 @@ def _percevoir(monde, id):
 
 
 def percevoir_tous(monde):
-    from .spatial import vue_memorisee
-    with vue_memorisee(monde):
+    from .spatial import etat_fige, vue_memorisee
+    with vue_memorisee(monde), etat_fige(monde):  # Percevoir ne révise que des esprits.
         for id in pnjs(monde):
             percevoir(monde, id)
