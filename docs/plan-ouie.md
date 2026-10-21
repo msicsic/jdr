@@ -239,6 +239,60 @@ d'Aubin, « Aubin, viens m'aider à porter l'échelle » devient une parole (3 a
 pilier, Luna répond qu'elle ne le voit pas (2 appels), et « je dis à Aubin : viens m'aider » reçoit
 le message du moteur sans appel. Une demande d'aide n'a pas de contenu typé : elle reste un propos.
 
+**Correctif : ce que le MJ ne raconte plus sans le moteur (branche `mj-restes`).** Trois restes des
+bancs Luna, une même cause : une affirmation mécanique (une parole dite, un détail, une faisabilité)
+qui ne passait que par le jugement sémantique de l'auditeur, ou par lui avant le moteur.
+- *Une parole n'a lieu que par le moteur.* Sans parole de Corvus validée dans le tour
+  (`conversation_validee`) ni geste résolu (`resultat_resolu`), le récit ne fait pas parler Corvus
+  (`narration.parole_racontee` : « tu demandes à Ilse… », « tu lui dis », « tu appelles Aubin »,
+  « dis-tu » ; une hypothèse, « si tu lui demandes », ou un conseil, « tu peux lui demander », n'en
+  sont pas) ; et quand la saisie s'adresse à quelqu'un sans que le moteur ait fait entendre de parole,
+  ou après un refus, aucune citation nouvelle (`narration.paroles_sans_moteur`). Contrôle
+  déterministe, de toutes les voies. Une interpellation libre (« Gorm, je te donne la cloche ») dont
+  le destinataire entendrait la parole, répondue en dialogue, est renvoyée une fois au MJ sans être
+  contrôlée (`mj.renvoi`) : « rien n'a encore été dit », avec ce qu'attend le moteur (parole_joueur,
+  l'action, ou un dialogue sans réponse de personne). Un dialogue qui revient est contrôlé comme tout
+  autre : la règle de l'utilisateur tient (sans guillemets, verbe de parole ni « à tous », pas de
+  parole sans conteste). Essayée puis retirée : une règle de l'auditeur « sans conversation_validee,
+  personne ne réagit » ; l'auditeur la croyait violée alors que conversation_validee était là (deux
+  refus à tort sur « « Gorm, je te donne la cloche » »).
+- *De loin, aucun détail.* La règle du moteur existait (un détail ou une description physique ne
+  s'établit que sur un support à portée et éclairé, `faits_locaux.supports`, refus d'une seule cause
+  avec `attendu`), mais la contre-revue sémantique de l'ajout passait avant elle : trois refus de
+  l'auditeur sur « à quoi ressemble le mur de l'atelier ? » (mur à trois cases), puis un repli, ou un
+  détail ancré sur un autre support. Désormais le moteur valide d'abord (`mj.refus_assure` : un ajout
+  persistant que sa validation écarte, ou un dialogue qu'il remplacera, n'est pas audité). Les faits
+  disent ce que le moteur applique : « … trop loin pour être manipulé d'ici ; de là, ses détails
+  t'échappent » (`rendu.decrire`, `localisation.REGLES`) ; les consignes ne promettent plus la
+  description d'un objet seulement vu, mais d'un objet à portée. Un personnage n'est pas concerné :
+  ses traits se décrivent de souvenir (« souvenir d'une rencontre ») ; la phrase des détails qui
+  échappent, essayée aussi pour lui, faisait refuser « les yeux de Gorm sont bruns » à deux cases.
+- *« Puis-je… ? » : le moteur répond.* Une question sur un geste de Corvus (`commandes.faisabilite`)
+  répondue en dialogue est renvoyée une fois pour que le geste soit proposé ; si le moteur le refuse
+  (après une correction, ou tout de suite pour la distance), le joueur lit sa raison telle quelle, pas
+  une explication libre (« en principe, les perches pourraient servir »). Un rôle laissé vide dit ce
+  qui manque et s'il y a ici de quoi le tenir : « Pour une échelle, il te manque un lien pour attacher
+  les barreaux : rien de tel n'est à ta disposition ici. » (`artisanat.calculer`, au lieu de « on ne
+  peut pas compter deux fois une perche »), « Il te faut un appui long à tenir, une perche par
+  exemple : rien de tel n'est à ta disposition ici. » (`franchissement.conditions`). Ce qui est à
+  disposition, c'est ce que Corvus peut désigner (`Monde.designable`, ce qu'il verrait en se
+  tournant compris) : la ficelle de l'atelier, dans son dos, n'est plus dite absente.
+- *Guillemets.* « « Gorm, je te donne la cloche » » reste une parole, voulue : le joueur lit « Tu dis à
+  Gorm : « … » », la cloche reste dans la besace, et Gorm répond sans la prendre (avec Luna : « Je t'ai
+  entendu. Mais la cloche est encore à toi : il faut me la remettre clairement »).
+
+Luna, copies de la sauvegarde réelle et de l'atelier (avant → après) : « est-ce que je peux fabriquer
+une échelle ? » au refuge, une explication devinée (« possible en principe… ») → le refus du moteur
+(il manque un lien) ; devant les perches trop loin, « Oui, une échelle est une possibilité, mais… » →
+« Approche-toi de la perche de bois 1… » en un appel ; « à quoi ressemble le mur ? », trois refus de la
+contre-revue et 30 s → refus du moteur, puis la réponse par ce que Corvus voit (2 appels et un audit) ;
+« Gorm, je te donne la cloche », « Gorm acquiesce : la cloche est bien revenue » sans rien changer →
+la cloche remise (remettre). Limites : repérer un récit de parole est lexical (formes à la deuxième
+personne), une réaction sans citation ni verbe de parole (« Gorm acquiesce ») n'est arrêtée que par le
+renvoi, pas par un contrôle ; la faisabilité ne se juge pas à distance (le joueur lit « approche-toi »,
+pas la fiche du geste) ; la question de faisabilité est reconnue par ses formes (« puis-je »,
+« est-ce que je peux », « est-il possible de »…).
+
 ## Constater, raconter où, chercher quelqu'un (branche `constater-et-rumeurs`)
 
 Trois manques relevés en écrivant la mine et l'auberge (`docs/etat-dev.md`).
