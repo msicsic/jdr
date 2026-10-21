@@ -15,6 +15,7 @@ from donjon.connexion import (Coffre, ISSUER, _fusionner_jetons, deconnecter, je
 from donjon.mj import MJOpenAI, lire_flux
 from donjon.monde import ErreurMonde, nouveau_monde
 from donjon.moteur import proposition
+from tests.faux_websocket import FauxWebSocket
 
 
 class SessionTests(unittest.TestCase):
@@ -160,16 +161,18 @@ class FluxTests(unittest.TestCase):
     def test_contrat_forfait_outils_namespace_sans_champs_interdits(self):
         p = proposition("observer", "contexte")
         resultat = {"status": "completed", "output": [{"type": "function_call", "name": "proposer_action", "arguments": json.dumps(p)}]}
-        def repondre(requete, timeout):
-            payload = json.loads(requete.data)
-            self.assertTrue(payload["stream"])
+        def repondre(payload):
+            self.assertNotIn("stream", payload)
             self.assertFalse(payload["store"])
             self.assertNotIn("max_output_tokens", payload)
             self.assertEqual(payload["tools"][0]["type"], "namespace")
-            self.assertEqual(requete.get_header("Authorization"), "Bearer oauth-test")
-            return io.BytesIO(("data: " + json.dumps({"type": "response.completed", "response": resultat}) + "\n\n").encode())
-        with patch("donjon.mj.jeton", return_value="oauth-test"), patch("donjon.mj.modeles", return_value=[{"slug": "test"}]), patch("urllib.request.urlopen", side_effect=repondre):
-            self.assertEqual(MJOpenAI("test", connexion="chatgpt").proposer(nouveau_monde(), "comment je suis arrivé ici ?"), p)
+            return resultat
+        socket = FauxWebSocket(repondre)
+        with patch("donjon.mj.jeton", return_value="oauth-test"), patch("donjon.mj.modeles", return_value=[{"slug": "test"}]), patch("donjon.transport_openai.ouvrir_websocket", return_value=socket) as ouvrir:
+            mj = MJOpenAI("test", connexion="chatgpt")
+            self.assertEqual(mj.proposer(nouveau_monde(), "comment je suis arrivé ici ?"), p)
+            self.assertEqual(ouvrir.call_args.args[0], "oauth-test")
+            mj.fermer()
 
     def test_401_coupe_appels_repetes_sans_fallback_facture(self):
         erreur = urllib.error.HTTPError("https://api.openai.com", 401, "unauthorized", {}, io.BytesIO(b'{"error":{"code":"invalid_api_key"}}'))
@@ -182,7 +185,8 @@ class FluxTests(unittest.TestCase):
 
     def test_echec_flux_conserve_erreur_de_forfait(self):
         mj = MJOpenAI("test", connexion="chatgpt")
-        with patch("donjon.mj.jeton", return_value="oauth-test"), patch("donjon.mj.modeles", return_value=[{"slug": "test"}]), patch("urllib.request.urlopen", return_value=io.BytesIO(b'data: {"type":"response.failed"}\n\n')):
+        socket = FauxWebSocket(lambda _: [{"type": "response.failed"}])
+        with patch("donjon.mj.jeton", return_value="oauth-test"), patch("donjon.mj.modeles", return_value=[{"slug": "test"}]), patch("donjon.transport_openai.ouvrir_websocket", return_value=socket):
             with self.assertRaisesRegex(ErreurMonde, "limites du forfait"):
                 mj.proposer(nouveau_monde(), "bonjour")
 

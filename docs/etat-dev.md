@@ -398,7 +398,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   garde et la lumière. Mine : la dernière flamme est le briquet de Gaspard, que personne ne
   retrouve dans le noir ; ceux qui craignent le noir vont vers la lumière dont ils se souviennent
   (le bureau) et Bram n'y est plus seul.
-- La suite de tests passe : 900 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `feat/websocket-persistant` (Codex, `docs/integration-websocket.md`) : en mode forfait
+  ChatGPT, le MJ parle à Luna par une WebSocket Responses persistante (`donjon/transport_openai.py`),
+  ouverte au premier appel et partagée par l'interprétation, les audits et la narration. Chaque
+  demande renvoie instructions, outils et contexte complets (`store: false`, aucun historique
+  serveur) ; seul `response.completed` est validé. Jeton renouvelé, socket fermée ou âgée de
+  55 min : nouvelle ouverture ; coupure pendant une demande : une reconnexion et une reprise du
+  même appel dans le même délai (45 s pour l'échange entier, et non plus par lecture). Le mode
+  API garde HTTP. Microbanc (`tmp-worktrees/ttft-luna-medium`) : premier jeton −32 %, durée d'un
+  appel −17,5 % contre HTTP. Vérifié après fusion : deux parties réelles avec une coupure
+  simulée chacune (4 ouvertures, 4 fermetures, une seule exécution de l'action).
+  Dépendance `websockets` (`requirements-chatgpt.txt`).
+- La suite de tests passe : 912 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
