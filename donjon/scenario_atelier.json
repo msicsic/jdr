@@ -335,7 +335,8 @@
         "objets_max": 2
       },
       "sorties": {},
-      "travail_calme": true
+      "travail_calme": true,
+      "genre": "f"
     },
     "terrasse": {
       "altitude_cm": 240,
@@ -368,7 +369,8 @@
         "masse_max_kg": 3,
         "objets_max": 2
       },
-      "sorties": {}
+      "sorties": {},
+      "genre": "f"
     }
   },
   "savoirs_pnj": {},

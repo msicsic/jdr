@@ -80,7 +80,7 @@ class CroyancesTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             mj._echanger(m, "Ilse, où est Gorm ?", None, enrichir=True)
         entree = recu[0]
-        self.assertIn("Conduite basse", str(entree["faits"]["esprits_interlocuteurs"]))
+        self.assertIn("la conduite basse", str(entree["faits"]["esprits_interlocuteurs"]))
         base, paroles = fondement(entree), fondement_paroles(entree)
         self.assertTrue(mentions(m, "Ilse croit que Gorm est dans la Conduite basse.", base, paroles))
         self.assertEqual(mentions(m, "Ilse hausse les épaules : « Gorm doit être dans la Conduite basse. »",

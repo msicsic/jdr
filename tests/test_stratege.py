@@ -16,7 +16,7 @@ from donjon.geometrie import placer, position_entree
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde
 from donjon.pnj import avancer
-from tests.support import refusee
+from tests.support import refusee, regarder
 
 
 def relais():
@@ -78,6 +78,7 @@ class StrategeTests(unittest.TestCase):
         deplacer(m, "pied_de_biche", "marchand")
         reunir(m, "brune", "marchand")
         m.joueur.update(salle="antichambre", position=[3, 4])
+        regarder(m, "joueur", "marchand")  # Placement d'auteur : il les voit faire.
         m.data["connus"] = sorted({*m.data["connus"], "brune", "marchand", "pied_de_biche"})
         faux = Faux(plan("faim", "demander le pied-de-biche à Gorm",
                          etape("demander", cible="marchand", outil="pied_de_biche")))
@@ -105,6 +106,7 @@ class StrategeTests(unittest.TestCase):
         deplacer(m, "pied_de_biche", "marchand")
         reunir(m, "brune", "marchand")
         m.joueur.update(salle="antichambre", position=[3, 4])
+        regarder(m, "joueur", "marchand")  # Placement d'auteur : il les voit faire.
         m.data["connus"] = sorted({*m.data["connus"], "brune", "marchand", "pied_de_biche"})
         appels = []
 
@@ -277,6 +279,7 @@ class LeviersTests(unittest.TestCase):
         m = relais()
         reunir(m, "brune", "marchand")
         m.joueur.update(salle="antichambre", position=[3, 4])
+        regarder(m, "joueur", "marchand")  # Placement d'auteur : il les voit faire.
         m.data["connus"] = sorted({*m.data["connus"], "brune", "marchand", "vivres"})
         for id in ("marchand", "brune", "ilse", "aubin"):
             lire(m, id)["besoins"].update({b: 0 for b in lire(m, id)["besoins"] if b != "faim"})
@@ -302,7 +305,10 @@ class LeviersTests(unittest.TestCase):
         self.assertFalse(reprise.objets["reserve"].get("ouverte"))
         self.assertEqual(lire(reprise, "marchand")["besoins"]["biens"], biens)
         self.assertNotIn("atteinte", [s["type"] for s in lire(reprise, "marchand")["memoire"]])
-        self.assertIn("Gorm appelle Brune et lui donne une part des vivres du refuge.", lignes)
+        self.assertIn("Gorm appelle Brune et lui donne une part des vivres du refuge.",
+                      [c["texte"] for c in reprise.data["chronique"]])
+        # Près de la réserve, hors de sa vue : le joueur ne le lit pas de ses yeux (son ouïe le lui dit).
+        self.assertNotIn("Gorm appelle Brune et lui donne une part des vivres du refuge.", lignes)
         self.assertNotIn("vu_agir", [s["type"] for x in ("brune", "ilse", "aubin") for s in lire(reprise, x)["memoire"]])
 
     def test_une_part_se_refuse_au_mefiant_ou_quand_il_a_faim(self):

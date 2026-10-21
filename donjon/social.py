@@ -138,9 +138,10 @@ def phrase(monde, noyau):
 def _ou(monde, noyau):
     """Où l'objet est allé, s'il l'a vu poser : « dans <salle> », « dans <contenant> » ; porté par
     l'auteur, la phrase le dit déjà (« a pris »)."""
+    from .francais import lieu as designer_lieu
     lieu = (noyau.get("lieu") or {}).get("valeur")
     if lieu in monde.data["salles"]:
-        return " dans " + monde.data["salles"][lieu]["nom"]
+        return " dans " + designer_lieu(monde.data["salles"][lieu])
     if lieu in monde.objets and monde.objets[lieu]["type"] != "personnage":
         return " dans " + designer(monde.objets[lieu])
     return ""
@@ -197,13 +198,15 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
 def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=()):
     """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
     destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). Ce que le joueur
-    perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de ceux dont on parle."""
+    perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de ceux dont on parle. Sans le
+    voir (le noir, son dos), il n'en a que ce que son ouïe lui fait entendre (``ecoute`` : une voix
+    qu'il reconnaît, ou « une voix »)."""
     from .ouie import retentir
     from .paroles import _connu_du_joueur
     retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites],
              parole={"a": [auditeur], "contenu": list(contenu)})
     a, b = monde.objets[id], monde.objets[auditeur]
-    if a["lieu"] == monde.joueur["salle"]:
+    if a["lieu"] == monde.joueur["salle"] and monde.visible(id):
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
             lignes.append(texte)
         else:

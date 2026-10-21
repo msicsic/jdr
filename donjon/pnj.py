@@ -14,7 +14,8 @@ tient une chronique complète, réservée au débogage et au banc. Luna n'interv
 """
 from collections import deque
 
-from .esprits import croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit, percus, pnjs
+from .esprits import (connait, connaitre, croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit,
+                      percus, pnjs)
 from .francais import complement_de, de, designer, sujet
 from .geometrie import cases, distance, placer, position_entree
 from .spatial import VECTEURS
@@ -395,17 +396,20 @@ def _inspecter(monde, id, cherche=None, lignes=None):
 
 def appeler(monde, id, qui, lignes):
     """Il cherche ``qui`` sans le voir : il l'appelle par son nom, à voix haute ; sa voix retentit
-    comme toute voix (``ouie``), sans rien apprendre aux autres. Un PNJ qui s'entend appeler (il en
-    saisit les mots : ``ouie.saisissent``) et ne se méfie pas de lui répond de la voix ; s'il entend
-    cette réponse, il le croit là d'où elle vient (``entendu`` : dans sa salle, à sa case ; d'une
-    autre salle, dans celle-ci), comme un bruit qu'on attribue. Le joueur appelé entend l'appel
-    (``ecoute``) et répond, s'il le veut, de lui-même."""
-    from .ouie import entend, retentir, saisissent
+    comme toute voix (``ouie``). Un PNJ qui s'entend appeler (il en saisit les mots :
+    ``ouie.saisit``) répond de la voix, sauf s'il reconnaît l'appelant et se méfie de lui. L'appelant
+    qui saisit la réponse et connaît la voix d'``qui`` le croit là d'où elle vient (``entendu``,
+    par la reconnaissance commune de ``ouie.entendre``) ; une voix qu'il ne connaît pas ne lui
+    apprend pas qui c'est. Le joueur appelé entend l'appel (``ecoute``) et répond, s'il le veut, de
+    lui-même."""
+    from .ouie import retentir, saisit
     from .social import _qui
     a, b = _qui(monde, id), _qui(monde, qui)
     texte = f"{a} appelle : « {b} ? »"
-    repond = (qui != "joueur" and monde.objets[qui].get("profil") and qui in saisissent(monde, id, "dire")
-              and (lire(monde, qui)["croyances"].get(id, {}).get("fiable") or {}).get("valeur") is not False)
+    # Il répond à son nom, sauf à qui il reconnaît et dont il se méfie.
+    repond = (qui != "joueur" and monde.objets[qui].get("profil") and saisit(monde, id, qui, "dire")
+              and not (identifie(monde, qui, id)
+                       and (lire(monde, qui)["croyances"].get(id, {}).get("fiable") or {}).get("valeur") is False))
     _chroniquer(monde, id, texte, "social")
     if monde.visible(id):
         lignes.append(texte)
@@ -416,12 +420,7 @@ def appeler(monde, id, qui, lignes):
     _chroniquer(monde, qui, reponse, "social")
     if monde.visible(qui):
         lignes.append(reponse)
-    if entend(monde, qui, id, "dire") is not None:
-        # Il sait qui lui répond : sa voix vient de là, dans sa salle ou d'une autre.
-        salle = monde.objets[qui]["lieu"]
-        ici = monde.data.get("mode_cases") and salle == monde.objets[id]["lieu"] and monde.objets[qui].get("position")
-        croire(monde, id, qui, "lieu", salle, "entendu", salle=salle,
-               case=list(monde.objets[qui]["position"]) if ici else None)
+    # Sa réponse retentit : qui en saisit les mots et connaît sa voix le croit là (``ouie.entendre``).
     retentir(monde, qui, "dire", texte=reponse, cites=[id])
 
 
@@ -1017,21 +1016,48 @@ def de_pres(monde, a, b):
     return distance(pa, pb) <= PROCHE
 
 
+def identifie(monde, x, y):
+    """``x`` sait que c'est ``y`` qui lui parle : il le voit, ou reconnaît sa voix (il le connaît,
+    ``esprits.connait``). Jamais d'après la place réelle de ``y``."""
+    if x == "joueur":
+        return monde.visible(y) or connait(monde, "joueur", y)
+    return percoit(monde, x, y) or connait(monde, x, y)
+
+
+def croit_present(monde, a, b):
+    """``a`` sait ``b`` là, près de lui, pour lui adresser la parole : il le voit, ou l'a vu ou
+    reconnu à la voix dans sa salle depuis peu (``RECENT``)."""
+    if percoit(monde, a, b):
+        return True
+    from .esprits import RECENT
+    c = lire(monde, a)["croyances"].get(b, {}).get("lieu")
+    return bool(c and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu")
+                and monde.data["minutes"] - c["minute"] <= RECENT)
+
+
 def pourraient_se_parler(monde, a, b):
-    """Ils se voient, ou sont assez près pour s'entendre : il suffira de se tourner l'un vers l'autre."""
-    return percoit(monde, a, b) and percoit(monde, b, a) or de_pres(monde, a, b)
+    """``a`` pourrait parler à ``b`` : il le sait là (``croit_present``), chacun saisirait les mots de
+    l'autre (``ouie.s_entendent``) et saurait qui lui parle (``identifie``)."""
+    from .ouie import s_entendent
+    return (croit_present(monde, a, b) and identifie(monde, b, a) and identifie(monde, a, b)
+            and s_entendent(monde, a, b))
 
 
 def se_parler(monde, a, b):
-    """Ils se parlent s'ils se voient, ou s'ils sont assez près pour s'entendre (``de_pres``) :
-    chacun se tourne alors vers l'autre, et la voix suffit, même dans le noir, comme pour le
-    joueur (``passage._peut_prier``)."""
-    if percoit(monde, a, b) and percoit(monde, b, a):
-        return True
-    if not monde.data.get("mode_cases") or not de_pres(monde, a, b):
+    """``a``, qui s'adresse à ``b`` là où il le croit, et ``b`` se parlent si chacun saisit les mots
+    de l'autre par l'ouïe commune (``ouie.s_entendent`` : distance réelle, passages, portes) et sait
+    qui lui parle : il le voit, ou reconnaît sa voix (``identifie``). Sans se voir (le noir, une
+    porte), chacun se tourne vers la voix de l'autre et le croit là d'où elle vient (``entendu``)."""
+    from .ouie import _place, s_entendent
+    if not (identifie(monde, b, a) and identifie(monde, a, b) and s_entendent(monde, a, b)):
         return False
     for x, y in ((a, b), (b, a)):
-        if x != "joueur" and "position" in monde.objets[x]:
+        if x == "joueur" or percoit(monde, x, y):
+            continue
+        sy, py = _place(monde, y)
+        croire(monde, x, y, "lieu", sy, "entendu", salle=sy,
+               case=list(py) if py is not None and sy == monde.objets[x]["lieu"] else None)
+        if "position" in monde.objets[x] and sy == monde.objets[x]["lieu"]:
             _faire_face(monde, x, y)
             percevoir(monde, x)
     return True
@@ -1177,6 +1203,8 @@ def _observer_presences(monde, suivi):
         s["vu"] = s["vu"] or visible
         s["dernier"] = (visible, lieu, ici)
         vus[id] = visible
+        if visible:
+            connaitre(monde, "joueur", id)  # Il l'a vu : il saura reconnaître sa voix (``ecoute``).
     return vus
 
 

@@ -27,11 +27,12 @@ def installer(monde):
 
 
 def interlocuteurs(monde):
-    # Une voix porte dans la même pièce ; elle ne traverse pas automatiquement les sorties. On parle
-    # à qui l'on perçoit : qu'on voit, ou qu'on vient d'entendre (un bruit parvenu au joueur pendant
-    # son dernier geste, ``ecoute.retenir``) et qui se tient assez près pour entendre la réponse.
-    # Qui se tait dans son dos ou dans le noir n'est pas là pour lui, ni pour le MJ.
-    from .pnj import de_pres
+    # On parle à qui l'on perçoit : qu'on voit, ou dont on vient de reconnaître la voix (une parole
+    # parvenue au joueur pendant son dernier geste, d'une voix qu'il connaît : ``ecoute.retenir``),
+    # si chacun saisit les mots de l'autre (``ouie.s_entendent`` : distance, passages, portes). Qui
+    # se tait dans son dos ou dans le noir, ou dont il ne connaît pas la voix, n'est pas là pour
+    # lui, ni pour le MJ.
+    from .ouie import s_entendent
     return {id: {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
                  "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
                  "dernier_son_entendu": dernier_son(monde, id),
@@ -41,7 +42,7 @@ def interlocuteurs(monde):
                  "humeur": o.get("humeur", "non précisée")}
             for id, o in monde.objets.items()
             if o["type"] == "personnage" and monde.present_physique(id)
-            and (monde.visible(id) or id in monde.data.get("entendus", []) and de_pres(monde, id, "joueur"))}
+            and (monde.visible(id) or id in monde.data.get("entendus", []) and s_entendent(monde, id, "joueur"))}
 
 
 def contrats_publics(monde):

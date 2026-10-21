@@ -215,10 +215,10 @@ def _servir_joueur(monde, id, nourriture, lignes):
 
 
 def phrase_condition(monde, condition):
-    from .francais import designer
+    from .francais import designer, lieu
     o = designer(monde.objets[condition["objet"]])
     if "lieu" in condition:
-        return f"{o} soit dans {monde.data['salles'][condition['lieu']]['nom']}"
+        return f"{o} soit dans {lieu(monde.data['salles'][condition['lieu']])}"
     x = monde.objets[condition["objet"]]
     pluriel = x.get("pluriel")
     return (f"{o} {'soient' if pluriel else 'soit'} {'allumé' if 'allume' in condition else 'verrouillé'}"

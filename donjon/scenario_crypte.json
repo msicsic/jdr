@@ -679,7 +679,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "crypte": {
       "fenetres": 0,
@@ -718,7 +719,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "echoppe": {
       "fenetres": 0,
@@ -756,7 +758,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     }
   },
   "savoirs_pnj": {

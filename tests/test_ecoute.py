@@ -6,6 +6,7 @@ import unittest
 
 from donjon.commandes import analyser
 from donjon.ecoute import ENTENDU, rendre
+from donjon.esprits import connaitre
 from donjon.moteur import Moteur, proposition
 from donjon.ouie import retentir
 from donjon.social import faire_entendre
@@ -85,6 +86,9 @@ class EcouterTests(unittest.TestCase):
         nette = {"auteur": "aubin", "nature": "voix", "texte": "Aubin dit à Gorm que l'eau monte.",
                  "cites": ["marchand"], "salle": "antichambre", "instant": 600, "niveau": ENTENDU, "par": None}
         m.data["connus"] = sorted({*m.data["connus"], "aubin", "marchand"})
+        # Savoir son nom ne suffit pas : il n'a jamais vu Aubin, ni entendu sa voix.
+        self.assertEqual(rendre(m, [(nette, ENTENDU, None)]), ["Tu entends une voix tout près."])
+        connaitre(m, "joueur", "aubin")
         self.assertEqual(rendre(m, [(nette, ENTENDU, None)]),
                          ["Tu entends, tout près : Aubin dit à Gorm que l'eau monte."])
         # Une parole qui nomme ce qu'il ignore reste des voix.

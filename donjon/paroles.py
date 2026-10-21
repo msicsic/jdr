@@ -19,7 +19,7 @@ import copy
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
-from .francais import designer
+from .francais import designer, lieu
 from .monde import ErreurMonde, normaliser
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
@@ -132,7 +132,7 @@ def _nom(monde, id):
     if id == "joueur":
         return "toi"
     if id in monde.data["salles"]:
-        return monde.data["salles"][id]["nom"]
+        return lieu(monde.data["salles"][id])
     if id in monde.objets and monde.objets[id]["type"] == "personnage":
         return monde.objets[id]["nom"].split(",")[0]
     return designer(monde.objets[id]) if id in monde.objets else id

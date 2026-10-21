@@ -212,7 +212,8 @@ class JoueurTests(unittest.TestCase):
         # Il ne la voit pas : rien ne la nomme.
         self.assertNotIn("Brune", texte)
         m = recharger(m)
-        self.assertIn("brune", m.data["entendus"])
+        # Un grand bruit ne lui dit pas qui le fait : seule une voix reconnue le lui apprend.
+        self.assertNotIn("brune", m.data["entendus"])
 
 
 def mine_baraquement(qui):
@@ -313,8 +314,11 @@ class CroyanceEntendueTests(unittest.TestCase):
         m = recharger(m)
         faire(m, "attendre")
         m = recharger(m)
-        crue = lire(m, "brune")["croyances"]["marchand"]["lieu"]
-        self.assertNotEqual((crue["valeur"], crue["source"]), ("antichambre", "entendu"))
+        # Personne ne lui répond au refuge : la croyance du départ est corrigée ; elle le cherche,
+        # l'appelle, et ne lui demande sa part qu'une fois retrouvé, aux vannes.
+        self.assertIn("Brune appelle : « Gorm ? »", chronique(m))
+        self.assertIn("Gorm répond : « Ici ! »", chronique(m))
+        self.assertGreater(lire(m, "brune")["croyances"]["marchand"]["lieu"]["minute"], 0)
         self.assertNotIn("Brune demande une part des vivres du refuge à Gorm (refus).", chronique(m))
 
 

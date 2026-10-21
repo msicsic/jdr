@@ -111,7 +111,7 @@ class ExpressionTests(unittest.TestCase):
         paroles = appels[0]["faits"]
         self.assertTrue(paroles["expression_joueur"]["precision"].startswith("précise"))
         gorm = paroles["esprits_interlocuteurs"]["marchand"]
-        self.assertIn("croit que la cloche d'alarme est dans Galerie de ronde", gorm["croit"])
+        self.assertIn("croit que la cloche d'alarme est dans la galerie de ronde", gorm["croit"])
         self.assertIn("Bourru", gorm["traits"])
         self.assertNotIn("brune", paroles["esprits_interlocuteurs"])
         self.assertEqual(appels[1]["faits"]["conversation_validee"]["replique_joueur"], "Tout va bien, Gorm ?")

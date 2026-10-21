@@ -510,12 +510,15 @@ def faire_place(monde, id, autre, chemin, lignes, gestes):
 
 
 def _peut_prier(monde, id, autre):
-    """Pour demander, ils se tournent l'un vers l'autre et s'entendent de près (``pnj.se_parler``) ;
-    le joueur, assez près, entend la voix de qui se tourne vers lui."""
-    from .pnj import _faire_face, de_pres, se_parler
+    """Pour demander, ils se parlent (``pnj.se_parler`` : chacun saisit les mots de l'autre et sait
+    qui lui parle). Le joueur : le PNJ ne prie que lui qu'il sait là (vu, ou reconnu à la voix
+    depuis peu : ``pnj.croit_present``), et seulement s'il en saisirait les mots ; il se tourne
+    vers lui."""
+    from .ouie import saisit
+    from .pnj import _faire_face, croit_present, se_parler
     if autre != "joueur":
         return se_parler(monde, id, autre)
-    if not de_pres(monde, id, "joueur"):
+    if not (croit_present(monde, id, "joueur") and saisit(monde, id, "joueur")):
         return False
     _faire_face(monde, id, "joueur")
     return True

@@ -1,8 +1,11 @@
 """Articles et accords du vocabulaire du scénario, sans modifier les noms des objets."""
 
-# Compatibilité avec les sauvegardes existantes. Un nouvel objet peut préciser
-# genre, pluriel, nom_propre et elision dans ses propriétés.
-FEMININS = {"porte", "gravure", "serrure", "clé", "cle", "trousse", "lanterne", "torche", "empreinte"}
+# Compatibilité avec les sauvegardes existantes. Un nouvel objet, une nouvelle salle peuvent
+# préciser genre, pluriel, nom_propre et elision dans leurs propriétés.
+FEMININS = {"porte", "gravure", "serrure", "clé", "cle", "trousse", "lanterne", "torche", "empreinte",
+            # Salles des scénarios, pour les parties sauvées avant qu'elles déclarent leur genre.
+            "galerie", "salle", "conduite", "cuisine", "étable", "chambre", "réserve", "crypte", "echoppe",
+            "échoppe", "cour", "terrasse", "antichambre"}
 
 
 def feminin(objet):
@@ -29,6 +32,16 @@ def designer(objet, article="defini", debut=False):
             determinant = "l'" if elision else "la " if feminin(objet) else "le "
         texte = determinant + nom
     return texte[:1].upper() + texte[1:] if debut else texte
+
+
+def lieu(salle, debut=False):
+    """Une salle avec son article, comme un objet : « l'étable », « la salle commune », « le
+    couloir de l'étage ». Son nom, écrit avec une capitale dans le scénario, est un nom commun,
+    sauf ``nom_propre``."""
+    nom = salle["nom"]
+    if not salle.get("nom_propre"):
+        nom = nom[:1].lower() + nom[1:]
+    return designer({**salle, "nom": nom, "nom_propre": False}, debut=debut)
 
 
 def sujet(objet):

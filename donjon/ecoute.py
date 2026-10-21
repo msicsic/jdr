@@ -4,9 +4,10 @@ Ce qui parvient au joueur d'un geste qu'il ne voit pas faire est rangé, daté �
 de seconde), dans ``data["bruits"]`` : l'auteur, la salle d'origine, la nature, le niveau parvenu et
 d'où il arrive. Le joueur entend de lui-même ce qui lui parvient au seuil commun (``ENTENDU``) ; en
 écoutant, un cran plus bas, et un de mieux collé à la porte par où le bruit arrive. Une parole n'est
-rendue en clair que si elle est nette (au seuil commun) et ne nomme que ce qu'il connaît ; sinon il
-entend « une voix ». Ceux qu'il a entendus pendant son dernier geste sont retenus
-(``data["entendus"]``).
+rendue en clair que si elle est nette (au seuil commun), d'une voix qu'il connaît (quelqu'un qu'il a
+vu, ``data["voix_connues"]``) et ne nomme que ce qu'il connaît ; sinon il entend « une voix ». Ceux
+dont il a reconnu la voix pendant son dernier geste sont retenus (``data["entendus"]``) : il les
+sait là.
 """
 from .ouie import BRUITS_MAX, INTENSITES, SEUIL
 
@@ -66,14 +67,20 @@ def _lieu(direction):
             "ouest": "à l'ouest", "haut": "au-dessus", "bas": "en dessous"}.get(direction, "plus loin")
 
 
+def reconnue(monde, bruit, niveau):
+    """Une parole nette (au seuil commun), d'une voix que le joueur connaît (``esprits.connait``)."""
+    from .esprits import connait
+    return bruit["nature"] == "voix" and niveau >= ENTENDU and connait(monde, "joueur", bruit["auteur"])
+
+
 def rendre(monde, entendus_):
     """Ce que le joueur entend, par direction : un appel, un grand bruit, des voix, des pas, ou une
-    parole nette."""
+    parole nette d'une voix qu'il reconnaît, qui ne nomme que ce qu'il connaît."""
     from .paroles import _connu_du_joueur
     lignes, groupes = [], {}
     for b, niveau, direction in entendus_:
-        nette = (b["nature"] == "voix" and niveau >= ENTENDU and b["texte"]
-                 and all(_connu_du_joueur(monde, x) for x in [b["auteur"], *b["cites"]] if x != "joueur"))
+        nette = (reconnue(monde, b, niveau) and b["texte"]
+                 and all(_connu_du_joueur(monde, x) for x in b["cites"] if x != "joueur"))
         if nette:
             texte = f"Tu entends, {_lieu(direction)} : {b['texte']}"
             if texte not in lignes:
@@ -110,10 +117,14 @@ def verifier(monde):
     entendus_ = monde.data.get("entendus", [])
     assert isinstance(entendus_, list) and all(
         id in monde.objets and monde.objets[id]["type"] == "personnage" for id in entendus_), "Bruits entendus invalides"
+    voix = monde.data.get("voix_connues", [])
+    assert isinstance(voix, list) and len(set(voix)) == len(voix) and all(
+        isinstance(id, str) for id in voix), "Voix connues invalides"
 
 
 def retenir(monde, entendus_):
-    """Ceux dont un bruit est parvenu au joueur pendant son geste : il les sait là, même sans les
-    voir (``dialogues.interlocuteurs``)."""
+    """Ceux dont le joueur a reconnu la voix pendant son geste (``reconnue``) : il les sait là, même
+    sans les voir (``dialogues.interlocuteurs``). Des pas, un bruit, une voix inconnue ne lui
+    disent pas qui est là."""
     retenus = monde.data.setdefault("entendus", [])
-    retenus.extend(sorted({b["auteur"] for b, _, _ in entendus_} - set(retenus)))
+    retenus.extend(sorted({b["auteur"] for b, niveau, _ in entendus_ if reconnue(monde, b, niveau)} - set(retenus)))

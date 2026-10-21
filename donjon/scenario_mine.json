@@ -3576,7 +3576,8 @@
      "porte": "porte_reserve",
      "vers": "reserve"
     }
-   }
+   },
+   "genre": "m"
   },
   "bureau": {
    "altitude_cm": 0,
@@ -3613,7 +3614,8 @@
      "porte": "porte_bureau",
      "vers": "baraquement"
     }
-   }
+   },
+   "genre": "m"
   },
   "entree": {
    "altitude_cm": 0,
@@ -3649,7 +3651,8 @@
      "porte": null,
      "vers": "baraquement"
     }
-   }
+   },
+   "genre": "m"
   },
   "filon": {
    "altitude_cm": 0,
@@ -3687,7 +3690,8 @@
      "porte": null,
      "vers": "galerie"
     }
-   }
+   },
+   "genre": "f"
   },
   "galerie": {
    "altitude_cm": 0,
@@ -3739,7 +3743,8 @@
      "porte": null,
      "vers": "puits"
     }
-   }
+   },
+   "genre": "f"
   },
   "puits": {
    "altitude_cm": 0,
@@ -3777,7 +3782,8 @@
      "porte": null,
      "vers": "galerie"
     }
-   }
+   },
+   "genre": "m"
   },
   "reserve": {
    "altitude_cm": 0,
@@ -3814,7 +3820,8 @@
      "porte": "porte_reserve",
      "vers": "baraquement"
     }
-   }
+   },
+   "genre": "f"
   }
  },
  "savoirs_pnj": {},

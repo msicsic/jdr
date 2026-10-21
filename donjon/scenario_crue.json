@@ -1297,7 +1297,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "m"
     },
     "beffroi": {
       "altitude_cm": -60,
@@ -1346,7 +1347,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "m"
     },
     "chambre_cloche": {
       "altitude_cm": 240,
@@ -1396,7 +1398,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "crypte": {
       "altitude_cm": -100,
@@ -1444,7 +1447,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     },
     "echoppe": {
       "altitude_cm": -120,
@@ -1492,7 +1496,8 @@
           "son",
           "tranchable"
         ]
-      }
+      },
+      "genre": "f"
     }
   },
   "savoirs_pnj": {

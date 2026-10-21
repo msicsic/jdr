@@ -10,6 +10,10 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
+
+Voix : ``voix`` liste ceux qu'il connaît (qu'il a vus, ou entendus parler en les sachant là) : il
+reconnaît leur voix quand il en saisit les mots (``ouie.entendre``). Le joueur a la même liste dans
+``data["voix_connues"]``.
 """
 import copy
 
@@ -32,7 +36,8 @@ def pnjs(monde):
 CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
-          "balayage": lambda: None}   # son dernier tour d'horizon : {salle, case, instant}
+          "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
+          "voix": list}   # ceux qu'il connaît, vus ou entendus parler : il reconnaît leur voix
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -49,10 +54,20 @@ def esprit(monde, id):
     return e
 
 
+CONNAISSANCE = ("vu", "savoir", "essai", "entendu")
+
+
 def installer(monde):
     monde.data.setdefault("esprits", {})
+    personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
+        nouveau = "voix" not in monde.data["esprits"].get(id, {})
         e = esprit(monde, id)
+        if nouveau:
+            # Scénarios et anciennes parties : il connaît ceux dont il sait quelque chose de
+            # première main ou de savoir (pas d'un ouï-dire).
+            e["voix"] = sorted(x for x, attributs in e["croyances"].items() if x in personnages and x != id
+                               and any(c.get("source") in CONNAISSANCE for c in attributs.values()))
         o = monde.objets[id]
         # Anciennes parties : le dernier son et le trajet deviennent mémoire et intention.
         son = o.pop("dernier_son_entendu", None)
@@ -69,6 +84,25 @@ def installer(monde):
                               "depuis": i.get("depuis", monde.data["minutes"]), "attente": 0}
         from .deliberation import installer as installer_besoins
         installer_besoins(monde, id)
+    # Le joueur : ceux qu'il a vus de près (portrait retenu) ou dont il a appris l'identité.
+    monde.data.setdefault("voix_connues", sorted(
+        x for x in {*monde.data.get("souvenirs_personnages", {}), *monde.data.get("connus", [])}
+        if x in monde.objets and monde.objets[x]["type"] == "personnage"))
+
+
+def connait(monde, qui, autre):
+    """``qui`` (un PNJ ou le joueur) connaît-il ``autre`` (vu, ou entendu parler) ? Il reconnaît
+    alors sa voix."""
+    if qui == "joueur":
+        return autre in monde.data.get("voix_connues", [])
+    return autre in lire(monde, qui)["voix"]
+
+
+def connaitre(monde, qui, autre):
+    """``qui`` connaît désormais ``autre`` : il l'a vu, ou a reconnu sa voix."""
+    connus = monde.data.setdefault("voix_connues", []) if qui == "joueur" else esprit(monde, qui)["voix"]
+    if autre != qui and autre not in connus:
+        connus.append(autre)
 
 
 def _croyance_valide(monde, attribut, c):
@@ -116,6 +150,9 @@ def verifier(monde):
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
                              and type(b["instant"]) is int and b["instant"] >= 0), "Tour d'horizon de PNJ invalide"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
+        assert isinstance(e["voix"], list) and all(
+            isinstance(x, str) for x in e["voix"]  # Comme une croyance, il survit à qui a quitté la partie.
+        ) and len(set(e["voix"])) == len(e["voix"]), "Voix connues invalides"
         for engagement in e["engagements"]:
             from .deliberation import condition_valide
             assert (isinstance(engagement, dict) and set(engagement) == {"condition", "pour", "minute"}
@@ -294,10 +331,12 @@ def _observe(monde, champ, croyance):
 def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
     """Ce qu'il constate remplace ce qu'on lui a dit ; une contradiction trahit le locuteur.
 
-    Passé ``RECENT`` minutes, le monde a pu changer depuis la parole : elle n'est que périmée.
+    Passé ``RECENT`` minutes, le monde a pu changer depuis la parole : elle n'est que périmée. Un
+    objet qu'il voit dans les mains de quelqu'un a pu être déplacé depuis : ce n'est pas un démenti.
     """
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
-    if (ancienne and ancienne["source"].startswith("dit:") and ancienne["valeur"] != valeur
+    porte = attribut == "lieu" and (valeur == "joueur" or monde.objets.get(valeur or "", {}).get("type") == "personnage")
+    if (ancienne and ancienne["source"].startswith("dit:") and ancienne["valeur"] != valeur and not porte
             and monde.data["minutes"] - ancienne["minute"] <= RECENT):
         locuteur = ancienne["source"][4:]
         memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
@@ -374,6 +413,8 @@ def _percevoir(monde, id):
     from .eau import percevoir as percevoir_eau
     percevoir_eau(monde, id)
     for sujet, (salle, case) in vus.items():
+        if sujet == "joueur" or monde.objets[sujet]["type"] == "personnage":
+            connaitre(monde, id, sujet)  # Il l'a vu : il saura reconnaître sa voix.
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
             continue

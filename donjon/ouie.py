@@ -23,6 +23,8 @@ au repos ; la PER modulée y ajoute un cran par quatre points au-dessus de la mo
 Interprétation (PNJ), selon ce qu'il croit ; ce qu'il voit n'a pas besoin de l'ouïe :
 - connu : un bruit ordinaire venu de là où il croit quelqu'un (vu ou entendu récemment) ; il
   l'attribue à cette personne et met sa croyance à jour, sans se retourner ;
+- une voix dont il saisit les mots : il reconnaît qui il connaît (``esprits.connait`` : vu, ou
+  entendu parler) et le croit là d'où elle vient ; une voix jamais entendue est un bruit inconnu ;
 - inconnu (personne de cru là) ou inhabituel (bruyant, appel) : tout près et hors de son regard,
   il se tourne pour voir (le temps de la rotation), et s'il voit l'auteur en plein geste illicite,
   il en est témoin (``pnj.temoigner_en_cours``) ; plus loin, ou sans rien voir, il retient « un
@@ -214,6 +216,28 @@ def saisissent(monde, auteur, geste="parler"):
     return resultat
 
 
+def saisit(monde, auteur, auditeur, geste="parler"):
+    """``auditeur`` (un PNJ ou le joueur) saisirait-il, ici et maintenant, les mots d'une parole
+    d'``auteur`` ? Par l'atténuation commune (distance réelle, passages, porte fermée) : un PNJ par
+    ``mots_saisis``, le joueur quand elle lui parvient au seuil commun (une parole nette, ``ecoute``)."""
+    n = nature(geste)
+    salle, case = _place(monde, auteur)
+    if n is None or salle not in monde.data["salles"]:
+        return False
+    if auditeur != "joueur" and not monde.objets[auditeur].get("entend", True):
+        return False
+    parvient = parvenu(propager(monde, salle, case, INTENSITES[n]), *_place(monde, auditeur))
+    if parvient is None:
+        return False
+    return parvient[0] >= SEUIL if auditeur == "joueur" else mots_saisis(monde, auditeur, parvient[0])
+
+
+def s_entendent(monde, a, b):
+    """Se parler, c'est saisir chacun les mots de l'autre (``saisit``) : par une ouverture, contre une
+    porte fermée, pas à l'autre bout d'une grande salle."""
+    return saisit(monde, a, b) and saisit(monde, b, a)
+
+
 def entend(monde, auteur, auditeur, geste="dire"):
     """Le niveau auquel le PNJ ``auditeur`` entend, ici et maintenant, le geste d'``auteur`` (un PNJ
     ou le joueur) ; None s'il ne l'entend pas (sous son seuil, ou trop loin)."""
@@ -395,7 +419,17 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL):
         return False  # Il le voit faire : l'ouïe n'y ajoute rien.
     o = monde.objets[id]
     ici = salle == o["lieu"] and case is not None and o.get("position") is not None
-    crus = _crus_la(monde, id, salle, case if ici else None)
+    if n == "voix" and mots_saisis(monde, id, niveau):
+        # Il en saisit les mots : il reconnaît la voix de qui il connaît, et le croit là d'où elle
+        # vient ; une voix qu'il n'a jamais entendue n'est à personne qu'il croie là.
+        from .esprits import connait, croire
+        if connait(monde, id, auteur):
+            croire(monde, id, auteur, "lieu", salle, "entendu", salle=salle, case=list(case) if ici else None)
+            crus = [auteur]
+        else:
+            crus = []
+    else:
+        crus = _crus_la(monde, id, salle, case if ici else None)
     inhabituel = n not in HABITUELS
     croyances = lire(monde, id)["croyances"]
     mefiance = any((croyances[x].get("fiable") or {}).get("valeur") is False for x in crus)

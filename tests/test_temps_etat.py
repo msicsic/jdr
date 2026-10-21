@@ -10,7 +10,7 @@ import donjon.pnj as P
 from donjon.commandes import analyser
 from donjon.defi import nouveau_defi
 from donjon.dialogues import interlocuteurs
-from donjon.esprits import esprit, lire
+from donjon.esprits import connaitre, esprit, lire
 from donjon.faits_locaux import catalogue
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur
@@ -138,6 +138,8 @@ def aubin_dans_le_dos():
         placer(m, id, "crypte", (2 + n, 3))
     placer(m, "aubin", "antichambre", (1, 3))     # cinq cases derrière lui, immobile et muet
     m.objets["aubin"]["orientation"] = "nord"
+    # Placement d'auteur : Corvus a déjà vu Aubin, il connaît sa voix (``esprits.connait``).
+    connaitre(m, "joueur", "aubin")
     return recharger(m)
 
 
