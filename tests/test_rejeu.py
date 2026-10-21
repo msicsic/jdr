@@ -1,10 +1,14 @@
 """Le rejeu du banc : il observe la nuit sans la changer, et rejoue à chaque instant ce qui a été."""
 import hashlib
 import json
+from pathlib import Path
 import re
+import shutil
+import subprocess
+import tempfile
 import unittest
 
-from donjon.banc_pnj import creer, executer
+from donjon.banc_pnj import creer, executer, nuits
 from donjon.esprits import lire
 from donjon.geometrie import position_entree
 from donjon.rejeu import Enregistreur, page
@@ -72,6 +76,80 @@ class RejeuTests(unittest.TestCase):
         self.assertEqual(html.count("</script>"), 1)  # Une chronique ne ferme pas le script.
         donnees = json.loads(re.search(r"const D = (.*?);\nconst CS", html, re.S).group(1))
         self.assertEqual(donnees["titre"], "essai")
+
+    def test_la_lumiere_rejouee_est_celle_du_moteur(self):
+        d = self.enregistreur.donnees(self.monde, self.chronique)
+        self.assertEqual(rejouer(d["lumiere"], d["fin"]), degres(self.monde, self.enregistreur))
+
+    def test_les_retournements_enregistres_sont_ceux_de_la_chronique(self):
+        retournes = sum("tourne" in r[2].split("+") for b in self.enregistreur.bruits for r in b["r"])
+        racontes = sum("se retourne au bruit" in c["texte"] for c in self.chronique)
+        self.assertEqual(retournes, racontes)
+        for b in self.enregistreur.bruits:
+            self.assertIn(b["n"], ("feutre", "pas", "geste", "voix", "bruyant", "appel"))
+            self.assertTrue(all(r[0] in self.enregistreur.personnages for r in b["r"]))
+        self.assertEqual([b["t"] for b in self.enregistreur.bruits], sorted(b["t"] for b in self.enregistreur.bruits))
+
+
+class AutresNuitsTests(unittest.TestCase):
+    def test_la_lumiere_suit_les_sources_dans_un_autre_scenario(self):
+        for scenario in ("auberge", "mine"):
+            m = creer(scenario, 7)
+            enregistreur = Enregistreur(m)
+            with enregistreur.observer():
+                executer(m, 120)
+            self.assertEqual(rejouer(enregistreur.lumiere, 10 ** 9), degres(m, enregistreur), scenario)
+
+    def test_les_gestes_illicites_gardent_leurs_temoins(self):
+        m = creer("relais", 7)
+        m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
+        enregistreur = Enregistreur(m)
+        with enregistreur.observer():
+            executer(m, 8 * 60)
+        self.assertTrue(enregistreur.gestes)
+        vus = 0
+        for g in enregistreur.gestes:
+            self.assertIn(g["a"], enregistreur.personnages + ["joueur"])
+            for qui, quand in g["temoins"]:
+                self.assertGreaterEqual(quand, g["t"])
+                self.assertNotEqual(qui, g["a"])
+                vus += 1
+        self.assertTrue(vus)
+
+    def test_une_page_par_graine(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            nuits("relais", [7, 42], 0.5, "chambre_cloche", rejeu=str(Path(dossier) / "essai.html"))
+            for graine in (7, 42):
+                html = (Path(dossier) / f"essai_{graine}.html").read_text(encoding="utf-8")
+                self.assertIn(f"graine {graine}", html)
+            nuits("relais", [7], 0.2, "chambre_cloche", rejeu=dossier)
+            self.assertTrue((Path(dossier) / "rejeu_7.html").exists())
+
+    @unittest.skipUnless(shutil.which("node"), "node absent : le script de la page ne peut pas tourner")
+    def test_la_page_tourne_avec_ses_filtres(self):
+        m, chronique, enregistreur, _ = nuit(90, True)
+        with tempfile.TemporaryDirectory() as dossier:
+            fichier = Path(dossier) / "rejeu.html"
+            fichier.write_text(page(enregistreur.donnees(m, chronique, "essai")), encoding="utf-8")
+            sortie = subprocess.run(["node", str(Path(__file__).with_name("rejeu_page.js")), str(fichier)],
+                                    capture_output=True, text=True, encoding="utf-8", check=True).stdout
+        resultat = json.loads(sortie)
+        self.assertTrue(all(n > 0 for n in resultat["lumieres"]))
+        self.assertEqual(set(resultat["lignes"]), {"tout", "ouie", "paroles", "illicite", "voir", "deplacement"})
+        self.assertTrue(resultat["lignes"]["tout"] >= resultat["lignes"]["ouie"] > 0)
+        self.assertGreater(resultat["ondes"], 0)
+
+
+def degres(monde, enregistreur):
+    """Les degrés de lumière recalculés de zéro, comme le fait la page de jeu (``scene``)."""
+    from donjon.perception import CarteLumiere
+    resultat = {}
+    for (salle, x, y), i in enregistreur._index.items():
+        carte = CarteLumiere(monde, salle)
+        g = next(g for s, g in carte.geometrie.sol if s == (salle, x, y))
+        n = carte.niveau(g)
+        resultat[str(i)] = 3 if n == 2 else 2 if carte.directe(g) else 1 if n else 0
+    return resultat
 
 
 if __name__ == "__main__":
