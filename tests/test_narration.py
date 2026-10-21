@@ -86,7 +86,7 @@ class NarrationTests(unittest.TestCase):
         from donjon.defi import nouveau_defi
         from donjon import lexique
         from donjon.narration import consigner
-        m = nouveau_defi(1985)
+        m = nouveau_defi(1985, "fixe")
         m.joueur["salle"] = m.objets["marchand"]["lieu"]
         citation = "La cloche est dans la galerie de ronde."
         texte = f"Gorm répond : « {citation} »"
@@ -251,7 +251,7 @@ class NarrationTests(unittest.TestCase):
         from donjon.operations import etape, sequence
         from donjon.moteur import proposition
         from donjon.spatial import installer
-        monde = nouveau_defi()
+        monde = nouveau_defi(depart="fixe")
         installer(monde)
         for id in ("torche", "lanterne"):
             monde.objets[id].update(allume=False, combustible=0)
@@ -505,7 +505,7 @@ class NarrationTests(unittest.TestCase):
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], texte)
         self.assertEqual([a["entites"] for a in reprise.contexte()["ambiance_etablie"]],
                          [["odeur de vase"], ["pierre mouillée"]])
-        self.assertEqual(set(reprise.objets), set(nouveau_defi().objets))
+        self.assertEqual(set(reprise.objets), set(nouveau_defi(depart="fixe").objets))
 
     def test_ambiance_d_un_autre_lieu_n_est_pas_fournie(self):
         m = nouveau_monde()

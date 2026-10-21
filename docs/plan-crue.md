@@ -306,6 +306,78 @@ qu'il croit sous l'eau.
 - tous jugent la crue de la même façon (même horizon, même règle) : les avis divergents
   viennent seulement de ce que chacun a vu ; les avis vrais relèvent de l'étape 4.
 
+## Le départ tiré de la graine
+
+Branche `depart-tire`. Constat : hors des d20 (≈ 8 jets par nuit au Relais), tout était identique
+d'une graine à l'autre : états de départ, rondes, durées. Au Relais, une seule nuit jusqu'à la
+minute 5, deux jusqu'à 120 (Gorm promet ou refuse sa part à Brune), puis les branches se
+rejoignent ; la faim atteint 70 aux mêmes minutes partout, Brune crochète vers la 123e minute.
+
+**La règle** (`donjon/depart.py`, décrite dans `docs/mecaniques.md`) : le départ déclaré par un
+scénario est une valeur centrale dont le moteur tire une variante, à la création du monde, par un
+tirage à part (`seed:depart`) comme l'eau : les d20 d'une graine sont inchangés. Le tirage et ses
+valeurs vivent dans `data["depart"]` ; un rechargement ne tire plus rien. Rien n'y est propre à un
+scénario : chacun déclare ses bornes (`depart.bornes`), le moteur a des défauts.
+
+**Les bornes retenues**, les mêmes dans les quatre scénarios (Relais, crue, mine, auberge) :
+
+| borne | valeur | ce qu'elle dit |
+|---|---|---|
+| `corps` | 0,2 | dernier repas, veille, temps trempé à 20 % près : une heure ou deux d'écart |
+| `besoins` | 10 | devoir, biens, sécurité à 10 points près, sous leurs seuils d'urgence pour la plupart |
+| `periodes` | 0,2 | une ronde de 45 min revient toutes les 36 à 54 min |
+| `rondes` | 0,5 | la prochaine ronde tombe dans la première moitié de sa période |
+| `horloges` | 0,25 | la rafale de l'auberge entre la 150e et la 250e minute |
+
+Plafond : aucun besoin tiré au-delà de 85 (l'extrême du corps et le désespoir sont à 95), sauf
+déclaré plus haut. Réglées au banc (Relais, 16 graines, 8 h) : à 0,1 / 5 / 0,1 les nuits
+divergent un peu moins (12 nuits distinctes à la minute 5, 12 issues) ; à 0,3 / 15 / 0,3 et
+`rondes` 1, pas davantage (12 et 13) et plus de vols précoces (minutes 3, 10, 21, 29). La phase
+des rondes fait l'essentiel de la divergence : seule, elle donne déjà 7 nuits sur 8 distinctes à
+la minute 5 ; le corps seul, 4. Elle est aussi la cause des vols précoces : au départ déclaré,
+toutes les rondes tombent à la minute 0 et Gorm va d'abord au refuge ; tiré, il peut rester à la
+conduite, et Brune, refusée et affamée, crochète en son absence (même avec `rondes` à 0,25).
+
+**Le banc** mesure la divergence : l'empreinte de l'état physique (places, regards, objets,
+portes, feux, portions, horloges, eau ; sans besoins, corps ni croyances, que le tirage fait
+différer dès la minute 0) aux minutes 5, 60, 120, 240 et 480, et l'issue de la nuit (où finit
+chaque objet déplaçable et chaque personnage, ce qui reste ouvert, verrouillé, allumé, à manger,
+et les vols vus) ; les jets par heure. Une pulsion confiée à quelqu'un que l'on croit fiable n'est
+plus « sans recours » (`minutes_urgentes_confiees`, à part) ; `echanges` ne compte plus les appels
+de qui cherche quelqu'un ni leurs réponses.
+
+**Bancs** (8 h, au même moment, d'autres bancs tournant en parallèle ; fixe → tiré) :
+
+| | Relais (16) | mine (8) | auberge (8) | crue (8) |
+|---|---|---|---|---|
+| nuits distinctes 5/60/120/240/480 min | 1/2/2/6/10 → 14/16/16/16/16 | 3/2/2/2/4 → 8 partout | 1/1/3/8/8 → 8 partout | 2/4/6/7/8 → 8 partout |
+| issues distinctes | 4 → 13 | 4 → 8 | 8 → 8 | 6 → 8 |
+| sans recours, ancienne mesure | 325 → 299 | 486 → 462 | 659 → 692 | 389 → 421 |
+| sans recours, nouvelle | 109 → 94 | 486 → 462 | 659 → 692 | 105 → 115 |
+| confiées (cloche de Gorm) | 216 → 205 | 0 | 0 | 284 → 306 |
+| échanges (sans appels) | 10,5 → 11,2 | 29,6 → 29,0 | 31,4 → 26,6 | 12,6 → 11,0 |
+| appels | 2,9 → 1,25 | 2,6 → 2,5 | 4,6 → 11,3 | 3,6 → 1,9 |
+| vols vus | 0,75 → 1,0 | 0,6 → 0,9 | 1,4 → 0,9 | 0,1 → 0,1 |
+| jets par heure | 0,79 → 1,14 | 4,5 → 2,3 | 4,5 → 10,5 | 0,53 → 0,56 |
+| temps par nuit | 17,9 → 16,2 s | 42 → 36 s | 42 → 45 s | 16 → 13 s |
+
+Aucune usurpation ni violation ; `planification.VERIFIER` sur une nuit tirée de chaque scénario.
+Premiers crochetages au Relais : fixe, six nuits entre 122 et 129 ; tiré, neuf nuits, aux minutes
+3, 30, 36, 96, 97, 97, 363, 366, 450. À l'auberge, la rafale variant, les trois crochetages de
+Lucien tombent à 332, 362 et 439 au lieu de 197–201 (et 405, 420). On y appelle davantage : Hugues
+cherche Anselme pour le prévenir dans cinq nuits sur huit (deux au départ fixe), Odile cherche
+Joss dans trois (aucune), un appel par salle parcourue (règle de `constater-et-rumeurs`, inchangée).
+
+**Limites** :
+- les durées des gestes et la vitesse des besoins restent celles du moteur, identiques pour tous ;
+  seul le départ varie ;
+- un vol dès la troisième minute au Relais (une nuit sur 16) : cohérent avec Brune affamée et
+  refusée, mais il abrège le premier acte ; si on le juge trop tôt, c'est la phase des rondes du
+  gardien qu'il faudrait régler (une donnée), pas le moteur ;
+- les tests de scène partent du départ déclaré (`depart="fixe"`) : ils décrivent un placement
+  d'auteur ; le départ tiré a ses propres tests (`tests/test_depart.py`) ;
+- le joueur n'est pas tiré (son corps et ses besoins restent déclarés).
+
 ## Questions ouvertes
 
 - Le barrage : effet chiffré (ralentir la montée) ou seuil (tenir jusqu'à un niveau) ?

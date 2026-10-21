@@ -11,7 +11,7 @@ from donjon.spatial import installer
 
 
 def relais():
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     m.joueur.update(salle="crypte", position=[4, 0])
     return m

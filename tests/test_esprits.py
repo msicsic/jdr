@@ -23,7 +23,7 @@ def recharger(monde):
 
 
 def relais():
-    m = sans_evacues(nouveau_defi())
+    m = sans_evacues(nouveau_defi(depart="fixe"))
     installer(m)
     # Placement d'auteur : Brune a déjà mangé ; ces tests ne portent que sur Gorm, qui vient de
     # faire ses rondes et reste à son poste.

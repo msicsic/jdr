@@ -773,7 +773,27 @@ Dès que les minutes de la partie atteignent l'échéance, le moteur applique le
 seule fois, et l'annonce n'est montrée que si le joueur se trouve dans l'un des `lieux`.
 Les effets sont ceux des transitions de scénario : `deplacer`, `objectif` et `eteindre`
 (sources allumées des salles citées). Un effet devenu sans objet est ignoré
-(`donjon/horloges.py`). Aucun scénario fourni n'en déclare pour l'instant.
+(`donjon/horloges.py`). L'auberge déclare la rafale qui éteint l'âtre.
+
+#### Départ tiré de la graine
+
+Un scénario déclare un état de départ ; le moteur en tire une variante à la création du monde
+(`donjon/depart.py`), par un tirage à part (`random.Random(f"{seed}:depart")`) que les jets ne
+décalent pas, une seule fois (minute 0), gardée dans `data["depart"]` avec les valeurs
+appliquées : un rechargement ne tire plus rien. Pour chaque PNJ qui a un profil :
+
+- les états du corps (minutes depuis le dernier repas, de veille, passées trempé), à `corps`
+  près de leur valeur déclarée (écart relatif ; un état nul le reste) ;
+- les besoins du profil (devoir, biens, sécurité…), à `besoins` points près ;
+- chaque période de ronde, à `periodes` près (écart relatif), puis sa phase : la prochaine ronde
+  tombe entre la minute 0 et `rondes` fois sa période (au départ déclaré, toutes sont dues à la
+  minute 0) ;
+- et l'échéance de chaque horloge, à `horloges` près (écart relatif).
+
+Aucun tirage ne mène un besoin au-delà de 85 (sous l'extrême et le désespoir, 95), sauf si le
+scénario l'y a déjà déclaré. Les bornes se déclarent dans `data["depart"]["bornes"]` ; celles
+qu'un scénario ne déclare pas valent les défauts du moteur. `depart="fixe"` (constructeurs des
+scénarios, `banc_pnj --depart fixe`) garde le départ déclaré.
 
 #### Crue : le niveau d'eau
 

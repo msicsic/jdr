@@ -32,7 +32,7 @@ class TUIExplorationTests(unittest.IsolatedAsyncioTestCase):
         from donjon.carte import carte
         from donjon.defi import nouveau_defi
         from donjon.spatial import installer
-        m = nouveau_defi(1985)
+        m = nouveau_defi(1985, "fixe")
         installer(m)
         m.objets["lanterne"]["allume"] = False
         plan, legende = carte(m).split("=== LEGENDE ===")

@@ -32,7 +32,7 @@ from tests.test_tensions import attendre, chronique, placer, recharger
 
 
 def auberge():
-    m = nouveau_auberge(1985)
+    m = nouveau_auberge(1985, "fixe")
     installer(m)
     return calme(m, "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
 
@@ -74,7 +74,7 @@ def hugues_cherche_anselme(verrou=False):
 def aubin_cherche_gorm():
     """Relais : Aubin a faim ; Gorm, qui garde les vivres, est à la salle des vannes, derrière la porte
     étanche fermée ; Aubin, au palier, ne sait où il est. Le joueur est à la galerie."""
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     m = calme(m, "marchand", "brune", "ilse", "aubin")
     placer(m, "brune", "chambre_cloche", (2, 2))
@@ -293,7 +293,7 @@ class NarrationTests(unittest.TestCase):
 
 def gorm_et_une_voix(qui="brune"):
     """Relais, conduite basse dans le noir : Gorm, et ``qui`` à trois cases, qu'il ne voit pas."""
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     m = calme(m, "marchand", "brune", "ilse", "aubin")
     m.objets["brasero"]["allume"] = False

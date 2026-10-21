@@ -219,7 +219,7 @@ class JoueurTests(unittest.TestCase):
 def mine_baraquement(qui):
     """Dans la mine, au baraquement : ``qui`` regarde vers l'ouest ; Odon, dans son dos, part vers la
     galerie. Rémy se méfie d'Odon depuis le début ; Josse lui fait confiance."""
-    m = creer("mine")
+    m = creer("mine", depart="fixe")
     autres = [x for x in ("bram", "gaspard", "josse", "lucien", "mathe", "remy") if x != qui]
     calme(m, qui, "odon", *autres)
     for n, id in enumerate(autres):

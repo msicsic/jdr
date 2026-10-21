@@ -15,7 +15,7 @@ from donjon.spatial import QUART, dans_le_cone, installer, quarts
 
 
 def relais():
-    m = nouveau_defi()
+    m = nouveau_defi(depart="fixe")
     installer(m)
     return calme(m, "marchand", "brune", "ilse", "aubin")
 

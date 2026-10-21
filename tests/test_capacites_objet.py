@@ -270,7 +270,7 @@ class CapacitesObjetTests(unittest.TestCase):
         self.assertFalse(any(o.get("scene_detail") for o in m.objets.values()))
 
     def test_cloche_du_scenario_emploie_la_meme_capacite_sonore(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         m.joueur.update(salle="chambre_cloche", position=[1, 3])
         self.assertEqual(m.objets["cloche"]["sonorite"], 3)

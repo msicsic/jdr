@@ -8,7 +8,7 @@ from donjon.spatial import installer
 
 
 def relais():
-    m = nouveau_defi(1985)
+    m = nouveau_defi(1985, "fixe")
     installer(m)
     return m
 

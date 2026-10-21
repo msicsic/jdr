@@ -138,7 +138,7 @@ class ClicTests(unittest.TestCase):
     """Ce que propose un clic sur la carte est une commande que le moteur comprend, à portée."""
 
     def setUp(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         calme(m, "marchand", "brune", "ilse", "aubin")
         for id, salle, case in (("marchand", "antichambre", [6, 2]), ("ilse", "antichambre", [7, 5]),

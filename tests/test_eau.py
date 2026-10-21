@@ -29,6 +29,7 @@ def crue(bornes=None, graine=1985):
     """La crue du Relais ; des bornes fixées rendent le niveau connu d'avance."""
     data = json.loads(ETAT_INITIAL.read_text(encoding="utf-8"))
     data["seed"] = graine
+    data["depart"]["mode"] = "fixe"   # Placement d'auteur : le départ déclaré.
     if bornes:
         data["crue"]["bornes"] = copy.deepcopy(bornes)
     m = Monde(data)
@@ -49,7 +50,7 @@ def attendre(monde, jusqu_a):
 
 class TirageTests(unittest.TestCase):
     def test_la_crue_est_tiree_de_la_graine_a_part_des_jets(self):
-        m = nouvelle_crue(7)
+        m = nouvelle_crue(7, "fixe")
         b = m.data["crue"]["bornes"]
         r = random.Random("7:crue")
         montee = r.randint(*b["montee_cm_heure"])
@@ -62,12 +63,12 @@ class TirageTests(unittest.TestCase):
         reprise = recharger(m)
         self.assertEqual(reprise.data["crue"]["tirage"], attendu)
         self.assertEqual([eau.niveau(reprise, t) for t in range(0, 480, 30)], niveaux)
-        self.assertEqual(nouvelle_crue(7).data["crue"]["tirage"], attendu)
-        self.assertNotEqual(nouvelle_crue(8).data["crue"]["tirage"], attendu)
+        self.assertEqual(nouvelle_crue(7, "fixe").data["crue"]["tirage"], attendu)
+        self.assertNotEqual(nouvelle_crue(8, "fixe").data["crue"]["tirage"], attendu)
 
     def test_les_valeurs_tirees_restent_dans_les_bornes(self):
         for graine in range(30):
-            m = nouvelle_crue(graine)
+            m = nouvelle_crue(graine, "fixe")
             b, x = m.data["crue"]["bornes"], m.data["crue"]["tirage"]
             self.assertTrue(b["montee_cm_heure"][0] <= x["montee_cm_heure"] <= b["montee_cm_heure"][1])
             self.assertTrue(b["heure_pic"][0] * 60 <= x["minute_pic"] <= b["heure_pic"][1] * 60)
@@ -96,12 +97,12 @@ class TirageTests(unittest.TestCase):
             self.assertIn("l'eau suinte par les vannes", sortie.getvalue())
             reprise = Monde.charger(chemin)
         self.assertTrue(reprise.data["mode_cases"])
-        self.assertEqual(reprise.data["crue"]["tirage"], nouvelle_crue(42).data["crue"]["tirage"])
+        self.assertEqual(reprise.data["crue"]["tirage"], nouvelle_crue(42, "fixe").data["crue"]["tirage"])
         self.assertEqual(reprise.data["minutes"], 5)
-        self.assertEqual(creer("crue", 42).data["crue"]["tirage"], reprise.data["crue"]["tirage"])
+        self.assertEqual(creer("crue", 42, "fixe").data["crue"]["tirage"], reprise.data["crue"]["tirage"])
 
     def test_le_relais_n_a_pas_de_crue(self):
-        m = nouveau_defi()
+        m = nouveau_defi(depart="fixe")
         installer(m)
         self.assertFalse(eau.active(m))
         self.assertEqual(eau.profondeur(m, "echoppe"), 0)

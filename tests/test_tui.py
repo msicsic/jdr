@@ -49,7 +49,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.fermer(app)
 
     async def test_capacites_improvisees_utilisables_et_sauvees_dans_la_tui(self):
-        monde = sans_budget(nouveau_defi())
+        monde = sans_budget(nouveau_defi(depart="fixe"))
         installer(monde)
         monde, _, etablis = preparer_faits(monde, {"ajouts": [
             {"type": "objet", "ancrage": "antichambre_sol", "nom": "timbre de fer",
@@ -201,7 +201,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
     async def test_objet_fixe_reste_sur_le_mur_en_souvenir_apres_rechargement(self):
         from donjon.spatial import memoriser
 
-        monde = nouveau_defi()
+        monde = nouveau_defi(depart="fixe")
         installer(monde)
         monde, _, etablis = preparer_faits(monde, {"ajouts": [{
             "type": "objet", "ancrage": "antichambre_murs",
@@ -274,7 +274,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
             chemin = Path(fichier.name)
         self.addCleanup(chemin.unlink, missing_ok=True)
-        monde = nouveau_defi()
+        monde = nouveau_defi(depart="fixe")
         installer(monde)
         monde.joueur.update(salle="chambre_cloche", position=[0, 11])
         for id in ("torche", "lanterne"):
@@ -298,7 +298,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
             chemin = Path(fichier.name)
         self.addCleanup(chemin.unlink, missing_ok=True)
-        monde = nouveau_defi()
+        monde = nouveau_defi(depart="fixe")
         installer(monde)
         monde.joueur.update(salle="chambre_cloche", position=[4, 3])
         monde.sauver(chemin)
@@ -330,7 +330,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(chemin.unlink, missing_ok=True)
         with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
              patch.object(MJOpenAI, "_appeler", side_effect=AssertionError("Appel LLM inattendu")) as api:
-            monde = nouveau_defi()
+            monde = nouveau_defi(depart="fixe")
             installer(monde)
             monde.joueur.update(salle="echoppe", position=[6, 5])
             monde.memoriser("je ramasse le pied de biche",
@@ -352,7 +352,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         with tempfile.NamedTemporaryFile(dir=Path(__file__).resolve().parents[1], suffix=".json", delete=False) as fichier:
             chemin = Path(fichier.name)
         self.addCleanup(chemin.unlink, missing_ok=True)
-        monde = nouveau_defi()
+        monde = nouveau_defi(depart="fixe")
         installer(monde)
         monde.joueur.update(salle="echoppe", position=[6, 5])
         monde.memoriser("je ramasse le pied de biche",

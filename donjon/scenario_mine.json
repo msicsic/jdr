@@ -2114,6 +2114,7 @@
  "journal": [],
  "lus": [],
  "minutes": 0,
+ "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
  "missions": {},
  "objets": {
   "baraquement_murs": {
