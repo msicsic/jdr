@@ -187,8 +187,22 @@ def don(monde, reste):
     return proposition("remettre", objet, destinataire)
 
 
+def heler(monde, texte):
+    """Héler par son nom quelqu'un que Corvus connaît (``paroles.hele``) : un geste du moteur, jamais
+    une interprétation du MJ, même en forme de question (« je crie « Gorm ? » »)."""
+    from .paroles import hele
+    qui = hele(monde, texte)
+    if qui is None:
+        return None
+    from .operations import etape, sequence
+    return sequence(etape("emettre_son", qui, methode="heler"), justification="")
+
+
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
+    appel = heler(monde, texte)
+    if appel:
+        return appel
     if est_question(texte):
         return None
     texte = normaliser(texte)

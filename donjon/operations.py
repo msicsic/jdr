@@ -15,7 +15,8 @@ ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper
                        "bloquer", "debloquer")
 OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
-METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement")
+METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement",
+            "heler")
 
 
 def etape(operation, cible="", destination="", outil="", methode="simple", difficulte=0):

@@ -410,6 +410,39 @@ def analyser(monde, intention):
     return forme
 
 
+# Héler quelqu'un par son nom : un cri, pas une parole à un destinataire (``pnj.heler``). Les formes
+# que l'analyse reconnaît, en un seul endroit : « j'appelle Gorm », « je hèle Gorm », « je crie le
+# nom de Gorm », « j'appelle Gorm par son nom », « je crie « Gorm ? » », « crier : Gorm ! », suivies
+# au plus d'un « fort » ou « à voix haute ».
+VERBES_HELER = ("appelle", "appeler", "hele", "heler", "crie", "crier")
+FORT = ("fort", "tres fort", "a voix haute", "a haute voix", "a pleine voix", "a tue-tete", "a pleins poumons",
+        "de toutes mes forces")
+PONCTUATION = (":", ",", "«", "»", '"', "“", "”")
+
+
+def hele(monde, intention):
+    """Le personnage que la saisie hèle par son nom, s'il est l'un de ceux que Corvus connaît
+    (``_personnage``) ; None si elle n'est pas un appel par le nom (« j'appelle à l'aide » est un
+    appel à l'aide, « je crie » un cri, une suite qui dit autre chose va au MJ)."""
+    mots = [normaliser(j.group()) for j in JETON.finditer(intention or "")]
+    if mots[:1] == ["je"]:
+        mots = mots[1:]
+    elif mots and mots[0].startswith(("j'", "j’")):
+        mots = [mots[0][2:], *mots[1:]]
+    if not mots or mots[0] not in VERBES_HELER:
+        return None
+    nom = " ".join(m for m in mots[1:] if m not in PONCTUATION)
+    for f in sorted(FORT, key=len, reverse=True):
+        if nom.endswith(" " + f):
+            nom = nom[:-len(f) - 1]
+            break
+    if nom.startswith(("le nom de ", "le nom d'")):
+        nom = nom[len("le nom d"):].lstrip("e '")
+    elif nom.endswith(" par son nom"):
+        nom = nom[:-len(" par son nom")]
+    return _personnage(monde, nom)
+
+
 def _nom_court(monde, id):
     return monde.objets[id]["nom"].split(",")[0]
 

@@ -653,10 +653,15 @@ class Moteur:
                    for op, cible, _ in effets if op == "pousser"]
         # Son geste retentit (``ouie``) : qui l'entend sans le voir l'interprète, se retourne de près.
         from .ouie import retentir
-        retournes = retentir(travail, "joueur", methode if geste == "emettre_son" and methode in ("appel", "cri", "sifflement")
-                             else geste, discret=methode == "discret", bruit=plan.bruit)
+        heles = [valeur for op, _, valeur in effets if op == "heler"]
+        retournes = [] if heles else retentir(  # Le cri d'un nom a déjà retenti (``pnj.heler``).
+            travail, "joueur", methode if geste == "emettre_son" and methode in ("appel", "cri", "sifflement")
+            else geste, discret=methode == "discret", bruit=plan.bruit)
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
         minutes = ecouler(travail, duree(plan))
+        # Qui a saisi son nom répond, le cri fini ; le joueur l'entend par l'ouïe commune (``ecoute``).
+        from .pnj import repondre
+        repondus = [qui for qui in heles if repondre(travail, "joueur", qui, lignes)]
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
         # l'eau trempe aussitôt.
@@ -690,6 +695,9 @@ class Moteur:
         lignes.extend(entendu)
         if any(e[0] == "emettre_son" for e in plan.effets) and not apparus:
             lignes.append("Pour l'instant, aucune réponse ne te parvient.")
+        if heles and not any(qui in repondus and (travail.visible(qui) or any(b["auteur"] == qui for b, _, _ in parvenus))
+                             for qui in heles):
+            lignes.append("Aucune réponse ne te parvient.")
         from .horloges import declencher as declencher_horloges
         declencher_horloges(travail, lignes)
         percevoir_tous(travail)
@@ -818,6 +826,10 @@ class Moteur:
         if op == "emettre_son":
             from .sons import appliquer
             appliquer(m, cible, valeur, lignes)
+            return
+        if op == "heler":
+            from .pnj import heler
+            heler(m, cible, valeur, lignes)  # Le cri ; la réponse vient le cri fini (``_terminer_etape``).
             return
         if op == "blessure_franchissement":
             m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)

@@ -406,21 +406,39 @@ def appeler(monde, id, qui, lignes):
     rejoint : il attend sur place un temps borné, sauf pour plus pressant, ou va vers l'appelant
     s'il le cherche aussi (``deliberation.attendre_l_appelant``). Le joueur appelé entend l'appel
     (``ecoute``) et répond, s'il le veut, de lui-même."""
-    from .ouie import retentir, saisit
+    heler(monde, id, qui, lignes)
+    repondre(monde, id, qui, lignes)
+
+
+def heler(monde, id, qui, lignes):
+    """``id`` (un PNJ ou le joueur) hèle ``qui`` par son nom : un cri (``ouie``, nature « hele »)."""
+    from .ouie import retentir
     from .social import _qui
-    from .voix import fiabilite, se_nommer
     a, b = _qui(monde, id), _qui(monde, qui)
     texte = f"{a} appelle : « {b} ? »"
     _chroniquer(monde, id, texte, "social")
-    if monde.visible(id):
+    if id == "joueur":
+        lignes.append(f"Tu appelles : « {b} ? »")
+    elif monde.visible(id):
         lignes.append(texte)
     retentir(monde, id, "heler", texte=texte, cites=[qui])
+
+
+def repondre(monde, id, qui, lignes):
+    """``qui`` a peut-être saisi son nom, hélé par ``id`` (un PNJ ou le joueur) : il répond « Ici ! »,
+    sauf à une voix dont il se méfie (``appeler``) ; vrai s'il a répondu. Un PNJ resté sans réponse
+    le retient."""
+    from .ouie import retentir, saisit
+    from .social import _qui
+    from .voix import fiabilite, se_nommer
+    b = _qui(monde, qui)
     # Il répond à son nom, sauf à une voix dont il se méfie.
     repond = (qui != "joueur" and monde.objets[qui].get("profil") and saisit(monde, id, qui, "heler")
               and (fiabilite(monde, qui, id) or {}).get("valeur") is not False)
     if not repond:
-        memoriser(monde, id, {"type": "appel_sans_reponse", "qui": qui, "salle": monde.objets[id]["lieu"]})
-        return
+        if id != "joueur":
+            memoriser(monde, id, {"type": "appel_sans_reponse", "qui": qui, "salle": monde.objets[id]["lieu"]})
+        return False
     reponse = f"{b} répond : « Ici ! »"
     _chroniquer(monde, qui, reponse, "reponse")  # Une réaction, pas un geste de son but.
     # Répondre, c'est s'attendre à être rejoint (``deliberation.attendre_l_appelant``).
@@ -433,8 +451,9 @@ def appeler(monde, id, qui, lignes):
              parole={"a": [id], "contenu": [{"type": "nom", "sujet": qui}]})
     if saisit(monde, qui, id, "heler"):
         se_nommer(monde, id, qui, qui)
-    else:
+    elif id != "joueur":
         memoriser(monde, id, {"type": "appel_sans_reponse", "qui": qui, "salle": monde.objets[id]["lieu"]})
+    return True
 
 
 def _accessible(monde, id, objet):

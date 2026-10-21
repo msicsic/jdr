@@ -6,6 +6,8 @@
 - Qui répond à un appel s'attend à être rejoint : il attend sur place un temps borné, sauf pour
   plus pressant, ou va vers l'appelant s'il le cherche aussi. Cas réel de la crue : l'appelé
   répondait « Ici ! » puis poursuivait sa ronde ou allait voir un bruit, d'où des chassés-croisés.
+- Le joueur hèle quelqu'un par son nom (« j'appelle Gorm ») : un geste du moteur, par la règle des
+  PNJ ; l'appelé répond et l'attend, le joueur entend sa réponse par l'ouïe commune.
 Chaque cas vérifie l'état après rechargement et ce que lit le joueur."""
 import unittest
 
@@ -14,8 +16,11 @@ from donjon.commandes import analyser as commande
 from donjon.deliberation import REJOINT
 from donjon.esprits import croire, lire
 from donjon.geometrie import position_entree
+from donjon.spatial import position_cible
 from donjon.monde import ErreurMonde
 from donjon.paroles import _connu_du_joueur, analyser
+from donjon.operations import etape, sequence
+from donjon.paroles import hele
 from donjon.pnj import appeler
 from donjon.voix import connaitre, entendues
 from tests.support import calme
@@ -192,6 +197,84 @@ class RejointTests(unittest.TestCase):
         m = recharger(m)
         self.assertIn("Aubin demande une part des vivres du refuge à Gorm (promis).", chronique(m))
         self.assertEqual(appels(m, "aubin"), [])
+
+
+def gorm_derriere_la_porte():
+    """Corvus au palier des vannes, devant la porte étanche fermée ; Gorm, qu'il a vu mais jamais
+    entendu parler, à la salle des vannes, derrière elle. Les autres sont loin."""
+    m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+    for n, id in enumerate(("brune", "ilse", "aubin")):
+        placer(m, id, "chambre_cloche", (2 + n, 2))
+    placer(m, "marchand", "crypte", (5, 2))
+    m.objets["porte"]["verrouillee"] = False
+    m.joueur.update(salle="beffroi", position=list(position_cible(m, "porte", "beffroi")), orientation="ouest")
+    m.data["visitees"] = sorted({*m.data["visitees"], "beffroi"})
+    m.identifier(["marchand"])
+    assert not m.objets["porte"]["ouverte"] and "marchand" not in m.data["voix_connues"]
+    return recharger(m)
+
+
+class HelerJoueurTests(unittest.TestCase):
+    def test_formes(self):
+        m = place_videe()
+        for saisie in ("j'appelle Ilse", "je hèle Ilse", "je crie le nom d'Ilse", "j'appelle Ilse par son nom",
+                       "je crie « Ilse ? »", "crier : Ilse !", "j'appelle Ilse à voix haute", "appeler Ilse"):
+            self.assertEqual(hele(m, saisie), "ilse", saisie)
+        # Un appel à l'aide, un cri, deux noms, une parole, un objet : pas un appel par le nom.
+        for saisie in ("j'appelle à l'aide", "je crie", "j'appelle Ilse et Aubin", "Ilse ?", "« Ilse ? »",
+                       "j'appelle la torche"):
+            self.assertIsNone(hele(m, saisie), saisie)
+
+    def test_cas_reel_il_hele_gorm_derriere_la_porte(self):
+        m = gorm_derriere_la_porte()
+        reprise, sortie, appels = jouer(m, "j'appelle Gorm", [], [])
+        self.assertEqual(appels, [])  # Le moteur, jamais une interprétation du MJ.
+        self.assertIn("Tu appelles : « Gorm ? »", sortie)
+        # Une voix qu'il n'a jamais entendue : il entend ce qu'elle dit et le nom qu'elle se donne.
+        self.assertIn("Tu entends, à l'ouest, une voix qui se dit Gorm appeler : « Ici ! »", sortie)
+        self.assertEqual([e["se_dit"] for e in reprise.data["voix_entendues"].values()], ["marchand"])
+        self.assertEqual(lire(reprise, "marchand")["rejoint"]["qui"], "joueur")
+        self.assertEqual(lire(reprise, "marchand")["intention"]["but"], {"type": "attendre", "qui": "joueur"})
+        self.assertIn("Corvus appelle : « Gorm ? »", chronique(reprise))
+        self.assertIn("Gorm répond : « Ici ! »", chronique(reprise))
+        # Corvus ouvre la porte : Gorm l'a attendu là ; ils se voient, l'attente est finie.
+        reprise, sortie, _ = jouer(reprise, "ouvrir porte", [], [])
+        self.assertIn("Tu aperçois au-delà du passage Gorm, gardien du relais.", sortie)
+        self.assertEqual(reprise.objets["marchand"]["lieu"], "crypte")
+        self.assertIsNone(lire(reprise, "marchand")["rejoint"])
+        self.assertIn("Gorm retrouve Corvus, qui l'avait hélé.", chronique(reprise))
+
+    def test_une_voix_connue_dit_qui_repond_meme_en_forme_de_question(self):
+        m = gorm_derriere_la_porte()
+        connaitre(m, "joueur", "marchand")
+        m = recharger(m)
+        reprise, sortie, appels = jouer(m, "je crie « Gorm ? »", [], [])
+        self.assertEqual(appels, [])
+        self.assertIn("Tu entends, à l'ouest : Gorm répond : « Ici ! »", sortie)
+
+    def test_qui_se_mefie_de_lui_ne_repond_pas(self):
+        m = gorm_derriere_la_porte()
+        connaitre(m, "marchand", "joueur")
+        croire(m, "marchand", "joueur", "fiable", False, "vu")
+        m = recharger(m)
+        reprise, sortie, appels = jouer(m, "je hèle Gorm", [], [])
+        self.assertEqual(appels, [])
+        self.assertIn("Aucune réponse ne te parvient.", sortie)
+        self.assertNotIn("Gorm répond : « Ici ! »", chronique(reprise))
+        self.assertIsNone(lire(reprise, "marchand")["rejoint"])
+
+    def test_le_mj_ne_hele_que_qui_corvus_connait(self):
+        m = gorm_derriere_la_porte()
+        for id in ("ilse", "brune", "aubin"):
+            m.data["souvenirs_visuels"].pop(id, None)
+        m = recharger(m)
+        from donjon.moteur import Moteur
+        with self.assertRaises(ErreurMonde) as refus:
+            Moteur(m).preparer(sequence(etape("emettre_son", "ilse", methode="heler")))
+        self.assertIn("Tu ne connais personne de ce nom", str(refus.exception))
+        self.assertIn("reçu « ilse »", refus.exception.attendu)
+        self.assertIn("marchand", refus.exception.attendu)
+
 
 if __name__ == "__main__":
     unittest.main()
