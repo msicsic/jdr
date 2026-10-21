@@ -292,8 +292,9 @@ def main(argv=None, interface=None):
                         continue
                     connecter(afficher=imprimer)
                     connexion, actif = "chatgpt", True
-                    if isinstance(mj, Comparateur):
-                        mj.fermer()
+                    fermer = getattr(mj, "fermer", None)
+                    if fermer:
+                        fermer()
                     principal = MJOpenAI(args.model, args.effort, connexion="chatgpt")
                     stratege.activer(principal._appeler_brut if args.stratege else None)
                     mj = comparer(principal)
@@ -478,8 +479,9 @@ def main(argv=None, interface=None):
         imprimer(str(exc), file=sys.stderr)
         return 1
     finally:
-        if isinstance(mj, Comparateur):
-            mj.fermer()
+        fermer = getattr(mj, "fermer", None)
+        if fermer:
+            fermer()
 
 
 if __name__ == "__main__":

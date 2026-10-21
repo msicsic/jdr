@@ -39,8 +39,17 @@ Les retours OAuth vérifient `state`, PKCE, la signature du jeton d'identité, s
 son audience, sa durée de validité et son nonce. L'autorisation d'utiliser le forfait est vérifiée
 séparément. Un verrou évite les rafraîchissements concurrents du même coffre.
 
-Le transport forfait impose `store: false`, `stream: true` et des outils placés dans un namespace.
-Un fragment de réponse n'est jamais exécuté : seul `response.completed` valide la proposition.
+Le transport forfait utilise une WebSocket Responses persistante, ouverte au premier appel
+et partagée par le MJ et ses audits séquentiels. Chaque demande renvoie les instructions,
+les outils et le contexte autorisé complets et à jour, avec `store: false` et les outils
+placés dans un namespace. Aucun historique serveur, `previous_response_id` ou `stream_id`
+n'est utilisé. Un fragment de réponse n'est jamais exécuté : seul `response.completed`
+autorise la validation de la proposition par le moteur.
+La connexion est fermée à la sortie ou au remplacement du MJ. Un jeton OAuth renouvelé,
+une connexion déjà fermée ou son ancienneté provoquent une nouvelle ouverture avant le
+prochain envoi. Une coupure pendant une demande invalide cette réponse et ferme la
+connexion ; cette demande n'est pas rejouée automatiquement. Le prochain appel repart
+avec son contexte complet. Le délai couvre toute la réponse, pas chaque fragment séparément.
 Les erreurs de forfait ne déclenchent aucun basculement vers une clé API facturée séparément.
 
 Par défaut, le jeu privilégie une inscription ChatGPT enregistrée. `--connexion api` choisit

@@ -186,17 +186,22 @@ class Comparateur:
         return self._executer(numero, "principal", self.principal, principal, intention, pending, resultat)
 
     def _secondaire(self):
-        while True:
-            tache = self.file.get()
-            if tache is None:
-                return
-            numero, monde, intention, pending, resultat = tache
-            if self.ferme:
-                return
-            try:
-                self._executer(numero, "secondaire", self.secondaire, monde, intention, pending, resultat)
-            except Exception:
-                pass  # L'erreur est déjà visible dans la fiche ; le principal continue.
+        try:
+            while True:
+                tache = self.file.get()
+                if tache is None:
+                    return
+                numero, monde, intention, pending, resultat = tache
+                if self.ferme:
+                    return
+                try:
+                    self._executer(numero, "secondaire", self.secondaire, monde, intention, pending, resultat)
+                except Exception:
+                    pass  # L'erreur est déjà visible dans la fiche ; le principal continue.
+        finally:
+            fermer = getattr(self.secondaire, "fermer", None)
+            if fermer:
+                fermer()
 
     def noter_resultat(self, texte, engagement=None, numero=None):
         numero = self.numero if numero is None else numero
@@ -224,3 +229,6 @@ class Comparateur:
             except Empty:
                 break
         self.file.put_nowait(None)
+        fermer = getattr(self.principal, "fermer", None)
+        if fermer:
+            fermer()
