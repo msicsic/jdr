@@ -91,9 +91,11 @@ def _etape(t):
         return f"<div class='etape appel'>{tete}{corps}</div>"
     if t.get("etape") == "validation":
         return (f"<div class='etape refus'><div class='titre ko'>Refus du moteur (tentative {t.get('tentative', '?')})</div>"
-                f"<div>{html.escape(str(t.get('obstacle', '')))}</div>{_replie('Retour transmis au modèle', {k: v for k, v in t.items() if k in ('consigne', 'qualification_requise')})}</div>")
+                f"<div>{html.escape(str(t.get('obstacle', '')))}</div>{_replie('Retour transmis au modèle', {k: v for k, v in t.items() if k in ('attendu', 'consigne', 'qualification_requise')})}</div>")
     if t.get("etape") == "contrôle narratif":
-        obstacles = "".join(f"<li>{html.escape(str(o.get('motif', '')))}<br><span class='resume'>{html.escape(str(o.get('texte', ''))[:300])}</span></li>"
+        obstacles = "".join(f"<li>{html.escape(str(o.get('motif', '')))}<br><span class='resume'>{html.escape(str(o.get('texte', ''))[:300])}</span>"
+                            + (f"<br><span class='resume'>attendu : {html.escape(str(o['attendu']))}</span>" if o.get("attendu") else "")
+                            + "</li>"
                             for o in t.get("obstacles", []))
         return (f"<div class='etape refus'><div class='titre ko'>Contrôle de la prose (tentative {t.get('tentative', '?')})</div>"
                 f"<ul>{obstacles}</ul></div>")

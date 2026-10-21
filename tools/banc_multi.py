@@ -31,7 +31,7 @@ PRIX_HAIKU = {"entree": 0.10, "sortie": 0.50, "ecriture": 0.125, "lecture": 0.01
 
 def mesurer(fichiers):
     """Indicateurs d'une passe, sur l'ensemble de ses parties (fichiers JSON du banc)."""
-    m = dict(tours_mj=0, appels=0, secondes=0.0, replis=0, tours_refus=0, obstacles=0,
+    m = dict(tours_mj=0, appels=0, secondes=0.0, replis=0, tours_refus=0, obstacles=0, relances=0, refus=0,
              dollars=0.0, appels_traces=0, avec_reflexion=0)
     for f in fichiers:
         for t in json.loads(Path(f).read_text(encoding="utf-8"))["tours"]:
@@ -46,6 +46,10 @@ def mesurer(fichiers):
             for e in t.get("fil", []):
                 if e.get("etape") == "contrôle narratif":
                     m["obstacles"] += len(e.get("obstacles", []))
+                    # Une réponse refusée par le contrôle narratif est redemandée, sauf la troisième (repli).
+                    m["relances"] += e.get("tentative", 0) < 3
+                if e.get("etape") == "validation":
+                    m["refus"] += 1
                 if e.get("etape") != "appel":
                     continue
                 m["appels_traces"] += 1
@@ -61,6 +65,7 @@ def mesurer(fichiers):
     tours = m["tours_mj"] or 1
     return {"appels_par_tour": m["appels"] / tours, "secondes_par_tour": m["secondes"] / tours,
             "replis": m["replis"], "tours_refus": m["tours_refus"], "obstacles": m["obstacles"],
+            "relances": m["relances"], "refus": m["refus"],
             "cout": m["dollars"], "reflexion": m["avec_reflexion"] / (m["appels_traces"] or 1),
             "tours_mj": m["tours_mj"]}
 
@@ -70,6 +75,8 @@ INDICATEURS = [("appels_par_tour", "Appels par tour MJ", "{:.2f}"),
                ("replis", "Tours en repli", "{:.1f}"),
                ("tours_refus", "Tours avec refus", "{:.1f}"),
                ("obstacles", "Obstacles narratifs", "{:.1f}"),
+               ("relances", "Relances narratives", "{:.1f}"),
+               ("refus", "Refus (moteur, contre-revue)", "{:.1f}"),
                ("reflexion", "Part d'appels avec réflexion", "{:.0%}"),
                ("cout", "Coût API par passe ($)", "{:.3f}")]
 
@@ -83,7 +90,7 @@ def resumer(passes):
     for cle, libelle, forme in INDICATEURS:
         cellules = []
         for nom in noms:
-            valeurs = [m[cle] for v, m in passes if v == nom]
+            valeurs = [m.get(cle, 0) for v, m in passes if v == nom]  # une mesure plus ancienne en manque
             moyenne = statistics.mean(valeurs)
             etendue = (f" ({forme.format(min(valeurs))} – {forme.format(max(valeurs))})"
                        if len(valeurs) > 1 else "")

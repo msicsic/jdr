@@ -5,6 +5,7 @@ Le contrôleur doit couvrir le texte entier et justifier chaque affirmation auto
 """
 
 from .monde import ErreurMonde
+from .refus import RapportIllisible, audit, citer, liste
 from .narration import segments
 from .capacites_objet import CAPACITES_REVUE, noms as noms_capacites
 
@@ -187,7 +188,18 @@ def descriptions(reponse):
     return resultat
 
 
+def _sujet(sujet):
+    """Le sujet d'une description, tel que la proposition le nomme."""
+    for cle in ("nom", "facette", "sujet"):
+        if isinstance(sujet.get(cle), str) and sujet[cle]:
+            qui = sujet.get("personnage")
+            return f"{cle} « {sujet[cle]} »" + (f" de {qui}" if isinstance(qui, str) and qui else "")
+    return sujet.get("nature", "sujet")
+
+
 def controler(entrees, rapport, attestations=()):
+    """Les obstacles du rapport de portée, chacun avec son ``attendu`` (``refus.audit``) : la description
+    en cause, ce que l'auditeur y a lu et ce qui serait accepté."""
     lignes = rapport.get("descriptions") if isinstance(rapport, dict) else None
     if (not isinstance(lignes, list) or len(lignes) != len(entrees)
             or any(not isinstance(entree, dict)
@@ -195,7 +207,7 @@ def controler(entrees, rapport, attestations=()):
                    or not isinstance(entree["representations_autorisees"], list)
                    or not entree["representations_autorisees"]
                    for entree in entrees)):
-        raise ErreurMonde("Contrôle de portée incomplet.")
+        raise RapportIllisible("Contrôle de portée incomplet.")
     obstacles = []
     capacites_affirmees = {}
     for indice, (entree, ligne) in enumerate(zip(entrees, lignes)):
@@ -222,17 +234,24 @@ def controler(entrees, rapport, attestations=()):
                        or f["portee"] not in ("sujet", "attestation", "ambiance", "sans_preuve")
                        for f in ligne["fragments"])
                 or "".join(f["texte"] for f in ligne["fragments"]) != entree["texte"]):
-            raise ErreurMonde("Contrôle de portée mal formé.")
+            raise RapportIllisible("Contrôle de portée mal formé.")
+        lieu = f"description {indice} ({_sujet(entree['sujet'])})"
+
+        def refuser(motif, accepte, verdict, recu=None, lieu=lieu, texte=entree["texte"]):
+            # Le verdict est celui de l'auditeur de portée, rendu tel quel : rien de plus sûr.
+            obstacles.append(audit(motif, accepte, partie="description", segment=indice, texte=texte,
+                                   recu=recu, verdict=verdict, lieu=lieu))
         if ligne["representation"] not in entree["representations_autorisees"]:
-            obstacles.append({"partie": "description", "segment": indice,
-                              "texte": entree["texte"],
-                              "motif": "La représentation requise par ce fait n'est pas celle de l'ajout proposé."})
+            refuser("La représentation requise par ce fait n'est pas celle de l'ajout proposé.",
+                    f"une phrase qui décrit ce sujet comme {' ou '.join(entree['representations_autorisees'])}, "
+                    "et rien d'autre", f"représentation {ligne['representation']}")
         declarees = set(entree["sujet"].get("capacites", []))
         affirmees = set(ligne["capacites"])
         if affirmees - declarees:
-            obstacles.append({"partie": "description", "segment": indice,
-                              "texte": entree["texte"],
-                              "motif": "Une capacité affirmée n'est pas enregistrée sur l'objet."})
+            refuser("Une capacité affirmée n'est pas enregistrée sur l'objet.",
+                    f"capacites déclarées dans l'ajout ({liste(sorted(declarees))}) : déclare "
+                    f"{liste(sorted(affirmees - declarees))} dans capacites, ou ne l'affirme pas dans le texte",
+                    f"capacités lues {', '.join(sorted(affirmees))}")
         cle_sujet = (entree["sujet"].get("support"), entree["sujet"].get("nom"))
         capacites_affirmees.setdefault(cle_sujet, set()).update(affirmees)
         relation = entree["sujet"].get("relation")
@@ -241,32 +260,37 @@ def controler(entrees, rapport, attestations=()):
                                     or ("amovible" in ligne["mobilite"] and
                                         entree["sujet"].get("mobile") is False)
                                     or ligne["placement"] not in ("aucun", relation)):
-            obstacles.append({"partie": "description", "segment": indice,
-                              "texte": entree["texte"],
-                              "motif": "La fixation ou la mobilité décrite contredit l'objet proposé."})
+            refuser("La fixation ou la mobilité décrite contredit l'objet proposé.",
+                    f"une description accordée à relation = {relation}, mobile = {entree['sujet'].get('mobile')}, "
+                    "ou ces champs accordés au texte",
+                    f"mobilité {', '.join(ligne['mobilite']) or 'aucune'}, placement {ligne['placement']}")
         if ligne["impact_scenario"] != "aucun":
-            obstacles.append({"partie": "description", "segment": indice,
-                              "texte": entree["texte"],
-                              "motif": "Un ajout descriptif ne peut pas modifier ou fournir un objectif de scénario."})
+            refuser("Un ajout descriptif ne peut pas modifier ou fournir un objectif de scénario.",
+                    "une description sans objectif, solution, indice ni changement du scénario",
+                    f"impact {ligne['impact_scenario']}")
         for fragment in ligne["fragments"]:
             portee, preuve = fragment["portee"], fragment["preuve"]
             if portee == "attestation":
                 if preuve != fragment["texte"] or preuve not in attestations:
-                    obstacles.append({"partie": "description", "segment": indice,
-                                      "texte": fragment["texte"],
-                                      "motif": "La preuve citée ne correspond pas à une attestation exacte du moteur."})
+                    refuser("La preuve citée ne correspond pas à une attestation exacte du moteur.",
+                            "un fragment recopié mot pour mot d'une attestation du moteur (attestations), ou "
+                            "le fragment retiré", ("attestation", "preuve " + citer(preuve)),
+                            texte=fragment["texte"])
             elif preuve:
-                raise ErreurMonde("Une description cite une preuve hors de sa portée.")
+                raise RapportIllisible("Une description cite une preuve hors de sa portée.")
             if portee == "sans_preuve":
-                obstacles.append({"partie": "description", "segment": indice,
-                                  "texte": fragment["texte"],
-                                  "motif": fragment["motif"] or "Cette affirmation exige un fait distinct."})
+                refuser(fragment["motif"] or "Cette affirmation exige un fait distinct.",
+                        "le texte sans ce fragment, ou ce fragment établi par un fait distinct proposé à part",
+                        ("sans_preuve", fragment["motif"]), texte=fragment["texte"])
     for indice, entree in enumerate(entrees):
         declarees = set(entree["sujet"].get("capacites", []))
         cle_sujet = (entree["sujet"].get("support"), entree["sujet"].get("nom"))
         if declarees - capacites_affirmees[cle_sujet]:
-            obstacles.append({"partie": "description", "segment": indice,
-                              "texte": entree["texte"],
-                              "motif": "Une capacité proposée n'est pas annoncée par le nom ou la description."})
+            manquantes = sorted(declarees - capacites_affirmees[cle_sujet])
+            obstacles.append(audit("Une capacité proposée n'est pas annoncée par le nom ou la description.",
+                                   f"un nom ou une description qui annonce {liste(manquantes)}, ou capacites "
+                                   "sans elles", partie="description", segment=indice, texte=entree["texte"],
+                                   verdict=("capacités lues", ""),
+                                   lieu=f"description {indice} ({_sujet(entree['sujet'])})"))
             capacites_affirmees[cle_sujet].update(declarees)
     return obstacles
