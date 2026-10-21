@@ -264,18 +264,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   contenant fermé (verrouillé ou non, par l'essai) et garde l'objet cru dedans (`pnj._hors_d_atteinte`) ;
   Brune force de nouveau la réserve au lieu de croire les vivres disparues. **Le témoin d'un geste
   qui déplace un objet voit où il va** (`pnj._lieu_vu`, `prendre` et `poser`) : il le croit là, sa
-  nouvelle porte le lieu (« … a posé le ballot de soie dans Étable »), qui la croit en tire une
+  nouvelle porte le lieu (« … a posé le ballot de soie dans l'étable »), qui la croit en tire une
   croyance de lieu à confiance de ouï-dire, sauf constat propre postérieur (`social._apprendre_lieu`) ;
   qui sait depuis l'objet ailleurs tait le lieu ; le protecteur qui prévient la victime lui dit
   aussi où sont ses biens. Anselme reprend son ballot (graine 42). Ne pas avoir trouvé un objet ne
-  dément plus qu'il soit ailleurs (`paroles.dementi`). **Chercher quelqu'un** : en parcourant une
-  salle où on le cherche sans le voir, on l'appelle (`pnj.appeler`) ; qui saisit son nom et ne se
-  méfie pas répond, et l'on croit sa voix (`entendu`) ; de près, on se parle même dans le noir
-  (`pnj.se_parler`, comme le joueur). Mireille trouve Odile au grenier noir au lieu de tourner une
-  heure. Bancs (8 h, avant → après) : aucune usurpation ni violation ; par nuit 5 appels au Relais,
-  6 à l'auberge, 9,5 à la crue ; minutes sans recours Relais 428 → 426, auberge 573 → 634, mine
-  668 → 696, crue 300 → 339. Détail des écarts et limites dans `docs/plan-ouie.md`.
-- La suite de tests passe : 848 tests, sans clé ni connexion (ceux du clic demandent Node).
+  dément plus qu'il soit ailleurs (`paroles.dementi`), le voir dans d'autres mains non plus
+  (`esprits.reviser`). **Chercher quelqu'un** : en parcourant une salle où on le cherche sans le
+  voir, on l'appelle (`pnj.appeler`) ; il répond, sauf à qui il reconnaît et dont il se méfie.
+  Mireille trouve Odile au grenier noir au lieu de tourner une heure. **Se parler, c'est
+  s'entendre et savoir qui parle** (accepté) : chacun saisit les mots de l'autre par l'ouïe commune
+  (`ouie.s_entendent` : distance réelle, ouverture, porte fermée ; plus de `de_pres`) et le voit ou
+  reconnaît sa voix ; on ne s'adresse qu'à qui l'on a vu ou reconnu (`pnj.identifie`,
+  `croit_present`), jamais d'après sa place réelle. Chacun connaît ceux qu'il a vus ou entendus
+  parler (`voix` de l'esprit, `data["voix_connues"]` du joueur, migrées) ; une voix connue dont on
+  saisit les mots situe qui parle (`entendu`), une voix jamais entendue est un bruit inconnu. Le
+  joueur : `ecoute` ne nomme qu'une voix connue, seules elles font savoir qui est là ; un échange
+  qu'il ne voit pas ne s'écrit plus « X parle avec Y ». Salles désignées avec leur article
+  (`francais.lieu`). Bancs (8 h, avant → après) : aucune usurpation ni violation ; par nuit 4,6
+  appels au Relais, 6 à l'auberge, 6,5 à la crue ; minutes sans recours Relais 428 → 426, auberge
+  573 → 621, mine 668 → 688 (Mathe reconnaît Odon dans le noir et refuse : il force le
+  garde-manger), crue 300 → 316 ; moins de confidences dans le noir. Détail et limites dans
+  `docs/plan-ouie.md`.
+- La suite de tests passe : 853 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
