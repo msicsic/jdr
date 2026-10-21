@@ -117,8 +117,9 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
 - allumer, eteindre : une source lumineuse. Allumer demande du combustible et un outil
   d'allumage ou une autre flamme (outil facultatif : le moteur en choisit un). Prendre puis
   allumer, ce sont deux étapes.
-- alimenter : un foyer, avec un combustible porté ou à portée (outil facultatif) ; mettre du
-  combustible dans un foyer, c'est l'alimenter.
+- alimenter : recharger ce qui consomme un combustible (un foyer et du bois, une lampe et
+  l'huile qu'elle brûle) avec un combustible porté ou à portée (outil facultatif) ; mettre du
+  combustible dans ce qui le consomme, c'est l'alimenter.
 - manger : une nourriture à Corvus ou à personne ; celle d'autrui se demande d'abord.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : comme les
   actions simples. « Je déverrouille la porte, je l'ouvre et je la cale » forme une séquence.

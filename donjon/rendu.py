@@ -126,11 +126,16 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             fixes = sum(e.get("attache", False) for e in monde.enfants(id))
             texte += f' Masse : {o["masse"]} kg. Fixations en place : {fixes}.'
         if o.get("usages"):
+            from .matiere import SUBSTANCES
+            from .perception import FOYER, substance
+            # Un combustible recharge ce qui brûle sa substance (``perception.recharge``).
+            matiere = substance(o)
             noms = {"levier_fin": "petit levier fragile", "couper": "couper",
                     "levier": "levier robuste", "percussion": "frapper",
                     "cale": "caler", "crochetage": "crocheter", "empreinte": "prendre une empreinte",
                     "allumage": "allumer une source de lumière", "couper_bois": "découper du bois",
-                    "combustible": "recharger un feu"}
+                    "combustible": "recharger un feu" if matiere in (None, FOYER)
+                    else "recharger ce qui brûle " + SUBSTANCES[matiere]["article"]}
             texte += " Usages usuels : " + ", ".join(noms[u] for u in o["usages"]) + "."
     return texte
 
