@@ -306,7 +306,8 @@ class Moteur:
                 return plan
             destinataire = verifier_don(m, cible, outil)
             exiger(m, destinataire)
-            plan.titre = "Donner " + designer(m.objets[cible]) + " à " + designer(m.objets[destinataire]) + "."
+            from .voix import nom_pour_joueur
+            plan.titre = "Donner " + designer(m.objets[cible]) + " à " + nom_pour_joueur(m, destinataire, court=False) + "."
             plan.effets = [("donner", cible, destinataire)]
             return plan
         if not m.accessible(cible):
@@ -837,7 +838,8 @@ class Moteur:
             o["proprietaire"] = valeur
             o.pop("vole_par", None)
             memoriser(m, valeur, {"type": "don", "de": "joueur", "objet": cible})
-            lignes.append("Tu donnes " + designer(o) + " à " + m.objets[valeur]["nom"] + ".")
+            from .voix import nom_pour_joueur
+            lignes.append("Tu donnes " + designer(o) + " à " + nom_pour_joueur(m, valeur, court=False) + ".")
             return
         o = m.objets.get(cible)
         if op == "liberer":

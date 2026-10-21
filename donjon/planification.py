@@ -19,8 +19,8 @@ from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
 
-from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, _cru, _disponible_cru, _eclairee_crue, _lieu_cru,
-                           autorise, besoin_de_part, gardes, illicite, noir_cru, peur_du_noir, profil,
+from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _eclairee_crue,
+                           _lieu_cru, autorise, besoin_de_part, gardes, illicite, noir_cru, peur_du_noir, profil,
                            promesse_en_cours, refuse_recemment)
 from .esprits import lire
 from .perception import brule, recharge
@@ -444,18 +444,24 @@ def gestes(v, e, vises=None, but=None):
                     elif (ou is None and not e.fait("cherche", donneur)
                           and (but is None or but(v, e.apres(faits=part)))):
                         # Le chercher ne sert que si sa part atteint le but.
-                        yield _chercher(v, e, donneur)
+                        recherche = _chercher(v, e, donneur)
+                        if recherche is not None:
+                            yield recherche
     for salle in vises.get("inspecter", ()):
         if salle == e.salle and not e.fait("inspecte", salle):
             yield 0, 1, [_etape("inspecter", lieu=salle)], e.apres(faits=[(("inspecte", salle), True)])
 
 
 def _chercher(v, e, sujet):
-    """Perdu de vue : il va le chercher là où il est passé le moins récemment, et l'y suppose.
-    Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
+    """Perdu de vue : il va le chercher là où il est passé le moins récemment, et l'y suppose,
+    hors des salles où il l'a hélé en vain (``deliberation.appels_vains``) ; None s'il n'en reste
+    aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
     visites = lire(v.monde, v.id)["visites"]
-    routes = {s: v.route(e.salle, s, e.portes) for s in v.salles}
+    vaines = appels_vains(v.monde, v.id, sujet)
+    routes = {s: v.route(e.salle, s, e.portes) for s in v.salles if s not in vaines}
     routes = {s: r for s, r in routes.items() if r is not None}
+    if not routes:
+        return None
     salle = min(routes, key=lambda s: (visites.get(s, -1), len(routes[s]), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
     etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
@@ -492,6 +498,9 @@ def _entrees(v, vises, profondeur, noeuds):
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
+        # Les salles hélées en vain (``_chercher``), tant qu'elles comptent.
+        [[q, sorted(appels_vains(monde, id, q))] for q in sorted({s["qui"] for s in esprit_["memoire"]
+                                                                   if s["type"] == "appel_sans_reponse"})],
         [[s, minute - s["minute"] < (REDEMANDE if s["type"] == "refus" else ATTENTE_PART),
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
@@ -807,5 +816,8 @@ def rejoindre(monde, id, sujet):
     if salle is not None:
         etapes = aller(monde, id, salle)
         return None if etapes is None else (etapes, True)
-    etapes = _chercher(v, e, sujet)[2]
+    recherche = _chercher(v, e, sujet)
+    if recherche is None:
+        return None
+    etapes = recherche[2]
     return _couper(etapes), False

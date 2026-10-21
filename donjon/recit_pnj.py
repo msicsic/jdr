@@ -160,7 +160,7 @@ class Recit:
         noms = sorted({monde.objets[id]["nom"], court(monde, id)}, key=len, reverse=True)
         gestes = []
         for c in chronique:
-            if c["pnj"] != id or not debut <= c["minute"] <= fin or c.get("nature") in ("deplacement", "ouie"):
+            if c["pnj"] != id or not debut <= c["minute"] <= fin or c.get("nature") in ("deplacement", "ouie", "reponse"):
                 continue
             texte = c["texte"].rstrip(".")
             for nom in noms:
@@ -227,7 +227,7 @@ class Recit:
 
     def entre_eux(self, monde, chronique):
         lignes = ["== Entre eux =="]
-        sociaux = [c for c in chronique if c.get("nature") == "social"]
+        sociaux = [c for c in chronique if c.get("nature") in ("social", "reponse")]
         vus = [(s["minute"], f"{court(monde, id)} voit {court(monde, s['auteur'])} "
                 f"{GESTES.get(s['operation'], s['operation'])} {_objet(monde, s['objet'])}")
                for id in self.ids for s in self.souvenirs[id] if s["type"] == "vu_agir"]

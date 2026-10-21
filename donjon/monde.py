@@ -311,6 +311,7 @@ class Monde:
                     vue.pop(champ, None)
             objets.append(vue)
         from .dialogues import interlocuteurs, missions_discutables, contrats_publics
+        from .voix import designation
         from .connaissances import contexte as connaissances_pnj
         from .narration import ambiance_etablie
         salle = copy.deepcopy(self.data["salles"][self.joueur["salle"]])
@@ -363,8 +364,9 @@ class Monde:
                 "interlocuteurs": interlocuteurs(self), "missions_discutables": missions_discutables(self),
                 "engagements": contrats_publics(self),
                 "connaissances_pnj": connaissances_pnj(self),
-                "paroles_entendues": copy.deepcopy([
-                    p for p in self.data.get("paroles_pnj", []) if "joueur" in p["auditeurs"]][-10:]),
+                # Qui parlait, sous le nom que le joueur lui connaît (``voix.designation``).
+                "paroles_entendues": [{**copy.deepcopy(p), "locuteur": designation(self, p["locuteur"])}
+                                      for p in self.data.get("paroles_pnj", []) if "joueur" in p["auditeurs"]][-10:],
                 "souvenirs_faits": copy.deepcopy(self.data.get("faits_vus", [])[-20:]),
                 "ambiance_etablie": ambiance_etablie(self),
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],

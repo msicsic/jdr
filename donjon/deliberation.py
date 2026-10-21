@@ -42,6 +42,7 @@ ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise av
 REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
 APPEL_REPIT = 10       # minutes entre deux appels à l'aide
+APPEL_OUBLI = 60       # minutes pendant lesquelles une salle où l'on a hélé en vain compte pour parcourue
 # L'effet de seuil (``urgents``) : apaisé, un besoin ne presse de nouveau qu'à son seuil + REPRISE ;
 # il n'interrompt le plan en cours d'un autre besoin que s'il presse plus que lui d'INERTIE.
 REPRISE = 15
@@ -194,10 +195,22 @@ def _disponible_cru(monde, id, objet):
 
 
 def refuse_recemment(monde, id, autre, operation, objet=None):
-    """Le dernier refus de cet échange, s'il date de moins de ``REDEMANDE`` minutes."""
+    """Le dernier refus de cet échange, s'il date de moins de ``REDEMANDE`` minutes. « Qui va
+    là ? » n'est pas un refus : il s'est nommé, il redemande."""
     return next((s for s in reversed(lire(monde, id)["memoire"])
                  if s["type"] == "refus" and s["de"] == autre and s["operation"] == operation
+                 and s.get("raison") != "qui_va_la"
                  and s.get("objet", objet) == objet and monde.data["minutes"] - s["minute"] < REDEMANDE), None)
+
+
+def appels_vains(monde, id, qui):
+    """Les salles où il a hélé ``qui`` sans réponse, depuis qu'il ne sait plus où il est, et depuis
+    moins de ``APPEL_OUBLI`` minutes : elles comptent pour parcourues dans cette recherche."""
+    e = lire(monde, id)
+    depuis = (e["croyances"].get(qui, {}).get("lieu") or {}).get("minute", -1)
+    minute = monde.data["minutes"]
+    return {s["salle"] for s in e["memoire"] if s["type"] == "appel_sans_reponse" and s["qui"] == qui
+            and s["minute"] >= depuis and minute - s["minute"] < APPEL_OUBLI}
 
 
 def promesse_en_cours(monde, id, objet):

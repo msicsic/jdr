@@ -1,0 +1,690 @@
+{
+  "modele": "gpt-6-luna",
+  "effort": "medium",
+  "connexion": "chatgpt",
+  "ouvertures": 4,
+  "fermetures": 4,
+  "appels": [
+    {
+      "fonction": "repondre_au_joueur",
+      "cas": "crypte",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "coupure_simulee": true
+    },
+    {
+      "fonction": "repondre_au_joueur",
+      "cas": "crypte",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_0ba4d41cc3df1928016ad874daba8c87d2960dafbe15e23602": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 3539,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 3539,
+                  "input_tokens": 3657,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 3657,
+              "output_tokens": 0
+            },
+            "fc_0ba4d41cc3df1928016ad874dbbfe487d29f38d8649a415e28": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 92
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 2335,
+              "input_tokens": 2335,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 5390,
+              "input_tokens": 5390,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 11384,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 11264
+        },
+        "output_tokens": 92,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 11476
+      }
+    },
+    {
+      "fonction": "auditer_action",
+      "cas": "crypte",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_0c408c5b5c777d73016ad874dd907887d293afa53d33c50ddd": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 116,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 116,
+              "output_tokens": 0
+            },
+            "fc_0c408c5b5c777d73016ad874de38b887d2905401bd88b4de6c": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 42
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 133,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 382,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 633,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 42,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 675
+      }
+    },
+    {
+      "fonction": "repondre_au_joueur",
+      "cas": "crypte",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_034e0f016514d6c7016ad874df28d087d2b3e6be9211219118": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 729,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 729,
+              "output_tokens": 0
+            },
+            "fc_034e0f016514d6c7016ad874dffb8887d29641716b53926a53": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 50
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 201,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 732,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 1664,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 50,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1714
+      }
+    },
+    {
+      "fonction": "auditer_narration",
+      "cas": "crypte",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_0fb19edb84871c8b016ad874e0eee887d289cbc9eddd61f561": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 732,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 732,
+              "output_tokens": 0
+            },
+            "fc_0fb19edb84871c8b016ad874e1d01087d2bb89153058dfa12a": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 84
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 251,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 766,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 1751,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 84,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1835
+      }
+    },
+    {
+      "fonction": "repondre_au_joueur",
+      "cas": "atelier",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "coupure_simulee": true
+    },
+    {
+      "fonction": "repondre_au_joueur",
+      "cas": "atelier",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_02fbcd65676d9280016ad874f07af087d2a946ff744f096a1f": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 3630,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 3630,
+                  "input_tokens": 3824,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 3824,
+              "output_tokens": 0
+            },
+            "fc_02fbcd65676d9280016ad874f2ec9487d282854d96613ef124": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 95
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 2243,
+              "input_tokens": 2243,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 6287,
+              "input_tokens": 6287,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 12356,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 12160
+        },
+        "output_tokens": 95,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 12451
+      }
+    },
+    {
+      "fonction": "auditer_action",
+      "cas": "atelier",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_0db47c83e2bb123f016ad874f5255087d294e38d242604c4dc": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 125,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 125,
+              "output_tokens": 0
+            },
+            "fc_0db47c83e2bb123f016ad874f6895087d2a958064f6b724189": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 42
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 133,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 382,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 642,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 42,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 684
+      }
+    },
+    {
+      "fonction": "repondre_au_joueur",
+      "cas": "atelier",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_02a18bcdaf2d9959016ad874f7a96887d2839d511b0a4fe5f0": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 751,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 751,
+              "output_tokens": 0
+            },
+            "fc_02a18bcdaf2d9959016ad874fa0eb087d28bb754cb5921b489": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 57
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 201,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 732,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 1686,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 57,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1743
+      }
+    },
+    {
+      "fonction": "auditer_narration",
+      "cas": "atelier",
+      "modele": "gpt-6-luna",
+      "effort": "medium",
+      "instructions_completes": true,
+      "entrees": 1,
+      "sans_parent": true,
+      "terminal": "completed",
+      "usage": {
+        "attribution": {
+          "items": {
+            "msg_0fe8298d0061cafa016ad874fb420c87d2b1083ed42004aeb0": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 761,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 761,
+              "output_tokens": 0
+            },
+            "fc_0fe8298d0061cafa016ad874fce09487d2acc396015b5a1c8f": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 79
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 251,
+              "output_tokens": 0
+            },
+            "instructions": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 766,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 1780,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 79,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1859
+      }
+    }
+  ],
+  "parcours": [
+    {
+      "cas": "crypte",
+      "cible": "cle",
+      "lieu": "joueur",
+      "recit_sauve_avant_affichage": true,
+      "executions_action": 1,
+      "actions_journal": [
+        {
+          "tour": 1,
+          "minutes": 1,
+          "action": {
+            "action": "composer",
+            "justification": "",
+            "etapes": [
+              {
+                "operation": "deplacer",
+                "cible": "cle",
+                "destination": "joueur",
+                "outil": "",
+                "methode": "simple",
+                "difficulte": 0
+              }
+            ]
+          },
+          "origine": "LLM : gpt-6-luna",
+          "dd": 0,
+          "jet": null,
+          "reussite": true,
+          "etapes": [
+            {
+              "numero": 1,
+              "operation": {
+                "operation": "deplacer",
+                "cible": "cle",
+                "destination": "joueur",
+                "outil": "",
+                "methode": "simple",
+                "difficulte": 0
+              },
+              "jet": null,
+              "dd": 0,
+              "reussite": true,
+              "minutes": 1,
+              "effets_appliques": [
+                [
+                  "transferer",
+                  "cle",
+                  "joueur"
+                ]
+              ],
+              "faits": [
+                "Tu prends la clé du veilleur."
+              ]
+            }
+          ],
+          "faits": [
+            "Tu prends la clé du veilleur."
+          ]
+        }
+      ],
+      "etat_identique_apres_reprise": true,
+      "sorties": [
+        "Retrouver l'anneau du veilleur dans la crypte. « aide » : commandes disponibles.",
+        "Tu as accepté de retrouver l'anneau du veilleur à la demande de Gorm. Le marchand t'a conduit de son échoppe à cette antichambre, puis est retourné à ses affaires. C'est là que ton exploration a commencé.",
+        "Le MJ réfléchit…",
+        "Tu prends la clé du veilleur en bronze.",
+        "Partie sauvegardée. A bientôt."
+      ],
+      "sorties_apres_reprise": [
+        "Retrouver l'anneau du veilleur dans la crypte. « aide » : commandes disponibles.",
+        "\nPERSONNAGE — Corvus\nPV 18/18 | 24 pièces | 1.5/12 kg | 1 min\nCHA 12 (+1)  DEX 16 (+3)  FOR 12 (+1)  INT 14 (+2)  PER 12 (+1)  VOL 10 (+0)  ELO 10 (+0)  PSY 10 (+0)\nHumain adulte\nFaim : légère | Fatigue : légère | Froid : léger\nBesace :\n  Un couteau à lame fine en acier.\n  Un bloc de cire malléable. Il reste 2 utilisations.\n  Une clé du veilleur en bronze.\n  Une lanterne en fer et verre est allumée. Combustible restant : 59 min.\n  Un briquet à silex en fer et silex.\n\nAccords : aucune récompense proposée pour le moment.",
+        "PLAN — 1 case = 1 m\nNIVEAU +0 — coordonnées (x, y), 1 case = 1 m\n       10        \n   9     ~X####\n  10     : A . ##\n  11 : . . t . ##\n  12 : @→. . . ##\n  13 : . . . . ##\n  14 ##########\n\n=== LEGENDE ===\nA : Antichambre\n@ toi   ## mur   . terrain visible et éclairé   : terrain mémorisé ou passage connu   cases vides : inconnues\nLa flèche à côté de @ : ton regard. Tu vois devant toi (120°) et à tes côtés, pas derrière.\nF6 puis flèches : marcher · Maj+flèches : pas chassé · Alt+flèches : pas feutré · Échap/Entrée : commande\nO obstacle solide   ^/v appui vertical   H1 échelle · axes x,y ; une case par pas\nt la torche\n~ : dernier aperçu, présence ou état actuels non confirmés\n~X porte verrouillée",
+        "\n== ANTICHAMBRE ==\n\nTa lanterne éclaire la pièce. Une lueur te parvient de l'ouest. Le sol, les murs et le\nplafond sont en pierre. Aucune fenêtre. Une torche en bois est éteinte. La torche est\ntrop loin pour être manipulée d'ici.\n\nSorties : nord (inexploré).",
+        "Partie sauvegardée. A bientôt."
+      ],
+      "conversation": [
+        {
+          "joueur": "mj Je prends la clé du veilleur.",
+          "reponse": "Tu prends la clé du veilleur en bronze.",
+          "nature": "resultat_moteur",
+          "revision": 1
+        }
+      ]
+    },
+    {
+      "cas": "atelier",
+      "cible": "ficelle",
+      "lieu": "joueur",
+      "recit_sauve_avant_affichage": true,
+      "executions_action": 1,
+      "actions_journal": [
+        {
+          "tour": 1,
+          "minutes": 1,
+          "action": {
+            "action": "composer",
+            "justification": "",
+            "etapes": [
+              {
+                "operation": "deplacer",
+                "cible": "ficelle",
+                "destination": "joueur",
+                "outil": "",
+                "methode": "simple",
+                "difficulte": 0
+              }
+            ]
+          },
+          "origine": "LLM : gpt-6-luna",
+          "dd": 0,
+          "jet": null,
+          "reussite": true,
+          "etapes": [
+            {
+              "numero": 1,
+              "operation": {
+                "operation": "deplacer",
+                "cible": "ficelle",
+                "destination": "joueur",
+                "outil": "",
+                "methode": "simple",
+                "difficulte": 0
+              },
+              "jet": null,
+              "dd": 0,
+              "reussite": true,
+              "minutes": 1,
+              "effets_appliques": [
+                [
+                  "transferer",
+                  "ficelle",
+                  "joueur"
+                ]
+              ],
+              "faits": [
+                "Tu portes maintenant la bobine de ficelle solide."
+              ]
+            }
+          ],
+          "faits": [
+            "Tu portes maintenant la bobine de ficelle solide."
+          ]
+        }
+      ],
+      "etat_identique_apres_reprise": true,
+      "sorties": [
+        "Atteindre la terrasse puis revenir, par les moyens de ton choix. « aide » : commandes disponibles.",
+        "Au début, tu te trouvais dans la cour d'un atelier, en plein jour. Trois perches et une bobine de ficelle étaient à ta disposition. Une terrasse bordait le sommet d'un mur de 2,4 m. Tu portais une hache : à toi d'imaginer comment atteindre ce palier.",
+        "Le MJ réfléchit…",
+        "Tu prends la bobine de ficelle solide ; elle est maintenant en ta possession.",
+        "Partie sauvegardée. A bientôt."
+      ],
+      "sorties_apres_reprise": [
+        "Atteindre la terrasse puis revenir, par les moyens de ton choix. « aide » : commandes disponibles.",
+        "\nPERSONNAGE — Corvus\nPV 18/18 | 24 pièces | 2.9/12 kg | 1 min\nCHA 12 (+1)  DEX 16 (+3)  FOR 12 (+1)  INT 14 (+2)  PER 12 (+1)  VOL 10 (+0)  ELO 10 (+0)  PSY 10 (+0)\nHumain adulte\nFaim : légère | Fatigue : légère | Froid : léger\nBesace :\n  Un couteau à lame fine en acier.\n  Une bobine de ficelle solide en fibres. 20 m de long, 0,4 cm de diamètre.\n  Une hache en acier et bois.\n  Une lanterne en fer et verre est éteinte. Combustible restant : 60 min.\n\nAccords : aucune récompense proposée pour le moment.",
+        "PLAN — 1 case = 1 m\nNIVEAU +0 — coordonnées (x, y), 1 case = 1 m\n       20        25  \n   9   ############\n  10 ##~^: : : : A ##\n  11 ##: ~b~bb . . ##\n  12     : : @→. . ##\n  13     : : . . . ##\n  14             . ##\n  15             . ##\n  16             ##\n\n=== LEGENDE ===\nA : Cour de l'atelier\n@ toi   ## mur   . terrain visible et éclairé   : terrain mémorisé ou passage connu   cases vides : inconnues\nLa flèche à côté de @ : ton regard. Tu vois devant toi (120°) et à tes côtés, pas derrière.\nF6 puis flèches : marcher · Maj+flèches : pas chassé · Alt+flèches : pas feutré · Échap/Entrée : commande\nO obstacle solide   ^/v appui vertical   H1 échelle · axes x,y ; une case par pas\nb la perche de bois 3\n~ : dernier aperçu, présence ou état actuels non confirmés\n~^ le mur de l'atelier   ~b la perche de bois 1   ~b la perche de bois 2",
+        "\n== COUR DE L'ATELIER ==\n\nTu es à la lumière du jour. Le sol et le mur de l'atelier sont en pierre. Un palier\nborde le sommet du mur, à 2.4 m du sol. Tu vois une perche de bois 3. 3 m de long, 5 cm\nde diamètre.\n\nSorties : aucun passage directement praticable.",
+        "Partie sauvegardée. A bientôt."
+      ],
+      "conversation": [
+        {
+          "joueur": "mj Je prends la bobine de ficelle solide.",
+          "reponse": "Tu prends la bobine de ficelle solide ; elle est maintenant en ta possession.",
+          "nature": "resultat_moteur",
+          "revision": 1
+        }
+      ]
+    }
+  ],
+  "coupures_simulees": 2,
+  "simulation_coupure": true,
+  "succes": true,
+  "passe_initiale_interrompue": {
+    "ouvertures": 2,
+    "fermetures": 2,
+    "demandes": 5,
+    "termines": 4,
+    "coupures_simulees": 1,
+    "raison": "Le contrôle initial exigeait une action simple prendre dans le journal. Il a été remplacé par le contrat général : un seul commit moteur, que le plan soit simple ou composé. Les contrôles de possession, sauvegarde avant affichage et reprise étaient passés avant cette assertion. Aucune règle du jeu modifiée."
+  }
+}

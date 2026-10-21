@@ -23,8 +23,13 @@ au repos ; la PER modulée y ajoute un cran par quatre points au-dessus de la mo
 Interprétation (PNJ), selon ce qu'il croit ; ce qu'il voit n'a pas besoin de l'ouïe :
 - connu : un bruit ordinaire venu de là où il croit quelqu'un (vu ou entendu récemment) ; il
   l'attribue à cette personne et met sa croyance à jour, sans se retourner ;
-- une voix dont il saisit les mots : il reconnaît qui il connaît (``esprits.connait`` : vu, ou
-  entendu parler) et le croit là d'où elle vient ; une voix jamais entendue est un bruit inconnu ;
+- une voix dont il saisit les mots : s'il voit qui parle, il connaîtra sa voix ; sinon il la
+  reconnaît ou non (``voix.reconnaitre``) : une voix connue, il croit son porteur là d'où elle
+  vient ; une voix qui s'était nommée, il croit celui qu'elle a dit être là, comme un ouï-dire ;
+  une voix jamais entendue est un bruit inconnu, qu'il retient comme une voix inconnue ;
+- héler (``hele``) : un cri, de la portée d'un appel. Qui en saisit les mots entend qu'on appelle
+  tel nom, sans alarme ; sans les mots, c'est un cri qu'il ne comprend pas, inquiétant comme tout
+  bruit fort inconnu ; un appel à l'aide reste un appel ;
 - inconnu (personne de cru là) ou inhabituel (bruyant, appel) : tout près et hors de son regard,
   il se tourne pour voir (le temps de la rotation), et s'il voit l'auteur en plein geste illicite,
   il en est témoin (``pnj.temoigner_en_cours``) ; plus loin, ou sans rien voir, il retient « un
@@ -45,8 +50,9 @@ ne connaît pas. Il choisit lui-même de se retourner.
 import heapq
 from itertools import count
 
-INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "bruyant": 7, "appel": 9}
+INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "bruyant": 7, "hele": 9, "appel": 9}
 HABITUELS = ("feutre", "pas", "geste", "voix")
+VOCALES = ("voix", "hele")   # ce qui porte des mots, et fait reconnaître une voix
 NATURES = {
     **dict.fromkeys(("attendre", "patienter", "tourner", "orienter", "observer", "examiner", "lire", "ecouter",
                      "inspecter", "reposer", "chauffer", "abriter"), None),
@@ -54,6 +60,9 @@ NATURES = {
     **dict.fromkeys(("faufiler", "toucher", "chuchoter"), "feutre"),
     **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "sifflement"), "voix"),
     **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle"), "bruyant"),
+    # Héler quelqu'un par son nom est un cri : même portée qu'un appel ; ce sont les mots qui
+    # l'en distinguent, pour qui les saisit (``entendre``).
+    "heler": "hele",
     **dict.fromkeys(("appel", "cri"), "appel"),
 }
 FRACAS = 3             # l'arbitrage du bruit d'un geste du joueur (0 à 3) : 3 est un fracas
@@ -295,7 +304,12 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites):
     même bruit sans paroles, au même niveau et d'où il venait déjà, ne se range qu'une fois."""
     ici, position = _place(monde, "joueur")
     parvient = parvenu(entrees, ici, position)
-    if parvient is None or monde.visible(auteur):
+    if parvient is None:
+        return
+    if monde.visible(auteur):
+        if n in VOCALES and parvient[0] >= SEUIL:
+            from .voix import connaitre
+            connaitre(monde, "joueur", auteur)  # Il le voit parler : il saura reconnaître sa voix.
         return
     niveau, par = parvient
     if ici == salle:
@@ -342,7 +356,10 @@ def _attribuer(monde, id, crus, salle, case):
         return (distance(c["case"], case) if case is not None and c.get("case") else 0, x)
     x = min(crus, key=ecart)
     c = croyances[x]["lieu"]
-    croire(monde, id, x, "lieu", salle, "entendu", salle=salle,
+    # Un bruit ne dit pas qui le fait : qui ne le croit là que sur la parole d'une voix inconnue
+    # (``se_dit``) ne le croit pas davantage.
+    source, confiance = ("se_dit", c["confiance"]) if c["source"] == "se_dit" else ("entendu", 1.0)
+    croire(monde, id, x, "lieu", salle, source, confiance, salle=salle,
            case=list(case) if case is not None else c.get("case"))
 
 
@@ -415,22 +432,26 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL):
     """Un PNJ entend le bruit d'``auteur`` et l'interprète selon ce qu'il croit ; vrai s'il s'est
     retourné."""
     from .esprits import lire, percoit
-    if percoit(monde, id, auteur):
-        return False  # Il le voit faire : l'ouïe n'y ajoute rien.
+    from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix
     o = monde.objets[id]
     ici = salle == o["lieu"] and case is not None and o.get("position") is not None
-    if n == "voix" and mots_saisis(monde, id, niveau):
-        # Il en saisit les mots : il reconnaît la voix de qui il connaît, et le croit là d'où elle
-        # vient ; une voix qu'il n'a jamais entendue n'est à personne qu'il croie là.
-        from .esprits import connait, croire
-        if connait(monde, id, auteur):
-            croire(monde, id, auteur, "lieu", salle, "entendu", salle=salle, case=list(case) if ici else None)
-            crus = [auteur]
-        else:
-            crus = []
+    mots = n in VOCALES and mots_saisis(monde, id, niveau)
+    if percoit(monde, id, auteur):
+        if mots:
+            connaitre(monde, id, auteur)  # Il le voit parler : il saura reconnaître sa voix.
+        return False  # Il le voit faire : l'ouïe n'y ajoute rien d'autre.
+    if mots:
+        # Il en saisit les mots : une voix connue, il croit son porteur là d'où elle vient ; une voix
+        # qui s'était nommée, celui qu'elle a dit être ; une voix inconnue n'est à personne qu'il
+        # croie là (``voix.entendre``).
+        _, certitude = entendre_voix(monde, id, auteur, salle, list(case) if ici else None)
+        if certitude == PRETENDUE:
+            return False  # Une voix qu'il a déjà entendue se nommer : rien d'inquiétant.
+        crus = [auteur] if certitude == RECONNUE else []
     else:
         crus = _crus_la(monde, id, salle, case if ici else None)
-    inhabituel = n not in HABITUELS
+    # Héler : qui en saisit les mots entend qu'on appelle quelqu'un, sans alarme.
+    inhabituel = n not in HABITUELS and not (n == "hele" and mots)
     croyances = lire(monde, id)["croyances"]
     mefiance = any((croyances[x].get("fiable") or {}).get("valeur") is False for x in crus)
     if crus and not inhabituel and not mefiance:
@@ -442,9 +463,11 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL):
         if not dans_le_regard(monde, salle, case, id):
             retourne = _se_tourner(monde, id, case, t)
             if percoit(monde, id, auteur):
+                if mots:
+                    connaitre(monde, id, auteur)  # Il s'est tourné et le voit parler.
                 return retourne
     if crus and not inhabituel:
         _attribuer(monde, id, crus, salle, case if ici else None)  # Il le surveille, de loin.
-    else:
+    elif not (mots and n == "hele"):
         _bruit_inconnu(monde, id, salle, n, niveau)
     return retourne

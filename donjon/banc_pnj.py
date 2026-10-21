@@ -114,8 +114,8 @@ def executer(monde, minutes, recit=None):
                if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES]
     mesures = {"gestes": sum(c.get("nature") != "ouie" for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique
-                                            if c.get("nature", "geste") in ("geste", "social")}),
-               "echanges": natures["social"], "decisions": natures["decision"],
+                                            if c.get("nature", "geste") in ("geste", "social", "reponse")}),
+               "echanges": natures["social"] + natures["reponse"], "decisions": natures["decision"],
                "minutes_urgentes_oisives": oisivete,
                # Mesure d'information ajoutée après le premier banc E, hors critère de décision.
                "minutes_urgentes_sans_recours": blocage,
