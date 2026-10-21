@@ -24,6 +24,8 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from .vol import proprietaire as _possesseur
+
 BOURSE = 5             # pièces d'un PNJ dont rien ne déclare la bourse
 PRIX_PART = 2          # prix d'une part d'une ressource comptée qui n'en déclare pas
 CONSOMMER = ("manger", "servir")   # gestes qui consomment le bien : aucune permission ne les couvre
@@ -36,8 +38,7 @@ GENEROSITE = 2
 # --- Permissions ------------------------------------------------------------------------
 
 def proprietaire(monde, objet):
-    from .vol import proprietaire as possesseur
-    return possesseur(monde, monde.objets[objet])
+    return _possesseur(monde, monde.objets[objet])
 
 
 def prets(monde):

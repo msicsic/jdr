@@ -70,11 +70,12 @@ def diagnostics():
 
 class Etat:
     """Où il se tient, ce qu'il porte, et ce que le plan a changé à ce qu'il croit."""
-    __slots__ = ("salle", "portes", "faits", "_cle")
+    __slots__ = ("salle", "portes", "faits", "_cle", "_hash")
 
     def __init__(self, salle, portes, faits):
         self.salle, self.portes, self.faits = salle, frozenset(portes), dict(faits)
         self._cle = (salle, self.portes, frozenset(self.faits.items()))
+        self._hash = hash(self._cle)
 
     def __eq__(self, autre):
         return self._cle == autre._cle
@@ -83,7 +84,7 @@ class Etat:
         return False
 
     def __hash__(self):
-        return hash(self._cle)
+        return self._hash
 
     def apres(self, salle=None, portes=None, faits=()):
         return Etat(self.salle if salle is None else salle, self.portes if portes is None else portes,
@@ -143,7 +144,10 @@ class Vue:
         # lui coûte (``GARDE``).
         self.gardes = gardes(monde, id)
         self._chemin = chemin
-        self._routes, self._trajets, self._crus, self._agissables = {}, {}, {}, {}
+        self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
+        self.salles_triees = sorted(self.salles)
+        # Le besoin qu'une part de chaque objet apaise (``besoin_de_part``).
+        self.besoin = {o: besoin_de_part(self.objets[o]) for o in self.connus}
         # Les portes de chaque salle : celles qu'il peut crocheter de là.
         self.portes_de = {s: frozenset(x["porte"] for x in d["sorties"].values() if x.get("porte"))
                           for s, d in self.salles.items()}
@@ -227,10 +231,11 @@ class Vue:
     def promesse(self, o):
         return self._memo((o, "promesse"), lambda: promesse_en_cours(self.monde, self.id, o))
 
-    def route(self, e, arrivee):
+    def route(self, e, arrivee, ouvertes=None):
         """Les sorties de sa salle jusqu'à ``arrivee``, avec les clés qu'il porte et les portes que
-        le plan a déverrouillées (crochetées) ; None s'il n'y croit aucun passage."""
-        trajet = (e.salle, arrivee, e.portes, self.ouvertes(e))
+        le plan a déverrouillées (crochetées, ``ouvertes`` si on les a déjà) ; None s'il n'y croit
+        aucun passage."""
+        trajet = (e.salle, arrivee, e.portes, self.ouvertes(e) if ouvertes is None else ouvertes)
         if trajet in self._trajets:
             return self._trajets[trajet]
         cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
@@ -355,8 +360,11 @@ class Vue:
     def pression(self, e):
         """Ce que lui coûte une minute dans cet état, par ce qu'il y laisse monter : le noir, s'il le
         craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``GARDE``)."""
-        p = NOIR * self.peur if self.peur and self.noir(e) else 0
-        return p + GARDE * sum(1 for g in self.gardes if g != e.salle)
+        pressions = self._pressions
+        if e not in pressions:
+            p = NOIR * self.peur if self.peur and self.noir(e) else 0
+            pressions[e] = p + GARDE * sum(1 for g in self.gardes if g != e.salle)
+        return pressions[e]
 
     def noir(self, e):
         """S'y croit-il dans le noir ? Sans lumière, dans un lieu qu'il croit obscur (``noir_cru``)."""
@@ -399,9 +407,10 @@ def gestes(v, e, vises=None, but=None):
     objets = v.objets
     # Aller : un trajet vers toute salle qu'il croit atteindre avec ce qu'il porte, par les portes
     # qu'il ne croit pas verrouillées ou que le plan a déverrouillées.
-    for s in sorted(v.salles):
+    ouvertes = v.ouvertes(e)
+    for s in v.salles_triees:
         if s != e.salle:
-            route = v.route(e, s)
+            route = v.route(e, s, ouvertes)
             if route is not None:
                 yield 0, len(route), [_etape("aller", lieu=s)], e.apres(salle=s)
     agissables, a_porter = v.agissables(vises)
@@ -541,11 +550,12 @@ def gestes(v, e, vises=None, but=None):
         # vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire. Une part
         # de combustible va au feu que le but entretient, sinon au premier qu'il croit éteint :
         # le donneur le recharge et l'allume lui-même. On ne demande pas ce qu'on a sur soi.
-        if (besoin_de_part(x) and v.disponible(o) and not (besoin_de_part(x) == "chaleur" and v.feu_noye())
-                and not any(besoin_de_part(objets[k]) == besoin_de_part(x) and v.disponible(k) for k in e.portes)):
+        besoin = v.besoin[o]
+        if (besoin and v.disponible(o) and not (besoin == "chaleur" and v.feu_noye())
+                and not any(v.besoin[k] == besoin and v.disponible(k) for k in e.portes)):
             donneur = v.proprietaire[o]
             foyer = ((vises.get("entretenir") or (v.foyer_froid(),))[0]
-                     if besoin_de_part(x) == "chaleur" else None)
+                     if besoin == "chaleur" else None)
             part = [(("part", o), donneur)] + ([(("charge", foyer), True), (("allume", foyer), True)]
                                                if foyer else [])
             if donneur not in (None, id, "joueur") and profil(monde, donneur):

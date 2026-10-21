@@ -8,6 +8,7 @@ le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur
 croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
 par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 """
+from .biens import a_autrui
 from .caractere import ARGENT, STATS, interdit, verifier_situation, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
 from .esprits import esprit, lire, memoriser
@@ -348,7 +349,6 @@ def illicite(monde, id, objet, operation=None, confies=None):
     """Ce geste sur cet objet lèse-t-il quelqu'un ? Le bien d'autrui, hors ce qu'un prêt ou une
     garde confiée permettent (``biens.permis``, ``confies``) ; rien ne permet de consommer le bien
     d'autrui."""
-    from .biens import a_autrui
     return a_autrui(monde, objet, id, operation, confies) is not None
 
 
