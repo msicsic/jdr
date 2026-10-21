@@ -830,6 +830,22 @@ absolues dépendent de la charge (à 4 processus, graine 42 : auberge 44,1 → 1
 24,5 s) ; les rapports restent. Nuit la plus lourde, la mine graine 7 (départ tiré, 2 passes) :
 70 → 43,4 s, dont le planificateur 44,3 → 24,7 s, presque tout en recherches neuves (ci-dessous).
 
+**Après fusion de `main` 5861f71** (`pnj-lumiere-garde` et ses nouvelles lectures : `moyen_du_but`, le
+porteur à chercher, `demander_feu`, la part promise attendue, `apport_cru` dans `_entrees`, `GARDE`
+sur un bien menacé). La part promise passe dans `_parts` ; un objet cru dans une autre salle n'offre
+toujours qu'une part (chercher son porteur suppose de ne pas savoir où il est, demander du feu suppose
+de porter la source) ; `gestes` ne lit toujours ni le prix d'une faute ni celui d'abîmer (seulement
+s'il envisage d'abîmer, dans la clé du graphe). Preuve refaite contre ce `main` : empreintes
+identiques sur 32 nuits (4 scénarios × 4 graines, départ tiré et fixe), `VERIFIER` et
+`spatial.VERIFICATION` sur une nuit de chaque scénario (graine 42). Temps au processeur, priorité
+réduite, 4 processus au plus (2 graines par côté à la fois), `main` → branche :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| départ tiré | 11,7 → 7,2 s (3 → 1,2) | 70 → 39,5 s (43,2 → 19,6) | 47,3 → 24,2 s (22,4 → 8) | 12,6 → 9 s (2,9 → 1,7) |
+| départ fixe | 11,7 → 7,6 s (3,1 → 1,2) | 36,5 → 24,7 s (16,7 → 10) | 42,8 → 22,3 s (22 → 8,6) | 15,2 → 10,6 s (4,4 → 2,4) |
+| rapport (tiré) | × 1,63 | × 1,77 | × 1,95 | × 1,40 |
+
 Limites :
 - une recherche neuve coûte toujours ~100 µs par état développé : la mine, graine 7, en fin de nuit,
   refait à chaque minute deux recherches de 4 000 nœuds pour Josse (sa croyance sur la place d'un
