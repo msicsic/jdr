@@ -119,9 +119,10 @@ L'historique, une proposition non exécutée et une parole de personnage ne prou
 contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
 moteur : les raconter, dans la manière que demande resultat_resolu.intention (style, rythme,
 posture, mots choisis), est mecanique, source resultat_resolu ; leurs suites sont celles de
-resultat_resolu.faits, sans autre effet. Si retour_moteur indique qu'aucune action n'a été exécutée, raconter comme fait ou
-commencé un geste du joueur (frapper, saisir, attendre, s'approcher) est contradictoire : seule
-l'explication de ce qui l'en empêche est permise. Hors parole et engagement, locuteur et citation
+resultat_resolu.faits, sans autre effet. Si retour_moteur indique qu'aucune action n'a été exécutée ou que rien n'a été dit, raconter
+comme fait ou commencé un geste du joueur (frapper, saisir, attendre, s'approcher, parler), ou
+qu'un personnage lui répond ou y réagit, est contradictoire : seule l'explication de ce qui l'en
+empêche est permise. Hors parole et engagement, locuteur et citation
 sont vides ; hors ambiance et engagement, entites est vide.
 Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
@@ -312,6 +313,68 @@ def citations_nouvelles(texte, faits):
     connus = lexique.corpus({k: v for k, v in faits.items() if k != "retour_moteur"})
     cites = [(c, lexique.corpus(c.strip("«»“”\" "))) for c in CITATIONS.findall(texte)]
     return [c for c, mots in cites if mots and mots not in connus]
+
+
+# Les formes par lesquelles un récit fait parler Corvus, à la deuxième personne (texte normalisé,
+# sans accents ni guillemets). Un verbe qui dit aussi autre chose (« tu dis que… » rapporte la saisie,
+# « tu lances » un geste) ne compte qu'avec un destinataire : « lui », « leur », « à … » ou un
+# deux-points. Un verbe qui vise une personne (« tu appelles Ilse ») compte avec son objet, sauf
+# « à l'aide », qui est un geste. Les formes inversées (« dis-tu ») ne servent qu'à citer Corvus.
+_DIRE = ("dis|demandes|parles|reponds|lances|expliques|annonces|racontes|avoues|confies|affirmes|repetes"
+         "|chuchotes|murmures|cries|proposes|promets|ordonnes|retorques|souffles|glisses|precises")
+_DIT = ("dit|demande|parle|repondu|lance|explique|annonce|raconte|avoue|confie|affirme|repete|chuchote"
+        "|murmure|crie|propose|promis|ordonne|retorque|souffle|glisse|precise")
+_INTERPELLER = "appelles|interpelles|heles|salues|questionnes|supplies|remercies|previens"
+_INTERPELLE = "appele|interpelle|hele|salue|questionne|supplie|remercie|prevenu"
+PAROLE_DE_CORVUS = re.compile(
+    rf"\btu (?:lui|leur) (?:as )?(?:{_DIRE}|{_DIT})\b"
+    rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) (?:a|au|aux)\b"
+    rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) ?:"
+    rf"|\btu (?:l'|la |le |les )?(?:as )?(?:{_INTERPELLER}|{_INTERPELLE}) (?!a\b)(?=\w)"
+    rf"|\btu t'(?:es )?adresse[s]? a\b"
+    rf"|\b(?:{_DIRE}|ajoutes|insistes|reprends|enchaines|appelles)-tu\b")
+HYPOTHESE = re.compile(r"(?:\bsi|\bs'|\bquand|\blorsque|\bpour que|\bavant que)\s*$")
+
+
+def parole_racontee(texte):
+    """Les passages où le récit fait parler Corvus (« Tu demandes à Ilse… », « tu lui dis »,
+    « « Viens », dis-tu ») ; une hypothèse (« si tu lui demandes ») n'en est pas une."""
+    from .monde import normaliser
+    recit = " ".join(normaliser(CITATIONS.sub(" , ", texte)).split())
+    # Le passage cité va jusqu'au mot qui suit : « tu demandes a ilse », « tu appelles aubin ».
+    return [recit[m.start():m.end()] + re.match(r"[^\s,.;:!?]*(?: [^\s,.;:!?]+)?", recit[m.end():]).group(0)
+            for m in PAROLE_DE_CORVUS.finditer(recit)
+            if not HYPOTHESE.search(recit[max(0, m.start() - 14):m.start()])]
+
+
+def paroles_sans_moteur(texte, faits, adresse=False):
+    """Obstacles déterministes : une parole n'a lieu que si le moteur l'a fait entendre. Sans parole de
+    Corvus validée dans ce tour (conversation_validee) ni geste résolu (resultat_resolu), le récit ne
+    fait pas parler Corvus ; et quand rien n'a été dit — après un refus (retour_moteur), ou quand la
+    saisie s'adresse à quelqu'un (``adresse``) sans que le moteur ait fait entendre une parole —
+    personne ne lui répond : aucune citation nouvelle."""
+    if isinstance(faits.get("conversation_validee"), dict) or isinstance(faits.get("resultat_resolu"), dict):
+        return []
+    obstacles = []
+    if parole_racontee(texte):
+        obstacles.append({"segment": None, "texte": texte,
+                          "motif": "Corvus n'a rien dit dans ce tour : le récit ne le fait pas parler ("
+                                   + ", ".join(f"« {p} »" for p in parole_racontee(texte)) + "). Si le "
+                                   "joueur fait parler Corvus, propose parole_joueur : le moteur fixe à qui "
+                                   "il parle et la fait entendre ; s'il agit, propose l'action."})
+    if isinstance(faits.get("retour_moteur"), dict) and citations_nouvelles(texte, faits):
+        # Après un refus, rien n'a eu lieu : le motif vient du moteur, aucun personnage ne le connaît,
+        # ne le dit ni ne réagit, quelle que soit la voie (action, parole, conversation, faits).
+        obstacles.append({"segment": None, "texte": texte,
+                          "motif": "Aucune action ni parole n'a eu lieu : c'est toi qui expliques "
+                                   "l'obstacle. Aucun personnage ne parle ni ne réagit ; ne cite "
+                                   "entre guillemets que des paroles déjà entendues."})
+    elif adresse and citations_nouvelles(texte, faits):
+        obstacles.append({"segment": None, "texte": texte,
+                          "motif": "Le joueur s'adresse à un personnage, mais rien n'a encore été dit : "
+                                   "personne ne répond à une parole que le moteur n'a pas fait entendre. "
+                                   "Si Corvus parle, propose parole_joueur ; le personnage répondra ensuite."})
+    return obstacles
 
 
 def controler(texte, rapport, faits):
