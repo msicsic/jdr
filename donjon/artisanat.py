@@ -121,7 +121,7 @@ La résistance est un arbitrage de jeu persisté, pas une certitude d'ingénieri
 
 def ressources_libres(m, nature):
     return sorted(i for i, o in m.objets.items()
-                  if o.get("ressource") == nature and m.accessible(i) and not o.get("incorpore")
+                  if o.get("ressource") == nature and m.designable(i) and not o.get("incorpore")
                   and not o.get("attache") and o["mobile"] and o["integrite"] >= o["maximum"]
                   and proprietaire(m, o) in (None, "joueur"))
 

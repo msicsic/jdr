@@ -230,6 +230,22 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertEqual(mj(appels)[1]["faits"]["retour_moteur"]["obstacle"], "Rien n'a encore été dit à Ilse.")
         self.assertIn("Ilse est à deux pas, au sud.", sortie)
 
+    def test_ce_qui_manque_compte_ce_que_corvus_verrait_en_se_tournant(self):
+        # Banc Luna : la ficelle de l'atelier, dans le dos de Corvus, était dite absente (« rien de tel
+        # n'est à ta disposition ici »). Ce qu'il peut désigner compte (``Monde.designable``).
+        m = nouveau_atelier()
+        installer(m)
+        m = recharger(m)
+        self.assertFalse(m.accessible("ficelle"))
+        reprise, sortie, appels = jouer(m, "est-ce que je peux fabriquer une échelle avec ces perches ?", [
+            assembler(("perche_1", "perche_2"), "perche_3", "", "hache"),
+            assembler(("perche_1", "perche_2"), "perche_3", "ficelle", "hache")], [])
+        retour = mj(appels)[1]["faits"]["retour_moteur"]
+        self.assertEqual(retour["obstacle"], "Pour une échelle, il te manque un lien pour attacher les barreaux.")
+        self.assertIn("parmi ficelle", retour["attendu"])
+        self.assertIn("Approche-toi de la perche de bois 1", sortie)
+        self.assertFalse(reprise.data["journal"])
+
     def test_des_perches_trop_loin(self):
         m = nouveau_atelier()
         installer(m)
