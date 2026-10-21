@@ -19,11 +19,12 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper",
-              "dire", "demander", "acheter", "confier", "remettre", "demander_feu")
+              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
 # demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
-SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu")
+# engager : payer quelqu'un pour une tâche (``echanges.engager``).
+SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
@@ -108,10 +109,15 @@ def verifier_profil(monde, id, p):
 
 def condition_valide(monde, c):
     """Vocabulaire commun des buts : un objet en un lieu, un objet verrouillé, une ronde,
-    une part de nourriture servie à quelqu'un, un feu entretenu, un objet prêté à rendre."""
+    une part de nourriture servie à quelqu'un, un feu entretenu, un objet prêté à rendre, un objet
+    vendu à remettre."""
     return isinstance(c, dict) and (
         (set(c) == {"objet", "rendre"} and c["objet"] in monde.objets and c["rendre"] in monde.objets
          and monde.objets[c["rendre"]]["type"] == "personnage") or
+        # Un objet vendu à remettre à son acheteur (``echanges.differee``).
+        (set(c) == {"objet", "remettre"} and c["objet"] in monde.objets
+         and (c["remettre"] == "joueur" or c["remettre"] in monde.objets
+              and monde.objets[c["remettre"]]["type"] == "personnage")) or
         (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
         or (set(c) == {"objet", "servir"} and c["objet"] in monde.objets
             and monde.objets[c["objet"]]["type"] == "nourriture"
@@ -322,6 +328,8 @@ def promesse_en_cours(monde, id, objet):
 
 
 def satisfaite(monde, id, condition):
+    if "remettre" in condition:
+        return False  # Un objet vendu se remet de la main à la main : le geste tient la parole.
     if "rendre" in condition:
         # Un objet prêté : rendu quand le prêt est clos (il est revenu à son propriétaire).
         from .biens import prets
@@ -363,10 +371,22 @@ def autorise(monde, id, objet):
 # Les plans viennent de la recherche (``planification``) ; ce module choisit le but.
 
 
-def _plan_pulsion(monde, id, condition):
-    """Rétablir une pulsion ou tenir une parole donnée : la recherche (``planification``)."""
+def _plan_pulsion(monde, id, condition, tache=False):
+    """Rétablir une pulsion ou tenir une parole donnée : la recherche (``planification``). ``tache`` :
+    une pulsion à lui, qu'il peut payer quelqu'un de rétablir."""
     from .planification import planifier_pulsion
-    return planifier_pulsion(monde, id, condition)
+    return planifier_pulsion(monde, id, condition, tache)
+
+
+def _pulsion_a_soi(monde, id, condition):
+    return _plan_pulsion(monde, id, condition, tache=True)
+
+
+def _plan_enquete(monde, id, besoin):
+    """Rien de ce qu'il connaît n'apaise ce besoin : il demande à quelqu'un s'il en a
+    (``planification.s_enquerir``)."""
+    from .planification import s_enquerir
+    return s_enquerir(monde, id, besoin)
 
 
 # --- Sécurité ----------------------------------------------------------------------------
@@ -766,8 +786,27 @@ def _plan_garder(monde, id, condition):
 
 
 def _delegue(monde, id, pulsion):
-    """Une pulsion confiée au joueur attend tant que le PNJ le croit fiable."""
-    return pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
+    """Une pulsion confiée au joueur attend tant que le PNJ le croit fiable ; une pulsion qu'il a payé
+    quelqu'un de rétablir aussi (``tache_payee``)."""
+    return bool(pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
+                or tache_payee(monde, id, pulsion["condition"]))
+
+
+def tache_payee(monde, id, condition):
+    """Il a payé quelqu'un pour rétablir ``condition`` (``echanges.engager``) : il ne le fait pas à sa
+    place tant que la parole court (``echanges.ENGAGEMENT_MAX``), qu'il le croit fiable et qu'il n'a
+    pas appris qu'elle n'a pas été tenue (une créance de ce travail). Renvoie à qui, ou None."""
+    from .echanges import ENGAGEMENT_MAX
+    memoire = lire(monde, id)["memoire"]
+    for i in range(len(memoire) - 1, -1, -1):
+        s = memoire[i]
+        if s["type"] == "tache_payee" and s["condition"] == condition:
+            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or _cru(monde, id, s["a"], "fiable") is False:
+                return None
+            if any(x["type"] == "creance" and x["de"] == s["a"] and x.get("quoi") == "tache" for x in memoire[i + 1:]):
+                return None
+            return s["a"]
+    return None
 
 
 def _etat_urgence(e, besoin):
@@ -879,6 +918,9 @@ PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_froid, CHALEUR
 GESTE_PROGRES = {"repos": "reposer", "chaleur": "chauffer", "securite": "abriter"}
 # Ce qu'un besoin tente avant le geste qui l'apaise : dans le noir, avoir de la lumière.
 RECOURS = {"securite": (_plan_lumiere,)}
+# Les besoins qu'une part d'une ressource apaise (``besoin_de_part``), hors la faim : quand rien de ce
+# qu'il connaît n'y pourvoit, il demande à qui pourrait en avoir (``_plan_enquete``).
+ENQUETES = ("chaleur",)
 
 
 def retabli_par_son_plan(monde, id, condition):
@@ -908,18 +950,25 @@ def candidats(monde, id):
     for besoin in urgents(monde, id, inertie=True):
         if besoin == "faim":
             buts.append((besoin, _plan_faim, False))
+            # Rien de ce qu'il connaît ne le nourrit : il demande à qui pourrait en avoir.
+            buts.append((besoin, lambda m, i: _plan_enquete(m, i, "faim"), False))
             continue
         buts += [(besoin, methode, False) for methode in RECOURS.get(besoin, ())]
         if besoin in PROGRES:
             # Le geste qui apaise d'abord ; les pulsions du même besoin (les rondes) restent des recours.
             buts.append((besoin, PROGRES[besoin][0], False))
+        if besoin in ENQUETES:
+            buts.append((besoin, lambda m, i, b=besoin: _plan_enquete(m, i, b), False))
         pulsions = [x for x in p["pulsions"] if x["besoin"] == besoin]
         for x in pulsions:
             if (not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)
                     and not retabli_par_son_plan(monde, id, x["condition"])):
                 # Une ronde peut attendre qu'il ait tenu parole ; un feu à voir ou à recharger, non.
-                buts.append((besoin, lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c),
+                buts.append((besoin, lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c),
                              periodique(x["condition"])))
+                if "allume" in x["condition"]:
+                    # Un feu sans bois qu'il connaisse : il demande à qui pourrait en avoir.
+                    buts.append((besoin, lambda m, i: _plan_enquete(m, i, "chaleur"), False))
         if besoin == "biens":
             for x in pulsions:
                 if periodique(x["condition"]):
@@ -946,7 +995,9 @@ def candidats(monde, id):
         if (e["pulsions"][i] is False and x["besoin"] not in pressants and not periodique(c)
                 and not _delegue(monde, id, x) and not satisfaite(monde, id, c)
                 and not retabli_par_son_plan(monde, id, c)):
-            buts.append((x["besoin"], lambda m, i, c=c: _plan_pulsion(m, i, c), False))
+            buts.append((x["besoin"], lambda m, i, c=c: _pulsion_a_soi(m, i, c), False))
+            if "allume" in c:
+                buts.append((x["besoin"], lambda m, i: _plan_enquete(m, i, "chaleur"), False))
     # Assis pour se reposer, ou près du feu, il ne s'en va qu'une fois remis, ou pour plus pressant.
     # Seulement si son plan comporte bien ce geste : une ronde a le même motif que l'abri.
     for besoin, (methode, fin) in PROGRES.items():
@@ -957,7 +1008,7 @@ def candidats(monde, id):
     for x in p["pulsions"]:
         if (periodique(x["condition"]) and x["besoin"] not in pressants
                 and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
-            buts.append((x["besoin"], lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), True))
+            buts.append((x["besoin"], lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c), True))
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
     buts.append((ARGENT, _plan_creance, True))

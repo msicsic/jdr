@@ -1445,6 +1445,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
             if monde.data.get("dettes"):
                 from .biens import solder
                 solder(monde, lignes)  # Qui se retrouvent soldent ce que l'un doit à l'autre.
+            if any(p["a"] == "joueur" for p in monde.data.get("permissions", ())):
+                from .biens import prets_reclames
+                prets_reclames(monde, lignes)  # Un prêt échu réclamé au joueur, et pas rendu.
             continue
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)

@@ -37,6 +37,8 @@ FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se 
 NOIR = 3               # par minute passée dans le noir, fois ce que le noir l'inquiète (``peur_du_noir``)
 GARDE = 2              # par minute loin de chaque lieu où il garde ses biens, quand ils le pressent
 RESTER = 30            # minutes qu'il compte passer là où le mène un but qui se tient en restant
+TACHE = 5              # minutes de travail d'une tâche payée, en plus du chemin (``_engager``)
+SALAIRE = 3            # minutes de peine qu'il paie une pièce, à qui fait une tâche pour lui
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
@@ -243,6 +245,16 @@ class Vue:
         if cle not in crus:
             crus[cle] = refuse_recemment(self.monde, self.id, autre, "demander", o)
         return crus[cle]
+
+    def refuse_tache(self, autre, o):
+        """Un refus récent de faire pour lui une tâche sur ``o`` (``echanges.engager``)."""
+        return self._memo((autre, o, "refus_tache"),
+                          lambda: refuse_recemment(self.monde, self.id, autre, "engager", o))
+
+    def personnes(self):
+        """Les PNJ qu'il connaît, dans un ordre stable."""
+        return self._memo(("personnes",), lambda: [x for x in self.connus if self.objets[x]["type"] == "personnage"
+                                                    and x != self.id and profil(self.monde, x)])
 
     def refuse_achat(self, autre, o):
         """Un refus récent de lui vendre ; ou de donner pour une raison que payer ne lève pas : il
@@ -580,11 +592,13 @@ def gestes(v, e, vises=None, but=None):
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=portes | {o}, faits=touche)
         # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
         porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
+        if dans == "joueur" and v.proprietaire[o] == id:
+            porteur = "joueur"   # Son bien, prêté au joueur : il le lui redemande là où il le voit.
         # On ne demande un objet qu'à qui il appartient (ou s'il n'est à personne), ou ce qui est à
         # soi : recevoir le bien d'autrui de qui le détient n'en fait pas le sien.
-        demandable = (utile and porteur and porteur != id and v.profil_de(porteur) and o not in e.portes
-                      and v.proprietaire[o] in (porteur, None, id))
-        if (demandable and v.salle(e, porteur) is None and not e.fait("cherche", porteur)
+        demandable = (utile and porteur and porteur != id and (porteur == "joueur" or v.profil_de(porteur))
+                      and o not in e.portes and v.proprietaire[o] in (porteur, None, id))
+        if (demandable and porteur != "joueur" and v.salle(e, porteur) is None and not e.fait("cherche", porteur)
                 and v.moyen_du_but(o, noms_vises) and not v.refuse(porteur, o)):
             # Il ne sait où est celui qui porte ce que le but emploie : il va le chercher, comme pour
             # une part, et l'appelle là où il ne le voit pas (``_chercher``). La suite se décide sur
@@ -700,6 +714,59 @@ def gestes(v, e, vises=None, but=None):
     for salle in vises.get("inspecter", ()):
         if salle == e.salle and not e.fait("inspecte", salle):
             yield 0, 1, [_etape("inspecter", lieu=salle)], e.apres(faits=[(("inspecte", salle), True)])
+    for condition in vises.get("confier", ()):
+        yield from _engager(v, e, condition)
+
+
+def effets_tache(condition):
+    """Ce qu'une tâche faite change, dans l'état cru d'un plan : un feu chargé et allumé, un bien
+    fermé à clé, un objet en son lieu."""
+    o = condition["objet"]
+    if "allume" in condition:
+        return [(("charge", o), True), (("allume", o), True)]
+    if "verrouillee" in condition:
+        return [(("verrou", o), True), (("ouvert", o), False)]
+    return [(("lieu", o), condition["lieu"])]
+
+
+def peine_tache(v, e, condition):
+    """La peine d'une tâche, d'après ce qu'il en croit : le chemin d'ici (où se tient celui qu'il
+    paie) jusqu'au lieu de la tâche, et ``TACHE`` minutes de travail ; None s'il ne sait où."""
+    lieu = condition.get("lieu") or v.salle(e, condition["objet"])
+    return None if lieu is None else v.trajet(e.salle, lieu) + TACHE
+
+
+def prix_tache(peine):
+    """Ce qu'il offre pour une tâche : une pièce par ``SALAIRE`` minutes de peine. Il ne sait pas ce
+    que vaut une pièce pour l'autre : il paie la peine."""
+    return max(1, -(-peine // SALAIRE))
+
+
+def _engager(v, e, condition):
+    """Payer quelqu'un, là où il se tient avec lui, pour qu'il fasse en sorte que ``condition`` soit
+    vraie (``echanges.engager``), sur ce qu'il pourrait faire lui-même sans faute : il propose ses
+    pièces à qui il ne se méfie pas et qui ne vient pas de refuser ; l'autre accepte si ces pièces valent pour lui la peine. Comme une demande, ce n'est pas
+    acquis (``PRET``) ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
+    que l'autre ait fait la tâche (sa peine). La tâche faite, son but est atteint ; il ne la fait pas
+    à sa place tant qu'elle court (``deliberation.tache_payee``)."""
+    o = condition["objet"]
+    # On ne paie quelqu'un que pour ce qu'on pourrait faire soi-même sans faute : son bien, ce qui
+    # n'est à personne, ce qu'on vous a confié ; pas le bien d'autrui qu'on convoite.
+    if not v.piece or e.fait("engage", o) or o not in v.illicite or v.illicite[o] or "lieu" in condition and o in e.portes:
+        return
+    peine = peine_tache(v, e, condition)
+    if peine is None:
+        return
+    prix = prix_tache(peine)
+    if v.richesse - (e.fait("depense") or 0) < prix:
+        return
+    for autre in v.personnes():
+        if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False or v.refuse_tache(autre, o):
+            continue
+        yield (0, 1 + DEMANDE / PRET + v.depense(prix) + peine,
+               [_etape("engager", autre, contenu={"condition": dict(condition), "prix": prix})],
+               e.apres(faits=effets_tache(condition) + [(("engage", o), autre),
+                                                        (("depense",), (e.fait("depense") or 0) + prix)]), 1)
 
 
 def _parts(v, e, o, dans, vises, but):
@@ -1054,17 +1121,40 @@ def _couper(etapes):
     return etapes[:fin]
 
 
-def planifier_pulsion(monde, id, condition):
+def planifier_pulsion(monde, id, condition, tache=False):
     """(but, étapes) pour rétablir une pulsion (ou tenir une parole donnée), ou None.
 
     Une ronde : aller inspecter le lieu. Une part à servir. Un objet à remettre en place. Un feu
     à entretenir : aller le voir s'il n'en a pas de nouvelles sûres, sinon le recharger et le
     rallumer, ou demander pour lui une part de combustible à qui en possède. Un objet à garder
-    sous clé : le fermer et le verrouiller."""
+    sous clé : le fermer et le verrouiller. Un objet vendu : l'aller chercher, puis le remettre.
+
+    ``tache`` : une pulsion à lui (pas une parole donnée), qu'il peut aussi payer quelqu'un de
+    rétablir (``_engager``)."""
+    trouve = _pulsion(monde, id, condition, tache)
+    return None if trouve is None else trouve[1:]
+
+
+def cout_pulsion(monde, id, condition):
+    """Ce que lui coûterait de rétablir ``condition`` (minutes de son plan, fautes comprises), ou
+    None s'il ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûte (``echanges.engager``).
+    Un feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
+    voir : celui qui le paie le sait à entretenir."""
+    trouve = _pulsion(monde, id, condition, False, entretenir=True)
+    return None if trouve is None else trouve[0]
+
+
+def _pulsion(monde, id, condition, tache, entretenir=False):
+    """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
+    from .echanges import tache as sorte
     o = condition.get("objet")
     if "rendre" in condition:
-        return _rendre(monde, id, o, condition)
+        trouve = _rendre(monde, id, o, condition)
+        return None if trouve is None else (0, *trouve)
+    if "remettre" in condition:
+        trouve = _remettre(monde, id, o, condition)
+        return None if trouve is None else (0, *trouve)
     if "periode" in condition:
         lieu = condition["lieu"]
         but, vises = (lambda v, e: e.fait("inspecte", lieu)), {"inspecter": (lieu,)}
@@ -1075,13 +1165,15 @@ def planifier_pulsion(monde, id, condition):
         salle = salle_crue(monde, id, o)
         if salle is None:
             return None
-        if not etat or etat.get("allume") and not etat.get("faible"):
+        if not entretenir and (not etat or etat.get("allume") and not etat.get("faible")):
             # Vu vif il y a longtemps, ou jamais vu : il va voir où il en est.
             but, vises = (lambda v, e: e.fait("inspecte", salle)), {"inspecter": (salle,)}
         else:
             # Le recharger et le rallumer, de son bois ou de celui de personne, emprunté, ou d'une
             # part demandée à qui en possède : le donneur entretient alors ce feu (``gestes``).
             but, vises = (lambda v, e: v.feu(e, o) == (True, True)), {"entretenir": (o,)}
+            if tache:
+                vises["confier"] = (dict(condition),)
     elif "lieu" in condition:
         lieu = condition["lieu"]
         but = lambda v, e: o not in e.portes and v.lieu(e, o) == lieu  # noqa: E731
@@ -1089,17 +1181,21 @@ def planifier_pulsion(monde, id, condition):
     else:
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
-    trouve = chercher(monde, id, but, vises, nom=_nom_condition(condition), memo=["pulsion", condition],
+    if tache and sorte(condition) and "allume" not in condition:
+        vises["confier"] = (dict(condition),)
+    trouve = chercher(monde, id, but, vises, nom=_nom_condition(condition),
+                      memo=["pulsion", condition, "confier" in vises, entretenir],
                       emplois=("feu",) if "allume" in condition else ())
     if trouve is None:
         return None
-    _, etapes, e = trouve
-    return {"type": "pulsion", **condition}, retablir(Vue(monde, id), e, _couper(etapes))
+    cout, etapes, e = trouve
+    return cout, {"type": "pulsion", **condition}, retablir(Vue(monde, id), e, _couper(etapes))
 
 
 def _nom_condition(c):
     sorte = ("ronde" if "periode" in c else "servir" if "servir" in c else "feu" if "allume" in c
-             else "rendre" if "rendre" in c else "placer" if "lieu" in c else "sous_cle")
+             else "rendre" if "rendre" in c else "remettre" if "remettre" in c else "placer" if "lieu" in c
+             else "sous_cle")
     return f"{sorte}:{c.get('objet') or c.get('lieu')}"
 
 
@@ -1115,6 +1211,24 @@ def _rendre(monde, id, o, condition):
     etapes, trouve = chemin
     if trouve:
         etapes.append(_etape("remettre", condition["rendre"], outil=o))
+    return {"type": "pulsion", **condition}, etapes
+
+
+def _remettre(monde, id, o, condition):
+    """Un objet qu'il a vendu sans le porter (``echanges.differee``) : l'aller chercher, puis
+    rejoindre l'acheteur et le lui remettre."""
+    if not porte_par(monde, o, id):
+        trouve = chercher(monde, id, lambda v, e: o in e.portes, {"prendre": (o,)}, nom="remettre:" + o,
+                          memo=["remettre", o], emplois=())
+        if trouve is None:
+            return None
+        return {"type": "pulsion", **condition}, _couper(trouve[1])
+    chemin = rejoindre(monde, id, condition["remettre"])
+    if chemin is None:
+        return None
+    etapes, trouve = chemin
+    if trouve:
+        etapes.append(_etape("remettre", condition["remettre"], outil=o))
     return {"type": "pulsion", **condition}, etapes
 
 
@@ -1152,38 +1266,81 @@ def enrichir(monde, id):
 
 
 def reclamer(monde, id):
-    """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) là où il le croit,
-    quand ce qu'il lui doit vaut pour lui plus que le chemin ; None sinon, ou s'il est déjà près de
-    lui : se retrouver suffit, le débiteur rend ce qu'il peut (``biens.solder``). Un débiteur qu'il
-    vient de retrouver sans rien recevoir (il n'avait rien), il ne le relance pas de sitôt."""
-    from .biens import dettes
+    """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
+    qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui
+    doit vaut pour lui plus que le chemin (un objet sans prix déclaré vaut ``biens.VALEUR_OBJET``) ;
+    None sinon. Pour une dette, se retrouver suffit : le débiteur rend ce qu'il peut, s'il le veut
+    (``biens.solder``) ; s'il est déjà près de lui, rien à faire. Pour un prêt, il le lui redemande
+    (``demander``), joueur compris. Un débiteur retrouvé sans le sou, ou qui vient de refuser, il ne le
+    relance pas de sitôt ; un emprunteur qui vient de refuser ou à qui il l'a déjà redemandé non plus."""
+    from .biens import VALEUR_OBJET, dettes, echu, nie_recemment, prets, prix
     from .caractere import ARGENT, valeur_pieces
     from .deliberation import REDEMANDE
     if not profil(monde, id):
         return None
-    du = {}
-    for d in dettes(monde):
-        if d["a"] == id and d["de"] in monde.objets:
-            du[d["de"]] = du.get(d["de"], 0) + d["montant"]
+    du, objets = {}, {}
     minute = monde.data["minutes"]
-    if not du:
+    for d in dettes(monde):
+        if d["a"] == id and d["de"] in monde.objets and not nie_recemment(monde, id, d["de"]):
+            du[d["de"]] = du.get(d["de"], 0) + d["montant"]
+    for p in prets(monde):
+        if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
+                and echu(monde, p["objet"])
+                and not refuse_recemment(monde, id, p["a"], "demander", p["objet"])):
+            objets.setdefault(p["a"], []).append(p["objet"])
+    if not du and not objets:
         return None
     vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
     v = Vue(monde, id)
     e = depart(monde, id, v)
     meilleur = None
-    for de in sorted(du):
+    for de in sorted(set(du) | set(objets)):
         salle = v.salle(e, de)
-        if de in vains or salle is None or salle == e.salle:
+        a_rendre = sorted(objets.get(de, ()))
+        if salle is None or not a_rendre and (de in vains or salle == e.salle):
             continue
-        trouve = chercher(monde, id, lambda v, e, s=salle: e.salle == s, nom="reclamer:" + de,
-                          memo=["reclamer", de, salle], emplois=(), motif=ARGENT)
-        if trouve is not None and valeur_pieces(monde, id, du[de]) > trouve[0] and (
-                meilleur is None or trouve[0] < meilleur[0]):
-            meilleur = (trouve[0], de, trouve[1])
+        valeur = (valeur_pieces(monde, id, du[de]) if de in du and de not in vains else 0) + sum(
+            valeur_pieces(monde, id, prix(monde, o) or VALEUR_OBJET) for o in a_rendre)
+        if salle == e.salle:
+            trouve = (0, [], e)
+        else:
+            trouve = chercher(monde, id, lambda v, e, s=salle: e.salle == s, nom="reclamer:" + de,
+                              memo=["reclamer", de, salle], emplois=(), motif=ARGENT)
+        if trouve is not None and valeur > trouve[0] and (meilleur is None or trouve[0] < meilleur[0]):
+            meilleur = (trouve[0], de, _couper(trouve[1]) + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
     if meilleur is None:
         return None
-    return {"type": "reclamer", "qui": meilleur[1]}, _couper(meilleur[2])
+    return {"type": "reclamer", "qui": meilleur[1]}, meilleur[2]
+
+
+def s_enquerir(monde, id, besoin):
+    """(but, étapes) pour demander à quelqu'un s'il a de quoi apaiser ``besoin`` (des vivres, du
+    bois : ``echanges.enqueter``), quand rien de ce qu'il connaît n'y pourvoit : à qui il ne connaît
+    rien de tel, qu'il ne se méfie pas et qu'il n'a pas interrogé depuis ``REDEMANDE`` minutes, le
+    plus proche de là où il le croit. None s'il n'a personne à qui le demander."""
+    from .deliberation import REDEMANDE
+    if not profil(monde, id):
+        return None
+    v = Vue(monde, id)
+    e = depart(monde, id, v)
+    minute = monde.data["minutes"]
+    interroges = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "enquete" and s["besoin"] == besoin
+                  and minute - s["minute"] < REDEMANDE}
+    connus = {v.proprietaire[o] for o in v.connus if v.besoin[o] == besoin}
+    candidats = []
+    for autre in v.personnes():
+        salle = v.salle(e, autre)
+        if autre in interroges or autre in connus or salle is None or v.cru(autre, "fiable") is False:
+            continue
+        longueur = v.trajet(e.salle, salle)
+        if salle == e.salle or longueur:
+            candidats.append((longueur, autre, salle))
+    for _, autre, salle in sorted(candidats):
+        etapes = [] if salle == e.salle else aller(monde, id, salle)
+        if etapes is not None:
+            return ({"type": "enquete", "besoin": besoin, "qui": autre},
+                    etapes + [_etape("demander", autre, contenu={"ressource": besoin})])
+    return None
 
 
 def voir(monde, id, salle):

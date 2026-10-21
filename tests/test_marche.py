@@ -131,6 +131,13 @@ class ContactTests(unittest.TestCase):
         m = tranquilles()
         ecarter_tous(m, "brune", "ilse", "aubin")
         placer(m, "marchand", "echoppe", (8, 0))
+        # Placement d'auteur : Gorm n'a pas de quoi payer quelqu'un pour rallumer le feu qu'il éteint
+        # (``echanges.engager``), et il a déjà demandé aux autres s'ils avaient du bois
+        # (``echanges.enqueter``) ; il reste près du brasero.
+        m.data["finances_pnj"]["marchand"] = 0
+        from donjon.esprits import memoriser
+        for autre in ("brune", "ilse", "aubin"):
+            memoriser(m, "marchand", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
         intention(m, "marchand", [{"operation": "eteindre", "cible": "brasero"}], {"type": "menager"})
         gestes(m, "marchand", 1)
         self.assertTrue(m.objets["brasero"]["allume"])

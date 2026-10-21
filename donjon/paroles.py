@@ -23,7 +23,8 @@ from .francais import designer, lieu
 from .monde import ErreurMonde, normaliser
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
-TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui")
+TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource")
+BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -87,6 +88,11 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
 - nom {sujet : joueur quand Corvus se nomme, ou le personnage qu'il prétend être ; attribut et
   valeur vides} : « C'est Corvus » ; l'auditeur pèse ce nom (il peut connaître la vraie voix) ;
 - qui {sujet, attribut et valeur vides} : Corvus demande qui parle (« Qui va là ? ») ;
+- reclamer {sujet : vide pour les pièces que le personnage doit à Corvus, ou un objet de Corvus que le
+  personnage porte ; attribut et valeur vides} : Corvus réclame son dû ; le moteur dit si le
+  personnage rend, ce qu'il rend, ou qu'il ne doit rien ;
+- ressource {sujet : faim (de quoi manger) ou chaleur (du bois) ; attribut et valeur vides} : Corvus
+  demande au personnage s'il en a, sans savoir ce qu'il a ; le moteur dit ce que le personnage répond ;
 - propos {sujet, attribut et valeur vides} pour tout le reste.
 Une voix inconnue (interlocuteur voix_<n>) : Corvus l'entend sans savoir à qui elle est ; ce
 qu'elle dit d'elle-même n'est que ce qu'elle prétend. Ne lui donne pas d'autre nom que le sien
@@ -779,6 +785,13 @@ def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
     if isinstance(c, dict) and c.get("type") == "qui":
         return {"type": "qui"}
+    if isinstance(c, dict) and c.get("type") == "reclamer":
+        sujet = (c.get("sujet") or "").strip()
+        objet = resoudre(monde, sujet) if sujet else None
+        return {"type": "reclamer", "objet": objet} if objet or not sujet else None
+    if isinstance(c, dict) and c.get("type") == "ressource":
+        sujet = normaliser(c.get("sujet") or "")
+        return {"type": "ressource", "besoin": sujet} if sujet in BESOINS_DEMANDES else None
     if isinstance(c, dict) and c.get("type") == "nom":
         sujet = _nom_dit(monde, c.get("sujet"))
         return {"type": "nom", "sujet": sujet} if sujet else None
@@ -827,6 +840,22 @@ def verifier_offres(monde, contenu):
                 raise ErreurMonde(f"Tu n'as que {monde.joueur['or']} pièces.",
                                   f"contenu[{i}].valeur : les pièces offertes, en tout de 0 à {monde.joueur['or']} "
                                   f"(or du joueur) ; reçu {offre(c)}, soit {total} avec les offres précédentes.")
+
+
+def verifier_contenus(monde, contenu):
+    """Une réclamation ou une demande de ressource que le moteur ne saurait trancher est refusée au
+    MJ : une cause par refus, l'élément fautif nommé (``attendu``)."""
+    for i, c in enumerate(contenu):
+        if not isinstance(c, dict):
+            continue
+        sujet = str(c.get("sujet") or "").strip()
+        if c.get("type") == "reclamer" and sujet and resoudre(monde, sujet) is None:
+            raise ErreurMonde("Corvus ne sait pas ce qu'il réclame.",
+                              f"contenu[{i}].sujet : vide (les pièces que le personnage doit à Corvus) ou un objet "
+                              f"que Corvus connaît, en identifiant ; reçu « {sujet} ».")
+        if c.get("type") == "ressource" and normaliser(sujet) not in BESOINS_DEMANDES:
+            raise ErreurMonde("Corvus ne dit pas ce qu'il cherche.",
+                              f"contenu[{i}].sujet : faim (de quoi manger) ou chaleur (du bois) ; reçu « {sujet} ».")
 
 
 def aveu(monde, locuteur, objet, geste):
@@ -914,6 +943,9 @@ def _demander(travail, auditeur, objet, faits, prix=0):
     nom, il, e = _personne(travail, auditeur)
     from .deliberation import besoin_de_part
     part = demande_de_part(travail, "joueur", auditeur, objet)
+    from .spatial import porte_par
+    # Un objet à lui qu'il ne porte pas : vendu, il ira le chercher pour le remettre.
+    differe = not part and objet in travail.objets and not porte_par(travail, objet, auditeur)
     issue = demander(travail, "joueur", auditeur, objet, prix=prix)
     o = designer(travail.objets[objet]) if objet in travail.objets else ""
     vivres = objet in travail.objets and besoin_de_part(travail.objets[objet]) == "faim"
@@ -934,10 +966,70 @@ def _demander(travail, auditeur, objet, faits, prix=0):
             p["objet"] == objet and p["a"] == "joueur" for p in travail.data.get("permissions", ())) else "."),
         "rendu": f"{nom} te rend {o}.",
         "vendu": (f"{nom} prend tes {prix} pièces et accepte de t'en donner une part : " + servie if part
-                  else f"{nom} prend tes {prix} pièces et te remet {o}."),
-        "promis": f"{nom} accepte de t'en donner une part : " + servie,
+                  else f"{nom} prend tes {prix} pièces et ira chercher {o} pour te {_le(travail.objets[objet])} "
+                       "remettre." if differe else f"{nom} prend tes {prix} pièces et te remet {o}."),
+        "promis": (f"{nom} a déjà promis de te remettre {o}." if differe else
+                   f"{nom} accepte de t'en donner une part : " + servie),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
+
+
+def _reclamer(travail, auditeur, objet, faits):
+    """Corvus réclame son dû : les pièces qu'on lui doit (``biens.reclamer_dette`` : le débiteur rend
+    ce qu'il peut, s'il le veut), ou son objet que l'auditeur porte (on le redemande comme son
+    propriétaire, ``echanges.demander``). Ce qui n'est pas dû, le personnage le dit."""
+    from .biens import dues, reclamer_dette
+    from .echanges import accueil, demander
+    from .spatial import porte_par
+    from .vol import proprietaire
+    nom, il, _ = _personne(travail, auditeur)
+    lui = "elle" if il == "elle" else "lui"
+    if accueil(travail, "joueur", auditeur) == "qui_va_la":
+        faits.append(QUI_VA_LA.format(nom=nom, il=il))
+        return
+    if objet is None:
+        dettes = dues(travail, auditeur, "joueur")
+        if not dettes:
+            faits.append(f"{nom} ne te doit rien.")
+            return
+        montant = sum(d["montant"] for d in dettes)
+        lignes = []
+        issues = reclamer_dette(travail, "joueur", auditeur, lignes)
+        faits.extend(lignes)
+        if "sans_le_sou" in issues and not lignes:
+            faits.append(f"{nom} n'a pas de quoi te rendre les {montant} pièce{'s' if montant > 1 else ''} "
+                         f"qu'{il} te doit.")
+        return
+    o = travail.objets.get(objet)
+    if o is None or o["type"] == "personnage" or proprietaire(travail, o) != "joueur" \
+            or not porte_par(travail, objet, auditeur):
+        faits.append(f"{nom} ne te doit pas {designer(o) if o else 'cela'} : {il} ne porte rien à toi de tel."
+                     if o and o["type"] != "personnage" else f"{nom} ne te doit rien de tel.")
+        return
+    issue = demander(travail, "joueur", auditeur, objet)
+    faits.append({"rendu": f"{nom} te rend {designer(o)}.",
+                  "necessaire": f"{nom} garde {designer(o)} : {il} s'en sert encore.",
+                  "qui_va_la": QUI_VA_LA.format(nom=nom, il=il)}.get(
+        issue, f"{nom} ne te rend pas {designer(o)}, qu'{il} n'a pas sur {lui}."))
+
+
+def _enqueter(travail, auditeur, besoin, faits):
+    """Corvus demande au personnage s'il a de quoi apaiser ``besoin`` : il répond par ce qu'il a
+    vraiment (``echanges.enqueter``)."""
+    from .echanges import _ou_dit, enqueter
+    nom, il, _ = _personne(travail, auditeur)
+    issue, dit = enqueter(travail, "joueur", auditeur, besoin)
+    if issue == "dit":
+        faits.append(f"{nom} dit avoir " + " et ".join(designer(travail.objets[k]) + _ou_dit(travail, lieu)
+                                                     for k, lieu in dit) + ".")
+    else:
+        faits.append({"qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
+                      "mefiance": f"{nom} refuse de te répondre : {il} ne te fait pas confiance.",
+                      "rien": f"{nom} dit n'en avoir pas."}[issue])
+
+
+def _le(o):
+    return "les" if o.get("pluriel") else "la" if o.get("genre") == "f" else "le"
 
 
 def _demander_passage(travail, auditeur, faits, prix=0):
@@ -1010,6 +1102,7 @@ def preparer_parole(monde, p, revision=None):
                           "retire de replique : " + ", ".join(f"« {m['terme']} »" for m in inconnus)
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     verifier_offres(monde, p["contenu"])
+    verifier_contenus(monde, p["contenu"])
     from .ouie import retentir, saisissent
     travail = monde.copier()
     chuchote = forme["maniere"] == "chuchote"
@@ -1033,6 +1126,10 @@ def preparer_parole(monde, p, revision=None):
                 _se_nommer(travail, auditeur, c["sujet"], faits)
             elif c["type"] == "qui":
                 _qui_est_la(travail, auditeur, faits)
+            elif c["type"] == "reclamer":
+                _reclamer(travail, auditeur, c["objet"], faits)
+            elif c["type"] == "ressource":
+                _enqueter(travail, auditeur, c["besoin"], faits)
             else:
                 _demander(travail, auditeur, c["sujet"], faits, c["prix"])
         if transmis[capacite:]:

@@ -74,7 +74,10 @@ class EntretenirUnFeuTests(unittest.TestCase):
         m = recharger(m)
         self.assertIn("Mireille demande une part des fagots de l'écurie à Joss (necessaire).", textes(chronique))
         self.assertEqual(m.objets["fagots_etable"]["charges"], 1)
-        self.assertFalse(m.objets["fourneau"]["allume"])
+        # Sans bois qu'elle connaisse, elle demande à d'autres s'ils en ont, et paie qui veut bien
+        # entretenir le fourneau (branche ``echanges-suite`` : ``echanges.enqueter``, ``engager``).
+        self.assertTrue(any(" s'il a du bois" in t or " si elle a du bois" in t for t in textes(chronique)))
+        self.assertTrue(any(t.startswith("Mireille offre ") and "le fourneau soit allumé" in t for t in textes(chronique)))
 
     def test_le_contremaitre_tient_son_poele_sans_que_son_devoir_presse(self):
         m = creer("mine", 1985, "fixe")

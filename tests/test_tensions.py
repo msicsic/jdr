@@ -83,10 +83,12 @@ class FroidTests(unittest.TestCase):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.objets["brasero"].update(allume=False, combustible=0)
         lire(m, "aubin")["besoins"]["chaleur"] = 80.0
-        # Placement d'auteur : Aubin a déjà brûlé ses planches, il n'a pas de quoi rallumer.
-        m.objets.pop("planches")
-        for e in m.data["esprits"].values():
-            e["croyances"].pop("planches", None)
+        # Placement d'auteur : Aubin a déjà brûlé ses planches, et Gorm son bois ; personne n'a de quoi
+        # rallumer (demander à qui en aurait ne mène à rien : ``echanges.enqueter``).
+        for bois in ("planches", "bois"):
+            m.objets.pop(bois)
+            for e in m.data["esprits"].values():
+                e["croyances"].pop(bois, None)
         m, _ = vivre(m, 15)
         self.assertGreaterEqual(lire(m, "aubin")["besoins"]["chaleur"], 80)
         self.assertFalse(lire(m, "aubin")["croyances"]["brasero"]["etat"]["valeur"]["allume"])
@@ -177,6 +179,9 @@ class FeuTests(unittest.TestCase):
         """Brasero froid et vide, Gorm et ses fagots devant, sans outil d'allumage."""
         m = self.gorm(0)
         m.objets["brasero"]["allume"] = False
+        # Placement d'auteur : Gorm n'a pas de quoi payer quelqu'un pour rallumer le feu à sa place
+        # (``echanges.engager``) ; il s'y prend lui-même.
+        m.data["finances_pnj"]["marchand"] = 0
         deplacer(m, "bois", "marchand")
         placer(m, "marchand", "echoppe", [3, 5])
         regarder(m, "marchand", "brasero")

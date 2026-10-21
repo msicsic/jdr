@@ -179,13 +179,16 @@ def verifier(monde):
         verifier_entrees(e["voix_entendues"])
         for engagement in e["engagements"]:
             from .deliberation import condition_valide
-            # ``paye`` : une part vendue d'avance, le bien et le prix reçu (``echanges.engagements_echus``).
+            # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix
+            # reçu (``echanges.engagements_echus``).
+            from .biens import QUOI
             paye = engagement.get("paye")
             assert (isinstance(engagement, dict) and set(engagement) - {"paye"} == {"condition", "pour", "minute"}
                     and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
                     and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
                     and type(engagement["minute"]) is int
-                    and (paye is None or isinstance(paye, dict) and set(paye) == {"objet", "prix"}
+                    and (paye is None or isinstance(paye, dict) and set(paye) == {"objet", "prix", "quoi"}
+                         and paye["quoi"] in QUOI
                          and isinstance(paye["objet"], str) and type(paye["prix"]) is int and paye["prix"] > 0)
                     ), "Engagement de PNJ invalide"
         for sujet, attributs in e["croyances"].items():
