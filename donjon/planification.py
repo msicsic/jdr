@@ -20,7 +20,7 @@ from itertools import count
 from time import perf_counter
 
 from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, appels_vains, _cru, _disponible_cru, _lieu_cru,
-                           autorise, besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
+                           besoin_de_part, gardes, illicite, lumiere_crue, noir_cru, peur_du_noir, profil,
                            promesse_en_cours, refuse_recemment)
 from . import force
 from .biens import PRIX_PART
@@ -99,6 +99,7 @@ class Vue:
     Ses croyances ne bougent pas pendant une recherche : chaque lecture est faite une fois."""
 
     def __init__(self, monde, id):
+        from .caractere import interdit
         from .pnj import chemin
         from .vol import proprietaire
         self.monde, self.id = monde, id
@@ -107,16 +108,19 @@ class Vue:
         self.connus = _connus(monde, id)
         # Toucher au bien d'autrui, hors ce qu'un prêt ou une garde permettent ; le consommer (le
         # manger, en servir une part), que rien ne permet.
-        self.illicite = {o: illicite(monde, id, o) for o in self.connus}
-        self.consomme_illicite = {o: illicite(monde, id, o, "manger") for o in self.connus}
-        self.brise_illicite = {o: illicite(monde, id, o, "frapper") for o in self.connus}
+        confies = {}
+        self.illicite = {o: illicite(monde, id, o, confies=confies) for o in self.connus}
+        self.consomme_illicite = {o: illicite(monde, id, o, "manger", confies) for o in self.connus}
+        self.brise_illicite = {o: illicite(monde, id, o, "frapper", confies) for o in self.connus}
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None
         # Une serrure qu'il croit fermée à clé : forcer peut servir, et ce qui force vaut d'être porté.
         self.verrous = any(self.objets[o]["type"] in ("contenant", "porte") and _cru(monde, id, o, "verrouillee")
                            for o in self.connus)
-        self.autorise = {o: autorise(monde, id, o) for o in self.connus}
+        # ``deliberation.autorise``, d'après ce qui vient d'être jugé illicite.
+        honnete = interdit(monde, id, "honnetete")
+        self.autorise = {o: not (self.illicite[o] and honnete) for o in self.connus}
         self.proprietaire = {o: proprietaire(monde, monde.objets[o]) for o in self.connus}
         # Ce qu'il peut dépenser, et ce que vaut pour lui une pièce, en minutes (``caractere``).
         from .biens import richesse
@@ -874,7 +878,6 @@ def planifier_pulsion(monde, id, condition):
     o = condition.get("objet")
     if "rendre" in condition:
         return _rendre(monde, id, o, condition)
-    v = Vue(monde, id)
     if "periode" in condition:
         lieu = condition["lieu"]
         but, vises = (lambda v, e: e.fait("inspecte", lieu)), {"inspecter": (lieu,)}
@@ -904,7 +907,7 @@ def planifier_pulsion(monde, id, condition):
     if trouve is None:
         return None
     _, etapes, e = trouve
-    return {"type": "pulsion", **condition}, retablir(v, e, _couper(etapes))
+    return {"type": "pulsion", **condition}, retablir(Vue(monde, id), e, _couper(etapes))
 
 
 def _nom_condition(c):
@@ -938,9 +941,11 @@ def enrichir(monde, id):
     from .caractere import ARGENT, prix_faute, valeur_pieces
     if not profil(monde, id):
         return None
+    crues = {o: _cru(monde, id, o, "pieces") for o in _connus(monde, id)}
+    if not any(crues.values()):
+        return None
     v = Vue(monde, id)
     faute = prix_faute(monde, id, ARGENT)
-    crues = {o: _cru(monde, id, o, "pieces") for o in v.connus}
     # Ce qu'il ne peut prendre (son honnêteté l'interdit, la faute passe l'enjeu), ou qui vaut moins
     # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine.
     bourses = tuple(o for o in v.connus if crues[o] and v.proprietaire[o] != id
@@ -974,6 +979,8 @@ def reclamer(monde, id):
         if d["a"] == id and d["de"] in monde.objets:
             du[d["de"]] = du.get(d["de"], 0) + d["montant"]
     minute = monde.data["minutes"]
+    if not du:
+        return None
     vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
     v = Vue(monde, id)
     e = depart(monde, id, v)

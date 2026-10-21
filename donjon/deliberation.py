@@ -344,11 +344,12 @@ def satisfaite(monde, id, condition):
     return _cru(monde, id, condition["objet"], "verrouillee") is True and not _ouvert_cru(monde, id, condition["objet"])
 
 
-def illicite(monde, id, objet, operation=None):
+def illicite(monde, id, objet, operation=None, confies=None):
     """Ce geste sur cet objet lèse-t-il quelqu'un ? Le bien d'autrui, hors ce qu'un prêt ou une
-    garde confiée permettent (``biens.permis``) ; rien ne permet de consommer le bien d'autrui."""
+    garde confiée permettent (``biens.permis``, ``confies``) ; rien ne permet de consommer le bien
+    d'autrui."""
     from .biens import a_autrui
-    return a_autrui(monde, objet, id, operation) is not None
+    return a_autrui(monde, objet, id, operation, confies) is not None
 
 
 def autorise(monde, id, objet):
