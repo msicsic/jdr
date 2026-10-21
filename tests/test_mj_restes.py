@@ -131,7 +131,8 @@ class DetailHorsDePorteeTests(unittest.TestCase):
         m = scene()
         self.assertIn("Les planches de bac sont trop loin pour être manipulées d'ici ; de là, leurs détails "
                       "t'échappent", decrire(m, "planches", technique=False))
-        self.assertIn("Ilse, meunière évacuée est trop loin pour que tu distingues ses traits",
+        # Un personnage se décrit de souvenir : sa distance ne dit rien de ses traits.
+        self.assertIn("Ilse, meunière évacuée est trop loin pour être manipulée d'ici.",
                       decrire(m, "ilse", technique=False))
 
     def test_un_detail_d_un_objet_trop_loin(self):
