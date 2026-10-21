@@ -198,9 +198,26 @@ def heler(monde, texte):
     return sequence(etape("emettre_son", qui, methode="heler"), justification="")
 
 
+def repondre(monde, texte):
+    """Répondre à qui vient de héler Corvus par son nom (``paroles.repond``) : le geste de réponse
+    commun (``pnj.repondre_a``), jamais une interprétation du MJ, même en forme de question."""
+    from .paroles import repond
+    qui = repond(monde, texte)
+    if qui is None:
+        return None
+    from .operations import etape, sequence
+    from .voix import designation
+    return sequence(etape("emettre_son", designation(monde, qui), methode="repondre"), justification="")
+
+
+def cri(monde, texte):
+    """Héler quelqu'un, ou répondre à qui vient de héler Corvus : un cri du moteur."""
+    return heler(monde, texte) or repondre(monde, texte)
+
+
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
-    appel = heler(monde, texte)
+    appel = cri(monde, texte)
     if appel:
         return appel
     if est_question(texte):

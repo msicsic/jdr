@@ -221,9 +221,10 @@ class ChercherQuelquUnTests(unittest.TestCase):
 
     def test_le_joueur_qui_ne_les_connait_pas_n_entend_que_des_voix(self):
         """Le joueur dans le noir, qui n'a jamais entendu Mireille ni Odile : il entend des voix
-        inconnues, sans que rien ne dise qui parle. Il saisit les mots d'un appel (le nom appelé est
-        celui d'une personne dont il a entendu parler) ; il pourrait répondre à ces voix, que le MJ
-        ne connaît que comme des voix inconnues (``voix.designation``)."""
+        inconnues. Il saisit les mots d'un appel, « Odile ? », puis une autre voix qui y répond : celle
+        qu'on appelle Odile, un ouï-dire et non une identité (branche ``voix-inconnues``) ; rien ne lui
+        dit qui appelait. Il pourrait répondre à ces voix, que le MJ ne connaît que comme des voix
+        inconnues (``voix.designation``), sans leur identifiant."""
         import json
         m = self.mireille_cherche_odile()
         m.joueur.update(salle="grenier", position=[6, 3])
@@ -231,17 +232,20 @@ class ChercherQuelquUnTests(unittest.TestCase):
         m, texte = attendre(recharger(m))
         self.assertIn("Mireille demande une part des vivres du cellier à Odile (promis).", chronique(m))
         self.assertIn("Tu entends, tout près, une voix inconnue appeler : « Odile ? »", texte)
+        self.assertIn("Tu entends, tout près, une voix qu'on appelle Odile répondre : « Ici ! »", texte)
         self.assertNotIn("Mireille", texte)
-        self.assertNotIn("Odile répond", texte)
+        self.assertNotIn("Odile répond :", texte)
         self.assertEqual(sorted(m.data["entendus"]), ["mireille", "odile"])
         from donjon.voix import designation, nom_pour_joueur
         for x in ("mireille", "odile"):
             self.assertTrue(designation(m, x).startswith("voix_"))
-            self.assertEqual(nom_pour_joueur(m, x), "une voix inconnue")
+        self.assertEqual(nom_pour_joueur(m, "mireille"), "une voix inconnue")
+        self.assertEqual(nom_pour_joueur(m, "odile"), "une voix qu'on appelle Odile")
+        self.assertNotIn("odile", m.data["voix_connues"])
         interlocuteurs = m.contexte()["interlocuteurs"]
         self.assertTrue(all(k.startswith("voix_") for k in interlocuteurs))
         self.assertNotIn("Mireille", json.dumps(interlocuteurs, ensure_ascii=False))
-        self.assertNotIn("Odile", json.dumps(interlocuteurs, ensure_ascii=False))
+        self.assertNotIn("odile", json.dumps(interlocuteurs, ensure_ascii=False))
 
     def test_qui_se_mefie_ne_repond_pas(self):
         m = self.mireille_cherche_odile()

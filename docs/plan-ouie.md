@@ -648,13 +648,15 @@ Limites :
   minutes avant de se trouver). Corrigé ensuite : branche `parole-voix`, « Qui répond attend ».
 - Une demande de part à une voix inconnue est « impossible » quand l'auditeur ne sait rien de qui
   la fait (ni où, ni sa faim) : la demande ne dit pas la faim. Une voix inconnue ne peut pas recevoir
-  un don du joueur sous son nom ; elle peut être désignée en face.
+  un don du joueur sous son nom ; elle peut être désignée en face. Revu : branche `voix-inconnues`
+  (la cause était la porte verrouillée de la réserve, pas la voix).
 - La réplique d'une voix inconnue ne peut nommer un tiers que le joueur n'a pas nommé dans ce tour :
   la règle déterministe est plus stricte que nécessaire (elle ne distingue pas « je suis X » de « X est
-  aux vannes »).
+  aux vannes »). Corrigé : branche `voix-inconnues`.
 - Le joueur ne retient le nom d'une voix que par une parole qui le lui donne directement (contenu `qui`) ;
   ce qu'il surprend entre PNJ (« Ici ! » à un appel) ne lui nomme pas la voix, et il ne hèle personne
-  par son nom (seul l'appel à l'aide est un cri pour lui). Héler : branche `parole-voix`.
+  par son nom (seul l'appel à l'aide est un cri pour lui). Héler : branche `parole-voix` ; ce qu'il
+  surprend : branche `voix-inconnues`.
 
 ## Nommer, attendre, héler (branche `parole-voix`)
 
@@ -770,7 +772,130 @@ Limites :
 - `REJOINT` est une constante du moteur ; qui ne cherche pas l'appelant l'attend même si l'appelant n'a
   pas entendu sa réponse (au plus 5 minutes perdues).
 - La réponse au joueur vient au terme de son cri (3 s), avant que les PNJ ne vivent ces secondes.
-- Le joueur ne répond pas de lui-même à qui le hèle ; « Ici ! » de sa part reste une parole.
+- Le joueur ne répond pas de lui-même à qui le hèle ; « Ici ! » de sa part reste une parole. Corrigé :
+  branche `voix-inconnues`.
+
+## Les voix inconnues (branche `voix-inconnues`)
+
+Trois limites de la branche `voix` : une part demandée par une voix inconnue relevée comme
+« impossible », un contrôle des répliques d'une voix inconnue trop strict, et un joueur qui n'apprenait
+rien des voix qu'il surprend et ne répondait pas à qui le hèle.
+
+**Une demande d'une voix inconnue se juge comme celle d'un étranger.** Revu, le cas relevé (la réserve
+noire de la mine, Mathe qui ne connaît pas Odon) n'était pas un défaut de la voix : la réserve est
+verrouillée et Mathe ne peut atteindre le garde-manger (`planification` : aucun plan pour servir) ; la
+même demande d'une voix connue y est aussi « impossible ». La règle tient déjà : `echanges.demander`
+ne lit de celui qui demande que sa confiance perçue (`voix.fiabilite` : un étranger) et le poids de sa
+demande (`voix.INCONNU`) ; servir une part se planifie là où sont les vivres, sans savoir où est le
+demandeur ni s'il a faim (`echanges.tenu`). Un écart corrigé en route : une part de bois entretient le
+feu de la salle d'où l'on entend la demande (`echanges.foyer_de`, par `ouie._place`), le joueur compris
+(avant : le premier feu connu du donneur, faute de lire la salle du joueur).
+
+**Une voix inconnue nomme qui son locuteur connaît, jamais elle-même** (`narration.voix_inconnues`,
+`voix.connait_nom`). Le moteur sait qui parle derrière « voix_<n> » (`voix.reel`) et ce qu'il sait.
+Sa réplique peut nommer un tiers dont il sait le nom : une croyance à son sujet, sa voix, ou le nom
+qu'une voix s'est donné ; Corvus, qui arrive en étranger, seulement s'il lui a donné son nom (`se_dit`)
+ou qu'il a entendu parler de lui (un ouï-dire `dit:…`). Elle ne nomme jamais son propre locuteur au-delà
+de ce que le moteur a établi (son nom d'interlocuteur, `conversation_validee`, la réplique de Corvus),
+et ne se dit personne (`SE_NOMMER` : « je suis… », « je m'appelle… », « moi, c'est… » suivis d'un nom).
+Une voix que le moteur ne relie à personne garde la règle d'avant. Le récit ne lui donne toujours pas
+son nom prétendu ; le MJ ne reçoit toujours ni son identifiant, ni ses traits, ni ce qu'elle sait.
+
+**Ce que le joueur entend des voix** (`ecoute.lier`, `voix.nommer`, `ouie._au_joueur`).
+- Voir parler quelqu'un fait connaître sa voix, qu'il s'adresse au joueur ou non : la réponse d'un
+  PNJ à un autre retentit désormais de sa propre voix (`social.faire_entendre`, `reponse` : accepter,
+  refuser ; remettre l'objet ou s'écarter est un geste, sans voix), et la réplique que le MJ prête à
+  un personnage que Corvus voit lui apprend sa voix (`narration.consigner`, `faits_locaux`). Avant, la
+  réponse d'un PNJ était fondue dans la phrase de qui demandait, et une réplique du MJ n'apprenait rien.
+- « Qui va là ? » puis « C'est Odon » se disent chacun de sa voix (`social.qui_va_la`, pour une demande
+  et pour une prière de passage) ; avant, les deux répliques partaient de la voix du demandeur.
+- Une parole dont il saisit les mots est rangée avec ses destinataires (`a`), même s'il voit qui
+  parle (`vu`, sans être rendue de nouveau). Une voix qui dit son propre nom dans ses mots se dit ainsi
+  (`voix.se_nommer`). Une voix à qui une autre s'adresse en la nommant, qu'il entend dans le même
+  échange (`ECHANGE`, une minute, avant ou après), est « une voix qu'on appelle Gorm » (`appelee`,
+  facultatif dans `voix_entendues`) : un ouï-dire, jamais une identité ; rien s'il connaît la vraie
+  voix de Gorm, s'il sait déjà à qui est cette voix ou si elle s'est nommée. C'est le cas de « Gorm ? »
+  suivi d'un « Ici ! » d'une autre voix. Les mots cités d'une parole nette se rendent tels qu'ils sont
+  dits, même s'ils nomment quelqu'un qu'il ne connaît pas (« une voix inconnue appeler : « Odile ? » ») ;
+  le texte entier, lui, reste réservé à une voix reconnue qui ne nomme que ce qu'il connaît. Le nom
+  qu'on donne à une voix fait connaître ce nom (`paroles.identites`), comme celui qu'elle se donne.
+
+**Le joueur répond à qui le hèle** (`paroles.repond`, `commandes.repondre`, `sons._compiler_repondre`,
+`pnj.repondre_a`). Le geste de réponse des PNJ est factorisé (`pnj.repondre` décide pour un PNJ,
+`repondre_a` est l'acte) : « Ici ! », un cri qui vaut se nommer ; l'appelant qui l'entend le croit là
+(sûr de lui s'il connaît la voix de Corvus, sur sa parole sinon) ; qui le surprend l'apprend de même.
+Juste après un appel de Corvus par son nom (`ecoute.appels` : la dernière parole de l'appelant est cet
+appel, entendu pendant son dernier geste ou il y a moins d'une minute), l'analyse locale reconnaît « je
+réponds », « je lui réponds », « je réponds à Gorm », « je réponds à l'appel », « je réponds : ici ! »,
+« je crie « Ici ! » », ou les seuls mots d'une réponse entre guillemets (« « Ici ! » », « « Oui, je suis
+là ! » ») ; c'est le geste `emettre_son` méthode `repondre`, cible l'appelant sous le nom que Corvus lui
+connaît (voix_<n>), sans le MJ. Le MJ peut le proposer (une ligne de consigne) ; refus avec `attendu`,
+une cause chacun : personne ne vient d'appeler Corvus, la cible n'est pas l'appelant. Le premier geste
+d'une manœuvre se juge sur ce qu'il a entendu pendant le geste précédent (`data["entendus"]` est remis
+à zéro après lui, `Moteur._executer_operations`).
+
+Vérifié (`tests/test_voix_inconnues.py`, `tests/test_voix.py`, `tests/test_constater_rumeurs.py`, état
+après rechargement et ce que lit le joueur) :
+- demande : Mathe, qui n'a jamais entendu Odon et ne sait rien de lui, lui promet sa part dans le noir et
+  la lui sert, comme à un inconnu qu'elle voit (même jet ; le DD dans le noir est celui de la lumière plus
+  `INCONNU`) ; la réserve verrouillée rend la part « impossible » que la voix soit connue ou non ; Gorm,
+  qui ne sait rien de Corvus, lui promet sa part dans le noir ; une part de bois demandée par Corvus à la
+  cuisine va au fourneau, pas à l'âtre ;
+- répliques : la voix de Brune nomme Gorm et Ilse ; « Je suis Brune », « Brune n'a rien vu », « Je
+  m'appelle Ilse », « Moi, c'est Gorm », Aubin dont elle ne sait rien, et toute voix que le moteur ne relie
+  à personne sont refusés ; « Corvus » seulement après qu'il s'est nommé à elle ; la chaîne
+  `consigner` → sauvegarde → rechargement ;
+- voix : cas réel (auberge), Corvus au couloir entend Hugues appeler « Anselme ? » puis « une voix qu'on
+  appelle Anselme répondre : « Ici ! » » (avant : « une voix inconnue ») ; même nature, au grenier noir,
+  « une voix inconnue appeler : « Odile ? » » puis « une voix qu'on appelle Odile » ; Corvus qui voit
+  Aubin demander sa part et Gorm lui répondre connaît leurs deux voix ; une réplique du MJ de Gorm qu'il
+  voit lui apprend sa voix, reconnue ensuite dans le noir ; dans la réserve noire, « Qui va là ? » de la
+  voix de Mathe, « C'est Odon » de celle d'Odon, qui se dit Odon ;
+- répondre : les formes et ce qui n'en est pas (une parole qui dit autre chose, un autre nom, « je
+  crie », un appel, rien sans appel) ; cas réel, Gorm derrière la porte étanche cherche Corvus et l'appelle
+  (intention placée d'autorité, voir les limites) : « je réponds », aucun appel au MJ, « Tu réponds :
+  « Ici ! » », Gorm le croit au palier sur sa parole ; même nature, « « Ici ! » » à Gorm qui connaît sa
+  voix : il le sait là ; refus du MJ, chacun sa cause et son `attendu`.
+
+Tests d'avant changés par la règle : l'appel d'Hugues et l'appel de Mireille (le joueur nomme désormais la
+voix qui répond, « une voix qu'on appelle … »).
+
+Bancs 8 h contre `main` 888bbc4, lancés ensemble (4 graines, Relais `--joueur chambre_cloche`, auberge
+`--joueur dortoir`) : aucune usurpation ni violation ; échanges, appels et réponses identiques (Relais
+10,5 échanges, 1,75 appel, 1,5 réponse ; auberge 25,75, 3,5, 2,25). Relais : trois nuits identiques, la
+quatrième (1985) diverge à la minute 446 sur un retournement (150,5 → 150 en moyenne) ; auberge : deux
+nuits identiques, deux divergent sur une réponse qui retentit désormais de la voix de qui répond (Tilo se
+retourne au bruit) : bruits inconnus 117 → 115,75, allés voir 29,75 → 30,5, paroles surprises 58 → 58,25,
+minutes en attente 536,25 → 537,5.
+
+Avec Luna (copies de scènes, placements d'auteur ; 2 parties au plus en même temps) :
+- Corvus dans le noir près de Gorm, qu'il ne connaît que comme une voix (2 parties, 4 tours) : « « Une
+  part des vivres… » » refusée par le moteur, la voix demande 2 pièces ; « « Qui es-tu ? » » devient le
+  contenu `qui`, le moteur la fait se nommer : « Je suis Gorm, le gardien du relais. », puis « Tu dis à
+  une voix qui se dit Gorm » ; aucun refus du contrôle. Luna ne nomme aucun tiers (« Je ne sais pas qui
+  d'autre est au relais ») : elle ne sait pas qui la voix connaît. 3 appels par tour.
+- Gorm hèle Corvus derrière la porte étanche : « je réponds », 0 appel, « Tu réponds : « Ici ! » », Gorm le
+  croit au palier ; « « Gorm ? C'est toi ? » » (parole) se dit à la cantonade : la voix ne passe pas la
+  porte. « Je lui crie que je suis là, derrière la porte. » (texte libre, 2 parties) : 9 appels et « Je
+  n'ai pas pu déterminer une manœuvre fidèle », puis 4 appels et un cri sans mots (méthode `cri`) qui fait
+  venir Gorm voir le bruit ; Luna ne propose pas `repondre`.
+
+Limites :
+- Aucun scénario ne fait encore chercher le joueur par un PNJ (`deliberation._plan_prevenir` et
+  `planification._rendre` ne visent qu'un personnage ; un objet du joueur n'a pas de propriétaire) : le
+  cas réel place l'intention d'autorité, et Gorm, sans motif qui dure, n'en tire qu'une croyance.
+- Une réponse libre (« je lui crie que je suis là ») reste au MJ, qui a préféré un cri sans mots ; seules
+  les formes reconnues sont la réponse du moteur. Un appelant que Corvus voit compte une minute.
+- Le MJ ne sait pas qui une voix inconnue connaît (le lui dire trahirait qui elle est) : la règle évite
+  de refuser un nom juste, Luna n'en invente pas. Il ne sait pas non plus si c'est une femme ou un homme
+  (« Je ne suis pas convaincue » pour Gorm).
+- `voix.connait_nom` : un PNJ qui voit Corvus se nommer ne retient pas son nom au-delà de ce tour
+  (rien ne l'enregistre quand il le reconnaît déjà) ; un PNJ connaît le nom de qui il a une croyance.
+- Le lien « une voix qu'on appelle … » ne se fait que si la voix nommée est vraiment celle qu'on appelle
+  et qu'il l'entend dans le même échange ; une voix qui se tait pendant l'appel ne se nomme pas, une
+  autre qui parlerait à sa place non plus (pas de méprise). Seul le joueur l'apprend ainsi ; un PNJ
+  n'apprend un nom que d'une voix qui se nomme. Les répliques que Luna prête aux PNJ ne relient pas les
+  voix entre elles (elles s'adressent à Corvus).
 
 ## Limites
 

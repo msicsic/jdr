@@ -640,7 +640,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pressent (`GARDE`) ; tout débiteur rembourse, quelle que soit son honnêteté ; le joueur ne réclame
   pas par une parole typée et ne voit la dette qu'au remboursement ; seule une part vendue d'avance
   crée une dette.
-- La suite de tests passe : 1036 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `voix-inconnues`, non fusionnée (`docs/plan-ouie.md`, « Les voix inconnues ») : trois limites de
+  la branche `voix`. **Demande d'une voix inconnue** : revue, la part « impossible » de la mine venait de la
+  réserve verrouillée (même issue pour une voix connue) ; la règle tenait (étranger, `voix.INCONNU`), vérifiée
+  dans le noir comme pour un inconnu vu ; corrigé en route, une part de bois va au feu de la salle d'où vient
+  la demande, joueur compris (`echanges.foyer_de`). **Répliques d'une voix inconnue**
+  (`narration.voix_inconnues`, `voix.connait_nom`) : le moteur sait qui parle ; la réplique nomme qui son
+  locuteur connaît (Corvus seulement s'il lui a donné son nom ou qu'il en a entendu parler), jamais
+  elle-même au-delà de ce qui est établi, et ne se dit personne (« je suis… »). **Côté joueur** : voir parler
+  quelqu'un fait connaître sa voix (la réponse d'un PNJ à un autre retentit de sa propre voix,
+  `social.faire_entendre` ; « Qui va là ? » et « C'est … » chacun de sa voix ; une réplique du MJ d'un
+  personnage vu) ; une voix nommée par une autre qui s'adresse à elle dans le même échange est « une voix
+  qu'on appelle Gorm » (`ecoute.lier`, `voix.nommer`, ouï-dire), une voix qui dit son nom se dit ainsi ; les
+  mots cités d'une parole nette s'entendent tels quels ; juste après un appel de Corvus par son nom, « je
+  réponds », « « Ici ! » »… sont le geste de réponse commun (`emettre_son` méthode `repondre`,
+  `pnj.repondre_a`), sans le MJ, et l'appelant le croit là. Bancs 8 h contre `main` 888bbc4 (Relais 4 graines
+  `--joueur chambre_cloche`, auberge `--joueur dortoir`) : aucune usurpation ni violation, échanges, appels
+  et réponses identiques ; trois nuits du Relais et deux de l'auberge identiques, les autres divergent sur
+  une réponse qui retentit (auberge : bruits inconnus 117 → 115,75, allés voir 29,75 → 30,5). Luna (copies de
+  scènes) : « Qui es-tu ? » à une voix fait nommer Gorm par le moteur, aucun refus du contrôle, Luna ne nomme
+  pas de tiers (elle ne sait pas qui la voix connaît) ; « je réponds » 0 appel ; une réponse libre (« je lui
+  crie que je suis là ») reste au MJ, qui a fait un cri sans mots ou échoué. Limites : aucun scénario ne fait
+  chercher le joueur (cas réel placé d'autorité) ; le nom de Corvus vu se nommer n'est pas retenu ; le MJ
+  ignore ce que sait une voix et son genre.
+- La suite de tests passe : 1060 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

@@ -16,6 +16,7 @@ from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
 from donjon.narration import (consigner as consigner_narration, rendre_resultat,
                               chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
+from donjon.commandes import repondre as repondre_appel
 from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.rendu import carte, fiche, regarder, decrire_accords
@@ -374,8 +375,9 @@ def main(argv=None, interface=None):
                         imprimer(json.dumps(esprit(m, id), ensure_ascii=False, indent=2))
                     continue
                 force_mj = cmd.startswith("mj ")
-                # Héler par son nom n'est pas une question au MJ, même avec « ? » (« je crie « Gorm ? » »).
-                question = est_question(texte) and not heler(m, texte)
+                # Héler par son nom, ou répondre à qui vient de héler Corvus, n'est pas une question au MJ,
+                # même avec « ? » (« je crie « Gorm ? » », « « Oui ? » »).
+                question = est_question(texte) and not (heler(m, texte) or repondre_appel(m, texte))
                 try:
                     p = None if force_mj or question else analyser(m, texte)
                 except ErreurMonde:

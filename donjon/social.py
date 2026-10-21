@@ -201,24 +201,39 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
            case=lieu["case"])
 
 
-def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=()):
+def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True):
     """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
-    destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). Ce que le joueur
-    perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de ceux dont on parle. Sans le
-    voir (le noir, son dos), il n'en a que ce que son ouïe lui fait entendre (``ecoute`` : une voix
-    qu'il reconnaît, ou « une voix »)."""
+    destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). ``reponse`` : ce que
+    l'auditeur y répond (accepter, refuser), de sa voix si ``dite`` (sinon un geste, lui remettre
+    l'objet) : sa réponse retentit à son tour, sans rien transmettre ; qui le voit répondre connaît
+    sa voix. Ce que le joueur perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de
+    ceux dont on parle. Sans le voir (le noir, son dos), il n'en a que ce que son ouïe lui fait
+    entendre (``ecoute`` : une voix qu'il reconnaît, ou « une voix »)."""
     from .ouie import retentir
     from .paroles import _connu_du_joueur
     retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites],
              parole={"a": [auditeur], "contenu": list(contenu)})
+    if reponse and dite:
+        retentir(monde, auditeur, "dire", texte=reponse, cites=[id], vers=[id])
     a, b = monde.objets[id], monde.objets[auditeur]
     if a["lieu"] == monde.joueur["salle"] and monde.visible(id):
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
-            lignes.append(texte)
+            lignes.append(f"{texte} {reponse}".strip())
         else:
             lignes.append(designer(a, debut=True) + " parle à voix basse avec " + designer(b) + ".")
     elif monde.visible(id):
         lignes.append(designer(a, debut=True) + " parle avec " + designer(b) + ".")
+
+
+def qui_va_la(monde, id, autre, lignes):
+    """``autre`` ne sait à qui est la voix d'``id`` : il demande « Qui va là ? », et ``id`` se nomme
+    (« C'est … »). Chacun de sa voix : qui entend l'un et l'autre sait laquelle a dit quoi, et une
+    voix qui dit son nom se nomme pour tous ceux qui en saisissent les mots (``voix.se_nommer``)."""
+    from .voix import se_nommer
+    a, b = _qui(monde, id), _qui(monde, autre)
+    faire_entendre(monde, autre, id, f"{b} : « Qui va là ? »", [], lignes, [{"type": "qui"}])
+    faire_entendre(monde, id, autre, f"{a} : « C'est {a}. »", [id], lignes, [{"type": "nom", "sujet": id}])
+    se_nommer(monde, autre, id, id)
 
 
 def _entendu(monde, id, auditeur, noyau, rang, lignes):
