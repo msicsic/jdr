@@ -367,7 +367,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   garde et la lumière. Mine : la dernière flamme est le briquet de Gaspard, que personne ne
   retrouve dans le noir ; ceux qui craignent le noir vont vers la lumière dont ils se souviennent
   (le bureau) et Bram n'y est plus seul.
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 883 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
