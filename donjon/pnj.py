@@ -118,15 +118,30 @@ def _seuil_barre(monde, salle, sortie, barrees):
     return bool(seuils & barrees)
 
 
-def chemin(monde, id, depart, arrivee, cles=(), ouvertes=()):
+def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None):
     """Sorties à emprunter selon ce que le PNJ croit des portes et des obstacles ; None si aucun
     passage cru.
 
     Le PNJ tente toute porte, sauf celle qu'il sait verrouillée sans en porter (ou prévoir
     d'en porter) la clé, ni prévoir de la déverrouiller autrement (``ouvertes`` : crochetée par
     son plan) ; tout passage, sauf celui dont il croit un seuil barré ; et il ne passe pas par une
-    salle qu'il a vue noyée.
+    salle qu'il a vue noyée. ``precedents`` : le parcours depuis ``depart`` (``parcours``), s'il
+    est déjà fait.
     """
+    precedent = parcours(monde, id, depart, cles, ouvertes) if precedents is None else precedents
+    if arrivee not in precedent:
+        return None
+    etapes = []
+    while arrivee != depart:
+        lieu, sortie = precedent[arrivee]
+        etapes.append(sortie)
+        arrivee = lieu
+    return etapes[::-1]
+
+
+def parcours(monde, id, depart, cles=(), ouvertes=()):
+    """Toutes les salles qu'il croit atteindre depuis ``depart`` (``chemin``) : {salle : (salle
+    d'avant, sortie)}, en largeur, le départ à None."""
     from .eau import noyee_crue
     barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
     precedent, file = {depart: None}, deque([depart])
@@ -141,14 +156,7 @@ def chemin(monde, id, depart, arrivee, cles=(), ouvertes=()):
                 continue
             precedent[vers] = (lieu, sortie)
             file.append(vers)
-    if arrivee not in precedent:
-        return None
-    etapes = []
-    while arrivee != depart:
-        lieu, sortie = precedent[arrivee]
-        etapes.append(sortie)
-        arrivee = lieu
-    return etapes[::-1]
+    return precedent
 
 
 # --- Annonces et chronique ----------------------------------------------------------------

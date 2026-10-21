@@ -227,16 +227,15 @@ def position_carte(m, id, salle=None):
     return contact
 
 
+def _bloquantes(m, salle, vue=False, sauf=None):
+    """Les cases des objets de la salle qui bloquent le passage (ou la vue), hors ``sauf``."""
+    return [position_cible(m, id, salle) for id, o in m.objets.items()
+            if id != sauf and not o.get("incorpore") and o.get("lieu") == salle
+            and (o.get("bloque_vue") if vue else o.get("bloque_passage"))]
+
+
 def _bloque(m, salle, position, vue=False, sauf=None):
-    for id, o in m.objets.items():
-        if id == sauf or o.get("incorpore"):
-            continue
-        if o.get("lieu") != salle:
-            continue
-        if (o.get("bloque_vue") if vue else o.get("bloque_passage")):
-            if position_cible(m, id, salle) == position:
-                return True
-    return False
+    return any(p == position for p in _bloquantes(m, salle, vue, sauf))
 
 
 def _case_libre(m, salle, position):
@@ -1082,6 +1081,14 @@ def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
     {"salle", "position", "porte"}. ``porte`` est la porte fermée à franchir, si
     ``porte_fermee`` l'admet ; sinon une porte fermée bloque, comme un mur ou un obstacle.
     ``case_libre`` remplace ``_case_libre`` par une version mémorisée le temps d'une recherche."""
+    pas = _pas(m, salle, position, vecteur, porte_fermee, case_libre)
+    if isinstance(pas, str):
+        _erreur(pas)
+    return pas
+
+
+def _pas(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
+    """``pas_vers``, qui rend la raison du refus (un texte) au lieu de la lever."""
     _case_libre_ = case_libre or (lambda s, c: _case_libre(m, s, c))
     dx, dy = vecteur
     x, y = position
@@ -1089,30 +1096,30 @@ def pas_vers(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
     if destination in cases(m.data["salles"][salle]):
         if dx and dy and not (_case_libre_(salle, (x + dx, y))
                               and _case_libre_(salle, (x, y + dy))):
-            _erreur("Un mur ou un obstacle bloque le passage en diagonale.")
+            return "Un mur ou un obstacle bloque le passage en diagonale."
         if not _case_libre_(salle, destination):
-            _erreur("Un obstacle solide occupe cette case.")
+            return "Un obstacle solide occupe cette case."
         return {"salle": salle, "position": [destination[0], destination[1]], "porte": None}
     if dx and dy:
-        _erreur("Le mur bloque ce déplacement en diagonale.")
+        return "Le mur bloque ce déplacement en diagonale."
     sortie = next((s for d, s in m.data["salles"][salle].get("sorties", {}).items()
                    if VECTEURS.get(d) == (dx, dy)
                    and _case_interieure(m, salle, s) == (x, y)), None)
     if not sortie:
-        _erreur("Un mur bloque le passage.")
+        return "Un mur bloque le passage."
     porte = m.objets.get(sortie.get("porte"))
     fermee = bool(porte and not porte.get("ouverte"))
     if fermee and not porte_fermee:
-        _erreur("La porte fermée bloque le passage.")
+        return "La porte fermée bloque le passage."
     vers = sortie.get("vers")
     piece_vers = m.data["salles"].get(vers, {})
     retour = next((s for s in piece_vers.get("sorties", {}).values()
                    if s.get("vers") == salle and s.get("porte") == sortie.get("porte")), None)
     pos = _case_interieure(m, vers, retour) if retour else None
     if pos is None:
-        _erreur("Aucun sol ne rejoint ce passage.")
+        return "Aucun sol ne rejoint ce passage."
     if not _case_libre_(vers, pos):
-        _erreur("Un obstacle solide bloque l'autre côté du passage.")
+        return "Un obstacle solide bloque l'autre côté du passage."
     return {"salle": vers, "position": [pos[0], pos[1]], "porte": porte["id"] if fermee else None}
 
 
@@ -1125,13 +1132,15 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
     triés), sans hasard.
     Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées.
     Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
-    from .monde import ErreurMonde
     from .temps import PAS_JOUEUR, duree_pas
-    libres = {}
+    libres, bloquantes = {}, {}
 
     def case_libre(s, c):
+        # ``_case_libre``, les obstacles de chaque salle relevés une fois.
         if (s, c) not in libres:
-            libres[s, c] = _case_libre(m, s, c) if solides else c in cases(m.data["salles"][s])
+            if solides and s not in bloquantes:
+                bloquantes[s] = _bloquantes(m, s)
+            libres[s, c] = c in cases(m.data["salles"][s]) and not (solides and any(p == c for p in bloquantes[s]))
         return libres[s, c]
     depart = (salle, tuple(position))
     if arrivee(*depart):
@@ -1152,9 +1161,8 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
                 courant = avant
             return chemin[::-1]
         for vecteur, duree in sens:
-            try:
-                pas = pas_vers(m, courant[0], courant[1], vecteur, porte_fermee=True, case_libre=case_libre)
-            except ErreurMonde:
+            pas = _pas(m, courant[0], courant[1], vecteur, porte_fermee=True, case_libre=case_libre)
+            if isinstance(pas, str):
                 continue
             suivant = (pas["salle"], tuple(pas["position"]))
             if (suivant in faits or cout + duree >= couts.get(suivant, cout + duree + 1) or not libre(*suivant)

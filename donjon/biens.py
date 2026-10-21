@@ -24,6 +24,8 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from .vol import proprietaire as _possesseur
+
 BOURSE = 5             # pièces d'un PNJ dont rien ne déclare la bourse
 PRIX_PART = 2          # prix d'une part d'une ressource comptée qui n'en déclare pas
 CONSOMMER = ("manger", "servir")   # gestes qui consomment le bien : aucune permission ne les couvre
@@ -36,8 +38,7 @@ GENEROSITE = 2
 # --- Permissions ------------------------------------------------------------------------
 
 def proprietaire(monde, objet):
-    from .vol import proprietaire as possesseur
-    return possesseur(monde, monde.objets[objet])
+    return _possesseur(monde, monde.objets[objet])
 
 
 def prets(monde):
@@ -111,10 +112,11 @@ def gardes(monde, id, de):
     return confies
 
 
-def permis(monde, id, objet, operation=None):
+def permis(monde, id, objet, operation=None, confies=None):
     """``id`` peut-il, sans faute, faire ce geste sur le bien d'un autre ? Un prêt ou une garde
     confiée par son propriétaire, hors ce qui le consomme. User d'une clé prêtée, c'est ouvrir et
-    fermer ce qu'elle ouvre (pas en prendre le contenu, qui n'est pas prêté)."""
+    fermer ce qu'elle ouvre (pas en prendre le contenu, qui n'est pas prêté). ``confies`` : les
+    gardes confiées par propriétaire (un dictionnaire), quand on juge plusieurs objets à la fois."""
     if operation in CONSOMMER or operation in BRISER:
         return False
     de = proprietaire(monde, objet)
@@ -122,17 +124,21 @@ def permis(monde, id, objet, operation=None):
         if p["a"] == id and p["de"] == de and p["objet"] in monde.objets and (
                 p["objet"] == objet or objet in monde.objets[p["objet"]].get("ouvre", [])):
             return True
-    return objet in gardes(monde, id, de)
+    if confies is None:
+        return objet in gardes(monde, id, de)
+    if de not in confies:
+        confies[de] = gardes(monde, id, de)
+    return objet in confies[de]
 
 
-def a_autrui(monde, objet, id="joueur", operation=None):
+def a_autrui(monde, objet, id="joueur", operation=None, confies=None):
     """Le propriétaire dont ``id`` lèse le bien par ce geste, ou None : sans propriétaire, le sien,
-    ce que le joueur a déjà dérobé, ou ce qu'une permission couvre."""
+    ce que le joueur a déjà dérobé, ou ce qu'une permission couvre (``confies`` : ``permis``)."""
     o = monde.objets[objet]
     de = proprietaire(monde, objet)
     if de in (None, id) or id == "joueur" and o.get("vole_par") == "joueur":
         return None
-    return None if permis(monde, id, objet, operation) else de
+    return None if permis(monde, id, objet, operation, confies) else de
 
 
 # --- Argent -------------------------------------------------------------------------------

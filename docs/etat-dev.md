@@ -726,7 +726,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   feu demandé pour une source fixe ; rejoindre qui porte une lampe n'est ni abri ni lumière ; l'apport
   d'une source ignore l'ombre ; l'attente d'une part reste une estimation ; la menace se juge sur où il
   croit les autres.
-- La suite de tests passe : 1088 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `planif-cout`, non fusionnée (`docs/plan-planificateur.md`, « Coût de calcul ») : le temps
+  d'une nuit, sans rien changer à ce que décident les PNJ. Points chauds : des recherches refaites à
+  chaque minute alors que seul le prix d'une faute ou d'abîmer avait changé avec la détresse (Lucien à
+  l'auberge, Odon et Rémy à la mine), la vue du planificateur construite ~10 000 fois par nuit, la
+  perception de tous qui relisait l'empreinte de l'état pour chaque PNJ, un trajet qui relisait tous
+  les objets à chaque case. **Graphe repris** (`planification._GRAPHES`) : chaque état développé garde
+  ses gestes avec les termes de leur coût ; quand seuls ces deux prix ont changé, la recherche se refait
+  sur lui, mêmes additions et mêmes égalités, sans recalculer un geste (gardé à la deuxième recherche
+  de suite sur les mêmes entrées). Lectures moins chères : la vue (gardes confiées lues une fois par
+  propriétaire, aucune vue sans pièces crues ni créance), les gestes (un parcours des salles par départ,
+  `pnj.parcours` ; un objet d'une autre salle n'offre qu'une part, `_parts` ; l'état d'un plan comparé
+  comme un tuple), la perception de tous dans un seul `etat_fige`, les obstacles d'une salle une fois
+  par trajet, le pas sans exception, `monde.copie`. Nuits identiques à `main` 888bbc4 (chronique,
+  mesures, état final complet, récit, empreintes, recherches et nœuds) sur 48 nuits (4 scénarios ×
+  4 graines, départ tiré et fixe, deux passes tirées) ; `VERIFIER` et `spatial.VERIFICATION` sur 16
+  nuits ; `tests/test_planif_cout.py` (Lucien, Odon : même monde avec ou sans graphe après
+  rechargement). Temps au processeur, 8 processus, `main` → branche, départ tiré : Relais 14,5 →
+  9,2 s, mine 57,3 → 31,7 s, auberge 62 → 26,4 s, crue 15,3 → 10,5 s ; le planificateur passe de 58 %
+  à 36 % d'une nuit à l'auberge, de 59 % à 47 % à la mine. Accordée avec `main` 5861f71
+  (`pnj-lumiere-garde` : la part promise passe dans `_parts`) : empreintes identiques sur 32 nuits
+  (tiré et fixe), `VERIFIER` sur une nuit de chaque scénario ; départ tiré, 4 processus au plus :
+  Relais 11,7 → 7,2 s, mine 70 → 39,5 s, auberge 47,3 → 24,2 s, crue 12,6 → 9 s. Limites : une recherche neuve coûte
+  toujours ~100 µs par état (mine graine 7 : Josse, deux recherches de 4 000 nœuds par minute en fin de
+  nuit) ; une croyance nouvelle refait tout ; pic de mémoire 30 → 59 Mo (mine, graine 7) ; la
+  perception reste un tiers d'une nuit.
+- La suite de tests passe : 1091 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

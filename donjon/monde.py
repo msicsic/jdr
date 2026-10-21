@@ -52,6 +52,33 @@ def reference_exacte(objets, texte):
     return None
 
 
+_SIMPLES = frozenset((str, int, float, bool, type(None)))
+
+
+def copie(valeur, memo=None):
+    """``copy.deepcopy`` d'un état (comme une sauvegarde : dictionnaires, listes, valeurs simples),
+    plus vite : même résultat, partages compris ; tout autre type passe par ``copy.deepcopy``."""
+    memo = {} if memo is None else memo
+    t = type(valeur)
+    if t is dict or t is list:
+        double = memo.get(id(valeur))
+        if double is not None:
+            return double
+        if t is dict:
+            double = memo[id(valeur)] = {}
+            for k, v in valeur.items():
+                double[copy.deepcopy(k, memo) if type(k) not in _SIMPLES else k] = (
+                    v if type(v) in _SIMPLES else copie(v, memo))
+        else:
+            double = memo[id(valeur)] = []
+            for v in valeur:
+                double.append(v if type(v) in _SIMPLES else copie(v, memo))
+        return double
+    if t in _SIMPLES:
+        return valeur
+    return copy.deepcopy(valeur, memo)
+
+
 def objet(id, nom, type, lieu, **proprietes):
     return {"id": id, "nom": nom, "type": type, "lieu": lieu,
             "aliases": [], "materiau": "", "masse": 0, "mobile": False,
@@ -182,7 +209,7 @@ class Monde:
         return self.data["joueur"]
 
     def copier(self):
-        return Monde(copy.deepcopy(self.data))
+        return Monde(copie(self.data))
 
     def enfants(self, id):
         return [o for o in self.objets.values() if o["lieu"] == id]

@@ -745,3 +745,116 @@ Limites :
   n'affronte qui menace ;
 - qui ne répond pas à un chercheur qu'il reconnaît et dont il se méfie lui fait parcourir une salle
   par minute (Anselme cherchant Lucien), comme pour une part.
+
+## Coût de calcul (branche `planif-cout`)
+
+Les branches `besoins` et `petits-correctifs-pnj` avaient alourdi les nuits (auberge +13 %, mine
++20 %). Rien n'est changé à ce que décident les PNJ : seulement ce que coûte de le calculer, nuits
+strictement identiques à `main`.
+
+**Points chauds** (profil `cProfile` d'une nuit de chaque scénario et `--diagnostic`) :
+- des recherches refaites à chaque minute sans reprise par la mémoire, alors que seul le prix d'une
+  faute ou celui d'abîmer avait changé avec la détresse : à l'auberge, Lucien au grenier noir
+  (`garder`, ~580 nœuds ; `faim`, ~1 000 nœuds, épuisée ; puis `placer:ballot`) ; à la mine, Odon
+  (`faim`, la faute) et Rémy (`faim`, le prix d'abîmer). Les seules recherches de Lucien faisaient
+  près des deux tiers d'une nuit de l'auberge (graine 1985, départ tiré) ;
+- la vue du planificateur (`Vue`) construite ~10 000 fois par nuit à l'auberge, dont 6 000 par
+  `enrichir` et `reclamer` qui n'avaient rien à chercher ; les gardes confiées relues pour chaque
+  objet (`biens.gardes`) ; un parcours des salles refait pour chaque arrivée (`pnj.chemin`) ;
+- la perception de tous (`esprits.percevoir_tous`) recalculait l'empreinte de l'état
+  (`spatial.etat_vue`) pour chaque PNJ ; un trajet relisait tous les objets pour chaque case essayée
+  (`spatial._bloque`) et levait une exception par pas refusé ; la copie de travail du moteur
+  (`Monde.copier`) passait par `copy.deepcopy` ;
+- reste : des recherches neuves, sur des entrées qui ont vraiment changé, jusqu'à la borne de 4 000
+  nœuds (la mine, graine 7, en fin de nuit : Josse, `faim` et `feu:poele`, à chaque minute où sa
+  croyance sur la place d'un autre change), environ 100 µs par état développé.
+
+**Le graphe repris** (`planification._GRAPHES`, `_explorer`, `_suites`). Une recherche garde, pour
+chaque état développé, s'il atteint le but, ce qu'il laisse monter (`pression`) et ses gestes avec
+chaque terme de leur coût (fautes, minutes, durée, abîme, pression de l'état suivant). Ces termes ne
+dépendent que de ce que lit la recherche (`_entrees`, l'adresse et la force modulées, `tenir`, et
+s'il envisage d'abîmer) ; le prix d'une faute et celui d'abîmer n'entrent que dans la somme que fait
+`_explorer`, la même expression, dans le même ordre, sur les mêmes nombres. Quand seuls ces deux prix
+ont changé, la recherche se refait sur le graphe gardé : mêmes additions en virgule flottante, mêmes
+comparaisons et mêmes égalités départagées par l'ordre de découverte, donc le même résultat qu'une
+recherche complète, sans recalculer un seul geste ; un état que la nouvelle recherche atteint pour la
+première fois est développé à la demande. Le graphe n'est gardé qu'à la deuxième recherche de suite
+sur les mêmes entrées (les buts dont les entrées changent à chaque fois n'encombrent pas la mémoire).
+Un élagage par borne (A*) reste écarté : il changerait l'ordre entre plans de même coût. Pour que le
+graphe reste juste, `gestes` ne doit lire ni le prix d'une faute ni celui d'abîmer (le geste qui
+abîme rend un indicateur, `_explorer` y met `Vue.degat`) ; `VERIFIER` refait chaque recherche reprise.
+
+**Lectures moins chères**, au même résultat :
+- la vue : les gardes confiées lues une fois par propriétaire (`biens.permis(confies=…)`), `autorise`
+  tiré de `illicite` déjà jugé ; aucune vue pour `enrichir` sans pièces crues ni pour `reclamer` sans
+  créance, ni dans `planifier_pulsion` avant qu'un plan soit trouvé ;
+- les gestes : un parcours des salles par départ, clés et portes crochetées (`pnj.parcours`), valable
+  pour toutes les arrivées, et les trajets d'une salle relevés une fois (`Vue.allers`) ; les objets
+  sans geste possible écartés une fois (`Vue.agissables`) ; un objet qu'il ne porte pas et qu'il croit
+  dans une autre salle n'offre qu'une part (`_parts`) ; ce qu'un état laisse monter, une fois par état ;
+  le besoin d'une part par objet, ce qu'il porte pour l'apaiser, les refus et promesses lus sans
+  fonction construite à chaque lecture ; l'état d'un plan comparé et haché comme le tuple qu'il est
+  (`Etat`) ; la clé de la mémoire sans réencoder les entrées ;
+- hors du planificateur : la perception de tous sur un état lu une fois (`etat_fige` autour de la
+  boucle, ce que `spatial.VERIFICATION` contrôle) ; les obstacles d'une salle relevés une fois par
+  trajet (`spatial._bloquantes`) ; le pas sans exception dans la recherche d'un trajet
+  (`spatial._pas`) ; la copie de travail par `monde.copie` (même résultat que `copy.deepcopy`,
+  partages compris) ; un esprit ne construit un champ par défaut que s'il manque ; des imports de
+  fonctions très appelées faits une fois.
+
+**Preuve d'identité.** Pour chaque nuit, `main` (888bbc4) et la branche : empreinte de la chronique,
+des mesures, de l'état final complet (`monde.data`), du récit, des empreintes du banc (minutes 5,
+60, 120, 240, 480 et issue), nombre de recherches et de nœuds examinés. Tout est identique sur 32 nuits (4 scénarios × graines
+1985, 7, 42 et 2024 × départ tiré et fixe), puis de nouveau sur les 16 nuits tirées d'une seconde
+passe.
+`VERIFIER` (chaque résultat repris de la mémoire, du graphe ou cherché parmi ce qu'il vaut la peine de
+porter, refait par une recherche complète) et `spatial.VERIFICATION` (chaque lecture mémorisée de la
+perception recomparée, l'état d'un bloc figé contrôlé) passent sur 16 nuits (4 scénarios × graines 42 et 7 × départ tiré et fixe). Cas réels après
+rechargement (`tests/test_planif_cout.py`) : Lucien au grenier noir (le graphe gardé à la deuxième
+recherche, repris à la troisième, égal à une recherche complète ; 30 minutes de vie, même monde avec
+ou sans graphe) et, de même nature, Odon affamé à la mine (même monde avec ou sans graphe).
+
+Temps d'une nuit de 8 h au processeur (`process_time`), moyenne par nuit, `main` → branche, lancés
+ensemble, 8 processus à la fois sur une machine que d'autres travaux chargeaient aussi (16 fils) ;
+départ tiré : 4 graines, 2 passes ; départ fixe : 1 passe. Entre parenthèses, le planificateur (somme
+des durées des recherches, `--diagnostic`) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| départ tiré | 14,5 → 9,2 s (4 → 1,4) | 57,3 → 31,7 s (33,7 → 14,9) | 62 → 26,4 s (36,2 → 9,4) | 15,3 → 10,5 s (3,2 → 1,8) |
+| départ fixe | 16,2 → 9,9 s (4,9 → 1,9) | 44,2 → 27,6 s (19 → 10,3) | 54,1 → 25,4 s (29,1 → 9,3) | 15,4 → 10,8 s (2,1 → 1,3) |
+| rapport (tiré) | × 1,58 | × 1,81 | × 2,35 | × 1,45 |
+
+Le planificateur passe de 58 % à 36 % d'une nuit à l'auberge, de 59 % à 47 % à la mine. Les valeurs
+absolues dépendent de la charge (à 4 processus, graine 42 : auberge 44,1 → 19,6 s, mine 49,5 →
+24,5 s) ; les rapports restent. Nuit la plus lourde, la mine graine 7 (départ tiré, 2 passes) :
+70 → 43,4 s, dont le planificateur 44,3 → 24,7 s, presque tout en recherches neuves (ci-dessous).
+
+**Après fusion de `main` 5861f71** (`pnj-lumiere-garde` et ses nouvelles lectures : `moyen_du_but`, le
+porteur à chercher, `demander_feu`, la part promise attendue, `apport_cru` dans `_entrees`, `GARDE`
+sur un bien menacé). La part promise passe dans `_parts` ; un objet cru dans une autre salle n'offre
+toujours qu'une part (chercher son porteur suppose de ne pas savoir où il est, demander du feu suppose
+de porter la source) ; `gestes` ne lit toujours ni le prix d'une faute ni celui d'abîmer (seulement
+s'il envisage d'abîmer, dans la clé du graphe). Preuve refaite contre ce `main` : empreintes
+identiques sur 32 nuits (4 scénarios × 4 graines, départ tiré et fixe), `VERIFIER` et
+`spatial.VERIFICATION` sur une nuit de chaque scénario (graine 42). Temps au processeur, priorité
+réduite, 4 processus au plus (2 graines par côté à la fois), `main` → branche :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| départ tiré | 11,7 → 7,2 s (3 → 1,2) | 70 → 39,5 s (43,2 → 19,6) | 47,3 → 24,2 s (22,4 → 8) | 12,6 → 9 s (2,9 → 1,7) |
+| départ fixe | 11,7 → 7,6 s (3,1 → 1,2) | 36,5 → 24,7 s (16,7 → 10) | 42,8 → 22,3 s (22 → 8,6) | 15,2 → 10,6 s (4,4 → 2,4) |
+| rapport (tiré) | × 1,63 | × 1,77 | × 1,95 | × 1,40 |
+
+Limites :
+- une recherche neuve coûte toujours ~100 µs par état développé : la mine, graine 7, en fin de nuit,
+  refait à chaque minute deux recherches de 4 000 nœuds pour Josse (sa croyance sur la place d'un
+  autre change) ; aucune reprise partielle n'est sûre, presque chaque geste (une part, une demande)
+  lisant la place des autres ;
+- le graphe n'est repris que si seuls le prix d'une faute ou celui d'abîmer ont changé ; une croyance
+  nouvelle, même sans rapport avec le but, refait tout. Toute lecture nouvelle de la recherche entre
+  dans `_entrees` (comme avant) et `gestes` ne lit pas ces deux prix ;
+- mémoire : les graphes gardés (un par PNJ et par but, remplacé quand les entrées changent) ;
+  à la mine (graine 7) la fin de nuit est égale à `main`, le pic passe de 30 à 59 Mo ;
+- la perception reste le plus gros poste hors du planificateur (un tiers d'une nuit) : chaque PNJ
+  revoit tout ce qu'il croit après chaque événement.
