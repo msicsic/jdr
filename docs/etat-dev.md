@@ -545,28 +545,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aussi ce qu'il apporte. **L'attente** (`deliberation._classer`, `attentes`) : un besoin dont chaque
   recours a été essayé sans plan attend, sans être oublié ; le banc distingue
   `minutes_urgentes_en_attente` (aucun plan sur ce qu'il croit) de `minutes_urgentes_sans_recours`
-  (un plan possible, non entrepris). Correctif commun révélé : la lueur d'une salle voisine ne fait
-  plus croire éclairée la salle où l'on se tient (`esprits._percevoir` ; alternances lumière ↔ abri à
-  l'auberge 15,75 → 0 par nuit). Cas vérifiés après rechargement (`tests/test_dynamique_besoins.py`) :
+  (un plan possible, non entrepris) et des pulsions confiées (`depart-tire`) : chaque PNJ oisif dans
+  une seule catégorie. Correctif commun révélé, accordé avec la croyance à niveaux de
+  `planif-defauts` en une seule règle (`esprits.constater_lumiere`) : sur place, il juge à la lumière
+  de sa case, lueur voisine comprise (`niveau`, chance du crochetage) ; de loin, à ce que la salle
+  tient de ses propres sources (`propre`, `eclairee`, `deliberation.lumiere_crue`) : le seuil d'une
+  salle obscure ne la fait plus croire éclairée (alternances lumière ↔ abri à l'auberge 15,75 → 0
+  par nuit). Cas vérifiés après rechargement (`tests/test_dynamique_besoins.py`) :
   Lucien rapporte la lanterne de l'étable au grenier et y reste (5 changements de salle) ; Bram
   (mine) prend la lampe du filon et revient garder la paie ; sans lumière à emporter, le plus fort
   l'emporte et l'autre besoin attend ; le devoir de Gorm attend puis reprend ; la faim refusée attend
-  puis redemande. Bancs 8 h contre `main` 789be7a (Relais 8 graines, autres 4) : minutes sans recours
-  Relais 294 → 71, mine 463 → 84, auberge 690 → 126, crue 445 → 33, le reste passe en attente
-  (oisives totales égales à 2 % près) ; événements et échanges égaux ou en hausse (auberge, échanges
-  31,75 → 35) ; va-et-vient entre deux besoins Relais 6,6 → 5,5, mine 8,25 → 3,5, auberge 4,5 →
-  2,25, crue 4 → 0,5 ; vols vus égaux (crue 0 → 0,5) ; aucune usurpation ni violation ; `VERIFIER`
-  sur une nuit de chaque scénario. Temps d'une nuit (`main` et branche lancés ensemble) : Relais
-  6,8 → 6,6 s, mine 22,3 → 24,8 s, auberge 18,3 → 23,1 s, crue 7,7 → 8 s ; aucun élagage exact
-  trouvé pour l'auberge (Lucien refait chaque minute une recherche `garder` que la mémoire ne reprend
-  pas, le prix d'une faute variant avec la détresse). Limites : `GARDE` est une constante du moteur ;
-  seuls le noir et la garde coûtent par minute ; un besoin apaisé sans être comblé monte jusqu'à
-  seuil + 15 (Ilse, au Relais, hésite deux fois entre l'abri et le brasero) ; la peur du noir ne
-  s'émousse pas ; pas de migration, le champ `urgences` vient par défaut. Les échecs de
+  puis redemande (scènes en départ fixe). Bancs 8 h, départ tiré, contre `main` 87c1ed5 (Relais 8
+  graines, autres 4, lancés ensemble) : minutes sans recours Relais 117 → 53, mine 369 → 56, auberge
+  665 → 68, crue 81 → 45, le reste passe en attente (oisives totales égales à 2 % près, confiées
+  inchangées) ; événements égaux ou en hausse, échanges égaux sauf l'auberge 20,25 → 23,75 ;
+  va-et-vient entre deux besoins Relais 8,25 → 8,1, mine 13 → 6, auberge 19,25 → 2,25 (le cas réel de
+  Lucien, revenu au banc avec le départ tiré : 70 → 3 en quatre nuits), crue 4,75 → 5,5 (les rondes
+  de Gorm) ; vols vus égaux (Relais 0,9 → 1, crue 0,5 → 0,75) ; aucune usurpation ni violation ;
+  `VERIFIER` sur une nuit de chaque scénario. Temps d'une nuit (`main` et branche lancés ensemble) :
+  Relais 4,8 → 5 s, mine 16,6 → 17,2 s, auberge 18,7 → 21,1 s, crue 6,6 → 6,8 s ; aucun élagage
+  exact trouvé pour l'auberge (Lucien refait chaque minute une recherche `garder` que la mémoire ne
+  reprend pas, le prix d'une faute variant avec la détresse). Limites : `GARDE` est une constante du
+  moteur ; seuls le noir et la garde coûtent par minute ; un besoin apaisé sans être comblé monte
+  jusqu'à seuil + 15 (au départ fixe, Ilse hésitait deux fois entre l'abri et le brasero) ; la peur
+  du noir ne s'émousse pas ; Odon, qui sait crocheter la porte du bureau, y fait fuir Bram (le test
+  de Bram le rend honnête) ; pas de migration, le champ `urgences` vient par défaut. Les échecs de
   `tests/test_tui.py` (« La TUI n'est pas redevenue disponible ») viennent de la charge de la machine
   (attente bornée à 5 s) : les mêmes cinq échouent sur `main` sous charge, tous passent au calme sur
   les deux.
-- La suite de tests passe : NNN tests, sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 985 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

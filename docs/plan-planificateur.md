@@ -389,66 +389,76 @@ Cas vérifiés après rechargement (`tests/test_dynamique_besoins.py`) :
 - Le devoir de Gorm sans tâche possible attend, puis reprend à la ronde échue ; la faim refusée
   attend, puis redemande quand le refus a vieilli.
 
-**La lueur d'une salle voisine** (`esprits._percevoir`, correctif commun révélé en route). La
-croyance « salle éclairée » ne compte plus une lueur venue d'une salle voisine (contribution sans
-`source`) : au seuil de la cuisine de l'auberge, Joss, Tilo et Mathurine croyaient la cuisine
-éclairée, s'y abritaient, s'y trouvaient dans le noir, et repartaient chercher la lumière à chaque
-minute (alternances lumière ↔ abri par nuit : 15,75 sur la branche avant ce correctif, 0 après ;
-`main` 0,5).
+**La lumière d'une salle, une seule règle** (`esprits.constater_lumiere`, `deliberation.lumiere_crue`).
+Correctif révélé en route, accordé avec la croyance à niveaux de `planif-defauts`. Ce qu'il constate
+là où il se tient garde deux choses : `niveau`, la lumière de sa case, lueur d'une salle voisine
+comprise (sa chance au crochetage est celle du jet) ; `propre` (et `eclairee`, `propre` > 0), ce que
+la salle tient de ses propres sources. Sur place, il juge à `niveau` ; de loin, à `propre` : la lueur
+d'une autre salle n'éclaire que les cases où elle entre. Sans cela, au seuil de la cuisine de
+l'auberge, Joss, Tilo et Mathurine croyaient la cuisine éclairée, s'y abritaient, s'y trouvaient
+dans le noir et repartaient chercher la lumière à chaque minute (alternances lumière ↔ abri par
+nuit : 15,75 sur la branche avant ce correctif, 0 après ; `main` d'alors 0,5).
 
-Bancs (8 h ; Relais 8 graines 1985 7 42 2024 3 11 99 500 `--joueur chambre_cloche`, mine, auberge et
-crue 4 graines 1985 7 42 2024 ; `main` 789be7a → `besoins`, moyennes par nuit) :
+Bancs (8 h, départ tiré ; Relais 8 graines 1985 7 42 2024 3 11 99 500 `--joueur chambre_cloche`, mine,
+auberge et crue 4 graines 1985 7 42 2024 ; `main` 87c1ed5 → `besoins`, moyennes par nuit ; `main` et
+la branche lancés en même temps). Chaque PNJ oisif et pressé compte dans une seule catégorie : sans
+recours, en attente, ou confiée (une pulsion confiée à qui l'on croit fiable, `depart-tire`).
 
 | | Relais | Mine | Auberge | Crue |
 |---|---|---|---|---|
-| sans recours | 293,75 → 71,25 | 462,5 → 83,75 | 690 → 126,25 | 445 → 32,5 |
-| en attente (nouvelle mesure) | → 225 | → 372,5 | → 583,75 | → 396,25 |
-| urgentes oisives (total) | 296,25 → 296,25 | 792,5 → 786,25 | 1016,25 → 1026,25 | 445 → 428,75 |
-| événements | 31,9 → 32,9 | 43,5 → 42,75 | 47,75 → 49,25 | 32,75 → 34 |
-| échanges | 16,1 → 17,9 | 34 → 35 | 31,75 → 35 | 18,25 → 21,75 |
-| va-et-vient (A, B, A < 30 min) | 6,6 → 5,5 | 8,25 → 3,5 | 4,5 → 2,25 | 4 → 0,5 |
-| vols vus | 1 → 1 | 0,75 → 0,75 | 1 → 1 | 0 → 0,5 |
+| sans recours | 116,9 → 53,1 | 368,75 → 56,25 | 665 → 67,5 | 81,25 → 45 |
+| en attente (nouvelle mesure) | → 67,5 | → 306,25 | → 622,5 | → 52,5 |
+| confiées | 171,9 → 163,1 | 0 → 0 | 0 → 0 | 266,25 → 261,25 |
+| urgentes oisives (total) | 289,4 → 284,4 | 681,25 → 680 | 960 → 975 | 351,25 → 362,5 |
+| événements | 30 → 31,1 | 45,5 → 44,5 | 43,75 → 46,5 | 34,25 → 34,75 |
+| échanges | 11,4 → 11 | 27,75 → 27,75 | 20,25 → 23,75 | 10,75 → 11,75 |
+| va-et-vient (A, B, A < 30 min) | 8,25 → 8,1 | 13 → 6 | 19,25 → 2,25 | 4,75 → 5,5 |
+| vols vus | 0,9 → 1 | 0,75 → 0,75 | 0,5 → 0,5 | 0,5 → 0,75 |
 | usurpations, violations | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
 
-Les minutes urgentes oisives restent les mêmes : ce qui change, c'est qu'on sait pourquoi. Presque
-toutes étaient des besoins sans aucun plan sur ce qu'il croit (en attente) ; il reste comme « sans
-recours » les renoncements après une occasion guettée en vain. Va-et-vient : à la mine, Lucien entre
-l'abri et le repos 6 → 0,75 ; à l'auberge, Anselme 4,5 → 2 ; à la crue, Ilse entre l'abri et le feu
-3,75 → 0,25 ; au Relais, le marchand 6,6 → 4,4, mais Ilse 0 → 1,1 : sur trois nuits (7, 2024, 500),
-son froid, apaisé vers la minute 60 (repassé sous 70 sans descendre sous 55), ne presse de nouveau
-qu'à 85 (`REPRISE`) ; vers la minute 188 elle quitte l'abri pour le brasero, la sécurité (encore 70,
-seuil 60) la ramène à l'abri, puis le froid l'emporte et elle se chauffe jusqu'à 25 (sur `main`, son
-froid restait vers 20 à ces heures). Crue : un vol vu de plus en deux nuits sur quatre (1985, 2024), avec confidences et
-méfiances, et des minutes dans l'eau 331 → 371. `VERIFIER` sur une nuit (graine 42) de chaque
-scénario.
+Les minutes urgentes oisives restent les mêmes : ce qui change, c'est qu'on sait pourquoi. La plupart
+des « sans recours » étaient des besoins sans aucun plan sur ce qu'il croit (en attente) ; restent
+les renoncements après une occasion guettée en vain. Va-et-vient : avec le départ tiré, le cas réel de
+Lucien revient au banc de l'auberge sur `main` (70 en quatre nuits, entre le grenier et la lumière),
+3 sur la branche ; à la mine, Lucien 8 → 1,25 et Odon 4,25 → 3,25 ; au Relais et à la crue, ce sont
+les rondes de Gorm entre deux gardes (marchand 7,5 → 7,25 au Relais, 4,25 → 5,25 à la crue), un
+devoir que la branche ne change pas. Crue : un vol vu de plus (graine 7), minutes dans l'eau 492,5 →
+476,25. `VERIFIER` sur une nuit (graine 42) de chaque scénario.
 
-Temps de calcul (une nuit par processus, `main` et `besoins` lancés ensemble, moyenne des 4 graines,
-`--diagnostic`) : Relais 6,8 → 6,6 s, mine 22,3 → 24,8 s, auberge 18,3 → 23,1 s, crue 7,7 → 8,0 s. À
-l'auberge, la part du planificateur passe de 6,3 à 11 s : les recherches `garder` (2 s par nuit) et
-le surcoût de `GARDE`, qui renchérit chaque minute loin de ses biens et élargit d'autant les autres
-recherches de qui garde (Lucien, `placer:ballot` : 10 200 → 17 600 nœuds sur la graine 1985). Le
-cas le plus lourd : Lucien au grenier noir refait chaque minute une recherche `garder` d'environ 450
-nœuds (tout ce qu'il pourrait faire pour moins que les 30 minutes de noir qu'il endurerait), sans
-que la mémoire du planificateur la reprenne, parce que le prix d'une faute varie avec la détresse
-de ses biens à chaque minute et que la lanterne à rapporter est à autrui. Aucun élagage exact n'a
-été trouvé : ne retenir le prix d'une faute que quand un geste fautif s'est présenté ne reprend
-presque rien (la lanterne est fautive), et une borne inférieure du retour (A*) changerait l'ordre
-entre plans de même coût, donc les nuits.
+Premier banc, départ fixe, contre `main` 789be7a : sans recours 294 → 71, 463 → 84, 690 → 126, 445 →
+33 ; va-et-vient 6,6 → 5,5, 8,25 → 3,5, 4,5 → 2,25, 4 → 0,5. Au Relais, Ilse y hésitait deux fois
+entre l'abri et le brasero sur trois nuits (froid apaisé sans être comblé, voir les limites) ; le
+départ tiré ne le reproduit plus.
+
+Temps de calcul (une nuit par processus, départ tiré, `main` et `besoins` lancés ensemble, moyenne des
+4 graines, `--diagnostic`) : Relais 4,8 → 5 s, mine 16,6 → 17,2 s, auberge 18,7 → 21,1 s, crue
+6,6 → 6,8 s. À l'auberge, la part du planificateur passe de 9 à 10,9 s : les recherches `garder`
+(1,9 s par nuit) et le surcoût de `GARDE`, qui renchérit chaque minute loin de ses biens et élargit
+d'autant les autres recherches de qui garde. Le cas le plus lourd (départ fixe, graine 1985) :
+Lucien au grenier noir refait chaque minute une recherche `garder` d'environ 450 nœuds (tout ce
+qu'il pourrait faire pour moins que les 30 minutes de noir qu'il endurerait), que la mémoire du
+planificateur ne reprend pas : le prix d'une faute varie avec la détresse de ses biens à chaque
+minute, et la lanterne à rapporter est à autrui. Aucun élagage exact n'a été trouvé : ne retenir le
+prix d'une faute que quand un geste fautif s'est présenté ne reprend presque rien (la lanterne est
+fautive), et une borne inférieure du retour (A*) changerait l'ordre entre plans de même coût, donc
+les nuits.
 
 Limites :
-- sur `main`, Lucien ne va-et-vient plus au banc (il force le coffre d'Anselme) : le cas réel est
-  rejoué en placement d'auteur ; au banc de l'auberge, Anselme revient de la lumière quand il entend
-  forcer son coffre (un bruit à aller voir, légitime) ;
+- le cas réel de Lucien est aussi rejoué en placement d'auteur (départ fixe) ; au banc de l'auberge,
+  Anselme revient de la lumière quand il entend forcer son coffre (un bruit à aller voir, légitime) ;
 - `GARDE` est une constante du moteur, pas encore une valeur du profil ; un méfiant près de ses
   biens ne pèse pas sur la garde : à la mine, Bram revenu avec la lampe part s'abriter quand Odon,
-  dont il se méfie, entre au bureau (méfiance et compagnie l'emportent sur `GARDE`) ;
+  dont il se méfie, entre au bureau (méfiance et compagnie l'emportent sur `GARDE`) ; depuis que la
+  porte du bureau se crochète (`planif-defauts`), Odon y vient pour la paie : le test de Bram le
+  rend honnête pour isoler la garde ;
 - seuls le noir et la garde ont un coût par minute ; le froid, la compagnie et la méfiance n'entrent
   que dans le gain de l'abri ; se chauffer compte le séjour sans l'endurer ;
 - au Relais, Gorm demande les planches d'Aubin plutôt que d'aller chercher son bois à la crypte
   (s'éloigner du refuge coûte `GARDE`) : cohérent avec la règle, à signaler ;
-- la croyance « salle éclairée » se forme toujours à la case où il se tient, sans la lueur voisine ;
+- la lumière d'une salle se constate à la case où il se tient : une salle aux sources inégales se
+  juge de loin à ce qu'il en a vu de sa case ;
 - la peur du noir ne s'émousse pas avec le temps passé ;
 - un besoin apaisé sans avoir été comblé (repassé sous son seuil sans descendre à seuil − `REPRISE`)
-  ne presse de nouveau qu'à seuil + `REPRISE` : Ilse au Relais laisse monter son froid jusqu'à 85,
-  puis hésite deux fois entre l'abri et le brasero ;
-- le planificateur coûte plus à qui garde ses biens (auberge +26 % de temps par nuit, ci-dessus).
+  ne presse de nouveau qu'à seuil + `REPRISE` (au départ fixe, Ilse au Relais laissait monter son
+  froid jusqu'à 85, puis hésitait deux fois entre l'abri et le brasero) ;
+- le planificateur coûte plus à qui garde ses biens (auberge +13 % de temps par nuit, ci-dessus).
