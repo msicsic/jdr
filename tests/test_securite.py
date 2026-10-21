@@ -73,7 +73,8 @@ class RessentirTests(unittest.TestCase):
         niveau, _ = parvenu(propager(m, "antichambre", (3, 4), INTENSITES["appel"]), o["lieu"], tuple(o["position"]))
         Moteur(m).executer(Moteur(m).preparer(sequence(etape("emettre_son", "joueur", methode="cri"))))
         m = recharger(m)
-        self.assertIn("son", [s["type"] for s in lire(m, "marchand")["memoire"]])
+        # Un seul souvenir de ce qu'il entend : le bruit de l'ouïe commune, plus de « son » à part.
+        self.assertNotIn("son", [s["type"] for s in lire(m, "marchand")["memoire"]])
         self.assertIn("antichambre", [s["salle"] for s in lire(m, "marchand")["memoire"] if s["type"] == "bruit"])
         self.assertGreaterEqual(lire(m, "marchand")["besoins"]["securite"],
                                 avant + SECURITE["bruit"] * niveau / INTENSITES["appel"] - 1)

@@ -751,7 +751,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   toujours ~100 µs par état (mine graine 7 : Josse, deux recherches de 4 000 nœuds par minute en fin de
   nuit) ; une croyance nouvelle refait tout ; pic de mémoire 30 → 59 Mo (mine, graine 7) ; la
   perception reste un tiers d'une nuit.
-- La suite de tests passe : 1092 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `ouie-commune`, non fusionnée (`docs/plan-ouie.md`, « L'ancien son fondu dans l'ouïe
+  commune ») : appel à l'aide, cri, sifflement du joueur, son d'un objet (selon sa sonorité,
+  `ouie.SONS`) et son improvisé retentissent par l'ouïe commune ; `sons.portee`, l'humeur forcée, le
+  souvenir `son`, `esprits.entendre` et `pnj.reagir` disparaissent. Un appel porte la voix : qui la
+  connaît sait qui crie. Le réflexe déclaré devient le seuil d'alerte du profil (`alerte`, en crans) :
+  un bruit à ce niveau, ou l'appel reconnu d'un protégé, envoie voir avant tout le reste
+  (`deliberation.alarme`, but `voir`) ; Hugues migré (`reaction_son` 2 → `alerte` 3). L'appelé se
+  tourne vers la voix ; la réponse au joueur hélant se décide à la fin de ses 3 secondes. Bancs
+  contre `main` : Relais et crue mêmes nuits (l'appelé se tourne vers la voix) ; mine, les protecteurs
+  de Lucien accourent par le but « voir » (allés voir 13,75 → 18,25) ; auberge, Hugues 68 → 54 « va
+  voir », sans recours 43,8 → 30 ; aucune usurpation ni violation ; `VERIFIER` sur une nuit de chaque
+  scénario. Limites : un personnage sans profil retient le bruit sans réagir ; seuil d'alerte
+  constant ; l'appelé d'une autre salle se tourne vers le seuil.
+- La suite de tests passe : 1098 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
@@ -764,8 +777,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   caractères, valeurs, relations, lire les autres, contrainte et groupes (`docs/plan-social.md`).
   Faits : temps fin et orientation, jeu dans le navigateur, caractères et valeurs (sans
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
-  l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
-  déclarés et le souvenir « son » dans l'ouïe commune.
+  l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; les réflexes déclarés et le
+  souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
   `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
   besoin que rien n'apaise (le devoir reste urgent une fois franchi son seuil ; il attend désormais

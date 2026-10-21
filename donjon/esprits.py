@@ -81,10 +81,7 @@ def installer(monde):
             e["voix"] = sorted(x for x, attributs in e["croyances"].items() if x in personnages and x != id
                                and any(c.get("source") == "savoir" for c in attributs.values()))
         o = monde.objets[id]
-        # Anciennes parties : le dernier son et le trajet deviennent mémoire et intention.
-        son = o.pop("dernier_son_entendu", None)
-        if son and not any(s["type"] == "son" for s in e["memoire"]):
-            e["memoire"].append({"type": "son", **son})
+        # Anciennes parties : le trajet devient intention.
         trajet = o.pop("trajet", None)
         if trajet and e["intention"] is None:
             e["intention"] = {"but": {"type": "rejoindre", "lieu": trajet["vers"]}}
@@ -226,16 +223,10 @@ def memoriser(monde, id, evenement):
 
 
 def dernier_son(monde, id):
-    sons = [s for s in lire(monde, id)["memoire"] if s["type"] == "son"]
-    return {k: v for k, v in copy.deepcopy(sons[-1]).items() if k not in ("type", "niveau")} if sons else None
-
-
-def entendre(monde, id, evenement, niveau):
-    """Un PNJ entend un son émis (un appel, un cri, le son d'un objet) : souvenir, puis réflexe
-    déclaré s'il y en a un. Ce que le bruit lui fait craindre relève de l'ouïe commune (``ouie``)."""
-    memoriser(monde, id, {"type": "son", **{k: v for k, v in evenement.items() if k != "auditeurs"}, "niveau": niveau})
-    from .pnj import reagir
-    reagir(monde, id, evenement["origine"], niveau, evenement.get("auteur"))
+    """Le dernier bruit qu'il a entendu sans en voir la cause, tel que l'ouïe commune le retient
+    (``ouie._bruit_inconnu`` : un souvenir par lieu) : {minute, salle, nature, niveau[, qui]} ; None."""
+    sons = [s for s in lire(monde, id)["memoire"] if s["type"] == "bruit"]
+    return {k: v for k, v in copy.deepcopy(sons[-1]).items() if k != "type"} if sons else None
 
 
 def _porteur(monde, o):

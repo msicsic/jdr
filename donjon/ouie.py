@@ -58,13 +58,20 @@ NATURES = {
                      "inspecter", "reposer", "chauffer", "abriter"), None),
     **dict.fromkeys(("aller", "marcher", "chasser"), "pas"),
     **dict.fromkeys(("faufiler", "toucher", "chuchoter"), "feutre"),
-    **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "demander_feu", "sifflement"), "voix"),
-    **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle"), "bruyant"),
+    **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "demander_feu"), "voix"),
+    # Un sifflement porte loin et ne dit rien : inhabituel comme un fracas.
+    **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle",
+                     "sifflement"), "bruyant"),
     # Héler quelqu'un par son nom est un cri : même portée qu'un appel ; ce sont les mots qui
     # l'en distinguent, pour qui les saisit (``entendre``).
     "heler": "hele",
+    # Un appel à l'aide, un cri : la voix à pleine force, sans mots qu'on saisisse ; qui connaît
+    # cette voix sait qui crie (``entendre``).
     **dict.fromkeys(("appel", "cri"), "appel"),
 }
+# Le son d'un objet (une cloche, ``sonorite``) ou un son improvisé, selon son intensité déclarée (1 à
+# 3) : un tintement comme un geste, un son franc comme un fracas, une cloche d'alarme comme un appel.
+SONS = {1: "geste", 2: "bruyant", 3: "appel"}
 FRACAS = 3             # l'arbitrage du bruit d'un geste du joueur (0 à 3) : 3 est un fracas
 PALIERS = (1, 3, 6, 12, 24)    # cases : chaque palier dépassé coûte un cran
 OUVERTURE = 1          # crans perdus en passant une ouverture
@@ -247,10 +254,11 @@ def s_entendent(monde, a, b):
     return saisit(monde, a, b) and saisit(monde, b, a)
 
 
-def entend(monde, auteur, auditeur, geste="dire"):
+def entend(monde, auteur, auditeur, geste="dire", force=None):
     """Le niveau auquel le PNJ ``auditeur`` entend, ici et maintenant, le geste d'``auteur`` (un PNJ
-    ou le joueur) ; None s'il ne l'entend pas (sous son seuil, ou trop loin)."""
-    n = nature(geste)
+    ou le joueur) ; None s'il ne l'entend pas (sous son seuil, ou trop loin). ``force`` : la nature
+    du bruit, comme pour ``retentir``."""
+    n = force or nature(geste)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"] or not monde.objets[auditeur].get("entend", True):
         return None
@@ -258,18 +266,20 @@ def entend(monde, auteur, auditeur, geste="dire"):
     return parvient[0] if parvient is not None and parvient[0] >= seuil(monde, auditeur) else None
 
 
-def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=()):
+def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
     l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :
     ses destinataires, contenu : ce qu'elle transmet, typé}) est retenue par ceux qui en saisissent
     les mots sans en être les destinataires (``social.retenir_parole``). ``vers`` : à qui s'adressent
-    des mots qui ne transmettent rien (héler quelqu'un) ; le joueur s'en sert pour relier les voix
-    d'un échange (``ecoute.lier``). Renvoie ceux qui se sont retournés."""
-    n = nature(geste, discret, bruit)
+    des mots qui ne transmettent rien (héler quelqu'un) : l'appelé qui les saisit se tourne vers la
+    voix (``entendre``) ; le joueur s'en sert pour relier les voix d'un échange (``ecoute.lier``).
+    ``force`` : la nature du bruit, quand elle ne tient pas au geste (le son d'un objet, ``SONS``).
+    Renvoie ceux qui se sont retournés."""
+    n = force or nature(geste, discret, bruit)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
         return []
-    from .esprits import pnjs
+    from .esprits import percoit as percoit_, pnjs
     from .temps import instant
     entrees = propager(monde, salle, case, INTENSITES[n])
     t = instant(monde)
@@ -279,14 +289,20 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     retournes, temoins = [], []
     for id in pnjs(monde):
         o = monde.objets[id]
-        if id == auteur or not o.get("profil") or not o.get("entend", True) or o["lieu"] not in entrees:
+        if id == auteur or not o.get("entend", True) or o["lieu"] not in entrees:
             continue
         parvient = parvenu(entrees, *_place(monde, id))
         if parvient is None:
             continue
+        if not o.get("profil"):
+            # Sans profil, il ne délibère pas : il retient seulement ce qu'il entend sans le voir.
+            if n not in HABITUELS and parvient[0] >= seuil(monde, id) and not percoit_(monde, id, auteur):
+                _retenir_seulement(monde, id, salle, n, parvient[0])
+            continue
         if parole is not None and id not in parole["a"] and mots_saisis(monde, id, parvient[0]):
             temoins.append(id)
-        if parvient[0] >= seuil(monde, id) and entendre(monde, id, auteur, salle, case, n, t, parvient[0]):
+        if parvient[0] >= seuil(monde, id) and entendre(monde, id, auteur, salle, case, n, t, parvient[0],
+                                                        vises=vers, par=parvient[1]):
             retournes.append(id)
     if temoins:
         from .social import retenir_parole
@@ -374,7 +390,7 @@ def _attribuer(monde, id, crus, salle, case):
            case=list(case) if case is not None else c.get("case"))
 
 
-def _se_tourner(monde, id, case, t):
+def _se_tourner(monde, id, case, t, texte=" se retourne au bruit."):
     """Il se tourne vers le bruit : la rotation retarde la fin de son geste en cours ; ce qu'il
     voit alors devient croyance, et l'auteur d'un geste illicite en cours, un témoignage."""
     from .esprits import esprit, percevoir
@@ -389,7 +405,7 @@ def _se_tourner(monde, id, case, t):
     e["libre"] = max(e["libre"], t) + QUART * quarts(o.get("orientation"), vers)
     o["orientation"] = vers
     percevoir(monde, id)
-    _chroniquer(monde, id, designer(o, debut=True) + " se retourne au bruit.", "ouie")
+    _chroniquer(monde, id, designer(o, debut=True) + texte, "ouie")
     temoigner_en_cours(monde)
     return True
 
@@ -417,8 +433,23 @@ def parcouru(monde, id, salle):
     return attendu
 
 
-def _bruit_inconnu(monde, id, salle, n, niveau):
-    """Un bruit vers ce lieu, dont il ne sait rien : un souvenir par lieu, qui l'inquiète."""
+def _retenir_seulement(monde, id, salle, n, niveau):
+    """Un personnage sans profil ne délibère pas (ni inquiétude, ni aller voir) : il retient le bruit
+    inhabituel qu'il a entendu sans le voir, le plus fort par lieu, ce que le MJ lit de lui
+    (``esprits.dernier_son``)."""
+    from .esprits import esprit, memoriser
+    memoire = esprit(monde, id)["memoire"]
+    anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
+    memoire[:] = [s for s in memoire if not any(s is a for a in anciens)]
+    memoriser(monde, id, {"type": "bruit", "salle": salle,
+                          "nature": max([n, *(s["nature"] for s in anciens)], key=INTENSITES.get),
+                          "niveau": max([niveau, *(s.get("niveau", niveau) for s in anciens)])})
+
+
+def _bruit_inconnu(monde, id, salle, n, niveau, qui=None):
+    """Un bruit vers ce lieu, dont il ne sait rien de plus : un souvenir par lieu, qui l'inquiète, avec
+    le plus fort niveau qui lui en est parvenu (``deliberation.alarme``) et, d'un appel dont il a
+    reconnu la voix, qui appelait."""
     from .deliberation import inquieter
     from .esprits import esprit, memoriser
     from .pnj import _chroniquer
@@ -434,16 +465,24 @@ def _bruit_inconnu(monde, id, salle, n, niveau):
         inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
     if not attente:
         _chroniquer(monde, id, f"{_qui(monde, id)} entend un bruit : {monde.data['salles'][salle]['nom']}.", "ouie")
-    # Tant qu'il ne l'a pas vu, il en retient le plus fort.
+    # Tant qu'il ne l'a pas vu, il en retient le plus fort, et qui appelait s'il l'a reconnu.
+    qui = qui or next((s["qui"] for s in reversed(attente) if s.get("qui")), None)
     memoriser(monde, id, {"type": "bruit", "salle": salle,
-                          "nature": max([n, *(s["nature"] for s in attente)], key=INTENSITES.get)})
+                          "nature": max([n, *(s["nature"] for s in attente)], key=INTENSITES.get),
+                          "niveau": max([niveau, *(s.get("niveau", niveau) for s in attente)]),
+                          **({"qui": qui} if qui else {})})
 
 
-def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL):
+def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=None):
     """Un PNJ entend le bruit d'``auteur`` et l'interprète selon ce qu'il croit ; vrai s'il s'est
-    retourné."""
-    from .esprits import lire, percoit
-    from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix
+    retourné. ``vises`` : ceux que l'auteur hèle ; ``par`` : la sortie de sa salle par où le bruit
+    lui arrive (None de la sienne).
+
+    Hélé par son nom, il en saisit les mots : il se tourne vers la voix (vers l'auteur dans sa salle,
+    vers le seuil par où elle arrive d'ailleurs), le temps de la rotation, et peut ainsi le voir. Un
+    appel ou un cri, sans mots, porte la voix : qui la connaît sait qui crie, et le croit là."""
+    from .esprits import croire, lire, percoit
+    from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix, reconnaitre
     o = monde.objets[id]
     ici = salle == o["lieu"] and case is not None and o.get("position") is not None
     mots = n in VOCALES and mots_saisis(monde, id, niveau)
@@ -451,28 +490,40 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL):
         if mots:
             connaitre(monde, id, auteur)  # Il le voit parler : il saura reconnaître sa voix.
         return False  # Il le voit faire : l'ouïe n'y ajoute rien d'autre.
+    retourne = False
+    if mots and n == "hele" and id in vises:
+        # Il entend son nom : il se tourne vers la voix, et voit peut-être qui l'appelle.
+        retourne = _vers_la_voix(monde, id, salle, case if ici else None, par, t)
+        if percoit(monde, id, auteur):
+            connaitre(monde, id, auteur)
+            return retourne
+    reconnu = None
     if mots:
         # Il en saisit les mots : une voix connue, il croit son porteur là d'où elle vient ; une voix
         # qui s'était nommée, celui qu'elle a dit être ; une voix inconnue n'est à personne qu'il
         # croie là (``voix.entendre``).
         _, certitude = entendre_voix(monde, id, auteur, salle, list(case) if ici else None)
         if certitude == PRETENDUE:
-            return False  # Une voix qu'il a déjà entendue se nommer : rien d'inquiétant.
+            return retourne  # Une voix qu'il a déjà entendue se nommer : rien d'inquiétant.
         crus = [auteur] if certitude == RECONNUE else []
     else:
         crus = _crus_la(monde, id, salle, case if ici else None)
+        if n == "appel" and niveau >= SEUIL and reconnaitre(monde, id, auteur)[1] == RECONNUE:
+            # Un cri porte la voix : il sait qui crie, et le croit là d'où vient le cri.
+            reconnu = auteur
+            croire(monde, id, auteur, "lieu", salle, "entendu", salle=salle,
+                   case=list(case) if ici else None)
     # Héler : qui en saisit les mots entend qu'on appelle quelqu'un, sans alarme.
     inhabituel = n not in HABITUELS and not (n == "hele" and mots)
     croyances = lire(monde, id)["croyances"]
     mefiance = any((croyances[x].get("fiable") or {}).get("valeur") is False for x in crus)
     if crus and not inhabituel and not mefiance:
         _attribuer(monde, id, crus, salle, case if ici else None)
-        return False
-    retourne = False
-    if ici and distance(case, o["position"]) <= PROCHE:
+        return retourne
+    if not retourne and ici and distance(case, o["position"]) <= PROCHE:
         from .spatial import dans_le_regard
         if not dans_le_regard(monde, salle, case, id):
-            retourne = _se_tourner(monde, id, case, t)
+            retourne = _se_tourner(monde, id, case, t) or retourne
             if percoit(monde, id, auteur):
                 if mots:
                     connaitre(monde, id, auteur)  # Il s'est tourné et le voit parler.
@@ -480,5 +531,22 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL):
     if crus and not inhabituel:
         _attribuer(monde, id, crus, salle, case if ici else None)  # Il le surveille, de loin.
     elif not (mots and n == "hele"):
-        _bruit_inconnu(monde, id, salle, n, niveau)
+        _bruit_inconnu(monde, id, salle, n, niveau, reconnu)
     return retourne
+
+
+def _vers_la_voix(monde, id, salle, case, par, t):
+    """Il se tourne vers la voix qui l'appelle : vers sa case dans sa salle, vers le seuil de la
+    sortie par où elle arrive d'une autre ; rien s'il la regarde déjà (ou sans cases). Vrai s'il
+    s'est tourné."""
+    from .spatial import _case_interieure, dans_le_regard
+    o = monde.objets[id]
+    if o.get("position") is None:
+        return False
+    cible = case
+    if cible is None:
+        sortie = monde.data["salles"][o["lieu"]]["sorties"].get(par) if par else None
+        cible = _case_interieure(monde, o["lieu"], sortie) if sortie else None
+    if cible is None or tuple(cible) == tuple(o["position"]) or dans_le_regard(monde, o["lieu"], tuple(cible), id):
+        return False
+    return _se_tourner(monde, id, cible, t, " se tourne vers la voix qui l'appelle.")

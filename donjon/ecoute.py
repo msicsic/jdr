@@ -25,24 +25,13 @@ ECHANGE = 600          # dixièmes de seconde : une parole et la réponse qui lu
 
 
 def appel(monde, id):
-    """Un appel à l'aide : il retentit comme tout geste ; les PNJ à portée l'entendent aussi comme un
-    son (``esprits.entendre``), et un protecteur accourt (``pnj.reagir``)."""
-    from .esprits import entendre, pnjs
+    """Un appel à l'aide : il retentit comme tout geste, par l'ouïe commune (``ouie``). Qui connaît
+    la voix sait qui appelle ; un protecteur qui reconnaît son protégé accourt (``deliberation.alarme``)."""
     from .ouie import retentir
     from .pnj import _chroniquer
     from .social import _qui
-    from .sons import VOIX, portee
-    salle = monde.objets[id]["lieu"]
     _chroniquer(monde, id, f"{_qui(monde, id)} appelle à l'aide.", "social")
     retentir(monde, id, "appel")
-    intensite = VOIX["appel"][2]
-    niveaux = portee(monde, salle, intensite)
-    evenement = {"minute": monde.data["minutes"], "origine": salle, "nature": "appel",
-                 "intensite": intensite, "auteur": id}
-    for autre in pnjs(monde):
-        o = monde.objets[autre]
-        if autre != id and o["lieu"] in niveaux and o.get("entend", True):
-            entendre(monde, autre, evenement, niveaux[o["lieu"]])
 
 
 def _a_la_porte(monde, par):

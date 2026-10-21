@@ -287,16 +287,19 @@ dans cette première version.
 sans appel au modèle ni jet de dés. Les formulations libres passent par Luna avec l'opération
 composable `emettre_son`. Un son coûte une minute et augmente le bruit.
 
-L'audition suit les connexions établies : perte d'un niveau par ouverture, de deux derrière
-une porte fermée. Les paliers reliés par un appui vertical transmettent aussi le son. Les
-lieux non reliés restent hors de portée ; il ne s'agit pas d'un calcul acoustique métrique.
-Les PNJ à portée gardent le son dans leur mémoire, sans révéler leur identité au joueur
-s'ils sont hors de sa perception. Le dernier son est fourni au dialogue lorsqu'on les rencontre.
-Un son ne fait réagir un PNJ que par une réaction déclarée dans l'état ; Luna n'affirme ni
-réponse ni arrivée que l'état n'établit pas. Un PNJ doté de `"reaction_son": {"seuil": n}`
-qui reçoit un son de niveau `n` ou plus prend l'intention de rejoindre son origine, exécutée
-par le moteur (voir « Perception et croyances des PNJ »). Son arrivée dans la perception du
-joueur est annoncée par le moteur (`donjon/pnj.py`).
+L'audition est l'ouïe commune (`donjon/ouie.py`, `docs/plan-ouie.md`), la même que pour les pas,
+les gestes et les voix : un appel à l'aide ou un cri porte comme un appel (9 crans), un sifflement
+comme un fracas (7), le son d'un objet selon sa sonorité (`ouie.SONS` : 1 un geste, 2 un fracas, 3
+un appel, la cloche d'alarme) ; la distance en cases, chaque ouverture (un cran) et chaque porte
+fermée (trois) l'atténuent, les paliers reliés par un appui vertical le transmettent. Qui l'entend
+sans voir le joueur en retient un bruit vers ce lieu (le dernier est fourni au dialogue, sans
+révéler l'identité des PNJ hors de sa perception) et s'en inquiète à la mesure de ce qui lui
+parvient ; un appel porte la voix, que reconnaît qui la connaît. Luna n'affirme ni réponse ni
+arrivée que l'état n'établit pas : un PNJ va voir par sa délibération (son devoir de garde, son
+courage, ou son seuil d'alerte, `profil["alerte"]`, en crans : un bruit qui lui parvient à ce niveau
+l'envoie voir avant tout le reste ; le protecteur qui reconnaît l'appel de son protégé accourt de
+même), exécutée par le moteur (voir « Perception et croyances des PNJ »). Son arrivée dans la
+perception du joueur est annoncée par le moteur (`donjon/pnj.py`).
 Sans réaction perceptible, la restitution est :
 « Tu cries à l'aide. Pour l'instant, aucune réponse ne te parvient. »
 
@@ -468,7 +471,8 @@ de crochetage ratée comprise) s'en souvient, cesse de croire l'auteur fiable et
 est la victime, voit ses biens relancés. Le moteur annonce au joueur ce qu'il perçoit et tient une `chronique` complète
 (300 entrées), réservée au débogage.
 
-Le réflexe `reaction_son` reste une intention `alerte` prioritaire jusqu'à son terme.
+Le réflexe déclaré `reaction_son` n'existe plus : le seuil d'alerte du profil fait aller voir par la
+délibération, avant tout le reste (`deliberation.alarme`).
 
 Le Relais déclare Gorm (honnête, devoir de rapporter la cloche délégué au joueur, d'entretenir
 le brasero de l'échoppe et de faire ses rondes au refuge et aux vannes, réserve de vivres

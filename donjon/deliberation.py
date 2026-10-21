@@ -83,7 +83,10 @@ def parts(o):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
-                          "reserve", "securite", "protege", "situation"}), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege", "situation", "alerte"}), "Profil de PNJ mal formé"
+    # Le seuil d'alerte, en crans de l'ouïe commune (``ouie.INTENSITES``) : un bruit inconnu qui lui
+    # parvient à ce niveau l'envoie voir sans attendre (``alarme``).
+    assert type(p.get("alerte", 0)) is int and -2 <= p.get("alerte", 0) <= 9, "Seuil d'alerte de PNJ invalide"
     verifier_situation(p.get("situation", {}))
     assert (isinstance(p.get("protege", []), list) and all(
         x in monde.objets and monde.objets[x]["type"] == "personnage" and x != id
@@ -501,6 +504,25 @@ def bruit_a_voir(monde, id):
         elif courageux and inhabituel:
             a_voir.append((s["salle"], "securite"))
     return next((x for x in a_voir if x[0] == en_cours), a_voir[0] if a_voir else None)
+
+
+def alarme(monde, id):
+    """(lieu, motif) d'un bruit inconnu, venu d'un autre lieu, qui l'envoie voir avant tout le reste,
+    comme une alarme : l'appel d'un protégé dont il a reconnu la voix (le protecteur accourt), ou un
+    bruit qui lui est parvenu au moins à son seuil d'alerte (``profil["alerte"]``, en crans de l'ouïe
+    commune ; plus bas pour un gardien). None sinon. Les autres bruits vont à ``bruit_a_voir``."""
+    from .ouie import resolu
+    p = profil(monde, id) or {}
+    e = lire(monde, id)
+    ici, alerte = monde.objets[id]["lieu"], p.get("alerte")
+    for s in reversed(e["memoire"]):
+        if s["type"] != "bruit" or s["salle"] == ici or resolu(monde, id, s):
+            continue
+        if s["nature"] == "appel" and s.get("qui") in p.get("protege", []):
+            return s["salle"], "devoir"
+        if alerte is not None and s.get("niveau", -99) >= alerte:
+            return s["salle"], "devoir"
+    return None
 
 
 def _plan_prevenir(monde, id):
@@ -982,10 +1004,13 @@ def candidats(monde, id):
     # presse et la parole due ; un bruit, ce qui ne presse pas et la routine attendent.
     if e["rejoint"]:
         buts.append(("rejoint", _plan_attendre, False))
-    # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine.
-    a_voir = bruit_a_voir(monde, id)
-    if a_voir:
-        from .planification import voir
+    # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine ; une
+    # alarme (l'appel d'un protégé, un bruit à son seuil d'alerte), avant tout le reste.
+    from .planification import voir
+    a_voir, alarme_ = bruit_a_voir(monde, id), alarme(monde, id)
+    if alarme_:
+        buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False))
+    if a_voir and a_voir != alarme_:
         buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False))
     # Ce dont il a la charge et qu'il voit rompu, il le rétablit sans attendre que son besoin
     # presse : un feu qui baisse, un protégé qui a faim, ce qu'il garde sous clé et a lui-même

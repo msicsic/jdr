@@ -14,7 +14,9 @@ from tests.support import simuler_couverture
 from donjon.monde import Monde, ErreurMonde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
-from donjon.sons import auditeurs, portee
+from donjon.esprits import dernier_son
+from donjon.ouie import parvenu, propager
+from donjon.sons import entendants
 
 
 def appel(mode="appel"):
@@ -51,7 +53,10 @@ class SonsTests(unittest.TestCase):
         texte = moteur.executer(moteur.preparer(appel()))
         self.assertNotIn("Gorm", texte)
         self.assertEqual(m.data["sons"][-1]["auditeurs"], ["marchand"])
-        self.assertEqual(m.objets["marchand"]["humeur"], "inquiet")
+        # Plus d'humeur forcée : il retient le bruit (l'ouïe commune), sans changer d'humeur.
+        self.assertEqual(m.objets["marchand"]["humeur"], "calme")
+        self.assertEqual({k: dernier_son(m, "marchand")[k] for k in ("salle", "nature")},
+                         {"salle": "antichambre", "nature": "appel"})
         self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "partie.json"
@@ -62,17 +67,19 @@ class SonsTests(unittest.TestCase):
         self.assertEqual(interlocuteurs(m)["marchand"]["dernier_son_entendu"]["nature"], "appel")
 
     def test_portes_attenuation_et_lieux_non_relies(self):
+        # L'ouïe commune : une ouverture coûte un cran, une porte fermée trois ; sourd, il n'entend rien.
         m = nouveau_monde()
-        self.assertEqual(portee(m, "crypte", 3)["antichambre"], 1)
-        self.assertNotIn("echoppe", portee(m, "crypte", 3))
+        self.assertEqual(parvenu(propager(m, "crypte", None, 9), "echoppe", None)[0], 5)
         m.objets["porte"]["ouverte"] = True
-        self.assertEqual(portee(m, "crypte", 3)["echoppe"], 1)
-        self.assertEqual(auditeurs(m, "crypte", 3), ["marchand"])
+        self.assertEqual(parvenu(propager(m, "crypte", None, 9), "echoppe", None)[0], 7)
+        m.joueur["salle"] = "crypte"
+        self.assertEqual(entendants(m, "appel"), ["marchand"])
         m.objets["marchand"]["entend"] = False
-        self.assertEqual(auditeurs(m, "crypte", 3), [])
+        self.assertEqual(entendants(m, "appel"), [])
         m = nouveau_atelier()
-        self.assertIn("terrasse", portee(m, "cour", 3))
-        self.assertNotIn("echoppe", portee(m, "cour", 3))
+        entrees = propager(m, "cour", None, 7)
+        self.assertIn("terrasse", entrees)
+        self.assertNotIn("echoppe", entrees)
 
     def test_pas_de_destination_forcee_et_source_vocale_verifiee(self):
         m = nouveau_atelier()

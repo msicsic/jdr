@@ -1,4 +1,4 @@
-"""Réactions déclarées des PNJ et horloges d'environnement, vérifiées après rechargement."""
+"""Réactions des PNJ sans profil et horloges d'environnement, vérifiées après rechargement."""
 import copy
 import io
 from pathlib import Path
@@ -28,72 +28,22 @@ def executer(monde, *propositions):
 
 
 class ReactionsTests(unittest.TestCase):
-    def test_gorm_alerte_par_un_cri_rejoint_le_joueur(self):
-        m = nouveau_monde()
-        m.objets["marchand"]["reaction_son"] = {"seuil": 2}
-        reprise, sortie = jouer(m, "je crie à l'aide")
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
-        self.assertIsNone(lire(reprise, "marchand")["intention"])
-        self.assertIn("Gorm le marchand entre dans la pièce.", sortie)
-        self.assertNotIn("aucune réponse", sortie)
+    """Le réflexe déclaré (``reaction_son``) n'existe plus : un PNJ va voir par la délibération, son
+    devoir, son courage ou son seuil d'alerte (``tests/test_ouie_commune.py``). Un personnage sans
+    profil (la crypte) ne délibère pas : il retient le cri qu'il entend, sans bouger."""
 
-    def test_gorm_ouvre_une_porte_fermee_pour_rejoindre_le_cri(self):
-        m = nouveau_monde()
-        m.objets["porte"]["verrouillee"] = False
-        # Placement d'auteur : Gorm attend dans la crypte, derrière la porte.
-        m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
-        reprise, sortie = jouer(m, "crier")
-        self.assertTrue(reprise.objets["porte"]["ouverte"])
-        self.assertIn("s'ouvre.", sortie)
-        self.assertFalse(lire(reprise, "marchand")["croyances"]["porte"]["verrouillee"]["valeur"])
-        # Il ouvre puis passe, pas à pas, sans attendre la minute suivante.
-        reprise, suite = jouer(reprise, "attendre")
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
-        self.assertIsNone(lire(reprise, "marchand")["intention"])
-        self.assertIn("Gorm le marchand entre dans la pièce.", sortie + suite)
-
-    def test_gorm_deverrouille_avec_la_cle_qu_il_porte(self):
-        m = nouveau_monde()
-        m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
-        # Placement d'auteur : Gorm garde sur lui un passe de la porte de la crypte.
-        m.objets["passe"] = {**m.objets["cle"], "id": "passe", "nom": "passe de Gorm", "lieu": "marchand",
-                             "ouvre": ["porte"], "aliases": ["passe"]}
-        for cle in ("position", "position_salle"):
-            m.objets["passe"].pop(cle, None)
-        reprise, _ = jouer(m, "crier", "attendre")
-        self.assertFalse(reprise.objets["porte"]["verrouillee"])
-        self.assertTrue(reprise.objets["porte"]["ouverte"])
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
-
-    def test_porte_verrouillee_apprise_par_l_essai_jusqu_a_ce_qu_il_la_voie_ouverte(self):
-        m = nouveau_monde()
-        # Placement d'auteur : Gorm attend dans la crypte avec une torche allumée.
-        m.objets["marchand"].update(lieu="crypte", position_salle="crypte", reaction_son={"seuil": 1})
-        m.objets["torche"].update(lieu="marchand", allume=True)
-        reprise, sortie = jouer(m, "crier", "attendre")
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "crypte")
-        self.assertTrue(lire(reprise, "marchand")["croyances"]["porte"]["verrouillee"]["valeur"])
-        self.assertEqual(lire(reprise, "marchand")["intention"]["but"]["lieu"], "antichambre")
-        self.assertIn("résiste à une poussée.", sortie)
-        self.assertIn("aucune réponse", sortie)
-        # Une ouverture qu'il voit lui apprend que le passage est libre.
-        reprise.objets["porte"].update(verrouillee=False, ouverte=True)
-        reprise, sortie = jouer(reprise, "attendre")
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "antichambre")
-        self.assertIn("Gorm le marchand entre dans la pièce.", sortie)
-
-    def test_sans_reaction_declaree_le_pnj_reste_en_place(self):
+    def test_sans_profil_le_pnj_retient_le_cri_et_reste_en_place(self):
         reprise, sortie = jouer(nouveau_monde(), "je crie à l'aide")
         self.assertEqual(reprise.objets["marchand"]["lieu"], "echoppe")
         self.assertEqual(dernier_son(reprise, "marchand")["nature"], "appel")
+        self.assertIsNone(lire(reprise, "marchand")["intention"])
         self.assertIn("aucune réponse", sortie)
 
-    def test_son_trop_faible_sous_le_seuil(self):
+    def test_un_ancien_reflexe_declare_est_refuse(self):
         m = nouveau_monde()
-        m.objets["marchand"]["reaction_son"] = {"seuil": 3}
-        reprise, _ = jouer(m, "je crie à l'aide")
-        self.assertEqual(reprise.objets["marchand"]["lieu"], "echoppe")
-        self.assertIsNone(lire(reprise, "marchand")["intention"])
+        m.objets["marchand"]["reaction_son"] = {"seuil": 2}
+        with self.assertRaisesRegex(Exception, "seuil d'alerte"):
+            m.verifier()
 
 
 HORLOGE = {"id": "courant_air", "minute": 5, "annonce": "Un souffle glacé traverse la salle et couche les flammes.",

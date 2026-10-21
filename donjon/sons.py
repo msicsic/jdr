@@ -1,9 +1,13 @@
-"""Émissions vocales et audition discrète sur les connexions réellement établies."""
-import heapq
+"""Émissions du joueur : appel à l'aide, cri, sifflement, son d'un objet, héler, répondre.
 
+Elles retentissent par l'ouïe commune (``ouie.retentir``, depuis ``moteur``) : leur nature y est
+déclarée une fois (``ouie.NATURES`` pour la voix, ``ouie.SONS`` selon la ``sonorite`` d'un objet).
+Qui l'entend l'interprète comme tout bruit (se retourner, retenir un bruit vers ce lieu, aller voir
+selon son devoir, son courage ou son seuil d'alerte). ``data["sons"]`` garde l'historique de ce qui
+a été émis et de qui l'a entendu.
+"""
 from .monde import ErreurMonde
 from .francais import designer
-from .esprits import entendre
 
 
 VOIX = {
@@ -14,46 +18,24 @@ VOIX = {
 
 
 
-def liens(m):
-    """Passages du son entre salles : une ouverture coûte 1, une porte fermée 2."""
-    resultat = {id: [] for id in m.data["salles"]}
-    for id, salle in m.data["salles"].items():
-        for sortie in salle["sorties"].values():
-            porte = m.objets.get(sortie.get("porte"), {})
-            cout = 2 if porte and not porte.get("ouverte") else 1
-            destination = sortie["vers"]
-            resultat[id].append((destination, cout))
-            resultat[destination].append((id, cout))
-    # Un appui vertical donne aussi sur son palier, même sans échelle installée.
-    for o in m.objets.values():
-        a = o.get("appui_vertical", {})
-        bas, haut = a.get("bas"), a.get("haut")
-        if bas in resultat and haut in resultat:
-            resultat[bas].append((haut, 1))
-            resultat[haut].append((bas, 1))
-    return resultat
+def entendants(m, n):
+    """Les personnages qui entendraient maintenant un bruit de nature ``n`` (``ouie``) venu du joueur :
+    l'ouïe commune, la même pour tous (distance réelle, passages, portes, seuil de chacun)."""
+    from .esprits import pnjs
+    from .ouie import entend
+    return [id for id in pnjs(m) if entend(m, "joueur", id, force=n) is not None]
 
 
-def portee(m, source, intensite):
-    """Une ouverture coûte 1, une porte fermée 2 ; pas de son entre lieux non reliés."""
-    liens_salles = liens(m)
-    distances, file = {source: 0}, [(0, source)]
-    while file:
-        cout, lieu = heapq.heappop(file)
-        if cout != distances[lieu]:
-            continue
-        for destination, perte in liens_salles[lieu]:
-            suivant = cout + perte
-            if suivant < intensite and suivant < distances.get(destination, intensite):
-                distances[destination] = suivant
-                heapq.heappush(file, (suivant, destination))
-    return {id: intensite - cout for id, cout in distances.items()}
-
-
-def auditeurs(m, source, intensite):
-    niveaux = portee(m, source, intensite)
-    return [o["id"] for o in m.objets.values()
-            if o["type"] == "personnage" and o["lieu"] in niveaux and o.get("entend", True)]
+def nature_emise(m, effets):
+    """La nature du bruit qu'émettent ces effets, selon l'ouïe commune (``ouie.NATURES``, ``ouie.SONS``) ;
+    None s'ils n'émettent rien de déclaré."""
+    from .ouie import SONS, nature
+    for op, cible, valeur in effets:
+        if op == "emettre_son":
+            return SONS[m.objets[cible]["sonorite"]] if cible in m.objets else nature(valeur)
+        if op == "son_improvise":
+            return SONS[valeur["intensite"]]
+    return None
 
 
 def compiler(m, e, justification, origine):
@@ -175,33 +157,26 @@ def _compiler_repondre(m, e, justification, origine):
 
 
 def appliquer(m, emetteur, mode, lignes):
+    """Le joueur émet un son, de sa voix ou avec un objet : on l'inscrit avec ceux qui l'entendent
+    (``entendants``), et le joueur voit qui, sous ses yeux, l'a entendu. Il retentit par l'ouïe
+    commune à la fin du geste (``moteur``), où chacun l'interprète."""
     if emetteur == "joueur":
         _, texte, intensite = VOIX[mode]
     else:
         o = m.objets[emetteur]
         intensite = o["sonorite"]
         texte = "Tu produis un son avec " + designer(o) + "."
-    if emetteur == "joueur":
-        source = m.joueur["salle"]
-    else:
-        from .perception import salle_source
-        source = salle_source(m, o)
-    niveaux = portee(m, source, intensite)
-    entendants = auditeurs(m, source, intensite)
-    evenement = {"tour": m.data["revision"] + 1, "minute": m.data["minutes"],
-                 "origine": source, "nature": mode, "intensite": intensite, "auditeurs": entendants}
+    n = nature_emise(m, [("emettre_son", emetteur, mode)])
+    ecoutants = entendants(m, n)
+    evenement = {"tour": m.data["revision"] + 1, "minute": m.data["minutes"], "origine": m.joueur["salle"],
+                 "nature": mode, "intensite": intensite, "bruit": n, "auditeurs": ecoutants}
     if emetteur != "joueur":
         evenement["objet"] = emetteur
-    # Historique borné ; chaque PNJ garde aussi le son dans sa propre mémoire.
     m.data.setdefault("sons", []).append(evenement)
     m.data["sons"] = m.data["sons"][-40:]
     lignes.append(texte)
-    for id in entendants:
-        pnj = m.objets[id]
-        pnj["humeur"] = "méfiant" if m.data["relations_pnj"].get(id, {}).get("soupcon") else "inquiet"
-        entendre(m, id, evenement, niveaux[pnj["lieu"]])
+    for id in ecoutants:
         if m.visible(id):
             entendu = ("le son de " + designer(m.objets[emetteur]) + "." if emetteur != "joueur" else
                        "ton " + ("appel à l'aide." if mode == "appel" else "cri." if mode == "cri" else "sifflement."))
-            lignes.append(designer(pnj, debut=True) + " entend " + entendu)
-    # Les déplacements déclarés et l'absence de réponse sont résolus après l'avancée du temps.
+            lignes.append(designer(m.objets[id], debut=True) + " entend " + entendu)

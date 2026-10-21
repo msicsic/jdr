@@ -39,13 +39,9 @@ A_DISTANCE = ("chauffer",)
 
 
 def verifier(monde):
-    for o in monde.objets.values():
-        if o["type"] != "personnage":
-            continue
-        reaction = o.get("reaction_son")
-        assert reaction is None or (isinstance(reaction, dict) and set(reaction) == {"seuil"}
-                                    and type(reaction["seuil"]) is int
-                                    and 1 <= reaction["seuil"] <= 5), "Réaction de PNJ invalide"
+    # Le réflexe d'alerte est une donnée de l'ouïe commune (profil ``alerte``), plus un réflexe à part.
+    assert not any(o["type"] == "personnage" and "reaction_son" in o for o in monde.objets.values()), \
+        "Réflexe sonore d'une ancienne partie : le seuil d'alerte est dans le profil (alerte)"
     verifier_places(monde)
     from .stratege import verifier as verifier_stratege
     verifier_stratege(monde)
@@ -66,18 +62,6 @@ def verifier(monde):
 
 def _etape(operation, cible="", outil="", lieu="", condition=""):
     return {"operation": operation, "cible": cible, "outil": outil, "lieu": lieu, "condition": condition}
-
-
-def reagir(monde, id, origine, niveau, auteur=None):
-    """Réflexe déclaré par l'auteur : un son assez fort donne l'intention d'aller voir. L'appel
-    d'un protégé fait accourir son protecteur."""
-    pnj = monde.objets[id]
-    reaction = pnj.get("reaction_son")
-    protege = auteur in (pnj.get("profil") or {}).get("protege", [])
-    if (protege or reaction and niveau >= reaction["seuil"]) and origine != pnj["lieu"]:
-        esprit(monde, id)["intention"] = {"but": {"type": "rejoindre", "lieu": origine}, "motif": "alerte",
-                                          "plan": [_etape("aller", lieu=origine)],
-                                          "depuis": monde.data["minutes"], "attente": 0}
 
 
 def _porte(monde, objet, id):
