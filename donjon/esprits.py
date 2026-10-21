@@ -7,7 +7,8 @@ fausses ou périmées. Le moteur seul les révise ; Luna ne les modifie pas.
 Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueur ».
 - ``lieu`` : valeur = lieu direct (salle, porteur ou contenant) ou None si l'objet n'est plus
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
-- ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé).
+- ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé ; d'un personnage, ce
+  qui presse son corps : ``{"faim", "chaleur", "repos"}``).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 
@@ -140,8 +141,9 @@ def verifier(monde):
         from .deliberation import seuils
         assert (isinstance(e["besoins"], dict) and set(e["besoins"]) <= (set(seuils(monde, id)) if p else set())
                 and all(isinstance(v, (int, float)) and 0 <= v <= 100 for v in e["besoins"].values())), "Besoins de PNJ invalides"
+        # Satisfaite (True), rompue (False), jamais satisfaite depuis qu'il la connaît (None).
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
-                and all(type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
+                and all(v is None or type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
         b = e["balayage"]
@@ -365,7 +367,16 @@ def _vu_porter(monde, id, sujet):
 
 
 def constater(monde, id, sujet, source):
-    """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main."""
+    """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
+    D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
+    fatigue (``corps``), sous les noms des besoins du corps."""
+    if sujet == "joueur" or monde.objets[sujet]["type"] == "personnage":
+        from .corps import CORPS
+        besoins = monde.joueur.get("besoins", {}) if sujet == "joueur" else lire(monde, sujet)["besoins"]
+        if besoins:
+            croire(monde, id, sujet, "etat",
+                   {nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()}, source)
+        return
     o = monde.objets[sujet]
     etats = ETATS_VISIBLES.get(o["type"])
     if etats:
@@ -417,6 +428,7 @@ def _percevoir(monde, id):
             connaitre(monde, id, sujet)  # Il l'a vu : il saura reconnaître sa voix.
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
+            constater(monde, id, "joueur", "vu")
             continue
         o = monde.objets[sujet]
         if o["type"] != "porte":

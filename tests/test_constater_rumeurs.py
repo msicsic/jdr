@@ -298,15 +298,71 @@ class ParlerALaVoixTests(unittest.TestCase):
         self.assertEqual(lieu_cru(m, "mathe", "odon")[0], "baraquement")
 
     def test_une_voix_jamais_entendue_ne_se_reconnait_pas(self):
-        """Même scène, mais Mathe n'a jamais vu ni entendu Odon : c'est une voix inconnue, un bruit
-        qu'elle ne prête à personne ; elle ne sait qui lui parle, et ne lui répond pas."""
-        m = self.baraquement_noir()
+        """Même nature, mais Mathe n'a jamais vu ni entendu Odon : c'est une voix inconnue, un bruit
+        qu'elle ne prête à personne ; elle ne sait qui lui parle, et ne lui répond pas. Ils sont
+        dans la réserve noire (au baraquement, le poêle qu'on viendrait rallumer les éclairerait)."""
+        m = self.baraquement_noir(salle="reserve")
         lire(m, "mathe")["voix"].remove("odon")
         lire(m, "mathe")["croyances"].pop("odon", None)
         m, _ = attendre(recharger(m))
         self.assertFalse(any(t.startswith("Odon demande") for t in chronique(m)))
         self.assertNotIn("odon", lire(m, "mathe")["voix"])
         self.assertIsNone(lieu_cru(m, "mathe", "odon"))
+
+    def test_servir_une_part_suit_la_meme_regle(self):
+        """Donner une part à qui l'on appelle hors de vue est un échange comme un autre
+        (``pnj.peuvent_se_parler``) : dans la réserve noire, Mathe ne sert pas une voix inconnue ;
+        elle sert Odon dont elle connaît la voix."""
+        from donjon.echanges import servir
+        m = self.baraquement_noir(salle="reserve")
+        lire(m, "mathe")["voix"].remove("odon")
+        portions = m.objets["vivres"]["portions"]
+        self.assertFalse(servir(m, "mathe", "vivres", "odon", []))
+        self.assertEqual(m.objets["vivres"]["portions"], portions)
+        connaitre(m, "mathe", "odon")
+        self.assertTrue(servir(m, "mathe", "vivres", "odon", []))
+        m = recharger(m)
+        self.assertEqual(m.objets["vivres"]["portions"], portions - 1)
+        self.assertIn("Mathe appelle Odon et lui donne une part des vivres de la cuisine.", chronique(m))
+
+    def test_dans_la_lumiere_on_se_tourne_vers_une_voix_inconnue(self):
+        """Une voix inconnue dans son dos, en pleine lumière : il se tourne vers elle et voit qui
+        parle ; il le connaît désormais. Dans le noir, il ne le saurait pas."""
+        m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
+        placer(m, "mireille", "cuisine", [2, 2])
+        placer(m, "anselme", "cuisine", [4, 2])
+        regarder(m, "mireille", [0, 2])
+        regarder(m, "anselme", "mireille")
+        self.assertNotIn("anselme", lire(m, "mireille")["voix"])
+        self.assertTrue(se_parler(m, "anselme", "mireille"))
+        percevoir_tous(m)
+        m = recharger(m)
+        self.assertIn("anselme", lire(m, "mireille")["voix"])
+        # Au grenier noir, ni l'un ni l'autre ne voit l'autre : rien ne se dit.
+        m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
+        m.objets["bougeoir_mireille"]["allume"] = False
+        placer(m, "mireille", "grenier", [2, 2])
+        placer(m, "anselme", "grenier", [4, 2])
+        self.assertFalse(se_parler(m, "anselme", "mireille"))
+
+    def test_le_joueur_dans_le_noir_face_a_qui_ne_le_connait_pas(self):
+        """Corvus, au grenier noir, s'adresse à Odile, qu'il connaît mais qui ne l'a jamais vu ni
+        entendu : elle ne saurait pas qui lui parle ; le moteur le dit, sans appel au MJ. Une fois
+        qu'elle le connaît, il lui parle."""
+        from donjon.paroles import ParoleImpossible, analyser, destinataires
+        m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
+        placer(m, "odile", "grenier", [4, 2])
+        m.joueur.update(salle="grenier", position=[6, 2], orientation="ouest")
+        connaitre(m, "joueur", "odile")
+        m.data["connus"] = sorted({*m.data["connus"], "odile"})
+        m.data["entendus"] = ["odile"]  # Il vient de reconnaître sa voix.
+        m = recharger(m)
+        self.assertNotIn("joueur", lire(m, "odile")["voix"])
+        with self.assertRaises(ParoleImpossible) as refus:
+            destinataires(m, analyser(m, "je dis à Odile : c'est moi"))
+        self.assertIn("ne saurait pas qui lui parle", str(refus.exception))
+        connaitre(m, "odile", "joueur")
+        self.assertEqual(destinataires(recharger(m), analyser(m, "je dis à Odile : c'est moi")), ["odile"])
 
     def test_anciennes_parties_migrees(self):
         """Une partie d'avant les voix : chacun connaît ceux dont il sait quelque chose de première
@@ -321,23 +377,24 @@ class ParlerALaVoixTests(unittest.TestCase):
         self.assertEqual(lire(m, "brune")["voix"], ["aubin", "ilse", "marchand"])
         self.assertEqual(m.data["voix_connues"], ["ilse", "marchand"])
 
-    def baraquement_noir(self):
+    def baraquement_noir(self, salle="baraquement"):
         from donjon.geometrie import cases
         from donjon.mine import nouveau_mine
         m = nouveau_mine(1985)
         installer(m)
         m = calme(m, "bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy")
-        for k in ("lampe_baraque", "poele"):
-            m.objets[k]["allume"] = False
+        if salle == "baraquement":
+            for k in ("lampe_baraque", "poele"):
+                m.objets[k]["allume"] = False
         sol = sorted(cases(m.data["salles"]["galerie"]))
         for n, k in enumerate(("bram", "gaspard", "josse", "lucien", "remy")):
             placer(m, k, "galerie", sol[2 * n])
-        placer(m, "mathe", "baraquement", [3, 4])
-        placer(m, "odon", "baraquement", [5, 4])
+        placer(m, "mathe", salle, [3, 3])
+        placer(m, "odon", salle, [5, 3])
         m.data["minutes"] = 3
-        croire(m, "odon", "mathe", "lieu", "baraquement", "entendu", salle="baraquement", case=[3, 4])
+        croire(m, "odon", "mathe", "lieu", salle, "entendu", salle=salle, case=[3, 3])
         lire(m, "odon")["besoins"]["faim"] = 95.0
         m.objets["pain_lucien"]["portions"] = 0
         croire(m, "odon", "pain_lucien", "etat", {"disponible": False}, "vu")
-        self.assertEqual(eclairage(m, "baraquement", [3, 4])["niveau"], 0)
+        self.assertEqual(eclairage(m, salle, [3, 3])["niveau"], 0)
         return m

@@ -63,7 +63,7 @@ def complement_de(objet):
         return "du " + nom[3:]
     if nom.startswith("les "):
         return "des " + nom[4:]
-    return "d'" + nom[2:] if nom.startswith("l'") else "de " + nom
+    return "d'" + nom[2:] if nom.startswith("l'") else de(nom)
 
 
 def accorder(objet, masculin, feminin_irregulier=None):

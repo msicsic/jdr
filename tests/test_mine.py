@@ -60,10 +60,11 @@ class MineTests(unittest.TestCase):
         self.assertNotEqual([c["texte"] for c in ca], [c["texte"] for c in cb])
 
     def test_le_noir_gagne_le_camp_et_les_protecteurs_accourent(self):
-        # Quand le poêle et la lampe s'éteignent, le blessé et le payeur, seul dans son bureau,
-        # appellent à l'aide ; leur protecteur est entendu.
+        # Quand le bois du camp est brûlé (les étais de Josse, puis les bûches que Gaspard lui
+        # donne pour le poêle) et que la lampe s'éteint, le blessé et le payeur, seul dans son
+        # bureau, appellent à l'aide ; leur protecteur est entendu.
         m = creer("mine", 3)
-        executer(m, 480)
+        executer(m, 600)
         self.assertFalse(m.objets["poele"]["allume"])
         appels = {id for id in pnjs(m) if any(s["type"] == "appel" for s in lire(m, id)["memoire"])}
         self.assertTrue({"lucien", "bram"} <= appels, appels)

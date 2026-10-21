@@ -60,8 +60,11 @@ fixe à qui Corvus parle et te le donne dans parole_prevue, si la saisie est une
 que le joueur nomme, sinon celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ;
 chuchoter ou murmurer, un seul, au contact. personnage = parole_prevue.personnage (un
 identifiant, tous, ou personne quand nul en vue ne l'entend : il parle à la cantonade, et
-personne ne lui répond). Une saisie entre guillemets, adressée à tous ou chuchotée est une parole,
-même si ses mots annoncent un geste : donner un objet se fait par l'action remettre. Les mots
+personne ne lui répond). Une saisie qui commence par des guillemets, par un verbe de parole (« je
+dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou par « à tous » est une
+parole, même si ses mots annoncent un geste : donner un objet se fait par l'action remettre ; ce
+qu'elle demande au personnage est son contenu. Une interpellation sans guillemets (« Aubin, … »)
+est à interpréter : question, geste ou parole. Les mots
 imposés par le joueur (parole_prevue.mots : entre guillemets, après un deux-points ou une
 interpellation comme « Gorm, … ») sont dits tels quels. Sinon,
 la réplique traduit son intention dans la bande expression_joueur : la précision suit l'INT,
@@ -235,6 +238,10 @@ def engagements_enregistres(monde, id):
 
 def contexte(monde, intention=None):
     from .dialogues import interlocuteurs
+    # Celui qu'il nomme dans son dos : la parole le tournera vers lui, et le MJ le connaît déjà ainsi.
+    vers = regard(monde, analyser(monde, intention)) if intention is not None else None
+    if vers:
+        monde = tourne(monde, vers)
     presents = list(interlocuteurs(monde))
     # Une parole sans conteste se dit même sans personne en vue : qui l'entend la retient.
     if not presents and not (intention is not None and analyser(monde, intention)["explicite"]):
@@ -242,7 +249,7 @@ def contexte(monde, intention=None):
     resultat = {"expression_joueur": bande_expression(monde.joueur["stats"]),
                 "esprits_interlocuteurs": esprits_interlocuteurs(monde, presents)}
     if intention is not None:
-        resultat["parole_prevue"] = prevue(monde, intention)
+        resultat["parole_prevue"] = {**prevue(monde, intention), **({"regard": vers} if vers else {})}
     return resultat
 
 
@@ -261,7 +268,10 @@ VERBES_PAROLE = {**dict.fromkeys(("dis", "dit", "dire", "demande", "demander", "
                                   "repondre", "lance", "explique", "annonce", "raconte", "avoue", "confie",
                                   "affirme", "repete"), "voix"),
                  **dict.fromkeys(("chuchote", "chuchoter", "murmure", "murmurer"), "chuchote")}
-PRONOMS = {"lui": False, "leur": True}                          # le pronom désigne-t-il un groupe ?
+# Verbes de parole qui disent aussi un geste (« je lance la pierre ») : une parole seulement avec un
+# destinataire ou un deux-points (« je lance à tous : … »).
+GESTES_HOMONYMES = ("lance",)
+PRONOMS = {"lui": False, "leur": True}                        # le pronom désigne-t-il un groupe ?
 ARTICLES_NOM = ("le ", "la ", "l'", "les ")
 VOCATIF = re.compile(r"^\s*([^,!?:«»\"“”]{2,40}?)\s*[,:]\s*\S")
 JETON = re.compile(r"[^\W\d_](?:[\w'’-]*\w)?|[:,«»\"“”]")
@@ -319,7 +329,11 @@ def analyser(monde, intention):
     nommé ou groupe (« à tous »), suite de l'échange (``suite`` : « lui », « leur », ou « echange »
     pour des mots entre guillemets sans interpellation), mots imposés (entre guillemets, après un
     deux-points ou une interpellation), et si elle est sans conteste une parole (``explicite`` :
-    entre guillemets, à tous, chuchotée, mots après un deux-points)."""
+    elle commence par des guillemets, par un verbe de parole — « je dis… », « je lui dis… », « je
+    demande à Gorm… », « je chuchote… » — ou par « à tous »). Une parole sans conteste passe par
+    le moteur, qui la fait entendre : le MJ ne la raconte pas lui-même et ne la change pas en geste.
+    Une interpellation sans guillemets (« Aubin, viens m'aider ») n'en est pas une : le MJ
+    l'interprète librement (question, geste ou parole)."""
     s = (intention or "").strip()
     forme = {"maniere": "voix", "groupe": False, "nomme": None, "suite": False, "mots": None, "explicite": False}
     if s[:1] in GUILLEMETS:
@@ -335,6 +349,7 @@ def analyser(monde, intention):
         i += 1
     if i < len(mots) and mots[i] in VERBES_PAROLE:
         forme["maniere"] = VERBES_PAROLE[mots[i]]
+        homonyme = mots[i] in GESTES_HOMONYMES
         i += 1
         if i < len(mots) and mots[i] in PREPOSITIONS:
             n = _groupe_en(mots, i + 1)
@@ -349,7 +364,12 @@ def analyser(monde, intention):
         if i < len(jetons) and jetons[i].group() == ":":
             reste = s[jetons[i].end():].strip()
             forme.update(explicite=True, mots=(citation(reste) if reste[:1] in GUILLEMETS else reste) or None)
+        # Un verbe de parole en tête (« je dis… », « je demande à Gorm… ») annonce une parole.
+        if not homonyme or forme["nomme"] or forme["groupe"]:
+            forme["explicite"] = True
     else:
+        # Une interpellation sans guillemets (« Brune, pousse-toi ») reste du texte libre : le MJ
+        # l'interprète ; s'il en fait une parole, le moteur en fixe le destinataire (nomme).
         debut = _interpeller(monde, forme, s)
         if forme["groupe"] or forme["nomme"]:
             forme["mots"] = s[debut:].lstrip(" ,:") or None if debut else s
@@ -375,14 +395,41 @@ def _contact(monde, id):
 
 
 def _face(monde, id):
-    """(hors de son regard, distance) : le plus petit est celui à qui Corvus fait face."""
+    """(hors de son regard, distance, écart à son regard en huitièmes de tour) : le plus petit est
+    celui à qui Corvus fait face ; à même distance, celui qui est droit devant lui plutôt qu'à son
+    côté."""
     from .ouie import distance
-    from .spatial import dans_le_regard
+    from .spatial import dans_le_regard, orientation_vers, quarts
     o, j = monde.objets[id], monde.joueur
     if not monde.data.get("mode_cases") or o.get("position") is None or j.get("position") is None:
-        return 0, 0
+        return 0, 0, 0
     regard = dans_le_regard(monde, o["lieu"], tuple(o["position"]), "joueur")
-    return (0 if regard else 1), (distance(tuple(o["position"]), tuple(j["position"])) if o["lieu"] == j["salle"] else 99)
+    if o["lieu"] != j["salle"]:
+        return (0 if regard else 1), 99, 0
+    ecart = quarts(j.get("orientation"), orientation_vers(tuple(j["position"]), tuple(o["position"])))
+    return (0 if regard else 1), distance(tuple(o["position"]), tuple(j["position"])), ecart
+
+
+def regard(monde, forme):
+    """Corvus nomme quelqu'un qu'il ne voit pas de face mais verrait en se tournant : il se tourne
+    d'abord vers lui, comme pour tout geste (``Moteur.preparer``). La direction, sinon None."""
+    from .dialogues import interlocuteurs
+    from .spatial import regard_vers
+    id = forme.get("nomme")
+    if not id or id in interlocuteurs(monde):
+        return None
+    return regard_vers(monde, id)
+
+
+def tourne(monde, vers):
+    """Une copie du monde où Corvus regarde ``vers``."""
+    vu = monde.copier()
+    vu.joueur["orientation"] = vers
+    return vu
+
+
+def phrase_regard(vers):
+    return "Tu te tournes vers " + ("l'" if vers[0] in "eo" else "le ") + vers + "."
 
 
 def precedents(monde, candidats, seul=False):
@@ -422,15 +469,20 @@ def destinataires(monde, forme):
     presents = sorted(interlocuteurs(monde))
     chuchote = forme["maniere"] == "chuchote"
     cantonade = forme["explicite"] and not forme["nomme"] and not chuchote
-    if not presents and not cantonade:
-        raise ParoleImpossible("Il n'y a personne ici pour t'entendre.",
-                               "aucun interlocuteur présent : réponds en mode dialogue.")
+    if not presents and not cantonade and not forme["nomme"]:
+        raise ParoleImpossible("Tu ne vois personne à qui parler. À la cantonade (« à tous : … »), qui "
+                               "t'entend retiendra tes mots.",
+                               "aucun interlocuteur perçu : réponds en mode dialogue.")
     if forme["groupe"] and chuchote:
         raise ParoleImpossible("On ne chuchote qu'à une seule personne, à son oreille.",
                                "chuchoter : un seul destinataire, nommé ou en face, au contact ; à plusieurs, "
                                "Corvus parle à voix haute (« à tous : … »).")
     nets = saisissent(monde, "joueur")
-    entendent = [id for id in presents if id in nets]
+    # La règle commune de toute parole échangée (``pnj.peuvent_se_parler``) : il saisit les mots de
+    # Corvus, sait qui lui parle (il le voit, en se tournant au besoin, ou connaît sa voix), et
+    # Corvus saisirait sa réponse.
+    from .pnj import peuvent_se_parler
+    entendent = [id for id in presents if id in nets and peuvent_se_parler(monde, "joueur", id)]
     contact = [id for id in presents if _contact(monde, id)]
     if forme["suite"]:
         # La suite de l'échange : à qui il parlait, s'ils l'entendent encore ; sinon la règle commune.
@@ -442,16 +494,28 @@ def destinataires(monde, forme):
         return entendent
     id = forme["nomme"]
     if id and id not in presents:
-        raise ParoleImpossible("Ce personnage n'est pas ici pour t'entendre.",
-                               f"{id} n'est pas là pour entendre Corvus : réponds en mode dialogue qu'il est trop "
-                               "loin ; ne fais pas parler Corvus à un autre personnage à sa place.")
+        # Ce qui manque au joueur : le voir, donc s'approcher ; à la cantonade, qui l'entend retient ses mots.
+        raise ParoleImpossible(f"Tu ne vois pas {_nom_court(monde, id)} d'ici : approche-toi pour lui parler. À la "
+                               "cantonade (« à tous : … »), qui t'entend retiendra tes mots.",
+                               f"{id} n'est pas perçu de Corvus : réponds en mode dialogue qu'il ne le voit pas ; ne "
+                               "fais pas parler Corvus à un autre personnage à sa place.")
     if id and chuchote and id not in contact:
         raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin : approche-toi pour lui chuchoter quoi que "
                                "ce soit.", f"chuchoter exige le contact (une case voisine) avec {id} ; au contact de "
                                f"Corvus : {liste(contact)}.")
-    if id and not chuchote and id not in entendent:
+    if id and not chuchote and id not in nets:
         raise ParoleImpossible(f"{_nom_court(monde, id)} est trop loin pour t'entendre.",
                                f"{id} ne saisirait pas les mots de Corvus d'ici ; à portée de voix : "
+                               f"{liste(entendent)}.")
+    if id and not chuchote and id not in entendent:
+        from .pnj import identifie
+        if not identifie(monde, id, "joueur"):
+            raise ParoleImpossible(f"{_nom_court(monde, id)} ne saurait pas qui lui parle : il ne te voit pas et ne "
+                                   "connaît pas ta voix.",
+                                   f"{id} n'identifierait pas Corvus (ni vu, ni voix connue : esprits.connait) ; "
+                                   f"à qui Corvus peut parler : {liste(entendent)}.")
+        raise ParoleImpossible(f"Tu n'entendrais pas {_nom_court(monde, id)} te répondre d'ici.",
+                               f"Corvus ne saisirait pas les mots de {id} ; à qui Corvus peut parler : "
                                f"{liste(entendent)}.")
     if id:
         return [id]
@@ -469,8 +533,9 @@ def destinataires(monde, forme):
 def prevue(monde, intention):
     """Ce que le moteur fixe de la parole que la saisie annonce, pour Luna (``parole_prevue``)."""
     forme = analyser(monde, intention)
+    vers = regard(monde, forme)
     try:
-        dest = destinataires(monde, forme)
+        dest = destinataires(tourne(monde, vers) if vers else monde, forme)
     except ParoleImpossible as exc:
         return {"impossible": str(exc)}
     return {"personnage": personnage(forme, dest), "destinataires": dest,
@@ -486,10 +551,11 @@ def personnage(forme, dest):
 def annonce(monde, rapport):
     """Ce que le joueur lit de sa propre parole : à qui, et comment."""
     verbe = "chuchotes" if rapport.get("maniere") == "chuchotement" else "dis"
+    tour = phrase_regard(rapport["regard"]) + "\n" if rapport.get("regard") else ""
     if rapport["personnage"] == "personne":
-        return f"Tu {verbe} : « {rapport['replique_joueur']} »"
+        return f"{tour}Tu {verbe} : « {rapport['replique_joueur']} »"
     a = "tous" if rapport["personnage"] == "tous" else _nom_court(monde, rapport["personnage"])
-    return f"Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
+    return f"{tour}Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
 
 
 def _connu_du_joueur(monde, id):
@@ -650,6 +716,10 @@ def preparer_parole(monde, p, revision=None):
                           f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
     # Le moteur fixe à qui Corvus parle : le MJ ne lui substitue personne.
     forme = analyser(monde, p.get("_intention", ""))
+    vers = regard(monde, forme)
+    if vers:
+        # Il se tourne d'abord vers celui qu'il nomme dans son dos.
+        monde = tourne(monde, vers)
     dest = destinataires(monde, forme)
     attendu = personnage(forme, dest)
     if p["personnage"] != attendu:
@@ -720,5 +790,6 @@ def preparer_parole(monde, p, revision=None):
     rapport = {"personnage": attendu, "destinataires": list(dest),
                "temoins": [id for id in temoins if id in presents],
                "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
-               "operation": "parole_joueur", "replique_joueur": replique, "faits": faits}
+               "operation": "parole_joueur", "replique_joueur": replique, "faits": faits,
+               **({"regard": vers} if vers else {})}
     return travail, rapport

@@ -312,7 +312,8 @@ remarque que les objets encombrants (1 kg ou 50 cm au moins) ou allumés.
 
 Ce qu'il perçoit devient croyance dans `esprits[pnj]["croyances"][sujet][attribut]`, avec
 `source` (`vu`, `savoir`, `essai`), `minute` et `confiance`. Attributs : `lieu` (avec la salle
-et la case où il l'a vu), `etat` (ouvert, allumé), `verrouillee` (appris en essayant, ou
+et la case où il l'a vu), `etat` (ouvert, allumé ; d'un personnage, joueur compris, ce qui presse
+son corps : `faim`, `chaleur`, `repos`), `verrouillee` (appris en essayant, ou
 déduit d'une porte vue ouverte). Une croyance reste vraie pour lui tant qu'il n'a pas revu
 la place : s'il la revoit vide, le lieu devient inconnu et la mémoire note une `absence`.
 Un scénario déclare les savoirs initiaux dans les mêmes champs, source `savoir` (le Relais :
@@ -333,9 +334,13 @@ joueur, ou des rondes (`{"lieu", "periode"}` : avoir inspecté ce lieu depuis mo
 `periode` minutes).
 
 Chaque minute écoulée, le moteur fait dériver les besoins. Une pulsion qui cesse d'être
-satisfaite *selon les croyances du PNJ* relance son besoin de 30, de 60 s'il s'agit de ses
-biens (un vol découvert, même sans coupable) ; une ronde qui expire ou un feu qui baisse ne
-relancent rien. Un vol vu par sa victime relance ses biens de 60 ; l'absence constatée d'un
+satisfaite *selon les croyances du PNJ* est rompue, quelle qu'en soit la cause : il la rétablit
+sans attendre que son besoin presse (voir l'ordre ci-dessous), et elle le reste jusqu'à ce
+qu'il la voie rétablie. Une pulsion qui n'a jamais été satisfaite depuis qu'il la connaît (un
+désir, comme le voleur qui convoite un ballot) attend que son besoin presse. Une atteinte
+relance en outre le besoin de 30, de 60 s'il s'agit de ses biens (un vol découvert, même sans
+coupable) ; une ronde qui expire, un feu qui baisse ou un protégé qui a faim ne relancent
+rien. Un vol vu par sa victime relance ses biens de 60 ; l'absence constatée d'un
 objet qui lui appartient, de 30.
 
 Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
@@ -358,7 +363,9 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
      d'entretenir ce feu : le donneur va lui-même le recharger et l'allumer ;
    - rétablir une pulsion.
 2. Ses engagements.
-3. Refermer à clé ce qu'il garde sous clé et a lui-même ouvert dans les 30 dernières minutes.
+3. Rétablir une pulsion rompue dont le besoin ne presse pas : un feu qui baisse, un protégé
+   qui a faim, ce qu'il garde sous clé et a lui-même ouvert, ce qu'il a lui-même emporté. Les
+   rondes ont leur routine (5), et une pulsion confiée au joueur attend.
 4. Finir de se reposer ou de se chauffer.
 5. La routine : ses rondes et la garde du lieu de ses biens. Les rondes se font aussi quand le
    besoin qu'elles servent ne presse pas ; elles passent après tout le reste.
@@ -411,15 +418,24 @@ attend tant que le PNJ croit le joueur fiable. Un but abandonné n'est repris qu
 minutes. Un besoin qui vient à peine de devenir urgent (moins de 5 points au-delà de son seuil,
 `INERTIE`) n'interrompt pas le plan en cours d'un autre motif : on achève le geste entamé.
 
-Une part se demande pour toute ressource comptée qui apaise un besoin du demandeur : des
-vivres (`portions`) pour la faim, un combustible (`charges`) pour le froid. Le propriétaire
-garde `reserve` parts (donnée de profil, 1 par défaut) et ne donne pas ce dont il a lui-même
-besoin.
+Une part se demande pour toute ressource comptée qui répond à un besoin du demandeur : des
+vivres (`portions`) pour la faim, un combustible (`charges`) pour le froid ou pour un feu qu'il
+entretient ; on ne demande pas ce qu'on a sur soi. Le propriétaire garde `reserve` parts
+(donnée de profil, 1 par défaut) et ne donne pas ce dont il a lui-même besoin ; il ne prête pas
+davantage une ressource comptée qu'il porte (prêter ce qui se consomme, c'est en donner les
+parts). Une part promise s'attend 60 minutes ; une part de bois est servie dès que le
+demandeur a revu, depuis la promesse, le feu rechargé. Une parole donnée n'est tenue que sur ce
+que le PNJ a constaté depuis qu'il l'a donnée : un feu vu vif avant qu'on lui demande d'y mettre
+du bois, il va le revoir ; une part à servir ne l'est qu'au geste.
+
+Servir un protégé (pulsion `{"objet", "servir"}`) ne se fait que si le serveur le croit
+affamé (sa faim presse, et cela se voit) ; il le voit manger la part servie, et s'arrête là.
 
 Un feu entretenu (pulsion `allume`) se juge sur ce que le PNJ en voit : le feu qui baisse se
 voit 45 minutes avant de s'éteindre, et un foyer froid montre s'il lui reste du combustible.
 Un feu vu vif il y a plus de 30 minutes, ou jamais vu, doit être revu : il va le voir. Vu
-baisser, il va chercher un combustible qu'il peut prendre et le recharge ; éteint, il le
+baisser, il va chercher un combustible qu'il peut prendre et le recharge, ou en demande une
+part à qui en possède (le donneur vient lui-même recharger et rallumer ce feu) ; éteint, il le
 recharge s'il est vide puis l'allume s'il trouve de quoi l'allumer, sinon il n'y touche pas.
 De quoi allumer : un outil d'allumage, une source qu'il croit allumée et peut prendre, ou une
 source éteinte et chargée qu'il va allumer à une flamme fixe (la torche au fanal) ; une source

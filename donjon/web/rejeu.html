@@ -36,7 +36,12 @@
   #croyances div { padding: 1px 0; }
   .faux { color: #e59a8a; }
   .gris { color: var(--doux); }
-  #journal { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 8px 12px; overflow: auto; font-size: 13px; }
+  #journal { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 0 12px 8px; overflow: auto; font-size: 13px; }
+  #filtres { position: sticky; top: 0; background: var(--panneau); padding: 6px 0; display: flex; gap: 8px; align-items: center; z-index: 1; }
+  #filtres select { padding: 2px 6px; }
+  label.opt { display: inline-flex; gap: 4px; align-items: center; color: var(--doux); cursor: pointer; white-space: nowrap; }
+  .entendu { font-size: 12.5px; padding: 1px 0; }
+  .issue { color: #e8b84a; }
   #journal p { margin: 2px 0; }
   #journal .min { color: var(--doux); font-family: Consolas, monospace; margin-right: 6px; }
   #journal .maintenant { color: #fff; }
@@ -56,6 +61,8 @@
   </select>
   <span id="heure"></span>
   <input type="range" id="temps" min="0" value="0">
+  <label class="opt"><input type="checkbox" id="opt-lumiere" checked>lumière</label>
+  <label class="opt"><input type="checkbox" id="opt-bruits" checked>bruits</label>
   <span class="gris">Clic sur un personnage : son regard et ce qu'il croit · ←/→ : une minute</span>
 </header>
 <main>
@@ -65,8 +72,21 @@
     <div id="pnjs"></div>
     <h2 id="titre-croyances" hidden>Ce qu'il croit</h2>
     <div id="croyances"></div>
+    <h2 id="titre-ouie" hidden>Ce qu'il entend</h2>
+    <div id="ouie"></div>
   </aside>
-  <section id="journal"></section>
+  <section id="journal">
+    <div id="filtres">
+      <select id="filtre-pnj"></select>
+      <select id="filtre-nature">
+        <option value="">tout</option><option value="ouie">ouïe et retournements</option><option value="paroles">paroles et échanges</option>
+        <option value="illicite">gestes illicites et témoins</option><option value="voir">aller voir et buts</option>
+        <option value="deplacement">portes et déplacements</option>
+      </select>
+      <span class="gris" id="nb-journal"></span>
+    </div>
+    <div id="lignes"></div>
+  </section>
 </main>
 <div id="infobulle"></div>
 <script>
@@ -76,6 +96,15 @@ const CS = 34;
 const PALETTE = ["#e07a5f", "#7fb8a4", "#c9a0dc", "#7aa6d6", "#e8b84a", "#d68b8b", "#9bc36b", "#8fd3e8", "#f2a65a"];
 const ICONES = {cle: "🔑", outil: "🔧", nourriture: "🍞", consommable: "🪵", contenant: "📦", tresor: "🔔",
                 motif: "📜", assemblage: "🪜", materiau: "🧱", meuble: "🪨", surface: "⤴️"};
+// Les degrés de lumière de la page de jeu, du plus sombre au plus clair (deux teintes, en damier).
+const SOLS = [["#18221e", "#1a2520"], ["#243a30", "#273e33"], ["#314a3b", "#354f3f"], ["#3e5c49", "#43624e"]];
+const NOMS_LUMIERE = ["dans le noir", "lueur diffuse", "lueur directe, faible", "pleine lumière"];
+const numero = new Map(); D.cases.forEach((c, i) => numero.set(c, i));// Un bruit : intensité en crans (ouie.INTENSITES), couleur, nom ; et ce que chaque issue veut dire.
+const BRUITS = {feutre: [1, "#8fd3e8", "feutré"], pas: [3, "#9bc36b", "pas"], geste: [3, "#9bc36b", "geste"], voix: [4, "#e8b84a", "voix"],
+                bruyant: [7, "#f2a65a", "bruyant"], appel: [9, "#ff6b6b", "appel"]};
+const ISSUES = {vu: "le voit faire", attribue: "l'attribue à qui il croit là", tourne: "se retourne", bruit: "retient un bruit vers ce lieu",
+                parole: "saisit les mots"};
+const FENETRE = 600;   // dixièmes : un bruit reste dessiné une minute
 const DIRS = {"nord": [0, -1], "sud": [0, 1], "est": [1, 0], "ouest": [-1, 0], "nord-est": [1, -1], "nord-ouest": [-1, -1],
               "sud-est": [1, 1], "sud-ouest": [-1, 1]};
 const $ = id => document.getElementById(id);
@@ -154,12 +183,14 @@ function fleche(cx, cy, r, orientation, teinte) {
 }
 function dessiner() {
   for (const k in parCase) delete parCase[k];
-  const etats = rejouer(D.etats, t), vues = rejouer(D.vues, t), esprits = rejouer(D.esprits, t);
+  const etats = rejouer(D.etats, t), vues = rejouer(D.vues, t), esprits = rejouer(D.esprits, t), lum = rejouer(D.lumiere, t);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.textAlign = "center";
   const sol = new Set();
   D.cases.forEach(c => { if (c[0] !== niveau) return; sol.add(c[1] + "," + c[2]);
-    ctx.fillStyle = (c[1] + c[2]) % 2 ? "#33493c" : "#2f4337"; ctx.fillRect(X(c[1]), Y(c[2]), CS, CS); });
+    const d = $("opt-lumiere").checked ? lum[numero.get(c)] : undefined, pair = (c[1] + c[2]) % 2;
+    ctx.fillStyle = d === undefined ? (pair ? "#33493c" : "#2f4337") : SOLS[d][pair]; ctx.fillRect(X(c[1]), Y(c[2]), CS, CS);
+    if (d !== undefined) noter([c[1], c[2]], `<span class=gris>${NOMS_LUMIERE[d]}</span>`); });
   const seuils = new Set();
   Object.entries(D.salles).forEach(([id, s]) => { if (s.niveau !== niveau) return;
     s.sorties.forEach(x => { seuils.add(cle(x.globale)); });
@@ -230,6 +261,17 @@ function dessiner() {
     } else { ctx.font = "17px serif"; texteIcone(icone(objet), X(g[0]) + CS / 2, Y(g[1]) + CS / 2 + 6); }
     noter(g, `<span style="color:${couleur[choisi]}">●</span> ${court(choisi)} croit ici : ${echapper(D.objets[objet].nom)}` + (juste ? "" : " <span class=faux>(faux)</span>"));
   });
+  // Les bruits récents : une onde à l'endroit du bruit, plus large et plus vive quand il est fort.
+  if ($("opt-bruits").checked) bruitsRecents(t).forEach(b => {
+    const c = D.cases[b.c]; if (!c || c[0] !== niveau) return;
+    const age = (t - b.t) / FENETRE, [cran, teinte, nom] = BRUITS[b.n] || BRUITS.geste;
+    const rayon = CS * (.4 + age * (.8 + cran * .55)), cx = X(c[1]) + CS / 2, cy = Y(c[2]) + CS / 2;
+    const entendu = choisi && b.r.some(r => r[0] === choisi);
+    ctx.globalAlpha = Math.max(0, (1 - age) * (cran <= 3 ? .55 : .9));
+    ctx.strokeStyle = teinte; ctx.lineWidth = entendu ? 4 : 2; ctx.beginPath(); ctx.arc(cx, cy, rayon, 0, 2 * Math.PI); ctx.stroke();
+    ctx.globalAlpha = 1;
+    noter([c[1], c[2]], `🔊 <b>${nom}</b> : ${court(b.a)}` + (b.x ? ` « ${echapper(b.x)} »` : "") + lignesEntendu(b));
+  });
   // Les personnages.
   const tous = [...D.personnages];
   tous.forEach(id => {
@@ -261,6 +303,40 @@ function dessiner() {
   $("temps").value = t;
 }
 
+// --- Bruits ------------------------------------------------------------------------------------
+const bruitsParT = D.bruits;   // dans l'ordre des instants
+function bruitsRecents(jusqua) {
+  let fin = bruitsParT.length;
+  // Dichotomie : le dernier bruit émis au plus tard à jusqua.
+  let a = 0, b = fin; while (a < b) { const m = (a + b) >> 1; if (bruitsParT[m].t <= jusqua) a = m + 1; else b = m; }
+  const res = []; for (let i = a - 1; i >= 0 && jusqua - bruitsParT[i].t < FENETRE; i--) res.push(bruitsParT[i]);
+  return res;
+}
+function qui(id) { return id === "joueur" ? "le joueur" : D.objets[id] ? court(id) : String(id); }
+function lieuBruit(b) { const c = D.cases[b.c]; return c ? D.salles[c[3]].nom : "?"; }
+function lignesEntendu(b) {
+  if (!b.r.length) return "<br><span class=gris>personne ne réagit</span>";
+  return b.r.map(r => `<br><span style="color:${couleur[r[0]]}">●</span> ${court(r[0])} ${r[1] === null ? "" : "(niveau " + r[1] + ") "}` +
+    r[2].split("+").map(x => ISSUES[x] || x).join(", ")).join("");
+}
+function mmss(dix) { const s = Math.floor(dix / 10); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+function ecoute(id, etats) {
+  // Ce que ce personnage a entendu ces dernières minutes, et s'il attend un bruit.
+  const lignes = [], recent = t - 5 * D.minute;
+  for (let i = bruitsParT.length - 1; i >= 0 && lignes.length < 14; i--) {
+    const b = bruitsParT[i]; if (b.t > t) continue; if (b.t < recent) break;
+    const r = b.r.find(x => x[0] === id); if (!r) continue;
+    lignes.push(`<div class=entendu><span class=gris>${mmss(b.t)}</span> ${BRUITS[b.n] ? BRUITS[b.n][2] : b.n} de ${qui(b.a)} (${echapper(lieuBruit(b))}), ` +
+      `niveau ${r[1] === null ? "?" : r[1]} : <span class=issue>${r[2].split("+").map(x => ISSUES[x] || x).join(", ")}</span>` +
+      (b.x ? ` <span class=gris>« ${echapper(b.x)} »</span>` : "") + "</div>");
+  }
+  const attendus = (rejouer(D.esprits, t)[id + "|:bruits"] || []).map(x => `<div class=entendu>attend un bruit vers ${echapper(x[0])} (${x[1]})</div>`);
+  const gestes = D.gestes.filter(g => g.t <= t && g.t > recent && (g.temoins.some(x => x[0] === id && x[1] <= t) || g.a === id))
+    .map(g => `<div class=entendu><span class=gris>${mmss(g.t)}</span> ` + (g.a === id ? `fait « ${g.op} » : ${g.temoins.length ? "vu par " + g.temoins.map(x => court(x[0])).join(", ") : "personne ne le voit"}`
+      : `voit ${qui(g.a)} faire « ${g.op} »`) + "</div>");
+  return attendus.concat(gestes, lignes).join("") || "<span class=gris>rien ces cinq dernières minutes</span>";
+}
+
 // --- Panneau et journal ------------------------------------------------------------------------
 function jauge(v) {
   const teinte = v >= 70 ? "#d16060" : v >= 40 ? "#e8b84a" : "#6fbf8e";
@@ -283,7 +359,9 @@ function panneau(etats, esprits) {
     $("pnjs").appendChild(d);
   });
   $("titre-croyances").hidden = !choisi;
+  $("titre-ouie").hidden = !choisi;
   $("croyances").innerHTML = "";
+  $("ouie").innerHTML = choisi ? ecoute(choisi, etats) : "";
   if (!choisi) return;
   $("titre-croyances").textContent = "Ce que croit " + court(choisi);
   const lignes = [];
@@ -297,13 +375,42 @@ function panneau(etats, esprits) {
   });
   $("croyances").innerHTML = lignes.join("") || "<span class=gris>rien de localisé</span>";
 }
+// Le journal : la chronique, les « aller voir », les bruits qui ont fait réagir, les gestes illicites et leurs témoins.
+function nature(c) {
+  if (c.nature === "ouie") return "ouie";
+  if (c.nature === "voir" || c.nature === "decision") return "voir";
+  if (c.nature === "illicite") return "illicite";
+  if (c.nature === "deplacement") return "deplacement";
+  if (c.nature === "social") return "paroles";
+  return c.nature || "geste";
+}
+const NOTABLES = ["tourne", "bruit", "parole"];
+const lignesJournal = D.chronique.map(c => ({...c, t: c.t === undefined ? c.minute * D.minute : c.t, cat: nature(c)}));
+D.bruits.forEach(b => {
+  if (b.r.some(r => r[2].split("+").some(x => NOTABLES.includes(x))) || b.n === "bruyant" || b.n === "appel") {
+    lignesJournal.push({t: b.t, pnj: b.a, cat: "ouie", acteurs: b.r.map(r => r[0]), texte: `${BRUITS[b.n][2]} (${lieuBruit(b)})` +
+      (b.x ? ` « ${b.x} »` : "") + " : " + (b.r.length ? b.r.map(r => `${court(r[0])} ${r[2].split("+").map(x => ISSUES[x] || x).join(" et ")}`).join(" ; ") : "personne ne l'entend") + "."});
+  }
+});
+D.gestes.forEach(g => {
+  const lieu = D.cases[g.c] ? D.salles[D.cases[g.c][3]].nom : "?";
+  lignesJournal.push({t: g.t, pnj: g.a, cat: "illicite", acteurs: g.dans_la_salle.concat(g.voient), texte: `${qui(g.a)} commence « ${g.op} » ${D.objets[g.objet] ? D.objets[g.objet].nom : g.objet} (${lieu}, jusqu'à ${mmss(g.fin)}). ` +
+    `Dans la salle : ${g.dans_la_salle.map(court).join(", ") || "personne"} ; le voient : ${g.voient.map(court).join(", ") || "personne"}.`});
+  g.temoins.forEach(([x, quand]) => lignesJournal.push({t: quand, pnj: x, cat: "illicite", acteurs: [g.a], texte: `${court(x)} est témoin : ${qui(g.a)} fait « ${g.op} ».`}));
+});
+lignesJournal.sort((a, b) => a.t - b.t);
+["", ...D.personnages].forEach(id => { const o = document.createElement("option"); o.value = id; o.textContent = id ? court(id) : "tous"; $("filtre-pnj").appendChild(o); });
 function journal() {
-  const minute = Math.floor(t / D.minute), j = $("journal");
-  const passes = D.chronique.filter(c => c.minute <= minute).slice(-60);
-  j.innerHTML = passes.map(c => `<p class="${c.minute === minute ? "maintenant" : ""}"><span class="min">${String(c.minute).padStart(3)} min</span>` +
+  const j = $("journal"), pnj = $("filtre-pnj").value, cat = $("filtre-nature").value;
+  const passes = lignesJournal.filter(c => c.t <= t && (!cat || c.cat === cat) && (!pnj || c.pnj === pnj || (c.acteurs || []).includes(pnj)));
+  $("nb-journal").textContent = passes.length + " lignes";
+  const minute = Math.floor(t / D.minute), l = $("lignes");
+  l.innerHTML = passes.slice(-80).map(c => `<p class="${Math.floor(c.t / D.minute) === minute ? "maintenant" : ""}"><span class="min">${mmss(c.t).padStart(6)}</span>` +
     (c.pnj && couleur[c.pnj] ? `<span class="pastille" style="background:${couleur[c.pnj]}"></span> ` : "") + echapper(c.texte) + "</p>").join("");
   j.scrollTop = j.scrollHeight;
 }
+$("filtre-pnj").onchange = $("filtre-nature").onchange = () => dessiner();
+$("opt-lumiere").onchange = $("opt-bruits").onchange = () => dessiner();
 
 // --- Lecture -----------------------------------------------------------------------------------
 $("titre").textContent = D.titre || "Rejeu";

@@ -16,7 +16,10 @@ Une demande de prise d'un objet à portée appelle une proposition prendre, pas 
 distance. Une question sur un obstacle visible appelle sa description, sans action.
 L'état actuel prime sur toutes les réponses précédentes, qui peuvent être périmées ou fausses.
 souvenirs_visuels liste des objets vus auparavant mais hors de vue : leur dernière salle
-connue ne garantit ni leur présence ni leur position actuelle. Ils ne sont pas à portée.
+connue ne garantit ni leur présence ni leur position actuelle. Dans la pièce actuelle, vu_a
+dit où Corvus l'a vu, par rapport à lui ; une action peut viser son id : le moteur le tourne
+vers l'objet, vérifie qu'il y est encore et à portée, et dit sinon ce qui manque. Le récit ne
+l'affirme pas présent tant que le moteur ne l'a pas établi.
 Les pas au clavier ne figurent pas dans la conversation : le joueur peut s'être rapproché
 depuis ta dernière réponse. Ni l'historique ni un nom technique ne priment sur ces repères.
 """
@@ -39,14 +42,7 @@ def decrire(monde, id, champ):
             continue
         if salle == actuelle and not monde.present_physique(id):
             continue
-        ox, oy = salles[salle]["plan"]["origine"]
-        jx, jy = salles[actuelle]["plan"]["origine"]
-        dx = ox + p[0] - jx - monde.joueur["position"][0]
-        dy = oy + p[1] - jy - monde.joueur["position"][1]
-        axes = [(dy, "nord" if dy < 0 else "sud"), (dx, "ouest" if dx < 0 else "est")]
-        direction = "-".join(d for n, d in axes if n) or "ici"
-        position = " et ".join(f"{abs(n)} case{'s' if abs(n) > 1 else ''} vers {d}"
-                                for n, d in axes if n) or "sur ta case"
+        direction, position = relatif(monde, salle, p)
         return {"salle_id": salle,
                 "salle_nom": salles[salle]["nom"] if salle == actuelle or salle in monde.data["visitees"]
                              else "lieu inexploré au-delà du passage",
@@ -54,3 +50,17 @@ def decrire(monde, id, champ):
                 "direction": "sur toi" if porte else direction,
                 "position_relative": "dans tes affaires" if porte else position}
     return None
+
+
+def relatif(monde, salle, case):
+    """La direction et la position d'une case de ``salle`` par rapport au joueur, en mots."""
+    salles = monde.data["salles"]
+    ox, oy = salles[salle]["plan"]["origine"]
+    jx, jy = salles[monde.joueur["salle"]]["plan"]["origine"]
+    dx = ox + case[0] - jx - monde.joueur["position"][0]
+    dy = oy + case[1] - jy - monde.joueur["position"][1]
+    axes = [(dy, "nord" if dy < 0 else "sud"), (dx, "ouest" if dx < 0 else "est")]
+    direction = "-".join(d for n, d in axes if n) or "ici"
+    position = " et ".join(f"{abs(n)} case{'s' if abs(n) > 1 else ''} vers {d}"
+                           for n, d in axes if n) or "sur ta case"
+    return direction, position

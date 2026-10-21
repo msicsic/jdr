@@ -91,6 +91,12 @@ VERBES = {
 }
 
 
+# Ce qu'une question peut faire exécuter : percevoir, sans rien changer au monde. Tout autre geste
+# qu'elle évoque (« puis-je allumer ? ») se prépare sans s'exécuter : le joueur voit ce qu'il
+# demanderait, puis le tente ou l'annule.
+PERCEPTIONS = ("observer", "examiner")
+
+
 def est_question(texte):
     """Reconnaît la ponctuation, les interrogatifs et l'inversion du sujet."""
     if "?" in texte:
@@ -124,12 +130,13 @@ def _nomme(monde, texte, personnage):
             break
     if not texte:
         return None
+    # Les mêmes noms que pour tout geste (``Monde.designable``) : ce qu'il verrait en se tournant compte.
     if personnage:
         from .dialogues import interlocuteurs
         candidats = set(interlocuteurs(monde)) | {i for i, o in monde.objets.items()
-                                                   if o["type"] == "personnage" and monde.accessible(i)}
+                                                   if o["type"] == "personnage" and monde.designable(i)}
     else:
-        candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.accessible(i)}
+        candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.designable(i)}
     trouves = [i for i in candidats
                if texte in [normaliser(n) for n in (i, monde.objets[i]["nom"], *monde.objets[i]["aliases"])]]
     return trouves[0] if len(trouves) == 1 else None

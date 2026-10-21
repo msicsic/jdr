@@ -18,9 +18,10 @@ def liste(ids, vide="aucun"):
 
 
 def a_portee(m, filtre=None):
-    """Identifiants des objets que le joueur peut viser d'ici, triés."""
+    """Identifiants des objets que le joueur peut viser d'ici, triés ; ce qu'il verrait en se
+    tournant en est (``Monde.designable``)."""
     return sorted(id for id, o in m.objets.items()
-                  if (filtre is None or filtre(o)) and m.accessible(id))
+                  if (filtre is None or filtre(o)) and m.designable(id))
 
 
 def portes_avec_usage(m, usage):

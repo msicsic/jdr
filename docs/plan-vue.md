@@ -103,8 +103,52 @@ Les cinq étapes sont faites.
   Node).
 
 Limites : le chemin du clic ne connaît que le sol vu ; un obstacle jamais vu fait échouer le pas
-et arrête la marche. Le rejeu ne montre pas la lumière ; ses croyances sont celles de lieu. Le
-rejeu se fait une nuit à la fois (pas avec `--graines`).
+et arrête la marche. Les croyances du rejeu sont celles de lieu.
+
+## Rejeu enrichi (branche `rejeu-enrichi`)
+
+Observation seule (`rejeu.py` enveloppe `ouie.retentir`, `ouie.entendre`, `pnj.commencer_geste`,
+`pnj._temoins`, `social.retenir_parole` le temps de la nuit ; `tests/test_rejeu.py` vérifie
+l'empreinte).
+- Lumière : piste `lumiere`, le degré de chaque case (0 noire, 1 diffuse, 2 directe, 3 pleine),
+  recalculé quand `spatial.signature_vue` change ; le test la compare à un calcul de zéro, au Relais,
+  à l'auberge et à la mine.
+- Bruits : liste `bruits` (instant, auteur, nature, case, mots, et pour chaque PNJ qui l'a entendu
+  son niveau et ce qu'il en a fait : `vu`, `attribue`, `tourne`, `bruit`, `parole`, combinables) ;
+  onde d'une minute sur la carte, panneau « Ce qu'il entend » du personnage choisi (cinq dernières
+  minutes, bruits attendus, gestes vus ou commis). Le nombre de retournements enregistrés égale celui
+  de la chronique. Limite : un bruit sous le seuil d'un PNJ n'apparaît pas dans ses réactions (le moteur
+  n'appelle pas `entendre`).
+- Gestes illicites : liste `gestes` (qui, quoi, où, jusqu'à quand, qui était dans la salle, qui
+  voyait l'auteur au départ, témoins datés) ; journal filtrable par personnage et par nature.
+- Plusieurs nuits : `--rejeu page.html --graines 1985 7` écrit `page_1985.html` et `page_7.html` (un
+  dossier donne `rejeu_<graine>.html`), en parallèle. Taille : 420 à 450 Ko pour 8 h au Relais.
+
+Constats au Relais, moteur actuel (`--joueur chambre_cloche`, 8 h) :
+- Graine 1985 : aucun geste illicite. Brune obtient sa part de Gorm (« promis ») à la minute 5 et à la
+  403 ; personne ne vole, ni n'est méfiant. 8 échanges : 6 parts demandées à Gorm (Brune
+  promise deux fois, Ilse refusée deux fois, Aubin refusé puis « nécessaire » à la 473) et 2 dons de Gorm à Brune.
+- Graine 7 : Gorm refuse Brune à la minute 5. Elle prend la trousse de crochets (min 6) et guette la
+  réserve de l'antichambre de la min 6 à la 36 : Ilse est à côté, Brune lui tourne le dos (« voit » vide
+  hors tour d'horizon) ; elle attend, puis son but s'arrête (un renoncement, d'après le compte du banc,
+  sans que le rejeu note l'instant ni le tour d'horizon lui-même). Même scène
+  de la min 97 à la 127, avec Ilse et Aubin en vue 25 min sur 31. Sa faim atteint 95 (`DESESPOIR`) à 1 h 59 :
+  la précaution est levée et elle force la serrure à 2 h 02. Ce geste est bruyant même « sans témoin »
+  (`ouie.NATURES`) : le fracas arrive à Ilse au niveau 6, elle (de dos, face au nord) se retourne et
+  voit ; Gorm arrive à 2 h 04 m 15 s. Brune s'acharne jusqu'à 2 h 08, devant eux.
+- Le chiffre « vols vus » (12) compte un souvenir `vu_agir` par geste d'une minute et par témoin
+  (7 gestes, 1 + 1 + 2 + 2 + 2 + 2 + 2) : une seule effraction vue par deux personnes. Les trois
+  méfiances et la confidence (Ilse à Aubin, min 258) viennent d'elle, et la rumeur crue.
+- Échanges : 8 par nuit sur les deux graines, presque tous de la même sorte (une part demandée à Gorm quand
+  la faim atteint ~70 à 80 : 6 demandes dans chaque graine ; en 1985 deux dons de Gorm, en 7 un don et
+  la rumeur d'Ilse). Gorm tient l'antichambre (« garder ses biens ») et
+  tout le monde y vient ; le rythme est celui de la faim, pas de la perception : cela explique que la
+  vue et l'ouïe changent peu leur nombre. Ce qui varie, c'est l'issue du jet de la min 5 (promis ou
+  refus), qui décide d'un vol ou non plus tard.
+- Hypothèse non vérifiée : « chacune seule multipliait échanges et vols vus » (jalon `integration`)
+  tient à la vue d'un témoin pendant un geste d'une minute (comptée à chaque geste) et à la précaution
+  « sans témoin » qui ne regarde que ce que le voleur voit ; le rejeu ne rejoue pas les anciennes
+  branches, et je n'ai pas mesuré cela.
 
 ## Hors périmètre
 

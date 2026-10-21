@@ -2958,6 +2958,11 @@
       "derive_heure": -5,
       "urgence": 50
      },
+     "devoir": {
+      "depart": 20,
+      "derive_heure": 0,
+      "urgence": 70
+     },
      "securite": {
       "depart": 30,
       "derive_heure": 0,
@@ -2986,6 +2991,13 @@
       "condition": {
        "objet": "garde_manger",
        "verrouillee": true
+      }
+     },
+     {
+      "besoin": "devoir",
+      "condition": {
+       "objet": "vivres",
+       "servir": "lucien"
       }
      }
     ],

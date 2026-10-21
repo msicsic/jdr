@@ -1017,11 +1017,25 @@ def de_pres(monde, a, b):
 
 
 def identifie(monde, x, y):
-    """``x`` sait que c'est ``y`` qui lui parle : il le voit, ou reconnaît sa voix (il le connaît,
-    ``esprits.connait``). Jamais d'après la place réelle de ``y``."""
-    if x == "joueur":
-        return monde.visible(y) or connait(monde, "joueur", y)
-    return percoit(monde, x, y) or connait(monde, x, y)
+    """``x`` sait que c'est ``y`` qui lui parle : il le voit, reconnaît sa voix (il le connaît,
+    ``esprits.connait``), ou le verrait en se tournant vers sa voix (``_verrait_en_se_tournant`` :
+    la lumière le montre, le noir non). Jamais d'après la place réelle de ``y`` seule."""
+    if connait(monde, x, y):
+        return True
+    voit = (lambda: monde.visible(y)) if x == "joueur" else (lambda: percoit(monde, x, y))
+    return voit() or _verrait_en_se_tournant(monde, x, voit)
+
+
+def _verrait_en_se_tournant(monde, x, voit):
+    """Ce que ``x`` verrait s'il se tournait vers une voix, d'où qu'elle vienne : son regard sans
+    orientation (comme ``tour_d_horizon``) ; l'orientation est rendue aussitôt."""
+    porteur = monde.joueur if x == "joueur" else monde.objets[x]
+    orientation = porteur.pop("orientation", None)
+    try:
+        return voit()
+    finally:
+        if orientation is not None:
+            porteur["orientation"] = orientation
 
 
 def croit_present(monde, a, b):
@@ -1035,12 +1049,18 @@ def croit_present(monde, a, b):
                 and monde.data["minutes"] - c["minute"] <= RECENT)
 
 
-def pourraient_se_parler(monde, a, b):
-    """``a`` pourrait parler à ``b`` : il le sait là (``croit_present``), chacun saisirait les mots de
-    l'autre (``ouie.s_entendent``) et saurait qui lui parle (``identifie``)."""
+def peuvent_se_parler(monde, a, b):
+    """La règle commune de toute parole échangée, entre PNJ comme avec le joueur : chacun saisit
+    les mots de l'autre par l'ouïe commune (``ouie.s_entendent`` : distance réelle, passages,
+    portes) et sait qui lui parle, parce qu'il le voit ou reconnaît sa voix (``identifie``)."""
     from .ouie import s_entendent
-    return (croit_present(monde, a, b) and identifie(monde, b, a) and identifie(monde, a, b)
-            and s_entendent(monde, a, b))
+    return identifie(monde, b, a) and identifie(monde, a, b) and s_entendent(monde, a, b)
+
+
+def pourraient_se_parler(monde, a, b):
+    """``a`` pourrait choisir de parler à ``b`` : il le sait là (``croit_present``, jamais d'après
+    sa place réelle), et ils peuvent se parler (``peuvent_se_parler``)."""
+    return croit_present(monde, a, b) and peuvent_se_parler(monde, a, b)
 
 
 def se_parler(monde, a, b):
@@ -1048,8 +1068,8 @@ def se_parler(monde, a, b):
     de l'autre par l'ouïe commune (``ouie.s_entendent`` : distance réelle, passages, portes) et sait
     qui lui parle : il le voit, ou reconnaît sa voix (``identifie``). Sans se voir (le noir, une
     porte), chacun se tourne vers la voix de l'autre et le croit là d'où elle vient (``entendu``)."""
-    from .ouie import _place, s_entendent
-    if not (identifie(monde, b, a) and identifie(monde, a, b) and s_entendent(monde, a, b)):
+    from .ouie import _place
+    if not peuvent_se_parler(monde, a, b):
         return False
     for x, y in ((a, b), (b, a)):
         if x == "joueur" or percoit(monde, x, y):

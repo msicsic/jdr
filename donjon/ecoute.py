@@ -45,6 +45,12 @@ def _a_la_porte(monde, par):
     return bool(sortie and sortie.get("porte") in monde.objets and proche(monde, sortie["porte"]))
 
 
+def portes_contre(monde):
+    """Les portes de sa salle auxquelles le joueur est collé : celles qui l'aident à entendre."""
+    return [s["porte"] for par, s in monde.data["salles"][monde.joueur["salle"]]["sorties"].items()
+            if _a_la_porte(monde, par)]
+
+
 def entendus(monde, depuis, seuil):
     """Bruits survenus après l'instant ``depuis`` (en dixièmes de seconde : le début du geste du
     joueur) qui lui parviennent au moins à ``seuil`` : [(bruit, niveau, d'où il arrive)]. Le monde a

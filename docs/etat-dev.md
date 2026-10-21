@@ -285,7 +285,95 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   573 → 621, mine 668 → 688 (Mathe reconnaît Odon dans le noir et refuse : il force le
   garde-manger), crue 300 → 316 ; moins de confidences dans le noir. Détail et limites dans
   `docs/plan-ouie.md`.
-- La suite de tests passe : 853 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `rejeu-enrichi` (observation seule : `rejeu.py`, `web/rejeu.html`, option du banc) : le rejeu
+  note la lumière de chaque case (même degrés que la page de jeu, recalculés quand sources, portes ou
+  obstacles changent), chaque bruit émis avec ce que chacun qui l'a entendu en a fait (vu, attribué,
+  retourné, bruit retenu, parole saisie, avec le niveau parvenu), les gestes illicites (qui était là, qui
+  les voyait, qui en a été témoin et quand) et les « aller voir ». La page colore le sol, dessine une onde
+  par bruit, montre ce que le personnage choisi entend et filtre le journal par personnage et par nature.
+  `--rejeu` avec `--graines` écrit une page par graine. Une nuit de 8 h pèse 420 à 450 Ko (bruits 77 Ko,
+  esprits 134 Ko, vues 73 Ko, lumière 4 Ko) ; la nuit reste identique (empreinte). Constats sur le Relais
+  (graines 7 et 1985) : un « vol vu » compte un souvenir par geste d'une minute et par témoin, d'où 12 pour un
+  seul cambriolage vu par deux personnes (graine 7, min 122 à 128, Brune forçant la réserve de l'antichambre) ;
+  Brune guette 31 min sans rien tenter tant qu'un témoin est en vue, jusqu'à la faim à 95 (`DESESPOIR`),
+  qui lève la précaution ; le fracas du crochetage (geste bruyant, même « sans témoin ») fait se retourner
+  Ilse, de dos, qui devient témoin. Les 8 échanges de chaque nuit sont 6 demandes de part à Gorm, plus des
+  dons ou la rumeur d'Ilse, au rythme de la faim, pas de la perception. Détail dans
+  `docs/plan-vue.md`.
+- Branche `banc-luna`, non fusionnée : Luna remesurée sur le moteur actuel (2 passes, `--fil`) et
+  un banc `echanges` (parler sans nommer, guillemets, à tous, chuchoter, passage, pousser, donner,
+  interpeller dans son dos ; la préparation d'un banc place des personnages et leur regard).
+  Défauts communs corrigés : ce que Corvus a dans son dos (vu plus tôt, hors du cône) se nomme et
+  se vise comme tout geste (`Monde.designable` : analyse du don, noms, liste d'un refus ; chaque
+  souvenir visuel porte son identifiant et `vu_a`) ; une parole se tourne vers celui qu'on nomme
+  dans son dos, et à même distance celui qui est droit devant est « en face » ; le récit d'un
+  résultat reçoit les gestes exécutés (`gestes_accomplis`), que l'auditeur admet comme le
+  narrateur ; écouter dit « contre la porte » ; un support trop loin se dit sans en détailler un
+  autre ; patienter a la cible vide ; une citation recopiée avec ses guillemets reste la parole ;
+  un refus d'improvisation nomme son seul champ fautif. Trois bancs (31 tours MJ), avant → après :
+  3,50 → 3,26 appels et 16,7 → 15,3 s par tour MJ, replis 1 → 0,5, obstacles 14 → 9,5 ; tours
+  avec refus 2 → 4, des « approche-toi » justes là où Luna supposait l'objet absent. Banc
+  échanges : 2,75 → 3,0 appels, 13,5 → 12,5 s, obstacles 3 → 0,5, et les huit saisies traitées
+  (avant : deux « précise à qui tu parles », deux « Ilse n'est pas ici » faux). Reste : la
+  faisabilité d'une échelle (« est-ce que je peux… ») sans fait qui l'établisse, décrire un objet
+  trop loin passe encore parfois par etablir_faits, un personnage dont la place connue s'est vidée
+  n'est plus reconnu par son nom (`paroles._connu_du_joueur`).
+- Branche `repli-et-appel`, non fusionnée (vu en partie : « pousse toi ca prend trop de temps »
+  finissait sur « Je ne peux pas encore répondre avec certitude. » ; « Aubin, viens m'aider à
+  porter l'échelle », Aubin derrière le pilier, finissait en dix appels ; « est-ce que je peux
+  fabriquer une échelle ? » partait en conversation où Luna devinait). Trois règles communes.
+  **Parole sans conteste** (décidé par l'utilisateur) : une saisie qui commence par des guillemets,
+  un verbe de parole (« je dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou « à
+  tous » (`paroles.analyser`, `explicite`) n'est ni un dialogue du MJ ni un geste ; destinataire
+  hors de vue : message du moteur sans appel ; MJ obstiné : le moteur prononce les mots du joueur
+  (`mj.parole_du_moteur`). Une interpellation sans guillemets (« Brune, pousse-toi ») reste du
+  texte libre ; si Luna en fait une parole, le moteur en fixe le destinataire. **Repli du contrôle
+  narratif** (trois réponses refusées) : chaque relance reçoit tous les refus du tour ; le joueur
+  lit ce que le moteur a établi (résultat, issue d'une parole), sinon les phrases admises de la
+  meilleure réponse (`narration.rescape`), sinon ce que Corvus perçoit de ce qu'il vise et ce qui
+  manque (`narration.repli`) ; un souvenir visuel est marqué `hors_de_vue` (l'auditeur refusait
+  « tu ne la vois pas d'ici »). **Question de faisabilité** (« puis-je… ? ») : Luna propose le
+  geste comme s'il était demandé, le moteur le prépare ou le refuse avec sa raison, et le joueur
+  voit la même fiche sans rien exécuter (« Rien n'est encore tenté », puis tenter ou annuler) ;
+  seules les perceptions répondent tout de suite (`commandes.PERCEPTIONS`). Luna, copies de la
+  sauvegarde réelle et bancs ciblés : Aubin en face, « Aubin, viens m'aider… » devient une parole
+  (3 appels) ; derrière le pilier, Luna répond qu'elle ne le voit pas (2 appels), « je dis à Aubin :
+  … » reçoit le message du moteur (0 appel) ; devant les perches, « est-ce que je peux fabriquer
+  une échelle ? » montre la fiche (52 min, sans jet) en 2 appels, « tenter » la fabrique ; trop
+  loin, le moteur dit « Approche-toi de la perche… » ; « qu'est-ce que je vois au nord ? » reste
+  une conversation (2 appels). Bancs de référence (1 passe, 31 tours MJ) : avant 3 replis, 9
+  relances narratives, 3,32 appels par tour ; après 0 repli, 5 relances, 3,35 appels par tour
+  (refus du moteur 3 → 7 : les questions de faisabilité passent désormais par lui). Limites :
+  l'auditeur reste sémantique ; une interpellation libre peut encore être racontée par Luna sans
+  rien faire dire ; « Gorm, je te donne la cloche » entre guillemets reste une parole. Détail dans
+  `docs/plan-ouie.md` (« Correctif : ce qui est une parole sans conteste »).
+- Branche `entretenir-feu`, non fusionnée (manques de la mine et de l'auberge : Odile et Mireille
+  devant un foyer mort sans demander le bois de Joss ; le poêle de Josse tenu seulement par la
+  dérive de son devoir ; Mathe servant Lucien en boucle). Trois règles communes. Une pulsion qui
+  cesse d'être satisfaite est **rompue** (`esprit["pulsions"]` : True, False rompue, None désir
+  jamais satisfait) : il la rétablit sans attendre que son besoin presse, quelle qu'en soit la
+  cause (un feu qui baisse, un protégé qui a faim, ce qu'il a ouvert ou emporté lui-même) ; les
+  rondes gardent leur routine, un désir attend son besoin. Un feu à entretenir peut employer le
+  bois d'un autre : la part de combustible va au feu que le but entretient (le donneur le
+  recharge et le rallume), on ne demande pas ce qu'on a sur soi, on ne prête pas ce qu'on garde
+  (`echanges.garde`), une parole n'est tenue que sur ce qu'on a constaté depuis (un feu vu vif
+  avant la demande se revoit), une part de bois est servie quand on a revu le feu rechargé.
+  Servir un protégé : seulement s'il est cru affamé (la faim qui presse se voit, `etat` d'un
+  personnage), et il le voit manger ; la pulsion de Mathe est remise. Cas vérifiés après
+  rechargement (`tests/test_entretenir.py`) : Mireille demande les fagots de Joss, qui recharge
+  le fourneau puis garde sa dernière charge ; Josse, devoir à 10 sans dérive, recharge son poêle
+  de ses étais, puis sans étais obtient une part des bûches de Gaspard ; Mathe sert Lucien une
+  fois ; Gorm, bois en main et sans flamme, va allumer la torche au lieu de demander des planches.
+  Bancs (8 h ; `VERIFIER` sur 5 nuits) : Relais 8 graines, sans recours 428 → 401, événements
+  23,3 → 26,5 ; crue 300 → 281 ; mine 668 → 670, poêle allumé 385 → 448 min (Josse obtient le
+  bois de Gaspard), Odon, privé d'une part que Mathe a servie à Lucien, force le garde-manger ;
+  auberge 573 → 673 : les demandes ont lieu (Joss donne une charge par nuit, Anselme garde les
+  deux siennes), les trois foyers brûlent 622 → 710 min, mais le bois manque avant la fin de la
+  nuit et le devoir, que rien n'apaise, reste urgent (Odile et Mireille inchangées) ; Anselme
+  recharge son poêle à temps, ce qui déplace le crochetage de Lucien. Aucune usurpation. Limites :
+  on ne demande que le bois qu'on connaît ; une part de bois promise s'attend 60 minutes si l'on
+  n'a pas revu le feu ; une ancienne sauvegarde lit False comme rompue.
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -300,10 +388,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; demander du bois
-  pour entretenir un feu ; prêter et permissions déléguées ; l'argent ; un protégé nourri en
-  boucle. Chercher quelqu'un dans le noir, le lieu dans une rumeur et le contenant fermé cru
-  ouvert sont traités sur la branche `constater-et-rumeurs`, à relire avant fusion.
+- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; prêter et
+  permissions déléguées ; l'argent ; un besoin que rien n'apaise (le devoir reste urgent une fois
+  franchi son seuil). Demander du bois pour un feu et le protégé nourri en boucle : branche
+  `entretenir-feu`. Chercher quelqu'un dans le noir, le lieu dans une rumeur et le contenant fermé
+  cru ouvert : branche `constater-et-rumeurs`.
 - **Instructions conditionnées à l'état du monde** : plus tard ; critère retenu, inclure une
   règle quand le moteur pourrait valider ce type de proposition dans l'état actuel, jamais
   selon un lieu ou un scénario.

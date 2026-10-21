@@ -7,12 +7,12 @@ import os
 from pathlib import Path
 import sys
 
-from donjon.commandes import AIDE, analyser, est_question
+from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
-from donjon.moteur import Moteur, QualificationRequise
+from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
 from donjon.narration import (consigner as consigner_narration, rendre_resultat,
                               chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
@@ -225,12 +225,12 @@ def main(argv=None, interface=None):
             return next((e["joueur"] for e in reversed(m.data["conversation"])
                          if e.get("nature") == "proposition_non_executee"), intention)
 
-        def raconter(affichage, intention):
+        def raconter(affichage, intention, gestes):
             """Récit de Luna d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
             if mj is None or args.recit_moteur:
                 return None
             try:
-                recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention),
+                recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention), "gestes": gestes,
                                                  "faits": affichage.splitlines()})
             except ErreurMonde:
                 return None
@@ -243,7 +243,7 @@ def main(argv=None, interface=None):
             # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
             affichage = rendre_resultat(resultat)
             m.sauver(args.save)
-            recit = raconter(affichage, intention)
+            recit = raconter(affichage, intention, gestes_accomplis(plan, m))
             texte_affiche = recit["texte"] if recit else affichage
             m.memoriser(intention, texte_affiche, "resultat_moteur")
             if recit:
@@ -428,16 +428,15 @@ def main(argv=None, interface=None):
                         travail, _ = appliquer_transactions(m, transactions)
                         travail.sauver(args.save)
                         m.data = travail.data
-                    if question and p.get("action") not in ("observer", "examiner", "clarifier", "impossible"):
-                        imprimer("Le MJ a proposé une action à une question. Aucune action n'a été appliquée.")
-                        imprimer("Précisez une action si vous souhaitez la tenter, ou consultez contexte / regarder.")
-                        continue
                     pending = None
                     if p.get("action") in ("clarifier", "impossible"):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
                     pending = moteur.preparer(p, origine="reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele)
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
-                    if not pending.stat and not pending.echec_critique:
+                    # Une question sur un geste (« puis-je… ? ») le prépare sans l'exécuter : seule une
+                    # perception répond tout de suite.
+                    essai_a_blanc = question and p.get("action") not in PERCEPTIONS
+                    if not essai_a_blanc and not pending.stat and not pending.echec_critique:
                         plan = pending
                         resultat = moteur.executer(plan)
                         pending = None
@@ -449,8 +448,10 @@ def main(argv=None, interface=None):
                     imprimer("\n" + pending.resume(m))
                     m.memoriser(texte, pending.resume(m), "proposition_non_executee")
                     m.sauver(args.save)
-                    if not pending.etapes:
-                        imprimer("« tenter » pour agir ; « annuler » pour abandonner.")
+                    suite_fiche = "" if pending.etapes else "« tenter » pour agir ; « annuler » pour abandonner."
+                    if essai_a_blanc or suite_fiche:
+                        imprimer(" ".join(filter(None, ("Rien n'est encore tenté." if essai_a_blanc else "",
+                                                        suite_fiche))))
                 else:
                     if p["action"] != "observer":
                         pending = None

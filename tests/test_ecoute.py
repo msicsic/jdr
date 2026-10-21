@@ -55,6 +55,9 @@ class EcouterTests(unittest.TestCase):
         m = au_palier(relais(), (0, 3))
         parler_pendant(m)
         m, texte = executer(m, analyser(m, "j'écoute à la porte"))
+        # Le résultat dit la condition qui l'aide : son oreille contre la porte (banc Luna : le MJ
+        # racontait « contre la porte » sans fait pour l'attester).
+        self.assertIn("Tu tends l'oreille contre la porte étanche du beffroi.", texte)
         self.assertIn("Tu entends une voix à l'ouest.", texte)
         # La parole n'est pas nette à travers la porte : son contenu ne passe pas.
         self.assertNotIn("l'eau monte", texte)
@@ -68,7 +71,11 @@ class EcouterTests(unittest.TestCase):
                 self.assertNotIn("Tu entends une voix", texte)
         m = au_palier(relais(), (7, 3))
         _, texte = executer(m, proposition("ecouter"))
-        self.assertIn("rien de particulier", texte)
+        self.assertIn("Tu tends l'oreille : rien de particulier ne te parvient.", texte)
+        m = au_palier(relais(), (0, 3))
+        _, texte = executer(m, proposition("ecouter"))
+        self.assertIn("Tu tends l'oreille contre la porte étanche du beffroi : rien de particulier ne te parvient.",
+                      texte)
 
     def test_un_appel_s_entend_sans_tendre_l_oreille(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")

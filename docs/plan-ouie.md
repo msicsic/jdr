@@ -219,6 +219,26 @@ faire, une rumeur qui court plus tôt (auberge : Hugues accuse Lucien à 200 min
 part refusée à Gaspard à 221 minutes au lieu d'être promise le laisse affamé (+300 minutes) ; à
 l'auberge, graine 7, une nuit de panique (453 retournements) n'a plus lieu (213).
 
+**Correctif : ce qui est une parole sans conteste (branche `repli-et-appel`).** Vu sur `main` :
+« Aubin, viens m'aider à porter l'échelle », Aubin derrière le pilier, finissait en dix appels sur
+un refus, et « Ilse, tu peux m'aider à déplacer les planches ? » sur un dialogue où Luna racontait
+« Tu appelles Ilse et lui demandes… » sans que rien ne soit dit. Règle retenue par l'utilisateur :
+une saisie est une parole sans conteste (`paroles.analyser`, `explicite`) seulement si elle
+commence par des guillemets, par un verbe de parole (« je dis… », « je dis à Brune… », « je lui
+dis… », « je demande à Gorm… », « je chuchote… » ; « lance », qui dit aussi un geste, demande un
+destinataire ou un deux-points : `GESTES_HOMONYMES`) ou par « à tous ». Celle-là n'est ni un
+dialogue du MJ ni un geste : si le moteur ne peut pas la faire entendre, il le dit sans appel
+(« Tu ne vois pas Aubin d'ici : approche-toi pour lui parler », la cantonade proposée) ; si le MJ
+s'obstine à la raconter ou à en faire un geste, le moteur prononce les mots du joueur tels quels,
+sans contenu typé (`mj.parole_du_moteur`) ; sans mots imposés (« je demande à Ilse de m'aider »),
+il demande au joueur de les donner plutôt que de les inventer. Une interpellation sans guillemets
+(« Brune, pousse-toi », « Aubin, viens m'aider… ») reste du texte libre : Luna en fait une
+question, un geste ou une parole ; si elle en fait une parole, le moteur en fixe le destinataire
+(celui qu'elle nomme) et en garde les mots. Avec Luna (copies de la sauvegarde réelle) : en face
+d'Aubin, « Aubin, viens m'aider à porter l'échelle » devient une parole (3 appels) ; derrière le
+pilier, Luna répond qu'elle ne le voit pas (2 appels), et « je dis à Aubin : viens m'aider » reçoit
+le message du moteur sans appel. Une demande d'aide n'a pas de contenu typé : elle reste un propos.
+
 ## Constater, raconter où, chercher quelqu'un (branche `constater-et-rumeurs`)
 
 Trois manques relevés en écrivant la mine et l'auberge (`docs/etat-dev.md`).
@@ -280,6 +300,19 @@ noir, mais pas par un raccourci de distance ni d'après la place réelle de l'au
   s'il le voit ou reconnaît sa voix, et lui répond ; il faut que chacun s'entende. Sans se voir,
   chacun se tourne vers la voix de l'autre et le croit là. Le PNJ qui prie le joueur de le laisser
   passer (`passage._peut_prier`) suit la même règle.
+- *Une seule règle* (accord avec la branche `integration`) : `pnj.peuvent_se_parler` décide de
+  toute parole échangée — chacun saisit les mots de l'autre et sait qui lui parle (`identifie` :
+  il le voit, reconnaît sa voix, ou le verrait en se tournant vers elle, ce que la lumière permet et
+  le noir non). `se_parler` (demander, dire, confier, remettre), `pourraient_se_parler`
+  (confidences, prière de passage, qui y ajoutent `croit_present`), servir une part
+  (`echanges.servir`, `_servir_joueur` : on appelait qui était dans la salle sans le voir ni le
+  reconnaître) et la parole du joueur (`paroles.destinataires` : le destinataire doit saisir ses
+  mots, savoir qui lui parle, et Corvus saisir sa réponse ; refus distincts, « trop loin pour
+  t'entendre », « ne saurait pas qui lui parle », « tu n'entendrais pas … te répondre »)
+  l'emploient tous. Le test de la voix inconnue (Mathe, Odon) échouait après la fusion non par une
+  voie détournée, mais parce que le poêle du baraquement, éteint par la scène, est désormais
+  rallumé par Gaspard (branche `entretenir-feu`), dont la lampe éclairait Odon : la scène se tient
+  maintenant dans la réserve noire.
 - *Le joueur* : `ecoute` ne rend en clair qu'une parole nette d'une voix qu'il connaît (et qui ne
   nomme que ce qu'il connaît) ; sinon « une voix ». Seules les voix reconnues le font savoir qui
   est là (`data["entendus"]`, `ecoute.retenir`) : un pas, un fracas, une voix inconnue ne nomment
@@ -395,7 +428,8 @@ Limites :
 - Le joueur ne fait pas de jet d'ouïe ; ses gestes ont la nature de la table, plus l'arbitrage du
   bruit (3 : fracas).
 - Paroles : un destinataire doit être perçu par le joueur ; qui l'entend sans être vu (derrière le
-  pilier) n'est que témoin, et le nommer est refusé (« pas ici pour t'entendre »). Les répliques
+  pilier) n'est que témoin ; le nommer dans une parole sans conteste est refusé par le moteur, sans
+  appel au MJ (« Tu ne vois pas Aubin d'ici : approche-toi… », la cantonade proposée). Les répliques
   que Luna prête aux PNJ (`paroles_pnj`) ne sont pas entendues des autres PNJ. Un PNJ tout près
   d'un chuchotement n'en retient qu'un bruit feutré, pas qu'on chuchote. Sans cases, deux présents
   font toujours une ambiguïté, et l'on chuchote à quiconque est là. « je lui dis » vise le dernier

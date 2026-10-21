@@ -138,12 +138,14 @@ class QuestionsConsoleTests(unittest.TestCase):
         self.assertFalse(est_question("ouvrir la porte"))
         for phrase in ("Où est la clé", "Peut-on éteindre la lanterne"):
             with self.subTest(console=phrase):
+                # Une question sur un geste le prépare sans l'exécuter.
                 texte, reprise, _ = self.lancer([phrase], {
                     "mode": "action", "texte": "", "faits": [],
                     "proposition": proposition("eteindre", "lanterne")})
-                self.assertIn("Aucune action n'a été appliquée", texte)
+                self.assertIn("Rien n'est encore tenté.", texte)
                 self.assertTrue(reprise.objets["lanterne"]["allume"])
-                self.assertEqual(reprise.data["revision"], 0)
+                self.assertFalse(reprise.data["journal"])
+                self.assertEqual(reprise.data["conversation"][-1]["nature"], "proposition_non_executee")
 
     def lancer(self, commandes, p=None, panne=None):
         import jeu
@@ -175,11 +177,18 @@ class QuestionsConsoleTests(unittest.TestCase):
         self.assertNotIn("« tenter » pour agir", texte)
         self.assertEqual(m.data["revision"], 0)
 
-    def test_question_nautorise_pas_action_du_modele(self):
+    def test_question_prepare_le_geste_sans_l_executer_puis_tenter(self):
         texte, m, _ = self.lancer(["Puis-je éteindre ma lanterne ?"], {
             "mode": "action", "texte": "", "faits": [], "proposition": proposition("eteindre", "lanterne")})
-        self.assertIn("Aucune action n'a été appliquée", texte)
+        self.assertIn("Pas de jet nécessaire.", texte)
+        self.assertIn("Rien n'est encore tenté.", texte)
+        self.assertIn("« tenter » lance l'ensemble", texte)
         self.assertTrue(m.objets["lanterne"]["allume"])
+        # Le joueur tente ensuite la même fiche (le moteur la raconte lui-même).
+        with patch.object(MJOpenAI, "raconter_resultat", side_effect=ErreurMonde("récit indisponible")):
+            texte, m, _ = self.lancer(["Puis-je éteindre ma lanterne ?", "tenter"], {
+                "mode": "action", "texte": "", "faits": [], "proposition": proposition("eteindre", "lanterne")})
+        self.assertFalse(m.objets["lanterne"]["allume"])
 
     def test_question_api_indisponible_sans_reponse_hors_sujet(self):
         texte, m, _ = self.lancer(["Il fait noir ?"], panne=ErreurMonde("MJ indisponible : 401"))
