@@ -19,7 +19,7 @@ from .paroles import (REGLES as REGLES_PAROLE, SCHEMA_PAROLE, ParoleImpossible, 
 from .commandes import PERCEPTIONS, est_question, faisabilite
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
-from .config import MODELE_PAR_DEFAUT
+from .config import MODELE_PAR_DEFAUT, DEFAUTS_CONNEXION
 from .francais import designer
 from .artisanat import (SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, dossier as dossier_atelier,
                         REGLES as REGLES_ATELIER)
@@ -307,9 +307,10 @@ def expliquer_refus(premier, dernier):
 
 
 class MJ:
-    def __init__(self, modele=None, effort="medium", timeout=45, connexion="api", *, fournisseur=None):
-        self.modele = modele or os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
-        self.effort, self.timeout = effort, timeout
+    def __init__(self, modele=None, effort=None, timeout=45, connexion="api", *, fournisseur=None):
+        defaut_modele, defaut_effort = DEFAUTS_CONNEXION.get(connexion, (os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT), "medium"))
+        self.modele = modele or defaut_modele
+        self.effort, self.timeout = effort if effort is not None else defaut_effort, timeout
         self.derniere_utilisation = None
         self.connexion = connexion
         self.erreur_auth = None

@@ -4,7 +4,9 @@ from pathlib import Path
 
 MODELE_PAR_DEFAUT = "gpt-6-luna"
 MODELE_CLAUDE = "claude-haiku-5-5"   # essai d'un autre fournisseur (--connexion anthropic)
-VARIABLES = ("OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY")
+MODELE_MIMO = "mimo-v2.6-flash"
+DEFAUTS_CONNEXION = {"mimo": (MODELE_MIMO, "none")}
+VARIABLES = ("OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY", "MIMO_API_KEY", "XIAOMI_API_KEY")
 
 
 def charger_env(chemin=None):

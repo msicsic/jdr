@@ -17,6 +17,7 @@ from donjon.monde import Monde
 from donjon.moteur import proposition
 from tests.test_claude import anthropic, bloc, reponse
 from tools.verifier_websocket_jeu import CAS, Interface, parcours
+from tools.traces_mimo import JournalMiMo
 
 try:
     from donjon.fournisseurs.mimo import MiMo
@@ -40,9 +41,9 @@ def arguments(cible, fonction, entree):
 
 
 class ParcoursFournisseursTests(unittest.TestCase):
-    def _parcours(self, type_fournisseur):
+    def _parcours(self, type_fournisseur, correction=False):
         for cas in CAS:
-            with self.subTest(cas=cas, fournisseur=type_fournisseur):
+            with self.subTest(cas=cas, fournisseur=type_fournisseur), tempfile.TemporaryDirectory() as dossier_traces:
                 cible = CAS[cas][1]
                 traces = []
                 if type_fournisseur == 'anthropic':
@@ -54,10 +55,12 @@ class ParcoursFournisseursTests(unittest.TestCase):
                         return reponse('tool_use', bloc('tool_use', name=fonction, input=a, id='appel-test'))
                     fournisseur.client.messages.create.side_effect = generer
                 elif type_fournisseur == 'mimo':
-                    fournisseur = MiMo('simulation')
+                    journal = JournalMiMo(dossier_traces)
+                    fournisseur = MiMo('simulation', relances_format=int(correction), observateur_transport=journal.observateur())
                 else:
                     fournisseur = OpenAI()
 
+                reponses_mimo = []
                 def http(requete, timeout):
                     p = json.loads(requete.data)
                     if type_fournisseur == 'mimo':
@@ -65,6 +68,9 @@ class ParcoursFournisseursTests(unittest.TestCase):
                         q = json.loads(p['messages'][1]['content'])
                         fonction = q['contrat_reponse']['fonction']
                         texte = json.dumps(arguments(cible, fonction, q['requete']))
+                        reponses_mimo.append(texte)
+                        if correction and len(reponses_mimo) == 1:
+                            texte += '<'
                         evenements = [{'choices': [{'delta': {'content': texte}, 'finish_reason': None}]},
                             {'choices': [{'delta': {}, 'finish_reason': 'stop'}], 'usage': {'total_tokens': 12}}]
                         return io.BytesIO((''.join('data: ' + json.dumps(e) + '\n\n' for e in evenements) + 'data: [DONE]\n\n').encode())
@@ -86,11 +92,19 @@ class ParcoursFournisseursTests(unittest.TestCase):
                     return mj
                 with patch('jeu.MJ', side_effect=construire), \
                      patch.dict(os.environ, {'OPENAI_API_KEY': 'simulation'}), \
-                     patch('urllib.request.urlopen', side_effect=http):
+                     patch('urllib.request.urlopen', side_effect=http), \
+                     patch('donjon.fournisseurs.mimo.ouvrir_flux', side_effect=lambda r, t, ipv4: http(r, t)):
                     r = parcours(cas)
                 self.assertTrue(r['recit_sauve_avant_affichage'])
                 self.assertTrue(r['etat_identique_apres_reprise'])
                 self.assertEqual(r['executions_action'], 1)
+                if correction:
+                    self.assertEqual(fournisseur.numero_appel, 5)
+                    self.assertEqual(len(journal.appels), 5)
+                    self.assertFalse(journal.appels[0]['schema_valide'])
+                    self.assertTrue(journal.appels[1]['schema_valide'])
+                    for a in journal.appels:
+                        self.assertTrue((Path(dossier_traces) / a['dossier_trace'] / 'reponse.sse').is_file())
                 self.assertEqual([t['fonction'] for t in traces if t['etape'] == 'appel'],
                     ['repondre_au_joueur', 'auditer_action', 'repondre_au_joueur', 'auditer_narration'])
 
@@ -106,6 +120,10 @@ class ParcoursFournisseursTests(unittest.TestCase):
         self._parcours('mimo')
 
     @unittest.skipIf(jsonschema is None, 'Dépendance MiMo facultative absente')
+    def test_mimo_correction_avant_action_sur_deux_scenes(self):
+        self._parcours('mimo', correction=True)
+
+    @unittest.skipIf(jsonschema is None, 'Dépendance MiMo facultative absente')
     def test_mimo_deux_rejets_reels_sans_fuite_du_diagnostic(self):
         racine = Path(__file__).parent / 'data/mimo-rejets'
         for f in sorted(racine.iterdir()):
@@ -115,14 +133,14 @@ class ParcoursFournisseursTests(unittest.TestCase):
                 avant = Monde.charger(sauvegarde).data
                 p = json.loads((f / 'requete.json').read_text(encoding='utf-8'))
                 intention = json.loads(p['messages'][1]['content'])['requete']['message']
-                fournisseur = MiMo('simulation')
+                fournisseur = MiMo('simulation', relances_format=0)
                 interface = Interface([intention, 'quitter'], sauvegarde)
                 def construire(*a, **kw):
                     return MJ(*a, **kw, fournisseur=fournisseur)
                 flux = (f / 'reponse.sse').read_bytes()
                 with patch('jeu.MJ', side_effect=construire), \
                      patch.dict(os.environ, {'OPENAI_API_KEY': 'simulation'}), \
-                     patch('urllib.request.urlopen', return_value=io.BytesIO(flux)):
+                     patch('donjon.fournisseurs.mimo.ouvrir_flux', return_value=io.BytesIO(flux)):
                     self.assertEqual(jeu.main(['--defi', '--save', str(sauvegarde), '--console',
                         '--connexion', 'api', '--model', 'mimo-v2.6-flash'], interface=interface), 0)
                 self.assertIn('Réponse du MJ invalide.', '\n'.join(interface.sorties))

@@ -71,7 +71,7 @@ class ContratTests(unittest.TestCase):
         a.sans_strict.add('proposer')
         self.assertEqual(b.sans_strict, set())
         with self.assertRaises(ValueError):
-            creer('mimo')  # L'essai n'est pas activé dans le jeu.
+            creer('inconnu')
 
     def test_openai_incomplet_garde_le_brut_et_les_tokens(self):
         resultat = {'status': 'incomplete', 'output': [{'type': 'message', 'content': []}],

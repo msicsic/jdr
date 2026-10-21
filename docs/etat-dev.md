@@ -7,6 +7,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
+  Adaptateur MiMo terminé : choix explicite `--connexion mimo`, flux complet, une correction JSON bornée,
+  banc migré, 998 tests passent et deux actions réelles réussies en 8 appels. Voir [MiMo](mimo.md).
 - `main` contient les jalons PNJ A à I (`docs/plan-pnj.md`, tableau « Jalons » et sections
   « Écarts retenus »). Le dernier fusionné est **I. Demander, écouter, protéger** :
   - le corps commun (faim, froid, fatigue) pour tous, joueur compris (`donjon/corps.py`) ;

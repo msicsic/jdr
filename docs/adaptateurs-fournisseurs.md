@@ -42,7 +42,8 @@ Ce contrat ne garantit pas à lui seul la vérité des narrations ; les limites 
 | `donjon/fournisseurs/openai.py` | Payload Responses, authentification, catalogue, décodage et erreurs OpenAI |
 | `donjon/transport_openai.py` | Connexion WebSocket, rotation, reconnexion et lecture des événements ; lecteur SSE déplacé ici |
 | `donjon/fournisseurs/anthropic.py` | SDK, adaptation des schémas, réflexion, outil imposé ou transcription |
-| `donjon/fournisseurs/mimo.py` | JSON natif strict, validation locale et captures complètes, pour les bancs uniquement |
+| `donjon/fournisseurs/mimo.py` | JSON natif strict, validation locale, une correction de format au plus et captures complètes |
+| `donjon/transport_mimo.py` | Connexion HTTPS Xiaomi, IPv4 locale, lecture SSE et budget de délai |
 
 Chaque MJ possède par défaut son propre adaptateur. Chaque adaptateur possède ses clients et son état : WebSocket et catalogue
 pour OpenAI, client SDK et fonctions sans grammaire stricte pour Anthropic. `MJ.fermer()` ferme le fournisseur.
@@ -58,8 +59,9 @@ Le jeu construit désormais `MJ`. `MJOpenAI = MJ` reste disponible dans `donjon.
 `lire_flux` y reste réexporté pour les anciens outils de diagnostic. L'ancien module interne `donjon.claude` est remplacé
 par `donjon.fournisseurs.anthropic`.
 
-Les modes de connexion du jeu, le choix par défaut de Luna et la comparaison désactivée restent identiques.
-MiMo n'est pas ajouté aux choix du jeu. Son adaptateur est accessible par injection explicite :
+Luna reste le choix par défaut et la comparaison reste désactivée. MiMo est disponible par choix explicite
+`--connexion mimo`, avec une clé Xiaomi séparée ; voir [l'accès MiMo et son banc](mimo.md).
+L'adaptateur reste également accessible par injection pour les bancs :
 
 ```python
 from donjon.mj import MJ
@@ -74,14 +76,17 @@ finally:
     mj.fermer()
 ```
 
-`requirements-mimo.txt` est facultatif. Le transport MiMo ne répare pas les sorties invalides : validation JSON et schéma complets,
-aucun remplissage de champ, rejet des clés dupliquées et des caractères après l'objet. Une erreur neutre est affichée ; le diagnostic,
+`requirements-mimo.txt` est facultatif. Le transport MiMo valide complètement JSON et schéma, sans remplissage local de champ ;
+il rejette les clés dupliquées et les caractères après l'objet. Une réponse complète invalide peut être renvoyée une fois au modèle
+avec le diagnostic ; `relances_format=0` désactive cette correction. Une erreur neutre est affichée si elle échoue ; le diagnostic,
 la requête sans en-têtes, le flux SSE exact en base64, les événements complets et le message reconstruit restent dans `brut`.
-`effort='none'` désactive la réflexion. Le choix IPv4 reste une décision du banc, aucune modification globale de la résolution réseau.
+`effort='none'` désactive la réflexion. IPv4 est utilisé par défaut pour Xiaomi seulement ; `ipv4=False` utilise la résolution normale.
+Aucune modification globale de la résolution réseau n'est effectuée.
 
 Les anciens worktrees de mesure et leurs captures restent autonomes. Pour reporter leurs outils sur cette branche,
 ils doivent injecter `MiMo` au lieu de surcharger la méthode privée supprimée `_appeler_openai` ou remplacer `jeu.MJOpenAI`.
-Le nouveau point d'injection du jeu est `jeu.MJ`. Ce refactor ne réexécute pas la campagne payante et ne valide pas le modèle MiMo.
+Le nouveau point d'injection du jeu est `jeu.MJ`. Le banc migré `tools/valider_mimo_parties.py` utilise ce point et le fournisseur
+du jeu. Les vérifications initiales du refactor ci-dessous sont conservées ; [la finition MiMo](mimo.md) ajoute deux essais réels.
 
 ## Vérification
 

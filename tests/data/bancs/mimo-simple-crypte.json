@@ -1,0 +1,6 @@
+{
+  "scenario": "crypte",
+  "seed": 1985,
+  "preparation": {"salle": "antichambre", "position": [2, 2], "orientation": "est"},
+  "tours": ["mj Je prends la clé du veilleur.", "inventaire"]
+}

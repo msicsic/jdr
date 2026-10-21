@@ -1,0 +1,80 @@
+{
+  "tests": {
+    "nombre": 998,
+    "resultat": "OK",
+    "dependances_facultatives_presentes": true
+  },
+  "rejeu_112": {
+    "sans_reseau": true,
+    "relances_format": 0,
+    "acceptes": 106,
+    "rejetes": 6
+  },
+  "essai_reel": {
+    "appels_xiaomi": 8,
+    "tours_mj": 2,
+    "erreurs": 0,
+    "corrections_necessaires": 0,
+    "executions_par_action": 1,
+    "sauvegardes_avant_affichage": true,
+    "reprises_identiques": true,
+    "ttft_s": {
+      "n": 8,
+      "mediane": 2.027388400005293,
+      "moyenne": 2.376035574998241,
+      "min": 0.622238699987065,
+      "max": 6.593379099998856
+    },
+    "reponse_complete_s": {
+      "n": 8,
+      "mediane": 4.524062850003247,
+      "moyenne": 4.14131560000169,
+      "min": 1.8384400999930222,
+      "max": 7.302961000008509
+    },
+    "tokens_reflexion": 0,
+    "parties": [
+      {
+        "script": "mimo-simple-crypte",
+        "tours": 2,
+        "tours_mj": 1,
+        "appels": 4,
+        "appels_par_tour_mj": 4.0,
+        "secondes_par_tour_mj": 21.4,
+        "tours_avec_repli": 0,
+        "tours_avec_refus": 0,
+        "tours_avec_erreur": 0,
+        "mentions_sans_fondement": 0,
+        "arret": null,
+        "erreur_rechargement": null,
+        "appels_mj": 4,
+        "reprise_etat_identique": true,
+        "rechargement_exact": true,
+        "reprise_objets_et_joueur_identiques": true
+      },
+      {
+        "script": "mimo-simple-atelier",
+        "tours": 2,
+        "tours_mj": 1,
+        "appels": 4,
+        "appels_par_tour_mj": 4.0,
+        "secondes_par_tour_mj": 11.8,
+        "tours_avec_repli": 0,
+        "tours_avec_refus": 0,
+        "tours_avec_erreur": 0,
+        "mentions_sans_fondement": 0,
+        "arret": null,
+        "erreur_rechargement": null,
+        "appels_mj": 4,
+        "reprise_etat_identique": true,
+        "rechargement_exact": true,
+        "reprise_objets_et_joueur_identiques": true
+      }
+    ]
+  },
+  "limites": [
+    "Deux actions simples réelles, aucune estimation de fiabilité générale de la narration.",
+    "La relance réussie est vérifiée avec réponses simulées sur deux scènes.",
+    "L’essai facultatif des six corrections via le service a été refusé par le contrôle automatique : contexte capturé et sorties jugés insuffisamment autorisés pour cette réémission. Aucun appel supplémentaire envoyé."
+  ]
+}

@@ -9,4 +9,7 @@ def creer(connexion):
     if connexion == 'anthropic':
         from .anthropic import Anthropic
         return Anthropic()
+    if connexion == 'mimo':
+        from .mimo import MiMo
+        return MiMo()
     raise ValueError('Connexion fournisseur inconnue : ' + str(connexion))
