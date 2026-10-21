@@ -25,7 +25,9 @@ entendues et ce qu'elles ont prétendu. Le joueur a les mêmes dans ``data["voix
 """
 import copy
 
+from .biens import permis as _permis
 from .perception import eclairage
+from .vol import proprietaire as _proprietaire
 
 MEMOIRE_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
@@ -381,12 +383,10 @@ def prete(monde, id, objet, a):
 
 def _vu_porter(monde, id, sujet):
     """Le propriétaire qui voit son bien aux mains d'un autre, sans le lui avoir prêté, découvre un vol."""
-    from .vol import proprietaire
     o = monde.objets[sujet]
     porteur = _porteur(monde, o)
-    from .biens import permis
-    if (porteur in (None, id) or proprietaire(monde, o) != id or prete(monde, id, sujet, porteur)
-            or permis(monde, porteur, sujet)
+    if (porteur in (None, id) or _proprietaire(monde, o) != id or prete(monde, id, sujet, porteur)
+            or _permis(monde, porteur, sujet)
             or any(s["type"] == "vu_porter" and s["auteur"] == porteur and s["objet"] == sujet
                    for s in lire(monde, id)["memoire"])):
         return
