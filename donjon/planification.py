@@ -47,6 +47,10 @@ DIAGNOSTIC = None
 # Le dernier résultat de chaque PNJ pour chaque but, avec tout ce dont il dépendait. Il ne tient
 # pas à l'objet monde : le moteur agit sur une copie de travail à chaque action.
 _MEMOIRE = {}
+# Le graphe de la dernière recherche de chaque PNJ pour chaque but (``_explorer``), avec tout ce dont
+# il dépendait : quand seuls le prix d'une faute ou celui d'abîmer ont changé (la détresse qui monte),
+# la recherche se refait sur lui sans recalculer un seul geste.
+_GRAPHES = {}
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
 # porter est recalculé par une recherche complète, et comparé.
 VERIFIER = False
@@ -376,10 +380,10 @@ def chance_crochetage(monde, id, lumiere):
 
 def gestes(v, e, vises=None, but=None):
     """Les gestes possibles depuis cet état : (fautes, minutes, étapes, état suivant[, durée[,
-    surcoût]]). Les fautes comptent les personnes lésées ; les minutes font le coût, et la durée
+    abîme]]). Les fautes comptent les personnes lésées ; les minutes font le coût, et la durée
     réelle (celle qu'il passerait dans le noir) n'est donnée que quand elle en diffère : demander, ou
-    chercher quelqu'un, coûte plus que le temps qu'il y passe. Le surcoût est un prix qui n'est pas
-    du temps : abîmer le bien d'autrui, au prix de sa douceur.
+    chercher quelqu'un, coûte plus que le temps qu'il y passe. Abîmer le bien d'autrui (vrai) ajoute
+    un prix qui n'est pas du temps, celui de sa douceur (``Vue.degat``, compté par ``_explorer``).
 
     ``vises`` ouvre les gestes que seul un but demande, sur les objets ou lieux qu'il vise :
     inspecter une salle, prendre un objet qui ne sert à aucun geste, poser, fermer et
@@ -494,7 +498,7 @@ def gestes(v, e, vises=None, but=None):
                 brise = v.proprietaire[o] if v.brise_illicite[o] else None
                 if v.autorise[o] and not (brise and v.degat is None):
                     degat = [(("degat", brise), True)] if brise else []
-                    surcout = v.degat if brise and not e.fait("degat", brise) else 0
+                    abime = bool(brise) and not e.fait("degat", brise)
                     for outil in sorted(k for k in e.portes if force.adapte(x, objets[k])):
                         n, c = force.coups(monde, id, x, objets[outil]), force.chance(monde, id, objets[outil])
                         if n and c:
@@ -502,7 +506,7 @@ def gestes(v, e, vises=None, but=None):
                                    [_etape("frapper", o, outil=outil, condition="sans_temoin" if brise else "")],
                                    e.apres(faits=[(("verrou", o), False), (("ouvert", o), True), (("touche", o), True),
                                                   *([(("faute", brise), True)] if brise else []), *degat]),
-                                   n / c, surcout)
+                                   n / c, abime)
         # Manger ce qui est à portée.
         if x["type"] == "nourriture" and ici and v.disponible(o) and v.autorise[o]:
             porte = o in e.portes
@@ -667,41 +671,50 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     faute = prix_faute(monde, id, motif)
     v.degat = prix_faute(monde, id, motif, "douceur")
     v.emplois = None if emplois is None else frozenset(emplois)
-    garde = None
+    garde = graphe = None
+    repris = False
     if memo is not None and depuis is None:
-        # Ce que la recherche lit de son caractère et de son état : le prix d'une faute et celui
-        # d'abîmer, l'adresse modulée qui fait la chance de crocheter, la force celle de forcer.
-        entrees = json.dumps([_entrees(v, vises, profondeur, noeuds), faute, v.degat, modificateur(monde, id, "DEX"),
-                              modificateur(monde, id, "FOR"), tenir, endurer])
+        # Ce que la recherche lit de son caractère et de son état : l'adresse modulée qui fait la
+        # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
+        # coûts en dépendent, non du prix d'une faute ni de celui d'abîmer (``_explorer``).
+        base = json.dumps([_entrees(v, vises, profondeur, noeuds), modificateur(monde, id, "DEX"),
+                           modificateur(monde, id, "FOR"), tenir, v.degat is None])
+        entrees = json.dumps([base, faute, v.degat, endurer])
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
             garde = None
+        graphe = _GRAPHES.get(place)
+        if graphe is not None and graphe[0] == base:
+            graphe, repris = graphe[1], True
+        else:
+            graphe = {}
+            _GRAPHES[place] = (base, graphe)
     if garde is not None:
         _, trouve, issue = garde
         examines = etats = plus_profond = 0
         trouve = None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
     else:
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
-                                                          noeuds, faute, tenir)
+                                                          noeuds, faute, tenir, graphe)
         issue = "plan" if trouve else "borne" if examines >= noeuds else "epuise"
         if endurer is not None and _endure(v, trouve, depuis, endurer):
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
                                issue)
-    if VERIFIER and (garde is not None or v.emplois is not None):
+    if VERIFIER and (garde is not None or repris or v.emplois is not None):
         brute = Vue(monde, id)
         brute.degat = v.degat
         refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute, tenir)[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
-        assert refait == trouve, (f"Recherche de {id} ({nom}, {'mémoire' if garde else 'emplois'}) : {trouve} "
-                                  f"au lieu de {refait}")
+        assert refait == trouve, (f"Recherche de {id} ({nom}, {'mémoire' if garde else 'graphe' if repris else 'emplois'}) : "
+                                  f"{trouve} au lieu de {refait}")
     if DIAGNOSTIC is not None:
         DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
                            "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": garde is not None,
-                           "etapes": len(trouve[1]) if trouve else None,
+                           "graphe": repris and garde is None, "etapes": len(trouve[1]) if trouve else None,
                            "duree": round(perf_counter() - debut, 6)})
     return trouve
 
@@ -713,16 +726,24 @@ def _endure(v, trouve, depuis, gain):
     return bool(trouve and trouve[1]) and trouve[0] >= RESTER * v.pression(depuis or depart(v.monde, v.id, v)) + gain
 
 
-def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False):
-    """A* sur les états crus : (trouvé ou None, nœuds examinés, états vus, profondeur atteinte).
-    ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
+def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None):
+    """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
+    profondeur atteinte). ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
 
     ``tenir`` : le but se tient en restant là où il mène (la lumière, ses biens, le feu, l'abri) ;
     y rester ``RESTER`` minutes compte, avec ce que l'état final laisse monter (``Vue.pression``).
     Un état qui atteint le but s'explore encore : plus loin, un autre peut le tenir à moindre prix
-    (rapporter une lanterne là où il garde ses biens)."""
+    (rapporter une lanterne là où il garde ses biens).
+
+    ``graphe`` (un dictionnaire) garde, pour chaque état développé, s'il atteint le but, ce qu'il
+    laisse monter et ses gestes avec chaque terme de leur coût (``_suites``). Ils ne dépendent que de
+    ce que lit la recherche (``_entrees``), pas du prix d'une faute ni de celui d'abîmer, qui
+    n'entrent qu'ici, dans la même somme : repris d'une recherche à l'autre, le graphe rend
+    exactement la recherche qu'on aurait refaite, comparaisons et égalités comprises."""
     ordre = count()
     infini = float("inf")
+    graphe = {} if graphe is None else graphe
+    degat = v.degat
     file = [(0, next(ordre), depart_, [], 0, False)]
     vus = {depart_: 0}
     examines = plus_profond = 0
@@ -730,36 +751,54 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False):
     while file and examines < noeuds:
         cout, _, e, etapes, n, final = heapq.heappop(file)
         if final:
-            trouve = cout, etapes, e
+            trouve = cout, copy.deepcopy(etapes), e
             break
         if vus.get(e, infini) < cout:
             continue
         examines += 1
         plus_profond = max(plus_profond, n)
-        if but(v, e):
+        noeud = graphe.get(e)
+        if noeud is None:
+            noeud = graphe[e] = [but(v, e), None, None, None]
+        if noeud[0]:
             if not tenir:
-                trouve = cout, etapes, e
+                trouve = cout, copy.deepcopy(etapes), e
                 break
-            heapq.heappush(file, (cout + RESTER * v.pression(e), next(ordre), e, etapes, n, True))
+            if noeud[1] is None:
+                noeud[1] = v.pression(e)
+            heapq.heappush(file, (cout + RESTER * noeud[1], next(ordre), e, etapes, n, True))
         if n >= profondeur:
             continue
-        # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
-        en_feu = sum(1 for k in e.portes if e.fait("allume", k))
-        for geste in gestes(v, e, vises, but):
-            fautes, minutes, ajout, suivant = geste[:4]
-            duree = geste[4] if len(geste) > 4 else minutes
-            surcout = geste[5] if len(geste) > 5 else 0   # un prix qui n'est pas du temps (abîmer)
+        if noeud[3] is None:
+            # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
+            noeud[2] = sum(1 for k in e.portes if e.fait("allume", k))
+            noeud[3] = _suites(v, e, vises, but)
+        en_feu = noeud[2]
+        for fautes, minutes, ajout, suivant, duree, abime, pression in noeud[3]:
             if fautes and faute is None:
                 continue
-            if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
-                continue
+            surcout = degat if abime else 0   # un prix qui n'est pas du temps (abîmer)
             total = cout + fautes * (faute or 0) + surcout + minutes * (1 + FLAMME_EN_MAIN * en_feu)
             if duree:
-                total += duree * v.pression(suivant)  # Le temps qu'il passe dans le noir, ou loin de ses biens.
+                total += duree * pression  # Le temps qu'il passe dans le noir, ou loin de ses biens.
             if total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1, False))
     return trouve, examines, len(vus), plus_profond
+
+
+def _suites(v, e, vises, but):
+    """Les gestes depuis ``e`` qui mènent quelque part, chacun avec les termes de son coût : (fautes,
+    minutes, étapes, état suivant, durée, abîme, ce que l'état suivant laisse monter par minute)."""
+    suites = []
+    for geste in gestes(v, e, vises, but):
+        fautes, minutes, ajout, suivant = geste[:4]
+        duree = geste[4] if len(geste) > 4 else minutes
+        if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
+            continue
+        suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
+                       v.pression(suivant) if duree else 0))
+    return suites
 
 
 # --- Buts ---------------------------------------------------------------------------------
