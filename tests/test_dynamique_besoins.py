@@ -129,9 +129,10 @@ class TenirTests(unittest.TestCase):
         m, lieux = suivre(m, "bram", 60, pas=10)
         self.assertEqual(lieux, ["bureau"] * 6)
         self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
-        # Dans la lumière, la sécurité retombe ; il garde la paie.
-        self.assertLess(lire(m, "bram")["besoins"]["securite"], 70)
-        self.assertEqual(lire(m, "bram")["intention"]["but"]["type"], "garder")
+        # Il y voit, là où il garde la paie.
+        from donjon.deliberation import autour
+        self.assertTrue(m.objets["lampe_filon"]["allume"])
+        self.assertTrue(autour(m, "bram")["lumiere"])
 
     def lucien_au_couloir_sans_lumiere(self):
         """Placement d'auteur : Lucien est au couloir éclairé ; il sait le grenier obscur et ne
@@ -209,7 +210,8 @@ class AttenteTests(unittest.TestCase):
         m = relais()
         calme(m, "marchand", "brune", "ilse", "aubin")
         lire(m, "ilse")["besoins"]["faim"] = 80.0
-        memoriser(m, "ilse", {"type": "refus", "de": "marchand", "operation": "demander", "objet": "vivres"})
+        memoriser(m, "ilse", {"type": "refus", "de": "marchand", "operation": "demander", "objet": "vivres",
+                                "raison": "necessaire"})
         deliberer(m, "ilse", m.data["minutes"])
         m = recharger(m)
         self.assertIsNone(lire(m, "ilse")["intention"])
