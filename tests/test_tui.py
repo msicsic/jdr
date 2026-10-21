@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import threading
+import time
 import unittest
 from unittest.mock import patch
 
@@ -17,6 +18,10 @@ from donjon.improvisation import proposition as improviser, issue
 from donjon.spatial import installer
 from donjon.spatial import position_carte, position_cible
 from tests.support import sans_budget, simuler_couverture
+
+# Délai d'une attente : large, pour qu'une machine chargée ne fasse pas échouer un test qui
+# attend un état ; un blocage réel échoue quand même, avec l'état observé.
+DELAI = 60
 
 TEXTUAL = all(importlib.util.find_spec(m) is not None for m in ("textual", "pyperclip"))
 if TEXTUAL:
@@ -399,12 +404,23 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await pilot.press("f5")
                 await self.fermer(app)
 
-    async def pret(self, app, minutes=None):
-        for _ in range(250):
-            if app.derniere_vue and not app.occupe and (minutes is None or app.derniere_vue["minutes"] == minutes):
-                return
+    async def attendre(self, condition, message, delai=DELAI):
+        """Attend un état, borné par un délai qui tient sous charge ; le message dit l'état observé."""
+        fin = time.monotonic() + delai
+        while not condition():
+            if time.monotonic() > fin:
+                self.fail(message() if callable(message) else message)
             await asyncio.sleep(0.02)
-        self.fail("La TUI n'est pas redevenue disponible")
+
+    async def pret(self, app, minutes=None):
+        def disponible():
+            if getattr(app, "jeu_termine", False):  # Un arrêt du jeu est un vrai blocage : échec immédiat.
+                self.fail("Le jeu s'est arrêté : " + " | ".join(app.sorties[-3:]))
+            return app.derniere_vue and not app.occupe and (
+                minutes is None or app.derniere_vue["minutes"] == minutes)
+        await self.attendre(disponible, lambda: (
+            "La TUI n'est pas redevenue disponible en %d s (occupée : %s, minutes : %s, attendues : %s)"
+            % (DELAI, app.occupe, (app.derniere_vue or {}).get("minutes"), minutes)))
 
     async def commande(self, app, pilot, texte, minutes=None):
         app.query_one("#commande", Input).value = texte
@@ -413,11 +429,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
 
     async def fermer(self, app):
         app.action_quitter()
-        for _ in range(250):
-            if not app.is_running:
-                return
-            await asyncio.sleep(0.02)
-        self.fail("La TUI ne se ferme pas")
+        await self.attendre(lambda: not app.is_running, "La TUI ne se ferme pas")
 
     async def test_cle_disparait_et_inventaire_actualise_sans_changer_onglet(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -474,7 +486,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         continuer = threading.Event()
         def reponse(*args):
             arrive.set()
-            continuer.wait(5)
+            continuer.wait(DELAI)
             return {"mode": "action", "texte": "", "faits": [], "proposition": proposition("prendre", "cle")}
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "echanger", side_effect=reponse) as mj, patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             app = SeuilApp(["--connexion", "api", "--save", str(Path(tmp) / "partie.json")])
@@ -482,11 +494,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.pret(app)
                 app.query_one("#commande", Input).value = "mj je prend la clé"
                 await pilot.press("enter")
-                for _ in range(100):
-                    if arrive.is_set():
-                        break
-                    await asyncio.sleep(.02)
-                self.assertTrue(arrive.is_set())
+                await self.attendre(arrive.is_set, "Le MJ simulé n'a pas été appelé")
                 self.assertTrue(app.occupe)
                 self.assertTrue(app.query_one("#commande", Input).disabled)
                 await pilot.press("f3")
@@ -606,7 +614,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
             if entree["faits"]["descriptions_a_completer"]:
                 if mj.modele == "secondaire":
                     commence.set()
-                    liberer.wait(10)
+                    liberer.wait(DELAI)
                 return {"mode": "enrichir", "texte": "", "faits": ["descriptions_a_completer"],
                         "proposition": {"ajouts": [{"personnage": "marchand", "facette": "yeux",
                                                     "description": "Ses yeux sont " + couleur + "."}]}}
@@ -626,10 +634,8 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(app.comparaisons[1]["principal"]["statut"], "Terminé")
                     self.assertEqual(app.comparaisons[1]["secondaire"]["statut"], "En cours")
                     liberer.set()
-                    for _ in range(100):
-                        if app.comparaisons[1]["secondaire"]["statut"] == "Terminé":
-                            break
-                        await asyncio.sleep(.02)
+                    await self.attendre(lambda: app.comparaisons[1]["secondaire"]["statut"] == "Terminé",
+                                        "La comparaison secondaire ne se termine pas")
                     self.assertEqual(app.comparaisons[1]["secondaire"]["statut"], "Terminé")
                     await pilot.press("f4")
                     texte = copier.call_args.args[0]
@@ -692,7 +698,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         continuer = threading.Event()
         def reponse(*args):
             arrive.set()
-            continuer.wait(5)
+            continuer.wait(DELAI)
             return {"mode": "action", "texte": "", "faits": [], "proposition": proposition("prendre", "cle")}
         with tempfile.TemporaryDirectory() as tmp, patch.object(MJOpenAI, "echanger", side_effect=reponse), patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
             chemin = Path(tmp) / "partie.json"
@@ -701,19 +707,12 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 await self.pret(app)
                 app.query_one("#commande", Input).value = "mj je prends la clé"
                 await pilot.press("enter")
-                for _ in range(100):
-                    if arrive.is_set():
-                        break
-                    await asyncio.sleep(.02)
-                self.assertTrue(arrive.is_set())
+                await self.attendre(arrive.is_set, "Le MJ simulé n'a pas été appelé")
                 await pilot.press("ctrl+q")
                 self.assertTrue(app.fermeture_demandee)
                 self.assertTrue(app.is_running)
                 continuer.set()
-                for _ in range(250):
-                    if not app.is_running:
-                        break
-                    await asyncio.sleep(.02)
+                await self.attendre(lambda: not app.is_running, "La TUI ne se ferme pas")
                 self.assertFalse(app.is_running)
             self.assertEqual(Monde.charger(chemin).objets["cle"]["lieu"], "joueur")
 
