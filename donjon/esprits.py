@@ -8,7 +8,10 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
 - ``lieu`` : valeur = lieu direct (salle, porteur ou contenant) ou None si l'objet n'est plus
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé ; d'un personnage, ce
-  qui presse son corps : ``{"faim", "chaleur", "repos"}``).
+  qui presse son corps : ``{"faim", "chaleur", "repos"}`` ; d'une salle, sa lumière là où il se
+  tenait : ``{"eclairee", "niveau"}``).
+- ``pieces`` : ce qu'il croit qu'une bourse contient, su en la tenant ou par un savoir ; jamais
+  lu sur l'objet (``planification.enrichir``).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 
@@ -106,7 +109,13 @@ def _croyance_valide(monde, attribut, c):
                 and (c["salle"] is None or c["salle"] in monde.data["salles"])
                 and (c["case"] is None or (isinstance(c["case"], list) and len(c["case"]) == 2))), "Croyance de lieu invalide"
     elif attribut == "etat":
-        assert isinstance(c.get("valeur"), dict) and all(type(v) is bool for v in c["valeur"].values()), "Croyance d'état invalide"
+        # Des états vrais ou faux ; d'une salle, aussi le niveau de lumière vu (0 à 2).
+        assert isinstance(c.get("valeur"), dict) and all(
+            type(v) is bool or k == "niveau" and type(v) is int and 0 <= v <= 2
+            for k, v in c["valeur"].items()), "Croyance d'état invalide"
+    elif attribut == "pieces":
+        # Ce qu'il croit qu'une bourse contient : appris en la tenant, ou un savoir du scénario.
+        assert type(c.get("valeur")) is int and c["valeur"] >= 0, "Croyance de pièces invalide"
     elif attribut == "eau":
         # La hauteur vue ; le niveau qu'elle donnait, le repère et la vitesse qu'on en tire.
         assert (type(c.get("valeur")) is int and c["valeur"] >= 0
@@ -377,6 +386,9 @@ def constater(monde, id, sujet, source):
                    {nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()}, source)
         return
     o = monde.objets[sujet]
+    if "pieces" in o and _porteur(monde, o) == id:
+        # Ce qu'une bourse contient se sait en la tenant, pas en la voyant.
+        croire(monde, id, sujet, "pieces", o["pieces"], source)
     etats = ETATS_VISIBLES.get(o["type"])
     if etats:
         from .perception import faible
@@ -402,6 +414,22 @@ def _flamme_sous_les_yeux(monde, id, sujet, lieu):
     return case is not None and dans_le_regard(monde, salle, case, id)
 
 
+def constater_lumiere(monde, id):
+    """Il sait quelle lumière il y a là où il se tient, même sans en voir la source : éclairée ou
+    non, et le niveau (0 noir, 1 pénombre, 2 éclairé, ``perception``). C'est le lieu qu'il juge :
+    la lumière qu'on porte, lui ou un autre, n'y compte pas, elle suit son porteur (il sait ce
+    qu'il porte, il voit ce que portent les autres)."""
+    salle = monde.objets[id]["lieu"]
+    if salle not in monde.data["salles"]:
+        return
+    from .perception import eclairage
+    position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
+    niveau = max((c["niveau"] for c in eclairage(monde, salle, position)["contributions"]
+                  if not (c["source"] in monde.objets and _porteur(monde, monde.objets[c["source"]]) is not None)),
+                 default=0)
+    croire(monde, id, salle, "etat", {"eclairee": niveau > 0, "niveau": niveau}, "vu")
+
+
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
     from .spatial import etat_fige
@@ -414,17 +442,7 @@ def _percevoir(monde, id):
     croyances = esprit(monde, id)["croyances"]
     for sujet in [s for s in croyances if s != "joueur" and s not in monde.objets and s not in monde.data["salles"]]:
         del croyances[sujet]  # Objet détruit ou consommé : plus rien à croire à son sujet.
-    salle = monde.objets[id]["lieu"]
-    if salle in monde.data["salles"]:
-        # Il sait si la salle où il se tient est éclairée, même sans en voir la source. C'est le
-        # lieu qu'il juge : la lumière qu'on porte, lui ou un autre, n'y compte pas, elle suit
-        # son porteur (il sait ce qu'il porte, il voit ce que portent les autres).
-        from .perception import eclairage
-        position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
-        eclairee = any(c["niveau"] > 0 and not (c["source"] in monde.objets
-                                                 and _porteur(monde, monde.objets[c["source"]]) is not None)
-                       for c in eclairage(monde, salle, position)["contributions"])
-        croire(monde, id, salle, "etat", {"eclairee": eclairee}, "vu")
+    constater_lumiere(monde, id)
     from .eau import percevoir as percevoir_eau
     percevoir_eau(monde, id)
     for sujet, (salle, case) in vus.items():

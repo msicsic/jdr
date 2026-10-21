@@ -162,7 +162,10 @@ class ServirUnProtegeTests(unittest.TestCase):
         avant = m.objets["vivres"]["portions"]
         chronique, _ = executer(m, 120)
         m = recharger(m)
-        servis = textes(chronique).count("Mathe donne une part des vivres de la cuisine à Lucien.")
+        # Sous ses yeux, ou en l'appelant s'il ne la voit pas (``echanges.servir``).
+        servis = sum(t in ("Mathe donne une part des vivres de la cuisine à Lucien.",
+                           "Mathe appelle Lucien et lui donne une part des vivres de la cuisine.")
+                     for t in textes(chronique))
         self.assertEqual(servis, 1)
         self.assertLess(lire(m, "lucien")["besoins"]["faim"], 70)
         # Une seule part de plus est sortie du garde-manger (d'autres en ont acheté avant).

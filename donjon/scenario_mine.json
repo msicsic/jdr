@@ -204,6 +204,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "poele": {
@@ -622,6 +628,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "coffre_paie": {
@@ -869,6 +881,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "pain_lucien": {
@@ -1231,6 +1249,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "coffre_paie": {
@@ -1496,6 +1520,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "coffre_paie": {
@@ -1704,6 +1734,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "coffre_paie": {
@@ -2055,6 +2091,12 @@
       "salle": "bureau",
       "source": "savoir",
       "valeur": "coffre_paie"
+     },
+     "pieces": {
+      "confiance": 0.9,
+      "minute": 0,
+      "source": "savoir",
+      "valeur": 200
      }
     },
     "coffre_paie": {
@@ -3596,6 +3638,7 @@
    "mobile": false,
    "nom": "porte du bureau",
    "ouverte": false,
+   "proprietaire": "bram",
    "relie": [
     "bureau",
     "baraquement"
