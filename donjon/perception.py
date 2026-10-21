@@ -216,14 +216,43 @@ def faible(o):
 
 
 def combustible(o):
-    """Une réserve qui peut recharger un foyer : une charge par geste, tant qu'il en reste."""
+    """Une réserve qui peut recharger une source : une charge par geste, tant qu'il en reste."""
     return "combustible" in o.get("usages", []) and o.get("charges", 0) > 0
 
 
-def alimenter(monde, foyer, bois):
-    """Une charge de combustible prolonge le feu d'un foyer, allumé ou non."""
-    f, b = monde.objets[foyer], monde.objets[bois]
-    if not f.get("foyer") or not combustible(b):
+# Ce que brûle un foyer dont le contenu n'est pas déclaré : du bois.
+FOYER = "bois"
+
+
+def brule(source):
+    """La substance que consomme une source et dont elle se recharge : son contenu déclaré
+    (``matiere.SUBSTANCES`` : une lampe brûle de l'huile, une chandelle de la cire) ; à défaut,
+    du bois pour un foyer. None : une source sans contenu déclaré est son propre réservoir (une
+    torche) et ne se recharge pas."""
+    if "allume" not in source:
+        return None
+    return (source.get("contenu") or {}).get("matiere") or (FOYER if source.get("foyer") else None)
+
+
+def substance(reserve):
+    """Ce que fournit une réserve de combustible : son contenu déclaré (un bidon d'huile), sinon
+    la matière dont elle est faite (des bûches de bois)."""
+    from .matiere import SUBSTANCES
+    matiere = (reserve.get("contenu") or {}).get("matiere") or reserve.get("materiau")
+    return matiere if matiere in SUBSTANCES else None
+
+
+def recharge(source, reserve):
+    """Cette réserve de combustible recharge-t-elle cette source ? La même règle pour toutes :
+    un consommable recharge ce qui consomme sa substance (un foyer et du bois, une lampe et de
+    l'huile)."""
+    return "combustible" in reserve.get("usages", []) and brule(source) is not None and substance(reserve) == brule(source)
+
+
+def alimenter(monde, source, reserve):
+    """Une charge de combustible prolonge une source qui le consomme, allumée ou non."""
+    f, b = monde.objets[source], monde.objets[reserve]
+    if not recharge(f, b) or not combustible(b):
         return False
     b["charges"] -= 1
     from .matiere import retirer_piece

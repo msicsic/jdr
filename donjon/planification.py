@@ -20,8 +20,10 @@ from itertools import count
 from time import perf_counter
 
 from .deliberation import (ATTENTE_PART, REDEMANDE, _connus, _cru, _disponible_cru, _eclairee_crue, _lieu_cru,
-                           autorise, besoin_de_part, illicite, profil, promesse_en_cours, refuse_recemment)
+                           autorise, besoin_de_part, illicite, noir_cru, peur_du_noir, profil, promesse_en_cours,
+                           refuse_recemment)
 from .esprits import lire
+from .perception import brule, recharge
 from .spatial import porte_par
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
@@ -30,6 +32,7 @@ DEMANDE = 3            # demander : on préfère ce qu'on peut faire seul
 PRET = 0.5             # chance qu'il prête à quelqu'un qui demande un objet qu'il porte
 CHERCHER = 3           # chercher quelqu'un qu'on a perdu de vue : on n'est pas sûr de le trouver
 FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se consume en main
+NOIR = 3               # par minute passée dans le noir, fois ce que le noir l'inquiète (``peur_du_noir``)
 CHANCE_MIN = 0.05
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
@@ -101,6 +104,14 @@ class Vue:
         # Ce qu'un geste sait employer (``gestes``) : clé, outil, vivres, combustible, flamme portable.
         self.utile = {o: bool(x.get("ouvre") or set(x.get("usages", [])) & set(USAGES) or x["type"] == "nourriture"
                               or "allume" in x) for o in self.connus for x in [self.objets[o]]}
+        # Les sources qu'il connaît et qu'un combustible recharge (``perception.recharge``).
+        self.rechargeables = [o for o in self.connus if brule(self.objets[o])]
+        self.foyers = [o for o in self.connus if self.objets[o].get("foyer")]
+        # Ce que le noir l'inquiète : chaque minute qu'il y passe lui coûte (``NOIR``), s'il croit
+        # le noir quelque part (``noir_cru``) ; sinon, rien ne lui coûte d'y être.
+        self.peur = peur_du_noir(monde, id)
+        if self.peur and not any(noir_cru(monde, id, s) for s in self.salles):
+            self.peur = 0
         self._chemin = chemin
         self._routes, self._trajets, self._crus, self._agissables = {}, {}, {}, {}
         self.emplois = None    # ce que le but peut employer (``chercher``) ; None : tout
@@ -119,8 +130,9 @@ class Vue:
     def pertinent(self, o, vises):
         """Le porter peut-il servir le but ? Une clé (passages, contenants), un contenant, ce que
         vise le but (``vises`` : leurs noms) ; les vivres si le but peut employer un repas ;
-        combustible et flammes s'il peut employer un feu ; outil de crochetage et lumière s'il
-        sait crocheter.
+        combustible et flammes s'il peut employer un feu ; outil de crochetage s'il sait
+        crocheter ; de quoi y voir (une source, une flamme pour l'allumer, ce qui la recharge)
+        si le but est la lumière, si le noir l'inquiète ou s'il sait crocheter.
 
         Porter autre chose ne change ni les gestes possibles ni leur coût : le prendre ne fait
         qu'ajouter des minutes, le plan le moins coûteux n'en passe jamais par là, et la
@@ -129,11 +141,14 @@ class Vue:
             return True
         x = self.objets[o]
         usages = x.get("usages", [])
+        crochete = "crochetage" in profil(self.monde, self.id)["capacites"]
+        voir = "lumiere" in self.emplois or self.peur > 0 or crochete
         return bool(x.get("ouvre") or x["type"] == "contenant" or o in vises
                     or "manger" in self.emplois and x["type"] == "nourriture"
                     or "feu" in self.emplois and ("combustible" in usages or "allumage" in usages or "allume" in x)
-                    or "crochetage" in profil(self.monde, self.id)["capacites"]
-                    and ("crochetage" in usages or "allume" in x))
+                    or crochete and "crochetage" in usages
+                    or voir and ("allume" in x or "allumage" in usages or "combustible" in usages and any(
+                        recharge(self.objets[s], x) for s in self.rechargeables)))
 
     def _memo(self, cle, calcul):
         crus = self._crus
@@ -229,6 +244,12 @@ class Vue:
         o = self.objets[k]
         return k in e.portes and ("allumage" in o.get("usages", []) or "allume" in o and self.feu(e, k)[0])
 
+    def flammes_fixes(self, e):
+        """Les sources fixes qu'il croit allumées dans la salle où il se tient : il y porte ce
+        qu'il veut allumer."""
+        return [k for k in self.connus if "allume" in self.objets[k] and not self.objets[k].get("mobile")
+                and self.salle(e, k) == e.salle and self.feu(e, k)[0]]
+
     def foyer_froid(self):
         """Le feu qu'une part de bois servirait : le premier foyer qu'il croit éteint."""
         if "foyer_froid" not in self._crus:
@@ -247,9 +268,25 @@ class Vue:
         return self._memo(("feu_noye",), calcul)
 
     def lumiere(self, e):
+        """Y voit-il là où il se tient ? Une source allumée en main, une source que le plan a
+        allumée dans sa salle, ou une salle qu'il croit éclairée."""
         if any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes):
             return 2
-        return 2 if _eclairee_crue(self.monde, self.id, e.salle) else 0
+        if any(cle[0] == "allume" and allume and self.salle(e, cle[1]) == e.salle for cle, allume in e.faits.items()):
+            return 2
+        cle = (e.salle, "eclairee")
+        if cle not in self._crus:
+            self._crus[cle] = _eclairee_crue(self.monde, self.id, e.salle)
+        return 2 if self._crus[cle] else 0
+
+    def noir(self, e):
+        """S'y croit-il dans le noir ? Sans lumière, dans un lieu qu'il croit obscur (``noir_cru``)."""
+        if self.lumiere(e):
+            return False
+        cle = (e.salle, "noir")
+        if cle not in self._crus:
+            self._crus[cle] = noir_cru(self.monde, self.id, e.salle)
+        return self._crus[cle]
 
 
 def _etape(operation, cible="", outil="", lieu="", condition="", contenu=None):
@@ -265,8 +302,10 @@ def chance_crochetage(monde, id, lumiere):
 
 
 def gestes(v, e, vises=None, but=None):
-    """Les gestes possibles depuis cet état : (fautes, minutes, étapes, état suivant). Les
-    fautes comptent les personnes lésées.
+    """Les gestes possibles depuis cet état : (fautes, minutes, étapes, état suivant[, durée]).
+    Les fautes comptent les personnes lésées ; les minutes font le coût, et la durée réelle
+    (celle qu'il passerait dans le noir) n'est donnée que quand elle en diffère : demander, ou
+    chercher quelqu'un, coûte plus que le temps qu'il y passe.
 
     ``vises`` ouvre les gestes que seul un but demande, sur les objets ou lieux qu'il vise :
     inspecter une salle, prendre un objet qui ne sert à aucun geste, poser, fermer et
@@ -283,8 +322,20 @@ def gestes(v, e, vises=None, but=None):
             if route is not None:
                 yield 0, len(route), [_etape("aller", lieu=s)], e.apres(salle=s)
     agissables, a_porter = v.agissables(vises)
+    # Une source allumée en main l'éclaire et lui donne une flamme. À qui n'a que faire de lumière
+    # (ni le noir, ni la lumière comme but, ni une serrure à crocheter), une lampe ou un briquet ne
+    # sert que de flamme, pour un feu qu'il croit éteint : une flamme en main suffit, et sans feu à
+    # allumer il n'en faut aucune. Une lampe ou un briquet de plus, à prendre, à recharger ou à
+    # allumer, ne lui apporterait alors rien, sauf ce que vise le but.
+    eclaire_en_main = any("allume" in objets[k] and v.feu(e, k)[0] for k in e.portes)
+    lumiere_compte = v.peur or "lumiere" in (v.emplois or ()) or "crochetage" in p["capacites"]
+    assez = eclaire_en_main or not lumiere_compte and (
+        any(v.flamme(e, k) for k in e.portes)
+        or not any(v.feu(e, f)[0] is False for f in v.foyers + list(vises.get("entretenir", ()))))
     for o in agissables:
         x = objets[o]
+        superflu = (assez and ("allume" in x or "allumage" in x.get("usages", [])) and not x.get("foyer")
+                    and o not in vises.get("prendre", ()) and o not in vises.get("entretenir", ()))
         ici = v.a_portee(e, o)
         dans = v.lieu(e, o)
         contenant = dans if dans in objets and objets[dans]["type"] == "contenant" else None
@@ -295,14 +346,14 @@ def gestes(v, e, vises=None, but=None):
         if lese:
             touche = touche + [(("faute", lese), True)]
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
-        utile = (v.utile[o] or o in vises.get("prendre", ())) and o in a_porter
+        utile = (v.utile[o] or o in vises.get("prendre", ())) and o in a_porter and not superflu
         if ici and o not in e.portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=e.portes | {o}, faits=touche)
         # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
         porteur = dans if dans in objets and objets[dans]["type"] == "personnage" else None
         if (utile and porteur and porteur != id and profil(monde, porteur) and v.salle(e, porteur) == e.salle
                 and o not in e.portes and not v.refuse(porteur, o)):
-            yield 0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)], e.apres(portes=e.portes | {o})
+            yield 0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)], e.apres(portes=e.portes | {o}), 1
         touche = [x for x in touche if x[0][0] == "faute"]
         if o in vises.get("poser", ()) and o in e.portes:
             yield (0, 1, [_etape("poser", o, lieu=e.salle)],
@@ -338,25 +389,26 @@ def gestes(v, e, vises=None, but=None):
             dedans = [(("touche", contenant), True)] if contenant else []
             yield (0 if porte else mal, 1, [_etape("manger", o, condition="" if porte else faute)],
                    e.apres(faits=[(("mange", o), True), *dedans, *([] if porte else touche)]))
-        # Un foyer : le recharger, l'allumer, s'y chauffer.
-        if x.get("foyer") and v.salle(e, o) == e.salle:
+        # Une source (un foyer, une lampe) qu'il porte ou qui est dans sa salle : la recharger du
+        # combustible qu'elle brûle, l'allumer à une flamme qu'il porte (ou à une flamme fixe de sa
+        # salle, s'il la porte), se chauffer à un foyer allumé.
+        if "allume" in x and not superflu and (o in e.portes or ici or v.salle(e, o) == e.salle and not x.get("mobile")):
             allume, charge = v.feu(e, o)
-            if not (allume and charge):
-                for bois in sorted(k for k in e.portes if "combustible" in objets[k].get("usages", [])
-                                   and v.disponible(k)):
-                    yield 0, 1, [_etape("alimenter", o, outil=bois)], e.apres(faits=[(("charge", o), True)])
+            # Un foyer se recharge tant qu'il n'est pas vif ; une lampe, quand elle est vide.
+            if brule(x) and not (allume and charge) and (x.get("foyer") or o in vises.get("entretenir", ()) or not charge):
+                for bois in sorted(k for k in e.portes if recharge(x, objets[k]) and v.disponible(k)):
+                    yield (mal, 1, [_etape("alimenter", o, outil=bois, condition=faute)],
+                           e.apres(faits=[(("charge", o), True), *touche]))
             if allume is False and charge:
-                for flamme in sorted(k for k in e.portes if k != o and v.flamme(e, k)):
-                    yield 0, 1, [_etape("allumer", o, outil=flamme)], e.apres(faits=[(("allume", o), True)])
-            if allume:
+                flammes = sorted(k for k in e.portes if k != o and v.flamme(e, k))
+                if o in e.portes:
+                    flammes += [k for k in v.flammes_fixes(e) if k != o and k not in flammes]
+                for flamme in flammes:
+                    # La source d'autrui : y toucher est une faute, comme la prendre.
+                    yield (mal, 1, [_etape("allumer", o, outil=flamme, condition=faute)],
+                           e.apres(faits=[(("allume", o), True), *touche]))
+            if allume and x.get("foyer"):
                 yield 0, 1, [_etape("chauffer", o)], e.apres(faits=[(("chauffe", o), True)])
-        # Une source portable éteinte et chargée s'allume à une flamme fixe qu'il croit vive.
-        if (o in e.portes and "allume" in x and x.get("mobile") and v.feu(e, o)[0] is False
-                and (v.cru(o, "etat") or {}).get("charge")):
-            for fixe in v.connus:
-                if (fixe != o and "allume" in objets[fixe] and not objets[fixe].get("mobile")
-                        and v.salle(e, fixe) == e.salle and v.feu(e, fixe)[0]):
-                    yield 0, 1, [_etape("allumer", o, outil=fixe)], e.apres(faits=[(("allume", o), True)])
         # Une part : l'attendre si elle est promise, là où le donneur viendra la servir (près des
         # vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire. Une part
         # de combustible va au feu que le but entretient, sinon au premier qu'il croit éteint :
@@ -377,7 +429,7 @@ def gestes(v, e, vises=None, but=None):
                     if ou == e.salle:
                         yield (0, 1 + DEMANDE, [_etape("demander", donneur, outil=o,
                                                         contenu={"foyer": foyer} if foyer else None)],
-                               e.apres(faits=part))
+                               e.apres(faits=part), 1)
                     elif (ou is None and not e.fait("cherche", donneur)
                           and (but is None or but(v, e.apres(faits=part)))):
                         # Le chercher ne sert que si sa part atteint le but.
@@ -398,7 +450,7 @@ def _chercher(v, e, sujet):
     etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
         {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet}), "suppose": True}]
     return 0, len(routes[salle]) + 1 + CHERCHER, etapes, e.apres(
-        salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
+        salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)]), len(routes[salle]) + 1
 
 
 def depart(monde, id, v=None):
@@ -516,13 +568,17 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute):
         if n >= profondeur:
             continue
         # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
-        brule = sum(1 for k in e.portes if e.fait("allume", k))
-        for fautes, minutes, ajout, suivant in gestes(v, e, vises, but):
+        en_feu = sum(1 for k in e.portes if e.fait("allume", k))
+        for geste in gestes(v, e, vises, but):
+            fautes, minutes, ajout, suivant = geste[:4]
+            duree = geste[4] if len(geste) > 4 else minutes
             if fautes and faute is None:
                 continue
             if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
                 continue
-            total = cout + fautes * (faute or 0) + minutes * (1 + FLAMME_EN_MAIN * brule)
+            total = cout + fautes * (faute or 0) + minutes * (1 + FLAMME_EN_MAIN * en_feu)
+            if v.peur and duree and v.noir(suivant):
+                total += duree * NOIR * v.peur  # Le temps qu'il passe dans le noir, qui l'inquiète.
             if total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1))
@@ -647,6 +703,26 @@ def voir(monde, id, salle):
     return {"type": "voir", "lieu": salle}, _couper(trouve[1])
 
 
+def eclaire(v, e):
+    return v.lumiere(e) > 0
+
+
+def eclairer(monde, id):
+    """(but, étapes) pour avoir de la lumière là où il se tient, quand le noir l'inquiète ; None
+    s'il y voit déjà, ou ne voit aucun moyen. Les moyens viennent des gestes déclarés : allumer
+    une source qu'il porte ou qui est à portée, à une flamme qu'il porte ou à une flamme fixe ;
+    prendre une source, la recharger du combustible qu'elle brûle ; la demander à qui la porte ;
+    rejoindre un lieu qu'il croit éclairé."""
+    v = Vue(monde, id)
+    if not peur_du_noir(monde, id) or eclaire(v, depart(monde, id, v)):
+        return None
+    trouve = chercher(monde, id, eclaire, nom="lumiere", memo=["lumiere"], emplois=("lumiere",), motif="securite")
+    if trouve is None:
+        return None
+    _, etapes, e = trouve
+    return {"type": "lumiere"}, retablir(v, e, _couper(etapes))
+
+
 def aller(monde, id, salle):
     """Les étapes pour se rendre dans une salle, ou None s'il n'y croit aucun passage."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="aller", memo=["aller", salle], emplois=())
@@ -662,5 +738,5 @@ def rejoindre(monde, id, sujet):
     if salle is not None:
         etapes = aller(monde, id, salle)
         return None if etapes is None else (etapes, True)
-    _, _, etapes, _ = _chercher(v, e, sujet)
+    etapes = _chercher(v, e, sujet)[2]
     return _couper(etapes), False

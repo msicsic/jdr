@@ -635,7 +635,9 @@ def _executer(monde, id, etape, lignes, gestes):
         if not servir(monde, id, cible, etape.get("contenu", {}).get("pour"), lignes):
             return False
     elif op == "alimenter":
-        from .perception import alimenter
+        from .perception import alimenter, recharge
+        if not recharge(c, monde.objets[outil]):
+            return False
         if not alimenter(monde, cible, outil):
             croire(monde, id, outil, "etat", {"disponible": False}, "essai")
             return False
