@@ -794,6 +794,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   tranchés par le moteur (3 chacun). Limites : le payeur paie la peine qu'il estime, sans marchandage ;
   ce qu'on consomme de ses biens pour une tâche n'est pas compté ; pas de tâche « aller voir » ; le
   joueur ne prête ni ne paie de tâche ; la réponse ne dit que ce qu'il croit avoir ; constantes à régler.
+- Branche `audit-nuits`, non fusionnée, audit sans correctif ([rapport](audit-nuits.md),
+  `tools/audit_nuits.py`) : 192 nuits de 12 h (4 scénarios, 48 graines), contrôles activés. Aucun
+  plantage du moteur, aucune violation de `Monde.verifier`, aucun écart de `spatial.VERIFICATION` ;
+  `planification.VERIFIER` échoue à la mine (15/16) et à l'auberge (11/16) : `emplois` ajoute la
+  recherche du porteur d'une lampe (`moyen_du_but`), et sa référence s'arrête à la borne de nœuds.
+  Boucles et absurdités relevées : appels à l'aide sans fin, aller voir ↔ garder, prévenir en boucle,
+  bruit de sa propre salle jamais examiné, vol à une case dans le noir jamais découvert, tâches payées
+  acceptées puis non faites, PNJ piégés par l'eau à la crue.
 - La suite de tests passe : 1119 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
