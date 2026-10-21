@@ -4,12 +4,15 @@ Ce qui parvient au joueur d'un geste qu'il ne voit pas faire est rangé, daté �
 de seconde), dans ``data["bruits"]`` : l'auteur, la salle d'origine, la nature, le niveau parvenu et
 d'où il arrive. Le joueur entend de lui-même ce qui lui parvient au seuil commun (``ENTENDU``) ; en
 écoutant, un cran plus bas, et un de mieux collé à la porte par où le bruit arrive. Une parole n'est
-rendue en clair que si elle est nette (au seuil commun), d'une voix qu'il connaît (quelqu'un qu'il a
-vu, ``data["voix_connues"]``) et ne nomme que ce qu'il connaît ; sinon il entend « une voix ». Ceux
-dont il a reconnu la voix pendant son dernier geste sont retenus (``data["entendus"]``) : il les
-sait là.
+rendue en clair que si elle est nette (au seuil commun), d'une voix qu'il reconnaît
+(``voix.reconnaitre``) et ne nomme que ce qu'il connaît ; d'une voix inconnue, il en saisit les mots
+cités sans savoir qui parle (« une voix inconnue : « Ici ! » ») ; sinon il entend « une voix ».
+Ceux dont il a entendu nettement la voix pendant son dernier geste sont retenus
+(``data["entendus"]``) : il peut leur répondre, sous le nom qu'il leur connaît (``voix``).
 """
-from .ouie import BRUITS_MAX, INTENSITES, SEUIL
+import re
+
+from .ouie import BRUITS_MAX, INTENSITES, SEUIL, VOCALES
 
 ENTENDU = SEUIL        # niveau perçu sans y prêter l'oreille, et parole nette
 ECOUTE = SEUIL - 1     # niveau perçu en écoutant
@@ -73,22 +76,38 @@ def _lieu(direction):
             "ouest": "à l'ouest", "haut": "au-dessus", "bas": "en dessous"}.get(direction, "plus loin")
 
 
+def nette(bruit, niveau):
+    """Une parole nette : une voix qui lui parvient au seuil commun."""
+    return bruit["nature"] in VOCALES and niveau >= ENTENDU
+
+
 def reconnue(monde, bruit, niveau):
-    """Une parole nette (au seuil commun), d'une voix que le joueur connaît (``esprits.connait``)."""
-    from .esprits import connait
-    return bruit["nature"] == "voix" and niveau >= ENTENDU and connait(monde, "joueur", bruit["auteur"])
+    """Une parole nette, d'une voix que le joueur reconnaît (``voix.reconnaitre``)."""
+    from .voix import RECONNUE, reconnaitre
+    return nette(bruit, niveau) and reconnaitre(monde, "joueur", bruit["auteur"])[1] == RECONNUE
+
+
+MOTS = re.compile(r"«\s*(.+?)\s*»")
 
 
 def rendre(monde, entendus_):
     """Ce que le joueur entend, par direction : un appel, un grand bruit, des voix, des pas, ou une
     parole nette d'une voix qu'il reconnaît, qui ne nomme que ce qu'il connaît."""
     from .paroles import _connu_du_joueur
+    from .voix import nom_pour_joueur
     lignes, groupes = [], {}
     for b, niveau, direction in entendus_:
-        nette = (reconnue(monde, b, niveau) and b["texte"]
-                 and all(_connu_du_joueur(monde, x) for x in b["cites"] if x != "joueur"))
-        if nette:
+        connus = b["texte"] and all(_connu_du_joueur(monde, x) for x in b["cites"] if x != "joueur")
+        mots = MOTS.search(b["texte"]) if connus and nette(b, niveau) else None
+        if connus and reconnue(monde, b, niveau):
             texte = f"Tu entends, {_lieu(direction)} : {b['texte']}"
+        elif mots:
+            # Une voix qu'il ne sait à qui prêter : ses mots, sans le nom de qui parle.
+            texte = (f"Tu entends, {_lieu(direction)}, {nom_pour_joueur(monde, b['auteur'])}"
+                     + (" appeler" if b["nature"] == "hele" else "") + f" : « {mots.group(1)} »")
+        else:
+            texte = None
+        if texte:
             if texte not in lignes:
                 lignes.append(texte)
         else:
@@ -97,6 +116,8 @@ def rendre(monde, entendus_):
         parties = []
         if "appel" in natures:
             parties.append("un appel à l'aide")
+        if "hele" in natures:
+            parties.append("quelqu'un appeler" if len(natures["hele"]) == 1 else "des appels")
         if "bruyant" in natures:
             parties.append("un grand bruit")
         if "voix" in natures:
@@ -126,11 +147,21 @@ def verifier(monde):
     voix = monde.data.get("voix_connues", [])
     assert isinstance(voix, list) and len(set(voix)) == len(voix) and all(
         isinstance(id, str) for id in voix), "Voix connues invalides"
+    from .voix import verifier_entrees
+    verifier_entrees(monde.data.get("voix_entendues", {}))
 
 
 def retenir(monde, entendus_):
-    """Ceux dont le joueur a reconnu la voix pendant son geste (``reconnue``) : il les sait là, même
-    sans les voir (``dialogues.interlocuteurs``). Des pas, un bruit, une voix inconnue ne lui
-    disent pas qui est là."""
+    """Ceux dont le joueur a entendu nettement la voix pendant son geste (``nette``) : il peut leur
+    répondre, même sans les voir (``dialogues.interlocuteurs``). Une voix qu'il reconnaît lui dit
+    qui est là ; une voix inconnue, il la retient sans savoir à qui elle est (``voix.retenir``).
+    Des pas, un bruit, une voix trop faible ne lui disent rien de plus."""
+    from .voix import RECONNUE, reconnaitre, retenir as retenir_voix
     retenus = monde.data.setdefault("entendus", [])
-    retenus.extend(sorted({b["auteur"] for b, niveau, _ in entendus_ if reconnue(monde, b, niveau)} - set(retenus)))
+    for b, niveau, _ in entendus_:
+        if not nette(b, niveau) or b["auteur"] not in monde.objets:
+            continue
+        if reconnaitre(monde, "joueur", b["auteur"])[1] != RECONNUE:
+            retenir_voix(monde, "joueur", b["auteur"])
+        if b["auteur"] not in retenus:
+            retenus.append(b["auteur"])

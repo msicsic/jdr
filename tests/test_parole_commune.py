@@ -326,8 +326,12 @@ class AveuTests(unittest.TestCase):
         # Le témoin s'en sert plus tard par les mécanismes existants : il le confie au propriétaire.
         self.assertIn(noyau, [x[1] for x in nouvelles(reprise, "aubin")])
         placer(reprise, "marchand", "antichambre", (1, 4))
-        # Brune, à cinq cases, l'a entendu aussi : il ne reste à l'apprendre que Gorm, rentré de la conduite.
-        self.assertIn("joueur", [s["de"] for s in lire(reprise, "brune")["memoire"] if s["type"] == "rumeur"])
+        # Brune, à cinq cases derrière le pilier, l'a entendu aussi, d'une voix qu'elle ne connaît pas
+        # et sans le voir : elle se méfie de cette voix, sans savoir à qui l'imputer ; elle n'en fait
+        # pas une nouvelle qui nommerait Corvus (``voix``).
+        self.assertNotIn("joueur", [s["de"] for s in lire(reprise, "brune")["memoire"] if s["type"] == "rumeur"])
+        self.assertTrue(lire(reprise, "brune")["voix_entendues"]["joueur"]["mefiance"])
+        self.assertNotIn("fiable", lire(reprise, "brune")["croyances"].get("joueur", {}))
         croire(reprise, "aubin", "ilse", "fiable", False, "vu")   # Placement d'auteur : à Gorm, pas à Ilse.
         with patch.object(Monde, "d20", return_value=20):
             # Brune le sait déjà et se tient trop loin pour une confidence : il le confie à Gorm.

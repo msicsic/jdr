@@ -140,8 +140,10 @@ def _devant_sa_porte(monde, id, lieu):
 def refus_d_aider(monde, id, passant):
     """Il ne veut pas aider ce passant : « mefiance » s'il le croit peu fiable, « orgueil » si sa
     fierté l'emporte de loin sur son altruisme (``ORGUEIL``) ; None sinon. Qui le croit fiable
-    l'aide toujours."""
-    fiable = lire(monde, id)["croyances"].get(passant, {}).get("fiable")
+    l'aide toujours. La confiance est celle qu'il porte à qui il croit avoir affaire
+    (``voix.fiabilite`` : une voix inconnue est un étranger)."""
+    from .voix import fiabilite
+    fiable = fiabilite(monde, id, passant)
     if fiable is not None:
         return None if fiable["valeur"] else "mefiance"
     if valeur(monde, id, "fierte") - valeur(monde, id, "altruisme") >= ORGUEIL:
@@ -226,9 +228,10 @@ def _designer(monde, x):
 def demander_passage(monde, id, demandeur, lignes, chemin=(), prix=0):
     """``demandeur`` prie le PNJ ``id`` de s'écarter. Renvoie l'issue, que le moteur décide seul :
     « ecarte » (il s'écarte vraiment), « paye » (l'orgueilleux s'écarte et prend les ``prix``
-    pièces offertes, qui l'ont décidé), « geste », « mefiance », « place », « refus », ou
-    « inutile » sans cases ni places. Ce que valent pour lui les pièces offertes abaisse le DD
-    (``biens.GENEROSITE`` minutes par point) ; qui s'écarterait de lui-même ne les prend pas."""
+    pièces offertes, qui l'ont décidé), « geste », « mefiance », « qui_va_la » (une voix qu'il ne
+    connaît pas, et il est prudent), « place », « refus », ou « inutile » sans cases ni places. Ce
+    que valent pour lui les pièces offertes abaisse le DD (``biens.GENEROSITE`` minutes par point) ;
+    qui s'écarterait de lui-même ne les prend pas."""
     from .paroles import jet_persuasion
     if not (monde.data.get("mode_cases") and place_connue(monde, id) and place_connue(monde, demandeur)):
         return "inutile"
@@ -237,6 +240,9 @@ def demander_passage(monde, id, demandeur, lignes, chemin=(), prix=0):
         return raison
     if refus_d_aider(monde, id, demandeur) == "mefiance":
         return "mefiance"
+    from .voix import qui_va_la
+    if qui_va_la(monde, id, demandeur):
+        return "qui_va_la"
     case = case_d_ecart(monde, id, demandeur, chemin)
     if case is None:
         return "place"
@@ -303,7 +309,14 @@ def _prier(monde, id, autre, chemin, lignes):
     _chroniquer(monde, id, f"{a} demande à {b} de {le} laisser passer ({issue}).", "social")
     from .social import faire_entendre
     texte = f"{a} demande à {b} de {le} laisser passer." + (f" {b} s'écarte." if issue == "ecarte" else f" {b} refuse.")
-    faire_entendre(monde, id, autre, texte, [], lignes)
+    contenu = []
+    if issue == "qui_va_la":
+        # Une voix qu'il ne connaît pas : « Qui va là ? » ; l'autre se nomme, et redemandera.
+        from .voix import se_nommer
+        texte = f"{a} demande à {b} de {le} laisser passer. {b} : « Qui va là ? » {a} : « C'est {a}. »"
+        contenu = [{"type": "nom", "sujet": id}]
+        se_nommer(monde, autre, id, id)
+    faire_entendre(monde, id, autre, texte, [], lignes, contenu)
     if issue != "ecarte":
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": "passage", "raison": issue})
 
@@ -451,7 +464,10 @@ def preparer_poussee(monde, p, plan):
         raise ErreurMonde("On ne pousse ainsi qu'une personne.",
                           f"pousser : cible = un personnage au contact de Corvus, parmi {liste(contact)} ; "
                           f"{cible} est un objet (pour le déplacer : composer, deplacer).")
-    if o is None or not (monde.visible(cible) or cible in monde.data.get("entendus", [])):
+    from .voix import designation
+    # On pousse qui l'on voit, ou dont on vient de reconnaître la voix : pas une voix inconnue.
+    if o is None or not (monde.visible(cible) or cible in monde.data.get("entendus", [])
+                         and designation(monde, cible) == cible):
         raise inaccessible(monde, cible, filtre=lambda x: x["type"] == "personnage")
     if not au_contact(monde, "joueur", cible):
         raise ErreurMonde(designer(o, debut=True) + " est trop loin pour que tu "
@@ -522,9 +538,9 @@ def faire_place(monde, id, autre, chemin, lignes, gestes):
 
 
 def _peut_prier(monde, id, autre):
-    """Pour demander, ils se parlent (``pnj.se_parler`` : chacun saisit les mots de l'autre et sait
-    qui lui parle). Le joueur, par la même règle (``pnj.pourraient_se_parler``) : le PNJ ne prie
-    que lui qu'il sait là (vu, ou reconnu à la voix depuis peu) ; il se tourne vers lui."""
+    """Pour demander, ils se parlent (``pnj.se_parler`` : chacun saisit les mots de l'autre). Le
+    joueur, par la même règle (``pnj.pourraient_se_parler``) : le PNJ ne prie que lui qu'il sait là
+    (vu, reconnu à la voix ou entendu se nommer depuis peu) ; il se tourne vers lui."""
     from .pnj import _faire_face, pourraient_se_parler, se_parler
     if autre != "joueur":
         return se_parler(monde, id, autre)

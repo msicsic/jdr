@@ -133,7 +133,8 @@ def _nomme(monde, texte, personnage):
     # Les mêmes noms que pour tout geste (``Monde.designable``) : ce qu'il verrait en se tournant compte.
     if personnage:
         from .dialogues import interlocuteurs
-        candidats = set(interlocuteurs(monde)) | {i for i, o in monde.objets.items()
+        # Un personnage qu'il sait nommer : pas une voix qu'il ne sait à qui prêter.
+        candidats = {d for d in interlocuteurs(monde) if d in monde.objets} | {i for i, o in monde.objets.items()
                                                    if o["type"] == "personnage" and monde.designable(i)}
     else:
         candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.designable(i)}

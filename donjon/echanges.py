@@ -7,13 +7,16 @@ du locuteur, contre un DD que la confiance de l'auditeur abaisse ou relève, dé
 croit. Un objet n'est remis que par celui qui le porte, s'il fait confiance au demandeur et
 n'en a pas besoin ; son altruisme rend le partage plus facile, sa volonté (``jet_persuasion``)
 le rend plus dur à convaincre, et ce que vaut pour lui le prix qu'on ne lui paie pas aussi
-(``biens.reticence``). Payé son prix (``biens.prix``), il vend sans se faire prier, s'il ne le
-garde pas et ne se méfie pas de l'acheteur. Remis par son propriétaire, un objet qui dure est
-prêté (``biens.preter`` : l'emprunteur en use sans faute et le rendra), ce qui se consomme est
-donné ; son propriétaire qui le redemande le récupère, sauf s'il sert encore. Une tâche confiée
-devient un engagement que le planificateur du moteur exécute quand rien de plus urgent ne
-presse ; sur un bien de celui qui la confie, elle en confie la garde (``biens.gardes``). Tout est
-déterministe hors des jets du moteur.
+(``biens.reticence``). Ce qu'il accorde dépend de qui il croit entendre (``voix``) : à une voix
+qu'il ne sait à qui prêter, la confiance d'un étranger ; prudent, il lui demande d'abord « Qui va
+là ? » (issue « qui_va_la »), même pour un achat ou pour lui rendre son bien. Payé son prix
+(``biens.prix``), il vend sans se faire prier, s'il ne le garde pas et ne se méfie pas de
+l'acheteur. Remis par son propriétaire, un objet qui dure est prêté (``biens.preter`` :
+l'emprunteur en use sans faute et le rendra), ce qui se consomme est donné ; son propriétaire
+qui le redemande le récupère, sauf s'il sert encore. Une tâche confiée devient un engagement
+que le planificateur du moteur exécute quand rien de plus urgent ne presse ; sur un bien de celui
+qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
+moteur.
 """
 from .caractere import penchant
 from .esprits import RECENT, constater, croire, esprit, lire, memoriser, percevoir
@@ -36,17 +39,21 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     if (actuelle and actuelle["valeur"] == valeur and actuelle["source"] in ("vu", "essai")
             and monde.data["minutes"] - actuelle["minute"] <= RECENT):
         return "crue"  # Il vient de le voir lui-même : la parole le confirme sans rien lui apprendre.
+    from .voix import identifie, se_mefier, source_dite
     if dementi(monde, auditeur, sujet, attribut, valeur):
-        croire(monde, auditeur, locuteur, "fiable", False, "vu")
-        memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur,
-                                    "sujet": sujet, "attribut": attribut})
+        # Il se méfie de qui lui ment : de lui s'il sait qui c'est, sinon de cette voix.
+        if identifie(monde, auditeur, locuteur):
+            memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur,
+                                        "sujet": sujet, "attribut": attribut})
+        se_mefier(monde, auditeur, locuteur, "vu")
         return "dementi"
     if not jet_persuasion(monde, auditeur, locuteur, 10)[0]:
         memoriser(monde, auditeur, {"type": "parole_doutee", "locuteur": locuteur,
                                     "sujet": sujet, "attribut": attribut})
         return "doute"
     lieu = {"salle": valeur if valeur in monde.data["salles"] else None, "case": None} if attribut == "lieu" else {}
-    croire(monde, auditeur, sujet, attribut, valeur, "dit:" + locuteur, round(0.7 * clarte(monde, auditeur), 2), **lieu)
+    croire(monde, auditeur, sujet, attribut, valeur, source_dite(monde, auditeur, locuteur),
+           round(0.7 * clarte(monde, auditeur), 2), **lieu)
     memoriser(monde, auditeur, {"type": "parole_crue", "locuteur": locuteur, "sujet": sujet, "attribut": attribut})
     # Ce qu'il a sous les yeux peut le démentir aussitôt.
     percevoir(monde, auditeur)
@@ -109,13 +116,24 @@ def garde(monde, id, o):
             and (parts(o) <= reserve(monde, id) or besoin_de_part(o) in urgents(monde, id)))
 
 
+def accueil(monde, demandeur, auditeur):
+    """Ce qui arrête une demande avant qu'il la pèse : « mefiance » envers qui il croit entendre
+    (``voix.fiabilite``), « qui_va_la » si c'est une voix inconnue et qu'il est prudent ; None."""
+    from .voix import fiabilite, qui_va_la
+    confiance = fiabilite(monde, auditeur, demandeur)
+    if confiance and not confiance["valeur"]:
+        return "mefiance"
+    return "qui_va_la" if qui_va_la(monde, auditeur, demandeur) else None
+
+
 def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
-    """« absent », « mefiance », « necessaire », « impossible », « pauvre », « refus », « remis »,
-    « rendu », « promis » ou « vendu ».
+    """« absent », « mefiance », « qui_va_la », « necessaire », « impossible », « pauvre »,
+    « refus », « remis », « rendu », « promis » ou « vendu ».
 
     ``prix`` : les pièces offertes. Au moins le prix (``biens.prix``) au propriétaire, c'est un
     achat : accepté sans se faire prier, payé aussitôt. Moins, c'est une demande, que le prix non
-    payé rend plus dure à qui une pièce compte (``biens.reticence``)."""
+    payé rend plus dure à qui une pièce compte (``biens.reticence``). Une voix qu'il ne sait à qui
+    prêter s'entend d'abord demander qui va là, qu'elle offre de payer ou réclame son bien."""
     from .biens import prix as prix_de, reticence, richesse
     from .deliberation import _plan_pulsion, besoin_de_part
     from .spatial import porte_par
@@ -123,6 +141,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
     part = demande_de_part(monde, demandeur, auditeur, objet)
     if objet not in monde.objets or not (part or porte_par(monde, objet, auditeur)):
         return "absent"
+    arret = accueil(monde, demandeur, auditeur)
+    if arret == "qui_va_la":
+        return arret
     o = monde.objets[objet]
     if not part and proprietaire(monde, o) == demandeur:
         # Son propriétaire le redemande : il le lui rend, sauf s'il s'en sert encore.
@@ -130,9 +151,8 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
             return "necessaire"
         remettre(monde, auditeur, demandeur, objet)
         return "rendu"
-    confiance = lire(monde, auditeur)["croyances"].get(demandeur, {}).get("fiable")
-    if confiance and not confiance["valeur"]:
-        return "mefiance"
+    if arret:
+        return arret
     if prix and richesse(monde, demandeur) < prix:
         return "pauvre"
     prix_ = prix_de(monde, objet, part)
@@ -205,11 +225,11 @@ def tenu(monde, id, condition, depuis=None):
 
 
 def confier(monde, demandeur, auditeur, condition):
-    """« mefiance », « deja », « impossible », « refus » ou « accepte »."""
+    """« mefiance », « qui_va_la », « deja », « impossible », « refus » ou « accepte »."""
     from .deliberation import _plan_pulsion
-    confiance = lire(monde, auditeur)["croyances"].get(demandeur, {}).get("fiable")
-    if confiance and not confiance["valeur"]:
-        return "mefiance"
+    arret = accueil(monde, demandeur, auditeur)
+    if arret:
+        return arret
     if tenu(monde, auditeur, condition):
         return "deja"
     # Une tâche sur un bien de celui qui la confie en confie la garde (``biens.gardes``) : il juge
@@ -271,7 +291,9 @@ def servir(monde, id, nourriture, pour, lignes):
     if "faim" in besoins:
         besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
-    croire(monde, pour, id, "fiable", True, "vu")
+    from .voix import identifie
+    if identifie(monde, pour, id):
+        croire(monde, pour, id, "fiable", True, "vu")  # Il sait gré à qui il sait l'avoir servi.
     constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
     tenus = [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": pour}]
@@ -305,7 +327,8 @@ def _servir_joueur(monde, id, nourriture, lignes):
         e["engagements"].remove(x)
         memoriser(monde, id, {"type": "engagement_tenu", "pour": "joueur", "condition": x["condition"]})
     _chroniquer(monde, id, f"{_qui(monde, id)} donne une part {complement_de(o)} au joueur.", "social")
-    lignes.append(f"{_qui(monde, id)} te sert une part {complement_de(o)} ; tu manges.")
+    from .voix import personne_pour_joueur
+    lignes.append(f"{personne_pour_joueur(monde, id, court=True)[0]} te sert une part {complement_de(o)} ; tu manges.")
     return True
 
 
@@ -416,6 +439,13 @@ def executer(monde, id, etape, lignes):
         issue, recit = ("rendu", f"{a} rend {designer(objet)} à {b}") if rendu else (
             "remis", f"{a} remet {designer(objet)} à {b}")
         clair, cites, reussi = recit + ".", [objet["id"]], True
+    if issue == "qui_va_la":
+        # Il ne sait à qui est cette voix : « Qui va là ? » ; l'autre se nomme (``voix.se_nommer``),
+        # et redemandera.
+        from .voix import se_nommer
+        clair = recit + f". {b} : « Qui va là ? » {a} : « C'est {a}. »"
+        transmis = [{"type": "nom", "sujet": id}]
+        se_nommer(monde, autre, id, id)
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
     nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]
     faire_entendre(monde, id, autre, clair, nommes, lignes, transmis)

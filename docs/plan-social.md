@@ -351,14 +351,15 @@ paie, Odon sans dette n'y touche pas ; le joueur paie sa part (Gorm la lui doit,
 offre moins (Gorm dit son prix), offre plus que son or (refus au MJ) ; un achat et un prêt rendu
 donnent le même monde quel que soit le découpage du temps.
 
-Bancs (8 h, `main` → branche ; Relais 8 graines, joueur à la galerie ; mine, auberge et crue 4) :
+Bancs (8 h, `main` 1e96cb6, après la branche `voix`, → branche accordée ; Relais 8 graines,
+joueur à la galerie ; mine, auberge et crue 4) :
 
 | scénario | sans recours | événements | échanges | achats | pièces payées | vols vus | méfiances | temps |
 |---|---|---|---|---|---|---|---|---|
-| Relais | 404 → 311 | 29,3 → 31,9 | 14,8 → 16 | 0 → 1,5 | 0 → 2,4 | 1 → 1 | 1,25 → 1,25 | 14,4 → 16,2 s |
-| mine | 665 → 461 | 44,5 → 40 | 41,8 → 37,8 | 0 → 1 | 0 → 2,5 | 0,5 → 0,75 | 4,5 → 5,25 | 43,3 → 43,4 s |
-| auberge | 628 → 635 | 49,3 → 47 | 40,8 → 42,5 | 0 → 1,5 | 0 → 1,75 | 1 → 1 | 5 → 6,75 | 35 → 38,8 s |
-| crue | 293 → 421 | 35,8 → 34,8 | 16,8 → 22 | 0 → 2 | 0 → 3,25 | 1,5 → 0,5 | 2,25 → 1,5 | 15,3 → 16 s |
+| Relais | 393 → 294 | 29,3 → 31,9 | 15,6 → 16,1 | 0 → 1,6 | 0 → 2,5 | 1 → 1 | 1,4 → 1,4 | 12,0 → 12,3 s |
+| mine | 655 → 463 | 43 → 43,5 | 38,3 → 34 | 0 → 1 | 0 → 2,5 | 0,5 → 0,75 | 4,5 → 5,25 | 15,2 → 22,7 s |
+| auberge | 670 → 690 | 52,3 → 47,8 | 28,3 → 31,8 | 0 → 0,75 | 0 → 0,75 | 0,75 → 1 | 6,5 → 8,5 | 29,1 → 22,9 s |
+| crue | 301 → 445 | 37,5 → 32,8 | 24 → 18,3 | 0 → 2 | 0 → 3,5 | 1,5 → 0 | 2 → 0 | 12,4 → 10,2 s |
 
 Aucune usurpation ni violation ; `VERIFIER` passe sur une nuit de chaque scénario. Prêts, objets
 rendus et bourses prises : 0 partout au banc. Ce qu'on lit dans les récits :
@@ -366,16 +367,20 @@ rendus et bourses prises : 0 partout au banc. Ce qu'on lit dans les récits :
   ce qu'il n'a pas donné, et achète ses planches à Aubin quand Aubin refuse de les donner ; Brune
   (honnêteté 20, endettée) vole comme avant : ses pièces lui coûtent plus que la faute.
 - Mine : Rémy, Gaspard et Josse achètent des parts de vivres ou de bûches ; moins de minutes
-  urgentes sans recours. La paie ne bouge pas : Odon ne sait pas atteindre le bureau, dont il
-  croit la porte fermée à clé (le planificateur ne crochète pas une porte), et les autres sont
-  honnêtes.
-- Auberge : Mireille, Joss et Mathurine s'achètent soupe, fagots ou vivres ; plus de confidences
-  et de méfiances, des nuits décalées. Personne ne connaît la bourse d'Anselme.
+  urgentes sans recours. Odon, endetté, va prendre la paie quand la porte du bureau est ouverte
+  (graine 1985) : il guette deux fois une demi-heure sans témoin, puis s'acharne une heure dans le
+  noir sur la serrure du coffre sans l'ouvrir ; ce guet et ces gestes font le temps de calcul en
+  plus. Fermée, la porte l'arrête : le planificateur ne crochète pas une porte.
+- Auberge : Mireille, Joss et Mathurine s'achètent soupe, fagots ou vivres ; plus de méfiances,
+  des nuits décalées. Personne ne connaît la bourse d'Anselme.
 - Crue : Brune (honnêteté 50 par ses limites : la crue ne déclare pas de valeurs) achète sa part
-  dès la première minute au lieu de forcer la réserve vers la 127e : moins de vols, moins de
-  méfiance. Gorm, sans vol à surveiller ni abri à chercher, reste au devoir urgent sans rien à
-  faire (défaut connu du Relais), d'où les minutes sans recours ; Ilse, qu'aucun vol n'inquiète,
-  reste au refuge au lieu de monter à la galerie, d'où plus de minutes dans l'eau (251 → 350).
+  au lieu de forcer la réserve : aucun vol vu, aucune méfiance. Gorm, sans vol à surveiller ni
+  abri à chercher, reste au devoir urgent sans rien à faire (défaut connu du Relais), d'où les
+  minutes sans recours ; Ilse, qu'aucun vol n'inquiète, reste au refuge au lieu de monter à la
+  galerie, d'où plus de minutes dans l'eau (271 → 331).
+- Accord avec `voix` : une voix inconnue qui offre de payer, ou qui réclame son bien, s'entend
+  d'abord demander « Qui va là ? » ; nommée, elle reste une voix d'étranger (méfiance par
+  `voix.fiabilite`), mais le prix payé vaut : la vente se conclut.
 
 Limites :
 - le planificateur lit le compte vrai des pièces d'une bourse qu'il connaît ;

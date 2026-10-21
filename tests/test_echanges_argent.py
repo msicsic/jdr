@@ -270,5 +270,27 @@ class JoueurPaieTests(unittest.TestCase):
         self.assertEqual(m.joueur["or"], 24)
 
 
+class VoixTests(unittest.TestCase):
+    def test_une_voix_inconnue_qui_offre_de_payer_s_entend_d_abord_demander_qui_va_la(self):
+        """Mine, baraquement noir : Mathe n'a jamais entendu Odon. Il offre trois pièces pour une part
+        (le prix) : prudente, elle demande d'abord « Qui va là ? », et rien n'est payé ; nommé, il
+        reste une voix d'étranger, mais le prix payé vaut : elle vend."""
+        from tests.test_constater_rumeurs import ParlerALaVoixTests
+        m = ParlerALaVoixTests().baraquement_noir()
+        lire(m, "mathe")["voix"].remove("odon")
+        lire(m, "mathe")["croyances"].pop("odon", None)
+        lire(m, "mathe")["besoins"]["securite"] = 60.0
+        m.data["finances_pnj"]["odon"] = 5
+        self.assertEqual(demander(m, "odon", "mathe", "vivres", prix=3), "qui_va_la")
+        self.assertEqual((m.data["finances_pnj"]["odon"], m.data["finances_pnj"]["mathe"]), (5, 10))
+        from donjon.voix import se_nommer
+        se_nommer(m, "mathe", "odon", "odon")
+        self.assertEqual(demander(m, "odon", "mathe", "vivres", prix=3), "vendu")
+        m = recharger(m)
+        self.assertEqual((m.data["finances_pnj"]["odon"], m.data["finances_pnj"]["mathe"]), (2, 13))
+        self.assertIn({"objet": "vivres", "servir": "odon"},
+                      [x["condition"] for x in lire(m, "mathe")["engagements"]])
+
+
 if __name__ == "__main__":
     unittest.main()

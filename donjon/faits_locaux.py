@@ -371,12 +371,16 @@ def preparer_faits(monde, proposition, revision=None):
             entendants = auditeurs(travail, source, 2)
             if "joueur" not in entendants:
                 entendants.append("joueur")
+            from .voix import nom_pour_joueur, reel
+            nom = nom_pour_joueur(travail, reel(travail, ancrage), court=False)
+            # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
+            designe, ancrage = ancrage, reel(travail, ancrage)
             evenement = {"locuteur": ancrage, "texte": texte, "salle": source,
                          "minute": travail.data["minutes"], "auditeurs": entendants,
                          "revision": monde.data["revision"] + 1}
             travail.data.setdefault("paroles_pnj", []).append(evenement)
-            rendus.append(travail.objets[ancrage]["nom"] + " dit : « " + texte + " ».")
-            etablis.append({"type": nature, "locuteur": ancrage})
+            rendus.append(nom[0].upper() + nom[1:] + " dit : « " + texte + " ».")
+            etablis.append({"type": nature, "locuteur": designe})
             continue
         if ancrage not in autorises["supports"]:
             # Une cause par refus : la lumière, la vue ou la distance. Le support visé reste celui
