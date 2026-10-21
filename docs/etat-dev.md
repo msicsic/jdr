@@ -595,7 +595,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `test_entretenir` (Mireille achète au lieu de demander), `test_besoins` (Gorm force la porte, le cas
   sans outil gardé), `test_auberge` (seuil d'événements à 12 : 14 dans cette nuit), `test_mine` (la
   nuit 3, départ fixe : le blessé allume une lampe de rechange à la réserve ouverte au lieu d'appeler
-  dans le noir, et Bram est éclairé par celle d'Odon).
+  dans le noir, et Bram est éclairé par celle d'Odon). Limites : la lumière devant une serrure est
+  celle qu'il y a vue en dernier (une source posée près d'elle depuis ne compte qu'à son retour ou
+  avec la lumière de son plan) ; la chance d'une demande reste une constante (`PRET`) ; forcer ne
+  sert qu'à lever une serrure fermée à clé, et abîmer ce qui n'est à personne ou à soi ne coûte que
+  le temps et le bruit ; la lueur diffuse est supposée égale dans toute la salle (un recoin qu'elle
+  n'atteint pas serait cru en pénombre) ; Gorm achète encore les planches d'Aubin quand ses biens le
+  pressent (`GARDE`) ; tout débiteur rembourse, quelle que soit son honnêteté ; le joueur ne réclame
+  pas par une parole typée et ne voit la dette qu'au remboursement ; seule une part vendue d'avance
+  crée une dette.
 - La suite de tests passe : 999 tests, sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
