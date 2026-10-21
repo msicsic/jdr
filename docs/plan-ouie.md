@@ -656,6 +656,122 @@ Limites :
   ce qu'il surprend entre PNJ (« Ici ! » à un appel) ne lui nomme pas la voix, et il ne hèle personne
   par son nom (seul l'appel à l'aide est un cri pour lui). Héler : branche `parole-voix`.
 
+## Nommer, attendre, héler (branche `parole-voix`)
+
+Trois manques des branches `banc-luna` et `voix`, une même famille : ce que le joueur et les PNJ font
+d'un nom et d'un appel.
+
+**Nommer qui l'on connaît** (`paroles.identites`, `paroles._connu_du_joueur`, `Monde.identifier`).
+Avant, le joueur ne connaissait un personnage que par une trace fragile : un souvenir de sa place
+(`souvenirs_visuels`, effacé quand on regarde la place vide), un portrait vu de près, ou une mention
+récente dans ce que le MJ a lu. Vu de loin puis parti, Ilse n'était plus « connue » : « je dis à Ilse :
+viens » ne la nommait plus, et la parole partait au MJ ou allait à qui était en face. Règle : le joueur
+connaît un personnage d'après ce qu'il sait de lui, jamais d'après une place : il l'a vu (la scène le
+nomme ; `data["personnages_vus"]`, tenu à chaque action par `Monde.identifier`, y compris qui n'a été
+qu'aperçu pendant l'action), il connaît sa voix, ou une voix s'est donné son nom. Le nommer absent
+donne le refus de la parole ou du geste : « Tu ne vois pas Ilse d'ici : approche-toi pour lui
+parler », « Ilse, meunière évacuée n'est pas là pour le recevoir » (l'analyse du don nomme aussi
+l'absent connu, `commandes._nomme` ; le refus du moteur le nomme même quand personne n'est là,
+`dialogues.verifier_don`). Le MJ reçoit `personnages_connus` (identifiant et nom, sans place), ce que
+l'auditeur lisait comme « Ilse n'est ni présente ni identifiée dans les faits ». Pas de migration : une
+ancienne partie remplit la liste à la première action.
+
+**Qui répond attend** (`deliberation.attendre_l_appelant`, `attendre`, `rejoint`, `_plan_attendre` ;
+esprit `rejoint`). Avant, l'appelé répondait « Ici ! » puis poursuivait sa ronde ou allait voir un bruit ;
+l'appelant arrivait sur une salle vide et rappelait (crue, graine 3 : Ilse hèle Gorm cinq fois en quatre
+minutes pendant qu'il va voir les bruits qu'elle fait). Règle : qui répond à un appel s'attend à être
+rejoint. Il attend sur place `REJOINT` (5) minutes, sauf ce qui passe avant (`_passe_avant` : un besoin
+qui presse, la parole donnée, prévenir, un réflexe, une stratégie, et ce qu'il fait déjà sur place,
+où il attend aussi bien) ; la routine, aller voir un bruit, ce qui ne presse pas et l'argent lui
+cèdent, aussitôt (il s'arrête au moment de répondre) puis à chaque délibération (le but vient après la
+parole due, avant le bruit et la routine). S'il cherche lui-même l'appelant et reconnaît sa voix, il
+sait où il est : sa recherche ailleurs tombe et il va vers lui. L'attente vit dans son esprit et prend
+fin quand ils se voient (« Gorm retrouve Aubin, qui l'avait hélé. »), quand ils se parlent (toute
+parole échangée, `pnj.se_parler`, et celle du joueur), ou à l'échéance (« … cesse d'attendre … »).
+Banc : `retrouvailles`, `attentes_vaines`, `minutes_a_attendre` ; les deux premières, chroniquées en
+nature `reponse`, ne comptent pas parmi les échanges mais comptent parmi les événements distincts.
+
+**Le joueur hèle** (`paroles.hele`, `commandes.heler`, `sons._compiler_heler`, `pnj.heler`,
+`pnj.repondre`). Héler est un geste du moteur, par la règle des PNJ, factorisée : `pnj.appeler` =
+`heler` (le cri, nature `hele`, 9 crans) puis `repondre` (« Ici ! » sauf méfiance, se nommer, attendre
+l'appelant). L'analyse locale reconnaît « j'appelle Gorm », « je hèle Gorm », « je crie le nom de
+Gorm », « j'appelle Gorm par son nom », « je crie « Gorm ? » », « crier : Gorm ! », suivis au plus de
+« fort » ou « à voix haute », avec un personnage que Corvus connaît ; une forme en question n'est pas
+une question au MJ (`jeu.py`). Le geste est `emettre_son`, méthode `heler`, cible le personnage (3 s) ;
+le MJ peut aussi le proposer (consigne d'une ligne), refusé avec `attendu` s'il ne nomme personne
+(« Dis qui tu appelles par son nom ») ou quelqu'un que Corvus ne connaît pas. La réponse vient le cri
+fini et s'entend par l'ouïe commune : « Tu entends, à l'ouest : Gorm répond : « Ici ! » » d'une voix
+connue, « … une voix qui se dit Gorm répondre : « Ici ! » » sinon (une réponse s'écrit désormais
+« répondre », `ecoute._heler`) ; sans réponse parvenue, « Aucune réponse ne te parvient. ».
+
+Vérifié (`tests/test_parole_voix.py`, état après rechargement et ce que lit le joueur) :
+- nommer : cas réel (Ilse vue à trois cases, partie, sa place regardée vide, sept actions sans la
+  nommer) : « je dis à Ilse : viens m'aider » donne le refus du moteur sans appel ; même nature, le don
+  (« je donne la cloche à Ilse » : remettre, refus « n'est pas là pour le recevoir ») ; Brune jamais vue
+  mais voix connue, Aubin seulement nommé par une voix : refus justes ; Ilse jamais vue ni nommée :
+  inconnue ;
+- attendre : cas réel rejoué au Relais (Aubin affamé hèle Gorm, qui part en ronde) : Gorm attend là où
+  il a répondu, un seul appel, la part demandée à la minute 4 (sur `main` : deux appels, minute 6) ; le
+  même laps découpé donne le même monde ; personne ne vient : il cesse d'attendre à l'échéance puis fait
+  sa ronde ; la faim qui presse passe avant, puis il attend ; Aubin, qui cherche Gorm et connaît sa
+  voix, va vers lui à son appel, sans rappeler ;
+- héler : les formes et ce qui n'en est pas (« j'appelle à l'aide », « je crie », deux noms, une parole
+  entre guillemets, un objet) ; cas réel, Gorm derrière la porte étanche : aucun appel au MJ, la réponse
+  d'une voix inconnue qui se dit Gorm, retenue ; Gorm attend Corvus jusqu'à ce qu'il ouvre la porte ;
+  voix connue et forme en question ; Gorm méfiant ne répond pas ; refus du MJ (cible inconnue, cible
+  joueur), chacun sa cause et son `attendu`.
+
+`planification.VERIFIER` sur une nuit de chaque scénario (graine 1985) : aucune reprise périmée.
+
+Bancs 8 h contre `main` 1ee493b, lancés ensemble (Relais 8 graines, les autres 4) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| appels / réponses | 1,25 / 1,25 → 1 / 1 | 2,75 / 2,5 → 2,5 / 2,25 | 6 / 2,5 → 6 / 2,5 | 2,75 / 2,5 → 2,25 / 2 |
+| retrouvailles / attentes vaines | — → 1 / 0 | — → 2 / 0 | — → 2 / 0,25 | — → 2 / 0 |
+| échanges | 11 → 11 | 28,25 → 28,25 | 23,75 → 23,75 | 10,75 → 10,75 |
+| minutes sans recours | 53,1 → 53,1 | 56,25 → 56,25 | 67,5 → 67,5 | 15 → 15 |
+| minutes en attente | 67,5 → 68,1 | 303,75 → 303,75 | 622,5 → 622,5 | 105 → 106,25 |
+| vols vus / témoins | 1 / 2,4 → 1 / 2,4 | 0,75 / 2,75 → idem | 0,5 / 1 → idem | 0,25 / 0,25 → idem |
+| temps d'une nuit | 10,9 → 9,5 s | 24,3 → 24,3 s | 30 → 30 s | 10 → 10,1 s |
+
+Aucune usurpation ni violation. Les nuits ne divergent presque pas : l'attente ne dure que jusqu'à
+l'arrivée de l'appelant, qui venait de toute façon. Les appels baissent là où l'appelé s'en allait :
+Relais graine 11, 4 → 2 ; crue sur 12 graines 2,33 → 1,67 par nuit (graine 3 : 7 → 3, Ilse obtient sa
+part à la minute 333 au lieu de 340 ; graine 2024 : 5 → 3 ; graine 123 : 3 → 1). À l'auberge, les
+appels restés sans réponse (méfiance, porte, distance) ne changent pas. Les événements distincts
+gagnent une à deux retrouvailles par nuit.
+
+Avec Luna (copies de la sauvegarde réelle, placements d'auteur sur la copie ; 2 parties au plus en même
+temps), avant (`main`) → après :
+- Corvus au palier, Gorm derrière la porte étanche fermée : « j'appelle Gorm » 4 appels, « Gorm n'est
+  pas ici : tu ne peux pas l'interpeller » → 0 appel, « Tu appelles : « Gorm ? » », la réponse d'une voix
+  qui se dit Gorm ; « je crie le nom de Gorm » 4 appels, « Tu cries le nom de Gorm à l'aide… » (un cri
+  sans nom) → 0 appel ; Gorm, sur `main`, avait quitté la salle des vannes à l'ouverture de la porte ;
+  après, il y attendait. « Gorm ? Tu es là ? » (texte libre) reste au MJ : Luna rappelle la réponse
+  entendue sans héler de nouveau (2 appels).
+- Ilse partie, sa place vide : « je dis à Ilse : viens m'aider » refus du moteur des deux côtés (sur
+  `main`, ce que le MJ avait lu la nommait encore) ; « je donne la cloche à Ilse » 2 appels et une explication de Luna
+  → 0 appel, refus du moteur ; « j'appelle Ilse » 6 appels, deux plans refusés par la contre-revue (un cri,
+  un appel à l'aide) → 0 appel, Ilse répond et attend. « Ilse, viens m'aider à porter la cloche »
+  (interpellation libre) : 4 appels sur `main` ; 10 et 9 appels dans les deux premières parties de la
+  branche (Luna proposait `heler`, avec la cible « joueur » puis refusé par la contre-revue, qui jugeait
+  qu'appeler ne couvre pas « viens m'aider »), 2 appels après le refus séparé « Dis qui tu appelles » et la
+  consigne précisée.
+
+Limites :
+- Seules les formes reconnues sont des appels du moteur ; une interpellation libre d'un absent
+  (« Gorm ? Tu es là ? », « Ilse, viens m'aider ») reste au MJ, qui peut proposer `heler` ou une parole
+  (refusée par le moteur), ou répondre en dialogue ; son coût varie.
+- Connaître de vue : la scène nomme quiconque est visible, même de loin ou dans la pénombre ; connaître
+  quelqu'un, c'est l'avoir vu ainsi. Aucun déguisement n'est modélisé.
+- L'attente se juge à la minute (la délibération) ou à la parole : l'appelé qui voit arriver l'appelant
+  au milieu d'une minute reste immobile jusqu'à la suivante. Il ne se tourne pas vers la voix.
+- `REJOINT` est une constante du moteur ; qui ne cherche pas l'appelant l'attend même si l'appelant n'a
+  pas entendu sa réponse (au plus 5 minutes perdues).
+- La réponse au joueur vient au terme de son cri (3 s), avant que les PNJ ne vivent ces secondes.
+- Le joueur ne répond pas de lui-même à qui le hèle ; « Ici ! » de sa part reste une parole.
+
 ## Limites
 
 - Les réflexes déclarés (`reaction_son`, le protecteur qui accourt) et le souvenir « son » restent
@@ -690,7 +806,8 @@ Limites :
 - L'inquiétude (15 × niveau reçu / 9) ; l'appel qui inquiète à chaque appel.
 - Les voix (branche `voix`) : `voix.INCONNU` (+2 au DD d'une demande d'une voix inconnue), la prudence
   (sécurité + 50 − courage ≥ 50), `APPEL_OUBLI` (60 min où une salle hélée en vain compte pour
-  parcourue), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux).
+  parcourue), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux) ; `REJOINT`
+  (5 min où qui a répondu à un appel attend d'être rejoint, branche `parole-voix`).
 
 ## Suite prévue : imiter une voix (non faite)
 

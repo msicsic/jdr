@@ -133,8 +133,8 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
 - ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : comme les
   actions simples. « Je déverrouille la porte, je l'ouvre et je la cale » forme une séquence.
 - emettre_son : crier (methode cri), appeler à l'aide (appel), siffler (sifflement), cible
-  joueur ; héler quelqu'un par son nom (heler), cible = ce personnage ; faire sonner un objet
-  sonore : cible = l'objet, methode simple. Toujours possible,
+  joueur ; héler quelqu'un par son nom : methode heler, cible = l'identifiant de ce personnage ;
+  faire sonner un objet sonore : cible = l'objet, methode simple. Toujours possible,
   sans jet, même sans personne en vue ; le moteur décide qui entend. Une réponse ou une arrivée
   se raconte seulement quand les faits l'établissent, et l'absence de témoin visible ne prouve
   pas que personne n'est aux alentours.

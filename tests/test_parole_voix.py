@@ -278,6 +278,11 @@ class HelerJoueurTests(unittest.TestCase):
         self.assertIn("Tu ne connais personne de ce nom", str(refus.exception))
         self.assertIn("reçu « ilse »", refus.exception.attendu)
         self.assertIn("marchand", refus.exception.attendu)
+        # Une autre cause, un autre refus : héler sans nommer personne.
+        with self.assertRaises(ErreurMonde) as refus:
+            Moteur(m).preparer(sequence(etape("emettre_son", "joueur", methode="heler")))
+        self.assertIn("Dis qui tu appelles", str(refus.exception))
+        self.assertIn("pas joueur", refus.exception.attendu)
 
 
 if __name__ == "__main__":

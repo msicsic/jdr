@@ -117,8 +117,12 @@ def _compiler_heler(m, e, justification, origine):
         raise ErreurMonde("On hèle quelqu'un de sa voix, sans rien d'autre.",
                           "emettre_son heler : cible = l'identifiant du personnage hélé ; destination et outil vides, "
                           "difficulte 0.")
+    connus = sorted(i for i, o in m.objets.items() if o["type"] == "personnage" and _connu_du_joueur(m, i))
+    if qui in ("", "joueur"):
+        raise ErreurMonde("Dis qui tu appelles par son nom.",
+                          f"emettre_son heler : cible = l'identifiant du personnage hélé, pas joueur ; parmi "
+                          f"{liste(connus)} (reçu « {qui} »).")
     if qui not in m.objets or m.objets[qui]["type"] != "personnage" or not _connu_du_joueur(m, qui):
-        connus = sorted(i for i, o in m.objets.items() if o["type"] == "personnage" and _connu_du_joueur(m, i))
         raise ErreurMonde("Tu ne connais personne de ce nom à appeler.",
                           f"emettre_son heler : cible = un personnage que Corvus connaît, parmi {liste(connus)} "
                           f"(reçu « {qui} »).")
