@@ -22,6 +22,7 @@ OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", 
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
 SOCIALES = ("dire", "demander", "confier", "remettre")
+A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
 REPIT = 60             # minutes avant de reprendre un but abandonné
@@ -385,14 +386,53 @@ def _plan_prevenir(monde, id):
 
 
 def _eclairee_crue(monde, id, salle):
-    """Éclairée quand il y était, ou par une source qu'il y croit allumée."""
+    """Éclairée quand il y était, ou par une source qu'il y croit allumée ; une source portée, par
+    lui ou par un autre, n'y compte pas (elle suit son porteur)."""
     vue = _cru(monde, id, salle, "etat")
     if vue is not None:
         return vue.get("eclairee", False)
     if monde.data["salles"][salle].get("lumiere_naturelle"):
         return True
+    porteurs = {"joueur"} | {k for k, o in monde.objets.items() if o["type"] == "personnage"}
     return any("allume" in monde.objets[k] and (_cru(monde, id, k, "etat") or {}).get("allume")
+               and not porte_par(monde, k, id) and _lieu_cru(monde, id, k) not in porteurs
                and salle_crue(monde, id, k) == salle for k in _connus(monde, id))
+
+
+def noir_cru(monde, id, salle):
+    """S'y croit-il dans le noir, sans ce qu'il porte ? Un lieu qu'il a vu obscur ; un lieu dont il
+    ne sait rien, il l'imagine comme celui où il se tient."""
+    vue = _cru(monde, id, salle, "etat")
+    if vue is None:
+        ici = monde.objets[id]["lieu"]
+        vue = _cru(monde, id, ici, "etat") if ici != salle and ici in monde.data["salles"] else None
+    return vue is not None and not vue.get("eclairee", False)
+
+
+def peur_du_noir(monde, id):
+    """Ce que le noir l'inquiète par minute (``SECURITE``, nuancé par son profil) ; 0 s'il ne
+    s'inquiète de rien, ou pas du noir."""
+    p = profil(monde, id) or {}
+    return taux(monde, id, "noir") if "securite" in p.get("besoins", {}) else 0
+
+
+def lumiere_utile(monde, id):
+    """A-t-il besoin d'y voir, maintenant ou pour son plan ? Là où il se tient, ou là où son plan
+    le mène, il croit le noir (``noir_cru`` : sans ce qu'il porte), et le noir l'inquiète ; ou il
+    y a un geste qui demande d'y voir (crocheter)."""
+    e = lire(monde, id)
+    salle, peur = monde.objets[id]["lieu"], peur_du_noir(monde, id) > 0
+    if salle not in monde.data["salles"]:
+        return False
+    if peur and noir_cru(monde, id, salle):
+        return True
+    for etape in e["intention"]["plan"] if e["intention"] else []:
+        if etape["operation"] == "aller" and etape["lieu"] in monde.data["salles"]:
+            salle = etape["lieu"]
+        if (peur and noir_cru(monde, id, salle)
+                or etape["operation"] in A_VUE and not _eclairee_crue(monde, id, salle)):
+            return True  # Sa chance au geste compte sur la lumière qu'il croit (``chance_crochetage``).
+    return False
 
 
 def _plan_abri(monde, id):
@@ -423,6 +463,15 @@ def _plan_abri(monde, id):
             continue
         return {"type": "abri", "lieu": salle}, etapes + [_etape("abriter", lieu=salle)]
     return None
+
+
+def _plan_lumiere(monde, id):
+    """Avoir de la lumière, quand il se tient dans le noir (ce qu'il ressent, ``autour``) et que
+    le noir l'inquiète : la recherche (``planification.eclairer``)."""
+    if not peur_du_noir(monde, id) or autour(monde, id)["lumiere"]:
+        return None
+    from .planification import eclairer
+    return eclairer(monde, id)
 
 
 def _plan_reposer(monde, id):
@@ -490,6 +539,8 @@ def _plan_froid(monde, id):
 PROGRES = {"repos": (_plan_reposer, REPOS_FIN), "chaleur": (_plan_froid, CHALEUR_FIN),
            "securite": (_plan_abri, SECURITE_FIN)}
 GESTE_PROGRES = {"repos": "reposer", "chaleur": "chauffer", "securite": "abriter"}
+# Ce qu'un besoin tente avant le geste qui l'apaise : dans le noir, avoir de la lumière.
+RECOURS = {"securite": (_plan_lumiere,)}
 
 
 def retabli_par_son_plan(monde, id, condition):
@@ -522,6 +573,7 @@ def candidats(monde, id):
         if besoin == "faim":
             buts.append((besoin, _plan_faim, False))
             continue
+        buts += [(besoin, methode, False) for methode in RECOURS.get(besoin, ())]
         if besoin in PROGRES:
             # Le geste qui apaise d'abord ; les pulsions du même besoin (les rondes) restent des recours.
             buts.append((besoin, PROGRES[besoin][0], False))
@@ -629,8 +681,9 @@ def deliberer(monde, id, minute):
 
 def menager_flamme(monde, id, minute):
     """Une flamme portable qu'il a allumée ou employée pour allumer, et que son plan n'emploie
-    plus, se consume pour rien : il l'éteint d'abord, et la garde pour plus tard. Une lanterne
-    portée pour y voir n'est pas concernée."""
+    plus, se consume pour rien : il l'éteint d'abord, et la garde pour plus tard. Celle qui
+    l'éclaire quand il a besoin d'y voir (``lumiere_utile``), sans autre lumière en main, ne se
+    consume pas pour rien."""
     from .perception import allumee
     e = esprit(monde, id)
     plan = e["intention"]["plan"] if e["intention"] else []
@@ -639,6 +692,9 @@ def menager_flamme(monde, id, minute):
     flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
                    and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
     if flamme is None:
+        return
+    autres = any(k != flamme and porte_par(monde, k, id) and allumee(o) for k, o in monde.objets.items())
+    if not autres and lumiere_utile(monde, id):
         return
     geste = {"operation": "eteindre", "cible": flamme, "outil": "", "lieu": "", "condition": ""}
     if e["intention"]:

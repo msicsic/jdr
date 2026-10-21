@@ -206,9 +206,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             if o["integrite"] == 0:
                 raise ErreurMonde(designer(o, debut=True) + " ne peut plus éclairer.", f"{cible} est brisé.")
             if o["combustible"] <= 0:
+                from .perception import brule
                 raise ErreurMonde(designer(o, debut=True) + " n'a plus de combustible.",
-                                  f"{cible} est épuisé" + (" : alimenter d'abord avec un combustible." if o.get("foyer")
-                                                          else " : choisis une autre source."))
+                                  f"{cible} est épuisé" + (f" : alimenter d'abord avec un combustible ({brule(o)})."
+                                                          if brule(o) else " : choisis une autre source."))
             from .eau import NOYEE_CM, sous_l_eau
             if sous_l_eau(monde, o):
                 raise ErreurMonde(designer(o, debut=True) + " est sous l'eau : aucune flamme n'y prend.",
@@ -234,25 +235,34 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         p.effets = [("allumage", cible, allumer)]
         return p
     if op == "alimenter":
-        from .perception import combustible
+        from .matiere import SUBSTANCES
+        from .perception import brule, combustible, recharge
         if destination or methode != "simple":
-            raise ErreurMonde("Alimenter un feu n'a pas de destination et se fait simplement.",
-                              "alimenter : cible = le foyer, outil = le combustible (ou vide), destination vide, methode simple.")
-        if not o.get("foyer"):
-            foyers = sorted(i for i, x in monde.objets.items() if x.get("foyer") and monde.accessible(i))
-            raise ErreurMonde(designer(o, debut=True) + " n'est pas un foyer qu'on recharge.",
-                              f"alimenter : cible = un foyer, parmi {liste(foyers)} ; le combustible va dans outil.")
+            raise ErreurMonde("Recharger une source n'a pas de destination et se fait simplement.",
+                              "alimenter : cible = la source à recharger, outil = le combustible (ou vide), "
+                              "destination vide, methode simple.")
+        if brule(o) is None:
+            sources = sorted(i for i, x in monde.objets.items() if brule(x) and monde.accessible(i))
+            raise ErreurMonde(designer(o, debut=True) + " ne se recharge pas.",
+                              f"alimenter : cible = un foyer ou une source qui brûle un combustible déclaré, "
+                              f"parmi {liste(sources)} ; le combustible va dans outil.")
         # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
         t = monde.objets.get(outil) if outil else next(
             (e for e in sorted(monde.objets.values(), key=lambda e: not monde.est_porte(e["id"]))
-             if combustible(e) and a_portee(monde, e["id"])), None)
+             if combustible(e) and recharge(o, e) and a_portee(monde, e["id"])), None)
         if t and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
             exiger(monde, t["id"])
+        if t and combustible(t) and not recharge(o, t):
+            matiere = brule(o)
+            reserves = sorted(x["id"] for x in monde.objets.values()
+                              if combustible(x) and recharge(o, x) and a_portee(monde, x["id"]))
+            raise ErreurMonde(designer(o, debut=True) + " brûle " + SUBSTANCES[matiere]["article"] + ".",
+                              f"{cible} se recharge de {matiere} ; {t['id']} n'en est pas : outil parmi {liste(reserves)}.")
         if not t or not combustible(t) or not a_portee(monde, t["id"]):
             combustibles = sorted(x["id"] for x in monde.objets.values()
-                                  if combustible(x) and a_portee(monde, x["id"]))
+                                  if combustible(x) and recharge(o, x) and a_portee(monde, x["id"]))
             raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.",
-                              f"outil : un combustible porté ou à portée de main, parmi {liste(combustibles)}.")
+                              f"outil : un combustible pour {cible} porté ou à portée de main, parmi {liste(combustibles)}.")
         victime = proprietaire(monde, t)
         if (not monde.est_porte(t["id"]) and victime not in (None, "joueur")
                 and t.get("vole_par") != "joueur"):
@@ -310,8 +320,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         p.echec = [(a, b, cible if c == piece_id else c) for a, b, c in p.echec]
         p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + "."
         return p
-    if op == "deplacer" and monde.objets.get(destination, {}).get("foyer"):
-        # Mettre un combustible dans un foyer, c'est le recharger : le geste d'alimenter.
+    from .perception import brule
+    if op == "deplacer" and destination in monde.objets and brule(monde.objets[destination]):
+        # Mettre un combustible dans ce qui le consomme (du bois au feu, de l'huile dans la
+        # lampe), c'est le recharger : le geste d'alimenter.
         foyer = monde.objets[destination]
         if "combustible" not in o.get("usages", []):
             raise ErreurMonde(designer(foyer, debut=True) + " n'est pas un contenant : "

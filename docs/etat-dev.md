@@ -346,7 +346,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   recharge son poêle à temps, ce qui déplace le crochetage de Lucien. Aucune usurpation. Limites :
   on ne demande que le bois qu'on connaît ; une part de bois promise s'attend 60 minutes si l'on
   n'a pas revu le feu ; une ancienne sauvegarde lit False comme rompue.
-- La suite de tests passe : 870 tests, sans clé ni connexion (ceux du clic demandent Node).
+- Branche `lumiere-besoin`, non fusionnée, accordée avec `integration` (manque relevé par la mine :
+  dans le noir, personne ne cherchait de lumière ; détail dans `docs/plan-planificateur.md`,
+  « Lumière ») : une source qui consomme se recharge de ce qu'elle brûle (`perception.recharge` :
+  son contenu déclaré, un foyer brûle du bois ; une torche, sans contenu déclaré, ne se recharge
+  pas) ; `alimenter` vaut pour le joueur, le MJ, le stratège et les PNJ, verser de l'huile dans la
+  lampe aussi. La mine déclare l'huile de ses lampes et un bidon d'huile à la réserve. Dans le noir,
+  qui le craint (`peur_du_noir`) cherche à avoir de la lumière (recours de la sécurité, avant
+  l'abri) ; le planificateur trouve les moyens par ses gestes : allumer une source à une flamme
+  portée ou fixe, la recharger, prendre une lampe, la demander, rejoindre un lieu éclairé. Toute
+  minute dans un lieu qu'il croit obscur lui coûte (`NOIR` × sa peur) : il allume sa lampe avant
+  une ronde dans le noir ; la lampe qui l'éclaire ne se ménage ni ne se prête. Une salle se croit
+  éclairée par ce qui y est posé, pas par ce qu'on y porte (lui ou un autre) : la lampe d'un
+  passant ne fait pas éteindre la sienne. Accord avec `entretenir-feu` : la pulsion rompue du
+  poêle fait rallumer le feu (part de bois demandée) ; celui qui avait allumé sa lampe la ménage
+  alors. Bancs contre `integration` (8 h, `VERIFIER` sur une nuit de chaque scénario, aucune
+  usurpation) : Relais 7 graines sur 8 identiques ; sans recours mine 670 → 636, auberge 673 →
+  581, crue 281 → 273. Auberge : aux rondes, Odile allume la lampe du comptoir, Hugues sa
+  lanterne ; Lucien quitte le grenier noir pour le couloir éclairé, puis va et vient entre sa
+  garde et la lumière. Mine : la dernière flamme est le briquet de Gaspard, que personne ne
+  retrouve dans le noir ; ceux qui craignent le noir vont vers la lumière dont ils se souviennent
+  (le bureau) et Bram n'y est plus seul.
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -361,7 +382,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but ; chercher
+- **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche `lumiere-besoin`) ; chercher
   quelqu'un dans le noir ; le lieu dans une rumeur ; prêter et permissions déléguées ; l'argent ;
   `pnj._rate` croit disparu un objet caché dans un contenant fermé ; un besoin que rien n'apaise
   (le devoir reste urgent une fois franchi son seuil). Demander du bois pour un feu et le protégé

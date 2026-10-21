@@ -55,6 +55,8 @@ def _but(monde, but):
         return "se reposer"
     if t == "abri":
         return "se mettre à l'abri : " + _salle(monde, but["lieu"])
+    if t == "lumiere":
+        return "avoir de la lumière"
     if t == "garder":
         return "garder ses biens : " + _salle(monde, but["lieu"])
     if t == "prevenir":

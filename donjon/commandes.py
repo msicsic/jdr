@@ -9,7 +9,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   regarder | carte | fiche | inventaire | journal | contexte | aide
   lumière                              expliquer les conditions de visibilité
   allumer <source> | éteindre <source>  utiliser un outil d'allumage porté
-  alimenter <foyer> avec <combustible>  recharger un feu avec un combustible porté ou à portée
+  alimenter <source> avec <combustible>  recharger un feu, une lampe, avec un combustible porté ou à portée
   manger <nourriture>                   une part de ce qui est à toi ou à personne (5 min)
   écouter                               tendre l'oreille (3 min), mieux collé à une porte
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce

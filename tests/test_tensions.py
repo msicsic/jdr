@@ -225,7 +225,11 @@ class FeuTests(unittest.TestCase):
         m, texte = attendre(recharger(m), 3)
         self.assertTrue(m.objets["brasero"]["allume"])
         self.assertIn("Gorm, gardien du relais allume le brasero.", texte)
-        self.assertIn("Gorm, gardien du relais éteint la torche.", texte)
+        # Le feu pris, il garde la torche allumée pour sa ronde à la crypte, qu'il croit
+        # obscure (le noir l'inquiète) ; il l'éteint là-bas, voyant qu'il y voit sans elle.
+        textes = chronique(m)
+        self.assertLess(textes.index("Gorm, gardien du relais allume le brasero."),
+                        textes.index("Gorm, gardien du relais éteint la torche."))
         self.assertFalse(m.objets["torche"]["allume"])
 
     def test_une_flamme_employee_qui_ne_sert_plus_est_eteinte_et_gardee(self):
@@ -292,7 +296,8 @@ class JoueurFeuTests(unittest.TestCase):
         self.assertIn("Il n'en reste plus", Moteur(m).executer(Moteur(m).preparer(proposition("examiner", "bois"))))
         with self.assertRaisesRegex(ErreurMonde, "Il faut porter un combustible"):
             Moteur(m).preparer(sequence(etape("alimenter", "brasero", outil="bois")))
-        with self.assertRaisesRegex(ErreurMonde, "n'est pas un foyer"):
+        # La lanterne ne déclare pas ce qu'elle brûle : elle est son propre réservoir.
+        with self.assertRaisesRegex(ErreurMonde, "ne se recharge pas"):
             Moteur(m).preparer(sequence(etape("alimenter", "lanterne", outil="bois")))
 
     def test_le_joueur_allume_sa_lanterne_au_brasero_sans_briquet(self):

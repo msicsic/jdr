@@ -44,7 +44,8 @@ Gestes (champs inutiles vides) :
 - deverrouiller, verrouiller {cible, outil: la clé} ; crocheter {cible, outil} (capacité crochetage) ;
 - manger {cible: une nourriture} ; reposer {} : se reposer là où il est, jusqu'à être reposé ;
 - chauffer {cible: un foyer allumé} : se tenir près du feu jusqu'à être réchauffé ;
-- alimenter {cible: un foyer, outil: un combustible} : recharger le feu (il ne le rallume pas) ;
+- alimenter {cible: un foyer ou une lampe, outil: le combustible qu'elle brûle} : la recharger
+  (il ne la rallume pas) ;
 - servir {cible: une nourriture à portée, sujet: personnage présent} : lui en donner une part ;
 - dire {cible: personnage, sujet, attribut: lieu | verrouillee | fiable, valeur: identifiant
   de salle ou de porteur pour lieu, oui ou non sinon} : lui affirmer quelque chose ;
@@ -287,14 +288,19 @@ def _etape(monde, id, n, x, obtenus):
         if op == "servir":
             pour = connu("sujet", ("personnage",))
             etape["contenu"] = {"pour": pour}
-        if op in ("chauffer", "alimenter") and not o.get("foyer"):
-            raise faute("on ne se chauffe qu'à un foyer, on ne recharge qu'un foyer")
+        if op == "chauffer" and not o.get("foyer"):
+            raise faute("on ne se chauffe qu'à un foyer")
         if op == "chauffer" and lire(monde, id)["besoins"].get("chaleur", 0) <= 0:
             raise faute("ce personnage n'a pas froid")
         if op == "alimenter":
+            from .perception import brule, recharge
+            if brule(o) is None:
+                raise faute("on ne recharge qu'un foyer ou une source qui brûle un combustible déclaré")
             etape["outil"] = connu("outil")
             if "combustible" not in monde.objets[etape["outil"]].get("usages", []):
                 raise faute("l'outil d'alimenter est un combustible")
+            if not recharge(o, monde.objets[etape["outil"]]):
+                raise faute(f"ce combustible ne recharge pas cette source, qui brûle : {brule(o)}")
             if not autorise(monde, id, etape["outil"]):
                 raise faute("il ne vole pas : ce combustible est à un autre")
         if op in ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter") and o["type"] not in ("porte", "contenant"):
