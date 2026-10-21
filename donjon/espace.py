@@ -50,8 +50,8 @@ Un sol et un lieu décrits en contrebas sont ce qu'il y a sous le bord, même sa
 À « sous la terrasse », explique ce qui est en contrebas ; n'invente pas une cave, des piliers
 ou un vide sous la dalle. N'étends pas une inconnue à des abords déjà décrits.
 Si une ambiguïté change réellement la réponse, distingue brièvement les sens de la question.
-Une question de faisabilité peut utiliser les dossiers atelier et franchissements pour
-expliquer les possibilités et risques ; elle ne déclenche jamais de manœuvre.
+Une question de faisabilité d'un geste se propose comme ce geste : le moteur le prépare sans
+l'exécuter.
 Les indications actuelles priment sur d'anciennes réponses contradictoires de la conversation.
 Deux ou trois phrases naturelles suffisent. N'invente ni objets, ni perception supplémentaire.
 faits référence les clés publiques utilisées. Appelle repondre_au_joueur exactement une fois.

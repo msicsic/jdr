@@ -210,7 +210,9 @@ def preparer(m, p, origine):
         raise ErreurMonde("Précise l'intention et ses cibles existantes.", " ; ".join(fautes) + ".")
     for champ, mini, maxi in (("minutes", 0, 15), ("bruit", 0, 3), ("difficulte", 10 if p["stat"] else 0, 18 if p["stat"] else 0)):
         if type(p[champ]) is not int or not mini <= p[champ] <= maxi:
-            raise ErreurMonde("Durée, bruit ou difficulté hors des limites d'un arbitrage sommaire.",
+            # Une cause par refus : le champ fautif, nommé.
+            raise ErreurMonde({"minutes": "La durée", "bruit": "Le bruit", "difficulte": "La difficulté"}[champ]
+                              + " de ce geste sort des limites d'un arbitrage sommaire.",
                               f"{champ} : entier de {mini} à {maxi} (reçu {p[champ]!r})"
                               + (" ; avec stat vide, difficulte 0" if champ == "difficulte" and not p["stat"] else
                                  " ; avec une stat, difficulte 10 à 18" if champ == "difficulte" else "") + ".")

@@ -410,22 +410,28 @@ def gestes(v, e, vises=None, but=None):
             if allume and x.get("foyer"):
                 yield 0, 1, [_etape("chauffer", o)], e.apres(faits=[(("chauffe", o), True)])
         # Une part : l'attendre si elle est promise, là où le donneur viendra la servir (près des
-        # vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire.
-        if besoin_de_part(x) and v.disponible(o) and not (besoin_de_part(x) == "chaleur" and v.feu_noye()):
+        # vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire. Une part
+        # de combustible va au feu que le but entretient, sinon au premier qu'il croit éteint :
+        # le donneur le recharge et l'allume lui-même. On ne demande pas ce qu'on a sur soi.
+        if (besoin_de_part(x) and v.disponible(o) and not (besoin_de_part(x) == "chaleur" and v.feu_noye())
+                and not any(besoin_de_part(objets[k]) == besoin_de_part(x) and v.disponible(k) for k in e.portes)):
             donneur = v.proprietaire[o]
-            foyer = v.foyer_froid() if besoin_de_part(x) == "chaleur" else None
+            foyer = ((vises.get("entretenir") or (v.foyer_froid(),))[0]
+                     if besoin_de_part(x) == "chaleur" else None)
+            part = [(("part", o), donneur)] + ([(("charge", foyer), True), (("allume", foyer), True)]
+                                               if foyer else [])
             if donneur not in (None, id, "joueur") and profil(monde, donneur):
                 if v.promesse(o) == donneur:
                     if e.salle == (v.salle(e, foyer) if foyer else v.salle(e, o)):
-                        yield 0, 0, [], e.apres(faits=[(("part", o), donneur)])
+                        yield 0, 0, [], e.apres(faits=part)
                 elif not v.refuse(donneur, o):
                     ou = v.salle(e, donneur)
                     if ou == e.salle:
                         yield (0, 1 + DEMANDE, [_etape("demander", donneur, outil=o,
                                                         contenu={"foyer": foyer} if foyer else None)],
-                               e.apres(faits=[(("part", o), donneur)]), 1)
+                               e.apres(faits=part), 1)
                     elif (ou is None and not e.fait("cherche", donneur)
-                          and (but is None or but(v, e.apres(faits=[(("part", o), donneur)])))):
+                          and (but is None or but(v, e.apres(faits=part)))):
                         # Le chercher ne sert que si sa part atteint le but.
                         yield _chercher(v, e, donneur)
     for salle in vises.get("inspecter", ()):
@@ -474,7 +480,9 @@ def _entrees(v, vises, profondeur, noeuds):
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
-        [[s, minute - s["minute"] < (REDEMANDE if s["type"] == "refus" else ATTENTE_PART)]
+        [[s, minute - s["minute"] < (REDEMANDE if s["type"] == "refus" else ATTENTE_PART),
+          # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
+          croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
          for s in esprit_["memoire"] if s["type"] in ("refus", "promis", "nourri")],
         esprit_["visites"],
         # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
@@ -641,7 +649,8 @@ def planifier_pulsion(monde, id, condition):
 
     Une ronde : aller inspecter le lieu. Une part à servir. Un objet à remettre en place. Un feu
     à entretenir : aller le voir s'il n'en a pas de nouvelles sûres, sinon le recharger et le
-    rallumer. Un objet à garder sous clé : le fermer et le verrouiller."""
+    rallumer, ou demander pour lui une part de combustible à qui en possède. Un objet à garder
+    sous clé : le fermer et le verrouiller."""
     from .deliberation import salle_crue
     v = Vue(monde, id)
     o = condition.get("objet")
@@ -659,6 +668,8 @@ def planifier_pulsion(monde, id, condition):
             # Vu vif il y a longtemps, ou jamais vu : il va voir où il en est.
             but, vises = (lambda v, e: e.fait("inspecte", salle)), {"inspecter": (salle,)}
         else:
+            # Le recharger et le rallumer, de son bois ou de celui de personne, emprunté, ou d'une
+            # part demandée à qui en possède : le donneur entretient alors ce feu (``gestes``).
             but, vises = (lambda v, e: v.feu(e, o) == (True, True)), {"entretenir": (o,)}
     elif "lieu" in condition:
         lieu = condition["lieu"]

@@ -195,7 +195,9 @@ class ConnaissancesTests(unittest.TestCase):
         self.assertNotIn(invention, sortie.getvalue())
         self.assertNotIn("souvenir_personnel", reprise.data["savoirs_pnj"]["marchand"])
         self.assertNotIn("seconde_cloche", reprise.objets)
-        self.assertIn("Je ne peux pas encore répondre avec certitude.", sortie.getvalue())
+        # Le repli dit ce que Corvus perçoit de ce qu'il vise, et que rien n'en dit davantage.
+        self.assertIn("n'en disent pas davantage.", sortie.getvalue())
+        self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])
 
     def test_comparaison_isole_les_inventions(self):
         fini = Event()

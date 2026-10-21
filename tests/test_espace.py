@@ -57,7 +57,7 @@ class EspaceTests(unittest.TestCase):
             MJOpenAI().echanger(m, "il y a quoi sous la terrasse ?")
         self.assertEqual(api.call_count, 1)
         instructions, entree = api.call_args.args[:2]
-        self.assertNotIn("FABRICATION ET INSTALLATION", instructions)
+        # Une question peut appeler la proposition d'un geste : les règles d'atelier restent fournies.
         self.assertIn("observations_visibles", instructions)
         self.assertTrue(entree["faits"]["espace"]["observations_visibles"])
         self.assertEqual(m.data, avant)

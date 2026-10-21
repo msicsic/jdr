@@ -210,8 +210,15 @@ restent à la réserve, et personne n'allume ni ne remplit une lampe. Règles co
   plan le mène, il croit le noir et le craint, ou un geste demande d'y voir (crocheter). Une
   flamme employée n'est alors pas éteinte pour la ménager, sauf s'il porte une autre lumière ;
   une source qui l'éclaire ainsi n'est pas prêtée (`echanges.necessaire`).
-- **La salle éclairée sans ce qu'on porte** : la croyance `eclairee` d'une salle ne compte plus
-  les sources qu'il porte (elles le suivent).
+- **La salle éclairée sans ce qu'on porte** : la croyance `eclairee` d'une salle juge le lieu,
+  pas les sources que quelqu'un y porte, lui ou un autre (elles suivent leur porteur). Sans cela,
+  Rémy éteignait sa lampe parce que Gaspard passait avec la sienne, et se retrouvait dans le noir.
+- **Avec l'entretien du feu** (`entretenir-feu`) : la sécurité qui presse passe par ses recours
+  (lumière, puis abri) avant les pulsions rompues, qui viennent après ce qui presse ; rien ne
+  s'y oppose. Un feu rompu se rétablit tout de suite, au besoin par une part de bois demandée
+  (le donneur recharge et rallume) ; quand le feu éclaire de nouveau la salle, la lampe allumée
+  pour y voir n'est plus utile et se ménage. Une part de bois promise compte pour la lumière
+  (le feu rallumé) comme pour la chaleur.
 - Toucher la source d'autrui (l'allumer, la recharger) est une faute comme la prendre.
 
 Mémoire et vitesse : les lectures nouvelles (peur, contenu, croyances de lumière, salle où il se
@@ -232,6 +239,12 @@ revient garder ses biens : il va et vient (jusqu'à 39 fois dans une nuit) ; les
 restent allumées pour qui craint le noir, d'où plus de gestes vus (vols vus 2,75 → 11,25,
 confidences 5,5 → 16), moins de bruits allés voir (88,5 → 39). Crue : une nuit sur quatre se
 décale.
+
+Rebanc après accord avec `integration` (entretenir le feu, vols vus comptés une fois), contre
+`integration` : Relais 7 nuits sur 8 identiques ; minutes urgentes sans recours mine 670 → 636,
+auberge 673 → 581, crue 281 → 273 ; vols vus et témoins égaux, sauf l'auberge (0,5 → 1 vol vu
+par nuit). À la mine, quand le camp s'éteint, ceux qui craignent le noir vont au bureau qu'ils
+croient éclairé (la lampe de bureau, morte depuis) et y tiennent compagnie à Bram.
 
 Limites :
 - le va-et-vient entre deux besoins dont l'urgence dépend du lieu (la garde au grenier noir, la

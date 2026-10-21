@@ -21,13 +21,17 @@ from tests.test_tensions import chronique, recharger, relais, vivre
 MINEURS = ("bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy")
 
 
-def mine_noire():
+def mine_noire(bois=False):
     """Placement d'auteur : la nuit est avancée, le poêle et la lampe du baraquement sont à sec et
-    éteints ; personne ne presse, les rondes viennent d'être faites."""
+    éteints ; personne ne presse, les rondes viennent d'être faites. Sans ``bois``, le bois du camp
+    est brûlé : personne ne peut rallumer le poêle, le baraquement reste obscur."""
     m = creer("mine", 1985)
     calme(m, *MINEURS)
     for k in ("lampe_baraque", "poele"):
         m.objets[k].update(allume=False, combustible=0)
+    if not bois:
+        for k in ("etais", "bois_gaspard"):
+            m.objets[k]["charges"] = 0
     percevoir_tous(m)
     return m
 
@@ -58,6 +62,23 @@ class MineTests(unittest.TestCase):
         self.assertTrue(m.objets["lampe_remy"]["allume"])
         self.assertNotIn("Rémy, jeune mineur éteint la lampe de Rémy.", chronique(m))
 
+    def test_le_poele_rallume_il_menage_sa_lampe(self):
+        # Le poêle mort est une pulsion rompue de Josse : il obtient des bûches de Gaspard, qui
+        # rallume le feu. Rémy, qui avait allumé sa lampe dans le noir, l'éteint quand le
+        # baraquement est de nouveau éclairé ; la lampe que Gaspard porte n'y comptait pas.
+        m = avec_briquet(mine_noire(bois=True))
+        m.objets["etais"]["charges"] = 0
+        m.objets["lampe_remy"]["allume"] = False
+        m, _ = vivre(inquiet(m), 15)
+        textes = chronique(m)
+        self.assertTrue(m.objets["poele"]["allume"])
+        self.assertLess(textes.index("Rémy, jeune mineur allume la lampe de Rémy."),
+                        textes.index("Rémy, jeune mineur éteint la lampe de Rémy."))
+        self.assertLess(textes.index("Gaspard, vieux mineur allume le poêle à bois."),
+                        textes.index("Rémy, jeune mineur éteint la lampe de Rémy."))
+        self.assertFalse(m.objets["lampe_remy"]["allume"])
+        self.assertGreater(m.objets["lampe_remy"]["combustible"], 0)
+
     def test_sans_lampe_il_va_allumer_une_lampe_de_rechange(self):
         m = avec_briquet(mine_noire())
         del m.objets["lampe_remy"]
@@ -87,7 +108,7 @@ class MineTests(unittest.TestCase):
 
     def test_l_huile_ne_va_pas_au_poele_ni_le_bois_a_la_lampe(self):
         # Josse entretient son poêle avec des étais, pas avec l'huile des lampes, même portée.
-        m = mine_noire()
+        m = mine_noire(bois=True)
         m.objets["poele"]["combustible"] = 0
         for k in ("bidon_huile", "etais"):
             deplacer(m, k, "josse")

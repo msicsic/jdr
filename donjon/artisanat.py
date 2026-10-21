@@ -89,8 +89,8 @@ def normaliser(p):
 REGLES = """
 FABRICATION ET INSTALLATION (conventions de jeu, pas conseils de construction réelle) :
 Le dossier atelier sépare ressources connues, inconnues et assemblages possibles.
-Pour une question de faisabilité, réponds en dialogue sans rien fabriquer. Explique ce qui
-manque réellement. Pour une volonté de fabriquer une échelle, propose action assembler, usage
+Pour une volonté de fabriquer une échelle, ou une question sur sa faisabilité (le moteur prépare
+alors l'assemblage sans rien fabriquer et dit ce qui manque), propose action assembler, usage
 echelle (voir Assembler et découper) : deux montants distincts, une barre pour les barreaux, un
 lien, un outil, longueur_cm, largeur_cm, difficulte 10..18, justification courte (méthode et risque).
 Choisis aussi rythme : normal = 26 min et jet pour l'échelle de 3 m ; soigne = deux fois

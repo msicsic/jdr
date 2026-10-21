@@ -9,7 +9,7 @@ le rend plus dur à convaincre. Une tâche confiée devient un engagement que le
 exécute quand rien de plus urgent ne presse. Tout est déterministe hors des jets du moteur.
 """
 from .caractere import penchant
-from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
+from .esprits import RECENT, constater, croire, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
 
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
@@ -68,7 +68,8 @@ def necessaire(monde, auditeur, objet):
 
 def demande_de_part(monde, demandeur, auditeur, objet):
     """On peut demander une part d'une ressource comptée qui appartient à l'autre, même rangée
-    ailleurs, si elle apaise un de ses besoins : des vivres quand on a faim, du bois quand on a froid."""
+    ailleurs, si elle répond à un de ses besoins : des vivres pour la faim, du bois pour le froid ou
+    pour un feu qu'on entretient (le donneur entretient lui-même ce feu, ``demander``)."""
     from .deliberation import besoin_de_part
     from .social import _proprietaire
     from .spatial import porte_par
@@ -90,9 +91,18 @@ def foyer_de(monde, auditeur, demandeur, foyer=None):
     return next((f for f in foyers if salle_crue(monde, auditeur, f) == salle), foyers[0] if foyers else None)
 
 
+def garde(monde, id, o):
+    """Ce qu'il garde d'une ressource comptée qui est à lui : sa réserve (``reserve``), et ce dont
+    il a lui-même besoin."""
+    from .deliberation import besoin_de_part, parts, reserve, urgents
+    from .vol import proprietaire
+    return (besoin_de_part(o) is not None and proprietaire(monde, o) == id
+            and (parts(o) <= reserve(monde, id) or besoin_de_part(o) in urgents(monde, id)))
+
+
 def demander(monde, demandeur, auditeur, objet, foyer=None):
     """« absent », « mefiance », « necessaire », « impossible », « refus », « remis » ou « promis »."""
-    from .deliberation import _plan_pulsion, besoin_de_part, parts, reserve, urgents
+    from .deliberation import _plan_pulsion, besoin_de_part
     from .deplacement_objet import deplacer
     from .spatial import porte_par
     part = demande_de_part(monde, demandeur, auditeur, objet)
@@ -101,10 +111,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None):
     confiance = lire(monde, auditeur)["croyances"].get(demandeur, {}).get("fiable")
     if confiance and not confiance["valeur"]:
         return "mefiance"
+    o = monde.objets[objet]
     if part:
-        # Il garde sa réserve, et ne donne pas ce dont il a lui-même besoin.
-        o = monde.objets[objet]
-        if parts(o) <= reserve(monde, auditeur) or besoin_de_part(o) in urgents(monde, auditeur):
+        if garde(monde, auditeur, o):
             return "necessaire"
         if besoin_de_part(o) == "faim":
             condition = {"objet": objet, "servir": demandeur}
@@ -123,9 +132,11 @@ def demander(monde, demandeur, auditeur, objet, foyer=None):
             engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"]})
             memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
         if demandeur != "joueur":
-            memoriser(monde, demandeur, {"type": "promis", "de": auditeur, "objet": objet})
+            memoriser(monde, demandeur, {"type": "promis", "de": auditeur, "objet": objet,
+                                         **({"foyer": condition["objet"]} if "allume" in condition else {})})
         return "promis"
-    if necessaire(monde, auditeur, objet):
+    # Prêter ce qui se consomme, c'est en donner les parts : il n'en prête pas ce qu'il garde.
+    if necessaire(monde, auditeur, objet) or garde(monde, auditeur, o):
         return "necessaire"
     if not jet_persuasion(monde, auditeur, demandeur, PARTAGE - penchant(monde, auditeur, "altruisme"))[0]:
         return "refus"
@@ -136,13 +147,25 @@ def demander(monde, demandeur, auditeur, objet, foyer=None):
     return "remis"
 
 
+def tenu(monde, id, condition, depuis=None):
+    """Ce qu'une parole demande est-il fait, à ses yeux ? Une parole donnée à la minute ``depuis``
+    n'est tenue que sur ce qu'il a constaté depuis : un feu vu vif avant qu'on lui demande d'y
+    mettre du bois n'est pas un feu entretenu. Une part à servir ne l'est qu'au geste qui la sert
+    (``servir`` solde l'engagement), quoi qu'il croie de la faim de l'autre."""
+    from .deliberation import satisfaite
+    if "servir" in condition or not satisfaite(monde, id, condition):
+        return False
+    nouvelles = lire(monde, id)["croyances"].get(condition.get("objet"), {}).values()
+    return depuis is None or any(c["minute"] >= depuis for c in nouvelles)
+
+
 def confier(monde, demandeur, auditeur, condition):
     """« mefiance », « deja », « impossible », « refus » ou « accepte »."""
-    from .deliberation import _plan_pulsion, satisfaite
+    from .deliberation import _plan_pulsion
     confiance = lire(monde, auditeur)["croyances"].get(demandeur, {}).get("fiable")
     if confiance and not confiance["valeur"]:
         return "mefiance"
-    if satisfaite(monde, auditeur, condition):
+    if tenu(monde, auditeur, condition):
         return "deja"
     if _plan_pulsion(monde, auditeur, condition) is None:
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
@@ -185,6 +208,7 @@ def servir(monde, id, nourriture, pour, lignes):
         besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
     croire(monde, pour, id, "fiable", True, "vu")
+    constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
     tenus = [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": pour}]
     for x in tenus:
@@ -210,6 +234,7 @@ def _servir_joueur(monde, id, nourriture, lignes):
     o["portions"] -= 1
     v = valeurs(monde, "joueur")
     v["faim"] = max(0.0, v["faim"] - SATIETE)
+    constater(monde, id, "joueur", "vu")
     e = esprit(monde, id)
     for x in [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": "joueur"}]:
         e["engagements"].remove(x)
@@ -242,11 +267,10 @@ def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
 
 def engagements_echus(monde, id):
     """Retire les engagements tenus ou trop anciens ; les souvenirs gardent la trace."""
-    from .deliberation import satisfaite
     e = esprit(monde, id)
     restants = []
     for engagement in e["engagements"]:
-        if satisfaite(monde, id, engagement["condition"]):
+        if tenu(monde, id, engagement["condition"], engagement["minute"]):
             memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
         elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX:

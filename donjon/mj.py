@@ -32,7 +32,7 @@ from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profi
 from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
-                        citations_nouvelles,
+                        citations_nouvelles, rescape as rescape_narratif, repli as repli_narratif,
                         attestations as attestations_narratives,
                         fondement as fondement_narratif, fondement_paroles,
                         mentions as mentions_narratives,
@@ -130,8 +130,8 @@ Ne complète pas les faits absents. La perception fournie fait autorité : sans 
 ne veut pas dire sans lumière. N'invente pas une ouverture ou une torche pour expliquer la scène.
 Les objets marqués visible=false sont connus au toucher, pas vus actuellement. Un éclairage de
 niveau 0 interdit l'examen visuel ; niveau 1 permet des silhouettes, pas les détails ou inscriptions.
-Une question n'autorise jamais une action physique : « puis-je allumer ? » doit clarifier ou
-observer, pas allumer. Le joueur demandera ensuite l'action explicitement.
+Une question sur la faisabilité d'un geste (« puis-je allumer ? ») propose ce geste : le moteur
+le prépare sans l'exécuter, et le joueur le tente ou l'annule ensuite.
 Si plusieurs manœuvres sont nécessaires, ne propose que la première et annonce cette limite.
 Si plusieurs cibles correspondent à l'intention et que le choix change les effets ou le
 risque, demande laquelle le joueur vise.
@@ -243,14 +243,35 @@ SCHEMA = {
 }
 
 
-ATTENDU_PAROLE = ("la saisie est une parole (entre guillemets, à tous, chuchotée ou après un deux-points) : "
-                  "mode parole_joueur, personnage = parole_prevue.personnage")
+ATTENDU_PAROLE = ("la saisie est une parole (elle commence par des guillemets, un verbe de parole ou « à tous ») : "
+                  "mode parole_joueur, personnage = parole_prevue.personnage, contenu = ce qu'elle demande ou affirme")
+
+
+def parole_annoncee(monde, intention):
+    """Ce que le moteur fixe de la parole que la saisie annonce sans conteste (``paroles.analyser``,
+    ``explicite``), ou None. ``impossible`` : le joueur doit préciser ou s'approcher."""
+    from .paroles import prevue
+    return prevue(monde, intention) if analyser_parole(monde, intention)["explicite"] else None
 
 
 def parole_attendue(monde, intention):
-    """La saisie est sans conteste une parole que le moteur peut faire entendre (``paroles.prevue``)."""
-    from .paroles import prevue
-    return analyser_parole(monde, intention)["explicite"] and "personnage" in prevue(monde, intention)
+    """La saisie est une parole que le moteur peut faire entendre : ni un dialogue du MJ, ni un geste."""
+    return "personnage" in (parole_annoncee(monde, intention) or {})
+
+
+def parole_du_moteur(monde, intention):
+    """La parole que le moteur prononce lui-même quand le MJ s'obstine à la raconter : les mots du
+    joueur, tels quels, à ceux que le moteur a fixés, sans contenu typé. Sans mots imposés, le joueur
+    les donne : le moteur ne les invente pas."""
+    from .paroles import _nom_court
+    forme, prevue = analyser_parole(monde, intention), parole_annoncee(monde, intention)
+    if forme["mots"]:
+        return {"mode": "parole_joueur", "texte": "", "faits": [],
+                "proposition": {"personnage": prevue["personnage"], "replique": forme["mots"], "contenu": []}}
+    qui = {"tous": " à tous", "personne": ""}.get(prevue["personnage"]) \
+        if prevue["personnage"] in ("tous", "personne") else " à " + _nom_court(monde, prevue["personnage"])
+    return {"mode": "dialogue", "texte": f"Dis ce que Corvus dit{qui}, entre guillemets ou après un deux-points.",
+            "faits": [], "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
 
 
 def retour_refus(proposition, exc, consigne):
@@ -380,16 +401,29 @@ class MJOpenAI:
                                       "usage": None, "secondes": 0})
                 return r
         if reponse is None:
+            annoncee = parole_annoncee(monde, intention)
+            if annoncee and "impossible" in annoncee:
+                # Une parole que le moteur ne peut pas faire entendre (à qui parler, de quelle façon) :
+                # le joueur précise ou s'approche ; aucun appel n'y changerait rien.
+                return {"mode": "dialogue", "texte": annoncee["impossible"], "faits": [], "proposition": None,
+                        "_texte_moteur": True, "_validation_refusee": True}
             reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
             if reponse["mode"] == "dialogue" and parole_attendue(monde, intention):
-                # Une parole sans conteste passe par le moteur, qui la fait entendre avant qu'on la raconte.
-                retour = retour_refus(None, ErreurMonde("Corvus le dit : c'est une parole.", ATTENDU_PAROLE),
-                                      "Propose la parole ; ne la raconte pas toi-même.")
-                if self.observateur:
-                    self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
-                                      "revision": revision, "tentative": 1, **retour})
-                reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
-                                         retour_moteur=retour)
+                # Une parole passe par le moteur, qui la fait entendre avant qu'on la raconte. Après un
+                # repli du contrôle narratif (aucune réponse admise), le moteur la prononce sans relance.
+                if "_texte_moteur" not in reponse:
+                    retour = retour_refus(None, ErreurMonde("Corvus le dit : c'est une parole.", ATTENDU_PAROLE),
+                                          "Propose la parole ; ne la raconte pas toi-même.")
+                    if self.observateur:
+                        self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
+                                          "revision": revision, "tentative": 1, **retour})
+                    reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
+                                             retour_moteur=retour)
+                if reponse["mode"] == "dialogue":
+                    # Le MJ s'obstine : le moteur prononce lui-même les mots du joueur.
+                    reponse = parole_du_moteur(monde, intention)
+                    if reponse["mode"] == "dialogue":
+                        return reponse
         correction_utilisee = False
         premier_refus = None
         for tentative in range(2):
@@ -398,18 +432,18 @@ class MJOpenAI:
             p = reponse["proposition"]
             try:
                 from .moteur import Moteur
+                if parole_attendue(monde, intention):
+                    # Une parole sans conteste (guillemets, « je dis… », à tous…) : Corvus le dit, même si ses mots
+                    # annoncent un geste ; le moteur a déjà fixé à qui, il n'y a rien à clarifier.
+                    raise ErreurMonde("Corvus le dit ; il ne le fait pas.", ATTENDU_PAROLE
+                                      + " ; le geste annoncé attend que le joueur le fasse.")
                 if p.get("action") == "impossible":
                     if not correction_utilisee:
                         raise ErreurMonde("Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible.")
                 if p.get("action") in ("clarifier", "impossible"):
                     break
-                if parole_attendue(monde, intention):
-                    # Entre guillemets, à tous, chuchotée : Corvus le dit, même si ses mots annoncent un geste.
-                    raise ErreurMonde("Corvus le dit ; il ne le fait pas.", ATTENDU_PAROLE
-                                      + " ; le geste annoncé attend que le joueur le fasse.")
-                if est_question(intention) and p.get("action") not in ("observer", "examiner"):
-                    raise ErreurMonde("Le joueur pose une question de faisabilité. Réponds en dialogue sans exécuter d'action.",
-                                      "mode dialogue : réponds à la question, sans proposition d'action.")
+                # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
+                # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.
                 plan = Moteur(monde).preparer(p, "MJ")
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
@@ -437,6 +471,12 @@ class MJOpenAI:
                 if isinstance(exc, HorsDePortee):
                     # Aucune proposition ne rapproche le joueur : on explique sans redemander.
                     correction_utilisee = True
+                if correction_utilisee and parole_attendue(monde, intention):
+                    # Une parole n'est jamais perdue : le moteur prononce lui-même les mots du joueur.
+                    reponse = parole_du_moteur(monde, intention)
+                    if reponse["mode"] == "dialogue":
+                        return reponse
+                    break
                 if correction_utilisee:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
                               "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
@@ -454,6 +494,12 @@ class MJOpenAI:
                             "_texte_moteur": True}
                 correction_utilisee = True
                 reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
+        if (reponse["mode"] == "dialogue" and not reponse.get("_validation_refusee")
+                and parole_attendue(monde, intention)):
+            # Corrigée en dialogue après un geste refusé (ou repli du contrôle) : la parole reste au moteur.
+            reponse = parole_du_moteur(monde, intention)
+            if reponse["mode"] == "dialogue":
+                return reponse
         if reponse["mode"] == "enrichir_joueur":
             p = reponse["proposition"]
             travail = preparer_profil(monde, p, revision)
@@ -503,7 +549,7 @@ class MJOpenAI:
         complements = reponse["proposition"]
         rapport = None
         if reponse["mode"] == "parole_joueur":
-            for essai in range(2):
+            for essai in range(3):
                 # Des mots imposés par le joueur (guillemets, deux-points, interpellation) sont dits
                 # tels quels, sans réécriture.
                 complements = {**reponse["proposition"],
@@ -518,6 +564,11 @@ class MJOpenAI:
                     return {"mode": "dialogue", "texte": str(exc), "faits": [], "proposition": None,
                             "_texte_moteur": True, "_validation_refusee": True}
                 except ErreurMonde as exc:
+                    secours = parole_du_moteur(monde, intention) if essai and parole_attendue(monde, intention) else None
+                    if secours and secours["mode"] == "parole_joueur" and secours["proposition"] != reponse["proposition"]:
+                        # Deux propositions refusées : le moteur prononce lui-même les mots du joueur.
+                        reponse = secours
+                        continue
                     if essai:
                         # Rien n'est dit : le joueur reformule, sans message technique.
                         return {"mode": "dialogue", "texte": "Corvus cherche ses mots sans parvenir à le dire "
@@ -649,7 +700,7 @@ class MJOpenAI:
             "required": ["mode", "texte", "faits", "proposition"],
         }
         instructions = INTERPRETATION
-        if atelier and not est_question(intention):
+        if atelier:
             instructions += REGLES_ATELIER
         if franchissements:
             instructions += REGLES_FRANCHISSEMENT
@@ -673,8 +724,8 @@ class MJOpenAI:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie")}
                 schema["properties"]["faits"]["items"]["enum"] = list(faits)
                 instructions = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
-Le fait resultat_resolu contient exactement les événements survenus et la demande du joueur
-(intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
+Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
+événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
 La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
 comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
 les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
@@ -696,7 +747,7 @@ proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur
 manipuler. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
 ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplace que par ses pas.
 Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
-objets_perceptibles. Pour regarder ailleurs sans bouger : action tourner, cible une direction
+objets_perceptibles, mais dans souvenirs_visuels s'il l'a déjà vu. Pour regarder ailleurs sans bouger : action tourner, cible une direction
 (nord, sud-est…). Un geste sur un objet qu'il verrait en se tournant le tourne d'abord vers lui.
 Ses pas s'entendent de près et font se retourner ; à pas feutrés (action faufiler, cible une
 direction), plus lents, ils ne s'entendent que de tout près.
@@ -801,6 +852,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
         reponse = appeler_brut(instructions, entree, intention, fonction, schema)
         if fonction != "repondre_au_joueur":
             return reponse
+        # Tout ce qui a été refusé dans ce tour, transmis à chaque relance : une correction ne
+        # réintroduit pas ce qu'une précédente avait déjà fait refuser.
+        refusees = []
+        # Les segments admis de chaque réponse refusée : le dernier recours avant le repli du moteur.
+        rescapes = []
         for tentative in range(3):
             passages = []
             if reponse.get("mode") == "dialogue" and isinstance(reponse.get("texte"), str):
@@ -862,6 +918,17 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
                                "fondement_paroles": paroles}
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
+                if nom == "texte" and rapport["obstacles"]:
+                    def fautif(morceau, faits=faits):
+                        return bool(voix_auteur(morceau)
+                                    or (monde is not None and mentions_narratives(monde, morceau, base, paroles))
+                                    or (isinstance(faits.get("retour_moteur"), dict)
+                                        and citations_nouvelles(morceau, faits)))
+                    garde = rescape_narratif(texte, rapport, faits, fautif)
+                    if garde:
+                        rescapes.append((garde[2], tentative, garde[0],
+                                         {**garde[1], "faits": faits, "texte_initial": garde[0],
+                                          "fondement": base, "fondement_paroles": paroles}))
             if monde is not None:
                 obstacles.extend(mentions_proposees(monde, reponse, base, paroles))
             try:
@@ -909,6 +976,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     # non plus entrer dans le journal ou le contexte futur.
                     reponse["proposition"]["justification"] = ""
                 return reponse
+            if self.observateur:
+                self.observateur({"etape": "contrôle narratif", "modele": self.modele,
+                                  "revision": entree.get("faits", {}).get("revision", 0),
+                                  "intention": intention, "tentative": tentative + 1,
+                                  "obstacles": copy.deepcopy(obstacles)})
             if tentative == 2:
                 champs = {"mode", "texte", "faits", "proposition"}
                 faits_connus = entree.get("faits", {})
@@ -923,26 +995,48 @@ direction), plus lents, ils ne s'entendent que de tout près.
                              or not isinstance(reponse["texte"], str)
                              or not reponse["texte"].strip()))):
                     raise ErreurMonde("Réponse du MJ invalide. Aucune action appliquée.")
-                faits = entree.get("faits", {})
-                resultat = faits.get("resultat_resolu", {})
-                if isinstance(resultat, dict) and isinstance(resultat.get("faits"), list):
-                    lignes = [s for s in resultat["faits"] if isinstance(s, str) and s.strip()]
-                    if lignes:
-                        return {"mode": "dialogue", "texte": " ".join(lignes),
-                                "faits": ["resultat_resolu"], "proposition": None,
-                                "_texte_moteur": True}
-                return {"mode": "dialogue",
-                        "texte": "Je ne peux pas encore répondre avec certitude.",
-                        "faits": [], "proposition": None, "_texte_moteur": True}
-            if self.observateur:
-                self.observateur({"etape": "contrôle narratif", "modele": self.modele,
-                                  "revision": entree.get("faits", {}).get("revision", 0),
-                                  "intention": intention, "tentative": tentative + 1,
-                                  "obstacles": copy.deepcopy(obstacles)})
-            correction = {**entree, "controle_narratif": obstacles}
+                return self._repli(entree, intention, rescapes)
+            for o in obstacles:
+                if o not in refusees:
+                    refusees.append(o)
+            correction = {**entree, "controle_narratif": refusees}
             reponse = appeler_brut(instructions + INSTRUCTIONS_REVISION, correction,
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
+
+    def _repli(self, entree, intention, rescapes):
+        """Aucune réponse du MJ n'est admise après trois essais. Dans l'ordre : ce que le moteur a
+        établi pour le joueur (le résultat résolu, l'issue d'une parole de Corvus), puis les segments
+        admis de la réponse qui en garde le plus, puis ce que dit le moteur (``narration.repli``).
+        Les faits d'une négociation ou d'un savoir s'adressent au MJ : ils ne s'affichent pas."""
+        faits = entree.get("faits", {})
+        for cle in ("resultat_resolu", "conversation_validee"):
+            bloc = faits.get(cle)
+            pour_joueur = isinstance(bloc, dict) and (cle == "resultat_resolu"
+                                                      or bloc.get("operation") == "parole_joueur")
+            lignes = ([s for s in (bloc.get("faits") or []) if isinstance(s, str) and s.strip()]
+                      if pour_joueur else [])
+            if lignes:
+                return self._noter_repli(intention, cle, {"mode": "dialogue", "texte": " ".join(lignes),
+                                                          "faits": [cle], "proposition": None,
+                                                          "_texte_moteur": True})
+        if rescapes:
+            *_, texte, audit = max(rescapes, key=lambda r: (r[0], r[1]))
+            self._audit_courant = audit
+            sources = sorted({s for ligne in audit["segments"] for s in ligne["sources"]})
+            return self._noter_repli(intention, "segments admis",
+                                     {"mode": "dialogue", "texte": texte, "faits": sources, "proposition": None})
+        monde = self._monde_controle
+        texte = (repli_narratif(monde, faits, entree.get("message", "")) if monde is not None
+                 else "Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude.")
+        return self._noter_repli(intention, "moteur", {"mode": "dialogue", "texte": texte, "faits": [],
+                                                       "proposition": None, "_texte_moteur": True})
+
+    def _noter_repli(self, intention, voie, reponse):
+        if self.observateur:
+            self.observateur({"etape": "repli du contrôle narratif", "modele": self.modele,
+                              "intention": intention, "voie": voie, "texte": reponse["texte"]})
+        return reponse
 
     def _appeler_brut(self, instructions, entree, intention, fonction, schema):
         """Un appel au fournisseur. Avec ``journal_complet`` et un observateur, chaque appel laisse

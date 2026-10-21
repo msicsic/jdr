@@ -55,8 +55,14 @@ class FormeTests(unittest.TestCase):
             "« Bonsoir »": (False, None, "voix", "Bonsoir", True),
             "je chuchote à Brune : viens": (False, "brune", "chuchote", "viens", True),
             "je murmure que la cloche est en haut": (False, None, "chuchote", None, True),
+            # Sans guillemets, une interpellation reste du texte libre pour le MJ.
             "Ilse, tu viens ?": (False, "ilse", "voix", "Ilse, tu viens ?", False),
-            "je demande à la meunière de venir": (False, "ilse", "voix", None, False),
+            "Brune, Ilse et Aubin sont où ?": (False, "brune", "voix", "Brune, Ilse et Aubin sont où ?", False),
+            # Un verbe de parole en tête annonce une parole ; « lance » dit aussi un geste.
+            "je demande à la meunière de venir": (False, "ilse", "voix", None, True),
+            "je lui dis que la cloche est en haut": (False, None, "voix", None, True),
+            "je lance la pierre": (False, None, "voix", None, False),
+            "je lance à tous : on monte": (True, None, "voix", "on monte", True),
             "je prends la torche": (False, None, "voix", None, False),
         }
         for saisie, attendu in cas.items():
@@ -85,13 +91,50 @@ class DestinataireTests(unittest.TestCase):
         self.assertEqual(vues(reprise, "aubin")[-1], {"de": "Corvus", "a": ["Ilse"], "mots": mots})
 
     def test_deux_a_egalite_le_joueur_precise(self):
-        m = scene(aubin=(1, 4))  # Tous deux sous ses yeux, à la même distance réelle.
+        # Tous deux sous ses yeux, à la même distance réelle, de part et d'autre de son regard.
+        m = scene(ilse=(5, 4), aubin=(7, 4), brune=(1, 5))
+        m.joueur["position"] = [6, 2]
+        m = recharger(m)
         reprise, sortie, appels = jouer(m, "je dis : pouvez-vous m'aider ?", [
             parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse")])
-        self.assertEqual(len(appels), 1)
+        self.assertEqual(len(appels), 0)  # Le joueur précise ; le moteur le dit sans appeler le MJ.
         self.assertIn("Aubin et Ilse sont aussi près de toi l'un que l'autre : précise à qui tu parles", sortie)
         self.assertNotIn("Tu dis", sortie)
         self.assertEqual((paroles_retenues(reprise, "ilse"), paroles_retenues(reprise, "aubin")), ([], []))
+
+    def test_a_meme_distance_celui_qui_est_droit_devant(self):
+        """Banc Luna : « bonsoir, vous tenez le coup ? », Brune droit devant, Aubin à son côté, tous
+        deux au contact ; le moteur demandait de préciser alors que Corvus fait face à Brune."""
+        m = scene(brune=(2, 3), aubin=(1, 2), ilse=(6, 5))
+        reprise, sortie, appels = jouer(m, "bonsoir, vous tenez le coup ?", [
+            parole("Bonsoir, vous tenez le coup ?", ("propos", "", "", ""), personnage="brune"),
+            reponse_pnj("Brune hausse les épaules.")])
+        self.assertEqual(appels[0]["faits"]["parole_prevue"]["personnage"], "brune")
+        self.assertIn("Tu dis à Brune : « Bonsoir, vous tenez le coup ? »", sortie)
+        self.assertEqual(paroles_retenues(reprise, "brune")[-1][1], ["brune"])
+
+    def test_celui_qu_il_nomme_dans_son_dos_le_tourne_d_abord(self):
+        """Banc Luna : « Ilse, qu'est-ce que tu vas en faire ? », Ilse dans le refuge mais derrière
+        Corvus ; Luna répondait qu'elle n'était pas dans le refuge. Comme pour tout geste, il se
+        tourne d'abord vers celui qu'il nomme."""
+        from donjon.dialogues import interlocuteurs
+        from donjon.spatial import memoriser
+        m = scene(ilse=(2, 1), aubin=(6, 5), brune=(7, 1))
+        # Il l'a vue en entrant, puis s'est tourné vers le sud.
+        m.joueur["orientation"] = "nord"
+        memoriser(m)
+        m.joueur["orientation"] = "sud"
+        m = recharger(m)
+        self.assertNotIn("ilse", interlocuteurs(m))
+        reprise, sortie, appels = jouer(m, "Ilse, tu viens ?", [
+            parole("Ilse, tu viens ?", ("propos", "", "", ""), personnage="ilse"),
+            reponse_pnj("Ilse : « J'arrive. »")])
+        prevue = appels[0]["faits"]["parole_prevue"]
+        self.assertEqual((prevue["personnage"], prevue["regard"]), ("ilse", "nord"))
+        self.assertIn("ilse", appels[0]["faits"]["esprits_interlocuteurs"])
+        self.assertIn("Tu te tournes vers le nord.\nTu dis à Ilse : « Ilse, tu viens ? »", sortie)
+        self.assertEqual(reprise.joueur["orientation"], "nord")
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][1], ["ilse"])
 
     def test_luna_ne_choisit_pas_un_autre_destinataire(self):
         m = scene()
@@ -248,7 +291,8 @@ class ChuchoterTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "je chuchote à Brune : viens", [
             parole("viens", ("propos", "", "", ""), personnage="brune")])
         self.assertIn("Brune est trop loin : approche-toi pour lui chuchoter", sortie)
-        self.assertEqual(len(appels), 1)
+        # Le moteur le dit avant tout appel : aucune proposition n'y changerait rien.
+        self.assertEqual(len(appels), 0)
         self.assertEqual(paroles_retenues(reprise, "brune"), [])
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 

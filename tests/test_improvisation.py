@@ -180,10 +180,12 @@ class ImprovisationTests(unittest.TestCase):
         self.assertEqual(self.m.data["revision"], 0)
 
     def test_question_sans_action_et_une_seule_correction(self):
-        with patch.object(MJOpenAI, "_appeler", return_value=reponse(chant())) as api:
+        # Une question sur un geste le propose : préparé, jamais exécuté par cet échange.
+        with (patch.object(MJOpenAI, "_appeler", return_value=reponse(chant())) as api,
+              patch.object(MJOpenAI, "_auditer_action")):
             sortie = MJOpenAI().echanger(self.m, "Est-ce que je peux chanter ?")
-        self.assertEqual(api.call_count, 3)
-        self.assertEqual(sortie["mode"], "dialogue")
+        self.assertEqual(api.call_count, 1)
+        self.assertEqual(sortie["mode"], "action")
         self.assertEqual(self.m.data["revision"], 0)
         invalide = chant()
         invalide["minutes"] = 500

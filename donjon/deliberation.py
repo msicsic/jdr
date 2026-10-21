@@ -2,14 +2,15 @@
 
 Le profil d'auteur (``objet["profil"]``) déclare caractéristiques, traits, valeurs
 (``caractere``), capacités, besoins et pulsions. Le moteur fait évoluer les besoins minute par minute ;
-une pulsion qui cesse d'être satisfaite aux yeux du PNJ relance son besoin. Chaque minute,
+une pulsion qui cesse d'être satisfaite aux yeux du PNJ est rompue : il la rétablit sans attendre
+que son besoin presse, et une atteinte relance ce besoin. Chaque minute,
 le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur ce qu'il
 croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
 par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
 """
 from .caractere import STATS, interdit, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
-from .esprits import RECENT, esprit, lire, memoriser
+from .esprits import esprit, lire, memoriser
 from .spatial import porte_par
 
 BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
@@ -121,7 +122,8 @@ def installer(monde, id):
     for nom, b in p["besoins"].items():
         e["besoins"].setdefault(nom, float(b["depart"]))
     if len(e["pulsions"]) != len(p["pulsions"]):
-        e["pulsions"] = [satisfaite(monde, id, x["condition"]) for x in p["pulsions"]]
+        # Satisfaite (True) ; sinon un désir qui n'a jamais été satisfait (None), pas encore rompu.
+        e["pulsions"] = [True if satisfaite(monde, id, x["condition"]) else None for x in p["pulsions"]]
 
 
 def relancer(monde, id, besoin, montant):
@@ -177,8 +179,9 @@ def periodique(condition):
 
 
 def s_use(condition):
-    """Une ronde expire, un feu baisse : d'eux-mêmes, sans que personne y ait porté atteinte."""
-    return periodique(condition) or "allume" in condition
+    """Une ronde expire, un feu baisse, un protégé a faim : d'eux-mêmes, sans que personne y ait
+    porté atteinte."""
+    return periodique(condition) or "allume" in condition or "servir" in condition
 
 
 def _disponible_cru(monde, id, objet):
@@ -195,18 +198,26 @@ def refuse_recemment(monde, id, autre, operation, objet=None):
 
 
 def promesse_en_cours(monde, id, objet):
-    """Une part promise et pas encore servie, dans le délai où il l'attend."""
-    for s in reversed(lire(monde, id)["memoire"]):
+    """Une part promise et pas encore servie, dans le délai où il l'attend. Une part de bois est
+    servie quand il a vu, depuis la promesse, le feu qu'elle entretient rechargé."""
+    e = lire(monde, id)
+    for s in reversed(e["memoire"]):
         if s["type"] == "nourri" and s.get("objet") == objet:
             return None
         if s["type"] == "promis" and s["objet"] == objet:
-            return s["de"] if monde.data["minutes"] - s["minute"] < ATTENTE_PART else None
+            feu = e["croyances"].get(s.get("foyer"), {}).get("etat")
+            if (monde.data["minutes"] - s["minute"] >= ATTENTE_PART or feu and feu["minute"] >= s["minute"]
+                    and feu["valeur"].get("allume") and not feu["valeur"].get("faible")):
+                return None
+            return s["de"]
     return None
 
 
 def satisfaite(monde, id, condition):
     if "servir" in condition:
-        return False  # Une part servie solde l'engagement au moment du geste.
+        # Nourrir quelqu'un : tant qu'il ne le croit pas affamé (ce qu'il a vu de lui), rien à faire.
+        # Une part promise, elle, se solde au geste (``echanges.tenu``).
+        return not (_cru(monde, id, condition["servir"], "etat") or {}).get("faim")
     if periodique(condition):
         vu = lire(monde, id)["visites"].get(condition["lieu"])
         return vu is not None and monde.data["minutes"] - vu < condition["periode"]
@@ -375,15 +386,17 @@ def _plan_prevenir(monde, id):
 
 
 def _eclairee_crue(monde, id, salle):
-    """Éclairée quand il y était, ou par une source qu'il y croit allumée ; ce qu'il porte n'y
-    compte pas (il sait qu'il l'emporte)."""
+    """Éclairée quand il y était, ou par une source qu'il y croit allumée ; une source portée, par
+    lui ou par un autre, n'y compte pas (elle suit son porteur)."""
     vue = _cru(monde, id, salle, "etat")
     if vue is not None:
         return vue.get("eclairee", False)
     if monde.data["salles"][salle].get("lumiere_naturelle"):
         return True
+    porteurs = {"joueur"} | {k for k, o in monde.objets.items() if o["type"] == "personnage"}
     return any("allume" in monde.objets[k] and (_cru(monde, id, k, "etat") or {}).get("allume")
-               and not porte_par(monde, k, id) and salle_crue(monde, id, k) == salle for k in _connus(monde, id))
+               and not porte_par(monde, k, id) and _lieu_cru(monde, id, k) not in porteurs
+               and salle_crue(monde, id, k) == salle for k in _connus(monde, id))
 
 
 def noir_cru(monde, id, salle):
@@ -585,10 +598,13 @@ def candidats(monde, id):
     if a_voir:
         from .planification import voir
         buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False))
-    # Ce qu'il garde sous clé et a lui-même ouvert, il le referme sans attendre l'urgence.
-    for x in p["pulsions"]:
+    # Ce dont il a la charge et qu'il voit rompu, il le rétablit sans attendre que son besoin
+    # presse : un feu qui baisse, un protégé qui a faim, ce qu'il garde sous clé et a lui-même
+    # ouvert. Les rondes ont leur routine ; un désir jamais satisfait attend son besoin.
+    for i, x in enumerate(p["pulsions"]):
         c = x["condition"]
-        if (c.get("verrouillee") and ouvert_par_soi(monde, id, c["objet"], RECENT) and not satisfaite(monde, id, c)
+        if (e["pulsions"][i] is False and x["besoin"] not in pressants and not periodique(c)
+                and not _delegue(monde, id, x) and not satisfaite(monde, id, c)
                 and not retabli_par_son_plan(monde, id, c)):
             buts.append((x["besoin"], lambda m, i, c=c: _plan_pulsion(m, i, c), False))
     # Assis pour se reposer, ou près du feu, il ne s'en va qu'une fois remis, ou pour plus pressant.
@@ -622,14 +638,16 @@ def deliberer(monde, id, minute):
     vivre(monde, id, 1, effort=geste in EFFORTS, repos=geste == "reposer")
     ressentir(monde, id)
     for i, x in enumerate(p["pulsions"]):
-        etat = satisfaite(monde, id, x["condition"])
+        etat, avant = satisfaite(monde, id, x["condition"]), e["pulsions"][i]
         # Une ronde expire, un feu baisse d'eux-mêmes : ce n'est pas une atteinte.
-        if (e["pulsions"][i] and not etat and not s_use(x["condition"])
+        if (avant and not etat and not s_use(x["condition"])
                 and not de_son_fait(monde, id, x["condition"])):
             # Ses biens forcés ou déplacés : un vol découvert, même sans coupable.
             relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)
             memoriser(monde, id, {"type": "atteinte", "condition": dict(x["condition"])})
-        e["pulsions"][i] = etat
+        # Ce qui était satisfait et ne l'est plus est rompu (False) jusqu'à ce qu'il le rétablisse,
+        # quelle qu'en soit la cause ; un désir jamais satisfait le reste (None).
+        e["pulsions"][i] = True if etat else (None if avant is None else False)
     from .echanges import engagements_echus
     from . import stratege
     engagements_echus(monde, id)
