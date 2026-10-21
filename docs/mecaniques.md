@@ -554,8 +554,56 @@ Les anciennes limites deviennent ces valeurs à leur comble au chargement (`ne_v
   point par dizaine au-dessus de 50 chez celui qui donne, monte en dessous.
 - Les valeurs vont au stratège et au MJ avec les traits (le MJ ne fait mentir un personnage
   que si son honnêteté le permet). La fierté, avec l'altruisme, décide si l'on s'écarte de
-  soi-même pour laisser passer. Empathie, ambition, courage et loyauté ne pèsent encore sur
-  aucune règle du moteur.
+  soi-même pour laisser passer. Empathie et courage ne pèsent encore sur aucune règle du
+  moteur ; ambition, altruisme et loyauté font aussi le prix d'une pièce (ci-dessous).
+
+#### Prêter, confier, payer
+
+Les mêmes règles valent pour le joueur et pour les PNJ (`donjon/biens.py`).
+
+- **Prêt** : un objet qui dure, remis par son propriétaire (demande acceptée, geste `remettre`),
+  est prêté (`data["permissions"]`) : l'emprunteur le prend, le pose, l'allume, le recharge sans
+  faute ; une clé prêtée ouvre, ferme et verrouille ce qu'elle ouvre, pas plus (le contenu reste
+  au propriétaire). Le prêt est clos quand l'objet revient entre les mains de son propriétaire,
+  de quelque façon que ce soit. Un PNJ emprunteur s'engage à le rendre (`{"objet", "rendre"}`) :
+  il le rapporte quand il ne lui sert plus (ni son plan, ni une pulsion, ni la lumière dont il a
+  besoin) ; le propriétaire qui le redemande le récupère sans jet, sauf s'il sert encore. On ne
+  demande un objet qu'à son propriétaire (ou ce qui est à soi).
+- **Don** : ce qui se consomme (une part, du bois) ne se prête pas, il se donne : remis par son
+  propriétaire, il change de propriétaire.
+- **Garde confiée** : une tâche acceptée sur un bien de celui qui la confie (garder la réserve
+  sous clé) permet au délégué d'agir sans faute sur ce bien et sur les clés de son propriétaire
+  qui l'ouvrent, tant que dure la tâche ; ce qu'il en porte encore à la fin lui reste prêté, et
+  il le rend. Une pulsion déléguée au joueur (`delegue_a`) lui confie de même la garde de son
+  objet.
+- Aucune permission ne couvre ce qui consomme le bien d'autrui : le manger, en servir une part.
+- **Argent** : le joueur a son or ; chaque PNJ une bourse (`data["finances_pnj"]`, 5 pièces
+  quand le scénario n'en déclare pas). Un objet peut contenir des pièces (`pieces` : une bourse,
+  une paie) : qui le porte peut les dépenser. Une part d'une ressource comptée a un prix
+  (`prix_part`, 2 sinon), un objet le sien s'il en déclare un (`prix`).
+- **Ce que vaut une pièce** pour un PNJ, en minutes de plan (`caractere.valeur_piece`) :
+  (10 + ce qui lui manque hors de la scène) / (10 + ce qu'il peut dépenser), au plus 6. Ce qui
+  lui manque : 5 pièces pour vivre une fois sorti, sa dette, 10 par proche à charge (pesés par
+  son altruisme et sa loyauté), son projet (pesé par son ambition), déclarés dans
+  `profil["situation"]`. Une somme vaut la suite de ses pièces à mesure qu'il s'enrichit
+  (`valeur_pieces`) : la deux-centième vaut moins que la première.
+- **Acheter** : payer le prix au propriétaire est un achat, qu'il accepte sans jet s'il ne garde
+  pas ce bien (sa réserve, son besoin, ce qui sert son plan) et ne se méfie pas de l'acheteur ;
+  l'acheteur paie aussitôt, la part promise est servie comme une part donnée. Moins que le prix,
+  c'est une demande : pour ce qui se consomme (qu'il perd), le DD monte d'un point par 2 minutes
+  de ce que vaut pour lui la part du prix qu'on ne lui paie pas, au-delà de ce qu'elle vaut à qui
+  vit modestement (un riche donne plus volontiers, un endetté rechigne) ; un objet qui dure se
+  prête, sans ce surcoût. Un PNJ demande d'abord, puis achète s'il peut payer et
+  si le prix lui coûte moins que l'autre voie (une faute, une longue démarche).
+- **Prendre des pièces** : des pièces qu'il connaît et qui ne sont pas à lui, il va les prendre
+  si elles valent pour lui plus que ce qu'il lui en coûte (le chemin, la faute à son prix), sans
+  que rien ne presse ; c'est son dernier but, après la routine. Une dette rend la paie plus
+  tentante ; l'honnêteté 100 l'interdit.
+- **Le joueur paie** dans une parole : une demande (`valeur` : les pièces offertes) ou une
+  demande de passage (`valeur` : les pièces offertes à qui ne s'écarterait que par orgueil ; ce
+  qu'elles valent pour lui abaisse le DD, il ne les prend que s'il s'écarte). Offrir plus que son
+  or est refusé au MJ avec un `attendu`. Payée son prix, la part est vendue : « Gorm prend tes 2
+  pièces et accepte de t'en donner une part » ; moins, Gorm dit son prix s'il refuse.
 
 #### Échanges entre PNJ et stratège
 

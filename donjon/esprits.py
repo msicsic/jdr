@@ -353,7 +353,9 @@ def _vu_porter(monde, id, sujet):
     from .vol import proprietaire
     o = monde.objets[sujet]
     porteur = _porteur(monde, o)
+    from .biens import permis
     if (porteur in (None, id) or proprietaire(monde, o) != id or prete(monde, id, sujet, porteur)
+            or permis(monde, porteur, sujet)
             or any(s["type"] == "vu_porter" and s["auteur"] == porteur and s["objet"] == sujet
                    for s in lire(monde, id)["memoire"])):
         return

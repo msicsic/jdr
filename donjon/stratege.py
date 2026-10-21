@@ -315,7 +315,7 @@ def _etape(monde, id, n, x, obtenus):
                 raise faute("il ne sait pas crocheter")
         if op == "prendre":
             obtenus.add(cible)
-        if op in ("prendre", "ouvrir", "crocheter", "manger", "servir") and illicite(monde, id, cible):
+        if op in ("prendre", "ouvrir", "crocheter", "manger", "servir") and illicite(monde, id, cible, op):
             if not autorise(monde, id, cible):
                 raise faute("il ne vole pas : ce bien est à un autre")
             etape["condition"] = "sans_temoin"
