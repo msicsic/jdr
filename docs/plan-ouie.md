@@ -423,14 +423,184 @@ Limites :
 - Une voix inconnue reste sans réponse, et rien ne le dit à celui qui parle : il redemande à la
   minute suivante, en silence (sa demande ne retentit que si l'échange a lieu), comme avant quand
   ils ne se voyaient pas. On ne demande pas « qui est là ? » ; une voix ne se fait pas connaître
-  en se nommant.
+  en se nommant. *(Levé par la branche `voix`, ci-dessous.)*
 - Reconnaître une voix, c'est connaître la personne (l'avoir vue suffit) ; aucune chance de se
-  tromper ni de ne pas reconnaître une voix connue, et pas de déguisement de la voix.
+  tromper ni de ne pas reconnaître une voix connue, et pas de déguisement de la voix. *(La branche
+  `voix` sépare la vue de la voix ; le déguisement reste à faire.)*
 - `deliberation.autour` compte encore ceux qu'on entend tout près d'après leur place réelle
   (`pnj.de_pres`), sans les identifier ; `passage.pousser` accepte encore qui le joueur a reconnu
   à la voix (`entendus`), désormais seulement une voix connue.
 - Forcer une serrure dans le noir à 5 % de chance reste un recours que le planificateur prend
   quand il n'en a pas d'autre (mine, Odon) ; la lumière comme but est un autre chantier.
+
+## Les voix : héler, parler à une voix inconnue, se nommer (branche `voix`)
+
+Deux manques de la branche précédente. L'appel par le nom (`pnj.appeler`) retentissait comme une
+parole (voix, 4 crans) : derrière une porte fermée (3 crans), on ne s'entendait que collé à elle ;
+à l'auberge, Hugues appelait Anselme en boucle derrière la porte de sa chambre ; au Relais, Aubin
+appelait Gorm à chaque minute derrière la porte étanche. Et se parler exigeait que chacun identifie
+l'autre : une voix inconnue dans le noir n'était qu'un bruit, personne ne lui répondait, le joueur
+lisait « … ne saurait pas qui lui parle », et voir quelqu'un faisait connaître sa voix.
+
+**Héler** (`ouie.NATURES`, nature `hele`, 9 crans comme l'appel). Héler quelqu'un par son nom est
+un cri ; ce sont les mots qui le distinguent d'un appel à l'aide, pas le volume. Qui en saisit les
+mots entend qu'on appelle tel nom : pas d'alarme, il reconnaît ou retient la voix (`ouie.entendre`).
+Le cri parvenu sans les mots (sous le seuil des mots, qu'une oreille aux aguets perçoit encore) est
+un bruit fort inconnu : il le retient, et le courage ou la garde peuvent l'y envoyer. L'appelé qui en
+saisit les mots répond « Ici ! », hélé aussi, sauf à une voix dont il se méfie ; répondre à son nom
+vaut se nommer : l'appelant qui saisit la réponse croit l'appelé là d'où elle vient, sûr de lui s'il
+connaît sa voix, sur sa parole sinon (`voix.se_nommer`), et qui la surprend l'apprend de même. Un
+appel resté sans réponse est retenu (`appel_sans_reponse`) : la salle compte pour parcourue dans
+cette recherche (`deliberation.appels_vains`, lu par `planification._chercher` et entré dans
+`_entrees`) tant qu'il n'a rien appris de neuf sur l'appelé, 60 minutes au plus (`APPEL_OUBLI`).
+La réponse est chroniquée en nature `reponse` (une réaction, pas un geste de son but : le récit du
+banc ne la range pas dans ses épisodes ; elle compte parmi les échanges).
+
+**Parler à une voix inconnue** (`pnj.peuvent_se_parler`, toujours la règle unique de toute parole
+échangée : demander, dire, confier, remettre, servir une part, prière de passage, parole du joueur).
+Se parler, c'est que chacun saisisse les mots de l'autre (`ouie.s_entendent`) ; celui qui parle
+s'adresse à qui il croit là (`croit_present`, qui admet désormais un lieu appris d'une voix qui s'est
+nommée). L'auditeur n'a plus besoin d'identifier : une voix qu'il ne connaît pas est un étranger
+(`voix.fiabilite` : aucune confiance connue ; `jet_persuasion` ajoute `voix.INCONNU`, une demande
+pèse moins), même si elle s'est nommée. Prudent (`voix.prudent` : sa sécurité qui presse, plus
+l'écart de son courage à la moyenne, atteint 50), il répond « Qui va là ? » à une voix qui ne s'est
+pas nommée au lieu d'accéder (`echanges.accueil`, issue `qui_va_la` pour demander, confier et le
+passage) ; entre PNJ, l'autre se nomme aussitôt et redemande (`qui_va_la` n'est pas un refus pour
+`refuse_recemment`). Le joueur suit la même règle : il parle dans le noir à la voix qu'il entend ;
+le refus « ne saurait pas qui lui parle » disparaît. Sa méfiance envers qui ment ou avoue une faute
+va à cette voix quand il ne sait pas à qui elle est (`voix.se_mefier`) ; son ouï-dire porte la source
+`dit:voix:<signature>`, que le MJ lit « une voix inconnue le lui a dit », et un aveu d'une voix
+inconnue ne devient pas une nouvelle qui nommerait quelqu'un.
+
+**Les voix comme signatures** (`donjon/voix.py`). Connaître de vue (on sait qui l'on voit) n'est pas
+connaître une voix : il faut avoir entendu parler quelqu'un en sachant que c'était lui, c'est-à-dire
+en le voyant parler (`ouie.entendre`, `ouie._au_joueur`, et `se_parler` quand on se tourne vers lui
+dans la lumière). Plus de `connaitre` à la simple vue (`esprits.percevoir`, `pnj._observer_presences`).
+Au début d'une partie, le scénario déclare qui se connaît déjà : un savoir sur quelqu'un donne sa voix
+(`esprits.installer`) ; le joueur arrive en étranger. Les anciennes sauvegardes ne sont plus migrées
+(décision de l'utilisateur). Le moteur sait à qui est chaque voix : sa signature est l'identifiant de
+son porteur, jamais montré au joueur ni au MJ comme une identité. Chacun retient les voix inconnues
+qu'il a entendues (`voix_entendues` de l'esprit, `data["voix_entendues"]` du joueur : quand, le nom
+qu'elle s'est donné, s'il s'en méfie). Toute reconnaissance passe par `voix.reconnaitre(monde,
+auditeur, locuteur) -> (qui il croit entendre, certitude)` : reconnue, prétendue (une voix qui s'est
+nommée), suspecte, inconnue.
+
+**Se nommer** (contenu de parole `nom` ; « Ici ! » à son nom ; « C'est Odon » après « Qui va là ? ») :
+une affirmation pesée, jamais une identité acquise (`voix.se_nommer`).
+1. Il connaît la vraie voix du nommé : ce n'est pas elle, mensonge démasqué ; il se méfie de cette
+   voix, et de son porteur s'il sait qui c'est (souvenir `imposture`).
+2. Sinon il croit « c'est X » comme un ouï-dire : X est cru là (source `se_dit`, confiance d'un
+   ouï-dire), sauf s'il a vu X ailleurs depuis moins de 30 minutes (doute). La confiance accordée
+   reste celle d'un inconnu ; un bruit ordinaire de là ne la change pas en constat (`ouie._attribuer`).
+3. Il entend plus tard la vraie voix de X (en le voyant parler) : elle devient connue
+   (`voix.connaitre`) ; une autre voix s'était dite X, il sait qu'on lui a menti, sans savoir qui
+   (cette voix devient suspecte, il ne sait plus où est X) ; le jour où il voit parler le menteur, il
+   reconnaît « la voix qui se disait X » et se méfie de lui. Si c'était bien X, la croyance passe du
+   ouï-dire au constat et sa confiance envers X s'applique.
+
+**Le joueur et le MJ.** Une voix que le joueur ne sait à qui prêter est un interlocuteur comme un autre
+(`ecoute.retenir` retient toute voix nette ; `dialogues.interlocuteurs`), désigné « voix_<n> »
+(`voix.designation`, `voix.reel` pour le moteur) et nommé « une voix inconnue », « une voix qui se dit
+Brune », « … (ce n'est pas la voix de Brune) » s'il connaît la vraie (`voix.nom_pour_joueur`). Le MJ
+ne reçoit ni son identifiant ni ses traits (`esprits_interlocuteurs`, `parole_prevue`, le rapport de la
+parole, `paroles_entendues`, les locuteurs proposables) ; on ne peut pas la nommer (« je dis à Brune »
+refusé : il ne sait pas Brune là). `ecoute` rend les mots d'une voix inconnue sans son nom (« une voix
+inconnue appeler : « Odile ? » »). Contenus de parole `nom` (Corvus se nomme, ou prétend être
+quelqu'un) et `qui` (« Qui est là ? » : le personnage se nomme, sauf méfiance). Contrôle déterministe
+(`narration.voix_inconnues`) : la réplique d'une voix inconnue ne nomme personne, Corvus compris,
+au-delà de ce que le moteur a établi (son nom d'interlocuteur, `conversation_validee`), et le récit
+ne lui donne pas le nom qu'elle s'est donné (« la voix qui se dit … »).
+
+Vérifié (`tests/test_voix.py`, `tests/test_constater_rumeurs.py`, état après rechargement et ce que
+lit le joueur) :
+- cas réel (auberge) : Hugues hèle Anselme à travers la porte fermée de sa chambre ; Anselme répond,
+  Hugues le croit là, entre et le prévient ; un seul appel ; le joueur au couloir lit « Hugues appelle :
+  « Anselme ? » » (voix connue) et « une voix inconnue appeler : « Ici ! » » ;
+- même nature (Relais) : Aubin, au palier, hèle Gorm derrière la porte étanche, qui répond ; Aubin
+  obtient sa part (avant : un appel par minute, sans fin) ; le même laps découpé donne le même monde ;
+- Anselme enfermé et méfiant ne répond pas : Hugues hèle une fois par salle accessible, puis cesse ;
+- le cri sans les mots laisse un bruit inconnu fort ; les mots saisis, aucun ;
+- le joueur dans le noir demande sa part à Gorm, qui ne l'a jamais vu : au même jet, refusée à la voix,
+  accordée à la lumière ; Gorm retient la voix, sans croyance de confiance ; prudent, « Qui va là ? » ;
+  « C'est Corvus » : cru sur parole, situé, sans confiance de plus ;
+- une voix inconnue (Brune) se nomme au joueur : « voix_1 » pour le MJ, sans traits ni identifiant,
+  puis « une voix qui se dit Brune » ;
+- imposteur : démasqué par la vraie voix ; démasqué quand il reconnaît le menteur ; cru sur parole
+  sans gain de confiance, démasqué après coup, puis le menteur reconnu ; « c'était bien elle » ; le
+  joueur qui se dit Brune devant Gorm qui connaît sa voix ;
+- voir Brune sans l'entendre ne fait pas connaître sa voix, l'entendre parler sous ses yeux si ;
+- mine (Mathe, Odon), réserve noire : Mathe, inquiète, répond « Qui va là ? » ; Odon se nomme et
+  redemande ; elle le croit là sur sa parole, sans confiance gagnée.
+
+Tests d'avant changés par la règle : l'aveu entendu derrière le pilier par Brune (elle se méfie de la
+voix, n'en fait pas une rumeur nommant Corvus) ; Brune trouve Gorm au premier appel (`test_caractere`) ;
+une voix jamais entendue se fait répondre ; servir une part suit `s_entendent` ; le joueur parle à Odile
+qui ne le connaît pas ; « des voix » devient leurs mots sans nom quand il connaît ce qu'ils nomment.
+
+Avec Luna (copies de scènes, placements d'auteur ; 2 parties au plus en même temps) :
+- noir, Gorm qui ne connaît pas Corvus : la demande de part est refusée (« Non. Je ne suis pas
+  convaincu… »), « c'est Corvus » est cru sans plus de confiance, la redemande refusée ;
+- Corvus qui se dit Brune devant Gorm : « Tu n'es pas Brune. Je ne te fais plus confiance. » ;
+- une voix inconnue (Brune) : « « Qui est là ? » » → « Tu dis à une voix inconnue… », « La voix répond :
+  « Je suis Brune… » », puis « Tu dis à une voix qui se dit Brune… » ; « c'est Brune qui me parle ? »
+  (question au MJ) : « Tu ne peux pas savoir si c'est Brune… » ; « je dis à Brune : approche » : refus du
+  moteur. Deux défauts vus et corrigés par le contrôle déterministe ci-dessus : la voix répondait « Je
+  suis Brune, oui » sans que le moteur l'ait fait se nommer, le récit écrivait « Brune répond », et la
+  voix demandait « Tu dis t'appeler Corvus ? » sans qu'il se soit nommé. Après correction : « La voix
+  répond tout près de toi : « Je suis Brune. Qui es-tu ? » » (se nommer décidé par le moteur), et le
+  récit dit « la voix » ensuite.
+
+Bancs (8 h, graines 1985 7 42 2024, avant = dd6ea75, base de la branche, dont `main` ne diffère depuis que par le transport
+du MJ ; les appels comptent parmi les échanges) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| minutes sans recours | 362,5 → 335 | 665 → 655 | 627,5 → 670 | 292,5 → 301,25 |
+| appels / réponses | 3,75 / 1,5 → 3 / 3 | 7 / 0,75 → 2,5 / 2,5 | 17 / 2,25 → 3,5 / 2,75 | 4,75 / 1,25 → 7,5 / 5,75 |
+| échanges | 15,25 → 16 | 41,75 → 38,25 | 40,75 → 28,25 | 16,75 → 24 |
+| vols vus / témoins | 1,5 / 3 → 1,5 / 3,25 | 0,5 / 1 → 0,5 / 1 | 1 / 2,25 → 0,75 / 1,5 | 1,5 / 2,5 → 1,5 / 2,75 |
+| rumeurs crues | 0,5 → 0,75 | 2 → 2 | 1 → 3 | 1,25 → 0,75 |
+| confidences | 0,75 → 1 | 2 → 2 | 3,25 → 5 | 1,25 → 0,75 |
+| méfiances | 2 → 2 | 4,5 → 4,5 | 5 → 6,5 | 2,25 → 2 |
+| jets | 8,75 → 9,75 | 23,75 → 24 | 161 → 88 | 11,75 → 11,25 |
+| paroles surprises | 11,5 → 19 | 110 → 118,25 | 37,75 → 54,5 | 16,75 → 27,25 |
+| bruits inconnus retenus | 59,75 → 53,25 | 62 → 67 | 147,5 → 133,25 | 90 → 99 |
+| allés voir | 12,25 → 9,75 | 18,5 → 24,75 | 57,25 → 47,5 | 18,5 → 21,5 |
+| minutes dans l'eau | | | | 251,25 → 271,25 |
+
+Aucune usurpation, aucune violation (l'état est vérifié à chaque pas). Les appels baissent là où l'on
+tournait en appelant derrière une porte fermée : à l'auberge 17 → 3,5 par nuit, c'est l'essentiel de
+la baisse des échanges (40,75 → 28,25) ; à la mine 7 → 2,5 ; les réponses montent partout (le cri
+passe les portes). Relais : Brune trouve Gorm au premier appel (graine 42 : 139 → 59 minutes sans
+recours), d'où 362,5 → 335. Auberge : des recherches plus courtes laissent ensuite sans recours ;
+graine 2024, Mireille trouve Odile au premier appel au lieu de passer par l'étable en la cherchant,
+ne voit donc pas les fagots de Joss et reste sans bois (326 → 364 minutes) ; Lucien crochète le coffre
+d'Anselme à 406 au lieu de s'y acharner 200 minutes (jets 200 → 53), puis attend (59 → 106) ; la nuit
+diverge ensuite (plus de rumeurs crues et de confidences). Crue : Aubin et Gorm se hèlent et se
+répondent en se croisant (graine 1985, 11 appels et 11 réponses) ; minutes dans l'eau 251 → 271 par
+des nuits qui divergent. Paroles surprises en hausse : la réponse « Ici ! » se nomme à qui l'entend.
+
+Limites :
+- Imiter une voix et se méfier d'une voix connue quand un imitateur rôde ne sont pas modélisés : tout
+  passe par `voix.reconnaitre`, où ils se brancheront (une certitude moindre, une voix prise pour une
+  autre), sans toucher ses appelants.
+- Un PNJ ne ment pas sur son nom ; seul le joueur peut se dire un autre. Un PNJ qui démasque un
+  imposteur s'en méfie (souvenir `imposture`) mais ne le raconte pas aux autres : ce n'est pas une
+  nouvelle de `social`.
+- Le cri sans les mots ne survient que sous le seuil des mots (niveau 0, oreille aux aguets ou fine) ;
+  l'inquiétude étant à la mesure du niveau reçu, il inquiète peu ; il fait surtout aller voir.
+- L'appelé ne s'attend pas : il reprend son but après avoir répondu ; deux PNJ qui se cherchent
+  peuvent se croiser (crue, graine 1985 : Aubin et Gorm se hèlent et se répondent six fois en dix
+  minutes avant de se trouver).
+- Une demande de part à une voix inconnue est « impossible » quand l'auditeur ne sait rien de qui
+  la fait (ni où, ni sa faim) : la demande ne dit pas la faim. Une voix inconnue ne peut pas recevoir
+  un don du joueur sous son nom ; elle peut être désignée en face.
+- La réplique d'une voix inconnue ne peut nommer un tiers que le joueur n'a pas nommé dans ce tour :
+  la règle déterministe est plus stricte que nécessaire (elle ne distingue pas « je suis X » de « X est
+  aux vannes »).
+- Le joueur ne retient le nom d'une voix que par une parole qui le lui donne directement (contenu `qui`) ;
+  ce qu'il surprend entre PNJ (« Ici ! » à un appel) ne lui nomme pas la voix, et il ne hèle personne
+  par son nom (seul l'appel à l'aide est un cri pour lui).
 
 ## Limites
 
@@ -464,3 +634,16 @@ Limites :
 - `PROCHE` (6 cases pour se retourner), `PRES_DE` (1 case pour attribuer un bruit à qui l'on croit
   là), `HABITUDE` (15 min), le courage au-dessus de 50 pour aller voir un fracas.
 - L'inquiétude (15 × niveau reçu / 9) ; l'appel qui inquiète à chaque appel.
+- Les voix (branche `voix`) : `voix.INCONNU` (+2 au DD d'une demande d'une voix inconnue), la prudence
+  (sécurité + 50 − courage ≥ 50), `APPEL_OUBLI` (60 min où une salle hélée en vain compte pour
+  parcourue), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux).
+
+## Suite prévue : imiter une voix (non faite)
+
+L'utilisateur veut plus tard une imitation de voix plus ou moins réussie (un changelin qui dupe les
+PNJ), puis des PNJ qui, sachant qu'un imitateur rôde, se méfient même d'une voix connue. Tout passe
+déjà par `voix.reconnaitre(monde, auditeur, locuteur) -> (qui il croit entendre, certitude)` :
+l'imitation y rendra (X, une certitude moindre) pour la voix d'un autre, selon un jet de l'imitateur
+contre l'oreille de l'auditeur ; la méfiance, une certitude « douteuse » pour une voix connue. Les
+appelants (`ouie.entendre`, `voix.identifie`, `voix.fiabilite`, `voix.se_nommer`, `ecoute`) lisent
+déjà la certitude ; `voix.connaitre` compare déjà la voix entendue à ce qu'elle a prétendu.

@@ -12,7 +12,9 @@ parle, sinon comme un échange à voix basse. Tout est déterministe ; Luna n'in
 Une parole, du joueur comme d'un PNJ, est entendue de tous ceux qui en saisissent les mots
 (``ouie``) : qui n'en est pas le destinataire la retient aussi (``retenir_parole``), et ce
 qu'elle transmet le touche par la même règle que le destinataire (``recevoir``) : une
-affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu se croit.
+affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu se croit, un nom
+se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qui prêter reste un
+inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
 from .esprits import croire, lire, memoriser, percoit, pnjs
 from .francais import complement_de, designer
@@ -156,16 +158,19 @@ def _lieu_dit(noyau):
 def _adopter(monde, auditeur, locuteur, noyau, rang):
     """L'auditeur croit-il la nouvelle ? Effets sur ses croyances et ses besoins."""
     from .paroles import _stats_pnj, dementi, jet_persuasion
+    from .voix import identifie, se_mefier, source_dite
     objet = noyau.get("objet")
     if noyau["type"] == "absence" and dementi(monde, auditeur, objet, "lieu", None):
-        croire(monde, auditeur, locuteur, "fiable", False, "vu")
-        memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur, "sujet": objet, "attribut": "lieu"})
+        if identifie(monde, auditeur, locuteur):
+            memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur, "sujet": objet,
+                                        "attribut": "lieu"})
+        se_mefier(monde, auditeur, locuteur, "vu")
         return "dementi"
     if not jet_persuasion(monde, auditeur, locuteur, 10)[0]:
         memoriser(monde, auditeur, {"type": "parole_doutee", "locuteur": locuteur, "evenement": noyau})
         return "doute"
     confiance = round(0.7 * (0.5 if _stats_pnj(monde, auditeur)["INT"] <= 8 else 1.0) * 0.8 ** rang, 2)
-    source = "dit:" + locuteur
+    source = source_dite(monde, auditeur, locuteur)
     if noyau["type"] == "absence":
         croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
     elif accuse(noyau) != auditeur:
@@ -227,7 +232,13 @@ def recevoir(monde, id, locuteur, c):
     None s'il n'y a rien à apprendre. Une affirmation se juge comme une confidence
     (``echanges.affirmer``) ; une nouvelle, comme une rumeur (``_adopter``) ; un aveu (le locuteur
     dit avoir fait un geste illicite) se croit : il ne le tient plus pour fiable et le sait de
-    première main. Ce qu'on dit de lui-même ne lui apprend rien."""
+    première main. Un nom (« C'est Corvus », « Ici ! » à son nom) se pèse (``voix.se_nommer``) ;
+    une question (« Qui va là ? ») ne lui apprend rien. Ce qu'on dit de lui-même ne lui apprend rien."""
+    if c["type"] == "nom":
+        from .voix import se_nommer
+        return se_nommer(monde, id, locuteur, c["sujet"])
+    if c["type"] == "qui":
+        return None
     if c["type"] == "affirmation":
         if c["sujet"] == id:
             return None
@@ -237,7 +248,13 @@ def recevoir(monde, id, locuteur, c):
     if accuse(noyau) == id or _sait(monde, id, noyau):
         return None
     if c["type"] == "aveu":
+        from .voix import identifie, se_mefier
         actuelle = lire(monde, id)["croyances"].get(locuteur, {}).get("fiable")
+        if not identifie(monde, id, locuteur):
+            # Une voix qui avoue : il s'en méfie, sans savoir à qui l'imputer ; il n'en fait pas une
+            # nouvelle qui nommerait quelqu'un.
+            se_mefier(monde, id, locuteur)
+            return "crue"
         if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
             croire(monde, id, locuteur, "fiable", False, "entendu")
         issue, rang = "crue", 0
@@ -258,8 +275,9 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
     à un autre ne l'engage à rien."""
     from .paroles import _stats_pnj, capacite_transmission
     from .pnj import _chroniquer
+    from .voix import identifie
     memoriser(monde, id, {"type": "parole", "locuteur": locuteur, "a": list(destinataires), "texte": texte[:240],
-                          "cites": list(cites)})
+                          "cites": list(cites), **({} if identifie(monde, id, locuteur) else {"voix_inconnue": True})})
     capacite = min(capacite_transmission(_stats_pnj(monde, x)["INT"]) for x in (locuteur, id))
     issues = [i for i in (recevoir(monde, id, locuteur, c) for c in contenu[:capacite]) if i]
     de = _qui(monde, locuteur)

@@ -12,6 +12,7 @@ import urllib.request
 from .monde import ErreurMonde, normaliser
 from .moteur import ACTIONS, METHODES, Moteur
 from .connexion import jeton, modeles
+from .transport_openai import WebSocketResponses, ErreurTransport, lire_evenements
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
 from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
@@ -32,7 +33,7 @@ from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profi
 from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
-                        paroles_sans_moteur, rescape as rescape_narratif, repli as repli_narratif,
+                        paroles_sans_moteur, voix_inconnues, rescape as rescape_narratif, repli as repli_narratif,
                         attestations as attestations_narratives,
                         fondement as fondement_narratif, fondement_paroles,
                         mentions as mentions_narratives,
@@ -50,55 +51,22 @@ from .transactions import ajouter as ajouter_transaction
 
 
 def lire_flux(reponse):
-    """Un succès SSE exige l'événement terminal response.completed, jamais un fragment."""
-    bloc = []
-    taille = 0
-    elements = {}
-    types = set()
-    for ligne in reponse:
-        taille += len(ligne)
-        if taille > 4_000_000:
-            raise ErreurMonde("Réponse du MJ trop volumineuse. Aucune action appliquée.")
-        texte = ligne.decode("utf-8").rstrip("\r\n")
-        if texte.startswith("data:"):
-            bloc.append(texte[5:].lstrip())
-        elif not texte and bloc:
-            donnees = "\n".join(bloc)
-            bloc = []
-            if donnees == "[DONE]":
-                break
-            evenement = json.loads(donnees)
-            types.add(evenement.get("type", "inconnu"))
-            if evenement.get("type") == "response.output_item.done":
-                elements[evenement["output_index"]] = evenement["item"]
-            if evenement.get("type") == "response.completed":
-                resultat = evenement["response"]
-                # Certains flux n'incluent pas à nouveau les éléments déjà émis dans le terminal.
-                if not resultat.get("output") and elements:
-                    resultat["output"] = [elements[i] for i in sorted(elements)]
-                resultat["_types_evenements"] = sorted(types)
-                return resultat
-            if evenement.get("type") in ("response.failed", "response.incomplete", "error"):
-                raise ErreurMonde("Le MJ ChatGPT n'a pas terminé la réponse (" + raison_interruption(evenement) + ").")
-    raise ErreurMonde("Flux du MJ interrompu avant la fin. Aucune action appliquée.")
-
-
-def raison_interruption(evenement):
-    """La raison donnée par l'API d'une réponse en échec ou incomplète, pour le diagnostic."""
-    reponse = evenement.get("response") or {}
-    erreur = reponse.get("error") or evenement.get("error") or {}
-    incomplete = reponse.get("incomplete_details") or {}
-    if isinstance(erreur, dict) and (erreur.get("code") or erreur.get("message")):
-        raison = " : ".join(str(x) for x in (erreur.get("code"), erreur.get("message")) if x)
-    elif incomplete.get("reason"):
-        raison = "incomplète : " + str(incomplete["reason"])
-    elif evenement.get("message") or evenement.get("code"):
-        raison = " : ".join(str(x) for x in (evenement.get("code"), evenement.get("message")) if x)
-    else:
-        raison = "raison non précisée par l'API, peut-être une limite d'usage"
-    if any(mot in raison.lower() for mot in ("rate", "quota", "limit", "usage")):
-        raison += " ; vérifiez les limites du forfait dans ChatGPT > Paramètres > Utilisation"
-    return raison[:300]
+    """Décoder les trames SSE, puis appliquer le même contrat terminal que WebSocket."""
+    def evenements():
+        bloc, taille = [], 0
+        for ligne in reponse:
+            taille += len(ligne)
+            if taille > 4_000_000:
+                raise ErreurMonde("Réponse du MJ trop volumineuse. Aucune action appliquée.")
+            texte = ligne.decode("utf-8").rstrip("\r\n")
+            if texte.startswith("data:"):
+                bloc.append(texte[5:].lstrip())
+            elif not texte and bloc:
+                donnees, bloc = "\n".join(bloc), []
+                if donnees == "[DONE]":
+                    return
+                yield json.loads(donnees)
+    return lire_evenements(evenements())
 
 
 def additionner_usage(total, ajout):
@@ -381,6 +349,10 @@ class MJOpenAI:
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
         import uuid
         self.cle_cache = str(uuid.uuid4())
+        self._websocket = WebSocketResponses()
+
+    def fermer(self):
+        self._websocket.fermer()
 
     def proposer(self, monde, intention):
         return self._appeler(INSTRUCTIONS, {"monde": monde.contexte(), "intention": intention},
@@ -1051,6 +1023,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
                                "fondement_paroles": paroles}
                 obstacles.extend({"partie": nom, **o} for o in rapport["obstacles"])
+                if monde is not None:
+                    # Une voix inconnue ne se nomme ni ne nomme personne sans le moteur (déterministe).
+                    obstacles.extend({"partie": nom, **o} for o in voix_inconnues(monde, rapport["paroles"], faits, texte))
                 if nom == "texte" and rapport["obstacles"]:
                     def fautif(morceau, faits=faits):
                         return bool(voix_auteur(morceau)
@@ -1242,8 +1217,20 @@ direction), plus lents, ils ne s'entendent que de tout près.
             method="POST",
         )
         try:
-            with urllib.request.urlopen(requete, timeout=self.timeout) as reponse:
-                resultat = lire_flux(reponse) if self.connexion == "chatgpt" else json.load(reponse)
+            if self.connexion == "chatgpt":
+                resultat = self._websocket.appeler(payload, cle, self.cle_cache, self.timeout)
+            else:
+                with urllib.request.urlopen(requete, timeout=self.timeout) as reponse:
+                    resultat = json.load(reponse)
+        except ErreurTransport as exc:
+            if exc.statut == 401:
+                self.erreur_auth = ("MJ déconnecté : Reconnectez le forfait : python connexion.py connecter, puis relancez le jeu."
+                                    " Aucun nouvel appel ne sera tenté dans cette session.")
+                raise ErreurMonde(self.erreur_auth) from None
+            if exc.statut:
+                raise ErreurMonde(f"MJ indisponible : HTTP {exc.statut}. Aucune action appliquée.") from None
+            raise ErreurMonde("Le MJ n'a pas répondu correctement (réseau ou délai). "
+                              "Aucune action appliquée. Réessayez ou utilisez les commandes locales.") from None
         except urllib.error.HTTPError as exc:
             # Ne jamais afficher les en-têtes ou une clé dans le journal.
             try:
