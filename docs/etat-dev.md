@@ -4,6 +4,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-outils`, non fusionnée : comparateur de bancs livré en premier,
+  `tools/comparer_bancs.py` (référence puis branche, temps CPU par nuit, audit et identité
+  chronique/mesures/état complet). Relais, 4 graines, 2 h : `main` contre `main` identique ;
+  `main` contre `codex-profils` divergent dès la minute 0. Six tests de l'outil passent.
+  Le lanceur de tests parallèle suit sur cette branche ; [rapport](taches/rapport-codex-4-outils.md).
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1266,6 +1271,15 @@ Non versionnés, donc absents d'un nouveau poste :
 
 ## Outils de mesure
 
+- Comparaison sans Luna : `python tools/comparer_bancs.py --reference main --scenarios relais mine
+  --processus 2 --sortie artifacts/comparaison.json` : 4 h, graines 1985/7/42/2024, salles passives
+  adaptées aux scénarios ; `--branche REF` pour une référence git, sinon fichiers du worktree courant.
+  Worktrees détachés créés et supprimés automatiquement, sans changer la branche principale.
+  `--depart fixe`, `--verifier`, `--joueur mine=galerie` ; tableau moyenne [min–max], audit des boucles,
+  usurpations, plantages, temps écoulé et temps processeur par nuit (`secondes_cpu` dans le JSON).
+  `--empreintes` : 2 h par défaut, identité de chronique, mesures et état final complet (`data`, SHA-256),
+  code 1 si divergence. Première nuit dans l'ordre scénarios/graines, première minute observée par un
+  rejeu instrumenté uniquement en cas d'écart (exclu des temps). Voir les limites dans le rapport.
 - Banc moteur seul, sans appel à Luna, avec son récit (`--chronique` pour chaque pas) :
   `python -m donjon.banc_pnj --heures 8 --graine 1985 --joueur chambre_cloche` ; plusieurs nuits
   en parallèle, avec le tableau des mesures et leur moyenne : `--graines 1985 7 42 2024`.
