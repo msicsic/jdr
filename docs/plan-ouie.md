@@ -1484,6 +1484,54 @@ n'est plus toujours l'appelé) ; l'échéance de `test_parole_voix` se lit du re
 lieu de `REJOINT`, et Aubin y sait la porte fermée pour que personne ne vienne ; `test_entretenir`, à la
 nuit décalée par l'appel, Mireille achète la part que Joss garde au lieu de la demander (même refus).
 
+Corrigé en route, vu au banc (mine, graine 42) : Mathe, de garde, hèle Gaspard, qui lui dit de venir ;
+retenue, elle répond « Ici, viens ! » à son tour, et chacun attendait l'autre jusqu'à l'échéance. Prié de
+venir, celui qui attend en décide de nouveau (il vient, et n'attend plus).
+
+`planification.VERIFIER` et `spatial.VERIFICATION` 0,2 sur une nuit de 8 h de chaque scénario (graine 42,
+`tools/audit_nuits.py`) : aucun plantage, aucun écart. Bancs (départ tiré, graines 1985, 7, 42, 2024,
+`--processus 4`, `main` 06602a6 puis la branche, l'un après l'autre ; moyenne par nuit, `main` → branche) :
+
+| | Relais 4 h | Mine 4 h | Auberge 4 h | Crue 4 h | Mine 8 h | Auberge 8 h |
+|---|---|---|---|---|---|---|
+| appels | 0,25 → 0,25 | 0 → 0 | 0 → 0 | 0,5 → 0,5 | 3 → 3,5 | 6,75 → 4,75 |
+| réponses (toutes) | 0,25 → 1 | 0 → 0 | 0 → 0 | 0,5 → 1,5 | 2 → 8,25 | 4 → 11,75 |
+| « J'arrive ! » / « Ici, viens ! » / « Qu'est-ce que tu veux ? » / raisons | — → 0,25 / 0,25 / 0,25 / 0,25 | — | — | — → 0,5 / 0,25 / 0,25 / 0,25 | — → 2 / 2,25 / 1,75 / 1,75 | — → 3 / 2,75 / 3 / 3 |
+| silences | — → 0 | — → 0 | — → 0 | — → 0 | — → 0,5 | — → 0 |
+| retrouvailles / attentes vaines | 0,25 / 0 → 0,25 / 0 | 0 / 0 | 0 / 0 | 0,25 / 0,25 → 0,5 / 0 | 1,75 / 0,25 → 2 / 0 | 3,75 / 0 → 3 / 0 |
+| paroles rompues | — → 0 | — → 0 | — → 0 | — → 0 | — → 0 | — → 0 |
+| minutes à attendre (relevé aux 5 min) | 0 → 0 | 0 → 0 | 0 → 0 | 1,25 → 0 | 1,25 → 0 | 2,5 → 0 |
+| minutes sans recours | 45 → 45 | 26,25 → 26,25 | 20 → 20 | 0 → 0 | 36,25 → 36,25 | 138,75 → 137,5 |
+| minutes en attente | 1,25 → 1,25 | 0 → 0 | 1,25 → 1,25 | 10 → 10 | 290 → 291,25 | 1,25 → 1,25 |
+| échanges | 6,5 → 6,5 | 13,25 → 13,25 | 7,75 → 7,75 | 6 → 6 | 41,75 → 41,5 | 29,25 → 30,75 |
+| temps d'une nuit | 3 → 2,8 s | 7,2 → 7,2 s | 4,7 → 4,6 s | 3,9 → 3,5 s | 28 → 27,7 s | 15,7 → 15,3 s |
+
+Aucune usurpation ni violation, aucun écart. En quatre heures, on ne hèle presque pas (les quatre
+scénarios en ont 0 à 0,5 par nuit) : les bancs de 8 h de la mine et de l'auberge, où l'on hèle, montrent
+l'effet. Les appels en boucle baissent à l'auberge (graine 42 : Mireille hélait Odile huit fois en cinq
+minutes ; désormais une fois, puis « J'arrive ! ») ; l'attente vaine de la crue (graine 42) devient des
+retrouvailles par « Me voici ! », celle de la mine (graine 7, Gaspard attendant Lucien) aussi. Les
+réponses comptent chaque cri de la négociation (deux à quatre par appel). Le reste des nuits est égal :
+les rendez-vous ne changent ni les besoins ni les échanges, seulement qui marche vers qui. Les minutes à
+attendre, relevées toutes les cinq minutes, ne saisissent plus d'attente : elles durent désormais le temps
+de venir (une à trois minutes) au lieu de cinq.
+
+Limites de l'appel négocié :
+- Le joueur ne dit pas ce qu'il veut par une parole typée locale : à « Qu'est-ce que tu veux ? », il
+  répond « j'arrive » ou « viens » ; ce qu'il dirait par le MJ n'entre pas dans la décision de l'appelé.
+- Seul « J'arrive ! » pèse s'il n'est pas tenu ; « Ici, viens ! » cède à ce qui presse comme l'attente
+  d'avant, sans que l'autre lui en tienne rigueur. Qui avait promis et en a été empêché (une porte, l'eau)
+  rompt sa parole aux yeux de l'autre, qui n'en sait pas la cause. En 3a, une parole rompue ôte la
+  confiance comme une dette niée (la croyance `fiable`) ; les relations graduées la pèseront.
+- Un rendez-vous à la fois : qui attend déjà quelqu'un garde cette attente, sans tenir compte d'un autre
+  qui lui promet de venir.
+- Le rendez-vous se juge au choix du but (événements, minute) ; on se retrouve en se voyant, ou en se
+  sachant là et pouvant se parler. Le lieu du rendez-vous est la salle d'où venait la voix ; peut-il venir
+  se juge sur le chemin qu'il croit, vers la salle réelle de la voix.
+- La raison d'un appel se lit de l'intention de l'appelant, en cinq sortes ; « J'ai à te parler. » quand
+  rien ne la dit (une garde, une ronde). `MARGE` est une constante.
+- `tools/comparer_bancs.py` n'est pas sur `main` : les bancs sont comparés mesure par mesure.
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la

@@ -1204,7 +1204,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rallume elle-même : le payeur fait la tâche qu'il paie (limite, à corriger). Banc rapide 4 h, 4 graines,
   `main` puis la fusion : mine et auberge identiques ; Relais 3,5 crochetages par nuit dont 0,75 réussis
   sans fracas, bascules 1,5 → 0,75, en attente 2,5 → 8,75 ; aucun plantage ni usurpation.
-- La suite de tests passe : 1282 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `appel-negocie`, non fusionnée (`docs/plan-ouie.md`, « L'appel négocié » ; `donjon/appel.py` ;
+  décision du 2026-10-22) : l'appelé et l'appelant conviennent de qui vient à qui, par des paroles typées
+  que le moteur tranche, une règle pour les PNJ et le joueur. « J'arrive ! » (il cherche lui-même
+  l'appelant, on le prie de venir, ou la raison le fait venir : un avertissement, une aide, ce qu'il a sur
+  lui), « Ici, viens ! » (il ne peut ou ne veut bouger : geste en cours sur place, garde, ce qu'il fait sur
+  place, un autre rendez-vous, un chemin qu'il croit fermé, l'eau, ce qui le presse ailleurs), « Qu'est-ce
+  que tu veux ? » (libre, sans raison : l'appelant dit ce qu'il veut, tiré de son intention, et l'appelé
+  décide de nouveau), le silence (méfiance, ou un geste qu'il veut sans témoin) ; l'appelant répond
+  « J'arrive ! » à « Ici, viens ! » s'il peut venir, sinon « Ici, viens ! » à son tour, et l'autre en décide
+  de nouveau. Le convenu entre dans l'esprit des deux (`rejoint` : qui il attend, jusqu'à quand, si l'autre
+  a promis ; `rejoindre` : à qui il a promis de venir, une parole due) ; qui attend quelqu'un qui vient ne le
+  cherche plus (`deliberation._attendre_qui_vient`) ; l'attente se règle sur la distance (le plus court
+  chemin, et sa moitié, plus deux minutes ; plus de `REJOINT`) ; venu, celui que l'autre ne voit pas dit
+  « Me voici ! » ; « J'arrive ! » attendu en vain est une parole rompue (méfiance, cause `parole_rompue`),
+  joueur compris. Le joueur répond sans le MJ (« j'arrive », « viens », « qu'est-ce que tu veux ? », entre
+  guillemets ou non, `emettre_son` méthodes `repondre`, `arriver`, `demander_raison`) et entend les
+  réponses par l'ouïe commune. Correctif révélé : on n'appelle pas qui l'on sait là après avoir parcouru
+  la salle des yeux (`pnj._inspecter`). Cas réels après rechargement, même laps découpé
+  (`tests/test_appel_negocie.py`, 22 tests ; scènes enregistrées de la mine, graine 2024, et de la crue,
+  graine 42) ; `VERIFIER` et `spatial.VERIFICATION` 0,2 sans écart sur une nuit de 8 h de chaque scénario.
+  Bancs contre `main` 06602a6 : 4 h identiques hors des appels (on y hèle 0 à 0,5 fois par nuit) ; 8 h, mine
+  et auberge, appels 3 → 3,5 et 6,75 → 4,75, attentes vaines 0,25 → 0 (mine), aucune parole rompue, sans
+  recours et échanges égaux, aucune usurpation ni violation, temps égal. Luna non vérifiée : pas de
+  connexion sur ce poste. Rapport : `docs/taches/rapport-appel-negocie.md`. Limites dans le plan.
+- La suite de tests passe : 1304 tests (18 sautés), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
