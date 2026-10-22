@@ -32,6 +32,7 @@ for chemin in (RACINE, Path.cwd()):
         sys.path.remove(str(chemin))
     sys.path.insert(0, str(chemin))
 import audit_nuits as audit  # noqa: E402
+from priorite import ceder  # noqa: E402
 
 JOUEURS = audit.JOUEURS
 PROCESSUS = max(1, (os.cpu_count() or 2) // 2)
@@ -69,7 +70,7 @@ def jouer_nuit(tache):
     """Réutilise nuit(), avec capture de data, temps CPU et relevés d'audit."""
     from donjon import banc_pnj as banc, planification, pnj
     scenario, graine, config = tache
-    banc.ceder()
+    ceder()
     planification.VERIFIER = config["verifier"]
     capture, releves, minutes = {}, [], {}
     creer, oisifs, percevoir = banc.creer, banc._oisifs_urgents, pnj.percevoir_tous
