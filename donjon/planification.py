@@ -21,7 +21,7 @@ from time import perf_counter
 
 from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
                            _lieu_cru, besoin_de_part, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
-                           peur_du_noir, profil, promesse_en_cours, refus_retenu, taux, tient)
+                           peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
 from .esprits import lire
@@ -572,12 +572,18 @@ class Vue:
         return self._descentes[cle]
 
     def piege(self, salle):
-        """L'eau monte : il attend ce lieu noyé, ou coupé du plus haut (une salle qu'il attend noyée entre
-        eux). Elle monte par le bas : le plus haut est le dernier qu'elle gagne."""
+        """L'eau monte : il attend ce lieu noyé, ou coupé du plus haut lieu qu'il croit pouvoir gagner
+        d'où il se tient (une salle qu'il attend noyée entre eux). Elle monte par le bas : le plus haut
+        est le dernier qu'elle gagne."""
         cle = ("piege", salle)
         if cle not in self._descentes:
-            from .spatial import altitude
-            sommet = max(self.salles_triees, key=lambda s: altitude(self.monde, s))
+            if "sommet" not in self._descentes:
+                from .spatial import altitude
+                ici = self.monde.objets[self.id]["lieu"]
+                cles = frozenset(k for k in self.connus if porte_par(self.monde, k, self.id) and self.objets[k].get("ouvre"))
+                atteintes = self._parcourir(self.monde, self.id, ici, cles, frozenset()) if ici in self.salles else {}
+                self._descentes["sommet"] = max(sorted(atteintes) or [ici], key=lambda s: altitude(self.monde, s))
+            sommet = self._descentes["sommet"]
             self._descentes[cle] = salle in self.noyees or salle != sommet and not self._retour(salle, sommet)
         return self._descentes[cle]
 
@@ -1290,6 +1296,12 @@ def _resultat(v, e, etapes, sorte):
 def planifier(monde, id, besoin):
     """(but, étapes) pour apaiser la faim ou le froid, ou None."""
     but = {"faim": a_mange, "chaleur": rechauffe}[besoin]
+    if besoin == "chaleur" and eau.active(monde):
+        # Se chauffer demande un feu hors de l'eau (``gestes``, ``_parts``) : si chaque foyer qu'il
+        # connaît est là où il croit ou attend l'eau, aucun plan ne le réchauffe ; inutile de le chercher.
+        v = Vue(monde, id)
+        if v.foyers and all(salle_crue(monde, id, f) in v.menacees for f in v.foyers):
+            return None
     # Se chauffer se tient près du feu : ce que ce lieu laisse monter compte.
     trouve = chercher(monde, id, but, nom=besoin, memo=["besoin", besoin],
                       emplois={"faim": ("manger",), "chaleur": ("feu",)}[besoin], motif=besoin,
