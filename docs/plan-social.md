@@ -712,3 +712,29 @@ autre recherche, qui pouvait n'aboutir à rien) : la tâche acceptée se découv
 devenait une dette. Désormais l'empêchement est le même devis, refait sur ce qu'il croit maintenant, et
 la tâche se fait par le plan de ce devis : seul ce qui a changé dans ce qu'il croit depuis l'acceptation
 peut la rendre impossible.
+
+Ce qui faisait la dette immédiate du cas réel, rejoué sur une sauvegarde de la nuit à la minute 341 :
+Tilo croyait l'âtre allumé et chargé (son savoir de départ) ; le devis le comptait seulement à
+recharger (`depuis` : chargé faux) et passait par les fagots de l'étable ; l'abandon, par le plan d'une
+pulsion, l'envoyait d'abord voir ; il le voyait éteint, et faute de flamme, plus aucun plan : dette.
+Règle : **un feu qu'on le paie d'entretenir se compte à recharger, et éteint si le payeur ne le croit
+pas allumé** (ce que dit l'offre ; une offre du joueur, éteint), quoi qu'il en ait cru avant la tâche ;
+ce qu'il a vu ou fait de sa main depuis l'offre, il le croit (`planification._vu_avant_la_tache` : une
+croyance de la minute même ne compte que vue ou constatée, pas un savoir). Sans cela, Joss, qui venait
+de recharger le fourneau qu'on le payait d'allumer, le recomptait à recharger, n'avait plus de bois et
+devait aussitôt (une régression vue au banc, corrigée avant les mesures). Le plan de la tâche et son
+empêchement suivent ce même devis. Ce qui reste : on accepte sur ce qu'on croit ; une croyance fausse
+découverte au premier geste (Joss croyait le ballot dans les mains d'Anselme, qui le lui faisait
+chercher) rend encore la tâche impossible tout de suite, et la dette naît alors à bon droit.
+
+Vérifié après rechargement (`tests/test_crochetage_surenchere.py`, `tests/test_refus_retenus.py`) : les
+offres de Mireille à Anselme (30 pièces : 2, 3, 5, puis plus rien, 8 lui coûterait plus que la peine ;
+6 pièces : 2 puis rien ; 3 pièces : aucune offre) ; aucune hausse à la minute d'un refus « cher », une
+première offre à un autre restant permise ; dans la vie de l'auberge, chaque offre à Anselme passe la
+précédente ; le cas réel d'Odile et de Tilo : 2, 3, 5, 8, une par minute, puis plus rien (avant 2, 4, 8,
+16, 32, 64, plusieurs dans la même minute) ; Tilo sans flamme refuse (« impossible ») au lieu d'accepter
+puis de devoir à la minute suivante ; avec un briquet, il accepte, recharge et rallume l'âtre, sans
+dette ; Joss recharge et rallume le fourneau payé par Mireille, sans dette. Tests changés :
+`test_refus_retenus` (« accepte à quatre » → paliers et seuil de la peine, vérifiés sur ce qu'offre le
+planificateur, l'auberge vivant autrement : à la minute suivante, Mireille achète une part plutôt que de
+hausser).
