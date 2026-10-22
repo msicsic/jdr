@@ -290,6 +290,19 @@ class ConsignesTests(unittest.TestCase):
         self.assertIn("dire qu'ils se taisent est mecanique, source conversation_validee",
                       " ".join(INSTRUCTIONS_AUDIT.split()))
 
+    def test_l_auditeur_sait_ce_qui_n_a_pas_a_etre_fourni(self):
+        # Revérification : la réplique de qui répond refusée faute de mots fournis ; le crépitement d'un
+        # brasero allumé refusé, Luna écrivant « tu ignores si un feu crépite ».
+        from donjon.narration import INSTRUCTIONS_AUDIT
+        texte = " ".join(INSTRUCTIONS_AUDIT.split())
+        self.assertIn("ses mots manquent toujours des faits, ce n'est ni une invention ni une contradiction", texte)
+        self.assertIn("Ce que fait sentir un objet perçu dans l'état que disent les faits", texte)
+
+    def test_le_recit_d_une_voix_inconnue_et_les_noms_connus_sont_dits(self):
+        texte = " ".join(REGLE_NARRATION.split())
+        self.assertIn("jamais par le nom qu'elle prétend", texte)
+        self.assertIn("Une réplique ne nomme que qui son locuteur connaît", texte)
+
     def test_la_contre_revue_admet_la_perception_qui_cherche(self):
         self.assertIn("Chercher,\nfouiller ou inspecter", REVUE)
 

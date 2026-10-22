@@ -306,8 +306,9 @@ class ExplicationCedee(ErreurMonde):
 
 # « impossible » au premier examen : un réexamen est demandé, une fois (``MJ._echanger_prepare``).
 REEXAMEN = "Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible."
-ATTENDU_REEXAMEN = ("action : le geste que demande la saisie, tel quel (le moteur dit ce qui manque) ; impossible "
-                    "seulement si aucune action du moteur ne le couvre.")
+ATTENDU_REEXAMEN = ("action : le geste que demande la saisie, tel quel, même si sa cible est loin, hors de vue ou "
+                    "introuvable (le moteur dit au joueur ce qui manque : s'approcher, la voir, ce qu'elle est) ; "
+                    "impossible seulement si aucune action du moteur ne le couvre.")
 
 
 def retour_refus(proposition, exc, consigne):

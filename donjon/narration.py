@@ -95,7 +95,10 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 - neutre : aucune affirmation sur le monde (salutation, question, conseil, invitation) ;
 - hypothese : possibilité explicitement présentée comme incertaine ;
 - ambiance : description sensorielle libre ; liste dans entites les éléments évoqués,
-  en quelques mots chacun (« odeur de vase », « gouttes au plafond ») ;
+  en quelques mots chacun (« odeur de vase », « gouttes au plafond »). Ce que fait sentir un
+  objet perçu dans l'état que disent les faits (le crépitement ou la fumée d'un feu allumé, la
+  lueur d'une lanterne, l'eau qui clapote là où il y en a) est ambiance : les faits n'ont pas à
+  le fournir ;
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
   des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements).
   Corvus perçoit exactement les objets objet:<id> fournis : qu'il ne voie pas un objet dont il
@@ -120,8 +123,10 @@ conversation_validee est une parole de Corvus que le moteur a déjà fait entend
 en a établi (Corvus l'a dite, à qui, qui lui répond) ; la raconter, ou dire qu'elle résonne, est
 mecanique, source conversation_validee. Ceux de conversation_validee.repondent lui répondent, et eux
 seuls : la réplique de l'un d'eux, avec ses propres mots, est une parole (verdict parole), que rien
-n'a à prévoir ni à fournir mot pour mot ; dire que l'un d'eux se tait, ne répond pas ou ne l'a pas
-entendu est contradictoire. repondent vide :
+n'a à prévoir ni à fournir mot pour mot : ses mots manquent toujours des faits, ce n'est ni une
+invention ni une contradiction ; seul ce qu'elle affirme peut contredire l'issue, et ce qu'elle
+promet est un engagement. Dire que l'un d'eux se tait, ne répond pas ou ne l'a pas entendu est
+contradictoire. repondent vide :
 personne ne lui répond. Les temoins l'ont entendue et se taisent : dire qu'ils se taisent est
 mecanique, source conversation_validee. Dans objet:<id>, a_portee_de_main
 dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
@@ -162,6 +167,9 @@ Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxi
 Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
 ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
 incertitude se dit de ce que Corvus sait, à la deuxième personne (« tu ne sais pas si… »).
+Une voix inconnue (interlocuteurs.voix_<n>) se désigne dans le récit par son nom d'interlocuteur
+(« la voix qui se dit … », « une voix »), jamais par le nom qu'elle prétend. Une réplique ne nomme
+que qui son locuteur connaît (personne ne sait le nom de Corvus s'il ne l'a pas entendu).
 """
 
 
