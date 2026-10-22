@@ -26,6 +26,7 @@ from . import eau, force
 from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
+from .relations import se_fie, se_mefie
 from .spatial import porte_par
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
@@ -252,6 +253,13 @@ class Vue:
             crus[cle] = calcul()
         return crus[cle]
 
+    def se_mefie(self, autre):
+        """Il se méfie d'``autre`` (``relations``) ; ce qu'il en éprouve entre dans ``_entrees``."""
+        return self._memo((autre, "se_mefie"), lambda: se_mefie(self.monde, self.id, autre))
+
+    def se_fie(self, autre):
+        return self._memo((autre, "se_fie"), lambda: se_fie(self.monde, self.id, autre))
+
     def cru(self, sujet, attribut):
         cle = (sujet, attribut)
         crus = self._crus
@@ -300,6 +308,12 @@ class Vue:
         pour l'acheter, ce qui n'empêche pas de le demander."""
         refus = self.retenu(autre, ("demander", "acheter"), o)
         return refus if refus and refus["raison"] != "pauvre" else None
+
+    def contrarie(self, o):
+        """Quelqu'un s'oppose à lui sur cette chose et l'opposition tient (``deliberation.changer_etat``) :
+        il n'y touche pas."""
+        return self._memo((o, "contrarie"), lambda: any(
+            s["operation"] == "defaire" and s.get("objet") == o and tenu for s, tenu in self.refus_tenus()))
 
     def refuse_tache(self, autre, o):
         """Un refus qui tient de faire pour lui une tâche sur ``o`` (``echanges.engager``) ; « cher »
@@ -671,6 +685,8 @@ def gestes(v, e, vises=None, but=None):
                 if v.besoin[o]:
                     yield from _parts(v, e, o, v.lieu(e, o), vises, but)
                 continue
+        if v.contrarie(o):
+            continue   # On s'oppose à lui sur cette chose : il n'y touche pas tant que cela tient.
         superflu = (assez and ("allume" in x or "allumage" in x.get("usages", [])) and not x.get("foyer")
                     and o not in v_prendre and o not in v_entretenir)
         # ``Vue.lieu`` et ``Vue.a_portee`` : dans sa main, dans sa salle, ou dans un contenant ouvert
@@ -872,7 +888,7 @@ def _engager(v, e, condition):
     if v.richesse - (e.fait("depense") or 0) < prix:
         return
     for autre in v.personnes():
-        if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False:
+        if v.salle(e, autre) != e.salle or v.se_mefie(autre):
             continue
         # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre plus,
         # s'il le peut (``SURENCHERE``).
@@ -1533,7 +1549,7 @@ def s_enquerir(monde, id, besoin):
     candidats = []
     for autre in v.personnes():
         salle = v.salle(e, autre)
-        if autre in interroges or autre in connus or salle is None or v.cru(autre, "fiable") is False:
+        if autre in interroges or autre in connus or salle is None or v.se_mefie(autre):
             continue
         longueur = v.trajet(e.salle, salle)
         if salle == e.salle or longueur:
@@ -1608,10 +1624,10 @@ def abri(monde, id, salles):
     e = depart(monde, id, v)
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
-    fuir = any(v.cru(x, "fiable") is False for x in ici) and e.salle not in menaces(monde, id)
+    fuir = any(v.se_mefie(x) for x in ici) and e.salle not in menaces(monde, id)
     gain = ((taux(monde, id, "noir") + taux(monde, id, "lumiere") if v.peur and v.noir(e) else 0)
             + (taux(monde, id, "mefiance") if fuir else 0)
-            + (0 if any(v.cru(x, "fiable") is True for x in ici) else taux(monde, id, "compagnie")))
+            + (0 if any(v.se_fie(x) for x in ici) else taux(monde, id, "compagnie")))
     trouve = chercher(monde, id, lambda v, e: e.salle in salles, nom="abri", memo=["abri", sorted(salles)],
                       emplois=(), motif="securite", tenir=True, endurer=RESTER * NOIR * gain)
     return None if trouve is None else (trouve[2].salle, _couper(trouve[1]))

@@ -975,3 +975,118 @@ Les minutes en attente sont le froid : Brune pressée par le froid 7 → 291 min
 151, sans feu hors de l'eau ; la sécurité de Brune ne presse plus que 4 minutes au lieu de 72. Temps
 d'une nuit, `integration` et branche lancées ensemble (4 graines) : mine 27 → 27 s, auberge 30,1 →
 30,3 s.
+
+## Les boucles de la revérification (branche `boucles-pnj`)
+
+Deux boucles nouvelles de la [revérification](reverification.md) (N1 et N2), nées de la délibération à
+l'événement (`docs/plan-temps.md`, « Délibérer à l'événement ») : chacun rechoisissant son but à
+l'instant, ce qui se relayait une fois par minute se relaie maintenant à chaque geste ou à chaque pas.
+La troisième (N4, prévenir de ce que la victime sait) est dans `docs/plan-ouie.md`, « Ce qu'on a déjà
+dit ».
+
+**Un geste défait sous ses yeux** (N1 : à la mine 42, Odon ouvrait le garde-manger de Mathe, elle le
+refermait, 689 fois chacun toutes les deux secondes, puis crochetage et reverrouillage, et Mathe
+appelait à l'aide toutes les deux minutes). Diagnostic, corrigé de celui de la revérification : la
+condition `sans_temoin` porte bien sur chaque geste illicite du plan, ouvrir compris
+(`planification.gestes` : `faute`) ; c'est la faim d'Odon passée à `DESESPOIR` (95, à la minute 214)
+qui lève la précaution (`pnj.desespere`), comme voulu. La boucle venait de ce que voir son propre
+geste défait par un autre ne lui apprenait rien : réveillé, il le refaisait à l'instant. Règle commune
+(`deliberation.changer_etat`, `contrarie`) : ce qu'un PNJ vient de faire de sa main à une chose
+(l'ouvrir, la fermer, la verrouiller, la crocheter, l'allumer, l'éteindre : `ETATS_DONNES`, retenu
+dans l'esprit `donne` pendant `DEFAIT` minutes, 5), un autre — PNJ ou joueur — le défait sous ses yeux :
+on s'oppose à lui sur cette chose. Il le retient comme un refus (`retenir_refus`, opération `defaire`,
+raison « oppose ») qui tient tant qu'il croit l'opposant là où est la chose, au plus `REDEMANDE`
+minutes (`tient`), et le planificateur ne lui offre plus aucun geste sur elle (`Vue.contrarie`) : il
+cherche autre chose, ou attend. Une gardienne dont on rouvre sous ses yeux ce qu'elle vient de fermer
+ne le referme pas en boucle : sa pulsion reste rompue sans plan, elle reste (garder) et appelle si elle
+le craint. Seul « ce qu'il vient de faire » compte : Mathe avait verrouillé le garde-manger 89 minutes
+plus tôt ; qu'Odon le crochète ne l'empêche pas de le reverrouiller ; c'est Odon, dont elle referme ce
+qu'il vient d'ouvrir, qui cesse. Pour le joueur auteur, le moteur l'applique à ses gestes d'ouverture,
+de déverrouillage et d'allumage (`moteur._appliquer`).
+
+**Deux recours d'un même besoin** (N2 : à la crue 3, Ilse et Brune passaient 946 et 747 fois d'une
+salle à l'autre, jusqu'à 552 passages dans une heure). Diagnostic, corrigé de celui de la
+revérification : la Galerie de ronde est éclairée par le jour (pénombre), pas par une lanterne du
+joueur (la sienne était éteinte) ; la lumière y est réelle. La boucle a deux moitiés. (a) Dans la
+galerie, à l'abri de la lumière, la sécurité qui presse cherche un abri auprès de quelqu'un de sûr :
+Gorm au refuge, par le palier ; dans le palier, où l'eau baisse encore (15 cm), l'abri devient le plus
+haut lieu éclairé que l'eau ne menace pas (`_plan_abri`, branche de l'eau) : la galerie ; arrivée, de
+nouveau le refuge. (b) Dans le noir du palier, la lumière (recours avant l'abri, `RECOURS`) la renvoie
+à la galerie, la plus proche. Chaque pas de l'une, entendu de l'autre, la fait rechoisir. Deux règles :
+- **Le recours en cours garde la main** (`choisir`, `_candidats`) : une hystérésis entre recours,
+  comme `INERTIE` entre besoins. Quand un autre recours du même besoin et du même rang (la lumière et
+  l'abri, une pulsion rompue, se chauffer…) donne un autre but, la méthode du but en cours est essayée
+  d'abord ; si elle le rend encore sur ce qu'il croit, il le garde. Ce qui n'est pas un recours (une
+  alarme, une parole due, prévenir, attendre l'appelant, sortir de l'eau où l'on se croit en péril, un
+  bruit à voir, l'argent) passe devant, comme avant ; la routine n'en a pas besoin (une ronde faite le
+  reste pour sa période ; sans cette exception, Gorm allait faire la ronde des vannes avant celle du
+  refuge où il se tenait).
+- **L'abri vers lequel il est en route garde la main** (`_plan_abri`) tant qu'il en est un à ses yeux
+  (éclairé, hors de l'eau, quelqu'un de sûr y est), qu'il ne se tient pas déjà dans un abri, que l'eau
+  ne monte pas sous ses yeux et qu'il ne se croit pas en péril : un abri « meilleur » apparu en chemin
+  (quelqu'un de sûr passé ailleurs) ne le détourne pas, ni un lieu menacé qu'il traverse — ce passage,
+  son plan le prévoyait. Devant l'eau qui monte, le plus haut lieu reste la règle
+  (`tests/test_eau.py`, Ilse fuit vers la galerie).
+- La lumière se juge comme le planificateur la juge (`_plan_lumiere`) : sa lumière en main, ou celle
+  du lieu (`lumiere_crue`) ; plus la lanterne qu'un autre porte et qui partira avec lui (avant :
+  `autour`, la lumière de sa case quelle qu'en soit la source).
+
+Cas vérifiés après rechargement (`tests/test_boucles_pnj.py`, 11 tests ; chacun échoue sur `main`) :
+- N1, cas réel (mine) : Odon, à 96 de faim, crochets en main, Mathe méfiante devant son garde-manger
+  verrouillé : un crochetage, une ouverture, Mathe referme et verrouille, Odon ne revient plus au
+  garde-manger tant qu'elle est là (au plus un appel à l'aide) ; même laps découpé, même monde.
+- N1, même nature (Relais) : Brune à 96, devant la réserve de Gorm ; il referme et verrouille sous
+  ses yeux ; elle n'y touche plus, et l'opposition tombe quand elle le sait à la crypte.
+- N1, le joueur auteur : il éteint le brasero que Gorm vient d'allumer ; Gorm ne le rallume pas lui-même
+  tant qu'il le croit là ; le sachant monté à la galerie, l'opposition tombe.
+- N2, cas réel (crue, l'eau à 15 cm au palier, en baisse) : Brune et Ilse gagnent le refuge par le
+  palier et l'eau, sans revenir à la galerie (sur `main` : 16 et 19 passages en quinze minutes) ; même
+  laps découpé, même monde.
+- N2, même nature (Relais, sans eau) : les deux mêmes, l'abri de chacune suivant l'autre ; elles
+  s'abritent ensemble au lieu de se croiser (sur `main` : 23 passages en quinze minutes).
+- N2, même nature, seule : Brune part pour le refuge ; le joueur, lanterne éteinte, va et vient dans le
+  palier noir ; chaque pas entendu la fait rechoisir ; elle ne rebrousse plus (sur `main` : 22 passages
+  en quatre minutes).
+
+Audit (`tools/audit_nuits.py`, qui mesure désormais les boucles : `bascules`, un état qu'un PNJ donne à
+une chose et qu'un autre reprend ; `passages_heure_max` ; `avertissements_redits` ; appels à l'aide),
+4 scénarios × 8 graines (3 42 123 500 1985 2024 7 11) × 12 h, départ tiré, `main` e07bc20 puis la
+branche, l'un après l'autre, 5 processus ; par nuit (pire nuit entre parenthèses) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| bascules | 2,5 → 2,5 | 180,6 (1 436) → 2,1 (8) | 15,5 (62) → 2,5 (4) | 1,75 → 1,75 |
+| passages de salle par heure, au plus | 9,25 → 9,25 | 12,75 (16) → 13,4 (16) | 27,25 (44) → 27,4 (35) | 24 (40) → 24 (40) |
+| avertissements redits | 0 → 0 | 0 → 0 | 4,4 (21) → 0,75 (2) | 0 → 0 |
+| appels à l'aide | 0,4 → 0,4 | 5,6 (13) → 4,1 (8) | 2,9 → 2,6 | 0 → 0 |
+| sans recours | 119 → 119 | 47,5 → 46,9 | 191 → 195 | 57,5 → 57,5 |
+| en attente | 295 → 295 | 1 369 → 1 404 | 379 → 456 | 537 → 537 |
+| vols vus (témoins) | 1,25 (2,75) → idem | 0,5 (1,5) → 0,375 (0,9) | 1,75 (2,9) → 1,25 (2,9) | 0,6 (1,25) → idem |
+| minutes dans le noir | 236 → 236 | 1 403 → 1 541 | 961 → 992 | 97,5 → 97,5 |
+| gestes | 211 → 211 | 533 → 336 | 642 → 635 | 293 → 293 |
+| temps d'une nuit | 19,1 → 22,5 s | 111 → 112 s | 96 → 105 s | 28,8 → 28,2 s |
+
+Relais et crue : les 8 nuits identiques (empreintes) ; mine 6 sur 8, auberge 1 sur 8. Aucun plantage,
+aucune violation de `Monde.verifier` (chaque pas), aucune usurpation. `planification.VERIFIER` et `spatial.VERIFICATION`
+(0,2) sans écart sur une nuit de 8 h de chaque scénario (graine 42, celle de la mine qui bouclait). Les temps, sur une machine chargée
+et à nuits identiques pour le Relais, sont dans le bruit. Sur ce `main`, deux nuits de l'auberge (42 et
+1985) montraient la même boucle que N1 : Lucien ouvre le coffre ferré d'Anselme, Anselme le referme, 31
+et 25 fois ; corrigée par la même règle. Les données de la crue ayant changé (`ressources`), la boucle de
+la crue 3 n'y apparaît plus ; sur `main` ec2352e, avant ces données, la crue 3 passait de 1 705 à 136
+passages de salle en 8 h (au plus 552 dans une heure sur `main`). À la mine 42, Mathe appelle à l'aide 3
+fois au lieu de 13. En attente monte à l'auberge et à la
+mine : qui s'est vu opposer un geste attend que l'opposant s'en aille au lieu de le refaire ; à la mine,
+Odon, privé du garde-manger, reste plus longtemps dans le noir.
+
+Limites :
+- « Ce qu'il vient de faire » est une fenêtre de `DEFAIT` minutes ; au-delà, défaire son geste n'est
+  plus une opposition (Mathe reverrouille ce qu'Odon a crocheté). L'opposition porte sur la chose
+  entière, pas sur le seul état défait, et tient tant qu'il croit l'opposant là (une croyance qui peut
+  être périmée, bornée par `REDEMANDE`) ; elle ne change pas sa confiance en l'opposant, qui peut agir
+  de plein droit (le propriétaire qui referme son bien).
+- Seuls les états ouvert, verrouillé et allumé sont des gestes qu'on défait ; prendre ce qu'un autre
+  vient de poser ne l'est pas. Les portes ouvertes en chemin (la marche) n'en sont pas non plus.
+- L'hystérésis compare les buts, pas leur coût : un recours bien meilleur apparu en chemin ne
+  l'emporte qu'à la fin du plan, si celui en cours tient encore. La routine en est exclue.
+- L'abri en route ne cède qu'à l'eau qui monte sous ses yeux, au péril, ou s'il cesse d'être un abri
+  à ses yeux ; traverser un lieu qu'il attend inondé pour le rejoindre reste possible (la crue 3).

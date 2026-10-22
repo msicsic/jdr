@@ -321,7 +321,9 @@ class DefiRelaisTests(unittest.TestCase):
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
         self.assertEqual(appel.call_count, 3)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Corvus n'a rien tenté", reponse["texte"])
+        # Sans explication du MJ, chaque refus du monde, dans l'ordre (branche relances-luna).
+        self.assertEqual(reponse["texte"], "La lumière est trop faible pour lire avec précision. "
+                                           "La torche n'a plus de combustible.")
         self.assertTrue(reponse["_validation_refusee"])
         self.assertEqual(self.m.data, avant)
 
@@ -334,7 +336,7 @@ class DefiRelaisTests(unittest.TestCase):
             reponse = mj.echanger(self.m, "j'ouvre le coffre d'entretien")
         self.assertEqual(appel.call_count, 3)
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Corvus n'a rien tenté", reponse["texte"])
+        self.assertEqual(reponse["texte"], "Le coffre d'entretien ouvert n'est pas ici.")
         self.assertTrue(reponse["_validation_refusee"])
         self.assertNotIn("Tu ne parviens pas", reponse["texte"])
         self.assertEqual(self.m.data, avant)
@@ -351,7 +353,7 @@ class DefiRelaisTests(unittest.TestCase):
         with patch.object(mj, "_appeler", side_effect=[lire, attendre, ErreurMonde("narration indisponible")]):
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
         self.assertEqual(reponse["mode"], "dialogue")
-        self.assertIn("Corvus n'a rien tenté", reponse["texte"])
+        self.assertEqual(reponse["texte"], "La lumière est trop faible pour lire avec précision.")
         self.assertEqual(self.m.data, avant)
 
 

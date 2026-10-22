@@ -15,8 +15,9 @@ from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cr
                            illicite, profil, refus_retenu, salle_crue, seuils)
 from .caractere import caracteristiques, interdit
 from .echanges import demande_de_part
-from .esprits import esprit, lire, memoriser, percoit, pnjs
+from .esprits import croyance, esprit, lire, memoriser, percoit, pnjs
 from .monde import ErreurMonde
+from .relations import FIABLE
 
 ATTENTE = 60            # minutes entre deux consultations pour un même PNJ
 BUDGET_HEURE = 2        # consultations par heure de jeu pour tout le scénario
@@ -197,7 +198,7 @@ def schema(monde, id):
                 "properties": {"operation": {"type": "string", "enum": list(GESTES)},
                                "cible": chaine(connus), "outil": chaine(connus), "lieu": chaine(salles),
                                "sujet": chaine(connus),
-                               "attribut": {"type": "string", "enum": ["", "lieu", "verrouillee", "fiable", "allume"]},
+                               "attribut": {"type": "string", "enum": ["", "lieu", "verrouillee", FIABLE, "allume"]},
                                "valeur": chaine([*salles, *connus, "oui", "non"])},
                 "required": ["operation", "cible", "outil", "lieu", "sujet", "attribut", "valeur"]}},
             "justification": {"type": "string"},
@@ -262,11 +263,11 @@ def _etape(monde, id, n, x, obtenus):
             if attribut == "lieu":
                 if valeur not in monde.data["salles"] and valeur not in connus:
                     raise faute("la valeur d'un lieu est une salle ou un porteur")
-            elif attribut in ("verrouillee", "fiable") and valeur in ("oui", "non"):
+            elif attribut in ("verrouillee", FIABLE) and valeur in ("oui", "non"):
                 valeur = valeur == "oui"
             else:
                 raise faute("attribut lieu, verrouillee ou fiable, avec une valeur qui lui convient")
-            if interdit(monde, id, "honnetete") and _cru(monde, id, sujet, attribut) != valeur:
+            if interdit(monde, id, "honnetete") and (croyance(monde, id, sujet, attribut) or {}).get("valeur") != valeur:
                 raise faute("il ne ment pas : il ne peut dire que ce qu'il croit, et il ne croit pas cela")
             etape["contenu"] = {"sujet": sujet, "attribut": attribut, "valeur": valeur}
         else:

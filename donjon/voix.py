@@ -29,7 +29,7 @@ Se nommer est une affirmation pesée, jamais une identité acquise (``se_nommer`
   méfie de cette voix, et de son porteur s'il sait qui c'est ;
 - sinon il croit « c'est X » comme un ouï-dire, pesé contre ce qu'il sait (X vu ailleurs il y a
   peu : il en doute). Le nom situe X (une croyance de lieu, source ``se_dit``) ; il ne donne
-  jamais plus que la confiance accordée à un inconnu (``fiabilite``) ;
+  jamais plus que la confiance accordée à un inconnu (``relations.percue``) ;
 - plus tard, il entend la vraie voix de X : elle devient connue (``connaitre``) ; celle qui
   s'était dite X n'était pas la sienne, il sait qu'on lui a menti, sans savoir qui ; le jour où il
   voit parler le menteur, il reconnaît « la voix qui se disait X » et s'en méfie. Si c'était bien
@@ -42,6 +42,7 @@ moins (``INCONNU``) ; s'il est prudent (``prudent`` : sa crainte contre son cour
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser
+from .relations import eprouver
 
 INCONNUE, PRETENDUE, RECONNUE, SUSPECTE = "inconnue", "pretendue", "reconnue", "suspecte"
 VOIX_MAX = 24          # voix inconnues retenues ; au-delà, la plus anciennement entendue s'oublie
@@ -142,17 +143,6 @@ def identifie(monde, x, y):
     voix, ou reconnaît sa voix (``reconnaitre``). Jamais d'après la place réelle de ``y`` seule."""
     return (voit(monde, x, y) or _verrait_en_se_tournant(monde, x, y)
             or reconnaitre(monde, x, y)[1] == RECONNUE)
-
-
-def fiabilite(monde, auditeur, locuteur):
-    """La confiance qu'``auditeur`` accorde à qui lui parle, telle qu'il le perçoit : celle qu'il
-    porte à ``locuteur`` s'il sait que c'est lui ; à une voix dont il se méfie, aucune ; à une
-    autre voix inconnue, celle d'un étranger (None), même si elle s'est nommée."""
-    if identifie(monde, auditeur, locuteur):
-        return lire(monde, auditeur)["croyances"].get(locuteur, {}).get("fiable")
-    if reconnaitre(monde, auditeur, locuteur)[1] == SUSPECTE:
-        return {"valeur": False, "source": "entendu"}
-    return None
 
 
 def source_dite(monde, auditeur, locuteur):
@@ -331,7 +321,7 @@ def connaitre(monde, qui, autre):
         return  # Le joueur juge lui-même : ce qu'il entend s'affiche (``nom_pour_joueur``).
     croyances = esprit(monde, qui)["croyances"]
     if entree and (entree["mefiance"] or entree["se_dit"] not in (None, autre)):
-        croire(monde, qui, autre, "fiable", False, "entendu")
+        eprouver(monde, qui, autre, "imposture", "entendu")
         memoriser(monde, qui, {"type": "imposture", "locuteur": autre, "se_disait": entree["se_dit"]})
     elif entree and entree["se_dit"] == autre:
         c = croyances.get(autre, {}).get("lieu")
@@ -348,12 +338,13 @@ def connaitre(monde, qui, autre):
                 del croyances[autre]["lieu"]  # Ce n'était pas lui : il ne sait plus où il est.
 
 
-def se_mefier(monde, auditeur, locuteur, source="entendu"):
-    """Il se méfie de qui lui a menti : de ``locuteur`` s'il sait que c'est lui, sinon de sa voix."""
+def se_mefier(monde, auditeur, locuteur, source="entendu", cause="mensonge_dementi"):
+    """Il se méfie de qui lui a menti (``cause``, ``relations.EPREUVES``) : de ``locuteur`` s'il sait que
+    c'est lui, sinon de sa voix."""
     if auditeur == "joueur":
         return
     if identifie(monde, auditeur, locuteur):
-        croire(monde, auditeur, locuteur, "fiable", False, source)
+        eprouver(monde, auditeur, locuteur, cause, source)
     else:
         retenir(monde, auditeur, locuteur)["mefiance"] = True
 
@@ -371,7 +362,7 @@ def se_nommer(monde, auditeur, locuteur, nom):
         if nom == locuteur:
             apprendre_nom(monde, auditeur, locuteur)  # Il sait que c'est lui : il retient son nom.
             return "connu"
-        se_mefier(monde, auditeur, locuteur)
+        se_mefier(monde, auditeur, locuteur, cause="imposture")
         memoriser(monde, auditeur, {"type": "imposture", "locuteur": locuteur, "se_disait": nom})
         return "demasque"
     if reconnaitre(monde, auditeur, locuteur)[1] == SUSPECTE:
@@ -406,7 +397,8 @@ def prudent(monde, id):
 def repond(monde, qui, locuteur):
     """``qui`` répond à la voix de ``locuteur`` qui l'appelle ou lui pose une question sans le savoir là
     (``pnj.repondre``, ``paroles.repondants``) : sauf à une voix dont il se méfie."""
-    return (fiabilite(monde, qui, locuteur) or {}).get("valeur") is not False
+    from .relations import mefiance, percue
+    return not mefiance(percue(monde, qui, locuteur))
 
 
 def qui_va_la(monde, auditeur, locuteur):

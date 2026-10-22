@@ -796,6 +796,7 @@ class Moteur:
 
     @staticmethod
     def _appliquer(m, effet, lignes):
+        from .deliberation import changer_etat
         op, cible, valeur = effet
         if op == "manger":
             from .corps import SATIETE, valeurs
@@ -895,7 +896,8 @@ class Moteur:
             if cible not in m.data["connus"]:
                 m.data["connus"].append(cible)
         elif op == "allumage":
-            o["allume"] = valeur
+            avant, o["allume"] = o.get("allume"), valeur
+            changer_etat(m, "joueur", cible, "allume", avant)
             lignes.append(designer(o, debut=True) + (" s'allume." if valeur else " s'éteint."))
         elif op == "prelever_piece":
             from .matiere import prelever_piece
@@ -928,10 +930,12 @@ class Moteur:
                 m.data["visitees"].append(cible)
             lignes.append("Tu entres dans : " + m.data["salles"][cible]["nom"] + ".")
         elif op == "ouverture":
-            o["ouverte"] = valeur
+            avant, o["ouverte"] = o.get("ouverte"), valeur
+            changer_etat(m, "joueur", cible, "ouverte", avant)
             lignes.append(designer(o, debut=True) + (" s'ouvre." if valeur else " se ferme."))
         elif op == "deverrouiller":
-            o["verrouillee"] = False
+            avant, o["verrouillee"] = o.get("verrouillee"), False
+            changer_etat(m, "joueur", cible, "verrouillee", avant)
             lignes.append(designer(o, debut=True) + " est " + accorder(o, "déverrouillé") + ".")
         elif op == "detacher":
             deplacer(m, cible, "joueur")

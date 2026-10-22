@@ -52,7 +52,10 @@ class EntretenirUnFeuTests(unittest.TestCase):
         m = creer("auberge", 1985, "fixe")
         # Placement d'auteur : le bois de la cuisine est brûlé, le fourneau baisse ; Mireille sait
         # que Joss garde des fagots à l'étable (le banc le lui fait apprendre en cours de nuit).
-        sans(m, "bois_cuisine")
+        # La réserve d'Odile (branche ``ressources``) est brûlée aussi ; Joss a ses deux charges
+        # d'avant cette branche.
+        sans(m, "bois_cuisine", "bois_reserve")
+        m.objets["fagots_etable"]["charges"] = 2
         m.objets["fourneau"]["combustible"] = 8
         croire(m, "mireille", "fagots_etable", "lieu", "etable", "savoir", salle="etable", case=None)
         chronique, _ = executer(m, 10)

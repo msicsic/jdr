@@ -46,8 +46,9 @@ def mesurer(fichiers):
             for e in t.get("fil", []):
                 if e.get("etape") == "contrôle narratif":
                     m["obstacles"] += len(e.get("obstacles", []))
-                    # Une réponse refusée par le contrôle narratif est redemandée, sauf la troisième (repli).
-                    m["relances"] += e.get("tentative", 0) < 3
+                    # Une réponse refusée par le contrôle narratif est redemandée, sauf la troisième (repli)
+                    # et une explication qui cède au refus du monde (``sans_relance``).
+                    m["relances"] += e.get("tentative", 0) < 3 and not e.get("sans_relance")
                 if e.get("etape") == "validation":
                     m["refus"] += 1
                 if e.get("etape") != "appel":

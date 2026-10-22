@@ -18,11 +18,13 @@ y répondent.
 import copy
 import re
 
-from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
+from . import relations
+from .esprits import RECENT, croire, croyance, esprit, lire, memoriser, percevoir
 from .francais import designer, lieu
 from .monde import ErreurMonde, normaliser
+from .relations import FIABLE
 
-ATTRIBUTS = ("lieu", "verrouillee", "fiable")
+ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
 TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource")
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 SCHEMA_PAROLE = {
@@ -131,12 +133,13 @@ def _stats_pnj(monde, id):
 def jet_persuasion(monde, auditeur, locuteur, dd_base):
     """d20 + présence (CHA) et éloquence (ELO) du locuteur, contre un DD que la confiance de
     l'auditeur abaisse ou relève et que sa volonté (VOL) élève ; caractéristiques modulées. La
-    confiance est celle qu'il porte à qui il croit entendre (``voix.fiabilite``) : une voix qu'il ne
+    confiance est celle qu'il porte à qui il croit entendre (``relations.percue``) : une voix qu'il ne
     sait à qui prêter est un étranger, et sa demande pèse moins (``voix.INCONNU``), même nommée."""
     from .caractere import modificateur
-    from .voix import INCONNU, fiabilite, identifie
-    confiance = fiabilite(monde, auditeur, locuteur)
-    dd = (dd_base + (-2 if confiance and confiance["valeur"] else 6 if confiance else 2)
+    from .relations import confiance, mefiance, percue
+    from .voix import INCONNU, identifie
+    relation = percue(monde, auditeur, locuteur)
+    dd = (dd_base + (-2 if confiance(relation) else 6 if mefiance(relation) else 2)
           + (0 if identifie(monde, auditeur, locuteur) else INCONNU)
           + modificateur(monde, auditeur, "VOL"))
     return monde.d20() + modificateur(monde, locuteur, "CHA") + modificateur(monde, locuteur, "ELO") >= dd, dd
@@ -145,7 +148,7 @@ def jet_persuasion(monde, auditeur, locuteur, dd_base):
 def dementi(monde, auditeur, sujet, attribut, valeur):
     """Ce que l'auditeur a vu ou essayé récemment contredit-il ce qu'on lui dit ? Ne pas avoir
     trouvé un objet là où on l'attendait ne contredit pas qu'il soit ailleurs."""
-    actuelle = lire(monde, auditeur)["croyances"].get(sujet, {}).get(attribut)
+    actuelle = croyance(monde, auditeur, sujet, attribut)
     return bool(actuelle and actuelle["source"] in ("vu", "essai") and actuelle["valeur"] != valeur
                 and not (attribut == "lieu" and actuelle["valeur"] is None)
                 and monde.data["minutes"] - actuelle["minute"] <= RECENT)
@@ -172,7 +175,7 @@ def _phrase(monde, sujet, attribut, valeur):
         return f"{_nom(monde, sujet)} {est} {'porté' + accord + ' par' if porte else 'dans'} {_nom(monde, valeur)}"
     if attribut == "verrouillee":
         return f"{_nom(monde, sujet)} {est} {'verrouillé' if valeur else 'déverrouillé'}{accord}"
-    if attribut == "fiable":
+    if attribut == FIABLE:
         pluriel = "s" if o.get("pluriel") else ""
         return f"{_nom(monde, sujet)} {est} {'digne' + pluriel + ' de confiance' if valeur else 'peu fiable' + pluriel}"
     return ""
@@ -215,10 +218,16 @@ def esprits_interlocuteurs(monde, presents):
         croyances = []
         for sujet, attributs in e["croyances"].items():
             for attribut, c in attributs.items():
-                if attribut in ATTRIBUTS and (sujet == "joueur" or sujet in monde.objets):
+                if attribut in ATTRIBUTS and attribut != FIABLE and (sujet == "joueur" or sujet in monde.objets):
                     croyances.append((not c["source"].startswith("dit:"), -c["minute"],
                                       f"croit que {_phrase(monde, sujet, attribut, c['valeur'])}"
                                       + _ouidire(monde, c["source"])))
+        # Ce qu'il dirait de chacun, avec d'où il le tient (``relations``).
+        for autre in relations.connus(monde, id):
+            avis, r = relations.fiable(monde, id, autre), relations.envers(monde, id, autre)
+            if avis is not None and (autre == "joueur" or autre in monde.objets):
+                croyances.append((not r["source"].startswith("dit:"), -r["minute"],
+                                  f"croit que {_phrase(monde, autre, FIABLE, avis)}" + _ouidire(monde, r["source"])))
         resultat[cle] = {
             "traits": profil["traits"] if profil else "",
             "valeurs": dict(profil["valeurs"]) if profil else {},
@@ -690,7 +699,7 @@ def destinataires(monde, forme):
     nets = saisissent(monde, "joueur")
     # La règle commune de toute parole échangée (``pnj.peuvent_se_parler``) : il saisit les mots de
     # Corvus, et Corvus saisirait sa réponse. Qu'il sache ou non qui lui parle, il l'entend (une voix
-    # qu'il ne connaît pas est un étranger : ``voix.fiabilite``).
+    # qu'il ne connaît pas est un étranger : ``relations.percue``).
     from .pnj import peuvent_se_parler
     entendent = [id for id in presents if id in nets and peuvent_se_parler(monde, "joueur", id)]
     contact = [id for id in presents if _contact(monde, id)]
@@ -875,9 +884,11 @@ def nom_dans(monde, replique):
 
 
 def verifier_nom(monde, contenu, replique):
-    """Le contenu « nom » dit le nom que la réplique donne à Corvus, s'il s'en donne un : une cause par
-    refus, l'élément fautif nommé. Renvoie le contenu, complété du nom que disent les mots quand le MJ
-    ne l'a pas typé : se dire quelqu'un d'autre est une imposture que le moteur enregistre comme telle."""
+    """Le contenu « nom » dit le nom que la réplique donne à Corvus, s'il s'en donne un. Ce nom est celui que
+    disent les mots : le moteur le lit lui-même, il complète un nom non typé et remplace un nom typé
+    autrement (se dire quelqu'un d'autre est une imposture qu'il enregistre comme telle). Seul un nom typé
+    alors que les mots n'en donnent aucun est refusé, l'élément fautif nommé : ce que le MJ voulait typer
+    reste à sa charge."""
     dit = nom_dans(monde, replique)
     if dit is None:
         # « C'est Corvus. » se nomme aussi, mais « c'est X » dit souvent autre chose (« c'est Gorm qui l'a ») :
@@ -890,16 +901,15 @@ def verifier_nom(monde, contenu, replique):
                 # Des mots imposés (« Qui est là ? ») qui ne disent aucun nom : Corvus ne s'est pas nommé.
                 raise ErreurMonde("Corvus ne se nomme pas dans ce qu'il dit.",
                                   f"contenu[{i}] : retire l'élément nom ; la réplique « {replique} » ne donne aucun "
-                                  "nom (« C'est X », « je suis X ») ; reçu sujet « " + str(c.get("sujet", "")) + " ».")
+                                  "nom (« C'est X », « je suis X ») ; reçu sujet « " + str(c.get("sujet", "")) + " » ; "
+                                  "une question sur qui parle se type qui.")
         return list(contenu)
-    for i, c in enumerate(contenu):
-        if isinstance(c, dict) and c.get("type") == "nom" and _nom_dit(monde, c.get("sujet")) != dit:
-            raise ErreurMonde("Corvus se nomme autrement que ne le disent ses mots.",
-                              f"contenu[{i}].sujet : {dit} (le nom que se donne la réplique « {replique} ») ; "
-                              f"reçu « {c.get('sujet', '')} ».")
-    if any(isinstance(c, dict) and c.get("type") == "nom" for c in contenu):
-        return list(contenu)
-    return [*contenu, {"type": "nom", "sujet": dit, "attribut": "", "valeur": ""}]
+    noms = [c for c in contenu if isinstance(c, dict) and c.get("type") == "nom"]
+    autres = [c for c in contenu if c not in noms]
+    # Un seul nom, celui des mots, à la place du premier nom typé (ou à la fin).
+    place = contenu.index(noms[0]) if noms else len(autres)
+    return [*autres[:place], {**(noms[0] if noms else {"attribut": "", "valeur": ""}), "type": "nom", "sujet": dit},
+            *autres[place:]]
 
 
 def _typer(monde, c, auditeur=None):
@@ -937,7 +947,7 @@ def _typer(monde, c, auditeur=None):
         valeur = resoudre(monde, valeur)
         if valeur is None:
             return None
-    elif attribut in ("verrouillee", "fiable") and valeur in ("oui", "non"):
+    elif attribut in ("verrouillee", FIABLE) and valeur in ("oui", "non"):
         valeur = valeur == "oui"
     else:
         return None
@@ -1035,9 +1045,10 @@ def _se_nommer(travail, auditeur, nom_dit, faits):
 
 def _qui_est_la(travail, auditeur, faits):
     """Corvus demande qui parle : le personnage se nomme, sauf s'il se méfie de lui."""
-    from .voix import fiabilite, se_nommer
+    from .relations import mefiance, percue
+    from .voix import se_nommer
     nom, il, _ = _personne(travail, auditeur)
-    if (fiabilite(travail, auditeur, "joueur") or {}).get("valeur") is False:
+    if mefiance(percue(travail, auditeur, "joueur")):
         faits.append(f"{nom} refuse de te dire qui {il} est.")
         return
     vrai = travail.objets[auditeur]["nom"].split(",")[0]

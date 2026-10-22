@@ -203,6 +203,10 @@ class PnjTests(unittest.TestCase):
         placer(m, "marchand", "antichambre", (2, 2))
         m.objets["brasero"]["allume"] = False
         croire(m, "ilse", "brasero", "etat", {"allume": False, "faible": False, "charge": True}, "vu")
+        # Placement d'auteur : le poêle du guet, à la galerie, est froid et vide ; allumé, elle y
+        # monterait se chauffer, hors de l'eau (branche ``ressources``).
+        m.objets["poele_guet"].update(allume=False, combustible=0)
+        croire(m, "ilse", "poele_guet", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
         percevoir(m, "ilse")
         # Feu éteint : elle le rallumerait (une torche au fanal), ou demanderait du bois à Gorm.
         but, etapes = planifier(m, "ilse", "chaleur")
@@ -212,7 +216,8 @@ class PnjTests(unittest.TestCase):
         placer(m, "ilse", "antichambre", (1, 3))
         placer(m, "marchand", "antichambre", (2, 2))
         percevoir(m, "ilse")
-        # La conduite noyée, le seul foyer qu'elle connaisse est sous l'eau : rien à demander.
+        # La conduite noyée, le brasero est sous l'eau, et le poêle du guet coupé d'elle par la
+        # conduite : rien à demander.
         self.assertIsNone(planifier(recharger(m), "ilse", "chaleur"))
 
     def test_un_pnj_dans_l_eau_se_trempe_et_s_en_inquiete(self):
@@ -249,7 +254,11 @@ class PnjTests(unittest.TestCase):
         # Rassurée, elle y reste : sa ronde au refuge la couperait de la galerie (la conduite, qu'elle
         # attend noyée dans l'heure, est entre eux), elle ne l'entreprend pas (branche ``verifier-eau``).
         self.assertIn((e["intention"] or {}).get("but"), (None, {"type": "abri", "lieu": "chambre_cloche"}))
-        self.assertGreater(m.objets["ilse"]["corps"]["trempe"], 0)   # Passée par l'eau.
+        # Trempée en arrivant (son départ, puis l'eau de la conduite), elle a séché au poêle du guet,
+        # le feu hors de l'eau (branche ``ressources``).
+        self.assertEqual(m.objets["ilse"]["corps"]["trempe"], 0)
+        from donjon.corps import au_chaud
+        self.assertTrue(au_chaud(m, "ilse"))
         # Au refuge, ceux qui ne l'ont pas vue monter assez longtemps y restent.
         self.assertEqual(m.objets["brune"]["lieu"], "antichambre")
 

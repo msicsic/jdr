@@ -264,6 +264,58 @@ def _plages(minutes, pas=5):
     return plages
 
 
+# Gestes qui donnent un état à une chose, et l'état qu'ils lui donnent (``boucles``).
+_ETATS = ((" ouvre ", "ouverte", True), (" ferme ", "ouverte", False), (" déverrouille ", "verrou", False),
+          (" verrouille ", "verrou", True), (" crochète la serrure ", "verrou", False), (" allume ", "allume", True),
+          (" éteint ", "allume", False))
+_ARTICLES = (("du ", "le "), ("de la ", "la "), ("de l'", "l'"), ("des ", "les "), ("de ", ""))
+
+
+def _chose(texte):
+    """« du garde-manger de la cuisinière » (après « la serrure ») ou « le garde-manger … » : la même chose."""
+    texte = texte.rstrip(".").strip()
+    for long, court in _ARTICLES:
+        if texte.startswith(long):
+            return court + texte[len(long):]
+    return texte
+
+
+def boucles(n):
+    """Les mesures des boucles de la revérification (``docs/reverification.md``), sur la chronique :
+    ``bascules`` (un état qu'un PNJ donne à une chose, qu'un autre défait aussitôt, et ainsi de suite :
+    ouvrir/fermer, verrouiller/crocheter, allumer/éteindre ; chaque reprise par un autre que le dernier
+    auteur compte), la plus forte série sur une même chose (``bascules_max``), les passages de salle par
+    PNJ et par heure (``passages_heure_max``), les avertissements redits mot pour mot
+    (``avertissements_redits`` : « X dit à Y que … » au-delà du premier) et les appels à l'aide."""
+    chronique = (n.get("donnees") or {}).get("chronique", [])
+    dernier, bascules = {}, Counter()
+    passages, dits = Counter(), Counter()
+    aides = 0
+    for c in chronique:
+        t = c["texte"]
+        if " passe dans : " in t:
+            passages[(c["pnj"], c["minute"] // 60)] += 1
+            continue
+        if t.endswith(" appelle à l'aide."):
+            aides += 1
+            continue
+        if c.get("nature") == "social" and " dit à " in t and " que " in t:
+            dits[(c["pnj"], t)] += 1
+            continue
+        for motif, attribut, valeur in _ETATS:
+            if motif in t:
+                chose = _chose(t.split(motif, 1)[1].replace("de la serrure ", ""))
+                cle = (chose, attribut)
+                avant = dernier.get(cle)
+                if avant and avant[0] != c["pnj"] and avant[1] != valeur:
+                    bascules[chose] += 1
+                dernier[cle] = (c["pnj"], valeur)
+                break
+    return {"bascules": sum(bascules.values()), "bascules_max": max(bascules.values(), default=0),
+            "passages_heure_max": max(passages.values(), default=0),
+            "avertissements_redits": sum(k - 1 for k in dits.values() if k > 1), "appels_a_l_aide": aides}
+
+
 def analyser_nuit(n):
     """Les constats d'une nuit : une liste de {code, pnj, minute, detail, poids}."""
     constats = []
@@ -385,6 +437,15 @@ def analyser_nuit(n):
         if heures and n_changements / heures >= 12:
             noter("agitation", pnj, None, f"{n_changements} changements de salle ({n_changements / heures:.1f}/h)", n_changements)
 
+    # Boucles : bascules d'un état entre deux PNJ, passages de salle à la seconde, avertissements redits.
+    b = boucles(n)
+    if b["bascules_max"] >= 10:
+        noter("bascule", None, None, f"{b['bascules_max']} reprises d'un état sur une même chose", b["bascules_max"])
+    if b["passages_heure_max"] > 64:
+        noter("passages_rafale", None, None, f'{b["passages_heure_max"]} passages de salle en une heure', b["passages_heure_max"])
+    if b["avertissements_redits"] >= 5:
+        noter("avertissement_redit", None, None, f'{b["avertissements_redits"]} avertissements redits', b["avertissements_redits"])
+
     # 4. Gestes illicites : jamais vus de personne (registre du rejeu), et vols vus sans suite.
     for g in n.get("gestes") or []:
         if g.get("entendus"):
@@ -410,9 +471,10 @@ def analyser(args):
         sys.stdout.reconfigure(encoding="utf-8")
     except AttributeError:
         pass
-    tous, nuits, plantages = [], [], []
+    tous, nuits, plantages, mesures_boucles = [], [], [], []
     for n in charger(args.dossier):
         nuits.append((n["scenario"], n["graine"], n.get("secondes"), (n.get("donnees") or {}).get("mesures")))
+        mesures_boucles.append((n["scenario"], boucles(n)))
         if n.get("plantage"):
             plantages.append(n)
         tous += analyser_nuit(n)
@@ -438,6 +500,13 @@ def analyser(args):
         cles = [k for k in mesures[0] if isinstance(mesures[0][k], (int, float))]
         print(s, ", ".join(f"{k} {sum(m.get(k, 0) for m in mesures) / len(mesures):g}" for k in cles))
         print(s, "secondes", round(sum(sec or 0 for sc, _, sec, _ in nuits if sc == s) / total[s], 1))
+    # Les boucles (``boucles``) : moyenne par nuit, et le pire.
+    print()
+    for s in total:
+        liste = [b for sc, b in mesures_boucles if sc == s]
+        if liste:
+            print(s, "boucles :", ", ".join(f"{k} {sum(b[k] for b in liste) / len(liste):g} (pire {max(b[k] for b in liste)})"
+                                            for k in liste[0]))
     if args.sortie:
         with open(args.sortie, "w", encoding="utf-8") as f:
             json.dump(tous, f, ensure_ascii=False, indent=1)

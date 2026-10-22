@@ -16,6 +16,7 @@ from .biens import a_autrui
 from .caractere import ARGENT, STATS, interdit, verifier_situation, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
 from .esprits import esprit, lire, memoriser
+from .relations import FIABLE, se_fie, se_mefie
 from .spatial import porte_par
 
 BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
@@ -274,7 +275,56 @@ def tient(monde, id, s, connus=None):
         return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))
     if s["raison"] == "cher":
         return True
+    if s["raison"] == "oppose":
+        # On s'oppose à lui sur cette chose : tant qu'il croit l'opposant là où elle est.
+        return (monde.data["minutes"] - s["minute"] < REDEMANDE
+                and salle_crue(monde, id, s["de"]) == salle_crue(monde, id, s["objet"]))
     return monde.data["minutes"] - s["minute"] < REDEMANDE
+
+
+# --- Un geste défait sous ses yeux -------------------------------------------------------------
+# Ce qu'un PNJ vient de faire de sa main à une chose (l'ouvrir, la fermer, la verrouiller, l'allumer…),
+# un autre le défait sous ses yeux : on s'oppose à lui. Il ne le refait pas aussitôt, ni rien d'autre
+# sur cette chose, tant qu'il croit l'opposant là (``tient``, raison « oppose ») ; il s'y oppose
+# autrement (rester, appeler, dire). Une règle pour tous, joueur compris comme auteur.
+ETATS_DONNES = ("ouverte", "verrouillee", "allume")
+DEFAIT = 5             # minutes pendant lesquelles un état qu'il a donné est « ce qu'il vient de faire »
+
+
+def changer_etat(monde, auteur, objet, attribut, avant):
+    """``auteur`` (un PNJ ou le joueur) vient de changer de sa main l'``attribut`` d'``objet``, qui
+    valait ``avant``. Chaque PNJ qui le voit faire, et qui venait lui-même de lui donner cette valeur
+    (``esprit["donne"]``), retient qu'on s'oppose à lui sur cette chose (``retenir_refus``). Puis
+    l'auteur PNJ retient l'état qu'il a donné. Rien ne change si la valeur est la même."""
+    from .esprits import percoit, pnjs
+    o = monde.objets[objet]
+    apres, minute = o.get(attribut), monde.data["minutes"]
+    if attribut not in ETATS_DONNES or bool(apres) == bool(avant):
+        return
+    for autre in pnjs(monde):
+        if autre == auteur or not profil(monde, autre):
+            continue
+        donne = lire(monde, autre)["donne"].get(objet, {}).get(attribut)
+        if (donne is not None and bool(donne[0]) == bool(avant) and minute - donne[1] < DEFAIT
+                and percoit(monde, autre, auteur)):
+            retenir_refus(monde, autre, auteur, "defaire", "oppose", souvenir=False, objet=objet)
+            donnes = esprit(monde, autre)["donne"]
+            del donnes[objet][attribut]
+            if not donnes[objet]:
+                del donnes[objet]
+    if auteur in monde.objets and profil(monde, auteur):
+        donne = esprit(monde, auteur)["donne"]
+        for k in list(donne):
+            donne[k] = {a: v for a, v in donne[k].items() if minute - v[1] < DEFAIT}
+            if not donne[k]:
+                del donne[k]
+        donne.setdefault(objet, {})[attribut] = [bool(apres), minute]
+
+
+def contrarie(monde, id, objet):
+    """Quelqu'un s'oppose à lui sur cette chose, et l'opposition tient (``changer_etat``)."""
+    return any(s["operation"] == "defaire" and s.get("objet") == objet and tient(monde, id, s)
+               for s in lire(monde, id)["refus"])
 
 
 def moyens_crus(monde, id, s, connus=None):
@@ -547,8 +597,8 @@ def autour(monde, id):
     else:
         autres = presents if niveau else []
     return {"lumiere": niveau > 0,
-            "fiables": sorted(x for x in autres if _cru(monde, id, x, "fiable") is True),
-            "mefiants": sorted(x for x in autres if _cru(monde, id, x, "fiable") is False)}
+            "fiables": sorted(x for x in autres if se_fie(monde, id, x)),
+            "mefiants": sorted(x for x in autres if se_mefie(monde, id, x))}
 
 
 def ressentir(monde, id, minutes=1):
@@ -681,24 +731,30 @@ def alarme(monde, id):
     return None
 
 
-def _deja_dit(monde, id, a, sujet, attribut, depuis=None):
-    """Il a déjà dit à ``a`` ce qu'il croit de ``sujet`` (``attribut``), depuis la minute ``depuis``."""
-    return any(x["type"] == "dit" and x["a"] == a and x["sujet"] == sujet and x.get("attribut") == attribut
-               and (depuis is None or x["minute"] >= depuis) for x in lire(monde, id)["memoire"])
+def _deja_dit(monde, id, a, sujet, attribut, valeur=None):
+    """Il a déjà dit à ``a`` ce qu'il croit de ``sujet`` (``attribut``) ; avec ``valeur``, la dernière
+    fois qu'il le lui a dit, c'était cette valeur (un fait dit l'est jusqu'à ce que la valeur change,
+    quelle que soit la date de ce qu'il en croit)."""
+    dits = [x for x in lire(monde, id)["memoire"]
+            if x["type"] == "dit" and x["a"] == a and x["sujet"] == sujet and x.get("attribut") == attribut]
+    return bool(dits) and (valeur is None or dits[-1].get("valeur") == valeur)
 
 
 def _a_dire(monde, id, victime, auteur):
     """Ce qu'il a à apprendre à ``victime`` d'``auteur`` : qu'il n'est pas fiable, s'il ne le lui a
-    jamais dit ; où sont les biens qu'il lui a vu déplacer, s'il ne le lui a pas dit depuis qu'il le
-    croit. On prévient d'un fait que la victime ignore, pas d'un souvenir : chaque minute d'un même
-    crochetage vu ne relance pas l'avertissement."""
-    contenus = [] if _deja_dit(monde, id, victime, auteur, "fiable") else [
-        {"sujet": auteur, "attribut": "fiable", "valeur": False}]
-    croyances = lire(monde, id)["croyances"]
+    jamais dit ; où sont les biens qu'il lui a vu déplacer, s'il ne lui a pas déjà dit ce lieu-là et
+    qu'il ne croit pas la victime auprès d'eux (elle les a sous les yeux, elle les y a peut-être
+    posés). On prévient d'un fait que la victime ignore, à ce qu'il croit, pas d'un souvenir : chaque
+    minute d'un même crochetage vu, chaque regard qui renouvelle ce qu'il croit, ne relance pas
+    l'avertissement."""
+    contenus = [] if _deja_dit(monde, id, victime, auteur, FIABLE) else [
+        {"sujet": auteur, "attribut": FIABLE, "valeur": False}]
     for c in _lieux_a_dire(monde, id, victime, auteur):
-        depuis = (croyances.get(c["sujet"], {}).get("lieu") or {}).get("minute")
-        if not _deja_dit(monde, id, victime, c["sujet"], "lieu", depuis):
-            contenus.append(c)
+        if _deja_dit(monde, id, victime, c["sujet"], "lieu", c["valeur"]):
+            continue
+        if salle_crue(monde, id, victime) == salle_crue(monde, id, c["sujet"]):
+            continue
+        contenus.append(c)
     return contenus
 
 
@@ -872,22 +928,44 @@ def _plan_abri(monde, id):
     from .eau import altitude, attendue, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
-    if menacee(monde, id, ici) or monte(monde, id):
-        salles = sorted((s for s in monde.data["salles"] if not menacee(monde, id, s)
-                         and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
-    else:
+    # L'abri vers lequel il est en route garde la main tant qu'il en est encore un à ses yeux : un
+    # abri meilleur apparu en chemin (quelqu'un de sûr qui passe ailleurs) ne le détourne pas, ni un
+    # lieu qu'il traverse en chemin, où il attend l'eau sans la voir monter ni s'y croire en péril :
+    # ce passage, son plan le prévoyait. Sans cela, deux qui se cherchent se croisent sans fin, et
+    # qui va vers un abri par un palier menacé rebrousse chemin vers le plus haut lieu, puis repart.
+    # Là où il se tient, s'il y est à l'abri, il reste. Devant l'eau qu'il voit monter, ou s'il se
+    # croit en péril, le plus haut lieu compte, quel que soit celui vers lequel il allait.
+    from .eau import en_peril
+    from .planification import _etape, abri
+
+    def sures():
+        """Les lieux éclairés, hors de l'eau, où il croit quelqu'un de sûr."""
         salles = []
         for x in [*pnjs(monde), "joueur"]:
-            if x == id or _cru(monde, id, x, "fiable") is not True:
+            if x == id or not se_fie(monde, id, x):
                 continue
             salle = salle_crue(monde, id, x)
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
                     and not menacee(monde, id, salle)):
                 salles.append(salle)
+        return salles
+
+    i = lire(monde, id)["intention"]
+    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri"
+                and i["but"].get("lieu") != ici else None)
+    eau_monte = monte(monde, id)
+    if en_route and not eau_monte and not en_peril(monde, id) and en_route in (abris := sures()) and ici not in abris:
+        trouve = abri(monde, id, [en_route])
+        if trouve is not None:
+            return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
+    if menacee(monde, id, ici) or eau_monte:
+        salles = sorted((s for s in monde.data["salles"] if not menacee(monde, id, s)
+                         and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
+    else:
+        salles = sures()
         if salles and ici not in salles:
             # Il y restera : la recherche compte ce que chaque abri laisse monter (le noir, ses
             # biens laissés loin) et prend le moins coûteux.
-            from .planification import _etape, abri
             trouve = abri(monde, id, salles)
             return None if trouve is None else ({"type": "abri", "lieu": trouve[0]},
                                                 trouve[1] + [_etape("abriter", lieu=trouve[0])])
@@ -919,10 +997,13 @@ def _plan_lumiere(monde, id):
     poursuit alors."""
     if not peur_du_noir(monde, id):
         return None
-    if autour(monde, id)["lumiere"]:
-        from .perception import allumee
+    from .perception import allumee
+    porte = any(porte_par(monde, k, id) and "allume" in o and allumee(o) for k, o in monde.objets.items())
+    # Il y voit par sa lumière en main, ou par celle du lieu (ses sources, une lueur voisine sur sa
+    # case : ``lumiere_crue``, comme le planificateur) ; pas par celle qu'un autre porte, qui le
+    # quittera avec lui.
+    if porte or lumiere_crue(monde, id, monde.objets[id]["lieu"]):
         i = lire(monde, id)["intention"]
-        porte = any(porte_par(monde, k, id) and "allume" in o and allumee(o) for k, o in monde.objets.items())
         return ((i["but"], i["plan"]) if porte and i and i["but"]["type"] == "lumiere" and i["plan"]
                 and all(x["operation"] == "aller" for x in i["plan"]) else None)
     from .planification import eclairer
@@ -971,7 +1052,7 @@ def menaces(monde, id):
     lieux = _lieux_gardes(monde, id, siens=True)
     if not lieux:
         return ()
-    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and _cru(monde, id, x, "fiable") is False]
+    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and se_mefie(monde, id, x)]
     return tuple(sorted(s for s in lieux if any(salle_crue(monde, id, x) == s for x in mefiants)))
 
 
@@ -995,7 +1076,7 @@ def _plan_garder(monde, id, condition):
 def _delegue(monde, id, pulsion):
     """Une pulsion confiée au joueur attend tant que le PNJ le croit fiable ; une pulsion qu'il a payé
     quelqu'un de rétablir aussi (``tache_payee``)."""
-    return bool(pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
+    return bool(pulsion.get("delegue_a") and not se_mefie(monde, id, pulsion["delegue_a"])
                 or tache_payee(monde, id, pulsion["condition"]))
 
 
@@ -1008,7 +1089,7 @@ def tache_payee(monde, id, condition):
     for i in range(len(memoire) - 1, -1, -1):
         s = memoire[i]
         if s["type"] == "tache_payee" and s["condition"] == condition:
-            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or _cru(monde, id, s["a"], "fiable") is False:
+            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or se_mefie(monde, id, s["a"]):
                 return None
             if any(x["type"] == "creance" and x["de"] == s["a"] and x.get("quoi") == "tache" for x in memoire[i + 1:]):
                 return None
@@ -1145,7 +1226,16 @@ def retabli_par_son_plan(monde, id, condition):
 
 def candidats(monde, id):
     """Buts envisageables, du besoin le plus pressant au moins pressant ; la routine (rondes,
-    surveillance) passe après ce qui presse vraiment et après une tâche acceptée.
+    surveillance) passe après ce qui presse vraiment et après une tâche acceptée. (besoin, méthode)."""
+    for besoin, methode, _, _ in _candidats(monde, id):
+        yield besoin, methode
+
+
+def _candidats(monde, id):
+    """(besoin, méthode, routine, recours) : les buts de ``candidats``, avec leur rang (la routine
+    après le reste) et s'ils sont un recours de leur besoin (ce qui l'apaise ou le rétablit) ; une
+    parole due, prévenir, attendre l'appelant, une alarme, sortir de l'eau, un bruit à voir et l'argent
+    n'en sont pas : ils passent devant un recours en cours (``choisir``).
 
     Un besoin qui vient à peine de franchir son seuil laisse finir le plan en cours d'un autre
     motif, et un besoin apaisé ne presse de nouveau que nettement au-dessus (``urgents``)."""
@@ -1181,26 +1271,27 @@ def candidats(monde, id):
                 if periodique(x["condition"]):
                     continue
                 buts.append((besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True))
-    buts += [("engagement", lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), False) for x in e["engagements"]]
+    buts += [("engagement", lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c), False, False)
+             for x in e["engagements"]]
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
-        buts.append(("devoir", _plan_prevenir, False))
+        buts.append(("devoir", _plan_prevenir, False, False))
     # Il a répondu à un appel : il attend d'être rejoint (``attendre_l_appelant``), après ce qui
     # presse et la parole due ; un bruit, ce qui ne presse pas et la routine attendent.
     if e["rejoint"]:
-        buts.append(("rejoint", _plan_attendre, False))
+        buts.append(("rejoint", _plan_attendre, False, False))
     # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine ; une
     # alarme (l'appel d'un protégé, un bruit à son seuil d'alerte), avant tout le reste.
     from .planification import voir
     a_voir, alarme_ = bruit_a_voir(monde, id), alarme(monde, id)
     if alarme_:
-        buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False))
+        buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False, False))
     # Là où il se tient, il attend l'eau trop haute pour s'y mouvoir : en sortir passe avant tout.
     from .eau import en_peril
     if "securite" in p["besoins"] and en_peril(monde, id):
-        buts.insert(0, ("securite", _plan_abri, False))
+        buts.insert(0, ("securite", _plan_abri, False, False))
     if a_voir and a_voir != alarme_:
-        buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False))
+        buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False, False))
     # Ce dont il a la charge et qu'il voit rompu, il le rétablit sans attendre que son besoin
     # presse : un feu qui baisse, un protégé qui a faim, ce qu'il garde sous clé et a lui-même
     # ouvert. Les rondes ont leur routine ; un désir jamais satisfait attend son besoin.
@@ -1225,11 +1316,11 @@ def candidats(monde, id):
             buts.append((x["besoin"], lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c), True))
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
-    buts.append((ARGENT, _plan_creance, True))
-    buts.append((ARGENT, _plan_argent, True))
+    buts.append((ARGENT, _plan_creance, True, False))
+    buts.append((ARGENT, _plan_argent, True, False))
     # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.
-    for besoin, methode, _ in sorted(buts, key=lambda x: x[2]):
-        yield besoin, methode
+    for besoin, methode, routine, *recours in sorted(buts, key=lambda x: x[2]):
+        yield besoin, methode, routine, recours[0] if recours else True
 
 
 def constater_pulsions(monde, id):
@@ -1304,11 +1395,23 @@ def choisir(monde, id, minute):
     if intention and intention["but"]["type"] == "strategie" and intention["plan"]:
         return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
     pressants = urgents(monde, id, inertie=True)
-    liste = list(candidats(monde, id))
+    tous = list(_candidats(monde, id))
+    liste = [(besoin, methode) for besoin, methode, _, _ in tous]
     essais = {}
+    # Hystérésis entre recours, comme entre besoins (``INERTIE``) : le recours en cours d'un besoin
+    # garde la main sur les autres recours du même besoin et du même rang tant que son plan n'est pas
+    # achevé et que sa méthode le rend encore sur ce qu'il croit (rien de neuf ne l'a rendu impossible
+    # ou ne l'a changé). Ainsi la lumière ne défait pas l'abri dont le chemin passe par le noir, ni
+    # l'inverse. Ce qui n'est pas un recours (une alarme, une parole due, prévenir…) passe devant ; la
+    # routine n'en a pas besoin (une ronde faite reste faite pour sa période, rien ne s'y relaie).
     from .temps import MINUTE, instant
     maintenant = instant(monde)
-    for n, (besoin, methode) in enumerate(liste):
+    courant = intention if intention and intention["plan"] else None
+    retenu = None    # (besoin, rang, résultat) : un autre recours de ce besoin, s'il faut y revenir
+    resultat = None
+    for n, (besoin, methode, routine, recours) in enumerate(tous):
+        if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
+            continue
         if besoin in e["renoncements"] and e["renoncements"][besoin] + REPIT * MINUTE > maintenant:
             essais[n] = "renonce"
             continue
@@ -1317,6 +1420,18 @@ def choisir(monde, id, minute):
             essais[n] = "rien"
             continue
         essais[n] = "plan"
+        if retenu is not None:
+            if resultat[0] == courant["but"]:
+                break   # Sa méthode rend encore le recours en cours : il le garde.
+            continue
+        if recours and not routine and courant and besoin == courant["motif"] and resultat[0] != courant["but"]:
+            retenu = (besoin, routine, resultat)   # Le sien d'abord, si sa méthode le rend encore.
+            continue
+        break
+    else:
+        resultat = retenu[2] if retenu else None
+    if resultat:
+        besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
         but, etapes = resultat
         if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
             return

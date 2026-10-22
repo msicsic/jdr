@@ -70,7 +70,10 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "en_vue": lambda: None,
           # la dernière réponse refusée de chaque demande, et ce qu'il croyait de sa cause
           # (``deliberation.retenir_refus``)
-          "refus": list}
+          "refus": list,
+          # l'état qu'il vient de donner de sa main à une chose : {objet: {attribut: [valeur, minute]}},
+          # depuis moins de ``deliberation.DEFAIT`` minutes (``deliberation.changer_etat``)
+          "donne": dict}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -153,8 +156,12 @@ def _croyance_valide(monde, attribut, c):
                 and all(c.get(k) is None or type(c[k]) is int for k in ("niveau", "montee"))
                 and (c.get("repere") is None or isinstance(c["repere"], list) and len(c["repere"]) == 2
                      and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
+    elif attribut == "verrouillee":
+        assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
     else:
-        assert attribut in ("verrouillee", "fiable") and type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
+        # Ce qu'il éprouve envers une personne : sa forme est l'affaire de ``relations``.
+        from .relations import FIABLE, valide
+        assert attribut == FIABLE and valide(c), "Attribut de croyance inconnu"
 
 
 def verifier(monde):
@@ -228,6 +235,11 @@ def verifier(monde):
             and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
             for s in e.get("refus", [])
         ), "Refus retenus de PNJ invalides"
+        from .deliberation import ETATS_DONNES
+        assert isinstance(e["donne"], dict) and all(
+            isinstance(o, str) and isinstance(a, dict) and all(
+                x in ETATS_DONNES and isinstance(v, list) and len(v) == 2 and type(v[1]) is int for x, v in a.items())
+            for o, a in e["donne"].items()), "États donnés de PNJ invalides"
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
@@ -244,6 +256,15 @@ def verifier(monde):
                 assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
                         and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
                         and etape["condition"] in ("", "sans_temoin")), "Étape de plan invalide"
+
+
+def croyance(monde, id, sujet, attribut):
+    """Sa croyance sur ``sujet`` (``attribut``), telle quelle, ou None. Ce qu'il éprouve envers une
+    personne ne se lit que par ``relations`` (``relations.croyance``)."""
+    from .relations import FIABLE, croyance as relation
+    if attribut == FIABLE:
+        return relation(monde, id, sujet)
+    return lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
 
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
@@ -407,7 +428,8 @@ def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
         else:
             memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
             if locuteur != id:
-                croire(monde, id, locuteur, "fiable", False, "vu")
+                from .relations import eprouver
+                eprouver(monde, id, locuteur, "mensonge_decouvert")
     croire(monde, id, sujet, attribut, valeur, source, **lieu)
 
 
@@ -426,7 +448,8 @@ def _vu_porter(monde, id, sujet):
         return
     from .deliberation import VOL, relancer
     memoriser(monde, id, {"type": "vu_porter", "auteur": porteur, "objet": sujet})
-    croire(monde, id, porteur, "fiable", False, "vu")
+    from .relations import eprouver
+    eprouver(monde, id, porteur, "vu_porter")
     relancer(monde, id, "biens", VOL)
     reconsiderer(monde, id)
 

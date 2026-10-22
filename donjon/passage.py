@@ -24,7 +24,7 @@ déplace jamais de lui-même, est prié de laisser passer : s'il reste, c'est un
 dépend la suite est dans ``data`` (positions, esprits, registre des gestes).
 """
 from .caractere import interdit, penchant, prix_faute, valeur
-from .esprits import croire, esprit, lire, memoriser
+from .esprits import esprit, lire, memoriser
 from .francais import designer, sujet
 from .temps import MINUTE, PAS_CHASSE, duree_pas, instant
 
@@ -141,11 +141,13 @@ def refus_d_aider(monde, id, passant):
     """Il ne veut pas aider ce passant : « mefiance » s'il le croit peu fiable, « orgueil » si sa
     fierté l'emporte de loin sur son altruisme (``ORGUEIL``) ; None sinon. Qui le croit fiable
     l'aide toujours. La confiance est celle qu'il porte à qui il croit avoir affaire
-    (``voix.fiabilite`` : une voix inconnue est un étranger)."""
-    from .voix import fiabilite
-    fiable = fiabilite(monde, id, passant)
-    if fiable is not None:
-        return None if fiable["valeur"] else "mefiance"
+    (``relations.percue`` : une voix inconnue est un étranger)."""
+    from .relations import confiance, mefiance, percue
+    relation = percue(monde, id, passant)
+    if confiance(relation):
+        return None
+    if mefiance(relation):
+        return "mefiance"
     if valeur(monde, id, "fierte") - valeur(monde, id, "altruisme") >= ORGUEIL:
         return "orgueil"
     return None
@@ -386,7 +388,8 @@ def subir(monde, victime, auteur):
     if victime == "joueur":
         return
     from .deliberation import inquieter
-    croire(monde, victime, auteur, "fiable", False, "vu")
+    from .relations import eprouver
+    eprouver(monde, victime, auteur, "pousse")
     memoriser(monde, victime, {"type": "pousse", "auteur": auteur})
     inquieter(monde, victime, "illicite")
 

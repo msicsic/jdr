@@ -960,6 +960,152 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   demandes à heure fixe, Brune vole quand sa faim passe 95. Variantes de données mesurées (feu à
   nourrir, réserve aux vannes, faims décalées, valeurs graduées) et sept manques du moteur en
   invariants (tirage du départ, risque d'être vu pesé, tort qui ouvre des buts…), à trancher.
+- Branche `reverification` (contrôle seul, rien corrigé ; [rapport](reverification.md)) : `main` ec2352e après
+  les fusions de la nuit, 64 nuits de 12 h (4 scénarios × 16 graines, `VERIFIER` continu sur 16) et 48 de
+  référence (`main` 0489fea), Luna 2 passes de neuf bancs. Aucun plantage, violation, écart de `VERIFIER`
+  ou de `VERIFICATION` ; B1, B2, A1, A2, A4 et V1 de l'audit confirmés corrigés. Nouveaux : ouvrir/fermer le
+  garde-manger toutes les 2 s (mine 42, Odon et Mathe, délibération à l'événement), aller-retour lumière ↔
+  abri à chaque seconde (crue 3), surenchère jusqu'à 64 pièces et tâche acceptée puis aussitôt due (13
+  auberges sur 16), le lieu d'un bien redit en boucle à qui l'a posé (variante de B3). Luna : 4 bancs de
+  référence 3,25 appels, 15,1 s, 0,5 repli, relances 5,5 (au niveau de `parole-corrections`) ; défauts du
+  soir corrigés sauf silences de l'auditeur, « je réponds », « quelqu'un », « geste d'effort » ; nouveaux :
+  un PNJ vu nomme Corvus sans le connaître, « Aubin remet … à Corvus » lu par le joueur.
+- Branche `relations-socle`, non fusionnée (sous-étape 3a de `docs/plan-relations.md`, « Fait ») : le
+  socle des relations, sans changer le comportement. `donjon/relations.py` est le seul accès à ce qu'un
+  personnage éprouve envers un autre : lectures (`envers`, les cinq axes confiance, affection, rancune,
+  peur, dette ; `percue`, qui remplace `voix.fiabilite`, retirée ; `se_mefie`, `se_fie`, `en_veut`,
+  `craint`, `doit`, `fiable`, `connus`, `croyance`) et écritures par cause nommée (`eprouver` sur la table
+  `EPREUVES` : témoin, geste entendu, vol découvert, mensonge, imposture, rumeur, aveu, poussée, vol
+  surpris, dette niée, prêt gardé, part servie ; `avis` pour « X est / n'est pas fiable » cru). En 3a, la
+  relation reste portée par la croyance `fiable`, traduite (vrai 70, absente 40, faux 15 ; voix sue
+  menteuse 0) ; rancune, peur et dette restent à 0. Tous les sites y passent (persuasion, refus, confidences
+  et rumeurs, ouïe, appel, passage, sécurité, abri, délégation, tâche payée, humeur `vol.mefiance`, Luna
+  `esprits_interlocuteurs`, stratège, récit, `mefiances` du banc, gestes du planificateur `Vue.se_mefie`) ;
+  une lecture générique par attribut passe par `esprits.croyance`. `tests/test_relations_socle.py` (8
+  tests) : aucun code du jeu ni des outils ne nomme plus l'attribut hors du module ni ne lit ou écrit la
+  croyance en direct (le même contrôle en relève 42 sur `main`) ; traduction ; Gorm qui voit ses vivres
+  aux mains de Brune (refus d'office, DD +6, « peu fiable » pour Luna) et son marteau dans la main du joueur
+  (humeur), après rechargement. Nuits identiques à `main` 0551ba2 (chronique, récit, souvenirs, état final
+  complet, empreintes, mesures) sur 36 nuits de 8 h : départ tiré (Relais 8 graines, mine, auberge, crue 4)
+  et fixe (4 × 4) ; `VERIFIER` et `spatial.VERIFICATION` 0,2 sur une nuit de chaque scénario, sans écart ;
+  audit 12 h (4 × 4) identique. Temps égaux au bruit près (machine chargée par d'autres calculs). Limites
+  dans `docs/plan-relations.md`.
+
+## Décisions prises le 2026-10-22 (à implémenter)
+
+- **Réglages et données** : profils du Relais et de la crue selon `docs/analyse-relais.md` (Brune
+  douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65, douceur 80 ; Gorm inchangé) ; froid sec 4 par
+  heure ; seuil + 15 (`REPRISE`) gardé ; premier acte du Relais gardé (Brune peut voler tôt) ;
+  crochetage plus ou moins bruyant selon l'adresse (habile et réussi : discret ; échec ou forcement :
+  fracas) ; surenchère progressive (+50 % par palier tant que l'offre vaut la peine) ; réglages de
+  l'ouïe gardés (ajustés au banc si besoin) ; `GARDE` et `PRET` à tirer des valeurs et des relations.
+- **Noms** : un nom ne s'apprend qu'en entendant la personne se nommer ou quelqu'un la nommer, pas en
+  la voyant de près ; sinon la scène la décrit (« un homme trapu ») ; seuls les liens déclarés par le
+  scénario donnent le nom d'office.
+- **Appel négocié** : l'appelé et l'appelant conviennent de qui vient à qui (« J'arrive », « Ici,
+  viens », « Qu'est-ce que tu veux ? », silence) selon qui a besoin de qui, qui peut bouger, la
+  distance et l'urgence ; l'attente se règle sur la distance ; même règle pour le joueur, réponses
+  typées sans Luna.
+- **Plan force** (`docs/plan-force.md`) : les coups ne tuent jamais (PV 0 = hors de combat, seul
+  « tuer » donne la mort) ; **douceur 100 peut frapper pour se défendre ou défendre un protégé**
+  (écart à la recommandation du plan) ; joueur assommé : le temps passe jusqu'au réveil ; pas de mort
+  par faim, froid ou eau à cette étape ; le reste selon les recommandations du plan.
+- **Plan relations** (`docs/plan-relations.md`) : cinq axes (confiance, affection, rancune, peur,
+  dette) ; le joueur perçoit signes et impressions (commande « observer »), sa PSY peut le tromper ;
+  un PNJ donne son avis sans qu'on le lui demande seulement si l'autre risque d'agir contre et qu'il
+  s'en soucie ; le reste selon les recommandations du plan.
+- **Plus tard** : fabrication étape 4 ; imitation de voix (après les relations).
+- Branche `ressources`, non fusionnée (données seulement, décision de l'utilisateur ; `docs/plan-crue.md`,
+  « Un feu hors de l'eau ») : deux scénarios manquaient de ressources. **Crue** : depuis `verifier-eau`,
+  personne ne se chauffait au brasero menacé de la conduite, seul feu. Ajouté à la galerie de ronde,
+  hors d'atteinte de l'eau, un poêle du guet allumé (120 min) et trois charges de bûches du guet (90 min)
+  à Gorm, sus de tous ; un âtre au refuge, essayé, supprimait tout froid. Bancs 8 h (8 graines, `main`
+  ec2352e puis la branche) : froid pressant 491 → 111 minutes·PNJ par nuit (Brune 281 → 71), en attente
+  541 → 219, dans l'eau 438 → 373, échanges 19 → 18, achats 1 → 2 ; audit 12 h : froid 794 → 199, en
+  attente 914 → 571. **Auberge** : le bois (750 minutes pour trois foyers) finissait vers la cinquième
+  heure. Mesuré : un foyer brûle une minute de combustible par minute, trois foyers 1 440 minutes en 8 h,
+  2 160 en 12 h. Portés à 1 815 minutes : bûches de la cuisine 4 → 8 charges, d'Anselme 2 → 3, fagots de
+  Joss 2 → 3, et une réserve de bûches d'Odile au cellier (12 charges de 60 min, sue de la maisonnée).
+  Bancs 8 h : dans le noir 1 159 → 236 (dont 128 de Lucien au grenier, qui n'a pas de lumière), en
+  attente 341 → 24, sans recours 101 → 146 (Lucien, qui guette pour ses biens, désormais éclairé),
+  foyers allumés âtre 215 → 471, fourneau 243 → 424, poêle 235 → 464 min ; restent à la fin 3,5 charges
+  de la réserve et 2,2 fagots ; offres de tâche 33 → 7, « as-tu… ? » 14 → 2,4, échanges 82 → 33 (surtout
+  les demandes vaines), vols vus 1,2 → 1,1, une nuit 50 → 32 s. Audit 12 h : noir 2 690 → 1 017
+  (le bois s'épuise vers la huitième heure ; la lanterne de l'étable vide), en attente 1 141 → 351, froid
+  172 → 19, échanges 120 → 100 ; Odile prête sa réserve à Anselme puis la lui refuse. L'huile n'a pas été
+  augmentée : un pot d'huile essayé n'a jamais servi (aucune part de combustible ne se demande pour une
+  lampe, seulement pour la chaleur ; qui a peur dans le noir n'a pas rechargé la lanterne de l'étable).
+  Aucune usurpation ni violation ; `VERIFIER` sans écart sur une nuit de chaque scénario (graine 7, 8 h).
+  `tests/test_ressources.py` (crue 7 et auberge 1985 après rechargement) ; scènes d'auteur à court de bois
+  sans la réserve d'Odile (`test_refus_retenus`, `test_echanges_suite`, `test_entretenir`) ; `test_auberge`
+  (11 événements distincts en 210 minutes, seuil 12 → 10), `test_eau`, `test_verifier_eau` (on sèche au
+  poêle du guet). Limites : moteur inchangé ; la lumière des lampes n'est pas une ressource que les PNJ se
+  partagent ; un scénario de 12 h finit encore dans le noir à l'auberge (rareté voulue).
+- Branche `relances-luna`, non fusionnée (`docs/contrat-mj.md`, « Ce qui n'appelle pas de relance » et « Refus
+  et échecs ») : après `parole-corrections`, les quatre bancs de référence étaient montés à 3,24 appels et 6
+  relances par tour MJ. Causes lues dans les fils : un « impossible » au premier examen audité alors que la
+  boucle le refuse ensuite (réexamen), avec sa prose relancée (« le moteur… ») ; la contre-revue refusant
+  l'examen que le moteur prescrit pour chercher (« je cherche des traces de pas », 9 appels) ; l'explication
+  d'un geste refusé par le monde (trop loin) relancée jusqu'à trois fois sur des refus sémantiques ; un nom
+  typé autrement que ne le disent les mots de Corvus renvoyé au MJ ; une citation recopiée par l'auditeur
+  avec son attribution ; des règles du contrôle déterministe jamais dites au MJ (« je », « Corvus »,
+  « moteur » hors des répliques ; une voix inconnue nommée dans le récit). Règles : un avis que la boucle
+  écartera n'est pas audité (`mj.refus_assure`) ; le nom que Corvus se donne est lu dans ses mots
+  (`paroles.verifier_nom`) ; la citation d'une parole est la réplique du segment qu'elle recouvre
+  (`narration.citation_du_segment`, `cite_entiere`) ; l'explication d'un refus du monde a un essai, puis le
+  joueur lit les refus du monde dans l'ordre (`mj.ExplicationCedee`) ; `REGLE_NARRATION` dit la voix
+  d'auteur, la voix inconnue et les noms connus ; `attendu` d'une voix d'auteur, du réexamen et d'un héler
+  sans nom plus précis ; la contre-revue admet la perception qui cherche ; l'auditeur sait que les témoins se
+  taisent, que les mots de qui répond ne sont jamais fournis, que ce que fait sentir un objet perçu est
+  ambiance. Ajouts de la revérification (`docs/reverification.md`, N5) : une réplique ne nomme que qui son
+  locuteur connaît, voix connue ou non (`narration.voix_inconnues`, `voix.connait_nom` ; Aubin ne dit plus
+  « Corvus ») ; « tu demandes à passer » n'est pas une parole racontée ; un objet remis au joueur lui est dit
+  une fois, son ouïe ne le lui redit pas à la troisième personne (`ouie.retentir`, `appris`). Tests après
+  rechargement, cas réel et cas de même nature (`tests/test_relances_luna.py`, 20 tests) ; tests accordés :
+  `test_narration`, `test_defi` (le refus du monde au lieu de « Corvus n'a rien tenté »),
+  `test_parole_corrections` (« C'est moi, Brune » sans relance), `test_audits_attendu`. Luna, 2 passes,
+  `main` ec2352e puis la branche 23fd759, une exécution à la fois, neuf bancs : 4 bancs de référence 3,17 →
+  3,11 appels et 14,4 → 14,2 s par tour MJ, replis 0 → 0, relances 5,5 → 4,5, refus 9 → 8,5, tours avec
+  refus 5,5 → 5,5 (une passe intermédiaire, 1c484c0, sans les ajouts de la revérification : 3,01 appels,
+  13,5 s, relances 3, refus 11) ; avant `parole-corrections` : 2,99 / 14,2 / 3,5 / 8,5. Bancs du soir, appels
+  par tour : soir-noir 3,90 → 3,40, soir-voix 3,50 → 3,00, soir-appel 3,08 → 2,92, ressources 3,33 → 3,00,
+  comptes 3,00 → 3,50 (une passe à 5) ; relances soir-noir 1,5 → 0,5, soir-voix 1 → 0. « je cherche des
+  traces de pas » 9 et 2 → 6 et 4 appels ; « J'attends que Gorm ait le dos tourné… » 5 et 7 → 3 et 3 ; « Qui
+  est là ? » 6 et 5 → 4 et 4 ; « C'est moi, Brune » 6 et 4 → 3 et 5. Saisies du rapport du soir : textes
+  affichés équivalents, aucun refus de forme ni `attendu` montré, imposture démasquée 4/4. Limites : un
+  « impossible » au premier examen reste refusé (une relance ; 4 par passe de référence) ; un `nom` typé sans
+  nom dans les mots reste refusé (« Qui est là ? » typé `nom`) ; l'arbitrage sommaire `difficulte` 0 avec une
+  stat reste un refus de forme ; les refus sémantiques de l'auditeur (absence affirmée, « hors de vue »)
+  restent la première source de relances ; le refus du monde montré à la place d'une explication porte ses
+  coordonnées (« case 5, 11 du plan ») et ne dit que le dernier geste proposé ; « passer sous la poutre »
+  peut encore répondre par « Il faut une échelle » (`franchir`, défaut N5 de la revérification) ; les
+  consignes de l'auditeur restent sémantiques. `couverture_action.py`, `sons.py`, `ouie.py`, `echanges.py`,
+  `rejeu.py` touchés hors du périmètre annoncé, chacun pour une règle commune.
+- Branche `boucles-pnj`, non fusionnée (`docs/plan-planificateur.md`, « Les boucles de la revérification » ;
+  `docs/plan-ouie.md`, « Ce qu'on a déjà dit ») : trois boucles de la [revérification](reverification.md),
+  nées de la délibération à l'événement. **Un geste défait sous ses yeux** (N1, mine 42 : Odon ouvre le
+  garde-manger, Mathe le referme, 689 fois ; la précaution sans témoin était levée par la faim à 95, pas
+  absente) : ce qu'un PNJ vient de faire de sa main à une chose (ouvrir, fermer, verrouiller, crocheter,
+  allumer, éteindre ; `DEFAIT` 5 min, esprit `donne`), un autre — PNJ ou joueur — le défait sous ses yeux :
+  on s'oppose à lui sur cette chose, retenu comme un refus (`defaire`, « oppose ») qui tient tant qu'il croit
+  l'opposant là, et le planificateur n'y offre plus de geste (`deliberation.changer_etat`, `contrarie`,
+  `Vue.contrarie`). **Le recours en cours garde la main** (N2, crue 3 : 1 705 passages de salle en 8 h ; la
+  galerie est éclairée par le jour) : hystérésis entre recours d'un même besoin et d'un même rang
+  (`choisir`, `_candidats`) ; l'abri vers lequel il est en route garde la main tant qu'il en est un, sauf eau
+  qui monte sous ses yeux ou péril (`_plan_abri`) ; la lumière d'un autre ne satisfait plus le besoin de
+  lumière (`_plan_lumiere`). **Ce qu'on a déjà dit** (N4, auberge : Hugues redit 26 fois où est le ballot) :
+  un lieu dit l'est jusqu'à ce que sa valeur change ; pas à qui a le bien dans sa salle (`_a_dire`). Cas réels
+  et cas de même nature après rechargement, même laps découpé (`tests/test_boucles_pnj.py`, 11 tests, 8
+  échouent sur `main`). `tools/audit_nuits.py` mesure les boucles (bascules, passages par heure,
+  avertissements redits, appels à l'aide). Audit 4 scénarios × 8 graines × 12 h contre `main` e07bc20 :
+  bascules mine 180,6 → 2,1 (mine 42 : 1 436 → 8), auberge 15,5 → 2,5 (la même boucle, Lucien et le coffre
+  d'Anselme, 62 → 2), avertissements redits auberge 4,4 → 0,75, appels à l'aide mine 5,6 → 4,1 ; Relais et
+  crue identiques nuit pour nuit ; en attente mine 1 369 → 1 404, auberge 379 → 456 (on attend que
+  l'opposant s'en aille) ; aucun plantage, violation ni usurpation ; `VERIFIER` et `spatial.VERIFICATION` (0,2) sans écart
+  sur une nuit de 8 h de chaque scénario (graine 42). Limites : la fenêtre
+  « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
+  l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
+  (un « peu fiable » redit à quatre heures d'écart).
 - Branche `temps-reel`, non fusionnée (`docs/plan-temps.md`, « Correctif : le temps réel » ; `donjon/vecu.py`) :
   ce qui restait à la minute après `deliberation-evenements`. **Horloges à leur instant** : déclenchées par la vie
   des PNJ à chaque minute franchie (`pnj._avancer`, `horloges.declencher`), plus à la fin de l'action du joueur ;
@@ -995,32 +1141,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pas les secondes en cours. Défaut vu au banc, hors de ce lot : Aubin, payé pour garder le brasero allumé, sans
   flamme pour le rallumer, ne rend pas la tâche et promet deux fois une part de planches qu'il ne sert pas ;
   Gorm l'attend 160 minutes dans la conduite noire (Relais, graine 42).
-- La suite de tests passe : 1218 tests (18 sautés ici : 14 sans `jsonschema`, facultatif pour MiMo, 4 sans le SDK `anthropic`, facultatif), sans clé ni connexion (ceux du clic demandent Node).
-
-## Décisions prises le 2026-10-22 (à implémenter)
-
-- **Réglages et données** : profils du Relais et de la crue selon `docs/analyse-relais.md` (Brune
-  douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65, douceur 80 ; Gorm inchangé) ; froid sec 4 par
-  heure ; seuil + 15 (`REPRISE`) gardé ; premier acte du Relais gardé (Brune peut voler tôt) ;
-  crochetage plus ou moins bruyant selon l'adresse (habile et réussi : discret ; échec ou forcement :
-  fracas) ; surenchère progressive (+50 % par palier tant que l'offre vaut la peine) ; réglages de
-  l'ouïe gardés (ajustés au banc si besoin) ; `GARDE` et `PRET` à tirer des valeurs et des relations.
-- **Noms** : un nom ne s'apprend qu'en entendant la personne se nommer ou quelqu'un la nommer, pas en
-  la voyant de près ; sinon la scène la décrit (« un homme trapu ») ; seuls les liens déclarés par le
-  scénario donnent le nom d'office.
-- **Appel négocié** : l'appelé et l'appelant conviennent de qui vient à qui (« J'arrive », « Ici,
-  viens », « Qu'est-ce que tu veux ? », silence) selon qui a besoin de qui, qui peut bouger, la
-  distance et l'urgence ; l'attente se règle sur la distance ; même règle pour le joueur, réponses
-  typées sans Luna.
-- **Plan force** (`docs/plan-force.md`) : les coups ne tuent jamais (PV 0 = hors de combat, seul
-  « tuer » donne la mort) ; **douceur 100 peut frapper pour se défendre ou défendre un protégé**
-  (écart à la recommandation du plan) ; joueur assommé : le temps passe jusqu'au réveil ; pas de mort
-  par faim, froid ou eau à cette étape ; le reste selon les recommandations du plan.
-- **Plan relations** (`docs/plan-relations.md`) : cinq axes (confiance, affection, rancune, peur,
-  dette) ; le joueur perçoit signes et impressions (commande « observer »), sa PSY peut le tromper ;
-  un PNJ donne son avis sans qu'on le lui demande seulement si l'autre risque d'agir contre et qu'il
-  s'en soucie ; le reste selon les recommandations du plan.
-- **Plus tard** : fabrication étape 4 ; imitation de voix (après les relations).
+- La suite de tests passe : 1249 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
