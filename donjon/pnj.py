@@ -1461,6 +1461,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
     ids = pnjs(monde)
     en_cases = bool(monde.data.get("mode_cases"))
+    monde._agit = None  # Qui agit en ce moment : rien de ce qu'il voit changer de son fait ne l'éveille.
     # Le bilan des présences est celui de l'action du joueur, ouvert par le moteur ; appelée
     # seule, la vie des PNJ fait son propre bilan. Les apparus sont ceux que le joueur voit à un
     # moment de cette période sans les avoir vus à son début.
@@ -1543,6 +1544,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 duree = DUREES["dire"] if en_cases else _jusqu_a_la_minute(t)
             elif intention:
                 gestes = []
+                monde._agit = id  # Le temps de son geste et de ce qu'on en voit (``esprits._percevoir``).
                 duree, issue, rate = agir(monde, id, t, lignes, gestes, compter)
                 if en_cases and issue in (FIN, MANQUE):
                     # Son plan est fini, ou un geste a manqué : il choisit aussitôt la suite, sur ce
@@ -1561,6 +1563,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
                 # est en cache). Les croyances ne dépendent pas des instants où le joueur agit.
                 percevoir_tous(monde)
+                monde._agit = None
                 temoigner_en_cours(monde)
                 observer()
             else:

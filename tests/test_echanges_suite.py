@@ -389,13 +389,6 @@ class EnqueteTests(unittest.TestCase):
         from tests.test_securite import dans_le_noir
         m = dans_le_noir(calme(relais(), "marchand", "brune", "ilse", "aubin"), "ilse", 75.0)
         m.data["finances_pnj"]["marchand"] = 0
-        # Placement d'auteur : ni ses fagots ni la torche ne sont à sa portée, et les planches d'Aubin
-        # sont rangées dans la conduite obscure. Gorm, qui choisit désormais à l'événement, irait sinon
-        # à la torche, verrait le bois et n'aurait rien à demander (``deliberation-evenements``).
-        for k in ("bois", "torche"):
-            m.objets[k].update(lieu="chambre_cloche", position=[5, 1], position_salle="chambre_cloche")
-        m.objets["planches"].update(lieu="echoppe", position=[8, 6], position_salle="echoppe")
-        croire(m, "aubin", "planches", "lieu", "echoppe", "vu", salle="echoppe", case=[8, 6])
         self.assertNotIn("planches", lire(m, "marchand")["croyances"])
         from tests.test_tensions import attendre
         m.joueur.update(salle="antichambre", position=[3, 4], orientation="ouest")
@@ -405,6 +398,7 @@ class EnqueteTests(unittest.TestCase):
         self.assertIn({"de": "aubin", "besoin": "chaleur", "objets": ["planches"]},
                       [{k: s[k] for k in ("de", "besoin", "objets")} for s in memoires(m, "marchand", "enquete")])
         self.assertIn("Gorm demande une part des planches de bac à Aubin (promis).", chronique(m))
+        self.assertTrue(m.objets["brasero"]["allume"])
 
     def test_rien_a_dire_et_la_mefiance(self):
         # Autre cas de même nature : qui n'a rien le dit ; qui se méfie ne répond pas.

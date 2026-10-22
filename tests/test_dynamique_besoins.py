@@ -102,9 +102,6 @@ class TenirTests(unittest.TestCase):
         for autre in ("odile", "mireille", "tilo", "joss", "hugues", "mathurine", "lucien"):
             memoriser(m, "anselme", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
         placer(m, "lucien", "grenier", (2, 2))
-        # Anselme attend à la salle commune éclairée : dans sa chambre noire, n'appelant plus à l'aide en
-        # boucle (``docs/audit-nuits.md``, B1), il irait prendre lui-même la lanterne de l'étable.
-        placer(m, "anselme", "salle_commune", (2, 2))
         percevoir_tous(m)
         lire(m, "lucien")["besoins"].update(biens=65.0, securite=70.0)
         return m
@@ -134,15 +131,12 @@ class TenirTests(unittest.TestCase):
         lire(m, "bram")["besoins"].update(biens=70.0, securite=70.0)
         return m
 
-    def test_bram_ouvre_pour_la_lampe_et_garde_la_paie_a_la_lueur_entree(self):
+    def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self):
         from donjon.deliberation import autour
         m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 3)
-        # Il ouvre la porte du bureau pour aller chercher la lampe ; la porte ouverte, la lueur du
-        # baraquement entre jusqu'à lui : il le voit aussitôt (``deliberation-evenements``) et reste
-        # garder la paie, sans quitter le bureau (avant, il ne reconsidérait qu'à la minute et
-        # rapportait la lampe du filon).
-        self.assertEqual(lieux, ["bureau", "bureau", "bureau"])
-        self.assertTrue(m.objets["porte_bureau"]["ouverte"])
+        self.assertEqual(lieux, ["bureau", "filon", "bureau"])
+        self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
+        self.assertTrue(m.objets["lampe_filon"]["allume"])
         # Il y voit, là où il garde la paie.
         self.assertTrue(autour(m, "bram")["lumiere"])
         self.assertEqual(lire(m, "bram")["intention"]["but"], {"type": "garder", "lieu": "bureau"})

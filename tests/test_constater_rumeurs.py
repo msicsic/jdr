@@ -313,7 +313,8 @@ class ParlerALaVoixTests(unittest.TestCase):
         m = self.baraquement_noir()
         m, _ = attendre(recharger(m))
         self.assertIn("Odon demande une part des vivres de la cuisine à Mathe (refus).", chronique(m))
-        self.assertEqual(lieu_cru(m, "mathe", "odon")[0], "baraquement")
+        # Elle le situe à sa voix (refusé, il est aussitôt allé tenter ailleurs, ce qu'elle entend aussi).
+        self.assertEqual(lieu_cru(m, "mathe", "odon"), (m.objets["odon"]["lieu"], "entendu"))
 
     def test_une_voix_jamais_entendue_ne_se_reconnait_pas(self):
         """Même nature, mais Mathe n'a jamais entendu Odon : c'est une voix inconnue, qu'elle ne

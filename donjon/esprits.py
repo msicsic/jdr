@@ -590,7 +590,10 @@ def _percevoir(monde, id):
             if proprietaire(monde, monde.objets[sujet]) == id:
                 from .deliberation import relancer
                 relancer(monde, id, "biens", 30)
-    if change and not premiere:
+    # Ce qu'il voit changer par son propre geste (ses pas, se tourner, une porte qu'il ouvre), il s'y
+    # attendait : son plan le prévoyait, il le poursuit (la fin du plan, un geste manqué et la minute
+    # le font choisir de nouveau). Seul ce que font les autres, ou le monde, l'éveille.
+    if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)
 
 
