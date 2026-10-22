@@ -856,7 +856,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   69, crue 67,5 → 99) ; aucune usurpation ni violation ; temps égaux sauf une nuit d'auberge plus active.
   Limites : un refus retenu ne s'oublie pas tant que rien de nouveau n'est cru ; la surenchère peut payer
   le double du nécessaire ; une part sans pièce décrite est remise sous le nom du lot.
-- La suite de tests passe : 1149 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `deliberation-evenements`, non fusionnée (`docs/plan-temps.md`, « Correctif : délibérer à
+  l'événement ») : le jalon temps fin prévoyait que les PNJ réfléchissent à la fin de leur plan, à un
+  geste manqué, à un événement et au moins chaque minute ; seule la minute était faite. `deliberer`
+  (la minute : besoins, corps, effet de seuil) appelle `choisir` (le but, sans faire passer le temps),
+  que `pnj._avancer` appelle aussi à l'instant : plan fini, geste manqué (non retenté avant la minute,
+  `esprit["manque"]`), et à la fin du geste en cours, ou aussitôt s'il attend (`esprit["veille"]`), après
+  un événement (`esprits.reconsiderer`, `esprit["eveil"]`) : bruit interprété, quelqu'un qui entre dans
+  son regard ou en sort, porte ou feu qui change sous ses yeux, absence, son bien aux mains d'un autre,
+  geste illicite vu, parole adressée ou qui lui apprend quelque chose ; ce qu'il voit changer de son
+  propre geste ne l'éveille pas. Le filet de la minute reste ; aucun franchissement de seuil n'est un
+  événement. Gestes qui durent : achevés ou impossibles, il choisit aussitôt. Ordre : le temps, puis les
+  identifiants à un même instant. Même laps découpé, même monde : tout est dans l'esprit ; la perception
+  du résultat d'une action du joueur se fait à son début (elle se datait de sa fin, selon le découpage).
+  Dans la foulée : guet compté une fois par minute (`patience`), regard autour de soi quand un événement
+  réveille celui qui guette, un bruit du lieu où l'on est venu le voir reste à voir à l'arrivée, une
+  parole tenue sur ce qu'on a vu la minute suivante, la chronique datée à l'instant. Deux boucles de
+  l'audit corrigées : un appel à l'aide ne se répète pas tant que dure le même désarroi (B1) ; on ne
+  prévient une victime que de ce qu'elle ignore (B3). 18 tests après rechargement
+  (`tests/test_deliberation_evenements.py`), `VERIFIER` et `spatial.VERIFICATION` sur une nuit de chaque
+  scénario (l'auberge s'arrête, comme sur `main`, sur le défaut V1 de l'audit). Bancs 8 h contre `main`
+  8589ca2 : allés voir +20 à +50 %, témoins de vols en hausse partout, minutes en attente en baisse ;
+  sans recours auberge 44 → 104 (Lucien guette, renonce, attend son répit) ; un tiers à près de la moitié
+  des choix se font entre deux minutes, recherches ×2 à ×2,4 mais neuves +15 à +60 % ; temps d'une nuit
+  égal à la dispersion près (auberge 32,7 → 35,8 s, mine 28,1 → 25,1 s). Restent à la minute : corps et
+  besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
+- La suite de tests passe : 1167 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
