@@ -1048,7 +1048,35 @@ Cas vérifiés après rechargement (`tests/test_boucles_pnj.py`, 11 tests ; chac
   palier noir ; chaque pas entendu la fait rechoisir ; elle ne rebrousse plus (sur `main` : 22 passages
   en quatre minutes).
 
-MESURES_BOUCLES
+Audit (`tools/audit_nuits.py`, qui mesure désormais les boucles : `bascules`, un état qu'un PNJ donne à
+une chose et qu'un autre reprend ; `passages_heure_max` ; `avertissements_redits` ; appels à l'aide),
+4 scénarios × 8 graines (3 42 123 500 1985 2024 7 11) × 12 h, départ tiré, `main` e07bc20 puis la
+branche, l'un après l'autre, 5 processus ; par nuit (pire nuit entre parenthèses) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| bascules | 2,5 → 2,5 | 180,6 (1 436) → 2,1 (8) | 15,5 (62) → 2,5 (4) | 1,75 → 1,75 |
+| passages de salle par heure, au plus | 9,25 → 9,25 | 12,75 (16) → 13,4 (16) | 27,25 (44) → 27,4 (35) | 24 (40) → 24 (40) |
+| avertissements redits | 0 → 0 | 0 → 0 | 4,4 (21) → 0,75 (2) | 0 → 0 |
+| appels à l'aide | 0,4 → 0,4 | 5,6 (13) → 4,1 (8) | 2,9 → 2,6 | 0 → 0 |
+| sans recours | 119 → 119 | 47,5 → 46,9 | 191 → 195 | 57,5 → 57,5 |
+| en attente | 295 → 295 | 1 369 → 1 404 | 379 → 456 | 537 → 537 |
+| vols vus (témoins) | 1,25 (2,75) → idem | 0,5 (1,5) → 0,375 (0,9) | 1,75 (2,9) → 1,25 (2,9) | 0,6 (1,25) → idem |
+| minutes dans le noir | 236 → 236 | 1 403 → 1 541 | 961 → 992 | 97,5 → 97,5 |
+| gestes | 211 → 211 | 533 → 336 | 642 → 635 | 293 → 293 |
+| temps d'une nuit | 19,1 → 22,5 s | 111 → 112 s | 96 → 105 s | 28,8 → 28,2 s |
+
+Relais et crue : les 8 nuits identiques (empreintes) ; mine 6 sur 8, auberge 1 sur 8. Aucun plantage,
+aucune violation de `Monde.verifier` (chaque pas), aucune usurpation. `planification.VERIFIER` et `spatial.VERIFICATION`
+(0,2) sans écart sur une nuit de 8 h de chaque scénario (graine 42, celle de la mine qui bouclait). Les temps, sur une machine chargée
+et à nuits identiques pour le Relais, sont dans le bruit. Sur ce `main`, deux nuits de l'auberge (42 et
+1985) montraient la même boucle que N1 : Lucien ouvre le coffre ferré d'Anselme, Anselme le referme, 31
+et 25 fois ; corrigée par la même règle. Les données de la crue ayant changé (`ressources`), la boucle de
+la crue 3 n'y apparaît plus ; sur `main` ec2352e, avant ces données, la crue 3 passait de 1 705 à 136
+passages de salle en 8 h (au plus 552 dans une heure sur `main`). À la mine 42, Mathe appelle à l'aide 3
+fois au lieu de 13. En attente monte à l'auberge et à la
+mine : qui s'est vu opposer un geste attend que l'opposant s'en aille au lieu de le refaire ; à la mine,
+Odon, privé du garde-manger, reste plus longtemps dans le noir.
 
 Limites :
 - « Ce qu'il vient de faire » est une fenêtre de `DEFAIT` minutes ; au-delà, défaire son geste n'est
