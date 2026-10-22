@@ -17,6 +17,7 @@ y répondent.
 """
 import copy
 import re
+from contextlib import contextmanager
 
 from . import relations
 from .esprits import RECENT, croire, croyance, esprit, lire, memoriser, percevoir
@@ -871,7 +872,6 @@ def _connu_du_joueur(monde, id):
     Un personnage, il le connaît d'après ce qu'il sait de lui (``identites``) ; qu'il ne soit plus là
     où on l'avait vu n'y change rien : le nommer quand il est absent donne le refus de la parole ou
     du geste (« Tu ne vois pas … d'ici »), pas un inconnu."""
-    from . import lexique
     if id in monde.objets and monde.objets[id]["type"] == "personnage":
         return id in identites(monde)
     if (id == "joueur" or id in monde.data["visitees"] or id in monde.data["connus"]
@@ -879,7 +879,45 @@ def _connu_du_joueur(monde, id):
         return True
     if id not in monde.objets and id not in monde.data["salles"]:
         return False
-    return id in lexique.entites_citees(monde, lexique.corpus(monde.contexte(), monde.data.get("conversation", [])))
+    return id in _cites_du_contexte(monde)
+
+
+# Ce que nomme ce que le joueur perçoit et sait (``_cites_du_contexte``), gardé le temps d'un bloc qui
+# ne change rien à l'état (``contexte_fige``) : (monde, identifiants) ; None hors d'un tel bloc.
+_CITES = None
+
+
+@contextmanager
+def contexte_fige():
+    """Un bloc qui ne fait que lire l'état (ce que le joueur saisit de paroles entendues, ce qu'il en
+    entend) : ce que nomme son contexte (``monde.contexte``, ``lexique``) n'y est calculé qu'une fois.
+    En vérification (``spatial.VERIFICATION``), chaque lecture gardée est recomparée à un calcul de zéro."""
+    global _CITES
+    if _CITES is not None:
+        yield
+        return
+    _CITES = ()
+    try:
+        yield
+    finally:
+        _CITES = None
+
+
+def _cites_du_contexte(monde):
+    """Les identifiants que nomme ce que le joueur perçoit et sait : son contexte et la conversation."""
+    global _CITES
+    from . import lexique
+    from .spatial import a_verifier
+
+    def calculer():
+        return lexique.entites_citees(monde, lexique.corpus(monde.contexte(), monde.data.get("conversation", [])))
+    if _CITES is None:
+        return calculer()
+    if not _CITES or _CITES[0] is not monde:
+        _CITES = (monde, calculer())
+    elif a_verifier():
+        assert calculer() == _CITES[1], "Contexte du joueur gardé périmé"
+    return _CITES[1]
 
 
 def resoudre(monde, reference):

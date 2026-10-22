@@ -27,7 +27,9 @@ Le joueur a ``data["voix_connues"]`` et ``data["voix_entendues"]``. Voir quelqu'
 import copy
 
 from .biens import permis as _permis
-from .perception import eclairage
+from .perception import _par_case, eclairage, faible
+from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verifier, carte_lumiere, dans_le_regard,
+                      etat_fige, porte_par, poses as salles_posees, sans_memoire, vue_memorisee)
 from .vol import proprietaire as _proprietaire
 
 MEMOIRE_MAX = 40
@@ -86,9 +88,10 @@ def lire(monde, id):
 
 def esprit(monde, id):
     e = monde.data.setdefault("esprits", {}).setdefault(id, {})
-    for cle, defaut in CHAMPS.items():
-        if cle not in e:
-            e[cle] = defaut()
+    if not CHAMPS.keys() <= e.keys():
+        for cle, defaut in CHAMPS.items():
+            if cle not in e:
+                e[cle] = defaut()
     return e
 
 
@@ -327,13 +330,18 @@ def percus(monde, acteur):
     """Entités perçues maintenant par un PNJ et lieux observés : {id: (salle, case)}, champ.
 
     Pendant la vie des PNJ (``spatial.vue_memorisee``), la perception d'un acteur est gardée tant
-    que l'état dont elle dépend n'a pas changé (``spatial.etat_vue``)."""
-    from .spatial import _memo_vue, a_verifier, sans_memoire
+    que l'état dont elle dépend n'a pas changé (``spatial.etat_vue``) ; dans un état nouveau, elle se
+    tire de la précédente quand c'est possible (``_percus_depuis``)."""
     memo = _memo_vue(monde) if monde.data.get("mode_cases") else None
     if memo is None:
         return _percus(monde, acteur, None)
     if ("percus", acteur) not in memo:
-        memo["percus", acteur] = _percus(monde, acteur, memo)
+        derniers = monde._cache_vue.setdefault("percus_derniers", {})
+        dernier = derniers.pop(acteur, None)
+        trouve = None if dernier is None else _percus_depuis(monde, acteur, memo, dernier)
+        memo["percus", acteur] = trouve if trouve is not None else _percus(monde, acteur, memo)
+        if "etat" in memo and monde.objets[acteur]["lieu"] in monde.data["salles"]:
+            derniers[acteur] = (memo["etat"], memo["percus", acteur][0], _champ(monde, acteur, memo), memo)
     vus, champ = memo["percus", acteur]
     if a_verifier():
         with sans_memoire(monde):
@@ -343,7 +351,6 @@ def percus(monde, acteur):
 
 
 def _percus(monde, acteur, memo):
-    from .spatial import porte_par, poses as salles_posees
     salle = monde.objets[acteur]["lieu"]
     poses = salles_posees(monde, memo)
     # Ce qu'il porte lui-même, il le sait sans le voir.
@@ -352,32 +359,15 @@ def _percus(monde, acteur, memo):
     if salle not in monde.data["salles"]:
         return vus, set()
     if monde.data.get("mode_cases"):
-        from .spatial import _champ, _murs, _position_vue
         champ = _champ(monde, acteur, memo)
         salles_du_champ = {c[0] for c in champ}
         salles_vues = [s for s in monde.data["salles"] if s in salles_du_champ]
         for id, o in monde.objets.items():
-            if id in vus or not _remarquable(acteur, o):
+            if id in vus:
                 continue
-            # ``visible``, sans le cas des surfaces, qui ne sont pas pertinentes : la première place
-            # dans le champ, et l'objet accroché au mur n'est vu que si ce mur l'est.
-            pose = poses[id]
-            if pose is not None and pose not in salles_du_champ:
-                continue
-            premiere, vu = None, False
-            for s in salles_vues if pose is None else (pose,):
-                p = _position_vue(monde, memo, id, s)
-                if p is None or (s, p[0], p[1]) not in champ:
-                    continue
-                if premiere is None:
-                    premiere = (s, list(p))
-                ancrage = o.get("ancrage_carte")
-                if ancrage and tuple(ancrage) not in _murs(monde, champ, acteur, memo).get(s, set()):
-                    continue
-                vu = True
-                break
-            if vu and not cache_par_porteur(monde, o, acteur):
-                vus[id] = premiere
+            vu = _vu_dans_le_champ(monde, memo, acteur, id, o, poses[id], champ, salles_du_champ, salles_vues)
+            if vu is not None:
+                vus[id] = vu
         j = monde.joueur
         if (j["salle"], *j["position"]) in champ:
             vus["joueur"] = (j["salle"], list(j["position"]))
@@ -390,6 +380,156 @@ def _percus(monde, acteur, memo):
     if monde.joueur["salle"] == salle:
         vus["joueur"] = (salle, None)
     return vus, {salle}
+
+
+def _vu_dans_le_champ(monde, memo, acteur, id, o, pose, champ, salles_du_champ, salles_vues):
+    """Où l'acteur voit l'objet ``id`` (salle, case), ou None : ``visible``, sans le cas des surfaces,
+    qui ne sont pas pertinentes ; la première place dans le champ, et l'objet accroché au mur n'est vu
+    que si ce mur l'est ; porté par un autre, s'il se remarque."""
+    if not _remarquable(acteur, o) or pose is not None and pose not in salles_du_champ:
+        return None
+    premiere, vu = None, False
+    for s in salles_vues if pose is None else (pose,):
+        p = _position_vue(monde, memo, id, s)
+        if p is None or (s, p[0], p[1]) not in champ:
+            continue
+        if premiere is None:
+            premiere = (s, list(p))
+        ancrage = o.get("ancrage_carte")
+        if ancrage and tuple(ancrage) not in _murs(monde, champ, acteur, memo).get(s, set()):
+            continue
+        vu = True
+        break
+    return premiere if vu and not cache_par_porteur(monde, o, acteur) else None
+
+
+def _percus_depuis(monde, acteur, memo, dernier):
+    """La perception de l'acteur dans cet état (``_percus``), tirée de celle d'un état précédent
+    (``dernier`` : l'empreinte de cet état, ce qu'il y percevait, son champ) quand seuls ont changé des
+    objets qui ne bornent pas la vue (ni porte ni objet opaque), pas lui-même, et que son champ est le
+    même : seuls les objets changés et ce qu'ils portent ou contiennent (la chaîne de leurs lieux), et
+    les objets installés sur un support, sont revus ; le reste se voit de même. None sinon."""
+    ancien, vus_avant, champ_avant, memo_avant = dernier
+    etat = memo.get("etat")
+    if etat is None:
+        return None
+    changes = _changes(memo, ancien, etat)
+    if changes is None or acteur in changes:
+        return None
+    objets = monde.objets
+    contenus, installes = _chaines(monde, memo)
+    touches = changes | installes | {id for id, chaine in contenus if not changes.isdisjoint(chaine)}
+    _heriter_signatures(memo, memo_avant, ancien, etat, touches)
+    champ = _champ(monde, acteur, memo)
+    if champ != champ_avant:
+        return None
+    poses = salles_posees(monde, memo)
+    porte = (None, None)
+    salles_du_champ = {c[0] for c in champ}
+    salles_vues = [s for s in monde.data["salles"] if s in salles_du_champ]
+    # Chaque objet revu : porté par lui, vu (où), ou ni l'un ni l'autre.
+    revus = {}
+    for id in touches:
+        if id not in objets:
+            continue
+        o = objets[id]
+        if poses[id] in (None, acteur) and porte_par(monde, id, acteur) and _pertinent(monde, acteur, o):
+            revus[id] = porte
+        else:
+            revus[id] = _vu_dans_le_champ(monde, memo, acteur, id, o, poses[id], champ, salles_du_champ, salles_vues)
+    j = monde.joueur
+    joueur = (j["salle"], list(j["position"])) if (j["salle"], *j["position"]) in champ else None
+    if all((vus_avant.get(id) == porte) == (vu == porte) and (vus_avant.get(id) is None) == (vu is None)
+           for id, vu in revus.items()) and ("joueur" in vus_avant) == (joueur is not None):
+        # Aucun ne change de rubrique : l'ordre d'un calcul complet est celui d'avant.
+        vus = dict(vus_avant)
+        vus.update((id, vu) for id, vu in revus.items() if vu is not None)
+        if joueur is not None:
+            vus["joueur"] = joueur
+        return vus, set(champ)
+    # Dans l'ordre d'un calcul complet : ce qu'il porte, puis ce qu'il voit, puis le joueur.
+    vus = {}
+    for id in objets:
+        if (revus[id] if id in revus else vus_avant.get(id)) == porte:
+            vus[id] = porte
+    for id in objets:
+        if id not in vus:
+            vu = revus[id] if id in revus else vus_avant.get(id)
+            if vu is not None:
+                vus[id] = vu
+    if joueur is not None:
+        vus["joueur"] = joueur
+    return vus, set(champ)
+
+
+def _changes(memo, ancien, etat):
+    """Les objets dont l'entrée diffère entre deux empreintes (``spatial.etat_vue``), et « joueur » si
+    sa place ou son regard a changé ; None si les objets ne sont plus les mêmes ou si une porte ou un
+    objet opaque a changé (ce qui borne la vue). Gardé dans le mémo de l'état, par état précédent."""
+    cle = ("changes", id(ancien))
+    garde = memo.get(cle)
+    if garde is not None and garde[0] is ancien:
+        return garde[1]
+    changes = set()
+    if len(ancien[3]) != len(etat[3]):
+        changes = None
+    else:
+        type_, opaque = CLES_VUE.index("type"), CLES_VUE.index("bloque_vue")
+        for avant, apres in zip(ancien[3], etat[3]):
+            if avant != apres:
+                if avant[0] != apres[0] or any(x[1][type_] == "porte" or x[1][opaque] for x in (avant, apres)):
+                    changes = None
+                    break
+                changes.add(avant[0])
+        if changes is not None and ancien[:3] != etat[:3]:
+            changes.add("joueur")
+    memo[cle] = (ancien, changes)
+    return changes
+
+
+def _heriter_signatures(memo, memo_avant, ancien, etat, touches):
+    """Les signatures de la vue de chaque salle (``spatial.signature_salle`` : portes et contenants
+    ouverts, objets opaques, sources allumées et leur place) sont celles de l'état précédent quand rien
+    de ce qu'elles lisent n'a changé : aucun objet changé, ni rien de ce qu'il porte ou contient
+    (``touches``), n'est allumé ni opaque, et aucun n'a changé d'ouverture. L'état partage alors les
+    signatures de l'autre (``memo["signatures"]``), qu'ils complètent ensemble."""
+    if memo_avant is memo:
+        return
+    ouverte, opaque = CLES_VUE.index("ouverte"), CLES_VUE.index("bloque_vue")
+    avant = {x[0]: x for x in ancien[3]}
+    for x in etat[3]:
+        if x[0] in touches:
+            y = avant[x[0]]
+            if x[2] or y[2] or x[1][opaque] or y[1][opaque] or x[1][ouverte] != y[1][ouverte]:
+                return
+    partagees = memo_avant.get("signatures")
+    if partagees is None:
+        partagees = memo_avant["signatures"] = {}
+    propres = memo.get("signatures")
+    if propres is not None and propres is not partagees:
+        partagees.update(propres)
+    memo["signatures"] = partagees
+
+
+def _chaines(monde, memo):
+    """Pour l'état : chaque objet contenu ou porté (son lieu n'est pas une salle), avec la chaîne de
+    ses lieux jusqu'à une salle ; et les objets installés sur un support, dont la place suit ce support
+    (``spatial._salle_position``). Une fois par état."""
+    if "chaines" not in memo:
+        objets, contenus, installes = monde.objets, [], set()
+        for id, o in objets.items():
+            if "installation" in o:
+                installes.add(id)
+            lieu, chaine = o["lieu"], [id]
+            while lieu not in chaine and (lieu in objets or lieu == "joueur"):
+                chaine.append(lieu)
+                if lieu == "joueur":
+                    break
+                lieu = objets[lieu]["lieu"]
+            if len(chaine) > 1:
+                contenus.append((id, frozenset(chaine[1:])))
+        memo["chaines"] = contenus, frozenset(installes)
+    return memo["chaines"]
 
 
 def percoit(monde, acteur, sujet):
@@ -474,7 +614,6 @@ def constater(monde, id, sujet, source):
         croire(monde, id, sujet, "pieces", o["pieces"], source)
     etats = ETATS_VISIBLES.get(o["type"])
     if etats:
-        from .perception import faible
         valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
                    "charge": o.get("combustible", 0) > 0}
         croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, source)
@@ -493,7 +632,6 @@ def _flamme_sous_les_yeux(monde, id, sujet, lieu):
         return False
     if not monde.data.get("mode_cases"):
         return monde.objets[id]["lieu"] == salle
-    from .spatial import dans_le_regard
     return case is not None and dans_le_regard(monde, salle, case, id)
 
 
@@ -520,8 +658,23 @@ def lumiere_ici(monde, id):
     est ce que la salle a partout : ses propres sources, et la lueur diffuse qui la baigne tout
     entière (``perception.CarteLumiere.ambiance`` : jour, reflets d'une source voisine par une
     ouverture) ; pas la lumière directe d'une source d'une autre salle, qui n'atteint que les
-    cases qu'elle voit (un seuil). Sans cases, la lueur d'une voisine baigne toute la salle."""
-    from .perception import _par_case
+    cases qu'elle voit (un seuil). Sans cases, la lueur d'une voisine baigne toute la salle.
+
+    Dans un état figé (``spatial.etat_fige``), gardée pour l'état : elle n'en lit que ce que lit
+    ``spatial.etat_vue`` (sa place, les sources, qui les porte)."""
+    cache = getattr(monde, "_cache_vue", None)
+    fige = None if cache is None else cache.get("fige")
+    if fige is not None and ("lumiere_ici", id) in fige:
+        assert not a_verifier() or fige["lumiere_ici", id] == _lumiere_ici(monde, id), \
+            f"Lumière mémorisée périmée : {id}"
+        return fige["lumiere_ici", id]
+    resultat = _lumiere_ici(monde, id)
+    if fige is not None:
+        fige["lumiere_ici", id] = resultat
+    return resultat
+
+
+def _lumiere_ici(monde, id):
     salle = monde.objets[id]["lieu"]
     porte = lambda source: source in monde.objets and _porteur(monde, monde.objets[source]) is not None
     position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
@@ -529,7 +682,6 @@ def lumiere_ici(monde, id):
     niveau = max((c["niveau"] for c in lumieres), default=0)
     if not _par_case(monde, salle):
         return niveau, niveau
-    from .spatial import carte_lumiere
     diffuse = max((c["niveau"] for c in carte_lumiere(monde, salle).ambiance(salle) if not porte(c["source"])),
                   default=0)
     return niveau, max(diffuse, max((c["niveau"] for c in lumieres if c["source"] is not None), default=0))
@@ -567,7 +719,6 @@ def reconsiderer(monde, id):
 
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
-    from .spatial import etat_fige
     with etat_fige(monde):  # Percevoir ne révise que son esprit.
         _percevoir(monde, id)
 
@@ -640,7 +791,6 @@ def _percevoir(monde, id):
 
 
 def percevoir_tous(monde):
-    from .spatial import etat_fige, vue_memorisee
     with vue_memorisee(monde), etat_fige(monde):  # Percevoir ne révise que des esprits.
         for id in pnjs(monde):
             percevoir(monde, id)

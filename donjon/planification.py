@@ -97,8 +97,13 @@ class Etat(tuple):
     def apres(self, salle=None, portes=None, faits=()):
         salle = self.salle if salle is None else salle
         portes = self.portes if portes is None else frozenset(portes)
-        faits = {**self.faits, **dict(faits)}
-        suivant = tuple.__new__(Etat, (salle, portes, frozenset(faits.items())))
+        if faits:
+            faits = {**self.faits, **dict(faits)}
+            geles = frozenset(faits.items())
+        else:
+            # Aucun fait nouveau : ceux de cet état, qu'aucun état ne modifie en place.
+            faits, geles = self.faits, self[2]
+        suivant = tuple.__new__(Etat, (salle, portes, geles))
         suivant.salle, suivant.portes, suivant.faits = salle, portes, faits
         return suivant
 
@@ -121,10 +126,14 @@ class Vue:
         self.connus = _connus(monde, id)
         # Toucher au bien d'autrui, hors ce qu'un prêt ou une garde permettent ; le consommer (le
         # manger, en servir une part), que rien ne permet.
+        # (``deliberation.illicite`` sans opération, avec « manger », avec « frapper » : ``biens.leses``.)
+        from .biens import leses
         confies = {}
-        self.illicite = {o: illicite(monde, id, o, confies=confies) for o in self.connus}
-        self.consomme_illicite = {o: illicite(monde, id, o, "manger", confies) for o in self.connus}
-        self.brise_illicite = {o: illicite(monde, id, o, "frapper", confies) for o in self.connus}
+        self.illicite, self.consomme_illicite, self.brise_illicite = {}, {}, {}
+        for o in self.connus:
+            prendre, consommer, abimer = leses(monde, o, id, confies)
+            self.illicite[o], self.consomme_illicite[o], self.brise_illicite[o] = (
+                prendre is not None, consommer is not None, abimer is not None)
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None
@@ -176,7 +185,7 @@ class Vue:
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
-        self._allers = {}
+        self._allers, self._lieux_crus = {}, {}
         self.salles_triees = sorted(self.salles)
         # La catégorie de ressource comptée ; son emploi pour un besoin dépend de ``part_pour``
         # et une recharge de la source visée (``recharge``).
@@ -417,25 +426,32 @@ class Vue:
     def lieu(self, e, o):
         if o in e.portes:
             return self.id
-        lieu = e.faits.get(("lieu", o))
+        return self._lieu(e, o)
+
+    def _lieu(self, e, o):
+        """``lieu`` d'un objet qu'il ne porte pas : ce que le plan en a fait, sinon ce qu'il en croit
+        (``_lieu_cru``, lu une fois)."""
+        lieu = e.faits.get(("lieu", o)) if e.faits else None
         if lieu is not None:
             return lieu
-        cle = (o, "lieu_cru")
-        crus = self._crus
-        if cle not in crus:
-            crus[cle] = _lieu_cru(self.monde, self.id, o)
-        return crus[cle]
+        crus = self._lieux_crus
+        if o not in crus:
+            crus[o] = _lieu_cru(self.monde, self.id, o)
+        return crus[o]
 
     def salle(self, e, sujet, profondeur=0):
         if sujet in e.portes or sujet == self.id:
             return e.salle
-        lieu = self.lieu(e, sujet)
+        lieu = self._lieu(e, sujet)
         if lieu is None or profondeur > 4:
             return None
         if lieu in self.salles:
             return lieu
         if lieu == "joueur":
-            return self._memo(("joueur", "lieu_cru"), lambda: _lieu_cru(self.monde, self.id, "joueur"))
+            crus = self._lieux_crus
+            if "joueur" not in crus:
+                crus["joueur"] = _lieu_cru(self.monde, self.id, "joueur")
+            return crus["joueur"]
         return self.salle(e, lieu, profondeur + 1)
 
     def ouvert(self, e, c):
@@ -473,7 +489,13 @@ class Vue:
 
     def flammes_d_autrui(self, e):
         """(porteur, flamme) : les flammes qu'il croit aux mains d'un autre qui se tient là où il
-        est (un outil d'allumage, ou une source portable qu'il croit allumée)."""
+        est (un outil d'allumage, ou une source portable qu'il croit allumée). Lues une fois par état."""
+        cle = ("flammes_d_autrui", e)
+        if cle not in self._crus:
+            self._crus[cle] = self._flammes_d_autrui(e)
+        return self._crus[cle]
+
+    def _flammes_d_autrui(self, e):
         trouvees = []
         for k in self.flammes_portables:
             autre = self.lieu(e, k)
@@ -489,9 +511,12 @@ class Vue:
 
     def flammes_fixes(self, e):
         """Les sources fixes qu'il croit allumées dans la salle où il se tient : il y porte ce
-        qu'il veut allumer."""
-        return [k for k in self.connus if "allume" in self.objets[k] and not self.objets[k].get("mobile")
-                and self.salle(e, k) == e.salle and self.feu(e, k)[0]]
+        qu'il veut allumer. Lues une fois par état."""
+        cle = ("flammes_fixes", e)
+        if cle not in self._crus:
+            self._crus[cle] = [k for k in self.connus if "allume" in self.objets[k] and not self.objets[k].get("mobile")
+                               and self.salle(e, k) == e.salle and self.feu(e, k)[0]]
+        return self._crus[cle]
 
     def foyer_froid(self, combustible):
         """Le feu qu'une part de bois servirait : le premier foyer qu'il croit éteint."""
@@ -979,9 +1004,12 @@ def _parts(v, e, o, dans, vises, but):
             ou = v.salle(e, donneur)
             promis = [(("promis", o), donneur), (("promis_ou", o), e.salle)]
             # Promise, elle ne mène qu'à l'attendre là où elle se sert : la demander ou
-            # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``).
-            service = v.salle(e, foyer) if foyer else v.salle(e, o)
-            utile_part = but is None or service is not None and but(v, e.apres(salle=service, faits=part))
+            # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``). On ne
+            # la demande ni ne l'achète qu'au donneur qui se tient là : ailleurs, rien à juger.
+            utile_part = None
+            if ou == e.salle:
+                service = v.salle(e, foyer) if foyer else v.salle(e, o)
+                utile_part = but is None or service is not None and but(v, e.apres(salle=service, faits=part))
             # L'acheter s'il peut la payer : le prix lui coûte ce que valent ses pièces.
             # Posé ou porté, le lot fournit une part ; le contenant reste au donneur.
             prix = v.objets[o].get("prix_part", PRIX_PART)
@@ -1122,7 +1150,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
-        sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False)
+        sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False, check_circular=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
@@ -1348,7 +1376,9 @@ def _suites(v, e, vises, but):
                           or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
             continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
         duree = geste[4] if len(geste) > 4 else minutes
-        if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
+        # Les faits de ``suivant`` comprennent ceux de ``e`` : un fait nouveau en fait plus.
+        if (len(suivant.faits) > len(e.faits) and any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits)
+                and not but(v, suivant)):
             continue
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
                        v.pression(suivant) if duree else 0))
@@ -1362,15 +1392,15 @@ def _premier(e, sorte):
 
 
 def a_mange(v, e):
-    return _premier(e, "mange") is not None or any(
-        cle[0] == "part" and v.monde.objets[cle[1]]["type"] == "nourriture" for cle in e.faits)
+    # ``_premier(e, "mange") is not None``, sans trier les faits : un test de but à chaque état.
+    return any(cle[0] == "mange" or cle[0] == "part" and v.monde.objets[cle[1]]["type"] == "nourriture"
+               for cle in e.faits)
 
 
 def rechauffe(v, e):
-    return _premier(e, "chauffe") is not None or any(
-        cle[0] == "part" and part_pour(v.monde, v.id, cle[1], "chaleur", v.connus)
-        and any(v.salle(e, f) == e.salle and v.feu(e, f)[0] and recharge(v.objets[f], v.objets[cle[1]])
-                for f in v.foyers) for cle in e.faits)
+    return any(cle[0] == "chauffe" or cle[0] == "part" and part_pour(v.monde, v.id, cle[1], "chaleur", v.connus)
+               and any(v.salle(e, f) == e.salle and v.feu(e, f)[0] and recharge(v.objets[f], v.objets[cle[1]])
+                       for f in v.foyers) for cle in e.faits)
 
 
 def retablir(v, e, etapes):
@@ -1606,21 +1636,31 @@ def enrichir(monde, id):
 
     Il compte les pièces qu'il croit dedans (croyance ``pieces`` : su en la tenant, ou un savoir
     du scénario), jamais celles qui y sont : une bourse dont il ne sait rien ne le tente pas."""
-    from .caractere import ARGENT, prix_faute, valeur_pieces
+    from .caractere import ARGENT, interdit, prix_faute, valeur_pieces
+    from .vol import proprietaire
     if not profil(monde, id):
         return None
     crues = {o: _cru(monde, id, o, "pieces") for o in _connus(monde, id)}
     if not any(crues.values()):
         return None
-    v = Vue(monde, id)
     faute = prix_faute(monde, id, ARGENT)
     # Ce qu'il ne peut prendre (son honnêteté l'interdit, la faute passe l'enjeu), ou qui vaut moins
-    # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine.
-    bourses = tuple(o for o in v.connus if crues[o] and v.proprietaire[o] != id
-                    and not porte_par(monde, o, id) and v.disponible(o) and v.autorise[o]
-                    and (not v.illicite[o] or faute is not None and valeur_pieces(monde, id, crues[o]) > faute))
+    # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine. Jugé sur
+    # les seules bourses crues, par les lectures de la vue (``Vue.illicite``, ``Vue.autorise``) : la vue
+    # entière ne se construit que s'il en reste une à chercher.
+    honnete, confies = interdit(monde, id, "honnetete"), {}
+    bourses = []
+    for o, n in crues.items():
+        if (not n or proprietaire(monde, monde.objets[o]) == id or porte_par(monde, o, id)
+                or not _disponible_cru(monde, id, o)):
+            continue
+        lese = illicite(monde, id, o, confies=confies)
+        if not (lese and honnete) and (not lese or faute is not None and valeur_pieces(monde, id, n) > faute):
+            bourses.append(o)
     if not bourses:
         return None
+    bourses = tuple(bourses)
+    v = Vue(monde, id)
     trouve = chercher(monde, id, lambda v, e: any(b in e.portes for b in bourses), {"prendre": bourses},
                       nom="argent", memo=["argent"], emplois=(), motif=ARGENT)
     if trouve is None:

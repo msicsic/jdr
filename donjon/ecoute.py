@@ -129,6 +129,7 @@ def lier(monde, bruit, contenu=()):
     autre s'adresse en la nommant, qu'il entend dans le même échange, est « une voix qu'on appelle
     … » : la règle commune aux PNJ et au joueur (``voix.lier``). Rien ne le lui apprend d'une voix
     qu'il reconnaît ou voit."""
+    from .paroles import contexte_fige
     from .voix import lier as lier_voix, se_nommer
     auteur = bruit["auteur"]
     recents = [b for b in monde.data.get("bruits", []) if b is not bruit and b["texte"] and b["nature"] in VOCALES
@@ -136,7 +137,9 @@ def lier(monde, bruit, contenu=()):
                and b["auteur"] in monde.objets]
     if any(c.get("type") == "nom" and c.get("sujet") == auteur for c in contenu) and nomme(monde, bruit, auteur):
         se_nommer(monde, "joueur", auteur, auteur)
-    lier_voix(monde, "joueur", _saisie(monde, bruit), [_saisie(monde, b) for b in recents])
+    with contexte_fige():  # Ce qu'il saisit de chaque parole : des lectures.
+        saisie, saisies = _saisie(monde, bruit), [_saisie(monde, b) for b in recents]
+    lier_voix(monde, "joueur", saisie, saisies)
 
 
 def _heler(bruit):
@@ -160,6 +163,12 @@ def appels(monde):
 def rendre(monde, entendus_):
     """Ce que le joueur entend, par direction : un appel, un grand bruit, des voix, des pas, ou une
     parole nette d'une voix qu'il reconnaît, qui ne nomme que ce qu'il connaît."""
+    from .paroles import contexte_fige
+    with contexte_fige():  # Rendre ce qu'il entend ne fait que lire.
+        return _rendre(monde, entendus_)
+
+
+def _rendre(monde, entendus_):
     from .voix import nom_pour_joueur
     lignes, groupes = [], {}
     for b, niveau, direction in entendus_:

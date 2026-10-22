@@ -44,10 +44,11 @@ def entites_citees(monde, texte):
     texte = normaliser(texte)
     ids = set()
     for terme, porteurs in sorted(termes(monde).items(), key=lambda t: -len(t[0])):
-        motif = _motif(terme)
-        if motif.search(texte):
+        if terme not in texte:
+            continue  # Son motif exige le terme tel quel : absent du texte, il ne s'y trouve pas.
+        texte, trouves = _motif(terme).subn(" ", texte)
+        if trouves:
             ids |= porteurs
-            texte = motif.sub(" ", texte)
     return ids
 
 
@@ -60,6 +61,8 @@ def mentions_sans_fondement(monde, texte, fondement):
     texte = normaliser(texte)
     trouves = []
     for terme, ids in sorted(termes(monde).items(), key=lambda t: -len(t[0])):
+        if terme not in texte:
+            continue
         motif = _motif(terme)
         if not motif.search(texte):
             continue

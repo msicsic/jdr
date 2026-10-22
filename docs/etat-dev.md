@@ -1360,6 +1360,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   hèle pas en 4 h) ; crue réponses 0,75 → 1,5, attentes vaines 0,25 → 0. 8 h mine et auberge : réponses 1,5 →
   7,25 et 2,75 → 9,75, retrouvailles 1,25 → 1,75 et 2,75 → 3,25, attentes vaines 0,25 → 0, aucune parole
   rompue, échanges et minutes sans recours égaux ; aucun plantage, usurpation ni violation. Luna non vérifiée.
+- Branche `cout-calcul`, fusionnée en dernier (`docs/plan-planificateur.md`, « Coût de
+  calcul, suite » ; [rapport](taches/rapport-cout-calcul.md)) : le temps d'une nuit, sans rien changer à ce
+  que décident les PNJ. Mesuré sur `main` 06602a6 (échantillonnage `py-spy` ; `cProfile` grossit cinq fois
+  les petites fonctions) : choix du but 19 à 57 % d'une nuit, perception 16 à 27 %, gestes et marche 13 à
+  28 %, ouïe 6 à 16 %, empreinte de l'état 5 à 8 %. PyPy : mêmes nuits, 1,5 à 1,7 fois plus lent, écarté.
+  Reprendre le choix entier : mesuré, non retenu (entrées identiques dans 1 à 12 % des choix, les moins
+  chers ; au plus 1 à 2 % à gagner). Fait : perception incrémentale (`esprits._percus_depuis` : seuls les
+  objets changés et ce qu'ils portent sont revus, deux perceptions sur trois) et signatures de la vue
+  héritées d'un état à l'autre ; regard et lumière de sa case gardés pour l'état ; perception, témoins,
+  présences et temps vécu d'un geste dans un seul état figé ; pas d'un trajet et passages de l'ouïe gardés
+  sous la géométrie, les obstacles et les portes ; dans le planificateur, `enrichir` sans vue, le bien
+  d'autrui jugé en un calcul (`biens.leses`), tests de but sans tri, parts jugées seulement là où est le
+  donneur ; le contexte du joueur et le lexique une fois par lecture. Chaque lecture gardée est recomparée
+  par `spatial.VERIFICATION`. Outil : `tools/empreintes_nuits.py` (empreintes de chronique, mesures, récit,
+  souvenirs, état final complet, repères et recherches neuves ; temps au processeur ; pic de mémoire).
+  Nuits identiques à `main` 06602a6 sur 32 nuits (4 scénarios × 4 graines, départ tiré et fixe, 8 h),
+  aussi par `tools/comparer_bancs.py --empreintes` ; `VERIFIER` et `spatial.VERIFICATION` sur une nuit de
+  chaque scénario. Temps au processeur, lancés ensemble, départ tiré (2 passes) : Relais 8,9 → 6,4 s,
+  mine 23,7 → 18,8 s, auberge 16,2 → 12,6 s, crue 7,7 → 5,8 s (× 1,26 à × 1,39 ; départ fixe × 1,20 à
+  × 1,49) ; pic de mémoire égal ou moindre. Limites : la mine reste dominée par des recherches neuves
+  (épuisées, refaites chaque minute) ; l'empreinte de l'état se recalcule encore hors d'un état figé
+  (5 à 8 %) ; qui bouge revoit toute sa perception.
+  Fusionné après les tâches Codex 1 à 5 et l'appel négocié : conflits `paroles._connu_du_joueur` (la règle des
+  noms gardée), `planification._parts` (parts jugées là où est le donneur, lot porté des lampes) et
+  `rechauffe` (sans tri des faits, avec le foyer compatible des lampes), docs. Vérifié contre l'intégration
+  d'avant (9eb7d09) : 32 nuits identiques (`tools/empreintes_nuits.py`, 4 scénarios × 1985, 7, 42, 2024,
+  tiré et fixe, 8 h) ; `VERIFIER` et `spatial.VERIFICATION` 1 sur 2 h de chaque scénario, puis `VERIFIER` et
+  `VERIFICATION` 0,2 sur 8 h graine 42 : sans écart, nuits identiques à celles sans contrôle. Temps au
+  processeur, référence → fusion (l'une après l'autre) : Relais 12,9 → 9,7 s, mine 60,5 → 48,5 s, auberge
+  35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
+  moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
+  redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
 - La suite de tests passe : 1372 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente

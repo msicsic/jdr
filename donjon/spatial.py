@@ -12,6 +12,7 @@ from contextlib import contextmanager
 import threading
 
 from .geometrie import cases, distance, position_entree, position_objet, placer
+from .perception import CarteLumiere
 
 
 VECTEURS = {
@@ -674,7 +675,8 @@ def _memo_vue(m):
     if memo is None:
         if len(etats) >= ETATS_GARDES:
             del etats[next(iter(etats))]
-        memo = etats[etat] = {}
+        # L'empreinte elle-même : ce qui a changé d'un état à l'autre (``esprits._percus_depuis``).
+        memo = etats[etat] = {"etat": etat}
     return memo
 
 
@@ -766,16 +768,22 @@ def _memoire_geometrie(m):
 
 
 def _signature(m, memo, salle):
+    """``signature_salle``, gardée pour l'état (``memo["signatures"]``, que des états de mêmes
+    signatures se partagent : ``esprits._heriter_signatures``), recomparée en vérification."""
     if memo is None:
         return signature_salle(m, salle)
-    if ("signature", salle) not in memo:
-        memo["signature", salle] = signature_salle(m, salle)
-    return memo["signature", salle]
+    signatures = memo.get("signatures")
+    if signatures is None:
+        signatures = memo["signatures"] = {}
+    if salle not in signatures:
+        signatures[salle] = signature_salle(m, salle)
+    elif a_verifier():
+        assert signatures[salle] == signature_salle(m, salle), f"Signature mémorisée périmée : {salle}"
+    return signatures[salle]
 
 
 def carte_lumiere(m, salle, memo=None):
     """La carte de lumière d'une salle, gardée par signature de la vue dans ``vue_memorisee``."""
-    from .perception import CarteLumiere
     cache = getattr(m, "_cache_vue", None)
     if cache is None:
         return CarteLumiere(m, salle)
@@ -792,10 +800,25 @@ def carte_lumiere(m, salle, memo=None):
 
 
 def _vue(m, acteur="joueur", memo=None):
-    """Origine globale du regard d'un acteur, terrain et carte de lumière des salles reliées."""
+    """Origine globale du regard d'un acteur, terrain et carte de lumière des salles reliées. Dans un
+    état figé (``etat_fige``) ou avec le mémo de l'état, gardées pour l'état : elles ne dépendent que
+    de ce que lit ``etat_vue`` (sa place, les sources et ce qui borne la vue), pas de son regard."""
+    if memo is None:
+        cache = getattr(m, "_cache_vue", None)
+        fige = None if cache is None else cache.get("fige")
+    else:
+        fige = memo
+    if fige is not None and ("vue", acteur) in fige:
+        if a_verifier():
+            salle, position = position_acteur(m, acteur)
+            assert fige["vue", acteur] == (_global(m.data["salles"][salle], position), carte_lumiere(m, salle, memo)), \
+                f"Regard mémorisé périmé : {acteur}"
+        return fige["vue", acteur]
     salle, position = position_acteur(m, acteur)
     lumiere = carte_lumiere(m, salle, memo)
     origine = _global(m.data["salles"][salle], position)
+    if fige is not None:
+        fige["vue", acteur] = origine, lumiere
     return origine, lumiere
 
 
@@ -1133,15 +1156,7 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
     Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées.
     Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
     from .temps import PAS_JOUEUR, duree_pas
-    libres, bloquantes = {}, {}
-
-    def case_libre(s, c):
-        # ``_case_libre``, les obstacles de chaque salle relevés une fois.
-        if (s, c) not in libres:
-            if solides and s not in bloquantes:
-                bloquantes[s] = _bloquantes(m, s)
-            libres[s, c] = c in cases(m.data["salles"][s]) and not (solides and any(p == c for p in bloquantes[s]))
-        return libres[s, c]
+    pas_de = _pas_possibles(m, solides)
     depart = (salle, tuple(position))
     if arrivee(*depart):
         return []
@@ -1161,18 +1176,70 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
                 courant = avant
             return chemin[::-1]
         for vecteur, duree in sens:
-            pas = _pas(m, courant[0], courant[1], vecteur, porte_fermee=True, case_libre=case_libre)
-            if isinstance(pas, str):
+            pas = pas_de(courant[0], courant[1], vecteur)
+            if pas is None:
                 continue
-            suivant = (pas["salle"], tuple(pas["position"]))
+            suivant, porte = pas
             if (suivant in faits or cout + duree >= couts.get(suivant, cout + duree + 1) or not libre(*suivant)
-                    or pas["porte"] and not franchissable(pas["porte"])):
+                    or porte and not franchissable(porte)):
                 continue
             couts[suivant] = cout + duree
-            precedent[suivant] = (courant, pas["porte"], vecteur)
+            precedent[suivant] = (courant, porte, vecteur)
             ordre += 1
             heapq.heappush(file, (cout + duree, ordre, suivant))
     return None
+
+
+TABLES_DE_PAS = 16    # tables des pas gardées par géométrie (``_pas_possibles``)
+
+
+def _pas_possibles(m, solides):
+    """``_pas`` d'une case dans un sens, une porte fermée admise : ((salle, case), porte fermée ou
+    None), ou None si le pas est impossible. Il ne dépend que de la géométrie des salles, des
+    obstacles solides de chaque salle (``_bloquantes``) et des portes ouvertes ou fermées : dans
+    ``vue_memorisee``, les pas sont gardés d'un trajet à l'autre tant que ceux-ci n'ont pas changé.
+    En vérification (``VERIFICATION``), un pas gardé est recomparé à un calcul de zéro."""
+    libres, bloquantes = {}, {}
+
+    def case_libre(s, c):
+        # ``_case_libre``, les obstacles de chaque salle relevés une fois.
+        if (s, c) not in libres:
+            if solides and s not in bloquantes:
+                bloquantes[s] = _bloquantes(m, s)
+            libres[s, c] = c in cases(m.data["salles"][s]) and not (solides and any(p == c for p in bloquantes[s]))
+        return libres[s, c]
+
+    def calculer(s, c, vecteur):
+        pas = _pas(m, s, c, vecteur, porte_fermee=True, case_libre=case_libre)
+        return None if isinstance(pas, str) else ((pas["salle"], tuple(pas["position"])), pas["porte"])
+    cache = getattr(m, "_cache_vue", None)
+    if cache is None:
+        return calculer
+    objets, salles = m.objets, m.data["salles"]
+    # Les obstacles, tels que ``_bloquantes`` les relève pour chaque salle, en une passe ; les portes
+    # des sorties, ouvertes ou non.
+    obstacles = tuple((id, o["lieu"], position_cible(m, id, o["lieu"])) for id, o in objets.items()
+                      if o.get("bloque_passage") and not o.get("incorpore") and o.get("lieu") in salles
+                      ) if solides else None
+    portes = tuple((id, id in objets, bool(objets[id].get("ouverte")) if id in objets else None)
+                   for id in sorted({x["porte"] for d in salles.values() for x in d.get("sorties", {}).values()
+                                     if x.get("porte")}))
+    tables = cache["persistant"].setdefault("pas", {})
+    cle = (solides, obstacles, portes)
+    if cle not in tables:
+        if len(tables) >= TABLES_DE_PAS:
+            del tables[next(iter(tables))]
+        tables[cle] = {}
+    table = tables[cle]
+
+    def pas_de(s, c, vecteur):
+        k = (s, c, vecteur)
+        if k not in table:
+            table[k] = calculer(s, c, vecteur)
+        elif a_verifier():
+            assert table[k] == calculer(s, c, vecteur), f"Pas mémorisé périmé : {k}"
+        return table[k]
+    return pas_de
 
 
 def destination_appui(m, support, salle):
