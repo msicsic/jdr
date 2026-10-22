@@ -75,7 +75,10 @@ class EntretenirUnFeuTests(unittest.TestCase):
         # redemande : il garde sa dernière charge, et elle ne la lui prend pas.
         chronique, _ = executer(m, 90)
         m = recharger(m)
-        self.assertIn("Mireille demande une part des fagots de l'écurie à Joss (necessaire).", textes(chronique))
+        # Le contrat porte sur sa dernière charge, quelle que soit l'offre choisie : gratuite
+        # ou payée, elle reste refusée et n'est jamais consommée par Mireille.
+        self.assertTrue(any("une part des fagots de l'écurie à Joss" in t and t.endswith("(necessaire).")
+                            for t in textes(chronique)), textes(chronique))
         self.assertEqual(m.objets["fagots_etable"]["charges"], 1)
         # Sans bois qu'elle connaisse, elle demande à d'autres s'ils en ont, et paie qui veut bien
         # entretenir le fourneau (branche ``echanges-suite`` : ``echanges.enqueter``, ``engager``).

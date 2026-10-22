@@ -1086,7 +1086,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
   l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
   (un « peu fiable » redit à quatre heures d'écart).
-- La suite de tests passe : 1241 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- **Des parts pour les sources rechargeables**. Branche `codex-lampes`, non fusionnée.
+  La recherche compose la réception d'une part puis `alimenter` et `allumer`, selon ce que la
+  source brûle (`recharge`), sans branche de substance. Le lot, posé ou porté, reste au donneur ;
+  une charge est détachée et réellement livrée, gratuitement ou au prix convenu. L'accord ne
+  charge pas la source : le plan s'arrête à la demande et se refait à réception ; ces frontières
+  restent dans le cache. Engagement et mémoire gardent la provenance, sans convention d'identifiant.
+  Les parts physiques héritent aussi de leur contenu par copie indépendante ; quantités et masse
+  restent conservées. La catégorie combustible ne garantit plus la chaleur : enquêtes, garde
+  urgente et moyens du refus vérifient un foyer connu compatible (`part_pour`). Une source
+  explicitement incompatible est refusée. Huile rare remise dans les données de l'auberge : pot
+  d'Odile (3 × 120 min) et burette de Joss (2 × 90), avec le contenu des lampes et les croyances
+  initiales. Joueur par la parole typée existante, sans nouvelle consigne au MJ.
+  Cas réel après 8 h, mine, lots posés/portés joueur/PNJ, autre substance et lot physique : état,
+  ressources, possession et rendu après rechargement (`test_lampes_parts`, 11 tests).
+  Bancs 8 h contre main f1eee53 : noir moyen min·PNJ auberge 237,5 → 137,5,
+  mine 291,25 → 291,25, Relais 26,875 → 26,875,
+  crue 33,75 → 48,75 (régression observée).
+  Une recharge de lampe à l'auberge sur quatre nuits de 8 h ; aucun échange d'huile dans ces
+  nuits de 8 h. À 12 h, l'auberge totalise une part donnée et cinq achetées réellement livrées,
+  puis dix recharges de lampes sur huit nuits. Audit auberge/mine 8 graines × 12 h et
+  `VERIFIER` sur chaque scénario 8 h : aucun plantage, violation ni usurpation, aucun écart de
+  recherche. Limites, alertes restantes, mesures détaillées et temps observés :
+  `docs/taches/rapport-codex-3-lampes.md`. Défaut de mock réseau préexistant de `test_proto`
+  corrigé séparément ; la suite finale inclut tous les changements.
+- La suite de tests passe : 1252 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

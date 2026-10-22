@@ -20,7 +20,7 @@ from itertools import count
 from time import perf_counter
 
 from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
-                           _lieu_cru, besoin_de_part, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
+                           _lieu_cru, besoin_de_part, part_pour, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
@@ -175,7 +175,8 @@ class Vue:
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         self._allers = {}
         self.salles_triees = sorted(self.salles)
-        # Le besoin qu'une part de chaque objet apaise (``besoin_de_part``).
+        # La catégorie de ressource comptée ; son emploi pour un besoin dépend de ``part_pour``
+        # et une recharge de la source visée (``recharge``).
         self.besoin = {o: besoin_de_part(self.objets[o]) for o in self.connus}
         # Les portes de chaque salle : celles qu'il peut crocheter de là.
         self.portes_de = {s: frozenset(x["porte"] for x in d["sorties"].values() if x.get("porte"))
@@ -333,11 +334,11 @@ class Vue:
         refus = self.retenu(autre, ("acheter", "demander"), o)
         return bool(refus and refus["raison"] not in ("refus", "pauvre"))
 
-    def promesse(self, o):
-        cle = (o, "promesse")
+    def promesse(self, o, remise=None):
+        cle = (o, "promesse", remise)
         crus = self._crus
         if cle not in crus:
-            crus[cle] = promesse_en_cours(self.monde, self.id, o)
+            crus[cle] = promesse_en_cours(self.monde, self.id, o, remise)
         return crus[cle]
 
     def sur_soi(self, besoin, portes):
@@ -345,7 +346,8 @@ class Vue:
         cle = (besoin, portes)
         crus = self._crus
         if cle not in crus:
-            crus[cle] = any(self.besoin[k] == besoin and self.disponible(k) for k in portes)
+            crus[cle] = any(part_pour(self.monde, self.id, k, besoin, self.connus) and self.disponible(k)
+                           for k in portes)
         return crus[cle]
 
     def profil_de(self, x):
@@ -473,12 +475,13 @@ class Vue:
         return [k for k in self.connus if "allume" in self.objets[k] and not self.objets[k].get("mobile")
                 and self.salle(e, k) == e.salle and self.feu(e, k)[0]]
 
-    def foyer_froid(self):
+    def foyer_froid(self, combustible):
         """Le feu qu'une part de bois servirait : le premier foyer qu'il croit éteint."""
-        if "foyer_froid" not in self._crus:
-            self._crus["foyer_froid"] = next((f for f in self.connus if self.objets[f].get("foyer")
-                                              and (self.cru(f, "etat") or {}).get("allume") is False), None)
-        return self._crus["foyer_froid"]
+        cle = ("foyer_froid", combustible)
+        if cle not in self._crus:
+            self._crus[cle] = next((f for f in self.foyers if recharge(self.objets[f], self.objets[combustible])
+                                   and (self.cru(f, "etat") or {}).get("allume") is False), None)
+        return self._crus[cle]
 
     def attente_part(self, e, donneur, o, service):
         """Les minutes qu'il attendra la part ``o`` promise, là où elle se sert (``service``) : que le
@@ -699,7 +702,7 @@ def gestes(v, e, vises=None, but=None):
         mal = int(bool(lese) and not faits.get(("faute", lese)))
         if lese:
             touche = touche + [(("faute", lese), True)]
-        conso = v.consomme_illicite[o] and not faits.get(("achete", o))
+        conso = v.consomme_illicite[o] and not (faits.get(("achete", o)) or faits.get(("acquis", o)))
         faute_conso = "sans_temoin" if conso else ""
         lese_conso = v.proprietaire[o] if conso else None
         mal_conso = int(bool(lese_conso) and not faits.get(("faute", lese_conso)))
@@ -715,7 +718,8 @@ def gestes(v, e, vises=None, but=None):
         # On ne demande un objet qu'à qui il appartient (ou s'il n'est à personne), ou ce qui est à
         # soi : recevoir le bien d'autrui de qui le détient n'en fait pas le sien.
         demandable = (utile and porteur and porteur != id and (porteur == "joueur" or v.profil_de(porteur))
-                      and o not in e.portes and v.proprietaire[o] in (porteur, None, id))
+                      and o not in e.portes and v.proprietaire[o] in (porteur, None, id)
+                      and not (v.besoin[o] and v.proprietaire[o] == porteur))
         if (demandable and porteur != "joueur" and v.salle(e, porteur) is None and not e.fait("cherche", porteur)
                 and v.moyen_du_but(o, noms_vises) and not v.refuse(porteur, o)):
             # Il ne sait où est celui qui porte ce que le but emploie : il va le chercher, comme pour
@@ -907,19 +911,24 @@ def _parts(v, e, o, dans, vises, but):
     Promise ou vendue, elle n'est pas encore là : il l'attend où elle se sert, le temps que le
     donneur y vienne (``attente_part``), et ce temps-là compte comme tout autre, avec ce qu'il y
     laisse monter (loin de ses biens, dans le noir)."""
+    yield from _parts_remises(v, e, o, dans, vises)
     besoin, id = v.besoin[o], v.id
-    if not (besoin and v.disponible(o) and not (besoin == "chaleur" and v.feu_noye())
-            and not v.sur_soi(besoin, e.portes)):
+    if not (besoin and v.disponible(o)):
         return
     donneur = v.proprietaire[o]
-    foyer = ((vises.get("entretenir") or (v.foyer_froid(),))[0]
-             if besoin == "chaleur" else None)
+    foyer = (next((f for f in vises.get("entretenir", ()) if recharge(v.objets[f], v.objets[o])),
+                  v.foyer_froid(o)) if besoin == "chaleur" else None)
+    if besoin == "chaleur" and (foyer is None or any(recharge(v.objets[foyer], v.objets[k])
+                                                   and v.disponible(k) for k in e.portes)):
+        return
+    if besoin == "faim" and v.sur_soi(besoin, e.portes):
+        return
     if foyer and v.salle(e, foyer) in v.menacees:
         return   # Un feu là où il croit ou attend l'eau : ni chaleur à y prendre, ni bois à y porter.
     part = [(("part", o), donneur)] + ([(("charge", foyer), True), (("allume", foyer), True)]
                                        if foyer else [])
     if donneur not in (None, id, "joueur") and v.profil_de(donneur):
-        promise = v.promesse(o) == donneur or e.fait("promis", o) == donneur
+        promise = v.promesse(o, False) == donneur or e.fait("promis", o) == donneur
         if promise:
             service = v.salle(e, foyer) if foyer else v.salle(e, o)
             if e.salle == service:
@@ -932,11 +941,10 @@ def _parts(v, e, o, dans, vises, but):
             # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``).
             service = v.salle(e, foyer) if foyer else v.salle(e, o)
             utile_part = but is None or service is not None and but(v, e.apres(salle=service, faits=part))
-            # L'acheter s'il peut la payer : le prix lui coûte ce que valent ses pièces. Une
-            # part se vend de ce qui est rangé ; ce que le donneur porte, il le remettrait
-            # entier (``echanges.demande_de_part``).
+            # L'acheter s'il peut la payer : le prix lui coûte ce que valent ses pièces.
+            # Posé ou porté, le lot fournit une part ; le contenant reste au donneur.
             prix = v.objets[o].get("prix_part", PRIX_PART)
-            if (utile_part and ou == e.salle and v.piece and dans != donneur and not v.refuse_achat(donneur, o)
+            if (utile_part and ou == e.salle and v.piece and not v.refuse_achat(donneur, o)
                     and v.richesse - (e.fait("depense") or 0) >= prix):
                 yield (0, 1 + DEMANDE + v.depense(prix),
                        [_etape("acheter", donneur, outil=o,
@@ -955,6 +963,52 @@ def _parts(v, e, o, dans, vises, but):
                 recherche = _chercher(v, e, donneur)
                 if recherche is not None:
                     yield recherche
+
+
+def _parts_remises(v, e, o, dans, vises):
+    """Recevoir une part pour les gestes suivants : la recharge reste un geste explicite.
+
+    La part du lot tient sa place dans l'état simulé, avec le droit de la consommer. Sa véritable
+    identité n'est connue qu'à la remise : le plan exécuté s'arrête à la demande ou à l'attente,
+    puis se refait sur la part réellement reçue. Aucune source n'est réputée chargée à l'accord.
+    """
+    if o in e.portes or "combustible" not in v.objets[o].get("usages", ()) or not v.disponible(o):
+        return
+    donneur = v.proprietaire[o]
+    if donneur in (None, v.id, "joueur") or not v.profil_de(donneur):
+        return
+    compte = v.peur or v.eclairer or "crochetage" in profil(v.monde, v.id)["capacites"]
+    deja = any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes)
+    besoin = any((s in vises.get("entretenir", ()) or compte and not deja)
+                 and v.autorise[s] and not v.feu(e, s)[1] and recharge(v.objets[s], v.objets[o])
+                 and not any(recharge(v.objets[s], v.objets[k]) and v.disponible(k) for k in e.portes)
+                 for s in v.rechargeables)
+    if not besoin:
+        return
+    acquis = e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("acquis", o), True)])
+    attente = 0 if dans == donneur and v.salle(e, donneur) == e.salle else v.attente_part(e, donneur, o, e.salle)
+    if v.promesse(o, True) == donneur:
+        yield 0, attente, [{**_etape("inspecter"), "attendre_remise": True}], acquis, attente
+        return
+    if v.promesse(o):
+        return   # Une autre façon de servir cette part est déjà promise.
+    ou = v.salle(e, donneur)
+    if ou is None and not e.fait("cherche", donneur) and not v.refuse(donneur, o):
+        recherche = _chercher(v, e, donneur)
+        if recherche is not None:
+            yield recherche
+    if ou != e.salle:
+        return
+    if not v.refuse(donneur, o):
+        yield (0, 1 + DEMANDE / PRET + attente,
+               [{**_etape("demander", donneur, outil=o, contenu={"remettre_part": True}), "suppose": True}],
+               acquis, 1 + attente)
+    prix = v.objets[o].get("prix_part", PRIX_PART)
+    if v.piece and not v.refuse_achat(donneur, o) and v.richesse - (e.fait("depense") or 0) >= prix:
+        yield (0, 1 + DEMANDE + v.depense(prix) + attente,
+               [{**_etape("acheter", donneur, outil=o, contenu={"prix": prix, "remettre_part": True}),
+                 "suppose": True}],
+               acquis.apres(faits=[(("depense",), (e.fait("depense") or 0) + prix)]), 1 + attente)
 
 
 def _chercher(v, e, sujet):
@@ -1009,7 +1063,7 @@ def _entrees(v, vises, profondeur, noeuds):
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
-         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri")],
+         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu")],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
         [[s, tenu, minute - s["minute"] < REDEMANDE] for s, tenu in v.refus_tenus()],
         esprit_["visites"],
@@ -1271,7 +1325,9 @@ def a_mange(v, e):
 
 def rechauffe(v, e):
     return _premier(e, "chauffe") is not None or any(
-        cle[0] == "part" and besoin_de_part(v.monde.objets[cle[1]]) == "chaleur" for cle in e.faits)
+        cle[0] == "part" and part_pour(v.monde, v.id, cle[1], "chaleur", v.connus)
+        and any(v.salle(e, f) == e.salle and v.feu(e, f)[0] and recharge(v.objets[f], v.objets[cle[1]])
+                for f in v.foyers) for cle in e.faits)
 
 
 def retablir(v, e, etapes):
@@ -1321,9 +1377,21 @@ def planifier(monde, id, besoin):
 
 
 def _couper(etapes):
-    """Après une recherche de quelqu'un, le plan s'arrête : la suite se décide sur ce qu'il aura vu."""
-    fin = next((i + 1 for i, x in enumerate(etapes) if x.pop("suppose", False)), len(etapes))
-    return etapes[:fin]
+    """Arrêter avant une livraison attendue ou après un geste incertain ; replanifier sur le réel.
+
+    Les marqueurs restent dans le résultat de recherche mémorisé : le relire ne doit pas rendre
+    exécutables les gestes qui dépendent encore d'une personne ou d'une part à recevoir.
+    """
+    prefixe = []
+    for originale in etapes:
+        x = dict(originale)
+        if x.pop("attendre_remise", False):
+            break
+        suppose = x.pop("suppose", False)
+        prefixe.append(x)
+        if suppose:
+            break
+    return prefixe
 
 
 def planifier_pulsion(monde, id, condition, tache=False):
@@ -1537,7 +1605,7 @@ def s_enquerir(monde, id, besoin):
     # changé ; qui s'est méfié, pas avant ``REDEMANDE`` minutes (``deliberation.tient``).
     interroges = {s["de"] for s in lire(monde, id).get("refus", ()) if s["operation"] == "enqueter"
                   and s.get("besoin") == besoin and tient(monde, id, s, v.connus)}
-    connus = {v.proprietaire[o] for o in v.connus if v.besoin[o] == besoin}
+    connus = {v.proprietaire[o] for o in v.connus if part_pour(monde, id, o, besoin, v.connus)}
     candidats = []
     for autre in v.personnes():
         salle = v.salle(e, autre)

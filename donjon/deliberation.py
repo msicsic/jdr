@@ -74,7 +74,8 @@ def reserve(monde, id):
 
 
 def besoin_de_part(o):
-    """Le besoin qu'une part de cette ressource apaise : la faim des vivres, le froid du combustible."""
+    """Catégorie d'une ressource comptée : vivres ou combustible. Le nom historique « chaleur »
+    ne garantit pas qu'il chauffe : l'emploi vient de ``part_pour`` ou de la source à recharger."""
     if o["type"] == "nourriture":
         return "faim"
     return "chaleur" if "combustible" in o.get("usages", []) else None
@@ -82,6 +83,20 @@ def besoin_de_part(o):
 
 def parts(o):
     return o.get("portions", o.get("charges", 0))
+
+
+def part_pour(monde, id, objet, besoin, connus=None):
+    """Une ressource pour ce besoin, selon les sources connues : du combustible ne chauffe
+    qu'avec un foyer qui le brûle. La catégorie du consommable ne garantit pas son emploi."""
+    from .perception import recharge
+    o = monde.objets[objet]
+    categorie = besoin_de_part(o)
+    if categorie is None or categorie != besoin:
+        return False
+    if besoin != "chaleur":
+        return True
+    return any(monde.objets[s].get("foyer") and recharge(monde.objets[s], o)
+               for s in (_connus(monde, id) if connus is None else connus))
 
 
 def verifier_profil(monde, id, p):
@@ -350,7 +365,7 @@ def moyens_crus(monde, id, s, connus=None):
         return (croyances.get(k, {}).get("etat") or {}).get("valeur") or {}
 
     def ressources(besoin):
-        return [k for k in connus if besoin_de_part(objets[k]) == besoin]
+        return [k for k in connus if part_pour(monde, id, k, besoin, connus)]
 
     def moyen(k):
         if besoin_de_part(objets[k]) and etat(k).get("disponible") is False:
@@ -494,14 +509,20 @@ def _plan_attendre(monde, id):
     return ({"type": "attendre", "qui": r["qui"]}, []) if r and not _sur_place(monde, id, e["intention"]) else None
 
 
-def promesse_en_cours(monde, id, objet):
-    """Une part promise et pas encore servie, dans le délai où il l'attend. Une part de bois est
-    servie quand il a vu, depuis la promesse, le feu qu'elle entretient rechargé."""
+def promesse_en_cours(monde, id, objet, remise=None):
+    """Une part promise et pas encore servie, dans le délai où il l'attend. Une recharge est
+    servie quand le feu est revu vif ; une part à remettre, seulement à sa réception réelle.
+    ``remise`` distingue ces deux services sans les confondre dans un plan."""
     e = lire(monde, id)
     for s in reversed(e["memoire"]):
         if s["type"] == "nourri" and s.get("objet") == objet:
             return None
         if s["type"] == "promis" and s["objet"] == objet:
+            if remise is not None and bool(s.get("remise")) != remise:
+                return None
+            if s.get("part") and any(x["type"] == "recu" and x.get("objet") == s["part"]
+                                     for x in e["memoire"]):
+                return None
             feu = e["croyances"].get(s.get("foyer"), {}).get("etat")
             if (monde.data["minutes"] - s["minute"] >= ATTENTE_PART or feu and feu["minute"] >= s["minute"]
                     and feu["valeur"].get("allume") and not feu["valeur"].get("faible")):

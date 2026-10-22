@@ -680,6 +680,37 @@ Limites :
   lui donnerait volontiers est refusée ; l'abandon d'une tâche sans plan se juge à la minute, sur ce qu'il
   croit (un plan revenu plus tard ne la ressuscite pas) ;
 - une part de combustible sans pièce décrite est remise comme une réserve d'une charge, sous le nom du
-  lot (« les planches de bac ») ; une réserve que son propriétaire porte se demande encore entière ;
+  lot (« les planches de bac ») ; portée ou posée, la réserve reste au propriétaire qui sert la part ;
 - le joueur n'a pas cette mémoire : ses demandes passent par Luna et le moteur à chaque fois ;
 - `SURENCHERE` est une constante du moteur, à régler au banc.
+
+## Partager ce qu'une source brûle (branche `codex-lampes`)
+
+`demande_de_part` reconnaît une ressource comptée à son propriétaire, posée ou portée. Un lot porté
+ne devient plus un objet entier prêté ou vendu : le donneur garde le contenant et en détache une
+charge. Le même contrat vaut pour le joueur et les PNJ, par la demande typée existante, avec le
+même accueil, la réserve gardée, le jet de partage, le prix et les refus retenus.
+
+Le donneur entretient la source indiquée si c'est ce qui est demandé et si ce combustible y brûle.
+Pour les gestes du demandeur, ou sans foyer compatible, il remet une part ; il peut aller la chercher
+et la livrer comme tout objet promis. `echanges._remettre_part` vérifie la possibilité de livraison
+avant de conserver le prélèvement ; un refus ou une impossibilité restaure le lot. Une livraison
+payée conserve sa contrepartie remboursable ; un don n'est jamais raconté comme un objet déjà payé.
+La provenance est enregistrée dans `engagement.lot`, séparément de l'identifiant de la part : la
+même parole due ne prélève pas deux fois, et le rendu ne déduit plus cette provenance d'un préfixe.
+Cette provenance reste aussi dans les souvenirs de l'engagement et de la réception après livraison.
+`matiere.prelever_piece` transmet aussi le contenu déclaré d'un lot physique par copie indépendante :
+ce champ décrit la substance, tandis que charges, pièces et masse assurent la conservation des quantités.
+
+Un accord ne remplit ni n'allume une lampe. La part promise reste un engagement ; seule sa remise
+change la possession. Le demandeur emploie ensuite `alimenter`, puis `allumer`, selon les mêmes
+gestes que pour du combustible trouvé ou porté. Le moteur enregistre chaque conséquence avant son
+rendu. Le contenu déclaré distingue les combustibles : une enquête pour la chaleur et une réserve
+urgente de chaleur ne comptent que ce qui brûle dans un foyer connu (`deliberation.part_pour`).
+
+À l'auberge, les lampes et lanternes déclarent de l'huile ; Odile en garde un pot au cellier
+(3 charges de 120 minutes) et Joss une burette à l'étable (2 de 90). Leurs positions et leur
+disponibilité initiales sont sues de la maisonnée. Le bidon de la mine reste à 3 charges de
+120 minutes. Les quantités gardent la rareté : aucun combustible infini n'est ajouté.
+
+Cas vérifiés, campagnes et limites : `docs/taches/rapport-codex-3-lampes.md`.

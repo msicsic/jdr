@@ -10,8 +10,9 @@ la nuit, sans que la rareté disparaisse. Chaque nuit se vit par blocs, recharg�
 import unittest
 
 from donjon.banc_pnj import creer, executer
+from donjon.esprits import lire
 from donjon.geometrie import position_entree
-from donjon.perception import allumee
+from donjon.perception import allumee, substance
 from tests.test_tensions import recharger
 
 
@@ -50,21 +51,31 @@ class CrueTests(unittest.TestCase):
 
 
 class AubergeTests(unittest.TestCase):
-    def test_les_trois_foyers_tiennent_la_cinquieme_heure_puis_le_bois_se_dispute(self):
+    def test_les_trois_foyers_tiennent_la_cinquieme_heure_avec_des_parts_finies(self):
         # Cas réel : l'auberge finissait dans le noir vers la cinquième heure, faute de bois.
         m = nuit("auberge", 1985, "dortoir", "fixe")
+        def reserve_bois(monde):
+            return sum(o.get("charges", 0) * o.get("duree_combustion", 0) for o in monde.objets.values()
+                       if "combustible" in o.get("usages", ()) and substance(o) == "bois")
+        initiale = reserve_bois(m)
         m, textes = par_blocs(m, 300, 150)
         self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
-        # Odile prête sa réserve à Anselme, puis la reprend ; la cuisinière et l'aubergiste se
-        # passent les bûches de la cuisine.
-        self.assertIn("Anselme demande les bûches de réserve à Odile (remis).", textes)
-        self.assertIn("Mireille demande les bûches de hêtre à Odile (remis).", textes)
+        # Portée, la réserve ne passe plus entière à Anselme : il reçoit une charge, qu'il
+        # consomme, et Odile garde le lot. Les trois foyers restent entretenus.
+        self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
+        recus = [s["objet"] for s in lire(m, "anselme")["memoire"]
+                 if s["type"] == "recu" and s.get("lot") == "bois_reserve"]
+        self.assertTrue(recus)
+        self.assertTrue(all(m.objets[k]["proprietaire"] == "anselme" and m.objets[k]["charges"] == 0 for k in recus))
+        restante = reserve_bois(m)
+        self.assertLess(restante, initiale)
         m, suite = par_blocs(m, 420, 60)
-        # Le bois ne suffit pas à tout : Odile garde le reste de sa réserve pour l'âtre, et le poêle
-        # d'Anselme s'éteint.
-        self.assertIn("Anselme demande les bûches de réserve à Odile (refus).", suite)
-        self.assertGreater(m.objets["bois_reserve"]["charges"], 0)
-        self.assertFalse(allumee(m.objets["poele"]))
+        # Le partage par charges évite de céder le lot entier puis de le refuser : le poêle peut
+        # tenir plus longtemps. L'invariant des données reste la réserve finie, consommée à chaque
+        # recharge ; les parts détachées sont comprises dans ce compte et ne créent pas de bois.
+        self.assertGreaterEqual(reserve_bois(m), 0)
+        self.assertLess(reserve_bois(m), restante)
+        self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
         self.assertTrue(allumee(m.objets["atre"]) and allumee(m.objets["fourneau"]))
 
 

@@ -19,7 +19,7 @@ import copy
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser, percevoir
-from .francais import designer, lieu
+from .francais import complement_de, designer, lieu
 from .monde import ErreurMonde, normaliser
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
@@ -1074,7 +1074,10 @@ def _demander(travail, auditeur, objet, faits, prix=0):
     # Ce qu'il en demanderait, s'il le vend : une part, ou un objet qui a un prix et qui est à lui.
     vend = (objet in travail.objets and proprietaire(travail, travail.objets[objet]) == auditeur
             and prix_de(travail, objet, part))
-    servie = (f"{il} te la servira là où sont les vivres." if vivres else f"{il} va entretenir le feu.")
+    from .echanges import foyer_de
+    remise = part and not vivres and foyer_de(travail, auditeur, "joueur", combustible=objet) is None
+    servie = (f"{il} te la servira là où sont les vivres." if vivres else
+              f"{il} ira chercher une part pour te la remettre." if remise else f"{il} va entretenir le feu.")
     lui = "elle" if il == "elle" else "lui"
     faits.append({
         "absent": f"{nom} n'a pas cet objet sur {lui}.",
@@ -1084,7 +1087,8 @@ def _demander(travail, auditeur, objet, faits, prix=0):
         "pauvre": f"Tu n'as pas les {prix} pièces que tu lui offres.",
         "refus": f"{nom} n'est pas convaincu{e} et garde {o}"
                  + (f" ; {il} en veut {vend} pièce{'s' if vend > 1 else ''}." if vend and prix < vend else "."),
-        "remis": f"{nom} te remet {o}" + (f" : {il} te le prête." if any(
+        "remis": f"{nom} te remet " + ("une part " + complement_de(travail.objets[objet]) if part else o)
+                 + (f" : {il} te le prête." if any(
             p["objet"] == objet and p["a"] == "joueur" for p in travail.data.get("permissions", ())) else "."),
         "rendu": f"{nom} te rend {o}.",
         "vendu": (_part_vendue(travail, auditeur, objet, nom, il, prix) if part and not vivres
@@ -1098,11 +1102,11 @@ def _demander(travail, auditeur, objet, faits, prix=0):
 
 
 def _part_vendue(travail, auditeur, lot, nom, il, prix):
-    """Une part de combustible que Corvus achète lui est remise (``echanges._vendre_part``) : tout de
+    """Une part de combustible que Corvus achète lui est remise (``echanges._remettre_part``) : tout de
     suite, ou quand le vendeur sera allé la chercher."""
     from .francais import complement_de
     part = "une part " + complement_de(travail.objets[lot])
-    a_remettre = any(x["condition"].get("remettre") == "joueur" and x["condition"]["objet"].startswith(lot + "_")
+    a_remettre = any(x["condition"].get("remettre") == "joueur" and x.get("lot") == lot
                      for x in esprit(travail, auditeur)["engagements"])
     return (f"{nom} prend tes {prix} pièces et ira chercher {part} pour te la remettre." if a_remettre
             else f"{nom} prend tes {prix} pièces et te remet {part}.")

@@ -346,7 +346,8 @@ class ConsoleTests(unittest.TestCase):
             with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test"}), patch.object(MJOpenAI, "echanger", return_value={"mode": "action", "texte": "", "faits": [], "proposition": p}), patch("builtins.input", side_effect=["mj je retire l'axe", "quitter"]), patch("sys.stdout", io.StringIO()):
                 jeu.main(["--save", str(fichier)])
             self.assertTrue(Monde.charger(fichier).objets["axe_haut"]["attache"])
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test"}), patch.object(MJOpenAI, "echanger", return_value={"mode": "action", "texte": "", "faits": [], "proposition": p}), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["mj je retire l'axe", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()):
+            # Le récit du résultat est un second appel du MJ, indépendant de la proposition.
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test"}), patch.object(MJOpenAI, "echanger", return_value={"mode": "action", "texte": "", "faits": [], "proposition": p}), patch.object(MJOpenAI, "raconter_resultat", return_value={"mode": "dialogue", "texte": "", "faits": []}), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["mj je retire l'axe", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()):
                 jeu.main(["--save", str(fichier)])
             self.assertFalse(Monde.charger(fichier).objets["axe_haut"]["attache"])
 

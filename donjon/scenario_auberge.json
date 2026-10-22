@@ -4,7 +4,15 @@
   "jets": 0,
   "revision": 0,
   "minutes": 0,
-  "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
+  "depart": {
+    "bornes": {
+      "corps": 0.2,
+      "besoins": 10,
+      "rondes": 0.5,
+      "periodes": 0.2,
+      "horloges": 0.25
+    }
+  },
   "bruit": 0,
   "geometrie_version": 1,
   "eclairage_version": 1,
@@ -1048,7 +1056,10 @@
       "allume": true,
       "combustible": 500,
       "luminosite": 1,
-      "description_visuelle": "Une lampe à huile de laiton, accrochée au bout du comptoir, qui jette une lueur jaune et basse."
+      "description_visuelle": "Une lampe à huile de laiton, accrochée au bout du comptoir, qui jette une lueur jaune et basse.",
+      "contenu": {
+        "matiere": "huile"
+      }
     },
     "fourneau": {
       "id": "fourneau",
@@ -1255,7 +1266,10 @@
       "allume": true,
       "combustible": 400,
       "luminosite": 1,
-      "description_visuelle": "Une lanterne d'écurie accrochée à une poutre, dont la flamme tremble au vent qui passe sous la porte."
+      "description_visuelle": "Une lanterne d'écurie accrochée à une poutre, dont la flamme tremble au vent qui passe sous la porte.",
+      "contenu": {
+        "matiere": "huile"
+      }
     },
     "fagots_etable": {
       "id": "fagots_etable",
@@ -1360,7 +1374,10 @@
       "allume": true,
       "combustible": 500,
       "luminosite": 1,
-      "description_visuelle": "Une lanterne de corne qui éclaire le couloir de l'étage d'une lueur jaunâtre."
+      "description_visuelle": "Une lanterne de corne qui éclaire le couloir de l'étage d'une lueur jaunâtre.",
+      "contenu": {
+        "matiere": "huile"
+      }
     },
     "poele": {
       "id": "poele",
@@ -1770,7 +1787,10 @@
       "allume": true,
       "combustible": 480,
       "luminosite": 1,
-      "description_visuelle": "Une lanterne sourde de soldat, au volet tourné vers le bas."
+      "description_visuelle": "Une lanterne sourde de soldat, au volet tourné vers le bas.",
+      "contenu": {
+        "matiere": "huile"
+      }
     },
     "rations_hugues": {
       "id": "rations_hugues",
@@ -2606,6 +2626,70 @@
       "proprietaire": "odile",
       "prix_part": 1,
       "description_visuelle": "Les bûches que l'aubergiste a rentrées pour l'hiver, empilées contre le mur du cellier."
+    },
+    "pot_huile": {
+      "id": "pot_huile",
+      "nom": "pot d'huile à lampe",
+      "type": "consommable",
+      "lieu": "cellier",
+      "genre": "m",
+      "aliases": [
+        "huile",
+        "pot"
+      ],
+      "masse": 1.5,
+      "materiau": "fer-blanc",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        1,
+        0
+      ],
+      "position_salle": "cellier",
+      "charges": 3,
+      "duree_combustion": 120,
+      "usages": [
+        "combustible"
+      ],
+      "contenu": {
+        "matiere": "huile"
+      },
+      "proprietaire": "odile",
+      "prix_part": 1,
+      "description_visuelle": "Un peu d'huile conservée pour les lampes de la nuit."
+    },
+    "burette_huile": {
+      "id": "burette_huile",
+      "nom": "burette d'huile d'écurie",
+      "type": "consommable",
+      "lieu": "etable",
+      "genre": "f",
+      "aliases": [
+        "huile",
+        "burette"
+      ],
+      "masse": 0.5,
+      "materiau": "fer-blanc",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        6,
+        3
+      ],
+      "position_salle": "etable",
+      "charges": 2,
+      "duree_combustion": 90,
+      "usages": [
+        "combustible"
+      ],
+      "contenu": {
+        "matiere": "huile"
+      },
+      "proprietaire": "joss",
+      "prix_part": 1,
+      "description_visuelle": "Un peu d'huile conservée pour les lampes de la nuit."
     }
   },
   "visitees": [
@@ -2951,6 +3035,48 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -3161,6 +3287,48 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -3317,6 +3485,48 @@
             "case": [
               2,
               0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
             ]
           },
           "etat": {
@@ -3558,6 +3768,48 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -3743,6 +3995,48 @@
             "minute": 0,
             "confiance": 0.5
           }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -3867,6 +4161,48 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.7
+          }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
           }
         }
       },
@@ -4039,6 +4375,48 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -4194,6 +4572,48 @@
               7,
               1
             ]
+          }
+        },
+        "pot_huile": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              1,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "burette_huile": {
+          "lieu": {
+            "valeur": "etable",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "etable",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
           }
         }
       },
