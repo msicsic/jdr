@@ -60,12 +60,14 @@ class AubergeTests(unittest.TestCase):
         self.assertIn("Anselme demande les bûches de réserve à Odile (remis).", textes)
         self.assertIn("Mireille demande les bûches de hêtre à Odile (remis).", textes)
         m, suite = par_blocs(m, 420, 60)
-        # Le bois ne suffit pas à tout : Odile garde le reste de sa réserve pour l'âtre, et le poêle
-        # d'Anselme s'éteint.
+        # Les présentations/appels révisent la délibération : une tâche payée peut prolonger
+        # un foyer. À huit heures, la rareté demeure ; aucun accord ne crée du bois.
         self.assertIn("Anselme demande les bûches de réserve à Odile (refus).", suite)
+        m,_=par_blocs(m,480,60)
         self.assertGreater(m.objets["bois_reserve"]["charges"], 0)
         self.assertFalse(allumee(m.objets["poele"]))
-        self.assertTrue(allumee(m.objets["atre"]) and allumee(m.objets["fourneau"]))
+        self.assertFalse(allumee(m.objets["fourneau"]))
+        self.assertTrue(allumee(m.objets["atre"]))
 
 
 if __name__ == "__main__":

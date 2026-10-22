@@ -319,7 +319,8 @@ class PretReclameTests(unittest.TestCase):
     def lampe_pretee_au_joueur(self):
         """Mine : Gaspard a prêté sa lampe au joueur il y a plus de 240 minutes (placement d'auteur :
         le prêt, daté de l'échéance) ; il est près de lui."""
-        m = calme(creer("mine", 1985, "fixe"), "gaspard")
+        from tests.support import presentes
+        m = presentes(calme(creer("mine", 1985, "fixe"), "gaspard"), "gaspard")
         salle, (x, y) = m.joueur["salle"], m.joueur["position"]
         placer(m, "gaspard", salle, (x + 1, y))
         regarder(m, "gaspard", "joueur")

@@ -116,6 +116,55 @@ jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un él
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
 
+## Noms et identité perçue (branche `codex-noms`)
+
+Voir une personne fait connaître son apparence, l'entendre parler sa voix. Aucun de ces deux
+faits ne donne son nom. Le nom est entendu et relié, ou déclaré comme savoir antérieur du
+scénario. Une personne visible inconnue est `personne_<n>` avec une désignation visuelle
+persistante ; les références de ses éléments sont opaques aussi. Le même contrat gouverne
+la saisie, les propositions, les souvenirs, les rendus et la sauvegarde.
+
+Le récit ne prononce pas un nom que le joueur n'a pas appris : contrôle déterministe même
+si ce nom figure ailleurs dans une question ou un fait. Une réplique peut introduire un nom
+que son locuteur connaît. Une présentation explicite, un destinataire nommé et identifié ou
+la liaison de voix d'un échange établissent le lien avant affichage. Une simple mention de
+tiers reste sans attribution à un corps. Le protocole de réplique MJ n'a pas de destinataire
+tiers validé : cette mention seule ne présente donc personne. `noms_pour_repliques` est réservé à cette voix, sans identifier ni situer
+les personnes correspondantes pour le narrateur. Une affirmation de nom reste distincte
+de la vérité de l'identité revendiquée. Les citations d'une description ne sont jamais
+traitées comme des paroles entendues.
+
+Des guillemets seuls n'autorisent aucun nom privé. Seule la citation entière et unique d'une
+parole auditée bénéficie de sa provenance, dans son passage précis ; les mêmes mots cités
+ailleurs restent sous le garde du récit. Des mots déjà enregistrés et entendus peuvent être
+restitués comme citation autonome entière, sans nouvelle attribution narrative. Ils ne peuvent
+pas servir d'étiquette de corps ni de description persistante. Une sous-chaîne de parole n'a
+pas cette provenance. L'enregistrement et les réponses de dernier recours refont ce contrôle.
+
+La phase de narration après parole ou action validée reçoit le paquet privé du locuteur :
+son propre `nom_du_locuteur`, séparé de `noms_pour_repliques`, les noms de tiers qu'il connaît.
+Ces deux données privées sont absentes de l'interprétation mécanique, qui garde seulement les
+connaissances nominales publiques du joueur ; elles ne permettent donc pas de choisir une cible.
+Le locuteur peut ainsi se présenter ; ce champ ne donne ni identifiant
+réel ni fait public au narrateur. Le refus déterministe du nom inconnu s'applique aussi si
+la donnée privée le contient. Les champs sans sens pour un type de contenu de parole sont
+refusés avant transmission, avec le champ reçu et la valeur vide attendue.
+
+L'audit d'une réplique et le fait persistant `parole` portent une `presentation` explicite :
+nom littéral dont le locuteur se présente, sinon vide. Le moteur exige ce nom dans la citation,
+relie la présentation à la voix qui parle et consigne les auditeurs avant affichage. Cela
+permet aussi une réponse nominale. Le classement sémantique de cette présentation reste celui
+de l'audit ; il ne permet jamais d'identifier le corps d'un tiers seulement mentionné. Une
+appellation de voix revendiquée ne vaut pas connaissance du vrai corps qui porte ce nom.
+
+À la frontière de toutes les réponses MJ, les champs de référence doivent utiliser la
+référence publique fournie. Un identifiant réel deviné d'une personne inconnue est refusé,
+même s'il figure dans un texte privé contaminant ; seuls les mots libres et le contenu
+nominal revendiqué gardent leur contrat de parole. Le décodage suit cette validation ; le
+moteur interne conserve ses identifiants. La contre-revue d'action reçoit aussi les noms et
+références publics. L'aperçu d'un plan passe entièrement par cette projection, opposition,
+risque et étapes compris. Aucun substitut textuel ne tire l'apparence d'un corps jamais vu.
+
 ## Contrôle des actions
 
 Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare

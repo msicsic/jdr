@@ -66,6 +66,7 @@ class Plan:
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
 
     def resume(self, monde, afficher_avis=True):
+        from .noms import texte
         if self.etapes:
             plusieurs = len(self.plans) > 1
             lignes = [f"Une seule tentative, en {len(self.plans)} étapes successives :" if plusieurs else "Tentative proposée :"]
@@ -74,7 +75,7 @@ class Plan:
             if plusieurs:
                 lignes.append(f"Durée totale prévue : {self.minutes} min. Arrêt au premier échec ; les étapes déjà réussies restent acquises.")
             lignes.append("« tenter » lance l'ensemble ; « annuler » abandonne sans exécuter aucune étape.")
-            return "\n".join(lignes)
+            return texte(monde, "\n".join(lignes))
         lignes = [self.titre]
         if self.stat:
             from .corps import malus
@@ -95,7 +96,7 @@ class Plan:
             lignes.append(self.risque)
         if self.minutes:
             lignes.append(f'Durée : {self.minutes} min. Bruit : {self.bruit}.')
-        return "\n".join(lignes)
+        return texte(monde, "\n".join(lignes))
 
 
 def gestes_accomplis(plan, monde):
@@ -139,8 +140,22 @@ class Moteur:
                     None)
 
     def preparer(self, p, origine="règles"):
+        from .noms import texte
+        try:
+            plan = self._preparer_references(p, origine)
+        except ErreurMonde as exc:
+            # Le refus du moteur passe par la même connaissance que le résultat affiché.
+            exc.args = (texte(self.monde, str(exc)),)
+            raise
+        plan.titre = texte(self.monde, plan.titre)
+        plan.information = texte(self.monde, plan.information)
+        return plan
+
+    def _preparer_references(self, p, origine="règles"):
         """Comme ``_preparer`` ; si le joueur doit d'abord se tourner vers ce qu'il vise, le geste est
         jugé tourné vers lui, et la rotation s'ajoute à sa durée."""
+        from .noms import references
+        p = references(self.monde, p)
         vers = self._regard(p)
         if vers is None:
             return self._preparer(p, origine)
@@ -602,6 +617,8 @@ class Moteur:
             lignes.append(plan.information)
         self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
         self._clore_bilan(travail, lignes)
+        from .noms import texte
+        lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
             "minutes": travail.data["minutes"], "action": self._action_journal(travail, plan.proposition),
@@ -784,6 +801,10 @@ class Moteur:
                 break
             precedent = e
         self._clore_bilan(travail, lignes)
+        from .noms import texte
+        lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
+        for etape in trace:
+            etape["faits"] = [texte(travail, ligne, citations=True) for ligne in etape["faits"]]
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"], "minutes": travail.data["minutes"],
             "action": self._action_journal(travail, sequence.proposition),

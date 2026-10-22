@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, nouveau_monde_libre, objet
 from donjon.moteur import Moteur, proposition
+from tests.support import presentes
 
 
 class VenteGeneriqueTests(unittest.TestCase):
@@ -15,7 +16,7 @@ class VenteGeneriqueTests(unittest.TestCase):
         m.objets["broche"] = objet("broche", "broche d'étain", "tresor", "antichambre",
                                    mobile=True, masse=0.1, prix=5, en_vente=True,
                                    vendeur="mira")
-        return m.copier()
+        return presentes(m.copier(),'mira')
 
     def test_achat_a_un_autre_vendeur_hors_echoppe_et_rechargement(self):
         m = self.scene()

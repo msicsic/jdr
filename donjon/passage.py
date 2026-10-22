@@ -182,9 +182,9 @@ def laisser_passer(monde, id, passant, chemin=()):
     return (case, None) if case else (None, "place")
 
 
-def _qui(monde, x):
+def _qui(monde, x, locuteur=None):
     from .social import _qui as qui
-    return qui(monde, x)
+    return qui(monde, x, locuteur)
 
 
 def duree_ecart(monde, id, case):
@@ -294,7 +294,7 @@ def _prier(monde, id, autre, chemin, lignes):
     """Le PNJ ``id`` demande à ``autre`` de le laisser passer : un geste social."""
     from .ouie import retentir
     from .pnj import _chroniquer
-    a, b = _qui(monde, id), _qui(monde, autre)
+    a, b = _qui(monde, id), _qui(monde, autre, id)
     le = "la" if monde.objets[id].get("genre") == "f" else "le"
     if autre == "joueur":
         texte = f"{a} te demande de {le} laisser passer."

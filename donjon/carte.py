@@ -35,7 +35,8 @@ def symbole_personnage(monde, objet):
     pris = RESERVES | {s.get("plan", {}).get("repere", id[:1].upper()) for id, s in monde.data["salles"].items()}
     attribues = {}
     for id in sorted(i for i, o in monde.objets.items() if o["type"] == "personnage"):
-        nom = unicodedata.normalize("NFD", monde.objets[id]["nom"])
+        from .voix import nom_pour_joueur
+        nom = unicodedata.normalize("NFD", nom_pour_joueur(monde, id))
         lettres = [c.upper() for c in nom if c.isascii() and c.isalpha()]
         attribues[id] = next((c for c in lettres if c not in pris and c not in attribues.values()), "G")
     return attribues.get(objet["id"], "G")
@@ -320,3 +321,10 @@ def carte(monde):
     except ImportError:
         pass
     return _carte_ancienne(monde)
+
+
+_carte_interne = carte
+
+def carte(monde, *args, **kwargs):
+    from .noms import texte
+    return texte(monde, _carte_interne(monde, *args, **kwargs))

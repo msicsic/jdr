@@ -1339,6 +1339,76 @@ Limites : le souvenir `dit` peut sortir de la mémoire bornée (`MEMOIRE_MAX`) :
 une fois ; « sous ses yeux » se juge à la salle où il croit l'un et l'autre, pas à ce que la victime
 voit vraiment (dans le noir, ou le bien dans un contenant fermé, elle peut l'ignorer).
 
+## Les noms entendus et les apparences (branche `codex-noms`)
+
+La décision du 22 octobre remplace les anciennes équivalences « vu = nom connu » et
+« voix connue = nom connu » décrites dans les jalons historiques ci-dessus. Trois mémoires
+restent distinctes : apparence reconnue (`personnages_vus`, portraits), voix reconnue
+(`voix_connues` / `voix`), noms entendus et reliés (`noms_connus` du joueur, `noms` des PNJ).
+Une croyance issue de la vue ne donne aucun nom. Un savoir déclaré par le scénario ou une
+parole effectivement saisie qui permet de relier le nom à la personne le donne.
+
+`donjon/noms.py` centralise cet apprentissage et la projection publique. Une personne visible
+sans nom porte une désignation courte issue de son portrait, ou du genre si aucun trait ne
+peut être extrait, conservée dans `personnes`. Les doublons reçoivent un numéro stable. Le MJ
+la vise par `personne_<n>`, ses éléments rattachés par `element_<n>` : aucune identité interne
+n'est livrée par le portrait, les pièces du corps ou les souvenirs. Le moteur décode ces
+références puis applique ses contrôles ordinaires de perception et de portée. Un pseudonyme
+deviné ne donne aucun accès. La saisie accepte la désignation (« je dis à l'homme trapu… »,
+« je donne le briquet à l'homme trapu »). Carte, terminal et page partagent cette projection.
+
+Le contrôle déterministe de `narration.voix_inconnues` refuse un nom inconnu dans le récit,
+y compris si un autre fait ou le joueur l'a mentionné. Une réplique ne nomme que qui son
+locuteur connaît. Les `noms_pour_repliques` du contexte sont des noms que ce locuteur peut
+prononcer, sans identifiants ni position ; ils ne fondent aucune affirmation du narrateur.
+Le paquet privé de chaque locuteur distingue `nom_du_locuteur`, ajouté par le MJ après
+la projection publique : connaître des noms de tiers ne permettait pas au personnage de
+savoir lequel était le sien. Ce nom privé ne fonde toujours aucun nom dans le récit.
+Le paquet nominal privé entier (nom propre et noms de tiers prononçables) ne figure que dans
+la narration après validation du moteur. L'interprétation mécanique ne reçoit que les noms
+publics du joueur, sans pouvoir reconstruire les identités par différence entre listes privées.
+Une présentation explicite du locuteur, ou le nom d'un destinataire appelé et identifié,
+relie le nom avant la sauvegarde et l'affichage. Une simple mention de tiers ne désigne pas
+lequel des corps visibles porte ce nom. Les mots enregistrés restent cités ; les guillemets d'un portrait ou d'une
+description ne bénéficient pas de cette provenance. Se donner le nom d'un tiers ne présente
+pas le corps de ce tiers.
+
+Le contrôle des citations garde leur portée : la citation entière d'une parole auditée est
+exemptée dans son passage exact seulement, et doit y être unique. Une copie dans un autre
+segment ne transporte pas cette autorisation. Une parole historique effectivement entendue
+peut être restituée seule, entière, mais n'autorise aucune nouvelle étiquette narrative de
+personne ni description persistante. Les mots exacts de Corvus restent ainsi disponibles,
+sans faire de tout guillemet une parole ni d'un fragment une preuve de provenance. Les voies
+de consigne et de dernier recours appliquent le même garde avant affichage.
+
+L'audit d'une réplique porte `presentation` : le nom littéral par lequel le locuteur se
+présente, y compris dans une réponse comme « Gorm. », ou une chaîne vide. Le moteur vérifie
+sa présence dans la citation et l'attache à la signature de cette voix avant l'affichage.
+Les faits persistants de type `parole` utilisent le même contrat. Le classement d'une
+présentation reste sémantique ; le lien de voix et l'absence d'identification du corps d'un
+tiers sont déterministes. Un nom seulement revendiqué ou appelé reste une appellation de
+voix, distincte du nom connu d'un corps. Une voix reconnue dont le corps n'a jamais été vu
+reste « une voix reconnue », sans portrait.
+
+Les scénarios déclarent `connait_noms` pour les liens antérieurs des PNJ et
+`scenario.noms_connus` pour ce que l'introduction a effectivement donné au joueur. Le Relais
+commence avec un homme trapu, sans nom préchargé. À l'auberge, l'introduction nomme Odile.
+Les scènes de banc peuvent déclarer leurs présentations antérieures par `noms_connus`,
+séparément des objets simplement `connus`.
+
+Les tests de `tests/test_noms.py` suivent le cas du Relais (voir Gorm ; le questionner ou
+entendre Aubin le nommer) et celui de l'auberge (Joss voit Corvus puis entend son nom),
+avec sauvegarde/rechargement et les trois rendus. Ils couvrent aussi une mention ambiguë dans
+une vraie réponse MJ auditée (fournisseur simulé), qui reste sans lien avec un corps,
+deux présentations à partir de l'identité privée du locuteur, la voix reconnue sans nom, les détails aux
+identifiants composés et une référence devinée hors perception. Mesures et limites dans
+[le rapport](taches/rapport-codex-2-noms.md).
+
+Le protocole de réplique MJ fournit son locuteur et sa citation, sans destinataire tiers
+validé. Il peut faire entendre un nom de tiers connu du locuteur ; cela ne présente pas son
+corps. L'appel ciblé du moteur possède ce destinataire et peut établir le lien. Les étiquettes
+du récit (« Aubin dit à Gorm… ») ne comptent jamais comme des noms prononcés.
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la
@@ -1361,7 +1431,8 @@ voit vraiment (dans le noir, ou le bien dans un contenant fermé, elle peut l'ig
 - Paroles : un destinataire doit être perçu par le joueur ; qui l'entend sans être vu (derrière le
   pilier) n'est que témoin, sauf à répondre à une question dite à la cantonade (`parole-corrections`) ; le nommer dans une parole sans conteste est refusé par le moteur, sans
   appel au MJ (« Tu ne vois pas Aubin d'ici : approche-toi… », la cantonade proposée). Les répliques
-  que Luna prête aux PNJ (`paroles_pnj`) ne sont pas entendues des autres PNJ. Un PNJ tout près
+  que Luna prête aux PNJ (`paroles_pnj`) sont enregistrées pour les auditeurs qui en saisissent
+  réellement les mots ; une présentation leur apprend le nom selon le même contrat. Un PNJ tout près
   d'un chuchotement n'en retient qu'un bruit feutré, pas qu'on chuchote. Sans cases, deux présents
   font toujours une ambiguïté, et l'on chuchote à quiconque est là. « je lui dis » vise le dernier
   à qui Corvus a parlé. Les paroles entendues occupent la mémoire des PNJ (40 souvenirs ; une

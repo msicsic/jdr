@@ -83,6 +83,8 @@ class OrientationTests(unittest.TestCase):
         # Cas du banc Luna : « la cloche est donnée au marchand, et non à Gorm ».
         from donjon.couverture_action import entree
         m = relais_avec_cloche()
+        from tests.support import presentes
+        presentes(m,'marchand')  # Cette contre-revue compare deux désignations d'un nom déjà appris.
         plan = Moteur(m).preparer(proposition("remettre", "cloche", "marchand"))
         effets = entree("je donne la cloche à Gorm", plan, m)["plan"]["effets_reussite"]
         self.assertEqual(effets, [["donner", "cloche d'alarme (cloche)", "Gorm, gardien du relais (marchand)"]])

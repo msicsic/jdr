@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tests.support import calme, regarder
+from tests.support import calme, regarder, presentes
 from donjon.carte import carte
 from donjon.commandes import analyser
 from donjon.defi import nouveau_defi
@@ -19,7 +19,7 @@ from tests.test_tensions import recharger
 def relais():
     m = nouveau_defi(depart="fixe")
     installer(m)
-    return calme(m, "marchand", "brune", "ilse", "aubin")
+    return presentes(calme(m, "marchand", "brune", "ilse", "aubin"))
 
 
 def faire(m, commande):

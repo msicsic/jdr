@@ -1,3 +1,4 @@
+from donjon.noms import texte as texte_public
 import copy
 import unittest
 from unittest.mock import patch
@@ -88,7 +89,7 @@ class LocalisationTests(unittest.TestCase):
         self.assertNotIn('echoppe', self.m.contexte()['lieux_connus'])
         self.assertEqual(self.m.contexte()['salle']['sorties']['ouest']['nom_destination'], 'inexploré')
         self.m.data['visitees'].append('echoppe')
-        self.assertEqual(self.objets()['marteau']['localisation']['salle_nom'], self.m.data['salles']['echoppe']['nom'])
+        self.assertEqual(self.objets()['marteau']['localisation']['salle_nom'], texte_public(self.m,self.m.data['salles']['echoppe']['nom']))
 
     def test_vue_mj_garde_le_support_des_composants(self):
         m = nouveau_monde()

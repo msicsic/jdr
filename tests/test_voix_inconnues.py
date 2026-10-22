@@ -151,6 +151,7 @@ class RepliquesTests(unittest.TestCase):
         self.assertEqual(len(self.obstacles(m, "Je m'appelle Ilse.")), 1)
         self.assertEqual(len(self.obstacles(m, "Moi, c'est Gorm.")), 1)
         # Quelqu'un dont elle ne sait rien.
+        m.objets["brune"]["connait_noms"].remove("aubin")
         lire(m, "brune")["croyances"].pop("aubin")
         lire(m, "brune")["voix"].remove("aubin")
         m = recharger(m)
@@ -256,6 +257,8 @@ def gorm_hele_corvus(voix_connue=False):
     from donjon.esprits import esprit
     from donjon.planification import rejoindre
     m = gorm_derriere_la_porte()
+    from donjon.noms import apprendre
+    apprendre(m,'marchand','joueur')  # Placement d'auteur : il le cherche sous un nom déjà présenté.
     if voix_connue:
         connaitre(m, "marchand", "joueur")
     croire(m, "marchand", "joueur", "lieu", None, "essai", salle=None, case=None)

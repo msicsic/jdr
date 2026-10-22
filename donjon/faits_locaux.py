@@ -2,6 +2,7 @@
 
 import copy
 import math
+import re
 
 from .francais import designer, relation_physique
 from .geometrie import placer
@@ -24,13 +25,18 @@ TYPES = ("detail", "inscription", "parole", "objet", "evolution", "qualification
 SCHEMA_AJOUT_SIMPLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "type": {"type": "string", "enum": ["detail", "inscription", "parole"]},
+        "type": {"type": "string", "enum": ["detail", "inscription"]},
         "ancrage": {"type": "string"}, "nom": {"type": "string"},
         "genre": {"type": "string", "enum": ["", "m", "f"]},
         "texte": {"type": "string"},
     },
     "required": ["type", "ancrage", "nom", "genre", "texte"],
 }
+SCHEMA_AJOUT_PAROLE = copy.deepcopy(SCHEMA_AJOUT_SIMPLE)
+SCHEMA_AJOUT_PAROLE['properties']['type']['enum']=['parole']
+SCHEMA_AJOUT_PAROLE['properties']['presentation']={
+    'type':'string','description':"Nom dont le locuteur se présente dans ses mots ; vide pour une mention de tiers ou une autre parole."}
+SCHEMA_AJOUT_PAROLE['required'].append('presentation')
 SCHEMA_AJOUT_OBJET = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -92,7 +98,7 @@ SCHEMA_AJOUT_CONTENU = {
 SCHEMA_FAITS = {
     "type": "object", "additionalProperties": False,
     "properties": {"ajouts": {"type": "array", "minItems": 1, "maxItems": 3,
-        "items": {"anyOf": [SCHEMA_AJOUT_SIMPLE, SCHEMA_AJOUT_OBJET,
+        "items": {"anyOf": [SCHEMA_AJOUT_SIMPLE, SCHEMA_AJOUT_PAROLE, SCHEMA_AJOUT_OBJET,
                             SCHEMA_AJOUT_EVOLUTION, SCHEMA_AJOUT_QUALIFICATION,
                             SCHEMA_AJOUT_EXCLUSION, SCHEMA_AJOUT_COUPE, SCHEMA_AJOUT_PHYSIQUE,
                             SCHEMA_AJOUT_CONTENU]}}},
@@ -242,10 +248,20 @@ def preparer_faits(monde, proposition, revision=None):
                   {"type", "ancrage", "nom", "genre", "texte", "materiau", "masse", "mobile", "relation", "capacites"}
                   if nature == "objet" else
                   {"type", "ancrage", "nom", "genre", "texte"})
+        if nature=='parole' and 'presentation' in ajout:
+            champs.add('presentation')
         if set(ajout) != champs or not isinstance(ajout["ancrage"], str):
             raise refus("Fait narratif mal formé.",
                         f"champs exacts {', '.join(sorted(champs))} ; reçu : {', '.join(sorted(ajout))}.")
         ancrage = ajout["ancrage"]
+        if nature!='parole':
+            from .narration import voix_inconnues
+            for champ in ('nom','texte'):
+                if isinstance(ajout.get(champ),str):
+                    obstacles=voix_inconnues(travail,[],{},ajout[champ],partie='description',
+                                            citations_historiques=False)
+                    if obstacles:
+                        raise refus("Ce fait nomme une personne inconnue du joueur.",obstacles[0]['attendu'])
         if nature == "evolution":
             from .transitions_scenario import preparer as preparer_transition
             travail, annonce = preparer_transition(travail, ancrage)
@@ -371,6 +387,19 @@ def preparer_faits(monde, proposition, revision=None):
             if nom or genre or len(texte) > 240:
                 raise refus("Cette parole ne peut pas être attribuée à ce personnage ici.",
                             "parole : nom et genre vides, texte de 240 caractères au plus.")
+            presentation=ajout.get('presentation','')
+            if not isinstance(presentation,str) or presentation and not re.search(
+                    r'(?<!\w)'+re.escape(presentation)+r'(?!\w)',texte):
+                raise refus("La présentation ne correspond pas aux mots prononcés.",
+                            "presentation : nom littéral contenu dans texte pour se présenter, sinon vide.")
+            from .narration import voix_inconnues
+            from .dialogues import interlocuteurs
+            obstacles=voix_inconnues(travail,[{'locuteur':ancrage,'texte':texte,
+                **({'presentation':presentation} if presentation else {})}],
+                {'interlocuteurs':interlocuteurs(travail)})
+            if obstacles:
+                raise refus("Cette parole nomme quelqu'un que son locuteur ne connaît pas.",
+                            obstacles[0]['attendu'])
             from .ouie import saisissent
             from .voix import reel as _reel
             source = travail.joueur["salle"]
@@ -385,9 +414,16 @@ def preparer_faits(monde, proposition, revision=None):
             if travail.visible(ancrage):
                 from .voix import connaitre
                 connaitre(travail, "joueur", ancrage)  # Il le voit parler : il saura reconnaître sa voix.
+            from .noms import entendre as entendre_noms
+            for auditeur in entendants:
+                entendre_noms(travail, auditeur, ancrage, texte)
+                if presentation:
+                    from .noms import presenter
+                    presenter(travail,auditeur,ancrage,presentation,texte)
             evenement = {"locuteur": ancrage, "texte": texte, "salle": source,
                          "minute": travail.data["minutes"], "auditeurs": entendants,
-                         "revision": monde.data["revision"] + 1}
+                         "revision": monde.data["revision"] + 1,
+                         **({'presentation':presentation} if presentation else {})}
             travail.data.setdefault("paroles_pnj", []).append(evenement)
             rendus.append(nom[0].upper() + nom[1:] + " dit : « " + texte + " ».")
             etablis.append({"type": nature, "locuteur": designe})
@@ -533,11 +569,13 @@ def verifier(monde):
                     and all(isinstance(s[k], str) for k in s)
                     for s in monde.data.get("faits_vus", []))), "Souvenirs de faits invalides"
     for parole in monde.data.get("paroles_pnj", []):
-        assert (set(parole) == {"locuteur", "texte", "salle", "minute", "auditeurs", "revision"}
+        assert (set(parole) - {'presentation'} == {"locuteur", "texte", "salle", "minute", "auditeurs", "revision"}
                 and parole["locuteur"] in monde.objets
                 and monde.objets[parole["locuteur"]]["type"] == "personnage"
                 and parole["salle"] in monde.data["salles"]
                 and _texte(parole["texte"], LONGUEUR_PAROLE)
+                and ('presentation' not in parole or isinstance(parole['presentation'],str)
+                     and parole['presentation'] and parole['presentation'] in parole['texte'])
                 and isinstance(parole["auditeurs"], list)
                 and all(a == "joueur" or a in monde.objets for a in parole["auditeurs"])
                 and type(parole["minute"]) is int and parole["minute"] >= 0

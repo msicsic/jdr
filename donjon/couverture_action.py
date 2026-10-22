@@ -64,9 +64,12 @@ def _nommer(valeur, monde):
     """Un identifiant devient « nom (identifiant) » : un identifiant nu (« marchand ») se lit
     comme un mot et ne désigne plus le personnage que le joueur nomme (« Gorm »)."""
     if isinstance(valeur, str) and valeur in monde.objets:
-        return f"{monde.objets[valeur]['nom']} ({valeur})"
+        from .noms import public, reference
+        return f"{public(monde,monde.objets[valeur]['nom'])} ({reference(monde,valeur)})"
     if isinstance(valeur, (list, tuple)):
         return [_nommer(v, monde) for v in valeur]
+    if isinstance(valeur,dict):
+        return {k:_nommer(v,monde) for k,v in valeur.items()}
     return valeur
 
 

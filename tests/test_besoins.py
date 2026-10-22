@@ -24,7 +24,8 @@ def recharger(monde):
 
 
 def relais():
-    m = refusee(sans_evacues(nouveau_defi(depart="fixe")))
+    from tests.support import presentes
+    m = presentes(refusee(sans_evacues(nouveau_defi(depart="fixe"))))
     installer(m)
     return m
 

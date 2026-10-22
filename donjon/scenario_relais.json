@@ -70,7 +70,15 @@
   "journal": [],
   "lus": [],
   "minutes": 0,
-  "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
+  "depart": {
+    "bornes": {
+      "corps": 0.2,
+      "besoins": 10,
+      "rondes": 0.5,
+      "periodes": 0.2,
+      "horloges": 0.25
+    }
+  },
   "missions": {},
   "objectif_partie": {
     "lieu": "joueur",
@@ -748,7 +756,12 @@
         "repas": 300,
         "veille": 200,
         "trempe": 0
-      }
+      },
+      "connait_noms": [
+        "aubin",
+        "brune",
+        "ilse"
+      ]
     },
     "marteau": {
       "aliases": [
@@ -987,7 +1000,12 @@
         "repas": 800,
         "veille": 800,
         "trempe": 300
-      }
+      },
+      "connait_noms": [
+        "aubin",
+        "ilse",
+        "marchand"
+      ]
     },
     "reserve": {
       "aliases": [
@@ -1135,7 +1153,12 @@
         "repas": 450,
         "veille": 480,
         "trempe": 360
-      }
+      },
+      "connait_noms": [
+        "aubin",
+        "brune",
+        "marchand"
+      ]
     },
     "aubin": {
       "aliases": [
@@ -1212,7 +1235,12 @@
         "repas": 350,
         "veille": 1200,
         "trempe": 390
-      }
+      },
+      "connait_noms": [
+        "brune",
+        "ilse",
+        "marchand"
+      ]
     },
     "fanal": {
       "aliases": [
@@ -1562,31 +1590,14 @@
   },
   "savoirs_version": 1,
   "scenario": {
-    "debut": "Après la rupture du pont, tu as rejoint à pied le Relais des crues par la digue. À ton arrivée, Gorm préparait l'accueil des habitants évacués. Il t'a demandé de rapporter la petite cloche de réserve, alors rangée dans la galerie du vieux beffroi : elle devait servir à donner le signal depuis le refuge. Une consigne émaillée était fixée près de l'entrée. À l'ouest, une conduite menait aux locaux du relais.",
+    "debut": "Après la rupture du pont, tu as rejoint à pied le Relais des crues par la digue. À ton arrivée, un homme trapu préparait l'accueil des habitants évacués. Il t'a demandé de rapporter la petite cloche de réserve, alors rangée dans la galerie du vieux beffroi : elle devait servir à donner le signal depuis le refuge. Une consigne émaillée était fixée près de l'entrée. À l'ouest, une conduite menait aux locaux du relais.",
     "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. Aucun compte à rebours ne s'écoule.",
     "objectif": "Ramener la cloche d'alarme du beffroi au refuge du relais.",
-    "version": 1
+    "version": 1,
+    "noms_connus": []
   },
   "seed": 1985,
-  "souvenirs_personnages": {
-    "marchand": {
-      "details": [
-        {
-          "description": "Sa barbe est courte et grisonnante.",
-          "nom": "barbe de Gorm"
-        },
-        {
-          "description": "Ses mains sont larges et calleuses.",
-          "nom": "mains de Gorm"
-        }
-      ],
-      "maniere_de_parler": "Gorm parle peu et va droit au but, d'une voix grave.",
-      "nom": "Gorm, gardien du relais",
-      "portrait": "Gorm est trapu, d'une cinquantaine d'années, au visage large.",
-      "source": "Gorm veille sur le Relais des crues.",
-      "traits": {}
-    }
-  },
+  "souvenirs_personnages": {},
   "sujets_savoirs_pnj": {
     "marchand": {}
   },

@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from tests.support import calme, regarder
+from tests.support import calme, regarder, presentes
 from donjon.defi import nouveau_defi
 from donjon.geometrie import placer
 from donjon.scene import scene_percue
@@ -12,7 +12,7 @@ from donjon.spatial import installer, memoriser
 def relais():
     m = nouveau_defi(depart="fixe")
     installer(m)
-    return calme(m, "marchand", "brune", "ilse", "aubin")
+    return presentes(calme(m, "marchand", "brune", "ilse", "aubin"))
 
 
 def objets(scene):

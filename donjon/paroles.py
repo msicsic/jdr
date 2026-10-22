@@ -24,6 +24,12 @@ from .monde import ErreurMonde, normaliser
 
 ATTRIBUTS = ("lieu", "verrouillee", "fiable")
 TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource")
+CHAMPS_CONTENU = {
+    "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
+    "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
+    "aveu": ("sujet", "valeur"), "nom": ("sujet",), "qui": (),
+    "reclamer": ("sujet",), "ressource": ("sujet",),
+}
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
@@ -209,7 +215,8 @@ def esprits_interlocuteurs(monde, presents):
         if cle != id:
             resultat[cle] = {"voix_inconnue": nom_pour_joueur(monde, id), "genre": genre(monde, id),
                              "traits": "", "valeurs": {}, "croit": [],
-                             "but_actuel": None, "besoins_pressants": [], "engagements": [], "a_entendu": []}
+                             "but_actuel": None, "besoins_pressants": [], "engagements": [], "a_entendu": [],
+                             "noms_pour_repliques": noms_pour_repliques(monde, id)}
             continue
         e, profil = lire(monde, id), monde.objets[id].get("profil")
         croyances = []
@@ -229,6 +236,14 @@ def esprits_interlocuteurs(monde, presents):
             "a_entendu": paroles_retenues(monde, id),
         }
     return resultat
+
+
+def noms_pour_repliques(monde, id):
+    """Noms que le locuteur peut prononcer ; ne donnent aucune identité au récit."""
+    from .voix import connait_appellation
+    return [(monde.joueur if x == "joueur" else monde.objets[x])["nom"].split(",")[0]
+            for x in ["joueur", *monde.objets] if x != id
+            and (x == "joueur" or monde.objets[x]["type"] == "personnage") and connait_appellation(monde,id,x)]
 
 
 def paroles_retenues(monde, id):
@@ -326,6 +341,10 @@ def _personnage(monde, fragment, connu=True):
     """Le personnage connu du joueur que ``fragment`` nomme exactement (identifiant, nom, prénom,
     alias, avec ou sans article) ; sinon None. ``connu=False`` : n'importe quel personnage du monde,
     pour un nom que Corvus prononce sans savoir à qui il est (une imposture, un nom inconnu)."""
+    from .noms import resoudre as personne
+    visuel = personne(monde, fragment) if connu else None
+    if visuel:
+        return visuel
     texte = normaliser(fragment or "")
     for article in ARTICLES_NOM:
         if texte.startswith(article):
@@ -333,6 +352,16 @@ def _personnage(monde, fragment, connu=True):
             break
     if not texte:
         return None
+    if connu:
+        from .voix import entendues, designation
+        # Une appellation entendue désigne sa voix, jamais le corps réel qui porte ce nom ailleurs.
+        voix = [signature for signature,e in entendues(monde,'joueur').items()
+                if not e['mefiance'] and signature in monde.objets
+                and any(n in monde.objets and texte in {normaliser(monde.objets[n]['nom']),
+                    normaliser(monde.objets[n]['nom'].split(',')[0])}
+                    for n in (e['se_dit'],e.get('appelee')))]
+        if len(voix)==1:
+            return designation(monde,voix[0])
     trouves = {id for id, o in monde.objets.items() if o["type"] == "personnage"
                and texte in {normaliser(n) for n in (id, o["nom"], o["nom"].split(",")[0], *o.get("aliases", []))}
                and (not connu or _connu_du_joueur(monde, id))}
@@ -703,7 +732,10 @@ def destinataires(monde, forme):
     if forme["groupe"]:
         return entendent
     id = forme["nomme"]
-    if id and (id not in presents or designation(monde, id) != id):
+    voix_nommee = isinstance(id,str) and id.startswith(('voix_','personne_'))
+    if voix_nommee:
+        id = reel(monde,id)
+    if id and not voix_nommee and (id not in presents or str(designation(monde, id)).startswith("voix_")):
         # Il ne le sait là que par une voix qui porte ce nom (qui s'est dite ainsi, qu'on a appelée ainsi) :
         # c'est à elle qu'il parle, quelle qu'elle soit. Sinon, ce qui lui manque : le voir, donc s'approcher ;
         # à la cantonade, qui l'entend retient ses mots.
@@ -781,11 +813,8 @@ def identites(monde):
     """Les personnages dont Corvus sait qui ils sont, d'après ce qu'il sait d'eux, jamais d'après une
     place : il les a vus (``Monde.identifier``, ``souvenirs_personnages``), il connaît leur voix, ou
     une voix s'est donné leur nom, ou une autre voix l'a appelée ainsi (``voix.nommer``)."""
-    from .voix import entendues
-    ids = {*monde.data.get("personnages_vus", ()), *monde.data.get("souvenirs_personnages", {}),
-           *monde.data.get("voix_connues", ()),
-           *(e.get(k) for e in entendues(monde, "joueur").values() for k in ("se_dit", "appelee"))}
-    return sorted(id for id in ids if id in monde.objets and monde.objets[id]["type"] == "personnage")
+    from .voix import connait_nom
+    return sorted(id for id, o in monde.objets.items() if o["type"] == "personnage" and connait_nom(monde, "joueur", id))
 
 
 def _connu_du_joueur(monde, id):
@@ -795,6 +824,8 @@ def _connu_du_joueur(monde, id):
     où on l'avait vu n'y change rien : le nommer quand il est absent donne le refus de la parole ou
     du geste (« Tu ne vois pas … d'ici »), pas un inconnu."""
     from . import lexique
+    if id in monde.objets and monde.objets[id]["type"] == "personnage":
+        return id in identites(monde)
     if (id == "joueur" or id in monde.data["visitees"] or id in monde.data["connus"]
             or id in monde.data.get("souvenirs_visuels", {}) or id in identites(monde)):
         return True
@@ -809,6 +840,10 @@ def resoudre(monde, reference):
     Un nom partiel (« refuge » pour « Refuge du relais ») vaut s'il ne désigne qu'une entité connue.
     """
     from . import lexique
+    from .noms import resoudre as personne
+    visuel = personne(monde, reference)
+    if visuel:
+        return visuel
     if not isinstance(reference, str) or not reference.strip():
         return None
     if reference in ("joueur", *monde.data["salles"], *monde.objets):
@@ -965,11 +1000,20 @@ def verifier_offres(monde, contenu):
 
 
 def verifier_contenus(monde, contenu):
-    """Une réclamation ou une demande de ressource que le moteur ne saurait trancher est refusée au
-    MJ : une cause par refus, l'élément fautif nommé (``attendu``)."""
+    """Contrat de l'union typée : aucun champ sans sens ni demande impossible à trancher.
+
+    Une cause par refus, l'élément et le champ fautifs nommés (``attendu``).
+    """
     for i, c in enumerate(contenu):
         if not isinstance(c, dict):
             continue
+        utilises = CHAMPS_CONTENU.get(c.get('type'), ())
+        for champ in ('sujet', 'attribut', 'valeur'):
+            if champ not in utilises and c.get(champ) not in (None, ''):
+                from .refus import RefusDeForme
+                raise RefusDeForme("Le contenu de cette parole comporte un champ sans sens pour son type.",
+                                   f"contenu[{i}].{champ} : vide pour type {c.get('type')} ; "
+                                   f"reçu « {c[champ]} ».")
         sujet = str(c.get("sujet") or "").strip()
         if c.get("type") == "reclamer" and sujet and resoudre(monde, sujet) is None:
             raise ErreurMonde("Corvus ne sait pas ce qu'il réclame.",
@@ -1026,10 +1070,10 @@ def _se_nommer(travail, auditeur, nom_dit, faits):
     issue = se_nommer(travail, auditeur, "joueur", nom_dit)
     dit = travail.joueur["nom"] if nom_dit == "joueur" else travail.objets[nom_dit]["nom"].split(",")[0]
     faits.append({
-        "connu": f"{nom} sait déjà qui tu es." if nom_dit == "joueur" else f"{nom} sait bien que tu n'es pas {dit}.",
-        "demasque": f"{nom} sait que tu n'es pas {dit} et ne te fait plus confiance.",
-        "doute": f"{nom} doute que tu sois {dit}.",
-        "crue": f"{nom} te croit sur parole : pour {lui}, c'est {dit} qui parle. Cela ne te vaut pas plus de "
+        "connu": f"{nom} sait déjà qui tu es." if nom_dit == "joueur" else f"{nom} sait bien que tu n'es pas « {dit} ».",
+        "demasque": f"{nom} sait que tu n'es pas « {dit} » et ne te fait plus confiance.",
+        "doute": f"{nom} doute que tu sois « {dit} ».",
+        "crue": f"{nom} te croit sur parole : pour {lui}, c'est « {dit} » qui parle. Cela ne te vaut pas plus de "
                 "confiance qu'à un inconnu.",
     }[issue])
 
@@ -1273,7 +1317,8 @@ def preparer_parole(monde, p, revision=None):
     from .voix import designation, identifie
     # Le MJ désigne une voix que Corvus ne sait à qui prêter comme le joueur : voix_<n>.
     attendu = designation(monde, personnage(forme, dest))
-    if p["personnage"] != attendu:
+    from .voix import reel
+    if reel(monde, p["personnage"]) != reel(monde, attendu):
         raise ErreurMonde("Tu t'adresses à tous ceux qui t'entendent." if forme["groupe"]
                           else "Tu ne t'adresses à personne en particulier." if not dest
                           else "Tu t'adresses à " + _nom_pour(monde, dest[0]) + ".",

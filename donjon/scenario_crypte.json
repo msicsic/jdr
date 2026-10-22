@@ -250,7 +250,8 @@
       "position_salle": "echoppe",
       "refuse_ventes_apres_vol": true,
       "type": "personnage",
-      "vigilance": 14
+      "vigilance": 14,
+      "connait_noms": []
     },
     "pied_de_biche": {
       "aliases": [
@@ -782,7 +783,10 @@
     "gorm": "Au début de l'exploration, Gorm tenait l'échoppe à l'ouest de l'antichambre. Il t'a demandé de retrouver l'anneau, mais n'a expliqué ni ce qu'il représente pour lui ni pourquoi il ne va pas le chercher lui-même. Au départ, aucune récompense n'avait été convenue.",
     "liberte_personnage": "Le joueur choisit les raisons personnelles de Corvus. Ne lui impose ni sentiments, ni amnésie, ni passé supplémentaire.",
     "objectif": "Retrouver l'anneau du veilleur dans la crypte.",
-    "version": 1
+    "version": 1,
+    "noms_connus": [
+      "marchand"
+    ]
   },
   "seed": 1985,
   "souvenirs_personnages": {

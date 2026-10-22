@@ -103,12 +103,14 @@ class HelerTests(unittest.TestCase):
         m.data["visitees"] = sorted({*m.data["visitees"], "couloir"})
         m.data["connus"] = sorted({*m.data["connus"], "hugues", "anselme"})
         connaitre(m, "joueur", "hugues")  # Placement d'auteur : il a déjà entendu Hugues parler.
+        from tests.support import presentes
+        presentes(m,'hugues')  # Le nom lui a également été présenté.
         m, texte = attendre(recharger(m))
         self.assertIn("Hugues appelle : « Anselme ? »", chronique(m))
         self.assertIn("Anselme répond : « Ici ! »", chronique(m))
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
         self.assertEqual(len(appels(m, "hugues")), 1)
-        self.assertIn("Tu entends, tout près : Hugues appelle : « Anselme ? »", texte)
+        self.assertIn("Tu entends, tout près, Hugues appeler : « Anselme ? »", texte)
         self.assertIn("Tu entends, à l'est, une voix qu'on appelle Anselme répondre : « Ici ! »", texte)
         self.assertEqual(m.data["voix_entendues"]["anselme"]["appelee"], "anselme")
         self.assertNotIn("anselme", m.data["voix_connues"])
@@ -230,7 +232,7 @@ class VoixInconnueTests(unittest.TestCase):
         reprise, _, entrees = jouer(reprise, "je lui dis : c'est Corvus", [
             parole("C'est Corvus.", ("nom", "joueur", "", "")), reponse_pnj("Gorm grogne.")])
         self.assertEqual(entrees[1]["faits"]["conversation_validee"]["faits"],
-                         ["Gorm, gardien du relais te croit sur parole : pour lui, c'est Corvus qui parle. Cela ne te "
+                         ["Gorm, gardien du relais te croit sur parole : pour lui, c'est « Corvus » qui parle. Cela ne te "
                           "vaut pas plus de confiance qu'à un inconnu."])
         gorm = lire(reprise, "marchand")
         self.assertEqual(gorm["voix_entendues"]["joueur"]["se_dit"], "joueur")
@@ -397,7 +399,7 @@ class SeNommerTests(unittest.TestCase):
         m.data["connus"] = sorted({*m.data["connus"], "brune"})
         reprise, _, entrees = jouer(recharger(m), "je dis à Gorm : c'est Brune", [
             parole("C'est Brune.", ("nom", "brune", "", "")), reponse_pnj("Gorm se raidit.")])
-        self.assertIn("Gorm, gardien du relais sait que tu n'es pas Brune et ne te fait plus confiance.",
+        self.assertIn("Gorm, gardien du relais sait que tu n'es pas « Brune » et ne te fait plus confiance.",
                       entrees[1]["faits"]["conversation_validee"]["faits"])
         self.assertTrue(lire(reprise, "marchand")["voix_entendues"]["joueur"]["mefiance"])
         self.assertFalse(fiabilite(reprise, "marchand", "joueur")["valeur"])

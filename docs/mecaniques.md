@@ -4,6 +4,16 @@ Ce document décrit les mécaniques jouables et leurs limites. Le contrat entre 
 monde est décrit dans [contrat-mj.md](contrat-mj.md) ; la connexion au modèle dans
 [connexion.md](connexion.md).
 
+### Reconnaître quelqu'un et apprendre son nom
+
+Voir quelqu'un te permet de le reconnaître de vue, sans connaître son nom. Le jeu le désigne
+par son apparence : « l'homme trapu », « la femme ronde ». Tu peux employer ces mots pour lui
+parler ou lui donner un objet. La carte, le terminal et la page affichent la même désignation.
+Demande-lui comment il s'appelle, ou écoute quelqu'un le nommer : si tu saisis les mots et peux
+les relier à lui, son nom reste appris après rechargement. Reconnaître sa voix ne suffit pas.
+Les PNJ suivent la même règle pour Corvus et les autres ; seuls les liens antérieurs déclarés
+par le scénario donnent un nom d'avance.
+
 ### Défi du Relais des crues et déplacement en cases
 
 Double-cliquer sur **`lancer-defi.cmd`** pour une nouvelle scène avec **Luna seul**.

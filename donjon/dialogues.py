@@ -46,7 +46,7 @@ def interlocuteurs(monde):
             continue
         cle = designation(monde, id)
         if cle != id:
-            resultat[cle] = {"nom": nom_pour_joueur(monde, id), "voix_inconnue": True, "entendue": _d_ou(monde, id),
+            resultat[cle] = {"nom": nom_pour_joueur(monde, id), "voix_inconnue": cle.startswith("voix_"), "personne_inconnue": cle.startswith("personne_"), "entendue": _d_ou(monde, id),
                              "genre": genre(monde, id)}
             continue
         resultat[id] = {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
@@ -103,8 +103,9 @@ def preparer_conversation(monde, p, revision=None):
         raise ErreurMonde("Conversation mal formée.",
                           "personnage, sujet, operation, mission : textes de 600 caractères au plus ; montant_demande : "
                           "entier de 0 à 1 000 000.")
-    acteur, op, mission_id = p["personnage"], p["operation"], p["mission"]
-    presents = sorted(interlocuteurs(monde))
+    from .voix import reel
+    acteur, op, mission_id = reel(monde, p["personnage"]), p["operation"], p["mission"]
+    presents = reels(monde)
     if acteur not in presents:
         raise ErreurMonde("Ce personnage n'est pas ici pour te répondre.",
                           f"{acteur} n'est pas là pour répondre : réponds en mode dialogue qu'il est trop loin ; "
@@ -182,6 +183,9 @@ def verifier_don(monde, objet_id, destinataire=""):
         raise ErreurMonde("Tu dois porter l'objet pour le donner.",
                           f"remettre vise un objet porté, parmi {', '.join(portes) or 'aucun'} (reçu « {objet_id} »).")
     presents = sorted(interlocuteurs(monde))
+    from .voix import designation
+    if destinataire in monde.objets and str(designation(monde, destinataire)).startswith("personne_") and designation(monde, destinataire) in presents:
+        return destinataire
     if not destinataire and len(presents) == 1:
         destinataire = presents[0]
     from .voix import reel

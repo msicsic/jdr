@@ -141,6 +141,11 @@ ARTICLES = ("le ", "la ", "les ", "l'", "un ", "une ", "mon ", "ma ", "mes ")
 
 def _nomme(monde, texte, personnage):
     """L'objet accessible, ou le personnage, que ``texte`` nomme exactement ; sinon None."""
+    if personnage:
+        from .noms import resoudre as personne
+        trouve = personne(monde, texte)
+        if trouve:
+            return trouve
     for article in ARTICLES:
         if texte.startswith(article):
             texte = texte[len(article):]
@@ -155,7 +160,7 @@ def _nomme(monde, texte, personnage):
         # connaît sans le voir ici se nomme aussi : le moteur dit qu'il n'est pas là.
         candidats = {d for d in interlocuteurs(monde) if d in monde.objets} | {
             i for i, o in monde.objets.items()
-            if o["type"] == "personnage" and (monde.designable(i) or _connu_du_joueur(monde, i))}
+            if o["type"] == "personnage" and _connu_du_joueur(monde, i)}
     else:
         candidats = {i for i, o in monde.objets.items() if o["type"] != "personnage" and monde.designable(i)}
     trouves = [i for i in candidats

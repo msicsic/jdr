@@ -1,7 +1,7 @@
 """Les voix : qui l'on reconnaît à l'oreille, ce qu'une voix inconnue prétend, ce qu'on en croit.
 
-Connaître de vue et connaître une voix sont deux choses. On sait qui l'on voit (aucun déguisement
-n'est modélisé). On connaît la voix de quelqu'un quand on l'a entendu parler en sachant qui
+Reconnaître un corps, connaître une voix et savoir un nom sont trois mémoires distinctes
+(``noms.py``) ; aucun déguisement n'est modélisé. On connaît la voix de quelqu'un quand on l'a entendu parler en sachant qui
 parlait : en le voyant parler (``ouie.entendre``, ``ouie._au_joueur``, les répliques que le MJ
 prête à un personnage que le joueur voit), ou parce que le scénario le déclare (gens qui se
 connaissent déjà : un savoir à son sujet, ``esprits.installer``). Voir quelqu'un sans l'entendre
@@ -15,10 +15,9 @@ se méfie d'elles (``mefiance`` : elles ont menti, ou avoué une faute), et le n
 leur a donné en s'adressant à elles (``appelee``, ``nommer`` : « une voix qu'on appelle Gorm », un
 ouï-dire) : le joueur comme les PNJ, par la même règle (``lier``).
 
-Savoir le nom de quelqu'un (``connait_nom``) : un PNJ sait celui de qui le scénario lui fait connaître,
-de qui il a une croyance ou connaît la voix ; il retient (``noms`` de son esprit) le nom de qui il a
-reconnu en l'entendant se nommer, ou en entendant une autre voix l'appeler par ce nom (``apprendre_nom``).
-Le joueur, qui arrive en étranger, ne l'apprend que par la parole.
+Savoir le nom de quelqu'un (``connait_nom``) vient d'un lien déclaré par le scénario ou des
+mots saisis et reliés à cette personne. Vue, croyance perceptive et voix reconnue seules
+ne donnent aucun nom. Le joueur et les PNJ retiennent ces présentations (``apprendre_nom``).
 
 Toute reconnaissance d'une voix passe par ``reconnaitre`` : qui l'auditeur croit entendre, et avec
 quelle certitude. L'imitation d'une voix, ou la méfiance envers une voix connue quand on sait
@@ -73,33 +72,23 @@ def connait(monde, qui, autre):
 
 
 def connait_nom(monde, qui, autre):
-    """``qui`` (un PNJ) sait-il le nom d'``autre`` ? Un personnage dont il a une croyance, dont il
-    connaît la voix, dont il a retenu le nom (``noms`` : il l'a reconnu en l'entendant se nommer, ou
-    appeler ainsi), ou qu'une voix s'est dite ou qu'on a appelée ainsi : le scénario, ce qu'il a vu,
-    entendu ou s'est laissé dire. Le joueur arrive en étranger : on ne sait son nom que s'il l'a donné
-    (``se_nommer``), qu'on l'a entendu appeler ainsi (``nommer``) ou qu'on a entendu parler de lui (un
-    ouï-dire : ``dit:…``)."""
-    if autre == qui:
+    """Un nom déclaré ou entendu, distinct de la voix et des croyances de perception."""
+    from .noms import connait
+    return connait(monde, qui, autre)
+
+
+def connait_appellation(monde, qui, autre):
+    """Le nom a été entendu, éventuellement comme prétention d'une autre voix, sans identifier un corps."""
+    if connait_nom(monde, qui, autre):
         return True
-    e = lire(monde, qui)
-    if autre in e["noms"]:
-        return True
-    dites = {x["se_dit"] or x.get("appelee") for x in e["voix_entendues"].values() if not x["mefiance"]}
-    if autre == "joueur":
-        return "joueur" in dites or any(
-            c["source"] == "se_dit" or c["source"].startswith("dit:") for c in e["croyances"].get("joueur", {}).values())
-    return autre in e["croyances"] or autre in e["voix"] or autre in dites
+    dites = {x["se_dit"] or x.get("appelee") for x in entendues(monde, qui).values() if not x["mefiance"]}
+    return autre in dites
 
 
 def apprendre_nom(monde, qui, autre):
-    """``qui`` (un PNJ) retient le nom d'``autre``, qu'il sait être lui : il l'a vu ou reconnu à la
-    voix pendant qu'il se nommait, ou qu'une autre voix l'appelait ainsi. Le joueur, lui, connaît le
-    nom de qui il voit (``paroles.identites``). Rien s'il le sait déjà d'ailleurs (``connait_nom`` : le
-    scénario, une croyance, sa voix). Renvoie vrai s'il l'apprend."""
-    if qui == "joueur" or connait_nom(monde, qui, autre):
-        return False
-    esprit(monde, qui)["noms"].append(autre)
-    return True
+    """Un nom entendu et relié : mémoire commune au joueur et aux PNJ."""
+    from .noms import apprendre
+    return apprendre(monde, qui, autre)
 
 
 def reconnaitre(monde, auditeur, locuteur):
@@ -131,7 +120,9 @@ def _verrait_en_se_tournant(monde, x, y):
     porteur = monde.joueur if x == "joueur" else monde.objets[x]
     orientation = porteur.pop("orientation", None)
     try:
-        return voit(monde, x, y)
+        from .spatial import sans_memoire
+        with sans_memoire(monde):
+            return voit(monde, x, y)
     finally:
         if orientation is not None:
             porteur["orientation"] = orientation
@@ -239,9 +230,12 @@ def nom_dit(monde, x, mots_):
 def parole_saisie(monde, auditeur, auteur, instant_, a, texte, cites, vu=False, dits=None):
     """Ce qu'``auditeur`` retient, pour relier les voix d'un échange (``lier``), d'une parole nette
     d'``auteur`` adressée à ``a`` : qui parlait, à qui, et lesquels d'entre eux ses mots nomment."""
-    dits = mots(monde, auditeur, auteur, texte, cites, vu, dits)
+    # Les étiquettes narratives (« Aubin dit à Gorm… ») ne sont pas des noms prononcés.
+    nominaux = dits if dits is not None else " ".join(CITE.findall(texte))
+    from .noms import entendre as entendre_noms
+    entendre_noms(monde, auditeur, auteur, nominaux, a)
     return {"instant": instant_, "auteur": auteur, "a": list(a),
-            "noms": [x for x in dict.fromkeys([*a, auteur]) if nom_dit(monde, x, dits)]}
+            "noms": [x for x in dict.fromkeys([*a, auteur]) if nom_dit(monde, x, nominaux)]}
 
 
 def lier(monde, auditeur, parole, recentes):
@@ -285,6 +279,8 @@ def _clarte(monde, id):
 
 def _vu_ailleurs(monde, auditeur, nom, salle):
     """Il a vu ``nom`` ailleurs il y a peu : « c'est lui, ici » lui semble douteux."""
+    if not connait_nom(monde,auditeur,nom):
+        return False
     c = lire(monde, auditeur)["croyances"].get(nom, {}).get("lieu")
     return bool(c and c["source"] in ("vu", "essai") and c["valeur"] not in (None, salle)
                 and monde.data["minutes"] - c["minute"] <= VU_AILLEURS)
@@ -327,6 +323,12 @@ def connaitre(monde, qui, autre):
     connues.append(autre)
     voix = entendues(monde, qui, ecrire=True)
     entree = voix.pop(autre, None)
+    if entree and entree['se_dit'] not in (None,autre) and not entree['mefiance'] \
+            and not connait_nom(monde,qui,autre) and not connait_nom(monde,qui,entree['se_dit']):
+        voix[autre] = entree  # Reconnaître le corps ne réfute pas un nom qu'on n'a pas encore relié.
+        entree = None
+    if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
+        apprendre_nom(monde, qui, autre)
     if qui == "joueur":
         return  # Le joueur juge lui-même : ce qu'il entend s'affiche (``nom_pour_joueur``).
     croyances = esprit(monde, qui)["croyances"]
@@ -340,7 +342,7 @@ def connaitre(monde, qui, autre):
     if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
         apprendre_nom(monde, qui, autre)  # C'était bien lui : son nom ne s'oublie pas avec la voix inconnue.
     for signature, x in voix.items():
-        if x["se_dit"] == autre and not x["mefiance"]:
+        if connait_nom(monde,qui,autre) and x["se_dit"] == autre and not x["mefiance"]:
             x["mefiance"] = True
             memoriser(monde, qui, {"type": "imposture", "se_disait": autre})
             c = croyances.get(autre, {}).get("lieu")
@@ -364,6 +366,11 @@ def se_nommer(monde, auditeur, locuteur, nom):
     from .ouie import _place
     if auditeur == "joueur":
         if identifie(monde, "joueur", locuteur):
+            if nom == locuteur:
+                apprendre_nom(monde, "joueur", locuteur)
+            elif not connait_nom(monde,auditeur,locuteur) and not connait_nom(monde,auditeur,nom):
+                retenir(monde,auditeur,locuteur)['se_dit']=nom
+                return 'crue'
             return "connu" if nom == locuteur else "demasque"
         retenir(monde, "joueur", locuteur)["se_dit"] = nom
         return "crue"
@@ -371,6 +378,11 @@ def se_nommer(monde, auditeur, locuteur, nom):
         if nom == locuteur:
             apprendre_nom(monde, auditeur, locuteur)  # Il sait que c'est lui : il retient son nom.
             return "connu"
+        if not connait_nom(monde,auditeur,locuteur) and not connait_nom(monde,auditeur,nom) and nom != auditeur:
+            retenir(monde,auditeur,locuteur)['se_dit']=nom
+            salle,case=_place(monde,locuteur)
+            _situer(monde,auditeur,nom,salle,list(case) if case is not None else None)
+            return 'crue'
         se_mefier(monde, auditeur, locuteur)
         memoriser(monde, auditeur, {"type": "imposture", "locuteur": locuteur, "se_disait": nom})
         return "demasque"
@@ -425,10 +437,21 @@ def designation(monde, id):
     """Comment le joueur, et le MJ qui lui parle, désignent ``id`` : son identifiant s'il sait qui
     c'est (il le voit, ou reconnaît sa voix) ; sinon « voix_<n> », la voix inconnue qu'il a
     entendue."""
-    if id == "joueur" or id not in monde.objets or identifie(monde, "joueur", id):
+    if id == "joueur" or id not in monde.objets:
+        return id
+    from .noms import connait as nom_appris
+    if not nom_appris(monde, "joueur", id) and (monde.visible(id) or id in monde.data.get("personnages_vus", [])):
+        from .noms import designation as personne
+        return personne(monde, id)
+    if not nom_appris(monde, 'joueur', id) and connait(monde, 'joueur', id):
+        from .noms import designation as personne
+        return f"voix_reconnue_{personne(monde,id).split('_')[-1]}"
+    if identifie(monde, "joueur", id):
         return id
     entree = monde.data.get("voix_entendues", {}).get(id)
-    return f"{PREFIXE}{entree['n']}" if entree else id
+    if entree:
+        return f"{PREFIXE}{entree['n']}"
+    return id
 
 
 def porteur_du_nom(monde, nom, presents):
@@ -444,6 +467,17 @@ def porteur_du_nom(monde, nom, presents):
 def reel(monde, designation_):
     """Le personnage que désigne ``designation_`` (``designation``) ; None pour une voix que le
     joueur n'a pas entendue."""
+    if isinstance(designation_, str) and designation_.startswith('voix_reconnue_'):
+        from .noms import designation as personne
+        return next((id for id,o in monde.objets.items() if o['type']=='personnage'
+                     and designation_=='voix_reconnue_'+personne(monde,id).split('_')[-1]),None)
+    if isinstance(designation_, str) and designation_.startswith("element_"):
+        suffixe = designation_[len("element_"):]
+        return next((id for id,n in monde.data.get("references_personnes", {}).items()
+                     if str(n) == suffixe and id in monde.objets), None)
+    if isinstance(designation_, str) and designation_.startswith("personne_"):
+        from .noms import designation as personne
+        return next((id for id,o in monde.objets.items() if o["type"] == "personnage" and personne(monde, id) == designation_), None)
     if not isinstance(designation_, str) or not designation_.startswith(PREFIXE):
         return designation_
     return next((s for s, e in monde.data.get("voix_entendues", {}).items()
@@ -455,7 +489,15 @@ def nom_pour_joueur(monde, id, court=True):
     inconnue », « une voix qui se dit Brune », et s'il connaît la vraie voix de Brune, « une voix qui
     se dit Brune (ce n'est pas la voix de Brune) » ; nommée par une autre voix, « une voix qu'on
     appelle Gorm »."""
+    if str(designation(monde,id)).startswith('voix_reconnue_'):
+        return 'une voix reconnue'
+    if str(designation(monde, id)).startswith("personne_"):
+        from .noms import nom
+        return nom(monde, id)
     if designation(monde, id) == id:
+        from .noms import connait as nom_appris
+        if id in monde.objets and monde.objets[id]['type']=='personnage' and not nom_appris(monde,'joueur',id):
+            return 'une personne inconnue'
         nom = monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"]
         return nom.split(",")[0] if court else nom
     entree = monde.data.get("voix_entendues", {}).get(id) or {}
@@ -478,7 +520,7 @@ def genre(monde, id):
 def personne_pour_joueur(monde, id, court=False):
     """(nom en tête de phrase, pronom, accord) pour dire au joueur ce que fait ``id``."""
     nom = nom_pour_joueur(monde, id, court=court)
-    if designation(monde, id) != id:
+    if str(designation(monde, id)).startswith(PREFIXE):
         return nom[0].upper() + nom[1:], "elle", "e"
     f = monde.objets[id].get("genre") == "f"
     return nom, "elle" if f else "il", "e" if f else ""

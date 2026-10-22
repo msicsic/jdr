@@ -359,8 +359,12 @@ class MJ:
         self.fournisseur.fermer()
 
     def proposer(self, monde, intention):
-        return self._appeler(INSTRUCTIONS, {"monde": monde.contexte(), "intention": intention},
-                             intention, "proposer_action", SCHEMA)
+        from .noms import verifier_references, references
+        contexte=monde.contexte()
+        reponse=self._appeler(INSTRUCTIONS, {"monde": contexte, "intention": intention},
+                              intention, "proposer_action", SCHEMA)
+        verifier_references(monde,reponse,contexte)
+        return references(monde,reponse)
 
     def _auditer_action(self, intention, plan, revision, monde=None):
         from .couverture_action import (SCHEMA as SCHEMA_COUVERTURE,
@@ -753,12 +757,13 @@ class MJ:
         faits["attestations"] = attestations_narratives(monde, contexte)
         objets = contexte["objets_perceptibles"]
         from .pnj import peuvent_se_parler
+        from .voix import reel
         for objet in objets:
             # Chaque champ dit ce qu'il mesure : la portée de la main n'est pas celle de la voix.
             if "a_portee" in objet:
                 objet["a_portee_de_main"] = objet.pop("a_portee")
-            if objet.get("type") == "personnage" and objet.get("id") in monde.objets:
-                objet["a_portee_de_voix"] = peuvent_se_parler(monde, "joueur", objet["id"])
+            if objet.get("type") == "personnage" and reel(monde, objet.get("id")) in monde.objets:
+                objet["a_portee_de_voix"] = peuvent_se_parler(monde, "joueur", reel(monde, objet["id"]))
         if contexte["mode_cases"]:
             # Le MJ reçoit une seule localisation calculée, sans coordonnées ni ancien
             # identifiant de lieu répété dans chaque objet. Le moteur garde ces données.
@@ -770,7 +775,7 @@ class MJ:
             # Les sorties qu'il connaît (vues, ou dont il a foulé le seuil) : d'autres peuvent lui échapper.
             faits["salle"]["sorties_connues"] = faits["salle"].pop("sorties")
             for objet in objets:
-                parent = monde.objets.get(objet.get("lieu"))
+                parent = monde.objets.get(reel(monde, objet.get("lieu")))
                 if parent:
                     objet["rattache_a"] = {"id": parent["id"], "nom": parent["nom"]}
                 for cle in ("lieu", "position", "position_salle", "case_percue"):
@@ -824,7 +829,19 @@ class MJ:
         if paroles:
             # Chaque bloc que les règles nomment est un fait citable de premier niveau.
             faits.update(paroles)
+        if enrichir:
+            # Les noms privés ne servent pas à déduire une identité ou une cible d'action.
+            for esprit in faits.get('esprits_interlocuteurs',{}).values():
+                esprit.pop('noms_pour_repliques',None)
         faits.update({"objet:" + o["id"]: o for o in objets})
+        from .noms import public
+        faits = public(monde, faits)
+        # Une identité privée sert à la réplique finale, jamais au choix d'une cible mécanique.
+        # Elle est ajoutée après projection et ne devient pas une attestation du récit.
+        for reference, esprit in (faits.get("esprits_interlocuteurs", {}).items() if not enrichir else ()):
+            locuteur = reel(monde, reference)
+            if locuteur in monde.objets:
+                esprit["nom_du_locuteur"] = monde.objets[locuteur]["nom"].split(",")[0]
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
@@ -928,6 +945,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 trace["usage"] = copy.deepcopy(self.derniere_utilisation)
                 self.observateur(trace)
         # L'audit sémantique de la prose est effectué par _appeler avant ce contrôle de forme.
+        if isinstance(reponse.get("proposition"), dict) and reponse.get("mode") != "parole_joueur":
+            from .noms import references
+            reponse["proposition"] = references(monde, reponse["proposition"])
         champs_reponse = {"mode", "texte", "faits", "proposition"}
         if isinstance(reponse, dict) and isinstance(reponse.get("faits"), list):
             # Une citation de fait inconnue ne prouve rien : elle est écartée, comme une source
@@ -1011,6 +1031,12 @@ direction), plus lents, ils ne s'entendent que de tout près.
             audits = {}
             base, paroles = fondement_narratif(entree), fondement_paroles(entree)
             monde = self._monde_controle
+            if monde is not None:
+                from .noms import verifier_references
+                try:
+                    verifier_references(monde,reponse.get('proposition'),entree.get('faits',{}))
+                except ErreurMonde as exc:
+                    obstacles.append(depuis_refus(exc,'proposition'))
             # La saisie s'adresse-t-elle à quelqu'un (« Ilse, … », « à tous ») ? Sans parole que le moteur
             # a fait entendre, personne ne lui répond.
             forme = analyser_parole(monde, intention) if monde is not None else {}
@@ -1021,7 +1047,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                      if self._interpretation and monde is not None else "")
             if self._sans_dialogue and reponse.get("mode") == "dialogue":
                 refus = "Un dialogue ne répond pas à cette question : le refus du moteur y répond."
-            if refus:
+            if refus and not obstacles:
                 # Le moteur refusera cette réponse quelle qu'en soit la prose : son refus, qui dit ce
                 # qu'il accepterait, passe avant toute contre-revue sémantique, qui ne serait pas lue.
                 if self.observateur:
@@ -1072,12 +1098,16 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                "fondement_paroles": paroles}
                 obstacles.extend(rapport["obstacles"])
                 if monde is not None:
+                    obstacles.extend(mentions_narratives(monde,texte,base,paroles,partie=nom,
+                                                         paroles_validees=rapport['paroles']))
                     # Une voix inconnue ne se nomme ni ne nomme personne sans le moteur (déterministe).
                     obstacles.extend(voix_inconnues(monde, rapport["paroles"], faits, texte, nom))
                 if nom == "texte" and rapport["obstacles"]:
-                    def fautif(morceau, faits=faits):
+                    def fautif(morceau, faits=faits, validees=rapport['paroles']):
                         return bool(voix_auteur(morceau)
-                                    or (monde is not None and mentions_narratives(monde, morceau, base, paroles))
+                                    or (monde is not None and (mentions_narratives(
+                                        monde,morceau,base,paroles,paroles_validees=validees)
+                                        or voix_inconnues(monde,validees,faits,morceau)))
                                     or paroles_sans_moteur(morceau, faits, adresse))
                     garde = rescape_narratif(texte, rapport, faits, fautif)
                     if garde:

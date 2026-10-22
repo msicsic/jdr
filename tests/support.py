@@ -90,3 +90,14 @@ def regarder(monde, qui, vers):
         cible = tuple(vers)
     o["orientation"] = orientation_vers(tuple(o["position"]), cible) or o.get("orientation", "sud")
     return monde
+
+
+def presentes(monde, *ids):
+    """Placement d'auteur : ces personnes ont déjà été présentées au joueur, noms entendus.
+
+    Les tests d'identités (test_noms) partent sans cette préparation.
+    """
+    from donjon.noms import apprendre
+    for id in ids or tuple(i for i,o in monde.objets.items() if o["type"] == "personnage"):
+        apprendre(monde, "joueur", id)
+    return monde
