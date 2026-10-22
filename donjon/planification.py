@@ -15,6 +15,7 @@ l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même r
 import copy
 import heapq
 import json
+import math
 from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
@@ -39,7 +40,7 @@ GARDE = 2              # par minute loin de chaque lieu où il garde ses biens, 
 RESTER = 30            # minutes qu'il compte passer là où le mène un but qui se tient en restant
 TACHE = 5              # minutes de travail d'une tâche payée, en plus du chemin (``_engager``)
 SALAIRE = 3            # minutes de peine qu'il paie une pièce, à qui fait une tâche pour lui
-SURENCHERE = 2         # refusé pour un prix trop bas, il offre au moins tant de fois ce prix (``_engager``)
+PALIER = 1.5           # refusé pour un prix trop bas, il offre ce prix et moitié en plus, une hausse à la fois (``hausse``)
 HABILE = 0.5           # chance de réussir à partir de laquelle il attend un crochetage discret (``bruit_crochetage``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
@@ -306,6 +307,15 @@ class Vue:
         """Un refus qui tient de faire pour lui une tâche sur ``o`` (``echanges.engager``) ; « cher »
         ne tient que pour son prix."""
         return self.retenu(autre, ("engager",), o)
+
+    def offre_refusee(self, o):
+        """Une offre de tâche sur ``o`` refusée à cette minute, pour quelque cause que ce soit : il ne
+        fait qu'une offre de cette tâche par délibération à la minute, pas une rafale d'un refus à
+        l'autre, ni à un autre (``_engager``)."""
+        minute = self.monde.data["minutes"]
+        return self._memo((o, "offre_refusee"), lambda: any(
+            s["operation"] == "engager" and s.get("objet") == o and s["minute"] == minute
+            for s, _ in self.refus_tenus()))
 
     def refus_taches(self, o):
         """Combien ont refusé, depuis ``REDEMANDE`` minutes, une tâche sur ``o`` qu'il leur offrait :
@@ -863,13 +873,25 @@ def prix_tache(peine):
     return max(1, -(-peine // SALAIRE))
 
 
+def hausse(prix):
+    """L'offre qui suit un refus « cher » à ce prix : un palier plus haut (``PALIER``, au moins une
+    pièce de plus)."""
+    return max(prix + 1, math.ceil(prix * PALIER))
+
+
 def _engager(v, e, condition):
     """Payer quelqu'un, là où il se tient avec lui, pour qu'il fasse en sorte que ``condition`` soit
     vraie (``echanges.engager``), sur ce qu'il pourrait faire lui-même sans faute : il propose ses
     pièces à qui il ne se méfie pas et qui ne vient pas de refuser ; l'autre accepte si ces pièces valent pour lui la peine. Comme une demande, ce n'est pas
     acquis (``PRET``), d'autant moins que d'autres viennent de refuser (``Vue.refus_taches``) ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
     que l'autre ait fait la tâche (sa peine). La tâche faite, son but est atteint ; il ne la fait pas
-    à sa place tant qu'elle court (``deliberation.tache_payee``)."""
+    à sa place tant qu'elle court (``deliberation.tache_payee``).
+
+    Il n'offre que ce qui vaut la peine pour lui : ce que lui coûtent ces pièces (``Vue.depense``,
+    ``caractere.valeur_pieces``) ne dépasse pas la peine que la tâche lui épargne. Refusé pour un prix
+    trop bas, il hausse d'un palier (``hausse``) tant que l'offre vaut la peine ; au-delà, il renonce à
+    ce marché. Une offre à la fois : refusée, la suivante pour la même tâche, haussée ou à un autre,
+    attend la délibération de la minute suivante (``Vue.offre_refusee``)."""
     o = condition["objet"]
     # On ne paie quelqu'un que pour ce qu'on pourrait faire soi-même sans faute : son bien, ce qui
     # n'est à personne, ce qu'on vous a confié ; pas le bien d'autrui qu'on convoite.
@@ -879,19 +901,19 @@ def _engager(v, e, condition):
     if peine is None:
         return
     prix = prix_tache(peine)
-    if v.richesse - (e.fait("depense") or 0) < prix:
+    if v.richesse - (e.fait("depense") or 0) < prix or v.depense(prix) > peine or v.offre_refusee(o):
         return
     for autre in v.personnes():
         if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False:
             continue
-        # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre plus,
-        # s'il le peut (``SURENCHERE``).
+        # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre un
+        # palier plus haut, à la délibération suivante, s'il le peut et tant que cela vaut la peine.
         offre, refus = prix, v.refuse_tache(autre, o)
         if refus:
             if refus["raison"] != "cher":
                 continue
-            offre = prix if prix > refus["prix"] else SURENCHERE * refus["prix"]
-            if v.richesse - (e.fait("depense") or 0) < offre:
+            offre = prix if prix > refus["prix"] else hausse(refus["prix"])
+            if v.richesse - (e.fait("depense") or 0) < offre or v.depense(offre) > peine:
                 continue
         yield (0, 1 + DEMANDE * (1 + v.refus_taches(o)) / PRET + v.depense(offre) + peine,
                [_etape("engager", autre, contenu={"condition": dict(condition), "prix": offre})],
@@ -1013,7 +1035,8 @@ def _entrees(v, vises, profondeur, noeuds):
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
          for s in esprit_["memoire"] if s["type"] in ("promis", "nourri")],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
-        [[s, tenu, minute - s["minute"] < REDEMANDE] for s, tenu in v.refus_tenus()],
+        # Le refus de cette minute même retient l'offre suivante (``Vue.offre_refusee``).
+        [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
         esprit_["visites"],
         # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
         [[k, {a: w for a, w in o.items() if a not in CHANGEANTS}, "allume" in o,

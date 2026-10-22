@@ -13,7 +13,7 @@ from donjon.biens import bourse
 from donjon.deliberation import REDEMANDE, refus_retenu, retenir_refus, tient
 from donjon.deplacement_objet import deplacer
 from donjon.esprits import croire, lire, percevoir_tous
-from donjon.planification import Vue, s_enquerir
+from donjon.planification import Vue, _engager, depart, s_enquerir
 from tests.support import calme, regarder, sans_le_sou
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
 
@@ -138,31 +138,60 @@ class PartImpossibleTests(unittest.TestCase):
         self.assertIsNone(s_enquerir(m, "ilse", "faim"))
 
 
-class TacheCherTests(unittest.TestCase):
-    """Trop peu payé, un refus ne tient que pour ce prix : il offre plus, s'il le peut."""
+def offres_du_plan(bourse, refus=None, meme_minute=False, a="anselme"):
+    """Ce que le planificateur de Mireille offrirait (``planification._engager``) pour que le fourneau
+    soit rallumé, face à face avec Anselme en cuisine (Tilo y est aussi), avec ``bourse`` pièces ; un
+    refus « cher » d'Anselme à ``refus`` pièces, retenu à la minute d'avant (ou à celle-ci)."""
+    m = fourneau_mort("anselme", bois_anselme=5)
+    m.data["finances_pnj"]["mireille"] = bourse
+    if refus:
+        retenir_refus(m, "mireille", a, "engager", "cher", objet="fourneau", prix=refus, tache="allume")
+        if not meme_minute:
+            m.data["minutes"] += 1
+    m = recharger(m)
+    v = Vue(m, "mireille")
+    return v, [(x[2][0]["cible"], x[2][0]["contenu"]["prix"])
+               for x in _engager(v, depart(m, "mireille", v), {"objet": "fourneau", "allume": True})]
 
-    def test_refuse_a_deux_pieces_anselme_accepte_a_quatre(self):
+
+class TacheCherTests(unittest.TestCase):
+    """Trop peu payé, un refus ne tient que pour ce prix : il hausse d'un palier (+50 %), tant que ce que
+    lui coûtent ces pièces ne passe pas la peine que la tâche lui épargne (ici 5 minutes : le fourneau
+    est dans la cuisine), puis il renonce ; une offre de la tâche par délibération à la minute."""
+
+    def test_hausse_d_un_palier_tant_que_cela_vaut_la_peine(self):
+        # Avec 30 pièces : 2, puis 3, puis 5 ; 8 lui coûterait plus que la peine : il renonce à Anselme.
+        self.assertEqual(offres_du_plan(30)[1], [("anselme", 2), ("tilo", 2)])
+        self.assertEqual(offres_du_plan(30, 2)[1], [("anselme", 3), ("tilo", 2)])
+        self.assertEqual(offres_du_plan(30, 3)[1], [("anselme", 5), ("tilo", 2)])
+        v, offres_ = offres_du_plan(30, 5)
+        self.assertGreater(v.depense(8), 5)
+        self.assertEqual(offres_, [("tilo", 2)])
+
+    def test_avec_moins_de_pieces_elle_renonce_plus_tot(self):
+        # Avec 6 pièces, trois lui coûtent déjà plus que la peine : refusée à deux, plus d'offre à
+        # Anselme ; avec 3, deux pièces sont déjà trop : aucune offre, à personne.
+        v, offres_ = offres_du_plan(6, 2)
+        self.assertLessEqual(v.depense(2), 5)
+        self.assertGreater(v.depense(3), 5)
+        self.assertEqual(offres_, [("tilo", 2)])
+        v, offres_ = offres_du_plan(3)
+        self.assertGreater(v.depense(2), 5)
+        self.assertEqual(offres_, [])
+
+    def test_une_offre_de_la_tache_par_minute(self):
+        # Refusée à cette minute même, elle ne hausse pas aussitôt, ni ne se tourne vers Tilo : la suite
+        # attend la délibération de la minute suivante.
+        self.assertEqual(offres_du_plan(30, 2, meme_minute=True)[1], [])
+
+    def test_refusee_a_deux_elle_ne_repropose_jamais_deux(self):
+        # Cas de même nature dans la vie de l'auberge : chaque offre à Anselme passe la précédente.
         m = fourneau_mort("anselme", bois_anselme=5)
         m.data["finances_pnj"]["mireille"] = 30
-        m, textes = vivre_long(recharger(m), 15)
-        self.assertEqual(offres(textes, "Mireille", "Anselme"), [
-            "Mireille offre 2 pièces à Anselme pour qu'il fasse en sorte que le fourneau soit allumé (cher).",
-            "Mireille offre 4 pièces à Anselme pour qu'il fasse en sorte que le fourneau soit allumé (accepte)."])
-        self.assertEqual((bourse(m, "mireille"), bourse(m, "anselme")), (26, 34))
-        self.assertIsNone(refus_retenu(m, "mireille", "anselme", ("engager",), "fourneau"))
-        self.assertTrue(m.objets["fourneau"]["allume"])
-
-    def test_jamais_au_prix_refuse_ni_au_dela_de_ses_moyens(self):
-        # Le même marché, Mireille n'ayant que 3 pièces : refusée à deux, elle ne repropose jamais deux,
-        # ni ce qu'elle n'a pas ; plus tard, ailleurs, la peine estimée vaut trois pièces : c'est plus.
-        m = fourneau_mort("anselme", bois_anselme=5)
-        m.data["finances_pnj"]["mireille"] = 3
-        m, textes = vivre_long(recharger(m), REDEMANDE + 10)
+        m, textes = vivre_long(recharger(m), 60)
         prix = [int(t.split(" offre ")[1].split(" ")[0]) for t in offres(textes, "Mireille", "Anselme")]
-        self.assertEqual(prix[0], 2)
-        self.assertTrue(offres(textes, "Mireille", "Anselme")[0].endswith("(cher)."))
-        self.assertTrue(all(2 < p <= 3 for p in prix[1:]), prix)
-        self.assertNotIn("4 pièces", " ".join(offres(textes, "Mireille", "Anselme")))
+        self.assertTrue(prix and offres(textes, "Mireille", "Anselme")[0].endswith("(cher)."), prix)
+        self.assertEqual(prix, sorted(set(prix)))
 
 
 class MefianceTests(unittest.TestCase):
