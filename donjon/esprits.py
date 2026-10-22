@@ -69,7 +69,10 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "en_vue": lambda: None,
           # la dernière réponse refusée de chaque demande, et ce qu'il croyait de sa cause
           # (``deliberation.retenir_refus``)
-          "refus": list}
+          "refus": list,
+          # l'état qu'il vient de donner de sa main à une chose : {objet: {attribut: [valeur, minute]}},
+          # depuis moins de ``deliberation.DEFAIT`` minutes (``deliberation.changer_etat``)
+          "donne": dict}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -227,6 +230,11 @@ def verifier(monde):
             and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
             for s in e.get("refus", [])
         ), "Refus retenus de PNJ invalides"
+        from .deliberation import ETATS_DONNES
+        assert isinstance(e["donne"], dict) and all(
+            isinstance(o, str) and isinstance(a, dict) and all(
+                x in ETATS_DONNES and isinstance(v, list) and len(v) == 2 and type(v[1]) is int for x, v in a.items())
+            for o, a in e["donne"].items()), "États donnés de PNJ invalides"
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"

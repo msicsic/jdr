@@ -301,6 +301,12 @@ class Vue:
         refus = self.retenu(autre, ("demander", "acheter"), o)
         return refus if refus and refus["raison"] != "pauvre" else None
 
+    def contrarie(self, o):
+        """Quelqu'un s'oppose à lui sur cette chose et l'opposition tient (``deliberation.changer_etat``) :
+        il n'y touche pas."""
+        return self._memo((o, "contrarie"), lambda: any(
+            s["operation"] == "defaire" and s.get("objet") == o and tenu for s, tenu in self.refus_tenus()))
+
     def refuse_tache(self, autre, o):
         """Un refus qui tient de faire pour lui une tâche sur ``o`` (``echanges.engager``) ; « cher »
         ne tient que pour son prix."""
@@ -671,6 +677,8 @@ def gestes(v, e, vises=None, but=None):
                 if v.besoin[o]:
                     yield from _parts(v, e, o, v.lieu(e, o), vises, but)
                 continue
+        if v.contrarie(o):
+            continue   # On s'oppose à lui sur cette chose : il n'y touche pas tant que cela tient.
         superflu = (assez and ("allume" in x or "allumage" in x.get("usages", [])) and not x.get("foyer")
                     and o not in v_prendre and o not in v_entretenir)
         # ``Vue.lieu`` et ``Vue.a_portee`` : dans sa main, dans sa salle, ou dans un contenant ouvert

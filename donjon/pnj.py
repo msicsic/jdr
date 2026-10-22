@@ -770,7 +770,7 @@ def _assez_de_lumiere(monde, id, etape):
 def _executer(monde, id, etape, lignes, gestes):
     """Accomplit une étape ; renvoie True si elle est terminée, False si elle est manquée, None
     pour un geste qui dure et se poursuit (``DURABLES``)."""
-    from .deliberation import SATIETE, illicite
+    from .deliberation import SATIETE, changer_etat, illicite
     from .deplacement_objet import deplacer
     o = monde.objets[id]
     op, cible, outil = etape["operation"], etape["cible"], etape["outil"]
@@ -823,15 +823,18 @@ def _executer(monde, id, etape, lignes, gestes):
         if c.get("verrouillee"):
             return _rate(monde, id, cible, "verrouillee", True)
         c["ouverte"] = True
+        changer_etat(monde, id, cible, "ouverte", False)
         _raconter(monde, id, "ouvre", c, lignes)
         _ouvert_par_soi(monde, id, cible)
     elif op == "fermer":
-        c["ouverte"] = False
+        avant, c["ouverte"] = c.get("ouverte"), False
+        changer_etat(monde, id, cible, "ouverte", avant)
         _raconter(monde, id, "ferme", c, lignes)
     elif op in ("deverrouiller", "verrouiller"):
         if cible not in monde.objets[outil].get("ouvre", []) or c.get("ouverte"):
             return False
-        c["verrouillee"] = op == "verrouiller"
+        avant, c["verrouillee"] = c.get("verrouillee"), op == "verrouiller"
+        changer_etat(monde, id, cible, "verrouillee", avant)
         croire(monde, id, cible, "verrouillee", c["verrouillee"], "essai")
         _raconter(monde, id, "déverrouille" if op == "deverrouiller" else "verrouille", c, lignes)
         if op == "deverrouiller":
@@ -845,6 +848,7 @@ def _executer(monde, id, etape, lignes, gestes):
                 gestes.append((id, "forcer", cible, bruit))
             return False
         c["verrouillee"] = False
+        changer_etat(monde, id, cible, "verrouillee", True)
         croire(monde, id, cible, "verrouillee", False, "essai")
         _raconter(monde, id, "crochète la serrure de", c, lignes)
     elif op == "frapper":
@@ -895,6 +899,7 @@ def _executer(monde, id, etape, lignes, gestes):
         if c.get("combustible", 0) <= 0:
             return _rate(monde, id, cible, "etat", {"allume": False, "faible": False, "charge": False})
         c["allume"] = True
+        changer_etat(monde, id, cible, "allume", False)
         _raconter(monde, id, "allume", c, lignes)
         # Une flamme portable allumée ou employée pour ce geste : il saura la ménager ensuite.
         for flamme in (cible, outil):
@@ -904,6 +909,7 @@ def _executer(monde, id, etape, lignes, gestes):
         if not c.get("allume"):
             return True
         c["allume"] = False
+        changer_etat(monde, id, cible, "allume", True)
         _raconter(monde, id, "éteint", c, lignes)
     # Ce qu'il vient de faire de ses mains, il le sait, même dans le noir.
     from .esprits import constater
