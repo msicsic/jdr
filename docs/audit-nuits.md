@@ -44,7 +44,16 @@ Fréquences sur les 128 nuits complètes des lots 2 et 3 (32 par scénario), sau
 
 ### Violation d'un contrôle
 
-**V1. `planification.VERIFIER` échoue à la mine et à l'auberge.** Lot 1 : 15 nuits de mine sur 16 et
+**V1. `planification.VERIFIER` échoue à la mine et à l'auberge.** *Traité (branche `verifier-eau`,
+`docs/plan-planificateur.md`, « VERIFIER et l'eau ») : ce que le but demande lui-même se lit du but
+(`Vue.eclairer`), plus d'`emplois` ; la référence est la recherche complète du même but, bornée à
+60 000 nœuds, comparée par le coût ; une recherche jouée qui atteint sa borne est notée, pas tenue pour
+fausse. 32 nuits de 12 h (4 scénarios × 8 graines) : 0 écart ; 161 recherches bornées reconnues
+(Lucien et la lumière, auberge 7 ; Josse et le poêle, mine 7 et 11 ; Odon et l'argent, mine 99).
+Les deux « vrais manques » ne se rejouent plus (les nuits ont changé depuis) ; le cas de même nature
+relevé sur `main` 8589ca2 (auberge 99, minute 374, Lucien, lumière : restreinte sans plan, complète à
+98) est une recherche jouée arrêtée à sa borne de 4 000 nœuds : à 12 400 nœuds, la restreinte trouve le
+même optimum ; la restriction n'écartait rien.* Lot 1 : 15 nuits de mine sur 16 et
 9 d'auberge sur 16 arrêtées (minutes 290 à 710) ; lot 2 (continu) : mine 15/16, auberge 11/16, relais et
 crue 0/16 ; 108 écarts, tous sur une recherche à `emplois` (`lumiere` 96, `feu:poele` 10, `abri` 2).
 Reproduction : `python tools/audit_nuits.py jouer --scenarios mine --graines 314 --heures 8
@@ -140,7 +149,11 @@ demande), et l'engagement reste ouvert jusqu'à l'échéance même quand son seu
 Invariant (comme pour une part payée non servie) : un engagement payé qu'on sait ne plus pouvoir tenir
 se rend ou se dit dès qu'on le sait ; un devis ne compte pas sur ce qu'un tiers garde.
 
-**A4. Piégés par l'eau.** 6 nuits de crue sur 32 : des PNJ restent 2 à 9 heures dans l'eau, la sécurité
+**A4. Piégés par l'eau.** *Traité (branche `verifier-eau`, `docs/plan-crue.md`, « L'eau dans tous les
+plans ») : l'eau attendue coûte à tout plan, on ne se tient ni ne se chauffe là où on l'attend, on ne
+descend pas où elle va noyer ni ne s'enferme de son côté, piégé on sort d'abord. Crue, 12 h, 8 graines :
+se chauffer dans l'eau 7 nuits sur 8 → 0, minutes à 86 cm ou plus 128 → 14 par nuit, appels à l'aide
+94 → 2, aucun PNJ une heure à 50 cm ou plus.* 6 nuits de crue sur 32 : des PNJ restent 2 à 9 heures dans l'eau, la sécurité
 à 100, sans aucun plan. Crue 500, minutes 165 à 185 : Brune quitte le refuge sec pour se chauffer au
 brasero de la Conduite basse sous 88 cm d'eau, 17 minutes avant qu'elle ne soit noyée ; Gorm descend à la
 Salle des vannes (71 cm) ; la Conduite noyée et la porte étanche verrouillée (aucun outil pour la

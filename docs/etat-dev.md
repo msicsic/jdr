@@ -906,6 +906,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sans recours 61 → 154 (Lucien renonce près d'Anselme). Limites : au contact dans le noir on n'identifie
   personne ; l'appel à l'aide répété (B1) reste. Tests d'autres branches adaptés : `test_ouie`,
   `test_constater_rumeurs`, `test_dynamique_besoins`, `test_besoins` (raisons dans le plan).
+- Branche `verifier-eau`, non fusionnée, accordée avec `integration` f5cf65f (`docs/plan-planificateur.md`,
+  « VERIFIER et l'eau » ; `docs/plan-crue.md`, « L'eau dans tous les plans ») : défauts V1 et A4 de l'audit
+  des nuits. **`VERIFIER`** : `emplois` ajoutait des gestes (chercher le porteur d'une flamme, les flammes
+  non superflues) que la recherche complète n'offrait pas ; ce que le but demande se lit du but
+  (`vises={"eclairer": True}`, `Vue.eclairer`), `emplois` ne fait plus que borner ce qu'on porte. La
+  référence est la recherche complète du même but bornée à 60 000 nœuds (`REFERENCE`), comparée par le
+  coût (à égalité, l'ordre de découverte diffère nécessairement) ; un résultat repris de la mémoire ou du
+  graphe doit égaler exactement une recherche refaite ; une recherche jouée qui atteint sa borne est notée
+  (`planification.BORNES`), pas tenue pour fausse. Nuits identiques (Relais, mine, auberge : empreintes
+  des 8 graines). 32 nuits de 12 h : 0 écart (avant mine 15/16, auberge 11/16), 161 recherches bornées
+  reconnues (Lucien, Josse, Odon) ; `test_lumiere` (Lucien et Josse dans la mine noire) passe. **L'eau** :
+  l'eau attendue (`eau.attendue`) coûte à tout plan par minute comme le noir ; un but qui se tient en
+  restant ne se tient pas où on la croit ou l'attend (ni se chauffer, ni une part de bois pour ce feu) ;
+  pas de descente vers une salle qu'on attend noyée ou d'où le retour serait coupé, ni vers un lieu coupé
+  du plus haut qu'on puisse gagner (`Vue.descente`, `piege`) ; qui attend sa salle noyée en sort avant
+  tout (`eau.en_peril`, repli vers le moins d'eau). Crue, audit 12 h, 8 graines : se chauffer dans l'eau
+  7 nuits sur 8 → 0, minutes à 86 cm ou plus 128 → 14 par nuit, appels à l'aide 94 → 2, aucun PNJ une
+  heure à 50 cm ou plus ; banc 8 h : dans l'eau 589 → 507, appels à l'aide 7,4 → 0,1, en attente
+  188 → 520 (le froid : plus de feu hors de l'eau), aucune usurpation ni violation, temps égal. Cas réels
+  et de même nature après rechargement, même laps découpé (`tests/test_verifier_eau.py`). Limites : l'eau
+  ne coûte que par la salle d'arrivée ; le plus haut lieu ignore les portes au-delà de ce qu'il peut
+  ouvrir ; désœuvré dans une eau qui ne noie pas sa salle, il attend que sa sécurité presse ; la crue n'a
+  qu'un foyer, le froid attend.
 - Branche `deliberation-evenements`, non fusionnée (`docs/plan-temps.md`, « Correctif : délibérer à
   l'événement ») : le jalon temps fin prévoyait que les PNJ réfléchissent à la fin de leur plan, à un
   geste manqué, à un événement et au moins chaque minute ; seule la minute était faite. `deliberer`
@@ -931,7 +954,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   des choix se font entre deux minutes, recherches ×2 à ×2,4 mais neuves +15 à +60 % ; temps d'une nuit
   égal à la dispersion près (auberge 32,7 → 35,8 s, mine 28,1 → 25,1 s). Restent à la minute : corps et
   besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
-- La suite de tests passe : 1167 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : (à recompter)
 
 ## Décisions en attente
 

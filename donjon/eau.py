@@ -173,6 +173,29 @@ def menacee(monde, id, salle, horizon=None):
     return attendu > altitude(monde, salle)
 
 
+def attendue(monde, id, salle, horizon=None):
+    """La hauteur d'eau, en cm, qu'il attend dans la salle d'ici ``HORIZON`` minutes : celle qu'il y
+    croit, ou plus à la vitesse où il l'a vue monter (``menacee`` : plus de 0)."""
+    cru = eau_crue(monde, id, salle)
+    e = estimation(monde, id)
+    if e is None or e[2] <= 0:
+        return cru
+    minute, niveau_vu, montee = e
+    niveau_attendu = niveau_vu + montee * (monde.data["minutes"] + (HORIZON if horizon is None else horizon) - minute) / 60
+    return max(cru, niveau_attendu - altitude(monde, salle))
+
+
+def noyee_attendue(monde, id, salle):
+    """Il croit la salle noyée, ou l'attend noyée avant ``HORIZON`` minutes."""
+    return attendue(monde, id, salle) >= NOYEE_CM
+
+
+def en_peril(monde, id):
+    """Il se tient là où il attend l'eau assez haute pour ne plus s'y mouvoir : il faut en sortir."""
+    ici = lieu(monde, id)
+    return active(monde) and ici in monde.data["salles"] and noyee_attendue(monde, id, ici)
+
+
 def _rang(cm):
     return 2 if cm >= NOYEE_CM else 1 if cm > 0 else 0
 

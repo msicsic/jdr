@@ -857,8 +857,10 @@ def _plan_abri(monde, id):
     """Se mettre à l'abri : rejoindre un lieu qu'il croit éclairé où se tient quelqu'un qu'il croit
     fiable, et y rester ; là où il est d'abord, s'il l'est déjà. Un lieu où il croit l'eau, ou l'y
     attend bientôt (``eau.menacee``), n'est pas un abri. Tant qu'il voit l'eau monter, l'abri est
-    le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie : elle monte par le bas."""
-    from .eau import altitude, menacee, monte
+    le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie : elle monte par le bas.
+    S'il n'en atteint aucun et que l'eau menace où il se tient, il gagne au moins le lieu où il attend
+    le moins d'eau, éclairé ou non : piégé, il cherche d'abord à sortir de l'eau (``candidats``)."""
+    from .eau import altitude, attendue, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
     if menacee(monde, id, ici) or monte(monde, id):
@@ -887,6 +889,16 @@ def _plan_abri(monde, id):
         if etapes is None:
             continue
         return {"type": "abri", "lieu": salle}, etapes + [_etape("abriter", lieu=salle)]
+    if menacee(monde, id, ici):
+        # Aucun lieu hors de l'eau à sa portée : moins d'eau, c'est déjà en sortir. Ce n'est pas un
+        # abri où rester (``pnj._abriter``) : il s'y rend.
+        ici_cm = attendue(monde, id, ici)
+        moins = sorted((s for s in monde.data["salles"] if attendue(monde, id, s) < ici_cm),
+                       key=lambda s: (attendue(monde, id, s), -altitude(monde, s), s))
+        for salle in moins:
+            etapes = aller(monde, id, salle)
+            if etapes:
+                return {"type": "abri", "lieu": salle}, etapes
     return None
 
 
@@ -1174,6 +1186,10 @@ def candidats(monde, id):
     a_voir, alarme_ = bruit_a_voir(monde, id), alarme(monde, id)
     if alarme_:
         buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False))
+    # Là où il se tient, il attend l'eau trop haute pour s'y mouvoir : en sortir passe avant tout.
+    from .eau import en_peril
+    if "securite" in p["besoins"] and en_peril(monde, id):
+        buts.insert(0, ("securite", _plan_abri, False))
     if a_voir and a_voir != alarme_:
         buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False))
     # Ce dont il a la charge et qu'il voit rompu, il le rétablit sans attendre que son besoin
