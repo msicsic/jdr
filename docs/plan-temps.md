@@ -39,7 +39,9 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
 - **Les PNJ réfléchissent** à la fin de leur plan, à un geste manqué, à un événement (un bruit,
   quelqu'un qui entre dans leur cône ou en sort, une porte), et au moins une fois par minute.
   Chaque geste est revalidé quand il commence. On finit son geste avant de réagir : un temps de
-  réaction réaliste.
+  réaction réaliste. *État* : jusqu'à la branche `deliberation-evenements`, seule la minute était
+  faite (le choix du but n'avait lieu qu'à la frontière de minute) ; les autres déclencheurs le sont
+  depuis (voir « Correctif : délibérer à l'événement »).
 - **Les PNJ marchent case par case**, sur un chemin en cases qui traverse les salles et les
   portes ; `_approcher` et le passage d'une salle d'un coup disparaissent.
 - **La perception se met à jour par événement** : celui qui bouge, et ceux qui pouvaient
@@ -56,7 +58,8 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
    (chronique, mesures, état final) doit rester identique : la réforme du temps est vérifiée
    seule, avant de changer quoi que ce soit au comportement.
 2. **Les PNJ case par case et les durées des gestes** : chemin en cases, un pas par 1,5 s,
-   délibération par événement et à la minute, perception par événement. Les sauvegardes
+   délibération par événement et à la minute (faite à la minute seulement ; par événement depuis
+   `deliberation-evenements`), perception par événement. Les sauvegardes
    existantes se rechargent (l'instant se déduit des minutes).
 3. **Orientation et cône** pour tous ; rotations et leur durée ; se retourner au bruit.
 4. **Le joueur sur la même horloge** : flèches, Maj + flèche, se retourner, carte avec cône ;
@@ -327,6 +330,133 @@ Limites :
   la lumière porte à 6 cases en diagonale pour une portée de 8 (8,5 réel), pas 5,66.
 - Le pas de côté de qui laisse passer prend sa durée ; le passant attend toujours un `PAS` droit
   après lui (`passage.s_ecarter`), et la poussée garde sa durée fixe (`POUSSEE`).
+
+## Correctif : délibérer à l'événement (branche `deliberation-evenements`)
+
+Constat : la décision « les PNJ réfléchissent à la fin de leur plan, à un geste manqué, à un
+événement, et au moins une fois par minute » n'était faite que pour la minute. `pnj._avancer`
+n'appelait `deliberer` qu'à la frontière de minute, pour tous à la fois dans l'ordre des
+identifiants ; un PNJ au plan fini, au geste manqué ou désœuvré attendait la minute suivante
+(jusqu'à 59,9 s d'inaction), et un voleur vu, un appel ou une porte ouverte sous ses yeux ne
+changeaient son but qu'à la minute suivante.
+
+**Ce qui est fait** (décision de l'utilisateur, la version simple) :
+- **Deux temps de la délibération** (`deliberation.py`) : `deliberer` fait vivre la minute (dérive des
+  besoins, corps, sécurité ressentie, effet de seuil) puis appelle `choisir`, le choix du but et du
+  plan, qui ne fait passer aucun temps. `choisir` relit aussi, à l'instant, ce qu'il croit de ses
+  charges et de ses paroles (`constater_pulsions` : une pulsion rompue sous ses yeux ;
+  `echanges.engagements_echus` : une parole tenue, échue, impossible) et l'attente d'être rejoint.
+- **Fin du plan, geste manqué** (`pnj.agir` rend désormais `(durée, issue, étape manquée)` : `GESTE`,
+  `ATTENTE`, `FIN`, `MANQUE`) : il choisit aussitôt la suite et commence le geste suivant au même
+  instant. Un geste manqué ne se retente pas avant la minute suivante, même réveillé entre-temps
+  (`esprit["manque"]`, comparé sans ce que le plan ajoute à l'étape).
+- **Événements** (`esprits.reconsiderer`, qui date l'éveil dans l'esprit) : un bruit interprété
+  (`ouie._bruit_inconnu`, `_se_tourner`, le bruit de qui l'on se méfie), quelqu'un qui entre dans
+  son regard ou en sort, l'état visible d'une chose vue qui change (porte, contenant, feu), une
+  absence constatée, son bien aux mains d'un autre (`esprits._percevoir`, `_vu_porter`), un geste
+  illicite sous ses yeux (`pnj._temoins`), une parole qui lui est adressée (`ouie.retentir`) ou
+  surprise et qui lui apprend quelque chose (`social.retenir_parole`). Il choisit de nouveau à la fin
+  de son geste en cours, ou aussitôt s'il ne fait qu'attendre (`esprit["veille"]` : désœuvré,
+  guettant une occasion, assis, au feu, à l'abri) ; une rotation vers un bruit, un pas de côté
+  restent des gestes. Ce qu'il voit changer par son propre geste (ses pas, se tourner, son tour
+  d'horizon, une porte qu'il ouvre) ne l'éveille pas : son plan le prévoyait.
+- **Le filet de la minute** reste : `deliberer` pour chacun à chaque frontière, pour ce qui monte peu
+  à peu. Aucun franchissement de seuil n'est programmé comme événement.
+- **Gestes qui durent** : se reposer, se chauffer, s'abriter rendent « en cours » (None), achevé
+  (True) ou impossible (False) ; achevé ou impossible, il choisit aussitôt la suite ; en cours, son
+  attente cède à un événement (un abri devenu noir se quitte à l'instant).
+- **L'ordre** : à des instants distincts, dans l'ordre du temps ; au même instant, dans l'ordre des
+  identifiants (déterministe). Une garde arrête la boucle si un même instant se retraitait sans fin.
+- **Même laps découpé, même monde** : `veille`, `eveil`, `manque`, `en_vue` (ce qu'il voit, établi
+  par sa première perception sans l'éveiller) et `patience` sont dans l'esprit, contrôlés par
+  `esprits.verifier`. Deux défauts de découpage révélés et corrigés : la perception du résultat
+  d'une action du joueur se faisait après le passage du temps (datée de la fin de l'action, selon
+  son découpage) ; elle se fait au début, comme le monde des PNJ à cet instant (`moteur`), et ce
+  qu'ils en voient, ils y réagissent pendant l'action (l'instant même de son début appartient à
+  l'action précédente, `ecoute.entendus`).
+- **Ce qui en dépendait** : guetter son occasion se compte une fois par minute (`esprit["patience"]`)
+  et, réveillé par un événement, on regarde de nouveau autour de soi (un témoin a pu arriver ou
+  partir) ; un bruit du lieu où l'on est se va voir quand on y est venu pour lui (`_voir_en_cours` :
+  avant, le but tombait à l'arrivée, avant d'avoir regardé) ; une parole n'est tenue que sur ce qu'on
+  a constaté une minute après l'avoir donnée (`echanges.tenu` : les croyances sont datées à la
+  minute) ; la chronique porte l'instant (`instant`), dont le récit se sert pour attribuer les
+  gestes d'un but choisi et quitté dans la même minute ; `recit_pnj` et `rejeu` observent `choisir`.
+
+**Deux boucles de l'audit des nuits** (`docs/audit-nuits.md`), dans la délibération :
+- B1 : un appel à l'aide attend sa réponse ; tant que dure le désarroi qui l'a fait lancer, il ne se
+  répète pas, que quelqu'un soit venu sans l'apaiser ou que personne ne vienne ; rassuré depuis
+  (sous `DESESPOIR`, sans menace), un nouveau désarroi rappelle (`appeler_a_l_aide`, l'appel retenu
+  porte `apaise`).
+- B3 : on prévient d'un fait que la victime ignore : qu'un auteur n'est pas fiable, s'il ne le lui a
+  jamais dit ; où sont ses biens, s'il ne le lui a pas dit depuis qu'il le croit (`_a_dire`,
+  `_deja_dit`). Chaque minute d'un même crochetage vu ne relance plus l'avertissement.
+
+**Vérifié** après rechargement (`tests/test_deliberation_evenements.py`, 18 tests) : plan fini à
+2,5 s (Gorm prend la clé, part à sa ronde ; Aubin pose ses planches) ; geste manqué (marteau
+absent ; porte crue ouverte, verrouillée) et le même geste manqué non retenté avant la minute ;
+voleur entrant dans le regard (Brune, les vivres de Gorm en main) et crochetage sous ses yeux ;
+bruit à voir et appel du joueur (Gorm part dès le bruit) ; réserve ouverte sous les yeux de Brune,
+brasero éteint sous ceux de Gorm (il le rallume) ; abri devenu noir quitté aussitôt ; filet de la
+minute pour une faim qui franchit son seuil en marchant ; se chauffer cesse au seuil (déjà vrai à la
+minute sur `main`) ; même laps découpé ; les deux boucles. `VERIFIER` et `spatial.VERIFICATION`
+sur une nuit de 8 h de chaque scénario (graine 1985), après fusion de `main` 4261bf5 (`verifier-eau`) :
+aucun écart.
+
+**Bancs** (8 h, départ tiré, `main` 4261bf5 puis la branche, l'un après l'autre, 4 processus ; Relais
+8 graines `--joueur chambre_cloche`, mine `--joueur galerie`, auberge `--joueur dortoir`, crue `--joueur
+chambre_cloche` 4 graines ; `main` → branche, par nuit) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| événements distincts | 38,1 → 37,25 | 65,75 → 65,5 | 113,75 → 101,5 | 40,5 → 42,5 |
+| échanges | 16,6 → 15,4 | 45,75 → 43,75 | 76 → 81,25 | 20,5 → 21,5 |
+| vols vus (témoins) | 1 (2,6) → 1 (2,75) | 0,75 (2,25) → 0,75 (3,25) | 1,25 (3,75) → 1 (1,5) | 0 (0) → 0,25 (0,5) |
+| allés voir | 10,1 → 10,25 | 12 → 15,5 | 28,75 → 38,5 | 12,5 → 14,5 |
+| minutes sans recours | 58,75 → 60,6 | 43,75 → 56,25 | 40 → 75 | 16,25 → 32,5 |
+| minutes en attente | 59,4 → 52,5 | 285 → 240 | 311 → 309 | 474 → 472,5 |
+| appels à l'aide | 0,375 → 0,375 | 2,5 → 3,75 | 2 → 1,25 | 0,25 → 0,25 |
+| choix : minute + événement | 1 920 → 1 920 + 917 | 3 360 → 3 360 + 3 016 | 3 840 → 3 840 + 2 153 | 1 920 → 1 920 + 821 |
+| recherches (neuves) | 687 (259) → 1 145 (312) | 1 359 (539) → 4 073 (2 229) | 1 506 (722) → 3 647 (1 070) | 473 (247) → 837 (349) |
+| part du planificateur | 16 % → 20 % | 42 % → 42 % | 33 % → 41 % | 14 % → 18 % |
+| temps d'une nuit | 10,5 → 9,7 s | 25 → 34 s | 26,8 → 31,9 s | 10,3 → 12 s |
+
+Aucune usurpation ni violation (le banc vérifie le monde à chaque pas). Les PNJ réagissent dans
+l'instant : on va voir plus souvent (+1 à +34 %), les témoins de vols augmentent sauf à l'auberge (on y
+accourt au bruit et le voleur, qui se sait entendu, attend : moins de vols vus), les minutes en attente
+baissent ou restent égales. Les choix entre deux minutes sont un tiers à la moitié de tous les choix ;
+la mémoire du planificateur en reprend la plupart. À la mine, les recherches neuves quadruplent, mais
+ce sont surtout des recherches d'une étape (`aller`, le chemin vers un abri, ~1 nœud) : la nuit coûte
++36 % (le choix lui-même, à chaque fois, construit une vue du planificateur pour l'argent et l'abri) ;
+ailleurs le temps reste dans la dispersion (−8 % à +19 %). Une première version, où ce qu'il voyait
+changer de son propre geste l'éveillait aussi, coûtait +70 % à l'auberge : d'où cette règle. Écarts
+expliqués : « sans recours » monte surtout par Lucien (auberge) qui guette son occasion pour le ballot,
+plus souvent vu ou entendu, renonce au bout de `PATIENCE` puis attend son répit (`REPIT`, 60 min) ; à la
+crue et au Relais, quelques minutes de plans possibles non entrepris pendant un répit.
+
+**Limites et suite** :
+- Restent à la minute : besoins et corps (faim, froid, fatigue, sécurité ressentie), combustion,
+  crue, effet de seuil des besoins, échéance des paroles et des prêts, dettes soldées, flamme ménagée,
+  appel à l'aide, horloges du scénario (déclenchées par le moteur à la fin d'une action), dates des
+  croyances et souvenirs (la minute), répit après renoncement et patience (en minutes). Hors
+  périmètre, à faire ensuite : corps, besoins, combustion et crue au temps réel ; horloges à leur
+  instant ; croyances et souvenirs datés au dixième ; patience en temps.
+- Un franchissement de seuil n'éveille personne (refusé pour l'instant) : un besoin qui presse entre
+  deux minutes attend la minute.
+- Ce qui change de son propre fait ne l'éveille pas : un PNJ qui découvre en marchant quelqu'un ou
+  quelque chose qui changerait son but poursuit son plan jusqu'à sa fin, un geste manqué ou la
+  minute (un geste illicite vu, son bien aux mains d'un autre l'éveillent quand même).
+- Un geste manqué ne coûte que le temps déjà passé (une rotation, rien de plus) ; l'essai lui-même
+  n'a pas de durée propre.
+- La perception du résultat d'une action du joueur est datée de son début ; les croyances restant
+  datées à la minute, un ordre fin d'une même minute peut encore dépendre du découpage hors des PNJ
+  (horloges).
+- Coût : chaque choix entre deux minutes refait les lectures du choix (une vue du planificateur
+  pour l'argent, l'abri, des chemins d'une étape) même quand rien de ce qu'il lit n'a changé ; la
+  mémoire n'épargne que les recherches. Une reprise du choix entier sur les mêmes entrées serait la
+  suite à faire si le coût gênait (mine +36 %).
+- Plus vifs, les PNJ font d'autres histoires : des tests de scène ont dû être retouchés (intention
+  imposée sans motif, que le premier événement remplace ; scènes qui supposaient une minute d'inertie) ;
+  chacun dit pourquoi.
 
 ## Hors périmètre
 

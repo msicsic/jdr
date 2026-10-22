@@ -40,7 +40,7 @@ def gestes(m, id, fois):
     ses positions successives."""
     t, positions = 0, []
     for _ in range(fois):
-        t += agir(m, id, t, [])
+        t += agir(m, id, t, [])[0]
         percevoir(m, id)
         positions.append((m.objets[id]["lieu"], tuple(m.objets[id]["position"])))
     return positions
@@ -182,6 +182,7 @@ class ImpasseTests(unittest.TestCase):
         agir(m, "brune", 0, [])
         self.assertEqual(lire(m, "brune")["intention"]["attente"], 1)
         lire(m, "brune")["intention"]["attente"] = 30
+        m.data["minutes"] = 1   # Une minute plus tard : l'attente se compte une fois par minute.
         agir(m, "brune", 600, [])
         self.assertIsNone(lire(m, "brune")["intention"])
         self.assertIn("renoncement", [s["type"] for s in recharger(m) and lire(m, "brune")["memoire"]])

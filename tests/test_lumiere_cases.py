@@ -63,7 +63,9 @@ class LumiereCasesTests(unittest.TestCase):
         reprise.objets["torche"]["position"] = [1, 2]
         reprise = recharger(reprise)
         self.assertEqual(eclairage(reprise)["niveau"], 2)
-        Moteur(reprise).executer(Moteur(reprise).preparer(proposition("lire", "gravure")))
+        # Le jet réussi : ce test porte sur la lumière, pas sur le dé (que la vie des PNJ consomme).
+        with patch.object(Monde, "d20", return_value=20):
+            Moteur(reprise).executer(Moteur(reprise).preparer(proposition("lire", "gravure")))
         self.assertIn("gravure", reprise.data["lus"])
 
     def test_obstacle_opaque_projette_une_ombre(self):

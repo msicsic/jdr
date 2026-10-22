@@ -3,11 +3,15 @@
 Le profil d'auteur (``objet["profil"]``) déclare caractéristiques, traits, valeurs
 (``caractere``), capacités, besoins et pulsions. Le moteur fait évoluer les besoins minute par minute ;
 une pulsion qui cesse d'être satisfaite aux yeux du PNJ est rompue : il la rétablit sans attendre
-que son besoin presse, et une atteinte relance ce besoin. Chaque minute,
-le PNJ retient le but le plus urgent pour lequel il trouve un plan, cherché sur ce qu'il
-croit, jamais sur la vérité du monde. Les étapes sont ensuite revalidées sur l'état réel
-par ``pnj.py``. Tout est déterministe ; Luna n'intervient pas.
+que son besoin presse, et une atteinte relance ce besoin. Le PNJ retient le but le plus
+urgent pour lequel il trouve un plan, cherché sur ce qu'il croit, jamais sur la vérité du monde
+(``choisir``) : à chaque minute (``deliberer``, le filet de ce qui monte peu à peu), à la fin de
+son plan, après un geste manqué, et après un événement qui change sa situation (``pnj._avancer``,
+``esprits.reconsiderer``). Les étapes sont ensuite revalidées sur l'état réel par ``pnj.py``.
+Tout est déterministe ; Luna n'intervient pas.
 """
+from collections import Counter
+
 from .biens import a_autrui
 from .caractere import ARGENT, STATS, interdit, verifier_situation, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
@@ -587,9 +591,17 @@ def appeler_a_l_aide(monde, id, minute):
     e = esprit(monde, id)
     menace = ("securite" in urgents(monde, id) and prudent(monde, id)
               and monde.objets[id]["lieu"] in menaces(monde, id))
-    if (e["besoins"].get("securite", 0) < DESESPOIR and not menace
-            or e["intention"] and e["intention"]["but"]["type"] == "abri"
-            or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in e["memoire"])):
+    appels = [s for s in e["memoire"] if s["type"] == "appel"]
+    if e["besoins"].get("securite", 0) < DESESPOIR and not menace:
+        if appels:
+            appels[-1]["apaise"] = True  # Rassuré depuis : un nouveau désarroi pourra appeler de nouveau.
+        return
+    # Un appel attend sa réponse : tant que le désarroi qui l'a fait lancer dure, il ne le répète pas,
+    # que quelqu'un soit venu sans l'apaiser ou que personne ne vienne (un autre recours, ou être
+    # rassuré, y mettent fin).
+    if (e["intention"] and e["intention"]["but"]["type"] == "abri"
+            or appels and not appels[-1].get("apaise")
+            or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in appels)):
         return
     memoriser(monde, id, {"type": "appel"})
     from .ecoute import appel
@@ -608,6 +620,12 @@ def de_garde(monde, id, salle):
     return any(salle_crue(monde, id, x) == salle for x in p.get("protege", []))
 
 
+def _voir_en_cours(e):
+    """Le lieu qu'il est en train d'aller voir : il passe d'abord, il ne court pas d'un bruit à l'autre."""
+    i = e["intention"]
+    return i["but"].get("lieu") if i and i["but"]["type"] == "voir" else None
+
+
 def bruit_a_voir(monde, id):
     """(lieu, motif) du plus récent bruit inconnu qu'il ira voir, d'un autre lieu ou de sa salle même
     (il va alors à portée de vue de l'endroit d'où il vient, ``planification.voir``) : son devoir de
@@ -619,7 +637,7 @@ def bruit_a_voir(monde, id):
     e = lire(monde, id)
     minute = monde.data["minutes"]
     # Celui qu'il est en train d'aller voir passe d'abord : il ne court pas d'un bruit à l'autre.
-    en_cours = e["intention"]["but"].get("lieu") if e["intention"] and e["intention"]["but"]["type"] == "voir" else None
+    en_cours = _voir_en_cours(e)
     a_voir = []
     for s in reversed(e["memoire"]):
         if s["type"] != "bruit" or resolu(monde, id, s):
@@ -654,15 +672,35 @@ def alarme(monde, id):
     return None
 
 
+def _deja_dit(monde, id, a, sujet, attribut, depuis=None):
+    """Il a déjà dit à ``a`` ce qu'il croit de ``sujet`` (``attribut``), depuis la minute ``depuis``."""
+    return any(x["type"] == "dit" and x["a"] == a and x["sujet"] == sujet and x.get("attribut") == attribut
+               and (depuis is None or x["minute"] >= depuis) for x in lire(monde, id)["memoire"])
+
+
+def _a_dire(monde, id, victime, auteur):
+    """Ce qu'il a à apprendre à ``victime`` d'``auteur`` : qu'il n'est pas fiable, s'il ne le lui a
+    jamais dit ; où sont les biens qu'il lui a vu déplacer, s'il ne le lui a pas dit depuis qu'il le
+    croit. On prévient d'un fait que la victime ignore, pas d'un souvenir : chaque minute d'un même
+    crochetage vu ne relance pas l'avertissement."""
+    contenus = [] if _deja_dit(monde, id, victime, auteur, "fiable") else [
+        {"sujet": auteur, "attribut": "fiable", "valeur": False}]
+    croyances = lire(monde, id)["croyances"]
+    for c in _lieux_a_dire(monde, id, victime, auteur):
+        depuis = (croyances.get(c["sujet"], {}).get("lieu") or {}).get("minute")
+        if not _deja_dit(monde, id, victime, c["sujet"], "lieu", depuis):
+            contenus.append(c)
+    return contenus
+
+
 def _plan_prevenir(monde, id):
-    """Un geste illicite vu contre un protégé : aller le lui dire."""
+    """Un geste illicite vu contre un protégé : aller lui dire ce qu'il en ignore encore."""
     e = esprit(monde, id)
     for s in reversed(e["memoire"]):
-        if s["type"] != "a_prevenir":
+        if s["type"] != "a_prevenir" or s["victime"] not in monde.objets:
             continue
-        dit = any(x["type"] == "dit" and x["a"] == s["victime"] and x["sujet"] == s["auteur"]
-                  and x["minute"] >= s["minute"] for x in e["memoire"])
-        if dit or s["victime"] not in monde.objets:
+        contenus = _a_dire(monde, id, s["victime"], s["auteur"])
+        if not contenus:
             continue
         from .planification import _etape, rejoindre
         chemin = rejoindre(monde, id, s["victime"])
@@ -670,10 +708,7 @@ def _plan_prevenir(monde, id):
             continue
         etapes, trouve = chemin
         if trouve:
-            etapes.append(_etape("dire", s["victime"],
-                                 contenu={"sujet": s["auteur"], "attribut": "fiable", "valeur": False}))
-            etapes += [_etape("dire", s["victime"], contenu=c)
-                       for c in _lieux_a_dire(monde, id, s["victime"], s["auteur"])]
+            etapes += [_etape("dire", s["victime"], contenu=c) for c in contenus]
         return {"type": "prevenir", "qui": s["victime"]}, etapes
     return None
 
@@ -1188,8 +1223,33 @@ def candidats(monde, id):
         yield besoin, methode
 
 
+def constater_pulsions(monde, id):
+    """Ses pulsions, d'après ce qu'il croit maintenant : ce qui était satisfait et ne l'est plus est
+    rompu (False) jusqu'à ce qu'il le rétablisse, quelle qu'en soit la cause ; un désir jamais
+    satisfait le reste (None). Une atteinte (ses biens forcés ou déplacés, un feu éteint par un
+    autre) relance son besoin. À chaque minute, et à chaque choix entre deux minutes : un feu
+    éteint sous ses yeux est rompu dès qu'il le voit."""
+    p, e = profil(monde, id), esprit(monde, id)
+    for i, x in enumerate(p["pulsions"]):
+        etat, avant = satisfaite(monde, id, x["condition"]), e["pulsions"][i]
+        # Une ronde expire, un feu baisse d'eux-mêmes : ce n'est pas une atteinte.
+        if (avant and not etat and not s_use(x["condition"])
+                and not de_son_fait(monde, id, x["condition"])):
+            # Ses biens forcés ou déplacés : un vol découvert, même sans coupable.
+            relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)
+            memoriser(monde, id, {"type": "atteinte", "condition": dict(x["condition"])})
+        e["pulsions"][i] = True if etat else (None if avant is None else False)
+
+
+# Le banc compte les choix de but : ceux du filet de la minute et ceux qu'un événement, la fin d'un
+# plan ou un geste manqué ont provoqués (``pnj._avancer``). Une mesure, hors de l'état du monde.
+COMPTES = Counter()
+
+
 def deliberer(monde, id, minute):
-    """Une minute de vie intérieure : besoins, pulsions, choix du but et du plan."""
+    """Une minute de vie intérieure : besoins, pulsions, puis le choix du but et du plan
+    (``choisir``). C'est le filet de ce qui monte peu à peu (besoins, échéances, un plan devenu
+    moins bon) ; les événements font choisir entre deux minutes."""
     p = profil(monde, id)
     e = esprit(monde, id)
     if not p:
@@ -1202,21 +1262,32 @@ def deliberer(monde, id, minute):
     geste = e["intention"]["plan"][0]["operation"] if e["intention"] and e["intention"]["plan"] else None
     vivre(monde, id, 1, effort=geste in EFFORTS, repos=geste == "reposer")
     ressentir(monde, id)
-    for i, x in enumerate(p["pulsions"]):
-        etat, avant = satisfaite(monde, id, x["condition"]), e["pulsions"][i]
-        # Une ronde expire, un feu baisse d'eux-mêmes : ce n'est pas une atteinte.
-        if (avant and not etat and not s_use(x["condition"])
-                and not de_son_fait(monde, id, x["condition"])):
-            # Ses biens forcés ou déplacés : un vol découvert, même sans coupable.
-            relancer(monde, id, x["besoin"], VOL if x["besoin"] == "biens" else ATTEINTE)
-            memoriser(monde, id, {"type": "atteinte", "condition": dict(x["condition"])})
-        # Ce qui était satisfait et ne l'est plus est rompu (False) jusqu'à ce qu'il le rétablisse,
-        # quelle qu'en soit la cause ; un désir jamais satisfait le reste (None).
-        e["pulsions"][i] = True if etat else (None if avant is None else False)
+    constater_pulsions(monde, id)
     from .echanges import engagements_echus
-    from . import stratege
     engagements_echus(monde, id)
     eveiller(monde, id, minute)
+    COMPTES["minute"] += 1
+    choisir(monde, id, minute)
+
+
+def choisir(monde, id, minute):
+    """Le choix du but et du plan, sur ce qu'il croit à cet instant : à chaque minute après ses
+    besoins (``deliberer``), et entre deux minutes à la fin de son plan, après un geste manqué ou
+    un événement qui change sa situation (``pnj._avancer``). Ne fait rien passer du temps : ses
+    besoins, ses pulsions et leurs échéances vivent à la minute. Ce que la recherche a déjà
+    trouvé sur les mêmes entrées est repris (``planification``)."""
+    from . import stratege
+    p = profil(monde, id)
+    if not p:
+        return
+    e = esprit(monde, id)
+    installer(monde, id)
+    COMPTES["choix"] += 1
+    # Ce qu'il croit de ses charges et de ses paroles, tel qu'il est maintenant : une pulsion rompue
+    # sous ses yeux, une parole tenue, échue ou devenue impossible (à la minute, déjà fait).
+    constater_pulsions(monde, id)
+    from .echanges import engagements_echus
+    engagements_echus(monde, id)
     attendre(monde, id, minute)
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":

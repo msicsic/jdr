@@ -3,6 +3,8 @@ les passages l'atténuent, chacun l'interprète selon ce qu'il croit (connu, inc
 
 Chaque cas vérifie l'état du monde après rechargement, et ce que le joueur lit quand il est là."""
 import unittest
+
+from donjon import deliberation
 from unittest.mock import patch
 
 from donjon.banc_pnj import creer
@@ -125,19 +127,15 @@ class GesteBruyantTests(unittest.TestCase):
         lire(m, "marchand")["croyances"].pop("brune", None)
         m = recharger(m)
         avant = lire(m, "marchand")["besoins"]["securite"]
-        # Le bruit l'inquiète ; à la minute suivante, son devoir l'envoie voir.
-        m = jusqu_a(m, MINUTE + 20)
-        self.assertEqual([s["salle"] for s in souvenirs(m, "marchand", "bruit")], ["antichambre"])
+        # Le bruit l'inquiète ; son devoir l'envoie voir aussitôt, pas à la minute suivante
+        # (``deliberation-evenements``).
+        m = jusqu_a(m, MINUTE - 20)
         # Il s'inquiète à la mesure de ce qu'il entend, à travers le passage.
         self.assertGreater(lire(m, "marchand")["besoins"]["securite"], avant + 3)
-        i = lire(m, "marchand")["intention"]
-        self.assertEqual((i["but"], i["motif"]), ({"type": "voir", "lieu": "antichambre"}, "devoir"))
-        with patch.object(Monde, "d20", return_value=1):
-            faire(m, "attendre")
-        m = recharger(m)
-        self.assertIn("Gorm, gardien du relais passe dans : Refuge du relais.", chronique(m))
-        # Arrivé, il la voit s'acharner sur la serrure : le bruit est expliqué. (Aubin, courageux, vient
-        # voir aussi : ses pas dans la conduite font un autre bruit, d'un autre lieu.)
+        self.assertIn((0, "Gorm va voir d'où venait le bruit : Refuge du relais."),
+                      [(c["minute"], c["texte"]) for c in m.data["chronique"]])
+        # Arrivé, il la voit s'acharner sur la serrure : le bruit est expliqué. (D'autres, venus voir
+        # aussi, font d'autres bruits, d'autres lieux.)
         self.assertIn(("brune", "reserve"), vu_agir(m, "marchand"))
         self.assertNotEqual((bruit_a_voir(m, "marchand") or (None,))[0], "antichambre")
 
@@ -190,8 +188,11 @@ class JoueurTests(unittest.TestCase):
         self.assertIn(m.objets["ilse"]["orientation"], ("ouest", "nord-ouest"))
         self.assertEqual(lire(m, "ilse")["croyances"]["joueur"]["lieu"]["valeur"], "antichambre")
         self.assertIn("Ilse, meunière évacuée, se retourne vers toi.", texte)
-        # Le temps de se retourner retarde son geste suivant.
-        self.assertGreaterEqual(lire(m, "ilse")["libre"], instant(m) - 15 + 4 * QUART)
+        # Le temps de se retourner retarde son geste suivant : rien avant la fin de sa rotation (elle
+        # attend ensuite, libre, que quelque chose la fasse agir : ``veille``).
+        from donjon.spatial import quarts
+        self.assertGreaterEqual(lire(m, "ilse")["libre"],
+                                instant(m) - 15 + QUART * quarts("est", m.objets["ilse"]["orientation"]))
 
     def test_a_pas_feutres_a_quelques_cases_elle_n_entend_rien(self):
         m = ilse_au_refuge()
@@ -229,8 +230,21 @@ def mine_baraquement(qui):
     m.objets[qui]["orientation"] = "ouest"
     placer(m, "odon", "baraquement", (7, 3))
     croire(m, qui, "odon", "lieu", "baraquement", "vu", salle="baraquement", case=[7, 3])
-    intention(m, "odon", plan("aller", lieu="galerie"), but="rejoindre", motif="devoir")
+    # Placement d'auteur : un réflexe qui l'envoie à la galerie et que rien ne détourne (le choix d'un
+    # but à l'événement ne le remplace pas), pour que ses pas passent dans le dos de ``qui``.
+    intention(m, "odon", plan("aller", lieu="galerie"), but="alerte", motif="alerte")
+    lire(m, "odon")["intention"]["but"]["lieu"] = "galerie"
     esprit(m, "odon")["libre"] = 5
+    return recharger(m)
+
+
+def jusqu_a_la_galerie(m):
+    """Le joueur se tourne sur place jusqu'à ce qu'Odon ait gagné la galerie : ses seuls pas, dans
+    le dos de ``qui`` (ensuite, désœuvré, il choisit aussitôt autre chose)."""
+    n = 0
+    while m.objets["odon"]["lieu"] != "galerie" and n < 60:
+        faire(m, "tourner sud" if n % 2 == 0 else "tourner nord")
+        n += 1
     return recharger(m)
 
 
@@ -238,16 +252,15 @@ class MefianceTests(unittest.TestCase):
     def test_un_bruit_d_odon_dont_remy_se_mefie_se_surveille(self):
         m = mine_baraquement("remy")
         self.assertFalse(lire(m, "remy")["croyances"]["odon"]["fiable"]["valeur"])
-        faire(m, "attendre")
-        m = recharger(m)
+        m = jusqu_a_la_galerie(m)
         self.assertIn("Rémy, jeune mineur se retourne au bruit.", chronique(m))
         self.assertNotEqual(m.objets["remy"]["orientation"], "ouest")
 
     def test_le_meme_bruit_de_qui_l_on_croit_fiable_ne_le_fait_pas_se_retourner(self):
         m = mine_baraquement("josse")
         self.assertTrue(lire(m, "josse")["croyances"]["odon"]["fiable"]["valeur"])
-        faire(m, "attendre")
-        m = recharger(m)
+        m = jusqu_a_la_galerie(m)
+        self.assertEqual(m.objets["odon"]["lieu"], "galerie")
         self.assertNotIn("Josse, contremaître se retourne au bruit.", chronique(m))
         self.assertEqual(m.objets["josse"]["orientation"], "ouest")
 
@@ -286,12 +299,12 @@ class CourageTests(unittest.TestCase):
 
     def test_aubin_plus_courageux_va_voir(self):
         m = bruit_au_refuge("aubin")
-        m = jusqu_a(m, MINUTE + 20)
-        i = lire(m, "aubin")["intention"]
-        self.assertEqual((i["but"], i["motif"]), ({"type": "voir", "lieu": "antichambre"}, "securite"))
-        with patch.object(Monde, "d20", return_value=1):
-            faire(m, "attendre")
-        m = recharger(m)
+        with patch.object(deliberation, "choisir", wraps=deliberation.choisir) as choix:
+            m = jusqu_a(m, MINUTE - 20)
+        # Il y va dès le bruit, sans attendre la minute (``deliberation-evenements``).
+        self.assertTrue(choix.called)
+        self.assertIn((0, "Aubin va voir d'où venait le bruit : Refuge du relais."),
+                      [(c["minute"], c["texte"]) for c in m.data["chronique"]])
         self.assertIn("Aubin, vieux passeur passe dans : Refuge du relais.", chronique(m))
         self.assertIn(("brune", "reserve"), vu_agir(m, "aubin"))
 

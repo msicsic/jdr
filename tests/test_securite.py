@@ -4,6 +4,7 @@ Chaque test vérifie l'état du monde et, quand le joueur est présent, ce qu'il
 rechargement.
 """
 import unittest
+from unittest.mock import patch
 
 from donjon.deliberation import SECURITE, SECURITE_FIN, verifier_profil
 from donjon.esprits import croire, lire, percevoir_tous
@@ -71,13 +72,18 @@ class RessentirTests(unittest.TestCase):
         # Il s'inquiète à la mesure de ce qui lui parvient du cri, à travers le passage (``ouie``).
         o = m.objets["marchand"]
         niveau, _ = parvenu(propager(m, "antichambre", (3, 4), INTENSITES["appel"]), o["lieu"], tuple(o["position"]))
-        Moteur(m).executer(Moteur(m).preparer(sequence(etape("emettre_son", "joueur", methode="cri"))))
+        from donjon import deliberation
+        with patch.object(deliberation, "inquieter", wraps=deliberation.inquieter) as inquietudes:
+            Moteur(m).executer(Moteur(m).preparer(sequence(etape("emettre_son", "joueur", methode="cri"))))
         m = recharger(m)
         # Un seul souvenir de ce qu'il entend : le bruit de l'ouïe commune, plus de « son » à part.
         self.assertNotIn("son", [s["type"] for s in lire(m, "marchand")["memoire"]])
-        self.assertIn("antichambre", [s["salle"] for s in lire(m, "marchand")["memoire"] if s["type"] == "bruit"])
-        self.assertGreaterEqual(lire(m, "marchand")["besoins"]["securite"],
-                                avant + SECURITE["bruit"] * niveau / INTENSITES["appel"] - 1)
+        # Il l'a entendu ; il est allé voir aussitôt et a parcouru le refuge (le bruit est vu).
+        self.assertIn("Gorm entend un bruit : Refuge du relais.", [c["texte"] for c in m.data["chronique"]])
+        # Il s'en est inquiété à la mesure du cri (puis, allé voir, sa ronde l'a rassuré).
+        self.assertIn(niveau / INTENSITES["appel"],
+                      [c.args[3] for c in inquietudes.call_args_list if c.args[1:3] == ("marchand", "bruit")])
+        self.assertGreater(SECURITE["bruit"] * niveau / INTENSITES["appel"], 1)
 
     def test_un_geste_illicite_vu_inquiete_le_temoin(self):
         # Gorm a déjà refusé une part à Brune : elle se sert.

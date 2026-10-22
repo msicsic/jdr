@@ -129,12 +129,12 @@ class GardeTests(unittest.TestCase):
         self.assertFalse(m.objets["reserve"]["ouverte"])
         # Brune la regardait faire : elle n'a vu aucun geste illicite.
         self.assertFalse([s for s in memoires(m, "brune", "vu_agir") if s["auteur"] == "ilse"])
-        # La tâche faite, la clé qu'elle porte encore lui reste prêtée : elle la rendra à Gorm.
-        self.assertEqual([(p["objet"], p["a"], p["de"]) for p in m.data["permissions"]],
-                         [("cle_reserve", "ilse", "marchand")])
-        self.assertIn({"objet": "cle_reserve", "rendre": "marchand"},
-                      [x["condition"] for x in lire(m, "ilse")["engagements"]])
-        m, _ = vivre(m, 4)
+        # La tâche faite, la clé qu'elle porte encore lui reste prêtée : elle la rend à Gorm (dès qu'elle
+        # a fini, à l'instant : ``deliberation-evenements`` ; c'est parfois déjà fait).
+        if "Ilse rend la clé de la réserve à Gorm (rendu)." not in chronique(m):
+            self.assertEqual([(p["objet"], p["a"], p["de"]) for p in m.data["permissions"]],
+                             [("cle_reserve", "ilse", "marchand")])
+            m, _ = vivre(m, 4)
         self.assertIn("Ilse rend la clé de la réserve à Gorm (rendu).", chronique(m))
         self.assertEqual((m.objets["cle_reserve"]["lieu"], m.data["permissions"]), ("marchand", []))
         self.assertTrue(illicite(m, "ilse", "cle_reserve"))
@@ -216,8 +216,11 @@ class ArgentTests(unittest.TestCase):
         but, etapes = enrichir(endette, "odon")
         self.assertEqual(but, {"type": "argent", "objet": "paie"})
         self.assertIn(("prendre", "paie"), [(x["operation"], x["cible"]) for x in etapes])
-        # Seul au bureau, la serrure cède du premier coup : il prend la paie.
-        m, _ = vivre(endette, 5, jet=20)
+        # Seul au bureau, il prend la paie. (Placement d'auteur : le coffre n'est plus fermé à clé, et il
+        # le sait ; crocheté, le fracas fait accourir Bram aussitôt, et Odon, vu, attendrait.)
+        endette.objets["coffre_paie"]["verrouillee"] = False
+        croire(endette, "odon", "coffre_paie", "verrouillee", False, "essai")
+        m, _ = vivre(recharger(endette), 5, jet=20)
         self.assertIn("Odon, nouveau venu prend la bourse de la paie.", chronique(m))
         self.assertEqual(m.objets["paie"]["lieu"], "odon")
         self.assertEqual(m.objets["paie"]["proprietaire"], "bram")   # volée, pas donnée

@@ -89,7 +89,9 @@ class MineTests(unittest.TestCase):
         croire(m, "remy", "porte_reserve", "etat", {"ouverte": True}, "vu")
         m, _ = vivre(inquiet(m), 4)
         allumees = [k for k in ("lampe_rechange_1", "lampe_rechange_2") if m.objets[k]["allume"]]
-        self.assertEqual(len(allumees), 1)
+        # Une, ou deux si Josse, dans le noir lui aussi, emporte celle que Rémy vient d'allumer à la
+        # réserve et que Rémy rallume l'autre (chacun choisit désormais à l'instant).
+        self.assertIn(len(allumees), (1, 2))
         # Il y est allé l'allumer ; la suite (le fracas d'Odon qui crochète la porte du bureau dans
         # le noir l'inquiète) ne compte pas ici.
         self.assertLess(chronique(m).index("Rémy, jeune mineur passe dans : Réserve."),

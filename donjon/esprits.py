@@ -55,6 +55,18 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "urgences": dict,   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
           # qui l'a hélé et à qui il a répondu : il attend d'être rejoint (``deliberation.attendre``)
           "rejoint": lambda: None,
+          # veille : l'instant jusqu'où il attend sans geste en cours (désœuvré, guettant une
+          # occasion, assis, près du feu, à l'abri), qu'un événement abrège ; None s'il agit.
+          # eveil : l'instant où un événement a changé sa situation (``reconsiderer``) ; il
+          # choisit de nouveau son but à la fin de son geste, ou aussitôt s'il attend.
+          "veille": lambda: None, "eveil": lambda: None,
+          # le geste qu'il vient de manquer, dans cette minute : il ne le retente pas avant la suivante
+          "manque": lambda: None,
+          # la dernière minute comptée à attendre son occasion (``pnj._patienter``) : une par minute
+          "patience": lambda: None,
+          # les personnages qu'il voit, joueur compris (``_percevoir``) ; None avant sa première
+          # perception, qui ne fait que l'établir
+          "en_vue": lambda: None,
           # la dernière réponse refusée de chaque demande, et ce qu'il croyait de sa cause
           # (``deliberation.retenir_refus``)
           "refus": list}
@@ -165,6 +177,13 @@ def verifier(monde):
                    and u["etat"] in ("presse", "apaise", "attente") and type(u["depuis"]) is int
                    for b, u in e["urgences"].items()), "Urgences de PNJ invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
+        assert all(v is None or type(v) is int and v >= 0 for v in (e["veille"], e["eveil"])),             "Attente ou éveil de PNJ invalide"
+        assert e["patience"] is None or type(e["patience"]) is int, "Patience de PNJ invalide"
+        assert e["manque"] is None or (isinstance(e["manque"], dict) and set(e["manque"]) == {"etape", "minute"}
+                                       and isinstance(e["manque"]["etape"], dict)
+                                       and type(e["manque"]["minute"]) is int), "Geste manqué de PNJ invalide"
+        assert e["en_vue"] is None or (isinstance(e["en_vue"], list) and e["en_vue"] == sorted(set(e["en_vue"]))
+                                       and all(isinstance(x, str) for x in e["en_vue"])), "Personnages en vue invalides"
         b = e["balayage"]
         assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
                              and b["salle"] in monde.data["salles"] and isinstance(b["case"], list)
@@ -408,6 +427,7 @@ def _vu_porter(monde, id, sujet):
     memoriser(monde, id, {"type": "vu_porter", "auteur": porteur, "objet": sujet})
     croire(monde, id, porteur, "fiable", False, "vu")
     relancer(monde, id, "biens", VOL)
+    reconsiderer(monde, id)
 
 
 def constater(monde, id, sujet, source):
@@ -503,6 +523,21 @@ def constater_lumiere_devant(monde, id, objet):
            allumees=sorted(sources_posees_crues(monde, id, monde.objets[id]["lieu"])))
 
 
+def reconsiderer(monde, id):
+    """Un événement change la situation d'un PNJ qui délibère : un bruit qu'il interprète
+    (``ouie``), quelqu'un qui entre dans son regard ou en sort, l'état visible d'une chose qu'il
+    voit qui change sous ses yeux (une porte, un feu), une parole qui lui est adressée ou qui lui
+    apprend quelque chose. Il choisit de nouveau son but à la fin de son geste en cours, ou aussitôt
+    s'il ne fait qu'attendre (``pnj._avancer``). L'instant est dans son esprit : le même laps,
+    découpé autrement, donne le même monde. Sans cases, tout vit à la minute, comme avant."""
+    o = monde.objets.get(id)
+    if not o or not o.get("profil") or not monde.data.get("mode_cases"):
+        return
+    from .temps import instant
+    e, t = esprit(monde, id), instant(monde)
+    e["eveil"] = t if e["eveil"] is None else min(e["eveil"], t)
+
+
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
     from .spatial import etat_fige
@@ -518,6 +553,13 @@ def _percevoir(monde, id):
     constater_lumiere(monde, id)
     from .eau import percevoir as percevoir_eau
     percevoir_eau(monde, id)
+    # Qui entre dans son regard ou en sort, et ce qui change sous ses yeux, change sa situation.
+    # Sa première perception ne fait qu'établir ce qu'il voit.
+    e = esprit(monde, id)
+    en_vue = sorted(x for x in vus if x == "joueur" or monde.objets[x]["type"] == "personnage")
+    premiere = e["en_vue"] is None
+    change = not premiere and en_vue != e["en_vue"]
+    e["en_vue"] = en_vue
     for sujet, (salle, case) in vus.items():
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
@@ -527,7 +569,10 @@ def _percevoir(monde, id):
         if o["type"] != "porte":
             reviser(monde, id, sujet, "lieu", o["lieu"], salle=salle, case=case)
             _vu_porter(monde, id, sujet)
+        avant = croyances.get(sujet, {}).get("etat") if o["type"] in ETATS_VISIBLES else None
         constater(monde, id, sujet, "vu")
+        if avant is not None and avant["valeur"] != croyances[sujet]["etat"]["valeur"]:
+            change = True  # Une porte qui s'ouvre ou se ferme, un feu qui s'éteint, sous ses yeux.
         if o["type"] in ("porte", "contenant") and o.get("ouverte"):
             reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
     for sujet, attributs in list(croyances.items()):
@@ -540,6 +585,7 @@ def _percevoir(monde, id):
             valeur = etat["valeur"]
             reviser(monde, id, sujet, "etat", {**valeur, "allume": False, "faible": False,
                                                "charge": bool(valeur.get("charge")) and not valeur.get("faible")})
+            change = True
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
         if sujet in vus or not lieu or lieu["valeur"] is None or not _observe(monde, champ, lieu):
@@ -553,11 +599,17 @@ def _percevoir(monde, id):
             continue  # Un objet fixe fait partie du lieu : ne pas le voir d'ici ne le déplace pas.
         reviser(monde, id, sujet, "lieu", None, salle=None, case=None)
         if sujet != "joueur" and monde.objets[sujet]["type"] != "personnage":
+            change = True  # Ce qu'il attendait là n'y est plus.
             memoriser(monde, id, {"type": "absence", "objet": sujet, "salle": lieu["salle"]})
             from .vol import proprietaire
             if proprietaire(monde, monde.objets[sujet]) == id:
                 from .deliberation import relancer
                 relancer(monde, id, "biens", 30)
+    # Ce qu'il voit changer par son propre geste (ses pas, se tourner, une porte qu'il ouvre), il s'y
+    # attendait : son plan le prévoyait, il le poursuit (la fin du plan, un geste manqué et la minute
+    # le font choisir de nouveau). Seul ce que font les autres, ou le monde, l'éveille.
+    if change and not premiere and getattr(monde, "_agit", None) != id:
+        reconsiderer(monde, id)
 
 
 def percevoir_tous(monde):

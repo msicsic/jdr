@@ -160,6 +160,10 @@ class PorteTests(unittest.TestCase):
             croire(m, id, "porte", "verrouillee", True, "savoir")
         placer(m, "brune", "crypte", (7, 3))
         placer(m, "marchand", "antichambre", (2, 2))
+        # Placement d'auteur : Gorm laisse ses charges (sinon, la réserve déplacée, il va aussitôt en
+        # rapporter les vivres au refuge, et ouvre lui-même la porte étanche).
+        m.objets["marchand"]["profil"]["pulsions"] = []
+        lire(m, "marchand")["pulsions"] = []
         percevoir_tous(m)
         m = recharger(m)
         _, etapes = planifier(m, "brune", "faim")
@@ -197,8 +201,12 @@ class PiecesCruesTests(unittest.TestCase):
         m.objets["paie"]["pieces"] = 200
         croire(m, "odon", "paie", "pieces", 1, "vu")
         self.assertIsNone(enrichir(recharger(m), "odon"))
-        # Il la prend : la tenant, il en sait le compte.
+        # Il la prend : la tenant, il en sait le compte. (Placement d'auteur : le coffre n'est plus
+        # fermé à clé, et il le sait ; crocheté, le fracas fait accourir le camp aussitôt, et Odon,
+        # vu, attendrait son occasion.)
         croire(m, "odon", "paie", "pieces", 200, "savoir")
+        m.objets["coffre_paie"]["verrouillee"] = False
+        croire(m, "odon", "coffre_paie", "verrouillee", False, "essai")
         m, _ = vivre(recharger(m), 5, jet=20)
         self.assertEqual(m.objets["paie"]["lieu"], "odon")
         self.assertEqual(lire(m, "odon")["croyances"]["paie"]["pieces"]["valeur"], m.objets["paie"]["pieces"])

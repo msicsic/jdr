@@ -13,6 +13,7 @@ import json
 from unittest.mock import patch
 
 from .esprits import lire, pnjs
+from .temps import instant
 from .francais import accorder, de, designer
 
 MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim": "faim", "repos": "fatigue",
@@ -109,14 +110,21 @@ class Recit:
     @contextmanager
     def observer(self):
         from . import deliberation
-        originale = deliberation.deliberer
+        originale, choix = deliberation.deliberer, deliberation.choisir
 
         def deliberer(monde, id, minute):
             resultat = originale(monde, id, minute)
             if id in self.episodes:
                 self._noter(monde, id, minute)
             return resultat
-        with patch.object(deliberation, "deliberer", deliberer):
+
+        def choisir(monde, id, minute):
+            # Un but choisi entre deux minutes (fin de plan, geste manqué, événement) compte aussi.
+            resultat = choix(monde, id, minute)
+            if id in self.episodes:
+                self._episode(monde, id, minute)
+            return resultat
+        with patch.object(deliberation, "deliberer", deliberer), patch.object(deliberation, "choisir", choisir):
             yield self
 
     def _noter(self, monde, id, minute):
@@ -141,6 +149,11 @@ class Recit:
                 self.en_attente[id] += 1
             else:
                 self.sans_recours[id] += 1
+        self._episode(monde, id, minute)
+
+    def _episode(self, monde, id, minute):
+        """Le but en cours : il prolonge l'épisode courant ou en ouvre un autre."""
+        i = lire(monde, id)["intention"]
         cle = (json.dumps(i["but"], sort_keys=True), i["motif"]) if i else None
         episodes = self.episodes[id]
         courant = episodes[-1] if episodes and episodes[-1]["fin"] is None else None
@@ -148,13 +161,15 @@ class Recit:
             return
         if courant:
             courant["fin"] = minute - 1
+            courant["t_fin"] = instant(monde)  # Ses gestes s'arrêtent là, au dixième (``_gestes``).
         if cle is None:
             return
         precedent = episodes[-1] if episodes else None
         if precedent and precedent["cle"] == cle and minute - precedent["fin"] <= 2:
-            precedent["fin"] = None  # Un battement d'une minute ne coupe pas le même but.
+            precedent["fin"] = precedent["t_fin"] = None  # Un battement d'une minute ne coupe pas le même but.
             return
-        episodes.append({"cle": cle, "but": dict(i["but"]), "motif": i["motif"], "debut": minute, "fin": None})
+        episodes.append({"cle": cle, "but": dict(i["but"]), "motif": i["motif"], "debut": minute, "fin": None,
+                         "t": instant(monde), "t_fin": None})
 
     def clore(self, monde):
         for id in self.ids:
@@ -166,11 +181,17 @@ class Recit:
 
     # --- Rendu ------------------------------------------------------------------------------
 
-    def _gestes(self, monde, id, chronique, debut, fin):
+    def _gestes(self, monde, id, chronique, debut, fin, t=None, t_fin=None):
+        """Ses gestes pendant un but : de ``debut`` à ``fin`` (minutes), départagés à l'instant
+        (``t`` inclus, ``t_fin`` exclu) quand la chronique le porte."""
         noms = sorted({monde.objets[id]["nom"], court(monde, id)}, key=len, reverse=True)
         gestes = []
         for c in chronique:
-            if c["pnj"] != id or not debut <= c["minute"] <= fin or c.get("nature") in ("deplacement", "ouie", "reponse"):
+            if "instant" in c and t is not None:
+                dedans = t <= c["instant"] and (t_fin is None or c["instant"] < t_fin)
+            else:
+                dedans = debut <= c["minute"] <= fin
+            if c["pnj"] != id or not dedans or c.get("nature") in ("deplacement", "ouie", "reponse"):
                 continue
             texte = c["texte"].rstrip(".")
             for nom in noms:
@@ -192,7 +213,7 @@ class Recit:
         rondes, sans_geste, faits = Counter(), {}, []
         for ep in self.episodes[id]:
             mots = but_en_mots(monde, ep["but"])
-            gestes = self._gestes(monde, id, chronique, ep["debut"], ep["fin"])
+            gestes = self._gestes(monde, id, chronique, ep["debut"], ep["fin"], ep.get("t"), ep.get("t_fin"))
             if ep["but"].get("periode") and not ep["abandon"] and all(g.startswith("inspecte") for g in gestes):
                 rondes[mots.removeprefix("ronde : ")] += 1
                 continue

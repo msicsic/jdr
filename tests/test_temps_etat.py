@@ -271,6 +271,8 @@ def brune_crochete_ilse_arrive():
     placer(m, "ilse", "echoppe", (6, 3))
     regarder(m, "ilse", [0, 3])
     intention(m, "brune", plan("crocheter", "reserve", "crochets"))
+    # Sa ronde du refuge est due : elle y va, et l'y mène encore quand le bruit la fait reconsidérer.
+    lire(m, "ilse")["visites"]["antichambre"] = -500
     intention(m, "ilse", plan("aller", lieu="antichambre"), plan("inspecter", lieu="antichambre"),
               but="garder", motif="devoir")
     esprit(m, "brune")["libre"] = 5

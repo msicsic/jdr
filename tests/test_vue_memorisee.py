@@ -120,8 +120,8 @@ class VueMemoriseeTests(unittest.TestCase):
         """Après des gestes tirés au hasard, toute la nuit : chaque PNJ et le joueur."""
         hasard, comparaisons, agir = random.Random(7), [], pnj.agir
 
-        def agir_et_comparer(monde, id, t, lignes, gestes=None):
-            duree = agir(monde, id, t, lignes, gestes)
+        def agir_et_comparer(monde, id, t, lignes, gestes=None, compter=True):
+            duree = agir(monde, id, t, lignes, gestes, compter)
             if hasard.random() < 0.08:
                 self.assertIsNotNone(getattr(monde, "_cache_vue", None), "hors de la vie des PNJ")
                 self.comparer(monde)

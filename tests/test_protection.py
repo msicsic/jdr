@@ -31,15 +31,18 @@ def seule_et_a_bout(monde):
 
 class AppelTests(unittest.TestCase):
     def test_a_bout_sans_abri_elle_appelle_et_gorm_accourt(self):
+        from tests.test_deliberation_evenements import Choix
         m = seule_et_a_bout(relais())
-        m, _ = vivre(m, 1)
+        with Choix("marchand") as choix:
+            m, _ = vivre(m, 1)
         self.assertIn("Ilse appelle à l'aide.", chronique(m))
-        # Il reconnaît sa voix (l'ouïe commune) : à la minute suivante, il accourt avant tout le reste.
+        # Il reconnaît sa voix (l'ouïe commune) : il accourt aussitôt, avant tout le reste, sans
+        # attendre la minute suivante (``deliberation-evenements``).
         self.assertEqual(dernier_son(m, "marchand")["qui"], "ilse")
         self.assertEqual(alarme(m, "marchand"), ("echoppe", "devoir"))
-        m, _ = vivre(m, 1)
+        self.assertIn({"type": "voir", "lieu": "echoppe"}, [b for _, _, b in choix.choix])
         self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "voir", "lieu": "echoppe"})
-        m, _ = vivre(m, 4)
+        m, _ = vivre(m, 5)
         self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")
         # Elle n'appelle pas à chaque minute.
         self.assertEqual(chronique(m).count("Ilse appelle à l'aide."), 1)

@@ -98,7 +98,11 @@ def odon_au_coffre(bram_le_sait=False):
     regarder(m, "odon", "coffre_paie")
     placer(m, "bram", "bureau", (2, 2))
     m.objets["bram"]["orientation"] = "est"
-    placer(m, "josse", "baraquement", (6, 2))
+    # Josse, à la galerie : alerté, il accourt dès le bruit (``deliberation-evenements``) et n'entre avec
+    # sa lampe qu'une fois le coffre lâché (du baraquement, il arrivait pendant le crochetage et
+    # l'éclairait : Bram aurait vu Odon à l'œuvre).
+    from donjon.geometrie import position_entree
+    placer(m, "josse", "galerie", position_entree(m, "galerie"))
     m.joueur["orientation"] = "nord"
     intention(m, "odon", plan("crocheter", "coffre_paie", "crochets"), but="argent", motif="argent")
     esprit(m, "odon")["libre"] = 5

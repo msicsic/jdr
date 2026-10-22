@@ -154,14 +154,15 @@ class Enregistreur:
     @contextmanager
     def observer(self):
         from . import deliberation, ouie, pnj, social
-        deliberer, temoigner = deliberation.deliberer, pnj.temoigner_en_cours
+        choisir, temoigner = deliberation.choisir, pnj.temoigner_en_cours
         retentir, entendre, attribuer = ouie.retentir, ouie.entendre, ouie._attribuer
         se_tourner, bruit_inconnu = ouie._se_tourner, ouie._bruit_inconnu
         retenir, commencer, temoins = social.retenir_parole, pnj.commencer_geste, pnj._temoins
         a_l_oreille = pnj._temoins_a_l_oreille
 
-        def _deliberer(monde, id, minute):
-            resultat = deliberer(monde, id, minute)
+        def _choisir(monde, id, minute):
+            # Chaque choix de but, à la minute comme entre deux (``pnj._avancer``).
+            resultat = choisir(monde, id, minute)
             if id in self.personnages:
                 self._penser(monde, id)
             return resultat
@@ -244,7 +245,7 @@ class Enregistreur:
             return resultat
         with ExitStack() as pile:
             for module, nom, remplacant in (
-                    (deliberation, "deliberer", _deliberer), (pnj, "temoigner_en_cours", _temoigner),
+                    (deliberation, "choisir", _choisir), (pnj, "temoigner_en_cours", _temoigner),
                     (ouie, "retentir", _retentir), (ouie, "entendre", _entendre),
                     (ouie, "_attribuer", _marquer("attribue", attribuer)), (ouie, "_se_tourner", _marquer("tourne", se_tourner)),
                     (ouie, "_bruit_inconnu", _marquer("bruit", bruit_inconnu)), (social, "retenir_parole", _retenir),
