@@ -501,10 +501,10 @@ def parcouru(monde, id, salle, case=None):
 
 def couvert(monde, id, salle, n, qui=None, case=None):
     """Le souvenir d'examen (``parcouru``) qui couvre ce bruit : venu du lieu qu'il est allé voir sans
-    rien y trouver, pas plus fort que ce qu'il y attendait, d'aucune autre voix, d'un endroit qu'il
-    ne situe pas mieux (de la salle seulement, alors qu'il avait examiné la salle ou une case ; de
-    tout près de la case examinée), dans les ``RECENT`` minutes qui suivent l'examen ou le dernier
-    bruit pareil ; None sinon."""
+    rien y trouver, pas plus fort que ce qu'il y attendait, d'aucune autre voix, sans qu'il le situe
+    mieux (il avait examiné le lieu entier, et l'entend maintenant d'une case : c'est nouveau), dans
+    les ``RECENT`` minutes qui suivent l'examen ou le dernier bruit pareil ; None sinon. Dans une
+    salle où il n'a rien pu voir, des pas de plus ne lui apprennent rien."""
     from .esprits import RECENT, lire
     minute = monde.data["minutes"]
     for s in reversed(lire(monde, id)["memoire"]):
@@ -512,7 +512,7 @@ def couvert(monde, id, salle, n, qui=None, case=None):
             continue
         if INTENSITES[n] > INTENSITES[s["nature"]] or qui is not None and qui != s.get("qui"):
             return None
-        if case is not None and (s["case"] is None or distance(case, s["case"]) > PRES_DE):
+        if case is not None and s["case"] is None:
             return None
         return s
     return None

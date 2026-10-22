@@ -182,6 +182,28 @@ def temoins_crus(monde, id):
             if s == "joueur" or monde.objets[s]["type"] == "personnage"]
 
 
+def oreilles_crues(monde, id, nature):
+    """Ceux qu'il croit, depuis peu, dans sa salle et assez près pour entendre un geste de cette
+    ``nature`` (``ouie`` : la distance à la case où il les croit ; sans case, la salle entière) : ils
+    sauraient sur quoi il porte (``_temoins_a_l_oreille``), il se croit entendu de chacun d'eux. Un
+    geste qu'il veut sans témoin attend qu'ils s'éloignent, comme pour ceux qu'il voit."""
+    from .esprits import RECENT
+    from .ouie import INTENSITES, SEUIL, perte
+    o = monde.objets[id]
+    if nature is None or o["lieu"] not in monde.data["salles"]:
+        return []
+    ici, minute = o.get("position"), monde.data["minutes"]
+    crus = []
+    for x, a in lire(monde, id)["croyances"].items():
+        c = a.get("lieu")
+        if (x == id or not c or c["valeur"] != o["lieu"] or minute - c["minute"] > RECENT
+                or not (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")):
+            continue
+        if ici is None or not c.get("case") or INTENSITES[nature] - perte(ici, c["case"]) >= SEUIL:
+            crus.append(x)
+    return sorted(crus)
+
+
 TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, huit fois 45°
 CONTACT = 1            # case : au contact (une diagonale voisine comprise, ``geometrie.distance``)
 # Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
@@ -1356,7 +1378,11 @@ def agir(monde, id, t, lignes, gestes=None):
                     return TOUR
         else:
             observe = None
-        if observe or (observe is None and temoins_crus(monde, id)):
+        from .ouie import nature as nature_de
+        # Ceux qu'il croit à portée d'oreille comptent comme ceux qu'il voit : qui entend forcer un
+        # coffre tout près sait qu'on y touche (``_temoins_a_l_oreille``).
+        if (observe or (observe is None and temoins_crus(monde, id))
+                or oreilles_crues(monde, id, nature_de(operation, discret=True))):
             # Il guette une occasion jusqu'à la minute suivante.
             intention["attente"] += 1
             if intention["attente"] > PATIENCE:

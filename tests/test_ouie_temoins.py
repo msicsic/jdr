@@ -182,9 +182,9 @@ class TemoinParLOuieTests(unittest.TestCase):
         # Au contact, dans le noir, il n'y voit rien : il a fait ce qu'il pouvait, le bruit est réglé.
         self.assertEqual(souvenirs(m, "bram", "bruit"), [])
         self.assertEqual([(s["case"], s["nature"]) for s in souvenirs(m, "bram", "examen")], [([3, 2], "bruyant")])
-        # Josse, alerté, vient avec sa lampe : Bram voit alors Odon à l'œuvre.
+        # Josse, alerté, vient avec sa lampe ; Odon, qui les sait à portée d'oreille, n'insiste pas.
         m = attendre(m, 1)
-        self.assertIn(("odon", "coffre_paie"), vu_agir(m, "bram"))
+        self.assertEqual(sum("s'acharne sur la serrure" in t for t in chronique(m)), 1)
 
     def test_bram_qui_le_croit_la_le_reconnait(self):
         m = attendre(odon_au_coffre(bram_le_sait=True), 1)
@@ -202,6 +202,22 @@ class TemoinParLOuieTests(unittest.TestCase):
         self.assertIn("Anselme entend que Lucien a tenté de crocheter la serrure du coffre ferré.", chronique(m))
         self.assertIn(("lucien", "coffre_marchand"), vu_agir(m, "anselme"))
         self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
+
+    def test_qui_veut_agir_sans_temoin_compte_ceux_qu_il_croit_a_portee_d_oreille(self):
+        # L'auteur de son côté : Brune veut forcer la réserve sans témoin. Elle ne voit pas Gorm, à sept
+        # cases dans la pénombre ; si elle le sait là, il l'entendrait : elle attend, sinon elle force.
+        def brune_en_douce(le_sait):
+            m = brune_loin_de_gorm()
+            intention(m, "brune", plan("crocheter", "reserve", "crochets", condition="sans_temoin"))
+            lire(m, "brune")["besoins"]["faim"] = 80.0
+            if le_sait:
+                croire(m, "brune", "marchand", "lieu", "antichambre", "entendu", salle="antichambre", case=[0, 3])
+            return recharger(m)
+        sait, ignore = attendre(brune_en_douce(True), 2), attendre(brune_en_douce(False), 1)
+        self.assertFalse(any("s'acharne" in t for t in chronique(sait)))
+        etape = lire(sait, "brune")["intention"]["plan"][0]
+        self.assertEqual((etape["operation"], etape["condition"]), ("crocheter", "sans_temoin"))
+        self.assertTrue(any("s'acharne" in t for t in chronique(ignore)))
 
     def test_la_vue_prime_sur_l_ouie(self):
         # Il voit faire : il est témoin par la vue, pas par l'ouïe.
@@ -227,10 +243,11 @@ class AllerVoirRegleTests(unittest.TestCase):
         self.assertTrue(parcouru(m, "bram", "bureau", (3, 2)))
         m = recharger(m)
         self.assertIsNotNone(couvert(m, "bram", "bureau", "bruyant", None, (3, 2)))
+        # Dans ce bureau où il n'a rien pu voir, des pas, un autre bruit pareil ailleurs, ne lui
+        # apprennent rien ; seul un bruit nouveau le relance : plus fort, d'une voix reconnue.
         self.assertIsNotNone(couvert(m, "bram", "bureau", "pas", None, (4, 2)))
-        # Un bruit nouveau : plus fort, ailleurs dans la salle, d'une voix reconnue.
+        self.assertIsNotNone(couvert(m, "bram", "bureau", "bruyant", None, (0, 0)))
         self.assertIsNone(couvert(m, "bram", "bureau", "appel", None, (3, 2)))
-        self.assertIsNone(couvert(m, "bram", "bureau", "bruyant", None, (0, 0)))
         self.assertIsNone(couvert(m, "bram", "bureau", "bruyant", "odon", (3, 2)))
 
     def test_cas_reel_l_appel_repete_n_y_renvoie_plus(self):
