@@ -517,7 +517,24 @@ def lumiere_ici(monde, id):
     est ce que la salle a partout : ses propres sources, et la lueur diffuse qui la baigne tout
     entière (``perception.CarteLumiere.ambiance`` : jour, reflets d'une source voisine par une
     ouverture) ; pas la lumière directe d'une source d'une autre salle, qui n'atteint que les
-    cases qu'elle voit (un seuil). Sans cases, la lueur d'une voisine baigne toute la salle."""
+    cases qu'elle voit (un seuil). Sans cases, la lueur d'une voisine baigne toute la salle.
+
+    Dans un état figé (``spatial.etat_fige``), gardée pour l'état : elle n'en lit que ce que lit
+    ``spatial.etat_vue`` (sa place, les sources, qui les porte)."""
+    from .spatial import a_verifier
+    cache = getattr(monde, "_cache_vue", None)
+    fige = None if cache is None else cache.get("fige")
+    if fige is not None and ("lumiere_ici", id) in fige:
+        assert not a_verifier() or fige["lumiere_ici", id] == _lumiere_ici(monde, id), \
+            f"Lumière mémorisée périmée : {id}"
+        return fige["lumiere_ici", id]
+    resultat = _lumiere_ici(monde, id)
+    if fige is not None:
+        fige["lumiere_ici", id] = resultat
+    return resultat
+
+
+def _lumiere_ici(monde, id):
     from .perception import _par_case
     salle = monde.objets[id]["lieu"]
     porte = lambda source: source in monde.objets and _porteur(monde, monde.objets[source]) is not None

@@ -1514,9 +1514,9 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
 # si le joueur a vu le passage ; sinon, il sait seulement qu'il voit, ou ne voit plus, quelqu'un.
 
 def _ouvrir_presences(monde):
-    from .spatial import vue_memorisee
+    from .spatial import etat_fige, vue_memorisee
     ici, suivi = monde.joueur["salle"], {}
-    with vue_memorisee(monde):
+    with vue_memorisee(monde), etat_fige(monde):  # Un relevé : l'état n'est lu qu'une fois.
         for id in pnjs(monde):
             visible, lieu = monde.visible(id), monde.objets[id]["lieu"]
             suivi[id] = {"debut": visible, "lieu": lieu, "vu": visible, "passage": None, "dernier": (visible, lieu, ici)}
@@ -1619,6 +1619,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     from .horloges import declencher as declencher_horloges
     from .perception import avancer_combustion
     from .social import bavarder
+    from .spatial import etat_fige
     from .temps import MINUTE
     from .vecu import minute as vivre_la_minute, noter, solder as solder_vecu
     fin_minutes, fin_dixiemes = monde.data["minutes"], monde.data.get("dixiemes", 0)
@@ -1718,7 +1719,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 e["eveil"] = None
                 choisir(monde, id, monde.data["minutes"])
             intention = lire(monde, id)["intention"]
-            attend = False
+            attend = note = False
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
                 duree = DUREES["dire"] if en_cases else _jusqu_a_la_minute(t)
@@ -1742,13 +1743,19 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     commencer_geste(monde, id, operation, objet, t + max(1, duree), nature=nature[0] if nature else None)
                 # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
                 # est en cache). Les croyances ne dépendent pas des instants où le joueur agit.
-                percevoir_tous(monde)
-                monde._agit = None
-                temoigner_en_cours(monde)
-                observer()
+                # Percevoir, témoigner, relever ce que voit le joueur, noter l'état où il entre (son
+                # corps) : des esprits et des corps seulement, l'état n'est lu qu'une fois.
+                with etat_fige(monde):
+                    percevoir_tous(monde)
+                    monde._agit = None
+                    temoigner_en_cours(monde)
+                    observer()
+                    if profil:
+                        noter(monde, id, t, monde._activite)
+                note = True
             else:
                 duree, attend = _jusqu_a_la_minute(t), en_cases
-            if profil:
+            if profil and not note:
                 # L'état où il entre pour ce geste ou cette attente : son activité, le lieu où il se tient.
                 noter(monde, id, t, monde._activite)
             if attend:

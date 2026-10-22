@@ -97,8 +97,13 @@ class Etat(tuple):
     def apres(self, salle=None, portes=None, faits=()):
         salle = self.salle if salle is None else salle
         portes = self.portes if portes is None else frozenset(portes)
-        faits = {**self.faits, **dict(faits)}
-        suivant = tuple.__new__(Etat, (salle, portes, frozenset(faits.items())))
+        if faits:
+            faits = {**self.faits, **dict(faits)}
+            geles = frozenset(faits.items())
+        else:
+            # Aucun fait nouveau : ceux de cet état, qu'aucun état ne modifie en place.
+            faits, geles = self.faits, self[2]
+        suivant = tuple.__new__(Etat, (salle, portes, geles))
         suivant.salle, suivant.portes, suivant.faits = salle, portes, faits
         return suivant
 
@@ -1305,13 +1310,14 @@ def _premier(e, sorte):
 
 
 def a_mange(v, e):
-    return _premier(e, "mange") is not None or any(
-        cle[0] == "part" and v.monde.objets[cle[1]]["type"] == "nourriture" for cle in e.faits)
+    # ``_premier(e, "mange") is not None``, sans trier les faits : un test de but à chaque état.
+    return any(cle[0] == "mange" or cle[0] == "part" and v.monde.objets[cle[1]]["type"] == "nourriture"
+               for cle in e.faits)
 
 
 def rechauffe(v, e):
-    return _premier(e, "chauffe") is not None or any(
-        cle[0] == "part" and besoin_de_part(v.monde.objets[cle[1]]) == "chaleur" for cle in e.faits)
+    return any(cle[0] == "chauffe" or cle[0] == "part" and besoin_de_part(v.monde.objets[cle[1]]) == "chaleur"
+               for cle in e.faits)
 
 
 def retablir(v, e, etapes):
