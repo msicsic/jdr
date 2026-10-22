@@ -954,7 +954,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   temps d'une nuit Relais 10,5 → 9,7 s, mine 25 → 34 s, auberge 26,8 → 31,9 s, crue 10,3 → 12 s (une
   vue du planificateur par choix ; une reprise du choix entier serait la suite). Restent à la minute : corps et
   besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
-- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 
@@ -969,6 +969,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; les réflexes déclarés et le
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
+  l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
+  déclarés et le souvenir « son » dans l'ouïe commune.
+- **Étape 4 du plan social, le corps et la force** : conception dans `docs/plan-force.md`
+  (branche `plan-force`, document seul) ; découpage 4a à 4f et décisions à trancher en fin de
+  document, avant toute réalisation.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
   `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
   besoin que rien n'apaise (le devoir reste urgent une fois franchi son seuil ; il attend désormais
