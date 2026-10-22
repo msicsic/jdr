@@ -79,7 +79,8 @@ court (méthode, risque), jamais un résultat.
   (contenu_vide en fait partie). Lire sert aussi à déchiffrer un sens caché.
 - ecouter : cible et outil vides. Corvus tend l'oreille trois minutes là où il se tient, mieux
   contre une porte ; c'est le moteur qui dit ce qui parvient.
-- aller : une direction (nord, sud, est, ouest) ; attendre : cible vide.
+- aller : une direction (nord, sud, est, ouest) ; attendre : cible vide (cinq minutes) ou une durée
+  en secondes (« 600 » pour dix minutes), que le moteur interrompt si quelqu'un paraît ou appelle.
 - acheter : un objet en vente.
 - ouvrir, fermer : une porte ou un contenant, la clé dans outil si besoin ; deverrouiller : avec
   la clé qui convient ; crocheter : avec un outil d'usage crochetage.

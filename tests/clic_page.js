@@ -11,10 +11,13 @@ function el(id) {
   return elements[id];
 }
 global.window = { devicePixelRatio: 1, innerWidth: 1000, innerHeight: 800 };
-global.document = { getElementById: el, createElement: () => ({ style: {} }), documentElement: {}, addEventListener() {}, activeElement: null };
+const ecouteurs = global.ecouteurs = {};
+global.document = { getElementById: el, createElement: () => ({ style: {} }), documentElement: {}, activeElement: null,
+  addEventListener(type, f) { (ecouteurs[type] = ecouteurs[type] || []).push(f); } };
 global.getComputedStyle = () => ({ getPropertyValue: () => "#333" });
 global.EventSource = function () { return {}; };
-global.fetch = async () => ({ status: 200 });
+const envois = global.envois = [];
+global.fetch = async (url, options) => { if (url === "/commande") envois.push(JSON.parse(options.body).texte); return { status: 200 }; };
 global.ETAT = JSON.parse(fs.readFileSync(0, "utf-8"));
 const page = fs.readFileSync(process.argv[2], "utf-8");
 (0, eval)(page.match(/<script>([\s\S]*)<\/script>/)[1] + `
@@ -41,6 +44,16 @@ for (const regard of ROSE) {
                            ["bas", {key: "ArrowDown"}], ["maj_gauche", {key: "ArrowLeft", shiftKey: true}],
                            ["maj_droite", {key: "ArrowRight", shiftKey: true}], ["alt_haut", {key: "ArrowUp", altKey: true}]])
     sortie.fleches[regard][nom] = commandeFleche(ev);
+}
+// Espace selon ce qui a le focus : la commande envoyée, et si l'espace est gardée.
+sortie.espace = {};
+$("commande").tagName = "INPUT";
+for (const [nom, actif, valeur] of [["saisie_vide", $("commande"), ""], ["saisie_ecrite", $("commande"), "je"],
+                                     ["carte", $("carte-cadre"), ""], ["bouton", {tagName: "BUTTON"}, ""]]) {
+  occupe = false; envois.length = 0; document.activeElement = actif; $("commande").value = valeur;
+  let empeche = false;
+  ecouteurs.keydown.forEach(f => f({key: " ", preventDefault() { empeche = true; }}));
+  sortie.espace[nom] = {envoi: envois[0] || null, empeche};
 }
 console.log(JSON.stringify(sortie));
 `);

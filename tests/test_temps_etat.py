@@ -13,7 +13,7 @@ from donjon.dialogues import interlocuteurs
 from donjon.esprits import connaitre, esprit, lire
 from donjon.faits_locaux import catalogue
 from donjon.monde import ErreurMonde, Monde
-from donjon.moteur import Moteur
+from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
 from donjon.ouie import retentir
 from donjon.paroles import preparer_parole
@@ -50,11 +50,11 @@ def etat_pnj(m):
 
 
 def decouper(scene, minutes, recharger_tous=25):
-    """Le même laps : une attente d'un bloc, puis une suite de rotations du joueur, rechargées en
-    route."""
+    """Le même laps : une attente d'un bloc (la proposition sans durée, que rien n'interrompt), puis
+    une suite de rotations du joueur, rechargées en route."""
     d_un_bloc = scene()
     while d_un_bloc.data["minutes"] < minutes:
-        faire(d_un_bloc, "attendre")
+        Moteur(d_un_bloc).executer(Moteur(d_un_bloc).preparer(proposition("attendre")))
     morcele, n = scene(), 0
     while instant(morcele) < instant(d_un_bloc):
         faire(morcele, "tourner sud" if n % 2 == 0 else "tourner nord")

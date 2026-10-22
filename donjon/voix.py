@@ -159,16 +159,18 @@ def auteur_dit(source):
 
 # --- Ce qu'on apprend en entendant ------------------------------------------------------------
 
-def retenir(monde, qui, signature):
-    """Il retient une voix inconnue entendue maintenant ; renvoie ce qu'il en retient."""
+def retenir(monde, qui, signature, minute=None):
+    """Il retient une voix inconnue entendue à ``minute`` (maintenant par défaut) ; renvoie ce qu'il
+    en retient."""
+    minute = monde.data["minutes"] if minute is None else minute
     voix = entendues(monde, qui, ecrire=True)
     entree = voix.get(signature)
     if entree is None:
-        entree = voix[signature] = {"minute": monde.data["minutes"], "se_dit": None, "mefiance": False,
+        entree = voix[signature] = {"minute": minute, "se_dit": None, "mefiance": False,
                                     "n": 1 + max((e["n"] for e in voix.values()), default=0)}
         for vieille in sorted(voix, key=lambda s: (voix[s]["minute"], voix[s]["n"]))[:max(0, len(voix) - VOIX_MAX)]:
             del voix[vieille]
-    entree["minute"] = monde.data["minutes"]
+    entree["minute"] = max(entree["minute"], minute)
     return entree
 
 

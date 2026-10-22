@@ -303,6 +303,21 @@ perception du joueur est annoncée par le moteur (`donjon/pnj.py`).
 Sans réaction perceptible, la restitution est :
 « Tu cries à l'aide. Pour l'instant, aucune réponse ne te parvient. »
 
+#### Attendre
+
+`attendre` fait passer cinq minutes ; `attendre 30 s`, `attendre 10 min`, `attendre 1 h 30` (sans
+unité, des minutes) une durée choisie, jusqu'à douze heures, sans appel au modèle. Dans la page et
+dans le terminal, Espace sur une saisie vide (ou la carte) fait attendre le temps d'un pas (1,5 s) ;
+dès qu'un caractère est tapé, Espace redevient une espace. Le temps passe par tranches de 15 s
+(`Moteur._attendre`), ce qui donne le même monde qu'un bloc ; le joueur cesse d'attendre à la fin
+de la tranche où il a vu, même un instant, quelqu'un qu'il ne voyait pas, ou entendu un appel, un
+cri, un fracas ou des paroles dont il saisit les mots (`ecoute.eveille`) ; des pas, un geste
+ordinaire, des voix dont les mots lui échappent ne l'interrompent pas. Il lit « Tu attends
+10 minutes. » ou « Au bout de 2 minutes 15 secondes, tu cesses d'attendre. », puis ce qu'il a
+entendu et le bilan des présences. Attendre repose et fait retomber le bruit (trois crans par cinq
+minutes). Le MJ propose `attendre` avec la cible vide (cinq minutes d'un bloc, sans interruption,
+comme le banc) ou une durée en secondes.
+
 #### Perception et croyances des PNJ
 
 Chaque PNJ perçoit avec les règles du joueur, depuis sa propre case : lumière par case,

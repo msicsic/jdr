@@ -109,7 +109,7 @@ voler : cible objet appartenant à autrui, accessible, mobile, sans outil. Le mo
   et rend les témoins méfiants ; certains vendeurs peuvent ensuite refuser les ventes.
   Une réussite met l'objet dans la besace sans paiement, sans avertir les PNJ.
   Le vol n'autorise ni combat, ni disparition du propriétaire, ni distraction inventée.
-aller : cible nord/sud/est/ouest. attendre : cible vide.
+aller : cible nord/sud/est/ouest. attendre : cible vide (cinq minutes) ou une durée en secondes.
   En mode_cases, aller avance d'une case, ou franchit le seuil immédiatement voisin.
   Sans mode_cases, aller franchit une sortie vers une autre pièce.
 ouvrir/fermer : cible porte ou contenant, clé éventuelle dans outil.

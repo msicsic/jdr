@@ -693,6 +693,26 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertLessEqual(saisie.bottom, 28)
                 await self.fermer(app)
 
+    async def test_espace_attend_un_instant_si_la_saisie_est_vide(self):
+        from donjon.temps import instant
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            app = SeuilApp(["--offline", "--save", str(chemin)])
+            async with app.run_test(size=(80, 25)) as pilot:
+                await self.pret(app)
+                await self.commande(app, pilot, "attendre 30 s")
+                debut = instant(Monde.charger(chemin))
+                # Saisie vide : Espace fait attendre le temps d'un pas, sans rien écrire.
+                await pilot.press("space")
+                await self.attendre(lambda: not app.occupe and instant(Monde.charger(chemin)) == debut + 15,
+                                    lambda: "Espace n'a pas fait attendre 1,5 s : %s" % (instant(Monde.charger(chemin)) - debut))
+                self.assertEqual(app.query_one("#commande", Input).value, "")
+                # Une saisie commencée garde son espace, et le temps ne passe pas.
+                await pilot.press("j", "e", "space")
+                self.assertEqual(app.query_one("#commande", Input).value, "je ")
+                self.assertEqual(instant(Monde.charger(chemin)), debut + 15)
+                await self.fermer(app)
+
     async def test_quitter_pendant_mj_attend_et_sauvegarde_action(self):
         arrive = threading.Event()
         continuer = threading.Event()

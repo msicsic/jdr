@@ -1161,7 +1161,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sans flamme pour le rallumer (la torche lui est refusée), ne la sert ni ne le dit, et Gorm attend 60 minutes
   avant que la part, remise autrement, devienne une dette rendue ; à 334, il accepte pour 16 pièces de
   rallumer le brasero puis la doit aussitôt (non corrigé ici).
-- La suite de tests passe : 1259 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `attente`, non fusionnée (`docs/plan-temps.md`, « Correctif : attendre une durée » ; demande de
+  l'utilisateur) : `attendre 30 s`, `attendre 10 min`, `attendre 1 h 30` sans Luna (« attendre » seul,
+  cinq minutes) ; Espace sur une saisie vide fait attendre 1,5 s, dans la page et le terminal (une saisie
+  commencée garde son espace). L'attente passe par tranches de 15 s (`Moteur._attendre`) et cesse quand
+  le joueur voit paraître quelqu'un, même un instant, ou entend un appel, un cri, un fracas, des paroles
+  dont il saisit les mots (`ecoute.eveille`). Même monde d'un bloc ou par tranches : le corps du joueur
+  au temps vécu (lot A) ne dépend pas du découpage, une voix inconnue est retenue à la minute entendue. La proposition
+  à cible vide (MJ, banc, tests) reste le bloc de cinq minutes ; le MJ peut donner une durée en secondes.
+  Cas vérifiés après rechargement (`tests/test_attente.py`, `test_tui`, `test_web`) : Gorm qui entre au
+  refuge, Aubin aperçu, un appel entendu de la galerie. Limites : l'arrêt se juge à la tranche ; une
+  parole adressée au joueur n'est pas distinguée d'une autre.
+- La suite de tests passe : 1269 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

@@ -38,7 +38,9 @@ AIDE = """COMMANDES LOCALES — sans appel API
   installer échelle contre mur | monter échelle | descendre échelle
   désinstaller échelle                 retirer l'accès vertical depuis son pied ou son sommet
   fabriquer échelle                    assemblage local si les matériaux sont à portée
-  attendre                             5 minutes, le bruit diminue
+  attendre [durée]                     5 minutes, ou « attendre 30 s », « attendre 10 min » ; le bruit
+                                       diminue ; tu cesses d'attendre si quelqu'un paraît, ou si un
+                                       appel, un cri, un fracas, des paroles nettes te parviennent
   crier à l'aide | crier | siffler       émettre un son, sans garantie de secours
   sonner <objet>                        utiliser un objet sonore accessible
   sauver | quitter                     sauvegarde aussi après chaque action
@@ -215,6 +217,35 @@ def cri(monde, texte):
     return heler(monde, texte) or repondre(monde, texte)
 
 
+UNITES = {"s": 1, "sec": 1, "seconde": 1, "secondes": 1, "min": 60, "mn": 60, "minute": 60, "minutes": 60,
+          "h": 3600, "heure": 3600, "heures": 3600}
+DUREE = re.compile(r"(\d+(?:[.,]\d+)?)\s*([a-z]*)")
+
+
+def attente(texte):
+    """« attendre » (cinq minutes), « attendre 30 s », « attendre 10 min », « attendre 1 h 30 » : une
+    durée en secondes (``Moteur._attendre``), que le joueur interrompt s'il voit paraître quelqu'un
+    ou entend un appel, un cri, un fracas, des paroles dont il saisit les mots. Sans unité, des minutes. Sans durée, cinq minutes
+    interruptibles aussi."""
+    texte = texte.strip()
+    if not texte:
+        return proposition("attendre", "300")
+    secondes, fin, precedente = 0.0, 0, 3600
+    for nombre in DUREE.finditer(texte):
+        if texte[fin:nombre.start()].strip() not in ("", "et"):
+            return None
+        unite = nombre.group(2)
+        if unite and unite not in UNITES:
+            return None
+        # Sans unité, l'unité qui suit la précédente (« 1 h 30 », « 2 min 30 ») : d'abord des minutes.
+        facteur = UNITES[unite] if unite else max(1, precedente // 60)
+        secondes += float(nombre.group(1).replace(",", ".")) * facteur
+        fin, precedente = nombre.end(), facteur
+    if fin == 0 or texte[fin:].strip():
+        return None
+    return proposition("attendre", f"{secondes:g}")
+
+
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
     appel = cri(monde, texte)
@@ -313,8 +344,8 @@ def analyser(monde, texte):
         texte = texte[6:]
     if texte in ("nord", "sud", "est", "ouest"):
         return proposition("aller", texte)
-    if texte == "attendre":
-        return proposition("attendre")
+    if texte == "attendre" or texte.startswith("attendre "):
+        return attente(texte[9:])
     verbe, sep, reste = texte.partition(" ")
     if not sep or verbe not in VERBES:
         return None
