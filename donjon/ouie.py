@@ -299,8 +299,12 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
             if n not in HABITUELS and parvient[0] >= seuil(monde, id) and not percoit_(monde, id, auteur):
                 _retenir_seulement(monde, id, salle, n, parvient[0])
             continue
-        if parole is not None and id not in parole["a"] and mots_saisis(monde, id, parvient[0]):
-            temoins.append(id)
+        if parole is not None and mots_saisis(monde, id, parvient[0]):
+            if id in parole["a"]:
+                from .esprits import reconsiderer
+                reconsiderer(monde, id)  # Une parole qui lui est adressée change sa situation.
+            else:
+                temoins.append(id)
         if parvient[0] >= seuil(monde, id) and entendre(monde, id, auteur, salle, case, n, t, parvient[0],
                                                         vises=vers, par=parvient[1]):
             retournes.append(id)
@@ -393,7 +397,7 @@ def _attribuer(monde, id, crus, salle, case):
 def _se_tourner(monde, id, case, t, texte=" se retourne au bruit."):
     """Il se tourne vers le bruit : la rotation retarde la fin de son geste en cours ; ce qu'il
     voit alors devient croyance, et l'auteur d'un geste illicite en cours, un témoignage."""
-    from .esprits import esprit, percevoir
+    from .esprits import esprit, percevoir, reconsiderer
     from .francais import designer
     from .pnj import _chroniquer, temoigner_en_cours
     from .spatial import QUART, orientation_vers, quarts
@@ -405,6 +409,7 @@ def _se_tourner(monde, id, case, t, texte=" se retourne au bruit."):
     e["libre"] = max(e["libre"], t) + QUART * quarts(o.get("orientation"), vers)
     o["orientation"] = vers
     percevoir(monde, id)
+    reconsiderer(monde, id)  # Le bruit qui l'a fait se retourner change sa situation.
     _chroniquer(monde, id, designer(o, debut=True) + texte, "ouie")
     temoigner_en_cours(monde)
     return True
@@ -451,12 +456,13 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None):
     le plus fort niveau qui lui en est parvenu (``deliberation.alarme``) et, d'un appel dont il a
     reconnu la voix, qui appelait."""
     from .deliberation import inquieter
-    from .esprits import esprit, memoriser
+    from .esprits import esprit, memoriser, reconsiderer
     from .pnj import _chroniquer
     from .social import _qui
     memoire = esprit(monde, id)["memoire"]
     anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
     attente = [s for s in anciens if not resolu(monde, id, s)]
+    reconsiderer(monde, id)  # Un bruit vers ce lieu, qu'il ira peut-être voir, et qui l'inquiète.
     memoire[:] = [s for s in memoire if not any(s is a for a in anciens)]
     # Un bruit qu'il attend déjà de ce lieu ne l'inquiète pas de nouveau ; un appel, si : chaque
     # appel à l'aide en est un nouveau. Il s'inquiète à la mesure de ce qu'il en entend : un appel
@@ -530,6 +536,8 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
                 return retourne
     if crus and not inhabituel:
         _attribuer(monde, id, crus, salle, case if ici else None)  # Il le surveille, de loin.
+        from .esprits import reconsiderer
+        reconsiderer(monde, id)
     elif not (mots and n == "hele"):
         _bruit_inconnu(monde, id, salle, n, niveau, reconnu)
     return retourne

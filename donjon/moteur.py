@@ -658,6 +658,11 @@ class Moteur:
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
             force=nature_emise(travail, effets))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
+        # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour, depuis le
+        # début du geste : ce qu'ils en voient est daté de ce début, comme leur monde à cet instant
+        # (sinon, la même perception se daterait de la fin de l'action, selon son découpage).
+        from .esprits import percevoir_tous
+        percevoir_tous(travail)
         minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
@@ -668,9 +673,6 @@ class Moteur:
         action = plan.proposition.get("action")
         vivre_joueur(travail, minutes, effort=plan.effort and action not in CALMES,
                      repos=action == "attendre", lignes=lignes)
-        # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour.
-        from .esprits import percevoir_tous
-        percevoir_tous(travail)
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
         # Qui a saisi son nom répond, le cri fini : après avoir vécu ces secondes (tourné vers la voix,

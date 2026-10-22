@@ -131,12 +131,15 @@ class TenirTests(unittest.TestCase):
         lire(m, "bram")["besoins"].update(biens=70.0, securite=70.0)
         return m
 
-    def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self):
+    def test_bram_ouvre_pour_la_lampe_et_garde_la_paie_a_la_lueur_entree(self):
         from donjon.deliberation import autour
         m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 3)
-        self.assertEqual(lieux, ["bureau", "filon", "bureau"])
-        self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
-        self.assertTrue(m.objets["lampe_filon"]["allume"])
+        # Il ouvre la porte du bureau pour aller chercher la lampe ; la porte ouverte, la lueur du
+        # baraquement entre jusqu'à lui : il le voit aussitôt (``deliberation-evenements``) et reste
+        # garder la paie, sans quitter le bureau (avant, il ne reconsidérait qu'à la minute et
+        # rapportait la lampe du filon).
+        self.assertEqual(lieux, ["bureau", "bureau", "bureau"])
+        self.assertTrue(m.objets["porte_bureau"]["ouverte"])
         # Il y voit, là où il garde la paie.
         self.assertTrue(autour(m, "bram")["lumiere"])
         self.assertEqual(lire(m, "bram")["intention"]["but"], {"type": "garder", "lieu": "bureau"})

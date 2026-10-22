@@ -74,9 +74,10 @@ class GrapheReprisTests(unittest.TestCase):
         self.assertMemeMonde(lucien_au_grenier_noir, 30, 5, "lucien")
 
     def test_odon_affame_a_la_mine_meme_monde_avec_ou_sans_graphe(self):
-        # Même nature, ailleurs : à la mine (départ tiré), Odon a faim et son scrupule s'use à
-        # chaque minute.
-        self.assertMemeMonde(lambda: creer("mine", 1985), 30, 5, "odon")
+        # Même nature, ailleurs : à la mine (départ tiré), le prix d'une faute change à chaque minute.
+        # Depuis que les PNJ choisissent à l'événement (``deliberation-evenements``), c'est Rémy dont le
+        # graphe est repris dans cette demi-heure (Odon y prend un autre chemin).
+        self.assertMemeMonde(lambda: creer("mine", 1985), 30, 5, "remy")
 
 
 if __name__ == "__main__":

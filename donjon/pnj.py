@@ -14,7 +14,8 @@ tient une chronique complète, réservée au débogage et au banc. Luna n'interv
 """
 from collections import deque
 
-from .esprits import croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit, percus, pnjs
+from .esprits import (croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit, percus, pnjs,
+                      reconsiderer)
 from .francais import complement_de, de, designer, sujet
 from .geometrie import cases, distance, placer, position_entree
 from .spatial import VECTEURS
@@ -56,8 +57,9 @@ def verifier(monde):
         and set(g["temoins"]) | set(g["exclus"]) <= personnages for g in gestes), "Gestes en cours invalides"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) - {"nature"} == {"minute", "pnj", "texte"}
-                    and c.get("nature", "geste") in NATURES for c in chronique)), "Chronique invalide"
+            and all(isinstance(c, dict) and set(c) - {"nature", "instant"} == {"minute", "pnj", "texte"}
+                    and c.get("nature", "geste") in NATURES and type(c.get("instant", 0)) is int
+                    for c in chronique)), "Chronique invalide"
 
 
 def _etape(operation, cible="", outil="", lieu="", condition=""):
@@ -147,7 +149,11 @@ def parcours(monde, id, depart, cles=(), ouvertes=()):
 
 def _chroniquer(monde, id, texte, nature="geste"):
     chronique = monde.data.setdefault("chronique", [])
-    chronique.append({"minute": monde.data["minutes"], "pnj": id, "texte": texte, "nature": nature})
+    from .temps import instant
+    # L'instant (au dixième) départage ce qui arrive dans une même minute : un but choisi et quitté
+    # entre deux minutes garde ses gestes (``recit_pnj``).
+    chronique.append({"minute": monde.data["minutes"], "instant": instant(monde), "pnj": id, "texte": texte,
+                      "nature": nature})
     del chronique[:-CHRONIQUE_MAX]
 
 
@@ -261,6 +267,7 @@ def _temoins(monde, geste, souvenir, victime):
                         salle=lieu["salle"], case=lieu["case"])
             croire(monde, autre, id, "fiable", False, "vu")
             inquieter(monde, autre, "illicite")
+            reconsiderer(monde, autre)  # Un geste illicite sous ses yeux change sa situation.
             if geste["operation"] in CONTRAINTES:
                 continue  # La victime l'a subi (``passage.subir``) ; ses biens ne sont pas en cause.
             if autre == victime:
@@ -651,7 +658,8 @@ def _assez_de_lumiere(monde, id, etape):
 
 
 def _executer(monde, id, etape, lignes, gestes):
-    """Accomplit une étape ; renvoie True si elle est terminée."""
+    """Accomplit une étape ; renvoie True si elle est terminée, False si elle est manquée, None
+    pour un geste qui dure et se poursuit (``DURABLES``)."""
     from .deliberation import SATIETE, illicite
     from .deplacement_objet import deplacer
     o = monde.objets[id]
@@ -795,7 +803,8 @@ def _executer(monde, id, etape, lignes, gestes):
 
 
 def _chauffer(monde, id, foyer, lignes):
-    """Une minute près d'un foyer allumé de sa salle ; le geste s'achève quand il est réchauffé."""
+    """Une minute près d'un foyer allumé de sa salle ; le geste s'achève (True) quand il est
+    réchauffé, se poursuit (None) d'ici là ; False s'il n'y a pas de feu où il le croyait."""
     from .deliberation import CHALEUR_FIN
     e, f = esprit(monde, id), monde.objets[foyer]
     if "chaleur" not in e["besoins"]:
@@ -809,12 +818,13 @@ def _chauffer(monde, id, foyer, lignes):
         memoriser(monde, id, {"type": "se_chauffe", "objet": foyer})
         _raconter(monde, id, "se chauffe près de", f, lignes)
     # La chaleur du feu agit d'elle-même dans sa salle (``corps``) : il reste jusqu'à être réchauffé.
-    return e["besoins"]["chaleur"] <= CHALEUR_FIN
+    return True if e["besoins"]["chaleur"] <= CHALEUR_FIN else None
 
 
 def _abriter(monde, id, lieu, lignes):
     """Une minute à l'abri : il y reste tant que la lumière ou une compagnie fiable le rassure ;
-    le geste s'achève quand il est rassuré."""
+    le geste s'achève (True) quand il est rassuré, se poursuit (None) d'ici là ; False si ce
+    n'est pas un abri."""
     from .deliberation import SECURITE_FIN, autour
     from .social import _qui
     e = esprit(monde, id)
@@ -836,22 +846,26 @@ def _abriter(monde, id, lieu, lignes):
         _chroniquer(monde, id, texte)
         if monde.visible(id):
             lignes.append(texte)
-    return e["besoins"]["securite"] <= SECURITE_FIN
+    return True if e["besoins"]["securite"] <= SECURITE_FIN else None
 
 
 def _reposer(monde, id, lignes):
-    """Une minute de repos ; le geste s'achève quand le PNJ est reposé."""
+    """Une minute de repos ; le geste s'achève (True) quand le PNJ est reposé, se poursuit (None)
+    d'ici là."""
     from .deliberation import REPOS_FIN
     besoins, intention = esprit(monde, id)["besoins"], esprit(monde, id)["intention"]
     if "repos" not in besoins:
         return True
-    if intention and intention["depuis"] == monde.data["minutes"]:
-        texte = designer(monde.objets[id], debut=True) + " s'assoit pour se reposer."
+    texte = designer(monde.objets[id], debut=True) + " s'assoit pour se reposer."
+    minute = monde.data["minutes"]
+    # Il s'assoit une fois, même si un événement le fait reconsidérer dans la même minute.
+    if intention and intention["depuis"] == minute and not any(
+            c["pnj"] == id and c["minute"] == minute and c["texte"] == texte for c in monde.data.get("chronique", ())):
         _chroniquer(monde, id, texte)
         if monde.visible(id):
             lignes.append(texte)
     # Le repos délasse par le corps (``corps.vivre``), tant que ce geste est en cours.
-    return besoins["repos"] <= REPOS_FIN
+    return True if besoins["repos"] <= REPOS_FIN else None
 
 
 def _ouvert_par_soi(monde, id, cible):
@@ -1043,7 +1057,7 @@ def _a_portee_de(monde, salle, case, cible):
                                or _case_libre(monde, salle, (case[0], case[1] + dy)))
 
 
-def _approcher(monde, id, etape, lignes, gestes=None):
+def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     """Il marche vers ce que le geste touche, là où il le croit, jusqu'à l'avoir à portée de main ;
     sur place, le geste constate s'il y est. Renvoie la durée du pas, 0 s'il n'a plus à marcher,
     None s'il ne voit aucun chemin (``trajet``). Celui qui se tient sur la seule case d'où
@@ -1066,14 +1080,13 @@ def _approcher(monde, id, etape, lignes, gestes=None):
     ici = o["lieu"]
     arrivee = lambda salle, case: salle == ici and all(_a_portee_de(monde, salle, case, c) for c in crues)
     pas = _marcher(monde, id, arrivee, lignes, gestes)
-    return _impasse(monde, id, etape, arrivee) if pas is None else pas
+    return _impasse(monde, id, etape, arrivee, compter) if pas is None else pas
 
 
-def _impasse(monde, id, etape, arrivee):
+def _impasse(monde, id, etape, arrivee, compter=True):
     """Aucun chemin en cases vers où il va : c'est un geste manqué. Il apprend ce qui le barre,
     les obstacles du chemin qu'ils coupent (le chemin par salles en tiendra compte), puis la
     stratégie tombe, le réflexe cesse, ou il patiente avant de renoncer. Renvoie None."""
-    from .deliberation import PATIENCE, renoncer
     from .spatial import position_cible, trajet
     from .stratege import terminer
     o = monde.objets[id]
@@ -1094,9 +1107,7 @@ def _impasse(monde, id, etape, arrivee):
     elif intention["but"]["type"] == "strategie":
         terminer(monde, id, False, etape)
     else:
-        intention["attente"] += 1
-        if intention["attente"] > PATIENCE:
-            renoncer(monde, id, monde.data["minutes"])
+        _patienter(monde, id, intention, compter)
     return None
 
 
@@ -1185,10 +1196,39 @@ def se_parler(monde, a, b):
     return True
 
 
-def agir(monde, id, t, lignes, gestes=None):
+# Ce que devient un PNJ au sortir de ``agir`` : un geste en cours (``GESTE``), une attente jusqu'à
+# la minute qu'un événement abrège (``ATTENTE`` : désœuvré, guettant une occasion, un geste qui
+# dure), un plan fini ou abandonné (``FIN``) ou un geste manqué (``MANQUE``), après lesquels il
+# choisit aussitôt de nouveau (``_avancer``).
+GESTE, ATTENTE, FIN, MANQUE = "geste", "attente", "fin", "manque"
+
+
+def _geste(etape):
+    """Ce qu'est un geste, sans ce que le plan y ajoute (la lumière prévue, une parole) : le même
+    geste manqué, replanifié, est reconnu."""
+    return {k: etape[k] for k in ("operation", "cible", "outil", "lieu")}
+
+
+def _patienter(monde, id, intention, compter):
+    """Il attend son occasion, ou que le chemin se libère : une minute de plus, comptée une fois par
+    minute (à son heure, pas à chaque événement qui le fait reconsidérer : ``compter``) ; au-delà de
+    ``PATIENCE``, il renonce. Vrai s'il a renoncé."""
+    from .deliberation import PATIENCE, renoncer
+    if compter or not intention["attente"]:
+        intention["attente"] += 1
+    if intention["attente"] > PATIENCE:
+        renoncer(monde, id, monde.data["minutes"])
+        return True
+    return False
+
+
+def agir(monde, id, t, lignes, gestes=None, compter=True):
     """Le geste qui commence à l'instant ``t`` (en dixièmes de seconde) selon l'intention
-    courante ; renvoie sa durée. Sans le mode cases, un geste prend la minute, comme avant."""
-    from .deliberation import PATIENCE, PROGRESSIFS, renoncer
+    courante ; renvoie (durée, issue, étape manquée) : l'issue dit s'il agit (``GESTE``), attend
+    jusqu'à la minute (``ATTENTE``), a fini ou abandonné son plan (``FIN``) ou manqué un geste
+    (``MANQUE``). ``compter`` : il agit à son heure, et non parce qu'un événement l'a fait
+    reconsidérer. Sans le mode cases, un geste prend la minute, comme avant."""
+    from .deliberation import PROGRESSIFS
     from .stratege import terminer
     reste = _jusqu_a_la_minute(t)
     en_cases = bool(monde.data.get("mode_cases"))
@@ -1196,7 +1236,7 @@ def agir(monde, id, t, lignes, gestes=None):
     e = esprit(monde, id)
     intention = e["intention"]
     if not intention:
-        return reste
+        return reste, ATTENTE, None
     etapes, o = intention["plan"], monde.objets[id]
     strategie = intention["but"]["type"] == "strategie"
     while etapes and etapes[0]["operation"] == "aller" and etapes[0]["lieu"] == o["lieu"]:
@@ -1206,28 +1246,33 @@ def agir(monde, id, t, lignes, gestes=None):
             e["intention"] = None
         elif strategie:
             terminer(monde, id, True)
-        return reste
+        return reste, FIN, None
     etape = etapes[0]
     operation = etape["operation"]
+    if e["manque"] and e["manque"]["minute"] == monde.data["minutes"] and e["manque"]["etape"] == _geste(etape):
+        # Un geste manqué ne se retente pas aussitôt : pas avant la minute suivante, même si un
+        # événement l'a fait reconsidérer entre-temps.
+        return reste, ATTENTE, None
     en_place = en_cases and "position" in o
     if strategie and operation == "aller" and not en_place and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
         terminer(monde, id, False, etape)  # Aucun passage qu'il croie ouvert : la stratégie tombe.
-        return reste
+        return reste, MANQUE, etape
     if en_place and operation == "aller":
         # Le seul juge du passage est le chemin en cases : sans chemin, c'est un geste manqué.
         lieu = etape["lieu"]
         arrivee = lambda salle, case: salle == lieu
         pas = _marcher(monde, id, arrivee, lignes, gestes)
         if pas is None:
-            _impasse(monde, id, etape, arrivee)
-        return pas or reste
+            _impasse(monde, id, etape, arrivee, compter)
+            return reste, MANQUE, etape
+        return (pas, GESTE, None) if pas else (reste, ATTENTE, None)
     if en_place:
         # Il s'approche pas à pas de ce qu'il va toucher ; l'absence de témoin se juge sur place.
-        pas = _approcher(monde, id, etape, lignes, gestes)
+        pas = _approcher(monde, id, etape, lignes, gestes, compter)
         if pas is None:
-            return reste
+            return reste, MANQUE, etape
         if pas:
-            return pas
+            return pas, GESTE, None
     if operation == "inspecter" and en_cases and "position" in o and o["lieu"] == etape["lieu"]:
         # Il gagne le centre de la salle pas à pas avant de la parcourir des yeux.
         centre = _centre(monde, id)
@@ -1235,16 +1280,16 @@ def agir(monde, id, t, lignes, gestes=None):
             ici = o["lieu"]
             pas = _marcher(monde, id, lambda salle, case: salle == ici and tuple(case) == tuple(centre), lignes)
             if pas:
-                return pas
+                return pas, GESTE, None
     if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
         # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
         pas = _rejoindre_un_proche(monde, id, lignes)
         if pas:
-            return pas
+            return pas, GESTE, None
     if not _assez_de_lumiere(monde, id, etape):
         if strategie:
             terminer(monde, id, False, etape)
-        return reste
+        return reste, MANQUE, etape
     if etape["condition"] == "sans_temoin" and not desespere(monde, id):
         if en_cases and "orientation" in o:
             # Avant un geste qu'il veut sans témoin, il regarde tout autour de lui ; il n'agit
@@ -1257,15 +1302,14 @@ def agir(monde, id, t, lignes, gestes=None):
                 e["balayage"] = {**ici, "instant": t}
                 observe = bool(tour_d_horizon(monde, id))
                 if not observe:
-                    return TOUR
+                    return TOUR, GESTE, None
         else:
             observe = None
         if observe or (observe is None and temoins_crus(monde, id)):
-            # Il guette une occasion jusqu'à la minute suivante.
-            intention["attente"] += 1
-            if intention["attente"] > PATIENCE:
-                renoncer(monde, id, monde.data["minutes"])
-            return reste
+            # Il guette une occasion, jusqu'à la minute suivante ou jusqu'à ce que sa situation change.
+            if _patienter(monde, id, intention, compter):
+                return reste, FIN, None
+            return reste, ATTENTE, None
     # Il se tourne vers ce qu'il touche ou voit, jamais vers ce qu'il ignore.
     cible = etape["cible"]
     tourner = (_faire_face(monde, id, cible) if en_cases and cible and (
@@ -1277,12 +1321,19 @@ def agir(monde, id, t, lignes, gestes=None):
             e["intention"] = None
         elif strategie and not etapes:
             terminer(monde, id, True)
-    elif strategie and operation not in PROGRESSIFS:
+    elif fait is False and strategie and operation not in PROGRESSIFS:
         terminer(monde, id, False, etape)  # Un geste manqué, ou un refus : il n'insiste pas.
-    if not en_cases or operation in DURABLES or operation == "aller" or not fait:
-        # Un geste manqué ne se retente pas aussitôt : il reconsidère à la minute suivante.
-        return reste
-    return tourner + DUREES.get(operation, 20)
+    if not en_cases or operation == "aller":
+        return reste, GESTE, None
+    if operation in DURABLES:
+        # Un geste qui dure (se reposer, se chauffer, s'abriter) : jusqu'à la minute, où ses besoins
+        # changent ; achevé (son seuil atteint) ou impossible, il choisit aussitôt la suite.
+        if fait is None:
+            return reste, ATTENTE, None
+        return (reste, FIN, None) if fait else (reste, MANQUE, etape)
+    if not fait:
+        return reste, MANQUE, etape
+    return tourner + DUREES.get(operation, 20), GESTE, None
 
 
 # --- Présences perçues par le joueur -------------------------------------------------------
@@ -1371,11 +1422,28 @@ def avancer(monde, minutes, lignes, dixiemes=None):
         return _avancer(monde, minutes, lignes, dixiemes)
 
 
+def _prevu(e):
+    """L'instant où il reprend la main de lui-même : la fin de son geste, ou de son attente."""
+    return e["libre"] if e["veille"] is None else max(e["libre"], e["veille"])
+
+
+def _prochain(e):
+    """L'instant où il reprend la main : à son heure ; plus tôt si un événement abrège son attente,
+    jamais avant la fin d'un geste (ou d'une rotation vers un bruit) en cours."""
+    if e["veille"] is None or e["eveil"] is None:
+        return _prevu(e)
+    return max(e["libre"], min(e["veille"], e["eveil"]))
+
+
 def _avancer(monde, minutes, lignes, dixiemes):
     """La vie des PNJ par événements : chacun commence un geste dès qu'il a fini le précédent ;
-    à chaque minute franchie, le feu se consume et chacun délibère. On traite toujours ce qui
-    arrive en premier ; quand rien ne bouge, on saute à l'événement suivant."""
-    from .deliberation import appeler_a_l_aide, deliberer, menager_flamme
+    à chaque minute franchie, le feu se consume et chacun délibère (le filet de ce qui monte peu
+    à peu). Entre deux minutes, il choisit de nouveau son but à la fin de son plan, après un geste
+    manqué, et après un événement qui change sa situation (``esprits.reconsiderer``) : à la fin de
+    son geste en cours, ou aussitôt s'il ne fait qu'attendre. On traite toujours ce qui arrive en
+    premier ; quand rien ne bouge, on saute à l'événement suivant. À un même instant, dans l'ordre
+    des identifiants ; à des instants distincts, dans l'ordre du temps."""
+    from .deliberation import appeler_a_l_aide, choisir, deliberer, menager_flamme
     from .eau import inonder
     from .perception import avancer_combustion
     from .social import bavarder
@@ -1384,6 +1452,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     fin = fin_minutes * MINUTE + fin_dixiemes
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
     ids = pnjs(monde)
+    en_cases = bool(monde.data.get("mode_cases"))
     # Le bilan des présences est celui de l'action du joueur, ouvert par le moteur ; appelée
     # seule, la vie des PNJ fait son propre bilan. Les apparus sont ceux que le joueur voit à un
     # moment de cette période sans les avoir vus à son début.
@@ -1402,25 +1471,33 @@ def _avancer(monde, minutes, lignes, dixiemes):
     # Les gestes illicites en cours (``data["gestes_en_cours"]``, joueur compris) : quiconque voit
     # leur auteur avant qu'il ait fini en est témoin, même d'une action du joueur à l'autre.
     finir_gestes(monde, debut)
-    # L'instant où chacun aura fini son geste est dans son esprit : un bruit qui le fait se
-    # retourner le retarde (``ouie``).
+    # L'instant où chacun aura fini son geste, ou son attente, est dans son esprit : un bruit qui
+    # le fait se retourner le retarde (``ouie``), un événement abrège son attente.
     esprits_ = {id: esprit(monde, id) for id in ids}
     for e in esprits_.values():
-        e["libre"] = max(debut, e["libre"])
-    t = debut
+        if e["veille"] is None:
+            e["libre"] = max(debut, e["libre"])
+        if e["eveil"] is not None and e["eveil"] <= debut:
+            # Ce qu'il a perçu au début de l'action du joueur (son résultat), il y réagit pendant
+            # cette action : l'instant même de son début appartient encore à l'action précédente,
+            # où tout ce qui s'y passe a été traité et entendu (``ecoute.entendus``).
+            e["eveil"] = debut + 1
+    t, tours = debut, 0
     while True:
         frontiere = (t // MINUTE + 1) * MINUTE
-        prochain = min((e["libre"] for e in esprits_.values()), default=fin + 1)
+        prochain = min((_prochain(e) for e in esprits_.values()), default=fin + 1)
         if min(frontiere, prochain) > fin:
             break
         if frontiere <= prochain:
-            t = frontiere
+            t, tours = frontiere, 0
             monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
             minute = monde.data["minutes"]
             avancer_combustion(monde, 1, lignes)
             inonder(monde, lignes)
             for id in ids:
+                esprits_[id]["manque"] = None  # Une minute a passé : ce qu'il a manqué se retente.
                 if monde.objets[id].get("profil"):
+                    esprits_[id]["eveil"] = None  # Il délibère : ce qui l'avait éveillé y est pesé.
                     deliberer(monde, id, minute)
                     menager_flamme(monde, id, minute)
                     appeler_a_l_aide(monde, id, minute)
@@ -1433,20 +1510,44 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 from .biens import prets_reclames
                 prets_reclames(monde, lignes)  # Un prêt échu réclamé au joueur, et pas rendu.
             continue
+        tours = tours + 1 if prochain == t else 0
+        assert tours <= 50 * len(ids), "La vie des PNJ tourne sur place"
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
         for id in ids:
-            if esprits_[id]["libre"] != t:
+            e = esprits_[id]
+            if _prochain(e) != t:
                 continue
+            # À son heure (fin de son geste ou de son attente), ou plus tôt, éveillé par un événement.
+            compter = t == _prevu(e)
+            e["veille"] = None
             # Son geste précédent est fini : ceux qui l'ont vu jusque-là s'en souviennent.
             finir_gestes(monde, t, id)
+            if e["eveil"] is not None and e["eveil"] <= t:
+                # Sa situation a changé pendant son geste, ou pendant qu'il attendait : il choisit
+                # de nouveau son but avant d'agir, sur ce qu'il croit maintenant.
+                e["eveil"] = None
+                choisir(monde, id, monde.data["minutes"])
             intention = lire(monde, id)["intention"]
+            attend = False
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
             if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
-                duree = DUREES["dire"] if monde.data.get("mode_cases") else _jusqu_a_la_minute(t)
+                duree = DUREES["dire"] if en_cases else _jusqu_a_la_minute(t)
             elif intention:
                 gestes = []
-                duree = agir(monde, id, t, lignes, gestes)
+                duree, issue, rate = agir(monde, id, t, lignes, gestes, compter)
+                if en_cases and issue in (FIN, MANQUE):
+                    # Son plan est fini, ou un geste a manqué : il choisit aussitôt la suite, sur ce
+                    # que l'essai vient de lui apprendre. Le geste manqué ne se retente pas avant la
+                    # minute suivante (``agir``) : le même, il attend.
+                    if issue == MANQUE:
+                        e["manque"] = {"etape": _geste(rate), "minute": monde.data["minutes"]}
+                    e["eveil"] = None
+                    choisir(monde, id, monde.data["minutes"])
+                    duree, issue, _ = agir(monde, id, t, lignes, gestes, compter)
+                    if issue != GESTE:
+                        duree, issue = _jusqu_a_la_minute(t), ATTENTE
+                attend = en_cases and issue == ATTENTE
                 for _, operation, objet in gestes:
                     commencer_geste(monde, id, operation, objet, t + max(1, duree))
                 # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
@@ -1455,8 +1556,12 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 temoigner_en_cours(monde)
                 observer()
             else:
-                duree = _jusqu_a_la_minute(t)
-            esprits_[id]["libre"] = t + max(1, duree)
+                duree, attend = _jusqu_a_la_minute(t), en_cases
+            if attend:
+                # Il attend la minute : libre dès maintenant, un événement abrège son attente.
+                e["libre"], e["veille"] = t, t + duree
+            else:
+                e["libre"] = t + max(1, duree)
     temoigner_en_cours(monde)
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     observer()

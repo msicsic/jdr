@@ -111,6 +111,10 @@ class LumiereDevantLaSerrureTests(unittest.TestCase):
         croire(m, "brune", "vivres", "lieu", "reserve", "savoir", salle="crypte", case=[7, 4])
         placer(m, "brune", "antichambre", (4, 1))
         placer(m, "marchand", "antichambre", (6, 5))
+        # Placement d'auteur : Gorm laisse ses charges (sinon, la réserve déplacée, il en ressort aussitôt
+        # ses vivres et rallume le brasero : la salle n'est plus noire quand Brune y arrive).
+        m.objets["marchand"]["profil"]["pulsions"] = []
+        lire(m, "marchand")["pulsions"] = []
         for i, id in enumerate(("ilse", "aubin")):
             placer(m, id, "beffroi", (2 + i, 3))
         percevoir_tous(m)

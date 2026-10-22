@@ -40,7 +40,7 @@ def gestes(m, id, fois):
     ses positions successives."""
     t, positions = 0, []
     for _ in range(fois):
-        t += agir(m, id, t, [])
+        t += agir(m, id, t, [])[0]
         percevoir(m, id)
         positions.append((m.objets[id]["lieu"], tuple(m.objets[id]["position"])))
     return positions

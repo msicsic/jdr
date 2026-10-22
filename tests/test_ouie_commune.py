@@ -95,10 +95,13 @@ class CloceTests(unittest.TestCase):
         self.assertIn("Tu produis un son avec la cloche d'alarme.", texte)
         self.assertEqual((m.data["sons"][-1]["objet"], m.data["sons"][-1]["bruit"]), ("cloche", "appel"))
         self.assertIn("marchand", m.data["sons"][-1]["auditeurs"])
-        self.assertEqual(dernier_son(m, "marchand")["salle"], "chambre_cloche")
-        self.assertEqual(dernier_son(m, "marchand")["nature"], "appel")
-        # Il ira voir : la cloche est sous sa garde (une pulsion de son devoir), et il a du courage.
+        self.assertIn(("chambre_cloche", "appel"),
+                      [(s["salle"], s["nature"]) for s in lire(m, "marchand")["memoire"] if s["type"] == "bruit"])
+        # Il y va : la cloche est sous sa garde (une pulsion de son devoir), et il a du courage. Il est
+        # parti dès le son, pendant que le joueur sonnait (``deliberation-evenements``).
         self.assertEqual(bruit_a_voir(m, "marchand"), ("chambre_cloche", "devoir"))
+        self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "voir", "lieu": "chambre_cloche"})
+        self.assertNotEqual(m.objets["marchand"]["lieu"], "antichambre")
 
 
 class ProtegeTests(unittest.TestCase):
@@ -132,16 +135,19 @@ class GardienTests(unittest.TestCase):
         # Cas réel : le réflexe déclaré d'Hugues (``reaction_son`` seuil 2) devenu le seuil d'alerte.
         m = self.scene()
         self.assertEqual(m.objets["hugues"]["profil"]["alerte"], 3)
-        faire(m, "je crie a l'aide")
+        from tests.test_deliberation_evenements import Choix
+        with Choix("hugues", "odile") as choix:
+            faire(m, "je crie a l'aide")
         m = recharger(m)
-        self.assertGreaterEqual(bruit(m, "hugues", "couloir")["niveau"], 3)
-        self.assertEqual(alarme(m, "hugues"), ("couloir", "devoir"))
-        # Odile, aussi courageuse et sans seuil d'alerte, n'a pas d'alarme.
-        self.assertIsNotNone(bruit(m, "odile", "couloir"))
-        self.assertIsNone(alarme(m, "odile"))
-        faire(m, "attendre")
-        m = recharger(m)
+        # L'alarme l'envoie voir aussitôt, pendant le cri même (``deliberation-evenements``), au titre
+        # de son devoir : il a parcouru le couloir des yeux, le bruit est vu.
+        self.assertEqual([b for t, x, b in choix.choix if x == "hugues"][0], {"type": "voir", "lieu": "couloir"})
+        self.assertEqual(lire(m, "hugues")["memoire"], [])
         self.assertIn("Hugues, ancien soldat passe dans : Couloir de l'étage.", chronique(m))
+        self.assertIn("Hugues va voir d'où venait le bruit : Couloir de l'étage.", chronique(m))
+        # Odile, aussi courageuse et sans seuil d'alerte, n'a pas d'alarme : elle y va par courage, un
+        # cri étant inhabituel (``bruit_a_voir``), et non en alarme.
+        self.assertIsNone(alarme(m, "odile"))
 
 
 class HelerTests(unittest.TestCase):

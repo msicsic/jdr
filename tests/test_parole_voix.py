@@ -122,21 +122,22 @@ def lieux(m):
 class RejointTests(unittest.TestCase):
     def test_cas_reel_l_appele_attend_et_l_appelant_le_trouve_au_premier_appel(self):
         m = gorm_en_ronde()
-        m, _ = vivre(m, 2)  # Aubin hèle, Gorm répond.
-        self.assertIn("Gorm répond : « Ici ! »", chronique(m))
-        r = lire(m, "marchand")["rejoint"]
-        self.assertEqual((r["qui"], r["jusqu_a"] - r["depuis"]), ("aubin", REJOINT))
-        self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "attendre", "qui": "aubin"})
-        attendu_la = m.objets["marchand"]["lieu"]
-        m = recharger(m)
-        for _ in range(4):
+        for _ in range(6):  # Aubin hèle, Gorm répond et l'attend ; Aubin le rejoint.
             m, _ = vivre(m, 1)
-            if not lire(m, "marchand")["rejoint"]:
+            if "Gorm retrouve Aubin, qui l'avait hélé." in chronique(m):
                 break
-            self.assertEqual(m.objets["marchand"]["lieu"], attendu_la)  # Il attend là où il a répondu.
+        textes = chronique(m)
+        self.assertIn("Gorm répond : « Ici ! »", textes)
+        self.assertIn("Gorm retrouve Aubin, qui l'avait hélé.", textes)
+        # Entre sa réponse et les retrouvailles, il attend là où il a répondu : pas un pas.
+        entre = textes[textes.index("Gorm répond : « Ici ! »"):textes.index("Gorm retrouve Aubin, qui l'avait hélé.")]
+        self.assertFalse([t for t in entre if t.startswith("Gorm, gardien du relais passe dans")])
+        for _ in range(5):  # Puis il lui demande sa part, là où il l'a retrouvé ou en le suivant.
+            if obtient_sa_part(m):
+                break
+            m, _ = vivre(m, 1)
         m = recharger(m)
         self.assertEqual(len(appels(m, "aubin")), 1)
-        self.assertIn("Gorm retrouve Aubin, qui l'avait hélé.", chronique(m))
         self.assertTrue(obtient_sa_part(m))
         self.assertIsNone(lire(m, "marchand")["rejoint"])
 
@@ -173,10 +174,9 @@ class RejointTests(unittest.TestCase):
         lire(m, "marchand")["besoins"]["faim"] = 95.0
         m = recharger(m)
         m, _ = vivre(m, 1)
-        self.assertEqual(lire(m, "marchand")["intention"]["motif"], "faim")
+        # Il est allé manger aussitôt (à l'événement, sans attendre la minute), puis attend Aubin.
+        self.assertIn("Gorm, gardien du relais mange une part des vivres du refuge.", chronique(m))
         self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
-        while lire(m, "marchand")["intention"]["motif"] == "faim":
-            m, _ = vivre(m, 1)
         self.assertLess(m.data["minutes"], REJOINT)
         self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "attendre", "qui": "aubin"})
 

@@ -58,10 +58,12 @@ class ContenantFermeTests(unittest.TestCase):
         self.assertEqual(croyances["reserve"]["verrouillee"]["source"], "essai")
         self.assertFalse(croyances["reserve"]["etat"]["valeur"]["ouverte"])
         self.assertEqual(croyances["vivres"]["lieu"]["valeur"], "reserve")
-        # Elle n'est pas restée sans plan : elle a pris ses crochets et forcé la réserve.
+        # Elle n'est pas restée sans plan : elle a pris ses crochets et forcé la réserve. (Gorm, qui
+        # garde le refuge, accourt au bruit des crochets dès qu'il l'entend : sous ses yeux, elle
+        # attend ensuite son occasion pour manger.)
         m, _ = attendre(m, 2)
         self.assertIn("Brune, batelière évacuée prend la trousse de crochets.", gestes(m, "brune"))
-        self.assertIn("Brune, batelière évacuée mange une part des vivres du refuge.", gestes(m, "brune"))
+        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", gestes(m, "brune"))
 
     def test_lucien_trouve_le_coffre_ferme_dans_le_noir(self):
         """Même nature (auberge) : Lucien croit le coffre d'Anselme ouvert et veut le ballot ; le
@@ -124,8 +126,10 @@ class RumeurAvecLieuTests(unittest.TestCase):
         self.assertIn("Hugues dit à Anselme que le ballot de soie est dans l'étable (crue).", chronique(m))
         # Le joueur, dans la salle commune, l'entend en clair : il connaît la voix, le ballot, l'étable.
         self.assertIn("Hugues dit à Anselme que le ballot de soie est dans l'étable.", texte)
-        # Anselme est allé le reprendre, et l'a reposé dans sa chambre.
+        # Anselme est allé le reprendre, et l'a reposé dans sa chambre (il a d'abord offert la tâche,
+        # en vain : quelques minutes de plus).
         self.assertIn("Anselme, marchand drapier prend le ballot de soie.", gestes(m, "anselme"))
+        m, _ = attendre(m)
         self.assertEqual(m.objets["ballot"]["lieu"], "chambre_chaude")
         # Qui l'a entendu dire puis voit Anselme le porter ne tient pas Hugues pour menteur : un
         # objet qu'on voit dans les mains de quelqu'un a pu être déplacé depuis.

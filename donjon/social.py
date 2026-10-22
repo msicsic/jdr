@@ -306,6 +306,9 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
                           "cites": list(cites), **({} if identifie(monde, id, locuteur) else {"voix_inconnue": True})})
     capacite = min(capacite_transmission(_stats_pnj(monde, x)["INT"]) for x in (locuteur, id))
     issues = [i for i in (recevoir(monde, id, locuteur, c) for c in contenu[:capacite]) if i]
+    if issues:
+        from .esprits import reconsiderer
+        reconsiderer(monde, id)  # Ce qu'il a surpris lui apprend quelque chose.
     de = _qui(monde, locuteur)
     de = ("d'" if normaliser(de)[:1] in "aeiouyh" else "de ") + de
     _chroniquer(monde, id, f"{_qui(monde, id)} surprend les mots {de} à "
