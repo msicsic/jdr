@@ -181,7 +181,7 @@ class Vue:
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
-        self._allers = {}
+        self._allers, self._lieux_crus = {}, {}
         self.salles_triees = sorted(self.salles)
         # Le besoin qu'une part de chaque objet apaise (``besoin_de_part``).
         self.besoin = {o: besoin_de_part(self.objets[o]) for o in self.connus}
@@ -420,25 +420,32 @@ class Vue:
     def lieu(self, e, o):
         if o in e.portes:
             return self.id
-        lieu = e.faits.get(("lieu", o))
+        return self._lieu(e, o)
+
+    def _lieu(self, e, o):
+        """``lieu`` d'un objet qu'il ne porte pas : ce que le plan en a fait, sinon ce qu'il en croit
+        (``_lieu_cru``, lu une fois)."""
+        lieu = e.faits.get(("lieu", o)) if e.faits else None
         if lieu is not None:
             return lieu
-        cle = (o, "lieu_cru")
-        crus = self._crus
-        if cle not in crus:
-            crus[cle] = _lieu_cru(self.monde, self.id, o)
-        return crus[cle]
+        crus = self._lieux_crus
+        if o not in crus:
+            crus[o] = _lieu_cru(self.monde, self.id, o)
+        return crus[o]
 
     def salle(self, e, sujet, profondeur=0):
         if sujet in e.portes or sujet == self.id:
             return e.salle
-        lieu = self.lieu(e, sujet)
+        lieu = self._lieu(e, sujet)
         if lieu is None or profondeur > 4:
             return None
         if lieu in self.salles:
             return lieu
         if lieu == "joueur":
-            return self._memo(("joueur", "lieu_cru"), lambda: _lieu_cru(self.monde, self.id, "joueur"))
+            crus = self._lieux_crus
+            if "joueur" not in crus:
+                crus["joueur"] = _lieu_cru(self.monde, self.id, "joueur")
+            return crus["joueur"]
         return self.salle(e, lieu, profondeur + 1)
 
     def ouvert(self, e, c):
