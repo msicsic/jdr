@@ -24,14 +24,12 @@ CLES = {"depuis", "activite", "chaud", "eau", "securite"}
 def conditions(monde, id, activite):
     """Ce qui fait évoluer son corps et ses besoins tant que rien ne change, lu à l'instant."""
     from .corps import au_chaud, dans_l_eau
-    from .spatial import etat_fige
-    with etat_fige(monde):  # Des lectures : la lumière et ceux qu'il voit, sur l'état lu une fois.
-        securite = None
-        if id != "joueur":
-            from .deliberation import ecart_securite
-            securite = ecart_securite(monde, id)
-        return {"activite": activite, "chaud": au_chaud(monde, id), "eau": dans_l_eau(monde, id),
-                "securite": securite}
+    securite = None
+    if id != "joueur":
+        from .deliberation import ecart_securite
+        securite = ecart_securite(monde, id)
+    return {"activite": activite, "chaud": au_chaud(monde, id), "eau": dans_l_eau(monde, id),
+            "securite": securite}
 
 
 def _vecu(monde, id):
