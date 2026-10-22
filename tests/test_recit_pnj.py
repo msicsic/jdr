@@ -26,8 +26,10 @@ class RecitTests(unittest.TestCase):
         buts = [ep["but"]["type"] for ep in self.recit.episodes["brune"]]
         self.assertIn("manger", buts)
         self.assertIn("== Brune, batelière évacuée ==", self.texte)
-        # Un essai, ou plusieurs résumés en un (« s'acharne »), selon la nuit.
-        self.assertRegex(self.texte, "(crochète|s'acharne sur) la serrure de la réserve de vivres")
+        # Un essai, plusieurs résumés en un (« s'acharne »), ou un renoncement devant une serrure trop
+        # sombre, selon la nuit (depuis la branche ``temps-reel``, cette nuit-ci renonce).
+        self.assertRegex(self.texte, "(crochète|s'acharne sur) la serrure de la réserve de vivres"
+                                     "|renonce à crocheter la réserve de vivres")
         self.assertGreater(self.recit.urgence["brune"]["faim"], 0)
 
     def test_entre_eux_et_temoins(self):

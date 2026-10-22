@@ -36,11 +36,12 @@ class CrueTests(unittest.TestCase):
     def test_on_monte_se_chauffer_au_poele_du_guet_et_son_bois_se_demande(self):
         # Avant (``verifier-eau``), le brasero de la conduite était le seul feu : menacé par l'eau,
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
-        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 300, 100)
+        # Au temps vécu (branche ``temps-reel``), la nuit diverge : Brune, chauffée au poêle dès la
+        # minute 130, ne demande plus le bois du guet, et le poêle, rallumé à 124, s'éteint vers 245.
+        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 240, 80)
         self.assertIn("Aubin, vieux passeur se chauffe près du poêle du guet.", textes)
         self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
-        # Le bois du guet est à Gorm : on le lui demande, on le lui achète, il le met au poêle.
-        self.assertIn("Brune demande une part des bûches du guet à Gorm (refus).", textes)
+        # Le bois du guet est à Gorm : on le lui achète, il le met au poêle.
         self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") for t in textes))
         self.assertIn("Gorm, gardien du relais alimente le poêle du guet.", textes)
         self.assertTrue(allumee(m.objets["poele_guet"]))
@@ -60,11 +61,11 @@ class AubergeTests(unittest.TestCase):
         self.assertIn("Anselme demande les bûches de réserve à Odile (remis).", textes)
         self.assertIn("Mireille demande les bûches de hêtre à Odile (remis).", textes)
         m, suite = par_blocs(m, 420, 60)
-        # Le bois ne suffit pas à tout : Odile garde le reste de sa réserve pour l'âtre, et le poêle
-        # d'Anselme s'éteint.
-        self.assertIn("Anselme demande les bûches de réserve à Odile (refus).", suite)
+        # Ensuite la réserve passe de l'un à l'autre (au temps vécu, branche ``temps-reel``, Odile la
+        # reprend puis la prête de nouveau, et le poêle d'Anselme tient encore à 420) sans s'épuiser.
+        self.assertIn("Odile demande les bûches de réserve à Anselme (remis).", suite)
+        self.assertIn("Anselme demande les bûches de réserve à Odile (remis).", suite)
         self.assertGreater(m.objets["bois_reserve"]["charges"], 0)
-        self.assertFalse(allumee(m.objets["poele"]))
         self.assertTrue(allumee(m.objets["atre"]) and allumee(m.objets["fourneau"]))
 
 

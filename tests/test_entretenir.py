@@ -184,8 +184,10 @@ class ServirUnProtegeTests(unittest.TestCase):
         self.assertLess(lire(m, "lucien")["besoins"]["faim"], 70)
         # Une seule part pour lui : les autres parts sorties du garde-manger pendant ce laps sont allées
         # à d'autres (vendues ou données, chacune remise de la main de Mathe dans la chronique).
-        autres = sum(t.startswith("Mathe donne une part des vivres de la cuisine à ") and "Lucien" not in t
-                     for t in textes(chronique))
+        # (de sa main sous ses yeux, ou en l'appelant : « Mathe appelle Gaspard et lui donne… »)
+        autres = sum((t.startswith("Mathe donne une part des vivres de la cuisine à ")
+                      or t.startswith("Mathe appelle ") and t.endswith(" et lui donne une part des vivres de la cuisine."))
+                     and "Lucien" not in t for t in textes(chronique))
         self.assertEqual(m.objets["vivres"]["portions"], avant - 1 - autres)
         # Elle l'a vu manger : elle ne le croit plus affamé, et rien ne reste à faire.
         self.assertFalse(lire(m, "mathe")["croyances"]["lucien"]["etat"]["valeur"]["faim"])

@@ -374,9 +374,12 @@ Le PNJ retient le premier but pour lequel il trouve un plan, dans cet ordre :
    besoin qu'elles servent ne presse pas ; elles passent après tout le reste.
 
 Le corps est commun à tous, joueur compris (`donjon/corps.py`) : la faim monte de 6 par heure,
-la fatigue de 3, le froid de 2 au sec et de 10 trempé ; l'effort (marcher, porter, agir)
+la fatigue de 3, le froid de 4 au sec et de 10 trempé ; l'effort (marcher, porter, agir)
 multiplie faim et fatigue par 1,5 ; dans la salle d'un foyer allumé, le froid baisse de 3 par
-minute et l'on sèche en 30 minutes ; attendre repose. Seuils : 70 (faim, froid), 80 (fatigue).
+minute et l'on sèche en 30 minutes ; attendre repose ; se tourner sur place ne creuse pas.
+Seuils : 70 (faim, froid), 80 (fatigue). Le corps vit le temps réellement passé dans chaque état
+(l'effort ou le repos du geste fait, le chaud d'un feu, l'eau) : traverser une salle chauffée
+ou noire en quelques secondes compte ces secondes, pas une minute (`donjon/vecu.py`).
 Le scénario déclare des états (`corps` : minutes depuis le dernier repas, de veille, trempé),
 dont découlent les valeurs de départ ; le profil d'un PNJ ne règle plus le corps. Pour le
 joueur comme pour les PNJ, un état qui presse coûte 2 aux jets de FOR et de DEX, et la fatigue
@@ -818,7 +821,8 @@ Trois règles communes au joueur et aux PNJ (`donjon/passage.py`), en mode cases
   qui le retient là ; sinon il le lui demande (une parole de 10 s, s'ils se voient), puis,
   refusé, le pousse hors de son chemin si sa
   douceur le permet (au prix de la faute, voir « Caractéristiques et valeurs ») ; sinon il
-  patiente, minute par minute, et un but ordinaire finit par être abandonné (`PATIENCE`). Le
+  patiente, et un but ordinaire est abandonné après 30 minutes passées à attendre (`PATIENCE`,
+  compté au temps, quel que soit le nombre de fois qu'il y repense). Le
   joueur sur son passage n'est jamais déplacé d'office : il est prié de le laisser passer
   (« Gorm te demande de le laisser passer. ») ; s'il n'a pas bougé 30 s plus tard, c'est un refus,
   et un PNJ peu doux peut le pousser (« Gorm te pousse : tu recules d'un pas. »).

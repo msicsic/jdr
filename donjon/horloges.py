@@ -1,8 +1,10 @@
 """Horloges d'environnement : événements de scénario déclenchés par le temps écoulé.
 
 Une horloge porte les mêmes effets que les transitions de scénario. Elle se déclenche
-une seule fois, dès que les minutes de la partie atteignent son échéance ; un effet
-devenu sans objet (objet déjà déplacé, objectif accompli) est simplement ignoré.
+une seule fois, à l'instant où la partie atteint sa minute, pendant la vie des PNJ
+(``pnj._avancer``) : un geste long du joueur ne la retarde pas, et les PNJ vivent ce qu'elle
+change dès cet instant. Un effet devenu sans objet (objet déjà déplacé, objectif accompli)
+est simplement ignoré.
 L'annonce n'est montrée que si le joueur se trouve dans l'un des lieux qui la perçoivent.
 """
 from .transitions_scenario import applicable, appliquer_effet, verifier_effet
@@ -29,7 +31,8 @@ def verifier(monde):
 
 
 def declencher(monde, lignes):
-    """Appelé par le moteur après l'avancée du temps, sur la copie de travail."""
+    """Les horloges échues à l'heure courante, dans l'ordre de leur minute (``pnj._avancer`` : à
+    chaque minute franchie, et au début pour une échéance déjà passée)."""
     faites = monde.data.setdefault("horloges_declenchees", [])
     for h in sorted(monde.data.get("horloges", []), key=lambda h: h["minute"]):
         if h["id"] in faites or h["minute"] > monde.data["minutes"]:

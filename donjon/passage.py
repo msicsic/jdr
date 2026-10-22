@@ -559,11 +559,14 @@ def _peut_prier(monde, id, autre):
 
 def _patienter(monde, id, t):
     """Personne ne lui fait place : il patiente jusqu'à la minute suivante ; un but ordinaire finit
-    par être abandonné (``PATIENCE``), un réflexe ou une stratégie attendent leur propre terme."""
+    par être abandonné après ``PATIENCE`` minutes passées à attendre (comptées au temps vécu,
+    ``pnj.compter_attente``), un réflexe ou une stratégie attendent leur propre terme."""
     from .deliberation import PATIENCE, renoncer
+    from .pnj import commencer_attente
     intention = esprit(monde, id)["intention"]
     if intention and intention["motif"] != "alerte" and intention["but"]["type"] != "strategie":
-        intention["attente"] += 1
-        if intention["attente"] > PATIENCE:
+        if intention["attente"] > PATIENCE * MINUTE:
             renoncer(monde, id, monde.data["minutes"])
+        else:
+            commencer_attente(monde, id, t)
     return MINUTE - t % MINUTE

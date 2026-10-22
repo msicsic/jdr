@@ -180,9 +180,11 @@ class ImpasseTests(unittest.TestCase):
         intention(m, "brune", [{"operation": "aller", "lieu": "echoppe"}], {"type": "rejoindre", "lieu": "echoppe"},
                   "faim")
         agir(m, "brune", 0, [])
-        self.assertEqual(lire(m, "brune")["intention"]["attente"], 1)
-        lire(m, "brune")["intention"]["attente"] = 30
-        m.data["minutes"] = 1   # Une minute plus tard : l'attente se compte une fois par minute.
+        # Son attente commence (``pnj.compter_attente`` la compte au temps passé, branche ``temps-reel``).
+        self.assertEqual(lire(m, "brune")["patience"], 0)
+        lire(m, "brune")["intention"]["attente"] = 30 * 600 + 1   # Plus de trente minutes déjà attendues.
+        lire(m, "brune")["patience"] = None
+        m.data["minutes"] = 1
         agir(m, "brune", 600, [])
         self.assertIsNone(lire(m, "brune")["intention"])
         self.assertIn("renoncement", [s["type"] for s in recharger(m) and lire(m, "brune")["memoire"]])

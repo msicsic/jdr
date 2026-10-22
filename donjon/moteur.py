@@ -661,16 +661,18 @@ class Moteur:
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
             force=nature_emise(travail, effets))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
-        minutes = ecouler(travail, duree(plan))
-        travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
-        # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
-        # l'eau trempe aussitôt.
-        from .corps import CALMES, vivre_joueur
+        # Le corps du joueur vit le temps de son geste dans l'état où il le fait : l'effort creuse,
+        # attendre repose ; entrer dans l'eau trempe aussitôt. Le temps passé dans l'état précédent
+        # est soldé s'il change, et chaque minute franchie le solde (``vecu``, ``pnj._avancer``).
+        from .corps import CALMES
         from .eau import tremper
+        from .vecu import noter
         tremper(travail, "joueur", lignes)
         action = plan.proposition.get("action")
-        vivre_joueur(travail, minutes, effort=plan.effort and action not in CALMES,
-                     repos=action == "attendre", lignes=lignes)
+        noter(travail, "joueur", debut, "repos" if action == "attendre"
+              else "effort" if plan.effort and action not in CALMES else None)
+        minutes = ecouler(travail, duree(plan))
+        travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour. Ce qu'ils
         # en voient date du début du geste, d'où leur vie repart : la minute de fin, plus tardive que
         # leurs gestes de cette période, ferait dépendre leurs croyances du découpage des actions.
@@ -709,8 +711,7 @@ class Moteur:
         if heles and not any(qui in repondus and (travail.visible(qui) or any(b["auteur"] == qui for b, _, _ in parvenus))
                              for qui in heles):
             lignes.append("Aucune réponse ne te parvient.")
-        from .horloges import declencher as declencher_horloges
-        declencher_horloges(travail, lignes)
+        # Les horloges du scénario se sont déclenchées à leur minute, pendant la vie des PNJ.
         percevoir_tous(travail)
         # Qui entendrait d'ici un fracas du joueur (l'ouïe commune) : son humeur suit le tapage.
         from .sons import entendants

@@ -439,7 +439,9 @@ crue et au Relais, quelques minutes de plans possibles non entrepris pendant un 
   appel à l'aide, horloges du scénario (déclenchées par le moteur à la fin d'une action), dates des
   croyances et souvenirs (la minute), répit après renoncement et patience (en minutes). Hors
   périmètre, à faire ensuite : corps, besoins, combustion et crue au temps réel ; horloges à leur
-  instant ; croyances et souvenirs datés au dixième ; patience en temps.
+  instant ; croyances et souvenirs datés au dixième ; patience en temps. *Depuis la branche
+  `temps-reel` : horloges, corps, besoins, sécurité ressentie, patience et répit le sont (voir
+  « Correctif : le temps réel »).*
 - Un franchissement de seuil n'éveille personne (refusé pour l'instant) : un besoin qui presse entre
   deux minutes attend la minute.
 - Ce qui change de son propre fait ne l'éveille pas : un PNJ qui découvre en marchant quelqu'un ou
@@ -457,6 +459,108 @@ crue et au Relais, quelques minutes de plans possibles non entrepris pendant un 
 - Plus vifs, les PNJ font d'autres histoires : des tests de scène ont dû être retouchés (intention
   imposée sans motif, que le premier événement remplace ; scènes qui supposaient une minute d'inertie) ;
   chacun dit pourquoi.
+
+## Correctif : le temps réel (branche `temps-reel`)
+
+Constat (inventaire de « Délibérer à l'événement ») : les PNJ délibéraient à l'événement, mais le
+reste tournait à l'instant pile de chaque minute. Les horloges du scénario n'étaient déclenchées
+qu'à la fin d'une action du joueur : une attente de cinq minutes retardait la rafale de l'auberge, et
+les PNJ vivaient comme si elle n'avait pas eu lieu. Le corps, la dérive des besoins et la sécurité
+ressentie étaient échantillonnés à la frontière de minute : un PNJ qui traversait un couloir noir
+entre deux minutes n'avait pas peur, un autre qui s'y tenait une seconde à la frontière en subissait
+une minute entière ; l'effort ou le repos se lisaient du premier geste de son plan, pas des gestes
+faits ; le corps du joueur ne changeait qu'au franchissement d'une minute, selon l'action qui la
+franchissait. La patience comptait des appels (`passage`) ou des minutes où l'on y avait repensé
+(`pnj._patienter`), pas le temps passé à attendre.
+
+**Ce qui est fait** (le filet de délibération à la minute reste ; aucun franchissement de seuil n'est
+programmé comme événement, décision de l'utilisateur) :
+- **Les horloges à leur instant** (`horloges.declencher`, appelé par `pnj._avancer`) : à chaque
+  frontière de minute franchie, avant la combustion et la délibération, et au début de la vie des
+  PNJ pour une échéance déjà passée (la minute 0). Les PNJ qui voient l'effet le perçoivent à cet
+  instant (un feu qui s'éteint sous leurs yeux les éveille) ; l'annonce va au joueur s'il est dans un
+  des lieux, comme avant. Le moteur ne les déclenche plus à la fin de l'action.
+- **Le temps vécu** (`donjon/vecu.py`, `corps["vecu"]` de chaque personnage qui a un corps, joueur
+  compris) : l'état où il se trouve depuis un instant, son activité (`effort` d'un geste qui creuse,
+  dont la marche ; `repos` ; rien), le chaud d'un foyer allumé dans sa salle, l'eau où il se tient, et,
+  pour un PNJ qui ressent sa sécurité, ce qu'elle gagne ou perd par minute là où il est
+  (`deliberation.ecart_securite` : le noir, la compagnie, la méfiance, l'eau, la menace). `solder`
+  fait vivre le temps passé dans cet état : faim, fatigue, froid, séchage et trempe (`corps.vivre`,
+  au prorata), dérive des besoins du profil, sécurité. Un PNJ solde à chacun de ses gestes (avant de
+  choisir : il décide sur ses besoins à l'instant), note l'état où son geste le met (`noter` :
+  l'activité du geste fait, `pnj.agir` la dit par `monde._activite`), et chaque frontière de minute
+  solde puis relit les conditions (`vecu.minute`, appelé par `deliberer`). Le joueur note l'état de
+  chaque action à son début (`moteur._terminer_etape`) ; un état inchangé continue sans rien solder,
+  et chaque minute franchie le solde (`pnj._avancer`) avec ses messages (« Tu as faim. », la peine
+  d'une heure à l'extrême, comptée en dixièmes). Ces instants ne dépendent pas du découpage des
+  actions du joueur : le même laps, découpé autrement, donne le même monde. Se tourner sur place
+  (`tourner`) ne creuse plus (`corps.CALMES`).
+- **Le froid sec à 4 par heure** (`corps.CORPS`, décision du 2026-10-22 ; 2 avant).
+- **La patience en temps** (`pnj.commencer_attente`, `compter_attente`) : guetter son occasion ou
+  attendre qu'on lui fasse place ouvre une attente, datée dans l'esprit (`patience`) ; le temps
+  passé s'ajoute à `intention["attente"]`, en dixièmes, à son geste suivant et à chaque frontière ; il
+  renonce au-delà de `PATIENCE` minutes d'attente, quel que soit le nombre de fois qu'un événement
+  l'a fait reconsidérer. Un autre but remet l'attente à zéro. **Le répit** se compte de l'instant du
+  renoncement (`renoncements` en dixièmes, `REPIT` minutes).
+
+**Vérifié** après rechargement (`tests/test_temps_reel.py`) : la rafale de l'auberge avancée à la
+minute 2 pendant une attente de cinq minutes (Hugues voit l'âtre éteint à la minute 2) ; une horloge
+qui éteint le brasero sous les yeux de Gorm, qui choisit de le rallumer à cet instant et le rallume
+avant la fin de l'action ; la même horloge d'un bloc ou en rotations rechargées ; Ilse qui traverse
+le noir pour gagner la lumière et Gorm dont la ronde passe au chaud, chacun à quatre phases de la
+minute (0, 15, 30, 45 s) : même chemin, mêmes besoins à 0,005 près (avant, la phase décidait si la
+traversée comptait) ; le corps du joueur qui marche puis se tourne, ou l'inverse, dans la même
+minute : mêmes besoins, et la faim compte la marche à l'effort au dixième près ; le froid sec du
+joueur et de Gorm ; Brune qui renonce après 30 minutes de guet comptées au temps, puis son répit ;
+Gorm bloqué par le joueur, dont l'attente compte le temps et qui renonce au-delà ; la patience d'un
+bloc ou découpée.
+
+**Bancs** (8 h, départ tiré, `main` 0551ba2 puis la branche, l'un après l'autre, `--processus 1`, machine
+partagée avec deux autres chantiers ; Relais 8 graines `--joueur chambre_cloche`, mine `--joueur galerie`,
+auberge `--joueur dortoir`, crue `--joueur chambre_cloche` 4 graines ; `main` → branche, par nuit) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| usurpations, violations | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| événements distincts | 37,25 → 36,25 | 65,5 → 66,5 | 101,5 → 89,75 | 42,5 → 41 |
+| échanges | 15,4 → 16,6 | 43,75 → 44 | 81,25 → 67,5 | 21,5 → 20,75 |
+| vols vus (témoins) | 1 (2,75) → 1 (2,4) | 0,75 (3,25) → 0,75 (2,75) | 1 (1,5) → 1 (2) | 0,25 (0,5) → 0 (0) |
+| minutes sans recours | 60,6 → 68,1 | 56,25 → 38,75 | 75 → 73,75 | 32,5 → 22,5 |
+| minutes en attente | 52,5 → 72,5 | 240 → 242,5 | 308,75 → 341,25 | 472,5 → 461,25 |
+| allés voir | 10,25 → 11,4 | 15,5 → 19,25 | 38,5 → 38,5 | 14,5 → 14,5 |
+| minutes dans le noir | 26,9 → 58,75 | 215 → 233,75 | 1 189 → 1 195 | 16,25 → 23,75 |
+| choix à l'événement | 917 → 895 | 3 016 → 1 216 | 2 153 → 2 010 | 821 → 893 |
+| temps d'une nuit (mur, chargé) | 15,7 → 14,3 s | 53,3 → 46,6 s | 48,8 → 42 s | 17,6 → 18,2 s |
+
+Toutes les nuits restent distinctes. Les écarts viennent de nuits qui divergent, pas d'une tendance : au
+Relais, la graine 42 fait 295 minutes dans le noir et 180 en attente (Gorm attend dans la conduite noire
+une part de planches qu'Aubin a promise sans la servir, voir les limites) contre 0 sur `main`, où la
+graine 2024 faisait 180 minutes dans le noir ; à l'auberge, la graine 42 de `main` comptait 137
+événements (90 sur la branche), la 2024 de la branche 615 minutes en attente (380) ; à la mine, la graine
+42 de `main` comptait 9 356 choix à l'événement (2 086).
+
+`VERIFIER` sans écart sur une nuit de 8 h de chaque scénario (graine 42). **Audit** (`tools/audit_nuits.py`,
+4 scénarios × 4 graines × 12 h ; les nuits de `main` sont celles du lot B, même commande) : aucun plantage
+ni violation ; mêmes familles de constats, en nombre voisin (pressé sans but 38 → 45, noir long 59 → 64,
+aller voir alterné 6 → 9, appels nombreux 3 → 0, eau longue 4 → 1, dettes en fin de nuit 5 → 2,
+répétitions 6 → 5). **Coût au processeur** (une nuit de 8 h, graines 1985 et 7, `main` puis la branche
+sous le même verrou, `time.process_time`) : Relais 27,8 → 30,4 s, mine 60,8 → 69,2 s, auberge 84,3 →
+90,8 s, crue 33,8 → 36,4 s, soit +8 à +14 % sur des nuits qui ne sont plus les mêmes ; au profil (1,5 h
+d'auberge), la relecture des conditions après chaque geste (`vecu.noter`, ~0,8 ms : la lumière de sa case
+et qui il voit, `deliberation.autour`) fait l'essentiel de l'écart.
+
+**Limites** :
+- Les conditions se relisent à chacun de ses gestes, à chaque éveil et à chaque minute, pas à chaque
+  geste des autres : un feu qui s'éteint loin de ses yeux pendant qu'il attend ne compte qu'à la minute.
+- Le corps du joueur est soldé aux minutes et quand son état change : entre deux, la fiche ne montre
+  pas les secondes en cours (le même laps, découpé autrement, donne pourtant le même corps).
+- Restent à la minute : la combustion (le combustible se compte en minutes entières ; l'éteindre à
+  l'instant demanderait de dater chaque allumage et de programmer l'extinction comme événement), la crue
+  (le niveau se compte en centimètres par minute), l'effet de seuil des besoins, les échéances des paroles,
+  prêts et dettes, la flamme ménagée, l'appel à l'aide, les dates des croyances et souvenirs.
+- Défaut vu au banc, hors de ce chantier : au Relais (graine 42), Aubin, payé pour garder le brasero
+  allumé, n'a pas de flamme pour le rallumer et ne rend pas la tâche ; il promet deux fois une part de
+  planches qu'il ne sert pas, et Gorm l'attend 160 minutes dans la conduite noire, ses fagots à côté.
 
 ## Hors périmètre
 
