@@ -27,7 +27,9 @@ Le joueur a ``data["voix_connues"]`` et ``data["voix_entendues"]``. Voir quelqu'
 import copy
 
 from .biens import permis as _permis
-from .perception import eclairage
+from .perception import _par_case, eclairage, faible
+from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verifier, carte_lumiere, dans_le_regard,
+                      etat_fige, porte_par, poses as salles_posees, sans_memoire, vue_memorisee)
 from .vol import proprietaire as _proprietaire
 
 MEMOIRE_MAX = 40
@@ -327,7 +329,6 @@ def percus(monde, acteur):
     Pendant la vie des PNJ (``spatial.vue_memorisee``), la perception d'un acteur est gardée tant
     que l'état dont elle dépend n'a pas changé (``spatial.etat_vue``) ; dans un état nouveau, elle se
     tire de la précédente quand c'est possible (``_percus_depuis``)."""
-    from .spatial import _champ, _memo_vue, a_verifier, sans_memoire
     memo = _memo_vue(monde) if monde.data.get("mode_cases") else None
     if memo is None:
         return _percus(monde, acteur, None)
@@ -347,7 +348,6 @@ def percus(monde, acteur):
 
 
 def _percus(monde, acteur, memo):
-    from .spatial import porte_par, poses as salles_posees
     salle = monde.objets[acteur]["lieu"]
     poses = salles_posees(monde, memo)
     # Ce qu'il porte lui-même, il le sait sans le voir.
@@ -356,7 +356,6 @@ def _percus(monde, acteur, memo):
     if salle not in monde.data["salles"]:
         return vus, set()
     if monde.data.get("mode_cases"):
-        from .spatial import _champ
         champ = _champ(monde, acteur, memo)
         salles_du_champ = {c[0] for c in champ}
         salles_vues = [s for s in monde.data["salles"] if s in salles_du_champ]
@@ -384,7 +383,6 @@ def _vu_dans_le_champ(monde, memo, acteur, id, o, pose, champ, salles_du_champ, 
     """Où l'acteur voit l'objet ``id`` (salle, case), ou None : ``visible``, sans le cas des surfaces,
     qui ne sont pas pertinentes ; la première place dans le champ, et l'objet accroché au mur n'est vu
     que si ce mur l'est ; porté par un autre, s'il se remarque."""
-    from .spatial import _murs, _position_vue
     if not _remarquable(acteur, o) or pose is not None and pose not in salles_du_champ:
         return None
     premiere, vu = None, False
@@ -408,7 +406,6 @@ def _percus_depuis(monde, acteur, memo, dernier):
     objets qui ne bornent pas la vue (ni porte ni objet opaque), pas lui-même, et que son champ est le
     même : seuls les objets changés et ce qu'ils portent ou contiennent (la chaîne de leurs lieux), et
     les objets installés sur un support, sont revus ; le reste se voit de même. None sinon."""
-    from .spatial import _champ, porte_par, poses as salles_posees
     ancien, vus_avant, champ_avant, memo_avant = dernier
     etat = memo.get("etat")
     if etat is None:
@@ -466,7 +463,6 @@ def _changes(memo, ancien, etat):
     """Les objets dont l'entrée diffère entre deux empreintes (``spatial.etat_vue``), et « joueur » si
     sa place ou son regard a changé ; None si les objets ne sont plus les mêmes ou si une porte ou un
     objet opaque a changé (ce qui borne la vue). Gardé dans le mémo de l'état, par état précédent."""
-    from .spatial import CLES_VUE
     cle = ("changes", id(ancien))
     garde = memo.get(cle)
     if garde is not None and garde[0] is ancien:
@@ -494,7 +490,6 @@ def _heriter_signatures(memo, memo_avant, ancien, etat, touches):
     de ce qu'elles lisent n'a changé : aucun objet changé, ni rien de ce qu'il porte ou contient
     (``touches``), n'est allumé ni opaque, et aucun n'a changé d'ouverture. L'état partage alors les
     signatures de l'autre (``memo["signatures"]``), qu'ils complètent ensemble."""
-    from .spatial import CLES_VUE
     if memo_avant is memo:
         return
     ouverte, opaque = CLES_VUE.index("ouverte"), CLES_VUE.index("bloque_vue")
@@ -616,7 +611,6 @@ def constater(monde, id, sujet, source):
         croire(monde, id, sujet, "pieces", o["pieces"], source)
     etats = ETATS_VISIBLES.get(o["type"])
     if etats:
-        from .perception import faible
         valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
                    "charge": o.get("combustible", 0) > 0}
         croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, source)
@@ -635,7 +629,6 @@ def _flamme_sous_les_yeux(monde, id, sujet, lieu):
         return False
     if not monde.data.get("mode_cases"):
         return monde.objets[id]["lieu"] == salle
-    from .spatial import dans_le_regard
     return case is not None and dans_le_regard(monde, salle, case, id)
 
 
@@ -666,7 +659,6 @@ def lumiere_ici(monde, id):
 
     Dans un état figé (``spatial.etat_fige``), gardée pour l'état : elle n'en lit que ce que lit
     ``spatial.etat_vue`` (sa place, les sources, qui les porte)."""
-    from .spatial import a_verifier
     cache = getattr(monde, "_cache_vue", None)
     fige = None if cache is None else cache.get("fige")
     if fige is not None and ("lumiere_ici", id) in fige:
@@ -680,7 +672,6 @@ def lumiere_ici(monde, id):
 
 
 def _lumiere_ici(monde, id):
-    from .perception import _par_case
     salle = monde.objets[id]["lieu"]
     porte = lambda source: source in monde.objets and _porteur(monde, monde.objets[source]) is not None
     position = monde.objets[id].get("position") if monde.data.get("mode_cases") else None
@@ -688,7 +679,6 @@ def _lumiere_ici(monde, id):
     niveau = max((c["niveau"] for c in lumieres), default=0)
     if not _par_case(monde, salle):
         return niveau, niveau
-    from .spatial import carte_lumiere
     diffuse = max((c["niveau"] for c in carte_lumiere(monde, salle).ambiance(salle) if not porte(c["source"])),
                   default=0)
     return niveau, max(diffuse, max((c["niveau"] for c in lumieres if c["source"] is not None), default=0))
@@ -726,7 +716,6 @@ def reconsiderer(monde, id):
 
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
-    from .spatial import etat_fige
     with etat_fige(monde):  # Percevoir ne révise que son esprit.
         _percevoir(monde, id)
 
@@ -799,7 +788,6 @@ def _percevoir(monde, id):
 
 
 def percevoir_tous(monde):
-    from .spatial import etat_fige, vue_memorisee
     with vue_memorisee(monde), etat_fige(monde):  # Percevoir ne révise que des esprits.
         for id in pnjs(monde):
             percevoir(monde, id)

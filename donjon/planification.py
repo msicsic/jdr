@@ -1094,7 +1094,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
-        sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False)
+        sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False, check_circular=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,

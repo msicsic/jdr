@@ -12,6 +12,7 @@ from contextlib import contextmanager
 import threading
 
 from .geometrie import cases, distance, position_entree, position_objet, placer
+from .perception import CarteLumiere
 
 
 VECTEURS = {
@@ -783,7 +784,6 @@ def _signature(m, memo, salle):
 
 def carte_lumiere(m, salle, memo=None):
     """La carte de lumière d'une salle, gardée par signature de la vue dans ``vue_memorisee``."""
-    from .perception import CarteLumiere
     cache = getattr(m, "_cache_vue", None)
     if cache is None:
         return CarteLumiere(m, salle)

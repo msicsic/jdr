@@ -51,6 +51,8 @@ ne connaît pas. Il choisit lui-même de se retourner.
 import heapq
 from itertools import count
 
+from .geometrie import distance as _reelle
+
 INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "bruyant": 7, "hele": 9, "appel": 9}
 HABITUELS = ("feutre", "pas", "geste", "voix")
 VOCALES = ("voix", "hele")   # ce qui porte des mots, et fait reconnaître une voix
@@ -110,8 +112,7 @@ def nature_crochetage(marge, discret=False):
 def distance(a, b):
     """En distance réelle, comme toute portée en cases (``geometrie.distance``) : un bruit à quatre
     cases en diagonale vient de plus loin qu'à quatre cases droites."""
-    from .geometrie import distance as reelle
-    return reelle(a, b)
+    return _reelle(a, b)
 
 
 def perte(a, b):
