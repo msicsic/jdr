@@ -340,6 +340,7 @@ class MJ:
         self._sans_dialogue = False    # un dialogue serait remplacé par le refus du moteur : pas d'audit
         self._faisabilite_renvoyee = False  # « puis-je… ? » déjà renvoyé : un dialogue se contrôle
         self._impossible_admis = False  # la boucle de décision lira un « impossible » (réexamen déjà demandé)
+        self._sans_relance = False     # une explication refusée cède au refus du monde, sans relance
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
@@ -493,6 +494,9 @@ class MJ:
         # la fiche du geste ou par la raison de son refus (une raison du monde, jamais un refus de forme),
         # jamais une explication libre du MJ.
         faisabilite, refus_du_moteur = est_question(intention), None
+        # Le dernier refus du monde (ce qui manque, ce qui est trop loin), quelle que soit l'action : son
+        # message s'adresse au joueur et vaut réponse si l'explication du MJ n'est pas admise d'emblée.
+        refus_monde = None
         for tentative in range(3):
             if reponse["mode"] != "action":
                 break
@@ -517,8 +521,10 @@ class MJ:
                 try:
                     plan = Moteur(monde).preparer(p, "MJ")
                 except ErreurMonde as exc:
-                    if p.get("action") not in PERCEPTIONS and not isinstance(exc, (QualificationRequise, RefusDeForme)):
-                        refus_du_moteur = exc
+                    if not isinstance(exc, (QualificationRequise, RefusDeForme)):
+                        refus_monde = exc
+                        if p.get("action") not in PERCEPTIONS:
+                            refus_du_moteur = exc
                     raise
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
@@ -563,6 +569,9 @@ class MJ:
                 if correction_utilisee and not forme:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
                               "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
+                    # Avec un refus du monde, l'explication a un seul essai : refusée, le joueur lit ce refus,
+                    # exact et complet, plutôt qu'une explication relancée jusqu'au repli.
+                    self._sans_relance = refus_monde is not None
                     try:
                         explication = self._echanger(monde, intention, proposition_en_attente,
                                                     enrichir=False, retour_moteur=retour)
@@ -572,6 +581,10 @@ class MJ:
                         return explication
                     except ErreurMonde:
                         pass
+                    finally:
+                        self._sans_relance = False
+                    if refus_monde is not None:
+                        return reponse_du_moteur(refus_monde)
                     return {"mode": "dialogue", "texte": expliquer_refus(premier_refus, dernier_refus),
                             "faits": [], "proposition": None, "_validation_refusee": True,
                             "_texte_moteur": True}
@@ -1114,7 +1127,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 self.observateur({"etape": "contrôle narratif", "modele": self.modele,
                                   "revision": entree.get("faits", {}).get("revision", 0),
                                   "intention": intention, "tentative": tentative + 1,
-                                  "obstacles": copy.deepcopy(obstacles)})
+                                  "obstacles": copy.deepcopy(obstacles),
+                                  **({"sans_relance": True} if self._sans_relance else {})})
+            if self._sans_relance:
+                # Le refus du monde répond à la place de cette explication (``_echanger_prepare``).
+                raise ErreurMonde("L'explication n'est pas admise : le refus du monde y répond.")
             if tentative == 2:
                 champs = {"mode", "texte", "faits", "proposition"}
                 faits_connus = entree.get("faits", {})

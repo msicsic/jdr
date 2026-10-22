@@ -9,7 +9,9 @@
   répliques) n'étaient dites nulle part au MJ ;
 - un nom typé autrement que ne le disent les mots de Corvus était refusé au MJ, alors que le moteur le
   lit lui-même dans les mots (« C'est moi, Brune. ») ;
-- une citation recopiée par l'auditeur avec ses mots d'attribution refusait une réplique juste.
+- une citation recopiée par l'auditeur avec ses mots d'attribution refusait une réplique juste ;
+- l'explication d'un geste refusé par le monde (trop loin) était relancée jusqu'à trois fois, alors que
+  le refus du monde dit déjà au joueur, exactement, ce qui manque.
 
 Chaque cas vérifie ce que lit le joueur, l'état après rechargement et les appels faits."""
 import unittest
@@ -131,6 +133,56 @@ class CitationTests(unittest.TestCase):
         faux = controler("Aubin grogne : « Pas maintenant. »", self.rapport("Plus tard."), faits)
         self.assertEqual(len(faux["obstacles"]), 1)
         self.assertIn("citée entre « et », en entier", faux["obstacles"][0]["motif"])
+
+
+def loin_de_la_poutre():
+    from tests.test_paroles import relais
+    m = relais()
+    m.joueur.update(position=[3, 3], orientation="est")
+    return m
+
+
+CONTRADICTOIRE = verdicts(("contradictoire", (), "« Il te faut t'en rapprocher » raconte un geste commencé."))
+
+
+class ExplicationTests(unittest.TestCase):
+    def test_cas_reel_coup_de_pied_trop_loin(self):
+        # Banc relais : « je donne un coup de pied dans la poutre », trop loin. L'explication du MJ, refusée par
+        # l'auditeur, était relancée (crypte : sept appels pour les crochets) ; le refus du monde répond.
+        coup = proposition("coup de pied dans la poutre", issue("Tu frappes la poutre."),
+                           cibles=["poutre_conduite"], approche="effort")
+        reprise, sortie, appels = jouer(loin_de_la_poutre(), "je donne un coup de pied dans la poutre", [
+            action(coup), dialogue("La poutre est trop loin, il te faut t'en rapprocher.")], [CONTRADICTOIRE])
+        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)
+        self.assertEqual(fonctions(appels).count("auditer_narration"), 1)
+        self.assertIn("Approche-toi de la poutre effondrée", sortie)
+        self.assertNotIn("Il te faut t'en rapprocher", sortie)
+        self.assertNotIn("Je n'ai pas pu", sortie)
+        self.assertEqual(reprise.data["journal"], [])
+        self.assertEqual(reprise.objets["poutre_conduite"]["integrite"], loin_de_la_poutre().objets["poutre_conduite"]["integrite"])
+
+    def test_meme_nature_attendre_puis_prendre_les_crochets(self):
+        prendre = action({"action": "composer", "justification": "", "etapes": [
+            {"operation": "patienter", "cible": "", "destination": "", "outil": "", "methode": "simple",
+             "difficulte": 0},
+            {"operation": "deplacer", "cible": "crochets", "destination": "joueur", "outil": "",
+             "methode": "discret", "difficulte": 0}]})
+        reprise, sortie, appels = jouer(loin_de_la_poutre(),
+                                        "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+                                        [prendre, dialogue("Tu ne peux donc pas la prendre d'ici.")], [CONTRADICTOIRE])
+        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)
+        self.assertIn("Approche-toi de la trousse de crochets", sortie)
+        self.assertNotEqual(reprise.objets["crochets"]["lieu"], "joueur")
+        self.assertEqual(reprise.data["journal"], [])
+
+    def test_une_explication_admise_reste_celle_du_mj(self):
+        coup = proposition("coup de pied dans la poutre", issue("Tu frappes la poutre."),
+                           cibles=["poutre_conduite"], approche="effort")
+        _, sortie, appels = jouer(loin_de_la_poutre(), "je donne un coup de pied dans la poutre", [
+            action(coup), dialogue("La poutre effondrée est à plusieurs pas de toi.")],
+            [verdicts(("mecanique", ("retour_moteur",), ""))])
+        self.assertIn("La poutre effondrée est à plusieurs pas de toi.", sortie)
+        self.assertNotIn("Approche-toi", sortie)
 
 
 class ConsignesTests(unittest.TestCase):
