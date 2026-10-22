@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-22.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-23.
 
 ## Où on en est
 
@@ -25,6 +25,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   identiques avant → après (le banc sans joueur ne voit presque rien des noms : 0 nom retenu en 4 h).
   Relecture : contrat du MJ renforcé (projection `personne_<n>`, contrôle déterministe des noms) ; code
   dense (`noms.py`) ; relances Luna 2 → 8 par passe selon le rapport, à surveiller ; Luna non revérifiée ici.
+- Branche `codex-outils`, fusionnée : comparateur de bancs livré en premier,
+  `tools/comparer_bancs.py` (référence puis branche, temps CPU par nuit, audit et identité
+  chronique/mesures/état complet). Relais, 4 graines, 2 h : `main` contre `main` identique ;
+  `main` contre `codex-profils` divergent dès la minute 0. Premier commit `4b8c4db` poussé avant
+  le second outil. `tools/tests.py` isole les fichiers unittest dans des processus à priorité réduite,
+  les plus longs d'abord (durées non versionnées) ; priorité Windows 64 bits effective par
+  `tools/priorite.py`, sans modifier le moteur. Suite entière verte en série et en parallèle :
+  **1 293 tests, 14 sautés**, même compte ; **24 min 18 s → 5 min 38 s** avec huit processus
+  (×4,31, une passe de chaque, successives). Aucun regroupement des fichiers terminal/web requis.
+  [Rapport, commandes et limites](taches/rapport-codex-4-outils.md).
+  Fusionné après `codex-profils`, `codex-lampes` et `codex-noms` : seul conflit `docs/etat-dev.md`. Tests
+  des outils verts (11). `tools/tests.py --processus 4` sur la suite entière : 1340 tests, 14 sautés, en
+  8 min 32 s, même compte que la découverte `unittest` (1340). `comparer_bancs.py --empreintes`, `main`
+  contre `main`, Relais, 2 h, graines 1985 et 7 : « identique ». Lancé depuis un worktree, l'outil crée
+  ses worktrees temporaires sous le `.worktrees/` de ce worktree (ignoré par git), pas sous celui du dépôt.
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1278,7 +1293,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun plantage, usurpation ni bascule nouvelle. Relecture : `_parts_remises` compte un besoin de
   lumière aussi pour qui sait crocheter (heuristique par capacité, à revoir) ; temps d'une nuit de
   12 h doublé à l'auberge selon le rapport (120 → 249 s), non revu ici.
-- La suite de tests passe : 1329 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 1340 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 
@@ -1340,6 +1355,23 @@ Non versionnés, donc absents d'un nouveau poste :
 
 ## Outils de mesure
 
+- Suite sans appel au modèle, par fichiers isolés : `python tools/tests.py` ; moitié des cœurs
+  par défaut, `--processus N` pour régler la charge. Fichiers en arguments (`tests/test_web.py
+  tests/test_tui.py`) ou `--motif "test_*banc*.py"` ; `--sortie artifacts/tests.json` pour les traces
+  et temps détaillés. Les durées dans `artifacts/durees_tests.json` servent aux exécutions suivantes
+  (fichiers les plus longs en premier). Rendu et comptes de `unittest`, y compris subtests, erreurs
+  d'import, sauts, échecs attendus et succès inattendus. Code 1 si échec ou processus interrompu.
+  Le mode `--processus 1` garde l'isolation par fichier ; la référence en un seul interpréteur reste
+  `python -m unittest discover -s tests -q`.
+- Comparaison sans Luna : `python tools/comparer_bancs.py --reference main --scenarios relais mine
+  --processus 2 --sortie artifacts/comparaison.json` : 4 h, graines 1985/7/42/2024, salles passives
+  adaptées aux scénarios ; `--branche REF` pour une référence git, sinon fichiers du worktree courant.
+  Worktrees détachés créés et supprimés automatiquement, sans changer la branche principale.
+  `--depart fixe`, `--verifier`, `--joueur mine=galerie` ; tableau moyenne [min–max], audit des boucles,
+  usurpations, plantages, temps écoulé et temps processeur par nuit (`secondes_cpu` dans le JSON).
+  `--empreintes` : 2 h par défaut, identité de chronique, mesures et état final complet (`data`, SHA-256),
+  code 1 si divergence. Première nuit dans l'ordre scénarios/graines, première minute observée par un
+  rejeu instrumenté uniquement en cas d'écart (exclu des temps). Voir les limites dans le rapport.
 - Banc moteur seul, sans appel à Luna, avec son récit (`--chronique` pour chaque pas) :
   `python -m donjon.banc_pnj --heures 8 --graine 1985 --joueur chambre_cloche` ; plusieurs nuits
   en parallèle, avec le tableau des mesures et leur moyenne : `--graines 1985 7 42 2024`.

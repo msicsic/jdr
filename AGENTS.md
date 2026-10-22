@@ -26,6 +26,9 @@ Le point de reprise est `docs/etat-dev.md` : à lire avant tout chantier, et à 
 
 - Python : `.venv\Scripts\python.exe` (installation dans le README).
 - Tests sans appel au modèle : `.venv\Scripts\python.exe -m unittest discover -s tests -q`.
+  En parallèle, priorité réduite : `.venv\Scripts\python.exe tools/tests.py` (moitié des cœurs ;
+  `--processus N`, fichiers en arguments ou `--motif "test_*.py"` ; durées dans
+  `artifacts/durees_tests.json`, non versionné).
 - Luna passe par le forfait ChatGPT. Le coffre (`donjon/connexion.py`) sérialise le renouvellement
   du jeton ; plusieurs exécutions peuvent tourner en même temps (4 vérifiées). Rester à quelques
   exécutions simultanées pour ne pas atteindre les plafonds du forfait ; mesurer les temps de
