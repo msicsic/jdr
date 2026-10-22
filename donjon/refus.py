@@ -10,6 +10,13 @@ from .monde import ErreurMonde
 LISTE_MAX = 12
 
 
+class RefusDeForme(ErreurMonde):
+    """Une proposition du MJ mal formée ou mal dirigée : un champ manquant, une valeur hors de ses
+    bornes, la mauvaise action pour ce que demande la saisie. Le monde n'y est pour rien et une autre
+    proposition de la même intention pourrait passer : le refus revient au MJ, avec son ``attendu``, et
+    ne se montre jamais au joueur comme une impossibilité (``mj``)."""
+
+
 def liste(ids, vide="aucun"):
     ids = list(ids)
     if not ids:

@@ -1216,6 +1216,105 @@ Relais et à l'auberge, réussis égaux) ; à l'auberge, Lucien guette son occas
 ses biens, renonce au bout de 30 minutes et reste sans rien faire (`REPIT`), d'où des minutes sans
 recours ; moins de bruits inconnus retenus (un examen vain les couvre). Le compte « témoins par l'ouïe »
 est celui de la chronique (la mémoire de 40 souvenirs n'en garde pas tout en fin de nuit).
+## Corrections de la parole (branche `parole-corrections`)
+
+Les défauts de parole du [banc Luna du soir](banc-luna-soir.md), corrigés par des règles communes
+(`tests/test_parole_corrections.py`, cas réels des bancs ciblés et un cas de même nature, état après
+rechargement et ce que lit le joueur).
+
+- **Un vocatif où qu'il soit** (`paroles._vocatifs`, `_interpeller`) : un nom détaché par une virgule
+  désigne le destinataire en tête, au milieu ou en fin de phrase (« as-tu de quoi manger, Ilse ? »,
+  « dis-moi, Ilse, … », dans les mots après « je dis : » comme entre guillemets), hors des citations ;
+  après « moi, » c'est celui qui parle qui se nomme (« c'est moi, Brune »), pas un vocatif. Cas réel :
+  la question allait à Aubin, en face, et la réplique était réécrite « …, Aubin ? ».
+- **Un nom que Corvus ne connaît pas** (`analyser` → `inconnu`, `destinataires`) : un vocatif ou un
+  « je dis à X » qui nomme un personnage du monde que Corvus ne connaît pas donne « Tu ne connais
+  personne du nom de X ici », sans appel au MJ pour une parole sans conteste, jamais un autre
+  destinataire. Un absent connu garde « Tu ne vois pas X d'ici ».
+- **Nommer la voix par le nom qu'elle porte** (`voix.porteur_du_nom`) : quand Corvus ne sait là
+  quelqu'un que par une voix qui s'est dite X (ou qu'on a appelée X devant lui), nommer X, c'est
+  s'adresser à cette voix, pour une parole comme pour un don (`dialogues.verifier_don`). Le nom n'est
+  pas une identité : la voix reste « une voix qui se dit X » (une imposture comprise), et un don hors
+  de portée dit « Approche-toi d'une voix qui se dit Ilse », sans son vrai nom (`proximite.exiger`).
+  Un absent qu'il ne perçoit d'aucune façon : « Tu ne vois pas X d'ici : approche-toi pour le lui
+  donner » (au lieu de « … n'est pas là pour le recevoir », que Corvus ne peut pas savoir). Cette règle
+  remplace celle de la branche `voix` (« il ne peut s'adresser à Brune qu'il ne sait pas là »).
+- **Répondre à la cantonade** (`paroles.repondants`, `appelle_reponse`, `entendre_repondant`) : une
+  parole qui ne s'adresse à personne en particulier (à la cantonade, ou à tous) et qui appelle une
+  réponse (des mots qui portent un « ? », ou un contenu `qui`, `ressource`, `demande`, `reclamer`,
+  `passage`) est entendue de qui en saisit les mots sans que Corvus le sache là ; chacun décide de
+  répondre par la règle de celui qu'on hèle (`voix.repond` : pas à une voix dont il se méfie, la même
+  fonction pour `pnj.repondre`), et ce qu'il répond suit la règle d'un destinataire (accueil d'une voix
+  inconnue, « Qui va là ? », valeurs). Corvus entend sa voix (`voix.entendre`, `data["entendus"]`) : il
+  devient un interlocuteur, voix inconnue s'il ne la reconnaît pas, et la suite de l'échange va à lui ;
+  sa réponse retentit (sans mots pour les autres). Une parole qui n'appelle pas de réponse reste
+  seulement retenue. Seul dans le noir, une question (« il y a quelqu'un ? ») offre le mode parole au MJ
+  (`paroles.contexte`) ; une parole sans destinataire nommé que nul présent ne saisit est dite à la
+  cantonade même sans guillemets ni verbe de parole. Cas réel : « Qui est là ? », Ilse à trois cases
+  dans le Palier noir, se nomme ; la question suivante va à « une voix qui se dit Ilse ».
+- **Ce que reçoivent le MJ et l'auditeur** : `conversation_validee.repondent` (qui répond : les
+  destinataires et ceux qui ont choisi de répondre à la cantonade) et `issue`, la phrase du moteur
+  (« Tu as dit à voix haute, à la cantonade : « … ». Une voix inconnue (voix_1) t'a entendu et te
+  répond… », ou « Aucune réponse ne te parvient. »), ajoutée aux attestations ; seuls ceux de
+  `repondent` peuvent répondre (`narration.destinataires_parole`). Les objets que reçoit le MJ portent
+  `a_portee_de_main` (au lieu de `a_portee`, lu comme une portée de voix) et, pour un personnage,
+  `a_portee_de_voix` (`pnj.peuvent_se_parler`). Les consignes de l'auditeur disent ce que signifient
+  ces champs : la réplique de qui répond est une parole permise ; le dire muet est contradictoire.
+- **Un refus de forme n'est pas une impossibilité** (`refus.RefusDeForme`) : un champ, une borne, la
+  mauvaise action (l'arbitrage sommaire hors de ses bornes, héler sans nom, « impossible » sans
+  réexamen) revient au MJ avec son `attendu`, avec une correction à part de la correction ordinaire
+  (trois propositions au plus), et ne s'affiche jamais : à une question de faisabilité, le joueur lit
+  la raison du monde, sinon l'explication contrôlée du MJ.
+- **Sorties connues** (`rendu.regarder`, `mj._echanger`) : en cases, « Sorties que tu connais : … »,
+  « aucune pour l'instant » ; le MJ reçoit `salle.sorties_connues`. N'en connaître aucune n'atteste pas
+  qu'il n'y en a pas (« aucun passage directement praticable » reste hors cases, où toutes sont
+  listées).
+- **Se dire quelqu'un** (`paroles.nom_dans`, `verifier_nom`, `SE_NOMMER` en un seul endroit) : le nom que
+  Corvus se donne est celui que disent ses mots (« C'est moi, Brune », « Je suis Corvus ») ; un contenu
+  `nom` qui en dit un autre est refusé au MJ (une cause, `attendu`), un nom non typé est ajouté par le
+  moteur. Un nom se prononce sans connaître qui le porte (`_nom_dit` cherche tout personnage). Cas
+  réel : Ilse, qui connaît la voix de Brune, démasque l'imposture et se méfie de la voix ; le récit
+  « Brune ? Je ne te reconnais pas » n'est plus contredit par les faits.
+- Faibles : « je réponds » sans mots ni destinataire n'est plus une parole sans conteste ; « je »
+  hors des répliques est une voix d'auteur (`narration.AUTEUR`).
+
+Luna (2 passes, `main` 0489fea puis la branche, l'un après l'autre ; relais, crypte, atelier, échanges,
+comptes, ressources et les trois bancs du soir ; serveur surchargé pendant le banc de `main` : 9 tours
+de référence en panne, écartés des moyennes, aucun pour la branche) :
+
+| | `main` | branche |
+|---|---|---|
+| 4 bancs de référence, appels / tour MJ | 2,99 (34 tours) | 3,24 (38 tours) |
+| secondes / tour MJ | 14,2 | 15,0 |
+| replis / relances narratives / tours avec refus / refus | 0 / 3,5 / 6,0 / 8,5 | 1,0 / 6,0 / 7,0 / 11,0 |
+| soir-noir, appels / tour | 4,20 | 3,30 |
+| soir-voix / soir-appel, appels / tour | 3,50 / 2,92 | 3,00 / 2,83 |
+
+Les refus en plus sont surtout au Relais (3,5 → 8) : la correction à part d'un refus de forme ajoute une
+proposition aux questions de faisabilité (la poutre). Un repli de plus vient d'un « Je ne peux pas
+dire… » refusé comme voix d'auteur. Saisies du rapport, ce qu'affiche le jeu (avant → après, 2 passes) :
+« as-tu de quoi manger, Ilse ? » « Tu dis à Aubin… » 2/2 → « Tu dis à Ilse : « as-tu de quoi manger,
+Ilse ? » », Ilse répond, 2/2 ; « « Qui est là ? » » dans le noir, sans réponse 2/2 → la voix d'Ilse se
+nomme 2/2, et les questions suivantes vont à « une voix qui se dit Ilse » ; « il y a quelqu'un ? »,
+« Dis qui tu appelles par son nom » ou « aucun passage praticable » → Ilse répond 1/2 (l'autre fois
+Luna répond en dialogue, sans parole) ; « « C'est moi, Brune. » » typé « Corvus se nomme » et « te
+croit sur parole » → imposture démasquée, « Tu n'es pas Brune » 4/4 ; « est-ce que je pourrais passer
+sous la poutre effondrée ? » « La difficulté de ce geste sort des limites… » → « Approche-toi de la
+poutre effondrée… » ou l'explication du MJ ; « je donne le briquet à Ilse » « Ilse, meunière évacuée
+n'est pas là… » → « Tu ne vois pas Ilse d'ici : approche-toi pour le lui donner », et à la voix qui se
+dit Ilse « Approche-toi d'une voix qui se dit Ilse… » ; « aucun passage directement praticable » affiché
+1 → 0. Le cas réel du nom inconnu (comptes) n'est pas revenu : Brune était connue dans les quatre passes
+(test sans Luna). Restent : « je réponds » sans appel, que Luna fait encore parole avec des mots à elle ;
+« est-ce que quelqu'un a du bois ? » va à celui d'en face.
+
+Limites : le vocatif est reconnu par sa ponctuation (une virgule) ; un nom inconnu n'est refusé que
+s'il est celui d'un personnage du monde (un nom qui ne nomme personne, « Bertrand, … », va au MJ comme
+avant), ce qui laisse deviner qu'un tel personnage existe ; un nom dit qui ne nomme personne du monde
+n'est pas enregistré comme imposture ; répondre à la cantonade se décide sur la seule méfiance (pas de
+voleur qui se tait pour rester caché) ; « appelle une réponse » se lit à la ponctuation et au contenu
+typé ; le silence d'un destinataire n'est arrêté que par l'auditeur, que les champs explicites
+guident (pas de contrôle déterministe) ; la réponse d'un PNJ à la cantonade retentit sans ses mots
+pour les autres PNJ.
 
 ## Limites
 
@@ -1237,7 +1336,7 @@ est celui de la chronique (la mémoire de 40 souvenirs n'en garde pas tout en fi
 - Le joueur ne fait pas de jet d'ouïe ; ses gestes ont la nature de la table, plus l'arbitrage du
   bruit (3 : fracas).
 - Paroles : un destinataire doit être perçu par le joueur ; qui l'entend sans être vu (derrière le
-  pilier) n'est que témoin ; le nommer dans une parole sans conteste est refusé par le moteur, sans
+  pilier) n'est que témoin, sauf à répondre à une question dite à la cantonade (`parole-corrections`) ; le nommer dans une parole sans conteste est refusé par le moteur, sans
   appel au MJ (« Tu ne vois pas Aubin d'ici : approche-toi… », la cantonade proposée). Les répliques
   que Luna prête aux PNJ (`paroles_pnj`) ne sont pas entendues des autres PNJ. Un PNJ tout près
   d'un chuchotement n'en retient qu'un bruit feutré, pas qu'on chuchote. Sans cases, deux présents

@@ -15,6 +15,11 @@ def exiger(monde, id):
     if not proche(monde, id):
         o = monde.objets.get(id)
         nom = complement_de(o) if o else "de cette cible"
+        from .voix import designation, nom_pour_joueur
+        if o and o["type"] == "personnage" and designation(monde, id) != id:
+            # Une voix qu'il ne sait à qui prêter : il ne l'approche que sous le nom qu'il lui connaît.
+            voix = nom_pour_joueur(monde, id)
+            nom = ("d'" if voix[:1].lower() in "aeiouyéèêh" else "de ") + voix
         position = position_cible(monde, id)
         if position:
             ox, oy = monde.data["salles"][monde.joueur["salle"]]["plan"]["origine"]

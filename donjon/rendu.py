@@ -237,7 +237,13 @@ def regarder(monde):
             a = support["appui_vertical"]
             if support["integrite"] and a.get("sol_stable") and a.get("sommet_stable"):
                 sorties.append(("monter" if salle == a["bas"] else "descendre") + " par " + designer(o))
-    return titre + "\n\n" + fill(" ".join(lignes), width=88) + "\n\nSorties : " + (", ".join(sorties) or "aucun passage directement praticable") + "."
+    if monde.data.get("mode_cases"):
+        # Il ne connaît que les sorties qu'il a vues ou foulées : n'en connaître aucune ne dit pas qu'il
+        # n'y en a pas, et la phrase ne doit pas trahir qu'il en reste d'autres.
+        fin = "\n\nSorties que tu connais : " + (", ".join(sorties) or "aucune pour l'instant") + "."
+    else:
+        fin = "\n\nSorties : " + (", ".join(sorties) or "aucun passage directement praticable") + "."
+    return titre + "\n\n" + fill(" ".join(lignes), width=88) + fin
 
 
 def fiche(monde):
