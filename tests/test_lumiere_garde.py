@@ -197,11 +197,20 @@ class AttentePartTests(unittest.TestCase):
         """Cas réel (Relais, graine 42, départ tiré, joueur à la galerie) : à la minute 145, Brune a
         forcé la réserve ; les biens de Gorm le pressent ; le brasero baisse. Sur ``main``, il
         achetait une part des planches d'Aubin à la minute 150, puis retournait l'attendre près du
-        brasero, loin de ses biens, sans que le plan ait compté ce temps."""
-        m = creer("relais", 42)
-        m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
-        executer(m, 145)
-        return recharger(m)
+        brasero, loin de ses biens, sans que le plan ait compté ce temps.
+
+        L'état de la minute 145 est celui de cette nuit-là, enregistré (``tests/data``) : depuis que le
+        corps et les besoins vivent au temps réel (branche ``temps-reel``), la même graine fait une
+        autre nuit, où la scène ne se reproduit plus."""
+        import gzip
+        import tempfile
+        from pathlib import Path
+        from donjon.monde import Monde
+        source = Path(__file__).parent / "data" / "relais_42_minute_145.json.gz"
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            chemin.write_bytes(gzip.decompress(source.read_bytes()))
+            return recharger(Monde.charger(chemin))
 
     def test_gorm_va_chercher_ses_fagots_au_lieu_d_acheter_les_planches(self):
         from donjon.deliberation import urgents

@@ -24,15 +24,15 @@ OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", 
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper",
               "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
-PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")
-EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent  # gestes qui durent : une minute sans les finir n'est pas un échec
+PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
+EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
 # demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
 # engager : payer quelqu'un pour une tâche (``echanges.engager``).
 SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
-PATIENCE = 30          # minutes d'attente d'une occasion avant de renoncer
-REPIT = 60             # minutes avant de reprendre un but abandonné
+PATIENCE = 30          # minutes passées à attendre une occasion (ou un passage) avant de renoncer
+REPIT = 60             # minutes avant de reprendre un but abandonné, comptées de l'instant du renoncement
 ATTEINTE = 30          # une pulsion qui cesse d'être satisfaite relance son besoin
 VOL = 60               # un vol vu par sa victime
 REPOS_FIN = 20         # reposé : il se relève
@@ -551,11 +551,20 @@ def autour(monde, id):
             "mefiants": sorted(x for x in autres if _cru(monde, id, x, "fiable") is False)}
 
 
-def ressentir(monde, id):
-    """Une minute de sécurité perçue : le noir, la méfiance et l'eau où l'on se tient inquiètent,
-    la lumière et la compagnie de qui l'on croit fiable rassurent."""
-    if "securite" not in esprit(monde, id)["besoins"] or monde.objets[id]["lieu"] not in monde.data["salles"]:
-        return
+def ressentir(monde, id, minutes=1):
+    """La sécurité perçue pendant ``minutes`` dans les conditions de l'instant (``ecart_securite``) ;
+    la vie des PNJ la fait évoluer au temps passé dans chaque état (``vecu``)."""
+    ecart = ecart_securite(monde, id)
+    if ecart is not None:
+        relancer(monde, id, "securite", ecart * minutes)
+
+
+def ecart_securite(monde, id):
+    """Ce que gagne ou perd sa sécurité par minute, là où il se tient : le noir, la méfiance et l'eau
+    où l'on se tient inquiètent, la lumière et la compagnie de qui l'on croit fiable rassurent. None
+    s'il ne ressent pas sa sécurité."""
+    if "securite" not in lire(monde, id)["besoins"] or monde.objets[id]["lieu"] not in monde.data["salles"]:
+        return None
     a = autour(monde, id)
     ecart = (-taux(monde, id, "lumiere") if a["lumiere"] else taux(monde, id, "noir"))
     ecart += taux(monde, id, "mefiance") if a["mefiants"] else 0
@@ -568,7 +577,7 @@ def ressentir(monde, id):
         ecart += 2 * taux(monde, id, "eau") * min(p, NOYEE_CM) / NOYEE_CM
     elif menacee(monde, id, ici):
         ecart += taux(monde, id, "menace")
-    relancer(monde, id, "securite", ecart)
+    return ecart
 
 
 def inquieter(monde, id, cause, signe=1):
@@ -1247,21 +1256,18 @@ COMPTES = Counter()
 
 
 def deliberer(monde, id, minute):
-    """Une minute de vie intérieure : besoins, pulsions, puis le choix du but et du plan
+    """La minute de vie intérieure : besoins, pulsions, puis le choix du but et du plan
     (``choisir``). C'est le filet de ce qui monte peu à peu (besoins, échéances, un plan devenu
-    moins bon) ; les événements font choisir entre deux minutes."""
+    moins bon) ; les événements font choisir entre deux minutes. Le corps, la dérive des besoins
+    et la sécurité ressentie ont vécu le temps passé dans chaque état jusqu'à l'instant
+    (``vecu.minute``) : ils ne sont pas échantillonnés ici."""
     p = profil(monde, id)
-    e = esprit(monde, id)
     if not p:
         return
     installer(monde, id)
-    for nom, b in p["besoins"].items():
-        e["besoins"][nom] = round(min(100.0, max(0.0, e["besoins"][nom] + b["derive_heure"] / 60)), 3)
-    # Le corps suit le geste en cours : l'effort creuse, le repos délasse.
-    from .corps import vivre
-    geste = e["intention"]["plan"][0]["operation"] if e["intention"] and e["intention"]["plan"] else None
-    vivre(monde, id, 1, effort=geste in EFFORTS, repos=geste == "reposer")
-    ressentir(monde, id)
+    from .temps import instant
+    from .vecu import minute as vivre_la_minute
+    vivre_la_minute(monde, id, instant(monde))
     constater_pulsions(monde, id)
     from .echanges import engagements_echus
     engagements_echus(monde, id)
@@ -1300,8 +1306,10 @@ def choisir(monde, id, minute):
     pressants = urgents(monde, id, inertie=True)
     liste = list(candidats(monde, id))
     essais = {}
+    from .temps import MINUTE, instant
+    maintenant = instant(monde)
     for n, (besoin, methode) in enumerate(liste):
-        if e["renoncements"].get(besoin, -REPIT) + REPIT > minute:
+        if besoin in e["renoncements"] and e["renoncements"][besoin] + REPIT * MINUTE > maintenant:
             essais[n] = "renonce"
             continue
         resultat = methode(monde, id)
@@ -1317,6 +1325,8 @@ def choisir(monde, id, minute):
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0}
+        if not meme:
+            e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)
         stratege.occupe(monde, id)
         return
@@ -1351,8 +1361,12 @@ def menager_flamme(monde, id, minute):
 
 
 def renoncer(monde, id, minute):
+    """Il abandonne son but : il ne le reprend qu'après ``REPIT`` minutes, comptées de cet instant
+    (``renoncements`` : l'instant, en dixièmes de seconde)."""
+    from .temps import instant
     e = esprit(monde, id)
     intention = e["intention"]
-    e["renoncements"][intention["motif"]] = minute
+    e["renoncements"][intention["motif"]] = instant(monde)
+    e["patience"] = None
     memoriser(monde, id, {"type": "renoncement", "but": dict(intention["but"])})
     e["intention"] = None

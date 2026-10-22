@@ -483,7 +483,8 @@ def plan_illicite(monde, id, besoin, but, etapes, minute):
         return False
     if decision["decision"] == "attendre":
         # Il s'en abstient pour l'instant : le moteur ne le lui reproposera qu'après le répit.
-        esprit(monde, id)["renoncements"][besoin] = minute
+        from .temps import instant
+        esprit(monde, id)["renoncements"][besoin] = instant(monde)  # Le répit se compte de cet instant.
     # Une autre voie : si elle échoue, le plan du moteur revient, sans nouvelle consultation avant l'heure.
     adopter(monde, id, decision, minute)
     return True

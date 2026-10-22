@@ -62,7 +62,8 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "veille": lambda: None, "eveil": lambda: None,
           # le geste qu'il vient de manquer, dans cette minute : il ne le retente pas avant la suivante
           "manque": lambda: None,
-          # la dernière minute comptée à attendre son occasion (``pnj._patienter``) : une par minute
+          # l'instant où a commencé l'attente de son occasion, ou d'un passage, en cours
+          # (``pnj.compter_attente`` : le temps passé s'ajoute à ``intention["attente"]``)
           "patience": lambda: None,
           # les personnages qu'il voit, joueur compris (``_percevoir``) ; None avant sa première
           # perception, qui ne fait que l'établir

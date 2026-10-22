@@ -4,7 +4,8 @@ Rythmes et seuils sont ceux du moteur, les mêmes pour tous. Le scénario ne dé
 états (``corps`` du personnage : minutes depuis le dernier repas, minutes de veille, minutes
 passées trempé ; se tenir dans l'eau d'une crue en ajoute, ``eau.py``), dont découlent les
 valeurs de départ ; le profil d'un PNJ ne garde que son
-caractère. Les valeurs vivent dans ``esprit["besoins"]`` pour un PNJ, dans
+caractère. Le corps vit au temps réellement passé dans chaque état (``vecu.py``) : l'effort ou
+le repos du geste fait, le chaud d'un feu, l'eau où l'on se tient. Les valeurs vivent dans ``esprit["besoins"]`` pour un PNJ, dans
 ``joueur["besoins"]`` pour le joueur, sous les noms ``faim``, ``chaleur`` (le froid) et
 ``repos`` (la fatigue). Un état qui presse coûte aux jets des caractéristiques qu'il touche,
 comme la volonté brisée à ceux de VOL (``malus``, lu par ``caractere``).
@@ -15,7 +16,7 @@ from .esprits import esprit, lire, pnjs
 # d'un feu, plus vite trempé. Un besoin presse à partir de son seuil.
 CORPS = {"faim": {"heure": 6, "urgence": 70},
          "repos": {"heure": 3, "urgence": 80},
-         "chaleur": {"heure": 2, "trempe": 10, "urgence": 70}}
+         "chaleur": {"heure": 4, "trempe": 10, "urgence": 70}}   # froid sec : 4 par heure (décision du 2026-10-22)
 NOMS = {"faim": "faim", "chaleur": "froid", "repos": "fatigue"}
 EFFORT = 1.5           # l'effort fait monter faim et fatigue moitié plus vite
 FEU_MINUTE = 3         # froid perdu par minute dans la salle d'un foyer allumé
@@ -29,7 +30,7 @@ MALUS = 2              # par état qui presse, aux jets des caractéristiques qu
 TOUCHE = {"faim": ("FOR", "DEX"), "chaleur": ("FOR", "DEX"), "repos": ("FOR", "DEX", "INT", "PER")}
 BRISURE_MAX = 5        # points de jet de VOL qu'une volonté brisée peut perdre
 FAITS = {"repas": 180, "veille": 480, "trempe": 0}    # joueur ou PNJ sans état déclaré
-CALMES = ("attendre", "observer", "examiner", "lire", "parler", "toucher", "copier")  # sans effort
+CALMES = ("attendre", "observer", "examiner", "lire", "parler", "toucher", "copier", "tourner")  # sans effort
 
 
 def corps(monde, id):
@@ -79,22 +80,29 @@ def au_chaud(monde, id):
                for o in monde.objets.values())
 
 
-def vivre(monde, id, minutes=1, effort=False, repos=False):
-    """Le corps change avec le temps : faim, fatigue, froid ; repos, chaleur d'un feu, séchage."""
+def dans_l_eau(monde, id):
+    """Debout dans l'eau d'une crue."""
+    from .eau import lieu, profondeur
+    return profondeur(monde, lieu(monde, id)) > 0
+
+
+def vivre(monde, id, minutes=1, effort=False, repos=False, chaud=None, eau=None):
+    """Le corps change avec le temps : faim, fatigue, froid ; repos, chaleur d'un feu, séchage.
+    ``minutes`` peut être une fraction : le temps passé dans un même état (``vecu.solder``), dont
+    ``chaud`` et ``eau`` disent les conditions (lues à l'instant sinon)."""
     faits, v = corps(monde, id), valeurs(monde, id)
     facteur = EFFORT if effort else 1
     v["faim"] += CORPS["faim"]["heure"] / 60 * facteur * minutes
     v["repos"] += (-REPOS_MINUTE if repos else CORPS["repos"]["heure"] / 60 * facteur) * minutes
     # Debout dans l'eau, on se trempe et l'on ne sèche pas, même près d'un feu.
-    from .eau import lieu, profondeur
-    dans_l_eau = profondeur(monde, lieu(monde, id)) > 0
-    if dans_l_eau:
-        faits["trempe"] += minutes
+    mouille = dans_l_eau(monde, id) if eau is None else eau
+    if mouille:
+        faits["trempe"] = _minutes(faits["trempe"] + minutes)
         faits["seche"] = 0
-    if au_chaud(monde, id):
+    if au_chaud(monde, id) if chaud is None else chaud:
         v["chaleur"] -= FEU_MINUTE * minutes
-        if not dans_l_eau:
-            faits["seche"] += minutes
+        if not mouille:
+            faits["seche"] = _minutes(faits["seche"] + minutes)
         if faits["trempe"] and faits["seche"] >= SECHAGE:
             faits["trempe"] = 0
     else:
@@ -102,6 +110,12 @@ def vivre(monde, id, minutes=1, effort=False, repos=False):
         v["chaleur"] += CORPS["chaleur"]["trempe" if faits["trempe"] else "heure"] / 60 * minutes
     for nom in CORPS:
         v[nom] = round(min(100.0, max(0.0, v[nom])), 3)
+
+
+def _minutes(x):
+    """Une durée d'état en minutes, entière quand elle l'est (les états déclarés), sinon au millième."""
+    x = round(x, 3)
+    return int(x) if x == int(x) else x
 
 
 def pressants(monde, id):
@@ -125,18 +139,20 @@ def briser(monde, id, points):
     faits["volonte_brisee"] = max(0, min(BRISURE_MAX, faits.get("volonte_brisee", 0) + points))
 
 
-def vivre_joueur(monde, minutes, effort=False, repos=False, lignes=None):
-    """Le temps passé par le joueur ; à l'extrême, la faim et le froid l'épuisent (1 PV par heure,
-    jamais en deçà de 1)."""
-    if minutes <= 0:
+def vivre_joueur(monde, dixiemes, effort=False, repos=False, chaud=None, eau=None, lignes=None):
+    """Le temps passé par le joueur (en dixièmes de seconde, dans un même état : ``vecu.solder``) ;
+    à l'extrême, la faim et le froid l'épuisent (1 PV par heure, jamais en deçà de 1)."""
+    from .temps import MINUTE
+    if dixiemes <= 0:
         return
     avant = set(pressants(monde, "joueur"))
-    vivre(monde, "joueur", minutes, effort, repos)
+    vivre(monde, "joueur", dixiemes / MINUTE, effort, repos, chaud, eau)
     v, faits, j = valeurs(monde, "joueur"), corps(monde, "joueur"), monde.joueur
     if v["faim"] >= EXTREME or v["chaleur"] >= EXTREME:
-        faits["peine"] += minutes
-        perte = min(faits["peine"] // 60, j["pv"] - 1)
-        faits["peine"] %= 60
+        # La peine se compte en dixièmes de seconde : une heure à l'extrême coûte un PV.
+        faits["peine"] += dixiemes
+        perte = min(faits["peine"] // (60 * MINUTE), j["pv"] - 1)
+        faits["peine"] %= 60 * MINUTE
         if perte > 0:
             j["pv"] -= perte
             if lignes is not None:
@@ -167,6 +183,9 @@ def verifier(monde):
     for id in personnages(monde):
         faits, v = corps(monde, id), valeurs(monde, id)
         assert set(CORPS) <= set(v) and all(0 <= v[nom] <= 100 for nom in CORPS), "Corps invalide"
-        assert (all(type(faits.get(k)) is int and faits[k] >= 0 for k in (*FAITS, "seche"))
+        assert (all(type(faits.get(k)) is int and faits[k] >= 0 for k in ("repas", "veille"))
+                and all(type(faits.get(k)) in (int, float) and faits[k] >= 0 for k in ("trempe", "seche"))
                 and type(faits.get("volonte_brisee", 0)) is int and 0 <= faits.get("volonte_brisee", 0) <= BRISURE_MAX
                 and (id != "joueur" or type(faits.get("peine")) is int)), "États du corps invalides"
+        from .vecu import verifier as verifier_vecu
+        verifier_vecu(faits.get("vecu"))

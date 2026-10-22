@@ -458,6 +458,61 @@ crue et au Relais, quelques minutes de plans possibles non entrepris pendant un 
   imposée sans motif, que le premier événement remplace ; scènes qui supposaient une minute d'inertie) ;
   chacun dit pourquoi.
 
+## Correctif : le temps réel (branche `temps-reel`)
+
+Constat (inventaire de « Délibérer à l'événement ») : les PNJ délibéraient à l'événement, mais le
+reste tournait à l'instant pile de chaque minute. Les horloges du scénario n'étaient déclenchées
+qu'à la fin d'une action du joueur : une attente de cinq minutes retardait la rafale de l'auberge, et
+les PNJ vivaient comme si elle n'avait pas eu lieu. Le corps, la dérive des besoins et la sécurité
+ressentie étaient échantillonnés à la frontière de minute : un PNJ qui traversait un couloir noir
+entre deux minutes n'avait pas peur, un autre qui s'y tenait une seconde à la frontière en subissait
+une minute entière ; l'effort ou le repos se lisaient du premier geste de son plan, pas des gestes
+faits ; le corps du joueur ne changeait qu'au franchissement d'une minute, selon l'action qui la
+franchissait. La patience comptait des appels (`passage`) ou des minutes où l'on y avait repensé
+(`pnj._patienter`), pas le temps passé à attendre.
+
+**Ce qui est fait** (le filet de délibération à la minute reste ; aucun franchissement de seuil n'est
+programmé comme événement, décision de l'utilisateur) :
+- **Les horloges à leur instant** (`horloges.declencher`, appelé par `pnj._avancer`) : à chaque
+  frontière de minute franchie, avant la combustion et la délibération, et au début de la vie des
+  PNJ pour une échéance déjà passée (la minute 0). Les PNJ qui voient l'effet le perçoivent à cet
+  instant (un feu qui s'éteint sous leurs yeux les éveille) ; l'annonce va au joueur s'il est dans un
+  des lieux, comme avant. Le moteur ne les déclenche plus à la fin de l'action.
+- **Le temps vécu** (`donjon/vecu.py`, `corps["vecu"]` de chaque personnage qui a un corps, joueur
+  compris) : l'état où il se trouve depuis un instant, son activité (`effort` d'un geste qui creuse,
+  dont la marche ; `repos` ; rien), le chaud d'un foyer allumé dans sa salle, l'eau où il se tient, et,
+  pour un PNJ qui ressent sa sécurité, ce qu'elle gagne ou perd par minute là où il est
+  (`deliberation.ecart_securite` : le noir, la compagnie, la méfiance, l'eau, la menace). `solder`
+  fait vivre le temps passé dans cet état : faim, fatigue, froid, séchage et trempe (`corps.vivre`,
+  au prorata), dérive des besoins du profil, sécurité. Un PNJ solde à chacun de ses gestes (avant de
+  choisir : il décide sur ses besoins à l'instant), note l'état où son geste le met (`noter` :
+  l'activité du geste fait, `pnj.agir` la dit par `monde._activite`), et chaque frontière de minute
+  solde puis relit les conditions (`vecu.minute`, appelé par `deliberer`). Le joueur note l'état de
+  chaque action à son début (`moteur._terminer_etape`) ; un état inchangé continue sans rien solder,
+  et chaque minute franchie le solde (`pnj._avancer`) avec ses messages (« Tu as faim. », la peine
+  d'une heure à l'extrême, comptée en dixièmes). Ces instants ne dépendent pas du découpage des
+  actions du joueur : le même laps, découpé autrement, donne le même monde. Se tourner sur place
+  (`tourner`) ne creuse plus (`corps.CALMES`).
+- **Le froid sec à 4 par heure** (`corps.CORPS`, décision du 2026-10-22 ; 2 avant).
+- **La patience en temps** (`pnj.commencer_attente`, `compter_attente`) : guetter son occasion ou
+  attendre qu'on lui fasse place ouvre une attente, datée dans l'esprit (`patience`) ; le temps
+  passé s'ajoute à `intention["attente"]`, en dixièmes, à son geste suivant et à chaque frontière ; il
+  renonce au-delà de `PATIENCE` minutes d'attente, quel que soit le nombre de fois qu'un événement
+  l'a fait reconsidérer. Un autre but remet l'attente à zéro. **Le répit** se compte de l'instant du
+  renoncement (`renoncements` en dixièmes, `REPIT` minutes).
+
+**Vérifié** après rechargement (`tests/test_temps_reel.py`) : la rafale de l'auberge avancée à la
+minute 2 pendant une attente de cinq minutes (Hugues voit l'âtre éteint à la minute 2) ; une horloge
+qui éteint le brasero sous les yeux de Gorm, qui choisit de le rallumer à cet instant et le rallume
+avant la fin de l'action ; la même horloge d'un bloc ou en rotations rechargées ; Ilse qui traverse
+le noir pour gagner la lumière et Gorm dont la ronde passe au chaud, chacun à quatre phases de la
+minute (0, 15, 30, 45 s) : même chemin, mêmes besoins à 0,005 près (avant, la phase décidait si la
+traversée comptait) ; le corps du joueur qui marche puis se tourne, ou l'inverse, dans la même
+minute : mêmes besoins, et la faim compte la marche à l'effort au dixième près ; le froid sec du
+joueur et de Gorm ; Brune qui renonce après 30 minutes de guet comptées au temps, puis son répit ;
+Gorm bloqué par le joueur, dont l'attente compte le temps et qui renonce au-delà ; la patience d'un
+bloc ou découpée.
+
 ## Hors périmètre
 
 Assommer, tuer, ligoter, l'affrontement (étape « corps et force » de `docs/plan-social.md`) ;

@@ -95,7 +95,10 @@ class TacheImpossibleTests(unittest.TestCase):
             m.objets[k]["charges"] = 0
         m.objets["fourneau"]["combustible"] = 8
         m, textes = vivre_long(recharger(m), 300)
-        impossibles = [t for t in textes if " fasse en sorte que " in t and t.endswith("(impossible).")]
+        # Les offres pour un feu : sans bois, rien de nouveau ne les rend possibles. (Dans cette nuit, depuis
+        # la branche ``temps-reel``, Lucien et Anselme se disputent aussi le ballot : chaque fois qu'Anselme
+        # apprend où il est passé, c'est un moyen nouveau, et l'offre d'aller le chercher se refait.)
+        impossibles = [t for t in textes if " fasse en sorte que " in t and t.endswith("soit allumé (impossible).")]
         self.assertTrue(impossibles)
         self.assertEqual(len(impossibles), len(set(impossibles)), impossibles)
 

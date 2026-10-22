@@ -1098,6 +1098,7 @@ def _avancer_de(monde, id, pas, feutre, lignes):
         marche = True
     if marche:
         retentir(monde, id, "aller", discret=feutre)
+        monde._activite = "effort"  # Marcher creuse (``vecu``).
     return duree
 
 
@@ -1323,18 +1324,36 @@ def _geste(etape):
 
 
 def _patienter(monde, id, intention, compter=True):
-    """Il attend son occasion, ou que le chemin se libère : une minute de plus, comptée une fois par
-    minute (``patience`` de l'esprit), quel que soit le nombre de fois qu'un événement l'a fait
-    reconsidérer ; au-delà de ``PATIENCE``, il renonce. Vrai s'il a renoncé."""
+    """Il attend son occasion, ou que le chemin se libère : une attente commence maintenant
+    (``commencer_attente``) ; le temps qu'il y passe se compte en dixièmes de seconde, quel que soit
+    le nombre de fois qu'un événement l'a fait reconsidérer. Au-delà de ``PATIENCE`` minutes
+    d'attente pour ce but, il renonce. Vrai s'il a renoncé."""
     from .deliberation import PATIENCE, renoncer
-    e, minute = esprit(monde, id), monde.data["minutes"]
-    if e["patience"] != minute or not intention["attente"]:
-        intention["attente"] += 1
-        e["patience"] = minute
-    if intention["attente"] > PATIENCE:
+    from .temps import MINUTE, instant
+    if intention["attente"] > PATIENCE * MINUTE:
         renoncer(monde, id, monde.data["minutes"])
         return True
+    commencer_attente(monde, id, instant(monde))
     return False
+
+
+def commencer_attente(monde, id, t):
+    """Il se met à attendre son occasion (ou qu'on lui fasse place) à l'instant ``t``."""
+    e = esprit(monde, id)
+    if e["patience"] is None:
+        e["patience"] = t
+
+
+def compter_attente(monde, id, t, continuer=False):
+    """Le temps passé à attendre jusqu'à ``t`` s'ajoute à l'attente du but en cours
+    (``intention["attente"]``, en dixièmes de seconde) : à son geste suivant, l'attente est close ;
+    à la frontière de minute (``continuer``), elle est comptée et continue."""
+    e = esprit(monde, id)
+    if e["patience"] is None:
+        return
+    if e["intention"] and t > e["patience"]:
+        e["intention"]["attente"] += t - e["patience"]
+    e["patience"] = t if continuer and e["intention"] else None
 
 
 def agir(monde, id, t, lignes, gestes=None, compter=True):
@@ -1343,7 +1362,7 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     jusqu'à la minute (``ATTENTE``), a fini ou abandonné son plan (``FIN``) ou manqué un geste
     (``MANQUE``). ``compter`` : il agit à son heure, et non parce qu'un événement l'a fait
     reconsidérer. Sans le mode cases, un geste prend la minute, comme avant."""
-    from .deliberation import PROGRESSIFS
+    from .deliberation import EFFORTS, PROGRESSIFS
     from .stratege import terminer
     reste = _jusqu_a_la_minute(t)
     en_cases = bool(monde.data.get("mode_cases"))
@@ -1447,6 +1466,9 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     tourner = (_faire_face(monde, id, cible) if en_cases and cible and (
         cible in monde.objets and _accessible(monde, id, cible) or percoit(monde, id, cible)) else 0)
     fait = _executer(monde, id, etape, lignes, gestes)
+    if fait is not False:
+        # Ce qu'il fait le temps de ce geste : se reposer délasse, un geste d'effort creuse (``vecu``).
+        monde._activite = "repos" if operation == "reposer" else "effort" if operation in EFFORTS else None
     if fait:
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
@@ -1577,9 +1599,11 @@ def _avancer(monde, minutes, lignes, dixiemes):
     des identifiants ; à des instants distincts, dans l'ordre du temps."""
     from .deliberation import appeler_a_l_aide, choisir, deliberer, menager_flamme
     from .eau import inonder
+    from .horloges import declencher as declencher_horloges
     from .perception import avancer_combustion
     from .social import bavarder
     from .temps import MINUTE
+    from .vecu import minute as vivre_la_minute, noter, solder as solder_vecu
     fin_minutes, fin_dixiemes = monde.data["minutes"], monde.data.get("dixiemes", 0)
     fin = fin_minutes * MINUTE + fin_dixiemes
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
@@ -1615,6 +1639,11 @@ def _avancer(monde, minutes, lignes, dixiemes):
             # cette action : l'instant même de son début appartient encore à l'action précédente,
             # où tout ce qui s'y passe a été traité et entendu (``ecoute.entendus``).
             e["eveil"] = debut + 1
+    # Les horloges du scénario se déclenchent à leur minute, pendant la vie des PNJ, qui vivent ce
+    # qu'elles changent ; une échéance déjà passée au début (la minute 0) se déclenche aussitôt.
+    monde.data["minutes"], monde.data["dixiemes"] = divmod(debut, MINUTE)
+    declencher_horloges(monde, lignes)
+    monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     t, tours = debut, 0
     while True:
         frontiere = (t // MINUTE + 1) * MINUTE
@@ -1625,12 +1654,16 @@ def _avancer(monde, minutes, lignes, dixiemes):
             t, tours = frontiere, 0
             monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
             minute = monde.data["minutes"]
+            declencher_horloges(monde, lignes)
             avancer_combustion(monde, 1, lignes)
             inonder(monde, lignes)
+            # Le corps du joueur a vécu la minute dans l'état de son action (``vecu``).
+            vivre_la_minute(monde, "joueur", t, lignes)
             for id in ids:
                 esprits_[id]["manque"] = None  # Une minute a passé : ce qu'il a manqué se retente.
                 if monde.objets[id].get("profil"):
                     esprits_[id]["eveil"] = None  # Il délibère : ce qui l'avait éveillé y est pesé.
+                    compter_attente(monde, id, t, continuer=True)
                     deliberer(monde, id, minute)
                     menager_flamme(monde, id, minute)
                     appeler_a_l_aide(monde, id, minute)
@@ -1656,6 +1689,12 @@ def _avancer(monde, minutes, lignes, dixiemes):
             e["veille"] = None
             # Son geste précédent est fini : ceux qui l'ont vu jusque-là s'en souviennent.
             finir_gestes(monde, t, id)
+            profil = bool(monde.objets[id].get("profil"))
+            if profil:
+                # Son corps et ses besoins ont vécu jusqu'ici ; son attente, s'il guettait, est comptée.
+                solder_vecu(monde, id, t)
+                compter_attente(monde, id, t)
+            monde._activite = None
             if e["eveil"] is not None and e["eveil"] <= t:
                 # Sa situation a changé pendant son geste, ou pendant qu'il attendait : il choisit
                 # de nouveau son but avant d'agir, sur ce qu'il croit maintenant.
@@ -1692,6 +1731,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 observer()
             else:
                 duree, attend = _jusqu_a_la_minute(t), en_cases
+            if profil:
+                # L'état où il entre pour ce geste ou cette attente : son activité, le lieu où il se tient.
+                noter(monde, id, t, monde._activite)
             if attend:
                 # Il attend la minute : libre dès maintenant, un événement abrège son attente.
                 e["libre"], e["veille"] = t, t + duree
