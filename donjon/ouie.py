@@ -267,7 +267,7 @@ def entend(monde, auteur, auditeur, geste="dire", force=None):
 
 
 def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None,
-             dits=None):
+             dits=None, appris=False):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
     l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :
     ses destinataires, contenu : ce qu'elle transmet, typé}) est retenue par ceux qui en saisissent
@@ -276,7 +276,9 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     voix (``entendre``) ; le joueur s'en sert pour relier les voix d'un échange (``ecoute.lier``).
     ``force`` : la nature du bruit, quand elle ne tient pas au geste (le son d'un objet, ``SONS``).
     ``dits`` : les mots prononcés, quand ``texte`` est la parole même et non un récit qui les cite entre
-    guillemets (la réplique du joueur). Renvoie ceux qui se sont retournés."""
+    guillemets (la réplique du joueur). ``appris`` : le joueur, à qui s'adresse ce geste (il reçoit un
+    objet, on lui réclame le sien), l'a appris de première main, à la deuxième personne : son ouïe ne le
+    lui redit pas. Renvoie ceux qui se sont retournés."""
     n = force or nature(geste, discret, bruit)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
@@ -285,7 +287,7 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     from .temps import instant
     entrees = propager(monde, salle, case, INTENSITES[n])
     t = instant(monde)
-    if auteur != "joueur":
+    if auteur != "joueur" and not appris:
         _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, [c for c in cites if c],
                    list(parole["a"]) if parole else list(vers), list(parole["contenu"]) if parole else [])
     retournes, temoins, saisis = [], [], []

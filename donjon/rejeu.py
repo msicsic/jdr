@@ -173,7 +173,7 @@ class Enregistreur:
             return resultat
 
         def _retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None,
-                      dits=None):
+                      dits=None, appris=False):
             n = force or ouie.nature(geste, discret, bruit)
             salle, case, numero = self._case(monde, auteur)
             evenement, precedent = None, self._bruit
@@ -183,7 +183,8 @@ class Enregistreur:
                     evenement["x"] = texte[:160]
             self._bruit = evenement
             try:
-                return retentir(monde, auteur, geste, discret, bruit, texte, cites, parole, vers, force, dits)
+                return retentir(monde, auteur, geste, discret, bruit, texte, cites, parole, vers, force, dits,
+                                appris)
             finally:
                 self._bruit = precedent
                 if evenement is not None:

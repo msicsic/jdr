@@ -242,6 +242,41 @@ class DemanderAFaireTests(unittest.TestCase):
         self.assertEqual(parole_racontee("Tu lui demandes à boire."), ["tu lui demandes a"])
 
 
+class RemiseTests(unittest.TestCase):
+    """Un geste fait au joueur (on lui remet un objet) lui est dit une fois, à la deuxième personne ; son
+    ouïe ne le lui redit pas (revérification, N5 : « Tu entends, tout près : Aubin remet les planches de bac
+    à Corvus. »)."""
+
+    def entendu(self, m):
+        return [b["texte"] for b in m.data.get("bruits", []) if "remet" in b["texte"]]
+
+    def test_cas_reel_la_planche_achetee_a_aubin(self):
+        from donjon.paroles import preparer_parole
+        from tests.test_parts_achetees import antichambre_du_banc, parole as part
+        from tests.test_tensions import recharger, vivre
+        m = antichambre_du_banc()
+        travail, _ = preparer_parole(m, part("aubin", "Je te paie trois pièces pour une de tes planches.",
+                                             "demande", "planches", "3"))
+        m, lignes = vivre(recharger(travail), 3)
+        m = recharger(m)
+        self.assertIn("Aubin te remet les planches de bac : tu l'avais payé.", lignes)
+        self.assertEqual(self.entendu(m), [])
+        self.assertFalse(any("à Corvus" in l for l in lignes))
+
+    def test_meme_nature_le_marteau_vendu_par_gorm(self):
+        from tests.test_echanges_suite import ContrepartieTests
+        from tests.test_tensions import recharger, vivre
+        m, lignes = ContrepartieTests("test_gorm_va_chercher_le_marteau_vendu_et_le_remet").marteau_achete(), []
+        for _ in range(20):
+            m, ajout = vivre(m, 1)
+            lignes += ajout
+            if m.objets["marteau"]["lieu"] == "joueur":
+                break
+        m = recharger(m)
+        self.assertIn("Gorm te remet le marteau : tu l'avais payé.", lignes)
+        self.assertEqual(self.entendu(m), [])
+
+
 class ConsignesTests(unittest.TestCase):
     def test_la_regle_du_texte_affiche_est_dite_au_mj(self):
         # Le contrôle déterministe refuse « je » hors des répliques et les mots d'auteur : la règle est dite.
