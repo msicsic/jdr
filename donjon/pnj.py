@@ -1214,13 +1214,15 @@ def _geste(etape):
     return {k: etape[k] for k in ("operation", "cible", "outil", "lieu")}
 
 
-def _patienter(monde, id, intention, compter):
+def _patienter(monde, id, intention, compter=True):
     """Il attend son occasion, ou que le chemin se libère : une minute de plus, comptée une fois par
-    minute (à son heure, pas à chaque événement qui le fait reconsidérer : ``compter``) ; au-delà de
-    ``PATIENCE``, il renonce. Vrai s'il a renoncé."""
+    minute (``patience`` de l'esprit), quel que soit le nombre de fois qu'un événement l'a fait
+    reconsidérer ; au-delà de ``PATIENCE``, il renonce. Vrai s'il a renoncé."""
     from .deliberation import PATIENCE, renoncer
-    if compter or not intention["attente"]:
+    e, minute = esprit(monde, id), monde.data["minutes"]
+    if e["patience"] != minute or not intention["attente"]:
         intention["attente"] += 1
+        e["patience"] = minute
     if intention["attente"] > PATIENCE:
         renoncer(monde, id, monde.data["minutes"])
         return True

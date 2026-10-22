@@ -62,6 +62,8 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "veille": lambda: None, "eveil": lambda: None,
           # le geste qu'il vient de manquer, dans cette minute : il ne le retente pas avant la suivante
           "manque": lambda: None,
+          # la dernière minute comptée à attendre son occasion (``pnj._patienter``) : une par minute
+          "patience": lambda: None,
           # les personnages qu'il voit, joueur compris (``_percevoir``) ; None avant sa première
           # perception, qui ne fait que l'établir
           "en_vue": lambda: None,
@@ -176,6 +178,7 @@ def verifier(monde):
                    for b, u in e["urgences"].items()), "Urgences de PNJ invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
         assert all(v is None or type(v) is int and v >= 0 for v in (e["veille"], e["eveil"])),             "Attente ou éveil de PNJ invalide"
+        assert e["patience"] is None or type(e["patience"]) is int, "Patience de PNJ invalide"
         assert e["manque"] is None or (isinstance(e["manque"], dict) and set(e["manque"]) == {"etape", "minute"}
                                        and isinstance(e["manque"]["etape"], dict)
                                        and type(e["manque"]["minute"]) is int), "Geste manqué de PNJ invalide"
