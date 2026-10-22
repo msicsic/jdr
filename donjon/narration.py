@@ -372,25 +372,30 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
                 break
     for parole in paroles:
         entree = interlocuteurs.get(parole["locuteur"]) or {}
-        if not entree.get("voix_inconnue"):
-            continue
-        etabli = " ".join([entree.get("nom", ""), *map(str, validee.get("faits") or []),
+        inconnue = bool(entree.get("voix_inconnue"))
+        etabli = " ".join([entree.get("nom", "") if inconnue else "", *map(str, validee.get("faits") or []),
                            str(validee.get("replique_joueur", ""))])
         permis = lexique.entites_citees(monde, etabli)
         from .voix import connait_nom, reel
         qui = reel(monde, parole["locuteur"])
         qui = qui if qui in monde.objets and monde.objets[qui]["type"] == "personnage" else None
+        if not inconnue and qui is None:
+            continue
 
         def tait(x):
-            # Son propre nom, seulement s'il est établi ; un autre, s'il le sait ou s'il est établi.
+            # Une voix inconnue : son propre nom, seulement s'il est établi. Tout locuteur : un autre, s'il
+            # le sait (``voix.connait_nom``) ou si l'échange l'établit.
+            if not inconnue and x == qui:
+                return False
             return x not in permis and (qui is None or x == qui or not connait_nom(monde, qui, x))
         nommes = sorted(x for x in lexique.entites_citees(monde, parole["texte"])
                         if x in monde.objets and monde.objets[x]["type"] == "personnage" and tait(x))
-        # Se dire quelqu'un, c'est se nommer : seul le moteur en décide (``voix.se_nommer``).
-        nommes += sorted(x for x in lexique.entites_citees(monde, " ".join(
-            m.group(1) for m in SE_NOMMER.finditer(lexique.normaliser(parole["texte"]))))
-            if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis
-            and x not in nommes)
+        if inconnue:
+            # Se dire quelqu'un, c'est se nommer : seul le moteur en décide (``voix.se_nommer``).
+            nommes += sorted(x for x in lexique.entites_citees(monde, " ".join(
+                m.group(1) for m in SE_NOMMER.finditer(lexique.normaliser(parole["texte"]))))
+                if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis
+                and x not in nommes)
         corvus = re.compile(r"\b" + re.escape(lexique.normaliser(monde.joueur["nom"].split(",")[0])) + r"\b")
         if (corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli))
                 and (qui is None or not connait_nom(monde, qui, "joueur"))):
@@ -399,14 +404,21 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
         indice = next((i for i, p in enumerate(passages) if f"« {parole['texte']} »" in p
                        or parole["texte"] in p), None)
         for x in nommes:
-            obstacles.append(audit(
-                f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa réplique ne se nomme pas "
-                "au-delà de ce que le moteur a établi (son nom d'interlocuteur, conversation_validee) et ne nomme "
-                f"que qui elle connaît : retire « {nom_court(x)} ».",
-                f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » : elle ne se nomme que par "
-                f"interlocuteurs.{parole['locuteur']}.nom et conversation_validee, et ne nomme que qui elle connaît",
-                partie=partie, segment=indice, texte=passages[indice] if indice is not None else parole["texte"],
-                recu=nom_court(x)))
+            if inconnue:
+                motif = (f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa réplique ne se "
+                         "nomme pas au-delà de ce que le moteur a établi (son nom d'interlocuteur, "
+                         f"conversation_validee) et ne nomme que qui elle connaît : retire « {nom_court(x)} ».")
+                accepte = (f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » : elle ne se nomme que par "
+                           f"interlocuteurs.{parole['locuteur']}.nom et conversation_validee, et ne nomme que qui "
+                           "elle connaît")
+            else:
+                motif = (f"{nom_court(qui)} ne connaît pas le nom de {nom_court(x)} : une réplique ne nomme que qui "
+                         f"son locuteur connaît. Retire « {nom_court(x)} ».")
+                accepte = (f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » (« toi », « l'étranger »…) : "
+                           f"{parole['locuteur']} n'a ni entendu ce nom ni appris qui le porte")
+            obstacles.append(audit(motif, accepte, partie=partie, segment=indice,
+                                   texte=passages[indice] if indice is not None else parole["texte"],
+                                   recu=nom_court(x)))
     return obstacles
 
 

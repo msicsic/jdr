@@ -185,6 +185,44 @@ class ExplicationTests(unittest.TestCase):
         self.assertNotIn("Approche-toi", sortie)
 
 
+def replique(locuteur, citation):
+    return {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": locuteur, "citation": citation,
+                               "entites": [], "motif": ""}}}
+
+
+class NomsConnusTests(unittest.TestCase):
+    """Une réplique ne nomme que qui son locuteur connaît, qu'on le voie ou non (revérification, N5)."""
+
+    def test_cas_reel_aubin_nomme_corvus_sans_connaitre_son_nom(self):
+        # Banc ressources : « Aubin, tu me dois quelque chose ? » ; Aubin, vu, répondait « Non. Je ne te dois
+        # rien, Corvus. » sans avoir jamais entendu ce nom.
+        from tests.test_parole_corrections import banc
+        m = banc("ressources")
+        reprise, sortie, appels = jouer(m, "Aubin, tu me dois quelque chose ?", [
+            parole("Aubin, tu me dois quelque chose ?", ("reclamer", "", "", ""), personnage="aubin"),
+            dialogue("Aubin : « Non. Je ne te dois rien, Corvus. »"),
+            dialogue("Aubin : « Non. Je ne te dois rien. »")],
+            [replique("aubin", "Non. Je ne te dois rien, Corvus."), replique("aubin", "Non. Je ne te dois rien.")])
+        refus = mj(appels)[2]["controle_narratif"]
+        self.assertEqual(len(refus), 1)
+        self.assertIn("Aubin ne connaît pas le nom de Corvus", refus[0]["motif"])
+        self.assertIn("Aubin : « Non. Je ne te dois rien. »", sortie)
+        self.assertNotIn("rien, Corvus", sortie)
+        self.assertNotIn("Corvus", " ".join(p["texte"] for p in reprise.data["paroles_pnj"]))
+
+    def test_meme_nature_le_nom_dit_dans_la_replique_de_corvus_se_retient(self):
+        # Corvus se nomme dans sa réplique : Aubin l'a entendu, il peut l'appeler par son nom ; Brune, qu'Aubin
+        # connaît, se nomme aussi.
+        from tests.test_parole_corrections import banc
+        m = banc("ressources")
+        reprise, sortie, appels = jouer(m, "« Aubin, je suis Corvus. Tu as vu Brune ? »", [
+            parole("Aubin, je suis Corvus. Tu as vu Brune ?", ("propos", "", "", ""), personnage="aubin"),
+            dialogue("Aubin : « Brune est là, Corvus. »")], [replique("aubin", "Brune est là, Corvus.")])
+        self.assertEqual(len(mj(appels)), 2)
+        self.assertIn("Aubin : « Brune est là, Corvus. »", sortie)
+        self.assertIn("Brune est là, Corvus.", [p["texte"] for p in reprise.data["paroles_pnj"]])
+
+
 class ConsignesTests(unittest.TestCase):
     def test_la_regle_du_texte_affiche_est_dite_au_mj(self):
         # Le contrôle déterministe refuse « je » hors des répliques et les mots d'auteur : la règle est dite.
