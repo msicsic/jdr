@@ -643,7 +643,7 @@ def _avec_joueur(monde, id, etape, lignes):
         _chroniquer(monde, id, f"{_qui(monde, id)} remet {designer(objet)} au joueur.", "social")
         lignes.append(f"{nom} te remet {designer(objet)}" + (" : tu l'avais payé." if vendu else "."))
         retentir(monde, id, "dire", texte=f"{_qui(monde, id)} remet {designer(objet)} à {monde.joueur['nom']}.",
-                 cites=["joueur", objet["id"]], vers=["joueur"])
+                 cites=["joueur", objet["id"]], vers=["joueur"], appris=True)
         return True
     p = pret(monde, objet["id"])
     if not p or p["de"] != id or p["a"] != "joueur" or not porte_par(monde, objet["id"], "joueur"):
@@ -653,7 +653,7 @@ def _avec_joueur(monde, id, etape, lignes):
     lignes.append(f"{nom} te demande de lui rendre {designer(objet)}"
                   + (f" : {_il(monde.objets[id])} te l'a {accorder(objet, 'prêté')} il y a longtemps."
                      if echu(monde, objet["id"]) else "."))
-    retentir(monde, id, "dire", texte=texte, cites=["joueur", objet["id"]], vers=["joueur"])
+    retentir(monde, id, "dire", texte=texte, cites=["joueur", objet["id"]], vers=["joueur"], appris=True)
     memoriser(monde, id, {"type": "pret_reclame", "objet": objet["id"], "a": "joueur", "pret": p["minute"],
                           "echu": echu(monde, objet["id"])})
     # La réponse est au joueur : il ne le redemande pas de sitôt (``deliberation.tient``).

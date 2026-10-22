@@ -1116,7 +1116,7 @@
         "bois de la cuisine",
         "tas de bois"
       ],
-      "masse": 12,
+      "masse": 24,
       "materiau": "bois",
       "mobile": true,
       "integrite": 10,
@@ -1127,7 +1127,7 @@
       ],
       "position_salle": "cuisine",
       "pluriel": true,
-      "charges": 4,
+      "charges": 8,
       "duree_combustion": 60,
       "usages": [
         "combustible"
@@ -1268,7 +1268,7 @@
         "fagot",
         "bois de l'étable"
       ],
-      "masse": 5,
+      "masse": 7.5,
       "materiau": "bois",
       "mobile": true,
       "integrite": 10,
@@ -1279,7 +1279,7 @@
       ],
       "position_salle": "etable",
       "pluriel": true,
-      "charges": 2,
+      "charges": 3,
       "duree_combustion": 45,
       "usages": [
         "combustible"
@@ -1401,7 +1401,7 @@
         "bois",
         "bois d'Anselme"
       ],
-      "masse": 8,
+      "masse": 12,
       "materiau": "bois",
       "mobile": true,
       "integrite": 10,
@@ -1412,7 +1412,7 @@
       ],
       "position_salle": "chambre_chaude",
       "pluriel": true,
-      "charges": 2,
+      "charges": 3,
       "duree_combustion": 60,
       "usages": [
         "combustible"
@@ -2575,6 +2575,37 @@
       "proprietaire": "anselme",
       "type": "tresor",
       "pieces": 150
+    },
+    "bois_reserve": {
+      "id": "bois_reserve",
+      "nom": "bûches de réserve",
+      "aliases": [
+        "bûches de réserve",
+        "réserve de bois",
+        "bûcher"
+      ],
+      "type": "consommable",
+      "lieu": "cellier",
+      "genre": "f",
+      "masse": 36,
+      "materiau": "bois",
+      "mobile": true,
+      "integrite": 10,
+      "maximum": 10,
+      "position": [
+        2,
+        0
+      ],
+      "position_salle": "cellier",
+      "pluriel": true,
+      "charges": 12,
+      "duree_combustion": 60,
+      "usages": [
+        "combustible"
+      ],
+      "proprietaire": "odile",
+      "prix_part": 1,
+      "description_visuelle": "Les bûches que l'aubergiste a rentrées pour l'hiver, empilées contre le mur du cellier."
     }
   },
   "visitees": [
@@ -2899,6 +2930,27 @@
             "minute": 0,
             "confiance": 0.6
           }
+        },
+        "bois_reserve": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              2,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -3088,6 +3140,27 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "bois_reserve": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              2,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
         }
       },
       "memoire": [],
@@ -3232,6 +3305,27 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.7
+          }
+        },
+        "bois_reserve": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              2,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
           }
         }
       },
@@ -3442,6 +3536,27 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.7
+          }
+        },
+        "bois_reserve": {
+          "lieu": {
+            "valeur": "cellier",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "cellier",
+            "case": [
+              2,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
           }
         }
       },

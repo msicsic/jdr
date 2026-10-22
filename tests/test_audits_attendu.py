@@ -84,7 +84,8 @@ class DeterministesTests(unittest.TestCase):
                           (1, "Corvus attend.")])
         self.assertEqual(refus[0]["attendu"],
                          "texte, segment 0, reçu « les faits » ; accepté : le passage à la deuxième personne (tu), "
-                         "dans la fiction, sans « les faits » hors d'une réplique entre guillemets")
+                         "dans la fiction, sans « les faits » hors d'une réplique entre guillemets : dis ce que Corvus "
+                         "perçoit, sait ou ignore, sans parler du jeu")
         self.assertTrue(refus[1]["attendu"].startswith("texte, segment 1, reçu « Corvus » ;"))
         # La justification d'un avis est une autre partie, nommée comme telle.
         self.assertTrue(voix_auteur("Le joueur hésite.", "justification")[0]["attendu"]

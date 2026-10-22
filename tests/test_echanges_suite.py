@@ -16,6 +16,7 @@ from donjon.monde import ErreurMonde, Monde
 from donjon.paroles import preparer_parole
 from donjon.rendu import fiche
 from tests.support import calme, regarder
+from tests.test_entretenir import sans
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
 
 
@@ -250,6 +251,7 @@ class TachePayeeTests(unittest.TestCase):
         m = creer("auberge", 1985, "fixe")
         deplacer(m, "bois_cuisine", "cellier")
         m.objets["bois_cuisine"]["charges"] = 0
+        sans(m, "bois_reserve")   # La réserve d'Odile (branche ``ressources``) est brûlée aussi.
         m.objets["fagots_etable"]["charges"] = 1
         m.objets["fourneau"]["combustible"] = 8
         croire(m, "mireille", "fagots_etable", "lieu", "etable", "savoir", salle="etable", case=None)
@@ -371,6 +373,7 @@ class EnqueteTests(unittest.TestCase):
         m = creer("auberge", 1985, "fixe")
         deplacer(m, "bois_cuisine", "cellier")
         m.objets["bois_cuisine"]["charges"] = 0
+        sans(m, "bois_reserve")   # La réserve d'Odile (branche ``ressources``) est brûlée aussi.
         m.objets["fourneau"]["combustible"] = 8
         m.data["finances_pnj"]["mireille"] = 0   # Placement d'auteur : sans le sou, elle ne peut rien payer.
         self.assertNotIn("fagots_etable", lire(m, "mireille")["croyances"])

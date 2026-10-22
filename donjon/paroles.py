@@ -875,9 +875,11 @@ def nom_dans(monde, replique):
 
 
 def verifier_nom(monde, contenu, replique):
-    """Le contenu « nom » dit le nom que la réplique donne à Corvus, s'il s'en donne un : une cause par
-    refus, l'élément fautif nommé. Renvoie le contenu, complété du nom que disent les mots quand le MJ
-    ne l'a pas typé : se dire quelqu'un d'autre est une imposture que le moteur enregistre comme telle."""
+    """Le contenu « nom » dit le nom que la réplique donne à Corvus, s'il s'en donne un. Ce nom est celui que
+    disent les mots : le moteur le lit lui-même, il complète un nom non typé et remplace un nom typé
+    autrement (se dire quelqu'un d'autre est une imposture qu'il enregistre comme telle). Seul un nom typé
+    alors que les mots n'en donnent aucun est refusé, l'élément fautif nommé : ce que le MJ voulait typer
+    reste à sa charge."""
     dit = nom_dans(monde, replique)
     if dit is None:
         # « C'est Corvus. » se nomme aussi, mais « c'est X » dit souvent autre chose (« c'est Gorm qui l'a ») :
@@ -890,16 +892,15 @@ def verifier_nom(monde, contenu, replique):
                 # Des mots imposés (« Qui est là ? ») qui ne disent aucun nom : Corvus ne s'est pas nommé.
                 raise ErreurMonde("Corvus ne se nomme pas dans ce qu'il dit.",
                                   f"contenu[{i}] : retire l'élément nom ; la réplique « {replique} » ne donne aucun "
-                                  "nom (« C'est X », « je suis X ») ; reçu sujet « " + str(c.get("sujet", "")) + " ».")
+                                  "nom (« C'est X », « je suis X ») ; reçu sujet « " + str(c.get("sujet", "")) + " » ; "
+                                  "une question sur qui parle se type qui.")
         return list(contenu)
-    for i, c in enumerate(contenu):
-        if isinstance(c, dict) and c.get("type") == "nom" and _nom_dit(monde, c.get("sujet")) != dit:
-            raise ErreurMonde("Corvus se nomme autrement que ne le disent ses mots.",
-                              f"contenu[{i}].sujet : {dit} (le nom que se donne la réplique « {replique} ») ; "
-                              f"reçu « {c.get('sujet', '')} ».")
-    if any(isinstance(c, dict) and c.get("type") == "nom" for c in contenu):
-        return list(contenu)
-    return [*contenu, {"type": "nom", "sujet": dit, "attribut": "", "valeur": ""}]
+    noms = [c for c in contenu if isinstance(c, dict) and c.get("type") == "nom"]
+    autres = [c for c in contenu if c not in noms]
+    # Un seul nom, celui des mots, à la place du premier nom typé (ou à la fin).
+    place = contenu.index(noms[0]) if noms else len(autres)
+    return [*autres[:place], {**(noms[0] if noms else {"attribut": "", "valeur": ""}), "type": "nom", "sujet": dit},
+            *autres[place:]]
 
 
 def _typer(monde, c, auditeur=None):

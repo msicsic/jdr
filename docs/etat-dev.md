@@ -995,7 +995,73 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   un PNJ donne son avis sans qu'on le lui demande seulement si l'autre risque d'agir contre et qu'il
   s'en soucie ; le reste selon les recommandations du plan.
 - **Plus tard** : fabrication étape 4 ; imitation de voix (après les relations).
-- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `ressources`, non fusionnée (données seulement, décision de l'utilisateur ; `docs/plan-crue.md`,
+  « Un feu hors de l'eau ») : deux scénarios manquaient de ressources. **Crue** : depuis `verifier-eau`,
+  personne ne se chauffait au brasero menacé de la conduite, seul feu. Ajouté à la galerie de ronde,
+  hors d'atteinte de l'eau, un poêle du guet allumé (120 min) et trois charges de bûches du guet (90 min)
+  à Gorm, sus de tous ; un âtre au refuge, essayé, supprimait tout froid. Bancs 8 h (8 graines, `main`
+  ec2352e puis la branche) : froid pressant 491 → 111 minutes·PNJ par nuit (Brune 281 → 71), en attente
+  541 → 219, dans l'eau 438 → 373, échanges 19 → 18, achats 1 → 2 ; audit 12 h : froid 794 → 199, en
+  attente 914 → 571. **Auberge** : le bois (750 minutes pour trois foyers) finissait vers la cinquième
+  heure. Mesuré : un foyer brûle une minute de combustible par minute, trois foyers 1 440 minutes en 8 h,
+  2 160 en 12 h. Portés à 1 815 minutes : bûches de la cuisine 4 → 8 charges, d'Anselme 2 → 3, fagots de
+  Joss 2 → 3, et une réserve de bûches d'Odile au cellier (12 charges de 60 min, sue de la maisonnée).
+  Bancs 8 h : dans le noir 1 159 → 236 (dont 128 de Lucien au grenier, qui n'a pas de lumière), en
+  attente 341 → 24, sans recours 101 → 146 (Lucien, qui guette pour ses biens, désormais éclairé),
+  foyers allumés âtre 215 → 471, fourneau 243 → 424, poêle 235 → 464 min ; restent à la fin 3,5 charges
+  de la réserve et 2,2 fagots ; offres de tâche 33 → 7, « as-tu… ? » 14 → 2,4, échanges 82 → 33 (surtout
+  les demandes vaines), vols vus 1,2 → 1,1, une nuit 50 → 32 s. Audit 12 h : noir 2 690 → 1 017
+  (le bois s'épuise vers la huitième heure ; la lanterne de l'étable vide), en attente 1 141 → 351, froid
+  172 → 19, échanges 120 → 100 ; Odile prête sa réserve à Anselme puis la lui refuse. L'huile n'a pas été
+  augmentée : un pot d'huile essayé n'a jamais servi (aucune part de combustible ne se demande pour une
+  lampe, seulement pour la chaleur ; qui a peur dans le noir n'a pas rechargé la lanterne de l'étable).
+  Aucune usurpation ni violation ; `VERIFIER` sans écart sur une nuit de chaque scénario (graine 7, 8 h).
+  `tests/test_ressources.py` (crue 7 et auberge 1985 après rechargement) ; scènes d'auteur à court de bois
+  sans la réserve d'Odile (`test_refus_retenus`, `test_echanges_suite`, `test_entretenir`) ; `test_auberge`
+  (11 événements distincts en 210 minutes, seuil 12 → 10), `test_eau`, `test_verifier_eau` (on sèche au
+  poêle du guet). Limites : moteur inchangé ; la lumière des lampes n'est pas une ressource que les PNJ se
+  partagent ; un scénario de 12 h finit encore dans le noir à l'auberge (rareté voulue).
+- Branche `relances-luna`, non fusionnée (`docs/contrat-mj.md`, « Ce qui n'appelle pas de relance » et « Refus
+  et échecs ») : après `parole-corrections`, les quatre bancs de référence étaient montés à 3,24 appels et 6
+  relances par tour MJ. Causes lues dans les fils : un « impossible » au premier examen audité alors que la
+  boucle le refuse ensuite (réexamen), avec sa prose relancée (« le moteur… ») ; la contre-revue refusant
+  l'examen que le moteur prescrit pour chercher (« je cherche des traces de pas », 9 appels) ; l'explication
+  d'un geste refusé par le monde (trop loin) relancée jusqu'à trois fois sur des refus sémantiques ; un nom
+  typé autrement que ne le disent les mots de Corvus renvoyé au MJ ; une citation recopiée par l'auditeur
+  avec son attribution ; des règles du contrôle déterministe jamais dites au MJ (« je », « Corvus »,
+  « moteur » hors des répliques ; une voix inconnue nommée dans le récit). Règles : un avis que la boucle
+  écartera n'est pas audité (`mj.refus_assure`) ; le nom que Corvus se donne est lu dans ses mots
+  (`paroles.verifier_nom`) ; la citation d'une parole est la réplique du segment qu'elle recouvre
+  (`narration.citation_du_segment`, `cite_entiere`) ; l'explication d'un refus du monde a un essai, puis le
+  joueur lit les refus du monde dans l'ordre (`mj.ExplicationCedee`) ; `REGLE_NARRATION` dit la voix
+  d'auteur, la voix inconnue et les noms connus ; `attendu` d'une voix d'auteur, du réexamen et d'un héler
+  sans nom plus précis ; la contre-revue admet la perception qui cherche ; l'auditeur sait que les témoins se
+  taisent, que les mots de qui répond ne sont jamais fournis, que ce que fait sentir un objet perçu est
+  ambiance. Ajouts de la revérification (`docs/reverification.md`, N5) : une réplique ne nomme que qui son
+  locuteur connaît, voix connue ou non (`narration.voix_inconnues`, `voix.connait_nom` ; Aubin ne dit plus
+  « Corvus ») ; « tu demandes à passer » n'est pas une parole racontée ; un objet remis au joueur lui est dit
+  une fois, son ouïe ne le lui redit pas à la troisième personne (`ouie.retentir`, `appris`). Tests après
+  rechargement, cas réel et cas de même nature (`tests/test_relances_luna.py`, 20 tests) ; tests accordés :
+  `test_narration`, `test_defi` (le refus du monde au lieu de « Corvus n'a rien tenté »),
+  `test_parole_corrections` (« C'est moi, Brune » sans relance), `test_audits_attendu`. Luna, 2 passes,
+  `main` ec2352e puis la branche 23fd759, une exécution à la fois, neuf bancs : 4 bancs de référence 3,17 →
+  3,11 appels et 14,4 → 14,2 s par tour MJ, replis 0 → 0, relances 5,5 → 4,5, refus 9 → 8,5, tours avec
+  refus 5,5 → 5,5 (une passe intermédiaire, 1c484c0, sans les ajouts de la revérification : 3,01 appels,
+  13,5 s, relances 3, refus 11) ; avant `parole-corrections` : 2,99 / 14,2 / 3,5 / 8,5. Bancs du soir, appels
+  par tour : soir-noir 3,90 → 3,40, soir-voix 3,50 → 3,00, soir-appel 3,08 → 2,92, ressources 3,33 → 3,00,
+  comptes 3,00 → 3,50 (une passe à 5) ; relances soir-noir 1,5 → 0,5, soir-voix 1 → 0. « je cherche des
+  traces de pas » 9 et 2 → 6 et 4 appels ; « J'attends que Gorm ait le dos tourné… » 5 et 7 → 3 et 3 ; « Qui
+  est là ? » 6 et 5 → 4 et 4 ; « C'est moi, Brune » 6 et 4 → 3 et 5. Saisies du rapport du soir : textes
+  affichés équivalents, aucun refus de forme ni `attendu` montré, imposture démasquée 4/4. Limites : un
+  « impossible » au premier examen reste refusé (une relance ; 4 par passe de référence) ; un `nom` typé sans
+  nom dans les mots reste refusé (« Qui est là ? » typé `nom`) ; l'arbitrage sommaire `difficulte` 0 avec une
+  stat reste un refus de forme ; les refus sémantiques de l'auditeur (absence affirmée, « hors de vue »)
+  restent la première source de relances ; le refus du monde montré à la place d'une explication porte ses
+  coordonnées (« case 5, 11 du plan ») et ne dit que le dernier geste proposé ; « passer sous la poutre »
+  peut encore répondre par « Il faut une échelle » (`franchir`, défaut N5 de la revérification) ; les
+  consignes de l'auditeur restent sémantiques. `couverture_action.py`, `sons.py`, `ouie.py`, `echanges.py`,
+  `rejeu.py` touchés hors du périmètre annoncé, chacun pour une règle commune.
+- La suite de tests passe : 1230 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

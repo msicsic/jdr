@@ -76,8 +76,8 @@ Relais reste tel quel pour les tests et son banc.
 - **Ce qui la change** : barrer les vannes ralentit la montée dans les salles basses tant que le
   barrage tient ; un barrage fait avec trop peu peut céder.
 - **Les vannes cèdent, pas la digue** : le Relais est en pierre, il tient. L'eau monte dans les
-  salles basses, puis dans le refuge. **La galerie reste toujours sèche** : dernier abri, froid,
-  sans feu. Personne ne meurt de ce seul fait ; le danger passe par les règles du corps (le
+  salles basses, puis dans le refuge. **La galerie reste toujours sèche** : dernier abri, froid ;
+  son seul feu est le poêle du guet (branche `ressources`, ci-dessous). Personne ne meurt de ce seul fait ; le danger passe par les règles du corps (le
   froid, la faim, la fatigue extrêmes coûtent des PV) et par le courant (une traversée ratée).
   L'enjeu est l'état dans lequel on passe la nuit, et qui l'on a laissé derrière soi.
 - **Le bourg**, hors scène : si l'alarme a sonné, il est monté au coteau ; sinon il est surpris.
@@ -396,7 +396,47 @@ plus haut qu'il puisse gagner) ; là où il attend l'eau noyer sa salle, il en s
 Audit (12 h, 8 graines) : se chauffer dans l'eau 7 nuits sur 8 → 0 ; minutes·PNJ à 50 cm d'eau ou plus
 262 → 124 par nuit, à 86 cm ou plus 128 → 14 ; appels à l'aide 94 → 2 ; personne ne reste une heure à
 50 cm ou plus. Prix : le brasero de la conduite est le seul feu ; quand elle est menacée, on a froid
-(Brune pressée par le froid 7 → 291 minutes par nuit au banc de 8 h).
+(Brune pressée par le froid 7 → 291 minutes par nuit au banc de 8 h). Traité par la branche `ressources` : un feu à la
+galerie (section suivante).
+
+## Un feu hors de l'eau (branche `ressources`)
+
+Décision de l'utilisateur après `verifier-eau` : augmenter les ressources, par des données seules. Le
+brasero de la conduite (-120 cm) était le seul feu ; les évacués partent trempés (300 à 390 minutes
+déclarées, le froid monte de 10 par heure) et ne sèchent qu'en restant 30 minutes près d'un feu hors de
+l'eau. Dès que la conduite est menacée, personne ne s'y chauffe plus : froid pressant (70 ou plus)
+491 minutes·PNJ par nuit au banc de 8 h (Brune 281, Aubin 180).
+
+**Ce qui est ajouté** (`donjon/scenario_crue.json`) : à la galerie de ronde (+240 cm, jamais atteinte),
+un **poêle du guet** de fonte, fixe, allumé au départ avec 120 minutes de combustible (le gardien le
+tient allumé pour qui guette l'eau la nuit), et à côté trois charges de **bûches du guet** (90 minutes
+chacune), à Gorm. Les quatre PNJ savent le poêle et le bois là-haut (savoir de départ : Gorm l'a dit en
+accueillant les évacués). Rien d'autre ne change : le brasero, les fagots de Gorm aux vannes, les
+planches d'Aubin, la porte étanche verrouillée dont seul Gorm sait la clé.
+
+Pourquoi là, et pas au refuge : la galerie est le seul lieu hors d'atteinte de l'eau. Essayé au banc, un
+âtre au refuge (150 minutes) supprimait tout froid pressant (0 minute sur 8 nuits) : plus aucune tension.
+À la galerie, s'y chauffer coûte de passer par la conduite, la salle des vannes et le palier, les salles
+les plus menacées, avant qu'elles ne soient noyées, et de franchir la porte étanche ; le bois du guet est
+à Gorm, qui l'emporte aussi pour son brasero ; une fois la conduite noyée, le poêle est coupé du refuge.
+
+**Bancs 8 h** (8 graines, `--joueur chambre_cloche`, `main` ec2352e puis la branche) : froid pressant
+491 → 111 minutes·PNJ par nuit (Brune 281 → 71, Aubin 180 → 14, Ilse 30 → 27) ; en attente 541 → 219 ;
+sans recours 24 → 16 ; dans l'eau 438 → 373 ; dans le noir 29 → 25 ; échanges 19 → 18 ; achats 1 → 2
+(on achète une part des bûches du guet à Gorm) ; demandes « as-tu… ? » 6 → 2,5 ; poêle allumé 163 minutes
+par nuit, bûches du guet restantes 0,8 sur 3 ; brasero allumé 416 → 436 minutes ; vols vus 0,1 → 0 ;
+aucune usurpation ni violation ; une nuit 21 → 18 s. Graine 500 (eau haute tôt) inchangée : Brune a
+encore froid 335 minutes. **Audit 12 h** (8 graines, `tools/audit_nuits.py`) : froid pressant 794 → 199
+minutes·PNJ par nuit (Brune 375 → 102, Aubin 328 → 24), en attente 914 → 571, noir 202 → 104, dans
+l'eau 491 → 448, constats « eau longue » 7 → 4, aucun plantage. `VERIFIER` sans écart (graine 7, 8 h).
+Cas vérifiés après rechargement : `tests/test_ressources.py` (graine 7 : Aubin puis Brune montent se
+chauffer au poêle, Brune demande une part des bûches du guet à Gorm, refusée, Aubin l'achète, Gorm
+recharge et rallume le poêle) ; `test_eau` et `test_verifier_eau` (Ilse fuit à la galerie et y sèche ;
+transie au refuge, elle monte au poêle du guet au lieu du brasero menacé).
+
+**Limites** : la traversée vers la galerie mouille (l'eau ne coûte que par la salle d'arrivée, limite
+du moteur relevée par `verifier-eau`) ; le savoir du poêle est donné à tous au départ ; quand l'eau monte
+tôt (graine 500), le poêle reste hors d'atteinte et le froid revient.
 
 ## Questions ouvertes
 

@@ -30,7 +30,10 @@ Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
 - un changement durable demandé qu'aucune opération ne produit ;
 - un changement durable ajouté que le joueur n'a pas demandé.
-Une action sans changement durable est conforme si le geste suffit à la demande. Un geste
+Une action sans changement durable est conforme si le geste suffit à la demande. Chercher,
+fouiller ou inspecter quelque chose (du regard, de l'oreille, des mains) se fait par une action de
+perception (examiner, toucher, ecouter, observer, lire) sur ce qu'on fouille : ce qu'elle révèle, ou
+ne révèle pas, est le résultat que le moteur décide, et elle couvre la demande. Un geste
 improvisé (geste_improvise) accomplit le geste demandé sur ses cibles : sa forme (coup de
 pied, poussée, caresse, air sifflé) relève du récit ; juge seulement ses changements durables.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
