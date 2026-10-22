@@ -21,8 +21,8 @@ from time import perf_counter
 
 from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
                            _lieu_cru, besoin_de_part, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
-                           peur_du_noir, profil, promesse_en_cours, refus_retenu, tient)
-from . import force
+                           peur_du_noir, profil, promesse_en_cours, refus_retenu, taux, tient)
+from . import eau, force
 from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
@@ -60,6 +60,10 @@ _GRAPHES = {}
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
 # porter est recalculé par une recherche complète, et comparé.
 VERIFIER = False
+# Les écarts que ``VERIFIER`` reconnaît sans les tenir pour un défaut : la recherche jouée a atteint sa
+# borne de nœuds (``NOEUDS``) et la recherche complète trouve mieux. Une limite de la recherche, pas de
+# ce qu'elle restreint ; le banc d'audit les compte.
+BORNES = []
 
 
 @contextmanager
@@ -151,6 +155,21 @@ class Vue:
         # Les lieux où il garde ses biens, quand ils le pressent : chaque minute loin de l'un d'eux
         # lui coûte (``GARDE``).
         self.gardes = gardes(monde, id)
+        # L'eau qu'il croit ou attend dans chaque salle (``eau.attendue``) : ce qu'elle lui coûte par
+        # minute (``pression``), les salles où un but qui se tient en restant ne se tient pas
+        # (``menacees``), celles où il ne descend pas (``descente``).
+        self.eau, self.menacees, self.noyees = {}, frozenset(), frozenset()
+        if eau.active(monde):
+            attendues = {s: eau.attendue(monde, id, s) for s in self.salles}
+            self.menacees = frozenset(s for s, cm in attendues.items() if cm > 0)
+            self.noyees = frozenset(s for s, cm in attendues.items() if cm >= eau.NOYEE_CM)
+            if "securite" in (profil(monde, id) or {}).get("besoins", {}):
+                for s in self.menacees:
+                    cm = eau.eau_crue(monde, id, s)
+                    # Ce que l'eau l'inquiète par minute là où il s'y tient (``deliberation.ressentir``).
+                    self.eau[s] = (2 * taux(monde, id, "eau") * min(cm, eau.NOYEE_CM) / eau.NOYEE_CM if cm
+                                   else taux(monde, id, "menace"))
+        self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         self._allers = {}
@@ -161,6 +180,10 @@ class Vue:
         self.portes_de = {s: frozenset(x["porte"] for x in d["sorties"].values() if x.get("porte"))
                           for s, d in self.salles.items()}
         self.emplois = None    # ce que le but peut employer (``chercher``) ; None : tout
+        # Le but est d'avoir de la lumière (``eclairer``) : lu du but lui-même (``chercher``), pas de ce
+        # qu'il vaut la peine de porter, pour que la recherche restreinte et la complète offrent les
+        # mêmes gestes propres au but.
+        self.eclairer = False
         self.seul = None       # par ses seuls moyens : à qui seul il peut demander (``devis_pulsion``)
 
     def depense(self, prix):
@@ -202,7 +225,7 @@ class Vue:
         x = self.objets[o]
         usages = x.get("usages", [])
         crochete = "crochetage" in profil(self.monde, self.id)["capacites"]
-        voir = "lumiere" in self.emplois or self.peur > 0 or crochete
+        voir = self.eclairer or self.peur > 0 or crochete
         return bool(x.get("ouvre") or x["type"] == "contenant" or o in vises
                     or self.verrous and set(usages) & set(force.CHOC + force.COUPE)
                     or "manger" in self.emplois and x["type"] == "nourriture"
@@ -220,8 +243,7 @@ class Vue:
         if o in vises:
             return True
         x = self.objets[o]
-        return bool(self.emplois is not None and "lumiere" in self.emplois
-                    and ("allume" in x or "allumage" in x.get("usages", [])))
+        return bool(self.eclairer and ("allume" in x or "allumage" in x.get("usages", [])))
 
     def _memo(self, cle, calcul):
         crus = self._crus
@@ -334,7 +356,7 @@ class Vue:
         if cle not in self._allers:
             allers = []
             for s in self.salles_triees:
-                if s != e.salle:
+                if s != e.salle and not self.descente(e.salle, s):
                     route = self.route(e, s, ouvertes)
                     if route is not None:
                         allers.append((s, len(route)))
@@ -521,12 +543,42 @@ class Vue:
 
     def pression(self, e):
         """Ce que lui coûte une minute dans cet état, par ce qu'il y laisse monter : le noir, s'il le
-        craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``GARDE``)."""
+        craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``GARDE``), l'eau qu'il
+        croit ou attend là (au taux où elle l'inquiète, ``NOIR`` par point, comme le noir)."""
         pressions = self._pressions
         if e not in pressions:
             p = NOIR * self.peur if self.peur and self.noir(e) else 0
-            pressions[e] = p + GARDE * sum(1 for g in self.gardes if g != e.salle)
+            pressions[e] = p + GARDE * sum(1 for g in self.gardes if g != e.salle) + NOIR * self.eau.get(e.salle, 0)
         return pressions[e]
+
+    def descente(self, ici, salle):
+        """Aller d'``ici`` à ``salle``, c'est descendre dans la crue : il y attend l'eau, plus qu'ici
+        (elle monte par le bas), et il l'y attend noyée, ou son retour coupé par une salle qu'il attend
+        noyée. Il n'y va pas ; aller vers moins d'eau, ou vers un lieu qu'elle ne menace pas, reste
+        permis, même en traversant l'eau."""
+        if salle not in self.menacees:
+            return False
+        cle = (ici, salle)
+        if cle not in self._descentes:
+            from .spatial import altitude
+            plus = ici not in self.menacees or altitude(self.monde, salle) < altitude(self.monde, ici)
+            self._descentes[cle] = plus and (salle in self.noyees or not self._retour(salle, ici))
+        return self._descentes[cle]
+
+    def _retour(self, depuis, vers):
+        """Un passage de ``depuis`` à ``vers`` qui ne traverse aucune salle qu'il attend noyée (les
+        portes : il vient d'y passer)."""
+        vus, file = {depuis}, [depuis]
+        while file:
+            lieu = file.pop()
+            if lieu == vers:
+                return True
+            for sortie in self.salles[lieu]["sorties"].values():
+                suivante = sortie["vers"]
+                if suivante in self.salles and suivante not in vus and (suivante == vers or suivante not in self.noyees):
+                    vus.add(suivante)
+                    file.append(suivante)
+        return False
 
     def noir(self, e):
         """S'y croit-il dans le noir ? Sans lumière, dans un lieu qu'il croit obscur (``noir_cru``)."""
@@ -582,7 +634,7 @@ def gestes(v, e, vises=None, but=None):
     # allumer il n'en faut aucune. Une lampe ou un briquet de plus, à prendre, à recharger ou à
     # allumer, ne lui apporterait alors rien, sauf ce que vise le but.
     eclaire_en_main = any("allume" in objets[k] and v.feu(e, k)[0] for k in e.portes)
-    lumiere_compte = v.peur or "lumiere" in (v.emplois or ()) or "crochetage" in p["capacites"]
+    lumiere_compte = v.peur or v.eclairer or "crochetage" in p["capacites"]
     assez = eclaire_en_main or not lumiere_compte and (
         any(v.flamme(e, k) for k in e.portes)
         or not any(v.feu(e, f)[0] is False for f in v.foyers + list(vises.get("entretenir", ()))))
@@ -743,7 +795,8 @@ def gestes(v, e, vises=None, but=None):
                             yield (0, 1 + DEMANDE, [_etape("demander_feu", autre, outil=flamme,
                                                            contenu={"allumer": o})],
                                    e.apres(faits=[(("allume", o), True)]), 1)
-            if allume and x.get("foyer"):
+            # Là où il croit ou attend l'eau, on ne se chauffe pas : elle trempe, et l'on y resterait.
+            if allume and x.get("foyer") and sa_salle not in v.menacees:
                 yield 0, 1, [_etape("chauffer", o)], e.apres(faits=[(("chauffe", o), True)])
         if v.besoin[o]:
             yield from _parts(v, e, o, dans, vises, but)
@@ -831,6 +884,8 @@ def _parts(v, e, o, dans, vises, but):
     donneur = v.proprietaire[o]
     foyer = ((vises.get("entretenir") or (v.foyer_froid(),))[0]
              if besoin == "chaleur" else None)
+    if foyer and v.salle(e, foyer) in v.menacees:
+        return   # Un feu là où il croit ou attend l'eau : ni chaleur à y prendre, ni bois à y porter.
     part = [(("part", o), donneur)] + ([(("charge", foyer), True), (("allume", foyer), True)]
                                        if foyer else [])
     if donneur not in (None, id, "joueur") and v.profil_de(donneur):
@@ -878,7 +933,7 @@ def _chercher(v, e, sujet):
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
     visites = lire(v.monde, v.id)["visites"]
     vaines = appels_vains(v.monde, v.id, sujet)
-    routes = {s: v.route(e, s) for s in v.salles if s not in vaines}
+    routes = {s: v.route(e, s) for s in v.salles if s not in vaines and (s == e.salle or not v.descente(e.salle, s))}
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
         return None
@@ -939,7 +994,9 @@ def _entrees(v, vises, profondeur, noeuds):
         [o for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
-        [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())]], ensure_ascii=False)
+        [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
+        # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
+        sorted(v.menacees), sorted(v.noyees)], ensure_ascii=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
@@ -949,7 +1006,10 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     dans les diagnostics.
 
     ``emplois`` dit ce que le but peut employer : "manger" (un repas), "feu" (un feu à charger,
-    allumer). Il borne ce qu'il vaut la peine de porter (``Vue.pertinent``) ; None : tout.
+    allumer). Il borne ce qu'il vaut la peine de porter (``Vue.pertinent``) ; None : tout. Il ne fait
+    que retirer : ce que le but demande lui-même se lit de ``vises`` (``"eclairer"`` : avoir de la
+    lumière, ``Vue.eclairer``), pour que la recherche complète du même but (``VERIFIER``) offre tous
+    les gestes de la restreinte.
 
     ``memo`` (une description JSON du but, qui le détermine avec ce qu'il croit) garde le
     résultat : tant que rien de ce que lit la recherche n'a changé (``_entrees``), le même but
@@ -972,6 +1032,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     faute = prix_faute(monde, id, motif)
     v.degat = prix_faute(monde, id, motif, "douceur")
     v.emplois = None if emplois is None else frozenset(emplois)
+    v.eclairer = bool((vises or {}).get("eclairer"))
     v.seul = seul
     garde = graphe = None
     repris = False
@@ -999,32 +1060,84 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             else:
                 graphe, repris = vu[1], True
     if garde is not None:
-        _, trouve, issue = garde
+        _, trouve, issue, borne = garde
         examines = etats = plus_profond = 0
         trouve = None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
     else:
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
                                                           noeuds, faute, tenir, graphe)
-        issue = "plan" if trouve else "borne" if examines >= noeuds else "epuise"
+        borne = examines >= noeuds
+        issue = "plan" if trouve else "borne" if borne else "epuise"
         if endurer is not None and _endure(v, trouve, depuis, endurer):
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
-                               issue)
+                               issue, borne)
     if VERIFIER and (garde is not None or repris or v.emplois is not None):
-        brute = Vue(monde, id)
-        brute.degat, brute.seul = v.degat, seul
-        refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute, tenir)[0]
-        if endurer is not None and _endure(brute, refait, depuis, endurer):
-            refait = None
-        assert refait == trouve, (f"Recherche de {id} ({nom}, {'mémoire' if garde else 'graphe' if repris else 'emplois'}) : "
-                                  f"{trouve} au lieu de {refait}")
+        _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
+                  trouve, borne, "mémoire" if garde is not None else "graphe" if repris else None)
     if DIAGNOSTIC is not None:
         DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
                            "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": garde is not None,
                            "graphe": repris and garde is None, "etapes": len(trouve[1]) if trouve else None,
                            "duree": round(perf_counter() - debut, 6)})
     return trouve
+
+
+# Nœuds de la recherche de référence de ``VERIFIER`` : elle explore tout ce qu'il connaît, plus que la
+# recherche restreinte qu'elle contrôle ; bornée comme elle, elle s'arrêterait avant l'optimum.
+REFERENCE = 15 * NOEUDS
+
+
+def _egaux(a, b):
+    """Deux résultats de même coût (à l'arrondi des sommes près), ou tous deux sans plan."""
+    if a is None or b is None:
+        return a is None and b is None
+    return abs(a[0] - b[0]) <= 1e-9 * max(1.0, abs(a[0]))
+
+
+def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom, trouve, borne,
+              reprise):
+    """``VERIFIER`` : deux contrôles, chacun avec sa référence.
+
+    Repris de la mémoire ou du graphe (``reprise``), le résultat doit être exactement celui d'une
+    recherche refaite de zéro avec les mêmes paramètres (mêmes gestes, même borne) : même plan, mêmes
+    égalités.
+
+    Cherché parmi ce qu'il vaut la peine de porter (``emplois``), il doit avoir le coût de l'optimum
+    d'une recherche complète pour le même but (``emplois`` à None, mêmes gestes propres au but :
+    ``Vue.eclairer``), bornée à ``REFERENCE`` nœuds. Le coût, pas le plan : les deux recherches
+    n'examinent pas les mêmes gestes, l'ordre de découverte qui départage deux plans de même coût
+    diffère donc nécessairement. Une recherche qui atteint sa borne n'est pas un optimum : si la
+    restreinte l'atteint, l'écart n'est pas un défaut de la restriction mais une limite de la recherche
+    jouée : il est noté (``BORNES``), pas tenu pour faux ;
+    si la référence l'atteint, la restreinte doit seulement ne pas coûter plus qu'elle."""
+    def refaire(emplois, borne):
+        brute = Vue(monde, id)
+        brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
+        r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir)
+        refait = r[0]
+        if endurer is not None and _endure(brute, refait, depuis, endurer):
+            refait = None
+        return refait, r[1] >= borne
+    if reprise is not None:
+        refait, _ = refaire(v.emplois, noeuds)
+        assert refait == trouve, f"Recherche de {id} ({nom}, {reprise}) : {trouve} au lieu de {refait}"
+    if v.emplois is None:
+        return
+    refait, reference_bornee = refaire(None, REFERENCE)
+    if borne:
+        if refait is not None and (trouve is None or refait[0] < trouve[0]):
+            BORNES.append({"minute": monde.data["minutes"], "pnj": id, "but": nom,
+                           "trouve": None if trouve is None else trouve[0], "optimum": refait[0]})
+        return
+    if reference_bornee:
+        assert trouve is not None or refait is None, (
+            f"Recherche de {id} ({nom}, emplois, référence bornée) : {trouve} au lieu de {refait}")
+        assert refait is None or trouve[0] <= refait[0] + 1e-9 * max(1.0, abs(refait[0])), (
+            f"Recherche de {id} ({nom}, emplois, référence bornée) : {trouve} au lieu de {refait}")
+        return
+    assert _egaux(refait, trouve), f"Recherche de {id} ({nom}, emplois) : {trouve} au lieu de {refait}"
 
 
 def _endure(v, trouve, depuis, gain):
@@ -1070,7 +1183,8 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
             noeud = [but(v, e), None, None, None]
             if graphe is not None:
                 graphe[e] = noeud
-        if noeud[0]:
+        if noeud[0] and not (tenir and e.salle in v.menacees):
+            # Un but qui se tient en restant ne se tient pas là où il croit ou attend l'eau.
             if not tenir:
                 trouve = cout, copy.deepcopy(etapes), e
                 break
@@ -1427,8 +1541,8 @@ def eclairer(monde, id):
     v = Vue(monde, id)
     if not peur_du_noir(monde, id) or eclaire(v, depart(monde, id, v)):
         return None
-    trouve = chercher(monde, id, eclaire, nom="lumiere", memo=["lumiere"], emplois=("lumiere",), motif="securite",
-                      tenir=True, endurer=0)
+    trouve = chercher(monde, id, eclaire, {"eclairer": True}, nom="lumiere", memo=["lumiere"], emplois=(),
+                      motif="securite", tenir=True, endurer=0)
     if trouve is None:
         return None
     _, etapes, e = trouve

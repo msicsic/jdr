@@ -160,6 +160,8 @@ def jouer_nuit(arguments):
         if planification.chercher.__name__ != "_chercher":
             _verifier_continu()
         ECARTS.clear()
+    from donjon import planification as _planification
+    _planification.BORNES.clear()
     capture = {}
     creer, oisifs, ecrire = banc_pnj.creer, banc_pnj._oisifs_urgents, banc_pnj.ecrire_rejeu
     releves = []
@@ -199,6 +201,8 @@ def jouer_nuit(arguments):
     resultat["releves"] = releves
     resultat["gestes"] = capture.get("gestes")
     resultat["ecarts_verifier"] = list(ECARTS)
+    # Écarts reconnus : la recherche jouée a atteint sa borne de nœuds (``planification.BORNES``).
+    resultat["bornes_verifier"] = list(_planification.BORNES)
     if monde is not None:
         try:
             resultat["final"] = _final(monde)
