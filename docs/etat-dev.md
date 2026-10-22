@@ -1140,8 +1140,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   échéances et dettes à la minute ; le corps du joueur, soldé aux minutes et aux changements d'état, ne montre
   pas les secondes en cours. Défaut vu au banc, hors de ce lot : Aubin, payé pour garder le brasero allumé, sans
   flamme pour le rallumer, ne rend pas la tâche et promet deux fois une part de planches qu'il ne sert pas ;
-  Gorm l'attend 160 minutes dans la conduite noire (Relais, graine 42).
-- La suite de tests passe : 1249 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+  Gorm l'attend 160 minutes dans la conduite noire (Relais, graine 42). **Accordée avec `main` 30fcd07**
+  (`relances-luna`, `boucles-pnj`, `ressources`, `relations-socle`) : un seul conflit de code, `choisir`, qui
+  garde l'hystérésis entre recours de `boucles-pnj` et le répit compté de l'instant du renoncement ; la
+  sécurité ressentie au temps vécu lit `se_fie` et `se_mefie` (aucun accès à la croyance hors de
+  `relations.py`). `test_ressources` suit les nuits au temps vécu : crue 7 jusqu'à 240 min (Brune, chauffée au
+  poêle du guet dès 130, ne demande plus son bois ; le poêle s'éteint vers 245), auberge 1985 (la réserve
+  passe d'Odile à Anselme et revient, le poêle tient encore à 420). Suite verte, pyflakes sans nom indéfini,
+  `VERIFIER` et `spatial.VERIFICATION` 0,2 sans écart sur une nuit de 8 h de chaque scénario (graine 42).
+  Banc rapide (`tools/audit_nuits.py`, 4 h, graines 1985, 7, 42, 2024, `main` puis la branche) : aucun
+  plantage, violation ni usurpation ; sans recours Relais 42,5 → 45, mine 31,25 → 26,25, auberge 20 → 20,
+  crue 0 → 0 ; en attente 0 → 2,5, 6,25 → 0, 1,25 → 1,25, 7,5 → 17,5 ; les boucles de `boucles-pnj` ne
+  reviennent pas : bascules 1 → 1,5 (un vol puis la réserve refermée, pas une boucle), 1 → 0, 0 → 0, 0 → 0,
+  avertissements redits 0 partout ; passages par heure (moyenne du maximum, pire) Relais 6,75 (8) → 8,5 (11),
+  mine et auberge égaux, crue 22,25 (36) → 21,25 (44) : dans les deux, Gorm va et vient entre la galerie et le
+  refuge pour le brasero en surenchérissant une tâche qu'on accepte puis doit aussitôt (crue 1985, défaut
+  connu de la revérification) ; minutes dans le noir Relais 17,5 → 40 ; temps d'une nuit (relevés compris)
+  Relais 10,8 → 12,5 s, mine 24,6 → 24,4 s, auberge 22,1 → 23,4 s, crue 15,2 → 14,3 s. Le défaut d'Aubin se
+  confirme sous une variante (Relais 42, 8 h) : il vend à Gorm une part de planches pour le brasero (min 151)
+  sans flamme pour le rallumer (la torche lui est refusée), ne la sert ni ne le dit, et Gorm attend 60 minutes
+  avant que la part, remise autrement, devienne une dette rendue ; à 334, il accepte pour 16 pièces de
+  rallumer le brasero puis la doit aussitôt (non corrigé ici).
+- La suite de tests passe : 1259 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
