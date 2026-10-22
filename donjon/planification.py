@@ -993,9 +993,12 @@ def _parts(v, e, o, dans, vises, but):
             ou = v.salle(e, donneur)
             promis = [(("promis", o), donneur), (("promis_ou", o), e.salle)]
             # Promise, elle ne mène qu'à l'attendre là où elle se sert : la demander ou
-            # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``).
-            service = v.salle(e, foyer) if foyer else v.salle(e, o)
-            utile_part = but is None or service is not None and but(v, e.apres(salle=service, faits=part))
+            # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``). On ne
+            # la demande ni ne l'achète qu'au donneur qui se tient là : ailleurs, rien à juger.
+            utile_part = None
+            if ou == e.salle:
+                service = v.salle(e, foyer) if foyer else v.salle(e, o)
+                utile_part = but is None or service is not None and but(v, e.apres(salle=service, faits=part))
             # L'acheter s'il peut la payer : le prix lui coûte ce que valent ses pièces. Une
             # part se vend de ce qui est rangé ; ce que le donneur porte, il le remettrait
             # entier (``echanges.demande_de_part``).
