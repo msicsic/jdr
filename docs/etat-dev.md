@@ -947,14 +947,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   parole tenue sur ce qu'on a vu la minute suivante, la chronique datée à l'instant. Deux boucles de
   l'audit corrigées : un appel à l'aide ne se répète pas tant que dure le même désarroi (B1) ; on ne
   prévient une victime que de ce qu'elle ignore (B3). 18 tests après rechargement
-  (`tests/test_deliberation_evenements.py`), `VERIFIER` et `spatial.VERIFICATION` sur une nuit de chaque
-  scénario (l'auberge s'arrête, comme sur `main`, sur le défaut V1 de l'audit). Bancs 8 h contre `main`
-  8589ca2 : allés voir +20 à +50 %, témoins de vols en hausse partout, minutes en attente en baisse ;
-  sans recours auberge 44 → 104 (Lucien guette, renonce, attend son répit) ; un tiers à près de la moitié
-  des choix se font entre deux minutes, recherches ×2 à ×2,4 mais neuves +15 à +60 % ; temps d'une nuit
-  égal à la dispersion près (auberge 32,7 → 35,8 s, mine 28,1 → 25,1 s). Restent à la minute : corps et
+  (`tests/test_deliberation_evenements.py`), `VERIFIER` et `spatial.VERIFICATION` sans écart sur une nuit
+  de chaque scénario (après `verifier-eau`). Bancs 8 h contre `main` 4261bf5, l'un après l'autre : allés
+  voir +1 à +34 %, minutes en attente égales ou en baisse, sans recours en hausse (auberge 40 → 75 : Lucien
+  guette, renonce, attend son répit) ; un tiers à la moitié des choix se font entre deux minutes ;
+  temps d'une nuit Relais 10,5 → 9,7 s, mine 25 → 34 s, auberge 26,8 → 31,9 s, crue 10,3 → 12 s (une
+  vue du planificateur par choix ; une reprise du choix entier serait la suite). Restent à la minute : corps et
   besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
-- La suite de tests passe : (à recompter)
+- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
