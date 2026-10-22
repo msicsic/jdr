@@ -1015,7 +1015,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   locuteur connaît, voix connue ou non (`narration.voix_inconnues`, `voix.connait_nom` ; Aubin ne dit plus
   « Corvus ») ; « tu demandes à passer » n'est pas une parole racontée ; un objet remis au joueur lui est dit
   une fois, son ouïe ne le lui redit pas à la troisième personne (`ouie.retentir`, `appris`). Tests après
-  rechargement, cas réel et cas de même nature (`tests/test_relances_luna.py`, 26 tests) ; tests accordés :
+  rechargement, cas réel et cas de même nature (`tests/test_relances_luna.py`, 20 tests) ; tests accordés :
   `test_narration`, `test_defi` (le refus du monde au lieu de « Corvus n'a rien tenté »),
   `test_parole_corrections` (« C'est moi, Brune » sans relance), `test_audits_attendu`. Luna, 2 passes,
   `main` ec2352e puis la branche 23fd759, une exécution à la fois, neuf bancs : 4 bancs de référence 3,17 →
