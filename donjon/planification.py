@@ -1513,21 +1513,31 @@ def enrichir(monde, id):
 
     Il compte les pièces qu'il croit dedans (croyance ``pieces`` : su en la tenant, ou un savoir
     du scénario), jamais celles qui y sont : une bourse dont il ne sait rien ne le tente pas."""
-    from .caractere import ARGENT, prix_faute, valeur_pieces
+    from .caractere import ARGENT, interdit, prix_faute, valeur_pieces
+    from .vol import proprietaire
     if not profil(monde, id):
         return None
     crues = {o: _cru(monde, id, o, "pieces") for o in _connus(monde, id)}
     if not any(crues.values()):
         return None
-    v = Vue(monde, id)
     faute = prix_faute(monde, id, ARGENT)
     # Ce qu'il ne peut prendre (son honnêteté l'interdit, la faute passe l'enjeu), ou qui vaut moins
-    # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine.
-    bourses = tuple(o for o in v.connus if crues[o] and v.proprietaire[o] != id
-                    and not porte_par(monde, o, id) and v.disponible(o) and v.autorise[o]
-                    and (not v.illicite[o] or faute is not None and valeur_pieces(monde, id, crues[o]) > faute))
+    # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine. Jugé sur
+    # les seules bourses crues, par les lectures de la vue (``Vue.illicite``, ``Vue.autorise``) : la vue
+    # entière ne se construit que s'il en reste une à chercher.
+    honnete, confies = interdit(monde, id, "honnetete"), {}
+    bourses = []
+    for o, n in crues.items():
+        if (not n or proprietaire(monde, monde.objets[o]) == id or porte_par(monde, o, id)
+                or not _disponible_cru(monde, id, o)):
+            continue
+        lese = illicite(monde, id, o, confies=confies)
+        if not (lese and honnete) and (not lese or faute is not None and valeur_pieces(monde, id, n) > faute):
+            bourses.append(o)
     if not bourses:
         return None
+    bourses = tuple(bourses)
+    v = Vue(monde, id)
     trouve = chercher(monde, id, lambda v, e: any(b in e.portes for b in bourses), {"prendre": bourses},
                       nom="argent", memo=["argent"], emplois=(), motif=ARGENT)
     if trouve is None:
