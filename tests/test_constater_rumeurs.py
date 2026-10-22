@@ -253,7 +253,10 @@ class ChercherQuelquUnTests(unittest.TestCase):
         m, _ = attendre(recharger(m))
         self.assertIn("Mireille appelle : « Odile ? »", chronique(m))
         self.assertNotIn("Odile répond : « Ici ! »", chronique(m))
-        self.assertEqual(lieu_cru(m, "mireille", "odile"), (None, "essai"))
+        # Sans réponse, elle ne la croit pas au grenier sur sa voix. (Odile, qui entend dans son grenier
+        # noir des pas qu'elle ne sait à qui prêter, va voir de près d'où ils venaient, branche
+        # ``ouie-temoins`` : elle sort et Mireille finit par la voir ailleurs.)
+        self.assertNotEqual((lieu_cru(m, "mireille", "odile") or (None,))[0], "grenier")
 
     def test_hugues_cherche_anselme_pour_le_prevenir(self):
         """Même nature (auberge) : Hugues a vu Lucien forcer le coffre d'Anselme et veut le

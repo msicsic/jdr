@@ -386,6 +386,34 @@ def _crus_la(monde, id, salle, case):
     return crus
 
 
+def objet_situe(monde, id, objet, salle, case):
+    """Il croit ``objet``, ou ce qui le contient, tout près de la case d'où vient un bruit de
+    ``salle`` (à ``PRES_DE`` de la case qu'il lui croit ; sans cases, dans la salle) : ce bruit, il
+    sait sur quoi il porte (``pnj._temoins_a_l_oreille``). Un bien fixe qu'il connaît (il en a une
+    croyance, ou c'est le sien) est à sa place : on sait où se tient un coffre, une réserve, même
+    sans en retenir la case."""
+    from .esprits import lire
+    croyances = lire(monde, id)["croyances"]
+    vus, x = set(), objet
+    while x in monde.objets and x not in vus:
+        vus.add(x)
+        o = monde.objets[x]
+        c = croyances.get(x, {}).get("lieu")
+        if not c and not o.get("mobile", True) and (x in croyances or o.get("proprietaire") == id):
+            c = {"valeur": o["lieu"]}
+        if not c or c["valeur"] is None:
+            return False
+        if c["valeur"] == salle:
+            if case is None:
+                return True
+            ou = c.get("case")
+            if ou is None and not monde.objets[x].get("mobile", True) and monde.objets[x].get("lieu") == salle:
+                ou = monde.objets[x].get("position")
+            return ou is not None and distance(ou, case) <= PRES_DE
+        x = c["valeur"]
+    return False
+
+
 def _attribuer(monde, id, crus, salle, case):
     """Il prête le bruit à celui qu'il croit là, le plus près d'où il vient : il le croit là."""
     from .esprits import croire, lire
@@ -436,15 +464,58 @@ def resolu(monde, id, souvenir):
                if x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")
 
 
-def parcouru(monde, id, salle):
-    """Il a parcouru ``salle`` des yeux : les bruits qu'il en avait retenus sont vus ; renvoie vrai
-    s'il en attendait un."""
-    from .esprits import esprit
+def source(monde, id, salle):
+    """La case d'où venait le plus récent bruit qu'il attend de ``salle`` et qu'il a pu situer
+    (il l'a entendu de cette salle même) ; None s'il ne le situe pas plus près que la salle."""
+    from .esprits import lire
+    for s in reversed(lire(monde, id)["memoire"]):
+        if s["type"] == "bruit" and s["salle"] == salle and s.get("case") is not None and not resolu(monde, id, s):
+            return tuple(s["case"])
+    return None
+
+
+def parcouru(monde, id, salle, case=None):
+    """Il a parcouru ``salle`` des yeux (vers ``case``, la source qu'il est allé voir) : les bruits
+    qu'il en avait retenus sont vus ; renvoie vrai s'il en attendait un.
+
+    Allé voir sans rien trouver, ou sans rien pouvoir voir (le noir), il a fait ce qu'il pouvait :
+    il retient cet examen (``examen`` : le lieu, la case s'il l'a situé, le plus fort de ce qu'il
+    attendait et qui appelait s'il avait reconnu la voix). Le même bruit, ou un moindre, venu du même
+    endroit ne l'y renvoie plus tant qu'il continue (``couvert``) ; seul un bruit nouveau le relance :
+    plus fort, d'une autre voix, ou qu'il situe mieux. Qui a vu quelqu'un là s'explique le bruit
+    (``resolu``) : rien à retenir."""
+    from .esprits import esprit, memoriser
     memoire = esprit(monde, id)["memoire"]
     vus = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
-    attendu = any(not resolu(monde, id, s) for s in vus)
-    memoire[:] = [s for s in memoire if not any(s is v for v in vus)]
-    return attendu
+    attendus = [s for s in vus if not resolu(monde, id, s)]
+    memoire[:] = [s for s in memoire if not any(s is v for v in vus)
+                  and not (s["type"] == "examen" and s["salle"] == salle and attendus)]
+    if attendus:
+        qui = {s.get("qui") for s in attendus}
+        memoriser(monde, id, {"type": "examen", "salle": salle,
+                              "case": list(case) if case is not None else None,
+                              "nature": max((s["nature"] for s in attendus), key=INTENSITES.get),
+                              **({"qui": qui.pop()} if len(qui) == 1 and None not in qui else {})})
+    return bool(attendus)
+
+
+def couvert(monde, id, salle, n, qui=None, case=None):
+    """Le souvenir d'examen (``parcouru``) qui couvre ce bruit : venu du lieu qu'il est allé voir sans
+    rien y trouver, pas plus fort que ce qu'il y attendait, d'aucune autre voix, d'un endroit qu'il
+    ne situe pas mieux (de la salle seulement, alors qu'il avait examiné la salle ou une case ; de
+    tout près de la case examinée), dans les ``RECENT`` minutes qui suivent l'examen ou le dernier
+    bruit pareil ; None sinon."""
+    from .esprits import RECENT, lire
+    minute = monde.data["minutes"]
+    for s in reversed(lire(monde, id)["memoire"]):
+        if s["type"] != "examen" or s["salle"] != salle or minute - s["minute"] > RECENT:
+            continue
+        if INTENSITES[n] > INTENSITES[s["nature"]] or qui is not None and qui != s.get("qui"):
+            return None
+        if case is not None and (s["case"] is None or distance(case, s["case"]) > PRES_DE):
+            return None
+        return s
+    return None
 
 
 def _retenir_seulement(monde, id, salle, n, niveau):
@@ -460,14 +531,22 @@ def _retenir_seulement(monde, id, salle, n, niveau):
                           "niveau": max([niveau, *(s.get("niveau", niveau) for s in anciens)])})
 
 
-def _bruit_inconnu(monde, id, salle, n, niveau, qui=None):
+def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     """Un bruit vers ce lieu, dont il ne sait rien de plus : un souvenir par lieu, qui l'inquiète, avec
-    le plus fort niveau qui lui en est parvenu (``deliberation.alarme``) et, d'un appel dont il a
-    reconnu la voix, qui appelait."""
+    le plus fort niveau qui lui en est parvenu (``deliberation.alarme``), la case d'où il vient quand il
+    l'entend de cette salle même (il le situe : aller voir mène à portée de vue de sa source) et, d'un
+    appel dont il a reconnu la voix, qui appelait. Un bruit que couvre un examen resté vain (``couvert``)
+    ne lui apprend rien : il ne le retient pas ; un appel l'inquiète encore."""
     from .deliberation import inquieter
     from .esprits import esprit, memoriser
     from .pnj import _chroniquer
     from .social import _qui
+    examen = couvert(monde, id, salle, n, qui, case)
+    if examen is not None:
+        examen["minute"] = monde.data["minutes"]  # Il l'entend encore : c'est le même bruit.
+        if n == "appel":
+            inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
+        return
     memoire = esprit(monde, id)["memoire"]
     anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
     attente = [s for s in anciens if not resolu(monde, id, s)]
@@ -479,12 +558,14 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None):
         inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
     if not attente:
         _chroniquer(monde, id, f"{_qui(monde, id)} entend un bruit : {monde.data['salles'][salle]['nom']}.", "ouie")
-    # Tant qu'il ne l'a pas vu, il en retient le plus fort, et qui appelait s'il l'a reconnu.
+    # Tant qu'il ne l'a pas vu, il en retient le plus fort, et qui appelait s'il l'a reconnu ; d'où il
+    # vient, le dernier endroit d'où il l'a situé.
     qui = qui or next((s["qui"] for s in reversed(attente) if s.get("qui")), None)
+    case = list(case) if case is not None else next((s["case"] for s in reversed(attente) if s.get("case")), None)
     memoriser(monde, id, {"type": "bruit", "salle": salle,
                           "nature": max([n, *(s["nature"] for s in attente)], key=INTENSITES.get),
                           "niveau": max([niveau, *(s.get("niveau", niveau) for s in attente)]),
-                          **({"qui": qui} if qui else {})})
+                          **({"qui": qui} if qui else {}), **({"case": case} if case else {})})
 
 
 def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=None):
@@ -553,7 +634,7 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     if crus and not inhabituel:
         _attribuer(monde, id, crus, salle, case if ici else None)  # Il le surveille, de loin.
     elif not (mots and n == "hele"):
-        _bruit_inconnu(monde, id, salle, n, niveau, reconnu)
+        _bruit_inconnu(monde, id, salle, n, niveau, reconnu, case if ici else None)
     return retourne
 
 

@@ -109,10 +109,20 @@ class TenirTests(unittest.TestCase):
     def test_lucien_rapporte_la_lanterne_de_l_etable_au_grenier_au_lieu_d_aller_et_venir(self):
         m, lieux = suivre(self.lucien_au_grenier_noir(), "lucien", 150, pas=5)
         self.assertEqual(m.objets["lucien"]["lieu"], "grenier")
-        self.assertEqual(m.objets["lanterne_etable"]["lieu"], "lucien")
-        self.assertTrue(m.objets["lanterne_etable"]["allume"])
         self.assertEqual(lieux[-5:], ["grenier"] * 5)
         self.assertLessEqual(changements(lieux), 6)
+        # Lucien force d'abord le coffre d'Anselme, dans la chambre noire : Anselme l'entend et le
+        # reconnaît (branche ``ouie-temoins``), le voit ensuite emporter son ballot, va le reprendre à
+        # l'étable et en rapporte la lanterne. Lucien n'a plus de lumière à emporter : il garde son
+        # coffret dans le noir au lieu d'aller et venir. Sans ce vol entendu, il rapportait la lanterne.
+        if m.objets["lanterne_etable"]["lieu"] == "lucien":
+            self.assertTrue(m.objets["lanterne_etable"]["allume"])
+        else:
+            self.assertIn({"type": "vu_agir", "auteur": "lucien", "operation": "forcer", "objet": "coffre_marchand",
+                           "par": "ouie"},
+                          [{k: v for k, v in s.items() if k != "minute"} for s in lire(m, "anselme")["memoire"]])
+            self.assertEqual(m.objets["lanterne_etable"]["lieu"], "anselme")
+            self.assertEqual(lire(m, "lucien")["intention"]["but"], {"type": "garder", "lieu": "grenier"})
 
     def bram_au_bureau_noir(self, lampe=True):
         """Placement d'auteur, la mine telle qu'écrite : la chandelle du bureau est à sec ; Bram, qui

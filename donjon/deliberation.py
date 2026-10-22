@@ -482,19 +482,20 @@ def de_garde(monde, id, salle):
 
 
 def bruit_a_voir(monde, id):
-    """(lieu, motif) du plus récent bruit inconnu, venu d'un autre lieu, qu'il ira voir : son devoir
-    de garde l'y envoie ; un bruit inhabituel (un fracas, un appel), son courage aussi, s'il en a
-    plus que la moyenne. None s'il n'ira pas (``ouie``)."""
+    """(lieu, motif) du plus récent bruit inconnu qu'il ira voir, d'un autre lieu ou de sa salle même
+    (il va alors à portée de vue de l'endroit d'où il vient, ``planification.voir``) : son devoir de
+    garde l'y envoie ; un bruit inhabituel (un fracas, un appel), son courage aussi, s'il en a plus
+    que la moyenne. None s'il n'ira pas (``ouie``)."""
     from .caractere import NEUTRE, valeur
     from .ouie import HABITUDE, HABITUELS, resolu
     courageux = valeur(monde, id, "courage") > NEUTRE
     e = lire(monde, id)
-    ici, minute = monde.objets[id]["lieu"], monde.data["minutes"]
+    minute = monde.data["minutes"]
     # Celui qu'il est en train d'aller voir passe d'abord : il ne court pas d'un bruit à l'autre.
     en_cours = e["intention"]["but"].get("lieu") if e["intention"] and e["intention"]["but"]["type"] == "voir" else None
     a_voir = []
     for s in reversed(e["memoire"]):
-        if s["type"] != "bruit" or s["salle"] == ici or resolu(monde, id, s):
+        if s["type"] != "bruit" or resolu(monde, id, s):
             continue
         inhabituel = s["nature"] not in HABITUELS
         if not inhabituel and minute - e["visites"].get(s["salle"], -HABITUDE - 1) <= HABITUDE:
@@ -507,16 +508,17 @@ def bruit_a_voir(monde, id):
 
 
 def alarme(monde, id):
-    """(lieu, motif) d'un bruit inconnu, venu d'un autre lieu, qui l'envoie voir avant tout le reste,
-    comme une alarme : l'appel d'un protégé dont il a reconnu la voix (le protecteur accourt), ou un
-    bruit qui lui est parvenu au moins à son seuil d'alerte (``profil["alerte"]``, en crans de l'ouïe
-    commune ; plus bas pour un gardien). None sinon. Les autres bruits vont à ``bruit_a_voir``."""
+    """(lieu, motif) d'un bruit inconnu, d'un autre lieu ou de sa salle même, qui l'envoie voir avant
+    tout le reste, comme une alarme : l'appel d'un protégé dont il a reconnu la voix (le protecteur
+    accourt), ou un bruit qui lui est parvenu au moins à son seuil d'alerte (``profil["alerte"]``, en
+    crans de l'ouïe commune ; plus bas pour un gardien). None sinon. Les autres bruits vont à
+    ``bruit_a_voir``."""
     from .ouie import resolu
     p = profil(monde, id) or {}
     e = lire(monde, id)
-    ici, alerte = monde.objets[id]["lieu"], p.get("alerte")
+    alerte = p.get("alerte")
     for s in reversed(e["memoire"]):
-        if s["type"] != "bruit" or s["salle"] == ici or resolu(monde, id, s):
+        if s["type"] != "bruit" or resolu(monde, id, s):
             continue
         if s["nature"] == "appel" and s.get("qui") in p.get("protege", []):
             return s["salle"], "devoir"
