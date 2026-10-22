@@ -337,6 +337,11 @@ def analyser_nuit(n):
             if x["b"] and (not buts or buts[-1][1] != x["b"]):
                 buts.append((m, x["b"]))
         alternances = sum(1 for k in range(2, len(buts)) if buts[k][1] == buts[k - 2][1])
+        # Aller voir un bruit, revenir à autre chose, repartir voir (le même lieu ou non).
+        voir = sum(1 for k in range(2, len(buts)) if buts[k][1] == buts[k - 2][1]
+                   and any(b.startswith("aller voir") for b in (buts[k][1], buts[k - 1][1])))
+        if voir:
+            noter("voir_alterne", pnj, buts[0][0], f"{voir} alternances aller voir / autre but", voir)
         if alternances >= 10:
             paires = Counter(tuple(sorted((buts[k][1], buts[k - 1][1]))) for k in range(2, len(buts)) if buts[k][1] == buts[k - 2][1])
             noter("buts_alternes", pnj, buts[0][0], f"{alternances} alternances, surtout {paires.most_common(1)[0]}", alternances)
@@ -382,7 +387,10 @@ def analyser_nuit(n):
 
     # 4. Gestes illicites : jamais vus de personne (registre du rejeu), et vols vus sans suite.
     for g in n.get("gestes") or []:
-        if not g["temoins"] and g["dans_la_salle"]:
+        if g.get("entendus"):
+            noter("illicite_entendu", g["a"], g["t"] // 600 if isinstance(g["t"], int) else None,
+                  f'{g["op"]} {g["objet"]} dans {g["salle"]}, entendu de {[x for x, _ in g["entendus"]]}', 1)
+        if not g["temoins"] and not g.get("entendus") and g["dans_la_salle"]:
             noter("illicite_sans_temoin_avec_present", g["a"], g["t"] // 600 if isinstance(g["t"], int) else None,
                   f'{g["op"]} {g["objet"]} dans {g["salle"]}, présents {g["dans_la_salle"]}', 1)
 

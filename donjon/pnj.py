@@ -39,6 +39,7 @@ A_DISTANCE = ("chauffer",)
 
 
 def verifier(monde):
+    from .ouie import INTENSITES
     # Le réflexe d'alerte est une donnée de l'ouïe commune (profil ``alerte``), plus un réflexe à part.
     assert not any(o["type"] == "personnage" and "reaction_son" in o for o in monde.objets.values()), \
         "Réflexe sonore d'une ancienne partie : le seuil d'alerte est dans le profil (alerte)"
@@ -48,12 +49,15 @@ def verifier(monde):
     gestes = monde.data.get("gestes_en_cours", [])
     personnages = {id for id, o in monde.objets.items() if o["type"] == "personnage"}
     assert isinstance(gestes, list) and all(
-        isinstance(g, dict) and set(g) == {"auteur", "operation", "objet", "fin", "temoins", "se_sait_vu", "exclus"}
+        isinstance(g, dict) and set(g) == {"auteur", "operation", "objet", "fin", "nature", "temoins", "entendus",
+                                           "se_sait_vu", "exclus"}
         and g["auteur"] in personnages | {"joueur"} and isinstance(g["operation"], str)
         and isinstance(g["objet"], str) and type(g["fin"]) is int and g["fin"] >= 0
-        and all(isinstance(g[k], list) for k in ("temoins", "se_sait_vu", "exclus"))
+        and (g["nature"] is None or g["nature"] in INTENSITES)
+        and all(isinstance(g[k], list) for k in ("temoins", "entendus", "se_sait_vu", "exclus"))
         and set(g["se_sait_vu"]) <= set(g["temoins"])
-        and set(g["temoins"]) | set(g["exclus"]) <= personnages for g in gestes), "Gestes en cours invalides"
+        and set(g["temoins"]) | set(g["entendus"]) | set(g["exclus"]) <= personnages for g in gestes), \
+        "Gestes en cours invalides"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
             and all(isinstance(c, dict) and set(c) - {"nature"} == {"minute", "pnj", "texte"}
@@ -178,7 +182,30 @@ def temoins_crus(monde, id):
             if s == "joueur" or monde.objets[s]["type"] == "personnage"]
 
 
+def oreilles_crues(monde, id, nature):
+    """Ceux qu'il croit, depuis peu, dans sa salle et assez près pour entendre un geste de cette
+    ``nature`` (``ouie`` : la distance à la case où il les croit ; sans case, la salle entière) : ils
+    sauraient sur quoi il porte (``_temoins_a_l_oreille``), il se croit entendu de chacun d'eux. Un
+    geste qu'il veut sans témoin attend qu'ils s'éloignent, comme pour ceux qu'il voit."""
+    from .esprits import RECENT
+    from .ouie import INTENSITES, SEUIL, perte
+    o = monde.objets[id]
+    if nature is None or o["lieu"] not in monde.data["salles"]:
+        return []
+    ici, minute = o.get("position"), monde.data["minutes"]
+    crus = []
+    for x, a in lire(monde, id)["croyances"].items():
+        c = a.get("lieu")
+        if (x == id or not c or c["valeur"] != o["lieu"] or minute - c["minute"] > RECENT
+                or not (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")):
+            continue
+        if ici is None or not c.get("case") or INTENSITES[nature] - perte(ici, c["case"]) >= SEUIL:
+            crus.append(x)
+    return sorted(crus)
+
+
 TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, huit fois 45°
+CONTACT = 1            # case : au contact (une diagonale voisine comprise, ``geometrie.distance``)
 # Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
 # qui sait ce qu'elle a subi ; ceux qui voient faire en sont témoins comme d'un geste illicite.
 CONTRAINTES = ("pousser",)
@@ -186,12 +213,16 @@ CONTRAINTES = ("pousser",)
 DEPLACEMENTS = ("prendre", "poser")
 
 
-def commencer_geste(monde, auteur, operation, objet, fin, exclus=()):
+def commencer_geste(monde, auteur, operation, objet, fin, exclus=(), nature=None):
     """Un geste illicite de ``auteur`` (un PNJ ou le joueur), en cours jusqu'à l'instant ``fin`` :
-    il entre au registre commun, et ceux qui le voient faire en sont témoins dès maintenant.
-    ``exclus`` : ceux qui le regardaient déjà et dont le jet du joueur a tranché le sort ;
-    ``se_sait_vu`` : les témoins que l'auteur a vus le regarder."""
-    geste = {"auteur": auteur, "operation": operation, "objet": objet, "fin": fin, "temoins": [],
+    il entre au registre commun, et ceux qui le voient faire en sont témoins dès maintenant, ceux
+    qui l'entendent et savent sur quoi il porte, témoins par l'ouïe (``_temoins_a_l_oreille``).
+    ``nature`` : le bruit qu'il fait tant qu'il dure (``ouie.nature`` ; par défaut, celui de son
+    opération) ; ``exclus`` : ceux qui le regardaient déjà et dont le jet du joueur a tranché le
+    sort ; ``se_sait_vu`` : les témoins que l'auteur a vus le regarder."""
+    from .ouie import nature as nature_de
+    geste = {"auteur": auteur, "operation": operation, "objet": objet, "fin": fin,
+             "nature": nature or nature_de(operation), "temoins": [], "entendus": [],
              "se_sait_vu": [], "exclus": sorted(exclus)}
     monde.data.setdefault("gestes_en_cours", []).append(geste)
     _temoigner(monde, geste)
@@ -243,6 +274,8 @@ def _temoigner(monde, geste):
     from .spatial import etat_fige
     with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
         _temoins(monde, geste, souvenir, victime)
+        if operation not in CONTRAINTES:  # Qui subit une bousculade le sait (``passage.subir``).
+            _temoins_a_l_oreille(monde, geste, souvenir, victime)
 
 
 def _temoins(monde, geste, souvenir, victime):
@@ -270,6 +303,66 @@ def _temoins(monde, geste, souvenir, victime):
                 from .deliberation import ATTEINTE
                 relancer(monde, autre, "devoir", ATTEINTE)
                 memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id})
+
+
+def _temoins_a_l_oreille(monde, geste, souvenir, victime):
+    """Témoins par l'ouïe, d'une certitude moindre que la vue : qui entend le geste pendant qu'il
+    dure (``ouie.entend`` : sa nature, la distance, son seuil), sans en voir l'auteur, dans la salle
+    même (il le situe), et croit tout près de là l'objet en cause ou ce qui le contient
+    (``ouie.objet_situe``) : il sait qu'on y touche. Il n'identifie l'auteur que s'il le reconnaît :
+    il le croit là d'où vient le bruit (``ouie._crus_la`` : vu ou entendu depuis peu, ses pas ou sa
+    voix). Identifié, il en est témoin comme d'un geste vu (``vu_agir`` marqué ``par`` « ouie », sans
+    le lieu où va l'objet), et sa méfiance ne vaut que ce que vaut l'ouïe ; sinon il sait seulement
+    que quelqu'un touche à ce bien (``entendu_agir``) : la victime s'en émeut comme d'un vol découvert,
+    et le bruit, qu'il situe, reste à aller voir (``ouie._bruit_inconnu``) ; tant que ce bruit dure, il ne
+    lui apprend rien de plus. Chacun ne l'est qu'une fois par geste."""
+    from .deliberation import ATTEINTE, VOL, inquieter, relancer
+    from .esprits import RECENT
+    from .ouie import _crus_la, _place, entend, objet_situe
+    from .social import GESTES, _qui
+    id, objet = geste["auteur"], geste["objet"]
+    if geste["nature"] is None or objet not in monde.objets:
+        return
+    salle, case = _place(monde, id)
+    for autre in pnjs(monde):
+        o = monde.objets[autre]
+        if (autre == id or autre in geste["temoins"] or autre in geste["entendus"] or autre in geste["exclus"]
+                or not o.get("profil") or o["lieu"] != salle or percoit(monde, autre, id)
+                or entend(monde, id, autre, force=geste["nature"]) is None
+                or not objet_situe(monde, autre, objet, salle, case)):
+            continue
+        geste["entendus"].append(autre)
+        reconnu = id in _crus_la(monde, autre, salle, case)
+        if not reconnu:
+            # Quelqu'un touche encore à ce bien, il le sait déjà : rien de nouveau, sinon que ça dure.
+            deja = next((x for x in reversed(esprit(monde, autre)["memoire"]) if x["type"] == "entendu_agir"
+                         and x["objet"] == objet and monde.data["minutes"] - x["minute"] <= RECENT), None)
+            if deja is not None:
+                deja["minute"] = monde.data["minutes"]
+                continue
+        inquieter(monde, autre, "illicite")
+        verbe = GESTES.get(geste["operation"], "a touché à")
+        quoi = (verbe[:-3] + " " + complement_de(monde.objets[objet]) if verbe.endswith(" de")
+                else verbe + " " + designer(monde.objets[objet]))
+        if reconnu:
+            memoriser(monde, autre, {**souvenir, "par": "ouie"})
+            actuelle = lire(monde, autre)["croyances"].get(id, {}).get("fiable")
+            if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
+                croire(monde, autre, id, "fiable", False, "entendu")
+            _chroniquer(monde, autre, f"{_qui(monde, autre)} entend {_que(_qui(monde, id))} {quoi}.", "ouie")
+        else:
+            memoriser(monde, autre, {"type": "entendu_agir", "operation": geste["operation"], "objet": objet})
+            _chroniquer(monde, autre, f"{_qui(monde, autre)} entend que quelqu'un {quoi}.", "ouie")
+        if autre == victime:
+            relancer(monde, autre, "biens", VOL)
+        elif reconnu and victime in (o.get("profil") or {}).get("protege", []):
+            relancer(monde, autre, "devoir", ATTEINTE)
+            memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id})
+
+
+def _que(nom):
+    from .monde import normaliser
+    return ("qu'" if normaliser(nom)[:1] in "aeiouyh" else "que ") + nom
 
 
 def _lieu_vu(monde, temoin, geste):
@@ -365,9 +458,21 @@ def _centre(monde, id):
     return min(libres, key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, tuple(c))) if libres else None
 
 
-def _inspecter(monde, id, cherche=None, lignes=None):
-    """Depuis le centre de la salle (où il a marché), il la parcourt des yeux. S'il y cherche
-    quelqu'un (``cherche``) qu'il ne voit pas, il l'appelle (``appeler``)."""
+def _a_portee_de_vue(monde, id, case):
+    """La case de sa salle est au contact, ou il la verrait en se tournant (la lumière qui l'éclaire,
+    rien qui s'interpose)."""
+    from .spatial import _alentour, _memo_vue, _vue
+    o = monde.objets[id]
+    if distance(o["position"], case) <= CONTACT:
+        return True
+    origine, lumiere = _vue(monde, id, _memo_vue(monde))
+    return any(c == (o["lieu"], *case) for c, _ in _alentour(monde, origine, lumiere))
+
+
+def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
+    """Depuis le centre de la salle (où il a marché), ou d'où il voit l'endroit d'où venait un bruit
+    (``vers``), il la parcourt des yeux. S'il y cherche quelqu'un (``cherche``) qu'il ne voit pas, il
+    l'appelle (``appeler``)."""
     from .ouie import parcouru
     o = monde.objets[id]
     esprit(monde, id)["visites"][o["lieu"]] = monde.data["minutes"]
@@ -375,11 +480,11 @@ def _inspecter(monde, id, cherche=None, lignes=None):
         tour_d_horizon(monde, id)  # Il parcourt la salle des yeux, tout autour de lui.
     if cherche and (cherche == "joueur" or cherche in monde.objets) and not percoit(monde, id, cherche):
         appeler(monde, id, cherche, [] if lignes is None else lignes)
-    bruit = parcouru(monde, id, o["lieu"])
+    bruit = parcouru(monde, id, o["lieu"], vers)
     if bruit:
         from .social import _qui
-        _chroniquer(monde, id, f"{_qui(monde, id)} va voir d'où venait le bruit : {monde.data['salles'][o['lieu']]['nom']}.",
-                    "ouie")
+        _chroniquer(monde, id, f"{_qui(monde, id)} va voir {'de près ' if vers is not None else ''}d'où venait le bruit : "
+                               f"{monde.data['salles'][o['lieu']]['nom']}.", "ouie")
     # Une ronde accomplie, un bruit allé voir rassurent : le lieu est tel qu'il doit être.
     if bruit or any(x["condition"].get("lieu") == o["lieu"] and "periode" in x["condition"]
                                 for x in (o.get("profil") or {}).get("pulsions", [])):
@@ -664,7 +769,8 @@ def _executer(monde, id, etape, lignes, gestes):
     if op == "inspecter":
         if o["lieu"] != etape["lieu"]:
             return False
-        _inspecter(monde, id, etape.get("contenu", {}).get("cherche"), lignes)
+        contenu = etape.get("contenu", {})
+        _inspecter(monde, id, contenu.get("cherche"), lignes, contenu.get("vers"))
         return True
     if op == "reposer":
         return _reposer(monde, id, lignes)
@@ -685,8 +791,10 @@ def _executer(monde, id, etape, lignes, gestes):
     if outil and not _porte(monde, outil, id) and monde.objets.get(outil, {}).get("mobile", True):
         return _rate(monde, id, outil)  # Un outil mobile s'emploie en main.
     # Il y porte la main : le geste retentit, réussi ou non ; feutré s'il le veut sans témoin.
-    from .ouie import retentir
-    retentir(monde, id, op, discret=etape["condition"] == "sans_temoin")
+    from .ouie import nature as nature_de, retentir
+    discret = etape["condition"] == "sans_temoin"
+    retentir(monde, id, op, discret=discret)
+    bruit = nature_de(op, discret)  # Le bruit qu'il fait tant que dure son geste (``commencer_geste``).
     faute = illicite(monde, id, cible, op)
     if op == "prendre":
         if not c.get("mobile"):
@@ -721,7 +829,7 @@ def _executer(monde, id, etape, lignes, gestes):
         if not _crocheter(monde, id, cible, outil):
             _raconter(monde, id, "s'acharne sur la serrure de", c, lignes)
             if faute:
-                gestes.append((id, "forcer", cible))
+                gestes.append((id, "forcer", cible, bruit))
             return False
         c["verrouillee"] = False
         croire(monde, id, cible, "verrouillee", False, "essai")
@@ -731,11 +839,11 @@ def _executer(monde, id, etape, lignes, gestes):
             return _rate(monde, id, cible, "verrouillee", False) or True
         if not _forcer(monde, id, cible, outil, lignes):
             if faute:
-                gestes.append((id, "frapper", cible))
+                gestes.append((id, "frapper", cible, bruit))
             return False
         croire(monde, id, cible, "verrouillee", False, "essai")
         if faute:
-            gestes.append((id, "briser", cible))
+            gestes.append((id, "briser", cible, bruit))
             faute = False
     elif op == "manger":
         if c.get("portions", 0) <= 0:
@@ -790,7 +898,7 @@ def _executer(monde, id, etape, lignes, gestes):
         if objet in monde.objets:
             constater(monde, id, objet, "essai")
     if faute:
-        gestes.append((id, op, cible))  # Au registre des gestes en cours, avec sa durée (``_avancer``).
+        gestes.append((id, op, cible, bruit))  # Au registre des gestes en cours, avec sa durée (``_avancer``).
     return True
 
 
@@ -1229,13 +1337,23 @@ def agir(monde, id, t, lignes, gestes=None):
         if pas:
             return pas
     if operation == "inspecter" and en_cases and "position" in o and o["lieu"] == etape["lieu"]:
-        # Il gagne le centre de la salle pas à pas avant de la parcourir des yeux.
-        centre = _centre(monde, id)
-        if centre is not None and tuple(centre) != tuple(o["position"]):
-            ici = o["lieu"]
-            pas = _marcher(monde, id, lambda salle, case: salle == ici and tuple(case) == tuple(centre), lignes)
-            if pas:
-                return pas
+        vers = (etape.get("contenu") or {}).get("vers")
+        ici = o["lieu"]
+        if vers is not None:
+            # Il va voir l'endroit d'où venait le bruit : il s'en approche pas à pas jusqu'à le voir
+            # en se tournant, ou, si rien ne l'éclaire, jusqu'au contact ; sans chemin, il regarde
+            # de là où il est.
+            if not _a_portee_de_vue(monde, id, vers):
+                pas = _marcher(monde, id, lambda salle, case: salle == ici and distance(case, vers) <= CONTACT, lignes)
+                if pas:
+                    return pas
+        else:
+            # Il gagne le centre de la salle pas à pas avant de la parcourir des yeux.
+            centre = _centre(monde, id)
+            if centre is not None and tuple(centre) != tuple(o["position"]):
+                pas = _marcher(monde, id, lambda salle, case: salle == ici and tuple(case) == tuple(centre), lignes)
+                if pas:
+                    return pas
     if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
         # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
         pas = _rejoindre_un_proche(monde, id, lignes)
@@ -1260,7 +1378,11 @@ def agir(monde, id, t, lignes, gestes=None):
                     return TOUR
         else:
             observe = None
-        if observe or (observe is None and temoins_crus(monde, id)):
+        from .ouie import nature as nature_de
+        # Ceux qu'il croit à portée d'oreille comptent comme ceux qu'il voit : qui entend forcer un
+        # coffre tout près sait qu'on y touche (``_temoins_a_l_oreille``).
+        if (observe or (observe is None and temoins_crus(monde, id))
+                or oreilles_crues(monde, id, nature_de(operation, discret=True))):
             # Il guette une occasion jusqu'à la minute suivante.
             intention["attente"] += 1
             if intention["attente"] > PATIENCE:
@@ -1447,8 +1569,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
             elif intention:
                 gestes = []
                 duree = agir(monde, id, t, lignes, gestes)
-                for _, operation, objet in gestes:
-                    commencer_geste(monde, id, operation, objet, t + max(1, duree))
+                for _, operation, objet, *nature in gestes:
+                    commencer_geste(monde, id, operation, objet, t + max(1, duree), nature=nature[0] if nature else None)
                 # La perception suit l'événement : lui, et quiconque pouvait le voir faire (la vue
                 # est en cache). Les croyances ne dépendent pas des instants où le joueur agit.
                 percevoir_tous(monde)

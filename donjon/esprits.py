@@ -240,9 +240,10 @@ def memoriser(monde, id, evenement):
 
 def dernier_son(monde, id):
     """Le dernier bruit qu'il a entendu sans en voir la cause, tel que l'ouïe commune le retient
-    (``ouie._bruit_inconnu`` : un souvenir par lieu) : {minute, salle, nature, niveau[, qui]} ; None."""
+    (``ouie._bruit_inconnu`` : un souvenir par lieu) : {minute, salle, nature, niveau[, qui]} ; None.
+    La case d'où il l'a situé ne sert qu'à aller voir : le MJ n'en reçoit que le lieu."""
     sons = [s for s in lire(monde, id)["memoire"] if s["type"] == "bruit"]
-    return {k: v for k, v in copy.deepcopy(sons[-1]).items() if k != "type"} if sons else None
+    return {k: v for k, v in copy.deepcopy(sons[-1]).items() if k not in ("type", "case")} if sons else None
 
 
 def _porteur(monde, o):

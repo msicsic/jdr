@@ -136,9 +136,10 @@ class GesteBruyantTests(unittest.TestCase):
             faire(m, "attendre")
         m = recharger(m)
         self.assertIn("Gorm, gardien du relais passe dans : Refuge du relais.", chronique(m))
-        # Arrivé, il la voit s'acharner sur la serrure : le bruit est expliqué.
+        # Arrivé, il la voit s'acharner sur la serrure : le bruit est expliqué. (Aubin, courageux, vient
+        # voir aussi : ses pas dans la conduite font un autre bruit, d'un autre lieu.)
         self.assertIn(("brune", "reserve"), vu_agir(m, "marchand"))
-        self.assertIsNone(bruit_a_voir(m, "marchand"))
+        self.assertNotEqual((bruit_a_voir(m, "marchand") or (None,))[0], "antichambre")
 
 
 class PasConnusTests(unittest.TestCase):

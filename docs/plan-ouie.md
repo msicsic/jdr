@@ -66,8 +66,8 @@ un cran plus bas en écoutant, encore un collé à la porte par où le bruit arr
   **courage** aussi, s'il dépasse la moyenne (50). Il poursuit le bruit qu'il est allé voir ; qui
   vient de parcourir un lieu n'y retourne pas pour un bruit ordinaire avant 15 minutes. Le bruit est
   expliqué quand il voit quelqu'un là, ou quand il a parcouru le lieu des yeux, ce qui le rassure
-  comme une ronde ; oublié après 30 minutes sans nouveau bruit. Le bruit de sa propre salle ne
-  l'envoie nulle part.
+  comme une ronde ; oublié après 30 minutes sans nouveau bruit. Le bruit de sa propre salle se situe
+  à une case et s'examine de même (branche `ouie-temoins`, plus bas).
 
 **Le joueur entend par le même calcul.** Ce qui lui parvient d'un geste qu'il ne voit pas faire est
 rangé dans `data["bruits"]` (auteur, nature, niveau reçu, d'où il arrive : une sortie, « tout
@@ -1106,10 +1106,128 @@ Limites :
   masculin » comme un homme). Rien ne vérifie que Luna l'emploie : aucune partie avec Luna n'a été jouée
   (aucune saisie du joueur ne change).
 
+## Témoins par l'ouïe, le bruit de sa salle, l'examen vain (branche `ouie-temoins`)
+
+Trois défauts de l'audit des nuits (`docs/audit-nuits.md`, A1, A2 et B2), une même famille : ce que
+l'ouïe fait savoir, et ce qu'on fait d'un bruit quand la vue ne suffit pas.
+
+**Un bruit se situe à une case** (`ouie._bruit_inconnu`, `ouie.source`). Avant, le bruit de sa propre
+salle ne l'envoyait nulle part (`deliberation.bruit_a_voir` et `alarme` écartaient la salle où il se
+tient) : environ 40 % des bruits inconnus retenus. Gorm, gardien, à sept cases de Brune qui forçait la
+réserve dans la pénombre du refuge (on n'y voit qu'à trois cases), l'entendait trois fois et restait
+(Relais, graine 7, minutes 28 à 31). Règle : entendu de la salle même, le bruit est retenu avec la case
+d'où il vient (le souvenir `bruit` porte `case` ; le MJ n'en reçoit que le lieu, `esprits.dernier_son`).
+Il s'examine selon le devoir de garde et le courage, comme celui d'un autre lieu, alarme comprise.
+Aller voir (`planification.voir`) mène alors à portée de vue de cette case : l'étape `inspecter` porte
+`vers` ; il s'en approche pas à pas jusqu'à la voir en se tournant (la lumière qui l'éclaire, rien qui
+s'interpose), ou, si rien ne l'éclaire, jusqu'au contact (`pnj._a_portee_de_vue`, `CONTACT`) ; sans
+chemin, il regarde de là où il est. Un bruit d'un autre lieu, qu'il ne situe qu'à la salle, se parcourt
+des yeux depuis son centre, comme avant (« va voir de près » dans la chronique pour le premier, mesure
+`alles_voir_de_pres`).
+
+**Témoin par l'ouïe** (`pnj._temoins_a_l_oreille`, `ouie.objet_situe`). Avant, le témoin ne comptait
+que sur la vue (`esprits.percoit`) : à l'auberge, Lucien mangeait les provisions d'Anselme et forçait son
+coffre à une diagonale de lui, dans le noir (graine 1, minutes 313 à 429) ; à la mine, Odon forçait le
+coffre de la paie à une case de Bram (graine 500, minutes 456 à 461) ; personne n'en savait rien. Règle :
+le registre des gestes en cours porte le bruit de chaque geste (`nature`, celle de `ouie.nature`, feutrée
+s'il est fait en douce) ; tant que le geste dure, qui l'entend (`ouie.entend` : distance, passages, son
+seuil), sans en voir l'auteur, dans la salle même, et croit tout près de là l'objet en cause ou ce qui le
+contient (un bien fixe qu'il connaît est à sa place) sait qu'on y touche. Il n'identifie l'auteur que
+s'il le reconnaît : il le croit là d'où vient le bruit (`ouie._crus_la` : vu ou entendu depuis peu, ses
+pas ou sa voix). Identifié, il en est témoin comme d'un geste vu (souvenir `vu_agir` marqué `par`
+« ouie », sans le lieu où l'objet va) : méfiance de source `entendu` (qui ne remplace pas une méfiance
+vue), inquiétude, la victime pressée par ses biens, le protecteur qui ira prévenir ; sa nouvelle se
+répète comme de seconde main (rang 1, `social.nouvelles`). Non identifié, il sait seulement que quelqu'un
+touche à ce bien (`entendu_agir`, une fois tant que ça dure) : inquiétude, la victime pressée par ses
+biens ; personne n'est accusé, rien ne se répète ; le bruit, situé, reste à aller voir. Registre :
+`entendus` à côté de `temoins` ; le rejeu les note ; chronique « Bram entend que quelqu'un a tenté de
+crocheter la serrure du coffre de la paie. », « Anselme entend que Lucien … ».
+
+**L'auteur compte ceux qu'il croit à portée d'oreille** (`pnj.oreilles_crues`). Corollaire : sans lui,
+Lucien forçait plus d'une heure le coffre d'Anselme, à côté de lui dans le noir, qui l'entendait et le
+reconnaissait. Un geste qu'il veut sans témoin attend aussi que s'éloignent ceux qu'il croit, depuis peu,
+dans sa salle et assez près pour l'entendre (la distance à la case où il les croit ; sans case, la
+salle) ; à bout (`pnj.desespere`), il agit quand même, comme sous les yeux d'un témoin.
+
+**Être allé voir règle le bruit** (`ouie.parcouru`, `ouie.couvert`). L'audit supposait que dans le noir,
+aller voir ne réglait pas le bruit (`ouie.resolu` exige d'avoir vu quelqu'un) ; relu, `parcouru` effaçait
+déjà ce qu'il attendait du lieu. Le va-et-vient venait de ce qu'aucun examen ne valait pour la suite :
+l'appel répété de Lucien, dans le bureau noir, renvoyait Mathe à chaque fois (mine, graine 18, minutes 455
+à 560 ; l'appel répété lui-même est le défaut B1, hors de ce chantier) ; dans une salle noire où l'on va
+et vient, chaque pas d'un inconnu en était un nouveau. Règle : allé voir sans rien trouver, ou sans rien
+pouvoir voir, il retient l'examen (souvenir `examen` : le lieu, la case s'il l'a situé, le plus fort de
+ce qu'il attendait, qui appelait s'il avait reconnu la voix). Le même bruit, ou un moindre, venu de ce
+lieu ne l'y renvoie plus (`couvert` : ni retenu, ni chroniqué ; un appel inquiète encore) tant qu'il se
+répète à moins de 30 minutes (`RECENT`) ; seul un bruit nouveau le relance : plus fort, d'une autre voix
+reconnue, ou qu'il situe mieux (il avait examiné la salle depuis son centre, il l'entend maintenant d'une
+case). Qui a vu quelqu'un là s'explique le bruit : rien à retenir.
+
+**Correctif commun révélé** (`moteur._terminer_etape`) : ce que les PNJ voient du geste du joueur avant
+de vivre la période est daté du début du geste. Daté de sa fin, la minute d'une croyance dépendait du
+découpage des actions du joueur (la réserve revue par Brune à la minute 4 d'un bloc, 5 en rotations) ;
+c'est le défaut « déjà présent sur `main` » noté plus haut (scène de la protection).
+
+Vérifié après rechargement (`tests/test_ouie_temoins.py`, 12 tests) : Gorm, à sept cases dans la
+pénombre, situe le fracas, s'approche, voit Brune à l'œuvre et s'en méfie (cas réel) ; Aubin, courageux,
+fait de même sans rien à garder ; le souvenir porte la case, que le MJ ne reçoit pas ; dans le bureau noir,
+Bram entend forcer le coffre sans savoir qui (aucune accusation, aucune nouvelle), va au contact, n'y voit
+rien et le bruit est réglé, puis Odon, qui les sait à portée d'oreille quand Josse arrive, n'insiste pas
+(cas réel) ; Bram qui croit Odon là le reconnaît (méfiance `entendu`, nouvelle de rang 1) ; Anselme
+entend Lucien forcer son coffre et le reconnaît (cas réel) ; qui voit faire reste témoin par la vue ;
+Brune, qui sait Gorm à portée d'oreille, attend, et force sinon ; un examen vain couvre les mêmes bruits
+mais pas un appel, ni une voix reconnue ; l'appel répété du bureau ne renvoie plus Mathe, sauf entendu de
+la salle même (cas réel). Même laps d'un bloc ou en rotations rechargées : même monde (Relais et mine).
+
+Tests d'autres branches changés, et pourquoi : `test_ouie` (Aubin, courageux, va voir le fracas lui
+aussi : ses pas font un autre bruit, d'un autre lieu ; seul le bruit du refuge doit être réglé),
+`test_constater_rumeurs` (Odile, au grenier noir, va voir de près les pas de Mireille qu'elle ne sait à qui
+prêter ; Mireille finit par la voir ailleurs : on vérifie seulement qu'elle ne la croit pas au grenier
+sans réponse), `test_dynamique_besoins` (Anselme entend Lucien forcer son coffre et la nuit tourne
+autrement : on vérifie qu'il ne va et ne vient plus, la lanterne n'est plus forcément à lui), `test_besoins`
+(deux scènes où Brune force la réserve quand Gorm, ou le joueur, qu'elle a vu, se tient dans l'ombre :
+elle les sait à portée d'oreille, il faut qu'elle soit à bout de faim pour forcer).
+
+Bancs : `tools/audit_nuits.py`, 32 nuits de 12 h (4 scénarios × graines 7 1 500 18 1985 42 2024 3,
+départ tiré, rejeu), `main` 0489fea puis la branche (moyennes par nuit, `main` → branche) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| alternances « aller voir » / autre but (relevés de 5 min) | 3,1 → 0,9 | 7,8 → 4,4 | 6,5 → 5,0 | 1,9 → 1,0 |
+| retours voir le même lieu à moins de 30 min | 7,6 → 1,1 | 63 → 22,4 | 57,6 → 16 | 4,6 → 1,9 |
+| allés voir (dont de près) | 25,8 → 16,6 (3,3) | 105,6 → 65,1 (31,4) | 128,9 → 90 (39,1) | 27 → 21,5 (5,5) |
+| gestes illicites, un présent, ni vus ni entendus | 1,3 → 0 | 4,4 → 0,1 | 7 → 0,5 | 0,5 → 0,1 |
+| gestes entendus sans être vus | 0 → 0 | 0 → 3,8 | 0 → 11,6 | 0 → 0 |
+| témoins par l'ouïe, auteur reconnu / inconnu | 1,6 / 0,1 | 1,6 / 1,3 | 7,6 / 2,3 | 0 / 0 |
+| vols vus | 1,5 → 1,4 | 0,3 → 0,1 | 0,1 → 0 | 0,4 → 0,5 |
+| crochetages manqués / réussis | 6,5 / 1,3 → 13,6 / 1,3 | 3,1 / 0,8 → 3 / 0,6 | 7,9 / 0,8 → 19,9 / 1 | 1,1 / 0,5 → 0,9 / 0,4 |
+| méfiances en fin de nuit | 2,8 → 2,6 | 4,5 → 4,5 | 10,6 → 9,9 | 0,6 → 1,4 |
+| appels à l'aide | 0,8 → 1,3 | 38,1 → 39,1 | 13,9 → 10,1 | 12 → 12,1 |
+| bruits inconnus retenus | 96 → 87 | 225 → 155 | 310 → 249 | 126 → 106 |
+| minutes urgentes sans recours / en attente | 119 / 237 → 125 / 201 | 63 / 1264 → 63 / 1304 | 61 / 950 → 154 / 939 | 21 / 506 → 48 / 457 |
+
+Aucun plantage, aucune violation de `Monde.verifier` (contrôlé à chaque pas), aucune usurpation. Cas
+réels dans ces nuits : mine 500, Odon force le coffre de la paie de 456 à 466 et Bram et Josse
+l'entendent sans le reconnaître ; auberge 1, Anselme entend Lucien forcer son coffre (262 à 265) ; mine 18,
+Mathe va voir 5 fois entre 440 et 570 au lieu de 12 (7 changements de but au lieu de 17) ; Relais 7, la
+nuit a divergé : Brune, qui sait Gorm à portée d'oreille, ne force la réserve qu'à la minute 93. Écarts
+expliqués : les voleurs attendent que s'éloignent ceux qu'ils croient à portée d'oreille, donc forcent
+plus souvent dans le noir ou à bout de faim, où le jet est moins bon (crochetages manqués doublés au
+Relais et à l'auberge, réussis égaux) ; à l'auberge, Lucien guette son occasion près d'Anselme qui garde
+ses biens, renonce au bout de 30 minutes et reste sans rien faire (`REPIT`), d'où des minutes sans
+recours ; moins de bruits inconnus retenus (un examen vain les couvre). Le compte « témoins par l'ouïe »
+est celui de la chronique (la mémoire de 40 souvenirs n'en garde pas tout en fin de nuit).
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la
-  case de l'auteur, pas de l'objet.
+  case de l'auteur, pas de l'objet. Un geste illicite s'entend, lui, tant qu'il dure (registre).
+- Témoins par l'ouïe (branche `ouie-temoins`) : dans le noir, au contact, on n'identifie personne (ni
+  toucher, ni « Qui va là ? » pour un geste) ; l'auteur ne se reconnaît qu'à ce qu'on croyait de sa
+  place ; une case seulement d'écart entre le bruit et l'objet cru (`PRES_DE`) ; seule la salle même fait
+  savoir sur quoi porte un bruit. Un examen vain couvre la salle entière pour un bruit pareil ou moindre :
+  un autre inconnu qui y entre à pas ordinaires ne l'y renvoie pas avant 30 minutes de silence. L'auteur
+  qui croit quelqu'un à portée d'oreille l'y croit tant que sa croyance a moins de 30 minutes, même s'il
+  est parti sans bruit.
 - Pas d'endormissement : seul le repos assourdit. Une voix dont on saisit les mots fait reconnaître
   qui l'on connaît (branche `constater-et-rumeurs`) ; un autre bruit, ou une voix trop faible pour
   en saisir les mots, est attribué dans le noir à qui l'on croit là, même s'il vient d'un autre, et
