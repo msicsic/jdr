@@ -125,8 +125,11 @@ class EauTests(unittest.TestCase):
         lire(m, "ilse")["besoins"]["chaleur"] = 90.0
         m = recharger(m)
         but = planifier(m, "ilse", "chaleur")
-        self.assertFalse(but and any(x["lieu"] in ("echoppe", "crypte") or x["operation"] == "chauffer"
+        self.assertFalse(but and any(x["lieu"] in ("echoppe", "crypte") or x["cible"] == "brasero"
                                      for x in but[1]))
+        # Elle monte se chauffer au poêle du guet, à la galerie, hors de l'eau (branche ``ressources``).
+        self.assertEqual([(x["operation"], x["lieu"] or x["cible"]) for x in but[1]],
+                         [("aller", "chambre_cloche"), ("chauffer", "poele_guet")])
         # L'eau coûte à tout plan, par minute, comme le noir à qui le craint.
         v = Vue(m, "ilse")
         self.assertGreater(v.pression(depart(m, "ilse", v).apres(salle="echoppe")),
