@@ -738,3 +738,32 @@ dette ; Joss recharge et rallume le fourneau payé par Mireille, sans dette. Tes
 `test_refus_retenus` (« accepte à quatre » → paliers et seuil de la peine, vérifiés sur ce qu'offre le
 planificateur, l'auberge vivant autrement : à la minute suivante, Mireille achète une part plutôt que de
 hausser).
+
+Bancs 8 h, départ tiré, `main` d5d4bee puis la branche, l'un après l'autre (Relais 8 graines, autres 4),
+par nuit, `main` → branche : offres de tâche Relais 2,6 → 2,6, mine 5,5 → 5,5, auberge 32 → 15,5, crue
+4,75 → 4,75 ; hausses 0,1 → 0,1, 0 → 0, 5,75 → 0,75, 1,25 → 1,25 ; offre la plus haute 2,25 → 2,1, 2 → 2,
+36,75 → 4,25, 4,5 → 3,75 ; tâches acceptées 0,1 → 0,1, 0 → 0, 2,75 → 1,25, 0,75 → 0,5 ; pièces payées
+pour des tâches 0,25 → 0,25, 0 → 0, 39,25 → 2,5, 4 → 2 ; tâches dues moins d'une minute après
+l'acceptation 0 → 0, 0 → 0, 1 → 0, 0,25 → 0 ; dettes nées 0 → 0, 0 → 0, 1,25 → 0, 0,25 → 0 ; minutes
+sans recours 60,6 → 60,6, 56,3 → 57,5, 75 → 45, 32,5 → 32,5 ; en attente 52,5 → 52,5, 240 → 240,
+308,8 → 300, 472,5 → 516,3 (la crue : une tâche moins souvent acceptée, le froid attend) ; échanges
+15,4 → 15,4, 43,8 → 44, 81,3 → 65,5 (les offres en moins), 21,5 → 21 ; aucune usurpation ni violation.
+Temps d'une nuit (faussés par la charge de deux autres agents sur 4 cœurs) : 13,3 → 13,9 s, 46,8 →
+51,4 s, 44,3 → 47,2 s, 16 → 15,7 s. Audit de 12 h (4 scénarios × 4 graines) : à l'auberge, offres 35,75 →
+18,25, hausses 5,75 → 0,75, offre la plus haute 36,75 → 4,25 pièces, pièces des tâches 39,25 → 2,5, tâches
+dues aussitôt 1 → 0, dettes 1,5 → 0,25 ; dettes non soldées en fin de nuit (constat `dette_fin`) 5 → 0 ;
+aucun plantage, aucune violation ; `VERIFIER` et `spatial.VERIFICATION` (0,2) sans écart sur une nuit de
+8 h de chaque scénario (graine 42). Les autres constats de l'audit sont ceux de `main` (N1 : ouvrir et
+fermer le garde-manger à la mine 42, où Odon crochète désormais « sans forcer » ; N4 : le lieu redit).
+
+Limites :
+- la valeur d'une tâche pour le payeur est la peine qu'elle lui épargne (son chemin jusqu'au lieu de la
+  tâche, plus `TACHE`), pas ce que son besoin y gagne : un payeur pauvre, à qui deux pièces coûtent plus
+  que cinq minutes de travail, n'offre rien (Anselme, Mireille à 3 pièces) ; un payeur riche hausse plus
+  longtemps ; `PALIER` et `HABILE` sont des constantes à régler au banc ;
+- une hausse par minute : refusé de nouveau, il peut hausser chaque minute jusqu'au seuil (4 offres au
+  plus de 2 à 8 pour Odile) ; les premières offres à des personnes différentes, dans la même minute, ne
+  sont pas des hausses et restent permises (Anselme offrait encore à six personnes la même minute) ;
+- on accepte sur ce qu'on croit : une croyance fausse découverte au premier geste rend encore une tâche
+  impossible aussitôt (Joss et le ballot qu'il croyait aux mains d'Anselme) ; l'offre dit seulement si le
+  payeur croit le feu allumé, rien de plus de ce qu'il sait.

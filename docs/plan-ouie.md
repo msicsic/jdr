@@ -1353,6 +1353,19 @@ croit Ilse à trois cases, habile (DEX 20), elle agit et la serrure cède sans b
 `test_social` (Brune, à bout de faim, réussit en douce sous les yeux d'Ilse : Gorm, à l'échoppe, ne
 l'entend plus) ; les textes de `test_besoins`, `test_social`, `test_planif_defauts` (« sans forcer »).
 
+Bancs 8 h, départ tiré, `main` d5d4bee puis la branche, l'un après l'autre, sous un verrou commun (Relais
+8 graines, mine, auberge, crue 4), par nuit, `main` → branche : crochetages (essais / réussis / réussis
+sans forcer) Relais 3,4 / 0,5 / 0 → 3,4 / 0,5 / 0,5, mine 24,8 / 6,5 / 0 → 25,3 / 7 / 7, auberge
+13,3 / 0,25 / 0 → 6,5 / 0,75 / 0,75, crue 0,75 / 0,5 / 0 → 0,75 / 0,5 / 0,5 ; crochetages entendus sans
+être vus (témoin par l'ouïe) 0,5 → 0,5, 0,75 → 0,75, 0,75 → 1, 0,5 → 0 ; témoins par l'ouïe de tout geste
+(auteur reconnu + bien touché) Relais 0,6 → 0,6, mine 0,75 → 0,75, auberge 1 → 1,75, crue 0,5 → 0 ; vols
+vus égaux à 0,25 près ; aucune usurpation ni violation. Au Relais, les nuits sont les mêmes (mêmes
+mesures, graine par graine) : seuls deux crochetages réussis s'y font, et sans témoin à portée. Les
+voleurs des scénarios (DEX 15, et la faim qui la diminue) ne se savent jamais habiles : ils attendent
+toujours un fracas, et guettent comme avant ; seul le bruit d'une réussite change. Audit de 12 h
+(`tools/audit_nuits.py`, 4 scénarios × 4 graines, `main` → branche) : réussis sans forcer 0 → 1,25 / 7,25
+/ 1 / 1 par nuit, entendus 0,75 / 0,75 / 0,75 / 1 → 0,75 / 0,5 / 1 / 0,25 ; aucun plantage ni usurpation.
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la
