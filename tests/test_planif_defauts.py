@@ -111,7 +111,7 @@ class ChanceCrueTests(unittest.TestCase):
         m = brune_aux_vannes(brasero=False)
         croire(m, "brune", "crypte", "etat", {"eclairee": True, "niveau": 2}, "vu")
         with patch.object(Monde, "d20", return_value=20):
-            self.assertFalse(pnj._crocheter(m, "brune", "reserve", "crochets"))
+            self.assertFalse(pnj._crocheter(m, "brune", "reserve", "crochets")[0])
         m = recharger(m)
         self.assertEqual(lire(m, "brune")["croyances"]["crypte"]["etat"]["valeur"], {"eclairee": False, "niveau": 0, "propre": 0})
         self.assertIsNone(planifier(m, "brune", "faim"))
@@ -141,7 +141,7 @@ class PorteTests(unittest.TestCase):
         # La porte est à Bram : la crocheter est une faute, qui attend de n'être vue de personne.
         self.assertEqual(etapes[0]["condition"], "sans_temoin")
         m, _ = vivre(m, 6, jet=20)
-        self.assertIn("Odon, nouveau venu crochète la serrure de la porte du bureau.", chronique(m))
+        self.assertIn("Odon, nouveau venu crochète la serrure de la porte du bureau sans forcer.", chronique(m))
         self.assertFalse(m.objets["porte_bureau"]["verrouillee"])
         self.assertFalse(lire(m, "odon")["croyances"]["porte_bureau"]["verrouillee"]["valeur"])
         self.assertEqual(m.objets["paie"]["lieu"], "odon")
@@ -171,7 +171,7 @@ class PorteTests(unittest.TestCase):
                          [("crocheter", "porte"), ("aller", "beffroi"), ("crocheter", "reserve"),
                           ("ouvrir", "reserve"), ("manger", "vivres")])
         m, _ = vivre(m, 3, jet=20)
-        self.assertIn("Brune, batelière évacuée crochète la serrure de la porte étanche du beffroi.", chronique(m))
+        self.assertIn("Brune, batelière évacuée crochète la serrure de la porte étanche du beffroi sans forcer.", chronique(m))
         self.assertFalse(m.objets["porte"]["verrouillee"])
         self.assertFalse(lire(m, "brune")["croyances"]["porte"]["verrouillee"]["valeur"])
         # La porte crochetée, elle passe au palier.

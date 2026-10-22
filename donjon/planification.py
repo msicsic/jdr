@@ -40,6 +40,7 @@ RESTER = 30            # minutes qu'il compte passer là où le mène un but qui
 TACHE = 5              # minutes de travail d'une tâche payée, en plus du chemin (``_engager``)
 SALAIRE = 3            # minutes de peine qu'il paie une pièce, à qui fait une tâche pour lui
 SURENCHERE = 2         # refusé pour un prix trop bas, il offre au moins tant de fois ce prix (``_engager``)
+HABILE = 0.5           # chance de réussir à partir de laquelle il attend un crochetage discret (``bruit_crochetage``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
@@ -617,13 +618,22 @@ def _etape(operation, cible="", outil="", lieu="", condition="", contenu=None):
             **({"contenu": contenu} if contenu else {})}
 
 
-def chance_crochetage(monde, id, lumiere):
+def chance_crochetage(monde, id, lumiere, marge=0):
     """Sa chance au jet de ``pnj._crocheter`` à la lumière qu'il croit avoir : d20 + DEX contre
-    ``pnj.seuil_crochetage``. 0 quand aucun jet ne l'atteint : il ne l'envisage pas."""
+    ``pnj.seuil_crochetage`` (passé d'au moins ``marge``). 0 quand aucun jet ne l'atteint : il ne
+    l'envisage pas."""
     from .caractere import modificateur
     from .pnj import seuil_crochetage
-    reussites = 21 - (seuil_crochetage(lumiere) - modificateur(monde, id, "DEX"))
+    reussites = 21 - (seuil_crochetage(lumiere) + marge - modificateur(monde, id, "DEX"))
     return min(1.0, max(0.0, reussites / 20))
+
+
+def bruit_crochetage(monde, id, lumiere, discret=True):
+    """Le bruit qu'il attend de son crochetage à cette lumière (``ouie.nature_crochetage``) : celui
+    d'une serrure qui cède s'il a au moins ``HABILE`` de chance d'y réussir (il s'y sait habile : sa
+    DEX, la lumière), sinon un fracas, celui d'un échec."""
+    from .ouie import AISANCE, nature_crochetage
+    return nature_crochetage(AISANCE if chance_crochetage(monde, id, lumiere, AISANCE) >= HABILE else None, discret)
 
 
 def gestes(v, e, vises=None, but=None):

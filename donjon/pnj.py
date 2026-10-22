@@ -161,10 +161,11 @@ def _chroniquer(monde, id, texte, nature="geste"):
     del chronique[:-CHRONIQUE_MAX]
 
 
-def _raconter(monde, id, verbe, objet, lignes):
-    """« X prend la trousse. » ; un verbe finissant par « de » prend le complément contracté."""
+def _raconter(monde, id, verbe, objet, lignes, fin=""):
+    """« X prend la trousse. » ; un verbe finissant par « de » prend le complément contracté ; ``fin``
+    s'ajoute avant le point (« … sans forcer »)."""
     groupe = verbe[:-3] + " " + complement_de(objet) if verbe.endswith(" de") else verbe + " " + designer(objet)
-    texte = designer(monde.objets[id], debut=True) + " " + groupe + "."
+    texte = designer(monde.objets[id], debut=True) + " " + groupe + fin + "."
     _chroniquer(monde, id, texte)
     if monde.visible(id):
         lignes.append(texte)
@@ -710,13 +711,16 @@ def lumiere_du_geste(monde, id):
 
 
 def _crocheter(monde, id, cible, outil):
+    """Le jet : (réussi, de combien il passe le seuil ; None s'il le manque). La marge fait le bruit
+    du geste (``ouie.nature_crochetage``)."""
     from .caractere import modificateur
     from .esprits import constater_lumiere_devant
-    if monde.d20() + modificateur(monde, id, "DEX") >= seuil_crochetage(lumiere_du_geste(monde, id)):
-        return True
+    marge = monde.d20() + modificateur(monde, id, "DEX") - seuil_crochetage(lumiere_du_geste(monde, id))
+    if marge >= 0:
+        return True, marge
     # La serrure résiste : il constate la lumière dont il disposait là, celle qui fait sa chance.
     constater_lumiere_devant(monde, id, cible)
-    return False
+    return False, None
 
 
 def _forcer(monde, id, cible, outil, lignes):
@@ -803,11 +807,14 @@ def _executer(monde, id, etape, lignes, gestes):
             return _hors_d_atteinte(monde, id, objet)
     if outil and not _porte(monde, outil, id) and monde.objets.get(outil, {}).get("mobile", True):
         return _rate(monde, id, outil)  # Un outil mobile s'emploie en main.
-    # Il y porte la main : le geste retentit, réussi ou non ; feutré s'il le veut sans témoin.
-    from .ouie import nature as nature_de, retentir
+    # Il y porte la main : le geste retentit, réussi ou non ; feutré s'il le veut sans témoin. Un
+    # crochetage sonne selon son adresse : le jet se fait d'abord (``ouie.nature_crochetage``).
+    from .ouie import nature as nature_de, nature_crochetage, retentir
     discret = etape["condition"] == "sans_temoin"
-    retentir(monde, id, op, discret=discret)
-    bruit = nature_de(op, discret)  # Le bruit qu'il fait tant que dure son geste (``commencer_geste``).
+    jet = _crocheter(monde, id, cible, outil) if op == "crocheter" and c.get("verrouillee") else None
+    # Le bruit qu'il fait tant que dure son geste (``commencer_geste``).
+    bruit = nature_crochetage(jet[1], discret) if jet else nature_de(op, discret)
+    retentir(monde, id, op, discret=discret, force=bruit if jet else None)
     faute = illicite(monde, id, cible, op)
     if op == "prendre":
         if not c.get("mobile"):
@@ -839,14 +846,15 @@ def _executer(monde, id, etape, lignes, gestes):
     elif op == "crocheter":
         if not c.get("verrouillee"):
             return _rate(monde, id, cible, "verrouillee", False) or True
-        if not _crocheter(monde, id, cible, outil):
+        if not jet[0]:
             _raconter(monde, id, "s'acharne sur la serrure de", c, lignes)
             if faute:
                 gestes.append((id, "forcer", cible, bruit))
             return False
         c["verrouillee"] = False
         croire(monde, id, cible, "verrouillee", False, "essai")
-        _raconter(monde, id, "crochète la serrure de", c, lignes)
+        # Réussi, la serrure cède sans qu'il force (``ouie.nature_crochetage``).
+        _raconter(monde, id, "crochète la serrure de", c, lignes, "" if bruit == "bruyant" else " sans forcer")
     elif op == "frapper":
         if not c.get("verrouillee") or c["integrite"] == 0:
             return _rate(monde, id, cible, "verrouillee", False) or True
@@ -1434,10 +1442,14 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         else:
             observe = None
         from .ouie import nature as nature_de
+        from .planification import bruit_crochetage
         # Ceux qu'il croit à portée d'oreille comptent comme ceux qu'il voit : qui entend forcer un
-        # coffre tout près sait qu'on y touche (``_temoins_a_l_oreille``).
+        # coffre tout près sait qu'on y touche (``_temoins_a_l_oreille``). D'un crochetage, il attend
+        # le bruit que lui promet son adresse à la lumière qu'il a devant la serrure.
+        attendu = (bruit_crochetage(monde, id, lumiere_du_geste(monde, id)) if operation == "crocheter"
+                   else nature_de(operation, discret=True))
         if (observe or (observe is None and temoins_crus(monde, id))
-                or oreilles_crues(monde, id, nature_de(operation, discret=True))):
+                or oreilles_crues(monde, id, attendu)):
             # Il guette une occasion, jusqu'à la minute suivante ou jusqu'à ce que sa situation change.
             if _patienter(monde, id, intention, compter):
                 return reste, FIN, None

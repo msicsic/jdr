@@ -5,7 +5,8 @@ Bruit. Chaque geste a une nature, déclarée une fois (``NATURES``, un geste abs
 ordinaire), et chaque nature une intensité en crans (``INTENSITES``) : pas feutré < pas, geste
 ordinaire < voix < geste bruyant < appel. Un geste fait pour n'être pas remarqué (à pas feutrés,
 en douce) est feutré, sauf s'il est bruyant par nature ; un geste du joueur que l'arbitrage dit
-fracassant (bruit 3) est bruyant. Le moteur le fait retentir là où il accomplit le geste, du
+fracassant (bruit 3) est bruyant. Un crochetage sonne selon l'adresse (``nature_crochetage``) :
+réussi, un geste ordinaire ; manqué, un fracas. Le moteur le fait retentir là où il accomplit le geste, du
 joueur (``moteur``) comme d'un PNJ (``pnj``) ; une parole retentit avec ses mots
 (``social.faire_entendre``, ``paroles.preparer_parole``), un chuchotement est feutré.
 
@@ -59,7 +60,8 @@ NATURES = {
     **dict.fromkeys(("aller", "marcher", "chasser"), "pas"),
     **dict.fromkeys(("faufiler", "toucher", "chuchoter"), "feutre"),
     **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "demander_feu"), "voix"),
-    # Un sifflement porte loin et ne dit rien : inhabituel comme un fracas.
+    # Un sifflement porte loin et ne dit rien : inhabituel comme un fracas. Un crochetage dont on
+    # connaît le jet sonne selon l'adresse (``nature_crochetage``) ; sinon, comme un fracas.
     **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle",
                      "sifflement"), "bruyant"),
     # Héler quelqu'un par son nom est un cri : même portée qu'un appel ; ce sont les mots qui
@@ -73,6 +75,7 @@ NATURES = {
 # 3) : un tintement comme un geste, un son franc comme un fracas, une cloche d'alarme comme un appel.
 SONS = {1: "geste", 2: "bruyant", 3: "appel"}
 FRACAS = 3             # l'arbitrage du bruit d'un geste du joueur (0 à 3) : 3 est un fracas
+AISANCE = 0            # marge du jet sur son seuil à partir de laquelle la serrure cède sans fracas (``nature_crochetage``)
 PALIERS = (1, 3, 6, 12, 24)    # cases : chaque palier dépassé coûte un cran
 OUVERTURE = 1          # crans perdus en passant une ouverture
 PORTE = 3              # en passant une porte fermée
@@ -91,6 +94,17 @@ def nature(geste, discret=False, bruit=0):
     if bruit >= FRACAS and INTENSITES[n] < INTENSITES["bruyant"]:
         n = "bruyant"
     return "feutre" if discret and n in ("pas", "geste") else n
+
+
+def nature_crochetage(marge, discret=False):
+    """Le bruit d'un crochetage selon l'adresse, règle commune au joueur et aux PNJ. ``marge`` : de
+    combien son jet a passé le seuil (None : manqué). Réussi (``AISANCE`` : toute réussite), la serrure
+    cède sous la main : un geste ordinaire, feutré s'il le fait en douce ; l'adresse (la DEX, la
+    lumière qui font le jet) en fait la part. Manqué, il s'acharne sur la serrure : un fracas, comme
+    forcer (``NATURES``, qui garde ce fracas pour un crochetage dont on ignore le jet)."""
+    if marge is None or marge < AISANCE:
+        return "bruyant"
+    return "feutre" if discret else "geste"
 
 
 def distance(a, b):
