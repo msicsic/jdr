@@ -1086,6 +1086,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
   l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
   (un « peu fiable » redit à quatre heures d'écart).
+- Branche `codex-profils`, non fusionnée (données seulement, décision du 2026-10-22) : dans le Relais
+  et la crue, Brune douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65 et douceur 80 ; Gorm
+  inchangé. Limites anciennes incompatibles retirées dans la crue, traits d'Ilse et d'Aubin nuancés.
+  Six scènes de tests posent explicitement leur honnêteté ou douceur 100, avec commentaire,
+  pour conserver la vérification des interdits. Le test console simule aussi le récit du résultat,
+  jusque-là laissé partir vers HTTPS avec sa clé factice ; garde sans réseau ajoutée à cette scène.
+  Suite complète verte : **1241 tests, 14 sautés** sans `jsonschema` (facultatif pour MiMo),
+  en priorité BelowNormal, sans réseau extérieur pour la passe finale.
+  Bancs 8 h (huit graines, `main` f1eee53 puis branche), audits 12 h et analyseur : pas de nouveau
+  voleur sur 8 h ; sur 12 h, Aubin force la réserve dans deux nuits par scénario et mange une part
+  en 1985 dans chacun. Vols vus par nuit Relais 1,25 → 1,375, crue 0,5 → 0,625 ; attente
+  298,125 → 245,625 et 571,25 → 499,375 minutes·PNJ, sans recours 111,25 → 126,875 et 42,5 → 67,5.
+  Aucune poussée ; 64 nuits mesurées sans plantage, violation ni usurpation ; `VERIFIER` et
+  `spatial.VERIFICATION` (0,2), graine 42 sur 8 h de chaque scénario : sans écart ni borne.
+  Valeurs et traits conservés après sauvegarde/rechargement ; aucune autre donnée ou moteur modifié.
+  Limites : effet surtout après 8 h, aucun vol d'Ilse sur ce lot, les occasions restent nécessaires.
+  Voir [l'analyse](analyse-relais.md) et le [rapport](taches/rapport-codex-1-profils.md).
 - La suite de tests passe : 1241 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente

@@ -150,6 +150,8 @@ class StrategeTests(unittest.TestCase):
 
     def test_le_moteur_refuse_un_mensonge_d_un_honnete_puis_accepte_la_correction(self):
         m = relais()
+        # La scène teste l'interdit à 100 ; l'Ilse du scénario a désormais une honnêteté graduée.
+        m.objets["ilse"]["profil"]["valeurs"]["honnetete"] = 100
         reunir(m, "ilse", "marchand", "brune")
         faux = Faux(plan("securite", "rassurer Gorm",
                          etape("dire", cible="marchand", sujet="brune", attribut="lieu", valeur="chambre_cloche")),
@@ -164,6 +166,8 @@ class StrategeTests(unittest.TestCase):
 
     def test_limites_et_capacites_bornent_les_gestes(self):
         m = relais()
+        # L'interdit du vol appartient ici au profil de la scène, plus à celui du scénario.
+        m.objets["ilse"]["profil"]["valeurs"]["honnetete"] = 100
         reunir(m, "ilse", "brune")
         for objet, lieu in (("vivres", "reserve"), ("reserve", "antichambre"), ("crochets", "echoppe")):
             croire(m, "ilse", objet, "lieu", lieu, "savoir", salle=None, case=None)

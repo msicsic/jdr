@@ -961,7 +961,7 @@
           "altruisme": 35,
           "empathie": 40,
           "honnetete": 20,
-          "douceur": 100,
+          "douceur": 75,
           "ambition": 50,
           "courage": 60,
           "loyaute": 40,
@@ -1092,11 +1092,11 @@
           "ELO": 12,
           "PSY": 12
         },
-        "traits": "Meunière évacuée, bavarde et curieuse ; elle répète ce qu'elle a vu et s'inquiète de la crue. Honnête, elle ne prend rien qui ne soit à elle.",
+        "traits": "Meunière évacuée, bavarde et curieuse ; elle répète ce qu'elle a vu et s'inquiète de la crue. Honnête, elle ne prendrait ce qui n'est pas à elle qu'à bout de forces.",
         "valeurs": {
           "altruisme": 55,
           "empathie": 65,
-          "honnetete": 100,
+          "honnetete": 80,
           "douceur": 100,
           "ambition": 30,
           "courage": 30,
@@ -1171,12 +1171,12 @@
           "ELO": 9,
           "PSY": 12
         },
-        "traits": "Vieux passeur évacué, taciturne et honnête ; il surveille le niveau de l'eau aux vannes et dit à Gorm ce qu'il a vu.",
+        "traits": "Vieux passeur évacué, taciturne et honnête tant que la faim ne le tient pas ; il surveille le niveau de l'eau aux vannes et dit à Gorm ce qu'il a vu.",
         "valeurs": {
           "altruisme": 50,
           "empathie": 45,
-          "honnetete": 100,
-          "douceur": 100,
+          "honnetete": 65,
+          "douceur": 80,
           "ambition": 20,
           "courage": 60,
           "loyaute": 80,
