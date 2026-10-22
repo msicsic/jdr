@@ -47,14 +47,22 @@ class VerifierTests(unittest.TestCase):
         m.objets["lampe_remy"].update(allume=False, combustible=0)
         for id in ("remy", "lucien", "bram"):
             lire(m, id)["besoins"]["securite"] = 70.0
-        cherche = False
-        with patch.object(planification, "VERIFIER", True), diagnostics() as recherches:
+        # Ses buts se choisissent aussi entre deux minutes (``deliberation-evenements``) : on regarde
+        # chacun de ses choix, pas seulement l'état à la minute.
+        from donjon import deliberation
+        plans, choisir = [], deliberation.choisir
+
+        def espion(monde, id, minute):
+            resultat = choisir(monde, id, minute)
+            i = lire(monde, id)["intention"]
+            if id == "lucien" and i:
+                plans.append(i)
+            return resultat
+        with patch.object(planification, "VERIFIER", True), diagnostics() as recherches,                 patch.object(deliberation, "choisir", espion):
             for _ in range(15):
                 m, _ = vivre(m, 1)
-                i = lire(m, "lucien")["intention"]
-                cherche = cherche or bool(i and i["but"]["type"] == "lumiere" and any(
-                    (x.get("contenu") or {}).get("cherche") == "josse" for x in i["plan"]))
-        self.assertTrue(cherche)
+        self.assertTrue(any(i["but"]["type"] == "lumiere" and any(
+            (x.get("contenu") or {}).get("cherche") == "josse" for x in i["plan"]) for i in plans))
         self.assertTrue(any(r["pnj"] == "lucien" and r["but"] == "lumiere" for r in recherches))
         self.assertIn("Lucien appelle : « Josse ? »", [c["texte"] for c in m.data["chronique"]])
 
