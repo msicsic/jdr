@@ -769,7 +769,8 @@ def executer(monde, id, etape, lignes):
         clair = f"{a} dit à {b} que {phrase_affirmee(monde, contenu['sujet'], contenu['attribut'], contenu['valeur'], True)}."
         cites, reussi = [contenu["sujet"], contenu["valeur"] if isinstance(contenu["valeur"], str) else None], True
         transmis = [{"type": "affirmation", **{k: contenu[k] for k in ("sujet", "attribut", "valeur")}}]
-        memoriser(monde, id, {"type": "dit", "a": autre, "sujet": contenu["sujet"], "attribut": contenu["attribut"]})
+        memoriser(monde, id, {"type": "dit", "a": autre, "sujet": contenu["sujet"], "attribut": contenu["attribut"],
+                              "valeur": contenu["valeur"]})
     elif op == "demander" and "ressource" in contenu:
         # « As-tu du bois ? » : il répond par ce qu'il a vraiment, et l'autre l'apprend.
         issue, dit = enqueter(monde, id, autre, contenu["ressource"])

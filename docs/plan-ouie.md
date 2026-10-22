@@ -1316,6 +1316,29 @@ typé ; le silence d'un destinataire n'est arrêté que par l'auditeur, que les 
 guident (pas de contrôle déterministe) ; la réponse d'un PNJ à la cantonade retentit sans ses mots
 pour les autres PNJ.
 
+## Ce qu'on a déjà dit (branche `boucles-pnj`)
+
+Boucle N4 de la [revérification](reverification.md) : à l'auberge (graines 3, 500, 123), Hugues redisait
+jusqu'à 26 fois à Anselme que son ballot de soie était dans la chambre au poêle, où Anselme l'avait
+posé lui-même et se tenait. Variante de lieu de la boucle B3 de l'audit (« Lucien est peu fiable »
+redit), corrigée par `deliberation-evenements` pour l'auteur seulement : `_a_dire` tenait un lieu pour
+dit s'il l'avait été depuis la minute de sa croyance de lieu, et cette minute se renouvelle à chaque
+regard sur le ballot. Règle (`deliberation._a_dire`, `_deja_dit`) : on ne dit à quelqu'un que ce qu'on
+croit qu'il ignore. Un fait dit l'est jusqu'à ce que sa valeur change : la dernière fois qu'il lui a
+dit où est ce bien, c'était ce lieu-là (le souvenir `dit` porte désormais la valeur, `echanges`), quelle
+que soit la date de ce qu'il en croit. Et il ne lui apprend pas où est un bien qu'il croit sous ses
+yeux : il le croit dans la même salle que lui (il l'y a posé, ou l'y voit). Qu'il n'est pas fiable reste
+dit une fois pour toutes.
+
+Cas vérifiés après rechargement (`tests/test_boucles_pnj.py`) : le cas réel (Anselme dans la chambre au
+poêle avec son ballot, Hugues qui les voit chaque minute : « Lucien est peu fiable » une fois, le lieu
+jamais ; sur `main`, six fois en vingt minutes) ; même nature (Anselme au dortoir, le ballot à l'étable :
+dit une fois ; revu à l'étable, rien ; vu au grenier, dit de nouveau).
+
+Limites : le souvenir `dit` peut sortir de la mémoire bornée (`MEMOIRE_MAX`) : le lieu se redit alors
+une fois ; « sous ses yeux » se juge à la salle où il croit l'un et l'autre, pas à ce que la victime
+voit vraiment (dans le noir, ou le bien dans un contenant fermé, elle peut l'ignorer).
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la

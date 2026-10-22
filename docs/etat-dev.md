@@ -1061,7 +1061,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   peut encore répondre par « Il faut une échelle » (`franchir`, défaut N5 de la revérification) ; les
   consignes de l'auditeur restent sémantiques. `couverture_action.py`, `sons.py`, `ouie.py`, `echanges.py`,
   `rejeu.py` touchés hors du périmètre annoncé, chacun pour une règle commune.
-- La suite de tests passe : 1230 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `boucles-pnj`, non fusionnée (`docs/plan-planificateur.md`, « Les boucles de la revérification » ;
+  `docs/plan-ouie.md`, « Ce qu'on a déjà dit ») : trois boucles de la [revérification](reverification.md),
+  nées de la délibération à l'événement. **Un geste défait sous ses yeux** (N1, mine 42 : Odon ouvre le
+  garde-manger, Mathe le referme, 689 fois ; la précaution sans témoin était levée par la faim à 95, pas
+  absente) : ce qu'un PNJ vient de faire de sa main à une chose (ouvrir, fermer, verrouiller, crocheter,
+  allumer, éteindre ; `DEFAIT` 5 min, esprit `donne`), un autre — PNJ ou joueur — le défait sous ses yeux :
+  on s'oppose à lui sur cette chose, retenu comme un refus (`defaire`, « oppose ») qui tient tant qu'il croit
+  l'opposant là, et le planificateur n'y offre plus de geste (`deliberation.changer_etat`, `contrarie`,
+  `Vue.contrarie`). **Le recours en cours garde la main** (N2, crue 3 : 1 705 passages de salle en 8 h ; la
+  galerie est éclairée par le jour) : hystérésis entre recours d'un même besoin et d'un même rang
+  (`choisir`, `_candidats`) ; l'abri vers lequel il est en route garde la main tant qu'il en est un, sauf eau
+  qui monte sous ses yeux ou péril (`_plan_abri`) ; la lumière d'un autre ne satisfait plus le besoin de
+  lumière (`_plan_lumiere`). **Ce qu'on a déjà dit** (N4, auberge : Hugues redit 26 fois où est le ballot) :
+  un lieu dit l'est jusqu'à ce que sa valeur change ; pas à qui a le bien dans sa salle (`_a_dire`). Cas réels
+  et cas de même nature après rechargement, même laps découpé (`tests/test_boucles_pnj.py`, 11 tests, 8
+  échouent sur `main`). `tools/audit_nuits.py` mesure les boucles (bascules, passages par heure,
+  avertissements redits, appels à l'aide). Audit 4 scénarios × 8 graines × 12 h contre `main` e07bc20 :
+  bascules mine 180,6 → 2,1 (mine 42 : 1 436 → 8), auberge 15,5 → 2,5 (la même boucle, Lucien et le coffre
+  d'Anselme, 62 → 2), avertissements redits auberge 4,4 → 0,75, appels à l'aide mine 5,6 → 4,1 ; Relais et
+  crue identiques nuit pour nuit ; en attente mine 1 369 → 1 404, auberge 379 → 456 (on attend que
+  l'opposant s'en aille) ; aucun plantage, violation ni usurpation ; `VERIFIER` et `spatial.VERIFICATION` (0,2) sans écart
+  sur une nuit de 8 h de chaque scénario (graine 42). Limites : la fenêtre
+  « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
+  l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
+  (un « peu fiable » redit à quatre heures d'écart).
+- La suite de tests passe : 1241 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

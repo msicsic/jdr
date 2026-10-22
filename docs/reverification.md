@@ -89,6 +89,13 @@ commence pas devant un témoin ; un geste défait sous ses yeux par autrui vaut 
 rien ne change (comme une demande refusée, `deliberation.retenir_refus`), et ne se retente pas à
 l'instant.
 
+**Traité** (branche `boucles-pnj`, `docs/plan-planificateur.md`, « Les boucles de la revérification ») :
+la cause (1) ne tenait pas — `sans_temoin` porte aussi sur ouvrir ; c'est la faim d'Odon passée à
+`DESESPOIR` qui levait la précaution. Règle : ce qu'un PNJ vient de faire de sa main à une chose, un
+autre le défait sous ses yeux : on s'oppose à lui sur cette chose, il n'y touche plus tant qu'il croit
+l'opposant là (`deliberation.changer_etat`). Audit 12 h, 8 graines : bascules à la mine 180,6 → 2,1 par
+nuit (mine 42 : 1 436 → 8) ; la même boucle à l'auberge (Lucien et le coffre d'Anselme) 15,5 → 2,5.
+
 ### N2. Aller-retour lumière ↔ abri à chaque seconde (crue 3, 1 700 passages par nuit)
 
 `python -m donjon.banc_pnj --scenario crue --graine 3 --heures 8 --chronique`, à partir de la minute 322
@@ -107,6 +114,14 @@ L'inertie de `besoins` (`INERTIE`) ne joue qu'entre besoins différents ; la dé
 rend la bascule immédiate. Invariant : un recours ne se choisit pas s'il défait aussitôt celui qu'on
 vient d'atteindre pour le même besoin ; un passage dans le noir prévu par le plan en cours n'en change pas
 le but.
+
+**Traité** (branche `boucles-pnj`, même section) : la galerie est éclairée par le jour, pas par la
+lanterne du joueur (éteinte). Les deux moitiés de la boucle : l'abri auprès de Gorm passait par le palier,
+où l'eau attendue faisait de la galerie (le plus haut lieu) l'abri ; la lumière, dans le noir du palier,
+renvoyait aussi à la galerie. Règles : le recours en cours garde la main sur les autres recours du même
+besoin tant que sa méthode le rend encore (`choisir`) ; l'abri vers lequel il est en route garde la main
+tant qu'il en est un, sauf eau qui monte sous ses yeux ou péril (`_plan_abri`). Crue 3 sur `main`
+ec2352e : 1 705 → 136 passages en 8 h ; cas réel rejoué en scène (`tests/test_boucles_pnj.py`).
 
 ### N3. Surenchère sans borne et dette immédiate d'une tâche acceptée (auberge, 9 nuits sur 12)
 
@@ -138,6 +153,10 @@ de l'audit (« Lucien est peu fiable » répété) est corrigée ; celle-ci est 
 de Hugues, et cette minute se renouvelle chaque fois qu'il revoit le ballot : dans la même salle que lui,
 chaque minute. Invariant : on redit un lieu seulement s'il a changé depuis qu'on l'a dit (la valeur, pas
 la date du dernier regard) ; on ne l'apprend pas à qui l'a déplacé lui-même sous ses yeux.
+
+**Traité** (branche `boucles-pnj`, `docs/plan-ouie.md`, « Ce qu'on a déjà dit ») : un lieu dit l'est
+jusqu'à ce que sa valeur change (le souvenir `dit` porte la valeur) ; on n'apprend pas à la victime où est
+un bien qu'on croit dans sa salle. Audit 12 h, auberge : avertissements redits 4,4 (pire 21) → 0,75 (pire 2).
 
 ### N5. Luna (moyens et faibles)
 
