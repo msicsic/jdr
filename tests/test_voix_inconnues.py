@@ -291,8 +291,8 @@ class RepondreTests(unittest.TestCase):
         self.assertIn("Gorm appelle : « Corvus ? »", chronique(m))
         reprise, sortie, appels = jouer_sans_mj(m, "je réponds", [], [])
         self.assertEqual(appels, [])  # Le geste du moteur, jamais une interprétation du MJ.
-        self.assertIn("Tu réponds : « Ici ! »", sortie)
-        self.assertIn("Corvus répond : « Ici ! »", chronique(reprise))
+        self.assertIn("Tu réponds : « Ici, viens ! »", sortie)
+        self.assertIn("Corvus répond : « Ici, viens ! »", chronique(reprise))
         # Gorm, qui ne connaît pas sa voix, le croit là sur sa parole.
         self.assertEqual(lieu_cru(reprise, "marchand", "joueur"), ("beffroi", "se_dit"))
         self.assertEqual(lire(reprise, "marchand")["voix_entendues"]["joueur"]["se_dit"], "joueur")
@@ -303,7 +303,7 @@ class RepondreTests(unittest.TestCase):
         m = gorm_hele_corvus(voix_connue=True)
         reprise, sortie, appels = jouer_sans_mj(m, "« Ici ! »", [], [])
         self.assertEqual(appels, [])
-        self.assertIn("Tu réponds : « Ici ! »", sortie)
+        self.assertIn("Tu réponds : « Ici, viens ! »", sortie)
         self.assertEqual(lieu_cru(reprise, "marchand", "joueur"), ("beffroi", "entendu"))
 
     def test_le_mj_ne_repond_qu_a_qui_vient_d_appeler(self):

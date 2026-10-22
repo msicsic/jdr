@@ -96,9 +96,12 @@ class HelerTests(unittest.TestCase):
     def test_hugues_hele_anselme_a_travers_la_porte(self):
         """Cas réel (auberge) : Hugues appelait Anselme sans fin, derrière la porte fermée de sa
         chambre. Héler porte comme un cri : Anselme l'entend, répond, Hugues le croit là d'où vient
-        sa voix (il la connaît), entre et le prévient. Le joueur, au couloir, entend l'appel d'Hugues
+        sa voix (il la connaît) ; à « Qu'est-ce que tu veux ? », il dit avoir à le prévenir, et Anselme vient
+        à lui (``appel``). Le joueur, au couloir, entend l'appel d'Hugues
         dont il connaît la voix, et la réponse d'une voix qu'il ne connaît pas : celle qu'Hugues appelle
-        Anselme (branche ``voix-inconnues`` : ce qu'il surprend lui nomme la voix, comme un ouï-dire)."""
+        Anselme (branche ``voix-inconnues`` : ce qu'il surprend lui nomme la voix, comme un ouï-dire).
+        Anselme venant au couloir (``appel`` : « J'arrive ! »), le joueur le voit avant la fin de son
+        attente : ce qu'il entend se rend sous le nom de qui il voit, sans qu'il connaisse sa voix."""
         m = hugues_cherche_anselme()
         m.joueur.update(salle="couloir", position=[1, 2])
         m.data["visitees"] = sorted({*m.data["visitees"], "couloir"})
@@ -108,11 +111,16 @@ class HelerTests(unittest.TestCase):
         presentes(m,'hugues')  # Le nom lui a également été présenté.
         m, texte = attendre(recharger(m))
         self.assertIn("Hugues appelle : « Anselme ? »", chronique(m))
-        self.assertIn("Anselme répond : « Ici ! »", chronique(m))
+        # Anselme ne sait pourquoi on l'appelle : Hugues le lui dit, il vient (``appel``).
+        self.assertIn("Anselme répond : « Qu'est-ce que tu veux ? »", chronique(m))
+        self.assertIn("Anselme répond : « J'arrive ! »", chronique(m))
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
         self.assertEqual(len(appels(m, "hugues")), 1)
-        self.assertIn("Tu entends, tout près, Hugues appeler : « Anselme ? »", texte)
-        self.assertIn("Tu entends, à l'est, une voix qu'on appelle Anselme répondre : « Ici ! »", texte)
+        self.assertIn("Tu entends, tout près : Hugues appelle : « Anselme ? »", texte)
+        # Branche des noms : la voix qu'Hugues appelle Anselme se révèle celle de qui vient au couloir,
+        # que Corvus voit parler ; il apprend alors son nom, et ce qu'il a entendu se rend sous ce nom.
+        self.assertIn("Tu entends, à l'est, Anselme répondre : « Qu'est-ce que tu veux ? »", texte)
+        self.assertIn("anselme", m.data["noms_connus"])
         self.assertEqual(m.data["voix_entendues"]["anselme"]["appelee"], "anselme")
         self.assertNotIn("anselme", m.data["voix_connues"])
         self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
@@ -124,7 +132,7 @@ class HelerTests(unittest.TestCase):
         m = aubin_cherche_gorm()
         m, texte = attendre(m)
         self.assertEqual(len(appels(m, "aubin")), 1)
-        self.assertIn("Gorm répond : « Ici ! »", chronique(m))
+        self.assertIn("Gorm répond : « Ici, viens ! »", chronique(m))  # Il croit la porte fermée (``appel``).
         self.assertIn("Gorm appelle Aubin et lui donne une part des vivres du refuge.", chronique(m))
         # Le joueur, à la galerie, entend l'appel d'une voix qu'il ne connaît pas, sans nom.
         self.assertIn("Tu entends, à l'ouest, une voix inconnue appeler : « Gorm ? »", texte)
@@ -132,7 +140,7 @@ class HelerTests(unittest.TestCase):
 
     def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
         d_un_bloc, morcele = decouper(aubin_cherche_gorm, 6)
-        self.assertIn("Gorm répond : « Ici ! »", [c["texte"] for c in morcele.data["chronique"]])
+        self.assertIn("Gorm répond : « Ici, viens ! »", [c["texte"] for c in morcele.data["chronique"]])
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
 
     def test_un_appel_sans_reponse_n_est_pas_repete_en_boucle(self):
@@ -149,7 +157,7 @@ class HelerTests(unittest.TestCase):
         self.assertEqual(len(salles), len(set(salles)))
         self.assertNotIn("chambre_chaude", salles)
         self.assertTrue(all(minute < 12 for minute, _ in faits))
-        self.assertNotIn("Anselme répond : « Ici ! »", chronique(m))
+        self.assertFalse([t for t in chronique(m) if t.startswith("Anselme répond")])
 
     def test_un_cri_sans_les_mots_inquiete_les_mots_non(self):
         """Qui saisit les mots d'un appel par un nom entend qu'on appelle quelqu'un : pas d'alarme.

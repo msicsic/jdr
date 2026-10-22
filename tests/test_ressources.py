@@ -44,11 +44,16 @@ class CrueTests(unittest.TestCase):
         self.assertIn("Brune, batelière évacuée passe dans : Galerie de ronde.", textes)
         # Le bois du guet est à Gorm : on lui demande de l'acheter ; il refuse s'il ne peut servir.
         self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") for t in textes))
-        self.assertIn("Gorm, gardien du relais alimente le poêle du guet.", textes)
-        self.assertTrue(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
-        # La rareté reste : il ne reste que deux charges, et l'eau garde la conduite.
-        self.assertEqual(m.objets["bois_guet"]["charges"], 2)
+        # À 120, Gorm n'a pas de flamme sur lui (la torche est posée au refuge) : il ne peut servir la part
+        # qu'Aubin veut acheter (« impossible », services autonomes). Depuis l'appel négocié, la nuit
+        # diverge ensuite : hélé par Brune à la galerie, Gorm la fait venir (« Ici, viens ! »), et personne
+        # ne rallume le poêle avant 240. La rareté reste : aucune charge des bûches n'est créée ni perdue.
+        self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") and t.endswith("(impossible).")
+                            for t in textes))
+        self.assertIn("Gorm retrouve Brune, comme convenu.", textes)
+        self.assertFalse(allumee(m.objets["poele_guet"]))
+        self.assertEqual(m.objets["bois_guet"]["charges"], 3)
 
 
 class AubergeTests(unittest.TestCase):

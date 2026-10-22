@@ -597,7 +597,7 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     Hélé par son nom, il en saisit les mots : il se tourne vers la voix (vers l'appelant s'il le
     verrait ainsi, dans sa salle ou au-delà d'un seuil ; sinon vers le seuil par où elle arrive
     d'ailleurs), le temps de la rotation, et peut ainsi le voir. Qui attend d'être rejoint par
-    l'appelant (``deliberation.attendre_l_appelant``) se tourne vers lui quand il l'entend approcher,
+    l'appelant (``appel.attendre``) se tourne vers lui quand il l'entend approcher,
     dès qu'il peut le voir. Un appel ou un cri, sans mots, porte la voix : qui la connaît sait qui
     crie, et le croit là."""
     from .esprits import croire, lire, percoit
@@ -617,7 +617,7 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
             connaitre(monde, id, auteur)
             return retourne
     elif (lire(monde, id)["rejoint"] or {}).get("qui") == auteur and _vers_qui_l_a_hele(monde, id, auteur, t):
-        # Il attend qui l'a hélé : à son approche, il se tourne vers lui dès qu'il peut le voir.
+        # Il attend qui doit le rejoindre : à son approche, il se tourne vers lui dès qu'il peut le voir.
         if mots:
             connaitre(monde, id, auteur)
         return True
@@ -699,5 +699,5 @@ def _vers_qui_l_a_hele(monde, id, auteur, t, texte=None):
     la = _global(salles[salle], case)
     if texte is None:
         from .social import _qui
-        texte = f" se tourne vers {_qui(monde, auteur)}, qui l'avait hélé."
+        texte = f" se tourne vers {_qui(monde, auteur)}, qui arrive comme convenu."
     return _se_tourner(monde, id, la, t, texte, depuis=ici)

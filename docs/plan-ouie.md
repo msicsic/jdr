@@ -1460,6 +1460,148 @@ validé. Il peut faire entendre un nom de tiers connu du locuteur ; cela ne pré
 corps. L'appel ciblé du moteur possède ce destinataire et peut établir le lien. Les étiquettes
 du récit (« Aubin dit à Gorm… ») ne comptent jamais comme des noms prononcés.
 
+## L'appel négocié (branche `appel-negocie`)
+
+Décision de l'utilisateur (2026-10-22). Avant, héler était un cri (`pnj.heler`) auquel l'appelé qui
+saisissait son nom répondait toujours « Ici ! » (sauf méfiance) puis attendait d'être rejoint `REJOINT`
+(5) minutes : rien ne décidait qui se déplaçait, quelle que soit la raison de l'appel ; l'appelant
+cherchait, l'appelé attendait, même quand l'appelé avait ce qu'on venait lui demander sur lui, ou ne
+pouvait de toute façon pas bouger.
+
+**Une règle commune** (`donjon/appel.py`), au même endroit pour les PNJ et le joueur. L'appelé et
+l'appelant conviennent de qui vient à qui par des paroles typées (contenu `appel`, sorte `arrive`,
+`viens`, `quoi` ; contenu `raison`), des cris (nature `hele`) que chacun saisit par l'ouïe commune :
+- « J'arrive ! » : celui qui le dit vient à l'autre, qui l'attend ;
+- « Ici, viens ! » : celui qui le dit reste où il est, l'autre vient ;
+- « Qu'est-ce que tu veux ? » : l'appelé ne sait pourquoi on l'appelle et n'a pas de raison de bouger ;
+  l'appelant dit ce qu'il veut (`raison_de` : le geste de son plan qui vise l'appelé, sinon son but ou
+  le besoin qui le lui fait chercher : une demande, une offre, un avertissement, une tâche, ou lui
+  parler), et l'appelé décide de nouveau, sans redemander ;
+- le silence : il se méfie de cette voix (`voix.repond`), ou ne veut pas se signaler (`se_cache` : un
+  geste de son plan qu'il veut sans témoin, ou un geste illicite en cours).
+
+Ce que dit l'appelé, `decider`, dans l'ordre : le silence ; « Ici, viens ! » s'il attend déjà celui qui
+l'appelle, s'il ne croit pas pouvoir venir (`peut_venir` : aucun chemin qu'il croie ouvert, l'eau qui le
+met en péril), s'il est retenu (`retenu` : un geste en cours sur place, `passage.raison_de_rester` ; une
+garde ; ce qu'il fait sur place, assis, au feu, à l'abri ; un autre rendez-vous) ou si un besoin qui
+presse l'occupe ailleurs (`presse_ailleurs`) ; « J'arrive ! » s'il cherche lui-même l'appelant ou si on le
+prie de venir ; avec une raison, « J'arrive ! » si elle le fait venir (`pressante` : un avertissement, une
+aide, la demande d'un objet qu'il a sur lui), « Ici, viens ! » sinon ; libre et sans raison, « Qu'est-ce
+que tu veux ? ». L'appelant qui entend « Ici, viens ! » répond « J'arrive ! » s'il peut venir (sinon,
+une fois, « Ici, viens ! » à son tour : qui l'entend vient, ou se tait).
+
+**Ce qui est convenu entre dans l'esprit des deux.** Qui reste attend (`rejoint` : qui, depuis, jusqu'à
+quand, et si l'autre a promis de venir) ; il s'arrête aussitôt, sauf pour ce qui passe avant l'attente
+(`deliberation._passe_avant`). Qui a dit « J'arrive ! » doit venir (`rejoindre` : qui, la salle d'où venait
+sa voix, jusqu'à quand) : une parole due (`plan_venir`, rang `engagement` : après ce qui presse, avant le
+bruit et la routine), aller là et y parcourir la salle des yeux. Qui attend quelqu'un qui a promis de
+venir ne le cherche plus : un plan qui commence par aller à lui ou le chercher devient l'attendre là où
+il est (`deliberation._attendre_qui_vient`), son but reprend quand ils se sont retrouvés. **L'attente se
+règle sur la distance** (`delai`) : le temps que met celui qui vient, par le plus court chemin en temps
+(`spatial.trajet`, portes ouvertes en passant), et sa moitié, plus `MARGE` (2) minutes ; plus de
+constante `REJOINT`. Le rendez-vous est tenu quand ils se retrouvent (`tenir`, `rencontre` : il voit
+l'autre, ou le sait là et ils peuvent se parler) ; celui qui est venu et trouve l'autre qui, lui, ne le
+voit pas (de dos, dans le noir) le lui dit : « Me voici ! » (`se_signaler`). **« J'arrive ! » est une
+parole donnée** : qui attend jusqu'à l'échéance celui qui l'avait dite le voit, cesse d'attendre et n'a
+plus confiance en lui (« … cesse d'attendre Gorm, qui avait promis de venir. » ; souvenir
+`parole_rompue`, cause `parole_rompue` de `relations.EPREUVES`, comme une dette niée ou un prêt gardé),
+joueur compris. Un seul rendez-vous à la fois : qui attend déjà quelqu'un garde cette attente.
+
+**Le joueur** répond ou demande sans le MJ (`paroles.reponse_a_l_appel`, `commandes.repondre`,
+`sons._compiler_repondre`, méthodes `repondre`, `arriver`, `demander_raison` d'`emettre_son`) : « j'arrive »,
+« je viens » ; « viens », « viens ici », « Ici ! », « je réponds » ; « qu'est-ce que tu veux ? », « que
+veux-tu ? » ; entre guillemets, après « je réponds » ou « je crie », ou précédés du nom de l'appelant
+(« Gorm, j'arrive ! ») ; « ici » ou « oui » seuls ne répondent pas. Il peut répondre à qui vient de le
+héler, de lui demander ce qu'il veut, de lui dire ce qu'il veut ou de lui dire « Ici, viens ! »
+(`appel.en_attente`, `ecoute.appels`) ; « Qu'est-ce que tu veux ? » seulement à un appel par son nom (refus
+« Tu sais déjà ce qu'on te veut… » avec `attendu` sinon). Le PNJ y donne suite par la même règle
+(`appel.reagir`, le cri fini) : il attend Corvus qui arrive, vient s'il le peut quand Corvus le prie de
+venir, ou dit ce qu'il veut ; ses réponses parviennent au joueur par l'ouïe commune. Ce que le joueur
+promet pèse comme ce que promet un PNJ.
+
+Vérifié (`tests/test_appel_negocie.py`, état après rechargement et ce que lit le joueur) :
+- « Ici, viens ! » : cas réel du Relais, Aubin affamé hèle Gorm derrière la porte étanche, que Gorm croit
+  verrouillée : « Ici, viens ! », « J'arrive ! », Gorm ne bouge pas, ils se retrouvent, la part au premier
+  appel ; même nature, Gorm qui garde (le but `garder`) ne quitte pas sa garde ;
+- « Qu'est-ce que tu veux ? » : cas réel de l'auberge, Hugues veut prévenir Anselme : la raison
+  (avertissement) le fait venir, Hugues l'attend sans bouger et le prévient ; cas réel de la mine (graine
+  2024, scène enregistrée à la minute 340), Josse veut une part des bûches de Gaspard, qui ne les a pas
+  sur lui : « Ici, viens ! », Josse vient, la part est promise ; et, dans le grenier noir de l'auberge,
+  Mireille et Odile (`test_constater_rumeurs`) ;
+- « J'arrive ! » : Aubin qui cherche Gorm vient à son appel, Gorm l'attend le temps de venir ; cas réel
+  de la crue (graine 42, scène enregistrée à la minute 215), Gorm vient au refuge où Brune ne le voit
+  pas : « Me voici ! », retrouvés, sans parole rompue (sans ce signal, au banc, elle l'aurait cru parjure) ;
+  la parole rompue : Aubin empêché, Gorm cesse d'attendre à l'échéance et s'en méfie ; l'échéance suit la
+  distance ;
+- le silence : Brune qui guette un crochetage sans témoin ne répond pas à Gorm ; qui se méfie se tait ;
+- le joueur qui hèle : « Qu'est-ce que tu veux ? » puis « viens » (Gorm « J'arrive ! », ouvre la porte et
+  le rejoint, sans le rappeler), « Ici, viens ! » puis « j'arrive » (retrouvés), « J'arrive ! » de qui le
+  cherche, le silence ;
+- le joueur hélé : « j'arrive » sans venir (Gorm cesse d'attendre et s'en méfie), « viens » (Gorm vient,
+  ou répond « Ici, viens ! » s'il croit la porte fermée), « qu'est-ce que tu veux ? » (« J'ai à te
+  parler. », puis « Gorm, viens ») ; aucun appel au MJ ;
+- le même laps découpé donne le même monde (Relais, auberge) ; les formes de la saisie.
+
+Correctif commun révélé : celui qui cherche quelqu'un ne l'appelle pas s'il le sait là après avoir
+parcouru la salle des yeux (`pnj._inspecter` : `croit_present` au lieu de `percoit`) ; Gorm, venu au palier,
+hélait Corvus qu'il venait de voir pendant son tour d'horizon.
+
+Tests changés et pourquoi : « Ici ! » devient « Ici, viens ! », « J'arrive ! » ou « Qu'est-ce que tu
+veux ? » selon la scène (`test_voix`, `test_parole_voix`, `test_voix_inconnues`, `test_voix_suite`,
+`test_constater_rumeurs`, `test_ouie`, `test_ouie_commune`) ; « … retrouve …, qui l'avait hélé. » devient
+« … retrouve …, comme convenu. » et « … se tourne vers …, qui arrive comme convenu. » (celui qui attend
+n'est plus toujours l'appelé) ; l'échéance de `test_parole_voix` se lit du rendez-vous (la distance) au
+lieu de `REJOINT`, et Aubin y sait la porte fermée pour que personne ne vienne ; `test_entretenir`, à la
+nuit décalée par l'appel, Mireille achète la part que Joss garde au lieu de la demander (même refus).
+
+Corrigé en route, vu au banc (mine, graine 42) : Mathe, de garde, hèle Gaspard, qui lui dit de venir ;
+retenue, elle répond « Ici, viens ! » à son tour, et chacun attendait l'autre jusqu'à l'échéance. Prié de
+venir, celui qui attend en décide de nouveau (il vient, et n'attend plus).
+
+`planification.VERIFIER` et `spatial.VERIFICATION` 0,2 sur une nuit de 8 h de chaque scénario (graine 42,
+`tools/audit_nuits.py`) : aucun plantage, aucun écart. Bancs (départ tiré, graines 1985, 7, 42, 2024,
+`--processus 4`, `main` 06602a6 puis la branche, l'un après l'autre ; moyenne par nuit, `main` → branche) :
+
+| | Relais 4 h | Mine 4 h | Auberge 4 h | Crue 4 h | Mine 8 h | Auberge 8 h |
+|---|---|---|---|---|---|---|
+| appels | 0,25 → 0,25 | 0 → 0 | 0 → 0 | 0,5 → 0,5 | 3 → 3,5 | 6,75 → 4,75 |
+| réponses (toutes) | 0,25 → 1 | 0 → 0 | 0 → 0 | 0,5 → 1,5 | 2 → 8,25 | 4 → 11,75 |
+| « J'arrive ! » / « Ici, viens ! » / « Qu'est-ce que tu veux ? » / raisons | — → 0,25 / 0,25 / 0,25 / 0,25 | — | — | — → 0,5 / 0,25 / 0,25 / 0,25 | — → 2 / 2,25 / 1,75 / 1,75 | — → 3 / 2,75 / 3 / 3 |
+| silences | — → 0 | — → 0 | — → 0 | — → 0 | — → 0,5 | — → 0 |
+| retrouvailles / attentes vaines | 0,25 / 0 → 0,25 / 0 | 0 / 0 | 0 / 0 | 0,25 / 0,25 → 0,5 / 0 | 1,75 / 0,25 → 2 / 0 | 3,75 / 0 → 3 / 0 |
+| paroles rompues | — → 0 | — → 0 | — → 0 | — → 0 | — → 0 | — → 0 |
+| minutes à attendre (relevé aux 5 min) | 0 → 0 | 0 → 0 | 0 → 0 | 1,25 → 0 | 1,25 → 0 | 2,5 → 0 |
+| minutes sans recours | 45 → 45 | 26,25 → 26,25 | 20 → 20 | 0 → 0 | 36,25 → 36,25 | 138,75 → 137,5 |
+| minutes en attente | 1,25 → 1,25 | 0 → 0 | 1,25 → 1,25 | 10 → 10 | 290 → 291,25 | 1,25 → 1,25 |
+| échanges | 6,5 → 6,5 | 13,25 → 13,25 | 7,75 → 7,75 | 6 → 6 | 41,75 → 41,5 | 29,25 → 30,75 |
+| temps d'une nuit | 3 → 2,8 s | 7,2 → 7,2 s | 4,7 → 4,6 s | 3,9 → 3,5 s | 28 → 27,7 s | 15,7 → 15,3 s |
+
+Aucune usurpation ni violation, aucun écart. En quatre heures, on ne hèle presque pas (les quatre
+scénarios en ont 0 à 0,5 par nuit) : les bancs de 8 h de la mine et de l'auberge, où l'on hèle, montrent
+l'effet. Les appels en boucle baissent à l'auberge (graine 42 : Mireille hélait Odile huit fois en cinq
+minutes ; désormais une fois, puis « J'arrive ! ») ; l'attente vaine de la crue (graine 42) devient des
+retrouvailles par « Me voici ! », celle de la mine (graine 7, Gaspard attendant Lucien) aussi. Les
+réponses comptent chaque cri de la négociation (deux à quatre par appel). Le reste des nuits est égal :
+les rendez-vous ne changent ni les besoins ni les échanges, seulement qui marche vers qui. Les minutes à
+attendre, relevées toutes les cinq minutes, ne saisissent plus d'attente : elles durent désormais le temps
+de venir (une à trois minutes) au lieu de cinq.
+
+Limites de l'appel négocié :
+- Le joueur ne dit pas ce qu'il veut par une parole typée locale : à « Qu'est-ce que tu veux ? », il
+  répond « j'arrive » ou « viens » ; ce qu'il dirait par le MJ n'entre pas dans la décision de l'appelé.
+- Seul « J'arrive ! » pèse s'il n'est pas tenu ; « Ici, viens ! » cède à ce qui presse comme l'attente
+  d'avant, sans que l'autre lui en tienne rigueur. Qui avait promis et en a été empêché (une porte, l'eau)
+  rompt sa parole aux yeux de l'autre, qui n'en sait pas la cause. En 3a, une parole rompue ôte la
+  confiance comme une dette niée (la croyance `fiable`) ; les relations graduées la pèseront.
+- Un rendez-vous à la fois : qui attend déjà quelqu'un garde cette attente, sans tenir compte d'un autre
+  qui lui promet de venir.
+- Le rendez-vous se juge au choix du but (événements, minute) ; on se retrouve en se voyant, ou en se
+  sachant là et pouvant se parler. Le lieu du rendez-vous est la salle d'où venait la voix ; peut-il venir
+  se juge sur le chemin qu'il croit, vers la salle réelle de la voix.
+- La raison d'un appel se lit de l'intention de l'appelant, en cinq sortes ; « J'ai à te parler. » quand
+  rien ne la dit (une garde, une ronde). `MARGE` est une constante.
+- `tools/comparer_bancs.py` n'est pas sur `main` : les bancs sont comparés mesure par mesure.
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la

@@ -174,11 +174,13 @@ class NomsTests(unittest.TestCase):
         self.assertNotIn('Gorm',self.rendus(m))
 
     def test_appeler_une_apparence_puis_entendre_ici_ne_donne_aucun_nom(self):
-        from donjon.pnj import heler, repondre_a
+        # Depuis l'appel négocié, la réponse à un appel passe par ``appel.dire`` (« Ici, viens ! »).
+        from donjon.appel import VIENS, dire as repondre_a_l_appel
+        from donjon.pnj import heler
         m=relais()
         lignes=[]
         heler(m,'joueur','marchand',lignes)
-        repondre_a(m,'marchand','joueur',lignes)
+        repondre_a_l_appel(m,'marchand','joueur',VIENS,lignes,nommer=True)
         m=recharge(m)
         self.assertFalse(connait_nom(m,'joueur','marchand'))
         self.assertFalse(connait_nom(m,'marchand','joueur'))

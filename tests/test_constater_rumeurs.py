@@ -219,11 +219,13 @@ class ChercherQuelquUnTests(unittest.TestCase):
         presentes(m,'mireille','odile')  # Leurs noms ont également été présentés.
         m, texte = attendre(recharger(m))
         self.assertIn("Mireille appelle : « Odile ? »", chronique(m))
-        self.assertIn("Odile répond : « Ici ! »", chronique(m))
+        # Elles conviennent de qui vient (``appel``) : une part de ce qu'Odile n'a pas sur elle.
+        self.assertIn("Odile répond : « Qu'est-ce que tu veux ? »", chronique(m))
+        self.assertIn("Odile répond : « Ici, viens ! »", chronique(m))
         self.assertIn("Mireille demande une part des vivres du cellier à Odile (promis).", chronique(m))
         # Le joueur, au grenier, entend l'appel et la réponse sans rien voir.
         self.assertIn("Tu entends, tout près : Mireille appelle : « Odile ? »", texte)
-        self.assertIn("Odile répond : « Ici ! »", texte)
+        self.assertIn("Odile répond : « Ici, viens ! »", texte)
         m, _ = attendre(m)
         self.assertIn("Odile appelle Mireille et lui donne une part des vivres du cellier.", chronique(m))
 
@@ -240,7 +242,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
         m, texte = attendre(recharger(m))
         self.assertIn("Mireille demande une part des vivres du cellier à Odile (promis).", chronique(m))
         self.assertIn("Tu entends, tout près, une voix inconnue appeler : « Odile ? »", texte)
-        self.assertIn("Tu entends, tout près, une voix qu'on appelle Odile répondre : « Ici ! »", texte)
+        self.assertIn("Tu entends, tout près, une voix qu'on appelle Odile répondre : « Qu'est-ce que tu veux ? »", texte)
         self.assertNotIn("Mireille", texte)
         self.assertNotIn("Odile répond :", texte)
         self.assertEqual(sorted(m.data["entendus"]), ["mireille", "odile"])
@@ -260,7 +262,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
         croire(m, "odile", "mireille", "fiable", False, "vu")
         m, _ = attendre(recharger(m))
         self.assertIn("Mireille appelle : « Odile ? »", chronique(m))
-        self.assertNotIn("Odile répond : « Ici ! »", chronique(m))
+        self.assertFalse([t for t in chronique(m) if t.startswith("Odile répond")])
         # Sans réponse, elle ne la croit pas au grenier sur sa voix. (Odile, qui entend dans son grenier
         # noir des pas qu'elle ne sait à qui prêter, va voir de près d'où ils venaient, branche
         # ``ouie-temoins`` : elle sort et Mireille finit par la voir ailleurs.)
@@ -286,7 +288,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
         self.assertEqual(eclairage(m, "dortoir", [0, 0])["niveau"], 0)
         m, _ = attendre(recharger(m))
         self.assertIn("Hugues appelle : « Anselme ? »", chronique(m))
-        self.assertIn("Anselme répond : « Ici ! »", chronique(m))
+        self.assertIn("Anselme répond : « Qu'est-ce que tu veux ? »", chronique(m))
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
         self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
 

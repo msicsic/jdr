@@ -1323,7 +1323,44 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun plantage, usurpation ni bascule nouvelle. Relecture : `_parts_remises` compte un besoin de
   lumière aussi pour qui sait crocheter (heuristique par capacité, à revoir) ; temps d'une nuit de
   12 h doublé à l'auberge selon le rapport (120 → 249 s), non revu ici.
-- La suite de tests passe : 1350 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- Branche `appel-negocie`, fusionnée (`docs/plan-ouie.md`, « L'appel négocié » ; `donjon/appel.py` ;
+  décision du 2026-10-22) : l'appelé et l'appelant conviennent de qui vient à qui, par des paroles typées
+  que le moteur tranche, une règle pour les PNJ et le joueur. « J'arrive ! » (il cherche lui-même
+  l'appelant, on le prie de venir, ou la raison le fait venir : un avertissement, une aide, ce qu'il a sur
+  lui), « Ici, viens ! » (il ne peut ou ne veut bouger : geste en cours sur place, garde, ce qu'il fait sur
+  place, un autre rendez-vous, un chemin qu'il croit fermé, l'eau, ce qui le presse ailleurs), « Qu'est-ce
+  que tu veux ? » (libre, sans raison : l'appelant dit ce qu'il veut, tiré de son intention, et l'appelé
+  décide de nouveau), le silence (méfiance, ou un geste qu'il veut sans témoin) ; l'appelant répond
+  « J'arrive ! » à « Ici, viens ! » s'il peut venir, sinon « Ici, viens ! » à son tour, et l'autre en décide
+  de nouveau. Le convenu entre dans l'esprit des deux (`rejoint` : qui il attend, jusqu'à quand, si l'autre
+  a promis ; `rejoindre` : à qui il a promis de venir, une parole due) ; qui attend quelqu'un qui vient ne le
+  cherche plus (`deliberation._attendre_qui_vient`) ; l'attente se règle sur la distance (le plus court
+  chemin, et sa moitié, plus deux minutes ; plus de `REJOINT`) ; venu, celui que l'autre ne voit pas dit
+  « Me voici ! » ; « J'arrive ! » attendu en vain est une parole rompue (méfiance, cause `parole_rompue`),
+  joueur compris. Le joueur répond sans le MJ (« j'arrive », « viens », « qu'est-ce que tu veux ? », entre
+  guillemets ou non, `emettre_son` méthodes `repondre`, `arriver`, `demander_raison`) et entend les
+  réponses par l'ouïe commune. Correctif révélé : on n'appelle pas qui l'on sait là après avoir parcouru
+  la salle des yeux (`pnj._inspecter`). Cas réels après rechargement, même laps découpé
+  (`tests/test_appel_negocie.py`, 22 tests ; scènes enregistrées de la mine, graine 2024, et de la crue,
+  graine 42) ; `VERIFIER` et `spatial.VERIFICATION` 0,2 sans écart sur une nuit de 8 h de chaque scénario.
+  Bancs contre `main` 06602a6 : 4 h identiques hors des appels (on y hèle 0 à 0,5 fois par nuit) ; 8 h, mine
+  et auberge, appels 3 → 3,5 et 6,75 → 4,75, attentes vaines 0,25 → 0 (mine), aucune parole rompue, sans
+  recours et échanges égaux, aucune usurpation ni violation, temps égal. Luna non vérifiée : pas de
+  connexion sur ce poste. Rapport : `docs/taches/rapport-appel-negocie.md`. Limites dans le plan.
+  Fusionné après les tâches Codex 1 à 5 : conflits `deliberation` (`_attendre_qui_vient` et la
+  `promesse_en_cours` des lampes et tâches payées), `pnj` (`repondre`/`repondre_a` retirés), tests, docs.
+  Accord avec les noms : une réponse ou « Me voici ! » ne nomme celui qui parle (contenu `nom`, `se_nommer`)
+  que pour qui connaît déjà son nom (`appel.dire`, `se_signaler`). Tests adaptés : `test_noms` (la réponse
+  passe par `appel.dire`) ; `test_voix` (Hugues hèle Anselme : Corvus apprend son nom en le voyant parler de
+  la voix qu'on appelait Anselme) ; `test_appel_negocie` (scènes enregistrées sur `main` : liens `connait_noms`
+  repris du scénario ; Gorm a entendu le nom de Corvus ; l'appel de la crue 42 placé d'autorité, la nuit ne
+  l'amenant plus d'elle-même) ; `test_ressources` (crue 7 : Gorm sans flamme ne sert pas la part d'Aubin, le
+  poêle reste éteint à 240, 3 charges). `parole_rompue` passe par `relations.EPREUVES`. Suite 1372 tests.
+  Banc rapide (`comparer_bancs`, 4 h, 4 graines, quatre scénarios) : Relais, mine, auberge identiques (on n'y
+  hèle pas en 4 h) ; crue réponses 0,75 → 1,5, attentes vaines 0,25 → 0. 8 h mine et auberge : réponses 1,5 →
+  7,25 et 2,75 → 9,75, retrouvailles 1,25 → 1,75 et 2,75 → 3,25, attentes vaines 0,25 → 0, aucune parole
+  rompue, échanges et minutes sans recours égaux ; aucun plantage, usurpation ni violation. Luna non vérifiée.
+- La suite de tests passe : 1372 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 

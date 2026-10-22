@@ -483,14 +483,14 @@ def _a_portee_de_vue(monde, id, case):
 
 def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     """Depuis le centre de la salle (où il a marché), ou d'où il voit l'endroit d'où venait un bruit
-    (``vers``), il la parcourt des yeux. S'il y cherche quelqu'un (``cherche``) qu'il ne voit pas, il
-    l'appelle (``appeler``)."""
+    (``vers``), il la parcourt des yeux. S'il y cherche quelqu'un (``cherche``) qu'il ne sait pas là
+    (``croit_present`` : il ne l'a pas vu en parcourant la salle des yeux), il l'appelle (``appeler``)."""
     from .ouie import parcouru
     o = monde.objets[id]
     esprit(monde, id)["visites"][o["lieu"]] = monde.data["minutes"]
     if "orientation" in o:
         tour_d_horizon(monde, id)  # Il parcourt la salle des yeux, tout autour de lui.
-    if cherche and (cherche == "joueur" or cherche in monde.objets) and not percoit(monde, id, cherche):
+    if cherche and (cherche == "joueur" or cherche in monde.objets) and not croit_present(monde, id, cherche):
         appeler(monde, id, cherche, [] if lignes is None else lignes)
     bruit = parcouru(monde, id, o["lieu"], vers)
     if bruit:
@@ -512,10 +512,11 @@ def appeler(monde, id, qui, lignes):
     saisit la réponse croit ``qui`` là d'où elle vient, sûr de lui s'il connaît sa voix, sur sa
     parole sinon (``voix.se_nommer``) ; qui la surprend l'apprend de même. Un appel resté sans
     réponse est retenu (``appel_sans_reponse``) : la salle compte pour parcourue dans cette
-    recherche (``deliberation.appels_vains``), il n'y rappelle pas. Qui répond s'attend à être
-    rejoint : il attend sur place un temps borné, sauf pour plus pressant, ou va vers l'appelant
-    s'il le cherche aussi (``deliberation.attendre_l_appelant``). Le joueur appelé entend l'appel
-    (``ecoute``) et répond, s'il le veut, par le même geste (``repondre_a``, ``sons``)."""
+    recherche (``deliberation.appels_vains``), il n'y rappelle pas. Qui répond convient avec
+    l'appelant de qui vient à qui (``appel`` : « J'arrive ! », « Ici, viens ! », « Qu'est-ce que tu
+    veux ? »). Le joueur appelé entend l'appel (``ecoute``) et répond, s'il le veut, par les mêmes
+    paroles (``sons``)."""
+    from .appel import repondre
     heler(monde, id, qui, lignes)
     repondre(monde, id, qui, lignes)
 
@@ -532,52 +533,6 @@ def heler(monde, id, qui, lignes):
     elif monde.visible(id):
         lignes.append(texte)
     retentir(monde, id, "heler", texte=texte, cites=[qui], vers=[qui])
-
-
-def repondre(monde, id, qui, lignes):
-    """``qui`` a peut-être saisi son nom, hélé par ``id`` (un PNJ ou le joueur) : un PNJ répond
-    « Ici ! » (``repondre_a``), sauf à une voix dont il se méfie (``appeler``) ; vrai s'il a répondu.
-    Le joueur répond s'il le veut, de lui-même. Un PNJ resté sans réponse le retient."""
-    from .ouie import saisit
-    from .voix import repond as repond_a_la_voix
-    # Il répond à son nom, sauf à une voix dont il se méfie.
-    repond = (qui != "joueur" and monde.objets[qui].get("profil") and saisit(monde, id, qui, "heler")
-              and repond_a_la_voix(monde, qui, id))
-    if not repond:
-        if id != "joueur":
-            memoriser(monde, id, {"type": "appel_sans_reponse", "qui": qui, "salle": monde.objets[id]["lieu"]})
-        return False
-    repondre_a(monde, qui, id, lignes)
-    return True
-
-
-def repondre_a(monde, qui, appelant, lignes):
-    """``qui`` (un PNJ ou le joueur) répond « Ici ! » à ``appelant``, qui l'a hélé par son nom : un cri
-    (nature « hele »), qui vaut se nommer. L'appelant qui en saisit les mots le croit là d'où vient
-    la réponse, sûr de lui s'il connaît sa voix, sur sa parole sinon (``voix.se_nommer``) ; qui la
-    surprend l'apprend de même. Un PNJ qui répond s'attend à être rejoint
-    (``deliberation.attendre_l_appelant``)."""
-    from .ouie import retentir, saisit
-    from .social import _qui
-    from .voix import se_nommer, connait_nom
-    reponse = f"{_qui(monde, qui)} répond : « Ici ! »"
-    _chroniquer(monde, qui, reponse, "reponse")  # Une réaction, pas un geste de son but.
-    if qui == "joueur":
-        lignes.append("Tu réponds : « Ici ! »")
-    else:
-        # Répondre, c'est s'attendre à être rejoint (``deliberation.attendre_l_appelant``).
-        from .deliberation import attendre_l_appelant
-        attendre_l_appelant(monde, qui, appelant)
-        if monde.visible(qui):
-            lignes.append(reponse)
-    # Sa réponse retentit : qui en saisit les mots reconnaît sa voix ou l'apprend de sa bouche.
-    retentir(monde, qui, "heler", texte=reponse, cites=[appelant],
-             parole={"a": [appelant], "contenu": []})
-    if connait_nom(monde, appelant, qui) and saisit(monde, qui, appelant, "heler"):
-        se_nommer(monde, appelant, qui, qui)
-    elif appelant != "joueur":
-        memoriser(monde, appelant, {"type": "appel_sans_reponse", "qui": qui,
-                                    "salle": monde.objets[appelant]["lieu"]})
 
 
 def _accessible(monde, id, objet):

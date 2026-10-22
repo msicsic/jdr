@@ -538,13 +538,22 @@ def hele(monde, intention):
     return _personnage(monde, nom)
 
 
-# Répondre à qui vient de héler Corvus par son nom (``pnj.repondre_a``) : les formes que l'analyse
-# reconnaît, en un seul endroit. « je réponds », « je lui réponds », « je réponds à Gorm », « je réponds
-# à l'appel », suivies au plus des mots d'une réponse ou d'un « fort » ; « je crie « Ici ! » » ; ou les
-# seuls mots d'une réponse entre guillemets (« « Ici ! » »).
+# Répondre à qui vient de héler Corvus par son nom, de lui demander ce qu'il veut ou de lui dire ce qu'il
+# veut (``appel``) : les formes que l'analyse reconnaît, en un seul endroit. « je réponds », « je lui
+# réponds », « je réponds à Gorm », « je réponds à l'appel », suivies au plus des mots d'une réponse ou d'un
+# « fort » ; « je crie « Ici ! » » ; les seuls mots d'une réponse entre guillemets (« « J'arrive ! » ») ou
+# tels quels (« j'arrive », « viens ici », « qu'est-ce que tu veux ? »), précédés au plus du nom de
+# l'appelant (« Gorm, j'arrive ! »). Les mots disent la sorte de la réponse : venir (``appel.ARRIVE``),
+# faire venir (``appel.VIENS`` : « Ici ! », « viens »), demander ce qu'il veut (``appel.QUOI``).
 VERBES_REPONDRE = ("reponds", "repondre")
-MOTS_REPONSE = ("je suis ici", "je suis la", "par ici", "me voici", "me voila", "c'est moi", "ici", "present",
-                "oui", "moi")
+MOTS_ARRIVE = ("j'arrive", "je viens", "j'y vais", "je te rejoins", "je vous rejoins", "j'accours", "on arrive")
+MOTS_VIENS = ("viens", "venez", "approche", "approchez", "rejoins-moi", "rejoignez-moi", "viens me voir",
+              "venez me voir", "par ici")
+MOTS_QUOI = ("qu'est-ce que tu veux", "qu'est-ce que vous voulez", "qu'est-ce que tu me veux", "que veux-tu",
+             "que voulez-vous", "que me veux-tu", "qu'y a-t-il", "qu'est-ce qu'il y a", "quoi")
+# Des mots qui disent seulement qu'on est là, ou qu'on a entendu : faire venir, sauf autre chose de dit.
+MOTS_REPONSE = ("je suis ici", "je suis la", "me voici", "me voila", "c'est moi", "ici", "present", "oui", "moi",
+                "tout de suite", "j'entends", "je t'entends")
 APPEL = ("l'appel", "cet appel", "son appel", "la voix", "cette voix")
 
 
@@ -552,33 +561,53 @@ def _mots(texte):
     return [m for m in (normaliser(j.group()) for j in JETON.finditer(texte or "")) if m not in PONCTUATION]
 
 
-def _reponse(mots):
-    """Ces mots ne disent rien d'autre qu'une réponse à un appel (« Ici ! », « Oui, je suis là ! »)."""
-    reste = " ".join(mots)
+def _reponse(mots, nus=False):
+    """La sorte de réponse à un appel que disent ces mots, et rien d'autre (« Ici ! », « Oui, j'arrive ! »,
+    « Qu'est-ce que tu veux ? ») : ``appel.ARRIVE``, ``VIENS`` ou ``QUOI`` ; None s'ils disent autre chose,
+    ou deux sortes à la fois. ``nus`` : des mots sans verbe de réponse ni guillemets, qui doivent dire
+    une sorte (« ici » seul n'en dit pas)."""
+    from .appel import ARRIVE, QUOI, VIENS
+    formes = [(f, s) for s, liste_ in ((ARRIVE, MOTS_ARRIVE), (VIENS, MOTS_VIENS), (QUOI, MOTS_QUOI), (None, MOTS_REPONSE))
+              for f in liste_]
+    formes.sort(key=lambda x: -len(x[0]))
+    reste, sortes = " ".join(mots), set()
     while reste:
-        tete = next((r for r in MOTS_REPONSE if reste == r or reste.startswith(r + " ")), None)
+        tete = next(((f, s) for f, s in formes if reste == f or reste.startswith(f + " ")), None)
         if tete is None:
-            return False
-        reste = reste[len(tete):].strip()
-    return bool(mots)
+            return None
+        if tete[1]:
+            sortes.add(tete[1])
+        reste = reste[len(tete[0]):].strip()
+    if not mots or len(sortes) > 1 or nus and not sortes:
+        return None
+    return sortes.pop() if sortes else VIENS
 
 
-def repond(monde, intention):
-    """Celui à qui la saisie répond, juste après qu'il a hélé Corvus par son nom
-    (``ecoute.appels``) ; None si personne ne vient de l'appeler ou si la saisie n'est pas une
-    réponse (une parole qui dit autre chose, une autre suite, va au MJ ou à l'analyse des paroles)."""
+def reponse_a_l_appel(monde, intention):
+    """(celui à qui la saisie répond, la sorte de sa réponse) juste après qu'il a hélé Corvus par son nom,
+    lui a demandé ce qu'il veut ou lui a dit ce qu'il veut (``ecoute.appels``) ; None si personne n'attend
+    de réponse ou si la saisie n'en est pas une (une parole qui dit autre chose, une autre suite, va au
+    MJ ou à l'analyse des paroles)."""
     from .ecoute import appels
     from .voix import reel
     appelants = appels(monde)
     texte = (intention or "").strip()
     if not appelants or not texte:
         return None
+    vise = appelants[0]
+    tete, virgule, suite = texte.partition(",")
+    if virgule and (_personnage(monde, tete) or reel(monde, normaliser(tete))) in appelants and suite.strip():
+        # « Gorm, j'arrive ! » : le nom de l'appelant, puis la réponse.
+        vise, texte = _personnage(monde, tete) or reel(monde, normaliser(tete)), suite.strip()
     cite = citation(texte)
     if texte[0] in GUILLEMETS:
         # Les seuls mots d'une réponse, entre guillemets.
         fin = max(texte.rfind(c) for c in "»\"”")
-        return appelants[0] if (cite is not None and fin > 0 and not texte[fin + 1:].strip(" .!?")
-                                and _reponse(_mots(cite))) else None
+        sorte = _reponse(_mots(cite)) if cite is not None and fin > 0 and not texte[fin + 1:].strip(" .!?") else None
+        return (vise, sorte) if sorte else None
+    sorte = _reponse(_mots(texte), nus=True)
+    if sorte and cite is None:
+        return vise, sorte   # Les mots d'une réponse, tels quels : « j'arrive », « viens ici ».
     mots = _mots(texte[:texte.find(cite)] if cite is not None else texte)
     if mots[:1] == ["je"]:
         mots = mots[1:]
@@ -593,21 +622,31 @@ def repond(monde, intention):
         if reste == f or reste.endswith(" " + f):
             reste = reste[:-len(f)].strip()
             break
-    if cite is not None and not _reponse(_mots(cite)):
-        return None  # D'autres mots qu'une réponse : une parole.
-    if cite is None and reste and _reponse(reste.split()):
-        reste = ""  # « je réponds : ici », « je crie ici »
-    elif cite is None and verbe in VERBES_HELER:
+    from .appel import VIENS
+    sorte = VIENS
+    if cite is not None:
+        sorte = _reponse(_mots(cite))
+        if sorte is None:
+            return None  # D'autres mots qu'une réponse : une parole.
+    elif reste and _reponse(reste.split()):
+        sorte, reste = _reponse(reste.split()), ""  # « je réponds : ici », « je crie j'arrive »
+    elif verbe in VERBES_HELER:
         return None  # Un cri sans les mots d'une réponse, ou un appel (``hele``).
     if not reste:
-        return appelants[0]
+        return vise, sorte
     prep, _, nom = reste.partition(" ")
     if prep not in PREPOSITIONS or not nom:
         return None
     if nom in APPEL:
-        return appelants[0]
+        return vise, sorte
     vise = _personnage(monde, nom) or reel(monde, nom)
-    return vise if vise in appelants else None
+    return (vise, sorte) if vise in appelants else None
+
+
+def repond(monde, intention):
+    """Celui à qui la saisie répond (``reponse_a_l_appel``), ou None."""
+    r = reponse_a_l_appel(monde, intention)
+    return r[0] if r else None
 
 
 def _nom_court(monde, id):

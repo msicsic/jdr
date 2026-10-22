@@ -15,7 +15,7 @@ Chaque cas vérifie l'état après rechargement, et ce que lit le joueur ou ce q
 import json
 import unittest
 
-from donjon.deliberation import attendre_l_appelant
+from donjon.appel import attendre as attendre_venue
 from donjon.esprits import connaitre, croire, lire, percevoir_tous, percoit
 from donjon.narration import voix_inconnues
 from donjon.paroles import esprits_interlocuteurs
@@ -83,7 +83,7 @@ class NomRetenuTests(unittest.TestCase):
 
     def test_voir_appeler_corvus_par_son_nom(self):
         """Ilse voit Corvus ; une voix qu'elle ne connaît pas (Gorm, dans l'ombre) l'appelle « Corvus ? »
-        et il répond « Ici ! » : elle sait désormais son nom."""
+        et il répond « Ici, viens ! » : elle sait désormais son nom."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.joueur.update(salle="antichambre", position=[1, 1], orientation="est")
         placer(m, "ilse", "antichambre", (4, 1))
@@ -98,7 +98,7 @@ class NomRetenuTests(unittest.TestCase):
         m = recharger(m)
         reprise, sortie, appels = jouer(m, "je réponds", [])
         self.assertEqual(appels, [])
-        self.assertIn("Corvus répond : « Ici ! »", chronique(reprise))
+        self.assertIn("Corvus répond : « Ici, viens ! »", chronique(reprise))
         self.assertIn("joueur", lire(reprise, "ilse")["noms"])
         self.assertTrue(connait_nom(reprise, "ilse", "joueur"))
 
@@ -217,7 +217,7 @@ class VersLAppelantTests(unittest.TestCase):
         self.assertEqual(lire(m, "marchand")["croyances"]["joueur"]["lieu"]["source"], "vu")
         # Il l'a vu crier son nom : il connaît sa voix, et sait que c'est lui.
         self.assertIn("joueur", lire(m, "marchand")["voix"])
-        self.assertIn("répondre : « Ici ! »", texte)
+        self.assertIn("répondre : « Qu'est-ce que tu veux ? »", texte)  # Libre, il demande (``appel``).
 
     def test_hors_de_vue_du_passage_rien_de_plus(self):
         """L'appelant qu'il ne verrait pas en se tournant (hors de l'axe du passage) : la règle d'avant,
@@ -240,7 +240,7 @@ class VersLAppelantTests(unittest.TestCase):
         placer(m, "aubin", "antichambre", (6, 3))
         m.objets["aubin"]["orientation"] = "ouest"
         percevoir_tous(m)
-        attendre_l_appelant(m, "marchand", "aubin")
+        attendre_venue(m, "marchand", "aubin", vient=False)
         croire(m, "aubin", "marchand", "lieu", "echoppe", "entendu", salle="echoppe", case=None)
         lire(m, "aubin")["besoins"]["faim"] = 90.0
         return m
@@ -251,12 +251,12 @@ class VersLAppelantTests(unittest.TestCase):
         bruit. Le même laps, d'un bloc ou découpé et rechargé, donne le même monde."""
         m, _ = attendre(recharger(self.attend_aubin()))
         textes = chronique(m)
-        tourne = textes.index("Gorm, gardien du relais se tourne vers Aubin, qui l'avait hélé.")
-        self.assertLess(tourne, textes.index("Gorm retrouve Aubin, qui l'avait hélé."))
+        tourne = textes.index("Gorm, gardien du relais se tourne vers Aubin, qui arrive comme convenu.")
+        self.assertLess(tourne, textes.index("Gorm retrouve Aubin, comme convenu."))
         self.assertLess(tourne, textes.index("Aubin, vieux passeur passe dans : Conduite basse."))
         # Jusqu'aux retrouvailles (ensuite, il le sert et marche devant lui : ses pas peuvent le faire
         # se retourner, ce qui est une autre affaire).
-        avant = textes[:textes.index("Gorm retrouve Aubin, qui l'avait hélé.")]
+        avant = textes[:textes.index("Gorm retrouve Aubin, comme convenu.")]
         self.assertNotIn("Gorm, gardien du relais se retourne au bruit.", avant)
         d_un_bloc, morcele = decouper(self.attend_aubin, 2)
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
