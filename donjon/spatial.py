@@ -674,7 +674,8 @@ def _memo_vue(m):
     if memo is None:
         if len(etats) >= ETATS_GARDES:
             del etats[next(iter(etats))]
-        memo = etats[etat] = {}
+        # L'empreinte elle-même : ce qui a changé d'un état à l'autre (``esprits._percus_depuis``).
+        memo = etats[etat] = {"etat": etat}
     return memo
 
 
