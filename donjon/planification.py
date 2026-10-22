@@ -476,7 +476,13 @@ class Vue:
 
     def flammes_d_autrui(self, e):
         """(porteur, flamme) : les flammes qu'il croit aux mains d'un autre qui se tient là où il
-        est (un outil d'allumage, ou une source portable qu'il croit allumée)."""
+        est (un outil d'allumage, ou une source portable qu'il croit allumée). Lues une fois par état."""
+        cle = ("flammes_d_autrui", e)
+        if cle not in self._crus:
+            self._crus[cle] = self._flammes_d_autrui(e)
+        return self._crus[cle]
+
+    def _flammes_d_autrui(self, e):
         trouvees = []
         for k in self.flammes_portables:
             autre = self.lieu(e, k)
@@ -492,9 +498,12 @@ class Vue:
 
     def flammes_fixes(self, e):
         """Les sources fixes qu'il croit allumées dans la salle où il se tient : il y porte ce
-        qu'il veut allumer."""
-        return [k for k in self.connus if "allume" in self.objets[k] and not self.objets[k].get("mobile")
-                and self.salle(e, k) == e.salle and self.feu(e, k)[0]]
+        qu'il veut allumer. Lues une fois par état."""
+        cle = ("flammes_fixes", e)
+        if cle not in self._crus:
+            self._crus[cle] = [k for k in self.connus if "allume" in self.objets[k] and not self.objets[k].get("mobile")
+                               and self.salle(e, k) == e.salle and self.feu(e, k)[0]]
+        return self._crus[cle]
 
     def foyer_froid(self):
         """Le feu qu'une part de bois servirait : le premier foyer qu'il croit éteint."""
@@ -1296,7 +1305,9 @@ def _suites(v, e, vises, but):
                           or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
             continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
         duree = geste[4] if len(geste) > 4 else minutes
-        if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
+        # Les faits de ``suivant`` comprennent ceux de ``e`` : un fait nouveau en fait plus.
+        if (len(suivant.faits) > len(e.faits) and any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits)
+                and not but(v, suivant)):
             continue
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
                        v.pression(suivant) if duree else 0))
