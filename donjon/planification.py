@@ -126,10 +126,14 @@ class Vue:
         self.connus = _connus(monde, id)
         # Toucher au bien d'autrui, hors ce qu'un prêt ou une garde permettent ; le consommer (le
         # manger, en servir une part), que rien ne permet.
+        # (``deliberation.illicite`` sans opération, avec « manger », avec « frapper » : ``biens.leses``.)
+        from .biens import leses
         confies = {}
-        self.illicite = {o: illicite(monde, id, o, confies=confies) for o in self.connus}
-        self.consomme_illicite = {o: illicite(monde, id, o, "manger", confies) for o in self.connus}
-        self.brise_illicite = {o: illicite(monde, id, o, "frapper", confies) for o in self.connus}
+        self.illicite, self.consomme_illicite, self.brise_illicite = {}, {}, {}
+        for o in self.connus:
+            prendre, consommer, abimer = leses(monde, o, id, confies)
+            self.illicite[o], self.consomme_illicite[o], self.brise_illicite[o] = (
+                prendre is not None, consommer is not None, abimer is not None)
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None

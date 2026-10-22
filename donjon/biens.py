@@ -143,6 +143,17 @@ def a_autrui(monde, objet, id="joueur", operation=None, confies=None):
     return None if permis(monde, id, objet, operation, confies) else de
 
 
+def leses(monde, objet, id, confies=None):
+    """(prendre, consommer, abîmer) : le propriétaire que lèse chacun de ces gestes d'``id`` sur
+    ``objet``, ou None — ``a_autrui`` sans opération, avec « manger », avec « frapper », jugés en
+    une fois : rien ne permet de consommer ni d'abîmer le bien d'autrui (``permis``)."""
+    o = monde.objets[objet]
+    de = proprietaire(monde, objet)
+    if de in (None, id) or id == "joueur" and o.get("vole_par") == "joueur":
+        return None, None, None
+    return (None if permis(monde, id, objet, None, confies) else de), de, de
+
+
 # --- Argent -------------------------------------------------------------------------------
 
 def bourse(monde, id):
