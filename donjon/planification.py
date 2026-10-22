@@ -158,8 +158,9 @@ class Vue:
         # L'eau qu'il croit ou attend dans chaque salle (``eau.attendue``) : ce qu'elle lui coûte par
         # minute (``pression``), les salles où un but qui se tient en restant ne se tient pas
         # (``menacees``), celles où il ne descend pas (``descente``).
-        self.eau, self.menacees, self.noyees = {}, frozenset(), frozenset()
+        self.eau, self.menacees, self.noyees, self.monte = {}, frozenset(), frozenset(), False
         if eau.active(monde):
+            self.monte = eau.monte(monde, id)
             attendues = {s: eau.attendue(monde, id, s) for s in self.salles}
             self.menacees = frozenset(s for s, cm in attendues.items() if cm > 0)
             self.noyees = frozenset(s for s, cm in attendues.items() if cm >= eau.NOYEE_CM)
@@ -552,17 +553,32 @@ class Vue:
         return pressions[e]
 
     def descente(self, ici, salle):
-        """Aller d'``ici`` à ``salle``, c'est descendre dans la crue : il y attend l'eau, plus qu'ici
-        (elle monte par le bas), et il l'y attend noyée, ou son retour coupé par une salle qu'il attend
-        noyée. Il n'y va pas ; aller vers moins d'eau, ou vers un lieu qu'elle ne menace pas, reste
-        permis, même en traversant l'eau."""
-        if salle not in self.menacees:
+        """Aller d'``ici`` à ``salle``, c'est descendre dans la crue : là-bas il attend plus d'eau qu'ici
+        (il l'y attend et pas ici ; ou il l'a vue monter, et elle monte par le bas : plus bas, c'est
+        plus d'eau à venir), et il l'y attend noyée, ou son retour coupé par une salle qu'il attend
+        noyée (il s'enfermerait du côté de la crue). Tant qu'il la voit monter, il ne quitte pas non
+        plus un lieu relié au plus haut pour un lieu que l'eau attendue en coupera (``piege``), même en
+        plusieurs fois. Il n'y va pas ; monter, aller vers moins d'eau ou vers un lieu d'où il pourra
+        revenir reste permis, même en traversant l'eau."""
+        if not self.menacees:
             return False
         cle = (ici, salle)
         if cle not in self._descentes:
             from .spatial import altitude
-            plus = ici not in self.menacees or altitude(self.monde, salle) < altitude(self.monde, ici)
-            self._descentes[cle] = plus and (salle in self.noyees or not self._retour(salle, ici))
+            plus = (salle in self.menacees and ici not in self.menacees
+                    or (salle in self.menacees or self.monte) and altitude(self.monde, salle) < altitude(self.monde, ici))
+            self._descentes[cle] = (plus and (salle in self.noyees or not self._retour(salle, ici))
+                                    or self.monte and self.piege(salle) and not self.piege(ici))
+        return self._descentes[cle]
+
+    def piege(self, salle):
+        """L'eau monte : il attend ce lieu noyé, ou coupé du plus haut (une salle qu'il attend noyée entre
+        eux). Elle monte par le bas : le plus haut est le dernier qu'elle gagne."""
+        cle = ("piege", salle)
+        if cle not in self._descentes:
+            from .spatial import altitude
+            sommet = max(self.salles_triees, key=lambda s: altitude(self.monde, s))
+            self._descentes[cle] = salle in self.noyees or salle != sommet and not self._retour(salle, sommet)
         return self._descentes[cle]
 
     def _retour(self, depuis, vers):
@@ -996,7 +1012,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
-        sorted(v.menacees), sorted(v.noyees)], ensure_ascii=False)
+        sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,

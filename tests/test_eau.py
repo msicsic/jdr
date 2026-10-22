@@ -246,7 +246,9 @@ class PnjTests(unittest.TestCase):
         # Elle a vu l'eau monter dans la conduite, à sa vitesse vraie, et fui vers le plus haut lieu sec.
         self.assertEqual(eau.estimation(m, "ilse")[2], 60)
         self.assertEqual(m.objets["ilse"]["lieu"], "chambre_cloche")
-        self.assertEqual(e["intention"]["but"], {"type": "abri", "lieu": "chambre_cloche"})
+        # Rassurée, elle y reste : sa ronde au refuge la couperait de la galerie (la conduite, qu'elle
+        # attend noyée dans l'heure, est entre eux), elle ne l'entreprend pas (branche ``verifier-eau``).
+        self.assertIn((e["intention"] or {}).get("but"), (None, {"type": "abri", "lieu": "chambre_cloche"}))
         self.assertGreater(m.objets["ilse"]["corps"]["trempe"], 0)   # Passée par l'eau.
         # Au refuge, ceux qui ne l'ont pas vue monter assez longtemps y restent.
         self.assertEqual(m.objets["brune"]["lieu"], "antichambre")

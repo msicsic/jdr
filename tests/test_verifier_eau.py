@@ -20,7 +20,7 @@ from donjon.geometrie import position_entree
 from donjon.planification import Vue, depart, diagnostics, planifier, planifier_pulsion
 from tests.support import calme
 from tests.test_eau import FIXES, attendre, crue
-from tests import test_lumiere_garde as lumiere_garde
+from tests import test_lumiere as lumiere, test_lumiere_garde as lumiere_garde
 from tests.test_tensions import placer, recharger, vivre
 
 
@@ -39,20 +39,24 @@ def par_blocs(m, jusqu_a, bloc):
 
 
 class VerifierTests(unittest.TestCase):
-    def test_lucien_cherche_hugues_pour_la_lumiere_et_la_reference_le_trouve_aussi(self):
-        # Cas réel (auberge 1985, minute 450) : dans le noir, Lucien va chercher Hugues, qui porte
-        # une lanterne ; la référence de ``VERIFIER`` (sans ``emplois``) ne l'offrait pas et
-        # n'avait pas de plan, ou un plus cher.
-        m = recharger(nuit("auberge", 1985, "dortoir"))
-        executer(m, 440)
-        m = recharger(m)
+    def test_lucien_cherche_josse_pour_la_lumiere_et_la_reference_le_trouve_aussi(self):
+        # Cas réel (``test_lumiere``, la mine noire, révélé à la fusion de ``ouie-temoins``) : dans le
+        # noir, Lucien va chercher Josse, qui porte une lampe, et l'appelle ; la référence de
+        # ``VERIFIER`` (sans ``emplois``) n'offrait pas ce geste et ne trouvait aucun plan.
+        m = lumiere.avec_briquet(lumiere.mine_noire())
+        m.objets["lampe_remy"].update(allume=False, combustible=0)
+        for id in ("remy", "lucien", "bram"):
+            lire(m, id)["besoins"]["securite"] = 70.0
+        cherche = False
         with patch.object(planification, "VERIFIER", True), diagnostics() as recherches:
-            executer(m, 456)
-        m = recharger(m)
-        lumiere = [r for r in recherches if r["pnj"] == "lucien" and r["but"] == "lumiere"]
-        self.assertTrue(any(r["issue"] == "plan" for r in lumiere))
-        self.assertTrue(any(c["minute"] >= 440 and c["pnj"] == "lucien" and "Hugues" in c["texte"]
-                            for c in m.data["chronique"]))
+            for _ in range(15):
+                m, _ = vivre(m, 1)
+                i = lire(m, "lucien")["intention"]
+                cherche = cherche or bool(i and i["but"]["type"] == "lumiere" and any(
+                    (x.get("contenu") or {}).get("cherche") == "josse" for x in i["plan"]))
+        self.assertTrue(cherche)
+        self.assertTrue(any(r["pnj"] == "lucien" and r["but"] == "lumiere" for r in recherches))
+        self.assertIn("Lucien appelle : « Josse ? »", [c["texte"] for c in m.data["chronique"]])
 
     def test_remy_cherche_gaspard_et_le_controle_passe(self):
         # Même nature (mine, le camp éteint) : Rémy va chercher Gaspard, qui a le briquet, l'appelle et
