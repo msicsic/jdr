@@ -77,6 +77,13 @@ def nette(bruit, niveau):
     return bruit["nature"] in VOCALES and niveau >= ENTENDU
 
 
+def eveille(bruit, niveau):
+    """Ce qui tire le joueur d'une attente (``Moteur._attendre``) : un appel, un cri, un fracas, ou
+    une parole dont il saisit les mots. Des pas, un geste ordinaire, des voix dont les mots lui
+    échappent sont le bruit de fond d'un lieu habité."""
+    return bruit["nature"] in ("hele", "appel", "bruyant") or bool(nette(bruit, niveau) and MOTS.search(bruit["texte"]))
+
+
 def reconnue(monde, bruit, niveau):
     """Une parole nette, d'une voix que le joueur reconnaît (``voix.reconnaitre``)."""
     from .voix import RECONNUE, reconnaitre
@@ -227,12 +234,15 @@ def retenir(monde, entendus_):
     répondre, même sans les voir (``dialogues.interlocuteurs``). Une voix qu'il reconnaît lui dit
     qui est là ; une voix inconnue, il la retient sans savoir à qui elle est (``voix.retenir``).
     Des pas, un bruit, une voix trop faible ne lui disent rien de plus."""
+    from .temps import MINUTE
     from .voix import RECONNUE, reconnaitre, retenir as retenir_voix
     retenus = monde.data.setdefault("entendus", [])
     for b, niveau, _ in entendus_:
         if not nette(b, niveau) or b["auteur"] not in monde.objets:
             continue
         if reconnaitre(monde, "joueur", b["auteur"])[1] != RECONNUE:
-            retenir_voix(monde, "joueur", b["auteur"])
+            # À la minute où il l'a entendue, pas à la fin de son geste : d'un bloc ou par tranches,
+            # le même souvenir.
+            retenir_voix(monde, "joueur", b["auteur"], b["instant"] // MINUTE)
         if b["auteur"] not in retenus:
             retenus.append(b["auteur"])

@@ -458,6 +458,32 @@ crue et au Relais, quelques minutes de plans possibles non entrepris pendant un 
   imposée sans motif, que le premier événement remplace ; scènes qui supposaient une minute d'inertie) ;
   chacun dit pourquoi.
 
+## Correctif : attendre une durée (branche `attente`)
+
+Demande de l'utilisateur : une touche pour faire attendre son personnage, sans conflit avec la barre
+de saisie, et des attentes choisies qui s'interrompent d'elles-mêmes.
+
+- `attendre <durée>` (`commandes.attente`) : une durée en secondes dans la cible ; le plan dure ce
+  temps (`temps.lire_duree`, au plus `ATTENTE_MAX`, douze heures ; refus avec `attendu` sinon).
+  « attendre » seul vaut `attendre 5 min`, interruptible ; la proposition à cible vide reste le bloc
+  de cinq minutes du MJ, du banc et des tests.
+- `Moteur._attendre` vit l'attente par tranches de 15 s (`TRANCHE`) dans une seule copie du monde,
+  un seul bilan des présences et une seule entrée de journal ; il s'arrête à la fin de la tranche où
+  le joueur a vu quelqu'un paraître (le suivi des présences, même un instant) ou entendu ce qui
+  `eveille` : appel, cri, fracas, paroles dont il saisit les mots.
+- Le même laps d'un bloc ou par tranches donne le même monde (`tests/test_attente.py`). Deux écarts
+  trouvés et corrigés à la source : le corps du joueur vit minute par minute comme celui des PNJ
+  (`corps.vivre_joueur` ; l'arrondi d'un bloc de cinq minutes différait de 0,002) ; une voix
+  inconnue est retenue à la minute où elle a été entendue (`voix.retenir`, `minute`), non à la fin du
+  geste.
+- Espace sur une saisie vide : la page (`keydown`, sauf sur un bouton ou une case à cocher) et le
+  terminal (`tui.Saisie` cède Espace quand elle est vide, liaison `attendre_instant`) envoient
+  `attendre 1,5 s`. Le résultat d'un tel instant ne s'imprime que s'il y a autre chose à dire, comme
+  un pas.
+- Limites : l'interruption se juge à la tranche (15 s au plus de retard) ; une parole adressée au
+  joueur n'est pas distinguée d'une autre parole nette ; le MJ qui propose « attendre » sans durée
+  attend un bloc.
+
 ## Hors périmètre
 
 Assommer, tuer, ligoter, l'affrontement (étape « corps et force » de `docs/plan-social.md`) ;

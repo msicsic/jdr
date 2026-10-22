@@ -197,6 +197,24 @@ class ClicTests(unittest.TestCase):
             self.assertEqual(essai.joueur["position"], [6 + decalage[0], 4 + decalage[1]], touche)
             self.assertEqual(essai.joueur["orientation"], regard, touche)
 
+    def test_espace_attend_un_instant_si_la_saisie_est_vide(self):
+        e = self.clic["espace"]
+        # Saisie vide ou carte : la commande d'un instant d'attente, sans espace écrite.
+        for focus in ("saisie_vide", "carte"):
+            self.assertEqual(e[focus], {"envoi": "attendre 1,5 s", "empeche": True}, focus)
+        # Saisie commencée, ou un bouton : Espace garde son rôle.
+        for focus in ("saisie_ecrite", "bouton"):
+            self.assertEqual(e[focus], {"envoi": None, "empeche": False}, focus)
+        # La commande envoyée fait passer le temps d'un pas, et le monde rechargé le garde.
+        from donjon.temps import instant
+        essai = Monde(copy.deepcopy(self.monde.data))
+        debut = instant(essai)
+        jouer(essai, [e["carte"]["envoi"]])
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            essai.sauver(Path(dossier) / "f.json")
+            essai = Monde.charger(Path(dossier) / "f.json")
+        self.assertEqual(instant(essai) - debut, 15)
+
     def test_la_marche_par_clic_arrive_et_se_recharge(self):
         m = self.monde
         self.assertNotEqual(self.clic["chemin"], [])

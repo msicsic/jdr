@@ -1106,6 +1106,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
   l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
   (un « peu fiable » redit à quatre heures d'écart).
+- Branche `attente`, non fusionnée (`docs/plan-temps.md`, « Correctif : attendre une durée » ; demande de
+  l'utilisateur) : `attendre 30 s`, `attendre 10 min`, `attendre 1 h 30` sans Luna (« attendre » seul,
+  cinq minutes) ; Espace sur une saisie vide fait attendre 1,5 s, dans la page et le terminal (une saisie
+  commencée garde son espace). L'attente passe par tranches de 15 s (`Moteur._attendre`) et cesse quand
+  le joueur voit paraître quelqu'un, même un instant, ou entend un appel, un cri, un fracas, des paroles
+  dont il saisit les mots (`ecoute.eveille`). Même monde d'un bloc ou par tranches : le corps du joueur
+  vit minute par minute comme les PNJ, une voix inconnue est retenue à la minute entendue. La proposition
+  à cible vide (MJ, banc, tests) reste le bloc de cinq minutes ; le MJ peut donner une durée en secondes.
+  Cas vérifiés après rechargement (`tests/test_attente.py`, `test_tui`, `test_web`) : Gorm qui entre au
+  refuge, Aubin aperçu, un appel entendu de la galerie. Limites : l'arrêt se juge à la tranche ; une
+  parole adressée au joueur n'est pas distinguée d'une autre.
 - La suite de tests passe : 1249 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente

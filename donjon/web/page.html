@@ -96,7 +96,7 @@
       <button class="principal" id="tenter">Lancer la tentative</button> <button id="annuler">Tout annuler</button></div>
     <div id="saisie"><input id="commande" autocomplete="off" placeholder="Que fais-tu ?"><button id="envoyer">Envoyer</button></div>
     <div class="aide">Clic sur la carte : y aller, ou un geste sur ce qui s'y trouve (Échap arrête la marche) · Flèches (saisie vide) : ↑ avancer, ↓ reculer, ←/→ tourner de 45° ·
-      Maj+←/→ : pas de côté · Alt+↑ : pas feutré · « tourner est », « demi-tour » · Haut/Bas dans une saisie : historique · « aide » : commandes</div>
+      Maj+←/→ : pas de côté · Alt+↑ : pas feutré · Espace (saisie vide) : attendre un instant · « attendre 10 min » · « tourner est », « demi-tour » · Haut/Bas dans une saisie : historique · « aide » : commandes</div>
   </section>
 </main>
 <div id="infobulle"></div>
@@ -370,6 +370,11 @@ document.addEventListener("keydown", ev => {
   const saisie = $("commande"), dansSaisie = document.activeElement === saisie;
   if (ev.key === "Escape") { arreter(marche ? "Tu t'arrêtes." : null); fermerMenu(); return; }
   if (dansSaisie && ev.key === "Enter") { arreter(null); envoyer(saisie.value); saisie.value = ""; ev.preventDefault(); return; }
+  // Espace, saisie vide : attendre le temps d'un pas (un bouton ou une case à cocher garde son Espace).
+  const champ = document.activeElement && document.activeElement.tagName;
+  if (ev.key === " " && (dansSaisie ? !saisie.value : !["BUTTON", "INPUT", "SELECT", "TEXTAREA"].includes(champ))) {
+    ev.preventDefault(); envoyer("attendre 1,5 s", false); return;
+  }
   const dir = FLECHES[ev.key];
   if (!dir) return;
   // Haut/Bas dans une saisie non vide : l'historique, comme au terminal.

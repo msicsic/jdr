@@ -146,6 +146,13 @@ class PontTerminal:
             return False
 
 
+class Saisie(Input):
+    """La saisie des commandes : vide, elle laisse Espace à l'application (attendre un instant)."""
+
+    def check_consume_key(self, key, character):
+        return (bool(self.value) or key != "space") and super().check_consume_key(key, character)
+
+
 class SeuilApp(App[int]):
     TITLE = "LE SEUIL"
     CSS_PATH = "tui.tcss"
@@ -159,6 +166,8 @@ class SeuilApp(App[int]):
         Binding("f6", "focus_carte", "Déplacement carte"),
         Binding("ctrl+s", "sauver", "Sauver", priority=True),
         Binding("ctrl+q", "quitter", "Quitter", priority=True),
+        # Saisie vide : Espace fait attendre le temps d'un pas ; sinon c'est une espace.
+        Binding("space", "attendre_instant", "Attendre", show=False, priority=True),
         Binding("ctrl+c", "copier_selection", "Copier", show=False, priority=True),
     ]
 
@@ -220,7 +229,7 @@ class SeuilApp(App[int]):
                 yield Button("Lancer la tentative", variant="primary", id="tenter")
                 yield Button("Tout annuler", id="annuler")
         yield Static("Chargement de la partie…", id="statut", markup=False)
-        yield Input(placeholder="Corvus > Que fais-tu ?", id="commande", disabled=True)
+        yield Saisie(placeholder="Corvus > Que fais-tu ?", id="commande", disabled=True)
         yield Footer()
 
     def on_mount(self):
@@ -459,6 +468,16 @@ class SeuilApp(App[int]):
         saisie.value = texte
         saisie.cursor_position = min(curseur, len(texte))
         self.saisie_a_restaurer = None
+
+    def check_action(self, action, parameters):
+        if action == "attendre_instant":
+            saisies = self.query("#commande")
+            return bool(saisies) and not self.occupe and (
+                self.focus_carte or self.focused is saisies.first() and not saisies.first().value)
+        return True
+
+    def action_attendre_instant(self):
+        self.soumettre("attendre 1,5 s", enregistrer_historique=False)
 
     def action_marcher_nord(self): self._marcher("nord")
     def action_marcher_sud(self): self._marcher("sud")

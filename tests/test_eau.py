@@ -98,7 +98,12 @@ class TirageTests(unittest.TestCase):
             reprise = Monde.charger(chemin)
         self.assertTrue(reprise.data["mode_cases"])
         self.assertEqual(reprise.data["crue"]["tirage"], nouvelle_crue(42, "fixe").data["crue"]["tirage"])
-        self.assertEqual(reprise.data["minutes"], 5)
+        # « attendre » : cinq minutes, sauf si quelqu'un paraît (``Moteur._attendre``) ; la sauvegarde
+        # garde le temps que le joueur a lu.
+        from donjon.temps import instant
+        from tests.test_attente import annonce
+        lu = next(l for l in sortie.getvalue().splitlines() if l.startswith(("Tu attends ", "Au bout de ")))
+        self.assertEqual(instant(reprise), annonce(lu))
         self.assertEqual(creer("crue", 42, "fixe").data["crue"]["tirage"], reprise.data["crue"]["tirage"])
 
     def test_le_relais_n_a_pas_de_crue(self):

@@ -20,6 +20,7 @@ from donjon.commandes import repondre as repondre_appel
 from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.rendu import carte, fiche, regarder, decrire_accords
+from donjon.temps import PAS_JOUEUR, dire_duree
 
 
 BASE = Path(__file__).resolve().parent
@@ -468,13 +469,16 @@ def main(argv=None, interface=None):
                     plan = moteur.preparer(p)
                     resultat = moteur.executer(plan)
                     mouvement = m.data.get("mode_cases") and p["action"] in ("marcher", "aller")
-                    if not mouvement:
+                    # Un instant d'attente (la touche Espace, le temps d'un pas) se tait comme un pas.
+                    instant = p["action"] == "attendre" and p["cible"] and plan.dixiemes <= PAS_JOUEUR
+                    if not (mouvement or instant):
                         m.memoriser(texte, resultat, "resultat_moteur")
                     m.sauver(args.save)
-                    if not mouvement or interface is None:
+                    if not (mouvement or instant) or interface is None:
                         imprimer(resultat)
                     else:
-                        evenements = [ligne for ligne in resultat.splitlines() if ligne != "Tu avances d'un pas."]
+                        silencieux = ("Tu avances d'un pas.", "Tu attends " + dire_duree(plan.dixiemes or 0) + ".")
+                        evenements = [ligne for ligne in resultat.splitlines() if ligne not in silencieux]
                         if evenements:
                             imprimer("\n".join(evenements))
                     if p["action"] == "aller" and not mouvement:

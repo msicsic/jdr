@@ -22,6 +22,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
            "ecouter", "pousser",
            "clarifier", "impossible"]
+TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
 
 
@@ -275,8 +276,20 @@ class Moteur:
             plan.titre, plan.minutes, plan.effort = "Tendre l'oreille quelques minutes.", 3, False
             return plan
         if action == "attendre":
-            plan.titre, plan.minutes, plan.effort = "Attendre cinq minutes.", 5, False
-            plan.effets = [("calmer", "", 3)]
+            if not cible:
+                plan.titre, plan.minutes, plan.effort = "Attendre cinq minutes.", 5, False
+                plan.effets = [("calmer", "", 3)]
+                return plan
+            # Une durée donnée, en secondes : l'attente se fait par tranches et cesse dès que
+            # quelque chose réclame l'attention du joueur (``_attendre``).
+            from .temps import ATTENTE_MAX, MINUTE, dire_duree, lire_duree
+            dixiemes = lire_duree(cible)
+            if dixiemes is None or outil or p["methode"] != "simple" or p["difficulte"]:
+                raise ErreurMonde("Dis combien de temps attendre : « attendre 30 s », « attendre 10 min ».",
+                                  f"attendre : cible vide (cinq minutes) ou une durée en secondes, de 0.1 à "
+                                  f"{ATTENTE_MAX // 10} (reçu « {cible} ») ; outil vide, methode simple, difficulte 0.")
+            plan.titre, plan.effort = "Attendre " + dire_duree(dixiemes) + ".", False
+            plan.minutes, plan.dixiemes = dixiemes // MINUTE, dixiemes
             return plan
         if action == "aller":
             sorties = m.data["salles"][m.joueur["salle"]]["sorties"]
@@ -600,7 +613,10 @@ class Moteur:
             lignes.append("La tentative n'aboutit pas.")
         elif plan.information:
             lignes.append(plan.information)
-        self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
+        if plan.proposition["action"] == "attendre" and plan.proposition["cible"]:
+            self._attendre(travail, plan, lignes)
+        else:
+            self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
         self._clore_bilan(travail, lignes)
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
@@ -739,6 +755,41 @@ class Moteur:
         if plan.cle_arbitrage:
             travail.data["arbitrages"][plan.cle_arbitrage] = {
                 "dd": plan.dd, "justification": "", "origine": plan.origine}
+        return parvenus
+
+    @classmethod
+    def _attendre(cls, travail, plan, lignes):
+        """Attendre une durée donnée, par tranches de ``TRANCHE`` au plus : le même laps, d'un bloc
+        ou découpé, donne le même monde (``temps``). Le joueur cesse d'attendre à la fin de la
+        tranche où il a vu, même un instant, quelqu'un qu'il ne voyait pas, ou entendu ce qui
+        réclame son attention (``ecoute.eveille`` : un appel, un cri, un fracas, des paroles dont
+        il saisit les mots). Le bruit qu'il avait fait retombe à la mesure du temps attendu."""
+        from copy import copy
+        from .ecoute import eveille
+        from .esprits import pnjs
+        from .temps import MINUTE, dire_duree, duree
+        total, ecoule, entendu = duree(plan), 0, []
+        vus = {id for id in pnjs(travail) if travail.visible(id)}
+        while ecoule < total:
+            tranche = copy(plan)
+            tranche.minutes, tranche.dixiemes = 0, min(TRANCHE, total - ecoule)
+            # Le bruit retombe avant que les PNJ en jugent, comme d'un bloc : trois crans par cinq minutes.
+            calme = 3 * (ecoule + tranche.dixiemes) // (5 * MINUTE) - 3 * ecoule // (5 * MINUTE)
+            travail.data["bruit"] = max(0, travail.data["bruit"] - calme)
+            recit = []
+            parvenus = cls._terminer_etape(travail, tranche, recit, (), "attendre", "simple")
+            # Le même bruit d'une tranche à l'autre (des pas qui vont et viennent) se dit une fois.
+            entendu.extend(ligne for ligne in recit if ligne not in entendu)
+            ecoule += tranche.dixiemes
+            # Qui il a vu pendant l'attente, même un instant (``pnj.suivre_presences``), ou voit à présent.
+            suivi = travail.__dict__.get("_presences") or {}
+            paru = any(s["vu"] and not s["debut"] for s in suivi.values()) or any(
+                id not in vus for id in pnjs(travail) if travail.visible(id))
+            if paru or any(eveille(b, niveau) for b, niveau, _ in parvenus):
+                break
+        lignes.append("Tu attends " + dire_duree(ecoule) + "." if ecoule == total else
+                      "Au bout de " + dire_duree(ecoule) + ", tu cesses d'attendre.")
+        lignes.extend(entendu)
 
     def _executer_operations(self, sequence):
         from .operations import compiler

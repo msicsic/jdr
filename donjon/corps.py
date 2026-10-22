@@ -131,7 +131,9 @@ def vivre_joueur(monde, minutes, effort=False, repos=False, lignes=None):
     if minutes <= 0:
         return
     avant = set(pressants(monde, "joueur"))
-    vivre(monde, "joueur", minutes, effort, repos)
+    # Minute par minute, comme les PNJ : le même laps, d'un bloc ou découpé, donne le même corps.
+    for _ in range(minutes):
+        vivre(monde, "joueur", 1, effort, repos)
     v, faits, j = valeurs(monde, "joueur"), corps(monde, "joueur"), monde.joueur
     if v["faim"] >= EXTREME or v["chaleur"] >= EXTREME:
         faits["peine"] += minutes

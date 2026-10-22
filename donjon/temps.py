@@ -30,6 +30,34 @@ def duree(plan):
     return plan.dixiemes if plan.dixiemes is not None else plan.minutes * MINUTE
 
 
+ATTENTE_MAX = 12 * 60 * MINUTE   # une attente dure au plus douze heures
+
+
+def lire_duree(texte):
+    """Une durée d'attente en secondes, écrite en chiffres (« 30 », « 1.5 », « 1,5 ») : des
+    dixièmes, entre un dixième et ``ATTENTE_MAX`` ; None sinon."""
+    try:
+        dixiemes = round(float(texte.strip().replace(",", ".")) * 10)
+    except ValueError:
+        return None
+    return dixiemes if 0 < dixiemes <= ATTENTE_MAX else None
+
+
+def dire_duree(dixiemes):
+    """« 1,5 seconde », « 30 secondes », « 5 minutes », « 2 minutes 30 secondes », « 1 heure 5 minutes »."""
+    heures, reste = divmod(dixiemes, 60 * MINUTE)
+    minutes, reste = divmod(reste, MINUTE)
+    secondes = reste / 10
+    parties = []
+    for nombre, unite in ((heures, "heure"), (minutes, "minute")):
+        if nombre:
+            parties.append(f"{nombre} {unite}" + ("s" if nombre > 1 else ""))
+    if secondes or not parties:
+        texte = f"{secondes:g}".replace(".", ",")
+        parties.append(texte + " seconde" + ("s" if secondes >= 2 else ""))
+    return " ".join(parties)
+
+
 def instant(monde):
     """L'instant courant, en dixièmes de seconde depuis le début de la partie."""
     return monde.data["minutes"] * MINUTE + monde.data.get("dixiemes", 0)

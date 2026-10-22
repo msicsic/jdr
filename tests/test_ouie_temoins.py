@@ -17,6 +17,7 @@ from donjon.banc_pnj import creer
 from donjon.esprits import croire, esprit, lire, percevoir_tous
 from donjon.geometrie import distance, position_entree
 from donjon.monde import Monde
+from donjon.moteur import Moteur, proposition
 from donjon.ouie import couvert, entendre, parcouru
 from donjon.social import nouvelles
 from donjon.temps import instant
@@ -46,11 +47,12 @@ def etat(m):
 
 
 def decouper(scene, minutes, jet=1):
-    """Le même laps : une attente d'un bloc, puis des rotations du joueur rechargées en route."""
+    """Le même laps : une attente d'un bloc (la proposition sans durée, que rien n'interrompt), puis
+    des rotations du joueur rechargées en route."""
     with patch.object(Monde, "d20", return_value=jet):
         d_un_bloc = scene()
         while d_un_bloc.data["minutes"] < minutes:
-            faire(d_un_bloc, "attendre")
+            Moteur(d_un_bloc).executer(Moteur(d_un_bloc).preparer(proposition("attendre")))
         morcele, n = scene(), 0
         while instant(morcele) < instant(d_un_bloc):
             faire(morcele, "tourner sud" if n % 2 == 0 else "tourner nord")
