@@ -107,6 +107,26 @@ class IciViensTests(unittest.TestCase):
         self.assertIn("Gorm répond : « Ici, viens ! »", chronique(m))
         self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
 
+    def test_l_appelant_retenu_le_dit_et_l_appele_vient(self):
+        """Cas vu au banc (mine, graine 42) : Mathe, qui garde le baraquement, hèle Gaspard ; il lui
+        demande ce qu'elle veut, lui dit de venir ; retenue par sa garde, elle lui répond « Ici, viens ! »
+        à son tour. Avant, chacun attendait l'autre jusqu'à l'échéance ; prié de venir, Gaspard en
+        décide de nouveau : il vient. Même chose au Relais, Gorm de garde hélant Aubin."""
+        m = porte_crue_ouverte(porte_crue_ouverte(aubin_cherche_gorm(), "marchand"), "aubin")
+        lire(m, "aubin")["besoins"]["faim"] = 10.0   # Libre : il ne cherche plus Gorm.
+        esprit(m, "marchand")["intention"] = {"but": {"type": "garder", "lieu": "crypte"}, "motif": "biens",
+                                              "plan": [], "depuis": 2, "attente": 0}
+        m = recharger(m)
+        appeler(m, "marchand", "aubin", [])
+        m = recharger(m)
+        suite = ["Gorm appelle : « Aubin ? »", "Aubin répond : « Qu'est-ce que tu veux ? »",
+                 "Gorm répond : « J'ai à te parler. »", "Aubin répond : « Ici, viens ! »",
+                 "Gorm répond : « Ici, viens ! »", "Aubin répond : « J'arrive ! »"]
+        self.assertEqual([t for t in chronique(m) if t in suite], suite)
+        self.assertIsNone(lire(m, "aubin")["rejoint"])
+        self.assertEqual(lire(m, "aubin")["rejoindre"]["qui"], "marchand")
+        self.assertEqual((lire(m, "marchand")["rejoint"]["qui"], lire(m, "marchand")["rejoint"]["vient"]), ("aubin", True))
+
 
 class QuoiTests(unittest.TestCase):
     def test_cas_reel_hugues_previent_anselme_qui_vient(self):

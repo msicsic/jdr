@@ -137,8 +137,8 @@ def decider(monde, qui, autre, raison=None, prie=False):
     if not repond(monde, qui, autre) or se_cache(monde, qui):
         return None
     r = lire(monde, qui)["rejoint"]
-    if r and r["qui"] == autre:
-        return VIENS   # Il l'attend déjà ici.
+    if r and r["qui"] == autre and not prie:
+        return VIENS   # Il l'attend déjà ici ; prié de venir (l'autre ne le peut pas), il en décide de nouveau.
     if not peut_venir(monde, qui, autre) or retenu(monde, qui, autre) or presse_ailleurs(monde, qui, autre):
         return VIENS
     if prie or cherche(monde, qui, autre):
@@ -259,6 +259,8 @@ def dire(monde, qui, autre, sorte, lignes, raison=None, nommer=False):
         if sorte == VIENS:
             attendre(monde, qui, autre, vient=False)
         elif sorte == ARRIVE:
+            if (lire(monde, qui)["rejoint"] or {}).get("qui") == autre:
+                esprit(monde, qui)["rejoint"] = None   # Il ne l'attend plus : il y va.
             venir(monde, qui, autre)
     if nommer and entendu:
         se_nommer(monde, autre, qui, qui)
