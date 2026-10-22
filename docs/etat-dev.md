@@ -954,6 +954,47 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   temps d'une nuit Relais 10,5 → 9,7 s, mine 25 → 34 s, auberge 26,8 → 31,9 s, crue 10,3 → 12 s (une
   vue du planificateur par choix ; une reprise du choix entier serait la suite). Restent à la minute : corps et
   besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
+- Branche `tension-relais`, analyse non fusionnée (`docs/analyse-relais.md`, `tools/tension_relais.py`) :
+  une nuit du Relais n'a de hasard que ses jets (7,7 par nuit) ; 48 graines font 2 nuits jusqu'à
+  120 min, 27 à 480, 7 issues, et les branches se rejoignent en deux heures ; la faim fixe les
+  demandes à heure fixe, Brune vole quand sa faim passe 95. Variantes de données mesurées (feu à
+  nourrir, réserve aux vannes, faims décalées, valeurs graduées) et sept manques du moteur en
+  invariants (tirage du départ, risque d'être vu pesé, tort qui ouvre des buts…), à trancher.
+- Branche `reverification` (contrôle seul, rien corrigé ; [rapport](reverification.md)) : `main` ec2352e après
+  les fusions de la nuit, 64 nuits de 12 h (4 scénarios × 16 graines, `VERIFIER` continu sur 16) et 48 de
+  référence (`main` 0489fea), Luna 2 passes de neuf bancs. Aucun plantage, violation, écart de `VERIFIER`
+  ou de `VERIFICATION` ; B1, B2, A1, A2, A4 et V1 de l'audit confirmés corrigés. Nouveaux : ouvrir/fermer le
+  garde-manger toutes les 2 s (mine 42, Odon et Mathe, délibération à l'événement), aller-retour lumière ↔
+  abri à chaque seconde (crue 3), surenchère jusqu'à 64 pièces et tâche acceptée puis aussitôt due (13
+  auberges sur 16), le lieu d'un bien redit en boucle à qui l'a posé (variante de B3). Luna : 4 bancs de
+  référence 3,25 appels, 15,1 s, 0,5 repli, relances 5,5 (au niveau de `parole-corrections`) ; défauts du
+  soir corrigés sauf silences de l'auditeur, « je réponds », « quelqu'un », « geste d'effort » ; nouveaux :
+  un PNJ vu nomme Corvus sans le connaître, « Aubin remet … à Corvus » lu par le joueur.
+
+## Décisions prises le 2026-10-22 (à implémenter)
+
+- **Réglages et données** : profils du Relais et de la crue selon `docs/analyse-relais.md` (Brune
+  douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65, douceur 80 ; Gorm inchangé) ; froid sec 4 par
+  heure ; seuil + 15 (`REPRISE`) gardé ; premier acte du Relais gardé (Brune peut voler tôt) ;
+  crochetage plus ou moins bruyant selon l'adresse (habile et réussi : discret ; échec ou forcement :
+  fracas) ; surenchère progressive (+50 % par palier tant que l'offre vaut la peine) ; réglages de
+  l'ouïe gardés (ajustés au banc si besoin) ; `GARDE` et `PRET` à tirer des valeurs et des relations.
+- **Noms** : un nom ne s'apprend qu'en entendant la personne se nommer ou quelqu'un la nommer, pas en
+  la voyant de près ; sinon la scène la décrit (« un homme trapu ») ; seuls les liens déclarés par le
+  scénario donnent le nom d'office.
+- **Appel négocié** : l'appelé et l'appelant conviennent de qui vient à qui (« J'arrive », « Ici,
+  viens », « Qu'est-ce que tu veux ? », silence) selon qui a besoin de qui, qui peut bouger, la
+  distance et l'urgence ; l'attente se règle sur la distance ; même règle pour le joueur, réponses
+  typées sans Luna.
+- **Plan force** (`docs/plan-force.md`) : les coups ne tuent jamais (PV 0 = hors de combat, seul
+  « tuer » donne la mort) ; **douceur 100 peut frapper pour se défendre ou défendre un protégé**
+  (écart à la recommandation du plan) ; joueur assommé : le temps passe jusqu'au réveil ; pas de mort
+  par faim, froid ou eau à cette étape ; le reste selon les recommandations du plan.
+- **Plan relations** (`docs/plan-relations.md`) : cinq axes (confiance, affection, rancune, peur,
+  dette) ; le joueur perçoit signes et impressions (commande « observer »), sa PSY peut le tromper ;
+  un PNJ donne son avis sans qu'on le lui demande seulement si l'autre risque d'agir contre et qu'il
+  s'en soucie ; le reste selon les recommandations du plan.
+- **Plus tard** : fabrication étape 4 ; imitation de voix (après les relations).
 - La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
@@ -969,6 +1010,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'empathie), niveau d'eau, l'ouïe et la parole (`docs/plan-ouie.md`) ; réglages de l'ouïe à trancher : l'échelle, le crochetage en geste bruyant,
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; les réflexes déclarés et le
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
+  l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
+  déclarés et le souvenir « son » dans l'ouïe commune.
+- **Étape 4 du plan social, le corps et la force** : conception dans `docs/plan-force.md`
+  (branche `plan-force`, document seul) ; découpage 4a à 4f et décisions à trancher en fin de
+  document, avant toute réalisation.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
   `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
   besoin que rien n'apaise (le devoir reste urgent une fois franchi son seuil ; il attend désormais

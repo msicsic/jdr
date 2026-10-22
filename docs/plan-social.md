@@ -203,8 +203,10 @@ et orientation** (`docs/plan-temps.md`), fondation de la discrétion et de la fo
 2. **La crue, niveau d'eau** (`docs/plan-crue.md`) : la menace commune et le froid.
 3. **Relations graduées, lire les autres, influence par la parole** : relations et émotions,
    leurs signes et leur lecture, propositions, avis, disputes. Des relations qu'on ne perçoit
-   pas ne s'éprouvent ni au banc ni en jeu.
+   pas ne s'éprouvent ni au banc ni en jeu. Conception détaillée, sous-étapes et décisions à
+   trancher : `docs/plan-relations.md`.
 4. **Le corps des PNJ et la force** : PV, blessures, états (retenu, enfermé, mort), affrontement.
+   Conception détaillée dans `docs/plan-force.md` (voir « Étape 4 : conception détaillée »).
 5. **Contrainte et menace** : priver, enfermer, menacer, frapper ; la peur ; les suites.
 6. **Statut, suivre, groupes** : sur une crue à six ou huit personnages.
 
@@ -218,6 +220,18 @@ et orientation** (`docs/plan-temps.md`), fondation de la discrétion et de la fo
   peut mourir ; la mort du joueur termine la partie, sans reprise pour l'instant.
 - Orientation en huit directions, cône de 120° et côtés immédiats, rotations qui prennent du
   temps : jalon « temps fin et orientation », avant les caractères et valeurs.
+
+## Étape 4 : conception détaillée
+
+Dans `docs/plan-force.md`, en attente d'accord. En bref : PV pour tous (6 + FOR, le joueur garde
+18), blessures déduites des PV qui modulent les caractéristiques ; inconscience, liens, captivité
+et dépouille dans `data` ; un coup est un geste de 1,5 s sur l'horloge commune (jet FOR contre DEX,
+surprise dans le dos, armes par leurs usages, cri qui s'entend) ; les coups mettent hors de combat,
+seul `tuer` sur quelqu'un de sans défense donne la mort. Les PNJ frappent pour prendre ce qu'un
+autre porte, pour se défendre et pour protéger, au prix de leur douceur et de leur courage ;
+ligoter, enfermer et tuer n'ont de raison qu'à l'étape 5. Six sous-étapes (4a à 4f), mesurées sur
+un scénario d'épreuve `rixe` dérivé du Relais et sur des états de départ ; dix-neuf décisions à
+trancher en fin de document.
 
 ## Bilan de l'étape 1 : caractères et valeurs
 
