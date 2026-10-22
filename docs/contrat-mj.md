@@ -92,7 +92,7 @@ peut rien changer à ce que lira le joueur n'est pas fait :
   mots d'attribution, la réplique qu'elle recouvre en tient lieu (`narration.citation_du_segment`) ; une
   citation qui ne recouvre aucune réplique reste refusée ;
 - l'explication d'un geste refusé par le monde (trop loin, absent, ce qui manque) a un seul essai :
-  refusée par le contrôle, le joueur lit le refus du monde, son message tel quel (voir « Refus et
+  refusée par le contrôle, le joueur lit les refus du monde, leurs messages tels quels (voir « Refus et
   échecs »).
 
 Ce que le contrôle déterministe exige du texte est aussi dit au MJ, une fois (`narration.REGLE_NARRATION`) :
@@ -236,6 +236,7 @@ Un refus de validation survient **avant** l'action. Seul un plan exécuté peut 
 échec du personnage, du temps écoulé ou une conséquence physique. Après deux propositions
 invalides, Luna peut expliquer les conditions attestées sans annoncer une tentative de
 Corvus. Si un refus du monde a été rencontré (un `ErreurMonde` du moteur, ni refus de forme, ni
-contre-revue), cette explication a un seul essai : refusée, le joueur lit le dernier refus du monde,
-dont le message s'adresse à lui (« Approche-toi de la poutre effondrée… ») ; sinon, après trois essais,
-un message sûr précise qu'aucun geste n'a été tenté.
+contre-revue), cette explication a un seul essai : refusée ou manquée, le joueur lit les refus du monde,
+dans l'ordre, une fois chacun, dont les messages s'adressent à lui (« La lumière est trop faible pour
+lire avec précision. La torche n'a plus de combustible. ») ; sinon, après trois essais, un message sûr
+précise qu'aucun geste n'a été tenté.

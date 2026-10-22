@@ -499,9 +499,9 @@ class MJ:
         # la fiche du geste ou par la raison de son refus (une raison du monde, jamais un refus de forme),
         # jamais une explication libre du MJ.
         faisabilite, refus_du_moteur = est_question(intention), None
-        # Le dernier refus du monde (ce qui manque, ce qui est trop loin), quelle que soit l'action : son
-        # message s'adresse au joueur et vaut réponse si l'explication du MJ n'est pas admise d'emblée.
-        refus_monde = None
+        # Les refus du monde (ce qui manque, ce qui est trop loin), quelle que soit l'action : leur message
+        # s'adresse au joueur et vaut réponse si l'explication du MJ n'est pas admise d'emblée.
+        refus_monde = []
         for tentative in range(3):
             if reponse["mode"] != "action":
                 break
@@ -527,7 +527,8 @@ class MJ:
                     plan = Moteur(monde).preparer(p, "MJ")
                 except ErreurMonde as exc:
                     if not isinstance(exc, (QualificationRequise, RefusDeForme)):
-                        refus_monde = exc
+                        if str(exc) not in map(str, refus_monde):
+                            refus_monde.append(exc)
                         if p.get("action") not in PERCEPTIONS:
                             refus_du_moteur = exc
                     raise
@@ -576,7 +577,7 @@ class MJ:
                               "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
                     # Avec un refus du monde, l'explication a un seul essai : refusée, le joueur lit ce refus,
                     # exact et complet, plutôt qu'une explication relancée jusqu'au repli.
-                    self._sans_relance = refus_monde is not None
+                    self._sans_relance = bool(refus_monde)
                     try:
                         explication = self._echanger(monde, intention, proposition_en_attente,
                                                     enrichir=False, retour_moteur=retour)
@@ -588,8 +589,9 @@ class MJ:
                         pass
                     finally:
                         self._sans_relance = False
-                    if refus_monde is not None:
-                        return reponse_du_moteur(refus_monde)
+                    if refus_monde:
+                        # Chaque obstacle que le monde a opposé, dans l'ordre, une fois chacun.
+                        return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
                     return {"mode": "dialogue", "texte": expliquer_refus(premier_refus, dernier_refus),
                             "faits": [], "proposition": None, "_validation_refusee": True,
                             "_texte_moteur": True}
