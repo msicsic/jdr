@@ -81,6 +81,27 @@ entendue et ont choisi de répondre (`paroles.repondants`). Seuls ceux de `repon
 mesurent : `a_portee_de_main` (toucher d'ici), `a_portee_de_voix` pour un personnage ; la salle,
 `sorties_connues` en cases (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
 
+**Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
+peut rien changer à ce que lira le joueur n'est pas fait :
+- un avis (`clarifier`, `impossible`) que la boucle de décision écartera avant de le lire (un
+  « impossible » au premier examen, qui reçoit le réexamen ; tout avis quand la saisie est une parole
+  sans conteste) n'est pas audité (`mj.refus_assure`, comme un ajout que le moteur refusera) ;
+- le nom que Corvus se donne est celui que disent ses mots : le moteur le lit lui-même et remplace un
+  `nom` typé autrement (`paroles.verifier_nom`) ; seul un `nom` typé sans nom dans les mots est refusé ;
+- la citation d'une parole est le texte entre « et » du segment : quand l'auditeur la recopie avec les
+  mots d'attribution, la réplique qu'elle recouvre en tient lieu (`narration.citation_du_segment`) ; une
+  citation qui ne recouvre aucune réplique reste refusée ;
+- l'explication d'un geste refusé par le monde (trop loin, absent, ce qui manque) a un seul essai :
+  refusée par le contrôle, le joueur lit le refus du monde, son message tel quel (voir « Refus et
+  échecs »).
+
+Ce que le contrôle déterministe exige du texte est aussi dit au MJ, une fois (`narration.REGLE_NARRATION`) :
+deuxième personne, ni « je » hors des répliques, ni Corvus, joueur, moteur, MJ, scénario, faits ou
+données ; l'`attendu` d'une voix d'auteur dit comment l'écrire autrement (« tu ne sais pas si… »). La
+contre-revue d'action sait que chercher ou fouiller se fait par une perception sur ce qu'on fouille
+(la règle même que le moteur prescrit à un arbitrage d'observation) ; l'auditeur, que dire un témoin
+silencieux est attesté.
+
 **Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
 mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
 qu'elle est éclairée), ou un objet manipulable présenté comme ambiance, dépend de son
@@ -214,4 +235,7 @@ une question de faisabilité, le joueur ne lit tel quel que le refus d'une raiso
 Un refus de validation survient **avant** l'action. Seul un plan exécuté peut produire un
 échec du personnage, du temps écoulé ou une conséquence physique. Après deux propositions
 invalides, Luna peut expliquer les conditions attestées sans annoncer une tentative de
-Corvus ; si cette réponse échoue aussi, un message sûr précise qu'aucun geste n'a été tenté.
+Corvus. Si un refus du monde a été rencontré (un `ErreurMonde` du moteur, ni refus de forme, ni
+contre-revue), cette explication a un seul essai : refusée, le joueur lit le dernier refus du monde,
+dont le message s'adresse à lui (« Approche-toi de la poutre effondrée… ») ; sinon, après trois essais,
+un message sûr précise qu'aucun geste n'a été tenté.
