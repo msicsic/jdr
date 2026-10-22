@@ -967,13 +967,25 @@ def _demander(travail, auditeur, objet, faits, prix=0):
         "remis": f"{nom} te remet {o}" + (f" : {il} te le prête." if any(
             p["objet"] == objet and p["a"] == "joueur" for p in travail.data.get("permissions", ())) else "."),
         "rendu": f"{nom} te rend {o}.",
-        "vendu": (f"{nom} prend tes {prix} pièces et accepte de t'en donner une part : " + servie if part
+        "vendu": (_part_vendue(travail, auditeur, objet, nom, il, prix) if part and not vivres
+                  else f"{nom} prend tes {prix} pièces et accepte de t'en donner une part : " + servie if part
                   else f"{nom} prend tes {prix} pièces et ira chercher {o} pour te {_le(travail.objets[objet])} "
                        "remettre." if differe else f"{nom} prend tes {prix} pièces et te remet {o}."),
         "promis": (f"{nom} a déjà promis de te remettre {o}." if differe else
                    f"{nom} accepte de t'en donner une part : " + servie),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
+
+
+def _part_vendue(travail, auditeur, lot, nom, il, prix):
+    """Une part de combustible que Corvus achète lui est remise (``echanges._vendre_part``) : tout de
+    suite, ou quand le vendeur sera allé la chercher."""
+    from .francais import complement_de
+    part = "une part " + complement_de(travail.objets[lot])
+    a_remettre = any(x["condition"].get("remettre") == "joueur" and x["condition"]["objet"].startswith(lot + "_")
+                     for x in esprit(travail, auditeur)["engagements"])
+    return (f"{nom} prend tes {prix} pièces et ira chercher {part} pour te la remettre." if a_remettre
+            else f"{nom} prend tes {prix} pièces et te remet {part}.")
 
 
 def _reclamer(travail, auditeur, objet, faits):

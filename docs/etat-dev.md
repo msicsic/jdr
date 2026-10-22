@@ -830,7 +830,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Boucles et absurdités relevées : appels à l'aide sans fin, aller voir ↔ garder, prévenir en boucle,
   bruit de sa propre salle jamais examiné, vol à une case dans le noir jamais découvert, tâches payées
   acceptées puis non faites, PNJ piégés par l'eau à la crue.
-- La suite de tests passe : 1133 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `refus-retenus`, non fusionnée (`docs/plan-social.md`, « Des refus retenus selon leur cause ») :
+  à l'auberge sans bois, les offres « impossible » se répétaient toutes les deux heures comme un refus
+  d'humeur (38 par nuit, sans recours 30 → 60). **Un refus se retient selon sa cause** (`deliberation.
+  retenir_refus`, `tient`, `moyens_crus`), d'après ce que croit le demandeur : ce que l'autre ne peut pas
+  ou garde (« impossible », « absent », « eteinte », « rien », « necessaire ») tient tant qu'il ne croit aucun
+  moyen nouveau de sa demande (une ressource apprise, l'autre vu avec du bois, une porte crue ouverte ;
+  perdre un moyen ne lève rien), sans délai ; « cher », pour ce prix seulement : il offre au moins le
+  double (`planification.SURENCHERE`) s'il le peut ; méfiance et humeur, `REDEMANDE`. La dernière
+  réponse de chaque demande est gardée à part des souvenirs (`esprit["refus"]`), une demande accordée
+  l'efface ; même règle pour part, objet, prêt, achat, feu, « as-tu… ? », tâche payée ou confiée ; le
+  passage et la créance sans le sou gardent le délai (place momentanée ; argent d'autrui invisible).
+  Deux défauts du banc Luna du soir corrigés dans les mêmes fichiers : une part de combustible achetée
+  est remise à l'acheteur (`echanges._vendre_part`, `detacher_part`) ; seule une part demandée pour un
+  feu va au feu ; on sait ce qu'on porte et ce qui est à soi à portée de main (`echanges.siens_a_portee` :
+  Aubin dit avoir ses planches). Cas réels et cas de même nature après rechargement
+  (`tests/test_refus_retenus.py`, `tests/test_parts_achetees.py`), `VERIFIER` sur une nuit de chaque
+  scénario (auberge : graine 42 ; 1985 et 7 s'arrêtent sur le défaut V1 de l'audit, d'une recherche à
+  `emplois`, pas de cette branche). Défaut A3 de l'audit des nuits : un devis de tâche payée ne compte que
+  sur ses moyens et ceux du payeur (`devis_pulsion`, `chercher(seul=…)`), et une tâche qu'on ne voit plus
+  comment faire est rendue aussitôt (`echanges.empeche`). Bancs 8 h contre `main` 0489fea, l'un après
+  l'autre : refus répétés à l'identique auberge 24,75 → 1,75 par nuit (mine 3,75 → 1,25), « as-tu… ? »
+  sans rien auberge 20,5 → 11, offres de tâche 38 → 26, sans recours 60 → 43,8 ; tâches acceptées sur le
+  bois d'un autre refusées (Relais 0,4 → 0, crue 1 → 0,25), d'où plus de minutes en attente (Relais 58 →
+  69, crue 67,5 → 99) ; aucune usurpation ni violation ; temps égaux sauf une nuit d'auberge plus active.
+  Limites : un refus retenu ne s'oublie pas tant que rien de nouveau n'est cru ; la surenchère peut payer
+  le double du nécessaire ; une part sans pièce décrite est remise sous le nom du lot.
+- La suite de tests passe : 1149 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

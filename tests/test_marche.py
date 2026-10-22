@@ -135,9 +135,9 @@ class ContactTests(unittest.TestCase):
         # (``echanges.engager``), et il a déjà demandé aux autres s'ils avaient du bois
         # (``echanges.enqueter``) ; il reste près du brasero.
         m.data["finances_pnj"]["marchand"] = 0
-        from donjon.esprits import memoriser
+        from donjon.deliberation import retenir_refus
         for autre in ("brune", "ilse", "aubin"):
-            memoriser(m, "marchand", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
+            retenir_refus(m, "marchand", autre, "enqueter", "rien", besoin="chaleur", souvenir=False)
         intention(m, "marchand", [{"operation": "eteindre", "cible": "brasero"}], {"type": "menager"})
         gestes(m, "marchand", 1)
         self.assertTrue(m.objets["brasero"]["allume"])

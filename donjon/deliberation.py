@@ -213,13 +213,140 @@ def _disponible_cru(monde, id, objet):
     return not etat or etat.get("disponible", True)
 
 
-def refuse_recemment(monde, id, autre, operation, objet=None):
-    """Le dernier refus de cet échange, s'il date de moins de ``REDEMANDE`` minutes. « Qui va
-    là ? » n'est pas un refus : il s'est nommé, il redemande."""
-    return next((s for s in reversed(lire(monde, id)["memoire"])
-                 if s["type"] == "refus" and s["de"] == autre and s["operation"] == operation
-                 and s.get("raison") != "qui_va_la"
-                 and s.get("objet", objet) == objet and monde.data["minutes"] - s["minute"] < REDEMANDE), None)
+# --- La mémoire des refus ------------------------------------------------------------------------
+# Un refus se retient selon sa cause. Ce que l'autre ne peut pas (« impossible » : il ne voit pas
+# comment ; « absent » : il ne l'a pas ; « eteinte » : sa flamme ne brûle pas ; « rien » : il n'a rien
+# de tel) ou ce qu'il garde (« necessaire ») tient tant que le demandeur ne croit rien de nouveau des
+# moyens de sa demande (``moyens_crus``), sans délai. Trop peu payé (« cher »), il tient pour ce prix :
+# une offre plus haute reste possible (``planification._engager``). Un refus d'humeur ou de méfiance,
+# et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
+# part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
+CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme")
+
+
+def _meme_demande(s, autre, operations, objet, besoin):
+    return (s["de"] == autre and s["operation"] in operations and s.get("objet", objet) == objet
+            and s.get("besoin") == besoin)
+
+
+def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
+    """``autre`` refuse à ``id`` cette demande (``operation`` sur ``objet``, ou ``besoin`` pour « as-tu… ? ») :
+    il s'en souvient (``souvenir``), et retient cette réponse à la place de la précédente pour la même
+    demande, avec, quand le refus a une cause, ce qu'il croit alors de ses moyens (``moyens_crus``).
+    « Qui va là ? » n'est pas un refus : il s'est nommé, il redemande."""
+    detail = {k: v for k, v in detail.items() if k in DETAILS_REFUS and v is not None}
+    if souvenir:
+        memoriser(monde, id, {"type": "refus", "de": autre, "operation": operation, "raison": raison,
+                              **{k: v for k, v in detail.items() if k in ("objet", "besoin")}})
+    if raison == "qui_va_la":
+        return
+    oublier_refus(monde, id, autre, operation, detail.get("objet"), detail.get("besoin"))
+    s = {"de": autre, "operation": operation, "raison": raison, "minute": monde.data["minutes"], **detail}
+    if raison in CAUSES:
+        s["cause"] = moyens_crus(monde, id, s)
+    esprit(monde, id)["refus"].append(s)
+
+
+def oublier_refus(monde, id, autre, operation, objet=None, besoin=None):
+    """La demande accordée (ou refusée de nouveau) : la réponse retenue ne vaut plus."""
+    e = esprit(monde, id)
+    e["refus"] = [s for s in e["refus"] if not (s["de"] == autre and s["operation"] == operation
+                                                 and s.get("objet") == objet and s.get("besoin") == besoin)]
+
+
+def refus_retenu(monde, id, autre, operations, objet=None, besoin=None):
+    """La dernière réponse refusée d'``autre`` à cette demande (``operations`` : les façons de la faire,
+    demander ou acheter), si elle tient encore (``tient``) ; None sinon. Un refus sans objet (le
+    passage) vaut pour tout objet."""
+    refus = [s for s in lire(monde, id).get("refus", ()) if _meme_demande(s, autre, operations, objet, besoin)]
+    dernier = max(refus, key=lambda s: s["minute"], default=None)
+    return dernier if dernier is not None and tient(monde, id, dernier) else None
+
+
+def tient(monde, id, s, connus=None):
+    """Le refus ``s`` tient-il encore ? Pour une cause, tant qu'il ne croit aucun moyen qu'il ne croyait
+    déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
+    lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
+    Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if s["raison"] in CAUSES and "cause" in s:
+        avant = {tuple(f) for f in s["cause"]}
+        return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))
+    if s["raison"] == "cher":
+        return True
+    return monde.data["minutes"] - s["minute"] < REDEMANDE
+
+
+def moyens_crus(monde, id, s, connus=None):
+    """[[sorte, sujet, lieu, allumé]] : ce que le demandeur ``id`` croit des moyens de la demande ``s``,
+    ce qui pourrait la rendre possible, trié ; jamais l'état réel.
+
+    Les moyens : pour une part ou un objet, ce qu'il lui demande, s'il ne l'a pas vu épuisé, où il le
+    croit ; pour du feu, la source et la flamme, allumées ou non ; pour « as-tu… ? », ce qu'il croit
+    que l'autre possède de ces ressources ; pour une tâche, où est ce qu'elle vise et tout ce qu'elle
+    emploierait (chaque réserve de ce que brûle le feu à entretenir et de quoi l'allumer, les clés de
+    ce qu'il faut fermer à clé). Puis leurs abords : les contenants et les portes de leur salle qu'il
+    ne croit pas fermés à clé, et où sont leurs clés. L'état que la tâche doit changer (le feu éteint)
+    n'est pas un moyen : c'est ce qu'il demande. Ils changent quand il apprend une ressource, voit
+    l'autre avec du bois, croit une porte ouverte, entend une rumeur."""
+    from .perception import recharge
+    from .vol import proprietaire
+    objets, salles = monde.objets, monde.data["salles"]
+    croyances = lire(monde, id)["croyances"]
+    connus = _connus(monde, id) if connus is None else connus
+    op, o = s["operation"], s.get("objet")
+    faits, abords = set(), []
+
+    def etat(k):
+        return (croyances.get(k, {}).get("etat") or {}).get("valeur") or {}
+
+    def ressources(besoin):
+        return [k for k in connus if besoin_de_part(objets[k]) == besoin]
+
+    def moyen(k):
+        if besoin_de_part(objets[k]) and etat(k).get("disponible") is False:
+            return   # Vu épuisé : ce n'est plus un moyen.
+        allume = etat(k).get("allume") if "allume" in objets[k] else None
+        faits.add(("moyen", k, _lieu_cru(monde, id, k), allume))
+        abords.append(k)
+
+    if op == "enqueter":
+        moyens = [k for k in ressources(s.get("besoin")) if proprietaire(monde, objets[k]) == s["de"]]
+    elif op in ("engager", "confier"):
+        cible, moyens = objets.get(o), []
+        if cible is not None:
+            faits.add(("cible", o, _lieu_cru(monde, id, o), None))
+            abords.append(o)
+            if s.get("tache") == "allume":
+                moyens = [k for k in connus if recharge(cible, objets[k]) or "allumage" in objets[k].get("usages", [])]
+            elif s.get("tache") == "verrouillee":
+                moyens = [k for k in connus if o in objets[k].get("ouvre", [])]
+    elif op == "demander_feu":
+        moyens = [k for k in (o, s.get("flamme")) if k in objets]
+    else:
+        # Une part ou un objet : ce qu'il lui demande, pas les ressources des autres.
+        moyens = [o] if o in objets else []
+    for k in moyens:
+        moyen(k)
+
+    def ouvert(x):
+        if not (croyances.get(x, {}).get("verrouillee") or {}).get("valeur"):
+            faits.add(("ouvert", x, None, None))
+        for k in connus:
+            if x in objets[k].get("ouvre", []):
+                faits.add(("cle", k, _lieu_cru(monde, id, k), None))
+
+    for k in abords:
+        vus, lieu = set(), _lieu_cru(monde, id, k)
+        while lieu in objets and lieu not in vus and objets[lieu]["type"] == "contenant":
+            vus.add(lieu)
+            ouvert(lieu)
+            lieu = _lieu_cru(monde, id, lieu)
+        if lieu in salles:
+            for sortie in salles[lieu]["sorties"].values():
+                if sortie.get("porte") in objets:
+                    ouvert(sortie["porte"])
+    return sorted((list(f) for f in faits), key=str)
 
 
 def appels_vains(monde, id, qui):

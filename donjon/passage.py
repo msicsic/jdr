@@ -278,8 +278,8 @@ def _demande(monde, id, autre):
 def refus_de_passage(monde, id, autre):
     """Un refus récent d'``autre`` de le laisser passer ; le joueur prié de laisser passer qui
     n'a pas bougé ``REPONSE`` plus tard a refusé."""
-    from .deliberation import refuse_recemment
-    if refuse_recemment(monde, id, autre, "passage"):
+    from .deliberation import refus_retenu
+    if refus_retenu(monde, id, autre, ("passage",)):
         return True
     depuis = _demande(monde, id, autre)
     return depuis is not None and depuis >= REPONSE
@@ -317,8 +317,12 @@ def _prier(monde, id, autre, chemin, lignes):
         # S'écarter est un geste ; refuser se dit.
         faire_entendre(monde, id, autre, texte, [], lignes, (),
                        f"{b} s'écarte." if issue == "ecarte" else f"{b} refuse.", issue != "ecarte")
-    if issue != "ecarte":
-        memoriser(monde, id, {"type": "refus", "de": autre, "operation": "passage", "raison": issue})
+    from .deliberation import oublier_refus, retenir_refus
+    if issue not in ("ecarte", "paye"):
+        # Refusé sur ce qu'il voit à l'instant (la place de chacun, son humeur) : ``REDEMANDE``.
+        retenir_refus(monde, id, autre, "passage", issue)
+    else:
+        oublier_refus(monde, id, autre, "passage")
 
 
 # --- Pousser -------------------------------------------------------------------------------------
