@@ -79,10 +79,14 @@ class TacheImpossibleTests(unittest.TestCase):
         m = recharger(m)
         self.assertIsNone(refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau"))
         m, textes = vivre_long(m, 40)
-        self.assertEqual(len(offres(textes, "Mireille", "Mathurine")), 1, textes)
+        # Une offre ; deux si, choisissant désormais à l'instant (``deliberation-evenements``), elle la
+        # fait avant d'aller voir Anselme : ce qu'elle voit alors de sa chambre (ses abords) est un moyen
+        # qu'elle ne croyait pas à la première, et le refus ne tient plus (``deliberation.tient``).
+        self.assertIn(len(offres(textes, "Mireille", "Mathurine")), (1, 2), textes)
         # Mathurine n'en sait pas plus : refusée de nouveau, l'offre retient ce que Mireille croit désormais.
         refus = refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau")
-        self.assertIn(["moyen", "bois_anselme", "chambre_chaude", None], refus["cause"])
+        # (où elle le croit : dans la chambre, ou aux mains d'Anselme si elle l'y a vu depuis)
+        self.assertTrue([f for f in refus["cause"] if f[:2] == ["moyen", "bois_anselme"]], refus["cause"])
 
     def test_au_banc_une_nuit_sans_bois_chaque_offre_impossible_n_est_faite_qu_une_fois(self):
         # Autre cas de même nature : toute l'auberge, trois foyers, plus de bois du tout (300 minutes).

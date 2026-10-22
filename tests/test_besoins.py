@@ -171,7 +171,8 @@ class GormTests(unittest.TestCase):
         self.assertEqual(m.objets["cloche"]["lieu"], "chambre_cloche")
         self.assertIsNone(lire(m, "marchand")["croyances"]["cle"]["lieu"]["valeur"])
         self.assertTrue(m.objets["porte"]["verrouillee"])
-        self.assertNotEqual((lire(m, "marchand")["intention"] or {}).get("motif"), "devoir")
+        # Il ne poursuit plus la cloche (un autre devoir, le brasero, a pu le reprendre).
+        self.assertNotEqual((lire(m, "marchand")["intention"] or {}).get("but", {}).get("objet"), "cloche")
 
     def test_sans_la_cle_il_force_la_porte_qui_n_est_a_personne(self):
         # Le pied-de-biche reste à la conduite : la porte étanche n'est à personne, la forcer ne
