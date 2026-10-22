@@ -960,7 +960,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   demandes à heure fixe, Brune vole quand sa faim passe 95. Variantes de données mesurées (feu à
   nourrir, réserve aux vannes, faims décalées, valeurs graduées) et sept manques du moteur en
   invariants (tirage du départ, risque d'être vu pesé, tort qui ouvre des buts…), à trancher.
-- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `reverification` (contrôle seul, rien corrigé ; [rapport](reverification.md)) : `main` ec2352e après
+  les fusions de la nuit, 64 nuits de 12 h (4 scénarios × 16 graines, `VERIFIER` continu sur 16) et 48 de
+  référence (`main` 0489fea), Luna 2 passes de neuf bancs. Aucun plantage, violation, écart de `VERIFIER`
+  ou de `VERIFICATION` ; B1, B2, A1, A2, A4 et V1 de l'audit confirmés corrigés. Nouveaux : ouvrir/fermer le
+  garde-manger toutes les 2 s (mine 42, Odon et Mathe, délibération à l'événement), aller-retour lumière ↔
+  abri à chaque seconde (crue 3), surenchère jusqu'à 64 pièces et tâche acceptée puis aussitôt due (13
+  auberges sur 16), le lieu d'un bien redit en boucle à qui l'a posé (variante de B3). Luna : 4 bancs de
+  référence 3,25 appels, 15,1 s, 0,5 repli, relances 5,5 (au niveau de `parole-corrections`) ; défauts du
+  soir corrigés sauf silences de l'auditeur, « je réponds », « quelqu'un », « geste d'effort » ; nouveaux :
+  un PNJ vu nomme Corvus sans le connaître, « Aubin remet … à Corvus » lu par le joueur.
 
 ## Décisions prises le 2026-10-22 (à implémenter)
 
@@ -986,6 +995,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   un PNJ donne son avis sans qu'on le lui demande seulement si l'autre risque d'agir contre et qu'il
   s'en soucie ; le reste selon les recommandations du plan.
 - **Plus tard** : fabrication étape 4 ; imitation de voix (après les relations).
+- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
