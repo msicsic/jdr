@@ -270,14 +270,22 @@ def renvoi(monde, intention):
     return None
 
 
-def refus_assure(monde, intention, reponse, deja_renvoyee=False):
+def refus_assure(monde, intention, reponse, deja_renvoyee=False, impossible_admis=False):
     """Pourquoi le moteur refusera cette réponse d'interprétation, quelle qu'en soit la prose, ou "" :
-    un dialogue quand la saisie est une parole sans conteste (le moteur la fait entendre), un ajout
-    persistant que sa validation écarte (détail d'un objet hors de portée, savoir mal formé…). Les mêmes
-    validations, sur copie, que la suite du tour : rien n'est appliqué."""
+    un dialogue quand la saisie est une parole sans conteste (le moteur la fait entendre), un avis
+    (clarifier, impossible) que la boucle de décision écarte avant de le lire, un ajout persistant que
+    sa validation écarte (détail d'un objet hors de portée, savoir mal formé…). Les mêmes validations,
+    sur copie, que la suite du tour : rien n'est appliqué. ``impossible_admis`` : la boucle de décision
+    a déjà demandé un réexamen (``MJ._echanger_prepare``), un « impossible » sera lu."""
     mode, p = reponse.get("mode"), reponse.get("proposition")
     if mode == "dialogue" and "_texte_moteur" not in reponse and parole_attendue(monde, intention):
         return "Corvus le dit : c'est une parole."
+    if mode == "action" and isinstance(p, dict) and p.get("action") in ("clarifier", "impossible"):
+        # Un avis que personne ne lira : sa justification n'a pas à passer l'audit.
+        if parole_attendue(monde, intention):
+            return "Corvus le dit ; il ne le fait pas."
+        if p.get("action") == "impossible" and not impossible_admis:
+            return REEXAMEN
     if mode == "dialogue" and not deja_renvoyee and renvoi(monde, intention):
         return renvoi(monde, intention)[0]
     preparer = {"etablir_faits": preparer_faits, "enrichir": preparer_complements,
@@ -289,6 +297,12 @@ def refus_assure(monde, intention, reponse, deja_renvoyee=False):
     except ErreurMonde as exc:
         return str(exc)
     return ""
+
+
+# « impossible » au premier examen : un réexamen est demandé, une fois (``MJ._echanger_prepare``).
+REEXAMEN = "Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible."
+ATTENDU_REEXAMEN = ("action : le geste que demande la saisie, tel quel (le moteur dit ce qui manque) ; impossible "
+                    "seulement si aucune action du moteur ne le couvre.")
 
 
 def retour_refus(proposition, exc, consigne):
@@ -325,6 +339,7 @@ class MJ:
         self._interpretation = False   # l'appel en cours interprète une saisie (et non raconte)
         self._sans_dialogue = False    # un dialogue serait remplacé par le refus du moteur : pas d'audit
         self._faisabilite_renvoyee = False  # « puis-je… ? » déjà renvoyé : un dialogue se contrôle
+        self._impossible_admis = False  # la boucle de décision lira un « impossible » (réexamen déjà demandé)
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
@@ -491,10 +506,7 @@ class MJ:
                                       + " ; le geste annoncé attend que le joueur le fasse.")
                 if p.get("action") == "impossible":
                     if not (correction_utilisee or forme_corrigee):
-                        raise RefusDeForme("Réexamine l'intention entière et les possibilités du moteur avant de "
-                                           "conclure qu'elle est impossible.",
-                                           "action : le geste que demande la saisie, tel quel (le moteur dit ce qui "
-                                           "manque) ; impossible seulement si aucune action du moteur ne le couvre.")
+                        raise RefusDeForme(REEXAMEN, ATTENDU_REEXAMEN)
                 if p.get("action") in ("clarifier", "impossible"):
                     if faisabilite and refus_du_moteur is not None:
                         # Le moteur a déjà dit ce qui manque au geste demandé en question : sa raison répond.
@@ -570,11 +582,14 @@ class MJ:
                 # Une question dont le geste est refusé par le moteur : seule une proposition corrigée peut
                 # encore y répondre ; un dialogue serait remplacé par ce refus, il n'est pas contrôlé.
                 self._sans_dialogue = faisabilite and refus_du_moteur is exc
+                # Un « impossible » est lu après un premier réexamen : l'audit de sa justification sert.
+                admis, self._impossible_admis = self._impossible_admis, True
                 try:
                     reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
                                              retour_moteur=retour)
                 finally:
                     self._sans_dialogue = False
+                    self._impossible_admis = admis
         if (reponse["mode"] == "dialogue" and faisabilite and refus_du_moteur is not None
                 and not reponse.get("_validation_refusee")):
             # Corrigée en dialogue après le refus d'un geste demandé en question : la raison du moteur.
@@ -977,7 +992,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
             adresse = bool(forme.get("nomme") or forme.get("groupe"))
             # « Puis-je… ? » n'est renvoyé qu'une fois, au premier appel : ensuite un dialogue se contrôle.
             refus = (refus_assure(monde, intention, reponse, self._faisabilite_renvoyee
-                                  or "retour_moteur" in entree.get("faits", {}))
+                                  or "retour_moteur" in entree.get("faits", {}), self._impossible_admis)
                      if self._interpretation and monde is not None else "")
             if self._sans_dialogue and reponse.get("mode") == "dialogue":
                 refus = "Un dialogue ne répond pas à cette question : le refus du moteur y répond."

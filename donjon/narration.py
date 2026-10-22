@@ -157,6 +157,10 @@ manipulable, ni passage, ni personnage, ni ressource, ni indice. Reste cohérent
 ambiance_etablie. Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
 Dis une inconnue dans la fiction (ce que Corvus voit, entend ou ignore), jamais en parlant
 de faits, de données ou de ce qui est « établi ».
+Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxième personne (tu).
+Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
+ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
+incertitude se dit de ce que Corvus sait, à la deuxième personne (« tu ne sais pas si… »).
 """
 
 
