@@ -118,6 +118,8 @@ class RumeurAvecLieuTests(unittest.TestCase):
         m.joueur.update(salle="salle_commune", position=[5, 4])
         m.data["visitees"] = sorted(set(m.data["visitees"]) | {"salle_commune", "etable"})
         m.data["connus"] = sorted(set(m.data["connus"]) | {"ballot", "hugues", "anselme", "lucien"})
+        from tests.support import presentes
+        presentes(m,"hugues","anselme","lucien")
         connaitre(m, "joueur", "hugues")  # Il a déjà vu Hugues : il reconnaît sa voix.
         m, texte = attendre(recharger(m))
         vu = next(s for s in lire(m, "hugues")["memoire"] if s["type"] == "vu_agir")
@@ -213,6 +215,8 @@ class ChercherQuelquUnTests(unittest.TestCase):
         m.data["connus"] = sorted(set(m.data["connus"]) | {"mireille", "odile"})
         for x in ("mireille", "odile"):
             connaitre(m, "joueur", x)  # Il les a déjà vues : il reconnaît leurs voix.
+        from tests.support import presentes
+        presentes(m,'mireille','odile')  # Leurs noms ont également été présentés.
         m, texte = attendre(recharger(m))
         self.assertIn("Mireille appelle : « Odile ? »", chronique(m))
         self.assertIn("Odile répond : « Ici ! »", chronique(m))

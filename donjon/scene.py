@@ -213,4 +213,5 @@ def scene_percue(monde):
     if joueur_pos:
         ox, oy = salles[joueur_salle]["plan"]["origine"]
         joueur["globale"] = [ox + joueur_pos[0], oy + joueur_pos[1]]
-    return {"joueur": joueur, "niveaux": niveaux}
+    from .noms import public
+    return public(monde, {"joueur": joueur, "niveaux": niveaux})

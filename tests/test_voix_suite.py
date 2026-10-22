@@ -92,6 +92,8 @@ class NomRetenuTests(unittest.TestCase):
         lire(m, "ilse")["voix"].remove("marchand")
         percevoir_tous(m)
         self.assertTrue(percoit(m, "ilse", "joueur"))
+        from donjon.noms import apprendre
+        apprendre(m,'marchand','joueur')  # L'appelant a entendu ce nom avant cette scène.
         heler(m, "marchand", "joueur", [])
         m = recharger(m)
         reprise, sortie, appels = jouer(m, "je réponds", [])
@@ -105,6 +107,8 @@ def deux_voix_dans_le_noir():
     """Relais, conduite basse dans le noir : Corvus près de Gorm, dont il connaît la voix ; Ilse à
     trois cases, qui ne connaît ni la voix de Gorm ni celle de Corvus. Brune et Aubin sont loin."""
     m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+    from donjon.noms import apprendre
+    apprendre(m,'marchand','joueur')  # L'appelant cherche quelqu'un dont il sait le nom.
     m.objets["brasero"]["allume"] = False
     m.objets["lanterne"]["allume"] = False
     m.joueur.update(salle="echoppe", position=[1, 2], orientation="nord")
@@ -141,7 +145,9 @@ class VoixAppeleeTests(unittest.TestCase):
         self.assertIsNone(ilse["voix_entendues"]["joueur"]["se_dit"])
         # Un ouï-dire, pas une identité : elle ne reconnaît pas ces voix, mais sait le nom de Corvus.
         self.assertNotIn("marchand", ilse["voix"])
-        self.assertTrue(connait_nom(reprise, "ilse", "joueur"))
+        from donjon.voix import connait_appellation
+        self.assertTrue(connait_appellation(reprise, "ilse", "joueur"))
+        self.assertFalse(connait_nom(reprise, "ilse", "joueur"))
         self.assertNotIn("joueur", ilse["noms"])
 
     def test_meme_nature_entre_pnj_le_nom_dit_apres_la_voix(self):

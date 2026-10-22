@@ -1,3 +1,4 @@
+from tests.support import presentes
 import copy
 import io
 from pathlib import Path
@@ -207,6 +208,7 @@ class FaitsLocauxTests(unittest.TestCase):
         m.objets["marchand"]["lieu"] = "echoppe"
         m.objets["echoppe_murs"]["lieu"] = "echoppe"
         m.objets["temoin"] = objet("temoin", "Mira", "personnage", "echoppe")
+        presentes(m, "temoin")
         avant = copy.deepcopy(m.data)
         p = {"ajouts": [
             {"type": "detail", "ancrage": "echoppe_murs", "nom": "tache d'humidité",

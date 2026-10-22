@@ -137,8 +137,9 @@ class NomInconnuTests(unittest.TestCase):
         self.assertEqual(mj(appels), [])
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)
         # Sans guillemets, le MJ interprète ; s'il en fait une parole à Gorm, le moteur la refuse.
+        from donjon.voix import designation
         reprise, sortie, appels = jouer(m, "Brune, rends-moi mes pièces", [
-            parole("Brune, rends-moi mes pièces.", ("reclamer", "", "", ""), personnage="marchand")], [])
+            parole("Brune, rends-moi mes pièces.", ("reclamer", "", "", ""), personnage=designation(m,'marchand'))], [])
         self.assertEqual(len(mj(appels)), 1)
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
@@ -331,7 +332,7 @@ class ImpostureTests(unittest.TestCase):
         self.assertEqual(len(mj(appels)), 2)
         self.assertNotIn("retour_moteur", mj(appels)[1]["faits"])
         faits = narration(appels)["faits"]["conversation_validee"]["faits"]
-        self.assertEqual(faits, ["Une voix qui se dit Ilse sait que tu n'es pas Brune et ne te fait plus confiance."])
+        self.assertEqual(faits, ["Une voix qui se dit Ilse sait que tu n'es pas « Brune » et ne te fait plus confiance."])
         # Après rechargement : Ilse, qui connaît la voix de Brune, retient l'imposture et se méfie de la voix.
         self.assertIn({"type": "imposture", "se_disait": "brune"},
                       [{k: s[k] for k in ("type", "se_disait")} for s in lire(reprise, "ilse")["memoire"]
@@ -345,7 +346,7 @@ class ImpostureTests(unittest.TestCase):
             dialogue("La voix : « Corvus… »")], [audit(ligne("parole", "voix_1", "Corvus…"))])
         # Le moteur lit le nom dans les mots : Corvus se nomme, même sans contenu typé.
         faits = narration(appels)["faits"]["conversation_validee"]["faits"]
-        self.assertIn("te croit sur parole : pour elle, c'est Corvus qui parle", faits[0])
+        self.assertIn("te croit sur parole : pour elle, c'est « Corvus » qui parle", faits[0])
         self.assertEqual(lire(reprise, "ilse")["voix_entendues"]["joueur"]["se_dit"], "joueur")
 
 

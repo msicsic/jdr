@@ -120,16 +120,24 @@ def _auditeur(monde, id, souvenir, noyau, source):
     return None
 
 
-def _qui(monde, id):
+def _qui(monde, id, locuteur=None):
+    """Nom d'une chronique, ou désignation que le locuteur peut réellement prononcer."""
+    if locuteur is not None:
+        from .voix import connait_nom, identifie
+        if not connait_nom(monde, locuteur, id):
+            if id == 'joueur':
+                return "l'étrangère" if monde.joueur.get('genre') == 'f' else "l'étranger"
+            from .noms import nom
+            return nom(monde, id) if identifie(monde, locuteur, id) else "quelqu'un"
     return monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"].split(",")[0]
 
 
-def phrase(monde, noyau):
+def phrase(monde, noyau, locuteur=None):
     o = monde.objets.get(noyau.get("objet") or "")
     t = noyau["type"]
     if t == "absence":
         return designer(o) + " " + ("ont" if o.get("pluriel") else "a") + " disparu"
-    qui = _qui(monde, accuse(noyau))
+    qui = _qui(monde, accuse(noyau), locuteur)
     if t in ("mensonge_decouvert", "mensonge_dementi"):
         return qui + " ment"
     if t == "vol_surpris":
@@ -137,9 +145,9 @@ def phrase(monde, noyau):
     il = "elle" if monde.objets.get(accuse(noyau), {}).get("genre") == "f" else "il"
     if t == "dette_niee":
         n = noyau["montant"]
-        return f"{qui} garde les {n} pièce{'s' if n > 1 else ''} qu'{il} doit à {_qui(monde, noyau['victime'])}"
+        return f"{qui} garde les {n} pièce{'s' if n > 1 else ''} qu'{il} doit à {_qui(monde, noyau['victime'], locuteur)}"
     if t == "pret_garde":
-        return (f"{qui} garde {designer(o)} que {_qui(monde, noyau['victime'])} lui a "
+        return (f"{qui} garde {designer(o)} que {_qui(monde, noyau['victime'], locuteur)} lui a "
                 + ("prêtée" if o.get("genre") == "f" else "prêté"))
     if t == "vu_porter":
         return qui + " porte " + designer(o) + ", qui n'est pas à " + ("lui" if monde.objets.get(accuse(noyau), {}).get("genre") != "f" else "elle")
@@ -220,6 +228,9 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     entendre (``ecoute`` : une voix qu'il reconnaît, ou « une voix »)."""
     from .ouie import retentir
     from .paroles import _connu_du_joueur
+    from .noms import texte as nommer_pour
+    texte = nommer_pour(monde, texte, observateur=id)
+    reponse = nommer_pour(monde, reponse, observateur=auditeur)
     retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites],
              parole={"a": [auditeur], "contenu": list(contenu)})
     if reponse and dite:
@@ -247,8 +258,8 @@ def qui_va_la(monde, id, autre, lignes):
 
 def _entendu(monde, id, auditeur, noyau, rang, lignes):
     cites = [x for x in (accuse(noyau), noyau.get("objet"), *_lieu_dit(noyau)) if x]
-    faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse à " + _qui(monde, auditeur) + " que "
-                   + phrase(monde, noyau) + ".", cites, lignes,
+    faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse à " + _qui(monde, auditeur, id) + " que "
+                   + phrase(monde, noyau, id) + ".", cites, lignes,
                    [{"type": "rumeur", "evenement": noyau, "rang": rang}])
 
 

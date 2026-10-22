@@ -55,6 +55,12 @@
     "objet": "planches",
     "quoi": "objet"
    }
+  ],
+  "noms_connus": [
+   "marchand",
+   "brune",
+   "ilse",
+   "aubin"
   ]
  },
  "tours": [

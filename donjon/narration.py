@@ -34,7 +34,8 @@ def attestations(monde, contexte):
     textes = [scene, decrire_perception(monde), decrire_contexte(monde)]
     for objet in contexte["objets_perceptibles"]:
         if objet["visible"]:
-            textes.append(decrire(monde, objet["id"], technique=False))
+            from .voix import reel
+            textes.append(decrire(monde, reel(monde, objet["id"]), technique=False))
     return list(dict.fromkeys(p for texte in textes for p in segments(texte) if p))
 
 
@@ -54,10 +55,11 @@ SCHEMA_AUDIT = {
                 "sources": {"type": "array", "items": {"type": "string"}},
                 "locuteur": {"type": "string"},
                 "citation": {"type": "string"},
+                "presentation": {"type": "string", "description": "Nom dont le locuteur se présente dans sa citation, y compris une réponse nominale ; vide pour une mention de tiers ou une autre parole."},
                 "entites": {"type": "array", "maxItems": 8, "items": {"type": "string"}},
                 "motif": {"type": "string"},
             },
-            "required": ["indice", "verdict", "sources", "locuteur", "citation", "entites", "motif"]}},
+            "required": ["indice", "verdict", "sources", "locuteur", "citation", "presentation", "entites", "motif"]}},
     },
     "required": ["segments"],
 }
@@ -212,6 +214,24 @@ def fondement_paroles(entree):
 CITATIONS = re.compile(r"«[^»]*»|“[^”]*”|\"[^\"]*\"")
 
 
+def hors_paroles_etablies(monde, texte, paroles=(), faits=None, historique=True):
+    """Exempte le seul emplacement audité ; un souvenir n'autorise aucune attribution libre."""
+    citations = list(CITATIONS.finditer(texte))
+    actuelles = {p['texte'].strip() for p in paroles if p.get('passage') == texte
+                 and sum(c.group()[1:-1].strip() == p['texte'].strip() for c in citations) == 1}
+    mots={p['texte'].strip() for p in monde.data.get('paroles_joueur',[])}
+    mots.update(p['texte'].strip() for p in monde.data.get('paroles_pnj',[]) if 'joueur' in p['auditeurs'])
+    validee=(faits or {}).get('conversation_validee') or {}
+    if validee.get('operation')=='parole_joueur' and isinstance(validee.get('replique_joueur'),str):
+        mots.add(validee['replique_joueur'].strip())
+    def remplacer(m):
+        mots_cites=m.group()[1:-1].strip()
+        # Une citation passée peut être répétée seule, sans nouvelle relation d'identité.
+        autonome = historique and texte.strip() == m.group() and mots_cites in mots
+        return ' ' if mots_cites in actuelles or autonome else m.group()
+    return CITATIONS.sub(remplacer,texte)
+
+
 def tel_quel(passage, extrait):
     """Les mots du passage, tels qu'écrits, dont la forme normalisée est ``extrait`` (« tu demandes a
     ilse » → « Tu demandes à Ilse ») : un refus cite le texte exact. À défaut, ``extrait``."""
@@ -224,17 +244,22 @@ def tel_quel(passage, extrait):
     return extrait
 
 
-def mentions(monde, texte, base, paroles="", partie="texte", lieu=None):
+def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_validees=None):
     """Obstacles déterministes : noms d'entités absents de ce que le MJ a reçu. Ce qu'un
     personnage croit ne se dit que par sa bouche, entre guillemets ; la narration n'en use pas.
     Un obstacle par nom, au premier segment qui le porte. ``lieu`` remplace « partie, segment »
     quand le texte n'est pas une réponse découpée pour l'auditeur (le texte d'un ajout)."""
     obstacles, vus = [], set()
     for indice, passage in enumerate(segments(texte)):
-        citations = " ".join(CITATIONS.findall(passage))
+        citations = CITATIONS.findall(hors_paroles_etablies(monde,passage))
+        validees={p['texte'].strip() for p in (paroles_validees or ())
+                  if p.get('passage') == passage
+                  and sum(c[1:-1].strip() == p['texte'].strip() for c in citations) == 1}
         recit = CITATIONS.sub(" ", passage)
         trouves = ([(m, False) for m in lexique.mentions_sans_fondement(monde, recit, base)]
-                   + [(m, True) for m in lexique.mentions_sans_fondement(monde, citations, base + " " + paroles)])
+                   + [(m, True) for citation in citations for m in lexique.mentions_sans_fondement(
+                       monde,citation,base+(" "+paroles if paroles_validees is None
+                           or citation[1:-1].strip() in validees else ""))])
         for m, cite in trouves:
             if m["terme"] in vus:
                 continue
@@ -311,7 +336,11 @@ def mentions_proposees(monde, reponse, base, paroles=""):
         for champ in ("texte", "description"):
             if isinstance(ajout.get(champ), str) and ajout[champ].strip():
                 obstacles.extend(mentions(monde, ajout[champ], base + " " + propre, partie="description",
-                                          lieu=f"proposition.{groupe}[{rang}].{champ}"))
+                                          lieu=f"proposition.{groupe}[{rang}].{champ}",
+                                          paroles_validees=[] if groupe=='ajouts' and ajout.get('type')!='parole' else None))
+                if groupe=='ajouts' and ajout.get('type')!='parole':
+                    obstacles.extend(voix_inconnues(monde,[],{},ajout[champ],partie='description',
+                                                    citations_historiques=False))
     return obstacles
 
 
@@ -343,7 +372,7 @@ def destinataires_parole(faits, locuteur):
 from .paroles import SE_NOMMER  # noqa: E402
 
 
-def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
+def voix_inconnues(monde, paroles, faits, texte="", partie="texte", citations_historiques=True):
     """Obstacles déterministes : une voix que Corvus ne sait à qui prêter (un interlocuteur
     ``voix_inconnue``) ne dit pas qui elle est au-delà de ce que le moteur lui fait dire : le nom
     qu'elle s'est donné (son nom d'interlocuteur) et ce qu'établit l'issue de cette parole
@@ -361,13 +390,25 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
 
     def nom_court(x):
         return (monde.joueur if x == "joueur" else monde.objets[x])["nom"].split(",")[0]
+    from .voix import connait_nom
+    for indice, passage in enumerate(passages):
+        recit = hors_paroles_etablies(monde,passage,paroles,faits,citations_historiques)
+        for id, o in monde.objets.items():
+            voix_deja_controlee = any(isinstance(e, dict) and e.get("voix_inconnue") and id in lexique.entites_citees(monde, e.get("nom", "")) for e in interlocuteurs.values())
+            if o["type"] == "personnage" and not connait_nom(monde, "joueur", id) and not voix_deja_controlee:
+                nom_ = o["nom"].split(",")[0].split()[0]
+                if re.search(r"(?<!\w)" + re.escape(lexique.normaliser(nom_)) + r"(?!\w)", lexique.normaliser(recit), re.I):
+                    from .voix import nom_pour_joueur
+                    obstacles.append(audit("Le joueur n'a pas appris ce nom.",
+                        "dans le récit : « " + nom_pour_joueur(monde, id) + " », sans son nom",
+                        partie=partie, segment=indice, texte=passage, recu=nom_))
     for cle, entree in interlocuteurs.items():
         nom = entree.get("nom", "") if isinstance(entree, dict) and entree.get("voix_inconnue") else ""
         pretendu = lexique.normaliser(nom.split("(")[0]).replace("une voix", "voix").strip()
         dits = sorted(x for x in lexique.entites_citees(monde, nom)
                       if x in monde.objets and monde.objets[x]["type"] == "personnage")
         for indice, passage in enumerate(passages if dits else []):
-            recit = lexique.normaliser(CITATIONS.sub(" ", passage))
+            recit = lexique.normaliser(hors_paroles_etablies(monde,passage,paroles,faits,citations_historiques))
             reste = recit.replace(pretendu, " ") if pretendu else recit
             nommes = [x for x in dits if x in lexique.entites_citees(monde, reste)]
             if nommes:
@@ -384,7 +425,8 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
         etabli = " ".join([entree.get("nom", "") if inconnue else "", *map(str, validee.get("faits") or []),
                            str(validee.get("replique_joueur", ""))])
         permis = lexique.entites_citees(monde, etabli)
-        from .voix import connait_nom, reel
+        permis |= lexique.entites_citees(monde,parole.get('presentation',''))
+        from .voix import connait_appellation, reel
         qui = reel(monde, parole["locuteur"])
         qui = qui if qui in monde.objets and monde.objets[qui]["type"] == "personnage" else None
         if not inconnue and qui is None:
@@ -395,7 +437,7 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
             # le sait (``voix.connait_nom``) ou si l'échange l'établit.
             if not inconnue and x == qui:
                 return False
-            return x not in permis and (qui is None or x == qui or not connait_nom(monde, qui, x))
+            return x not in permis and (qui is None or x == qui or not connait_appellation(monde, qui, x))
         nommes = sorted(x for x in lexique.entites_citees(monde, parole["texte"])
                         if x in monde.objets and monde.objets[x]["type"] == "personnage" and tait(x))
         if inconnue:
@@ -406,7 +448,7 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
                 and x not in nommes)
         corvus = re.compile(r"\b" + re.escape(lexique.normaliser(monde.joueur["nom"].split(",")[0])) + r"\b")
         if (corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli))
-                and (qui is None or not connait_nom(monde, qui, "joueur"))):
+                and (qui is None or not connait_appellation(monde, qui, "joueur"))):
             nommes.append("joueur")  # Elle ne sait pas son nom.
         # La réplique est citée telle quelle dans un segment : c'est lui qui est en cause.
         indice = next((i for i, p in enumerate(passages) if f"« {parole['texte']} »" in p
@@ -565,6 +607,9 @@ def controler(texte, rapport, faits, partie="texte"):
         raise AuditIllisible("Contrôle narratif incomplet.")
     obstacles, paroles, ambiances, lignes_validees = [], [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
+        # Les rapports archivés avant le champ de présentation n'établissent aucune présentation.
+        if isinstance(ligne,dict) and 'presentation' not in ligne:
+            ligne = {**ligne,'presentation':''}
         if (not isinstance(ligne, dict) or set(ligne) != CHAMPS_AUDIT
                 or type(ligne["indice"]) is not int or ligne["indice"] != indice
                 or ligne["verdict"] not in VERDICTS
@@ -572,7 +617,7 @@ def controler(texte, rapport, faits, partie="texte"):
                 or any(not isinstance(s, str) for s in ligne["sources"])
                 or not isinstance(ligne["entites"], list)
                 or any(not isinstance(e, str) for e in ligne["entites"])
-                or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "motif"))):
+                or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "presentation", "motif"))):
             raise AuditIllisible("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
         # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
@@ -581,7 +626,7 @@ def controler(texte, rapport, faits, partie="texte"):
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
         if verdict not in ("parole", "engagement"):
-            ligne = {**ligne, "locuteur": "", "citation": ""}
+            ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
         lignes_validees.append(ligne)
@@ -628,12 +673,16 @@ def controler(texte, rapport, faits, partie="texte"):
             from .faits_locaux import LONGUEUR_PAROLE
             citation = citation_du_segment(passage, citation)
             if (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
-                    or not cite_entiere(passage, citation)):
+                    or len(re.findall(r"«\s*"+re.escape(citation)+r"\s*»",passage)) != 1):
                 refuser("Une parole doit être citée entre « et », en entier, dans le segment.",
                         f"la réplique de {locuteur} entière entre « et » dans ce segment, de 3 à {LONGUEUR_PAROLE} "
                         "caractères", f"citation {citation}" if citation else "citation vide")
+            elif ligne['presentation'] and not re.search(r'(?<!\w)'+re.escape(ligne['presentation'])+r'(?!\w)',citation):
+                refuser("Le nom de présentation n'est pas prononcé dans cette citation.",
+                        "presentation : le nom littéral prononcé par le locuteur pour se présenter, ou vide")
             else:
-                paroles.append({"locuteur": locuteur, "texte": citation})
+                paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
+                                **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":
             ambiances.append({"texte": passage,
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
@@ -716,7 +765,8 @@ def consigner(monde, reponse):
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
     if (rapport["obstacles"] or rapport["texte_controle"] != texte
-            or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""))
+            or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""),
+                        paroles_validees=rapport['paroles'])
             or voix_inconnues(monde, rapport["paroles"], audit["faits"], texte)):
         # Même base que l'audit : ce qu'un personnage croit peut figurer dans sa propre réplique.
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.")
@@ -735,10 +785,17 @@ def consigner(monde, reponse):
             entendants = sorted(saisissent(monde, locuteur["id"]))
             if "joueur" not in entendants:
                 entendants.append("joueur")
+            from .noms import entendre as entendre_noms
+            for auditeur in entendants:
+                entendre_noms(monde, auditeur, locuteur["id"], parole["texte"])
+                if parole.get('presentation'):
+                    from .noms import presenter
+                    presenter(monde,auditeur,locuteur['id'],parole['presentation'],parole['texte'])
             paroles.append({
                 "locuteur": locuteur["id"], "texte": parole["texte"], "salle": salle,
                 "minute": monde.data["minutes"], "auditeurs": entendants,
                 "revision": monde.data["revision"],
+                **({'presentation':parole['presentation']} if parole.get('presentation') else {}),
             })
     monde.data.setdefault("narrations_mj", []).append({
         "texte": texte, "revision": monde.data["revision"],

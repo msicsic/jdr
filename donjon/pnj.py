@@ -524,7 +524,7 @@ def heler(monde, id, qui, lignes):
     """``id`` (un PNJ ou le joueur) hèle ``qui`` par son nom : un cri (``ouie``, nature « hele »)."""
     from .ouie import retentir
     from .social import _qui
-    a, b = _qui(monde, id), _qui(monde, qui)
+    a, b = _qui(monde, id), _qui(monde, qui, id)
     texte = f"{a} appelle : « {b} ? »"
     _chroniquer(monde, id, texte, "social")
     if id == "joueur":
@@ -559,7 +559,7 @@ def repondre_a(monde, qui, appelant, lignes):
     (``deliberation.attendre_l_appelant``)."""
     from .ouie import retentir, saisit
     from .social import _qui
-    from .voix import se_nommer
+    from .voix import se_nommer, connait_nom
     reponse = f"{_qui(monde, qui)} répond : « Ici ! »"
     _chroniquer(monde, qui, reponse, "reponse")  # Une réaction, pas un geste de son but.
     if qui == "joueur":
@@ -572,8 +572,8 @@ def repondre_a(monde, qui, appelant, lignes):
             lignes.append(reponse)
     # Sa réponse retentit : qui en saisit les mots reconnaît sa voix ou l'apprend de sa bouche.
     retentir(monde, qui, "heler", texte=reponse, cites=[appelant],
-             parole={"a": [appelant], "contenu": [{"type": "nom", "sujet": qui}]})
-    if saisit(monde, qui, appelant, "heler"):
+             parole={"a": [appelant], "contenu": []})
+    if connait_nom(monde, appelant, qui) and saisit(monde, qui, appelant, "heler"):
         se_nommer(monde, appelant, qui, qui)
     elif appelant != "joueur":
         memoriser(monde, appelant, {"type": "appel_sans_reponse", "qui": qui,

@@ -5,6 +5,7 @@ Cas d'une partie (sauvegarde du défi, révisions 188-189 et 240-422) : « je do
 Gorm » partait au MJ ; l'explication du refus faisait parler Gorm ; Brune répondait « Je vais me
 pousser » sans que rien ne la fasse bouger, et le MJ le rappelait ensuite comme acquis.
 """
+from tests.support import presentes
 import io
 from pathlib import Path
 import tempfile
@@ -23,12 +24,12 @@ from donjon.paroles import esprits_interlocuteurs
 
 def refuge():
     """Le refuge du Relais, hors cases : Brune, Ilse et Aubin présents, la besace de départ."""
-    return nouveau_defi(1985, "fixe")
+    return presentes(nouveau_defi(1985, "fixe"))
 
 
 def aupres_de_gorm():
     """Cas de la partie : la cloche rapportée, Gorm à côté du joueur, aucune mission au Relais."""
-    m = nouveau_defi(1985, "fixe")
+    m = presentes(nouveau_defi(1985, "fixe"))
     m.joueur["salle"] = m.objets["marchand"]["lieu"]
     m.objets["cloche"]["lieu"] = "joueur"
     return m
@@ -183,7 +184,7 @@ class EngagementTests(unittest.TestCase):
         rapport = controler(texte, audit(ligne("engagement", locuteur="marchand",
                                                citation="Je garderai le feu allumé.", entites=[prevu])), faits)
         self.assertEqual(rapport["obstacles"], [])
-        self.assertEqual(rapport["paroles"], [{"locuteur": "marchand", "texte": "Je garderai le feu allumé."}])
+        self.assertEqual(rapport["paroles"], [{"locuteur": "marchand", "texte": "Je garderai le feu allumé.", "passage": texte}])
 
     def test_l_issue_que_le_moteur_vient_de_valider_peut_etre_dite(self):
         accord = "Offre de 20 pièces contre la remise de l'objet. Le joueur ne l'a pas encore acceptée."

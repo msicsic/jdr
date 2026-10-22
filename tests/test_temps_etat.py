@@ -243,6 +243,8 @@ def gorm_part_vers_l_ouest():
     """Gorm, au refuge, regarde vers l'est ; le joueur, arrivé dans son dos, est près de son
     marteau ; Gorm va se mettre en route vers l'échoppe, à l'ouest, au milieu du geste du joueur."""
     m = nouveau_defi(depart="fixe")
+    from tests.support import presentes
+    presentes(m,'marchand')
     installer(m)
     m = calme(m, "marchand", "brune", "ilse", "aubin")
     placer(m, "marchand", "antichambre", (5, 5))

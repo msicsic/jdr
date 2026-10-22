@@ -16,7 +16,7 @@ from donjon.geometrie import placer, position_entree
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde
 from donjon.pnj import avancer
-from tests.support import refusee, regarder
+from tests.support import refusee, regarder, presentes
 
 
 def relais():
@@ -24,7 +24,7 @@ def relais():
     m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
     # Placement d'auteur : Gorm vient de faire ses rondes, il est à son poste.
     lire(m, "marchand")["visites"].update(antichambre=0, crypte=0)
-    return m
+    return presentes(m)
 
 
 def reunir(m, *ids, salle="antichambre"):

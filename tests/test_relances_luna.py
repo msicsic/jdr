@@ -127,9 +127,9 @@ class CitationTests(unittest.TestCase):
         from donjon.narration import controler
         faits = {"interlocuteurs": {"aubin": {}}}
         bon = controler("Aubin grogne : « Pas maintenant. »", self.rapport("« Pas maintenant »"), faits)
-        self.assertEqual((bon["obstacles"], bon["paroles"]), ([], [{"locuteur": "aubin", "texte": "Pas maintenant."}]))
+        self.assertEqual((bon["obstacles"], bon["paroles"]), ([], [{"locuteur": "aubin", "texte": "Pas maintenant.", "passage": "Aubin grogne : « Pas maintenant. »"}]))
         recopie = controler("Aubin grogne : « Pas maintenant. »", self.rapport("grogne : « Pas maintenant. »"), faits)
-        self.assertEqual(recopie["paroles"], [{"locuteur": "aubin", "texte": "Pas maintenant."}])
+        self.assertEqual(recopie["paroles"], [{"locuteur": "aubin", "texte": "Pas maintenant.", "passage": "Aubin grogne : « Pas maintenant. »"}])
         faux = controler("Aubin grogne : « Pas maintenant. »", self.rapport("Plus tard."), faits)
         self.assertEqual(len(faux["obstacles"]), 1)
         self.assertIn("citée entre « et », en entier", faux["obstacles"][0]["motif"])
@@ -198,6 +198,8 @@ class NomsConnusTests(unittest.TestCase):
         # rien, Corvus. » sans avoir jamais entendu ce nom.
         from tests.test_parole_corrections import banc
         m = banc("ressources")
+        from tests.support import presentes
+        presentes(m,'aubin')
         reprise, sortie, appels = jouer(m, "Aubin, tu me dois quelque chose ?", [
             parole("Aubin, tu me dois quelque chose ?", ("reclamer", "", "", ""), personnage="aubin"),
             dialogue("Aubin : « Non. Je ne te dois rien, Corvus. »"),
@@ -215,6 +217,8 @@ class NomsConnusTests(unittest.TestCase):
         # connaît, se nomme aussi.
         from tests.test_parole_corrections import banc
         m = banc("ressources")
+        from tests.support import presentes
+        presentes(m,'aubin','brune')
         reprise, sortie, appels = jouer(m, "« Aubin, je suis Corvus. Tu as vu Brune ? »", [
             parole("Aubin, je suis Corvus. Tu as vu Brune ?", ("propos", "", "", ""), personnage="aubin"),
             dialogue("Aubin : « Brune est là, Corvus. »")], [replique("aubin", "Brune est là, Corvus.")])

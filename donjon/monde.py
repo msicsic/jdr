@@ -148,6 +148,8 @@ class Monde:
         installer_temps(self)
         from .eau import installer as installer_eau
         installer_eau(self)
+        from .noms import installer as installer_noms
+        installer_noms(self)
         self.verifier()
 
     def _installer_recit(self):
@@ -171,8 +173,8 @@ class Monde:
                             if e.get("description_visuelle") and self.visible(e["id"])]}
 
     def identifier(self, ids):
-        """Le joueur sait qui sont ces personnages : il les a vus, et la scène les nomme. Ce savoir
-        tient à eux, pas à une place : il dure quand leur place connue s'est vidée."""
+        """Le joueur reconnaît l'apparence de ces personnages déjà vus. Ce souvenir ne donne
+        ni leur nom, ni leur voix, ni leur position quand leur place connue s'est vidée."""
         vus = self.data.setdefault("personnages_vus", [])
         for id in ids:
             if id not in vus and self.objets.get(id, {}).get("type") == "personnage":
@@ -289,6 +291,10 @@ class Monde:
             return [o for o in self.objets.values() if self.visible(o["id"])]
 
     def trouver(self, texte):
+        from .noms import resoudre as personne, public, reference
+        visuel = personne(self, texte)
+        if visuel:
+            return visuel
         texte = normaliser(texte)
         for article in ("la ", "le ", "les ", "du ", "de la ", "l'"):
             if texte.startswith(article):
@@ -296,11 +302,14 @@ class Monde:
                 break
         candidats, exacts = [], []
         for o in self.objets.values():
+            from .voix import connait_nom
+            if o["type"] == "personnage" and not connait_nom(self, "joueur", o["id"]):
+                continue
             if not self.designable(o["id"]):
                 continue
-            if texte == normaliser(o["id"]):
+            if texte == normaliser(reference(self,o['id'])):
                 return o["id"]
-            noms = [o["nom"], *o["aliases"]]
+            noms = [public(self,n) for n in [o["nom"], *o["aliases"]]]
             if texte in [normaliser(n) for n in noms]:
                 exacts.append(o["id"])
             if texte and any(texte in normaliser(n) for n in noms):
@@ -309,7 +318,7 @@ class Monde:
         if len(candidats) == 1:
             return candidats[0]
         if candidats:
-            raise ErreurMonde("Précisez : " + ", ".join(designer(self.objets[i]) for i in candidats) + ".")
+            raise ErreurMonde(public(self,"Précisez : " + ", ".join(designer(self.objets[i]) for i in candidats) + "."))
         raise ErreurMonde("Tu ne vois pas cet objet ici. Tape « regarder ».")
 
     def charge(self):
@@ -342,6 +351,7 @@ class Monde:
             vue = copy.deepcopy(o)
             # L'esprit d'un PNJ (profil, besoins, pulsions) reste interne au moteur.
             vue.pop("profil", None)
+            vue.pop("connait_noms", None)
             if "constats_capacites" in vue:
                 from .capacites_objet import resume_constats
                 vue["constats_capacites"] = resume_constats(o, self.objets)
@@ -403,7 +413,9 @@ class Monde:
             for sortie in salle["sorties"].values():
                 if sortie["vers"] in voisines(self, self.joueur["salle"]):
                     sortie["eau_destination"] = decrire_eau(self, sortie["vers"])
-        return {"revision": self.data["revision"], "joueur": joueur, "lieux_connus": lieux_connus,
+        from .noms import public
+        from .voix import connait_appellation
+        return public(self, {"revision": self.data["revision"], "joueur": joueur, "lieux_connus": lieux_connus,
                 "mode_cases": bool(self.data.get("mode_cases")), "salle": salle,
                 "objets_perceptibles": objets,
                 "souvenirs_visuels": souvenirs_visuels,
@@ -411,7 +423,9 @@ class Monde:
                 "scenario": self.contexte_scenario(),
                 "souvenirs_personnages": copy.deepcopy(self.data["souvenirs_personnages"]),
                 # Ceux dont Corvus sait qui ils sont, où qu'ils soient (``paroles.identites``).
-                "personnages_connus": {id: self.objets[id]["nom"] for id in identites(self)},
+                "personnages_connus": {id: self.objets[id]["nom"] for id in self.data.get("noms_connus", []) if id in self.objets},
+                "noms_entendus": [self.objets[id]["nom"].split(",")[0] for id,o in self.objets.items()
+                                  if o['type']=='personnage' and connait_appellation(self,'joueur',id)],
                 "interlocuteurs": interlocuteurs(self), "missions_discutables": missions_discutables(self),
                 "engagements": contrats_publics(self),
                 "connaissances_pnj": connaissances_pnj(self),
@@ -423,7 +437,7 @@ class Monde:
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],
                 "evenements_recents": [e for e in self.data["journal"]
                     if e["action"]["action"] not in (("marcher", "chasser", "faufiler", "tourner", "aller")
-                                                     if self.data.get("mode_cases") else ("marcher",))][-6:]}
+                                                     if self.data.get("mode_cases") else ("marcher",))][-6:]})
 
     def contexte_scenario(self):
         """Prémisse publique et déplacements réellement enregistrés."""
@@ -440,6 +454,8 @@ class Monde:
     def verifier(self):
         d = self.data
         try:
+            from .noms import verifier as verifier_noms
+            verifier_noms(self)
             from .temps import verifier as verifier_temps
             verifier_temps(self)
             if d.get("mode_cases"):
@@ -591,6 +607,8 @@ class Monde:
             raise ErreurMonde(f"Etat du monde invalide : {exc}") from exc
 
     def sauver(self, chemin):
+        from .noms import installer as installer_noms
+        installer_noms(self)
         self.verifier()
         chemin = Path(chemin)
         chemin.parent.mkdir(parents=True, exist_ok=True)

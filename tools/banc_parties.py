@@ -177,6 +177,11 @@ def preparer(donnees, sauvegarde):
             if "periode" in x["condition"]:
                 esprit(m, id)["visites"][x["condition"]["lieu"]] = m.data["minutes"]
     m.data["connus"].extend(prep.get("connus", []))
+    # Une scène de banc peut déclarer les présentations déjà entendues, séparément de la vue.
+    if prep.get("noms_connus"):
+        from donjon.noms import apprendre
+        for id in prep["noms_connus"]:
+            apprendre(m, "joueur", id)
     for id, lieu in prep.get("lieux", {}).items():
         # Placement d'auteur : un objet déjà en main ou ailleurs, pour cibler une scène.
         m.objets[id]["lieu"] = lieu

@@ -19,7 +19,8 @@ from donjon.spatial import installer
 
 
 def relais():
-    m = sans_evacues(nouveau_defi(depart="fixe"))
+    from tests.support import presentes
+    m = presentes(sans_evacues(nouveau_defi(depart="fixe")))
     installer(m)
     # Placement d'auteur : Brune a déjà mangé ; le joueur se tient près de Gorm dans la conduite.
     lire(m, "brune")["besoins"]["faim"] = 0
@@ -262,7 +263,8 @@ class DestinataireTests(unittest.TestCase):
     def test_un_autre_destinataire_que_celui_interpelle_est_refuse(self):
         from donjon.defi import nouveau_defi
         from donjon.paroles import preparer_parole
-        m = nouveau_defi(1985, "fixe")
+        from tests.support import presentes
+        m = presentes(nouveau_defi(1985, "fixe"))
         m.joueur["salle"] = m.objets["brune"]["lieu"]
         m.objets["marchand"]["lieu"] = m.objets["brune"]["lieu"]   # Placement d'auteur : Gorm est là aussi.
         p = {"personnage": "brune", "replique": "Brune, tu connais le beffroi ?", "contenu": [],
@@ -275,7 +277,8 @@ class DestinataireTests(unittest.TestCase):
     def test_un_destinataire_absent_ne_suggere_personne_d_autre(self):
         from donjon.defi import nouveau_defi
         from donjon.paroles import preparer_parole
-        m = nouveau_defi(1985, "fixe")
+        from tests.support import presentes
+        m = presentes(nouveau_defi(1985, "fixe"))
         m.joueur["salle"] = m.objets["brune"]["lieu"]
         p = {"personnage": "marchand", "replique": "Gorm ?", "contenu": [], "_intention": "Gorm, tu es là ?"}
         from donjon.dialogues import interlocuteurs

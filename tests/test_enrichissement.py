@@ -41,6 +41,8 @@ class EnrichissementTests(unittest.TestCase):
     def test_autre_personnage_sans_portrait_et_detail_examinable_apres_rechargement(self):
         m = nouveau_monde()
         m.objets["mira"] = objet("mira", "Mira", "personnage", "antichambre", aliases=["mira"])
+        from tests.support import presentes
+        presentes(m,'mira')  # Cette conversation porte sur une personne déjà présentée.
         avant = copy.deepcopy(m.data)
         travail = preparer_complements(m, completer(ajout("mira"), ajout("mira", "silhouette", "Mira est élancée.")))
         self.assertEqual(m.data, avant)
@@ -117,6 +119,8 @@ class EnrichissementTests(unittest.TestCase):
         m = nouveau_monde()
         m.joueur["salle"] = "echoppe"
         m.objets["mira"] = objet("mira", "Mira", "personnage", "echoppe")
+        from tests.support import presentes
+        presentes(m,'mira')
         m = preparer_complements(m, completer(ajout(), ajout("mira")))
         with self.assertRaisesRegex(ErreurMonde, "Précisez"):
             m.trouver("yeux")

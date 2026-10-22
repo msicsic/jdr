@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tests.support import calme
+from tests.support import calme, presentes
 from donjon.defi import nouveau_defi
 from donjon.esprits import esprit, pnjs
 from donjon.francais import designer, sujet
@@ -37,7 +37,7 @@ def faire(m, p):
 def scene(salle, case, regard, depart, position, vers):
     """Placement d'auteur : seul Gorm est dans les parages, les autres sont à la galerie de ronde ;
     Gorm part pour ``vers``, de son pas, depuis ``depart``. Le joueur regarde vers ``regard``."""
-    m = nouveau_defi(depart="fixe")
+    m = presentes(nouveau_defi(depart="fixe"))
     installer(m)
     calme(m, "marchand", "brune", "ilse", "aubin")
     for n, id in enumerate(("brune", "ilse", "aubin")):
@@ -80,7 +80,7 @@ class BilanTests(unittest.TestCase):
     def test_cas_reel_prendre_la_torche_et_l_allumer(self):
         # La partie réelle : au refuge, en [1, 3], « je prends la torche et je l'allume avec mon
         # briquet » ; les PNJ vont et viennent pendant ces deux minutes.
-        m = nouveau_defi(depart="fixe")
+        m = presentes(nouveau_defi(depart="fixe"))
         installer(m)
         avant = m.copier()
         reprise, texte = faire(m, sequence(etape("deplacer", "torche", "joueur"),

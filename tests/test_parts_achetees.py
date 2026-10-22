@@ -65,7 +65,8 @@ class PartAcheteeTests(unittest.TestCase):
     def test_une_part_des_fagots_de_joss_est_remise_a_corvus(self):
         # Autre cas de même nature, à l'auberge : Corvus achète une part des fagots de Joss, posés dans
         # l'étable ; Joss la prend et la lui remet.
-        m = calme(creer("auberge", 1985, "fixe"), "joss")
+        from tests.support import presentes
+        m = presentes(calme(creer("auberge", 1985, "fixe"), "joss"), "joss")
         m.objets["fagots_etable"]["charges"] = 3
         placer(m, "joss", "etable", (5, 3))
         m.joueur.update(salle="etable", position=[5, 2])

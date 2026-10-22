@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
+  et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
+  mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,
+  contrôle inverse des références MJ et projection des rendus/contre-revues. Les corps jamais
+  vus ne livrent aucun portrait. Les paquets nominaux privés servent seulement à la narration
+  après validation, jamais au choix d'une cible mécanique. Citations auditées à portée précise, sans exemption d’une citation privée du narrateur.
+  Discovery : 1 277 tests (1 long + 1 276 autres), suite verte, quatorze dépendances
+  facultatives ignorées. Trois erreurs de console de la passe antérieure restent inexpliquées,
+  non reproduites dans la passe exhaustive instrumentée verte, sans correction fonctionnelle. Douze nuits moteur 8 h sans violation de `Monde.verifier` ni usurpation ;
+  replays Luna de présentation et d'aperçu vérifiés après recharge.
+  Quatre références Luna × deux passes, main puis branche : 76 tours MJ par variante,
+  2,89 → 3,09 appels/tour, 10,8 → 11,9 s/tour ; deux replis narratifs branche, aucun incident technique final,
+  davantage de refus et relances (noms autrefois connus dans les saisies désormais inconnus).
+  Voir [le rapport et ses mesures/limites](taches/rapport-codex-2-noms.md).
+  Fusionné après `codex-profils` et `codex-lampes` : conflits `voix.se_nommer` (le bloc des noms gardé, la
+  méfiance par la cause `imposture` des relations), `test_proto` (garde réseau de profils), `test_ressources`
+  (la version des lampes, qui passe après les noms), `plan-ouie` (deux sections gardées) ; aucun accès direct
+  à `fiable` (`test_relations_socle`). Suite 1329 tests. Banc rapide 4 h, 4 graines, Relais et auberge :
+  identiques avant → après (le banc sans joueur ne voit presque rien des noms : 0 nom retenu en 4 h).
+  Relecture : contrat du MJ renforcé (projection `personne_<n>`, contrôle déterministe des noms) ; code
+  dense (`noms.py`) ; relances Luna 2 → 8 par passe selon le rapport, à surveiller ; Luna non revérifiée ici.
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1257,7 +1278,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun plantage, usurpation ni bascule nouvelle. Relecture : `_parts_remises` compte un besoin de
   lumière aussi pour qui sait crocheter (heuristique par capacité, à revoir) ; temps d'une nuit de
   12 h doublé à l'auberge selon le rapport (120 → 249 s), non revu ici.
-- La suite de tests passe : 1293 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 1329 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

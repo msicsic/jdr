@@ -104,7 +104,10 @@
     "debut": "La neige est tombée d'un coup sur le col, un peu avant la nuit. Tu as eu juste le temps de gagner l'auberge du Col-Pendu avant que la tempête ferme la route : les congères montent contre la porte d'entrée, la barre est mise et personne ne repartira avant le jour. Dans la salle commune, Odile l'aubergiste compte ses bûches ; une vieille pèlerine, un voyageur au manteau gris et un ancien soldat se pressent près de l'âtre. Le marchand drapier s'est enfermé dans la chambre au poêle, avec son coffre. On t'a laissé un lit de camp au dortoir, sans feu.",
     "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. La tempête dure toute la nuit.",
     "objectif": "Passer la nuit au col sans y laisser ta peau ni ta bourse.",
-    "version": 1
+    "version": 1,
+    "noms_connus": [
+      "odile"
+    ]
   },
   "salles": {
     "cellier": {
@@ -1990,7 +1993,16 @@
         "repas": 240,
         "veille": 600,
         "trempe": 0
-      }
+      },
+      "connait_noms": [
+        "anselme",
+        "hugues",
+        "joss",
+        "lucien",
+        "mathurine",
+        "mireille",
+        "tilo"
+      ]
     },
     "mireille": {
       "id": "mireille",
@@ -2088,7 +2100,12 @@
         "repas": 300,
         "veille": 600,
         "trempe": 0
-      }
+      },
+      "connait_noms": [
+        "joss",
+        "odile",
+        "tilo"
+      ]
     },
     "tilo": {
       "id": "tilo",
@@ -2143,7 +2160,12 @@
         "repas": 540,
         "veille": 480,
         "trempe": 0
-      }
+      },
+      "connait_noms": [
+        "joss",
+        "mireille",
+        "odile"
+      ]
     },
     "joss": {
       "id": "joss",
@@ -2224,7 +2246,12 @@
         "repas": 600,
         "veille": 540,
         "trempe": 240
-      }
+      },
+      "connait_noms": [
+        "mireille",
+        "odile",
+        "tilo"
+      ]
     },
     "anselme": {
       "id": "anselme",
@@ -2320,7 +2347,12 @@
         "repas": 360,
         "veille": 700,
         "trempe": 240
-      }
+      },
+      "connait_noms": [
+        "hugues",
+        "lucien",
+        "odile"
+      ]
     },
     "hugues": {
       "id": "hugues",
@@ -2426,7 +2458,14 @@
         "repas": 480,
         "veille": 900,
         "trempe": 300
-      }
+      },
+      "connait_noms": [
+        "anselme",
+        "lucien",
+        "mathurine",
+        "odile",
+        "tilo"
+      ]
     },
     "mathurine": {
       "id": "mathurine",
@@ -2486,7 +2525,14 @@
         "repas": 540,
         "veille": 840,
         "trempe": 420
-      }
+      },
+      "connait_noms": [
+        "anselme",
+        "hugues",
+        "lucien",
+        "odile",
+        "tilo"
+      ]
     },
     "lucien": {
       "id": "lucien",
@@ -2575,7 +2621,12 @@
         "repas": 420,
         "veille": 600,
         "trempe": 200
-      }
+      },
+      "connait_noms": [
+        "anselme",
+        "hugues",
+        "odile"
+      ]
     },
     "bourse_anselme": {
       "aliases": [

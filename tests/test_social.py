@@ -16,7 +16,7 @@ from donjon.paroles import esprits_interlocuteurs
 from donjon.social import RANG_MAX
 from donjon.spatial import installer
 from donjon.vol import mefiance
-from tests.support import calme, regarder, refusee
+from tests.support import calme, regarder, refusee, presentes
 
 
 def recharger(monde):
@@ -49,7 +49,7 @@ def placer(monde, id, salle, case):
 def relais():
     m = nouveau_defi(depart="fixe")
     installer(m)
-    return m
+    return presentes(m)
 
 
 def rumeurs(monde, id):
@@ -80,7 +80,10 @@ class RumeurTests(unittest.TestCase):
         fiable = lire(m, "marchand")["croyances"]["joueur"]["fiable"]
         self.assertEqual((fiable["valeur"], fiable["source"]), (False, "dit:ilse"))
         self.assertEqual(rumeurs(m, "marchand")[0]["evenement"]["type"], "vol_surpris")
-        self.assertIn("Ilse glisse à Gorm que Corvus a tenté de dérober le marteau.", texte)
+        self.assertIn("Ilse glisse à Gorm que l'étranger a tenté de dérober le marteau.", texte)
+        from donjon.voix import connait_nom
+        self.assertFalse(connait_nom(m,'ilse','joueur'))
+        self.assertFalse(connait_nom(m,'marchand','joueur'))
         self.assertIn("Ilse dit à Gorm que Corvus a tenté de dérober le marteau (crue).", chronique(m))
         # La réputation change son jeu : vigilance accrue, cloche plus confiée au joueur.
         self.assertEqual(mefiance(m, "marchand"), 1)
@@ -130,6 +133,7 @@ class RumeurTests(unittest.TestCase):
 
     def test_hors_de_ce_que_le_joueur_connait_il_n_entend_qu_un_murmure(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        m.data['noms_connus'].remove('brune')
         # Placement d'auteur : Ilse a vu Brune crocheter la réserve ; elle retrouve Gorm dans la conduite.
         memoriser(m, "ilse", {"type": "vu_agir", "auteur": "brune", "operation": "crocheter", "objet": "reserve"})
         croire(m, "ilse", "brune", "fiable", False, "vu")

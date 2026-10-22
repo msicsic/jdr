@@ -2156,7 +2156,15 @@
  "journal": [],
  "lus": [],
  "minutes": 0,
- "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
+ "depart": {
+  "bornes": {
+   "corps": 0.2,
+   "besoins": 10,
+   "rondes": 0.5,
+   "periodes": 0.2,
+   "horloges": 0.25
+  }
+ },
  "missions": {},
  "objets": {
   "baraquement_murs": {
@@ -2367,7 +2375,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 13
+   "vigilance": 13,
+   "connait_noms": [
+    "gaspard",
+    "josse",
+    "lucien",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "briquet": {
    "aliases": [
@@ -2970,7 +2986,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 13
+   "vigilance": 13,
+   "connait_noms": [
+    "bram",
+    "josse",
+    "lucien",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "josse": {
    "aliases": [
@@ -3071,7 +3095,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 14
+   "vigilance": 14,
+   "connait_noms": [
+    "bram",
+    "gaspard",
+    "lucien",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "lampe_baraque": {
    "aliases": [
@@ -3311,7 +3343,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 11
+   "vigilance": 11,
+   "connait_noms": [
+    "bram",
+    "gaspard",
+    "josse",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "margelle": {
    "aliases": [
@@ -3420,7 +3460,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 12
+   "vigilance": 12,
+   "connait_noms": [
+    "bram",
+    "gaspard",
+    "josse",
+    "lucien",
+    "odon",
+    "remy"
+   ]
   },
   "odon": {
    "aliases": [
@@ -3506,7 +3554,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 15
+   "vigilance": 15,
+   "connait_noms": [
+    "bram",
+    "gaspard",
+    "josse",
+    "lucien",
+    "mathe",
+    "remy"
+   ]
   },
   "paie": {
    "aliases": [
@@ -3814,7 +3870,15 @@
     }
    },
    "type": "personnage",
-   "vigilance": 12
+   "vigilance": 12,
+   "connait_noms": [
+    "bram",
+    "gaspard",
+    "josse",
+    "lucien",
+    "mathe",
+    "odon"
+   ]
   },
   "reserve_murs": {
    "aliases": [
@@ -4303,7 +4367,8 @@
   "debut": "Tu étais descendu à la mine de Cendrefer livrer des lampes et du sel quand la galerie d'entrée s'est effondrée derrière toi, avec un grondement qui a fait trembler la vaisselle. Depuis, le camp du fond attend le dégagement : sept personnes autour d'un poêle, un blessé sur sa couchette, des vivres comptés dans le garde-manger, du bois sous clé, et une paie qui n'a pas quitté son coffre. Les lampes baissent. Personne ne sait si l'on creuse de l'autre côté.",
   "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. Aucun compte à rebours ne s'écoule.",
   "objectif": "Tenir avec le camp de Cendrefer jusqu'au dégagement de l'éboulis.",
-  "version": 1
+  "version": 1,
+  "noms_connus": []
  },
  "scenario_id": "mine",
  "seed": 1985,

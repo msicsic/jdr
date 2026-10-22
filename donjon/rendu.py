@@ -142,7 +142,8 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
                     "combustible": "recharger un feu" if matiere in (None, FOYER)
                     else "recharger ce qui brûle " + SUBSTANCES[matiere]["article"]}
             texte += " Usages usuels : " + ", ".join(noms[u] for u in o["usages"]) + "."
-    return texte
+    from .noms import texte as texte_public
+    return texte_public(monde, texte)
 
 
 def prix(monde, objet):
@@ -337,3 +338,14 @@ def decrire_contexte(monde):
     if contexte["dernier_deplacement"]:
         lignes.append("Dernier déplacement enregistré : " + " ".join(contexte["dernier_deplacement"]))
     return "\n".join(lignes)
+
+
+# Le rendu porte des noms publics ; l'état mécanique garde ses identifiants.
+def _rendu_public(f):
+    def rendre(monde, *args, **kwargs):
+        from .noms import texte
+        return texte(monde, f(monde, *args, **kwargs))
+    return rendre
+
+for _fonction in ("regarder", "decrire_contexte", "toucher"):
+    globals()[_fonction] = _rendu_public(globals()[_fonction])

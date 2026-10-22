@@ -1,3 +1,4 @@
+from tests.support import presentes
 import json
 import io
 from pathlib import Path
@@ -86,7 +87,7 @@ class NarrationTests(unittest.TestCase):
         from donjon.defi import nouveau_defi
         from donjon import lexique
         from donjon.narration import consigner
-        m = nouveau_defi(1985, "fixe")
+        m = presentes(nouveau_defi(1985, "fixe"))
         m.joueur["salle"] = m.objets["marchand"]["lieu"]
         citation = "La cloche est dans la galerie de ronde."
         texte = f"Gorm répond : « {citation} »"
@@ -96,9 +97,12 @@ class NarrationTests(unittest.TestCase):
         reponse = {"texte": texte, "_audit": {"segments": [ligne], "faits": faits, "texte_initial": texte,
                                               "fondement": lexique.corpus("Gorm, la cloche"),
                                               "fondement_paroles": lexique.corpus("galerie de ronde")}}
+        sans = {**reponse, "_audit": {**reponse["_audit"], "fondement_paroles": ""}}
+        with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):
+            consigner(m, sans)
         consigner(m, reponse)
         self.assertEqual(m.data["paroles_pnj"][-1]["texte"], citation)
-        sans = {**reponse, "_audit": {**reponse["_audit"], "fondement_paroles": ""}}
+        # Une nouvelle attribution reste contrôlée, même si ces mots ont déjà été dits.
         with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):
             consigner(m, sans)
 
@@ -348,7 +352,7 @@ class NarrationTests(unittest.TestCase):
         from donjon.improvisation import contexte as contexte_improvisation
         invention = "Une seconde cloche apparaît sous le plancher."
         recit = "Elle sonne sous les pieds de Corvus."
-        monde = nouveau_monde()
+        monde = presentes(nouveau_monde())
         monde.joueur["salle"] = "echoppe"
         p = improviser(invention, issue(recit, [effet("son", "joueur",
             texte="corps_rythmique", valeur=1)]), bruit=1)
@@ -402,7 +406,7 @@ class NarrationTests(unittest.TestCase):
             self.assertNotIn("La cloche se brise.", texte)
 
     def test_parole_attribuee_devient_un_evenement_entendu_apres_rechargement(self):
-        m = nouveau_monde()
+        m = presentes(nouveau_monde())
         m.joueur["salle"] = "echoppe"
         citation = "La seconde cloche est sous le plancher."
         texte = "Gorm dit : « " + citation + " »."
@@ -425,7 +429,7 @@ class NarrationTests(unittest.TestCase):
         """Banc Luna : « D'accord, vas-y », te répond-elle ; l'auditeur citait « « D'accord, vas-y » »
         et le contrôle refusait la parole deux fois, jusqu'au repli. La parole retenue est le texte
         entre les guillemets."""
-        m = nouveau_monde()
+        m = presentes(nouveau_monde())
         m.joueur["salle"] = "echoppe"
         citation = "D’accord, je te laisse la place."
         texte = "« " + citation + " », te répond Gorm."
@@ -444,7 +448,7 @@ class NarrationTests(unittest.TestCase):
 
     def test_parole_longue_d_un_pnj_sauvegardee_et_rechargee(self):
         # Cas réel du banc : une réponse de Gorm de plus de 240 caractères faisait échouer la sauvegarde.
-        m = nouveau_monde()
+        m = presentes(nouveau_monde())
         m.joueur["salle"] = "echoppe"
         citation = ("Je connais la porte de chêne au nord de l'antichambre. Des crochets permettent d'en "
                     "tenter le crochetage, sans garantie ; ses axes, eux, se retirent avec un bon levier. "
@@ -466,7 +470,7 @@ class NarrationTests(unittest.TestCase):
         self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
 
     def test_audit_de_parole_mal_forme_est_revise_avant_affichage(self):
-        monde = nouveau_monde()
+        monde = presentes(nouveau_monde())
         monde.joueur["salle"] = "echoppe"
         citation = "La cloche se trouve sous le plancher."
         texte = "Gorm dit : « " + citation + " »."
@@ -510,7 +514,7 @@ class NarrationTests(unittest.TestCase):
         self.assertEqual(set(reprise.objets), set(nouveau_defi(depart="fixe").objets))
 
     def test_ambiance_d_un_autre_lieu_n_est_pas_fournie(self):
-        m = nouveau_monde()
+        m = presentes(nouveau_monde())
         m.data["ambiances"] = {"echoppe": [{"texte": "Ça sent le fer.", "entites": ["fer"], "revision": 0}]}
         m.verifier()
         self.assertEqual(m.contexte()["ambiance_etablie"], [])
@@ -551,7 +555,7 @@ class NarrationTests(unittest.TestCase):
         self.assertIn(texte, sortie.getvalue())
 
     def test_recit_libre_d_improvisation_ne_cree_pas_de_fait(self):
-        monde = nouveau_monde()
+        monde = presentes(nouveau_monde())
         p = improviser("je chante", issue("Une cloche surgit.", []))
         resultat = Moteur(monde).executer(Moteur(monde).preparer(p))
         self.assertNotIn("Une cloche surgit", resultat)

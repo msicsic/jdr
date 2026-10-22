@@ -30,7 +30,8 @@ def recharger(monde):
 
 
 def relais():
-    m = nouveau_defi(depart="fixe")
+    from tests.support import presentes
+    m = presentes(nouveau_defi(depart="fixe"))
     installer(m)
     # Placement d'auteur : le joueur est monté à la galerie, loin des PNJ.
     m.joueur.update(salle="chambre_cloche", position=[1, 3])

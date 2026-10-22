@@ -33,7 +33,7 @@ from tests.test_voix import appels, aubin_cherche_gorm
 def cite(monde, id):
     """Le nom d'``id`` figure-t-il dans ce que le MJ et le joueur ont lu récemment, hors de ce que
     Corvus sait de qui il est (``personnages_connus``) ?"""
-    contexte = {k: v for k, v in monde.contexte().items() if k != "personnages_connus"}
+    contexte = {k: v for k, v in monde.contexte().items() if k not in ("personnages_connus", "noms_entendus")}
     corpus = lexique.corpus(contexte, monde.data.get("conversation", []))
     return id in lexique.entites_citees(monde, corpus)
 
@@ -87,7 +87,8 @@ class NommerTests(unittest.TestCase):
         m.joueur.update(salle="antichambre", position=[2, 2], orientation="sud")
         for id in ("brune", "aubin", "ilse"):
             placer(m, id, "crypte", (2 + ("brune", "aubin", "ilse").index(id), 3))
-        # Jamais vue : Brune n'est qu'une voix connue ; Aubin, une voix inconnue qui s'est dite Aubin.
+        # Brune a donné son nom avant : sa voix seule ne le donnerait pas. Aubin est un nom entendu.
+        m.data["noms_connus"] = [x for x in m.data["noms_connus"] if x not in ("aubin", "ilse")]
         for id in ("brune", "aubin", "ilse"):
             m.data["souvenirs_visuels"].pop(id, None)
         connaitre(m, "joueur", "brune")
@@ -95,10 +96,13 @@ class NommerTests(unittest.TestCase):
         m = recharger(m)
         self.assertNotIn("brune", m.data.get("personnages_vus", []))
         for nom, id in (("Brune", "brune"), ("Aubin", "aubin")):
-            self.assertTrue(_connu_du_joueur(m, id), id)
+            self.assertEqual(_connu_du_joueur(m, id),id=='brune')
+            from donjon.voix import connait_appellation
+            self.assertTrue(connait_appellation(m,'joueur',id))
             reprise, sortie, appels = jouer(m, f"je dis à {nom} : approche", [], [])
             self.assertEqual(appels, [])
-            self.assertIn(f"Tu ne vois pas {nom} d'ici : approche-toi pour lui parler.", sortie)
+            self.assertIn((f"Tu ne vois pas {nom} d'ici : approche-toi pour lui parler."
+                           if id=='brune' else "Une voix qui se dit Aubin est trop loin pour t'entendre."), sortie)
         # Ilse, ni vue ni entendue, ni nommée : il ne la connaît pas.
         self.assertFalse(_connu_du_joueur(m, "ilse"))
         with self.assertRaises(ErreurMonde):
@@ -277,6 +281,7 @@ class HelerJoueurTests(unittest.TestCase):
 
     def test_le_mj_ne_hele_que_qui_corvus_connait(self):
         m = gorm_derriere_la_porte()
+        m.data["noms_connus"] = ["marchand"]
         for id in ("ilse", "brune", "aubin"):
             m.data["souvenirs_visuels"].pop(id, None)
         m = recharger(m)
