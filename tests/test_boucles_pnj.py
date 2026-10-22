@@ -27,9 +27,10 @@ def compte(m, texte):
     return chronique(m).count(texte)
 
 
-def salles_de(m, id):
-    """Les salles successives où le PNJ est passé, d'après la chronique."""
-    return [c["texte"] for c in m.data.get("chronique", []) if c["pnj"] == id and " passe dans : " in c["texte"]]
+def salles_de(m, id, depuis=0):
+    """Les salles successives où le PNJ est passé depuis la minute ``depuis``, d'après la chronique."""
+    return [c["texte"] for c in m.data.get("chronique", [])
+            if c["pnj"] == id and " passe dans : " in c["texte"] and c["minute"] >= depuis]
 
 
 def etat_mine(m):
@@ -174,13 +175,42 @@ class GesteDefaitTests(unittest.TestCase):
 
 # --- N2 : la lumière et l'abri -------------------------------------------------------------------
 
+def palier_menace():
+    """Cas réel (crue 3, minutes 378 et suivantes) : l'eau baisse, elle tient encore le Palier des
+    vannes (15 cm), la Salle des vannes et la Conduite basse. Brune et Ilse, la sécurité pressante,
+    sont l'une dans la Galerie de ronde (que le jour éclaire en pénombre), l'autre dans le palier, noir ;
+    Gorm et Aubin, qu'elles croient fiables, sont au refuge éclairé, par la porte étanche ouverte. Avant :
+    de la galerie, l'abri auprès de Gorm les menait au palier ; là, dans un lieu où elles croient l'eau,
+    l'abri devenait le plus haut lieu éclairé, la galerie ; arrivées, de nouveau le refuge… et la
+    lumière, dans le noir du palier, en faisait autant (946 et 747 passages dans la nuit)."""
+    from tests.test_eau import FIXES, attendre as attendre_crue, crue
+    m = calme(crue(FIXES), "marchand", "brune", "ilse", "aubin")
+    m, _ = attendre_crue(m, 404)
+    m = calme(m, "marchand", "brune", "ilse", "aubin")
+    placer(m, "marchand", "antichambre", (1, 1))
+    placer(m, "aubin", "antichambre", (1, 2))
+    placer(m, "brune", "chambre_cloche", (1, 11))
+    placer(m, "ilse", "beffroi", (7, 3))
+    m.objets["porte"].update(verrouillee=False, ouverte=True)
+    m.objets["lanterne"]["allume"] = False
+    m.joueur.update(salle="antichambre", position=[0, 4], orientation="nord")
+    for i, autre in (("brune", "ilse"), ("ilse", "brune")):
+        for x in ("marchand", "aubin", autre):
+            croire(m, i, x, "fiable", True, "vu")
+        croire(m, i, "marchand", "lieu", "antichambre", "vu", salle="antichambre", case=[1, 1])
+        croire(m, i, "aubin", "lieu", "antichambre", "vu", salle="antichambre", case=[1, 2])
+        croire(m, i, "antichambre", "etat", {"eclairee": True, "niveau": 2, "propre": 2}, "vu")
+        croire(m, i, "porte", "etat", {"ouverte": True}, "vu")
+        croire(m, i, "porte", "verrouillee", False, "vu")
+        lire(m, i)["besoins"]["securite"] = 75.0
+    percevoir_tous(m)
+    return recharger(m)
+
+
 def galerie_ou_refuge():
-    """Cas réel (crue 3, minutes 378 et suivantes) : Brune et Ilse, la sécurité pressante, chacune
-    croyant l'autre fiable, entre la Galerie de ronde (que le jour éclaire en pénombre) et le Palier
-    des vannes, noir ; Gorm et Aubin, qu'elles croient fiables, sont au refuge éclairé, par le palier
-    et la porte étanche ouverte. Avant : dans la galerie, la lumière atteinte, l'abri la menait au
-    palier ; le noir la renvoyait à la lumière de la galerie, les pas de l'une réveillant l'autre, un
-    choix par seconde (946 et 747 passages dans la nuit)."""
+    """Même nature, sans l'eau (Relais) : Brune dans la galerie, Ilse dans le palier noir, chacune
+    croyant l'autre fiable, Gorm et Aubin au refuge. Avant : l'abri de chacune suivait l'autre, qui
+    bougeait, et la lumière renvoyait du palier à la galerie (23 passages en quinze minutes)."""
     m = calme(relais(), "marchand", "brune", "ilse", "aubin")
     placer(m, "marchand", "antichambre", (1, 1))
     placer(m, "aubin", "antichambre", (1, 2))
@@ -196,8 +226,6 @@ def galerie_ou_refuge():
         croire(m, i, "porte", "etat", {"ouverte": True}, "vu")
         croire(m, i, "porte", "verrouillee", False, "vu")
         lire(m, i)["besoins"]["securite"] = 75.0
-    # La porte étanche du palier est ouverte, comme cette nuit-là. Le joueur est au refuge, sa
-    # lanterne éteinte.
     m.objets["porte"].update(verrouillee=False, ouverte=True)
     m.objets["lanterne"]["allume"] = False
     m.joueur.update(salle="antichambre", position=[0, 4], orientation="nord")
@@ -206,6 +234,20 @@ def galerie_ou_refuge():
 
 
 class RecoursTests(unittest.TestCase):
+    def test_par_le_palier_menace_elles_gagnent_le_refuge(self):
+        # Sur ``main`` : 16 et 19 passages entre la galerie et le palier en quinze minutes.
+        m, _ = attendre(palier_menace(), 3)
+        for id in ("brune", "ilse"):
+            passages = salles_de(m, id, 404)
+            self.assertLessEqual(len(passages), 4, passages)
+            self.assertEqual(sum("Galerie de ronde" in t for t in passages), 0, passages)
+            self.assertEqual(m.objets[id]["lieu"], "antichambre")
+            self.assertEqual(lire(m, id)["intention"]["but"], {"type": "abri", "lieu": "antichambre"})
+
+    def test_palier_menace_meme_laps_decoupe_meme_monde(self):
+        d_un_bloc, morcele = decouper(palier_menace, 404 + 10)
+        self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
+
     def test_brune_et_ilse_ne_se_croisent_plus_entre_la_galerie_et_le_palier(self):
         # Sur ``main`` : 23 passages entre la galerie et le palier en quinze minutes.
         # L'abri vers lequel chacune est en route garde la main : elles finissent ensemble.

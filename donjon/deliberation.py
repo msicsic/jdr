@@ -919,16 +919,17 @@ def _plan_abri(monde, id):
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
     # L'abri vers lequel il est en route garde la main tant qu'il en est encore un à ses yeux : un
-    # abri meilleur apparu en chemin (quelqu'un de sûr qui passe ailleurs) ne le détourne pas, sans
-    # quoi deux qui se cherchent l'un l'autre se croisent sans fin. Là où il se tient, s'il y est à
-    # l'abri, il reste.
-    i = lire(monde, id)["intention"]
-    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri"
-                else None)
-    if menacee(monde, id, ici) or monte(monde, id):
-        salles = sorted((s for s in monde.data["salles"] if not menacee(monde, id, s)
-                         and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
-    else:
+    # abri meilleur apparu en chemin (quelqu'un de sûr qui passe ailleurs) ne le détourne pas, ni un
+    # lieu qu'il traverse en chemin, où il attend l'eau sans la voir monter ni s'y croire en péril :
+    # ce passage, son plan le prévoyait. Sans cela, deux qui se cherchent se croisent sans fin, et
+    # qui va vers un abri par un palier menacé rebrousse chemin vers le plus haut lieu, puis repart.
+    # Là où il se tient, s'il y est à l'abri, il reste. Devant l'eau qu'il voit monter, ou s'il se
+    # croit en péril, le plus haut lieu compte, quel que soit celui vers lequel il allait.
+    from .eau import en_peril
+    from .planification import _etape, abri
+
+    def sures():
+        """Les lieux éclairés, hors de l'eau, où il croit quelqu'un de sûr."""
         salles = []
         for x in [*pnjs(monde), "joueur"]:
             if x == id or _cru(monde, id, x, "fiable") is not True:
@@ -937,19 +938,28 @@ def _plan_abri(monde, id):
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
                     and not menacee(monde, id, salle)):
                 salles.append(salle)
+        return salles
+
+    i = lire(monde, id)["intention"]
+    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri"
+                and i["but"].get("lieu") != ici else None)
+    eau_monte = monte(monde, id)
+    if en_route and not eau_monte and not en_peril(monde, id) and en_route in (abris := sures()) and ici not in abris:
+        trouve = abri(monde, id, [en_route])
+        if trouve is not None:
+            return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
+    if menacee(monde, id, ici) or eau_monte:
+        salles = sorted((s for s in monde.data["salles"] if not menacee(monde, id, s)
+                         and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
+    else:
+        salles = sures()
         if salles and ici not in salles:
             # Il y restera : la recherche compte ce que chaque abri laisse monter (le noir, ses
             # biens laissés loin) et prend le moins coûteux.
-            from .planification import _etape, abri
-            trouve = abri(monde, id, [en_route]) if en_route in salles else None
-            if trouve is None:
-                trouve = abri(monde, id, salles)
+            trouve = abri(monde, id, salles)
             return None if trouve is None else ({"type": "abri", "lieu": trouve[0]},
                                                 trouve[1] + [_etape("abriter", lieu=trouve[0])])
         salles.sort(key=lambda s: s != ici)
-    if ici not in salles[:1] and en_route in salles:
-        salles.remove(en_route)
-        salles.insert(0, en_route)
     from .planification import _etape, aller
     for salle in salles:
         etapes = aller(monde, id, salle)
