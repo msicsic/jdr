@@ -336,7 +336,7 @@ def percus(monde, acteur):
         trouve = None if dernier is None else _percus_depuis(monde, acteur, memo, dernier)
         memo["percus", acteur] = trouve if trouve is not None else _percus(monde, acteur, memo)
         if "etat" in memo and monde.objets[acteur]["lieu"] in monde.data["salles"]:
-            derniers[acteur] = (memo["etat"], memo["percus", acteur][0], _champ(monde, acteur, memo))
+            derniers[acteur] = (memo["etat"], memo["percus", acteur][0], _champ(monde, acteur, memo), memo)
     vus, champ = memo["percus", acteur]
     if a_verifier():
         with sans_memoire(monde):
@@ -408,19 +408,20 @@ def _percus_depuis(monde, acteur, memo, dernier):
     même : seuls les objets changés et ce qu'ils portent ou contiennent (la chaîne de leurs lieux), et
     les objets installés sur un support, sont revus ; le reste se voit de même. None sinon."""
     from .spatial import _champ, porte_par, poses as salles_posees
-    ancien, vus_avant, champ_avant = dernier
+    ancien, vus_avant, champ_avant, memo_avant = dernier
     etat = memo.get("etat")
     if etat is None:
         return None
     changes = _changes(memo, ancien, etat)
     if changes is None or acteur in changes:
         return None
-    champ = _champ(monde, acteur, memo)
-    if champ != champ_avant:
-        return None
     objets = monde.objets
     contenus, installes = _chaines(monde, memo)
     touches = changes | installes | {id for id, chaine in contenus if not changes.isdisjoint(chaine)}
+    _heriter_signatures(memo, memo_avant, ancien, etat, touches)
+    champ = _champ(monde, acteur, memo)
+    if champ != champ_avant:
+        return None
     poses = salles_posees(monde, memo)
     porte = (None, None)
     salles_du_champ = {c[0] for c in champ}
@@ -484,6 +485,31 @@ def _changes(memo, ancien, etat):
             changes.add("joueur")
     memo[cle] = (ancien, changes)
     return changes
+
+
+def _heriter_signatures(memo, memo_avant, ancien, etat, touches):
+    """Les signatures de la vue de chaque salle (``spatial.signature_salle`` : portes et contenants
+    ouverts, objets opaques, sources allumées et leur place) sont celles de l'état précédent quand rien
+    de ce qu'elles lisent n'a changé : aucun objet changé, ni rien de ce qu'il porte ou contient
+    (``touches``), n'est allumé ni opaque, et aucun n'a changé d'ouverture. L'état partage alors les
+    signatures de l'autre (``memo["signatures"]``), qu'ils complètent ensemble."""
+    from .spatial import CLES_VUE
+    if memo_avant is memo:
+        return
+    ouverte, opaque = CLES_VUE.index("ouverte"), CLES_VUE.index("bloque_vue")
+    avant = {x[0]: x for x in ancien[3]}
+    for x in etat[3]:
+        if x[0] in touches:
+            y = avant[x[0]]
+            if x[2] or y[2] or x[1][opaque] or y[1][opaque] or x[1][ouverte] != y[1][ouverte]:
+                return
+    partagees = memo_avant.get("signatures")
+    if partagees is None:
+        partagees = memo_avant["signatures"] = {}
+    propres = memo.get("signatures")
+    if propres is not None and propres is not partagees:
+        partagees.update(propres)
+    memo["signatures"] = partagees
 
 
 def _chaines(monde, memo):

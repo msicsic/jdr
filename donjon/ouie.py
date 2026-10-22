@@ -131,9 +131,36 @@ def _place(monde, qui):
     return o["lieu"], (tuple(o["position"]) if cases and o.get("position") is not None else None)
 
 
+PASSAGES_GARDES = 16    # relevés des passages gardés par géométrie (``_passages``)
+
+
 def _passages(monde):
     """{salle: [(case du seuil, salle voisine, case du seuil d'en face, crans perdus, direction par où il
-    arrive dans la voisine)]} : les sorties, et l'appui vertical qui donne sur son palier."""
+    arrive dans la voisine)]} : les sorties, et l'appui vertical qui donne sur son palier. Ils ne
+    dépendent que de la géométrie des salles, des portes ouvertes ou fermées et des appuis verticaux :
+    dans ``spatial.vue_memorisee``, gardés sous cette clé (à ne pas modifier), recomparés en
+    vérification (``spatial.VERIFICATION``)."""
+    from .spatial import a_verifier
+    cache = getattr(monde, "_cache_vue", None)
+    if cache is None:
+        return _relever_passages(monde)
+    objets, salles = monde.objets, monde.data["salles"]
+    portes = tuple((id, id in objets and bool(objets[id].get("ouverte")))
+                   for salle in salles.values() for x in salle["sorties"].values() for id in (x.get("porte") or "",))
+    appuis = tuple(((o.get("appui_vertical") or {}).get("bas"), (o.get("appui_vertical") or {}).get("haut"))
+                   for o in objets.values() if o.get("appui_vertical"))
+    cle = (bool(monde.data.get("mode_cases")), portes, appuis)
+    gardes = cache["persistant"].setdefault("passages", {})
+    if cle not in gardes:
+        if len(gardes) >= PASSAGES_GARDES:
+            del gardes[next(iter(gardes))]
+        gardes[cle] = _relever_passages(monde)
+    elif a_verifier():
+        assert gardes[cle] == _relever_passages(monde), "Passages mémorisés périmés"
+    return gardes[cle]
+
+
+def _relever_passages(monde):
     from .spatial import _case_interieure
     salles, cases = monde.data["salles"], monde.data.get("mode_cases")
     resultat = {s: [] for s in salles}

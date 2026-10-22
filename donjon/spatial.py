@@ -767,11 +767,18 @@ def _memoire_geometrie(m):
 
 
 def _signature(m, memo, salle):
+    """``signature_salle``, gardée pour l'état (``memo["signatures"]``, que des états de mêmes
+    signatures se partagent : ``esprits._heriter_signatures``), recomparée en vérification."""
     if memo is None:
         return signature_salle(m, salle)
-    if ("signature", salle) not in memo:
-        memo["signature", salle] = signature_salle(m, salle)
-    return memo["signature", salle]
+    signatures = memo.get("signatures")
+    if signatures is None:
+        signatures = memo["signatures"] = {}
+    if salle not in signatures:
+        signatures[salle] = signature_salle(m, salle)
+    elif a_verifier():
+        assert signatures[salle] == signature_salle(m, salle), f"Signature mémorisée périmée : {salle}"
+    return signatures[salle]
 
 
 def carte_lumiere(m, salle, memo=None):
