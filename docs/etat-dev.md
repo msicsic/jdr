@@ -849,7 +849,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   pour l'instant ». **Se nommer** (`paroles.verifier_nom`) : le nom est celui que disent les mots ; un
   `nom` contredit ou absent des mots est refusé, un nom non typé ajouté. Faibles : « je réponds » seul
   n'est plus une parole sans conteste ; « je » hors des répliques est une voix d'auteur. Cas réels et cas
-  de même nature après rechargement (`tests/test_parole_corrections.py`, 22 tests). Luna, 2 passes,
+  de même nature après rechargement (`tests/test_parole_corrections.py`, 22 tests ; suite après fusion de `main` 8589ca2 : 1171 tests). Luna, 2 passes,
   `main` 0489fea puis la branche (9 tours en panne serveur écartés côté `main`) : 4 bancs de référence
   2,99 → 3,24 appels et 14,2 → 15,0 s par tour MJ, replis 0 → 1, relances 3,5 → 6, refus 8,5 → 11 (la
   correction à part d'un refus de forme, au Relais) ; soir-noir 4,2 → 3,3 appels ; la voix d'Ilse répond
@@ -884,7 +884,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   69, crue 67,5 → 99) ; aucune usurpation ni violation ; temps égaux sauf une nuit d'auberge plus active.
   Limites : un refus retenu ne s'oublie pas tant que rien de nouveau n'est cru ; la surenchère peut payer
   le double du nécessaire ; une part sans pièce décrite est remise sous le nom du lot.
-- La suite de tests passe : 1149 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : 1171 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
