@@ -954,6 +954,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   temps d'une nuit Relais 10,5 → 9,7 s, mine 25 → 34 s, auberge 26,8 → 31,9 s, crue 10,3 → 12 s (une
   vue du planificateur par choix ; une reprise du choix entier serait la suite). Restent à la minute : corps et
   besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
+- Branche `tension-relais`, analyse non fusionnée (`docs/analyse-relais.md`, `tools/tension_relais.py`) :
+  une nuit du Relais n'a de hasard que ses jets (7,7 par nuit) ; 48 graines font 2 nuits jusqu'à
+  120 min, 27 à 480, 7 issues, et les branches se rejoignent en deux heures ; la faim fixe les
+  demandes à heure fixe, Brune vole quand sa faim passe 95. Variantes de données mesurées (feu à
+  nourrir, réserve aux vannes, faims décalées, valeurs graduées) et sept manques du moteur en
+  invariants (tirage du départ, risque d'être vu pesé, tort qui ouvre des buts…), à trancher.
 - La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
