@@ -1168,6 +1168,35 @@ rechargement et ce que lit le joueur).
 - Faibles : « je réponds » sans mots ni destinataire n'est plus une parole sans conteste ; « je »
   hors des répliques est une voix d'auteur (`narration.AUTEUR`).
 
+Luna (2 passes, `main` 0489fea puis la branche, l'un après l'autre ; relais, crypte, atelier, échanges,
+comptes, ressources et les trois bancs du soir ; serveur surchargé pendant le banc de `main` : 9 tours
+de référence en panne, écartés des moyennes, aucun pour la branche) :
+
+| | `main` | branche |
+|---|---|---|
+| 4 bancs de référence, appels / tour MJ | 2,99 (34 tours) | 3,24 (38 tours) |
+| secondes / tour MJ | 14,2 | 15,0 |
+| replis / relances narratives / tours avec refus / refus | 0 / 3,5 / 6,0 / 8,5 | 1,0 / 6,0 / 7,0 / 11,0 |
+| soir-noir, appels / tour | 4,20 | 3,30 |
+| soir-voix / soir-appel, appels / tour | 3,50 / 2,92 | 3,00 / 2,83 |
+
+Les refus en plus sont surtout au Relais (3,5 → 8) : la correction à part d'un refus de forme ajoute une
+proposition aux questions de faisabilité (la poutre). Un repli de plus vient d'un « Je ne peux pas
+dire… » refusé comme voix d'auteur. Saisies du rapport, ce qu'affiche le jeu (avant → après, 2 passes) :
+« as-tu de quoi manger, Ilse ? » « Tu dis à Aubin… » 2/2 → « Tu dis à Ilse : « as-tu de quoi manger,
+Ilse ? » », Ilse répond, 2/2 ; « « Qui est là ? » » dans le noir, sans réponse 2/2 → la voix d'Ilse se
+nomme 2/2, et les questions suivantes vont à « une voix qui se dit Ilse » ; « il y a quelqu'un ? »,
+« Dis qui tu appelles par son nom » ou « aucun passage praticable » → Ilse répond 1/2 (l'autre fois
+Luna répond en dialogue, sans parole) ; « « C'est moi, Brune. » » typé « Corvus se nomme » et « te
+croit sur parole » → imposture démasquée, « Tu n'es pas Brune » 4/4 ; « est-ce que je pourrais passer
+sous la poutre effondrée ? » « La difficulté de ce geste sort des limites… » → « Approche-toi de la
+poutre effondrée… » ou l'explication du MJ ; « je donne le briquet à Ilse » « Ilse, meunière évacuée
+n'est pas là… » → « Tu ne vois pas Ilse d'ici : approche-toi pour le lui donner », et à la voix qui se
+dit Ilse « Approche-toi d'une voix qui se dit Ilse… » ; « aucun passage directement praticable » affiché
+1 → 0. Le cas réel du nom inconnu (comptes) n'est pas revenu : Brune était connue dans les quatre passes
+(test sans Luna). Restent : « je réponds » sans appel, que Luna fait encore parole avec des mots à elle ;
+« est-ce que quelqu'un a du bois ? » va à celui d'en face.
+
 Limites : le vocatif est reconnu par sa ponctuation (une virgule) ; un nom inconnu n'est refusé que
 s'il est celui d'un personnage du monde (un nom qui ne nomme personne, « Bertrand, … », va au MJ comme
 avant), ce qui laisse deviner qu'un tel personnage existe ; un nom dit qui ne nomme personne du monde
