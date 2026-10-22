@@ -114,7 +114,7 @@ class GardeTests(unittest.TestCase):
         placer(m, "marchand", "antichambre", (5, 3))
         placer(m, "ilse", "antichambre", (6, 4))
         percevoir_tous(m)
-        # Ilse ne prend rien qui ne soit à elle : sans la garde, la clé de Gorm lui est interdite.
+        # Sans la garde, prendre la clé de Gorm serait illicite, quelle que soit l'honnêteté d'Ilse.
         self.assertTrue(illicite(m, "ilse", "cle_reserve"))
         with patch.object(Monde, "d20", return_value=20):
             self.assertEqual(confier(m, "marchand", "ilse", {"objet": "reserve", "verrouillee": True}), "accepte")

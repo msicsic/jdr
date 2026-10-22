@@ -227,7 +227,8 @@ class ForcerTests(unittest.TestCase):
     def test_brune_force_la_porte_du_beffroi_qui_n_est_a_personne(self):
         # Les vivres sont derrière la porte étanche ; la porte n'est à personne : la forcer ne lèse
         # personne, même à qui a la douceur entière.
-        m = self.brune_aux_vannes()
+        # La Brune du scénario est désormais à 75 ; on pose la douceur entière pour cette scène.
+        m = self.brune_aux_vannes(douceur=100)
         deplacer(m, "vivres", "beffroi", position=[4, 3])
         croire(m, "brune", "vivres", "lieu", "beffroi", "savoir", salle="beffroi", case=[4, 3])
         croire(m, "brune", "porte", "verrouillee", True, "savoir")
@@ -253,7 +254,8 @@ class ForcerTests(unittest.TestCase):
     def test_moins_douce_elle_force_la_reserve_de_gorm(self):
         # Autre cas de même nature : la réserve de Gorm. À la douceur entière, l'abîmer est exclu ;
         # à 60, c'est une faute qu'elle pèse, et la serrure cède sous les coups.
-        m = self.brune_aux_vannes()
+        # Cette comparaison exige 100, indépendamment de la nouvelle douceur 75 du scénario.
+        m = self.brune_aux_vannes(douceur=100)
         placer(m, "brune", "antichambre", (6, 3))
         percevoir_tous(m)
         self.assertNotIn("frapper", [x["operation"] for x in (planifier(m, "brune", "faim") or (None, []))[1]])

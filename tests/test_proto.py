@@ -341,12 +341,20 @@ class ConsoleTests(unittest.TestCase):
     def test_console_mj_propose_sans_agir_puis_execute_sur_tenter(self):
         import jeu
         p = proposition("detacher", "axe_haut", "couteau", "levier", 18, "Petit axe, lame fragile.")
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch("urllib.request.urlopen", side_effect=AssertionError("Cette scène doit rester sans réseau")):
             fichier = Path(tmp) / "partie.json"
             with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test"}), patch.object(MJOpenAI, "echanger", return_value={"mode": "action", "texte": "", "faits": [], "proposition": p}), patch("builtins.input", side_effect=["mj je retire l'axe", "quitter"]), patch("sys.stdout", io.StringIO()):
                 jeu.main(["--save", str(fichier)])
             self.assertTrue(Monde.charger(fichier).objets["axe_haut"]["attache"])
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test"}), patch.object(MJOpenAI, "echanger", return_value={"mode": "action", "texte": "", "faits": [], "proposition": p}), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["mj je retire l'axe", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()):
+            # Suite sans réseau : après « tenter », le récit du résultat doit aussi être simulé.
+            # Son indisponibilité laisse le texte du moteur, sans changer le geste testé.
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test"}), \
+                 patch.object(MJOpenAI, "echanger", return_value={"mode": "action", "texte": "", "faits": [], "proposition": p}), \
+                 patch.object(MJOpenAI, "raconter_resultat", side_effect=ErreurMonde("Récit indisponible dans cette scène sans réseau.")), \
+                 patch.object(Monde, "d20", return_value=20), \
+                 patch("builtins.input", side_effect=["mj je retire l'axe", "tenter", "quitter"]), \
+                 patch("sys.stdout", io.StringIO()):
                 jeu.main(["--save", str(fichier)])
             self.assertFalse(Monde.charger(fichier).objets["axe_haut"]["attache"])
 

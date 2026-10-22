@@ -1204,6 +1204,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rallume elle-même : le payeur fait la tâche qu'il paie (limite, à corriger). Banc rapide 4 h, 4 graines,
   `main` puis la fusion : mine et auberge identiques ; Relais 3,5 crochetages par nuit dont 0,75 réussis
   sans fracas, bascules 1,5 → 0,75, en attente 2,5 → 8,75 ; aucun plantage ni usurpation.
+- Branche `codex-profils`, fusionnée (données seulement, décision du 2026-10-22) : dans le Relais
+  et la crue, Brune douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65 et douceur 80 ; Gorm
+  inchangé. Limites anciennes incompatibles retirées dans la crue, traits d'Ilse et d'Aubin nuancés.
+  Six scènes de tests posent explicitement leur honnêteté ou douceur 100, avec commentaire,
+  pour conserver la vérification des interdits. Le test console simule aussi le récit du résultat,
+  jusque-là laissé partir vers HTTPS avec sa clé factice ; garde sans réseau ajoutée à cette scène.
+  Suite complète verte : **1241 tests, 14 sautés** sans `jsonschema` (facultatif pour MiMo),
+  en priorité BelowNormal, sans réseau extérieur pour la passe finale.
+  Bancs 8 h (huit graines, `main` f1eee53 puis branche), audits 12 h et analyseur : pas de nouveau
+  voleur sur 8 h ; sur 12 h, Aubin force la réserve dans deux nuits par scénario et mange une part
+  en 1985 dans chacun. Vols vus par nuit Relais 1,25 → 1,375, crue 0,5 → 0,625 ; attente
+  298,125 → 245,625 et 571,25 → 499,375 minutes·PNJ, sans recours 111,25 → 126,875 et 42,5 → 67,5.
+  Aucune poussée ; 64 nuits mesurées sans plantage, violation ni usurpation ; `VERIFIER` et
+  `spatial.VERIFICATION` (0,2), graine 42 sur 8 h de chaque scénario : sans écart ni borne.
+  Valeurs et traits conservés après sauvegarde/rechargement ; aucune autre donnée ou moteur modifié.
+  Limites : effet surtout après 8 h, aucun vol d'Ilse sur ce lot, les occasions restent nécessaires.
+  Voir [l'analyse](analyse-relais.md) et le [rapport](taches/rapport-codex-1-profils.md).
+  Fusionné après `main` 06602a6 (relations-socle, lot A temps réel, attente, lot C) : seul conflit
+  `docs/etat-dev.md` ; aucun test adapté ; suite 1282 tests. Banc rapide 4 h, 4 graines, `main` puis la
+  fusion : Relais identique (l'effet des profils vient après la 4e heure) ; crue échanges 6,75 → 7,25,
+  noir 13,75 → 11,25, en attente égales ; aucun plantage, usurpation ni bascule nouvelle.
 - La suite de tests passe : 1282 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente

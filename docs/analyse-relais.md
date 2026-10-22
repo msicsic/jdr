@@ -247,11 +247,46 @@ distinctes, 4 issues, 30 événements, écart de salle 0,36 à 480 au lieu de 0.
 seule et `reserve_vannes` seule sur ces 8 graines ont été refusées par le contrôle des permissions ;
 les chiffres sur 32 graines ci-dessus en tiennent lieu.
 
-Le commit de ces valeurs dans `scenario_relais.json` n'a pas pu être fait : la modification du
-scénario de référence a été refusée par le contrôle des permissions de la session. Elle est mesurée
-ici par la variante `valeurs`, qui applique les mêmes nombres à une copie (les traits n'entrent pas
-dans le banc). Recommandation : **les adopter avec une occasion** (réserve aux vannes ou feu à
-nourrir), pas seules.
+Lors de cette analyse, la modification du scénario de référence avait été refusée par le contrôle
+des permissions de la session ; les chiffres historiques ci-dessus venaient de la variante
+`valeurs`, appliquée à une copie (les traits n'entrent pas dans le banc). La décision du
+2026-10-22 est maintenant appliquée sur la branche `codex-profils`, non fusionnée, dans le Relais
+et la crue : Brune douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65 et douceur 80 ; Gorm inchangé.
+La douceur d'Ilse et la fierté d'Aubin restent à leur valeur antérieure, conformément à cette
+décision plus étroite que le prototype. Les limites anciennes incompatibles sont retirées de la
+crue et les traits d'Ilse et d'Aubin nuancés. Aucun autre réglage ni changement du moteur.
+
+Mesures de cette application contre `main` **f1eee53** (huit graines : 1985, 7, 42, 2024, 3, 11,
+99, 500 ; départ tiré, joueur à `chambre_cloche`). Référence puis branche, séquentiellement,
+BelowNormal, au plus quatre processus. Moyennes par nuit, avant → après :
+
+| Mesure | Relais 8 h | Crue 8 h | Relais 12 h | Crue 12 h |
+|---|---:|---:|---:|---:|
+| vols vus | 1 → 1 | 0 → 0 | 1,25 → 1,375 | 0,5 → 0,625 |
+| poussées | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| cibles forcées | 0 → 0 | 0,25 → 0,25 | 0 → 0,25 | 0,25 → 0,5 |
+| méfiances | 1,875 → 1,875 | 1,5 → 1,5 | 2,5 → 2,75 | 1,5 → 2 |
+| rumeurs crues | 0,5 → 0,5 | 1,5 → 1,5 | 0,625 → 0,75 | 1,625 → 2 |
+| échanges | 15,375 → 15,125 | 18,125 → 18,125 | 18,5 → 19 | 24,375 → 25,5 |
+| achats | 2,125 → 2,125 | 2 → 2 | 2,25 → 2,25 | 2,25 → 2,25 |
+| minutes·PNJ sans recours | 60,625 → 64,375 | 16,25 → 16,25 | 111,25 → 126,875 | 42,5 → 67,5 |
+| minutes·PNJ en attente | 52,5 → 46,875 | 218,75 → 213,75 | 298,125 → 245,625 | 571,25 → 499,375 |
+
+**L'effet apparaît au second acte.** Sur 8 h, Brune reste la seule auteure de gestes illicites ;
+les deux portes forcées dans la crue existaient déjà (Ilse 99, Aubin 500), sans propriétaire.
+Sur 12 h, Aubin force la réserve de Gorm dans deux nuits du Relais (1985, 7) et deux de la crue
+(1985, 2024) ; il mange une part dans la graine 1985 de chacun. Sur le lot Relais, les couples
+`(auteur, objet)` tentés/vus de Brune passent de 12/10 à 10/8, ceux d'Aubin de 0/0 à 3/3 ; crue :
+Brune 5/4 → 3/2, Aubin 0/0 → 3/3. Ilse et Gorm ne volent pas ; personne ne pousse.
+La baisse de l'attente s'accompagne d'une hausse du temps sans recours : les profils seuls
+ne garantissent ni une occasion, ni plus d'activité dans toutes les nuits.
+
+Les audits 12 h n'ont aucun plantage, les 64 nuits mesurées aucune violation ou usurpation ;
+`planification.VERIFIER` et `spatial.VERIFICATION` à 0,2 sont sans écart ni borne sur une nuit de
+8 h de chaque scénario (42). Les constats d'immobilité pressante et les dettes de fin de nuit
+ne disparaissent pas. Définitions des vols tentés/vus, distinction entre coups de forçage et
+crochetages manqués, vérifications et limites dans le
+[rapport complet](taches/rapport-codex-1-profils.md).
 
 ### Les autres scénarios
 

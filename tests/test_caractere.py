@@ -198,6 +198,8 @@ class ValeursTests(unittest.TestCase):
                                        "operation": "dire", "cible": "marchand", "outil": "", "lieu": "",
                                        "sujet": "reserve", "attribut": "verrouillee", "valeur": "non"}]})
         m = relais()
+        # La scène oppose l'interdit à 100 au mensonge permis ; Ilse est désormais à 80 au Relais.
+        m.objets["ilse"]["profil"]["valeurs"]["honnetete"] = 100
         for id in ("ilse", "brune"):
             croire(m, id, "reserve", "verrouillee", True, "vu")
             croire(m, id, "marchand", "lieu", "echoppe", "vu", salle="echoppe", case=None)
