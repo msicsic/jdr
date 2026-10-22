@@ -85,9 +85,10 @@ def lire(monde, id):
 
 def esprit(monde, id):
     e = monde.data.setdefault("esprits", {}).setdefault(id, {})
-    for cle, defaut in CHAMPS.items():
-        if cle not in e:
-            e[cle] = defaut()
+    if not CHAMPS.keys() <= e.keys():
+        for cle, defaut in CHAMPS.items():
+            if cle not in e:
+                e[cle] = defaut()
     return e
 
 

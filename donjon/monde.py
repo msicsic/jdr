@@ -200,13 +200,13 @@ class Monde:
             salle.setdefault("fenetres", 0)
             salle.setdefault("lumiere_naturelle", 0)
 
-    @property
-    def objets(self):
-        return self.data["objets"]
-
-    @property
-    def joueur(self):
-        return self.data["joueur"]
+    def __setattr__(self, nom, valeur):
+        # ``objets`` et ``joueur`` sont ceux de ``data`` : de simples attributs, lus très souvent,
+        # remis à jour chaque fois que ``data`` change (le moteur y range sa copie de travail).
+        object.__setattr__(self, nom, valeur)
+        if nom == "data":
+            object.__setattr__(self, "objets", valeur.get("objets"))
+            object.__setattr__(self, "joueur", valeur.get("joueur"))
 
     def copier(self):
         return Monde(copie(self.data))
