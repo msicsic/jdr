@@ -53,8 +53,9 @@ CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
           "noms": list,   # ceux dont il a retenu le nom en les reconnaissant (``voix.apprendre_nom``)
           "echange": list,   # les paroles nettes qu'il vient de saisir, le temps d'un échange (``voix.lier``)
           "urgences": dict,   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
-          # qui l'a hélé et à qui il a répondu : il attend d'être rejoint (``deliberation.attendre``)
-          "rejoint": lambda: None,
+          # le rendez-vous convenu à un appel (``appel``) : qui il attend là où il est (rejoint), ou
+          # à qui il a promis de venir (rejoindre)
+          "rejoint": lambda: None, "rejoindre": lambda: None,
           # veille : l'instant jusqu'où il attend sans geste en cours (désœuvré, guettant une
           # occasion, assis, près du feu, à l'abri), qu'un événement abrège ; None s'il agit.
           # eveil : l'instant où un événement a changé sa situation (``reconsiderer``) ; il
@@ -198,10 +199,8 @@ def verifier(monde):
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
                              and type(b["instant"]) is int and b["instant"] >= 0), "Tour d'horizon de PNJ invalide"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
-        r = e["rejoint"]
-        assert r is None or (isinstance(r, dict) and set(r) == {"qui", "depuis", "jusqu_a"}
-                             and (r["qui"] == "joueur" or r["qui"] in monde.objets)
-                             and type(r["depuis"]) is int and type(r["jusqu_a"]) is int), "Attente de PNJ invalide"
+        from .appel import verifier as verifier_rendez_vous
+        verifier_rendez_vous(monde, e)
         assert isinstance(e["voix"], list) and all(
             isinstance(x, str) for x in e["voix"]  # Comme une croyance, il survit à qui a quitté la partie.
         ) and len(set(e["voix"])) == len(e["voix"]), "Voix connues invalides"

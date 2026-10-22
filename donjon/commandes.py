@@ -201,15 +201,19 @@ def heler(monde, texte):
 
 
 def repondre(monde, texte):
-    """Répondre à qui vient de héler Corvus par son nom (``paroles.repond``) : le geste de réponse
-    commun (``pnj.repondre_a``), jamais une interprétation du MJ, même en forme de question."""
-    from .paroles import repond
-    qui = repond(monde, texte)
-    if qui is None:
+    """Répondre à qui vient de héler Corvus par son nom, ou de lui dire ce qu'il veut
+    (``paroles.reponse_a_l_appel``) : « J'arrive ! », « Ici, viens ! », « Qu'est-ce que tu veux ? », les
+    paroles de l'appel négocié (``appel``), jamais une interprétation du MJ, même en forme de question."""
+    from .paroles import reponse_a_l_appel
+    reponse = reponse_a_l_appel(monde, texte)
+    if reponse is None:
         return None
+    from .appel import METHODES
     from .operations import etape, sequence
     from .voix import designation
-    return sequence(etape("emettre_son", designation(monde, qui), methode="repondre"), justification="")
+    qui, sorte = reponse
+    methode = next(m for m, s in METHODES.items() if s == sorte)
+    return sequence(etape("emettre_son", designation(monde, qui), methode=methode), justification="")
 
 
 def cri(monde, texte):

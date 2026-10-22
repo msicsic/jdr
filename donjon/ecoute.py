@@ -140,7 +140,7 @@ def lier(monde, bruit, contenu=()):
 
 
 def _heler(bruit):
-    """Un cri qui porte des mots : un appel, ou la réponse à un appel (``pnj.repondre``)."""
+    """Un cri qui porte des mots : un appel, ou la réponse à un appel (``appel.dire``)."""
     return " répondre" if " répond : « " in bruit["texte"] else " appeler"
 
 
@@ -148,22 +148,13 @@ REPONDRE = 600         # dixièmes de seconde : on répond « juste après » un
 
 
 def appels(monde):
-    """Ceux qui viennent de héler Corvus par son nom, et dont il a saisi le cri : leur dernière
-    parole est cet appel, entendu pendant son dernier geste (``data["entendus"]``) ou il y a moins
-    d'une minute (``REPONDRE``, aussi d'un appelant qu'il voit). Le plus récent d'abord : il peut
-    leur répondre (``pnj.repondre_a``)."""
-    from .temps import instant
-    maintenant, entendus_ = instant(monde), monde.data.get("entendus", [])
-    derniers, appelants = set(), []
-    for b in reversed(monde.data.get("bruits", [])):
-        if b["nature"] not in VOCALES or b["niveau"] < ENTENDU or not b["texte"] or b["auteur"] in derniers:
-            continue
-        derniers.add(b["auteur"])
-        if (b["nature"] == "hele" and b.get("a") == ["joueur"] and _heler(b) == " appeler"
-                and b["auteur"] in monde.objets
-                and (b["auteur"] in entendus_ or maintenant - b["instant"] <= REPONDRE)):
-            appelants.append(b["auteur"])
-    return appelants
+    """Ceux qui attendent une réponse de Corvus, et dont il a saisi le cri : leur dernière parole
+    l'a hélé par son nom, lui a demandé ce qu'il veut, ou lui a dit ce qu'ils veulent (``appel``),
+    entendue pendant son dernier geste (``data["entendus"]``) ou il y a moins d'une minute
+    (``REPONDRE``, aussi de qui il voit). Le plus récent d'abord : il peut leur répondre
+    (``appel.dire``)."""
+    from .appel import en_attente
+    return [id for id, _ in en_attente(monde)]
 
 
 def rendre(monde, entendus_):

@@ -164,7 +164,7 @@ class HelerTests(unittest.TestCase):
         m = recharger(m)
         textes = chronique(m)
         tourne = textes.index("Gorm, gardien du relais se tourne vers la voix qui l'appelle.")
-        self.assertLess(tourne, textes.index("Gorm répond : « Ici ! »"))
+        self.assertLess(tourne, next(i for i, t in enumerate(textes) if t.startswith("Gorm répond : « ")))
         self.assertEqual(m.objets["marchand"]["orientation"], "ouest")
         self.assertEqual(lire(m, "marchand")["croyances"]["joueur"]["lieu"]["source"], "vu")
         self.assertNotIn("Aucune réponse ne te parvient.", texte)
@@ -190,7 +190,7 @@ class HelerTests(unittest.TestCase):
         debut = instant(m)
         faire(m, sequence(etape("emettre_son", "marchand", methode="heler"), justification=""))
         m = recharger(m)
-        reponse = next(b for b in m.data["bruits"] if b["auteur"] == "marchand" and "Ici" in b["texte"])
+        reponse = next(b for b in m.data["bruits"] if b["auteur"] == "marchand" and " répond : « " in b["texte"])
         self.assertEqual(reponse["instant"], debut + HELER)
 
 

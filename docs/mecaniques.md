@@ -303,6 +303,20 @@ perception du joueur est annoncée par le moteur (`donjon/pnj.py`).
 Sans réaction perceptible, la restitution est :
 « Tu cries à l'aide. Pour l'instant, aucune réponse ne te parvient. »
 
+Héler quelqu'un par son nom (`j'appelle Gorm`, `je crie « Gorm ? »`) est un cri du moteur, par la
+règle des PNJ (`docs/plan-ouie.md`, « L'appel négocié ») : l'appelé qui en saisit les mots convient
+avec l'appelant de qui vient à qui. Il répond « J'arrive ! » (il vient : il cherche lui-même
+l'appelant, on le prie de venir, ou ce qu'on lui veut le regarde ou se trouve sur lui), « Ici, viens ! »
+(il ne peut ou ne veut bouger : un geste en cours sur place, une garde, ce qu'il fait sur place, un
+passage qu'il croit fermé, ce qui le presse ailleurs) ou « Qu'est-ce que tu veux ? » (libre, sans raison
+de bouger) ; il se tait s'il se méfie de cette voix ou prépare un geste qu'il veut sans témoin. Le
+joueur l'entend par l'ouïe commune et répond sans le MJ : `j'arrive`, `viens` (ou `je réponds`,
+`« Ici ! »`), et, à un appel par son nom, `qu'est-ce que tu veux ?` ; le PNJ y donne suite par la même
+règle (« J'arrive ! » s'il peut venir, ce qu'il veut, « Ici, viens ! » s'il ne le peut pas). Qui reste
+attend le temps que l'autre met à venir par le plus court chemin, et sa moitié, plus deux minutes ;
+« J'arrive ! » est une parole donnée : attendu en vain jusqu'à l'échéance, celui qui l'a dite — joueur
+compris — n'est plus tenu pour fiable par qui l'attendait.
+
 #### Attendre
 
 `attendre` fait passer cinq minutes ; `attendre 30 s`, `attendre 10 min`, `attendre 1 h 30` (sans

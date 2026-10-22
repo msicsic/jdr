@@ -679,9 +679,11 @@ class Moteur:
         # Un appel, un cri, un sifflement, le son d'un objet ont leur nature déclarée (``sons``).
         from .ouie import retentir
         from .sons import nature_emise
+        from .appel import METHODES as REPONSES
         heles = [valeur for op, _, valeur in effets if op == "heler"]
-        # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``pnj.repondre_a``).
-        retournes = [] if heles or any(op == "repondre" for op, _, _ in effets) else retentir(
+        reponses = [(valeur, REPONSES[op]) for op, _, valeur in effets if op in REPONSES]
+        # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``appel.dire``).
+        retournes = [] if heles or reponses else retentir(
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
             force=nature_emise(travail, effets) or (bruit if adresse else None))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
@@ -710,9 +712,12 @@ class Moteur:
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
         # Qui a saisi son nom répond, le cri fini : après avoir vécu ces secondes (tourné vers la voix,
-        # ou parti ailleurs). Le joueur l'entend par l'ouïe commune (``ecoute``).
-        from .pnj import repondre
+        # ou parti ailleurs) ; qui a saisi la réponse du joueur y donne suite (``appel``). Le joueur
+        # l'entend par l'ouïe commune (``ecoute``).
+        from .appel import reagir, repondre
         repondus = [qui for qui in heles if repondre(travail, "joueur", qui, lignes)]
+        for qui, sorte in reponses:
+            reagir(travail, qui, sorte, lignes)
         # Qui l'a vu faire sous ses yeux à lui : il le sait ; un témoin dans son dos, non.
         for geste in gestes:
             lignes.extend(designer(travail.objets[id], debut=True) + " t'a vu faire."
@@ -908,9 +913,12 @@ class Moteur:
             from .pnj import heler
             heler(m, cible, valeur, lignes)  # Le cri ; la réponse vient le cri fini (``_terminer_etape``).
             return
-        if op == "repondre":
-            from .pnj import repondre_a
-            repondre_a(m, cible, valeur, lignes)  # « Ici ! » à qui l'a hélé : il le croit là.
+        from .appel import METHODES as REPONSES
+        if op in REPONSES:
+            # Sa réponse à qui l'a hélé, ou lui a dit ce qu'il veut : à son nom, il se nomme ;
+            # la suite que l'autre y donne vient le cri fini (``_terminer_etape``).
+            from .appel import dire, dernier_cri
+            dire(m, cible, valeur, REPONSES[op], lignes, nommer=dernier_cri(m, valeur) == "appel")
             return
         if op == "blessure_franchissement":
             m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)

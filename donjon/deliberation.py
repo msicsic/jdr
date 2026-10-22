@@ -51,7 +51,6 @@ REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui rest
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
 APPEL_REPIT = 10       # minutes entre deux appels à l'aide
 APPEL_OUBLI = 60       # minutes pendant lesquelles une salle où l'on a hélé en vain compte pour parcourue
-REJOINT = 5            # minutes pendant lesquelles qui a répondu à un appel attend sur place d'être rejoint
 # L'effet de seuil (``urgents``) : apaisé, un besoin ne presse de nouveau qu'à son seuil + REPRISE ;
 # il n'interrompt le plan en cours d'un autre besoin que s'il presse plus que lui d'INERTIE.
 REPRISE = 15
@@ -418,29 +417,6 @@ def cherche(monde, id, qui):
         x.get("cible") == qui or (x.get("contenu") or {}).get("cherche") == qui for x in i["plan"])
 
 
-def attendre_l_appelant(monde, id, qui):
-    """Il vient de répondre à l'appel de ``qui`` : il s'attend à être rejoint. Il attend sur place,
-    un temps borné (``REJOINT``), sauf s'il cherche lui-même l'appelant et reconnaît sa voix : il
-    sait alors où il est, et va vers lui (sa recherche le mène là d'où vient l'appel). L'attente
-    vit dans son esprit (``rejoint``) ; ``attendre`` la clôt."""
-    from .voix import reconnaitre
-    if cherche(monde, id, qui) and reconnaitre(monde, id, qui)[0] == qui:
-        # Il sait désormais où le trouver : sa recherche ailleurs est caduque, il va là d'où vient
-        # sa voix ; la délibération de la minute suivante reprend son but sur ce qu'il croit.
-        i, salle = esprit(monde, id)["intention"], salle_crue(monde, id, qui)
-        if salle in monde.data["salles"] and any((x.get("contenu") or {}).get("cherche") == qui for x in i["plan"]):
-            i["plan"] = [{"operation": "aller", "cible": "", "outil": "", "lieu": salle, "condition": ""}]
-        return
-    minute = monde.data["minutes"]
-    e = esprit(monde, id)
-    e["rejoint"] = {"qui": qui, "depuis": minute, "jusqu_a": minute + REJOINT}
-    # Il s'arrête aussitôt, sauf pour ce qui passe avant l'attente (``candidats``) ; la délibération
-    # de chaque minute en décide ensuite.
-    resultat = _plan_attendre(monde, id)
-    if resultat and not _passe_avant(monde, id, e["intention"]):
-        e["intention"] = {"but": resultat[0], "motif": "rejoint", "plan": resultat[1], "depuis": minute, "attente": 0}
-
-
 def _sur_place(monde, id, intention):
     """Assis pour se reposer, près du feu, à l'abri : un geste qui dure là où il se tient."""
     return bool(intention) and intention["motif"] in PROGRES and any(
@@ -457,34 +433,26 @@ def _passe_avant(monde, id, intention):
 
 
 def rejoint(monde, id, qui):
-    """``id`` attendait d'être rejoint par ``qui`` : ils se voient ou se parlent, l'attente est finie."""
+    """``id`` et ``qui`` se sont retrouvés (ils se voient ou se parlent) : le rendez-vous convenu à un
+    appel (``appel``) est tenu, l'attente de l'un et la venue de l'autre sont finies."""
     from .pnj import _chroniquer
     from .social import _qui
-    r = lire(monde, id)["rejoint"]
+    e = lire(monde, id)
+    r, d = e["rejoint"], e["rejoindre"]
+    if d and d["qui"] == qui:
+        esprit(monde, id)["rejoindre"] = None
     if not r or r["qui"] != qui:
         return
     esprit(monde, id)["rejoint"] = None
-    _chroniquer(monde, id, f"{_qui(monde, id)} retrouve {_qui(monde, qui)}, qui l'avait hélé.", "reponse")
+    _chroniquer(monde, id, f"{_qui(monde, id)} retrouve {_qui(monde, qui)}, comme convenu.", "reponse")
 
 
 def attendre(monde, id, minute):
-    """L'attente d'être rejoint prend fin quand ils se voient (ici) ou se parlent (``rejoint``), ou
-    à l'échéance ; tant qu'elle dure, c'est un but (``_plan_attendre``) qui cède à ce qui presse
-    davantage."""
-    from .esprits import percoit
-    from .pnj import _chroniquer
-    from .social import _qui
-    e = esprit(monde, id)
-    r = e["rejoint"]
-    if not r:
-        return
-    if r["qui"] != "joueur" and r["qui"] not in monde.objets:
-        e["rejoint"] = None
-    elif percoit(monde, id, r["qui"]):
-        rejoint(monde, id, r["qui"])
-    elif minute >= r["jusqu_a"]:
-        e["rejoint"] = None
-        _chroniquer(monde, id, f"{_qui(monde, id)} cesse d'attendre {_qui(monde, r['qui'])}.", "reponse")
+    """Le rendez-vous convenu à un appel (``appel.tenir``) : tenu quand ils se retrouvent, échu sinon ;
+    tant qu'il dure, attendre est un but (``_plan_attendre``) qui cède à ce qui presse davantage, et
+    venir une parole due (``appel.plan_venir``)."""
+    from .appel import tenir
+    tenir(monde, id, minute)
 
 
 def _plan_attendre(monde, id):
@@ -493,6 +461,22 @@ def _plan_attendre(monde, id):
     e = lire(monde, id)
     r = e["rejoint"]
     return ({"type": "attendre", "qui": r["qui"]}, []) if r and not _sur_place(monde, id, e["intention"]) else None
+
+
+def _attendre_qui_vient(monde, id, resultat):
+    """Qui attend quelqu'un qui a promis de venir (« J'arrive ! ») ne va pas le chercher : un plan qui
+    commence par aller à lui, ou le chercher, devient l'attendre là où il est, le temps convenu ; son
+    but reprend quand ils se sont retrouvés. Un plan qui fait d'abord autre chose ici reste tel quel."""
+    from .appel import _vise
+    r = lire(monde, id)["rejoint"]
+    if not resultat or not r or not r["vient"]:
+        return resultat
+    but, etapes = resultat
+    qui = r["qui"]
+    if not _vise({"but": but, "plan": etapes}, qui) or etapes and etapes[0]["operation"] not in ("aller", "inspecter") and not (
+            etapes[0].get("cible") == qui or (etapes[0].get("contenu") or {}).get("cherche") == qui):
+        return resultat
+    return {"type": "attendre", "qui": qui}, []
 
 
 def promesse_en_cours(monde, id, objet):
@@ -1285,8 +1269,12 @@ def _candidats(monde, id):
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
         buts.append(("devoir", _plan_prevenir, False, False))
-    # Il a répondu à un appel : il attend d'être rejoint (``attendre_l_appelant``), après ce qui
-    # presse et la parole due ; un bruit, ce qui ne presse pas et la routine attendent.
+    # « J'arrive ! » à un appel : une parole due, comme une autre (``appel.plan_venir``).
+    if e["rejoindre"]:
+        from .appel import plan_venir
+        buts.append(("engagement", plan_venir, False, False))
+    # Il a convenu d'attendre qui l'a hélé ou qu'il a hélé (``appel``), après ce qui presse et la
+    # parole due ; un bruit, ce qui ne presse pas et la routine attendent.
     if e["rejoint"]:
         buts.append(("rejoint", _plan_attendre, False, False))
     # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine ; une
@@ -1441,7 +1429,7 @@ def choisir(monde, id, minute):
         resultat = retenu[2] if retenu else None
     if resultat:
         besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
-        but, etapes = resultat
+        but, etapes = _attendre_qui_vient(monde, id, resultat)
         if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
             return
         intention = e["intention"]

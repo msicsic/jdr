@@ -262,8 +262,8 @@ def recevoir(monde, id, locuteur, c):
     if c["type"] == "nom":
         from .voix import se_nommer
         return se_nommer(monde, id, locuteur, c["sujet"])
-    if c["type"] == "qui":
-        return None
+    if c["type"] in ("qui", "appel", "raison"):
+        return None   # Une question, ou ce qu'on convient à un appel (``appel``) : rien à apprendre d'autrui.
     if c["type"] == "affirmation":
         if c["sujet"] == id:
             return None

@@ -20,6 +20,7 @@ import json
 import os
 
 from . import relations
+from .appel import ARRIVE, QUOI, VIENS, sorte_du_cri
 from .esprits import lire, pnjs
 from .pnj import CONTRAINTES
 from .moteur import Moteur, proposition
@@ -231,7 +232,13 @@ def executer(monde, minutes, recit=None, empreintes=None):
                # Chercher quelqu'un sans le voir : l'appeler, et qui répond (``pnj.appeler``).
                "appels": sum(" appelle : « " in c["texte"] for c in chronique),
                "reponses": sum(" répond : « " in c["texte"] for c in chronique),
-               # Qui a répondu attend d'être rejoint (``deliberation.attendre``) : rejoint, ou en vain.
+               # L'appel négocié (``appel``) : chaque sorte de réponse, ce que l'appelant dit vouloir, et
+               # les « J'arrive ! » attendus en vain (une parole rompue).
+               **{f"reponses_{s}": sum(c.get("nature") == "reponse" and sorte_du_cri(c["texte"]) == s for c in chronique)
+                  for s in (ARRIVE, VIENS, QUOI, "raison")},
+               "paroles_rompues": sum(c.get("nature") == "reponse" and c["texte"].endswith(" qui avait promis de venir.")
+                                      for c in chronique),
+               # Le rendez-vous convenu (``appel.tenir``) : retrouvés, ou attendus en vain.
                "retrouvailles": sum(c.get("nature") == "reponse" and " retrouve " in c["texte"] for c in chronique),
                "attentes_vaines": sum(c.get("nature") == "reponse" and " cesse d'attendre " in c["texte"]
                                       for c in chronique),
@@ -239,14 +246,14 @@ def executer(monde, minutes, recit=None, empreintes=None):
                # Les voix (``voix``) : voix connues gagnées dans la nuit (vues parler), voix inconnues qui
                # se sont dites quelqu'un, voix qu'une autre a appelées par un nom (``voix.lier``), noms
                # retenus de qui l'on a reconnu (``voix.apprendre_nom``), en fin de nuit ; l'appelé qui se
-               # tourne vers qui l'avait hélé en l'entendant approcher.
+               # tourne vers qui doit le rejoindre en l'entendant approcher.
                "voix_apprises": sum(len(lire(monde, id)["voix"]) for id in pnjs(monde)) - voix_debut,
                "voix_se_disant": sum(bool(x["se_dit"]) for id in pnjs(monde)
                                      for x in lire(monde, id)["voix_entendues"].values()),
                "voix_appelees": sum(bool(x.get("appelee")) for id in pnjs(monde)
                                     for x in lire(monde, id)["voix_entendues"].values()),
                "noms_retenus": sum(len(lire(monde, id).get("noms", [])) for id in pnjs(monde)),
-               "vers_qui_l_a_hele": sum(c["texte"].endswith(", qui l'avait hélé.") and " se tourne vers " in c["texte"]
+               "vers_qui_l_a_hele": sum(c["texte"].endswith(", qui arrive comme convenu.") and " se tourne vers " in c["texte"]
                                         for c in chronique),
                # Minutes passées dans le noir par qui le craint (PNJ × minutes).
                "minutes_dans_le_noir": noir,
@@ -413,7 +420,8 @@ def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, re
         pas, mesures = executer(monde, int(heures * 60), recit, empreintes)
     # Les choix de but : ceux de la minute (filet) et ceux qu'une fin de plan, un geste manqué ou un
     # événement ont provoqués ; les recherches du planificateur, et celles qui n'ont pas été reprises.
-    mesures.update(choix_minute=COMPTES["minute"], choix_evenement=COMPTES["choix"] - COMPTES["minute"],
+    mesures.update(silences=COMPTES["silence"],
+                   choix_minute=COMPTES["minute"], choix_evenement=COMPTES["choix"] - COMPTES["minute"],
                    recherches=len(recherches), recherches_neuves=sum(1 for r in recherches if not r.get("memoire")))
     secondes = round(time.perf_counter() - debut, 2)
     if rejeu:

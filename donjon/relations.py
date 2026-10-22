@@ -51,6 +51,7 @@ EPREUVES = {
     "vol_surpris": (False, False),       # le joueur surpris à le voler (``vol.appliquer``)
     "dette_niee": (False, False),        # il refuse de rendre l'argent dû (``biens``)
     "pret_garde": (False, False),        # il garde un prêt échu qu'on lui réclame (``biens``)
+    "parole_rompue": (False, False),     # il avait promis de venir (« J'arrive ! »), on l'a attendu en vain (``appel``)
     "nourri": (True, False),             # il l'a servi (``echanges.servir``) : il lui sait gré
 }
 CONSTATS = ("vu", "essai")

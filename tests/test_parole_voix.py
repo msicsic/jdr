@@ -6,6 +6,8 @@
 - Qui répond à un appel s'attend à être rejoint : il attend sur place un temps borné, sauf pour
   plus pressant, ou va vers l'appelant s'il le cherche aussi. Cas réel de la crue : l'appelé
   répondait « Ici ! » puis poursuivait sa ronde ou allait voir un bruit, d'où des chassés-croisés.
+  Depuis l'appel négocié (``appel``), « Ici ! » est « Ici, viens ! » : l'appelé ne peut ou ne veut
+  bouger ; l'attente se règle sur la distance (``appel.delai``), plus sur une constante.
 - Le joueur hèle quelqu'un par son nom (« j'appelle Gorm ») : un geste du moteur, par la règle des
   PNJ ; l'appelé répond et l'attend, le joueur entend sa réponse par l'ouïe commune.
 Chaque cas vérifie l'état après rechargement et ce que lit le joueur."""
@@ -13,7 +15,6 @@ import unittest
 
 from donjon import lexique
 from donjon.commandes import analyser as commande
-from donjon.deliberation import REJOINT
 from donjon.esprits import croire, lire
 from donjon.geometrie import position_entree
 from donjon.spatial import position_cible
@@ -124,13 +125,13 @@ class RejointTests(unittest.TestCase):
         m = gorm_en_ronde()
         for _ in range(6):  # Aubin hèle, Gorm répond et l'attend ; Aubin le rejoint.
             m, _ = vivre(m, 1)
-            if "Gorm retrouve Aubin, qui l'avait hélé." in chronique(m):
+            if "Gorm retrouve Aubin, comme convenu." in chronique(m):
                 break
         textes = chronique(m)
-        self.assertIn("Gorm répond : « Ici ! »", textes)
-        self.assertIn("Gorm retrouve Aubin, qui l'avait hélé.", textes)
+        self.assertIn("Gorm répond : « Ici, viens ! »", textes)
+        self.assertIn("Gorm retrouve Aubin, comme convenu.", textes)
         # Entre sa réponse et les retrouvailles, il attend là où il a répondu : pas un pas.
-        entre = textes[textes.index("Gorm répond : « Ici ! »"):textes.index("Gorm retrouve Aubin, qui l'avait hélé.")]
+        entre = textes[textes.index("Gorm répond : « Ici, viens ! »"):textes.index("Gorm retrouve Aubin, comme convenu.")]
         self.assertFalse([t for t in entre if t.startswith("Gorm, gardien du relais passe dans")])
         for _ in range(5):  # Puis il lui demande sa part, là où il l'a retrouvé ou en le suivant.
             if obtient_sa_part(m):
@@ -143,7 +144,7 @@ class RejointTests(unittest.TestCase):
 
     def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
         d_un_bloc, morcele = decouper(gorm_en_ronde, 6)
-        self.assertIn("Gorm retrouve Aubin, qui l'avait hélé.", chronique(morcele))
+        self.assertIn("Gorm retrouve Aubin, comme convenu.", chronique(morcele))
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
 
     def test_sans_personne_qui_vienne_il_cesse_d_attendre_a_l_echeance(self):
@@ -151,11 +152,14 @@ class RejointTests(unittest.TestCase):
         placer(m, "marchand", "crypte", (5, 2))
         placer(m, "aubin", "beffroi", position_entree(m, "beffroi"))
         lire(m, "marchand")["visites"]["antichambre"] = -46  # Sa ronde l'attend.
-        appeler(m, "aubin", "marchand", [])  # Aubin, sans rien vouloir de plus, ne vient pas.
+        # Aubin sait la porte étanche fermée à clé : ni lui ni Gorm ne peut venir ; Gorm l'attend.
+        croire(m, "aubin", "porte", "verrouillee", True, "essai")
+        appeler(m, "aubin", "marchand", [])
         self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
+        echeance = lire(m, "marchand")["rejoint"]["jusqu_a"]   # Le temps de venir, plus la marge.
         m = recharger(m)
         ici = m.objets["marchand"]["lieu"]
-        for _ in range(REJOINT - 1):
+        for _ in range(echeance - 1):
             m, _ = vivre(m, 1)
             self.assertEqual(m.objets["marchand"]["lieu"], ici)
         for _ in range(3):
@@ -163,21 +167,23 @@ class RejointTests(unittest.TestCase):
         m = recharger(m)
         self.assertIn("Gorm cesse d'attendre Aubin.", chronique(m))
         self.assertIsNone(lire(m, "marchand")["rejoint"])
-        self.assertGreaterEqual(lire(m, "marchand")["visites"]["antichambre"], REJOINT)  # Puis sa ronde.
+        self.assertGreaterEqual(lire(m, "marchand")["visites"]["antichambre"], echeance)  # Puis sa ronde.
 
     def test_un_besoin_plus_pressant_passe_avant(self):
         """Gorm a répondu à Aubin ; sa faim presse : il va manger d'abord, puis attend Aubin."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         placer(m, "marchand", "crypte", (5, 2))
         placer(m, "aubin", "beffroi", position_entree(m, "beffroi"))
+        croire(m, "aubin", "porte", "verrouillee", True, "essai")
         appeler(m, "aubin", "marchand", [])
+        echeance = lire(m, "marchand")["rejoint"]["jusqu_a"]
         lire(m, "marchand")["besoins"]["faim"] = 95.0
         m = recharger(m)
         m, _ = vivre(m, 1)
         # Il est allé manger aussitôt (à l'événement, sans attendre la minute), puis attend Aubin.
         self.assertIn("Gorm, gardien du relais mange une part des vivres du refuge.", chronique(m))
         self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
-        self.assertLess(m.data["minutes"], REJOINT)
+        self.assertLess(m.data["minutes"], echeance)
         self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "attendre", "qui": "aubin"})
 
     def test_s_il_le_cherche_aussi_il_va_vers_lui(self):
@@ -192,7 +198,7 @@ class RejointTests(unittest.TestCase):
                      {"operation": "inspecter", "cible": "", "outil": "", "lieu": "echoppe", "condition": "",
                       "contenu": {"cherche": "marchand"}}]}
         appeler(m, "marchand", "aubin", [])
-        self.assertIn("Aubin répond : « Ici ! »", chronique(m))
+        self.assertIn("Aubin répond : « J'arrive ! »", chronique(m))
         self.assertIsNone(lire(m, "aubin")["rejoint"])
         self.assertEqual(lire(m, "aubin")["croyances"]["marchand"]["lieu"]["valeur"], "crypte")
         m = recharger(m)
@@ -243,18 +249,18 @@ class HelerJoueurTests(unittest.TestCase):
         self.assertEqual(appels, [])  # Le moteur, jamais une interprétation du MJ.
         self.assertIn("Tu appelles : « Gorm ? »", sortie)
         # Une voix qu'il n'a jamais entendue : il entend ce qu'elle dit et le nom qu'elle se donne.
-        self.assertIn("Tu entends, à l'ouest, une voix qui se dit Gorm répondre : « Ici ! »", sortie)
+        self.assertIn("Tu entends, à l'ouest, une voix qui se dit Gorm répondre : « Ici, viens ! »", sortie)
         self.assertEqual([e["se_dit"] for e in reprise.data["voix_entendues"].values()], ["marchand"])
         self.assertEqual(lire(reprise, "marchand")["rejoint"]["qui"], "joueur")
         self.assertEqual(lire(reprise, "marchand")["intention"]["but"], {"type": "attendre", "qui": "joueur"})
         self.assertIn("Corvus appelle : « Gorm ? »", chronique(reprise))
-        self.assertIn("Gorm répond : « Ici ! »", chronique(reprise))
+        self.assertIn("Gorm répond : « Ici, viens ! »", chronique(reprise))
         # Corvus ouvre la porte : Gorm l'a attendu là ; ils se voient, l'attente est finie.
         reprise, sortie, _ = jouer(reprise, "ouvrir porte", [], [])
         self.assertIn("Tu aperçois au-delà du passage Gorm, gardien du relais.", sortie)
         self.assertEqual(reprise.objets["marchand"]["lieu"], "crypte")
         self.assertIsNone(lire(reprise, "marchand")["rejoint"])
-        self.assertIn("Gorm retrouve Corvus, qui l'avait hélé.", chronique(reprise))
+        self.assertIn("Gorm retrouve Corvus, comme convenu.", chronique(reprise))
 
     def test_une_voix_connue_dit_qui_repond_meme_en_forme_de_question(self):
         m = gorm_derriere_la_porte()
@@ -262,7 +268,7 @@ class HelerJoueurTests(unittest.TestCase):
         m = recharger(m)
         reprise, sortie, appels = jouer(m, "je crie « Gorm ? »", [], [])
         self.assertEqual(appels, [])
-        self.assertIn("Tu entends, à l'ouest : Gorm répond : « Ici ! »", sortie)
+        self.assertIn("Tu entends, à l'ouest : Gorm répond : « Ici, viens ! »", sortie)
 
     def test_qui_se_mefie_de_lui_ne_repond_pas(self):
         m = gorm_derriere_la_porte()
@@ -272,7 +278,7 @@ class HelerJoueurTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "je hèle Gorm", [], [])
         self.assertEqual(appels, [])
         self.assertIn("Aucune réponse ne te parvient.", sortie)
-        self.assertNotIn("Gorm répond : « Ici ! »", chronique(reprise))
+        self.assertFalse([t for t in chronique(reprise) if t.startswith("Gorm répond")])
         self.assertIsNone(lire(reprise, "marchand")["rejoint"])
 
     def test_le_mj_ne_hele_que_qui_corvus_connait(self):

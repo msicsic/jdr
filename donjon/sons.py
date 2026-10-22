@@ -69,7 +69,8 @@ def compiler(m, e, justification, origine):
         return p
     if e["methode"] == "heler":
         return _compiler_heler(m, e, justification, origine)
-    if e["methode"] == "repondre":
+    from .appel import METHODES as REPONSES
+    if e["methode"] in REPONSES:
         return _compiler_repondre(m, e, justification, origine)
     if (e["cible"] not in ("", "joueur") or e["destination"] or e["outil"]
             or e["methode"] not in VOIX or e["difficulte"]):
@@ -125,28 +126,37 @@ def _compiler_heler(m, e, justification, origine):
 
 
 def _compiler_repondre(m, e, justification, origine):
-    """Répondre « Ici ! » à qui vient de héler Corvus par son nom (``ecoute.appels``) : le geste de
-    réponse des PNJ (``pnj.repondre_a``), un cri qui vaut se nommer ; l'appelant qui l'entend le croit
-    là. La cible est l'appelant, sous le nom que Corvus lui connaît (une voix inconnue : voix_<n>)."""
-    from .ecoute import appels
+    """Répondre à qui vient de héler Corvus par son nom, ou de lui demander ce qu'il veut, ou de lui dire
+    ce qu'il veut (``appel.en_attente``) : « Ici, viens ! » (methode repondre), « J'arrive ! » (arriver),
+    « Qu'est-ce que tu veux ? » (demander_raison), par la règle des PNJ (``appel``) ; un cri. À son nom,
+    il se nomme : l'appelant qui l'entend le croit là. La cible est l'appelant, sous le nom que Corvus
+    lui connaît (une voix inconnue : voix_<n>)."""
+    from .appel import METHODES as REPONSES, en_attente, permises
     from .moteur import Plan
     from .refus import liste
     from .voix import designation, reel
-    appelants = appels(m)
+    attendent = dict(en_attente(m))
+    appelants = list(attendent)
     valables = [designation(m, x) for x in appelants]
+    methode = e["methode"]
     if e["destination"] or e["outil"] or e["difficulte"]:
         raise ErreurMonde("On répond de sa voix, sans rien d'autre.",
-                          "emettre_son repondre : cible = qui vient d'appeler Corvus par son nom ; destination et "
+                          f"emettre_son {methode} : cible = qui vient d'appeler Corvus par son nom ; destination et "
                           "outil vides, difficulte 0.")
     if not appelants:
         raise ErreurMonde("Personne ne vient de t'appeler par ton nom.",
-                          f"emettre_son repondre : seulement juste après un appel de Corvus par son nom ; aucun appel "
+                          f"emettre_son {methode} : seulement juste après un appel de Corvus par son nom ; aucun appel "
                           f"de ce genre ne vient de lui parvenir (reçu cible « {e['cible']} »).")
     qui = reel(m, e["cible"])
     if qui not in appelants:
         raise ErreurMonde("Ce n'est pas cette voix qui vient de t'appeler.",
-                          f"emettre_son repondre : cible = qui vient d'appeler Corvus, parmi {liste(valables)} "
+                          f"emettre_son {methode} : cible = qui vient d'appeler Corvus, parmi {liste(valables)} "
                           f"(reçu « {e['cible']} »).")
+    if REPONSES[methode] not in permises(attendent[qui]):
+        raise ErreurMonde("Tu sais déjà ce qu'on te veut : dis si tu viens ou s'il doit venir.",
+                          f"emettre_son {methode} : après « Qu'est-ce que tu veux ? » ou ce que l'appelant veut, "
+                          "methode arriver (Corvus vient) ou repondre (l'autre vient) ; demander_raison seulement à un "
+                          "appel par son nom.")
     if m.joueur.get("peut_parler") is False or m.joueur["pv"] <= 0:
         raise ErreurMonde("Tu n'es pas en état de répondre.",
                           "le joueur ne peut pas émettre de son vocal : improviser un son corporel (corps_bref, "
@@ -155,7 +165,7 @@ def _compiler_repondre(m, e, justification, origine):
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
              "Répondre à " + nom_pour_joueur(m, qui) + ".", origine=origine)
     p.minutes, p.dixiemes, p.effort = 0, HELER, False
-    p.effets = [("repondre", "joueur", qui)]
+    p.effets = [(methode, "joueur", qui)]
     return p
 
 
