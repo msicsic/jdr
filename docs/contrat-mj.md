@@ -64,7 +64,7 @@ refusé n'est jamais montré, et le repli ne cite que le moteur ou des phrases a
 | voix d'auteur (`voix_auteur`) | un mot (« Corvus », « les faits »…) | segment, mot |
 | nom sans fondement (`mentions`, `mentions_proposees`) | un nom | segment ou champ de l'ajout, nom tel qu'écrit ; jamais l'identifiant de l'entité cachée |
 | parole sans moteur (`paroles_sans_moteur`) | une parole racontée de Corvus ; une citation nouvelle | segment, mots ou citation ; `parole_prevue.personnage` |
-| voix inconnue (`voix_inconnues`) | le récit la nomme ; sa réplique nomme quelqu'un | segment, nom, `interlocuteurs.<voix>.nom` |
+| voix inconnue, noms connus (`voix_inconnues`) | le récit nomme une voix inconnue ; une réplique, de tout locuteur, nomme qui il ne connaît pas (`voix.connait_nom` : Corvus seulement s'il a dit son nom ou qu'on le lui a dit) | segment, nom, `interlocuteurs.<voix>.nom` |
 | verdicts (`controler`) | mécanique sans source, locuteur absent ou non destinataire, engagement sans appui, parole mal citée, invention, contradiction | segment, phrase, verdict et motif de l'auditeur ; clés `objet:<id>` qui la nommeraient, présents, destinataires, engagements prévus mot pour mot |
 | portée (`portee_narrative.controler`) | représentation, capacité, fixation, impact, preuve, fragment sans preuve | description et sujet, ce que l'auditeur a lu |
 | capacités (`coherence_physique.controler`) | qualification incompatible | qualification, objet, champs proposés |
@@ -95,12 +95,19 @@ peut rien changer à ce que lira le joueur n'est pas fait :
   refusée par le contrôle, le joueur lit les refus du monde, leurs messages tels quels (voir « Refus et
   échecs »).
 
+- « demander à + infinitif » (« tu demandes à passer sous la poutre ») demande de pouvoir faire : ce
+  n'est pas une parole de Corvus racontée (`narration.parole_racontee`) ;
+- un geste fait au joueur (on lui remet un objet, on lui réclame le sien) lui est dit une fois, à la
+  deuxième personne ; son ouïe ne le lui redit pas à la troisième (`ouie.retentir`, `appris`).
+
 Ce que le contrôle déterministe exige du texte est aussi dit au MJ, une fois (`narration.REGLE_NARRATION`) :
 deuxième personne, ni « je » hors des répliques, ni Corvus, joueur, moteur, MJ, scénario, faits ou
-données ; l'`attendu` d'une voix d'auteur dit comment l'écrire autrement (« tu ne sais pas si… »). La
+données ; une voix inconnue désignée par son nom d'interlocuteur ; une réplique qui ne nomme que qui son
+locuteur connaît. L'`attendu` d'une voix d'auteur dit comment l'écrire autrement (« tu ne sais pas si… »). La
 contre-revue d'action sait que chercher ou fouiller se fait par une perception sur ce qu'on fouille
 (la règle même que le moteur prescrit à un arbitrage d'observation) ; l'auditeur, que dire un témoin
-silencieux est attesté.
+silencieux est attesté, que les mots de qui répond ne sont jamais fournis par les faits, et que ce que
+fait sentir un objet perçu dans son état (le feu allumé qui crépite) est ambiance.
 
 **Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
 mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
