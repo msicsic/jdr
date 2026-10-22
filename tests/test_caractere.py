@@ -141,10 +141,11 @@ class ValeursTests(unittest.TestCase):
 
         avide, honnete = situation(20), situation(50)
         self.assertEqual(gestes(avide), ["Brune, batelière évacuée mange une part des vivres du refuge."])
-        # Gorm a quitté les vannes : elle le cherche en le hélant ; il l'entend dès le premier appel
-        # (un cri porte d'une salle à l'autre) et lui répond du refuge.
-        self.assertEqual(gestes(honnete), ["Brune appelle : « Gorm ? »"]
-                         + ["Brune demande une part des vivres du refuge à Gorm (promis)."])
+        # Elle va lui demander sa part, sans rien prendre ; si Gorm a quitté les vannes, elle le cherche
+        # en le hélant (selon l'instant où chacun choisit, il est parfois déjà revenu à sa vue).
+        self.assertIn(gestes(honnete), (["Brune demande une part des vivres du refuge à Gorm (promis)."],
+                                        ["Brune appelle : « Gorm ? »",
+                                         "Brune demande une part des vivres du refuge à Gorm (promis)."]))
         self.assertIn({"de": "marchand", "objet": "vivres"},
                       [{k: s[k] for k in ("de", "objet")} for s in lire(honnete, "brune")["memoire"]
                        if s["type"] == "nourri"])

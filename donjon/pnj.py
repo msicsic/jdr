@@ -227,6 +227,10 @@ def tour_d_horizon(monde, id):
     Renvoie ceux par qui il se croit observé ; il reprend ensuite son orientation."""
     o = monde.objets[id]
     orientation = o.pop("orientation", None)
+    # Ce qu'il voit en regardant autour de lui sert la décision en cours : son propre regard ne
+    # l'éveille pas (``esprits.reconsiderer``), et ce qu'il garde « en vue » reste son regard ordinaire.
+    e = esprit(monde, id)
+    en_vue, eveil = e["en_vue"], e["eveil"]
     try:
         percevoir(monde, id)
         temoigner_en_cours(monde)
@@ -234,6 +238,7 @@ def tour_d_horizon(monde, id):
     finally:
         if orientation is not None:
             o["orientation"] = orientation
+        e["en_vue"], e["eveil"] = en_vue, eveil
 
 
 def _temoigner(monde, geste):
@@ -1298,7 +1303,10 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
             ici = {"salle": o["lieu"], "case": list(o["position"])}
             dernier = e["balayage"]
             observe = None
-            if not dernier or {k: dernier[k] for k in ici} != ici or t - dernier["instant"] > 2 * TOUR:
+            # Un événement qui l'a fait reconsidérer (``compter`` faux) peut avoir changé qui le voit :
+            # il regarde de nouveau autour de lui, au lieu de s'en tenir à ce qu'il a devant lui.
+            if (not dernier or {k: dernier[k] for k in ici} != ici or t - dernier["instant"] > 2 * TOUR
+                    or not compter):
                 e["balayage"] = {**ici, "instant": t}
                 observe = bool(tour_d_horizon(monde, id))
                 if not observe:

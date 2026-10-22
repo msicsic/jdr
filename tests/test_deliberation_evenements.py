@@ -15,7 +15,7 @@ from donjon.monde import Monde
 from donjon.temps import MINUTE, instant
 from tests.support import calme, refusee, regarder
 from tests.test_temps_etat import decouper, etat_pnj, faire, intention, plan
-from tests.test_tensions import placer, recharger, relais
+from tests.test_tensions import placer, recharger, relais, vivre
 
 
 def jusqu_a(m, t, recharger_tous=5):
@@ -338,6 +338,65 @@ class GesteQuiDureTests(unittest.TestCase):
         self.assertFalse(m.objets["fanal"]["allume"])
         self.assertEqual(choix.choix[0], (205, "ilse", {"type": "abri", "lieu": "echoppe"}))
         self.assertEqual(m.objets["ilse"]["lieu"], "echoppe")
+
+
+class BouclesTests(unittest.TestCase):
+    """Deux boucles de l'audit des nuits (``docs/audit-nuits.md``, B1 et B3), dans la délibération :
+    un appel à l'aide ne se répète pas tant que dure le même désarroi ; on ne prévient une victime
+    que de ce qu'elle ignore encore."""
+
+    def test_un_appel_a_l_aide_sans_reponse_ne_se_repete_pas(self):
+        # Cas réel (mine 7) : Lucien, à bout dans le noir, appelait toutes les 10 minutes jusqu'au
+        # matin. Ici Ilse, seule et à bout, sans personne qui accoure : un seul appel en 40 minutes.
+        from tests.test_protection import seule_et_a_bout
+        m = seule_et_a_bout(relais())
+        m.objets["marchand"]["profil"]["protege"] = []
+        m = recharger(m)
+        for _ in range(8):
+            m, _ = vivre(m, 5)
+            lire(m, "ilse")["besoins"]["securite"] = 99.0   # Rien ne la rassure.
+        textes = [c["texte"] for c in m.data["chronique"]]
+        self.assertEqual(textes.count("Ilse appelle à l'aide."), 1)
+
+    def test_rassuree_puis_de_nouveau_a_bout_elle_rappelle(self):
+        # Même nature : un nouveau désarroi, après avoir été rassurée, appelle de nouveau.
+        from tests.test_protection import seule_et_a_bout
+        m = seule_et_a_bout(relais())
+        m.objets["marchand"]["profil"]["protege"] = []
+        m, _ = vivre(recharger(m), 2)
+        lire(m, "ilse")["besoins"]["securite"] = 40.0
+        m, _ = vivre(recharger(m), 1)
+        lire(m, "ilse")["besoins"]["securite"] = 99.0
+        m, _ = vivre(recharger(m), 15)
+        textes = [c["texte"] for c in m.data["chronique"]]
+        self.assertEqual(textes.count("Ilse appelle à l'aide."), 2)
+
+    def test_on_ne_previent_pas_deux_fois_du_meme_fait(self):
+        # Cas réel (auberge 5) : Hugues disait à Anselme « Lucien est peu fiable » à chaque minute d'un
+        # crochetage vu. Un fait dit ne se redit pas ; le lieu d'un bien, s'il le croit ailleurs depuis.
+        from donjon.deliberation import _plan_prevenir
+        from donjon.esprits import memoriser
+        from donjon.banc_pnj import creer
+        m = creer("auberge", 1985, "fixe")
+        calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
+        memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
+        self.assertEqual(_plan_prevenir(m, "hugues")[1][-1]["contenu"],
+                         {"sujet": "lucien", "attribut": "fiable", "valeur": False})
+        memoriser(m, "hugues", {"type": "dit", "a": "anselme", "sujet": "lucien", "attribut": "fiable"})
+        m.data["minutes"] += 3
+        memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
+        m = recharger(m)
+        self.assertIsNone(_plan_prevenir(m, "hugues"))
+        # Autre cas de même nature : il voit ensuite Lucien poser le ballot à l'étable ; il a à lui dire
+        # où il est, et seulement cela.
+        croire(m, "hugues", "ballot", "lieu", "etable", "vu", salle="etable", case=[3, 2])
+        memoriser(m, "hugues", {"type": "vu_agir", "auteur": "lucien", "operation": "poser", "objet": "ballot",
+                                "lieu": {"valeur": "etable", "salle": "etable", "case": [3, 2],
+                                         "minute": m.data["minutes"]}})
+        memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
+        etapes = _plan_prevenir(recharger(m), "hugues")[1]
+        self.assertEqual([x["contenu"] for x in etapes if x["operation"] == "dire"],
+                         [{"sujet": "ballot", "attribut": "lieu", "valeur": "etable"}])
 
 
 class FiletTests(unittest.TestCase):

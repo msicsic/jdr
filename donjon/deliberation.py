@@ -464,9 +464,17 @@ def appeler_a_l_aide(monde, id, minute):
     e = esprit(monde, id)
     menace = ("securite" in urgents(monde, id) and prudent(monde, id)
               and monde.objets[id]["lieu"] in menaces(monde, id))
-    if (e["besoins"].get("securite", 0) < DESESPOIR and not menace
-            or e["intention"] and e["intention"]["but"]["type"] == "abri"
-            or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in e["memoire"])):
+    appels = [s for s in e["memoire"] if s["type"] == "appel"]
+    if e["besoins"].get("securite", 0) < DESESPOIR and not menace:
+        if appels:
+            appels[-1]["apaise"] = True  # Rassuré depuis : un nouveau désarroi pourra appeler de nouveau.
+        return
+    # Un appel attend sa réponse : tant que le désarroi qui l'a fait lancer dure, il ne le répète pas,
+    # que quelqu'un soit venu sans l'apaiser ou que personne ne vienne (un autre recours, ou être
+    # rassuré, y mettent fin).
+    if (e["intention"] and e["intention"]["but"]["type"] == "abri"
+            or appels and not appels[-1].get("apaise")
+            or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in appels)):
         return
     memoriser(monde, id, {"type": "appel"})
     from .ecoute import appel
@@ -538,15 +546,35 @@ def alarme(monde, id):
     return None
 
 
+def _deja_dit(monde, id, a, sujet, attribut, depuis=None):
+    """Il a déjà dit à ``a`` ce qu'il croit de ``sujet`` (``attribut``), depuis la minute ``depuis``."""
+    return any(x["type"] == "dit" and x["a"] == a and x["sujet"] == sujet and x.get("attribut") == attribut
+               and (depuis is None or x["minute"] >= depuis) for x in lire(monde, id)["memoire"])
+
+
+def _a_dire(monde, id, victime, auteur):
+    """Ce qu'il a à apprendre à ``victime`` d'``auteur`` : qu'il n'est pas fiable, s'il ne le lui a
+    jamais dit ; où sont les biens qu'il lui a vu déplacer, s'il ne le lui a pas dit depuis qu'il le
+    croit. On prévient d'un fait que la victime ignore, pas d'un souvenir : chaque minute d'un même
+    crochetage vu ne relance pas l'avertissement."""
+    contenus = [] if _deja_dit(monde, id, victime, auteur, "fiable") else [
+        {"sujet": auteur, "attribut": "fiable", "valeur": False}]
+    croyances = lire(monde, id)["croyances"]
+    for c in _lieux_a_dire(monde, id, victime, auteur):
+        depuis = (croyances.get(c["sujet"], {}).get("lieu") or {}).get("minute")
+        if not _deja_dit(monde, id, victime, c["sujet"], "lieu", depuis):
+            contenus.append(c)
+    return contenus
+
+
 def _plan_prevenir(monde, id):
-    """Un geste illicite vu contre un protégé : aller le lui dire."""
+    """Un geste illicite vu contre un protégé : aller lui dire ce qu'il en ignore encore."""
     e = esprit(monde, id)
     for s in reversed(e["memoire"]):
-        if s["type"] != "a_prevenir":
+        if s["type"] != "a_prevenir" or s["victime"] not in monde.objets:
             continue
-        dit = any(x["type"] == "dit" and x["a"] == s["victime"] and x["sujet"] == s["auteur"]
-                  and x["minute"] >= s["minute"] for x in e["memoire"])
-        if dit or s["victime"] not in monde.objets:
+        contenus = _a_dire(monde, id, s["victime"], s["auteur"])
+        if not contenus:
             continue
         from .planification import _etape, rejoindre
         chemin = rejoindre(monde, id, s["victime"])
@@ -554,10 +582,7 @@ def _plan_prevenir(monde, id):
             continue
         etapes, trouve = chemin
         if trouve:
-            etapes.append(_etape("dire", s["victime"],
-                                 contenu={"sujet": s["auteur"], "attribut": "fiable", "valeur": False}))
-            etapes += [_etape("dire", s["victime"], contenu=c)
-                       for c in _lieux_a_dire(monde, id, s["victime"], s["auteur"])]
+            etapes += [_etape("dire", s["victime"], contenu=c) for c in contenus]
         return {"type": "prevenir", "qui": s["victime"]}, etapes
     return None
 

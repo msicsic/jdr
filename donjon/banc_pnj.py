@@ -353,9 +353,15 @@ def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, re
     if rejeu:
         from .rejeu import Enregistreur
         enregistreur = Enregistreur(monde)
+    from .deliberation import COMPTES
+    COMPTES.clear()
     with diagnostics() as recherches, enregistreur.observer() if rejeu else nullcontext():
         empreintes = {}
         pas, mesures = executer(monde, int(heures * 60), recit, empreintes)
+    # Les choix de but : ceux de la minute (filet) et ceux qu'une fin de plan, un geste manqué ou un
+    # événement ont provoqués ; les recherches du planificateur, et celles qui n'ont pas été reprises.
+    mesures.update(choix_minute=COMPTES["minute"], choix_evenement=COMPTES["choix"] - COMPTES["minute"],
+                   recherches=len(recherches), recherches_neuves=sum(1 for r in recherches if not r.get("memoire")))
     secondes = round(time.perf_counter() - debut, 2)
     if rejeu:
         ecrire_rejeu(rejeu, enregistreur, monde, pas, f"Rejeu : {scenario}, graine {graine}, {heures:g} h")

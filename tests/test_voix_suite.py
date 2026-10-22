@@ -248,7 +248,10 @@ class VersLAppelantTests(unittest.TestCase):
         tourne = textes.index("Gorm, gardien du relais se tourne vers Aubin, qui l'avait hélé.")
         self.assertLess(tourne, textes.index("Gorm retrouve Aubin, qui l'avait hélé."))
         self.assertLess(tourne, textes.index("Aubin, vieux passeur passe dans : Conduite basse."))
-        self.assertNotIn("Gorm, gardien du relais se retourne au bruit.", textes)
+        # Jusqu'aux retrouvailles (ensuite, il le sert et marche devant lui : ses pas peuvent le faire
+        # se retourner, ce qui est une autre affaire).
+        avant = textes[:textes.index("Gorm retrouve Aubin, qui l'avait hélé.")]
+        self.assertNotIn("Gorm, gardien du relais se retourne au bruit.", avant)
         d_un_bloc, morcele = decouper(self.attend_aubin, 2)
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
 
