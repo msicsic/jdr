@@ -1359,8 +1359,9 @@ sans forcer) Relais 3,4 / 0,5 / 0 → 3,4 / 0,5 / 0,5, mine 24,8 / 6,5 / 0 → 2
 13,3 / 0,25 / 0 → 6,5 / 0,75 / 0,75, crue 0,75 / 0,5 / 0 → 0,75 / 0,5 / 0,5 ; crochetages entendus sans
 être vus (témoin par l'ouïe) 0,5 → 0,5, 0,75 → 0,75, 0,75 → 1, 0,5 → 0 ; témoins par l'ouïe de tout geste
 (auteur reconnu + bien touché) Relais 0,6 → 0,6, mine 0,75 → 0,75, auberge 1 → 1,75, crue 0,5 → 0 ; vols
-vus égaux à 0,25 près ; aucune usurpation ni violation. Au Relais, les nuits sont les mêmes (mêmes
-mesures, graine par graine) : seuls deux crochetages réussis s'y font, et sans témoin à portée. Les
+vus égaux à 0,25 près ; aucune usurpation ni violation. Au Relais, les mesures sont les mêmes (seule
+l'offre de tâche la plus haute d'une nuit change, par la surenchère) : quatre crochetages réussis en huit
+nuits, sans personne à portée d'oreille. Les
 voleurs des scénarios (DEX 15, et la faim qui la diminue) ne se savent jamais habiles : ils attendent
 toujours un fracas, et guettent comme avant ; seul le bruit d'une réussite change. Audit de 12 h
 (`tools/audit_nuits.py`, 4 scénarios × 4 graines, `main` → branche) : réussis sans forcer 0 → 1,25 / 7,25

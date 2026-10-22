@@ -1015,7 +1015,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   15,5, hausses 5,75 → 0,75, offre la plus haute 36,75 → 4,25 pièces, pièces des tâches 39,25 → 2,5, tâches
   dues aussitôt 1 → 0, dettes 1,25 → 0, sans recours 75 → 45, échanges 81 → 66 ; crue en attente 472 → 516 ;
   crochetages réussis sans forcer 0 → 0,5 (Relais), 7 (mine), 0,75 (auberge), 0,5 (crue), entendus sans être
-  vus 0,5 / 0,75 / 0,75 / 0,5 → 0,5 / 0,75 / 1 / 0 ; Relais identique, aucune usurpation ni violation ; temps
+  vus 0,5 / 0,75 / 0,75 / 0,5 → 0,5 / 0,75 / 1 / 0 ; Relais aux mêmes mesures, aucune usurpation ni violation ; temps
   faussés par la charge (+4 à +10 %). Audit 12 h (4 × 4) : dettes de fin de nuit 5 → 0, aucun plantage ;
   N1 et N4 demeurent (d'autres lots). Limites : la valeur d'une tâche est la peine qu'elle épargne, pas le
   besoin ; un payeur pauvre n'offre plus rien ; une hausse par minute ; les premières offres à plusieurs
