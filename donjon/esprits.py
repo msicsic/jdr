@@ -152,8 +152,12 @@ def _croyance_valide(monde, attribut, c):
                 and all(c.get(k) is None or type(c[k]) is int for k in ("niveau", "montee"))
                 and (c.get("repere") is None or isinstance(c["repere"], list) and len(c["repere"]) == 2
                      and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
+    elif attribut == "verrouillee":
+        assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
     else:
-        assert attribut in ("verrouillee", "fiable") and type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
+        # Ce qu'il éprouve envers une personne : sa forme est l'affaire de ``relations``.
+        from .relations import FIABLE, valide
+        assert attribut == FIABLE and valide(c), "Attribut de croyance inconnu"
 
 
 def verifier(monde):
@@ -243,6 +247,15 @@ def verifier(monde):
                 assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
                         and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
                         and etape["condition"] in ("", "sans_temoin")), "Étape de plan invalide"
+
+
+def croyance(monde, id, sujet, attribut):
+    """Sa croyance sur ``sujet`` (``attribut``), telle quelle, ou None. Ce qu'il éprouve envers une
+    personne ne se lit que par ``relations`` (``relations.croyance``)."""
+    from .relations import FIABLE, croyance as relation
+    if attribut == FIABLE:
+        return relation(monde, id, sujet)
+    return lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
 
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
@@ -406,7 +419,8 @@ def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
         else:
             memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
             if locuteur != id:
-                croire(monde, id, locuteur, "fiable", False, "vu")
+                from .relations import eprouver
+                eprouver(monde, id, locuteur, "mensonge_decouvert")
     croire(monde, id, sujet, attribut, valeur, source, **lieu)
 
 
@@ -425,7 +439,8 @@ def _vu_porter(monde, id, sujet):
         return
     from .deliberation import VOL, relancer
     memoriser(monde, id, {"type": "vu_porter", "auteur": porteur, "objet": sujet})
-    croire(monde, id, porteur, "fiable", False, "vu")
+    from .relations import eprouver
+    eprouver(monde, id, porteur, "vu_porter")
     relancer(monde, id, "biens", VOL)
     reconsiderer(monde, id)
 

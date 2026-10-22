@@ -19,6 +19,7 @@ from collections import Counter
 import json
 import os
 
+from . import relations
 from .esprits import lire, pnjs
 from .pnj import CONTRAINTES
 from .moteur import Moteur, proposition
@@ -169,8 +170,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
                           and not autour(monde, id)["lumiere"])
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
-    mefiances = sum(1 for id in pnjs(monde) for c in lire(monde, id)["croyances"].values()
-                    if c.get("fiable", {}).get("valeur") is False)
+    mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.se_mefie(monde, id, x))
     bilan = monde.data.get("stratege", {}).get("bilan", {})
     temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES and s.get("par") != "ouie"]

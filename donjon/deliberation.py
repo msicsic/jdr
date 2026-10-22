@@ -16,6 +16,7 @@ from .biens import a_autrui
 from .caractere import ARGENT, STATS, interdit, verifier_situation, verifier_valeurs
 from .corps import CORPS, SATIETE  # noqa: F401  (SATIETE : un repas, pour les gestes des PNJ)
 from .esprits import esprit, lire, memoriser
+from .relations import FIABLE, se_fie, se_mefie
 from .spatial import porte_par
 
 BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
@@ -547,8 +548,8 @@ def autour(monde, id):
     else:
         autres = presents if niveau else []
     return {"lumiere": niveau > 0,
-            "fiables": sorted(x for x in autres if _cru(monde, id, x, "fiable") is True),
-            "mefiants": sorted(x for x in autres if _cru(monde, id, x, "fiable") is False)}
+            "fiables": sorted(x for x in autres if se_fie(monde, id, x)),
+            "mefiants": sorted(x for x in autres if se_mefie(monde, id, x))}
 
 
 def ressentir(monde, id):
@@ -683,8 +684,8 @@ def _a_dire(monde, id, victime, auteur):
     jamais dit ; où sont les biens qu'il lui a vu déplacer, s'il ne le lui a pas dit depuis qu'il le
     croit. On prévient d'un fait que la victime ignore, pas d'un souvenir : chaque minute d'un même
     crochetage vu ne relance pas l'avertissement."""
-    contenus = [] if _deja_dit(monde, id, victime, auteur, "fiable") else [
-        {"sujet": auteur, "attribut": "fiable", "valeur": False}]
+    contenus = [] if _deja_dit(monde, id, victime, auteur, FIABLE) else [
+        {"sujet": auteur, "attribut": FIABLE, "valeur": False}]
     croyances = lire(monde, id)["croyances"]
     for c in _lieux_a_dire(monde, id, victime, auteur):
         depuis = (croyances.get(c["sujet"], {}).get("lieu") or {}).get("minute")
@@ -869,7 +870,7 @@ def _plan_abri(monde, id):
     else:
         salles = []
         for x in [*pnjs(monde), "joueur"]:
-            if x == id or _cru(monde, id, x, "fiable") is not True:
+            if x == id or not se_fie(monde, id, x):
                 continue
             salle = salle_crue(monde, id, x)
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
@@ -962,7 +963,7 @@ def menaces(monde, id):
     lieux = _lieux_gardes(monde, id, siens=True)
     if not lieux:
         return ()
-    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and _cru(monde, id, x, "fiable") is False]
+    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and se_mefie(monde, id, x)]
     return tuple(sorted(s for s in lieux if any(salle_crue(monde, id, x) == s for x in mefiants)))
 
 
@@ -986,7 +987,7 @@ def _plan_garder(monde, id, condition):
 def _delegue(monde, id, pulsion):
     """Une pulsion confiée au joueur attend tant que le PNJ le croit fiable ; une pulsion qu'il a payé
     quelqu'un de rétablir aussi (``tache_payee``)."""
-    return bool(pulsion.get("delegue_a") and _cru(monde, id, pulsion["delegue_a"], "fiable") is not False
+    return bool(pulsion.get("delegue_a") and not se_mefie(monde, id, pulsion["delegue_a"])
                 or tache_payee(monde, id, pulsion["condition"]))
 
 
@@ -999,7 +1000,7 @@ def tache_payee(monde, id, condition):
     for i in range(len(memoire) - 1, -1, -1):
         s = memoire[i]
         if s["type"] == "tache_payee" and s["condition"] == condition:
-            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or _cru(monde, id, s["a"], "fiable") is False:
+            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or se_mefie(monde, id, s["a"]):
                 return None
             if any(x["type"] == "creance" and x["de"] == s["a"] and x.get("quoi") == "tache" for x in memoire[i + 1:]):
                 return None

@@ -19,8 +19,9 @@ qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterminist
 moteur.
 """
 from .caractere import penchant
-from .esprits import RECENT, constater, croire, esprit, lire, memoriser, percevoir
+from .esprits import RECENT, constater, croire, croyance, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
+from .relations import FIABLE, avis, eprouver, mefiance, percue
 
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
 PARTAGE = 12           # DD d'une demande (une part, un objet prêté), que l'altruisme de celui qui donne abaisse
@@ -35,7 +36,7 @@ def clarte(monde, auditeur):
 def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     """« dementi », « doute », « crue » ou « decouvert » (crue puis démentie sous ses yeux)."""
     e = esprit(monde, auditeur)
-    actuelle = e["croyances"].get(sujet, {}).get(attribut)
+    actuelle = croyance(monde, auditeur, sujet, attribut)
     if (actuelle and actuelle["valeur"] == valeur and actuelle["source"] in ("vu", "essai")
             and monde.data["minutes"] - actuelle["minute"] <= RECENT):
         return "crue"  # Il vient de le voir lui-même : la parole le confirme sans rien lui apprendre.
@@ -52,8 +53,11 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
                                     "sujet": sujet, "attribut": attribut})
         return "doute"
     lieu = {"salle": valeur if valeur in monde.data["salles"] else None, "case": None} if attribut == "lieu" else {}
-    croire(monde, auditeur, sujet, attribut, valeur, source_dite(monde, auditeur, locuteur),
-           round(0.7 * clarte(monde, auditeur), 2), **lieu)
+    source, certitude = source_dite(monde, auditeur, locuteur), round(0.7 * clarte(monde, auditeur), 2)
+    if attribut == FIABLE:
+        avis(monde, auditeur, sujet, valeur, source, certitude)  # Ce qu'il croit d'une personne : ``relations``.
+    else:
+        croire(monde, auditeur, sujet, attribut, valeur, source, certitude, **lieu)
     memoriser(monde, auditeur, {"type": "parole_crue", "locuteur": locuteur, "sujet": sujet, "attribut": attribut})
     # Ce qu'il a sous les yeux peut le démentir aussitôt.
     percevoir(monde, auditeur)
@@ -120,10 +124,9 @@ def garde(monde, id, o):
 
 def accueil(monde, demandeur, auditeur):
     """Ce qui arrête une demande avant qu'il la pèse : « mefiance » envers qui il croit entendre
-    (``voix.fiabilite``), « qui_va_la » si c'est une voix inconnue et qu'il est prudent ; None."""
-    from .voix import fiabilite, qui_va_la
-    confiance = fiabilite(monde, auditeur, demandeur)
-    if confiance and not confiance["valeur"]:
+    (``relations.percue``), « qui_va_la » si c'est une voix inconnue et qu'il est prudent ; None."""
+    from .voix import qui_va_la
+    if mefiance(percue(monde, auditeur, demandeur)):
         return "mefiance"
     return "qui_va_la" if qui_va_la(monde, auditeur, demandeur) else None
 
@@ -552,7 +555,7 @@ def servir(monde, id, nourriture, pour, lignes):
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
     from .voix import identifie
     if identifie(monde, pour, id):
-        croire(monde, pour, id, "fiable", True, "vu")  # Il sait gré à qui il sait l'avoir servi.
+        eprouver(monde, pour, id, "nourri")  # Il sait gré à qui il sait l'avoir servi.
     constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
     tenus = [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": pour}]

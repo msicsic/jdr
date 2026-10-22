@@ -19,6 +19,7 @@ inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personn
 from .esprits import croire, lire, memoriser, percoit, pnjs
 from .francais import complement_de, designer
 from .monde import normaliser
+from .relations import eprouver, se_fie, se_mefie
 
 # ``dette_niee`` : un débiteur refuse de rendre ce qu'il doit ; ``pret_garde`` : un emprunteur garde un
 # prêt échu qu'on lui réclame (``biens``).
@@ -68,7 +69,7 @@ def _croit_encore(monde, id, noyau):
     if noyau["type"] == "absence":
         lieu = croyances.get(noyau["objet"], {}).get("lieu")
         return bool(lieu) and lieu["valeur"] is None
-    return croyances.get(accuse(noyau), {}).get("fiable", {}).get("valeur") is not True
+    return not se_fie(monde, id, accuse(noyau))
 
 
 def nouvelles(monde, id):
@@ -106,13 +107,12 @@ def _sait(monde, id, noyau):
 def _auditeur(monde, id, souvenir, noyau, source):
     """Premier personnage présent à qui confier cette nouvelle, dans un ordre stable."""
     from .pnj import pourraient_se_parler
-    croyances = lire(monde, id)["croyances"]
     for autre in sorted(pnjs(monde)):
         if (autre == id or autre in souvenir.get("dit_a", ()) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
-                or croyances.get(autre, {}).get("fiable", {}).get("valeur") is False):
+                or se_mefie(monde, id, autre)):
             continue
         if noyau["type"] == "absence" and _proprietaire(monde, noyau) != autre:
             continue  # Un objet manquant ne regarde que son propriétaire.
@@ -188,10 +188,7 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
         croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
     elif accuse(noyau) != auditeur:
         _apprendre_lieu(monde, auditeur, noyau, source, confiance)
-        actuelle = lire(monde, auditeur)["croyances"].get(accuse(noyau), {}).get("fiable")
-        # Une méfiance qu'il tient de ses propres yeux ne devient pas un ouï-dire.
-        if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
-            croire(monde, auditeur, accuse(noyau), "fiable", False, source, confiance)
+        eprouver(monde, auditeur, accuse(noyau), "rumeur", source, confiance)
     return "crue"
 
 
@@ -277,14 +274,12 @@ def recevoir(monde, id, locuteur, c):
         return None
     if c["type"] == "aveu":
         from .voix import identifie, se_mefier
-        actuelle = lire(monde, id)["croyances"].get(locuteur, {}).get("fiable")
         if not identifie(monde, id, locuteur):
             # Une voix qui avoue : il s'en méfie, sans savoir à qui l'imputer ; il n'en fait pas une
             # nouvelle qui nommerait quelqu'un.
             se_mefier(monde, id, locuteur)
             return "crue"
-        if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
-            croire(monde, id, locuteur, "fiable", False, "entendu")
+        eprouver(monde, id, locuteur, "aveu", "entendu")
         issue, rang = "crue", 0
     else:
         issue, rang = _adopter(monde, id, locuteur, noyau, c["rang"]), c["rang"] + 1

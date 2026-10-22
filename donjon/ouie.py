@@ -623,8 +623,8 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
                    case=list(case) if ici else None)
     # Héler : qui en saisit les mots entend qu'on appelle quelqu'un, sans alarme.
     inhabituel = n not in HABITUELS and not (n == "hele" and mots)
-    croyances = lire(monde, id)["croyances"]
-    mefiance = any((croyances[x].get("fiable") or {}).get("valeur") is False for x in crus)
+    from .relations import se_mefie
+    mefiance = any(se_mefie(monde, id, x) for x in crus)
     if crus and not inhabituel and not mefiance:
         _attribuer(monde, id, crus, salle, case if ici else None)
         return retourne

@@ -18,6 +18,7 @@ from .esprits import (croire, esprit, lire, memoriser, percevoir, percevoir_tous
                       reconsiderer)
 from .francais import complement_de, de, designer, sujet
 from .geometrie import cases, distance, placer, position_entree
+from .relations import eprouver, se_fie
 from .spatial import VECTEURS
 
 CHRONIQUE_MAX = 300
@@ -303,7 +304,7 @@ def _temoins(monde, geste, souvenir, victime):
                 from .esprits import reviser
                 reviser(monde, autre, geste["objet"], "lieu", lieu["valeur"], "vu",
                         salle=lieu["salle"], case=lieu["case"])
-            croire(monde, autre, id, "fiable", False, "vu")
+            eprouver(monde, autre, id, "vu_agir")
             inquieter(monde, autre, "illicite")
             reconsiderer(monde, autre)  # Un geste illicite sous ses yeux change sa situation.
             if geste["operation"] in CONTRAINTES:
@@ -358,9 +359,7 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
                 else verbe + " " + designer(monde.objets[objet]))
         if reconnu:
             memoriser(monde, autre, {**souvenir, "par": "ouie"})
-            actuelle = lire(monde, autre)["croyances"].get(id, {}).get("fiable")
-            if not (actuelle and actuelle["valeur"] is False and actuelle["source"] in ("vu", "essai")):
-                croire(monde, autre, id, "fiable", False, "entendu")
+            eprouver(monde, autre, id, "agir_entendu", "entendu")
             _chroniquer(monde, autre, f"{_qui(monde, autre)} entend {_que(_qui(monde, id))} {quoi}.", "ouie")
         else:
             memoriser(monde, autre, {"type": "entendu_agir", "operation": geste["operation"], "objet": objet})
@@ -508,7 +507,7 @@ def appeler(monde, id, qui, lignes):
     """Il cherche ``qui`` sans le voir : il le hèle par son nom. Héler est un cri (``ouie``, nature
     « hele ») : il porte comme un appel, à travers une porte fermée. Un PNJ qui en saisit les mots
     (``ouie.saisit``) sait qu'on le cherche, et d'où : il répond, de la même voix, sauf à une voix
-    dont il se méfie (``voix.fiabilite``). Répondre à son nom, c'est se nommer : l'appelant qui
+    dont il se méfie (``relations.percue``). Répondre à son nom, c'est se nommer : l'appelant qui
     saisit la réponse croit ``qui`` là d'où elle vient, sûr de lui s'il connaît sa voix, sur sa
     parole sinon (``voix.se_nommer``) ; qui la surprend l'apprend de même. Un appel resté sans
     réponse est retenu (``appel_sans_reponse``) : la salle compte pour parcourue dans cette
@@ -1123,12 +1122,12 @@ def _ouvrir_en_chemin(monde, id, porte, lignes):
 def _rejoindre_un_proche(monde, id, lignes):
     """Un pas vers la personne la plus proche qu'il croit fiable et croit dans sa salle ; None
     s'il est déjà près d'elle ou n'en connaît aucune."""
-    from .deliberation import _cru, salle_crue
+    from .deliberation import salle_crue
     o = monde.objets[id]
     ici, depart = o["lieu"], tuple(o["position"])
     proches = []
     for x in [*pnjs(monde), "joueur"]:
-        if x == id or _cru(monde, id, x, "fiable") is not True or salle_crue(monde, id, x) != ici:
+        if x == id or not se_fie(monde, id, x) or salle_crue(monde, id, x) != ici:
             continue
         p = _case_crue(monde, id, x)  # Là où il l'a vu : il le cherche des yeux en chemin.
         if p is not None:
@@ -1272,7 +1271,7 @@ def peuvent_se_parler(monde, a, b):
     """La règle commune de toute parole échangée, entre PNJ comme avec le joueur : chacun saisit
     les mots de l'autre par l'ouïe commune (``ouie.s_entendent`` : distance réelle, passages,
     portes). Savoir qui parle n'en est pas une condition : une voix qu'on ne sait à qui prêter est
-    un étranger (``voix.fiabilite``), à qui l'on peut répondre « Qui va là ? »."""
+    un étranger (``relations.percue``), à qui l'on peut répondre « Qui va là ? »."""
     from .ouie import s_entendent
     return s_entendent(monde, a, b)
 

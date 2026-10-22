@@ -582,6 +582,31 @@ nature (`AGENTS.md`).
 - **Mesure** : empreinte des chroniques, des mesures et de l'état final.
 - **Critère** : identique sur les quatre scénarios ; suite de tests inchangée.
 
+**Fait** (branche `relations-socle`). `donjon/relations.py` : `FIABLE` (l'attribut qui porte encore
+la relation), `AXES`, `ETRANGER`, la traduction (`TRADUCTION` : vrai 70, absente 40, faux 15 ; une voix
+sue menteuse 0), les seuils `MEFIANCE` 30 et `CONFIANCE` 60 (`RANCUNE`, `PEUR` 40, sans effet encore) ;
+lectures `croyance` (la croyance telle quelle : date et source), `connus`, `envers` (les cinq axes, la
+minute et la source), `percue` (remplace `voix.fiabilite`, retirée), prédicats `se_mefie`, `se_fie`,
+`mefiance`, `confiance` (sur une relation), `en_veut`, `craint`, `doit` (toujours faux ou 0 en 3a),
+`fiable` (ce qu'il en dirait, le mot de la parole) ; écritures `eprouver(monde, id, autre, cause, source,
+certitude)` sur une table de causes nommées (`EPREUVES` : `vu_agir`, `agir_entendu`, `vu_porter`,
+`mensonge_decouvert`, `mensonge_dementi`, `imposture`, `rumeur`, `aveu`, `pousse`, `vol_surpris`,
+`dette_niee`, `pret_garde`, `nourri`), et `avis` (une affirmation « X est / n'est pas fiable » crue,
+`echanges.affirmer`). Une cause apprise de seconde main (rumeur, aveu, geste reconnu à l'oreille) ne
+remplace pas une méfiance vue : la règle d'avant, gardée cause par cause, telle qu'elle était. Les
+lectures génériques d'une croyance par son attribut (`paroles.dementi`, `echanges.affirmer`, le
+stratège) passent par `esprits.croyance`, qui renvoie au module pour `FIABLE`. Tous les sites de § 1.1
+y passent, avec `recit_pnj`, `banc_pnj` (`mefiances`), `ouie`, `vol.mefiance` (l'humeur) et les gestes
+du planificateur (`Vue.se_mefie`, `se_fie`). `tests/test_relations_socle.py` garantit qu'aucun code du
+jeu ni de ses outils ne nomme plus l'attribut hors du module, ni ne lit ou écrit la croyance en direct
+(indice, `get`, `croire`, `reviser`, `_cru`, `cru` avec `FIABLE`) : le même contrôle relève 42
+occurrences sur `main`. Limites : la relation est encore stockée dans la croyance `fiable` (les
+scénarios la déclarent en savoir) ; les vidages génériques des croyances (`_entrees`, dossier du
+stratège, commande « esprit », rejeu, audit) la voient comme une donnée parmi d'autres, et 3b devra
+ajouter les relations à `_entrees` quand elles quitteront les croyances ; les drapeaux « une méfiance
+vue tient » reproduisent les écarts d'avant (une imposture reconnue à la voix remplace une méfiance
+vue, une rumeur ou un aveu non) ; `data["relations_pnj"]` et l'humeur restent tels quels.
+
 ### 3b. Les relations graduées
 
 - Données : `relations` dans l'esprit, `profil["liens"]`, migrations (§ 3.6) ; table
