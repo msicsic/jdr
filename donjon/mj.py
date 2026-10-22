@@ -496,6 +496,9 @@ class MJ:
                                            "action : le geste que demande la saisie, tel quel (le moteur dit ce qui "
                                            "manque) ; impossible seulement si aucune action du moteur ne le couvre.")
                 if p.get("action") in ("clarifier", "impossible"):
+                    if faisabilite and refus_du_moteur is not None:
+                        # Le moteur a déjà dit ce qui manque au geste demandé en question : sa raison répond.
+                        return reponse_du_moteur(refus_du_moteur)
                     break
                 # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
                 # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.

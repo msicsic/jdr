@@ -243,6 +243,24 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertIn("difficulte : entier de 10 à 18", retours[1]["attendu"])
         self.assertEqual(reprise.data["journal"], [])
 
+    def test_apres_un_refus_du_monde_impossible_laisse_la_raison_du_moteur(self):
+        # Banc de la branche : « impossible » (refus de forme), « franchir » refusé par le monde (il faut une
+        # échelle), puis de nouveau « impossible » : le joueur lit la raison du monde, pas l'avis du MJ.
+        from tests.test_paroles import relais
+        m = relais()
+        m.joueur["position"] = [6, 2]
+        def impossible():
+            return action({"action": "impossible", "cible": "", "outil": "", "methode": "simple",
+                           "difficulte": 0, "justification": "Tu demandes si tu peux passer."})
+        franchir = action({"action": "franchir", "cible": "poutre_conduite", "outil": "", "methode": "simple",
+                           "difficulte": 0, "justification": ""})
+        reprise, sortie, appels = jouer(m, "est-ce que je pourrais passer sous la poutre effondrée ?", [
+            impossible(), franchir, impossible()], [verdicts(NEUTRE), verdicts(NEUTRE)])
+        refus = [e["faits"]["retour_moteur"]["obstacle"] for e in mj(appels) if "retour_moteur" in e["faits"]][-1]
+        self.assertIn(refus, sortie)
+        self.assertNotIn("Tu demandes si tu peux passer.", sortie)
+        self.assertEqual(reprise.data["journal"], [])
+
     def test_meme_nature_heler_sans_nom_puis_la_question(self):
         m = banc("soir-noir")
         reprise, sortie, appels = jouer(m, "il y a quelqu'un ?", [
@@ -328,6 +346,19 @@ class ImpostureTests(unittest.TestCase):
         faits = narration(appels)["faits"]["conversation_validee"]["faits"]
         self.assertIn("te croit sur parole : pour elle, c'est Corvus qui parle", faits[0])
         self.assertEqual(lire(reprise, "ilse")["voix_entendues"]["joueur"]["se_dit"], "joueur")
+
+
+    def test_un_nom_type_que_les_mots_ne_disent_pas(self):
+        # Banc de la branche : à « « Qui est là ? » », Luna typait « Corvus se nomme » ; la voix le croyait.
+        m = self.appelee()
+        reprise, _, appels = jouer(m, "« Qui est là ? »", [
+            parole("Qui est là ?", ("nom", "joueur", "", ""), personnage="voix_1"),
+            parole("Qui est là ?", ("qui", "", "", ""), personnage="voix_1"),
+            dialogue("La voix : « Ilse. »")], [audit(ligne("parole", "voix_1", "Ilse."))])
+        self.assertIn("contenu[0] : retire l'élément nom", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
+        faits = narration(appels)["faits"]["conversation_validee"]["faits"]
+        self.assertFalse(any("c'est Corvus" in f for f in faits))
+        self.assertNotEqual(lire(reprise, "ilse")["voix_entendues"].get("joueur", {}).get("se_dit"), "joueur")
 
 
 class NommerUneVoixTests(unittest.TestCase):

@@ -119,8 +119,9 @@ invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
 conversation_validee est une parole de Corvus que le moteur a déjà fait entendre : issue dit ce qu'il
 en a établi (Corvus l'a dite, à qui, qui lui répond) ; la raconter, ou dire qu'elle résonne, est
 mecanique, source conversation_validee. Ceux de conversation_validee.repondent lui répondent, et eux
-seuls : la réplique nouvelle de l'un d'eux est une parole, que rien n'a à prévoir mot pour mot ; dire
-que l'un d'eux se tait, ne répond pas ou ne l'a pas entendu est contradictoire. repondent vide :
+seuls : la réplique de l'un d'eux, avec ses propres mots, est une parole (verdict parole), que rien
+n'a à prévoir ni à fournir mot pour mot ; dire que l'un d'eux se tait, ne répond pas ou ne l'a pas
+entendu est contradictoire. repondent vide :
 personne ne lui répond. Les temoins l'ont entendue et se taisent. Dans objet:<id>, a_portee_de_main
 dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur

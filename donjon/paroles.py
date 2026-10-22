@@ -880,6 +880,17 @@ def verifier_nom(monde, contenu, replique):
     ne l'a pas typé : se dire quelqu'un d'autre est une imposture que le moteur enregistre comme telle."""
     dit = nom_dans(monde, replique)
     if dit is None:
+        # « C'est Corvus. » se nomme aussi, mais « c'est X » dit souvent autre chose (« c'est Gorm qui l'a ») :
+        # un nom typé que les mots disent ainsi est admis, sans que le moteur le déduise de lui-même.
+        possibles = {_nom_dit(monde, " ".join(m.group(1).split()[:k]))
+                     for m in re.finditer(r"\bc'est\s+((?:\w|['-])+(?:\s+(?:\w|['-])+)?)", normaliser(replique or ""))
+                     for k in (1, 2)}
+        for i, c in enumerate(contenu):
+            if isinstance(c, dict) and c.get("type") == "nom" and _nom_dit(monde, c.get("sujet")) not in possibles - {None}:
+                # Des mots imposés (« Qui est là ? ») qui ne disent aucun nom : Corvus ne s'est pas nommé.
+                raise ErreurMonde("Corvus ne se nomme pas dans ce qu'il dit.",
+                                  f"contenu[{i}] : retire l'élément nom ; la réplique « {replique} » ne donne aucun "
+                                  "nom (« C'est X », « je suis X ») ; reçu sujet « " + str(c.get("sujet", "")) + " ».")
         return list(contenu)
     for i, c in enumerate(contenu):
         if isinstance(c, dict) and c.get("type") == "nom" and _nom_dit(monde, c.get("sujet")) != dit:
@@ -1214,14 +1225,15 @@ def issue(monde, forme, dest, repondent, temoins, replique):
         un = len(repondent) == 1
         qui = noms(repondent)
         phrase += (f" {qui[:1].upper() + qui[1:]} t'{'a' if un else 'ont'} entendu et te répond{'' if un else 'ent'} : "
-                   f"{'sa réplique est libre' if un else 'leurs répliques sont libres'}, selon les faits de cette "
-                   "parole, ce que chacun croit et ses valeurs.")
+                   "ses mots ne sont pas fixés par le moteur, c'est une parole nouvelle, d'après les faits de cette "
+                   "parole, ce qu'il croit et ses valeurs.")
     else:
         phrase += " Aucune réponse ne te parvient."
     if temoins:
         qui = noms(temoins)
-        phrase += (f" {qui[:1].upper() + qui[1:]} t'{'a' if len(temoins) == 1 else 'ont'} entendu sans être "
-                   "interpellé et se " + ("tait." if len(temoins) == 1 else "taisent."))
+        un = len(temoins) == 1
+        phrase += (f" {qui[:1].upper() + qui[1:]} {'a' if un else 'ont'} aussi entendu ces mots, sans qu'ils "
+                   f"{'lui' if un else 'leur'} soient adressés, et se {'tait' if un else 'taisent'}.")
     return phrase
 
 
