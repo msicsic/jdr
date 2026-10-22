@@ -157,7 +157,7 @@ def offres_du_plan(bourse, refus=None, meme_minute=False, a="anselme"):
 class TacheCherTests(unittest.TestCase):
     """Trop peu payé, un refus ne tient que pour ce prix : il hausse d'un palier (+50 %), tant que ce que
     lui coûtent ces pièces ne passe pas la peine que la tâche lui épargne (ici 5 minutes : le fourneau
-    est dans la cuisine), puis il renonce ; une offre de la tâche par délibération à la minute."""
+    est dans la cuisine), puis il renonce ; une hausse par délibération à la minute."""
 
     def test_hausse_d_un_palier_tant_que_cela_vaut_la_peine(self):
         # Avec 30 pièces : 2, puis 3, puis 5 ; 8 lui coûterait plus que la peine : il renonce à Anselme.
@@ -179,10 +179,12 @@ class TacheCherTests(unittest.TestCase):
         self.assertGreater(v.depense(2), 5)
         self.assertEqual(offres_, [])
 
-    def test_une_offre_de_la_tache_par_minute(self):
-        # Refusée à cette minute même, elle ne hausse pas aussitôt, ni ne se tourne vers Tilo : la suite
-        # attend la délibération de la minute suivante.
-        self.assertEqual(offres_du_plan(30, 2, meme_minute=True)[1], [])
+    def test_une_hausse_par_minute(self):
+        # Refusée pour trop peu à cette minute même, elle ne hausse pas aussitôt, ni pour Anselme ni pour
+        # un autre : la hausse attend la délibération de la minute suivante. Une première offre à Tilo
+        # n'est pas une hausse.
+        self.assertEqual(offres_du_plan(30, 2, meme_minute=True)[1], [("tilo", 2)])
+        self.assertEqual(offres_du_plan(30, 2, meme_minute=True, a="tilo")[1], [("anselme", 2)])
 
     def test_refusee_a_deux_elle_ne_repropose_jamais_deux(self):
         # Cas de même nature dans la vie de l'auberge : chaque offre à Anselme passe la précédente.

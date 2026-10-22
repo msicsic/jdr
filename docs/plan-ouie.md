@@ -23,7 +23,7 @@ geste absent de la table est ordinaire), chaque nature une intensité en crans :
 | pas | 3 | aller, marcher, pas chassé |
 | geste ordinaire | 3 | prendre, poser, ouvrir, fermer, manger, servir, alimenter, allumer… |
 | voix | 4 | parler, dire, demander, confier, acheter, siffler |
-| bruyant | 7 | crocheter, forcer, frapper, couper, découper, sauter, franchir un obstacle ; tout geste du joueur que l'arbitrage dit fracassant (bruit 3) |
+| bruyant | 7 | crocheter manqué (réussi : un geste ordinaire, `nature_crochetage`), forcer, frapper, couper, découper, sauter, franchir un obstacle ; tout geste du joueur que l'arbitrage dit fracassant (bruit 3) |
 | appel | 9 | appel à l'aide, cri |
 
 Sans bruit : attendre, patienter, se tourner, observer, examiner, lire, écouter, parcourir des
@@ -1316,6 +1316,43 @@ typé ; le silence d'un destinataire n'est arrêté que par l'auditeur, que les 
 guident (pas de contrôle déterministe) ; la réponse d'un PNJ à la cantonade retentit sans ses mots
 pour les autres PNJ.
 
+## Le bruit du crochetage selon l'adresse (branche `crochetage-surenchere`)
+
+Décision du 2026-10-22 : un crochetage réussi par quelqu'un d'habile fait peu de bruit ; un échec, un
+acharnement ou un forcement font du fracas. Avant, `crocheter` était toujours bruyant (`ouie.NATURES`) :
+au Relais, la réserve forcée s'entendait de l'échoppe même quand la serrure cédait du premier coup, et
+le fracas « même sans témoin » faisait se retourner Ilse, de dos (branche `rejeu-enrichi`).
+
+**Règle commune au joueur et aux PNJ** (`ouie.nature_crochetage`) : le bruit d'un crochetage tient à son
+jet (d20 + DEX contre `pnj.seuil_crochetage`, 14 en pleine lumière, 4 de plus par niveau qui manque ;
+le joueur a désormais le même seuil). Réussi, la serrure cède sous la main : un geste ordinaire (3 crans),
+feutré s'il est fait en douce (PNJ `sans_temoin`, joueur `discret`). Manqué, il s'acharne sur la serrure :
+un fracas (7 crans), comme forcer (`frapper`), qui le reste. L'adresse (la DEX modulée par le corps, la
+lumière qu'il a sur sa case) fait la chance de réussir, donc la part des essais discrets. Le jet se fait
+avant que le geste retentisse (`pnj._executer`, `pnj._crocheter` rend la marge), et le registre des gestes
+en cours porte ce bruit tant qu'il dure (témoins par l'ouïe). Le joueur : la marge de son jet
+(`Plan.marge`) fait la nature de son geste (`Moteur._terminer_etape`). Un crochetage dont on ne connaît
+pas le jet (la simulation d'une manœuvre avant de la tenter) reste un fracas. La chronique dit « crochète
+la serrure de … sans forcer. » pour un crochetage réussi, « s'acharne sur la serrure de … » sinon.
+`AISANCE` (0) est la marge qu'il faut au jet pour que la serrure cède sans fracas : toute réussite.
+
+**Le voleur qui veut agir sans être entendu** (`pnj.agir`, `pnj.oreilles_crues`) attend que s'éloignent
+ceux qu'il croit à portée d'oreille du bruit qu'il attend de son geste : pour un crochetage, celui que lui
+promet son adresse à la lumière qu'il a devant la serrure (`planification.bruit_crochetage`, par la même
+chance que le planificateur, `chance_crochetage`) : un geste feutré s'il a au moins une chance sur deux
+(`HABILE`) de réussir, sinon un fracas. Brune (DEX 15, diminuée par la faim) attend encore un fracas ;
+plus adroite, elle se saurait capable d'un crochetage feutré qu'on n'entend qu'au contact.
+
+Vérifié après rechargement (`tests/test_crochetage_surenchere.py`) : Brune réussit en douce dans le dos de
+Gorm (cas réel) : il n'entend rien, ne se retourne pas, n'en est pas témoin ; manqué, un fracas qui le
+fait se retourner et le rend témoin ; réussi sans se cacher, Gorm qui la sait là lui prête un geste
+ordinaire sans se retourner, mais en est témoin par l'oreille (peu de bruit n'est pas aucun) ; le joueur
+à l'échoppe n'entend pas un crochetage réussi, entend le grand bruit d'un échec ; Corvus qui crochète la
+réserve : réussi, Gorm reste à l'échoppe, manqué, il vient voir ; Brune maladroite guette tant qu'elle
+croit Ilse à trois cases, habile (DEX 20), elle agit et la serrure cède sans bruit. Tests changés :
+`test_social` (Brune, à bout de faim, réussit en douce sous les yeux d'Ilse : Gorm, à l'échoppe, ne
+l'entend plus) ; les textes de `test_besoins`, `test_social`, `test_planif_defauts` (« sans forcer »).
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la
@@ -1346,8 +1383,11 @@ pour les autres PNJ.
 
 ## Réglages à trancher
 
-- L'échelle (crans, paliers, ouverture 1 / porte 3) ; le crochetage en « bruyant », comme demandé,
-  s'entend dans la salle voisine : c'est lui qui multiplie les témoins.
+- L'échelle (crans, paliers, ouverture 1 / porte 3). Le crochetage sonne selon l'adresse (branche
+  `crochetage-surenchere`) : `ouie.AISANCE` (0 : toute réussite cède sans fracas ; une marge de 5
+  ferait d'une réussite de justesse un acharnement bruyant) et `planification.HABILE` (0,5 : la chance
+  à partir de laquelle un voleur attend un crochetage feutré ; aux DEX des scénarios, personne ne s'y
+  sait habile) sont à régler au banc ; l'outil ne compte que par sa nature (des crochets, pas un levier).
 - `PROCHE` (6 cases pour se retourner), `PRES_DE` (1 case pour attribuer un bruit à qui l'on croit
   là), `HABITUDE` (15 min), le courage au-dessus de 50 pour aller voir un fracas.
 - L'inquiétude (15 × niveau reçu / 9) ; l'appel qui inquiète à chaque appel.

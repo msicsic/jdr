@@ -6,7 +6,7 @@ s'acharne sur la serrure : un fracas. Le voleur qui veut agir sans être entendu
 bruit que lui promet son adresse (``planification.bruit_crochetage``).
 
 La surenchère progressive (``planification._engager``) : refusé pour un prix trop bas, le payeur hausse
-d'un palier (+50 %), une offre de la tâche par délibération à la minute, tant que ce que lui coûtent
+d'un palier (+50 %), une hausse par délibération à la minute, tant que ce que lui coûtent
 ces pièces ne passe pas la peine que la tâche lui épargne ; puis il renonce. Accepter une tâche et la
 dire ensuite impossible se jugent par le même devis (``echanges.empeche``).
 

@@ -270,6 +270,8 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "taches_faites": sum(" a fait le travail que " in c["texte"] for c in chronique),
                "demandes_ressource": sum(bool(re.search(r" demande à .* (s'il|si elle) a ", c["texte"])) for c in chronique),
                "vols_de_bourse": _vols_de_bourse(monde, chronique),
+               # Crochetages (``ouie.nature_crochetage``) et marchés de tâches (``planification._engager``).
+               **crochetages(chronique, entendus), **marches(chronique),
                **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.
@@ -280,6 +282,44 @@ def executer(monde, minutes, recit=None, empreintes=None):
     if empreintes is not None:
         empreintes.update({str(k): v for k, v in sorted(releves.items())}, issue=issue(monde, chronique))
     return chronique, mesures
+
+
+def crochetages(chronique, entendus=()):
+    """Les essais de crochetage des PNJ, réussis ou non, les réussis sans forcer (à petit bruit), et
+    ceux qu'un autre a entendus sans les voir (témoin par l'ouïe : un témoin, un geste, un objet)."""
+    reussis = [c for c in chronique if " crochète la serrure " in c["texte"]]
+    return {"crochetages": len(reussis) + sum(" s'acharne sur la serrure " in c["texte"] for c in chronique),
+            "crochetages_reussis": len(reussis),
+            "crochetages_discrets": sum(c["texte"].endswith(" sans forcer.") for c in reussis),
+            "crochetages_entendus": len({(id, s.get("auteur"), s["objet"], s["operation"]) for id, s in entendus
+                                         if s["operation"] in ("crocheter", "forcer")})}
+
+
+OFFRE = re.compile(r"^(.+?) offre (\d+) pièces? à (.+?) pour qu'(?:il|elle) fasse en sorte que (.+) \((\w+)\)\.$")
+DETTE_TACHE = re.compile(r"^(.+?) doit désormais (\d+) pièces? à (.+?) : le travail payé n'a pas été fait\.$")
+
+
+def marches(chronique):
+    """Les tâches payées entre PNJ : offres, hausses (une offre après un refus « cher » du même au même
+    pour la même tâche), offre la plus haute, pièces payées pour des tâches acceptées, et tâches dues
+    moins d'une minute après avoir été acceptées."""
+    offres, acceptees, hausses, dues = [], [], 0, 0
+    for c in chronique:
+        o = OFFRE.match(c["texte"])
+        if o:
+            payeur, prix, autre, tache, issue = o.groups()
+            hausses += any(x[:2] == (payeur, autre) and x[3] == tache and x[4] == "cher" for x in offres)
+            offres.append((payeur, autre, int(prix), tache, issue))
+            if issue == "accepte":
+                acceptees.append((payeur, autre, int(prix), c.get("instant", c["minute"] * 600)))
+            continue
+        d = DETTE_TACHE.match(c["texte"])
+        if d:
+            debiteur, prix, payeur = d.groups()
+            t = c.get("instant", c["minute"] * 600)
+            dues += any(x[:3] == (payeur, debiteur, int(prix)) and 0 <= t - x[3] < 600 for x in acceptees)
+    return {"taches_hausses": hausses, "taches_offre_max": max((x[2] for x in offres), default=0),
+            "taches_dues_aussitot": dues, "pieces_taches": sum(x[2] for x in acceptees)}
 
 
 def _vols_de_bourse(monde, chronique):

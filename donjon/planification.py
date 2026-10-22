@@ -308,13 +308,12 @@ class Vue:
         ne tient que pour son prix."""
         return self.retenu(autre, ("engager",), o)
 
-    def offre_refusee(self, o):
-        """Une offre de tâche sur ``o`` refusée à cette minute, pour quelque cause que ce soit : il ne
-        fait qu'une offre de cette tâche par délibération à la minute, pas une rafale d'un refus à
-        l'autre, ni à un autre (``_engager``)."""
+    def hausse_faite(self, o):
+        """Une offre de tâche sur ``o`` refusée à cette minute pour un prix trop bas : il ne hausse qu'une
+        fois par délibération à la minute, pas d'un refus à l'autre en rafale (``_engager``)."""
         minute = self.monde.data["minutes"]
-        return self._memo((o, "offre_refusee"), lambda: any(
-            s["operation"] == "engager" and s.get("objet") == o and s["minute"] == minute
+        return self._memo((o, "hausse_faite"), lambda: any(
+            s["operation"] == "engager" and s.get("objet") == o and s["raison"] == "cher" and s["minute"] == minute
             for s, _ in self.refus_tenus()))
 
     def refus_taches(self, o):
@@ -890,8 +889,8 @@ def _engager(v, e, condition):
     Il n'offre que ce qui vaut la peine pour lui : ce que lui coûtent ces pièces (``Vue.depense``,
     ``caractere.valeur_pieces``) ne dépasse pas la peine que la tâche lui épargne. Refusé pour un prix
     trop bas, il hausse d'un palier (``hausse``) tant que l'offre vaut la peine ; au-delà, il renonce à
-    ce marché. Une offre à la fois : refusée, la suivante pour la même tâche, haussée ou à un autre,
-    attend la délibération de la minute suivante (``Vue.offre_refusee``)."""
+    ce marché. Une hausse à la fois : après un refus « cher », aucune offre haussée de la même tâche, à
+    lui ou à un autre, avant la délibération de la minute suivante (``Vue.hausse_faite``)."""
     o = condition["objet"]
     # On ne paie quelqu'un que pour ce qu'on pourrait faire soi-même sans faute : son bien, ce qui
     # n'est à personne, ce qu'on vous a confié ; pas le bien d'autrui qu'on convoite.
@@ -901,7 +900,7 @@ def _engager(v, e, condition):
     if peine is None:
         return
     prix = prix_tache(peine)
-    if v.richesse - (e.fait("depense") or 0) < prix or v.depense(prix) > peine or v.offre_refusee(o):
+    if v.richesse - (e.fait("depense") or 0) < prix or v.depense(prix) > peine:
         return
     for autre in v.personnes():
         if v.salle(e, autre) != e.salle or v.cru(autre, "fiable") is False:
@@ -910,7 +909,7 @@ def _engager(v, e, condition):
         # palier plus haut, à la délibération suivante, s'il le peut et tant que cela vaut la peine.
         offre, refus = prix, v.refuse_tache(autre, o)
         if refus:
-            if refus["raison"] != "cher":
+            if refus["raison"] != "cher" or v.hausse_faite(o):
                 continue
             offre = prix if prix > refus["prix"] else hausse(refus["prix"])
             if v.richesse - (e.fait("depense") or 0) < offre or v.depense(offre) > peine:
@@ -1035,7 +1034,7 @@ def _entrees(v, vises, profondeur, noeuds):
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
          for s in esprit_["memoire"] if s["type"] in ("promis", "nourri")],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
-        # Le refus de cette minute même retient l'offre suivante (``Vue.offre_refusee``).
+        # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
         esprit_["visites"],
         # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
