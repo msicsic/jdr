@@ -856,7 +856,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   69, crue 67,5 → 99) ; aucune usurpation ni violation ; temps égaux sauf une nuit d'auberge plus active.
   Limites : un refus retenu ne s'oublie pas tant que rien de nouveau n'est cru ; la surenchère peut payer
   le double du nécessaire ; une part sans pièce décrite est remise sous le nom du lot.
-- La suite de tests passe : 1149 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `ouie-temoins`, non fusionnée (`docs/plan-ouie.md`, « Témoins par l'ouïe, le bruit de sa salle,
+  l'examen vain » ; défauts A1, A2 et B2 de `docs/audit-nuits.md`). **Un bruit se situe à une case** :
+  entendu de sa salle même, il est retenu avec sa case et s'examine, comme celui d'un autre lieu, selon le
+  devoir et le courage (`deliberation.bruit_a_voir`, `alarme`) ; aller voir mène à portée de vue de cette
+  case, ou au contact dans le noir (`planification.voir`, étape `inspecter` avec `vers`). **Témoin par
+  l'ouïe** (`pnj._temoins_a_l_oreille`) : le registre porte le bruit de chaque geste ; qui l'entend tant
+  qu'il dure, dans la salle même, et croit l'objet tout près de là sait qu'on y touche ; il ne nomme
+  l'auteur que s'il le croyait là (`vu_agir` marqué `par` « ouie », méfiance `entendu`, nouvelle de rang 1),
+  sinon il sait seulement qu'on touche à ce bien (`entendu_agir`). L'auteur d'un geste sans témoin compte
+  ceux qu'il croit à portée d'oreille (`pnj.oreilles_crues`). **Être allé voir règle le bruit** : un examen
+  vain (`examen`) couvre le même bruit, ou un moindre, du même lieu ; seul un bruit nouveau relance
+  (`ouie.couvert`). Correctif révélé : ce que les PNJ voient du geste du joueur est daté de son début
+  (`moteur._terminer_etape`), sinon la minute d'une croyance dépendait du découpage. Cas réels et cas de
+  même nature après rechargement (`tests/test_ouie_temoins.py`, 12 tests) ; `VERIFIER` sans écart sur une
+  nuit de 8 h de chaque scénario (graine 7, `main` aussi). Audit 32 nuits de 12 h, `main` 0489fea →
+  branche : retours voir le même lieu à moins de 30 min Relais 7,6 → 1,1, mine 63 → 22, auberge 58 → 16,
+  crue 4,6 → 1,9 ; gestes illicites d'un présent ni vus ni entendus 1,3 / 4,4 / 7 / 0,5 → 0 / 0,1 / 0,5 /
+  0,1 ; aucun plantage, violation ni usurpation. Effets : les voleurs attendent qu'on ne les entende plus,
+  d'où des crochetages manqués doublés au Relais et à l'auberge (réussis égaux) et, à l'auberge, minutes
+  sans recours 61 → 154 (Lucien renonce près d'Anselme). Limites : au contact dans le noir on n'identifie
+  personne ; l'appel à l'aide répété (B1) reste. Tests d'autres branches adaptés : `test_ouie`,
+  `test_constater_rumeurs`, `test_dynamique_besoins`, `test_besoins` (raisons dans le plan).
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 

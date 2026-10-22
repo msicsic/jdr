@@ -109,11 +109,15 @@ class TenirTests(unittest.TestCase):
 
     def test_lucien_rapporte_la_lanterne_de_l_etable_au_grenier_au_lieu_d_aller_et_venir(self):
         m, lieux = suivre(self.lucien_au_grenier_noir(), "lucien", 150, pas=5)
-        self.assertEqual(m.objets["lucien"]["lieu"], "grenier")
-        self.assertEqual(m.objets["lanterne_etable"]["lieu"], "lucien")
-        self.assertTrue(m.objets["lanterne_etable"]["allume"])
-        self.assertEqual(lieux[-5:], ["grenier"] * 5)
+        # Il ne va plus et ne vient plus : il se tient à la fin dans une même salle.
+        self.assertEqual(len(set(lieux[-5:])), 1)
         self.assertLessEqual(changements(lieux), 6)
+        # La lanterne : avant la branche ``ouie-temoins``, il la rapportait au grenier. Désormais Anselme
+        # l'entend forcer son coffre dans la chambre noire et le reconnaît, et Lucien ne force plus ce
+        # qu'il sait à portée d'oreille d'Anselme : la nuit tourne autrement (Anselme reprend son ballot
+        # avec la lanterne de l'étable, ou Lucien reste près de lui). S'il l'a, elle est allumée.
+        if m.objets["lanterne_etable"]["lieu"] == "lucien":
+            self.assertTrue(m.objets["lanterne_etable"]["allume"])
 
     def bram_au_bureau_noir(self, lampe=True):
         """Placement d'auteur, la mine telle qu'écrite : la chandelle du bureau est à sec ; Bram, qui

@@ -158,6 +158,7 @@ class Enregistreur:
         retentir, entendre, attribuer = ouie.retentir, ouie.entendre, ouie._attribuer
         se_tourner, bruit_inconnu = ouie._se_tourner, ouie._bruit_inconnu
         retenir, commencer, temoins = social.retenir_parole, pnj.commencer_geste, pnj._temoins
+        a_l_oreille = pnj._temoins_a_l_oreille
 
         def _deliberer(monde, id, minute):
             resultat = deliberer(monde, id, minute)
@@ -210,8 +211,8 @@ class Enregistreur:
             if self._bruit is not None and id in self.personnages:
                 self._bruit["r"].append([id, None, "parole"])
 
-        def _commencer(monde, auteur, operation, objet, fin, exclus=()):
-            geste = commencer(monde, auteur, operation, objet, fin, exclus)
+        def _commencer(monde, auteur, operation, objet, fin, exclus=(), nature=None):
+            geste = commencer(monde, auteur, operation, objet, fin, exclus, nature)
             salle, case, numero = self._case(monde, auteur)
             self._noter(monde)
             maintenant = self._instant(monde)
@@ -220,7 +221,8 @@ class Enregistreur:
                           "voient": [x for x in self.personnages if x != auteur and numero is not None
                                      and numero in self._vue.get(x, ())],
                           "dans_la_salle": [x for x in self.personnages if x != auteur and monde.objets[x]["lieu"] == salle],
-                          "temoins": [[x, maintenant] for x in geste["temoins"]]}
+                          "temoins": [[x, maintenant] for x in geste["temoins"]],
+                          "entendus": [[x, maintenant] for x in geste["entendus"]]}
             self.gestes.append(enregistre)
             self._geste_de[id(geste)] = (geste, enregistre)
             return geste
@@ -232,13 +234,22 @@ class Enregistreur:
             if lie is not None and lie[0] is geste:
                 lie[1]["temoins"] += [[x, self._instant(monde)] for x in geste["temoins"][deja:]]
             return resultat
+
+        def _a_l_oreille(monde, geste, souvenir, victime):
+            deja = len(geste["entendus"])
+            resultat = a_l_oreille(monde, geste, souvenir, victime)
+            lie = self._geste_de.get(id(geste))
+            if lie is not None and lie[0] is geste:
+                lie[1]["entendus"] += [[x, self._instant(monde)] for x in geste["entendus"][deja:]]
+            return resultat
         with ExitStack() as pile:
             for module, nom, remplacant in (
                     (deliberation, "deliberer", _deliberer), (pnj, "temoigner_en_cours", _temoigner),
                     (ouie, "retentir", _retentir), (ouie, "entendre", _entendre),
                     (ouie, "_attribuer", _marquer("attribue", attribuer)), (ouie, "_se_tourner", _marquer("tourne", se_tourner)),
                     (ouie, "_bruit_inconnu", _marquer("bruit", bruit_inconnu)), (social, "retenir_parole", _retenir),
-                    (pnj, "commencer_geste", _commencer), (pnj, "_temoins", _temoins)):
+                    (pnj, "commencer_geste", _commencer), (pnj, "_temoins", _temoins),
+                    (pnj, "_temoins_a_l_oreille", _a_l_oreille)):
                 pile.enter_context(patch.object(module, nom, remplacant))
             yield self
 

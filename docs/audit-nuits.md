@@ -77,7 +77,7 @@ sécurité ≥ `DESESPOIR`, l'absence de but d'abri et `APPEL_REPIT` ; ni qui es
 restés vains. Invariant : un appel attend une réponse ; quand quelqu'un est venu (ou que personne ne
 vient), le même appel ne se répète pas : il faut un autre recours, ou que la présence venue apaise.
 
-**B2. Aller voir, revenir garder, repartir voir.** Mine 18 : Mathe garde le baraquement et va voir un
+**B2. Aller voir, revenir garder, repartir voir.** *Traité (branche `ouie-temoins`, `docs/plan-ouie.md`) : un examen vain règle le bruit ; retours voir le même lieu à moins de 30 min divisés par 3 à 7.* Mine 18 : Mathe garde le baraquement et va voir un
 bruit du bureau noir toutes les 10 minutes de la minute 455 à 560 (26 alternances de but) ; au Relais,
 Gorm alterne « aller voir : Conduite basse » et « garder ses biens » 4 à 10 fois par nuit (14 nuits sur
 32). Cause probable : dans une salle noire, parcourir des yeux ne voit personne, donc le bruit n'est pas
@@ -108,7 +108,7 @@ recherche ne tire rien du silence ni d'une présence toute proche dans le noir.
 
 ### Absurdités
 
-**A1. Un bruit de sa propre salle n'est jamais examiné.** `deliberation.bruit_a_voir` et `alarme`
+**A1. Un bruit de sa propre salle n'est jamais examiné.** *Traité (branche `ouie-temoins`) : le bruit se situe à une case, aller voir mène à portée de vue de sa source.* `deliberation.bruit_a_voir` et `alarme`
 écartent tout souvenir de bruit dont la salle est celle où il se tient (`s["salle"] == ici`). Environ
 40 % des bruits inconnus retenus viennent de la salle de l'auditeur (lot 2, 16 nuits par scénario, salle
 lue au relevé le plus proche : relais 920 sur 1 437, crue 822 sur 1 860, mine 1 321 sur 3 609, auberge
@@ -118,7 +118,7 @@ force sa réserve dans la pénombre (on n'y voit qu'à 3 cases, `spatial.PORTEE_
 bruit : Refuge du relais » trois fois et reste à garder ; Brune crochète, ouvre et mange. Invariant : un
 bruit se situe à une case ; aller voir mène à portée de vue de sa source, y compris dans sa salle.
 
-**A2. Un vol commis à côté de sa victime, dans le noir, n'est jamais découvert.** Sonde
+**A2. Un vol commis à côté de sa victime, dans le noir, n'est jamais découvert.** *Traité en partie (branche `ouie-temoins`) : témoin par l'ouïe, l'auteur reconnu seulement si on le croyait là ; au contact dans le noir, on n'identifie toujours personne.* Sonde
 (`artifacts/sonde_illicites.txt`, 16 nuits) : à l'auberge, les 44 présents qui n'ont pas vu un geste illicite
 étaient dans le noir complet (39 fois la victime elle-même), à 1 ou 2 cases ; à la mine, Odon force le coffre de la
 paie à une case de Bram et Josse (mine 500, minutes 456 à 461). Auberge 1 : Lucien mange les provisions
