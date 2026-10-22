@@ -299,6 +299,11 @@ def refus_assure(monde, intention, reponse, deja_renvoyee=False, impossible_admi
     return ""
 
 
+class ExplicationCedee(ErreurMonde):
+    """L'explication d'un geste refusé n'est pas admise du premier coup : le refus du monde y répond
+    (``MJ._echanger_prepare``). Ce n'est ni une panne ni un refus à montrer."""
+
+
 # « impossible » au premier examen : un réexamen est demandé, une fois (``MJ._echanger_prepare``).
 REEXAMEN = "Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible."
 ATTENDU_REEXAMEN = ("action : le geste que demande la saisie, tel quel (le moteur dit ce qui manque) ; impossible "
@@ -906,6 +911,10 @@ direction), plus lents, ils ne s'entendent que de tout près.
             self._monde_controle, self._interpretation = monde, enrichir
             reponse = self._appeler(instructions, entree, intention, "repondre_au_joueur", schema)
             trace["reponse"] = copy.deepcopy(reponse)
+        except ExplicationCedee as exc:
+            # Pas une panne : le refus du monde répond à la place de l'explication.
+            trace["cede"] = str(exc)
+            raise
         except ErreurMonde as exc:
             trace["erreur"] = str(exc)
             raise
@@ -1131,7 +1140,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                   **({"sans_relance": True} if self._sans_relance else {})})
             if self._sans_relance:
                 # Le refus du monde répond à la place de cette explication (``_echanger_prepare``).
-                raise ErreurMonde("L'explication n'est pas admise : le refus du monde y répond.")
+                raise ExplicationCedee("L'explication n'est pas admise : le refus du monde y répond.")
             if tentative == 2:
                 champs = {"mode", "texte", "faits", "proposition"}
                 faits_connus = entree.get("faits", {})
