@@ -140,7 +140,8 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
     payé rend plus dure à qui une pièce compte (``biens.reticence``). Une voix qu'il ne sait à qui
     prêter s'entend d'abord demander qui va là, qu'elle offre de payer ou réclame son bien."""
     from .biens import prix as prix_de, reticence, richesse
-    from .deliberation import _plan_pulsion, besoin_de_part
+    from .deliberation import besoin_de_part
+    from .planification import devis_pulsion
     from .spatial import porte_par
     from .vol import proprietaire
     part = demande_de_part(monde, demandeur, auditeur, objet)
@@ -165,6 +166,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
         return arret
     if prix and richesse(monde, demandeur) < prix:
         return "pauvre"
+    # Avant de promettre un service, il compte ce qu'il porte et ses biens à portée,
+    # comme lorsqu'on lui demande quelles ressources il possède.
+    siens_a_portee(monde, auditeur)
     prix_ = prix_de(monde, objet, part)
     vente = bool(prix_) and prix >= prix_ and proprietaire(monde, o) == auditeur
     # Ce qu'il perd à donner sans être payé : ce qui se consomme. Un objet qui dure, il le prête, et
@@ -188,15 +192,19 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
             condition = {"objet": foyer, "allume": True}
         engagements = esprit(monde, auditeur)["engagements"]
         paye = False
-        if not any(x["condition"] == condition for x in engagements):
-            if _plan_pulsion(monde, auditeur, condition) is None:
+        if not any(x["condition"] == condition and not x.get("annule") for x in engagements):
+            engagement = {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
+                          "objet": objet,
+                          **({"paye": {"objet": objet, "prix": prix, "quoi": "part"}} if vente else {})}
+            engagements.append(engagement)
+            if devis_pulsion(monde, auditeur, condition, demandeur) is None:
+                engagements.remove(engagement)
                 return "impossible"
             if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
+                engagements.remove(engagement)
                 return "refus"
             # Payée d'avance, la part est due : non servie à l'échéance, le prix est rendu ou dû
             # (``engagements_echus``).
-            engagements.append({"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
-                                **({"paye": {"objet": objet, "prix": prix, "quoi": "part"}} if vente else {})})
             memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
             if vente:
                 _vendre(monde, auditeur, demandeur, objet, prix)
@@ -212,12 +220,12 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
             return "necessaire"
         condition = {"objet": objet, "remettre": demandeur}
         engagements = esprit(monde, auditeur)["engagements"]
-        if any(x["condition"] == condition for x in engagements):
+        if any(x["condition"] == condition and not x.get("annule") for x in engagements):
             return "promis"
         engagement = {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
                       "paye": {"objet": objet, "prix": prix, "quoi": "objet"}}
         engagements.append(engagement)
-        if _plan_pulsion(monde, auditeur, condition) is None:
+        if devis_pulsion(monde, auditeur, condition, demandeur) is None:
             engagements.remove(engagement)
             return "impossible"
         memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
@@ -260,7 +268,7 @@ def _vendre_part(monde, vendeur, acheteur, lot, prix):
     détache et la lui remet, aussitôt s'il la porte, sinon il s'engage à l'aller chercher (comme un
     objet vendu d'avance, ``differee``) : non remise à l'échéance, le prix est dû."""
     from .biens import donner
-    from .deliberation import _plan_pulsion
+    from .planification import devis_pulsion
     from .spatial import porte_par
     import copy
     avant = copy.deepcopy(monde.objets[lot])
@@ -280,7 +288,7 @@ def _vendre_part(monde, vendeur, acheteur, lot, prix):
                   "paye": {"objet": piece, "prix": prix, "quoi": "objet"}}
     engagements = esprit(monde, vendeur)["engagements"]
     engagements.append(engagement)
-    if _plan_pulsion(monde, vendeur, condition) is None:
+    if devis_pulsion(monde, vendeur, condition, acheteur) is None:
         engagements.remove(engagement)
         del monde.objets[piece]
         del esprit(monde, vendeur)["croyances"][piece]
@@ -336,8 +344,9 @@ def engager(monde, payeur, autre, condition, prix):
         return "deja"
     if prix <= 0 or richesse(monde, payeur) < prix:
         return "pauvre"
+    siens_a_portee(monde, autre)
     engagements = esprit(monde, autre)["engagements"]
-    if any(x["condition"] == condition for x in engagements):
+    if any(x["condition"] == condition and not x.get("annule") for x in engagements):
         return "deja"
     engagement = {"condition": dict(condition), "pour": payeur, "minute": monde.data["minutes"],
                   "paye": {"objet": condition.get("objet") or condition["lieu"], "prix": prix, "quoi": "tache"}}
@@ -480,18 +489,19 @@ def tenu(monde, id, condition, depuis=None):
 
 def confier(monde, demandeur, auditeur, condition):
     """« mefiance », « qui_va_la », « deja », « impossible », « refus » ou « accepte »."""
-    from .deliberation import _plan_pulsion
+    from .planification import devis_pulsion
     arret = accueil(monde, demandeur, auditeur)
     if arret:
         return arret
     if tenu(monde, auditeur, condition):
         return "deja"
+    siens_a_portee(monde, auditeur)
     # Une tâche sur un bien de celui qui la confie en confie la garde (``biens.gardes``) : il juge
     # s'il peut s'y prendre avec ce que la garde lui permet.
     engagements = esprit(monde, auditeur)["engagements"]
     engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
     engagements.append(engagement)
-    if _plan_pulsion(monde, auditeur, condition) is None:
+    if devis_pulsion(monde, auditeur, condition, demandeur) is None:
         engagements.remove(engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
     if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
@@ -629,6 +639,8 @@ def _avec_joueur(monde, id, etape, lignes):
     from .spatial import porte_par
     from .voix import personne_pour_joueur
     op = etape["operation"]
+    if op == "dire" and "annulation" in etape.get("contenu", {}):
+        return annoncer_abandon(monde, id, "joueur", etape["contenu"]["annulation"], lignes)
     objet = monde.objets.get(etape["outil"])
     if objet is None or op not in ("remettre", "demander"):
         return False
@@ -686,26 +698,72 @@ def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
     return texte
 
 
-def empeche(monde, id, engagement):
-    """Une contrepartie payée qu'il ne peut plus livrer : la part ou l'objet qu'il vendait n'existe
-    plus, n'est plus à lui, ou n'en a plus une part (``deliberation.parts``) ; une tâche payée qu'il ne
-    voit plus comment faire (aucun plan, sur ce qu'il croit : le bois qu'il comptait employer a été vu
-    épuisé, ce qu'il comptait demander lui a été refusé, et ce refus tient). Il le sait : le prix est
-    rendu ou dû dès maintenant (``engagements_echus``).
+def annoncer_abandon(monde, id, autre, condition, lignes):
+    """Un abandon gratuit s'annonce en retrouvant son destinataire ; aucun savoir à distance."""
+    from .pnj import _chroniquer, se_parler
+    from .social import _qui, faire_entendre
+    from .ouie import retentir
+    if not se_parler(monde, id, autre):
+        return False
+    engagements = esprit(monde, id)["engagements"]
+    engagement = next((x for x in engagements if x.get("annule") and x["pour"] == autre
+                       and x["condition"] == condition), None)
+    if engagement is None:
+        return False
+    engagements.remove(engagement)
+    from .recit_pnj import but_en_mots
+    il = _il(monde.objets[id])
+    promis = but_en_mots(monde, {"type": "pulsion", **condition})
+    impossible = engagement["annule"] == "impossible"
+    suite = "ne peut plus tenir sa promesse" if impossible else "renonce à sa promesse"
+    texte = f"{_qui(monde, id)} prévient {_qui(monde, autre)} qu'{il} {suite} : {promis}."
+    memoriser(monde, id, {"type": "abandon_annonce", "pour": autre, "condition": condition})
+    if autre != "joueur":
+        retenir_abandon(monde, id, engagement)
+        faire_entendre(monde, id, autre, texte, [condition["objet"]], lignes)
+    else:
+        retentir(monde, id, "dire", texte=texte, cites=["joueur", condition["objet"]], vers=["joueur"], appris=True)
+        if monde.visible(id):
+            from .voix import personne_pour_joueur
+            annonce = "sa promesse est devenue impossible" if impossible else "sa promesse est abandonnée"
+            lignes.append(f"{personne_pour_joueur(monde, id, court=True)[0]} te prévient : {annonce}.")
+    _chroniquer(monde, id, texte, "social")
+    return True
 
-    Une tâche se juge ici par le même devis qui l'a fait accepter (``planification.devis_pulsion`` :
-    ses seuls moyens, ceux que lui donne ou prêterait celui qui le paie) : rien ne la dit impossible
-    tant que ce qu'il croit n'a pas changé depuis qu'il l'a acceptée."""
+
+def retenir_abandon(monde, id, engagement, raison=None):
+    """L'abandon reçu est aussi un refus du service, payé ou gratuit : le remboursement ne le lève pas."""
+    from .deliberation import retenir_refus
+    autre, condition = engagement["pour"], engagement["condition"]
+    if autre == "joueur":
+        return
+    paye = engagement.get("paye") or {}
+    objet = engagement.get("objet") or paye.get("objet") or condition["objet"]
+    op = ("engager" if paye.get("quoi") == "tache" else "acheter" if paye else
+          "demander" if "objet" in engagement else "confier")
+    memoriser(monde, autre, {"type": "promesse_annulee", "de": id, "objet": objet})
+    retenir_refus(monde, autre, id, op, raison or engagement.get("annule") or "impossible", objet=objet,
+                  prix=paye.get("prix") if op == "engager" else None,
+                  tache=tache(condition) if op in ("engager", "confier") else None)
+
+
+def empeche(monde, id, engagement):
+    """Une parole de service devenue impossible : le même devis autonome qu'à l'acceptation.
+
+    Une vente garde aussi son bien et ses parts disponibles. Le prix devient dû ; une parole
+    gratuite devient un abandon à annoncer (``engagements_echus``). Le prêt à rendre reste en
+    suspens tant que l'emprunteur s'en sert : ce n'est pas un service qu'il ne peut plus livrer."""
     from .deliberation import parts
     from .planification import devis_pulsion
     from .vol import proprietaire
     paye = engagement.get("paye")
-    if not paye:
+    if engagement.get("annule") or "rendre" in engagement["condition"] or "periode" in engagement["condition"]:
         return False
-    if paye["quoi"] == "tache":
-        return devis_pulsion(monde, id, engagement["condition"], engagement["pour"]) is None
-    o = monde.objets.get(paye["objet"])
-    return o is None or proprietaire(monde, o) != id or paye["quoi"] == "part" and parts(o) <= 0
+    if paye and paye["quoi"] != "tache":
+        o = monde.objets.get(paye["objet"])
+        if o is None or proprietaire(monde, o) != id or paye["quoi"] == "part" and parts(o) <= 0:
+            return True
+    return devis_pulsion(monde, id, engagement["condition"], engagement["pour"]) is None
 
 
 def engagements_echus(monde, id):
@@ -719,7 +777,9 @@ def engagements_echus(monde, id):
     e = esprit(monde, id)
     restants, finis = [], []
     for engagement in e["engagements"]:
-        if tenu(monde, id, engagement["condition"], engagement["minute"]):
+        if engagement.get("annule"):
+            restants.append(engagement)  # Il doit encore prévenir, sans savoir magiquement l'autre informé.
+        elif tenu(monde, id, engagement["condition"], engagement["minute"]):
             memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
             finis.append(engagement)
@@ -729,12 +789,17 @@ def engagements_echus(monde, id):
                 _chroniquer(monde, id, f"{_qui(monde, id)} a fait le travail que {_qui(monde, engagement['pour'])} "
                                        f"lui avait payé pour que {phrase_condition(monde, engagement['condition'])}.", "compte")
         elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX or empeche(monde, id, engagement):
+            raison = "impossible" if empeche(monde, id, engagement) else "refus"
             memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
                                   "condition": engagement["condition"]})
             finis.append(engagement)
             if engagement.get("paye"):
                 paye = engagement["paye"]
                 rembourser(monde, id, engagement["pour"], paye["prix"], paye["objet"], paye["quoi"])
+                retenir_abandon(monde, id, engagement, raison)  # Le prix rendu ne rend pas le service possible.
+            else:
+                engagement["annule"] = raison
+                restants.append(engagement)
         else:
             restants.append(engagement)
     e["engagements"] = restants
@@ -771,6 +836,8 @@ def executer(monde, id, etape, lignes):
     objet = monde.objets.get(etape["outil"])
     transmis = []  # Ce que la parole transmet à qui l'entend sans en être le destinataire.
     reponse, dite = "", True  # Ce que l'autre y répond, et s'il le dit de sa voix.
+    if op == "dire" and "annulation" in contenu:
+        return annoncer_abandon(monde, id, autre, contenu["annulation"], lignes)
     if op == "dire":
         issue = affirmer(monde, id, autre, contenu["sujet"], contenu["attribut"], contenu["valeur"])
         recit = f"{a} dit à {b} que {phrase_affirmee(monde, contenu['sujet'], contenu['attribut'], contenu['valeur'], False)}"

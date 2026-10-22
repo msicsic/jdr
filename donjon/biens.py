@@ -101,7 +101,7 @@ def gardes(monde, id, de):
         from .esprits import lire
         for x in lire(monde, id)["engagements"]:
             o = x["condition"].get("objet")
-            if x["pour"] == de and o in monde.objets and "rendre" not in x["condition"] \
+            if not x.get("annule") and x["pour"] == de and o in monde.objets and "rendre" not in x["condition"] \
                     and possesseur(monde, monde.objets[o]) == de:
                 confies |= _cles(monde, o, de)
     p = (monde.objets.get(de) or {}).get("profil") or {}

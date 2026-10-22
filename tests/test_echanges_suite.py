@@ -398,6 +398,8 @@ class EnqueteTests(unittest.TestCase):
         for k in ("bois", "torche"):
             m.objets[k].update(lieu="chambre_cloche", position=[5, 1], position_salle="chambre_cloche")
         m.objets["planches"].update(lieu="echoppe", position=[8, 6], position_salle="echoppe")
+        # La part promise comprend l'allumage : Aubin dispose de sa propre flamme.
+        m.objets["briquet"]["lieu"] = "aubin"
         croire(m, "aubin", "planches", "lieu", "echoppe", "vu", salle="echoppe", case=[8, 6])
         self.assertNotIn("planches", lire(m, "marchand")["croyances"])
         from tests.test_tensions import attendre

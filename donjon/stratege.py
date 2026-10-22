@@ -167,7 +167,7 @@ def dossier(monde, id, declencheur, besoin=None, plan_moteur=None):
         "besoins": {b: {"valeur": round(e["besoins"].get(b, 0)), "urgence": u}
                     for b, u in seuils(monde, id).items()},
         "pulsions": [_pulsion(monde, x) for x in p["pulsions"]],
-        "engagements": [{"pour": x["pour"], "condition": x["condition"]} for x in e["engagements"]],
+        "engagements": [{"pour": x["pour"], "condition": x["condition"]} for x in e["engagements"] if not x.get("annule")],
         "croyances": [{"sujet": s, "attribut": a, "valeur": c["valeur"], "source": c["source"],
                        "il_y_a_minutes": minute - c["minute"]} for s, a, c in croyances],
         "objets_connus": objets,

@@ -36,12 +36,12 @@ class CrueTests(unittest.TestCase):
     def test_on_monte_se_chauffer_au_poele_du_guet_et_son_bois_se_demande(self):
         # Avant (``verifier-eau``), le brasero de la conduite était le seul feu : menacé par l'eau,
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
-        # Au temps vécu (branche ``temps-reel``), la nuit diverge : Brune, chauffée au poêle dès la
-        # minute 130, ne demande plus le bois du guet, et le poêle, rallumé à 124, s'éteint vers 245.
+        # La nuit diverge avec les services autonomes : Aubin se chauffe au poêle ; Brune y monte
+        # avant que Gorm le rallume, sans être annoncée comme réchauffée.
         m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 240, 80)
         self.assertIn("Aubin, vieux passeur se chauffe près du poêle du guet.", textes)
-        self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
-        # Le bois du guet est à Gorm : on le lui achète, il le met au poêle.
+        self.assertIn("Brune, batelière évacuée passe dans : Galerie de ronde.", textes)
+        # Le bois du guet est à Gorm : on lui demande de l'acheter ; il refuse s'il ne peut servir.
         self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") for t in textes))
         self.assertIn("Gorm, gardien du relais alimente le poêle du guet.", textes)
         self.assertTrue(allumee(m.objets["poele_guet"]))

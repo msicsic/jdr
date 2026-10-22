@@ -500,6 +500,8 @@ def promesse_en_cours(monde, id, objet):
     servie quand il a vu, depuis la promesse, le feu qu'elle entretient rechargé."""
     e = lire(monde, id)
     for s in reversed(e["memoire"]):
+        if s["type"] in ("promesse_annulee", "creance") and s.get("objet") == objet:
+            return None
         if s["type"] == "nourri" and s.get("objet") == objet:
             return None
         if s["type"] == "promis" and s["objet"] == objet:
@@ -1277,11 +1279,10 @@ def _candidats(monde, id):
                 if periodique(x["condition"]):
                     continue
                 buts.append((besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True))
-    # Une tâche payée se fait par le plan du devis qui l'a fait accepter (``planification.planifier_tache``) ;
-    # une parole donnée, comme une pulsion.
-    buts += [("engagement", (lambda m, i, c=x["condition"], pour=x["pour"]: _plan_tache(m, i, c, pour))
-              if (x.get("paye") or {}).get("quoi") == "tache" else
-              (lambda m, i, c=x["condition"]: _plan_pulsion(m, i, c)), False, False) for x in e["engagements"]]
+    # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
+    from .planification import planifier_engagement
+    buts += [("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), False, False)
+             for x in e["engagements"]]
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
         buts.append(("devoir", _plan_prevenir, False, False))

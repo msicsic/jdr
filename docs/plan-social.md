@@ -767,3 +767,33 @@ Limites :
 - on accepte sur ce qu'on croit : une croyance fausse découverte au premier geste rend encore une tâche
   impossible aussitôt (Joss et le ballot qu'il croyait aux mains d'Anselme) ; l'offre dit seulement si le
   payeur croit le feu allumé, rien de plus de ce qu'il sait.
+
+## Servir soi-même ce qu'on promet (branche `codex-taches-payees`, non fusionnée)
+
+Invariant : toute parole qui engage à servir une part, livrer un objet ou accomplir une tâche est
+évaluée par le plan qui servira à la tenir. Le même devis autonome décide l'acceptation, les gestes
+de l'engagement et son empêchement (`planification.devis_pulsion`, `planifier_engagement`,
+`echanges.demander`, `_vendre_part`, `confier`, `engager`, `empeche`). Il ne suffit plus de pouvoir
+aller voir un foyer réputé vif pour vendre une part de combustible destinée à l'entretenir. La
+livraison d'un objet couvre aussi le retour vers l'acheteur, pas seulement sa prise.
+
+Le commanditaire peut remettre un bien ou prêter un outil ; le prestataire en fait lui-même usage.
+Un service accompli par un autre (part servie, feu allumé à sa place, tâche déléguée) n'est pas un
+moyen de tenir ce devis (`chercher(seul=…)`, `_parts`, `_suites`). Avant d'accepter, il compte ses
+biens à portée comme lorsqu'on lui demande ce qu'il possède (`siens_a_portee`). Aucun savoir sur
+les moyens cachés ni sur un refus futur n'est ajouté : un prêt qu'il espérait peut être refusé au
+premier geste. C'est alors un changement de ses moyens crus.
+
+Une parole devenue impossible n'attend plus son échéance : payée, elle devient due par le mécanisme
+existant de dette et de remboursement ; la créance arrête l'attente de la part. Gratuite, elle garde
+un abandon à annoncer dans l'engagement sauvegardé (`annule`, et `objet` pour la ressource demandée).
+Le PNJ rejoint son destinataire pour le prévenir par la parole ordinaire (`annoncer_abandon`, geste
+`dire`). Celui-ci cesse alors d'attendre et retient un refus « impossible » selon sa cause. Avant
+cette annonce, il n'en sait rien. L'abandon ne confie plus de garde et les données du MJ le décrivent
+comme un abandon à annoncer, sans promettre encore le service. Le prêt à rendre reste à part :
+avoir encore besoin de l'objet n'est pas l'impossibilité de tenir un service.
+
+Les cas, les mesures et les limites sont dans
+[`rapport-codex-5-taches-payees.md`](taches/rapport-codex-5-taches-payees.md). La scène de Tilo des tests
+de surenchère conserve désormais la réserve `bois_reserve` d'Odile : elle n'est plus supprimée pour
+empêcher le payeur d'accomplir lui-même la tâche.

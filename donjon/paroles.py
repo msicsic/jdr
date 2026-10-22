@@ -269,7 +269,7 @@ def engagements_enregistres(monde, id):
     qu'elle a été dite, pas qu'il le fera."""
     from .recit_pnj import but_en_mots
     e = lire(monde, id)
-    phrases = [f"engagement pris envers {_nom(monde, x['pour'])} : "
+    phrases = [f"{'abandon à annoncer' if x.get('annule') else 'engagement pris'} envers {_nom(monde, x['pour'])} : "
                + but_en_mots(monde, {"type": "pulsion", **x["condition"]}) for x in e["engagements"]]
     if e["intention"]:
         phrases.append("intention en cours : " + but_en_mots(monde, e["intention"]["but"]))

@@ -88,6 +88,8 @@ class PartAcheteeTests(unittest.TestCase):
     def test_une_part_demandee_sans_payer_va_toujours_au_feu(self):
         # Ce qui ne change pas : la part de bois qu'on demande pour se chauffer, le donneur la met au feu.
         m = antichambre_du_banc()
+        # Pour promettre d'entretenir le feu, Aubin doit pouvoir l'allumer lui-même.
+        m.objets["briquet"]["lieu"] = "aubin"
         with patch.object(Monde, "d20", return_value=20):
             travail, rapport = preparer_parole(m, parole("aubin", "Aubin, donne-moi un peu de bois.", "demande",
                                                          "planches"))
