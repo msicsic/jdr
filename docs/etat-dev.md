@@ -970,6 +970,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   référence 3,25 appels, 15,1 s, 0,5 repli, relances 5,5 (au niveau de `parole-corrections`) ; défauts du
   soir corrigés sauf silences de l'auditeur, « je réponds », « quelqu'un », « geste d'effort » ; nouveaux :
   un PNJ vu nomme Corvus sans le connaître, « Aubin remet … à Corvus » lu par le joueur.
+- Branche `relations-socle`, non fusionnée (sous-étape 3a de `docs/plan-relations.md`, « Fait ») : le
+  socle des relations, sans changer le comportement. `donjon/relations.py` est le seul accès à ce qu'un
+  personnage éprouve envers un autre : lectures (`envers`, les cinq axes confiance, affection, rancune,
+  peur, dette ; `percue`, qui remplace `voix.fiabilite`, retirée ; `se_mefie`, `se_fie`, `en_veut`,
+  `craint`, `doit`, `fiable`, `connus`, `croyance`) et écritures par cause nommée (`eprouver` sur la table
+  `EPREUVES` : témoin, geste entendu, vol découvert, mensonge, imposture, rumeur, aveu, poussée, vol
+  surpris, dette niée, prêt gardé, part servie ; `avis` pour « X est / n'est pas fiable » cru). En 3a, la
+  relation reste portée par la croyance `fiable`, traduite (vrai 70, absente 40, faux 15 ; voix sue
+  menteuse 0) ; rancune, peur et dette restent à 0. Tous les sites y passent (persuasion, refus, confidences
+  et rumeurs, ouïe, appel, passage, sécurité, abri, délégation, tâche payée, humeur `vol.mefiance`, Luna
+  `esprits_interlocuteurs`, stratège, récit, `mefiances` du banc, gestes du planificateur `Vue.se_mefie`) ;
+  une lecture générique par attribut passe par `esprits.croyance`. `tests/test_relations_socle.py` (8
+  tests) : aucun code du jeu ni des outils ne nomme plus l'attribut hors du module ni ne lit ou écrit la
+  croyance en direct (le même contrôle en relève 42 sur `main`) ; traduction ; Gorm qui voit ses vivres
+  aux mains de Brune (refus d'office, DD +6, « peu fiable » pour Luna) et son marteau dans la main du joueur
+  (humeur), après rechargement. Nuits identiques à `main` 0551ba2 (chronique, récit, souvenirs, état final
+  complet, empreintes, mesures) sur 36 nuits de 8 h : départ tiré (Relais 8 graines, mine, auberge, crue 4)
+  et fixe (4 × 4) ; `VERIFIER` et `spatial.VERIFICATION` 0,2 sur une nuit de chaque scénario, sans écart ;
+  audit 12 h (4 × 4) identique. Temps égaux au bruit près (machine chargée par d'autres calculs). Limites
+  dans `docs/plan-relations.md`.
 
 ## Décisions prises le 2026-10-22 (à implémenter)
 
@@ -1086,7 +1106,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
   l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
   (un « peu fiable » redit à quatre heures d'écart).
-- La suite de tests passe : 1241 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 

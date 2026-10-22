@@ -22,8 +22,9 @@ from donjon.geometrie import position_entree
 from donjon.monde import Monde
 from donjon.ouie import retentir
 from donjon.paroles import jet_persuasion
+from donjon.relations import ETRANGER, confiance, mefiance, percue
 from donjon.spatial import installer
-from donjon.voix import designation, fiabilite, nom_pour_joueur, reconnaitre, se_nommer
+from donjon.voix import designation, nom_pour_joueur, reconnaitre, se_nommer
 from tests.support import calme
 from tests.test_paroles import jouer, parole, reponse_pnj
 from tests.test_paroles import relais as relais_pres_de_gorm
@@ -235,7 +236,7 @@ class VoixInconnueTests(unittest.TestCase):
         gorm = lire(reprise, "marchand")
         self.assertEqual(gorm["voix_entendues"]["joueur"]["se_dit"], "joueur")
         self.assertEqual(lieu_cru(reprise, "marchand", "joueur"), ("echoppe", "se_dit"))
-        self.assertIsNone(fiabilite(reprise, "marchand", "joueur"))
+        self.assertEqual(percue(reprise, "marchand", "joueur"), dict(ETRANGER, minute=None, source=None))
 
     def test_une_voix_inconnue_se_nomme_pour_le_joueur(self):
         """Corvus, dans le noir, entend Brune sans connaître sa voix : pour lui et pour le MJ, c'est
@@ -324,7 +325,7 @@ class SeNommerTests(unittest.TestCase):
         self.assertEqual(se_nommer(m, "marchand", "brune", "ilse"), "demasque")
         m = recharger(m)
         self.assertTrue(lire(m, "marchand")["voix_entendues"]["brune"]["mefiance"])
-        self.assertFalse(fiabilite(m, "marchand", "brune")["valeur"])
+        self.assertTrue(mefiance(percue(m, "marchand", "brune")))
         self.assertTrue(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])  # Brune n'est pas soupçonnée.
         self.assertNotEqual(lieu_cru(m, "marchand", "ilse"), ("echoppe", "se_dit"))
 
@@ -345,7 +346,7 @@ class SeNommerTests(unittest.TestCase):
         m = recharger(m)
         self.assertEqual(lieu_cru(m, "marchand", "ilse"), ("echoppe", "se_dit"))
         self.assertEqual(reconnaitre(m, "marchand", "brune"), ("ilse", "pretendue"))
-        self.assertIsNone(fiabilite(m, "marchand", "brune"))
+        self.assertEqual(percue(m, "marchand", "brune"), dict(ETRANGER, minute=None, source=None))
         # Une demande de cette voix : DD d'un étranger (+2), plus ce qu'une voix inconnue fait perdre.
         from donjon.caractere import modificateur
         from donjon.voix import INCONNU
@@ -377,7 +378,7 @@ class SeNommerTests(unittest.TestCase):
         voyant : c'était bien elle ; sa croyance devient un constat, et sa confiance s'applique."""
         m = gorm_et_une_voix("ilse")
         self.assertEqual(se_nommer(m, "marchand", "ilse", "ilse"), "crue")
-        self.assertIsNone(fiabilite(m, "marchand", "ilse"))
+        self.assertEqual(percue(m, "marchand", "ilse"), dict(ETRANGER, minute=None, source=None))
         m.objets["lanterne"]["lieu"] = "ilse"
         m.objets["lanterne"]["allume"] = True
         percevoir_tous(m)
@@ -386,7 +387,7 @@ class SeNommerTests(unittest.TestCase):
         m = recharger(m)
         self.assertIn("ilse", lire(m, "marchand")["voix"])
         self.assertNotIn("ilse", lire(m, "marchand")["voix_entendues"])
-        self.assertTrue(fiabilite(m, "marchand", "ilse")["valeur"])
+        self.assertTrue(confiance(percue(m, "marchand", "ilse")))
         self.assertFalse(any(s["type"] == "imposture" for s in lire(m, "marchand")["memoire"]))
 
     def test_le_joueur_imposteur(self):
@@ -400,7 +401,7 @@ class SeNommerTests(unittest.TestCase):
         self.assertIn("Gorm, gardien du relais sait que tu n'es pas Brune et ne te fait plus confiance.",
                       entrees[1]["faits"]["conversation_validee"]["faits"])
         self.assertTrue(lire(reprise, "marchand")["voix_entendues"]["joueur"]["mefiance"])
-        self.assertFalse(fiabilite(reprise, "marchand", "joueur")["valeur"])
+        self.assertTrue(mefiance(percue(reprise, "marchand", "joueur")))
 
 
 class VoirSansEntendreTests(unittest.TestCase):

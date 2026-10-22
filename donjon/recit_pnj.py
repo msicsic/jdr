@@ -12,6 +12,7 @@ from contextlib import contextmanager
 import json
 from unittest.mock import patch
 
+from . import relations
 from .esprits import lire, pnjs
 from .temps import instant
 from .francais import accorder, de, designer
@@ -279,14 +280,19 @@ class Recit:
         lignes.append("== Ce qu'ils pensent les uns des autres ==")
         avant = len(lignes)
         for id in self.ids:
-            for autre, c in sorted(lire(monde, id)["croyances"].items()):
-                f = c.get("fiable")
-                if not f or autre == id or (autre not in self.ids and autre != "joueur"):
+            for autre in relations.connus(monde, id):
+                r = relations.envers(monde, id, autre)
+                if autre == id or (autre not in self.ids and autre != "joueur"):
                     continue
-                if f["minute"] == 0 and f["valeur"]:
-                    continue  # La confiance de départ ne raconte rien.
-                avis = "fait confiance à" if f["valeur"] else "se méfie de"
-                depuis = "depuis le début" if f["minute"] == 0 else f"depuis {f['minute']}, {f['source']}"
+                if relations.confiance(r):
+                    if r["minute"] == 0:
+                        continue  # La confiance de départ ne raconte rien.
+                    avis = "fait confiance à"
+                elif relations.mefiance(r):
+                    avis = "se méfie de"
+                else:
+                    continue
+                depuis = "depuis le début" if r["minute"] == 0 else f"depuis {r['minute']}, {r['source']}"
                 lignes.append(f"  {court(monde, id)} {avis} {court(monde, autre)} ({depuis})")
         if len(lignes) == avant:
             lignes.append("  rien n'a changé : chacun fait confiance aux autres, comme au départ")

@@ -273,8 +273,8 @@ def regler(monde, d, reclamee, lignes):
     from .esprits import esprit, memoriser
     from .francais import designer
     from .pnj import _chroniquer
+    from .relations import eprouver
     from .social import _qui
-    from .esprits import croire
     from .voix import personne_pour_joueur
     de, a = d["de"], d["a"]
     possible = min(d["montant"], richesse(monde, de))
@@ -301,7 +301,7 @@ def regler(monde, d, reclamee, lignes):
         else:
             # Le créancier le constate : il ne s'y fie plus, et peut le dire (``social.NOUVELLES``).
             memoriser(monde, a, {"type": "dette_niee", "auteur": de, "victime": a, "montant": d["montant"]})
-            croire(monde, a, de, "fiable", False, "vu")   # Il sait qui lui doit : il le constate de lui.
+            eprouver(monde, a, de, "dette_niee")   # Il sait qui lui doit : il le constate de lui.
             if monde.visible(de) or monde.visible(a):
                 lignes.append(f"{designer(monde.objets[de], debut=True)} refuse de rendre à "
                               f"{designer(monde.objets[a])} ce qu'{il} lui doit.")
@@ -375,12 +375,13 @@ def echu(monde, objet):
 def pret_garde(monde, preteur, emprunteur, objet, lignes):
     """L'emprunteur ne rend pas un prêt échu qu'on lui réclame : le prêteur ne s'y fie plus, et peut
     le dire (``social``, « pret_garde »). Pour le joueur comme pour un PNJ."""
-    from .esprits import croire, memoriser
+    from .esprits import memoriser
     from .francais import accorder, designer
     from .pnj import _chroniquer
+    from .relations import eprouver
     from .social import _qui
     memoriser(monde, preteur, {"type": "pret_garde", "auteur": emprunteur, "victime": preteur, "objet": objet})
-    croire(monde, preteur, emprunteur, "fiable", False, "vu")   # Il sait à qui il l'a prêté.
+    eprouver(monde, preteur, emprunteur, "pret_garde")   # Il sait à qui il l'a prêté.
     o = monde.objets[objet]
     _chroniquer(monde, preteur, f"{_qui(monde, preteur)} ne se fie plus à {_qui(monde, emprunteur)}, qui garde "
                                 f"{designer(o)} qu'on lui a {accorder(o, 'prêté')}.", "social")
