@@ -95,7 +95,10 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 - neutre : aucune affirmation sur le monde (salutation, question, conseil, invitation) ;
 - hypothese : possibilité explicitement présentée comme incertaine ;
 - ambiance : description sensorielle libre ; liste dans entites les éléments évoqués,
-  en quelques mots chacun (« odeur de vase », « gouttes au plafond ») ;
+  en quelques mots chacun (« odeur de vase », « gouttes au plafond »). Ce que fait sentir un
+  objet perçu dans l'état que disent les faits (le crépitement ou la fumée d'un feu allumé, la
+  lueur d'une lanterne, l'eau qui clapote là où il y en a) est ambiance : les faits n'ont pas à
+  le fournir ;
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
   des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements).
   Corvus perçoit exactement les objets objet:<id> fournis : qu'il ne voie pas un objet dont il
@@ -120,9 +123,12 @@ conversation_validee est une parole de Corvus que le moteur a déjà fait entend
 en a établi (Corvus l'a dite, à qui, qui lui répond) ; la raconter, ou dire qu'elle résonne, est
 mecanique, source conversation_validee. Ceux de conversation_validee.repondent lui répondent, et eux
 seuls : la réplique de l'un d'eux, avec ses propres mots, est une parole (verdict parole), que rien
-n'a à prévoir ni à fournir mot pour mot ; dire que l'un d'eux se tait, ne répond pas ou ne l'a pas
-entendu est contradictoire. repondent vide :
-personne ne lui répond. Les temoins l'ont entendue et se taisent. Dans objet:<id>, a_portee_de_main
+n'a à prévoir ni à fournir mot pour mot : ses mots manquent toujours des faits, ce n'est ni une
+invention ni une contradiction ; seul ce qu'elle affirme peut contredire l'issue, et ce qu'elle
+promet est un engagement. Dire que l'un d'eux se tait, ne répond pas ou ne l'a pas entendu est
+contradictoire. repondent vide :
+personne ne lui répond. Les temoins l'ont entendue et se taisent : dire qu'ils se taisent est
+mecanique, source conversation_validee. Dans objet:<id>, a_portee_de_main
 dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
@@ -157,6 +163,13 @@ manipulable, ni passage, ni personnage, ni ressource, ni indice. Reste cohérent
 ambiance_etablie. Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
 Dis une inconnue dans la fiction (ce que Corvus voit, entend ou ignore), jamais en parlant
 de faits, de données ou de ce qui est « établi ».
+Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxième personne (tu).
+Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
+ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
+incertitude se dit de ce que Corvus sait, à la deuxième personne (« tu ne sais pas si… »).
+Une voix inconnue (interlocuteurs.voix_<n>) se désigne dans le récit par son nom d'interlocuteur
+(« la voix qui se dit … », « une voix »), jamais par le nom qu'elle prétend. Une réplique ne nomme
+que qui son locuteur connaît (personne ne sait le nom de Corvus s'il ne l'a pas entendu).
 """
 
 
@@ -261,8 +274,19 @@ def voix_auteur(texte, partie="texte"):
             obstacles.append(audit(
                 f"Le joueur lit ce texte tel quel : écris-le à la deuxième personne, dans la fiction, sans « {terme} ».",
                 f"le passage à la deuxième personne (tu), dans la fiction, sans « {terme} » hors d'une réplique "
-                "entre guillemets", partie=partie, segment=indice, texte=passage, recu=terme))
+                "entre guillemets" + _reecrire(terme), partie=partie, segment=indice, texte=passage, recu=terme))
     return obstacles
+
+
+def _reecrire(terme):
+    """Comment se dit, à la deuxième personne, ce que ce mot d'auteur disait : une indication pour que la
+    première correction suffise."""
+    mot = normaliser(terme)
+    if mot in ("je", "j'", "j’"):
+        return " : ce que tu dirais de toi se dit de ce que Corvus perçoit, sait ou ignore (« tu ne sais pas si… »)"
+    if mot in ("corvus",) or mot.endswith("joueur"):
+        return " : Corvus est « tu »"
+    return " : dis ce que Corvus perçoit, sait ou ignore, sans parler du jeu"
 
 
 def mentions_proposees(monde, reponse, base, paroles=""):
@@ -356,25 +380,30 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
                 break
     for parole in paroles:
         entree = interlocuteurs.get(parole["locuteur"]) or {}
-        if not entree.get("voix_inconnue"):
-            continue
-        etabli = " ".join([entree.get("nom", ""), *map(str, validee.get("faits") or []),
+        inconnue = bool(entree.get("voix_inconnue"))
+        etabli = " ".join([entree.get("nom", "") if inconnue else "", *map(str, validee.get("faits") or []),
                            str(validee.get("replique_joueur", ""))])
         permis = lexique.entites_citees(monde, etabli)
         from .voix import connait_nom, reel
         qui = reel(monde, parole["locuteur"])
         qui = qui if qui in monde.objets and monde.objets[qui]["type"] == "personnage" else None
+        if not inconnue and qui is None:
+            continue
 
         def tait(x):
-            # Son propre nom, seulement s'il est établi ; un autre, s'il le sait ou s'il est établi.
+            # Une voix inconnue : son propre nom, seulement s'il est établi. Tout locuteur : un autre, s'il
+            # le sait (``voix.connait_nom``) ou si l'échange l'établit.
+            if not inconnue and x == qui:
+                return False
             return x not in permis and (qui is None or x == qui or not connait_nom(monde, qui, x))
         nommes = sorted(x for x in lexique.entites_citees(monde, parole["texte"])
                         if x in monde.objets and monde.objets[x]["type"] == "personnage" and tait(x))
-        # Se dire quelqu'un, c'est se nommer : seul le moteur en décide (``voix.se_nommer``).
-        nommes += sorted(x for x in lexique.entites_citees(monde, " ".join(
-            m.group(1) for m in SE_NOMMER.finditer(lexique.normaliser(parole["texte"]))))
-            if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis
-            and x not in nommes)
+        if inconnue:
+            # Se dire quelqu'un, c'est se nommer : seul le moteur en décide (``voix.se_nommer``).
+            nommes += sorted(x for x in lexique.entites_citees(monde, " ".join(
+                m.group(1) for m in SE_NOMMER.finditer(lexique.normaliser(parole["texte"]))))
+                if x in monde.objets and monde.objets[x]["type"] == "personnage" and x not in permis
+                and x not in nommes)
         corvus = re.compile(r"\b" + re.escape(lexique.normaliser(monde.joueur["nom"].split(",")[0])) + r"\b")
         if (corvus.search(lexique.normaliser(parole["texte"])) and not corvus.search(lexique.normaliser(etabli))
                 and (qui is None or not connait_nom(monde, qui, "joueur"))):
@@ -383,14 +412,21 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
         indice = next((i for i, p in enumerate(passages) if f"« {parole['texte']} »" in p
                        or parole["texte"] in p), None)
         for x in nommes:
-            obstacles.append(audit(
-                f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa réplique ne se nomme pas "
-                "au-delà de ce que le moteur a établi (son nom d'interlocuteur, conversation_validee) et ne nomme "
-                f"que qui elle connaît : retire « {nom_court(x)} ».",
-                f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » : elle ne se nomme que par "
-                f"interlocuteurs.{parole['locuteur']}.nom et conversation_validee, et ne nomme que qui elle connaît",
-                partie=partie, segment=indice, texte=passages[indice] if indice is not None else parole["texte"],
-                recu=nom_court(x)))
+            if inconnue:
+                motif = (f"{entree.get('nom', 'Cette voix')} : Corvus ne sait pas qui parle. Sa réplique ne se "
+                         "nomme pas au-delà de ce que le moteur a établi (son nom d'interlocuteur, "
+                         f"conversation_validee) et ne nomme que qui elle connaît : retire « {nom_court(x)} ».")
+                accepte = (f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » : elle ne se nomme que par "
+                           f"interlocuteurs.{parole['locuteur']}.nom et conversation_validee, et ne nomme que qui "
+                           "elle connaît")
+            else:
+                motif = (f"{nom_court(qui)} ne connaît pas le nom de {nom_court(x)} : une réplique ne nomme que qui "
+                         f"son locuteur connaît. Retire « {nom_court(x)} ».")
+                accepte = (f"une réplique de {parole['locuteur']} sans « {nom_court(x)} » (« toi », « l'étranger »…) : "
+                           f"{parole['locuteur']} n'a ni entendu ce nom ni appris qui le porte")
+            obstacles.append(audit(motif, accepte, partie=partie, segment=indice,
+                                   texte=passages[indice] if indice is not None else parole["texte"],
+                                   recu=nom_court(x)))
     return obstacles
 
 
@@ -416,7 +452,8 @@ _INTERPELLER = "appelles|interpelles|heles|salues|questionnes|supplies|remercies
 _INTERPELLE = "appele|interpelle|hele|salue|questionne|supplie|remercie|prevenu"
 PAROLE_DE_CORVUS = re.compile(
     rf"\btu (?:lui|leur) (?:as )?(?:{_DIRE}|{_DIT})\b"
-    rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) (?:a|au|aux)\b"
+    # « demander à + infinitif » (« tu demandes à passer ») : demander de pouvoir faire, pas parler à quelqu'un.
+    rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) (?:a(?! \w+(?:er|ir|re|oir)\b)|au|aux)\b"
     rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) ?:"
     rf"|\btu (?:l'|la |le |les )?(?:as )?(?:{_INTERPELLER}|{_INTERPELLE}) (?!a\b)(?=\w)"
     rf"|\btu t'(?:es )?adresse[s]? a\b"
@@ -490,6 +527,25 @@ ACCEPTE_VERDICT = {
     "contradictoire": ("le passage accordé aux faits fournis (perception, salle, objet:<id>, ambiance_etablie, "
                        "retour_moteur), ou sans cette affirmation"),
 }
+
+
+def cite_entiere(passage, citation):
+    """La citation figure entière entre « et » dans le passage (espaces fines ou insécables comprises)."""
+    return re.search(r"«\s*" + re.escape(citation) + r"\s*»", passage) is not None
+
+
+def citation_du_segment(passage, citation):
+    """La citation d'une parole est le texte entre « et » du segment : quand celle que recopie l'auditeur
+    n'y figure pas telle quelle (« C'est Ilse », répond la voix…, avec les mots d'attribution), c'est la
+    réplique du segment qu'elle recouvre, si une seule le fait. Une faute de recopie de l'auditeur ne
+    refuse pas la réponse ; une citation qui ne recouvre aucune réplique reste refusée."""
+    if not citation or cite_entiere(passage, citation):
+        return citation
+    cite = normaliser(citation)
+    repliques = [r.strip() for r in re.findall(r"«\s*([^»]*?)\s*»", passage)]
+    candidates = [r for r in repliques if len(normaliser(r)) >= 3
+                  and (normaliser(r) in cite or cite in normaliser(r))]
+    return candidates[0] if len(candidates) == 1 else citation
 
 
 def controler(texte, rapport, faits, partie="texte"):
@@ -570,8 +626,9 @@ def controler(texte, rapport, faits, partie="texte"):
                     accepte, citation or None)
         elif verdict == "parole" or (verdict == "engagement" and citation):
             from .faits_locaux import LONGUEUR_PAROLE
+            citation = citation_du_segment(passage, citation)
             if (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
-                    or f"« {citation} »" not in passage):
+                    or not cite_entiere(passage, citation)):
                 refuser("Une parole doit être citée entre « et », en entier, dans le segment.",
                         f"la réplique de {locuteur} entière entre « et » dans ce segment, de 3 à {LONGUEUR_PAROLE} "
                         "caractères", f"citation {citation}" if citation else "citation vide")

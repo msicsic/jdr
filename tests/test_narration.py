@@ -192,7 +192,8 @@ class NarrationTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("Corvus n'a rien tenté", sortie.getvalue())
+        # Sans explication du MJ, le joueur lit le refus du monde (branche relances-luna), jamais un échec.
+        self.assertIn("Tu ne vois rien de tel ici.", sortie.getvalue())
         self.assertNotIn("Ce geste n'est pas possible", sortie.getvalue())
         self.assertEqual(reprise.data["revision"], 0)
         self.assertFalse(reprise.data["journal"])
@@ -212,7 +213,7 @@ class NarrationTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("Corvus n'a rien tenté", sortie.getvalue())
+        self.assertIn("Tu ne vois rien de tel ici.", sortie.getvalue())
         self.assertFalse(reprise.data["journal"])
         self.assertEqual(reprise.data["revision"], 0)
 

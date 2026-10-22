@@ -324,11 +324,12 @@ class ImpostureTests(unittest.TestCase):
         m = self.appelee()
         reprise, sortie, appels = jouer(m, "« C'est moi, Brune. »", [
             parole("C'est moi, Brune.", ("nom", "joueur", "", ""), personnage="voix_1"),
-            parole("C'est moi, Brune.", ("nom", "brune", "", ""), personnage="voix_1"),
             dialogue("La voix répond : « Brune ? Je ne te reconnais pas. »")],
             [audit(ligne("parole", "voix_1", "Brune ? Je ne te reconnais pas."))])
-        # Typé « Corvus se nomme », le moteur refuse : les mots disent Brune.
-        self.assertIn("contenu[0].sujet : brune", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
+        # Typé « Corvus se nomme », le moteur lit le nom dans les mots, Brune, sans relancer le MJ
+        # (branche relances-luna : avant, un refus et une seconde proposition).
+        self.assertEqual(len(mj(appels)), 2)
+        self.assertNotIn("retour_moteur", mj(appels)[1]["faits"])
         faits = narration(appels)["faits"]["conversation_validee"]["faits"]
         self.assertEqual(faits, ["Une voix qui se dit Ilse sait que tu n'es pas Brune et ne te fait plus confiance."])
         # Après rechargement : Ilse, qui connaît la voix de Brune, retient l'imposture et se méfie de la voix.
