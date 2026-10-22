@@ -1106,7 +1106,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   « vient de faire » est fixe ; l'opposition porte sur la chose entière et se fie à où il croit l'opposant ;
   l'hystérésis compare des buts, pas des coûts ; le souvenir d'un fait dit peut sortir de la mémoire bornée
   (un « peu fiable » redit à quatre heures d'écart).
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 1249 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
