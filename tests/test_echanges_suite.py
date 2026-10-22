@@ -377,6 +377,8 @@ class EnqueteTests(unittest.TestCase):
         m.objets["fourneau"]["combustible"] = 8
         m.data["finances_pnj"]["mireille"] = 0   # Placement d'auteur : sans le sou, elle ne peut rien payer.
         self.assertNotIn("fagots_etable", lire(m, "mireille")["croyances"])
+        # Connaître un autre combustible de Joss ne dit pas s'il a de quoi chauffer le fourneau.
+        self.assertIn("burette_huile", lire(m, "mireille")["croyances"])
         chronique_, _ = executer(m, 60)
         m = recharger(m)
         textes = [c["texte"] for c in chronique_]

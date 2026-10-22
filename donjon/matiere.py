@@ -274,6 +274,9 @@ def prelever_piece(m, lot_id, piece_id):
     for cle in ("usages", "duree_combustion", "proprietaire", "position", "position_salle", "seuil_coupe"):
         if cle in lot:
             piece[cle] = list(lot[cle]) if isinstance(lot[cle], list) else lot[cle]
+    if "contenu" in lot:
+        # Le contenu décrit la substance, pas une quantité : chaque pièce l'hérite.
+        piece["contenu"] = dict(lot["contenu"])
     if "charges" in lot:
         piece["charges"] = 1
         lot["charges"] -= 1

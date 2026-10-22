@@ -1090,3 +1090,39 @@ Limites :
   l'emporte qu'à la fin du plan, si celui en cours tient encore. La routine en est exclue.
 - L'abri en route ne cède qu'à l'eau qui monte sous ses yeux, au péril, ou s'il cesse d'être un abri
   à ses yeux ; traverser un lieu qu'il attend inondé pour le rejoindre reste possible (la crue 3).
+
+## Des parts pour recharger une source (branche `codex-lampes`)
+
+Une part de combustible est aussi un moyen d'un geste, et ne termine donc pas toujours un but.
+`_parts_remises` projette sa réception en main, puis les gestes ordinaires `alimenter` et `allumer`
+établissent la lumière. Le choix de la réserve dépend de `perception.recharge` et du contenu déclaré
+de la source. Porter un combustible incompatible ne dispense pas d'en chercher un qui convienne.
+Ce contrat vaut pour une lampe, une lanterne ou toute source rechargeable, sans nom de substance.
+
+La demande ou l'achat d'une part à son propriétaire s'offre pour un lot posé comme porté. Le
+donneur garde le lot et fournit une charge. Une part déjà promise n'est pas acquise : le plan
+compte le trajet et l'attente du donneur, sans changer l'état de la source. Le plan exécutable
+s'arrête à la demande, ou avant la livraison attendue ; après réception, il se refait sur
+l'identifiant de la part réellement reçue. Ces frontières sont conservées dans le cache de
+recherche : relire le même plan ne les fait pas disparaître (`_couper`).
+
+L'autre service reste possible : demander une part pour qu'un donneur entretienne une source
+identifiée. Le combustible doit la recharger ; la cible nommée n'est jamais remplacée. Une source
+promise n'est tenue pour servie qu'après son constat, une part livrée qu'après sa réception. La
+mémoire et la recherche lisent ces distinctions ; les refus gardent leur cause, leur prix et leurs
+moyens selon le contrat commun. Pour la chaleur, une enquête ne compte que le combustible d'un
+foyer connu, pas celui de toute source lumineuse (`part_pour`).
+
+L'audit des lectures distingue la catégorie comptée de son emploi : reconnaître un consommable,
+le donner plutôt que le prêter et le découper en parts n'affirment aucun besoin servi. En revanche,
+`s_enquerir`, `Vue.sur_soi`, `rechauffe`, la garde urgente et les moyens/réponses d'une enquête
+emploient `part_pour` ; une part ne réchauffe qu'auprès d'un foyer compatible allumé. Connaître chez
+quelqu'un le combustible d'une autre source ne dispense donc pas de l'interroger sur la chaleur.
+Une demande de part n'exige pas que le demandeur ait lui-même un besoin de chaleur ; le but qui
+emploie cette part vient des gestes. L'eau se juge au lieu de la source désignée, sans écarter une
+recharge parce que tous les autres foyers connus sont noyés.
+
+Cas et mesures : `docs/taches/rapport-codex-3-lampes.md`. Les tests `test_lampes_parts` suivent la
+lanterne vide de l'étable et la lampe vide de la mine, le bidon posé, une autre substance déclarée,
+les lots portés, la parole typée du joueur, les refus, la provenance d'une part et le cache ; l'état,
+la perception et le rendu sont vérifiés après sauvegarde et rechargement.
