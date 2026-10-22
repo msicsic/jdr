@@ -34,9 +34,10 @@ def interlocuteurs(monde):
     l'autre (``ouie.s_entendent`` : distance, passages, portes). Qui se tait dans son dos ou dans le
     noir n'est pas là pour lui, ni pour le MJ. Une voix qu'il ne sait à qui prêter est un
     interlocuteur comme un autre, désigné « voix_<n> » : rien de ce qu'il en reçoit ne la trahit,
-    seulement ce qu'elle prétend et d'où elle vient (``reels`` rend les personnages)."""
+    seulement ce qu'elle prétend, d'où elle vient et le genre où elle parle d'elle-même (``voix.genre``,
+    ce que ses mots font entendre) ; ``reels`` rend les personnages."""
     from .ouie import s_entendent
-    from .voix import designation, nom_pour_joueur
+    from .voix import designation, genre, nom_pour_joueur
     resultat = {}
     for id, o in monde.objets.items():
         if not (o["type"] == "personnage" and monde.present_physique(id)):
@@ -45,7 +46,8 @@ def interlocuteurs(monde):
             continue
         cle = designation(monde, id)
         if cle != id:
-            resultat[cle] = {"nom": nom_pour_joueur(monde, id), "voix_inconnue": True, "entendue": _d_ou(monde, id)}
+            resultat[cle] = {"nom": nom_pour_joueur(monde, id), "voix_inconnue": True, "entendue": _d_ou(monde, id),
+                             "genre": genre(monde, id)}
             continue
         resultat[id] = {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
                         "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),

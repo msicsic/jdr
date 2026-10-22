@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-21.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-22.
 
 ## Où on en est
 
@@ -794,7 +794,43 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   tranchés par le moteur (3 chacun). Limites : le payeur paie la peine qu'il estime, sans marchandage ;
   ce qu'on consomme de ses biens pour une tâche n'est pas compté ; pas de tâche « aller voir » ; le
   joueur ne prête ni ne paie de tâche ; la réponse ne dit que ce qu'il croit avoir ; constantes à régler.
-- La suite de tests passe : 1119 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `voix-suite`, non fusionnée (`docs/plan-ouie.md`, « La suite des voix ») : quatre limites des
+  branches de voix. **Noms retenus** (`voix.apprendre_nom`, `noms` de l'esprit) : un PNJ retient le nom de
+  qui il sait être lui, quand il l'entend se nommer (il le voit ou reconnaît sa voix), qu'une autre voix
+  l'appelle ainsi, ou qu'une voix qui s'était dite ou qu'on avait appelée ainsi se révèle la sienne ;
+  `connait_nom` les lit (Gorm, qui a vu Corvus se nommer, peut l'appeler Corvus dans le noir). **Une règle
+  pour relier les voix** (`voix.lier`, `parole_saisie`, `mots`, `nom_dit`) : « une voix qu'on appelle Gorm »
+  s'apprend par la même fonction pour le joueur (`ecoute.lier`) et les PNJ (`ouie.retentir`, `echange` de
+  l'esprit, le temps d'un échange) ; ce qu'on saisit des mots, une règle commune (la réplique du joueur
+  passe en `dits`). **Vers l'appelant** (`ouie._vers_qui_l_a_hele`) : hélé, on se tourne vers l'appelant si
+  on le verrait ainsi, même au-delà d'un seuil, sinon vers le seuil ; qui attend d'être rejoint se tourne
+  vers l'appelant qu'il entend approcher dès qu'il le verrait. **Genre d'une voix inconnue** (`voix.genre`) :
+  le MJ reçoit « masculin » ou « féminin » (`interlocuteurs.voix_<n>.genre`, `esprits_interlocuteurs`), ce
+  que la réplique fait entendre, sans identité. Cas réels et cas de même nature après rechargement
+  (`tests/test_voix_suite.py`, 14 tests), `VERIFIER` sur une nuit de chaque scénario. Bancs 8 h contre
+  `main` 8c108c3, l'un après l'autre (Relais 8 graines, auberge 4) : toutes les mesures d'avant identiques
+  graine par graine, sauf un retournement de moins à l'auberge ; qui attend se tourne vers qui l'avait
+  hélé 0,25 fois par nuit ; à l'auberge, 1,75 voix « qu'on appelle … » par nuit pour les PNJ ; aucune
+  usurpation ni violation ; temps égal. Limites : « Ici ! » surpris vaut se nommer pour un PNJ, « qu'on
+  appelle » pour le joueur (écart gardé) ; une voix « qu'on appelle » ne situe personne ; les répliques du
+  MJ ne retentissent pas pour les PNJ ; genre sans timbre ni âge, son emploi par Luna non vérifié.
+- Branche `banc-luna-soir` (contrôle seul, rien corrigé ; [rapport](banc-luna-soir.md)) : Luna sur `main` 8c108c3,
+  3 passes des quatre bancs de référence : 3,14 appels et 11,1 s par tour MJ, 0 repli, relances 4,7, tours avec
+  refus 7,0 (audits-attendu : 3,08 / 11,3 / 0 / 4,0 / 6,5) ; bancs ciblés `soir-appel`, `soir-noir`, `soir-voix`.
+  Défauts relevés : vocatif en fin de phrase ignoré (« as-tu de quoi manger, Ilse ? » va à Aubin), vocatif d'un
+  inconnu ignoré, planche achetée donnée au feu, question à la cantonade dans le noir jamais répondue, refus de
+  format affiché pour une question de faisabilité, silences affirmés après un refus de l'auditeur, « aucun passage
+  praticable » quand aucune sortie n'est connue, « c'est moi, Brune » typé en se nommer, « as-tu du bois ? » sans
+  les planches qu'on possède.
+- Branche `audit-nuits`, non fusionnée, audit sans correctif ([rapport](audit-nuits.md),
+  `tools/audit_nuits.py`) : 192 nuits de 12 h (4 scénarios, 48 graines), contrôles activés. Aucun
+  plantage du moteur, aucune violation de `Monde.verifier`, aucun écart de `spatial.VERIFICATION` ;
+  `planification.VERIFIER` échoue à la mine (15/16) et à l'auberge (11/16) : `emplois` ajoute la
+  recherche du porteur d'une lampe (`moyen_du_but`), et sa référence s'arrête à la borne de nœuds.
+  Boucles et absurdités relevées : appels à l'aide sans fin, aller voir ↔ garder, prévenir en boucle,
+  bruit de sa propre salle jamais examiné, vol à une case dans le noir jamais découvert, tâches payées
+  acceptées puis non faites, PNJ piégés par l'eau à la crue.
+- La suite de tests passe : 1133 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

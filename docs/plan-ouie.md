@@ -888,14 +888,15 @@ Limites :
   les formes reconnues sont la réponse du moteur. Un appelant que Corvus voit compte une minute.
 - Le MJ ne sait pas qui une voix inconnue connaît (le lui dire trahirait qui elle est) : la règle évite
   de refuser un nom juste, Luna n'en invente pas. Il ne sait pas non plus si c'est une femme ou un homme
-  (« Je ne suis pas convaincue » pour Gorm).
+  (« Je ne suis pas convaincue » pour Gorm). Le genre : branche `voix-suite`.
 - `voix.connait_nom` : un PNJ qui voit Corvus se nommer ne retient pas son nom au-delà de ce tour
   (rien ne l'enregistre quand il le reconnaît déjà) ; un PNJ connaît le nom de qui il a une croyance.
+  Corrigé : branche `voix-suite`.
 - Le lien « une voix qu'on appelle … » ne se fait que si la voix nommée est vraiment celle qu'on appelle
   et qu'il l'entend dans le même échange ; une voix qui se tait pendant l'appel ne se nomme pas, une
   autre qui parlerait à sa place non plus (pas de méprise). Seul le joueur l'apprend ainsi ; un PNJ
   n'apprend un nom que d'une voix qui se nomme. Les répliques que Luna prête aux PNJ ne relient pas les
-  voix entre elles (elles s'adressent à Corvus).
+  voix entre elles (elles s'adressent à Corvus). Les PNJ : branche `voix-suite`.
 
 ## L'ancien son fondu dans l'ouïe commune (branche `ouie-commune`)
 
@@ -992,10 +993,118 @@ Limites :
   joueur n'est reconnu que de qui connaît sa voix ;
 - la nature d'un son d'objet tient à sa sonorité en trois paliers (`ouie.SONS`) ;
 - l'appelé dans une autre salle se tourne vers le seuil par où la voix arrive, pas vers l'appelant ;
-  rien de nouveau s'il regarde déjà par là ;
+  rien de nouveau s'il regarde déjà par là (corrigé : branche `voix-suite`) ;
 - dans la scène de test de la protection (Ilse à bout dans l'échoppe obscure), découper le temps
   change la minute d'une croyance (l'état du brasero éteint revu) sans en changer la valeur : défaut
   déjà présent sur `main`, hors de ce chantier.
+
+## La suite des voix (branche `voix-suite`)
+
+Quatre limites des branches `voix-inconnues` et `ouie-commune`, une même famille : ce que chacun retient
+d'un nom entendu, et vers où se tourne qui est appelé.
+
+**Retenir le nom de qui l'on reconnaît** (`voix.apprendre_nom`, `noms` de l'esprit, `voix.connait_nom`).
+Avant, un PNJ qui voyait Corvus lui dire « C'est Corvus » le reconnaissait déjà (`se_nommer` : « connu »)
+et rien n'enregistrait son nom ; et une voix crue sur parole (« une voix qui se dit Corvus »), une fois
+reconnue comme celle de Corvus (`voix.connaitre`), était oubliée avec le nom qu'elle portait : la
+croyance passait du ouï-dire au constat, plus rien ne disait qu'il savait son nom. Règle : un PNJ retient
+le nom de qui il sait être lui, quand il l'entend se nommer (il le voit ou reconnaît sa voix), quand une
+autre voix l'appelle ainsi (`nommer`, voir ci-dessous), ou quand la voix qui s'était dite ou qu'on avait
+appelée ainsi se révèle la sienne. `connait_nom` lit ces noms retenus, et aussi le nom qu'une autre voix a
+donné à une voix inconnue (`appelee`). Le joueur, lui, connaît le nom de qui il voit
+(`paroles.identites`) : rien ne change pour lui.
+
+**Une seule règle pour relier les voix d'un échange** (`voix.lier`, `voix.parole_saisie`, `voix.mots`,
+`voix.nom_dit`). La règle du joueur (`ecoute.lier`, branche `voix-inconnues`) devient celle de tous : une
+voix à qui une autre s'adresse en la nommant, entendue dans le même échange (`ECHANGE`, une minute, avant ou
+après), est « une voix qu'on appelle Gorm » (`nommer`, `appelee`), un ouï-dire, jamais une identité ; rien
+s'il connaît la vraie voix de Gorm, si elle s'est nommée ou s'il s'en méfie ; s'il sait déjà à qui est
+cette voix (il la voit), un PNJ retient seulement le nom (`apprendre_nom`). Ce que chacun saisit des mots
+suit aussi une règle commune (`voix.mots`) : tout le texte d'une voix qu'il voit ou reconnaît et qui ne
+nomme que qui il connaît, sinon les mots dits tels qu'ils sont dits (ceux cités entre guillemets d'un
+récit, ou la réplique même du joueur, `ouie.retentir(dits=…)`). Le joueur range ce qu'il entend dans
+`data["bruits"]` ; un PNJ garde les paroles nettes qu'il vient de saisir le temps d'un échange
+(`echange` de son esprit, `voix.retenir_echange`, au plus 8), et relie à chaque parole saisie
+(`ouie.retentir`). Un PNJ qui a appris une voix « qu'on appelle Gorm » ne la reconnaît pas pour autant :
+aucune croyance de lieu, aucune confiance ; il sait le nom (une réplique de sa voix peut le dire,
+`narration.voix_inconnues`).
+
+**L'appelé se tourne vers l'appelant** (`ouie._vers_la_voix`, `ouie._vers_qui_l_a_hele`). Hélé par son
+nom, il se tourne vers l'appelant s'il le verrait ainsi (`voix._verrait_en_se_tournant` : la lumière le
+montre, le noir non), dans sa salle ou au-delà d'un seuil, par le plan commun des salles ; sinon, comme
+avant, vers le seuil par où la voix arrive. Qui attend d'être rejoint (`rejoint`, branche `parole-voix`)
+et entend l'appelant approcher se tourne vers lui dès qu'il le verrait (« … se tourne vers Aubin, qui
+l'avait hélé. »), au lieu d'attendre qu'il soit sur lui pour se retourner au bruit.
+
+**Le genre d'une voix inconnue** (`voix.genre`). Le MJ reçoit d'une voix inconnue (`interlocuteurs.voix_<n>`
+et `esprits_interlocuteurs.voix_<n>`) le genre où elle parle d'elle-même, « masculin » ou « féminin » : ce
+que ses mots font entendre (« convaincu », « convaincue ») comme son timbre, sans nom, identifiant ni
+traits. Ce n'est pas une fuite : l'auditeur l'entend dans la réplique même. Aucune consigne n'est ajoutée.
+
+Vérifié (`tests/test_voix_suite.py`, état après rechargement et ce que lit le joueur ou reçoit le MJ) :
+- noms : cas réel, Gorm voit Corvus dire « C'est Corvus » (parole du joueur, MJ simulé) : il retient son
+  nom ; dans le noir, une demi-heure plus tard, la voix de Gorm, que Corvus ne connaît pas, peut dire
+  « Corvus, approche. » sans refus du contrôle narratif (sur `main` : refusé) ; Ilse, qui n'a rien
+  entendu, ne le sait pas. Même nature, une voix crue sur parole « Corvus » dans le noir, puis vue parler à
+  la lumière : la voix devient connue et le nom reste. Ilse voit Corvus répondre « Ici ! » à une voix qui
+  l'appelle « Corvus ? » : elle sait son nom ;
+- relier : cas réel, Ilse dans le noir entend une voix appeler « Corvus ? » puis une autre voix dire
+  « Gorm, je suis là. » : « la voix qu'on appelle Corvus » et « la voix qu'on appelle Gorm », sans les
+  reconnaître ; même nature entre PNJ, une voix parle (Gorm à Aubin), puis l'autre la hèle « Gorm ? » :
+  Ilse et Corvus, au même endroit, l'apprennent pareillement (« une voix qu'on appelle Gorm ») ; qui
+  connaît la vraie voix de Gorm n'apprend rien d'elle ;
+- se tourner : cas réel, Gorm dans la conduite, près du passage mais à côté de lui, hélé par Corvus au
+  refuge éclairé, hors de l'axe du passage : il se tourne vers lui (sud-est) et le voit, connaît sa voix
+  (sur `main` : il avait déjà le seuil sous les yeux, ne se tournait pas et ne le voyait pas) ; un appelant
+  qu'il ne verrait pas : rien de plus. Même nature, Gorm attend Aubin qui l'avait hélé et le voit venir
+  par le passage : il se tourne vers lui avant qu'Aubin n'entre (sur `main` : il se retournait au bruit
+  une fois Aubin dans la conduite) ; le même laps, d'un bloc ou découpé et rechargé, donne le même monde ;
+- genre : la voix de Gorm « masculin », celle de Brune « féminin », pour le MJ, sans leur nom ni leur
+  identifiant.
+
+`planification.VERIFIER` sur une nuit de chaque scénario (graine 1985, 8 h) : aucune reprise périmée,
+aucune usurpation.
+
+Bancs 8 h, `main` 8c108c3 puis la branche, l'un après l'autre, mêmes mesures ajoutées des deux côtés
+(Relais 8 graines `--joueur chambre_cloche`, auberge 4 graines `--joueur dortoir`) :
+
+| | Relais | Auberge |
+|---|---|---|
+| appels / réponses / retrouvailles | 1,25 / 1,13 / 1,13 → idem | 3,25 / 2,75 / 2,25 → idem |
+| tournés vers la voix / vers qui l'avait hélé (nouveau) | 0,88 / 0 → 0,88 / 0,25 | 1,5 / 0 → 1,5 / 0,25 |
+| voix connues gagnées / voix qui se disent quelqu'un | 0 / 0 → idem | 12,25 / 1,5 → idem |
+| voix « qu'on appelle … » (nouveau pour les PNJ) | 0 → 0 | 0 → 1,75 |
+| noms retenus (nouveau) | 0 → 0 | 0 → 0 |
+| échanges / paroles surprises | 15,75 / 25,5 → idem | 97,75 / 222,75 → idem |
+| sans recours / en attente | 53,75 / 58,1 → idem | 60 / 297,5 → idem |
+| retournements | 153 → 153 | 127,5 → 127,25 |
+| usurpations, violations | 0 → 0 | 0 → 0 |
+
+Toutes les autres mesures sont identiques, graine par graine. Les nuits ne changent que par l'orientation
+de qui attend : au Relais (graines 2024 et 3) et à l'auberge (graine 42 : Odile se tourne vers Anselme
+qui l'avait hélé, au lieu de se retourner au bruit quand il arrive). À l'auberge, Lucien et Joss
+apprennent ainsi des voix (« la voix qu'on appelle Mathurine ») en entendant Odile, qu'ils
+reconnaissent, demander du bois à qui ne leur est qu'une voix. Aucun nom retenu au banc : le joueur y
+reste muet et les PNJ savent déjà le nom des autres. Temps d'une nuit (4 graines, l'un après l'autre) :
+Relais 12,4 → 11,2 s, auberge 36,6 → 37,6 s.
+
+Limites :
+- Une réponse à son nom (« Ici ! ») vaut se nommer pour le PNJ qui la surprend (« la voix qui se dit
+  Anselme », branche `voix`, qui la situe), alors que le joueur qui la surprend apprend « la voix qu'on
+  appelle Anselme » (branche `voix-inconnues` : il ne se dit que si ses mots disent son nom). L'écart
+  précède ce chantier ; il est gardé (le PNJ s'en sert pour situer qui il cherche).
+- Une voix « qu'on appelle Gorm » ne situe pas Gorm pour un PNJ et ne lui vaut aucune confiance : c'est le
+  nom seul. Les répliques que Luna prête aux PNJ (`paroles_pnj`) et la réponse d'un PNJ à une parole du
+  joueur ne retentissent pas pour les autres PNJ : elles ne relient pas les voix.
+- Un récit d'échange sans guillemets (« Aubin demande une part des vivres à Gorm ») nomme le destinataire
+  pour qui sait qui parle et connaît ces noms : la même règle que pour le joueur, qui suppose qu'on
+  l'appelle par son nom.
+- Se tourner vers l'appelant se décide quand on l'entend (son cri, ses pas) ; qui attend se tourne vers lui
+  au bruit de ses pas, pas à chaque pas qu'il fait lui-même. Le passage d'une salle à l'autre est vu par le
+  plan commun : par un seuil d'une case, l'appelant visible est presque toujours dans la direction du seuil.
+- Le genre de la voix est celui du personnage (`genre`) : ni timbre, ni âge (un enfant parle « au
+  masculin » comme un homme). Rien ne vérifie que Luna l'emploie : aucune partie avec Luna n'a été jouée
+  (aucune saisie du joueur ne change).
 
 ## Limites
 
