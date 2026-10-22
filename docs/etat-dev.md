@@ -954,7 +954,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   temps d'une nuit Relais 10,5 → 9,7 s, mine 25 → 34 s, auberge 26,8 → 31,9 s, crue 10,3 → 12 s (une
   vue du planificateur par choix ; une reprise du choix entier serait la suite). Restent à la minute : corps et
   besoins, combustion, crue, horloges, échéances, dates des croyances, patience et répit.
-- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `ressources`, non fusionnée (données seulement, décision de l'utilisateur ; `docs/plan-crue.md`,
+  « Un feu hors de l'eau ») : deux scénarios manquaient de ressources. **Crue** : depuis `verifier-eau`,
+  personne ne se chauffait au brasero menacé de la conduite, seul feu. Ajouté à la galerie de ronde,
+  hors d'atteinte de l'eau, un poêle du guet allumé (120 min) et trois charges de bûches du guet (90 min)
+  à Gorm, sus de tous ; un âtre au refuge, essayé, supprimait tout froid. Bancs 8 h (8 graines, `main`
+  ec2352e puis la branche) : froid pressant 491 → 111 minutes·PNJ par nuit (Brune 281 → 71), en attente
+  541 → 219, dans l'eau 438 → 373, échanges 19 → 18, achats 1 → 2 ; audit 12 h : froid 794 → 199, en
+  attente 914 → 571. **Auberge** : le bois (750 minutes pour trois foyers) finissait vers la cinquième
+  heure. Mesuré : un foyer brûle une minute de combustible par minute, trois foyers 1 440 minutes en 8 h,
+  2 160 en 12 h. Portés à 1 815 minutes : bûches de la cuisine 4 → 8 charges, d'Anselme 2 → 3, fagots de
+  Joss 2 → 3, et une réserve de bûches d'Odile au cellier (12 charges de 60 min, sue de la maisonnée).
+  Bancs 8 h : dans le noir 1 159 → 236 (dont 128 de Lucien au grenier, qui n'a pas de lumière), en
+  attente 341 → 24, sans recours 101 → 146 (Lucien, qui guette pour ses biens, désormais éclairé),
+  foyers allumés âtre 215 → 471, fourneau 243 → 424, poêle 235 → 464 min ; restent à la fin 3,5 charges
+  de la réserve et 2,2 fagots ; offres de tâche 33 → 7, « as-tu… ? » 14 → 2,4, échanges 82 → 33 (surtout
+  les demandes vaines), vols vus 1,2 → 1,1, une nuit 50 → 32 s. Audit 12 h : noir 2 690 → 1 017
+  (le bois s'épuise vers la huitième heure ; la lanterne de l'étable vide), en attente 1 141 → 351, froid
+  172 → 19, échanges 120 → 100 ; Odile prête sa réserve à Anselme puis la lui refuse. L'huile n'a pas été
+  augmentée : un pot d'huile essayé n'a jamais servi (aucune part de combustible ne se demande pour une
+  lampe, seulement pour la chaleur ; qui a peur dans le noir n'a pas rechargé la lanterne de l'étable).
+  Aucune usurpation ni violation ; `VERIFIER` sans écart sur une nuit de chaque scénario (graine 7, 8 h).
+  `tests/test_ressources.py` (crue 7 et auberge 1985 après rechargement) ; scènes d'auteur à court de bois
+  sans la réserve d'Odile (`test_refus_retenus`, `test_echanges_suite`, `test_entretenir`) ; `test_auberge`
+  (11 événements distincts en 210 minutes, seuil 12 → 10), `test_eau`, `test_verifier_eau` (on sèche au
+  poêle du guet). Limites : moteur inchangé ; la lumière des lampes n'est pas une ressource que les PNJ se
+  partagent ; un scénario de 12 h finit encore dans le noir à l'auberge (rareté voulue).
+- La suite de tests passe : 1210 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 
