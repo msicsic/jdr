@@ -106,7 +106,9 @@ def _compiler_heler(m, e, justification, origine):
     if qui in ("", "joueur"):
         raise RefusDeForme("Dis qui tu appelles par son nom.",
                           f"emettre_son heler : cible = l'identifiant du personnage hélé, pas joueur ; parmi "
-                          f"{liste(connus)} (reçu « {qui} »).")
+                          f"{liste(connus)} (reçu « {qui} ») ; sans nom à appeler, des mots lancés à qui les entend "
+                          "sont une parole (parole_joueur, personnage = parole_prevue.personnage), un cri sans mots "
+                          "emettre_son methode cri.")
     if qui not in m.objets or m.objets[qui]["type"] != "personnage" or not _connu_du_joueur(m, qui):
         raise ErreurMonde("Tu ne connais personne de ce nom à appeler.",
                           f"emettre_son heler : cible = un personnage que Corvus connaît, parmi {liste(connus)} "
