@@ -265,8 +265,19 @@ def voix_auteur(texte, partie="texte"):
             obstacles.append(audit(
                 f"Le joueur lit ce texte tel quel : écris-le à la deuxième personne, dans la fiction, sans « {terme} ».",
                 f"le passage à la deuxième personne (tu), dans la fiction, sans « {terme} » hors d'une réplique "
-                "entre guillemets", partie=partie, segment=indice, texte=passage, recu=terme))
+                "entre guillemets" + _reecrire(terme), partie=partie, segment=indice, texte=passage, recu=terme))
     return obstacles
+
+
+def _reecrire(terme):
+    """Comment se dit, à la deuxième personne, ce que ce mot d'auteur disait : une indication pour que la
+    première correction suffise."""
+    mot = normaliser(terme)
+    if mot in ("je", "j'", "j’"):
+        return " : ce que tu dirais de toi se dit de ce que Corvus perçoit, sait ou ignore (« tu ne sais pas si… »)"
+    if mot in ("corvus",) or mot.endswith("joueur"):
+        return " : Corvus est « tu »"
+    return " : dis ce que Corvus perçoit, sait ou ignore, sans parler du jeu"
 
 
 def mentions_proposees(monde, reponse, base, paroles=""):
