@@ -36,11 +36,12 @@ def interlocuteurs(monde):
     interlocuteur comme un autre, désigné « voix_<n> » : rien de ce qu'il en reçoit ne la trahit,
     seulement ce qu'elle prétend, d'où elle vient et le genre où elle parle d'elle-même (``voix.genre``,
     ce que ses mots font entendre) ; ``reels`` rend les personnages."""
+    from .corps import conscient
     from .ouie import s_entendent
     from .voix import designation, genre, nom_pour_joueur
     resultat = {}
     for id, o in monde.objets.items():
-        if not (o["type"] == "personnage" and monde.present_physique(id)):
+        if not (o["type"] == "personnage" and conscient(monde, id) and conscient(monde) and monde.present_physique(id)):
             continue
         if not (monde.visible(id) or id in monde.data.get("entendus", []) and s_entendent(monde, id, "joueur")):
             continue

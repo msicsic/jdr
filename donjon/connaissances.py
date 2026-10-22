@@ -93,7 +93,7 @@ def preparer_savoirs(monde, proposition, revision=None):
 
 def verifier(monde):
     for id, savoirs in monde.data["savoirs_pnj"].items():
-        assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Savoirs sans personnage"
+        assert id in monde.objets and monde.objets[id]["type"] in ("personnage", "depouille"), "Savoirs sans personnage"
         assert isinstance(savoirs, dict), "Savoirs invalides"
         for sujet, savoir in savoirs.items():
             assert isinstance(sujet, str) and sujet, "Sujet invalide"

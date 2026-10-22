@@ -278,7 +278,10 @@ function dessiner() {
     const e = etats[id]; if (!e || !D.salles[e[0]] || D.salles[e[0]].niveau !== niveau || !e[1]) return;
     const g = globale(e[0], e[1]), cx = X(g[0]) + CS / 2, cy = Y(g[1]) + CS / 2, r = CS * .32;
     ctx.globalAlpha = choisi && choisi !== id ? .75 : 1;
-    ctx.fillStyle = couleur[id]; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = couleur[id]; ctx.beginPath();
+    if (e[5] && (e[5].conscient === false || e[5].mort)) ctx.ellipse(cx, cy, r * 1.2, r * .45, 0, 0, 2 * Math.PI);
+    else ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.fill();
     if (id === choisi) { ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); }
     fleche(cx, cy, r, e[2], "#fff");
     const tenus = Object.keys(etats).filter(o => etats[o][0] === id && D.objets[o] && D.objets[o].type !== "partie_corps");
@@ -350,6 +353,7 @@ function panneau(etats, esprits) {
     const ou = e && D.salles[e[0]] ? D.salles[e[0]].nom : "?";
     d.innerHTML = `<div class="nom"><span class="pastille" style="background:${couleur[id]}"></span>${echapper(D.objets[id].nom)}</div>` +
       `<div class="motif">${echapper(ou)}${e && e[2] ? ", regarde vers le " + e[2] : ""}</div>` +
+      (e && e[4] ? `<div class="motif">PV ${e[3]}/${e[4]}${e[5] && !e[5].conscient ? " · sans connaissance" : ""}</div>` : "") +
       `<div class="but">${but ? echapper(but[0]) : "<span class=gris>sans but</span>"}</div>` +
       (but && but[1] ? `<div class="motif">${echapper(but[1])}</div>` : "") +
       `<div class="besoins">${Object.entries(besoins).map(([k, v]) => `<span>${k} ${v}${jauge(v)}</span>`).join("")}</div>`;

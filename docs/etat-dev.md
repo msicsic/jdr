@@ -1,9 +1,26 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-22.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-23.
 
 ## Où on en est
 
+- Branche `codex-force-4a`, non fusionnée : sous-étape 4a du [plan force](plan-force.md),
+  PV pour tous, blessures et malus, repos qui soigne au temps vécu, inconscience et réveil,
+  réanimation au contact et par le planificateur du protecteur. Le corps vit hors de la
+  délibération ; l'inconscient ne perçoit, n'entend, ne parle ni n'agit. Une chute à 0 PV du
+  joueur traverse l'inconscience dans la même action. `corps.mourir` conserve l'identifiant
+  et les biens dans une dépouille, archive le profil, retire l'esprit ; découverte, inquiétude
+  et nouvelle de mort passent par les voies communes. La fin du joueur est sauvegardée close.
+  Pas de coup ni d'action `tuer`. `banc_pnj --etat` prépare les épreuves ; états qualitatifs
+  visibles, PV des PNJ cachés, rejeu omniscient avec PV/conscience. 16 tests spécifiques avec
+  cas de même nature après recharge, sauts réels, laps découpés et décès de tous les PNJ des
+  quatre scénarios. Les 20 nuits de 8 h restent identiques à `main` `06602a6` sur chronique,
+  mesures, souvenirs, récit, état préexistant et empreintes normalisées sans les seuls champs
+  ajoutés ; quatre nuits `VERIFIER`/spatial 0,2 et les épreuves passent, zéro usurpation.
+  Surcoût CPU moyen apparié : Relais +4,27 %, mine +2,01 %, auberge +3,33 %, crue +7,67 %
+  (une graine, deux à trois paires, variabilité entre passes). Suite finale : 1298 tests,
+  quatre sautés faute du SDK Anthropic facultatif ; 16 tests propres à 4a.
+  [Rapport, mesures et limites](taches/rapport-codex-7-force-4a.md).
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1204,7 +1221,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rallume elle-même : le payeur fait la tâche qu'il paie (limite, à corriger). Banc rapide 4 h, 4 graines,
   `main` puis la fusion : mine et auberge identiques ; Relais 3,5 crochetages par nuit dont 0,75 réussis
   sans fracas, bascules 1,5 → 0,75, en attente 2,5 → 8,75 ; aucun plantage ni usurpation.
-- La suite de tests passe : 1282 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Sur `codex-force-4a`, la suite de tests passe : 1298 tests (quatre sautés faute du SDK Anthropic
+  facultatif), sans clé ni connexion ; `jsonschema` et les dépendances TUI installés, Node présent.
 
 ## Décisions en attente
 
@@ -1221,9 +1239,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Étape 4 du plan social, le corps et la force** : conception dans `docs/plan-force.md`
-  (branche `plan-force`, document seul) ; découpage 4a à 4f et décisions à trancher en fin de
-  document, avant toute réalisation.
+- **Étape 4 du plan social, le corps et la force** : 4a réalisée sur `codex-force-4a`, non
+  fusionnée ; 4b à 4f restent à réaliser après fusion, dans `docs/plan-force.md`. Décisions de
+  la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
+  ou défendre un protégé. Aucun geste de violence en 4a.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
   `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
   besoin que rien n'apaise (le devoir reste urgent une fois franchi son seuil ; il attend désormais

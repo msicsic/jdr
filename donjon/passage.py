@@ -177,6 +177,9 @@ def laisser_passer(monde, id, passant, chemin=()):
     """Le PNJ ``id`` s'écarterait-il de lui-même devant ``passant`` ? (case, None) s'il s'écarte
     vers cette case ; (None, raison) s'il reste : « geste », « mefiance », « orgueil » ou
     « place ». Une décision, sans rien changer au monde."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return None, "inconscient"
     raison = raison_de_rester(monde, id) or refus_d_aider(monde, id, passant)
     if raison:
         return None, raison

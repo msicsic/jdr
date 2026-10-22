@@ -4,6 +4,31 @@ Ce document décrit les mécaniques jouables et leurs limites. Le contrat entre 
 monde est décrit dans [contrat-mj.md](contrat-mj.md) ; la connexion au modèle dans
 [connexion.md](connexion.md).
 
+### Le corps blessable (4a)
+
+Tous les personnages ont des PV : 6 + leur FOR de base, sauf maximum déclaré par le scénario.
+Le joueur lit ses PV sur sa fiche. Les PV des PNJ restent cachés ; on voit seulement s'ils sont
+blessés (au plus deux tiers des PV), grièvement blessés (au plus un tiers), ou à terre sans
+connaissance. Les blessures coûtent 2 aux jets de FOR et DEX ; une blessure grave coûte encore
+2 à ces jets et 2 à INT, PER et VOL. Ces malus s'ajoutent à ceux des besoins.
+
+Une heure de repos rend 1 PV, avec les fractions de repos conservées après sauvegarde. Attendre
+repose le joueur ; un PNJ se soigne pendant ses gestes de repos. Une chute à 0 PV met hors de
+combat sans tuer : le joueur perd connaissance, le monde continue pendant 30 + d20 minutes,
+puis il revient à lui à 1 PV dans la même action. Il ne reçoit aucun récit de ce qui s'est passé
+pendant son absence ; il voit la scène à son réveil. Un inconscient reste sur sa case mais ne
+voit, n'entend, n'agit ni ne parle. Son corps continue de vivre.
+
+`ranimer <personnage>` le secoue au contact pendant 10 secondes, après au moins une minute
+d'inconscience. Un protecteur qui sait son protégé à terre peut le rejoindre pour le ranimer.
+La réanimation ne rend pas de PV au-delà du point nécessaire pour sortir du hors de combat.
+
+La mort n'est encore accessible qu'aux épreuves du moteur : aucun geste de violence n'est ajouté
+en 4a. Le mort devient une dépouille à la même place ; ses biens restent les siens. Les témoins
+la découvrent par la vue, s'en inquiètent et peuvent transmettre la nouvelle, sans inventer de
+coupable. Une partie où le joueur est mort est sauvegardée close et se recharge close.
+Le banc accepte `--etat ilse:inconscient`, `--etat aubin:mort` et `--etat brune:blesse:5`.
+
 ### Défi du Relais des crues et déplacement en cases
 
 Double-cliquer sur **`lancer-defi.cmd`** pour une nouvelle scène avec **Luna seul**.

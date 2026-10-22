@@ -247,6 +247,9 @@ class Monde:
         return True
 
     def visible(self, id):
+        from .corps import conscient
+        if not conscient(self):
+            return False
         o = self.objets.get(id, {})
         from .esprits import cache_par_porteur
         if o and cache_par_porteur(self, o, "joueur"):
@@ -342,6 +345,15 @@ class Monde:
             vue = copy.deepcopy(o)
             # L'esprit d'un PNJ (profil, besoins, pulsions) reste interne au moteur.
             vue.pop("profil", None)
+            if o["type"] in ("personnage", "depouille"):
+                vue.pop("pv", None)
+                vue.pop("pv_max", None)
+                vue.pop("corps", None)
+                if o["type"] == "personnage":
+                    from .corps import visible as etat_visible
+                    vue["etat_corps"] = etat_visible(self, o["id"])
+                    if not vue["etat_corps"]["conscient"]:
+                        vue.pop("orientation", None)
             if "constats_capacites" in vue:
                 from .capacites_objet import resume_constats
                 vue["constats_capacites"] = resume_constats(o, self.objets)
@@ -482,13 +494,16 @@ class Monde:
             from .narration import verifier as verifier_narration
             verifier_narration(self)
             assert d["version"] == 1, "Version de sauvegarde incompatible"
+            if d.get("fin") is not None:
+                assert (isinstance(d["fin"], dict) and isinstance(d["fin"].get("cause"), str)
+                        and type(d["fin"].get("instant")) is int and type(d["fin"].get("minute")) is int), "Fin invalide"
             assert d["joueur"]["salle"] in d["salles"], "Salle inconnue"
             assert d["joueur"]["or"] >= 0, "Or négatif"
             assert 0 <= d["joueur"]["pv"] <= d["joueur"]["pv_max"], "PV invalides"
             assert d["jets"] >= 0 and d["revision"] >= 0, "Compteurs invalides"
             from .dialogues import disponible
             for id, fonds in d["finances_pnj"].items():
-                assert id in d["objets"] and d["objets"][id]["type"] == "personnage", "Bourse sans personnage"
+                assert id in d["objets"] and d["objets"][id]["type"] in ("personnage", "depouille"), "Bourse sans personnage"
                 assert type(fonds) is int and fonds >= 0 and disponible(self, id) >= 0, "Fonds insuffisants pour les engagements"
             for id, mission in d["missions"].items():
                 assert mission["donneur"] in d["finances_pnj"] and mission["objet"] in d["objets"], "Mission invalide"
@@ -509,7 +524,7 @@ class Monde:
                 assert 0 <= o["integrite"] <= o["maximum"], "Intégrité invalide"
                 if o.get("en_vente"):
                     vendeur = o.get("vendeur")
-                    assert (vendeur in d["objets"] and d["objets"][vendeur]["type"] == "personnage"
+                    assert (vendeur in d["objets"] and d["objets"][vendeur]["type"] in ("personnage", "depouille")
                             and type(o.get("prix")) is int and o["prix"] > 0), "Vente sans vendeur ou prix valide"
                 if "luminosite" in o:
                     assert (type(o["luminosite"]) is int and 0 <= o["luminosite"] <= 2

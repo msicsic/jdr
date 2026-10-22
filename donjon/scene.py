@@ -183,7 +183,13 @@ def scene_percue(monde):
             if objet.get("foyer"):
                 o["foyer"] = True
             if objet["type"] == "personnage":
-                o["orientation"] = objet.get("orientation")
+                from .corps import visible, conscient
+                o["etat_corps"] = visible(monde, objet["id"])
+                if not o["etat_corps"]["conscient"]:
+                    o["nom"] += " (à terre, sans connaissance)"
+                elif o["etat_corps"]["blessure"]:
+                    o["nom"] += " (grièvement blessé)" if o["etat_corps"]["blessure"] == 2 else " (blessé)"
+                o["orientation"] = objet.get("orientation") if conscient(monde, objet["id"]) else None
                 o["porte"] = [{"id": k, "nom": designer(monde.objets[k]), "type": monde.objets[k]["type"],
                                **({"allume": bool(monde.objets[k]["allume"])} if "allume" in monde.objets[k] else {})}
                               for k in sorted(monde.objets)

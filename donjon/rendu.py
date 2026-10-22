@@ -58,6 +58,11 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o.get("en_vente"):
         morceaux.append(f'en vente : {prix(monde, o)} pièces')
     if o["type"] == "personnage":
+        from .corps import blessure, conscient
+        if not conscient(monde, o["id"]):
+            morceaux.append("à terre, sans connaissance")
+        elif blessure(monde, o["id"]):
+            morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
         if o.get("humeur"):
             morceaux.append(o["humeur"])
     if o.get("cale_de"):
@@ -151,6 +156,9 @@ def prix(monde, objet):
 
 
 def regarder(monde):
+    from .corps import conscient
+    if not conscient(monde):
+        return "Ta partie est terminée." if monde.data.get("fin") else "Tu es sans connaissance."
     salle = monde.joueur["salle"]
     titre = "\n== " + monde.data["salles"][salle]["nom"].upper() + " =="
     lignes = []

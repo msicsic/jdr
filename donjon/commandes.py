@@ -23,6 +23,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   acheter <objet>                       auprès de son vendeur présent
   voler <objet>                        tentative discrète, jet de DEX si observé
   parler <personnage>
+  ranimer <personnage>                 au contact, après une minute d'inconscience (10 secondes)
   offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
   donner <objet> à <personnage>         un objet porté ; avec un accord, contre le paiement convenu
@@ -83,6 +84,7 @@ VERBES = {
     "toucher": "toucher", "lire": "lire", "prendre": "prendre", "poser": "poser",
     "acheter": "acheter", "ouvrir": "ouvrir", "fermer": "fermer",
     "voler": "voler", "derober": "voler",
+    "ranimer": "ranimer",
     "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
     "couper": "couper", "decouper": "couper", "trancher": "couper",

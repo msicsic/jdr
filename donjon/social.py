@@ -24,7 +24,7 @@ from .relations import eprouver, se_fie, se_mefie
 # ``dette_niee`` : un débiteur refuse de rendre ce qu'il doit ; ``pret_garde`` : un emprunteur garde un
 # prêt échu qu'on lui réclame (``biens``).
 NOUVELLES = ("vu_agir", "vol_surpris", "vu_porter", "mensonge_decouvert", "mensonge_dementi", "absence",
-             "dette_niee", "pret_garde")
+             "dette_niee", "pret_garde", "mort_vue")
 RANG_MAX = 2           # une rumeur entendue de troisième main n'est plus répétée
 GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer": "a fermé",
           "deverrouiller": "a déverrouillé", "verrouiller": "a verrouillé",
@@ -69,6 +69,8 @@ def _croit_encore(monde, id, noyau):
     if noyau["type"] == "absence":
         lieu = croyances.get(noyau["objet"], {}).get("lieu")
         return bool(lieu) and lieu["valeur"] is None
+    if noyau["type"] == "mort_vue":
+        return bool(lire(monde, id)["croyances"].get(noyau["objet"], {}).get("etat", {}).get("valeur", {}).get("mort"))
     return not se_fie(monde, id, accuse(noyau))
 
 
@@ -121,6 +123,8 @@ def _auditeur(monde, id, souvenir, noyau, source):
 
 
 def _qui(monde, id):
+    if id in monde.data.get("defunts", {}):
+        return monde.data["defunts"][id]["nom"].split(",")[0]
     return monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"].split(",")[0]
 
 
@@ -129,6 +133,9 @@ def phrase(monde, noyau):
     t = noyau["type"]
     if t == "absence":
         return designer(o) + " " + ("ont" if o.get("pluriel") else "a") + " disparu"
+    if t == "mort_vue":
+        defunt = monde.data["defunts"][noyau["objet"]]
+        return defunt["nom"].split(",")[0] + " est mort" + ("e" if defunt["genre"] == "f" else "")
     qui = _qui(monde, accuse(noyau))
     if t in ("mensonge_decouvert", "mensonge_dementi"):
         return qui + " ment"
@@ -184,7 +191,13 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
         return "doute"
     confiance = round(0.7 * (0.5 if _stats_pnj(monde, auditeur)["INT"] <= 8 else 1.0) * 0.8 ** rang, 2)
     source = source_dite(monde, auditeur, locuteur)
-    if noyau["type"] == "absence":
+    if noyau["type"] == "mort_vue":
+        actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("etat")
+        if not actuelle or actuelle["source"] != "vu":
+            croire(monde, auditeur, objet, "etat", {"mort": True}, source, confiance)
+            from .deliberation import inquieter
+            inquieter(monde, auditeur, "mort")
+    elif noyau["type"] == "absence":
         croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
     elif accuse(noyau) != auditeur:
         _apprendre_lieu(monde, auditeur, noyau, source, confiance)
@@ -218,11 +231,14 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     sa voix. Ce que le joueur perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de
     ceux dont on parle. Sans le voir (le noir, son dos), il n'en a que ce que son ouïe lui fait
     entendre (``ecoute`` : une voix qu'il reconnaît, ou « une voix »)."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return
     from .ouie import retentir
     from .paroles import _connu_du_joueur
     retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites],
              parole={"a": [auditeur], "contenu": list(contenu)})
-    if reponse and dite:
+    if reponse and dite and conscient(monde, auditeur):
         retentir(monde, auditeur, "dire", texte=reponse, cites=[id], vers=[id])
     a, b = monde.objets[id], monde.objets[auditeur]
     if a["lieu"] == monde.joueur["salle"] and monde.visible(id):
@@ -259,6 +275,9 @@ def recevoir(monde, id, locuteur, c):
     dit avoir fait un geste illicite) se croit : il ne le tient plus pour fiable et le sait de
     première main. Un nom (« C'est Corvus », « Ici ! » à son nom) se pèse (``voix.se_nommer``) ;
     une question (« Qui va là ? ») ne lui apprend rien. Ce qu'on dit de lui-même ne lui apprend rien."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return None
     if c["type"] == "nom":
         from .voix import se_nommer
         return se_nommer(monde, id, locuteur, c["sujet"])

@@ -53,7 +53,10 @@ class RejeuTests(unittest.TestCase):
         etats, esprits = rejouer(d["etats"], d["fin"]), rejouer(d["esprits"], d["fin"])
         for id in d["personnages"]:
             o = m.objets[id]
-            self.assertEqual(etats[id], [o["lieu"], o.get("position"), o.get("orientation")], id)
+            from donjon.corps import conscient, visible
+            self.assertEqual(etats[id], [o["lieu"], o.get("position"),
+                                        o.get("orientation") if conscient(self.monde, id) else None,
+                                        o["pv"], o["pv_max"], visible(self.monde, id)], id)
             croit = {objet: [c["lieu"].get("valeur"), c["lieu"].get("salle"), c["lieu"].get("case")]
                      for objet, c in lire(m, id)["croyances"].items() if c.get("lieu")}
             self.assertEqual({k.split("|", 1)[1]: v for k, v in esprits.items()

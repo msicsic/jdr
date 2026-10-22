@@ -23,7 +23,9 @@ CLES = {"depuis", "activite", "chaud", "eau", "securite"}
 
 def conditions(monde, id, activite):
     """Ce qui fait évoluer son corps et ses besoins tant que rien ne change, lu à l'instant."""
-    from .corps import au_chaud, dans_l_eau
+    from .corps import au_chaud, dans_l_eau, conscient
+    if not conscient(monde, id):
+        activite = None
     securite = None
     if id != "joueur":
         from .deliberation import ecart_securite

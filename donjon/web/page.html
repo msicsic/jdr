@@ -219,7 +219,7 @@ function dessiner() {
   const vues = [], connues = [];
   niveau.salles.forEach(s => s.cases.forEach(c => { connues.push(c.globale); if (c.lumiere) vues.push(c.globale); }));
   if (j.globale && j.niveau === niveau.niveau) cone(j.globale, j.orientation, "rgba(255,209,102,.09)", vues);
-  if ($("cones").checked) personnes.forEach(p => cone(p.globale, p.orientation, couleur[p.id] + "26",
+  if ($("cones").checked) personnes.filter(p => p.orientation).forEach(p => cone(p.globale, p.orientation, couleur[p.id] + "26",
     connues.filter(c => distance(c, p.globale) <= 6)));
   niveau.souvenirs.forEach(s => {
     const x = X(s.globale[0]), y = Y(s.globale[1]);
@@ -256,7 +256,10 @@ function dessiner() {
   });
   personnes.forEach(p => {
     const cx = X(p.globale[0]) + CS / 2, cy = Y(p.globale[1]) + CS / 2, r = CS * .32;
-    ctx.fillStyle = couleur[p.id]; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = couleur[p.id]; ctx.beginPath();
+    if (p.etat_corps && !p.etat_corps.conscient) ctx.ellipse(cx, cy, r * 1.2, r * .45, 0, 0, 2 * Math.PI);
+    else ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.fill();
     fleche(cx, cy, r, p.orientation, "#fff");
     (p.porte || []).forEach((x, i) => { ctx.font = "13px serif"; texteIcone(icone(x), cx - r + 2 + i * 12, cy + r + 2); });
     if ($("noms").checked) {
@@ -265,7 +268,7 @@ function dessiner() {
       ctx.fillStyle = "rgba(10,12,11,.75)"; ctx.fillRect(cx - w / 2, cy - r - 19, w, 15);
       ctx.fillStyle = couleur[p.id]; ctx.fillText(n, cx, cy - r - 8);
     }
-    noter(p.globale, `<span style="color:${couleur[p.id]}">●</span> <b>${echapper(p.nom)}</b><br><span class=gris>regarde vers le ${p.orientation}` +
+    noter(p.globale, `<span style="color:${couleur[p.id]}">●</span> <b>${echapper(p.nom)}</b><br><span class=gris>${p.orientation ? "regarde vers le " + p.orientation : "à terre, sans connaissance"}` +
       ((p.porte || []).length ? "<br>tient : " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span>");
   });
   if (j.globale && j.niveau === niveau.niveau) {
@@ -289,7 +292,7 @@ function listes() {
     li.onmouseleave = () => { surligne = null; dessiner(); };
     $(liste).appendChild(li);
   };
-  personnes.forEach(p => ligne("personnes", `<span class="pastille" style="background:${couleur[p.id]}"></span><span>${echapper(p.nom)}<br><span class="sous">regarde vers le ${p.orientation}` +
+  personnes.forEach(p => ligne("personnes", `<span class="pastille" style="background:${couleur[p.id]}"></span><span>${echapper(p.nom)}<br><span class="sous">${p.orientation ? "regarde vers le " + p.orientation : "à terre, sans connaissance"}` +
     ((p.porte || []).length ? " · tient " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span></span>", p.globale));
   if (!personnes.length) ligne("personnes", "<span class=sous>personne en vue</span>", null);
   niveau.objets.filter(o => o.type !== "personnage").forEach(o => ligne("objets", `<span class="icone">${icone(o)}</span><span>${echapper(o.nom)}<br><span class="sous">${NOMS_TYPE[o.type] || o.type}${o.allume ? ", allumé" : ""}${o.ancre_mur ? ", au mur" : ""}${o.aux_pieds ? ", à tes pieds" : ""}</span></span>`, o.globale));

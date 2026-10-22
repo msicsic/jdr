@@ -65,8 +65,6 @@ def base(monde, id, stat):
 def caracteristique(monde, id, stat):
     """La valeur modulée par les états : chaque point de malus aux jets en ôte deux."""
     from .corps import malus
-    if id != "joueur" and not _profil(monde, id):
-        return BASE
     return max(1, base(monde, id, stat) + 2 * malus(monde, stat, id))
 
 

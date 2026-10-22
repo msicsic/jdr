@@ -29,7 +29,7 @@ PAS = 15
 DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
           "crocheter": 600, "frapper": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
           "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50,
-          "demander_feu": 100}
+          "demander_feu": 100, "ranimer": 100}
 DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
@@ -516,12 +516,18 @@ def appeler(monde, id, qui, lignes):
     rejoint : il attend sur place un temps borné, sauf pour plus pressant, ou va vers l'appelant
     s'il le cherche aussi (``deliberation.attendre_l_appelant``). Le joueur appelé entend l'appel
     (``ecoute``) et répond, s'il le veut, par le même geste (``repondre_a``, ``sons``)."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return False
     heler(monde, id, qui, lignes)
     repondre(monde, id, qui, lignes)
 
 
 def heler(monde, id, qui, lignes):
     """``id`` (un PNJ ou le joueur) hèle ``qui`` par son nom : un cri (``ouie``, nature « hele »)."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return False
     from .ouie import retentir
     from .social import _qui
     a, b = _qui(monde, id), _qui(monde, qui)
@@ -538,6 +544,9 @@ def repondre(monde, id, qui, lignes):
     """``qui`` a peut-être saisi son nom, hélé par ``id`` (un PNJ ou le joueur) : un PNJ répond
     « Ici ! » (``repondre_a``), sauf à une voix dont il se méfie (``appeler``) ; vrai s'il a répondu.
     Le joueur répond s'il le veut, de lui-même. Un PNJ resté sans réponse le retient."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return False
     from .ouie import saisit
     from .voix import repond as repond_a_la_voix
     # Il répond à son nom, sauf à une voix dont il se méfie.
@@ -557,6 +566,9 @@ def repondre_a(monde, qui, appelant, lignes):
     la réponse, sûr de lui s'il connaît sa voix, sur sa parole sinon (``voix.se_nommer``) ; qui la
     surprend l'apprend de même. Un PNJ qui répond s'attend à être rejoint
     (``deliberation.attendre_l_appelant``)."""
+    from .corps import conscient
+    if not conscient(monde, qui):
+        return False
     from .ouie import retentir, saisit
     from .social import _qui
     from .voix import se_nommer
@@ -799,6 +811,15 @@ def _executer(monde, id, etape, lignes, gestes):
     c = monde.objets.get(cible)
     if c is None:
         return False
+    if op == "ranimer":
+        from .corps import ranimer
+        from .monde import ErreurMonde
+        try:
+            ranimer(monde, id, cible)
+        except ErreurMonde:
+            return False
+        _raconter(monde, id, "ranime", c, lignes)
+        return True
     if op == "chauffer":
         return _chauffer(monde, id, cible, lignes)
     for objet in _a_toucher(monde, id, etape):
@@ -1287,6 +1308,9 @@ def peuvent_se_parler(monde, a, b):
     les mots de l'autre par l'ouïe commune (``ouie.s_entendent`` : distance réelle, passages,
     portes). Savoir qui parle n'en est pas une condition : une voix qu'on ne sait à qui prêter est
     un étranger (``relations.percue``), à qui l'on peut répondre « Qui va là ? »."""
+    from .corps import conscient
+    if not conscient(monde, a) or not conscient(monde, b):
+        return False
     from .ouie import s_entendent
     return s_entendent(monde, a, b)
 
@@ -1375,6 +1399,9 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     jusqu'à la minute (``ATTENTE``), a fini ou abandonné son plan (``FIN``) ou manqué un geste
     (``MANQUE``). ``compter`` : il agit à son heure, et non parce qu'un événement l'a fait
     reconsidérer. Sans le mode cases, un geste prend la minute, comme avant."""
+    from .corps import conscient, corps
+    if not conscient(monde, id):
+        return max(1, corps(monde, id)["inconscient"] - t), ATTENTE, None
     from .deliberation import EFFORTS, PROGRESSIFS
     from .stratege import terminer
     reste = _jusqu_a_la_minute(t)
@@ -1619,6 +1646,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     from .horloges import declencher as declencher_horloges
     from .perception import avancer_combustion
     from .social import bavarder
+    from .corps import conscient, corps, reveiller
     from .temps import MINUTE
     from .vecu import minute as vivre_la_minute, noter, solder as solder_vecu
     fin_minutes, fin_dixiemes = monde.data["minutes"], monde.data.get("dixiemes", 0)
@@ -1664,7 +1692,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
     t, tours = debut, 0
     while True:
         frontiere = (t // MINUTE + 1) * MINUTE
+        reveil_joueur = corps(monde, "joueur")["inconscient"] or fin + 1
         prochain = min((_prochain(e) for e in esprits_.values()), default=fin + 1)
+        prochain = min(prochain, reveil_joueur)
         if min(frontiere, prochain) > fin:
             break
         if frontiere <= prochain:
@@ -1677,6 +1707,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
             # Le corps du joueur a vécu la minute dans l'état de son action (``vecu``).
             vivre_la_minute(monde, "joueur", t, lignes)
             for id in ids:
+                vivre_la_minute(monde, id, t)
+                if not conscient(monde, id):
+                    continue
                 esprits_[id]["manque"] = None  # Une minute a passé : ce qu'il a manqué se retente.
                 if monde.objets[id].get("profil"):
                     esprits_[id]["eveil"] = None  # Il délibère : ce qui l'avait éveillé y est pesé.
@@ -1694,13 +1727,19 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 prets_reclames(monde, lignes)  # Un prêt échu réclamé au joueur, et pas rendu.
             continue
         tours = tours + 1 if prochain == t else 0
-        assert tours <= 50 * len(ids), "La vie des PNJ tourne sur place"
+        assert tours <= 50 * max(1, len(ids)), "La vie des PNJ tourne sur place"
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
+        if reveil_joueur == t:
+            reveiller(monde, "joueur")
         for id in ids:
             e = esprits_[id]
             if _prochain(e) != t:
                 continue
+            if not conscient(monde, id):
+                reveiller(monde, id)
+                percevoir_tous(monde)
+                choisir(monde, id, monde.data["minutes"])
             # À son heure (fin de son geste ou de son attente), ou plus tôt, éveillé par un événement.
             compter = t == _prevu(e)
             e["veille"] = None
