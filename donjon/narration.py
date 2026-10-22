@@ -116,6 +116,14 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
 - contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus.
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
 invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
+conversation_validee est une parole de Corvus que le moteur a déjà fait entendre : issue dit ce qu'il
+en a établi (Corvus l'a dite, à qui, qui lui répond) ; la raconter, ou dire qu'elle résonne, est
+mecanique, source conversation_validee. Ceux de conversation_validee.repondent lui répondent, et eux
+seuls : la réplique de l'un d'eux, avec ses propres mots, est une parole (verdict parole), que rien
+n'a à prévoir ni à fournir mot pour mot ; dire que l'un d'eux se tait, ne répond pas ou ne l'a pas
+entendu est contradictoire. repondent vide :
+personne ne lui répond. Les temoins l'ont entendue et se taisent. Dans objet:<id>, a_portee_de_main
+dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
 moteur : les raconter, dans la manière que demande resultat_resolu.intention (style, rythme,
@@ -234,8 +242,10 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None):
     return obstacles
 
 
+# La voix d'auteur : le texte parle du joueur, du moteur ou de Corvus à la troisième personne, ou le MJ
+# parle de lui-même (« je », hors des répliques citées).
 AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
-                    r"|\bscénario\b", re.IGNORECASE)
+                    r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
 
 
 def voix_auteur(texte, partie="texte"):
@@ -294,18 +304,19 @@ def engagements_prevus(faits, locuteur):
 
 
 def destinataires_parole(faits, locuteur):
-    """Ceux à qui Corvus vient de parler (conversation_validee.destinataires), seuls à lui répondre ;
+    """Ceux qui répondent à la parole que Corvus vient de dire (conversation_validee.repondent : ses
+    destinataires, et qui l'a entendue à la cantonade et a choisi de répondre), seuls à lui répondre ;
     sans parole de Corvus validée, rien ne restreint ``locuteur``."""
     validee = faits.get("conversation_validee")
-    if isinstance(validee, dict) and isinstance(validee.get("destinataires"), list):
-        return [x for x in validee["destinataires"] if isinstance(x, str)]
+    for cle in ("repondent", "destinataires"):
+        if isinstance(validee, dict) and isinstance(validee.get(cle), list):
+            return [x for x in validee[cle] if isinstance(x, str)]
     return [locuteur]
 
 
-# Les formes par lesquelles une réplique dit qui parle (texte normalisé) : ce qui suit est un nom
-# que seul le moteur peut donner à une voix inconnue.
-SE_NOMMER = re.compile(r"\b(?:je suis|je m'appelle|on m'appelle|mon nom est|mon nom,|c'est moi,?|moi,? c'est)"
-                       r"\s+((?:\w|['-])+(?:\s+(?:\w|['-])+)?)")
+# Les formes par lesquelles une réplique dit qui parle : ce qui suit est un nom que seul le moteur peut
+# donner à une voix inconnue. Une seule règle, celle de la parole de Corvus (``paroles.SE_NOMMER``).
+from .paroles import SE_NOMMER  # noqa: E402
 
 
 def voix_inconnues(monde, paroles, faits, texte="", partie="texte"):
@@ -539,9 +550,10 @@ def controler(texte, rapport, faits, partie="texte"):
         elif verdict in ("parole", "engagement") and locuteur not in destinataires_parole(faits, locuteur):
             # Le moteur a décidé l'issue de la parole de Corvus pour ses destinataires seulement.
             destinataires = destinataires_parole(faits, locuteur)
-            refuser("Corvus s'adressait à " + ", ".join(destinataires) + " : eux seuls lui répondent ; les autres "
-                    "l'ont entendu sans être interpellés et se taisent.",
-                    f"une réponse de {en_liste(destinataires)} seulement (conversation_validee.destinataires) ; "
+            refuser(("Seuls " + ", ".join(destinataires) + " répondent à Corvus" if destinataires
+                     else "Personne ne répond à Corvus") + " ; les autres l'ont entendu sans être interpellés et "
+                    "se taisent.",
+                    f"une réponse de {en_liste(destinataires)} seulement (conversation_validee.repondent) ; "
                     f"{locuteur} se tait", f"locuteur {locuteur}")
         elif verdict == "engagement" and (not ligne["entites"] or any(
                 e.strip() not in engagements_prevus(faits, locuteur) for e in ligne["entites"])):

@@ -263,10 +263,11 @@ class VoixInconnueTests(unittest.TestCase):
         self.assertIn("Tu dis à une voix inconnue : « Qui est là ? »", sortie)
         self.assertEqual(nom_pour_joueur(reprise, "brune"), "une voix qui se dit Brune")
         self.assertEqual(reprise.contexte()["interlocuteurs"][alias]["nom"], "une voix qui se dit Brune")
-        # Un nom n'est pas une identité : il ne peut s'adresser à « Brune » qu'il ne sait pas là.
-        from donjon.paroles import ParoleImpossible, analyser, destinataires
-        with self.assertRaises(ParoleImpossible):
-            destinataires(reprise, analyser(reprise, "je dis à Brune : approche"))
+        # Un nom n'est pas une identité : nommer « Brune », c'est s'adresser à la voix qui s'est dite Brune
+        # (``voix.porteur_du_nom``), qui reste une voix inconnue pour lui ; jamais à Brune qu'il ne sait pas là.
+        from donjon.paroles import analyser, destinataires
+        self.assertEqual(destinataires(reprise, analyser(reprise, "je dis à Brune : approche")), ["brune"])
+        self.assertEqual(designation(reprise, "brune"), alias)
 
 
 class NarrationTests(unittest.TestCase):

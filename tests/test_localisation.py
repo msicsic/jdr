@@ -65,7 +65,7 @@ class LocalisationTests(unittest.TestCase):
         self.assertIn({'id': 'gravure', 'nom': 'la consigne émaillée', 'derniere_salle': 'Refuge du relais',
                        'hors_de_vue': True},
                       faits['souvenirs_visuels'])
-        self.assertTrue(faits['objet:pied_de_biche']['a_portee'])
+        self.assertTrue(faits['objet:pied_de_biche']['a_portee_de_main'])
         self.assertTrue(faits['objet:pied_de_biche']['localisation']['meme_salle'])
         for champ in ('lieu', 'position', 'position_salle', 'case_percue'):
             self.assertNotIn(champ, faits['objet:pied_de_biche'])

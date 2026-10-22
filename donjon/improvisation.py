@@ -11,7 +11,7 @@ from .monde import ErreurMonde, objet, normaliser
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
-from .refus import inaccessible, liste
+from .refus import RefusDeForme, inaccessible, liste
 
 
 def effet(operation, cible="", destination="", texte="", valeur=0):
@@ -103,23 +103,23 @@ def compiler_effet(simulation, p, e):
             or any(not texte_valide(e[k], 160, vide=True) for k in ("operation", "cible", "destination", "texte"))
             or type(e["valeur"]) is not int):
         recus = sorted(e) if isinstance(e, dict) else type(e).__name__
-        raise ErreurMonde("Conséquence d'improvisation mal formée.",
+        raise RefusDeForme("Conséquence d'improvisation mal formée.",
                           "un effet a exactement operation, cible, destination, texte (≤ 160 caractères, sans saut "
                           f"de ligne), valeur (entier) ; reçu : {recus}.")
     op, cible, destination, texte, valeur = (e[k] for k in effet(""))
     if cible != "joueur" and cible not in [*p["cibles"], p["outil"]]:
         annonces = [c for c in ["joueur", *p["cibles"], p["outil"]] if c]
-        raise ErreurMonde("La conséquence doit viser une cible annoncée.",
+        raise RefusDeForme("La conséquence doit viser une cible annoncée.",
                           f"cible « {cible} » : parmi {', '.join(annonces)} ; si elle est impliquée, ajoute-la à cibles.")
     if op not in ("marquer", "son") and texte:
-        raise ErreurMonde("Un texte libre ne peut pas définir un effet physique.",
+        raise RefusDeForme("Un texte libre ne peut pas définir un effet physique.",
                           f"{op} : texte vide ; seuls marquer et son portent un texte.")
     if op != "deplacer" and destination:
-        raise ErreurMonde("Cette conséquence n'a pas de destination.", f"{op} : destination vide.")
+        raise RefusDeForme("Cette conséquence n'a pas de destination.", f"{op} : destination vide.")
     effets = []
     if op == "deplacer":
         if valeur:
-            raise ErreurMonde("Un déplacement ne modifie aucune quantité.", "deplacer : valeur 0.")
+            raise RefusDeForme("Un déplacement ne modifie aucune quantité.", "deplacer : valeur 0.")
         plan = compiler(simulation, etape("deplacer", cible, destination))
         effets = plan.effets
     elif op == "marquer":
@@ -160,16 +160,16 @@ def compiler_effet(simulation, p, e):
         effets = [("endommager", cible, 1)]
     elif op == "blesser":
         if cible != "joueur" or not 1 <= valeur <= 3 or simulation.joueur["pv"] <= valeur or p["approche"] not in ("effort", "adresse", "manipulation"):
-            raise ErreurMonde("Cette blessure dépasse les conséquences mineures de cet arbitrage.",
+            raise RefusDeForme("Cette blessure dépasse les conséquences mineures de cet arbitrage.",
                               f"blesser : cible joueur, valeur 1 à 3 et inférieure aux PV ({simulation.joueur['pv']}), "
                               "approche effort, adresse ou manipulation.")
         effets = [("blessure_improvisee", "joueur", valeur)]
     elif op == "son":
         if cible != "joueur" or not 1 <= valeur <= 3:
-            raise ErreurMonde("Un son improvisé vient du joueur, avec une intensité de 1 à 3.",
+            raise RefusDeForme("Un son improvisé vient du joueur, avec une intensité de 1 à 3.",
                               f"son : cible joueur, valeur 1 à 3 (reçu cible « {cible} », valeur {valeur}).")
         if texte not in FORMES_SONORES:
-            raise ErreurMonde("La forme sonore doit être une catégorie acoustique connue.",
+            raise RefusDeForme("La forme sonore doit être une catégorie acoustique connue.",
                               f"son : texte parmi {', '.join(FORMES_SONORES)} (reçu « {texte} »).")
         forme = texte
         if forme.startswith("voix_") and simulation.joueur.get("peut_parler") is False:
@@ -177,7 +177,7 @@ def compiler_effet(simulation, p, e):
                               "le joueur ne peut pas parler : une forme sans voix (souffle, corps_rythmique, corps_bref).")
         effets = [("son_improvise", "joueur", {"intensite": valeur, "forme": forme})]
     else:
-        raise ErreurMonde("Conséquence non autorisée dans cet arbitrage.",
+        raise RefusDeForme("Conséquence non autorisée dans cet arbitrage.",
                           f"operation « {op} » : parmi marquer, deplacer, user, blesser, son.")
     for e_interne in effets:
         Moteur._appliquer(simulation, e_interne, [])
@@ -197,7 +197,7 @@ def preparer(m, p, origine):
     from .moteur import Plan
     if not isinstance(p, dict) or set(p) != set(proposition("", issue(""))) or p["action"] != "improviser":
         recus = sorted(p) if isinstance(p, dict) else type(p).__name__
-        raise ErreurMonde("Arbitrage sommaire mal formé.",
+        raise RefusDeForme("Arbitrage sommaire mal formé.",
                           f"improviser a exactement les champs {', '.join(proposition('', issue('')))} ; reçu : {recus}.")
     fautes = [f for f, mal in (
         ("intention : texte non vide de 240 caractères au plus, sans saut de ligne", not texte_valide(p["intention"], 240)),
@@ -207,11 +207,11 @@ def preparer(m, p, origine):
         ("cibles : liste de 0 à 6 identifiants distincts", not isinstance(p["cibles"], list) or len(p["cibles"]) > 6
          or any(not isinstance(id, str) for id in p["cibles"]) or len(set(p["cibles"])) != len(p["cibles"]))) if mal]
     if fautes:
-        raise ErreurMonde("Précise l'intention et ses cibles existantes.", " ; ".join(fautes) + ".")
+        raise RefusDeForme("Précise l'intention et ses cibles existantes.", " ; ".join(fautes) + ".")
     for champ, mini, maxi in (("minutes", 0, 15), ("bruit", 0, 3), ("difficulte", 10 if p["stat"] else 0, 18 if p["stat"] else 0)):
         if type(p[champ]) is not int or not mini <= p[champ] <= maxi:
             # Une cause par refus : le champ fautif, nommé.
-            raise ErreurMonde({"minutes": "La durée", "bruit": "Le bruit", "difficulte": "La difficulté"}[champ]
+            raise RefusDeForme({"minutes": "La durée", "bruit": "Le bruit", "difficulte": "La difficulté"}[champ]
                               + " de ce geste sort des limites d'un arbitrage sommaire.",
                               f"{champ} : entier de {mini} à {maxi} (reçu {p[champ]!r})"
                               + (" ; avec stat vide, difficulte 0" if champ == "difficulte" and not p["stat"] else
@@ -235,30 +235,30 @@ def preparer(m, p, origine):
         b = p[nom]
         if not isinstance(b, dict) or set(b) != {"recit", "effets"}:
             recus = sorted(b) if isinstance(b, dict) else type(b).__name__
-            raise ErreurMonde("Issue d'improvisation mal formée.",
+            raise RefusDeForme("Issue d'improvisation mal formée.",
                               f"{nom} a exactement les champs recit et effets ; reçu : {recus}.")
         if not texte_valide(b["recit"], 600, vide=(nom == "echec" and not p["stat"])):
-            raise ErreurMonde("Issue d'improvisation mal formée.",
+            raise RefusDeForme("Issue d'improvisation mal formée.",
                               f"{nom}.recit : texte de 600 caractères au plus, sans saut de ligne"
                               + (", non vide (un jet exige un récit d'échec)" if nom == "echec" else ", non vide") + ".")
         if not isinstance(b["effets"], list) or len(b["effets"]) > 4:
-            raise ErreurMonde("Issue d'improvisation mal formée.", f"{nom}.effets : une liste de 0 à 4 effets.")
+            raise RefusDeForme("Issue d'improvisation mal formée.", f"{nom}.effets : une liste de 0 à 4 effets.")
         if sum(e.get("valeur", 0) for e in b["effets"] if isinstance(e, dict) and e.get("operation") == "blesser" and type(e.get("valeur")) is int) > 3:
-            raise ErreurMonde("Le total des blessures doit rester mineur : au plus 3 PV.",
+            raise RefusDeForme("Le total des blessures doit rester mineur : au plus 3 PV.",
                               f"{nom} : la somme des valeurs blesser est au plus 3.")
     if not p["stat"] and p["echec"] != issue(""):
-        raise ErreurMonde("Un geste sans jet n'a pas de branche d'échec.",
+        raise RefusDeForme("Un geste sans jet n'a pas de branche d'échec.",
                           "stat vide : echec = {recit: \"\", effets: []} ; ou une stat et difficulte 10 à 18 pour un jet.")
     effets = compiler_branche(m, p, "reussite")
     echec = compiler_branche(m, p, "echec")
     if any(e[0] == "blessure_improvisee" for e in effets+echec) and not p["stat"]:
-        raise ErreurMonde("Un risque de blessure doit être annoncé dans une tentative à confirmer.",
+        raise RefusDeForme("Un risque de blessure doit être annoncé dans une tentative à confirmer.",
                           "blesser exige un jet : stat et difficulte 10 à 18, ou retire l'effet blesser.")
     if any(e[0] == "endommager" for e in effets+echec) and not p["stat"]:
-        raise ErreurMonde("Un risque pour l'outil doit être annoncé avant confirmation.",
+        raise RefusDeForme("Un risque pour l'outil doit être annoncé avant confirmation.",
                           "user exige un jet : stat et difficulte 10 à 18, ou retire l'effet user.")
     if p["approche"] == "observation" and p["cibles"] and not effets and not echec:
-        raise ErreurMonde("L'observation d'une cible existante doit passer par une action de perception du moteur "
+        raise RefusDeForme("L'observation d'une cible existante doit passer par une action de perception du moteur "
                           "(observer, examiner, toucher, lire ou ecouter).",
                           f"pour percevoir {', '.join(p['cibles'])} : action examiner (ou toucher, lire, ecouter) avec "
                           "cet identifiant, pas improviser.")

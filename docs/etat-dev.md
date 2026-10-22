@@ -830,6 +830,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Boucles et absurdités relevées : appels à l'aide sans fin, aller voir ↔ garder, prévenir en boucle,
   bruit de sa propre salle jamais examiné, vol à une case dans le noir jamais découvert, tâches payées
   acceptées puis non faites, PNJ piégés par l'eau à la crue.
+- Branche `parole-corrections`, non fusionnée (`docs/plan-ouie.md`, « Corrections de la parole » ;
+  `docs/contrat-mj.md`) : les défauts de parole du [banc Luna du soir](banc-luna-soir.md). **Vocatif où
+  qu'il soit** (`paroles._vocatifs`) : un nom détaché par une virgule désigne le destinataire, en fin de
+  phrase comme en tête (« as-tu de quoi manger, Ilse ? »), sauf après « moi, » (« c'est moi, Brune » se
+  nomme). **Nom inconnu** : un vocatif ou « je dis à X » qui nomme un personnage que Corvus ne connaît pas
+  donne « Tu ne connais personne du nom de X ici », jamais un autre destinataire. **Nommer une voix**
+  (`voix.porteur_du_nom`) : nommer X quand seule une voix qui s'est dite X est là, c'est s'adresser à
+  elle, pour une parole comme pour un don (la règle de la branche `voix` « il ne peut s'adresser à Brune
+  qu'il ne sait pas là » est remplacée) ; un absent : « Tu ne vois pas X d'ici », plus « n'est pas là ».
+  **Répondre à la cantonade** (`paroles.repondants`) : une parole sans destinataire nommé qui appelle une
+  réponse (« ? », contenu `qui`, `ressource`, `demande`…) est entendue de qui en saisit les mots ; il
+  répond sauf méfiance (`voix.repond`, la règle de l'appel), selon la règle d'un destinataire ; Corvus
+  entend sa voix et peut lui parler ensuite. **Ce que reçoit l'auditeur** : `conversation_validee.repondent`
+  et `issue` (attestée), `a_portee_de_main` (au lieu de `a_portee`), `a_portee_de_voix`,
+  `salle.sorties_connues`. **Refus de forme** (`refus.RefusDeForme`) : corrigé à part, jamais affiché ;
+  une question de faisabilité garde la raison du monde. **Sorties** : « Sorties que tu connais : aucune
+  pour l'instant ». **Se nommer** (`paroles.verifier_nom`) : le nom est celui que disent les mots ; un
+  `nom` contredit ou absent des mots est refusé, un nom non typé ajouté. Faibles : « je réponds » seul
+  n'est plus une parole sans conteste ; « je » hors des répliques est une voix d'auteur. Cas réels et cas
+  de même nature après rechargement (`tests/test_parole_corrections.py`, 22 tests ; suite après fusion de `main` 8589ca2 : 1171 tests). Luna, 2 passes,
+  `main` 0489fea puis la branche (9 tours en panne serveur écartés côté `main`) : 4 bancs de référence
+  2,99 → 3,24 appels et 14,2 → 15,0 s par tour MJ, replis 0 → 1, relances 3,5 → 6, refus 8,5 → 11 (la
+  correction à part d'un refus de forme, au Relais) ; soir-noir 4,2 → 3,3 appels ; la voix d'Ilse répond
+  dans le noir 2/2, « as-tu de quoi manger, Ilse ? » va à Ilse 2/2, imposture démasquée 4/4, aucun « aucun
+  passage praticable » affiché. Limites : vocatif lu à la virgule ; un nom inconnu n'est refusé que s'il
+  est celui d'un personnage du monde ; répondre à la cantonade se décide sur la seule méfiance ; le
+  silence d'un destinataire n'est arrêté que par l'auditeur ; « je réponds » sans appel reste une parole
+  que Luna remplit de ses mots ; « est-ce que quelqu'un a du bois ? » va à celui d'en face.
 - Branche `refus-retenus`, non fusionnée (`docs/plan-social.md`, « Des refus retenus selon leur cause ») :
   à l'auberge sans bois, les offres « impossible » se répétaient toutes les deux heures comme un refus
   d'humeur (38 par nuit, sans recours 30 → 60). **Un refus se retient selon sa cause** (`deliberation.

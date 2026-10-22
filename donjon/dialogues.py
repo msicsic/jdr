@@ -188,11 +188,18 @@ def verifier_don(monde, objet_id, destinataire=""):
     if destinataire in presents and reel(monde, destinataire) != destinataire:
         return reel(monde, destinataire)  # Une voix qu'il ne sait à qui prêter, dans le noir.
     if destinataire not in presents:
-        # Celui qu'il connaît et nomme est absent : on le lui dit, qu'il y ait ou non d'autres présents.
+        # Il ne le sait là que par une voix qui porte ce nom : c'est à elle qu'il le tend (``voix.porteur_du_nom``).
+        from .voix import porteur_du_nom
+        porteur = porteur_du_nom(monde, destinataire, [reel(monde, d) for d in presents])
+        if porteur:
+            return porteur
+        # Celui qu'il connaît et nomme, il ne le perçoit pas : on le lui dit, qu'il y ait ou non d'autres présents.
+        # Ce qu'il en sait, c'est qu'il ne le voit pas, pas qu'il n'est pas là.
         from .paroles import _connu_du_joueur
         nomme = (destinataire in monde.objets and monde.objets[destinataire]["type"] == "personnage"
                  and _connu_du_joueur(monde, destinataire))
-        raise ErreurMonde(designer(monde.objets[destinataire], debut=True) + " n'est pas là pour le recevoir."
+        raise ErreurMonde(f"Tu ne vois pas {monde.objets[destinataire]['nom'].split(',')[0]} d'ici : approche-toi "
+                          "pour le lui donner."
                           if nomme else "Il n'y a personne ici pour le recevoir." if not presents
                           else "Précise à qui tu le donnes.",
                           f"outil = le personnage qui reçoit, parmi les présents : {', '.join(presents) or 'aucun'}.")
