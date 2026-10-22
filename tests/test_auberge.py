@@ -43,7 +43,8 @@ class AubergeTests(unittest.TestCase):
         self.assertTrue(o["garde_manger"]["verrouillee"] and "garde_manger" in o["cle_garde_manger"]["ouvre"])
         self.assertEqual(o["cle_garde_manger"]["lieu"], "odile")
         self.assertEqual(o["vivres"]["lieu"], "garde_manger")
-        self.assertTrue(all(o[b]["charges"] > 0 for b in ("bois_cuisine", "bois_anselme", "fagots_etable")))
+        self.assertTrue(all(o[b]["charges"] > 0 for b in ("bois_cuisine", "bois_anselme", "fagots_etable", "bois_reserve")))
+        self.assertEqual(o["bois_reserve"]["proprietaire"], "odile")
         self.assertTrue(all(o[f].get("foyer") and o[f]["allume"] for f in ("atre", "fourneau", "poele")))
 
     def test_la_nuit_se_vit_avant_et_apres_rechargement(self):
@@ -69,8 +70,9 @@ class AubergeTests(unittest.TestCase):
         self.assertGreater(mesures["echanges"], 5)
         # (Depuis que la lumière se constate devant la serrure et qu'une part s'achète plutôt que de
         # risquer un refus, cette nuit en compte 14 : Lucien renonce au coffre trop sombre, et les
-        # refus suivis d'un achat deviennent un achat.)
-        self.assertGreater(mesures["evenements_distincts"], 12)
+        # refus suivis d'un achat deviennent un achat. Depuis que l'auberge a du bois pour la nuit,
+        # branche ``ressources``, 11 : moins de demandes de bois dans ces trois premières heures.)
+        self.assertGreater(mesures["evenements_distincts"], 10)
         acteurs = {c["pnj"] for c in chronique if c.get("nature", "geste") in ("geste", "social")}
         self.assertGreaterEqual(len(acteurs), 6)
 
