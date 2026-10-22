@@ -6,7 +6,10 @@
 - la contre-revue refusait la perception que le moteur venait de prescrire pour chercher quelque chose
   (« je cherche des traces de pas sur le sol » : examiner le sol, 9 appels) ;
 - les règles que le contrôle déterministe applique au texte (deuxième personne, pas de « je » hors des
-  répliques) n'étaient dites nulle part au MJ.
+  répliques) n'étaient dites nulle part au MJ ;
+- un nom typé autrement que ne le disent les mots de Corvus était refusé au MJ, alors que le moteur le
+  lit lui-même dans les mots (« C'est moi, Brune. ») ;
+- une citation recopiée par l'auditeur avec ses mots d'attribution refusait une réplique juste.
 
 Chaque cas vérifie ce que lit le joueur, l'état après rechargement et les appels faits."""
 import unittest
@@ -80,6 +83,54 @@ class AvisNonLuTests(unittest.TestCase):
         self.assertIn("Tu dis à Aubin", sortie)
         self.assertNotIn("Le joueur veut-il", sortie)
         self.assertIn(("joueur", ["aubin"], "il fait froid ce soir"), paroles_retenues(reprise, "aubin"))
+
+
+class NomTests(unittest.TestCase):
+    def test_meme_nature_je_suis_gorm_type_corvus(self):
+        # Même nature que « C'est moi, Brune. » (test_parole_corrections) : les mots disent Gorm, Luna type
+        # Corvus ; le moteur lit Gorm, sans relance : Corvus ne s'est pas dit Corvus.
+        from tests.test_parole_corrections import ImpostureTests as Appel, audit, ligne, narration
+        m = Appel().appelee()
+        reprise, sortie, appels = jouer(m, "« Je suis Gorm. »", [
+            parole("Je suis Gorm.", ("nom", "joueur", "", ""), personnage="voix_1"),
+            dialogue("La voix : « Gorm ? Ce n'est pas sa voix. »")],
+            [audit(ligne("parole", "voix_1", "Gorm ? Ce n'est pas sa voix."))])
+        self.assertEqual(len(mj(appels)), 2)
+        faits = narration(appels)["faits"]["conversation_validee"]["faits"]
+        self.assertFalse(any("c'est Corvus" in f for f in faits))
+        self.assertIn("Tu dis à une voix qui se dit Ilse : « Je suis Gorm. »", sortie)
+        from donjon.esprits import lire
+        self.assertEqual(lire(reprise, "ilse")["voix_entendues"]["joueur"]["se_dit"], "marchand")
+
+
+class CitationTests(unittest.TestCase):
+    def rapport(self, citation):
+        return {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "aubin", "citation": citation,
+                                   "entites": [], "motif": ""}}}
+
+    def test_cas_reel_la_citation_recopiee_avec_l_attribution(self):
+        # Banc soir-noir : l'auditeur citait « C'est Ilse », répond la voix, tout près dans le noir. ; la
+        # réplique était refusée (« Une parole doit être citée entre « et », en entier ») et Luna relancée.
+        m = scene()
+        texte = "« Il gèle, ce soir », répond Aubin, sans lever les yeux."
+        reprise, sortie, appels = jouer(m, "je dis à Aubin : il fait froid", [
+            parole("il fait froid", ("propos", "", "", ""), personnage="aubin"), dialogue(texte)],
+            [self.rapport("Il gèle, ce soir », répond Aubin, sans lever les yeux.")])
+        self.assertEqual(fonctions(appels).count("auditer_narration"), 1)
+        self.assertIn(texte, sortie)
+        self.assertIn(("aubin", "Il gèle, ce soir"),
+                      [(p["locuteur"], p["texte"]) for p in reprise.data["paroles_pnj"]])
+
+    def test_meme_nature_une_citation_qui_ne_recouvre_aucune_replique_reste_refusee(self):
+        from donjon.narration import controler
+        faits = {"interlocuteurs": {"aubin": {}}}
+        bon = controler("Aubin grogne : « Pas maintenant. »", self.rapport("« Pas maintenant »"), faits)
+        self.assertEqual((bon["obstacles"], bon["paroles"]), ([], [{"locuteur": "aubin", "texte": "Pas maintenant."}]))
+        recopie = controler("Aubin grogne : « Pas maintenant. »", self.rapport("grogne : « Pas maintenant. »"), faits)
+        self.assertEqual(recopie["paroles"], [{"locuteur": "aubin", "texte": "Pas maintenant."}])
+        faux = controler("Aubin grogne : « Pas maintenant. »", self.rapport("Plus tard."), faits)
+        self.assertEqual(len(faux["obstacles"]), 1)
+        self.assertIn("citée entre « et », en entier", faux["obstacles"][0]["motif"])
 
 
 class ConsignesTests(unittest.TestCase):

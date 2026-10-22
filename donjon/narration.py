@@ -507,6 +507,25 @@ ACCEPTE_VERDICT = {
 }
 
 
+def cite_entiere(passage, citation):
+    """La citation figure entière entre « et » dans le passage (espaces fines ou insécables comprises)."""
+    return re.search(r"«\s*" + re.escape(citation) + r"\s*»", passage) is not None
+
+
+def citation_du_segment(passage, citation):
+    """La citation d'une parole est le texte entre « et » du segment : quand celle que recopie l'auditeur
+    n'y figure pas telle quelle (« C'est Ilse », répond la voix…, avec les mots d'attribution), c'est la
+    réplique du segment qu'elle recouvre, si une seule le fait. Une faute de recopie de l'auditeur ne
+    refuse pas la réponse ; une citation qui ne recouvre aucune réplique reste refusée."""
+    if not citation or cite_entiere(passage, citation):
+        return citation
+    cite = normaliser(citation)
+    repliques = [r.strip() for r in re.findall(r"«\s*([^»]*?)\s*»", passage)]
+    candidates = [r for r in repliques if len(normaliser(r)) >= 3
+                  and (normaliser(r) in cite or cite in normaliser(r))]
+    return candidates[0] if len(candidates) == 1 else citation
+
+
 def controler(texte, rapport, faits, partie="texte"):
     """Valide le rapport de l'auditeur et renvoie ses obstacles, jamais sa seule assurance. Chaque
     obstacle porte un ``attendu`` (``refus.audit``) : le segment, la phrase ou la valeur en cause, le
@@ -585,8 +604,9 @@ def controler(texte, rapport, faits, partie="texte"):
                     accepte, citation or None)
         elif verdict == "parole" or (verdict == "engagement" and citation):
             from .faits_locaux import LONGUEUR_PAROLE
+            citation = citation_du_segment(passage, citation)
             if (not 3 <= len(citation.strip()) <= LONGUEUR_PAROLE or any(ord(c) < 32 for c in citation)
-                    or f"« {citation} »" not in passage):
+                    or not cite_entiere(passage, citation)):
                 refuser("Une parole doit être citée entre « et », en entier, dans le segment.",
                         f"la réplique de {locuteur} entière entre « et » dans ce segment, de 3 à {LONGUEUR_PAROLE} "
                         "caractères", f"citation {citation}" if citation else "citation vide")
