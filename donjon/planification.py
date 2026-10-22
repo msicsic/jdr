@@ -1364,6 +1364,14 @@ def planifier_pulsion(monde, id, condition, tache=False):
     return None if trouve is None else trouve[1:]
 
 
+def planifier_tache(monde, id, condition, payeur):
+    """(but, étapes) pour faire la tâche que ``payeur`` lui a payée, ou None : le plan de son devis
+    (``devis_pulsion``), celui sur lequel il l'a acceptée et sur lequel il la jugerait impossible
+    (``echanges.empeche``)."""
+    trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
+    return None if trouve is None else trouve[1:]
+
+
 def devis_pulsion(monde, id, condition, payeur):
     """(coût, étapes) de rétablir ``condition`` (minutes de son plan, fautes comprises), ou None s'il
     ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un

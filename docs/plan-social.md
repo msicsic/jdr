@@ -683,3 +683,32 @@ Limites :
   lot (« les planches de bac ») ; une réserve que son propriétaire porte se demande encore entière ;
 - le joueur n'a pas cette mémoire : ses demandes passent par Luna et le moteur à chaque fois ;
 - `SURENCHERE` est une constante du moteur, à régler au banc.
+
+## La surenchère progressive et la tâche aussitôt due (branche `crochetage-surenchere`)
+
+Décision du 2026-10-22 : après un refus « cher », hausse par paliers (+50 %) tant que l'offre vaut la
+peine pour le payeur, puis il renonce ; pas d'offres en rafale (une hausse à la fois, au plus une par
+délibération). Défaut N3 de la revérification (`docs/reverification.md`), le cas réel : à l'auberge
+(graine 42), Odile offre à Tilo 2, 4, 8, 16, 32 pièces (« cher ») entre les minutes 324 et 326, puis 64
+(« accepte ») ; 47 s plus tard, Tilo doit 64 pièces, et refuse de les rendre ; Anselme paie 24 pièces à
+plusieurs pour qu'on lui remette son ballot, chacun accepte et doit aussitôt.
+
+**Une offre ne monte que tant qu'elle vaut la peine** (`planification._engager`, `hausse`, `PALIER`) :
+refusé à un prix, le payeur offre ce prix et moitié en plus (au moins une pièce de plus), ou la peine qu'il
+estime si elle a grandi ; jamais ce que lui coûtent ces pièces (`Vue.depense`, `caractere.valeur_pieces`)
+au-delà de la peine que la tâche lui épargne (`peine_tache` : le chemin d'où il se tient avec l'autre
+jusqu'au lieu de la tâche, plus `TACHE`), première offre comprise. Au-delà, il renonce à ce marché : le
+refus « cher » tient pour ce prix, et rien de plus ne vaut la peine. `SURENCHERE` (× 2) disparaît.
+
+**Une hausse à la fois** (`Vue.hausse_faite`) : après un refus « cher » d'une tâche, aucune offre haussée
+de cette tâche, à lui ou à un autre, avant la délibération de la minute suivante ; une première offre à un
+autre n'est pas une hausse. Le refus de la minute même entre dans ce que lit la recherche (`_entrees`).
+
+**Accepter une tâche se juge sur ce qui la rendrait impossible** (`echanges.empeche`,
+`planification.planifier_tache`) : on acceptait sur le devis (`devis_pulsion` : ses seuls moyens et ceux
+que donne ou prêterait le payeur, un feu à entretenir compté à recharger), mais l'abandon jugeait la
+tâche par le plan d'une pulsion (`deliberation._plan_pulsion` : sans ce que garde ou prête le payeur, une
+autre recherche, qui pouvait n'aboutir à rien) : la tâche acceptée se découvrait aussitôt infaisable et
+devenait une dette. Désormais l'empêchement est le même devis, refait sur ce qu'il croit maintenant, et
+la tâche se fait par le plan de ce devis : seul ce qui a changé dans ce qu'il croit depuis l'acceptation
+peut la rendre impossible.
