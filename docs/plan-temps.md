@@ -439,7 +439,9 @@ crue et au Relais, quelques minutes de plans possibles non entrepris pendant un 
   appel à l'aide, horloges du scénario (déclenchées par le moteur à la fin d'une action), dates des
   croyances et souvenirs (la minute), répit après renoncement et patience (en minutes). Hors
   périmètre, à faire ensuite : corps, besoins, combustion et crue au temps réel ; horloges à leur
-  instant ; croyances et souvenirs datés au dixième ; patience en temps.
+  instant ; croyances et souvenirs datés au dixième ; patience en temps. *Depuis la branche
+  `temps-reel` : horloges, corps, besoins, sécurité ressentie, patience et répit le sont (voir
+  « Correctif : le temps réel »).*
 - Un franchissement de seuil n'éveille personne (refusé pour l'instant) : un besoin qui presse entre
   deux minutes attend la minute.
 - Ce qui change de son propre fait ne l'éveille pas : un PNJ qui découvre en marchant quelqu'un ou
@@ -512,6 +514,53 @@ minute : mêmes besoins, et la faim compte la marche à l'effort au dixième pr�
 joueur et de Gorm ; Brune qui renonce après 30 minutes de guet comptées au temps, puis son répit ;
 Gorm bloqué par le joueur, dont l'attente compte le temps et qui renonce au-delà ; la patience d'un
 bloc ou découpée.
+
+**Bancs** (8 h, départ tiré, `main` 0551ba2 puis la branche, l'un après l'autre, `--processus 1`, machine
+partagée avec deux autres chantiers ; Relais 8 graines `--joueur chambre_cloche`, mine `--joueur galerie`,
+auberge `--joueur dortoir`, crue `--joueur chambre_cloche` 4 graines ; `main` → branche, par nuit) :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| usurpations, violations | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| événements distincts | 37,25 → 36,25 | 65,5 → 66,5 | 101,5 → 89,75 | 42,5 → 41 |
+| échanges | 15,4 → 16,6 | 43,75 → 44 | 81,25 → 67,5 | 21,5 → 20,75 |
+| vols vus (témoins) | 1 (2,75) → 1 (2,4) | 0,75 (3,25) → 0,75 (2,75) | 1 (1,5) → 1 (2) | 0,25 (0,5) → 0 (0) |
+| minutes sans recours | 60,6 → 68,1 | 56,25 → 38,75 | 75 → 73,75 | 32,5 → 22,5 |
+| minutes en attente | 52,5 → 72,5 | 240 → 242,5 | 308,75 → 341,25 | 472,5 → 461,25 |
+| allés voir | 10,25 → 11,4 | 15,5 → 19,25 | 38,5 → 38,5 | 14,5 → 14,5 |
+| minutes dans le noir | 26,9 → 58,75 | 215 → 233,75 | 1 189 → 1 195 | 16,25 → 23,75 |
+| choix à l'événement | 917 → 895 | 3 016 → 1 216 | 2 153 → 2 010 | 821 → 893 |
+| temps d'une nuit (mur, chargé) | 15,7 → 14,3 s | 53,3 → 46,6 s | 48,8 → 42 s | 17,6 → 18,2 s |
+
+Toutes les nuits restent distinctes. Les écarts viennent de nuits qui divergent, pas d'une tendance : au
+Relais, la graine 42 fait 295 minutes dans le noir et 180 en attente (Gorm attend dans la conduite noire
+une part de planches qu'Aubin a promise sans la servir, voir les limites) contre 0 sur `main`, où la
+graine 2024 faisait 180 minutes dans le noir ; à l'auberge, la graine 42 de `main` comptait 137
+événements (90 sur la branche), la 2024 de la branche 615 minutes en attente (380) ; à la mine, la graine
+42 de `main` comptait 9 356 choix à l'événement (2 086).
+
+`VERIFIER` sans écart sur une nuit de 8 h de chaque scénario (graine 42). **Audit** (`tools/audit_nuits.py`,
+4 scénarios × 4 graines × 12 h ; les nuits de `main` sont celles du lot B, même commande) : aucun plantage
+ni violation ; mêmes familles de constats, en nombre voisin (pressé sans but 38 → 45, noir long 59 → 64,
+aller voir alterné 6 → 9, appels nombreux 3 → 0, eau longue 4 → 1, dettes en fin de nuit 5 → 2,
+répétitions 6 → 5). **Coût au processeur** (une nuit de 8 h, graines 1985 et 7, `main` puis la branche
+sous le même verrou, `time.process_time`) : Relais 27,8 → 30,4 s, mine 60,8 → 69,2 s, auberge 84,3 →
+90,8 s, crue 33,8 → 36,4 s, soit +8 à +14 % sur des nuits qui ne sont plus les mêmes ; au profil (1,5 h
+d'auberge), la relecture des conditions après chaque geste (`vecu.noter`, ~0,8 ms : la lumière de sa case
+et qui il voit, `deliberation.autour`) fait l'essentiel de l'écart.
+
+**Limites** :
+- Les conditions se relisent à chacun de ses gestes, à chaque éveil et à chaque minute, pas à chaque
+  geste des autres : un feu qui s'éteint loin de ses yeux pendant qu'il attend ne compte qu'à la minute.
+- Le corps du joueur est soldé aux minutes et quand son état change : entre deux, la fiche ne montre
+  pas les secondes en cours (le même laps, découpé autrement, donne pourtant le même corps).
+- Restent à la minute : la combustion (le combustible se compte en minutes entières ; l'éteindre à
+  l'instant demanderait de dater chaque allumage et de programmer l'extinction comme événement), la crue
+  (le niveau se compte en centimètres par minute), l'effet de seuil des besoins, les échéances des paroles,
+  prêts et dettes, la flamme ménagée, l'appel à l'aide, les dates des croyances et souvenirs.
+- Défaut vu au banc, hors de ce chantier : au Relais (graine 42), Aubin, payé pour garder le brasero
+  allumé, n'a pas de flamme pour le rallumer et ne rend pas la tâche ; il promet deux fois une part de
+  planches qu'il ne sert pas, et Gorm l'attend 160 minutes dans la conduite noire, ses fagots à côté.
 
 ## Hors périmètre
 

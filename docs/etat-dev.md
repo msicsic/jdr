@@ -960,7 +960,42 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   demandes à heure fixe, Brune vole quand sa faim passe 95. Variantes de données mesurées (feu à
   nourrir, réserve aux vannes, faims décalées, valeurs graduées) et sept manques du moteur en
   invariants (tirage du départ, risque d'être vu pesé, tort qui ouvre des buts…), à trancher.
-- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `temps-reel`, non fusionnée (`docs/plan-temps.md`, « Correctif : le temps réel » ; `donjon/vecu.py`) :
+  ce qui restait à la minute après `deliberation-evenements`. **Horloges à leur instant** : déclenchées par la vie
+  des PNJ à chaque minute franchie (`pnj._avancer`, `horloges.declencher`), plus à la fin de l'action du joueur ;
+  la rafale de l'auberge avancée à la minute 2 d'une attente de 5 minutes éteint l'âtre à la minute 2 et Hugues
+  le voit alors ; Gorm rallume le brasero éteint par une horloge avant la fin de l'action. **Corps et besoins au
+  temps vécu** (`vecu.noter`, `solder`, `minute` ; `corps["vecu"]`) : chacun, joueur compris, porte l'état où il
+  est depuis un instant (activité du geste fait : effort, repos ; chaud d'un feu ; eau ; écart de sécurité par
+  minute, `deliberation.ecart_securite`) ; le temps passé est soldé quand l'état change et à chaque minute ; la
+  faim, la fatigue, le froid, le séchage, la dérive des besoins et la sécurité comptent ce temps-là au lieu
+  d'échantillonner la frontière de minute. Ilse qui traverse le noir et Gorm dont la ronde passe au chaud vivent
+  la même chose quelle que soit la phase de la minute (à 0,005 près ; avant, la phase décidait) ; le corps du
+  joueur compte la marche à l'effort et les rotations au calme dans l'ordre qu'on veut ; se tourner ne creuse
+  plus. **Froid sec à 4 par heure.** **Patience et répit en temps** (`pnj.commencer_attente`, `compter_attente`,
+  `intention["attente"]` en dixièmes ; `renoncements` à l'instant) : Brune renonce après 30 minutes de guet
+  comptées au temps, Gorm bloqué par le joueur aussi. Cas réels et cas de même nature après rechargement, même
+  laps découpé (`tests/test_temps_reel.py`, 10 tests). Tests adaptés : `test_marche` (attente en dixièmes),
+  `test_entretenir` (une part servie en appelant compte aussi), `test_recit_pnj` (la nuit 7 renonce devant une
+  serrure trop sombre), `test_refus_retenus` (les offres pour un feu ; Anselme et Lucien se disputent le ballot,
+  chaque déplacement est un moyen nouveau), `test_lumiere_garde` (la scène réelle de la graine 42, minute 145,
+  enregistrée dans `tests/data`, la graine faisant désormais une autre nuit). `VERIFIER` sans écart sur une nuit
+  de 8 h de chaque scénario (graine 42). Bancs 8 h contre `main` 0551ba2, l'un après l'autre (détail dans le
+  plan) : aucune usurpation ni violation ; nuits toutes distinctes ; les écarts suivent des nuits qui divergent
+  (Relais : en attente 52,5 → 72,5 et minutes dans le noir 27 → 59, presque tout dans la graine 42 ; mine : sans
+  recours 56 → 39 ; auberge : événements 101,5 → 89,75, la graine 42 de `main` à part). Audit 4 scénarios × 4 graines × 12 h (nuits de `main` jouées par le lot B, même
+  commande) : aucun plantage ni violation, mêmes familles de constats (sans but en pressant 38 → 45, noir long 59 →
+  64, aller voir alterné 6 → 9, appels nombreux 3 → 0, eau longue 4 → 1, dettes en fin 5 → 2). Coût au processeur
+  (une nuit de 8 h, graines 1985 et 7, `main` puis branche sous le même verrou) : Relais 27,8 → 30,4 s, mine 60,8
+  → 69,2 s, auberge 84,3 → 90,8 s, crue 33,8 → 36,4 s (+8 à +14 %, nuits différentes ; la relecture des
+  conditions à chaque geste, ~0,8 ms, en est l'essentiel). Limites : les conditions (lumière, compagnie, feu, eau) se relisent à chacun de ses gestes, à
+  chaque éveil et à chaque minute, pas à chaque geste des autres ; combustion et crue restent à la minute (le
+  combustible se compte en minutes entières, le niveau d'eau en centimètres par minute) ; dates des croyances,
+  échéances et dettes à la minute ; le corps du joueur, soldé aux minutes et aux changements d'état, ne montre
+  pas les secondes en cours. Défaut vu au banc, hors de ce lot : Aubin, payé pour garder le brasero allumé, sans
+  flamme pour le rallumer, ne rend pas la tâche et promet deux fois une part de planches qu'il ne sert pas ;
+  Gorm l'attend 160 minutes dans la conduite noire (Relais, graine 42).
+- La suite de tests passe : 1218 tests (18 sautés ici : 14 sans `jsonschema`, facultatif pour MiMo, 4 sans le SDK `anthropic`, facultatif), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions prises le 2026-10-22 (à implémenter)
 
