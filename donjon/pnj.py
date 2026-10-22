@@ -422,10 +422,10 @@ def repondre(monde, id, qui, lignes):
     « Ici ! » (``repondre_a``), sauf à une voix dont il se méfie (``appeler``) ; vrai s'il a répondu.
     Le joueur répond s'il le veut, de lui-même. Un PNJ resté sans réponse le retient."""
     from .ouie import saisit
-    from .voix import fiabilite
+    from .voix import repond as repond_a_la_voix
     # Il répond à son nom, sauf à une voix dont il se méfie.
     repond = (qui != "joueur" and monde.objets[qui].get("profil") and saisit(monde, id, qui, "heler")
-              and (fiabilite(monde, qui, id) or {}).get("valeur") is not False)
+              and repond_a_la_voix(monde, qui, id))
     if not repond:
         if id != "joueur":
             memoriser(monde, id, {"type": "appel_sans_reponse", "qui": qui, "salle": monde.objets[id]["lieu"]})

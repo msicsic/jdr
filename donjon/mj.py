@@ -45,7 +45,7 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
                                  controler as controler_physique)
 from .moteur import QualificationRequise
 from .proximite import HorsDePortee
-from .refus import RapportIllisible, audit as refus_audit, audit_illisible, depuis_refus
+from .refus import RapportIllisible, RefusDeForme, audit as refus_audit, audit_illisible, depuis_refus
 from .transactions import ajouter as ajouter_transaction
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
@@ -164,9 +164,10 @@ pas de contenu caché. Une possibilité n'est pas une réussite.
 
 Si conversation_validee est présente, fais parler directement le personnage indiqué, en lui
 attribuant clairement ses mots entre « et ». Si elle contient replique_joueur, cette réplique
-de Corvus est déjà affichée : ne la répète pas ; ses destinataires (conversation_validee.destinataires),
+de Corvus est déjà dite et affichée (issue) : ne la répète pas ; ceux de conversation_validee.repondent,
 et eux seuls, y répondent d'après conversation_validee.faits et ce qu'ils croient
-(esprits_interlocuteurs) ; les temoins l'ont entendue sans être interpellés et se taisent. Réponds à son sujet avec ses savoirs
+(esprits_interlocuteurs) ; repondent vide, personne ne répond ; les temoins l'ont entendue sans être
+interpellés et se taisent. Réponds à son sujet avec ses savoirs
 (connaissances_pnj), son profil, ses intentions et sa relation au joueur. Une liste
 conversation_validee.faits vide signifie seulement qu'aucun accord n'a changé : le personnage
 doit quand même répondre. Reprends exactement les montants, conditions et refus validés ; une
@@ -469,11 +470,15 @@ class MJ:
                 finally:
                     self._faisabilite_renvoyee = False
         correction_utilisee = False
+        # Un refus de forme (``refus.RefusDeForme`` : un champ, une borne, la mauvaise action) reçoit une
+        # correction à part : il ne dit rien du monde, et ne se montre jamais au joueur.
+        forme_corrigee = False
         premier_refus = None
         # Une question sur la faisabilité d'un geste (« puis-je… ? ») : c'est le moteur qui y répond, par
-        # la fiche du geste ou par la raison de son refus, jamais une explication libre du MJ.
+        # la fiche du geste ou par la raison de son refus (une raison du monde, jamais un refus de forme),
+        # jamais une explication libre du MJ.
         faisabilite, refus_du_moteur = est_question(intention), None
-        for tentative in range(2):
+        for tentative in range(3):
             if reponse["mode"] != "action":
                 break
             p = reponse["proposition"]
@@ -485,8 +490,11 @@ class MJ:
                     raise ErreurMonde("Corvus le dit ; il ne le fait pas.", ATTENDU_PAROLE
                                       + " ; le geste annoncé attend que le joueur le fasse.")
                 if p.get("action") == "impossible":
-                    if not correction_utilisee:
-                        raise ErreurMonde("Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible.")
+                    if not (correction_utilisee or forme_corrigee):
+                        raise RefusDeForme("Réexamine l'intention entière et les possibilités du moteur avant de "
+                                           "conclure qu'elle est impossible.",
+                                           "action : le geste que demande la saisie, tel quel (le moteur dit ce qui "
+                                           "manque) ; impossible seulement si aucune action du moteur ne le couvre.")
                 if p.get("action") in ("clarifier", "impossible"):
                     break
                 # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
@@ -494,7 +502,7 @@ class MJ:
                 try:
                     plan = Moteur(monde).preparer(p, "MJ")
                 except ErreurMonde as exc:
-                    if p.get("action") not in PERCEPTIONS and not isinstance(exc, QualificationRequise):
+                    if p.get("action") not in PERCEPTIONS and not isinstance(exc, (QualificationRequise, RefusDeForme)):
                         refus_du_moteur = exc
                     raise
                 if (premier_refus and not plan.effets and not plan.information
@@ -527,16 +535,17 @@ class MJ:
                 if isinstance(exc, HorsDePortee):
                     # Aucune proposition ne rapproche le joueur : on explique sans redemander.
                     correction_utilisee = True
-                if correction_utilisee and parole_attendue(monde, intention):
+                forme = isinstance(exc, RefusDeForme) and not forme_corrigee and tentative < 2
+                if correction_utilisee and not forme and parole_attendue(monde, intention):
                     # Une parole n'est jamais perdue : le moteur prononce lui-même les mots du joueur.
                     reponse = parole_du_moteur(monde, intention)
                     if reponse["mode"] == "dialogue":
                         return reponse
                     break
-                if correction_utilisee and faisabilite and refus_du_moteur is not None:
-                    # Rien n'est tenté : le joueur lit pourquoi le moteur ne le permet pas, tel quel.
+                if correction_utilisee and not forme and faisabilite and refus_du_moteur is not None:
+                    # Rien n'est tenté : le joueur lit pourquoi le monde ne le permet pas, tel quel.
                     return reponse_du_moteur(refus_du_moteur)
-                if correction_utilisee:
+                if correction_utilisee and not forme:
                     retour = {"propositions_refusees": [premier_refus, dernier_refus],
                               "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
                     try:
@@ -551,7 +560,10 @@ class MJ:
                     return {"mode": "dialogue", "texte": expliquer_refus(premier_refus, dernier_refus),
                             "faits": [], "proposition": None, "_validation_refusee": True,
                             "_texte_moteur": True}
-                correction_utilisee = True
+                if forme:
+                    forme_corrigee = True
+                else:
+                    correction_utilisee = True
                 # Une question dont le geste est refusé par le moteur : seule une proposition corrigée peut
                 # encore y répondre ; un dialogue serait remplacé par ce refus, il n'est pas contrôlé.
                 self._sans_dialogue = faisabilite and refus_du_moteur is exc
@@ -701,6 +713,13 @@ class MJ:
         faits = {k: v for k, v in contexte.items() if k != "objets_perceptibles"}
         faits["attestations"] = attestations_narratives(monde, contexte)
         objets = contexte["objets_perceptibles"]
+        from .pnj import peuvent_se_parler
+        for objet in objets:
+            # Chaque champ dit ce qu'il mesure : la portée de la main n'est pas celle de la voix.
+            if "a_portee" in objet:
+                objet["a_portee_de_main"] = objet.pop("a_portee")
+            if objet.get("type") == "personnage" and objet.get("id") in monde.objets:
+                objet["a_portee_de_voix"] = peuvent_se_parler(monde, "joueur", objet["id"])
         if contexte["mode_cases"]:
             # Le MJ reçoit une seule localisation calculée, sans coordonnées ni ancien
             # identifiant de lieu répété dans chaque objet. Le moteur garde ces données.
@@ -709,6 +728,8 @@ class MJ:
             faits.pop("lieux_connus", None)
             for sortie in faits["salle"]["sorties"].values():
                 sortie.pop("vers", None)
+            # Les sorties qu'il connaît (vues, ou dont il a foulé le seuil) : d'autres peuvent lui échapper.
+            faits["salle"]["sorties_connues"] = faits["salle"].pop("sorties")
             for objet in objets:
                 parent = monde.objets.get(objet.get("lieu"))
                 if parent:
@@ -751,7 +772,9 @@ class MJ:
                                       for e in faits.get("evenements_recents", [])[-3:]]
         if conversation_validee is not None:
             faits["conversation_validee"] = conversation_validee
-            faits["attestations"].extend(conversation_validee.get("faits", []))
+            # Ce que le moteur a établi de la parole de Corvus (dite, à qui, qui répond) est un fait attesté.
+            faits["attestations"].extend([*([conversation_validee["issue"]] if conversation_validee.get("issue") else []),
+                                          *conversation_validee.get("faits", [])])
         if resultat_resolu is not None:
             faits["resultat_resolu"] = resultat_resolu
             faits["attestations"].extend(resultat_resolu.get("faits", []))
@@ -817,8 +840,9 @@ proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur
         instructions += REGLES_LOCALISATION
         if monde.data.get("mode_cases") and enrichir:
             instructions += """\nLe joueur se déplace case par case avec les touches de la carte : une cible trop loin
-(a_portee=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
-manipuler. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
+(a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
+manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
+salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
 ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplace que par ses pas.
 Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
 objets_perceptibles, mais dans souvenirs_visuels s'il l'a déjà vu. Pour regarder ailleurs sans bouger : action tourner, cible une direction

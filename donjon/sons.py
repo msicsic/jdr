@@ -7,6 +7,7 @@ selon son devoir, son courage ou son seuil d'alerte). ``data["sons"]`` garde l'h
 a été émis et de qui l'a entendu.
 """
 from .monde import ErreurMonde
+from .refus import RefusDeForme
 from .francais import designer
 
 
@@ -98,12 +99,12 @@ def _compiler_heler(m, e, justification, origine):
     from .refus import liste
     qui = e["cible"]
     if e["destination"] or e["outil"] or e["difficulte"]:
-        raise ErreurMonde("On hèle quelqu'un de sa voix, sans rien d'autre.",
+        raise RefusDeForme("On hèle quelqu'un de sa voix, sans rien d'autre.",
                           "emettre_son heler : cible = l'identifiant du personnage hélé ; destination et outil vides, "
                           "difficulte 0.")
     connus = sorted(i for i, o in m.objets.items() if o["type"] == "personnage" and _connu_du_joueur(m, i))
     if qui in ("", "joueur"):
-        raise ErreurMonde("Dis qui tu appelles par son nom.",
+        raise RefusDeForme("Dis qui tu appelles par son nom.",
                           f"emettre_son heler : cible = l'identifiant du personnage hélé, pas joueur ; parmi "
                           f"{liste(connus)} (reçu « {qui} »).")
     if qui not in m.objets or m.objets[qui]["type"] != "personnage" or not _connu_du_joueur(m, qui):

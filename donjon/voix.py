@@ -403,6 +403,12 @@ def prudent(monde, id):
     return lire(monde, id)["besoins"].get("securite", 0) + NEUTRE - valeur(monde, id, "courage") >= NEUTRE
 
 
+def repond(monde, qui, locuteur):
+    """``qui`` répond à la voix de ``locuteur`` qui l'appelle ou lui pose une question sans le savoir là
+    (``pnj.repondre``, ``paroles.repondants``) : sauf à une voix dont il se méfie."""
+    return (fiabilite(monde, qui, locuteur) or {}).get("valeur") is not False
+
+
 def qui_va_la(monde, auditeur, locuteur):
     """``auditeur`` répond « Qui va là ? » au lieu d'accéder : il ne sait à qui est cette voix, elle
     ne s'est pas nommée, et il est prudent."""
@@ -423,6 +429,16 @@ def designation(monde, id):
         return id
     entree = monde.data.get("voix_entendues", {}).get(id)
     return f"{PREFIXE}{entree['n']}" if entree else id
+
+
+def porteur_du_nom(monde, nom, presents):
+    """Celui que le joueur nomme ``nom`` parmi ``presents`` (des identifiants réels) quand il ne le sait
+    là que par sa voix : la voix qui s'est dite ainsi, ou qu'on a appelée ainsi devant lui. Le nom
+    désigne cette voix, quelle qu'elle soit (une imposture comprise) ; None si aucune ou plusieurs."""
+    voix = monde.data.get("voix_entendues", {})
+    trouves = [x for x in presents if designation(monde, x) != x and nom in (voix.get(x, {}).get("se_dit"),
+                                                                            voix.get(x, {}).get("appelee"))]
+    return trouves[0] if len(trouves) == 1 else None
 
 
 def reel(monde, designation_):
