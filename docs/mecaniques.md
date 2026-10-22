@@ -607,7 +607,16 @@ Les mêmes règles valent pour le joueur et pour les PNJ (`donjon/biens.py`).
   demande de passage (`valeur` : les pièces offertes à qui ne s'écarterait que par orgueil ; ce
   qu'elles valent pour lui abaisse le DD, il ne les prend que s'il s'écarte). Offrir plus que son
   or est refusé au MJ avec un `attendu`. Payée son prix, la part est vendue : « Gorm prend tes 2
-  pièces et accepte de t'en donner une part » ; moins, Gorm dit son prix s'il refuse.
+  pièces et accepte de t'en donner une part » ; moins, Gorm dit son prix s'il refuse. Une part de
+  combustible achetée sans qu'aucun feu soit nommé est un bien qu'on achète (`echanges._vendre_part`) :
+  le vendeur en détache une part (une pièce du lot s'il la décrit, sinon une réserve d'une charge) et
+  la remet à l'acheteur, aussitôt s'il la porte, sinon quand il est allé la chercher (« Aubin prend tes
+  3 pièces et ira chercher une part des planches de bac pour te la remettre ») ; non remise à
+  l'échéance, le prix est dû. Seule une part demandée pour un feu (sans payer, ou par un PNJ qui
+  entretient ce feu) va au feu. Une part de vivres reste servie.
+- **« As-tu du bois ? »** : on répond par ce qu'on croit avoir, et l'on sait ce qu'on porte et ce qui
+  est à soi à portée de main, dans sa salle hors de tout contenant fermé (`echanges.siens_a_portee`),
+  même sans l'avoir regardé.
 - **Une contrepartie payée et jamais livrée** (`biens.rembourser`, `solder`) : une part vendue
   d'avance, un objet acheté que le vendeur ne portait pas (il s'engage à l'aller chercher et à le
   remettre, `echanges.differee`), une tâche payée. À l'échéance de la parole (240 minutes), ou

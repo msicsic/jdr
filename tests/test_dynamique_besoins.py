@@ -98,11 +98,12 @@ class TenirTests(unittest.TestCase):
         # Anselme ne paie personne pour rallumer son poêle (``echanges.engager``) et a déjà demandé à
         # chacun s'il avait du bois (``echanges.enqueter``) : la chambre reste noire.
         m.data["finances_pnj"]["anselme"] = 0
-        from donjon.esprits import memoriser
-        for autre in ("odile", "mireille", "tilo", "joss", "hugues", "mathurine", "lucien"):
-            memoriser(m, "anselme", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
         placer(m, "lucien", "grenier", (2, 2))
         percevoir_tous(m)
+        # Les réponses retiennent ce qu'il croyait alors (``deliberation.retenir_refus``) : après ce qu'il voit.
+        from donjon.deliberation import retenir_refus
+        for autre in ("odile", "mireille", "tilo", "joss", "hugues", "mathurine", "lucien"):
+            retenir_refus(m, "anselme", autre, "enqueter", "rien", besoin="chaleur", souvenir=False)
         lire(m, "lucien")["besoins"].update(biens=65.0, securite=70.0)
         return m
 
@@ -219,15 +220,16 @@ class AttenteTests(unittest.TestCase):
 
     def test_la_faim_refusee_attend_puis_redemande_quand_le_refus_a_vieilli(self):
         from donjon.deliberation import REDEMANDE
-        from donjon.esprits import memoriser
+        from donjon.deliberation import retenir_refus
         m = relais()
         calme(m, "marchand", "brune", "ilse", "aubin")
         lire(m, "ilse")["besoins"]["faim"] = 80.0
-        memoriser(m, "ilse", {"type": "refus", "de": "marchand", "operation": "demander", "objet": "vivres",
-                                "raison": "necessaire"})
+        # Un refus de méfiance tient ``REDEMANDE`` minutes, et payer ne le lève pas ; ce qu'il garde
+        # tient tant que rien de ce qu'elle en croit n'a changé (``test_refus_retenus``).
+        retenir_refus(m, "ilse", "marchand", "demander", "mefiance", objet="vivres")
         # Elle a déjà demandé aux autres s'ils avaient à manger (``echanges.enqueter``) : rien.
         for autre in ("aubin", "brune"):
-            memoriser(m, "ilse", {"type": "enquete", "de": autre, "besoin": "faim", "objets": []})
+            retenir_refus(m, "ilse", autre, "enqueter", "rien", besoin="faim", souvenir=False)
         deliberer(m, "ilse", m.data["minutes"])
         m = recharger(m)
         self.assertIsNone(lire(m, "ilse")["intention"])
