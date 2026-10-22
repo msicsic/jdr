@@ -1,0 +1,5664 @@
+{
+  "ajouts_savoirs": [],
+  "arbitrages": {},
+  "bruit": 0,
+  "connus": [],
+  "conversation": [],
+  "defi": {
+    "id": "relais_des_crues",
+    "objectif": "Ramener la cloche d'alarme du beffroi au refuge du relais.",
+    "objet": "cloche",
+    "refuge": "antichambre"
+  },
+  "defi_relais": {
+    "id": "relais_des_crues",
+    "objectif": "Ramener la cloche d'alarme du beffroi au refuge du relais.",
+    "objet": "cloche",
+    "refuge": "antichambre"
+  },
+  "dialogues_pnj": {
+    "marchand": {
+      "intentions": "Gorm veut que la cloche du relais revienne au refuge avant la crue, et que le feu de l'échoppe tienne pour les évacués.",
+      "ton": "Il parle clairement et s'en tient à ce qu'il sait du relais."
+    },
+    "brune": {
+      "intentions": "Brune veut manger, se sécher et se faire oublier jusqu'à la décrue.",
+      "ton": "Elle reste évasive sur ce qu'elle a vu et sur ce qu'elle compte faire."
+    },
+    "ilse": {
+      "intentions": "Ilse veut savoir ce qui se passe au relais, se réchauffer et que chacun soit à l'abri de la crue.",
+      "ton": "Elle raconte volontiers ce qu'elle a vu, et le tient pour vrai."
+    },
+    "aubin": {
+      "intentions": "Aubin veut surveiller l'eau, se réchauffer et se reposer.",
+      "ton": "Il répond brièvement et ne dit que ce dont il est sûr."
+    }
+  },
+  "dialogues_version": 1,
+  "eclairage_version": 1,
+  "engagements": {},
+  "finances_pnj": {
+    "marchand": 50,
+    "brune": 3,
+    "ilse": 8,
+    "aubin": 6
+  },
+  "geometrie_version": 1,
+  "jets": 5,
+  "joueur": {
+    "capacite": 12,
+    "espece": "humain",
+    "masse_kg": 70,
+    "nom": "Corvus",
+    "or": 24,
+    "position": [
+      0,
+      11
+    ],
+    "pv": 18,
+    "pv_max": 18,
+    "salle": "chambre_cloche",
+    "stade_vie": "adulte",
+    "stats": {
+      "CHA": 12,
+      "DEX": 16,
+      "FOR": 12,
+      "INT": 14,
+      "PER": 12,
+      "VOL": 10,
+      "ELO": 10,
+      "PSY": 10
+    },
+    "corps": {
+      "repas": 180,
+      "veille": 480,
+      "trempe": 0,
+      "seche": 0,
+      "volonte_brisee": 0,
+      "peine": 0
+    },
+    "besoins": {
+      "faim": 32.5,
+      "repos": 0.0,
+      "chaleur": 4.843
+    },
+    "orientation": "est"
+  },
+  "journal": [
+    {
+      "tour": 1,
+      "minutes": 5,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 2,
+      "minutes": 10,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 3,
+      "minutes": 15,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 4,
+      "minutes": 20,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 5,
+      "minutes": 25,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 6,
+      "minutes": 30,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 7,
+      "minutes": 35,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 8,
+      "minutes": 40,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 9,
+      "minutes": 45,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 10,
+      "minutes": 50,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 11,
+      "minutes": 55,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 12,
+      "minutes": 60,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "La lanterne s'éteint.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 13,
+      "minutes": 65,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 14,
+      "minutes": 70,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 15,
+      "minutes": 75,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 16,
+      "minutes": 80,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 17,
+      "minutes": 85,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 18,
+      "minutes": 90,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 19,
+      "minutes": 95,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends un grand bruit en dessous."
+      ]
+    },
+    {
+      "tour": 20,
+      "minutes": 100,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends un appel à l'aide, un grand bruit et des pas en dessous."
+      ]
+    },
+    {
+      "tour": 21,
+      "minutes": 105,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 22,
+      "minutes": 110,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 23,
+      "minutes": 115,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 24,
+      "minutes": 120,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 25,
+      "minutes": 125,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 26,
+      "minutes": 130,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 27,
+      "minutes": 135,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu.",
+        "Tu entends des pas en dessous."
+      ]
+    },
+    {
+      "tour": 28,
+      "minutes": 140,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    },
+    {
+      "tour": 29,
+      "minutes": 145,
+      "action": {
+        "action": "attendre",
+        "cible": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0,
+        "justification": ""
+      },
+      "origine": "règles",
+      "dd": 0,
+      "jet": null,
+      "reussite": true,
+      "faits": [
+        "Cinq minutes passent. Le calme revient peu à peu."
+      ]
+    }
+  ],
+  "lus": [],
+  "minutes": 145,
+  "depart": {
+    "bornes": {
+      "corps": 0.2,
+      "besoins": 10,
+      "rondes": 0.5,
+      "periodes": 0.2,
+      "horloges": 0.25
+    },
+    "mode": "tire",
+    "tirage": {
+      "corps": {
+        "aubin": {
+          "repas": 365,
+          "veille": 1224,
+          "trempe": 377
+        },
+        "brune": {
+          "repas": 850,
+          "veille": 924,
+          "trempe": 308
+        },
+        "ilse": {
+          "repas": 419,
+          "veille": 502,
+          "trempe": 393
+        },
+        "marchand": {
+          "repas": 359,
+          "veille": 177,
+          "trempe": 0
+        }
+      },
+      "besoins": {
+        "aubin": {
+          "securite": 50.148
+        },
+        "brune": {
+          "securite": 16.716
+        },
+        "ilse": {
+          "securite": 61.091
+        },
+        "marchand": {
+          "biens": 14.489,
+          "devoir": 61.898,
+          "securite": 12.021
+        }
+      },
+      "periodes": {
+        "aubin": [
+          50,
+          25
+        ],
+        "brune": [],
+        "ilse": [
+          33,
+          45
+        ],
+        "marchand": [
+          null,
+          null,
+          null,
+          null,
+          41,
+          85
+        ]
+      },
+      "visites": {
+        "aubin": {
+          "antichambre": -23,
+          "crypte": -36
+        },
+        "brune": {},
+        "ilse": {
+          "antichambre": -34,
+          "echoppe": -20
+        },
+        "marchand": {
+          "antichambre": -36,
+          "crypte": -74
+        }
+      },
+      "horloges": {}
+    }
+  },
+  "missions": {},
+  "objectif_partie": {
+    "lieu": "joueur",
+    "message": "OBJECTIF ATTEINT : la cloche est de retour au refuge. Le relais peut donner l'alarme.",
+    "objet": "cloche",
+    "salle": "antichambre"
+  },
+  "objets": {
+    "anneau": {
+      "aliases": [
+        "anneau"
+      ],
+      "id": "anneau",
+      "integrite": 10,
+      "lieu": "porte",
+      "masse": 0.02,
+      "materiau": "argent",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "anneau de tirage",
+      "type": "tresor"
+    },
+    "antichambre_murs": {
+      "aliases": [
+        "murs",
+        "mur",
+        "cloison",
+        "épaulement"
+      ],
+      "ancrage_carte": [
+        3,
+        3
+      ],
+      "description_visuelle": "Une cloison de pierre fissurée coupe le centre du refuge. On peut la contourner par ses deux extrémités.",
+      "id": "antichambre_murs",
+      "integrite": 100,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "murs",
+      "position": [
+        2,
+        3
+      ],
+      "position_salle": "antichambre",
+      "type": "surface"
+    },
+    "antichambre_plafond": {
+      "aliases": [
+        "plafond"
+      ],
+      "id": "antichambre_plafond",
+      "integrite": 100,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "plafond",
+      "type": "surface"
+    },
+    "antichambre_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "antichambre_sol",
+      "integrite": 100,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "sol",
+      "support_pose": true,
+      "type": "surface"
+    },
+    "appui_clocher": {
+      "aliases": [
+        "rebord",
+        "mur extérieur",
+        "mur exterieur"
+      ],
+      "appui_vertical": {
+        "bas": "antichambre",
+        "direction": "est",
+        "elan_cm": 400,
+        "haut": "chambre_cloche",
+        "hauteur_cm": 240,
+        "position_bas": [
+          8,
+          3
+        ],
+        "position_haut": [
+          0,
+          3
+        ],
+        "prise_sommet": true,
+        "reception_stable": true,
+        "recul_cm": 90,
+        "sol_stable": true,
+        "sommet_stable": true
+      },
+      "id": "appui_clocher",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "rebord extérieur du beffroi",
+      "type": "surface"
+    },
+    "axe_bas": {
+      "aliases": [
+        "axe inferieur",
+        "gond inferieur",
+        "axe bas",
+        "gond bas"
+      ],
+      "amovible": true,
+      "attache": true,
+      "extraction": "outil",
+      "cote": "crypte",
+      "id": "axe_bas",
+      "integrite": 12,
+      "lieu": "porte",
+      "masse": 0.2,
+      "materiau": "fer",
+      "maximum": 12,
+      "mobile": true,
+      "nom": "axe du gond inférieur",
+      "resistance": 12,
+      "type": "fixation"
+    },
+    "axe_haut": {
+      "aliases": [
+        "axe superieur",
+        "gond superieur",
+        "axe haut",
+        "gond haut"
+      ],
+      "amovible": true,
+      "attache": true,
+      "extraction": "outil",
+      "cote": "crypte",
+      "id": "axe_haut",
+      "integrite": 12,
+      "lieu": "porte",
+      "masse": 0.2,
+      "materiau": "fer",
+      "maximum": 12,
+      "mobile": true,
+      "nom": "axe du gond supérieur",
+      "resistance": 12,
+      "type": "fixation"
+    },
+    "barbe_gorm": {
+      "aliases": [
+        "barbe",
+        "sa barbe"
+      ],
+      "description_tactile": "Les poils de sa barbe sont courts et rêches.",
+      "description_visuelle": "Sa barbe est courte et grisonnante.",
+      "genre": "f",
+      "id": "barbe_gorm",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 0,
+      "materiau": "poils",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "barbe de Gorm",
+      "type": "partie_corps"
+    },
+    "brasero": {
+      "aliases": [
+        "foyer"
+      ],
+      "allume": true,
+      "combustible": 5,
+      "id": "brasero",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "luminosite": 2,
+      "masse": 20,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "brasero",
+      "position": [
+        3,
+        4
+      ],
+      "position_salle": "echoppe",
+      "type": "luminaire",
+      "foyer": true
+    },
+    "briquet": {
+      "aliases": [
+        "briquet",
+        "silex"
+      ],
+      "id": "briquet",
+      "integrite": 10,
+      "lieu": "joueur",
+      "masse": 0.1,
+      "materiau": "fer et silex",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "briquet à silex",
+      "type": "outil",
+      "usages": [
+        "allumage"
+      ]
+    },
+    "cire": {
+      "aliases": [
+        "cire",
+        "bloc de cire"
+      ],
+      "charges": 2,
+      "id": "cire",
+      "integrite": 10,
+      "lieu": "joueur",
+      "masse": 0.2,
+      "materiau": "cire",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bloc de cire malléable",
+      "type": "consommable",
+      "usages": [
+        "empreinte"
+      ]
+    },
+    "cle": {
+      "aliases": [
+        "clé",
+        "cle",
+        "clé du relais"
+      ],
+      "id": "cle",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "masse": 0.1,
+      "materiau": "bronze",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "clé du relais",
+      "ouvre": [
+        "porte"
+      ],
+      "position": [
+        7,
+        5
+      ],
+      "position_salle": "antichambre",
+      "proprietaire": null,
+      "type": "cle"
+    },
+    "cloche": {
+      "aliases": [
+        "cloche",
+        "cloche d'alarme"
+      ],
+      "genre": "f",
+      "id": "cloche",
+      "integrite": 10,
+      "lieu": "chambre_cloche",
+      "masse": 1.2,
+      "materiau": "bronze",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "cloche d'alarme",
+      "sonorite": 3,
+      "position": [
+        2,
+        3
+      ],
+      "position_salle": "chambre_cloche",
+      "type": "tresor"
+    },
+    "coffre": {
+      "aliases": [
+        "coffre",
+        "coffre du beffroi"
+      ],
+      "id": "coffre",
+      "integrite": 40,
+      "lieu": "chambre_cloche",
+      "masse": 150,
+      "materiau": "pierre",
+      "maximum": 40,
+      "mobile": false,
+      "nom": "coffre d'entretien ouvert",
+      "ouverte": true,
+      "position": [
+        4,
+        3
+      ],
+      "position_salle": "chambre_cloche",
+      "type": "contenant",
+      "verrouillee": false
+    },
+    "colonne_vannes": {
+      "aliases": [],
+      "bloque_passage": true,
+      "bloque_vue": true,
+      "id": "colonne_vannes",
+      "integrite": 10,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "pilier de maçonnerie",
+      "position": [
+        5,
+        3
+      ],
+      "position_salle": "crypte",
+      "type": "meuble"
+    },
+    "couteau": {
+      "aliases": [
+        "couteau",
+        "poignard",
+        "dague"
+      ],
+      "id": "couteau",
+      "integrite": 3,
+      "lieu": "joueur",
+      "masse": 0.3,
+      "materiau": "acier",
+      "maximum": 3,
+      "mobile": true,
+      "nom": "couteau à lame fine",
+      "puissance": 2,
+      "type": "outil",
+      "usages": [
+        "levier_fin",
+        "couper"
+      ]
+    },
+    "crochets": {
+      "aliases": [
+        "crochets",
+        "crochet",
+        "trousse"
+      ],
+      "en_vente": false,
+      "id": "crochets",
+      "integrite": 3,
+      "lieu": "brune",
+      "masse": 0.1,
+      "materiau": "acier",
+      "maximum": 3,
+      "mobile": true,
+      "nom": "trousse de crochets",
+      "prix": 8,
+      "proprietaire": null,
+      "puissance": 0,
+      "type": "outil",
+      "usages": [
+        "crochetage"
+      ]
+    },
+    "crypte_murs": {
+      "aliases": [
+        "murs"
+      ],
+      "id": "crypte_murs",
+      "integrite": 100,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "murs",
+      "type": "surface"
+    },
+    "crypte_plafond": {
+      "aliases": [
+        "plafond"
+      ],
+      "id": "crypte_plafond",
+      "integrite": 100,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "plafond",
+      "type": "surface"
+    },
+    "crypte_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "crypte_sol",
+      "integrite": 100,
+      "lieu": "crypte",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "sol",
+      "support_pose": true,
+      "type": "surface"
+    },
+    "echelle_relais": {
+      "aliases": [
+        "échelle",
+        "echelle",
+        "échelle du relais"
+      ],
+      "assemblage": "barreaux",
+      "barreaux": 7,
+      "charge_jeu_kg": 110,
+      "composants": {},
+      "genre": "f",
+      "id": "echelle_relais",
+      "integrite": 10,
+      "largeur_cm": 35,
+      "lieu": "antichambre",
+      "longueur_cm": 300,
+      "masse": 3.3,
+      "materiau": "bois et corde",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "échelle du relais",
+      "position": [
+        7,
+        3
+      ],
+      "position_salle": "antichambre",
+      "type": "assemblage"
+    },
+    "echoppe_murs": {
+      "aliases": [
+        "murs"
+      ],
+      "id": "echoppe_murs",
+      "integrite": 100,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "murs",
+      "type": "surface"
+    },
+    "echoppe_plafond": {
+      "aliases": [
+        "plafond"
+      ],
+      "id": "echoppe_plafond",
+      "integrite": 100,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "plafond",
+      "type": "surface"
+    },
+    "echoppe_sol": {
+      "aliases": [
+        "sol"
+      ],
+      "id": "echoppe_sol",
+      "integrite": 100,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 100,
+      "mobile": false,
+      "nom": "sol",
+      "support_pose": true,
+      "type": "surface"
+    },
+    "gravure": {
+      "aliases": [
+        "plaque",
+        "consigne",
+        "inscription",
+        "gravure"
+      ],
+      "ancrage_carte": [
+        3,
+        3
+      ],
+      "fixee_sur": "la face ouest de la cloison de pierre",
+      "genre": "f",
+      "id": "gravure",
+      "inscription": "Le veilleur cachait la clé au pied de l'épaulement fissuré. On ne la voit qu'en contournant le mur par son ouverture basse. La porte étanche mène au beffroi.",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "masse": 0,
+      "materiau": "fer émaillé",
+      "maximum": 10,
+      "mobile": false,
+      "motif": "Un croissant gravé derrière un épaulement de pierre, une petite clé et une cloche.",
+      "nom": "consigne émaillée",
+      "position": [
+        2,
+        3
+      ],
+      "position_salle": "antichambre",
+      "sens": "Cherche derrière l'épaulement de pierre; l'ouverture basse permet d'en contourner l'angle.",
+      "type": "motif"
+    },
+    "lanterne": {
+      "aliases": [
+        "lampe"
+      ],
+      "allume": false,
+      "combustible": 0,
+      "id": "lanterne",
+      "integrite": 10,
+      "lieu": "joueur",
+      "luminosite": 2,
+      "masse": 0.8,
+      "materiau": "fer et verre",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "lanterne",
+      "type": "luminaire"
+    },
+    "mains_gorm": {
+      "aliases": [
+        "mains",
+        "ses mains"
+      ],
+      "description_tactile": "La peau de ses mains est épaisse et rugueuse.",
+      "description_visuelle": "Ses mains sont larges et calleuses.",
+      "genre": "f",
+      "id": "mains_gorm",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 0,
+      "materiau": "peau",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "mains de Gorm",
+      "pluriel": true,
+      "type": "partie_corps"
+    },
+    "marchand": {
+      "aliases": [
+        "gorm",
+        "gardien",
+        "marchand"
+      ],
+      "humeur": "calme",
+      "id": "marchand",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "maniere_de_parler": "Gorm parle peu et va droit au but, d'une voix grave.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Gorm, gardien du relais",
+      "portrait": "Gorm est trapu, d'une cinquantaine d'années, au visage large.",
+      "position": [
+        6,
+        3
+      ],
+      "position_salle": "antichambre",
+      "refuse_ventes_apres_vol": true,
+      "type": "personnage",
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 14,
+          "DEX": 10,
+          "INT": 11,
+          "PER": 13,
+          "CHA": 9,
+          "VOL": 13,
+          "ELO": 8,
+          "PSY": 11
+        },
+        "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
+        "valeurs": {
+          "altruisme": 70,
+          "empathie": 55,
+          "honnetete": 100,
+          "douceur": 100,
+          "ambition": 30,
+          "courage": 70,
+          "loyaute": 85,
+          "fierte": 60
+        },
+        "capacites": [],
+        "besoins": {
+          "devoir": {
+            "depart": 60,
+            "derive_heure": 10,
+            "urgence": 70
+          },
+          "biens": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 50
+          },
+          "securite": {
+            "depart": 10,
+            "derive_heure": -5,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "devoir",
+            "condition": {
+              "objet": "cloche",
+              "lieu": "antichambre"
+            },
+            "delegue_a": "joueur"
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "objet": "brasero",
+              "allume": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "reserve",
+              "verrouillee": true
+            }
+          },
+          {
+            "besoin": "biens",
+            "condition": {
+              "objet": "vivres",
+              "lieu": "antichambre"
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "antichambre",
+              "periode": 41
+            }
+          },
+          {
+            "besoin": "devoir",
+            "condition": {
+              "lieu": "crypte",
+              "periode": 85
+            }
+          }
+        ],
+        "protege": [
+          "brune",
+          "ilse",
+          "aubin"
+        ],
+        "situation": {
+          "projet": 40
+        }
+      },
+      "corps": {
+        "repas": 359,
+        "veille": 177,
+        "trempe": 0,
+        "seche": 0,
+        "volonte_brisee": 0
+      },
+      "orientation": "ouest"
+    },
+    "marteau": {
+      "aliases": [
+        "marteau"
+      ],
+      "en_vente": false,
+      "id": "marteau",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "masse": 1,
+      "materiau": "fer et bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "marteau",
+      "position": [
+        8,
+        5
+      ],
+      "position_salle": "echoppe",
+      "prix": 7,
+      "proprietaire": null,
+      "puissance": 5,
+      "type": "outil",
+      "usages": [
+        "percussion",
+        "cale"
+      ]
+    },
+    "pied_de_biche": {
+      "aliases": [
+        "pied de biche",
+        "pied-de-biche",
+        "levier"
+      ],
+      "en_vente": false,
+      "id": "pied_de_biche",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "masse": 2,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "pied-de-biche",
+      "position": [
+        7,
+        5
+      ],
+      "position_salle": "echoppe",
+      "prix": 12,
+      "proprietaire": null,
+      "puissance": 7,
+      "type": "outil",
+      "usages": [
+        "levier",
+        "percussion"
+      ]
+    },
+    "porte": {
+      "aliases": [
+        "porte",
+        "porte du beffroi",
+        "battant"
+      ],
+      "bloque_par": null,
+      "detachee": false,
+      "fixations": [
+        "axe_haut",
+        "axe_bas"
+      ],
+      "id": "porte",
+      "integrite": 30,
+      "lieu": "antichambre",
+      "masse": 80,
+      "materiau": "chêne",
+      "seuil_coupe": 2,
+      "maximum": 30,
+      "mobile": false,
+      "nom": "porte étanche du beffroi",
+      "ouverte": false,
+      "relie": [
+        "crypte",
+        "beffroi"
+      ],
+      "type": "porte",
+      "verrouillee": true,
+      "positions_salles": {
+        "crypte": [
+          8,
+          3
+        ],
+        "beffroi": [
+          0,
+          3
+        ]
+      }
+    },
+    "poutre_conduite": {
+      "aliases": [],
+      "bloque_passage": true,
+      "bloque_vue": true,
+      "genre": "f",
+      "id": "poutre_conduite",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "masse": 0,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "poutre effondrée",
+      "position": [
+        5,
+        3
+      ],
+      "position_salle": "echoppe",
+      "type": "meuble"
+    },
+    "serrure": {
+      "aliases": [
+        "serrure"
+      ],
+      "bloquee": false,
+      "id": "serrure",
+      "integrite": 10,
+      "lieu": "porte",
+      "masse": 0,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "serrure de la porte étanche",
+      "type": "serrure"
+    },
+    "sol_galerie": {
+      "aliases": [],
+      "id": "sol_galerie",
+      "integrite": 10,
+      "lieu": "chambre_cloche",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "sol",
+      "support_pose": true,
+      "type": "surface"
+    },
+    "sol_palier": {
+      "aliases": [],
+      "id": "sol_palier",
+      "integrite": 10,
+      "lieu": "beffroi",
+      "masse": 0,
+      "materiau": "pierre",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "sol",
+      "support_pose": true,
+      "type": "surface"
+    },
+    "torche": {
+      "aliases": [
+        "flambeau"
+      ],
+      "allume": false,
+      "combustible": 60,
+      "id": "torche",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "luminosite": 2,
+      "masse": 0.3,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "torche",
+      "position": [
+        1,
+        2
+      ],
+      "position_salle": "antichambre",
+      "type": "luminaire"
+    },
+    "brune": {
+      "aliases": [
+        "brune",
+        "batelière",
+        "bateliere",
+        "évacuée",
+        "evacuee"
+      ],
+      "humeur": "calme",
+      "id": "brune",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "maniere_de_parler": "Brune parle vite, à mi-voix, en évitant les regards.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Brune, batelière évacuée",
+      "genre": "f",
+      "portrait": "Brune est une femme sèche d'une trentaine d'années, les vêtements encore humides de la digue.",
+      "position": [
+        8,
+        3
+      ],
+      "position_salle": "echoppe",
+      "type": "personnage",
+      "vigilance": 12,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 10,
+          "DEX": 15,
+          "INT": 12,
+          "PER": 11,
+          "CHA": 11,
+          "VOL": 11,
+          "ELO": 10,
+          "PSY": 12
+        },
+        "traits": "Batelière évacuée, affamée depuis la veille, débrouillarde et peu scrupuleuse ; elle évite la violence.",
+        "valeurs": {
+          "altruisme": 35,
+          "empathie": 40,
+          "honnetete": 20,
+          "douceur": 100,
+          "ambition": 50,
+          "courage": 60,
+          "loyaute": 40,
+          "fierte": 50
+        },
+        "capacites": [
+          "crochetage"
+        ],
+        "besoins": {
+          "securite": {
+            "depart": 20,
+            "derive_heure": -5,
+            "urgence": 60
+          }
+        },
+        "pulsions": [],
+        "situation": {
+          "dette": 20,
+          "projet": 40
+        }
+      },
+      "corps": {
+        "repas": 850,
+        "veille": 924,
+        "trempe": 308,
+        "seche": 14,
+        "volonte_brisee": 0
+      },
+      "orientation": "ouest"
+    },
+    "reserve": {
+      "aliases": [
+        "réserve",
+        "reserve",
+        "réserve de vivres",
+        "coffre à vivres"
+      ],
+      "genre": "f",
+      "id": "reserve",
+      "integrite": 30,
+      "lieu": "antichambre",
+      "masse": 60,
+      "materiau": "bois cerclé de fer",
+      "maximum": 30,
+      "mobile": false,
+      "nom": "réserve de vivres",
+      "ouverte": false,
+      "verrouillee": true,
+      "position": [
+        8,
+        3
+      ],
+      "position_salle": "antichambre",
+      "proprietaire": "marchand",
+      "type": "contenant"
+    },
+    "vivres": {
+      "aliases": [
+        "vivres",
+        "pain",
+        "provisions"
+      ],
+      "genre": "m",
+      "id": "vivres",
+      "integrite": 10,
+      "lieu": "reserve",
+      "masse": 3,
+      "materiau": "pain et fromage",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "vivres du refuge",
+      "portions": 3,
+      "proprietaire": "marchand",
+      "type": "nourriture",
+      "pluriel": true,
+      "prix_part": 2
+    },
+    "cle_reserve": {
+      "aliases": [
+        "clé de la réserve",
+        "cle de la reserve"
+      ],
+      "genre": "f",
+      "id": "cle_reserve",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 0.05,
+      "materiau": "fer",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "clé de la réserve",
+      "ouvre": [
+        "reserve"
+      ],
+      "proprietaire": "marchand",
+      "type": "cle"
+    },
+    "ilse": {
+      "aliases": [
+        "ilse",
+        "meunière",
+        "meuniere"
+      ],
+      "humeur": "calme",
+      "id": "ilse",
+      "integrite": 10,
+      "lieu": "echoppe",
+      "maniere_de_parler": "Ilse parle beaucoup, vite et avec chaleur, en posant des questions.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Ilse, meunière évacuée",
+      "genre": "f",
+      "portrait": "Ilse est une femme ronde d'une quarantaine d'années, un châle trempé sur les épaules.",
+      "position": [
+        4,
+        3
+      ],
+      "position_salle": "echoppe",
+      "type": "personnage",
+      "vigilance": 14,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 9,
+          "DEX": 11,
+          "INT": 12,
+          "PER": 14,
+          "CHA": 13,
+          "VOL": 9,
+          "ELO": 12,
+          "PSY": 12
+        },
+        "traits": "Meunière évacuée, bavarde et curieuse ; elle répète ce qu'elle a vu et s'inquiète de la crue. Honnête, elle ne prend rien qui ne soit à elle.",
+        "valeurs": {
+          "altruisme": 55,
+          "empathie": 65,
+          "honnetete": 100,
+          "douceur": 100,
+          "ambition": 30,
+          "courage": 30,
+          "loyaute": 55,
+          "fierte": 40
+        },
+        "capacites": [],
+        "besoins": {
+          "securite": {
+            "depart": 65,
+            "derive_heure": 2,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "echoppe",
+              "periode": 33
+            }
+          },
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "antichambre",
+              "periode": 45
+            }
+          }
+        ],
+        "situation": {
+          "proches": 2
+        }
+      },
+      "corps": {
+        "repas": 419,
+        "veille": 502,
+        "trempe": 0,
+        "seche": 27,
+        "volonte_brisee": 0
+      },
+      "orientation": "est"
+    },
+    "aubin": {
+      "aliases": [
+        "aubin",
+        "passeur"
+      ],
+      "humeur": "calme",
+      "id": "aubin",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "maniere_de_parler": "Aubin parle peu, par phrases courtes, d'une voix éraillée.",
+      "masse": 0,
+      "materiau": "",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "Aubin, vieux passeur",
+      "portrait": "Aubin est un vieil homme voûté aux mains noueuses, ses bottes encore pleines d'eau.",
+      "position": [
+        5,
+        3
+      ],
+      "position_salle": "antichambre",
+      "type": "personnage",
+      "vigilance": 11,
+      "profil": {
+        "caracteristiques": {
+          "FOR": 12,
+          "DEX": 9,
+          "INT": 9,
+          "PER": 12,
+          "CHA": 8,
+          "VOL": 13,
+          "ELO": 9,
+          "PSY": 12
+        },
+        "traits": "Vieux passeur évacué, taciturne et honnête ; il surveille le niveau de l'eau aux vannes et dit à Gorm ce qu'il a vu.",
+        "valeurs": {
+          "altruisme": 50,
+          "empathie": 45,
+          "honnetete": 100,
+          "douceur": 100,
+          "ambition": 20,
+          "courage": 60,
+          "loyaute": 80,
+          "fierte": 55
+        },
+        "capacites": [],
+        "besoins": {
+          "securite": {
+            "depart": 58,
+            "derive_heure": 4,
+            "urgence": 60
+          }
+        },
+        "pulsions": [
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "crypte",
+              "periode": 50
+            }
+          },
+          {
+            "besoin": "securite",
+            "condition": {
+              "lieu": "antichambre",
+              "periode": 25
+            }
+          }
+        ]
+      },
+      "genre": "m",
+      "corps": {
+        "repas": 365,
+        "veille": 1224,
+        "trempe": 377,
+        "seche": 0,
+        "volonte_brisee": 0
+      },
+      "orientation": "ouest"
+    },
+    "fanal": {
+      "aliases": [
+        "fanal",
+        "lumignon"
+      ],
+      "allume": true,
+      "combustible": 575,
+      "id": "fanal",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "luminosite": 1,
+      "masse": 2,
+      "materiau": "fer et corne",
+      "maximum": 10,
+      "mobile": false,
+      "nom": "fanal du refuge",
+      "position": [
+        4,
+        0
+      ],
+      "position_salle": "antichambre",
+      "type": "luminaire"
+    },
+    "bois": {
+      "aliases": [
+        "fagots",
+        "fagot",
+        "bois",
+        "bois sec"
+      ],
+      "charges": 2,
+      "duree_combustion": 120,
+      "genre": "m",
+      "id": "bois",
+      "integrite": 10,
+      "lieu": "crypte",
+      "masse": 6,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "fagots de bois sec",
+      "pluriel": true,
+      "position": [
+        7,
+        2
+      ],
+      "position_salle": "crypte",
+      "proprietaire": "marchand",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ],
+      "prix_part": 1
+    },
+    "planches": {
+      "aliases": [
+        "planches",
+        "planche",
+        "planches de bac",
+        "bordages"
+      ],
+      "charges": 2,
+      "duree_combustion": 90,
+      "genre": "f",
+      "id": "planches",
+      "integrite": 10,
+      "lieu": "antichambre",
+      "masse": 8,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "planches de bac",
+      "pluriel": true,
+      "position": [
+        2,
+        5
+      ],
+      "position_salle": "antichambre",
+      "proprietaire": "aubin",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ],
+      "prix_part": 1
+    }
+  },
+  "personnages_version": 1,
+  "relations_pnj": {
+    "marchand": {
+      "dernier_objet": "",
+      "soupcon": 0,
+      "vols_surpris": 0
+    },
+    "brune": {
+      "soupcon": 0,
+      "vols_surpris": 0,
+      "dernier_objet": ""
+    },
+    "ilse": {
+      "soupcon": 0,
+      "vols_surpris": 0,
+      "dernier_objet": ""
+    },
+    "aubin": {
+      "soupcon": 0,
+      "vols_surpris": 0,
+      "dernier_objet": ""
+    }
+  },
+  "revision": 29,
+  "salles": {
+    "antichambre": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Refuge du relais",
+      "plan": {
+        "origine": [
+          0,
+          0
+        ],
+        "repere": "R",
+        "sol": [
+          " ....... ",
+          ".........",
+          ".... ....",
+          "...  ....",
+          ".... ....",
+          ".........",
+          " ....... "
+        ]
+      },
+      "sorties": {
+        "ouest": {
+          "case": [
+            -1,
+            3
+          ],
+          "porte": null,
+          "vers": "echoppe"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      },
+      "genre": "m"
+    },
+    "beffroi": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Palier des vannes",
+      "plan": {
+        "origine": [
+          0,
+          8
+        ],
+        "repere": "P",
+        "sol": [
+          "         ",
+          "         ",
+          ".........",
+          ".........",
+          ".........",
+          "         ",
+          "         "
+        ]
+      },
+      "sorties": {
+        "est": {
+          "case": [
+            9,
+            3
+          ],
+          "escalier": true,
+          "porte": null,
+          "vers": "chambre_cloche"
+        },
+        "ouest": {
+          "case": [
+            -1,
+            3
+          ],
+          "porte": "porte",
+          "vers": "crypte"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      },
+      "genre": "m"
+    },
+    "chambre_cloche": {
+      "altitude_cm": 240,
+      "fenetres": 1,
+      "lumiere_naturelle": 1,
+      "niveau": 1,
+      "nom": "Galerie de ronde",
+      "plan": {
+        "origine": [
+          10,
+          0
+        ],
+        "repere": "H",
+        "sol": [
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          ".......",
+          "......."
+        ]
+      },
+      "sorties": {
+        "ouest": {
+          "case": [
+            -1,
+            11
+          ],
+          "escalier": true,
+          "porte": null,
+          "vers": "beffroi"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      },
+      "genre": "f"
+    },
+    "crypte": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Salle des vannes",
+      "plan": {
+        "origine": [
+          -10,
+          8
+        ],
+        "repere": "V",
+        "sol": [
+          "  .....  ",
+          ".........",
+          ".........",
+          ".........",
+          ".........",
+          ".........",
+          "  .....  "
+        ]
+      },
+      "sorties": {
+        "est": {
+          "case": [
+            9,
+            3
+          ],
+          "porte": "porte",
+          "vers": "beffroi"
+        },
+        "nord": {
+          "case": [
+            4,
+            -1
+          ],
+          "porte": null,
+          "vers": "echoppe"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      },
+      "genre": "f"
+    },
+    "echoppe": {
+      "altitude_cm": 0,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Conduite basse",
+      "plan": {
+        "origine": [
+          -10,
+          0
+        ],
+        "repere": "C",
+        "sol": [
+          ".........",
+          ".........",
+          ".. ......",
+          ".. ......",
+          ".. ......",
+          ".........",
+          "........."
+        ]
+      },
+      "sorties": {
+        "est": {
+          "case": [
+            9,
+            3
+          ],
+          "porte": null,
+          "vers": "antichambre"
+        },
+        "sud": {
+          "case": [
+            4,
+            7
+          ],
+          "porte": null,
+          "vers": "crypte"
+        }
+      },
+      "potentiel_invention": {
+        "objets_max": 2,
+        "masse_max_kg": 3,
+        "capacites": [
+          "son",
+          "tranchable"
+        ]
+      },
+      "genre": "f"
+    }
+  },
+  "savoirs_pnj": {
+    "marchand": {
+      "itineraire_relais": {
+        "origine": "jeu",
+        "revision": 0,
+        "texte": "La conduite rejoint la salle des vannes, puis le palier du beffroi."
+      }
+    },
+    "brune": {},
+    "ilse": {},
+    "aubin": {}
+  },
+  "savoirs_version": 1,
+  "scenario": {
+    "debut": "Après la rupture du pont, tu as rejoint à pied le Relais des crues par la digue. À ton arrivée, Gorm préparait l'accueil des habitants évacués. Il t'a demandé de rapporter la petite cloche de réserve, alors rangée dans la galerie du vieux beffroi : elle devait servir à donner le signal depuis le refuge. Une consigne émaillée était fixée près de l'entrée. À l'ouest, une conduite menait aux locaux du relais.",
+    "liberte_personnage": "Le joueur choisit son itinéraire et ses moyens. Aucun compte à rebours ne s'écoule.",
+    "objectif": "Ramener la cloche d'alarme du beffroi au refuge du relais.",
+    "version": 1
+  },
+  "seed": 42,
+  "souvenirs_personnages": {
+    "marchand": {
+      "details": [
+        {
+          "description": "Sa barbe est courte et grisonnante.",
+          "nom": "barbe de Gorm"
+        },
+        {
+          "description": "Ses mains sont larges et calleuses.",
+          "nom": "mains de Gorm"
+        }
+      ],
+      "maniere_de_parler": "Gorm parle peu et va droit au but, d'une voix grave.",
+      "nom": "Gorm, gardien du relais",
+      "portrait": "Gorm est trapu, d'une cinquantaine d'années, au visage large.",
+      "source": "Gorm veille sur le Relais des crues.",
+      "traits": {}
+    }
+  },
+  "sujets_savoirs_pnj": {
+    "marchand": {},
+    "brune": {
+      "apprentissage_metier": "Comment le personnage a appris son métier connu ; aucun pouvoir ni bonus nouveau.",
+      "souvenir_personnel": "Un souvenir ordinaire, sans nouveau lieu visitable, PNJ interactif, trésor ou secret.",
+      "tradition_locale": "Une coutume ou expression locale sans effet magique ni indice mécanique.",
+      "motivation_personnelle": "Une raison personnelle compatible avec ses intentions connues, sans nouvelle mission ni récompense."
+    },
+    "ilse": {
+      "apprentissage_metier": "Comment le personnage a appris son métier connu ; aucun pouvoir ni bonus nouveau.",
+      "souvenir_personnel": "Un souvenir ordinaire, sans nouveau lieu visitable, PNJ interactif, trésor ou secret.",
+      "tradition_locale": "Une coutume ou expression locale sans effet magique ni indice mécanique.",
+      "motivation_personnelle": "Une raison personnelle compatible avec ses intentions connues, sans nouvelle mission ni récompense."
+    },
+    "aubin": {
+      "apprentissage_metier": "Comment le personnage a appris son métier connu ; aucun pouvoir ni bonus nouveau.",
+      "souvenir_personnel": "Un souvenir ordinaire, sans nouveau lieu visitable, PNJ interactif, trésor ou secret.",
+      "tradition_locale": "Une coutume ou expression locale sans effet magique ni indice mécanique.",
+      "motivation_personnelle": "Une raison personnelle compatible avec ses intentions connues, sans nouvelle mission ni récompense."
+    }
+  },
+  "version": 1,
+  "visitees": [
+    "antichambre"
+  ],
+  "esprits": {
+    "marchand": {
+      "croyances": {
+        "cloche": {
+          "lieu": {
+            "valeur": "chambre_cloche",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "chambre_cloche",
+            "case": [
+              2,
+              3
+            ]
+          }
+        },
+        "cle": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 98,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "porte": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "essai",
+            "minute": 98,
+            "confiance": 1.0
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "vu",
+            "minute": 99,
+            "confiance": 1.0
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 99,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "vu",
+            "minute": 98,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 98,
+            "confiance": 1.0
+          }
+        },
+        "brune": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "entendu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              1,
+              2
+            ]
+          },
+          "fiable": {
+            "valeur": false,
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": true
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "ilse": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "entendu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              0,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "aubin": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              5,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "bois": {
+          "lieu": {
+            "valeur": "crypte",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "crypte",
+            "case": [
+              7,
+              2
+            ]
+          }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0
+          }
+        },
+        "echoppe": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0
+          }
+        },
+        "cle_reserve": {
+          "lieu": {
+            "valeur": "marchand",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": null,
+            "case": null
+          }
+        },
+        "poutre_conduite": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              5,
+              3
+            ]
+          }
+        },
+        "marteau": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              8,
+              5
+            ]
+          }
+        },
+        "pied_de_biche": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "gravure": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              3
+            ]
+          }
+        },
+        "antichambre": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "torche": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              1,
+              2
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": false,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0
+          }
+        },
+        "fanal": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "planches": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              5
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0
+          }
+        },
+        "echelle_relais": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 99,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              3
+            ]
+          }
+        },
+        "colonne_vannes": {
+          "lieu": {
+            "valeur": "crypte",
+            "source": "vu",
+            "minute": 20,
+            "confiance": 1.0,
+            "salle": "crypte",
+            "case": [
+              5,
+              3
+            ]
+          }
+        },
+        "crypte": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 2,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 15,
+            "confiance": 1.0
+          }
+        }
+      },
+      "memoire": [
+        {
+          "minute": 85,
+          "type": "bruit",
+          "salle": "echoppe",
+          "nature": "pas",
+          "niveau": 1
+        },
+        {
+          "minute": 93,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "forcer",
+          "objet": "reserve"
+        },
+        {
+          "minute": 94,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "forcer",
+          "objet": "reserve"
+        },
+        {
+          "minute": 95,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "forcer",
+          "objet": "reserve"
+        },
+        {
+          "minute": 96,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "crocheter",
+          "objet": "reserve"
+        },
+        {
+          "minute": 97,
+          "type": "abrite",
+          "lieu": "antichambre"
+        },
+        {
+          "minute": 97,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "ouvrir",
+          "objet": "reserve"
+        },
+        {
+          "minute": 97,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "manger",
+          "objet": "vivres"
+        },
+        {
+          "minute": 98,
+          "type": "atteinte",
+          "condition": {
+            "objet": "reserve",
+            "verrouillee": true
+          }
+        },
+        {
+          "minute": 98,
+          "type": "appel"
+        },
+        {
+          "minute": 99,
+          "type": "abrite",
+          "lieu": "antichambre"
+        },
+        {
+          "minute": 116,
+          "type": "bruit",
+          "salle": "antichambre",
+          "nature": "pas",
+          "niveau": 1
+        }
+      ],
+      "intention": {
+        "but": {
+          "type": "abri",
+          "lieu": "antichambre"
+        },
+        "motif": "securite",
+        "plan": [
+          {
+            "operation": "abriter",
+            "cible": "",
+            "outil": "",
+            "lieu": "antichambre",
+            "condition": ""
+          }
+        ],
+        "depuis": 99,
+        "attente": 0
+      },
+      "besoins": {
+        "biens": 96.099,
+        "devoir": 86.113,
+        "securite": 74.282,
+        "faim": 50.4,
+        "repos": 16.1,
+        "chaleur": 1.914
+      },
+      "visites": {
+        "antichambre": 87,
+        "crypte": 11,
+        "echoppe": 76
+      },
+      "pulsions": [
+        null,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "renoncements": {},
+      "engagements": [],
+      "libre": 87600,
+      "balayage": null,
+      "voix": [
+        "aubin",
+        "brune",
+        "ilse"
+      ],
+      "voix_entendues": {},
+      "noms": [],
+      "echange": [
+        {
+          "instant": 869,
+          "auteur": "brune",
+          "a": [
+            "marchand"
+          ],
+          "noms": [
+            "marchand",
+            "brune"
+          ]
+        }
+      ],
+      "urgences": {
+        "devoir": {
+          "etat": "attente",
+          "depuis": 88
+        },
+        "biens": {
+          "etat": "presse",
+          "depuis": 94
+        },
+        "securite": {
+          "etat": "presse",
+          "depuis": 97
+        }
+      },
+      "rejoint": null
+    },
+    "brune": {
+      "croyances": {
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": false,
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": true
+            },
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          },
+          "lumiere": {
+            "valeur": 1,
+            "source": "vu",
+            "minute": 95,
+            "confiance": 1.0,
+            "allumees": [
+              "fanal"
+            ]
+          }
+        },
+        "crochets": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": null,
+            "case": null
+          }
+        },
+        "marchand": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": true,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "ilse": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "lieu": {
+            "valeur": null,
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": null,
+            "case": null
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "aubin": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              5,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "antichambre": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "echelle_relais": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              3
+            ]
+          }
+        },
+        "torche": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              1,
+              2
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": false,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "fanal": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "gravure": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              3
+            ]
+          }
+        },
+        "pied_de_biche": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "poutre_conduite": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              5,
+              3
+            ]
+          }
+        },
+        "echoppe": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "marteau": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 2,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              8,
+              5
+            ]
+          }
+        },
+        "planches": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 2,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              5
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 2,
+            "confiance": 1.0
+          }
+        },
+        "cle": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              5
+            ]
+          }
+        }
+      },
+      "memoire": [
+        {
+          "minute": 1,
+          "type": "refus",
+          "de": "marchand",
+          "operation": "demander",
+          "raison": "refus",
+          "objet": "vivres"
+        },
+        {
+          "minute": 33,
+          "type": "renoncement",
+          "but": {
+            "type": "manger",
+            "objet": "vivres"
+          }
+        },
+        {
+          "minute": 116,
+          "type": "bruit",
+          "salle": "antichambre",
+          "nature": "pas",
+          "niveau": 1
+        },
+        {
+          "minute": 131,
+          "type": "se_chauffe",
+          "objet": "brasero"
+        }
+      ],
+      "intention": {
+        "but": {
+          "type": "chaleur",
+          "objet": "brasero"
+        },
+        "motif": "chaleur",
+        "plan": [
+          {
+            "operation": "chauffer",
+            "cible": "brasero",
+            "outil": "",
+            "lieu": "",
+            "condition": ""
+          }
+        ],
+        "depuis": 131,
+        "attente": 0
+      },
+      "besoins": {
+        "securite": 0.0,
+        "faim": 51.2,
+        "repos": 54.3,
+        "chaleur": 28.043
+      },
+      "visites": {},
+      "pulsions": [],
+      "renoncements": {
+        "faim": 33
+      },
+      "engagements": [],
+      "libre": 87600,
+      "balayage": {
+        "salle": "antichambre",
+        "case": [
+          7,
+          2
+        ],
+        "instant": 19800
+      },
+      "voix": [
+        "aubin",
+        "ilse",
+        "marchand"
+      ],
+      "voix_entendues": {},
+      "noms": [],
+      "echange": [
+        {
+          "instant": 869,
+          "auteur": "marchand",
+          "a": [
+            "brune"
+          ],
+          "noms": [
+            "marchand"
+          ]
+        }
+      ],
+      "urgences": {},
+      "rejoint": null
+    },
+    "ilse": {
+      "croyances": {
+        "marchand": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": true,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "brune": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              2
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0
+          }
+        },
+        "aubin": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "entendu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              5,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "antichambre": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "gravure": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              3
+            ]
+          }
+        },
+        "torche": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              1,
+              2
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": false,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "planches": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              5
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0
+          }
+        },
+        "cle": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 3,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "echelle_relais": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              3
+            ]
+          }
+        },
+        "fanal": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "pied_de_biche": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "poutre_conduite": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              5,
+              3
+            ]
+          }
+        },
+        "echoppe": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 2,
+              "propre": 2
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "marteau": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              8,
+              5
+            ]
+          }
+        }
+      },
+      "memoire": [
+        {
+          "minute": 1,
+          "type": "abrite",
+          "lieu": "antichambre"
+        },
+        {
+          "minute": 53,
+          "type": "se_chauffe",
+          "objet": "brasero"
+        },
+        {
+          "minute": 131,
+          "type": "bruit",
+          "salle": "echoppe",
+          "nature": "pas",
+          "niveau": 1
+        }
+      ],
+      "intention": null,
+      "besoins": {
+        "securite": 0.0,
+        "faim": 56.4,
+        "repos": 32.35,
+        "chaleur": 0.0
+      },
+      "visites": {
+        "antichambre": 116,
+        "echoppe": 118
+      },
+      "pulsions": [
+        true,
+        true
+      ],
+      "renoncements": {},
+      "engagements": [],
+      "libre": 87600,
+      "balayage": null,
+      "voix": [
+        "aubin",
+        "brune",
+        "marchand"
+      ],
+      "voix_entendues": {},
+      "noms": [],
+      "echange": [],
+      "urgences": {},
+      "rejoint": null
+    },
+    "aubin": {
+      "croyances": {
+        "marchand": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              6,
+              3
+            ]
+          },
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0
+          }
+        },
+        "brasero": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              3,
+              4
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0
+          }
+        },
+        "vivres": {
+          "lieu": {
+            "valeur": "reserve",
+            "source": "vu",
+            "minute": 98,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 98,
+            "confiance": 1.0
+          }
+        },
+        "reserve": {
+          "verrouillee": {
+            "valeur": false,
+            "source": "vu",
+            "minute": 98,
+            "confiance": 1.0
+          },
+          "etat": {
+            "valeur": {
+              "ouverte": false
+            },
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              8,
+              3
+            ]
+          }
+        },
+        "brune": {
+          "fiable": {
+            "valeur": false,
+            "source": "vu",
+            "minute": 97,
+            "confiance": 1.0
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "entendu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              1,
+              2
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": true
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "ilse": {
+          "fiable": {
+            "valeur": true,
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.7
+          },
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "entendu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              0,
+              3
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "faim": false,
+              "repos": false,
+              "chaleur": false
+            },
+            "source": "vu",
+            "minute": 118,
+            "confiance": 1.0
+          }
+        },
+        "antichambre": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 145,
+            "confiance": 1.0
+          }
+        },
+        "gravure": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              3
+            ]
+          }
+        },
+        "torche": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              1,
+              2
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": false,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0
+          }
+        },
+        "fanal": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              4,
+              0
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "allume": true,
+              "faible": false,
+              "charge": true
+            },
+            "source": "vu",
+            "minute": 131,
+            "confiance": 1.0
+          }
+        },
+        "planches": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              2,
+              5
+            ]
+          },
+          "etat": {
+            "valeur": {
+              "disponible": true
+            },
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0
+          }
+        },
+        "cle": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 87,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "echelle_relais": {
+          "lieu": {
+            "valeur": "antichambre",
+            "source": "vu",
+            "minute": 116,
+            "confiance": 1.0,
+            "salle": "antichambre",
+            "case": [
+              7,
+              3
+            ]
+          }
+        },
+        "pied_de_biche": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              7,
+              5
+            ]
+          }
+        },
+        "poutre_conduite": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              5,
+              3
+            ]
+          }
+        },
+        "echoppe": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 1,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0
+          }
+        },
+        "colonne_vannes": {
+          "lieu": {
+            "valeur": "crypte",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "crypte",
+            "case": [
+              5,
+              3
+            ]
+          }
+        },
+        "crypte": {
+          "etat": {
+            "valeur": {
+              "eclairee": true,
+              "niveau": 2,
+              "propre": 1
+            },
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0
+          }
+        },
+        "marteau": {
+          "lieu": {
+            "valeur": "echoppe",
+            "source": "vu",
+            "minute": 85,
+            "confiance": 1.0,
+            "salle": "echoppe",
+            "case": [
+              8,
+              5
+            ]
+          }
+        }
+      },
+      "memoire": [
+        {
+          "minute": 15,
+          "type": "bruit",
+          "salle": "echoppe",
+          "nature": "pas",
+          "niveau": 1
+        },
+        {
+          "minute": 43,
+          "type": "se_chauffe",
+          "objet": "brasero"
+        },
+        {
+          "minute": 93,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "forcer",
+          "objet": "reserve",
+          "dit_a": [
+            "marchand"
+          ]
+        },
+        {
+          "minute": 94,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "forcer",
+          "objet": "reserve",
+          "dit_a": [
+            "marchand"
+          ]
+        },
+        {
+          "minute": 95,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "forcer",
+          "objet": "reserve",
+          "dit_a": [
+            "marchand"
+          ]
+        },
+        {
+          "minute": 96,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "crocheter",
+          "objet": "reserve",
+          "dit_a": [
+            "marchand"
+          ]
+        },
+        {
+          "minute": 97,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "ouvrir",
+          "objet": "reserve"
+        },
+        {
+          "minute": 97,
+          "type": "abrite",
+          "lieu": "antichambre"
+        },
+        {
+          "minute": 97,
+          "type": "vu_agir",
+          "auteur": "brune",
+          "operation": "manger",
+          "objet": "vivres"
+        },
+        {
+          "minute": 116,
+          "type": "bruit",
+          "salle": "antichambre",
+          "nature": "pas",
+          "niveau": 2
+        }
+      ],
+      "intention": {
+        "but": {
+          "type": "abri",
+          "lieu": "antichambre"
+        },
+        "motif": "securite",
+        "plan": [
+          {
+            "operation": "abriter",
+            "cible": "",
+            "outil": "",
+            "lieu": "antichambre",
+            "condition": ""
+          }
+        ],
+        "depuis": 97,
+        "attente": 0
+      },
+      "besoins": {
+        "securite": 81.41499999999999,
+        "faim": 51.0,
+        "repos": 68.45,
+        "chaleur": 33.209
+      },
+      "visites": {
+        "antichambre": 85,
+        "crypte": 64
+      },
+      "pulsions": [
+        false,
+        false
+      ],
+      "renoncements": {},
+      "engagements": [],
+      "libre": 87600,
+      "balayage": null,
+      "voix": [
+        "brune",
+        "ilse",
+        "marchand"
+      ],
+      "voix_entendues": {},
+      "noms": [],
+      "echange": [],
+      "urgences": {
+        "securite": {
+          "etat": "presse",
+          "depuis": 97
+        }
+      },
+      "rejoint": null
+    }
+  },
+  "voix_connues": [],
+  "voix_entendues": {},
+  "dixiemes": 0,
+  "mode_cases": true,
+  "exploration": {
+    "antichambre": [
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        0
+      ],
+      [
+        6,
+        6
+      ]
+    ],
+    "beffroi": [],
+    "chambre_cloche": [
+      [
+        0,
+        10
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        0,
+        12
+      ],
+      [
+        1,
+        10
+      ],
+      [
+        1,
+        11
+      ],
+      [
+        1,
+        12
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        2,
+        11
+      ],
+      [
+        2,
+        12
+      ],
+      [
+        2,
+        13
+      ],
+      [
+        2,
+        14
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        3,
+        12
+      ],
+      [
+        3,
+        13
+      ],
+      [
+        3,
+        14
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        4,
+        8
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        4,
+        11
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        4,
+        13
+      ],
+      [
+        4,
+        14
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        5,
+        9
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        5,
+        11
+      ],
+      [
+        5,
+        12
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        5,
+        14
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        6,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        6,
+        10
+      ],
+      [
+        6,
+        11
+      ],
+      [
+        6,
+        12
+      ],
+      [
+        6,
+        13
+      ],
+      [
+        6,
+        14
+      ]
+    ],
+    "crypte": [],
+    "echoppe": []
+  },
+  "murs_memorises": {
+    "antichambre": [
+      [
+        3,
+        -1
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        -1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        4,
+        4
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        -1
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        -1
+      ],
+      [
+        6,
+        7
+      ]
+    ],
+    "chambre_cloche": [
+      [
+        -1,
+        10
+      ],
+      [
+        -1,
+        12
+      ],
+      [
+        2,
+        15
+      ],
+      [
+        3,
+        15
+      ],
+      [
+        4,
+        15
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        6,
+        15
+      ],
+      [
+        7,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        7,
+        12
+      ],
+      [
+        7,
+        13
+      ],
+      [
+        7,
+        14
+      ]
+    ]
+  },
+  "souvenirs_visuels": {
+    "gravure": {
+      "salle": "antichambre",
+      "position": [
+        3,
+        3
+      ],
+      "contact": [
+        2,
+        3
+      ],
+      "symbole": "!",
+      "nom": "la consigne émaillée"
+    },
+    "torche": {
+      "salle": "antichambre",
+      "position": [
+        1,
+        2
+      ],
+      "contact": [
+        1,
+        2
+      ],
+      "symbole": "t",
+      "nom": "la torche"
+    },
+    "ilse": {
+      "salle": "antichambre",
+      "position": [
+        3,
+        5
+      ],
+      "contact": [
+        3,
+        5
+      ],
+      "symbole": "I",
+      "nom": "Ilse, meunière évacuée"
+    },
+    "fanal": {
+      "salle": "antichambre",
+      "position": [
+        4,
+        0
+      ],
+      "contact": [
+        4,
+        0
+      ],
+      "symbole": "*",
+      "nom": "le fanal du refuge"
+    }
+  },
+  "souvenirs_portes": {},
+  "entendus": [],
+  "bruits": [
+    {
+      "instant": 788,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 0,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 849,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": -1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 869,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "voix",
+      "niveau": 0,
+      "par": "bas",
+      "texte": "Brune demande une part des vivres du refuge à Gorm.",
+      "cites": [
+        "marchand",
+        "vivres"
+      ]
+    },
+    {
+      "instant": 869,
+      "auteur": "marchand",
+      "salle": "echoppe",
+      "nature": "voix",
+      "niveau": -1,
+      "par": "bas",
+      "texte": "Gorm refuse.",
+      "cites": [
+        "brune"
+      ]
+    },
+    {
+      "instant": 1357,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "feutre",
+      "niveau": -2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 1439,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "geste",
+      "niveau": 1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 1459,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "feutre",
+      "niveau": -1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 9050,
+      "auteur": "marchand",
+      "salle": "crypte",
+      "nature": "pas",
+      "niveau": -2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 45848,
+      "auteur": "marchand",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": -1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 51050,
+      "auteur": "aubin",
+      "salle": "crypte",
+      "nature": "pas",
+      "niveau": -2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 51080,
+      "auteur": "aubin",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": -1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 51105,
+      "auteur": "aubin",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 0,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 51152,
+      "auteur": "aubin",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 51315,
+      "auteur": "aubin",
+      "salle": "antichambre",
+      "nature": "pas",
+      "niveau": 2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 52250,
+      "auteur": "marchand",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 0,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 52280,
+      "auteur": "marchand",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 57600,
+      "auteur": "brune",
+      "salle": "antichambre",
+      "nature": "bruyant",
+      "niveau": 6,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 58220,
+      "auteur": "brune",
+      "salle": "antichambre",
+      "nature": "feutre",
+      "niveau": 0,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 58800,
+      "auteur": "marchand",
+      "salle": "antichambre",
+      "nature": "appel",
+      "niveau": 8,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 58866,
+      "auteur": "marchand",
+      "salle": "antichambre",
+      "nature": "geste",
+      "niveau": 2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 59400,
+      "auteur": "marchand",
+      "salle": "antichambre",
+      "nature": "pas",
+      "niveau": 2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 70916,
+      "auteur": "ilse",
+      "salle": "antichambre",
+      "nature": "pas",
+      "niveau": 2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 70957,
+      "auteur": "ilse",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 70998,
+      "auteur": "ilse",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 0,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 71033,
+      "auteur": "ilse",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": -1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 78717,
+      "auteur": "brune",
+      "salle": "antichambre",
+      "nature": "pas",
+      "niveau": 2,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    },
+    {
+      "instant": 78738,
+      "auteur": "brune",
+      "salle": "echoppe",
+      "nature": "pas",
+      "niveau": 1,
+      "par": "bas",
+      "texte": "",
+      "cites": []
+    }
+  ],
+  "chronique": [
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "aubin",
+      "texte": "Aubin entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse reste près d'Aubin.",
+      "nature": "geste"
+    },
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 1,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 1,
+      "pnj": "brune",
+      "texte": "Brune demande une part des vivres du refuge à Gorm (refus).",
+      "nature": "social"
+    },
+    {
+      "minute": 2,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée prend la trousse de crochets.",
+      "nature": "geste"
+    },
+    {
+      "minute": 2,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 2,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 2,
+      "pnj": "aubin",
+      "texte": "Aubin entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 2,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 2,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 5,
+      "pnj": "brune",
+      "texte": "Brune entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "ilse",
+      "texte": "Ilse entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "aubin",
+      "texte": "Aubin entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 5,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 11,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 11,
+      "pnj": "ilse",
+      "texte": "Ilse entend un bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 11,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Salle des vannes.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 14,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 14,
+      "pnj": "marchand",
+      "texte": "Gorm entend un bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 14,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Salle des vannes.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 14,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 15,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 15,
+      "pnj": "aubin",
+      "texte": "Aubin entend un bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 15,
+      "pnj": "marchand",
+      "texte": "Gorm va voir d'où venait le bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 27,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 27,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 27,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 43,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 43,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se chauffe près du brasero.",
+      "nature": "geste"
+    },
+    {
+      "minute": 46,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 52,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 53,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se chauffe près du brasero.",
+      "nature": "geste"
+    },
+    {
+      "minute": 60,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 64,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 64,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Salle des vannes.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 71,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 76,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 76,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 76,
+      "pnj": "ilse",
+      "texte": "Ilse entend un bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 85,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 85,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 85,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 85,
+      "pnj": "marchand",
+      "texte": "Gorm entend un bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 85,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 85,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 85,
+      "pnj": "ilse",
+      "texte": "Ilse va voir d'où venait le bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 87,
+      "pnj": "brune",
+      "texte": "Brune entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "aubin",
+      "texte": "Aubin entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 87,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 93,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 93,
+      "pnj": "ilse",
+      "texte": "Ilse entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 93,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 93,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée s'acharne sur la serrure de la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 94,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée s'acharne sur la serrure de la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 95,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée s'acharne sur la serrure de la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 96,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée crochète la serrure de la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 97,
+      "pnj": "marchand",
+      "texte": "Gorm reste près d'Aubin.",
+      "nature": "geste"
+    },
+    {
+      "minute": 97,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée ouvre la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 97,
+      "pnj": "aubin",
+      "texte": "Aubin reste près de Gorm.",
+      "nature": "geste"
+    },
+    {
+      "minute": 97,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée mange une part des vivres du refuge.",
+      "nature": "geste"
+    },
+    {
+      "minute": 98,
+      "pnj": "marchand",
+      "texte": "Gorm appelle à l'aide.",
+      "nature": "social"
+    },
+    {
+      "minute": 98,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 98,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais ferme la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 98,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais verrouille la réserve de vivres.",
+      "nature": "geste"
+    },
+    {
+      "minute": 99,
+      "pnj": "marchand",
+      "texte": "Gorm reste près d'Aubin.",
+      "nature": "geste"
+    },
+    {
+      "minute": 116,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée passe dans : Refuge du relais.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 116,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "marchand",
+      "texte": "Gorm entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "brune",
+      "texte": "Brune entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "aubin",
+      "texte": "Aubin entend un bruit : Refuge du relais.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 116,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 118,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 131,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "marchand",
+      "texte": "Gorm, gardien du relais se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "aubin",
+      "texte": "Aubin, vieux passeur se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée passe dans : Conduite basse.",
+      "nature": "deplacement"
+    },
+    {
+      "minute": 131,
+      "pnj": "ilse",
+      "texte": "Ilse, meunière évacuée se retourne au bruit.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "ilse",
+      "texte": "Ilse entend un bruit : Conduite basse.",
+      "nature": "ouie"
+    },
+    {
+      "minute": 131,
+      "pnj": "brune",
+      "texte": "Brune, batelière évacuée se chauffe près du brasero.",
+      "nature": "geste"
+    }
+  ],
+  "personnages_vus": [],
+  "gestes_en_cours": []
+}

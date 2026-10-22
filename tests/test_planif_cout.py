@@ -67,7 +67,7 @@ class GrapheReprisTests(unittest.TestCase):
     def assertMemeMonde(self, cree, minutes, pas, qui):
         avec, recherches = vivre_par_pas(cree(), minutes, pas, {})
         sans, _ = vivre_par_pas(cree(), minutes, pas, Oublieux())
-        self.assertTrue(any(r["graphe"] and r["pnj"] == qui for r in recherches))
+        self.assertTrue(any(r["graphe"] and qui in (None, r["pnj"]) for r in recherches))
         self.assertEqual(avec.data, sans.data)
 
     def test_lucien_au_grenier_noir_meme_monde_avec_ou_sans_graphe(self):
@@ -75,9 +75,9 @@ class GrapheReprisTests(unittest.TestCase):
 
     def test_odon_affame_a_la_mine_meme_monde_avec_ou_sans_graphe(self):
         # Même nature, ailleurs : à la mine (départ tiré), le prix d'une faute change à chaque minute.
-        # Depuis que les PNJ choisissent à l'événement (``deliberation-evenements``), c'est Rémy dont le
-        # graphe est repris dans cette demi-heure (Odon y prend un autre chemin).
-        self.assertMemeMonde(lambda: creer("mine", 1985), 30, 5, "remy")
+        # Depuis que les PNJ choisissent à l'événement (``deliberation-evenements``), qui y voit son graphe
+        # repris dans cette demi-heure dépend de la nuit : il suffit que l'un d'eux le soit.
+        self.assertMemeMonde(lambda: creer("mine", 1985), 30, 5, None)
 
 
 if __name__ == "__main__":

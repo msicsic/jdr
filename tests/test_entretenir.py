@@ -148,8 +148,14 @@ class ParoleTenueTests(unittest.TestCase):
         # Il le croit vif, mais il l'a vu avant qu'on lui demande d'y mettre du bois : il ira voir.
         self.assertFalse(tenu(m, "gaspard", condition, depuis=m.data["minutes"]))
         self.assertTrue(tenu(m, "gaspard", condition))
+        # Revu dans la minute même de la demande, ce n'est pas encore sûr (les croyances sont datées à la
+        # minute) ; revu la minute suivante, si.
+        demande = m.data["minutes"]
         croire(m, "gaspard", "poele", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
-        self.assertTrue(tenu(m, "gaspard", condition, depuis=m.data["minutes"]))
+        self.assertFalse(tenu(m, "gaspard", condition, depuis=demande))
+        m.data["minutes"] += 1
+        croire(m, "gaspard", "poele", "etat", {"allume": True, "faible": False, "charge": True}, "vu")
+        self.assertTrue(tenu(m, "gaspard", condition, depuis=demande))
         # Une part promise ne se solde qu'au geste qui la sert, quoi qu'il croie de la faim de l'autre.
         self.assertFalse(tenu(m, "mathe", {"objet": "vivres", "servir": "lucien"}))
 
@@ -173,8 +179,11 @@ class ServirUnProtegeTests(unittest.TestCase):
                      for t in textes(chronique))
         self.assertEqual(servis, 1)
         self.assertLess(lire(m, "lucien")["besoins"]["faim"], 70)
-        # Une seule part de plus est sortie du garde-manger (d'autres en ont acheté avant).
-        self.assertEqual(m.objets["vivres"]["portions"], avant - 1)
+        # Une seule part pour lui : les autres parts sorties du garde-manger pendant ce laps sont allées
+        # à d'autres (vendues ou données, chacune remise de la main de Mathe dans la chronique).
+        autres = sum(t.startswith("Mathe donne une part des vivres de la cuisine à ") and "Lucien" not in t
+                     for t in textes(chronique))
+        self.assertEqual(m.objets["vivres"]["portions"], avant - 1 - autres)
         # Elle l'a vu manger : elle ne le croit plus affamé, et rien ne reste à faire.
         self.assertFalse(lire(m, "mathe")["croyances"]["lucien"]["etat"]["valeur"]["faim"])
         self.assertTrue(lire(m, "mathe")["pulsions"][1])

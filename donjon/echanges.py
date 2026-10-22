@@ -375,8 +375,10 @@ def tenu(monde, id, condition, depuis=None):
         return satisfaite(monde, id, condition)  # Le prêt est clos : il le sait de sa main.
     if "servir" in condition or "remettre" in condition or not satisfaite(monde, id, condition):
         return False
+    # Les croyances sont datées à la minute : dans la minute même de la parole, rien ne dit qu'il a vu
+    # après l'avoir donnée (il choisit désormais entre deux minutes, ``deliberation.choisir``).
     nouvelles = lire(monde, id)["croyances"].get(condition.get("objet"), {}).values()
-    return depuis is None or any(c["minute"] >= depuis for c in nouvelles)
+    return depuis is None or any(c["minute"] > depuis for c in nouvelles)
 
 
 def confier(monde, demandeur, auditeur, condition):

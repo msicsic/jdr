@@ -39,7 +39,9 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
 - **Les PNJ réfléchissent** à la fin de leur plan, à un geste manqué, à un événement (un bruit,
   quelqu'un qui entre dans leur cône ou en sort, une porte), et au moins une fois par minute.
   Chaque geste est revalidé quand il commence. On finit son geste avant de réagir : un temps de
-  réaction réaliste.
+  réaction réaliste. *État* : jusqu'à la branche `deliberation-evenements`, seule la minute était
+  faite (le choix du but n'avait lieu qu'à la frontière de minute) ; les autres déclencheurs le sont
+  depuis (voir « Correctif : délibérer à l'événement »).
 - **Les PNJ marchent case par case**, sur un chemin en cases qui traverse les salles et les
   portes ; `_approcher` et le passage d'une salle d'un coup disparaissent.
 - **La perception se met à jour par événement** : celui qui bouge, et ceux qui pouvaient
@@ -56,7 +58,8 @@ assommer). Mesuré au banc sans joueur et à son récit, puis en jeu.
    (chronique, mesures, état final) doit rester identique : la réforme du temps est vérifiée
    seule, avant de changer quoi que ce soit au comportement.
 2. **Les PNJ case par case et les durées des gestes** : chemin en cases, un pas par 1,5 s,
-   délibération par événement et à la minute, perception par événement. Les sauvegardes
+   délibération par événement et à la minute (faite à la minute seulement ; par événement depuis
+   `deliberation-evenements`), perception par événement. Les sauvegardes
    existantes se rechargent (l'instant se déduit des minutes).
 3. **Orientation et cône** pour tous ; rotations et leur durée ; se retourner au bruit.
 4. **Le joueur sur la même horloge** : flèches, Maj + flèche, se retourner, carte avec cône ;

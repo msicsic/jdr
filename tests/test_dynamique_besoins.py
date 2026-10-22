@@ -102,6 +102,9 @@ class TenirTests(unittest.TestCase):
         for autre in ("odile", "mireille", "tilo", "joss", "hugues", "mathurine", "lucien"):
             memoriser(m, "anselme", {"type": "enquete", "de": autre, "besoin": "chaleur", "objets": []})
         placer(m, "lucien", "grenier", (2, 2))
+        # Anselme attend à la salle commune éclairée : dans sa chambre noire, n'appelant plus à l'aide en
+        # boucle (``docs/audit-nuits.md``, B1), il irait prendre lui-même la lanterne de l'étable.
+        placer(m, "anselme", "salle_commune", (2, 2))
         percevoir_tous(m)
         lire(m, "lucien")["besoins"].update(biens=65.0, securite=70.0)
         return m

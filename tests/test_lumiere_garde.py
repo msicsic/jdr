@@ -197,18 +197,25 @@ class AttentePartTests(unittest.TestCase):
         """Cas réel (Relais, graine 42, départ tiré, joueur à la galerie) : à la minute 145, Brune a
         forcé la réserve ; les biens de Gorm le pressent ; le brasero baisse. Sur ``main``, il
         achetait une part des planches d'Aubin à la minute 150, puis retournait l'attendre près du
-        brasero, loin de ses biens, sans que le plan ait compté ce temps."""
-        m = creer("relais", 42)
-        m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
-        executer(m, 145)
-        return recharger(m)
+        brasero, loin de ses biens, sans que le plan ait compté ce temps.
+
+        L'état de la minute 145 est celui de cette nuit-là, sauvegardé (``tests/data/etats``) : depuis
+        que les PNJ choisissent à l'événement (``deliberation-evenements``), la même graine mène
+        ailleurs avant la minute 145."""
+        from pathlib import Path
+        from donjon.monde import Monde
+        return Monde.charger(Path(__file__).parent / "data" / "etats" / "relais42_minute145.json")
 
     def test_gorm_va_chercher_ses_fagots_au_lieu_d_acheter_les_planches(self):
         from donjon.deliberation import urgents
         m = self.gorm_reel()
         self.assertIn("biens", urgents(m, "marchand"))
         self.assertEqual(gardes(m, "marchand"), ("antichambre",))
-        m = suivre(m, 10)
+        # Placement d'auteur : sans le sou, il ne peut que demander une part, qui s'attendrait près du
+        # brasero. (Avec ses pièces, il choisit désormais à l'instant où il apprend ce qui le décide,
+        # Aubin à côté de lui : il achète, ce que le plan a pesé ; ``deliberation-evenements``.)
+        m.data["finances_pnj"]["marchand"] = 0
+        m = suivre(recharger(m), 10)
         vus = textes(m, "marchand")
         self.assertIn("Gorm, gardien du relais prend les fagots de bois sec.", vus)
         self.assertIn("Gorm, gardien du relais alimente le brasero.", vus)

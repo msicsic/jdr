@@ -63,7 +63,8 @@ class ContenantFermeTests(unittest.TestCase):
         # attend ensuite son occasion pour manger.)
         m, _ = attendre(m, 2)
         self.assertIn("Brune, batelière évacuée prend la trousse de crochets.", gestes(m, "brune"))
-        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", gestes(m, "brune"))
+        # Elle s'y est attaquée (le jet décide si la serrure cède dans ce laps).
+        self.assertTrue(any(t.endswith("la serrure de la réserve de vivres.") for t in gestes(m, "brune")))
 
     def test_lucien_trouve_le_coffre_ferme_dans_le_noir(self):
         """Même nature (auberge) : Lucien croit le coffre d'Anselme ouvert et veut le ballot ; le
