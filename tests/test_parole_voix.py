@@ -9,6 +9,8 @@
 - Le joueur hèle quelqu'un par son nom (« j'appelle Gorm ») : un geste du moteur, par la règle des
   PNJ ; l'appelé répond et l'attend, le joueur entend sa réponse par l'ouïe commune.
 Chaque cas vérifie l'état après rechargement et ce que lit le joueur."""
+
+from tests.support import lier
 import unittest
 
 from donjon import lexique
@@ -267,7 +269,7 @@ class HelerJoueurTests(unittest.TestCase):
     def test_qui_se_mefie_de_lui_ne_repond_pas(self):
         m = gorm_derriere_la_porte()
         connaitre(m, "marchand", "joueur")
-        croire(m, "marchand", "joueur", "fiable", False, "vu")
+        lier(m, "marchand", "joueur", False, "vu")
         m = recharger(m)
         reprise, sortie, appels = jouer(m, "je hèle Gorm", [], [])
         self.assertEqual(appels, [])

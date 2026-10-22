@@ -134,6 +134,8 @@ class Enregistreur:
             lieu = croyance.get("lieu")
             if lieu:
                 esprit[f"{id}|{objet}"] = [lieu.get("valeur"), lieu.get("salle"), lieu.get("case")]
+        from .relations import connus, envers
+        esprit[f"{id}|:relations"] = {x: envers(monde, id, x) for x in connus(monde, id)}
         salles = monde.data["salles"]
         esprit[f"{id}|:bruits"] = sorted([salles[m["salle"]]["nom"], m["nature"]]
                                          for m in e["memoire"] if m["type"] == "bruit" and m["salle"] in salles) or None

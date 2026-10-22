@@ -21,7 +21,7 @@ moteur.
 from .caractere import penchant
 from .esprits import RECENT, constater, croire, croyance, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
-from .relations import FIABLE, avis, eprouver, mefiance, percue
+from .relations import FIABLE, avis, mefiance, percue
 
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
 PARTAGE = 12           # DD d'une demande (une part, un objet prêté), que l'altruisme de celui qui donne abaisse
@@ -126,8 +126,11 @@ def accueil(monde, demandeur, auditeur):
     """Ce qui arrête une demande avant qu'il la pèse : « mefiance » envers qui il croit entendre
     (``relations.percue``), « qui_va_la » si c'est une voix inconnue et qu'il est prudent ; None."""
     from .voix import qui_va_la
-    if mefiance(percue(monde, auditeur, demandeur)):
+    r = percue(monde, auditeur, demandeur)
+    if mefiance(r):
         return "mefiance"
+    if r["rancune"] >= 60:
+        return "rancune"
     return "qui_va_la" if qui_va_la(monde, auditeur, demandeur) else None
 
 
@@ -159,7 +162,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
             if demandeur != "joueur" and echu(monde, objet):
                 pret_garde(monde, demandeur, auditeur, objet, [])
             return "necessaire"
-        remettre(monde, auditeur, demandeur, objet)
+        remettre(monde, auditeur, demandeur, objet, demande=True)
         return "rendu"
     if arret:
         return arret
@@ -232,7 +235,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0):
         from .biens import donner
         _vendre(monde, auditeur, demandeur, objet, prix)
         donner(monde, objet, demandeur)
-    remettre(monde, auditeur, demandeur, objet)
+    remettre(monde, auditeur, demandeur, objet, demande=True, achat=vente)
     return "vendu" if vente else "remis"
 
 
@@ -501,7 +504,7 @@ def confier(monde, demandeur, auditeur, condition):
     return "accepte"
 
 
-def remettre(monde, donneur, receveur, objet):
+def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     """Remis par son propriétaire, un objet qui dure est prêté, ce qui se consomme est donné ;
     remis à son propriétaire, il lui est rendu (``deplacer`` clôt le prêt) ; remis par un autre,
     il change seulement de mains."""
@@ -527,9 +530,14 @@ def remettre(monde, donneur, receveur, objet):
             o["proprietaire"] = donneur
             preter(monde, objet, receveur)
             memoriser(monde, donneur, {"type": "pret", "objet": objet, "a": receveur})
+    permission = next((p for p in monde.data.get("permissions", []) if p["objet"] == objet), None)
+    restitution = bool(permission and permission["de"] == receveur and permission["a"] == donneur)
+    ponctuel = restitution and monde.data["minutes"] - permission["minute"] <= 240
     deplacer(monde, objet, receveur)
     if receveur != "joueur":
-        memoriser(monde, receveur, {"type": "recu", "objet": objet, "de": donneur})
+        memoriser(monde, receveur, {"type": "restitution" if restitution else "recu", "objet": objet, "de": donneur,
+                                     "pret": any(p["objet"] == objet and p["a"] == receveur for p in monde.data.get("permissions", [])),
+                                     "livraison": bool(livre) or achat, "demande": demande, "ponctuel": ponctuel})
 
 
 def servir(monde, id, nourriture, pour, lignes):
@@ -553,9 +561,6 @@ def servir(monde, id, nourriture, pour, lignes):
     if "faim" in besoins:
         besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
-    from .voix import identifie
-    if identifie(monde, pour, id):
-        eprouver(monde, pour, id, "nourri")  # Il sait gré à qui il sait l'avoir servi.
     constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
     tenus = [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": pour}]

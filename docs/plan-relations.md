@@ -609,7 +609,25 @@ vue, une rumeur ou un aveu non) ; `data["relations_pnj"]` et l'humeur restent te
 
 ### 3b. Les relations graduées
 
-- Données : `relations` dans l'esprit, `profil["liens"]`, migrations (§ 3.6) ; table
+**Fait**, branche `codex-relations-3b`, non fusionnée ; critère global de banc non atteint
+(auberge 1/4, crue 0/4 pour les services levant une méfiance ; temps +15,6 % à l'auberge,
++71,5 % à la crue dans la paire rapprochée, au-delà de la borne +10 %).
+Les liens sont des données nouvelles,
+sans migration des anciennes sauvegardes (décision de l'utilisateur pour ce chantier).
+Les résultats finaux et limites sont consignés dans
+[`taches/rapport-codex-6-relations-3b.md`](taches/rapport-codex-6-relations-3b.md).
+
+Précisions du contrat réalisé : ancres exactes par axe pour conserver l'estompement malgré
+d'autres événements ; preuve durable commune au constat et à sa rumeur, avec complément
+pour une preuve plus forte ; suite d'engagement apprise à réception ou par une annonce
+réellement entendue ; achat, don, prêt et restitution distingués. Le registre de preuves
+croît avec les incidents ; la compagnie dans l'épreuve compte les minutes perçues du filet.
+Le crochet sait compléter une preuve renforcée, mais le circuit social rejette encore une
+nouvelle déjà sue : une seconde source ne la fait pas réévaluer tant que le souvenir subsiste.
+Les signes et le retrait de l'humeur restent en 3c ; les propositions de réparation en 3e.
+
+- Données : `relations` dans l'esprit, `profil["liens"]`, sans migration des anciennes
+  sauvegardes (décision de ce chantier, remplace cette partie du § 3.6) ; table
   `EPREUVES` par le crochet de `memoriser`, modulations, estompement, hystérésis ; lectures
   graduées (§ 3.5) ; `fiable` quitte les croyances ; la crue reçoit ses liens de départ, en
   données (« Gorm se méfie de Brune ; Ilse craint Brune et s'en remet à Gorm ; Aubin doit à Gorm

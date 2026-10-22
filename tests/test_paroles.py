@@ -154,7 +154,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
             reponse_pnj("Gorm : « Alors je vais la chercher. »")])
         self.assertEqual(croyance(reprise, "cloche")["source"], "dit:joueur")
         self.assertEqual(croyance(reprise, "cloche")["valeur"], "crypte")
-        self.assertIn("te croit", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
+        self.assertIn("retient ce que tu lui dis", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
         # Gorm se met en route vers la salle des vannes, n'y trouve rien et comprend.
         for _ in range(2):
             Moteur(reprise).executer(Moteur(reprise).preparer(proposition("attendre")))
@@ -176,7 +176,9 @@ class CroyancesTransmisesTests(unittest.TestCase):
             parole("La cloche est restée là-haut.", ("affirmation", "cloche", "lieu", "chambre_cloche")),
             reponse_pnj("Gorm fronce les sourcils.")])
         self.assertEqual(croyance(reprise, "cloche")["valeur"], "joueur")
-        self.assertFalse(croyance(reprise, "joueur", "fiable")["valeur"])
+        from donjon.relations import envers
+        self.assertEqual(envers(reprise, "marchand", "joueur")["confiance"], 30)
+        self.assertEqual(envers(reprise, "marchand", "joueur")["motifs"][-1]["type"], "mensonge_dementi")
         self.assertEqual(reprise.data["jets"], jets)
         self.assertIn("de ses propres yeux", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
 
@@ -198,7 +200,9 @@ class CroyancesTransmisesTests(unittest.TestCase):
             parole("Brune... pas bien. Cloche... en bas.",
                    ("affirmation", "brune", "fiable", "non"), ("affirmation", "cloche", "lieu", "crypte")),
             reponse_pnj("Gorm plisse les yeux.")])
-        self.assertFalse(croyance(reprise, "brune", "fiable")["valeur"])
+        from donjon.relations import envers
+        self.assertEqual(envers(reprise, "marchand", "brune")["confiance"], 57)
+        self.assertEqual(envers(reprise, "marchand", "brune")["motifs"][-1]["type"], "rumeur")
         self.assertEqual(croyance(reprise, "cloche")["source"], "savoir")
         self.assertIn("se perd", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
 

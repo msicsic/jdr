@@ -99,12 +99,6 @@
      }
     },
     "gaspard": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -118,12 +112,6 @@
      }
     },
     "josse": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -137,12 +125,6 @@
      }
     },
     "lucien": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        1,
@@ -156,12 +138,6 @@
      }
     },
     "mathe": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -175,12 +151,6 @@
      }
     },
     "odon": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": false
-     },
      "lieu": {
       "case": [
        8,
@@ -257,12 +227,6 @@
      }
     },
     "remy": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        2,
@@ -300,7 +264,15 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "gaspard",
+    "josse",
+    "lucien",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "gaspard": {
    "croyances": {
@@ -331,12 +303,6 @@
      }
     },
     "bram": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -379,12 +345,6 @@
      }
     },
     "josse": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -444,12 +404,6 @@
      }
     },
     "lucien": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        1,
@@ -463,12 +417,6 @@
      }
     },
     "mathe": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -565,12 +513,6 @@
      }
     },
     "remy": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        2,
@@ -654,7 +596,15 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "bram",
+    "josse",
+    "lucien",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "josse": {
    "croyances": {
@@ -685,12 +635,6 @@
      }
     },
     "bram": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -749,12 +693,6 @@
      }
     },
     "gaspard": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -814,12 +752,6 @@
      }
     },
     "lucien": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        1,
@@ -833,12 +765,6 @@
      }
     },
     "mathe": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -852,12 +778,6 @@
      }
     },
     "odon": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        8,
@@ -960,12 +880,6 @@
      }
     },
     "remy": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        2,
@@ -1024,17 +938,19 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "bram",
+    "gaspard",
+    "lucien",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "lucien": {
    "croyances": {
     "bram": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -1077,12 +993,6 @@
      }
     },
     "gaspard": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1096,12 +1006,6 @@
      }
     },
     "josse": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1115,12 +1019,6 @@
      }
     },
     "mathe": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -1134,12 +1032,6 @@
      }
     },
     "odon": {
-     "fiable": {
-      "confiance": 0.6,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": false
-     },
      "lieu": {
       "case": [
        8,
@@ -1197,12 +1089,6 @@
      }
     },
     "remy": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        2,
@@ -1275,7 +1161,15 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "bram",
+    "gaspard",
+    "josse",
+    "mathe",
+    "odon",
+    "remy"
+   ]
   },
   "mathe": {
    "croyances": {
@@ -1293,12 +1187,6 @@
      }
     },
     "bram": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -1341,12 +1229,6 @@
      }
     },
     "gaspard": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1360,12 +1242,6 @@
      }
     },
     "josse": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1379,12 +1255,6 @@
      }
     },
     "lucien": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        1,
@@ -1468,12 +1338,6 @@
      }
     },
     "remy": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        2,
@@ -1546,7 +1410,15 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "bram",
+    "gaspard",
+    "josse",
+    "lucien",
+    "odon",
+    "remy"
+   ]
   },
   "odon": {
    "croyances": {
@@ -1593,12 +1465,6 @@
      }
     },
     "gaspard": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1612,12 +1478,6 @@
      }
     },
     "josse": {
-     "fiable": {
-      "confiance": 0.8,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1760,7 +1620,15 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "bram",
+    "gaspard",
+    "josse",
+    "lucien",
+    "mathe",
+    "remy"
+   ]
   },
   "remy": {
    "croyances": {
@@ -1791,12 +1659,6 @@
      }
     },
     "bram": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -1839,12 +1701,6 @@
      }
     },
     "gaspard": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1858,12 +1714,6 @@
      }
     },
     "josse": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        6,
@@ -1923,12 +1773,6 @@
      }
     },
     "lucien": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        1,
@@ -1942,12 +1786,6 @@
      }
     },
     "mathe": {
-     "fiable": {
-      "confiance": 0.7,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": true
-     },
      "lieu": {
       "case": [
        3,
@@ -1961,12 +1799,6 @@
      }
     },
     "odon": {
-     "fiable": {
-      "confiance": 0.8,
-      "minute": 0,
-      "source": "savoir",
-      "valeur": false
-     },
      "lieu": {
       "case": [
        8,
@@ -2117,7 +1949,15 @@
     }
    },
    "intention": null,
-   "memoire": []
+   "memoire": [],
+   "voix": [
+    "bram",
+    "gaspard",
+    "josse",
+    "lucien",
+    "mathe",
+    "odon"
+   ]
   }
  },
  "finances_pnj": {
@@ -2156,7 +1996,15 @@
  "journal": [],
  "lus": [],
  "minutes": 0,
- "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
+ "depart": {
+  "bornes": {
+   "corps": 0.2,
+   "besoins": 10,
+   "rondes": 0.5,
+   "periodes": 0.2,
+   "horloges": 0.25
+  }
+ },
  "missions": {},
  "objets": {
   "baraquement_murs": {
@@ -2364,6 +2212,32 @@
     "valeurs": {
      "altruisme": 30,
      "ambition": 40
+    },
+    "liens": {
+     "gaspard": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "josse": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "lucien": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "mathe": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "odon": {
+      "confiance": 15,
+      "affection": 0
+     },
+     "remy": {
+      "confiance": 65,
+      "affection": 20
+     }
     }
    },
    "type": "personnage",
@@ -2967,6 +2841,28 @@
     "traits": "Trente ans de fond : il connaît la roche et ne craint pas le noir. Il sonde l'éboulis et le puits à intervalles réguliers pour en entendre les progrès. Taciturne, honnête, il ne ment pas et ne prend rien qui ne soit à lui.",
     "situation": {
      "proches": 1
+    },
+    "liens": {
+     "bram": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "josse": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "lucien": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "mathe": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "remy": {
+      "confiance": 65,
+      "affection": 20
+     }
     }
    },
    "type": "personnage",
@@ -3068,6 +2964,32 @@
     "valeurs": {
      "altruisme": 60,
      "loyaute": 70
+    },
+    "liens": {
+     "bram": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "gaspard": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "lucien": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "mathe": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "odon": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "remy": {
+      "confiance": 65,
+      "affection": 20
+     }
     }
    },
    "type": "personnage",
@@ -3308,6 +3230,32 @@
     "traits": "Pris sous l'éboulement, il ne peut ni marcher ni se défendre. Honnête et reconnaissant envers ceux qui veillent sur lui, il redoute le noir et les inconnus qui s'approchent de sa couchette.",
     "situation": {
      "proches": 2
+    },
+    "liens": {
+     "bram": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "gaspard": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "josse": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "mathe": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "odon": {
+      "confiance": 15,
+      "affection": 0
+     },
+     "remy": {
+      "confiance": 65,
+      "affection": 20
+     }
     }
    },
    "type": "personnage",
@@ -3417,6 +3365,28 @@
     "traits": "Cuisinière du camp et maîtresse du garde-manger : elle compte chaque part et sert d'abord le blessé. Franche et têtue, elle ne ment pas et ne prend pas ce qui n'est pas à elle, mais elle tient les cordons de la bourse de vivres et se méfie des inconnus qui mangent comme quatre.",
     "valeurs": {
      "altruisme": 60
+    },
+    "liens": {
+     "bram": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "gaspard": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "josse": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "lucien": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "remy": {
+      "confiance": 65,
+      "affection": 20
+     }
     }
    },
    "type": "personnage",
@@ -3503,6 +3473,16 @@
     "valeurs": {
      "honnetete": 45,
      "altruisme": 40
+    },
+    "liens": {
+     "gaspard": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "josse": {
+      "confiance": 65,
+      "affection": 20
+     }
     }
    },
    "type": "personnage",
@@ -3811,6 +3791,32 @@
     "traits": "Ami de Lucien, il ne le quitte pas d'une semelle et ne supporte pas qu'on s'approche de lui. Impulsif, il se méfie du nouveau venu et le dit ; il a peur du noir mais l'avoue mal. Il ne ment pas.",
     "situation": {
      "projet": 20
+    },
+    "liens": {
+     "bram": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "gaspard": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "josse": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "lucien": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "mathe": {
+      "confiance": 65,
+      "affection": 20
+     },
+     "odon": {
+      "confiance": 15,
+      "affection": 0
+     }
     }
    },
    "type": "personnage",

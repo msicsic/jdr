@@ -1066,6 +1066,7 @@ def _sur_le_passage(m, occupant, raison):
                "place": " se tient là, sur ton passage, sans place pour s'écarter."}.get(
         raison, " se tient là, sur ton passage, et ne s'écarte pas.")
     pourquoi = {"geste": "un geste en cours le retient sur sa case", "mefiance": "il se méfie de Corvus",
+                "rancune": "il en veut encore à Corvus",
                 "orgueil": "sa fierté l'emporte de loin sur son altruisme",
                 "place": "aucune case voisine libre hors du chemin"}.get(raison, raison)
     qui = occupant if vu else "un personnage"

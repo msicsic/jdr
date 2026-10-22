@@ -136,10 +136,11 @@ def jet_persuasion(monde, auditeur, locuteur, dd_base):
     confiance est celle qu'il porte à qui il croit entendre (``relations.percue``) : une voix qu'il ne
     sait à qui prêter est un étranger, et sa demande pèse moins (``voix.INCONNU``), même nommée."""
     from .caractere import modificateur
-    from .relations import confiance, mefiance, percue
+    from .relations import percue
     from .voix import INCONNU, identifie
     relation = percue(monde, auditeur, locuteur)
-    dd = (dd_base + (-2 if confiance(relation) else 6 if mefiance(relation) else 2)
+    dd = (dd_base + (50 - relation["confiance"]) / 10 - relation["affection"] / 25
+          - relation["dette"] / 20 + relation["rancune"] / 20
           + (0 if identifie(monde, auditeur, locuteur) else INCONNU)
           + modificateur(monde, auditeur, "VOL"))
     return monde.d20() + modificateur(monde, locuteur, "CHA") + modificateur(monde, locuteur, "ELO") >= dd, dd
@@ -1023,7 +1024,7 @@ def _avouer(travail, auditeur, c, faits):
     from .social import recevoir
     nom, il, _ = _personne(travail, auditeur)
     issue = recevoir(travail, auditeur, "joueur", c)
-    faits.append(f"{nom} l'entend : {il} ne te tient plus pour fiable." if issue
+    faits.append(f"{nom} retient ton aveu." if issue
                  else f"{nom} le savait déjà.")
 
 
@@ -1036,7 +1037,7 @@ def _se_nommer(travail, auditeur, nom_dit, faits):
     dit = travail.joueur["nom"] if nom_dit == "joueur" else travail.objets[nom_dit]["nom"].split(",")[0]
     faits.append({
         "connu": f"{nom} sait déjà qui tu es." if nom_dit == "joueur" else f"{nom} sait bien que tu n'es pas {dit}.",
-        "demasque": f"{nom} sait que tu n'es pas {dit} et ne te fait plus confiance.",
+        "demasque": f"{nom} sait que tu n'es pas {dit}.",
         "doute": f"{nom} doute que tu sois {dit}.",
         "crue": f"{nom} te croit sur parole : pour {lui}, c'est {dit} qui parle. Cela ne te vaut pas plus de "
                 "confiance qu'à un inconnu.",
@@ -1061,10 +1062,10 @@ def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
     nom, il, _ = _personne(travail, auditeur)
     issue = affirmer(travail, "joueur", auditeur, sujet, attribut, valeur)
     faits.append({
-        "dementi": f"{nom} sait de ses propres yeux que c'est faux et cesse de te croire fiable.",
+        "dementi": f"{nom} sait de ses propres yeux que c'est faux.",
         "doute": f"{nom} ne te croit pas ({_phrase(travail, sujet, attribut, valeur)}).",
-        "decouvert": f"{nom} voit bien que c'est faux et cesse de te croire fiable.",
-        "crue": f"{nom} te croit : {il} tient désormais pour vrai que {_phrase(travail, sujet, attribut, valeur)}.",
+        "decouvert": f"{nom} voit bien que c'est faux.",
+        "crue": f"{nom} retient ce que tu lui dis.",
     }[issue])
 
 
@@ -1089,6 +1090,7 @@ def _demander(travail, auditeur, objet, faits, prix=0):
     faits.append({
         "absent": f"{nom} n'a pas cet objet sur {lui}.",
         "mefiance": f"{nom} refuse : {il} ne te fait pas confiance.",
+        "rancune": f"{nom} refuse : {il} t'en veut encore.",
         "qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
         "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
         "pauvre": f"Tu n'as pas les {prix} pièces que tu lui offres.",
@@ -1169,6 +1171,7 @@ def _enqueter(travail, auditeur, besoin, faits):
     else:
         faits.append({"qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
                       "mefiance": f"{nom} refuse de te répondre : {il} ne te fait pas confiance.",
+                      "rancune": f"{nom} refuse de te répondre : {il} t'en veut encore.",
                       "rien": f"{nom} dit n'en avoir pas."}[issue])
 
 
@@ -1186,6 +1189,7 @@ def _demander_passage(travail, auditeur, faits, prix=0):
         "paye": f"{nom} prend tes {prix} pièces et s'écarte d'un pas pour te laisser passer.",
         "geste": f"{nom} ne s'écarte pas : {il} est occupé{e} à ce qu'{il} fait là.",
         "mefiance": f"{nom} refuse de s'écarter : {il} ne te fait pas confiance.",
+        "rancune": f"{nom} refuse de s'écarter : {il} t'en veut encore.",
         "place": f"{nom} n'a pas la place de s'écarter.",
         "refus": f"{nom} n'est pas convaincu{e} et reste où {il} est.",
         "inutile": f"{nom} ne te barre pas le passage.",

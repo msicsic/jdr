@@ -9,6 +9,8 @@
   moindre, venu du même endroit n'y renvoie plus ; seul un bruit nouveau le relance.
 
 Chaque cas vérifie l'état du monde après rechargement."""
+
+from tests.support import relation
 import copy
 import unittest
 from unittest.mock import patch
@@ -147,7 +149,7 @@ class BruitDeSaSalleTests(unittest.TestCase):
         self.assertIn("Gorm entend un bruit : Refuge du relais.", textes)
         self.assertIn("Gorm va voir de près d'où venait le bruit : Refuge du relais.", textes)
         self.assertIn(("brune", "reserve"), vu_agir(m, "marchand"))
-        self.assertFalse(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"])
         self.assertLess(distance(m.objets["marchand"]["position"], m.objets["brune"]["position"]), 7)
 
     def test_aubin_courageux_va_voir_le_fracas_de_sa_salle(self):
@@ -197,7 +199,7 @@ class TemoinParLOuieTests(unittest.TestCase):
         self.assertIn("Bram entend qu'Odon a tenté de crocheter la serrure du coffre de la paie.", chronique(m))
         temoignages = [s for s in souvenirs(m, "bram", "vu_agir") if s["auteur"] == "odon"]
         self.assertTrue(temoignages and all(s["par"] == "ouie" for s in temoignages))
-        fiable = lire(m, "bram")["croyances"]["odon"]["fiable"]
+        fiable = relation(m, "bram", "odon")
         self.assertEqual((fiable["valeur"], fiable["source"]), (False, "entendu"))
         # Ce qu'il n'a qu'entendu se dit avec moins de certitude : comme de seconde main.
         self.assertEqual({rang for _, _, rang, _ in nouvelles(m, "bram")}, {1})
@@ -207,7 +209,7 @@ class TemoinParLOuieTests(unittest.TestCase):
         m = attendre(lucien_au_coffre(), 1)
         self.assertIn("Anselme entend que Lucien a tenté de crocheter la serrure du coffre ferré.", chronique(m))
         self.assertIn(("lucien", "coffre_marchand"), vu_agir(m, "anselme"))
-        self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "anselme", "lucien")["valeur"])
 
     def test_qui_veut_agir_sans_temoin_compte_ceux_qu_il_croit_a_portee_d_oreille(self):
         # L'auteur de son côté : Brune veut forcer la réserve sans témoin. Elle ne voit pas Gorm, à sept

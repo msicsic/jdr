@@ -4,7 +4,15 @@
   "jets": 0,
   "revision": 0,
   "minutes": 0,
-  "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
+  "depart": {
+    "bornes": {
+      "corps": 0.2,
+      "besoins": 10,
+      "rondes": 0.5,
+      "periodes": 0.2,
+      "horloges": 0.25
+    }
+  },
   "bruit": 0,
   "geometrie_version": 1,
   "eclairage_version": 1,
@@ -1964,6 +1972,36 @@
         },
         "valeurs": {
           "altruisme": 55
+        },
+        "liens": {
+          "mireille": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "tilo": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "joss": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "anselme": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "hugues": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "mathurine": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "lucien": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2062,6 +2100,20 @@
         "valeurs": {
           "altruisme": 80,
           "loyaute": 80
+        },
+        "liens": {
+          "odile": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "tilo": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "joss": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2117,7 +2169,21 @@
             "urgence": 55
           }
         },
-        "pulsions": []
+        "pulsions": [],
+        "liens": {
+          "odile": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "mireille": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "joss": {
+            "confiance": 65,
+            "affection": 20
+          }
+        }
       },
       "corps": {
         "repas": 540,
@@ -2198,6 +2264,20 @@
         ],
         "situation": {
           "projet": 30
+        },
+        "liens": {
+          "odile": {
+            "confiance": 15,
+            "affection": 0
+          },
+          "mireille": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "tilo": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2294,6 +2374,20 @@
         "valeurs": {
           "altruisme": 20,
           "ambition": 80
+        },
+        "liens": {
+          "hugues": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "lucien": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "odile": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2400,6 +2494,28 @@
         "alerte": 3,
         "valeurs": {
           "loyaute": 80
+        },
+        "liens": {
+          "anselme": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "lucien": {
+            "confiance": 15,
+            "affection": 0
+          },
+          "odile": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "tilo": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "mathurine": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2460,6 +2576,28 @@
         "pulsions": [],
         "valeurs": {
           "altruisme": 70
+        },
+        "liens": {
+          "odile": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "tilo": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "hugues": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "anselme": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "lucien": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2549,6 +2687,20 @@
         },
         "valeurs": {
           "ambition": 70
+        },
+        "liens": {
+          "anselme": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "hugues": {
+            "confiance": 15,
+            "affection": 0
+          },
+          "odile": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -2809,12 +2961,6 @@
               2,
               3
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "tilo": {
@@ -2828,12 +2974,6 @@
               4,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "joss": {
@@ -2847,12 +2987,6 @@
               6,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.5
           }
         },
         "anselme": {
@@ -2866,12 +3000,6 @@
               2,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "hugues": {
@@ -2885,12 +3013,6 @@
               7,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "mathurine": {
@@ -2904,12 +3026,6 @@
               8,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "lucien": {
@@ -2923,12 +3039,6 @@
               4,
               4
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "bois_reserve": {
@@ -2954,7 +3064,16 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "anselme",
+        "hugues",
+        "joss",
+        "lucien",
+        "mathurine",
+        "mireille",
+        "tilo"
+      ]
     },
     "mireille": {
       "croyances": {
@@ -3095,12 +3214,6 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.8
           }
         },
         "tilo": {
@@ -3114,12 +3227,6 @@
               4,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "joss": {
@@ -3133,12 +3240,6 @@
               6,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "bois_reserve": {
@@ -3164,7 +3265,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "joss",
+        "odile",
+        "tilo"
+      ]
     },
     "tilo": {
       "croyances": {
@@ -3261,12 +3367,6 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "mireille": {
@@ -3280,12 +3380,6 @@
               2,
               3
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "joss": {
@@ -3299,12 +3393,6 @@
               6,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "bois_reserve": {
@@ -3330,7 +3418,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "joss",
+        "mireille",
+        "odile"
+      ]
     },
     "joss": {
       "croyances": {
@@ -3492,12 +3585,6 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": false,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "mireille": {
@@ -3511,12 +3598,6 @@
               2,
               3
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "tilo": {
@@ -3530,12 +3611,6 @@
               4,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "bois_reserve": {
@@ -3561,7 +3636,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "mireille",
+        "odile",
+        "tilo"
+      ]
     },
     "anselme": {
       "croyances": {
@@ -3698,12 +3778,6 @@
               7,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9
           }
         },
         "lucien": {
@@ -3717,12 +3791,6 @@
               4,
               4
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "odile": {
@@ -3736,17 +3804,16 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.5
           }
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "hugues",
+        "lucien",
+        "odile"
+      ]
     },
     "hugues": {
       "croyances": {
@@ -3785,12 +3852,6 @@
               2,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.8
           }
         },
         "lucien": {
@@ -3804,12 +3865,6 @@
               4,
               4
             ]
-          },
-          "fiable": {
-            "valeur": false,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "odile": {
@@ -3823,12 +3878,6 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "tilo": {
@@ -3842,12 +3891,6 @@
               4,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "mathurine": {
@@ -3861,17 +3904,18 @@
               8,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "anselme",
+        "lucien",
+        "mathurine",
+        "odile",
+        "tilo"
+      ]
     },
     "mathurine": {
       "croyances": {
@@ -3898,12 +3942,6 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "tilo": {
@@ -3917,12 +3955,6 @@
               4,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "hugues": {
@@ -3936,12 +3968,6 @@
               7,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "anselme": {
@@ -3955,12 +3981,6 @@
               2,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "lucien": {
@@ -3974,12 +3994,6 @@
               4,
               4
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "marmite": {
@@ -4042,7 +4056,14 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "anselme",
+        "hugues",
+        "lucien",
+        "odile",
+        "tilo"
+      ]
     },
     "lucien": {
       "croyances": {
@@ -4110,12 +4131,6 @@
               2,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "hugues": {
@@ -4129,12 +4144,6 @@
               7,
               5
             ]
-          },
-          "fiable": {
-            "valeur": false,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "odile": {
@@ -4148,12 +4157,6 @@
               3,
               2
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.6
           }
         },
         "coffret_lucien": {
@@ -4198,7 +4201,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "anselme",
+        "hugues",
+        "odile"
+      ]
     }
   },
   "horloges": [

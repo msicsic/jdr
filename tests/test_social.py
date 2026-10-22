@@ -2,6 +2,8 @@
 
 Chaque test vérifie l'état du monde et ce que le joueur lit, après rechargement.
 """
+
+from tests.support import lier, relation
 from pathlib import Path
 import tempfile
 import unittest
@@ -16,6 +18,7 @@ from donjon.paroles import esprits_interlocuteurs
 from donjon.social import RANG_MAX
 from donjon.spatial import installer
 from donjon.vol import mefiance
+from donjon.relations import envers
 from tests.support import calme, regarder, refusee
 
 
@@ -60,6 +63,9 @@ class RumeurTests(unittest.TestCase):
     def ilse_a_vu_le_joueur(self):
         """Ilse surprend Corvus qui tente de dérober le marteau de Gorm, puis Gorm revient au refuge."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # Gorm connaît déjà Corvus, absent pendant le geste : la rumeur porte sur une
+        # personne identifiée, sans quoi il ne peut lui attribuer une relation.
+        lire(m, "marchand")["voix"].append("joueur")
         m.objets["marteau"].update(proprietaire="marchand", lieu="antichambre", position=[1, 4],
                                    position_salle="antichambre")
         placer(m, "marchand", "crypte", [4, 3])
@@ -77,7 +83,7 @@ class RumeurTests(unittest.TestCase):
 
     def test_ilse_le_dit_a_gorm_qui_cesse_de_croire_le_joueur(self):
         m, texte = attendre(self.ilse_a_vu_le_joueur(), jet=15)
-        fiable = lire(m, "marchand")["croyances"]["joueur"]["fiable"]
+        fiable = relation(m, "marchand", "joueur")
         self.assertEqual((fiable["valeur"], fiable["source"]), (False, "dit:ilse"))
         self.assertEqual(rumeurs(m, "marchand")[0]["evenement"]["type"], "vol_surpris")
         self.assertIn("Ilse glisse à Gorm que Corvus a tenté de dérober le marteau.", texte)
@@ -111,8 +117,10 @@ class RumeurTests(unittest.TestCase):
         m, _ = attendre(m, jet=15)
         rumeur = rumeurs(m, "aubin")[0]
         self.assertEqual((rumeur["de"], rumeur["rang"]), ("marchand", RANG_MAX))
-        fiable = lire(m, "aubin")["croyances"]["joueur"]["fiable"]
-        self.assertEqual((fiable["source"], fiable["confiance"]), ("dit:marchand", 0.56))
+        fiable = relation(m, "aubin", "joueur")
+        self.assertEqual(fiable["source"], "dit:marchand")
+        from donjon.relations import envers
+        self.assertEqual(envers(m, "aubin", "joueur")["confiance"], 27)
         placer(m, "marchand", "crypte", [4, 3])
         placer(m, "brune", "antichambre", [2, 6])
         m, _ = attendre(m, 2, jet=15)
@@ -123,7 +131,7 @@ class RumeurTests(unittest.TestCase):
         m = self.ilse_a_vu_le_joueur()
         placer(m, "marchand", "crypte", [4, 3])
         placer(m, "brune", "antichambre", [2, 5])
-        croire(m, "ilse", "brune", "fiable", False, "vu")
+        lier(m, "ilse", "brune", False, "vu")
         m, _ = attendre(m, 2, jet=15)
         self.assertNotIn("fiable", lire(m, "brune")["croyances"].get("joueur", {}))
         self.assertFalse(any("Ilse dit" in t for t in chronique(m)))
@@ -132,7 +140,7 @@ class RumeurTests(unittest.TestCase):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         # Placement d'auteur : Ilse a vu Brune crocheter la réserve ; elle retrouve Gorm dans la conduite.
         memoriser(m, "ilse", {"type": "vu_agir", "auteur": "brune", "operation": "crocheter", "objet": "reserve"})
-        croire(m, "ilse", "brune", "fiable", False, "vu")
+        lier(m, "ilse", "brune", False, "vu")
         m.joueur.update(salle="echoppe", position=[0, 3])
         placer(m, "ilse", "echoppe", [2, 1])
         regarder(m, "ilse", "marchand")  # Elle le voit, à deux pas.
@@ -140,7 +148,8 @@ class RumeurTests(unittest.TestCase):
         placer(m, "brune", "crypte", [4, 3])
         m.data["visitees"] = ["echoppe"]
         m, texte = attendre(recharger(m), jet=15)
-        self.assertFalse(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertEqual(envers(m, "marchand", "brune")["confiance"], 52)
+        self.assertEqual(envers(m, "marchand", "brune")["motifs"][-1]["type"], "rumeur")
         self.assertIn("Ilse, meunière évacuée parle à voix basse avec Gorm, gardien du relais.", texte)
         self.assertNotIn("réserve", texte)
 
@@ -153,8 +162,8 @@ class VolDecouvertTests(unittest.TestCase):
         m, _ = attendre(recharger(m))
         e = lire(m, "marchand")
         self.assertIn({"type": "vu_porter", "auteur": "brune", "objet": "vivres"},
-                      [{k: v for k, v in s.items() if k not in ("minute", "dit_a")} for s in e["memoire"]])
-        self.assertFalse(e["croyances"]["brune"]["fiable"]["valeur"])
+                      [{k: v for k, v in s.items() if k not in ("minute", "dit_a", "preuve", "victime", "deja_entendu")} for s in e["memoire"]])
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"])
         self.assertGreaterEqual(e["besoins"]["biens"], 50)
 
     def test_gorm_reconnait_son_marteau_dans_la_main_du_joueur(self):
@@ -164,7 +173,7 @@ class VolDecouvertTests(unittest.TestCase):
         placer(m, "marchand", "antichambre", [2, 4])
         regarder(m, "marchand", "joueur")
         m, texte = attendre(recharger(m))
-        self.assertFalse(lire(m, "marchand")["croyances"]["joueur"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "joueur")["valeur"])
         self.assertEqual(mefiance(m, "marchand"), 1)
         self.assertIn("Gorm, gardien du relais, semble méfiant.", texte)
 
@@ -185,11 +194,14 @@ class VolDecouvertTests(unittest.TestCase):
         m.objets["reserve"].update(verrouillee=False, ouverte=True)
         lire(m, "brune")["besoins"]["faim"] = 90.0
         placer(m, "brune", "antichambre", [7, 3])
-        placer(m, "ilse", "echoppe", [7, 1])
+        placer(m, "ilse", "echoppe", [8, 3])
         placer(m, "aubin", "crypte", [5, 3])
         m.joueur.update(salle="chambre_cloche", position=[1, 3])
         croire(m, "brune", "reserve", "verrouillee", False, "vu")
         croire(m, "brune", "reserve", "etat", {"ouverte": True}, "vu")
+        # Elle finit son geste en cours à la première minute ; Ilse franchit le seuil
+        # avant qu'elle ait fini de manger, même avec le détour jusqu'au centre.
+        lire(m, "brune")["libre"] = 600
         # Calme, elle fait sa ronde en routine (inquiète, elle se mettrait d'abord à l'abri).
         lire(m, "ilse")["besoins"]["securite"] = 40.0
         # Sa ronde de l'échoppe est faite, celle du refuge est due.
@@ -253,7 +265,7 @@ class DesespoirTests(unittest.TestCase):
         self.assertNotIn("Gorm entend un bruit : Refuge du relais.", textes)
         souvenirs = [s for s in lire(m, "ilse")["memoire"] if s["type"] == "vu_agir"]
         self.assertEqual(souvenirs[0]["auteur"], "brune")
-        self.assertFalse(lire(m, "ilse")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "ilse", "brune")["valeur"])
 
     def test_sinon_elle_attend_que_personne_ne_la_voie(self):
         m, _ = attendre(self.brune_devant_ilse(80.0), jet=20)

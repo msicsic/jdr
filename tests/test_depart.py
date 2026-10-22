@@ -158,8 +158,8 @@ class DivergenceDuBancTests(unittest.TestCase):
         oisifs, sans_recours, attente, confies = _oisifs_urgents(m)
         self.assertEqual((oisifs, sans_recours, attente, confies), (1, 0, 0, 1))
         # Qu'il cesse de croire le joueur fiable : la cloche lui revient, il est sans recours.
-        lire(m, "marchand")["croyances"].setdefault("joueur", {})["fiable"] = {
-            "valeur": False, "source": "vu", "minute": 0, "confiance": 1.0}
+        from tests.support import lier
+        lier(m, "marchand", "joueur", False, "vu")
         self.assertEqual(_oisifs_urgents(m), (1, 1, 0, 0))
 
 

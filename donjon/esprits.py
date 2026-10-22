@@ -44,7 +44,7 @@ def pnjs(monde):
     return [id for id, o in monde.objets.items() if o["type"] == "personnage"]
 
 
-CHAMPS = {"croyances": dict, "memoire": list, "intention": lambda: None,
+CHAMPS = {"relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
@@ -96,6 +96,8 @@ def installer(monde):
     personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
+        from .relations import installer as installer_relations
+        installer_relations(monde, id)
         e = esprit(monde, id)
         if nouveau:
             # Début de partie : le scénario déclare qui se connaît déjà (un savoir à son sujet) ;
@@ -159,9 +161,8 @@ def _croyance_valide(monde, attribut, c):
     elif attribut == "verrouillee":
         assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
     else:
-        # Ce qu'il éprouve envers une personne : sa forme est l'affaire de ``relations``.
-        from .relations import FIABLE, valide
-        assert attribut == FIABLE and valide(c), "Attribut de croyance inconnu"
+        # Les relations ne sont plus des croyances ; les avis sont dérivés par ``croyance``.
+        assert False, "Attribut de croyance inconnu"
 
 
 def verifier(monde):
@@ -170,6 +171,8 @@ def verifier(monde):
     for id, e in esprits.items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Esprit sans personnage"
         assert set(e) == set(CHAMPS), "Esprit mal formé"
+        from .relations import verifier as verifier_relations
+        verifier_relations(monde, id)
         p = monde.objets[id].get("profil")
         if p is not None:
             from .deliberation import verifier_profil
@@ -275,8 +278,14 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
 
 def memoriser(monde, id, evenement):
     memoire = esprit(monde, id)["memoire"]
-    memoire.append({"minute": monde.data["minutes"], **evenement})
+    souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
+    from .relations import identifier
+    from .temps import instant
+    identifier(souvenir, instant(monde))
+    memoire.append(souvenir)
     del memoire[:-MEMOIRE_MAX]
+    from .relations import souvenir as eprouver_souvenir
+    eprouver_souvenir(monde, id, souvenir)
 
 
 def dernier_son(monde, id):
@@ -427,9 +436,6 @@ def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
                 retenir(monde, id, locuteur)["mefiance"] = True
         else:
             memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
-            if locuteur != id:
-                from .relations import eprouver
-                eprouver(monde, id, locuteur, "mensonge_decouvert")
     croire(monde, id, sujet, attribut, valeur, source, **lieu)
 
 
@@ -441,15 +447,15 @@ def _vu_porter(monde, id, sujet):
     """Le propriétaire qui voit son bien aux mains d'un autre, sans le lui avoir prêté, découvre un vol."""
     o = monde.objets[sujet]
     porteur = _porteur(monde, o)
-    if (porteur in (None, id) or _proprietaire(monde, o) != id or prete(monde, id, sujet, porteur)
-            or _permis(monde, porteur, sujet)
-            or any(s["type"] == "vu_porter" and s["auteur"] == porteur and s["objet"] == sujet
-                   for s in lire(monde, id)["memoire"])):
+    from .relations import oublier_portage, portage_connu
+    if porteur in (None, id) or _proprietaire(monde, o) != id:
+        oublier_portage(monde, id, sujet)
+        return
+    if (prete(monde, id, sujet, porteur)
+            or _permis(monde, porteur, sujet) or portage_connu(monde, id, sujet, porteur)):
         return
     from .deliberation import VOL, relancer
     memoriser(monde, id, {"type": "vu_porter", "auteur": porteur, "objet": sujet})
-    from .relations import eprouver
-    eprouver(monde, id, porteur, "vu_porter")
     relancer(monde, id, "biens", VOL)
     reconsiderer(monde, id)
 

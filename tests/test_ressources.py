@@ -5,7 +5,7 @@ la nuit, sans que la rareté disparaisse. Chaque nuit se vit par blocs, recharg�
   charges de bûches à Gorm ; qui a froid y monte se chauffer, et le bois du guet se demande ou
   s'achète à Gorm ;
 - auberge : les bûches de la cuisine (8 charges), d'Anselme (3), de Joss (3) et la réserve d'Odile
-  (12, au cellier) tiennent les trois foyers allumés à la cinquième heure ; ensuite le bois se dispute.
+  (12, au cellier) suffisent aux foyers, mais les refus peuvent en interrompre l'entretien.
 """
 import unittest
 
@@ -36,37 +36,44 @@ class CrueTests(unittest.TestCase):
     def test_on_monte_se_chauffer_au_poele_du_guet_et_son_bois_se_demande(self):
         # Avant (``verifier-eau``), le brasero de la conduite était le seul feu : menacé par l'eau,
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
-        # Au temps vécu (branche ``temps-reel``), la nuit diverge : Brune, chauffée au poêle dès la
-        # minute 130, ne demande plus le bois du guet, et le poêle, rallumé à 124, s'éteint vers 245.
-        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 240, 80)
-        self.assertIn("Aubin, vieux passeur se chauffe près du poêle du guet.", textes)
+        # Les relations graduées changent cette nuit : Gorm refuse Brune, qui prend ensuite
+        # les planches d'Aubin et rallume le poêle à 253. Les ressources restent comptées.
+        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
         self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
-        # Le bois du guet est à Gorm : on le lui achète, il le met au poêle.
-        self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") for t in textes))
-        self.assertIn("Gorm, gardien du relais alimente le poêle du guet.", textes)
+        self.assertIn("Brune demande une part des bûches du guet à Gorm (mefiance).", textes)
+        self.assertIn("Brune, batelière évacuée alimente le poêle du guet.", textes)
+        self.assertIn("Brune, batelière évacuée allume le poêle du guet.", textes)
         self.assertTrue(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
-        # La rareté reste : il ne reste que deux charges, et l'eau garde la conduite.
-        self.assertEqual(m.objets["bois_guet"]["charges"], 2)
+        # Le bois refusé reste intact ; une des deux planches prises a alimenté le poêle.
+        self.assertEqual(m.objets["bois_guet"]["charges"], 3)
+        self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
+        self.assertIn("Brune, batelière évacuée prend les planches de bac.", textes)
+        self.assertEqual(m.objets["planches"]["charges"], 1)
+        self.assertEqual(m.objets["planches"]["proprietaire"], "aubin")
 
 
 class AubergeTests(unittest.TestCase):
-    def test_les_trois_foyers_tiennent_la_cinquieme_heure_puis_le_bois_se_dispute(self):
+    def test_une_reserve_non_epuisee_est_refusee_puis_les_trois_foyers_reprennent(self):
         # Cas réel : l'auberge finissait dans le noir vers la cinquième heure, faute de bois.
         m = nuit("auberge", 1985, "dortoir", "fixe")
         m, textes = par_blocs(m, 300, 150)
-        self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
-        # Odile prête sa réserve à Anselme, puis la reprend ; la cuisinière et l'aubergiste se
-        # passent les bûches de la cuisine.
-        self.assertIn("Anselme demande les bûches de réserve à Odile (remis).", textes)
-        self.assertIn("Mireille demande les bûches de hêtre à Odile (remis).", textes)
+        # Avec les relations graduées, ce n'est plus le manque de combustible :
+        # Odile refuse Anselme. Son poêle s'éteint malgré les huit charges restantes.
+        self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau")))
+        self.assertFalse(allumee(m.objets["poele"]))
+        self.assertEqual(m.objets["bois_anselme"]["charges"], 0)
+        self.assertEqual(m.objets["bois_reserve"]["charges"], 8)
+        self.assertEqual(m.objets["bois_reserve"]["lieu"], "odile")
+        self.assertIn("Anselme demande les bûches de réserve à Odile (refus).", textes)
         m, suite = par_blocs(m, 420, 60)
-        # Ensuite la réserve passe de l'un à l'autre (au temps vécu, branche ``temps-reel``, Odile la
-        # reprend puis la prête de nouveau, et le poêle d'Anselme tient encore à 420) sans s'épuiser.
-        self.assertIn("Odile demande les bûches de réserve à Anselme (remis).", suite)
+        # Elle accepte ensuite ; il alimente et rallume le poêle, puis obtient du
+        # bois de Mireille. La reprise conserve les dons, les charges et les feux.
         self.assertIn("Anselme demande les bûches de réserve à Odile (remis).", suite)
-        self.assertGreater(m.objets["bois_reserve"]["charges"], 0)
-        self.assertTrue(allumee(m.objets["atre"]) and allumee(m.objets["fourneau"]))
+        self.assertIn("Anselme demande les bûches de hêtre à Mireille (remis).", suite)
+        self.assertIn("Anselme, marchand drapier alimente le poêle de fonte.", suite)
+        self.assertEqual(m.objets["bois_reserve"]["charges"], 5)
+        self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
 
 
 if __name__ == "__main__":

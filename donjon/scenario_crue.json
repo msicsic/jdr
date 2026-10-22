@@ -70,7 +70,15 @@
   "journal": [],
   "lus": [],
   "minutes": 0,
-  "depart": {"bornes": {"corps": 0.2, "besoins": 10, "rondes": 0.5, "periodes": 0.2, "horloges": 0.25}},
+  "depart": {
+    "bornes": {
+      "corps": 0.2,
+      "besoins": 10,
+      "rondes": 0.5,
+      "periodes": 0.2,
+      "horloges": 0.25
+    }
+  },
   "missions": {},
   "objectif_partie": {
     "lieu": "joueur",
@@ -734,6 +742,20 @@
         ],
         "situation": {
           "projet": 40
+        },
+        "liens": {
+          "brune": {
+            "confiance": 20,
+            "affection": 20
+          },
+          "ilse": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "aubin": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -963,6 +985,20 @@
         "situation": {
           "dette": 20,
           "projet": 40
+        },
+        "liens": {
+          "marchand": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "ilse": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "aubin": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -1103,6 +1139,20 @@
         ],
         "situation": {
           "proches": 2
+        },
+        "liens": {
+          "marchand": {
+            "confiance": 75,
+            "affection": 60
+          },
+          "brune": {
+            "confiance": 40,
+            "peur": 50
+          },
+          "aubin": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -1171,7 +1221,22 @@
               "periode": 30
             }
           }
-        ]
+        ],
+        "liens": {
+          "marchand": {
+            "confiance": 65,
+            "affection": 20,
+            "dette": 40
+          },
+          "brune": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "ilse": {
+            "confiance": 65,
+            "affection": 20
+          }
+        }
       },
       "genre": "m",
       "corps": {
@@ -1326,8 +1391,6 @@
   "personnages_version": 1,
   "relations_pnj": {
     "marchand": {
-      "dernier_objet": "",
-      "soupcon": 0,
       "vols_surpris": 0
     }
   },
@@ -1702,12 +1765,6 @@
               7,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "ilse": {
@@ -1721,12 +1778,6 @@
               3,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "aubin": {
@@ -1740,12 +1791,6 @@
               1,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "bois": {
@@ -1822,7 +1867,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "aubin",
+        "brune",
+        "ilse"
+      ]
     },
     "brune": {
       "croyances": {
@@ -1879,12 +1929,6 @@
               1,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "brasero": {
@@ -1910,22 +1954,8 @@
             "confiance": 0.9
           }
         },
-        "ilse": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
-        "aubin": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
+        "ilse": {},
+        "aubin": {},
         "poele_guet": {
           "lieu": {
             "valeur": "chambre_cloche",
@@ -1964,7 +1994,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "aubin",
+        "ilse",
+        "marchand"
+      ]
     },
     "ilse": {
       "croyances": {
@@ -1979,12 +2014,6 @@
               1,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "brasero": {
@@ -2039,22 +2068,8 @@
             "confiance": 0.9
           }
         },
-        "brune": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
-        "aubin": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
+        "brune": {},
+        "aubin": {},
         "poele_guet": {
           "lieu": {
             "valeur": "chambre_cloche",
@@ -2093,7 +2108,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "aubin",
+        "brune",
+        "marchand"
+      ]
     },
     "aubin": {
       "croyances": {
@@ -2108,12 +2128,6 @@
               1,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "brasero": {
@@ -2168,22 +2182,8 @@
             "confiance": 0.9
           }
         },
-        "brune": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
-        "ilse": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
+        "brune": {},
+        "ilse": {},
         "poele_guet": {
           "lieu": {
             "valeur": "chambre_cloche",
@@ -2222,7 +2222,12 @@
         }
       },
       "memoire": [],
-      "intention": null
+      "intention": null,
+      "voix": [
+        "brune",
+        "ilse",
+        "marchand"
+      ]
     }
   },
   "crue": {

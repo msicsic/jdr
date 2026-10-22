@@ -3,6 +3,8 @@ pour chacun, ce que lui en disent ses besoins et ses valeurs (``biens``, ``carac
 
 Chaque test vérifie l'état du monde après rechargement.
 """
+
+from tests.support import lier, relation
 import unittest
 from unittest.mock import patch
 
@@ -57,7 +59,7 @@ class PretTests(unittest.TestCase):
         self.assertFalse([g for g in m.data.get("gestes_en_cours", []) if g["auteur"] == "remy"])
         self.assertFalse(any(s.get("auteur") == "remy" for s in lire(m, "gaspard")["memoire"]
                              if s["type"] in ("vu_agir", "vu_porter")))
-        self.assertIsNot((lire(m, "gaspard")["croyances"].get("remy", {}).get("fiable") or {}).get("valeur"), False)
+        self.assertIsNot(relation(m, "gaspard", "remy")["valeur"], False)
         # Le baraquement de nouveau éclairé, rassuré, la lampe ne lui sert plus : il la rend.
         m.objets["lampe_baraque"].update(allume=True, combustible=200)
         lire(m, "remy")["besoins"]["securite"] = 0.0
@@ -180,7 +182,7 @@ class AchatTests(unittest.TestCase):
         m.objets["vivres"]["portions"] = 1       # sa réserve : il garde la dernière part
         self.assertEqual(demander(m, "brune", "marchand", "vivres", prix=2), "necessaire")
         m.objets["vivres"]["portions"] = 4
-        croire(m, "marchand", "brune", "fiable", False, "vu")
+        lier(m, "marchand", "brune", False, "vu")
         self.assertEqual(demander(m, "brune", "marchand", "vivres", prix=2), "mefiance")
         m = recharger(m)
         self.assertEqual((m.data["finances_pnj"]["brune"], m.objets["vivres"]["portions"]), (3, 4))

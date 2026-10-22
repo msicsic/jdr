@@ -12,6 +12,8 @@ se nommer.
 
 Chaque cas vérifie l'état du monde après rechargement, et ce que lit le joueur quand il est là.
 """
+
+from tests.support import lier, relation
 import json
 import unittest
 
@@ -22,7 +24,7 @@ from donjon.geometrie import position_entree
 from donjon.monde import Monde
 from donjon.ouie import retentir
 from donjon.paroles import jet_persuasion
-from donjon.relations import ETRANGER, confiance, mefiance, percue
+from donjon.relations import AXES, ETRANGER, confiance, mefiance, percue
 from donjon.spatial import installer
 from donjon.voix import designation, nom_pour_joueur, reconnaitre, se_nommer
 from tests.support import calme
@@ -58,7 +60,7 @@ def hugues_cherche_anselme(verrou=False):
     croire(m, "hugues", "anselme", "lieu", None, "essai", salle=None, case=None)
     memoriser(m, "hugues", {"type": "vu_agir", "auteur": "lucien", "operation": "forcer", "objet": "coffre_marchand"})
     memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
-    croire(m, "hugues", "lucien", "fiable", False, "vu")
+    lier(m, "hugues", "lucien", False, "vu")
     m.data["minutes"] = 2
     for s in m.data["salles"]:
         lire(m, "hugues")["visites"][s] = 0 if s == "couloir" else 1
@@ -67,7 +69,7 @@ def hugues_cherche_anselme(verrou=False):
         # Anselme s'est enfermé et se méfie d'Hugues : il ne répond pas, et Hugues ne peut entrer.
         m.objets["porte_chambre"]["verrouillee"] = True
         croire(m, "hugues", "porte_chambre", "verrouillee", True, "essai")
-        croire(m, "anselme", "hugues", "fiable", False, "vu")
+        lier(m, "anselme", "hugues", False, "vu")
     assert not m.objets["porte_chambre"]["ouverte"]
     return m
 
@@ -113,7 +115,7 @@ class HelerTests(unittest.TestCase):
         self.assertIn("Tu entends, à l'est, une voix qu'on appelle Anselme répondre : « Ici ! »", texte)
         self.assertEqual(m.data["voix_entendues"]["anselme"]["appelee"], "anselme")
         self.assertNotIn("anselme", m.data["voix_connues"])
-        self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "anselme", "lucien")["valeur"])
 
     def test_aubin_hele_gorm_a_travers_la_porte_etanche(self):
         """Même nature (Relais) : Aubin, au palier, hèle Gorm, derrière la porte étanche fermée ;
@@ -236,7 +238,7 @@ class VoixInconnueTests(unittest.TestCase):
         gorm = lire(reprise, "marchand")
         self.assertEqual(gorm["voix_entendues"]["joueur"]["se_dit"], "joueur")
         self.assertEqual(lieu_cru(reprise, "marchand", "joueur"), ("echoppe", "se_dit"))
-        self.assertEqual(percue(reprise, "marchand", "joueur"), dict(ETRANGER, minute=None, source=None))
+        self.assertEqual({a: percue(reprise, "marchand", "joueur")[a] for a in AXES}, ETRANGER)
 
     def test_une_voix_inconnue_se_nomme_pour_le_joueur(self):
         """Corvus, dans le noir, entend Brune sans connaître sa voix : pour lui et pour le MJ, c'est
@@ -310,7 +312,7 @@ def gorm_et_une_voix(qui="brune"):
     placer(m, qui, "echoppe", (4, 1))
     lire(m, "marchand")["voix"] = []
     for x in ("brune", "ilse", "aubin"):
-        croire(m, "marchand", x, "fiable", True, "savoir")
+        lier(m, "marchand", x, True, "savoir")
     m = recharger(m)
     assert not m.visible(qui) and qui not in lire(m, "marchand")["voix"]
     return m
@@ -326,7 +328,7 @@ class SeNommerTests(unittest.TestCase):
         m = recharger(m)
         self.assertTrue(lire(m, "marchand")["voix_entendues"]["brune"]["mefiance"])
         self.assertTrue(mefiance(percue(m, "marchand", "brune")))
-        self.assertTrue(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])  # Brune n'est pas soupçonnée.
+        self.assertTrue(relation(m, "marchand", "brune")["valeur"])  # Brune n'est pas soupçonnée.
         self.assertNotEqual(lieu_cru(m, "marchand", "ilse"), ("echoppe", "se_dit"))
 
     def test_demasque_qui_il_reconnait(self):
@@ -334,7 +336,7 @@ class SeNommerTests(unittest.TestCase):
         m = gorm_et_une_voix()
         connaitre(m, "marchand", "brune")
         self.assertEqual(se_nommer(m, "marchand", "brune", "ilse"), "demasque")
-        self.assertFalse(lire(recharger(m), "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(recharger(m), "marchand", "brune")["valeur"])
 
     def test_cru_sur_parole_sans_gain_de_confiance_puis_demasque(self):
         """Gorm ne connaît ni la voix d'Ilse ni celle de Brune : « C'est Ilse » est cru comme un
@@ -346,12 +348,12 @@ class SeNommerTests(unittest.TestCase):
         m = recharger(m)
         self.assertEqual(lieu_cru(m, "marchand", "ilse"), ("echoppe", "se_dit"))
         self.assertEqual(reconnaitre(m, "marchand", "brune"), ("ilse", "pretendue"))
-        self.assertEqual(percue(m, "marchand", "brune"), dict(ETRANGER, minute=None, source=None))
-        # Une demande de cette voix : DD d'un étranger (+2), plus ce qu'une voix inconnue fait perdre.
+        self.assertEqual({a: percue(m, "marchand", "brune")[a] for a in AXES}, ETRANGER)
+        # DD gradué d'un étranger (+1), plus ce qu'une voix inconnue fait perdre.
         from donjon.caractere import modificateur
         from donjon.voix import INCONNU
         self.assertEqual(jet_persuasion(m, "marchand", "brune", 10)[1],
-                         10 + 2 + INCONNU + modificateur(m, "marchand", "VOL"))
+                         10 + 1 + INCONNU + modificateur(m, "marchand", "VOL"))
         # Ilse vient parler sous ses yeux, lanterne en main : il connaît désormais sa voix.
         placer(m, "ilse", "echoppe", (2, 1))
         m.objets["lanterne"]["lieu"] = "ilse"
@@ -361,14 +363,14 @@ class SeNommerTests(unittest.TestCase):
         m = recharger(m)
         self.assertIn("ilse", lire(m, "marchand")["voix"])
         self.assertTrue(lire(m, "marchand")["voix_entendues"]["brune"]["mefiance"])
-        self.assertTrue(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertTrue(relation(m, "marchand", "brune")["valeur"])
         # Brune parle à son tour sous ses yeux : c'était sa voix.
         m.objets["lanterne"]["lieu"] = "brune"
         placer(m, "ilse", "chambre_cloche", (4, 2))
         percevoir_tous(m)
         retentir(m, "brune", "dire", texte="Brune dit bonsoir.")
         m = recharger(m)
-        self.assertFalse(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"])
         self.assertIn({"locuteur": "brune", "se_disait": "ilse"},
                       [{k: s.get(k) for k in ("locuteur", "se_disait")} for s in lire(m, "marchand")["memoire"]
                        if s["type"] == "imposture"])
@@ -378,7 +380,7 @@ class SeNommerTests(unittest.TestCase):
         voyant : c'était bien elle ; sa croyance devient un constat, et sa confiance s'applique."""
         m = gorm_et_une_voix("ilse")
         self.assertEqual(se_nommer(m, "marchand", "ilse", "ilse"), "crue")
-        self.assertEqual(percue(m, "marchand", "ilse"), dict(ETRANGER, minute=None, source=None))
+        self.assertEqual({a: percue(m, "marchand", "ilse")[a] for a in AXES}, ETRANGER)
         m.objets["lanterne"]["lieu"] = "ilse"
         m.objets["lanterne"]["allume"] = True
         percevoir_tous(m)
@@ -398,7 +400,7 @@ class SeNommerTests(unittest.TestCase):
         m.data["connus"] = sorted({*m.data["connus"], "brune"})
         reprise, _, entrees = jouer(recharger(m), "je dis à Gorm : c'est Brune", [
             parole("C'est Brune.", ("nom", "brune", "", "")), reponse_pnj("Gorm se raidit.")])
-        self.assertIn("Gorm, gardien du relais sait que tu n'es pas Brune et ne te fait plus confiance.",
+        self.assertIn("Gorm, gardien du relais sait que tu n'es pas Brune.",
                       entrees[1]["faits"]["conversation_validee"]["faits"])
         self.assertTrue(lire(reprise, "marchand")["voix_entendues"]["joueur"]["mefiance"])
         self.assertTrue(mefiance(percue(reprise, "marchand", "joueur")))

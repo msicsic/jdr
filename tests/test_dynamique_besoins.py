@@ -5,6 +5,8 @@ lieu laisse monter ; à défaut d'un plan qui serve les deux, le plus fort l'emp
 s'endure), et l'attente d'un besoin qu'aucun plan ne peut apaiser.
 
 Chaque cas vérifie l'état du monde après rechargement."""
+
+from tests.support import lier
 import unittest
 
 from donjon.banc_pnj import _oisifs_urgents, creer
@@ -160,8 +162,7 @@ class TenirTests(unittest.TestCase):
         croyances = lire(m, "lucien")["croyances"]
         for k in ("lanterne_hugues", "bougeoir_mireille", "lanterne_etable"):
             croyances.pop(k, None)
-        for attributs in croyances.values():
-            attributs.pop("fiable", None)
+        lire(m, "lucien")["relations"].clear()
         croire(m, "lucien", "grenier", "etat", {"eclairee": False}, "vu")
         lire(m, "lucien")["besoins"]["biens"] = 65.0
         return m
@@ -212,7 +213,7 @@ class AttenteTests(unittest.TestCase):
         # Qu'il cesse de croire le joueur fiable : la cloche lui revient ; sans plan pour elle sur ce
         # qu'il croit, son devoir est en attente, pas sans recours.
         autre = recharger(m)
-        croire(autre, "marchand", "joueur", "fiable", False, "vu")
+        lier(autre, "marchand", "joueur", False, "vu")
         self.assertEqual(_oisifs_urgents(autre), (1, 0, 1, 0))
         # Rien n'est oublié : la ronde du refuge échue, le devoir a de nouveau un plan.
         e["visites"]["antichambre"] = m.data["minutes"] - 100

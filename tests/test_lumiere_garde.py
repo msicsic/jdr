@@ -7,6 +7,8 @@
   laissés, le noir) : un échange n'échappe plus au coût de l'éloignement ;
 - un gardien ne laisse pas un bien que menace quelqu'un dont il se méfie pour s'abriter de lui :
   il reste ; il appelle à l'aide si sa crainte l'emporte sur son courage."""
+
+from tests.support import lier
 import unittest
 
 from donjon.banc_pnj import creer, executer
@@ -113,7 +115,7 @@ class FeuDemandeTests(unittest.TestCase):
         m = self.camp_eteint()
         placer(m, "remy", "galerie", (3, 2))
         m.objets["lampe_rechange_1"]["lieu"] = "remy"
-        croire(m, "gaspard", "remy", "fiable", False, "vu")
+        lier(m, "gaspard", "remy", False, "vu")
         percevoir_tous(m)
         self.assertEqual(demander_feu(m, "remy", "gaspard", "briquet", "lampe_rechange_1"), "mefiance")
         self.assertFalse(m.objets["lampe_rechange_1"]["allume"])
@@ -277,7 +279,7 @@ class GardienTests(unittest.TestCase):
         if courage is not None:
             m.objets["bram"]["profil"]["valeurs"]["courage"] = courage
         percevoir_tous(m)
-        croire(m, "bram", "josse", "fiable", True, "vu")
+        lier(m, "bram", "josse", True, "vu")
         lire(m, "bram")["besoins"].update(biens=30.0, securite=70.0)
         return recharger(m)
 
@@ -307,9 +309,9 @@ class GardienTests(unittest.TestCase):
         placer(m, "aubin", "echoppe", (3, 2))
         placer(m, "ilse", "echoppe", (4, 2))
         percevoir_tous(m)
-        croire(m, "marchand", "brune", "fiable", False, "vu")
+        lier(m, "marchand", "brune", False, "vu")
         for x, case in (("aubin", [3, 2]), ("ilse", [4, 2])):
-            croire(m, "marchand", x, "fiable", True, "vu")
+            lier(m, "marchand", x, True, "vu")
             croire(m, "marchand", x, "lieu", "echoppe", "vu", salle="echoppe", case=case)
         lire(m, "marchand")["besoins"]["securite"] = 75.0
         m = suivre(recharger(m), 4)
@@ -323,7 +325,7 @@ class GardienTests(unittest.TestCase):
         placer(m, "ilse", "echoppe", (4, 2))
         percevoir_tous(m)
         for x, case in (("aubin", [3, 2]), ("ilse", [4, 2])):
-            croire(m, "marchand", x, "fiable", True, "vu")
+            lier(m, "marchand", x, True, "vu")
             croire(m, "marchand", x, "lieu", "echoppe", "vu", salle="echoppe", case=case)
         lire(m, "marchand")["besoins"]["securite"] = 75.0
         self.assertEqual(menaces(m, "marchand"), ())

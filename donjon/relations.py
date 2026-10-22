@@ -1,159 +1,457 @@
-"""Ce qu'un personnage éprouve envers un autre : le seul accès du moteur (``docs/plan-relations.md``).
+"""Relations orientées. Seul accès aux axes, aux bandes et à leurs causes.
 
-Une relation est dans l'esprit de chacun, orientée : ce que Gorm éprouve envers Brune n'est pas ce
-qu'elle éprouve envers lui. Elle a cinq axes, entiers de 0 à 100 (``AXES``) : la **confiance** (on le
-croit, on lui confie, on attend qu'il tienne parole), l'**affection** (son bien compte pour soi, sa
-compagnie rassure), la **rancune** (le tort qu'on lui garde), la **peur** (ce qu'il pourrait vous
-faire) et la **dette** (ce qu'on lui doit, à ses propres yeux). Sans relation, c'est un **étranger**
-(``ETRANGER`` : confiance 40, le reste à 0).
-
-Sous-étape 3a (le socle) : la relation est encore portée par la croyance ``fiable`` de l'esprit
-(``croyances[autre][FIABLE]``, vrai ou faux, avec source, minute et certitude), que ce module seul lit
-et écrit ; il la traduit en axes (vrai : confiance 70 ; absente : 40 ; faux : 15), et ses prédicats
-redonnent exactement les règles d'avant : on se fie à qui l'on croyait fiable (``se_fie``), on se
-méfie de qui l'on ne croyait pas fiable (``se_mefie``) ; l'affection, la rancune, la peur et la dette
-restent à 0 (``en_veut``, ``craint``, ``doit`` ne disent encore rien). Ce qu'on perçoit de qui parle
-passe par l'identification (``percue``) : sa relation si l'on sait que c'est lui, aucune confiance
-pour une voix qu'on sait menteuse, celle d'un étranger sinon, même si elle s'est nommée.
-
-Toute variation est une cause nommée, déclarée une fois (``EPREUVES``) : le témoin d'un geste
-illicite, le mensonge découvert, la rumeur crue, la part servie… (``eprouver``). En 3a, chaque cause
-pose encore la croyance ; en 3b, la table portera ses effets sur chaque axe, modulés par les valeurs,
-estompés avec le temps et lus avec hystérésis, sans que les sites d'appel changent.
+Les souvenirs sont la porte d'écriture (esprits.memoriser). Les lectures sont pures :
+estompement depuis l'ancre du dernier événement, sans arrondis cumulés ni état caché.
+« fiable » reste un avis dans la parole, jamais un attribut de croyance.
 """
-from .esprits import croire, lire
+import copy
+import math
+import hashlib
+import json
 
-FIABLE = "fiable"   # l'attribut de croyance qui porte encore la relation (3a) ; aussi le mot de la parole
+FIABLE = "fiable"
 AXES = ("confiance", "affection", "rancune", "peur", "dette")
-ETRANGER = {"confiance": 40, "affection": 0, "rancune": 0, "peur": 0, "dette": 0}
-# La croyance ``fiable`` traduite en confiance (3a) : vraie, absente (étranger), fausse.
-TRADUCTION = {True: 70, None: ETRANGER["confiance"], False: 15}
-MENTEUSE = 0        # la confiance accordée à une voix qu'on sait menteuse (``percue``)
-# Les seuils : on se méfie sous MEFIANCE, on fait confiance dès CONFIANCE ; en veut, craint dès
-# RANCUNE, PEUR. L'hystérésis (en sortir 10 points plus loin) viendra avec les relations graduées.
-MEFIANCE = 30
-CONFIANCE = 60
-RANCUNE = 40
-PEUR = 40
-
-# Chaque cause qui fait varier une relation : ce qu'elle pose en 3a (fiable ou non), et si une
-# méfiance que l'on tient de ses propres yeux (vu, essai) tient contre elle, qui ne la remplace pas.
+ETRANGER = dict(zip(AXES, (40, 0, 0, 0, 0)))
+MEFIANCE, CONFIANCE, RANCUNE, PEUR = 30, 60, 40, 40
+MENTEUSE = 0
 EPREUVES = {
-    "vu_agir": (False, False),           # témoin d'un geste illicite ou d'une contrainte (``pnj._temoins``)
-    "agir_entendu": (False, True),       # le même geste reconnu à l'oreille (``pnj._temoins_a_l_oreille``)
-    "vu_porter": (False, False),         # son bien aux mains d'un autre, sans l'avoir prêté (``esprits._vu_porter``)
-    "mensonge_decouvert": (False, False),  # ce qu'on lui a dit, démenti sous ses yeux (``esprits.reviser``)
-    "mensonge_dementi": (False, False),  # une parole que ce qu'il a vu dément (``voix.se_mefier``)
-    "imposture": (False, False),         # la voix qui s'était dite un autre, enfin reconnue (``voix.connaitre``)
-    "rumeur": (False, True),             # une nouvelle crue qui l'accuse (``social._adopter``)
-    "aveu": (False, True),               # il avoue un geste illicite (``social.recevoir``)
-    "pousse": (False, False),            # bousculé par lui (``passage.subir``)
-    "vol_surpris": (False, False),       # le joueur surpris à le voler (``vol.appliquer``)
-    "dette_niee": (False, False),        # il refuse de rendre l'argent dû (``biens``)
-    "pret_garde": (False, False),        # il garde un prêt échu qu'on lui réclame (``biens``)
-    "nourri": (True, False),             # il l'a servi (``echanges.servir``) : il lui sait gré
+    "vu_agir": {"confiance": -40, "affection": -10, "rancune": 40},
+    "vol_surpris": {"confiance": -40, "affection": -10, "rancune": 40},
+    "vu_porter": {"confiance": -40, "affection": -10, "rancune": 40},
+    "tort_tiers": {"confiance": -25, "rancune": 10},
+    "mensonge_decouvert": {"confiance": -35, "affection": -5, "rancune": 15},
+    "imposture": {"confiance": -35, "affection": -5, "rancune": 15},
+    "mensonge_dementi": {"confiance": -10},
+    "rumeur": {"confiance": -20},
+    "aveu": {"confiance": -25},
+    "refus": {"rancune": 5},
+    "nourri": {"confiance": 10, "affection": 10, "rancune": -10, "dette": 20},
+    "recu": {"confiance": 10, "affection": 10, "rancune": -10, "dette": 20},
+    "pret_recu": {"dette": 10},
+    "pret_rendu": {"confiance": 15, "affection": 5},
+    "engagement_tenu": {"confiance": 15, "affection": 5, "dette": 10},
+    "engagement_abandonne": {"confiance": -20, "rancune": 15},
+    "prevenu": {"confiance": 15, "affection": 10, "dette": 10},
+    "pousse": {"confiance": -30, "affection": -10, "rancune": 25, "peur": 20},
+    "poussee_vue": {"confiance": -15, "peur": 10},
+    "passage_accorde": {"confiance": 3, "affection": 2, "dette": 5},
+    "epreuve_partagee": {"confiance": 3, "affection": 5},
+    "dette_niee": {"confiance": -20, "rancune": 15},
+    "pret_garde": {"confiance": -20, "rancune": 15},
+    "dette_honoree": {"dette": -20},
 }
-CONSTATS = ("vu", "essai")
+BANDES = ("mefiance", "confiance", "rancune", "peur")
 
 
-def croyance(monde, id, autre):
-    """La croyance qui porte la relation d'``id`` envers ``autre`` (3a : ``fiable``), telle quelle
-    (valeur, source, minute, certitude), ou None : ce qui en fixe la date et la source."""
-    return lire(monde, id)["croyances"].get(autre, {}).get(FIABLE)
+def identifier(s, instant):
+    """Identité durable d'un fait ; une rumeur conserve celle de son événement d'origine."""
+    if s["type"] in {*EPREUVES, "avis_recu", "restitution", "don", "engagement_pris"} and "preuve" not in s:
+        s["preuve"] = hashlib.sha256(json.dumps([instant, s], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def _bandes(r, avant=None):
+    a = avant or {}
+    return {"mefiance": r["confiance"] < (40 if a.get("mefiance") else MEFIANCE),
+            "confiance": r["confiance"] >= (50 if a.get("confiance") else CONFIANCE),
+            "rancune": r["rancune"] >= (30 if a.get("rancune") else RANCUNE),
+            "peur": r["peur"] >= (30 if a.get("peur") else PEUR)}
+
+
+def _nouvelle(axes=None, minute=0):
+    r = {**ETRANGER, **(axes or {}), "minute": minute, "source": "savoir", "motifs": []}
+    r["bandes"] = _bandes(r)
+    r["ancrages"] = {a: [r[a], minute] for a in ("affection", "rancune", "peur")}
+    return r
+
+
+def installer(monde, id):
+    from .esprits import esprit
+    nouveau = "relations" not in monde.data.get("esprits", {}).get(id, {})
+    e = esprit(monde, id)
+    if nouveau:
+        e["relations"] = {x: _nouvelle(a) for x, a in (monde.objets[id].get("profil") or {}).get("liens", {}).items()}
 
 
 def connus(monde, id):
-    """Ceux envers qui ``id`` éprouve quelque chose (une relation), dans l'ordre des identifiants."""
-    return sorted(x for x, attributs in lire(monde, id)["croyances"].items() if FIABLE in attributs)
+    from .esprits import lire
+    return sorted(lire(monde, id).get("relations", {}))
 
 
-def _relation(c):
-    r = dict(ETRANGER, confiance=TRADUCTION[None if c is None else c["valeur"]])
-    r.update(minute=None if c is None else c["minute"], source=None if c is None else c["source"])
+def oublier_portage(monde, id, objet):
+    from .esprits import esprit
+    esprit(monde, id)["portages"].pop(objet, None)
+
+
+def portage_connu(monde, id, objet, porteur):
+    from .esprits import lire
+    e = lire(monde, id)
+    p = e["portages"].get(objet)
+    return bool(p and p["auteur"] == porteur
+                and e["preuves_relations"].get(porteur + ":" + p["preuve"], {}).get("niveau", 0) >= 1)
+
+
+def verifier_chronique(c):
+    assert (set(c) == {"minute", "instant", "pnj", "texte", "nature", "relation", "cause", "bandes", "mefiance_levee", "service"}
+            and isinstance(c["relation"], str) and c["cause"] in EPREUVES
+            and isinstance(c["bandes"], dict) and set(c["bandes"]) == set(BANDES)
+            and all(type(v) is bool for v in c["bandes"].values())
+            and type(c["mefiance_levee"]) is bool and (c["service"] is None or isinstance(c["service"], str))), "Chronique de relation invalide"
+
+
+def _estompes(monde, id, autre, r):
+    from .caractere import valeur
+    ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get("affection", 0)
+    demie = max(1, 720 * valeur(monde, id, "fierte") / 50 / (1 + valeur(monde, id, "douceur") / 100))
+    resultat = {}
+    for a, (base, minute) in r["ancrages"].items():
+        dt = max(0, monde.data["minutes"] - minute)
+        if a == "affection":
+            ecart = base - ancre
+            resultat[a] = ancre + (1 if ecart >= 0 else -1) * max(0, abs(ecart) - dt / 60)
+        else:
+            resultat[a] = base * 2 ** (-dt / (demie if a == "rancune" else 120))
+    return resultat
+
+
+def _lecture(monde, id, autre):
+    from .esprits import lire
+    brut = lire(monde, id).get("relations", {}).get(autre)
+    if brut is None:
+        return _nouvelle()
+    r = dict(brut)
+    for a, v in _estompes(monde, id, autre, brut).items():
+        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get("affection", 0)
+        r[a] = math.ceil(v - 1e-9) if a == "affection" and brut["ancrages"][a][0] > ancre else math.floor(v + 1e-9)
+    r["bandes"] = _bandes(r, brut["bandes"])
     return r
 
 
 def envers(monde, id, autre):
-    """Ce qu'``id`` éprouve envers ``autre`` : les cinq axes (``AXES``), la minute et la source de son
-    dernier changement (None pour un étranger)."""
-    return _relation(croyance(monde, id, autre))
+    return copy.deepcopy(_lecture(monde, id, autre))
+
+
+def axes(monde, id, autre):
+    r = _lecture(monde, id, autre)
+    return {a: r[a] for a in (*AXES, "bandes")}
 
 
 def percue(monde, auditeur, locuteur):
-    """Ce qu'``auditeur`` éprouve envers qui lui parle, tel qu'il le perçoit : sa relation à
-    ``locuteur`` s'il sait que c'est lui (``voix.identifie``) ; envers une voix qu'il sait menteuse,
-    aucune confiance ; envers une autre voix inconnue, celle d'un étranger, même si elle s'est nommée."""
     from .voix import SUSPECTE, identifie, reconnaitre
     if identifie(monde, auditeur, locuteur):
         return envers(monde, auditeur, locuteur)
+    r = _nouvelle()
     if reconnaitre(monde, auditeur, locuteur)[1] == SUSPECTE:
-        return dict(_relation(None), confiance=MENTEUSE, source="entendu")
-    return _relation(None)
+        r.update(confiance=MENTEUSE, source="entendu")
+        r["bandes"] = _bandes(r)
+    return r
 
 
-def mefiance(relation):
-    """Une relation où l'on se méfie (confiance sous ``MEFIANCE``)."""
-    return relation["confiance"] < MEFIANCE
+def mefiance(r):
+    return r.get("bandes", {}).get("mefiance", r["confiance"] < MEFIANCE)
 
 
-def confiance(relation):
-    """Une relation où l'on fait confiance (confiance dès ``CONFIANCE``)."""
-    return relation["confiance"] >= CONFIANCE
-
-
-def _confiance(monde, id, autre):
-    c = croyance(monde, id, autre)
-    return TRADUCTION[None if c is None else c["valeur"]]
+def confiance(r):
+    return r.get("bandes", {}).get("confiance", r["confiance"] >= CONFIANCE)
 
 
 def se_mefie(monde, id, autre):
-    """``id`` se méfie d'``autre`` (``mefiance``)."""
-    return _confiance(monde, id, autre) < MEFIANCE
+    from .esprits import lire
+    r = lire(monde, id)["relations"].get(autre)
+    return bool(r and r["bandes"]["mefiance"])
 
 
 def se_fie(monde, id, autre):
-    """``id`` fait confiance à ``autre`` (``confiance``)."""
-    return _confiance(monde, id, autre) >= CONFIANCE
+    from .esprits import lire
+    r = lire(monde, id)["relations"].get(autre)
+    return bool(r and r["bandes"]["confiance"])
 
 
 def en_veut(monde, id, autre, seuil=RANCUNE):
-    return envers(monde, id, autre)["rancune"] >= seuil
+    r = envers(monde, id, autre)
+    return r["bandes"]["rancune"] if seuil == RANCUNE else r["rancune"] >= seuil
 
 
 def craint(monde, id, autre, seuil=PEUR):
-    return envers(monde, id, autre)["peur"] >= seuil
+    r = envers(monde, id, autre)
+    return r["bandes"]["peur"] if seuil == PEUR else r["peur"] >= seuil
 
 
 def doit(monde, id, autre):
-    """Ce qu'``id`` croit devoir à ``autre`` (0 à 100)."""
-    return envers(monde, id, autre)["dette"]
+    from .esprits import lire
+    return lire(monde, id)["relations"].get(autre, ETRANGER)["dette"]
 
 
 def fiable(monde, id, autre):
-    """Ce qu'``id`` dirait d'``autre`` s'il en parlait (le mot de la parole, ``paroles.ATTRIBUTS``) :
-    digne de confiance (True), peu fiable (False), ou rien (None)."""
     r = envers(monde, id, autre)
     return True if confiance(r) else False if mefiance(r) else None
 
 
-def eprouver(monde, id, autre, cause, source="vu", certitude=1.0):
-    """``id`` éprouve ``cause`` (``EPREUVES``) envers ``autre``, qu'il tient de ``source``. Une méfiance
-    qu'il tient de ses propres yeux ne devient pas un ouï-dire : une cause qui ne la remplace pas la
-    laisse telle quelle."""
-    valeur, constat_tient = EPREUVES[cause]
-    if constat_tient:
-        c = croyance(monde, id, autre)
-        if c and c["valeur"] is False and c["source"] in CONSTATS:
+def croyance(monde, id, autre):
+    """Avis dérivé pour le contrat de parole, jamais stocké en croyance."""
+    r, v = envers(monde, id, autre), fiable(monde, id, autre)
+    return None if v is None else {"valeur": v, "minute": r["minute"], "source": r["source"], "confiance": 1.0}
+
+
+def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
+    if id == "joueur" or autre in (None, id) or autre != "joueur" and (
+            autre not in monde.objets or monde.objets[autre]["type"] != "personnage"):
+        return
+    from .esprits import esprit, reconsiderer, percoit
+    e = esprit(monde, id)
+    if (autre not in e["relations"] and autre not in e["voix"]
+            and not any(c["source"] in ("vu", "essai", "entendu", "savoir") for c in e["croyances"].get(autre, {}).values())
+            and not percoit(monde, id, autre)):
+        return  # une identité seulement prétendue ou nommée n'est pas une personne identifiée
+    from .caractere import valeur
+    preuve = s.get("preuve") or hashlib.sha256(json.dumps(s, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    cle = autre + ":" + preuve
+    preuves = esprit(monde, id)["preuves_relations"]
+    niveau = 0.5 if cause == "rumeur" else 0.8 if cause == "aveu" or s.get("par") == "ouie" else 1.0
+    precedente = preuves.get(cle)
+    if precedente and precedente["niveau"] > niveau:
+        return
+    r = envers(monde, id, autre)
+    effets = dict(EPREUVES[cause])
+    if cause == "dette_honoree":
+        effets["dette"] = -s.get("montant", 20)
+    if cause == "refus" and s.get("raison") == "mefiance":
+        effets["rancune"] += 10
+    if tiers is not None:
+        effets["confiance"] *= (50 + valeur(monde, id, "honnetete")) / 100
+        effets["rancune"] *= envers(monde, id, tiers)["affection"] / 100
+    if effets.get("rancune", 0) > 0:
+        effets["rancune"] *= valeur(monde, id, "fierte") / 50
+    if effets.get("dette", 0) > 0:
+        effets["dette"] *= valeur(monde, id, "loyaute") / 50
+    if cause in ("nourri", "recu"):
+        effets["affection"] *= (50 + valeur(monde, id, "empathie")) / 100
+    if effets.get("peur", 0) > 0:
+        effets["peur"] *= (100 - valeur(monde, id, "courage")) / 50
+    souhaites = {a: round(v * facteur) for a, v in effets.items()}
+    deja = precedente["effets"] if precedente else {}
+    retenus = {a: (deja.get(a, 0) if abs(deja.get(a, 0)) >= abs(souhaites.get(a, 0)) else souhaites.get(a, 0))
+               for a in set(deja) | set(souhaites)}
+    preuves[cle] = {"niveau": niveau, "effets": retenus}
+    effets = {a: retenus[a] - deja.get(a, 0) for a in retenus}
+    avant = {a: r[a] for a in AXES}
+    estompes = _estompes(monde, id, autre, r)
+    for a, v in effets.items():
+        montant = v
+        if not montant:
+            continue
+        exact = min(100, max(0, estompes.get(a, r[a]) + montant))
+        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get("affection", 0)
+        r[a] = math.ceil(exact - 1e-9) if a == "affection" and exact > ancre else math.floor(exact + 1e-9)
+        if a in r["ancrages"]:
+            r["ancrages"][a] = [exact, monde.data["minutes"]]
+    delta = {a: r[a] - avant[a] for a in AXES if r[a] != avant[a]}
+    if not delta:
+        return
+    bandes = r["bandes"]
+    r["bandes"] = _bandes(r, bandes)
+    motif = {"type": cause, "minute": monde.data["minutes"], "effets": delta}
+    for k in ("objet", "operation", "raison", "sujet", "de", "victime"):
+        if k in s:
+            motif[k] = copy.deepcopy(s[k])
+    r["motifs"] = (r["motifs"] + [motif])[-3:]
+    r.update(minute=monde.data["minutes"], source=s.get("source", "entendu" if s.get("par") == "ouie" else "vu"))
+    esprit(monde, id)["relations"][autre] = r
+    reconsiderer(monde, id)
+    from .pnj import _chroniquer
+    from .social import _qui
+    changes = [b for b in BANDES if bandes[b] != r["bandes"][b]]
+    if changes or cause == "dette_honoree":
+        _chroniquer(monde, id, f"{_qui(monde, id)} envers {_qui(monde, autre)} : {resume(r)} ; {cause}.", "relation")
+        monde.data["chronique"][-1].update(relation=autre, cause=cause, bandes=copy.deepcopy(r["bandes"]),
+                                          mefiance_levee=bandes["mefiance"] and not r["bandes"]["mefiance"], service=s.get("service"))
+
+
+def souvenir(monde, id, s):
+    """Crochet unique, après inscription. Un effet reçu s'inscrit chez le bénéficiaire."""
+    from .esprits import memoriser
+    from .voix import identifie, auteur_dit, source_dite
+    t = s["type"]
+    if id == "joueur":
+        return
+    autre = s.get("auteur", s.get("locuteur", s.get("de")))
+    if t == "restitution":
+        if s.get("ponctuel") and identifie(monde, id, autre):
+            _appliquer(monde, id, autre, "pret_rendu", s)
+        return
+    if t == "engagement_pris":
+        if doit(monde, id, s["pour"]):
+            memoriser(monde, id, {"type": "dette_honoree", "de": s["pour"], "service": "demande", "preuve": "solde:" + s["preuve"]})
+        return
+    if t in ("engagement_tenu", "engagement_abandonne") and "pour" in s:
+        if "rendre" in s["condition"]:
+            return  # la remise attribuée constate la restitution, une seule fois
+        pour = s["pour"]
+        if pour != "joueur":
+            from .esprits import esprit
+            consequence = {"type": t, "de": id, "pour": pour, "condition": s["condition"], "minute": s["minute"], "preuve": s["preuve"]}
+            connus = esprit(monde, pour)["memoire"]
+            recu = any(x["type"] in ("nourri", "recu") and x.get("de") == id
+                       and x.get("objet") == s["condition"].get("objet") and x["minute"] == s["minute"] for x in connus)
+            if t == "engagement_tenu" and recu and identifie(monde, pour, id):
+                memoriser(monde, pour, {k: v for k, v in consequence.items() if k != "pour"})
+            else:
+                esprit(monde, id)["suites"].append(consequence)
+        return
+    if t == "don" and "de" in s:
+        t = "recu"
+    if t == "dit" and s.get("attribut") == FIABLE and s.get("valeur") is False:
+        from .esprits import lire
+        alerte = next((x for x in lire(monde, id)["memoire"] if x["type"] == "a_prevenir"
+                       and x["victime"] == s["a"] and x["auteur"] == s["sujet"]), None)
+        if alerte and not alerte.get("tenu") and identifie(monde, s["a"], id):
+            alerte["tenu"] = True
+            memoriser(monde, s["a"], {"type": "prevenu", "de": id, "sujet": s["sujet"], "preuve": "service:" + alerte.get("preuve", str(alerte["minute"]))})
+        return
+    if t == "rumeur":
+        from .social import accuse
+        auteur = accuse(s["evenement"])
+        if auteur and auteur != id:
+            _appliquer(monde, id, auteur, "aveu" if s.get("aveu") else "rumeur",
+                       dict(s, source="entendu" if s.get("aveu") else source_dite(monde, id, s["de"]),
+                            preuve=s["evenement"].get("preuve") or hashlib.sha256(json.dumps(s["evenement"], sort_keys=True).encode()).hexdigest()),
+                       1 if s.get("aveu") else percue(monde, id, s["de"])["confiance"] / 100)
+        return
+    if t == "avis_recu":
+        source, _ = auteur_dit(s["source"])
+        if s["valeur"] is False and source:
+            _appliquer(monde, id, s["sujet"], "rumeur", s, percue(monde, id, source)["confiance"] / 100)
+        return
+    if t == "refus" and s.get("raison") in ("qui_va_la", "attente", "absent", "impossible", "eteinte", "rien", "place", "geste"):
+        return  # une incapacité ou une demande d'identité n'est pas un affront
+    if t == "recu" and s.get("livraison"):
+        return  # une livraison payée n'est pas un don
+    if t == "recu" and s.get("pret"):
+        t = "pret_recu"
+    if t == "vol_surpris" and s.get("victime", id) != id:
+        _appliquer(monde, id, autre, "tort_tiers", s, tiers=s.get("victime"))
+        return
+    if t in ("vu_porter", "vu_agir") and (t == "vu_porter" or s.get("operation") == "prendre"):
+        from .esprits import esprit
+        from .vol import proprietaire
+        o = s.get("objet")
+        if o in monde.objets and proprietaire(monde, monde.objets[o]) == id:
+            portages = esprit(monde, id)["portages"]
+            precedent = portages.get(o)
+            if precedent and precedent["auteur"] == autre:
+                s["preuve"] = precedent["preuve"]
+            else:
+                portages[o] = {"auteur": autre, "preuve": s["preuve"]}
+    if t == "vu_agir":
+        if s.get("operation") == "pousser":
+            if s.get("objet") != id:
+                _appliquer(monde, id, autre, "poussee_vue", s)
             return
-    croire(monde, id, autre, FIABLE, valeur, source, certitude)
+        from .vol import proprietaire
+        victime = s.get("victime") or proprietaire(monde, monde.objets[s["objet"]])
+        _appliquer(monde, id, autre, "vu_agir" if victime == id else "tort_tiers", s,
+                   0.8 if s.get("par") == "ouie" else 1, tiers=victime if victime != id else None)
+        return
+    if t not in EPREUVES:
+        return
+    if t in ("nourri", "recu", "pret_recu", "prevenu", "engagement_tenu", "engagement_abandonne", "refus", "passage_accorde"):
+        if autre is None or not identifie(monde, id, autre):
+            return
+    _appliquer(monde, id, autre, t, s)
+    if (t in ("recu", "prevenu", "passage_accorde") or t == "pret_recu" and s.get("demande")) and autre != "joueur" and doit(monde, autre, id):
+        memoriser(monde, autre, {"type": "dette_honoree", "de": id, "service": "demande" if s.get("demande") else t, "montant": EPREUVES[t].get("dette", 0), "preuve": "solde:" + s["preuve"]})
 
 
 def avis(monde, id, autre, valeur, source, certitude):
-    """Un avis sur une personne qu'on lui a fait croire (« Brune n'est pas fiable », ``echanges.affirmer``) :
-    en 3a, il pose la croyance telle quelle ; il deviendra une rumeur pesée par la confiance envers la source."""
-    croire(monde, id, autre, FIABLE, valeur, source, certitude)
+    from .esprits import memoriser
+    memoriser(monde, id, {"type": "avis_recu", "sujet": autre, "valeur": valeur, "source": source, "certitude": certitude})
 
 
-def valide(c):
-    """La forme de la croyance qui porte la relation (``esprits.verifier``)."""
-    return type(c.get("valeur")) is bool
+def annoncer_suites(monde, auteur, pour, lignes):
+    """Une suite hors de vue s'apprend dans une conversation, avec une parole entendue."""
+    if auteur == "joueur" or pour == "joueur":
+        return
+    from .esprits import esprit, memoriser
+    from .voix import identifie
+    from .social import faire_entendre, _qui
+    e = esprit(monde, auteur)
+    if not identifie(monde, pour, auteur):
+        return
+    suites = [s for s in e["suites"] if s["pour"] == pour]
+    for s in suites:
+        e["suites"].remove(s)
+        issue = "tenu" if s["type"] == "engagement_tenu" else "abandonné"
+        texte = f"{_qui(monde, auteur)} dit à {_qui(monde, pour)} avoir {issue} sa parole."
+        faire_entendre(monde, auteur, pour, texte, [], lignes, [], suites=False)
+        from .pnj import _chroniquer
+        _chroniquer(monde, auteur, texte, "social")
+        memoriser(monde, pour, {k: v for k, v in s.items() if k not in ("pour", "minute")})
+
+
+def partager(monde, id, minute):
+    """Une heure perçue ensemble dans l'épreuve, sans dépendre des consultations ni des sauvegardes."""
+    from .esprits import esprit, percus, memoriser
+    from .deliberation import urgents
+    from .corps import au_chaud
+    e = esprit(monde, id)
+    if e["compagnie_minute"] >= minute:
+        return
+    e["compagnie_minute"] = minute
+    if not urgents(monde, id):
+        return
+    abri = (e["intention"] or {}).get("but", {}).get("type") == "abri"
+    if not (abri or au_chaud(monde, id)):
+        return
+    vus, _ = percus(monde, id)
+    for autre in sorted(vus):
+        if autre == id or autre != "joueur" and (autre not in monde.objets or monde.objets[autre]["type"] != "personnage"):
+            continue
+        etat = e["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+        if not any(etat.get(b) for b in ("faim", "chaleur", "repos")):
+            continue
+        n = e["compagnie"].get(autre, 0) + 1
+        e["compagnie"][autre] = n % 60
+        if n >= 60:
+            memoriser(monde, id, {"type": "epreuve_partagee", "de": autre})
+
+
+def resume(r):
+    mots = [texte for b, texte in (("mefiance", "se méfie"), ("confiance", "fait confiance"),
+                                  ("rancune", "en veut"), ("peur", "craint")) if r["bandes"][b]]
+    if r["dette"] >= 20:
+        mots.append("se sent redevable")
+    return ", ".join(mots) or "reste prudent"
+
+
+def verifier(monde, id):
+    from .esprits import lire
+    e = lire(monde, id)
+    assert isinstance(e["preuves_relations"], dict) and all(isinstance(p, str) and isinstance(v, dict) and set(v) == {"niveau", "effets"}
+        and v["niveau"] in (0.5, 0.8, 1.0) and isinstance(v["effets"], dict) and set(v["effets"]) <= set(AXES)
+        and all(type(d) is int for d in v["effets"].values()) for p, v in e["preuves_relations"].items()), "Preuves de relation invalides"
+    assert isinstance(e["portages"], dict) and all(isinstance(o, str) and isinstance(p, dict) and set(p) == {"auteur", "preuve"}
+        and all(isinstance(v, str) for v in p.values()) for o, p in e["portages"].items()), "Portages retenus invalides"
+    assert type(e["compagnie_minute"]) is int and isinstance(e["compagnie"], dict) and all(
+        isinstance(x, str) and type(n) is int and 0 <= n < 60 for x, n in e["compagnie"].items()), "Compagnie retenue invalide"
+    assert isinstance(e["suites"], list) and all(
+        isinstance(s, dict) and set(s) == {"type", "de", "pour", "condition", "minute", "preuve"}
+        and s["type"] in ("engagement_tenu", "engagement_abandonne") and s["de"] == id
+        and isinstance(s["pour"], str) and isinstance(s["condition"], dict) and type(s["minute"]) is int
+        for s in e["suites"]), "Suites de parole invalides"
+    liens = (monde.objets[id].get("profil") or {}).get("liens", {})
+    assert isinstance(liens, dict), "Liens de départ invalides"
+    for x, axes in liens.items():
+        assert x != id and (x == "joueur" or x in monde.objets and monde.objets[x]["type"] == "personnage"), "Lien sans personnage"
+        assert isinstance(axes, dict) and set(axes) <= set(AXES), "Axes de lien invalides"
+        assert all(type(v) is int and 0 <= v <= 100 for v in axes.values()), "Valeur de lien invalide"
+    for x, r in lire(monde, id)["relations"].items():
+        assert isinstance(x, str) and x != id and isinstance(r, dict), "Relation invalide"
+        assert set(r) == {*AXES, "minute", "source", "motifs", "bandes", "ancrages"}, "Relation mal formée"
+        assert all(type(r.get(a)) is int and 0 <= r[a] <= 100 for a in AXES), "Axe de relation invalide"
+        assert type(r["minute"]) is int and r["minute"] >= 0 and isinstance(r["source"], str), "Date de relation invalide"
+        assert set(r["bandes"]) == set(BANDES) and all(type(v) is bool for v in r["bandes"].values()), "Bandes invalides"
+        assert isinstance(r["motifs"], list) and len(r["motifs"]) <= 3, "Motifs invalides"
+        assert isinstance(r["ancrages"], dict) and set(r["ancrages"]) == {"affection", "rancune", "peur"}, "Ancres invalides"
+        assert all(isinstance(v, list) and len(v) == 2 and isinstance(v[0], (int, float)) and math.isfinite(v[0])
+                   and 0 <= v[0] <= 100 and type(v[1]) is int and v[1] >= 0 for v in r["ancrages"].values()), "Ancre de relation invalide"
+        for m in r["motifs"]:
+            assert m["type"] in EPREUVES and type(m["minute"]) is int and set(m["effets"]) <= set(AXES), "Motif invalide"

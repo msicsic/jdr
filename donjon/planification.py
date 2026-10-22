@@ -13,6 +13,7 @@ Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par ge
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
 import copy
+from . import relations
 import heapq
 import json
 import math
@@ -176,6 +177,11 @@ class Vue:
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
+        # Les axes restent constants pendant cette vue, comme les croyances. Seule la
+        # position crue est rejouée dans chaque état du plan.
+        self.peurs_sociales = {x: peur / 50 for x in [*self.personnes(), "joueur"]
+                              if (peur := relations.axes(monde, id, x)["peur"])}
+        self.taux_mefiance = taux(monde, id, "mefiance")
         self._allers = {}
         self.salles_triees = sorted(self.salles)
         # Le besoin qu'une part de chaque objet apaise (``besoin_de_part``).
@@ -573,7 +579,9 @@ class Vue:
         pressions = self._pressions
         if e not in pressions:
             p = NOIR * self.peur if self.peur and self.noir(e) else 0
-            pressions[e] = p + GARDE * sum(1 for g in self.gardes if g != e.salle) + NOIR * self.eau.get(e.salle, 0)
+            peur_sociale = max((peur for x, peur in self.peurs_sociales.items()
+                                if self.salle(e, x) == e.salle), default=0)
+            pressions[e] = p + NOIR * self.taux_mefiance * peur_sociale + GARDE * sum(1 for g in self.gardes if g != e.salle) + NOIR * self.eau.get(e.salle, 0)
         return pressions[e]
 
     def descente(self, ici, salle):
@@ -1042,6 +1050,8 @@ def _entrees(v, vises, profondeur, noeuds):
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
+        [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
+         for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles hélées en vain (``_chercher``), tant qu'elles comptent.
         [[q, sorted(appels_vains(monde, id, q))] for q in sorted({s["qui"] for s in esprit_["memoire"]
                                                                    if s["type"] == "appel_sans_reponse"})],
@@ -1680,9 +1690,14 @@ def abri(monde, id, salles):
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
     fuir = any(v.se_mefie(x) for x in ici) and e.salle not in menaces(monde, id)
+    ici_liens = [relations.axes(monde, id, x) for x in ici]
+    compagnie = max([(r["confiance"] + r["affection"]) / 100 for r in ici_liens] or [0])
+    compagnie_possible = max([(r["confiance"] + r["affection"]) / 100
+                             for x in [*v.personnes(), "joueur"] if v.salle(e, x) in salles and v.se_fie(x)
+                             for r in [relations.axes(monde, id, x)]] or [0])
     gain = ((taux(monde, id, "noir") + taux(monde, id, "lumiere") if v.peur and v.noir(e) else 0)
             + (taux(monde, id, "mefiance") if fuir else 0)
-            + (0 if any(v.se_fie(x) for x in ici) else taux(monde, id, "compagnie")))
+            + max(0, compagnie_possible - compagnie) * taux(monde, id, "compagnie"))
     trouve = chercher(monde, id, lambda v, e: e.salle in salles, nom="abri", memo=["abri", sorted(salles)],
                       emplois=(), motif="securite", tenir=True, endurer=RESTER * NOIR * gain)
     return None if trouve is None else (trouve[2].salle, _couper(trouve[1]))

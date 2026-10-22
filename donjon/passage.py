@@ -139,16 +139,16 @@ def _devant_sa_porte(monde, id, lieu):
 
 def refus_d_aider(monde, id, passant):
     """Il ne veut pas aider ce passant : « mefiance » s'il le croit peu fiable, « orgueil » si sa
-    fierté l'emporte de loin sur son altruisme (``ORGUEIL``) ; None sinon. Qui le croit fiable
-    l'aide toujours. La confiance est celle qu'il porte à qui il croit avoir affaire
+    fierté l'emporte de loin sur son altruisme (``ORGUEIL``) ; None sinon. Une affection
+    d'au moins cinquante lève cet orgueil. La relation est celle qu'il porte à qui il croit avoir affaire
     (``relations.percue`` : une voix inconnue est un étranger)."""
-    from .relations import confiance, mefiance, percue
+    from .relations import mefiance, percue
     relation = percue(monde, id, passant)
-    if confiance(relation):
-        return None
     if mefiance(relation):
         return "mefiance"
-    if valeur(monde, id, "fierte") - valeur(monde, id, "altruisme") >= ORGUEIL:
+    if relation["bandes"]["rancune"]:
+        return "rancune"
+    if relation["affection"] < 50 and valeur(monde, id, "fierte") - valeur(monde, id, "altruisme") >= ORGUEIL:
         return "orgueil"
     return None
 
@@ -240,8 +240,9 @@ def demander_passage(monde, id, demandeur, lignes, chemin=(), prix=0):
     raison = raison_de_rester(monde, id)
     if raison:
         return raison
-    if refus_d_aider(monde, id, demandeur) == "mefiance":
-        return "mefiance"
+    hostilite = refus_d_aider(monde, id, demandeur)
+    if hostilite in ("mefiance", "rancune"):
+        return hostilite
     from .voix import qui_va_la
     if qui_va_la(monde, id, demandeur):
         return "qui_va_la"
@@ -263,6 +264,8 @@ def demander_passage(monde, id, demandeur, lignes, chemin=(), prix=0):
     if paye:
         payer(monde, demandeur, id, prix)
     s_ecarter(monde, id, case, demandeur, lignes)
+    if demandeur != "joueur":
+        memoriser(monde, demandeur, {"type": "passage_accorde", "de": id})
     return "paye" if paye else "ecarte"
 
 
@@ -388,8 +391,6 @@ def subir(monde, victime, auteur):
     if victime == "joueur":
         return
     from .deliberation import inquieter
-    from .relations import eprouver
-    eprouver(monde, victime, auteur, "pousse")
     memoriser(monde, victime, {"type": "pousse", "auteur": auteur})
     inquieter(monde, victime, "illicite")
 
