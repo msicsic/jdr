@@ -199,5 +199,63 @@ class MefianceTests(unittest.TestCase):
         self.assertEqual([s for s in lire(m, "ilse")["refus"] if s["de"] == "marchand"], [])
 
 
+class TachePayeeTenableTests(unittest.TestCase):
+    """Audit des nuits (A3) : une tâche payée s'accepte sur ce qu'on peut faire soi-même, pas sur ce
+    qu'un tiers donnerait ; et qui sait ne plus pouvoir la faire la rend aussitôt, sans attendre
+    l'échéance."""
+
+    def brasero_mort(self, qui="brune"):
+        """Relais (cas réel, graine 11, minute 451) : le brasero est mort ; ``qui`` n'a pas de bois, ne
+        connaît que les planches d'Aubin (qui les garde) ; Gorm la paie pour le rallumer."""
+        m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        m.objets["brasero"].update(allume=False, combustible=0)
+        face_a_face(m, "marchand", qui, "antichambre")
+        for x in ("marchand", qui):
+            croire(m, x, "brasero", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
+        lire(m, qui)["croyances"].pop("bois", None)
+        croire(m, qui, "planches", "lieu", "antichambre", "vu", salle="antichambre", case=[2, 5])
+        return m
+
+    def test_brune_ne_promet_pas_le_bois_d_aubin(self):
+        from donjon.echanges import engager
+        m = self.brasero_mort()
+        avant = (bourse(m, "marchand"), bourse(m, "brune"))
+        self.assertEqual(engager(m, "marchand", "brune", {"objet": "brasero", "allume": True}, 2), "impossible")
+        m = recharger(m)
+        self.assertEqual((bourse(m, "marchand"), bourse(m, "brune")), avant)
+        self.assertEqual(lire(m, "brune")["engagements"], [])
+
+    def test_ilse_n_accepte_que_ce_qu_elle_peut_faire_elle_meme(self):
+        # Autre cas de même nature : Ilse (honnête), un briquet en main ; les planches d'Aubin, elle
+        # devrait les lui demander : elle refuse ; à elle, elle accepte.
+        from donjon.echanges import engager
+        for proprietaire, issue in (("aubin", "impossible"), ("ilse", "accepte")):
+            m = self.brasero_mort("ilse")
+            deplacer(m, "briquet", "ilse")
+            m.objets["planches"]["proprietaire"] = proprietaire
+            self.assertEqual(engager(m, "marchand", "ilse", {"objet": "brasero", "allume": True}, 8), issue)
+            m = recharger(m)
+            self.assertEqual(len(lire(m, "ilse")["engagements"]), int(issue == "accepte"))
+
+    def test_qui_ne_peut_plus_la_faire_la_rend_sans_attendre(self):
+        # Auberge : Anselme accepte d'entretenir le fourneau avec son bois, puis le voit épuisé ; sans
+        # autre moyen, il ne peut plus la faire : le prix est dû dès la minute suivante, et rendu.
+        from donjon.echanges import engager
+        from donjon.esprits import constater
+        m = calme(creer("auberge", 1985, "fixe"), "anselme", "mireille")
+        m.objets["fourneau"]["combustible"] = 8
+        m.objets["bois_anselme"]["charges"] = 5
+        face_a_face(m, "mireille", "anselme", "cuisine")
+        self.assertEqual(engager(m, "mireille", "anselme", {"objet": "fourneau", "allume": True}, 2), "accepte")
+        for k in ("bois_cuisine", "fagots_etable", "bois_anselme"):
+            m.objets[k]["charges"] = 0
+            constater(m, "anselme", k, "vu")
+        m, _ = vivre(recharger(m), 1)
+        self.assertEqual(lire(m, "anselme")["engagements"], [])
+        self.assertTrue(any(s["type"] == "engagement_abandonne" for s in lire(m, "anselme")["memoire"]))
+        self.assertEqual(m.data.get("dettes", []), [])
+        self.assertEqual((bourse(m, "mireille"), bourse(m, "anselme")), (4, 30))
+
+
 if __name__ == "__main__":
     unittest.main()

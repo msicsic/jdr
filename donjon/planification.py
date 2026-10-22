@@ -43,6 +43,8 @@ SURENCHERE = 2         # refusé pour un prix trop bas, il offre au moins tant d
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
+# Ce qui compte sur un tiers : lui demander, lui acheter, le payer (``devis_pulsion`` les écarte).
+TIERS = ("demander", "acheter", "engager")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
 USAGES = ("crochetage", "allumage", "combustible", *force.CHOC, *force.COUPE)
 # Chaque recherche s'y consigne quand le banc le demande (``diagnostics``) ; sinon None.
@@ -159,6 +161,7 @@ class Vue:
         self.portes_de = {s: frozenset(x["porte"] for x in d["sorties"].values() if x.get("porte"))
                           for s, d in self.salles.items()}
         self.emplois = None    # ce que le but peut employer (``chercher``) ; None : tout
+        self.seul = None       # par ses seuls moyens : à qui seul il peut demander (``devis_pulsion``)
 
     def depense(self, prix):
         """Ce que lui coûte de payer ce prix, en minutes (``caractere.valeur_pieces``)."""
@@ -940,7 +943,7 @@ def _entrees(v, vises, profondeur, noeuds):
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
-             emplois=None, motif=None, tenir=False, endurer=None):
+             emplois=None, motif=None, tenir=False, endurer=None, seul=None):
     """Le plan le moins coûteux vers ``but`` (une fonction de la vue et de l'état), ou None,
     depuis l'état ``depuis`` (par défaut, ce qu'il croit maintenant). ``nom`` désigne le but
     dans les diagnostics.
@@ -959,13 +962,17 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     ``tenir`` : le but se tient en restant (``_explorer``). ``endurer`` (un gain, en minutes, ou
     None) : s'il ne s'y tient pas déjà, il n'y va que si cela coûte moins que rester où il est
     (``RESTER`` minutes de ce que son état présent laisse monter, plus ce que le but lui apporte
-    d'autre, ``endurer``) ; sinon il endure, et rien n'est rendu."""
+    d'autre, ``endurer``) ; sinon il endure, et rien n'est rendu.
+
+    ``seul`` : par ses seuls moyens, sans rien demander, acheter ni payer à un autre que ``seul`` (celui
+    qui le paie), ni chercher quelqu'un d'autre pour cela (``TIERS``)."""
     from .caractere import modificateur, prix_faute
     debut = perf_counter()
     v = Vue(monde, id)
     faute = prix_faute(monde, id, motif)
     v.degat = prix_faute(monde, id, motif, "douceur")
     v.emplois = None if emplois is None else frozenset(emplois)
+    v.seul = seul
     garde = graphe = None
     repris = False
     if memo is not None and depuis is None:
@@ -973,7 +980,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
         # coûts en dépendent, non du prix d'une faute ni de celui d'abîmer (``_explorer``).
         base = (_entrees(v, vises, profondeur, noeuds),
-                json.dumps([modificateur(monde, id, "DEX"), modificateur(monde, id, "FOR"), tenir, v.degat is None]))
+                json.dumps([modificateur(monde, id, "DEX"), modificateur(monde, id, "FOR"), tenir, v.degat is None,
+                            seul]))
         entrees = (base, json.dumps([faute, v.degat, endurer]))
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
@@ -1005,7 +1013,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                issue)
     if VERIFIER and (garde is not None or repris or v.emplois is not None):
         brute = Vue(monde, id)
-        brute.degat = v.degat
+        brute.degat, brute.seul = v.degat, seul
         refait = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, noeuds, faute, tenir)[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
@@ -1095,6 +1103,9 @@ def _suites(v, e, vises, but):
     suites = []
     for geste in gestes(v, e, vises, but):
         fautes, minutes, ajout, suivant = geste[:4]
+        if v.seul and any(x["operation"] in TIERS and x["cible"] != v.seul
+                          or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
+            continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
         duree = geste[4] if len(geste) > 4 else minutes
         if any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits) and not but(v, suivant):
             continue
@@ -1179,16 +1190,18 @@ def planifier_pulsion(monde, id, condition, tache=False):
     return None if trouve is None else trouve[1:]
 
 
-def devis_pulsion(monde, id, condition):
+def devis_pulsion(monde, id, condition, payeur):
     """(coût, étapes) de rétablir ``condition`` (minutes de son plan, fautes comprises), ou None s'il
     ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un
     feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
-    voir : celui qui le paie le sait à entretenir."""
-    trouve = _pulsion(monde, id, condition, False, entretenir=True)
+    voir : celui qui le paie le sait à entretenir. Par ses seuls moyens, ce que la garde du bien de
+    ``payeur`` lui permet et ce que ``payeur`` lui prêterait : il ne compte pas sur ce qu'un tiers lui
+    donnerait ou vendrait."""
+    trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else (trouve[0], trouve[2])
 
 
-def _pulsion(monde, id, condition, tache, entretenir=False):
+def _pulsion(monde, id, condition, tache, entretenir=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
     from .echanges import tache as sorte
@@ -1233,7 +1246,7 @@ def _pulsion(monde, id, condition, tache, entretenir=False):
         depuis = depart(monde, id).apres(faits=[(("charge", o), False)])
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
                       memo=["pulsion", condition, "confier" in vises, entretenir],
-                      emplois=("feu",) if "allume" in condition else ())
+                      emplois=("feu",) if "allume" in condition else (), seul=entretenir or None)
     if trouve is None:
         return None
     cout, etapes, e = trouve

@@ -339,7 +339,7 @@ def engager(monde, payeur, autre, condition, prix):
     engagement = {"condition": dict(condition), "pour": payeur, "minute": monde.data["minutes"],
                   "paye": {"objet": condition.get("objet") or condition["lieu"], "prix": prix, "quoi": "tache"}}
     engagements.append(engagement)
-    devis = devis_pulsion(monde, autre, condition)
+    devis = devis_pulsion(monde, autre, condition, payeur)
     if devis is None:
         engagements.remove(engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
@@ -683,13 +683,17 @@ def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
 
 def empeche(monde, id, engagement):
     """Une contrepartie payée qu'il ne peut plus livrer : la part ou l'objet qu'il vendait n'existe
-    plus, n'est plus à lui, ou n'en a plus une part (``deliberation.parts``). Une tâche payée ne se
-    juge qu'à son échéance."""
-    from .deliberation import parts
+    plus, n'est plus à lui, ou n'en a plus une part (``deliberation.parts``) ; une tâche payée qu'il ne
+    voit plus comment faire (aucun plan, sur ce qu'il croit : le bois qu'il comptait demander lui a été
+    refusé, et ce refus tient). Il le sait : le prix est rendu ou dû dès maintenant
+    (``engagements_echus``)."""
+    from .deliberation import _plan_pulsion, parts
     from .vol import proprietaire
     paye = engagement.get("paye")
-    if not paye or paye["quoi"] == "tache":
+    if not paye:
         return False
+    if paye["quoi"] == "tache":
+        return _plan_pulsion(monde, id, engagement["condition"]) is None
     o = monde.objets.get(paye["objet"])
     return o is None or proprietaire(monde, o) != id or paye["quoi"] == "part" and parts(o) <= 0
 
