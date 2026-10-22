@@ -1423,9 +1423,13 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
     depuis = None
-    if entretenir and "allume" in condition:
-        # Celui qui le paie le sait à recharger : il le compte comme tel, quoi qu'il en ait vu.
-        depuis = depart(monde, id).apres(faits=[(("charge", o), False)])
+    if entretenir and "allume" in condition and _vu_avant_la_tache(monde, id, condition, entretenir):
+        # Celui qui le paie le sait à recharger, et éteint s'il ne le croit pas allumé (l'offre le dit) :
+        # il le compte comme tel, quoi qu'il en ait vu avant que la tâche ne lui soit payée ; ce qu'il en
+        # voit ensuite (qu'il l'a rechargé, rallumé lui-même), il le croit.
+        dit = (_cru(monde, entretenir, o, "etat") or {}) if entretenir != "joueur" else {}
+        depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
+                                         + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
                       memo=["pulsion", condition, "confier" in vises, entretenir],
                       emplois=("feu",) if "allume" in condition else (), seul=entretenir or None)
@@ -1433,6 +1437,17 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         return None
     cout, etapes, e = trouve
     return cout, {"type": "pulsion", **condition}, retablir(Vue(monde, id), e, _couper(etapes))
+
+
+def _vu_avant_la_tache(monde, id, condition, payeur):
+    """L'état du feu qu'il croit date-t-il d'avant la tâche que ``payeur`` lui paie (ou n'en croit-il
+    rien) ? La tâche date de son engagement ; à l'offre, de maintenant. Ce qu'il a vu ou constaté de
+    sa main à cette minute même (les croyances sont datées à la minute) est de son temps ; un savoir ou
+    un ouï-dire de cette minute ne dit rien de plus que l'offre."""
+    debut = next((x["minute"] for x in lire(monde, id)["engagements"]
+                  if x["pour"] == payeur and x["condition"] == condition), monde.data["minutes"])
+    etat = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
+    return etat is None or etat["minute"] < debut or etat["minute"] == debut and etat["source"] not in ("vu", "essai")
 
 
 def _nom_condition(c):

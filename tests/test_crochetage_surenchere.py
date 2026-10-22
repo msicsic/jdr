@@ -14,11 +14,15 @@ Chaque cas vérifie l'état du monde après rechargement, et ce que le joueur li
 import unittest
 from unittest.mock import patch
 
+from donjon.echanges import empeche, engager
 from donjon.esprits import croire, lire
 from donjon.monde import Monde
 from donjon.pnj import lumiere_du_geste
 from donjon.planification import bruit_crochetage, chance_crochetage
 from tests.test_ouie import brune_crochete_dans_le_dos_de_gorm, faire, intention, plan, souvenirs, vu_agir
+from donjon.banc_pnj import creer
+from tests.support import calme
+from tests.test_refus_retenus import face_a_face, fourneau_mort, vivre_long
 from tests.test_tensions import chronique, placer, recharger, vivre
 
 CROCHETE = "Brune, batelière évacuée crochète la serrure de la réserve de vivres"
@@ -153,6 +157,88 @@ class VoleurQuiSeSaitHabileTests(unittest.TestCase):
         m, _ = vivre(m, 2, jet=20)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         self.assertIn(CROCHETE + " sans forcer.", chronique(m))
+
+
+
+class TacheAccepteeTests(unittest.TestCase):
+    """Accepter une tâche se juge exactement sur ce qui la rendrait ensuite impossible : le même devis
+    (``planification.devis_pulsion``), et la tâche se fait par son plan."""
+
+    def tilo_paye_pour_l_atre(self, briquet):
+        """Le cas réel (auberge 42, minutes 342 et 343 : Odile paie Tilo pour l'âtre ; il accepte, le
+        croyant allumé et chargé, d'après ce qu'il en sait, n'y compte qu'une recharge, puis le voit
+        éteint et le doit aussitôt, sans flamme pour le rallumer). L'âtre est éteint et vide, Odile l'a
+        vu ; Tilo sait les bûches de la cuisine ; ``briquet`` : il porte de quoi le rallumer."""
+        m = calme(creer("auberge", 1985, "fixe"), "odile", "tilo")
+        m.objets["atre"].update(allume=False, combustible=0)
+        face_a_face(m, "odile", "tilo", "salle_commune", cases=((1, 3), (2, 3)))
+        croire(m, "odile", "atre", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
+        croire(m, "tilo", "bois_cuisine", "lieu", "cuisine", "vu", salle="cuisine",
+               case=list(m.objets["bois_cuisine"]["position"]))
+        if briquet:
+            m.objets["briquet"]["lieu"] = "tilo"
+        m.data["finances_pnj"]["odile"] = 100
+        return recharger(m)
+
+    def test_sans_flamme_tilo_refuse_au_lieu_de_devoir_aussitot(self):
+        # Celui qui le paie le sait éteint : il le compte à recharger et à rallumer, et voit qu'il ne
+        # le peut pas. Avant : « accepte », puis « Tilo doit désormais 20 pièces… » à la minute suivante.
+        m = self.tilo_paye_pour_l_atre(briquet=False)
+        self.assertEqual(engager(m, "odile", "tilo", {"objet": "atre", "allume": True}, 20), "impossible")
+        m, textes = vivre_long(recharger(m), 15)
+        self.assertFalse([t for t in textes if " doit désormais " in t])
+        self.assertEqual(m.data.get("dettes", []), [])
+
+    def test_avec_un_briquet_tilo_fait_le_travail(self):
+        m = self.tilo_paye_pour_l_atre(briquet=True)
+        self.assertEqual(engager(m, "odile", "tilo", {"objet": "atre", "allume": True}, 20), "accepte")
+        self.assertFalse(empeche(m, "tilo", lire(m, "tilo")["engagements"][0]))
+        m, textes = vivre_long(recharger(m), 15)
+        self.assertIn("Tilo, neveu de l'aubergiste allume l'âtre.", textes)
+        self.assertIn("Tilo a fait le travail que Odile lui avait payé pour que l'âtre soit allumé.", textes)
+        self.assertEqual(m.data.get("dettes", []), [])
+
+    def test_odile_hausse_par_paliers_puis_renonce(self):
+        # Le cas réel : Odile offrait à Tilo 2, 4, 8, 16, 32 puis 64 pièces, plusieurs dans la même
+        # minute. Refusée chaque fois pour trop peu, elle offre désormais 2, 3, 5, 8 (un palier de
+        # +50 %, une hausse par minute), puis plus rien : 12 pièces lui coûteraient plus que la peine
+        # de la tâche (5 minutes, l'âtre est dans la salle où ils se tiennent).
+        from donjon.deliberation import retenir_refus
+        from donjon.planification import Vue, _engager, depart, peine_tache
+        m = self.tilo_paye_pour_l_atre(briquet=True)
+        condition, suite = {"objet": "atre", "allume": True}, []
+        for _ in range(10):
+            v = Vue(m, "odile")
+            e = depart(m, "odile", v)
+            offres = [x[2][0]["contenu"]["prix"] for x in _engager(v, e, condition) if x[2][0]["cible"] == "tilo"]
+            if not offres:
+                break
+            self.assertLessEqual(v.depense(offres[0]), peine_tache(v, e, condition))
+            suite.append(offres[0])
+            retenir_refus(m, "odile", "tilo", "engager", "cher", objet="atre", prix=offres[0], tache="allume")
+            m = recharger(m)
+            # À la minute même du refus, aucune hausse.
+            v = Vue(m, "odile")
+            self.assertEqual([x for x in _engager(v, depart(m, "odile", v), condition) if x[2][0]["cible"] == "tilo"], [])
+            m.data["minutes"] += 1
+        self.assertEqual(suite, [2, 3, 5, 8])
+        self.assertGreater(Vue(m, "odile").depense(12), 5)
+
+    def test_joss_fait_le_travail_paye_sans_le_devoir(self):
+        # Cas de même nature que le cas réel (auberge 42, minute 195 : Joss acceptait d'allumer le
+        # fourneau, le rechargeait, et le devait aussitôt) : payé, il recharge et rallume le fourneau de
+        # ses fagots ; ce qu'il voit après avoir accepté (le feu qu'il a rechargé lui-même), il le croit.
+        m = fourneau_mort("joss", fagots=2)
+        m.data["finances_pnj"]["mireille"] = 30
+        m = recharger(m)
+        condition = {"objet": "fourneau", "allume": True}
+        self.assertEqual(engager(m, "mireille", "joss", condition, 2), "accepte")
+        self.assertFalse(empeche(m, "joss", lire(m, "joss")["engagements"][0]))
+        m, textes = vivre_long(recharger(m), 15)
+        self.assertIn("Joss a fait le travail que Mireille lui avait payé pour que le fourneau soit allumé.", textes)
+        self.assertFalse([t for t in textes if " doit désormais " in t])
+        self.assertTrue(m.objets["fourneau"]["allume"])
+        self.assertEqual(m.data.get("dettes", []), [])
 
 
 if __name__ == "__main__":
