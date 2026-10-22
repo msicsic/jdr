@@ -34,8 +34,8 @@ GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer
 
 
 def _noyau(evenement):
-    """Ce que dit la nouvelle, sans la trace de qui l'a dite à qui."""
-    return {k: v for k, v in evenement.items() if k not in ("minute", "dit_a")}
+    """Ce que dit la nouvelle, sans la trace de qui l'a dite à qui, ni comment il l'a su (``par``)."""
+    return {k: v for k, v in evenement.items() if k not in ("minute", "dit_a", "par")}
 
 
 def _fait(noyau):
@@ -75,7 +75,9 @@ def nouvelles(monde, id):
     """(souvenir, noyau, rang) que le PNJ peut confier, du plus ancien au plus récent."""
     for souvenir in lire(monde, id)["memoire"]:
         if souvenir["type"] in NOUVELLES:
-            noyau, rang, source = _noyau(souvenir), 0, None
+            # Ce qu'il n'a fait qu'entendre (``pnj._temoins_a_l_oreille``) se dit avec moins de
+            # certitude que ce qu'il a vu : comme de seconde main.
+            noyau, rang, source = _noyau(souvenir), 1 if souvenir.get("par") == "ouie" else 0, None
         elif souvenir["type"] == "rumeur" and souvenir["rang"] < RANG_MAX:
             noyau, rang, source = souvenir["evenement"], souvenir["rang"], souvenir["de"]
         else:

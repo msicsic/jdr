@@ -378,7 +378,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(api.call_count, 1)
             entree = api.call_args_list[0].args[1]
             self.assertEqual(entree["conversation"], [])
-            self.assertTrue(entree["faits"]["objet:pied_de_biche"]["a_portee"])
+            self.assertTrue(entree["faits"]["objet:pied_de_biche"]["a_portee_de_main"])
             self.assertNotIn("lieu", entree["faits"]["objet:pied_de_biche"])
             self.assertEqual(Monde.charger(chemin).objets["pied_de_biche"]["lieu"], "joueur")
 

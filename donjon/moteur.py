@@ -635,15 +635,18 @@ class Moteur:
     def _terminer_etape(travail, plan, lignes, effets=(), geste=None, methode=None):
         Moteur._stabiliser(travail, lignes)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
-        from .temps import duree, ecouler, instant
+        from .temps import MINUTE, duree, ecouler, instant
         debut = instant(travail)
         # Un geste illicite du joueur dure autant que son étape : quiconque le voit faire d'ici
         # là en est témoin, comme d'un geste de PNJ. Ceux qui le regardaient déjà ont été
         # départagés par son jet.
         from .esprits import percoit, pnjs
+        from .ouie import nature as nature_de
         from .pnj import commencer_geste
+        # Ce qu'on en entend tant qu'il dure : le bruit de son geste, feutré s'il le fait en douce.
+        bruit = nature_de(geste, discret=methode == "discret", bruit=plan.bruit) if geste else None
         gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
-                                  exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")])
+                                  exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")], nature=bruit)
                   for op, cible, _ in effets if op == "voler"]
         # Une bousculade n'a rien de discret : quiconque voit Corvus pendant le geste en est témoin.
         gestes += [commencer_geste(travail, "joueur", "pousser", cible, debut + duree(plan))
@@ -658,11 +661,6 @@ class Moteur:
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
             force=nature_emise(travail, effets))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
-        # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour, depuis le
-        # début du geste : ce qu'ils en voient est daté de ce début, comme leur monde à cet instant
-        # (sinon, la même perception se daterait de la fin de l'action, selon son découpage).
-        from .esprits import percevoir_tous
-        percevoir_tous(travail)
         minutes = ecouler(travail, duree(plan))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Le corps du joueur suit le temps passé : l'effort creuse, attendre repose ; entrer dans
@@ -673,6 +671,16 @@ class Moteur:
         action = plan.proposition.get("action")
         vivre_joueur(travail, minutes, effort=plan.effort and action not in CALMES,
                      repos=action == "attendre", lignes=lignes)
+        # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour. Ce qu'ils
+        # en voient date du début du geste, d'où leur vie repart : la minute de fin, plus tardive que
+        # leurs gestes de cette période, ferait dépendre leurs croyances du découpage des actions.
+        from .esprits import percevoir_tous
+        fin = travail.data["minutes"], travail.data.get("dixiemes", 0)
+        travail.data["minutes"], travail.data["dixiemes"] = divmod(debut, MINUTE)
+        try:
+            percevoir_tous(travail)
+        finally:
+            travail.data["minutes"], travail.data["dixiemes"] = fin
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
         # Qui a saisi son nom répond, le cri fini : après avoir vécu ces secondes (tourné vers la voix,

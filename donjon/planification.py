@@ -1406,12 +1406,19 @@ def s_enquerir(monde, id, besoin):
 
 def voir(monde, id, salle):
     """(but, étapes) pour aller voir d'où venait un bruit inconnu : y parcourir le lieu des yeux ;
-    None s'il n'y croit aucun passage."""
+    None s'il n'y croit aucun passage. S'il a situé le bruit (``ouie.source`` : il l'a entendu de la
+    salle même), il va à portée de vue de cette case, ou au contact si rien ne l'éclaire
+    (``pnj.agir``) : l'étape porte la case (``vers``)."""
+    from .ouie import source
     trouve = chercher(monde, id, lambda v, e: e.fait("inspecte", salle), {"inspecter": (salle,)},
                       nom="voir:" + salle, memo=["voir", salle], emplois=())
     if trouve is None:
         return None
-    return {"type": "voir", "lieu": salle}, _couper(trouve[1])
+    etapes, case = _couper(trouve[1]), source(monde, id, salle)
+    if case is not None:
+        etapes = [{**x, "contenu": {**x.get("contenu", {}), "vers": list(case)}}
+                  if x["operation"] == "inspecter" and x["lieu"] == salle else x for x in etapes]
+    return {"type": "voir", "lieu": salle}, etapes
 
 
 def eclaire(v, e):

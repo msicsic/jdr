@@ -9,7 +9,7 @@ Pour chaque objet, localisation indique son lieu réel et sa position par rappor
 meme_salle=true signifie qu'il est dans la pièce actuelle. position_relative est déjà
 calculée : ne la déduis pas d'anciennes réponses. Un objet visible qui bloque_passage
 est un obstacle réel.
-a_portee est calculé par le moteur : false interdit de manipuler d'ici et d'en distinguer
+a_portee_de_main est calculé par le moteur : false interdit de manipuler d'ici et d'en distinguer
 les détails (aspect fin, inscription, portrait, dimensions) : Corvus en voit le nom, la matière
 et la place, rien de plus, et aucun détail ne s'établit d'ici. true signifie que la proximité
 est satisfaite. Ne réclame alors ni rapprochement ni retour dans une autre

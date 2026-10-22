@@ -830,6 +830,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Boucles et absurdités relevées : appels à l'aide sans fin, aller voir ↔ garder, prévenir en boucle,
   bruit de sa propre salle jamais examiné, vol à une case dans le noir jamais découvert, tâches payées
   acceptées puis non faites, PNJ piégés par l'eau à la crue.
+- Branche `parole-corrections`, non fusionnée (`docs/plan-ouie.md`, « Corrections de la parole » ;
+  `docs/contrat-mj.md`) : les défauts de parole du [banc Luna du soir](banc-luna-soir.md). **Vocatif où
+  qu'il soit** (`paroles._vocatifs`) : un nom détaché par une virgule désigne le destinataire, en fin de
+  phrase comme en tête (« as-tu de quoi manger, Ilse ? »), sauf après « moi, » (« c'est moi, Brune » se
+  nomme). **Nom inconnu** : un vocatif ou « je dis à X » qui nomme un personnage que Corvus ne connaît pas
+  donne « Tu ne connais personne du nom de X ici », jamais un autre destinataire. **Nommer une voix**
+  (`voix.porteur_du_nom`) : nommer X quand seule une voix qui s'est dite X est là, c'est s'adresser à
+  elle, pour une parole comme pour un don (la règle de la branche `voix` « il ne peut s'adresser à Brune
+  qu'il ne sait pas là » est remplacée) ; un absent : « Tu ne vois pas X d'ici », plus « n'est pas là ».
+  **Répondre à la cantonade** (`paroles.repondants`) : une parole sans destinataire nommé qui appelle une
+  réponse (« ? », contenu `qui`, `ressource`, `demande`…) est entendue de qui en saisit les mots ; il
+  répond sauf méfiance (`voix.repond`, la règle de l'appel), selon la règle d'un destinataire ; Corvus
+  entend sa voix et peut lui parler ensuite. **Ce que reçoit l'auditeur** : `conversation_validee.repondent`
+  et `issue` (attestée), `a_portee_de_main` (au lieu de `a_portee`), `a_portee_de_voix`,
+  `salle.sorties_connues`. **Refus de forme** (`refus.RefusDeForme`) : corrigé à part, jamais affiché ;
+  une question de faisabilité garde la raison du monde. **Sorties** : « Sorties que tu connais : aucune
+  pour l'instant ». **Se nommer** (`paroles.verifier_nom`) : le nom est celui que disent les mots ; un
+  `nom` contredit ou absent des mots est refusé, un nom non typé ajouté. Faibles : « je réponds » seul
+  n'est plus une parole sans conteste ; « je » hors des répliques est une voix d'auteur. Cas réels et cas
+  de même nature après rechargement (`tests/test_parole_corrections.py`, 22 tests ; suite après fusion de `main` 8589ca2 : 1171 tests). Luna, 2 passes,
+  `main` 0489fea puis la branche (9 tours en panne serveur écartés côté `main`) : 4 bancs de référence
+  2,99 → 3,24 appels et 14,2 → 15,0 s par tour MJ, replis 0 → 1, relances 3,5 → 6, refus 8,5 → 11 (la
+  correction à part d'un refus de forme, au Relais) ; soir-noir 4,2 → 3,3 appels ; la voix d'Ilse répond
+  dans le noir 2/2, « as-tu de quoi manger, Ilse ? » va à Ilse 2/2, imposture démasquée 4/4, aucun « aucun
+  passage praticable » affiché. Limites : vocatif lu à la virgule ; un nom inconnu n'est refusé que s'il
+  est celui d'un personnage du monde ; répondre à la cantonade se décide sur la seule méfiance ; le
+  silence d'un destinataire n'est arrêté que par l'auditeur ; « je réponds » sans appel reste une parole
+  que Luna remplit de ses mots ; « est-ce que quelqu'un a du bois ? » va à celui d'en face.
 - Branche `refus-retenus`, non fusionnée (`docs/plan-social.md`, « Des refus retenus selon leur cause ») :
   à l'auberge sans bois, les offres « impossible » se répétaient toutes les deux heures comme un refus
   d'humeur (38 par nuit, sans recours 30 → 60). **Un refus se retient selon sa cause** (`deliberation.
@@ -856,6 +884,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   69, crue 67,5 → 99) ; aucune usurpation ni violation ; temps égaux sauf une nuit d'auberge plus active.
   Limites : un refus retenu ne s'oublie pas tant que rien de nouveau n'est cru ; la surenchère peut payer
   le double du nécessaire ; une part sans pièce décrite est remise sous le nom du lot.
+- Branche `ouie-temoins`, non fusionnée (`docs/plan-ouie.md`, « Témoins par l'ouïe, le bruit de sa salle,
+  l'examen vain » ; défauts A1, A2 et B2 de `docs/audit-nuits.md`). **Un bruit se situe à une case** :
+  entendu de sa salle même, il est retenu avec sa case et s'examine, comme celui d'un autre lieu, selon le
+  devoir et le courage (`deliberation.bruit_a_voir`, `alarme`) ; aller voir mène à portée de vue de cette
+  case, ou au contact dans le noir (`planification.voir`, étape `inspecter` avec `vers`). **Témoin par
+  l'ouïe** (`pnj._temoins_a_l_oreille`) : le registre porte le bruit de chaque geste ; qui l'entend tant
+  qu'il dure, dans la salle même, et croit l'objet tout près de là sait qu'on y touche ; il ne nomme
+  l'auteur que s'il le croyait là (`vu_agir` marqué `par` « ouie », méfiance `entendu`, nouvelle de rang 1),
+  sinon il sait seulement qu'on touche à ce bien (`entendu_agir`). L'auteur d'un geste sans témoin compte
+  ceux qu'il croit à portée d'oreille (`pnj.oreilles_crues`). **Être allé voir règle le bruit** : un examen
+  vain (`examen`) couvre le même bruit, ou un moindre, du même lieu ; seul un bruit nouveau relance
+  (`ouie.couvert`). Correctif révélé : ce que les PNJ voient du geste du joueur est daté de son début
+  (`moteur._terminer_etape`), sinon la minute d'une croyance dépendait du découpage. Cas réels et cas de
+  même nature après rechargement (`tests/test_ouie_temoins.py`, 12 tests) ; `VERIFIER` sans écart sur une
+  nuit de 8 h de chaque scénario (graine 7, `main` aussi). Audit 32 nuits de 12 h, `main` 0489fea →
+  branche : retours voir le même lieu à moins de 30 min Relais 7,6 → 1,1, mine 63 → 22, auberge 58 → 16,
+  crue 4,6 → 1,9 ; gestes illicites d'un présent ni vus ni entendus 1,3 / 4,4 / 7 / 0,5 → 0 / 0,1 / 0,5 /
+  0,1 ; aucun plantage, violation ni usurpation. Effets : les voleurs attendent qu'on ne les entende plus,
+  d'où des crochetages manqués doublés au Relais et à l'auberge (réussis égaux) et, à l'auberge, minutes
+  sans recours 61 → 154 (Lucien renonce près d'Anselme). Limites : au contact dans le noir on n'identifie
+  personne ; l'appel à l'aide répété (B1) reste. Tests d'autres branches adaptés : `test_ouie`,
+  `test_constater_rumeurs`, `test_dynamique_besoins`, `test_besoins` (raisons dans le plan).
 - Branche `deliberation-evenements`, non fusionnée (`docs/plan-temps.md`, « Correctif : délibérer à
   l'événement ») : le jalon temps fin prévoyait que les PNJ réfléchissent à la fin de leur plan, à un
   geste manqué, à un événement et au moins chaque minute ; seule la minute était faite. `deliberer`

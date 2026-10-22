@@ -184,7 +184,7 @@ class ImprovisationTests(unittest.TestCase):
         self.assertEqual(sortie["proposition"], chant())
         self.assertEqual(self.m.data["revision"], 0)
 
-    def test_question_sans_action_et_une_seule_correction(self):
+    def test_question_sans_action_et_corrections_bornees(self):
         # Une question sur un geste le propose : préparé, jamais exécuté par cet échange.
         with (patch.object(MJOpenAI, "_appeler", return_value=reponse(chant())) as api,
               patch.object(MJOpenAI, "_auditer_action")):
@@ -194,11 +194,14 @@ class ImprovisationTests(unittest.TestCase):
         self.assertEqual(self.m.data["revision"], 0)
         invalide = chant()
         invalide["minutes"] = 500
-        with patch.object(MJOpenAI, "_appeler", side_effect=[reponse(invalide), reponse(invalide),
+        # Un refus de forme (une borne dépassée) reçoit sa correction à part, en plus de la correction
+        # ordinaire : trois propositions au plus, puis l'explication, jamais le message de forme.
+        with patch.object(MJOpenAI, "_appeler", side_effect=[reponse(invalide), reponse(invalide), reponse(invalide),
                                                          ErreurMonde("narration indisponible")]) as api:
             sortie = MJOpenAI().echanger(self.m, "je chante")
-        self.assertEqual(api.call_count, 3)
+        self.assertEqual(api.call_count, 4)
         self.assertEqual(sortie["mode"], "dialogue")
+        self.assertNotIn("sort des limites", sortie["texte"])
 
     def test_console_applique_et_sauve_geste_sans_confirmation(self):
         with tempfile.TemporaryDirectory() as tmp:

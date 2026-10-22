@@ -102,6 +102,9 @@ class GardeMangerTests(unittest.TestCase):
         # Placement d'auteur : la torche brûle près de la réserve ; le joueur reste dans l'angle nord-ouest.
         m.objets["torche"].update(position=[8, 4], allume=True)
         m.joueur["position"] = [2, 1]
+        # Elle compte ceux qu'elle sait à portée d'oreille (branche ``ouie-temoins``) : elle l'a aperçu
+        # en entrant ; à bout de faim, elle force quand même (``pnj.desespere``).
+        lire(m, "brune")["besoins"]["faim"] = 96.0
         m, texte = attendre(m, 4)
         self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", texte)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
@@ -120,6 +123,9 @@ class GardeMangerTests(unittest.TestCase):
         lire(m, "marchand")["intention"] = {"but": {"type": "repos"}, "motif": "repos", "depuis": 0, "attente": 0,
                                             "plan": [{"operation": "reposer", "cible": "", "outil": "", "lieu": "",
                                                       "condition": ""}]}
+        # Elle l'a vu s'asseoir dans l'angle et le sait à portée d'oreille (branche ``ouie-temoins``) :
+        # à bout de faim, elle force quand même (``pnj.desespere``).
+        lire(m, "brune")["besoins"]["faim"] = 96.0
         m, _ = attendre(m, 4)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         souvenirs = [s for s in lire(m, "marchand")["memoire"] if s["type"] == "vu_agir"]

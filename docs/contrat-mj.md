@@ -71,6 +71,16 @@ refusé n'est jamais montré, et le repli ne cite que le moteur ou des phrases a
 | contre-revue d'action (`couverture_action.verifier`) | plan non conforme | titre, action et cible du plan, motif de la revue |
 | rapport illisible | — | « aucune phrase n'est en cause » |
 
+**Ce que dit une parole de Corvus validée** (branche `parole-corrections`). `conversation_validee`
+porte `issue`, la phrase du moteur sur ce qui a eu lieu (Corvus a dit ces mots, à qui, qui lui
+répond, qui l'a entendu sans être interpellé ; « Aucune réponse ne te parvient » sinon), ajoutée aux
+attestations, et `repondent`, ceux qui répondent : ses destinataires, et à la cantonade ceux qui l'ont
+entendue et ont choisi de répondre (`paroles.repondants`). Seuls ceux de `repondent` parlent
+(`narration.destinataires_parole`) ; l'auditeur sait que leur réplique est une parole permise sans
+« parole prévue », et que les dire muets contredit l'issue. Les objets reçus disent ce qu'ils
+mesurent : `a_portee_de_main` (toucher d'ici), `a_portee_de_voix` pour un personnage ; la salle,
+`sorties_connues` en cases (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
+
 **Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
 mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
 qu'elle est éclairée), ou un objet manipulable présenté comme ambiance, dépend de son
@@ -195,6 +205,11 @@ saisie → proposition → rejet ou persistance → affichage → rechargement, 
 simulées qui contredisent volontairement l'état du monde.
 
 ## Refus et échecs
+
+Un refus de forme (`refus.RefusDeForme` : un champ, une borne, la mauvaise action, « impossible »
+sans réexamen) ne dit rien du monde : il revient au MJ avec son `attendu`, avec une correction à
+part de la correction ordinaire (trois propositions au plus), et ne se montre jamais au joueur ; à
+une question de faisabilité, le joueur ne lit tel quel que le refus d'une raison du monde.
 
 Un refus de validation survient **avant** l'action. Seul un plan exécuté peut produire un
 échec du personnage, du temps écoulé ou une conséquence physique. Après deux propositions

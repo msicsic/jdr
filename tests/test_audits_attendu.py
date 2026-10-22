@@ -188,7 +188,7 @@ class VerdictsTests(unittest.TestCase):
         texte = "« Va-t'en », lance Brune."
         temoin = controler(texte, rapport(ligne("parole", locuteur="brune", citation="Va-t'en")), faits)["obstacles"]
         self.assertTrue(temoin[0]["attendu"].endswith("accepté : une réponse de ilse seulement "
-                                                      "(conversation_validee.destinataires) ; brune se tait"))
+                                                      "(conversation_validee.repondent) ; brune se tait"))
 
 
 class ContreRevuesTests(unittest.TestCase):

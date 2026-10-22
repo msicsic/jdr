@@ -173,7 +173,10 @@ def executer(monde, minutes, recit=None, empreintes=None):
                     if c.get("fiable", {}).get("valeur") is False)
     bilan = monde.data.get("stratege", {}).get("bilan", {})
     temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
-               if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES]
+               if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES and s.get("par") != "ouie"]
+    entendus = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+                if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
+    examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
     mesures = {"gestes": sum(c.get("nature") != "ouie" for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique
                                             if c.get("nature", "geste") in ("geste", "social", "reponse")}),
@@ -212,7 +215,17 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "vers_la_voix": sum(c["texte"].endswith("se tourne vers la voix qui l'appelle.") for c in chronique),
                "appels_a_l_aide": sum(c["texte"].endswith(" appelle à l'aide.") for c in chronique),
                "bruits_inconnus": sum(" entend un bruit : " in c["texte"] for c in chronique),
-               "alles_voir": sum(" va voir d'où venait le bruit : " in c["texte"] for c in chronique),
+               "alles_voir": len(examens),
+               # Un bruit situé à une case (entendu de sa salle même) : il est allé à portée de vue de
+               # sa source ; et les retours au même lieu, pour un bruit, moins de 30 minutes après.
+               "alles_voir_de_pres": sum(" va voir de près " in c["texte"] for c in examens),
+               "retours_voir": sum(1 for i, c in enumerate(examens) if any(
+                   d["pnj"] == c["pnj"] and d["texte"].split(" : ")[-1] == c["texte"].split(" : ")[-1]
+                   and 0 < c["minute"] - d["minute"] < 30 for d in examens[:i])),
+               # Témoins par l'ouïe (``pnj._temoins_a_l_oreille``) : l'auteur reconnu, ou seulement le
+               # bien touché ; un geste et un objet par témoin.
+               "vols_entendus": len({(id, s.get("auteur"), s["objet"]) for id, s in entendus if s["type"] == "vu_agir"}),
+               "atteintes_entendues": len({(id, s["objet"]) for id, s in entendus if s["type"] == "entendu_agir"}),
                # Les paroles entendues sans en être le destinataire (``social.retenir_parole``).
                "paroles_surprises": sum(" surprend les mots " in c["texte"] for c in chronique),
                # Chercher quelqu'un sans le voir : l'appeler, et qui répond (``pnj.appeler``).

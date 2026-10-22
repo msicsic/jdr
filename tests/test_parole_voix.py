@@ -71,7 +71,7 @@ class NommerTests(unittest.TestCase):
         self.assertIn("Tu ne vois pas Ilse d'ici : approche-toi pour lui parler.", sortie)
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 
-    def test_donner_a_qui_n_est_plus_la_le_moteur_dit_qu_il_n_est_pas_la(self):
+    def test_donner_a_qui_n_est_plus_la_le_moteur_dit_qu_il_ne_le_voit_pas(self):
         m = place_videe()
         m.objets["cloche"]["lieu"] = "joueur"
         m = recharger(m)
@@ -79,7 +79,7 @@ class NommerTests(unittest.TestCase):
         self.assertEqual((p["action"], p["cible"], p["outil"]), ("remettre", "cloche", "ilse"))
         reprise, sortie, appels = jouer(m, "je donne la cloche à Ilse", [], [])
         self.assertEqual(appels, [])
-        self.assertIn("n'est pas là pour le recevoir", sortie)
+        self.assertIn("Tu ne vois pas Ilse d'ici : approche-toi pour le lui donner.", sortie)
         self.assertEqual(reprise.objets["cloche"]["lieu"], "joueur")
 
     def test_une_voix_connue_ou_un_nom_donne_suffisent_jamais_une_place(self):
