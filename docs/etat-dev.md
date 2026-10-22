@@ -960,7 +960,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   demandes à heure fixe, Brune vole quand sa faim passe 95. Variantes de données mesurées (feu à
   nourrir, réserve aux vannes, faims décalées, valeurs graduées) et sept manques du moteur en
   invariants (tirage du départ, risque d'être vu pesé, tort qui ouvre des buts…), à trancher.
-- La suite de tests passe : (à recompter), sans clé ni connexion.
+- La suite de tests passe : 1208 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+
+## Décisions prises le 2026-10-22 (à implémenter)
+
+- **Réglages et données** : profils du Relais et de la crue selon `docs/analyse-relais.md` (Brune
+  douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65, douceur 80 ; Gorm inchangé) ; froid sec 4 par
+  heure ; seuil + 15 (`REPRISE`) gardé ; premier acte du Relais gardé (Brune peut voler tôt) ;
+  crochetage plus ou moins bruyant selon l'adresse (habile et réussi : discret ; échec ou forcement :
+  fracas) ; surenchère progressive (+50 % par palier tant que l'offre vaut la peine) ; réglages de
+  l'ouïe gardés (ajustés au banc si besoin) ; `GARDE` et `PRET` à tirer des valeurs et des relations.
+- **Noms** : un nom ne s'apprend qu'en entendant la personne se nommer ou quelqu'un la nommer, pas en
+  la voyant de près ; sinon la scène la décrit (« un homme trapu ») ; seuls les liens déclarés par le
+  scénario donnent le nom d'office.
+- **Appel négocié** : l'appelé et l'appelant conviennent de qui vient à qui (« J'arrive », « Ici,
+  viens », « Qu'est-ce que tu veux ? », silence) selon qui a besoin de qui, qui peut bouger, la
+  distance et l'urgence ; l'attente se règle sur la distance ; même règle pour le joueur, réponses
+  typées sans Luna.
+- **Plan force** (`docs/plan-force.md`) : les coups ne tuent jamais (PV 0 = hors de combat, seul
+  « tuer » donne la mort) ; **douceur 100 peut frapper pour se défendre ou défendre un protégé**
+  (écart à la recommandation du plan) ; joueur assommé : le temps passe jusqu'au réveil ; pas de mort
+  par faim, froid ou eau à cette étape ; le reste selon les recommandations du plan.
+- **Plan relations** (`docs/plan-relations.md`) : cinq axes (confiance, affection, rancune, peur,
+  dette) ; le joueur perçoit signes et impressions (commande « observer »), sa PSY peut le tromper ;
+  un PNJ donne son avis sans qu'on le lui demande seulement si l'autre risque d'agir contre et qu'il
+  s'en soucie ; le reste selon les recommandations du plan.
+- **Plus tard** : fabrication étape 4 ; imitation de voix (après les relations).
 
 ## Décisions en attente
 
