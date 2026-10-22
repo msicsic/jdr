@@ -520,3 +520,152 @@ Limites :
   lit (une part de ce qu'un autre possède se nomme déjà sans l'avoir vue) ; les témoins n'en
   apprennent rien ;
 - les constantes (`TACHE`, `SALAIRE`, `RENDRE`, `VALEUR_OBJET`) sont à régler au banc.
+
+## Des refus retenus selon leur cause (branche `refus-retenus`)
+
+Défaut relevé par le banc de `echanges-suite` : à l'auberge, à court de bois, les offres de tâche payée
+recevaient surtout « impossible » (celui qu'on paierait ne voit pas comment faire) et se répétaient toutes
+les deux heures (`REDEMANDE`), comme un refus d'humeur : 38 offres par nuit, sans recours 30 → 60, nuit
++30 %. La mémoire des refus avait deux défauts : tout refus valait `REDEMANDE` minutes quelle que soit sa
+cause, et il vivait dans les souvenirs, que les paroles surprises chassent (40 souvenirs, environ 150
+minutes à l'auberge).
+
+**Invariant** : un refus se retient selon sa cause, d'après ce que croit le demandeur, jamais l'état réel ;
+la même règle pour toutes les demandes typées d'un PNJ (`deliberation.retenir_refus`, `tient`,
+`refus_retenu`, `moyens_crus`).
+
+- **Ce que l'autre ne peut pas, ou garde** (« impossible », « absent », « eteinte », « rien » à « as-tu… ? »,
+  « necessaire ») : retenu tant que le demandeur ne croit aucun moyen de sa demande qu'il ne croyait déjà
+  au refus, sans délai. Les moyens (`moyens_crus`, gardés avec le refus) : pour une part ou un objet, ce
+  qu'il demande, s'il ne l'a pas vu épuisé, et où il le croit ; pour du feu, la source et la flamme,
+  allumées ou non ; pour « as-tu… ? », ce qu'il croit que l'autre possède de ces ressources ; pour une
+  tâche, où est ce qu'elle vise et tout ce qu'elle emploierait (chaque réserve de ce que brûle le feu,
+  de quoi l'allumer, les clés de ce qu'il faut fermer à clé) ; puis leurs abords : contenants et portes
+  de leur salle qu'il ne croit pas fermés à clé, et où sont leurs clés. Une ressource apprise (vue, dite,
+  rumeur), l'autre vu avec du bois, une porte crue ouverte lèvent le refus ; ce qui ôte un moyen (le
+  bois vu épuisé, une porte crue fermée à clé) ou revoir la même chose ne le lève pas : rien n'est
+  devenu possible. L'état que la tâche doit changer (le feu éteint) n'est pas un moyen.
+- **Trop peu payé** (« cher ») : retenu pour ce prix seulement ; il offre ensuite au moins le double
+  (`planification.SURENCHERE`), s'il le peut, ou plus que ce prix si la peine estimée a grandi. Ce n'est
+  pas un marchandage : chaque offre est une demande, acceptée ou non sur ce que valent les pièces.
+- **Méfiance, humeur** (« mefiance », « refus » du jet), et tout autre refus : `REDEMANDE` minutes, quoi
+  qu'il apprenne entre-temps (il ne sait rien de ce que l'autre pense de lui).
+- **La dernière réponse de chaque demande** (`esprit["refus"]`, une par personne, sorte de demande et
+  objet ou besoin) est gardée à part des souvenirs ; une nouvelle réponse la remplace, une demande
+  accordée l'efface (avant, un refus vieux de 10 minutes tenait encore après un accord). « Qui va là ? »
+  n'est pas un refus. Demander et acheter sont deux façons de la même demande : un refus qui tient de
+  l'une tient pour l'autre, sauf ce que payer lève (l'humeur) ou ce qu'un manque d'argent seul a fait
+  refuser.
+- **Le planificateur** lit ces refus par `Vue.refus_tenus` (jugés une fois par recherche, les moyens
+  d'une même demande faite à plusieurs une seule fois) ; chacun entre dans `_entrees` avec s'il tient
+  et s'il est récent (`refus_taches` compte encore les refus des `REDEMANDE` dernières minutes).
+- **Demandes concernées** : part, objet, prêt redemandé ou réclamé (`reclamer`), achat, demander du feu,
+  « as-tu… ? » (`s_enquerir` lit la même mémoire ; « dit » ne s'y retient pas : ce qu'il a dit avoir, le
+  demandeur le sait), tâche payée, tâche confiée (stratège). **Exemptés**, et pourquoi : le passage
+  (`passage.py` : « place », « geste » tiennent à la place de chacun, que le demandeur voit changer à
+  chaque pas, et qui attend renonce au bout de `PATIENCE`) garde `REDEMANDE` ; la dette réclamée à un
+  débiteur sans le sou (`creance_vaine`) aussi, car l'argent d'un autre ne se voit pas : aucune croyance
+  du créancier ne pourrait lever ce refus.
+
+Deux défauts relevés par le banc Luna du soir (`docs/banc-luna-soir.md`, n° 3 et 10), dans les mêmes
+fichiers :
+- **Une part de combustible achetée est remise à l'acheteur** (`echanges._vendre_part`,
+  `detacher_part`) : « je paie Aubin trois pièces pour une de ses planches » validait « il va entretenir
+  le feu » et Corvus payait sans rien recevoir. Achetée sans qu'aucun feu soit nommé, la part est un
+  bien : le vendeur la détache (une pièce du lot s'il la décrit, sinon une réserve d'une charge, du même
+  nom) et la remet, aussitôt s'il la porte, sinon en allant la chercher (engagement `remettre`, comme
+  un objet vendu d'avance ; non remise à l'échéance, le prix est dû). Seule une part demandée pour un feu
+  (sans payer, ou par un PNJ dont le plan nomme le feu qu'il entretient) va au feu.
+- **On sait ce qu'on porte et ce qui est à soi à portée de main** (`echanges.siens_a_portee`) : « Aubin,
+  as-tu du bois ? » répondait « non » (ses planches dans son dos, jamais regardées), puis il les vendait.
+  Celui qu'on interroge constate, en répondant, ce qu'il porte et ce qui est à lui dans sa salle hors de
+  tout contenant fermé.
+
+Un défaut de l'audit des nuits (`docs/audit-nuits.md`, A3 : tâches payées acceptées puis jamais faites),
+dans les mêmes fichiers : Brune acceptait de Gorm d'entretenir le brasero en comptant demander les planches
+d'Aubin, qui les garde ; refusée, elle ne faisait plus rien, et la dette naissait à l'échéance.
+- **Un devis ne compte pas sur ce qu'un tiers garde** (`planification.devis_pulsion`, `chercher(seul=…)`,
+  `TIERS`) : celui qu'on paie juge la tâche sur ses seuls moyens, ce que la garde du bien du payeur lui
+  permet et ce que le payeur lui-même lui prêterait ; ni demande, ni achat, ni tâche payée à un tiers, ni
+  recherche de quelqu'un d'autre. Sinon « impossible ».
+- **Qui sait ne plus pouvoir la faire la rend aussitôt** (`echanges.empeche`) : une tâche payée pour
+  laquelle il n'a plus aucun plan, sur ce qu'il croit (le bois qu'il comptait demander lui a été refusé,
+  et ce refus tient ; sa réserve vue épuisée), est abandonnée sans attendre l'échéance, et le prix est
+  rendu ou dû (`biens.rembourser`), comme une part payée qu'on ne peut plus servir.
+
+Le défaut B4 de l'audit (demandes refusées redemandées : « necessaire » et « cher » répétés toutes les
+deux heures) est celui que lève la mémoire des refus ci-dessus.
+
+Cas vérifiés après rechargement (`tests/test_refus_retenus.py`, `tests/test_parts_achetees.py`) : à
+l'auberge sans bois, Mireille propose une fois à Mathurine (« impossible »), voit ensuite les bûches de
+la cuisine épuisées et ne lui repropose rien pendant `REDEMANDE` + 10 minutes, puis, Hugues lui ayant dit
+qu'Anselme a du bois, lui repropose une fois (Mathurine n'en sait pas plus : refusée de nouveau, le refus
+retient désormais ce bois) ; une auberge entière sans bois pendant 300 minutes : chaque offre
+« impossible » n'est faite qu'une fois ; au Relais, Gorm a perdu la clé de la réserve, Ilse affamée
+demande une fois (« impossible ») et ne redemande pas pendant 150 minutes, puis, apprenant de la bouche
+d'Aubin que Gorm a retrouvé sa clé, redemande et obtient sa part ; Aubin et Brune qui n'ont rien ne
+sont pas réinterrogés ; Anselme refuse à deux pièces et accepte à quatre ; à trois pièces, Mireille ne
+repropose jamais deux ; Joss se méfie de Mireille : apprendre du bois ne lève pas ce refus, le délai si ;
+une demande accordée efface le refus. Corvus achète une planche à Aubin (le cas du banc) puis une part
+des fagots de Joss : la part lui est remise, il en est propriétaire, la réserve a une charge de moins ;
+une part demandée sans payer va toujours au feu ; Aubin dit avoir ses planches, Joss ses fagots portés
+et ceux de l'étable. Au Relais, Brune (le cas de l'audit) ne promet pas le bois d'Aubin ; Ilse,
+honnête, un briquet en main, refuse sur les planches d'Aubin et accepte sur les siennes ; à l'auberge,
+Anselme, qui voit son bois épuisé après avoir accepté, rend aussitôt les 2 pièces à Mireille. `VERIFIER`
+passe sur une nuit du Relais, de la mine et de la crue (graine 1985) et de l'auberge (graine 42) ; à
+l'auberge, graines 1985 et 7, il s'arrête sur le défaut V1 de l'audit (une recherche à `emplois` de
+Lucien, `lumiere` puis `garder:etable`, plus riche que la référence complète : chercher le porteur d'une
+lampe n'est offert qu'aux recherches restreintes), que `main` présente sur d'autres nuits et qui n'est
+pas de cette branche : la trajectoire de ces deux nuits a changé et y passe.
+
+Tests changés, et pourquoi : les tests qui plaçaient un refus ou une réponse « rien » dans les souvenirs
+le placent par `retenir_refus` (`support.refusee`, `test_planification`, `test_dynamique_besoins`,
+`test_protection`, `test_recit_pnj`, `test_marche`, `test_securite`) ; `test_dynamique_besoins` : la
+faim refusée qui redemande après le délai est refusée par méfiance (un refus « necessaire » tient
+désormais tant que rien ne change, payer ne lève pas la méfiance), et les réponses d'Anselme sont posées
+après ce qu'il voit (elles retiennent ce qu'il croyait alors).
+
+Bancs 8 h, départ tiré, `main` 0489fea puis la branche, l'un après l'autre (Relais 8 graines
+`--joueur chambre_cloche`, mine `--joueur galerie`, auberge `--joueur dortoir`, crue 4 graines), par nuit ;
+« refus répétés » : refus d'une même demande, mot pour mot et pour la même cause, au-delà du premier :
+
+| scénario | refus répétés | tâches proposées / acceptées | « impossible » / « cher » | « as-tu… ? » (« rien ») | parts « necessaire » | sans recours | en attente | confiées | échanges | temps |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Relais | 0,5 → 0,25 | 2,6 / 0,4 → 2,75 / 0 | 0 / 1 → 1,6 / 0 | 2,4 (1,75) → 3,1 (2,5) | 0,75 → 0,1 | 53,8 → 54,4 | 58,1 → 68,8 | 194 → 183 | 15,8 → 15,5 | 10,8 → 10,2 s |
+| mine | 3,75 → 1,25 | 4,75 / 0,25 → 5 / 0 | 0,5 / 3 → 4,25 / 0 | 13 (10,5) → 12 (9,5) | 8,25 → 5,75 | 52,5 → 53,8 | 272,5 → 282,5 | 17,5 → 0 | 48,3 → 43,5 | 29,6 → 29,8 s |
+| auberge | 24,75 → 1,75 | 38 / 1 → 26 / 1,5 | 18,3 / 14,5 → 14,8 / 6,8 | 22 (20,5) → 13 (11) | 4,25 → 1 | 60 → 43,8 | 297,5 → 332,5 | 176 → 172,5 | 97,8 → 76 | 31,7 → 36,3 s |
+| crue | 0 → 0,75 | 2,75 / 1 → 4 / 0,25 | 0 / 0,75 → 2,5 / 0,25 | 2 (2) → 3,75 (3,75) | 0,75 → 0,5 | 15 → 15 | 67,5 → 98,8 | 311 → 294 | 16 → 18,5 | 11,9 → 11,9 s |
+
+Aucune usurpation ni violation ; vols vus égaux ; méfiances égales (crue 0 → 0,75 : Brune garde les 2
+pièces d'une tâche qu'elle ne pouvait plus faire, et Gorm s'en méfie). Ce qu'on lit dans les récits : à
+l'auberge, une offre refusée n'est plus refaite au même pour la même cause, sauf quand le payeur a appris
+un moyen (Mireille à Mathurine et à Tilo : « impossible », puis, ayant appris du bois, une offre à laquelle
+ils répondent « cher ») ; un refus « cher » mène à une offre double, jusqu'à l'accord ou au bout de la
+bourse ; les « as-tu… ? » à qui n'a rien ne se répètent plus. Au Relais, à la mine et à la crue, les
+tâches qu'on acceptait sur le bois d'un autre sont désormais refusées « impossible » (Brune, Odon) : moins
+de pulsions confiées, plus de minutes en attente (personne ne peut rallumer le feu) ; une dette de tâche
+dans une nuit de crue sur quatre et une à l'auberge, nées dès que la tâche ne pouvait plus se faire, au
+lieu de 240 minutes plus tard. Le temps de l'auberge suit l'activité d'une nuit (graine 7 : 417 → 719
+gestes, 34 → 51 s ; les trois autres égales) ; ce que la mémoire des refus coûte au calcul est de l'ordre
+de 1 % d'une nuit (profil, graine 7). Les temps sont mesurés pendant que d'autres calculs chargeaient le
+poste.
+
+Limites :
+- les moyens d'une demande sont une liste déclarée par sorte de demande (part, objet, feu, « as-tu… ? »,
+  tâche : feu, clé, lieu) ; ce que le demandeur pourrait croire d'autre (la faim de l'autre, sa
+  confiance) n'y entre pas : voir l'autre rassasié ne lève pas un refus « necessaire » (il peut garder
+  sa réserve) ;
+- un refus retenu ne s'oublie pas : un demandeur qui ne voit rien de nouveau ne redemande jamais, même si
+  l'autre a changé (acquis du bois, gagné des pièces, cessé d'avoir faim) ; seule une demande accordée,
+  ou une nouvelle réponse, le remplace ;
+- revoir la même chose ne lève rien : un objet que l'autre disait ne pas avoir, revu dans ses mains, ne
+  fait pas redemander ;
+- la surenchère double le prix refusé : elle peut payer jusqu'au double de ce qui aurait suffi, et
+  enchaîne les offres (une par minute) tant que le prix vaut au payeur moins que la tâche ;
+- un devis ne compte que ses moyens et ceux du payeur : une tâche qu'il ferait avec la part qu'un tiers
+  lui donnerait volontiers est refusée ; l'abandon d'une tâche sans plan se juge à la minute, sur ce qu'il
+  croit (un plan revenu plus tard ne la ressuscite pas) ;
+- une part de combustible sans pièce décrite est remise comme une réserve d'une charge, sous le nom du
+  lot (« les planches de bac ») ; une réserve que son propriétaire porte se demande encore entière ;
+- le joueur n'a pas cette mémoire : ses demandes passent par Luna et le moteur à chaque fois ;
+- `SURENCHERE` est une constante du moteur, à régler au banc.

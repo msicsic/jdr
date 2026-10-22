@@ -12,7 +12,7 @@ honnêteté de 100 ne vole ni ne ment) et capacités ; un écart est renvoyé un
 de jeu. Rien de ce qu'écrit Luna n'est montré au joueur, qui ne perçoit que les gestes.
 """
 from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, confie_a_autrui,
-                           illicite, profil, refuse_recemment, salle_crue, seuils)
+                           illicite, profil, refus_retenu, salle_crue, seuils)
 from .caractere import caracteristiques, interdit
 from .echanges import demande_de_part
 from .esprits import esprit, lire, memoriser, percoit, pnjs
@@ -244,10 +244,10 @@ def _etape(monde, id, n, x, obtenus):
         if op in ("demander", "remettre"):
             etape["outil"] = connu("outil")
         vise = etape["outil"] or (x.get("sujet") if op == "confier" else None)
-        refus = op in ("demander", "confier") and refuse_recemment(monde, id, etape["cible"], op, vise or None)
+        refus = op in ("demander", "confier") and refus_retenu(monde, id, etape["cible"], (op,), vise or None)
         if refus:
             raise faute(f"ce personnage a refusé il y a {monde.data['minutes'] - refus['minute']} minutes "
-                        f"({refus['raison']}) : ne lui redemande pas déjà la même chose")
+                        f"({refus['raison']}) et rien n'a changé depuis : ne lui redemande pas la même chose")
         if op in ("demander", "remettre"):
             if (op == "demander" and _lieu_cru(monde, id, etape["outil"]) != etape["cible"]
                     and not demande_de_part(monde, id, etape["cible"], etape["outil"])):
