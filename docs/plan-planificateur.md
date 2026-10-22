@@ -859,6 +859,93 @@ Limites :
 - la perception reste le plus gros poste hors du planificateur (un tiers d'une nuit) : chaque PNJ
   revoit tout ce qu'il croit après chaque événement.
 
+## Coût de calcul, suite (branche `cout-calcul`)
+
+Les nuits avaient de nouveau ralenti avec la délibération à l'événement et le temps réel. Même règle
+que `planif-cout` : rien ne change dans ce que décident les PNJ, seulement ce que coûte de le calculer.
+Rapport complet : `docs/taches/rapport-cout-calcul.md`.
+
+**Mesurer.** Un profil `cProfile` grossit cinq à six fois les fonctions à appels très nombreux ; les
+parts se lisent sur un échantillonnage (`py-spy`). Sur `main`, une nuit de 8 h passait 19 à 57 % dans
+le choix du but (dont 7 à 45 % de recherches neuves), 16 à 27 % dans la perception, 13 à 28 % dans les
+gestes et la marche, 6 à 16 % dans l'ouïe, et 5 à 8 % à calculer l'empreinte de l'état (`etat_vue`) :
+22 978 fois dans une nuit de la mine pour 1 550 états distincts. PyPy fait les mêmes nuits mais 1,5 à
+1,7 fois plus lentement, avec trois fois plus de mémoire : écarté.
+
+**Reprendre le choix entier : non retenu.** Les entrées d'un choix (même abstraites : besoins
+pressants, prix d'une faute, caractéristiques modulées, valeurs des croyances) ne sont les mêmes
+qu'au choix précédent du même PNJ que dans 1 à 12 % des cas, et ce sont les choix les moins chers
+(0,02 à 0,25 s par nuit), alors que la clé coûte autant que le choix. Reprendre une recherche neuve sur
+les seules croyances qu'elle a lues ne vaut pas mieux : la plupart les lisent toutes.
+
+**Ce qui est fait** (chaque reprise ou lecture gardée a son contrôle : `spatial.VERIFICATION` recompare
+la lecture gardée à un calcul de zéro ; `planification.VERIFIER` reste celui des recherches) :
+- *Perception incrémentale* (`esprits._percus_depuis`). Dans un état nouveau, ce que perçoit un PNJ se
+  tire de sa perception précédente quand seuls ont changé des objets qui ne bornent pas la vue (ni porte
+  ni objet opaque), pas lui, et que son champ est le même : seuls sont revus les objets changés (la
+  différence des deux empreintes `etat_vue`, objet par objet), ce qu'ils portent ou contiennent (la
+  chaîne de leurs lieux) et les objets installés sur un support, par le même test que le calcul complet
+  (`_vu_dans_le_champ`) ; le reste se voit de même, dans l'ordre exact d'un calcul complet. Deux
+  perceptions sur trois passent par là. Le mémo d'un état garde son empreinte ; la différence de deux
+  empreintes et les chaînes de lieux se calculent une fois par état et se partagent entre PNJ.
+- *Signatures de la vue héritées* (`esprits._heriter_signatures`, `memo["signatures"]`) : quand aucun
+  objet changé, ni rien de ce qu'il porte ou contient, n'est allumé ni opaque et qu'aucun n'a changé
+  d'ouverture, l'état nouveau partage les signatures de chaque salle du précédent.
+- *Lectures de l'état figé* : le regard d'un acteur (`spatial._vue`) et la lumière de sa case
+  (`esprits.lumiere_ici`) sont gardés dans le mémo de l'état ; percevoir, témoigner, relever ce que voit
+  le joueur et noter le temps vécu d'un geste (`pnj._avancer`) se font dans un seul état figé, comme le
+  relevé des présences : l'empreinte n'est plus recalculée entre des lectures que rien ne sépare. Une
+  lecture seule (`vecu.conditions` hors de ce bloc) reste sans état figé : l'empreinte y coûterait plus
+  que ce qu'elle ferait retrouver (mesuré).
+- *Pas et passages gardés* : un pas d'une case dans un sens (`spatial._pas_possibles`) ne dépend que de
+  la géométrie, des obstacles solides et des portes ouvertes ou fermées ; les passages de l'ouïe
+  (`ouie._passages`), de la géométrie, des portes et des appuis verticaux : gardés sous ces clés d'un
+  trajet ou d'un bruit à l'autre.
+- *Le planificateur* : `enrichir` juge les bourses crues sans construire la vue ; la vue juge prendre,
+  consommer et abîmer le bien d'autrui en un seul calcul du propriétaire (`biens.leses`) ; les tests de
+  but (`a_mange`, `rechauffe`) ne trient plus les faits ; `Etat.apres` reprend les faits de l'état
+  quand un geste n'en ajoute aucun ; `_suites` ne cherche un fait terminal nouveau que si l'état
+  suivant a plus de faits ; flammes fixes et flammes d'autrui lues une fois par état ; le lieu cru dans
+  un dictionnaire dédié (`Vue._lieu`) ; l'utilité d'une part ne se juge que si son donneur se tient là ;
+  la clé de la mémoire encodée sans contrôle de cycles.
+- *Ce que le joueur saisit des paroles* : un terme absent du texte n'est pas cherché par son motif, une
+  seule passe (`lexique`) ; ce que nomme le contexte du joueur n'est calculé qu'une fois dans un bloc de
+  lecture (`paroles.contexte_fige`, `ecoute.lier` et `ecoute.rendre`).
+- *Menus* : `esprits.esprit` ne complète ses champs que s'il en manque ; `Monde.objets` et
+  `Monde.joueur` sont des attributs remis à jour à chaque affectation de `data` ; des imports faits une
+  fois.
+
+**Preuve d'identité.** Pour chaque nuit, `main` 06602a6 et la branche (`tools/empreintes_nuits.py`) :
+empreintes de la chronique, des mesures, du récit, des souvenirs, de l'état final complet, des repères
+du banc et des recherches neuves (PNJ, but, nœuds, issue). Identiques sur 32 nuits (4 scénarios ×
+graines 1985, 7, 42, 2024 × départ tiré et fixe, 8 h), puis dans chaque passe de mesure ; de même avec
+`tools/comparer_bancs.py --empreintes` (Codex, `origin/codex-outils`). `VERIFIER` et
+`spatial.VERIFICATION` à 0,2 sur une nuit de 8 h de chaque scénario (graine 42) ; `VERIFICATION` à 1 sur
+deux heures de chaque scénario après chaque changement de la perception : sans écart.
+
+Temps d'une nuit de 8 h au processeur, `main` → branche, lancés ensemble (2 processus de chaque côté) ;
+départ tiré : 4 graines, 2 passes ; départ fixe : 1 passe. Entre parenthèses, le planificateur :
+
+| | Relais | Mine | Auberge | Crue |
+|---|---|---|---|---|
+| départ tiré | 8,9 → 6,4 s (2,4 → 2,2) | 23,7 → 18,8 s (13,1 → 10,9) | 16,2 → 12,6 s (4,9 → 4,0) | 7,7 → 5,8 s (1,4 → 1,2) |
+| départ fixe | 6,8 → 4,6 s (1,4 → 1,1) | 23,6 → 19,6 s (14,3 → 12,4) | 15,9 → 12,6 s (4,8 → 4,2) | 8,9 → 6,9 s (1,6 → 1,5) |
+| rapport (tiré) | × 1,39 | × 1,26 | × 1,29 | × 1,33 |
+
+Pic de mémoire : Relais 43 → 42 Mo, mine 91 → 83 Mo, auberge 85 → 77 Mo, crue 46 → 47 Mo.
+
+Limites :
+- un PNJ qui bouge ou se tourne revoit tout (son champ change) : un tiers des perceptions ;
+- l'empreinte de l'état se calcule encore à chaque lecture hors d'un état figé : sans suivi des
+  écritures (des centaines de points du moteur écrivent dans les objets), rien ne dit à moindre coût
+  que l'état n'a pas changé ;
+- les recherches neuves coûtent toujours ce qu'elles coûtaient par état développé, à peu près : la mine
+  reste dominée par elles (Rémy, Josse et Mathe refont chaque minute des recherches épuisées, Lucien à
+  l'auberge des recherches de quelque 380 nœuds) ;
+- toute lecture nouvelle de la perception doit rester couverte par `spatial.etat_vue` (comme avant) ;
+  une lecture de la perception qui dépendrait d'un autre objet que ceux de la chaîne de ses lieux ou de
+  son support devrait entrer dans `_percus_depuis`.
+
 ## VERIFIER et l'eau (branche `verifier-eau`)
 
 Deux défauts de l'audit des nuits (`docs/audit-nuits.md`, V1 et A4).
