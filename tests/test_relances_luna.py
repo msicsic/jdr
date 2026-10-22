@@ -223,6 +223,25 @@ class NomsConnusTests(unittest.TestCase):
         self.assertIn("Brune est là, Corvus.", [p["texte"] for p in reprise.data["paroles_pnj"]])
 
 
+class DemanderAFaireTests(unittest.TestCase):
+    def test_cas_reel_tu_demandes_a_passer_n_est_pas_une_parole(self):
+        # Revérification, banc relais : « Tu demandes à passer sous la poutre… » était pris pour une parole de
+        # Corvus racontée par le MJ, d'où une relance. « Demander à + infinitif » demande de pouvoir faire.
+        m = loin_de_la_poutre()
+        texte = "Tu demandes à passer sous la poutre effondrée, mais elle est à plusieurs pas de toi."
+        reprise, sortie, appels = jouer(m, "est-ce que je pourrais passer sous la poutre effondrée ?", [
+            avis("impossible", "Rien."), avis("impossible", texte)], [verdicts(("mecanique", ("attestations",), ""))])
+        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)
+        self.assertIn(texte, sortie)
+        self.assertEqual(reprise.data["journal"], [])
+
+    def test_meme_nature_et_ce_qui_reste_une_parole_racontee(self):
+        from donjon.narration import parole_racontee
+        self.assertEqual(parole_racontee("Tu demandes à entrer, mais la porte reste close."), [])
+        self.assertEqual(parole_racontee("Tu demandes à Ilse de t'aider."), ["tu demandes a ilse"])
+        self.assertEqual(parole_racontee("Tu lui demandes à boire."), ["tu lui demandes a"])
+
+
 class ConsignesTests(unittest.TestCase):
     def test_la_regle_du_texte_affiche_est_dite_au_mj(self):
         # Le contrôle déterministe refuse « je » hors des répliques et les mots d'auteur : la règle est dite.

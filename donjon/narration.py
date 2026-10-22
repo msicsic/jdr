@@ -444,7 +444,8 @@ _INTERPELLER = "appelles|interpelles|heles|salues|questionnes|supplies|remercies
 _INTERPELLE = "appele|interpelle|hele|salue|questionne|supplie|remercie|prevenu"
 PAROLE_DE_CORVUS = re.compile(
     rf"\btu (?:lui|leur) (?:as )?(?:{_DIRE}|{_DIT})\b"
-    rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) (?:a|au|aux)\b"
+    # « demander à + infinitif » (« tu demandes à passer ») : demander de pouvoir faire, pas parler à quelqu'un.
+    rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) (?:a(?! \w+(?:er|ir|re|oir)\b)|au|aux)\b"
     rf"|\btu (?:as )?(?:{_DIRE}|{_DIT}) ?:"
     rf"|\btu (?:l'|la |le |les )?(?:as )?(?:{_INTERPELLER}|{_INTERPELLE}) (?!a\b)(?=\w)"
     rf"|\btu t'(?:es )?adresse[s]? a\b"
