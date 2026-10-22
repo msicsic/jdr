@@ -689,16 +689,21 @@ def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
 def empeche(monde, id, engagement):
     """Une contrepartie payée qu'il ne peut plus livrer : la part ou l'objet qu'il vendait n'existe
     plus, n'est plus à lui, ou n'en a plus une part (``deliberation.parts``) ; une tâche payée qu'il ne
-    voit plus comment faire (aucun plan, sur ce qu'il croit : le bois qu'il comptait demander lui a été
-    refusé, et ce refus tient). Il le sait : le prix est rendu ou dû dès maintenant
-    (``engagements_echus``)."""
-    from .deliberation import _plan_pulsion, parts
+    voit plus comment faire (aucun plan, sur ce qu'il croit : le bois qu'il comptait employer a été vu
+    épuisé, ce qu'il comptait demander lui a été refusé, et ce refus tient). Il le sait : le prix est
+    rendu ou dû dès maintenant (``engagements_echus``).
+
+    Une tâche se juge ici par le même devis qui l'a fait accepter (``planification.devis_pulsion`` :
+    ses seuls moyens, ceux que lui donne ou prêterait celui qui le paie) : rien ne la dit impossible
+    tant que ce qu'il croit n'a pas changé depuis qu'il l'a acceptée."""
+    from .deliberation import parts
+    from .planification import devis_pulsion
     from .vol import proprietaire
     paye = engagement.get("paye")
     if not paye:
         return False
     if paye["quoi"] == "tache":
-        return _plan_pulsion(monde, id, engagement["condition"]) is None
+        return devis_pulsion(monde, id, engagement["condition"], engagement["pour"]) is None
     o = monde.objets.get(paye["objet"])
     return o is None or proprietaire(monde, o) != id or paye["quoi"] == "part" and parts(o) <= 0
 

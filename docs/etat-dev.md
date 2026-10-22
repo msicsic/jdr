@@ -997,7 +997,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   douceur 75 ; Ilse honnêteté 80 ; Aubin honnêteté 65, douceur 80 ; Gorm inchangé) ; froid sec 4 par
   heure ; seuil + 15 (`REPRISE`) gardé ; premier acte du Relais gardé (Brune peut voler tôt) ;
   crochetage plus ou moins bruyant selon l'adresse (habile et réussi : discret ; échec ou forcement :
-  fracas) ; surenchère progressive (+50 % par palier tant que l'offre vaut la peine) ; réglages de
+  fracas) ; surenchère progressive (+50 % par palier tant que l'offre vaut la peine) (ces deux-là : branche
+  `crochetage-surenchere`) ; réglages de
   l'ouïe gardés (ajustés au banc si besoin) ; `GARDE` et `PRET` à tirer des valeurs et des relations.
 - **Noms** : un nom ne s'apprend qu'en entendant la personne se nommer ou quelqu'un la nommer, pas en
   la voyant de près ; sinon la scène la décrit (« un homme trapu ») ; seuls les liens déclarés par le
@@ -1172,7 +1173,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Cas vérifiés après rechargement (`tests/test_attente.py`, `test_tui`, `test_web`) : Gorm qui entre au
   refuge, Aubin aperçu, un appel entendu de la galerie. Limites : l'arrêt se juge à la tranche ; une
   parole adressée au joueur n'est pas distinguée d'une autre.
-- La suite de tests passe : 1269 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
+- Branche `crochetage-surenchere`, non fusionnée, accordée avec `main` d5d4bee (`docs/plan-ouie.md`, « Le bruit
+  du crochetage selon l'adresse » ; `docs/plan-social.md`, « La surenchère progressive et la tâche aussitôt
+  due ») : deux réglages décidés le 2026-10-22 et le défaut N3 de la revérification. **Crochetage** : son bruit
+  tient à son jet, règle commune au joueur et aux PNJ (`ouie.nature_crochetage`, même seuil
+  `pnj.seuil_crochetage`, `Plan.marge`) : réussi, un geste ordinaire (feutré en douce), « crochète la serrure
+  de … sans forcer » ; manqué, il s'acharne : un fracas, comme forcer. Le voleur qui veut agir sans être
+  entendu attend le bruit que lui promet son adresse (`planification.bruit_crochetage` : feutré s'il a au
+  moins une chance sur deux, `HABILE`). **Surenchère** (`planification._engager`, `hausse`, `PALIER`
+  1,5, `Vue.hausse_faite`) : +50 % par refus « cher », une hausse par minute, jamais ce que les pièces coûtent
+  au payeur (`Vue.depense`) au-delà de la peine que la tâche lui épargne, première offre comprise ; puis il
+  renonce. **Tâche acceptée** : l'empêchement (`echanges.empeche`) et le plan de la tâche
+  (`planification.planifier_tache`) sont le devis qui l'a fait accepter ; un feu payé se compte à recharger,
+  et éteint si le payeur ne le croit pas allumé, sauf ce que le payé a vu ou fait depuis l'offre
+  (`_vu_avant_la_tache`). Cas réels et de même nature après rechargement (`tests/test_crochetage_surenchere.py`,
+  11 tests ; `test_refus_retenus`), `VERIFIER` et `spatial.VERIFICATION` sur une nuit de chaque scénario. Bancs 8 h,
+  `main` d5d4bee puis la branche (Relais 8 graines, autres 4), par nuit : à l'auberge, offres de tâche 32 →
+  15,5, hausses 5,75 → 0,75, offre la plus haute 36,75 → 4,25 pièces, pièces des tâches 39,25 → 2,5, tâches
+  dues aussitôt 1 → 0, dettes 1,25 → 0, sans recours 75 → 45, échanges 81 → 66 ; crue en attente 472 → 516 ;
+  crochetages réussis sans forcer 0 → 0,5 (Relais), 7 (mine), 0,75 (auberge), 0,5 (crue), entendus sans être
+  vus 0,5 / 0,75 / 0,75 / 0,5 → 0,5 / 0,75 / 1 / 0 ; Relais aux mêmes mesures, aucune usurpation ni violation ; temps
+  faussés par la charge (+4 à +10 %). Audit 12 h (4 × 4) : dettes de fin de nuit 5 → 0, aucun plantage ;
+  N1 et N4 demeurent (d'autres lots). Limites : la valeur d'une tâche est la peine qu'elle épargne, pas le
+  besoin ; un payeur pauvre n'offre plus rien ; une hausse par minute ; les premières offres à plusieurs
+  dans la même minute restent ; aux DEX des scénarios, aucun voleur ne se sait habile (il attend un fracas
+  comme avant) ; `AISANCE` (0 : toute réussite cède sans fracas), `HABILE`, `PALIER` à régler.
+  Fusionné après le lot A (`main` ebca508) : seul conflit de code, la forme des buts (`deliberation`) ;
+  deux scènes « sans bois » de l'auberge vident aussi la réserve d'Odile (branche `ressources`, absente de
+  la base du lot), sans quoi Tilo, payé pour l'âtre, en demande une part à Odile, qui la met au feu et le
+  rallume elle-même : le payeur fait la tâche qu'il paie (limite, à corriger). Banc rapide 4 h, 4 graines,
+  `main` puis la fusion : mine et auberge identiques ; Relais 3,5 crochetages par nuit dont 0,75 réussis
+  sans fracas, bascules 1,5 → 0,75, en attente 2,5 → 8,75 ; aucun plantage ni usurpation.
+- La suite de tests passe : 1282 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node).
 
 ## Décisions en attente
 

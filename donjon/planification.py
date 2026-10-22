@@ -15,6 +15,7 @@ l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même r
 import copy
 import heapq
 import json
+import math
 from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
@@ -40,7 +41,8 @@ GARDE = 2              # par minute loin de chaque lieu où il garde ses biens, 
 RESTER = 30            # minutes qu'il compte passer là où le mène un but qui se tient en restant
 TACHE = 5              # minutes de travail d'une tâche payée, en plus du chemin (``_engager``)
 SALAIRE = 3            # minutes de peine qu'il paie une pièce, à qui fait une tâche pour lui
-SURENCHERE = 2         # refusé pour un prix trop bas, il offre au moins tant de fois ce prix (``_engager``)
+PALIER = 1.5           # refusé pour un prix trop bas, il offre ce prix et moitié en plus, une hausse à la fois (``hausse``)
+HABILE = 0.5           # chance de réussir à partir de laquelle il attend un crochetage discret (``bruit_crochetage``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
@@ -319,6 +321,14 @@ class Vue:
         """Un refus qui tient de faire pour lui une tâche sur ``o`` (``echanges.engager``) ; « cher »
         ne tient que pour son prix."""
         return self.retenu(autre, ("engager",), o)
+
+    def hausse_faite(self, o):
+        """Une offre de tâche sur ``o`` refusée à cette minute pour un prix trop bas : il ne hausse qu'une
+        fois par délibération à la minute, pas d'un refus à l'autre en rafale (``_engager``)."""
+        minute = self.monde.data["minutes"]
+        return self._memo((o, "hausse_faite"), lambda: any(
+            s["operation"] == "engager" and s.get("objet") == o and s["raison"] == "cher" and s["minute"] == minute
+            for s, _ in self.refus_tenus()))
 
     def refus_taches(self, o):
         """Combien ont refusé, depuis ``REDEMANDE`` minutes, une tâche sur ``o`` qu'il leur offrait :
@@ -631,13 +641,22 @@ def _etape(operation, cible="", outil="", lieu="", condition="", contenu=None):
             **({"contenu": contenu} if contenu else {})}
 
 
-def chance_crochetage(monde, id, lumiere):
+def chance_crochetage(monde, id, lumiere, marge=0):
     """Sa chance au jet de ``pnj._crocheter`` à la lumière qu'il croit avoir : d20 + DEX contre
-    ``pnj.seuil_crochetage``. 0 quand aucun jet ne l'atteint : il ne l'envisage pas."""
+    ``pnj.seuil_crochetage`` (passé d'au moins ``marge``). 0 quand aucun jet ne l'atteint : il ne
+    l'envisage pas."""
     from .caractere import modificateur
     from .pnj import seuil_crochetage
-    reussites = 21 - (seuil_crochetage(lumiere) - modificateur(monde, id, "DEX"))
+    reussites = 21 - (seuil_crochetage(lumiere) + marge - modificateur(monde, id, "DEX"))
     return min(1.0, max(0.0, reussites / 20))
+
+
+def bruit_crochetage(monde, id, lumiere, discret=True):
+    """Le bruit qu'il attend de son crochetage à cette lumière (``ouie.nature_crochetage``) : celui
+    d'une serrure qui cède s'il a au moins ``HABILE`` de chance d'y réussir (il s'y sait habile : sa
+    DEX, la lumière), sinon un fracas, celui d'un échec."""
+    from .ouie import AISANCE, nature_crochetage
+    return nature_crochetage(AISANCE if chance_crochetage(monde, id, lumiere, AISANCE) >= HABILE else None, discret)
 
 
 def gestes(v, e, vises=None, but=None):
@@ -869,13 +888,25 @@ def prix_tache(peine):
     return max(1, -(-peine // SALAIRE))
 
 
+def hausse(prix):
+    """L'offre qui suit un refus « cher » à ce prix : un palier plus haut (``PALIER``, au moins une
+    pièce de plus)."""
+    return max(prix + 1, math.ceil(prix * PALIER))
+
+
 def _engager(v, e, condition):
     """Payer quelqu'un, là où il se tient avec lui, pour qu'il fasse en sorte que ``condition`` soit
     vraie (``echanges.engager``), sur ce qu'il pourrait faire lui-même sans faute : il propose ses
     pièces à qui il ne se méfie pas et qui ne vient pas de refuser ; l'autre accepte si ces pièces valent pour lui la peine. Comme une demande, ce n'est pas
     acquis (``PRET``), d'autant moins que d'autres viennent de refuser (``Vue.refus_taches``) ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
     que l'autre ait fait la tâche (sa peine). La tâche faite, son but est atteint ; il ne la fait pas
-    à sa place tant qu'elle court (``deliberation.tache_payee``)."""
+    à sa place tant qu'elle court (``deliberation.tache_payee``).
+
+    Il n'offre que ce qui vaut la peine pour lui : ce que lui coûtent ces pièces (``Vue.depense``,
+    ``caractere.valeur_pieces``) ne dépasse pas la peine que la tâche lui épargne. Refusé pour un prix
+    trop bas, il hausse d'un palier (``hausse``) tant que l'offre vaut la peine ; au-delà, il renonce à
+    ce marché. Une hausse à la fois : après un refus « cher », aucune offre haussée de la même tâche, à
+    lui ou à un autre, avant la délibération de la minute suivante (``Vue.hausse_faite``)."""
     o = condition["objet"]
     # On ne paie quelqu'un que pour ce qu'on pourrait faire soi-même sans faute : son bien, ce qui
     # n'est à personne, ce qu'on vous a confié ; pas le bien d'autrui qu'on convoite.
@@ -885,19 +916,19 @@ def _engager(v, e, condition):
     if peine is None:
         return
     prix = prix_tache(peine)
-    if v.richesse - (e.fait("depense") or 0) < prix:
+    if v.richesse - (e.fait("depense") or 0) < prix or v.depense(prix) > peine:
         return
     for autre in v.personnes():
         if v.salle(e, autre) != e.salle or v.se_mefie(autre):
             continue
-        # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre plus,
-        # s'il le peut (``SURENCHERE``).
+        # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre un
+        # palier plus haut, à la délibération suivante, s'il le peut et tant que cela vaut la peine.
         offre, refus = prix, v.refuse_tache(autre, o)
         if refus:
-            if refus["raison"] != "cher":
+            if refus["raison"] != "cher" or v.hausse_faite(o):
                 continue
-            offre = prix if prix > refus["prix"] else SURENCHERE * refus["prix"]
-            if v.richesse - (e.fait("depense") or 0) < offre:
+            offre = prix if prix > refus["prix"] else hausse(refus["prix"])
+            if v.richesse - (e.fait("depense") or 0) < offre or v.depense(offre) > peine:
                 continue
         yield (0, 1 + DEMANDE * (1 + v.refus_taches(o)) / PRET + v.depense(offre) + peine,
                [_etape("engager", autre, contenu={"condition": dict(condition), "prix": offre})],
@@ -1019,7 +1050,8 @@ def _entrees(v, vises, profondeur, noeuds):
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
          for s in esprit_["memoire"] if s["type"] in ("promis", "nourri")],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
-        [[s, tenu, minute - s["minute"] < REDEMANDE] for s, tenu in v.refus_tenus()],
+        # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
+        [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
         esprit_["visites"],
         # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
         [[k, {a: w for a, w in o.items() if a not in CHANGEANTS}, "allume" in o,
@@ -1348,6 +1380,14 @@ def planifier_pulsion(monde, id, condition, tache=False):
     return None if trouve is None else trouve[1:]
 
 
+def planifier_tache(monde, id, condition, payeur):
+    """(but, étapes) pour faire la tâche que ``payeur`` lui a payée, ou None : le plan de son devis
+    (``devis_pulsion``), celui sur lequel il l'a acceptée et sur lequel il la jugerait impossible
+    (``echanges.empeche``)."""
+    trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
+    return None if trouve is None else trouve[1:]
+
+
 def devis_pulsion(monde, id, condition, payeur):
     """(coût, étapes) de rétablir ``condition`` (minutes de son plan, fautes comprises), ou None s'il
     ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un
@@ -1399,9 +1439,13 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
     depuis = None
-    if entretenir and "allume" in condition:
-        # Celui qui le paie le sait à recharger : il le compte comme tel, quoi qu'il en ait vu.
-        depuis = depart(monde, id).apres(faits=[(("charge", o), False)])
+    if entretenir and "allume" in condition and _vu_avant_la_tache(monde, id, condition, entretenir):
+        # Celui qui le paie le sait à recharger, et éteint s'il ne le croit pas allumé (l'offre le dit) :
+        # il le compte comme tel, quoi qu'il en ait vu avant que la tâche ne lui soit payée ; ce qu'il en
+        # voit ensuite (qu'il l'a rechargé, rallumé lui-même), il le croit.
+        dit = (_cru(monde, entretenir, o, "etat") or {}) if entretenir != "joueur" else {}
+        depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
+                                         + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
                       memo=["pulsion", condition, "confier" in vises, entretenir],
                       emplois=("feu",) if "allume" in condition else (), seul=entretenir or None)
@@ -1409,6 +1453,17 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         return None
     cout, etapes, e = trouve
     return cout, {"type": "pulsion", **condition}, retablir(Vue(monde, id), e, _couper(etapes))
+
+
+def _vu_avant_la_tache(monde, id, condition, payeur):
+    """L'état du feu qu'il croit date-t-il d'avant la tâche que ``payeur`` lui paie (ou n'en croit-il
+    rien) ? La tâche date de son engagement ; à l'offre, de maintenant. Ce qu'il a vu ou constaté de
+    sa main à cette minute même (les croyances sont datées à la minute) est de son temps ; un savoir ou
+    un ouï-dire de cette minute ne dit rien de plus que l'offre."""
+    debut = next((x["minute"] for x in lire(monde, id)["engagements"]
+                  if x["pour"] == payeur and x["condition"] == condition), monde.data["minutes"])
+    etat = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
+    return etat is None or etat["minute"] < debut or etat["minute"] == debut and etat["source"] not in ("vu", "essai")
 
 
 def _nom_condition(c):

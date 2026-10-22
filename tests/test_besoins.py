@@ -66,10 +66,10 @@ class GardeMangerTests(unittest.TestCase):
         self.assertLess(lire(m, "brune")["besoins"]["faim"], 70)
         textes = chronique(m)
         self.assertIn("Brune, batelière évacuée prend la trousse de crochets.", textes)
-        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", textes)
+        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres sans forcer.", textes)
         self.assertIn("Brune, batelière évacuée mange une part des vivres du refuge.", textes)
         self.assertLess(textes.index("Brune, batelière évacuée prend la trousse de crochets."),
-                        textes.index("Brune, batelière évacuée crochète la serrure de la réserve de vivres."))
+                        textes.index("Brune, batelière évacuée crochète la serrure de la réserve de vivres sans forcer."))
 
     def test_sous_les_yeux_du_joueur_elle_attend_puis_renonce(self):
         m = relais()
@@ -106,7 +106,7 @@ class GardeMangerTests(unittest.TestCase):
         # en entrant ; à bout de faim, elle force quand même (``pnj.desespere``).
         lire(m, "brune")["besoins"]["faim"] = 96.0
         m, texte = attendre(m, 4)
-        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres.", texte)
+        self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres sans forcer.", texte)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         self.assertFalse(percoit(m, "brune", "joueur"))
 

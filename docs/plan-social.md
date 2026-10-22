@@ -683,3 +683,87 @@ Limites :
   lot (« les planches de bac ») ; une réserve que son propriétaire porte se demande encore entière ;
 - le joueur n'a pas cette mémoire : ses demandes passent par Luna et le moteur à chaque fois ;
 - `SURENCHERE` est une constante du moteur, à régler au banc.
+
+## La surenchère progressive et la tâche aussitôt due (branche `crochetage-surenchere`)
+
+Décision du 2026-10-22 : après un refus « cher », hausse par paliers (+50 %) tant que l'offre vaut la
+peine pour le payeur, puis il renonce ; pas d'offres en rafale (une hausse à la fois, au plus une par
+délibération). Défaut N3 de la revérification (`docs/reverification.md`), le cas réel : à l'auberge
+(graine 42), Odile offre à Tilo 2, 4, 8, 16, 32 pièces (« cher ») entre les minutes 324 et 326, puis 64
+(« accepte ») ; 47 s plus tard, Tilo doit 64 pièces, et refuse de les rendre ; Anselme paie 24 pièces à
+plusieurs pour qu'on lui remette son ballot, chacun accepte et doit aussitôt.
+
+**Une offre ne monte que tant qu'elle vaut la peine** (`planification._engager`, `hausse`, `PALIER`) :
+refusé à un prix, le payeur offre ce prix et moitié en plus (au moins une pièce de plus), ou la peine qu'il
+estime si elle a grandi ; jamais ce que lui coûtent ces pièces (`Vue.depense`, `caractere.valeur_pieces`)
+au-delà de la peine que la tâche lui épargne (`peine_tache` : le chemin d'où il se tient avec l'autre
+jusqu'au lieu de la tâche, plus `TACHE`), première offre comprise. Au-delà, il renonce à ce marché : le
+refus « cher » tient pour ce prix, et rien de plus ne vaut la peine. `SURENCHERE` (× 2) disparaît.
+
+**Une hausse à la fois** (`Vue.hausse_faite`) : après un refus « cher » d'une tâche, aucune offre haussée
+de cette tâche, à lui ou à un autre, avant la délibération de la minute suivante ; une première offre à un
+autre n'est pas une hausse. Le refus de la minute même entre dans ce que lit la recherche (`_entrees`).
+
+**Accepter une tâche se juge sur ce qui la rendrait impossible** (`echanges.empeche`,
+`planification.planifier_tache`) : on acceptait sur le devis (`devis_pulsion` : ses seuls moyens et ceux
+que donne ou prêterait le payeur, un feu à entretenir compté à recharger), mais l'abandon jugeait la
+tâche par le plan d'une pulsion (`deliberation._plan_pulsion` : sans ce que garde ou prête le payeur, une
+autre recherche, qui pouvait n'aboutir à rien) : la tâche acceptée se découvrait aussitôt infaisable et
+devenait une dette. Désormais l'empêchement est le même devis, refait sur ce qu'il croit maintenant, et
+la tâche se fait par le plan de ce devis : seul ce qui a changé dans ce qu'il croit depuis l'acceptation
+peut la rendre impossible.
+
+Ce qui faisait la dette immédiate du cas réel, rejoué sur une sauvegarde de la nuit à la minute 341 :
+Tilo croyait l'âtre allumé et chargé (son savoir de départ) ; le devis le comptait seulement à
+recharger (`depuis` : chargé faux) et passait par les fagots de l'étable ; l'abandon, par le plan d'une
+pulsion, l'envoyait d'abord voir ; il le voyait éteint, et faute de flamme, plus aucun plan : dette.
+Règle : **un feu qu'on le paie d'entretenir se compte à recharger, et éteint si le payeur ne le croit
+pas allumé** (ce que dit l'offre ; une offre du joueur, éteint), quoi qu'il en ait cru avant la tâche ;
+ce qu'il a vu ou fait de sa main depuis l'offre, il le croit (`planification._vu_avant_la_tache` : une
+croyance de la minute même ne compte que vue ou constatée, pas un savoir). Sans cela, Joss, qui venait
+de recharger le fourneau qu'on le payait d'allumer, le recomptait à recharger, n'avait plus de bois et
+devait aussitôt (une régression vue au banc, corrigée avant les mesures). Le plan de la tâche et son
+empêchement suivent ce même devis. Ce qui reste : on accepte sur ce qu'on croit ; une croyance fausse
+découverte au premier geste (Joss croyait le ballot dans les mains d'Anselme, qui le lui faisait
+chercher) rend encore la tâche impossible tout de suite, et la dette naît alors à bon droit.
+
+Vérifié après rechargement (`tests/test_crochetage_surenchere.py`, `tests/test_refus_retenus.py`) : les
+offres de Mireille à Anselme (30 pièces : 2, 3, 5, puis plus rien, 8 lui coûterait plus que la peine ;
+6 pièces : 2 puis rien ; 3 pièces : aucune offre) ; aucune hausse à la minute d'un refus « cher », une
+première offre à un autre restant permise ; dans la vie de l'auberge, chaque offre à Anselme passe la
+précédente ; le cas réel d'Odile et de Tilo : 2, 3, 5, 8, une par minute, puis plus rien (avant 2, 4, 8,
+16, 32, 64, plusieurs dans la même minute) ; Tilo sans flamme refuse (« impossible ») au lieu d'accepter
+puis de devoir à la minute suivante ; avec un briquet, il accepte, recharge et rallume l'âtre, sans
+dette ; Joss recharge et rallume le fourneau payé par Mireille, sans dette. Tests changés :
+`test_refus_retenus` (« accepte à quatre » → paliers et seuil de la peine, vérifiés sur ce qu'offre le
+planificateur, l'auberge vivant autrement : à la minute suivante, Mireille achète une part plutôt que de
+hausser).
+
+Bancs 8 h, départ tiré, `main` d5d4bee puis la branche, l'un après l'autre (Relais 8 graines, autres 4),
+par nuit, `main` → branche : offres de tâche Relais 2,6 → 2,6, mine 5,5 → 5,5, auberge 32 → 15,5, crue
+4,75 → 4,75 ; hausses 0,1 → 0,1, 0 → 0, 5,75 → 0,75, 1,25 → 1,25 ; offre la plus haute 2,25 → 2,1, 2 → 2,
+36,75 → 4,25, 4,5 → 3,75 ; tâches acceptées 0,1 → 0,1, 0 → 0, 2,75 → 1,25, 0,75 → 0,5 ; pièces payées
+pour des tâches 0,25 → 0,25, 0 → 0, 39,25 → 2,5, 4 → 2 ; tâches dues moins d'une minute après
+l'acceptation 0 → 0, 0 → 0, 1 → 0, 0,25 → 0 ; dettes nées 0 → 0, 0 → 0, 1,25 → 0, 0,25 → 0 ; minutes
+sans recours 60,6 → 60,6, 56,3 → 57,5, 75 → 45, 32,5 → 32,5 ; en attente 52,5 → 52,5, 240 → 240,
+308,8 → 300, 472,5 → 516,3 (la crue : une tâche moins souvent acceptée, le froid attend) ; échanges
+15,4 → 15,4, 43,8 → 44, 81,3 → 65,5 (les offres en moins), 21,5 → 21 ; aucune usurpation ni violation.
+Temps d'une nuit (faussés par la charge de deux autres agents sur 4 cœurs) : 13,3 → 13,9 s, 46,8 →
+51,4 s, 44,3 → 47,2 s, 16 → 15,7 s. Audit de 12 h (4 scénarios × 4 graines) : à l'auberge, offres 35,75 →
+18,25, hausses 5,75 → 0,75, offre la plus haute 36,75 → 4,25 pièces, pièces des tâches 39,25 → 2,5, tâches
+dues aussitôt 1 → 0, dettes 1,5 → 0,25 ; dettes non soldées en fin de nuit (constat `dette_fin`) 5 → 0 ;
+aucun plantage, aucune violation ; `VERIFIER` et `spatial.VERIFICATION` (0,2) sans écart sur une nuit de
+8 h de chaque scénario (graine 42). Les autres constats de l'audit sont ceux de `main` (N1 : ouvrir et
+fermer le garde-manger à la mine 42, où Odon crochète désormais « sans forcer » ; N4 : le lieu redit).
+
+Limites :
+- la valeur d'une tâche pour le payeur est la peine qu'elle lui épargne (son chemin jusqu'au lieu de la
+  tâche, plus `TACHE`), pas ce que son besoin y gagne : un payeur pauvre, à qui deux pièces coûtent plus
+  que cinq minutes de travail, n'offre rien (Anselme, Mireille à 3 pièces) ; un payeur riche hausse plus
+  longtemps ; `PALIER` et `HABILE` sont des constantes à régler au banc ;
+- une hausse par minute : refusé de nouveau, il peut hausser chaque minute jusqu'au seuil (4 offres au
+  plus de 2 à 8 pour Odile) ; les premières offres à des personnes différentes, dans la même minute, ne
+  sont pas des hausses et restent permises (Anselme offrait encore à six personnes la même minute) ;
+- on accepte sur ce qu'on croit : une croyance fausse découverte au premier geste rend encore une tâche
+  impossible aussitôt (Joss et le ballot qu'il croyait aux mains d'Anselme) ; l'offre dit seulement si le
+  payeur croit le feu allumé, rien de plus de ce qu'il sait.

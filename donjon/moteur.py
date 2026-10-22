@@ -65,6 +65,8 @@ class Plan:
     regard: str = ""            # le joueur se tourne d'abord vers ce qu'il vise (spatial.orientation_vers)
     effort: bool = True        # le geste creuse et fatigue (``corps``)
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
+    marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
+    #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
 
     def resume(self, monde, afficher_avis=True):
         if self.etapes:
@@ -465,8 +467,10 @@ class Moteur:
             if not t or "crochetage" not in t.get("usages", []):
                 raise ErreurMonde("Il faut un outil adapté pour crocheter.",
                                   f"outil : un objet en main d'usage crochetage, parmi {liste(portes_avec_usage(m, 'crochetage'))}.")
+            from .pnj import seuil_crochetage
             lumiere = eclairage(m)["niveau"]
-            plan.stat, plan.dd, plan.minutes = "DEX", 14 + 4 * (2 - lumiere), 3 + 2 * (2 - lumiere)
+            # Le seuil commun au joueur et aux PNJ ; la marge du jet fera son bruit (``_terminer_etape``).
+            plan.stat, plan.dd, plan.minutes = "DEX", seuil_crochetage(lumiere), 3 + 2 * (2 - lumiere)
             if lumiere < 2:
                 plan.titre = plan.titre[:-1] + " à tâtons."
             plan.effets = [("deverrouiller", parent_id, None)]
@@ -603,6 +607,7 @@ class Moteur:
             else:
                 # Pas de réussite automatique sur 20 : les impossibilités sont rejetées avant le jet.
                 reussite = jet != 1 and total >= plan.dd
+                plan.marge = total - plan.dd if reussite else None
             lignes.append(f'1d20({jet}) + {plan.stat}({mod:+d}) + outil({plan.bonus:+d}) '
                           + (f'+ corps({corps:+d}) ' if corps else '')
                           + f'= {total} contre {contre} : ' + ("REUSSITE" if reussite else "ECHEC"))
@@ -657,10 +662,13 @@ class Moteur:
         # là en est témoin, comme d'un geste de PNJ. Ceux qui le regardaient déjà ont été
         # départagés par son jet.
         from .esprits import percoit, pnjs
-        from .ouie import nature as nature_de
+        from .ouie import nature as nature_de, nature_crochetage
         from .pnj import commencer_geste
-        # Ce qu'on en entend tant qu'il dure : le bruit de son geste, feutré s'il le fait en douce.
-        bruit = nature_de(geste, discret=methode == "discret", bruit=plan.bruit) if geste else None
+        # Ce qu'on en entend tant qu'il dure : le bruit de son geste, feutré s'il le fait en douce ; un
+        # crochetage, selon son adresse au jet (règle commune avec les PNJ, ``ouie.nature_crochetage``).
+        adresse = geste == "crocheter" and plan.stat
+        bruit = (nature_crochetage(plan.marge, methode == "discret") if adresse
+                 else nature_de(geste, discret=methode == "discret", bruit=plan.bruit) if geste else None)
         gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
                                   exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")], nature=bruit)
                   for op, cible, _ in effets if op == "voler"]
@@ -675,7 +683,7 @@ class Moteur:
         # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``pnj.repondre_a``).
         retournes = [] if heles or any(op == "repondre" for op, _, _ in effets) else retentir(
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
-            force=nature_emise(travail, effets))
+            force=nature_emise(travail, effets) or (bruit if adresse else None))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
         # Le corps du joueur vit le temps de son geste dans l'état où il le fait : l'effort creuse,
         # attendre repose ; entrer dans l'eau trempe aussitôt. Le temps passé dans l'état précédent
@@ -815,6 +823,7 @@ class Moteur:
                 mod, corps = (travail.joueur["stats"][p.stat] - 10) // 2, malus(travail, p.stat)
                 total = jet + mod + p.bonus + corps
                 reussite = jet != 1 and total >= p.dd
+                p.marge = total - p.dd if reussite else None
                 dernier_jet, dernier_dd = jet, p.dd
                 details.append(f"1d20({jet}) + {p.stat}({mod:+d}) + outil({p.bonus:+d}) "
                                + (f"+ corps({corps:+d}) " if corps else "")
