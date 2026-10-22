@@ -191,6 +191,13 @@ class ConsignesTests(unittest.TestCase):
         for mot in ("« je »", "Corvus", "moteur", "deuxième personne"):
             self.assertIn(mot, REGLE_NARRATION)
 
+    def test_l_auditeur_sait_qu_un_temoin_silencieux_est_atteste(self):
+        # Banc echanges : « Aubin, qui a entendu ta question sans y être interpellé, garde le silence » était
+        # jugé contradictoire, alors que les témoins se taisent par la règle même du moteur.
+        from donjon.narration import INSTRUCTIONS_AUDIT
+        self.assertIn("dire qu'ils se taisent est
+mecanique, source conversation_validee", INSTRUCTIONS_AUDIT)
+
     def test_la_contre_revue_admet_la_perception_qui_cherche(self):
         self.assertIn("Chercher,\nfouiller ou inspecter", REVUE)
 
