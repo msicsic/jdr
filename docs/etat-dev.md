@@ -40,6 +40,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   8 min 32 s, même compte que la découverte `unittest` (1340). `comparer_bancs.py --empreintes`, `main`
   contre `main`, Relais, 2 h, graines 1985 et 7 : « identique ». Lancé depuis un worktree, l'outil crée
   ses worktrees temporaires sous le `.worktrees/` de ce worktree (ignoré par git), pas sous celui du dépôt.
+- Branche `codex-taches-payees`, fusionnée, base `main` 06602a6, worktree
+  `tmp-worktrees/codex-taches-payees` : parts, objets livrés et tâches se promettent, se font et
+  s'abandonnent sur le même devis autonome (`planification.devis_pulsion`, `planifier_engagement`,
+  `echanges.empeche`). Recevoir un bien du commanditaire reste possible ; lui faire servir une part
+  ou allumer le feu à sa place ne l'est plus. Une vente devenue impossible est due sans attendre
+  l'échéance ; une promesse gratuite garde un abandon sauvegardé à annoncer au destinataire. Le
+  remboursement retient aussi la cause du refus, pour ne pas racheter en boucle le même service
+  impossible. La réserve d'Odile est rétablie dans la scène de Tilo de `test_crochetage_surenchere`.
+  Dix nouveaux tests après rechargement (`tests/test_taches_payees.py`), dont la sauvegarde réelle
+  du Relais 42 à la minute 151 ; suite complète : 1292 tests, 14 sautés, aucun échec. `VERIFIER`
+  et `spatial.VERIFICATION` 0,2 : une nuit de 8 h de chaque
+  scénario, aucun écart ni borne atteinte. Banc rapide 4 h, quatre graines, Relais / auberge / crue,
+  base puis branche, au plus quatre processus : aucun plantage, usurpation ou violation ; attente
+  au Relais 8,75 → 0 min, parts devenues dues 0,25 → 0,5 (elles sont réglées plus tôt). Relais 42,
+  8 h : dette de la part à 153 au lieu de 211, pièce rendue à 154 ; tâches proposées / acceptées /
+  faites 19 / 4 / 0 → 2 / 1 / 1, dues aussitôt 3 → 0, dettes 5 → 1, attente 80 → 0 min. À 350,
+  Aubin accepte pour deux pièces et fait le travail, tenu à 351. Le devis reste fondé sur les
+  croyances : un prêt espéré peut être refusé ; le vendeur ne propose pas spontanément de changer
+  le service en livraison de bois. [Rapport et limites](taches/rapport-codex-5-taches-payees.md).
+  Fusionné après les tâches Codex 1 à 4 : conflits avec `codex-lampes` sur `echanges._remettre_part`
+  (structure des lampes, faisabilité par `devis_pulsion` au lieu de `_plan_pulsion`), `_parts` (la part remise
+  au commanditaire reste possible dans un devis, la part servie non), `esprits.verifier` (champs `lot`,
+  `objet`, `annule`), `_entrees` (souvenirs `recu`, `promesse_annulee`, `creance`), `test_entretenir`, docs.
+  Accord ajouté : une part à remettre promise sous le nom de son lot cesse d'être attendue quand elle est
+  annulée ou remboursée (`promesse_en_cours`, `retenir_abandon` lit `lot`). Test adapté : Joss se présente
+  au joueur avant la scène (`presentes`, branche des noms). Suite (`tools/tests.py`) 1350 tests. Banc rapide
+  (`comparer_bancs`, 4 h, 4 graines, contre l'intégration d'avant) : auberge identique ; Relais en attente
+  8,75 → 0, noir 48,8 → 5, dettes et remboursements 0 → 0,5 ; crue appels 0,25 → 0,75, une attente vaine ;
+  aucun plantage, usurpation ni violation. Relais 42, 8 h : part vendue à 151, due à 153, rendue à 154 (avant :
+  achats répétés « promis » à 211, 271, 332, dette à 392) ; à 350 Aubin accepte la tâche et la fait à 351.
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1293,7 +1323,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun plantage, usurpation ni bascule nouvelle. Relecture : `_parts_remises` compte un besoin de
   lumière aussi pour qui sait crocheter (heuristique par capacité, à revoir) ; temps d'une nuit de
   12 h doublé à l'auberge selon le rapport (120 → 249 s), non revu ici.
-- La suite de tests passe : 1340 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1350 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 

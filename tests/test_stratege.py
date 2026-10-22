@@ -232,7 +232,10 @@ class StrategeTests(unittest.TestCase):
     def test_une_tache_confiee_devient_un_engagement_tenu(self):
         m = relais()
         reunir(m, "marchand", "aubin")
-        croire(m, "aubin", "marteau", "lieu", "echoppe", "savoir", salle="echoppe", case=None)
+        # La tâche réalisable porte sur une place connue ; une absence crue en entrant la ferait
+        # désormais abandonner et annoncer, au lieu de garder une promesse sans plan.
+        croire(m, "aubin", "marteau", "lieu", "echoppe", "savoir", salle="echoppe",
+               case=list(m.objets["marteau"]["position"]))
         condition = {"objet": "marteau", "lieu": "antichambre"}
         with patch.object(Monde, "d20", return_value=20):
             self.assertEqual(confier(m, "marchand", "aubin", condition), "accepte")

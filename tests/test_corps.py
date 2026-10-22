@@ -166,6 +166,8 @@ class PartDuJoueurTests(unittest.TestCase):
 
     def test_une_part_de_bois_entretient_le_feu(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # La promesse inclut de pouvoir allumer le feu, pas seulement d'aller le voir.
+        m.objets["briquet"]["lieu"] = "marchand"
         corps.valeurs(m, "joueur")["chaleur"] = 60.0
         with patch.object(Monde, "d20", return_value=20):
             self.assertEqual(demander(m, "joueur", "marchand", "bois"), "promis")

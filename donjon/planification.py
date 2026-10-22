@@ -46,8 +46,8 @@ HABILE = 0.5           # chance de réussir à partir de laquelle il attend un c
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
-# Ce qui compte sur un tiers : lui demander, lui acheter, le payer (``devis_pulsion`` les écarte).
-TIERS = ("demander", "acheter", "engager")
+# Ce qui compte sur un tiers ; le devis ne permet que de recevoir un bien du commanditaire.
+TIERS = ("demander", "acheter", "engager", "demander_feu", "confier")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
 USAGES = ("crochetage", "allumage", "combustible", *force.CHOC, *force.COUPE)
 # Chaque recherche s'y consigne quand le banc le demande (``diagnostics``) ; sinon None.
@@ -952,6 +952,8 @@ def _parts(v, e, o, dans, vises, but):
     laisse monter (loin de ses biens, dans le noir)."""
     yield from _parts_remises(v, e, o, dans, vises)
     besoin, id = v.besoin[o], v.id
+    if v.seul:
+        return  # Une part servie est un service du donneur ; seule une part remise (ci-dessus) compte.
     if not (besoin and v.disponible(o)):
         return
     donneur = v.proprietaire[o]
@@ -1102,7 +1104,7 @@ def _entrees(v, vises, profondeur, noeuds):
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
-         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu")],
+         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu", "promesse_annulee", "creance")],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
         # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
@@ -1148,8 +1150,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     (``RESTER`` minutes de ce que son état présent laisse monter, plus ce que le but lui apporte
     d'autre, ``endurer``) ; sinon il endure, et rien n'est rendu.
 
-    ``seul`` : par ses seuls moyens, sans rien demander, acheter ni payer à un autre que ``seul`` (celui
-    qui le paie), ni chercher quelqu'un d'autre pour cela (``TIERS``)."""
+    ``seul`` : servir soi-même. Seuls les biens remis par ``seul`` (le commanditaire) peuvent
+    compléter ses moyens ; aucun service accompli par autrui, ni recherche d'un tiers (``TIERS``)."""
     from .caractere import modificateur, prix_faute
     debut = perf_counter()
     v = Vue(monde, id)
@@ -1341,7 +1343,8 @@ def _suites(v, e, vises, but):
     suites = []
     for geste in gestes(v, e, vises, but):
         fautes, minutes, ajout, suivant = geste[:4]
-        if v.seul and any(x["operation"] in TIERS and x["cible"] != v.seul
+        if v.seul and any(x["operation"] in TIERS and (x["cible"] != v.seul
+                          or x["operation"] not in ("demander", "acheter"))
                           or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
             continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
         duree = geste[4] if len(geste) > 4 else minutes
@@ -1449,11 +1452,24 @@ def planifier_pulsion(monde, id, condition, tache=False):
 
 
 def planifier_tache(monde, id, condition, payeur):
-    """(but, étapes) pour faire la tâche que ``payeur`` lui a payée, ou None : le plan de son devis
+    """(but, étapes) pour tenir la parole donnée à ``payeur``, ou None : le plan de son devis
     (``devis_pulsion``), celui sur lequel il l'a acceptée et sur lequel il la jugerait impossible
     (``echanges.empeche``)."""
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else trouve[1:]
+
+
+def planifier_engagement(monde, id, engagement):
+    """Tenir sa parole par le plan du devis, ou rejoindre l'autre pour lui annoncer son abandon."""
+    if engagement.get("annule"):
+        chemin = rejoindre(monde, id, engagement["pour"])
+        if chemin is None:
+            return None
+        etapes, trouve = chemin
+        if trouve:
+            etapes.append(_etape("dire", engagement["pour"], contenu={"annulation": engagement["condition"]}))
+        return {"type": "prevenir", "qui": engagement["pour"]}, etapes
+    return planifier_tache(monde, id, engagement["condition"], engagement["pour"])
 
 
 def devis_pulsion(monde, id, condition, payeur):
@@ -1461,8 +1477,8 @@ def devis_pulsion(monde, id, condition, payeur):
     ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un
     feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
     voir : celui qui le paie le sait à entretenir. Par ses seuls moyens, ce que la garde du bien de
-    ``payeur`` lui permet et ce que ``payeur`` lui prêterait : il ne compte pas sur ce qu'un tiers lui
-    donnerait ou vendrait."""
+    ``payeur`` lui permet et les biens que ``payeur`` lui remettrait : il ne compte sur personne
+    pour accomplir le service à sa place (ni part servie, ni feu allumé par un autre)."""
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else (trouve[0], trouve[2])
 
@@ -1476,7 +1492,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         trouve = _rendre(monde, id, o, condition)
         return None if trouve is None else (0, *trouve)
     if "remettre" in condition:
-        trouve = _remettre(monde, id, o, condition)
+        trouve = _remettre(monde, id, o, condition, seul=entretenir)
         return None if trouve is None else (0, *trouve)
     if "periode" in condition:
         lieu = condition["lieu"]
@@ -1529,7 +1545,7 @@ def _vu_avant_la_tache(monde, id, condition, payeur):
     sa main à cette minute même (les croyances sont datées à la minute) est de son temps ; un savoir ou
     un ouï-dire de cette minute ne dit rien de plus que l'offre."""
     debut = next((x["minute"] for x in lire(monde, id)["engagements"]
-                  if x["pour"] == payeur and x["condition"] == condition), monde.data["minutes"])
+                  if x["pour"] == payeur and x["condition"] == condition and not x.get("annule")), monde.data["minutes"])
     etat = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
     return etat is None or etat["minute"] < debut or etat["minute"] == debut and etat["source"] not in ("vu", "essai")
 
@@ -1556,9 +1572,18 @@ def _rendre(monde, id, o, condition):
     return {"type": "pulsion", **condition}, etapes
 
 
-def _remettre(monde, id, o, condition):
+def _remettre(monde, id, o, condition, seul=None):
     """Un objet qu'il a vendu sans le porter (``echanges.differee``) : l'aller chercher, puis
     rejoindre l'acheteur et le lui remettre."""
+    if seul:
+        # Le devis doit couvrir la livraison, pas seulement la prise de l'objet.
+        trouve = chercher(monde, id, lambda v, e: o in e.portes and e.salle == v.salle(e, condition["remettre"]),
+                          {"prendre": (o,)}, nom="remettre:" + o,
+                          memo=["remettre", o, condition["remettre"]], emplois=(), seul=seul)
+        if trouve is None:
+            return None
+        return {"type": "pulsion", **condition}, _couper(trouve[1]) + [
+            _etape("remettre", condition["remettre"], outil=o)]
     if not porte_par(monde, o, id):
         trouve = chercher(monde, id, lambda v, e: o in e.portes, {"prendre": (o,)}, nom="remettre:" + o,
                           memo=["remettre", o], emplois=())

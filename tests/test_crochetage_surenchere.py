@@ -22,7 +22,6 @@ from donjon.planification import bruit_crochetage, chance_crochetage
 from tests.test_ouie import brune_crochete_dans_le_dos_de_gorm, faire, intention, plan, souvenirs, vu_agir
 from donjon.banc_pnj import creer
 from tests.support import calme
-from tests.test_entretenir import sans
 from tests.test_refus_retenus import face_a_face, fourneau_mort, vivre_long
 from tests.test_tensions import chronique, placer, recharger, vivre
 
@@ -172,9 +171,6 @@ class TacheAccepteeTests(unittest.TestCase):
         vu ; Tilo sait les bûches de la cuisine ; ``briquet`` : il porte de quoi le rallumer."""
         m = calme(creer("auberge", 1985, "fixe"), "odile", "tilo")
         m.objets["atre"].update(allume=False, combustible=0)
-        # La réserve d'Odile (branche ``ressources``) est brûlée aussi : sinon Tilo lui en demanderait une
-        # part, qu'elle mettrait elle-même à l'âtre et rallumerait de son briquet.
-        sans(m, "bois_reserve")
         face_a_face(m, "odile", "tilo", "salle_commune", cases=((1, 3), (2, 3)))
         croire(m, "odile", "atre", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
         croire(m, "tilo", "bois_cuisine", "lieu", "cuisine", "vu", salle="cuisine",

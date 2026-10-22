@@ -215,7 +215,9 @@ def verifier(monde):
             # reçu (``echanges.engagements_echus``).
             from .biens import QUOI
             paye = engagement.get("paye")
-            assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot"} == {"condition", "pour", "minute"}
+            assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule"} == {"condition", "pour", "minute"}
+                    and ("objet" not in engagement or isinstance(engagement["objet"], str))
+                    and ("annule" not in engagement or engagement["annule"] in ("impossible", "refus"))
                     and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
                     and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
                     and type(engagement["minute"]) is int
