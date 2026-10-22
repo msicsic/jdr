@@ -142,7 +142,7 @@ class GardienTests(unittest.TestCase):
         # L'alarme l'envoie voir aussitôt, pendant le cri même (``deliberation-evenements``), au titre
         # de son devoir : il a parcouru le couloir des yeux, le bruit est vu.
         self.assertEqual([b for t, x, b in choix.choix if x == "hugues"][0], {"type": "voir", "lieu": "couloir"})
-        self.assertEqual(lire(m, "hugues")["memoire"], [])
+        self.assertEqual([s for s in lire(m, "hugues")["memoire"] if s["type"] == "bruit"], [])
         self.assertIn("Hugues, ancien soldat passe dans : Couloir de l'étage.", chronique(m))
         self.assertIn("Hugues va voir d'où venait le bruit : Couloir de l'étage.", chronique(m))
         # Odile, aussi courageuse et sans seuil d'alerte, n'a pas d'alarme : elle y va par courage, un

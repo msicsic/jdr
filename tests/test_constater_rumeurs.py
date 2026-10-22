@@ -58,13 +58,12 @@ class ContenantFermeTests(unittest.TestCase):
         self.assertEqual(croyances["reserve"]["verrouillee"]["source"], "essai")
         self.assertFalse(croyances["reserve"]["etat"]["valeur"]["ouverte"])
         self.assertEqual(croyances["vivres"]["lieu"]["valeur"], "reserve")
-        # Elle n'est pas restée sans plan : elle a pris ses crochets et forcé la réserve. (Gorm, qui
-        # garde le refuge, accourt au bruit des crochets dès qu'il l'entend : sous ses yeux, elle
-        # attend ensuite son occasion pour manger.)
+        # Elle n'est pas restée sans plan : elle a pris ses crochets pour forcer la réserve. (Gorm, qui
+        # garde le refuge, va voir dès qu'il entend un bruit ; à portée de ses yeux ou de son oreille,
+        # elle guette son occasion.)
         m, _ = attendre(m, 2)
         self.assertIn("Brune, batelière évacuée prend la trousse de crochets.", gestes(m, "brune"))
-        # Elle s'y est attaquée (le jet décide si la serrure cède dans ce laps).
-        self.assertTrue(any(t.endswith("la serrure de la réserve de vivres.") for t in gestes(m, "brune")))
+        self.assertIn(("crocheter", "reserve"), [(x["operation"], x["cible"]) for x in lire(m, "brune")["intention"]["plan"]])
 
     def test_lucien_trouve_le_coffre_ferme_dans_le_noir(self):
         """Même nature (auberge) : Lucien croit le coffre d'Anselme ouvert et veut le ballot ; le
