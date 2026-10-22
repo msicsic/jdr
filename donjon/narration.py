@@ -122,7 +122,8 @@ mecanique, source conversation_validee. Ceux de conversation_validee.repondent l
 seuls : la réplique de l'un d'eux, avec ses propres mots, est une parole (verdict parole), que rien
 n'a à prévoir ni à fournir mot pour mot ; dire que l'un d'eux se tait, ne répond pas ou ne l'a pas
 entendu est contradictoire. repondent vide :
-personne ne lui répond. Les temoins l'ont entendue et se taisent. Dans objet:<id>, a_portee_de_main
+personne ne lui répond. Les temoins l'ont entendue et se taisent : dire qu'ils se taisent est
+mecanique, source conversation_validee. Dans objet:<id>, a_portee_de_main
 dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
