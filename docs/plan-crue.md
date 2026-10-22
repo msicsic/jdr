@@ -378,6 +378,26 @@ Joss dans trois (aucune), un appel par salle parcourue (règle de `constater-et-
   d'auteur ; le départ tiré a ses propres tests (`tests/test_depart.py`) ;
 - le joueur n'est pas tiré (son corps et ses besoins restent déclarés).
 
+## L'eau dans tous les plans (branche `verifier-eau`)
+
+Défaut A4 de l'audit des nuits (`docs/audit-nuits.md`) : seul l'abri tenait compte de l'eau attendue.
+Crue 500 : Brune quittait le refuge sec pour se chauffer au brasero sous 88 cm d'eau, Gorm faisait sa
+ronde à la salle des vannes ; la conduite noyée et la porte étanche verrouillée les enfermaient 475
+minutes (48 appels à l'aide). Dans 31 nuits sur 32, quelqu'un se chauffait les pieds dans l'eau.
+
+Règles communes (détail dans `docs/plan-planificateur.md`, « VERIFIER et l'eau ») : l'eau qu'il attend
+(`eau.attendue` : celle qu'il croit, ou plus à la vitesse où il l'a vue monter) coûte à tout plan par
+minute, comme le noir ; un but qui se tient en restant (se chauffer, garder, la lumière, l'abri) ne se
+tient pas là où il croit ou attend l'eau, et aucune part de bois ne va à un feu menacé ; il ne descend
+pas dans une salle qu'il attend noyée, ni ne s'enferme du côté de la crue (retour coupé, ou lieu coupé du
+plus haut qu'il puisse gagner) ; là où il attend l'eau noyer sa salle, il en sort avant tout
+(`eau.en_peril`), au moins vers le lieu où il attend le moins d'eau.
+
+Audit (12 h, 8 graines) : se chauffer dans l'eau 7 nuits sur 8 → 0 ; minutes·PNJ à 50 cm d'eau ou plus
+262 → 124 par nuit, à 86 cm ou plus 128 → 14 ; appels à l'aide 94 → 2 ; personne ne reste une heure à
+50 cm ou plus. Prix : le brasero de la conduite est le seul feu ; quand elle est menacée, on a froid
+(Brune pressée par le froid 7 → 291 minutes par nuit au banc de 8 h).
+
 ## Questions ouvertes
 
 - Le barrage : effet chiffré (ralentir la montée) ou seuil (tenir jusqu'à un niveau) ?

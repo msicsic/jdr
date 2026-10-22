@@ -858,3 +858,120 @@ Limites :
   à la mine (graine 7) la fin de nuit est égale à `main`, le pic passe de 30 à 59 Mo ;
 - la perception reste le plus gros poste hors du planificateur (un tiers d'une nuit) : chaque PNJ
   revoit tout ce qu'il croit après chaque événement.
+
+## VERIFIER et l'eau (branche `verifier-eau`)
+
+Deux défauts de l'audit des nuits (`docs/audit-nuits.md`, V1 et A4).
+
+**Une recherche restreinte n'explore qu'une partie de la complète.** `emplois` dit ce qu'il vaut la
+peine de porter ; il ne doit que retirer. Or `Vue.moyen_du_but` (chercher qui porte une source ou une
+flamme) et le `superflu` des flammes (`lumiere_compte`) lisaient `"lumiere" in emplois` : la recherche
+de référence de `VERIFIER`, sans `emplois`, n'offrait pas ces gestes, et la restreinte trouvait des plans
+qu'elle ne connaissait pas (70 des 108 écarts de l'audit ; même défaut dans `test_lumiere`, révélé à la
+fusion de `ouie-temoins`). Règle : ce que le but demande lui-même se lit du but. `eclairer` passe
+`vises={"eclairer": True}` (comme `vises` ouvre déjà les gestes propres à un but), d'où `Vue.eclairer`,
+que lisent `moyen_du_but`, `pertinent` et `gestes` ; `emplois` ne garde que « manger » et « feu », qui ne
+font que borner `pertinent`. Les nuits n'en changent pas (empreintes identiques sur 8 nuits de chaque
+scénario, VERIFIER désactivé).
+
+**La référence de `VERIFIER`** (`_verifier`) : deux contrôles, chacun avec sa référence.
+- Un résultat repris de la mémoire ou du graphe doit être exactement (plan et égalités compris) celui
+  d'une recherche refaite de zéro avec les mêmes paramètres (même `emplois`, même borne).
+- Un résultat cherché avec `emplois` doit avoir le coût de la recherche complète du même but (`emplois`
+  à None, même `Vue.eclairer`), bornée à `REFERENCE` (15 × `NOEUDS`, 60 000 nœuds) et non plus à la
+  borne de ce qu'elle contrôle : la complète examine plus d'états, elle atteignait 4 000 nœuds avant
+  l'optimum (15 faux écarts). Le coût, pas le plan : les deux recherches n'examinent pas les mêmes
+  gestes, l'ordre de découverte qui départage deux plans de même coût diffère donc nécessairement
+  (21 écarts « même coût, étapes différentes ») ; rendre cet ordre commun demanderait une clé de
+  départage sur les étapes, qui changerait toutes les nuits sans rien apprendre au contrôle. Coûts égaux
+  à l'arrondi des sommes près (1e-9 relatif). Si la complète atteint sa borne, la restreinte doit
+  seulement ne pas coûter plus qu'elle.
+- Si la recherche jouée atteint sa borne de nœuds, ce n'est pas un défaut de la restriction mais une
+  limite de la recherche : l'écart est noté (`planification.BORNES`, `bornes_verifier` de l'audit), pas
+  tenu pour faux. La mémoire garde désormais si la recherche avait atteint sa borne.
+
+Les deux « vrais manques » de l'audit (Lucien, la lumière, auberge 3 et 99) ne se rejouent plus ; le cas
+de même nature relevé sur `main` 8589ca2 (auberge 99, minute 374 : restreinte sans plan, complète à 98,
+demander sa lanterne à Hugues puis l'allumer au couloir) est une recherche jouée arrêtée à 4 000 nœuds :
+à 12 400 nœuds, la restreinte trouve le même optimum. La restriction n'écartait rien.
+
+`VERIFIER` (continu, `tools/audit_nuits.py jouer --verifier-continu`) sur 32 nuits de 12 h (4 scénarios
+× graines 1985, 7, 42, 2024, 3, 11, 99, 500), après fusion d'`integration` f5cf65f : **0 écart** (avant :
+mine 15/16, auberge 11/16) ; 161 recherches jouées bornées reconnues, toutes sans plan là où la complète
+en trouve un : Lucien et la lumière (auberge 7, 88 minutes), Josse et le poêle (mine 7 et 11, 64), Odon
+et l'argent (mine 99, 8), un abri (auberge 7). Coût du contrôle : une nuit de mine de 12 h passe à 5 à
+12 minutes avec `VERIFIER` (référence à 60 000 nœuds), sans effet hors des tests et de l'audit.
+
+**L'eau dans les plans.** Seul l'abri tenait compte de l'eau attendue ; la chaleur, les rondes, le
+devoir menaient là où elle monte et d'où le retour serait coupé. L'eau que le PNJ attend dans chaque
+salle est `eau.attendue` (celle qu'il y croit, ou plus à la vitesse où il l'a vue monter, d'ici
+`eau.HORIZON`) ; la `Vue` en tire les salles menacées (eau attendue) et celles qu'il attend noyées,
+entrées de la mémoire (`_entrees`) avec le fait qu'il la voit monter. Quatre règles communes :
+- **Ce que coûte l'eau** (`Vue.pression`) : chaque minute dans une salle où il croit l'eau coûte ce
+  qu'elle l'inquiète (`deliberation.ressentir` : 2 × taux `eau` × hauteur / 100 cm, ou taux `menace`
+  quand il l'y attend), `NOIR` par point, comme le noir à qui le craint ; pour tout plan, à tout état.
+- **On ne se tient pas dans l'eau** : un but qui se tient en restant (chaleur, lumière, garde, abri)
+  n'est pas atteint dans une salle menacée (`_explorer`) ; on ne s'y chauffe pas (geste `chauffer`), et
+  une part de bois ne va pas à un feu d'une salle menacée (`_parts`, qui généralise `feu_noye`) ; si
+  chaque foyer qu'il connaît est menacé, la chaleur n'est pas cherchée (`planifier` : aucun plan ne
+  l'atteindrait, et la recherche épuisait l'espace à chaque minute, 66 000 nœuds pour Brune en une nuit).
+- **On ne descend pas dans la crue** (`Vue.descente`, filtre des trajets `allers` et de `_chercher`) :
+  pas d'aller vers une salle où il attend plus d'eau qu'ici (il l'y attend et pas ici ; ou il la voit
+  monter et la salle est plus basse, elle monte par le bas) quand il l'y attend noyée ou que son retour
+  serait coupé par une salle qu'il attend noyée ; et, tant qu'elle monte, pas d'un lieu relié au plus
+  haut lieu qu'il croit pouvoir gagner (par ses chemins, avec ses clés) vers un lieu que l'eau attendue
+  en coupera ou noiera (`Vue.piege`), même en deux trajets. Monter, aller vers moins d'eau ou vers un
+  lieu d'où l'on revient reste permis, même en traversant l'eau.
+- **Piégé, il sort d'abord** (`deliberation.candidats`, `eau.en_peril`) : là où il attend l'eau noyer la
+  salle, l'abri passe avant tout ; sans abri hors de l'eau à sa portée, `_plan_abri` le mène au lieu où il
+  attend le moins d'eau, éclairé ou non (sans y « rester à l'abri », `pnj._abriter` refusant un lieu
+  menacé). Clé, crochetage et forcer viennent des gestes de l'aller, comme avant.
+
+Cas réels et cas de même nature après rechargement (`tests/test_verifier_eau.py`) : Lucien dans la mine
+noire cherche Josse et l'appelle, `VERIFIER` actif ; Rémy cherche Gaspard ; une référence bornée n'est
+pas un défaut ; crue 500 (Brune ne se chauffe plus sous 88 cm, Gorm ne fait plus sa ronde aux vannes,
+personne n'appelle à l'aide ni ne reste dans 50 cm d'eau jusqu'à 360 minutes) ; le même laps de 240
+minutes, d'un bloc ou en six blocs rechargés, donne le même monde ; une autre crue (1 cm par minute) :
+pas de ronde aux vannes ni de feu dans la conduite qu'on attend noyées, l'eau coûte par minute, Aubin
+attardé aux vannes en sort aussitôt. Test changé : `test_eau` (Ilse, rassurée à la galerie, ne fait plus
+sa ronde au refuge, qui la couperait de la galerie : son intention peut être finie).
+
+Limites :
+- l'eau coûte par la salle d'arrivée, pas par celles qu'on traverse ; la traversée d'une salle qu'on
+  attend noyée n'est jugée que par le retour qu'elle couperait ;
+- le lieu « relié au plus haut » ignore les portes (une porte verrouillée sans clé n'est pas un
+  obstacle pour ce jugement) et le plus haut est la salle de plus haute altitude du scénario ;
+- l'eau ne coûte qu'à qui a le besoin de sécurité (comme `ressentir`) ; un PNJ sans ce besoin ne
+  descend toujours pas dans la crue ni ne s'y tient (les règles de lieu valent pour tous) ;
+- l'horizon reste `HORIZON` (60 min) : au-delà, l'eau n'est pas attendue ; qui ne l'a pas vue monter
+  n'attend que celle qu'il voit ; désœuvré dans une eau qui ne menace pas de noyer sa salle, il y reste
+  jusqu'à ce que sa sécurité presse ;
+- la crue n'a qu'un foyer, dans la conduite : quand elle est menacée, plus personne ne se chauffe, et
+  le froid attend (Brune et Aubin, ci-dessous) ; d'autres remèdes au froid restent une question ouverte
+  de `docs/plan-crue.md`.
+
+Audit de la crue (12 h, 8 graines, relevés toutes les 5 minutes, `integration` f5cf65f → branche) :
+minutes·PNJ dans l'eau 709 → 588 par nuit, à 50 cm ou plus 262 → 124, à 86 cm ou plus 128 → 14 ;
+quelqu'un se chauffe les pieds dans l'eau dans 7 nuits sur 8 → 0 ; PNJ restés une heure de suite à
+50 cm ou plus 2 (crue 500) → 0 ; appels à l'aide 94 (crue 500) → 2 sur les 8 nuits ; `VERIFIER` sans écart.
+
+Bancs 8 h (8 graines, départ tiré ; `integration` f5cf65f puis la branche, l'un après l'autre) : Relais,
+mine et auberge identiques graine par graine (empreintes) ; crue :
+
+| | `integration` | branche |
+|---|---|---|
+| minutes dans l'eau | 588,8 | 506,9 |
+| appels à l'aide | 7,4 | 0,1 |
+| feux noyés | 0,1 | 0 |
+| au sec à la fin | 3,1 | 3,4 |
+| sans recours | 23,8 | 16,3 |
+| en attente | 188,1 | 520 |
+| minutes dans le noir | 86,3 | 18,1 |
+| échanges | 23,5 | 21,1 |
+| usurpations, violations | 0 | 0 |
+| temps d'une nuit | 11,7 s | 10,8 s |
+
+Les minutes en attente sont le froid : Brune pressée par le froid 7 → 291 minutes par nuit, Aubin 19 →
+151, sans feu hors de l'eau ; la sécurité de Brune ne presse plus que 4 minutes au lieu de 72. Temps
+d'une nuit, `integration` et branche lancées ensemble (4 graines) : mine 27 → 27 s, auberge 30,1 →
+30,3 s.
