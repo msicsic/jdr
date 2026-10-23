@@ -4,6 +4,46 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cout-suite`, fusionnée, base initiale `main` 9075aea, puis fusion de
+  `origin/main` **a7ecb50** par **1efbb12** : certificats d'absence
+  sur les graphes déjà développés, indépendants des prix mais conservant permissions et
+  profondeur ; chaque reprise contrôlée par `VERIFIER`. Une recherche pondérée épuisée ou
+  bornée ne suffit pas à prouver cette absence (contre-exemple de profondeur testé).
+  Ordre des visites avec égalités dans la clé ; empreintes visuelles partagées par objet et
+  entre lectures sans changement, mutations ordinaires conservées, contrôle complet par
+  `spatial.VERIFICATION`. Axes des relations 3b conservés dans les entrées des recherches.
+  Sur a7ecb50 : **32 nuits de 8 h identiques** (4 scénarios × 4 graines, tiré/fixe), puis
+  **4 nuits de 12 h de l'auberge identiques**, y compris tous les résultats des recherches via
+  `empreintes_nuits.py --calcul`. Main et branche lancés ensemble, quatre calculs lourds au plus :
+  CPU total 453,03 → 439,51 s (−3,0 %) sur les 32 nuits ; auberge 12 h 86,85 → 84,66 s/nuit.
+  Les grandes recherches restent coûteuses. La dominance de dépense essayée hors du moteur
+  change les résultats bornés de Lucien à l'auberge (7 à 644, 42 à 627), donc elle n'est pas
+  livrée ; `_parts_remises` reste intact. Un contre-exemple général de borne et deux sauvegardes
+  réelles protègent ce contrat. Les captures de preuve sont régénérées avec les relations 3b
+  (Rémy mine 7 à 365, Aubin crue 7 à 443) : état complet et rendu après rechargement contrôlés.
+  Suite après fusion : 1 431 tests, 4 sautés, six échecs MiMo préexistants ; la suite entière
+  n'est pas verte (mêmes six échecs reproduits sur a7ecb50) ; 39 tests ciblés passent.
+  `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h de chaque scénario, graine 42 :
+  sans écart, nuits identiques. [Rapport, profils et limites](taches/rapport-codex-10-cout-suite.md).
+  Fusionné après `codex-lampes-suite` et son correctif (`main` 43fa7ac) : seul conflit textuel
+  `docs/etat-dev.md`, mais le certificat lisait un graphe à plat alors que le graphe repris en garde
+  désormais deux (`sombre`, `lumiere`) : tel quel, il ne voyait que des lacunes. Règle accordée
+  (`planification._sans_plan`, `_parcours` ; `docs/plan-planificateur.md`) : qui emploie la lumière dès
+  le départ se prouve sur `lumiere` ; sinon le parcours de `sombre` ne suit pas un état dont le but ou
+  les gestes ont lu la lumière, et l'absence n'est prouvée que si `lumiere` la prouve aussi (lacune
+  s'il manque). Sans elle, une recherche épuisée dans le noir passait pour impossible alors qu'à faute
+  bon marché la reprise avec lumière trouve un plan (`VERIFIER` l'arrête ; deux tests ajoutés, dont la
+  chaîne réelle de `chercher`). `_entrees` garde les axes des relations 3b, `peur`/`eclairer` et l'ordre
+  des visites. Suite (`tools/tests.py --processus 4`) **1439 tests, 14 sautés** (MiMo sans
+  `jsonschema` : les six échecs du PC fixe sont ici sautés), verte. `VERIFIER` + `VERIFICATION` 1 sur
+  2 h, puis 0,2 sur 8 h, graine 42, quatre scénarios : sans écart (78 reprises par certificat contrôlées
+  à 8 h, mine et crue). `comparer_bancs --empreintes` contre 43fa7ac (2 h, 4 graines) : chroniques,
+  empreintes et état identiques, seule la mesure `recherches_neuves` baisse (mine de 2 à 4, auberge 7 et
+  42 de 1 : l'économie visée). `empreintes_nuits.py comparer --calcul`, 8 h, 4 × 4 graines, tiré et
+  fixe : 32 nuits identiques, résultats des recherches compris ; reprises par certificat 139 / 779 /
+  44 / 2 967 (Relais / mine / auberge / crue), les mêmes que contre a7ecb50. Temps au processeur,
+  43fa7ac puis la fusion, l'un après l'autre, poste partagé avec deux Codex : 1 089,6 → 1 053,1 s
+  (−3,3 %), × 0,99 à × 1,09 selon le scénario, dans le bruit.
 - Branche `codex-lampes-suite`, fusionnée, base `main` 9075aea : la lumière employée par
   le but et ses gestes remplace la capacité de crocheter dans la pertinence des sources et des
   remises de combustible. Découverte par les lectures communes de lumière, reprise depuis le
@@ -41,27 +81,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sur 1,3 à 1,9 million (les crocheteurs n'emportent plus de quoi éclairer sans en lire le besoin),
   184,9 → 160,4 s en une passe. Le surcoût de l'auberge depuis les lampes (~2× contre f1eee53) ne
   bouge pas : il vient des parts envisagées pour qui craint le noir, pas de la capacité.
-- Branche `codex-cout-suite`, non fusionnée, base initiale `main` 9075aea, puis fusion de
-  `origin/main` **a7ecb50** par **1efbb12** : certificats d'absence
-  sur les graphes déjà développés, indépendants des prix mais conservant permissions et
-  profondeur ; chaque reprise contrôlée par `VERIFIER`. Une recherche pondérée épuisée ou
-  bornée ne suffit pas à prouver cette absence (contre-exemple de profondeur testé).
-  Ordre des visites avec égalités dans la clé ; empreintes visuelles partagées par objet et
-  entre lectures sans changement, mutations ordinaires conservées, contrôle complet par
-  `spatial.VERIFICATION`. Axes des relations 3b conservés dans les entrées des recherches.
-  Sur a7ecb50 : **32 nuits de 8 h identiques** (4 scénarios × 4 graines, tiré/fixe), puis
-  **4 nuits de 12 h de l'auberge identiques**, y compris tous les résultats des recherches via
-  `empreintes_nuits.py --calcul`. Main et branche lancés ensemble, quatre calculs lourds au plus :
-  CPU total 453,03 → 439,51 s (−3,0 %) sur les 32 nuits ; auberge 12 h 86,85 → 84,66 s/nuit.
-  Les grandes recherches restent coûteuses. La dominance de dépense essayée hors du moteur
-  change les résultats bornés de Lucien à l'auberge (7 à 644, 42 à 627), donc elle n'est pas
-  livrée ; `_parts_remises` reste intact. Un contre-exemple général de borne et deux sauvegardes
-  réelles protègent ce contrat. Les captures de preuve sont régénérées avec les relations 3b
-  (Rémy mine 7 à 365, Aubin crue 7 à 443) : état complet et rendu après rechargement contrôlés.
-  Suite après fusion : 1 431 tests, 4 sautés, six échecs MiMo préexistants ; la suite entière
-  n'est pas verte (mêmes six échecs reproduits sur a7ecb50) ; 39 tests ciblés passent.
-  `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h de chaque scénario, graine 42 :
-  sans écart, nuits identiques. [Rapport, profils et limites](taches/rapport-codex-10-cout-suite.md).
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,
@@ -1524,7 +1543,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1424 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1439 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 
