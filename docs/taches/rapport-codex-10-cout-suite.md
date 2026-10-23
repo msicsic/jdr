@@ -1,11 +1,17 @@
 # Codex 10 — coût de calcul, suite
 
+**Actualisation après la contre-épreuve lampes-suite :** `origin/main` **a7ecb50** est
+fusionné dans la branche par **1efbb12**. Les **32 nuits de 8 h et les quatre nuits de
+12 h de l'auberge sont identiques à cette nouvelle référence**. La dominance de dépense
+essayée hors du moteur change des résultats bornés et n'est pas livrée. Voir le
+complément en fin de rapport ; les mesures initiales ci-dessous restent celles de 9075aea.
+
 Branche `codex-cout-suite`, non fusionnée, issue de `main` **9075aea** via la tâche
 5910b44. Le `pull --ff-only origin codex-cout-suite` demandé a confirmé la branche à jour.
 Travail dans `tmp-worktrees/codex-cout-suite` ; référence détachée dans
 `tmp-worktrees/codex-cout-suite-ref`. Aucun changement de `main`.
 
-## Résultat
+## Première livraison — référence 9075aea
 
 Les **32 nuits de 8 h sont identiques** à la référence : quatre scénarios, graines
 1985, 7, 42, 2024, départs tiré et fixe. Chronique, mesures du jeu, récit, souvenirs,
@@ -151,10 +157,11 @@ Une trace, une empreinte ou une nuit manquante fait échouer le mode `--calcul`.
 
 Les tests couvrent le contre-exemple de profondeur, les permissions, les graphes incomplets
 et bornés, l'ordre des visites, les mutations visuelles en place et l'ordre des dictionnaires.
-Deux sauvegardes complètes du banc sont versionnées dans `tests/data/cout-suite` :
+Deux sauvegardes complètes du banc étaient versionnées dans `tests/data/cout-suite` :
 Rémy, mine 7, minute 365 ; Brune, crue 7, minute 349. Les reprises y sont contrôlées
 par `VERIFIER`, puis le monde vit cinq minutes et est rechargé : même état complet,
 mêmes lignes produites, même rendu et même scène perçue avec ou sans certificat.
+Ces captures sont régénérées sur la nouvelle base dans le complément ci-dessous.
 
 La découverte complète par `tools/tests.py --processus 4` exécute **1 383 tests en
 171 s**, 4 sautés (SDK Anthropic facultatif absent), aucune erreur technique, mais
@@ -198,6 +205,136 @@ par scénario sur la passe mesurée, pas une résolution complète du coût de l
 Une optimisation future doit préserver l'algorithme joué, ses égalités et ses limites,
 ou faire l'objet d'un changement de comportement explicitement séparé.
 
-Les axes de relations 3b ne sont pas intégrés sur cette branche. À la fusion, accorder
-les entrées du planificateur avec le `main` final et refaire l'ensemble des empreintes
-et des contrôles. Aucun appel à Luna ni comparaison de modèles dans ce chantier.
+Les axes de relations 3b sont désormais intégrés par la fusion de a7ecb50 ; les
+vérifications sur cette nouvelle référence sont détaillées ci-dessous. Aucun appel à
+Luna ni comparaison de modèles dans ce chantier.
+
+## Complément — fusion de a7ecb50 et piste de dominance
+
+`git fetch origin`, puis `git merge --no-edit origin/main` : fusion **1efbb12**, sans
+conflit. La clé des recherches conserve les axes et bandes des relations 3b ; la pression
+sociale, les états corporels et les gestes de réanimation de 4a sont conservés. La branche
+locale `main` n'est pas déplacée. La projection `_parts_remises` reste strictement celle de
+la référence : ni retrait de geste, ni modification de la pertinence lumineuse de lampes-suite.
+
+### Identité et coût après fusion
+
+Nouvelle campagne contre le worktree détaché a7ecb50, même outil et même CPython 3.13.7 :
+
+- **32 nuits de 8 h, zéro différence**, quatre scénarios × quatre graines × tiré/fixe ;
+- **quatre nuits de 12 h à l'auberge, zéro différence**, graines 1985, 7, 42, 2024, départ tiré.
+
+Les empreintes couvrent toujours l'état complet et tous les résultats logiques de recherche.
+Temps CPU des 32 nuits : **453,03 → 439,51 s (−3,0 %)**. Moyennes par nuit, huit nuits
+par scénario ; pics maximaux par processus :
+
+| Scénario | CPU main → branche | Nœuds cumulés main → branche | Pics mémoire |
+|---|---:|---:|---:|
+| Relais | 5,17 → 5,02 s | 270 362 → 262 452 | 44,0 → 43,8 Mo |
+| Mine | 20,17 → 19,44 s | 1 434 658 → 1 425 749 | 92,0 → 88,7 Mo |
+| Auberge | 19,50 → 19,06 s | 2 102 915 → 2 099 318 | 181,9 → 181,5 Mo |
+| Crue | 11,79 → 11,43 s | 997 786 → 841 856 | 59,5 → 58,3 Mo |
+
+Reprises mémoire cumulées, main → branche : 4 381 → 4 527 au Relais, 7 695 → 8 498 à la
+mine, 3 331 → 3 382 à l'auberge, 11 751 → 14 438 à la crue. Parmi elles, 139 / 779 / 44 /
+2 967 reprises par certificat. Recherches sur graphe gardé : 1 484 → 1 349, 1 154 → 421,
+1 838 → 1 801, 5 542 → 2 857. Recherches bornées effectivement calculées : 0 / 185 / 234 /
+0 de chaque côté. Les reprises d'absence ne masquent donc pas de nouvelles réussites bornées.
+
+**Auberge 12 h**, moyenne des quatre graines : **86,85 → 84,66 s CPU**,
+**1 680 560 → 1 673 688 nœuds** ; pics 183,2 → 184,2 Mo. 946 recherches bornées de chaque
+côté, 327 reprises par certificat sur la branche. Ces valeurs ne se comparent pas directement
+aux 196 s du rapport lampes-suite : la référence, les trajectoires et les conditions de calcul
+ont changé. Seuls les couples simultanés de cette nouvelle campagne mesurent l'effet de la branche.
+Les grandes recherches et le coût de la projection subsistent.
+
+Le pool des mesures longues contient quatre nuits au plus. Celui des 32 nuits contient deux
+nuits appariées, avec au plus deux contre-épreuves en parallèle : quatre calculs lourds au total.
+Les tests et contrôles renforcés viennent ensuite, hors des mesures CPU. Une passe seulement ;
+les gains de quelques pourcents restent sensibles au bruit de mesure.
+
+### Contre-épreuve de dominance, non livrée
+
+Prototype local `artifacts/cout-suite/essai-dominance.py` : à salle, objets portés et faits
+identiques hors `depense`, un état déjà développé domine un autre si son coût est strictement
+plus faible, sa dépense moindre ou égale et sa profondeur moindre ou égale. Il ne supprime
+aucune projection de part. Chaque résultat est recomparé à la recherche originale fraîche,
+avec le même départ, le même but, les mêmes paramètres et la même borne.
+
+Deux divergences réelles, après arrêt au premier résultat différent de chaque nuit :
+
+| Auberge | Recherche de Lucien | Référence | Prototype |
+|---|---|---|---|
+| Graine 7, minute 644 | Abri dans la salle commune | aucun plan, 4 000 nœuds | coût 130, 3 007 nœuds |
+| Graine 42, minute 627 | Placer le ballot à l'étable | aucun plan, 4 000 nœuds | coût 130,5, 3 378 nœuds |
+
+Le premier cas est rejoué depuis la sauvegarde : `abri` rend `None` dans la référence et
+un trajet vers la salle commune dans le prototype, même après la règle `endurer`.
+Les deux états complets et les détails des résultats sont versionnés dans
+`tests/data/cout-suite/auberge-*-borne*`. Le test recharge ces mondes, contrôle le résultat
+borné original, le rendu, la scène perçue et la vie du monde après rechargement.
+
+La dominance peut conserver un optimum théorique tout en faisant apparaître un plan avant
+la borne, là où la référence n'en trouvait aucun. Un contre-exemple synthétique teste aussi
+ce contrat : retirer un état plus cher, plus dépensier et sans moyens supplémentaires
+conserve l'optimum illimité de coût 10, mais change la réponse à cinq nœuds de `None` en plan.
+La profondeur est prise en compte dans le prototype ; l'écart ne vient donc pas d'un
+simple oubli de ce critère. Une seconde contre-épreuve compte même les états dominés
+retirés dans le budget : elle trouve encore les deux plans, à 3 047 et 3 458 nœuds.
+Compter les états retirés ne rétablit pas les descendants qu'ils auraient fait explorer.
+
+**Cette règle est écartée**, sans conclure que toute optimisation par dominance est impossible.
+Une future optimisation doit aussi préserver l'ordre et le budget de la recherche jouée,
+ou faire l'objet d'un changement de comportement distinct. Partager le calcul des transitions
+en conservant les états et leur comptage reste une autre piste. Aucun gain hypothétique du
+prototype n'est ajouté aux gains mesurés de la branche.
+
+### Sauvegardes et contrôles de la fusion
+
+Les anciennes captures de preuve contenaient les croyances `fiable`, remplacées par les
+relations 3b : elles sont régénérées par le banc sur a7ecb50, sans compatibilité ad hoc dans
+le moteur. Cas actuels : Rémy, mine 7, minute 365 ; Aubin, crue 7, minute 443. Le contrôle
+de reprise, d'état complet et de rendu après rechargement passe sur ces nouvelles captures.
+
+**Suite complète après fusion : 1 431 tests en 210,4 s, 4 sautés, six échecs MiMo**,
+aucune erreur technique. Les deux fichiers concernés sont rejoués sur le worktree
+a7ecb50, même interpréteur : 16 tests, un sauté, mêmes six échecs. Les identifiants
+des sous-tests et les messages d'assertion sont comparés automatiquement : identiques.
+Les 39 tests ciblés du calcul et de la perception passent dans cette suite, dont les
+11 de `test_cout_suite.py`. La suite complète reste explicitement non verte.
+
+**Contrôles renforcés après fusion :** `VERIFIER=True` et `VERIFICATION=1` sur 2 h,
+puis `VERIFIER=True` et `VERIFICATION=0.2` sur 8 h, graine 42, départ tiré, chacun des
+quatre scénarios : aucune assertion, quatre nuits identiques de chaque côté pour
+chaque durée. Les contrôles sont séparés des mesures CPU.
+
+**Profil de l'auberge 12 h**, graine 7, départ tiré, `py-spy` 400 Hz, référence et branche
+ensemble, deux samplers et deux nuits au plus. CPython 3.13.7 direct, même outil des deux
+côtés, 23 382 / 23 288 échantillons. Parts inclusives main → branche :
+
+| Poste | Part de la nuit |
+|---|---:|
+| Choix du but | 71,7 → 72,4 % |
+| Recherche `_explorer` | 61,5 → 62,1 % |
+| Construction `_suites` | 55,6 → 56,6 % |
+| Gestes simulés | 49,4 → 50,1 % |
+| Dont `_parts_remises` | 11,0 → 11,1 % |
+| Percevoir | 10,3 → 10,2 % |
+| Gestes et marche réels | 6,7 → 6,3 % |
+| Ouïe | 3,7 → 3,4 % |
+| Empreinte `etat_vue` | 3,4 → 2,2 % |
+
+Ces parts se recouvrent. Le coût causal des remises ne se limite pas au temps passé
+dans leur générateur : les états supplémentaires font aussi travailler les autres
+gestes, coûts et tests de la recherche. Le profil confirme donc la recherche dominante,
+sans démontrer une réduction du coût des remises dans cette livraison.
+
+Artefacts de cette passe : `fusion32-{main,branche}.json`,
+`fusion-auberge12-{main,branche}.json`, `dominance-ecart-{7,42}.json`,
+`fusion-tests.json`, `fusion-controle{2h,8h}-{main,branche}.json` et
+`fusion-profil12-{main,branche}.raw`, sous `artifacts/cout-suite`.
+Reproduction des comparaisons finales : mêmes commandes `empreintes_nuits.py comparer
+--calcul`, avec les préfixes `fusion32`, `fusion-auberge12`, `fusion-controle2h` et
+`fusion-controle8h`. Les six résultats des rejeux (original, dominance, dominance
+comptée, deux graines) sont conservés dans `dominance-rejeux.json` ; seules les deux
+variantes expérimentales diffèrent, et aucune n'est chargée par le moteur livré.

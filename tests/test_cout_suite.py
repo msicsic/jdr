@@ -41,6 +41,29 @@ class AbsenceTests(unittest.TestCase):
         self.assertFalse(p._sans_plan(v, e['s'], but, {}, 3, 1, False, g)[0])
         self.assertTrue(p._sans_plan(v, e['s'], but, {}, 1, 1, False, g)[0])
 
+    def test_retirer_un_etat_domine_change_la_recherche_bornee(self):
+        # Même salle et mêmes moyens, mais un chemin a coûté plus et dépensé une pièce.
+        # Le retirer conserve l'optimum illimité, tout en changeant la réponse à cinq nœuds.
+        s, fin = Etat('s', (), {}), Etat('fin', (), {})
+        riches = [Etat(salle, (), {}) for salle in ('a', 'b', 'c')]
+        pauvres = [Etat(salle, (), {('depense',): 1}) for salle in ('a', 'b', 'c')]
+        g = {e: [e == fin, None, 0, []] for e in [s, fin, *riches, *pauvres]}
+        def arc(de, vers, cout):
+            g[de][3].append((0, cout, [], vers, 0, False, 0))
+        arc(s, riches[0], 1)
+        arc(s, pauvres[0], 2)
+        for chemin in (riches, pauvres):
+            arc(chemin[0], chemin[1], 1)
+            arc(chemin[0], fin, 9)
+            arc(chemin[1], chemin[2], 1)
+        v = SimpleNamespace(degat=0, menacees=set())
+        but = lambda v, e: e == fin
+        complet = p._explorer(v, s, but, {}, 8, 50, 0, graphe=g)[0]
+        self.assertEqual(complet[0], 10)
+        self.assertIsNone(p._explorer(v, s, but, {}, 8, 5, 0, graphe=g)[0])
+        reduit = {**g, s: [False, None, 0, g[s][3][:1]]}
+        self.assertEqual(p._explorer(v, s, but, {}, 8, 5, 0, graphe=reduit)[0], complet)
+
     def test_permission_et_profondeur_entrent_dans_la_preuve(self):
         e, g = graphe({'s': [('a', 1, 1)], 'a': [('fin', 0, 1)], 'fin': []}, 'fin')
         v = SimpleNamespace(degat=0, menacees=set())
@@ -97,6 +120,35 @@ class AbsenceTests(unittest.TestCase):
                 self.assertEqual(scene_percue(m), scene_percue(recharge))
                 resultats.append((recharge.data, lignes, regarder(recharge), scene_percue(recharge)))
             self.assertEqual(resultats[0], resultats[1], scenario)
+
+    def test_les_deux_recherches_reelles_bornees_restent_identiques_apres_recharge(self):
+        import gzip
+        from donjon.monde import Monde
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tensions import recharger, vivre
+        dossier = Path(__file__).parent / 'data/cout-suite'
+        for graine in (7, 42):
+            meta = json.loads((dossier / f'auberge-{graine}-borne-meta.json').read_text(encoding='utf-8'))
+            m = Monde(json.loads(gzip.decompress((dossier / f'auberge-{graine}-borne.json.gz').read_bytes())))
+            with patch.object(p, '_MEMOIRE', {}), patch.object(p, '_GRAPHES', {}), \
+                    patch.object(p, '_IMPOSSIBLES', {}), patch.object(p, 'VERIFIER', True), p.diagnostics() as recherches:
+                if meta['memo'][0] == 'abri':
+                    resultat = p.abri(m, meta['pnj'], meta['memo'][1])
+                else:
+                    resultat = p.planifier_pulsion(m, meta['pnj'], meta['memo'][1], tache=meta['memo'][2])
+                self.assertIsNone(resultat, graine)
+                self.assertEqual((recherches[-1]['issue'], recherches[-1]['noeuds']), ('borne', 4000))
+                recharge = recharger(m)
+                self.assertEqual(recharge.data, m.data)
+                self.assertEqual(regarder(recharge), regarder(m))
+                self.assertEqual(scene_percue(recharge), scene_percue(m))
+                vecu, lignes = vivre(m, 1)
+                autre, autres_lignes = vivre(recharge, 1)
+            self.assertEqual(vecu.data, autre.data)
+            self.assertEqual(lignes, autres_lignes)
+            self.assertEqual(regarder(vecu), regarder(autre))
+            self.assertEqual(scene_percue(vecu), scene_percue(autre))
 
 
 class EmpreinteTests(unittest.TestCase):

@@ -946,7 +946,7 @@ Limites :
   une lecture de la perception qui dépendrait d'un autre objet que ceux de la chaîne de ses lieux ou de
   son support devrait entrer dans `_percus_depuis`.
 
-### Suite sur `main` 9075aea — branche `codex-cout-suite`, non fusionnée
+### Suite sur `main` a7ecb50 — branche `codex-cout-suite`, non fusionnée
 
 Les absences de plan ne se reprennent pas sur le seul fait que le prix d'une faute change.
 La recherche pondérée garde le meilleur coût par état, pas par couple (état, profondeur) : un
@@ -984,10 +984,22 @@ Le mode strict antérieur reste disponible. Un résultat logique, une empreinte 
 font échouer le contrôle.
 
 Mesures, contrôles et limites : [rapport Codex 10](taches/rapport-codex-10-cout-suite.md).
-32 nuits de 8 h identiques à 9075aea, y compris les résultats de chaque recherche ;
-contrôles 2 h à 1 puis 8 h à 0,2 sans écart. CPU total 368,48 → 358,11 s (−2,8 %),
-quatre nuits simultanées au plus. Suite : 1 383 tests, quatre sautés, six échecs MiMo
-préexistants reproduits sur la référence ; 37 tests ciblés verts.
+Après fusion de a7ecb50 : 32 nuits de 8 h et quatre nuits de 12 h de l'auberge identiques,
+y compris les résultats de chaque recherche. CPU total des 32 nuits 453,03 → 439,51 s
+(−3,0 %), quatre calculs lourds au plus ; auberge 12 h 86,85 → 84,66 s/nuit. La première
+mesure sur 9075aea reste documentée dans le rapport. Suite après fusion : 1 431 tests,
+quatre sautés, six échecs MiMo préexistants.
+Les six échecs sont reproduits à l'identique sur a7ecb50 ; 39 tests ciblés passent.
+`VERIFIER` et `spatial.VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h de chaque scénario
+(graine 42) : sans écart, nuits identiques.
+
+La piste de dominance de dépense (mêmes faits et moyens, coût strictement plus faible,
+dépense et profondeur au plus égales) a été contre-vérifiée hors du moteur. Elle change
+deux recherches de Lucien à l'auberge : la référence atteint 4 000 nœuds sans plan, le
+prototype en trouve un avant la borne. Retirer un état dominé peut conserver l'optimum
+illimité tout en changeant cette réponse bornée ; un contre-exemple général et deux
+sauvegardes réelles le testent. Cette règle n'est donc pas livrée. `_parts_remises`
+n'est ni retiré ni restreint, et l'espace de la recherche jouée n'est pas modifié.
 La perception complète de qui bouge n'est pas modifiée : son poids mesuré ne justifie pas de
 complexifier ce contrat. La reprise des grosses recherches bornées de la mine reste une limite
 explicite ; ce chantier ne change ni les limites ni le choix des plans.

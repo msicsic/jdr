@@ -1,0 +1,115 @@
+{
+  "pnj": "lucien",
+  "minute": 627,
+  "nom": "placer:ballot",
+  "memo": [
+    "pulsion",
+    {
+      "objet": "ballot",
+      "lieu": "etable"
+    },
+    true,
+    null
+  ],
+  "profondeur": 8,
+  "noeuds_limite": 4000,
+  "original": null,
+  "prototype": [
+    130.5,
+    [
+      {
+        "operation": "crocheter",
+        "cible": "coffre_marchand",
+        "outil": "crochets_lucien",
+        "lieu": "",
+        "condition": "sans_temoin",
+        "contenu": {
+          "lumiere": 0
+        }
+      },
+      {
+        "operation": "ouvrir",
+        "cible": "coffre_marchand",
+        "outil": "",
+        "lieu": "",
+        "condition": "sans_temoin"
+      },
+      {
+        "operation": "prendre",
+        "cible": "ballot",
+        "outil": "",
+        "lieu": "",
+        "condition": "sans_temoin"
+      },
+      {
+        "operation": "aller",
+        "cible": "",
+        "outil": "",
+        "lieu": "salle_commune",
+        "condition": ""
+      },
+      {
+        "operation": "aller",
+        "cible": "",
+        "outil": "",
+        "lieu": "etable",
+        "condition": ""
+      },
+      {
+        "operation": "poser",
+        "cible": "ballot",
+        "outil": "",
+        "lieu": "etable",
+        "condition": ""
+      }
+    ],
+    "etable",
+    [
+      "cle_coffret",
+      "crochets_lucien"
+    ],
+    [
+      [
+        [
+          "faute",
+          "anselme"
+        ],
+        true
+      ],
+      [
+        [
+          "lieu",
+          "ballot"
+        ],
+        "etable"
+      ],
+      [
+        [
+          "ouvert",
+          "coffre_marchand"
+        ],
+        true
+      ],
+      [
+        [
+          "touche",
+          "coffre_marchand"
+        ],
+        true
+      ],
+      [
+        [
+          "verrou",
+          "coffre_marchand"
+        ],
+        false
+      ]
+    ]
+  ],
+  "noeuds_original": 4000,
+  "noeuds_prototype": 3378,
+  "compteurs": {
+    "examines": 1338761,
+    "domines": 67404
+  }
+}
