@@ -524,6 +524,8 @@ def preparer(monde, proposition, origine):
     if premier_jet.origine == "arbitrage mémorisé":
         resultat.origine = premier_jet.origine
     resultat.minutes = sum(p.minutes for p in plans)
+    from .temps import duree
+    resultat.dixiemes = sum(duree(p) for p in plans)
     resultat.bruit = sum(p.bruit for p in plans)
     resultat.echec_critique = [effet for p in plans for effet in p.echec_critique]
     return resultat

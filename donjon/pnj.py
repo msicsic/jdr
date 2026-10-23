@@ -114,7 +114,7 @@ def _seuil_barre(monde, salle, sortie, barrees):
     return bool(seuils & barrees)
 
 
-def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None, portes=None):
+def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None, portes=None, metrique=None):
     """Sorties à emprunter selon ce que le PNJ croit des portes et des obstacles ; None si aucun
     passage cru.
 
@@ -124,7 +124,7 @@ def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None, po
     salle qu'il a vue noyée. ``precedents`` : le parcours depuis ``depart`` (``parcours``), s'il
     est déjà fait.
     """
-    precedent = parcours(monde, id, depart, cles, ouvertes, portes) if precedents is None else precedents
+    precedent = parcours(monde, id, depart, cles, ouvertes, portes, metrique) if precedents is None else precedents
     if hasattr(precedent, "routes"):
         return precedent.routes.get(arrivee)
     if arrivee not in precedent:
@@ -137,12 +137,14 @@ def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None, po
     return etapes[::-1]
 
 
-def parcours(monde, id, depart, cles=(), ouvertes=(), portes=None):
+def parcours(monde, id, depart, cles=(), ouvertes=(), portes=None, metrique=None):
     """Toutes les salles qu'il croit atteindre depuis ``depart`` (``chemin``) : {salle : (salle
     d'avant, sortie)}, en largeur, le départ à None."""
     from .eau import noyee_crue
-    from .obstacles import descriptions_crues, parcours_cru
-    if monde.data.get("mode_cases") and descriptions_crues(monde, id):
+    from .obstacles import metrique_necessaire, parcours_cru
+    if metrique is None:
+        metrique = metrique_necessaire(monde, id)
+    if metrique:
         return parcours_cru(monde, id, depart, cles, ouvertes, portes)
     barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
     precedent, file = {depart: None}, deque([depart])
@@ -1070,26 +1072,28 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
     (``passage.faire_place``) ; sans, il attend."""
     from .spatial import trajet
-    from .obstacles import descriptions_crues, transitions
+    from .obstacles import descriptions_crues, transitions, metrique_necessaire
+    from .temps import PAS_FEUTRE
     o = monde.objets[id]
     feutre = a_pas_feutres(monde, id)
+    allure = PAS_FEUTRE if feutre else PAS
     occupees = occupants(monde, id)
     depart = (o["lieu"], tuple(o["position"]))
     # Il ne cherche pas de chemin par une salle qu'il a vue noyée ; il peut quitter la sienne.
     from .eau import noyee_crue
     noyees = {s for s in monde.data["salles"] if s != o["lieu"] and noyee_crue(monde, id, s)}
     franchissable = lambda porte: _franchissable(monde, id, porte)
-    formes = descriptions_crues(monde, id)
-    passages = transitions(monde, id, formes, allure=30 if feutre else PAS) if formes else None
+    formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id, allure) else {}
+    passages = transitions(monde, id, formes, allure=allure) if formes else None
     chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                      franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
-                     passages=passages, allure=30 if feutre else PAS)
+                     passages=passages, allure=allure)
     if chemin_ is None:
         if gestes is None:
             return None
         # Il n'atteindrait ce qu'il vise que d'une case où quelqu'un se tient.
         plein = trajet(monde, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
-                       passages=passages, allure=30 if feutre else PAS)
+                       passages=passages, allure=allure)
         if not plein or plein[-1][:2] not in occupees:
             return None
         from .passage import faire_place
@@ -1104,7 +1108,7 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
         detour = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                         franchissable=franchissable,
                         libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees,
-                        passages=passages, allure=30 if feutre else PAS)
+                        passages=passages, allure=allure)
         if not detour:
             if gestes is None:
                 return PAS  # Il attend qu'on lui laisse le passage.

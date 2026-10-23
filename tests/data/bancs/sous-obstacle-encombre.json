@@ -1,0 +1,29 @@
+{
+  "scenario": "relais",
+  "seed": 1985,
+  "preparation": {
+    "salle": "echoppe",
+    "position": [
+      4,
+      3
+    ],
+    "orientation": "est",
+    "calmes": [
+      "marchand",
+      "brune",
+      "ilse",
+      "aubin"
+    ],
+    "proprietes_objets": {
+      "pied_de_biche": {
+        "lieu": "joueur",
+        "longueur_cm": 250
+      }
+    }
+  },
+  "tours": [
+    "est-ce que je pourrais passer sous la poutre effondrée ?",
+    "ramper sous la poutre effondrée",
+    "quitter"
+  ]
+}

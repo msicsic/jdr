@@ -4,16 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-sous-obstacle`, non fusionnée, base `main` **276524c** : étape moteur,
+- Branche `codex-sous-obstacle`, non fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
   dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.
   Ramper et enjamber sans jet ; escalader sur prises : FOR 10, échec sans déplacement. Le trajet
   rejoint une case libre de l'autre côté sans rendre l'obstacle transparent. Forme crue dans
   le parcours et les entrées de reprise du planificateur ; supplément de temps réel au coût
-  historique par salle. Onze tests nouveaux, chaîne console/MJ simulé/recharge et temps découpé ;
-  103 tests ciblés verts. Sans données de scénario nouvelles : quatre scénarios × quatre graines,
-  2 h puis 8 h contre 276524c, chronique, mesures et état final complet identiques. Étape données
-  et vérification finale en cours. Aucun appel à Luna sur ce poste.
+  historique par salle. Preuve de connexité et de détour au plus aussi rapide, à l'allure choisie,
+  pour garder le parcours léger quand la marche suffit. Dix-neuf tests nouveaux : console/MJ
+  simulé/recharge, jet commun, coût des séquences, temps découpé, planificateur et son contrôle.
+  Prix des tâches fractionnaires arrondis en pièces entières ; une copie de sortie mesurée garde
+  son seuil (fin de la boucle d'écartements révélée devant le cellier). Sans données nouvelles :
+  quatre scénarios × quatre graines, 2 h puis 8 h contre 276524c, chronique, mesures et état final
+  complet identiques. Puis 21 obstacles décrits dans les quatre scénarios ; l'ouverture du puits
+  reste un vide, sans appui inventé. Banc 8 h × quatre graines × quatre scénarios : toutes les
+  mesures, chroniques, positions et besoins relevés et constats d'audit identiques ; aucun PNJ
+  n'a besoin du nouveau passage dans ces nuits (les scènes le vérifient quand le détour manque
+  ou prend plus de temps). Surcoût CPU observé 5 à 10 %. Suite complète verte : **1 527 tests,
+  quatre ignorés**, trois processus, 273,79 s. `VERIFIER` et perception 1 sur 2 h, graine 42,
+  quatre scénarios et `rixe`, puis 0,2 sur 8 h : sans écart (recherches neuves bornées à 8 h :
+  mine 51, auberge 18, limites déjà connues). Aucun appel ni connexion à
+  Luna sur ce poste ; sept scènes préparées pour l'autre poste, essais requis avant de clore N5.
+  [Règle, données, mesures, limites et vérification Luna à faire](taches/rapport-codex-19-sous-obstacle.md).
 - Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
   quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
   seuil de désespoir : le suivi de secours survit à la mémoire bornée. Une recherche retient aussi

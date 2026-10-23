@@ -1,0 +1,24 @@
+{
+  "scenario": "relais",
+  "seed": 1985,
+  "preparation": {
+    "salle": "echoppe",
+    "position": [
+      4,
+      3
+    ],
+    "orientation": "est",
+    "calmes": [
+      "marchand",
+      "brune",
+      "ilse",
+      "aubin"
+    ]
+  },
+  "tours": [
+    "est-ce que je pourrais passer sous la poutre effondrée ?",
+    "tenter",
+    "examiner poutre effondrée",
+    "quitter"
+  ]
+}

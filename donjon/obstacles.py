@@ -5,6 +5,8 @@ le sol libre d'en face, dans la même salle ; il ne rend pas la case de l'obstac
 """
 import copy
 import math
+import json
+from collections import OrderedDict
 
 from .monde import ErreurMonde
 from .francais import designer
@@ -121,6 +123,82 @@ def descriptions_crues(m, acteur):
             if i in m.objets and "passage" in d}
 
 
+_GEOMETRIES_CRUES = OrderedDict()
+GEOMETRIES_MAX = 128
+
+
+def metrique_necessaire(m, acteur, allure=PAS_JOUEUR):
+    """La marche ordinaire suffit-elle, quels que soient les objets qu'il prévoit porter ?
+
+    Une salle connexe et un détour au plus aussi rapide que chaque franchissement
+    garantissent le même graphe par salles et le même coût. La case exacte du PNJ
+    n'est alors pas une entrée de la recherche. Le test suppose les mains vides :
+    l'équipement ne peut que retirer des franchissements, jamais en accélérer un.
+    """
+    from .esprits import lire
+    formes = descriptions_crues(m, acteur)
+    if not formes or not m.data.get("mode_cases"):
+        return False
+    croyances = lire(m, acteur)["croyances"]
+    # Toutes les lectures du test : géométrie, obstacles crus (sans leurs dates),
+    # gabarit. Ni lumière, ni humeur, ni positions des autres personnages.
+    obstacles = [(i, o,
+                  {k: croyances.get(i, {}).get("lieu", {}).get(k) for k in ("valeur", "salle", "case")},
+                  formes.get(i)) for i, o in m.objets.items() if o.get("bloque_passage")]
+    cle = json.dumps([m.data["salles"], obstacles, gabarit(m, acteur), allure], sort_keys=True, ensure_ascii=False)
+    from .spatial import a_verifier
+    if cle in _GEOMETRIES_CRUES:
+        connu = _GEOMETRIES_CRUES[cle]
+        _GEOMETRIES_CRUES.move_to_end(cle)
+        if a_verifier():
+            assert connu == _metrique_necessaire(m, acteur, formes, allure), "Géométrie de trajet crue périmée"
+        return connu
+    resultat = _metrique_necessaire(m, acteur, formes, allure)
+    _GEOMETRIES_CRUES[cle] = resultat
+    if len(_GEOMETRIES_CRUES) > GEOMETRIES_MAX:
+        _GEOMETRIES_CRUES.popitem(last=False)
+    return resultat
+
+
+def _metrique_necessaire(m, acteur, formes, allure):
+    from .spatial import _pas_possibles, _bloquantes, trajet, VECTEURS
+    from .geometrie import cases
+    cru = monde_cru(m, acteur)
+    pas_de = _pas_possibles(cru, True)
+    franchissements = transitions(cru, acteur, formes, equipement=frozenset(), allure=allure)
+    sens = sorted(set(VECTEURS.values()))
+    for salle, piece in cru.data["salles"].items():
+        sols = set(cases(piece)) - set(_bloquantes(cru, salle))
+        if not sols:
+            continue
+        # Connexité par le vrai pas, angles compris, sans sortir de la salle.
+        premier = min(sols)
+        atteintes, file = {premier}, [premier]
+        while file:
+            ici = file.pop()
+            for v in sens:
+                pas = pas_de(salle, ici, v)
+                if pas is None or pas[0][0] != salle or pas[0][1] in atteintes:
+                    continue
+                atteintes.add(pas[0][1])
+                file.append(pas[0][1])
+        if atteintes != sols:
+            return True
+        # Une arête nouvelle n'améliore pas le graphe si la marche peut la
+        # remplacer en au plus son temps. On n'examine qu'un sens par paire.
+        for depart in sorted(sols):
+            for (s, fin), regle, _, duree in franchissements(salle, depart):
+                if fin < depart:
+                    continue
+                chemin = trajet(cru, salle, depart, lambda s, c: s == salle and c == fin,
+                                libre=lambda s, c: s == salle, allure=allure)
+                from .temps import duree_pas
+                temps = sum(duree_pas(allure, v) for _, _, _, v in chemin or [])
+                if chemin is None or temps > duree:
+                    return True
+    return False
+
+
 class Parcours(dict):
     """Le contrat historique des salles, plus leurs routes métriques crues."""
     def __init__(self, depart):
@@ -194,7 +272,9 @@ def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None):
         for avant, apres in reversed(chemin):
             if avant[0] == apres[0]:
                 continue
-            sortie = next(s for s in m.data["salles"][avant[0]]["sorties"].values() if s["vers"] == apres[0])
+            from .spatial import _case_interieure
+            sortie = next(s for s in m.data["salles"][avant[0]]["sorties"].values()
+                          if s["vers"] == apres[0] and _case_interieure(m, avant[0], s) == avant[1])
             route.append(dict(sortie))
         if route:
             route[-1]["duree_trajet"] = cout
@@ -207,7 +287,8 @@ def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None):
 def cout_route(route):
     # Le planificateur garde son coût abstrait d'une minute par salle. Seul
     # le supplément du franchissement y entre, dans son unité réelle.
-    return len(route) + (route[-1].get("surcout_passages", 0) / MINUTE if route else 0)
+    supplement = route[-1].get("surcout_passages", 0) if route else 0
+    return len(route) + supplement / MINUTE if supplement else len(route)
 
 
 def transitions(m, acteur="joueur", crues=None, equipement=None, allure=PAS_JOUEUR, libre=None):

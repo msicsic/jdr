@@ -40,7 +40,7 @@ def scene(scenario="relais", cible="poutre_conduite", forme=True):
     o = m.objets[cible]
     if forme:
         # L'étape moteur est vérifiée avant de décrire les données des scénarios.
-        o["passage"] = dict(FORME)
+        o.setdefault("passage", dict(FORME))
     else:
         o.pop("passage", None)
     x, y = o["position"]
@@ -121,11 +121,12 @@ class JoueurTests(unittest.TestCase):
                 self.assertIn("Tu passes en rampant sous", sortie)
                 self.assertEqual(r.joueur["position"], [debut[0] + 2, debut[1]])
                 self.assertEqual(instant(r), 120)
+                self.assertEqual(r.joueur["corps"]["vecu"]["activite"], "effort")
                 self.assertTrue(r.objets[cible]["bloque_passage"])
                 self.assertEqual(r.objets[cible].get("bloque_vue"), m.objets[cible].get("bloque_vue"))
                 self.assertEqual(r.data["journal"][-1]["action"]["etapes"][0]["operation"], "passer_obstacle")
                 r, sortie = jouer(r, ["examiner " + nom])
-                self.assertIn("Dégagement dessous : 45 cm", sortie)
+                self.assertIn(f"Dégagement dessous : {m.objets[cible]['passage']['degagement_cm']} cm", sortie)
 
     def test_commande_locale_attend_confirmation_et_ne_contacte_pas_le_mj(self):
         m = scene()
@@ -136,6 +137,14 @@ class JoueurTests(unittest.TestCase):
         r, texte = jouer(r, ["ramper sous la poutre effondrée", "tenter"])
         self.assertEqual(r.joueur["position"], [6, 3])
         self.assertIn("Tu passes", texte)
+
+    def test_la_fiche_composee_compte_aussi_les_secondes_du_passage(self):
+        m = scene()
+        p = Moteur(m).preparer(sequence(etape("passer_obstacle", "poutre_conduite", methode="dessous"),
+                                       etape("patienter")))
+        self.assertIn("Durée totale prévue : 2 minutes 12 secondes", p.resume(m))
+        self.assertEqual(p.dixiemes, 1320)
+        self.assertEqual(m.joueur["position"], [4, 3])
 
     def test_refus_physiques_une_cause_sans_effet_apres_recharge(self):
         cas = (("degagement_cm", 10, "dessous", "trop bas", "degagement_cm"),
@@ -203,6 +212,40 @@ class JoueurTests(unittest.TestCase):
         self.assertIn("ECHEC", texte)
         self.assertEqual((m.joueur["position"], instant(m)), ([4, 3], 180))
 
+    def test_le_jet_du_joueur_a_la_meme_borne_de_caracteristique_que_le_pnj(self):
+        from donjon.caractere import modificateur
+        # À très faible FOR, trois malus ne descendent pas la caractéristique
+        # sous 1 : le même socle vaut pour une étape et une action simple.
+        for action in ("escalader", "pousser"):
+            with self.subTest(action=action):
+                m = scene()
+                m.joueur["stats"]["FOR"] = 3
+                m.joueur["besoins"].update(faim=95, repos=95, chaleur=95)
+                m.objets["marchand"]["profil"]["caracteristiques"]["FOR"] = 3
+                lire(m, "marchand")["besoins"].update(faim=95, repos=95, chaleur=95)
+                self.assertEqual(modificateur(m, "joueur", "FOR"), -5)
+                self.assertEqual(modificateur(m, "marchand", "FOR"), -5)
+                if action == "escalader":
+                    for o in m.objets.values():
+                        if m.est_porte(o["id"]):
+                            o["longueur_cm"] = 20
+                    p = Moteur(m).preparer(passage(methode="dessus"))
+                    jets = [15, *([20] * 20)]
+                else:
+                    m.joueur.update(position=[3, 3], orientation="sud")
+                    placer(m, "aubin", "echoppe", (3, 4))
+                    lire(m, "aubin")["libre"] = 10000
+                    p = Moteur(m).preparer(proposition("pousser", "aubin", "sud"))
+                    jets = [15, 8, *([20] * 20)]
+                with patch.object(Monde, "d20", side_effect=jets):
+                    texte = Moteur(m).executer(p)
+                m = recharger(m)
+                self.assertIn("REUSSITE", texte)
+                if action == "escalader":
+                    self.assertEqual(m.joueur["position"], [6, 3])
+                else:
+                    self.assertEqual(m.objets["aubin"]["position"], [3, 5])
+
     def test_pas_de_sol_ni_case_occupee_ni_diagonale(self):
         m = scene()
         placer(m, "aubin", "echoppe", (6, 3))
@@ -229,6 +272,152 @@ class JoueurTests(unittest.TestCase):
 
 
 class TrajetTests(unittest.TestCase):
+    def test_un_raccourci_plus_rapide_garde_le_parcours_metrique_meme_avec_un_detour(self):
+        from donjon.obstacles import metrique_necessaire
+        from donjon.temps import PAS_JOUEUR, duree_pas
+        m = corridor()
+        # La cloison laisse un détour par le sud, mais le dessous au nord
+        # économise du temps. La salle reste connexe : il faut aussi comparer les coûts.
+        m.objets.pop("bloc_test_1")
+        m.objets.pop("bloc_test_6")
+        m.objets["bloc_test_3"] = objet("bloc_test_3", "bloc de pierre", "meuble", "echoppe",
+                                       position=[5, 3], position_salle="echoppe", bloque_passage=True)
+        croire(m, "marchand", "bloc_test_3", "lieu", "echoppe", "savoir", salle="echoppe", case=[5, 3])
+        placer(m, "poutre_conduite", "echoppe", (5, 1))
+        croire(m, "marchand", "poutre_conduite", "lieu", "echoppe", "savoir", salle="echoppe", case=[5, 1])
+        m = recharger(m)
+        ordinaire = trajet(m, "echoppe", (4, 1), lambda s, c: s == "echoppe" and c == (6, 1))
+        self.assertIsNotNone(ordinaire)
+        self.assertGreater(sum(duree_pas(PAS_JOUEUR, v) for _, _, _, v in ordinaire), 120)
+        self.assertTrue(metrique_necessaire(m, "marchand"))
+        avec = trajet(m, "echoppe", (4, 1), lambda s, c: s == "echoppe" and c == (6, 1),
+                      passages=transitions(m, "marchand", descriptions_crues(m, "marchand")))
+        self.assertEqual((avec[0][1], avec[0][2]["dixiemes"]), ((6, 1), 120))
+
+    def test_un_detour_qui_domine_le_passage_ne_rend_pas_la_recherche_dependante_de_la_case(self):
+        from donjon import spatial
+        from donjon.obstacles import metrique_necessaire
+        from donjon.planification import Vue, _entrees
+        for coupe in (False, True):
+            with self.subTest(coupe=coupe):
+                m = corridor() if coupe else scene()
+                m.joueur.update(salle="antichambre", position=[6, 5])
+                placer(m, "marchand", "echoppe", (4, 3))
+                croire(m, "marchand", "poutre_conduite", "lieu", "echoppe", "savoir", salle="echoppe", case=[5, 3])
+                croire(m, "marchand", "poutre_conduite", "passage", dict(FORME), "savoir")
+                m = recharger(m)
+                with patch.object(spatial, "VERIFICATION", 1):
+                    self.assertEqual(metrique_necessaire(m, "marchand"), coupe)
+                    self.assertEqual(metrique_necessaire(m, "marchand"), coupe)  # reprise vérifiée
+                avant = _entrees(Vue(m, "marchand"), {}, 10, 100)
+                placer(m, "marchand", "echoppe", (3, 3))
+                m = recharger(m)
+                apres = _entrees(Vue(m, "marchand"), {}, 10, 100)
+                self.assertEqual(avant != apres, coupe)
+                if not coupe:
+                    # Un enjambement qui égale le détour au pas devient un
+                    # raccourci pour une marche feutrée : l'allure entre dans la preuve.
+                    bas = {**FORME, "hauteur_cm": 50, "degagement_cm": 0}
+                    m.objets["poutre_conduite"]["passage"] = bas
+                    croire(m, "marchand", "poutre_conduite", "passage", bas, "savoir")
+                    self.assertFalse(metrique_necessaire(m, "marchand"))
+                    self.assertTrue(metrique_necessaire(m, "marchand", 30))
+
+    def test_le_pnj_rate_la_meme_escalade_sans_bond_et_on_l_entend(self):
+        m = corridor()
+        m.joueur.update(salle="echoppe", position=[6, 4], orientation="est")
+        m.objets["poutre_conduite"]["passage"]["degagement_cm"] = 5
+        croire(m, "marchand", "poutre_conduite", "passage",
+               copy.deepcopy(m.objets["poutre_conduite"]["passage"]), "savoir")
+        for o in m.objets.values():
+            from donjon.spatial import porte_par
+            if porte_par(m, o["id"], "marchand"):
+                o["longueur_cm"] = 20
+        # Un bruit survenu pendant l'attente, pas celui de l'initialisation à t=0.
+        lire(m, "marchand")["libre"] = 5
+        with patch.object(Monde, "d20", return_value=1):
+            texte = Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "1")))
+        m = recharger(m)
+        self.assertEqual(m.objets["marchand"]["position"], [4, 3])
+        self.assertEqual(m.objets["marchand"]["corps"]["vecu"]["activite"], "effort")
+        self.assertGreaterEqual(lire(m, "marchand")["libre"], 180)
+        self.assertTrue(any("ne parvient pas à escalader" in c["texte"] for c in m.data["chronique"]))
+        self.assertTrue(any(b["auteur"] == "marchand" and b["nature"] == "geste" for b in m.data["bruits"]))
+        self.assertIn("Tu entends", texte)
+
+    def test_le_prix_d_un_temps_fractionnaire_reste_des_pieces_entieres(self):
+        from donjon.planification import prix_tache, SALAIRE
+        from donjon.deliberation import retenir_refus
+        for peine in (float(SALAIRE), SALAIRE + .15):
+            with self.subTest(peine=peine):
+                m = corridor()
+                prix = prix_tache(peine)
+                self.assertIs(type(prix), int)
+                self.assertEqual(prix, 1 if peine == SALAIRE else 2)
+                retenir_refus(m, "marchand", "aubin", "engager", "cher", objet="brasero", prix=prix,
+                              tache={"objet": "brasero", "allume": True})
+                r = recharger(m)
+                self.assertIs(type(lire(r, "marchand")["refus"][-1]["prix"]), int)
+
+    def test_une_sortie_mesuree_garde_sa_case_et_le_pnj_ouvre_sa_porte(self):
+        from donjon.passage import raison_de_rester
+        from donjon.spatial import _case_interieure
+        for scenario, qui, salle, direction, obstacle in (
+                ("auberge", "odile", "cuisine", "nord", "table_cuisine"),
+                ("mine", "remy", "baraquement", "nord", "table")):
+            with self.subTest(scenario=scenario):
+                m = creer(scenario, 1985, "fixe")
+                calme(m, *[i for i, o in m.objets.items() if o.get("profil")])
+                sortie = m.data["salles"][salle]["sorties"][direction]
+                case = _case_interieure(m, salle, sortie)
+                placer(m, qui, salle, case)
+                porte = m.objets[sortie["porte"]]
+                porte.update(ouverte=False, verrouillee=False)
+                croire(m, qui, porte["id"], "verrouillee", False, "essai")
+                o = m.objets[obstacle]
+                croire(m, qui, obstacle, "lieu", o["lieu"], "savoir", salle=o["lieu"], case=list(o["position"]))
+                croire(m, qui, obstacle, "passage", copy.deepcopy(o["passage"]), "savoir")
+                intention(m, qui, [{"operation": "aller", "lieu": sortie["vers"]}])
+                m = recharger(m)
+                from donjon.obstacles import parcours_cru
+                route = parcours_cru(m, qui, salle).routes[sortie["vers"]]
+                self.assertIn("duree_trajet", route[0])
+                self.assertEqual(_case_interieure(m, salle, route[0]), case)
+                self.assertEqual(raison_de_rester(m, qui), "geste")
+                Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "30")))
+                m = recharger(m)
+                self.assertTrue(m.objets[porte["id"]]["ouverte"])
+                self.assertEqual(m.objets[qui]["lieu"], sortie["vers"])
+
+    def test_scenes_luna_preparees_et_donnees_reelles_apres_recharge(self):
+        import json
+        from tools.banc_parties import preparer
+        for f in sorted((Path(__file__).parent / "data" / "bancs").glob("sous-obstacle-*.json")):
+            with self.subTest(script=f.stem), tempfile.TemporaryDirectory() as tmp:
+                sauvegarde = Path(tmp) / "partie.json"
+                preparer(json.loads(f.read_text(encoding="utf-8")), sauvegarde)
+                m = Monde.charger(sauvegarde)
+                cible = "lit_chaud" if "enjamber" in f.stem else "table_longue" if "auberge" in f.stem else "poutre_conduite"
+                if "inconnu" in f.stem:
+                    self.assertNotIn("passage", m.objets[cible])
+                elif "trop-bas" in f.stem:
+                    with self.assertRaisesRegex(ErreurMonde, "trop bas"):
+                        Moteur(m).preparer(passage(cible))
+                elif "trop-haut" in f.stem:
+                    with self.assertRaisesRegex(ErreurMonde, "trop haut"):
+                        Moteur(m).preparer(passage(cible, "dessus"))
+                elif "encombre" in f.stem:
+                    with self.assertRaisesRegex(ErreurMonde, "encombrant"):
+                        Moteur(m).preparer(passage(cible))
+                elif "enjamber" in f.stem:
+                    p = Moteur(m).preparer(passage(cible, "dessus"))
+                    self.assertEqual(p.plans[0].dixiemes, 60)
+                    Moteur(m).executer(p)
+                    r = recharger(m)
+                    self.assertEqual(r.joueur["position"], [2, 0])
+                else:
+                    self.assertEqual(Moteur(m).preparer(passage(cible)).plans[0].dixiemes, 120)
+
     def test_pnj_passe_dessous_et_meme_laps_decoupe_recharge(self):
         m = corridor()
         chemin_ = trajet(m, "echoppe", (4, 3), lambda s, c: s == "antichambre",
@@ -261,17 +450,30 @@ class TrajetTests(unittest.TestCase):
         self.assertIsNone(trajet(m, "echoppe", (4, 3), lambda s, c: s == "antichambre"))
 
     def test_cout_et_equipement_prevu_dans_la_recherche_et_sa_cle(self):
+        from donjon import planification, spatial
         from donjon.planification import Vue, depart, _entrees
         m = corridor()
         v = Vue(m, "marchand")
         e = depart(m, "marchand", v)
         route = v.route(e, "antichambre")
         self.assertIsNotNone(route)
+        with patch.object(planification, "VERIFIER", True), patch.object(spatial, "VERIFICATION", 1):
+            trouve = planification.aller(m, "marchand", "antichambre")
+            self.assertIsNotNone(trouve)
+            self.assertEqual(planification.aller(m, "marchand", "antichambre"), trouve)
         m.objets["perche_test"] = objet("perche_test", "perche", "outil", "echoppe", mobile=True, masse=1, longueur_cm=300)
         v = Vue(m, "marchand")
         e = depart(m, "marchand", v)
         self.assertIsNone(v.route(e.apres(portes=e.portes | {"perche_test"}), "antichambre"))
-        avant = _entrees(v, {}, 10, 100)
+        # Même fermeture par le vrai planificateur, puis reprise après recharge,
+        # sous ses deux contrôles de mémoire et de recherche complète.
+        m.objets["perche_test"]["lieu"] = "marchand"
+        croire(m, "marchand", "perche_test", "lieu", "marchand", "savoir", salle=None, case=None)
+        m = recharger(m)
+        with patch.object(planification, "VERIFIER", True), patch.object(spatial, "VERIFICATION", 1):
+            self.assertIsNone(planification.aller(m, "marchand", "antichambre"))
+            self.assertIsNone(planification.aller(m, "marchand", "antichambre"))
+        avant = _entrees(Vue(m, "marchand"), {}, 10, 100)
         croire(m, "marchand", "poutre_conduite", "passage", {**FORME, "degagement_cm": 5}, "savoir")
         self.assertNotEqual(avant, _entrees(Vue(m, "marchand"), {}, 10, 100))
         self.assertTrue(m.objets["poutre_conduite"]["bloque_vue"])

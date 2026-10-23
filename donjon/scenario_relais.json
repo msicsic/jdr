@@ -401,7 +401,15 @@
         3
       ],
       "position_salle": "crypte",
-      "type": "meuble"
+      "type": "meuble",
+      "passage": {
+        "degagement_cm": 0,
+        "hauteur_cm": 300,
+        "largeur_cm": 80,
+        "profondeur_cm": 100,
+        "charge_kg": 1000,
+        "appuis": false
+      }
     },
     "couteau": {
       "aliases": [
@@ -880,7 +888,15 @@
         3
       ],
       "position_salle": "echoppe",
-      "type": "meuble"
+      "type": "meuble",
+      "passage": {
+        "degagement_cm": 45,
+        "hauteur_cm": 100,
+        "largeur_cm": 80,
+        "profondeur_cm": 70,
+        "charge_kg": 180,
+        "appuis": true
+      }
     },
     "serrure": {
       "aliases": [

@@ -35,7 +35,8 @@ REPLIS = ("Je ne peux pas encore", "Rien de ce que tu perçois ou sais ne permet
           "Réponse du MJ invalide", "Le contrôle narratif n'a pas abouti",
           "n'a pas terminé", "Aucune action appliquée", "Aucun changement enregistré",
           "Aucun ajout enregistré", "Aucun engagement enregistré")
-LANCEMENT = {"relais": ["--defi"], "atelier": ["--atelier", "--cases"], "crypte": ["--cases"]}
+LANCEMENT = {"relais": ["--defi"], "atelier": ["--atelier", "--cases"], "crypte": ["--cases"],
+             "mine": ["--mine"], "auberge": ["--auberge"], "crue": ["--crue"]}
 
 
 class BudgetEpuise(RuntimeError):
@@ -154,6 +155,9 @@ def preparer(donnees, sauvegarde):
     elif donnees["scenario"] == "atelier":
         from donjon.atelier import nouveau_atelier
         m = nouveau_atelier()
+    elif donnees["scenario"] in ("mine", "auberge", "crue"):
+        from donjon.banc_pnj import creer
+        m = creer(donnees["scenario"], seed, "fixe")
     else:
         from donjon.monde import nouveau_monde
         m = nouveau_monde(seed)
@@ -186,6 +190,14 @@ def preparer(donnees, sauvegarde):
     for id, lieu in prep.get("lieux", {}).items():
         # Placement d'auteur : un objet déjà en main ou ailleurs, pour cibler une scène.
         m.objets[id]["lieu"] = lieu
+    for id, proprietes in prep.get("proprietes_objets", {}).items():
+        # Données d'auteur du banc, contrôlées à la sauvegarde ; null retire une
+        # propriété pour éprouver aussi le contrat d'une donnée inconnue.
+        for cle, valeur in proprietes.items():
+            if valeur is None:
+                m.objets[id].pop(cle, None)
+            else:
+                m.objets[id][cle] = valeur
     for id, besoins in prep.get("besoins", {}).items():
         esprit(m, id)["besoins"].update(besoins)
     for id, valeurs in prep.get("valeurs", {}).items():

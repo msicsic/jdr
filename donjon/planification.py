@@ -223,6 +223,9 @@ class Vue:
                                    else taux(monde, id, "menace"))
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
+        from .obstacles import metrique_necessaire
+        self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
+        self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
         # par un plan de recherche. Il lui faut aussi l'a priori d'un inconnu.
@@ -473,7 +476,8 @@ class Vue:
             # Le parcours depuis sa salle vaut pour toutes les arrivées (``pnj.parcours``).
             depuis = (e.salle, e.portes, trajet[3])
             if depuis not in self._parcours:
-                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3], e.portes)
+                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3], e.portes,
+                                                        metrique=self._metrique)
             self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3],
                                              self._parcours[depuis])
         self._trajets[trajet] = self._routes[cle]
@@ -609,7 +613,7 @@ class Vue:
             return 0
         cle = ("trajet", depart_, arrivee)
         if cle not in self._crus:
-            route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset())
+            route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset(), metrique=self._metrique)
             from .obstacles import cout_route
             self._crus[cle] = 0 if route is None else cout_route(route)
         return self._crus[cle]
@@ -1016,7 +1020,7 @@ def peine_tache(v, e, condition):
 def prix_tache(peine):
     """Ce qu'il offre pour une tâche : une pièce par ``SALAIRE`` minutes de peine. Il ne sait pas ce
     que vaut une pièce pour l'autre : il paie la peine."""
-    return max(1, -(-peine // SALAIRE))
+    return max(1, math.ceil(peine / SALAIRE))
 
 
 def hausse(prix):
@@ -1224,10 +1228,9 @@ def _entrees(v, vises, profondeur, noeuds):
     esprit_ = lire(monde, id)
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
-    from .obstacles import descriptions_crues
     # Le parcours métrique lit les positions crues des obstacles, et sa case de
     # départ actuelle. Aucun champ neuf sans géométrie crue (identité des nuits).
-    passages = bool(descriptions_crues(monde, id))
+    passages, metrique = v._passages_crus, v._metrique
     return json.dumps([
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
@@ -1262,7 +1265,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Le coût du noir et le but explicite de lumière ; les autres emplois de
         # lumière se découvrent dans les gestes à partir des mêmes entrées.
         v.peur, v.eclairer,
-        ([monde.objets[id].get("position"),
+        ([metrique, monde.objets[id].get("position") if metrique else None,
           [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
            if "lieu" in d and monde.objets.get(s, {}).get("bloque_passage")]] if passages else None)
         ], ensure_ascii=False, check_circular=False)

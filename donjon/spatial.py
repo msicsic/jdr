@@ -139,6 +139,13 @@ def installer(m):
 def _case_interieure(m, salle, sortie):
     direction = next((d for d, s in m.data["salles"][salle].get("sorties", {}).items()
                       if s is sortie), None)
+    if direction is None and isinstance(sortie, dict):
+        # Une route peut porter des mesures supplémentaires sur une copie de la
+        # sortie. Son identité spatiale est case/vers/porte, pas l'identité Python.
+        correspondances = [d for d, s in m.data["salles"][salle].get("sorties", {}).items()
+                           if all(s.get(k) == sortie.get(k) for k in ("case", "vers", "porte"))]
+        if len(correspondances) == 1:
+            direction = correspondances[0]
     if direction not in VECTEURS or len(sortie.get("case", ())) != 2:
         return None
     dx, dy = VECTEURS[direction]
@@ -1225,7 +1232,10 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
     droit) ; à durée égale, l'ordre de découverte départage (les sens dans l'ordre de ``VECTEURS``
     triés), sans hasard.
     Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées.
-    Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
+    Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent.
+    ``passages`` fournit des arêtes (destination, règle, sens, durée), dont le
+    troisième champ du chemin porte la règle à revalider, plutôt qu'une porte.
+    ``releve`` reçoit coût et prédécesseur de chaque case atteinte pour un parcours complet."""
     from .temps import PAS_JOUEUR, duree_pas
     allure = PAS_JOUEUR if allure is None else allure
     pas_de = _pas_possibles(m, solides)

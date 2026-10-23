@@ -1,0 +1,35 @@
+{
+  "scenario": "relais",
+  "seed": 1985,
+  "preparation": {
+    "salle": "echoppe",
+    "position": [
+      4,
+      3
+    ],
+    "orientation": "est",
+    "calmes": [
+      "marchand",
+      "brune",
+      "ilse",
+      "aubin"
+    ],
+    "proprietes_objets": {
+      "poutre_conduite": {
+        "passage": {
+          "degagement_cm": 0,
+          "hauteur_cm": 250,
+          "largeur_cm": 80,
+          "profondeur_cm": 70,
+          "charge_kg": 180,
+          "appuis": true
+        }
+      }
+    }
+  },
+  "tours": [
+    "est-ce que je pourrais passer par-dessus la poutre effondrée ?",
+    "passer par-dessus la poutre effondrée",
+    "quitter"
+  ]
+}

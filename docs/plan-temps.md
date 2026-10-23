@@ -599,8 +599,14 @@ les rotations comme auparavant. Le bruit de la manière passe par l'ouïe commun
 d'effort par `vecu`. Une escalade est revérifiée et jetée au début du geste.
 
 Une géométrie décrite et perçue devient une croyance `passage` ; sans description aucune
-croyance n'est ajoutée. Quand un PNJ connaît une telle forme, le parcours par salles emploie
-un monde de lecture dont les obstacles et leurs positions viennent de ses croyances. Les
+croyance n'est ajoutée. Quand un PNJ connaît une telle forme, le moteur vérifie d'abord si
+le parcours métrique est nécessaire : chaque salle crue doit être connexe par la marche,
+et chaque franchissement doit avoir un détour au plus aussi rapide. Si ces deux propriétés
+tiennent, le graphe par salles suffit, quelle que soit la case où il se tient ; la preuve
+suppose les mains vides, l'équipement ne pouvant qu'enlever des possibilités. L'allure fait
+partie de la preuve : un détour plus lent à pas feutrés garde le franchissement. Sinon le
+parcours par salles emploie un monde de lecture dont les obstacles et leurs positions viennent
+de ses croyances. Les
 portes gardent les conditions de clés/verrous. Les passages lisent le gabarit et l'équipement
 prévu dans chaque état de recherche ; prendre ou poser change donc l'accès. Le parcours
 interdit aussi un obstacle intérieur cru infranchissable. La durée métrique est conservée
@@ -609,7 +615,10 @@ surcoût des passages par rapport à deux pas ordinaires. Il n'y a pas de nouvel
 lumière : aucune modification de la découverte des graphes `sombre`/`lumiere`.
 
 La forme crue, le gabarit et les dimensions des objets sont dans `_entrees` ; les positions
-crues des obstacles et la case de départ s'y ajoutent lorsque le parcours métrique est actif.
+crues des obstacles s'y ajoutent dès qu'une forme est connue. La case de départ n'y entre
+que lorsque le parcours métrique est nécessaire. La preuve est gardée dans une mémoire
+bornée (géométrie des salles, objets bloquants, positions et formes crues, gabarit, allure),
+recalculée sans mémoire sous `spatial.VERIFICATION`.
 À l'exécution, le trajet en cases revalide la réception et la forme réelle. Un échec physique
 fait constater l'obstacle, un échec au jet dépense le geste sur place. Aucune progression
 nouvelle n'est rangée hors de `data` ; le test de laps découpé recharge entre les rotations.
