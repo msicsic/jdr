@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-lampes-suite`, non fusionnée, base `main` 9075aea : la lumière employée par
+- Branche `codex-lampes-suite`, fusionnée, base `main` 9075aea : la lumière employée par
   le but et ses gestes remplace la capacité de crocheter dans la pertinence des sources et des
   remises de combustible. Découverte par les lectures communes de lumière, reprise depuis le
   départ avec sa borne entière, marqueur conservé dans le graphe et mémoire contrôlée.
@@ -21,7 +21,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   chroniques, mesures et états finaux complets identiques. Audits 12 h auberge/crue × quatre
   graines : mêmes chroniques, mesures et événements de ressources ; zéro usurpation, violation
   ou plantage. Mesures actuelles, contre-épreuve et limites dans
-  [le rapport](taches/rapport-codex-9-lampes-suite.md). Aucune fusion, aucun changement de `main`.
+  [le rapport](taches/rapport-codex-9-lampes-suite.md).
+  Fusionné après les relations graduées (3b) et le corps blessable (4a), `main` a7ecb50 : aucun conflit
+  textuel ; `_entrees` garde les axes et bandes des relations et ajoute le coût du noir et le but de
+  lumière ; peurs sociales, présences craintes et `ranimer` ne lisent pas la lumière et passent par
+  `_explorer_etats` comme les autres gestes. Correctif de fusion (relecture) : la découverte suit l'ordre
+  d'exploration, donc le prix d'une faute, absent de la clé du graphe repris ; le marqueur
+  `emploie_lumiere` du graphe faisait ensuite chercher avec les moyens d'éclairer à un prix où une
+  recherche neuve ne les découvre pas (borne au lieu du plan, arrêté par `VERIFIER`). Le graphe en garde
+  deux (`sombre`, `lumiere`), chaque nœud du premier retient si son but ou ses gestes ont lu la lumière
+  et la relit, rejoué (`docs/plan-planificateur.md`, « Lumière employée ») ; test ajouté
+  (`test_le_graphe_repris_redecouvre_la_lumiere_selon_le_prix_d_une_faute`, échoue sans le correctif),
+  test du graphe repris adapté (deux graphes au lieu du marqueur). Suite 1424 tests, 14 sautés.
+  `VERIFIER` et `spatial.VERIFICATION` 1 sur 2 h, puis `VERIFIER` et 0,2 sur 8 h, graine 42, quatre
+  scénarios : sans écart. `comparer_bancs --empreintes` contre a7ecb50 (2 h, 4 graines, quatre
+  scénarios) : 16 nuits identiques. 12 h, 4 graines, `tools/empreintes_nuits.py` : auberge identique
+  jusqu'aux nœuds, temps égal (deux passes en ordre inverse : 180,9 → 210,2 s puis 195,9 → 193,6 s,
+  l'écart suit la charge du poste) ; mine mêmes nuits, quelques centaines de nœuds de moins par nuit
+  sur 1,3 à 1,9 million (les crocheteurs n'emportent plus de quoi éclairer sans en lire le besoin),
+  184,9 → 160,4 s en une passe. Le surcoût de l'auberge depuis les lampes (~2× contre f1eee53) ne
+  bouge pas : il vient des parts envisagées pour qui craint le noir, pas de la capacité.
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,
@@ -1484,7 +1503,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1418 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1424 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 
