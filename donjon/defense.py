@@ -219,18 +219,26 @@ def degager(monde, id, lignes):
 
 
 def chemin_fuite(monde, cible=""):
-    """Sortie connue atteignable la plus proche ; les obstacles et occupants suivent le pas commun."""
+    """Sortie connue atteignable la plus proche ; les obstacles et occupants suivent le pas commun.
+
+    Un passage sous ou sur un obstacle est un pas de fuite comme pour un PNJ (``obstacles.transitions``,
+    même arête de ``spatial.trajet``) : forme établie, carrure et charge portée ; seulement les
+    obstacles que le joueur peut désigner, puisqu'il doit savoir qu'ils sont là."""
     from .spatial import trajet, sortie_connue
     from .passage import place
     from .monde import ErreurMonde
+    from .obstacles import transitions
     salle, case = place(monde, "joueur")
     sorties = [s for d, s in monde.data["salles"][salle]["sorties"].items()
                if sortie_connue(monde, salle, d) and (not cible or cible in (d, s["vers"]))]
     salles = {s["vers"] for s in sorties}
     occupees = {place(monde, x) for x in corps.personnages(monde) if x != "joueur"}
+    formes = {i: o["passage"] for i, o in monde.objets.items()
+              if "passage" in o and o.get("lieu") == salle and monde.designable(i)}
     chemin = trajet(monde, salle, case, lambda s, c: s in salles,
                     franchissable=lambda p: not monde.objets[p].get("verrouillee"),
-                    libre=lambda s, c: (s, c) not in occupees and s in salles | {salle})
+                    libre=lambda s, c: (s, c) not in occupees and s in salles | {salle},
+                    passages=transitions(monde, "joueur", formes) if formes and monde.data.get("mode_cases") else None)
     if not chemin:
         raise ErreurMonde("Tu ne trouves pas de sortie connue accessible.",
                           f"cible={cible} : sortie connue accessible parmi {sorted(salles)}, ou vide ; portes déverrouillées requises.")
@@ -252,9 +260,18 @@ def preparer_joueur(monde, p, plan):
     if action == "fuir":
         route = chemin_fuite(monde, cible)
         from .temps import PAS_JOUEUR, duree_pas
-        plan.dixiemes = sum(duree_pas(PAS_JOUEUR, v) for _, _, _, v in route)
+        plan.dixiemes = sum(porte["dixiemes"] if isinstance(porte, dict) else duree_pas(PAS_JOUEUR, v)
+                            for _, _, porte, v in route)
         agresseurs = " et ".join(_agresseur(monde, a) for a in dangers(monde, "joueur"))
-        plan.titre = "Fuir " + (agresseurs + ", par " if agresseurs else "par ") + "la sortie connue accessible la plus proche."
+        from .francais import designer
+        manieres = {"ramper": "en rampant sous ", "enjamber": "en enjambant ", "escalader": "en escaladant "}
+        passages = [manieres[porte["maniere"]] + designer(monde.objets[porte["cible"]])
+                    for _, _, porte, _ in route if isinstance(porte, dict)]
+        plan.titre = ("Fuir " + (agresseurs + ", par " if agresseurs else "par ") + "la sortie connue accessible la plus proche"
+                      + (", " + " puis ".join(passages) if passages else "") + ".")
+        for porte in [porte for _, _, porte, _ in route if isinstance(porte, dict) and porte["stat"]]:
+            plan.titre += (f" Passer {manieres[porte['maniere']]}" + designer(monde.objets[porte["cible"]])
+                           + f" demande un jet de {porte['stat']} contre {porte['dd']} ; un échec arrête la fuite de ce côté.")
         plan.risque = "Au pas ordinaire, sans avance garantie : les autres agissent pendant chaque pas. Arrêt si le passage se ferme."
         plan.effets = [("fuir", cible, None)]
         return plan
@@ -280,6 +297,39 @@ def preparer_joueur(monde, p, plan):
     return plan
 
 
+def _passer_obstacle(monde, regle, vecteur, lignes):
+    """Un pas de fuite sous ou sur un obstacle : se tourner vers lui s'il le faut, puis le passage
+    commun avec sa fiche, son jet éventuel et sa durée. Renvoie s'il est passé."""
+    from .moteur import Moteur, proposition
+    from .spatial import VECTEURS
+    from .obstacles import compiler
+    from .caractere import modificateur
+    direction = next(n for n, v in VECTEURS.items() if v == tuple(vecteur))
+    if monde.joueur.get("orientation") != direction:
+        p = Moteur(monde).preparer(proposition("tourner", direction))
+        for effet in p.effets:
+            Moteur._appliquer(monde, effet, lignes)
+        Moteur._terminer_etape(monde, p, lignes, p.effets, "tourner", "simple")
+    position = tuple(monde.joueur["position"])
+    p = compiler(monde, {"cible": regle["cible"], "methode": regle["methode"], "destination": "", "outil": "",
+                         "difficulte": 0})
+    reussite = True
+    if p.stat:
+        jet = monde.d20()
+        mod = (monde.joueur["stats"][p.stat] - 10) // 2
+        corps_ = modificateur(monde, "joueur", p.stat) - mod
+        total = jet + mod + p.bonus + corps_
+        reussite = jet != 1 and total >= p.dd
+        lignes.append(f"1d20({jet}) + {p.stat}({mod:+d}) + outil({p.bonus:+d}) "
+                      + (f"+ corps({corps_:+d}) " if corps_ else "")
+                      + f"= {total} contre {p.dd} : " + ("REUSSITE" if reussite else "ECHEC"))
+    effets = p.effets if reussite else p.echec
+    for effet in effets:
+        Moteur._appliquer(monde, effet, lignes)
+    Moteur._terminer_etape(monde, p, lignes, effets, "passer_obstacle", regle["methode"])
+    return reussite and tuple(monde.joueur["position"]) != position
+
+
 def appliquer_joueur(monde, action, cible, valeur, lignes):
     if action == "se_rendre":
         return se_rendre(monde, "joueur", cible, lignes)
@@ -302,6 +352,11 @@ def appliquer_joueur(monde, action, cible, valeur, lignes):
         if not corps.conscient(monde):
             break
         try:
+            if isinstance(porte, dict):
+                # Le même passage que la commande, revalidé sur l'état du moment (``obstacles.compiler``).
+                if not _passer_obstacle(monde, porte, vecteur, lignes) or interrompue():
+                    break
+                continue
             if porte:
                 p = Moteur(monde).preparer(proposition("ouvrir", porte))
                 for effet in p.effets:

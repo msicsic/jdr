@@ -4,6 +4,78 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
+  géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
+  dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.
+  Ramper et enjamber sans jet ; escalader sur prises : FOR 10, échec sans déplacement. Le trajet
+  rejoint une case libre de l'autre côté sans rendre l'obstacle transparent. Forme crue dans
+  le parcours et les entrées de reprise du planificateur ; supplément de temps réel au coût
+  historique par salle. Preuve de connexité et de détour au plus aussi rapide, à l'allure choisie,
+  pour garder le parcours léger quand la marche suffit. Dix-neuf tests nouveaux : console/MJ
+  simulé/recharge, jet commun, coût des séquences, temps découpé, planificateur et son contrôle.
+  Prix des tâches fractionnaires arrondis en pièces entières ; une copie de sortie mesurée garde
+  son seuil (fin de la boucle d'écartements révélée devant le cellier). Sans données nouvelles :
+  quatre scénarios × quatre graines, 2 h puis 8 h contre 276524c, chronique, mesures et état final
+  complet identiques. Puis 21 obstacles décrits dans les quatre scénarios ; l'ouverture du puits
+  reste un vide, sans appui inventé. Banc 8 h × quatre graines × quatre scénarios : toutes les
+  mesures, chroniques, positions et besoins relevés et constats d'audit identiques ; aucun PNJ
+  n'a besoin du nouveau passage dans ces nuits (les scènes le vérifient quand le détour manque
+  ou prend plus de temps). Surcoût CPU observé 5 à 10 %. Suite complète verte : **1 527 tests,
+  quatre ignorés**, trois processus, 273,79 s. `VERIFIER` et perception 1 sur 2 h, graine 42,
+  quatre scénarios et `rixe`, puis 0,2 sur 8 h : sans écart (recherches neuves bornées à 8 h :
+  mine 51, auberge 18, limites déjà connues). Aucun appel ni connexion à
+  Luna sur ce poste ; sept scènes préparées pour l'autre poste, essais requis avant de clore N5.
+  [Règle, données, mesures, limites et vérification Luna à faire](taches/rapport-codex-19-sous-obstacle.md).
+  Fusionné après `codex-force-4c` (`main` 663b664 ; depuis la base de O : H relations 3c, N part estimée,
+  M noms lisibles, P force 4c) : conflits `esprits._croyance_valide` (croyances `passage` de O, lectures et
+  `violence` de H et P côte à côte) et `planification._entrees` (lectures de H, du devis de N, de la défense
+  de P, puis le parcours métrique de O : positions crues des obstacles, case de départ quand la preuve de
+  domination ne l'écarte pas ; toutes dans la clé de la mémoire, la base des deux graphes `sombre`/`lumiere`
+  et du certificat `_sans_plan`), docs. **Une seule règle de trajet** : la fuite du joueur de P
+  (`defense.chemin_fuite`) avait son propre `spatial.trajet` sans les arêtes de O ; elle passe désormais par
+  `obstacles.transitions` (obstacles que le joueur peut désigner, forme établie, carrure, charge et
+  encombrement), la fiche nomme le passage avec sa durée (« … en rampant sous la poutre effondrée », 16,5 s
+  au lieu des pas seuls) et, pour une escalade, son jet ; chaque passage est revalidé par
+  `obstacles.compiler`, tourné vers l'obstacle s'il le faut, jet commun, échec qui arrête la fuite de ce côté.
+  La fuite des PNJ suivait déjà les mêmes routes (`Vue.route`, `_marcher`). **Une seule mesure de route** :
+  le devis de N (`part_estimee.aller`) et `planification._chercher` comptaient `len(route)` ; ils comptent
+  `obstacles.cout_route`, comme `Vue.allers` et `Vue.trajet` (identique sans passage). Coût : la clé des
+  routes de `Vue.route` ne distingue l'équipement entier que pour le parcours métrique (sinon les clés,
+  comme avant O : 2 206 parcours → 788 sur trois heures de mine), mêmes nuits. Défaut commun révélé par Luna
+  (`sous-obstacle-inconnu`, 1 passe sur 4) : **« La correction des faits narratifs n'a pas abouti. »
+  affiché au joueur** quand la qualification corrigée revenait en geste ; le joueur lit désormais le refus
+  du monde déjà opposé, sinon le geste revenu suit le chemin de son mode une fois, sinon « rien n'est
+  tenté » (`mj._echanger_prepare`). Tests (après rechargement, `test_sous_obstacle`) : `FuiteTests` (le
+  joueur fuit sous la poutre ou par-dessus en escaladant, escalade manquée ; sans forme ou avec une perche de
+  3 m : refus avec `attendu` ; Gorm fuit sous la poutre, sans forme crue il reste coupé ; échouent sans le
+  correctif pour le joueur), `_chercher` au coût de la recherche, qualification ratée puis geste (trois
+  chaînes simulées, échouent sans le correctif). Suite (`tools/tests.py --processus 4`) **1577 tests, 15 sautés**, verte (459,8 s).
+  `VERIFIER` + `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42, Relais, mine, auberge, crue, `rixe` :
+  sans écart (recherches bornées à 8 h : mine 6, autres 0, comme après P), avant et après l'optimisation de
+  la clé. `comparer_bancs` contre 663b664, 8 h, 4 scénarios × 4 graines : chroniques, mesures, récits,
+  souvenirs, relevés, bilans et constats d'audit identiques nuit par nuit ; seules les empreintes d'état
+  diffèrent, par les données `passage` des obstacles et les croyances `passage` (état identique ces champs
+  retirés, vérifié sur 2 h, 4 scénarios × 2 graines) ; aucun PNJ n'emprunte de dessous ni de dessus. Temps
+  au processeur, `main` et la fusion lancés ensemble (`empreintes_nuits.py`, 8 h, 4 graines, deux processus
+  chacun), mêmes nuits et mêmes nœuds : avant l'optimisation Relais 17,1 → 18,4 s (+7,9 %), mine 50,7 →
+  55,8 s (+10,1 %), auberge 41,2 → 42,7 s (+3,6 %), crue 27,7 → 29,7 s (+7,1 %) ; après, 17,1 → 18,0 s
+  (+5,3 %), 51,0 → 53,6 s (+5,1 %), 39,0 → 40,7 s (+4,5 %), 27,5 → 28,5 s (+3,7 %). Ce qui reste : la preuve
+  de domination (`metrique_necessaire`, 1 183 appels sur trois heures de mine, dont 13 calculs réels, ~3 %
+  au profileur ; sa clé relit salles et obstacles à chaque appel) et `_marcher`. Luna (`banc_parties --fil`,
+  quatre passes en parallèle des sept bancs `sous-obstacle-*` et de `force-4c-fuir`, puis quatre passes de
+  `sous-obstacle-inconnu` après le correctif) : la question donne la fiche (ramper 12 s, bruit feutré, sans
+  jet ; enjamber 6 s) en 2 appels 12 fois sur 12, jamais « il faut une échelle » ; `tenter` : Corvus de
+  l'autre côté (Relais [6, 3], auberge [6, 4], lit [2, 0]), 12 s ou 6 s, obstacle toujours bloquant et
+  opaque, aucun PNJ déplacé, récit fidèle (« Tu rampes sous la poutre effondrée et rejoins le sol de l'autre
+  côté. ») ; examen après rechargement : les dimensions. Trop bas, trop haut, encombré (pied-de-biche) : la
+  raison du moteur, 2 appels, position et temps inchangés, 4 sur 4. Forme inconnue : avant le correctif,
+  le refus du moteur (1), un dialogue audité « tu n'en sais pas assez sur sa forme… examine-la de près »
+  (2) et le message technique (1) ; après, « Le dégagement sous l'obstacle et sa hauteur ne sont pas encore
+  décrits. » 4 sur 4, aucune forme enregistrée, mais 5 à 7 appels (Luna tente des qualifications, parfois
+  incohérentes, que la contre-revue physique refuse toutes). `force-4c-fuir` : `fuir` typé du premier
+  coup, 2 appels, fuite par la porte ; le récit relancé une fois sur deux (« deux pas »), comme à la fusion
+  de P. `banc_parties` note l'état rechargé après chaque tour (`etat` : place, temps, ce que porte Corvus,
+  personnages, formes et obstacles de la salle).
 - Branche `codex-force-4c`, fusionnée, base `main` 9520f77 : danger attribué par la
   perception, croyance datée de violence hors du récit borné, comparaison fuite/riposte par
   le graphe commun, protection par cri reconnu et examen du lieu, reddition sauvegardée,
@@ -234,7 +306,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Restes vus des deux côtés, sans lien avec H : la contre-revue juge individuelle une question « à
   quelqu'un » adressée à tous (relance) ; une ambiance rescapée par segments ; un récit qui situe un objet
   hors de vue « à deux cases vers le sud et deux vers l'est ».
-
 - Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
   quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
   seuil de désespoir : le suivi de secours survit à la mémoire bornée. Une recherche retient aussi
@@ -1974,7 +2045,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1553 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1577 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## À revoir
 
@@ -2010,6 +2081,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (`tous` jugé individuel, achat dit sans transfert) ; une ambiance encore assortie d'une précaution
   sur les bruits ; revus après N et M (`noms-dialogue` : « est-ce que quelqu'un a du bois ? » jugée
   individuelle, une relance) ; un récit qui situe un objet hors de vue en cases (« deux cases vers le sud »).
+
+- Passer sous un obstacle (`codex-sous-obstacle`) : gabarits humains par défaut (170 cm, 70 kg, carrure
+  déduite par convention, pas du portrait) ; un objet porté sans dimension compte pour un mètre, d'où
+  l'escalade refusée à qui porte un briquet ou une lanterne non décrits (85 cm au plus) ; forme inconnue :
+  la contre-revue physique refuse toute qualification de la poutre (« rien n'établit un vide sous elle ») et
+  Luna s'y essaie 5 à 7 appels avant le refus du moteur ; un récit situe encore la poutre « à une case vers
+  l'est ». Sans forme crue, le plan par salles ne sait pas qu'une salle est coupée (Gorm planifie une fuite
+  qu'il ne peut pas marcher). Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
+- Coût du planificateur en minute abstraite par salle (`obstacles.cout_route` : une minute par salle plus le
+  supplément réel d'un passage) : le lot trajets réels (`codex-trajets-reels`, en cours) devra absorber de O
+  `cout_route` et ses appelants (`Vue.allers`, `Vue.trajet`, `_chercher`, `part_estimee.aller`), les routes
+  mesurées de `obstacles.Parcours` (`duree_trajet`, `surcout_passages`), la preuve de domination
+  (`metrique_necessaire`, mémoire de 128 géométries recalculée sous `spatial.VERIFICATION`, à l'allure),
+  la case de départ dans `_entrees` quand le parcours métrique sert, la clé des routes par équipement
+  seulement en métrique, les arêtes de `_marcher` selon l'allure et la fuite du joueur
+  (`defense.chemin_fuite`), sans seconde fonction de route.
 
 ## Décisions en attente
 

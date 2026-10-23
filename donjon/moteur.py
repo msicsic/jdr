@@ -78,15 +78,17 @@ class Plan:
             lignes.extend((f"\nÉtape {i} — " if plusieurs else "") + p.resume(monde, afficher_avis=False)
                           for i, p in enumerate(self.plans, 1))
             if plusieurs:
-                lignes.append(f"Durée totale prévue : {self.minutes} min. Arrêt au premier échec ; les étapes déjà réussies restent acquises.")
+                from .temps import dire_duree, duree
+                lignes.append(f"Durée totale prévue : {dire_duree(duree(self))}. Arrêt au premier échec ; les étapes déjà réussies restent acquises.")
             lignes.append("« tenter » lance l'ensemble ; « annuler » abandonne sans exécuter aucune étape.")
             return texte(monde, "\n".join(lignes))
         lignes = [self.titre]
         if any(op == "frapper_personne" for op, _, _ in self.effets):
             return texte(monde, "\n".join([self.titre, self.information, self.risque]))
         if self.stat:
-            from .corps import malus
-            mod, corps = (monde.joueur["stats"][self.stat] - 10) // 2, malus(monde, self.stat)
+            from .caractere import modificateur
+            mod = (monde.joueur["stats"][self.stat] - 10) // 2
+            corps = modificateur(monde, "joueur", self.stat) - mod
             if self.oppose:
                 from .caractere import modificateur
                 adverse = f"contre la {self.stat} de {monde.objets[self.oppose]['nom'].split(',')[0]} " \
@@ -97,6 +99,8 @@ class Plan:
                           + (f', faim, froid ou fatigue {corps:+d}' if corps else '') + f', {adverse}.')
         else:
             lignes.append("Pas de jet nécessaire.")
+        if self.information:
+            lignes.append(self.information)
         if self.echec_critique:
             lignes.append("Risque sur un 1 naturel : outil endommagé.")
         if self.risque:
@@ -646,9 +650,10 @@ class Moteur:
             lignes.append("Tu te tournes vers " + ("l'" if plan.regard[0] in "eo" else "le ") + plan.regard + ".")
         reussite, jet = True, None
         if plan.stat:
-            from .corps import malus
+            from .caractere import modificateur
             jet = travail.d20()
-            mod, corps = (travail.joueur["stats"][plan.stat] - 10) // 2, malus(travail, plan.stat)
+            mod = (travail.joueur["stats"][plan.stat] - 10) // 2
+            corps = modificateur(travail, "joueur", plan.stat) - mod
             total = jet + mod + plan.bonus + corps
             contre = str(plan.dd)
             if plan.oppose:
@@ -765,6 +770,8 @@ class Moteur:
         adresse = geste == "crocheter" and plan.stat
         bruit = (nature_crochetage(plan.marge, methode == "discret") if adresse
                  else nature_de(geste, discret=methode == "discret", bruit=plan.bruit) if geste else None)
+        if geste == "passer_obstacle":
+            bruit = next((valeur["nature"] for op, _, valeur in plan.effets if op == "passer_obstacle"), bruit)
         gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
                                   exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")], nature=bruit)
                   for op, cible, _ in effets if op == "voler"]
@@ -781,7 +788,7 @@ class Moteur:
         # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``appel.dire``).
         retournes = [] if heles or reponses or any(op == "frapper_personne" for op, _, _ in effets) else retentir(
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
-            force=nature_emise(travail, effets) or (bruit if adresse else None))
+            force=nature_emise(travail, effets) or (bruit if adresse or geste == "passer_obstacle" else None))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
         # Le corps du joueur vit le temps de son geste dans l'état où il le fait : l'effort creuse,
         # attendre repose ; entrer dans l'eau trempe aussitôt. Le temps passé dans l'état précédent
@@ -904,9 +911,10 @@ class Moteur:
                 travail.data["entendus"] = []
             details, jet = [], None
             if p.stat:
-                from .corps import malus
+                from .caractere import modificateur
                 jet = travail.d20()
-                mod, corps = (travail.joueur["stats"][p.stat] - 10) // 2, malus(travail, p.stat)
+                mod = (travail.joueur["stats"][p.stat] - 10) // 2
+                corps = modificateur(travail, "joueur", p.stat) - mod
                 total = jet + mod + p.bonus + corps
                 reussite = jet != 1 and total >= p.dd
                 p.marge = total - p.dd if reussite else None
@@ -954,6 +962,10 @@ class Moteur:
     def _appliquer(m, effet, lignes):
         from .deliberation import changer_etat
         op, cible, valeur = effet
+        if op == "passer_obstacle":
+            from .obstacles import appliquer
+            appliquer(m, "joueur", cible, valeur, lignes)
+            return
         if op == "manger":
             from .corps import SATIETE, valeurs
             o = m.objets[cible]

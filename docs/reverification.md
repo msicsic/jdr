@@ -178,6 +178,10 @@ un bien qu'on croit dans sa salle. Audit 12 h, auberge : avertissements redits 4
 - **« Passer sous la poutre » répondu par « Il faut une échelle accessible et en état de servir. »**
   (2/2) : la question devient `franchir`, dont la seule méthode est l'échelle ; le joueur lit une raison
   qui ne répond pas à « passer dessous » (8 appels en passe 2).
+  Moteur traité par `codex-sous-obstacle` (tâche 19, fusionnée) : géométrie qualifiable,
+  passage local typé, fiche et trajets communs. Vérifié avec Luna à la fusion (quatre passes des
+  sept bancs `sous-obstacle-*`) : « est-ce que je pourrais passer sous la poutre effondrée ? » donne
+  la fiche (ramper, 12 s) en 2 appels, 4 fois sur 4, jamais « il faut une échelle » : clos.
 
 ## Défauts anciens
 

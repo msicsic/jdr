@@ -1,0 +1,33 @@
+{
+  "scenario": "auberge",
+  "seed": 1985,
+  "preparation": {
+    "salle": "chambre_chaude",
+    "position": [
+      0,
+      0
+    ],
+    "orientation": "est",
+    "calmes": [
+      "odile",
+      "mireille",
+      "tilo",
+      "joss",
+      "anselme",
+      "hugues",
+      "mathurine",
+      "lucien"
+    ],
+    "proprietes_objets": {
+      "chandelle_corvus": {
+        "allume": true
+      }
+    }
+  },
+  "tours": [
+    "est-ce que je pourrais enjamber le lit à rideaux ?",
+    "tenter",
+    "examiner lit à rideaux",
+    "quitter"
+  ]
+}

@@ -1011,7 +1011,15 @@
       "position_salle": "salle_commune",
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Un comptoir de chêne ciré, creusé par les coudes, derrière lequel pendent chopes et clés."
+      "description_visuelle": "Un comptoir de chêne ciré, creusé par les coudes, derrière lequel pendent chopes et clés.",
+      "passage": {
+        "degagement_cm": 0,
+        "hauteur_cm": 110,
+        "largeur_cm": 80,
+        "profondeur_cm": 80,
+        "charge_kg": 180,
+        "appuis": false
+      }
     },
     "table_longue": {
       "id": "table_longue",
@@ -1034,7 +1042,15 @@
       "position_salle": "salle_commune",
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Une longue table de chêne entourée de bancs, encore marquée par le souper."
+      "description_visuelle": "Une longue table de chêne entourée de bancs, encore marquée par le souper.",
+      "passage": {
+        "degagement_cm": 60,
+        "hauteur_cm": 80,
+        "largeur_cm": 80,
+        "profondeur_cm": 100,
+        "charge_kg": 180,
+        "appuis": true
+      }
     },
     "lampe_comptoir": {
       "id": "lampe_comptoir",
@@ -1170,7 +1186,15 @@
       "position_salle": "cuisine",
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Une grosse table de cuisine entaillée de coups de couteau."
+      "description_visuelle": "Une grosse table de cuisine entaillée de coups de couteau.",
+      "passage": {
+        "degagement_cm": 55,
+        "hauteur_cm": 85,
+        "largeur_cm": 80,
+        "profondeur_cm": 90,
+        "charge_kg": 180,
+        "appuis": true
+      }
     },
     "garde_manger": {
       "id": "garde_manger",
@@ -1243,7 +1267,15 @@
       "position_salle": "cellier",
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Un tonneau de cidre posé sur des cales."
+      "description_visuelle": "Un tonneau de cidre posé sur des cales.",
+      "passage": {
+        "degagement_cm": 10,
+        "hauteur_cm": 100,
+        "largeur_cm": 80,
+        "profondeur_cm": 80,
+        "charge_kg": 180,
+        "appuis": false
+      }
     },
     "lanterne_etable": {
       "id": "lanterne_etable",
@@ -1330,7 +1362,15 @@
       "pluriel": true,
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Deux stalles de bois où dorment un cheval de selle et une mule, serrés l'un contre l'autre."
+      "description_visuelle": "Deux stalles de bois où dorment un cheval de selle et une mule, serrés l'un contre l'autre.",
+      "passage": {
+        "degagement_cm": 0,
+        "hauteur_cm": 180,
+        "largeur_cm": 80,
+        "profondeur_cm": 100,
+        "charge_kg": 0,
+        "appuis": false
+      }
     },
     "paillasse_joss": {
       "id": "paillasse_joss",
@@ -1462,7 +1502,15 @@
       "position_salle": "chambre_chaude",
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Un lit à rideaux de serge, le seul de l'auberge qui soit vraiment chaud."
+      "description_visuelle": "Un lit à rideaux de serge, le seul de l'auberge qui soit vraiment chaud.",
+      "passage": {
+        "degagement_cm": 20,
+        "hauteur_cm": 55,
+        "largeur_cm": 80,
+        "profondeur_cm": 100,
+        "charge_kg": 200,
+        "appuis": true
+      }
     },
     "coffre_marchand": {
       "id": "coffre_marchand",
@@ -1621,7 +1669,15 @@
       "pluriel": true,
       "bloque_passage": true,
       "bloque_vue": false,
-      "description_visuelle": "Des caisses de fruits secs empilées sous la charpente."
+      "description_visuelle": "Des caisses de fruits secs empilées sous la charpente.",
+      "passage": {
+        "degagement_cm": 0,
+        "hauteur_cm": 150,
+        "largeur_cm": 80,
+        "profondeur_cm": 100,
+        "charge_kg": 100,
+        "appuis": true
+      }
     },
     "foin": {
       "id": "foin",

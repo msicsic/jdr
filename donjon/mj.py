@@ -675,7 +675,16 @@ class MJ:
                                                       reponse=parole_du_moteur(monde, intention), recadre=True)
                     if reponse["mode"] == "dialogue":
                         return reponse
-                    raise ErreurMonde("La correction des faits narratifs n'a pas abouti.")
+                    # Ni fait ni explication : aucun message de la boucle ne va au joueur. Le monde a
+                    # déjà dit ce qui manque au geste (sa raison répond) ; sinon le geste revenu suit
+                    # le chemin de son mode, une fois ; sinon rien n'est tenté.
+                    if refus_monde:
+                        return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
+                    if reponse["mode"] == "action" and not recadre:
+                        return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
+                                                      reponse=reponse, recadre=True)
+                    return {"mode": "dialogue", "texte": expliquer_refus(None, None), "faits": [],
+                            "proposition": None, "_validation_refusee": True, "_texte_moteur": True}
                 p = reponse["proposition"]
                 travail, texte, _ = preparer_faits(monde, p, revision)
             if suite_fait:
@@ -842,6 +851,10 @@ class MJ:
         franchissements = dossier_franchissement(monde) if enrichir else None
         if franchissements:
             faits["franchissements"] = franchissements
+        from .obstacles import dossier as dossier_obstacles, REGLES as REGLES_OBSTACLES
+        passages = dossier_obstacles(monde) if enrichir else None
+        if passages:
+            faits["passages_obstacles"] = passages
         from .espace import dossier as dossier_espace, REGLES as REGLES_ESPACE
         espace = dossier_espace(monde)
         if espace:
@@ -894,6 +907,8 @@ class MJ:
             instructions += REGLES_ATELIER
         if franchissements:
             instructions += REGLES_FRANCHISSEMENT
+        if passages:
+            instructions += REGLES_OBSTACLES
         if enrichir and espace:
             instructions += REGLES_ESPACE
         if retour_moteur:

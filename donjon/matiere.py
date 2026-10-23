@@ -52,6 +52,47 @@ SCHEMA = {
     "required": ["forme", "matiere", "dimensions", "pieces", "nom_piece"],
 }
 
+# L'encombrement dans la case et les vides autour de l'objet, indépendants du volume
+# de matière (une table creuse n'est pas un bloc plein de bois).
+PASSAGE = {"degagement_cm": (0, 500), "hauteur_cm": (1, 600),
+           "largeur_cm": (1, 100), "profondeur_cm": (1, 100), "charge_kg": (0, 2000)}
+SCHEMA_PASSAGE = {"type": "object", "additionalProperties": False,
+                  "properties": {**{k: {"type": "number"} for k in PASSAGE},
+                                 "appuis": {"type": "boolean"}},
+                  "required": [*PASSAGE, "appuis"]}
+
+
+def valider_passage(o, passage):
+    """Géométrie locale, sans passage permanent ni modification de l'opacité."""
+    if not o.get("bloque_passage"):
+        raise ErreurMonde("Cet objet ne barre pas le passage.",
+                          f"{o['id']}.bloque_passage={o.get('bloque_passage')} : accepté true.")
+    if not isinstance(passage, dict) or set(passage) != {*PASSAGE, "appuis"}:
+        raise ErreurMonde("La forme du passage est incomplète.",
+                          f"{o['id']}.passage={passage!r} : accepté exactement {', '.join(SCHEMA_PASSAGE['required'])}.")
+    for k, (bas, haut) in PASSAGE.items():
+        v = passage[k]
+        if type(v) not in (int, float) or not math.isfinite(v) or not bas <= v <= haut:
+            raise ErreurMonde("Une dimension du passage n'est pas plausible.",
+                              f"{o['id']}.passage.{k}={v!r} : accepté {bas}..{haut}.")
+    if type(passage["appuis"]) is not bool:
+        raise ErreurMonde("Les prises doivent être décrites.",
+                          f"{o['id']}.passage.appuis={passage['appuis']!r} : accepté true ou false.")
+    if passage["degagement_cm"] >= passage["hauteur_cm"]:
+        raise ErreurMonde("Le dessous ne peut pas être au-dessus du sommet.",
+                          f"{o['id']}.passage.degagement_cm={passage['degagement_cm']} : accepté < hauteur_cm={passage['hauteur_cm']}.")
+    return dict(passage)
+
+
+def decrire_passage(o):
+    p = o.get("passage")
+    if p is None:
+        return ""
+    return (f"Dégagement dessous : {p['degagement_cm']:g} cm ; sommet à {p['hauteur_cm']:g} cm du sol ; "
+            f"largeur libre : {p['largeur_cm']:g} cm ; profondeur à traverser : {p['profondeur_cm']:g} cm. "
+            + ("Des prises permettent de grimper. " if p["appuis"] else "Aucune prise pour grimper. ")
+            + f"Charge supportée : {p['charge_kg']:g} kg")
+
 
 def _dimensions_utiles(forme, dimensions):
     """Les dimensions qui comptent pour cette forme ; 0 marque une dimension sans objet."""
@@ -190,6 +231,11 @@ def decrire(o):
 
 def verifier(m):
     for o in m.objets.values():
+        if "passage" in o:
+            try:
+                valider_passage(o, o["passage"])
+            except ErreurMonde as exc:
+                raise AssertionError(str(exc)) from exc
         if "contenu" in o:
             assert o["contenu"].get("matiere") in SUBSTANCES, "Contenu inconnu"
         if "physique" in o:

@@ -30,7 +30,9 @@ def suites(v, e, lot, vises, but):
         if route is None:
             return None
         suivant = etat.apres(salle=salle)
-        return suivant, len(route) * (1 + v.pression(suivant))
+        # Le même coût de route que la recherche (``obstacles.cout_route`` : passages compris).
+        from .obstacles import cout_route
+        return suivant, cout_route(route) * (1 + v.pression(suivant))
 
     def faute(etat, objet):
         lese = v.proprietaire[objet] if v.illicite[objet] and not etat.fait("permis", objet) else None

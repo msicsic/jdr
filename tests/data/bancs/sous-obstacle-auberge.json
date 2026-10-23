@@ -1,0 +1,43 @@
+{
+  "scenario": "auberge",
+  "seed": 1985,
+  "preparation": {
+    "salle": "salle_commune",
+    "position": [
+      4,
+      4
+    ],
+    "orientation": "est",
+    "personnages": {
+      "lucien": {
+        "salle": "salle_commune",
+        "position": [
+          3,
+          4
+        ],
+        "orientation": "nord"
+      }
+    },
+    "calmes": [
+      "odile",
+      "mireille",
+      "tilo",
+      "joss",
+      "anselme",
+      "hugues",
+      "mathurine",
+      "lucien"
+    ],
+    "proprietes_objets": {
+      "chandelle_corvus": {
+        "allume": true
+      }
+    }
+  },
+  "tours": [
+    "est-ce que je pourrais passer sous la longue table ?",
+    "tenter",
+    "examiner longue table",
+    "quitter"
+  ]
+}

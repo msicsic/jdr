@@ -38,6 +38,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   caler <porte> avec <objet> | débloquer <porte>
   copier <motif> avec <matériau>
   installer échelle contre mur | monter échelle | descendre échelle
+  ramper sous <obstacle> | passer par-dessus <obstacle>  fiche du passage ; « tenter » pour agir
   désinstaller échelle                 retirer l'accès vertical depuis son pied ou son sommet
   fabriquer échelle                    assemblage local si les matériaux sont à portée
   attendre [durée]                     5 minutes, ou « attendre 30 s », « attendre 10 min » ; le bruit
@@ -266,6 +267,16 @@ def analyser(monde, texte):
     if est_question(texte):
         return None
     texte = normaliser(texte)
+    for prefixe, methode in (("ramper sous ", "dessous"), ("je rampe sous ", "dessous"),
+                              ("passer sous ", "dessous"), ("je passe sous ", "dessous"),
+                              ("passer par-dessus ", "dessus"), ("je passe par-dessus ", "dessus"),
+                              ("enjamber ", "dessus"), ("escalader ", "dessus")):
+        if texte.startswith(prefixe):
+            cible = _nomme(monde, texte[len(prefixe):], False)
+            if cible is None:
+                return None
+            from .operations import etape, sequence
+            return sequence(etape("passer_obstacle", cible, methode=methode))
     # Une prise explicite d'un objet nommé exactement ne nécessite pas de MJ.
     # Le complément entier doit correspondre : ne jamais avaler une condition,
     # une seconde action ou une précision telle que « discrètement ».

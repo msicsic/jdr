@@ -2074,7 +2074,15 @@
     0
    ],
    "position_salle": "galerie",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 0,
+    "hauteur_cm": 110,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 250,
+    "appuis": true
+   }
   },
   "biscuits": {
    "aliases": [
@@ -2288,7 +2296,15 @@
     1
    ],
    "position_salle": "bureau",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 55,
+    "hauteur_cm": 80,
+    "largeur_cm": 80,
+    "profondeur_cm": 80,
+    "charge_kg": 150,
+    "appuis": true
+   }
   },
   "bureau_murs": {
    "aliases": [
@@ -2493,7 +2509,15 @@
     0
    ],
    "position_salle": "entree",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 0,
+    "hauteur_cm": 200,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 0,
+    "appuis": false
+   }
   },
   "eboulis_2": {
    "aliases": [
@@ -2518,7 +2542,15 @@
     1
    ],
    "position_salle": "entree",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 0,
+    "hauteur_cm": 200,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 0,
+    "appuis": false
+   }
   },
   "eboulis_3": {
    "aliases": [
@@ -2543,7 +2575,15 @@
     2
    ],
    "position_salle": "entree",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 0,
+    "hauteur_cm": 200,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 0,
+    "appuis": false
+   }
   },
   "entree_murs": {
    "aliases": [
@@ -2611,7 +2651,15 @@
     3
    ],
    "position_salle": "filon",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 40,
+    "hauteur_cm": 80,
+    "largeur_cm": 80,
+    "profondeur_cm": 40,
+    "charge_kg": 20,
+    "appuis": false
+   }
   },
   "etais": {
    "aliases": [
@@ -3759,7 +3807,15 @@
     0
    ],
    "position_salle": "reserve",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 10,
+    "hauteur_cm": 200,
+    "largeur_cm": 80,
+    "profondeur_cm": 60,
+    "charge_kg": 100,
+    "appuis": true
+   }
   },
   "remy": {
    "aliases": [
@@ -3939,7 +3995,15 @@
     5
    ],
    "position_salle": "baraquement",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 0,
+    "hauteur_cm": 120,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 150,
+    "appuis": true
+   }
   },
   "table": {
    "aliases": [
@@ -3960,7 +4024,15 @@
     5
    ],
    "position_salle": "baraquement",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 60,
+    "hauteur_cm": 80,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 180,
+    "appuis": true
+   }
   },
   "treuil": {
    "aliases": [
@@ -3982,7 +4054,15 @@
     0
    ],
    "position_salle": "puits",
-   "type": "meuble"
+   "type": "meuble",
+   "passage": {
+    "degagement_cm": 0,
+    "hauteur_cm": 130,
+    "largeur_cm": 80,
+    "profondeur_cm": 100,
+    "charge_kg": 250,
+    "appuis": true
+   }
   },
   "vivres": {
    "aliases": [

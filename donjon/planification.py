@@ -228,6 +228,9 @@ class Vue:
                                    else taux(monde, id, "menace"))
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
+        from .obstacles import metrique_necessaire
+        self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
+        self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
         # par un plan de recherche. Il lui faut aussi l'a priori d'un inconnu.
@@ -463,7 +466,8 @@ class Vue:
                 if s != e.salle and not self.descente(e.salle, s):
                     route = self.route(e, s, ouvertes)
                     if route is not None:
-                        allers.append((s, len(route)))
+                        from .obstacles import cout_route
+                        allers.append((s, cout_route(route)))
             self._allers[cle] = allers
         return self._allers[cle]
 
@@ -475,12 +479,16 @@ class Vue:
         if trajet in self._trajets:
             return self._trajets[trajet]
         cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
-        cle = (e.salle, arrivee, cles, trajet[3])
+        # L'équipement entier ne compte que pour le parcours métrique (un passage sous ou sur un
+        # obstacle selon ce qu'on porte) ; sinon seules les clés changent la route.
+        equipement = e.portes if self._metrique else cles
+        cle = (e.salle, arrivee, equipement, trajet[3])
         if cle not in self._routes:
             # Le parcours depuis sa salle vaut pour toutes les arrivées (``pnj.parcours``).
-            depuis = (e.salle, cles, trajet[3])
+            depuis = (e.salle, equipement, trajet[3])
             if depuis not in self._parcours:
-                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3])
+                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3], e.portes,
+                                                        metrique=self._metrique)
             self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3],
                                              self._parcours[depuis])
         self._trajets[trajet] = self._routes[cle]
@@ -616,8 +624,9 @@ class Vue:
             return 0
         cle = ("trajet", depart_, arrivee)
         if cle not in self._crus:
-            route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset())
-            self._crus[cle] = 0 if route is None else len(route)
+            route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset(), metrique=self._metrique)
+            from .obstacles import cout_route
+            self._crus[cle] = 0 if route is None else cout_route(route)
         return self._crus[cle]
 
     def feu_noye(self):
@@ -1032,7 +1041,7 @@ def peine_tache(v, e, condition):
 def prix_tache(peine):
     """Ce qu'il offre pour une tâche : une pièce par ``SALAIRE`` minutes de peine. Il ne sait pas ce
     que vaut une pièce pour l'autre : il paie la peine."""
-    return max(1, -(-peine // SALAIRE))
+    return max(1, math.ceil(peine / SALAIRE))
 
 
 def hausse(prix):
@@ -1225,12 +1234,14 @@ def _chercher(v, e, sujet):
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
         return None
-    salle = min(routes, key=lambda s: (visites.get(s, -1), len(routes[s]), s))
+    from .obstacles import cout_route
+    # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
+    salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s]), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
     etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
         {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet}), "suppose": True}]
-    return 0, len(routes[salle]) + 1 + CHERCHER, etapes, e.apres(
-        salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)]), len(routes[salle]) + 1
+    return 0, cout_route(routes[salle]) + 1 + CHERCHER, etapes, e.apres(
+        salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)]), cout_route(routes[salle]) + 1
 
 
 def depart(monde, id, v=None):
@@ -1258,6 +1269,9 @@ def _entrees(v, vises, profondeur, noeuds):
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
     from .signes import actives
+    # Le parcours métrique lit les positions crues des obstacles, et sa case de
+    # départ actuelle. Aucun champ neuf sans géométrie crue (identité des nuits).
+    passages, metrique = v._passages_crus, v._metrique
     return json.dumps([
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
@@ -1299,7 +1313,13 @@ def _entrees(v, vises, profondeur, noeuds):
         # Admissibilité de l'agression et coûts des réactions ; ces lectures doivent aussi
         # invalider les deux graphes et le certificat, pas seulement le résultat final.
         [[x, v.violence(x) is not None] for x in v.personnes()],
-        _entrees_defense(v, vises)], ensure_ascii=False, check_circular=False)
+        _entrees_defense(v, vises),
+        # Le parcours métrique : positions crues des obstacles de forme connue, et la
+        # case de départ quand la preuve de domination ne l'écarte pas.
+        ([metrique, monde.objets[id].get("position") if metrique else None,
+          [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
+           if "lieu" in d and monde.objets.get(s, {}).get("bloque_passage")]] if passages else None)
+        ], ensure_ascii=False, check_circular=False)
 
 
 def _ordre_visites(salles, visites):

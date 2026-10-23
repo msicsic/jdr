@@ -21,6 +21,9 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o.get("physique"):
         from .matiere import decrire as decrire_physique
         complements.append(decrire_physique(o))
+    if "passage" in o:
+        from .matiere import decrire_passage
+        complements.append(decrire_passage(o))
     if o.get("contenu"):
         from .matiere import decrire_contenu
         complements.append(decrire_contenu(o))

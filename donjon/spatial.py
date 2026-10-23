@@ -139,6 +139,13 @@ def installer(m):
 def _case_interieure(m, salle, sortie):
     direction = next((d for d, s in m.data["salles"][salle].get("sorties", {}).items()
                       if s is sortie), None)
+    if direction is None and isinstance(sortie, dict):
+        # Une route peut porter des mesures supplémentaires sur une copie de la
+        # sortie. Son identité spatiale est case/vers/porte, pas l'identité Python.
+        correspondances = [d for d, s in m.data["salles"][salle].get("sorties", {}).items()
+                           if all(s.get(k) == sortie.get(k) for k in ("case", "vers", "porte"))]
+        if len(correspondances) == 1:
+            direction = correspondances[0]
     if direction not in VECTEURS or len(sortie.get("case", ())) != 2:
         return None
     dx, dy = VECTEURS[direction]
@@ -1236,20 +1243,24 @@ def _pas(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
 
 
 def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True,
-           solides=True):
+           solides=True, passages=None, allure=None, releve=None):
     """Le chemin le plus court en temps, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
     [(salle, case, porte fermée à franchir ou None, sens du pas)], vide si l'on y est déjà, None
     sans passage. Chaque pas coûte sa durée (``temps.duree_pas`` : en diagonale, √2 fois un pas
     droit) ; à durée égale, l'ordre de découverte départage (les sens dans l'ordre de ``VECTEURS``
     triés), sans hasard.
     Une porte fermée se franchit si ``franchissable(porte)`` ; ``libre`` écarte les cases occupées.
-    Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent."""
+    Sans ``solides``, les obstacles sont ignorés : le chemin qu'ils barrent.
+    ``passages`` fournit des arêtes (destination, règle, sens, durée), dont le
+    troisième champ du chemin porte la règle à revalider, plutôt qu'une porte.
+    ``releve`` reçoit coût et prédécesseur de chaque case atteinte pour un parcours complet."""
     from .temps import PAS_JOUEUR, duree_pas
+    allure = PAS_JOUEUR if allure is None else allure
     pas_de = _pas_possibles(m, solides)
     depart = (salle, tuple(position))
     if arrivee(*depart):
         return []
-    sens = [(vecteur, duree_pas(PAS_JOUEUR, vecteur)) for vecteur in sorted(set(VECTEURS.values()))]
+    sens = [(vecteur, duree_pas(allure, vecteur)) for vecteur in sorted(set(VECTEURS.values()))]
     couts, precedent, ordre = {depart: 0}, {depart: None}, 0
     file, faits = [(0, 0, depart)], set()
     while file:
@@ -1257,6 +1268,8 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
         if courant in faits:
             continue
         faits.add(courant)
+        if releve is not None:
+            releve[courant] = (cout, precedent[courant])
         if courant != depart and arrivee(*courant):
             chemin = []
             while precedent[courant]:
@@ -1264,13 +1277,18 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
                 chemin.append((courant[0], courant[1], porte, vecteur))
                 courant = avant
             return chemin[::-1]
+        suites = []
         for vecteur, duree in sens:
             pas = pas_de(courant[0], courant[1], vecteur)
             if pas is None:
                 continue
             suivant, porte = pas
+            suites.append((suivant, porte, vecteur, duree))
+        if passages:
+            suites.extend(passages(*courant))
+        for suivant, porte, vecteur, duree in suites:
             if (suivant in faits or cout + duree >= couts.get(suivant, cout + duree + 1) or not libre(*suivant)
-                    or porte and not franchissable(porte)):
+                    or isinstance(porte, str) and porte and not franchissable(porte)):
                 continue
             couts[suivant] = cout + duree
             precedent[suivant] = (courant, porte, vecteur)

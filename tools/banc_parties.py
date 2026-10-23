@@ -36,7 +36,8 @@ REPLIS = ("Je ne peux pas encore", "Rien de ce que tu perçois ou sais ne permet
           "Réponse du MJ invalide", "Le contrôle narratif n'a pas abouti",
           "n'a pas terminé", "Aucune action appliquée", "Aucun changement enregistré",
           "Aucun ajout enregistré", "Aucun engagement enregistré")
-LANCEMENT = {"relais": ["--defi"], "atelier": ["--atelier", "--cases"], "crypte": ["--cases"]}
+LANCEMENT = {"relais": ["--defi"], "atelier": ["--atelier", "--cases"], "crypte": ["--cases"],
+             "mine": ["--mine"], "auberge": ["--auberge"], "crue": ["--crue"]}
 
 
 class BudgetEpuise(RuntimeError):
@@ -70,6 +71,22 @@ class Compteur:
             mj.journal_complet, mj.reflexion = compteur.fil, compteur.reflexion
 
         MJOpenAI._appeler_brut, MJOpenAI.__init__ = appeler_brut, init
+
+
+def resume_etat(m):
+    """Ce que la sauvegarde rechargée établit après le tour : place et temps du joueur, ce qu'il
+    porte, les personnages et les formes de passage décrites dans sa salle (relecture des bancs)."""
+    from donjon.esprits import pnjs
+    from donjon.spatial import porte_par
+    from donjon.temps import instant
+    salle = m.joueur["salle"]
+    return {"salle": salle, "position": m.joueur.get("position"), "orientation": m.joueur.get("orientation"),
+            "dixiemes": instant(m), "jets": m.data.get("jets"),
+            "porte": sorted(i for i in m.objets if porte_par(m, i, "joueur")),
+            "personnages": {i: [m.objets[i]["lieu"], m.objets[i].get("position")] for i in pnjs(m)},
+            "passages": {i: o["passage"] for i, o in m.objets.items() if o.get("lieu") == salle and "passage" in o},
+            "bloquants": sorted(i for i, o in m.objets.items()
+                                if o.get("lieu") == salle and o.get("bloque_passage"))}
 
 
 class Interface:
@@ -117,6 +134,8 @@ class Interface:
             tour["fil"] = [t for t in traces if t.get("etape") in ("appel", "validation", "contrôle narratif",
                                                                    "couverture de l'action",
                                                                    "repli du contrôle narratif") or t.get("erreur")]
+        if apres is not None:
+            tour["etat"] = resume_etat(apres)
         self.affiches.append(texte)
         self.tours.append(tour)
 
@@ -155,6 +174,9 @@ def preparer(donnees, sauvegarde):
     elif donnees["scenario"] == "atelier":
         from donjon.atelier import nouveau_atelier
         m = nouveau_atelier()
+    elif donnees["scenario"] in ("mine", "auberge", "crue"):
+        from donjon.banc_pnj import creer
+        m = creer(donnees["scenario"], seed, "fixe")
     else:
         from donjon.monde import nouveau_monde
         m = nouveau_monde(seed)
@@ -189,6 +211,14 @@ def preparer(donnees, sauvegarde):
     for id, lieu in prep.get("lieux", {}).items():
         # Placement d'auteur : un objet déjà en main ou ailleurs, pour cibler une scène.
         m.objets[id]["lieu"] = lieu
+    for id, proprietes in prep.get("proprietes_objets", {}).items():
+        # Données d'auteur du banc, contrôlées à la sauvegarde ; null retire une
+        # propriété pour éprouver aussi le contrat d'une donnée inconnue.
+        for cle, valeur in proprietes.items():
+            if valeur is None:
+                m.objets[id].pop(cle, None)
+            else:
+                m.objets[id][cle] = valeur
     for id, besoins in prep.get("besoins", {}).items():
         esprit(m, id)["besoins"].update(besoins)
     for id, valeurs in prep.get("valeurs", {}).items():

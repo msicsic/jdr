@@ -13,10 +13,10 @@ from .refus import inaccessible, liste, portes_avec_usage
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
 ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper", "frapper",
                        "bloquer", "debloquer")
-OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "emettre_son",
+OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "passer_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "assommer", "appui_mobile", "appel", "cri", "sifflement",
-            "heler", "repondre", "arriver", "demander_raison")
+            "heler", "repondre", "arriver", "demander_raison", "dessous", "dessus")
 
 
 def etape(operation, cible="", destination="", outil="", methode="simple", difficulte=0):
@@ -135,6 +135,9 @@ def a_portee(monde, id):
 def compiler(monde, e, precedent=None, justification="", origine="règles"):
     from .moteur import Plan
     verifier_etape(e)
+    if e["operation"] == "passer_obstacle":
+        from .obstacles import compiler as compiler_passage
+        return compiler_passage(monde, e, justification, origine)
     if e["operation"] == "sauter":
         from .espace import compiler_saut
         return compiler_saut(monde, e, justification, origine)
@@ -521,6 +524,8 @@ def preparer(monde, proposition, origine):
     if premier_jet.origine == "arbitrage mémorisé":
         resultat.origine = premier_jet.origine
     resultat.minutes = sum(p.minutes for p in plans)
+    from .temps import duree
+    resultat.dixiemes = sum(duree(p) for p in plans)
     resultat.bruit = sum(p.bruit for p in plans)
     resultat.echec_critique = [effet for p in plans for effet in p.echec_critique]
     return resultat
