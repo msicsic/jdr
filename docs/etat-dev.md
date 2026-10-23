@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-relations-3c`, **non fusionnée** : signes physiques et impressions
+  faillibles, colère, décisions de place/regard, lectures `devine`, flux de dés séparés
+  par observateur, garde et doute d’un mensonge. `observer <personnage>` est local,
+  consomme trois secondes ; rendu, carte et rejeu montrent leurs projections respectives.
+  Humeur retirée ; `banc_pnj --regler gorm.PSY=16` disponible. Pas de 3d–3g.
+  Référence mesurée `origin/main` récupéré à `a7ecb50` (le `main` local est antérieur).
+  Suite complète : **1 437 tests, 4 ignorés**, sans échec ni erreur ; huit contrôles
+  `VERIFIER`/`VERIFICATION` 2 h puis 8 h sans écart ni borne. Banc complet 20 nuits
+  de référence puis 20 de branche, plus 24 nuits PSY, lots successifs à trois processus.
+  Nouveau compteur `vols_vus_nuit` au registre, indépendant des souvenirs finaux ;
+  les 40 états finaux restent identiques avec cette instrumentation.
+  **Critère global non atteint** : justesse haute insuffisante, 41,3 % de méprises par
+  défaut, coût CPU au-delà de +20 % hors auberge, baisse des vols vus non entièrement
+  expliquée par dissuasion. Limites de la dissimulation, du joueur et des nuits libres
+  détaillées dans le rapport ; calibration à reprendre, aucune exception de scénario.
+  Luna **non vérifiée sur instruction de l’utilisateur** ; scènes versionnées et saisies,
+  formes typées, appels nominaux et affichages attendus dans le
+  [rapport de la tâche 11](taches/rapport-codex-11-relations-3c.md).
+
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,
