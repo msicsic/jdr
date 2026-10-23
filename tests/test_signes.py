@@ -159,7 +159,7 @@ class SignesTests(unittest.TestCase):
                 self.assertTrue(any(s["personnage"] == "brune" and s["signe"] == "attend"
                                     for s in signes.percus(m, "marchand")))
                 # Même dé contrôlé pour isoler l'effet de PSY sur le cas réel.
-                with patch("donjon.signes._jet", return_value=18):
+                with patch("donjon.signes._jet", return_value=17):
                     signes.lire(m, "marchand")
                     Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "0.1")))
                 m = recharger(m)

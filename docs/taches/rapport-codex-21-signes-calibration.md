@@ -48,12 +48,27 @@ Les mesures de nuits avant/après restent à consigner.
 
 ## 3. Calibration
 
-La grille sera commune à tous : pénombre 4/3/2, dissimulation 5/4/3,
-bande sans interprétation 5/7/9. Le dé, les bonus de familiarité et d'observation,
+La grille est commune à tous : pénombre 4/3/2, dissimulation 5/4/3,
+bande sans interprétation de 5 à 11 (63 combinaisons). Le dé, les bonus de familiarité et d'observation,
 la distance, le seuil de réussite et les sens des méprises ne changent pas.
 L'étude conditionnelle rejugera les jets d'un corpus enregistré ; une nuit libre
 avec le réglage retenu vérifiera ensuite les rétroactions sur les décisions.
-Ces deux mesures seront distinguées dans les résultats.
+Ces deux mesures sont distinguées dans les résultats.
+
+Corpus initial terminé : 48 nuits libres de 8 h, quatre graines, quatre scénarios
+par défaut et Gorm/Hugues à PSY 8/11/14/16. Tous les essais, même les
+rafraîchissements sans ligne de chronique, sont enregistrés par l'instrumentation
+de `interpreter` et `_jet`. Aucun état de partie n'est retouché pour les recueillir.
+
+Choix provisoire à confirmer en nuits libres : **pénombre −4, dissimulation +4,
+bande rien 9**. Aucune des 63 combinaisons ne passe les trois bornes ensemble.
+Le choix minimise le plus grand dépassement absolu d'une borne de probabilité,
+puis leur somme ; aucune pondération par personnage ou scénario. Dans le corpus
+rejugé : justesse Gorm 14/16 = 0,831/0,888, Hugues 14/16 = 0,806/0,846 ;
+méprises par défaut 19,93 %, abstention 45,59 %. La borne basse manque encore :
+Gorm 8 = 0,638, Hugues 8 = 0,605, pour un plafond de 0,6. Le critère global
+n'est donc pas déclaré atteint. Le jet contrôlé de la capture réelle passe de
+18 à 17 pour garder la même marge de frontière avec la DD abaissée d'un point.
 
 ## 4. Observer sans voir
 

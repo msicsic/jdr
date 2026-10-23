@@ -18,8 +18,8 @@ ATTITUDE_MAX = 120
 COLERE_DEMIVIE = 15
 GUET = 1                 # minute d'attente avant que sa durée soit un signe
 PENOMBRE = 4
-DISSIMULATION = 5
-BANDE_RIEN = 5
+DISSIMULATION = 4
+BANDE_RIEN = 9
 
 # sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel
 SIGNES = {
