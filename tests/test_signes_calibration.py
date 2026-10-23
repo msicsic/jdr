@@ -225,6 +225,11 @@ class ObserverSansVoirTests(unittest.TestCase):
                     self.assertIn("cette personne", str(refus.exception).lower())
                     self.assertIn(mot, str(refus.exception))
                     self.assertIn("ilse", refus.exception.attendu)
+                    acceptes = refus.exception.attendu.split("acceptés : ", 1)[1]
+                    self.assertIn("'scene'", acceptes)
+                    for cible, o in m.objets.items():
+                        if o["type"] != "personnage":
+                            self.assertNotIn(repr(cible), acceptes)
                     chemin = Path(dossier) / "partie.json"
                     m.sauver(chemin)
                     avant = copy.deepcopy(m.data)

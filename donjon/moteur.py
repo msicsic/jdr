@@ -319,7 +319,9 @@ class Moteur:
             if cible in m.objets and m.objets[cible]["type"] == "personnage":
                 if not m.visible(cible):
                     from .refus import perception
-                    raise perception(m, cible, "observer.cible")
+                    acceptes = ["", "scene", "lumiere", "contexte", *sorted(
+                        id for id, o in m.objets.items() if o["type"] == "personnage" and m.visible(id))]
+                    raise perception(m, cible, "observer.cible", acceptes)
                 plan.titre, plan.minutes, plan.dixiemes, plan.effort = "Observer cette personne.", 0, 30, False
                 return plan
             if cible not in ("", "scene", "lumiere", "contexte"):

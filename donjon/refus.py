@@ -69,11 +69,13 @@ def inaccessible(m, id, champ="cible", filtre=None):
                        f"vise ce qui est perçu : {candidats}.")
 
 
-def perception(m, id, champ="cible"):
+def perception(m, id, champ="cible", acceptes=None):
     """Une seule cause sensorielle, déterminée par le monde avant tout récit."""
     o = m.objets[id]
     designation = "cette personne" if o["type"] == "personnage" else "cet objet"
-    valables = f"{champ} : reçu {id!r} hors de vue ; acceptés : {liste(a_portee(m, lambda x: m.visible(x['id'])))}."
+    if acceptes is None:
+        acceptes = a_portee(m, lambda x: m.visible(x["id"]))
+    valables = f"{champ} : reçu {id!r} hors de vue ; acceptés : {liste(map(repr, acceptes))}."
     if not m.present_physique(id):
         accord = "présente" if o["type"] == "personnage" else "présent"
         return ErreurMonde(designation.capitalize() + " n'est pas " + accord + " ici.",
