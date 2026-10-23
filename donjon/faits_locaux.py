@@ -265,6 +265,10 @@ def preparer_faits(monde, proposition, revision=None):
             raise refus("Fait narratif mal formé.",
                         f"champs exacts {', '.join(sorted(champs))} ; reçu : {', '.join(sorted(ajout))}.")
         ancrage = ajout["ancrage"]
+        from .narration import verifier_unites
+        for champ in ("nom", "texte"):
+            if isinstance(ajout.get(champ), str):
+                verifier_unites(ajout[champ], f"proposition.ajouts[{index - 1}].{champ}")
         if nature!='parole':
             from .narration import voix_inconnues
             for champ in ('nom','texte'):
@@ -311,6 +315,7 @@ def preparer_faits(monde, proposition, revision=None):
                     physique = valider_physique(cible, ajout["physique"])
                 except ErreurMonde as exc:
                     raise refus(str(exc), exc.attendu) from None
+                verifier_unites(physique.get("nom_piece", ""), f"proposition.ajouts[{index - 1}].physique.nom_piece")
                 appliquer_physique(cible, physique)
                 rendus.append(designer(cible, debut=True) + " : " + decrire_physique(cible) + ".")
                 etablis.append({"type": nature, "objet": ancrage, "physique": physique})

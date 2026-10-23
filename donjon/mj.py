@@ -45,7 +45,7 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
                                  controler as controler_physique)
 from .moteur import QualificationRequise
 from .proximite import HorsDePortee
-from .refus import RapportIllisible, RefusDeForme, audit as refus_audit, audit_illisible, depuis_refus
+from .refus import RapportIllisible, RefusDeForme, ProprieteInconnue, audit as refus_audit, audit_illisible, depuis_refus
 from .transactions import ajouter as ajouter_transaction
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
@@ -294,10 +294,17 @@ def refus_assure(monde, intention, reponse, deja_renvoyee=False, impossible_admi
     if preparer is None or not isinstance(p, dict):
         return ""
     try:
-        preparer(monde, p, monde.data["revision"])
+        preparer(monde, sans_suite(p) if mode == "etablir_faits" else p, monde.data["revision"])
     except ErreurMonde as exc:
         return str(exc)
     return ""
+
+
+def sans_suite(proposition):
+    """Les faits persistants et leur geste suivant ont deux validations distinctes."""
+    if isinstance(proposition, dict) and set(proposition) == {"ajouts", "suite"}:
+        return {"ajouts": proposition["ajouts"]}
+    return proposition
 
 
 class ExplicationCedee(ErreurMonde):
@@ -557,22 +564,22 @@ class MJ:
                 try:
                     plan = Moteur(monde).preparer(p, "MJ")
                 except ErreurMonde as exc:
+                    if isinstance(exc, ProprieteInconnue) and geste_en_question(monde, intention):
+                        # Une inconnue physique n'est pas une erreur de saisie du
+                        # plan : une fiche répond avec ce qui manque, sans inventer
+                        # les préconditions favorables au geste. Une demande de
+                        # geste, elle, garde la voie de qualification puis réexamen.
+                        if self.observateur:
+                            self.observateur({"etape": "validation", "modele": self.modele,
+                                "intention": intention, "revision": revision,
+                                "tentative": tentative + 1,
+                                **retour_refus(p, exc, "Une propriété reste à décrire ; rien n'est tenté.")})
+                        return reponse_du_moteur(exc)
                     if not isinstance(exc, (QualificationRequise, RefusDeForme)):
                         if str(exc) not in map(str, refus_monde):
                             refus_monde.append(exc)
                         if p.get("action") not in PERCEPTIONS:
                             refus_du_moteur = exc
-                            if geste_en_question(monde, intention):
-                                # Une fiche de faisabilité ne transforme pas un manque
-                                # réel en demande de correction. Le monde répond dès
-                                # le premier refus ; seuls les champs mal formés et
-                                # les qualifications explicitement requises se corrigent.
-                                if self.observateur:
-                                    self.observateur({"etape": "validation", "modele": self.modele,
-                                        "intention": intention, "revision": revision,
-                                        "tentative": tentative + 1,
-                                        **retour_refus(p, exc, "Le refus du monde répond à la question ; rien n'est tenté.")})
-                                return reponse_du_moteur(exc)
                     raise
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
@@ -675,8 +682,12 @@ class MJ:
                 {"mode": "dialogue", "texte": reponse_profil(travail, p), "faits": ["joueur"],
                  "proposition": None, "_texte_moteur": True}, "profil_joueur", revision, p)
         if reponse["mode"] == "etablir_faits":
-            p = reponse["proposition"]
+            suite_proposee = reponse["proposition"].get("suite")
+            p = sans_suite(reponse["proposition"])
             try:
+                if suite_proposee is not None and not isinstance(suite_proposee, dict):
+                    raise RefusDeForme("Le geste suivant doit être précisé.",
+                                       f"proposition.suite={suite_proposee!r} : accepté une proposition d'action.")
                 travail, texte, _ = preparer_faits(monde, p, revision)
             except ErreurMonde as exc:
                 retour = retour_refus(p, exc, "Revois les ancrages et les faits actuels. Ne raconte pas un fait refusé.")
@@ -699,11 +710,23 @@ class MJ:
                                                       reponse=reponse, recadre=True)
                     return {"mode": "dialogue", "texte": expliquer_refus(None, None), "faits": [],
                             "proposition": None, "_validation_refusee": True, "_texte_moteur": True}
-                p = reponse["proposition"]
+                suite_proposee = reponse["proposition"].get("suite")
+                p = sans_suite(reponse["proposition"])
                 travail, texte, _ = preparer_faits(monde, p, revision)
             if suite_fait:
                 # Un seul groupe de faits par tour : le réexamen ne relance pas l'invention.
                 raise ErreurMonde("Le réexamen après un fait établi a proposé d'autres faits.")
+            if suite_proposee is not None:
+                # Une seule interprétation, deux propositions typées : les faits
+                # ne valent pas validation du geste. Celui-ci passe par toutes
+                # les validations ordinaires, sur la copie où les faits existent.
+                suite_proposee = copy.deepcopy(suite_proposee)
+                if "justification" in suite_proposee:
+                    suite_proposee["justification"] = ""
+                suite = self._echanger_prepare(travail, intention, proposition_en_attente,
+                    suite_fait=True, reponse={"mode": "action", "texte": "", "faits": [],
+                                             "proposition": suite_proposee})
+                return ajouter_transaction(suite, "faits", revision, p, debut=True)
             qualification = any(a["type"] == "qualification" for a in p["ajouts"])
             manipulable = any(a["type"] == "objet" for a in p["ajouts"])
             if qualification or (manipulable and not est_question(intention)):
@@ -909,13 +932,23 @@ class MJ:
             locuteur = reel(monde, reference)
             if locuteur in monde.objets:
                 esprit["nom_du_locuteur"] = monde.objets[locuteur]["nom"].split(",")[0]
+        schema_faits_suite = copy.deepcopy(SCHEMA_FAITS)
+        schema_geste = copy.deepcopy(SCHEMA)
+        schema_geste["properties"]["action"]["enum"] = [
+            a for a in schema_geste["properties"]["action"]["enum"] if a not in ("clarifier", "impossible")]
+        schema_faits_suite["properties"]["suite"] = {
+            "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
+            "anyOf": [schema_geste, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]}
+        schema_faits_suite["required"].append("suite")
+        schemas_faits = ([schema_faits_suite] if geste_en_question(monde, intention)
+                         else [SCHEMA_FAITS, schema_faits_suite])
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_PAROLE] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + ([SCHEMA_FAITS] if any(faits_disponibles.values()) else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_PAROLE] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
@@ -1220,7 +1253,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     if monde is not None:
                         # Forme, bornes, masse et propriétés déjà connues sont
                         # jugées par le moteur avant toute appréciation sémantique.
-                        preparer_faits(monde, reponse["proposition"], monde.data["revision"])
+                        preparer_faits(monde, sans_suite(reponse["proposition"]), monde.data["revision"])
                     audit = appeler_brut(INSTRUCTIONS_PHYSIQUE,
                                         {"qualifications": qualifications,
                                          "scenario": entree.get("faits", {}).get("scenario", {})},

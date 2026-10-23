@@ -13,7 +13,7 @@ from .perception import avancer_combustion, eclairage
 from .dialogues import verifier_remise, payer_remise
 from .vol import proprietaire, appliquer as appliquer_vol
 from .capacites_objet import statut as statut_capacite, absence as absence_capacite
-from .refus import inaccessible, liste, portes_avec_usage
+from .refus import inaccessible, liste, portes_avec_usage, ProprieteInconnue
 
 
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
@@ -26,13 +26,13 @@ TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tra
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 
 
-class QualificationRequise(ErreurMonde):
+class QualificationRequise(ProprieteInconnue):
     """Une propriété de la cible est inconnue, sans conclure à un échec fictif."""
 
     def __init__(self, cible, capacite):
         self.cible = cible
         self.capacite = capacite
-        super().__init__(f"La capacité {capacite} de {cible} reste à établir.",
+        super().__init__("Tu ne sais pas encore si cet objet se prête à ce geste.",
                          f"propose d'abord etablir_faits avec une qualification de « {capacite} » pour {cible} "
                          "(pour une coupe : objet, moyen et coupe_possible) ; l'intention sera réexaminée ensuite.")
 

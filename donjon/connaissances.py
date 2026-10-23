@@ -84,6 +84,8 @@ def preparer_savoirs(monde, proposition, revision=None):
         if not 3 <= len(texte) <= 600 or any(ord(c) < 32 for c in texte):
             raise ErreurMonde("Texte de connaissance vide, trop long ou contenant des caractères de contrôle.",
                               "texte : 3 à 600 caractères, sans saut de ligne.")
+        from .narration import verifier_unites
+        verifier_unites(texte, "proposition.savoirs.texte")
         connus[sujet] = {"texte": texte, "origine": "MJ", "revision": revision_suivante}
     travail.data["revision"] = revision_suivante
     travail.data["ajouts_savoirs"].append({"revision": revision_suivante, **copy.deepcopy(proposition)})

@@ -216,7 +216,7 @@ calculés en mètres : le plan représente un mètre par unité. Les positions b
 restent privées, comme celles du joueur et des objets. Le récit n'utilise ni cases ni coordonnées.
 Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du quadrillage et les
 écritures de coordonnées, y compris dans les répliques et les ajouts persistants ; ce contrôle
-est refait avant l'enregistrement d'une narration. La carte technique conserve ses axes et sa
+est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d'un savoir. La carte technique conserve ses axes et sa
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
 
 La revue d'une parole sépare deux jugements sémantiques : les `audiences_fideles` à la demande
@@ -239,11 +239,23 @@ vide et les appuis autour d'un obstacle ; aucune forme ni donnée de scénario n
 automatiquement. La plausibilité par rapport au nom et au texte reste sémantique. Le moteur
 garde ses contrôles numériques et interdit de réécrire une forme déjà établie.
 
-Une question explicite de faisabilité dont le geste rencontre un refus du monde reçoit cette
-raison dès le premier refus, sans correction d'une proposition correctement formée. Les refus
-de forme et les qualifications explicitement requises par une mécanique gardent leur voie de
-correction. Si Luna commence par une qualification valable, elle est enregistrée avant la fiche
+Une question explicite de faisabilité dont le geste attend une propriété physique inconnue
+(`ProprieteInconnue`, dont `QualificationRequise` pour la coupe, le son et la lumière) reçoit cette
+raison dès le premier refus : une fiche ne doit pas inventer ses préconditions. Une demande de
+geste garde la voie de qualification puis réexamen lorsque la mécanique la demande. Les autres refus, dont un outil disponible
+mais omis du plan, gardent leur voie de correction. Si Luna commence par une qualification valable, elle est enregistrée avant la fiche
 et le geste est réexaminé selon le contrat existant.
+
+`etablir_faits` peut joindre aux `ajouts` une `suite`, proposition du geste demandé. Pour une
+question de faisabilité, le schéma exige cette suite si Luna choisit d'établir des faits.
+Il s'agit de deux propositions dans un même appel : les ajouts passent les contrôles physiques
+sur copie, puis le geste passe la préparation du moteur et sa contre-revue de fidélité sur
+cette copie. Les faits acceptés sont sauvegardés avant la fiche ; la question n'exécute aucun
+geste. Une propriété inconnue reçoit donc soit son manque dès la préparation, soit une
+qualification et une fiche en trois appels (interprétation, physique, fidélité), sans supprimer
+de contrôle ni demander une nouvelle interprétation. Cette composition vaut pour tous les
+faits, pas seulement pour la forme d'un obstacle. Les propositions incorrectes peuvent encore
+demander une correction ; trois appels n'est pas une borne absolue en présence d'erreurs du MJ.
 
 L'absence d'un fait ne prouve pas son contraire. Un verdict narratif `contradictoire` doit citer
 au moins une source fournie : sans elle, le rapport est redemandé à l'auditeur avant toute

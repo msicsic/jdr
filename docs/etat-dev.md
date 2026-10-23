@@ -11,8 +11,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenirs, sorties), unités du quadrillage et coordonnées refusées avant affichage et à
   l'enregistrement. Une contradiction narrative sans source retourne à l'auditeur ; la révision
   ne confond plus l'ambiance libre et une inconnue mécanique. Une question explicite de
-  faisabilité reçoit le premier refus du monde ; les refus de forme restent corrigeables.
-  Neuf nouveaux tests après rechargement passent. Suite complète, empreintes de 2 h et mesures
+  faisabilité reçoit immédiatement la propriété physique qui manque (`ProprieteInconnue`) ;
+  les autres refus restent corrigeables. Gardes refaits à l'écriture de toute prose persistante.
+  `etablir_faits` peut proposer les faits et la `suite` du geste dans le même appel, validés
+  séparément sur copie ; une question n'exécute toujours rien.
+  Onze nouveaux tests après rechargement. Suite complète, empreintes de 2 h et mesures
   Luna après correction en cours ; bilan à compléter dans le rapport de la tâche 22.
 
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :

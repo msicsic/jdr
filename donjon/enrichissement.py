@@ -93,6 +93,8 @@ def preparer_complements(monde, proposition, revision=None):
             raise ErreurMonde("Description vide, trop longue ou contenant des caractères de contrôle.",
                               "description : 3 à 300 caractères, sans saut de ligne.")
         traites.add((id, facette))
+        from .narration import verifier_unites
+        verifier_unites(texte, "proposition.ajouts.description")
         p = travail.objets[id]
         if facette in PARTIES:
             nom, genre, pluriel, materiau = PARTIES[facette]

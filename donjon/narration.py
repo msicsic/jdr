@@ -313,6 +313,13 @@ def unites_moteur(texte, partie="texte"):
             for i, p in enumerate(segments(texte)) for m in ESPACE_MOTEUR.finditer(p)]
 
 
+def verifier_unites(texte, partie):
+    """Même garde à l'écriture d'une prose persistante qu'à sa proposition."""
+    obstacles = unites_moteur(texte, partie)
+    if obstacles:
+        raise ErreurMonde("Cette description doit employer les repères du lieu.", obstacles[0]["attendu"])
+
+
 def voix_auteur(texte, partie="texte"):
     """Obstacles déterministes : le texte affiché parle au joueur, à la deuxième personne, dans la
     fiction ; il ne parle ni du joueur, ni du moteur, ni de Corvus à la troisième personne. Les

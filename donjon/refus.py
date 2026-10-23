@@ -10,6 +10,14 @@ from .monde import ErreurMonde
 LISTE_MAX = 12
 
 
+class ProprieteInconnue(ErreurMonde):
+    """Une précondition physique reste à décrire, distincte d'un champ mal choisi.
+
+    Le moteur peut en dire le manque sans inventer un résultat. Une qualification
+    automatique est demandée explicitement par le sous-type QualificationRequise.
+    """
+
+
 class RefusDeForme(ErreurMonde):
     """Une proposition du MJ mal formée ou mal dirigée : un champ manquant, une valeur hors de ses
     bornes, la mauvaise action pour ce que demande la saisie. Le monde n'y est pour rien et une autre

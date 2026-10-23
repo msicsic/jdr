@@ -49,6 +49,22 @@ def jouer_physique(m, saisies, reponses, jugements=()):
 
 
 class FormeTests(unittest.TestCase):
+    def test_la_meme_regle_pour_une_autre_propriete_physique_inconnue(self):
+        from donjon.atelier import nouveau_atelier
+        from donjon.operations import etape, sequence
+        for question, p in (("est-ce que je pourrais faire sonner la ficelle ?",
+                             sequence(etape("emettre_son", "ficelle"))),
+                            ("est-ce que je pourrais allumer la ficelle ?",
+                             sequence(etape("allumer", "ficelle")))):
+            with self.subTest(question=question):
+                m = nouveau_atelier()
+                avant = copy.deepcopy(m.objets["ficelle"])
+                r, texte, appels = jouer_physique(m, [question], [action(p)])
+                self.assertEqual(len(appels), 1)
+                self.assertIn("Tu ne sais pas encore si cet objet se prête à ce geste", texte)
+                self.assertEqual(r.objets["ficelle"], avant)
+                self.assertEqual(r.data["minutes"], m.data["minutes"])
+
     def test_forme_inconnue_donne_immediatement_le_manque_du_monde(self):
         for scenario, cible in (("relais", "poutre_conduite"), ("auberge", "table_longue")):
             with self.subTest(cible=cible):
@@ -69,10 +85,13 @@ class FormeTests(unittest.TestCase):
             with self.subTest(cible=cible):
                 m = scene_obstacle(scenario, cible, forme=False)
                 ajout = {"mode": "etablir_faits", "texte": "", "faits": [], "proposition": {
-                    "ajouts": [{"type": "qualification", "ancrage": cible, "passage": dict(FORME)}]}}
+                    "ajouts": [{"type": "qualification", "ancrage": cible, "passage": dict(FORME)}],
+                    "suite": passage(cible)}}
                 q = f"est-ce que je pourrais passer sous {m.objets[cible]['nom']} ?"
-                r, texte, appels = jouer_physique(m, [q], [ajout, action(passage(cible))],
+                r, texte, appels = jouer_physique(m, [q], [ajout],
                                                 [{"compatible": True, "motif": "Disposition plausible."}])
+                self.assertEqual([f for f, _ in appels],
+                                 ["repondre_au_joueur", "auditer_capacites", "auditer_action"])
                 self.assertIn("Ramper sous", texte)
                 self.assertEqual(r.objets[cible]["passage"], FORME)
                 self.assertEqual(r.joueur["position"], m.joueur["position"])
@@ -101,6 +120,25 @@ class FormeTests(unittest.TestCase):
                 self.assertNotIn("passage", r.objets[cible])
                 self.assertIn("ne sont pas encore décrits", texte)
                 self.assertEqual(r.joueur["position"], m.joueur["position"])
+
+    def test_faits_et_suite_pour_une_autre_propriete_sans_reinterpretation(self):
+        from donjon.atelier import nouveau_atelier
+        from donjon.operations import etape, sequence
+        m = nouveau_atelier()
+        suite = sequence(etape("emettre_son", "hache"))
+        ajout = {"mode": "etablir_faits", "texte": "", "faits": [], "proposition": {
+            "ajouts": [{"type": "qualification", "ancrage": "hache",
+                        "capacites": [{"nature": "son", "intensite": 1}]}], "suite": suite}}
+        r, texte, appels = jouer_physique(m, ["est-ce que je peux faire sonner la hache ?"], [ajout],
+                                         [{"compatible": True, "motif": "Un tintement discret est plausible."}])
+        self.assertEqual([f for f, _ in appels], ["repondre_au_joueur", "auditer_capacites", "auditer_action"])
+        self.assertEqual(r.objets["hache"]["sonorite"], 1)
+        self.assertEqual(r.data["minutes"], m.data["minutes"])
+        self.assertFalse(r.data["journal"])
+        self.assertIn("Rien n'est encore tenté", texte)
+        r, texte, appels = jouer_physique(r, ["sonner hache"], [])
+        self.assertEqual(appels, [])
+        self.assertTrue(r.data["journal"])
 
 
 class ParoleTests(unittest.TestCase):
@@ -133,16 +171,54 @@ class ParoleTests(unittest.TestCase):
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
                 revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
                 self.assertTrue(revue["consequences_moteur"])
+                self.assertEqual(r.joueur["or"], m.joueur["or"] - 3)
+                if cible == "planches":
+                    self.assertEqual(r.objets[cible]["charges"], m.objets[cible]["charges"] - 1)
+                    self.assertEqual(r.objets["planches_1"]["lieu"], "joueur")
+                else:
+                    self.assertEqual(r.objets[cible], m.objets[cible])
                 self.assertIn("Aubin", revue["personnage"])
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
                 self.assertIn("Tu dis", texte)
 
 
 class TexteTests(unittest.TestCase):
+    def test_proses_persistantes_refusees_a_la_frontiere_decriture(self):
+        from donjon.faits_locaux import preparer_faits
+        from donjon.enrichissement import catalogue as portraits, preparer_complements
+        from donjon.connaissances import catalogue as savoirs, preparer_savoirs
+        from donjon.rendu import regarder
+        for mauvais in ("Une marque à une case du seuil.", "Une marque située en (5, 11)."):
+            m = scene(aubin=(2, 3))
+            p = next(iter(portraits(m).items()))
+            s = next(iter(savoirs(m).items()))
+            propositions = [
+                (preparer_faits, {"ajouts": [{"type": "detail", "ancrage": "planches", "nom": "marque",
+                                             "genre": "f", "texte": mauvais}]}),
+                (preparer_faits, {"ajouts": [{"type": "parole", "ancrage": "aubin", "nom": "",
+                                             "genre": "", "texte": mauvais, "presentation": ""}]}),
+                (preparer_complements, {"ajouts": [{"personnage": p[0],
+                    "facette": p[1]["facettes_disponibles"][0], "description": mauvais}]}),
+                (preparer_savoirs, {"personnage": s[0], "savoirs": [
+                    {"sujet": next(iter(s[1]["sujets"])), "texte": mauvais}]})]
+            avant = copy.deepcopy(m.data)
+            for preparer, proposition in propositions:
+                with self.subTest(voie=preparer.__name__, texte=mauvais):
+                    with self.assertRaises(ErreurMonde) as e:
+                        preparer(m, proposition, m.data["revision"])
+                    self.assertIn("repères du lieu", str(e.exception))
+                    self.assertIn("proposition.", e.exception.attendu)
+                    r = recharger(m)
+                    self.assertEqual(r.data, avant)
+                    self.assertNotIn(mauvais, regarder(r))
+
     def test_positions_hors_de_vue_reprises_en_metres_et_persistantes(self):
         for cible, est in (("planches", 2), ("briquet", 3)):
             with self.subTest(cible=cible):
                 m = scene()
+                from donjon.geometrie import cases
+                sol = cases(m.data["salles"][m.joueur["salle"]])
+                m.joueur["position"] = list(next(c for c in sorted(sol) if (c[0] + est, c[1] + 2) in sol))
                 p = [m.joueur["position"][0] + est, m.joueur["position"][1] + 2]
                 m.objets[cible].update(lieu=m.joueur["salle"], position=p,
                                        position_salle=m.joueur["salle"])

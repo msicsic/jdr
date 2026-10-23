@@ -85,7 +85,7 @@ class RegardTests(unittest.TestCase):
         self.assertFalse(m.accessible("torche"))
         souvenirs = m.contexte()["souvenirs_visuels"]
         self.assertIn({"id": "torche", "nom": "la torche", "derniere_salle": "Refuge du relais",
-                       "vu_a": "1 case vers ouest", "hors_de_vue": True}, souvenirs)
+                       "vu_a": "1 mètre vers ouest", "hors_de_vue": True}, souvenirs)
         # Le refus d'un identifiant inventé propose aussi ce qu'il verrait en se tournant.
         moteur = Moteur(m)
         with self.assertRaises(ErreurMonde) as refus:
