@@ -12,6 +12,15 @@ from tests.test_social import recharger
 
 
 class CachesTests(unittest.TestCase):
+    def test_une_projection_ne_peut_pas_modifier_la_relation_memorisee(self):
+        for id, autre in (("ilse", "brune"), ("brune", "ilse")):
+            m = ecarter(scene(), id, autre)
+            avant = copy.deepcopy(signes.publics(m))
+            relation = relations.axes(m, id, autre)
+            relation["bandes"]["peur"] = False
+            self.assertTrue(relations.peur(relations.axes(m, id, autre)))
+            self.assertEqual(signes.publics(recharger(m)), avant)
+
     def test_emission_ne_recalcule_que_ses_causes_et_se_reconstruit(self):
         for id, autre in (("ilse", "brune"), ("brune", "ilse")):
             with self.subTest(id=id), patch.object(spatial, "VERIFICATION", 1):

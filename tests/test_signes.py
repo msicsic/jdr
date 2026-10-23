@@ -170,7 +170,7 @@ class SignesTests(unittest.TestCase):
     def test_meprise_meme_rendu_et_persistance_pas_de_relance(self):
         m = ecarter(scene())
         # Même en observant exprès, cette PSY manque au-delà de la bande rien élargie.
-        m.joueur["stats"]["PSY"] = 8
+        m.joueur["stats"]["PSY"] = 4
         s = next(s for s in signes.percus(m) if s["signe"] == "ecart")
         with patch("donjon.signes._jet", return_value=1):
             signes.lire(m, "joueur", [s], expres=True)

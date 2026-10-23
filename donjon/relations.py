@@ -181,7 +181,7 @@ def envers(monde, id, autre):
 
 def axes(monde, id, autre):
     r = _lecture(monde, id, autre)
-    return {a: r[a] for a in (*AXES, "bandes")}
+    return {a: r[a] for a in AXES} | {"bandes": dict(r["bandes"])}
 
 
 def chance_demande(monde, id, autre):
