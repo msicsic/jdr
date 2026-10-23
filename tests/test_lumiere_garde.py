@@ -67,8 +67,11 @@ class FeuDemandeTests(unittest.TestCase):
         return recharger(m)
 
     def test_remy_cherche_gaspard_et_lui_demande_du_feu(self):
-        m = suivre(self.camp_eteint(), 10, lambda m: m.objets["lampe_rechange_1"].get("allume"))
-        lampe = m.objets["lampe_rechange_1"]
+        m = suivre(self.camp_eteint(), 10, lambda m: any(m.objets[k].get("allume")
+                   for k in ("lampe_rechange_1", "lampe_rechange_2")))
+        # Les deux lampes sont connues : leur vraie distance départage le choix.
+        source = next(k for k in ("lampe_rechange_1", "lampe_rechange_2") if m.objets[k].get("allume"))
+        lampe = m.objets[source]
         self.assertEqual(lampe["lieu"], "remy")
         self.assertTrue(lampe["allume"])
         self.assertEqual(m.objets["briquet"]["lieu"], "gaspard")   # Rien n'a été prêté.
@@ -77,7 +80,7 @@ class FeuDemandeTests(unittest.TestCase):
         self.assertTrue(any(t.startswith("Rémy demande du feu à Gaspard") and t.endswith("(allume).") for t in vus))
         self.assertTrue(autour(m, "remy")["lumiere"])
         # Sa lampe allumée de la main d'un autre, il la ménagera quand elle ne lui servira plus.
-        self.assertTrue(any(s["type"] == "flamme_employee" and s["objet"] == "lampe_rechange_1"
+        self.assertTrue(any(s["type"] == "flamme_employee" and s["objet"] == source
                             for s in lire(m, "remy")["memoire"]))
 
     def test_joss_cherche_odile_et_allume_sa_lanterne_a_son_briquet(self):
@@ -244,8 +247,11 @@ class AttentePartTests(unittest.TestCase):
         v = Vue(m, "brune")
         e = depart(m, "brune", v).apres(salle="antichambre")
         attente = [g for g in gestes(v, e) if not g[2] and ("part", "vivres") in g[3].faits]
-        # Gorm vient de la conduite jusqu'au refuge, puis sert : deux minutes, comptées.
-        self.assertEqual([(g[1], g[4]) for g in attente], [(2, 2)])
+        # Le trajet cru puis le service de trente secondes, en minutes fractionnaires.
+        self.assertEqual(len(attente), 1)
+        self.assertEqual(attente[0][1], attente[0][4])
+        self.assertGreater(attente[0][4], .5)
+        self.assertLess(attente[0][4], 2)
         lumiere = planifier(m, "brune", "faim")
         croire(m, "brune", "antichambre", "etat", {"eclairee": False, "niveau": 0, "propre": 0}, "vu")
         from donjon.planification import _MEMOIRE, chercher, a_mange

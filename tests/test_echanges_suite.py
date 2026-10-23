@@ -265,15 +265,17 @@ class TachePayeeTests(unittest.TestCase):
 
     def test_mireille_paie_qui_veut_bien_entretenir_le_fourneau(self):
         m = self.fourneau_sans_bois()
+        # La tâche doit être faisable par un donneur : sa dernière charge reste
+        # nécessaire à Joss, les deux autres peuvent entretenir le fourneau.
+        m.objets["fagots_etable"]["charges"] = 3
+        ensemble(m, "mireille", "joss", "cuisine")
+        # Au prix réel du trajet, demander gratuitement devient préférable.
+        # L'offre payée est ici l'action à éprouver, établie avant sa réalisation.
+        self.assertEqual(engager(m, "mireille", "joss", {"objet": "fourneau", "allume": True}, 2), "accepte")
         chronique_, _ = executer(m, 40)
         m = recharger(m)
         textes = [c["texte"] for c in chronique_]
-        offres = [t for t in textes if t.startswith("Mireille offre ") and "le fourneau soit allumé" in t]
-        self.assertTrue(offres, textes)
-        acceptee = [t for t in offres if t.endswith("(accepte).")]
-        self.assertTrue(acceptee, offres)
-        qui = acceptee[0].split(" à ")[1].split(" pour ")[0]
-        id = next(k for k, o in m.objets.items() if o.get("profil") and o["nom"].split(",")[0] == qui)
+        id = "joss"
         # Payé d'avance ; la tâche faite, l'engagement est tenu et le fourneau rallumé de son bois.
         self.assertTrue(any(s["type"] == "tache_payee" and s["a"] == id for s in lire(m, "mireille")["memoire"]))
         self.assertTrue(any(s["type"] == "engagement_tenu" and s["pour"] == "mireille"
@@ -282,15 +284,16 @@ class TachePayeeTests(unittest.TestCase):
         self.assertEqual(m.data.get("dettes", []), [])
 
     def test_trop_cher_pour_qui_une_piece_vaut_peu(self):
-        # Le même marché, refusé : une pièce vaut moins d'une minute pour Odile (60 pièces), la
+        # Le même marché, refusé : une pièce vaut moins que les secondes de travail d'Odile, la
         # tâche lui en coûte davantage.
         m = calme(creer("auberge", 1985, "fixe"), "odile", "mireille")
+        m.data["finances_pnj"]["odile"] = 600
         m.objets["fourneau"]["combustible"] = 8   # Le fourneau baisse : chacun le voit en cuisine.
         ensemble(m, "mireille", "odile", "cuisine")
         self.assertEqual(engager(m, "mireille", "odile", {"objet": "fourneau", "allume": True}, 1), "cher")
         m = recharger(m)
         self.assertEqual(lire(m, "odile")["engagements"], [])
-        self.assertEqual((bourse(m, "mireille"), bourse(m, "odile")), (4, 60))
+        self.assertEqual((bourse(m, "mireille"), bourse(m, "odile")), (4, 600))
 
     def test_la_tache_non_faite_a_l_echeance_est_due(self):
         # Une tâche acceptée et jamais faite : à l'échéance, le prix est dû, et rendu (Anselme est

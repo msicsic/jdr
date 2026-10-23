@@ -316,7 +316,7 @@ class TrajetTests(unittest.TestCase):
                       passages=transitions(m, "marchand", descriptions_crues(m, "marchand")))
         self.assertEqual((avec[0][1], avec[0][2]["dixiemes"]), ((6, 1), 120))
 
-    def test_un_detour_qui_domine_le_passage_ne_rend_pas_la_recherche_dependante_de_la_case(self):
+    def test_domination_du_passage_et_case_de_depart_dans_la_recherche(self):
         from donjon import spatial
         from donjon.obstacles import metrique_necessaire
         from donjon.planification import Vue, _entrees
@@ -335,7 +335,8 @@ class TrajetTests(unittest.TestCase):
                 placer(m, "marchand", "echoppe", (3, 3))
                 m = recharger(m)
                 apres = _entrees(Vue(m, "marchand"), {}, 10, 100)
-                self.assertEqual(avant != apres, coupe)
+                # Même sans passage spécial, la distance de marche dépend du départ.
+                self.assertNotEqual(avant, apres)
                 if not coupe:
                     # Un enjambement qui égale le détour au pas devient un
                     # raccourci pour une marche feutrée : l'allure entre dans la preuve.
@@ -537,7 +538,7 @@ class FuiteTests(unittest.TestCase):
                 self.assertEqual(m.data, avant)
                 if nom == "ramper":
                     self.assertIn("en rampant sous la poutre effondrée", p.titre)
-                    self.assertEqual(p.dixiemes, 120 + 3 * 15)
+                    self.assertEqual(p.dixiemes, 120 + 3 * 15 + 20)  # demi-tour initial réel
                 else:
                     self.assertIn("en escaladant la poutre effondrée", p.titre)
                     self.assertIn("jet de FOR contre 10", p.titre)
@@ -580,11 +581,13 @@ class FuiteTests(unittest.TestCase):
         v = Vue(m, "marchand")
         e = depart(m, "marchand", v)
         route = v.route(e, "antichambre")
-        self.assertGreater(cout_route(route), len(route))
-        self.assertIn(("antichambre", cout_route(route)), v.allers(e, frozenset()))
+        self.assertGreater(cout_route(route), 0)
+        self.assertLess(cout_route(route), 1)
+        self.assertIn(("antichambre", cout_route(route, e.orientation)), v.allers(e, frozenset()))
         lire(m, "marchand")["visites"].update({s: 999 for s in m.data["salles"] if s != "antichambre"})
         trouve = _chercher(v, e, "ilse")
-        self.assertEqual(trouve[1], cout_route(route) + 1 + CHERCHER)
+        self.assertAlmostEqual(trouve[1], trouve[4] + CHERCHER)
+        self.assertGreater(trouve[4], cout_route(route, e.orientation))  # approche au centre et inspection
 
     def test_le_pnj_fuit_sous_l_obstacle_par_le_meme_trajet_apres_recharge(self):
         from donjon import combat, defense
@@ -601,7 +604,7 @@ class FuiteTests(unittest.TestCase):
                 percevoir_tous(m)
                 with patch.object(Monde, "d20", side_effect=[20, 1]):
                     combat.frapper(m, "brune", "marchand")
-                self.assertEqual(defense.choisir(m, "marchand")[0]["type"], "fuir")
+                self.assertEqual(defense.choisir(m, "marchand")[0]["type"], "fuir" if forme else "riposter")
                 for _ in range(3):
                     Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "15")))
                     m = recharger(m)

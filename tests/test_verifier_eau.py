@@ -45,6 +45,16 @@ class VerifierTests(unittest.TestCase):
         # ``VERIFIER`` (sans ``emplois``) n'offrait pas ce geste et ne trouvait aucun plan.
         m = lumiere.avec_briquet(lumiere.mine_noire())
         m.objets["lampe_remy"].update(allume=False, combustible=0)
+        # Isoler la recherche du porteur : les flammes fixes, devenues moins
+        # chères à rejoindre, ne doivent pas fournir un autre recours à ce test.
+        from donjon.esprits import croire
+        for k, o in m.objets.items():
+            if "allume" in o and k != "lampe_josse":
+                o.update(allume=False, combustible=0)
+                croire(m, "lucien", k, "etat", {"allume": False, "charge": False}, "savoir")
+            if "allumage" in o.get("usages", ()):
+                o["usages"] = [u for u in o["usages"] if u != "allumage"]
+        croire(m, "lucien", "josse", "lieu", None, "savoir", salle=None, case=None)
         for id in ("remy", "lucien", "bram"):
             lire(m, id)["besoins"]["securite"] = 70.0
         # Ses buts se choisissent aussi entre deux minutes (``deliberation-evenements``) : on regarde
@@ -74,7 +84,7 @@ class VerifierTests(unittest.TestCase):
             m = lumiere_garde.suivre(m, 10, lambda m: m.objets["lampe_rechange_1"].get("allume"))
         self.assertTrue(any(r["pnj"] == "remy" and r["but"] == "lumiere" and r["issue"] == "plan" for r in recherches))
         self.assertIn("Rémy appelle : « Gaspard ? »", [c["texte"] for c in m.data["chronique"]])
-        self.assertTrue(m.objets["lampe_rechange_1"]["allume"])
+        self.assertTrue(any(m.objets[k]["allume"] for k in ("lampe_rechange_1", "lampe_rechange_2")))
 
     def test_une_reference_bornee_n_est_pas_un_defaut(self):
         # La référence arrêtée par sa borne n'est pas un optimum : la restreinte ne doit que ne pas
@@ -82,7 +92,7 @@ class VerifierTests(unittest.TestCase):
         m = lumiere_garde.FeuDemandeTests().camp_eteint()
         with patch.object(planification, "VERIFIER", True), patch.object(planification, "REFERENCE", 1):
             m = lumiere_garde.suivre(m, 10, lambda m: m.objets["lampe_rechange_1"].get("allume"))
-        self.assertTrue(m.objets["lampe_rechange_1"]["allume"])
+        self.assertTrue(any(m.objets[k]["allume"] for k in ("lampe_rechange_1", "lampe_rechange_2")))
 
 
 class EauTests(unittest.TestCase):

@@ -227,7 +227,7 @@ def chemin_fuite(monde, cible=""):
     from .spatial import trajet, sortie_connue
     from .passage import place
     from .monde import ErreurMonde
-    from .obstacles import transitions
+    from .obstacles import transitions, duree_porte, Route
     salle, case = place(monde, "joueur")
     sorties = [s for d, s in monde.data["salles"][salle]["sorties"].items()
                if sortie_connue(monde, salle, d) and (not cible or cible in (d, s["vers"]))]
@@ -238,11 +238,12 @@ def chemin_fuite(monde, cible=""):
     chemin = trajet(monde, salle, case, lambda s, c: s in salles,
                     franchissable=lambda p: not monde.objets[p].get("verrouillee"),
                     libre=lambda s, c: (s, c) not in occupees and s in salles | {salle},
-                    passages=transitions(monde, "joueur", formes) if formes and monde.data.get("mode_cases") else None)
+                    passages=transitions(monde, "joueur", formes) if formes and monde.data.get("mode_cases") else None,
+                    cout_porte=lambda p: duree_porte(monde, p))
     if not chemin:
         raise ErreurMonde("Tu ne trouves pas de sortie connue accessible.",
                           f"cible={cible} : sortie connue accessible parmi {sorted(salles)}, ou vide ; portes déverrouillées requises.")
-    return chemin
+    return Route.depuis_pas(monde, salle, chemin)
 
 
 def preparer_joueur(monde, p, plan):
@@ -259,9 +260,9 @@ def preparer_joueur(monde, p, plan):
     plan.confirmation, plan.minutes = True, 0
     if action == "fuir":
         route = chemin_fuite(monde, cible)
-        from .temps import PAS_JOUEUR, duree_pas
-        plan.dixiemes = sum(porte["dixiemes"] if isinstance(porte, dict) else duree_pas(PAS_JOUEUR, v)
-                            for _, _, porte, v in route)
+        from .temps import MINUTE
+        from .obstacles import cout_route
+        plan.dixiemes = round(cout_route(route, monde.joueur.get("orientation")) * MINUTE)
         agresseurs = " et ".join(_agresseur(monde, a) for a in dangers(monde, "joueur"))
         from .francais import designer
         manieres = {"ramper": "en rampant sous ", "enjamber": "en enjambant ", "escalader": "en escaladant "}

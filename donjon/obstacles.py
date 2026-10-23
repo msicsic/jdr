@@ -6,6 +6,7 @@ le sol libre d'en face, dans la même salle ; il ne rend pas la case de l'obstac
 import copy
 import math
 import json
+import heapq
 from collections import OrderedDict
 
 from .monde import ErreurMonde
@@ -206,12 +207,109 @@ class Parcours(dict):
         self.routes = {depart: []}
 
 
+class Route(list):
+    """Sorties et mesure du même chemin ; même une approche sans sortie a un temps."""
+    def __init__(self, sorties=(), *, fin=None, chemin=(), sejours=(), portes=(), depart=None):
+        super().__init__(sorties)
+        self.fin = fin
+        self.chemin = tuple(chemin)
+        self.sejours = tuple(sejours)
+        self.portes = frozenset(portes)
+        self.depart = depart if depart is not None else (fin[0] if fin else None)
+        self._sejours = {}
+
+    @classmethod
+    def depuis_pas(cls, m, depart, chemin, allure=PAS_JOUEUR):
+        """Le chemin spatial du joueur porte la même mesure que les routes crues."""
+        sejours, franchies = [], set()
+        salle = depart
+        for vers, _, porte, sens in chemin:
+            if isinstance(porte, dict):
+                duree = porte["dixiemes"]
+            else:
+                duree = duree_pas(allure, sens)
+                if porte and porte not in franchies:
+                    sejours.append((salle, duree_porte(m, porte)))
+                    franchies.add(porte)
+            sejours.append((vers, duree))
+            salle = vers
+        return cls(chemin, fin=chemin[-1][:2] if chemin else None, chemin=chemin,
+                   sejours=sejours, portes=franchies, depart=depart)
+
+
+_DISTANCES = OrderedDict()
+DISTANCES_MAX = 2048
+
+
+def duree_porte(m, porte, deverrouillees=()):
+    """Temps des gestes en chemin, en dixièmes, sur le monde fourni (réel ou cru)."""
+    from .pnj import DUREES
+    o = m.objets[porte]
+    return (0 if o.get("ouverte") else DUREES["ouvrir"]
+            + (DUREES["deverrouiller"] if o.get("verrouillee") and porte not in deverrouillees else 0))
+
+
+def distances(cru, acteur, salle, depart, equipement, allure, passages):
+    """Une table locale par origine ; seuils et cibles partagent la même métrique.
+
+    La clé ne lit que la géométrie et les obstacles de cette salle, la forme du
+    corps et l'équipement quand les franchissements peuvent améliorer la marche.
+    Ni l'horloge, ni les positions réelles des autres ne sont consultées.
+    """
+    from .spatial import _pas_possibles, a_verifier, position_cible, VECTEURS
+    obstacles = [(i, position_cible(cru, i, salle), o.get("passage")) for i, o in cru.objets.items()
+                 if o.get("bloque_passage") and not o.get("incorpore") and o.get("lieu") == salle]
+    equip = [(i, cru.objets[i].get("masse", 0), cru.objets[i].get("longueur_cm"),
+              cru.objets[i].get("physique", {}).get("dimensions")) for i in sorted(equipement)] if passages else []
+    cle = json.dumps([cru.data["salles"][salle], obstacles, depart, allure,
+                      gabarit(cru, acteur) if passages else None, equip], sort_keys=True)
+
+    def calculer():
+        pas_de = _pas_possibles(cru, True)
+        origine = tuple(depart)
+        table, couts, ordre = {}, {origine: 0}, 0
+        file = [(0, 0, origine, ())]
+        while file:
+            cout, _, case, chemin = heapq.heappop(file)
+            if case in table:
+                continue
+            table[case] = (cout, chemin)
+            suites = []
+            for sens in sorted(set(VECTEURS.values())):
+                pas = pas_de(salle, case, sens)
+                if pas is not None and pas[0][0] == salle:
+                    suites.append((pas[0], pas[1], sens, duree_pas(allure, sens)))
+            if passages:
+                suites.extend(passages(salle, case))
+            for (s, fin), regle, sens, duree in suites:
+                if s != salle or fin in table or cout + duree >= couts.get(fin, float("inf")):
+                    continue
+                couts[fin] = cout + duree
+                ordre += 1
+                heapq.heappush(file, (cout + duree, ordre, fin, chemin + ((s, fin, regle, sens),)))
+        return table
+
+    if cle in _DISTANCES:
+        table = _DISTANCES[cle]
+        _DISTANCES.move_to_end(cle)
+        if a_verifier():
+            assert table == calculer(), "Distances locales crues périmées"
+        return table
+    table = calculer()
+    _DISTANCES[cle] = table
+    if len(_DISTANCES) > DISTANCES_MAX:
+        _DISTANCES.popitem(last=False)
+    return table
+
+
 def monde_cru(m, acteur):
     """Copie de lecture : les positions et formes des obstacles viennent des croyances."""
     from .esprits import lire
     croyances = lire(m, acteur)["croyances"]
     cru = copy.copy(m)
-    cru._cache_vue = None
+    # Ce monde de lecture ne sert qu'à la géométrie ; ses tables de pas sont
+    # privées et leur clé reste vérifiée par spatial.VERIFICATION.
+    cru._cache_vue = {"persistant": {"pas": {}}}
     cru.objets = {i: dict(o) for i, o in m.objets.items()}
     # Ne jamais partager le dictionnaire des objets avec le monde réel.
     cru.data = {**m.data, "objets": cru.objets}
@@ -228,67 +326,111 @@ def monde_cru(m, acteur):
                 o.pop("passage", None)
         if o.get("type") == "porte":
             o["ouverte"] = bool(c.get("etat", {}).get("valeur", {}).get("ouverte"))
+            o["verrouillee"] = bool(c.get("verrouillee", {}).get("valeur"))
     return cru
 
 
-def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None):
+def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, position=None,
+                 allure=PAS_JOUEUR, metrique=None, cru=None):
     """Un parcours en cases, partagé par toutes les destinations d'une recherche.
 
     Le chemin sans géométrie décrite garde le contrat historique. Ici toutes
     les lectures de position et de forme sont celles du PNJ, jamais celles du MJ.
     """
-    from .spatial import trajet, _case_libre
+    from .spatial import _case_libre, _case_interieure, _pas_possibles, VECTEURS
     from .geometrie import cases
     from .pnj import _verrouillee_crue, _cle_portee
     from .eau import noyee_crue
-    cru = monde_cru(m, acteur)
+    cru = monde_cru(m, acteur) if cru is None else cru
     o = m.objets[acteur]
-    depart_case = tuple(o["position"]) if depart == o["lieu"] else None
+    depart_case = tuple(position) if position is not None else (
+        tuple(o["position"]) if depart == o["lieu"] and o.get("position") is not None else None)
     if depart_case is None:
         sols = sorted(cases(m.data["salles"][depart]))
         depart_case = next((c for c in sols if _case_libre(cru, depart, c)), None)
     resultat = Parcours(depart)
     if depart_case is None:
         return resultat
-    descriptions = descriptions_crues(m, acteur)
-    releve = {}
-    trajet(cru, depart, depart_case, lambda s, c: False,
-           franchissable=lambda p: p in ouvertes or not _verrouillee_crue(m, acteur, p)
-           or _cle_portee(m, acteur, p, cles) is not None,
-           libre=lambda s, c: s == depart or not noyee_crue(m, acteur, s),
-           passages=transitions(cru, acteur, descriptions, equipement), releve=releve)
-    for fin, (cout, _) in releve.items():
-        salle = fin[0]
-        if salle in resultat:
+    equipement = portes(m, acteur) if equipement is None else equipement
+    cles = frozenset(cles) | frozenset(k for k in equipement if m.objets[k].get("ouvre"))
+    metrique = metrique_necessaire(m, acteur, allure) if metrique is None else metrique
+    passages = transitions(cru, acteur, descriptions_crues(m, acteur), equipement, allure) if metrique else None
+    origine = (depart, depart_case)
+    initiale = Route(fin=origine)
+    resultat.routes[depart] = initiale
+    # Le graphe global ne développe que le départ et les seuils d'entrée. Les
+    # distances intérieures, y compris jusqu'aux objets, viennent des tables locales.
+    file, prix, ordre = [(0, 0, origine, initiale)], {origine: 0}, 0
+    pas_de = _pas_possibles(cru, True)
+    resultat.locaux = {}
+    while file:
+        cout, _, ici, route = heapq.heappop(file)
+        if cout != prix[ici]:
             continue
-        chemin, courant, surcout = [], fin, 0
-        while releve[courant][1] is not None:
-            avant, porte, sens = releve[courant][1]
-            if isinstance(porte, dict):
-                surcout += porte["dixiemes"] - 2 * PAS_JOUEUR
-            chemin.append((avant, courant))
-            courant = avant
-        route = []
-        for avant, apres in reversed(chemin):
-            if avant[0] == apres[0]:
-                continue
-            from .spatial import _case_interieure
-            sortie = next(s for s in m.data["salles"][avant[0]]["sorties"].values()
-                          if s["vers"] == apres[0] and _case_interieure(m, avant[0], s) == avant[1])
-            route.append(dict(sortie))
-        if route:
-            route[-1]["duree_trajet"] = cout
-            route[-1]["surcout_passages"] = surcout
-            resultat[salle] = (chemin[0][0][0], route[-1])
+        salle, case = ici
+        if salle not in resultat.routes:
             resultat.routes[salle] = route
+            resultat[salle] = (depart, route[-1])
+        table = distances(cru, acteur, salle, case, equipement, allure, passages)
+        resultat.locaux[ici] = table, route
+        for direction, sortie in m.data["salles"][salle]["sorties"].items():
+            vers, porte = sortie["vers"], sortie.get("porte")
+            seuil = _case_interieure(cru, salle, sortie)
+            if (seuil not in table or vers not in m.data["salles"] or noyee_crue(m, acteur, vers)
+                    or porte and porte not in ouvertes and _verrouillee_crue(m, acteur, porte)
+                    and not any(porte in m.objets[k].get("ouvre", ()) for k in cles)):
+                continue
+            # Le pas du moteur choisit le véritable seuil d'en face, y compris
+            # les sorties non contiguës et les escaliers.
+            traverses = []
+            sens = VECTEURS.get(direction)
+            pas = pas_de(salle, seuil, sens) if sens is not None else None
+            if pas is not None and pas[0][0] == vers:
+                traverses.append((pas[0], sens))
+            for fin, sens in traverses:
+                marche, chemin = table[seuil]
+                geste_porte = duree_porte(cru, porte, ouvertes) if porte and porte not in route.portes else 0
+                pas = duree_pas(allure, sens)
+                total = cout + marche + geste_porte + pas
+                if total >= prix.get(fin, float("inf")):
+                    continue
+                prix[fin] = total
+                sorties = [*route, dict(sortie, duree_trajet=total)]
+                suivante = Route(sorties, fin=fin,
+                                 chemin=(*route.chemin, *chemin, (fin[0], fin[1], porte, sens)),
+                                 sejours=(*route.sejours, (salle, marche + geste_porte), (vers, pas)),
+                                 portes=route.portes | ({porte} if porte else set()), depart=depart)
+                ordre += 1
+                heapq.heappush(file, (total, ordre, fin, suivante))
     return resultat
 
 
-def cout_route(route):
-    # Le planificateur garde son coût abstrait d'une minute par salle. Seul
-    # le supplément du franchissement y entre, dans son unité réelle.
-    supplement = route[-1].get("surcout_passages", 0) if route else 0
-    return len(route) + supplement / MINUTE if supplement else len(route)
+def sejours_route(route, orientation=None):
+    """Les durées de la route et les rotations précédant ses pas, par salle."""
+    from .spatial import QUART, quarts, VECTEURS
+    if orientation in route._sejours:
+        return route._sejours[orientation]
+    debut = orientation
+    sejours = list(route.sejours)
+    ici = route.depart
+    for salle, _, _, sens in route.chemin:
+        vers = next(k for k, v in VECTEURS.items() if v == sens)
+        sejours.append((ici, QUART * quarts(orientation, vers)))
+        orientation = vers
+        ici = salle
+    # Agréger par salle évite de repayer la pression à chaque pas d'un même trajet.
+    totaux = {}
+    for s, d in sejours:
+        totaux[s] = totaux.get(s, 0) + d
+    route._sejours[debut] = tuple(totaux.items())
+    return route._sejours[debut]
+
+
+def cout_route(route, orientation=None):
+    """Temps unique d'un trajet, en minutes ; anciennes parties sans cases : leur horloge."""
+    if isinstance(route, Route):
+        return sum(d for _, d in sejours_route(route, orientation)) / MINUTE
+    return route[-1]["duree_trajet"] / MINUTE if route and "duree_trajet" in route[-1] else len(route)
 
 
 def transitions(m, acteur="joueur", crues=None, equipement=None, allure=PAS_JOUEUR, libre=None):
