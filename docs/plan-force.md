@@ -1,6 +1,6 @@
 # Plan : le corps des PNJ et la force (étape 4 du plan social)
 
-La sous-étape 4a est réalisée sur `codex-force-4a`, non fusionnée ; 4b à 4f restent à faire.
+Les sous-étapes 4a et 4b sont fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c à 4f restent à faire.
 Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
@@ -470,7 +470,7 @@ chute : inconscient. Aucun geste de violence encore ; `--etat` au banc.
 
 ### 4b. Le coup et assommer — Fait
 
-Réalisé sur `codex-force-4b`, non fusionnée. [Rapport, mesures et réserves](taches/rapport-codex-12-force-4b.md).
+Réalisé sur `codex-force-4b`, fusionnée. [Rapport, mesures et réserves](taches/rapport-codex-12-force-4b.md).
 La règle commune est dans `combat.py`, employée par l'action du joueur et les gestes des PNJ.
 La surprise est évaluée avant le bruit du coup ; les souvenirs et les épreuves de relations
 précèdent l'affichage. La fiche est un contrat explicite du plan, également conservé dans une
@@ -482,9 +482,16 @@ Limites : les nuits libres de `rixe` ne suffisent pas à démontrer une agressio
 l'assommement puis la prise se vérifient dans des états d'épreuve sur Gorm et un autre porteur.
 L'estimation du risque n'est pas une simulation d'affrontement. L'approche peut renoncer ou
 attendre une occasion. Pas de défense, fuite, reddition, lien ni action `tuer` en 4b. Le prix
-prépare la défense possible à douceur 100. Luna est différée à la fusion, sur un autre poste,
-selon la décision de l'utilisateur ; les deux scènes de banc sont versionnées. Les réserves
-sur la suite héritée et le contrôle doux sont explicitées dans le rapport.
+prépare la défense possible à douceur 100. Les réserves sur la suite héritée et le contrôle
+doux sont explicitées dans le rapport.
+
+Vérifié avec Luna à la fusion (six passes des deux scènes versionnées) : `frapper` typé (`simple`,
+puis `assommer`), fiche avant « tenter », issue du moteur seule racontée. Trois défauts communs
+corrigés alors : un inconscient ne montre aucune humeur (comme une dépouille) ; l'humeur montrée
+après l'action du joueur suit l'état du personnage (inquiet quand sa sécurité presse, un coup subi
+par exemple, et accordée à son genre) au lieu du seul tapage ; la fiche dit ce que le moteur
+établit de la victime (sans défense, ne te voit pas, ou te voit), que lit la contre-revue
+(« par derrière » n'est plus refusé faute de le savoir).
 
 
 Règle du coup (armes, surprise, esquive, dégâts, cri, interruption), assommer ; action `frapper`

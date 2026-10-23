@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-force-4b`, non fusionnée : coups et assommement par la même règle pour le
+- Branche `codex-force-4b`, fusionnée : coups et assommement par la même règle pour le
   joueur et les PNJ, fiche avant tentative, armes et surprise, cris, interruptions, souvenirs
   et relations, registre et prise sur un porteur inconscient. Le recours assommer-pour-prendre
   compare les coûts, passe par `dans_le_dos` au pas feutré et ne suppose pas la disparition des
@@ -17,6 +17,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   nuits de référence (2 h et 8 h) identiques, dix contrôles croisés sans écart ; rixe, huit graines,
   nœuds +0,21 %, temps des recherches +2,88 %. Les nuits libres ne frappent pas ; l’agression
   puis la prise sont démontrées par les états d’épreuve, sans règle propre à leurs personnes.
+  Fusionné après `codex-garde-pret` (intégration bcd6a83) : conflits `pnj._temoins` (l'événement
+  `violence_vue` gardé ; l'auteur qui se sait vu passe par la boucle de `codex-garde-pret`, témoins
+  remarqués en cours de geste compris) et `docs/etat-dev.md`. Aucune constante `PRET` ni `GARDE` ne
+  survit ; l'agression ne compare aucune demande par une constante (les demandes ont la chance de
+  `relations.chance_demande`). Courage, plafond d'enjeu et désespoir sont dans la base des deux graphes
+  repris et du certificat ; `force_crue` et `embuscade_possible` lisent croyances, objets et ce qu'il
+  porte, tous dans `_entrees`, sans lumière. Luna (connexion de ce poste, `banc_parties --fil`, scènes
+  `force-4b-frapper` et `force-4b-assommer`, six passes) : `frapper` typé (`simple`, `assommer`), fiche
+  puis issue du moteur, 2 appels pour typer et 2 pour raconter, aucun repli, aucun PV, mort, identité ni
+  parole inventés ; Luna proposa deux fois un couteau pour assommer (refus avec `attendu`, corrigé en
+  mains nues : 3 appels). Trois défauts communs vus et corrigés : « Gorm … à terre, sans connaissance
+  et préoccupé » (un inconscient ne montre aucune humeur, `rendu` et `moteur`, comme une dépouille) ;
+  « Tu frappes Brune… Brune semble calme » (l'humeur montrée suit l'état : inquiet si sa sécurité presse,
+  accordée au genre, `moteur.HUMEURS_FEMININES`, `vol`) ; « j'assomme Gorm par derrière » refusé par la
+  contre-revue qui ignorait que Gorm tourne le dos, puis Luna affirmant « il n'est pas derrière toi »
+  (la fiche dit ce que le moteur établit de la victime : sans défense, ne te voit pas, te voit). Après
+  correction, deux passes : 2 + 2 appels par scène, aucun refus. Tests ajoutés (`test_combat`, Gorm et
+  Brune après rechargement) : aucune humeur sans connaissance, puis retour au réveil ; victime frappée
+  par surprise « inquiet » / « inquiète » ; la fiche selon le regard et sans défense. Suite
+  (`tools/tests.py --processus 4`) **1466 tests, 14 sautés**. `VERIFIER` + `VERIFICATION` 1 sur 2 h, puis
+  0,2 sur 8 h, graine 42, Relais, mine, auberge, crue et `rixe` : sans écart ni usurpation (auberge 8 h :
+  les mêmes 66 recherches bornées de Lucien qu'après `codex-garde-pret`). `comparer_bancs --empreintes`
+  contre bcd6a83 (2 h, 4 scénarios × 4 graines) : chroniques, mesures, récits et souvenirs identiques
+  sur les 16 nuits ; l'état final diffère dans 9 nuits par le seul champ `humeur` des PNJ et les lignes
+  « … semble … » du journal du joueur passif (le correctif de l'humeur ; états identiques sans ce
+  champ, vérifié nuit par nuit). `banc_pnj --scenario rixe` et `rixe_douce`, 8 h, graines 1985, 7, 42,
+  2024 : aucun coup, aucun PV perdu, aucun mort, aucune usurpation ni écart ; la variante douce ne frappe
+  jamais (aucun coup non plus dans `rixe` libre, comme le rapport) ; 12,9 s par nuit.
 
 - Branche `codex-garde-pret`, fusionnée : `GARDE` et `PRET` retirés.
   `planification.prix_gardes` pèse l'ambition pour ses biens, la loyauté pour une charge
@@ -1592,7 +1620,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1449 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1466 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 
@@ -1609,7 +1637,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Étape 4 du plan social, le corps et la force** : 4a fusionnée (`codex-force-4a`), 4b réalisée sur sa branche non fusionnée ; 4c à 4f
+- **Étape 4 du plan social, le corps et la force** : 4a et 4b fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c à 4f
   restent à réaliser, dans `docs/plan-force.md`. Décisions de
   la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
   ou défendre un protégé. Aucun geste de violence en 4a.
