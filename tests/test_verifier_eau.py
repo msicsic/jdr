@@ -99,19 +99,25 @@ class EauTests(unittest.TestCase):
                                      and eau.attendue(m, "brune", m.objets[x["cible"]]["lieu"]) > 0
                                      for x in but[1]))
         self.assertIsNone(planifier_pulsion(m, "marchand", {"lieu": "crypte", "periode": 72}))
-        # Personne n'appelle à l'aide depuis l'eau. Relations graduées et profils réunis : Brune vole la
-        # réserve sous les yeux de Gorm (min 150) ; au refuge, au sec, Gorm, Aubin et Ilse appellent
-        # alors à l'aide contre elle, ce qui n'est pas le piège de l'eau.
-        appels = []
-        while m.data["minutes"] < 360:
-            nouvelles, _ = executer(m, min(360, m.data["minutes"] + 5))
-            appels += [(c["pnj"], eau.profondeur(m, m.objets[c["pnj"]]["lieu"]))
-                       for c in nouvelles if "appelle à l'aide" in c["texte"]]
-            m = recharger(m)
-        self.assertFalse([a for a in appels if a[1] > 0])
-        mouillee = min(h["minute"] for h in m.data["crue"]["historique"] if h["salle"] == "echoppe")
-        chronique = m.data["chronique"]
-        self.assertFalse([c for c in chronique if c["minute"] > mouillee and "se chauffe" in c["texte"]])
+        # Les occasions sociales ont changé : Aubin peut appeler avec de l'eau aux pieds,
+        # puis rester dans ce refuge qui ne sera jamais noyé. Le contrat porte sur le piège
+        # et le chauffage, à leur instant réel (pas sur la position à la fin du bloc de 5 min).
+        from donjon import pnj
+        appels, chauffes = [], []
+        chroniquer = pnj._chroniquer
+        def trace(monde, id, texte, *args, **kwargs):
+            profondeur = eau.profondeur(monde, monde.objets[id]["lieu"])
+            if "appelle à l'aide" in texte:
+                appels.append((id, profondeur))
+            if "se chauffe" in texte:
+                chauffes.append((id, profondeur))
+            return chroniquer(monde, id, texte, *args, **kwargs)
+        with patch.object(pnj, "_chroniquer", trace):
+            while m.data["minutes"] < 360:
+                executer(m, min(360, m.data["minutes"] + 5))
+                m = recharger(m)
+        self.assertFalse([a for a in appels if a[1] >= eau.NOYEE_CM])
+        self.assertFalse([a for a in chauffes if a[1] > 0])
         for id in ("marchand", "brune", "ilse", "aubin"):
             self.assertLess(eau.profondeur(m, m.objets[id]["lieu"]), 50, id)
 

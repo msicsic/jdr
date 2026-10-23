@@ -305,7 +305,8 @@ class Moteur:
                 return plan
             if cible not in ("", "scene", "lumiere", "contexte"):
                 raise ErreurMonde("On observe la scène, la lumière ou le contexte, pas un objet précis.",
-                                  f"observer.cible : reçu {cible!r} ; acceptés : '', scene, lumiere, contexte.")
+                                  f"observer.cible : reçu « {cible} » ; acceptés : '', scene, lumiere, contexte ; "
+                                  "pour cet objet : examiner, toucher ou lire avec son identifiant.")
             plan.titre, plan.minutes = "Observer la scène.", 0
             plan.information = (decrire_contexte(m) if cible == "contexte" else
                                 regarder(m) if cible == "scene" else decrire_perception(m))
