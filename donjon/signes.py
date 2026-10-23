@@ -153,7 +153,11 @@ def de(m, id):
         e = esprit_lu(m, id)
         i = e["intention"] or {}
         from .deliberation import seuils
-        cle = (relations.signature(m, id), repr(e["emotions"]), repr(i.get("attitude")),
+        from .caractere import valeur
+        c = emotion(m, id)
+        cle = (relations.signature_signes(m, id),
+               (c["contre"] if c and c["niveau"] >= 20 else None),
+               valeur(m, id, "fierte") >= 60, repr(i.get("attitude")),
                guette(m, id), i.get("attente", 0) >= GUET * 600,
                tuple((x["operation"], x["cible"]) for x in i.get("plan", [])),
                e["besoins"].get("securite", 0) > seuils(m, id).get("securite", 100), conscient(m, id))
@@ -191,12 +195,14 @@ def _envers_percu(m, observateur, s, vus):
     return salle_crue(m, observateur, cible) == m.objets[observateur]["lieu"]
 
 
-def _percus(m, observateur="joueur", tons=(), emissions=None):
+def _percus(m, observateur="joueur", tons=(), emissions=None, contexte=None):
     from .esprits import percus as objets_percus
     from .corps import conscient
     if not conscient(m, observateur):
         return []
-    if observateur == "joueur":
+    if contexte is not None:
+        vus, niveaux = contexte
+    elif observateur == "joueur":
         vus = {id: None for id, o in m.objets.items() if m.visible(id)}
     else:
         vus, _ = objets_percus(m, observateur)
@@ -204,7 +210,7 @@ def _percus(m, observateur="joueur", tons=(), emissions=None):
     for id in sorted(vus):
         if id != "joueur" and m.objets[id]["type"] != "personnage":
             continue
-        niveau, loin = _niveau_distance(m, observateur, id)
+        niveau, loin = niveaux[id] if contexte is not None else _niveau_distance(m, observateur, id)
         for s in (de(m, id) if emissions is None else emissions.get(id, [])):
             regle = SIGNES[s["signe"]]
             if regle[1] != "vue" or niveau < regle[2] or regle[3] is not None and loin > regle[3]:
@@ -242,15 +248,29 @@ def percus(m, observateur="joueur", tons=(), emissions=None):
 
 
 def _percus_gardes(m, observateur, tons, emissions):
-    from .spatial import _memo_vue, etat_signes, a_verifier
-    memo = _memo_vue(m)
-    if memo is None or tons or emissions is not None:
+    from .spatial import a_verifier, position_cible
+    from .esprits import percus as objets_percus
+    from .corps import conscient
+    if tons or not conscient(m, observateur):
         return _percus(m, observateur, tons, emissions)
-    signature = etat_signes(m)
-    cache = memo.setdefault("signes_percus", {})
+    vus = ({id: None for id in m.objets if m.visible(id)} if observateur == "joueur"
+           else objets_percus(m, observateur)[0])
+    personnes = sorted(id for id in vus if id == "joueur" or m.objets[id]["type"] == "personnage")
+    emissions = {id: de(m, id) for id in personnes} if emissions is None else emissions
+    niveaux = {id: _niveau_distance(m, observateur, id) for id in personnes}
+    # Une clé par observateur, indépendante des esprits et objets qu'il ne perçoit pas.
+    # Les cibles crues ne sont jamais remplacées par une présence véritable.
+    signature = tuple((id, niveaux[id], repr(emissions.get(id, [])),
+                       tuple((s["id"], s["envers"] in vus, _envers_percu(m, observateur, s, vus),
+                              position_cible(m, s["envers"], o.get("lieu", o.get("salle")))
+                              if s["envers"] else None) for s in emissions.get(id, [])),
+                       tuple(o.get("position") or ()), o.get("orientation"))
+                      for id in personnes for o in [m.joueur if id == "joueur" else m.objets[id]])
+    cache = m.__dict__.setdefault("_perceptions_signes", {})
     entree = cache.get(observateur)
     if entree is None or entree[0] != signature:
-        cache[observateur] = (signature, _percus(m, observateur))
+        cache[observateur] = (copy.deepcopy(signature), _percus(m, observateur, emissions=emissions,
+                                                              contexte=(vus, niveaux)))
     resultat = cache[observateur][1]
     if a_verifier():
         assert resultat == _percus(m, observateur), "Signes perçus périmés"

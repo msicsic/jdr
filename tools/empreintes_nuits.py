@@ -21,7 +21,8 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", "crue": "chambre_cloche"}
+JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", "crue": "chambre_cloche",
+           "rixe": "chambre_cloche"}
 BELOW_NORMAL = 0x4000
 
 

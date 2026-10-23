@@ -117,7 +117,7 @@ def _estompes(monde, id, autre, r):
     return resultat
 
 
-def _lecture(monde, id, autre):
+def _lecture_pure(monde, id, autre):
     from .esprits import lire
     brut = lire(monde, id).get("relations", {}).get(autre)
     if brut is None:
@@ -128,6 +128,32 @@ def _lecture(monde, id, autre):
         r[a] = math.ceil(v - 1e-9) if a == "affection" and brut["ancrages"][a][0] > ancre else math.floor(v + 1e-9)
     r["bandes"] = _bandes(r, brut["bandes"])
     return r
+
+
+def _lecture(monde, id, autre):
+    from .esprits import lire
+    profil = monde.objets[id].get("profil") or {}
+    brut = lire(monde, id).get("relations", {}).get(autre)
+    cle = (monde.data["minutes"], repr(brut),
+           (profil.get("liens") or {}).get(autre, {}).get("affection", 0),
+           profil.get("valeurs", {}).get("fierte", 50),
+           profil.get("valeurs", {}).get("douceur", 50))
+    cache = monde.__dict__.setdefault("_lectures_relations", {})
+    entree = cache.get((id, autre))
+    if entree is None or entree[0] != cle:
+        cache[id, autre] = (cle, _lecture_pure(monde, id, autre))
+    resultat = cache[id, autre][1]
+    from .spatial import a_verifier
+    if a_verifier():
+        assert resultat == _lecture_pure(monde, id, autre), "Lecture de relation périmée"
+    return resultat
+
+
+def signature_signes(monde, id):
+    """Seulement les bandes et seuils effectivement lus par les émissions."""
+    return tuple((x, vive(r, "peur"), vive(r, "rancune"), vive(r, "affection"),
+                  peur(r), rancune(r), mefiance(r))
+                 for x in connus(monde, id) for r in [axes(monde, id, x)])
 
 
 def envers(monde, id, autre):
