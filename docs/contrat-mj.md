@@ -116,6 +116,11 @@ jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un él
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
 
+Le renvoi d'une contradiction sans source et la distinction entre ambiance et inconnue mécanique
+ne garantissent pas encore toute rédaction sans précaution : le banc de `codex-luna-restes` garde
+« aucun autre son n'est attesté ici ». Ce critère reste partiel ; une réserve de preuve peut encore
+être classée comme description sensorielle par l'auditeur.
+
 ### Parole, références et audit après les noms (`codex-luna-noms`)
 
 Le destinataire explicitement désigné, le chuchotement et la suite d'un échange contraignent

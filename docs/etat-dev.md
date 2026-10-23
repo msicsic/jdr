@@ -17,10 +17,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   séparément sur copie ; une question n'exécute toujours rien.
   Sens des contenus typés partagé entre interprétation et revue ; une présentation extraite
   sans nom dans la citation est écartée sans réécrire la réplique ni faire apprendre ce nom.
-  Quatorze nouveaux tests après rechargement. Sur `768bae6` : suite complète verte, **1 589 tests,
-  15 ignorés**, 798,4 s ; empreintes de 2 h identiques contre 8855312, quatre scénarios × quatre
-  graines. Dernière revue du contrat de parole : 159 tests ciblés verts ; vérification finale et
-  mesures Luna en cours, bilan à compléter dans le rapport de la tâche 22.
+  Quatorze nouveaux tests après rechargement. Livraison **24324f7**, commits signés : suite complète
+  verte, **1 591 tests, 15 ignorés**, 648,8 s, trois processus à priorité réduite ; empreintes de 2 h
+  identiques contre 8855312, quatre scénarios × quatre graines. Luna, deux passes ensemble par
+  variante, 15 scripts prescrits et un complément : périmètre commun 3,06 → 3,04 appels et
+  12,46 → 12,09 s par tour MJ, relances 7 → 6, replis 0 → 0,5 ; coût global stable. Forme inconnue :
+  un appel dans les deux passes, manque du moteur, aucun déplacement ni forme inventée.
+  `noms-dialogue` : question collective en quatre appels sans relance, 2/2 ; achat de planche accepté,
+  puis remise réelle, 2/2. Aucune case ni coordonnée dans les textes, aucune erreur technique ou
+  recharge invalide. **Ambiance : critère partiel**, « aucun autre son n'est attesté ici » subsiste ;
+  autres faux refus et un repli nominal dans le noir restent décrits dans le
+  [rapport de la tâche 22](taches/rapport-codex-22-luna-restes.md). Aucun changement des fichiers
+  réservés aux lots trajets/signes ni des données de scénario.
 
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
@@ -2063,7 +2071,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1577 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- Sur `codex-luna-restes`, la suite complète passe : **1 591 tests, 15 ignorés**, sans appel au modèle,
+  `tools/tests.py --processus 3` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
 
@@ -2095,17 +2104,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   poêle) ; ce n'est pas une borne admissible de l'optimum (pessimiste sur les préparatifs multiples, optimiste
   sur les délais et les autres). Le devis a un coût propre : à la mine, la fusion est ×1,04 au processeur
   sur 8 h mais une graine (1985) coûte +9 % ; le rapport mesurait +6,8 % contre 4fc5212.
-- Luna après `codex-luna-noms` : faux refus sémantiques possibles de la contre-revue de fidélité
-  (`tous` jugé individuel, achat dit sans transfert) ; une ambiance encore assortie d'une précaution
-  sur les bruits ; revus après N et M (`noms-dialogue` : « est-ce que quelqu'un a du bois ? » jugée
-  individuelle, une relance) ; un récit qui situe un objet hors de vue en cases (« deux cases vers le sud »).
+- Luna, suite de `codex-luna-restes` (non fusionnée) : le sens des références d'audience est comparé
+  par le moteur et la revue reçoit les conséquences des achats ; les positions sont en mètres avec
+  garde déterministe des unités. Le choix d'audience reste sémantique (`soir-appel`, une correction
+  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement, une désignation d'objet et
+  un nom non relié. Dans le noir, « la voix toute proche qui se dit Ilse » est refusé par le garde
+  nominal, un repli sûr sur deux passes. **Ne pas clore le critère d'ambiance sans précaution** : le
+  complément garde « aucun autre son n'est attesté ici » ; absence de preuve et absence de perception
+  ne sont pas encore distinguées dans toutes les rédactions.
 
 - Passer sous un obstacle (`codex-sous-obstacle`) : gabarits humains par défaut (170 cm, 70 kg, carrure
   déduite par convention, pas du portrait) ; un objet porté sans dimension compte pour un mètre, d'où
-  l'escalade refusée à qui porte un briquet ou une lanterne non décrits (85 cm au plus) ; forme inconnue :
-  la contre-revue physique refuse toute qualification de la poutre (« rien n'établit un vide sous elle ») et
-  Luna s'y essaie 5 à 7 appels avant le refus du moteur ; un récit situe encore la poutre « à une case vers
-  l'est ». Sans forme crue, le plan par salles ne sait pas qu'une salle est coupée (Gorm planifie une fuite
+  l'escalade refusée à qui porte un briquet ou une lanterne non décrits (85 cm au plus). Sur
+  `codex-luna-restes`, forme inconnue : le moteur dit immédiatement ce qui manque à une question ;
+  une qualification valable et sa suite peuvent être validées en trois appels, la plausibilité
+  restant sémantique. Sans forme crue, le plan par salles ne sait pas qu'une salle est coupée (Gorm planifie une fuite
   qu'il ne peut pas marcher). Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
 - Coût du planificateur en minute abstraite par salle (`obstacles.cout_route` : une minute par salle plus le
   supplément réel d'un passage) : le lot trajets réels (`codex-trajets-reels`, en cours) devra absorber de O
