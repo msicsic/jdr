@@ -79,7 +79,9 @@ class AubergeTests(unittest.TestCase):
         m, suite = par_blocs(m, 420, 60)
         # La reprise conserve refus, ventes, dons, charges et feux ; la réserve reste finie,
         # consommée à chaque recharge, sans bois créé par les parts détachées.
-        self.assertIn("Anselme demande les bûches de hêtre à Mireille (remis).", suite)
+        # L'expérience de ses échanges avec Odile lui fait préférer une nouvelle part
+        # de la réserve ; le contrôle porte toujours sur la livraison et le bois fini.
+        self.assertIn("Anselme demande une part des bûches de réserve à Odile (remis).", suite)
         self.assertGreaterEqual(reserve_bois(m), 0)
         self.assertLess(reserve_bois(m), restante)
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")

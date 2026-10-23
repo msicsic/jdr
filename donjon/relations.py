@@ -136,6 +136,34 @@ def axes(monde, id, autre):
     return {a: r[a] for a in (*AXES, "bandes")}
 
 
+def chance_demande(monde, id, autre):
+    """Estimation du demandeur, jamais lecture de l'esprit de l'autre.
+
+    Son lien sert d'a priori ; ses refus et les services qu'il a lui-même rendus
+    le corrigent. Les signes lus (3c), puis les contreparties (3e), pourront
+    enrichir cette seule estimation. Ce n'est pas la chance du jet réel.
+    """
+    from .deliberation import REDEMANDE
+    from .esprits import lire
+    r, e = axes(monde, id, autre), lire(monde, id)
+    chance = (0.5 + (r["confiance"] - 40) / 200 + r["affection"] / 500
+              - r["rancune"] / 250 - r["peur"] / 500 + r["dette"] / 1000)
+    # Une incapacité matérielle n'est pas un rejet de la personne. Elle reste
+    # traitée par les refus de la demande précise dans le planificateur.
+    refus = [s for s in e["refus"] if s["de"] == autre
+             and monde.data["minutes"] - s["minute"] < REDEMANDE
+             and s["raison"] in ("refus", "mefiance")]
+    if refus:
+        chance -= 0.3 if any(s["raison"] == "mefiance" for s in refus) else 0.15
+    recents = [s for s in e["memoire"] if monde.data["minutes"] - s["minute"] < REDEMANDE]
+    if any(s["type"] in ("don", "engagement_tenu") and s.get("a", s.get("pour")) == autre
+           for s in recents):
+        chance += 0.1  # Il espère la réciprocité, sans la savoir acquise.
+    if any(s["type"] == "se_sait_vu" and s["par"] == autre for s in recents):
+        chance -= 0.3
+    return min(0.9, max(0.1, chance))
+
+
 def percue(monde, auditeur, locuteur):
     from .voix import SUSPECTE, identifie, reconnaitre
     if identifie(monde, auditeur, locuteur):

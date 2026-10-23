@@ -399,6 +399,13 @@ deux heures pour une attitude. Le joueur a les mêmes lectures dans `data["lectu
 - **Qui croire et à qui demander** : la chance qu'un autre accepte, dans le planificateur, se
   calcule sur ce que le PNJ croit de l'attitude de l'autre envers lui (une lecture, un refus
   récent, ce qu'il sait que l'autre l'a vu faire) ; elle remplace `PRET` (§ 7.2).
+  **Socle fait dans `codex-garde-pret`** : une estimation unique
+  `relations.chance_demande` utilise le lien propre du demandeur, ses refus retenus,
+  services et dettes vécus, et les témoins de faute qu'il a remarqués. Aucune relation
+  privée de l'auditeur n'est lue. Les cartes de chances et de prix de garde entrent dans
+  `_entrees`. Les signes de 3c affineront cette estimation ; ce n'est pas encore une
+  lecture de l'attitude réciproque. Règles et réglages :
+  `docs/plan-planificateur.md`, « Garde et chance de demande ».
 - **Voir venir** : une intention lue (« guette la réserve ») chez quelqu'un fait surveiller
   l'objet comme un bien à soi s'il est de garde (`de_garde`), et se tourner vers le guetteur ;
   pour un témoin quelconque, c'est une nouvelle qu'il peut confier (`social.NOUVELLES`), mais à
@@ -471,6 +478,9 @@ Une demande devient une **proposition** : ce que je demande, et ce que tu y gagn
   retenu dans l'esprit de l'auteur), le besoin qu'il croit à l'autre de la contrepartie. `PRET`
   disparaît. Ces lectures entrent dans `planification._entrees` (la mémoire des recherches) ;
   `planification.VERIFIER` contrôle qu'aucune n'y manque.
+  La constante a déjà disparu dans `codex-garde-pret` au profit de cette estimation
+  commune aux demandes existantes. Restent ici le geste `proposer`, le prix de la
+  contrepartie et le besoin cru de l'auditeur ; le calcul unique pourra les intégrer.
 - **Regagner la confiance** : un geste `rendre_service` (donner ce que l'autre croit lui manquer,
   tenir une tâche pour lui), dont l'effet projeté dans la recherche est la relation de l'autre
   relevée d'une bande, et qui ouvre alors `demander`. Brune refusée par méfiance peut, si c'est
@@ -690,6 +700,8 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
 - Contenu `proposition`, évaluation (§ 7.1), engagements des deux côtés, trahison ; geste
   `proposer` et chance estimée (fin de `PRET`) ; `rendre_service` ; condition « remis » et
   intermédiaires ; parole du joueur typée.
+  Préparé par `codex-garde-pret` : chance estimée centralisée, expériences du demandeur
+  et souvenir des témoins remarqués ; `PRET` retiré. Le reste de 3e demeure à réaliser.
 - **Mesures** : `propositions`, `acceptees`, `contreparties_tenues`, `trahisons`,
   `intermediaires`, `services_rendus` ; vols et minutes sans recours.
 - **Épreuve** : la crue (Brune affamée, dont Gorm se méfie, et les vivres sous clé), la mine (Odon

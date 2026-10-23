@@ -60,9 +60,9 @@ class EntretenirUnFeuTests(unittest.TestCase):
         croire(m, "mireille", "fagots_etable", "lieu", "etable", "savoir", salle="etable", case=None)
         chronique, _ = executer(m, 10)
         m = recharger(m)
-        # Une part demandée coûte selon sa chance d'être accordée (``planification.PRET``) : elle
-        # préfère la payer une pièce, ce qui ne se refuse pas.
-        self.assertIn("Mireille achète une part des fagots de l'écurie à Joss pour 1 pièce (vendu).", textes(chronique))
+        # Son lien avec Joss rend la demande moins chère que l'achat (chance estimée
+        # de codex-garde-pret). Le service et la ressource doivent rester effectifs.
+        self.assertIn("Mireille demande une part des fagots de l'écurie à Joss (promis).", textes(chronique))
         self.assertIn("Joss, palefrenier alimente le fourneau.", textes(chronique))
         # Joss a mis une charge au fourneau ; ses fagots, il les a reposés à l'étable, où il les garde.
         self.assertTrue(m.objets["fourneau"]["allume"])

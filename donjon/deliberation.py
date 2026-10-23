@@ -1086,7 +1086,9 @@ def menaces(monde, id):
     lieux = _lieux_gardes(monde, id, siens=True)
     if not lieux:
         return ()
-    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and se_mefie(monde, id, x)]
+    from .relations import en_veut, craint
+    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id
+               and (se_mefie(monde, id, x) or en_veut(monde, id, x) or craint(monde, id, x))]
     return tuple(sorted(s for s in lieux if any(salle_crue(monde, id, x) == s for x in mefiants)))
 
 

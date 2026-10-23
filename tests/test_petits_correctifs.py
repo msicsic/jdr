@@ -18,7 +18,7 @@ from donjon.deplacement_objet import deplacer
 from donjon.echanges import ENGAGEMENT_MAX, demander
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.moteur import Moteur, proposition
-from donjon.planification import DEMANDE, PRET, Vue, depart, gestes, planifier, planifier_pulsion
+from donjon.planification import DEMANDE, Vue, depart, gestes, planifier, planifier_pulsion
 from tests.support import calme, refusee, regarder
 from tests.test_planif_defauts import MINEURS
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
@@ -353,7 +353,7 @@ class BoisDeGormTests(unittest.TestCase):
         self.assertFalse(any("planches" in c["texte"] for c in de(m, "marchand")))
 
     def test_une_part_demandee_coute_selon_sa_chance_comme_un_objet(self):
-        # La règle commune : une part demandée n'est pas acquise ; elle coûte 1 + DEMANDE / PRET,
+        # La règle commune : une part demandée n'est pas acquise ; elle coûte 1 + DEMANDE / chance estimée,
         # comme un objet demandé à qui le porte.
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         lire(m, "ilse")["besoins"]["faim"] = 80.0
@@ -362,7 +362,7 @@ class BoisDeGormTests(unittest.TestCase):
         percevoir_tous(m)
         v = Vue(m, "ilse")
         demandes = [g for g in gestes(v, depart(m, "ilse", v)) if g[2] and g[2][0]["operation"] == "demander"]
-        self.assertEqual([(g[2][0]["outil"], g[1]) for g in demandes], [("vivres", 1 + DEMANDE / PRET)])
+        self.assertEqual([(g[2][0]["outil"], g[1]) for g in demandes], [("vivres", 1 + DEMANDE / v.chances_demandes["marchand"])])
 
 
 if __name__ == "__main__":

@@ -302,8 +302,6 @@ def _temoins(monde, geste, souvenir, victime):
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
             geste["temoins"].append(autre)
-            if monde.visible(autre) if id == "joueur" else percoit(monde, id, autre):
-                geste["se_sait_vu"].append(autre)
             lieu = _lieu_vu(monde, autre, geste)
             memoriser(monde, autre, {**souvenir, **({"lieu": lieu} if lieu else {})})
             if lieu:
@@ -321,6 +319,14 @@ def _temoins(monde, geste, souvenir, victime):
                 from .deliberation import ATTEINTE
                 relancer(monde, autre, "devoir", ATTEINTE)
                 memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id, "preuve": souvenir["preuve"]})
+    # L'auteur peut remarquer un témoin après le début du geste. Seuls ceux
+    # qu'il voit lui-même entrent dans son souvenir, conservé après le geste.
+    for autre in geste["temoins"]:
+        if autre not in geste["se_sait_vu"] and (monde.visible(autre) if id == "joueur" else percoit(monde, id, autre)):
+            geste["se_sait_vu"].append(autre)
+            if id != "joueur":
+                memoriser(monde, id, {"type": "se_sait_vu", "par": autre,
+                                      "objet": geste["objet"], "operation": geste["operation"]})
 
 
 def _temoins_a_l_oreille(monde, geste, souvenir, victime):

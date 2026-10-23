@@ -73,6 +73,7 @@ def jouer_nuit(tache):
     ceder()
     planification.VERIFIER = config["verifier"]
     capture, releves, minutes = {}, [], {}
+    gardes_precedentes, eloignements = {}, {"minutes_loin_biens": 0, "eloignements_biens": 0}
     creer, oisifs, percevoir = banc.creer, banc._oisifs_urgents, pnj.percevoir_tous
 
     def creer_capture(*a, **k):
@@ -83,6 +84,17 @@ def jouer_nuit(tache):
         return monde
 
     def relever(monde):
+        # Observation commune aux deux versions, sans changer le moteur du banc.
+        # Une minute-lieu pour chaque lieu où il croit un bien dont il a la charge.
+        from donjon.deliberation import _lieux_gardes
+        from donjon.esprits import pnjs
+        maintenant = {(id, s): monde.objets[id]["lieu"] != s
+                      for id in pnjs(monde) for s in _lieux_gardes(monde, id, siens=True)}
+        eloignements["minutes_loin_biens"] += sum(maintenant.values())
+        eloignements["eloignements_biens"] += sum(loin and gardes_precedentes.get(cle) is False
+                                                  for cle, loin in maintenant.items())
+        gardes_precedentes.clear()
+        gardes_precedentes.update(maintenant)
         releves.append(audit._releve(monde))
         return oisifs(monde)
 
@@ -120,6 +132,14 @@ def jouer_nuit(tache):
             minutes[str(monde.data["minutes"])] = empreinte(monde.data)
         resultat["minutes"] = minutes
     if not config["empreintes"]:
+        if resultat.get("donnees"):
+            chronique = resultat["donnees"]["chronique"]
+            demandes = [c for c in chronique if " demande " in c["texte"] and c["nature"] == "social"]
+            resultat["donnees"]["mesures"].update(eloignements)
+            resultat["donnees"]["mesures"].update(
+                demandes_objet=len(demandes),
+                refus_demande=sum(c["texte"].endswith(("(refus).", "(mefiance).", "(necessaire).", "(impossible).",
+                                                       "(absent).", "(qui_va_la).")) for c in demandes))
         resultat["releves"] = releves
         if monde is not None:
             resultat["final"] = audit._final(monde)
