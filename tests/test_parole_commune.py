@@ -111,7 +111,7 @@ class DestinataireTests(unittest.TestCase):
             parole("Bonsoir, vous tenez le coup ?", ("propos", "", "", ""), personnage="brune"),
             reponse_pnj("Brune hausse les épaules.")])
         self.assertEqual(appels[0]["faits"]["parole_prevue"]["personnage"], "brune")
-        self.assertIn("Tu dis à Brune : « Bonsoir, vous tenez le coup ? »", sortie)
+        self.assertIn("Tu dis à Brune : « bonsoir, vous tenez le coup ? »", sortie)
         self.assertEqual(paroles_retenues(reprise, "brune")[-1][1], ["brune"])
 
     def test_celui_qu_il_nomme_dans_son_dos_le_tourne_d_abord(self):

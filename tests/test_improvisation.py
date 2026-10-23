@@ -45,11 +45,11 @@ class ImprovisationTests(unittest.TestCase):
         plan = self.moteur.preparer(p, "MJ")
         self.assertEqual(self.m.data, avant)
         self.assertFalse(plan.stat)
-        self.assertIn("Geste d'expression", plan.resume(self.m))
+        self.assertIn("Geste", plan.resume(self.m))
         self.assertNotIn("S'étirer", plan.resume(self.m))
         with patch.object(Monde, "d20", side_effect=AssertionError("Sans dé")):
             texte = self.moteur.executer(plan)
-        self.assertIn("geste d'expression", texte)
+        self.assertIn("geste", texte)
         self.assertNotIn("S'étirer", texte)
         self.assertNotIn("délies", texte)
         self.assertEqual(self.m.data["minutes"], 1)
@@ -135,7 +135,7 @@ class ImprovisationTests(unittest.TestCase):
         moteur = Moteur(m)
         moteur.executer(moteur.preparer(action("prendre", "cle")))
         plan = moteur.preparer(jongler())
-        self.assertIn("geste d'adresse concernant la clé", plan.resume(m))
+        self.assertIn("geste concernant la clé", plan.resume(m))
         self.assertNotIn("Jongler", plan.resume(m))
         with patch.object(Monde, "d20", return_value=1):
             t = moteur.executer(plan)

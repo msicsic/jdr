@@ -400,13 +400,14 @@ def preparer_faits(monde, proposition, revision=None):
             if obstacles:
                 raise refus("Cette parole nomme quelqu'un que son locuteur ne connaît pas.",
                             obstacles[0]['attendu'])
-            from .ouie import saisissent
+            from .ouie import auditeurs_parole, _place
             from .voix import reel as _reel
-            source = travail.joueur["salle"]
+            source = _place(travail, _reel(travail, ancrage))[0]
             # Qui en saisit les mots, par l'ouïe commune ; le joueur, à qui elle s'adresse.
-            entendants = sorted(saisissent(travail, _reel(travail, ancrage)))
+            entendants = auditeurs_parole(travail, _reel(travail, ancrage))
             if "joueur" not in entendants:
-                entendants.append("joueur")
+                raise refus("La voix de ce locuteur ne te parvient plus.",
+                            f"ancrage = {ancrage} : un interlocuteur audible du joueur.")
             from .voix import nom_pour_joueur, reel
             nom = nom_pour_joueur(travail, reel(travail, ancrage), court=False)
             # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.

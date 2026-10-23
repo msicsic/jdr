@@ -1,0 +1,69 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre",
+  "position": [
+   1,
+   3
+  ],
+  "orientation": "ouest",
+  "personnages": {
+   "brune": {
+    "salle": "antichambre",
+    "position": [
+     0,
+     3
+    ],
+    "orientation": "est"
+   },
+   "aubin": {
+    "salle": "antichambre",
+    "position": [
+     1,
+     4
+    ],
+    "orientation": "nord"
+   },
+   "ilse": {
+    "salle": "antichambre",
+    "position": [
+     3,
+     5
+    ],
+    "orientation": "nord-ouest"
+   },
+   "marchand": {
+    "salle": "echoppe",
+    "position": [
+     4,
+     1
+    ]
+   }
+  },
+  "calmes": [
+   "brune",
+   "aubin",
+   "ilse",
+   "marchand"
+  ],
+  "noms_connus": [
+   "marchand",
+   "aubin",
+   "brune",
+   "ilse"
+  ]
+ },
+ "tours": [
+  "regarder",
+  "bonsoir, vous tenez le coup ?",
+  "« Tu sais où est passé le gardien ? »",
+  "je dis à tous que l'eau monte et qu'il faut garder le feu",
+  "je chuchote à Brune que je me méfie d'Aubin",
+  "Brune, laisse-moi passer s'il te plaît",
+  "je pousse Aubin",
+  "je donne le bloc de cire à Ilse",
+  "Ilse, qu'est-ce que tu vas en faire ?",
+  "inventaire"
+ ]
+}

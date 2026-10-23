@@ -43,8 +43,8 @@ def voix_de_gorm(m):
 class NomRetenuTests(unittest.TestCase):
     def test_cas_reel_gorm_voit_corvus_se_nommer_et_retient_son_nom(self):
         """Limite de ``voix-inconnues`` : Gorm voit Corvus lui dire « C'est Corvus » ; il le sait déjà
-        là (« connu »), et rien n'enregistrait son nom. Dans le noir ensuite, sa voix, que Corvus ne
-        connaît pas, ne pouvait pas l'appeler Corvus. Désormais il le retient."""
+        là (« connu »), et rien n'enregistrait son nom. Dans le noir ensuite, sa voix doit pouvoir
+        l'appeler Corvus. Désormais il le retient ; sa réponse fait aussi connaître sa voix."""
         m = relais_pres_de_gorm()
         self.assertTrue(percoit(m, "marchand", "joueur"))
         self.assertFalse(connait_nom(m, "marchand", "joueur"))
@@ -52,12 +52,14 @@ class NomRetenuTests(unittest.TestCase):
             parole("C'est Corvus.", ("nom", "joueur", "", "")), reponse_pnj("Gorm hoche la tête.")])
         self.assertEqual(lire(reprise, "marchand")["noms"], ["joueur"])
         self.assertNotIn("joueur", lire(reprise, "marchand")["voix_entendues"])
-        # Dans le noir, plus tard : la voix de Gorm peut nommer Corvus ; une autre voix non.
+        # Dans le noir, plus tard : la réponse de Gorm a fait entendre sa voix.
         reprise.objets["brasero"]["allume"] = False
         reprise.objets["lanterne"]["allume"] = False
         reprise.data["minutes"] += 30
         reprise = recharger(reprise)
-        alias, faits = voix_de_gorm(reprise)
+        alias = designation(reprise, "marchand")
+        self.assertEqual(alias, "marchand")
+        faits = {"interlocuteurs": {alias: {"nom": "Gorm"}}}
         reprise = recharger(reprise)
         self.assertTrue(connait_nom(reprise, "marchand", "joueur"))
         self.assertEqual(voix_inconnues(reprise, [{"locuteur": alias, "texte": "Corvus, approche."}], faits), [])

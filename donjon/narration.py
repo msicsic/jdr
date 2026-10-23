@@ -188,7 +188,14 @@ def segments(texte):
             citation = max(0, citation - 1)
         fin_phrase = (caractere in ".!?" and citation == 0
                       and (i + 1 == len(texte) or texte[i + 1].isspace()))
-        if fin_phrase or caractere == "\n":
+        # La ponctuation finale d'une réplique appartient aussi à la phrase qui
+        # l'attribue. Une nouvelle phrase après » doit avoir son propre audit,
+        # et donc son propre locuteur ; l'incise en minuscule reste dans la même.
+        suite = texte[i + 1:].lstrip()
+        fin_replique = (caractere == "»" and citation == 0 and i > 0
+                        and texte[:i].rstrip().endswith((".", "!", "?", "…"))
+                        and (not suite or suite[0].isupper()))
+        if fin_phrase or fin_replique or caractere == "\n":
             passage = texte[debut:i + 1].strip()
             if passage:
                 passages.append(passage)
@@ -472,6 +479,34 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte", citations_hi
     return obstacles
 
 
+def clarification_nominale(monde, intention, texte, faits):
+    """Une référence saisie sans lien nominal n'est pas une question sur le corps
+    secret qui porte ce nom. Si le récit essaie néanmoins de l'employer, le moteur
+    demande une désignation publique. Il ne demande pas au MJ de rédiger un démenti
+    que le même garde nominal refuserait. Aucun nom ni lien privé n'est autorisé.
+
+    Les paroles déjà validées et les résultats d'action gardent leurs transactions
+    et leur contrôle ordinaires ; une parole peut mentionner un tiers sans le viser.
+    """
+    if faits.get("conversation_validee") or faits.get("resultat_resolu"):
+        return None
+    from .paroles import _personnage
+    for refus in voix_inconnues(monde, [], faits, texte):
+        # ``recu`` n'est pas structuré dans un refus d'audit : les noms sont relus
+        # dans l'état, jamais extraits de son message ou de celui de l'auditeur.
+        passage = refus["texte"]
+        for id, o in monde.objets.items():
+            if o["type"] != "personnage":
+                continue
+            nom = o["nom"].split(",")[0].split()[0]
+            motif = re.compile(r"(?<!\w)" + re.escape(normaliser(nom)) + r"(?!\w)")
+            if (motif.search(normaliser(intention)) and motif.search(normaliser(passage))
+                    and _personnage(monde, nom) is None):
+                return ("Tu ne sais pas à qui rattacher ce nom. Désigne la personne par ce que tu vois "
+                        "ou entends, ou demande-lui son nom.")
+    return None
+
+
 def citations_nouvelles(texte, faits):
     """Mots cités entre guillemets que rien de ce que le MJ a reçu ne contient : une parole
     nouvelle, et non le rappel d'une parole entendue ou d'une inscription. Le retour du moteur
@@ -678,8 +713,10 @@ def controler(texte, rapport, faits, partie="texte"):
                         f"la réplique de {locuteur} entière entre « et » dans ce segment, de 3 à {LONGUEUR_PAROLE} "
                         "caractères", f"citation {citation}" if citation else "citation vide")
             elif ligne['presentation'] and not re.search(r'(?<!\w)'+re.escape(ligne['presentation'])+r'(?!\w)',citation):
-                refuser("Le nom de présentation n'est pas prononcé dans cette citation.",
-                        "presentation : le nom littéral prononcé par le locuteur pour se présenter, ou vide")
+                # Le lecteur a inventé une donnée de son rapport : la citation
+                # suffit à le constater sans juger la prose. Lui redemander son
+                # rapport ne fait ni réécrire la réplique ni apprendre ce nom.
+                raise AuditIllisible("Le rapport attribue une présentation absente de sa citation.")
             else:
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
@@ -772,19 +809,19 @@ def consigner(monde, reponse):
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.")
     paroles = []
     if rapport["paroles"]:
-        from .ouie import saisissent
+        from .ouie import auditeurs_parole, _place
+        from .dialogues import reels
         from .voix import connaitre, reel
         for parole in rapport["paroles"]:
             # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
             locuteur = monde.objets[reel(monde, parole["locuteur"])]
-            if not monde.present_physique(locuteur["id"]):
-                raise ErreurMonde("Le locuteur n'est plus présent pour cette parole.")
+            entendants = auditeurs_parole(monde, locuteur["id"])
+            if locuteur["id"] not in reels(monde) or "joueur" not in entendants:
+                raise ErreurMonde("La voix de ce locuteur ne te parvient plus.",
+                                  f"locuteur = {parole['locuteur']} : un interlocuteur actuellement perçu et audible.")
             if monde.visible(locuteur["id"]):
                 connaitre(monde, "joueur", locuteur["id"])  # Il le voit parler : il saura reconnaître sa voix.
             # Qui en saisit les mots, par l'ouïe commune ; le joueur, à qui elle s'adresse.
-            entendants = sorted(saisissent(monde, locuteur["id"]))
-            if "joueur" not in entendants:
-                entendants.append("joueur")
             from .noms import entendre as entendre_noms
             for auditeur in entendants:
                 entendre_noms(monde, auditeur, locuteur["id"], parole["texte"])
@@ -792,7 +829,7 @@ def consigner(monde, reponse):
                     from .noms import presenter
                     presenter(monde,auditeur,locuteur['id'],parole['presentation'],parole['texte'])
             paroles.append({
-                "locuteur": locuteur["id"], "texte": parole["texte"], "salle": salle,
+                "locuteur": locuteur["id"], "texte": parole["texte"], "salle": _place(monde, locuteur["id"])[0],
                 "minute": monde.data["minutes"], "auditeurs": entendants,
                 "revision": monde.data["revision"],
                 **({'presentation':parole['presentation']} if parole.get('presentation') else {}),

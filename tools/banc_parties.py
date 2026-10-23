@@ -31,6 +31,7 @@ from donjon.monde import Monde  # noqa: E402
 REPLIS = ("Je ne peux pas encore", "Rien de ce que tu perçois ou sais ne permet",
           "n'en disent pas davantage", "sans te répondre.", "C'est une possibilité, pas un fait établi",
           "Je n'ai pas pu déterminer une manœuvre", "Corvus n'a rien tenté",
+          "Je n'ai pas pu déterminer le geste à examiner",
           "Réponse du MJ invalide", "Le contrôle narratif n'a pas abouti",
           "n'a pas terminé", "Aucune action appliquée", "Aucun changement enregistré",
           "Aucun ajout enregistré", "Aucun engagement enregistré")
@@ -193,6 +194,13 @@ def preparer(donnees, sauvegarde):
     for d in prep.get("dettes", []):
         # Placement d'auteur : une contrepartie payée et jamais livrée, comme l'échéance la fait naître.
         rembourser(m, d["de"], d["a"], d["montant"], d["objet"], d.get("quoi", "part"))
+    for qui, noms in prep.get("noms_connus_par", {}).items():
+        from donjon.noms import apprendre
+        for nom in noms:
+            apprendre(m, qui, nom)
+    for qui in prep.get("appels", []):
+        from donjon.pnj import appeler
+        appeler(m, qui, "joueur", [])
     m.verifier()
     m.sauver(sauvegarde)
 

@@ -148,6 +148,9 @@ def main(argv=None):
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle (vérifier le lanceur)")
     p.add_argument("scripts", nargs="*", type=Path, default=SCRIPTS)
     args = p.parse_args(argv)
+    # Les scripts viennent du dépôt du lanceur, même quand la variante jouée
+    # précède leur création et possède un autre répertoire courant.
+    args.scripts = [script.resolve() for script in args.scripts]
     sys.stdout.reconfigure(encoding="utf-8")
     variantes = {}
     for v in args.variante:

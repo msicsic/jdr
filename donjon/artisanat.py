@@ -317,7 +317,14 @@ def preparer_usage(m, p, origine):
     from .moteur import Plan
     id, action = p["cible"], p["action"]
     o = m.objets.get(id, {})
-    if not m.accessible(id) or not o.get("assemblage") or not o["integrite"]:
+    if not o.get("assemblage"):
+        from .refus import RefusDeForme
+        raise RefusDeForme("Cette opération ne s'applique pas à cette cible.",
+                          f"{action}.cible = {id} : attendu un assemblage d'usage échelle ; "
+                          "installer, franchir et desinstaller installent, parcourent ou retirent cet assemblage. "
+                          "Pour un autre mouvement, propose l'action qui réalise ce mouvement, ou improviser ; "
+                          "cette erreur de type ne dit rien de sa possibilité physique.")
+    if not m.accessible(id) or not o["integrite"]:
         echelles = sorted(i for i, x in m.objets.items() if x.get("assemblage") and x.get("integrite") and m.accessible(i))
         raise ErreurMonde("Il faut une échelle accessible et en état de servir.",
                           f"cible : un assemblage accessible et intact, parmi {liste(echelles)} (reçu « {id} »).")

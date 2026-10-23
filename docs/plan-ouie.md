@@ -148,9 +148,11 @@ Avant : une parole du joueur avait un seul destinataire, nommé en tête ou choi
 autres présents n'en retenaient rien, et une parole entre PNJ ne touchait que son destinataire.
 On ne pouvait ni parler à un groupe ni chuchoter.
 
-**Règle acceptée.** Le moteur fixe le destinataire (`paroles.analyser`, `paroles.destinataires`) :
-celui que le joueur nomme ; sinon celui qui est en face de lui (dans son regard, le plus proche
-à portée de voix) ; à égalité, le joueur précise. « à tous » s'adresse à tous les présents qui
+**Règle acceptée.** Le moteur fixe les contraintes de destinataire (`paroles.analyser`,
+`paroles.destinataires`) : celui que le joueur nomme, le groupe ou la suite de l'échange.
+Sans adresse ni suite, `audience_libre` laisse Luna distinguer l'assistance de la parole
+individuelle ; pour cette dernière, le défaut reste celui d'en face (dans son regard, le plus
+proche à portée de voix) ; à égalité, le joueur précise. « à tous » s'adresse aux présents qui
 saisiraient ses mots, chacun décidant comme d'une demande individuelle. Une saisie qui commence
 par des guillemets vaut « je dis … », ou, quand un ou plusieurs interlocuteurs précédents
 saisissent encore ses mots, « je lui/leur dis … » : elle poursuit l'échange avec eux (de même
@@ -1306,6 +1308,7 @@ dit Ilse « Approche-toi d'une voix qui se dit Ilse… » ; « aucun passage dir
 1 → 0. Le cas réel du nom inconnu (comptes) n'est pas revenu : Brune était connue dans les quatre passes
 (test sans Luna). Restent : « je réponds » sans appel, que Luna fait encore parole avec des mots à elle ;
 « est-ce que quelqu'un a du bois ? » va à celui d'en face.
+Ces deux restes sont repris par `codex-luna-noms` (section « Parole après les noms »).
 
 Limites : le vocatif est reconnu par sa ponctuation (une virgule) ; un nom inconnu n'est refusé que
 s'il est celui d'un personnage du monde (un nom qui ne nomme personne, « Bertrand, … », va au MJ comme
@@ -1630,6 +1633,26 @@ Limites de l'appel négocié :
   font toujours une ambiguïté, et l'on chuchote à quiconque est là. « je lui dis » vise le dernier
   à qui Corvus a parlé. Les paroles entendues occupent la mémoire des PNJ (40 souvenirs ; une
   soixantaine de paroles surprises par nuit à la mine).
+
+## Parole après les noms (`codex-luna-noms`)
+
+Sans adresse imposée, `parole_prevue.audience_libre` laisse Luna distinguer la parole
+individuelle de celle destinée à l'assistance. Le moteur vérifie l'audience proposée ; les
+destinataires explicites, les chuchotements et les suites d'échange restent contraints par
+la saisie. Une question directe devenue parole conserve ses mots. Un verbe sans propos et
+sans réponse locale d'appel demande les mots du joueur sans les inventer.
+
+Chaque répondant est entendu avant le récit, même si sa réponse mécanique l'a fait s'écarter
+hors du champ visuel. Une voix qui répond d'une autre salle devient aussi un interlocuteur
+tant que chacun saisit les mots de l'autre ; elle ne révèle que son identité perçue. Les
+répliques auditées et les faits typés `parole` utilisent les mêmes auditeurs acoustiques,
+joueur compris, et retiennent le lieu réel de leur source. Les PNJ autonomes gardent leurs
+règles de décision ; les empreintes moteur sont comparées dans le rapport de la tâche 8.
+
+Les formes locales de l'appel négocié sont rejouées avec la connexion Luna, sur des copies,
+avec et sans guillemets : l'appel, l'arrivée promise, l'invitation à venir et la question de
+raison ne font aucun appel au modèle. Les rendez-vous et les réponses entendues appartiennent
+au moteur. Voir `docs/taches/rapport-codex-8-luna-noms.md` pour les scènes et les limites.
 
 ## Réglages à trancher
 

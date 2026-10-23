@@ -40,7 +40,7 @@ def interlocuteurs(monde):
     from .voix import designation, genre, nom_pour_joueur
     resultat = {}
     for id, o in monde.objets.items():
-        if not (o["type"] == "personnage" and monde.present_physique(id)):
+        if o["type"] != "personnage":
             continue
         if not (monde.visible(id) or id in monde.data.get("entendus", []) and s_entendent(monde, id, "joueur")):
             continue

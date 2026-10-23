@@ -66,11 +66,15 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
 REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
 proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le moteur
-fixe à qui Corvus parle et te le donne dans parole_prevue, si la saisie est une parole : celui
-que le joueur nomme, sinon celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ;
+fixe les contraintes de destinataire dans parole_prevue : celui que le joueur nomme,
+la suite d'un échange, ou le groupe explicite. Sans adresse ni suite, audience_libre permet
+de choisir tous pour une parole destinée à l'assistance, ou le destinataire par défaut
+pour une parole individuelle. Le moteur vérifie ce choix et qui l'entend réellement ;
 chuchoter ou murmurer, un seul, au contact ; un nom détaché par une virgule, où qu'il soit
 (« …, X ? »), désigne celui à qui il parle. personnage =
-parole_prevue.personnage (un identifiant, tous, ou personne quand nul en vue ne l'entend : il parle
+parole_prevue.personnage quand audience_libre est faux ; sinon choisis selon l'adresse de la
+saisie, à l'assistance (tous) ou individuelle (parole_prevue.personnage). Ce sont des références
+de destinataire (un identifiant, tous, ou personne quand nul en vue ne l'entend : il parle
 à la cantonade ; qui l'entend sans qu'il le sache là peut répondre à une question, le moteur le dit). Une saisie qui commence par des guillemets, par un verbe de parole (« je
 dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou par « à tous » est une
 parole, même si ses mots annoncent un geste : donner un objet se fait par l'action remettre ; ce
@@ -447,6 +451,7 @@ def analyser(monde, intention):
     l'interprète librement (question, geste ou parole)."""
     s = (intention or "").strip()
     forme = {"maniere": "voix", "groupe": False, "nomme": None, "inconnu": None, "suite": False, "mots": None,
+             "incomplete": False,
              "explicite": False}
     if s[:1] in GUILLEMETS:
         forme.update(explicite=True, mots=citation(s) or s.strip("«»\"“” ") or None)
@@ -487,6 +492,7 @@ def analyser(monde, intention):
         # Un verbe de parole en tête (« je dis… », « je demande à Gorm… ») annonce une parole ; seul, sans
         # destinataire ni mots (« je réponds » quand personne n'a appelé), il ne dit encore rien.
         rien = i >= len(jetons) and not (forme["nomme"] or forme["groupe"] or forme["suite"] or forme["inconnu"])
+        forme["incomplete"] = i >= len(jetons) and not forme["mots"] and not homonyme
         if (not homonyme or forme["nomme"] or forme["groupe"]) and not rien:
             forme["explicite"] = True
         if forme["mots"] and not (forme["groupe"] or forme["nomme"] or forme["inconnu"]):
@@ -828,6 +834,8 @@ def destinataires(monde, forme):
 def prevue(monde, intention):
     """Ce que le moteur fixe de la parole que la saisie annonce, pour Luna (``parole_prevue``)."""
     forme = analyser(monde, intention)
+    if forme["incomplete"]:
+        return {"impossible": "Précise ce que tu veux dire, entre guillemets ou après un deux-points."}
     vers = regard(monde, forme)
     try:
         dest = destinataires(tourne(monde, vers) if vers else monde, forme)
@@ -835,9 +843,23 @@ def prevue(monde, intention):
         return {"impossible": str(exc)}
     from .voix import designation
     return {"personnage": designation(monde, personnage(forme, dest)),
+            "audience_libre": audience_libre(forme),
             "destinataires": [designation(monde, x) for x in dest],
             "maniere": "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute",
-            **({"mots": forme["mots"]} if forme["mots"] else {})}
+            **({"mots": mots_dits(forme, intention)} if mots_dits(forme, intention) else {})}
+
+
+def audience_libre(forme):
+    """L'adresse explicite, le chuchotement et la suite d'un échange contraignent la cible.
+    Sinon l'interprétation peut distinguer parole individuelle et parole à l'assistance."""
+    return not any(forme[k] for k in ("nomme", "groupe", "inconnu", "suite")) and forme["maniere"] == "voix"
+
+
+def mots_dits(forme, intention):
+    """Une question directe, si le MJ en fait une parole, contient déjà ses mots.
+    Une demande de la raconter (« je demande si… ») garde l'expression du personnage."""
+    from .commandes import est_question
+    return forme["mots"] or (intention.strip() if not forme["explicite"] and est_question(intention) else None)
 
 
 def personnage(forme, dest):
@@ -1399,6 +1421,11 @@ def preparer_parole(monde, p, revision=None):
                           f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
     # Le moteur fixe à qui Corvus parle : le MJ ne lui substitue personne.
     forme = analyser(monde, p.get("_intention", ""))
+    if forme["incomplete"]:
+        raise ParoleImpossible("Précise ce que tu veux dire, entre guillemets ou après un deux-points.",
+                               "la saisie ne fournit aucun propos ; ne lui invente ni appel ni mots.")
+    if p["personnage"] == "tous" and audience_libre(forme):
+        forme["groupe"] = True
     vers = regard(monde, forme)
     if vers:
         # Il se tourne d'abord vers celui qu'il nomme dans son dos.
@@ -1420,7 +1447,7 @@ def preparer_parole(monde, p, revision=None):
                           + ") ; s'il n'est pas là pour entendre, réponds en mode dialogue, sans parler à un autre "
                           "à sa place.")
     from . import lexique
-    replique = p["replique"].strip()
+    replique = (mots_dits(forme, p.get("_intention", "")) or p["replique"]).strip()
     # La réplique affichée obéit au contrôle des mentions : rien que Corvus ne connaisse.
     fondement = lexique.corpus(monde.contexte(), monde.data.get("conversation", []),
                                monde.data.get("paroles_joueur", []))
@@ -1485,8 +1512,10 @@ def preparer_parole(monde, p, revision=None):
     # Sa voix retentit : qui en saisit les mots la retient (``ouie``) ; un chuchotement ne va qu'à son destinataire.
     retentir(travail, "joueur", "chuchoter" if chuchote else "parler", texte=replique, dits=replique,
              parole=None if chuchote else {"a": [*dest, *repondent], "contenu": publics})
-    for id in repondent:
-        # Sa réponse retentit à son tour : sa voix, d'où il se tient (ses mots sont ceux de sa réplique).
+    for id in [*dest, *repondent]:
+        # Toute réponse est entendue, y compris celle d'un destinataire dont le
+        # geste vient de le faire sortir du champ visuel (par exemple s'écarter).
+        entendre_repondant(travail, id)
         retentir(travail, id, "parler")
     travail.data["revision"] += 1
     travail.data.setdefault("paroles_joueur", []).append(

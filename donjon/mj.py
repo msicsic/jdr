@@ -202,7 +202,8 @@ def parole_annoncee(monde, intention):
     """Ce que le moteur fixe de la parole que la saisie annonce sans conteste (``paroles.analyser``,
     ``explicite``), ou None. ``impossible`` : le joueur doit préciser ou s'approcher."""
     from .paroles import prevue
-    return prevue(monde, intention) if analyser_parole(monde, intention)["explicite"] else None
+    forme = analyser_parole(monde, intention)
+    return prevue(monde, intention) if forme["explicite"] or forme["incomplete"] or forme["inconnu"] else None
 
 
 def parole_attendue(monde, intention):
@@ -479,8 +480,9 @@ class MJ:
                     reponse = parole_du_moteur(monde, intention)
                     if reponse["mode"] == "dialogue":
                         return reponse
-            elif (reponse["mode"] == "dialogue" and not ({"_audit", "_texte_moteur"} & set(reponse))
-                  and renvoi(monde, intention)):
+            elif ((reponse["mode"] == "dialogue" and not ({"_audit", "_texte_moteur"} & set(reponse))
+                   and renvoi(monde, intention))
+                  or (reponse["mode"] == "parole_joueur" and geste_en_question(monde, intention))):
                 # « Puis-je… ? », « Gorm, … » : le dialogue, non contrôlé (``refus_assure``), est renvoyé une
                 # fois avec ce qu'attend le moteur. S'il revient, il est contrôlé comme tout autre.
                 obstacle, attendu = renvoi(monde, intention)
@@ -625,6 +627,12 @@ class MJ:
             reponse = parole_du_moteur(monde, intention)
             if reponse["mode"] == "dialogue":
                 return reponse
+        if reponse["mode"] == "parole_joueur" and geste_en_question(monde, intention):
+            # La même frontière s'applique après TOUTES les corrections : une
+            # question au MJ n'est pas une réplique adressée à un PNJ voisin.
+            # Les refus de préparation ne donnent pas davantage le droit de parler.
+            return reponse_du_moteur(refus_du_moteur or ErreurMonde(
+                "Je n'ai pas pu déterminer le geste à examiner. Précise ce que tu veux tenter."))
         if reponse["mode"] == "enrichir_joueur":
             p = reponse["proposition"]
             travail = preparer_profil(monde, p, revision)
@@ -1061,6 +1069,14 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                                  f"dans {nom}, la réponse destinée au joueur, non vide",
                                                  partie=nom, recu=""))
                     continue
+                if monde is not None and self._interpretation:
+                    from .narration import clarification_nominale
+                    clarification = clarification_nominale(monde, intention, texte, entree.get("faits", {}))
+                    if clarification:
+                        # Une référence non résolue appelle une précision du joueur,
+                        # pas trois rédactions libres de la même absence de lien.
+                        return {"mode": "dialogue", "texte": clarification, "faits": [],
+                                "proposition": None, "_texte_moteur": True}
                 obstacles.extend(voix_auteur(texte, nom))
                 if monde is not None:
                     obstacles.extend(mentions_narratives(monde, texte, base, paroles, partie=nom))

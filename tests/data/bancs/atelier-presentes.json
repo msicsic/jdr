@@ -1,0 +1,24 @@
+{
+ "scenario": "atelier",
+ "seed": 1985,
+ "tours": [
+  "regarder",
+  "quel temps fait-il ?",
+  "est-ce que je peux fabriquer une échelle avec ces perches ?",
+  "nord",
+  "je grave une flèche sur la perche avec mon couteau",
+  "je m'étire",
+  "est",
+  "je ramasse la bobine de ficelle",
+  "à quoi ressemble le mur de l'atelier ?",
+  "y a-t-il des outils qui traînent dans la cour ?",
+  "je siffle un air joyeux",
+  "je mesure combien ?",
+  "je cherche une pierre pour caler une échelle",
+  "je prends une perche et je tente un saut à la perche pour monter sur la terrasse",
+  "annuler"
+ ],
+ "preparation": {
+  "noms_connus": []
+ }
+}

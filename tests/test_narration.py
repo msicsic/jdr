@@ -325,7 +325,7 @@ class NarrationTests(unittest.TestCase):
         self.assertNotIn("seconde_cloche", reprise.objets)
 
     def test_intention_improvisee_libre_n_etablit_rien(self):
-        # Un geste d'expression sans effet est permis ; son brouillon libre n'établit rien :
+        # Un geste sans effet est permis ; son brouillon libre n'établit rien :
         # le libellé affiché et enregistré vient des seuls champs structurés.
         invention = "Une seconde cloche apparaît sous le plancher."
         reponse = {"mode": "action", "texte": "", "faits": [],
@@ -340,7 +340,7 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("Tu réalises ce geste d'expression.", sortie.getvalue())
+        self.assertIn("Tu réalises ce geste.", sortie.getvalue())
         self.assertNotIn(invention, sortie.getvalue())
         self.assertNotIn(invention, str(reprise.data["conversation"]))
         self.assertNotIn(invention, str(reprise.data.get("gestes_improvises", [])))
@@ -368,7 +368,7 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("geste d'expression", sortie.getvalue())
+        self.assertIn("geste", sortie.getvalue())
         self.assertIn("rythme avec ton corps", sortie.getvalue())
         self.assertTrue(reprise.data["sons"][-1]["auditeurs"])
         self.assertEqual(reprise.data["sons"][-1]["forme"], "corps_rythmique")
@@ -397,7 +397,7 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn("Geste d'adresse", sortie.getvalue())
+        self.assertIn("Geste", sortie.getvalue())
         self.assertTrue(reprise.data["arbitrages"])
         self.assertTrue(reprise.data["journal"])
         for texte in (sortie.getvalue(), str(reprise.data), str(reprise.contexte())):
@@ -559,7 +559,7 @@ class NarrationTests(unittest.TestCase):
         p = improviser("je chante", issue("Une cloche surgit.", []))
         resultat = Moteur(monde).executer(Moteur(monde).preparer(p))
         self.assertNotIn("Une cloche surgit", resultat)
-        self.assertIn("geste d'expression", resultat)
+        self.assertIn("geste", resultat)
         self.assertNotIn("je chante", resultat)
         self.assertEqual(len([o for o in monde.objets.values() if "cloche" in o["nom"]]), 0)
 
