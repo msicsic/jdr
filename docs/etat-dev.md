@@ -5,22 +5,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - Branche `codex-trajets-reels`, non fusionnée, base `main` **aff9626** :
-  le coût d'un plan compte la marche depuis sa case réelle puis projetée, les diagonales,
-  l'allure, les approches, les portes et les gestes du moteur, en minutes fractionnaires.
-  `obstacles.cout_route` est partagé par les lecteurs de route, le devis de part et la fuite
-  du joueur ; la pression se paie dans chaque salle traversée et avant les effets du geste.
-  Case, orientation et allure appartiennent à l'état de recherche ; portes ouvertes et objets
-  posés gardent leurs effets. Distances locales bornées et vérifiées, lectures nouvelles dans
-  les clés des résultats, des deux graphes de lumière et du certificat d'absence.
-  Neuf tests nouveaux suivent deux flammes au Relais et à la mine, deux portes courtes,
-  les distances d'objet, le noir, les obstacles crus ou ignorés, l'allure feutrée, la clé posée
-  la porte fermée de la fuite du joueur et le même laps découpé ; état, perception et recharge. `VERIFIER` et
-  `spatial.VERIFICATION` **1 sur 2 h**, graine 42, Relais, mine, auberge, crue et `rixe` :
-  sans écart ni borne. Suite et campagnes longues en cours de consignation dans le
-  [rapport 20](taches/rapport-codex-20-trajets-reels.md). Aucun appel à Luna, aucune fusion.
-  Prix de faute, `DEMANDE`, `CHERCHER`, `RESTER`, `TACHE`, `SALAIRE` et borne inchangés.
-  L'espace enrichi peut atteindre la borne plus souvent ; les délais d'autrui et les gestes
-  durables gardent leurs approximations, décrites dans le plan et le rapport.
+  coût unique `obstacles.cout_route` en temps réel cru (case réelle puis projetée,
+  allure, diagonales, approches, rotations, portes et gestes). Pression par salle
+  avant les effets ; état de recherche, graphes et certificats distinguent positions,
+  portes et objets posés. Distances locales mémorisées et reprises vérifiées.
+  Neuf tests de trajets suivent exécution, état, rendu et rechargement : Relais/mine,
+  portes, approches, noir, obstacles crus ou ignorés, allure et clé posée, fuite, laps découpé.
+  Suite complète verte : **1 585 tests, quatre ignorés**, trois processus, 1 161,92 s ;
+  neuvième test ajouté ensuite et passé séparément (**1 586 tests couverts**).
+  Contrôles 2 h, graine 42, quatre scénarios et `rixe` : sans erreur ni borne ;
+  empreintes aux repères de 2 h conservées sur quatre graines, référence réutilisable
+  dans `artifacts/references/aff9626af03c810f5881bae33301254d84bd9940/` du dépôt principal.
+  Nouvelle règle « Rythme des lots » de **42bb9c0** appliquée : dernière campagne CPU
+  8 h arrêtée, aucun calcul restant, aucune suite ni campagne longue relancée.
+  Limites révélées avant l'arrêt : Bram lumière à 463 min atteint la borne de 4 000
+  états ; nouvelle rafale au Relais 1985 (197 passages par PNJ dans une heure),
+  allers-retours faim/abri dans crue 2024. L'absence de boucle nouvelle n'est pas acquise.
+  Préférences inchangées, aucun appel à Luna, aucune fusion. Bruts dans `artifacts/` ;
+  [rapport d'une page et réserves pour l'intégration](taches/rapport-codex-20-trajets-reels.md).
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
   dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.
@@ -2106,14 +2108,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Luna s'y essaie 5 à 7 appels avant le refus du moteur ; un récit situe encore la poutre « à une case vers
   l'est ». Sans forme crue, le plan par salles ne sait pas qu'une salle est coupée (Gorm planifie une fuite
   qu'il ne peut pas marcher). Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
-- Coût du planificateur en minute abstraite par salle (`obstacles.cout_route` : une minute par salle plus le
-  supplément réel d'un passage) : le lot trajets réels (`codex-trajets-reels`, en cours) devra absorber de O
-  `cout_route` et ses appelants (`Vue.allers`, `Vue.trajet`, `_chercher`, `part_estimee.aller`), les routes
-  mesurées de `obstacles.Parcours` (`duree_trajet`, `surcout_passages`), la preuve de domination
-  (`metrique_necessaire`, mémoire de 128 géométries recalculée sous `spatial.VERIFICATION`, à l'allure),
-  la case de départ dans `_entrees` quand le parcours métrique sert, la clé des routes par équipement
-  seulement en métrique, les arêtes de `_marcher` selon l'allure et la fuite du joueur
-  (`defense.chemin_fuite`), sans seconde fonction de route.
+- Coût du planificateur en minute abstraite par salle : remplacé sur la branche non fusionnée
+  `codex-trajets-reels` par `obstacles.cout_route` en temps réel cru, approches et gestes compris.
+  Le lot reprend les routes, la preuve de domination de O, ses contrôles, les lectures du devis de
+  part et la fuite du joueur. Une salle coupée sans franchissement cru est inaccessible aussi
+  dans le plan. Restent à suivre l'échelle des préférences inchangées et les recherches bornées
+  dans l'espace enrichi : [rapport 20](taches/rapport-codex-20-trajets-reels.md).
 
 ## Décisions en attente
 

@@ -1539,3 +1539,10 @@ Les gestes durables gardent leur horizon de séjour `RESTER`, sans simuler toute
 future du corps. Le devis de part reste une estimation, pas une borne admissible. La recherche
 reste bornée à 4 000 états, dans un espace devenu plus riche ; les échecs par borne doivent
 être distingués des impossibilités prouvées.
+
+La mesure du temps ne garantit pas que la délibération laissera le plan aller au bout :
+une urgence d'abri peut interrompre un aller pour la faim ; la fuite actuelle s'achève
+dès que la salle diffère de celle du danger cru, sans horizon de sécurité durable.
+Les campagnes de ce lot révèlent des oscillations nouvelles dans ces domaines. Le
+critère d'absence de boucle nouvelle n'est pas satisfait ; les cas et mesures sont
+consignés dans le rapport, sans exception de scénario ni recalibrage masquant le défaut.
