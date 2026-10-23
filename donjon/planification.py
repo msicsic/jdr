@@ -1338,19 +1338,22 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     changer. Si des sources avaient été écartées, la recherche est reprise avec
     ces moyens, depuis son départ et avec sa borne entière : l'ordre des plans
     ne dépend pas de l'ordre où les objets ont fait découvrir cette lecture.
-    Le graphe garde cette dépendance avec ses nœuds ; VERIFIER la redécouvre.
+
+    La découverte dépend de l'ordre d'exploration, donc du prix d'une faute, que le graphe
+    repris ne fixe pas : il garde deux graphes, sans les moyens d'éclairer (``sombre``) et
+    avec (``lumiere``), chacun ne dépendant que des entrées, et chaque nœud du premier retient
+    si l'examiner a lu la lumière. Repris, il rejoue la découverte telle qu'une recherche
+    neuve la ferait avec ce prix-là (``_explorer_etats``).
     """
-    if graphe is not None and graphe.get("emploie_lumiere"):
-        v._lumiere_lue = True
+    sombre = lumineux = None
+    if graphe is not None:
+        sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
     voir = v.emploie_lumiere
-    resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, graphe,
-                              decouvrir=not voir)
+    resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir,
+                               lumineux if voir else sombre, decouvrir=not voir)
     if not voir and v.emploie_lumiere:
         v._agissables.clear()
-        if graphe is not None:
-            graphe.clear()
-            graphe["emploie_lumiere"] = True
-        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, graphe)
+        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux)
     return resultat
 
 
@@ -1369,7 +1372,8 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     (``_suites``). Ils ne dépendent que de ce que lit la recherche (``_entrees``), pas du prix d'une
     faute ni de celui d'abîmer, qui n'entrent qu'ici, dans la même somme : repris d'une recherche à
     l'autre, le graphe rend exactement la recherche qu'on aurait refaite, comparaisons et égalités
-    comprises."""
+    comprises. Dans la passe de découverte, chaque nœud retient aussi si son but (« but ») ou ses
+    gestes (« gestes ») ont lu la lumière : rejoué, il la relit au même point."""
     ordre = count()
     infini = float("inf")
     degat = v.degat
@@ -1377,8 +1381,9 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     vus = {depart_: 0}
     examines = plus_profond = 0
     trouve = None
-    # La passe de découverte n'a plus rien à apprendre dès la première lecture :
-    # son graphe incomplet sera jeté, et seule la passe suivante décidera du plan.
+    # La passe de découverte (``decouvrir``) n'a plus rien à apprendre dès la première lecture de
+    # lumière : seule la passe suivante, avec les moyens d'éclairer, décidera du plan. Ses nœuds
+    # restent justes pour la rejouer (le cinquième terme : où elle a lu la lumière).
     while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
         cout, _, e, etapes, n, final = heapq.heappop(file)
         if final:
@@ -1390,9 +1395,13 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         plus_profond = max(plus_profond, n)
         noeud = None if graphe is None else graphe.get(e)
         if noeud is None:
-            noeud = [but(v, e), None, None, None]
+            noeud = [but(v, e), None, None, None, False]
             if graphe is not None:
                 graphe[e] = noeud
+        elif noeud[4] == "but":
+            v._lumiere_lue = True   # le but y a lu la lumière quand il fut examiné
+        if decouvrir and v._lumiere_lue and not noeud[4]:
+            noeud[4] = "but"   # rejoué, ce nœud refera la même découverte
         if noeud[0] and not (tenir and e.salle in v.menacees):
             # Un but qui se tient en restant ne se tient pas là où il croit ou attend l'eau.
             if not tenir:
@@ -1407,6 +1416,10 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
             # Une flamme allumée par le plan se consume : on l'allume le plus tard possible.
             noeud[2] = sum(1 for k in e.portes if e.fait("allume", k))
             noeud[3] = _suites(v, e, vises, but)
+            if decouvrir and v._lumiere_lue and not noeud[4]:
+                noeud[4] = "gestes"
+        elif noeud[4] == "gestes":
+            v._lumiere_lue = True   # ses gestes y ont lu la lumière : seulement s'il les développe
         en_feu = noeud[2]
         for fautes, minutes, ajout, suivant, duree, abime, pression in noeud[3]:
             if fautes and faute is None:

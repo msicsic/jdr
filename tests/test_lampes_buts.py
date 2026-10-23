@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-from donjon import planification as P, pnj
+from donjon import caractere, planification as P, pnj
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import executer as echanger
 from donjon.esprits import croire, percevoir_tous
@@ -124,7 +124,43 @@ class LumiereDuButTests(unittest.TestCase):
             self.assertIsNotNone(plans[0])
             self.assertEqual(plans, [plans[0]] * 3)
             self.assertEqual([r["graphe"] for r in recherches], [False, False, True])
-            self.assertTrue(next(g for _, g in P._GRAPHES.values())["emploie_lumiere"])
+            graphe = next(g for _, g in P._GRAPHES.values())
+            self.assertTrue(graphe["lumiere"])
+            self.assertTrue(any(n[4] for n in graphe["sombre"].values()))
+
+    def test_le_graphe_repris_redecouvre_la_lumiere_selon_le_prix_d_une_faute(self):
+        # La découverte suit l'ordre d'exploration, que le prix d'une faute change sans changer
+        # les entrées du graphe. Un geste fautif (de la fixture) mène à un état où un geste lit la
+        # lumière : bon marché, il est exploré et fait découvrir la lumière ; cher, le plan honnête
+        # est trouvé avant. Le graphe repris doit rendre chaque fois la recherche neuve.
+        m = self.scene("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve")
+        gestes_ordinaires = P.gestes
+
+        def gestes(v, e, vises=None, but=None):
+            if e.fait("essai", "reserve"):
+                v.lumiere(e)
+            yield from gestes_ordinaires(v, e, vises, but)
+            if not e.fait("essai", "reserve"):
+                yield 1, 0.5, [P._etape("patienter")], e.apres(faits=[(("essai", "reserve"), True)])
+
+        prix = {"faute": 10.0}
+        prix_faute = caractere.prix_faute
+
+        def faute(monde, id, besoin=None, nom="honnetete"):
+            return prix["faute"] if nom == "honnetete" else prix_faute(monde, id, besoin, nom)
+
+        but = lambda v, e: bool(e.fait("inspecte", "reserve"))
+        with patch.object(P, "gestes", gestes), patch.object(caractere, "prix_faute", faute),                 patch.object(P, "VERIFIER", True), patch.object(P, "_MEMOIRE", {}),                 patch.object(P, "_GRAPHES", {}), P.diagnostics() as recherches:
+            # Une borne qui tient le plan sans les moyens d'éclairer, pas avec eux.
+            plans = []
+            for valeur in (10.0, 0.0, 10.0, 0.0):
+                prix["faute"] = valeur
+                plans.append(P.chercher(m, "remy", but, {"inspecter": ("reserve",)}, memo=["essai"],
+                                        emplois=(), noeuds=3))
+        self.assertEqual([r["graphe"] for r in recherches], [False, False, True, True])
+        self.assertEqual([r["issue"] for r in recherches], ["plan", "borne", "plan", "borne"])
+        self.assertEqual(plans[0], plans[2])
+        self.assertEqual([x["operation"] for x in plans[0][1]], ["inspecter"])
 
 
 if __name__ == "__main__":

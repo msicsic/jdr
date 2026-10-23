@@ -1214,7 +1214,7 @@ lanterne vide de l'étable et la lampe vide de la mine, le bidon posé, une autr
 les lots portés, la parole typée du joueur, les refus, la provenance d'une part et le cache ; l'état,
 la perception et le rendu sont vérifiés après sauvegarde et rechargement.
 
-## Lumière employée (branche `codex-lampes-suite`, non fusionnée)
+## Lumière employée (branche `codex-lampes-suite`, fusionnée)
 
 La capacité de crocheter ne décide plus si une source et sa recharge sont des moyens du but.
 `Vue.emploie_lumiere` rassemble le coût du noir, le but explicite de lumière (`vises.eclairer`)
@@ -1226,8 +1226,17 @@ reste conditionnée à la capacité qui autorise ce geste ; cette capacité n'es
 Quand une recherche découvre cette dépendance après avoir écarté des moyens lumineux, `_explorer`
 reprend depuis le départ, avec la borne entière et sans les anciennes listes d'objets pertinents.
 La passe de découverte s'arrête dès la première dépendance révélée : poursuivre un graphe qui
-sera jeté ne sert à rien. Il n'y a qu'une reprise : la dépendance reste acquise pendant cette recherche. Le graphe garde
-le marqueur `emploie_lumiere` avec ses nœuds ; la recherche neuve de `VERIFIER` le redécouvre.
+sera jeté ne sert à rien. Il n'y a qu'une reprise : la dépendance reste acquise pendant cette recherche.
+
+Correctif de la fusion : la découverte dépend de l'ordre d'exploration, donc du prix d'une faute,
+que la clé du graphe repris (`_GRAPHES`) ne contient pas. Le marqueur `emploie_lumiere` que la
+branche posait sur le graphe valait ensuite pour toute recherche de mêmes entrées : une recherche
+au prix d'une faute qui ne mène jamais à la lecture de lumière passait quand même avec les moyens
+d'éclairer, autrement qu'une recherche neuve (borne atteinte au lieu du plan : `VERIFIER` l'arrête,
+`test_le_graphe_repris_redecouvre_la_lumiere_selon_le_prix_d_une_faute`). Le graphe en garde
+désormais deux, sans les moyens d'éclairer (`sombre`) et avec (`lumiere`), chacun ne dépendant que
+des entrées ; chaque nœud du premier retient si son but ou ses gestes ont lu la lumière, et, rejoué,
+la relit au même point : la découverte se refait comme dans une recherche neuve à ce prix-là.
 Le nombre de nœuds diagnostiqué et le statut de borne décrivent la passe finale ; le temps
 diagnostiqué comprend aussi la découverte éventuelle. La recherche reste bornée : une dépendance
 jamais atteinte avant sa borne ne se découvre pas par magie.
