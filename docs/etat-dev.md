@@ -2122,7 +2122,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   3. **A1, le socle des agendas** : `donjon/agendas.py` seul accès, les engagements y sont portés ; aucun
      changement de comportement, contrôle AST comme le socle des relations (3a).
   4. **A2 = 3e (propositions)**, puis **A3 = 3f (avis)**, tels que prévus dans `docs/plan-relations.md`.
-  5. **A4 à A8** selon le plan ; après A4, mesurer le coût avant de décider du plan de décision.
+  5. **A4 à A8** selon le plan ; après A4, mesurer le coût avant de décider du plan de décision
+     (esquisse : `docs/plan-decision.md`, habitudes, réflexion limitée, recherche complète en dernier
+     recours ; rien de décidé). Précaution à reporter dans les briefs d'A4 et d'A5 : le choix du prochain
+     sous-but et celui d'un mandataire restent des fonctions séparées, appelées chacune à un seul endroit.
   Chaque brief renvoie à `docs/plan-agendas.md` pour le contexte, sans élargir le périmètre du lot ; un cas
   réel et un autre de même nature vérifiés après rechargement ; limites dites dans le rapport.
 - **Fabrication générale** (`docs/plan-fabrication.md`) : étapes 1 à 3 fusionnées ; l'étape 4
