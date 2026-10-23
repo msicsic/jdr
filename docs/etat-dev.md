@@ -19,6 +19,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   MiMo simulés également présents sur la référence avec `jsonschema` sont corrigés dans leurs
   fixtures (champ `presentation`, initialisation de la perception), sans appel au modèle.
   [Rapport, causes de chaque famille, commandes et limites](taches/rapport-codex-14-signalements.md).
+  Fusionné en dernier, après `codex-luna-noms` et `codex-restes-fusions` (intégration e813865) :
+  conflits `test_mimo` et `test_fournisseurs_jeu` (L et K corrigeaient les mêmes six sous-tests pour les
+  mêmes causes ; gardée une seule version, celle de K : la capture est initialisée par
+  `spatial.installer`, comme à l'ouverture du jeu, plutôt que par `memoriser` seul ; faux audit avec
+  `presentation`), `test_ressources` (même assertion, commentaire réunissant la chance de demande de
+  `codex-garde-pret` et le lieu du rendez-vous), `plan-planificateur` (deux sections gardées), docs.
+  `recherches` entre dans `_entrees` par `appels_vains` (salles écartées encore actives) : clé de la
+  mémoire, des deux graphes repris (`sombre`, `lumiere`) et base du certificat `_sans_plan`, qui ne lit
+  que les arêtes ; aucune autre lecture nouvelle dans la recherche (`_attendre_qui_vient`, `appel.tenir`
+  sont hors recherche). Suite (`tools/tests.py --processus 4`) **1508 tests, 15 sautés** ; MiMo, restes et
+  signalements avec `jsonschema` (`.venv-mimo` du worktree de L) : 38 tests, un saut, verts. `VERIFIER` +
+  `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42, Relais, mine, auberge, crue et `rixe` : sans
+  écart ni usurpation (recherches jouées bornées à 8 h : mine 51, auberge 18, contre 46 et 6 avant K).
+  Banc rapide (`comparer_bancs`, 4 h, 4 graines, contre e813865) : toutes les mesures identiques dans les
+  quatre scénarios (les effets de K viennent après la 4e heure ou dans des nuits rares : auberge 3,
+  Relais 42) ; `--empreintes` : l'état diffère dès la minute 0 par les champs nouveaux de l'esprit
+  (`secours`, `recherches`). Mine 8 h, 4 graines, `tools/empreintes_nuits.py`, avant puis après K, l'un
+  après l'autre : 28,7 → 39 s au processeur par nuit (planificateur 15,5 → 25,8 s) ; 1985 et 42 égales ou
+  moindres, 7 39,7 → 47,4 s, 2024 22,1 → 56 s. Le surcoût n'est pas un coût par recherche (recherches
+  neuves 616 → 662 en 2024) : les nuits divergent et des recherches atteignent leur borne de nœuds
+  (bornées 2 → 73 en 2024 : Josse `faim` et `feu:poele` entre 330 et 480, après avoir cherché Gaspard en
+  vain à la réserve et au filon à 345, puis Rémy `faim` à 450 ; nœuds 128 550 → 491 439 ; 7 : 67 → 87).
 - Branche `codex-restes-fusions`, fusionnée, base `main` **5594028**, worktree
   `tmp-worktrees/codex-restes-fusions` : la réception précède la parole tenue dans la remise
   d'un objet ou d'une part promise ; accueil et réponses aux appels lisent les bandes communes
@@ -43,6 +65,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sans écart ; quatre recherches neuves bornées à la mine à 8 h, limite de recherche conservée.
   Résultats de suite, mesures et limites dans
   [le rapport](taches/rapport-codex-15-restes-fusions.md).
+  Fusionné après `codex-luna-noms` (intégration 650b965), avant `codex-signalements` : conflits
+  `rendu.decrire` (l'humeur de 4b, aucune chez l'inconscient, gardée ; blessure de la dépouille de L
+  ajoutée), `tools/banc_parties` (préparation : états du corps de L d'abord, puis noms connus et appels
+  d'E), docs. Aucune comparaison numérique d'axe ne restait hors de `relations` dans le code de 4b ni de
+  `codex-garde-pret` (contrôle AST de `test_relations_socle` vert sans retouche). Suite **1494 tests,
+  15 sautés**. `VERIFIER` + `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42, quatre scénarios et
+  `rixe` : sans écart ni usurpation. Banc rapide contre 650b965 (4 h, 4 graines) : écarts du rapport
+  seulement (Relais confidences 0,5 → 0,25, la parole tenue apprise à la remise, première divergence
+  Relais 7 minute 162 ; crue rancunes 0,5 → 0,75, mesure par bande) ; aucun plantage, usurpation ni
+  violation. Luna, scène `depouille` (2 passes par variante) : `main` 9520f77 répond « Cet objet n'est
+  pas visible » sans appel (décodeur limité aux vivants) ; après L, 4 appels par tour, aucun refus ni
+  repli, « le corps du vieil homme voûté … grièvement blessé ; les planches du bac sont accessibles »,
+  sans nom, portrait ni parole ; « je fouille le corps » rend le même examen.
 - Branche `codex-luna-noms`, fusionnée, base `main` 9075aea, worktree
   `tmp-worktrees/codex-luna-noms` : les contraintes d'adresse sont séparées du choix d'audience
   (individuelle, groupe, cantonade même avec des personnes visibles), contrôlé par la contre-revue
@@ -64,6 +99,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sémantiques n'est pas garantie. Le passage sous la poutre ne demande plus une échelle par
   erreur de type, mais aucune solution générale de passage n'est fournie. Voir le
   [rapport de la tâche 8](taches/rapport-codex-8-luna-noms.md), mesures et limites explicites.
+  Fusionné en premier (sur `main` 9520f77, après relations 3b, corps 4a, lampes-suite, coût suite,
+  `GARDE`/`PRET` et force 4b) : conflits `dialogues.interlocuteurs` (la présence physique d'E retirée
+  pour qu'une voix audible d'une autre salle reste interlocutrice, la conscience de 4a gardée : un
+  inconscient ne parle ni ne répond, le joueur inconscient n'a pas d'interlocuteur) et docs. Accord
+  ajouté : `narration.clarification_nominale` compte une dépouille comme personne (`noms.PERSONNES`).
+  `auditeurs_parole` passe par `saisissent`/`saisit`, qui excluent déjà l'inconscient ; la contre-revue
+  de fidélité ne porte que sur une parole à audience libre (`parole_joueur`) : un geste typé
+  (`frapper`, `remettre`) n'y passe pas. Suite **1485 tests, 14 sautés**. `VERIFIER` + `VERIFICATION`
+  1 sur 2 h, puis 0,2 sur 8 h, graine 42, Relais, mine, auberge, crue et `rixe` : sans écart.
+  `comparer_bancs --empreintes` contre 9520f77, 2 h et 4 h, 4 scénarios × 4 graines : chronique,
+  mesures et état final identiques ; mine et auberge 8 h graine 42 identiques aussi. Luna
+  (`banc_multi`, `main` 9520f77 contre 650b965, 2 passes chacun lancées ensemble, 21 scripts : quatre
+  références, leurs variantes `*-presentes`, `soir-*`, `noms-*`, six `appel-negocie-*`,
+  `force-4b-frapper`, `force-4b-assommer`) : ensemble 3,07 → 2,99 appels et 12,1 → 12,1 s par tour MJ,
+  replis 1 → 0,5 (le seul, `soir-voix`, une panne réseau de 52 s), relances 16 → 5,5, obstacles
+  21 → 7,5, refus 31 → 31, tours avec refus 18 → 21. Quatre références : 38 → 33 tours MJ (refus locaux
+  d'un nom inconnu, sans appel), 3,24 → 2,85 appels, 13,1 → 11,4 s, relances 10 → 1,5 (rapport :
+  8,33 → 2). Avec présentations : 2,91 → 2,83 appels, 11,3 → 11,3 s, relances 3,5 → 1,5, refus
+  9,5 → 12,5 (rapport : 2,88 → 3,10 appels, relances 2,67 → 4). `soir-appel` 2,6 → 3,9 appels et
+  `noms-dialogue` 3,2 → 4,1 (la question à la cantonade fait répondre plusieurs voix : 3 → 6 ou 7
+  appels) ; `noms-faisabilite` 4,75 → 3,5 ; appel négocié 0 appel des deux côtés ; `force-4b` 2 appels
+  par tour des deux côtés, fiche du moteur, aucun refus. Textes relus : « est-ce que quelqu'un a du
+  bois ? » dit tel quel à la cantonade 4/4, Aubin, Brune, Ilse et la voix de l'ouest répondent (`main` :
+  à Aubin seul, phrase réécrite 4/4) ; « je réponds » sans appel demande les mots, sans appel au modèle,
+  et avec un appel en cours fait entendre « Ici, viens ! » puis « J'arrive ! » ; « Brune, laisse-moi
+  passer » nom connu : 3 appels, Brune s'écarte, nom inconnu : refus local ; « Ilse, tu m'entends ? »
+  répondu, ou « tu ne vois pas Ilse d'ici » après les déplacements ; « passer sous la poutre » : plus
+  d'« échelle », « Approche-toi … » sans coordonnées ; « je m'étire » sans « geste d'effort » ; ambiance
+  décrite, encore avec une précaution sur les bruits (« rien de tel ne t'est perceptible »).
 - Branche `codex-force-4b`, fusionnée : coups et assommement par la même règle pour le
   joueur et les PNJ, fiche avant tentative, armes et surprise, cris, interruptions, souvenirs
   et relations, registre et prise sur un porteur inconscient. Le recours assommer-pour-prendre
@@ -1679,7 +1743,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1466 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1508 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+
+## À revoir
+
+- `combat.prix_violence` n'est employé que par les tests (`test_combat`) ; le planificateur réécrit la
+  même règle (`2 * v.degat <= ENJEU`, le double du prix de douceur sous le plafond d'enjeu) au lieu de
+  l'appeler (relevé à la fusion de 4b) : une seule règle à garder.
+- Auberge 8 h, graine 42 : les recherches bornées de Lucien (`garder:grenier`, `garder:etable`, 66
+  notées par `planification.BORNES` depuis `codex-garde-pret`) : la garde plus chère à l'ambition 70
+  rend ces recherches plus longues que la borne de 4 000 nœuds.
+- Mine après `codex-signalements` : nuits divergentes où Josse et Rémy enchaînent des recherches
+  bornées (graine 2024 : 73 au lieu de 2, 2,5 fois le temps de la nuit) ; à examiner avec la recherche
+  du porteur quand ses salles sont écartées (`appels_vains`).
+- Luna après `codex-luna-noms` : faux refus sémantiques possibles de la contre-revue de fidélité
+  (`tous` jugé individuel, achat dit sans transfert) ; une ambiance encore assortie d'une précaution
+  sur les bruits.
 
 ## Décisions en attente
 
