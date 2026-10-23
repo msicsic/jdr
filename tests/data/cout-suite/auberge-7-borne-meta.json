@@ -1,0 +1,38 @@
+{
+  "pnj": "lucien",
+  "minute": 644,
+  "nom": "abri",
+  "memo": [
+    "abri",
+    [
+      "salle_commune"
+    ]
+  ],
+  "profondeur": 8,
+  "noeuds_limite": 4000,
+  "original": null,
+  "prototype": [
+    130.0,
+    [
+      {
+        "operation": "aller",
+        "cible": "",
+        "outil": "",
+        "lieu": "salle_commune",
+        "condition": ""
+      }
+    ],
+    "salle_commune",
+    [
+      "cle_coffret",
+      "crochets_lucien"
+    ],
+    []
+  ],
+  "noeuds_original": 4000,
+  "noeuds_prototype": 3007,
+  "compteurs": {
+    "examines": 164888,
+    "domines": 1560
+  }
+}

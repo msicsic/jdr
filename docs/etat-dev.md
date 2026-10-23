@@ -41,6 +41,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sur 1,3 à 1,9 million (les crocheteurs n'emportent plus de quoi éclairer sans en lire le besoin),
   184,9 → 160,4 s en une passe. Le surcoût de l'auberge depuis les lampes (~2× contre f1eee53) ne
   bouge pas : il vient des parts envisagées pour qui craint le noir, pas de la capacité.
+- Branche `codex-cout-suite`, non fusionnée, base initiale `main` 9075aea, puis fusion de
+  `origin/main` **a7ecb50** par **1efbb12** : certificats d'absence
+  sur les graphes déjà développés, indépendants des prix mais conservant permissions et
+  profondeur ; chaque reprise contrôlée par `VERIFIER`. Une recherche pondérée épuisée ou
+  bornée ne suffit pas à prouver cette absence (contre-exemple de profondeur testé).
+  Ordre des visites avec égalités dans la clé ; empreintes visuelles partagées par objet et
+  entre lectures sans changement, mutations ordinaires conservées, contrôle complet par
+  `spatial.VERIFICATION`. Axes des relations 3b conservés dans les entrées des recherches.
+  Sur a7ecb50 : **32 nuits de 8 h identiques** (4 scénarios × 4 graines, tiré/fixe), puis
+  **4 nuits de 12 h de l'auberge identiques**, y compris tous les résultats des recherches via
+  `empreintes_nuits.py --calcul`. Main et branche lancés ensemble, quatre calculs lourds au plus :
+  CPU total 453,03 → 439,51 s (−3,0 %) sur les 32 nuits ; auberge 12 h 86,85 → 84,66 s/nuit.
+  Les grandes recherches restent coûteuses. La dominance de dépense essayée hors du moteur
+  change les résultats bornés de Lucien à l'auberge (7 à 644, 42 à 627), donc elle n'est pas
+  livrée ; `_parts_remises` reste intact. Un contre-exemple général de borne et deux sauvegardes
+  réelles protègent ce contrat. Les captures de preuve sont régénérées avec les relations 3b
+  (Rémy mine 7 à 365, Aubin crue 7 à 443) : état complet et rendu après rechargement contrôlés.
+  Suite après fusion : 1 431 tests, 4 sautés, six échecs MiMo préexistants ; la suite entière
+  n'est pas verte (mêmes six échecs reproduits sur a7ecb50) ; 39 tests ciblés passent.
+  `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h de chaque scénario, graine 42 :
+  sans écart, nuits identiques. [Rapport, profils et limites](taches/rapport-codex-10-cout-suite.md).
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,

@@ -2,7 +2,7 @@
 
     python tools/empreintes_nuits.py jouer --depot . --sortie a.json --scenarios relais mine auberge crue \
         --graines 1985 7 42 2024 --departs tire fixe --heures 8 --processus 4 [--verifier] [--verification 0.2]
-    python tools/empreintes_nuits.py comparer main.json branche.json
+    python tools/empreintes_nuits.py comparer main.json branche.json [--calcul]
     python tools/empreintes_nuits.py profil --depot . --scenario mine --graine 7 --sortie mine.prof
 
 ``jouer`` joue chaque nuit par ``banc_pnj.nuit`` du dépôt donné (``--depot`` : un worktree ; le
@@ -67,7 +67,28 @@ def _preparer(depot, verifier, verification):
 def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0.0):
     """Une nuit dans ce processus : ses empreintes et son coût."""
     _preparer(depot, verifier, verification)
-    from donjon import banc_pnj, deliberation
+    from donjon import banc_pnj, deliberation, planification
+    import hashlib
+    trace, profondeur, appels = hashlib.sha1(), 0, 0
+    chercher = planification.chercher
+
+    def observer(*a, **k):
+        nonlocal profondeur, appels
+        exterieur = profondeur == 0
+        profondeur += 1
+        try:
+            r = chercher(*a, **k)
+        finally:
+            profondeur -= 1
+        if exterieur:
+            resultat = None if r is None else [r[0], r[1], r[2].salle,
+                sorted(r[2].portes), sorted([(list(c), v) for c, v in r[2].faits.items()], key=repr)]
+            entree = [a[1], k.get("nom", ""), k.get("memo"), resultat]
+            trace.update(json.dumps(entree, sort_keys=True, ensure_ascii=False).encode() + b"\n")
+            appels += 1
+        return r
+
+    planification.chercher = observer
     capture = {}
     creer = banc_pnj.creer
 
@@ -80,8 +101,8 @@ def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0
     secondes = time.process_time() - debut
     monde = capture["monde"]
     recherches = donnees["diagnostic"]["recherches"]
-    # Les recherches neuves seulement : un choix repris en entier n'appelle plus la mémoire du
-    # planificateur, mais toute recherche qui examinait des nœuds doit rester la même.
+    # Le mode strict conserve aussi les comptes de calcul. Quand la mémoire change, --calcul
+    # compare à leur place tous les résultats des appels logiques (y compris les absences).
     neuves = [[r["pnj"], r["but"], r["noeuds"], r["issue"]] for r in recherches if not r.get("memoire")]
     # Les mesures sans les comptes de recherches et de choix (ce que le coût change, pas la nuit).
     nuit_seule = {k: v for k, v in mesures.items()
@@ -93,7 +114,16 @@ def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0
             "mesures": mesures, "recherches": len(recherches), "neuves": len(neuves),
             "noeuds": sum(r["noeuds"] for r in recherches),
             "planificateur": round(sum(r.get("duree", 0.0) for r in recherches), 2),
-            "choix": dict(deliberation.COMPTES), "secondes": round(secondes, 2), "memoire_mo": _pic_memoire()}
+            "choix": dict(deliberation.COMPTES), "secondes": round(secondes, 2), "memoire_mo": _pic_memoire(),
+            "recherches_logiques": appels, "trace_recherches": trace.hexdigest()[:16],
+            "impossibilites_reprises": sum(bool(r.get("impossible")) for r in recherches),
+            "reprises_memoire": sum(bool(r.get("memoire")) for r in recherches),
+            "reprises_graphe": sum(bool(r.get("graphe")) for r in recherches),
+            "bornees": sum(r["issue"] == "borne" and not r.get("memoire") for r in recherches),
+            "epuisees": sum(r["issue"] == "epuise" and not r.get("memoire") for r in recherches),
+            "preuves": sum(r.get("preuve_issue") is not None for r in recherches),
+            "preuves_bornees": sum(r.get("preuve_issue") == "borne" for r in recherches),
+            "noeuds_preuves": sum(r.get("preuve_noeuds", 0) for r in recherches)}
 
 
 def _lancer(outil, depot, cle, heures, verifier, verification, python):
@@ -127,7 +157,8 @@ def jouer(args):
 
 
 def comparer(args):
-    a, b = (json.load(open(x, encoding="utf-8")) for x in (args.a, args.b))
+    from pathlib import Path
+    a, b = (json.loads(Path(x).read_text(encoding="utf-8")) for x in (args.a, args.b))
     cle = lambda r: (r["scenario"], r["graine"], r["depart"])
     da, db = {cle(r): r for r in a}, {cle(r): r for r in b}
     differences = 0
@@ -138,8 +169,17 @@ def comparer(args):
             print(k, "erreur d'un côté")
             differences += 1
             continue
-        ecarts = [n for n in x["empreintes"] if x["empreintes"][n] != y["empreintes"].get(n)]
-        ecarts += [n for n in ("neuves", "noeuds") if x[n] != y[n]]
+        calcul = getattr(args, "calcul", False)
+        champs = set(x["empreintes"]) | set(y["empreintes"])
+        if calcul:
+            champs |= {"chronique", "mesures", "recit", "souvenirs", "etat", "banc"}
+            champs.discard("recherches_neuves")
+        ecarts = [n for n in sorted(champs) if n not in x["empreintes"] or n not in y["empreintes"]
+                  or x["empreintes"][n] != y["empreintes"][n]]
+        if x.get("heures") != y.get("heures"):
+            ecarts.append("heures")
+        ecarts += [n for n in (("recherches_logiques", "trace_recherches") if calcul else ("neuves", "noeuds"))
+                   if x.get(n) != y.get(n) or calcul and (n not in x or n not in y)]
         if ecarts:
             differences += 1
             print(k, "DIFFÈRE :", ", ".join(ecarts))
@@ -155,7 +195,7 @@ def comparer(args):
     for (s, d), t in sorted(temps.items()):
         print(f"{s} {d} : {moy(t[0]):.1f} → {moy(t[1]):.1f} s ({moy(t[2]):.1f} → {moy(t[3]):.1f}), "
               f"{max(t[4]):.0f} → {max(t[5]):.0f} Mo, × {moy(t[0]) / moy(t[1]):.2f}")
-    return 1 if differences else 0
+    return 1 if differences or manquent else 0
 
 
 def profil(args):
@@ -187,6 +227,8 @@ def main(argv=None):
     c = sous.add_parser("comparer")
     c.add_argument("a")
     c.add_argument("b")
+    c.add_argument("--calcul", action="store_true", help="compare tous les résultats des recherches, coûts et plans ; "
+                   "les comptes de calcul peuvent différer")
     p = sous.add_parser("profil")
     p.add_argument("--depot", default=".")
     p.add_argument("--scenario", required=True)
