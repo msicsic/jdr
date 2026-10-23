@@ -24,7 +24,7 @@ from .relations import se_fie, envers
 # ``dette_niee`` : un débiteur refuse de rendre ce qu'il doit ; ``pret_garde`` : un emprunteur garde un
 # prêt échu qu'on lui réclame (``biens``).
 NOUVELLES = ("vu_agir", "vol_surpris", "vu_porter", "mensonge_decouvert", "mensonge_dementi", "absence",
-             "dette_niee", "pret_garde", "mort_vue")
+             "dette_niee", "pret_garde", "mort_vue", "intention_lue")
 RANG_MAX = 2           # une rumeur entendue de troisième main n'est plus répétée
 GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer": "a fermé",
           "deverrouiller": "a déverrouillé", "verrouiller": "a verrouillé",
@@ -46,7 +46,7 @@ def _fait(noyau):
 
 
 def accuse(evenement):
-    if evenement["type"] in ("vu_agir", "vol_surpris", "vu_porter", "dette_niee", "pret_garde"):
+    if evenement["type"] in ("intention_lue", "vu_agir", "vol_surpris", "vu_porter", "dette_niee", "pret_garde"):
         return evenement["auteur"]
     if evenement["type"] in ("mensonge_decouvert", "mensonge_dementi"):
         return evenement.get("locuteur", "joueur")
@@ -66,6 +66,9 @@ def _proprietaire(monde, evenement):
 def _croit_encore(monde, id, noyau):
     """On ne répète que ce qu'on croit encore."""
     croyances = lire(monde, id)["croyances"]
+    if noyau["type"] == "intention_lue":
+        from .signes import intentions_lues
+        return any(x == noyau["auteur"] and c.get("envers") == noyau["objet"] for x, c in intentions_lues(monde, id))
     if noyau["type"] == "absence":
         lieu = croyances.get(noyau["objet"], {}).get("lieu")
         return bool(lieu) and lieu["valeur"] is None
@@ -109,6 +112,13 @@ def _sait(monde, id, noyau):
 def _auditeur(monde, id, souvenir, noyau, source):
     """Premier personnage présent à qui confier cette nouvelle, dans un ordre stable."""
     from .pnj import pourraient_se_parler
+    from .signes import emotion
+    colere = emotion(monde, id)
+    accusee = accuse(noyau)
+    if (colere and colere["niveau"] >= 20 and colere["contre"] == accusee and accusee in monde.objets
+            and accusee != id and accusee not in souvenir.get("dit_a", ())
+            and pourraient_se_parler(monde, id, accusee)):
+        return accusee
     for autre in sorted(pnjs(monde), key=lambda x: (-envers(monde, id, x)["affection"], x)):
         if (autre == id or autre in souvenir.get("dit_a", ()) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
@@ -140,6 +150,8 @@ def _qui(monde, id, locuteur=None):
 def phrase(monde, noyau, locuteur=None):
     o = monde.objets.get(noyau.get("objet") or "")
     t = noyau["type"]
+    if t == "intention_lue":
+        return _qui(monde, noyau["auteur"], locuteur) + " semble guetter " + designer(o)
     if t == "absence":
         return designer(o) + " " + ("ont" if o.get("pluriel") else "a") + " disparu"
     if t == "mort_vue":
@@ -147,7 +159,7 @@ def phrase(monde, noyau, locuteur=None):
         return _qui(monde, noyau["objet"], locuteur) + " est mort" + ("e" if defunt["genre"] == "f" else "")
     qui = _qui(monde, accuse(noyau), locuteur)
     if t in ("mensonge_decouvert", "mensonge_dementi"):
-        return qui + " ment"
+        return qui + (" semble mentir" if noyau.get("source") == "devine" else " ment")
     if t == "vol_surpris":
         return qui + " a tenté de dérober " + designer(o)
     il = "elle" if monde.objets.get(accuse(noyau), {}).get("genre") == "f" else "il"
@@ -200,7 +212,10 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
         return "doute"
     confiance = round(0.7 * (0.5 if _stats_pnj(monde, auditeur)["INT"] <= 8 else 1.0) * 0.8 ** rang, 2)
     source = source_dite(monde, auditeur, locuteur)
-    if noyau["type"] == "mort_vue":
+    if noyau["type"] == "intention_lue":
+        croire(monde, auditeur, noyau["auteur"], "intention", "guet", source,
+               min(.4, noyau["confiance"] * confiance), signe=noyau["signe"], envers=objet)
+    elif noyau["type"] == "mort_vue":
         actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("etat")
         if not actuelle or actuelle["source"] != "vu":
             croire(monde, auditeur, objet, "etat", {"mort": True}, source, confiance)

@@ -119,7 +119,7 @@ def prix_gardes(monde, id, lieux):
     """Prix par minute loin d'un lieu, compté une fois quel que soit le nombre de biens.
 
     Ambition pour ses biens (ou ce qu'il convoite), loyauté pour une charge
-    confiée. La présence crue qui inquiète le plus renchérit cette garde.
+    confiée ou un lieu de devoir. La présence crue qui inquiète le plus renchérit cette garde.
     """
     from .caractere import valeur
     from .deliberation import periodique
@@ -139,6 +139,11 @@ def prix_gardes(monde, id, lieux):
         confie = proprietaire(monde, monde.objets[o]) not in (None, id) and not illicite(monde, id, o)
         prix[s] = max(prix[s], 1 + valeur(monde, id, "loyaute" if confie else "ambition") / 50)
     for s in prix:
+        if not prix[s]:
+            # Un lieu de garde sans bien à lui (une ronde, un protégé : ``deliberation.de_garde``),
+            # menacé par un guet qu'il a lu (``signes.intentions_lues``) : une charge, au prix de sa
+            # loyauté, jamais gratuite.
+            prix[s] = 1 + valeur(monde, id, "loyaute") / 50
         risques = [0]
         for autre in [*pnjs(monde), "joueur"]:
             if autre == id or salle_crue(monde, id, autre) != s:
@@ -1222,7 +1227,9 @@ def _entrees(v, vises, profondeur, noeuds):
     esprit_ = lire(monde, id)
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
+    from .signes import actives
     return json.dumps([
+        [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],

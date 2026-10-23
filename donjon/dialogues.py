@@ -51,12 +51,11 @@ def interlocuteurs(monde):
                              "genre": genre(monde, id)}
             continue
         resultat[id] = {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
-                        "relation_joueur": copy.deepcopy(monde.data["relations_pnj"].get(id, {})),
                         "dernier_son_entendu": dernier_son(monde, id),
                         "paroles_entendues": copy.deepcopy([
                             p for p in monde.data.get("paroles_pnj", []) if id in p["auditeurs"]][-4:]),
                         "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
-                        "humeur": o.get("humeur", "non précisée")}
+                        "signes": []}
     return resultat
 
 

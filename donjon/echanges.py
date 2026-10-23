@@ -48,6 +48,9 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
                                         "sujet": sujet, "attribut": attribut})
         se_mefier(monde, auditeur, locuteur, "vu")
         return "dementi"
+    from .signes import flairer
+    if flairer(monde, auditeur, locuteur, sujet, attribut, valeur):
+        return "doute"
     if not jet_persuasion(monde, auditeur, locuteur, 10)[0]:
         memoriser(monde, auditeur, {"type": "parole_doutee", "locuteur": locuteur,
                                     "sujet": sujet, "attribut": attribut})

@@ -34,19 +34,19 @@ def par_blocs(m, jusqu_a, bloc):
 
 
 class CrueTests(unittest.TestCase):
-    def test_on_monte_se_chauffer_au_poele_du_guet_et_son_bois_se_demande(self):
+    def test_on_monte_se_chauffer_au_poele_du_guet_et_le_bois_reste_compte(self):
         # Avant (``verifier-eau``), le brasero de la conduite était le seul feu : menacé par l'eau,
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
         # Les relations graduées changent cette nuit : Gorm refuse Brune, qui prend ensuite
         # les planches d'Aubin et rallume le poêle à 253. Les ressources restent comptées.
         m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
         self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
-        self.assertIn("Brune demande une part des bûches du guet à Gorm (mefiance).", textes)
         self.assertIn("Brune, batelière évacuée alimente le poêle du guet.", textes)
         self.assertIn("Brune, batelière évacuée allume le poêle du guet.", textes)
         self.assertTrue(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
-        # Le bois refusé reste intact ; une des deux planches prises a alimenté le poêle.
+        # Les signes changent les occasions : cette nuit ne demande plus les bûches.
+        # Le bois gardé reste intact ; une des deux planches prises a alimenté le poêle.
         self.assertEqual(m.objets["bois_guet"]["charges"], 3)
         self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
         self.assertIn("Brune, batelière évacuée prend les planches de bac.", textes)

@@ -75,6 +75,24 @@ def jouer_nuit(tache):
     capture, releves, minutes = {}, [], {}
     gardes_precedentes, eloignements = {}, {"minutes_loin_biens": 0, "eloignements_biens": 0}
     creer, oisifs, percevoir = banc.creer, banc._oisifs_urgents, pnj.percevoir_tous
+    commencer, tentatives = pnj.commencer_geste, set()
+    temoins, vus = pnj._temoins, set()
+    def contrainte(monde, operation, objet):
+        # Une contrainte vise une personne (frapper, pousser) ; forcer un objet reste un geste sur un bien.
+        if hasattr(pnj, "est_contrainte"):
+            return pnj.est_contrainte(monde, operation, objet)
+        return operation in pnj.CONTRAINTES
+
+    def compter(monde, auteur, operation, objet, *a, **k):
+        if not contrainte(monde, operation, objet):
+            tentatives.add((auteur, objet))
+        return commencer(monde, auteur, operation, objet, *a, **k)
+
+    def voir(monde, geste, *a, **k):
+        resultat = temoins(monde, geste, *a, **k)
+        if not contrainte(monde, geste["operation"], geste["objet"]):
+            vus.update((geste["auteur"], geste["objet"], id) for id in geste["temoins"])
+        return resultat
 
     def creer_capture(*a, **k):
         monde = creer(*a, **k)
@@ -108,6 +126,8 @@ def jouer_nuit(tache):
                 "plantage": None}
     with ExitStack() as pile:
         pile.enter_context(patch.object(banc, "creer", creer_capture))
+        pile.enter_context(patch.object(pnj, "commencer_geste", compter))
+        pile.enter_context(patch.object(pnj, "_temoins", voir))
         if not config["empreintes"]:
             pile.enter_context(patch.object(banc, "_oisifs_urgents", relever))
         if config.get("localiser"):
@@ -116,6 +136,9 @@ def jouer_nuit(tache):
         try:
             _, _, donnees = banc.nuit(scenario, graine, config["heures"],
                                      config["joueurs"][scenario], depart=config["depart"])
+            donnees["mesures"]["vols_tentes"] = len(tentatives)
+            donnees["mesures"]["vols_vus_nuit"] = len({(a, o) for a, o, _ in vus})
+            donnees["mesures"]["temoins_vols_nuit"] = len(vus)
             resultat["donnees"] = donnees
         except Exception as erreur:
             monde = capture.get("monde")

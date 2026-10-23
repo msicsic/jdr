@@ -669,6 +669,28 @@ Les signes et le retrait de l'humeur restent en 3c ; les propositions de répara
 
 ### 3c. Les signes et leur lecture
 
+**Fait sur `codex-relations-3c`, non fusionnée (2026-10-23).**
+[Rapport, mesures et vérification Luna à faire](taches/rapport-codex-11-relations-3c.md).
+Les signes sont des observations ; les impressions restent faillibles, y compris une
+impression nette. Colère, décisions de place/regard avec coût réel, source `devine`,
+lectures des PNJ/joueur, commande locale `observer` (3 s), rendu/carte, usages de garde,
+hostilité et mensonge, retrait de l’humeur et `--regler` sont réalisés. `relations.py`
+reste l’unique accès aux axes. Le tirage indépendant est séparé **par observateur** :
+observer avec le joueur ne décale ni les dés ordinaires ni ceux d’un PNJ.
+Les lectures entrent dans les clés du planificateur ; une clé sociale séparée et les
+causes des émissions invalident les caches sans rendre une mise à jour d’esprit
+incompatible avec le bloc de géométrie figée.
+
+Le cas réel du guet est fourni en capture à 441 min (la minute 122 est historique),
+testé après rechargement avec un même dé contrôlé à PSY 14/8, plus un second cas à
+l’auberge. Le dé naturel de cette capture peut réussir aux deux PSY : aucune promesse
+de séparation de chaque nuit. La qualification quantitative et ses dénominateurs
+sont dans le rapport ; ne pas déduire du mot « Fait » que tous les seuils ci-dessous
+sont atteints : **critère global non atteint**, justesse haute et méprises à calibrer. Luna est reportée à l’autre poste à la demande de l’utilisateur.
+Les voix non identifiées ne portent pas encore de lecture de mensonge ; les comportements
+du joueur se limitent à son observation explicite, sans état affectif inventé.
+
+
 - Données : `emotions` (colère) ; source « devine », lectures dans les croyances, `data["lectures"]`
   du joueur ; attitude dans l'intention ; tirage à part pour les lectures.
 - Règles : table `SIGNES`, place et regard (§ 5.2), expressions et ton, dissimulation, jet de

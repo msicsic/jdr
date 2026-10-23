@@ -1096,12 +1096,17 @@ def menaces(monde, id):
     il en veut ou qu'il craint (bandes de ``relations``) : ce bien est menacé à ses yeux. S'en
     éloigner, c'est le lui laisser (``gardes``) ; ce n'est pas s'abriter de lui (``planification.abri``)."""
     from .esprits import pnjs
-    lieux = _lieux_gardes(monde, id, siens=True)
+    lieux = set(_lieux_gardes(monde, id, siens=True))
+    from .signes import intentions_lues
+    lieux.update(salle_crue(monde, id, c["envers"]) for _, c in intentions_lues(monde, id)
+                 if de_garde(monde, id, salle_crue(monde, id, c["envers"])))
+    lieux.discard(None)
     if not lieux:
         return ()
     from .relations import en_veut, craint
     mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id
                and (se_mefie(monde, id, x) or en_veut(monde, id, x) or craint(monde, id, x))]
+    mefiants += [x for x, _ in intentions_lues(monde, id)]
     return tuple(sorted(s for s in lieux if any(salle_crue(monde, id, x) == s for x in mefiants)))
 
 
@@ -1530,7 +1535,8 @@ def choisir(monde, id, minute):
         meme = bool(intention) and intention["but"] == but
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
-                          "attente": intention["attente"] if meme else 0}
+                          "attente": intention["attente"] if meme else 0,
+                          **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
         if not meme:
             e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)

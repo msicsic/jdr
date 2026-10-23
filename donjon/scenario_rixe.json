@@ -639,7 +639,6 @@
         "gardien",
         "marchand"
       ],
-      "humeur": "préoccupé",
       "id": "marchand",
       "integrite": 10,
       "lieu": "echoppe",
@@ -953,7 +952,6 @@
         "évacuée",
         "evacuee"
       ],
-      "humeur": "tendue",
       "id": "brune",
       "integrite": 10,
       "lieu": "antichambre",
@@ -1108,7 +1106,6 @@
         "meunière",
         "meuniere"
       ],
-      "humeur": "inquiète",
       "id": "ilse",
       "integrite": 10,
       "lieu": "antichambre",
@@ -1207,7 +1204,6 @@
         "aubin",
         "passeur"
       ],
-      "humeur": "las",
       "id": "aubin",
       "integrite": 10,
       "lieu": "antichambre",

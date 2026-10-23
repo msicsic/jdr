@@ -1,0 +1,15 @@
+{
+ "scenario": "relais",
+ "sauvegarde": "tests/data/scenes/guet_relais7.json.gz",
+ "noms_connus": [
+  "brune",
+  "marchand",
+  "ilse",
+  "aubin"
+ ],
+ "tours": [
+  "Que fait Brune ?",
+  "Que fait Gorm en ce moment ?",
+  "quitter"
+ ]
+}

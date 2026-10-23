@@ -51,7 +51,8 @@ class VolTests(unittest.TestCase):
                 self.assertIn("te surprend", texte)
                 self.assertEqual(self.m.objets["crochets"]["lieu"], "echoppe")
                 self.assertTrue(self.m.objets["crochets"]["en_vente"])
-                self.assertEqual(self.m.objets["marchand"]["humeur"], "méfiant")
+                from donjon.signes import emotion
+                self.assertEqual(emotion(self.m, "marchand")["contre"], "joueur")
                 from donjon.relations import envers
                 self.assertEqual(envers(self.m, "marchand", "joueur")["motifs"][-1]["objet"], "crochets")
                 self.assertEqual(self.moteur.preparer(proposition("voler", "crochets", methode="finesse")).dd, 14)
@@ -60,8 +61,9 @@ class VolTests(unittest.TestCase):
                     p = Path(tmp) / "partie.json"
                     self.m.sauver(p)
                     m = Monde.charger(p)
-                self.assertEqual(m.objets["marchand"]["humeur"], "méfiant")
-                self.assertEqual(m.contexte()["interlocuteurs"]["marchand"]["relation_joueur"]["vols_surpris"], 1)
+                self.assertNotIn("humeur", m.objets["marchand"])
+                self.assertEqual(m.data["relations_pnj"]["marchand"]["vols_surpris"], 1)
+                self.assertNotIn("relation_joueur", m.contexte()["interlocuteurs"]["marchand"])
                 with self.assertRaisesRegex(ErreurMonde, "refuse"):
                     Moteur(m).preparer(proposition("acheter", "marteau"))
                 self.assertEqual(m.joueur["or"], 24)

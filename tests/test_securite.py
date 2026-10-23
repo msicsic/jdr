@@ -123,10 +123,10 @@ class AbriTests(unittest.TestCase):
         m, texte = attendre(recharger(m), 3)
         self.assertEqual(m.objets["ilse"]["lieu"], "antichambre")
         self.assertEqual(m.objets["aubin"]["lieu"], "antichambre")
-        # Elle a rejoint sa compagnie, mais sa case crue ne la met pas au contact
-        # d'Aubin. Le texte ne doit donc plus prétendre qu'elle reste tout près.
+        # 3c la rapproche ensuite réellement. Le texte de son arrivée à l’abri
+        # reste celui de cet instant : elle n’était pas encore au contact.
         from donjon.geometrie import distance
-        self.assertGreater(distance(m.objets["ilse"]["position"], m.objets["aubin"]["position"]), 1)
+        self.assertLessEqual(distance(m.objets["ilse"]["position"], m.objets["aubin"]["position"]), 1)
         self.assertIn("Ilse reste en compagnie.", chronique(m))
         self.assertIn("Ilse reste en compagnie.", texte.splitlines())
         # À l'abri, elle se calme : la lumière et la compagnie l'emportent sur la dérive.

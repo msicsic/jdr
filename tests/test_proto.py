@@ -211,9 +211,12 @@ class MondeEtReglesTests(unittest.TestCase):
     def test_bruit_reaction_et_attente(self):
         self.agir("frapper porte avec couteau", jet=2)
         self.agir("frapper porte avec couteau", jet=2)
-        self.assertEqual(self.m.objets["marchand"]["humeur"], "inquiet")
+        from donjon.esprits import dernier_son
+        self.assertEqual(dernier_son(self.m, "marchand")["nature"], "bruyant")
+        bruit = self.m.data["bruit"]
         self.agir("attendre")
-        self.assertEqual(self.m.objets["marchand"]["humeur"], "calme")
+        self.assertLess(self.m.data["bruit"], bruit)
+        self.assertNotIn("humeur", self.m.objets["marchand"])
 
     def test_plan_perime_refuse_et_effets_forges_ignores(self):
         plan = self.moteur.preparer(proposition("examiner", "porte"))

@@ -54,7 +54,7 @@ class SonsTests(unittest.TestCase):
         self.assertNotIn("Gorm", texte)
         self.assertEqual(m.data["sons"][-1]["auditeurs"], ["marchand"])
         # Plus d'humeur forcée : il retient le bruit (l'ouïe commune), sans changer d'humeur.
-        self.assertEqual(m.objets["marchand"]["humeur"], "calme")
+        self.assertNotIn("humeur", m.objets["marchand"])
         self.assertEqual({k: dernier_son(m, "marchand")[k] for k in ("salle", "nature")},
                          {"salle": "antichambre", "nature": "appel"})
         self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")

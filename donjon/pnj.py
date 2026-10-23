@@ -34,7 +34,7 @@ DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
 # retourner au bruit, retenir un bruit inconnu, aller le voir (``ouie``).
-NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
+NATURES = ("lecture", "deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
 A_DISTANCE = ("chauffer",)
@@ -62,7 +62,7 @@ def verifier(monde):
         "Gestes en cours invalides"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service"} == {"minute", "pnj", "texte"}
+            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy"} == {"minute", "pnj", "texte"}
                     and c.get("nature", "geste") in NATURES and type(c.get("instant", 0)) is int
                     for c in chronique)), "Chronique invalide"
     from .relations import verifier_chronique
@@ -1400,6 +1400,8 @@ def compter_attente(monde, id, t, continuer=False):
     if e["patience"] is None:
         return
     if e["intention"] and t > e["patience"]:
+        from .signes import attente_sous_regard
+        attente_sous_regard(monde, id, t - e["patience"])
         e["intention"]["attente"] += t - e["patience"]
     e["patience"] = t if continuer and e["intention"] else None
 
@@ -1420,6 +1422,11 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     gestes = [] if gestes is None else gestes
     e = esprit(monde, id)
     intention = e["intention"]
+    from .signes import surveiller
+    rotation = surveiller(monde, id)
+    intention = e["intention"]
+    if rotation:
+        return rotation, GESTE, None
     if not intention:
         return reste, ATTENTE, None
     etapes, o = intention["plan"], monde.objets[id]
@@ -1483,9 +1490,13 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
                 pas = _marcher(monde, id, lambda salle, case: salle == ici and tuple(case) == tuple(centre), lignes)
                 if pas:
                     return pas, GESTE, None
+    from .signes import place as place_sociale
+    pas_social = place_sociale(monde, id, etape, lignes)
+    if pas_social:
+        return pas_social, GESTE, None
     if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
         # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
-        pas = _rejoindre_un_proche(monde, id, lignes)
+        pas = None if intention.get("attitude", {}).get("place") else _rejoindre_un_proche(monde, id, lignes)
         if pas:
             return pas, GESTE, None
     if not _assez_de_lumiere(monde, id, etape):
@@ -1520,8 +1531,13 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         if (observe or (observe is None and temoins_crus(monde, id))
                 or oreilles_crues(monde, id, attendu)):
             # Il guette une occasion, jusqu'à la minute suivante ou jusqu'à ce que sa situation change.
+            from .signes import dissimule, regarder as regard_social
             if _patienter(monde, id, intention, compter):
                 return reste, FIN, None
+            rotation = regard_social(monde, id, intention, etape["cible"], "convoite", "guet",
+                                     detourner=dissimule(monde, id, intention=True))
+            if rotation:
+                return rotation, GESTE, None
             return reste, ATTENTE, None
     # Il se tourne vers ce qu'il touche ou voit, jamais vers ce qu'il ignore.
     cible = etape["cible"]
@@ -1672,6 +1688,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     from .horloges import declencher as declencher_horloges
     from .perception import avancer_combustion
     from .social import bavarder
+    from .signes import percevoir_tous as percevoir_signes
     from .spatial import etat_fige
     from .corps import conscient, corps, reveiller
     from .temps import MINUTE
@@ -1746,6 +1763,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     appeler_a_l_aide(monde, id, minute)
                     percevoir(monde, id)
             percevoir_tous(monde)  # Ce que la minute a changé (un feu, une flamme ménagée), tous le voient.
+            percevoir_signes(monde)
             if monde.data.get("dettes"):
                 from .biens import solder
                 solder(monde, lignes)  # Qui se retrouvent soldent ce que l'un doit à l'autre.
@@ -1817,6 +1835,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     observer()
                     if profil:
                         noter(monde, id, t, monde._activite)
+                percevoir_signes(monde)
                 note = True
             else:
                 duree, attend = _jusqu_a_la_minute(t), en_cases

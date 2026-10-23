@@ -2139,7 +2139,6 @@
     "veille": 500
    },
    "genre": "m",
-   "humeur": "nerveux",
    "id": "bram",
    "integrite": 10,
    "lieu": "bureau",
@@ -2776,7 +2775,6 @@
     "veille": 900
    },
    "genre": "m",
-   "humeur": "stoïque",
    "id": "gaspard",
    "integrite": 10,
    "lieu": "galerie",
@@ -2897,7 +2895,6 @@
     "veille": 600
    },
    "genre": "m",
-   "humeur": "grave",
    "id": "josse",
    "integrite": 10,
    "lieu": "baraquement",
@@ -3209,7 +3206,6 @@
     "veille": 1500
    },
    "genre": "m",
-   "humeur": "fiévreux",
    "id": "lucien",
    "integrite": 10,
    "lieu": "baraquement",
@@ -3328,7 +3324,6 @@
     "veille": 700
    },
    "genre": "f",
-   "humeur": "tendue",
    "id": "mathe",
    "integrite": 10,
    "lieu": "baraquement",
@@ -3445,7 +3440,6 @@
     "veille": 1000
    },
    "genre": "m",
-   "humeur": "réservé",
    "id": "odon",
    "integrite": 10,
    "lieu": "baraquement",
@@ -3780,7 +3774,6 @@
     "veille": 800
    },
    "genre": "m",
-   "humeur": "à cran",
    "id": "remy",
    "integrite": 10,
    "lieu": "baraquement",

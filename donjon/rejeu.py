@@ -143,6 +143,9 @@ class Enregistreur:
                 esprit[f"{id}|{objet}"] = [lieu.get("valeur"), lieu.get("salle"), lieu.get("case")]
         from .relations import connus, envers
         esprit[f"{id}|:relations"] = {x: envers(monde, id, x) for x in connus(monde, id)}
+        from .signes import actives, emotion
+        esprit[f"{id}|:lectures"] = actives(monde, id)
+        esprit[f"{id}|:emotion"] = emotion(monde, id)
         salles = monde.data["salles"]
         esprit[f"{id}|:bruits"] = sorted([salles[m["salle"]]["nom"], m["nature"]]
                                          for m in e["memoire"] if m["type"] == "bruit" and m["salle"] in salles) or None
@@ -282,8 +285,10 @@ class Enregistreur:
                 "personnages": self.personnages, "joueur": self.joueur,
                 "etats": self.etats, "vues": self.vues, "esprits": self.esprits, "lumiere": self.lumiere,
                 "bruits": self.bruits, "gestes": self.gestes,
-                "chronique": sorted([{"minute": c["minute"], "t": c["minute"] * MINUTE, "pnj": c.get("pnj"),
-                                      "texte": c["texte"], "nature": c.get("nature", "geste")} for c in chronique]
+                "chronique": sorted([{"minute": c["minute"], "t": c.get("instant", c["minute"] * MINUTE), "pnj": c.get("pnj"),
+                                      "texte": c["texte"], "nature": c.get("nature", "geste"),
+                                      **({k: c[k] for k in ("observation", "lecture", "jet", "marge", "observateur", "psy")}
+                                         if c.get("nature") == "lecture" else {})} for c in chronique]
                                     + [{"minute": e["t"] // MINUTE, **e} for e in self.evenements],
                                     key=lambda c: c["t"])}
 

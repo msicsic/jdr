@@ -10,6 +10,7 @@ replis du contrôle narratif et les mentions d'entités sans fondement.
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 from datetime import datetime
@@ -215,7 +216,21 @@ def jouer(script, compteur, offline, connexion="chatgpt"):
         interface = Interface(donnees["tours"], sauvegarde, compteur)
         argv = [*LANCEMENT[donnees["scenario"]], "--new", "--save", str(sauvegarde),
                 "--seed", str(donnees.get("seed", 1985))]
-        if donnees.get("preparation"):
+        if donnees.get("sauvegarde"):
+            # Une scène enregistrée (``tests/data/scenes``), jouée sur une copie : jamais sur l'original.
+            source = BASE / donnees["sauvegarde"]
+            brut = source.read_bytes()
+            sauvegarde.write_bytes(gzip.decompress(brut) if source.suffix == ".gz" else brut)
+            if donnees.get("noms_connus"):
+                # Présentations déjà entendues, déclarées par le banc comme pour une préparation.
+                from donjon.noms import apprendre
+                m = Monde.charger(sauvegarde)
+                for id in donnees["noms_connus"]:
+                    apprendre(m, "joueur", id)
+                m.verifier()
+                m.sauver(sauvegarde)
+            argv.remove("--new")
+        elif donnees.get("preparation"):
             preparer(donnees, sauvegarde)
             argv.remove("--new")
         if offline:

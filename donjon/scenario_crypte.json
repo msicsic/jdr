@@ -232,7 +232,6 @@
         "gorm",
         "marchand"
       ],
-      "humeur": "calme",
       "id": "marchand",
       "integrite": 10,
       "lieu": "echoppe",

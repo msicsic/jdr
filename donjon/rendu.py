@@ -60,13 +60,10 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o["type"] == "personnage":
         from .corps import blessure, conscient
         if not conscient(monde, o["id"]):
-            # Sans connaissance, il ne montre aucune humeur (comme une dépouille, ``corps.mourir``).
+            # Sans connaissance, il ne montre aucun signe (comme une dépouille, ``signes``).
             morceaux.append("à terre, sans connaissance")
-        else:
-            if blessure(monde, o["id"]):
-                morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
-            if o.get("humeur"):
-                morceaux.append(o["humeur"])
+        elif blessure(monde, o["id"]):
+            morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
     if o["type"] == "depouille":
         from .corps import blessure
         if blessure(monde, id):
@@ -260,6 +257,9 @@ def regarder(monde):
         fin = "\n\nSorties que tu connais : " + (", ".join(sorties) or "aucune pour l'instant") + "."
     else:
         fin = "\n\nSorties : " + (", ".join(sorties) or "aucun passage directement praticable") + "."
+    from .signes import publics, impressions
+    # Deux signes peuvent laisser la même impression : elle ne se dit qu'une fois.
+    fin += "\n" + "\n".join(dict.fromkeys(s["texte"] for s in publics(monde) + impressions(monde)))
     return titre + "\n\n" + fill(" ".join(lignes), width=88) + fin
 
 

@@ -48,8 +48,6 @@ def appliquer(monde, effet, lignes):
         memoriser(monde, cible, {"type": "vol_surpris", "auteur": "joueur", "objet": valeur, "victime": proprietaire(monde, monde.objets[valeur])})
         if proprietaire(monde, monde.objets[valeur]) == cible:
             relancer(monde, cible, "biens", VOL)  # Seule la victime craint pour ses biens.
-        from .francais import accorder
-        monde.objets[cible]["humeur"] = accorder(monde.objets[cible], "méfiant")
         lignes.append(monde.objets[cible]["nom"] + " te surprend en train de tenter de dérober "
                       + designer(monde.objets[valeur]) + ". Tu retires la main ; l'objet reste en place.")
         if monde.objets[cible].get("refuse_ventes_apres_vol"):

@@ -106,7 +106,8 @@ class ChaineTests(unittest.TestCase):
         m, texte = attendre(recharger(m))
         self.assertEqual(relations.envers(m, "marchand", "joueur")["confiance"], 0)
         self.assertEqual(mefiance(m, "marchand"), 1)
-        self.assertIn("Gorm, gardien du relais, semble méfiant.", texte)
+        self.assertIn("fait des gestes brusques", texte)
+        self.assertNotIn("humeur", m.objets["marchand"])
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ FIABLE = "fiable"
 AXES = ("confiance", "affection", "rancune", "peur", "dette")
 ETRANGER = dict(zip(AXES, (40, 0, 0, 0, 0)))
 MEFIANCE, CONFIANCE, RANCUNE, PEUR = 30, 60, 40, 40
+VIF = 60   # un axe qui se montre (``vive``)
 MENTEUSE = 0
 EPREUVES = {
     "vu_agir": {"confiance": -40, "affection": -10, "rancune": 40},
@@ -166,6 +167,20 @@ def chance_demande(monde, id, autre):
     return min(0.9, max(0.1, chance))
 
 
+def signature(monde, id):
+    """Clé pure des lectures d'axes : le cache des signes n'accède pas au stockage.
+    Les ancres et bandes comptent aussi, même si l'arrondi actuel ne bouge pas.
+    """
+    from .esprits import lire
+    profil = monde.objets[id].get("profil") or {}
+    return (monde.data["minutes"],
+            tuple((x, tuple(r[a] for a in AXES), tuple(r["bandes"].items()),
+                   tuple((a, tuple(v)) for a, v in r["ancrages"].items()))
+                  for x, r in lire(monde, id)["relations"].items()),
+            repr(profil.get("liens")), profil.get("valeurs", {}).get("fierte"),
+            profil.get("valeurs", {}).get("douceur"))
+
+
 def percue(monde, auditeur, locuteur):
     from .voix import SUSPECTE, identifie, reconnaitre
     if identifie(monde, auditeur, locuteur):
@@ -197,6 +212,16 @@ def peur(r):
 def affection_leve_orgueil(r):
     """Une affection d'au moins cinquante lève l'orgueil au passage (§ 3.5)."""
     return r["affection"] >= 50
+
+
+def vive(r, axe):
+    """Un axe assez marqué pour se lire sur le corps ou le visage, dès soixante (signes de 3c)."""
+    return r[axe] >= VIF
+
+
+def familier(r):
+    """Une affection d'au moins quarante rend ses signes plus lisibles (lecture de 3c)."""
+    return r["affection"] >= 40
 
 
 def dette_notable(r):
@@ -306,6 +331,9 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     r["motifs"] = (r["motifs"] + [motif])[-3:]
     r.update(minute=monde.data["minutes"], source=s.get("source", "entendu" if s.get("par") == "ouie" else "vu"))
     esprit(monde, id)["relations"][autre] = r
+    from .signes import eprouver as eprouver_emotion
+    if cause != "refus" or s.get("raison") == "mefiance":
+        eprouver_emotion(monde, id, autre, cause, delta)
     reconsiderer(monde, id)
     from .pnj import _chroniquer
     from .social import _qui
@@ -321,6 +349,8 @@ def souvenir(monde, id, s):
     from .esprits import memoriser
     from .voix import identifie, auteur_dit, source_dite
     t = s["type"]
+    if t == "rumeur" and s.get("evenement", {}).get("type") == "intention_lue":
+        return
     if id == "joueur":
         return
     autre = s.get("auteur", s.get("locuteur", s.get("de", s.get("qui"))))

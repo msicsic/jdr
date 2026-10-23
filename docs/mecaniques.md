@@ -1069,6 +1069,34 @@ est
 retirer axe supérieur avec pied-de-biche
 ```
 
+### Lire les signes d'une personne
+
+`observer <personnage>` prend trois secondes, sans appel au MJ. Il faut voir la personne ;
+le geste tourne d'abord Corvus vers elle si nécessaire. Les signes sont des faits visibles
+ou des tons réellement entendus : une personne se tient à l'écart, en surveille une autre,
+baisse les yeux, serre la mâchoire, parle sèchement. La place et le regard sont ceux du monde :
+s'écarter demande un vrai pas, surveiller tourne réellement le champ de vision.
+
+Le bilan de l'action annonce les nouveaux signes. `regarder`, les listes de la carte et
+leurs infobulles reprennent les mêmes observations. Les expressions demandent assez de
+lumière et de proximité ; les tons exigent d'avoir saisi les mots. Dans le noir, aucune
+expression ni position relationnelle n'est donnée à voir ; une voix identifiable peut
+encore livrer un ton si elle parle.
+
+Corvus peut en tirer une impression, avec sa PSY, automatiquement pour la personne en
+face de lui ou en l'observant délibérément (bonus +2). Un échec peut ne rien donner, ou
+produire une méprise. Le texte dit toujours « semble », et « peut-être » pour une impression
+peu nette : sa formulation ne garantit jamais qu'elle est juste. Le même signe ne donne
+qu'un essai par dix minutes ; la sauvegarde conserve aussi les essais manqués. Recharger
+ou répéter la commande ne relance pas le dé. Le tirage est séparé des autres jets du jeu.
+Une impression n'est affichée comme actuelle que si son signe est encore perçu.
+
+Les PNJ lisent les signes avec la même règle et peuvent se tromper : un gardien qui croit
+quelqu'un à l'affût surveille ce qu'il garde ; une hostilité supposée peut faire choisir
+une place plus éloignée. Un mensonge flairé crée un doute, sans apprendre la vérité.
+Une colère immédiate peut faire demander des comptes à l'auteur d'un tort avant d'en parler
+à un tiers. Cela ne crée pas de proposition, de dispute ni de secours d'empathie.
+
 `aide` affiche les commandes. `carte`, `regarder`, `journal` et `inventaire` permettent de suivre l'état.
 
 La carte utilise maintenant un plan métrique enregistré dans le monde : une case représente
@@ -1382,7 +1410,7 @@ moteur reste dans le journal et sert de repli. `--recit-moteur` garde le rendu d
 - Les dialogues des personnages présents tiennent compte du sujet et des faits connus.
   Les engagements économiques sont limités aux récompenses des missions configurées ;
   pas encore de promesses libres, de réputation ou de négociation des prix de boutique.
-  Le bruit modifie l'humeur du marchand ; il n'y a ni combat ni IA tactique.
+  Le bruit est perçu par l'ouïe commune ; les attitudes visibles viennent des signes du moteur.
   Les PV et PER sont présents sur la fiche mais sans mécanique dédiée pour l'instant.
 - Le MJ peut compléter à la demande la description de **tout personnage connu ou visible en pleine lumière** :
   âge apparent, silhouette, visage, cheveux, yeux, barbe, mains, voix et tempérament apparent.

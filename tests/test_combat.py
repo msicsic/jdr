@@ -107,17 +107,21 @@ class CombatTests(unittest.TestCase):
             self.assertIn("sans connaissance", " ".join(regarder(m).split()))
             self.assertTrue(m.data["journal"][-1]["reussite"])
 
-    def test_sans_connaissance_aucune_humeur_montree_apres_recharge(self):
-        # Vu au banc Luna de la fusion : « Gorm … est à terre, sans connaissance et préoccupé ».
-        # Comme une dépouille, un inconscient ne montre aucune humeur, au joueur ni au MJ.
+    def test_sans_connaissance_aucun_signe_montre_apres_recharge(self):
+        # Vu au banc Luna de la fusion de 4b : « Gorm … est à terre, sans connaissance et préoccupé ».
+        # Depuis 3c, l'humeur est remplacée par les signes : un inconscient n'en montre aucun, au
+        # joueur ni au MJ, comme une dépouille ; ils reviennent au réveil si leur cause demeure.
+        from donjon import signes
         for cible in ("marchand", "brune"):
             with self.subTest(cible=cible):
                 m = scene("marchand")
                 if cible == "marchand":
                     placer(m, "brune", "echoppe", (3, 3))
                     m.joueur["position"] = [2, 5]
-                m.objets[cible]["humeur"] = "préoccupé"
+                # Une cause durable de signe : sa sécurité presse (il tremble), avant le coup.
+                lire(m, cible)["besoins"]["securite"] = 90.0
                 percevoir_tous(m)
+                self.assertTrue(any(s["personnage"] == cible for s in signes.publics(m)))
                 p = Moteur(m).preparer(proposition("frapper", cible, "", "assommer"))
                 with patch.object(type(m), "d20", return_value=20):
                     texte = Moteur(m).executer(p)
@@ -125,16 +129,27 @@ class CombatTests(unittest.TestCase):
                 self.assertFalse(corps.conscient(m, cible))
                 nom = m.objets[cible]["nom"].split(",")[0]
                 self.assertNotIn(nom + " semble", texte)
+                self.assertNotIn(nom + " tremble", texte)
                 vue = " ".join(regarder(m).split())
                 self.assertIn("sans connaissance", vue)
-                self.assertNotIn("préoccupé", vue)
+                self.assertNotIn(nom + " tremble", vue)
+                self.assertFalse(any(s["personnage"] == cible for s in signes.publics(m)))
+                self.assertFalse(any(s["personnage"] == cible for s in signes.impressions(m)))
+                contexte = m.contexte()
+                from donjon.noms import reference
+                ref = reference(m, cible)
+                self.assertFalse(any(s["personnage"] in (cible, ref) for s in contexte["signes_percus"] + contexte["impressions"]))
+                # Inconscient, il ne lit pas non plus les signes des autres.
+                self.assertEqual(signes.percus(m, cible), [])
                 corps.reveiller(m, cible)
+                lire(m, cible)["besoins"]["securite"] = 90.0
                 m = recharger(m)
-                self.assertIn("préoccupé", " ".join(regarder(m).split()))
+                self.assertIn(nom + " tremble et se recroqueville.", " ".join(regarder(m).split()))
 
-    def test_victime_frappee_par_surprise_ne_semble_pas_calme(self):
-        # Vu au banc Luna de la fusion : « Tu frappes Brune… Brune semble calme ». L'humeur montrée
-        # suit l'état du personnage : un coup subi fait presser sa sécurité, il semble inquiet.
+    def test_victime_frappee_par_surprise_montre_un_signe_de_peur(self):
+        # Vu au banc Luna de la fusion de 4b : « Tu frappes Brune… Brune semble calme ». Depuis 3c,
+        # ce qu'on voit suit l'état : un coup subi fait presser sa sécurité, il tremble ; l'impression
+        # qu'en tire Corvus reste faillible (« semble »), jamais une humeur affirmée.
         for cible in ("brune", "marchand"):
             with self.subTest(cible=cible):
                 m = scene("marchand")
@@ -142,17 +157,17 @@ class CombatTests(unittest.TestCase):
                     placer(m, "brune", "echoppe", (3, 3))
                     m.joueur["position"] = [2, 5]
                 percevoir_tous(m)
+                nom = m.objets[cible]["nom"].split(",")[0]
+                self.assertNotIn(nom + " tremble", " ".join(regarder(m).split()))
                 p = Moteur(m).preparer(proposition("frapper", cible, "", "simple"))
                 with patch.object(type(m), "d20", return_value=20):
                     texte = Moteur(m).executer(p)
                 m = recharger(m)
                 self.assertTrue(corps.conscient(m, cible))
                 self.assertIsNone(next(s for s in lire(m, cible)["memoire"] if s["type"] == "subi")["auteur"])
-                # Accordée au genre : « Brune … semble inquiète », « Gorm … semble inquiet ».
-                inquiet = "inquiète" if cible == "brune" else "inquiet"
-                self.assertIn(sujet(m.objets[cible]) + " semble " + inquiet + ".", texte)
-                self.assertNotIn(sujet(m.objets[cible]) + " semble calme", texte)
-                self.assertIn(inquiet, " ".join(regarder(m).split()))
+                self.assertIn(nom + " tremble et se recroqueville.", texte)
+                self.assertNotIn(nom + " semble calme", texte)
+                self.assertIn(nom + " tremble et se recroqueville.", " ".join(regarder(m).split()))
 
     def test_fiche_dit_si_la_victime_voit_venir_le_coup_apres_recharge(self):
         # Vu au banc Luna de la fusion : « j'assomme Gorm par derrière » refusé par la contre-revue,

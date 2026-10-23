@@ -184,6 +184,9 @@ def scene_percue(monde):
                 o["foyer"] = True
             if objet["type"] == "personnage":
                 from .corps import conscient, visible as etat_visible   # ``visible`` : le champ, plus haut
+                from .signes import publics, impressions
+                o["signes"] = [s for s in publics(monde) if s["personnage"] == objet["id"]]
+                o["impressions"] = [s for s in impressions(monde) if s["personnage"] == objet["id"]]
                 o["etat_corps"] = etat_visible(monde, objet["id"])
                 if not o["etat_corps"]["conscient"]:
                     o["nom"] += " (à terre, sans connaissance)"

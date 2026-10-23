@@ -1,0 +1,13 @@
+{
+ "scenario": "relais",
+ "sauvegarde": "tests/data/scenes/signes_ecart_relais.json",
+ "tours": [
+  "observer Brune",
+  "observer Ilse",
+  "Que remarques-tu dans la façon dont Ilse se tient ?",
+  "Ilse a-t-elle peur de Brune ?",
+  "Veut-elle attaquer Brune ?",
+  "observer Ilse",
+  "quitter"
+ ]
+}
