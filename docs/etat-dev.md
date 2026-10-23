@@ -5,7 +5,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - Branche `codex-luna-noms`, **non fusionnée**, base `main` 9075aea, worktree
-  `tmp-worktrees/codex-luna-noms` : les contraintes d'adresse sont séparées du choix d'audience ;
+  `tmp-worktrees/codex-luna-noms` : les contraintes d'adresse sont séparées du choix d'audience
+  (individuelle, groupe, cantonade même avec des personnes visibles), contrôlé par la contre-revue
+  de fidélité avant enregistrement, sans secours qui contourne un verdict négatif ;
   question directe conservée mot pour mot, verbe sans propos précisé sans appel au MJ, nom non relié
   traité sans démentis narratifs répétés. Tous les répondants sont entendus ; une voix audible
   d'une autre salle reste interlocutrice, et ses répliques sont enregistrées à leur source réelle
@@ -13,7 +15,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   par l'auditeur redemandée à l'auditeur. Mauvais type d'assemblage : refus de forme, pas besoin
   d'échelle déduit ; une question de faisabilité ne devient pas une parole, y compris après une
   correction. Coordonnées de proximité réservées à `attendu`, approches d'improvisation conservées
-  en données sans libellé technique dans le récit. Suite du gel : **1 388 tests, 14 ignorés**,
+  en données sans libellé technique dans le récit. Suite du gel : **1 391 tests, 14 ignorés**,
   aucun échec ; huit nuits de 2 h, Relais et auberge, graines 1985/7/42/2024 : chronique, mesures
   et état final complet identiques à 9075aea. Campagne finale Luna (21 scripts × 3 passes par
   variante) en cours ; rapport de la tâche 8 à terminer avant livraison. Limites : audience implicite

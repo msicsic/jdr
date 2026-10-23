@@ -1637,7 +1637,10 @@ Limites de l'appel négocié :
 ## Parole après les noms (`codex-luna-noms`)
 
 Sans adresse imposée, `parole_prevue.audience_libre` laisse Luna distinguer la parole
-individuelle de celle destinée à l'assistance. Le moteur vérifie l'audience proposée ; les
+individuelle, le groupe (`tous`) et la cantonade sans destinataire particulier (`personne`),
+même si des personnes sont visibles. La contre-revue de fidélité contrôle ce choix sur la
+copie préparée avant tout enregistrement ; après deux propositions refusées, le joueur doit
+préciser son adresse et ses mots. Le secours local ne contourne pas ce refus. Les
 destinataires explicites, les chuchotements et les suites d'échange restent contraints par
 la saisie. Une question directe devenue parole conserve ses mots. Un verbe sans propos et
 sans réponse locale d'appel demande les mots du joueur sans les inventer.

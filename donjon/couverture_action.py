@@ -19,6 +19,12 @@ SCHEMA = {
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
+Le champ parole décrit une parole préparée : ses mots, son contenu et son adresse individuelle
+ou au groupe, ou son absence de destinataire particulier (cantonade). Une parole à la cantonade
+est entendue par ceux qui en saisissent les mots et chacun peut y répondre ; elle ne sélectionne
+ni une personne ni chacun des membres d'un groupe. Cette audience fait partie de la cible : ne la réduis ni ne l'élargis par
+rapport à la demande. Les mots du joueur peuvent déjà être fixés ; cela ne valide pas le choix
+du destinataire. Juge cette parole avant qu'elle soit prononcée et enregistrée.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
 Le plan représente l'état du monde : action, cibles, outil, et changements durables
@@ -48,6 +54,7 @@ def _operations(plan):
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        **({"parole": plan.parole} if plan.parole is not None else {}),
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
                                 "cibles": plan.proposition.get("cibles", []),
                                 "outil": plan.proposition.get("outil", "")}} if improvise else {}),
@@ -107,13 +114,19 @@ def verifier(rapport, plan=None):
         if len(motif) > MOTIF_MAX:
             motif = motif[:MOTIF_MAX - 1].rstrip() + "…"
         recu = ""
+        partie = "proposition"
+        accepte = ("le même geste, dont les changements durables sont ceux de la demande : "
+                   "retire celui qu'elle ne demande pas, ou ajoute l'étape qui manque")
         if plan is not None:
             p = plan.proposition if isinstance(plan.proposition, dict) else {}
             cibles = p.get("cible") or ", ".join(map(str, p.get("cibles") or []))
             recu = f"{plan.titre} (action {p.get('action')}" + (f", cible {cibles}" if cibles else "") + ")"
+            if plan.parole is not None:
+                partie = "proposition.personnage"
+                recu = f"{plan.parole['personnage']} (adresse : {plan.parole['adresse']})"
+                accepte = ("personnage parmi parole_prevue.audiences : individuelle, groupe ou cantonade, "
+                           "selon le destinataire demandé ; replique et contenu fidèles à la saisie")
         raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : " +
                           (motif or "une conséquence demandée manque."),
-                          attendu_audit("proposition", recu or "le plan proposé",
-                                        "le même geste, dont les changements durables sont ceux de la demande : "
-                                        "retire celui qu'elle ne demande pas, ou ajoute l'étape qui manque",
+                          attendu_audit(partie, recu or "le plan proposé", accepte,
                                         ("non conforme", motif)))

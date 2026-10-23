@@ -58,6 +58,7 @@ class Plan:
     echec: list = field(default_factory=list)
     risque: str = ""
     information: str = ""
+    parole: dict | None = None  # dossier d'une parole préparée, pour la contre-revue de fidélité
     cle_arbitrage: str = ""
     origine: str = "règles"
     etapes: list = field(default_factory=list)

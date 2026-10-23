@@ -52,6 +52,7 @@ def jouer(monde, saisie, sorties, jet=20):
         chemin = Path(tmp) / "partie.json"
         monde.sauver(chemin)
         with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+              patch.object(MJOpenAI, "_auditer_action"),
               patch.object(MJOpenAI, "_appeler", side_effect=appel),
               patch.object(Monde, "d20", return_value=jet),
               patch("builtins.input", side_effect=[saisie, "quitter"]),

@@ -120,8 +120,11 @@ matérialisation à la demande, quand elle sera en place.
 
 Le destinataire explicitement désigné, le chuchotement et la suite d'un échange contraignent
 la parole. En leur absence, `parole_prevue.audience_libre` autorise l'interprétation à choisir
-une parole individuelle ou `tous`. Le moteur valide ce choix par les mêmes règles de perception
-et d'ouïe ; il ne substitue plus systématiquement la personne d'en face à l'assistance. Une
+une parole individuelle, `tous` pour le groupe ou `personne` pour la cantonade, même quand
+des personnes sont visibles. Le moteur valide ce choix par les mêmes règles de perception
+et d'ouïe ; la contre-revue de fidélité contrôle l'audience, les mots et le contenu avant
+d'enregistrer la parole. Deux propositions refusées demandent une précision au joueur ; le
+secours local ne contourne pas un refus de fidélité. Une
 question directe choisie comme parole conserve exactement les mots saisis. Le choix sémantique
 de cette audience reste celui de Luna, comme celui des contenus de parole.
 Une question au MJ sur la faisabilité d'un geste ne devient pas une parole à un PNJ voisin :

@@ -305,6 +305,11 @@ class ExplicationCedee(ErreurMonde):
     (``MJ._echanger_prepare``). Ce n'est ni une panne ni un refus à montrer."""
 
 
+class ParoleNonConforme(ErreurMonde):
+    """Une parole mécaniquement possible dont la contre-revue refuse la fidélité.
+    Aucun secours local ne peut la prononcer en contournant ce refus."""
+
+
 # « impossible » au premier examen : un réexamen est demandé, une fois (``MJ._echanger_prepare``).
 REEXAMEN = "Réexamine l'intention entière et les possibilités du moteur avant de conclure qu'elle est impossible."
 ATTENDU_REEXAMEN = ("action : le geste que demande la saisie, tel quel, même si sa cible est loin, hors de vue ou "
@@ -686,6 +691,7 @@ class MJ:
         complements = reponse["proposition"]
         rapport = None
         if reponse["mode"] == "parole_joueur":
+            fidelite_refusee = False
             for essai in range(3):
                 # Des mots imposés par le joueur (guillemets, deux-points, interpellation) sont dits
                 # tels quels, sans réécriture.
@@ -695,12 +701,29 @@ class MJ:
                                "_intention": intention[:600]}
                 try:
                     travail, rapport = preparer_parole(monde, complements, revision)
+                    from .paroles import audience_libre
+                    if audience_libre(analyser_parole(monde, intention)):
+                        from .moteur import Plan
+                        plan_parole = Plan({}, revision, "Prononcer la parole préparée.", parole={
+                            "adresse": {"tous": "groupe", "personne": "cantonade, sans destinataire particulier"}.get(
+                                rapport["personnage"], "individuelle"),
+                            "personnage": rapport["personnage"], "replique": rapport["replique_joueur"],
+                            "contenu": copy.deepcopy(complements["contenu"])})
+                        try:
+                            self._auditer_action(intention, plan_parole, revision, monde)
+                        except ErreurMonde as exc:
+                            raise ParoleNonConforme(str(exc), exc.attendu) from exc
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
                     return {"mode": "dialogue", "texte": str(exc), "faits": [], "proposition": None,
                             "_texte_moteur": True, "_validation_refusee": True}
                 except ErreurMonde as exc:
+                    fidelite_refusee |= isinstance(exc, ParoleNonConforme)
+                    if fidelite_refusee and essai:
+                        return {"mode": "dialogue", "texte": "Précise à qui tu t'adresses et ce que tu veux lui dire.",
+                                "faits": [], "proposition": None, "_texte_moteur": True,
+                                "_validation_refusee": True}
                     secours = parole_du_moteur(monde, intention) if essai and parole_attendue(monde, intention) else None
                     if secours and secours["mode"] == "parole_joueur" and secours["proposition"] != reponse["proposition"]:
                         # Deux propositions refusées : le moteur prononce lui-même les mots du joueur.
@@ -712,8 +735,9 @@ class MJ:
                                 "ainsi. Reformule ta réplique avec ce qu'il connaît.", "faits": [],
                                 "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
                     retour = retour_refus(reponse["proposition"], exc,
-                                          "Corrige la parole : la réplique ne nomme que ce que Corvus connaît "
-                                          "d'après les faits, le message et la conversation.")
+                                          "Corrige les destinataires, les mots et le contenu de la parole pour "
+                                          "respecter la saisie ; elle ne nomme que ce que Corvus connaît d'après "
+                                          "les faits, le message et la conversation. Rien n'est encore dit.")
                     if self.observateur:
                         self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                           "revision": revision, "tentative": 1, **retour})

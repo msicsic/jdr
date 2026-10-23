@@ -68,14 +68,15 @@ REGLES = """
 proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le moteur
 fixe les contraintes de destinataire dans parole_prevue : celui que le joueur nomme,
 la suite d'un échange, ou le groupe explicite. Sans adresse ni suite, audience_libre permet
-de choisir tous pour une parole destinée à l'assistance, ou le destinataire par défaut
-pour une parole individuelle. Le moteur vérifie ce choix et qui l'entend réellement ;
+de choisir personne pour parler à la cantonade sans destinataire particulier, tous pour
+adresser le groupe, ou le destinataire par défaut pour une parole individuelle.
+Le moteur vérifie ce choix et qui l'entend réellement ;
 chuchoter ou murmurer, un seul, au contact ; un nom détaché par une virgule, où qu'il soit
 (« …, X ? »), désigne celui à qui il parle. personnage =
 parole_prevue.personnage quand audience_libre est faux ; sinon choisis selon l'adresse de la
-saisie, à l'assistance (tous) ou individuelle (parole_prevue.personnage). Ce sont des références
-de destinataire (un identifiant, tous, ou personne quand nul en vue ne l'entend : il parle
-à la cantonade ; qui l'entend sans qu'il le sache là peut répondre à une question, le moteur le dit). Une saisie qui commence par des guillemets, par un verbe de parole (« je
+saisie : sans destinataire particulier (personne, même si des gens sont visibles), au groupe
+(tous) ou individuelle (parole_prevue.personnage). Ce sont des références de destinataire ;
+à la cantonade, qui l'entend peut répondre, le moteur le dit. Une saisie qui commence par des guillemets, par un verbe de parole (« je
 dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou par « à tous » est une
 parole, même si ses mots annoncent un geste : donner un objet se fait par l'action remettre ; ce
 qu'elle demande au personnage est son contenu. Une interpellation sans guillemets (« Aubin, … »)
@@ -844,6 +845,8 @@ def prevue(monde, intention):
     from .voix import designation
     return {"personnage": designation(monde, personnage(forme, dest)),
             "audience_libre": audience_libre(forme),
+            **({"audiences": {"individuelle": designation(monde, personnage(forme, dest)),
+                               "groupe": "tous", "cantonade": "personne"}} if audience_libre(forme) else {}),
             "destinataires": [designation(monde, x) for x in dest],
             "maniere": "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute",
             **({"mots": forme["mots"]} if forme["mots"] else {})}
@@ -1430,7 +1433,9 @@ def preparer_parole(monde, p, revision=None):
     if vers:
         # Il se tourne d'abord vers celui qu'il nomme dans son dos.
         monde = tourne(monde, vers)
-    dest = destinataires(monde, forme)
+    # Ne viser personne en particulier ne suppose pas qu'il n'y ait personne
+    # en vue : ceux qui saisissent ces mots répondent par repondants.
+    dest = [] if p["personnage"] == "personne" and audience_libre(forme) else destinataires(monde, forme)
     from .deliberation import rejoint
     from .voix import designation, identifie
     # Le MJ désigne une voix que Corvus ne sait à qui prêter comme le joueur : voix_<n>.

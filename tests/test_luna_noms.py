@@ -24,6 +24,51 @@ def action(p):
 
 
 class AdresseTests(unittest.TestCase):
+    def test_la_cantonade_repond_aussi_quand_des_personnes_sont_visibles(self):
+        for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous aider ?"):
+            with self.subTest(saisie=saisie):
+                m = scene()
+                r, sortie, appels = jouer(m, saisie, [
+                    parole("Une réécriture.", personnage="personne"),
+                    dialogue("Plusieurs voix répondent.")],
+                    [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+                self.assertIn(f"Tu dis : « {saisie} »", sortie)
+                self.assertNotIn("Tu dis à Aubin", sortie)
+                p = r.data["paroles_joueur"][-1]
+                self.assertEqual(p["auditeur"], "personne")
+                self.assertTrue({"aubin", "ilse"} <= set(p["auditeurs"]))
+                self.assertEqual(p["texte"], saisie)
+
+    def test_la_contre_revue_corrige_la_cible_avant_toute_parole(self):
+        for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous donner de quoi manger ?"):
+            with self.subTest(saisie=saisie):
+                m = scene()
+                defaut = prevue(m, saisie)["personnage"]
+                r, sortie, appels = jouer(m, saisie, [
+                    parole(saisie, personnage=defaut), parole(saisie, personnage="tous"),
+                    dialogue("Tu as posé ta question à tous.")],
+                    [rapport(ligne("mecanique", sources=["conversation_validee"]))],
+                    revues=[{"conforme": False, "motif": "La demande vise l'assistance, pas un seul destinataire."},
+                            {"conforme": True, "motif": ""}])
+                self.assertIn("Tu dis à tous", sortie)
+                self.assertNotIn("Tu dis à Aubin", sortie)
+                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "tous")
+                plans = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
+                self.assertEqual([p["adresse"] for p in plans], ["individuelle", "groupe"])
+
+    def test_une_cible_refusee_deux_fois_ne_passe_pas_par_le_secours_local(self):
+        m = scene()
+        avant = copy.deepcopy(m.data.get("sons", []))
+        saisie = "je dis : qui peut nous aider ?"
+        defaut = prevue(m, saisie)["personnage"]
+        r, sortie, _ = jouer(m, saisie, [parole("qui peut nous aider ?", personnage=defaut)] * 2, [],
+            revues=[{"conforme": False, "motif": "Audience réduite."}] * 2)
+        self.assertIn("Précise à qui tu t'adresses", sortie)
+        self.assertNotIn("Tu dis à", sortie)
+        self.assertEqual(r.data.get("paroles_joueur", []), [])
+        self.assertEqual(r.data.get("sons", []), avant)
+
     def test_repondre_apres_s_etre_ecarte_ne_depend_pas_de_rester_en_vue(self):
         from tests.test_parole_corrections import banc
         from tests.test_tensions import placer
