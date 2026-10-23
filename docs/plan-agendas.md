@@ -1,7 +1,8 @@
 # Plan : les agendas des PNJ, le mandat et les groupes
 
-Rédigé le 2026-10-23 à la suite d'une discussion de conception. Rien n'est implémenté ; les
-décisions de l'utilisateur, prises le même jour, sont à la fin (§ 10) et reportées dans le texte.
+Rédigé le 2026-10-23 à la suite d'une discussion de conception. A0 est implémenté sur
+`codex-a0-echelle`, non fusionnée (§ 6.1) ; les agendas restent à faire. Les décisions de
+l'utilisateur, prises le même jour, sont à la fin (§ 10) et reportées dans le texte.
 
 ## 1. Point de départ
 
@@ -163,14 +164,39 @@ sait reconnaître (§ 6.7).
 
 ### 6.1 Le choix, sur une échelle commune
 
-Aujourd'hui `_candidats` produit une liste ordonnée par catégories, avec des insertions placées à la
-main (l'alarme et l'eau en tête, la routine ensuite, l'argent en dernier) et l'hystérésis entre
-recours dans `choisir`. Y ajouter les agendas de la même façon rendrait l'ensemble ingérable.
+A0, implémenté sur `codex-a0-echelle` (non fusionnée) : chaque `Candidat` porte une `Urgence`
+(`palier`, `valeur`, `departage`). `_candidats` trie uniquement par
+`(palier, -valeur, departage)` ; aucune insertion en tête. `candidats` conserve ses couples
+besoin/méthode ; `choisir` lit le candidat enrichi, sans changer l'hystérésis entre recours ni `INERTIE`.
 
-Préalable (étape A0) : chaque candidat porte une **urgence** comparable (un besoin, sa valeur
-au-dessus du seuil ; une parole due, son échéance ; une alarme, son rang), et l'ordre actuel en
-découle, **sans rien changer aux nuits** (empreintes). Les agendas s'y ajoutent ensuite avec leur
-urgence : poids × proximité de l'échéance, ou poids seul s'il n'y en a pas.
+Les paliers `Palier`, dans l'ordre croissant de la clé :
+
+| Rang | Palier | Valeur et départage |
+| --- | --- | --- |
+| 0 | `PERIL_EAU` | 0 ; un seul candidat |
+| 1 | `ALARME` | 0 ; un seul candidat |
+| 2 | `RANIMER` | 0 ; rang de déclaration du protégé décroissant (ordre historique) |
+| 3 | `BESOIN_PRESSANT` | écart besoin − seuil, comme `urgents` ; ordre `BESOINS`, puis recours |
+| 4 | `PAROLE_DUE` | 0 ; ordre des engagements enregistrés |
+| 5 | `PREVENIR` | 0 ; un seul candidat |
+| 6 | `REJOINDRE` | 0 ; un seul candidat |
+| 7 | `ATTENDRE_APPELANT` | 0 ; un seul candidat |
+| 8 | `BRUIT_A_VOIR` | 0 ; un seul candidat |
+| 9 | `PULSION_ROMPUE` | 0 ; ordre des pulsions, rétablir avant enquêter |
+| 10 | `PROGRES_EN_COURS` | 0 ; ordre `PROGRES` (repos, chaleur, sécurité) |
+| 11 | `ROUTINE` | 0 ; celles des besoins pressants d'abord (écart décroissant, `BESOINS`, recours), puis ordre des pulsions |
+| 12 | `ARGENT` | 0 ; réclamer une créance avant chercher des pièces |
+
+Pour un besoin pressant, les recours gardent leur ordre déclaré : lumière éventuelle, geste
+d'apaisement, enquête éventuelle, pulsions (avec enquête de combustible après chaque feu), puis
+gardes des biens au palier routine. À écart nul, une routine issue d'un besoin pressant reste
+devant les routines des besoins non pressants. Les égalités ne dépendent donc pas de l'ordre
+d'ajout des candidats. L'urgence est transitoire, recalculée après rechargement ; aucune donnée
+de sauvegarde n'est ajoutée. Les échéances des paroles dues ne les réordonnent pas en A0.
+
+L'ordre historique est retrouvé **sans changer les nuits** (empreintes de 2 h). Les agendas
+s'y ajouteront ensuite avec leur urgence : poids × proximité de l'échéance, ou poids seul s'il
+n'y en a pas ; A0 n'ajoute ni agenda ni nouveau traitement du désespoir.
 
 Règles (décision 2) :
 - un besoin au-delà de `DESESPOIR`, une alarme et le péril de l'eau passent devant tout agenda ;
@@ -319,7 +345,9 @@ Chaque étape est une branche, mesurée au banc rapide sur les scénarios qu'ell
 réel et un autre de même nature vérifiés après rechargement.
 
 **A0. Le choix sur une échelle commune.** Urgence de chaque candidat, ordre actuel retrouvé.
-Critère : empreintes identiques à `main` sur 2 h puis 8 h, quatre scénarios × quatre graines.
+Implémenté sur `codex-a0-echelle`, non fusionnée. Critère du lot : empreintes identiques à
+42bb9c0 sur 2 h, quatre scénarios × quatre graines ; les 8 h attendent l'intégration, selon
+le brief 23 et le rythme des lots. Échelle et départages au § 6.1.
 
 **A1. Le socle des agendas.** `donjon/agendas.py`, seul accès aux agendas (comme `relations.py` en 3a) ;
 les engagements y sont portés ; données de départ lues ; sauvegarde. Aucun agenda nouveau ne s'active.

@@ -11,6 +11,8 @@ son plan, après un geste manqué, et après un événement qui change sa situat
 Tout est déterministe ; Luna n'intervient pas.
 """
 from collections import Counter
+from enum import IntEnum
+from typing import NamedTuple
 
 from .biens import a_autrui
 from .caractere import ARGENT, STATS, interdit, verifier_situation, verifier_valeurs
@@ -1310,12 +1312,47 @@ def retabli_par_son_plan(monde, id, condition):
 def candidats(monde, id):
     """Buts envisageables, du besoin le plus pressant au moins pressant ; la routine (rondes,
     surveillance) passe après ce qui presse vraiment et après une tâche acceptée. (besoin, méthode)."""
-    for besoin, methode, _, _ in _candidats(monde, id):
+    for besoin, methode, _, _, _ in _candidats(monde, id):
         yield besoin, methode
 
 
+class Palier(IntEnum):
+    """Priorités historiques, du premier but tenté au dernier."""
+    PERIL_EAU = 0
+    ALARME = 1
+    RANIMER = 2
+    BESOIN_PRESSANT = 3
+    PAROLE_DUE = 4
+    PREVENIR = 5
+    REJOINDRE = 6
+    ATTENDRE_APPELANT = 7
+    BRUIT_A_VOIR = 8
+    PULSION_ROMPUE = 9
+    PROGRES_EN_COURS = 10
+    ROUTINE = 11
+    ARGENT = 12
+
+
+class Urgence(NamedTuple):
+    palier: Palier
+    valeur: float
+    departage: tuple
+
+    def cle(self):
+        """Petit palier d'abord, grand écart au seuil ensuite, départage déclaré enfin."""
+        return self.palier, -self.valeur, self.departage
+
+
+class Candidat(NamedTuple):
+    besoin: str
+    methode: object
+    routine: bool
+    recours: bool
+    urgence: Urgence
+
+
 def _candidats(monde, id):
-    """(besoin, méthode, routine, recours) : les buts de ``candidats``, avec leur rang (la routine
+    """Candidats triés par leur urgence explicite, avec leur rang (la routine
     après le reste) et s'ils sont un recours de leur besoin (ce qui l'apaise ou le rétablit) ; une
     parole due, prévenir, attendre l'appelant, une alarme, sortir de l'eau, un bruit à voir et l'argent
     n'en sont pas : ils passent devant un recours en cours (``choisir``).
@@ -1324,69 +1361,87 @@ def _candidats(monde, id):
     motif, et un besoin apaisé ne presse de nouveau que nettement au-dessus (``urgents``)."""
     p, e = profil(monde, id), esprit(monde, id)
     buts = []
+
+    def ajouter(besoin, methode, palier, departage=(), valeur=0, routine=False, recours=False):
+        buts.append(Candidat(besoin, methode, routine, recours, Urgence(palier, valeur, departage)))
+
     # Ceux qui laissent finir le plan en cours n'y ajoutent rien, mais restent pressants : ni
     # routine ni pulsion rompue de leur fait ne passe devant ce plan.
     pressants = urgents(monde, id)
+    s = seuils(monde, id)
     for besoin in urgents(monde, id, inertie=True):
+        ecart, rang_besoin = e["besoins"][besoin] - s[besoin], BESOINS.index(besoin)
+        rang_recours = 0
+
+        def ajouter_recours(methode, routine=False):
+            nonlocal rang_recours
+            # Les routines d'un besoin pressant précèdent les autres routines, même à écart nul.
+            departage = ((0, -ecart, rang_besoin, rang_recours) if routine
+                         else (rang_besoin, rang_recours))
+            ajouter(besoin, methode, Palier.ROUTINE if routine else Palier.BESOIN_PRESSANT,
+                    departage, 0 if routine else ecart, routine, True)
+            rang_recours += 1
+
         if besoin == "faim":
-            buts.append((besoin, _plan_faim, False))
+            ajouter_recours(_plan_faim)
             # Rien de ce qu'il connaît ne le nourrit : il demande à qui pourrait en avoir.
-            buts.append((besoin, lambda m, i: _plan_enquete(m, i, "faim"), False))
+            ajouter_recours(lambda m, i: _plan_enquete(m, i, "faim"))
             continue
-        buts += [(besoin, methode, False) for methode in RECOURS.get(besoin, ())]
+        for methode in RECOURS.get(besoin, ()):
+            ajouter_recours(methode)
         if besoin in PROGRES:
             # Le geste qui apaise d'abord ; les pulsions du même besoin (les rondes) restent des recours.
-            buts.append((besoin, PROGRES[besoin][0], False))
+            ajouter_recours(PROGRES[besoin][0])
         if besoin in ENQUETES:
-            buts.append((besoin, lambda m, i, b=besoin: _plan_enquete(m, i, b), False))
+            ajouter_recours(lambda m, i, b=besoin: _plan_enquete(m, i, b))
         pulsions = [x for x in p["pulsions"] if x["besoin"] == besoin]
         for x in pulsions:
             if (not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)
                     and not retabli_par_son_plan(monde, id, x["condition"])):
                 # Une ronde peut attendre qu'il ait tenu parole ; un feu à voir ou à recharger, non.
-                buts.append((besoin, lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c),
-                             periodique(x["condition"])))
+                ajouter_recours(lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c),
+                                periodique(x["condition"]))
                 if "allume" in x["condition"]:
                     # Un feu sans bois qu'il connaisse : il demande à qui pourrait en avoir.
-                    buts.append((besoin, lambda m, i: _plan_enquete(m, i, "chaleur"), False))
+                    ajouter_recours(lambda m, i: _plan_enquete(m, i, "chaleur"))
         if besoin == "biens":
             for x in pulsions:
                 if periodique(x["condition"]):
                     continue
-                buts.append((besoin, lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True))
+                ajouter_recours(lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True)
     # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
     from .planification import planifier_engagement
-    buts += [("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), False, False)
-             for x in e["engagements"]]
+    for rang, x in enumerate(e["engagements"]):
+        ajouter("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), Palier.PAROLE_DUE, (rang,))
     # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
-    for protege in p.get("protege", ()):
+    for rang, protege in enumerate(p.get("protege", ())):
         c = e["croyances"].get(protege, {}).get("etat", {})
         if c.get("valeur", {}).get("conscient") is False and not c["valeur"].get("mort"):
             from .planification import ranimer
-            buts.insert(0, ("devoir", lambda m, i, x=protege: ranimer(m, i, x), False, False))
+            ajouter("devoir", lambda m, i, x=protege: ranimer(m, i, x), Palier.RANIMER, (-rang,))
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
-        buts.append(("devoir", _plan_prevenir, False, False))
+        ajouter("devoir", _plan_prevenir, Palier.PREVENIR)
     # « J'arrive ! » à un appel : une parole due, comme une autre (``appel.plan_venir``).
     if e["rejoindre"]:
         from .appel import plan_venir
-        buts.append(("engagement", plan_venir, False, False))
+        ajouter("engagement", plan_venir, Palier.REJOINDRE)
     # Il a convenu d'attendre qui l'a hélé ou qu'il a hélé (``appel``), après ce qui presse et la
     # parole due ; un bruit, ce qui ne presse pas et la routine attendent.
     if e["rejoint"]:
-        buts.append(("rejoint", _plan_attendre, False, False))
+        ajouter("rejoint", _plan_attendre, Palier.ATTENDRE_APPELANT)
     # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine ; une
     # alarme (l'appel d'un protégé, un bruit à son seuil d'alerte), avant tout le reste.
     from .planification import voir
     a_voir, alarme_ = bruit_a_voir(monde, id), alarme(monde, id)
     if alarme_:
-        buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False, False))
+        ajouter(alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), Palier.ALARME)
     # Là où il se tient, il attend l'eau trop haute pour s'y mouvoir : en sortir passe avant tout.
     from .eau import en_peril
     if "securite" in p["besoins"] and en_peril(monde, id):
-        buts.insert(0, ("securite", _plan_abri, False, False))
+        ajouter("securite", _plan_abri, Palier.PERIL_EAU)
     if a_voir and a_voir != alarme_:
-        buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False, False))
+        ajouter(a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), Palier.BRUIT_A_VOIR)
     # Ce dont il a la charge et qu'il voit rompu, il le rétablit sans attendre que son besoin
     # presse : un feu qui baisse, un protégé qui a faim, ce qu'il garde sous clé et a lui-même
     # ouvert. Les rondes ont leur routine ; un désir jamais satisfait attend son besoin.
@@ -1395,27 +1450,28 @@ def _candidats(monde, id):
         if (e["pulsions"][i] is False and x["besoin"] not in pressants and not periodique(c)
                 and not _delegue(monde, id, x) and not satisfaite(monde, id, c)
                 and not retabli_par_son_plan(monde, id, c)):
-            buts.append((x["besoin"], lambda m, i, c=c: _pulsion_a_soi(m, i, c), False))
+            ajouter(x["besoin"], lambda m, i, c=c: _pulsion_a_soi(m, i, c),
+                    Palier.PULSION_ROMPUE, (i, 0), recours=True)
             if "allume" in c:
-                buts.append((x["besoin"], lambda m, i: _plan_enquete(m, i, "chaleur"), False))
+                ajouter(x["besoin"], lambda m, i: _plan_enquete(m, i, "chaleur"),
+                        Palier.PULSION_ROMPUE, (i, 1), recours=True)
     # Assis pour se reposer, ou près du feu, il ne s'en va qu'une fois remis, ou pour plus pressant.
     # Seulement si son plan comporte bien ce geste : une ronde a le même motif que l'abri.
-    for besoin, (methode, fin) in PROGRES.items():
+    for rang, (besoin, (methode, fin)) in enumerate(PROGRES.items()):
         if (e["intention"] and e["intention"]["motif"] == besoin and e["besoins"].get(besoin, 0) > fin
                 and any(x["operation"] == GESTE_PROGRES[besoin] for x in e["intention"]["plan"])):
-            buts.append((besoin, methode, False))
+            ajouter(besoin, methode, Palier.PROGRES_EN_COURS, (rang,), recours=True)
     # La routine : ses rondes, même quand le besoin qu'elles servent ne presse pas.
-    for x in p["pulsions"]:
+    for rang, x in enumerate(p["pulsions"]):
         if (periodique(x["condition"]) and x["besoin"] not in pressants
                 and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
-            buts.append((x["besoin"], lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c), True))
+            ajouter(x["besoin"], lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c),
+                    Palier.ROUTINE, (1, rang), routine=True, recours=True)
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
-    buts.append((ARGENT, _plan_creance, True, False))
-    buts.append((ARGENT, _plan_argent, True, False))
-    # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.
-    for besoin, methode, routine, *recours in sorted(buts, key=lambda x: x[2]):
-        yield besoin, methode, routine, recours[0] if recours else True
+    ajouter(ARGENT, _plan_creance, Palier.ARGENT, (0,), routine=True)
+    ajouter(ARGENT, _plan_argent, Palier.ARGENT, (1,), routine=True)
+    yield from sorted(buts, key=lambda c: c.urgence.cle())
 
 
 def constater_pulsions(monde, id):
@@ -1506,7 +1562,7 @@ def choisir(monde, id, minute):
         return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
     pressants = urgents(monde, id, inertie=True)
     tous = list(_candidats(monde, id))
-    liste = [(besoin, methode) for besoin, methode, _, _ in tous]
+    liste = [(besoin, methode) for besoin, methode, _, _, _ in tous]
     essais = {}
     # Hystérésis entre recours, comme entre besoins (``INERTIE``) : le recours en cours d'un besoin
     # garde la main sur les autres recours du même besoin et du même rang tant que son plan n'est pas
@@ -1519,7 +1575,7 @@ def choisir(monde, id, minute):
     courant = intention if intention and intention["plan"] else None
     retenu = None    # (besoin, rang, résultat) : un autre recours de ce besoin, s'il faut y revenir
     resultat = None
-    for n, (besoin, methode, routine, recours) in enumerate(tous):
+    for n, (besoin, methode, routine, recours, _) in enumerate(tous):
         if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
             continue
         if besoin in e["renoncements"] and e["renoncements"][besoin] + REPIT * MINUTE > maintenant:

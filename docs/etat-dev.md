@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-a0-echelle`, non fusionnée, base `main` **42bb9c0**, brief **6772f31** :
+  chaque candidat de `deliberation._candidats` porte une urgence explicite (palier, valeur,
+  départage), seul critère du tri. Treize paliers historiques ; valeur des besoins pressants =
+  écart au seuil, égalités et routines préservées. `choisir` ne change que le déballage du candidat ;
+  hystérésis et sauvegardes inchangées. Quatre nouveaux tests : ancienne fonction copiée comme
+  oracle à chaque choix de dix nuits de 2 h (quatre scénarios et `rixe`, deux graines), tous les
+  paliers et égalités en scène, même ordre après rechargement, mêmes états et textes après les
+  actions dans deux parcours Relais/auberge. Ciblés verts, 64,4 s. Suite complète une fois,
+  `tools/tests.py --processus 3` : **1 595 tests, 15 ignorés, verte (864,7 s)**. Empreintes de 2 h contre 42bb9c0 : chronique,
+  mesures et état final complet identiques, quatre scénarios × quatre graines. Référence conservée
+  dans `artifacts/references/42bb9c0344f1c943f5b1d9ea40c012810380ee9a/` du dépôt principal.
+  Aucun appel Luna ni banc de 8 h. Surcoût CPU observé, non attribué dans ce lot ; aucune garantie
+  de stabilité du coût. [Échelle, mesures et limites](taches/rapport-codex-23-a0-echelle.md).
+
 - Branche `codex-luna-restes`, fusionnée, issue de `main` **8855312** : validation physique
   déterministe avant revue de plausibilité ; propriétés connues et champs inconnus distingués ;
   fidélité de parole séparée en audiences admissibles et contenu, comparée par le moteur, avec
