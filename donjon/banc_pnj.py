@@ -139,15 +139,24 @@ def executer(monde, minutes, recit=None, empreintes=None):
         return _executer(monde, minutes, recit, empreintes)
     from unittest.mock import patch
     from . import pnj
-    tentatives = set()
-    commencer = pnj.commencer_geste
+    tentatives, vus = set(), set()
+    commencer, temoins = pnj.commencer_geste, pnj._temoins
     def compter(m, auteur, operation, objet, *a, **k):
         if operation not in CONTRAINTES:
             tentatives.add((auteur, objet))
         return commencer(m, auteur, operation, objet, *a, **k)
-    with patch.object(pnj, "commencer_geste", compter):
+    def voir(m, geste, *a, **k):
+        resultat = temoins(m, geste, *a, **k)
+        if geste["operation"] not in CONTRAINTES:
+            vus.update((geste["auteur"], geste["objet"], id) for id in geste["temoins"])
+        return resultat
+    with patch.object(pnj, "commencer_geste", compter), patch.object(pnj, "_temoins", voir):
         chronique, mesures = _executer(monde, minutes, empreintes=empreintes)
     mesures["vols_tentes"] = len(tentatives)
+    # Mesures sur toute la durée observée, indépendantes de la mémoire bornée du monde.
+    # Les anciennes mesures restent disponibles : elles décrivent les souvenirs finaux.
+    mesures["vols_vus_nuit"] = len({(a, o) for a, o, _ in vus})
+    mesures["temoins_vols_nuit"] = len(vus)
     return chronique, mesures
 
 

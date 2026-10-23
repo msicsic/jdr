@@ -6,6 +6,34 @@ from donjon.geometrie import position_entree
 
 
 class ChroniqueDuBancTests(unittest.TestCase):
+    def test_un_vol_vu_reste_compte_apres_eviction_des_souvenirs(self):
+        from unittest.mock import patch
+        from donjon import banc_pnj, pnj
+        from donjon.esprits import lire, memoriser, pnjs, MEMOIRE_MAX
+        from tests.test_signes import scene
+        from tests.test_social import recharger
+        for auteur in ("brune", "ilse"):
+            with self.subTest(auteur=auteur):
+                m = scene()
+                def derouler(monde, minutes, **kwargs):
+                    for _ in range(2):
+                        geste = pnj.commencer_geste(monde, auteur, "crocheter", "reserve", 20)
+                        self.assertTrue(geste["temoins"])
+                    # De nouveaux souvenirs, par le contrat commun, font tomber la preuve
+                    # de la mémoire bornée ; le registre du banc a vu les deux gestes.
+                    for id in pnjs(monde):
+                        for _ in range(MEMOIRE_MAX):
+                            memoriser(monde, id, {"type": "bruit", "salle": "antichambre", "nature": "pas", "niveau": 1})
+                    monde.data = recharger(monde).data
+                    self.assertFalse(any(s["type"] == "vu_agir" for id in pnjs(monde) for s in lire(monde, id)["memoire"]))
+                    return [], {"vols_vus": 0, "temoins_vols": 0}
+                with patch.object(banc_pnj, "_executer", derouler):
+                    _, mesures = executer(m, 5)
+                self.assertEqual(mesures["vols_vus"], 0)
+                self.assertEqual(mesures["vols_vus_nuit"], 1)
+                self.assertEqual(mesures["vols_tentes"], 1)
+                self.assertGreater(mesures["temoins_vols_nuit"], 0)
+
     def test_tout_ce_qui_s_ajoute_est_recueilli(self):
         m = creer("relais", 7)
         m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
