@@ -125,6 +125,9 @@ class RelecturesTests(unittest.TestCase):
                 signes.lire(m, lecteur, [s], complet=True)
                 signes.lire(m, lecteur, [], complet=True)
                 m = recharger(m)
+                with patch("donjon.signes._jet", side_effect=AssertionError("relance avant dix minutes")):
+                    signes.lire(m, lecteur, [s], complet=True)
+                m.data["minutes"] += 10
                 signes.lire(m, lecteur, [s], complet=True)
                 m = recharger(m)
                 m.data["minutes"] += 31

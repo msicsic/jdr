@@ -8,6 +8,7 @@ import argparse
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
 import itertools
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -54,6 +55,7 @@ def nuit(tache):
     finally:
         signes.interpreter, signes._jet = calcul, jet
     return {"scenario": scenario, "graine": graine, "lecteur": lecteur, "psy": psy,
+            "code_signes": hashlib.sha256(Path(signes.__file__).read_bytes()).hexdigest(),
             "parametres": parametres, "mesures": mesures, "preuves": preuves,
             "chronique": donnees["chronique"]}
 

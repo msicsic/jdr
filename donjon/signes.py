@@ -341,7 +341,7 @@ def _presence(m, observateur, signes, complet):
     disparaître les autres signes. Les projections pures ne passent pas ici.
     """
     suivi = m.data.setdefault("suivi_signes", {}).setdefault(
-        observateur, {"presents": [], "episodes": {}, "retenus": {}, "conclusions": {}, "essais": {}})
+        observateur, {"presents": [], "episodes": {}, "retenus": {}, "conclusions": {}})
     ids = {s["id"] for s in signes}
     for cle in ids - set(suivi["presents"]):
         suivi["episodes"][cle] = suivi["episodes"].get(cle, 0) + 1
@@ -377,11 +377,9 @@ def lire(m, observateur, signes=None, expres=False, complet=False):
         cle = s["id"]
         dernier = essais.get(cle)
         episode = suivi["episodes"][cle]
-        if (dernier is not None and m.data["minutes"] - dernier < RELECTURE
-                and suivi["essais"].get(cle, episode) == episode):
+        if dernier is not None and m.data["minutes"] - dernier < RELECTURE:
             continue
         essais[cle] = m.data["minutes"]
-        suivi["essais"][cle] = episode
         regle = SIGNES[s["signe"]]
         bonus = modificateur(m, observateur, "PSY") + (2 if expres else 0)
         if not joueur and (relations.familier(relations.axes(m, observateur, s["personnage"]))

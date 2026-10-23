@@ -44,6 +44,8 @@ La carte et le contexte conservent l'impression actuelle avec son incertitude.
 Tests ciblés : 28 tests des signes et de calibration, dont les guets du Relais et
 de l'auberge, retour immédiat d'un signe, péremption, échec préservant la lecture,
 deux observations du joueur et 20 minutes d'un bloc ou découpées avec reprise.
+Le délai de dix minutes entre essais est conservé, même si le signe disparaît
+puis revient ; son retour compte comme nouveau au prochain essai autorisé.
 Les mesures de nuits avant/après restent à consigner.
 
 ## 3. Calibration
