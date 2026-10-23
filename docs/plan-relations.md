@@ -669,7 +669,7 @@ Les signes et le retrait de l'humeur restent en 3c ; les propositions de répara
 
 ### 3c. Les signes et leur lecture
 
-**Fait sur `codex-relations-3c`, non fusionnée (2026-10-23).**
+**Fait sur `codex-relations-3c`, fusionnée (2026-10-23 ; accords de fusion dans `docs/etat-dev.md`).**
 [Rapport, mesures et vérification Luna à faire](taches/rapport-codex-11-relations-3c.md).
 Les signes sont des observations ; les impressions restent faillibles, y compris une
 impression nette. Colère, décisions de place/regard avec coût réel, source `devine`,
@@ -687,6 +687,10 @@ l’auberge. Le dé naturel de cette capture peut réussir aux deux PSY : aucune
 de séparation de chaque nuit. La qualification quantitative et ses dénominateurs
 sont dans le rapport ; ne pas déduire du mot « Fait » que tous les seuils ci-dessous
 sont atteints : **critère global non atteint**, justesse haute et méprises à calibrer. Luna est reportée à l’autre poste à la demande de l’utilisateur.
+À la fusion : l'humeur de 4b est devenue un signe (l'inconscient n'en montre ni n'en lit, la victime
+frappée tremble), les seuils des signes passent par les bandes (`relations.vive`, `familier`), un lieu de
+devoir menacé par un guet lu coûte la loyauté du gardien (`prix_gardes`) ; Luna toujours non vérifiée (service
+indisponible le jour de la fusion).
 Les voix non identifiées ne portent pas encore de lecture de mensonge ; les comportements
 du joueur se limitent à son observation explicite, sans état affectif inventé.
 

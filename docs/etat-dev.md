@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-relations-3c`, **non fusionnée** : signes physiques et impressions
+- Branche `codex-relations-3c`, fusionnée : signes physiques et impressions
   faillibles, colère, décisions de place/regard, lectures `devine`, flux de dés séparés
   par observateur, garde et doute d’un mensonge. `observer <personnage>` est local,
   consomme trois secondes ; rendu, carte et rejeu montrent leurs projections respectives.
@@ -22,6 +22,52 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Luna **non vérifiée sur instruction de l’utilisateur** ; scènes versionnées et saisies,
   formes typées, appels nominaux et affichages attendus dans le
   [rapport de la tâche 11](taches/rapport-codex-11-relations-3c.md).
+  Fusionné après `codex-luna-noms`, `codex-restes-fusions` et `codex-signalements` (`main` 276524c ; base de la
+  branche a7ecb50, d'où lampes-suite, cout-suite, garde-pret et force 4b aussi absents de sa base) :
+  conflits `moteur` (le bilan d'humeur de 4b retiré : seuls les signes disent ce que montre un personnage),
+  `rendu.decrire` (sans humeur ; la blessure de la dépouille de L gardée), `vol` (plus d'humeur),
+  `pnj.NATURES` (`lecture` et `violence`), `relations` (`chance_demande` et `signature`),
+  `deliberation.menaces` (bandes de rancune et de peur de garde-pret, plus les guets lus), `banc_pnj`
+  (`rixe` et `--regler`), tests MiMo (version de K), docs. **L'humeur de 4b sous forme de signes** : un
+  inconscient n'émet ni ne lit aucun signe (`signes._de`, `_percus`), comme une dépouille, au joueur comme
+  au MJ ; la victime frappée par surprise « tremble et se recroqueville » (sa sécurité presse) et Corvus
+  peut lire « semble avoir peur » ; au réveil, le signe revient si sa cause demeure ; la fiche du coup est
+  inchangée. `test_combat` adapté sans affaiblir ce qu'il vérifie (inconscient : aucun signe ni impression,
+  ni au MJ, ni lu par lui ; frappé : un signe de peur dans le texte et après rechargement ; réveil : retour).
+  Humeurs retirées du scénario `rixe` (`humeur` n'existe plus nulle part). Accords de fusion : les seuils des
+  signes passent par les bandes et des lectures nommées de `relations` (`vive` à 60, `familier` à 40 ; le
+  contrôle AST de L l'exigeait : « sec », dissimulation et place suivent l'hystérésis des bandes) ; un lieu de
+  devoir ou de protégé que rend menacé un guet lu coûtait 0 avec `prix_gardes` (garde-pret ne pesait que les
+  biens) : il coûte désormais sa loyauté, 2 à valeurs neutres, comme une charge (cas réel Gorm à la crypte,
+  2,7 ; Odile à l'étable, 2) ; la conscience entre dans la clé sociale des signes (`spatial.etat_signes`,
+  défensif : aucun écart observé sans elle) ; `vols_tentes`/`vols_vus_nuit` comptent par
+  `pnj.est_contrainte` (4b) ; une impression ne se répète pas dans `regarder` ; `banc_parties` joue une
+  scène enregistrée, avec noms connus déclarés (bancs `signes-ecart`, `signes-noir`, `signes-guet`). Trois
+  tests de fusion (`test_signes.FusionTests`) : guet sur lieu de devoir (relais et auberge, échoue sans
+  l'accord), signes et impressions d'inconnus par leur désignation et `personne_<n>` pour le MJ, cible
+  comprise, inconscient sous `VERIFICATION` 1. Lectures du planificateur : `actives` (valeur et cible) entre
+  dans `_entrees`, donc dans la clé de la mémoire, des deux graphes repris et la base du certificat ; les
+  signes ne lisent pas la lumière dans la recherche (`menaces` lit les lectures retenues, pas les signes).
+  Suite (`tools/tests.py --processus 4`) **1530 tests, 15 sautés**. `VERIFIER` + `VERIFICATION` 1 sur 2 h,
+  puis 0,2 sur 8 h, graine 42, Relais, mine, auberge, crue et `rixe` : sans écart, usurpation ni borne notée.
+  Banc rapide (`comparer_bancs`, 4 h, 4 graines, contre 276524c) : aucun plantage, usurpation ni violation ;
+  auberge identique hors des mesures de signes (9,25 lectures par nuit) ; Relais lectures 44,5, méprises
+  17,2, vols vus 1,25 → 1,5, retournements 99 → 112, noir 5 → 37,5 (Brune 95 min dans l'échoppe, graine
+  2024) ; mine lectures 162, guets repérés 7,25, attentes sous regard 102 min, confidences 0,75 → 9,25 (les
+  guets lus se répètent en nouvelles `intention_lue`), échanges 13 → 22,5, jets 5,75 → 19,8 ; crue lectures
+  49, méprises 20, noir 42,5 → 20, crochetages 7,5 → 9,5 ; les alertes `repetition` de l'audit (mine 26,
+  Relais 1) sont les lignes « Lecture de … » relues toutes les dix minutes. Temps au processeur, `main` et
+  fusion lancés ensemble (`tools/empreintes_nuits.py`, 4 h, 4 graines, 2 processus chacun) : Relais 7,2 →
+  8,1 s (+13 %), mine 12,7 → 17,1 s (+35 %), auberge 12,8 → 14,7 s (+15 %), crue 8,9 → 9,8 s (+10 %) ; à la
+  mine (profil, graine 1985), `signes.percevoir_tous` (émissions de tous puis lecture par chaque PNJ, aux
+  minutes et aux événements) et les lectures d'axes (`relations._lecture`) font l'essentiel du surcoût.
+  Luna **non vérifiée** : le service a répondu en 88 s à un appel trivial et a laissé passer le délai de 45 s
+  (une reprise comprise, 90 s) à chacun des appels du jeu, sur deux passes des bancs `signes-*`, des scènes
+  de force et de `depouille` (16 h 02 à 16 h 10) ; `banc_multi` arrêté pour la même cause. Sans appel : sur
+  copie de `signes_ecart_relais`, « observer Brune » et « observer Ilse » donnent 0 appel, les signes d'Ilse
+  (« se tient à l'écart de Brune », « baisse les yeux », « tremble ») et « semble craindre Brune » / « semble
+  avoir peur », rien pour Brune ; observer de nouveau après rechargement ne relance aucun dé (tirages 3 → 3) ;
+  dans le noir, « observer Ilse » est refusé localement (« Tu ne vois pas cet objet ici »).
 
 - Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
   quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
@@ -1762,10 +1808,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1508 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1530 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## À revoir
 
+- Relations 3c : calibration des lectures (41,3 % de méprises dans le banc de la branche, contre une borne de
+  20 % ; justesse haute ≥ 0,8 atteinte seulement par Gorm à PSY 16) ; coût des signes (mine +35 % au
+  processeur après fusion ; une invalidation sociale incrémentale au lieu de tout recalculer à chaque
+  minute et événement) ; vols vus en baisse à la mine, l'auberge et la crue dans le banc de la branche, sans
+  preuve que ce soit la dissuasion par les guets lus ; « Lecture de … » relue toutes les dix minutes
+  (alertes `repetition` de l'audit) ; Luna à vérifier sur les bancs `signes-*` (protocole du rapport) et
+  les scènes de force quand le service répondra ; dans le noir, `observer` une personne connue est refusé
+  par l'analyse locale avec « cet objet » au lieu du refus du moteur (« cette personne »).
 - `combat.prix_violence` n'est employé que par les tests (`test_combat`) ; le planificateur réécrit la
   même règle (`2 * v.degat <= ENJEU`, le double du prix de douceur sous le plafond d'enjeu) au lieu de
   l'appeler (relevé à la fusion de 4b) : une seule règle à garder.
