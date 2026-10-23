@@ -1,7 +1,9 @@
 """Contrats des signes, du monde enregistré jusqu'à la vue après reprise."""
 import copy
+from pathlib import Path
+import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from donjon import relations, signes, spatial
 from donjon.esprits import lire
@@ -48,6 +50,29 @@ class CachesTests(unittest.TestCase):
 
 
 class RelecturesTests(unittest.TestCase):
+    def test_relecture_du_guet_reel_relais7_a_441_minutes(self):
+        import gzip
+        import json
+        from donjon.monde import Monde
+        from donjon.rendu import regarder
+        source = Path(__file__).parent / "data/scenes/guet_relais7.json.gz"
+        m = Monde(json.loads(gzip.decompress(source.read_bytes())))
+        s = next(s for s in signes.percus(m, "marchand") if s["personnage"] == "brune" and s["signe"] == "attend")
+        with patch("donjon.signes._jet", return_value=20):
+            signes.lire(m, "marchand", [s])
+        m = recharger(m)
+        avant = copy.deepcopy(lire(m, "marchand")["memoire"])
+        lignes = copy.deepcopy(m.data["chronique"])
+        m.data["minutes"] += 10
+        with patch("donjon.signes._jet", return_value=20):
+            signes.lire(m, "marchand", [s])
+        m = recharger(m)
+        self.assertEqual(lire(m, "marchand")["memoire"], avant)
+        self.assertEqual(m.data["chronique"], lignes)
+        self.assertTrue(signes.intentions_lues(m, "marchand"))
+        self.assertFalse(any(s["personnage"] == "brune" for s in m.contexte()["signes_percus"]))
+        self.assertNotIn("Brune guette", regarder(m))
+
     def _guet(self, scenario):
         from donjon.banc_pnj import creer
         from tests.test_signes import intention
@@ -140,6 +165,53 @@ class RelecturesTests(unittest.TestCase):
             a, b = recharger(a), recharger(b)
             self.assertEqual(a.data, b.data)
             self.assertEqual(regarder(a), regarder(b))
+
+
+class ObserverSansVoirTests(unittest.TestCase):
+    def test_refus_moteur_local_en_ligne_et_hors_ligne_apres_reprise(self):
+        import jeu
+        from donjon.commandes import analyser
+        from donjon.monde import ErreurMonde, Monde
+        from donjon.moteur import Moteur
+        from tools.verifier_websocket_jeu import Interface
+        from tests.test_social import placer
+        for cause, mot in (("lumiere", "lumière"), ("presence", "présente"), ("vue", "vue")):
+            for offline in (False, True):
+                with self.subTest(cause=cause, offline=offline), tempfile.TemporaryDirectory() as dossier:
+                    if cause == "lumiere":
+                        m = Monde.charger(Path(__file__).parent / "data/scenes/signes_ecart_relais_noir.json")
+                    else:
+                        m = scene()
+                        if cause == "presence":
+                            placer(m, "ilse", "crypte", [5, 3])
+                        else:
+                            m.joueur.update(position=[2, 3], orientation="est")
+                            placer(m, "ilse", "antichambre", [5, 3])
+                            m.data["salles"]["antichambre"]["lumiere_naturelle"] = 2
+                    m = recharger(m)
+                    spatial.installer(m)  # même connaissance visuelle initiale que l'ouverture du jeu
+                    p = analyser(m, "observer Ilse")
+                    self.assertEqual(p["cible"], "ilse")
+                    with self.assertRaises(ErreurMonde) as refus:
+                        Moteur(m).preparer(p)
+                    self.assertIn("cette personne", str(refus.exception).lower())
+                    self.assertIn(mot, str(refus.exception))
+                    self.assertIn("ilse", refus.exception.attendu)
+                    chemin = Path(dossier) / "partie.json"
+                    m.sauver(chemin)
+                    avant = copy.deepcopy(m.data)
+                    interface = Interface(["observer Ilse", "quitter"], chemin)
+                    mj = MagicMock()
+                    mj.modele, mj.effort = "gpt-6-luna", "medium"
+                    with patch("jeu.MJ", return_value=mj):
+                        args = ["--save", str(chemin), "--console", "--connexion", "chatgpt"]
+                        self.assertEqual(jeu.main(args + (["--offline"] if offline else []), interface=interface), 0)
+                    mj.repondre.assert_not_called()
+                    mj._appeler_brut.assert_not_called()
+                    self.assertTrue(any("cette personne" in x.lower() and mot in x for x in interface.sorties))
+                    apres = Monde.charger(chemin)
+                    self.assertEqual(apres.data, avant)
+                    self.assertFalse(signes.impressions(apres))
 
 
 if __name__ == "__main__":

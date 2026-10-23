@@ -72,7 +72,20 @@ n'est donc pas déclaré atteint. Le jet contrôlé de la capture réelle passe 
 
 ## 4. Observer sans voir
 
-En cours de validation. Deux passes Luna de référence terminées sur copies :
+La résolution locale des actions de `commandes.PERCEPTIONS` nomme aussi une
+personne connue hors de vue, par le résolveur commun `_nomme`. Elle ne juge
+plus sa visibilité avant le moteur. `Moteur._preparer` appelle `refus.perception` :
+une seule cause (présence, lumière ou vue), « cette personne », et un `attendu`
+contenant l'identifiant reçu et les valeurs acceptables. Le circuit en ligne
+existant valide une proposition locale avant tout appel au MJ ; aucun nouveau
+mot-clé, mode ni exception dans `jeu.py` n'a été nécessaire.
+
+Six parcours console passent (trois causes × en ligne/hors ligne), sur le monde
+réel `signes-noir` et une personne dans une autre salle, plus une occultation par
+la géométrie. Une simple orientation de dos peut se corriger par la rotation
+normale du moteur et n'est pas assimilée à une ligne de vue coupée. Le test
+contrôle le refus, l'absence d'appel, le monde entier après rechargement et la
+projection du joueur. Deux passes Luna de référence terminées sur copies :
 `signes-ecart`, `signes-noir`, `signes-guet`. Les refus locaux de `signes-noir`
 partent au MJ sur la référence.
 

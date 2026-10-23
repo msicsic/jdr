@@ -69,6 +69,25 @@ def inaccessible(m, id, champ="cible", filtre=None):
                        f"vise ce qui est perçu : {candidats}.")
 
 
+def perception(m, id, champ="cible"):
+    """Une seule cause sensorielle, déterminée par le monde avant tout récit."""
+    o = m.objets[id]
+    designation = "cette personne" if o["type"] == "personnage" else "cet objet"
+    valables = f"{champ} : reçu {id!r} hors de vue ; acceptés : {liste(a_portee(m, lambda x: m.visible(x['id'])))}."
+    if not m.present_physique(id):
+        accord = "présente" if o["type"] == "personnage" else "présent"
+        return ErreurMonde(designation.capitalize() + " n'est pas " + accord + " ici.",
+                           f"{champ}={id!r} : présence requise ; {valables}")
+    from .perception import eclairage
+    from .spatial import _salle_position
+    salle, position = _salle_position(m, id) or (m.joueur["salle"], None)
+    if eclairage(m, salle, position)["niveau"] == 0:
+        return ErreurMonde("Il manque de la lumière pour observer " + designation + ".",
+                           f"{champ}={id!r} : niveau de lumière 0 ; requis : au moins 1 ; {valables}")
+    return ErreurMonde("Tu n'as pas " + designation + " en vue d'ici.",
+                       f"{champ}={id!r} : vue requise (champ et ligne de vue) ; {valables}")
+
+
 # Les refus d'audit : contrôle narratif (contrôles déterministes et verdicts de l'auditeur),
 # contre-revue des ajouts et des capacités. Même contrat qu'un refus du moteur : ``motif`` est la
 # règle en mots de la fiction ; ``attendu`` dit au MJ où (partie, segment), ce qui a été reçu (la
