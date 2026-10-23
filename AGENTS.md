@@ -30,9 +30,10 @@ Le point de reprise est `docs/etat-dev.md` : à lire avant tout chantier, et à 
   `--processus N`, fichiers en arguments ou `--motif "test_*.py"` ; durées dans
   `artifacts/durees_tests.json`, non versionné).
 - Luna passe par le forfait ChatGPT. Le coffre (`donjon/connexion.py`) sérialise le renouvellement
-  du jeton ; plusieurs exécutions peuvent tourner en même temps (4 vérifiées). Rester à quelques
-  exécutions simultanées pour ne pas atteindre les plafonds du forfait ; mesurer les temps de
-  réponse au calme. Depuis un worktree, `SEUIL_AUTH` désigne le coffre du dépôt principal.
+  du jeton ; plusieurs exécutions peuvent tourner en même temps. Luna pèse peu sur le quota du
+  forfait : plusieurs bancs Luna en parallèle sont permis (4 à 8 exécutions) ; comparer les temps
+  de réponse dans les mêmes conditions de charge. Toujours sur des copies, jamais sur
+  `sauvegardes/`. Depuis un worktree, `SEUIL_AUTH` désigne le coffre du dépôt principal.
 - Tout refus `ErreurMonde` qu'une proposition du MJ peut déclencher porte un `attendu`
   (`donjon/refus.py`) : le champ fautif, la valeur reçue et ce qui serait accepté, en
   identifiants. Le message reste pour le joueur ; `attendu` ne va qu'au MJ. Une cause par
