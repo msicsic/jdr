@@ -307,6 +307,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
                        au_sec_fin=sum(1 for id in vivants if not profondeur(monde, lieu(monde, id))))
     if empreintes is not None:
         empreintes.update({str(k): v for k, v in sorted(releves.items())}, issue=issue(monde, chronique))
+    if monde.data.get("historique_corps"):
+        from .corps import mesures as mesures_corps
+        mesures.update(mesures_corps(monde))
     return chronique, mesures
 
 
@@ -415,7 +418,7 @@ def ecrire_rejeu(chemin, enregistreur, monde, chronique, titre):
         f.write(page(enregistreur.donnees(monde, chronique, titre)))
 
 
-def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire"):
+def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire", etats=()):
     """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie). Avec ``rejeu``
     (un chemin), la page de rejeu y est écrite. Les données portent les empreintes de la nuit
     (``executer``) et sa durée de calcul."""
@@ -430,6 +433,7 @@ def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, re
     if joueur:
         from .geometrie import position_entree
         monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
+    appliquer_etats(monde, etats)
     from .recit_pnj import Recit
     recit = Recit(monde)
     if rejeu:
@@ -490,13 +494,34 @@ def ceder():
 
 
 def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire",
-          processus=None):
+          processus=None, etats=()):
     """Plusieurs nuits en parallèle, au plus ``processus`` à la fois (``PROCESSUS`` par défaut) ; les
     résultats dans l'ordre des graines. Avec ``rejeu``, une page par graine (``page_rejeu``)."""
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(max_workers=max(1, min(len(graines), processus or PROCESSUS))) as pool:
         return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic,
-                                      page_rejeu(rejeu, g, True) if rejeu else None, depart) for g in graines]))
+                                      page_rejeu(rejeu, g, True) if rejeu else None, depart, etats) for g in graines]))
+
+
+def appliquer_etats(monde, etats):
+    """États d'épreuve appliqués par les transitions communes, avant toute perception."""
+    from .corps import endormir, mourir, perdre
+    for texte in etats:
+        morceaux = texte.split(":")
+        if len(morceaux) < 2:
+            raise ValueError("État attendu : personnage:inconscient, personnage:mort ou personnage:blesse:pv")
+        id, etat, *valeur = morceaux
+        if id not in pnjs(monde):
+            raise ValueError("Personnage inconnu : " + id)
+        if etat == "inconscient" and not valeur:
+            endormir(monde, id)
+        elif etat == "mort" and not valeur:
+            mourir(monde, id, cause="état d'épreuve")
+        elif etat == "blesse" and len(valeur) == 1 and valeur[0].isdigit() and 0 <= int(valeur[0]) <= monde.objets[id]["pv"]:
+            perdre(monde, id, monde.objets[id]["pv"] - int(valeur[0]))
+        else:
+            raise ValueError("État d'épreuve invalide : " + texte)
+    monde.verifier()
 
 
 def divergence(donnees):
@@ -523,6 +548,7 @@ def tableau(graines, mesures):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge"), default="relais")
+    parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :mort ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)
@@ -545,7 +571,7 @@ def main(argv=None):
         if args.stratege:
             parser.error("le stratège suit une nuit à la fois : --graine, pas --graines")
         resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic,
-                          args.rejeu, args.depart, args.processus)
+                          args.rejeu, args.depart, args.processus, args.etat)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
             if args.rejeu:
@@ -564,6 +590,7 @@ def main(argv=None):
         if args.joueur:
             from .geometrie import position_entree
             monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
+        appliquer_etats(monde, args.etat)
         from .recit_pnj import Recit
         recit = Recit(monde)
         from contextlib import nullcontext

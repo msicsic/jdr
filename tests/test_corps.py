@@ -113,8 +113,10 @@ class JoueurTests(unittest.TestCase):
         m = relais()
         corps.valeurs(m, "joueur")["faim"] = 99.0
         m.joueur["pv"] = 3
-        for _ in range(12 * 4):
-            m, texte = executer(m, proposition("attendre"))
+        # Écouter ne soigne pas : attendre fait désormais regagner 1 PV/h de repos (4a),
+        # ce qui compenserait exactement la perte que ce test veut isoler.
+        for _ in range(20 * 4):
+            m, texte = executer(m, proposition("ecouter"))
         self.assertEqual(m.joueur["pv"], 1)
 
     def test_manger_ce_qui_est_a_soi_et_pas_le_bien_d_autrui(self):

@@ -145,7 +145,7 @@ def _croyance_valide(monde, attribut, c):
     elif attribut == "etat":
         # Des états vrais ou faux ; d'une salle, aussi les niveaux de lumière vus (0 à 2).
         assert isinstance(c.get("valeur"), dict) and all(
-            type(v) is bool or k in ("niveau", "propre") and type(v) is int and 0 <= v <= 2
+            type(v) is bool or k in ("niveau", "propre", "blessure") and type(v) is int and 0 <= v <= 2
             for k, v in c["valeur"].items()), "Croyance d'état invalide"
     elif attribut == "lumiere":
         # La lumière vue devant un objet, là où un geste demande d'y voir (0 à 2).
@@ -182,7 +182,7 @@ def verifier(monde):
             from .deliberation import verifier_profil
             verifier_profil(monde, id, p)
         from .deliberation import seuils
-        assert (isinstance(e["besoins"], dict) and set(e["besoins"]) <= (set(seuils(monde, id)) if p else set())
+        assert (isinstance(e["besoins"], dict) and set(e["besoins"]) <= (set(seuils(monde, id)) if p else {"faim", "repos", "chaleur"})
                 and all(isinstance(v, (int, float)) and 0 <= v <= 100 for v in e["besoins"].values())), "Besoins de PNJ invalides"
         # Satisfaite (True), rompue (False), jamais satisfaite depuis qu'il la connaît (None).
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
@@ -341,6 +341,9 @@ def percus(monde, acteur):
     Pendant la vie des PNJ (``spatial.vue_memorisee``), la perception d'un acteur est gardée tant
     que l'état dont elle dépend n'a pas changé (``spatial.etat_vue``) ; dans un état nouveau, elle se
     tire de la précédente quand c'est possible (``_percus_depuis``)."""
+    from .corps import conscient
+    if not conscient(monde, acteur):
+        return {}, set()
     memo = _memo_vue(monde) if monde.data.get("mode_cases") else None
     if memo is None:
         return _percus(monde, acteur, None)
@@ -608,13 +611,35 @@ def constater(monde, id, sujet, source):
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
     fatigue (``corps``), sous les noms des besoins du corps."""
     if sujet == "joueur" or monde.objets[sujet]["type"] == "personnage":
-        from .corps import CORPS
+        from .corps import CORPS, visible
         besoins = monde.joueur.get("besoins", {}) if sujet == "joueur" else lire(monde, sujet)["besoins"]
+        ancien = croyance(monde, id, sujet, "etat")
         if besoins:
             croire(monde, id, sujet, "etat",
-                   {nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()}, source)
+                   {**{nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()},
+                    **visible(monde, sujet)}, source)
+        if (source == "vu" and not visible(monde, sujet)["conscient"]
+                and (not ancien or ancien["valeur"].get("conscient") is not False)
+                and sujet in (monde.objets[id].get("profil") or {}).get("protege", [])):
+            from .deliberation import ATTEINTE, relancer
+            relancer(monde, id, "devoir", ATTEINTE)
         return
     o = monde.objets[sujet]
+    if o["type"] == "depouille":
+        from .deliberation import inquieter, relancer
+        ancien = croyance(monde, id, sujet, "etat")
+        croire(monde, id, sujet, "etat", {"mort": True}, source)
+        if source == "vu" and not (ancien and ancien["source"] == "vu" and ancien["valeur"].get("mort")):
+            memoriser(monde, id, {"type": "mort_vue", "objet": sujet, "salle": o["lieu"]})
+            from .corps import evenement
+            evenement(monde, "mort_vue", sujet, temoin=id,
+                      delai=monde.data["minutes"] - monde.data["defunts"][sujet]["minute"])
+            inquieter(monde, id, "mort")
+            if sujet in (monde.objets[id].get("profil") or {}).get("protege", []):
+                relancer(monde, id, "devoir", 30)
+            from .pnj import _chroniquer
+            _chroniquer(monde, id, monde.objets[id]["nom"].split(",")[0] + " découvre " + o["nom"] + ".", "geste")
+        return
     if "pieces" in o and _porteur(monde, o) == id:
         # Ce qu'une bourse contient se sait en la tenant, pas en la voyant.
         croire(monde, id, sujet, "pieces", o["pieces"], source)
@@ -715,6 +740,9 @@ def reconsiderer(monde, id):
     apprend quelque chose. Il choisit de nouveau son but à la fin de son geste en cours, ou aussitôt
     s'il ne fait qu'attendre (``pnj._avancer``). L'instant est dans son esprit : le même laps,
     découpé autrement, donne le même monde. Sans cases, tout vit à la minute, comme avant."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return
     o = monde.objets.get(id)
     if not o or not o.get("profil") or not monde.data.get("mode_cases"):
         return
@@ -725,6 +753,9 @@ def reconsiderer(monde, id):
 
 def percevoir(monde, id):
     """Révise les croyances d'un PNJ d'après ce qu'il perçoit maintenant."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return
     with etat_fige(monde):  # Percevoir ne révise que son esprit.
         _percevoir(monde, id)
 
@@ -753,10 +784,14 @@ def _percevoir(monde, id):
         if o["type"] != "porte":
             reviser(monde, id, sujet, "lieu", o["lieu"], salle=salle, case=case)
             _vu_porter(monde, id, sujet)
-        avant = croyances.get(sujet, {}).get("etat") if o["type"] in ETATS_VISIBLES else None
+        avant = croyances.get(sujet, {}).get("etat") if o["type"] in ETATS_VISIBLES or o["type"] == "personnage" else None
         constater(monde, id, sujet, "vu")
-        if avant is not None and avant["valeur"] != croyances[sujet]["etat"]["valeur"]:
-            change = True  # Une porte qui s'ouvre ou se ferme, un feu qui s'éteint, sous ses yeux.
+        if avant is not None:
+            apres = croyances[sujet]["etat"]["valeur"]
+            # Les besoins visibles gardent leur cadence ; les nouveaux états du corps
+            # interrompent aussi l'attente, comme une porte ou un feu.
+            change |= (any(avant["valeur"].get(k) != apres.get(k) for k in ("blessure", "conscient"))
+                       if o["type"] == "personnage" else avant["valeur"] != apres)
         if o["type"] in ("porte", "contenant") and o.get("ouverte"):
             reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
     for sujet, attributs in list(croyances.items()):

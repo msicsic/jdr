@@ -264,6 +264,10 @@ def main(argv=None, interface=None):
         while True:
             if interface:
                 interface.rafraichir(m, pending, mj)
+            if m.data.get("fin"):
+                m.sauver(args.save)
+                imprimer("Ta partie est terminée : " + m.data["fin"]["cause"] + ".")
+                return 0
             try:
                 texte = lire("\nCorvus > ").strip()
             except (EOFError, KeyboardInterrupt):

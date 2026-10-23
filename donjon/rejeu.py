@@ -81,7 +81,12 @@ class Enregistreur:
         etat = {}
         for id, o in monde.objets.items():
             if o["type"] == "personnage":
-                etat[id] = [o["lieu"], o.get("position"), o.get("orientation")]
+                from .corps import conscient, visible
+                etat[id] = [o["lieu"], o.get("position"), o.get("orientation") if conscient(monde, id) else None,
+                            o["pv"], o["pv_max"], visible(monde, id)]
+            elif o["type"] == "depouille":
+                self.objets[id].update(nom=designer(o), type="depouille")
+                etat[id] = [o["lieu"], o.get("position"), None, None, None, {"mort": True}]
             elif o["type"] == "porte":
                 etat[id] = [bool(o.get("ouverte")), bool(o.get("verrouillee"))]
             else:
@@ -96,6 +101,8 @@ class Enregistreur:
         self._piste(self.vues, self._vue, instant, vues)
         self._eclairer(monde, instant)
         for id in self.personnages:
+            if monde.objets[id]["type"] != "personnage":
+                continue
             self._penser(monde, id)  # Ce qu'il vient de voir change ce qu'il croit.
 
     def _eclairer(self, monde, instant):

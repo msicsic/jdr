@@ -450,8 +450,8 @@ def verifier(monde):
     d = monde.data
     for p in d.get("permissions", []):
         assert (set(p) == {"objet", "a", "de", "minute"} and p["objet"] in d["objets"]
-                and (p["a"] == "joueur" or p["a"] in d["objets"] and d["objets"][p["a"]]["type"] == "personnage")
-                and p["de"] in d["objets"] and d["objets"][p["de"]]["type"] == "personnage"
+                and (p["a"] == "joueur" or p["a"] in d["objets"] and d["objets"][p["a"]]["type"] in ("personnage", "depouille"))
+                and p["de"] in d["objets"] and d["objets"][p["de"]]["type"] in ("personnage", "depouille")
                 and type(p["minute"]) is int), "Prêt invalide"
     for x in d.get("dettes", []):
         assert (isinstance(x, dict) and set(x) == {"de", "a", "montant", "objet", "quoi", "minute"}

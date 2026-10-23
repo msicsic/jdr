@@ -23,7 +23,7 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
-              "servir", "frapper",
+              "servir", "frapper", "ranimer",
               "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
@@ -41,7 +41,7 @@ CHALEUR_FIN = 20       # réchauffé : il s'écarte du feu
 SECURITE_FIN = 30      # rassuré : il quitte l'abri
 # Ce qui inquiète (+) ou rassure (−) la sécurité, valeurs par défaut que chaque profil nuance
 # (donnée ``securite``) : par minute pour ce qui dure, d'un coup pour un événement.
-SECURITE = {"noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
+SECURITE = {"coup": 40, "mort": 30, "noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
             "eau": 2, "menace": 1, "crue": 10,     # par minute : 50 cm d'eau, l'eau attendue bientôt ;
                                                    # d'un coup : la voir gagner un lieu
             "lumiere": 0.2, "compagnie": 0.5, "ronde": 20}                 # rassure
@@ -108,7 +108,7 @@ def verifier_profil(monde, id, p):
     assert type(p.get("alerte", 0)) is int and -2 <= p.get("alerte", 0) <= 9, "Seuil d'alerte de PNJ invalide"
     verifier_situation(p.get("situation", {}))
     assert (isinstance(p.get("protege", []), list) and all(
-        x in monde.objets and monde.objets[x]["type"] == "personnage" and x != id
+        x in monde.objets and monde.objets[x]["type"] in ("personnage", "depouille") and x != id
         for x in p.get("protege", []))), "Protégés de PNJ invalides"
     assert type(p.get("reserve", 1)) is int and 0 <= p.get("reserve", 1) <= 10, "Réserve de PNJ invalide"
     assert (isinstance(p.get("securite", {}), dict) and set(p.get("securite", {})) <= set(SECURITE)
@@ -135,16 +135,16 @@ def condition_valide(monde, c):
     vendu à remettre."""
     return isinstance(c, dict) and (
         (set(c) == {"objet", "rendre"} and c["objet"] in monde.objets and c["rendre"] in monde.objets
-         and monde.objets[c["rendre"]]["type"] == "personnage") or
+         and monde.objets[c["rendre"]]["type"] in ("personnage", "depouille")) or
         # Un objet vendu à remettre à son acheteur (``echanges.differee``).
         (set(c) == {"objet", "remettre"} and c["objet"] in monde.objets
          and (c["remettre"] == "joueur" or c["remettre"] in monde.objets
-              and monde.objets[c["remettre"]]["type"] == "personnage")) or
+              and monde.objets[c["remettre"]]["type"] in ("personnage", "depouille"))) or
         (set(c) == {"objet", "lieu"} and c["objet"] in monde.objets and c["lieu"] in monde.data["salles"])
         or (set(c) == {"objet", "servir"} and c["objet"] in monde.objets
             and monde.objets[c["objet"]]["type"] == "nourriture"
             and (c["servir"] == "joueur" or c["servir"] in monde.objets
-                 and monde.objets[c["servir"]]["type"] == "personnage"))
+                 and monde.objets[c["servir"]]["type"] in ("personnage", "depouille")))
         or (set(c) == {"objet", "verrouillee"} and c["objet"] in monde.objets and c["verrouillee"] is True)
         or (set(c) == {"objet", "allume"} and c["objet"] in monde.objets and "allume" in monde.objets[c["objet"]]
             and c["allume"] is True)
@@ -520,6 +520,10 @@ def promesse_en_cours(monde, id, objet, remise=None):
 
 
 def satisfaite(monde, id, condition):
+    # Une charge envers quelqu'un qu'il sait mort n'a plus d'action à accomplir.
+    destinataire = next((condition[k] for k in ("servir", "rendre", "remettre") if k in condition), None)
+    if destinataire and (_cru(monde, id, destinataire, "etat") or {}).get("mort"):
+        return True
     if "remettre" in condition:
         return False  # Un objet vendu se remet de la main à la main : le geste tient la parole.
     if "rendre" in condition:
@@ -631,6 +635,9 @@ def ecart_securite(monde, id):
     """Ce que gagne ou perd sa sécurité par minute, là où il se tient : le noir, la méfiance et l'eau
     où l'on se tient inquiètent, la lumière et la compagnie de qui l'on croit fiable rassurent. None
     s'il ne ressent pas sa sécurité."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return None
     if "securite" not in lire(monde, id)["besoins"] or monde.objets[id]["lieu"] not in monde.data["salles"]:
         return None
     a = autour(monde, id)
@@ -657,7 +664,10 @@ def inquieter(monde, id, cause, signe=1):
 
 def protecteurs(monde, protege):
     """Ceux dont le profil déclare protéger ce personnage."""
-    return [x for x, o in monde.objets.items() if protege in (o.get("profil") or {}).get("protege", [])]
+    from .corps import vivant, conscient
+    if not vivant(monde, protege):
+        return []
+    return [x for x, o in monde.objets.items() if conscient(monde, x) and protege in (o.get("profil") or {}).get("protege", [])]
 
 
 def appeler_a_l_aide(monde, id, minute):
@@ -665,6 +675,9 @@ def appeler_a_l_aide(monde, id, minute):
     qui voit menacé ce qu'il garde, là où il se tient (``menaces``), n'attend pas d'être à bout :
     il appelle dès que l'inquiétude le presse, si elle l'emporte sur son courage
     (``voix.prudent``) ; plus courageux, il reste et surveille."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return
     from .voix import prudent
     e = esprit(monde, id)
     menace = ("securite" in urgents(monde, id) and prudent(monde, id)
@@ -1296,6 +1309,12 @@ def _candidats(monde, id):
     from .planification import planifier_engagement
     buts += [("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), False, False)
              for x in e["engagements"]]
+    # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
+    for protege in p.get("protege", ()):
+        c = e["croyances"].get(protege, {}).get("etat", {})
+        if c.get("valeur", {}).get("conscient") is False and not c["valeur"].get("mort"):
+            from .planification import ranimer
+            buts.insert(0, ("devoir", lambda m, i, x=protege: ranimer(m, i, x), False, False))
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
     if any(s["type"] == "a_prevenir" for s in e["memoire"]):
         buts.append(("devoir", _plan_prevenir, False, False))
@@ -1379,13 +1398,13 @@ def deliberer(monde, id, minute):
     moins bon) ; les événements font choisir entre deux minutes. Le corps, la dérive des besoins
     et la sécurité ressentie ont vécu le temps passé dans chaque état jusqu'à l'instant
     (``vecu.minute``) : ils ne sont pas échantillonnés ici."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return
     p = profil(monde, id)
     if not p:
         return
     installer(monde, id)
-    from .temps import instant
-    from .vecu import minute as vivre_la_minute
-    vivre_la_minute(monde, id, instant(monde))
     from .relations import partager
     partager(monde, id, minute)
     constater_pulsions(monde, id)
@@ -1402,6 +1421,9 @@ def choisir(monde, id, minute):
     un événement qui change sa situation (``pnj._avancer``). Ne fait rien passer du temps : ses
     besoins, ses pulsions et leurs échéances vivent à la minute. Ce que la recherche a déjà
     trouvé sur les mêmes entrées est repris (``planification``)."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return
     from . import stratege
     p = profil(monde, id)
     if not p:

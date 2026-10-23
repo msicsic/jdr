@@ -739,6 +739,9 @@ def destinataires(monde, forme):
 
     Les présents comptent ceux dont il entend la voix sans savoir à qui elle est (``voix``) : il peut
     leur parler en face, pas les nommer. Celui qu'il nomme doit être quelqu'un qu'il sait là."""
+    from .corps import conscient
+    if not conscient(monde):
+        return []
     from .dialogues import interlocuteurs
     from .ouie import saisissent
     from .refus import liste as liste_

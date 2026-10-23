@@ -442,7 +442,8 @@ def verifier(monde, id):
     liens = (monde.objets[id].get("profil") or {}).get("liens", {})
     assert isinstance(liens, dict), "Liens de départ invalides"
     for x, axes in liens.items():
-        assert x != id and (x == "joueur" or x in monde.objets and monde.objets[x]["type"] == "personnage"), "Lien sans personnage"
+        # Un lien survit à la mort de l'autre (``corps.mourir`` : la dépouille garde son identifiant).
+        assert x != id and (x == "joueur" or x in monde.objets and monde.objets[x]["type"] in ("personnage", "depouille")), "Lien sans personnage"
         assert isinstance(axes, dict) and set(axes) <= set(AXES), "Axes de lien invalides"
         assert all(type(v) is int and 0 <= v <= 100 for v in axes.values()), "Valeur de lien invalide"
     for x, r in lire(monde, id)["relations"].items():

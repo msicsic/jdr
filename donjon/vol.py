@@ -19,7 +19,7 @@ def proprietaire(monde, objet):
     while parent:
         if parent.get("proprietaire"):
             return parent["proprietaire"]
-        if parent["type"] == "personnage":
+        if parent["type"] in ("personnage", "depouille"):
             return parent["id"]
         parent = monde.objets.get(parent["lieu"])
     return None
@@ -59,10 +59,10 @@ def verifier(monde):
     for o in monde.objets.values():
         for cle in ("proprietaire", "vole_a"):
             if o.get(cle):
-                assert o[cle] == "joueur" or (o[cle] in monde.objets and monde.objets[o[cle]]["type"] == "personnage"), "Propriétaire invalide"
+                assert o[cle] == "joueur" or (o[cle] in monde.objets and monde.objets[o[cle]]["type"] in ("personnage", "depouille")), "Propriétaire invalide"
         if o.get("vole_par"):
             assert o["vole_par"] == "joueur" and o.get("vole_a") and not o.get("en_vente"), "Possession volée incohérente"
     for id, relation in monde.data["relations_pnj"].items():
-        assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Relation sans personnage"
+        assert id in monde.objets and monde.objets[id]["type"] in ("personnage", "depouille"), "Relation sans personnage"
         assert type(relation["vols_surpris"]) is int and relation["vols_surpris"] >= 0, "Nombre de vols invalide"
         assert type(monde.objets[id]["vigilance"]) is int and 1 <= monde.objets[id]["vigilance"] <= 25, "Vigilance invalide"

@@ -46,7 +46,7 @@ PALIER = 1.5           # refusé pour un prix trop bas, il offre ce prix et moit
 HABILE = 0.5           # chance de réussir à partir de laquelle il attend un crochetage discret (``bruit_crochetage``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
-TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi")
+TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime")
 # Ce qui compte sur un tiers ; le devis ne permet que de recevoir un bien du commanditaire.
 TIERS = ("demander", "acheter", "engager", "demander_feu", "confier")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
@@ -894,6 +894,10 @@ def gestes(v, e, vises=None, but=None):
                 yield 0, 1, [_etape("chauffer", o)], e.apres(faits=[(("chauffe", o), True)])
         if v.besoin[o]:
             yield from _parts(v, e, o, dans, vises, but)
+    for cible in vises.get("ranimer", ()):
+        etat = lire(v.monde, v.id)["croyances"].get(cible, {}).get("etat", {}).get("valeur", {})
+        if etat.get("conscient") is False and v.salle(e, cible) == e.salle and not e.fait("ranime", cible):
+            yield 0, 1 / 6, [_etape("ranimer", cible)], e.apres(faits=[(("ranime", cible), True)])
     for salle in vises.get("inspecter", ()):
         if salle == e.salle and not e.fait("inspecte", salle):
             yield 0, 1, [_etape("inspecter", lieu=salle)], e.apres(faits=[(("inspecte", salle), True)])
@@ -1856,3 +1860,9 @@ def rejoindre(monde, id, sujet):
         return None
     etapes = recherche[2]
     return _couper(etapes), False
+
+
+def ranimer(monde, id, cible):
+    trouve = chercher(monde, id, lambda v, e: e.fait("ranime", cible), {"ranimer": (cible,)},
+                      nom="ranimer:" + cible, memo=["ranimer", cible], emplois=())
+    return None if trouve is None else ({"type": "ranimer", "qui": cible}, trouve[1])

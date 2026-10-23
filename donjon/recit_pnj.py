@@ -49,6 +49,8 @@ def but_en_mots(monde, but):
 
 def _but(monde, but):
     t, o = but.get("type"), but.get("objet")
+    if t == "ranimer":
+        return "ranimer " + court(monde, but["qui"])
     if t == "manger":
         return "manger " + _objet(monde, o)
     if t == "part":
@@ -358,6 +360,12 @@ class Recit:
         for id in self.ids:
             lignes += self.personnage(monde, id, chronique) + [""]
         crue = self.crue(monde)
+        if monde.data.get("historique_corps"):
+            from .corps import mesures
+            lignes += ["== Violences et corps ==", ", ".join(f"{k} : {v:g}" for k, v in mesures(monde).items())]
+            for e in monde.data["historique_corps"]:
+                if e["type"] == "mort_vue":
+                    lignes.append(f"{court(monde, e['temoin'])} découvre {court(monde, e['id'])} après {e['delai']} min.")
         return "\n".join((crue + [""] if crue else []) + lignes + self.entre_eux(monde, chronique))
 
     def donnees(self, monde, chronique):

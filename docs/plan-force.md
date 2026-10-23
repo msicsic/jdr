@@ -1,6 +1,7 @@
 # Plan : le corps des PNJ et la force (étape 4 du plan social)
 
-Document de conception, pas encore un jalon. Il détaille l'étape 4 de `docs/plan-social.md` : PV et
+La sous-étape 4a est réalisée sur `codex-force-4a`, non fusionnée ; 4b à 4f restent à faire.
+Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
 suites) sans la faire. Tout s'exprime en règles communes, joueur compris, en gestes déclarés une
@@ -432,7 +433,26 @@ usurpation ; le même laps d'un bloc ou découpé et rechargé donne le même mo
 de 10 % plus lente ; les tests contrôlent l'état et ce que lit le joueur après rechargement, sur le
 cas qui a guidé la règle et un autre de même nature.
 
-### 4a. Le corps blessable
+### 4a. Le corps blessable — Fait
+
+Réalisé sur `codex-force-4a`, non fusionnée. [Rapport et vérifications](taches/rapport-codex-7-force-4a.md).
+Les PV, blessures, soins au temps vécu et transitions d'inconscience sont communs, joueur compris.
+Le corps vit hors de la délibération ; perception, ouïe, parole et passage volontaire consultent
+la conscience. Le réveil est un événement de l'horloge ; le joueur traverse son inconscience dans
+la même action. `ranimer` existe comme action locale et geste du planificateur pour un protégé.
+La dépouille conserve son identifiant et ses biens ; sa découverte, l'inquiétude et la nouvelle
+passent par les croyances et les échanges existants. La fin du joueur reste dans la sauvegarde.
+
+Les bancs comparent les champs préexistants et les empreintes recalculées sans les seuls champs
+ajoutés, car ajouter `pv` aux objets change nécessairement l'empreinte brute. Chronique, mesures,
+souvenirs et récit sont comparés sans aucune normalisation. Détail des nombres dans le rapport.
+
+Limites de 4a : aucun coup, `tuer`, lien, soin actif ni comportement de violence ; aucune migration
+des anciennes sauvegardes garantie. `ranimer` suit la convention des gestes courts : le résultat
+est appliqué au début, puis l'auteur est occupé dix secondes ; les issues différées des gestes
+longs restent en 4d. Les dégâts naturels hérités de la faim et du froid concernent encore le
+joueur ; 4a n'ajoute pas de nouvelle source de dégâts aux PNJ. Le contrôle des contradictions
+narratives reste sémantique ; les locuteurs inconscients ou morts sont exclus déterministement.
 
 PV pour tous et migration ; seuils de blessure dans `corps.malus` ; repos qui soigne ; inconscience
 (perception, ouïe, délibération et parole coupées ; corps qui vit ; `libre` au réveil ; ranimer) ;
@@ -549,6 +569,12 @@ ne parle ; temps par tour MJ du même ordre que les bancs de `banc-luna`.
   chargement.
 
 ## Décisions à trancher par l'utilisateur
+
+Décisions validées pour cette réalisation : toutes les recommandations ci-dessous sont retenues,
+sauf la n° 6 : douceur 100 peut frapper pour se défendre ou défendre un protégé. Aucun coup n'est
+implémenté en 4a. Les coups ne tueront jamais, le joueur inconscient attend son réveil dans la même
+action, et faim, froid ou eau ne donnent pas la mort à cette étape. Les profils peuvent changer ;
+aucune migration d'ancienne sauvegarde n'est demandée. Voir la [tâche 4a](taches/codex-7-force-4a.md).
 
 1. **PV max.** (a) 6 + FOR de base, le joueur garde 18 ; (b) 18 pour tous ; (c) déclarés par
    profil. *Recommandé : (a)*, avec une déclaration possible dans le scénario.
