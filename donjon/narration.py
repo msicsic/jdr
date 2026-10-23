@@ -120,8 +120,9 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
   passage, personnage, ressource, indice, résultat), même plausible ou décoratif ;
 - contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus ;
   cite dans sources les faits qui établissent cette contradiction. Un fait absent n'établit
-  pas son contraire. Une ambiance nouvelle n'a pas besoin d'être attestée : juge sa compatibilité,
-  pas sa présence dans le contexte. Affirmer qu'elle est imperceptible la contredit.
+  pas son contraire. Juge la compatibilité d'une ambiance nouvelle, pas sa présence dans le
+  contexte ni la connaissance de sa cause. Une absence de sensation est aussi une ambiance libre ;
+  seule une perception déjà décrite ou un état mécanique incompatible peut la contredire.
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
 invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
 conversation_validee est une parole de Corvus que le moteur a déjà fait entendre : issue dit ce qu'il
@@ -148,14 +149,14 @@ Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni r
 """
 
 INSTRUCTIONS_REVISION = """\nLe contrôle de tes réponses précédentes dans ce tour (controle_narratif, chaque phrase
-refusée et son motif) a relevé des affirmations mécaniques non établies, contradictoires ou un
-nom absent de ce que Corvus perçoit ou sait. Chaque refus a son attendu : où (partie, segment),
+refusée et son motif) a relevé une rupture du contrat narratif. Chaque refus a son attendu : où (partie, segment),
 ce qui a été reçu (la phrase ou la valeur en cause, citée), le verdict de l'auditeur s'il vient de
 lui, et ce qui serait accepté. Corrige ce qu'il désigne, garde le reste ; il ne s'adresse jamais au joueur.
 Réponds de nouveau à l'intention initiale, à partir de l'état actuel. L'ambiance reste libre.
 Tu peux proposer un ajout persistant par le protocole déjà disponible si l'état et
-la demande le permettent. Pour un ajout mécanique qui ne peut pas être établi, dis simplement
-ce que Corvus ignore. Cette réserve ne porte pas sur une ambiance libre compatible avec l'état.
+la demande le permettent. Une inconnue mécanique se dit par la limite de perception ou de savoir
+qui la cause dans la fiction. Une ambiance compatible se décrit directement comme perçue.
+Les motifs et verdicts servent à corriger le texte, jamais à qualifier le récit par leur preuve.
 Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
@@ -167,8 +168,9 @@ ressources, lumière, missions, résultats) doit découler des faits fournis ; p
 manipulable, ni passage, ni personnage, ni ressource, ni indice. Reste cohérent avec
 ambiance_etablie : une ambiance admise est perçue, sans réserve qui la démente.
 Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
-Dis une inconnue dans la fiction (ce que Corvus voit, entend ou ignore), jamais en parlant
-de faits, de données ou de ce qui est « établi ».
+Dis une inconnue mécanique par sa limite de perception ou de savoir dans la fiction.
+Le récit parle de ce que tu perçois, sais ou supposes, jamais du degré de preuve fourni au MJ
+(établi, attesté, indiqué, absence d'indication). L'ambiance libre n'a pas à justifier son origine.
 Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxième personne (tu).
 Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
 ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
@@ -298,6 +300,18 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_
 AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
                     r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
 
+# Même voix d'auteur quand le récit commente ses preuves sans nommer le moteur.
+# Les tours impersonnels distinguent ce métalangage d'un indice dans la fiction
+# (« la flèche indique le nord », « tu ignores d'où vient cette odeur »).
+PREUVE_MOTEUR = re.compile(
+    r"\b(?:attest[ée]e?s?|[ée]tablie?s?)\b"
+    r"|\b(?:rien|aucune?\s+\w+)(?:\s+\w+){0,3}\s+"
+    r"(?:ne\s+(?:(?:te|lui|vous|nous)\s+|[tm]['’])?|n['’])"
+    r"(?:indique|atteste|[ée]tablit|prouve|confirme)\b"
+    r"|\b(?:faute|manque|absence)\s+d['’](?:indication|information|preuve)s?\b"
+    r"|\baucune?\s+(?:indication|information|preuve)s?\b"
+    r"|\b(?:pas|non)(?:\s+\w+){0,3}\s+indiqu[ée]e?s?\b", re.IGNORECASE)
+
 # Le vocabulaire du quadrillage et les écritures de coordonnées sont une forme de
 # métalangage, même dans une réplique. Les distances physiques restent libres.
 ESPACE_MOTEUR = re.compile(
@@ -326,7 +340,9 @@ def voix_auteur(texte, partie="texte"):
     répliques citées des personnages restent libres."""
     obstacles, vus = unites_moteur(texte, partie), set()
     for indice, passage in enumerate(segments(texte)):
-        for terme in sorted({m.group(0) for m in AUTEUR.finditer(CITATIONS.sub(" ", passage))}, key=str.lower):
+        fiction = CITATIONS.sub(" ", passage)
+        for terme in sorted({m.group(0) for regle in (AUTEUR, PREUVE_MOTEUR)
+                             for m in regle.finditer(fiction)}, key=str.lower):
             if terme.lower() in vus:
                 continue
             vus.add(terme.lower())
@@ -341,6 +357,9 @@ def _reecrire(terme):
     """Comment se dit, à la deuxième personne, ce que ce mot d'auteur disait : une indication pour que la
     première correction suffise."""
     mot = normaliser(terme)
+    if PREUVE_MOTEUR.fullmatch(terme):
+        return (" : décris directement l'ambiance compatible comme perçue, sans réserve de preuve ; "
+                "pour une inconnue mécanique, dis la limite de perception ou de savoir dans la fiction")
     if mot in ("je", "j'", "j’"):
         return " : ce que tu dirais de toi se dit de ce que Corvus perçoit, sait ou ignore (« tu ne sais pas si… »)"
     if mot in ("corvus",) or mot.endswith("joueur"):
@@ -663,8 +682,10 @@ def _cles_visees(faits, passage):
 
 
 ACCEPTE_VERDICT = {
-    "invention_protegee": ("le passage sans cet élément : ce que Corvus ne perçoit ni ne sait, dis qu'il l'ignore ; "
-                           "un élément nouveau passe par un fait proposé (etablir_faits) quand le mode est offert"),
+    "invention_protegee": ("le passage sans cet élément mécanique ; un élément mécanique nouveau passe par un "
+                           "fait proposé (etablir_faits) quand le mode est offert ; une inconnue mécanique "
+                           "se dit par sa limite de perception ou de savoir dans la fiction ; "
+                           "l'ambiance compatible reste libre et se décrit directement comme perçue"),
     "contradictoire": ("le passage accordé aux faits fournis (perception, salle, objet:<id>, ambiance_etablie, "
                        "retour_moteur), ou sans cette affirmation"),
 }
