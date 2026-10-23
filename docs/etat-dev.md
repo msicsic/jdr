@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-garde-pret`, non fusionnée : `GARDE` et `PRET` retirés.
+- Branche `codex-garde-pret`, fusionnée : `GARDE` et `PRET` retirés.
   `planification.prix_gardes` pèse l'ambition pour ses biens, la loyauté pour une charge
   confiée et la méfiance, rancune ou peur envers les présences crues ; à valeurs neutres,
   un lieu coûte toujours 2 par minute d'éloignement. `relations.chance_demande` centralise
@@ -22,7 +22,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   mine +12,1 %, auberge +11,2 %. Les alertes d'audit restantes et les limites de cette
   estimation avant 3c/3e sont détaillées dans le
   [rapport](taches/rapport-codex-13-garde-pret.md). Aucun scénario ni prompt modifié.
-
+  Fusionné après `codex-lampes-suite` et `codex-cout-suite` (`main` 5594028) : conflits seulement dans
+  `docs/etat-dev.md` et `docs/plan-planificateur.md` ; `prix_gardes` et `chances_demandes` sont dans
+  `_entrees`, donc dans la base des deux graphes repris (`sombre`, `lumiere`) et du certificat
+  d'impossibilité, qui ne lit que les arêtes (la chance ne change que des coûts) ; aucune lecture de
+  lumière. Docstrings de `deliberation.menaces`/`gardes` accordées. Test adapté : `test_cout_suite` (la
+  garde de Lucien, ambition 70, coûte 2,4 par minute : l'abri de la graine 7 trouve son plan à 3 855
+  nœuds au lieu de la borne ; la graine 42 reste bornée). Suite (`tools/tests.py --processus 4`)
+  **1449 tests, 14 sautés**. `VERIFIER` + `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42, quatre
+  scénarios : sans écart ni usurpation ; à l'auberge 8 h, 66 recherches bornées notées (`BORNES`,
+  Lucien `garder:grenier` et `garder:etable`, 33 chacune), les mêmes sur la branche seule (c9e0cb3),
+  aucune sur `main` 5594028 : la garde plus chère à l'ambition 70 rend ces recherches plus longues que
+  la borne de 4 000 nœuds (limite de la recherche jouée, pas un écart). Banc rapide (`comparer_bancs`,
+  4 h, 4 graines, contre 5594028) : aucun plantage, usurpation ni violation ; écarts comme le rapport
+  (Relais départs loin des biens 3,75 → 3, minutes-lieux 20,5 → 17,5, achats 1 → 0,75, tâches proposées
+  0,5 → 1, appels à l'aide 0,75 → 0,25, noir 20 → 5 ; mine demandes 6,75 → 7,25, refus 5 → 5,25, achats
+  1,5 → 1,25 ; auberge départs 2,5 → 2 ; crue demandes 3 → 2,75, refus 2,5 → 2,25) ; temps par nuit
+  Relais 9,1 → 8,2 s, mine 14,8 → 13,7 s, auberge 14,7 → 15,7 s, crue 9,7 → 10,5 s.
 - Branche `codex-cout-suite`, fusionnée, base initiale `main` 9075aea, puis fusion de
   `origin/main` **a7ecb50** par **1efbb12** : certificats d'absence
   sur les graphes déjà développés, indépendants des prix mais conservant permissions et
@@ -1562,7 +1578,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1439 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1449 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 
