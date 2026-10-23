@@ -1185,9 +1185,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 decoupage = segments_narratifs(texte)
                 rapport = None
                 for essai in range(2):
+                    from .noms import reperes_designations
                     audit = appeler_brut(
                         INSTRUCTIONS_AUDIT,
                         {"faits": faits, "segments": {str(i): s for i, s in enumerate(decoupage)},
+                         "designations": reperes_designations(texte, faits),
                          "nature": "récit conditionnel d'action" if effets is not None else "réponse du MJ"},
                         "Contrôler chaque segment de la réponse", "auditer_narration",
                         schema_audit(faits, len(decoupage)))

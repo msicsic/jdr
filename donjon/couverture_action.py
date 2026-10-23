@@ -8,6 +8,7 @@ import json
 
 from .monde import ErreurMonde
 from .refus import RapportIllisible, attendu_audit
+from .noms import REGLE_DESIGNATIONS, reperes_designations
 
 
 SCHEMA = {
@@ -83,6 +84,9 @@ Appelle auditer_action une fois.
 """
 
 
+INSTRUCTIONS += "\n" + REGLE_DESIGNATIONS
+
+
 def _operations(plan):
     improvise = plan.proposition.get("action") == "improviser"
     return {
@@ -132,7 +136,16 @@ def entree(intention, plan, monde=None):
                                             "outil": _nommer(op["geste_improvise"]["outil"], monde)}}
                        if "geste_improvise" in op else {})}
         operations = nommer_plan(operations)
-    return {"demande": intention, "plan": operations}
+    entree_ = {"demande": intention, "plan": operations}
+    if monde is not None:
+        from .noms import public
+        # Seulement ce que le joueur peut désigner ; jamais le lexique privé du monde.
+        contexte = public(monde, monde.contexte())
+        faits = {"objet:" + o["id"]: o for o in contexte["objets_perceptibles"]}
+        faits["interlocuteurs"] = contexte["interlocuteurs"]
+        entree_["designations"] = reperes_designations(intention, faits) + reperes_designations(
+            json.dumps(operations, ensure_ascii=False), faits)
+    return entree_
 
 
 MOTIF_MAX = 300
