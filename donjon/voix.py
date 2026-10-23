@@ -359,8 +359,8 @@ def se_nommer(monde, auditeur, locuteur, nom):
         if identifie(monde, "joueur", locuteur):
             if nom == locuteur:
                 apprendre_nom(monde, "joueur", locuteur)
-            elif not connait_nom(monde,auditeur,locuteur) and not connait_nom(monde,auditeur,nom):
-                retenir(monde,auditeur,locuteur)['se_dit']=nom
+            elif not connait_nom(monde, auditeur, locuteur) and not connait_nom(monde, auditeur, nom):
+                retenir(monde, auditeur, locuteur)['se_dit'] = nom
                 return 'crue'
             return "connu" if nom == locuteur else "demasque"
         retenir(monde, "joueur", locuteur)["se_dit"] = nom
@@ -369,10 +369,11 @@ def se_nommer(monde, auditeur, locuteur, nom):
         if nom == locuteur:
             apprendre_nom(monde, auditeur, locuteur)  # Il sait que c'est lui : il retient son nom.
             return "connu"
-        if not connait_nom(monde,auditeur,locuteur) and not connait_nom(monde,auditeur,nom) and nom != auditeur:
-            retenir(monde,auditeur,locuteur)['se_dit']=nom
-            salle,case=_place(monde,locuteur)
-            _situer(monde,auditeur,nom,salle,list(case) if case is not None else None)
+        if (not connait_nom(monde, auditeur, locuteur) and not connait_nom(monde, auditeur, nom)
+                and nom != auditeur):
+            retenir(monde, auditeur, locuteur)['se_dit'] = nom
+            salle, case = _place(monde, locuteur)
+            _situer(monde, auditeur, nom, salle, list(case) if case is not None else None)
             return 'crue'
         se_mefier(monde, auditeur, locuteur, cause="imposture")
         memoriser(monde, auditeur, {"type": "imposture", "locuteur": locuteur, "se_disait": nom})
@@ -433,13 +434,12 @@ def designation(monde, id):
     entendue."""
     if id == "joueur" or id not in monde.objets:
         return id
-    from .noms import connait as nom_appris
+    from .noms import connait as nom_appris, designation as personne
     if not nom_appris(monde, "joueur", id) and (monde.visible(id) or id in monde.data.get("personnages_vus", [])):
-        from .noms import designation as personne
         return personne(monde, id)
-    if not nom_appris(monde, 'joueur', id) and connait(monde, 'joueur', id):
-        from .noms import designation as personne
-        return f"voix_reconnue_{personne(monde,id).split('_')[-1]}"
+    if not nom_appris(monde, "joueur", id) and connait(monde, "joueur", id):
+        numero = personne(monde, id).split('_')[-1]
+        return f"voix_reconnue_{numero}"
     if identifie(monde, "joueur", id):
         return id
     entree = monde.data.get("voix_entendues", {}).get(id)
@@ -461,18 +461,25 @@ def porteur_du_nom(monde, nom, presents):
 def reel(monde, designation_):
     """Le personnage que désigne ``designation_`` (``designation``) ; None pour une voix que le
     joueur n'a pas entendue."""
-    from .noms import PERSONNES
+    from .noms import PERSONNES, designation as personne
     if isinstance(designation_, str) and designation_.startswith('voix_reconnue_'):
-        from .noms import designation as personne
-        return next((id for id,o in monde.objets.items() if o['type'] in PERSONNES
-                     and designation_=='voix_reconnue_'+personne(monde,id).split('_')[-1]),None)
+        for identifiant, objet in monde.objets.items():
+            if objet["type"] in PERSONNES:
+                numero = personne(monde, identifiant).split('_')[-1]
+                if designation_ == "voix_reconnue_" + numero:
+                    return identifiant
+        return None
     if isinstance(designation_, str) and designation_.startswith("element_"):
         suffixe = designation_[len("element_"):]
-        return next((id for id,n in monde.data.get("references_personnes", {}).items()
-                     if str(n) == suffixe and id in monde.objets), None)
+        for identifiant, numero in monde.data.get("references_personnes", {}).items():
+            if str(numero) == suffixe and identifiant in monde.objets:
+                return identifiant
+        return None
     if isinstance(designation_, str) and designation_.startswith("personne_"):
-        from .noms import designation as personne
-        return next((id for id,o in monde.objets.items() if o["type"] in PERSONNES and personne(monde, id) == designation_), None)
+        for identifiant, objet in monde.objets.items():
+            if objet["type"] in PERSONNES and personne(monde, identifiant) == designation_:
+                return identifiant
+        return None
     if not isinstance(designation_, str) or not designation_.startswith(PREFIXE):
         return designation_
     return next((s for s, e in monde.data.get("voix_entendues", {}).items()
@@ -484,14 +491,15 @@ def nom_pour_joueur(monde, id, court=True):
     inconnue », « une voix qui se dit Brune », et s'il connaît la vraie voix de Brune, « une voix qui
     se dit Brune (ce n'est pas la voix de Brune) » ; nommée par une autre voix, « une voix qu'on
     appelle Gorm »."""
-    if str(designation(monde,id)).startswith('voix_reconnue_'):
+    # noms utilise à son tour les désignations de voix pour projeter les textes.
+    from .noms import nom as nom_visuel, connait as nom_appris
+    if str(designation(monde, id)).startswith('voix_reconnue_'):
         return 'une voix reconnue'
     if str(designation(monde, id)).startswith("personne_"):
-        from .noms import nom
-        return nom(monde, id)
+        return nom_visuel(monde, id)
     if designation(monde, id) == id:
-        from .noms import connait as nom_appris
-        if id in monde.objets and monde.objets[id]['type']=='personnage' and not nom_appris(monde,'joueur',id):
+        if (id in monde.objets and monde.objets[id]['type'] == 'personnage'
+                and not nom_appris(monde, 'joueur', id)):
             return 'une personne inconnue'
         nom = monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"]
         return nom.split(",")[0] if court else nom

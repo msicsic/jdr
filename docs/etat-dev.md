@@ -4,6 +4,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-noms-lisibles`, non fusionnée, base `main` **276524c**, worktree
+  `tmp-worktrees/codex-noms-lisibles` : réécriture de lisibilité de `noms.py` et des seuls
+  blocs nominaux de `voix`, `paroles`, `narration`, `mj`, sans changement de contrat ni de
+  consigne au MJ. Variantes/motifs et numéros communs, projection séparée des règles de
+  citation, contrôles nominaux décomposés et contre-revue de parole extraite.
+  Aucun appel à Luna. Bancs d'empreintes 2 h puis 8 h, quatre scénarios × quatre graines,
+  trois processus, contre 276524c : chronique, mesures et état final complet identiques.
+  Corpus de 53 mondes avant/après recharge : 212 requêtes MJ, références, refus, rendus et
+  état complet identiques octet pour octet (18 376 770 octets). Suite finale : **1 508 tests,
+  quatre ignorés**, verte en 257,451 s ; aucun nom indéfini à pyflakes. Coût CPU médian sur
+  neuf lots : `public` −62,32 %, `texte` −1,69 %.
+  [Rapport, fonctions et preuves hors modèle](taches/rapport-codex-18-noms-lisibles.md).
 - Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
   quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
   seuil de désespoir : le suivi de secours survit à la mémoire bornée. Une recherche retient aussi

@@ -226,17 +226,17 @@ def hors_paroles_etablies(monde, texte, paroles=(), faits=None, historique=True)
     citations = list(CITATIONS.finditer(texte))
     actuelles = {p['texte'].strip() for p in paroles if p.get('passage') == texte
                  and sum(c.group()[1:-1].strip() == p['texte'].strip() for c in citations) == 1}
-    mots={p['texte'].strip() for p in monde.data.get('paroles_joueur',[])}
+    mots = {p['texte'].strip() for p in monde.data.get('paroles_joueur', [])}
     mots.update(p['texte'].strip() for p in monde.data.get('paroles_pnj',[]) if 'joueur' in p['auditeurs'])
-    validee=(faits or {}).get('conversation_validee') or {}
-    if validee.get('operation')=='parole_joueur' and isinstance(validee.get('replique_joueur'),str):
+    validee = (faits or {}).get('conversation_validee') or {}
+    if validee.get('operation') == 'parole_joueur' and isinstance(validee.get('replique_joueur'), str):
         mots.add(validee['replique_joueur'].strip())
-    def remplacer(m):
-        mots_cites=m.group()[1:-1].strip()
+    def remplacer(citation):
+        mots_cites = citation.group()[1:-1].strip()
         # Une citation passée peut être répétée seule, sans nouvelle relation d'identité.
-        autonome = historique and texte.strip() == m.group() and mots_cites in mots
-        return ' ' if mots_cites in actuelles or autonome else m.group()
-    return CITATIONS.sub(remplacer,texte)
+        autonome = historique and texte.strip() == citation.group() and mots_cites in mots
+        return ' ' if mots_cites in actuelles or autonome else citation.group()
+    return CITATIONS.sub(remplacer, texte)
 
 
 def tel_quel(passage, extrait):
@@ -391,31 +391,53 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte", citations_hi
     lui donne pas non plus le nom qu'elle s'est donné : c'est « la voix qui se dit … », pas cette
     personne."""
     interlocuteurs = faits.get("interlocuteurs") or {}
-    validee = faits.get("conversation_validee") or {}
-    obstacles = []
     passages = segments(texte) if texte.strip() else []
+    obstacles = _noms_non_appris_recit(monde, paroles, faits, interlocuteurs, passages,
+                                       partie, citations_historiques)
+    obstacles.extend(_noms_voix_recit(monde, paroles, faits, interlocuteurs, passages,
+                                      partie, citations_historiques))
+    obstacles.extend(_noms_repliques(monde, paroles, faits, interlocuteurs, passages, partie))
+    return obstacles
 
-    def nom_court(x):
-        return (monde.joueur if x == "joueur" else monde.objets[x])["nom"].split(",")[0]
-    from .voix import connait_nom
+
+def _nom_court(monde, identifiant):
+    """Nom littéral cité par les refus, sans modifier le contrat de leur message."""
+    personne = monde.joueur if identifiant == "joueur" else monde.objets[identifiant]
+    return personne["nom"].split(",")[0]
+
+
+def _noms_non_appris_recit(monde, paroles, faits, interlocuteurs, passages, partie, historique):
+    """Le narrateur ne nomme pas un corps dont le joueur n'a pas appris le nom."""
+    from .voix import connait_nom, nom_pour_joueur
+    obstacles = []
     for indice, passage in enumerate(passages):
-        recit = hors_paroles_etablies(monde,passage,paroles,faits,citations_historiques)
-        for id, o in monde.objets.items():
-            voix_deja_controlee = any(isinstance(e, dict) and e.get("voix_inconnue") and id in lexique.entites_citees(monde, e.get("nom", "")) for e in interlocuteurs.values())
-            if o["type"] == "personnage" and not connait_nom(monde, "joueur", id) and not voix_deja_controlee:
-                nom_ = o["nom"].split(",")[0].split()[0]
-                if re.search(r"(?<!\w)" + re.escape(lexique.normaliser(nom_)) + r"(?!\w)", lexique.normaliser(recit), re.I):
-                    from .voix import nom_pour_joueur
+        recit = hors_paroles_etablies(monde, passage, paroles, faits, historique)
+        for identifiant, objet in monde.objets.items():
+            voix_deja_controlee = any(
+                isinstance(entree, dict) and entree.get("voix_inconnue")
+                and identifiant in lexique.entites_citees(monde, entree.get("nom", ""))
+                for entree in interlocuteurs.values())
+            if (objet["type"] == "personnage" and not connait_nom(monde, "joueur", identifiant)
+                    and not voix_deja_controlee):
+                nom_ = objet["nom"].split(",")[0].split()[0]
+                motif = r"(?<!\w)" + re.escape(lexique.normaliser(nom_)) + r"(?!\w)"
+                if re.search(motif, lexique.normaliser(recit), re.I):
                     obstacles.append(audit("Le joueur n'a pas appris ce nom.",
-                        "dans le récit : « " + nom_pour_joueur(monde, id) + " », sans son nom",
+                        "dans le récit : « " + nom_pour_joueur(monde, identifiant) + " », sans son nom",
                         partie=partie, segment=indice, texte=passage, recu=nom_))
+    return obstacles
+
+
+def _noms_voix_recit(monde, paroles, faits, interlocuteurs, passages, partie, historique):
+    """Une appellation de voix ne devient pas une étiquette d'identité dans le récit."""
+    obstacles = []
     for cle, entree in interlocuteurs.items():
         nom = entree.get("nom", "") if isinstance(entree, dict) and entree.get("voix_inconnue") else ""
         pretendu = lexique.normaliser(nom.split("(")[0]).replace("une voix", "voix").strip()
         dits = sorted(x for x in lexique.entites_citees(monde, nom)
                       if x in monde.objets and monde.objets[x]["type"] == "personnage")
         for indice, passage in enumerate(passages if dits else []):
-            recit = lexique.normaliser(hors_paroles_etablies(monde,passage,paroles,faits,citations_historiques))
+            recit = lexique.normaliser(hors_paroles_etablies(monde, passage, paroles, faits, historique))
             reste = recit.replace(pretendu, " ") if pretendu else recit
             nommes = [x for x in dits if x in lexique.entites_citees(monde, reste)]
             if nommes:
@@ -423,9 +445,21 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte", citations_hi
                     f"Corvus ne sait pas qui parle : c'est {nom}, pas cette personne. Dans le récit, désigne-la "
                     "comme une voix (« la voix qui se dit … »), sans lui donner ce nom.",
                     f"dans le récit, cette voix ({cle}) se désigne comme dans interlocuteurs.{cle}.nom, « {nom} », "
-                    f"jamais par « {nom_court(nommes[0])} » seul", partie=partie, segment=indice, texte=passage,
-                    recu=nom_court(nommes[0])))
+                    f"jamais par « {_nom_court(monde, nommes[0])} » seul", partie=partie, segment=indice, texte=passage,
+                    recu=_nom_court(monde, nommes[0])))
                 break
+    return obstacles
+
+
+def _noms_repliques(monde, paroles, faits, interlocuteurs, passages, partie):
+    """Le locuteur ne prononce que ses appellations connues ou établies par l'échange."""
+    from .voix import connait_appellation, reel
+    validee = faits.get("conversation_validee") or {}
+    obstacles = []
+
+    def nom_court(identifiant):
+        return _nom_court(monde, identifiant)
+
     for parole in paroles:
         entree = interlocuteurs.get(parole["locuteur"]) or {}
         inconnue = bool(entree.get("voix_inconnue"))
@@ -433,7 +467,6 @@ def voix_inconnues(monde, paroles, faits, texte="", partie="texte", citations_hi
                            str(validee.get("replique_joueur", ""))])
         permis = lexique.entites_citees(monde, etabli)
         permis |= lexique.entites_citees(monde,parole.get('presentation',''))
-        from .voix import connait_appellation, reel
         qui = reel(monde, parole["locuteur"])
         qui = qui if qui in monde.objets and monde.objets[qui]["type"] == "personnage" else None
         if not inconnue and qui is None:
