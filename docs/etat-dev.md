@@ -1,8 +1,24 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-23.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
 
 ## Où on en est
+
+- Branche `codex-ambiance`, non fusionnée, issue de `main` **42bb9c0** : le contrôle commun de
+  la voix d'auteur s'étend aux réserves sur la preuve reçue par le MJ. Il refuse le
+  vocabulaire de preuve, avec segment, mots reçus et `attendu`, même si l'auditeur l'appelle
+  ambiance ; il est refait à l'enregistrement. Interprétation sans ignorance systématique
+  ajoutée ; révision centrée sur la rupture désignée ; audit de compatibilité sans exiger la
+  cause d'une sensation. Cas réel du calme « aucun autre son n'est attesté ici » et odeur avec
+  réserve de preuve : réponse corrigée, lieu, absence d'entité créée et texte persisté contrôlés
+  après rechargement. Une inconnue mécanique dite en perception reste admise.
+  Correctif signé **a223827** ; suite complète unique verte, **1 595 tests, 15 ignorés**, trois
+  processus à priorité réduite, 564,4 s. Luna une passe finale, Relais, crypte, complément ambiance :
+  63 → 59 appels, 3,00 → 2,81 appels/tour MJ, 12,7 → 11,5 s/tour, aucun repli ni erreur de recharge.
+  « Aucun autre bruit de fond n'est établi ici » refusé par le nouveau garde et reformulé avant
+  affichage. Méta-preuve absente des sorties finales relues ; critère d'absence de tout faux refus
+  d'ambiance encore partiel (silence refusé au Relais au motif du bruit et des notes précédentes).
+  [Cause, vérifications et limites](taches/rapport-codex-25-ambiance.md).
 
 - Branche `codex-luna-restes`, fusionnée, issue de `main` **8855312** : validation physique
   déterministe avant revue de plausibilité ; propriétés connues et champs inconnus distingués ;
@@ -2112,9 +2128,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   garde déterministe des unités. Le choix d'audience reste sémantique (`soir-appel`, une correction
   sur deux passes) ; faux refus encore vus sur la manière d'un sifflement, une désignation d'objet et
   un nom non relié. Dans le noir, « la voix toute proche qui se dit Ilse » est refusé par le garde
-  nominal, un repli sûr sur deux passes. **Ne pas clore le critère d'ambiance sans précaution** : le
-  complément garde « aucun autre son n'est attesté ici » ; absence de preuve et absence de perception
-  ne sont pas encore distinguées dans toutes les rédactions.
+  nominal, un repli sûr sur deux passes. Ambiance : la branche `codex-ambiance`, non fusionnée,
+  distingue le vocabulaire de preuve et la perception dans le garde commun et les règles existantes.
+  Le garde lexical ne garantit pas la détection de toute paraphrase de méta-preuve ; les
+  contradictions de sens et la qualification d'une ambiance restent en partie sémantiques.
+  La passe finale de cette branche garde un refus discutable du silence au Relais, motivé par le
+  bruit courant et le fredonnement antérieur : ne pas clore le critère d'absence de faux refus.
 
 - Passer sous un obstacle (`codex-sous-obstacle`) : gabarits humains par défaut (170 cm, 70 kg, carrure
   déduite par convention, pas du portrait) ; un objet porté sans dimension compte pour un mètre, d'où
