@@ -150,6 +150,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (« se tient à l'écart de Brune », « baisse les yeux », « tremble ») et « semble craindre Brune » / « semble
   avoir peur », rien pour Brune ; observer de nouveau après rechargement ne relance aucun dé (tirages 3 → 3) ;
   dans le noir, « observer Ilse » est refusé localement (« Tu ne vois pas cet objet ici »).
+  Luna vérifiée après les fusions de N et M (intégration 59016d6), le service répondant de nouveau à
+  17 h 08 (deux sondes à 16 h 21 et 16 h 44 encore en délai dépassé, 90 s par appel). Bancs `signes-*`, 2 passes
+  en parallèle : `signes-ecart` 2 appels par tour MJ (interprétation et audit), aucun refus ni repli ; « Que
+  remarques-tu… », « Ilse a-t-elle peur de Brune ? », « Veut-elle attaquer Brune ? » ne disent que les signes
+  reçus et l'impression de crainte, toujours avec son incertitude (« tu ne peux pas savoir avec certitude »),
+  aucune attitude prêtée à Brune, aucun projet d'attaque ; observer avant et après rechargement : 0 appel,
+  mêmes signes. `signes-guet` 2 à 3 appels par tour, aucune fuite du guet caché (« rien ne te permet de
+  savoir s'ils viennent de Brune »). `signes-noir` : « Ilse a-t-elle peur de Brune ? » 2 appels, rien
+  d'invisible (« dans le noir, tu ne peux pas les observer ») ; mais « observer Ilse » coûte 4 à 5 appels et
+  1 à 2 refus (Luna propose d'observer la lumière, puis Ilse ; refus du moteur et de la contre-revue) avant
+  une réponse juste : en ligne, le refus local de la désignation (« cet objet ») part au MJ (`jeu.py`, une
+  intention libre peut dépasser la syntaxe locale) ; hors ligne, 0 appel. `banc_multi`, `main` 276524c (avant
+  H) contre 59016d6, 2 passes chacun lancées ensemble, huit scripts (quatre références, `force-4b-frapper`,
+  `force-4b-assommer`, `depouille`, `noms-dialogue`) : 3,07 → 3,06 appels et 12,8 → 12,5 s par tour MJ,
+  replis 0,5 → 0,5, relances 5 → 4,5, obstacles 8 → 5, refus 13 → 12, tours avec refus 8 → 9,5 ; force et
+  dépouille 2 appels par tour des deux côtés, aucun refus. Textes relus : la victime frappée « tremble, se
+  recroqueville et semble avoir peur » (`main` : « Brune semble inquiète »), Gorm assommé « s'effondre, sans
+  connaissance », sans signe ni humeur, aucune humeur inventée ; la dépouille sans nom, portrait ni parole.
+  Restes vus des deux côtés, sans lien avec H : la contre-revue juge individuelle une question « à
+  quelqu'un » adressée à tous (relance) ; une ambiance rescapée par segments ; un récit qui situe un objet
+  hors de vue « à deux cases vers le sud et deux vers l'est ».
 
 - Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
   quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
@@ -1899,9 +1920,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   processeur après fusion ; une invalidation sociale incrémentale au lieu de tout recalculer à chaque
   minute et événement) ; vols vus en baisse à la mine, l'auberge et la crue dans le banc de la branche, sans
   preuve que ce soit la dissuasion par les guets lus ; « Lecture de … » relue toutes les dix minutes
-  (alertes `repetition` de l'audit) ; Luna à vérifier sur les bancs `signes-*` (protocole du rapport) et
-  les scènes de force quand le service répondra ; dans le noir, `observer` une personne connue est refusé
-  par l'analyse locale avec « cet objet » au lieu du refus du moteur (« cette personne »).
+  (alertes `repetition` de l'audit) ; dans le noir, `observer` une personne connue est refusé par
+  l'analyse locale avec « cet objet » au lieu du refus du moteur (« cette personne ») et, en ligne, ce refus
+  part au MJ : 4 à 5 appels et 1 à 2 refus avant une réponse juste (Luna, `signes-noir`), au lieu de 0.
 - `combat.prix_violence` n'est employé que par les tests (`test_combat`) ; le planificateur réécrit la
   même règle (`2 * v.degat <= ENJEU`, le double du prix de douceur sous le plafond d'enjeu) au lieu de
   l'appeler (relevé à la fusion de 4b) : une seule règle à garder.
@@ -1919,7 +1940,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sur 8 h mais une graine (1985) coûte +9 % ; le rapport mesurait +6,8 % contre 4fc5212.
 - Luna après `codex-luna-noms` : faux refus sémantiques possibles de la contre-revue de fidélité
   (`tous` jugé individuel, achat dit sans transfert) ; une ambiance encore assortie d'une précaution
-  sur les bruits.
+  sur les bruits ; revus après N et M (`noms-dialogue` : « est-ce que quelqu'un a du bois ? » jugée
+  individuelle, une relance) ; un récit qui situe un objet hors de vue en cases (« deux cases vers le sud »).
 
 ## Décisions en attente
 
