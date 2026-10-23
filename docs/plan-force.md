@@ -317,8 +317,9 @@ Le planificateur et la délibération décident, par les valeurs, jamais par scr
 
 - **La faute de violence** : frapper, assommer, saisir, ligoter, tuer quelqu'un lèse cette
   personne ; le prix vient de la douceur (`prix_faute(…, "douceur")`), multiplié par la gravité du
-  geste (constantes : saisir 1, frapper ou assommer 2, ligoter 2, tuer 6). Douceur 100 les interdit
-  tous. Une faute d'honnêteté et une faute de douceur sur la même personne se comptent chacune
+  geste (constantes : saisir 1, frapper ou assommer 2, ligoter 2, tuer 6). Douceur 100 interdit
+  l’agression ; par décision de l’utilisateur, la défense de soi ou d’un protégé reste possible
+  en 4c. Une faute d'honnêteté et une faute de douceur sur la même personne se comptent chacune
   (le fait `("faute", lésé)` devient `("faute", lésé, valeur)`).
 - **Le risque** : un affrontement peut mal tourner. Son coût en minutes est
   `RISQUE × (1 − chance) × (100 − courage) / 50`, où la chance vient de la **force crue** :
@@ -467,7 +468,24 @@ chute : inconscient. Aucun geste de violence encore ; `--etat` au banc.
   chacun s'en inquiète, la nouvelle circule ; une partie où le joueur meurt (fonction appelée en
   test) se clôt et se recharge close.
 
-### 4b. Le coup et assommer
+### 4b. Le coup et assommer — Fait
+
+Réalisé sur `codex-force-4b`, non fusionnée. [Rapport, mesures et réserves](taches/rapport-codex-12-force-4b.md).
+La règle commune est dans `combat.py`, employée par l'action du joueur et les gestes des PNJ.
+La surprise est évaluée avant le bruit du coup ; les souvenirs et les épreuves de relations
+précèdent l'affichage. La fiche est un contrat explicite du plan, également conservé dans une
+manœuvre composée et dans la commande locale. Le recours assommer-pour-prendre garde trois
+gestes réels revalidés, avec les fautes d'honnêteté et de douceur séparées. La recherche ne
+suppose pas la disparition des témoins crus ; l'approche contrôle à nouveau vue et ouïe.
+
+Limites : les nuits libres de `rixe` ne suffisent pas à démontrer une agression spontanée ;
+l'assommement puis la prise se vérifient dans des états d'épreuve sur Gorm et un autre porteur.
+L'estimation du risque n'est pas une simulation d'affrontement. L'approche peut renoncer ou
+attendre une occasion. Pas de défense, fuite, reddition, lien ni action `tuer` en 4b. Le prix
+prépare la défense possible à douceur 100. Luna est différée à la fusion, sur un autre poste,
+selon la décision de l'utilisateur ; les deux scènes de banc sont versionnées. Les réserves
+sur la suite héritée et le contrôle doux sont explicitées dans le rapport.
+
 
 Règle du coup (armes, surprise, esquive, dégâts, cri, interruption), assommer ; action `frapper`
 du joueur sur un personnage, fiche et `attendu` ; geste exécutable des PNJ ; registre et témoins ;

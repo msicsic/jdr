@@ -39,6 +39,42 @@ la découvrent par la vue, s'en inquiètent et peuvent transmettre la nouvelle, 
 coupable. Une partie où le joueur est mort est sauvegardée close et se recharge close.
 Le banc accepte `--etat ilse:inconscient`, `--etat aubin:mort` et `--etat brune:blesse:5`.
 
+### Le coup et assommer (4b)
+
+`frapper` vise aussi une personne au contact. L'outil est une arme portée, ou vide pour les
+mains nues ; la méthode est `simple` ou `assommer`, la difficulté 0. La fiche annonce le jet,
+le risque et la durée avant « tenter ». Le même geste s'exécute chez les PNJ.
+
+Un outil de percussion ou levier est contondant, de coupe tranchant ; un autre objet intact
+d'au moins 0,5 kg est un contondant improvisé de puissance 1. Les mains nues ont puissance 0.
+Le jet oppose d20 + FOR modulée à d20 + DEX modulée, égalité à la victime. Une lame de moins
+de 0,5 kg emploie la DEX de l'attaquant. Si la victime ne voit pas l'auteur au début du coup,
+sa défense vaut 10. Sans défense, ou tenue par un autre, elle est touchée sans jet.
+
+Le coup dure 1,5 seconde, plus la rotation vers la cible. Il inflige 1 + puissance // 3 + mod
+FOR positif, +1 pour une lame, +2 sur 20 naturel. Touchée, la victime interrompt son geste ;
+consciente, elle crie (portée 9). Le coup lui-même est bruyant (7). À 0 PV, elle reste vivante,
+hors de combat ; le réveil suit la règle de 4a.
+
+Assommer exige un contondant et ôte 1 PV. Touchée par surprise ou sans défense, la victime
+perd connaissance ; sinon elle résiste par d20 + VOL contre 10 + les dégâts du coup normal.
+L'inconscience dure 5 + d20 minutes. La victime ne retient l'auteur que si elle le percevait ;
+son réveil ne lui apprend pas qui l'a frappée. Les témoins voient ou entendent par les règles
+communes, et leurs épreuves de violence passent par les relations graduées.
+
+Un PNJ peut envisager d'assommer le porteur d'un moyen utile à son but, puis le prendre.
+Le coût compte la douceur (gravité 2, avant le plafond d'enjeu), l'honnêteté séparément,
+la chance et le courage. Les coûts se comparent à demander. L'approche est feutrée, par une
+étape `dans_le_dos`, et se revalide sur place ; les autres témoins crus font attendre, sauf
+au désespoir. Un porteur cru inconscient ne compte plus comme observateur. La douceur 100
+exclut cette agression ; la fonction de prix prévoit la défense future, sans but de défense
+à cette étape. Pas encore de riposte, fuite, reddition, liens ni action `tuer`.
+
+`jeu.py --rixe` et `banc_pnj --scenario rixe` chargent l'épreuve dérivée du Relais par données ;
+`--scenario rixe_douce` offre le contrôle à douceur 100. Le récit, les mesures et le rejeu
+conservent les coups et les états du corps. Voir le [rapport 4b](taches/rapport-codex-12-force-4b.md)
+pour les mesures et réserves de validation.
+
 ### Défi du Relais des crues et déplacement en cases
 
 Double-cliquer sur **`lancer-defi.cmd`** pour une nouvelle scène avec **Luna seul**.
@@ -608,7 +644,7 @@ locuteur contre un DD que la confiance règle et que la VOL de l'auditeur élèv
 encore employée par aucune règle.
 
 Les valeurs d'un PNJ (0 à 100) sont des poids, stables. Une valeur à 100 interdit : honnêteté
-100, ni voler ni mentir ; douceur 100, ni blesser ni pousser (pousser est le seul geste de
+100, ni voler ni mentir ; douceur 100, ni blesser ni pousser (pousser et frapper sont des gestes de
 contrainte du moteur, voir « Laisser passer, demander le passage, pousser »).
 Les anciennes limites deviennent ces valeurs à leur comble au chargement (`ne_vole_pas` et
 `ne_ment_pas` : honnêteté 100 ; `ne_blesse_pas` : douceur 100), les autres valeurs à 50.

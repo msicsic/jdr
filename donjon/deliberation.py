@@ -23,7 +23,7 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
-              "servir", "frapper", "ranimer",
+              "servir", "frapper", "assommer", "dans_le_dos", "ranimer",
               "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
@@ -41,7 +41,7 @@ CHALEUR_FIN = 20       # réchauffé : il s'écarte du feu
 SECURITE_FIN = 30      # rassuré : il quitte l'abri
 # Ce qui inquiète (+) ou rassure (−) la sécurité, valeurs par défaut que chaque profil nuance
 # (donnée ``securite``) : par minute pour ce qui dure, d'un coup pour un événement.
-SECURITE = {"coup": 40, "mort": 30, "noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
+SECURITE = {"coup": 40, "violence": 25, "mort": 30, "noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
             "eau": 2, "menace": 1, "crue": 10,     # par minute : 50 cm d'eau, l'eau attendue bientôt ;
                                                    # d'un coup : la voir gagner un lieu
             "lumiere": 0.2, "compagnie": 0.5, "ronde": 20}                 # rassure

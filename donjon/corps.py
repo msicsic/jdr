@@ -392,4 +392,10 @@ def mesures(monde):
             "ranimes": sum(e["type"] == "ranime" for e in histoire),
             "morts": sum(e["type"] == "mort" for e in histoire),
             "decouvertes": sum(e["type"] == "mort_vue" for e in histoire),
-            "pv_perdus": sum(e.get("pv_perdus", 0) for e in histoire)}
+            "pv_perdus": sum(e.get("pv_perdus", 0) for e in histoire),
+            **({"coups_portes": sum(e["type"] == "coup" for e in histoire),
+                "coups_touches": sum(e["type"] == "coup" and e["touche"] for e in histoire),
+                "assommes": sum(e["type"] == "coup" and e["assomme"] for e in histoire),
+                "temoins_violence": sum(e["type"] == "violence_vue" for e in histoire),
+                "violences_entendues": sum(e["type"] == "violence_entendue" for e in histoire)}
+               if any(e["type"] == "coup" for e in histoire) else {})}

@@ -22,7 +22,7 @@ MOTIFS = {"devoir": "devoir", "biens": "biens", "securite": "sécurité", "faim"
           "argent": "argent"}
 BESOINS = {"securite": "sécurité", "repos": "fatigue", "chaleur": "froid"}
 GESTES = {"prendre": "prendre", "ouvrir": "ouvrir", "crocheter": "crocheter", "manger": "manger",
-          "deverrouiller": "déverrouiller", "poser": "poser", "pousser": "pousser", "frapper": "forcer",
+          "deverrouiller": "déverrouiller", "poser": "poser", "pousser": "pousser", "frapper": "frapper", "assommer": "assommer", "dans_le_dos": "approcher dans le dos",
           "briser": "forcer"}
 
 
@@ -364,6 +364,10 @@ class Recit:
             from .corps import mesures
             lignes += ["== Violences et corps ==", ", ".join(f"{k} : {v:g}" for k, v in mesures(monde).items())]
             for e in monde.data["historique_corps"]:
+                if e["type"] == "coup":
+                    lignes.append(f"{e['instant'] / 600:.2f} min : {court(monde, e['auteur'])} frappe {court(monde, e['cible'])} : "
+                                  f"{'touché' if e['touche'] else 'esquivé'}, {e['degats']} PV perdus"
+                                  + (", assommé." if e["assomme"] else "."))
                 if e["type"] == "mort_vue":
                     lignes.append(f"{court(monde, e['temoin'])} découvre {court(monde, e['id'])} après {e['delai']} min.")
         return "\n".join((crue + [""] if crue else []) + lignes + self.entre_eux(monde, chronique))

@@ -15,7 +15,7 @@ ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper
                        "bloquer", "debloquer")
 OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
-METHODES = ("simple", "discret", "levier", "finesse", "percussion", "appui_mobile", "appel", "cri", "sifflement",
+METHODES = ("simple", "discret", "levier", "finesse", "percussion", "assommer", "appui_mobile", "appel", "cri", "sifflement",
             "heler", "repondre", "arriver", "demander_raison")
 
 
@@ -514,6 +514,7 @@ def preparer(monde, proposition, origine):
     resultat = Plan(canonique, monde.data["revision"], "Manœuvre composée.", origine=origine)
     resultat.etapes = copy.deepcopy(etapes)
     resultat.plans = plans
+    resultat.confirmation = any(p.confirmation for p in plans)
     premier_jet = next((p for p in plans if p.stat), plans[0])
     for champ in ("stat", "dd", "bonus", "cle_arbitrage"):
         setattr(resultat, champ, getattr(premier_jet, champ))

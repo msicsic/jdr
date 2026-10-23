@@ -34,7 +34,7 @@ DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
 # retourner au bruit, retenir un bruit inconnu, aller le voir (``ouie``).
-NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
+NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
 A_DISTANCE = ("chauffer",)
@@ -190,8 +190,10 @@ def _annoncer_porte(monde, id, porte, verbe, texte_porte, lignes):
 
 def temoins_crus(monde, id):
     """Ceux que le PNJ perçoit : il se croit observé par chacun d'eux."""
+    croyances = lire(monde, id)["croyances"]
     return [s for s in percus(monde, id)[0]
-            if s == "joueur" or monde.objets[s]["type"] == "personnage"]
+            if (s == "joueur" or monde.objets[s]["type"] == "personnage")
+            and croyances.get(s, {}).get("etat", {}).get("valeur", {}).get("conscient") is not False]
 
 
 def oreilles_crues(monde, id, nature):
@@ -208,7 +210,7 @@ def oreilles_crues(monde, id, nature):
     crus = []
     for x, a in lire(monde, id)["croyances"].items():
         c = a.get("lieu")
-        if (x == id or not c or c["valeur"] != o["lieu"] or minute - c["minute"] > RECENT
+        if (x == id or a.get("etat", {}).get("valeur", {}).get("conscient") is False or not c or c["valeur"] != o["lieu"] or minute - c["minute"] > RECENT
                 or not (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")):
             continue
         if ici is None or not c.get("case") or INTENSITES[nature] - perte(ici, c["case"]) >= SEUIL:
@@ -220,7 +222,11 @@ TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, h
 CONTACT = 1            # case : au contact (une diagonale voisine comprise, ``geometrie.distance``)
 # Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
 # qui sait ce qu'elle a subi ; ceux qui voient faire en sont témoins comme d'un geste illicite.
-CONTRAINTES = ("pousser",)
+CONTRAINTES = ("pousser", "frapper", "assommer")
+
+
+def est_contrainte(monde, operation, objet):
+    return operation in CONTRAINTES and (objet == "joueur" or monde.objets.get(objet, {}).get("type") == "personnage")
 # Gestes qui changent la place d'un objet : qui les voit faire voit où l'objet va.
 DEPLACEMENTS = ("prendre", "poser")
 
@@ -286,13 +292,13 @@ def _temoigner(monde, geste):
     """
     from .vol import proprietaire
     id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
-    victime = objet if operation in CONTRAINTES else proprietaire(monde, monde.objets[objet])
+    victime = objet if est_contrainte(monde, operation, objet) else proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet, "victime": victime,
                 "preuve": f"geste:{id}:{operation}:{objet}:{geste['fin']}"}
     from .spatial import etat_fige
     with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
         _temoins(monde, geste, souvenir, victime)
-        if operation not in CONTRAINTES:  # Qui subit une bousculade le sait (``passage.subir``).
+        if operation != "pousser":  # La violence entendue suit le même contrat d’attribution.
             _temoins_a_l_oreille(monde, geste, souvenir, victime)
 
 
@@ -302,6 +308,9 @@ def _temoins(monde, geste, souvenir, victime):
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
             geste["temoins"].append(autre)
+            if geste["operation"] in ("frapper", "assommer") and est_contrainte(monde, geste["operation"], geste["objet"]):
+                from .corps import evenement
+                evenement(monde, "violence_vue", geste["objet"], auteur=id, temoin=autre)
             if monde.visible(autre) if id == "joueur" else percoit(monde, id, autre):
                 geste["se_sait_vu"].append(autre)
             lieu = _lieu_vu(monde, autre, geste)
@@ -310,9 +319,9 @@ def _temoins(monde, geste, souvenir, victime):
                 from .esprits import reviser
                 reviser(monde, autre, geste["objet"], "lieu", lieu["valeur"], "vu",
                         salle=lieu["salle"], case=lieu["case"])
-            inquieter(monde, autre, "illicite")
+            inquieter(monde, autre, "violence" if geste["operation"] != "pousser" and est_contrainte(monde, geste["operation"], geste["objet"]) else "illicite")
             reconsiderer(monde, autre)  # Un geste illicite sous ses yeux change sa situation.
-            if geste["operation"] in CONTRAINTES:
+            if est_contrainte(monde, geste["operation"], geste["objet"]):
                 continue  # La victime l'a subi (``passage.subir``) ; ses biens ne sont pas en cause.
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
@@ -344,12 +353,15 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
     salle, case = _place(monde, id)
     for autre in pnjs(monde):
         o = monde.objets[autre]
-        if (autre == id or autre in geste["temoins"] or autre in geste["entendus"] or autre in geste["exclus"]
+        if (autre == id or autre == victime and est_contrainte(monde, geste["operation"], objet) or autre in geste["temoins"] or autre in geste["entendus"] or autre in geste["exclus"]
                 or not o.get("profil") or o["lieu"] != salle or percoit(monde, autre, id)
                 or entend(monde, id, autre, force=geste["nature"]) is None
                 or not objet_situe(monde, autre, objet, salle, case)):
             continue
         geste["entendus"].append(autre)
+        if est_contrainte(monde, geste["operation"], objet):
+            from .corps import evenement
+            evenement(monde, "violence_entendue", objet, auteur=id, temoin=autre)
         reconnu = id in _crus_la(monde, autre, salle, case)
         if not reconnu:
             # Quelqu'un touche encore à ce bien, il le sait déjà : rien de nouveau, sinon que ça dure.
@@ -549,11 +561,18 @@ def _accessible(monde, id, objet):
     des mains d'autrui ? Il ne se déplace pas pour le vérifier : c'est sa marche qui l'en approche
     (``agir``)."""
     from .spatial import proche
+    if objet == "joueur":
+        from .passage import au_contact
+        return au_contact(monde, id, objet)
     if _porte(monde, objet, id):
         return True
     from .esprits import _porteur
-    if _porteur(monde, monde.objets[objet]) is not None:
-        return False
+    porteur = _porteur(monde, monde.objets[objet])
+    if porteur is not None:
+        from .corps import sans_defense
+        from .passage import au_contact
+        return (sans_defense(monde, porteur) and au_contact(monde, id, porteur)
+                and monde.present_physique(objet, salle=monde.objets[id]["lieu"]))
     o = monde.objets[id]
     return (monde.present_physique(objet, salle=o["lieu"])
             and (not monde.data.get("mode_cases") or "position" not in o or proche(monde, objet, id)))
@@ -570,6 +589,9 @@ def _a_toucher(monde, id, etape):
     touches = []
     for role in ("cible", "outil"):
         x = etape[role]
+        if x == "joueur" and op in ("frapper", "assommer", "dans_le_dos"):
+            touches.append(x)
+            continue
         if x not in monde.objets or _porte(monde, x, id):
             continue
         if role == "outil" and (op in SOCIALES or monde.objets[x].get("mobile")):
@@ -760,6 +782,18 @@ def _executer(monde, id, etape, lignes, gestes):
     if op in SOCIALES:
         from .echanges import executer
         return executer(monde, id, etape, lignes)
+    if op == "dans_le_dos":
+        return True
+    if op == "assommer" or op == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
+        from .combat import frapper, voit
+        from .monde import ErreurMonde
+        if etape["condition"] == "dans_le_dos" and voit(monde, cible, id):
+            return False
+        try:
+            frapper(monde, id, cible, outil, "assommer" if op == "assommer" else "simple", lignes)
+        except ErreurMonde:
+            return False
+        return True
     c = monde.objets.get(cible)
     if c is None:
         return False
@@ -1003,7 +1037,7 @@ def a_pas_feutres(monde, id):
     """Qui prépare un geste qu'il veut sans témoin marche à pas feutrés : cela se lit dans son
     intention, sans autre état."""
     intention = lire(monde, id)["intention"]
-    return bool(intention) and any(x["condition"] == "sans_temoin" for x in intention["plan"])
+    return bool(intention) and any(x["condition"] in ("sans_temoin", "dans_le_dos") for x in intention["plan"])
 
 
 def _marcher(monde, id, arrivee, lignes, gestes=None):
@@ -1144,6 +1178,11 @@ def _case_crue(monde, id, x):
     ici, o = monde.objets[id]["lieu"], monde.objets.get(x)
     fixe = o is not None and o["type"] != "personnage" and not o.get("mobile")
     cru = lire(monde, id)["croyances"].get(x, {}).get("lieu")
+    porteur = cru.get("valeur") if cru else None
+    if porteur in monde.objets and monde.objets[porteur]["type"] == "personnage" and porteur != id:
+        etat = lire(monde, id)["croyances"].get(porteur, {}).get("etat", {}).get("valeur", {})
+        if etat.get("conscient") is False:
+            return _case_crue(monde, id, porteur)
     if cru and (o is None or o["type"] != "porte"):  # Le joueur n'est pas un objet.
         if cru["valeur"] is None or cru.get("salle") != ici:
             return None
@@ -1408,6 +1447,13 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
             return reste, MANQUE, etape
         if pas:
             return pas, GESTE, None
+    if etape["condition"] == "dans_le_dos":
+        from .combat import approcher_dos
+        pas = approcher_dos(monde, id, etape, lignes, gestes, compter)
+        if pas is None:
+            return reste, MANQUE, etape
+        if pas:
+            return pas, GESTE, None
     if operation == "inspecter" and en_cases and "position" in o and o["lieu"] == etape["lieu"]:
         vers = (etape.get("contenu") or {}).get("vers")
         ici = o["lieu"]
@@ -1470,6 +1516,11 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     cible = etape["cible"]
     tourner = (_faire_face(monde, id, cible) if en_cases and cible and (
         cible in monde.objets and _accessible(monde, id, cible) or percoit(monde, id, cible)) else 0)
+    if operation == "assommer" or operation == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
+        from .combat import rotation
+        vers, supplement = rotation(monde, id, cible)
+        o["orientation"] = vers
+        tourner += supplement
     fait = _executer(monde, id, etape, lignes, gestes)
     if fait is not False:
         # Ce qu'il fait le temps de ce geste : se reposer délasse, un geste d'effort creuse (``vecu``).
@@ -1492,6 +1543,9 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         return (reste, FIN, None) if fait else (reste, MANQUE, etape)
     if not fait:
         return reste, MANQUE, etape
+    if operation == "assommer" or operation == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
+        from .combat import COUP
+        return tourner + COUP, GESTE, None
     return tourner + DUREES.get(operation, 20), GESTE, None
 
 

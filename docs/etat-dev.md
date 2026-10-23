@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-4b`, non fusionnée : coups et assommement par la même règle pour le
+  joueur et les PNJ, fiche avant tentative, armes et surprise, cris, interruptions, souvenirs
+  et relations, registre et prise sur un porteur inconscient. Le recours assommer-pour-prendre
+  compare les coûts, passe par `dans_le_dos` au pas feutré et ne suppose pas la disparition des
+  témoins crus. `rixe` et son contrôle doux sont des données, sans branche de comportement
+  propre au scénario. Empreintes de référence et contrôles croisés documentés dans le
+  [rapport 4b](taches/rapport-codex-12-force-4b.md), avec leurs limites. Les scènes Luna sont
+  versionnées ; vérification différée à la fusion sur un autre poste à la demande de l’utilisateur.
+  Pas de 4c à 4f ni de modification du modèle Luna. Quatorze tests 4b verts ; suite complète
+  1 432 tests, six échecs MiMo reproduits sur la référence, quatre ignorés. Quarante paires de
+  nuits de référence (2 h et 8 h) identiques, dix contrôles croisés sans écart ; rixe, huit graines,
+  nœuds +0,21 %, temps des recherches +2,88 %. Les nuits libres ne frappent pas ; l’agression
+  puis la prise sont démontrées par les états d’épreuve, sans règle propre à leurs personnes.
+
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,
@@ -1483,7 +1497,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Étape 4 du plan social, le corps et la force** : 4a fusionnée (`codex-force-4a`) ; 4b à 4f
+- **Étape 4 du plan social, le corps et la force** : 4a fusionnée (`codex-force-4a`), 4b réalisée sur sa branche non fusionnée ; 4c à 4f
   restent à réaliser, dans `docs/plan-force.md`. Décisions de
   la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
   ou défendre un protégé. Aucun geste de violence en 4a.

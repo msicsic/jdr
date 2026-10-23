@@ -81,7 +81,7 @@ def eveille(bruit, niveau):
     """Ce qui tire le joueur d'une attente (``Moteur._attendre``) : un appel, un cri, un fracas, ou
     une parole dont il saisit les mots. Des pas, un geste ordinaire, des voix dont les mots lui
     échappent sont le bruit de fond d'un lieu habité."""
-    return bruit["nature"] in ("hele", "appel", "bruyant") or bool(nette(bruit, niveau) and MOTS.search(bruit["texte"]))
+    return bruit["nature"] in ("hele", "appel", "cri", "bruyant") or bool(nette(bruit, niveau) and MOTS.search(bruit["texte"]))
 
 
 def reconnue(monde, bruit, niveau):
@@ -190,6 +190,8 @@ def _rendre(monde, entendus_):
         parties = []
         if "appel" in natures:
             parties.append("un appel à l'aide")
+        if "cri" in natures:
+            parties.append("un cri")
         if "hele" in natures:
             parties.append("quelqu'un appeler" if len(natures["hele"]) == 1 else "des appels")
         if "bruyant" in natures:

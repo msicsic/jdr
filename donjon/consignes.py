@@ -85,7 +85,8 @@ court (méthode, risque), jamais un résultat.
 - ouvrir, fermer : une porte ou un contenant, la clé dans outil si besoin ; deverrouiller : avec
   la clé qui convient ; crocheter : avec un outil d'usage crochetage.
 - frapper : un outil de percussion ou de levier (une lame peut entamer une cible tranchable) ;
-  couper : un outil de coupe ; plusieurs coups peuvent être nécessaires. Le moteur fixe les dégâts.
+  sur un personnage au contact : outil = arme portée ou vide (mains nues), methode = simple ou
+  assommer (contondant seulement), difficulte = 0 ; couper : un outil de coupe. Le moteur fixe le résultat.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.

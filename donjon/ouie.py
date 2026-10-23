@@ -53,7 +53,7 @@ from itertools import count
 
 from .geometrie import distance as _reelle
 
-INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "bruyant": 7, "hele": 9, "appel": 9}
+INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "bruyant": 7, "hele": 9, "appel": 9, "cri": 9}
 HABITUELS = ("feutre", "pas", "geste", "voix")
 VOCALES = ("voix", "hele")   # ce qui porte des mots, et fait reconnaître une voix
 NATURES = {
@@ -64,14 +64,14 @@ NATURES = {
     **dict.fromkeys(("parler", "dire", "demander", "confier", "acheter", "demander_feu"), "voix"),
     # Un sifflement porte loin et ne dit rien : inhabituel comme un fracas. Un crochetage dont on
     # connaît le jet sonne selon l'adresse (``nature_crochetage``) ; sinon, comme un fracas.
-    **dict.fromkeys(("crocheter", "forcer", "frapper", "couper", "decouper", "sauter", "franchir_obstacle",
+    **dict.fromkeys(("crocheter", "forcer", "frapper", "assommer", "couper", "decouper", "sauter", "franchir_obstacle",
                      "sifflement"), "bruyant"),
     # Héler quelqu'un par son nom est un cri : même portée qu'un appel ; ce sont les mots qui
     # l'en distinguent, pour qui les saisit (``entendre``).
     "heler": "hele",
     # Un appel à l'aide, un cri : la voix à pleine force, sans mots qu'on saisisse ; qui connaît
     # cette voix sait qui crie (``entendre``).
-    **dict.fromkeys(("appel", "cri"), "appel"),
+    "appel": "appel", "cri": "cri",
 }
 # Le son d'un objet (une cloche, ``sonorite``) ou un son improvisé, selon son intensité déclarée (1 à
 # 3) : un tintement comme un geste, un son franc comme un fracas, une cloche d'alarme comme un appel.
@@ -605,7 +605,7 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     examen = couvert(monde, id, salle, n, qui, case)
     if examen is not None:
         examen["minute"] = monde.data["minutes"]  # Il l'entend encore : c'est le même bruit.
-        if n == "appel":
+        if n in ("appel", "cri"):
             inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
         return
     memoire = esprit(monde, id)["memoire"]
@@ -616,7 +616,7 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     # Un bruit qu'il attend déjà de ce lieu ne l'inquiète pas de nouveau ; un appel, si : chaque
     # appel à l'aide en est un nouveau. Il s'inquiète à la mesure de ce qu'il en entend : un appel
     # tout proche, pleinement ; des pas lointains, à peine.
-    if not attente or n == "appel":
+    if not attente or n in ("appel", "cri"):
         inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
     if not attente:
         _chroniquer(monde, id, f"{_qui(monde, id)} entend un bruit : {monde.data['salles'][salle]['nom']}.", "ouie")
@@ -676,7 +676,7 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
         crus = [auteur] if certitude == RECONNUE else []
     else:
         crus = _crus_la(monde, id, salle, case if ici else None)
-        if n == "appel" and niveau >= SEUIL and reconnaitre(monde, id, auteur)[1] == RECONNUE:
+        if n in ("appel", "cri") and niveau >= SEUIL and reconnaitre(monde, id, auteur)[1] == RECONNUE:
             # Un cri porte la voix : il sait qui crie, et le croit là d'où vient le cri.
             reconnu = auteur
             croire(monde, id, auteur, "lieu", salle, "entendu", salle=salle,
