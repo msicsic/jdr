@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-luna-noms`, fusionnée, base `main` 9075aea, worktree
+  `tmp-worktrees/codex-luna-noms` : les contraintes d'adresse sont séparées du choix d'audience
+  (individuelle, groupe, cantonade même avec des personnes visibles), contrôlé par la contre-revue
+  de fidélité avant enregistrement, sans secours qui contourne un verdict négatif ;
+  question directe conservée mot pour mot, verbe sans propos précisé sans appel au MJ, nom non relié
+  traité sans démentis narratifs répétés. Tous les répondants sont entendus ; une voix audible
+  d'une autre salle reste interlocutrice, et ses répliques sont enregistrées à leur source réelle
+  par les deux voies (audit et fait typé). Citations successives segmentées ; présentation inventée
+  par l'auditeur redemandée à l'auditeur. Mauvais type d'assemblage : refus de forme, pas besoin
+  d'échelle déduit ; une question de faisabilité ne devient pas une parole, y compris après une
+  correction. Coordonnées de proximité réservées à `attendu`, approches d'improvisation conservées
+  en données sans libellé technique dans le récit. Suite du gel : **1 391 tests, 14 ignorés**,
+  aucun échec ; huit nuits de 2 h, Relais et auberge, graines 1985/7/42/2024 : chronique, mesures
+  et état final complet identiques à 9075aea. Campagne finale Luna : 21 scripts × 3 passes par
+  variante, 126 parties/1 380 saisies, aucune erreur technique ni recharge invalide. Appel négocié :
+  36 tours par variante à zéro appel modèle ; question collective à la cantonade 6/6. Relances
+  historiques : 8,33 → 2 par passe, mais avec noms appris 2,67 → 4 (appels +7,6 %). Un repli
+  Brune persiste et quatre clarifications de fidélité s'ajoutent : l'absence de faux refus
+  sémantiques n'est pas garantie. Le passage sous la poutre ne demande plus une échelle par
+  erreur de type, mais aucune solution générale de passage n'est fournie. Voir le
+  [rapport de la tâche 8](taches/rapport-codex-8-luna-noms.md), mesures et limites explicites.
 - Branche `codex-force-4b`, fusionnée : coups et assommement par la même règle pour le
   joueur et les PNJ, fiche avant tentative, armes et surprise, cris, interruptions, souvenirs
   et relations, registre et prise sur un porteur inconscient. Le recours assommer-pour-prendre

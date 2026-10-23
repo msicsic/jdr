@@ -140,7 +140,7 @@ class NomInconnuTests(unittest.TestCase):
         from donjon.voix import designation
         reprise, sortie, appels = jouer(m, "Brune, rends-moi mes pièces", [
             parole("Brune, rends-moi mes pièces.", ("reclamer", "", "", ""), personnage=designation(m,'marchand'))], [])
-        self.assertEqual(len(mj(appels)), 1)
+        self.assertEqual(len(mj(appels)), 0)
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
         self.assertEqual(paroles_retenues(reprise, "marchand"), [])
@@ -185,9 +185,9 @@ class CantonadeTests(unittest.TestCase):
         # Seul dans le noir, Corvus peut poser sa question à voix haute : le mode parole lui est offert.
         self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "personne")
         self.assertEqual(narration(appels)["faits"]["conversation_validee"]["repondent"], ["voix_1"])
-        self.assertIn("Tu dis : « Il y a quelqu'un ? »", sortie)
+        self.assertIn("Tu dis : « il y a quelqu'un ? »", sortie)
         self.assertIn("« Oui, ici. »", sortie)
-        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "Il y a quelqu'un ?")
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "il y a quelqu'un ?")
 
     def test_qui_se_mefie_de_la_voix_ne_repond_pas(self):
         m = banc("soir-noir")
@@ -244,9 +244,9 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertIn("difficulte : entier de 10 à 18", retours[1]["attendu"])
         self.assertEqual(reprise.data["journal"], [])
 
-    def test_apres_un_refus_du_monde_impossible_laisse_la_raison_du_moteur(self):
-        # Banc de la branche : « impossible » (refus de forme), « franchir » refusé par le monde (il faut une
-        # échelle), puis de nouveau « impossible » : le joueur lit la raison du monde, pas l'avis du MJ.
+    def test_apres_un_refus_de_type_l_avis_ne_devient_pas_une_raison_du_monde(self):
+        # Franchir une poutre n'est pas franchir un assemblage. Ce refus de type ne
+        # prouve pas qu'une échelle est nécessaire pour le mouvement demandé.
         from tests.test_paroles import relais
         m = relais()
         m.joueur["position"] = [6, 2]
@@ -258,8 +258,9 @@ class FaisabiliteTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "est-ce que je pourrais passer sous la poutre effondrée ?", [
             impossible(), franchir, impossible()], [verdicts(NEUTRE), verdicts(NEUTRE)])
         refus = [e["faits"]["retour_moteur"]["obstacle"] for e in mj(appels) if "retour_moteur" in e["faits"]][-1]
-        self.assertIn(refus, sortie)
-        self.assertNotIn("Tu demandes si tu peux passer.", sortie)
+        self.assertNotIn(refus, sortie)
+        self.assertNotIn("Il faut une échelle", sortie)
+        self.assertIn("Tu demandes si tu peux passer.", sortie)
         self.assertEqual(reprise.data["journal"], [])
 
     def test_meme_nature_heler_sans_nom_puis_la_question(self):
@@ -270,7 +271,7 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertNotIn("Dis qui tu appelles par son nom", sortie)
         self.assertIn("emettre_son heler", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
         self.assertIn("« Moi. »", sortie)
-        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "Il y a quelqu'un ?")
+        self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "il y a quelqu'un ?")
 
 
 class ChampsTests(unittest.TestCase):

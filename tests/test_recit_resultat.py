@@ -62,10 +62,10 @@ class RecitResultatTests(unittest.TestCase):
         code, sortie, reprise, vus = jouer(["je m'étire"], recit, ETIREMENT)
         self.assertEqual(code, 0)
         self.assertIn(recit, sortie)
-        self.assertNotIn("Tu réalises ce geste d'effort.", sortie)
+        self.assertNotIn("Tu réalises ce geste.", sortie)
         self.assertEqual(vus[0]["intention"], "je m'étire")
         # Le journal garde le résultat du moteur ; la conversation garde ce que le joueur a lu.
-        self.assertIn("Tu réalises ce geste d'effort.", reprise.data["journal"][-1]["faits"])
+        self.assertIn("Tu réalises ce geste.", reprise.data["journal"][-1]["faits"])
         self.assertEqual(reprise.data["conversation"][-1]["reponse"], recit)
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], recit)
 
@@ -76,7 +76,7 @@ class RecitResultatTests(unittest.TestCase):
         étapes exécutées."""
         _, _, _, vus = jouer(["je m'étire"], "Tu t'étires.", ETIREMENT)
         # Le geste dans les mots du moteur ; la manière demandée reste dans l'intention.
-        self.assertEqual((vus[0]["gestes"], vus[0]["intention"]), (["Geste d'effort."], "je m'étire"))
+        self.assertEqual((vus[0]["gestes"], vus[0]["intention"]), (["Geste."], "je m'étire"))
         from donjon.moteur import Moteur, gestes_accomplis
         m = nouveau_monde()
         etape = lambda op, cible, **k: {"operation": op, "cible": cible, "destination": "", "outil": "",
@@ -94,13 +94,13 @@ class RecitResultatTests(unittest.TestCase):
         recit = "Tu t'étires et perds 5 PV dans un faux mouvement."
         _, sortie, reprise, _ = jouer(["je m'étire"], recit, ETIREMENT)
         self.assertNotIn(recit, sortie)
-        self.assertIn("Tu réalises ce geste d'effort.", sortie)
+        self.assertIn("Tu réalises ce geste.", sortie)
         self.assertEqual(reprise.joueur["pv"], nouveau_monde().joueur["pv"])
-        self.assertEqual(reprise.data["conversation"][-1]["reponse"], "Tu réalises ce geste d'effort.")
+        self.assertEqual(reprise.data["conversation"][-1]["reponse"], "Tu réalises ce geste.")
 
     def test_panne_du_recit_rend_le_texte_du_moteur_sans_rejouer(self):
         _, sortie, reprise, _ = jouer(["je m'étire"], ErreurMonde("réseau"), ETIREMENT)
-        self.assertIn("Tu réalises ce geste d'effort.", sortie)
+        self.assertIn("Tu réalises ce geste.", sortie)
         self.assertEqual(len(reprise.data["journal"]), 1)
 
     def test_tenter_raconte_la_demande_d_origine(self):
@@ -123,7 +123,7 @@ class RecitResultatTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 jeu.main(["--recit-moteur", "--console", "--save", str(chemin), "--connexion", "api"])
         self.assertEqual(appel.call_count, 2)
-        self.assertIn("Tu réalises ce geste d'effort.", sortie.getvalue())
+        self.assertIn("Tu réalises ce geste.", sortie.getvalue())
 
 
 if __name__ == "__main__":

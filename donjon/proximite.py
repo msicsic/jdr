@@ -24,5 +24,6 @@ def exiger(monde, id):
         if position:
             ox, oy = monde.data["salles"][monde.joueur["salle"]]["plan"]["origine"]
             position = position[0] + ox, position[1] + oy
-        indication = f" (case {position[0]}, {position[1]} du plan)" if position and monde.visible(id) else ""
-        raise HorsDePortee("Approche-toi " + nom + indication + " : il faut être sur sa case ou juste à côté pour agir.")
+        indication = f" ; position = {position}" if position and monde.visible(id) else ""
+        raise HorsDePortee("Approche-toi " + nom + " : il faut être juste à côté pour agir.",
+                          f"cible = {id} : hors de portée de main{indication} ; le joueur doit s'approcher.")

@@ -116,6 +116,48 @@ jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un él
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
 
+### Parole, références et audit après les noms (`codex-luna-noms`)
+
+Le destinataire explicitement désigné, le chuchotement et la suite d'un échange contraignent
+la parole. En leur absence, `parole_prevue.audience_libre` autorise l'interprétation à choisir
+une parole individuelle, `tous` pour le groupe ou `personne` pour la cantonade, même quand
+des personnes sont visibles. Le moteur valide ce choix par les mêmes règles de perception
+et d'ouïe ; la contre-revue de fidélité contrôle l'audience, les mots et le contenu avant
+d'enregistrer la parole. Deux propositions refusées demandent une précision au joueur ; le
+secours local ne contourne pas un refus de fidélité. Une
+question directe choisie comme parole conserve exactement les mots saisis. Le choix sémantique
+de cette audience reste celui de Luna, comme celui des contenus de parole.
+Une question au MJ sur la faisabilité d'un geste ne devient pas une parole à un PNJ voisin :
+le même réexamen exige le geste à préparer. Une question explicitement dite ou adressée à un
+personnage reste une parole.
+
+Un verbe de parole sans propos, quand aucune réponse locale à un appel ne le résout, demande
+au joueur ses mots avant tout appel au MJ. Une adresse nominale non résolue donne le refus du
+moteur, même sans guillemets. Pour une autre question, si le récit emploie un nom saisi que le
+joueur ne sait rattacher à personne, le moteur demande une désignation publique. Cette
+clarification ne cite ni corps ni identité privée et ne transforme pas le démenti en exception
+au garde nominal. Les répliques validées et les résultats d'action gardent leurs contrôles.
+
+Tous les répondants d'une parole sont entendus avant la narration, y compris un destinataire
+qui vient de s'écarter hors du champ visuel. Une voix entendue depuis une autre salle est un
+interlocuteur si les mots passent encore dans les deux sens ; la salle commune n'est pas une
+condition supplémentaire. Les deux voies d'enregistrement des répliques (audit et fait typé)
+emploient `ouie.auditeurs_parole`, vérifient l'audition du joueur et enregistrent la salle réelle
+du locuteur. Aucune voix distante ne donne un portrait ou un lien nominal supplémentaire.
+
+La ponctuation finale d'une réplique termine son segment lorsque la phrase suivante commence ;
+les locuteurs successifs ont ainsi leurs propres citations auditées. Une `presentation` que
+l'auditeur fournit sans la trouver dans sa citation rend son rapport illisible : le rapport lui
+est redemandé une fois avant toute demande de réécriture. Un fait typé qui prétend ajouter une
+présentation absente de ses mots reste refusé par le moteur.
+
+Une opération dont la cible n'a pas le type requis est un `RefusDeForme`. Elle ne prouve pas
+qu'une ressource manque au geste réellement demandé : par exemple, `franchir` parcourt un
+assemblage, pas n'importe quel obstacle. Le refus de proximité garde ses coordonnées dans
+`attendu`, pour le MJ ; son message public ne contient que l'invitation à s'approcher. Une
+approche d'improvisation (`effort`, `adresse`…) reste une donnée structurée de l'arbitrage et
+ne devient plus le libellé narratif du geste.
+
 ## Noms et identité perçue (branche `codex-noms`)
 
 Voir une personne fait connaître son apparence, l'entendre parler sa voix. Aucun de ces deux

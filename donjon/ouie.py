@@ -300,6 +300,15 @@ def s_entendent(monde, a, b):
     return saisit(monde, a, b) and saisit(monde, b, a)
 
 
+def auditeurs_parole(monde, auteur):
+    """Auditeurs réels d'une réplique affichée : les PNJ et le joueur soumis
+    au même trajet acoustique, sans supposer qu'il est dans la salle du locuteur."""
+    auditeurs = set(saisissent(monde, auteur))
+    if auteur != "joueur" and saisit(monde, auteur, "joueur"):
+        auditeurs.add("joueur")
+    return sorted(auditeurs)
+
+
 def entend(monde, auteur, auditeur, geste="dire", force=None):
     """Le niveau auquel le PNJ ``auditeur`` entend, ici et maintenant, le geste d'``auteur`` (un PNJ
     ou le joueur) ; None s'il ne l'entend pas (sous son seuil, ou trop loin). ``force`` : la nature

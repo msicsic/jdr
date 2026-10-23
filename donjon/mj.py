@@ -202,7 +202,8 @@ def parole_annoncee(monde, intention):
     """Ce que le moteur fixe de la parole que la saisie annonce sans conteste (``paroles.analyser``,
     ``explicite``), ou None. ``impossible`` : le joueur doit préciser ou s'approcher."""
     from .paroles import prevue
-    return prevue(monde, intention) if analyser_parole(monde, intention)["explicite"] else None
+    forme = analyser_parole(monde, intention)
+    return prevue(monde, intention) if forme["explicite"] or forme["incomplete"] or forme["inconnu"] else None
 
 
 def parole_attendue(monde, intention):
@@ -302,6 +303,11 @@ def refus_assure(monde, intention, reponse, deja_renvoyee=False, impossible_admi
 class ExplicationCedee(ErreurMonde):
     """L'explication d'un geste refusé n'est pas admise du premier coup : le refus du monde y répond
     (``MJ._echanger_prepare``). Ce n'est ni une panne ni un refus à montrer."""
+
+
+class ParoleNonConforme(ErreurMonde):
+    """Une parole mécaniquement possible dont la contre-revue refuse la fidélité.
+    Aucun secours local ne peut la prononcer en contournant ce refus."""
 
 
 # « impossible » au premier examen : un réexamen est demandé, une fois (``MJ._echanger_prepare``).
@@ -479,8 +485,9 @@ class MJ:
                     reponse = parole_du_moteur(monde, intention)
                     if reponse["mode"] == "dialogue":
                         return reponse
-            elif (reponse["mode"] == "dialogue" and not ({"_audit", "_texte_moteur"} & set(reponse))
-                  and renvoi(monde, intention)):
+            elif ((reponse["mode"] == "dialogue" and not ({"_audit", "_texte_moteur"} & set(reponse))
+                   and renvoi(monde, intention))
+                  or (reponse["mode"] == "parole_joueur" and geste_en_question(monde, intention))):
                 # « Puis-je… ? », « Gorm, … » : le dialogue, non contrôlé (``refus_assure``), est renvoyé une
                 # fois avec ce qu'attend le moteur. S'il revient, il est contrôlé comme tout autre.
                 obstacle, attendu = renvoi(monde, intention)
@@ -625,6 +632,12 @@ class MJ:
             reponse = parole_du_moteur(monde, intention)
             if reponse["mode"] == "dialogue":
                 return reponse
+        if reponse["mode"] == "parole_joueur" and geste_en_question(monde, intention):
+            # La même frontière s'applique après TOUTES les corrections : une
+            # question au MJ n'est pas une réplique adressée à un PNJ voisin.
+            # Les refus de préparation ne donnent pas davantage le droit de parler.
+            return reponse_du_moteur(refus_du_moteur or ErreurMonde(
+                "Je n'ai pas pu déterminer le geste à examiner. Précise ce que tu veux tenter."))
         if reponse["mode"] == "enrichir_joueur":
             p = reponse["proposition"]
             travail = preparer_profil(monde, p, revision)
@@ -678,6 +691,7 @@ class MJ:
         complements = reponse["proposition"]
         rapport = None
         if reponse["mode"] == "parole_joueur":
+            fidelite_refusee = False
             for essai in range(3):
                 # Des mots imposés par le joueur (guillemets, deux-points, interpellation) sont dits
                 # tels quels, sans réécriture.
@@ -687,12 +701,29 @@ class MJ:
                                "_intention": intention[:600]}
                 try:
                     travail, rapport = preparer_parole(monde, complements, revision)
+                    from .paroles import audience_libre
+                    if audience_libre(analyser_parole(monde, intention)):
+                        from .moteur import Plan
+                        plan_parole = Plan({}, revision, "Prononcer la parole préparée.", parole={
+                            "adresse": {"tous": "groupe", "personne": "cantonade, sans destinataire particulier"}.get(
+                                rapport["personnage"], "individuelle"),
+                            "personnage": rapport["personnage"], "replique": rapport["replique_joueur"],
+                            "contenu": copy.deepcopy(complements["contenu"])})
+                        try:
+                            self._auditer_action(intention, plan_parole, revision, monde)
+                        except ErreurMonde as exc:
+                            raise ParoleNonConforme(str(exc), exc.attendu) from exc
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
                     return {"mode": "dialogue", "texte": str(exc), "faits": [], "proposition": None,
                             "_texte_moteur": True, "_validation_refusee": True}
                 except ErreurMonde as exc:
+                    fidelite_refusee |= isinstance(exc, ParoleNonConforme)
+                    if fidelite_refusee and essai:
+                        return {"mode": "dialogue", "texte": "Précise à qui tu t'adresses et ce que tu veux lui dire.",
+                                "faits": [], "proposition": None, "_texte_moteur": True,
+                                "_validation_refusee": True}
                     secours = parole_du_moteur(monde, intention) if essai and parole_attendue(monde, intention) else None
                     if secours and secours["mode"] == "parole_joueur" and secours["proposition"] != reponse["proposition"]:
                         # Deux propositions refusées : le moteur prononce lui-même les mots du joueur.
@@ -704,8 +735,9 @@ class MJ:
                                 "ainsi. Reformule ta réplique avec ce qu'il connaît.", "faits": [],
                                 "proposition": None, "_texte_moteur": True, "_validation_refusee": True}
                     retour = retour_refus(reponse["proposition"], exc,
-                                          "Corrige la parole : la réplique ne nomme que ce que Corvus connaît "
-                                          "d'après les faits, le message et la conversation.")
+                                          "Corrige les destinataires, les mots et le contenu de la parole pour "
+                                          "respecter la saisie ; elle ne nomme que ce que Corvus connaît d'après "
+                                          "les faits, le message et la conversation. Rien n'est encore dit.")
                     if self.observateur:
                         self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                           "revision": revision, "tentative": 1, **retour})
@@ -1061,6 +1093,14 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                                  f"dans {nom}, la réponse destinée au joueur, non vide",
                                                  partie=nom, recu=""))
                     continue
+                if monde is not None and self._interpretation:
+                    from .narration import clarification_nominale
+                    clarification = clarification_nominale(monde, intention, texte, entree.get("faits", {}))
+                    if clarification:
+                        # Une référence non résolue appelle une précision du joueur,
+                        # pas trois rédactions libres de la même absence de lien.
+                        return {"mode": "dialogue", "texte": clarification, "faits": [],
+                                "proposition": None, "_texte_moteur": True}
                 obstacles.extend(voix_auteur(texte, nom))
                 if monde is not None:
                     obstacles.extend(mentions_narratives(monde, texte, base, paroles, partie=nom))

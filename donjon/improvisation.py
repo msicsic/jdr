@@ -64,15 +64,13 @@ def texte_valide(s, maxi, vide=False):
 
 def libelle_geste(m, p):
     """Décrit une tentative depuis ses seuls champs structurés et validés."""
-    noms = {"expression": "d'expression", "manipulation": "de manipulation",
-            "effort": "d'effort", "adresse": "d'adresse", "observation": "d'observation"}
     objets = [m.objets[id] for id in p["cibles"]]
     cibles = ", ".join(designer(o) for o in objets)
     outil = m.objets.get(p["outil"])
     complements = (" concernant " + cibles if cibles else "")
     if outil and p["outil"] not in p["cibles"]:
         complements += " avec " + designer(outil)
-    return "Geste " + noms[p["approche"]] + complements
+    return "Geste" + complements
 
 
 def action_persistante(m, p):
