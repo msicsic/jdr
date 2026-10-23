@@ -53,7 +53,7 @@ et l'épisode distinguent une nouvelle impression d'un rafraîchissement ;
 `bilan_signes` ne répète que les faits physiques demandés, pas une même impression.
 La carte et le contexte conservent l'impression actuelle avec son incertitude.
 
-Tests ciblés : 32 tests des signes et de calibration, dont la capture réelle du
+Tests ciblés : 33 tests des signes et de calibration, dont la capture réelle du
 Relais 7 à 441 minutes et le guet de l'auberge, retour d'un signe, péremption, échec préservant la lecture,
 deux observations du joueur et 20 minutes d'un bloc ou découpées avec reprise.
 Le délai de dix minutes entre essais est conservé, même si le signe disparaît
@@ -145,6 +145,11 @@ partent au MJ sur la référence.
 ## 5. Vols vus, vérifications et limites
 
 Les mesures et constats finaux seront ajoutés après exécution.
+
+Suite complète finale : **1 589 tests, 15 ignorés**, aucun échec ni erreur,
+562,09 s, `tools/tests.py --processus 3`, priorité réduite. Le compte est celui
+de `unittest`, pas le nombre de sous-cas. Les assertions historiques de la crue
+500 sont conservées.
 
 ### Accord minimal avec les trajets réels
 

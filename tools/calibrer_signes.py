@@ -24,6 +24,7 @@ def nuit(tache):
     from donjon import banc_pnj, signes
     scenario, graine, lecteur, psy, parametres = tache
     source = hashlib.sha256(Path(signes.__file__).read_bytes()).hexdigest()
+    code = hashlib.sha256(b"".join(p.read_bytes() for p in sorted((RACINE / "donjon").glob("*.py")))).hexdigest()
     ceder()
     signes.PENOMBRE, signes.DISSIMULATION, signes.BANDE_RIEN = parametres
     preuves = []
@@ -57,12 +58,14 @@ def nuit(tache):
         signes.interpreter, signes._jet = calcul, jet
     return {"scenario": scenario, "graine": graine, "lecteur": lecteur, "psy": psy,
             "code_signes": source,
+            "code_moteur": code,
             "parametres": parametres, "mesures": mesures, "preuves": preuves,
             "chronique": donnees["chronique"]}
 
 
 def bilan(preuves):
     groupes = defaultdict(Counter)
+    groupes["total"]
     for p in preuves:
         sorte = p["signe"]["sorte"] if "sorte" in p["signe"] else None
         if sorte is None:
@@ -78,9 +81,10 @@ def bilan(preuves):
     resultat = {}
     for k, c in groupes.items():
         n = c["justes"] + c["meprises"]
-        resultat[k] = {**c, "lectures": n, "justesse": c["justes"] / n if n else None,
+        resultat[k] = {**{x: c[x] for x in ("essais", "rien", "justes", "meprises")},
+                       "lectures": n, "justesse": c["justes"] / n if n else None,
                        "part_meprises": c["meprises"] / n if n else None,
-                       "abstention": c["rien"] / c["essais"]}
+                       "abstention": c["rien"] / c["essais"] if c["essais"] else None}
     return resultat
 
 

@@ -9,15 +9,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   relectures rafraîchies sans nouveau souvenir ni annonce, refus local d'une personne
   connue hors de vue (présence, lumière, vue). Aucun changement de `planification.py`
   ni de `deliberation.py`. Optimisation `bbf17cb` : empreintes identiques sur 2 h puis
-  8 h, quatre scénarios et `rixe` × quatre graines. **32 tests ciblés verts** avec
+  8 h, quatre scénarios et `rixe` × quatre graines. **33 tests ciblés verts** avec
   rechargement, même laps découpé et reprise des anciennes impressions.
   Grille conditionnelle de 63 réglages, puis confirmation en 48 nuits libres : compromis
-  provisoire 4/3/8 (pénombre/dissimulation/bande rien), encore **24,92 % de méprises**,
+  provisoire 4/3/8 (pénombre/dissimulation/bande rien), encore **24,88 % de méprises**,
   Gorm PSY 14 à 0,806, Hugues à 0,769 ; critère global non atteint. La grille minimale
   est aussi rejouée en nuits libres (18 réglages × 48 nuits), en lots successifs de
-  trois processus à priorité réduite. Suite complète, contrôles, audit rapide et
-  mesures simultanées du temps en cours ; Luna finale : deux passes des trois bancs,
+  trois processus à priorité réduite. Suite complète verte : **1 589 tests, 15 ignorés**,
+  trois processus, 562,09 s. Contrôles, audit rapide et mesures simultanées du temps
+  en cours ; Luna finale : deux passes des trois bancs,
   « observer Ilse » dans le noir à **0 appel**, aucun refus de contrôle ni fuite du guet.
+  Correctif de trajet isolé `8f60441`, à conserver dans le lot Q : les salles du détour
+  réel respectent `Vue.descente` comme sa destination (crue 500, Brune piégée à 109 cm
+  auparavant ; test historique inchangé, capture réelle et second cas avec Ilse).
   [Rapport et mesures du lot](taches/rapport-codex-21-signes-calibration.md).
 
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
