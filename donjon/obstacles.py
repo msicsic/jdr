@@ -132,8 +132,8 @@ def metrique_necessaire(m, acteur, allure=PAS_JOUEUR):
     """La marche ordinaire suffit-elle, quels que soient les objets qu'il prévoit porter ?
 
     Une salle connexe et un détour au plus aussi rapide que chaque franchissement
-    garantissent le même graphe par salles et le même coût. La case exacte du PNJ
-    n'est alors pas une entrée de la recherche. Le test suppose les mains vides :
+    permettent de retirer les arêtes de franchissement sans perdre de trajet.
+    La distance ordinaire dépend toujours de la case de départ. Le test suppose les mains vides :
     l'équipement ne peut que retirer des franchissements, jamais en accélérer un.
     """
     from .esprits import lire
@@ -201,7 +201,7 @@ def _metrique_necessaire(m, acteur, formes, allure):
 
 
 class Parcours(dict):
-    """Le contrat historique des salles, plus leurs routes métriques crues."""
+    """Le contrat des salles, plus leurs routes et distances métriques crues."""
     def __init__(self, depart):
         super().__init__({depart: None})
         self.routes = {depart: []}
@@ -334,12 +334,11 @@ def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, po
                  allure=PAS_JOUEUR, metrique=None, cru=None):
     """Un parcours en cases, partagé par toutes les destinations d'une recherche.
 
-    Le chemin sans géométrie décrite garde le contrat historique. Ici toutes
-    les lectures de position et de forme sont celles du PNJ, jamais celles du MJ.
+    Chaque seuil atteint garde sa route. Toutes les lectures de position et de
+    forme des obstacles sont celles du PNJ, jamais celles du MJ.
     """
     from .spatial import _case_libre, _case_interieure, _pas_possibles, VECTEURS
     from .geometrie import cases
-    from .pnj import _verrouillee_crue, _cle_portee
     from .eau import noyee_crue
     cru = monde_cru(m, acteur) if cru is None else cru
     o = m.objets[acteur]
@@ -370,14 +369,15 @@ def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, po
         salle, case = ici
         if salle not in resultat.routes:
             resultat.routes[salle] = route
-            resultat[salle] = (depart, route[-1])
+            avant = route.chemin[-2][0] if len(route.chemin) > 1 else depart
+            resultat[salle] = (avant, route[-1])
         table = distances(cru, acteur, salle, case, equipement, allure, passages)
         resultat.locaux[ici] = table, route
         for direction, sortie in m.data["salles"][salle]["sorties"].items():
             vers, porte = sortie["vers"], sortie.get("porte")
             seuil = _case_interieure(cru, salle, sortie)
             if (seuil not in table or vers not in m.data["salles"] or noyee_crue(m, acteur, vers)
-                    or porte and porte not in ouvertes and _verrouillee_crue(m, acteur, porte)
+                    or porte and porte not in ouvertes and cru.objets[porte].get("verrouillee")
                     and not any(porte in m.objets[k].get("ouvre", ()) for k in cles)):
                 continue
             # Le pas du moteur choisit le véritable seuil d'en face, y compris

@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-trajets-reels`, non fusionnée, base `main` **aff9626** :
+  le coût d'un plan compte la marche depuis sa case réelle puis projetée, les diagonales,
+  l'allure, les approches, les portes et les gestes du moteur, en minutes fractionnaires.
+  `obstacles.cout_route` est partagé par les lecteurs de route, le devis de part et la fuite
+  du joueur ; la pression se paie dans chaque salle traversée et avant les effets du geste.
+  Case, orientation et allure appartiennent à l'état de recherche ; portes ouvertes et objets
+  posés gardent leurs effets. Distances locales bornées et vérifiées, lectures nouvelles dans
+  les clés des résultats, des deux graphes de lumière et du certificat d'absence.
+  Huit tests nouveaux suivent deux flammes au Relais et à la mine, deux portes courtes,
+  les distances d'objet, le noir, les obstacles crus ou ignorés, l'allure feutrée, la clé posée
+  et le même laps découpé ; état, perception et recharge. `VERIFIER` et
+  `spatial.VERIFICATION` **1 sur 2 h**, graine 42, Relais, mine, auberge, crue et `rixe` :
+  sans écart ni borne. Suite et campagnes longues en cours de consignation dans le
+  [rapport 20](taches/rapport-codex-20-trajets-reels.md). Aucun appel à Luna, aucune fusion.
+  Prix de faute, `DEMANDE`, `CHERCHER`, `RESTER`, `TACHE`, `SALAIRE` et borne inchangés.
+  L'espace enrichi peut atteindre la borne plus souvent ; les délais d'autrui et les gestes
+  durables gardent leurs approximations, décrites dans le plan et le rapport.
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
   dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.

@@ -2,7 +2,8 @@
 
 Branche `codex-trajets-reels`, non fusionnée, base `main` **aff9626**, tâche **fe77c95**.
 Worktree `tmp-worktrees/codex-trajets-reels`. Le dépôt principal reste sur sa branche
-initiale ; aucun appel ni connexion à Luna. Les résultats ci-dessous sont en cours de validation.
+initiale ; aucun appel ni connexion à Luna. Premier commit signé **0bd4729**.
+Les résultats ci-dessous sont en cours de validation.
 
 ## Règle et lecteurs
 
@@ -63,6 +64,8 @@ temps prévu comparé aux gestes exécutés, état/perception après recharge ; 
 proche et objet lointain dans une salle, position du geste suivant ; pression avant
 allumage ; obstacle cru ou ignoré ; deux portes courtes plutôt qu'un long détour par
 une porte ; même laps attendu d'un bloc ou découpé avec rechargement.
+L'allure feutrée est vérifiée dès la première approche, durée exécutée comprise ;
+la clé posée est retirée des chemins projetés puis de l'inventaire sauvegardé.
 
 Les attentes anciennes liées à une minute par salle, à l'ignorance de la case et au
 premier identifiant de lampe sont adaptées. Les tests de graphe à coûts synthétiques
@@ -72,7 +75,13 @@ qu'un ancien plan soit encore trouvé dans l'espace enrichi.
 
 ## Mesures et contrôles
 
-À compléter après la suite et les campagnes : comparaison 8 h contre aff9626,
+Contrôles exhaustifs terminés : `VERIFIER=True`, `spatial.VERIFICATION=1`,
+2 h, graine 42, départ tiré, Relais, mine, auberge, crue et `rixe` : cinq nuits
+sans erreur ni recherche bornée. Nœuds joués : 80 482 / 9 995 / 2 254 / 102 694 /
+84 064 ; CPU de contrôle 326 / 264 / 104 / 449 / 318 s. Ces durées incluent les
+recalculs exhaustifs, elles ne mesurent pas la vitesse normale du jeu.
+
+À compléter après la suite et les campagnes : comparaison finale 8 h contre aff9626,
 audit 12 h sur quatre graines, contrôles exhaustifs 2 h puis à 0,2 sur 8 h
 (graine 42, quatre scénarios et rixe), CPU et nœuds avec référence et branche ensemble.
 Tests et campagnes à priorité réduite, trois processus par campagne ; référence

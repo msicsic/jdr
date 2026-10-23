@@ -103,6 +103,14 @@ class TempsReelsTests(unittest.TestCase):
         e = p.depart(m, qui, v)
         self.assertIsNotNone(v.route(e, "beffroi"))
         self.assertIsNone(v.route(e.apres(portes=e.portes - {"cle"}), "beffroi"))
+        # L'autre sens : le plan ferme à clé une porte crue déverrouillée.
+        croire(m, qui, "porte", "verrouillee", False, "savoir")
+        v = p.Vue(m, qui)
+        sans_cle = p.depart(m, qui, v).apres(portes=e.portes - {"cle"})
+        self.assertIsNotNone(v.route(sans_cle, "beffroi"))
+        ferme = sans_cle.apres(faits=[(("verrou", "porte"), True)])
+        self.assertIsNone(v.route(ferme, "beffroi"))
+        self.assertNotIn("beffroi", dict(v.allers(ferme, v.ouvertes(ferme))))
         m, _, _ = executer_plan(m, qui, [p._etape("poser", "cle", lieu=e.salle)])
         self.assertEqual(m.objets["cle"]["lieu"], e.salle)
         self.assertNotIn("cle", p.depart(m, qui).portes)
@@ -187,17 +195,22 @@ class TempsReelsTests(unittest.TestCase):
 
     def test_pression_du_noir_proportionnelle_au_temps_et_avant_allumage(self):
         m, qui, source, feux = flammes("relais")
+        m.objets[qui]["profil"].setdefault("securite", {})["noir"] = 1
+        croire(m, qui, "echoppe", "etat", {"eclairee": False, "niveau": 0, "propre": 0}, "savoir")
+        m = recharger(m)
         v = p.Vue(m, qui)
-        v.peur = 1
         e = p.depart(m, qui, v)
-        with patch.object(v, "noir", side_effect=lambda etat: not etat.fait("allume", source)):
-            couts = []
-            for f in feux:
-                t, pression, _ = p._mesurer(v, e, [p._etape("allumer", source, outil=f)],
-                                           e.apres(faits=[(("allume", source), True)]), 1)
-                couts.append(t)
-                self.assertAlmostEqual(pression, t * p.NOIR)
-            self.assertGreater(couts[0], couts[1])
+        couts = []
+        for f in feux:
+            t, pression, final = p._mesurer(v, e, [p._etape("allumer", source, outil=f)],
+                                          e.apres(faits=[(("allume", source), True)]), 1)
+            couts.append(t)
+            self.assertAlmostEqual(pression, t * p.NOIR)
+            self.assertEqual(v.pression(final), 0)
+        self.assertGreater(couts[0], couts[1])
+        m, _, lignes = executer_plan(m, qui, [p._etape("allumer", source, outil=feux[1])])
+        self.assertTrue(m.objets[source]["allume"])
+        self.assertIn("allume", " ".join(lignes))
 
     def test_obstacle_cru_contre_obstacle_ignore_et_cache(self):
         from tests.test_sous_obstacle import corridor

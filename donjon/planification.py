@@ -86,7 +86,7 @@ def diagnostics():
 
 class Etat(tuple):
     """Où il se tient, ce qu'il porte, et ce que le plan a changé à ce qu'il croit. Deux états sont
-    égaux quand le sont (salle, portes, faits) : le tuple qu'il est."""
+    égaux quand le sont salle, possessions, faits, case, orientation et allure."""
 
     def __new__(cls, salle, portes, faits, case=None, orientation=None, allure=15):
         portes, faits = frozenset(portes), dict(faits)
@@ -471,9 +471,9 @@ class Vue:
         return crus[cle]
 
     def allers(self, e, ouvertes):
-        """[(salle, longueur du trajet)] : chaque autre salle qu'il croit atteindre depuis celle de
+        """[(salle, minutes du trajet)] : chaque autre salle qu'il croit atteindre depuis celle de
         ``e``, avec ce qu'il porte et les portes que le plan a déverrouillées (``route``)."""
-        cle = (e.salle, e.case, e.orientation, e.portes, ouvertes, e.allure)
+        cle = (e.salle, e.case, e.orientation, e.portes, ouvertes, e.allure, self.portes_prevues(e))
         if cle not in self._allers:
             allers = []
             for s in self.salles_triees:
@@ -490,7 +490,7 @@ class Vue:
         le plan a déverrouillées (crochetées, ``ouvertes`` si on les a déjà) ; None s'il n'y croit
         aucun passage."""
         trajet = (e.salle, arrivee, e.portes, self.ouvertes(e) if ouvertes is None else ouvertes, e.case, e.allure,
-                  frozenset(k[1] for k, x in e.faits.items() if k[0] == "ouvert" and x))
+                  self.portes_prevues(e))
         if trajet in self._trajets:
             return self._trajets[trajet]
         cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
@@ -508,7 +508,10 @@ class Vue:
                     cru = self._cru_spatial
                     if trajet[6]:
                         cru = copy.copy(cru)
-                        cru.objets = {**cru.objets, **{p: {**cru.objets[p], "ouverte": True} for p in trajet[6]}}
+                        cru.objets = dict(cru.objets)
+                        for (genre, porte), valeur in trajet[6]:
+                            champ = "ouverte" if genre == "ouvert" else "verrouillee"
+                            cru.objets[porte] = {**cru.objets[porte], champ: valeur}
                         cru.data = {**cru.data, "objets": cru.objets}
                     self._parcours[depuis] = parcours_cru(
                         self.monde, self.id, e.salle, cles, trajet[3], e.portes,
@@ -527,6 +530,10 @@ class Vue:
             from .obstacles import metrique_necessaire
             self._metriques[allure] = metrique_necessaire(self.monde, self.id, allure) if self._passages_crus else False
         return self._metriques[allure]
+
+    def portes_prevues(self, e):
+        return tuple(sorted((k, x) for k, x in e.faits.items() if k[0] in ("ouvert", "verrou")
+                            and self.objets[k[1]]["type"] == "porte"))
 
     def arrivee(self, e, salle, route):
         """La case d'entrée et les portes déjà ouvertes appartiennent à l'état exploré."""
@@ -570,7 +577,7 @@ class Vue:
 
     def approche(self, e, etape, cibles=None):
         """Même contact que l'exécution, sur les positions et obstacles crus."""
-        from .obstacles import Route, distances, transitions, descriptions_crues
+        from .obstacles import Route
         from .pnj import _a_toucher, _a_portee_de
         if self._cru_spatial is None or e.case is None:
             return Route(fin=(e.salle, e.case))
@@ -588,22 +595,23 @@ class Vue:
             return Route(fin=(e.salle, e.case))
         metrique = self.metrique(e.allure)
         cle = (e.salle, e.case, e.portes if metrique else frozenset(k for k in e.portes if self.objets[k].get("ouvre")),
-               cibles, centre, e.allure, self.ouvertes(e),
-               frozenset(k[1] for k, x in e.faits.items() if k[0] == "ouvert" and x))
+               cibles, centre, e.allure, self.ouvertes(e), self.portes_prevues(e))
         if cle not in self._approches:
             cru = self._cru_spatial
             # Une approche peut sortir puis revenir si la géométrie l'exige ;
             # elle réemploie le même parcours que tous les allers de cet état.
             self.route(e, e.salle)
             identite = (e.salle, e.salle, e.portes, self.ouvertes(e), e.case, e.allure,
-                        frozenset(k[1] for k, x in e.faits.items() if k[0] == "ouvert" and x))
+                        self.portes_prevues(e))
             parcours = self._locaux[identite]
             candidats = []
             for (salle, _), (table, avant) in parcours.locaux.items():
                 if salle != e.salle:
                     continue
                 for c, (d, chemin) in table.items():
-                    if c != cibles[0] if centre else not all(_a_portee_de(cru, salle, c, cible) for cible in cibles):
+                    atteint = (c == cibles[0] if centre else
+                               all(_a_portee_de(cru, salle, c, cible) for cible in cibles))
+                    if not atteint:
                         continue
                     candidats.append((sum(t for _, t in avant.sejours) + d, len(candidats), c, chemin, avant, d))
             if candidats:
@@ -1451,9 +1459,9 @@ def _entrees(v, vises, profondeur, noeuds):
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
     from .signes import actives
-    # Le parcours métrique lit les positions crues des obstacles, et sa case de
-    # départ actuelle. Aucun champ neuf sans géométrie crue (identité des nuits).
-    passages, metrique = v._passages_crus, v._metrique
+    # Le temps de marche lit toujours les positions crues et le départ réel,
+    # même quand la preuve permet d'écarter les franchissements spéciaux.
+    metrique = v._metrique
     return json.dumps([
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],

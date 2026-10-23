@@ -9,6 +9,7 @@
   tient pas là où on la croit ou l'attend ; on ne descend pas dans une salle qu'on attend noyée ou
   d'où le retour serait coupé ; qui l'attend noyée là où il se tient en sort avant tout."""
 import json
+import copy
 import unittest
 from unittest.mock import patch
 
@@ -39,7 +40,7 @@ def par_blocs(m, jusqu_a, bloc):
 
 
 class VerifierTests(unittest.TestCase):
-    def test_lucien_cherche_josse_pour_la_lumiere_et_la_reference_le_trouve_aussi(self):
+    def test_lucien_demande_la_lampe_vue_et_la_reference_le_trouve_aussi(self):
         # Cas réel (``test_lumiere``, la mine noire, révélé à la fusion de ``ouie-temoins``) : dans le
         # noir, Lucien va chercher Josse, qui porte une lampe, et l'appelle ; la référence de
         # ``VERIFIER`` (sans ``emplois``) n'offrait pas ce geste et ne trouvait aucun plan.
@@ -55,6 +56,10 @@ class VerifierTests(unittest.TestCase):
             if "allumage" in o.get("usages", ()):
                 o["usages"] = [u for u in o["usages"] if u != "allumage"]
         croire(m, "lucien", "josse", "lieu", None, "savoir", salle=None, case=None)
+        m.objets["bidon_huile"]["charges"] = 0
+        croire(m, "lucien", "bidon_huile", "etat", {"disponible": False}, "savoir")
+        placer(m, "josse", "filon", (3, 3))
+        m.objets["lampe_josse"].update(allume=True, combustible=720)
         for id in ("remy", "lucien", "bram"):
             lire(m, id)["besoins"]["securite"] = 70.0
         # Ses buts se choisissent aussi entre deux minutes (``deliberation-evenements``) : on regarde
@@ -66,15 +71,20 @@ class VerifierTests(unittest.TestCase):
             resultat = choisir(monde, id, minute)
             i = lire(monde, id)["intention"]
             if id == "lucien" and i:
-                plans.append(i)
+                plans.append(copy.deepcopy(i))  # l'exécution retire ensuite les étapes en place
             return resultat
         with patch.object(planification, "VERIFIER", True), diagnostics() as recherches,                 patch.object(deliberation, "choisir", espion):
             for _ in range(15):
                 m, _ = vivre(m, 1)
+        # L'espace enrichi borne d'abord la recherche. Josse entre ensuite dans
+        # son champ ; le recours est désormais de demander la lampe vue, sans
+        # inventer un appel que cette nuit ne produit plus.
         self.assertTrue(any(i["but"]["type"] == "lumiere" and any(
-            (x.get("contenu") or {}).get("cherche") == "josse" for x in i["plan"]) for i in plans))
+            x["operation"] == "demander" and x["cible"] == "josse" for x in i["plan"]) for i in plans))
         self.assertTrue(any(r["pnj"] == "lucien" and r["but"] == "lumiere" for r in recherches))
-        self.assertIn("Lucien appelle : « Josse ? »", [c["texte"] for c in m.data["chronique"]])
+        self.assertTrue(any(c["texte"].startswith("Lucien demande la lampe du contremaître à Josse")
+                            for c in m.data["chronique"]))
+        self.assertEqual(m.objets["lampe_josse"]["lieu"], "josse")  # son refus est respecté
 
     def test_remy_cherche_gaspard_et_le_controle_passe(self):
         # Même nature (mine, le camp éteint) : Rémy va chercher Gaspard, qui a le briquet, l'appelle et
