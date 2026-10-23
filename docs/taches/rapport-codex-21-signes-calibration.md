@@ -145,3 +145,25 @@ partent au MJ sur la référence.
 ## 5. Vols vus, vérifications et limites
 
 Les mesures et constats finaux seront ajoutés après exécution.
+
+### Accord minimal avec les trajets réels
+
+La suite complète a révélé une vraie régression de trajet dans la crue 500 : à
+160 min, Brune vise la galerie haute pour le poêle. La marche prend un détour
+par la conduite puis la crypte, dont elle prévoit pourtant la noyade ; elle
+s'acharne ensuite à crocheter la porte du beffroi jusqu'à 182 min, puis reste
+piégée (109 cm à 360 min). La destination abstraite était sûre, pas son détour.
+
+Correctif isolé dans `pnj._marcher` : le filtre des salles de la route réelle
+réutilise `Vue.descente`, déjà autorité du plan, pour toutes les salles
+intermédiaires. Il n'en réécrit pas la règle et ne lit pas une prévision réelle
+à la place des croyances du PNJ. Aucune modification de `planification.py` ni de
+`deliberation.py`. Ce petit accord devra être conservé par le lot Q qui refond
+les trajets : ne pas remettre une route réelle qui ne respecte que sa destination.
+
+Le test historique `test_crue_500_personne_ne_se_chauffe_dans_l_eau_ni_ne_reste_piege`
+passe sans modification de ses assertions. La capture réelle avant le détour
+(`tests/data/scenes/crue500-avant-descente.json.gz`, 160 min, `e1c018b`) et une
+seconde lectrice, Ilse avec la même information d'eau et une porte crue praticable,
+vérifient un vrai trajet géométrique tentant, son refus général, le monde et le
+rendu après rechargement, puis la sécurité après vingt minutes de jeu.

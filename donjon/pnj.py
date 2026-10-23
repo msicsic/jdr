@@ -1109,6 +1109,13 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     # Il ne cherche pas de chemin par une salle qu'il a vue noyée ; il peut quitter la sienne.
     from .eau import noyee_crue
     noyees = {s for s in monde.data["salles"] if s != o["lieu"] and noyee_crue(monde, id, s)}
+    from .eau import active, menacee
+    if active(monde) and any(menacee(monde, id, s) for s in monde.data["salles"]):
+        # La destination du plan peut être sûre et son détour réel descendre dans
+        # un piège. La même règle du plan juge aussi chaque salle intermédiaire.
+        from .planification import Vue
+        vue = Vue(monde, id)
+        noyees.update(s for s in vue.salles if s != o["lieu"] and vue.descente(o["lieu"], s))
     franchissable = lambda porte: _franchissable(monde, id, porte)
     formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id, allure) else {}
     passages = transitions(monde, id, formes, allure=allure) if formes else None

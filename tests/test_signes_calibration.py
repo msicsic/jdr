@@ -242,5 +242,50 @@ class ObserverSansVoirTests(unittest.TestCase):
                     self.assertFalse(signes.impressions(apres))
 
 
+class TrajetsRevelesTests(unittest.TestCase):
+    def test_destination_sure_ne_permet_pas_un_detour_cru_noye(self):
+        import gzip
+        import json
+        from donjon.banc_pnj import executer
+        from donjon.esprits import croire
+        from donjon.monde import Monde
+        from donjon.planification import Vue
+        from donjon.pnj import _marcher
+        from donjon.rendu import regarder
+        from donjon import eau
+        # Capture réelle à 160 min, crue 500, e1c018b : la marche allait vers
+        # le poêle haut par la conduite et la crypte attendues noyées.
+        source = Path(__file__).parent / "data/scenes/crue500-avant-descente.json.gz"
+        data = json.loads(gzip.decompress(source.read_bytes()))
+        for id in ("brune", "ilse"):
+            with self.subTest(id=id):
+                m = Monde(copy.deepcopy(data))
+                if id == "ilse":
+                    # Autre lectrice ayant les mêmes constats d'eau et croyant
+                    # la porte praticable : le danger du détour reste le même.
+                    for salle, c in lire(m, "brune")["croyances"].items():
+                        if "eau" in c:
+                            lire(m, id)["croyances"].setdefault(salle, {})["eau"] = copy.deepcopy(c["eau"])
+                    croire(m, id, "porte", "verrouillee", False, "entendu")
+                    lire(m, id)["intention"] = copy.deepcopy(lire(m, "brune")["intention"])
+                m = recharger(m)
+                v = Vue(m, id)
+                self.assertFalse(v.descente("antichambre", "chambre_cloche"))
+                self.assertTrue(v.descente("antichambre", "crypte"))
+                # Le cas présente bien un trajet géométrique tentant sans ce
+                # contrat : le refus ne vient ni d'une occupation ni d'un mur.
+                ancien = m.copier()
+                with patch("donjon.planification.Vue.descente", return_value=False):
+                    self.assertIsNotNone(_marcher(ancien, id, lambda s, p: s == "chambre_cloche", []))
+                avant, texte = copy.deepcopy(m.data), regarder(m)
+                self.assertIsNone(_marcher(m, id, lambda s, p: s == "chambre_cloche", []))
+                m = recharger(m)
+                self.assertEqual(m.data, avant)
+                self.assertEqual(regarder(m), texte)
+                executer(m, 180)
+                m = recharger(m)
+                self.assertLess(eau.profondeur(m, m.objets[id]["lieu"]), 50)
+
+
 if __name__ == "__main__":
     unittest.main()
