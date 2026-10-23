@@ -1325,6 +1325,79 @@ mémoire contrôlés. L'inspection ordinaire reste possible dans le noir ; le te
 explicitement un but de lumière. Mesures et causalité historique :
 `docs/taches/rapport-codex-9-lampes-suite.md`.
 
+## Part remise : étape estimée (branche `codex-part-estimee`, non fusionnée)
+
+Le graphe détaille le trajet jusqu'au donneur, la recherche éventuelle de celui-ci,
+la demande (chance de `relations.chance_demande`) ou l'achat et son prix. Il ne
+développe plus les combinaisons d'états après réception du combustible. La demande,
+l'achat ou l'attente d'une part déjà promise mène à un candidat terminal estimé.
+`_couper` conserve les frontières existantes : aucune recharge n'est exécutable
+avant la livraison réelle ; après celle-ci, le moteur replanifie avec son identifiant.
+Le service où le donneur entretient lui-même le foyer conserve son contrat distinct.
+
+`part_estimee.suites` établit un devis depuis le lieu de remise. La scène et ses
+faits sont ceux du début de recherche ; les possessions, droits acquis, fautes
+déjà comptées et budget engagé viennent du préfixe. Une source déjà empruntée
+n'est pas à emprunter une seconde fois. Les autres préparatifs du préfixe ne
+refont pas la scène du devis. Il est gardé pour ce contexte, ce lot et l'emploi
+de lumière pendant cette recherche ; aucune donnée d'une autre vue n'est reprise.
+
+Le devis parcourt les sources rechargeables connues, compatibles par `recharge`
+et non contrariées. Il compte le trajet connu vers la source,
+sa prise, son emprunt ou son achat si elle est mobile, une recharge, puis l'accès à une flamme connue et
+l'allumage s'il le faut. La flamme peut être portée, accessible et prise, posée si
+la source est portable, ou demandée à son porteur connu, avec le refus de feu et le
+prix social usuels. Une prise autorisée mais illicite garde son coût de faute,
+compté une fois par victime, comme les autres gestes. Une source fixe demande une flamme en main. Aucune substance,
+personne ou salle n'est distinguée.
+
+Le reste du but est estimé par un trajet connu et zéro ou un geste conclusif,
+offert par le contrat commun `_suites` : ses permissions, chances, fautes, dégâts,
+budget et restriction aux moyens du commanditaire s'appliquent aussi. Il n'y a ni
+file d'états de gestes ni développement de ses successeurs. Le prix des trajets
+entre salles est calculé séparément sur les routes connues, avec la pression de
+chaque étape et la combustion de la source portée ; aucun autre fait n'y change.
+Un but déjà satisfait au
+lieu candidat s'y arrête. Les préparatifs plus longs restent du ressort de la
+recherche réelle après remise ; ils ne sont pas prédits par ce devis.
+
+Chaque segment paie ses minutes plus sa durée multipliée par `Vue.pression` à
+l'arrivée, comme les trajets de la recherche : noir avant allumage, eau, éloignement
+de chaque bien gardé et présence crainte. Le dernier trajet et geste comptent aussi
+la combustion d'une source nouvellement portée ; un but à tenir compte encore
+`RESTER * pression(final)`. L'attente du donneur vient de `Vue.attente_part`, au
+lieu de remise, sans prendre la promesse pour une source déjà chargée. Le prix
+d'une faute et celui d'abîmer restent des termes séparés, appliqués par la file
+pondérée, jamais choisis ou comparés par le devis.
+
+Ce prix est une estimation de parcours, **pas une borne admissible de l'optimum
+détaillé**. Elle peut surestimer en oubliant une ouverture acquise dans
+le préfixe, et écarter une voie dont le but
+exige plusieurs gestes après allumage. Elle peut sous-estimer une livraison
+retardée, un porteur parti, un chemin devenu impraticable, le temps et la combustion
+d'un détour, ou les préparatifs omis ; la replanification sur le monde réel demeure
+obligatoire. Elle n'établit aucune faisabilité future garantie.
+
+Les lectures proviennent des mêmes objets, croyances, refus, routes, propriétés et
+profils que les gestes ordinaires. `_entrees` explicite en plus l'identité de cette
+règle et les pressions d'eau et sociales. Le point de départ est déjà dans la clé
+(les recherches avec `depuis` ne sont pas mémorisées). Le devis ne compare aucun
+prix de faute : les graphes `sombre` et `lumiere` restent indépendants de ces prix.
+Ses lectures de lumière passent par les méthodes communes, donc participent à la
+découverte et à sa reprise. Les candidats estimés sont terminaux et ne produisent
+aucune arête de continuation. Un certificat qui rencontre leur nœud absent ne
+prouve aucune impossibilité ; il conserve sa réponse « lacune ». `VERIFIER` refait
+la recherche complète avec cette même règle estimée, et conserve ses contrôles de
+mémoire, de graphes et de restriction des objets.
+
+`tools/mesurer_part_estimee.py` utilise le banc et l'audit de `comparer_bancs`. Pour
+la justesse, chaque recherche concernée, y compris ses reprises, est rejouée avec
+la fonction `_parts_remises` de la référence, dans des mémoires séparées, sans
+modifier le monde. Il conserve les coûts, le premier geste, le lieu et les effets
+terminaux du but, et les deux plans quand ils diffèrent. Les temps de ce contrôle
+sont exclus de la comparaison de vitesse. Résultats et limites du lot :
+[rapport Codex 16](taches/rapport-codex-16-part-estimee.md).
+
 ## Garde et chance de demande (branche `codex-garde-pret`, fusionnée)
 
 Les constantes `GARDE` et `PRET` des bilans précédents sont retirées. Les lieux gardés restent

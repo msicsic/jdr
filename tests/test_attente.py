@@ -6,7 +6,7 @@ import re
 import unittest
 
 from donjon.commandes import analyser
-from donjon.esprits import pnjs
+from donjon.esprits import croire, lire, pnjs
 from donjon.monde import ErreurMonde
 from donjon.moteur import Moteur, proposition
 from donjon.temps import instant
@@ -97,9 +97,13 @@ class AttenteTests(unittest.TestCase):
 
     def test_un_appel_entendu(self):
         # Seul à la galerie : des pas en dessous ne l'interrompent pas, l'appel d'un nom si (ou un fracas).
-        # Relations graduées et appel négocié réunis : la nuit libre n'a plus d'appel ni de fracas
-        # avant la huitième heure ; le premier, un grand bruit, vient vers 11 h 14.
+        # La nuit libre n'a plus d'appel en douze heures depuis la part estimée (Gorm, qui achète les
+        # planches d'Aubin pour le brasero, reçoit la part et recharge lui-même au lieu d'attendre le
+        # service puis de chercher Aubin en l'appelant) : placement d'auteur, Aubin ne sait plus où est
+        # Gorm et sa faim montera ; il le cherchera en l'appelant, en dessous, au bout d'une heure et demie.
         m = relais()
+        croire(m, "aubin", "marchand", "lieu", None, "essai", salle=None, case=None)
+        lire(m, "aubin")["besoins"]["faim"] = 60.0
         reprise, texte, duree = attendre(m, "attendre 12 h")
         self.assertLess(duree, 12 * 36000)
         self.assertGreater(duree, 3000)

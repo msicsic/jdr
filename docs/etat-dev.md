@@ -4,6 +4,65 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-part-estimee`, fusionnée, base intégrée `4fc5212`
+  (`main` avec `GARDE`/`PRET` et force 4b) : une remise de combustible termine
+  la recherche par un devis depuis le lieu de remise, au lieu d'y développer
+  réception, recharge, allumage et suites. Demande et achat gardent trajet,
+  chances, prix et attente ; livraison réelle et replanification gardent leurs
+  frontières. Le devis commun compte source, flamme, pressions et un trajet avec
+  au plus un geste conclusif ; la scène reste celle du départ, avec les moyens,
+  droits et budget acquis par le préfixe, y compris une source empruntée.
+  C'est une approximation, qui peut aussi écarter une voie à plusieurs préparatifs,
+  pas une garantie générale de faisabilité future. Les lectures et la règle sont
+  dans `_entrees` ; découverte de lumière, graphes et certificat suivent le même
+  modèle. Auberge, 12 h, huit graines, référence et branche ensemble, quatre
+  calculs au plus : CPU 108,71 → 68,28 s (×1,59), nœuds 1 521 695 → 614 622
+  (×2,48), noir 1 050,625 → 989,375 min·PNJ, sans recours 174,375 → 176,25.
+  Le dernier critère strict reste donc manqué de 1,875 min·PNJ ; le facteur deux
+  visé n'est pas atteint sur le CPU. Demandes de
+  combustible 11,5 → 11,625, achats 1,5 → 1,75, parts livrées 4,25 → 4,625,
+  recharges de lampes 0,375 → 1,125 ; foyers allumés et rechargés stables.
+  Justesse : 24 178 recherches rejouées avec l'ancienne chaîne, 95,86 % de mêmes
+  premiers gestes et effets terminaux, 99,82 % quand les deux trouvent un plan ;
+  écart médian de coût nul, pire fini 1,741 minute, un recours ponctuel de lumière
+  perdu par pessimisme. Bancs 8 h, 4 × 4 graines, comparés à `4fc5212` puis à
+  `origin/main` 5594028 : aucun plantage, violation ni usurpation. Contre la base,
+  Relais 7 : noir +30 min·PNJ et une livraison de moins ; les autres nuits ne
+  dégradent pas noir/sans recours. `VERIFIER` + spatial 1 sur 2 h, puis 0,2 sur
+  8 h, graine 42 des quatre scénarios : aucun écart ni borne. Suite finale :
+  1 469 tests, six échecs MiMo reproduits sur la référence, quatre sautés,
+  aucun nouvel échec ; la suite n'est pas entièrement verte.
+  Les critères d'acceptation ne sont donc pas tous atteints. Voir le
+  [rapport Codex 16](taches/rapport-codex-16-part-estimee.md). Aucun appel à Luna.
+  Fusionné après `codex-relations-3c` (`main` 6aaf0fb ; depuis la base de N : 4b corrigée, E, L, K et H) :
+  seul conflit textuel `docs/etat-dev.md` ; `planification` fusionné sans conflit. Accords relus : `_entrees`
+  garde les lectures de H (`actives`), de K (`recherches` par `appels_vains`) et de garde-pret
+  (`prix_gardes`, dont le lieu de devoir menacé par un guet lu, `chances_demandes`), plus celles du devis
+  (`v.eau`, `peurs_sociales`, `taux_mefiance`) ; le devis (`part_estimee.suites`) ne lit que la vue, dont la
+  pression, et passe par les lectures communes de lumière (`feu`, `flamme`, `pression`), donc par la
+  découverte et les deux graphes ; son cache est clé par l'état normalisé, le lot et l'emploi de lumière. Un
+  candidat estimé n'entre jamais dans un graphe (poussé terminal, fait `estimation`) : `_parcours` le
+  rencontre comme une lacune, jamais comme une preuve d'absence. `VERIFIER` refait la recherche neuve avec
+  la même règle. Test adapté : `test_attente.test_un_appel_entendu` (la nuit libre du Relais n'a plus
+  d'appel en 12 h : à 362, Gorm achète une part des planches d'Aubin, la reçoit et recharge lui-même le
+  brasero, au lieu d'attendre le service puis de chercher Aubin en le hélant à 422, l'écart « remise ou
+  service » du rapport ; placement d'auteur : Aubin ne sait plus où est Gorm, faim 60, il le hèle d'en
+  dessous à 99 min, après des pas qui n'ont pas interrompu l'attente). Les six échecs MiMo ne reviennent
+  pas (`test_mimo`, `test_fournisseurs_jeu` avec `jsonschema`, `.venv-mimo` : 16 tests, un saut, verts).
+  Suite (`tools/tests.py --processus 4`) **1535 tests, 15 sautés**, le seul échec étant ce test, adapté.
+  `VERIFIER` + `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42, Relais, mine, auberge, crue et `rixe` :
+  sans écart ni plantage ; recherches jouées bornées à 8 h : mine 6, auberge 0 (les 66 de Lucien depuis
+  garde-pret ont disparu). Banc rapide (`comparer_bancs`, 4 h, 4 graines, quatre scénarios, contre
+  6aaf0fb) : toutes les mesures identiques, mêmes constats d'audit ; aucun plantage, usurpation ni
+  violation ; seul le temps change. Temps (`tools/mesurer_part_estimee.py`, 6aaf0fb et la fusion lancés
+  ensemble, quatre calculs au plus, poste partagé avec un Codex), au processeur par nuit et nœuds :
+  auberge 12 h (4 graines) 202,8 → 140,5 s (×1,44), 1 446 295 → 661 857 nœuds (×2,19), recherches bornées
+  398 → 65 ; 8 h : Relais 19,5 → 19,5 s (×1,00), mine 59,1 → 57,0 s (×1,04, nœuds ×1,59 ; 1985 +9 %),
+  auberge 46,7 → 44,9 s (×1,04, nœuds ×1,15), crue 36,1 → 31,4 s (×1,15, nœuds ×2,47). Comportement à
+  12 h : noir 1 046,25 → 1 046,25 min·PNJ, sans recours 180 → 180, en attente égales, parts livrées
+  4,5 → 4,25, demandes de combustible 11 → 10,5 ; à 8 h, mesures égales sauf mine en attente
+  283,75 → 288,75. Le gain du rapport tient à 12 h (×1,59 CPU et ×2,48 nœuds contre 4fc5212, ici ×1,44 et
+  ×2,19 contre une base où K et H pèsent) ; la mine ne coûte plus davantage (rapport +6,8 %).
 - Branche `codex-relations-3c`, fusionnée : signes physiques et impressions
   faillibles, colère, décisions de place/regard, lectures `devine`, flux de dés séparés
   par observateur, garde et doute d’un mensonge. `observer <personnage>` est local,
@@ -1808,7 +1867,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1530 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1535 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## À revoir
 
@@ -1829,6 +1888,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - Mine après `codex-signalements` : nuits divergentes où Josse et Rémy enchaînent des recherches
   bornées (graine 2024 : 73 au lieu de 2, 2,5 fois le temps de la nuit) ; à examiner avec la recherche
   du porteur quand ses salles sont écartées (`appels_vains`).
+- Part estimée (`codex-part-estimee`) : le devis suit un ordre fixe (recharger la source, puis aller à la
+  flamme) ; il peut payer le noir plus longtemps que la chaîne détaillée et faire perdre un recours ponctuel
+  (Anselme, auberge 11, minute 585 : `endure` au lieu de prendre la lanterne, demander l'huile, revenir au
+  poêle) ; ce n'est pas une borne admissible de l'optimum (pessimiste sur les préparatifs multiples, optimiste
+  sur les délais et les autres). Le devis a un coût propre : à la mine, la fusion est ×1,04 au processeur
+  sur 8 h mais une graine (1985) coûte +9 % ; le rapport mesurait +6,8 % contre 4fc5212.
 - Luna après `codex-luna-noms` : faux refus sémantiques possibles de la contre-revue de fidélité
   (`tous` jugé individuel, achat dit sans transfert) ; une ambiance encore assortie d'une précaution
   sur les bruits.
