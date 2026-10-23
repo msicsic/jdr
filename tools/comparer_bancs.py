@@ -139,7 +139,7 @@ def jouer_nuit(tache):
             resultat["donnees"]["mesures"].update(
                 demandes_objet=len(demandes),
                 refus_demande=sum(c["texte"].endswith(("(refus).", "(mefiance).", "(necessaire).", "(impossible).",
-                                                       "(absent).", "(qui_va_la).")) for c in demandes))
+                                                       "(absent).")) for c in demandes))
         resultat["releves"] = releves
         if monde is not None:
             resultat["final"] = audit._final(monde)
