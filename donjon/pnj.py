@@ -13,6 +13,7 @@ dépend pas du découpage des actions du joueur. Le moteur annonce ce que le jou
 tient une chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 """
 from collections import deque
+from .monde import ErreurMonde
 
 from .esprits import (croire, esprit, lire, memoriser, percevoir, percevoir_tous, percoit, percus, pnjs,
                       reconsiderer)
@@ -113,7 +114,7 @@ def _seuil_barre(monde, salle, sortie, barrees):
     return bool(seuils & barrees)
 
 
-def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None):
+def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None, portes=None):
     """Sorties à emprunter selon ce que le PNJ croit des portes et des obstacles ; None si aucun
     passage cru.
 
@@ -123,7 +124,9 @@ def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None):
     salle qu'il a vue noyée. ``precedents`` : le parcours depuis ``depart`` (``parcours``), s'il
     est déjà fait.
     """
-    precedent = parcours(monde, id, depart, cles, ouvertes) if precedents is None else precedents
+    precedent = parcours(monde, id, depart, cles, ouvertes, portes) if precedents is None else precedents
+    if hasattr(precedent, "routes"):
+        return precedent.routes.get(arrivee)
     if arrivee not in precedent:
         return None
     etapes = []
@@ -134,10 +137,13 @@ def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None):
     return etapes[::-1]
 
 
-def parcours(monde, id, depart, cles=(), ouvertes=()):
+def parcours(monde, id, depart, cles=(), ouvertes=(), portes=None):
     """Toutes les salles qu'il croit atteindre depuis ``depart`` (``chemin``) : {salle : (salle
     d'avant, sortie)}, en largeur, le départ à None."""
     from .eau import noyee_crue
+    from .obstacles import descriptions_crues, parcours_cru
+    if monde.data.get("mode_cases") and descriptions_crues(monde, id):
+        return parcours_cru(monde, id, depart, cles, ouvertes, portes)
     barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
     precedent, file = {depart: None}, deque([depart])
     while file:
@@ -1064,6 +1070,7 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
     (``passage.faire_place``) ; sans, il attend."""
     from .spatial import trajet
+    from .obstacles import descriptions_crues, transitions
     o = monde.objets[id]
     feutre = a_pas_feutres(monde, id)
     occupees = occupants(monde, id)
@@ -1072,13 +1079,17 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     from .eau import noyee_crue
     noyees = {s for s in monde.data["salles"] if s != o["lieu"] and noyee_crue(monde, id, s)}
     franchissable = lambda porte: _franchissable(monde, id, porte)
+    formes = descriptions_crues(monde, id)
+    passages = transitions(monde, id, formes, allure=30 if feutre else PAS) if formes else None
     chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
-                     franchissable=franchissable, libre=lambda salle, case: salle not in noyees)
+                     franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
+                     passages=passages, allure=30 if feutre else PAS)
     if chemin_ is None:
         if gestes is None:
             return None
         # Il n'atteindrait ce qu'il vise que d'une case où quelqu'un se tient.
-        plein = trajet(monde, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees)
+        plein = trajet(monde, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
+                       passages=passages, allure=30 if feutre else PAS)
         if not plein or plein[-1][:2] not in occupees:
             return None
         from .passage import faire_place
@@ -1092,7 +1103,8 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
         # Une porte à ouvrir juste après la case d'un autre : il ne peut pas s'y arrêter pour l'ouvrir.
         detour = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                         franchissable=franchissable,
-                        libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees)
+                        libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees,
+                        passages=passages, allure=30 if feutre else PAS)
         if not detour:
             if gestes is None:
                 return PAS  # Il attend qu'on lui laisse le passage.
@@ -1120,6 +1132,37 @@ def _avancer_de(monde, id, pas, feutre, lignes):
         vers = next(nom for nom, v in VECTEURS.items() if v == sens)
         duree += QUART * quarts(o.get("orientation"), vers)
         o["orientation"] = vers
+        if isinstance(porte, dict):
+            # La route croyait ce mouvement possible ; le corps et la forme
+            # réelle sont revérifiés au début du geste, comme une porte.
+            from .obstacles import conditions, appliquer, transitions
+            from .esprits import constater
+            try:
+                regle = conditions(monde, porte["cible"], porte["methode"], id)
+                reel = next((r for (s, c), r, v, d in transitions(monde, id)(o["lieu"], tuple(o["position"]))
+                             if s == salle and c == case and r["cible"] == porte["cible"]
+                             and r["methode"] == porte["methode"]), None)
+                if reel is None:
+                    raise ErreurMonde("Le sol de réception n'est plus libre.")
+            except ErreurMonde:
+                constater(monde, id, porte["cible"], "essai")
+                return duree + PAS
+            reussite = True
+            if regle["stat"]:
+                from .caractere import modificateur
+                jet = monde.d20()
+                reussite = jet != 1 and jet + modificateur(monde, id, regle["stat"]) >= regle["dd"]
+            if reussite:
+                appliquer(monde, id, porte["cible"], {**regle, "salle": salle, "position": list(case)}, lignes)
+            else:
+                _chroniquer(monde, id, designer(o, debut=True) + " ne parvient pas à escalader "
+                            + designer(monde.objets[porte["cible"]]) + ".", "deplacement")
+            retentir(monde, id, regle["maniere"])
+            monde._activite = "effort"
+            duree += max(reel["dixiemes"], porte["dixiemes"])
+            if not reussite:
+                return duree
+            continue
         if porte:
             if marche:
                 retentir(monde, id, "aller", discret=feutre)

@@ -455,7 +455,8 @@ class Vue:
                 if s != e.salle and not self.descente(e.salle, s):
                     route = self.route(e, s, ouvertes)
                     if route is not None:
-                        allers.append((s, len(route)))
+                        from .obstacles import cout_route
+                        allers.append((s, cout_route(route)))
             self._allers[cle] = allers
         return self._allers[cle]
 
@@ -467,12 +468,12 @@ class Vue:
         if trajet in self._trajets:
             return self._trajets[trajet]
         cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
-        cle = (e.salle, arrivee, cles, trajet[3])
+        cle = (e.salle, arrivee, e.portes, trajet[3])
         if cle not in self._routes:
             # Le parcours depuis sa salle vaut pour toutes les arrivées (``pnj.parcours``).
-            depuis = (e.salle, cles, trajet[3])
+            depuis = (e.salle, e.portes, trajet[3])
             if depuis not in self._parcours:
-                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3])
+                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3], e.portes)
             self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3],
                                              self._parcours[depuis])
         self._trajets[trajet] = self._routes[cle]
@@ -609,7 +610,8 @@ class Vue:
         cle = ("trajet", depart_, arrivee)
         if cle not in self._crus:
             route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset())
-            self._crus[cle] = 0 if route is None else len(route)
+            from .obstacles import cout_route
+            self._crus[cle] = 0 if route is None else cout_route(route)
         return self._crus[cle]
 
     def feu_noye(self):
@@ -1222,6 +1224,10 @@ def _entrees(v, vises, profondeur, noeuds):
     esprit_ = lire(monde, id)
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
+    from .obstacles import descriptions_crues
+    # Le parcours métrique lit les positions crues des obstacles, et sa case de
+    # départ actuelle. Aucun champ neuf sans géométrie crue (identité des nuits).
+    passages = bool(descriptions_crues(monde, id))
     return json.dumps([
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
@@ -1255,7 +1261,11 @@ def _entrees(v, vises, profondeur, noeuds):
         sorted(v.menacees), sorted(v.noyees), v.monte,
         # Le coût du noir et le but explicite de lumière ; les autres emplois de
         # lumière se découvrent dans les gestes à partir des mêmes entrées.
-        v.peur, v.eclairer], ensure_ascii=False, check_circular=False)
+        v.peur, v.eclairer,
+        ([monde.objets[id].get("position"),
+          [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
+           if "lieu" in d and monde.objets.get(s, {}).get("bloque_passage")]] if passages else None)
+        ], ensure_ascii=False, check_circular=False)
 
 
 def _ordre_visites(salles, visites):

@@ -589,7 +589,38 @@ de saisie, et des attentes choisies qui s'interrompent d'elles-mêmes.
   joueur n'est pas distinguée d'une autre parole nette ; le MJ qui propose « attendre » sans durée
   attend un bloc.
 
-## Hors périmètre
+## Passages locaux selon la forme (`codex-sous-obstacle`)
+
+`obstacles.conditions` est la règle pure pour les fiches, l'exécution du joueur et celle des
+PNJ. `obstacles.transitions` fournit à `spatial.trajet` des arêtes supplémentaires : deux pas
+droits à travers une case d'obstacle, avec leur durée propre et sans arrêt sur la case solide.
+Les pas ordinaires restent inchangés ; le parcours choisit le moins de temps, sans compter
+les rotations comme auparavant. Le bruit de la manière passe par l'ouïe commune, l'activité
+d'effort par `vecu`. Une escalade est revérifiée et jetée au début du geste.
+
+Une géométrie décrite et perçue devient une croyance `passage` ; sans description aucune
+croyance n'est ajoutée. Quand un PNJ connaît une telle forme, le parcours par salles emploie
+un monde de lecture dont les obstacles et leurs positions viennent de ses croyances. Les
+portes gardent les conditions de clés/verrous. Les passages lisent le gabarit et l'équipement
+prévu dans chaque état de recherche ; prendre ou poser change donc l'accès. Le parcours
+interdit aussi un obstacle intérieur cru infranchissable. La durée métrique est conservée
+dans la route ; le coût du planificateur garde une minute abstraite par salle et ajoute le
+surcoût des passages par rapport à deux pas ordinaires. Il n'y a pas de nouvelle lecture de
+lumière : aucune modification de la découverte des graphes `sombre`/`lumiere`.
+
+La forme crue, le gabarit et les dimensions des objets sont dans `_entrees` ; les positions
+crues des obstacles et la case de départ s'y ajoutent lorsque le parcours métrique est actif.
+À l'exécution, le trajet en cases revalide la réception et la forme réelle. Un échec physique
+fait constater l'obstacle, un échec au jet dépense le geste sur place. Aucune progression
+nouvelle n'est rangée hors de `data` ; le test de laps découpé recharge entre les rotations.
+
+Limites : les valeurs de gabarit et d'encombrement par défaut sont des conventions, pas des
+mesures déduites du portrait. Le départ d'une salle hypothétique de la recherche est une case
+libre représentative ; les PNJ ne raisonnent pas encore sur leur position exacte future à
+chaque étape sociale. Le coût du chemin omet les rotations et le coût attendu des jets manqués.
+Les règles d'approche, de rencontre et de perception antérieures restent celles de la marche.
+
+## Hors périmètre historique
 
 Assommer, tuer, ligoter, l'affrontement (étape « corps et force » de `docs/plan-social.md`) ;
 courir et se faufiler (plus tard, sur ces mêmes durées).

@@ -72,6 +72,7 @@ NATURES = {
     # Un appel à l'aide, un cri : la voix à pleine force, sans mots qu'on saisisse ; qui connaît
     # cette voix sait qui crie (``entendre``).
     "appel": "appel", "cri": "cri",
+    "ramper": "feutre", "enjamber": "pas", "escalader": "geste",
 }
 # Le son d'un objet (une cloche, ``sonorite``) ou un son improvisé, selon son intensité déclarée (1 à
 # 3) : un tintement comme un geste, un son franc comme un fracas, une cloche d'alarme comme un appel.

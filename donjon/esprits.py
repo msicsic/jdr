@@ -182,6 +182,10 @@ def _croyance_valide(monde, attribut, c):
                      and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
     elif attribut == "verrouillee":
         assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
+    elif attribut == "passage":
+        from .matiere import valider_passage
+        # Une forme peut être crue fausse ; sa structure reste celle d'une géométrie.
+        valider_passage({"id": "croyance", "bloque_passage": True}, c.get("valeur"))
     else:
         # Les relations ne sont plus des croyances ; les avis sont dérivés par ``croyance``.
         assert False, "Attribut de croyance inconnu"
@@ -651,6 +655,10 @@ def constater(monde, id, sujet, source):
             relancer(monde, id, "devoir", ATTEINTE)
         return
     o = monde.objets[sujet]
+    if "passage" in o:
+        # La forme ne se devine pas de la catégorie ; pas de croyance neuve pour
+        # les anciens objets non décrits (empreintes inchangées).
+        croire(monde, id, sujet, "passage", copy.deepcopy(o["passage"]), source)
     if o["type"] == "depouille":
         from .deliberation import inquieter, relancer
         ancien = croyance(monde, id, sujet, "etat")

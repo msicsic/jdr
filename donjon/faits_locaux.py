@@ -11,7 +11,7 @@ from .perception import eclairage
 from .refus import liste
 from .matiere import (SCHEMA as SCHEMA_PHYSIQUE, SCHEMA_CONTENU, appliquer as appliquer_physique,
                       decrire as decrire_physique, decrire_contenu, valider as valider_physique,
-                      valider_contenu)
+                      valider_contenu, SCHEMA_PASSAGE, valider_passage, decrire_passage)
 from .capacites_objet import (SCHEMA as SCHEMA_CAPACITES,
                              CAPACITES_REVUE, absence as absence_capacite,
                              aptitude_coupe,
@@ -95,13 +95,19 @@ SCHEMA_AJOUT_CONTENU = {
                    "ancrage": {"type": "string"}, "contenu": SCHEMA_CONTENU},
     "required": ["type", "ancrage", "contenu"],
 }
+SCHEMA_AJOUT_PASSAGE = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"type": {"type": "string", "enum": ["qualification"]},
+                   "ancrage": {"type": "string"}, "passage": SCHEMA_PASSAGE},
+    "required": ["type", "ancrage", "passage"],
+}
 SCHEMA_FAITS = {
     "type": "object", "additionalProperties": False,
     "properties": {"ajouts": {"type": "array", "minItems": 1, "maxItems": 3,
         "items": {"anyOf": [SCHEMA_AJOUT_SIMPLE, SCHEMA_AJOUT_PAROLE, SCHEMA_AJOUT_OBJET,
                             SCHEMA_AJOUT_EVOLUTION, SCHEMA_AJOUT_QUALIFICATION,
                             SCHEMA_AJOUT_EXCLUSION, SCHEMA_AJOUT_COUPE, SCHEMA_AJOUT_PHYSIQUE,
-                            SCHEMA_AJOUT_CONTENU]}}},
+                            SCHEMA_AJOUT_CONTENU, SCHEMA_AJOUT_PASSAGE]}}},
     "required": ["ajouts"],
 }
 
@@ -150,8 +156,11 @@ def catalogue(monde):
                                   "constats": resume_constats(monde.objets[id], monde.objets),
                                   "masse": monde.objets[id]["masse"],
                                   "physique": monde.objets[id].get("physique", "inconnue"),
+                                  **({"passage": monde.objets[id].get("passage", "inconnu")}
+                                     if monde.objets[id].get("bloque_passage") else {}),
                                   "contenu": monde.objets[id].get("contenu", "inconnu")}
-                             for id in accessibles if monde.objets[id].get("masse", 0) > 0},
+                             for id in accessibles if monde.objets[id].get("masse", 0) > 0
+                             or monde.objets[id].get("bloque_passage")},
             "locuteurs": {
         id: {"nom": p["nom"]} for id, p in interlocuteurs(monde).items()},
         "evolutions": disponibles(monde),
@@ -240,6 +249,8 @@ def preparer_faits(monde, proposition, revision=None):
                   if nature == "qualification" and "coupe_possible" in ajout else
                   {"type", "ancrage", "physique"}
                   if nature == "qualification" and "physique" in ajout else
+                  {"type", "ancrage", "passage"}
+                  if nature == "qualification" and "passage" in ajout else
                   {"type", "ancrage", "contenu"}
                   if nature == "qualification" and "contenu" in ajout else
                   {"type", "ancrage", "ecartees"}
@@ -279,6 +290,17 @@ def preparer_faits(monde, proposition, revision=None):
                             f"{liste(sorted(autorises['qualifiables']))} ; ne le remplace pas par un autre : "
                             "réponds en dialogue avec ce que Corvus en perçoit d'ici, sans détail nouveau.")
             cible = travail.objets[ancrage]
+            if "passage" in ajout:
+                if "passage" in cible:
+                    raise refus("La forme de ce passage est déjà établie.",
+                                f"{ancrage}.passage={cible['passage']} : accepté aucune réécriture ; propose directement passer_obstacle.")
+                try:
+                    cible["passage"] = valider_passage(cible, ajout["passage"])
+                except ErreurMonde as exc:
+                    raise refus(str(exc), exc.attendu) from None
+                rendus.append(designer(cible, debut=True) + " : " + decrire_passage(cible) + ".")
+                etablis.append({"type": nature, "objet": ancrage, "passage": copy.deepcopy(cible["passage"])})
+                continue
             if "physique" in ajout:
                 # Le MJ dit ce qu'est concrètement l'objet ; le moteur vérifie la masse et déduit le reste.
                 if "physique" in cible:

@@ -29,7 +29,10 @@ Les seuils de capacité (coupe, puissance) ne sont déclarés que lors de la cr�
 objet ; ne les infère pas de la seule matière d'un objet déjà établi. Une description physique
 (forme, matière, dimensions, nombre de pièces) peut en revanche décrire un objet existant : juge
 si elle correspond à son nom, à sa description et à ce qu'un tel objet est d'ordinaire ; le
-moteur vérifie à part qu'elle s'accorde avec sa masse. De même, un contenu proposé (ce que l'objet
+moteur vérifie à part qu'elle s'accorde avec sa masse. La géométrie passage décrit le vide sous
+l'objet, son sommet, sa largeur libre, sa profondeur, ses prises et la charge qu'il supporte :
+elle doit s'accorder avec la description existante et ne remplace pas le volume de matière.
+De même, un contenu proposé (ce que l'objet
 contient ou consomme : une lanterne brûle de l'huile) établit un fait encore inconnu : juge
 seulement s'il est plausible pour un tel objet, sans le refuser parce qu'il n'était pas déjà
 décrit. Une qualification sert précisément à établir ce qui manque. Ne suppose pas que l'intention du joueur rend
@@ -61,10 +64,12 @@ def propositions(reponse, faits):
                                      "description_visuelle", "integrite", "maximum",
                                      "seuil_coupe", "usages", "puissance",
                                      "constats_capacites")},
+                        "passage_etabli": cible.get("passage"),
                         "capacites_proposees": ajout.get("capacites", []),
                         "constats_proposes": ajout.get("ecartees", []),
                         "coupe_possible": ajout.get("coupe_possible"),
                         "physique_proposee": ajout.get("physique"),
+                        "passage_propose": ajout.get("passage"),
                         "contenu_propose": ajout.get("contenu"),
                         "moyen": faits.get("objet:" + str(moyen_id), {})})
     return entrees
@@ -89,6 +94,6 @@ def _propose(entree):
     """Ce que la qualification propose, en champs : ce que l'auditeur a jugé."""
     champs = {"capacites": entree.get("capacites_proposees"), "ecartees": entree.get("constats_proposes"),
               "coupe_possible": entree.get("coupe_possible"), "physique": entree.get("physique_proposee"),
-              "contenu": entree.get("contenu_propose")}
+              "contenu": entree.get("contenu_propose"), "passage": entree.get("passage_propose")}
     return "; ".join(f"{k} = {json.dumps(v, ensure_ascii=False)}" for k, v in champs.items()
                      if v not in (None, [], {}, ""))

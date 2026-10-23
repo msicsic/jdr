@@ -4,6 +4,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-sous-obstacle`, non fusionnée, base `main` **276524c** : étape moteur,
+  géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
+  dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.
+  Ramper et enjamber sans jet ; escalader sur prises : FOR 10, échec sans déplacement. Le trajet
+  rejoint une case libre de l'autre côté sans rendre l'obstacle transparent. Forme crue dans
+  le parcours et les entrées de reprise du planificateur ; supplément de temps réel au coût
+  historique par salle. Onze tests nouveaux, chaîne console/MJ simulé/recharge et temps découpé ;
+  103 tests ciblés verts. Sans données de scénario nouvelles : quatre scénarios × quatre graines,
+  2 h puis 8 h contre 276524c, chronique, mesures et état final complet identiques. Étape données
+  et vérification finale en cours. Aucun appel à Luna sur ce poste.
 - Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
   quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
   seuil de désespoir : le suivi de secours survit à la mémoire bornée. Une recherche retient aussi

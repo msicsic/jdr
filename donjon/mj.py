@@ -837,6 +837,10 @@ class MJ:
         franchissements = dossier_franchissement(monde) if enrichir else None
         if franchissements:
             faits["franchissements"] = franchissements
+        from .obstacles import dossier as dossier_obstacles, REGLES as REGLES_OBSTACLES
+        passages = dossier_obstacles(monde) if enrichir else None
+        if passages:
+            faits["passages_obstacles"] = passages
         from .espace import dossier as dossier_espace, REGLES as REGLES_ESPACE
         espace = dossier_espace(monde)
         if espace:
@@ -889,6 +893,8 @@ class MJ:
             instructions += REGLES_ATELIER
         if franchissements:
             instructions += REGLES_FRANCHISSEMENT
+        if passages:
+            instructions += REGLES_OBSTACLES
         if enrichir and espace:
             instructions += REGLES_ESPACE
         if retour_moteur:

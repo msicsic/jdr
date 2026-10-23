@@ -204,6 +204,49 @@ le franchissement. `désinstaller échelle`, depuis son pied, supprime cet accè
 Les plans des étages sont affichés séparément. Lors de l'utilisation d'une échelle installée,
 un échec laisse le personnage de son côté, sans chute simulée.
 
+#### Passer sous un obstacle, ou par-dessus
+
+`ramper sous <obstacle>`, `passer par-dessus <obstacle>` et `enjamber <obstacle>` montrent
+la fiche ; `tenter` exécute, `annuler` abandonne. Une question « est-ce que je pourrais… ? »
+prépare la même fiche sans déplacement, jet ni temps écoulé. Le geste typé est une opération
+`passer_obstacle`, méthode `dessous` ou `dessus`, dans une manœuvre composée ; outil et
+destination restent vides et le moteur fixe la difficulté. L'échelle installée et le saut
+avec appui mobile gardent leurs contrats d'accès entre lieux.
+
+La donnée physique `passage`, portée par l'obstacle, décrit le dégagement dessous, le sommet
+au-dessus du sol, la largeur libre, la profondeur, les prises et la charge supportée. L'auteur
+du scénario ou une qualification `etablir_faits` peut la fournir une fois ; le contrôle physique
+vérifie son accord avec le texte existant, le moteur contrôle les nombres et la cohérence
+dessous/sommet avant enregistrement. Cette géométrie décrit aussi le vide : elle est distincte
+de `physique`, qui mesure le volume de matière et sa masse. Sans donnée, le refus dit ce qui
+manque ; il ne réclame pas une échelle.
+
+Conventions de jeu communes à tous : stature déclarée, sinon 170 cm ; masse déclarée, sinon
+70 kg ; carrure déclarée, sinon 27 % de la stature × (masse / 70) puissance 1/4, arrondie au
+cm supérieur, × 0,9 si mince ou 1,1 si robuste. L'épaisseur en rampant vaut 65 % de cette
+carrure, arrondie au cm supérieur. La largeur doit laisser passer la carrure.
+
+| Manière | Condition | Durée de deux pas droits | Jet | Équipement au plus | Bruit |
+|---|---|---|---|---|---|
+| Ramper dessous | Dégagement ≥ épaisseur | 12 s (4 × le pas) | Aucun | 25 % du poids, longueur ≤ stature | Feutré |
+| Enjamber | Sommet ≤ 35 % de la stature | 6 s (2 × le pas) | Aucun | 50 % du poids, longueur ≤ 1,5 stature | Pas |
+| Escalader | Sommet ≤ 80 % de la stature et prises | 18 s (6 × le pas) | FOR 10 | 15 % du poids, longueur ≤ demi-stature | Mouvement ordinaire |
+
+Passer dessus exige aussi que l'obstacle supporte le poids du personnage et de son équipement.
+La charge inclut les objets contenus dans les sacs ; leur plus grande dimension déclarée
+compte pour l'encombrement. Sans dimension d'un objet portable, la convention de jeu retient
+un mètre (une case), sans prétendre établir sa longueur physique. L'escalade peut donc demander
+de poser ou de décrire de petits objets. Chaque manière est un effort pour le corps au temps
+vécu ; une escalade manquée dépense son temps et son effort et laisse de ce côté, sans blessure
+forfaitaire supplémentaire. Les mêmes règles et le même jet valent pour un PNJ.
+
+On part d'une case orthogonale voisine et on ressort sur le sol libre immédiatement en face,
+dans la même salle. Un mur, un autre obstacle ou un personnage à la réception empêche le geste.
+On ne s'arrête jamais dans la case solide ; son opacité et son ombre restent intactes. Cette
+première règle ne traverse pas plusieurs cases d'obstacles, ne se glisse pas latéralement
+dans une fraction de case et ne franchit pas un bord de salle : la marche ordinaire contourne
+les côtés lorsqu'il existe un sol libre.
+
 #### Franchissement improvisé avec un appui mobile
 
 L'objectif de l'atelier est d'atteindre la terrasse par la méthode choisie par le joueur.

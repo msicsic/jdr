@@ -99,6 +99,8 @@ class Plan:
                           + (f', faim, froid ou fatigue {corps:+d}' if corps else '') + f', {adverse}.')
         else:
             lignes.append("Pas de jet nécessaire.")
+        if self.information:
+            lignes.append(self.information)
         if self.echec_critique:
             lignes.append("Risque sur un 1 naturel : outil endommagé.")
         if self.risque:
@@ -741,6 +743,8 @@ class Moteur:
         adresse = geste == "crocheter" and plan.stat
         bruit = (nature_crochetage(plan.marge, methode == "discret") if adresse
                  else nature_de(geste, discret=methode == "discret", bruit=plan.bruit) if geste else None)
+        if geste == "passer_obstacle":
+            bruit = next((valeur["nature"] for op, _, valeur in plan.effets if op == "passer_obstacle"), bruit)
         gestes = [commencer_geste(travail, "joueur", "prendre", cible, debut + duree(plan),
                                   exclus=[id for id in pnjs(travail) if percoit(travail, id, "joueur")], nature=bruit)
                   for op, cible, _ in effets if op == "voler"]
@@ -757,7 +761,7 @@ class Moteur:
         # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``appel.dire``).
         retournes = [] if heles or reponses or any(op == "frapper_personne" for op, _, _ in effets) else retentir(
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
-            force=nature_emise(travail, effets) or (bruit if adresse else None))
+            force=nature_emise(travail, effets) or (bruit if adresse or geste == "passer_obstacle" else None))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
         # Le corps du joueur vit le temps de son geste dans l'état où il le fait : l'effort creuse,
         # attendre repose ; entrer dans l'eau trempe aussitôt. Le temps passé dans l'état précédent
@@ -954,6 +958,10 @@ class Moteur:
     def _appliquer(m, effet, lignes):
         from .deliberation import changer_etat
         op, cible, valeur = effet
+        if op == "passer_obstacle":
+            from .obstacles import appliquer
+            appliquer(m, "joueur", cible, valeur, lignes)
+            return
         if op == "manger":
             from .corps import SATIETE, valeurs
             o = m.objets[cible]
