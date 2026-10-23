@@ -179,6 +179,8 @@ def preparer(donnees, sauvegarde):
             if "periode" in x["condition"]:
                 esprit(m, id)["visites"][x["condition"]["lieu"]] = m.data["minutes"]
     m.data["connus"].extend(prep.get("connus", []))
+    for salle, cases in prep.get("exploration", {}).items():
+        m.data.setdefault("exploration", {}).setdefault(salle, []).extend(cases)
     # Une scène de banc peut déclarer les présentations déjà entendues, séparément de la vue.
     if prep.get("noms_connus"):
         from donjon.noms import apprendre
@@ -205,6 +207,12 @@ def preparer(donnees, sauvegarde):
     for qui in prep.get("appels", []):
         from donjon.pnj import appeler
         appeler(m, qui, "joueur", [])
+    # Épreuve de force : seules les règles communes établissent le coup, ses témoins et son issue.
+    for coup in prep.get("coups", []):
+        from donjon.combat import frapper
+        from donjon.esprits import percevoir_tous
+        percevoir_tous(m)
+        frapper(m, coup["auteur"], coup["cible"], coup.get("outil", ""), coup.get("methode", "simple"))
     m.verifier()
     m.sauver(sauvegarde)
 

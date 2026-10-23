@@ -1,0 +1,75 @@
+{
+  "scenario": "relais",
+  "seed": 1985,
+  "preparation": {
+    "salle": "antichambre",
+    "position": [
+      1,
+      5
+    ],
+    "orientation": "est",
+    "personnages": {
+      "brune": {
+        "salle": "antichambre",
+        "position": [
+          2,
+          5
+        ],
+        "orientation": "ouest"
+      },
+      "marchand": {
+        "salle": "echoppe",
+        "position": [
+          8,
+          4
+        ],
+        "orientation": "est"
+      },
+      "aubin": {
+        "salle": "echoppe",
+        "position": [
+          4,
+          4
+        ],
+        "orientation": "est"
+      },
+      "ilse": {
+        "salle": "echoppe",
+        "position": [
+          5,
+          4
+        ],
+        "orientation": "est"
+      }
+    },
+    "calmes": [
+      "brune",
+      "marchand",
+      "ilse",
+      "aubin"
+    ],
+    "noms_connus": [
+      "brune",
+      "marchand"
+    ],
+    "exploration": {
+      "antichambre": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    "coups": [
+      {
+        "auteur": "brune",
+        "cible": "joueur"
+      }
+    ]
+  },
+  "tours": [
+    "je m'enfuis",
+    "tenter",
+    "quitter"
+  ]
+}

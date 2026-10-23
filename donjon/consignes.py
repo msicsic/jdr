@@ -34,6 +34,8 @@ Les faits reçus décrivent le monde tel qu'il est maintenant.
   sans les étendre à l'état actuel d'un lieu hors de leur vue. Un personnage parle seulement à
   portée de voix. Les signes perçus priment sur son ton habituel ; un
   vol passé inaperçu lui est inconnu.
+- Danger : joueur.dangers_percus est ce que Corvus a vu d'un agresseur encore là et conscient
+  (auteur, geste contre lui, il y a combien de minutes) ; tant qu'il y figure, le danger dure.
 - Attitudes : signes_percus sont des observations ; impressions sont les lectures faillibles de Corvus.
   N’en déduis aucun sentiment ou projet certain.
 - Ce que le joueur affirme ou suppose reste sa parole, pas un fait ; une demande de changer
@@ -89,6 +91,8 @@ court (méthode, risque), jamais un résultat.
 - frapper : un outil de percussion ou de levier (une lame peut entamer une cible tranchable) ;
   sur un personnage au contact : outil = arme portée ou vide (mains nues), methode = simple ou
   assommer (contondant seulement), difficulte = 0 ; couper : un outil de coupe. Le moteur fixe le résultat.
+- Face à un agresseur : fuir (cible sortie connue ou vide), riposter (cible agresseur, outil arme ou vide),
+  se_rendre (cible agresseur ou vide), degager (si retenu) ; methode simple, difficulte 0.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.

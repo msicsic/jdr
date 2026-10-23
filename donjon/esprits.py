@@ -187,6 +187,13 @@ def _croyance_valide(monde, attribut, c):
     elif attribut.startswith("attitude:") or attribut in ("emotion", "intention", "parole_doutee"):
         from .signes import SENS
         assert c["valeur"] in SENS and isinstance(c.get("signe"), str) and (c["source"] == "devine" or c["source"].startswith("dit:")), "Lecture invalide"
+    elif attribut == "violence":
+        assert isinstance(c.get("valeur"), dict) and all(
+            isinstance(v, str) and isinstance(d, dict) and set(d) == {"minute", "menace", "operation", "clos"}
+            and type(d["minute"]) is int and type(d["menace"]) is bool
+            and type(d["clos"]) is bool
+            and d["operation"] in ("frapper", "assommer", "pousser")
+            for v, d in c["valeur"].items()), "Violence perçue invalide"
     else:
         # Les relations ne sont plus des croyances ; les avis sont dérivés par ``croyance``.
         assert False, "Attribut de croyance inconnu"
@@ -318,6 +325,9 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "etat" and (valeur.get("conscient") is False or valeur.get("reddition")):
+        from .defense import constater_fin
+        constater_fin(monde, id, sujet)
 
 
 def memoriser(monde, id, evenement):
@@ -330,6 +340,8 @@ def memoriser(monde, id, evenement):
     del memoire[:-MEMOIRE_MAX]
     from .relations import souvenir as eprouver_souvenir
     eprouver_souvenir(monde, id, souvenir)
+    from .defense import retenir as retenir_violence
+    retenir_violence(monde, id, souvenir)
 
 
 def dernier_son(monde, id):

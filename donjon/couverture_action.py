@@ -39,7 +39,10 @@ Réponds conforme=false seulement pour un écart d'état net :
 Une action sans changement durable est conforme si le geste suffit à la demande. Chercher,
 fouiller ou inspecter quelque chose (du regard, de l'oreille, des mains) se fait par une action de
 perception (examiner, toucher, ecouter, observer, lire) sur ce qu'on fouille : ce qu'elle révèle, ou
-ne révèle pas, est le résultat que le moteur décide, et elle couvre la demande. Un geste
+ne révèle pas, est le résultat que le moteur décide, et elle couvre la demande. Face à un
+agresseur que le titre du plan nomme (« qui t'a agressé »), se défendre se fait en ripostant (le
+frapper), en fuyant, en se dégageant ou en se rendant : la cible de cette réaction est cet agresseur,
+que le moteur fixe seul quand la demande ne le nomme pas ; ce n'est ni une cible ni une action ajoutée. Un geste
 improvisé (geste_improvise) accomplit le geste demandé sur ses cibles : sa forme (coup de
 pied, poussée, caresse, air sifflé) relève du récit ; juge seulement ses changements durables.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.

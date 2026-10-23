@@ -49,6 +49,11 @@ def but_en_mots(monde, but):
 
 def _but(monde, but):
     t, o = but.get("type"), but.get("objet")
+    if t in ("fuir", "riposter", "proteger", "reddition"):
+        return {"fuir": "fuir ", "riposter": "riposter contre ", "proteger": "protéger ",
+                "reddition": "se rendre à "}[t] + court(monde, but["qui"])
+    if t == "degager":
+        return "se dégager"
     if t == "ranimer":
         return "ranimer " + court(monde, but["qui"])
     if t == "manger":

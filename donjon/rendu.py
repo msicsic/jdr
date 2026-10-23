@@ -62,8 +62,13 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
         if not conscient(monde, o["id"]):
             # Sans connaissance, il ne montre aucun signe (comme une dépouille, ``signes``).
             morceaux.append("à terre, sans connaissance")
-        elif blessure(monde, o["id"]):
-            morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
+        else:
+            # La reddition est une posture visible du corps (``corps.visible``), pas un signe ;
+            # une phrase à part, car elle ne s'accorde pas derrière « est ».
+            if o.get("corps", {}).get("reddition"):
+                complements.append(designer(o, debut=True) + " a cessé de résister")
+            if blessure(monde, o["id"]):
+                morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
     if o["type"] == "depouille":
         from .corps import blessure
         if blessure(monde, id):
@@ -265,7 +270,10 @@ def regarder(monde):
 
 def fiche(monde):
     from .corps import etat as etat_corps
+    from .defense import dangers
+    from .voix import nom_pour_joueur as nom_percu
     j = monde.joueur
+    menaces = dangers(monde, "joueur")
     profil = []
     if j.get("espece"):
         profil.append(" ".join(filter(None, (j["espece"], j.get("stade_vie")))).capitalize())
@@ -283,6 +291,7 @@ def fiche(monde):
             f'{monde.charge():.1f}/{j["capacite"]} kg | {monde.data["minutes"]} min\n'
             + stats + ("\n" + " | ".join(profil) if profil else "")
             + "\n" + " | ".join(f"{nom.capitalize()} : {niveau}" for nom, niveau in etat_corps(monde).items())
+            + ("\nDanger perçu : " + ", ".join(nom_percu(monde, x) for x in menaces) + "." if menaces else "")
             + "\nBesace :\n  " + "\n  ".join(sac) + "\n\n" + decrire_accords(monde) + decrire_comptes(monde))
 
 

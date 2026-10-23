@@ -183,6 +183,13 @@ class Monde:
     def actualiser_souvenirs_personnages(self):
         """Appelé par le moteur après une action ; une consultation reste sans effet."""
         self.identifier(o["id"] for o in self.presents() if o["type"] == "personnage")
+        from .corps import visible as corps_visible
+        from .defense import constater_fin
+        for o in self.presents():
+            if o["type"] == "personnage":
+                etat = corps_visible(self, o["id"])
+                if etat["conscient"] is False or etat.get("reddition"):
+                    constater_fin(self, "joueur", o["id"])
         if eclairage(self)["niveau"] < 2:
             return
         for o in self.presents():
@@ -395,6 +402,10 @@ class Monde:
         from .corps import etat as etat_corps
         joueur.pop("besoins", None)
         joueur["corps"] = etat_corps(self)
+        from .defense import dangers_vus
+        dangers_percus = dangers_vus(self)
+        if dangers_percus:
+            joueur["dangers_percus"] = dangers_percus
         lieux_connus = {id: s["nom"] for id, s in self.data["salles"].items()
                        if id == self.joueur["salle"] or id in self.data["visitees"]}
         souvenirs_visuels = []

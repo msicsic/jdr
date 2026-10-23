@@ -37,7 +37,7 @@ DURABLES = ("reposer", "chauffer", "abriter")
 NATURES = ("lecture", "deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
-A_DISTANCE = ("chauffer",)
+A_DISTANCE = ("chauffer", "se_rendre", "degager", "fuite")
 
 
 def verifier(monde):
@@ -784,6 +784,16 @@ def _executer(monde, id, etape, lignes, gestes):
             return False
         contenu = etape.get("contenu", {})
         _inspecter(monde, id, contenu.get("cherche"), lignes, contenu.get("vers"))
+        intention = lire(monde, id)["intention"]
+        if intention and intention["but"]["type"] == "proteger":
+            secourus = []
+            for s in lire(monde, id)["memoire"]:
+                if s["type"] == "secours" and s["salle"] == o["lieu"] and not s.get("examine"):
+                    s["examine"] = True
+                    secourus.append(s["qui"])
+            if secourus:
+                from .corps import evenement
+                evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
         return True
     if op == "reposer":
         return _reposer(monde, id, lignes)
@@ -795,11 +805,28 @@ def _executer(monde, id, etape, lignes, gestes):
         return executer(monde, id, etape, lignes)
     if op == "dans_le_dos":
         return True
+    if op in ("se_rendre", "degager", "fuite"):
+        from .defense import executer
+        from .monde import ErreurMonde
+        try:
+            return executer(monde, id, etape, lignes)
+        except ErreurMonde:
+            return False
     if op == "assommer" or op == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
         from .combat import frapper, voit
         from .monde import ErreurMonde
         if etape["condition"] == "dans_le_dos" and voit(monde, cible, id):
             return False
+        if (etape.get("contenu") or {}).get("defense"):
+            from .defense import dangers, protection
+            aide = protection(monde, id)
+            if cible not in dangers(monde, id) and not (aide and cible in aide[2]):
+                return False
+            from .corps import conscient
+            if not conscient(monde, cible):
+                return False
+            from .corps import evenement
+            evenement(monde, "intervention" if aide and cible in aide[2] else "riposte", id, contre=cible)
         try:
             frapper(monde, id, cible, outil, "assommer" if op == "assommer" else "simple", lignes)
         except ErreurMonde:
@@ -1415,6 +1442,8 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     from .corps import conscient, corps
     if not conscient(monde, id):
         return max(1, corps(monde, id)["inconscient"] - t), ATTENTE, None
+    if t < corps(monde, id).get("reprise", 0):
+        return corps(monde, id)["reprise"] - t, GESTE, None
     from .deliberation import EFFORTS, PROGRESSIFS
     from .stratege import terminer
     reste = _jusqu_a_la_minute(t)

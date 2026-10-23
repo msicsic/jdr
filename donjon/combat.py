@@ -41,12 +41,16 @@ def arme(objet=None):
     return None
 
 
-def prix_violence(monde, auteur, motif=None, defense=False):
-    """La défense future reste possible à douceur 100 ; aucun but de défense en 4b."""
+def facteur_violence(defense=False, rendu=False):
+    return (0.5 if defense else 2) * (2 if rendu else 1)
+
+
+def prix_violence(monde, auteur, motif=None, defense=False, rendu=False):
+    """Prix commun, plafond compris ; la défense reste possible à douceur 100."""
     if defense and valeur(monde, auteur, "douceur") == 100:
         return 0
     prix = prix_faute(monde, auteur, motif, "douceur")
-    total = None if prix is None else prix * (0.5 if defense else 2)
+    total = None if prix is None else prix * facteur_violence(defense, rendu)
     return total if total is not None and total <= ENJEU else None
 
 
@@ -55,6 +59,10 @@ def valider(monde, auteur, cible, outil="", methode="simple"):
     from .spatial import porte_par
     if not corps.conscient(monde, auteur):
         raise ErreurMonde("Tu es sans connaissance.", f"auteur={auteur} : auteur conscient requis.")
+    reprise = corps.corps(monde, auteur).get("reprise", 0)
+    if instant(monde) < reprise:
+        raise ErreurMonde("Tu n'as pas encore achevé ton mouvement.",
+                          f"auteur={auteur} : instant >= {reprise} requis pour frapper, reçu {instant(monde)}.")
     if not corps.vivant(monde, cible) or cible == auteur:
         acceptes = [x for x in corps.personnages(monde) if x != auteur]
         raise ErreurMonde("Il faut viser une autre personne vivante.", f"cible={cible} : parmi {liste(acceptes)}.")
@@ -114,7 +122,8 @@ def interrompre(monde, cible):
     monde.data["gestes_en_cours"] = [g for g in monde.data.get("gestes_en_cours", []) if g["auteur"] != cible]
     if cible != "joueur":
         from .esprits import esprit
-        esprit(monde, cible).update(libre=t, veille=None, eveil=t, intention=None, patience=None)
+        esprit(monde, cible).update(libre=max(t, corps.corps(monde, cible).get("reprise", 0)),
+                                  veille=None, eveil=t, intention=None, patience=None)
     noter(monde, cible, t, None)
 
 
@@ -127,6 +136,10 @@ def frapper(monde, auteur, cible, outil="", methode="simple", lignes=None):
     lignes = [] if lignes is None else lignes
     conscient = corps.conscient(monde, cible)
     percu = conscient and voit(monde, cible, auteur)
+    from .defense import reprendre, noter_coup
+    reprendre(monde, auteur)
+    # Le danger connu et les redditions sont des faits perçus avant le bruit du coup.
+    noter_coup(monde, auteur, cible, percu)
     surprise = not percu
     tenu_par = corps.corps(monde, cible).get("tenu_par")
     automatique = corps.sans_defense(monde, cible) or bool(tenu_par and tenu_par != auteur)
@@ -140,6 +153,8 @@ def frapper(monde, auteur, cible, outil="", methode="simple", lignes=None):
     assomme = touche and methode == "assommer" and (surprise or automatique or tenu_par or
               monde.d20() + modificateur(monde, cible, "VOL") < 10 + degats)
     operation = "assommer" if methode == "assommer" else "frapper"
+    # Interrompre un geste ne rend pas le coup déjà porté gratuit : son mouvement se termine.
+    corps.corps(monde, auteur)["reprise"] = instant(monde) + COUP
     geste = commencer_geste(monde, auteur, operation, cible, instant(monde) + COUP)
     preuve = f"coup:{auteur}:{cible}:{instant(monde)}:{monde.data['jets']}"
     if conscient and cible != "joueur":

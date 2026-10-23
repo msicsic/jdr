@@ -661,6 +661,17 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     from .esprits import croire, lire, percoit
     from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix, reconnaitre
     o = monde.objets[id]
+    # Même vu, le cri est une information ; une voix jamais reconnue ne livre aucun nom.
+    # Un seul souvenir du bruit par cri (et une seule inquiétude) : la suite ne le retient pas de nouveau.
+    retenu = False
+    if n == "cri" and niveau >= SEUIL and reconnaitre(monde, id, auteur)[1] == RECONNUE:
+        if auteur in (o.get("profil") or {}).get("protege", ()):
+            _bruit_inconnu(monde, id, salle, n, niveau, auteur, case if salle == o["lieu"] else None)
+            retenu = True
+            from .esprits import memoriser, reconsiderer
+            memoriser(monde, id, {"type": "secours", "qui": auteur, "salle": salle,
+                                  "case": list(case) if case is not None else None})
+            reconsiderer(monde, id)
     ici = salle == o["lieu"] and case is not None and o.get("position") is not None
     mots = n in VOCALES and mots_saisis(monde, id, niveau)
     if percoit(monde, id, auteur):
@@ -714,7 +725,7 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
         _attribuer(monde, id, crus, salle, case if ici else None)  # Il le surveille, de loin.
         from .esprits import reconsiderer
         reconsiderer(monde, id)
-    elif not (mots and n == "hele"):
+    elif not (mots and n == "hele") and not retenu:
         _bruit_inconnu(monde, id, salle, n, niveau, reconnu, case if ici else None)
     return retourne
 

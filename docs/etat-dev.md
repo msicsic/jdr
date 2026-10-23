@@ -4,6 +4,69 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-4c`, fusionnée, base `main` 9520f77 : danger attribué par la
+  perception, croyance datée de violence hors du récit borné, comparaison fuite/riposte par
+  le graphe commun, protection par cri reconnu et examen du lieu, reddition sauvegardée,
+  dégagement d'une prise déclarée. Le joueur dispose de `fuir`, `riposter`, `se_rendre`,
+  `degager`, avec fiche et `attendu`. Le prix de violence est centralisé ; les lectures
+  nouvelles font partie de la base des graphes repris et du certificat. Un mouvement de
+  coup garde sa durée même interrompu ; une neutralisation vue clôt l'atteinte et
+  l'inconscience fait abandonner le plan : pas de coups gratuits au même instant ni de
+  reprise au seul réveil. Le danger identifié est dans la fiche et le contexte du MJ,
+  sans attribution devinée d'un coup non vu. Seize tests 4c vérifient deux cas par règle, état et rendu
+  après rechargement, et même laps découpé. Suite complète : **1 482 tests, 14 sautés**,
+  aucun échec ni erreur, quatre processus à priorité réduite (483,7 s) ; les seize cas 4c
+  sont aussi rejoués sur le dernier code. Empreintes 2 h et 8 h : seize paires identiques
+  aux quatre scénarios ; huit nuits de `rixe` identiques à 9520f77, sans coup ni mort.
+  À placement identique du joueur, sans recours : `rixe` 68,75 contre Relais 64,375 (+6,8 %).
+  CPU final au plus +2,5 % en moyenne par scénario. `VERIFIER` et spatial 1 sur 2 h,
+  puis 0,2 sur 8 h, cinq scénarios : sans écart (les 66 recherches bornées connues de
+  l'auberge). Luna non validée : catalogue disponible, ouverture WebSocket en délai dépassé.
+  Dans l'épreuve, Aubin peut fuir comme Ilse :
+  le choix demandé « riposte ou se dégage » et une borne universelle de dix minutes ne
+  sont pas garantis ; les poursuites d'acquisition gardent la patience existante.
+  Aucun lien ni `tuer`, aucun changement du modèle Luna. Mesures et réserves dans le
+  [rapport 4c](taches/rapport-codex-17-force-4c.md).
+  Fusionné après `codex-noms-lisibles` (`main` 7533778 ; depuis la base de P : E, L, K, H relations 3c, N et
+  M) : conflits `deliberation.appeler_a_l_aide` (le suivi `secours` de K gardé ; un agresseur perçu,
+  `defense.dangers`, garde le désarroi ouvert et empêche de le dire apaisé, donc un seul appel par épisode),
+  `esprits` (croyances `violence` et lectures de H côte à côte), `planification._entrees` (lectures du devis de
+  N et de H, puis admissibilité et prix des réactions de P : clé de la mémoire, deux graphes, certificat),
+  `rendu.decrire` (sans humeur ; dépouille de L), `banc_parties` (états, noms et appels de main, puis coups de
+  P), docs. Une seule `combat.prix_violence` (aucune copie revenue). Aucune humeur ressuscitée : la reddition
+  est une posture du corps (`corps.visible`, `etat`), dite en phrase à part (« Aubin a cessé de résister » ;
+  « Aubin est a cessé… » avant) ; la peur de la victime reste le signe « tremble » de 3c. Trois défauts communs
+  corrigés : **un cri reconnu d'un protégé se retenait deux fois** (le souvenir de P, puis la voie commune de
+  l'ouïe : deux inquiétudes pour un cri, 20 au lieu de 15 dans le test) ; **le MJ recevait le danger sans son
+  fait** (`dangers_percus: ["brune"]`) et Luna concluait « personne ne t'agresse », proposait `impossible` ou
+  répondait en dialogue : `defense.dangers_vus` donne l'auteur (projeté, `personne_<n>` pour un inconnu), le
+  geste contre Corvus et depuis quand, décrit dans les consignes ; **la contre-revue lisait une réaction comme
+  une agression** (« le plan frappe Brune, alors que la demande est de se défendre », « le plan fait se rendre
+  Brune ») : le titre des réactions dit contre qui et pourquoi (« Te défendre : riposter contre Brune, …, qui
+  t'a agressé, en frappant. », « Te rendre à …, qui t'a agressé : c'est toi qui cesses de résister. », « Fuir
+  … ») et la contre-revue a une règle commune pour toute réaction à un agresseur nommé par le plan (la cible
+  que le moteur fixe seul n'est pas un ajout). Tests (`test_defense`, après rechargement, deux cas chacun) :
+  `CriUniqueTests` (Aubin et Ilse, échoue sans le correctif), `DangerDitAuMjTests` (Brune et Gorm, nom connu
+  ou non) ; deux tests de P lisent la reddition sur le texte sans retour à la ligne. Suite (`tools/tests.py
+  --processus 4`) **1553 tests, 15 sautés**, verte. `VERIFIER` + `VERIFICATION` 1 sur 2 h (tiré et fixe), puis 0,2 sur 8 h, graine
+  42, Relais, mine, auberge, crue et `rixe` : sans écart ni usurpation ; recherches bornées à 8 h : mine 6
+  (comme après N), autres 0. `comparer_bancs --empreintes` contre 7533778, 2 h puis 8 h, quatre scénarios ×
+  4 graines : chronique, mesures et état final complet identiques nuit par nuit (personne n'y frappe).
+  `rixe` et `rixe_douce` 8 h, graines 1985, 7, 42, 2024 : identiques à `main`, aucun coup, aucune fuite,
+  aucun mort ni usurpation. Épreuve rejouée (`VERIFIER`, spatial 1, dix minutes rechargées minute par
+  minute) : Brune frappe Aubin (3 PV) ; Aubin fuit à 8,3 s, Ilse à 9,7 s, Gorm vient et examine le lieu à
+  22,2 s ; Ilse frappée : fuite à 9,7 s, Gorm à 23,7 s ; aucun autre coup, aucun mort ; le joueur lit
+  « Aubin tremble et se recroqueville », puis la salle sans les fuyards. Temps au processeur, `main` et la
+  fusion lancés ensemble (`empreintes_nuits.py`, 8 h, 4 graines, deux processus chacun), 24 nuits
+  identiques : Relais 18,6 → 18,7 s, mine 53,6 → 54,2 s, auberge 41,6 → 42,2 s, crue 29,5 → 29,9 s,
+  `rixe` 25,4 → 25,7 s, `rixe_douce` 19,9 → 20,1 s (+0,5 à +1,4 %). Luna (`banc_parties --fil`, deux passes,
+  en parallèle) : avant les correctifs, « je m'enfuis » `impossible` puis `fuir` (une relance, 3 à 5 appels),
+  « je me défends » et « je me rends » 0 sur 4 (contre-revue ou « personne ne t'agresse » affiché) ; après,
+  `force-4c-fuir`, `-riposter`, `-reddition` typés `fuir`, `riposter`, `se_rendre` du premier coup (2 appels
+  chacun), fiche puis « tenter », issue du moteur seule (« Tu dis : « Je me rends ! » et cesses de résister à
+  Brune », « Tu ripostes à mains nues contre Brune : ton coup porte »), aucun PV, mort, nom ou parole
+  inventés ; le récit de la fuite est relancé une fois sur deux (« deux pas » contre deux pas d'un pas).
+  `force-4b-frapper` et `-assommer` : 2 + 2 appels, aucun refus, comme avant.
 - Branche `codex-noms-lisibles`, fusionnée, base `main` **276524c**, worktree
   `tmp-worktrees/codex-noms-lisibles` : réécriture de lisibilité de `noms.py` et des seuls
   blocs nominaux de `voix`, `paroles`, `narration`, `mj`, sans changement de contrat ni de
@@ -1911,7 +1974,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1535 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1553 tests (15 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## À revoir
 
@@ -1923,9 +1986,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   (alertes `repetition` de l'audit) ; dans le noir, `observer` une personne connue est refusé par
   l'analyse locale avec « cet objet » au lieu du refus du moteur (« cette personne ») et, en ligne, ce refus
   part au MJ : 4 à 5 appels et 1 à 2 refus avant une réponse juste (Luna, `signes-noir`), au lieu de 0.
-- `combat.prix_violence` n'est employé que par les tests (`test_combat`) ; le planificateur réécrit la
-  même règle (`2 * v.degat <= ENJEU`, le double du prix de douceur sous le plafond d'enjeu) au lieu de
-  l'appeler (relevé à la fusion de 4b) : une seule règle à garder.
+- Force 4c (critère partiel) : aux valeurs actuelles, Aubin fuit comme Ilse au lieu de riposter ou de se
+  dégager ; la fin de tout affrontement en moins de dix minutes n'est pas prouvée (les poursuites gardent
+  rejoindre, chercher, appeler et la patience) ; le risque d'une riposte est l'estimation `force.force_crue`
+  et un surcoût d'exposition forfaitaire, pas un duel simulé. `defense.choisir` met la sécurité à 100 en
+  présence d'un danger (écriture directe d'un besoin, pas une épreuve graduée). Le souvenir `secours` (cri
+  d'un protégé, P) et le champ d'esprit `secours` (appel à l'aide, K) portent le même nom pour deux choses.
+  La contre-revue ne refuse plus une réaction mal choisie que par jugement (« je m'enfuis » typé `se_rendre`
+  n'a pas été essayé avec Luna).
 - Auberge 8 h, graine 42 : les recherches bornées de Lucien (`garder:grenier`, `garder:etable`, 66
   notées par `planification.BORNES` depuis `codex-garde-pret`) : la garde plus chère à l'ambition 70
   rend ces recherches plus longues que la borne de 4 000 nœuds.
@@ -1958,7 +2026,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Étape 4 du plan social, le corps et la force** : 4a et 4b fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c à 4f
+- **Étape 4 du plan social, le corps et la force** : 4a, 4b et 4c fusionnées (`codex-force-4a`, `codex-force-4b`, `codex-force-4c`) ;
+  4c avec les limites de critère de son rapport (voir « À revoir ») ; 4d à 4f
   restent à réaliser, dans `docs/plan-force.md`. Décisions de
   la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
   ou défendre un protégé. Aucun geste de violence en 4a.
