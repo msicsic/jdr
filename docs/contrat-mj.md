@@ -79,7 +79,7 @@ entendue et ont choisi de répondre (`paroles.repondants`). Seuls ceux de `repon
 (`narration.destinataires_parole`) ; l'auditeur sait que leur réplique est une parole permise sans
 « parole prévue », et que les dire muets contredit l'issue. Les objets reçus disent ce qu'ils
 mesurent : `a_portee_de_main` (toucher d'ici), `a_portee_de_voix` pour un personnage ; la salle,
-`sorties_connues` en cases (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
+`sorties_connues`, avec leurs positions relatives en mètres (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
 
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :
@@ -116,6 +116,11 @@ jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un él
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
 
+Le renvoi d'une contradiction sans source et la distinction entre ambiance et inconnue mécanique
+ne garantissent pas encore toute rédaction sans précaution : le banc de `codex-luna-restes` garde
+« aucun autre son n'est attesté ici ». Ce critère reste partiel ; une réserve de preuve peut encore
+être classée comme description sensorielle par l'auditeur.
+
 ### Parole, références et audit après les noms (`codex-luna-noms`)
 
 Le destinataire explicitement désigné, le chuchotement et la suite d'un échange contraignent
@@ -147,8 +152,9 @@ du locuteur. Aucune voix distante ne donne un portrait ou un lien nominal suppl�
 
 La ponctuation finale d'une réplique termine son segment lorsque la phrase suivante commence ;
 les locuteurs successifs ont ainsi leurs propres citations auditées. Une `presentation` que
-l'auditeur fournit sans la trouver dans sa citation rend son rapport illisible : le rapport lui
-est redemandé une fois avant toute demande de réécriture. Un fait typé qui prétend ajouter une
+l'auditeur fournit sans la trouver dans sa citation est écartée par le moteur : aucun nom n'est
+appris, la réplique contrôlée reste inchangée et n'est pas relancée pour cette métadonnée.
+Un fait typé qui prétend ajouter une
 présentation absente de ses mots reste refusé par le moteur.
 
 Une opération dont la cible n'a pas le type requis est un `RefusDeForme`. Elle ne prouve pas
@@ -208,6 +214,65 @@ références publics. L'aperçu d'un plan passe entièrement par cette projectio
 risque et étapes compris. Aucun substitut textuel ne tire l'apparence d'un corps jamais vu.
 
 ## Contrôle des actions
+
+### Précisions du contrat (`codex-luna-restes`)
+
+Les localisations transmises au MJ (objets, souvenirs et sorties connues) sont des repères
+calculés en mètres : le plan représente un mètre par unité. Les positions brutes des sorties
+restent privées, comme celles du joueur et des objets. Le récit n'utilise ni cases ni coordonnées.
+Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du quadrillage et les
+écritures de coordonnées, y compris dans les répliques et les ajouts persistants ; ce contrôle
+est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d'un savoir. La carte technique conserve ses axes et sa
+légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
+
+La revue d'une parole sépare deux jugements sémantiques : les `audiences_fideles` à la demande
+(individuelle, groupe, cantonade) et `contenu_conforme` pour les mots et le contenu typé. Le
+moteur compare lui-même cette liste à l'adresse validée (`tous` = groupe, `personne` = cantonade).
+Un motif libre ne peut plus changer le sens de ces références. La revue reçoit les destinataires,
+les répondants et les conséquences réelles calculées sur copie. Une demande d'achat est une
+parole dont le moteur décide l'acceptation, le transfert ou le refus ; elle n'a pas à porter une
+opération de transfert faite par Corvus. Les références sont projetées en noms publics ; les mots
+libres restent littéraux. Un refus d'audience et un refus de contenu ont chacun leur `attendu`.
+La fidélité du choix d'audience et du sens des mots demeure en partie sémantique.
+Le sens de tous les types de contenu et des codes de ressource vient de `paroles.SENS_CONTENU`
+et `RESSOURCES_DEMANDEES`, partagés par le schéma d'interprétation et la revue (`sens_contenu`).
+Ainsi un besoin typé désigne la ressource recherchée ; il ne devient pas le sujet littéral de
+la question. Cette donnée ne décide pas si le destinataire la possède ni s'il l'accorde.
+
+Toute qualification physique passe d'abord par la validation déterministe sur copie (ancrage,
+propriété encore libre, bornes, masse quand la description la détermine), puis par la revue de
+plausibilité. Celle-ci reçoit les propriétés connues, dont la description physique, le contenu
+et la géométrie existants, et les `champs_a_etablir`. Une information inconnue n'est pas une
+incompatibilité : le MJ peut la préciser d'après ce qu'est ordinairement cet objet, sans la
+déduire du résultat souhaité. Cela vaut pour toutes les descriptions physiques, y compris le
+vide et les appuis autour d'un obstacle ; aucune forme ni donnée de scénario n'est ajoutée
+automatiquement. La plausibilité par rapport au nom et au texte reste sémantique. Le moteur
+garde ses contrôles numériques et interdit de réécrire une forme déjà établie.
+
+Une question explicite de faisabilité dont le geste attend une propriété physique inconnue
+(`ProprieteInconnue`, dont `QualificationRequise` pour la coupe, le son et la lumière) reçoit cette
+raison dès le premier refus : une fiche ne doit pas inventer ses préconditions. Une demande de
+geste garde la voie de qualification puis réexamen lorsque la mécanique la demande. Les autres refus, dont un outil disponible
+mais omis du plan, gardent leur voie de correction. Si Luna commence par une qualification valable, elle est enregistrée avant la fiche
+et le geste est réexaminé selon le contrat existant.
+
+`etablir_faits` peut joindre aux `ajouts` une `suite`, proposition du geste demandé. Pour une
+question de faisabilité, le schéma exige cette suite si Luna choisit d'établir des faits.
+Il s'agit de deux propositions dans un même appel : les ajouts passent les contrôles physiques
+sur copie, puis le geste passe la préparation du moteur et sa contre-revue de fidélité sur
+cette copie. Les faits acceptés sont sauvegardés avant la fiche ; la question n'exécute aucun
+geste. Une propriété inconnue reçoit donc soit son manque dès la préparation, soit une
+qualification et une fiche en trois appels (interprétation, physique, fidélité), sans supprimer
+de contrôle ni demander une nouvelle interprétation. Cette composition vaut pour tous les
+faits, pas seulement pour la forme d'un obstacle. Les propositions incorrectes peuvent encore
+demander une correction ; trois appels n'est pas une borne absolue en présence d'erreurs du MJ.
+
+L'absence d'un fait ne prouve pas son contraire. Un verdict narratif `contradictoire` doit citer
+au moins une source fournie : sans elle, le rapport est redemandé à l'auditeur avant toute
+demande de réécriture au MJ. L'ambiance libre compatible avec l'état est perçue et enregistrée
+avec son lieu ; elle ne réclame pas de réserve qui la démente. La révision distingue l'inconnue
+mécanique de cette liberté sensorielle. Une source citée à tort ou une contradiction formulée
+sans élément mécanique explicite dépend encore de la lecture sémantique.
 
 Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare
 la demande du joueur aux opérations du plan. Elle ne juge que l'état : action et cibles,

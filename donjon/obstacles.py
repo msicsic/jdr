@@ -9,6 +9,7 @@ import json
 from collections import OrderedDict
 
 from .monde import ErreurMonde
+from .refus import ProprieteInconnue
 from .francais import designer
 from .temps import PAS_JOUEUR, MINUTE, duree_pas
 
@@ -61,7 +62,7 @@ def conditions(m, cible, methode, acteur="joueur", description=None, equipement=
                           f"methode={methode!r} : accepté dessous, dessus.")
     p = o.get("passage") if description is None else description
     if p is None:
-        raise ErreurMonde("Le dégagement sous l'obstacle et sa hauteur ne sont pas encore décrits.",
+        raise ProprieteInconnue("Le dégagement sous l'obstacle et sa hauteur ne sont pas encore décrits.",
                           f"{cible}.passage=null : accepté qualification ancrage={cible}, passage avec "
                           "degagement_cm, hauteur_cm, largeur_cm, profondeur_cm, charge_kg, appuis.")
     p = valider_passage(o, p)
@@ -362,7 +363,7 @@ def compiler(m, e, justification="", origine="règles"):
                           f"difficulte={e['difficulte']} : accepté 0.")
     regle = conditions(m, cible, methode)
     if not m.data.get("mode_cases"):
-        raise ErreurMonde("Ce franchissement exige un sol décrit en cases.",
+        raise ErreurMonde("Ce franchissement exige une position et un sol de réception décrits.",
                           "mode_cases=false : accepté true, avec position et sol de réception.")
     salle, depart = m.joueur["salle"], tuple(m.joueur["position"])
     milieu = position_cible(m, cible, salle)

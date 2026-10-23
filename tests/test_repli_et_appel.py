@@ -52,6 +52,9 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
         if fonction == "auditer_action":
+            if "audiences_fideles" in schema["properties"]:
+                return {"audiences_fideles": ["individuelle", "groupe", "cantonade"],
+                        "contenu_conforme": True, "motif": ""}
             return {"conforme": True, "motif": ""}
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:
@@ -219,7 +222,7 @@ class ReplisTests(unittest.TestCase):
     def test_une_parole_sans_issue_ni_phrase_admise(self):
         m = scene()
         saisie = "Ilse, il fait froid ce soir"
-        refus = verdicts(("contradictoire", (), "Contraire aux faits."))
+        refus = verdicts(("contradictoire", ("perception",), "Contraire aux faits."))
         reprise, sortie, _ = jouer(m, saisie, [parole(saisie, ("propos", "", "", ""), personnage="ilse"),
                                                *[dialogue("Ilse s'envole.")] * 3], [refus] * 3)
         self.assertIn("Ilse t'a entendu, sans te répondre.", sortie)

@@ -60,6 +60,9 @@ SCHEMA_PASSAGE = {"type": "object", "additionalProperties": False,
                   "properties": {**{k: {"type": "number"} for k in PASSAGE},
                                  "appuis": {"type": "boolean"}},
                   "required": [*PASSAGE, "appuis"]}
+SCHEMA_PASSAGE["properties"]["degagement_cm"]["description"] = "Hauteur du vide sous l'objet, depuis le sol."
+SCHEMA_PASSAGE["properties"]["hauteur_cm"]["description"] = (
+    "Hauteur du sommet depuis le même sol, strictement supérieure au dégagement sous l'objet.")
 
 
 def valider_passage(o, passage):

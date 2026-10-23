@@ -1,0 +1,17 @@
+{
+  "scenario": "relais",
+  "seed": 1985,
+  "preparation": {
+    "salle": "echoppe",
+    "position": [4, 3],
+    "orientation": "est",
+    "calmes": ["marchand", "brune", "ilse", "aubin"]
+  },
+  "tours": [
+    "décris-moi l'ambiance de cette conduite",
+    "quels bruits de fond est-ce que j'entends ?",
+    "tourner ouest",
+    "où est la poutre effondrée ?",
+    "quitter"
+  ]
+}
