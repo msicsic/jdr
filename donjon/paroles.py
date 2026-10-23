@@ -846,7 +846,7 @@ def prevue(monde, intention):
             "audience_libre": audience_libre(forme),
             "destinataires": [designation(monde, x) for x in dest],
             "maniere": "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute",
-            **({"mots": mots_dits(forme, intention)} if mots_dits(forme, intention) else {})}
+            **({"mots": forme["mots"]} if forme["mots"] else {})}
 
 
 def audience_libre(forme):

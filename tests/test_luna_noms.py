@@ -25,9 +25,15 @@ def action(p):
 
 class AdresseTests(unittest.TestCase):
     def test_repondre_apres_s_etre_ecarte_ne_depend_pas_de_rester_en_vue(self):
+        from tests.test_parole_corrections import banc
+        from tests.test_tensions import placer
         for qui, nom in [("brune", "Brune"), ("aubin", "Aubin")]:
             with self.subTest(qui=qui):
-                m = scene(brune=(2, 3), aubin=(3, 2))
+                m = banc("soir-appel")
+                if qui == "aubin":
+                    brune, aubin = list(m.objets["brune"]["position"]), list(m.objets["aubin"]["position"])
+                    placer(m, "brune", "antichambre", aubin)
+                    placer(m, "aubin", "antichambre", brune)
                 citation = "Oui, passe."
                 texte = f"{nom} répond : « {citation} »"
                 r, sortie, appels = jouer(m, f"{nom}, laisse-moi passer", [
@@ -37,6 +43,8 @@ class AdresseTests(unittest.TestCase):
                 faits = next(e["faits"] for f, e in appels if f == "auditer_narration")
                 self.assertIn(qui, faits["interlocuteurs"])
                 self.assertIn(qui, r.data["entendus"])
+                self.assertNotEqual(r.objets[qui]["position"], m.objets[qui]["position"])
+                self.assertFalse(r.visible(qui))
                 self.assertEqual(r.data["paroles_pnj"][-1]["locuteur"], qui)
                 self.assertEqual(r.data["paroles_pnj"][-1]["texte"], citation)
 
@@ -56,6 +64,9 @@ class AdresseTests(unittest.TestCase):
                     self.assertEqual(paroles_retenues(r, qui)[-1][2], saisie)
                     self.assertIn(qui, r.data["paroles_joueur"][-1]["auditeurs"])
                 self.assertTrue(appels[0][1]["faits"]["parole_prevue"]["audience_libre"])
+                # Le choix de parler est encore celui de l'interprétation ;
+                # fournir une question au MJ ne la déclare pas déjà prononcée.
+                self.assertNotIn("mots", appels[0][1]["faits"]["parole_prevue"])
                 self.assertNotIn("Une réécriture ajoutée", sortie)
 
     def test_une_adresse_expresse_ne_peut_pas_etre_elargie(self):
