@@ -18,6 +18,7 @@ que le planificateur du moteur exécute quand rien de plus urgent ne presse ; su
 qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
 moteur.
 """
+from . import agendas
 from .caractere import penchant
 from .esprits import RECENT, constater, croire, croyance, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
@@ -198,18 +199,18 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
                                   None if vente else dd)
         else:
             condition = {"objet": source, "allume": True}
-        engagements = esprit(monde, auditeur)["engagements"]
+        engagements = agendas.en_cours(monde, auditeur)
         paye = False
         if not any(x["condition"] == condition and not x.get("annule") for x in engagements):
             engagement = {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
                           "objet": objet,
                           **({"paye": {"objet": objet, "prix": prix, "quoi": "part"}} if vente else {})}
-            engagements.append(engagement)
+            agendas.prendre(monde, auditeur, engagement)
             if devis_pulsion(monde, auditeur, condition, demandeur) is None:
-                engagements.remove(engagement)
+                agendas.retirer_proposition(monde, auditeur, engagement)
                 return "impossible"
             if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
-                engagements.remove(engagement)
+                agendas.retirer_proposition(monde, auditeur, engagement)
                 return "refus"
             # Payée d'avance, la part est due : non servie à l'échéance, le prix est rendu ou dû
             # (``engagements_echus``).
@@ -227,14 +228,14 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
         if necessaire(monde, auditeur, objet) or garde(monde, auditeur, o):
             return "necessaire"
         condition = {"objet": objet, "remettre": demandeur}
-        engagements = esprit(monde, auditeur)["engagements"]
+        engagements = agendas.en_cours(monde, auditeur)
         if any(x["condition"] == condition and not x.get("annule") for x in engagements):
             return "promis"
         engagement = {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
                       "paye": {"objet": objet, "prix": prix, "quoi": "objet"}}
-        engagements.append(engagement)
+        agendas.prendre(monde, auditeur, engagement)
         if devis_pulsion(monde, auditeur, condition, demandeur) is None:
-            engagements.remove(engagement)
+            agendas.retirer_proposition(monde, auditeur, engagement)
             return "impossible"
         memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
         _vendre(monde, auditeur, demandeur, objet, prix)
@@ -279,7 +280,7 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None):
     from .spatial import porte_par
     import copy
     # Une parole encore due ne prélève pas une deuxième part.
-    for engagement in esprit(monde, vendeur)["engagements"]:
+    for engagement in agendas.en_cours(monde, vendeur):
         c = engagement["condition"]
         if c.get("remettre") == acheteur and engagement.get("lot") == lot:
             return "promis"
@@ -293,13 +294,12 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None):
     condition = {"objet": piece, "remettre": acheteur}
     engagement = {"condition": condition, "pour": acheteur, "minute": monde.data["minutes"], "lot": lot,
                   **({"paye": {"objet": piece, "prix": prix, "quoi": "objet"}} if prix else {})}
-    engagements = esprit(monde, vendeur)["engagements"]
-    engagements.append(engagement)
+    agendas.prendre(monde, vendeur, engagement)
     possible = porte_par(monde, piece, vendeur) or devis_pulsion(monde, vendeur, condition, acheteur) is not None
     issue = "impossible" if not possible else (
         "refus" if persuasion is not None and not jet_persuasion(monde, vendeur, acheteur, persuasion)[0] else None)
     if issue:
-        engagements.remove(engagement)
+        agendas.retirer_proposition(monde, vendeur, engagement)
         del monde.objets[piece]
         del esprit(monde, vendeur)["croyances"][piece]
         monde.objets[lot] = avant
@@ -362,24 +362,24 @@ def engager(monde, payeur, autre, condition, prix):
     if prix <= 0 or richesse(monde, payeur) < prix:
         return "pauvre"
     siens_a_portee(monde, autre)
-    engagements = esprit(monde, autre)["engagements"]
+    engagements = agendas.en_cours(monde, autre)
     if any(x["condition"] == condition and not x.get("annule") for x in engagements):
         return "deja"
     engagement = {"condition": dict(condition), "pour": payeur, "minute": monde.data["minutes"],
                   "paye": {"objet": condition.get("objet") or condition["lieu"], "prix": prix, "quoi": "tache"}}
-    engagements.append(engagement)
+    agendas.prendre(monde, autre, engagement)
     devis = devis_pulsion(monde, autre, condition, payeur)
     if devis is None:
-        engagements.remove(engagement)
+        agendas.retirer_proposition(monde, autre, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
     cout, etapes = devis
     # Ce qu'il garde (sa dernière part, ce dont il a besoin), il ne le donne pas, payé ou non.
     if any(monde.objets.get(x) and garde(monde, autre, monde.objets[x])
            for e in etapes if e["operation"] in ("alimenter", "manger", "servir") for x in (e["cible"], e["outil"])):
-        engagements.remove(engagement)
+        agendas.retirer_proposition(monde, autre, engagement)
         return "necessaire"
     if valeur_pieces(monde, autre, prix) < cout:
-        engagements.remove(engagement)
+        agendas.retirer_proposition(monde, autre, engagement)
         return "cher"
     payer(monde, payeur, autre, prix)
     memoriser(monde, autre, {"type": "engagement_pris", "pour": payeur, "condition": dict(condition), "prix": prix})
@@ -516,14 +516,13 @@ def confier(monde, demandeur, auditeur, condition):
     siens_a_portee(monde, auditeur)
     # Une tâche sur un bien de celui qui la confie en confie la garde (``biens.gardes``) : il juge
     # s'il peut s'y prendre avec ce que la garde lui permet.
-    engagements = esprit(monde, auditeur)["engagements"]
     engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
-    engagements.append(engagement)
+    agendas.prendre(monde, auditeur, engagement)
     if devis_pulsion(monde, auditeur, condition, demandeur) is None:
-        engagements.remove(engagement)
+        agendas.retirer_proposition(monde, auditeur, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
     if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
-        engagements.remove(engagement)
+        agendas.retirer_proposition(monde, auditeur, engagement)
         return "refus"
     memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
     return "accepte"
@@ -539,7 +538,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     from .vol import proprietaire
     o = monde.objets[objet]
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
-    livre = [x for x in (e["engagements"] if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
+    livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
     tenus = []
     if livre and proprietaire(monde, o) == donneur:
         # Ce qu'il a vendu et vient remettre : l'objet passe à l'acheteur, la parole est tenue.
@@ -566,7 +565,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     # La conséquence s'apprend par la réception déjà inscrite, comme pour une part servie.
     # Une réussite sans réception reste une suite à annoncer (relations.souvenir).
     for x in tenus:
-        e["engagements"].remove(x)
+        agendas.tenir(monde, donneur, x)
         memoriser(monde, donneur, {"type": "engagement_tenu", "pour": receveur, "condition": x["condition"],
                                    **({"lot": x["lot"]} if "lot" in x else {})})
 
@@ -594,9 +593,9 @@ def servir(monde, id, nourriture, pour, lignes):
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
     constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
-    tenus = [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": pour}]
+    tenus = [x for x in agendas.en_cours(monde, id) if x["condition"] == {"objet": nourriture, "servir": pour}]
     for x in tenus:
-        e["engagements"].remove(x)
+        agendas.tenir(monde, id, x)
         memoriser(monde, id, {"type": "engagement_tenu", "pour": pour, "condition": x["condition"]})
     texte = (f"{_qui(monde, id)} {appel}donne une part {complement_de(o)}"
              + ("." if appel else f" à {_qui(monde, pour)}."))
@@ -621,8 +620,8 @@ def _servir_joueur(monde, id, nourriture, lignes):
     v["faim"] = max(0.0, v["faim"] - SATIETE)
     constater(monde, id, "joueur", "vu")
     e = esprit(monde, id)
-    for x in [x for x in e["engagements"] if x["condition"] == {"objet": nourriture, "servir": "joueur"}]:
-        e["engagements"].remove(x)
+    for x in [x for x in agendas.en_cours(monde, id) if x["condition"] == {"objet": nourriture, "servir": "joueur"}]:
+        agendas.tenir(monde, id, x)
         memoriser(monde, id, {"type": "engagement_tenu", "pour": "joueur", "condition": x["condition"]})
     _chroniquer(monde, id, f"{_qui(monde, id)} donne une part {complement_de(o)} au joueur.", "social")
     from .voix import personne_pour_joueur
@@ -679,7 +678,7 @@ def _avec_joueur(monde, id, etape, lignes):
         if not porte_par(monde, objet["id"], id):
             return False
         vendu = any(x["condition"] == {"objet": objet["id"], "remettre": "joueur"} and x.get("paye")
-                    for x in esprit(monde, id)["engagements"])
+                    for x in agendas.en_cours(monde, id))
         remettre(monde, id, "joueur", objet["id"])
         _chroniquer(monde, id, f"{_qui(monde, id)} remet {designer(objet)} au joueur.", "social")
         lignes.append(f"{nom} te remet {designer(objet)}" + (" : tu l'avais payé." if vendu else "."))
@@ -731,12 +730,12 @@ def annoncer_abandon(monde, id, autre, condition, lignes):
     from .ouie import retentir
     if not se_parler(monde, id, autre):
         return False
-    engagements = esprit(monde, id)["engagements"]
+    engagements = agendas.en_cours(monde, id)
     engagement = next((x for x in engagements if x.get("annule") and x["pour"] == autre
                        and x["condition"] == condition), None)
     if engagement is None:
         return False
-    engagements.remove(engagement)
+    agendas.annoncer_abandon(monde, id, engagement)
     from .recit_pnj import but_en_mots
     il = _il(monde.objets[id])
     promis = but_en_mots(monde, {"type": "pulsion", **condition})
@@ -794,50 +793,8 @@ def empeche(monde, id, engagement):
 
 
 def engagements_echus(monde, id):
-    """Retire les engagements tenus, trop anciens ou qu'il ne peut plus tenir ; les souvenirs gardent
-    la trace. Une part payée d'avance et non servie à l'échéance est rendue, ou due
-    (``biens.rembourser``). Une garde finie, ce qu'il en porte encore (le bien, ses clés) lui reste
-    prêté : il le rendra."""
-    from .biens import _cles, preter, rembourser
-    from .spatial import porte_par
-    from .vol import proprietaire
-    e = esprit(monde, id)
-    restants, finis = [], []
-    for engagement in e["engagements"]:
-        if engagement.get("annule"):
-            restants.append(engagement)  # Il doit encore prévenir, sans savoir magiquement l'autre informé.
-        elif tenu(monde, id, engagement["condition"], engagement["minute"]):
-            memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
-                                  "condition": engagement["condition"]})
-            finis.append(engagement)
-            if (engagement.get("paye") or {}).get("quoi") == "tache":
-                from .pnj import _chroniquer
-                from .social import _qui
-                _chroniquer(monde, id, f"{_qui(monde, id)} a fait le travail que {_qui(monde, engagement['pour'])} "
-                                       f"lui avait payé pour que {phrase_condition(monde, engagement['condition'])}.", "compte")
-        elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX or empeche(monde, id, engagement):
-            raison = "impossible" if empeche(monde, id, engagement) else "refus"
-            memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
-                                  "condition": engagement["condition"]})
-            finis.append(engagement)
-            if engagement.get("paye"):
-                paye = engagement["paye"]
-                rembourser(monde, id, engagement["pour"], paye["prix"], paye["objet"], paye["quoi"])
-                retenir_abandon(monde, id, engagement, raison)  # Le prix rendu ne rend pas le service possible.
-            else:
-                engagement["annule"] = raison
-                restants.append(engagement)
-        else:
-            restants.append(engagement)
-    e["engagements"] = restants
-    for engagement in finis:
-        o, de = engagement["condition"].get("objet"), engagement["pour"]
-        if ("rendre" in engagement["condition"] or "remettre" in engagement["condition"] or o not in monde.objets
-                or proprietaire(monde, monde.objets[o]) != de):
-            continue
-        for k in sorted(_cles(monde, o, de)):
-            if porte_par(monde, k, id) and not any(p["objet"] == k for p in monde.data.get("permissions", ())):
-                preter(monde, k, id)
+    """Compatibilité des appelants : le cycle des engagements appartient aux agendas."""
+    agendas.echoir(monde, id)
 
 
 def executer(monde, id, etape, lignes):

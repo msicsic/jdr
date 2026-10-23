@@ -9,6 +9,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from donjon import agendas
 from donjon.config import charger_env
 from donjon.dialogues import preparer_conversation
 from donjon.mj import MJOpenAI
@@ -53,7 +54,7 @@ def main():
         print("Corvus > " + message + "\n" + resultat, flush=True)
         assert m.joueur["or"] == 46 and m.data["finances_pnj"]["marchand"] == 28
         assert m.objets["anneau"]["lieu"] == "marchand"
-        assert m.data["engagements"]["anneau_veilleur"]["statut"] == "paye"
+        assert agendas.contrats(m)["anneau_veilleur"]["statut"] == "paye"
     print("Parcours vérifié : offre, contre-offre, acceptation persistante et paiement. Aucune partie utilisateur modifiée.")
 
 

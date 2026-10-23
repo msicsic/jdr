@@ -11,6 +11,7 @@ honnêteté de 100 ne vole ni ne ment) et capacités ; un écart est renvoyé un
 échoue à l'exécution abandonne la stratégie. Le budget est plafonné par PNJ et par heure
 de jeu. Rien de ce qu'écrit Luna n'est montré au joueur, qui ne perçoit que les gestes.
 """
+from . import agendas
 from .deliberation import (BESOINS, DESESPOIR, SOCIALES, _connus, _cru, _lieu_cru, autorise, confie_a_autrui,
                            illicite, profil, refus_retenu, salle_crue, seuils)
 from .caractere import caracteristiques, interdit
@@ -167,7 +168,7 @@ def dossier(monde, id, declencheur, besoin=None, plan_moteur=None):
         "besoins": {b: {"valeur": round(e["besoins"].get(b, 0)), "urgence": u}
                     for b, u in seuils(monde, id).items()},
         "pulsions": [_pulsion(monde, x) for x in p["pulsions"]],
-        "engagements": [{"pour": x["pour"], "condition": x["condition"]} for x in e["engagements"] if not x.get("annule")],
+        "engagements": [{"pour": x["pour"], "condition": x["condition"]} for x in agendas.en_cours(monde, id) if not x.get("annule")],
         "croyances": [{"sujet": s, "attribut": a, "valeur": c["valeur"], "source": c["source"],
                        "il_y_a_minutes": minute - c["minute"]} for s, a, c in croyances],
         "objets_connus": objets,
@@ -184,7 +185,7 @@ def schema(monde, id):
     connus = sorted({*_connus(monde, id), *_personnages(monde, id)} - {id})
     salles = list(monde.data["salles"])
     besoins = [b for b in BESOINS if b in seuils(monde, id)]
-    if lire(monde, id)["engagements"]:
+    if agendas.en_cours(monde, id):
         besoins.append("engagement")
     chaine = lambda valeurs: {"type": "string", "enum": ["", *valeurs]}
     return {
@@ -329,7 +330,7 @@ def valider(monde, id, proposition, plan_moteur=None):
         raise ErreurStrategie("proposition illisible")
     decision, besoin = proposition.get("decision"), proposition.get("besoin")
     p = profil(monde, id)
-    if besoin not in seuils(monde, id) and not (besoin == "engagement" and lire(monde, id)["engagements"]):
+    if besoin not in seuils(monde, id) and not (besoin == "engagement" and agendas.en_cours(monde, id)):
         raise ErreurStrategie(f"besoin « {besoin} » inconnu de ce personnage")
     but = " ".join(str(proposition.get("but") or "").split())[:120]
     if decision == "suivre":

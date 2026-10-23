@@ -1,4 +1,5 @@
 """Dialogues situés, offres et engagements persistants ; aucune écriture directe du LLM."""
+from . import agendas
 import copy
 
 from .monde import ErreurMonde, normaliser
@@ -20,7 +21,7 @@ SCHEMA_CONVERSATION = {
 
 def installer(monde):
     d = monde.data
-    d.setdefault("engagements", {})
+    agendas.installer_contrats(monde)
     d.setdefault("dialogues_pnj", {})
     d.setdefault("finances_pnj", {})
     d.setdefault("missions", {})
@@ -75,7 +76,7 @@ def reels(monde):
 def contrats_publics(monde):
     return {id: {**copy.deepcopy(e), "donneur": monde.data["missions"][id]["donneur"],
                  "condition": monde.data["missions"][id]["condition"]}
-            for id, e in monde.data["engagements"].items()}
+            for id, e in agendas.contrats(monde).items()}
 
 
 def missions_discutables(monde):
@@ -85,7 +86,7 @@ def missions_discutables(monde):
 
 
 def disponible(monde, donneur, sauf=None):
-    reserves = sum(e["montant"] for id, e in monde.data["engagements"].items()
+    reserves = sum(e["montant"] for id, e in agendas.contrats(monde).items()
                    if id != sauf and e["statut"] in ("propose", "accepte")
                    and monde.data["missions"][id]["donneur"] == donneur)
     return monde.data["finances_pnj"].get(donneur, 0) - reserves
@@ -128,7 +129,7 @@ def preparer_conversation(monde, p, revision=None):
         if op != "negocier" and p["montant_demande"]:
             raise ErreurMonde("Un montant demandé appartient à une négociation.",
                               f"{op} : montant_demande 0 ; pour demander un montant : negocier.")
-        engagements = travail.data["engagements"]
+        engagements = agendas.contrats(travail)
         accord = engagements.get(mission_id)
         statut = accord["statut"] if accord else None
         if statut == "paye":
@@ -139,7 +140,7 @@ def preparer_conversation(monde, p, revision=None):
             if statut != "propose":
                 raise ErreurMonde("Il n'y a aucune offre en attente à accepter ou refuser.",
                                   f"aucune offre proposée pour {mission_id} : proposer ou negocier d'abord.")
-            accord["statut"] = "accepte" if op == "accepter" else "refuse"
+            agendas.repondre_contrat(travail, mission_id, op == "accepter")
             rapport["faits"].append(f"Offre de {accord['montant']} pièces " + ("acceptée. Le paiement aura lieu à la remise de l'objet." if op == "accepter" else "refusée. Aucun engagement ni paiement."))
         else:
             fonds = disponible(travail, acteur, sauf=mission_id)
@@ -153,14 +154,14 @@ def preparer_conversation(monde, p, revision=None):
                 if op == "negocier":
                     souhait = p["montant_demande"] or plafond
                     montant = max(montant, min(souhait, plafond))
-                engagements[mission_id] = {"statut": "propose", "montant": montant}
+                agendas.proposer_contrat(travail, mission_id, montant)
                 rapport["faits"].append(f"Offre de {montant} pièces contre la remise de l'objet. Le joueur ne l'a pas encore acceptée. Aucun paiement immédiat.")
                 if op == "negocier" and p["montant_demande"] > montant:
                     rapport["faits"].append(f"Le montant demandé de {p['montant_demande']} pièces est refusé ; la contre-offre est de {montant} pièces.")
                 elif op == "negocier" and ancien == montant:
                     rapport["faits"].append("Il maintient son offre précédente.")
         rapport["mission"] = {"id": mission_id, "nom": mission["nom"], "condition": mission["condition"]}
-        rapport["engagement"] = copy.deepcopy(engagements.get(mission_id))
+        rapport["engagement"] = agendas.contrats(travail).get(mission_id)
     travail.data["revision"] += 1
     travail.data.setdefault("echanges_pnj", []).append({"revision": travail.data["revision"], **copy.deepcopy(rapport)})
     travail.verifier()
@@ -172,7 +173,7 @@ def remise_convenue(monde, objet_id, destinataire=""):
     candidats = [id for id, m in monde.data["missions"].items()
                  if m["objet"] == objet_id and (not destinataire or m["donneur"] == destinataire)
                  and m["donneur"] in interlocuteurs(monde)
-                 and monde.data["engagements"].get(id, {}).get("statut") == "accepte"]
+                 and agendas.contrats(monde).get(id, {}).get("statut") == "accepte"]
     return candidats[0] if len(candidats) == 1 else None
 
 
@@ -226,7 +227,7 @@ def verifier_remise(monde, objet_id, destinataire=""):
     id, mission = candidats[0]
     from .proximite import exiger
     exiger(monde, mission["donneur"])
-    accord = monde.data["engagements"].get(id)
+    accord = agendas.contrats(monde).get(id)
     if not accord or accord["statut"] != "accepte":
         raise ErreurMonde("Il faut d'abord convenir d'une récompense et accepter l'offre.",
                           f"mission {id} sans offre acceptée : conversation_pnj (proposer ou negocier, puis accepter) avant remettre.")
@@ -239,7 +240,7 @@ def verifier_remise(monde, objet_id, destinataire=""):
 def payer_remise(monde, mission_id, lignes):
     mission = monde.data["missions"][mission_id]
     verifier_remise(monde, mission["objet"], mission["donneur"])
-    accord = monde.data["engagements"][mission_id]
+    accord = agendas.contrats(monde)[mission_id]
     destinataire = mission["donneur"]
     objet = monde.objets[mission["objet"]]
     objet["lieu"], objet["proprietaire"] = destinataire, destinataire
@@ -248,8 +249,7 @@ def payer_remise(monde, mission_id, lignes):
     objet.pop("position_salle", None)
     monde.data["finances_pnj"][destinataire] -= accord["montant"]
     monde.joueur["or"] += accord["montant"]
-    accord["statut"] = "paye"
-    accord["paye_revision"] = monde.data["revision"] + 1
+    agendas.payer_contrat(monde, mission_id)
     nom = monde.objets[destinataire]["nom"]
     lignes.append(f"Tu remets {designer(objet)} à {nom}. Tu reçois les {accord['montant']} pièces convenues.")
 
@@ -268,7 +268,7 @@ def commande_sociale(monde, texte):
     presents = interlocuteurs(monde)
     if cible == "offre" and operation in ("accepter", "refuser"):
         candidats = [(id, mission) for id, mission in monde.data["missions"].items()
-                      if mission["donneur"] in presents and monde.data["engagements"].get(id, {}).get("statut") == "propose"]
+                      if mission["donneur"] in presents and agendas.contrats(monde).get(id, {}).get("statut") == "propose"]
     else:
         acteurs = [id for id in presents if cible in [normaliser(n) for n in
                   (id, monde.objets[id]["nom"], *monde.objets[id]["aliases"])]]

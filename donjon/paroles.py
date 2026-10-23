@@ -15,6 +15,7 @@ croire le joueur fiable. Tous ceux qui saisissent les mots d'une parole à voix 
 retiennent, destinataires ou non (``ouie``, ``social.retenir_parole``) ; seuls ses destinataires
 y répondent.
 """
+from . import agendas
 import copy
 import re
 from contextlib import contextmanager
@@ -326,10 +327,10 @@ def engagements_enregistres(monde, id):
     from .recit_pnj import but_en_mots
     e = lire(monde, id)
     phrases = [f"{'abandon à annoncer' if x.get('annule') else 'engagement pris'} envers {_nom(monde, x['pour'])} : "
-               + but_en_mots(monde, {"type": "pulsion", **x["condition"]}) for x in e["engagements"]]
+               + but_en_mots(monde, {"type": "pulsion", **x["condition"]}) for x in agendas.en_cours(monde, id)]
     if e["intention"]:
         phrases.append("intention en cours : " + but_en_mots(monde, e["intention"]["but"]))
-    for mission_id, accord in monde.data.get("engagements", {}).items():
+    for mission_id, accord in agendas.contrats(monde).items():
         mission = monde.data.get("missions", {}).get(mission_id)
         if mission and mission["donneur"] == id and accord["statut"] in ("propose", "accepte"):
             objet = designer(monde.objets[mission["objet"]]) if mission["objet"] in monde.objets else mission["objet"]
@@ -1323,7 +1324,7 @@ def _part_vendue(travail, auditeur, lot, nom, il, prix):
     from .francais import complement_de
     part = "une part " + complement_de(travail.objets[lot])
     a_remettre = any(x["condition"].get("remettre") == "joueur" and x.get("lot") == lot
-                     for x in esprit(travail, auditeur)["engagements"])
+                     for x in agendas.en_cours(travail, auditeur))
     return (f"{nom} prend tes {prix} pièces et ira chercher {part} pour te la remettre." if a_remettre
             else f"{nom} prend tes {prix} pièces et te remet {part}.")
 

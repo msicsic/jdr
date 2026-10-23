@@ -33,6 +33,15 @@ RACINE = Path(__file__).resolve().parent.parent
 if str(RACINE) not in sys.path:
     sys.path.insert(0, str(RACINE))
 
+# Le comparateur garde cet audit même quand le moteur vient d'une ancienne
+# référence, antérieure à agendas.py. Charger le socle livré avec l'outil ;
+# ses imports relatifs liront alors l'esprit du moteur effectivement comparé.
+import importlib.util
+
+_spec_agendas = importlib.util.spec_from_file_location("donjon.agendas", RACINE / "donjon" / "agendas.py")
+agendas = importlib.util.module_from_spec(_spec_agendas)
+_spec_agendas.loader.exec_module(agendas)
+
 JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", "crue": "chambre_cloche"}
 
 # --------------------------------------------------------------------------------------------
@@ -81,7 +90,7 @@ def _releve(monde):
             "noir": bool(peur_du_noir(monde, id) and o["lieu"] in monde.data["salles"] and not autour(monde, id)["lumiere"]),
             "eau": profondeur(monde, o["lieu"]) if active(monde) and o["lieu"] in monde.data["salles"] else 0,
             "corps": {k: v for k, v in (o.get("corps") or {}).items() if isinstance(v, (int, float, bool))},
-            "faux": faux, "eng": len(e["engagements"]), "rej": e["rejoint"]["qui"] if e["rejoint"] else None,
+            "faux": faux, "eng": len(agendas.en_cours(monde, id)), "rej": e["rejoint"]["qui"] if e["rejoint"] else None,
         }
     return {"m": monde.data["minutes"], "pnj": pnj_releves,
             "dettes": len(monde.data.get("dettes", []) or []),
@@ -93,7 +102,7 @@ def _final(monde):
     from donjon.esprits import lire, pnjs
     return {"minute": monde.data["minutes"],
             "dettes": monde.data.get("dettes"), "permissions": monde.data.get("permissions"),
-            "engagements": {id: lire(monde, id)["engagements"] for id in pnjs(monde) if lire(monde, id)["engagements"]},
+            "engagements": {id: agendas.en_cours(monde, id) for id in pnjs(monde) if agendas.en_cours(monde, id)},
             "rejoint": {id: lire(monde, id)["rejoint"] for id in pnjs(monde) if lire(monde, id)["rejoint"]},
             "renoncements": {id: lire(monde, id)["renoncements"] for id in pnjs(monde) if lire(monde, id)["renoncements"]},
             "urgences": {id: lire(monde, id)["urgences"] for id in pnjs(monde)},
@@ -492,7 +501,7 @@ def analyser_nuit(n):
     f = n.get("final") or {}
     for dette in f.get("dettes") or []:
         noter("dette_fin", None, None, json.dumps(dette, ensure_ascii=False)[:200], 1)
-    for pnj, engagements in (f.get("engagements") or {}).items():
+    for pnj, engagements in (agendas.declares(f) or {}).items():
         for e in engagements:
             if f["minute"] - e["minute"] >= 240:
                 noter("engagement_ancien", pnj, e["minute"], json.dumps(e, ensure_ascii=False)[:200], 1)

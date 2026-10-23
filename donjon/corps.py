@@ -10,6 +10,7 @@ le repos du geste fait, le chaud d'un feu, l'eau où l'on se tient. Les valeurs 
 ``repos`` (la fatigue). Un état qui presse coûte aux jets des caractéristiques qu'il touche,
 comme la volonté brisée à ceux de VOL (``malus``, lu par ``caractere``).
 """
+from . import agendas
 from .esprits import esprit, lire, pnjs
 
 # Par heure : faim et fatigue montent avec le temps, plus vite à l'effort ; le froid monte loin
@@ -388,9 +389,7 @@ def mourir(monde, id, auteur=None, cause="mort"):
     for bien in monde.objets.values():
         if bien["lieu"] == id:
             bien["proprietaire"] = id
-    for e in monde.data["esprits"].values():
-        e["engagements"] = [x for x in e["engagements"] if x.get("pour") != id
-                            and not any(x["condition"].get(k) == id for k in ("servir", "rendre", "remettre"))]
+    agendas.oublier_personne(monde, id)
     # Les fonds et les missions restent traçables ; leurs invariants acceptent un défunt.
     for g in monde.data.get("gestes_en_cours", []):
         for k in ("temoins", "entendus", "se_sait_vu", "exclus"):

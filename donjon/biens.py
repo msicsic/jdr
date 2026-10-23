@@ -24,6 +24,7 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from . import agendas
 from .vol import proprietaire as _possesseur
 
 BOURSE = 5             # pièces d'un PNJ dont rien ne déclare la bourse
@@ -63,9 +64,9 @@ def preter(monde, objet, a):
     if a != "joueur" and a in monde.objets and monde.objets[a].get("profil"):
         from .esprits import esprit
         condition = {"objet": objet, "rendre": de}
-        engagements = esprit(monde, a)["engagements"]
+        engagements = agendas.en_cours(monde, a)
         if not any(x["condition"] == condition for x in engagements):
-            engagements.append({"condition": condition, "pour": de, "minute": monde.data["minutes"]})
+            agendas.prendre(monde, a, {"condition": condition, "pour": de, "minute": monde.data["minutes"]})
 
 
 def clore(monde, objet, destination):
@@ -99,7 +100,7 @@ def gardes(monde, id, de):
     confies = set()
     if id != "joueur" and id in monde.objets and monde.objets[id].get("profil"):
         from .esprits import lire
-        for x in lire(monde, id)["engagements"]:
+        for x in agendas.en_cours(monde, id):
             o = x["condition"].get("objet")
             if not x.get("annule") and x["pour"] == de and o in monde.objets and "rendre" not in x["condition"] \
                     and possesseur(monde, monde.objets[o]) == de:

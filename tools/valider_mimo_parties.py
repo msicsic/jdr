@@ -16,6 +16,7 @@ sys.path.insert(0, str(BASE))
 sys.path.insert(0, str(BASE / 'tools'))
 import banc_parties as banc
 import jeu
+from donjon import agendas
 from donjon.monde import Monde
 from donjon.mj import MJ
 from tools.traces_mimo import JournalMiMo, sauver_json
@@ -181,7 +182,8 @@ def main():
                                     'etat_identique': finale_reprise.data == etat_final,
                                     'champs_modifies_par_observation': changements,
                                     'objets_et_joueur_identiques': all(etat_final.get(k) == finale_reprise.data.get(k)
-                                        for k in ('objets', 'joueur', 'minutes', 'journal', 'engagements', 'finances_pnj')),
+                                        for k in ('objets', 'joueur', 'minutes', 'journal', 'finances_pnj'))
+                                        and agendas.declares(etat_final) == agendas.declares(finale_reprise.data),
                                     'tours': reprise.tours}
                 fichier = args.sortie / 'parties' / (script.stem + '.json')
                 sauver_json(fichier, partie)
