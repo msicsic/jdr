@@ -87,7 +87,16 @@ def preparer(monde, p, plan):
     if tourner:
         plan.regard = vers
         plan.dixiemes += tourner
-    plan.information = (f"Jet de {regle[2]} contre l'esquive (DEX) ; défense 10 par surprise, "
+    # Ce que le moteur établit de la victime à cet instant : sans défense, surprise ou esquive. La
+    # fiche et la contre-revue le lisent (« par derrière » est couvert quand elle ne te voit pas).
+    victime = sujet(monde.objets[cible])
+    if corps.sans_defense(monde, cible):
+        etat = f"{victime} est sans défense : le coup porte sans jet. "
+    elif not voit(monde, cible, "joueur"):
+        etat = f"{victime} ne te voit pas : défense 10 par surprise. "
+    else:
+        etat = f"{victime} te voit : jet d'esquive. "
+    plan.information = etat + (f"Jet de {regle[2]} contre l'esquive (DEX) ; défense 10 par surprise, "
                         "sans jet sur une personne sans défense ou tenue. Égalité à la victime. Durée : 1,5 s. "
                         "Un coup ne tue jamais. "
                         + ("Assommer : 1 PV ; perte de connaissance par surprise, sinon résistance de VOL." if methode == "assommer"

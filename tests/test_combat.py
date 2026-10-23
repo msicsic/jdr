@@ -14,6 +14,7 @@ from donjon.moteur import Moteur, proposition
 from donjon.pnj import commencer_geste, _etape, agir
 from donjon.relations import se_mefie
 from donjon.rendu import regarder
+from donjon.francais import sujet
 from donjon.temps import instant, MINUTE
 from tests.support import calme, presentes, regarder as orienter, refusee
 from tests.test_tensions import placer, recharger
@@ -130,6 +131,46 @@ class CombatTests(unittest.TestCase):
                 corps.reveiller(m, cible)
                 m = recharger(m)
                 self.assertIn("préoccupé", " ".join(regarder(m).split()))
+
+    def test_victime_frappee_par_surprise_ne_semble_pas_calme(self):
+        # Vu au banc Luna de la fusion : « Tu frappes Brune… Brune semble calme ». L'humeur montrée
+        # suit l'état du personnage : un coup subi fait presser sa sécurité, il semble inquiet.
+        for cible in ("brune", "marchand"):
+            with self.subTest(cible=cible):
+                m = scene("marchand")
+                if cible == "marchand":
+                    placer(m, "brune", "echoppe", (3, 3))
+                    m.joueur["position"] = [2, 5]
+                percevoir_tous(m)
+                p = Moteur(m).preparer(proposition("frapper", cible, "", "simple"))
+                with patch.object(type(m), "d20", return_value=20):
+                    texte = Moteur(m).executer(p)
+                m = recharger(m)
+                self.assertTrue(corps.conscient(m, cible))
+                self.assertIsNone(next(s for s in lire(m, cible)["memoire"] if s["type"] == "subi")["auteur"])
+                # Accordée au genre : « Brune … semble inquiète », « Gorm … semble inquiet ».
+                inquiet = "inquiète" if cible == "brune" else "inquiet"
+                self.assertIn(sujet(m.objets[cible]) + " semble " + inquiet + ".", texte)
+                self.assertNotIn(sujet(m.objets[cible]) + " semble calme", texte)
+                self.assertIn(inquiet, " ".join(regarder(m).split()))
+
+    def test_fiche_dit_si_la_victime_voit_venir_le_coup_apres_recharge(self):
+        # Vu au banc Luna de la fusion : « j'assomme Gorm par derrière » refusé par la contre-revue,
+        # qui ne savait pas que Gorm tourne le dos à Corvus. La fiche dit ce que le moteur établit.
+        for cible, surprise in (("marchand", True), ("marchand", False), ("brune", True)):
+            with self.subTest(cible=cible, surprise=surprise):
+                m = scene("marchand", surprise)
+                if cible == "marchand":
+                    placer(m, "brune", "echoppe", (3, 3))
+                    m.joueur["position"] = [2, 5]
+                m = recharger(m)
+                percevoir_tous(m)
+                fiche = Moteur(m).preparer(proposition("frapper", cible, "", "assommer")).resume(m)
+                attendu = " ne te voit pas : défense 10 par surprise." if surprise else " te voit : jet d'esquive."
+                self.assertIn(sujet(m.objets[cible]) + attendu, fiche)
+                corps.endormir(m, cible)
+                m = recharger(m)
+                self.assertIn("sans défense", Moteur(m).preparer(proposition("frapper", cible, "", "simple")).resume(m))
 
     def test_refus_une_cause_et_attendu(self):
         m = scene()

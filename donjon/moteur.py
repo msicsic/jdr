@@ -23,6 +23,8 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "ecouter", "pousser", "ranimer",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
+# L'humeur que montre un personnage, accordée à son genre (``accorder``).
+HUMEURS_FEMININES = {"calme": "calme", "inquiet": "inquiète", "méfiant": "méfiante"}
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 
 
@@ -822,7 +824,12 @@ class Moteur:
                 continue
             pnj = travail.objets[id]
             from .vol import mefiance
-            humeur = "méfiant" if mefiance(travail, id) else "inquiet" if travail.data["bruit"] >= 6 else "calme"
+            # Ce qu'il montre suit son état : sa méfiance envers le joueur, puis le tapage ou sa propre
+            # inquiétude qui presse (un coup subi, une violence vue, le noir qu'il craint).
+            from .deliberation import urgents
+            humeur = ("méfiant" if mefiance(travail, id) else "inquiet"
+                      if travail.data["bruit"] >= 6 or "securite" in urgents(travail, id) else "calme")
+            humeur = accorder(pnj, humeur, HUMEURS_FEMININES.get(humeur))
             if pnj.get("humeur") != humeur and travail.visible(id):
                 ligne = sujet(pnj) + " semble " + humeur + "."
                 humeurs = getattr(travail, "_humeurs", None)
