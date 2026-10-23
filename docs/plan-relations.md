@@ -396,14 +396,18 @@ Les jets de lecture tirent d'un **tirage à part** (comme le niveau d'eau, `eau.
 `data` : ajouter la lecture ne décale pas les autres jets de la nuit, ce qui garde les bancs
 comparables avant et après (décision 8).
 
-Réglage de `codex-signes-calibration`, non fusionnée : pénombre −4, dissimulation +3, bande
-« rien » 8. La grille commune (63 combinaisons : pénombre 4/3/2, dissimulation 5/4/3, bande 5 à 11)
-ne satisfait pas simultanément les bornes haute, basse et de méprises. Le compromis minimise
-le plus grand dépassement de probabilité, puis leur somme ; aucun personnage ni scénario n'a
-son propre réglage. Les jets d'un corpus sont d'abord rejugés à décisions constantes, puis
-le candidat est éprouvé en nuits libres : ces deux mesures ne sont pas confondues.
-[Grille, dénominateurs, confirmation et limites](taches/rapport-codex-21-signes-calibration.md).
-Le dé, la réussite, les bonus, la distance, les sens erronés et la confiance ne changent pas.
+Réglage provisoire de `codex-signes-calibration`, non fusionnée : pénombre −4,
+dissimulation +3, bande « rien » 8. Une grille conditionnelle commune de 63 combinaisons
+(pénombre 4/3/2, dissimulation 5/4/3, bande 5 à 11) minimise le plus grand dépassement
+des trois bornes, puis leur somme ; aucun réglage par personnage ou scénario. Le dé,
+les bonus, la distance, les sens erronés et la formule de confiance ne changent pas.
+La confirmation acquise avant la dernière correction de continuité donnait 24,88 %
+de méprises, Gorm PSY 14 à 0,806 et Hugues à 0,769 : **critère non atteint**.
+Le balayage en nuits libres a été arrêté conformément au nouveau « Rythme des lots »
+(`main` 42bb9c0) ; l'intégration doit reprendre la calibration sur le code final,
+avec justesse haute/basse, méprises et abstention par sorte de signe. La grille
+conditionnelle n'est pas une comparaison de nuits libres à décisions identiques.
+[Mesures et limites](taches/rapport-codex-21-signes-calibration.md).
 
 ### 6.2 Ce qu'on en retient
 
@@ -413,13 +417,17 @@ l'observé, attribut `attitude:<X>` (envers X : crainte, hostilité, méfiance, 
 fondée. Elle cède à tout constat (« vu »), et se périme après `RECENT` minutes pour une émotion,
 deux heures pour une attitude. Le joueur a les mêmes lectures dans `data["lectures"]`.
 
-Relire la même valeur envers la même cible dans un épisode de perception continu rafraîchit
-date et confiance, sans souvenir, nouvelle, confidence ni ligne « Lecture » supplémentaire.
-Un essai sans impression ne défait pas la lecture active. Un autre sens, un signe disparu
-puis revenu, ou la péremption comptent comme nouveaux ; le délai de dix minutes demeure dans
-tous les cas. `data.suivi_signes` conserve les épisodes à travers les rechargements ; une
-réception partielle de tons ne fait pas disparaître les autres signes. Les anciennes lectures
-actives sont reprises sans être réannoncées lors de l'ajout du suivi.
+Relire la même valeur envers la même cible pendant la même émission physique
+rafraîchit date et confiance, sans souvenir, nouvelle, confidence ni ligne « Lecture »
+supplémentaire. Un essai sans impression ne défait pas la lecture active. Un autre sens,
+un signe réellement arrêté puis réémis, ou la péremption comptent comme nouveaux ; le
+délai de dix minutes demeure dans tous les cas. Détourner le regard, perdre la lumière
+ou quitter la salle ne recrée pas le signe qui continue à être émis.
+`data.occurrences_signes` conserve l'identité physique commune ; `data.suivi_signes`
+retient les conclusions de chaque lecteur. Les paroles reçues portent leur épisode
+et sa provenance se transmet dans la nouvelle, sans transmettre sa vérité. Les anciennes
+lectures actives sont reprises sans réannonce ; leur histoire physique antérieure,
+absente de la sauvegarde, ne peut être reconstituée. Les projections restent pures.
 
 ### 6.3 Ce que les PNJ en font
 
