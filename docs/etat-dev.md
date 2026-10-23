@@ -17,10 +17,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   correction. Coordonnées de proximité réservées à `attendu`, approches d'improvisation conservées
   en données sans libellé technique dans le récit. Suite du gel : **1 391 tests, 14 ignorés**,
   aucun échec ; huit nuits de 2 h, Relais et auberge, graines 1985/7/42/2024 : chronique, mesures
-  et état final complet identiques à 9075aea. Campagne finale Luna (21 scripts × 3 passes par
-  variante) en cours ; rapport de la tâche 8 à terminer avant livraison. Limites : audience implicite
-  et classement des affirmations sémantiques ; une faisabilité non préparée demande une précision,
-  sans prétendre démontrer une impossibilité physique.
+  et état final complet identiques à 9075aea. Campagne finale Luna : 21 scripts × 3 passes par
+  variante, 126 parties/1 380 saisies, aucune erreur technique ni recharge invalide. Appel négocié :
+  36 tours par variante à zéro appel modèle ; question collective à la cantonade 6/6. Relances
+  historiques : 8,33 → 2 par passe, mais avec noms appris 2,67 → 4 (appels +7,6 %). Un repli
+  Brune persiste et quatre clarifications de fidélité s'ajoutent : l'absence de faux refus
+  sémantiques n'est pas garantie. Le passage sous la poutre ne demande plus une échelle par
+  erreur de type, mais aucune solution générale de passage n'est fournie. Voir le
+  [rapport de la tâche 8](taches/rapport-codex-8-luna-noms.md), mesures et limites explicites.
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,
