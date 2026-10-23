@@ -28,7 +28,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `obstacles.py`, fusionné sans conflit : la forme inconnue d'un passage lève `ProprieteInconnue` (S,
   sous-classe d'`ErreurMonde`, donc toujours attrapée par `transitions`, `compiler` et la fuite de Q) et
   `cout_route` reste la seule mesure de route (Q). Suite (`tools/tests.py --processus 2`, poste chargé)
-  **1600 tests, 15 sautés**, verte (3 449 s).
+  **1600 tests, 15 sautés**, verte (3 449 s). Vérification d'intégration : `VERIFIER` + `VERIFICATION` 1 sur
+  2 h, graine 42, Relais, mine, auberge, crue et `rixe` : sans écart ni borne. Audit 8 h (`tools/audit_nuits.py`,
+  quatre scénarios × 1985, 7, 42, 2024 ; référence 42bb9c0 rangée dans `artifacts/references/42bb9c0/`) :
+  aucun plantage, usurpation ni violation, aucune rafale (passages par heure au pire Relais 9 → 9, mine 17 → 21,
+  auberge 23 → 21, crue 30 → 26), bascules ≤ 1 ; sans recours Relais 100 → 101, mine 14 → 15, auberge 134 → 128,
+  crue 90 → 75 ; en attente 78 → 84, 289 → 299, 9 → 9, 119 → 178 (crue 1985 et 42) ; noir 93 → 93, 253 → 221,
+  140 → 143, 36 → 30 ; eau 114 → 111. **Temps de calcul ×3,7 à ×4,8** au processeur, `main` et la fusion lancés
+  ensemble (mine 42, 8 h : 43,9 → 210,4 s ; auberge 42 : 31,2 → 115,6 s) : plus d'états (case, orientation,
+  allure dans `Etat`) et chaque état plus cher (routes, approches, pression par salle) ; recherches bornées à la
+  mine 42 : 8 → 91 (Rémy `faim` 49, Josse `feu:poele` 39, Bram `lumiere` 3 à 463-465, aucune pour Bram sur
+  `main`). **Rafale du Relais 1985 (12 h)** : Aubin force la réserve de Gorm à 690 ; `defense.retenir` lisait ce
+  `frapper` sur une chose comme une violence contre son propriétaire : Brune, Ilse et Gorm le fuyaient vers la
+  conduite noire puis revenaient à la lumière ou à l'abri (197 passages en une heure), et sur `main` Gorm
+  ripostait (« frappe Aubin avec les fagots », Relais 1985 et crue 2024 à 12 h). Corrigé (commit séparé :
+  seule une contrainte, `pnj.est_contrainte`, est une violence ; `test_defense.ForcerNEstPasAgresserTests`,
+  Ilse et Gorm après rechargement, échoue sans) : Relais 1985 12 h, pire 197 → 9 passages par heure.
 - Branche `codex-luna-restes`, fusionnée, issue de `main` **8855312** : validation physique
   déterministe avant revue de plausibilité ; propriétés connues et champs inconnus distingués ;
   fidélité de parole séparée en audiences admissibles et contenu, comparée par le moteur, avec
@@ -2148,10 +2163,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   restant sémantique. Depuis `codex-trajets-reels`, une salle coupée sans franchissement cru est
   inaccessible aussi dans le plan. Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
 - Trajets réels (`codex-trajets-reels`, fusionnée) : le coût en minutes abstraites par salle est
-  réglé (`obstacles.cout_route`, une seule mesure). Restent : l'échelle des préférences inchangée
-  (`DEMANDE`, `CHERCHER`, `TACHE`, `RESTER` face à des trajets de quelques secondes) ; recherches bornées
-  dans l'espace enrichi (Bram, mine 42, 463 min) ; la rafale de passages au Relais 1985 et les
-  allers-retours faim/abri de la crue 2024 (diagnostic ci-dessous à l'intégration).
+  réglé (`obstacles.cout_route`, une seule mesure). Restent :
+  - **temps de calcul ×3,7 à ×4,8** (mine, auberge, 8 h) et recherches bornées plus fréquentes dans l'espace
+    enrichi (mine 42 : 8 → 91 ; Bram `lumiere` 463-465 en est une, nouvelle) ; à réduire avant d'empiler
+    d'autres lots sur le planificateur ;
+  - l'échelle des préférences inchangée (`DEMANDE`, `CHERCHER`, `TACHE`, `RESTER` face à des trajets de
+    quelques secondes) ;
+  - **fuite ↔ sécurité** (déjà sur `main`, Relais 2024 à 12 h : Ilse 165 passages en une heure ; après la
+    fusion 37) : après une vraie violence (Aubin assomme Brune pour prendre torche et planches), Ilse fuit
+    l'auteur vers la conduite noire ; la fuite s'achève dès que la salle diffère, puis l'abri (Gorm, au refuge
+    éclairé) ou la lumière la ramène dans la salle de l'auteur, et `defense.choisir` la fait refuir. Correction
+    proposée : la salle crue d'un danger actif (`defense.auteurs`, `salle_crue`) pèse dans `Vue.pression` comme
+    une présence crainte et n'est pas un abri (`_plan_abri.sures`) ; lecture à mettre dans `_entrees` ;
+  - **faim ↔ eau** (crue 2024, Brune heures 5-6) : le seul chemin de la galerie aux vivres du refuge traverse la
+    conduite basse, que Brune attend noyée (116 cm) ; le parcours n'écarte que les salles crues noyées
+    (`noyee_crue`) et `Vue.descente` ne juge que la salle d'arrivée, mais `eau.en_peril` juge la salle
+    traversée : prise dans la conduite à une minute ronde, elle remonte s'abriter, puis la faim la renvoie.
+    Déjà possible sur `main` (là, elle passe entre deux minutes et mange) ; correction proposée : une seule
+    règle, la salle traversée jugée comme la salle d'arrivée (`noyee_attendue`, sauf pour sortir d'un péril).
 
 ## Décisions en attente
 
