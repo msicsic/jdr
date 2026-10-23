@@ -34,6 +34,20 @@ CHAMPS_CONTENU = {
     "reclamer": ("sujet",), "ressource": ("sujet",),
 }
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
+# Sens du protocole, commun au schéma d'interprétation et à la revue. Les codes
+# de besoins décrivent la ressource demandée, pas le sujet littéral de la phrase.
+SENS_CONTENU = {
+    "propos": "Propos sans effet mécanique typé.",
+    "affirmation": "Affirmer la valeur d'un attribut d'un sujet ; le destinataire décide d'y croire.",
+    "demande": "Demander un objet ou une part d'une ressource du destinataire ; valeur est le prix offert, vide sans offre.",
+    "passage": "Demander au destinataire de laisser passer ; valeur est le prix offert, vide sans offre.",
+    "aveu": "Avouer le geste valeur sur l'objet sujet.",
+    "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
+    "qui": "Demander l'identité de l'interlocuteur.",
+    "reclamer": "Réclamer son dû : les pièces si sujet est vide, sinon l'objet sujet.",
+    "ressource": "Demander si le destinataire a la ressource répondant au besoin sujet, sans la prendre ni la payer.",
+}
+RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -51,6 +65,19 @@ SCHEMA_PAROLE = {
     },
     "required": ["personnage", "replique", "contenu"],
 }
+SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["type"]["description"] = " ".join(
+    f"{t} : {SENS_CONTENU[t]}" for t in TYPES)
+SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["sujet"]["description"] = (
+    "Pour ressource : " + "; ".join(f"{b} = {RESSOURCES_DEMANDEES[b]}" for b in BESOINS_DEMANDES)
+    + ". Sinon, la référence du sujet selon le type.")
+
+
+def sens_contenu(contenu):
+    """Signification des codes validés, sans leur prêter une conséquence non calculée."""
+    return [{"type": c.get("type", "propos"), "sens": SENS_CONTENU.get(c.get("type"), SENS_CONTENU["propos"]),
+             **({"ressource_recherchee": RESSOURCES_DEMANDEES[normaliser(c["sujet"])]}
+                if c.get("type") == "ressource" else {})} if isinstance(c, dict)
+            else {"type": "propos", "sens": SENS_CONTENU["propos"]} for c in contenu]
 
 PRECISION = ((7, "très pauvre : mots simples, phrases hachées, termes approximatifs"),
              (9, "pauvre : vocabulaire courant restreint, idées une à une, détails perdus"),

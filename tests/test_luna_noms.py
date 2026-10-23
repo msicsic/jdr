@@ -197,7 +197,7 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(f.data["paroles_pnj"][-1]["salle"], "echoppe")
                 self.assertEqual(f.data["paroles_pnj"][-1]["auditeurs"], r.data["paroles_pnj"][-1]["auditeurs"])
 
-    def test_une_presentation_que_l_auditeur_invente_lui_est_redemandee(self):
+    def test_une_presentation_absente_des_mots_n_etablit_aucun_nom_sans_relance(self):
         for nom in ("Aubin", "Ilse"):
             with self.subTest(nom=nom):
                 m = scene()
@@ -209,7 +209,7 @@ class NarrationTests(unittest.TestCase):
                 r, sortie, appels = jouer(m, "à tous : bonsoir", [
                     parole("bonsoir", personnage="tous"), dialogue(texte)], [rapport(faux), rapport(bon)])
                 self.assertIn(texte, sortie)
-                self.assertEqual([f for f, _ in appels].count("auditer_narration"), 2)
+                self.assertEqual([f for f, _ in appels].count("auditer_narration"), 1)
                 self.assertEqual([f for f, _ in appels].count("repondre_au_joueur"), 2)
                 self.assertNotIn("presentation", r.data["paroles_pnj"][-1])
 

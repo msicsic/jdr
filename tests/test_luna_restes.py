@@ -142,6 +142,46 @@ class FormeTests(unittest.TestCase):
 
 
 class ParoleTests(unittest.TestCase):
+    def test_ressource_typee_decrite_par_le_meme_contrat_que_le_schema(self):
+        for question, besoin in (("est-ce que quelqu'un a du bois ?", "chaleur"),
+                                 ("qui a de quoi manger ?", "faim")):
+            with self.subTest(besoin=besoin):
+                r, texte, appels = jouer(scene(), question, [
+                    parole(question, ("ressource", besoin, "", ""), personnage="personne"),
+                    dialogue("Ta question a été entendue.")],
+                    [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+                revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
+                from donjon.paroles import RESSOURCES_DEMANDEES, SCHEMA_PAROLE
+                self.assertEqual(revue["sens_contenu"][0]["ressource_recherchee"], RESSOURCES_DEMANDEES[besoin])
+                schema = SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]
+                self.assertIn(RESSOURCES_DEMANDEES[besoin], schema["sujet"]["description"])
+                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], question)
+                self.assertIn(question, texte)
+
+    def test_nom_absent_de_la_citation_ecarte_sans_relance_ni_apprentissage(self):
+        from tests.test_noms import relais
+        from tests.test_tensions import placer
+        from donjon.voix import designation, nom_pour_joueur, connait_nom
+        for qui, nom in (("marchand", "Gorm"), ("aubin", "Aubin")):
+            with self.subTest(nom=nom):
+                m = relais()
+                if qui != "marchand":
+                    placer(m, "marchand", "crypte", (2, 3))
+                    placer(m, qui, "echoppe", (1, 1))
+                m = recharger(m)
+                alias, apparence = designation(m, qui), nom_pour_joueur(m, qui)
+                texte = apparence[:1].upper() + apparence[1:] + " dit : « Bonsoir. »"
+                faux = ligne("parole", locuteur=alias, citation="Bonsoir.")
+                faux["presentation"] = nom
+                r, sortie, appels = jouer(m, "je dis à " + apparence + " : bonsoir", [
+                    parole("bonsoir", personnage=alias), dialogue(texte)], [rapport(faux)])
+                self.assertEqual([f for f, _ in appels].count("auditer_narration"), 1)
+                self.assertEqual([f for f, _ in appels].count("repondre_au_joueur"), 2)
+                self.assertIn(texte, sortie)
+                self.assertNotIn(nom, sortie)
+                self.assertFalse(connait_nom(r, "joueur", qui))
+                self.assertNotIn("presentation", r.data["paroles_pnj"][-1])
+
     def test_audiences_collectives_comparees_par_le_moteur(self):
         for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous aider ?"):
             for destinataire, adresse in (("personne", "cantonade"), ("tous", "groupe")):

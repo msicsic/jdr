@@ -616,10 +616,11 @@ class NomsTests(unittest.TestCase):
         alias=designation(m,'marchand')
         audit=ligne('parole',locuteur=alias,citation='Bonsoir.')
         audit['presentation']='Gorm'
-        from donjon.narration import AuditIllisible
-        with self.assertRaises(AuditIllisible):
-            controler("L'homme trapu dit : « Bonsoir. »",rapport(audit),
-                      {'interlocuteurs':interlocuteurs(m)})
+        controle=controler("L'homme trapu dit : « Bonsoir. »",rapport(audit),
+                          {'interlocuteurs':interlocuteurs(m)})
+        self.assertFalse(controle['obstacles'])
+        self.assertEqual(controle['segments'][0]['presentation'],'')
+        self.assertNotIn('presentation',controle['paroles'][0])
         self.assertFalse(connait_nom(recharge(m),'joueur','marchand'))
 
     def test_le_fait_parole_partage_la_presentation_typee_et_le_garde_des_noms(self):

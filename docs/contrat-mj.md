@@ -147,8 +147,9 @@ du locuteur. Aucune voix distante ne donne un portrait ou un lien nominal suppl�
 
 La ponctuation finale d'une réplique termine son segment lorsque la phrase suivante commence ;
 les locuteurs successifs ont ainsi leurs propres citations auditées. Une `presentation` que
-l'auditeur fournit sans la trouver dans sa citation rend son rapport illisible : le rapport lui
-est redemandé une fois avant toute demande de réécriture. Un fait typé qui prétend ajouter une
+l'auditeur fournit sans la trouver dans sa citation est écartée par le moteur : aucun nom n'est
+appris, la réplique contrôlée reste inchangée et n'est pas relancée pour cette métadonnée.
+Un fait typé qui prétend ajouter une
 présentation absente de ses mots reste refusé par le moteur.
 
 Une opération dont la cible n'a pas le type requis est un `RefusDeForme`. Elle ne prouve pas
@@ -228,6 +229,10 @@ parole dont le moteur décide l'acceptation, le transfert ou le refus ; elle n'a
 opération de transfert faite par Corvus. Les références sont projetées en noms publics ; les mots
 libres restent littéraux. Un refus d'audience et un refus de contenu ont chacun leur `attendu`.
 La fidélité du choix d'audience et du sens des mots demeure en partie sémantique.
+Le sens de tous les types de contenu et des codes de ressource vient de `paroles.SENS_CONTENU`
+et `RESSOURCES_DEMANDEES`, partagés par le schéma d'interprétation et la revue (`sens_contenu`).
+Ainsi un besoin typé désigne la ressource recherchée ; il ne devient pas le sujet littéral de
+la question. Cette donnée ne décide pas si le destinataire la possède ni s'il l'accorde.
 
 Toute qualification physique passe d'abord par la validation déterministe sur copie (ancrage,
 propriété encore libre, bornes, masse quand la description la détermine), puis par la revue de

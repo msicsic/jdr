@@ -407,7 +407,7 @@ class MJ:
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision):
         """Contre-revue de l'audience libre, des mots et du contenu avant enregistrement."""
-        from .paroles import audience_libre, prevue
+        from .paroles import audience_libre, prevue, sens_contenu
         from .moteur import Plan
         if not audience_libre(analyser_parole(monde, intention)):
             return
@@ -418,6 +418,7 @@ class MJ:
             "destinataires": rapport["destinataires"], "repondent": rapport["repondent"],
             "audiences_autorisees": prevue(monde, intention)["audiences"],
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
+            "sens_contenu": sens_contenu(complements["contenu"]),
             "consequences_moteur": copy.deepcopy(rapport["faits"])})
         try:
             self._auditer_action(intention, plan, revision, monde)

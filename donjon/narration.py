@@ -719,13 +719,13 @@ def controler(texte, rapport, faits, partie="texte"):
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "presentation", "motif"))):
             raise AuditIllisible("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
+        # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
+        # mécanique sans source restante est refusée plus bas.
+        ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
         if verdict == "contradictoire" and not ligne["sources"]:
             # Une absence dans le contexte n'est pas une preuve négative. Ce
             # défaut du rapport revient au lecteur, sans faire réécrire le MJ.
             raise AuditIllisible("Une contradiction doit citer le fait qu'elle contredit.")
-        # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
-        # mécanique sans source restante est refusée plus bas.
-        ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
         if verdict not in ("parole", "engagement"):
@@ -780,12 +780,14 @@ def controler(texte, rapport, faits, partie="texte"):
                 refuser("Une parole doit être citée entre « et », en entier, dans le segment.",
                         f"la réplique de {locuteur} entière entre « et » dans ce segment, de 3 à {LONGUEUR_PAROLE} "
                         "caractères", f"citation {citation}" if citation else "citation vide")
-            elif ligne['presentation'] and not re.search(r'(?<!\w)'+re.escape(ligne['presentation'])+r'(?!\w)',citation):
-                # Le lecteur a inventé une donnée de son rapport : la citation
-                # suffit à le constater sans juger la prose. Lui redemander son
-                # rapport ne fait ni réécrire la réplique ni apprendre ce nom.
-                raise AuditIllisible("Le rapport attribue une présentation absente de sa citation.")
             else:
+                if ligne['presentation'] and not re.search(
+                        r'(?<!\w)'+re.escape(ligne['presentation'])+r'(?!\w)',citation):
+                    # Un nom extrait sans mots correspondants n'établit aucun
+                    # lien nominal. Écarter cette seule donnée ne réécrit ni ne
+                    # refuse une réplique contrôlée et ne fait apprendre aucun nom.
+                    ligne = {**ligne, "presentation": ""}
+                    lignes_validees[-1] = ligne
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":

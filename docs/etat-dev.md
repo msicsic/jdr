@@ -15,8 +15,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   les autres refus restent corrigeables. Gardes refaits à l'écriture de toute prose persistante.
   `etablir_faits` peut proposer les faits et la `suite` du geste dans le même appel, validés
   séparément sur copie ; une question n'exécute toujours rien.
-  Onze nouveaux tests après rechargement. Suite complète, empreintes de 2 h et mesures
-  Luna après correction en cours ; bilan à compléter dans le rapport de la tâche 22.
+  Sens des contenus typés partagé entre interprétation et revue ; une présentation extraite
+  sans nom dans la citation est écartée sans réécrire la réplique ni faire apprendre ce nom.
+  Quatorze nouveaux tests après rechargement. Sur `768bae6` : suite complète verte, **1 589 tests,
+  15 ignorés**, 798,4 s ; empreintes de 2 h identiques contre 8855312, quatre scénarios × quatre
+  graines. Dernière revue du contrat de parole : 159 tests ciblés verts ; vérification finale et
+  mesures Luna en cours, bilan à compléter dans le rapport de la tâche 22.
 
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
