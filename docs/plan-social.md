@@ -166,7 +166,10 @@ sur ce que la contrainte lui coûte (malus, jets), pas sur ce qu'il décide.
   affection, peur).
 - **Un groupe n'est pas déclaré** : c'est ce qu'on observe quand plusieurs personnes suivent le
   même personnage. Le récit du banc dit qui suit qui, depuis quand, pourquoi (confiance, dette,
-  peur), et ce que le chef en tire.
+  peur), et ce que le chef en tire. Un scénario peut pourtant commencer avec un groupe et un chef
+  établis, comme état initial (liens, autorité, agendas confiés) : rien n'y est gravé, le groupe
+  ne tient ensuite que par les mécaniques communes (décision du 2026-10-23,
+  `docs/plan-agendas.md`).
 - **Le leader ambitieux** sort des règles communes, sans être écrit : son statut le pousse à
   recruter ; il rend des services pour créer des dettes, dit à chacun ce qu'il veut entendre
   s'il est peu honnête, menace s'il est brutal, s'appuie sur ses suivants pour contraindre les
@@ -176,7 +179,8 @@ sur ce que la contrainte lui coûte (malus, jets), pas sur ce qu'il décide.
 
 ## Ce qui serait un script, à éviter
 
-- Un personnage désigné « chef » par l'auteur, ou un groupe déclaré.
+- Un personnage désigné « chef » par l'auteur, ou un groupe déclaré, qui le resteraient quoi qu'il
+  arrive (un groupe de départ, réévalué par les mécaniques communes, n'en est pas un).
 - Une règle propre à un personnage (« Brune vole quand… », « Gorm cède si… »).
 - Des répliques écrites ; un ordre des recours codé par personnage.
 - Un comportement de groupe écrit (« le groupe attaque ») : chacun décide pour soi, selon ses
