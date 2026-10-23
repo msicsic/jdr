@@ -414,13 +414,18 @@ def moyens_crus(monde, id, s, connus=None):
 
 
 def appels_vains(monde, id, qui):
-    """Les salles où il a hélé ``qui`` sans réponse, depuis qu'il ne sait plus où il est, et depuis
-    moins de ``APPEL_OUBLI`` minutes : elles comptent pour parcourues dans cette recherche."""
+    """Salles examinées sans retrouver ``qui``, ou hélées sans réponse, depuis qu'il ne sait plus
+    où il est et depuis moins de ``APPEL_OUBLI`` minutes. Une réponse anonyme ne retrouve pas
+    la personne cherchée : elle ne doit pas effacer le résultat de la recherche sur place."""
     e = lire(monde, id)
     depuis = (e["croyances"].get(qui, {}).get("lieu") or {}).get("minute", -1)
     minute = monde.data["minutes"]
-    return {s["salle"] for s in e["memoire"] if s["type"] == "appel_sans_reponse" and s["qui"] == qui
-            and s["minute"] >= depuis and minute - s["minute"] < APPEL_OUBLI}
+    return {s for s, t in e["recherches"].get(qui, {}).items() if t >= depuis and minute - t < APPEL_OUBLI}
+
+
+def recherche_vaine(monde, id, qui, salle):
+    """Le résultat d'une recherche se retient comme celui d'une demande, hors mémoire bornée."""
+    esprit(monde, id)["recherches"].setdefault(qui, {})[salle] = monde.data["minutes"]
 
 
 def cherche(monde, id, qui):
@@ -479,10 +484,17 @@ def _plan_attendre(monde, id):
 
 
 def _attendre_qui_vient(monde, id, resultat):
-    """Qui attend quelqu'un qui a promis de venir (« J'arrive ! ») ne va pas le chercher : un plan qui
+    """Le rendez-vous fournit le lieu où chercher son interlocuteur : qui doit venir le rejoint
+    au lieu d'explorer ailleurs. Qui attend quelqu'un qui a promis de venir (« J'arrive ! »)
+    ne va pas le chercher : un plan qui
     commence par aller à lui, ou le chercher, devient l'attendre là où il est, le temps convenu ; son
     but reprend quand ils se sont retrouvés. Un plan qui fait d'abord autre chose ici reste tel quel."""
-    from .appel import _vise
+    from .appel import _vise, plan_venir
+    d = lire(monde, id)["rejoindre"]
+    if resultat and d and _vise({"but": resultat[0], "plan": resultat[1]}, d["qui"]):
+        # Le même objectif cherche un interlocuteur qui vient de lui dire où venir. Le
+        # rendez-vous est un moyen connu de ce plan, même d'une voix encore sans identité.
+        return plan_venir(monde, id) or resultat
     r = lire(monde, id)["rejoint"]
     if not resultat or not r or not r["vient"]:
         return resultat
@@ -682,18 +694,19 @@ def appeler_a_l_aide(monde, id, minute):
     e = esprit(monde, id)
     menace = ("securite" in urgents(monde, id) and prudent(monde, id)
               and monde.objets[id]["lieu"] in menaces(monde, id))
-    appels = [s for s in e["memoire"] if s["type"] == "appel"]
+    secours = e["secours"]
+    # Sortir du lieu menacé, ou repasser juste sous DESESPOIR, n'est pas être rassuré.
+    # Le même épisode dure tant que son besoin de sécurité presse (effet de seuil commun).
+    if secours and e["besoins"].get("securite", 0) < DESESPOIR and "securite" not in urgents(monde, id):
+        secours["apaise"] = True
     if e["besoins"].get("securite", 0) < DESESPOIR and not menace:
-        if appels:
-            appels[-1]["apaise"] = True  # Rassuré depuis : un nouveau désarroi pourra appeler de nouveau.
         return
     # Un appel attend sa réponse : tant que le désarroi qui l'a fait lancer dure, il ne le répète pas,
-    # que quelqu'un soit venu sans l'apaiser ou que personne ne vienne (un autre recours, ou être
-    # rassuré, y mettent fin).
+    # que quelqu'un soit venu sans l'apaiser ou que personne ne vienne.
     if (e["intention"] and e["intention"]["but"]["type"] == "abri"
-            or appels and not appels[-1].get("apaise")
-            or any(s["type"] == "appel" and minute - s["minute"] < APPEL_REPIT for s in appels)):
+            or secours and (not secours["apaise"] or minute - secours["minute"] < APPEL_REPIT)):
         return
+    e["secours"] = {"minute": minute, "apaise": False}
     memoriser(monde, id, {"type": "appel"})
     from .ecoute import appel
     appel(monde, id)
@@ -1164,6 +1177,31 @@ def attentes(monde, id):
     attendent que quelque chose change dans ce qu'il croit, sans être oubliés (``deliberer``)."""
     e = lire(monde, id)
     return [b for b in urgents(monde, id) if _etat_urgence(e, b) == "attente"]
+
+
+def inactivite(monde, id):
+    """Pourquoi un PNJ pressé n'entreprend rien, sur ses croyances (lecture seule).
+
+    Le banc, le récit et l'audit distinguent le recours non entrepris, l'absence de moyen,
+    la charge confiée et la charge déjà satisfaite. Un besoin haut ne suffit pas à dire
+    qu'il reste une tâche à faire ; aucune recherche supplémentaire n'est lancée ici.
+    """
+    p = profil(monde, id)
+    if not p or lire(monde, id)["intention"] is not None:
+        return None
+    pressants = urgents(monde, id)
+    if not pressants:
+        return None
+    rompues = {b: [x for x in p["pulsions"] if x["besoin"] == b and not satisfaite(monde, id, x["condition"])]
+               for b in pressants}
+    a_faire = [b for b, r in rompues.items()
+               if any(not _delegue(monde, id, x) for x in r) or not any(x["besoin"] == b for x in p["pulsions"])]
+    sans_plan = attentes(monde, id)
+    if any(b not in sans_plan for b in a_faire):
+        return "sans_recours"
+    if a_faire:
+        return "attente"
+    return "confiee" if any(rompues.values()) else "satisfaite"
 
 
 def eveiller(monde, id, minute):

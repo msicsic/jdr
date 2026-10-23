@@ -1107,7 +1107,7 @@ def _parts_remises(v, e, o, dans, vises):
 
 def _chercher(v, e, sujet):
     """Perdu de vue : il va le chercher là où il est passé le moins récemment, et l'y suppose,
-    hors des salles où il l'a hélé en vain (``deliberation.appels_vains``) ; None s'il n'en reste
+    hors des salles où il l'a cherché en vain (``deliberation.appels_vains``) ; None s'il n'en reste
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
     visites = lire(v.monde, v.id)["visites"]
     vaines = appels_vains(v.monde, v.id, sujet)
@@ -1153,9 +1153,8 @@ def _entrees(v, vises, profondeur, noeuds):
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
-        # Les salles hélées en vain (``_chercher``), tant qu'elles comptent.
-        [[q, sorted(appels_vains(monde, id, q))] for q in sorted({s["qui"] for s in esprit_["memoire"]
-                                                                   if s["type"] == "appel_sans_reponse"})],
+        # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
+        [[q, sorted(appels_vains(monde, id, q))] for q in sorted(esprit_["recherches"])],
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]

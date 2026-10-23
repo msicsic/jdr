@@ -109,6 +109,8 @@ class Recit:
         self.maximum = {id: Counter() for id in ids}
         self.sans_recours = Counter()
         self.en_attente = Counter()
+        self.charges_confiees = Counter()
+        self.charges_satisfaites = Counter()
         self._relations = {(id, x): relations.axes(monde, id, x)["bandes"]
                            for id in ids for x in relations.connus(monde, id)}
         self.changements_relations = []
@@ -134,7 +136,7 @@ class Recit:
             yield self
 
     def _noter(self, monde, id, minute):
-        from .deliberation import attentes, seuils, urgents
+        from .deliberation import inactivite, seuils, urgents
         e = lire(monde, id)
         for x in relations.connus(monde, id):
             r = relations.axes(monde, id, x)
@@ -160,10 +162,9 @@ class Recit:
                 self.urgence[id][nom] += 1
         i = e["intention"]
         if i is None and urgents(monde, id):
-            if set(urgents(monde, id)) <= set(attentes(monde, id)):
-                self.en_attente[id] += 1
-            else:
-                self.sans_recours[id] += 1
+            compte = {"attente": self.en_attente, "sans_recours": self.sans_recours,
+                      "confiee": self.charges_confiees, "satisfaite": self.charges_satisfaites}
+            compte[inactivite(monde, id)][id] += 1
         self._episode(monde, id, minute)
 
     def _episode(self, monde, id, minute):
@@ -225,6 +226,10 @@ class Recit:
             lignes.append(f"  Pressé sans rien entreprendre : {self.sans_recours[id]} min")
         if self.en_attente[id]:
             lignes.append(f"  Pressé, en attente d'un moyen : {self.en_attente[id]} min")
+        if self.charges_confiees[id]:
+            lignes.append(f"  Charge confiée à autrui : {self.charges_confiees[id]} min")
+        if self.charges_satisfaites[id]:
+            lignes.append(f"  Charge déjà satisfaite : {self.charges_satisfaites[id]} min")
         rondes, sans_geste, faits = Counter(), {}, []
         for ep in self.episodes[id]:
             mots = but_en_mots(monde, ep["but"])
@@ -373,4 +378,5 @@ class Recit:
                                   for ep in self.episodes[id]] for id in self.ids},
                 "urgence": {id: dict(self.urgence[id]) for id in self.ids},
                 "sans_recours": dict(self.sans_recours), "en_attente": dict(self.en_attente),
+                "charges_confiees": dict(self.charges_confiees), "charges_satisfaites": dict(self.charges_satisfaites),
                 "souvenirs": self.souvenirs, "relations": self.changements_relations}

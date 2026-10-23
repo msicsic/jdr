@@ -494,7 +494,12 @@ def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     if "orientation" in o:
         tour_d_horizon(monde, id)  # Il parcourt la salle des yeux, tout autour de lui.
     if cherche and (cherche == "joueur" or cherche in monde.objets) and not croit_present(monde, id, cherche):
-        appeler(monde, id, cherche, [] if lignes is None else lignes)
+        from .deliberation import appels_vains
+        if o["lieu"] not in appels_vains(monde, id, cherche):
+            appeler(monde, id, cherche, [] if lignes is None else lignes)
+        if not croit_present(monde, id, cherche):
+            from .deliberation import recherche_vaine
+            recherche_vaine(monde, id, cherche, o["lieu"])
     bruit = parcouru(monde, id, o["lieu"], vers)
     if bruit:
         from .social import _qui

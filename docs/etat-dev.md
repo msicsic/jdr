@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-signalements`, non fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
+  quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
+  seuil de désespoir : le suivi de secours survit à la mémoire bornée. Une recherche retient aussi
+  son échec après une réponse anonyme et suit le lieu d'un rendez-vous convenu ; résultats actifs
+  dans la clé du planificateur. Lecture commune de l'inactivité pour le banc, le récit et l'audit
+  (attente de moyen, charge confiée, charge satisfaite), sans changement des besoins. Les codes
+  bruts restent visibles avec leur niveau d'explication. Appels d'Anselme, auberge 3 : 108 → 15 ;
+  répétitions 6 → 0, rafales de passages 1 → 0. Noir long 57 → 67 : pas d'amélioration uniforme
+  promise. Les observateurs seuls ont rejoué les 32 références à l'identique. Quatorze tests
+  nouveaux avec quatre scènes enregistrées, laps découpés et rendu après rechargement. `VERIFIER`
+  et perception 1 sur 2 h, puis 0,2 sur 8 h, graine 42, quatre scénarios : sans écart ni borne.
+  Suite complète verte : **1 438 tests, quatre sautés**, trois processus, 241,3 s. Six échecs
+  MiMo simulés également présents sur la référence avec `jsonschema` sont corrigés dans leurs
+  fixtures (champ `presentation`, initialisation de la perception), sans appel au modèle.
+  [Rapport, causes de chaque famille, commandes et limites](taches/rapport-codex-14-signalements.md).
 - Branche `codex-lampes-suite`, fusionnée, base `main` 9075aea : la lumière employée par
   le but et ses gestes remplace la capacité de crocheter dans la pertinence des sources et des
   remises de combustible. Découverte par les lectures communes de lumière, reprise depuis le

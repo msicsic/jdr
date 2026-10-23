@@ -291,6 +291,8 @@ def repondre(monde, appelant, appele, lignes):
 
 def _sans_reponse(monde, appelant, appele):
     if appelant != "joueur":
+        from .deliberation import recherche_vaine
+        recherche_vaine(monde, appelant, appele, monde.objets[appelant]["lieu"])
         memoriser(monde, appelant, {"type": "appel_sans_reponse", "qui": appele,
                                     "salle": monde.objets[appelant]["lieu"]})
 
@@ -435,7 +437,9 @@ def tenir(monde, id, minute):
     elif rencontre(monde, id, d["qui"]):
         rejoint(monde, id, d["qui"])
         se_signaler(monde, id, d["qui"])
-    elif (monde.objets[id]["lieu"] == d["salle"] and e["visites"].get(d["salle"], -1) > d["depuis"]
+    elif (monde.objets[id]["lieu"] == d["salle"] and (
+              e["visites"].get(d["salle"], -1) > d["depuis"]
+              or e["recherches"].get(d["qui"], {}).get(d["salle"], -1) >= d["depuis"])
           or minute >= d["jusqu_a"]):
         e["rejoindre"] = None
         memoriser(monde, id, {"type": "rendez_vous_manque", "qui": d["qui"]})

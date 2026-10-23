@@ -76,7 +76,13 @@ CHAMPS = {"relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, 
           "refus": list,
           # l'état qu'il vient de donner de sa main à une chose : {objet: {attribut: [valeur, minute]}},
           # depuis moins de ``deliberation.DEFAIT`` minutes (``deliberation.changer_etat``)
-          "donne": dict}
+          "donne": dict,
+          # Le dernier appel à l'aide et la fin de son désarroi : ce suivi de recours ne doit
+          # pas disparaître avec les quarante souvenirs de la mémoire courante.
+          "secours": lambda: None,
+          # Salles examinées sans y retrouver la personne cherchée ; mêmes délais que les
+          # appels sans réponse, indépendamment de la mémoire courante et des voix anonymes.
+          "recherches": dict}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -103,6 +109,18 @@ def installer(monde):
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
+        for souvenir in e["memoire"]:
+            if souvenir["type"] == "appel_sans_reponse":
+                salles = e["recherches"].setdefault(souvenir["qui"], {})
+                salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
+        if e["secours"] is None:
+            appels = [s for s in e["memoire"] if s["type"] == "appel"]
+            if appels:
+                from .deliberation import DESESPOIR, urgents
+                e["secours"] = {"minute": appels[-1]["minute"],
+                                "apaise": (bool(appels[-1].get("apaise"))
+                                           and e["besoins"].get("securite", 0) < DESESPOIR
+                                           and "securite" not in urgents(monde, id))}
         if nouveau:
             # Début de partie : le scénario déclare qui se connaît déjà (un savoir à son sujet) ;
             # il connaît leur voix. Voir quelqu'un, plus tard, n'y ajoute rien (``voix``).
@@ -252,6 +270,14 @@ def verifier(monde):
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
+        assert e["secours"] is None or (
+            isinstance(e["secours"], dict) and set(e["secours"]) == {"minute", "apaise"}
+            and type(e["secours"]["minute"]) is int and type(e["secours"]["apaise"]) is bool
+        ), "Suivi de secours de PNJ invalide"
+        assert isinstance(e["recherches"], dict) and all(
+            q in monde.objets or q == "joueur" for q in e["recherches"]
+        ) and all(isinstance(salles, dict) and all(s in monde.data["salles"] and type(t) is int
+                  for s, t in salles.items()) for salles in e["recherches"].values()), "Recherches de PNJ invalides"
         i = e["intention"]
         assert i is None or (isinstance(i, dict) and set(i) == CLES_INTENTION
                              and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)

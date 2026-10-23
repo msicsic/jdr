@@ -1253,3 +1253,42 @@ pas la lumière, moyen écarté pour un but sans lumière, graphe repris et
 mémoire contrôlés. L'inspection ordinaire reste possible dans le noir ; le test lui compose
 explicitement un but de lumière. Mesures et causalité historique :
 `docs/taches/rapport-codex-9-lampes-suite.md`.
+
+## Signalements des nuits (branche `codex-signalements`, non fusionnée)
+
+L'audit de `main` 43fa7ac distingue un besoin haut d'une action restant à accomplir. La lecture
+commune `deliberation.inactivite` reprend exactement le classement du banc : sans recours entrepris,
+en attente de moyen, charge confiée, ou charge déjà satisfaite. Le banc conserve ses comptes ; le
+récit distingue les deux derniers cas au lieu de les appeler « sans rien entreprendre ». L'audit
+retient la cause avec chaque relevé. Cette lecture ne cherche aucun plan et ne change aucun choix.
+
+Un appel à l'aide suit **l'épisode d'urgence de la sécurité**, avec son effet de seuil, et non le
+seul dépassement de `DESESPOIR`. Quitter le lieu où un bien est menacé ou descendre de 96 à 94 ne
+rassure pas quelqu'un que sa sécurité presse toujours. `esprit["secours"]` garde la minute de
+l'appel et si l'épisode s'est apaisé, indépendamment des quarante souvenirs. Un autre besoin ou
+une réponse qui ne rassure pas ne réarme pas l'appel. Le répit `APPEL_REPIT` reste applicable à un
+nouvel épisode ; un abri en cours passe toujours avant l'appel. Le recours est inscrit avant le son.
+Pour une ancienne sauvegarde, le dernier souvenir d'appel initialise ce suivi ; son ancien marqueur
+`apaise` n'est retenu que si la sécurité ne presse plus au chargement. Un appel déjà sorti de
+l'ancienne mémoire ne peut être reconstruit.
+
+**Une recherche retient ce qu'elle a appris, même si quelqu'un a répondu.** Après un tour d'horizon
+et l'appel éventuel, ne pas savoir la personne cherchée là est un résultat infructueux de cette
+personne dans ce lieu. `esprit["recherches"][personne][salle]` le garde hors mémoire bornée ; les
+anciens appels sans réponse l'initialisent. `appels_vains` applique toujours `APPEL_OUBLI` (60 min)
+et la date de la dernière croyance de lieu : apprendre une nouvelle position permet de rechercher
+de nouveau. La liste des salles ainsi écartées entre dans `_entrees`, donc dans la mémoire et les
+graphes contrôlés du planificateur. Aucune réponse anonyme n'apprend une identité ou une position
+de corps par ce suivi.
+
+Un plan qui cherche celui à qui il a dit « J'arrive ! » emploie d'abord le lieu du rendez-vous
+(`_attendre_qui_vient`, `appel.plan_venir`) ; il ne continue pas sa tournée pour le trouver.
+L'inspection infructueuse du lieu convenu termine ce rendez-vous, même dans sa minute de création,
+sans relancer l'appel au même endroit. Un plan visant quelqu'un d'autre conserve son rang habituel.
+
+Cas enregistrés et cas de même nature, après rechargement et avec le même laps découpé : Gorm au
+Relais 42, minute 160 ; Ilse seule entre désespoir et urgence ; Anselme à l'auberge 3, minute 570,
+et une recherche de bien porté au Relais sans voix identifiée. La cause des longues inactivités
+est également vérifiée sur l'auberge 11, minute 500 (Mireille : charge payée confiée ; Hugues :
+rondes à jour), et le Relais 1985, minute 120 (charge du joueur). Résultats et limites dans
+`docs/taches/rapport-codex-14-signalements.md`.
