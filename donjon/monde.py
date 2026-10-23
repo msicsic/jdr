@@ -183,6 +183,13 @@ class Monde:
     def actualiser_souvenirs_personnages(self):
         """Appelé par le moteur après une action ; une consultation reste sans effet."""
         self.identifier(o["id"] for o in self.presents() if o["type"] == "personnage")
+        from .corps import visible as corps_visible
+        from .defense import constater_fin
+        for o in self.presents():
+            if o["type"] == "personnage":
+                etat = corps_visible(self, o["id"])
+                if etat["conscient"] is False or etat.get("reddition"):
+                    constater_fin(self, "joueur", o["id"])
         if eclairage(self)["niveau"] < 2:
             return
         for o in self.presents():

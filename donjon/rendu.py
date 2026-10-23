@@ -63,6 +63,8 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             # Sans connaissance, il ne montre aucune humeur (comme une dépouille, ``corps.mourir``).
             morceaux.append("à terre, sans connaissance")
         else:
+            if o.get("corps", {}).get("reddition"):
+                morceaux.append("a cessé de résister")
             if blessure(monde, o["id"]):
                 morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
             if o.get("humeur"):

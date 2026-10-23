@@ -332,7 +332,9 @@ class CombatTests(unittest.TestCase):
             r = combat.frapper(m, "brune", "marchand")
         self.assertFalse(r["touche"])
         self.assertEqual(r["degats"], 0)
-        m = recharger(m)
+        # Deux jets indépendants : l'esquive et la résistance, sans contourner la durée du coup.
+        m = recharger(scene("marchand", False))
+        deplacer(m, "marteau", "brune")
         with patch.object(type(m), "d20", side_effect=[20, 1, 20]):
             r = combat.frapper(m, "brune", "marchand", "marteau", "assommer")
         self.assertEqual(r["degats"], 1)

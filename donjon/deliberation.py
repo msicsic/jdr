@@ -23,7 +23,7 @@ BESOINS = ("devoir", "biens", "securite", "faim", "repos", "chaleur")
 CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
-              "servir", "frapper", "assommer", "dans_le_dos", "ranimer",
+              "servir", "frapper", "assommer", "dans_le_dos", "ranimer", "fuite", "se_rendre", "degager",
               "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
@@ -683,7 +683,8 @@ def appeler_a_l_aide(monde, id, minute):
     menace = ("securite" in urgents(monde, id) and prudent(monde, id)
               and monde.objets[id]["lieu"] in menaces(monde, id))
     appels = [s for s in e["memoire"] if s["type"] == "appel"]
-    if e["besoins"].get("securite", 0) < DESESPOIR and not menace:
+    from .defense import dangers
+    if e["besoins"].get("securite", 0) < DESESPOIR and not menace and not dangers(monde, id):
         if appels:
             appels[-1]["apaise"] = True  # Rassuré depuis : un nouveau désarroi pourra appeler de nouveau.
         return
@@ -1433,6 +1434,16 @@ def choisir(monde, id, minute):
     e = esprit(monde, id)
     installer(monde, id)
     COMPTES["choix"] += 1
+    # Le danger immédiat se traite avant les besoins ordinaires, avec un choix au coût.
+    from .defense import choisir as choisir_defense
+    reaction = choisir_defense(monde, id)
+    if reaction is not None:
+        but, etapes = reaction
+        ancien = e["intention"]
+        e["intention"] = {"but": but, "motif": "devoir" if but["type"] == "proteger" else "securite",
+                          "plan": etapes, "depuis": ancien["depuis"] if ancien and ancien["but"] == but else minute,
+                          "attente": 0}
+        return
     # Ce qu'il croit de ses charges et de ses paroles, tel qu'il est maintenant : une pulsion rompue
     # sous ses yeux, une parole tenue, échue ou devenue impossible (à la minute, déjà fait).
     constater_pulsions(monde, id)

@@ -398,16 +398,24 @@ def subir(monde, victime, auteur):
     inquieter(monde, victime, "illicite")
 
 
-def appliquer_poussee(monde, auteur, victime, arrivee, lignes):
+def appliquer_poussee(monde, auteur, victime, arrivee, lignes, percu=None):
     """Le résultat d'une poussée : la victime déplacée d'une case si ``arrivee``, sinon rien ne
     bouge ; elle la subit dans les deux cas. Les témoins viennent du registre des gestes."""
     from .pnj import _chroniquer
     reussie = arrivee is not None
+    from .combat import voit
+    from .defense import noter_coup
+    from .corps import evenement
+    percu = voit(monde, victime, auteur) if percu is None else percu
+    noter_coup(monde, auteur, victime, percu, operation="pousser")
+    depart = place(monde, victime)
     # Ce que le joueur voyait au moment du geste : on sait qui l'on vient de voir pousser.
     vus = {x for x in (auteur, victime) if x != "joueur" and monde.visible(x)}
     if reussie:
         deplacer_personne(monde, victime, arrivee)
-    subir(monde, victime, auteur)
+    subir(monde, victime, auteur if percu else None)
+    evenement(monde, "poussee", victime, auteur=auteur, reussie=reussie,
+              depart=[depart[0], list(depart[1])], arrivee=[arrivee[0], list(arrivee[1])] if reussie else None)
     a, b = _qui(monde, auteur), _qui(monde, victime)
     _chroniquer_auteur = auteur if auteur != "joueur" else victime
     _chroniquer(monde, _chroniquer_auteur, f"{a} pousse {b}" + (" ; " + b + " recule d'un pas." if reussie else
@@ -441,9 +449,11 @@ def pousser(monde, id, victime, lignes, gestes, chemin=()):
     from .pnj import _faire_face
     _faire_face(monde, id, victime)
     reussie = jet_oppose(monde, id, victime)
+    from .combat import voit
+    percu = voit(monde, victime, id)
     from .ouie import retentir
     retentir(monde, id, "pousser")
-    appliquer_poussee(monde, id, victime, arrivee if reussie else None, lignes)
+    appliquer_poussee(monde, id, victime, arrivee if reussie else None, lignes, percu=percu)
     memoriser(monde, id, {"type": "a_pousse", "victime": victime})
     gestes.append((id, "pousser", victime))
     return True

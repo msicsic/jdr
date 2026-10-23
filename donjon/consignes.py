@@ -87,6 +87,8 @@ court (méthode, risque), jamais un résultat.
 - frapper : un outil de percussion ou de levier (une lame peut entamer une cible tranchable) ;
   sur un personnage au contact : outil = arme portée ou vide (mains nues), methode = simple ou
   assommer (contondant seulement), difficulte = 0 ; couper : un outil de coupe. Le moteur fixe le résultat.
+- Face à un agresseur : fuir (cible sortie connue ou vide), riposter (cible agresseur, outil arme ou vide),
+  se_rendre (cible agresseur ou vide), degager (si retenu) ; methode simple, difficulte 0.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.

@@ -372,7 +372,7 @@ def souvenir(monde, id, s):
                 s["preuve"] = precedent["preuve"]
             else:
                 portages[o] = {"auteur": autre, "preuve": s["preuve"]}
-    if t == "subi" and autre is None:
+    if t in ("subi", "pousse") and autre is None:
         return
     if t == "vu_agir":
         if s.get("operation") in ("frapper", "assommer") and s.get("objet") in ("joueur", *monde.data["esprits"]):

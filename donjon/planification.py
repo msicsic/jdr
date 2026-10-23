@@ -26,7 +26,6 @@ from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vain
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
-from .caractere import ENJEU
 from .esprits import lire
 from .perception import brule, recharge
 from .relations import se_fie, se_mefie
@@ -175,6 +174,7 @@ class Vue:
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None
+        self.motif = None
         self.desespere = False
         # Une serrure qu'il croit fermée à clé : forcer peut servir, et ce qui force vaut d'être porté.
         self.verrous = any(self.objets[o]["type"] in ("contenant", "porte") and _cru(monde, id, o, "verrouillee")
@@ -674,6 +674,11 @@ class Vue:
                            + NOIR * self.eau.get(e.salle, 0))
         return pressions[e]
 
+    def violence(self, cible, defense=False):
+        from .combat import prix_violence
+        return prix_violence(self.monde, self.id, self.motif, defense,
+                             bool((self.cru(cible, "etat") or {}).get("reddition")))
+
     def descente(self, ici, salle):
         """Aller d'``ici`` à ``salle``, c'est descendre dans la crue : là-bas il attend plus d'eau qu'ici
         (il l'y attend et pas ici ; ou il l'a vue monter, et elle monte par le bas : plus bas, c'est
@@ -776,6 +781,8 @@ def gestes(v, e, vises=None, but=None):
     # qu'il ne croit pas verrouillées ou que le plan a déverrouillées.
     for s, longueur in v.allers(e, v.ouvertes(e)):
         yield 0, longueur, [_etape("aller", lieu=s)], e.apres(salle=s)
+    # Les gestes de défense sont offerts seulement aux buts qui les emploient.
+    yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)
     portes, faits, sa_salle = e.portes, e.faits, e.salle
     v_prendre, v_entretenir = vises.get("prendre", ()), vises.get("entretenir", ())
@@ -871,10 +878,10 @@ def gestes(v, e, vises=None, but=None):
                                                              (("depense",), (e.fait("depense") or 0) + prix)]), 1)
         # Une violence ne sert que sur le porteur d’un moyen pertinent.
         # Son coût se compare à demander ; aucun ordre de recours imposé.
-        if (utile and porteur and porteur not in (id, "joueur") and v.degat is not None and 2 * v.degat <= ENJEU and v.autorise[o]
+        if (utile and porteur and porteur not in (id, "joueur") and v.violence(porteur) is not None and v.autorise[o]
                 and v.salle(e, porteur) == e.salle
                 and not e.fait("assomme", porteur) and not ici and v.embuscade_possible(e, porteur)):
-            from .combat import arme, force_crue, RISQUE
+            from .combat import arme, force_crue, RISQUE, facteur_violence
             from .caractere import valeur
             chance = v._memo(("force_crue", porteur), lambda: force_crue(monde, id, porteur))
             risque = RISQUE * (1 - chance) * (100 - valeur(monde, id, "courage")) / 50
@@ -890,7 +897,7 @@ def gestes(v, e, vises=None, but=None):
                     _etape("prendre", o, condition=faute)],
                    e.apres(portes=e.portes | {o}, faits=[(("assomme", porteur), True),
                        (("faute", porteur, "douceur"), True), *touche]),
-                   1 + .025 / chance, 2 * doux)
+                   1 + .025 / chance, facteur_violence(rendu=bool((v.cru(porteur, "etat") or {}).get("reddition"))) * doux)
         touche = [x for x in touche if x[0][0] == "faute"]
         if o in v_poser and o in portes:
             yield (0, 1, [_etape("poser", o, lieu=sa_salle)],
@@ -1256,7 +1263,11 @@ def _entrees(v, vises, profondeur, noeuds):
         sorted(v.menacees), sorted(v.noyees), v.monte,
         # Le coût du noir et le but explicite de lumière ; les autres emplois de
         # lumière se découvrent dans les gestes à partir des mêmes entrées.
-        v.peur, v.eclairer], ensure_ascii=False, check_circular=False)
+        v.peur, v.eclairer,
+        # Admissibilité de l'agression et coûts des réactions ; ces lectures doivent aussi
+        # invalider les deux graphes et le certificat, pas seulement le résultat final.
+        [[x, v.violence(x) is not None] for x in v.personnes()],
+        _entrees_defense(v, vises)], ensure_ascii=False, check_circular=False)
 
 
 def _ordre_visites(salles, visites):
@@ -1296,6 +1307,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     from .caractere import modificateur, prix_faute, valeur
     debut = perf_counter()
     v = Vue(monde, id)
+    v.motif = motif
     faute = prix_faute(monde, id, motif)
     v.degat = prix_faute(monde, id, motif, "douceur")
     from .deliberation import DESESPOIR
@@ -1314,7 +1326,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         base = (_entrees(v, vises, profondeur, noeuds),
                 json.dumps([modificateur(monde, id, "DEX"), modificateur(monde, id, "FOR"), tenir, v.degat is None,
                             seul, None if v.degat is None else [
-                                valeur(monde, id, "courage"), 2 * v.degat <= ENJEU, v.desespere]]))
+                                valeur(monde, id, "courage"), v.desespere]]))
         entrees = (base, json.dumps([faute, v.degat, endurer]))
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
@@ -1402,6 +1414,7 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
     def refaire(emplois, borne):
         brute = Vue(monde, id)
         brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
+        brute.motif = v.motif
         brute.desespere = v.desespere
         r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir)
         refait = r[0]
@@ -2090,3 +2103,81 @@ def ranimer(monde, id, cible):
     trouve = chercher(monde, id, lambda v, e: e.fait("ranime", cible), {"ranimer": (cible,)},
                       nom="ranimer:" + cible, memo=["ranimer", cible], emplois=())
     return None if trouve is None else ({"type": "ranimer", "qui": cible}, trouve[1])
+
+
+def _entrees_defense(v, vises):
+    ds = (vises or {}).get("danger", ())
+    if not ds:
+        return None
+    from .force import force_crue
+    from .caractere import valeur
+    from .corps import corps
+    return [valeur(v.monde, v.id, "courage"),
+            [[a, force_crue(v.monde, v.id, a), v.violence(a, True)] for a in ds],
+            bool(corps(v.monde, v.id).get("tenu_par"))]
+
+
+def _gestes_defense(v, e, vises):
+    ds = vises.get("danger", ())
+    if not ds:
+        return
+    from .combat import arme, RISQUE
+    from .caractere import valeur
+    from .force import force_crue
+    from .defense import EXPOSITION
+    for a in ds:
+        if vises.get("riposter") and v.salle(e, a) == e.salle and not e.fait("repousse", a):
+            prix = v.violence(a, True)
+            if prix is not None:
+                chance = force_crue(v.monde, v.id, a)
+                risque = RISQUE * (1 - chance) * (100 - valeur(v.monde, v.id, "courage")) / 50
+                outils = [k for k in sorted(e.portes) if arme(v.objets[k])]
+                outil = max(outils, key=lambda k: arme(v.objets[k])[1], default="")
+                yield (0, .025 / chance + risque + prix,
+                       [_etape("frapper", a, outil=outil, contenu={"defense": True})],
+                       e.apres(faits=[(("repousse", a), True)]), .025 / chance)
+    if vises.get("fuir") and all(v.salle(e, a) != e.salle for a in ds) and not e.fait("fui"):
+        # Fermer derrière soi appartient au plan, avec la même règle de clé que garder.
+        portes = sorted(v.portes_de[e.salle] & set(vises.get("fermer", ())))
+        closes = all(not v.ouvert(e, p) for p in portes)
+        verrouillables = [p for p in portes if any(p in v.objets[k].get("ouvre", ()) for k in e.portes)]
+        if closes and all(v.verrouille(e, p) for p in verrouillables):
+            chance = max(force_crue(v.monde, v.id, a) for a in ds)
+            # Prix des pas exposés : la fuite ne reçoit aucune avance gratuite.
+            yield (0, EXPOSITION * chance, [_etape("fuite", ds[0])],
+                   e.apres(faits=[(("fui",), True)]), 0)
+
+
+def reagir(monde, id, dangers, aide=None):
+    """Le graphe compare les moyens de sortir du danger ; un coup est toujours revalidé."""
+    from . import corps
+    from .defense import etat_cru
+    if corps.corps(monde, id).get("tenu_par"):
+        return {"type": "degager"}, [_etape("degager")]
+    ennemis = list(dangers)
+    protection = bool(aide and aide[2])
+    if protection:
+        ennemis = [a for a in aide[2] if etat_cru(monde, id, a).get("conscient") is not False
+                   and not etat_cru(monde, id, a).get("reddition")]
+    if aide and not ennemis:
+        protege, salle, _ = aide
+        r = voir(monde, id, salle)
+        if r:
+            return {"type": "proteger", "qui": protege, "lieu": salle}, r[1]
+    if not ennemis:
+        return None
+    # Fuir un danger et protéger sont des buts distincts : quitter son protégé ne le protège pas.
+    v = Vue(monde, id)
+    portes = sorted({p for a in ennemis for p in v.portes_de.get(salle_crue(monde, id, a), ())})
+    vises = {"danger": ennemis, "riposter": True, "fuir": not protection, "fermer": portes}
+    but = lambda v, e: bool(e.fait("fui") or any(e.fait("repousse", a) for a in ennemis))
+    trouve = chercher(monde, id, but, vises, nom="proteger" if protection else "defense",
+                      memo=["defense", vises], emplois=(), motif="devoir" if protection else "securite")
+    if trouve:
+        etapes = trouve[1]
+        fuite = trouve[2].fait("fui")
+        genre = "fuir" if fuite else "proteger" if protection else "riposter"
+        return {"type": genre, "qui": ennemis[0]}, etapes
+    if corps.blessure(monde, id) == 2 and dangers:
+        return {"type": "reddition", "qui": dangers[0]}, [_etape("se_rendre", dangers[0])]
+    return None

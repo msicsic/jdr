@@ -20,7 +20,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
-           "ecouter", "pousser", "ranimer",
+           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 # L'humeur que montre un personnage, accordée à son genre (``accorder``).
@@ -232,6 +232,9 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
+        if action in ("fuir", "riposter", "se_rendre", "degager"):
+            from .defense import preparer_joueur
+            return preparer_joueur(m, p, plan)
         if action == "tourner":
             from .spatial import QUART, VECTEURS, quarts
             if not m.data.get("mode_cases"):
@@ -655,6 +658,11 @@ class Moteur:
             resultat = self._appliquer(travail, effet, lignes)
             if effet[0] == "frapper_personne":
                 reussite, jet = resultat["touche"], resultat["jet"]
+            elif effet[0] in ("fuir", "degager"):
+                reussite = bool(resultat)
+        if plan.proposition["action"] == "fuir":
+            # Chaque pas a déjà fait vivre sa durée sur l'horloge commune.
+            plan.dixiemes = 0
         if not reussite and plan.proposition["action"] != "improviser":
             lignes.append("La tentative n'aboutit pas.")
         elif plan.information:
@@ -992,6 +1000,9 @@ class Moteur:
         if op == "frapper_personne":
             from .combat import frapper
             return frapper(m, "joueur", cible, lignes=lignes, **valeur)
+        if op in ("fuir", "se_rendre", "degager"):
+            from .defense import appliquer_joueur
+            return appliquer_joueur(m, op, cible, valeur, lignes)
         if op == "ranimer":
             from .corps import ranimer
             ranimer(m, "joueur", cible)

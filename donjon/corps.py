@@ -199,6 +199,8 @@ def etat(monde, id="joueur"):
         resultat["blessure"] = "grave" if blessure(monde, id) == 2 else "blessé"
     if not conscient(monde, id):
         resultat["conscience"] = "sans connaissance"
+    if corps(monde, id).get("reddition"):
+        resultat["reddition"] = "a cessé de résister"
     return resultat
 
 
@@ -211,6 +213,11 @@ def verifier(monde):
         assert type(faits.get("inconscient")) is int and faits["inconscient"] >= 0, "Inconscience invalide"
         assert o["pv"] > 0 or faits["inconscient"] or (id == "joueur" and monde.data.get("fin")), "PV nuls sans inconscience"
         assert isinstance(faits.get("soin"), (int, float)) and 0 <= faits["soin"] < 60, "Soin invalide"
+        r = faits.get("reddition")
+        assert type(faits.get("reprise", 0)) is int and faits.get("reprise", 0) >= 0, "Fin de mouvement invalide"
+        assert r is None or (isinstance(r, dict) and set(r) == {"a", "depuis"}
+                             and r["a"] in personnages(monde) and r["a"] != id
+                             and type(r["depuis"]) is int and r["depuis"] >= 0), "Reddition invalide"
         if faits["inconscient"]:
             from .temps import instant
             assert (type(faits.get("inconscient_depuis")) is int
@@ -255,7 +262,8 @@ def blessure(monde, id="joueur"):
 
 
 def visible(monde, id):
-    return {"blessure": blessure(monde, id), "conscient": conscient(monde, id)}
+    return {"blessure": blessure(monde, id), "conscient": conscient(monde, id),
+            **({"reddition": True} if corps(monde, id).get("reddition") else {})}
 
 
 def perdre(monde, id, points):
@@ -283,7 +291,13 @@ def endormir(monde, id, hors_combat=False):
     monde.data["gestes_en_cours"] = [g for g in monde.data.get("gestes_en_cours", []) if g["auteur"] != id]
     if id != "joueur":
         e = esprit(monde, id)
+        if e["intention"]:
+            from .deliberation import renoncer
+            renoncer(monde, id, monde.data["minutes"])
         e.update(libre=faits["inconscient"], veille=None, eveil=None, intention=None, patience=None)
+    from .defense import auteurs, constater_fin
+    for autre in auteurs(monde, id):
+        constater_fin(monde, id, autre)
     noter(monde, id, t, None)
 
 
@@ -398,4 +412,9 @@ def mesures(monde):
                 "assommes": sum(e["type"] == "coup" and e["assomme"] for e in histoire),
                 "temoins_violence": sum(e["type"] == "violence_vue" for e in histoire),
                 "violences_entendues": sum(e["type"] == "violence_entendue" for e in histoire)}
-               if any(e["type"] == "coup" for e in histoire) else {})}
+               if any(e["type"] == "coup" for e in histoire) else {}),
+            **({"fuites": sum(e["type"] == "fuite" for e in histoire),
+                "ripostes": sum(e["type"] == "riposte" for e in histoire),
+                "interventions": sum(e["type"] == "intervention" for e in histoire),
+                "redditions": sum(e["type"] == "reddition" for e in histoire)}
+               if any(e["type"] in ("fuite", "riposte", "intervention", "reddition") for e in histoire) else {})}

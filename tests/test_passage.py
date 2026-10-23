@@ -192,7 +192,10 @@ class PousserJoueurTests(unittest.TestCase):
         brune = m.objets["brune"]
         # Écartée de son chemin : de côté, dans le refuge, pas dans la conduite.
         self.assertEqual(brune["lieu"], "antichambre")
-        self.assertEqual(distance(brune["position"], SEUIL), 1)
+        # La réaction 4c peut déjà la faire marcher pendant les 3 s du geste : le recul
+        # réellement appliqué reste dans le journal physique, indépendamment de la fuite.
+        poussee = next(e for e in m.data["historique_corps"] if e["type"] == "poussee")
+        self.assertEqual(distance(poussee["arrivee"][1], SEUIL), 1)
         self.assertNotEqual(tuple(brune["position"]), (1, 3))
         self.assertIs(relation(m, "brune", "joueur")["valeur"], False)
         self.assertIs(relation(m, "ilse", "joueur")["valeur"], False)
@@ -201,7 +204,14 @@ class PousserJoueurTests(unittest.TestCase):
         self.assertTrue((croyance(m, "aubin", "joueur") or {"source": "dit:"})["source"].startswith("dit:"))
         self.assertIn({"type": "vu_agir", "auteur": "joueur", "operation": "pousser", "objet": "brune"},
                       [{k: v for k, v in s.items() if k not in ("minute", "dit_a", "preuve", "victime", "deja_entendu")} for s in lire(m, "ilse")["memoire"]])
-        self.assertIn("Tu avances d'un pas.", faire(m, "marcher", "ouest"))
+        # Elle peut regagner le seuil pendant sa fuite : pousser ne promet plus que la case
+        # restera libre après les réactions sur la même horloge.
+        if tuple(brune["position"]) == SEUIL:
+            with self.assertRaises(ErreurMonde) as cm:
+                faire(m, "marcher", "ouest")
+            self.assertTrue(cm.exception.attendu)
+        else:
+            self.assertIn("Tu avances d'un pas.", faire(m, "marcher", "ouest"))
 
     def test_manquee_rien_ne_bouge_mais_la_confiance_est_perdue(self):
         m = self.scene()
@@ -303,12 +313,14 @@ class PorteEtroiteTests(unittest.TestCase):
         textes = [c["texte"] for c in m.data["chronique"]]
         self.assertIn("Gorm demande à Aubin de le laisser passer (mefiance).", textes)
         self.assertIn("Gorm pousse Aubin ; Aubin recule d'un pas.", textes)
-        self.assertEqual(m.objets["marchand"]["lieu"], "crypte")
+        # Aubin réagit désormais à la violence : le but initial de Gorm peut céder à sa défense.
+        self.assertTrue(any(e["type"] == "poussee" and e["auteur"] == "marchand" and e["reussie"]
+                            for e in m.data["historique_corps"]))
         self.assertNotEqual(tuple(m.objets["aubin"]["position"]), self.PORTE)
         self.assertIs(relation(m, "aubin", "marchand")["valeur"], False)
         from donjon.relations import envers
-        self.assertEqual(envers(m, "ilse", "marchand")["confiance"], 50)
-        self.assertEqual(envers(m, "ilse", "marchand")["motifs"][-1]["type"], "poussee_vue")
+        self.assertLessEqual(envers(m, "ilse", "marchand")["confiance"], 50)
+        self.assertIn("poussee_vue", [x["type"] for x in envers(m, "ilse", "marchand")["motifs"]])
         self.assertIn("Gorm, gardien du relais, pousse Aubin, vieux passeur : il recule d'un pas.", lignes)
 
 
