@@ -31,7 +31,7 @@ def arguments(cible, fonction, entree):
         return {'conforme': True, 'motif': ''}
     if fonction == 'auditer_narration':
         return {'segments': {str(i): {'verdict': 'mecanique', 'sources': ['resultat_resolu'],
-            'locuteur': '', 'citation': '', 'entites': [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
+            'locuteur': '', 'citation': '', 'presentation': '', 'entites': [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
     if fonction == 'repondre_au_joueur':
         if 'resultat_resolu' in entree.get('faits', {}):
             texte = 'Tu prends la clé du veilleur.' if cible == 'cle' else 'Tu prends la bobine de ficelle solide.'
@@ -130,6 +130,12 @@ class ParcoursFournisseursTests(unittest.TestCase):
             with self.subTest(cas=f.name), tempfile.TemporaryDirectory() as temp:
                 sauvegarde = Path(temp) / 'partie.json'
                 shutil.copy2(f / 'avant.json', sauvegarde)
+                # L'archive précède les désignations nominales : établir le souvenir
+                # visuel actuel avant la requête dont on vérifie l'absence d'effet.
+                initial = Monde.charger(sauvegarde)
+                from donjon.spatial import memoriser
+                memoriser(initial)
+                initial.sauver(sauvegarde)
                 avant = Monde.charger(sauvegarde).data
                 p = json.loads((f / 'requete.json').read_text(encoding='utf-8'))
                 intention = json.loads(p['messages'][1]['content'])['requete']['message']

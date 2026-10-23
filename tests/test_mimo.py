@@ -149,6 +149,12 @@ class MiMoTests(unittest.TestCase):
             with self.subTest(cas=dossier.name), tempfile.TemporaryDirectory() as temp:
                 save = Path(temp) / 'partie.json'
                 shutil.copy2(dossier / 'avant.json', save)
+                # Le nom entendu change la légende de la carte ; canonicaliser
+                # ce souvenir d'archive avant la requête refusée, pas après elle.
+                initial = Monde.charger(save)
+                from donjon.spatial import memoriser
+                memoriser(initial)
+                initial.sauver(save)
                 avant = Monde.charger(save).data
                 p = json.loads((dossier / 'requete.json').read_text(encoding='utf-8'))
                 intention = json.loads(p['messages'][1]['content'])['requete']['message']
