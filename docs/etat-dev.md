@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-lampes-suite`, non fusionnée, base `main` 9075aea : la lumière employée par
+  le but et ses gestes remplace la capacité de crocheter dans la pertinence des sources et des
+  remises de combustible. Découverte par les lectures communes de lumière, reprise depuis le
+  départ avec sa borne entière, marqueur conservé dans le graphe et mémoire contrôlée.
+  La découverte s'arrête dès sa première dépendance ; identité chronique/mesures/état complet
+  contre la première correction sur 16 nuits de 2 h. Cinq tests nouveaux : demande et livraison
+  réelles, recharge, allumage, crochetage ou inspection, état et rendu après rechargement ;
+  dont deux scénarios sans peur ni crochetage et un geste de fixture qui lit la lumière sans
+  que son but la lise. La crue historique augmente surtout après la disparition d'un faux
+  raccourci de chaleur (recevoir du bois ne réchauffe pas) ; trajets et priorités changent,
+  sans promesse d'amélioration uniforme du noir. Coût de fin de nuit encore dominé par les
+  grandes recherches. Suite finale : **1 377 tests, 14 sautés**, verte avec quatre processus.
+  `VERIFIER` + vérification spatiale exhaustive sur 2 h, puis à 0,2 sur 8 h, graine 42, les
+  quatre scénarios : sans erreur, code final. Banc rapide 4 h × quatre graines × quatre scénarios :
+  chroniques, mesures et états finaux complets identiques. Audits 12 h auberge/crue × quatre
+  graines : mêmes chroniques, mesures et événements de ressources ; zéro usurpation, violation
+  ou plantage. Mesures actuelles, contre-épreuve et limites dans
+  [le rapport](taches/rapport-codex-9-lampes-suite.md). Aucune fusion, aucun changement de `main`.
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,

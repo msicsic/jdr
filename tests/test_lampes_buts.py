@@ -85,6 +85,26 @@ class LumiereDuButTests(unittest.TestCase):
         m = self.accomplir(m, "remy", "lampe_remy", "bidon_huile", but, {})
         self.assertFalse(m.objets["coffre_paie"]["verrouillee"])
 
+    def test_un_autre_geste_qui_lit_la_lumiere_obtient_aussi_ses_moyens(self):
+        m = self.scene("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve")
+        gestes_ordinaires = P.gestes
+
+        def gestes(v, e, vises=None, but=None):
+            # Contrat d'extension : une inspection visuelle, au lieu de l'inspection
+            # ordinaire qui peut se faire au toucher. Seul ce geste de la fixture
+            # exige de la lumière ; le but, lui, ne la lit jamais.
+            for g in gestes_ordinaires(v, e, vises, but):
+                if any(x["operation"] == "inspecter" and x["lieu"] == "reserve" for x in g[2]):
+                    if not v.lumiere(e):
+                        continue
+                yield g
+
+        with patch.object(P, "gestes", gestes):
+            m = self.accomplir(m, "remy", "lampe_remy", "bidon_huile",
+                               lambda v, e: bool(e.fait("inspecte", "reserve")),
+                               {"inspecter": ("reserve",)})
+        self.assertIn("reserve", m.data["esprits"]["remy"]["visites"])
+
     def test_une_capacite_ne_rend_pas_le_combustible_pertinent_pour_un_autre_but(self):
         m = self.scene("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve", ("crochetage",))
         v = P.Vue(m, "remy")

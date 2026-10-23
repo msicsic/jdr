@@ -1329,7 +1329,8 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     if graphe is not None and graphe.get("emploie_lumiere"):
         v._lumiere_lue = True
     voir = v.emploie_lumiere
-    resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, graphe)
+    resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, graphe,
+                              decouvrir=not voir)
     if not voir and v.emploie_lumiere:
         v._agissables.clear()
         if graphe is not None:
@@ -1339,7 +1340,8 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     return resultat
 
 
-def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None):
+def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
+                    decouvrir=False):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
     profondeur atteinte). ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
 
@@ -1361,7 +1363,9 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     vus = {depart_: 0}
     examines = plus_profond = 0
     trouve = None
-    while file and examines < noeuds:
+    # La passe de découverte n'a plus rien à apprendre dès la première lecture :
+    # son graphe incomplet sera jeté, et seule la passe suivante décidera du plan.
+    while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
         cout, _, e, etapes, n, final = heapq.heappop(file)
         if final:
             trouve = cout, copy.deepcopy(etapes), e
