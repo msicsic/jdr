@@ -29,7 +29,7 @@ class LocalisationTests(unittest.TestCase):
         self.assertTrue(poutre['visible'] and poutre['a_portee'] and poutre['bloque_passage'])
         self.assertEqual(poutre['localisation']['salle_nom'], 'Conduite basse')
         self.assertTrue(poutre['localisation']['meme_salle'])
-        self.assertEqual(poutre['localisation']['position_relative'], '1 case vers nord')
+        self.assertEqual(poutre['localisation']['position_relative'], '1 mètre vers nord')
         self.assertNotIn('colonne_vannes', self.objets())
         self.assertEqual(self.m.data, avant)
 
@@ -43,7 +43,7 @@ class LocalisationTests(unittest.TestCase):
         o = self.objets()['pied_de_biche']
         self.assertTrue(o['a_portee'])
         self.assertEqual(o['localisation']['salle_nom'], 'Conduite basse')
-        self.assertEqual(o['localisation']['position_relative'], '1 case vers est')
+        self.assertEqual(o['localisation']['position_relative'], '1 mètre vers est')
         moteur.executer(moteur.preparer(proposition('prendre', 'pied_de_biche')))
         self.assertEqual(self.objets()['pied_de_biche']['localisation']['position_relative'], 'dans tes affaires')
 
@@ -85,7 +85,7 @@ class LocalisationTests(unittest.TestCase):
         self.assertFalse(o['a_portee'])
         self.assertFalse(o['localisation']['meme_salle'])
         self.assertEqual(o['localisation']['direction'], 'ouest')
-        self.assertEqual(o['localisation']['position_relative'], '2 cases vers ouest')
+        self.assertEqual(o['localisation']['position_relative'], '2 mètres vers ouest')
         self.assertNotIn('echoppe', self.m.contexte()['lieux_connus'])
         self.assertEqual(self.m.contexte()['salle']['sorties']['ouest']['nom_destination'], 'inexploré')
         self.m.data['visitees'].append('echoppe')
@@ -112,7 +112,7 @@ class LocalisationTests(unittest.TestCase):
         self.assertEqual(o['lieu'], 'antichambre')  # pied de l'installation
         self.assertEqual(o['localisation']['salle_id'], BEFFROI)  # extrémité accessible ici
         self.assertTrue(o['localisation']['meme_salle'] and o['a_portee'])
-        self.assertEqual(o['localisation']['position_relative'], 'sur ta case')
+        self.assertEqual(o['localisation']['position_relative'], 'à tes pieds')
 
 
 if __name__ == '__main__':

@@ -63,6 +63,7 @@ def relatif(monde, salle, case):
     dy = oy + case[1] - jy - monde.joueur["position"][1]
     axes = [(dy, "nord" if dy < 0 else "sud"), (dx, "ouest" if dx < 0 else "est")]
     direction = "-".join(d for n, d in axes if n) or "ici"
-    position = " et ".join(f"{abs(n)} case{'s' if abs(n) > 1 else ''} vers {d}"
-                           for n, d in axes if n) or "sur ta case"
+    # Le plan est métrique (un mètre par unité) ; son quadrillage est privé.
+    position = " et ".join(f"{abs(n)} mètre{'s' if abs(n) > 1 else ''} vers {d}"
+                           for n, d in axes if n) or "à tes pieds"
     return direction, position

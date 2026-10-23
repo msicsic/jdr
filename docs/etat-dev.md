@@ -4,6 +4,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-luna-restes`, non fusionnée, issue de `main` **8855312** : validation physique
+  déterministe avant revue de plausibilité ; propriétés connues et champs inconnus distingués ;
+  fidélité de parole séparée en audiences admissibles et contenu, comparée par le moteur, avec
+  les conséquences calculées sur copie et les noms publics. Repères du MJ en mètres (objets,
+  souvenirs, sorties), unités du quadrillage et coordonnées refusées avant affichage et à
+  l'enregistrement. Une contradiction narrative sans source retourne à l'auditeur ; la révision
+  ne confond plus l'ambiance libre et une inconnue mécanique. Une question explicite de
+  faisabilité reçoit le premier refus du monde ; les refus de forme restent corrigeables.
+  Neuf nouveaux tests après rechargement passent. Suite complète, empreintes de 2 h et mesures
+  Luna après correction en cours ; bilan à compléter dans le rapport de la tâche 22.
+
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
   dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.

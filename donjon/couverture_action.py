@@ -4,6 +4,8 @@ Le moteur valide les effets possibles ; cette revue vérifie que le plan ne perd
 une partie observable de l'intention. Son avis ne modifie jamais le monde.
 """
 
+import json
+
 from .monde import ErreurMonde
 from .refus import RapportIllisible, attendu_audit
 
@@ -17,6 +19,22 @@ SCHEMA = {
     "required": ["conforme", "motif"],
 }
 
+# La revue choisit les audiences compatibles avec la DEMANDE. Le moteur compare
+# ensuite ce choix à l'adresse qu'il a lui-même validée ; le motif libre ne peut
+# plus transformer « tous » en destinataire individuel.
+SCHEMA_PAROLE = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "audiences_fideles": {"type": "array", "maxItems": 3, "items": {
+            "type": "string", "enum": ["individuelle", "groupe", "cantonade"]}},
+        "contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"}},
+    "required": ["audiences_fideles", "contenu_conforme", "motif"],
+}
+
+
+def schema(plan):
+    return SCHEMA_PAROLE if plan.parole is not None else SCHEMA
+
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
 Le champ parole décrit une parole préparée : ses mots, son contenu et son adresse individuelle
@@ -25,6 +43,13 @@ est entendue par ceux qui en saisissent les mots et chacun peut y répondre ; el
 ni une personne ni chacun des membres d'un groupe. Cette audience fait partie de la cible : ne la réduis ni ne l'élargis par
 rapport à la demande. Les mots du joueur peuvent déjà être fixés ; cela ne valide pas le choix
 du destinataire. Juge cette parole avant qu'elle soit prononcée et enregistrée.
+adresse est calculée par le moteur à partir du destinataire typé : groupe (tous) et cantonade
+(personne) ne sont jamais des audiences individuelles. destinataires et repondent sont les personnes
+calculées par l'ouïe, pas une restriction ajoutée par le MJ. L'audience libre reste un choix
+d'interprétation : juge sa fidélité à la demande, pas la validité de ces calculs.
+contenu décrit ce que Corvus demande, pas des opérations à exécuter par lui : consequences_moteur
+donne les effets réels déjà calculés sur une copie (paiement, transfert, refus). Une demande
+n'exige pas d'opération de transfert dans le plan ; le personnage peut la refuser.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
 Le plan représente l'état du monde : action, cibles, outil, et changements durables
@@ -49,6 +74,11 @@ N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
 Le motif désigne seulement l'écart d'état, sans inventer un fait du monde.
+Pour un plan de parole, rends audiences_fideles : toutes les audiences compatibles avec la
+DEMANDE (individuelle, groupe, cantonade), indépendamment de l'adresse proposée. Puis
+contenu_conforme : les mots et le contenu typé traduisent-ils cette demande ? Ne juge dans ce
+booléen ni l'audience, ni les conséquences que le moteur a calculées. Le moteur compare lui-même
+audiences_fideles à l'adresse proposée. Pour les autres plans, rends conforme et motif.
 Appelle auditer_action une fois.
 """
 
@@ -87,8 +117,15 @@ def entree(intention, plan, monde=None):
     """La demande et les opérations du plan, chaque identifiant cité accompagné de son nom."""
     operations = _operations(plan)
     if monde is not None:
+        def nommer_parole(p):
+            # Les références sont nommées, les mots libres restent littéraux.
+            return {**p, **{k: _nommer(p[k], monde) for k in
+                           ("personnage", "destinataires", "repondent", "audiences_autorisees") if k in p},
+                    "contenu": [{**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur") if k in c}}
+                                for c in p.get("contenu", [])]}
         def nommer_plan(op):
             return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
+                    **({"parole": nommer_parole(op["parole"])} if "parole" in op else {}),
                     "etapes": [nommer_plan(e) for e in op["etapes"]],
                     **({"geste_improvise": {**op["geste_improvise"],
                                             "cibles": _nommer(op["geste_improvise"]["cibles"], monde),
@@ -108,6 +145,28 @@ class RapportInvalide(RapportIllisible):
 def verifier(rapport, plan=None):
     """Le verdict de la contre-revue. Non conforme : un refus dont ``attendu`` (``refus.attendu_audit``)
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
+    if plan is not None and plan.parole is not None:
+        if (not isinstance(rapport, dict)
+                or set(rapport) != {"audiences_fideles", "contenu_conforme", "motif"}
+                or not isinstance(rapport["audiences_fideles"], list)
+                or any(a not in ("individuelle", "groupe", "cantonade") for a in rapport["audiences_fideles"])
+                or type(rapport["contenu_conforme"]) is not bool or not isinstance(rapport["motif"], str)):
+            raise RapportInvalide("La contre-revue de la parole est invalide.")
+        motif = rapport["motif"][:MOTIF_MAX]
+        if plan.parole["adresse"] not in rapport["audiences_fideles"]:
+            autorisees = plan.parole.get("audiences_autorisees", {})
+            accepte = ", ".join(f"{a} = {autorisees.get(a, a)}" for a in rapport["audiences_fideles"])
+            raise ErreurMonde("L'audience proposée ne correspond pas à ta parole.",
+                attendu_audit("proposition.personnage", plan.parole["personnage"],
+                              accepte or "préciser à qui s'adresse la parole",
+                              ("audience non conforme", motif)))
+        if not rapport["contenu_conforme"]:
+            raise ErreurMonde("Les mots ou le contenu proposés ne correspondent pas à ta parole.",
+                attendu_audit("proposition.replique et proposition.contenu",
+                              json.dumps({k: plan.parole[k] for k in ("replique", "contenu")}, ensure_ascii=False),
+                              "les mots et le contenu de la demande, sans changement de sens",
+                              ("contenu non conforme", motif)))
+        return
     if (not isinstance(rapport, dict) or set(rapport) != {"conforme", "motif"}
             or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)):
         raise RapportInvalide("La contre-revue de la manœuvre est invalide.")
@@ -124,11 +183,6 @@ def verifier(rapport, plan=None):
             p = plan.proposition if isinstance(plan.proposition, dict) else {}
             cibles = p.get("cible") or ", ".join(map(str, p.get("cibles") or []))
             recu = f"{plan.titre} (action {p.get('action')}" + (f", cible {cibles}" if cibles else "") + ")"
-            if plan.parole is not None:
-                partie = "proposition.personnage"
-                recu = f"{plan.parole['personnage']} (adresse : {plan.parole['adresse']})"
-                accepte = ("personnage parmi parole_prevue.audiences : individuelle, groupe ou cantonade, "
-                           "selon le destinataire demandé ; replique et contenu fidèles à la saisie")
         raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : " +
                           (motif or "une conséquence demandée manque."),
                           attendu_audit(partie, recu or "le plan proposé", accepte,

@@ -142,7 +142,7 @@ def loin_de_la_poutre():
     return m
 
 
-CONTRADICTOIRE = verdicts(("contradictoire", (), "« Il te faut t'en rapprocher » raconte un geste commencé."))
+CONTRADICTOIRE = verdicts(("contradictoire", ("retour_moteur",), "« Il te faut t'en rapprocher » raconte un geste commencé."))
 
 
 class ExplicationTests(unittest.TestCase):

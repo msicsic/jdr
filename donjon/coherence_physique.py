@@ -35,8 +35,12 @@ elle doit s'accorder avec la description existante et ne remplace pas le volume 
 De même, un contenu proposé (ce que l'objet
 contient ou consomme : une lanterne brûle de l'huile) établit un fait encore inconnu : juge
 seulement s'il est plausible pour un tel objet, sans le refuser parce qu'il n'était pas déjà
-décrit. Une qualification sert précisément à établir ce qui manque. Ne suppose pas que l'intention du joueur rend
-la proposition vraie. Si la description est trop vague pour juger, refuse.
+décrit. Une qualification sert précisément à établir ce qui manque. champs_a_etablir nomme ces propriétés :
+leur absence n'est jamais une preuve d'incompatibilité. Pour toute description nouvelle (matière,
+dimensions, contenu, géométrie), juge la plausibilité pour l'objet décrit et sa compatibilité avec les
+propriétés connues, sans exiger une attestation préalable de la propriété proposée. Refuse une
+contradiction ou une invraisemblance, pas une information jusque-là absente.
+Ne suppose pas que l'intention du joueur rend la proposition vraie.
 Réponds par un jugement pour chaque qualification, dans l'ordre. Aucun récit.
 """
 
@@ -63,7 +67,9 @@ def propositions(reponse, faits):
                                     ("id", "nom", "type", "materiau", "masse", "mobile",
                                      "description_visuelle", "integrite", "maximum",
                                      "seuil_coupe", "usages", "puissance",
-                                     "constats_capacites")},
+                                     "constats_capacites", "physique", "contenu", "bloque_passage")},
+                        "champs_a_etablir": [k for k in ("physique", "contenu", "passage")
+                                              if k in ajout and k not in cible],
                         "passage_etabli": cible.get("passage"),
                         "capacites_proposees": ajout.get("capacites", []),
                         "constats_proposes": ajout.get("ecartees", []),

@@ -79,7 +79,7 @@ entendue et ont choisi de répondre (`paroles.repondants`). Seuls ceux de `repon
 (`narration.destinataires_parole`) ; l'auditeur sait que leur réplique est une parole permise sans
 « parole prévue », et que les dire muets contredit l'issue. Les objets reçus disent ce qu'ils
 mesurent : `a_portee_de_main` (toucher d'ici), `a_portee_de_voix` pour un personnage ; la salle,
-`sorties_connues` en cases (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
+`sorties_connues`, avec leurs positions relatives en mètres (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
 
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :
@@ -208,6 +208,49 @@ références publics. L'aperçu d'un plan passe entièrement par cette projectio
 risque et étapes compris. Aucun substitut textuel ne tire l'apparence d'un corps jamais vu.
 
 ## Contrôle des actions
+
+### Précisions du contrat (`codex-luna-restes`)
+
+Les localisations transmises au MJ (objets, souvenirs et sorties connues) sont des repères
+calculés en mètres : le plan représente un mètre par unité. Les positions brutes des sorties
+restent privées, comme celles du joueur et des objets. Le récit n'utilise ni cases ni coordonnées.
+Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du quadrillage et les
+écritures de coordonnées, y compris dans les répliques et les ajouts persistants ; ce contrôle
+est refait avant l'enregistrement d'une narration. La carte technique conserve ses axes et sa
+légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
+
+La revue d'une parole sépare deux jugements sémantiques : les `audiences_fideles` à la demande
+(individuelle, groupe, cantonade) et `contenu_conforme` pour les mots et le contenu typé. Le
+moteur compare lui-même cette liste à l'adresse validée (`tous` = groupe, `personne` = cantonade).
+Un motif libre ne peut plus changer le sens de ces références. La revue reçoit les destinataires,
+les répondants et les conséquences réelles calculées sur copie. Une demande d'achat est une
+parole dont le moteur décide l'acceptation, le transfert ou le refus ; elle n'a pas à porter une
+opération de transfert faite par Corvus. Les références sont projetées en noms publics ; les mots
+libres restent littéraux. Un refus d'audience et un refus de contenu ont chacun leur `attendu`.
+La fidélité du choix d'audience et du sens des mots demeure en partie sémantique.
+
+Toute qualification physique passe d'abord par la validation déterministe sur copie (ancrage,
+propriété encore libre, bornes, masse quand la description la détermine), puis par la revue de
+plausibilité. Celle-ci reçoit les propriétés connues, dont la description physique, le contenu
+et la géométrie existants, et les `champs_a_etablir`. Une information inconnue n'est pas une
+incompatibilité : le MJ peut la préciser d'après ce qu'est ordinairement cet objet, sans la
+déduire du résultat souhaité. Cela vaut pour toutes les descriptions physiques, y compris le
+vide et les appuis autour d'un obstacle ; aucune forme ni donnée de scénario n'est ajoutée
+automatiquement. La plausibilité par rapport au nom et au texte reste sémantique. Le moteur
+garde ses contrôles numériques et interdit de réécrire une forme déjà établie.
+
+Une question explicite de faisabilité dont le geste rencontre un refus du monde reçoit cette
+raison dès le premier refus, sans correction d'une proposition correctement formée. Les refus
+de forme et les qualifications explicitement requises par une mécanique gardent leur voie de
+correction. Si Luna commence par une qualification valable, elle est enregistrée avant la fiche
+et le geste est réexaminé selon le contrat existant.
+
+L'absence d'un fait ne prouve pas son contraire. Un verdict narratif `contradictoire` doit citer
+au moins une source fournie : sans elle, le rapport est redemandé à l'auditeur avant toute
+demande de réécriture au MJ. L'ambiance libre compatible avec l'état est perçue et enregistrée
+avec son lieu ; elle ne réclame pas de réserve qui la démente. La révision distingue l'inconnue
+mécanique de cette liberté sensorielle. Une source citée à tort ou une contradiction formulée
+sans élément mécanique explicite dépend encore de la lecture sémantique.
 
 Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare
 la demande du joueur aux opérations du plan. Elle ne juge que l'état : action et cibles,

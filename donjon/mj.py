@@ -373,14 +373,14 @@ class MJ:
         return references(monde,reponse)
 
     def _auditer_action(self, intention, plan, revision, monde=None):
-        from .couverture_action import (SCHEMA as SCHEMA_COUVERTURE,
+        from .couverture_action import (schema as schema_couverture,
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
                                         RapportInvalide, entree as entree_couverture,
                                         verifier as verifier_couverture)
         for essai in range(2):
             rapport = self._appeler_brut(
                 INSTRUCTIONS_COUVERTURE, entree_couverture(intention, plan, monde),
-                "Contrôler la fidélité du plan", "auditer_action", SCHEMA_COUVERTURE)
+                "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
             if self.observateur:
                 self.observateur({"etape": "couverture de l'action", "modele": self.modele,
                                   "revision": revision, "intention": intention,
@@ -400,15 +400,18 @@ class MJ:
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision):
         """Contre-revue de l'audience libre, des mots et du contenu avant enregistrement."""
-        from .paroles import audience_libre
+        from .paroles import audience_libre, prevue
         from .moteur import Plan
         if not audience_libre(analyser_parole(monde, intention)):
             return
-        adresse = {"tous": "groupe", "personne": "cantonade, sans destinataire particulier"}.get(
+        adresse = {"tous": "groupe", "personne": "cantonade"}.get(
             rapport["personnage"], "individuelle")
         plan = Plan({}, revision, "Prononcer la parole préparée.", parole={
             "adresse": adresse, "personnage": rapport["personnage"],
-            "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"])})
+            "destinataires": rapport["destinataires"], "repondent": rapport["repondent"],
+            "audiences_autorisees": prevue(monde, intention)["audiences"],
+            "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
+            "consequences_moteur": copy.deepcopy(rapport["faits"])})
         try:
             self._auditer_action(intention, plan, revision, monde)
         except ErreurMonde as exc:
@@ -559,6 +562,17 @@ class MJ:
                             refus_monde.append(exc)
                         if p.get("action") not in PERCEPTIONS:
                             refus_du_moteur = exc
+                            if geste_en_question(monde, intention):
+                                # Une fiche de faisabilité ne transforme pas un manque
+                                # réel en demande de correction. Le monde répond dès
+                                # le premier refus ; seuls les champs mal formés et
+                                # les qualifications explicitement requises se corrigent.
+                                if self.observateur:
+                                    self.observateur({"etape": "validation", "modele": self.modele,
+                                        "intention": intention, "revision": revision,
+                                        "tentative": tentative + 1,
+                                        **retour_refus(p, exc, "Le refus du monde répond à la question ; rien n'est tenté.")})
+                                return reponse_du_moteur(exc)
                     raise
                 if (premier_refus and not plan.effets and not plan.information
                         and not any(etape.effets or etape.information for etape in plan.plans)):
@@ -818,6 +832,9 @@ class MJ:
             faits.pop("lieux_connus", None)
             for sortie in faits["salle"]["sorties"].values():
                 sortie.pop("vers", None)
+                if sortie.get("case") is not None:
+                    from .localisation import relatif
+                    sortie["position_relative"] = relatif(monde, monde.joueur["salle"], sortie.pop("case"))[1]
             # Les sorties qu'il connaît (vues, ou dont il a foulé le seuil) : d'autres peuvent lui échapper.
             faits["salle"]["sorties_connues"] = faits["salle"].pop("sorties")
             for objet in objets:
@@ -947,7 +964,7 @@ proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur
         from .localisation import REGLES as REGLES_LOCALISATION
         instructions += REGLES_LOCALISATION
         if monde.data.get("mode_cases") and enrichir:
-            instructions += """\nLe joueur se déplace case par case avec les touches de la carte : une cible trop loin
+            instructions += """\nLe joueur se déplace à pied avec les touches de la carte : une cible trop loin
 (a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
 manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
 salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
@@ -1200,6 +1217,10 @@ direction), plus lents, ils ne s'entendent que de tout près.
             try:
                 qualifications = qualifications_proposees(reponse, entree.get("faits", {}))
                 if qualifications:
+                    if monde is not None:
+                        # Forme, bornes, masse et propriétés déjà connues sont
+                        # jugées par le moteur avant toute appréciation sémantique.
+                        preparer_faits(monde, reponse["proposition"], monde.data["revision"])
                     audit = appeler_brut(INSTRUCTIONS_PHYSIQUE,
                                         {"qualifications": qualifications,
                                          "scenario": entree.get("faits", {}).get("scenario", {})},

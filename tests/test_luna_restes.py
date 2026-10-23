@@ -1,0 +1,214 @@
+"""Contrats communs du MJ : vraie boucle de jeu, état et texte après rechargement."""
+import copy
+import io
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import jeu
+from donjon.mj import MJOpenAI
+from donjon.monde import ErreurMonde, Monde
+from donjon.narration import consigner, unites_moteur
+from donjon.rendu import decrire
+from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_luna_noms import action
+from tests.test_parole_commune import scene, paroles_retenues
+from tests.test_repli_et_appel import dialogue, parole
+from tests.test_sous_obstacle import FORME, passage, scene as scene_obstacle
+from tests.test_tensions import recharger
+
+
+def jouer_physique(m, saisies, reponses, jugements=()):
+    reponses, jugements, appels = list(reponses), list(jugements), []
+    def appel(instructions, entree, intention, fonction, schema):
+        appels.append((fonction, entree))
+        if fonction == "auditer_capacites":
+            return {"jugements": [jugements.pop(0)]}
+        if fonction == "auditer_action":
+            return {"conforme": True, "motif": ""}
+        return reponses.pop(0)
+    with tempfile.TemporaryDirectory() as tmp:
+        chemin = Path(tmp) / "partie.json"
+        m.sauver(chemin)
+        saisies = iter([*saisies, "quitter"])
+        flux, premiere = io.StringIO(), True
+        def lire(_=""):
+            nonlocal premiere
+            if premiere:
+                flux.seek(0)
+                flux.truncate()
+                premiere = False
+            return next(saisies)
+        with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+              patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
+              patch("builtins.input", side_effect=lire),
+              patch("sys.stdout", flux) as sortie):
+            jeu.main(["--console", "--connexion", "api", "--recit-moteur", "--save", str(chemin)])
+        return Monde.charger(chemin), sortie.getvalue(), appels
+
+
+class FormeTests(unittest.TestCase):
+    def test_forme_inconnue_donne_immediatement_le_manque_du_monde(self):
+        for scenario, cible in (("relais", "poutre_conduite"), ("auberge", "table_longue")):
+            with self.subTest(cible=cible):
+                m = scene_obstacle(scenario, cible, forme=False)
+                avant = copy.deepcopy(m.data)
+                r, texte, appels = jouer_physique(m,
+                    [f"est-ce que je pourrais passer sous {m.objets[cible]['nom']} ?"],
+                    [action(passage(cible))])
+                self.assertIn("Le dégagement sous l'obstacle et sa hauteur ne sont pas encore décrits", texte)
+                self.assertEqual(len(appels), 1)
+                self.assertNotIn("passage", r.objets[cible])
+                self.assertEqual(r.joueur["position"], avant["joueur"]["position"])
+                self.assertEqual(r.data["minutes"], avant["minutes"])
+                self.assertFalse(unites_moteur(texte))
+
+    def test_description_nouvelle_persistante_avant_la_fiche_puis_le_passage(self):
+        for scenario, cible in (("relais", "poutre_conduite"), ("auberge", "table_longue")):
+            with self.subTest(cible=cible):
+                m = scene_obstacle(scenario, cible, forme=False)
+                ajout = {"mode": "etablir_faits", "texte": "", "faits": [], "proposition": {
+                    "ajouts": [{"type": "qualification", "ancrage": cible, "passage": dict(FORME)}]}}
+                q = f"est-ce que je pourrais passer sous {m.objets[cible]['nom']} ?"
+                r, texte, appels = jouer_physique(m, [q], [ajout, action(passage(cible))],
+                                                [{"compatible": True, "motif": "Disposition plausible."}])
+                self.assertIn("Ramper sous", texte)
+                self.assertEqual(r.objets[cible]["passage"], FORME)
+                self.assertEqual(r.joueur["position"], m.joueur["position"])
+                entree = next(e for f, e in appels if f == "auditer_capacites")["qualifications"][0]
+                self.assertEqual(entree["champs_a_etablir"], ["passage"])
+                self.assertTrue(entree["objet"]["bloque_passage"])
+                self.assertIn("physique", entree["objet"])
+                r, texte, _ = jouer_physique(r, ["ramper sous " + m.objets[cible]["nom"], "tenter",
+                                                "tourner ouest", "examiner " + m.objets[cible]["nom"]], [])
+                self.assertIn("Tu passes en rampant", texte)
+                self.assertEqual(r.joueur["position"][0], m.joueur["position"][0] + 2)
+                self.assertTrue(r.objets[cible]["bloque_passage"])
+                self.assertIn("Dégagement dessous", decrire(r, cible))
+
+    def test_dimension_impossible_refusee_avant_la_revue_physique(self):
+        for scenario, cible in (("relais", "poutre_conduite"), ("auberge", "table_longue")):
+            with self.subTest(cible=cible):
+                m = scene_obstacle(scenario, cible, forme=False)
+                ajout = {"mode": "etablir_faits", "texte": "", "faits": [], "proposition": {
+                    "ajouts": [{"type": "qualification", "ancrage": cible,
+                                "passage": {**FORME, "degagement_cm": 200}}]}}
+                r, texte, appels = jouer_physique(m,
+                    [f"est-ce que je pourrais passer sous {m.objets[cible]['nom']} ?"],
+                    [ajout, action(passage(cible))])
+                self.assertFalse(any(f == "auditer_capacites" for f, _ in appels))
+                self.assertNotIn("passage", r.objets[cible])
+                self.assertIn("ne sont pas encore décrits", texte)
+                self.assertEqual(r.joueur["position"], m.joueur["position"])
+
+
+class ParoleTests(unittest.TestCase):
+    def test_audiences_collectives_comparees_par_le_moteur(self):
+        for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous aider ?"):
+            for destinataire, adresse in (("personne", "cantonade"), ("tous", "groupe")):
+                with self.subTest(saisie=saisie, destinataire=destinataire):
+                    r, texte, appels = jouer(scene(), saisie, [
+                        parole(saisie, personnage=destinataire), dialogue("Ta question résonne.")],
+                        [rapport(ligne("mecanique", sources=["conversation_validee"]))],
+                        revues=[{"audiences_fideles": ["groupe", "cantonade"], "contenu_conforme": True,
+                                 "motif": "L'adresse individuelle ne conviendrait pas."}])
+                    self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], destinataire)
+                    self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+                    self.assertNotIn("Précise à qui", texte)
+                    revues = [e for f, e in appels if f == "auditer_action"]
+                    self.assertEqual(len(revues), 1)
+                    self.assertEqual(revues[0]["plan"]["parole"]["adresse"], adresse)
+                    self.assertEqual(paroles_retenues(r, "aubin")[-1][2], saisie)
+
+    def test_contre_revue_recoit_le_transfert_reel_et_les_noms_publics(self):
+        for cible in ("planches", "vivres"):
+            with self.subTest(cible=cible):
+                m = scene(ilse=(1, 5), aubin=(2, 3))
+                # Un objet de l'interlocuteur, demandé pour soi ; le moteur décide l'issue.
+                m.objets[cible].update(proprietaire="aubin", lieu="aubin")
+                saisie = f"je paie Aubin trois pièces pour une part de {m.objets[cible]['nom']}"
+                r, texte, appels = jouer(m, saisie, [parole("Je voudrais une part pour trois pièces.",
+                    ("demande", cible, "", "3"), personnage="aubin"), dialogue("Ta demande a été entendue.")],
+                    [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+                revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
+                self.assertTrue(revue["consequences_moteur"])
+                self.assertIn("Aubin", revue["personnage"])
+                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertIn("Tu dis", texte)
+
+
+class TexteTests(unittest.TestCase):
+    def test_positions_hors_de_vue_reprises_en_metres_et_persistantes(self):
+        for cible, est in (("planches", 2), ("briquet", 3)):
+            with self.subTest(cible=cible):
+                m = scene()
+                p = [m.joueur["position"][0] + est, m.joueur["position"][1] + 2]
+                m.objets[cible].update(lieu=m.joueur["salle"], position=p,
+                                       position_salle=m.joueur["salle"])
+                m.data.setdefault("souvenirs_visuels", {})[cible] = {
+                    "salle": m.joueur["salle"], "position": list(p),
+                    "nom": m.objets[cible]["nom"], "symbole": "!"}
+                m.joueur["orientation"] = "nord"
+                reponse = f"Tu ne le vois plus d'ici. Tu l'as vu à 2 mètres vers le sud et {est} mètres vers l'est."
+                r, texte, appels = jouer(m, f"où est {m.objets[cible]['nom']} ?", [dialogue(reponse)], [rapport(
+                    ligne("mecanique", sources=["souvenirs_visuels"]),
+                    ligne("mecanique", sources=["souvenirs_visuels"]))])
+                self.assertIn(reponse, texte)
+                self.assertEqual(r.data["narrations_mj"][-1]["texte"], reponse)
+                self.assertEqual(r.objets[cible]["lieu"], m.objets[cible]["lieu"])
+                faits = appels[0][1]["faits"]
+                souvenir = next(s for s in faits["souvenirs_visuels"] if s["id"] == cible)
+                self.assertEqual(souvenir["vu_a"], f"2 mètres vers sud et {est} mètres vers est")
+                for s in faits["salle"]["sorties_connues"].values():
+                    self.assertNotIn("case", s)
+                for s in faits["souvenirs_visuels"]:
+                    self.assertNotIn("case", s.get("vu_a", ""))
+
+    def test_unites_et_coordonnees_refusees_puis_reformulees(self):
+        for mauvais in ("Il est à deux cases vers le sud.", "Il est aux coordonnées (5, 11).",
+                        "Il se trouve en [2, 4].", "Il se trouve en x=3, y=7."):
+            with self.subTest(mauvais=mauvais):
+                bon = "Tu peux regarder autour de toi."
+                r, texte, _ = jouer(scene(), "où est-il ?", [dialogue(mauvais), dialogue(bon)],
+                    [rapport(ligne("mecanique", sources=["souvenirs_visuels"])), rapport(ligne("neutre"))])
+                self.assertNotIn(mauvais, texte)
+                self.assertIn(bon, texte)
+                self.assertEqual(r.data["narrations_mj"][-1]["texte"], bon)
+
+    def test_enregistrement_refait_le_controle_deterministe(self):
+        for mauvais in ("Tu attends à une case du seuil.", "Tu vois une marque en (4, 8)."):
+            m = scene()
+            bon = "Tu attends près du seuil."
+            r, _, _ = jouer(m, "où suis-je ?", [dialogue(bon)],
+                            [rapport(ligne("neutre"))])
+            # Même un audit altéré ne peut contourner le contrôle à l'écriture.
+            from donjon.narration import controler
+            faits = {"salle": {}}
+            audit = controler(mauvais, rapport(ligne("mecanique", sources=["salle"])), faits)
+            audit.update(texte_initial=mauvais, faits=faits, fondement="")
+            avant = copy.deepcopy(r.data)
+            with self.assertRaises(ErreurMonde):
+                consigner(r, {"texte": mauvais, "_audit": audit})
+            self.assertEqual(recharger(r).data, avant)
+
+    def test_ambiance_absente_ne_justifie_pas_un_verdict_de_contradiction(self):
+        for texte, entite in (("Des bruits lointains flottent dans l'air.", "bruits lointains"),
+                              ("Une odeur de terre humide emplit l'air.", "odeur de terre")):
+            with self.subTest(texte=texte):
+                m = scene()
+                avant = copy.deepcopy(m.objets)
+                r, sortie, appels = jouer(m, "décris l'atmosphère", [dialogue(texte)], [
+                    rapport(ligne("contradictoire", motif="Rien ne prouve cette perception.")),
+                    rapport(ligne("ambiance", entites=[entite]))])
+                self.assertIn(texte, sortie)
+                self.assertEqual([f for f, _ in appels].count("repondre_au_joueur"), 1)
+                self.assertEqual([f for f, _ in appels].count("auditer_narration"), 2)
+                self.assertEqual(r.data["ambiances"][r.joueur["salle"]][-1]["texte"], texte)
+                self.assertEqual(r.objets, avant)
+                self.assertNotIn("rien de tel", sortie)
+                self.assertEqual(r.data["narrations_mj"][-1]["texte"], texte)
+
+
+if __name__ == "__main__":
+    unittest.main()

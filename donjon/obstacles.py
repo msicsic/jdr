@@ -362,7 +362,7 @@ def compiler(m, e, justification="", origine="règles"):
                           f"difficulte={e['difficulte']} : accepté 0.")
     regle = conditions(m, cible, methode)
     if not m.data.get("mode_cases"):
-        raise ErreurMonde("Ce franchissement exige un sol décrit en cases.",
+        raise ErreurMonde("Ce franchissement exige une position et un sol de réception décrits.",
                           "mode_cases=false : accepté true, avec position et sol de réception.")
     salle, depart = m.joueur["salle"], tuple(m.joueur["position"])
     milieu = position_cible(m, cible, salle)

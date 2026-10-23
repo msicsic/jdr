@@ -118,7 +118,10 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
   le prévoit. Rappeler un engagement déjà dit (paroles_entendues) reste mecanique ;
 - invention_protegee : crée ou suppose un élément mécanique absent des faits (objet utilisable,
   passage, personnage, ressource, indice, résultat), même plausible ou décoratif ;
-- contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus.
+- contradictoire : contraire aux faits, à la perception, à ambiance_etablie ou aux effets prévus ;
+  cite dans sources les faits qui établissent cette contradiction. Un fait absent n'établit
+  pas son contraire. Une ambiance nouvelle n'a pas besoin d'être attestée : juge sa compatibilité,
+  pas sa présence dans le contexte. Affirmer qu'elle est imperceptible la contredit.
 Si un segment mêle plusieurs catégories, choisis la plus contraignante : contradictoire,
 invention_protegee, engagement, parole, mecanique, ambiance, hypothese, neutre.
 conversation_validee est une parole de Corvus que le moteur a déjà fait entendre : issue dit ce qu'il
@@ -151,8 +154,8 @@ ce qui a été reçu (la phrase ou la valeur en cause, citée), le verdict de l'
 lui, et ce qui serait accepté. Corrige ce qu'il désigne, garde le reste ; il ne s'adresse jamais au joueur.
 Réponds de nouveau à l'intention initiale, à partir de l'état actuel. L'ambiance reste libre.
 Tu peux proposer un ajout persistant par le protocole déjà disponible si l'état et
-la demande le permettent. Sinon, reformule sans présenter l'ajout comme un fait : ce que Corvus
-ne perçoit ni ne sait, dis simplement qu'il l'ignore.
+la demande le permettent. Pour un ajout mécanique qui ne peut pas être établi, dis simplement
+ce que Corvus ignore. Cette réserve ne porte pas sur une ambiance libre compatible avec l'état.
 Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
@@ -162,13 +165,16 @@ ressources, lumière, missions, résultats) doit découler des faits fournis ; p
 élément mécanique, propose un fait persistant lorsque ce mode est disponible. L'ambiance
 (aspect, odeur, son de fond, texture, impression) est libre si elle ne crée ni objet
 manipulable, ni passage, ni personnage, ni ressource, ni indice. Reste cohérent avec
-ambiance_etablie. Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
+ambiance_etablie : une ambiance admise est perçue, sans réserve qui la démente.
+Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
 Dis une inconnue dans la fiction (ce que Corvus voit, entend ou ignore), jamais en parlant
 de faits, de données ou de ce qui est « établi ».
 Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxième personne (tu).
 Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
 ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
 incertitude se dit de ce que Corvus sait, à la deuxième personne (« tu ne sais pas si… »).
+Le quadrillage et les coordonnées restent internes : les positions se disent avec les repères
+fournis, des directions et des distances en mètres ou en pas, jamais en cases ni en coordonnées.
 Une voix inconnue (interlocuteurs.voix_<n>) se désigne dans le récit par son nom d'interlocuteur
 (« la voix qui se dit … », « une voix »), jamais par le nom qu'elle prétend. Une réplique ne nomme
 que qui son locuteur connaît (personne ne sait le nom de Corvus s'il ne l'a pas entendu).
@@ -292,12 +298,26 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_
 AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
                     r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
 
+# Le vocabulaire du quadrillage et les écritures de coordonnées sont une forme de
+# métalangage, même dans une réplique. Les distances physiques restent libres.
+ESPACE_MOTEUR = re.compile(
+    r"\bcases?\b|\bcoordonn[ée]es?\b|\bquadrillage\b"
+    r"|[\[(]\s*[+-]?\d+(?:\.\d+)?\s*[,;]\s*[+-]?\d+(?:\.\d+)?\s*[\])]"
+    r"|\b[xy]\s*=\s*[+-]?\d+", re.IGNORECASE)
+
+
+def unites_moteur(texte, partie="texte"):
+    return [audit("Cette localisation emploie le quadrillage interne.",
+                  "une localisation dans la fiction : repère, direction, distance en mètres ou en pas",
+                  partie=partie, segment=i, texte=p, recu=m.group())
+            for i, p in enumerate(segments(texte)) for m in ESPACE_MOTEUR.finditer(p)]
+
 
 def voix_auteur(texte, partie="texte"):
     """Obstacles déterministes : le texte affiché parle au joueur, à la deuxième personne, dans la
     fiction ; il ne parle ni du joueur, ni du moteur, ni de Corvus à la troisième personne. Les
     répliques citées des personnages restent libres."""
-    obstacles, vus = [], set()
+    obstacles, vus = unites_moteur(texte, partie), set()
     for indice, passage in enumerate(segments(texte)):
         for terme in sorted({m.group(0) for m in AUTEUR.finditer(CITATIONS.sub(" ", passage))}, key=str.lower):
             if terme.lower() in vus:
@@ -340,8 +360,10 @@ def mentions_proposees(monde, reponse, base, paroles=""):
         # Un savoir prêté à un personnage peut reprendre ce qu'il croit.
         if groupe == "savoirs":
             propre += " " + paroles
-        for champ in ("texte", "description"):
+        for champ in ("nom", "texte", "description"):
             if isinstance(ajout.get(champ), str) and ajout[champ].strip():
+                obstacles.extend(unites_moteur(ajout[champ],
+                                              f"proposition.{groupe}[{rang}].{champ}"))
                 obstacles.extend(mentions(monde, ajout[champ], base + " " + propre, partie="description",
                                           lieu=f"proposition.{groupe}[{rang}].{champ}",
                                           paroles_validees=[] if groupe=='ajouts' and ajout.get('type')!='parole' else None))
@@ -690,6 +712,10 @@ def controler(texte, rapport, faits, partie="texte"):
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "presentation", "motif"))):
             raise AuditIllisible("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
+        if verdict == "contradictoire" and not ligne["sources"]:
+            # Une absence dans le contexte n'est pas une preuve négative. Ce
+            # défaut du rapport revient au lecteur, sans faire réécrire le MJ.
+            raise AuditIllisible("Une contradiction doit citer le fait qu'elle contredit.")
         # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
         # mécanique sans source restante est refusée plus bas.
         ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
@@ -836,7 +862,7 @@ def consigner(monde, reponse):
         return
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
-    if (rapport["obstacles"] or rapport["texte_controle"] != texte
+    if (rapport["obstacles"] or rapport["texte_controle"] != texte or voix_auteur(texte)
             or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""),
                         paroles_validees=rapport['paroles'])
             or voix_inconnues(monde, rapport["paroles"], audit["faits"], texte)):
