@@ -30,7 +30,8 @@ def motif_designation(canonique):
     motif = r"(?<!\w)" + re.escape(tete)
     if complement:
         motif += (r"[ \t]+(?P<qualificatifs>(?:[\w'’-]+[ \t]+)*?)"
-                  + re.escape(complement).replace(r"\ ", r"[ \t]+"))
+                  + re.escape(complement.replace("’", "'")).replace("'", "['’]")
+                    .replace(r"\ ", r"[ \t]+"))
     return re.compile(motif + r"(?!\w)", re.I)
 
 

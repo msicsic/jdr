@@ -112,6 +112,8 @@ class DesignationsTests(unittest.TestCase):
                 o = m.objets[cible]
                 o.update(lieu=m.joueur["salle"], position=list(m.joueur["position"]),
                          position_salle=m.joueur["salle"])
+                if cible == "ficelle":
+                    o["materiau"] = "lin"  # « fibres » seul ne contredirait pas « chanvre ».
                 bon = "Tu peux regarder cet objet."
                 avant = copy.deepcopy(o)
                 r, sortie, appels = jouer(m, "mj décris cet objet", [dialogue(mauvais), dialogue(bon)],
@@ -127,13 +129,14 @@ class DesignationsTests(unittest.TestCase):
     def test_la_contre_revue_garde_la_matiere_demandee_et_refuse_lecart(self):
         m = nouveau_atelier()
         m.objets["ficelle"].update(position=list(m.joueur["position"]))
+        m.objets["ficelle"]["materiau"] = "lin"
         demande = "je ramasse la bobine de chanvre"
         bon = "Tu peux regarder cet objet."
         r, sortie, appels = jouer(m, demande, [action(proposition("prendre", "ficelle")), dialogue(bon)],
             [rapport(ligne("neutre"))], [{"conforme": False, "motif": "La matière demandée diffère."}])
         revue = next(e for f, e in appels if f == "auditer_action")
         liens = [d for d in revue["designations"] if d["reference"] == "ficelle"]
-        self.assertTrue(any(d["forme_ecrite"] == demande and d["faits"]["materiau"] == "fibres"
+        self.assertTrue(any(d["forme_ecrite"] == demande and d["faits"]["materiau"] == "lin"
                             for d in liens))
         self.assertNotEqual(r.objets["ficelle"]["lieu"], "joueur")
         self.assertIn(bon, sortie)
@@ -152,6 +155,19 @@ class DesignationsTests(unittest.TestCase):
         nom = m.contexte()["interlocuteurs"]
         self.assertTrue(voix_inconnues(m, [], {"interlocuteurs": nom},
             "La voix de Gorm qui se dit Ilse demeure dans le noir."))
+
+    def test_appellation_rapportee_avec_apostrophe_typographique(self):
+        m = voix("ilse")
+        entree = m.data["voix_entendues"]["ilse"]
+        entree.update(se_dit=None, appelee="ilse")
+        m = recharger(m)
+        texte = "La voix toute proche qu’on appelle Ilse demeure dans le noir."
+        r, sortie, _ = jouer(m, "mj que perçois-je ?", [dialogue(texte)],
+            [rapport(ligne("mecanique", sources=["interlocuteurs"]))])
+        self.assertIn(texte, sortie)
+        self.assertEqual(r.data["narrations_mj"][-1]["texte"], texte)
+        self.assertEqual(public(r, {"attestations": [texte]})["attestations"], [texte])
+        self.assertEqual(r.data["noms_connus"], [])
 
 
 if __name__ == "__main__":

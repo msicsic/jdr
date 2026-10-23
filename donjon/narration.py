@@ -468,8 +468,8 @@ def _noms_voix_recit(monde, paroles, faits, interlocuteurs, passages, partie, hi
         dits = sorted(x for x in lexique.entites_citees(monde, nom)
                       if x in monde.objets and monde.objets[x]["type"] == "personnage")
         for indice, passage in enumerate(passages if dits else []):
-            recit = hors_paroles_etablies(monde, passage, paroles, faits, historique)
-            reste = hors_designations(recit, [nom.split("(")[0].strip()]) if nom else recit
+            recit = lexique.normaliser(hors_paroles_etablies(monde, passage, paroles, faits, historique))
+            reste = hors_designations(recit, [lexique.normaliser(nom.split("(")[0])]) if nom else recit
             nommes = [x for x in dits if x in lexique.entites_citees(monde, reste)]
             if nommes:
                 obstacles.append(audit(

@@ -1,8 +1,23 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-23.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
 
 ## Où on en est
+
+- Branche `codex-designations`, non fusionnée, base `main` **42bb9c0** : noyaux nominaux
+  reconnus par `noms`, qualificatifs conservés et contrôlés séparément. Même mécanisme dans
+  le garde des voix, la projection et les liens publics transmis aux deux revues. Aucun nom
+  appris par la description ; aucune donnée de scénario ni fichier des lots réservés modifié.
+  Sept tests nouveaux en chaîne avec réponses simulées, sauvegarde/recharge et rendu : voix
+  d'Ilse toute proche et de Gorm basse et lointaine, ficelle et couteau qualifiés ; identités
+  ajoutées, négation de revendication et matières contraires refusées avec `attendu` ;
+  appellation rapportée conservée avec apostrophe typographique. Tests nominaux finaux :
+  **88 verts**, complément typographique compris ; suite complète unique : **1 597 tests,
+  15 ignorés**, verte en 560,1 s, trois processus à priorité réduite. Luna, une passe
+  (`soir-noir`, `atelier`, `echanges`) : aucun repli ni recharge
+  invalide, bobine prise et portée, aucun refus nominal dans le noir ; sifflement joyeux
+  (8 appels) et nom saisi non relié (10) restent ouverts, aucun gain de temps général établi.
+  Livraison et mesures dans le [rapport du lot 26](taches/rapport-codex-26-designations.md).
 
 - Branche `codex-luna-restes`, fusionnée, issue de `main` **8855312** : validation physique
   déterministe avant revue de plausibilité ; propriétés connues et champs inconnus distingués ;
@@ -2110,9 +2125,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - Luna, après `codex-luna-restes` : le sens des références d'audience est comparé
   par le moteur et la revue reçoit les conséquences des achats ; les positions sont en mètres avec
   garde déterministe des unités. Le choix d'audience reste sémantique (`soir-appel`, une correction
-  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement, une désignation d'objet et
-  un nom non relié. Dans le noir, « la voix toute proche qui se dit Ilse » est refusé par le garde
-  nominal, un repli sûr sur deux passes. **Ne pas clore le critère d'ambiance sans précaution** : le
+  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement et un nom non relié.
+  Le lot `codex-designations` (non fusionné) reconnaît les noyaux publics malgré leurs
+  qualificatifs ; les deux revues reçoivent leurs liens canoniques et les faits publics.
+  La compatibilité sémantique des qualificatifs et les paraphrases restent à surveiller :
+  ce lien lexical ne garantit pas toute phrase ni toute absence de faux refus.
+  **Ne pas clore le critère d'ambiance sans précaution** : le
   complément garde « aucun autre son n'est attesté ici » ; absence de preuve et absence de perception
   ne sont pas encore distinguées dans toutes les rédactions.
 
