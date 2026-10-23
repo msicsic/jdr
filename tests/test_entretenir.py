@@ -1,6 +1,6 @@
 """Entretenir ce dont on a la charge : une pulsion rompue se rétablit sans attendre que son besoin
-presse ; un feu à entretenir peut employer le bois d'un autre (une part demandée, que le donneur
-met lui-même au feu) ; un protégé n'est servi que s'il a faim, et une seule fois.
+presse ; un feu à entretenir peut employer le bois d'un autre (une part servie par le donneur
+ou remise au demandeur) ; un protégé n'est servi que s'il a faim, et une seule fois.
 
 Les cas réels : à l'auberge, la cuisinière à court de bois et les fagots du palefrenier ; à la
 mine, le contremaître, son poêle et les bûches de Gaspard, la cuisinière et le blessé. Chaque
@@ -63,11 +63,13 @@ class EntretenirUnFeuTests(unittest.TestCase):
         # Son lien avec Joss rend la demande moins chère que l'achat (chance estimée
         # de codex-garde-pret). Le service et la ressource doivent rester effectifs.
         self.assertIn("Mireille demande une part des fagots de l'écurie à Joss (promis).", textes(chronique))
-        self.assertIn("Joss, palefrenier alimente le fourneau.", textes(chronique))
-        # Joss a mis une charge au fourneau ; ses fagots, il les a reposés à l'étable, où il les garde.
+        self.assertTrue(any(t.endswith("alimente le fourneau.") for t in textes(chronique)))
+        # L'entretien peut être servi ou la part remise : dans les deux cas, une
+        # seule charge est consommée et la dernière reste au propriétaire du lot.
         self.assertTrue(m.objets["fourneau"]["allume"])
         self.assertGreater(m.objets["fourneau"]["combustible"], 30)
-        self.assertEqual((m.objets["fagots_etable"]["charges"], m.objets["fagots_etable"]["lieu"]), (1, "etable"))
+        self.assertEqual(m.objets["fagots_etable"]["charges"], 1)
+        self.assertEqual(m.objets["fagots_etable"]["proprietaire"], "joss")
         joss = lire(m, "joss")
         self.assertEqual(joss["engagements"], [])
         self.assertTrue(any(s["type"] == "engagement_tenu" and s["pour"] == "mireille" for s in joss["memoire"]))

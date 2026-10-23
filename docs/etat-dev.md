@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-part-estimee`, non fusionnée, base intégrée `4fc5212`
+  (`main` avec `GARDE`/`PRET` et force 4b) : une remise de combustible termine
+  la recherche par un devis depuis le lieu de remise, au lieu d'y développer
+  réception, recharge, allumage et suites. Demande et achat gardent trajet,
+  chances, prix et attente ; livraison réelle et replanification gardent leurs
+  frontières. Le devis commun compte source, flamme, pressions et un trajet avec
+  au plus un geste conclusif ; la scène reste celle du départ, avec les moyens,
+  droits et budget acquis par le préfixe, y compris une source empruntée.
+  C'est une approximation, qui peut aussi écarter une voie à plusieurs préparatifs,
+  pas une garantie générale de faisabilité future. Les lectures et la règle sont
+  dans `_entrees` ; découverte de lumière, graphes et certificat suivent le même
+  modèle. Auberge, 12 h, huit graines, référence et branche ensemble, quatre
+  calculs au plus : CPU 108,71 → 68,28 s (×1,59), nœuds 1 521 695 → 614 622
+  (×2,48), noir 1 050,625 → 989,375 min·PNJ, sans recours 174,375 → 176,25.
+  Le dernier critère strict reste donc manqué de 1,875 min·PNJ ; le facteur deux
+  visé n'est pas atteint sur le CPU. Demandes de
+  combustible 11,5 → 11,625, achats 1,5 → 1,75, parts livrées 4,25 → 4,625,
+  recharges de lampes 0,375 → 1,125 ; foyers allumés et rechargés stables.
+  Justesse : 24 178 recherches rejouées avec l'ancienne chaîne, 95,86 % de mêmes
+  premiers gestes et effets terminaux, 99,82 % quand les deux trouvent un plan ;
+  écart médian de coût nul, pire fini 1,741 minute, un recours ponctuel de lumière
+  perdu par pessimisme. Bancs 8 h, 4 × 4 graines, comparés à `4fc5212` puis à
+  `origin/main` 5594028 : aucun plantage, violation ni usurpation. Contre la base,
+  Relais 7 : noir +30 min·PNJ et une livraison de moins ; les autres nuits ne
+  dégradent pas noir/sans recours. `VERIFIER` + spatial 1 sur 2 h, puis 0,2 sur
+  8 h, graine 42 des quatre scénarios : aucun écart ni borne. Suite finale :
+  1 469 tests, six échecs MiMo reproduits sur la référence, quatre sautés,
+  aucun nouvel échec ; la suite n'est pas entièrement verte.
+  Les critères d'acceptation ne sont donc pas tous atteints. Voir le
+  [rapport Codex 16](taches/rapport-codex-16-part-estimee.md). Aucun appel à Luna.
+
 - Branche `codex-force-4b`, non fusionnée : coups et assommement par la même règle pour le
   joueur et les PNJ, fiche avant tentative, armes et surprise, cris, interruptions, souvenirs
   et relations, registre et prise sur un porteur inconscient. Le recours assommer-pour-prendre
@@ -1592,7 +1623,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1449 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- Sur `codex-part-estimee` : 1 469 tests, six échecs MiMo préexistants reproduits
+  sur `4fc5212`, quatre sautés, aucun nouvel échec ; la suite entière n'est pas
+  verte. Tests sans appel au modèle (ceux du clic demandent Node), via `tools/tests.py`.
 
 ## Décisions en attente
 

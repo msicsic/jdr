@@ -250,6 +250,9 @@ class Vue:
         # par les lectures communes de lumière, jamais d'après une capacité du PNJ.
         self._lumiere_lue = False
         self.seul = None       # par ses seuls moyens : à qui seul il peut demander (``devis_pulsion``)
+        self._estime_part = False
+        self._estimations_parts = {}
+        self._depart_estimation = None
 
     @property
     def emploie_lumiere(self):
@@ -1075,7 +1078,9 @@ def _parts(v, e, o, dans, vises, but):
     Promise ou vendue, elle n'est pas encore là : il l'attend où elle se sert, le temps que le
     donneur y vienne (``attente_part``), et ce temps-là compte comme tout autre, avec ce qu'il y
     laisse monter (loin de ses biens, dans le noir)."""
-    yield from _parts_remises(v, e, o, dans, vises)
+    if v._estime_part:
+        return
+    yield from _parts_remises(v, e, o, dans, vises, but)
     besoin, id = v.besoin[o], v.id
     if v.seul:
         return  # Une part servie est un service du donneur ; seule une part remise (ci-dessus) compte.
@@ -1134,12 +1139,13 @@ def _parts(v, e, o, dans, vises, but):
                     yield recherche
 
 
-def _parts_remises(v, e, o, dans, vises):
-    """Recevoir une part pour les gestes suivants : la recharge reste un geste explicite.
+def _parts_remises(v, e, o, dans, vises, but=None):
+    """Demander, acheter ou attendre une part, avec un devis de la suite.
 
-    La part du lot tient sa place dans l'état simulé, avec le droit de la consommer. Sa véritable
-    identité n'est connue qu'à la remise : le plan exécuté s'arrête à la demande ou à l'attente,
-    puis se refait sur la part réellement reçue. Aucune source n'est réputée chargée à l'accord.
+    Le devis atteint un but hypothétique terminal, jamais développé dans le graphe.
+    Sa véritable identité n'est connue qu'à la remise : le plan exécuté s'arrête à
+    la demande ou à l'attente, puis se refait sur la part réellement reçue. Aucune
+    source du monde n'est réputée chargée à l'accord.
     """
     if o in e.portes or "combustible" not in v.objets[o].get("usages", ()) or not v.disponible(o):
         return
@@ -1149,35 +1155,49 @@ def _parts_remises(v, e, o, dans, vises):
     compte = v.emploie_lumiere
     deja = any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes)
     besoin = any((s in vises.get("entretenir", ()) or compte and not deja)
-                 and v.autorise[s] and not v.feu(e, s)[1] and recharge(v.objets[s], v.objets[o])
+                 and not v.feu(e, s)[1] and recharge(v.objets[s], v.objets[o])
                  and not any(recharge(v.objets[s], v.objets[k]) and v.disponible(k) for k in e.portes)
                  for s in v.rechargeables)
     if not besoin:
         return
-    acquis = e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("acquis", o), True)])
     attente = 0 if dans == donneur and v.salle(e, donneur) == e.salle else v.attente_part(e, donneur, o, e.salle)
-    if v.promesse(o, True) == donneur:
-        yield 0, attente, [{**_etape("inspecter"), "attendre_remise": True}], acquis, attente
-        return
-    if v.promesse(o):
+    promise = v.promesse(o, True) == donneur
+    if not promise and v.promesse(o):
         return   # Une autre façon de servir cette part est déjà promise.
     ou = v.salle(e, donneur)
     if ou is None and not e.fait("cherche", donneur) and not v.refuse(donneur, o):
         recherche = _chercher(v, e, donneur)
         if recherche is not None:
             yield recherche
-    if ou != e.salle:
+    if not promise and ou != e.salle:
         return
-    if not v.refuse(donneur, o):
-        yield (0, 1 + DEMANDE / v.chances_demandes[donneur] + attente,
-               [{**_etape("demander", donneur, outil=o, contenu={"remettre_part": True}), "suppose": True}],
-               acquis, 1 + attente)
+    offres = []
+    if promise:
+        offres.append((attente, {**_etape("inspecter"), "attendre_remise": True}, attente, 0))
+    elif not v.refuse(donneur, o):
+        offres.append((1 + DEMANDE / v.chances_demandes[donneur] + attente,
+                       {**_etape("demander", donneur, outil=o, contenu={"remettre_part": True}), "suppose": True},
+                       1 + attente, 0))
     prix = v.objets[o].get("prix_part", PRIX_PART)
-    if v.piece and not v.refuse_achat(donneur, o) and v.richesse - (e.fait("depense") or 0) >= prix:
-        yield (0, 1 + DEMANDE + v.depense(prix) + attente,
-               [{**_etape("acheter", donneur, outil=o, contenu={"prix": prix, "remettre_part": True}),
-                 "suppose": True}],
-               acquis.apres(faits=[(("depense",), (e.fait("depense") or 0) + prix)]), 1 + attente)
+    if not promise and v.piece and not v.refuse_achat(donneur, o) and v.richesse - (e.fait("depense") or 0) >= prix:
+        offres.append((1 + DEMANDE + v.depense(prix) + attente,
+                       {**_etape("acheter", donneur, outil=o, contenu={"prix": prix, "remettre_part": True}),
+                        "suppose": True}, 1 + attente, prix))
+    if not offres:
+        return
+    from .part_estimee import suites
+    en_feu = sum(1 for k in e.portes if e.fait("allume", k))
+    for minutes, demande, duree, paye in offres:
+        v._estime_part = True
+        try:
+            estimations = suites(v, e.apres(faits=[(("depense",), (e.fait("depense") or 0) + paye)]),
+                                 o, vises, but or (lambda v, e: True))
+        finally:
+            v._estime_part = False
+        for fautes, cout, final, abime in estimations:
+            fin = final.apres(faits=[(("estimation",), True)])
+            yield (fautes, minutes * (1 + FLAMME_EN_MAIN * en_feu) + duree * v.pression(e) + cout,
+                   [{**demande, "part_estimee": o}], fin, 0, abime)
 
 
 def _chercher(v, e, sujet):
@@ -1256,7 +1276,11 @@ def _entrees(v, vises, profondeur, noeuds):
         sorted(v.menacees), sorted(v.noyees), v.monte,
         # Le coût du noir et le but explicite de lumière ; les autres emplois de
         # lumière se découvrent dans les gestes à partir des mêmes entrées.
-        v.peur, v.eclairer], ensure_ascii=False, check_circular=False)
+        v.peur, v.eclairer,
+        # La suite estimée lit les mêmes routes, possessions, refus et gestes ;
+        # ses pressions restent celles de la vue, y compris les menaces sociales.
+        "part-estimee:trajet-geste", v.eau, v.peurs_sociales, v.taux_mefiance],
+        ensure_ascii=False, check_circular=False)
 
 
 def _ordre_visites(salles, visites):
@@ -1453,6 +1477,7 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     si l'examiner a lu la lumière. Repris, il rejoue la découverte telle qu'une recherche
     neuve la ferait avec ce prix-là (``_explorer_etats``).
     """
+    v._depart_estimation = depart_
     sombre = lumineux = None
     if graphe is not None:
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
@@ -1533,21 +1558,30 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
             if fautes and faute is None:
                 continue
             surcout = (degat or 0) * abime if abime else 0   # un prix qui n'est pas du temps (abîmer)
-            total = cout + fautes * (faute or 0) + surcout + minutes * (1 + FLAMME_EN_MAIN * en_feu)
+            estime = suivant.fait("estimation")
+            total = cout + fautes * (faute or 0) + surcout + minutes * (1 if estime else 1 + FLAMME_EN_MAIN * en_feu)
             if duree:
                 total += duree * pression  # Le temps qu'il passe dans le noir, ou loin de ses biens.
-            if total < vus.get(suivant, infini):
+            if estime:
+                if not tenir or suivant.salle not in v.menacees:
+                    heapq.heappush(file, (total + (RESTER * v.pression(suivant) if tenir else 0),
+                                         next(ordre), suivant, etapes + ajout, n + 1, True))
+            elif total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1, False))
     return trouve, examines, len(vus), plus_profond
 
 
-def _suites(v, e, vises, but):
+def _suites(v, e, vises, but, conclure=False):
     """Les gestes depuis ``e`` qui mènent quelque part, chacun avec les termes de son coût : (fautes,
     minutes, étapes, état suivant, durée, abîme, ce que l'état suivant laisse monter par minute)."""
     suites = []
     for geste in gestes(v, e, vises, but):
         fautes, minutes, ajout, suivant = geste[:4]
+        # Le devis a déjà évalué les trajets entre salles ; ne calculer ici que
+        # ses gestes conclusifs, avant leurs pressions coûteuses.
+        if conclure and (any(x["operation"] == "aller" for x in ajout) or not but(v, suivant)):
+            continue
         if v.seul and any(x["operation"] in TIERS and (x["cible"] != v.seul
                           or x["operation"] not in ("demander", "acheter"))
                           or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
@@ -1696,6 +1730,7 @@ def _couper(etapes):
     prefixe = []
     for originale in etapes:
         x = dict(originale)
+        x.pop("part_estimee", None)
         if x.pop("attendre_remise", False):
             break
         suppose = x.pop("suppose", False)
