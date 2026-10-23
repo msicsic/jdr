@@ -96,10 +96,12 @@ class AttenteTests(unittest.TestCase):
                         or any("un instant" in l for l in lignes), texte)
 
     def test_un_appel_entendu(self):
-        # Seul à la galerie : des pas en dessous ne l'interrompent pas, l'appel d'un nom si.
+        # Seul à la galerie : des pas en dessous ne l'interrompent pas, l'appel d'un nom si (ou un fracas).
+        # Relations graduées et appel négocié réunis : la nuit libre n'a plus d'appel ni de fracas
+        # avant la huitième heure ; le premier, un grand bruit, vient vers 11 h 14.
         m = relais()
-        reprise, texte, duree = attendre(m, "attendre 8 h")
-        self.assertLess(duree, 8 * 36000)
+        reprise, texte, duree = attendre(m, "attendre 12 h")
+        self.assertLess(duree, 12 * 36000)
         self.assertGreater(duree, 3000)
         self.assertEqual(annonce(texte), duree)
         self.assertTrue(re.search(r"appeler|un appel|grand bruit|: « ", texte), texte)

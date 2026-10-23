@@ -4,6 +4,8 @@ les PNJ. Vérifié sur l'état du monde et sur ce que lit le joueur, après rech
 Cas réel : Brune, désœuvrée sur le seuil du refuge, barrait la sortie au joueur ; « je demande à
 Brune de se pousser » lui faisait promettre de bouger sans que rien ne la déplace, et « je la
 pousse » était refusé faute d'action."""
+
+from tests.support import lier, relation
 import unittest
 from unittest.mock import patch
 
@@ -90,7 +92,7 @@ class LaisserPasserJoueurTests(unittest.TestCase):
 
     def test_un_pnj_mefiant_ne_s_ecarte_pas(self):
         m = refuge()
-        croire(m, "brune", "joueur", "fiable", False, "vu")
+        lier(m, "brune", "joueur", False, "vu")
         with self.assertRaises(ErreurMonde) as refus:
             faire(m, "marcher", "ouest")
         self.assertEqual(str(refus.exception), "Brune, batelière évacuée se tient là, sur ton passage, et ne s'écarte pas.")
@@ -148,7 +150,7 @@ class DemanderLePassageTests(unittest.TestCase):
 
     def test_mefiante_elle_refuse_quel_que_soit_le_jet(self):
         m = refuge()
-        croire(m, "brune", "joueur", "fiable", False, "vu")
+        lier(m, "brune", "joueur", False, "vu")
         with patch.object(Monde, "d20", return_value=20):
             travail, rapport = preparer_parole(m, {"personnage": "brune", "replique": "Laisse-moi passer.",
                                                    "contenu": [{"type": "passage", "sujet": "", "attribut": "",
@@ -168,7 +170,7 @@ class DemanderLePassageTests(unittest.TestCase):
 class PousserJoueurTests(unittest.TestCase):
     def scene(self):
         m = refuge()
-        croire(m, "brune", "joueur", "fiable", False, "vu")  # Elle ne s'écarte pas pour lui.
+        lier(m, "brune", "joueur", False, "vu")  # Elle ne s'écarte pas pour lui.
         placer(m, "ilse", "antichambre", (0, 2))
         regarder(m, "ilse", "joueur")    # Ilse regarde le joueur ; Aubin, le mur du fond.
         regarder(m, "aubin", (8, 6))
@@ -192,25 +194,25 @@ class PousserJoueurTests(unittest.TestCase):
         self.assertEqual(brune["lieu"], "antichambre")
         self.assertEqual(distance(brune["position"], SEUIL), 1)
         self.assertNotEqual(tuple(brune["position"]), (1, 3))
-        self.assertIs(lire(m, "brune")["croyances"]["joueur"]["fiable"]["valeur"], False)
-        self.assertIs(lire(m, "ilse")["croyances"]["joueur"]["fiable"]["valeur"], False)
+        self.assertIs(relation(m, "brune", "joueur")["valeur"], False)
+        self.assertIs(relation(m, "ilse", "joueur")["valeur"], False)
         # Aubin, qui regardait ailleurs, n'a rien vu : il ne le sait que par ce qu'Ilse lui en dit.
-        self.assertTrue(lire(m, "aubin")["croyances"].get("joueur", {}).get("fiable", {"source": "dit:"})
-                        ["source"].startswith("dit:"))
+        from donjon.relations import croyance
+        self.assertTrue((croyance(m, "aubin", "joueur") or {"source": "dit:"})["source"].startswith("dit:"))
         self.assertIn({"type": "vu_agir", "auteur": "joueur", "operation": "pousser", "objet": "brune"},
-                      [{k: v for k, v in s.items() if k not in ("minute", "dit_a")} for s in lire(m, "ilse")["memoire"]])
+                      [{k: v for k, v in s.items() if k not in ("minute", "dit_a", "preuve", "victime", "deja_entendu")} for s in lire(m, "ilse")["memoire"]])
         self.assertIn("Tu avances d'un pas.", faire(m, "marcher", "ouest"))
 
     def test_manquee_rien_ne_bouge_mais_la_confiance_est_perdue(self):
         m = self.scene()
-        lire(m, "brune")["croyances"].pop("joueur")
+        lire(m, "brune")["croyances"].pop("joueur", None)
         texte = tenter(m, "pousser", "brune", jets=[3, 18])
         self.assertIn("ECHEC", texte)
         self.assertIn("Tu pousses Brune, batelière évacuée, qui tient bon.", texte)
         m = recharger(m)
         self.assertEqual(tuple(m.objets["brune"]["position"]), SEUIL)
-        self.assertIs(lire(m, "brune")["croyances"]["joueur"]["fiable"]["valeur"], False)
-        self.assertIs(lire(m, "ilse")["croyances"]["joueur"]["fiable"]["valeur"], False)
+        self.assertIs(relation(m, "brune", "joueur")["valeur"], False)
+        self.assertIs(relation(m, "ilse", "joueur")["valeur"], False)
         # Bousculée, elle ne s'écarte plus de bon gré.
         with self.assertRaises(ErreurMonde):
             faire(m, "marcher", "ouest")
@@ -282,7 +284,7 @@ class PorteEtroiteTests(unittest.TestCase):
 
     def test_mefiant_aubin_refuse_et_gorm_patiente(self):
         m = self.palier()
-        croire(m, "aubin", "marchand", "fiable", False, "vu")
+        lier(m, "aubin", "marchand", False, "vu")
         m, _ = vivre(m, 3)
         textes = [c["texte"] for c in m.data["chronique"]]
         self.assertIn("Gorm demande à Aubin de le laisser passer (mefiance).", textes)
@@ -293,7 +295,7 @@ class PorteEtroiteTests(unittest.TestCase):
 
     def test_un_gorm_brutal_pousse_aubin_devant_ilse(self):
         m = self.palier({"douceur": 30})
-        croire(m, "aubin", "marchand", "fiable", False, "vu")
+        lier(m, "aubin", "marchand", False, "vu")
         placer(m, "ilse", "beffroi", (2, 2))
         regarder(m, "ilse", "marchand")
         # Mêmes dés : la FOR de Gorm (14) l'emporte sur celle d'Aubin (12).
@@ -303,8 +305,10 @@ class PorteEtroiteTests(unittest.TestCase):
         self.assertIn("Gorm pousse Aubin ; Aubin recule d'un pas.", textes)
         self.assertEqual(m.objets["marchand"]["lieu"], "crypte")
         self.assertNotEqual(tuple(m.objets["aubin"]["position"]), self.PORTE)
-        self.assertIs(lire(m, "aubin")["croyances"]["marchand"]["fiable"]["valeur"], False)
-        self.assertIs(lire(m, "ilse")["croyances"]["marchand"]["fiable"]["valeur"], False)
+        self.assertIs(relation(m, "aubin", "marchand")["valeur"], False)
+        from donjon.relations import envers
+        self.assertEqual(envers(m, "ilse", "marchand")["confiance"], 50)
+        self.assertEqual(envers(m, "ilse", "marchand")["motifs"][-1]["type"], "poussee_vue")
         self.assertIn("Gorm, gardien du relais, pousse Aubin, vieux passeur : il recule d'un pas.", lignes)
 
 

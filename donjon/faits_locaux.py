@@ -571,7 +571,7 @@ def verifier(monde):
     for parole in monde.data.get("paroles_pnj", []):
         assert (set(parole) - {'presentation'} == {"locuteur", "texte", "salle", "minute", "auditeurs", "revision"}
                 and parole["locuteur"] in monde.objets
-                and monde.objets[parole["locuteur"]]["type"] == "personnage"
+                and monde.objets[parole["locuteur"]]["type"] in ("personnage", "depouille")
                 and parole["salle"] in monde.data["salles"]
                 and _texte(parole["texte"], LONGUEUR_PAROLE)
                 and ('presentation' not in parole or isinstance(parole['presentation'],str)

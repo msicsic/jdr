@@ -151,12 +151,21 @@ def executer(monde, minutes, recit=None, empreintes=None):
     vue = list(monde.data.get("chronique", []))
     debut = monde.data["minutes"]
     voix_debut = sum(len(lire(monde, id)["voix"]) for id in pnjs(monde))
+    def bandes_relations():
+        return {(id, x): relations.axes(monde, id, x)["bandes"]
+                for id in pnjs(monde) for x in relations.connus(monde, id)}
+    bandes = bandes_relations()
+    relations_changees = set()
     while monde.data["minutes"] < minutes:
         Moteur(monde).executer(Moteur(monde).preparer(proposition("attendre")))
         monde.verifier()
         courante = monde.data.get("chronique", [])
         chronique += _nouvelles(vue, courante)
         vue = list(courante)
+        nouvelles_bandes = bandes_relations()
+        relations_changees.update(cle for cle, b in nouvelles_bandes.items()
+                                  if b != bandes.get(cle, relations._bandes(relations.ETRANGER)))
+        bandes = nouvelles_bandes
         for repere in REPERES:
             if repere not in releves and monde.data["minutes"] >= repere:
                 releves[repere] = empreinte(monde)
@@ -171,7 +180,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
                           and not autour(monde, id)["lumiere"])
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
-    mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.se_mefie(monde, id, x))
+    mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.envers(monde, id, x)["confiance"] < 30)
+    relationnels = [c for c in chronique if c.get("nature") == "relation"]
+    liens = [relations.envers(monde, id, x) for id in pnjs(monde) for x in relations.connus(monde, id)]
     bilan = monde.data.get("stratege", {}).get("bilan", {})
     temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES and s.get("par") != "ouie"]
@@ -205,6 +216,14 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "confidences": sum(" dit à " in c["texte"] for c in chronique),
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
                "mefiances": mefiances, "jets": monde.data["jets"],
+               "mefiances_levees": sum(bool(c.get("mefiance_levee")) for c in relationnels),
+               "rancunes": sum(r["rancune"] >= 40 for r in liens),
+               "dettes": sum(r["dette"] >= 20 for r in liens),
+               "dettes_honorees": sum(c.get("cause") == "dette_honoree" and c.get("service") == "demande" for c in relationnels),
+               # L'estompement est monotone entre événements ; les pas relèvent ses
+               # transitions, la chronique les changements intermédiaires. Le récit
+               # reste un observateur et ne change aucune mesure.
+               "relations_changees": len(relations_changees | {(c["pnj"], c["relation"]) for c in relationnels if "relation" in c}),
                # Laisser passer (``passage``) : pas de côté, demandes de passage, poussées.
                "ecarts": sum("s'écarte pour laisser passer" in c["texte"] for c in chronique),
                "passages_demandes": sum(" demande à " in c["texte"] and "laisser passer" in c["texte"]
@@ -266,11 +285,11 @@ def executer(monde, minutes, recit=None, empreintes=None):
                                     if s["type"] == "vente"),
                "prets": memoire["pret"], "rendus": sum(c["texte"].endswith("(rendu).") for c in chronique),
                # Dettes, tâches payées, réclamations et demandes de ce qu'on ne connaît pas (``echanges-suite``).
-               "dettes": sum(" doit désormais " in c["texte"] for c in chronique),
+               "dettes_materielles": sum(" doit désormais " in c["texte"] for c in chronique),
                "remboursements": sum(bool(re.search(r" rend \d+ pièces? à ", c["texte"])) for c in chronique),
                "refus_de_rembourser": sum(" refuse de rendre à " in c["texte"] for c in chronique),
                "reclamations": sum(" réclame à " in c["texte"] or " de lui rendre " in c["texte"] for c in chronique),
-               "prets_gardes": sum(" ne se fie plus à " in c["texte"] for c in chronique),
+               "prets_gardes": sum(" reproche à " in c["texte"] and " de garder " in c["texte"] for c in chronique),
                "taches_proposees": sum(" offre " in c["texte"] and " fasse en sorte que " in c["texte"] for c in chronique),
                "taches_acceptees": sum(" fasse en sorte que " in c["texte"] and c["texte"].endswith("(accepte).")
                                        for c in chronique),
@@ -288,6 +307,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
                        au_sec_fin=sum(1 for id in vivants if not profondeur(monde, lieu(monde, id))))
     if empreintes is not None:
         empreintes.update({str(k): v for k, v in sorted(releves.items())}, issue=issue(monde, chronique))
+    if monde.data.get("historique_corps"):
+        from .corps import mesures as mesures_corps
+        mesures.update(mesures_corps(monde))
     return chronique, mesures
 
 
@@ -398,18 +420,22 @@ def ecrire_rejeu(chemin, enregistreur, monde, chronique, titre):
         f.write(page(enregistreur.donnees(monde, chronique, titre)))
 
 
-def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire"):
+def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire", etats=()):
     """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie). Avec ``rejeu``
     (un chemin), la page de rejeu y est écrite. Les données portent les empreintes de la nuit
     (``executer``) et sa durée de calcul."""
     from contextlib import nullcontext
     import time
-    from .planification import diagnostics
+    from .planification import diagnostics, _MEMOIRE, _GRAPHES
     debut = time.perf_counter()
+    # Chaque nuit se mesure à froid, quel que soit le worker qui la reçoit.
+    _MEMOIRE.clear()
+    _GRAPHES.clear()
     monde = creer(scenario, graine, depart)
     if joueur:
         from .geometrie import position_entree
         monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
+    appliquer_etats(monde, etats)
     from .recit_pnj import Recit
     recit = Recit(monde)
     if rejeu:
@@ -461,7 +487,8 @@ def ceder():
         if os.name == "nt":
             import ctypes
             noyau = ctypes.windll.kernel32
-            noyau.SetPriorityClass(noyau.GetCurrentProcess(), 0x4000)  # BELOW_NORMAL_PRIORITY_CLASS
+            # Le pseudo-handle doit garder ses 64 bits ; ctypes transmet sinon un int32.
+            noyau.SetPriorityClass(ctypes.c_void_p(-1), 0x4000)  # BELOW_NORMAL_PRIORITY_CLASS
         else:
             os.nice(5)
     except (OSError, AttributeError):
@@ -469,13 +496,34 @@ def ceder():
 
 
 def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire",
-          processus=None):
+          processus=None, etats=()):
     """Plusieurs nuits en parallèle, au plus ``processus`` à la fois (``PROCESSUS`` par défaut) ; les
     résultats dans l'ordre des graines. Avec ``rejeu``, une page par graine (``page_rejeu``)."""
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(max_workers=max(1, min(len(graines), processus or PROCESSUS))) as pool:
         return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic,
-                                      page_rejeu(rejeu, g, True) if rejeu else None, depart) for g in graines]))
+                                      page_rejeu(rejeu, g, True) if rejeu else None, depart, etats) for g in graines]))
+
+
+def appliquer_etats(monde, etats):
+    """États d'épreuve appliqués par les transitions communes, avant toute perception."""
+    from .corps import endormir, mourir, perdre
+    for texte in etats:
+        morceaux = texte.split(":")
+        if len(morceaux) < 2:
+            raise ValueError("État attendu : personnage:inconscient, personnage:mort ou personnage:blesse:pv")
+        id, etat, *valeur = morceaux
+        if id not in pnjs(monde):
+            raise ValueError("Personnage inconnu : " + id)
+        if etat == "inconscient" and not valeur:
+            endormir(monde, id)
+        elif etat == "mort" and not valeur:
+            mourir(monde, id, cause="état d'épreuve")
+        elif etat == "blesse" and len(valeur) == 1 and valeur[0].isdigit() and 0 <= int(valeur[0]) <= monde.objets[id]["pv"]:
+            perdre(monde, id, monde.objets[id]["pv"] - int(valeur[0]))
+        else:
+            raise ValueError("État d'épreuve invalide : " + texte)
+    monde.verifier()
 
 
 def divergence(donnees):
@@ -502,6 +550,7 @@ def tableau(graines, mesures):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge"), default="relais")
+    parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :mort ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)
@@ -524,7 +573,7 @@ def main(argv=None):
         if args.stratege:
             parser.error("le stratège suit une nuit à la fois : --graine, pas --graines")
         resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic,
-                          args.rejeu, args.depart, args.processus)
+                          args.rejeu, args.depart, args.processus, args.etat)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
             if args.rejeu:
@@ -543,6 +592,7 @@ def main(argv=None):
         if args.joueur:
             from .geometrie import position_entree
             monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
+        appliquer_etats(monde, args.etat)
         from .recit_pnj import Recit
         recit = Recit(monde)
         from contextlib import nullcontext

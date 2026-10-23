@@ -8,6 +8,8 @@ délibération des PNJ. Chaque cas se vérifie sur l'état du monde après recha
 - N4 : on ne prévient de nouveau d'un lieu que s'il a changé depuis qu'on l'a dit, et pas qui a ce
   bien sous les yeux (``deliberation._a_dire``).
 """
+
+from tests.support import lier
 import unittest
 from unittest.mock import patch
 
@@ -70,7 +72,7 @@ def garde_manger_force():
     lire(m, "odon")["besoins"]["faim"] = 96.0
     # Comme cette nuit-là, Mathe se méfie de lui et vient de lui refuser une part : il ne la lui
     # redemande pas, ni ne la lui achète.
-    croire(m, "mathe", "odon", "fiable", False, "vu")
+    lier(m, "mathe", "odon", False, "vu")
     retenir_refus(m, "odon", "mathe", "demander", "mefiance", objet="vivres")
     m.joueur.update(salle="galerie", position=list(sol[-1]), orientation="nord")
     percevoir_tous(m)
@@ -196,14 +198,23 @@ def palier_menace():
     m.joueur.update(salle="antichambre", position=[0, 4], orientation="nord")
     for i, autre in (("brune", "ilse"), ("ilse", "brune")):
         for x in ("marchand", "aubin", autre):
-            croire(m, i, x, "fiable", True, "vu")
+            lier(m, i, x, True, "vu")
         croire(m, i, "marchand", "lieu", "antichambre", "vu", salle="antichambre", case=[1, 1])
         croire(m, i, "aubin", "lieu", "antichambre", "vu", salle="antichambre", case=[1, 2])
         croire(m, i, "antichambre", "etat", {"eclairee": True, "niveau": 2, "propre": 2}, "vu")
         croire(m, i, "porte", "etat", {"ouverte": True}, "vu")
         croire(m, i, "porte", "verrouillee", False, "vu")
         lire(m, i)["besoins"]["securite"] = 75.0
+        # Ce cas contrôle la tenue d'un abri déjà choisi pendant la traversée.
+        # Le déclarer évite d'hériter du but issu de la nuit préparatoire, qui
+        # change avec les relations ; sans ce but, Ilse choisit légitimement le haut.
+        from tests.test_marche import intention
+        intention(m, i, [{"operation": "aller", "lieu": "antichambre"}],
+                  but={"type": "abri", "lieu": "antichambre"}, motif="securite")
     percevoir_tous(m)
+    # La nuit préparatoire peut encore enregistrer un passage à la minute 404,
+    # avant le placement d'auteur. Le contrôle porte sur la scène qui commence ici.
+    m.data["chronique"] = []
     return recharger(m)
 
 
@@ -218,7 +229,7 @@ def galerie_ou_refuge():
     placer(m, "ilse", "beffroi", (7, 3))
     for i, autre in (("brune", "ilse"), ("ilse", "brune")):
         for x in ("marchand", "aubin", autre):
-            croire(m, i, x, "fiable", True, "vu")
+            lier(m, i, x, True, "vu")
         croire(m, i, "antichambre", "etat", {"eclairee": True, "niveau": 2, "propre": 2}, "vu")
         croire(m, i, "beffroi", "etat", {"eclairee": False, "niveau": 0, "propre": 0}, "vu")
         croire(m, i, "chambre_cloche", "etat", {"eclairee": True, "niveau": 1, "propre": 1}, "vu")
@@ -274,7 +285,7 @@ class RecoursTests(unittest.TestCase):
             placer(m, id, "antichambre", (1, 1 + n))
         placer(m, "brune", "chambre_cloche", (1, 11))
         for x in ("marchand", "aubin", "ilse"):
-            croire(m, "brune", x, "fiable", True, "vu")
+            lier(m, "brune", x, True, "vu")
         croire(m, "brune", "antichambre", "etat", {"eclairee": True, "niveau": 2, "propre": 2}, "vu")
         for s in ("beffroi", "crypte"):
             croire(m, "brune", s, "etat", {"eclairee": False, "niveau": 0, "propre": 0}, "vu")
@@ -316,7 +327,7 @@ def ballot_rendu():
     memoriser(m, "hugues", {"type": "vu_agir", "auteur": "lucien", "operation": "poser", "objet": "ballot",
                             "lieu": {"valeur": "etable", "salle": "etable", "case": [3, 2], "minute": 10}})
     memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
-    croire(m, "hugues", "lucien", "fiable", False, "vu")
+    lier(m, "hugues", "lucien", False, "vu")
     m.joueur.update(salle="dortoir", position=[1, 1])
     percevoir_tous(m)
     return recharger(m)

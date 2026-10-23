@@ -6,6 +6,8 @@
 - les PNJ forcent une porte ou un contenant par la règle du joueur (``force``) ;
 - Gorm va chercher son propre bois : la lueur diffuse qui baigne une salle compte pour sa lumière,
   et une part demandée coûte selon la chance d'être accordée."""
+
+from tests.support import relation
 import unittest
 
 from donjon import force
@@ -291,7 +293,7 @@ class ForcerTests(unittest.TestCase):
         souvenirs = [s for s in lire(m, "ilse")["memoire"] if s["type"] == "vu_agir" and s["auteur"] == "brune"]
         self.assertTrue(souvenirs)
         self.assertEqual({s["operation"] for s in souvenirs} - {"briser"}, {"frapper"})
-        self.assertFalse(lire(m, "ilse")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "ilse", "brune")["valeur"])
 
     def test_la_regle_est_celle_du_joueur(self):
         # Le joueur frappe par la même règle : même DD, même bonus, mêmes dégâts.

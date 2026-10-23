@@ -49,6 +49,8 @@ def but_en_mots(monde, but):
 
 def _but(monde, but):
     t, o = but.get("type"), but.get("objet")
+    if t == "ranimer":
+        return "ranimer " + court(monde, but["qui"])
     if t == "manger":
         return "manger " + _objet(monde, o)
     if t == "part":
@@ -107,6 +109,9 @@ class Recit:
         self.maximum = {id: Counter() for id in ids}
         self.sans_recours = Counter()
         self.en_attente = Counter()
+        self._relations = {(id, x): relations.axes(monde, id, x)["bandes"]
+                           for id in ids for x in relations.connus(monde, id)}
+        self.changements_relations = []
 
     @contextmanager
     def observer(self):
@@ -131,6 +136,15 @@ class Recit:
     def _noter(self, monde, id, minute):
         from .deliberation import attentes, seuils, urgents
         e = lire(monde, id)
+        for x in relations.connus(monde, id):
+            r = relations.axes(monde, id, x)
+            cle = (id, x)
+            avant = self._relations.get(cle, relations._bandes(relations.ETRANGER))
+            if avant != r["bandes"]:
+                detail = relations.envers(monde, id, x)
+                self.changements_relations.append({"minute": minute, "de": id, "envers": x,
+                                                  "bandes": r["bandes"], "resume": relations.resume(detail), "motifs": detail["motifs"]})
+            self._relations[cle] = r["bandes"]
         # Souvenirs nouveaux depuis sa dernière délibération (les sons sont le fond du monde).
         for s in e["memoire"]:
             cle = json.dumps(s, sort_keys=True, ensure_ascii=False)
@@ -192,7 +206,7 @@ class Recit:
                 dedans = t <= c["instant"] and (t_fin is None or c["instant"] < t_fin)
             else:
                 dedans = debut <= c["minute"] <= fin
-            if c["pnj"] != id or not dedans or c.get("nature") in ("deplacement", "ouie", "reponse"):
+            if c["pnj"] != id or not dedans or c.get("nature") in ("deplacement", "ouie", "reponse", "relation"):
                 continue
             texte = c["texte"].rstrip(".")
             for nom in noms:
@@ -265,7 +279,8 @@ class Recit:
                for id in self.ids for s in self.souvenirs[id] if s["type"] == "vu_agir"]
         tenus = [(s["minute"], f"{court(monde, id)} "
                  f"{'tient' if s['type'] == 'engagement_tenu' else 'abandonne'} sa parole envers {court(monde, s['pour'])}")
-                 for id in self.ids for s in self.souvenirs[id] if s["type"] in ("engagement_tenu", "engagement_abandonne")]
+                 for id in self.ids for s in self.souvenirs[id]
+                 if s["type"] in ("engagement_tenu", "engagement_abandonne") and "pour" in s]
         evenements = sorted([(c["minute"], c["texte"].rstrip(".")) for c in sociaux] + vus + tenus)
         # Une même scène répétée se lit une fois, avec ses minutes.
         groupes = {}
@@ -279,10 +294,21 @@ class Recit:
             lignes.append("  aucun échange")
         lignes.append("== Ce qu'ils pensent les uns des autres ==")
         avant = len(lignes)
+        changements = [c for c in chronique if c.get("nature") == "relation" and c.get("relation")]
+        for c in changements:
+            lignes.append(f"  {c['minute']} min : {c['texte']}")
+        for c in self.changements_relations:
+            if not any(x["pnj"] == c["de"] and x.get("relation") == c["envers"] and c["minute"] - 1 <= x["minute"] <= c["minute"] for x in changements):
+                lignes.append(f"  {c['minute']} min : {court(monde, c['de'])} envers {court(monde, c['envers'])} : "
+                              f"{c['resume']} (estompement ; motifs : {c['motifs']})")
         for id in self.ids:
             for autre in relations.connus(monde, id):
                 r = relations.envers(monde, id, autre)
                 if autre == id or (autre not in self.ids and autre != "joueur"):
+                    continue
+                if r["motifs"]:
+                    motifs = "; ".join(f"{m['type']} à {m['minute']} ({m['effets']})" for m in r["motifs"])
+                    lignes.append(f"  {court(monde, id)} envers {court(monde, autre)} : {relations.resume(r)} ({motifs})")
                     continue
                 if relations.confiance(r):
                     if r["minute"] == 0:
@@ -295,7 +321,7 @@ class Recit:
                 depuis = "depuis le début" if r["minute"] == 0 else f"depuis {r['minute']}, {r['source']}"
                 lignes.append(f"  {court(monde, id)} {avis} {court(monde, autre)} ({depuis})")
         if len(lignes) == avant:
-            lignes.append("  rien n'a changé : chacun fait confiance aux autres, comme au départ")
+            lignes.append("  aucun changement de relation")
         return lignes
 
     def crue(self, monde):
@@ -334,6 +360,12 @@ class Recit:
         for id in self.ids:
             lignes += self.personnage(monde, id, chronique) + [""]
         crue = self.crue(monde)
+        if monde.data.get("historique_corps"):
+            from .corps import mesures
+            lignes += ["== Violences et corps ==", ", ".join(f"{k} : {v:g}" for k, v in mesures(monde).items())]
+            for e in monde.data["historique_corps"]:
+                if e["type"] == "mort_vue":
+                    lignes.append(f"{court(monde, e['temoin'])} découvre {court(monde, e['id'])} après {e['delai']} min.")
         return "\n".join((crue + [""] if crue else []) + lignes + self.entre_eux(monde, chronique))
 
     def donnees(self, monde, chronique):
@@ -341,4 +373,4 @@ class Recit:
                                   for ep in self.episodes[id]] for id in self.ids},
                 "urgence": {id: dict(self.urgence[id]) for id in self.ids},
                 "sans_recours": dict(self.sans_recours), "en_attente": dict(self.en_attente),
-                "souvenirs": self.souvenirs}
+                "souvenirs": self.souvenirs, "relations": self.changements_relations}

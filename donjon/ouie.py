@@ -257,6 +257,7 @@ def mots_saisis(monde, id, niveau):
 def saisissent(monde, auteur, geste="parler"):
     """Les personnages qui saisiraient, ici et maintenant, les mots d'une parole de ``auteur`` :
     {id: niveau parvenu}."""
+    from .corps import conscient
     from .esprits import pnjs
     n = nature(geste)
     salle, case = _place(monde, auteur)
@@ -266,7 +267,7 @@ def saisissent(monde, auteur, geste="parler"):
     resultat = {}
     for id in pnjs(monde):
         o = monde.objets[id]
-        if id == auteur or not o.get("entend", True) or o["lieu"] not in entrees:
+        if id == auteur or not conscient(monde, id) or not o.get("entend", True) or o["lieu"] not in entrees:
             continue
         parvient = parvenu(entrees, *_place(monde, id))
         if parvient is not None and mots_saisis(monde, id, parvient[0]):
@@ -278,6 +279,9 @@ def saisit(monde, auteur, auditeur, geste="parler"):
     """``auditeur`` (un PNJ ou le joueur) saisirait-il, ici et maintenant, les mots d'une parole
     d'``auteur`` ? Par l'atténuation commune (distance réelle, passages, porte fermée) : un PNJ par
     ``mots_saisis``, le joueur quand elle lui parvient au seuil commun (une parole nette, ``ecoute``)."""
+    from .corps import conscient
+    if not conscient(monde, auditeur):
+        return False
     n = nature(geste)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
@@ -300,6 +304,9 @@ def entend(monde, auteur, auditeur, geste="dire", force=None):
     """Le niveau auquel le PNJ ``auditeur`` entend, ici et maintenant, le geste d'``auteur`` (un PNJ
     ou le joueur) ; None s'il ne l'entend pas (sous son seuil, ou trop loin). ``force`` : la nature
     du bruit, comme pour ``retentir``."""
+    from .corps import conscient
+    if not conscient(monde, auditeur):
+        return None
     n = force or nature(geste)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"] or not monde.objets[auditeur].get("entend", True):
@@ -321,7 +328,10 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     guillemets (la réplique du joueur). ``appris`` : le joueur, à qui s'adresse ce geste (il reçoit un
     objet, on lui réclame le sien), l'a appris de première main, à la deuxième personne : son ouïe ne le
     lui redit pas. Renvoie ceux qui se sont retournés."""
+    from .corps import conscient
     n = force or nature(geste, discret, bruit)
+    if n in VOCALES and not conscient(monde, auteur):
+        return []
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
         return []
@@ -335,7 +345,7 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     retournes, temoins, saisis = [], [], []
     for id in pnjs(monde):
         o = monde.objets[id]
-        if id == auteur or not o.get("entend", True) or o["lieu"] not in entrees:
+        if id == auteur or not conscient(monde, id) or not o.get("entend", True) or o["lieu"] not in entrees:
             continue
         parvient = parvenu(entrees, *_place(monde, id))
         if parvient is None:
@@ -383,6 +393,9 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), co
     range même s'il voit qui parle (``vu`` : il le voit parler, il connaîtra sa voix ; rien à en
     rendre de plus), avec ses destinataires (``a``) : c'est par elle qu'il relie les voix d'un
     échange et les noms qu'elles se donnent (``ecoute.lier``)."""
+    from .corps import conscient
+    if not conscient(monde):
+        return
     ici, position = _place(monde, "joueur")
     parvient = parvenu(entrees, ici, position)
     if parvient is None:
@@ -628,6 +641,9 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     l'appelant (``appel.attendre``) se tourne vers lui quand il l'entend approcher,
     dès qu'il peut le voir. Un appel ou un cri, sans mots, porte la voix : qui la connaît sait qui
     crie, et le croit là."""
+    from .corps import conscient
+    if not conscient(monde, id):
+        return False
     from .esprits import croire, lire, percoit
     from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix, reconnaitre
     o = monde.objets[id]
@@ -667,8 +683,8 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
                    case=list(case) if ici else None)
     # Héler : qui en saisit les mots entend qu'on appelle quelqu'un, sans alarme.
     inhabituel = n not in HABITUELS and not (n == "hele" and mots)
-    from .relations import se_mefie
-    mefiance = any(se_mefie(monde, id, x) for x in crus)
+    from .relations import se_mefie, craint
+    mefiance = any(se_mefie(monde, id, x) or craint(monde, id, x) for x in crus)
     if crus and not inhabituel and not mefiance:
         _attribuer(monde, id, crus, salle, case if ici else None)
         return retourne

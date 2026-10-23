@@ -408,8 +408,8 @@ def tenir(monde, id, minute):
     sans y trouver personne, ou à l'échéance, il n'a plus à venir."""
     from .deliberation import rejoint
     from .pnj import _chroniquer
-    from .relations import eprouver
     from .social import _qui
+    from .voix import se_mefier
     e = esprit(monde, id)
     r = e["rejoint"]
     if r and r["qui"] != "joueur" and r["qui"] not in monde.objets:
@@ -421,8 +421,10 @@ def tenir(monde, id, minute):
         if r["vient"]:
             _chroniquer(monde, id, f"{_qui(monde, id)} cesse d'attendre {_qui(monde, r['qui'])}, qui avait promis "
                                    "de venir.", "reponse")
+            # Une parole non tenue (``relations.souvenir``) ; d'une voix qu'il ne sait à qui prêter, il se
+            # méfie de cette voix (``voix.se_mefier``), comme d'un mensonge.
             memoriser(monde, id, {"type": "parole_rompue", "qui": r["qui"]})
-            eprouver(monde, id, r["qui"], "parole_rompue")
+            se_mefier(monde, id, r["qui"], cause="parole_rompue")
         else:
             _chroniquer(monde, id, f"{_qui(monde, id)} cesse d'attendre {_qui(monde, r['qui'])}.", "reponse")
     d = e["rejoindre"]

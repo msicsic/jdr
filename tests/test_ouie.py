@@ -2,6 +2,8 @@
 les passages l'atténuent, chacun l'interprète selon ce qu'il croit (connu, inconnu, méfiance).
 
 Chaque cas vérifie l'état du monde après rechargement, et ce que le joueur lit quand il est là."""
+
+from tests.support import relation
 import unittest
 
 from donjon import deliberation
@@ -102,14 +104,14 @@ def brune_crochete_dans_le_dos_de_gorm(gorm_la_sait=True):
 class GesteBruyantTests(unittest.TestCase):
     def test_crocheter_dans_son_dos_le_fait_se_retourner_meme_s_il_la_sait_la(self):
         m = brune_crochete_dans_le_dos_de_gorm()
-        self.assertFalse(lire(m, "marchand")["croyances"].get("brune", {}).get("fiable", {}).get("valeur") is False)
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"] is False)
         with patch.object(Monde, "d20", return_value=1):
             faire(m, "tourner sud")
         m = recharger(m)
         self.assertIn("Gorm, gardien du relais se retourne au bruit.", chronique(m))
         self.assertIn(m.objets["marchand"]["orientation"], ("est", "sud-est"))
         self.assertIn(("brune", "reserve"), vu_agir(m, "marchand"))
-        self.assertFalse(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"])
 
     def test_entendre_ne_depend_pas_du_decoupage(self):
         # Se retourner au bruit, en être témoin, retenir un bruit : tout est dans ``data``.
@@ -251,14 +253,14 @@ def jusqu_a_la_galerie(m):
 class MefianceTests(unittest.TestCase):
     def test_un_bruit_d_odon_dont_remy_se_mefie_se_surveille(self):
         m = mine_baraquement("remy")
-        self.assertFalse(lire(m, "remy")["croyances"]["odon"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "remy", "odon")["valeur"])
         m = jusqu_a_la_galerie(m)
         self.assertIn("Rémy, jeune mineur se retourne au bruit.", chronique(m))
         self.assertNotEqual(m.objets["remy"]["orientation"], "ouest")
 
     def test_le_meme_bruit_de_qui_l_on_croit_fiable_ne_le_fait_pas_se_retourner(self):
         m = mine_baraquement("josse")
-        self.assertTrue(lire(m, "josse")["croyances"]["odon"]["fiable"]["valeur"])
+        self.assertTrue(relation(m, "josse", "odon")["valeur"])
         m = jusqu_a_la_galerie(m)
         self.assertEqual(m.objets["odon"]["lieu"], "galerie")
         self.assertNotIn("Josse, contremaître se retourne au bruit.", chronique(m))

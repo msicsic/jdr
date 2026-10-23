@@ -9,6 +9,8 @@
 
 Chaque test vérifie l'état du monde après rechargement, et ce que le joueur lit quand il est là.
 """
+
+from tests.support import lier, relation
 import unittest
 
 from donjon.auberge import nouveau_auberge
@@ -173,7 +175,7 @@ class RumeurAvecLieuTests(unittest.TestCase):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         memoriser(m, "ilse", {"type": "vu_agir", "auteur": "brune", "operation": "poser", "objet": "vivres",
                               "lieu": {"valeur": "echoppe", "salle": "echoppe", "case": [4, 3], "minute": 0}})
-        croire(m, "ilse", "brune", "fiable", False, "vu")
+        lier(m, "ilse", "brune", False, "vu")
         m.data["minutes"] = 3
         croire(m, "ilse", "vivres", "lieu", "reserve", "vu", salle="antichambre", case=[8, 3])
         placer(m, "ilse", "crypte", [3, 3])
@@ -259,7 +261,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
 
     def test_qui_se_mefie_ne_repond_pas(self):
         m = self.mireille_cherche_odile()
-        croire(m, "odile", "mireille", "fiable", False, "vu")
+        lier(m, "odile", "mireille", False, "vu")
         m, _ = attendre(recharger(m))
         self.assertIn("Mireille appelle : « Odile ? »", chronique(m))
         self.assertFalse([t for t in chronique(m) if t.startswith("Odile répond")])
@@ -280,7 +282,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
         memoriser(m, "hugues", {"type": "vu_agir", "auteur": "lucien", "operation": "forcer",
                                 "objet": "coffre_marchand"})
         memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
-        croire(m, "hugues", "lucien", "fiable", False, "vu")
+        lier(m, "hugues", "lucien", False, "vu")
         m.data["minutes"] = 2
         for s in m.data["salles"]:
             lire(m, "hugues")["visites"][s] = 0 if s == "dortoir" else 1
@@ -290,7 +292,9 @@ class ChercherQuelquUnTests(unittest.TestCase):
         self.assertIn("Hugues appelle : « Anselme ? »", chronique(m))
         self.assertIn("Anselme répond : « Qu'est-ce que tu veux ? »", chronique(m))
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
-        self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
+        from donjon.relations import envers
+        self.assertEqual(envers(m, "anselme", "lucien")["confiance"], 52)
+        self.assertEqual(envers(m, "anselme", "lucien")["motifs"][-1]["type"], "rumeur")
 
 
 class ParlerALaVoixTests(unittest.TestCase):
@@ -351,7 +355,7 @@ class ParlerALaVoixTests(unittest.TestCase):
         from donjon.echanges import servir
         m = self.baraquement_noir(salle="reserve")
         lire(m, "odon")["voix"].remove("mathe")
-        lire(m, "odon")["croyances"]["mathe"].pop("fiable", None)
+        lire(m, "odon")["relations"].pop("mathe", None)
         portions = m.objets["vivres"]["portions"]
         self.assertTrue(servir(m, "mathe", "vivres", "odon", []))
         m = recharger(m)
@@ -360,7 +364,8 @@ class ParlerALaVoixTests(unittest.TestCase):
         self.assertNotIn("fiable", lire(m, "odon")["croyances"]["mathe"])
         connaitre(m, "odon", "mathe")
         self.assertTrue(servir(m, "mathe", "vivres", "odon", []))
-        self.assertTrue(lire(recharger(m), "odon")["croyances"]["mathe"]["fiable"]["valeur"])
+        from donjon.relations import envers
+        self.assertEqual(envers(recharger(m), "odon", "mathe")["confiance"], 50)
 
     def test_dans_la_lumiere_on_se_tourne_vers_une_voix_inconnue(self):
         """Une voix inconnue dans son dos, en pleine lumière : il se tourne vers elle et voit qui

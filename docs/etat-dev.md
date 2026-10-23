@@ -89,6 +89,80 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   8,75 → 0, noir 48,8 → 5, dettes et remboursements 0 → 0,5 ; crue appels 0,25 → 0,75, une attente vaine ;
   aucun plantage, usurpation ni violation. Relais 42, 8 h : part vendue à 151, due à 153, rendue à 154 (avant :
   achats répétés « promis » à 211, 271, 332, dette à 392) ; à 350 Aubin accepte la tâche et la fait à 351.
+- Branche `codex-relations-3b`, fusionnée : relations graduées à cinq axes dans l'esprit,
+  liens de départ en données, épreuves par les souvenirs, estompement et hystérésis ; lectures
+  graduées dans la parole, l'ouïe, les échanges, les passages, la compagnie et le planificateur.
+  `fiable` quitte les croyances ; récit, rejeu et six mesures nouvelles. Aucun changement de MJ,
+  aucune sous-étape 3c à 3f. Suite complète verte : 1311 tests, aucun échec ni erreur,
+  14 ignorés (1297 réussis), en priorité réduite. Le texte d'abri vérifie la proximité réelle,
+  même si le PNJ croit encore son compagnon sur une ancienne case.
+  Bancs complets avant/après et quatre nuits de contrôle : critère des services atteint à
+  l'auberge (1/4), pas à la crue (0/4). La paire rapprochée dépasse la borne de temps à
+  l'auberge (+15,6 %) et à la crue (+71,5 %) : critère global non atteint ; limites et attentes
+  de la crue documentées.
+  Voir [le rapport 3b](taches/rapport-codex-6-relations-3b.md), notamment les limites de
+  corroboration sociale, le registre de preuves durable et les réglages proposés.
+  Fusionné après les sept branches de la nuit (`main` 9075aea) : conflits `relations.EPREUVES` (table graduée ;
+  `parole_rompue` de l'appel négocié y entre comme une promesse non tenue, confiance −20 et rancune +15, réservée
+  à qui identifie l'auteur ; d'une voix non identifiée, méfiance envers cette voix par `voix.se_mefier`),
+  `echanges.remettre` (champs de 3b et `lot` des lampes ; une part détachée remise aussitôt est demandée, et
+  payée n'est pas un don), `paroles._se_nommer` (noms entre guillemets, sans « ne te fait plus confiance »),
+  `planification.Vue` (peurs sociales et lieux crus), scénario de la crue (valeurs des profils et liens),
+  `tests/support` (`presentes`, `lier`, `relation`). États archivés de l'appel négocié et des tâches payées
+  convertis comme 3b l'a fait (croyances `fiable` en relations, lien d'auteur contradictoire retiré).
+  Tests adaptés : `test_appel_negocie` (parole rompue : Gorm, lié à 65, ne fait plus confiance à Aubin sans s'en
+  méfier ; une voix inconnue devient suspecte), `test_lampes_parts`, `test_noms`, `test_relations_lectures`
+  (réponse par `appel.repondre`), `test_ressources` (auberge 1985 : Odile refuse de donner puis vend une charge,
+  trois foyers à 300 et 420), `test_attente` (premier fracas à 11 h 14, plus d'appel avant 8 h),
+  `test_verifier_eau` (crue 500 : personne n'appelle à l'aide depuis l'eau ; au refuge, au sec, Gorm, Aubin et
+  Ilse appellent à l'aide contre Brune qui vole). Suite 1401 tests. `VERIFIER` et `spatial.VERIFICATION` 1 sur
+  2 h, puis 0,2 sur 8 h, graine 42, chaque scénario : sans écart. Banc rapide (`comparer_bancs`, 4 h, 4 graines,
+  contre 9075aea) : aucun plantage, usurpation ni violation ; Relais échanges 5 → 6,5, appels à l'aide
+  0,25 → 0,75 (Gorm trois fois en 70 min, graine 42), noir 5 → 20 ; mine sans recours 26 → 6 ; auberge égale
+  hors relations ; crue méfiances 0 → 2,5, vols vus 0 → 1,25, crochetages 1,75 → 7,5, sans recours 0 → 60 (Brune
+  refusée par Gorm dès la première minute, comme le rapport), dans l'eau 195 → 65 ; bascules crue 0 → 0,5 (une
+  par nuit, pas une boucle). Temps au processeur : Relais 5,4 → 6,1 s, mine 10,1 → 12 s, auberge 10,8 → 13,7 s,
+  crue 5,8 → 8,7 s (+15 à +50 %, comme le rapport : à réduire). À revoir : dans `echanges.remettre`, la parole
+  tenue (`engagement_tenu`) s'inscrit avant le souvenir `recu` du bénéficiaire, qui ne l'apprend donc qu'à une
+  annonce ultérieure alors qu'il reçoit l'objet en main (objet vendu d'avance, part différée) ; seuils en dur
+  (`rancune` ≥ 60 dans `echanges.accueil` et `voix.repond`, bande à 40 ailleurs) ; appels à l'aide répétés
+  après un vol vu (désarroi renouvelé), à suivre.
+- Branche `codex-force-4a`, fusionnée : sous-étape 4a du [plan force](plan-force.md),
+  PV pour tous, blessures et malus, repos qui soigne au temps vécu, inconscience et réveil,
+  réanimation au contact et par le planificateur du protecteur. Le corps vit hors de la
+  délibération ; l'inconscient ne perçoit, n'entend, ne parle ni n'agit. Une chute à 0 PV du
+  joueur traverse l'inconscience dans la même action. `corps.mourir` conserve l'identifiant
+  et les biens dans une dépouille, archive le profil, retire l'esprit ; découverte, inquiétude
+  et nouvelle de mort passent par les voies communes. La fin du joueur est sauvegardée close.
+  Pas de coup ni d'action `tuer`. `banc_pnj --etat` prépare les épreuves ; états qualitatifs
+  visibles, PV des PNJ cachés, rejeu omniscient avec PV/conscience. 16 tests spécifiques avec
+  cas de même nature après recharge, sauts réels, laps découpés et décès de tous les PNJ des
+  quatre scénarios. Les 20 nuits de 8 h restent identiques à `main` `06602a6` sur chronique,
+  mesures, souvenirs, récit, état préexistant et empreintes normalisées sans les seuls champs
+  ajoutés ; quatre nuits `VERIFIER`/spatial 0,2 et les épreuves passent, zéro usurpation.
+  Surcoût CPU moyen apparié : Relais +4,27 %, mine +2,01 %, auberge +3,33 %, crue +7,67 %
+  (une graine, deux à trois paires, variabilité entre passes). Suite finale : 1298 tests,
+  quatre sautés faute du SDK Anthropic facultatif ; 16 tests propres à 4a.
+  [Rapport, mesures et limites](taches/rapport-codex-7-force-4a.md).
+  Fusionné après `codex-relations-3b` : conflits `deliberation` (devis des tâches payées gardé, réanimation
+  ajoutée ; le corps vit dans `pnj._avancer`, la compagnie dans l'épreuve reste à la délibération), `esprits`
+  (l'inconscient ne perçoit pas, avant toute mémoire de la vue), `pnj` (répondre vit dans `appel` ; la garde de
+  conscience reste à appeler et héler, l'appelé inconscient ne saisit rien), `social._qui` (désignation des noms,
+  puis nom du défunt), `faire_entendre` (l'inconscient ne parle ni n'annonce ses suites), `vol` (sans soupçon),
+  `monde.contexte`, `moteur`, docs. Défauts de la fusion corrigés : un lien de profil survit à la mort de l'autre
+  (`relations.verifier`) ; `scene_percue` masquait son champ visible par `corps.visible` importé sous le même nom
+  (plantage dès qu'un personnage précédait une autre salle) ; le nom d'un défunt jamais entendu passait au joueur
+  et au MJ (« corps de Aubin », portrait, identifiant) : une dépouille est une personne pour les noms
+  (`noms.PERSONNES`), « le corps d'un vieil homme voûté », `personne_<n>` pour le MJ. Tests : `test_corps_blessable`
+  (scène sous désignation puis présentée ; nouveau test du défunt jamais nommé, Aubin et Brune, connu ou non).
+  Suite 1418 tests. `comparer_bancs --empreintes` (2 h, 4 scénarios × 4 graines) contre l'intégration d'après
+  3b : chronique, mesures, récit et souvenirs identiques ; seules les empreintes d'état diffèrent, par les champs
+  ajoutés (PV, inconscience, soin, `blessure`/`conscient` des croyances) : l'état final complet, ces seuls champs
+  retirés, est identique sur les 16 nuits. `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h graine 42,
+  chaque scénario, et épreuves (`--etat` inconscient, mort, blessé) sous `VERIFIER` et `VERIFICATION` 1 : sans écart.
+  À revoir : les refus du moteur « partie terminée » et « sans connaissance » portent un `attendu` en texte libre ;
+  la dépouille garde portrait et manière de parler du vivant ; `noms.nom`, employé pour un PNJ locuteur, juge
+  d'après ce que voit le joueur.
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1411,7 +1485,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1372 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : 1418 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
 
 ## Décisions en attente
 
@@ -1428,9 +1502,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Étape 4 du plan social, le corps et la force** : conception dans `docs/plan-force.md`
-  (branche `plan-force`, document seul) ; découpage 4a à 4f et décisions à trancher en fin de
-  document, avant toute réalisation.
+- **Étape 4 du plan social, le corps et la force** : 4a fusionnée (`codex-force-4a`) ; 4b à 4f
+  restent à réaliser, dans `docs/plan-force.md`. Décisions de
+  la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
+  ou défendre un protégé. Aucun geste de violence en 4a.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche
   `lumiere-besoin`) ; prêter, permissions déléguées et l'argent (branche `echanges-argent`) ; un
   besoin que rien n'apaise (le devoir reste urgent une fois franchi son seuil ; il attend désormais
@@ -1500,7 +1575,8 @@ Non versionnés, donc absents d'un nouveau poste :
 - Banc A/B du stratège, avec Luna, environ 15 minutes pour 8 graines :
   `python tools/banc_stratege.py --graines 1985 7 42 2024 --graines-sup 3 11 99 500`
   Plusieurs exécutions Luna peuvent tourner en même temps (le coffre sérialise le renouvellement
-  du jeton ; 4 vérifiées) : en rester à quelques-unes, et mesurer les temps au calme.
+  du jeton) : Luna pèse peu sur le quota, plusieurs bancs Luna en parallèle sont permis ; comparer les
+  temps dans les mêmes conditions de charge.
 
 ## Règles de travail
 

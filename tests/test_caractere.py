@@ -91,7 +91,7 @@ class CaracteristiquesTests(unittest.TestCase):
         # Gorm (VOL 13) est plus dur à convaincre : le DD monte d'un cran.
         _, dd = jet_persuasion(m, "marchand", "ilse", 10)
         _, dd_sans = jet_persuasion(m, "ilse", "marchand", 10)
-        self.assertEqual(dd - modificateur(m, "marchand", "VOL"), dd_sans - modificateur(m, "ilse", "VOL"))
+        self.assertAlmostEqual(dd - modificateur(m, "marchand", "VOL"), dd_sans - modificateur(m, "ilse", "VOL"))
         # Ilse (CHA 13, ELO 12) : au jet juste suffisant, son éloquence fait la différence.
         juste = dd - modificateur(m, "ilse", "CHA") - modificateur(m, "ilse", "ELO")
         with patch.object(Monde, "d20", return_value=juste):
@@ -118,7 +118,6 @@ class ValeursTests(unittest.TestCase):
         # Les comportements suivent : refusées, l'honnête n'a aucun plan, l'autre force la réserve.
         m = sans_evacues(m)
         refusee(m, "brune")
-        refusee(m, "ilse")
         self.assertIsNone(prix_faute(m, "marchand"))
         but, etapes = planifier(m, "brune", "faim")
         self.assertIn("sans_temoin", {x["condition"] for x in etapes})

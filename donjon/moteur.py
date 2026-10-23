@@ -20,7 +20,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
-           "ecouter", "pousser",
+           "ecouter", "pousser", "ranimer",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
@@ -157,6 +157,11 @@ class Moteur:
     def _preparer_references(self, p, origine="règles"):
         """Comme ``_preparer`` ; si le joueur doit d'abord se tourner vers ce qu'il vise, le geste est
         jugé tourné vers lui, et la rotation s'ajoute à sa durée."""
+        if self.monde.data.get("fin"):
+            raise ErreurMonde("Cette partie est terminée.", "fin : aucune action n’est acceptée.")
+        from .corps import conscient
+        if not conscient(self.monde):
+            raise ErreurMonde("Tu es sans connaissance.", "attendre le réveil avant de proposer une action.")
         from .noms import references
         p = references(self.monde, p)
         vers = self._regard(p)
@@ -273,6 +278,14 @@ class Moteur:
                 duree += duree_ecart(m, qui["id"], (ecart["salle"], ecart["position"]))
             plan.minutes, plan.dixiemes = 0, duree
             plan.effets = [("marcher", "", destination)]
+            return plan
+        if action == "ranimer":
+            if outil:
+                raise ErreurMonde("Ranimer se fait à mains nues.", f"outil={outil} : outil vide pour ranimer.")
+            from .corps import ranimer
+            ranimer(m.copier(), "joueur", cible)
+            plan.titre, plan.minutes, plan.dixiemes = "Ranimer " + designer(m.objets[cible]) + ".", 0, 100
+            plan.effets = [("ranimer", cible, None)]
             return plan
         if action == "pousser":
             from .passage import preparer_poussee
@@ -650,6 +663,28 @@ class Moteur:
         return "\n".join(lignes) or "Action accomplie."
 
     @staticmethod
+    def _attendre_reveil(travail, lignes):
+        from .corps import conscient, corps, reveiller
+        from .temps import instant, ecouler, MINUTE
+        from .pnj import avancer, suivre_presences
+        from .rendu import regarder
+        lignes[:] = ["Tu perds connaissance."]
+        while not conscient(travail) and not travail.data.get("fin"):
+            reste = corps(travail, "joueur")["inconscient"] - instant(travail)
+            if reste <= 0:
+                reveiller(travail, "joueur")
+                break
+            dt = min(MINUTE, reste)
+            minutes = ecouler(travail, dt)
+            avancer(travail, minutes, [], dt)
+        travail.data["entendus"] = []
+        suivre_presences(travail)
+        if travail.data.get("fin"):
+            lignes.append("Ta partie est terminée.")
+        else:
+            lignes.extend(["Tu reviens à toi.", regarder(travail)])
+
+    @staticmethod
     def _ouvrir_bilan(travail):
         """Pendant une action, les personnages entrent dans le regard du joueur et en sortent pas
         à pas, et leur humeur peut changer : on n'en dit que le bilan, à la fin de l'action."""
@@ -671,6 +706,10 @@ class Moteur:
 
     @staticmethod
     def _terminer_etape(travail, plan, lignes, effets=(), geste=None, methode=None):
+        from .corps import conscient
+        if not conscient(travail):
+            Moteur._attendre_reveil(travail, lignes)
+            return
         Moteur._stabiliser(travail, lignes)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         from .temps import MINUTE, duree, ecouler, instant
@@ -853,6 +892,8 @@ class Moteur:
             effets = p.effets if reussite else p.echec + (p.echec_critique if jet == 1 else [])
             for effet in effets:
                 self._appliquer(travail, effet, details)
+            from .corps import conscient
+            inconscient = not conscient(travail)
             self._terminer_etape(travail, p, details, effets, e["operation"], e["methode"])
             if e["operation"] == "patienter":
                 details.append("Deux minutes passent à guetter une occasion ; rien ne garantit que le geste passera inaperçu.")
@@ -863,7 +904,7 @@ class Moteur:
             trace.append({"numero": numero, "operation": e, "jet": jet, "dd": p.dd, "reussite": reussite,
                           "minutes": p.minutes, "effets_appliques": [list(effet) for effet in effets], "faits": details[:]})
             lignes.extend(details)
-            if not reussite:
+            if not reussite or inconscient:
                 break
             precedent = e
         self._clore_bilan(travail, lignes)
@@ -922,8 +963,14 @@ class Moteur:
             from .improvisation import appliquer
             appliquer(m, effet, lignes)
             return
+        if op == "ranimer":
+            from .corps import ranimer
+            ranimer(m, "joueur", cible)
+            lignes.append("Tu ranimes " + designer(m.objets[cible]) + ".")
+            return
         if op == "blessure_chute":
-            m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)
+            from .corps import perdre
+            perdre(m, "joueur", valeur)
             lignes.append(f"La réception te coûte {valeur} PV.")
             return
         if op == "emettre_son":
@@ -942,7 +989,8 @@ class Moteur:
             dire(m, cible, valeur, REPONSES[op], lignes, nommer=dernier_cri(m, valeur) == "appel")
             return
         if op == "blessure_franchissement":
-            m.joueur["pv"] = max(0, m.joueur["pv"] - valeur)
+            from .corps import perdre
+            perdre(m, "joueur", valeur)
             lignes.append(f"Tu retombes au pied de l'obstacle et perds {valeur} PV.")
             return
         if op in ("assembler", "decouper", "perdre_lien", "installer_assemblage", "retirer_assemblage"):
@@ -959,10 +1007,12 @@ class Moteur:
             # L'objet change de mains ; le personnage s'en souvient. Aucune récompense n'est due.
             from .esprits import memoriser
             o = m.objets[cible]
+            pret = next((p for p in m.data.get("permissions", []) if p["objet"] == cible and p["a"] == "joueur" and p["de"] == valeur), None)
+            ponctuel = bool(pret and m.data["minutes"] - pret["minute"] <= 240)
             deplacer(m, cible, valeur)
             o["proprietaire"] = valeur
             o.pop("vole_par", None)
-            memoriser(m, valeur, {"type": "don", "de": "joueur", "objet": cible})
+            memoriser(m, valeur, {"type": "restitution" if pret else "don", "de": "joueur", "objet": cible, "ponctuel": ponctuel})
             from .voix import nom_pour_joueur
             lignes.append("Tu donnes " + designer(o) + " à " + nom_pour_joueur(m, valeur, court=False) + ".")
             return

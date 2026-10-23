@@ -2,6 +2,8 @@
 ce qu'on touche (cible ou outil) pas à pas ; sans chemin en cases, le geste est manqué et l'on
 apprend ce qui barre le passage ; on marche vers ce qu'on croit, puis on constate sur place.
 Vérifié sur l'état du monde après rechargement."""
+
+from tests.support import lier
 import copy
 import unittest
 
@@ -91,7 +93,7 @@ class CaseOccupeeTests(unittest.TestCase):
         x, y = m.objets["ilse"]["position"]
         m.joueur.update(salle="antichambre", position=[x + 1, y], orientation="ouest")
         # Méfiante, Ilse ne s'écarte pas (``passage`` : sinon, elle laisserait passer).
-        croire(m, "ilse", "joueur", "fiable", False, "vu")
+        lier(m, "ilse", "joueur", False, "vu")
         with self.assertRaises(ErreurMonde) as refus:
             faire(m, "marcher", "ouest")
         self.assertIn("ilse", refus.exception.attendu)

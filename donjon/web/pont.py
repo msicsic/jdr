@@ -70,8 +70,9 @@ class PontWeb:
     def rafraichir(self, monde, pending, mj):
         from ..carte import carte
         from ..rendu import fiche, regarder
+        self.termine = bool(monde.data.get("fin"))
         cases = bool(monde.data.get("mode_cases"))
-        etat = {"type": "etat",
+        etat = {"type": "etat", "fin": monde.data.get("fin"),
                 "scene": None, "carte_texte": "" if cases else carte(monde),
                 "fiche": fiche(monde), "regard": regarder(monde),
                 "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],

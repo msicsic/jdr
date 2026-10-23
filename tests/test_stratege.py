@@ -1,4 +1,6 @@
 """Jalon E : Luna stratège, validé par le moteur ; échanges sociaux entre PNJ."""
+
+from tests.support import lier, relation
 import io
 import json
 from pathlib import Path
@@ -217,7 +219,7 @@ class StrategeTests(unittest.TestCase):
             with self.assertRaisesRegex(stratege.ErreurStrategie, "il a confié cette tâche"):
                 stratege.valider(m, "marchand", proposition)
         # S'il cesse de croire le joueur fiable, la tâche lui revient.
-        croire(m, "marchand", "joueur", "fiable", False, "vu")
+        lier(m, "marchand", "joueur", False, "vu")
         stratege.valider(m, "marchand", plan("devoir", "rapporter la cloche", etape("prendre", cible="cloche")))
 
     def test_le_dossier_ne_contient_que_ce_que_le_pnj_sait(self):
@@ -305,7 +307,7 @@ class LeviersTests(unittest.TestCase):
             reprise = Monde.charger(chemin)
         self.assertEqual(reprise.objets["vivres"]["portions"], portions - 1)
         self.assertLessEqual(lire(reprise, "brune")["besoins"]["faim"], 60 - 50 + 2)
-        self.assertIs(lire(reprise, "brune")["croyances"]["marchand"]["fiable"]["valeur"], True)
+        self.assertIs(relation(reprise, "brune", "marchand")["valeur"], True)
         self.assertEqual(lire(reprise, "marchand")["engagements"], [])
         # Ce qu'il a ouvert lui-même, il le referme à clé, sans s'en alarmer.
         self.assertTrue(reprise.objets["reserve"]["verrouillee"])
@@ -326,7 +328,7 @@ class LeviersTests(unittest.TestCase):
         with patch.object(Monde, "d20", return_value=20):
             self.assertEqual(demander(m, "brune", "marchand", "vivres"), "necessaire")
             lire(m, "marchand")["besoins"]["faim"] = 0
-            croire(m, "marchand", "brune", "fiable", False, "vu")
+            lier(m, "marchand", "brune", False, "vu")
             self.assertEqual(demander(m, "brune", "marchand", "vivres"), "mefiance")
             # Le joueur a un corps lui aussi : il peut demander une part, que Gorm s'engage à servir.
             self.assertEqual(demander(m, "joueur", "marchand", "vivres"), "promis")
@@ -336,7 +338,7 @@ class LeviersTests(unittest.TestCase):
     def test_qui_vient_de_refuser_ne_se_voit_pas_redemander_la_meme_chose(self):
         m = relais()
         reunir(m, "brune", "marchand")
-        croire(m, "marchand", "brune", "fiable", False, "vu")
+        lier(m, "marchand", "brune", False, "vu")
         faux = Faux(plan("faim", "demander une part à Gorm", etape("demander", cible="marchand", outil="vivres")))
         stratege.activer(faux)
         decision = stratege.consulter(m, "brune", "besoin_sans_plan", "faim")
@@ -344,7 +346,7 @@ class LeviersTests(unittest.TestCase):
         m.data["minutes"] += 2
         avancer(m, 2, [])
         self.assertIn({"type": "refus", "de": "marchand", "operation": "demander", "raison": "mefiance", "objet": "vivres"},
-                      [{k: v for k, v in x.items() if k != "minute"} for x in lire(m, "brune")["memoire"]])
+                      [{k: v for k, v in x.items() if k not in ("minute", "preuve")} for x in lire(m, "brune")["memoire"]])
         with self.assertRaisesRegex(stratege.ErreurStrategie, "a refusé il y a"):
             stratege.valider(m, "brune", plan("faim", "redemander", etape("demander", cible="marchand", outil="vivres")))
         # Un refus porte sur ce qui était demandé : autre chose peut se demander.

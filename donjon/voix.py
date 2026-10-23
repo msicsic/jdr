@@ -41,7 +41,6 @@ moins (``INCONNU``) ; s'il est prudent (``prudent`` : sa crainte contre son cour
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser
-from .relations import eprouver
 
 INCONNUE, PRETENDUE, RECONNUE, SUSPECTE = "inconnue", "pretendue", "reconnue", "suspecte"
 VOIX_MAX = 24          # voix inconnues retenues ; au-delà, la plus anciennement entendue s'oublie
@@ -325,7 +324,6 @@ def connaitre(monde, qui, autre):
         return  # Le joueur juge lui-même : ce qu'il entend s'affiche (``nom_pour_joueur``).
     croyances = esprit(monde, qui)["croyances"]
     if entree and (entree["mefiance"] or entree["se_dit"] not in (None, autre)):
-        eprouver(monde, qui, autre, "imposture", "entendu")
         memoriser(monde, qui, {"type": "imposture", "locuteur": autre, "se_disait": entree["se_dit"]})
     elif entree and entree["se_dit"] == autre:
         c = croyances.get(autre, {}).get("lieu")
@@ -348,7 +346,7 @@ def se_mefier(monde, auditeur, locuteur, source="entendu", cause="mensonge_demen
     if auditeur == "joueur":
         return
     if identifie(monde, auditeur, locuteur):
-        eprouver(monde, auditeur, locuteur, cause, source)
+        pass  # Le souvenir nominatif est inscrit par l'appelant, une seule fois.
     else:
         retenir(monde, auditeur, locuteur)["mefiance"] = True
 
@@ -412,7 +410,8 @@ def repond(monde, qui, locuteur):
     """``qui`` répond à la voix de ``locuteur`` qui l'appelle ou lui pose une question sans le savoir là
     (``pnj.repondre``, ``paroles.repondants``) : sauf à une voix dont il se méfie."""
     from .relations import mefiance, percue
-    return not mefiance(percue(monde, qui, locuteur))
+    r = percue(monde, qui, locuteur)
+    return not (mefiance(r) or r["rancune"] >= 60 or r["peur"] >= 60)
 
 
 def qui_va_la(monde, auditeur, locuteur):

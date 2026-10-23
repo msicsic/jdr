@@ -5,7 +5,7 @@ la nuit, sans que la rareté disparaisse. Chaque nuit se vit par blocs, recharg�
   charges de bûches à Gorm ; qui a froid y monte se chauffer, et le bois du guet se demande ou
   s'achète à Gorm ;
 - auberge : les bûches de la cuisine (8 charges), d'Anselme (3), de Joss (3) et la réserve d'Odile
-  (12, au cellier) tiennent les trois foyers allumés à la cinquième heure ; ensuite le bois se dispute.
+  (12, au cellier) suffisent aux foyers, mais les refus peuvent en interrompre l'entretien.
 """
 import unittest
 
@@ -37,27 +37,25 @@ class CrueTests(unittest.TestCase):
     def test_on_monte_se_chauffer_au_poele_du_guet_et_son_bois_se_demande(self):
         # Avant (``verifier-eau``), le brasero de la conduite était le seul feu : menacé par l'eau,
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
-        # La nuit diverge avec les services autonomes : Aubin se chauffe au poêle ; Brune y monte
-        # avant que Gorm le rallume, sans être annoncée comme réchauffée.
-        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 240, 80)
-        self.assertIn("Aubin, vieux passeur se chauffe près du poêle du guet.", textes)
-        self.assertIn("Brune, batelière évacuée passe dans : Galerie de ronde.", textes)
-        # Le bois du guet est à Gorm : on lui demande de l'acheter ; il refuse s'il ne peut servir.
-        self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") for t in textes))
+        # Les relations graduées changent cette nuit : Gorm refuse Brune, qui prend ensuite
+        # les planches d'Aubin et rallume le poêle à 253. Les ressources restent comptées.
+        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
+        self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
+        self.assertIn("Brune demande une part des bûches du guet à Gorm (mefiance).", textes)
+        self.assertIn("Brune, batelière évacuée alimente le poêle du guet.", textes)
+        self.assertIn("Brune, batelière évacuée allume le poêle du guet.", textes)
+        self.assertTrue(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
-        # À 120, Gorm n'a pas de flamme sur lui (la torche est posée au refuge) : il ne peut servir la part
-        # qu'Aubin veut acheter (« impossible », services autonomes). Depuis l'appel négocié, la nuit
-        # diverge ensuite : hélé par Brune à la galerie, Gorm la fait venir (« Ici, viens ! »), et personne
-        # ne rallume le poêle avant 240. La rareté reste : aucune charge des bûches n'est créée ni perdue.
-        self.assertTrue(any(t.startswith("Aubin achète une part des bûches du guet à Gorm") and t.endswith("(impossible).")
-                            for t in textes))
-        self.assertIn("Gorm retrouve Brune, comme convenu.", textes)
-        self.assertFalse(allumee(m.objets["poele_guet"]))
+        # Le bois refusé reste intact ; une des deux planches prises a alimenté le poêle.
         self.assertEqual(m.objets["bois_guet"]["charges"], 3)
+        self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
+        self.assertIn("Brune, batelière évacuée prend les planches de bac.", textes)
+        self.assertEqual(m.objets["planches"]["charges"], 1)
+        self.assertEqual(m.objets["planches"]["proprietaire"], "aubin")
 
 
 class AubergeTests(unittest.TestCase):
-    def test_les_trois_foyers_tiennent_la_cinquieme_heure_avec_des_parts_finies(self):
+    def test_une_reserve_refusee_puis_vendue_par_charges_les_trois_foyers_tiennent(self):
         # Cas réel : l'auberge finissait dans le noir vers la cinquième heure, faute de bois.
         m = nuit("auberge", 1985, "dortoir", "fixe")
         def reserve_bois(monde):
@@ -65,9 +63,12 @@ class AubergeTests(unittest.TestCase):
                        if "combustible" in o.get("usages", ()) and substance(o) == "bois")
         initiale = reserve_bois(m)
         m, textes = par_blocs(m, 300, 150)
+        # Relations graduées et parts des lampes réunies : Odile refuse de donner une part de sa
+        # réserve à Anselme, puis la lui vend ; portée, la réserve ne passe pas entière, il reçoit
+        # une charge qu'il consomme et Odile garde le lot. Les trois foyers restent entretenus.
+        self.assertIn("Anselme demande une part des bûches de réserve à Odile (refus).", textes)
+        self.assertIn("Anselme achète une part des bûches de réserve à Odile pour 1 pièce (vendu).", textes)
         self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
-        # Portée, la réserve ne passe plus entière à Anselme : il reçoit une charge, qu'il
-        # consomme, et Odile garde le lot. Les trois foyers restent entretenus.
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
         recus = [s["objet"] for s in lire(m, "anselme")["memoire"]
                  if s["type"] == "recu" and s.get("lot") == "bois_reserve"]
@@ -76,14 +77,13 @@ class AubergeTests(unittest.TestCase):
         restante = reserve_bois(m)
         self.assertLess(restante, initiale)
         m, suite = par_blocs(m, 420, 60)
-        # Le partage par charges évite de céder le lot entier puis de le refuser : le poêle peut
-        # tenir plus longtemps. L'invariant des données reste la réserve finie, consommée à chaque
-        # recharge ; les parts détachées sont comprises dans ce compte et ne créent pas de bois.
+        # La reprise conserve refus, ventes, dons, charges et feux ; la réserve reste finie,
+        # consommée à chaque recharge, sans bois créé par les parts détachées.
+        self.assertIn("Anselme demande les bûches de hêtre à Mireille (remis).", suite)
         self.assertGreaterEqual(reserve_bois(m), 0)
         self.assertLess(reserve_bois(m), restante)
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
-        self.assertTrue(allumee(m.objets["atre"]) and allumee(m.objets["fourneau"]))
-
+        self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,8 @@ qui change sous ses yeux, une parole), à l'instant, pas à la minute suivante ;
 chaque minute reste le filet de ce qui monte peu à peu. Chaque cas se vérifie sur l'état du monde
 après rechargement ; l'instant où il reconsidère est dans son esprit, et le même laps découpé
 autrement donne le même monde."""
+
+from tests.support import lier, relation
 import unittest
 from unittest.mock import patch
 
@@ -219,7 +221,7 @@ class EvenementTests(unittest.TestCase):
             m = jusqu_a(m, 300)
         self.assertIn("vu_agir", [s["type"] for s in lire(m, "marchand")["memoire"]])
         self.assertEqual(choix.instants("marchand")[0], 205)
-        self.assertFalse(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"])
 
     def test_un_bruit_a_voir_le_fait_partir_aussitot(self):
         # Gorm attend dans la conduite ; Brune force la porte étanche, dans la salle des vannes qu'il
@@ -325,7 +327,7 @@ class GesteQuiDureTests(unittest.TestCase):
         placer(m, "ilse", "antichambre", (5, 2))
         regarder(m, "ilse", "fanal")
         lire(m, "ilse")["besoins"]["securite"] = 70.0
-        croire(m, "ilse", "brune", "fiable", False, "vu")
+        lier(m, "ilse", "brune", False, "vu")
         intention(m, "ilse", plan("abriter", lieu="antichambre"), but="abri", motif="securite")
         lire(m, "ilse")["intention"]["but"]["lieu"] = "antichambre"
         placer(m, "brune", "antichambre", (4, 1))
@@ -336,8 +338,12 @@ class GesteQuiDureTests(unittest.TestCase):
         with Choix("ilse") as choix:
             m = jusqu_a(m, MINUTE - 20)
         self.assertFalse(m.objets["fanal"]["allume"])
-        self.assertEqual(choix.choix[0], (205, "ilse", {"type": "abri", "lieu": "echoppe"}))
-        self.assertEqual(m.objets["ilse"]["lieu"], "echoppe")
+        # La destination dépend des liens ; l'événement doit interrompre cet abri sombre
+        # au même instant, sans attendre la prochaine minute.
+        t, id, but = choix.choix[0]
+        self.assertEqual((t, id, but["type"]), (205, "ilse", "abri"))
+        self.assertNotEqual(but["lieu"], "antichambre")
+        self.assertNotEqual(m.objets["ilse"]["lieu"], "antichambre")
 
 
 class BouclesTests(unittest.TestCase):

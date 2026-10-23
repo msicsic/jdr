@@ -3,6 +3,16 @@ import re
 
 from .monde import normaliser, ErreurMonde
 
+# Une personne, vivante ou morte : la dépouille garde l'identifiant et le nom du défunt
+# (``corps.mourir``), que le joueur ne lit pas plus qu'avant s'il ne l'a jamais entendu.
+PERSONNES = ("personnage", "depouille")
+
+
+def _nom_reel(monde, id, o):
+    """Le nom que porte la personne ``id`` : celui du défunt pour une dépouille."""
+    defunt = monde.data.get("defunts", {}).get(id) if o["type"] == "depouille" else None
+    return defunt["nom"] if defunt else o["nom"]
+
 
 def installer(monde):
     d = monde.data
@@ -108,12 +118,28 @@ def texte(monde, valeur, citations=False, observateur="joueur"):
     def remplacer(partie):
         personnes = [("joueur", monde.joueur), *monde.objets.items()] if observateur != "joueur" else monde.objets.items()
         for id, o in personnes:
-            if (id != "joueur" and o["type"] != "personnage") or connait(monde, observateur, id):
+            if (id != "joueur" and o["type"] not in PERSONNES) or connait(monde, observateur, id):
                 continue
-            noms=sorted({o['nom'],o['nom'].split(',')[0],o['nom'].split()[0]},key=len,reverse=True)
+            reel = monde.joueur["nom"] if id == "joueur" else _nom_reel(monde, id, o)
+            noms=sorted({reel,reel.split(',')[0],reel.split()[0]},key=len,reverse=True)
             if not any(n and re.search(r'(?<!\w)'+re.escape(n)+r'(?!\w)',partie,re.I) for n in noms):
                 continue
-            if observateur == "joueur":
+            if id != "joueur" and o["type"] == "depouille":
+                # Le défunt sous ce que le joueur en a vu de son vivant, sinon une personne inconnue ;
+                # « corps de Aubin » devient « corps d'un vieil homme voûté ».
+                designe = nom(monde, id) if observateur == "joueur" else None
+                if designe is None:
+                    from .social import _qui
+                    designe = _qui(monde, id, observateur)
+                une = "une " if monde.data["defunts"].get(id, {}).get("genre") == "f" else "un "
+                defini = re.match(r"(?:le |la |l')", designe)
+                indefini = (une + designe[defini.end():] if defini
+                            else designe if re.match(r"(?:une? |quelqu'un)", designe) else une + designe)
+                for n in noms:
+                    if n:
+                        partie = re.sub(r"(?<!\w)de\s+" + re.escape(n) + r"(?!\w)", lambda m: "d'" + indefini
+                                        if indefini[:1].lower() in "aeiouhéèê" else "de " + indefini, partie, flags=re.I)
+            elif observateur == "joueur":
                 from .voix import designation as voix, nom_pour_joueur
                 identite=voix(monde,id)
                 designe = (nom(monde,id) if identite.startswith('personne_') else
@@ -147,7 +173,7 @@ def _elements(monde):
         vus, parent = {id}, o.get("lieu")
         while parent in monde.objets and parent not in vus:
             vus.add(parent)
-            if monde.objets[parent]["type"] == "personnage":
+            if monde.objets[parent]["type"] in PERSONNES:
                 parents[id] = parent
                 break
             parent = monde.objets[parent].get("lieu")
@@ -155,7 +181,7 @@ def _elements(monde):
 
 
 def reference(monde, id):
-    if monde.objets.get(id, {}).get("type") == "personnage" and not connait(monde, "joueur", id):
+    if monde.objets.get(id, {}).get("type") in PERSONNES and not connait(monde, "joueur", id):
         from .voix import designation as voix
         ref=voix(monde,id)
         return ref if ref!=id else designation(monde,id)
@@ -173,7 +199,7 @@ def public(monde, valeur, citations=False):
         return [public(monde, v, citations) for v in valeur]
     if isinstance(valeur, dict):
         evenement = "locuteur" in valeur and "auditeurs" in valeur and "revision" in valeur
-        inconnue = valeur.get("type") == "personnage" and not connait(monde,"joueur",valeur.get("id"))
+        inconnue = valeur.get("type") in PERSONNES and not connait(monde,"joueur",valeur.get("id"))
         if inconnue and "aliases" in valeur:
             valeur = {**valeur,"aliases": []}
         return {public(monde, k): (v if k in ("noms_pour_repliques", "noms_entendus") else

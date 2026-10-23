@@ -2,6 +2,8 @@
 même laps de temps, découpé autrement par le joueur ou interrompu par un rechargement, donne le
 même monde ; les bruits sont datés à l'instant ; un interlocuteur est un personnage que le joueur
 perçoit ; un seul registre des gestes en cours, joueur compris, jusqu'à leur instant de fin."""
+
+from tests.support import relation
 import copy
 import unittest
 from unittest.mock import patch
@@ -297,9 +299,9 @@ class GestesEnCoursTests(unittest.TestCase):
         # Il l'a vu prendre : il le sait dans les mains de Corvus (``pnj._lieu_vu``).
         self.assertIn({"type": "vu_agir", "auteur": "joueur", "operation": "prendre", "objet": "marteau",
                        "lieu": {"valeur": "joueur", "salle": None, "case": None, "minute": 0}},
-                      [{k: v for k, v in s.items() if k != "minute"} for s in lire(m, "marchand")["memoire"]])
+                      [{k: v for k, v in s.items() if k not in ("minute", "preuve", "victime")} for s in lire(m, "marchand")["memoire"]])
         self.assertEqual(lire(m, "marchand")["croyances"]["marteau"]["lieu"]["valeur"], "joueur")
-        self.assertFalse(lire(m, "marchand")["croyances"]["joueur"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "joueur")["valeur"])
         # Le geste fini quitte le registre à l'action suivante.
         faire(m, "tourner sud")
         self.assertEqual(m.data["gestes_en_cours"], [])
@@ -316,8 +318,8 @@ class GestesEnCoursTests(unittest.TestCase):
             faire(m, "attendre")
         m = recharger(m)
         self.assertIn({"type": "vu_agir", "auteur": "brune", "operation": "crocheter", "objet": "reserve"},
-                      [{k: v for k, v in s.items() if k != "minute"} for s in lire(m, "ilse")["memoire"]])
-        self.assertFalse(lire(m, "ilse")["croyances"]["brune"]["fiable"]["valeur"])
+                      [{k: v for k, v in s.items() if k not in ("minute", "preuve", "victime")} for s in lire(m, "ilse")["memoire"]])
+        self.assertFalse(relation(m, "ilse", "brune")["valeur"])
         self.assertEqual(m.data["gestes_en_cours"], [])
 
 

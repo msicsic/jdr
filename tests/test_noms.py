@@ -149,7 +149,9 @@ class NomsTests(unittest.TestCase):
                 'contenu':[{'type':'affirmation','sujet':'joueur','attribut':'fiable','valeur':'oui'}],
                 '_intention':f'je dis à {nom_pour_joueur(m,"joss")} : '+mots})
         m=recharge(m)
-        self.assertEqual(lire(m,'joss')['croyances']['joueur']['fiable']['source'],'dit:joueur')
+        # L'avis reçu (relations graduées) garde sa source : la voix de Corvus, vue parler.
+        self.assertTrue(any(s['type']=='avis_recu' and s['sujet']=='joueur' and s['source']=='dit:joueur'
+                            for s in lire(m,'joss')['memoire']))
         self.assertFalse(connait_nom(m,'joss','joueur'))
         self.assertTrue(voix_inconnues(m,[{'locuteur':designation(m,'joss'),
             'texte':'Corvus, approche.'}],{'interlocuteurs':interlocuteurs(m)}))

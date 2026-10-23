@@ -92,13 +92,26 @@ class EauTests(unittest.TestCase):
         # verrouillée les y enfermaient (475 minutes sous l'eau, 48 appels à l'aide).
         m = par_blocs(nuit("crue", 500, "chambre_cloche"), 167, 60)
         but = planifier(m, "brune", "chaleur")
-        self.assertFalse(but and any(x["lieu"] == "echoppe" or x["operation"] == "chauffer" for x in but[1]))
+        # Depuis la branche ``ressources``, le poêle du guet chauffe la galerie, au sec : s'y chauffer
+        # est permis (relations graduées et appel négocié réunis, elle le croit encore allumé à 167) ;
+        # jamais près d'un feu là où elle attend l'eau.
+        self.assertFalse(but and any(x["lieu"] == "echoppe" or x["operation"] == "chauffer"
+                                     and eau.attendue(m, "brune", m.objets[x["cible"]]["lieu"]) > 0
+                                     for x in but[1]))
         self.assertIsNone(planifier_pulsion(m, "marchand", {"lieu": "crypte", "periode": 72}))
-        m = par_blocs(m, 360, 60)
+        # Personne n'appelle à l'aide depuis l'eau. Relations graduées et profils réunis : Brune vole la
+        # réserve sous les yeux de Gorm (min 150) ; au refuge, au sec, Gorm, Aubin et Ilse appellent
+        # alors à l'aide contre elle, ce qui n'est pas le piège de l'eau.
+        appels = []
+        while m.data["minutes"] < 360:
+            nouvelles, _ = executer(m, min(360, m.data["minutes"] + 5))
+            appels += [(c["pnj"], eau.profondeur(m, m.objets[c["pnj"]]["lieu"]))
+                       for c in nouvelles if "appelle à l'aide" in c["texte"]]
+            m = recharger(m)
+        self.assertFalse([a for a in appels if a[1] > 0])
         mouillee = min(h["minute"] for h in m.data["crue"]["historique"] if h["salle"] == "echoppe")
         chronique = m.data["chronique"]
         self.assertFalse([c for c in chronique if c["minute"] > mouillee and "se chauffe" in c["texte"]])
-        self.assertFalse([c for c in chronique if "appelle à l'aide" in c["texte"]])
         for id in ("marchand", "brune", "ilse", "aubin"):
             self.assertLess(eau.profondeur(m, m.objets[id]["lieu"]), 50, id)
 

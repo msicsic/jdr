@@ -6,6 +6,8 @@ l'état réel.
 
 Chaque test vérifie l'état du monde après rechargement.
 """
+
+from tests.support import lier
 import unittest
 
 from donjon.banc_pnj import creer
@@ -208,7 +210,7 @@ class MefianceTests(unittest.TestCase):
 
     def test_joss_se_mefie_de_mireille(self):
         m = fourneau_mort("joss", fagots=3)
-        croire(m, "joss", "mireille", "fiable", False, "vu")
+        lier(m, "joss", "mireille", False, "vu")
         m, textes = vivre_long(recharger(m), 5)
         self.assertEqual(offres(textes, "Mireille", "Joss"), [
             "Mireille offre 2 pièces à Joss pour qu'il fasse en sorte que le fourneau soit allumé (mefiance)."])
