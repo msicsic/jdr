@@ -408,10 +408,11 @@ def prudent(monde, id):
 
 def repond(monde, qui, locuteur):
     """``qui`` répond à la voix de ``locuteur`` qui l'appelle ou lui pose une question sans le savoir là
-    (``pnj.repondre``, ``paroles.repondants``) : sauf à une voix dont il se méfie."""
-    from .relations import mefiance, percue
+    (``appel.repondre``, ``paroles.repondants``) : sauf à qui il craint, en veut ou se méfie,
+    selon les bandes communes et leur hystérésis."""
+    from .relations import mefiance, rancune, peur, percue
     r = percue(monde, qui, locuteur)
-    return not (mefiance(r) or r["rancune"] >= 60 or r["peur"] >= 60)
+    return not (mefiance(r) or rancune(r) or peur(r))
 
 
 def qui_va_la(monde, auditeur, locuteur):
@@ -460,9 +461,10 @@ def porteur_du_nom(monde, nom, presents):
 def reel(monde, designation_):
     """Le personnage que désigne ``designation_`` (``designation``) ; None pour une voix que le
     joueur n'a pas entendue."""
+    from .noms import PERSONNES
     if isinstance(designation_, str) and designation_.startswith('voix_reconnue_'):
         from .noms import designation as personne
-        return next((id for id,o in monde.objets.items() if o['type']=='personnage'
+        return next((id for id,o in monde.objets.items() if o['type'] in PERSONNES
                      and designation_=='voix_reconnue_'+personne(monde,id).split('_')[-1]),None)
     if isinstance(designation_, str) and designation_.startswith("element_"):
         suffixe = designation_[len("element_"):]
@@ -470,7 +472,7 @@ def reel(monde, designation_):
                      if str(n) == suffixe and id in monde.objets), None)
     if isinstance(designation_, str) and designation_.startswith("personne_"):
         from .noms import designation as personne
-        return next((id for id,o in monde.objets.items() if o["type"] == "personnage" and personne(monde, id) == designation_), None)
+        return next((id for id,o in monde.objets.items() if o["type"] in PERSONNES and personne(monde, id) == designation_), None)
     if not isinstance(designation_, str) or not designation_.startswith(PREFIXE):
         return designation_
     return next((s for s, e in monde.data.get("voix_entendues", {}).items()

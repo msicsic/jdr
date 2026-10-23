@@ -194,6 +194,9 @@ def preparer(donnees, sauvegarde):
     for d in prep.get("dettes", []):
         # Placement d'auteur : une contrepartie payée et jamais livrée, comme l'échéance la fait naître.
         rembourser(m, d["de"], d["a"], d["montant"], d["objet"], d.get("quoi", "part"))
+    # États du corps d'abord (blessé, inconscient, mort) : la scène existe avant les noms et les appels.
+    from donjon.banc_pnj import appliquer_etats
+    appliquer_etats(m, prep.get("etats", []))
     for qui, noms in prep.get("noms_connus_par", {}).items():
         from donjon.noms import apprendre
         for nom in noms:

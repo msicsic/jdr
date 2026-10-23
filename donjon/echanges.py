@@ -21,7 +21,7 @@ moteur.
 from .caractere import penchant
 from .esprits import RECENT, constater, croire, croyance, esprit, lire, memoriser, percevoir
 from .paroles import _phrase, _stats_pnj, dementi, jet_persuasion
-from .relations import FIABLE, avis, mefiance, percue
+from .relations import FIABLE, avis, mefiance, percue, rancune
 
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
 PARTAGE = 12           # DD d'une demande (une part, un objet prêté), que l'altruisme de celui qui donne abaisse
@@ -131,7 +131,7 @@ def accueil(monde, demandeur, auditeur):
     r = percue(monde, auditeur, demandeur)
     if mefiance(r):
         return "mefiance"
-    if r["rancune"] >= 60:
+    if rancune(r):
         return "rancune"
     return "qui_va_la" if qui_va_la(monde, auditeur, demandeur) else None
 
@@ -537,13 +537,11 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     o = monde.objets[objet]
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
     livre = [x for x in (e["engagements"] if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
+    tenus = []
     if livre and proprietaire(monde, o) == donneur:
         # Ce qu'il a vendu et vient remettre : l'objet passe à l'acheteur, la parole est tenue.
         donner(monde, objet, receveur)
-        for x in livre:
-            e["engagements"].remove(x)
-            memoriser(monde, donneur, {"type": "engagement_tenu", "pour": receveur, "condition": x["condition"],
-                                       **({"lot": x["lot"]} if "lot" in x else {})})
+        tenus = livre
     elif proprietaire(monde, o) == donneur:
         if besoin_de_part(o):
             donner(monde, objet, receveur)
@@ -562,6 +560,12 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
                                      "pret": any(p["objet"] == objet and p["a"] == receveur for p in monde.data.get("permissions", [])),
                                      "livraison": bool(livre) or achat, "demande": demande, "ponctuel": ponctuel,
                                      **({"lot": livre[0]["lot"]} if livre and "lot" in livre[0] else {})})
+    # La conséquence s'apprend par la réception déjà inscrite, comme pour une part servie.
+    # Une réussite sans réception reste une suite à annoncer (relations.souvenir).
+    for x in tenus:
+        e["engagements"].remove(x)
+        memoriser(monde, donneur, {"type": "engagement_tenu", "pour": receveur, "condition": x["condition"],
+                                   **({"lot": x["lot"]} if "lot" in x else {})})
 
 
 def servir(monde, id, nourriture, pour, lignes):

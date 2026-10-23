@@ -185,6 +185,25 @@ def confiance(r):
     return r.get("bandes", {}).get("confiance", r["confiance"] >= CONFIANCE)
 
 
+def rancune(r):
+    """Bande, y compris pour une relation perçue envers une voix non identifiée."""
+    return r["bandes"]["rancune"]
+
+
+def peur(r):
+    return r["bandes"]["peur"]
+
+
+def affection_leve_orgueil(r):
+    """Une affection d'au moins cinquante lève l'orgueil au passage (§ 3.5)."""
+    return r["affection"] >= 50
+
+
+def dette_notable(r):
+    """Dette morale relevée par le récit et les mesures, dès vingt (§ 3.5)."""
+    return r["dette"] >= 20
+
+
 def se_mefie(monde, id, autre):
     from .esprits import lire
     r = lire(monde, id)["relations"].get(autre)
@@ -199,12 +218,12 @@ def se_fie(monde, id, autre):
 
 def en_veut(monde, id, autre, seuil=RANCUNE):
     r = envers(monde, id, autre)
-    return r["bandes"]["rancune"] if seuil == RANCUNE else r["rancune"] >= seuil
+    return rancune(r) if seuil == RANCUNE else r["rancune"] >= seuil
 
 
 def craint(monde, id, autre, seuil=PEUR):
     r = envers(monde, id, autre)
-    return r["bandes"]["peur"] if seuil == PEUR else r["peur"] >= seuil
+    return peur(r) if seuil == PEUR else r["peur"] >= seuil
 
 
 def doit(monde, id, autre):
@@ -455,7 +474,7 @@ def partager(monde, id, minute):
 def resume(r):
     mots = [texte for b, texte in (("mefiance", "se méfie"), ("confiance", "fait confiance"),
                                   ("rancune", "en veut"), ("peur", "craint")) if r["bandes"][b]]
-    if r["dette"] >= 20:
+    if dette_notable(r):
         mots.append("se sent redevable")
     return ", ".join(mots) or "reste prudent"
 

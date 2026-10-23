@@ -129,7 +129,7 @@ class LecturesTests(unittest.TestCase):
         from donjon.pnj import heler
         for source in ("joueur", "aubin"):
             for axe in ("peur", "rancune"):
-                for n in (59, 60):
+                for n in (39, 40):
                     m = reunir(calme(relais(), "ilse", "brune", "aubin", "marchand"), "ilse", "aubin")
                     m.joueur.update(salle="antichambre", position=[1, 5], orientation="est")
                     regarder(m, "ilse", source)
@@ -139,12 +139,12 @@ class LecturesTests(unittest.TestCase):
                     m = recharger(m)
                     lignes = []
                     heler(m, source, "ilse", lignes)
-                    self.assertEqual(repondre(m, source, "ilse", lignes), n < 60)
+                    self.assertEqual(repondre(m, source, "ilse", lignes), n < 40)
                     m = recharger(m)
                     reponses = [c for c in m.data["chronique"] if c["pnj"] == "ilse" and "répond" in c["texte"]]
-                    self.assertEqual(bool(reponses), n < 60)
+                    self.assertEqual(bool(reponses), n < 40)
                     # Depuis l'appel négocié, la réponse est convenue (« Qu'est-ce que tu veux ? »…).
-                    self.assertEqual("Ilse répond" in " ".join(lignes), n < 60)
+                    self.assertEqual("Ilse répond" in " ".join(lignes), n < 40)
                     self.assertTrue(R.se_fie(m, "ilse", source))
 
     def test_rancune_seule_refuse_echange_et_passage(self):

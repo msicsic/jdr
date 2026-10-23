@@ -1,0 +1,19 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre",
+  "position": [2, 5],
+  "orientation": "est",
+  "calmes": ["marchand", "brune", "ilse", "aubin"],
+  "personnages": {
+   "aubin": {"salle": "antichambre", "position": [3, 5]},
+   "marchand": {"salle": "crypte", "position": [4, 3]},
+   "brune": {"salle": "crypte", "position": [3, 3]},
+   "ilse": {"salle": "crypte", "position": [5, 3]}
+  },
+  "lieux": {"planches": "aubin"},
+  "etats": ["aubin:blesse:1", "aubin:mort"]
+ },
+ "tours": ["mj je regarde le corps", "mj je fouille le corps", "quitter"]
+}

@@ -85,8 +85,15 @@ def designation(monde, id):
     return f"personne_{n}"
 
 
-def nom(monde, id):
-    if not monde.visible(id) and id not in monde.data.get('personnages_vus',[]):
+def nom(monde, id, observateur="joueur"):
+    """Désignation visuelle d'après l'observateur, jamais la vue du joueur pour un PNJ."""
+    if observateur == "joueur":
+        vu = monde.visible(id) or id in monde.data.get("personnages_vus", [])
+    else:
+        from .esprits import lire, percoit
+        vu = percoit(monde, observateur, id) or any(
+            c.get("source") == "vu" for c in lire(monde, observateur)["croyances"].get(id, {}).values())
+    if not vu:
         return 'une personne inconnue'
     return monde.data.get("personnes", {}).get(id, {}).get("nom") or apparence(monde.objets[id])
 

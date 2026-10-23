@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-restes-fusions`, fusionnée, base `main` **5594028**, worktree
+  `tmp-worktrees/codex-restes-fusions` : la réception précède la parole tenue dans la remise
+  d'un objet ou d'une part promise ; accueil et réponses aux appels lisent les bandes communes
+  de rancune/peur, hystérésis comprise. Seuils d'affection du passage et de dette du banc
+  centralisés sans changement ; méfiances/rancunes comptées par bandes. Refus d'action clos et
+  inconscient en champs et identifiants. La dépouille perd portrait libre, voix et tempérament
+  du vivant, conserve apparence structurée, blessures et biens ; désignation du défunt d'après
+  l'observateur PNJ. Le décodeur retrouve aussi les personnes mortes sous leur référence opaque,
+  ce qui débloque les attestations et les actions du MJ. Les six sous-échecs MiMo étaient des
+  attentes anciennes (symboles de vue, champ `presentation` absent du faux audit) : adaptateur
+  intact, cinq transports attendus conservés. `.venv-mimo` isolé, `.venv` partagé inchangé.
+  Cas réels et seconds cas après recharge dans `test_restes_fusions`, revue des seuils dans
+  `test_relations_socle`. Suite complète : **1448 tests, 15 sautés**, verte en 566,25 s avec
+  quatre processus ; tests MiMo et restes dans l'environnement isolé : 24 tests, un saut
+  (SDK Anthropic absent). Luna : deux tours sur copie, huit appels, aucun refus, repli, incident
+  ou mention sans fondement détectée. Banc rapide 4 h × quatre graines × quatre scénarios
+  contre 5594028 : zéro plantage, usurpation ou violation, 16 empreintes physiques identiques.
+  Relais 7 : annonce de parole tenue devenue inutile à la remise, échanges 9 → 8 ; auberge :
+  désignations de souvenirs selon le PNJ observateur ; crue 42 : une rancune maintenue enfin
+  comptée (mesure, état inchangé). Appels/réponses et refus d'accueil égaux sur ces 4 h.
+  `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42, chaque scénario :
+  sans écart ; quatre recherches neuves bornées à la mine à 8 h, limite de recherche conservée.
+  Résultats de suite, mesures et limites dans
+  [le rapport](taches/rapport-codex-15-restes-fusions.md).
 - Branche `codex-luna-noms`, fusionnée, base `main` 9075aea, worktree
   `tmp-worktrees/codex-luna-noms` : les contraintes d'adresse sont séparées du choix d'audience
   (individuelle, groupe, cantonade même avec des personnes visibles), contrôlé par la contre-revue
@@ -278,11 +302,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   hors relations ; crue méfiances 0 → 2,5, vols vus 0 → 1,25, crochetages 1,75 → 7,5, sans recours 0 → 60 (Brune
   refusée par Gorm dès la première minute, comme le rapport), dans l'eau 195 → 65 ; bascules crue 0 → 0,5 (une
   par nuit, pas une boucle). Temps au processeur : Relais 5,4 → 6,1 s, mine 10,1 → 12 s, auberge 10,8 → 13,7 s,
-  crue 5,8 → 8,7 s (+15 à +50 %, comme le rapport : à réduire). À revoir : dans `echanges.remettre`, la parole
-  tenue (`engagement_tenu`) s'inscrit avant le souvenir `recu` du bénéficiaire, qui ne l'apprend donc qu'à une
-  annonce ultérieure alors qu'il reçoit l'objet en main (objet vendu d'avance, part différée) ; seuils en dur
-  (`rancune` ≥ 60 dans `echanges.accueil` et `voix.repond`, bande à 40 ailleurs) ; appels à l'aide répétés
-  après un vol vu (désarroi renouvelé), à suivre.
+  crue 5,8 → 8,7 s (+15 à +50 %, comme le rapport : à réduire). Restes repris par
+  `codex-restes-fusions` (fusionnée) : réception avant `engagement_tenu`, seuils en dur de
+  l'accueil et des appels remplacés par les bandes. Les appels à l'aide répétés après un vol vu
+  (désarroi renouvelé) : `codex-signalements`.
 - Branche `codex-force-4a`, fusionnée : sous-étape 4a du [plan force](plan-force.md),
   PV pour tous, blessures et malus, repos qui soigne au temps vécu, inconscience et réveil,
   réanimation au contact et par le planificateur du protecteur. Le corps vit hors de la
@@ -316,9 +339,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   ajoutés (PV, inconscience, soin, `blessure`/`conscient` des croyances) : l'état final complet, ces seuls champs
   retirés, est identique sur les 16 nuits. `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h graine 42,
   chaque scénario, et épreuves (`--etat` inconscient, mort, blessé) sous `VERIFIER` et `VERIFICATION` 1 : sans écart.
-  À revoir : les refus du moteur « partie terminée » et « sans connaissance » portent un `attendu` en texte libre ;
-  la dépouille garde portrait et manière de parler du vivant ; `noms.nom`, employé pour un PNJ locuteur, juge
-  d'après ce que voit le joueur.
+  Restes repris par `codex-restes-fusions` (fusionnée) : refus du moteur en identifiants,
+  description actuelle de la dépouille sans portrait vivant ni manière de parler ; `noms.nom`
+  juge pour le PNJ locuteur d'après sa propre vue.
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.

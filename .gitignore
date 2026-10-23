@@ -3,6 +3,7 @@ __pycache__/
 sauvegardes/
 .env
 .venv/
+.venv-mimo/
 .seuil-auth/
 artifacts/
 tmp*/
