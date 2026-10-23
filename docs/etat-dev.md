@@ -2100,6 +2100,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Décisions en attente
 
+- **Agendas des PNJ, mandat et groupes** (`docs/plan-agendas.md`, branche `plan-agendas`, fusionnée,
+  documentation seule) : un agenda est un projet durable, révocable, en sommeil ou actif, choisi sur la
+  même échelle d'urgence que les besoins ; le mandat confie un agenda à un autre ; un groupe de départ
+  fixé par le scénario est un état initial réévalué par les mécaniques communes (`docs/plan-social.md`).
+  Sept décisions du 2026-10-23 dans la section 10 du plan : autorité à trois sources (statut du
+  scénario, sixième axe « ascendant », lecture dérivée) ; un agenda passe devant un besoin pressant non
+  désespéré, jamais devant le désespoir, une alarme ou le péril de l'eau ; Luna reçoit ce que le PNJ est
+  prêt à dire à Corvus et ce que Corvus a entendu, jamais un agenda secret ; ténacité selon la VOL ;
+  banc des groupes, la crue étendue aux évacués du hameau (six à huit PNJ) ; au plus trois agendas
+  actifs ; le plan de décision (habitudes, réflexion limitée) repris après A4. **Ordre des lots**, un à la
+  fois (tous touchent `planification.py` ou `deliberation.py`) :
+  1. **Q, trajets réels** (`codex-trajets-reels`, en cours) : il absorbe ce que liste « À revoir » pour O
+     (`obstacles.cout_route` et ses appelants, la preuve de domination, `defense.chemin_fuite`), une seule
+     fonction de route. Il change le comportement (un trajet passe d'environ une minute à quelques
+     secondes : demander, la faute et le noir pèsent relativement plus) : banc rapide avant et après,
+     écarts lus dans le récit, aucune usurpation, temps de calcul.
+  2. **A0, le choix du but sur une échelle commune** : chaque candidat de `deliberation._candidats` porte
+     une urgence comparable dont l'ordre actuel découle ; empreintes identiques sur 2 h puis 8 h, quatre
+     scénarios × quatre graines, sur la base laissée par Q.
+  3. **A1, le socle des agendas** : `donjon/agendas.py` seul accès, les engagements y sont portés ; aucun
+     changement de comportement, contrôle AST comme le socle des relations (3a).
+  4. **A2 = 3e (propositions)**, puis **A3 = 3f (avis)**, tels que prévus dans `docs/plan-relations.md`.
+  5. **A4 à A8** selon le plan ; après A4, mesurer le coût avant de décider du plan de décision.
+  Chaque brief renvoie à `docs/plan-agendas.md` pour le contexte, sans élargir le périmètre du lot ; un cas
+  réel et un autre de même nature vérifiés après rechargement ; limites dites dans le rapport.
 - **Fabrication générale** (`docs/plan-fabrication.md`) : étapes 1 à 3 fusionnées ; l'étape 4
   (d'autres usages : passerelle, cale…) attend un accord. Limite : les planches du Relais ne
   suffisent pas à une échelle (deux pièces, à Aubin) ; l'assemblage de planches est vérifié en
