@@ -37,7 +37,7 @@ class PrisesLocalesTests(unittest.TestCase):
     def test_aucune_condition_question_ou_seconde_action_ignoree(self):
         avant = copy.deepcopy(self.m.data)
         for phrase in ('je ramasse le pied de biche ?',
-                       'je ramasse le pied de biche si Gorm accepte',
+                       'je ramasse le pied de biche si possible',
                        'je ramasse discrètement le pied de biche',
                        'je ramasse le pied de biche discrètement',
                        'je prends le pied de biche et je force la porte',
@@ -45,6 +45,10 @@ class PrisesLocalesTests(unittest.TestCase):
                        'je ne prends pas le pied de biche'):
             with self.subTest(phrase=phrase):
                 self.assertIsNone(analyser(self.m, phrase))
+        # Le nom sans lien est maintenant refusé avant l'analyse du geste conditionnel.
+        with self.assertRaises(ErreurMonde) as refus:
+            analyser(self.m, 'je ramasse le pied de biche si Gorm accepte')
+        self.assertTrue(refus.exception.attendu)
         self.assertEqual(self.m.data, avant)
 
     def test_prise_locale_respecte_portee_et_propriete(self):

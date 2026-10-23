@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-nom-non-relie`, non fusionnée, base `ea4d562` (lot 26 `64351b2`) :
+  résolution nominale commune dans `noms.personnage`, contrôle lexical avant saisie locale,
+  conversation et MJ (`verifier_saisie`, `verifier_nom`). Un nom sans lien ou relié à un absent
+  donne un refus local, sans modèle ni apprentissage ; paroles, noms hélés et voix gardent leur
+  contrat. Aucun nouveau prompt ni fichier réservé touché. Correctif signé **736c043**.
+  Neuf tests nouveaux : état complet et rendu après recharge, zéro appel dans les refus en ligne
+  et hors ligne ; geste permis quand le lien existe. Suite unique, trois processus ; bilan
+  consolidé après seules reprises ciblées : **1 607 tests, 15 ignorés, tous validés**.
+  Reprises : attentes anciennes adaptées au refus plus précoce, diagnostics placés avant la saisie,
+  HTTP local hors bac à sable (82 tests, 63,8 s) ; deux workers TUI initialement bloqués arrêtés,
+  puis les seuls deux fichiers rejoués hors bac à sable (33 tests, 161,2 s), tous verts.
+  Les traces brutes de la première passe et le rapprochement sont conservés dans `artifacts/`.
+  Luna, une passe `echanges` et `noms-dialogue` : 10 et 12 appels, aucun repli ni recharge invalide ;
+  « je pousse Aubin » : zéro appel (10 dans le fil du lot 26 réutilisé), aucun déplacement ni jet.
+  Noms reliés : Brune s'écarte, Ilse répond. Limite : noms absents du lexique non reconnus comme
+  noms propres, interprétation et gardes encore nécessaires. [Rapport du lot 27](taches/rapport-codex-27-nom-non-relie.md).
+
 - Branche `codex-designations`, non fusionnée, base `main` **42bb9c0** : noyaux nominaux
   reconnus par `noms`, qualificatifs conservés et contrôlés séparément. Même mécanisme dans
   le garde des voix, la projection et les liens publics transmis aux deux revues. Aucun nom
@@ -16,7 +33,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   15 ignorés**, verte en 560,1 s, trois processus à priorité réduite. Luna, une passe
   (`soir-noir`, `atelier`, `echanges`) : aucun repli ni recharge
   invalide, bobine prise et portée, aucun refus nominal dans le noir ; sifflement joyeux
-  (8 appels) et nom saisi non relié (10) restent ouverts, aucun gain de temps général établi.
+  (8 appels) et nom saisi non relié (10) restaient ouverts dans ce lot ; ce dernier est traité
+  par le lot 27 ci-dessus, sans gain de temps général établi.
   Livraison et mesures dans le [rapport du lot 26](taches/rapport-codex-26-designations.md).
 
 - Branche `codex-luna-restes`, fusionnée, issue de `main` **8855312** : validation physique
@@ -2125,7 +2143,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - Luna, après `codex-luna-restes` : le sens des références d'audience est comparé
   par le moteur et la revue reçoit les conséquences des achats ; les positions sont en mètres avec
   garde déterministe des unités. Le choix d'audience reste sémantique (`soir-appel`, une correction
-  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement et un nom non relié.
+  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement. Le nom saisi non relié donne
+  désormais un refus local avant le MJ (`codex-nom-non-relie`, non fusionnée), pour le lexique
+  dérivé du monde ; un nom extérieur au lexique et la sémantique des formulations restent hors
+  de ce contrôle déterministe, notamment les formulations mixtes classées comme parole.
+  Les conditions sur un absent nommé reçoivent aussi le refus local.
+  Aucune garantie générale supplémentaire pour la narration.
   Le lot `codex-designations` (non fusionné) reconnaît les noyaux publics malgré leurs
   qualificatifs ; les deux revues reçoivent leurs liens canoniques et les faits publics.
   La compatibilité sémantique des qualificatifs et les paraphrases restent à surveiller :

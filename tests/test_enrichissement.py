@@ -129,6 +129,7 @@ class EnrichissementTests(unittest.TestCase):
 
     def test_deux_appels_narration_recoit_les_faits_valides_monde_original_intact(self):
         m = nouveau_monde()
+        m.joueur["salle"] = "echoppe"  # Le nom vise Gorm perçu avant l'enrichissement.
         avant = copy.deepcopy(m.data)
         def appel(instructions, entree, intention, fonction, schema):
             if "descriptions_a_completer" in entree["faits"] and entree["faits"]["descriptions_a_completer"]:

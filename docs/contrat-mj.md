@@ -149,7 +149,9 @@ par la parole. Les mots cités, les appellations de voix et les désignations pu
 leur sens ; héler émet un nom sans exiger la présence de son porteur. Une parole mentionnant
 un tiers n'établit pas son identité. Les répliques validées et les résultats d'action gardent
 leurs contrôles. Un nom absent de tout le lexique n'est pas reconnu comme nom propre par ce
-contrôle ; l'interprétation et ses gardes de références restent nécessaires.
+contrôle ; l'interprétation et ses gardes de références restent nécessaires. Les formulations
+que le parseur traite comme parole conservent ce contrat : leur contenu n'est pas analysé
+comme une liste de cibles. Les formulations mixtes gardent donc une part sémantique.
 
 Tous les répondants d'une parole sont entendus avant la narration, y compris un destinataire
 qui vient de s'écarter hors du champ visuel. Une voix entendue depuis une autre salle est un
