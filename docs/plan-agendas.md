@@ -32,8 +32,8 @@ rondes », des minutes « en attente » et « sans recours » par centaines.
 
 Ce que les plans existants prévoient déjà, et sur quoi ce plan s'appuie :
 
-- **Influencer** : `docs/plan-relations.md`, sous-étapes 3e (propositions, `rendre_service`,
-  intermédiaires) et 3f (avis sur des prédicats que le moteur sait évaluer, disputes). L'épreuve de
+- **Influencer** : `docs/plan-relations.md`, **A2 = 3e** (propositions, `rendre_service`,
+  intermédiaires) et **A3 = 3f** (avis sur des prédicats que le moteur sait évaluer, disputes). L'épreuve de
   3f (Aubin, qui a vu l'eau, convainc Ilse de monter) est déjà presque une évacuation.
 - **Contraindre** : `docs/plan-force.md`, 4d (retenir, ligoter, enfermer) et 4e (tuer).
 - **Statut et groupes** : `docs/plan-social.md`, « Statut et groupes ».

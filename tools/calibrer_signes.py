@@ -109,9 +109,43 @@ def grille(nuits):
     return resultats
 
 
+def groupes_nuits(nuits):
+    groupes = defaultdict(list)
+    for n in nuits:
+        if n["lecteur"]:
+            preuves = [p for p in n["preuves"] if p["observateur"] == n["lecteur"]]
+            groupes[f'{n["scenario"]}:{n["psy"]}'].extend(preuves)
+            groupes["regles"].extend(preuves)
+        else:
+            groupes["defaut"].extend(n["preuves"])
+            groupes["defaut:" + n["scenario"]].extend(n["preuves"])
+    return {k: bilan(v) for k, v in groupes.items()}
+
+
+def jouer_configuration(parametres, processus, sortie):
+    taches = [(s, g, None, None, parametres) for s in JOUEURS for g in (1985, 7, 42, 2024)]
+    taches += [(s, g, l, psy, parametres) for s, l in (("relais", "marchand"), ("auberge", "hugues"))
+               for psy in (8, 11, 14, 16) for g in (1985, 7, 42, 2024)]
+    def cle(n):
+        return n["scenario"], n["graine"], n["lecteur"], n["psy"]
+    anciens = json.loads(sortie.read_text(encoding="utf-8")) if sortie.exists() else []
+    assert all(tuple(n["parametres"]) == tuple(parametres) for n in anciens), "Reprise d'un autre réglage"
+    gardes = {cle(n): n for n in anciens}
+    manquantes = [t for t in taches if t[:4] not in gardes]
+    sortie.parent.mkdir(parents=True, exist_ok=True)
+    with ProcessPoolExecutor(max_workers=max(1, min(3, processus)), max_tasks_per_child=1) as pool:
+        for r in pool.map(nuit, manquantes):
+            gardes[cle(r)] = r
+            resultat = [gardes[t[:4]] for t in taches if t[:4] in gardes]
+            sortie.write_text(json.dumps(resultat, ensure_ascii=False), encoding="utf-8")
+            print(parametres, r["scenario"], r["graine"], r["lecteur"], r["psy"],
+                  f'{len(gardes)}/48', flush=True)
+    return [gardes[t[:4]] for t in taches]
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("mode", choices=("jouer", "grille"))
+    p.add_argument("mode", choices=("jouer", "grille", "balayer"))
     p.add_argument("--sortie", type=Path, required=True)
     p.add_argument("--corpus", type=Path)
     p.add_argument("--parametres", type=int, nargs=3, default=(4, 5, 5))
@@ -119,17 +153,16 @@ def main():
     args = p.parse_args()
     if args.mode == "grille":
         resultat = grille(json.loads(args.corpus.read_text(encoding="utf-8")))
-    else:
-        taches = [(s, g, None, None, args.parametres) for s in JOUEURS for g in (1985, 7, 42, 2024)]
-        taches += [(s, g, l, psy, args.parametres) for s, l in (("relais", "marchand"), ("auberge", "hugues"))
-                   for psy in (8, 11, 14, 16) for g in (1985, 7, 42, 2024)]
+    elif args.mode == "balayer":
         resultat = []
-        with ProcessPoolExecutor(max_workers=max(1, min(3, args.processus)), max_tasks_per_child=1) as pool:
-            for r in pool.map(nuit, taches):
-                resultat.append(r)
-                print(r["scenario"], r["graine"], r["lecteur"], r["psy"], len(r["preuves"]), flush=True)
-                args.sortie.parent.mkdir(parents=True, exist_ok=True)
-                args.sortie.write_text(json.dumps(resultat, ensure_ascii=False), encoding="utf-8")
+        for parametres in itertools.product((4, 3, 2), (5, 4, 3), (5, 8)):
+            fichier = args.sortie.parent / "nuits-grille" / ("-".join(map(str, parametres)) + ".json")
+            nuits = jouer_configuration(parametres, args.processus, fichier)
+            resultat.append({"parametres": parametres, "groupes": groupes_nuits(nuits)})
+            args.sortie.write_text(json.dumps(resultat, ensure_ascii=False, indent=1), encoding="utf-8")
+            print("CONFIGURATION TERMINEE", parametres, flush=True)
+    else:
+        resultat = jouer_configuration(args.parametres, args.processus, args.sortie)
     args.sortie.parent.mkdir(parents=True, exist_ok=True)
     args.sortie.write_text(json.dumps(resultat, ensure_ascii=False, indent=1), encoding="utf-8")
 

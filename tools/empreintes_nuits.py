@@ -203,6 +203,7 @@ def profil(args):
     import cProfile
     _preparer(args.depot, False, 0.0)
     from donjon import banc_pnj
+    banc_pnj.ceder()
     p = cProfile.Profile(time.process_time)
     p.enable()
     banc_pnj.nuit(args.scenario, args.graine, args.heures, JOUEURS.get(args.scenario), False, False, None, args.depart)
