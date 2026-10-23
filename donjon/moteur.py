@@ -158,10 +158,12 @@ class Moteur:
         """Comme ``_preparer`` ; si le joueur doit d'abord se tourner vers ce qu'il vise, le geste est
         jugé tourné vers lui, et la rotation s'ajoute à sa durée."""
         if self.monde.data.get("fin"):
-            raise ErreurMonde("Cette partie est terminée.", "fin : aucune action n’est acceptée.")
+            raise ErreurMonde("Cette partie est terminée.",
+                              f"fin.cause={self.monde.data['fin']['cause']}, auteur=joueur : accepté fin=null ; actions acceptées : aucune.")
         from .corps import conscient
         if not conscient(self.monde):
-            raise ErreurMonde("Tu es sans connaissance.", "attendre le réveil avant de proposer une action.")
+            raise ErreurMonde("Tu es sans connaissance.",
+                              "auteur=joueur, conscient=false : accepté conscient=true ; actions acceptées : aucune.")
         from .noms import references
         p = references(self.monde, p)
         vers = self._regard(p)

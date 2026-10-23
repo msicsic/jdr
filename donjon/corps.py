@@ -352,13 +352,24 @@ def mourir(monde, id, auteur=None, cause="mort"):
         monde.data["fin"] = {"cause": cause, "minute": monde.data["minutes"], "instant": t, "auteur": auteur}
         return
     o = monde.objets[id]
+    from .noms import apparence
+    # Le portrait libre peut mêler apparence, gestes et caractère : il n'est pas un
+    # portrait du mort. Seules les données explicitement visuelles passent à la dépouille.
+    o.setdefault("designation_visuelle", monde.data.get("personnes", {}).get(id, {}).get("nom") or apparence(o))
     monde.data.setdefault("defunts", {})[id] = {"nom": o["nom"], "genre": o.get("genre", "m"), "profil": copie(o.get("profil")),
+        "portrait": o.get("portrait", ""), "maniere_de_parler": o.get("maniere_de_parler", ""),
         "minute": monde.data["minutes"], "instant": t, "auteur": auteur, "cause": cause, "salle": o["lieu"]}
     o.update(type="depouille", nom="corps de " + o["nom"].split(",")[0], nom_propre=False, genre="m", mobile=True,
              masse_kg=o.get("masse_kg", 70), masse=o.get("masse_kg", 70), aliases=[*o.get("aliases", []), "corps"])
     o.pop("profil", None)
     o.pop("orientation", None)
     o.pop("humeur", None)
+    o.pop("portrait", None)
+    o.pop("maniere_de_parler", None)
+    if "facettes" in o:
+        o["facettes"] = {f: v for f, v in o["facettes"].items() if f not in ("voix", "temperament")}
+    if "facettes_etablies" in o:
+        o["facettes_etablies"] = [f for f in o["facettes_etablies"] if f not in ("voix", "temperament")]
     monde.data["esprits"].pop(id, None)
     for bien in monde.objets.values():
         if bien["lieu"] == id:

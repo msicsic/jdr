@@ -65,6 +65,10 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
         if o.get("humeur"):
             morceaux.append(o["humeur"])
+    if o["type"] == "depouille":
+        from .corps import blessure
+        if blessure(monde, id):
+            morceaux.append("grièvement blessé" if blessure(monde, id) == 2 else "blessé")
     if o.get("cale_de"):
         complements.append("Cet objet maintient la porte ouverte")
     if o.get("charges") == 0:
@@ -111,7 +115,9 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if eclairage(monde)["niveau"] >= 2 and a_portee:
         if o.get("portrait"):
             texte += " " + o["portrait"]
-        if o["type"] == "personnage":
+        if o["type"] in ("personnage", "depouille"):
+            if o["type"] == "depouille":
+                texte += " " + o["designation_visuelle"].capitalize() + "."
             for facette, valeur in o.get("facettes", {}).items():
                 if "texte" in valeur and facette not in ("voix", "temperament"):
                     texte += " " + valeur["texte"]

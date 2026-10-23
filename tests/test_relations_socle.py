@@ -32,6 +32,23 @@ def _fiable(noeud):
 
 
 class AccesTests(unittest.TestCase):
+    def test_aucun_seuil_numerique_d_axe_hors_relations(self):
+        fautes = []
+        for p in _sources():
+            if p.name == "relations.py" and p.parent.name == "donjon":
+                continue
+            for n in ast.walk(ast.parse(p.read_text(encoding="utf-8"))):
+                if not isinstance(n, ast.Compare):
+                    continue
+                termes = [n.left, *n.comparators]
+                axes = {t.slice.value for t in termes if isinstance(t, ast.Subscript)
+                        and isinstance(t.slice, ast.Constant) and t.slice.value in relations.AXES}
+                nombres = [t.value for t in termes if isinstance(t, ast.Constant) and type(t.value) in (int, float)]
+                # « confiance » sert aussi aux croyances, validées entre 0 et 1.
+                if nombres and (axes - {"confiance"} or "confiance" in axes and any(v > 1 for v in nombres)):
+                    fautes.append(f"{p.relative_to(RACINE)}:{n.lineno}")
+        self.assertEqual(fautes, [])
+
     def test_seul_le_module_nomme_l_attribut(self):
         """Hors de ``relations``, le mot n'apparaît plus que par sa constante (``FIABLE``)."""
         fautes = []

@@ -131,7 +131,7 @@ def _qui(monde, id, locuteur=None):
             if id == 'joueur':
                 return "l'étrangère" if monde.joueur.get('genre') == 'f' else "l'étranger"
             from .noms import nom
-            return nom(monde, id) if identifie(monde, locuteur, id) else "quelqu'un"
+            return nom(monde, id, observateur=locuteur) if identifie(monde, locuteur, id) else "quelqu'un"
     if id in monde.data.get("defunts", {}):
         return monde.data["defunts"][id]["nom"].split(",")[0]
     return monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"].split(",")[0]

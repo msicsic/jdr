@@ -193,6 +193,8 @@ def preparer(donnees, sauvegarde):
     for d in prep.get("dettes", []):
         # Placement d'auteur : une contrepartie payée et jamais livrée, comme l'échéance la fait naître.
         rembourser(m, d["de"], d["a"], d["montant"], d["objet"], d.get("quoi", "part"))
+    from donjon.banc_pnj import appliquer_etats
+    appliquer_etats(m, prep.get("etats", []))
     m.verifier()
     m.sauver(sauvegarde)
 

@@ -142,13 +142,13 @@ def refus_d_aider(monde, id, passant):
     fierté l'emporte de loin sur son altruisme (``ORGUEIL``) ; None sinon. Une affection
     d'au moins cinquante lève cet orgueil. La relation est celle qu'il porte à qui il croit avoir affaire
     (``relations.percue`` : une voix inconnue est un étranger)."""
-    from .relations import mefiance, percue
+    from .relations import mefiance, percue, affection_leve_orgueil
     relation = percue(monde, id, passant)
     if mefiance(relation):
         return "mefiance"
     if relation["bandes"]["rancune"]:
         return "rancune"
-    if relation["affection"] < 50 and valeur(monde, id, "fierte") - valeur(monde, id, "altruisme") >= ORGUEIL:
+    if not affection_leve_orgueil(relation) and valeur(monde, id, "fierte") - valeur(monde, id, "altruisme") >= ORGUEIL:
         return "orgueil"
     return None
 

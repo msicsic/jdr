@@ -180,7 +180,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
                           and not autour(monde, id)["lumiere"])
     memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
     natures = Counter(c.get("nature", "geste") for c in chronique)
-    mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.envers(monde, id, x)["confiance"] < 30)
+    mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.se_mefie(monde, id, x))
     relationnels = [c for c in chronique if c.get("nature") == "relation"]
     liens = [relations.envers(monde, id, x) for id in pnjs(monde) for x in relations.connus(monde, id)]
     bilan = monde.data.get("stratege", {}).get("bilan", {})
@@ -217,8 +217,8 @@ def executer(monde, minutes, recit=None, empreintes=None):
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
                "mefiances": mefiances, "jets": monde.data["jets"],
                "mefiances_levees": sum(bool(c.get("mefiance_levee")) for c in relationnels),
-               "rancunes": sum(r["rancune"] >= 40 for r in liens),
-               "dettes": sum(r["dette"] >= 20 for r in liens),
+               "rancunes": sum(relations.rancune(r) for r in liens),
+               "dettes": sum(relations.dette_notable(r) for r in liens),
                "dettes_honorees": sum(c.get("cause") == "dette_honoree" and c.get("service") == "demande" for c in relationnels),
                # L'estompement est monotone entre événements ; les pas relèvent ses
                # transitions, la chronique les changements intermédiaires. Le récit

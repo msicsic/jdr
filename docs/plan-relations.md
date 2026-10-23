@@ -217,20 +217,28 @@ pas de coût par pas de temps, et l'état reste entier dans `data`.
 
 Un module `donjon/relations.py` est le seul accès : `envers(monde, id, autre)` (la relation,
 estompée), `se_mefie`, `se_fie`, `en_veut`, `craint`, `doit`, et `percue(monde, auditeur,
-locuteur)` qui passe par l'identification (`voix.fiabilite`, § 3.7).
+locuteur)` qui passe par l'identification (`voix.identifie`, § 3.7). Les lectures d'une
+relation déjà perçue (`mefiance`, `confiance`, `rancune`, `peur`) conservent les mêmes bandes.
 
 | site | règle graduée |
 |---|---|
 | `jet_persuasion` | DD + (50 − confiance) / 10 − affection / 25 − dette / 20 + rancune / 20 ; VOL inchangée |
-| `demander`, `confier` | refus d'office si méfiance ou rancune ≥ 60 ; sinon le jet, où la dette pèse |
+| `demander`, `confier` | refus d'office si méfiance ou bande de rancune (entrée ≥ 40, sortie < 30) ; sinon le jet, où la dette pèse |
 | `social._auditeur` | on confie à qui l'on fait confiance, le plus aimé d'abord (ordre : affection, puis identifiant) |
 | `ouie` | se surveille : le bruit de qui l'on se méfie **ou** craint |
-| `appeler` | pas de réponse à qui l'on se méfie, en veut (≥ 60) ou craint (≥ 60) |
+| `appeler` | pas de réponse à qui l'on se méfie, en veut ou craint : bandes communes, entrée rancune/peur ≥ 40, sortie < 30 |
 | `passage._refus` | méfiance ou rancune refusent ; l'affection (≥ 50) lève l'orgueil |
 | `autour`, `ressentir` | la compagnie rassure × (confiance + affection) / 100 ; la présence de qui l'on craint inquiète × peur / 50 |
 | `_plan_abri`, `_rejoindre_un_proche` | rejoindre le plus aimé parmi ceux à qui l'on fait confiance |
 | `_delegue`, `confie_a_autrui` | une tâche confiée attend tant qu'on n'est pas en méfiance |
 | humeur (`vol.mefiance`, `moteur`) | remplacée par les signes (§ 5) |
+
+Les comparaisons d'axes restent dans `relations.py`, y compris le seuil d'affection qui lève
+l'orgueil au passage et la dette morale notable du récit et du banc. Le banc compte méfiances
+et rancunes par leurs bandes, donc aussi une bande maintenue entre 30 et 39 par hystérésis.
+La remise d'un objet ou d'une part promise inscrit d'abord la réception, puis la parole tenue :
+le bénéficiaire qui identifie le donneur l'apprend à cette réception ; une réussite lointaine
+reste à annoncer par une parole entendue.
 
 ### 3.6 Transition depuis `fiable`, en trois temps
 
@@ -634,8 +642,8 @@ Les signes et le retrait de l'humeur restent en 3c ; les propositions de répara
   son hébergement », `docs/plan-crue.md`).
 - Le récit (« Ce qu'ils pensent les uns des autres ») montre chaque relation qui a changé de bande,
   avec ses motifs ; le rejeu la montre dans le temps.
-- **Mesures nouvelles** : `mefiances` (fin de nuit, confiance < 30), `mefiances_levees`,
-  `rancunes` (≥ 40), `dettes` (≥ 20), `dettes_honorees` (une demande acceptée par qui devait au
+- **Mesures nouvelles** : `mefiances` (bande en fin de nuit, hystérésis comprise), `mefiances_levees`,
+  `rancunes` (bande en fin de nuit), `dettes` (≥ 20), `dettes_honorees` (une demande acceptée par qui devait au
   demandeur), `relations_changees` (paires ayant changé de bande) ; et les mesures d'avant :
   échanges, vols vus, rumeurs crues, minutes sans recours.
 - **Épreuve** : la crue (liens de départ contrastés). Tests, après rechargement : Brune, dont

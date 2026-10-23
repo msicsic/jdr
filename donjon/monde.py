@@ -359,11 +359,12 @@ class Monde:
                 vue.pop("pv", None)
                 vue.pop("pv_max", None)
                 vue.pop("corps", None)
-                if o["type"] == "personnage":
-                    from .corps import visible as etat_visible
-                    vue["etat_corps"] = etat_visible(self, o["id"])
-                    if not vue["etat_corps"]["conscient"]:
-                        vue.pop("orientation", None)
+                from .corps import visible as etat_visible
+                vue["etat_corps"] = etat_visible(self, o["id"])
+                if o["type"] == "depouille":
+                    vue["etat_corps"]["mort"] = True
+                if not vue["etat_corps"]["conscient"]:
+                    vue.pop("orientation", None)
             if "constats_capacites" in vue:
                 from .capacites_objet import resume_constats
                 vue["constats_capacites"] = resume_constats(o, self.objets)
