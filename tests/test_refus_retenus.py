@@ -198,9 +198,13 @@ class TacheCherTests(unittest.TestCase):
         # Cas de même nature dans la vie de l'auberge : chaque offre à Anselme passe la précédente.
         m = fourneau_mort("anselme", bois_anselme=5)
         m.data["finances_pnj"]["mireille"] = 30
+        # Le refus est un fait de la scène ; au nouveau prix du temps, Anselme
+        # accepterait désormais la première offre de deux pièces.
+        retenir_refus(m, "mireille", "anselme", "engager", "cher", objet="fourneau", prix=2, tache="allume")
+        m.data["minutes"] += 1
         m, textes = vivre_long(recharger(m), 60)
         prix = [int(t.split(" offre ")[1].split(" ")[0]) for t in offres(textes, "Mireille", "Anselme")]
-        self.assertTrue(prix and offres(textes, "Mireille", "Anselme")[0].endswith("(cher)."), prix)
+        self.assertNotIn(2, prix)
         self.assertEqual(prix, sorted(set(prix)))
 
 

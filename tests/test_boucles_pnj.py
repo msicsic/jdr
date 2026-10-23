@@ -90,6 +90,8 @@ def reserve_forcee():
     regarder(m, "brune", "reserve")
     regarder(m, "marchand", "brune")
     m.objets["crochets"]["lieu"] = "brune"
+    # Écarter l'accord, devenu moins cher que l'effraction avec le vrai temps.
+    retenir_refus(m, "brune", "marchand", "demander", "mefiance", objet="vivres")
     lire(m, "brune")["besoins"]["faim"] = 96.0
     m.joueur.update(salle="chambre_cloche", position=[3, 7], orientation="nord")
     percevoir_tous(m)

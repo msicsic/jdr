@@ -1243,7 +1243,7 @@ def _pas(m, salle, position, vecteur, porte_fermee=False, case_libre=None):
 
 
 def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=lambda salle, case: True,
-           solides=True, passages=None, allure=None, releve=None):
+           solides=True, passages=None, allure=None, releve=None, cout_porte=None):
     """Le chemin le plus court en temps, d'un pas à la fois, vers une case où ``arrivee(salle, case)`` :
     [(salle, case, porte fermée à franchir ou None, sens du pas)], vide si l'on y est déjà, None
     sans passage. Chaque pas coûte sa durée (``temps.duree_pas`` : en diagonale, √2 fois un pas
@@ -1287,6 +1287,8 @@ def trajet(m, salle, position, arrivee, franchissable=lambda porte: True, libre=
         if passages:
             suites.extend(passages(*courant))
         for suivant, porte, vecteur, duree in suites:
+            if cout_porte and isinstance(porte, str) and porte:
+                duree += cout_porte(porte)
             if (suivant in faits or cout + duree >= couts.get(suivant, cout + duree + 1) or not libre(*suivant)
                     or isinstance(porte, str) and porte and not franchissable(porte)):
                 continue

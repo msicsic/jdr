@@ -144,8 +144,8 @@ def parcours(monde, id, depart, cles=(), ouvertes=(), portes=None, metrique=None
     from .obstacles import metrique_necessaire, parcours_cru
     if metrique is None:
         metrique = metrique_necessaire(monde, id)
-    if metrique:
-        return parcours_cru(monde, id, depart, cles, ouvertes, portes)
+    if monde.data.get("mode_cases"):
+        return parcours_cru(monde, id, depart, cles, ouvertes, portes, metrique=metrique)
     barrees = _cases_barrees_crues(monde, id) if monde.data.get("mode_cases") else set()
     precedent, file = {depart: None}, deque([depart])
     while file:
@@ -597,7 +597,7 @@ def _accessible(monde, id, objet):
             and (not monde.data.get("mode_cases") or "position" not in o or proche(monde, objet, id)))
 
 
-def _a_toucher(monde, id, etape):
+def _a_toucher(monde, id, etape, portes=None):
     """Ce que le geste touche sans qu'il le porte : il doit l'avoir à portée de main. Un geste
     touche sa cible (objet, ou personne à qui l'on parle), sauf s'il agit à distance ; un outil
     fixe s'emploie sur place, un outil mobile se tient en main (on ne marche pas vers lui)."""
@@ -611,7 +611,7 @@ def _a_toucher(monde, id, etape):
         if x == "joueur" and op in ("frapper", "assommer", "dans_le_dos"):
             touches.append(x)
             continue
-        if x not in monde.objets or _porte(monde, x, id):
+        if x not in monde.objets or (x in portes if portes is not None else _porte(monde, x, id)):
             continue
         if role == "outil" and (op in SOCIALES or monde.objets[x].get("mobile")):
             continue
@@ -1099,7 +1099,7 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
     (``passage.faire_place``) ; sans, il attend."""
     from .spatial import trajet
-    from .obstacles import descriptions_crues, transitions, metrique_necessaire
+    from .obstacles import descriptions_crues, transitions, metrique_necessaire, duree_porte
     from .temps import PAS_FEUTRE
     o = monde.objets[id]
     feutre = a_pas_feutres(monde, id)
@@ -1112,15 +1112,16 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     franchissable = lambda porte: _franchissable(monde, id, porte)
     formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id, allure) else {}
     passages = transitions(monde, id, formes, allure=allure) if formes else None
+    cout_porte = lambda p: duree_porte(monde, p)
     chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                      franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
-                     passages=passages, allure=allure)
+                     passages=passages, allure=allure, cout_porte=cout_porte)
     if chemin_ is None:
         if gestes is None:
             return None
         # Il n'atteindrait ce qu'il vise que d'une case où quelqu'un se tient.
         plein = trajet(monde, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
-                       passages=passages, allure=allure)
+                       passages=passages, allure=allure, cout_porte=cout_porte)
         if not plein or plein[-1][:2] not in occupees:
             return None
         from .passage import faire_place
@@ -1135,7 +1136,7 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
         detour = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                         franchissable=franchissable,
                         libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees,
-                        passages=passages, allure=allure)
+                        passages=passages, allure=allure, cout_porte=cout_porte)
         if not detour:
             if gestes is None:
                 return PAS  # Il attend qu'on lui laisse le passage.

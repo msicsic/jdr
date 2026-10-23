@@ -134,6 +134,7 @@ class LumiereDuButTests(unittest.TestCase):
         # lumière : bon marché, il est exploré et fait découvrir la lumière ; cher, le plan honnête
         # est trouvé avant. Le graphe repris doit rendre chaque fois la recherche neuve.
         m = self.scene("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve")
+        m.data["mode_cases"] = False  # borne d'un graphe synthétique aux coûts historiques explicites
         gestes_ordinaires = P.gestes
 
         def gestes(v, e, vises=None, but=None):

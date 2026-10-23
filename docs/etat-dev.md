@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-trajets-reels`, fusionnée, base `main` **aff9626** :
+  coût unique `obstacles.cout_route` en temps réel cru (case réelle puis projetée,
+  allure, diagonales, approches, rotations, portes et gestes). Pression par salle
+  avant les effets ; état de recherche, graphes et certificats distinguent positions,
+  portes et objets posés. Distances locales mémorisées et reprises vérifiées.
+  Neuf tests de trajets suivent exécution, état, rendu et rechargement : Relais/mine,
+  portes, approches, noir, obstacles crus ou ignorés, allure et clé posée, fuite, laps découpé.
+  Suite complète verte : **1 585 tests, quatre ignorés**, trois processus, 1 161,92 s ;
+  neuvième test ajouté ensuite et passé séparément (**1 586 tests couverts**).
+  Contrôles 2 h, graine 42, quatre scénarios et `rixe` : sans erreur ni borne ;
+  empreintes aux repères de 2 h conservées sur quatre graines, référence réutilisable
+  dans `artifacts/references/aff9626af03c810f5881bae33301254d84bd9940/` du dépôt principal.
+  Nouvelle règle « Rythme des lots » de **42bb9c0** appliquée : dernière campagne CPU
+  8 h arrêtée, aucun calcul restant, aucune suite ni campagne longue relancée.
+  Limites révélées avant l'arrêt : Bram lumière à 463 min atteint la borne de 4 000
+  états ; nouvelle rafale au Relais 1985 (197 passages par PNJ dans une heure),
+  allers-retours faim/abri dans crue 2024. L'absence de boucle nouvelle n'est pas acquise.
+  Préférences inchangées, aucun appel à Luna. Bruts dans `artifacts/` ;
+  [rapport d'une page et réserves pour l'intégration](taches/rapport-codex-20-trajets-reels.md).
+  Fusionné après `codex-luna-restes` (`main` 42bb9c0 ; depuis la base : S, `plan-agendas`, `plan-decision`,
+  « Rythme des lots ») : seul conflit textuel `docs/etat-dev.md`. Un seul fichier de code commun,
+  `obstacles.py`, fusionné sans conflit : la forme inconnue d'un passage lève `ProprieteInconnue` (S,
+  sous-classe d'`ErreurMonde`, donc toujours attrapée par `transitions`, `compiler` et la fuite de Q) et
+  `cout_route` reste la seule mesure de route (Q). Suite (`tools/tests.py --processus 2`, poste chargé)
+  **1600 tests, 15 sautés**, verte (3 449 s).
 - Branche `codex-luna-restes`, fusionnée, issue de `main` **8855312** : validation physique
   déterministe avant revue de plausibilité ; propriétés connues et champs inconnus distingués ;
   fidélité de parole séparée en audiences admissibles et contenu, comparée par le moteur, avec
@@ -32,7 +57,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Fusionné sur `main` df81dc4 (depuis la base : `plan-agendas` et `plan-decision`, documentation seule) :
   aucun conflit, aucun fichier de code commun. Suite sur la fusion (`tools/tests.py --processus 4`) : 1 591 tests,
   15 sautés, verte (536,7 s).
-
 - Branche `codex-sous-obstacle`, fusionnée, base `main` **276524c** :
   géométrie `passage` qualifiable et persistante, action composée `passer_obstacle` (dessous,
   dessus), même règle de gabarit/charge/encombrement et même durée pour le joueur et les PNJ.
@@ -2074,7 +2098,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite complète passe : **1 591 tests, 15 ignorés**, sans appel au modèle,
+- La suite complète passe : **1 600 tests, 15 ignorés**, sans appel au modèle,
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
@@ -2121,16 +2145,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'escalade refusée à qui porte un briquet ou une lanterne non décrits (85 cm au plus). Depuis
   `codex-luna-restes`, forme inconnue : le moteur dit immédiatement ce qui manque à une question ;
   une qualification valable et sa suite peuvent être validées en trois appels, la plausibilité
-  restant sémantique. Sans forme crue, le plan par salles ne sait pas qu'une salle est coupée (Gorm planifie une fuite
-  qu'il ne peut pas marcher). Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
-- Coût du planificateur en minute abstraite par salle (`obstacles.cout_route` : une minute par salle plus le
-  supplément réel d'un passage) : le lot trajets réels (`codex-trajets-reels`, en cours) devra absorber de O
-  `cout_route` et ses appelants (`Vue.allers`, `Vue.trajet`, `_chercher`, `part_estimee.aller`), les routes
-  mesurées de `obstacles.Parcours` (`duree_trajet`, `surcout_passages`), la preuve de domination
-  (`metrique_necessaire`, mémoire de 128 géométries recalculée sous `spatial.VERIFICATION`, à l'allure),
-  la case de départ dans `_entrees` quand le parcours métrique sert, la clé des routes par équipement
-  seulement en métrique, les arêtes de `_marcher` selon l'allure et la fuite du joueur
-  (`defense.chemin_fuite`), sans seconde fonction de route.
+  restant sémantique. Depuis `codex-trajets-reels`, une salle coupée sans franchissement cru est
+  inaccessible aussi dans le plan. Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
+- Trajets réels (`codex-trajets-reels`, fusionnée) : le coût en minutes abstraites par salle est
+  réglé (`obstacles.cout_route`, une seule mesure). Restent : l'échelle des préférences inchangée
+  (`DEMANDE`, `CHERCHER`, `TACHE`, `RESTER` face à des trajets de quelques secondes) ; recherches bornées
+  dans l'espace enrichi (Bram, mine 42, 463 min) ; la rafale de passages au Relais 1985 et les
+  allers-retours faim/abri de la crue 2024 (diagnostic ci-dessous à l'intégration).
 
 ## Décisions en attente
 
@@ -2145,7 +2166,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   banc des groupes, la crue étendue aux évacués du hameau (six à huit PNJ) ; au plus trois agendas
   actifs ; le plan de décision (habitudes, réflexion limitée) repris après A4. **Ordre des lots**, un à la
   fois (tous touchent `planification.py` ou `deliberation.py`) :
-  1. **Q, trajets réels** (`codex-trajets-reels`, en cours) : il absorbe ce que liste « À revoir » pour O
+  1. **Q, trajets réels** (`codex-trajets-reels`, fusionnée) : il absorbe ce que liste « À revoir » pour O
      (`obstacles.cout_route` et ses appelants, la preuve de domination, `defense.chemin_fuite`), une seule
      fonction de route. Il change le comportement (un trajet passe d'environ une minute à quelques
      secondes : demander, la faute et le noir pèsent relativement plus) : banc rapide avant et après,

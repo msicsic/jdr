@@ -128,6 +128,7 @@ class AbsenceTests(unittest.TestCase):
         m.objets["remy"]["profil"]["capacites"] = []
         m = recharger(m)
         cle = ("etape", "reserve")
+        m.data["mode_cases"] = False  # domaine synthétique : coûts posés par gestes ci-dessous
 
         def gestes(v, e, vises=None, but=None):
             etape = e.fait(*cle)
@@ -228,7 +229,10 @@ class AbsenceTests(unittest.TestCase):
                 # Ces sauvegardes étaient bornées avant les allègements. La part estimée
                 # permet aussi à la graine 42 de trouver son plan ; la propriété protégée
                 # ici reste l'exactitude des reprises et du monde rechargé.
-                if graine == 7:
+                if resultat is None:
+                    self.assertEqual(recherches[-1]['issue'], 'borne')
+                    self.assertEqual(recherches[-1]['noeuds'], p.NOEUDS)
+                elif graine == 7:
                     self.assertEqual(resultat[1][0]['lieu'], 'salle_commune')
                     self.assertEqual(recherches[-1]['issue'], 'plan')
                 else:

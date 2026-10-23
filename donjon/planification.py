@@ -86,18 +86,26 @@ def diagnostics():
 
 class Etat(tuple):
     """Où il se tient, ce qu'il porte, et ce que le plan a changé à ce qu'il croit. Deux états sont
-    égaux quand le sont (salle, portes, faits) : le tuple qu'il est."""
+    égaux quand le sont salle, possessions, faits, case, orientation et allure."""
 
-    def __new__(cls, salle, portes, faits):
+    def __new__(cls, salle, portes, faits, case=None, orientation=None, allure=15):
         portes, faits = frozenset(portes), dict(faits)
-        etat = tuple.__new__(cls, (salle, portes, frozenset(faits.items())))
+        case = tuple(case) if case is not None else None
+        etat = tuple.__new__(cls, (salle, portes, frozenset(faits.items()), case, orientation, allure))
         etat.salle, etat.portes, etat.faits = salle, portes, faits
+        etat.case, etat.orientation = case, orientation
+        etat.allure = allure
         return etat
 
     def __lt__(self, autre):
         return False
 
-    def apres(self, salle=None, portes=None, faits=()):
+    def apres(self, salle=None, portes=None, faits=(), case=..., orientation=..., allure=None):
+        if case is ...:
+            case = self.case if salle in (None, self.salle) else None
+        case = tuple(case) if case is not None else None
+        orientation = self.orientation if orientation is ... else orientation
+        allure = self.allure if allure is None else allure
         salle = self.salle if salle is None else salle
         portes = self.portes if portes is None else frozenset(portes)
         if faits:
@@ -106,8 +114,10 @@ class Etat(tuple):
         else:
             # Aucun fait nouveau : ceux de cet état, qu'aucun état ne modifie en place.
             faits, geles = self.faits, self[2]
-        suivant = tuple.__new__(Etat, (salle, portes, geles))
+        suivant = tuple.__new__(Etat, (salle, portes, geles, case, orientation, allure))
         suivant.salle, suivant.portes, suivant.faits = salle, portes, faits
+        suivant.case, suivant.orientation = case, orientation
+        suivant.allure = allure
         return suivant
 
     def fait(self, *cle):
@@ -228,9 +238,13 @@ class Vue:
                                    else taux(monde, id, "menace"))
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
-        from .obstacles import metrique_necessaire
+        from .obstacles import metrique_necessaire, monde_cru
         self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
         self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
+        self._metriques = {15: self._metrique}
+        self._cru_spatial = monde_cru(monde, id) if monde.data.get("mode_cases") else None
+        self._approches = {}
+        self._locaux = {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
         # par un plan de recherche. Il lui faut aussi l'a priori d'un inconnu.
@@ -457,9 +471,9 @@ class Vue:
         return crus[cle]
 
     def allers(self, e, ouvertes):
-        """[(salle, longueur du trajet)] : chaque autre salle qu'il croit atteindre depuis celle de
+        """[(salle, minutes du trajet)] : chaque autre salle qu'il croit atteindre depuis celle de
         ``e``, avec ce qu'il porte et les portes que le plan a déverrouillées (``route``)."""
-        cle = (e.salle, e.portes, ouvertes)
+        cle = (e.salle, e.case, e.orientation, e.portes, ouvertes, e.allure, self.portes_prevues(e))
         if cle not in self._allers:
             allers = []
             for s in self.salles_triees:
@@ -467,7 +481,7 @@ class Vue:
                     route = self.route(e, s, ouvertes)
                     if route is not None:
                         from .obstacles import cout_route
-                        allers.append((s, cout_route(route)))
+                        allers.append((s, cout_route(route, e.orientation)))
             self._allers[cle] = allers
         return self._allers[cle]
 
@@ -475,24 +489,138 @@ class Vue:
         """Les sorties de sa salle jusqu'à ``arrivee``, avec les clés qu'il porte et les portes que
         le plan a déverrouillées (crochetées, ``ouvertes`` si on les a déjà) ; None s'il n'y croit
         aucun passage."""
-        trajet = (e.salle, arrivee, e.portes, self.ouvertes(e) if ouvertes is None else ouvertes)
+        trajet = (e.salle, arrivee, e.portes, self.ouvertes(e) if ouvertes is None else ouvertes, e.case, e.allure,
+                  self.portes_prevues(e))
         if trajet in self._trajets:
             return self._trajets[trajet]
         cles = frozenset(k for k in e.portes if self.objets[k].get("ouvre"))
         # L'équipement entier ne compte que pour le parcours métrique (un passage sous ou sur un
         # obstacle selon ce qu'on porte) ; sinon seules les clés changent la route.
-        equipement = e.portes if self._metrique else cles
-        cle = (e.salle, arrivee, equipement, trajet[3])
+        metrique = self.metrique(e.allure)
+        equipement = e.portes if metrique else cles
+        cle = (e.salle, arrivee, equipement, trajet[3], e.case, e.allure, trajet[6])
+        depuis = (e.salle, equipement, trajet[3], e.case, e.allure, trajet[6])
         if cle not in self._routes:
             # Le parcours depuis sa salle vaut pour toutes les arrivées (``pnj.parcours``).
-            depuis = (e.salle, equipement, trajet[3])
             if depuis not in self._parcours:
-                self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3], e.portes,
-                                                        metrique=self._metrique)
+                if self._cru_spatial is not None:
+                    from .obstacles import parcours_cru
+                    cru = self._cru_spatial
+                    if trajet[6]:
+                        cru = copy.copy(cru)
+                        cru.objets = dict(cru.objets)
+                        for (genre, porte), valeur in trajet[6]:
+                            champ = "ouverte" if genre == "ouvert" else "verrouillee"
+                            cru.objets[porte] = {**cru.objets[porte], champ: valeur}
+                        cru.data = {**cru.data, "objets": cru.objets}
+                    self._parcours[depuis] = parcours_cru(
+                        self.monde, self.id, e.salle, cles, trajet[3], e.portes,
+                        position=e.case, allure=e.allure, metrique=metrique, cru=cru)
+                else:
+                    self._parcours[depuis] = self._parcourir(self.monde, self.id, e.salle, cles, trajet[3], e.portes,
+                                                          metrique=False)
             self._routes[cle] = self._chemin(self.monde, self.id, e.salle, arrivee, cles, trajet[3],
                                              self._parcours[depuis])
+        self._locaux[trajet] = self._parcours[depuis]
         self._trajets[trajet] = self._routes[cle]
         return self._routes[cle]
+
+    def metrique(self, allure):
+        if allure not in self._metriques:
+            from .obstacles import metrique_necessaire
+            self._metriques[allure] = metrique_necessaire(self.monde, self.id, allure) if self._passages_crus else False
+        return self._metriques[allure]
+
+    def portes_prevues(self, e):
+        return tuple(sorted((k, x) for k, x in e.faits.items() if k[0] in ("ouvert", "verrou")
+                            and self.objets[k[1]]["type"] == "porte"))
+
+    def arrivee(self, e, salle, route):
+        """La case d'entrée et les portes déjà ouvertes appartiennent à l'état exploré."""
+        from .obstacles import Route
+        if not isinstance(route, Route):
+            return e.apres(salle=salle)
+        from .spatial import VECTEURS
+        orientation = next((k for k, v in VECTEURS.items() if route.chemin and v == route.chemin[-1][3]), e.orientation)
+        faits = [(cle, valeur) for p in sorted(route.portes) if not self.ouvert(e, p) or self.verrouille(e, p)
+                 for cle, valeur in ((("ouvert", p), True), (("verrou", p), False))]
+        return e.apres(salle=salle, case=route.fin[1], orientation=orientation, faits=faits)
+
+    def prix_route(self, e, route):
+        """Pression intégrée dans chaque salle parcourue, avant les effets du geste."""
+        from .obstacles import Route, cout_route, sejours_route
+        from .temps import MINUTE
+        if not isinstance(route, Route):
+            return cout_route(route) * self.pression(e)
+        return sum(d / MINUTE * self.pression(e.apres(salle=s))
+                   for s, d in sejours_route(route, e.orientation) if d)
+
+    def case_objet(self, e, objet, vus=()):
+        """Position prévue, sinon crue ; le contenant ou le porteur donne sa case."""
+        if objet in e.portes or objet == self.id:
+            return e.case
+        if objet in vus:
+            return None
+        if ("case_objet", objet) in e.faits:
+            return e.fait("case_objet", objet)
+        lieu = self.lieu(e, objet)
+        if lieu in self.objets or lieu == "joueur":
+            return self.case_objet(e, lieu, (*vus, objet))
+        cru = lire(self.monde, self.id)["croyances"].get(objet, {}).get("lieu", {})
+        if cru.get("salle") == e.salle and cru.get("case") is not None:
+            return tuple(cru["case"])
+        o = self.objets.get(objet, {})
+        if o and not o.get("mobile") and o.get("type") != "personnage":
+            from .spatial import position_cible
+            return position_cible(self.monde, objet, e.salle)
+        return None
+
+    def approche(self, e, etape, cibles=None):
+        """Même contact que l'exécution, sur les positions et obstacles crus."""
+        from .obstacles import Route
+        from .pnj import _a_toucher, _a_portee_de
+        if self._cru_spatial is None or e.case is None:
+            return Route(fin=(e.salle, e.case))
+        touches = _a_toucher(self.monde, self.id, etape, e.portes)
+        cibles = tuple(self.case_objet(e, x) for x in touches) if cibles is None else tuple(cibles)
+        centre = etape["operation"] == "inspecter" and not etape.get("attendre_remise")
+        if centre:
+            from .geometrie import cases
+            from .spatial import _case_libre
+            sol = cases(self.salles[e.salle])
+            cx, cy = sum(x for x, _ in sol) / len(sol), sum(y for _, y in sol) / len(sol)
+            libres = [c for c in sol if c == e.case or _case_libre(self._cru_spatial, e.salle, c)]
+            cibles = (min(libres, key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, tuple(c))),) if libres else ()
+        if not cibles or None in cibles:
+            return Route(fin=(e.salle, e.case))
+        metrique = self.metrique(e.allure)
+        cle = (e.salle, e.case, e.portes if metrique else frozenset(k for k in e.portes if self.objets[k].get("ouvre")),
+               cibles, centre, e.allure, self.ouvertes(e), self.portes_prevues(e))
+        if cle not in self._approches:
+            cru = self._cru_spatial
+            # Une approche peut sortir puis revenir si la géométrie l'exige ;
+            # elle réemploie le même parcours que tous les allers de cet état.
+            self.route(e, e.salle)
+            identite = (e.salle, e.salle, e.portes, self.ouvertes(e), e.case, e.allure,
+                        self.portes_prevues(e))
+            parcours = self._locaux[identite]
+            candidats = []
+            for (salle, _), (table, avant) in parcours.locaux.items():
+                if salle != e.salle:
+                    continue
+                for c, (d, chemin) in table.items():
+                    atteint = (c == cibles[0] if centre else
+                               all(_a_portee_de(cru, salle, c, cible) for cible in cibles))
+                    if not atteint:
+                        continue
+                    candidats.append((sum(t for _, t in avant.sejours) + d, len(candidats), c, chemin, avant, d))
+            if candidats:
+                _, _, case, chemin, avant, d = min(candidats)
+                self._approches[cle] = Route(avant, fin=(e.salle, case), chemin=(*avant.chemin, *chemin),
+                                             sejours=(*avant.sejours, (e.salle, d)), portes=avant.portes)
+            else:
+                self._approches[cle] = None
+        return self._approches[cle]
 
     def ouvertes(self, e):
         """Les portes que le plan a déverrouillées."""
@@ -602,7 +730,7 @@ class Vue:
                                    and (self.cru(f, "etat") or {}).get("allume") is False), None)
         return self._crus[cle]
 
-    def attente_part(self, e, donneur, o, service):
+    def attente_part(self, e, donneur, o, service, cible=None):
         """Les minutes qu'il attendra la part ``o`` promise, là où elle se sert (``service``) : que le
         donneur aille d'où il le croit jusqu'à elle, la prenne s'il faut la porter, vienne la servir.
         Promise dans le plan, le donneur s'est mis en route en même temps que lui : le chemin qu'il a
@@ -610,23 +738,55 @@ class Vue:
         servir."""
         reserve = self.salle(e, o)
         depuis = self.salle(e, donneur) or reserve or service
-        temps = 1 + self.trajet(depuis, reserve or depuis) + self.trajet(reserve or depuis, service)
-        if reserve not in (None, service) and self.lieu(e, o) != donneur:
-            temps += 1   # La prendre, pour la porter là où elle se sert.
+        from .pnj import DUREES
+        from .temps import MINUTE
+        portees = frozenset(k for k in self.connus if self.lieu(e, k) == donneur)
+        etat = e.apres(salle=depuis, portes=portees,
+                       case=self.case_objet(e.apres(salle=depuis), donneur), orientation=None)
+        temps = 0
+        for salle, objet in ((reserve or depuis, o), (service, cible)):
+            route = self.route(etat, salle)
+            if route is None:
+                return float(ATTENTE_PART)
+            from .obstacles import cout_route
+            temps += cout_route(route, etat.orientation)
+            etat = self.arrivee(etat, salle, route)
+            if objet:
+                approche = self.approche(etat, _etape("prendre", objet))
+                if approche is None:
+                    return float(ATTENTE_PART)
+                temps += cout_route(approche, etat.orientation)
+                etat = self.arrivee(etat, salle, approche)
+            elif salle == service and e.case is not None and e.salle == service:
+                approche = self.approche(etat, _etape("remettre"), cibles=(e.case,))
+                if approche is None:
+                    return float(ATTENTE_PART)
+                temps += cout_route(approche, etat.orientation)
+                etat = self.arrivee(etat, salle, approche)
+            if salle == reserve and reserve != service and o not in etat.portes:
+                temps += DUREES["prendre"] / MINUTE
+                etat = etat.apres(portes=etat.portes | {o})
+        servir = DUREES["servir"] / MINUTE
+        temps += servir
         promis_ou = e.fait("promis_ou", o)
         if promis_ou is not None:
-            temps -= self.trajet(promis_ou, service)
-        return max(1, temps)
+            temps -= self.trajet(promis_ou, service, case=e.fait("promis_case", o))
+        return max(servir, temps)
 
-    def trajet(self, depart_, arrivee):
-        """Les sorties d'une salle à une autre, par le chemin qu'il en connaît ; 0 sans chemin."""
-        if depart_ == arrivee:
-            return 0
-        cle = ("trajet", depart_, arrivee)
+    def trajet(self, depart_, arrivee, *, case=None, cible=None):
+        """Temps cru entre positions ; sans case connue, départ conventionnel de la salle."""
+        etat = depart_ if isinstance(depart_, Etat) else Etat(depart_, (), {}, case)
+        cle = ("trajet", etat, arrivee, cible)
         if cle not in self._crus:
-            route = self._chemin(self.monde, self.id, depart_, arrivee, frozenset(), frozenset(), metrique=self._metrique)
+            route = self.route(etat, arrivee)
             from .obstacles import cout_route
-            self._crus[cle] = 0 if route is None else cout_route(route)
+            temps = 0 if route is None else cout_route(route, etat.orientation)
+            if route is not None and cible:
+                etat = self.arrivee(etat, arrivee, route)
+                approche = self.approche(etat, _etape("prendre", cible))
+                if approche is not None:
+                    temps += cout_route(approche, etat.orientation)
+            self._crus[cle] = temps
         return self._crus[cle]
 
     def feu_noye(self):
@@ -682,14 +842,17 @@ class Vue:
         craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``prix_gardes``), l'eau qu'il
         croit ou attend là (au taux où elle l'inquiète, ``NOIR`` par point, comme le noir)."""
         pressions = self._pressions
-        if e not in pressions:
+        # La case et l'orientation changent le trajet, pas le taux par salle.
+        # Ne pas multiplier ces mêmes lectures pour tous les seuils d'arrivée.
+        cle = (e.salle, e.portes, frozenset((k, x) for k, x in e.faits.items() if k[0] in ("allume", "lieu")))
+        if cle not in pressions:
             p = NOIR * self.peur if self.peur and self.noir(e) else 0
             peur_sociale = max((peur for x, peur in self.peurs_sociales.items()
                                 if self.salle(e, x) == e.salle), default=0)
-            pressions[e] = (p + NOIR * self.taux_mefiance * peur_sociale
+            pressions[cle] = (p + NOIR * self.taux_mefiance * peur_sociale
                            + sum(prix for g, prix in self.prix_gardes.items() if g != e.salle)
                            + NOIR * self.eau.get(e.salle, 0))
-        return pressions[e]
+        return pressions[cle]
 
     def violence(self, cible, defense=False):
         from .combat import prix_violence
@@ -862,6 +1025,14 @@ def gestes(v, e, vises=None, but=None):
         touche_conso = [(("faute", lese_conso, "honnetete"), True)] if lese_conso else []
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
+        # Dans la projection, une charge suffisante ne s'épuise pas en chemin.
+        # Porter un combustible sans aucune source à recharger ne change donc
+        # aucun geste futur ; on ne développe pas ces inventaires équivalents.
+        if (utile and o not in v_prendre and "combustible" in x.get("usages", ())
+                and not (set(x.get("usages", ())) & (set(USAGES) - {"combustible"}))
+                and not x.get("ouvre") and "allume" not in x
+                and not any(recharge(objets[s], x) and not v.feu(e, s)[1] for s in v.rechargeables)):
+            utile = False
         if ici and o not in portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=portes | {o}, faits=touche)
         # Le demander à qui le porte, s'il est là : il peut refuser, le plan se refait alors.
@@ -982,7 +1153,7 @@ def gestes(v, e, vises=None, but=None):
         if "allume" in x and not superflu and (o in portes or ici or v.salle(e, o) == sa_salle and not x.get("mobile")):
             allume, charge = v.feu(e, o)
             # Un foyer se recharge tant qu'il n'est pas vif ; une lampe, quand elle est vide.
-            if brule(x) and not (allume and charge) and (x.get("foyer") or o in v_entretenir or not charge):
+            if brule(x) and not charge:
                 for bois in sorted(k for k in e.portes if recharge(x, objets[k]) and v.disponible(k)):
                     yield (mal, 1, [_etape("alimenter", o, outil=bois, condition=faute)],
                            e.apres(faits=[(("charge", o), True), *touche]))
@@ -1035,7 +1206,7 @@ def peine_tache(v, e, condition):
     """La peine d'une tâche, d'après ce qu'il en croit : le chemin d'ici (où se tient celui qu'il
     paie) jusqu'au lieu de la tâche, et ``TACHE`` minutes de travail ; None s'il ne sait où."""
     lieu = condition.get("lieu") or v.salle(e, condition["objet"])
-    return None if lieu is None else v.trajet(e.salle, lieu) + TACHE
+    return None if lieu is None else v.trajet(e, lieu, cible=condition["objet"]) + TACHE
 
 
 def prix_tache(peine):
@@ -1127,11 +1298,11 @@ def _parts(v, e, o, dans, vises, but):
         if promise:
             service = v.salle(e, foyer) if foyer else v.salle(e, o)
             if e.salle == service:
-                attente = v.attente_part(e, donneur, o, service)
+                attente = v.attente_part(e, donneur, o, service, foyer or o)
                 yield 0, attente, [], e.apres(faits=part), attente
         elif not e.fait("promis", o):
             ou = v.salle(e, donneur)
-            promis = [(("promis", o), donneur), (("promis_ou", o), e.salle)]
+            promis = [(("promis", o), donneur), (("promis_ou", o), e.salle), (("promis_case", o), e.case)]
             # Promise, elle ne mène qu'à l'attendre là où elle se sert : la demander ou
             # l'acheter ne sert que si, servie là, elle atteint le but (comme ``TERMINAUX``). On ne
             # la demande ni ne l'achète qu'au donneur qui se tient là : ailleurs, rien à juger.
@@ -1212,16 +1383,29 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     from .part_estimee import suites
     en_feu = sum(1 for k in e.portes if e.fait("allume", k))
     for minutes, demande, duree, paye in offres:
+        depuis, pression = e, attente * v.pression(e)
+        if not promise:
+            mesure = _mesurer(v, e, [demande], e, 1)
+            if mesure is None:
+                continue
+            temps_demande, pression_demande, depuis = mesure
+            minutes += temps_demande - 1
+            duree += temps_demande - 1
+            pression += pression_demande
         v._estime_part = True
         try:
-            estimations = suites(v, e.apres(faits=[(("depense",), (e.fait("depense") or 0) + paye)]),
+            estimations = suites(v, depuis.apres(faits=[(("depense",), (e.fait("depense") or 0) + paye)]),
                                  o, vises, but or (lambda v, e: True))
         finally:
             v._estime_part = False
         for fautes, cout, final, abime in estimations:
             fin = final.apres(faits=[(("estimation",), True)])
-            yield (fautes, minutes * (1 + FLAMME_EN_MAIN * en_feu) + duree * v.pression(e) + cout,
+            yield (fautes, minutes + duree * FLAMME_EN_MAIN * en_feu + pression + cout,
                    [{**demande, "part_estimee": o}], fin, 0, abime)
+
+
+class TransitionMesuree(tuple):
+    """Transition déjà mesurée, avec sa pression intégrée en dernier terme."""
 
 
 def _chercher(v, e, sujet):
@@ -1236,17 +1420,23 @@ def _chercher(v, e, sujet):
         return None
     from .obstacles import cout_route
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
-    salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s]), s))
+    salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
     etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
         {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet}), "suppose": True}]
-    return 0, cout_route(routes[salle]) + 1 + CHERCHER, etapes, e.apres(
-        salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)]), cout_route(routes[salle]) + 1
+    suivant = e.apres(salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
+    mesure = _mesurer(v, e, etapes, suivant, cout_route(routes[salle], e.orientation) + 1)
+    if mesure is None:
+        return None
+    temps, pression, suivant = mesure
+    return TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
 
 
 def depart(monde, id, v=None):
     v = v or Vue(monde, id)
-    return Etat(monde.objets[id]["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {})
+    o = monde.objets[id]
+    return Etat(o["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {},
+                o.get("position") if monde.data.get("mode_cases") else None, o.get("orientation"))
 
 
 # Ce qui change d'une minute à l'autre dans un objet, et qu'une recherche ne lit jamais : elle lit
@@ -1269,9 +1459,9 @@ def _entrees(v, vises, profondeur, noeuds):
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
     from .signes import actives
-    # Le parcours métrique lit les positions crues des obstacles, et sa case de
-    # départ actuelle. Aucun champ neuf sans géométrie crue (identité des nuits).
-    passages, metrique = v._passages_crus, v._metrique
+    # Le temps de marche lit toujours les positions crues et le départ réel,
+    # même quand la preuve permet d'écarter les franchissements spéciaux.
+    metrique = v._metrique
     return json.dumps([
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
@@ -1316,9 +1506,11 @@ def _entrees(v, vises, profondeur, noeuds):
         _entrees_defense(v, vises),
         # Le parcours métrique : positions crues des obstacles de forme connue, et la
         # case de départ quand la preuve de domination ne l'écarte pas.
-        ([metrique, monde.objets[id].get("position") if metrique else None,
+        ([metrique, monde.objets[id].get("position"), monde.objets[id].get("orientation"),
           [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
-           if "lieu" in d and monde.objets.get(s, {}).get("bloque_passage")]] if passages else None)
+           if "lieu" in d]], bool(monde.data.get("mode_cases"))),
+        [[k, o.get("position"), o.get("position_salle"), o.get("positions_salles")]
+         for k, o in monde.objets.items() if not o.get("mobile") and o["type"] != "personnage"]
         ], ensure_ascii=False, check_circular=False)
 
 
@@ -1531,6 +1723,19 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     return resultat
 
 
+def _departs(v, e):
+    # L'exécution marche à pas feutrés dès le début d'un plan comportant un
+    # geste sans témoin. Les deux allures sont donc des états initiaux, pas un
+    # supplément découvert trop tard au moment de la faute.
+    if getattr(v, "_cru_spatial", None) is None or e.case is None:
+        return [e]
+    furtif = (any(v.illicite[o] and v.autorise[o] for o in v.connus)
+              or v.degat is not None and any(v.violence(x) is not None for x in v.personnes()))
+    if furtif:
+        return [e.apres(allure=15), e.apres(allure=30)]
+    return [e]
+
+
 def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
                     decouvrir=False):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
@@ -1551,8 +1756,9 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     ordre = count()
     infini = float("inf")
     degat = v.degat
-    file = [(0, next(ordre), depart_, [], 0, False)]
-    vus = {depart_: 0}
+    departs = _departs(v, depart_)
+    file = [(0, next(ordre), e, [], 0, False) for e in departs]
+    vus = {e: 0 for e in departs}
     examines = plus_profond = 0
     trouve = None
     # La passe de découverte (``decouvrir``) n'a plus rien à apprendre dès la première lecture de
@@ -1569,7 +1775,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         plus_profond = max(plus_profond, n)
         noeud = None if graphe is None else graphe.get(e)
         if noeud is None:
-            noeud = [but(v, e), None, None, None, False]
+            noeud = [but(v, e) and (e.allure == 15 or e.fait("furtif")), None, None, None, False]
             if graphe is not None:
                 graphe[e] = noeud
         elif noeud[4] == "but":
@@ -1600,11 +1806,13 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                 continue
             surcout = (degat or 0) * abime if abime else 0   # un prix qui n'est pas du temps (abîmer)
             estime = suivant.fait("estimation")
-            total = cout + fautes * (faute or 0) + surcout + minutes * (1 if estime else 1 + FLAMME_EN_MAIN * en_feu)
+            total = cout + fautes * (faute or 0) + surcout + minutes
+            if not estime:
+                total += duree * FLAMME_EN_MAIN * en_feu
             if duree:
                 total += duree * pression  # Le temps qu'il passe dans le noir, ou loin de ses biens.
             if estime:
-                if not tenir or suivant.salle not in v.menacees:
+                if (suivant.allure == 15 or suivant.fait("furtif")) and (not tenir or suivant.salle not in v.menacees):
                     heapq.heappush(file, (total + (RESTER * v.pression(suivant) if tenir else 0),
                                          next(ordre), suivant, etapes + ajout, n + 1, True))
             elif total < vus.get(suivant, infini):
@@ -1619,6 +1827,11 @@ def _suites(v, e, vises, but, conclure=False):
     suites = []
     for geste in gestes(v, e, vises, but):
         fautes, minutes, ajout, suivant = geste[:4]
+        furtif = any(x.get("condition") in ("sans_temoin", "dans_le_dos") for x in ajout)
+        if furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None:
+            continue
+        if furtif:
+            suivant = suivant.apres(faits=[(("furtif",), True)])
         # Le devis a déjà évalué les trajets entre salles ; ne calculer ici que
         # ses gestes conclusifs, avant leurs pressions coûteuses.
         if conclure and (any(x["operation"] == "aller" for x in ajout) or not but(v, suivant)):
@@ -1627,14 +1840,90 @@ def _suites(v, e, vises, but, conclure=False):
                           or x["operation"] not in ("demander", "acheter"))
                           or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
             continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
-        duree = geste[4] if len(geste) > 4 else minutes
-        # Les faits de ``suivant`` comprennent ceux de ``e`` : un fait nouveau en fait plus.
+        # Écarter les effets terminaux inutiles avant de mesurer leur approche.
         if (len(suivant.faits) > len(e.faits) and any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits)
                 and not but(v, suivant)):
             continue
+        duree = geste[4] if len(geste) > 4 else minutes
+        if isinstance(geste, TransitionMesuree):
+            pression = geste[6]
+        elif ajout and not suivant.fait("estimation"):
+            mesure = _mesurer(v, e, ajout, suivant, duree)
+            if mesure is None:
+                continue
+            temps, pression, suivant = mesure
+            minutes += temps - duree
+            duree = temps
+        else:
+            pression = duree * v.pression(e) if duree else 0
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
-                       v.pression(suivant) if duree else 0))
+                       pression / duree if duree else 0))
     return suites
+
+
+def _mesurer(v, e, ajout, suivant, ancienne_duree):
+    """Approches, portes, rotations et gestes, par les règles communes d'exécution.
+
+    Les coûts sociaux restent séparés du temps. Une probabilité multiplie les
+    tentatives du geste, jamais la marche d'approche.
+    """
+    from .obstacles import cout_route
+    from .pnj import DUREES, DURABLES, TOUR
+    from .temps import MINUTE
+    from .spatial import QUART, quarts, orientation_vers
+    if v._cru_spatial is None or any(x["operation"] not in (*DUREES, *DURABLES, "aller", "assommer", "dans_le_dos", "fuite")
+                                      for x in ajout):
+        return ancienne_duree, ancienne_duree * v.pression(e), suivant
+    courant, temps, pression = e, 0, 0
+    for etape in ajout:
+        op, cible = etape["operation"], etape["cible"]
+        if op == "aller":
+            route = v.route(courant, etape["lieu"])
+        else:
+            route = v.approche(courant, etape)
+        if route is None:
+            return None
+        duree = cout_route(route, courant.orientation)
+        temps += duree
+        pression += v.prix_route(courant, route)
+        courant = v.arrivee(courant, etape["lieu"] if op == "aller" else courant.salle, route)
+        if op == "aller":
+            continue
+        case = v.case_objet(courant, cible) if cible else None
+        vers = orientation_vers(courant.case, case) if courant.case is not None and case is not None else None
+        rotation = QUART * quarts(courant.orientation, vers) if vers is not None else 0
+        if vers is not None:
+            courant = courant.apres(orientation=vers)
+        geste = DUREES.get(op, 20) / MINUTE
+        if op in DURABLES:
+            # Ces buts durent et se réévaluent à la minute ; RESTER demeure
+            # l'horizon de séjour, distinct de ce premier geste.
+            geste = 1
+        elif op == "crocheter":
+            geste *= ancienne_duree
+        elif op == "frapper":
+            if cible == "joueur" or v.objets.get(cible, {}).get("type") == "personnage":
+                geste = ancienne_duree
+            else:
+                geste *= ancienne_duree
+        elif op == "assommer":
+            geste = max(0, ancienne_duree - 1)
+        elif op == "dans_le_dos":
+            geste = 0
+        elif op == "fuite":
+            geste = 0
+        geste += rotation / MINUTE
+        if etape.get("condition") == "sans_temoin" and not v.desespere:
+            geste += TOUR / MINUTE
+        temps += geste
+        pression += geste * v.pression(courant)
+    faits = dict(suivant.faits)
+    faits.update({k: x for k, x in courant.faits.items() if k[0] in ("ouvert", "verrou")
+                  and suivant.faits.get(k) == e.faits.get(k)})
+    for etape in ajout:
+        if etape["operation"] == "poser":
+            faits[("case_objet", etape["cible"])] = courant.case
+    return temps, pression, suivant.apres(case=courant.case, orientation=courant.orientation, faits=faits.items())
 
 
 def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir):
@@ -1669,7 +1958,8 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
     cinquième terme) n'est pas suivi : y arriver fait reprendre la recherche avec lumière ; le
     parcours le signale."""
     from collections import deque
-    file, vus, lue = deque([(depart_, 0)]), {depart_}, False
+    departs = _departs(v, depart_)
+    file, vus, lue = deque((e, 0) for e in departs), set(departs), False
     while file:
         if examines >= PREUVE_MAX:
             return False, examines, "borne", lue
@@ -2053,7 +2343,7 @@ def s_enquerir(monde, id, besoin):
         salle = v.salle(e, autre)
         if autre in interroges or autre in connus or salle is None or v.se_mefie(autre):
             continue
-        longueur = v.trajet(e.salle, salle)
+        longueur = v.trajet(e, salle, cible=autre)
         if salle == e.salle or longueur:
             candidats.append((longueur, autre, salle))
     for _, autre, salle in sorted(candidats):

@@ -1483,3 +1483,66 @@ et une recherche de bien porté au Relais sans voix identifiée. La cause des lo
 est également vérifiée sur l'auberge 11, minute 500 (Mireille : charge payée confiée ; Hugues :
 rondes à jour), et le Relais 1985, minute 120 (charge du joueur). Résultats et limites dans
 `docs/taches/rapport-codex-14-signalements.md`.
+
+## Le coût du temps (branche `codex-trajets-reels`, non fusionnée)
+
+Le temps d'un aller n'est plus un nombre de salles. `obstacles.cout_route` compte en
+minutes fractionnaires les pas du chemin cru (`temps.duree_pas`, diagonales et allure),
+les gestes des portes et les rotations. `Route` garde les sorties, les pas, la case
+d'arrivée et les durées dans chaque salle ; une approche sans changement de salle a
+aussi une durée. Sans mode cases, les anciennes parties gardent leur horloge par minute.
+
+La recherche conserve la case et l'orientation dans `Etat`. Une entrée par un autre
+seuil ou un geste au fond d'une salle ne se confond plus avec le départ. Un objet posé
+par le plan garde sa case prévue. Les portes ouvertes en passant font partie des effets
+du déplacement. La marche ordinaire et la marche feutrée sont deux départs possibles
+quand un geste sans témoin est permis ; les gestes qui demandent cette précaution
+exigent l'allure feutrée depuis le début. Un plan feutré n'achève pas un but sans avoir
+effectivement employé cette précaution. Les deux graphes de lumière et le certificat
+d'absence suivent ces mêmes états et départs.
+
+`Vue.allers`, `route`, `trajet`, `_chercher`, l'attente d'une part, la peine de la tâche,
+le choix de l'interlocuteur d'une enquête, `part_estimee` et la fuite du joueur lisent
+cette mesure. `pnj.parcours` et `chemin` fournissent des routes mesurées en mode cases,
+même sans passage spécial. Une salle coupée sans franchissement cru est donc inaccessible.
+La marche et la fuite spatiales comptent aussi les gestes des portes dans leur choix de
+chemin. La preuve `metrique_necessaire` reste celle qui permet d'écarter les arêtes de
+franchissement dominées par la marche ; elle n'écarte plus la distance ordinaire.
+
+`_mesurer` emploie le contact commun `_a_toucher` / `_a_portee_de`, les positions crues,
+les durées `pnj.DUREES` et les tentatives attendues d'un jet. L'approche et la rotation
+précèdent le geste. La pression se compte dans les salles traversées et pendant le
+geste, avant ses effets : allumer ne supprime pas le noir du temps passé à l'allumer.
+La combustion en main multiplie le temps réel, pas les préférences sociales ou les prix.
+Le devis de part conserve son ordre de préparatifs et sa frontière de replanification.
+
+Le parcours global développe le départ et les seuils d'entrée. Les distances de chaque
+origine locale aux cases de sa salle sont gardées dans une mémoire bornée de 2 048 tables,
+partagée entre vues. Sa clé porte la salle, les obstacles crus et leurs formes, l'origine,
+l'allure et, quand les passages servent, le corps et les dimensions/masse de l'équipement.
+Les portes et clés prévues distinguent les parcours globaux. `spatial.VERIFICATION`
+recalcule les tables reprises ; `_entrees` inclut les positions crues, le départ réel,
+l'orientation et les placements fixes connus du lieu, pour les résultats, graphes et
+certificats. Une recharge qui ne change pas une charge suffisante n'ajoute plus un état ;
+un combustible sans source à recharger n'ajoute pas un inventaire inutile à la projection.
+
+L'échelle des prix reste volontairement inchangée : `DEMANDE`, `CHERCHER`, `RESTER`,
+`TACHE`, `SALAIRE`, les fautes et la valeur des pièces ne sont pas recalibrés en silence.
+Quelques secondes de marche coûtent désormais quelques centièmes de minute ; demander
+ou payer peut donc peser beaucoup plus. Les mesures et propositions de réglage sont dans
+le [rapport du lot](taches/rapport-codex-20-trajets-reels.md).
+
+Limites de la prévision : les positions inconnues demandent une origine conventionnelle
+du lieu ; une promesse ne prédit pas les autres préparatifs ni les délais du donneur.
+Les personnes peuvent bouger, faire obstacle ou refuser ; cela reste revalidé à l'exécution.
+Les gestes durables gardent leur horizon de séjour `RESTER`, sans simuler toute l'évolution
+future du corps. Le devis de part reste une estimation, pas une borne admissible. La recherche
+reste bornée à 4 000 états, dans un espace devenu plus riche ; les échecs par borne doivent
+être distingués des impossibilités prouvées.
+
+La mesure du temps ne garantit pas que la délibération laissera le plan aller au bout :
+une urgence d'abri peut interrompre un aller pour la faim ; la fuite actuelle s'achève
+dès que la salle diffère de celle du danger cru, sans horizon de sécurité durable.
+Les campagnes de ce lot révèlent des oscillations nouvelles dans ces domaines. Le
+critère d'absence de boucle nouvelle n'est pas satisfait ; les cas et mesures sont
+consignés dans le rapport, sans exception de scénario ni recalibrage masquant le défaut.

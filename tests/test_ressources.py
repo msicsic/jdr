@@ -40,18 +40,32 @@ class CrueTests(unittest.TestCase):
         # Les relations graduées changent cette nuit : Gorm refuse Brune, qui prend ensuite
         # les planches d'Aubin et rallume le poêle à 253. Les ressources restent comptées.
         m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
-        self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
-        self.assertIn("Brune, batelière évacuée alimente le poêle du guet.", textes)
-        self.assertIn("Brune, batelière évacuée allume le poêle du guet.", textes)
-        self.assertTrue(allumee(m.objets["poele_guet"]))
+        # Les trajets et gestes réels changent cette nuit : Brune ne prend plus
+        # les planches et arrive après l'extinction du poêle. Aucun bois fictif.
+        self.assertFalse(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
         # Les signes changent les occasions : cette nuit ne demande plus les bûches.
         # Le bois gardé reste intact ; une des deux planches prises a alimenté le poêle.
         self.assertEqual(m.objets["bois_guet"]["charges"], 3)
         self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
-        self.assertIn("Brune, batelière évacuée prend les planches de bac.", textes)
-        self.assertEqual(m.objets["planches"]["charges"], 1)
+        self.assertNotIn("Brune, batelière évacuée prend les planches de bac.", textes)
+        self.assertEqual(m.objets["planches"]["charges"], 2)
         self.assertEqual(m.objets["planches"]["proprietaire"], "aubin")
+        # La capacité de rejoindre le feu haut reste vérifiée dans la même crue,
+        # avant son extinction, depuis le palier voisin (et après recharge).
+        from tests.support import calme
+        from tests.test_tensions import placer
+        from donjon.esprits import croire
+        m = nuit("crue", 7, "chambre_cloche")
+        calme(m, "marchand", "brune", "ilse", "aubin")
+        placer(m, "brune", "beffroi", (8, 3))
+        lire(m, "brune")["besoins"]["chaleur"] = 80.0
+        croire(m, "brune", "poele_guet", "etat", {"allume": True, "charge": True}, "savoir")
+        m, textes = par_blocs(recharger(m), 10, 2)
+        self.assertIn("Brune, batelière évacuée se chauffe près du poêle du guet.", textes)
+        self.assertEqual(m.objets["brune"]["lieu"], "chambre_cloche")
+        self.assertLess(lire(m, "brune")["besoins"]["chaleur"], 80)
+        self.assertEqual(m.objets["bois_guet"]["charges"], 3)
 
 
 class AubergeTests(unittest.TestCase):

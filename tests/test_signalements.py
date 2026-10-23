@@ -45,7 +45,10 @@ class SecoursTests(unittest.TestCase):
         coupe = poursuivre(recharger(m), 80, 5)
         self.assertEqual(bloc.data, coupe.data)
         self.assertEqual(len(appels(bloc, 'marchand')), nombre)
-        self.assertFalse(lire(bloc, 'marchand')['secours']['apaise'])
+        # Avec les trajets réels, Gorm trouve désormais un abri et s'apaise.
+        # Aucun appel supplémentaire n'a précédé cet apaisement.
+        self.assertTrue(lire(bloc, 'marchand')['secours']['apaise'])
+        self.assertNotIn('securite', D.urgents(bloc, 'marchand'))
         # Le rendu de l'ouïe ne peut afficher un nouvel appel absent du monde.
         nouveaux = [(b, n, v) for b, n, v in entendus(bloc, debut, ENTENDU)
                     if b['auteur'] == 'marchand' and b['nature'] == 'appel']
