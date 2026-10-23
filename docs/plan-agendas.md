@@ -354,6 +354,16 @@ les engagements y sont portés ; données de départ lues ; sauvegarde. Aucun ag
 Critère : empreintes identiques ; contrôle AST qu'aucun code ne lit plus `esprit["engagements"]` hors
 du module.
 
+**Fait sur `codex-a1-socle`, non fusionnée.** Lectures copiées (condition, objet, personne,
+annulations comprises ou engagements actifs), prise, retrait de proposition, parole tenue,
+abandon annoncé, échéance et libération à la mort passent par le socle. Les contrats de mission,
+la validation et les lectures des outils y passent aussi. `profil["agendas"]` est consultable
+sans activation ni champ ajouté dans `data`. Le stockage des engagements reste inchangé ;
+leur conversion en agendas d'origine `parole`/`contrat`, avec les états et mécaniques du § 5,
+reste au premier lot qui en a besoin. Contrôle AST et deux parcours sauvegardés dans
+`tests/test_agendas_socle.py` ; mesures et limites dans le
+[rapport A1](taches/rapport-codex-24-a1-socle.md).
+
 **A2. Les propositions (3e de `docs/plan-relations.md`).** Telles que planifiées, avec la condition
 « remis » et les intermédiaires, qui serviront au mandat.
 

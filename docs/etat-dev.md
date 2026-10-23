@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-a1-socle`, non fusionnée, base A0 **2ddebe4**, brief **ccd8751** :
+  `donjon/agendas.py` est le seul accès aux engagements PNJ, aux accords de mission et aux
+  agendas de départ. Lectures copiées et filtrables ; écritures par opérations nommées ;
+  cycle des échéances et validation déplacés sans changement d'ordre ni de stockage.
+  Aucun agenda activé ni nouveau champ dans `data` ; la conversion en agendas d'origine
+  `parole`/`contrat` attend le premier lot qui en a besoin. Contrôle AST : 46 accès directs
+  sur 42bb9c0, aucun hors du socle désormais. Cinq nouveaux tests : garde AST, copies et
+  déclaration sans effet, part promise puis remise au Relais, tâche payée puis abandonnée
+  à l'auberge ; sauvegarde/rechargement, état et textes visibles contrôlés. Implémentation
+  **162986d**, signée SSH. Suite complète une fois, `tools/tests.py --processus 3` :
+  **1 600 tests, 4 ignorés, verte (349,6 s)**. Empreintes de 2 h contre 2ddebe4 :
+  chronique, mesures et état final complet identiques, quatre scénarios × quatre graines.
+  Référence calculée une fois et conservée dans `artifacts/references/2ddebe4017cfeec2d4fcd17d9fe923176f4112bb/`
+  du dépôt principal. Aucun appel Luna ni banc de 8 h. `planification.py` : une lecture
+  et l'import ; `pnj.py` et `signes.py` sans changement.
+  [API, sites, mesures et limites](taches/rapport-codex-24-a1-socle.md).
+
 - Branche `codex-a0-echelle`, non fusionnée, base `main` **42bb9c0**, brief **6772f31** :
   chaque candidat de `deliberation._candidats` porte une urgence explicite (palier, valeur,
   départage), seul critère du tri. Treize paliers historiques ; valeur des besoins pressants =
