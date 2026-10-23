@@ -289,7 +289,7 @@ class NomsTests(unittest.TestCase):
                 mj=MJ()
                 with patch.object(mj,'_appeler_brut',side_effect=[action(id_),action(designation(m,id_))]) as appels, \
                      patch.object(mj,'_auditer_action'):
-                    r=mj.echanger(m,f'je pousse {nom_}')
+                    r=mj.echanger(m,f'je pousse {nom_pour_joueur(m,id_)}')
                 self.assertEqual(appels.call_count,2)
                 retour=appels.call_args_list[1].args[1]['controle_narratif']
                 self.assertIn('proposition.cible',json.dumps(retour,ensure_ascii=False))

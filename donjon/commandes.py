@@ -261,6 +261,8 @@ def attente(texte):
 
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
+    from .noms import verifier_saisie
+    verifier_saisie(monde, texte)
     appel = cri(monde, texte)
     if appel:
         return appel

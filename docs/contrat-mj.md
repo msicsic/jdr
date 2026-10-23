@@ -138,10 +138,18 @@ personnage reste une parole.
 
 Un verbe de parole sans propos, quand aucune réponse locale à un appel ne le résout, demande
 au joueur ses mots avant tout appel au MJ. Une adresse nominale non résolue donne le refus du
-moteur, même sans guillemets. Pour une autre question, si le récit emploie un nom saisi que le
-joueur ne sait rattacher à personne, le moteur demande une désignation publique. Cette
-clarification ne cite ni corps ni identité privée et ne transforme pas le démenti en exception
-au garde nominal. Les répliques validées et les résultats d'action gardent leurs contrôles.
+moteur, même sans guillemets. Hors parole, `noms.verifier_saisie` résout les noms du lexique
+avant toute syntaxe locale ou interprétation du MJ, y compris pour une question et `mj …`.
+Un nom sans lien donne « Tu ne sais pas lequel d'entre eux est X » si des inconnus sont
+perçus, sinon « Tu ne connais personne du nom de X ici » ; un nom relié mais non perçu donne
+« Tu ne vois pas X d'ici ». Ce refus ne révèle ni corps ni position privée, ne fait rien
+apprendre et n'appelle aucun modèle, en ligne comme hors ligne. Le contrôle n'énumère pas
+les gestes : les références nominales viennent de l'état, par `noms.personnage`, aussi utilisé
+par la parole. Les mots cités, les appellations de voix et les désignations publiques gardent
+leur sens ; héler émet un nom sans exiger la présence de son porteur. Une parole mentionnant
+un tiers n'établit pas son identité. Les répliques validées et les résultats d'action gardent
+leurs contrôles. Un nom absent de tout le lexique n'est pas reconnu comme nom propre par ce
+contrôle ; l'interprétation et ses gardes de références restent nécessaires.
 
 Tous les répondants d'une parole sont entendus avant la narration, y compris un destinataire
 qui vient de s'écarter hors du champ visuel. Une voix entendue depuis une autre salle est un

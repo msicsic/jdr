@@ -378,7 +378,6 @@ VERBES_PAROLE = {**dict.fromkeys(("dis", "dit", "dire", "demande", "demander", "
 # destinataire ou un deux-points (« je lance à tous : … »).
 GESTES_HOMONYMES = ("lance",)
 PRONOMS = {"lui": False, "leur": True}                        # le pronom désigne-t-il un groupe ?
-ARTICLES_NOM = ("le ", "la ", "l'", "les ")
 JETON = re.compile(r"[^\W\d_](?:[\w'’-]*\w)?|[:,«»\"“”]")
 
 
@@ -388,40 +387,8 @@ class ParoleImpossible(ErreurMonde):
 
 
 def _personnage(monde, fragment, connu=True):
-    """Le personnage connu du joueur que ``fragment`` nomme exactement (identifiant, nom, prénom,
-    alias, avec ou sans article) ; sinon None. ``connu=False`` : n'importe quel personnage du monde,
-    pour un nom que Corvus prononce sans savoir à qui il est (une imposture, un nom inconnu)."""
-    from .noms import resoudre as personne
-    visuel = personne(monde, fragment) if connu else None
-    if visuel:
-        return visuel
-    texte = normaliser(fragment or "")
-    for article in ARTICLES_NOM:
-        if texte.startswith(article):
-            texte = texte[len(article):]
-            break
-    if not texte:
-        return None
-    if connu:
-        from .voix import entendues, designation
-        # Une appellation entendue désigne sa voix, jamais le corps réel qui porte ce nom ailleurs.
-        voix = []
-        for signature, entree in entendues(monde, 'joueur').items():
-            if entree['mefiance'] or signature not in monde.objets:
-                continue
-            for appellation in (entree['se_dit'], entree.get('appelee')):
-                if appellation not in monde.objets:
-                    continue
-                nom = monde.objets[appellation]['nom']
-                if texte in {normaliser(nom), normaliser(nom.split(',')[0])}:
-                    voix.append(signature)
-                    break
-        if len(voix) == 1:
-            return designation(monde, voix[0])
-    trouves = {id for id, o in monde.objets.items() if o["type"] == "personnage"
-               and texte in {normaliser(n) for n in (id, o["nom"], o["nom"].split(",")[0], *o.get("aliases", []))}
-               and (not connu or _connu_du_joueur(monde, id))}
-    return trouves.pop() if len(trouves) == 1 else None
+    from .noms import personnage
+    return personnage(monde, fragment, connu)
 
 
 # Un nom détaché par une virgule, où qu'il soit dans la phrase, désigne celui à qui l'on parle

@@ -153,12 +153,11 @@ class AdresseTests(unittest.TestCase):
         for nom in ("Gorm", "Ilse"):
             with self.subTest(nom=nom):
                 m = relais()
-                r, sortie, appels = jouer(m, f"de quelle couleur sont les yeux de {nom} ?", [
-                    dialogue(f"Tu ne connais personne du nom de {nom} ici.")], [])
-                self.assertIn("Tu ne sais pas à qui rattacher ce nom.", sortie)
-                self.assertEqual([f for f, _ in appels], ["repondre_au_joueur"])
+                r, sortie, appels = jouer(m, f"de quelle couleur sont les yeux de {nom} ?", [], [])
+                self.assertIn(f"Tu ne sais pas lequel d'entre eux est {nom}.", sortie)
+                self.assertEqual(appels, [])
                 self.assertEqual(r.data["noms_connus"], [])
-                self.assertNotIn(nom, r.data["narrations_mj"][-1]["texte"])
+                self.assertEqual(r.data.get("narrations_mj", []), m.data.get("narrations_mj", []))
                 self.assertEqual(r.data.get("paroles_pnj", []), [])
 
 

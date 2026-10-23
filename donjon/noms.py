@@ -510,3 +510,108 @@ def verifier(monde):
             and all(isinstance(identifiant, str) and type(numero) is int and numero > 0
                     for identifiant, numero in refs.items())), "Références publiques invalides"
     assert len(set(refs.values())) == len(refs), "Références publiques ambiguës"
+
+
+def personnage(monde, fragment, connu=True):
+    """Le personnage connu du joueur que ``fragment`` nomme exactement (identifiant, nom, prénom,
+    alias, avec ou sans article) ; sinon None. ``connu=False`` : n'importe quel personnage du monde,
+    pour un nom que Corvus prononce sans savoir à qui il est (une imposture, un nom inconnu)."""
+    visuel = resoudre(monde, fragment) if connu else None
+    if visuel:
+        return visuel
+    texte = normaliser(fragment or "")
+    for article in ("le ", "la ", "l'", "les "):
+        if texte.startswith(article):
+            texte = texte[len(article):]
+            break
+    if not texte:
+        return None
+    if connu:
+        from .voix import entendues, designation
+        # Une appellation entendue désigne sa voix, jamais le corps réel qui porte ce nom ailleurs.
+        voix = []
+        for signature, entree in entendues(monde, 'joueur').items():
+            if entree['mefiance'] or signature not in monde.objets:
+                continue
+            for appellation in (entree['se_dit'], entree.get('appelee')):
+                if appellation not in monde.objets:
+                    continue
+                nom = monde.objets[appellation]['nom']
+                if texte in {normaliser(nom), normaliser(nom.split(',')[0])}:
+                    voix.append(signature)
+                    break
+        if len(voix) == 1:
+            return designation(monde, voix[0])
+    trouves = {id for id, o in monde.objets.items() if o["type"] == "personnage"
+               and texte in {normaliser(n) for n in (id, o["nom"], o["nom"].split(",")[0], *o.get("aliases", []))}
+               and (not connu or connait(monde, "joueur", id))}
+    return trouves.pop() if len(trouves) == 1 else None
+
+
+class NomNonResolu(ErreurMonde):
+    """Une référence nominale manque ; le MJ ne peut pas décider qui elle désigne."""
+
+
+def verifier_nom(monde, nom):
+    """Un nom vise un corps relié ou une voix qui le porte, parmi ce qui est perçu.
+
+    Aucun lien n'est appris et aucun emplacement secret n'entre dans le message.
+    """
+    from .dialogues import interlocuteurs
+    from .voix import reel
+    reference_ = personnage(monde, nom)
+    cible = reel(monde, reference_)
+    if cible in monde.objets and (monde.designable(cible) or reference_ in interlocuteurs(monde)):
+        return cible
+    # Même un nom inconnu peut être prononcé : le refus cite les mots du joueur,
+    # jamais l'apparence du corps qui porte réellement ce nom.
+    recu = " ".join(nom.split())
+    affiche = recu[:1].upper() + recu[1:]
+    if reference_:
+        message = f"Tu ne vois pas {affiche} d'ici."
+    elif any(o["type"] == "personnage" and monde.designable(i) and not connait(monde, "joueur", i)
+             for i, o in monde.objets.items()):
+        message = f"Tu ne sais pas lequel d'entre eux est {affiche}."
+    else:
+        message = f"Tu ne connais personne du nom de {affiche} ici."
+    raise NomNonResolu(message,
+                       f"reference : reçu « {recu} » ; une désignation publique perçue et non ambiguë, "
+                       "ou un nom relié à une personne perçue ; aucun lien nominal à inventer.")
+
+
+def verifier_saisie(monde, texte):
+    """Résout les noms hors parole avant la syntaxe locale ou l'interprétation libre.
+
+    Le lexique vient de l'état, sans liste de gestes. Les mots d'une parole ne
+    ciblent pas tous une personne ; son adresse garde le contrôle de paroles.
+    """
+    termes = {normaliser(n) for i, o in monde.objets.items() if o["type"] in PERSONNES
+              for n in (i, _nom_reel(monde, i, o), _nom_reel(monde, i, o).split(',')[0],
+                        _nom_reel(monde, i, o).split()[0], *o.get("aliases", [])) if n}
+    normalise = normaliser(texte)
+    if not any(re.search(r"(?<!\w)" + re.escape(n) + r"(?!\w)", normalise) for n in termes):
+        return
+    from .paroles import analyser, CITATION_ENTIERE, hele
+    # Héler émet un nom à voix haute ; ce n'est pas un geste sur le corps nommé.
+    # La mécanique de l'appel exige déjà l'appellation et décide qui répond.
+    if hele(monde, texte) is not None:
+        return
+    forme = analyser(monde, texte)
+    if any(forme[k] for k in ("explicite", "incomplete", "nomme", "groupe", "inconnu")):
+        return
+    reste = CITATION_ENTIERE.sub(lambda m: " " * len(m.group()), texte)
+    # Une désignation publique (y compris « une voix qui se dit X » ou un objet
+    # dont le nom contient X) ne transforme pas son complément en cible séparée.
+    canoniques = [public(monde, o["nom"]) for i, o in monde.objets.items() if monde.designable(i)]
+    canoniques += [nom(monde, i) for i, o in monde.objets.items()
+                   if o["type"] == "personnage" and monde.designable(i)]
+    canoniques += _appellations_voix(monde)
+    # Les noms de personnes restent à résoudre ; seules les désignations
+    # descriptives et les noms d'objets entiers protègent leurs compléments.
+    canoniques = [n for n in canoniques if personnage(monde, n, connu=False) is None]
+    reste = hors_designations(normaliser(reste), [normaliser(n) for n in canoniques])
+    for terme in sorted(termes, key=lambda n: (-len(n), n)):
+        motif = re.compile(r"(?<!\w)" + re.escape(terme) + r"(?!\w)")
+        if motif.search(reste):
+            verifier_nom(monde, terme)
+            reste = motif.sub(" ", reste)
