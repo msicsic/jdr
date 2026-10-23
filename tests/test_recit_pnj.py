@@ -21,6 +21,31 @@ class RecitTests(unittest.TestCase):
         self.assertEqual(self.mesures, self.mesures_temoin)
         self.assertEqual(self.monde.data["esprits"], self.temoin.data["esprits"])
 
+    def test_l_estompement_compte_aussi_sans_recit_apres_reprise(self):
+        from donjon import relations
+        from donjon.esprits import lire, pnjs
+        from tests.support import calme
+        from tests.test_tensions import recharger
+        for axe in ("peur", "rancune"):
+            m = calme(creer("crue", 42, "fixe"), "ilse", "brune", "aubin", "marchand")
+            for id in pnjs(m):
+                lire(m, id)["libre"] = 600000
+            for id in pnjs(m):
+                lire(m, id)["relations"].clear()
+            m.objets["ilse"]["profil"]["valeurs"].update(fierte=1, douceur=100)
+            lire(m, "ilse")["relations"]["aubin"] = relations._nouvelle({axe: 50})
+            m = recharger(m)
+            avec = recharger(m)
+            recit = Recit(avec)
+            chronique, mesures = executer(m, 120)
+            raconte, mesure_racontee = executer(avec, 120, recit)
+            m, avec = recharger(m), recharger(avec)
+            self.assertEqual(m.data, avec.data)
+            self.assertEqual(chronique, raconte)
+            self.assertEqual(mesures, mesure_racontee)
+            self.assertEqual(mesures["relations_changees"], 1)
+            self.assertIn("estompement", recit.texte(avec, raconte))
+
     def test_buts_et_gestes_de_chacun(self):
         # Brune affamée : son but, et les gestes faits pour lui, dans l'ordre de la nuit.
         buts = [ep["but"]["type"] for ep in self.recit.episodes["brune"]]
@@ -58,7 +83,7 @@ class RecitTests(unittest.TestCase):
         texte = recit.texte(m, chronique)
         self.assertIn("== Entre eux ==", texte)
         self.assertIn("Gorm voit Brune prendre les planches de bac", texte)
-        self.assertIn("Gorm se méfie de Brune", texte)
+        self.assertIn("Gorm envers Brune : se méfie ; tort_tiers.", texte)
 
     def test_rondes_resumees(self):
         self.assertIn("Rondes :", self.texte)

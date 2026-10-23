@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from donjon.banc_pnj import creer, executer, nuits
 from donjon.esprits import lire
@@ -102,11 +103,17 @@ class AutresNuitsTests(unittest.TestCase):
             self.assertEqual(rejouer(enregistreur.lumiere, 10 ** 9), degres(m, enregistreur), scenario)
 
     def test_les_gestes_illicites_gardent_leurs_temoins(self):
-        m = creer("relais", 7, "fixe")
-        m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
+        # Scène déterminée : les nouvelles relations peuvent éviter le vol au cours
+        # d'une nuit libre. Ici le geste et l'arrivée du témoin doivent bien se produire.
+        from tests.test_ouie import brune_crochete_dans_le_dos_de_gorm, faire
+        from tests.test_social import recharger
+        from donjon.monde import Monde
+        m = brune_crochete_dans_le_dos_de_gorm()
         enregistreur = Enregistreur(m)
-        with enregistreur.observer():
-            executer(m, 8 * 60)
+        with enregistreur.observer(), patch.object(Monde, "d20", return_value=1):
+            faire(m, "attendre")
+        m = recharger(m)
+        self.assertTrue(m.objets["reserve"]["verrouillee"])
         self.assertTrue(enregistreur.gestes)
         vus = 0
         for g in enregistreur.gestes:
@@ -116,6 +123,10 @@ class AutresNuitsTests(unittest.TestCase):
                 self.assertNotEqual(qui, g["a"])
                 vus += 1
         self.assertTrue(vus)
+        self.assertTrue(any(g["op"] == "forcer" and g["objet"] == "reserve" for g in enregistreur.gestes))
+        html = page(enregistreur.donnees(m, m.data.get("chronique", [])))
+        donnees = json.loads(re.search(r"const D = (.*?);\nconst CS", html, re.S).group(1))
+        self.assertTrue(donnees["gestes"])
 
     def test_une_page_par_graine(self):
         with tempfile.TemporaryDirectory() as dossier:
@@ -139,6 +150,10 @@ class AutresNuitsTests(unittest.TestCase):
         self.assertEqual(set(resultat["lignes"]), {"tout", "ouie", "paroles", "illicite", "voir", "deplacement"})
         self.assertTrue(resultat["lignes"]["tout"] >= resultat["lignes"]["ouie"] > 0)
         self.assertGreater(resultat["ondes"], 0)
+        panneaux = " ".join(resultat["relations"].values())
+        self.assertIn("Envers ", panneaux)
+        for axe in ("confiance", "affection", "rancune", "peur", "dette"):
+            self.assertRegex(panneaux, axe + r" \d+")
 
 
 def degres(monde, enregistreur):

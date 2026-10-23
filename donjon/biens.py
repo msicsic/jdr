@@ -284,7 +284,6 @@ def regler(monde, d, reclamee, lignes):
     from .esprits import esprit, memoriser
     from .francais import designer
     from .pnj import _chroniquer
-    from .relations import eprouver
     from .social import _qui
     from .voix import personne_pour_joueur
     de, a = d["de"], d["a"]
@@ -312,7 +311,6 @@ def regler(monde, d, reclamee, lignes):
         else:
             # Le créancier le constate : il ne s'y fie plus, et peut le dire (``social.NOUVELLES``).
             memoriser(monde, a, {"type": "dette_niee", "auteur": de, "victime": a, "montant": d["montant"]})
-            eprouver(monde, a, de, "dette_niee")   # Il sait qui lui doit : il le constate de lui.
             if monde.visible(de) or monde.visible(a):
                 lignes.append(f"{designer(monde.objets[de], debut=True)} refuse de rendre à "
                               f"{designer(monde.objets[a])} ce qu'{il} lui doit.")
@@ -389,17 +387,15 @@ def pret_garde(monde, preteur, emprunteur, objet, lignes):
     from .esprits import memoriser
     from .francais import accorder, designer
     from .pnj import _chroniquer
-    from .relations import eprouver
     from .social import _qui
     memoriser(monde, preteur, {"type": "pret_garde", "auteur": emprunteur, "victime": preteur, "objet": objet})
-    eprouver(monde, preteur, emprunteur, "pret_garde")   # Il sait à qui il l'a prêté.
     o = monde.objets[objet]
-    _chroniquer(monde, preteur, f"{_qui(monde, preteur)} ne se fie plus à {_qui(monde, emprunteur)}, qui garde "
+    _chroniquer(monde, preteur, f"{_qui(monde, preteur)} reproche à {_qui(monde, emprunteur)} de garder "
                                 f"{designer(o)} qu'on lui a {accorder(o, 'prêté')}.", "social")
     if emprunteur == "joueur":
         from .voix import personne_pour_joueur
         nom = personne_pour_joueur(monde, preteur, court=True)[0]
-        lignes.append(f"{nom} ne te fait plus confiance : tu ne lui as pas rendu {designer(o)}.")
+        lignes.append(f"{nom} te reproche de ne pas lui avoir rendu {designer(o)}.")
 
 
 def prets_reclames(monde, lignes):

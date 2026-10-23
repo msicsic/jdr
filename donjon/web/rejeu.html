@@ -373,6 +373,10 @@ function panneau(etats, esprits) {
     lignes.push(`<div class="${juste ? "" : "faux"}">${marque(objet)} ${echapper(D.objets[objet].nom)} : ${echapper(cru)}` +
       (juste ? "" : ` <span class=gris>(en réalité : ${reel && D.salles[reel] ? echapper(D.salles[reel].nom) : reel && D.objets[reel] ? echapper(chez(reel)) : "?"})</span>`) + "</div>");
   });
+  const liens = esprits[choisi + "|:relations"] || {};
+  Object.entries(liens).forEach(([x, r]) => {
+    lignes.push(`<div><b>Envers ${echapper(court(x))}</b> : ${Object.entries(r).filter(([a]) => ["confiance", "affection", "rancune", "peur", "dette"].includes(a)).map(([a,v]) => `${echapper(a)} ${v}`).join(", ")}<br><span class=gris>${(r.motifs || []).map(m => `${m.minute} min : ${echapper(m.type)} (${Object.entries(m.effets).map(([a,v]) => `${echapper(a)} ${v > 0 ? "+" : ""}${v}`).join(", ")})`).join(" ; ")}</span></div>`);
+  });
   $("croyances").innerHTML = lignes.join("") || "<span class=gris>rien de localisé</span>";
 }
 // Le journal : la chronique, les « aller voir », les bruits qui ont fait réagir, les gestes illicites et leurs témoins.

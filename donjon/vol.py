@@ -7,7 +7,7 @@ def installer(monde):
     for id, o in monde.objets.items():
         if o["type"] == "personnage":
             o.setdefault("vigilance", 14)
-            monde.data["relations_pnj"].setdefault(id, {"soupcon": 0, "vols_surpris": 0, "dernier_objet": ""})
+            monde.data["relations_pnj"].setdefault(id, {"vols_surpris": 0})
 
 
 def proprietaire(monde, objet):
@@ -28,7 +28,7 @@ def proprietaire(monde, objet):
 def mefiance(monde, id):
     """Soupçon envers le joueur : incidents surpris, ou réputation apprise (vue ou rapportée)."""
     from .relations import se_mefie
-    return max(monde.data["relations_pnj"][id]["soupcon"], 1 if se_mefie(monde, id, "joueur") else 0)
+    return int(se_mefie(monde, id, "joueur"))
 
 
 def appliquer(monde, effet, lignes):
@@ -42,14 +42,10 @@ def appliquer(monde, effet, lignes):
         lignes.append("Tu dérobes " + designer(o) + ".")
     else:
         relation = monde.data["relations_pnj"][cible]
-        relation["soupcon"] = min(3, relation["soupcon"] + 1)
         relation["vols_surpris"] += 1
-        relation["dernier_objet"] = valeur
         from .deliberation import VOL, relancer
         from .esprits import memoriser
-        from .relations import eprouver
-        memoriser(monde, cible, {"type": "vol_surpris", "auteur": "joueur", "objet": valeur})
-        eprouver(monde, cible, "joueur", "vol_surpris")
+        memoriser(monde, cible, {"type": "vol_surpris", "auteur": "joueur", "objet": valeur, "victime": proprietaire(monde, monde.objets[valeur])})
         if proprietaire(monde, monde.objets[valeur]) == cible:
             relancer(monde, cible, "biens", VOL)  # Seule la victime craint pour ses biens.
         monde.objets[cible]["humeur"] = "méfiant"
@@ -68,7 +64,5 @@ def verifier(monde):
             assert o["vole_par"] == "joueur" and o.get("vole_a") and not o.get("en_vente"), "Possession volée incohérente"
     for id, relation in monde.data["relations_pnj"].items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Relation sans personnage"
-        assert type(relation["soupcon"]) is int and 0 <= relation["soupcon"] <= 3, "Soupçon invalide"
         assert type(relation["vols_surpris"]) is int and relation["vols_surpris"] >= 0, "Nombre de vols invalide"
-        assert not relation["dernier_objet"] or relation["dernier_objet"] in monde.objets, "Objet de l'incident inconnu"
         assert type(monde.objets[id]["vigilance"]) is int and 1 <= monde.objets[id]["vigilance"] <= 25, "Vigilance invalide"

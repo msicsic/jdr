@@ -68,11 +68,11 @@ class AubergeTests(unittest.TestCase):
         # nouvelles qui circulent, et pas seulement des rondes.
         self.assertEqual(mesures["usurpations"], 0)
         self.assertGreater(mesures["echanges"], 5)
-        # (Depuis que la lumière se constate devant la serrure et qu'une part s'achète plutôt que de
-        # risquer un refus, cette nuit en compte 14 : Lucien renonce au coffre trop sombre, et les
-        # refus suivis d'un achat deviennent un achat. Depuis que l'auberge a du bois pour la nuit,
-        # branche ``ressources``, 11 : moins de demandes de bois dans ces trois premières heures.)
-        self.assertGreater(mesures["evenements_distincts"], 10)
+        # Les relations graduées réduisent cette tranche de onze à neuf : Lucien
+        # n'appelle plus à l'aide et ne fait plus « reste dans la lumière » ici.
+        # Le contrôle de diversité conserve un plancher de huit ;
+        # l'égalité complète avant/après reprise ci-dessus reste l'invariant de ce test.
+        self.assertGreaterEqual(mesures["evenements_distincts"], 8)
         acteurs = {c["pnj"] for c in chronique if c.get("nature", "geste") in ("geste", "social")}
         self.assertGreaterEqual(len(acteurs), 6)
 

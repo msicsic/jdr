@@ -631,8 +631,6 @@
   "personnages_version": 1,
   "relations_pnj": {
     "marchand": {
-      "dernier_objet": "",
-      "soupcon": 0,
       "vols_surpris": 0
     }
   },

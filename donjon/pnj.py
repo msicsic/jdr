@@ -18,7 +18,7 @@ from .esprits import (croire, esprit, lire, memoriser, percevoir, percevoir_tous
                       reconsiderer)
 from .francais import complement_de, de, designer, sujet
 from .geometrie import cases, distance, placer, position_entree
-from .relations import eprouver, se_fie
+from .relations import se_fie
 from .spatial import VECTEURS
 
 CHRONIQUE_MAX = 300
@@ -34,7 +34,7 @@ DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
 # retourner au bruit, retenir un bruit inconnu, aller le voir (``ouie``).
-NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie", "compte")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
+NATURES = ("deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
 A_DISTANCE = ("chauffer",)
@@ -62,9 +62,13 @@ def verifier(monde):
         "Gestes en cours invalides"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) - {"nature", "instant"} == {"minute", "pnj", "texte"}
+            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service"} == {"minute", "pnj", "texte"}
                     and c.get("nature", "geste") in NATURES and type(c.get("instant", 0)) is int
                     for c in chronique)), "Chronique invalide"
+    from .relations import verifier_chronique
+    for c in chronique:
+        if c.get("nature") == "relation":
+            verifier_chronique(c)
 
 
 def _etape(operation, cible="", outil="", lieu="", condition=""):
@@ -283,7 +287,8 @@ def _temoigner(monde, geste):
     from .vol import proprietaire
     id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
     victime = objet if operation in CONTRAINTES else proprietaire(monde, monde.objets[objet])
-    souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet}
+    souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet, "victime": victime,
+                "preuve": f"geste:{id}:{operation}:{objet}:{geste['fin']}"}
     from .spatial import etat_fige
     with etat_fige(monde):  # Les témoins ne révisent que leur esprit.
         _temoins(monde, geste, souvenir, victime)
@@ -305,7 +310,6 @@ def _temoins(monde, geste, souvenir, victime):
                 from .esprits import reviser
                 reviser(monde, autre, geste["objet"], "lieu", lieu["valeur"], "vu",
                         salle=lieu["salle"], case=lieu["case"])
-            eprouver(monde, autre, id, "vu_agir")
             inquieter(monde, autre, "illicite")
             reconsiderer(monde, autre)  # Un geste illicite sous ses yeux change sa situation.
             if geste["operation"] in CONTRAINTES:
@@ -316,7 +320,7 @@ def _temoins(monde, geste, souvenir, victime):
                 # Un protégé atteint : son devoir est touché, il ira le prévenir.
                 from .deliberation import ATTEINTE
                 relancer(monde, autre, "devoir", ATTEINTE)
-                memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id})
+                memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id, "preuve": souvenir["preuve"]})
 
 
 def _temoins_a_l_oreille(monde, geste, souvenir, victime):
@@ -360,7 +364,6 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
                 else verbe + " " + designer(monde.objets[objet]))
         if reconnu:
             memoriser(monde, autre, {**souvenir, "par": "ouie"})
-            eprouver(monde, autre, id, "agir_entendu", "entendu")
             _chroniquer(monde, autre, f"{_qui(monde, autre)} entend {_que(_qui(monde, id))} {quoi}.", "ouie")
         else:
             memoriser(monde, autre, {"type": "entendu_agir", "operation": geste["operation"], "objet": objet})
@@ -369,7 +372,7 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
             relancer(monde, autre, "biens", VOL)
         elif reconnu and victime in (o.get("profil") or {}).get("protege", []):
             relancer(monde, autre, "devoir", ATTEINTE)
-            memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id})
+            memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id, "preuve": souvenir["preuve"]})
 
 
 def _que(nom):
@@ -922,7 +925,15 @@ def _abriter(monde, id, lieu, lignes):
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
     if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
         memoriser(monde, id, {"type": "abrite", "lieu": lieu})
-        texte = (f"{_qui(monde, id)} reste près {de(_qui(monde, a['fiables'][0]))}." if a["fiables"]
+        from .relations import envers
+        # Le choix du déplacement utilise ses croyances ; le récit du moteur
+        # affirme une proximité physique, jamais une ancienne position crue.
+        ici = monde.objets[id].get("position")
+        positions = {x: (monde.joueur if x == "joueur" else monde.objets[x]).get("position") for x in a["fiables"]}
+        proches = sorted((x for x, p in positions.items() if ici is not None and p is not None and distance(ici, p) <= 1),
+                         key=lambda x: (-envers(monde, id, x)["affection"], x))
+        texte = (f"{_qui(monde, id)} reste près {de(_qui(monde, proches[0]))}." if proches
+                 else f"{_qui(monde, id)} reste en compagnie." if a["fiables"]
                  else f"{_qui(monde, id)} reste dans la lumière.")
         _chroniquer(monde, id, texte)
         if monde.visible(id):
@@ -1090,7 +1101,7 @@ def _ouvrir_en_chemin(monde, id, porte, lignes):
 
 
 def _rejoindre_un_proche(monde, id, lignes):
-    """Un pas vers la personne la plus proche qu'il croit fiable et croit dans sa salle ; None
+    """Un pas vers la personne la plus aimée qu'il croit fiable et croit dans sa salle ; None
     s'il est déjà près d'elle ou n'en connaît aucune."""
     from .deliberation import salle_crue
     o = monde.objets[id]
@@ -1101,10 +1112,11 @@ def _rejoindre_un_proche(monde, id, lignes):
             continue
         p = _case_crue(monde, id, x)  # Là où il l'a vu : il le cherche des yeux en chemin.
         if p is not None:
-            proches.append((distance(p, depart), x, p))
-    if not proches or min(proches)[0] <= 1:
+            from .relations import envers
+            proches.append((-envers(monde, id, x)["affection"], x, distance(p, depart), p))
+    if not proches or min(proches)[2] <= 1:
         return None
-    _, _, p = min(proches)
+    _, _, _, p = min(proches)
     # Au contact : une case voisine, même en diagonale (distance 1).
     return _marcher(monde, id, lambda salle, case: salle == ici and distance(case, p) == 1, lignes)
 

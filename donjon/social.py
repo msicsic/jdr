@@ -16,10 +16,10 @@ affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu
 se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qui prêter reste un
 inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
-from .esprits import croire, lire, memoriser, percoit, pnjs
+from .esprits import croire, lire, memoriser, pnjs
 from .francais import complement_de, designer
 from .monde import normaliser
-from .relations import eprouver, se_fie, se_mefie
+from .relations import se_fie, envers
 
 # ``dette_niee`` : un débiteur refuse de rendre ce qu'il doit ; ``pret_garde`` : un emprunteur garde un
 # prêt échu qu'on lui réclame (``biens``).
@@ -107,12 +107,12 @@ def _sait(monde, id, noyau):
 def _auditeur(monde, id, souvenir, noyau, source):
     """Premier personnage présent à qui confier cette nouvelle, dans un ordre stable."""
     from .pnj import pourraient_se_parler
-    for autre in sorted(pnjs(monde)):
+    for autre in sorted(pnjs(monde), key=lambda x: (-envers(monde, id, x)["affection"], x)):
         if (autre == id or autre in souvenir.get("dit_a", ()) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
-                or se_mefie(monde, id, autre)):
+                or not se_fie(monde, id, autre)):
             continue
         if noyau["type"] == "absence" and _proprietaire(monde, noyau) != autre:
             continue  # Un objet manquant ne regarde que son propriétaire.
@@ -196,7 +196,6 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
         croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
     elif accuse(noyau) != auditeur:
         _apprendre_lieu(monde, auditeur, noyau, source, confiance)
-        eprouver(monde, auditeur, accuse(noyau), "rumeur", source, confiance)
     return "crue"
 
 
@@ -218,7 +217,7 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
            case=lieu["case"])
 
 
-def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True):
+def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True, suites=True):
     """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
     destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). ``reponse`` : ce que
     l'auditeur y répond (accepter, refuser), de sa voix si ``dite`` (sinon un geste, lui remettre
@@ -226,6 +225,10 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     sa voix. Ce que le joueur perçoit de l'échange, s'il le voit : en clair s'il connaît chacun de
     ceux dont on parle. Sans le voir (le noir, son dos), il n'en a que ce que son ouïe lui fait
     entendre (``ecoute`` : une voix qu'il reconnaît, ou « une voix »)."""
+    if suites and id != "joueur" and auditeur != "joueur":
+        from .relations import annoncer_suites
+        annoncer_suites(monde, id, auditeur, lignes)
+        annoncer_suites(monde, auditeur, id, lignes)
     from .ouie import retentir
     from .paroles import _connu_du_joueur
     from .noms import texte as nommer_pour
@@ -290,12 +293,11 @@ def recevoir(monde, id, locuteur, c):
             # nouvelle qui nommerait quelqu'un.
             se_mefier(monde, id, locuteur)
             return "crue"
-        eprouver(monde, id, locuteur, "aveu", "entendu")
         issue, rang = "crue", 0
     else:
         issue, rang = _adopter(monde, id, locuteur, noyau, c["rang"]), c["rang"] + 1
     if issue == "crue":
-        memoriser(monde, id, {"type": "rumeur", "de": locuteur, "rang": rang, "evenement": noyau})
+        memoriser(monde, id, {"type": "rumeur", "de": locuteur, "rang": rang, "evenement": noyau, "aveu": c["type"] == "aveu"})
         if _proprietaire(monde, noyau) == id:
             from .deliberation import VOL, relancer
             relancer(monde, id, "biens", 30 if noyau["type"] == "absence" else VOL // 2)

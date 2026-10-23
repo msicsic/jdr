@@ -9,6 +9,7 @@ from donjon.dialogues import preparer_conversation
 from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, proposition
 from donjon.rendu import carte, fiche
+from donjon.vol import mefiance
 
 
 class VolTests(unittest.TestCase):
@@ -33,7 +34,7 @@ class VolTests(unittest.TestCase):
         self.assertEqual(self.m.objets["crochets"]["lieu"], "joueur")
         self.assertFalse(self.m.objets["crochets"]["en_vente"])
         self.assertEqual(self.m.objets["crochets"]["vole_a"], "marchand")
-        self.assertEqual(self.m.data["relations_pnj"]["marchand"]["soupcon"], 0)
+        self.assertEqual(mefiance(self.m, "marchand"), 0)
         self.assertNotIn("la trousse", carte(self.m))
         self.assertIn("trousse", fiche(self.m))
         self.assertEqual(self.m.data["minutes"], 3)
@@ -51,7 +52,8 @@ class VolTests(unittest.TestCase):
                 self.assertEqual(self.m.objets["crochets"]["lieu"], "echoppe")
                 self.assertTrue(self.m.objets["crochets"]["en_vente"])
                 self.assertEqual(self.m.objets["marchand"]["humeur"], "méfiant")
-                self.assertEqual(self.m.data["relations_pnj"]["marchand"]["dernier_objet"], "crochets")
+                from donjon.relations import envers
+                self.assertEqual(envers(self.m, "marchand", "joueur")["motifs"][-1]["objet"], "crochets")
                 self.assertEqual(self.moteur.preparer(proposition("voler", "crochets", methode="finesse")).dd, 14)
                 self.moteur.executer(self.moteur.preparer(proposition("attendre")))
                 with tempfile.TemporaryDirectory() as tmp:

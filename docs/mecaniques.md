@@ -702,6 +702,26 @@ Les mêmes règles valent pour le joueur et pour les PNJ (`donjon/biens.py`).
   encore, et où), sauf méfiance ; le demandeur l'apprend par ouï-dire, et rien de plus. Le joueur
   le demande par la parole (contenu `ressource`, sujet `faim` ou `chaleur`) et lit la réponse.
 
+#### Relations graduées
+
+Les PNJ retiennent séparément leur confiance, leur affection, leur rancune, leur peur et leur
+dette morale envers chacun, joueur compris. Les liens de départ appartiennent au scénario.
+Un don, une part reçue, une parole tenue ou un avertissement peuvent regagner la confiance ;
+attendre seul ne la rétablit pas. Une restitution de prêt dans les temps compte comme une
+parole tenue, sans devenir un don. La dette morale ne remplace pas les pièces ou objets dus.
+
+Une demande reste refusée d'office dans la méfiance ou avec une rancune d'au moins 60 ; sinon
+la confiance, l'affection et la dette facilitent le jet, la rancune le rend plus difficile.
+La méfiance commence sous 30 de confiance et ne cesse qu'à 40. La peur et la rancune
+s'estompent, l'affection revient vers le lien de départ ; ces effets persistent après reprise.
+Un même fait rapporté plusieurs fois ne compte qu'une fois ; le voir ensuite complète la
+preuve. Les conséquences d'une promesse faite hors de vue s'apprennent par un résultat reçu
+ou une annonce entendue, jamais en voyant simplement le promettant.
+
+Rendre un objet après un vol surpris améliore la relation sans effacer le souvenir du vol.
+L'interdiction de vente après un vol surpris reste distincte. Les signes visibles et la lecture
+des attitudes ne sont pas encore réalisés (étape 3c).
+
 #### Échanges entre PNJ et stratège
 
 Un plan de PNJ peut contenir quatre gestes sociaux (`donjon/echanges.py`), d'une minute

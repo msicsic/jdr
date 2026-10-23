@@ -102,7 +102,7 @@ def part_pour(monde, id, objet, besoin, connus=None):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
-                          "reserve", "securite", "protege", "situation", "alerte"}), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege", "situation", "alerte", "liens"}), "Profil de PNJ mal formé"
     # Le seuil d'alerte, en crans de l'ouïe commune (``ouie.INTENSITES``) : un bruit inconnu qui lui
     # parvient à ce niveau l'envoie voir sans attendre (``alarme``).
     assert type(p.get("alerte", 0)) is int and -2 <= p.get("alerte", 0) <= 9, "Seuil d'alerte de PNJ invalide"
@@ -610,9 +610,13 @@ def autour(monde, id):
         autres = [x for x in presents if x in vus or de_pres(monde, id, x)]
     else:
         autres = presents if niveau else []
-    return {"lumiere": niveau > 0,
-            "fiables": sorted(x for x in autres if se_fie(monde, id, x)),
-            "mefiants": sorted(x for x in autres if se_mefie(monde, id, x))}
+    from .relations import axes, confiance, mefiance
+    liens = {x: axes(monde, id, x) for x in autres}
+    return {"compagnie": max([(r["confiance"] + r["affection"]) / 100 for r in liens.values()] or [0]),
+            "peur": max([r["peur"] / 50 for r in liens.values()] or [0]),
+            "lumiere": niveau > 0,
+            "fiables": sorted(x for x, r in liens.items() if confiance(r)),
+            "mefiants": sorted(x for x, r in liens.items() if mefiance(r))}
 
 
 def ressentir(monde, id, minutes=1):
@@ -632,7 +636,8 @@ def ecart_securite(monde, id):
     a = autour(monde, id)
     ecart = (-taux(monde, id, "lumiere") if a["lumiere"] else taux(monde, id, "noir"))
     ecart += taux(monde, id, "mefiance") if a["mefiants"] else 0
-    ecart -= taux(monde, id, "compagnie") if a["fiables"] else 0
+    ecart -= taux(monde, id, "compagnie") * a["compagnie"]
+    ecart += taux(monde, id, "mefiance") * a["peur"]
     # L'eau où il se tient, d'autant plus qu'elle est haute ; sinon l'eau qu'il y attend bientôt.
     from .eau import NOYEE_CM, menacee, profondeur
     ici = monde.objets[id]["lieu"]
@@ -955,7 +960,8 @@ def _plan_abri(monde, id):
     def sures():
         """Les lieux éclairés, hors de l'eau, où il croit quelqu'un de sûr."""
         salles = []
-        for x in [*pnjs(monde), "joueur"]:
+        from .relations import envers
+        for x in sorted([*pnjs(monde), "joueur"], key=lambda x: (-envers(monde, id, x)["affection"], x)):
             if x == id or not se_fie(monde, id, x):
                 continue
             salle = salle_crue(monde, id, x)
@@ -977,12 +983,13 @@ def _plan_abri(monde, id):
                          and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
     else:
         salles = sures()
-        if salles and ici not in salles:
-            # Il y restera : la recherche compte ce que chaque abri laisse monter (le noir, ses
-            # biens laissés loin) et prend le moins coûteux.
-            trouve = abri(monde, id, salles)
-            return None if trouve is None else ({"type": "abri", "lieu": trouve[0]},
-                                                trouve[1] + [_etape("abriter", lieu=trouve[0])])
+        if salles and ici != salles[0]:
+            # Le plus aimé d'abord ; chaque trajet doit rester possible et valoir ce qu'il laisse.
+            for salle in salles:
+                trouve = abri(monde, id, [salle])
+                if trouve is not None:
+                    return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
+            return None
         salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
     for salle in salles:
@@ -1379,6 +1386,8 @@ def deliberer(monde, id, minute):
     from .temps import instant
     from .vecu import minute as vivre_la_minute
     vivre_la_minute(monde, id, instant(monde))
+    from .relations import partager
+    partager(monde, id, minute)
     constater_pulsions(monde, id)
     from .echanges import engagements_echus
     engagements_echus(monde, id)

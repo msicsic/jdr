@@ -765,6 +765,20 @@
         ],
         "situation": {
           "projet": 40
+        },
+        "liens": {
+          "brune": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "ilse": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "aubin": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -1017,6 +1031,20 @@
         "situation": {
           "dette": 20,
           "projet": 40
+        },
+        "liens": {
+          "marchand": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "ilse": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "aubin": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -1168,6 +1196,20 @@
         ],
         "situation": {
           "proches": 2
+        },
+        "liens": {
+          "marchand": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "brune": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "aubin": {
+            "confiance": 65,
+            "affection": 20
+          }
         }
       },
       "corps": {
@@ -1247,7 +1289,21 @@
               "periode": 30
             }
           }
-        ]
+        ],
+        "liens": {
+          "marchand": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "brune": {
+            "confiance": 65,
+            "affection": 20
+          },
+          "ilse": {
+            "confiance": 65,
+            "affection": 20
+          }
+        }
       },
       "genre": "m",
       "corps": {
@@ -1348,24 +1404,16 @@
   "personnages_version": 1,
   "relations_pnj": {
     "marchand": {
-      "dernier_objet": "",
-      "soupcon": 0,
       "vols_surpris": 0
     },
     "brune": {
-      "soupcon": 0,
-      "vols_surpris": 0,
-      "dernier_objet": ""
+      "vols_surpris": 0
     },
     "ilse": {
-      "soupcon": 0,
-      "vols_surpris": 0,
-      "dernier_objet": ""
+      "vols_surpris": 0
     },
     "aubin": {
-      "soupcon": 0,
-      "vols_surpris": 0,
-      "dernier_objet": ""
+      "vols_surpris": 0
     }
   },
   "revision": 0,
@@ -1760,12 +1808,6 @@
               7,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "ilse": {
@@ -1779,12 +1821,6 @@
               3,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "aubin": {
@@ -1798,12 +1834,6 @@
               1,
               5
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "bois": {
@@ -1871,7 +1901,99 @@
         "brune",
         "ilse"
       ],
-      "voix_entendues": {}
+      "voix_entendues": {},
+      "relations": {
+        "brune": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "ilse": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "aubin": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        }
+      }
     },
     "brune": {
       "croyances": {
@@ -1928,12 +2050,6 @@
               1,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "brasero": {
@@ -1958,22 +2074,6 @@
             "minute": 0,
             "confiance": 0.9
           }
-        },
-        "ilse": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
-        "aubin": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
         }
       },
       "memoire": [],
@@ -1995,7 +2095,99 @@
         "ilse",
         "marchand"
       ],
-      "voix_entendues": {}
+      "voix_entendues": {},
+      "relations": {
+        "marchand": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "ilse": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "aubin": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        }
+      }
     },
     "ilse": {
       "croyances": {
@@ -2010,12 +2202,6 @@
               1,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "brasero": {
@@ -2068,22 +2254,6 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
-          }
-        },
-        "brune": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
-        "aubin": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         }
       },
@@ -2109,7 +2279,99 @@
         "brune",
         "marchand"
       ],
-      "voix_entendues": {}
+      "voix_entendues": {},
+      "relations": {
+        "marchand": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "brune": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "aubin": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        }
+      }
     },
     "aubin": {
       "croyances": {
@@ -2124,12 +2386,6 @@
               1,
               1
             ]
-          },
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
           }
         },
         "brasero": {
@@ -2183,22 +2439,6 @@
             "minute": 0,
             "confiance": 0.9
           }
-        },
-        "brune": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
-        },
-        "ilse": {
-          "fiable": {
-            "valeur": true,
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.7
-          }
         }
       },
       "memoire": [],
@@ -2223,7 +2463,99 @@
         "ilse",
         "marchand"
       ],
-      "voix_entendues": {}
+      "voix_entendues": {},
+      "relations": {
+        "marchand": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "brune": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        },
+        "ilse": {
+          "confiance": 65,
+          "affection": 20,
+          "rancune": 0,
+          "peur": 0,
+          "dette": 0,
+          "minute": 0,
+          "source": "savoir",
+          "motifs": [],
+          "bandes": {
+            "mefiance": false,
+            "confiance": true,
+            "rancune": false,
+            "peur": false
+          },
+          "ancrages": {
+            "affection": [
+              20,
+              0
+            ],
+            "rancune": [
+              0,
+              0
+            ],
+            "peur": [
+              0,
+              0
+            ]
+          }
+        }
+      }
     }
   },
   "voix_connues": [],

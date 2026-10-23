@@ -3,6 +3,8 @@
 Chaque test vérifie l'état du monde et, quand le joueur est concerné, ce qu'il lit, après
 rechargement.
 """
+
+from tests.support import lier, relation
 import copy
 import unittest
 
@@ -21,7 +23,7 @@ def seule_et_a_bout(monde):
     placer(m, "ilse", "echoppe", (3, 5))
     placer(m, "marchand", "crypte", (5, 3))
     for autre in ("brune", "aubin"):
-        croire(m, "ilse", autre, "fiable", False, "vu")
+        lier(m, "ilse", autre, False, "vu")
     croire(m, "ilse", "marchand", "lieu", "crypte", "vu", salle="crypte", case=[5, 3])
     croire(m, "ilse", "crypte", "etat", {"eclairee": False}, "vu")
     croire(m, "ilse", "antichambre", "etat", {"eclairee": False}, "vu")
@@ -92,7 +94,7 @@ class PrevenirTests(unittest.TestCase):
         self.assertGreater(lire(m, "marchand")["besoins"]["devoir"], avant + 20)
         m, _ = vivre(m, 12)
         self.assertTrue(any("Gorm" in t and "dit à Aubin" in t for t in chronique(m)), chronique(m)[-12:])
-        self.assertFalse(lire(m, "aubin")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "aubin", "brune")["valeur"])
 
 
 class ProfilProtegeTests(unittest.TestCase):

@@ -1,9 +1,6 @@
-"""Le socle des relations (sous-étape 3a de ``docs/plan-relations.md``) : ``donjon/relations.py`` est le
-seul accès à ce qu'un personnage éprouve envers un autre, et sa traduction de la croyance ``fiable``
-redonne exactement les règles d'avant.
+"""Le module reste le seul accès aux relations après la bascule 3b.
 
-Le code ne nomme l'attribut ``fiable`` nulle part ailleurs (``AccesTests``) ; les cas de méfiance et
-de confiance se vérifient de bout en bout, après rechargement (``ChaineTests``).
+Les contrôles statiques de 3a subsistent ; les chaînes vérifient désormais les axes gradués.
 """
 import ast
 from pathlib import Path
@@ -69,81 +66,30 @@ class AccesTests(unittest.TestCase):
         self.assertFalse(hasattr(voix, "fiabilite"))
 
 
-class TraductionTests(unittest.TestCase):
-    """3a : la croyance vraie vaut confiance 70, absente 40 (un étranger), fausse 15 ; les autres axes
-    restent à 0 ; les seuils redonnent le tout ou rien d'avant."""
-
-    def test_trois_valeurs(self):
-        m = relais()
-        self.assertEqual(relations.envers(m, "marchand", "brune"),
-                         {**relations.ETRANGER, "confiance": 70, "minute": 0, "source": "savoir"})
-        self.assertEqual(relations.envers(m, "marchand", "joueur"),
-                         {**relations.ETRANGER, "minute": None, "source": None})
-        croire(m, "marchand", "brune", relations.FIABLE, False, "vu")
-        self.assertEqual(relations.envers(m, "marchand", "brune")["confiance"], 15)
-        for valeur, fie, mefie, dit in ((True, True, False, True), (False, False, True, False)):
-            croire(m, "ilse", "aubin", relations.FIABLE, valeur, "vu")
-            self.assertEqual((relations.se_fie(m, "ilse", "aubin"), relations.se_mefie(m, "ilse", "aubin"),
-                              relations.fiable(m, "ilse", "aubin")), (fie, mefie, dit))
-        self.assertEqual((relations.se_fie(m, "marchand", "joueur"), relations.se_mefie(m, "marchand", "joueur"),
-                          relations.fiable(m, "marchand", "joueur")), (False, False, None))
-        self.assertFalse(relations.en_veut(m, "marchand", "brune") or relations.craint(m, "marchand", "brune"))
-        self.assertEqual(relations.doit(m, "marchand", "brune"), 0)
-
-    def test_un_oui_dire_ne_remplace_pas_une_mefiance_vue(self):
-        """Une cause apprise de seconde main (rumeur, aveu, geste entendu) ne remplace pas une méfiance
-        constatée ; une autre cause la remplace (sa date et sa source avec)."""
-        m = relais()
-        relations.eprouver(m, "marchand", "brune", "vu_agir")
-        m.data["minutes"] = 12
-        relations.eprouver(m, "marchand", "brune", "rumeur", "dit:ilse", 0.56)
-        self.assertEqual(relations.envers(m, "marchand", "brune")["source"], "vu")
-        relations.eprouver(m, "marchand", "brune", "pousse")
-        self.assertEqual(relations.envers(m, "marchand", "brune")["minute"], 12)
-        relations.eprouver(m, "ilse", "aubin", "aveu", "entendu")
-        self.assertEqual(relations.envers(m, "ilse", "aubin")["source"], "entendu")
-
-
 class ChaineTests(unittest.TestCase):
-    """Chaque lecture passe par le module, du constat à ce que voient les autres règles, après
-    rechargement."""
-
     def test_gorm_voit_ses_vivres_aux_mains_de_brune(self):
-        """Le cas réel des vols découverts : Gorm ne se fie plus à Brune ; il refuse sa demande
-        d'office, le jet de persuasion la dessert, Luna lit qu'il la croit peu fiable."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.objets["vivres"]["lieu"] = "brune"
         placer(m, "marchand", "antichambre", [6, 1])
         m, _ = attendre(recharger(m))
+        r = relations.envers(m, "marchand", "brune")
+        self.assertEqual(r["confiance"], 25)
         self.assertTrue(relations.se_mefie(m, "marchand", "brune"))
-        self.assertEqual(relations.envers(m, "marchand", "brune")["source"], "vu")
-        self.assertIn("brune", relations.connus(m, "marchand"))
         self.assertEqual(accueil(m, "brune", "marchand"), "mefiance")
-        _, dd = jet_persuasion(m, "marchand", "brune", 10)
-        from donjon.caractere import modificateur
-        self.assertEqual(dd, 10 + 6 + modificateur(m, "marchand", "VOL"))
+        self.assertEqual(r["motifs"][-1]["type"], "vu_porter")
         self.assertIn("croit que Brune est peu fiable", esprits_interlocuteurs(m, ["marchand"])["marchand"]["croit"])
+        self.assertNotIn(relations.FIABLE, lire(m, "marchand")["croyances"].get("brune", {}))
 
     def test_gorm_reconnait_son_marteau_dans_la_main_du_joueur(self):
-        """Même nature, envers le joueur : la méfiance se lit dans l'humeur (``vol.mefiance``)."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         m.objets["marteau"].update(proprietaire="marchand", lieu="joueur")
         m.objets["marteau"].pop("position", None)
         placer(m, "marchand", "antichambre", [2, 4])
         regarder(m, "marchand", "joueur")
         m, texte = attendre(recharger(m))
-        self.assertTrue(relations.se_mefie(m, "marchand", "joueur"))
+        self.assertEqual(relations.envers(m, "marchand", "joueur")["confiance"], 0)
         self.assertEqual(mefiance(m, "marchand"), 1)
         self.assertIn("Gorm, gardien du relais, semble méfiant.", texte)
-
-    def test_la_part_servie_fait_confiance(self):
-        """L'autre sens : qui reçoit une part de qui il sait l'avoir servi s'y fie (cause « nourri »)."""
-        m = relais()
-        croire(m, "brune", "marchand", relations.FIABLE, False, "vu")
-        relations.eprouver(m, "brune", "marchand", "nourri")
-        m = recharger(m)
-        self.assertTrue(relations.se_fie(m, "brune", "marchand"))
-        self.assertEqual(lire(m, "brune")["croyances"]["marchand"][relations.FIABLE]["valeur"], True)
 
 
 if __name__ == "__main__":

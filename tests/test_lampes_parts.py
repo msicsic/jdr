@@ -13,7 +13,7 @@ from donjon.paroles import preparer_parole
 from donjon.perception import eclairage, recharge
 from donjon.planification import eclairer
 from donjon.rendu import decrire_perception
-from tests.support import calme, regarder, sans_le_sou
+from tests.support import calme, lier, regarder, sans_le_sou
 from tests.test_parts_achetees import parole
 from tests.test_tensions import placer, recharger, vivre
 
@@ -190,9 +190,9 @@ class PartsPourSourcesTests(unittest.TestCase):
         ):
             with self.subTest(scenario=scenario):
                 m = nuit_noire(scenario, qui, donneur, source, lot, salle)
-                croire(m, donneur, qui, "fiable", False, "vu")
+                lier(m, donneur, qui, False, "vu")
                 self.assertEqual(demander(m, qui, donneur, lot, prix=1, remettre_part=True), "mefiance")
-                croire(m, donneur, qui, "fiable", True, "vu")
+                lier(m, donneur, qui, True, "vu")
                 m.objets[lot]["charges"] = 1
                 self.assertEqual(demander(m, qui, donneur, lot, remettre_part=True), "necessaire")
                 m.objets[lot]["charges"] = 3

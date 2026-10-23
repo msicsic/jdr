@@ -6,7 +6,7 @@ conviennent par des paroles typées que le moteur tranche, pour les PNJ comme po
 « J'arrive ! » (l'appelé vient), « Ici, viens ! » (l'appelé reste, l'appelant vient), « Qu'est-ce que tu
 veux ? » (l'appelant dit ce qu'il veut, l'appelé décide de nouveau), ou le silence (méfiance, ou ne pas
 vouloir se signaler). Ce qui est convenu entre dans l'esprit des deux, l'attente se règle sur la
-distance, et « J'arrive ! » est une parole donnée : attendu en vain, on le voit et l'on s'en méfie.
+distance, et « J'arrive ! » est une parole donnée : attendu en vain, on le voit et l'on lui en tient rigueur.
 
 Chaque cas vérifie l'état après rechargement et ce que lit le joueur ; les cas réels viennent des
 nuits de banc (Relais, auberge, mine) ; chaque sorte de réponse a un autre cas de même nature."""
@@ -25,7 +25,8 @@ from donjon.monde import Monde
 from donjon.paroles import reponse_a_l_appel
 from donjon.planification import rejoindre
 from donjon.pnj import appeler
-from donjon.relations import se_mefie
+from donjon.relations import envers, mefiance, percue, se_fie, se_mefie
+from tests.support import lier, relation
 from tests.test_parole_voix import gorm_derriere_la_porte
 from tests.test_repli_et_appel import jouer
 from tests.test_temps_etat import decouper, etat_pnj
@@ -147,7 +148,7 @@ class QuoiTests(unittest.TestCase):
         self.assertEqual(len(appels(m, "hugues")), 1)
         self.assertIsNone(lire(m, "hugues")["rejoint"])
         self.assertIsNone(lire(m, "anselme")["rejoindre"])
-        self.assertFalse(lire(m, "anselme")["croyances"]["lucien"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "anselme", "lucien")["valeur"])
 
     def test_cas_reel_mine_josse_dit_ce_qu_il_veut_gaspard_le_fait_venir(self):
         """Mine (graine 2024) : Josse hèle Gaspard pour une part de ses bûches (le poêle qu'il garde
@@ -266,17 +267,22 @@ class JArriveTests(unittest.TestCase):
     def test_qui_avait_promis_et_ne_vient_pas_rompt_sa_parole(self):
         """Même nature, la parole rompue : Aubin a répondu « J'arrive ! », puis la porte se ferme à clé et
         il le sait : il ne peut venir. Gorm l'attend jusqu'à l'échéance, cesse d'attendre et le voit :
-        il s'en méfie désormais, comme d'une autre parole non tenue."""
+        une parole non tenue, comme une promesse abandonnée (relations graduées : confiance −20, rancune ;
+        lié à Aubin par une confiance de 65, il ne lui fait plus confiance, sans encore s'en méfier)."""
         m = self.aubin_cherche_gorm_qui_le_hele()
         appeler(m, "marchand", "aubin", [])
         m.objets["porte"].update(verrouillee=True, ouverte=False)
         croire(m, "aubin", "porte", "verrouillee", True, "essai")
         jusqu_a = lire(m, "marchand")["rejoint"]["jusqu_a"]
         m = recharger(m)
-        self.assertFalse(se_mefie(m, "marchand", "aubin"))
+        self.assertTrue(se_fie(m, "marchand", "aubin"))
         m = suivre(m, jusqu_a + 2, lambda m: lire(m, "marchand")["rejoint"] is None)
         self.assertIn("Gorm cesse d'attendre Aubin, qui avait promis de venir.", chronique(m))
-        self.assertTrue(se_mefie(m, "marchand", "aubin"))
+        r = envers(m, "marchand", "aubin")
+        self.assertEqual(r["confiance"], 45)
+        self.assertGreater(r["rancune"], 0)
+        self.assertEqual(r["motifs"][-1]["type"], "parole_rompue")
+        self.assertFalse(se_fie(m, "marchand", "aubin"))
         self.assertTrue(any(s["type"] == "parole_rompue" and s["qui"] == "aubin" for s in lire(m, "marchand")["memoire"]))
         self.assertEqual([c["minute"] for c in m.data["chronique"]
                           if c["texte"] == "Gorm cesse d'attendre Aubin, qui avait promis de venir."], [jusqu_a])
@@ -308,7 +314,7 @@ class SilenceTests(unittest.TestCase):
 
     def test_meme_nature_qui_se_mefie_se_tait(self):
         m = aubin_cherche_gorm()
-        croire(m, "marchand", "aubin", "fiable", False, "vu")
+        lier(m, "marchand", "aubin", False, "vu")
         m = recharger(m)
         self.assertIsNone(decider(m, "marchand", "aubin"))
         m, _ = vivre(m, 1)
@@ -374,7 +380,7 @@ class JoueurHeleTests(unittest.TestCase):
         from donjon.voix import connaitre
         m = gorm_derriere_la_porte()
         connaitre(m, "marchand", "joueur")
-        croire(m, "marchand", "joueur", "fiable", False, "vu")
+        lier(m, "marchand", "joueur", False, "vu")
         m = recharger(m)
         reprise, sortie, _ = jouer(m, "j'appelle Gorm", [], [])
         self.assertIn("Aucune réponse ne te parvient.", sortie)
@@ -403,7 +409,8 @@ def gorm_hele_corvus(porte_ouverte=False):
 class JoueurHeleParUnPnjTests(unittest.TestCase):
     def test_j_arrive_puis_ne_vient_pas(self):
         """Corvus répond « j'arrive » à Gorm qui le hèle : Gorm l'attend là, le temps de venir. Corvus ne
-        vient pas : à l'échéance, Gorm cesse d'attendre et s'en méfie."""
+        vient pas : à l'échéance, Gorm cesse d'attendre et se méfie de cette voix, qu'il ne connaît pas
+        (comme d'un mensonge, ``voix.se_mefier``) : Corvus, jamais identifié, n'en porte pas la relation."""
         m = gorm_hele_corvus()
         reprise, sortie, appels_mj = jouer(m, "j'arrive", [], [])
         self.assertEqual(appels_mj, [])
@@ -414,7 +421,8 @@ class JoueurHeleParUnPnjTests(unittest.TestCase):
         for _ in range(r["jusqu_a"] - reprise.data["minutes"] + 1):
             reprise, _, _ = jouer(reprise, "attendre 1 min", [], [])
         self.assertIn("Gorm cesse d'attendre Corvus, qui avait promis de venir.", chronique(reprise))
-        self.assertTrue(se_mefie(reprise, "marchand", "joueur"))
+        self.assertTrue(mefiance(percue(reprise, "marchand", "joueur")))
+        self.assertEqual(envers(reprise, "marchand", "joueur")["confiance"], 40)
 
     def test_viens_quand_il_ne_peut_pas_venir(self):
         """Gorm croit la porte verrouillée : à « viens », il répond « Ici, viens ! » à son tour."""

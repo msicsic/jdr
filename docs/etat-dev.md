@@ -70,6 +70,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   8,75 → 0, noir 48,8 → 5, dettes et remboursements 0 → 0,5 ; crue appels 0,25 → 0,75, une attente vaine ;
   aucun plantage, usurpation ni violation. Relais 42, 8 h : part vendue à 151, due à 153, rendue à 154 (avant :
   achats répétés « promis » à 211, 271, 332, dette à 392) ; à 350 Aubin accepte la tâche et la fait à 351.
+- Branche `codex-relations-3b`, non fusionnée : relations graduées à cinq axes dans l'esprit,
+  liens de départ en données, épreuves par les souvenirs, estompement et hystérésis ; lectures
+  graduées dans la parole, l'ouïe, les échanges, les passages, la compagnie et le planificateur.
+  `fiable` quitte les croyances ; récit, rejeu et six mesures nouvelles. Aucun changement de MJ,
+  aucune sous-étape 3c à 3f. Suite complète verte : 1311 tests, aucun échec ni erreur,
+  14 ignorés (1297 réussis), en priorité réduite. Le texte d'abri vérifie la proximité réelle,
+  même si le PNJ croit encore son compagnon sur une ancienne case.
+  Bancs complets avant/après et quatre nuits de contrôle : critère des services atteint à
+  l'auberge (1/4), pas à la crue (0/4). La paire rapprochée dépasse la borne de temps à
+  l'auberge (+15,6 %) et à la crue (+71,5 %) : critère global non atteint ; limites et attentes
+  de la crue documentées.
+  Voir [le rapport 3b](taches/rapport-codex-6-relations-3b.md), notamment les limites de
+  corroboration sociale, le registre de preuves durable et les réglages proposés. `main` intact.
 - Branche `refactor/adaptateurs-fournisseurs`, non fusionnée : `MJ` commun et adaptateurs OpenAI,
   Anthropic et MiMo expérimental, contrats de requête/réponse/erreur séparés ; 984 tests passent.
   Voir [la séparation des fournisseurs](adaptateurs-fournisseurs.md) et son compte rendu de vérification.
@@ -1392,7 +1405,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1372 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe : (à recompter), sans clé ni connexion.
 
 ## Décisions en attente
 

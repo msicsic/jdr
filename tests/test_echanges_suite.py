@@ -4,6 +4,8 @@ par la parole, la demande de ce que l'autre pourrait avoir (``biens``, ``echange
 
 Chaque test vérifie l'état du monde, et ce que le joueur lit, après rechargement.
 """
+
+from tests.support import lier
 import unittest
 from unittest.mock import patch
 
@@ -15,6 +17,7 @@ from donjon.esprits import croire, lire, percevoir_tous
 from donjon.monde import ErreurMonde, Monde
 from donjon.paroles import preparer_parole
 from donjon.rendu import fiche
+from donjon.relations import envers
 from tests.support import calme, regarder
 from tests.test_entretenir import sans
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
@@ -25,7 +28,8 @@ def memoires(m, id, sorte):
 
 
 def fiable(m, id, qui):
-    return (lire(m, id)["croyances"].get(qui, {}).get("fiable") or {}).get("valeur")
+    from donjon.relations import fiable as avis
+    return avis(m, id, qui)
 
 
 def ensemble(m, a, b, salle="antichambre"):
@@ -58,7 +62,8 @@ class RembourserTests(unittest.TestCase):
         self.assertEqual(m.data["dettes"][0]["montant"], 2)
         self.assertEqual((bourse(m, "brune"), bourse(m, "ilse")), (3, 8))
         self.assertIn("Brune refuse de rendre à Ilse les 2 pièces qu'elle lui doit.", chronique(m))
-        self.assertIs(fiable(m, "ilse", "brune"), False)
+        self.assertEqual(envers(m, "ilse", "brune")["confiance"], 45)
+        self.assertEqual(envers(m, "ilse", "brune")["motifs"][-1]["type"], "dette_niee")
         self.assertEqual(memoires(m, "ilse", "dette_niee")[-1]["auteur"], "brune")
         # Elle ne le lui redemande pas à chaque minute.
         m, _ = vivre(m, 3)
@@ -77,7 +82,8 @@ class RembourserTests(unittest.TestCase):
         m, _ = vivre(recharger(m), 2)
         self.assertTrue(any(t.startswith("Ilse ") and "à Aubin que Brune garde les 2 pièces qu'elle doit à Ilse" in t
                             for t in chronique(m)), chronique(m))
-        self.assertIs(fiable(m, "aubin", "brune"), False)
+        self.assertEqual(envers(m, "aubin", "brune")["confiance"], 52)
+        self.assertEqual(envers(m, "aubin", "brune")["motifs"][-1]["type"], "rumeur")
 
     def test_honnete_elle_rend_ce_qu_elle_doit(self):
         # Même dette, même bourse : à l'honnêteté entière, rendre ne se pèse pas.
@@ -104,7 +110,7 @@ class RembourserTests(unittest.TestCase):
         self.assertIn("Joss rend 1 pièce à Mireille : la part des fagots de l'écurie n'a pas été servie.",
                       chronique(m))
         self.assertIn("Lucien refuse de rendre à Odile les 4 pièces qu'il lui doit.", chronique(m))
-        self.assertIs(fiable(m, "odile", "lucien"), False)
+        self.assertEqual(envers(m, "odile", "lucien")["confiance"], 45)
 
 
 class JoueurReclameTests(unittest.TestCase):
@@ -338,7 +344,7 @@ class PretReclameTests(unittest.TestCase):
                       lignes)
         self.assertEqual(memoires(m, "gaspard", "pret_reclame")[-1]["objet"], "lampe_gaspard")
         m, lignes = vivre(m, 31)
-        self.assertIn("Gaspard ne te fait plus confiance : tu ne lui as pas rendu la lampe de Gaspard.", lignes)
+        self.assertIn("Gaspard te reproche de ne pas lui avoir rendu la lampe de Gaspard.", lignes)
         self.assertIs(fiable(m, "gaspard", "joueur"), False)
         self.assertEqual(memoires(m, "gaspard", "pret_garde")[-1]["auteur"], "joueur")
 
@@ -361,7 +367,8 @@ class PretReclameTests(unittest.TestCase):
         m.data["permissions"][0]["minute"] = -ENGAGEMENT_MAX
         self.assertEqual(demander(m, "gaspard", "remy", "lampe_gaspard"), "necessaire")
         m = recharger(m)
-        self.assertIs(fiable(m, "gaspard", "remy"), False)
+        self.assertEqual(envers(m, "gaspard", "remy")["confiance"], 45)
+        self.assertEqual(envers(m, "gaspard", "remy")["motifs"][-1]["type"], "pret_garde")
         self.assertEqual(memoires(m, "gaspard", "pret_garde")[-1]["auteur"], "remy")
 
 
@@ -419,7 +426,7 @@ class EnqueteTests(unittest.TestCase):
         m = calme(creer("auberge", 1985, "fixe"), "tilo", "mireille", "joss")
         self.assertEqual(enqueter(m, "mireille", "tilo", "chaleur"), ("rien", []))
         self.assertEqual(enqueter(m, "mireille", "joss", "chaleur")[0], "dit")
-        croire(m, "joss", "mireille", "fiable", False, "vu")
+        lier(m, "joss", "mireille", False, "vu")
         self.assertEqual(enqueter(m, "mireille", "joss", "chaleur")[0], "mefiance")
 
     def test_le_joueur_demande_s_il_a_du_bois(self):

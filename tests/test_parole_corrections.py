@@ -332,7 +332,7 @@ class ImpostureTests(unittest.TestCase):
         self.assertEqual(len(mj(appels)), 2)
         self.assertNotIn("retour_moteur", mj(appels)[1]["faits"])
         faits = narration(appels)["faits"]["conversation_validee"]["faits"]
-        self.assertEqual(faits, ["Une voix qui se dit Ilse sait que tu n'es pas « Brune » et ne te fait plus confiance."])
+        self.assertEqual(faits, ["Une voix qui se dit Ilse sait que tu n'es pas « Brune »."])
         # Après rechargement : Ilse, qui connaît la voix de Brune, retient l'imposture et se méfie de la voix.
         self.assertIn({"type": "imposture", "se_disait": "brune"},
                       [{k: s[k] for k in ("type", "se_disait")} for s in lire(reprise, "ilse")["memoire"]

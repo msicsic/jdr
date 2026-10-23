@@ -86,6 +86,14 @@ class EntretenirUnFeuTests(unittest.TestCase):
 
     def test_le_contremaitre_tient_son_poele_sans_que_son_devoir_presse(self):
         m = creer("mine", 1985, "fixe")
+        # Isoler l'entretien : aucun autre mineur ne commet de tort qui relancerait
+        # entre-temps le devoir du protecteur.
+        from tests.support import calme
+        from donjon.esprits import pnjs
+        autres = [x for x in pnjs(m) if x != "josse"]
+        calme(m, *autres)
+        for x in autres:
+            lire(m, x)["libre"] = 6000
         sans_derive(m, "josse", "devoir", 10)
         m.objets["poele"]["combustible"] = 8
         chronique, _ = executer(m, 10)

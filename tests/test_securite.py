@@ -3,6 +3,8 @@
 Chaque test vérifie l'état du monde et, quand le joueur est présent, ce qu'il lit, après
 rechargement.
 """
+
+from tests.support import lier
 import unittest
 from unittest.mock import patch
 
@@ -38,7 +40,7 @@ class RessentirTests(unittest.TestCase):
         m, _ = vivre(m, 10)
         # Au refuge éclairé par le fanal, près d'Aubin et de Brune qu'elle croit fiables.
         self.assertLessEqual(lire(m, "ilse")["besoins"]["securite"],
-                             40.0 - 10 * (SECURITE["lumiere"] + SECURITE["compagnie"]) + 1)
+                             40.0 - 10 * (SECURITE["lumiere"] + SECURITE["compagnie"] * 0.85) + 1)
 
     def test_la_mefiance_inquiete(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
@@ -46,7 +48,7 @@ class RessentirTests(unittest.TestCase):
         # Placement d'auteur : Ilse a vu Brune voler ; elle ne la croit plus fiable. Brune se
         # tient à côté d'elle au refuge.
         placer(m, "brune", "antichambre", (4, 5))
-        croire(m, "ilse", "brune", "fiable", False, "vu")
+        lier(m, "ilse", "brune", False, "vu")
         avec, _ = vivre(m, 10)
         sans = calme(relais(), "marchand", "brune", "ilse", "aubin")
         placer(sans, "brune", "antichambre", (4, 5))
@@ -102,12 +104,16 @@ class RessentirTests(unittest.TestCase):
 
 
 class AbriTests(unittest.TestCase):
-    def test_inquiete_dans_le_noir_elle_rejoint_la_lumiere_et_aubin(self):
+    def test_inquiete_dans_le_noir_elle_rejoint_la_lumiere_et_la_compagnie(self):
         m = dans_le_noir(calme(relais(), "marchand", "brune", "ilse", "aubin"), "ilse", 75.0)
         # Le joueur, au refuge éclairé par le fanal, la voit arriver ; sa lanterne éteinte ne
         # jette pas de lueur dans l'échoppe.
         m.joueur.update(salle="antichambre", position=[3, 4], orientation="ouest")
         m.objets["lanterne"]["allume"] = False
+        # Ils restent au refuge pendant qu'elle les rejoint ; leur ronde ne doit
+        # pas déplacer le compagnon que cette scène lui demande de retrouver.
+        for id in ("aubin", "brune"):
+            lire(m, id)["libre"] = 36000
         # Placement d'auteur : Gorm a déjà demandé à chacun s'il avait du bois et n'a pas de quoi payer
         # (``echanges.enqueter``, ``engager``) : il n'emmène pas Aubin rallumer le brasero.
         m.data["finances_pnj"]["marchand"] = 0
@@ -116,18 +122,29 @@ class AbriTests(unittest.TestCase):
             retenir_refus(m, "marchand", autre, "enqueter", "rien", besoin="chaleur", souvenir=False)
         m, texte = attendre(recharger(m), 3)
         self.assertEqual(m.objets["ilse"]["lieu"], "antichambre")
-        self.assertTrue(any(t.startswith("Ilse reste près d") for t in chronique(m)))
-        self.assertTrue(any(t.startswith("Ilse reste près d") for t in texte.splitlines()))
+        self.assertEqual(m.objets["aubin"]["lieu"], "antichambre")
+        # Elle a rejoint sa compagnie, mais sa case crue ne la met pas au contact
+        # d'Aubin. Le texte ne doit donc plus prétendre qu'elle reste tout près.
+        from donjon.geometrie import distance
+        self.assertGreater(distance(m.objets["ilse"]["position"], m.objets["aubin"]["position"]), 1)
+        self.assertIn("Ilse reste en compagnie.", chronique(m))
+        self.assertIn("Ilse reste en compagnie.", texte.splitlines())
         # À l'abri, elle se calme : la lumière et la compagnie l'emportent sur la dérive.
         self.assertLess(lire(m, "ilse")["besoins"]["securite"], 75.0 - 5)
 
     def test_rassuree_elle_quitte_l_abri(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # Ses compagnons restent ici, sans incident nouveau pendant l'apaisement.
+        for id in ("marchand", "brune", "aubin"):
+            lire(m, id)["libre"] = 36000
+        m.objets["fanal"].update(allume=True, combustible=1000)
+        placer(m, "marchand", "antichambre", (6, 5))
         lire(m, "ilse")["besoins"]["securite"] = 65.0
         # Elle a vu le refuge éclairé (sa première minute) : elle s'y abrite près d'Aubin et de
         # Brune, sans aller chercher Gorm ailleurs (ce que l'abri lui apporterait de plus, rien).
         m, _ = vivre(m, 2)
-        self.assertEqual(lire(m, "ilse")["intention"]["but"], {"type": "abri", "lieu": "antichambre"})
+        self.assertEqual(lire(m, "ilse")["intention"]["but"]["type"], "abri")
+        self.assertEqual(lire(m, "ilse")["intention"]["but"]["lieu"], "antichambre")
         m, _ = vivre(m, 60)
         self.assertLessEqual(lire(m, "ilse")["besoins"]["securite"], SECURITE_FIN + 5)
         intention = lire(m, "ilse")["intention"]
@@ -144,11 +161,13 @@ class AbriTests(unittest.TestCase):
         for confiance, signe in ((True, -1), (False, 1)):
             with self.subTest(fiable=confiance):
                 essai = recharger(m)
-                croire(essai, "ilse", "joueur", "fiable", confiance, "vu")
+                lier(essai, "ilse", "joueur", confiance, "vu")
                 avant = lire(essai, "ilse")["besoins"]["securite"]
                 essai, _ = vivre(essai, 1)
                 ecart = lire(essai, "ilse")["besoins"]["securite"] - avant
-                attendu = -SECURITE["lumiere"] + signe * SECURITE["compagnie" if confiance else "mefiance"]
+                compagnie = 0.85 if confiance else 0.15
+                attendu = (-SECURITE["lumiere"] - SECURITE["compagnie"] * compagnie
+                           + (SECURITE["mefiance"] if not confiance else 0))
                 self.assertAlmostEqual(ecart, attendu + 2 / 60, places=2)
 
 
@@ -160,7 +179,8 @@ class ProfilSecuriteTests(unittest.TestCase):
         lire(m, "ilse")["besoins"]["securite"] = 40.0
         m = recharger(m)
         m, _ = vivre(m, 5)
-        self.assertLessEqual(lire(m, "ilse")["besoins"]["securite"], 40.0 - 5 * 2)
+        self.assertAlmostEqual(lire(m, "ilse")["besoins"]["securite"],
+                               40.0 + 5 * (-SECURITE["lumiere"] - 2 * 0.85 + 2 / 60), places=2)
         profil = dict(m.objets["ilse"]["profil"])
         for invalide in ({"courage": 1}, {"noir": -1}, {"noir": "beaucoup"}):
             with self.assertRaises(AssertionError):

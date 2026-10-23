@@ -1,4 +1,6 @@
 """Besoins, délibération et plans des PNJ sur le Relais, vérifiés après rechargement."""
+
+from tests.support import relation
 import copy
 import io
 from pathlib import Path
@@ -133,7 +135,7 @@ class GardeMangerTests(unittest.TestCase):
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         souvenirs = [s for s in lire(m, "marchand")["memoire"] if s["type"] == "vu_agir"]
         self.assertEqual(souvenirs[0]["auteur"], "brune")
-        self.assertFalse(lire(m, "marchand")["croyances"]["brune"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "brune")["valeur"])
         self.assertGreaterEqual(lire(m, "marchand")["besoins"]["biens"], 50)
         self.assertIn(lire(m, "marchand")["intention"]["but"]["type"], ("pulsion", "garder"))
 
@@ -155,7 +157,7 @@ class GormTests(unittest.TestCase):
 
     def test_vol_surpris_il_garde_puis_rapporte_la_cloche_lui_meme(self):
         m = self.surpris()
-        self.assertFalse(lire(m, "marchand")["croyances"]["joueur"]["fiable"]["valeur"])
+        self.assertFalse(relation(m, "marchand", "joueur")["valeur"])
         m, _ = attendre(m, 2)
         self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "garder", "lieu": "antichambre"})
         self.assertEqual(m.objets["marchand"]["lieu"], "antichambre")
