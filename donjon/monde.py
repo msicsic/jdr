@@ -354,6 +354,7 @@ class Monde:
             vue = copy.deepcopy(o)
             # L'esprit d'un PNJ (profil, besoins, pulsions) reste interne au moteur.
             vue.pop("profil", None)
+            vue.pop("humeur", None)
             vue.pop("connait_noms", None)
             if o["type"] in ("personnage", "depouille"):
                 vue.pop("pv", None)
@@ -427,7 +428,8 @@ class Monde:
                     sortie["eau_destination"] = decrire_eau(self, sortie["vers"])
         from .noms import public
         from .voix import connait_appellation
-        return public(self, {"revision": self.data["revision"], "joueur": joueur, "lieux_connus": lieux_connus,
+        from .signes import publics, impressions
+        return public(self, {"signes_percus": publics(self), "impressions": impressions(self), "revision": self.data["revision"], "joueur": joueur, "lieux_connus": lieux_connus,
                 "mode_cases": bool(self.data.get("mode_cases")), "salle": salle,
                 "objets_perceptibles": objets,
                 "souvenirs_visuels": souvenirs_visuels,

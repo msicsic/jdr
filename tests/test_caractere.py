@@ -136,7 +136,7 @@ class ValeursTests(unittest.TestCase):
 
         def gestes(m):
             return [c["texte"] for c in m.data["chronique"]
-                    if c["pnj"] == "brune" and c["nature"] not in ("deplacement", "ouie")]
+                    if c["pnj"] == "brune" and c["nature"] not in ("deplacement", "ouie", "lecture")]
 
         avide, honnete = situation(20), situation(50)
         self.assertEqual(gestes(avide), ["Brune, batelière évacuée mange une part des vivres du refuge."])

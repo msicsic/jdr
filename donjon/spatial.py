@@ -660,6 +660,20 @@ def etat_vue(m):
         for cle, o in m.objets.items()]))
 
 
+def etat_signes(m):
+    """Clé sociale distincte de la géométrie : les esprits changent pendant la perception.
+
+    Elle invalide la perception des signes sans invalider les lignes de vue physiques
+    inchangées. Ne pas l'ajouter à l'assertion d'``etat_fige`` : celle-ci autorise justement
+    les croyances et relations constatées par les PNJ à changer dans le bloc.
+    """
+    from .relations import signature
+    return (m.data["minutes"], m.data.get("dixiemes", 0), repr(m.data.get("observation_joueur")), repr(m.data.get("tons_percus")), repr([
+        (id, signature(m, id), e.get("emotions"), e.get("besoins"), e.get("intention"), e.get("patience"),
+         [(x, c.get("lieu")) for x, c in e.get("croyances", {}).items()])
+        for id, e in m.data.get("esprits", {}).items()]))
+
+
 def _memo_vue(m):
     """Le mémo de l'état courant (positions, champs, perceptions des acteurs), à l'intérieur de
     ``vue_memorisee`` ; None ailleurs. La clé est l'empreinte complète de l'état (``etat_vue``) ;

@@ -1886,7 +1886,6 @@
         "patronne",
         "maîtresse"
       ],
-      "humeur": "soucieuse",
       "maniere_de_parler": "Odile parle net, sans élever la voix, en comptant sur ses doigts.",
       "portrait": "Odile est une femme solide d'une cinquantaine d'années, le tablier noué haut, les clés à la ceinture.",
       "masse": 0,
@@ -2046,7 +2045,6 @@
         "cuisiniere",
         "servante"
       ],
-      "humeur": "affairée",
       "maniere_de_parler": "Mireille chantonne entre deux phrases et tutoie tout le monde.",
       "portrait": "Mireille est une grande fille de vingt-huit ans aux avant-bras rouges, les cheveux sous un linge.",
       "masse": 0,
@@ -2164,7 +2162,6 @@
         "enfant",
         "neveu"
       ],
-      "humeur": "inquiet",
       "maniere_de_parler": "Tilo parle vite, en avalant la moitié de ses mots, et finit souvent par une question.",
       "portrait": "Tilo est un garçon de neuf ans, maigre, les genoux écorchés et les cheveux en pointes.",
       "masse": 0,
@@ -2236,7 +2233,6 @@
         "palefrenier",
         "valet d'écurie"
       ],
-      "humeur": "rancunier",
       "maniere_de_parler": "Joss crache plus qu'il ne parle et répond par des demi-mots.",
       "portrait": "Joss est un grand gaillard de vingt-deux ans aux mains gercées, la paille collée à ses vêtements.",
       "masse": 0,
@@ -2336,7 +2332,6 @@
         "marchand",
         "drapier"
       ],
-      "humeur": "méfiant",
       "maniere_de_parler": "Anselme pèse chaque mot comme une pièce et ne répond qu'après avoir regardé la porte.",
       "portrait": "Anselme est un homme maigre d'une quarantaine d'années, vêtu de drap fin taché de neige fondue.",
       "masse": 0,
@@ -2452,7 +2447,6 @@
         "escorte",
         "garde"
       ],
-      "humeur": "las",
       "maniere_de_parler": "Hugues parle comme on donne un ordre, par phrases courtes, sans gestes.",
       "portrait": "Hugues est un homme large d'une quarantaine d'années, le manteau militaire déchiré et la barbe givrée.",
       "masse": 0,
@@ -2588,7 +2582,6 @@
         "vieille",
         "vieille femme"
       ],
-      "humeur": "transie",
       "maniere_de_parler": "Mathurine soupire avant chaque phrase et la termine par une bénédiction.",
       "portrait": "Mathurine est une vieille femme menue d'une soixantaine d'années, la coiffe collée par la neige.",
       "masse": 0,
@@ -2676,7 +2669,6 @@
         "manteau gris",
         "homme au manteau gris"
       ],
-      "humeur": "affable",
       "maniere_de_parler": "Lucien parle avec aisance, sourit beaucoup et ne répond jamais tout à fait à la question posée.",
       "portrait": "Lucien est un homme svelte d'une trentaine d'années, au sourire facile et aux mains très propres.",
       "masse": 0,

@@ -63,8 +63,6 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
             morceaux.append("à terre, sans connaissance")
         elif blessure(monde, o["id"]):
             morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
-        if o.get("humeur"):
-            morceaux.append(o["humeur"])
     if o.get("cale_de"):
         complements.append("Cet objet maintient la porte ouverte")
     if o.get("charges") == 0:
@@ -252,6 +250,8 @@ def regarder(monde):
         fin = "\n\nSorties que tu connais : " + (", ".join(sorties) or "aucune pour l'instant") + "."
     else:
         fin = "\n\nSorties : " + (", ".join(sorties) or "aucun passage directement praticable") + "."
+    from .signes import publics, impressions
+    fin += "\n" + "\n".join(s["texte"] for s in publics(monde) + impressions(monde))
     return titre + "\n\n" + fill(" ".join(lignes), width=88) + fin
 
 

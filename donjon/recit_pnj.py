@@ -206,7 +206,7 @@ class Recit:
                 dedans = t <= c["instant"] and (t_fin is None or c["instant"] < t_fin)
             else:
                 dedans = debut <= c["minute"] <= fin
-            if c["pnj"] != id or not dedans or c.get("nature") in ("deplacement", "ouie", "reponse", "relation"):
+            if c["pnj"] != id or not dedans or c.get("nature") in ("deplacement", "ouie", "reponse", "relation", "lecture"):
                 continue
             texte = c["texte"].rstrip(".")
             for nom in noms:

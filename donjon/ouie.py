@@ -357,6 +357,8 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
             continue
         if n in VOCALES and texte and mots_saisis(monde, id, parvient[0]):
             saisis.append(id)
+            from .signes import entendre_ton
+            entendre_ton(monde, id, auteur, list(parole["a"]) if parole else list(vers))
             if parole is not None and id in parole["a"]:
                 from .esprits import reconsiderer
                 reconsiderer(monde, id)  # Une parole qui lui est adressée change sa situation.
@@ -402,6 +404,9 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), co
         return
     vu = monde.visible(auteur)
     mots = n in VOCALES and parvient[0] >= SEUIL
+    if mots and texte:
+        from .signes import entendre_ton
+        entendre_ton(monde, "joueur", auteur, a)
     if vu:
         if mots:
             from .voix import connaitre

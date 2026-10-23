@@ -74,6 +74,11 @@ def jouer_nuit(tache):
     planification.VERIFIER = config["verifier"]
     capture, releves, minutes = {}, [], {}
     creer, oisifs, percevoir = banc.creer, banc._oisifs_urgents, pnj.percevoir_tous
+    commencer, tentatives = pnj.commencer_geste, set()
+    def compter(monde, auteur, operation, objet, *a, **k):
+        if operation not in pnj.CONTRAINTES:
+            tentatives.add((auteur, objet))
+        return commencer(monde, auteur, operation, objet, *a, **k)
 
     def creer_capture(*a, **k):
         monde = creer(*a, **k)
@@ -96,6 +101,7 @@ def jouer_nuit(tache):
                 "plantage": None}
     with ExitStack() as pile:
         pile.enter_context(patch.object(banc, "creer", creer_capture))
+        pile.enter_context(patch.object(pnj, "commencer_geste", compter))
         if not config["empreintes"]:
             pile.enter_context(patch.object(banc, "_oisifs_urgents", relever))
         if config.get("localiser"):
@@ -104,6 +110,7 @@ def jouer_nuit(tache):
         try:
             _, _, donnees = banc.nuit(scenario, graine, config["heures"],
                                      config["joueurs"][scenario], depart=config["depart"])
+            donnees["mesures"]["vols_tentes"] = len(tentatives)
             resultat["donnees"] = donnees
         except Exception as erreur:
             monde = capture.get("monde")

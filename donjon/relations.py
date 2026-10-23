@@ -136,6 +136,20 @@ def axes(monde, id, autre):
     return {a: r[a] for a in (*AXES, "bandes")}
 
 
+def signature(monde, id):
+    """Clé pure des lectures d'axes : le cache des signes n'accède pas au stockage.
+    Les ancres et bandes comptent aussi, même si l'arrondi actuel ne bouge pas.
+    """
+    from .esprits import lire
+    profil = monde.objets[id].get("profil") or {}
+    return (monde.data["minutes"],
+            tuple((x, tuple(r[a] for a in AXES), tuple(r["bandes"].items()),
+                   tuple((a, tuple(v)) for a, v in r["ancrages"].items()))
+                  for x, r in lire(monde, id)["relations"].items()),
+            repr(profil.get("liens")), profil.get("valeurs", {}).get("fierte"),
+            profil.get("valeurs", {}).get("douceur"))
+
+
 def percue(monde, auditeur, locuteur):
     from .voix import SUSPECTE, identifie, reconnaitre
     if identifie(monde, auditeur, locuteur):
@@ -257,6 +271,9 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     r["motifs"] = (r["motifs"] + [motif])[-3:]
     r.update(minute=monde.data["minutes"], source=s.get("source", "entendu" if s.get("par") == "ouie" else "vu"))
     esprit(monde, id)["relations"][autre] = r
+    from .signes import eprouver as eprouver_emotion
+    if cause != "refus" or s.get("raison") == "mefiance":
+        eprouver_emotion(monde, id, autre, cause, delta)
     reconsiderer(monde, id)
     from .pnj import _chroniquer
     from .social import _qui
@@ -272,6 +289,8 @@ def souvenir(monde, id, s):
     from .esprits import memoriser
     from .voix import identifie, auteur_dit, source_dite
     t = s["type"]
+    if t == "rumeur" and s.get("evenement", {}).get("type") == "intention_lue":
+        return
     if id == "joueur":
         return
     autre = s.get("auteur", s.get("locuteur", s.get("de", s.get("qui"))))

@@ -112,6 +112,8 @@ class LecturesTests(unittest.TestCase):
                 lien(m, id, "marchand", affection=aff_gorm)
                 lien(m, id, accuse, confiance=15)
                 memoriser(m, id, {"type": "vol_surpris", "auteur": accuse, "objet": "marteau", "victime": id})
+                # Confidence à froid : la colère immédiate demande désormais des comptes à l’auteur.
+                m.data["minutes"] += 60
                 m.joueur.update(salle="antichambre", position=[1, 5], orientation="est")
                 percevoir_tous(m)
                 m = recharger(m)

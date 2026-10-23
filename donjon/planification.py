@@ -1134,7 +1134,9 @@ def _entrees(v, vises, profondeur, noeuds):
     esprit_ = lire(monde, id)
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
+    from .signes import actives
     return json.dumps([
+        [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],

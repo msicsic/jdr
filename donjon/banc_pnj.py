@@ -134,6 +134,24 @@ def _nouvelles(avant, apres):
 
 
 def executer(monde, minutes, recit=None, empreintes=None):
+    """Observe les tentatives au registre, sans ajouter d'état au monde joué."""
+    if recit is not None:
+        return _executer(monde, minutes, recit, empreintes)
+    from unittest.mock import patch
+    from . import pnj
+    tentatives = set()
+    commencer = pnj.commencer_geste
+    def compter(m, auteur, operation, objet, *a, **k):
+        if operation not in CONTRAINTES:
+            tentatives.add((auteur, objet))
+        return commencer(m, auteur, operation, objet, *a, **k)
+    with patch.object(pnj, "commencer_geste", compter):
+        chronique, mesures = _executer(monde, minutes, empreintes=empreintes)
+    mesures["vols_tentes"] = len(tentatives)
+    return chronique, mesures
+
+
+def _executer(monde, minutes, recit=None, empreintes=None):
     """Avance le monde ; renvoie la chronique produite et les mesures du banc. Un ``recit``
     observe chaque PNJ au passage. Un dictionnaire ``empreintes`` reçoit l'empreinte de l'état à
     chaque minute de ``REPERES`` atteinte, et l'``issue`` de la nuit."""
@@ -189,7 +207,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
     entendus = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                 if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
     examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
-    mesures = {"gestes": sum(c.get("nature") != "ouie" for c in chronique),
+    mesures = {"gestes": sum(c.get("nature") not in ("ouie", "lecture") for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique
                                             if c.get("nature", "geste") in ("geste", "social", "reponse")}),
                # Les échanges entre PNJ, sans les appels de qui cherche quelqu'un ni leurs réponses
@@ -310,6 +328,8 @@ def executer(monde, minutes, recit=None, empreintes=None):
     if monde.data.get("historique_corps"):
         from .corps import mesures as mesures_corps
         mesures.update(mesures_corps(monde))
+    from .signes import mesures as mesures_sociales
+    mesures.update(mesures_sociales(monde))
     return chronique, mesures
 
 
@@ -418,7 +438,7 @@ def ecrire_rejeu(chemin, enregistreur, monde, chronique, titre):
         f.write(page(enregistreur.donnees(monde, chronique, titre)))
 
 
-def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire", etats=()):
+def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire", etats=(), reglages=()):
     """Une nuit sans joueur : (texte imprimable, mesures, données pour --sortie). Avec ``rejeu``
     (un chemin), la page de rejeu y est écrite. Les données portent les empreintes de la nuit
     (``executer``) et sa durée de calcul."""
@@ -433,6 +453,7 @@ def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, re
     if joueur:
         from .geometrie import position_entree
         monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
+    appliquer_reglages(monde, reglages)
     appliquer_etats(monde, etats)
     from .recit_pnj import Recit
     recit = Recit(monde)
@@ -494,13 +515,37 @@ def ceder():
 
 
 def nuits(scenario, graines, heures, joueur, chronique=False, diagnostic=False, rejeu=None, depart="tire",
-          processus=None, etats=()):
+          processus=None, etats=(), reglages=()):
     """Plusieurs nuits en parallèle, au plus ``processus`` à la fois (``PROCESSUS`` par défaut) ; les
     résultats dans l'ordre des graines. Avec ``rejeu``, une page par graine (``page_rejeu``)."""
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(max_workers=max(1, min(len(graines), processus or PROCESSUS))) as pool:
         return list(pool.map(_nuit, [(scenario, g, heures, joueur, chronique, diagnostic,
-                                      page_rejeu(rejeu, g, True) if rejeu else None, depart, etats) for g in graines]))
+                                      page_rejeu(rejeu, g, True) if rejeu else None, depart, etats, reglages) for g in graines]))
+
+
+def appliquer_reglages(monde, reglages):
+    """Surcharge déclarative de profil, validée avant la première perception."""
+    from .caractere import STATS, VALEURS
+    import re
+    for texte in reglages:
+        match = re.fullmatch(r"([a-zA-Z0-9_]+)\.([a-zA-Z_]+)=([0-9]+)", texte)
+        if not match:
+            raise ValueError("Réglage attendu : personnage.PSY=16 ou personnage.fierte=60")
+        id, cle, n = match.groups()
+        if id not in monde.objets:
+            from .monde import normaliser
+            ids = [x for x, o in monde.objets.items() if o.get("profil") and
+                   normaliser(id) == normaliser(o["nom"].split(",")[0])]
+            id = ids[0] if len(ids) == 1 else id
+        profil = monde.objets.get(id, {}).get("profil")
+        if not profil or cle not in (*STATS, *VALEURS):
+            raise ValueError("Personnage ou propriété de profil inconnu : " + texte)
+        n = int(n)
+        if not (1 <= n <= 30 if cle in STATS else 0 <= n <= 100):
+            raise ValueError("Valeur hors limites : " + texte)
+        profil["caracteristiques" if cle in STATS else "valeurs"][cle] = n
+    monde.verifier()
 
 
 def appliquer_etats(monde, etats):
@@ -548,6 +593,7 @@ def tableau(graines, mesures):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge"), default="relais")
+    parser.add_argument("--regler", action="append", default=[], help="personnage.PSY=16 ; caractéristique ou valeur (répétable)")
     parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :mort ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
@@ -571,7 +617,7 @@ def main(argv=None):
         if args.stratege:
             parser.error("le stratège suit une nuit à la fois : --graine, pas --graines")
         resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic,
-                          args.rejeu, args.depart, args.processus, args.etat)
+                          args.rejeu, args.depart, args.processus, args.etat, args.regler)
         for g, (texte, _, _) in zip(args.graines, resultats):
             print(f"######## graine {g}\n{texte}\n")
             if args.rejeu:
@@ -590,6 +636,7 @@ def main(argv=None):
         if args.joueur:
             from .geometrie import position_entree
             monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
+        appliquer_reglages(monde, args.regler)
         appliquer_etats(monde, args.etat)
         from .recit_pnj import Recit
         recit = Recit(monde)

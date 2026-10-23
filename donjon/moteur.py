@@ -291,10 +291,21 @@ class Moteur:
             from .passage import preparer_poussee
             return preparer_poussee(m, p, plan)
         if action == "observer":
-            if cible not in ("", "scene", "lumiere", "contexte") or outil:
+            if outil:
+                raise ErreurMonde("Observer se fait sans outil.", f"observer.outil : reçu {outil!r} ; accepté : ''.")
+            if p["methode"] != "simple":
+                raise ErreurMonde("Observe simplement ce qui est devant toi.", f"observer.methode : reçu {p['methode']!r} ; accepté : simple.")
+            if p["difficulte"]:
+                raise ErreurMonde("Observer n'impose pas de difficulté.", f"observer.difficulte : reçu {p['difficulte']!r} ; accepté : 0.")
+            if cible in m.objets and m.objets[cible]["type"] == "personnage":
+                if not m.visible(cible):
+                    raise ErreurMonde("Tu ne vois pas cette personne d'ici.",
+                                      f"observer.cible : reçu {cible!r} hors de vue ; acceptés : '', scene, lumiere, contexte.")
+                plan.titre, plan.minutes, plan.dixiemes, plan.effort = "Observer cette personne.", 0, 30, False
+                return plan
+            if cible not in ("", "scene", "lumiere", "contexte"):
                 raise ErreurMonde("On observe la scène, la lumière ou le contexte, pas un objet précis.",
-                                  f"observer : cible vide, scene, lumiere ou contexte (reçu « {cible} »), outil vide ; "
-                                  "pour un objet précis : examiner, toucher ou lire avec son identifiant.")
+                                  f"observer.cible : reçu {cible!r} ; acceptés : '', scene, lumiere, contexte.")
             plan.titre, plan.minutes = "Observer la scène.", 0
             plan.information = (decrire_contexte(m) if cible == "contexte" else
                                 regarder(m) if cible == "scene" else decrire_perception(m))
@@ -608,7 +619,7 @@ class Moteur:
         plan = self.preparer(plan.proposition, plan.origine)
         if plan.etapes:
             return self._executer_operations(plan)
-        if plan.proposition["action"] == "observer":
+        if plan.proposition["action"] == "observer" and plan.proposition["cible"] not in self.monde.objets:
             return plan.information
         travail = self.monde.copier()
         travail.data["entendus"] = []
@@ -650,6 +661,9 @@ class Moteur:
             self._attendre(travail, plan, lignes)
         else:
             self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
+        if plan.proposition["action"] == "observer":
+            from .signes import bilan_signes
+            lignes.extend(bilan_signes(travail, plan.proposition["cible"]) or ["Tu ne discernes aucun signe particulier."])
         self._clore_bilan(travail, lignes)
         from .noms import texte
         lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
@@ -690,7 +704,7 @@ class Moteur:
         à pas, et leur humeur peut changer : on n'en dit que le bilan, à la fin de l'action."""
         from .pnj import suivre_presences
         suivre_presences(travail)
-        travail._humeurs = {}
+
 
     @staticmethod
     def _clore_bilan(travail, lignes):
@@ -701,8 +715,8 @@ class Moteur:
         lignes.extend(bilan_presences(travail))
         # Qui il a vu pendant l'action, même un instant, il sait qui c'est (``Monde.identifier``).
         travail.identifier(id for id, s in suivi.items() if s["vu"])
-        humeurs = travail.__dict__.pop("_humeurs", {})
-        lignes.extend(ligne for id, ligne in humeurs.items() if travail.visible(id))
+        from .signes import bilan_signes
+        lignes.extend(l for l in bilan_signes(travail) if l not in lignes)
 
     @staticmethod
     def _terminer_etape(travail, plan, lignes, effets=(), geste=None, methode=None):
@@ -714,6 +728,10 @@ class Moteur:
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         from .temps import MINUTE, duree, ecouler, instant
         debut = instant(travail)
+        if geste == "observer" and plan.proposition["cible"] in travail.objets:
+            travail.data["observation_joueur"] = {"cible": plan.proposition["cible"], "debut": debut, "fin": debut + duree(plan)}
+            from .signes import percevoir_tous as percevoir_signes
+            percevoir_signes(travail)
         # Un geste illicite du joueur dure autant que son étape : quiconque le voit faire d'ici
         # là en est témoin, comme d'un geste de PNJ. Ceux qui le regardaient déjà ont été
         # départagés par son jet.
@@ -798,24 +816,6 @@ class Moteur:
             lignes.append("Aucune réponse ne te parvient.")
         # Les horloges du scénario se sont déclenchées à leur minute, pendant la vie des PNJ.
         percevoir_tous(travail)
-        # Qui entendrait d'ici un fracas du joueur (l'ouïe commune) : son humeur suit le tapage.
-        from .sons import entendants
-        a_portee = set(entendants(travail, "bruyant"))
-        for id, relation in travail.data["relations_pnj"].items():
-            if id not in a_portee or any(e[0] == "emettre_son" for e in plan.effets):
-                # L'audition a déjà été résolue spatialement, sans alerter tout le monde.
-                continue
-            pnj = travail.objets[id]
-            from .vol import mefiance
-            humeur = "méfiant" if mefiance(travail, id) else "inquiet" if travail.data["bruit"] >= 6 else "calme"
-            if pnj.get("humeur") != humeur and travail.visible(id):
-                ligne = sujet(pnj) + " semble " + humeur + "."
-                humeurs = getattr(travail, "_humeurs", None)
-                if humeurs is None:
-                    lignes.append(ligne)
-                else:
-                    humeurs[id] = ligne
-            pnj["humeur"] = humeur
         travail.actualiser_souvenirs_personnages()
         from .objectifs import actualiser as actualiser_objectif
         actualiser_objectif(travail, lignes)

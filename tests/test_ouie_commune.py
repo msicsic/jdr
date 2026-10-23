@@ -55,7 +55,7 @@ class PorteFermeeTests(unittest.TestCase):
                          {"nature": "appel", "niveau": 6})
         self.assertEqual(bruit(m, "aubin", "beffroi")["niveau"], 3)
         # Personne ne passe « inquiet » d'office : l'inquiétude vient de ce qu'il entend.
-        self.assertEqual(m.objets["marchand"]["humeur"], relais().objets["marchand"]["humeur"])
+        self.assertNotIn("humeur", m.objets["marchand"])
         self.assertGreater(lire(m, "marchand")["besoins"]["securite"], 0)
 
     def test_au_seuil_d_alerte_le_proche_accourt_le_lointain_non(self):

@@ -381,6 +381,11 @@ function panneau(etats, esprits) {
   Object.entries(liens).forEach(([x, r]) => {
     lignes.push(`<div><b>Envers ${echapper(court(x))}</b> : ${Object.entries(r).filter(([a]) => ["confiance", "affection", "rancune", "peur", "dette"].includes(a)).map(([a,v]) => `${echapper(a)} ${v}`).join(", ")}<br><span class=gris>${(r.motifs || []).map(m => `${m.minute} min : ${echapper(m.type)} (${Object.entries(m.effets).map(([a,v]) => `${echapper(a)} ${v > 0 ? "+" : ""}${v}`).join(", ")})`).join(" ; ")}</span></div>`);
   });
+  (esprits[choisi + "|:lectures"] || []).forEach(([qui, attribut, c]) => {
+    lignes.push(`<div>Devine : ${echapper(court(qui))}, ${echapper(attribut)} = ${echapper(c.valeur)} (${Math.round(c.confiance * 100)} %, signe ${echapper(c.signe)})</div>`);
+  });
+  const emotion = esprits[choisi + "|:emotion"];
+  if (emotion) lignes.push(`<div>Colère envers ${echapper(court(emotion.contre))} : ${Math.round(emotion.niveau)}</div>`);
   $("croyances").innerHTML = lignes.join("") || "<span class=gris>rien de localisé</span>";
 }
 // Le journal : la chronique, les « aller voir », les bruits qui ont fait réagir, les gestes illicites et leurs témoins.

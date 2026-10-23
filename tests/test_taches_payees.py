@@ -48,6 +48,10 @@ class TachesPayeesTests(unittest.TestCase):
         m = relais_reel()
         # Sauvegarde exacte de main 06602a6, juste avant l'achat de la minute 151.
         self.assertEqual(m.data["minutes"], 151)
+        # 3c : son abri inquiet surveille désormais Brune ; il peut alors ne pas voir
+        # Gorm repartir avec la torche, et croire encore pouvoir la lui demander.
+        # Cette régression de paiement isole le service de ce séjour social nouveau.
+        calme(m, "aubin")
         m, _ = vivre(m, 5)
         annules = [s for s in lire(m, "aubin")["memoire"] if s["type"] == "engagement_abandonne"]
         self.assertTrue(annules, chronique(m))

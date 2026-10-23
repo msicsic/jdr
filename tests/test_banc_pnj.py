@@ -14,7 +14,7 @@ class ChroniqueDuBancTests(unittest.TestCase):
         self.assertEqual(chronique, m.data["chronique"])
         self.assertTrue(any(c["minute"] % 5 == 0 for c in chronique))
         # Les gestes, et ce que l'ouïe a fait (se retourner, retenir un bruit, aller le voir).
-        self.assertEqual(mesures["gestes"] + sum(c["nature"] == "ouie" for c in chronique), len(chronique))
+        self.assertEqual(mesures["gestes"] + sum(c["nature"] in ("ouie", "lecture") for c in chronique), len(chronique))
 
     def test_la_borne_ne_fait_ni_perdre_ni_doubler(self):
         a, b, c, d = ({"minute": i, "texte": str(i)} for i in range(4))

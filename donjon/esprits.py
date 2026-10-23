@@ -34,7 +34,7 @@ from .vol import proprietaire as _proprietaire
 
 MEMOIRE_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
-SOURCES = ("vu", "savoir", "essai", "entendu", "se_dit")   # se_dit : une voix inconnue a dit être lui
+SOURCES = ("vu", "savoir", "essai", "entendu", "se_dit", "devine")   # se_dit : une voix inconnue a dit être lui
 ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume", "faible", "charge"),
                   "nourriture": ("disponible",), "consommable": ("disponible",)}
 # Un objet porté par quelqu'un d'autre ne se remarque que s'il est encombrant ou allumé.
@@ -46,7 +46,7 @@ def pnjs(monde):
     return [id for id, o in monde.objets.items() if o["type"] == "personnage"]
 
 
-CHAMPS = {"relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
+CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
@@ -114,7 +114,7 @@ def installer(monde):
         if trajet and e["intention"] is None:
             e["intention"] = {"but": {"type": "rejoindre", "lieu": trajet["vers"]}}
         i = e["intention"]
-        if i is not None and set(i) != CLES_INTENTION:
+        if i is not None and set(i) - {"attitude"} != CLES_INTENTION:
             # Intention du jalon A : un réflexe d'alerte, sans plan enregistré.
             e["intention"] = {"but": i["but"], "motif": "alerte", "plan": [
                 {"operation": "aller", "cible": "", "outil": "", "lieu": i["but"]["lieu"], "condition": ""}],
@@ -122,6 +122,8 @@ def installer(monde):
         from .deliberation import installer as installer_besoins
         installer_besoins(monde, id)
     # Le joueur arrive en étranger : il ne connaît encore aucune voix.
+    from .signes import installer as installer_signes
+    installer_signes(monde)
     monde.data.setdefault("voix_connues", [])
     monde.data.setdefault("voix_entendues", {})
 
@@ -164,12 +166,17 @@ def _croyance_valide(monde, attribut, c):
                      and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
     elif attribut == "verrouillee":
         assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
+    elif attribut.startswith("attitude:") or attribut in ("emotion", "intention", "parole_doutee"):
+        from .signes import SENS
+        assert c["valeur"] in SENS and isinstance(c.get("signe"), str) and (c["source"] == "devine" or c["source"].startswith("dit:")), "Lecture invalide"
     else:
         # Les relations ne sont plus des croyances ; les avis sont dérivés par ``croyance``.
         assert False, "Attribut de croyance inconnu"
 
 
 def verifier(monde):
+    from .signes import verifier as verifier_signes
+    verifier_signes(monde)
     esprits = monde.data.get("esprits", {})
     assert isinstance(esprits, dict), "Esprits invalides"
     for id, e in esprits.items():
@@ -253,7 +260,7 @@ def verifier(monde):
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
         i = e["intention"]
-        assert i is None or (isinstance(i, dict) and set(i) == CLES_INTENTION
+        assert i is None or (isinstance(i, dict) and set(i) - {"attitude"} == CLES_INTENTION
                              and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)
                              and isinstance(i["motif"], str) and type(i["depuis"]) is int
                              and type(i["attente"]) is int and i["attente"] >= 0
@@ -273,7 +280,12 @@ def croyance(monde, id, sujet, attribut):
     from .relations import FIABLE, croyance as relation
     if attribut == FIABLE:
         return relation(monde, id, sujet)
-    return lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
+    c = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
+    if c and "signe" in c:
+        limite = RECENT if attribut in ("emotion", "intention", "parole_doutee") else 120
+        if monde.data["minutes"] - c["minute"] >= limite:
+            return None
+    return c
 
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):

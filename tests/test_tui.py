@@ -576,7 +576,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                         self.assertIn("trousse", app.derniere_vue["fiche"])
                     else:
                         self.assertIn("la trousse", app.derniere_vue["carte"])
-                        self.assertIn("méfiant", app.derniere_vue["scene"])
+                        self.assertIn("fait des gestes brusques", app.derniere_vue["scene"])
                     self.assertEqual(Monde.charger(chemin).objets["crochets"]["lieu"], "joueur" if jet == 20 else "echoppe")
                     await self.fermer(app)
 
