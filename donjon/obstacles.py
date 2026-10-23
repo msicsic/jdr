@@ -14,6 +14,9 @@ from .francais import designer
 from .temps import PAS_JOUEUR, MINUTE, duree_pas
 
 METHODES = ("dessous", "dessus")
+# Les manipulations ordinaires du joueur sont encore des Plan à une minute ;
+# les PNJ emploient DUREES. La mesure reçoit le tarif de son exécutant.
+DUREES_PORTES_JOUEUR = {"ouvrir": MINUTE, "deverrouiller": MINUTE}
 REGLES = """
 Passage local : composer avec operation passer_obstacle, cible obstacle, methode dessous ou
 dessus, destination et outil vides, difficulte 0. Le moteur choisit ramper, enjamber ou
@@ -219,7 +222,7 @@ class Route(list):
         self._sejours = {}
 
     @classmethod
-    def depuis_pas(cls, m, depart, chemin, allure=PAS_JOUEUR):
+    def depuis_pas(cls, m, depart, chemin, allure=PAS_JOUEUR, durees_portes=None):
         """Le chemin spatial du joueur porte la même mesure que les routes crues."""
         sejours, franchies = [], set()
         salle = depart
@@ -229,7 +232,7 @@ class Route(list):
             else:
                 duree = duree_pas(allure, sens)
                 if porte and porte not in franchies:
-                    sejours.append((salle, duree_porte(m, porte)))
+                    sejours.append((salle, duree_porte(m, porte, durees=durees_portes)))
                     franchies.add(porte)
             sejours.append((vers, duree))
             salle = vers
@@ -241,12 +244,13 @@ _DISTANCES = OrderedDict()
 DISTANCES_MAX = 2048
 
 
-def duree_porte(m, porte, deverrouillees=()):
+def duree_porte(m, porte, deverrouillees=(), durees=None):
     """Temps des gestes en chemin, en dixièmes, sur le monde fourni (réel ou cru)."""
     from .pnj import DUREES
+    durees = DUREES if durees is None else durees
     o = m.objets[porte]
-    return (0 if o.get("ouverte") else DUREES["ouvrir"]
-            + (DUREES["deverrouiller"] if o.get("verrouillee") and porte not in deverrouillees else 0))
+    return (0 if o.get("ouverte") else durees["ouvrir"]
+            + (durees["deverrouiller"] if o.get("verrouillee") and porte not in deverrouillees else 0))
 
 
 def distances(cru, acteur, salle, depart, equipement, allure, passages):

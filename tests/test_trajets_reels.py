@@ -71,6 +71,26 @@ def executer_plan(m, qui, etapes):
 
 
 class TempsReelsTests(unittest.TestCase):
+    def test_fuite_du_joueur_compte_la_duree_reelle_de_sa_porte(self):
+        from donjon.temps import instant
+        m = creer("relais", 42, "fixe")
+        calme(m, "marchand", "brune", "ilse", "aubin")
+        m.objets["porte"].update(ouverte=False, verrouillee=False)
+        m.joueur.update(salle="crypte", position=[8, 3], orientation="est")
+        m.data["exploration"]["crypte"].append([8, 3])
+        m = recharger(m)
+        moteur = Moteur(m)
+        plan = moteur.preparer(proposition("fuir", "beffroi"))
+        self.assertEqual(plan.dixiemes, MINUTE + 15)
+        prevision = plan.dixiemes
+        debut = instant(m)
+        texte = moteur.executer(plan)
+        m = recharger(m)
+        self.assertEqual(instant(m) - debut, prevision)
+        self.assertEqual(m.joueur["salle"], "beffroi")
+        self.assertTrue(m.objets["porte"]["ouverte"])
+        self.assertIn("Tu as gagné une autre salle", texte)
+
     def test_allure_feutree_du_plan_depuis_la_premiere_approche(self):
         m, qui, source, feux = flammes("relais")
         m.objets[source]["proprietaire"] = "aubin"

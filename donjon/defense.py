@@ -227,7 +227,7 @@ def chemin_fuite(monde, cible=""):
     from .spatial import trajet, sortie_connue
     from .passage import place
     from .monde import ErreurMonde
-    from .obstacles import transitions, duree_porte, Route
+    from .obstacles import transitions, duree_porte, Route, DUREES_PORTES_JOUEUR
     salle, case = place(monde, "joueur")
     sorties = [s for d, s in monde.data["salles"][salle]["sorties"].items()
                if sortie_connue(monde, salle, d) and (not cible or cible in (d, s["vers"]))]
@@ -239,11 +239,11 @@ def chemin_fuite(monde, cible=""):
                     franchissable=lambda p: not monde.objets[p].get("verrouillee"),
                     libre=lambda s, c: (s, c) not in occupees and s in salles | {salle},
                     passages=transitions(monde, "joueur", formes) if formes and monde.data.get("mode_cases") else None,
-                    cout_porte=lambda p: duree_porte(monde, p))
+                    cout_porte=lambda p: duree_porte(monde, p, durees=DUREES_PORTES_JOUEUR))
     if not chemin:
         raise ErreurMonde("Tu ne trouves pas de sortie connue accessible.",
                           f"cible={cible} : sortie connue accessible parmi {sorted(salles)}, ou vide ; portes déverrouillées requises.")
-    return Route.depuis_pas(monde, salle, chemin)
+    return Route.depuis_pas(monde, salle, chemin, durees_portes=DUREES_PORTES_JOUEUR)
 
 
 def preparer_joueur(monde, p, plan):

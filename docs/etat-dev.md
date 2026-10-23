@@ -12,9 +12,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Case, orientation et allure appartiennent à l'état de recherche ; portes ouvertes et objets
   posés gardent leurs effets. Distances locales bornées et vérifiées, lectures nouvelles dans
   les clés des résultats, des deux graphes de lumière et du certificat d'absence.
-  Huit tests nouveaux suivent deux flammes au Relais et à la mine, deux portes courtes,
+  Neuf tests nouveaux suivent deux flammes au Relais et à la mine, deux portes courtes,
   les distances d'objet, le noir, les obstacles crus ou ignorés, l'allure feutrée, la clé posée
-  et le même laps découpé ; état, perception et recharge. `VERIFIER` et
+  la porte fermée de la fuite du joueur et le même laps découpé ; état, perception et recharge. `VERIFIER` et
   `spatial.VERIFICATION` **1 sur 2 h**, graine 42, Relais, mine, auberge, crue et `rixe` :
   sans écart ni borne. Suite et campagnes longues en cours de consignation dans le
   [rapport 20](taches/rapport-codex-20-trajets-reels.md). Aucun appel à Luna, aucune fusion.

@@ -120,6 +120,7 @@ def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0
             "reprises_memoire": sum(bool(r.get("memoire")) for r in recherches),
             "reprises_graphe": sum(bool(r.get("graphe")) for r in recherches),
             "bornees": sum(r["issue"] == "borne" and not r.get("memoire") for r in recherches),
+            "bornes_verifier": list(planification.BORNES),
             "epuisees": sum(r["issue"] == "epuise" and not r.get("memoire") for r in recherches),
             "preuves": sum(r.get("preuve_issue") is not None for r in recherches),
             "preuves_bornees": sum(r.get("preuve_issue") == "borne" for r in recherches),
