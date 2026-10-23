@@ -23,7 +23,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "ecouter", "pousser", "ranimer",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
-METHODES = ["simple", "finesse", "levier", "percussion", "traction"]
+METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 
 
 class QualificationRequise(ErreurMonde):
@@ -64,6 +64,7 @@ class Plan:
     plans: list = field(default_factory=list)
     regard: str = ""            # le joueur se tourne d'abord vers ce qu'il vise (spatial.orientation_vers)
     effort: bool = True        # le geste creuse et fatigue (``corps``)
+    confirmation: bool = False   # la fiche doit précéder toute tentative, même par commande locale
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
@@ -80,6 +81,8 @@ class Plan:
             lignes.append("« tenter » lance l'ensemble ; « annuler » abandonne sans exécuter aucune étape.")
             return texte(monde, "\n".join(lignes))
         lignes = [self.titre]
+        if any(op == "frapper_personne" for op, _, _ in self.effets):
+            return texte(monde, "\n".join([self.titre, self.information, self.risque]))
         if self.stat:
             from .corps import malus
             mod, corps = (monde.joueur["stats"][self.stat] - 10) // 2, malus(monde, self.stat)
@@ -223,6 +226,9 @@ class Moteur:
             from .artisanat import preparer_usage
             return preparer_usage(self.monde, p, origine)
         m = self.monde
+        if p["methode"] == "assommer" and not (action == "frapper" and m.objets.get(cible, {}).get("type") == "personnage"):
+            raise ErreurMonde("Assommer ne vise qu'une personne.",
+                              f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
         if action == "tourner":
             from .spatial import QUART, VECTEURS, quarts
@@ -279,6 +285,9 @@ class Moteur:
             plan.minutes, plan.dixiemes = 0, duree
             plan.effets = [("marcher", "", destination)]
             return plan
+        if action == "frapper" and m.objets.get(cible, {}).get("type") == "personnage":
+            from .combat import preparer
+            return preparer(m, p, plan)
         if action == "ranimer":
             if outil:
                 raise ErreurMonde("Ranimer se fait à mains nues.", f"outil={outil} : outil vide pour ranimer.")
@@ -641,7 +650,9 @@ class Moteur:
                           + f'= {total} contre {contre} : ' + ("REUSSITE" if reussite else "ECHEC"))
         effets = plan.effets if reussite else plan.echec + (plan.echec_critique if jet == 1 else [])
         for effet in effets:
-            self._appliquer(travail, effet, lignes)
+            resultat = self._appliquer(travail, effet, lignes)
+            if effet[0] == "frapper_personne":
+                reussite, jet = resultat["touche"], resultat["jet"]
         if not reussite and plan.proposition["action"] != "improviser":
             lignes.append("La tentative n'aboutit pas.")
         elif plan.information:
@@ -739,7 +750,7 @@ class Moteur:
         heles = [valeur for op, _, valeur in effets if op == "heler"]
         reponses = [(valeur, REPONSES[op]) for op, _, valeur in effets if op in REPONSES]
         # Le cri d'un nom, ou la réponse à un appel, a déjà retenti (``pnj.heler``, ``appel.dire``).
-        retournes = [] if heles or reponses else retentir(
+        retournes = [] if heles or reponses or any(op == "frapper_personne" for op, _, _ in effets) else retentir(
             travail, "joueur", geste, discret=methode == "discret", bruit=plan.bruit,
             force=nature_emise(travail, effets) or (bruit if adresse else None))
         lignes.extend(sujet(travail.objets[id]) + " se retourne vers toi." for id in retournes if travail.visible(id))
@@ -767,6 +778,9 @@ class Moteur:
             travail.data["minutes"], travail.data["dixiemes"] = fin
         from .pnj import avancer as avancer_pnj
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
+        if not conscient(travail):
+            Moteur._attendre_reveil(travail, lignes)
+            return
         # Qui a saisi son nom répond, le cri fini : après avoir vécu ces secondes (tourné vers la voix,
         # ou parti ailleurs) ; qui a saisi la réponse du joueur y donne suite (``appel``). Le joueur
         # l'entend par l'ouïe commune (``ecoute``).
@@ -802,8 +816,9 @@ class Moteur:
         from .sons import entendants
         a_portee = set(entendants(travail, "bruyant"))
         for id, relation in travail.data["relations_pnj"].items():
-            if id not in a_portee or any(e[0] == "emettre_son" for e in plan.effets):
-                # L'audition a déjà été résolue spatialement, sans alerter tout le monde.
+            if id not in a_portee or any(e[0] == "emettre_son" for e in plan.effets) or not conscient(travail, id):
+                # L'audition a déjà été résolue spatialement, sans alerter tout le monde ; sans
+                # connaissance, il n'a pas d'humeur à montrer.
                 continue
             pnj = travail.objets[id]
             from .vol import mefiance
@@ -891,10 +906,14 @@ class Moteur:
                                + f"= {total} contre {p.dd} : " + ("REUSSITE" if reussite else "ECHEC"))
             effets = p.effets if reussite else p.echec + (p.echec_critique if jet == 1 else [])
             for effet in effets:
-                self._appliquer(travail, effet, details)
+                resultat = self._appliquer(travail, effet, details)
+                if effet[0] == "frapper_personne":
+                    reussite, jet = resultat["touche"], resultat["jet"]
+                    dernier_jet = jet
             from .corps import conscient
             inconscient = not conscient(travail)
             self._terminer_etape(travail, p, details, effets, e["operation"], e["methode"])
+            inconscient = inconscient or not conscient(travail) or any("Tu perds connaissance." == ligne for ligne in details)
             if e["operation"] == "patienter":
                 details.append("Deux minutes passent à guetter une occasion ; rien ne garantit que le geste passera inaperçu.")
             if not reussite:
@@ -963,6 +982,9 @@ class Moteur:
             from .improvisation import appliquer
             appliquer(m, effet, lignes)
             return
+        if op == "frapper_personne":
+            from .combat import frapper
+            return frapper(m, "joueur", cible, lignes=lignes, **valeur)
         if op == "ranimer":
             from .corps import ranimer
             ranimer(m, "joueur", cible)

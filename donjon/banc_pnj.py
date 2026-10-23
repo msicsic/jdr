@@ -22,7 +22,7 @@ import os
 from . import relations
 from .appel import ARRIVE, QUOI, VIENS, sorte_du_cri
 from .esprits import lire, pnjs
-from .pnj import CONTRAINTES
+from .pnj import est_contrainte
 from .moteur import Moteur, proposition
 
 PAS = 5
@@ -31,6 +31,12 @@ PAS = 5
 def creer(scenario, graine=1985, depart="tire"):
     """Le monde d'un scénario ; ``depart`` : tiré de la graine (``depart.py``) ou ``"fixe"``, le
     départ déclaré."""
+    if scenario in ("rixe", "rixe_douce"):
+        from .rixe import nouvelle_rixe
+        from .spatial import installer
+        m = nouvelle_rixe(graine, depart, douce=scenario == "rixe_douce")
+        installer(m)
+        return m
     if scenario in ("relais", "crue"):
         from .crue import nouvelle_crue
         from .defi import nouveau_defi
@@ -105,7 +111,7 @@ def issue(monde, chronique):
                    *(o.get(k) for k in ("ouverte", "verrouillee", "allume", "portions"))]
               for id, o in sorted(monde.objets.items())}
     vols = sorted({(s["auteur"], s["objet"]) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
-                   if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES})
+                   if s["type"] == "vu_agir" and not est_contrainte(monde, s["operation"], s["objet"])})
     texte = json.dumps({"objets": objets, "vols": vols}, sort_keys=True, ensure_ascii=False)
     return hashlib.sha1(texte.encode()).hexdigest()[:12]
 
@@ -185,7 +191,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
     liens = [relations.envers(monde, id, x) for id in pnjs(monde) for x in relations.connus(monde, id)]
     bilan = monde.data.get("stratege", {}).get("bilan", {})
     temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
-               if s["type"] == "vu_agir" and s["operation"] not in CONTRAINTES and s.get("par") != "ouie"]
+               if s["type"] == "vu_agir" and not est_contrainte(monde, s["operation"], s["objet"]) and s.get("par") != "ouie"]
     entendus = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                 if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
     examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
@@ -549,7 +555,7 @@ def tableau(graines, mesures):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge"), default="relais")
+    parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge", "rixe", "rixe_douce"), default="relais")
     parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :mort ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")

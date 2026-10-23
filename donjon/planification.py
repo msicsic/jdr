@@ -26,6 +26,7 @@ from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vain
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
+from .caractere import ENJEU
 from .esprits import lire
 from .perception import brule, recharge
 from .relations import se_fie, se_mefie
@@ -174,6 +175,7 @@ class Vue:
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None
+        self.desespere = False
         # Une serrure qu'il croit fermée à clé : forcer peut servir, et ce qui force vaut d'être porté.
         self.verrous = any(self.objets[o]["type"] in ("contenant", "porte") and _cru(monde, id, o, "verrouillee")
                            for o in self.connus)
@@ -300,6 +302,20 @@ class Vue:
                     or crochete and "crochetage" in usages
                     or voir and ("allume" in x or "allumage" in usages or "combustible" in usages and any(
                         recharge(self.objets[s], x) for s in self.rechargeables)))
+
+    def embuscade_possible(self, e, cible):
+        """Le plan ne peut supposer que les témoins crus disparaîtront entre ses gestes.
+
+        Le désespoir permet d'assumer ce risque ; sinon on reconsidérera quand la perception
+        changera. L'approche réelle refait encore ce contrôle sur place, vue et ouïe.
+        """
+        if self.desespere:
+            return True
+        return self._memo(("embuscade", e.salle, cible), lambda: not any(
+            x not in (self.id, cible) and (x == "joueur" or self.objets.get(x, {}).get("type") == "personnage")
+            and d.get("lieu", {}).get("valeur") == e.salle
+            and d.get("etat", {}).get("valeur", {}).get("conscient") is not False
+            for x, d in lire(self.monde, self.id)["croyances"].items()))
 
     def moyen_du_but(self, o, vises):
         """Ce qui vaut d'aller chercher qui le porte : ce que le but vise lui-même, ou, pour avoir de
@@ -798,6 +814,10 @@ def gestes(v, e, vises=None, but=None):
             dans = v.lieu(e, o)
             ici = dans == sa_salle or (dans in objets and objets[dans]["type"] == "contenant"
                                    and v.salle(e, dans) == sa_salle and v.ouvert(e, dans))
+        porteur_ici = dans if dans in objets and objets[dans]["type"] == "personnage" and dans != id else None
+        if porteur_ici and v.salle(e, porteur_ici) == sa_salle:
+            etat_cru = v.cru(porteur_ici, "etat") or {}
+            ici = ici or e.fait("assomme", porteur_ici) or etat_cru.get("conscient") is False
         contenant = dans if dans in objets and objets[dans]["type"] == "contenant" else None
         touche = [(("touche", contenant), True)] if contenant else []
         # Prêté ou acheté par le plan, le bien d'autrui s'emploie sans faute ; rien ne permet de
@@ -805,14 +825,14 @@ def gestes(v, e, vises=None, but=None):
         illicite_ = v.illicite[o] and not faits.get(("permis", o))
         faute = "sans_temoin" if illicite_ else ""
         lese = v.proprietaire[o] if illicite_ else None
-        mal = int(bool(lese) and not faits.get(("faute", lese)))
+        mal = int(bool(lese) and not faits.get(("faute", lese, "honnetete")))
         if lese:
-            touche = touche + [(("faute", lese), True)]
+            touche = touche + [(("faute", lese, "honnetete"), True)]
         conso = v.consomme_illicite[o] and not (faits.get(("achete", o)) or faits.get(("acquis", o)))
         faute_conso = "sans_temoin" if conso else ""
         lese_conso = v.proprietaire[o] if conso else None
-        mal_conso = int(bool(lese_conso) and not faits.get(("faute", lese_conso)))
-        touche_conso = [(("faute", lese_conso), True)] if lese_conso else []
+        mal_conso = int(bool(lese_conso) and not faits.get(("faute", lese_conso, "honnetete")))
+        touche_conso = [(("faute", lese_conso, "honnetete"), True)] if lese_conso else []
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
         if ici and o not in portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
@@ -849,6 +869,28 @@ def gestes(v, e, vises=None, but=None):
                        [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
                        e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
                                                              (("depense",), (e.fait("depense") or 0) + prix)]), 1)
+        # Une violence ne sert que sur le porteur d’un moyen pertinent.
+        # Son coût se compare à demander ; aucun ordre de recours imposé.
+        if (utile and porteur and porteur not in (id, "joueur") and v.degat is not None and 2 * v.degat <= ENJEU and v.autorise[o]
+                and v.salle(e, porteur) == e.salle
+                and not e.fait("assomme", porteur) and not ici and v.embuscade_possible(e, porteur)):
+            from .combat import arme, force_crue, RISQUE
+            from .caractere import valeur
+            chance = v._memo(("force_crue", porteur), lambda: force_crue(monde, id, porteur))
+            risque = RISQUE * (1 - chance) * (100 - valeur(monde, id, "courage")) / 50
+            outils = [k for k in sorted(e.portes) if arme(objets[k]) and not arme(objets[k])[0]]
+            outil = max(outils, key=lambda k: arme(objets[k])[1], default="")
+            doux = not e.fait("faute", porteur, "douceur")
+            # Le seul effet utile de cette agression est de prendre ce moyen : grouper la
+            # transition évite d'explorer un état intermédiaire identique pour chaque bien porté.
+            # Les trois gestes restent distincts, revalidés un à un dans le monde réel.
+            yield (mal, 1 + .025 / chance + risque,
+                   [_etape("dans_le_dos", porteur, condition="dans_le_dos"),
+                    _etape("assommer", porteur, outil=outil, condition="dans_le_dos"),
+                    _etape("prendre", o, condition=faute)],
+                   e.apres(portes=e.portes | {o}, faits=[(("assomme", porteur), True),
+                       (("faute", porteur, "douceur"), True), *touche]),
+                   1 + .025 / chance, 2 * doux)
         touche = [x for x in touche if x[0][0] == "faute"]
         if o in v_poser and o in portes:
             yield (0, 1, [_etape("poser", o, lieu=sa_salle)],
@@ -896,10 +938,10 @@ def gestes(v, e, vises=None, but=None):
                     for outil in sorted(k for k in e.portes if force.adapte(x, objets[k])):
                         n, c = force.coups(monde, id, x, objets[outil]), force.chance(monde, id, objets[outil])
                         if n and c:
-                            yield (int(bool(brise) and not e.fait("faute", brise)), n / c,
+                            yield (int(bool(brise) and not e.fait("faute", brise, "honnetete")), n / c,
                                    [_etape("frapper", o, outil=outil, condition="sans_temoin" if brise else "")],
                                    e.apres(faits=[(("verrou", o), False), (("ouvert", o), True), (("touche", o), True),
-                                                  *([(("faute", brise), True)] if brise else []), *degat]),
+                                                  *([(("faute", brise, "honnetete"), True)] if brise else []), *degat]),
                                    n / c, abime)
         # Manger ce qui est à portée.
         if x["type"] == "nourriture" and ici and v.disponible(o) and v.autorise[o]:
@@ -1251,11 +1293,13 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
 
     ``seul`` : servir soi-même. Seuls les biens remis par ``seul`` (le commanditaire) peuvent
     compléter ses moyens ; aucun service accompli par autrui, ni recherche d'un tiers (``TIERS``)."""
-    from .caractere import modificateur, prix_faute
+    from .caractere import modificateur, prix_faute, valeur
     debut = perf_counter()
     v = Vue(monde, id)
     faute = prix_faute(monde, id, motif)
     v.degat = prix_faute(monde, id, motif, "douceur")
+    from .deliberation import DESESPOIR
+    v.desespere = lire(monde, id)["besoins"].get(motif, 0) >= DESESPOIR
     v.emplois = None if emplois is None else frozenset(emplois)
     v.eclairer = bool((vises or {}).get("eclairer"))
     v.seul = seul
@@ -1269,7 +1313,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         # coûts en dépendent, non du prix d'une faute ni de celui d'abîmer (``_explorer``).
         base = (_entrees(v, vises, profondeur, noeuds),
                 json.dumps([modificateur(monde, id, "DEX"), modificateur(monde, id, "FOR"), tenir, v.degat is None,
-                            seul]))
+                            seul, None if v.degat is None else [
+                                valeur(monde, id, "courage"), 2 * v.degat <= ENJEU, v.desespere]]))
         entrees = (base, json.dumps([faute, v.degat, endurer]))
         place = (id, json.dumps(memo, ensure_ascii=False))
         garde = _MEMOIRE.get(place)
@@ -1357,6 +1402,7 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
     def refaire(emplois, borne):
         brute = Vue(monde, id)
         brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
+        brute.desespere = v.desespere
         r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
@@ -1486,7 +1532,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         for fautes, minutes, ajout, suivant, duree, abime, pression in noeud[3]:
             if fautes and faute is None:
                 continue
-            surcout = degat if abime else 0   # un prix qui n'est pas du temps (abîmer)
+            surcout = (degat or 0) * abime if abime else 0   # un prix qui n'est pas du temps (abîmer)
             total = cout + fautes * (faute or 0) + surcout + minutes * (1 + FLAMME_EN_MAIN * en_feu)
             if duree:
                 total += duree * pression  # Le temps qu'il passe dans le noir, ou loin de ses biens.

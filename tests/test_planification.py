@@ -101,6 +101,8 @@ class DemanderTests(unittest.TestCase):
 
     def test_apres_un_refus_elle_ne_redemande_pas(self):
         m = relais()
+        # Cette épreuve isole la voie sociale ; une agression est désormais un recours séparé.
+        m.objets["brune"]["profil"]["valeurs"]["douceur"] = 100
         del m.objets["crochets"]
         lire(m, "brune")["croyances"].pop("crochets", None)
         croire(m, "brune", "cle_reserve", "lieu", "marchand", "vu")

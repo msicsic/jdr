@@ -33,6 +33,8 @@ EPREUVES = {
     "engagement_abandonne": {"confiance": -20, "rancune": 15},
     "parole_rompue": {"confiance": -20, "rancune": 15},   # « J'arrive ! » attendu en vain (``appel.tenir``)
     "prevenu": {"confiance": 15, "affection": 10, "dette": 10},
+    "subi": {"confiance": -40, "affection": -15, "rancune": 40, "peur": 30},
+    "violence_vue": {"confiance": -40, "peur": 20},
     "pousse": {"confiance": -30, "affection": -10, "rancune": 25, "peur": 20},
     "poussee_vue": {"confiance": -15, "peur": 10},
     "passage_accorde": {"confiance": 3, "affection": 2, "dette": 5},
@@ -370,7 +372,13 @@ def souvenir(monde, id, s):
                 s["preuve"] = precedent["preuve"]
             else:
                 portages[o] = {"auteur": autre, "preuve": s["preuve"]}
+    if t == "subi" and autre is None:
+        return
     if t == "vu_agir":
+        if s.get("operation") in ("frapper", "assommer") and s.get("objet") in ("joueur", *monde.data["esprits"]):
+            if s["objet"] != id:
+                _appliquer(monde, id, autre, "violence_vue", s, 0.8 if s.get("par") == "ouie" else 1)
+            return
         if s.get("operation") == "pousser":
             if s.get("objet") != id:
                 _appliquer(monde, id, autre, "poussee_vue", s)

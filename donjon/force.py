@@ -84,3 +84,9 @@ def briser(monde, cible, salle=None):
                      if o["lieu"] in monde.data["salles"] else None)
             tombes.append(enfant["id"])
     return tombes
+
+
+def force_crue(monde, auteur, autre):
+    """Estimation commune des armes et blessures perçues (coups, et future menace)."""
+    from .combat import force_crue as estimer
+    return estimer(monde, auteur, autre)

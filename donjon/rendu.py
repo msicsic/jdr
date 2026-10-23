@@ -60,11 +60,13 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o["type"] == "personnage":
         from .corps import blessure, conscient
         if not conscient(monde, o["id"]):
+            # Sans connaissance, il ne montre aucune humeur (comme une dépouille, ``corps.mourir``).
             morceaux.append("à terre, sans connaissance")
-        elif blessure(monde, o["id"]):
-            morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
-        if o.get("humeur"):
-            morceaux.append(o["humeur"])
+        else:
+            if blessure(monde, o["id"]):
+                morceaux.append(accorder(o, "grièvement blessé" if blessure(monde, o["id"]) == 2 else "blessé"))
+            if o.get("humeur"):
+                morceaux.append(o["humeur"])
     if o.get("cale_de"):
         complements.append("Cet objet maintient la porte ouverte")
     if o.get("charges") == 0:

@@ -264,7 +264,7 @@ def verifier(monde):
                 # Un geste social porte son contenu : ce qui est affirmé, ou la tâche confiée.
                 assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
                         and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
-                        and etape["condition"] in ("", "sans_temoin")), "Étape de plan invalide"
+                        and etape["condition"] in ("", "sans_temoin", "dans_le_dos")), "Étape de plan invalide"
 
 
 def croyance(monde, id, sujet, attribut):
