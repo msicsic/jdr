@@ -7,6 +7,13 @@ La branche omise désigne les fichiers du worktree courant, modifications compri
 Les mesures de temps incluent les relevés d'audit en mode normal ; le mode identité
 n'observe que chronique, mesures et état complet. Une divergence déclenche un rejeu
 instrumenté pour la dater, exclu des temps comparés.
+
+Une référence (et une branche donnée par --branche) est résolue en commit ; chacune de ses nuits
+est cherchée dans `artifacts/references/<commit>/comparer_bancs/` (tools/references.py) avant
+d'être jouée, et y est rangée une fois jouée. La clé d'une nuit : scénario, graine, heures, départ,
+salle du joueur, empreintes, verifier, localisation, format et code de l'observation. Le worktree
+courant n'est jamais mis en cache. Les temps d'une nuit lue dans le cache ont été mesurés ailleurs :
+la sortie le dit. --sans-cache rejoue tout sans lire ni ranger.
 """
 import argparse
 from concurrent.futures import ProcessPoolExecutor
@@ -33,6 +40,7 @@ for chemin in (RACINE, Path.cwd()):
     sys.path.insert(0, str(chemin))
 import audit_nuits as audit  # noqa: E402
 from priorite import ceder  # noqa: E402
+import references  # noqa: E402
 
 JOUEURS = audit.JOUEURS
 PROCESSUS = max(1, (os.cpu_count() or 2) // 2)
@@ -171,8 +179,14 @@ def jouer_nuit(tache):
     return resultat
 
 
+def taches_du_lot(config):
+    """Les nuits du lot dans l'ordre scénarios × graines, ou celles que nomme `nuits`."""
+    return [tuple(n) for n in config.get("nuits") or
+            [(s, g) for s in config["scenarios"] for g in config["graines"]]]
+
+
 def executer_lot(config):
-    taches = [(s, g, config) for s in config["scenarios"] for g in config["graines"]]
+    taches = [(s, g, config) for s, g in taches_du_lot(config)]
     with ProcessPoolExecutor(max_workers=min(config["processus"], len(taches)), max_tasks_per_child=1) as pool:
         return list(pool.map(jouer_nuit, taches))
 
@@ -184,6 +198,58 @@ def lancer(racine, config, dossier, nom):
     subprocess.run([sys.executable, str(SCRIPT), "--_worker", str(entree), str(sortie)],
                    cwd=racine, env=env, check=True)
     return json.loads(sortie.read_text(encoding="utf-8"))
+
+
+# Version du format des nuits rangées : à augmenter quand ce qu'une nuit contient change de forme.
+FORMAT_NUIT = 1
+
+
+def instrumentation():
+    """L'observation d'une nuit (jouer_nuit, son empreinte et l'audit) fait partie de son résultat : son code entre
+    dans la clé, une nuit observée autrement se rejoue."""
+    import inspect
+    return references.empreinte(inspect.getsource(jouer_nuit), inspect.getsource(empreinte),
+                                Path(audit.__file__).read_text(encoding="utf-8"))
+
+
+def cle_nuit(config, scenario, graine, outil):
+    """Tout ce qui change le résultat d'une nuit, sauf le commit (le dossier) ; le nombre de processus
+    n'en fait pas partie."""
+    return {"outil": "comparer_bancs", "format_nuit": FORMAT_NUIT, "instrumentation": outil,
+            "scenario": scenario, "graine": graine, "heures": float(config["heures"]),
+            "depart": config["depart"], "joueur": config["joueurs"][scenario],
+            "empreintes": bool(config["empreintes"]), "verifier": bool(config["verifier"]),
+            "localiser": bool(config.get("localiser"))}
+
+
+def chemin_nuit(cache, commit, cle):
+    nom = (f'{cle["scenario"]}-g{cle["graine"]}-h{cle["heures"]!r}-{cle["depart"]}-{cle["joueur"]}-'
+           f'{"empreintes" if cle["empreintes"] else "banc"}'
+           f'{"-verifier" if cle["verifier"] else ""}{"-localiser" if cle["localiser"] else ""}.json')
+    return Path(cache) / commit / "comparer_bancs" / f'f{cle["format_nuit"]}-i{cle["instrumentation"]}' / nom
+
+
+def nuits_du_cote(arbre, commit, config, dossier, nom, cache):
+    """Les nuits du lot, dans son ordre. Pour un commit résolu, chaque nuit est cherchée dans le
+    cache avant d'être jouée, et rangée une fois jouée sans plantage ; `arbre()` ne crée le worktree
+    que s'il reste des nuits à jouer. Sans commit (worktree courant) ou sans cache : tout se joue."""
+    taches = taches_du_lot(config)
+    trouvees, outil = {}, instrumentation()
+    if cache and commit:
+        for scenario, graine in taches:
+            cle = cle_nuit(config, scenario, graine, outil)
+            enveloppe = references.lire(chemin_nuit(cache, commit, cle), cle)
+            if enveloppe:
+                trouvees[(scenario, graine)] = {**enveloppe["contenu"], "cache": enveloppe["cree"]}
+    manquantes = [t for t in taches if t not in trouvees]
+    if manquantes:
+        jouees = lancer(arbre(), {**config, "nuits": manquantes}, dossier, nom)
+        for (scenario, graine), nuit in zip(manquantes, jouees):
+            trouvees[(scenario, graine)] = nuit
+            if cache and commit and not nuit["plantage"]:
+                cle = cle_nuit(config, scenario, graine, outil)
+                references.ecrire(chemin_nuit(cache, commit, cle), cle, nuit)
+    return [trouvees[t] for t in taches]
 
 
 def comparer_identite(avant, apres):
@@ -245,9 +311,27 @@ def resumer(avant, apres):
     return tableaux
 
 
+def provenance(rapport, cote):
+    """D'où viennent les nuits d'un côté ; un temps lu dans le cache a été mesuré ailleurs."""
+    r = rapport[cote]
+    lues = [n["cache"] for n in r["nuits"] if n.get("cache")]
+    tete = f'{cote} : {r["nom"]} ({r["commit"][:10]}{", modifié" if r["modifications"] else ""})'
+    jouees = len(r["nuits"]) - len(lues)
+    mise = "rangées dans le cache" if r.get("cachable") else "non mises en cache"
+    if not lues:
+        return f"{tete}, {jouees} nuits jouées ici, {mise}"
+    tete += f", {jouees} nuits jouées ici ({mise})" if jouees else ""
+    return (f"{tete}, {len(lues)} nuits lues dans le cache {rapport['cache']} "
+            f"(rangées du {min(lues)} au {max(lues)}) : leurs temps (secondes, secondes_cpu) ont été "
+            "mesurés alors, dans d'autres conditions de charge, et ne se comparent pas à ceux de l'autre côté")
+
+
 def afficher(rapport):
     def texte(s):
         return "absent" if s is None else f'{s["moyenne"]:.3g} [{s["min"]:.3g}–{s["max"]:.3g}]'
+    for cote in ("reference", "branche"):
+        if cote in rapport:
+            print(provenance(rapport, cote))
     if rapport["config"]["empreintes"]:
         d = rapport["divergence"]
         if d is None:
@@ -292,6 +376,8 @@ def main(argv=None):
     parser.add_argument("--verifier", action="store_true")
     parser.add_argument("--empreintes", action="store_true")
     parser.add_argument("--sortie", type=Path)
+    parser.add_argument("--sans-cache", action="store_true",
+                        help="rejoue tout, sans lire ni ranger de nuit dans artifacts/references/<commit>/")
     args = parser.parse_args(argv)
     heures = args.heures if args.heures is not None else (2 if args.empreintes else 4)
     if args.processus < 1 or not math.isfinite(heures) or heures <= 0:
@@ -306,23 +392,38 @@ def main(argv=None):
               "heures": heures, "depart": args.depart, "processus": args.processus,
               "verifier": args.verifier, "empreintes": args.empreintes, "joueurs": joueurs}
     racine = Path(git(Path.cwd(), "rev-parse", "--show-toplevel"))
+    cache = None if args.sans_cache else references.dossier(racine)
+    refs = {"reference": args.reference, "branche": args.branche}
+    commits = {}
+    for cote, ref in refs.items():
+        # Seul un commit résolu entre dans le cache ; la branche omise est le worktree courant.
+        commits[cote] = references.resoudre(racine, ref) if ref else None
+        if ref and commits[cote] is None:
+            parser.error(f"--{cote} {ref} : référence git inconnue")
     with ExitStack() as pile:
-        reference = pile.enter_context(worktree_temporaire(racine, args.reference))
-        branche = pile.enter_context(worktree_temporaire(racine, args.branche)) if args.branche else racine
+        arbres = {}
+        def arbre(cote):
+            # Le worktree d'un commit n'est créé que s'il reste une nuit à y jouer.
+            if cote not in arbres:
+                arbres[cote] = (pile.enter_context(worktree_temporaire(racine, commits[cote]))
+                                if commits[cote] else racine)
+            return arbres[cote]
         dossier = pile.enter_context(tempfile.TemporaryDirectory(prefix="comparaison-"))
-        rapport = {"config": config}
-        for cote, arbre, nom in (("reference", reference, args.reference), ("branche", branche, args.branche or "worktree")):
-            print(f"{cote} : {nom}, {len(config['scenarios']) * len(config['graines'])} nuits", flush=True)
-            rapport[cote] = {"nom": nom, "commit": git(arbre, "rev-parse", "HEAD"),
-                            "modifications": git(arbre, "status", "--porcelain"),
-                            "nuits": lancer(arbre, config, dossier, cote)}
+        rapport = {"config": config, "cache": str(cache) if cache else None}
+        for cote in refs:
+            nom = refs[cote] or "worktree"
+            print(f"{cote} : {nom}, {len(taches_du_lot(config))} nuits", flush=True)
+            nuits = nuits_du_cote(lambda: arbre(cote), commits[cote], config, dossier, cote, cache)
+            rapport[cote] = {"nom": nom, "commit": commits[cote] or git(racine, "rev-parse", "HEAD"),
+                             "modifications": "" if commits[cote] else git(racine, "status", "--porcelain"),
+                             "cachable": bool(cache and commits[cote]), "nuits": nuits}
         avant, apres = rapport["reference"]["nuits"], rapport["branche"]["nuits"]
         rapport["divergence"] = comparer_identite(avant, apres) if args.empreintes else None
         d = rapport["divergence"]
         if d and "plantage" not in d["parties"]:
             localisation = {**config, "scenarios": [d["scenario"]], "graines": [d["graine"]], "localiser": True}
-            a = lancer(reference, localisation, dossier, "localisation-reference")
-            b = lancer(branche, localisation, dossier, "localisation-branche")
+            a, b = (nuits_du_cote(lambda c=c: arbre(c), commits[c], localisation, dossier, f"localisation-{c}", cache)
+                    for c in refs)
             rapport["divergence"] = comparer_identite(a, b)
         rapport["tableaux"] = {} if args.empreintes else resumer(avant, apres)
     if args.sortie:

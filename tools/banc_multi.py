@@ -9,6 +9,14 @@ une variante doit descendre d'un main qui connaît les options qu'il passe au je
 par défaut) avec tools/banc_parties.py --fil. Les worktrees partagent la connexion ChatGPT du
 dépôt (SEUIL_AUTH) et sa clé .env. Le résumé donne, par variante, la moyenne et l'étendue de
 chaque indicateur sur les passes : une seule passe ne distingue pas une amélioration du hasard.
+
+Une variante résolue en commit réemploie les parties déjà jouées (tools/references.py) :
+`artifacts/references/<commit>/banc_multi/<script>-<options>-<empreinte>/partie-<n>.json`, la clé
+(`cle.json`) portant le contenu du script et de banc_parties.py, la connexion, l'effort, la
+réflexion, le budget d'appels et --offline. La passe i d'un script prend sa i-ième partie rangée ;
+seuls les scripts manquants se jouent, puis se rangent (sauf budget épuisé ou erreur technique).
+« nom=. » n'est jamais mis en cache ; --sans-cache rejoue tout. Le résumé dit combien de passes
+viennent du cache, dont les secondes ont été mesurées dans d'autres conditions de charge.
 """
 from __future__ import annotations
 
@@ -23,6 +31,9 @@ import statistics
 import subprocess
 import sys
 import tempfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import references  # noqa: E402
 
 BASE = Path(__file__).resolve().parents[1]
 SCRIPTS = [BASE / "tests" / "data" / "bancs" / f"{nom}.json" for nom in ("relais", "crypte", "atelier")]
@@ -116,11 +127,60 @@ def preparer_variante(nom, ref, racine):
     return dossier
 
 
-def jouer_passe(nom, i, depot, sortie, args):
+FORMAT_PARTIE = 1
+
+
+def cle_partie(script, args):
+    """Tout ce qui change une partie, sauf le commit (le dossier) : le script et l'outil de banc du
+    lanceur (leur contenu), la connexion et ses options, le budget d'appels."""
+    return {"outil": "banc_multi", "format_partie": FORMAT_PARTIE, "script": Path(script).stem,
+            "script_contenu": references.empreinte_fichiers(script),
+            "banc_parties": references.empreinte_fichiers(BASE / "tools" / "banc_parties.py"),
+            "connexion": args.connexion, "effort": args.effort, "reflexion": args.reflexion,
+            "max_appels": args.max_appels, "offline": bool(args.offline)}
+
+
+def dossier_parties(cache, commit, cle):
+    nom = (f'{cle["script"]}-{cle["connexion"]}-{cle["effort"]}-{cle["reflexion"]}-m{cle["max_appels"]}'
+           f'{"-offline" if cle["offline"] else ""}-{references.empreinte(json.dumps(cle, sort_keys=True))}')
+    return Path(cache) / commit / "banc_multi" / nom
+
+
+def parties_en_cache(dossier, cle):
+    """Les parties déjà jouées pour cette clé, dans l'ordre où elles ont été rangées."""
+    if not references.lire(dossier / "cle.json", cle):
+        return []
+    return sorted(dossier.glob("partie-*.json"), key=lambda f: int(f.stem.split("-")[1]))
+
+
+def rangeable(fichier):
+    """Une partie arrêtée par le budget ou touchée par une erreur technique (réseau, délai) ne dit
+    rien de la variante : elle n'est pas rangée."""
+    partie = json.loads(Path(fichier).read_text(encoding="utf-8"))
+    return not partie.get("arret") and not any(t.get("erreurs") for t in partie["tours"])
+
+
+def ranger_partie(dossier, cle, fichier):
+    if not references.lire(dossier / "cle.json", cle):
+        references.ecrire(dossier / "cle.json", cle, None)
+    contenu = Path(fichier).read_bytes()
+    n = len(list(dossier.glob("partie-*.json"))) + 1
+    while True:
+        try:
+            # Création exclusive : deux bancs simultanés ne rangent jamais sous le même numéro.
+            with open(dossier / f"partie-{n}.json", "xb") as f:
+                f.write(contenu)
+            return
+        except FileExistsError:
+            n += 1
+
+
+def jouer_passe(nom, i, depot, sortie, args, scripts):
+    """Joue les scripts d'une passe et rend ses parties (un fichier JSON par script)."""
     dossier = sortie / f"{nom}-r{i}"
     dossier.mkdir(parents=True, exist_ok=True)
     # L'outil de banc est celui de ce dépôt ; SEUIL_CODE lui fait charger le code de la variante.
-    commande = [sys.executable, str(BASE / "tools" / "banc_parties.py"), *map(str, args.scripts),
+    commande = [sys.executable, str(BASE / "tools" / "banc_parties.py"), *map(str, scripts),
                 "--fil", "--sortie", str(dossier), "--etiquette", f"{nom}-r{i}",
                 "--max-appels", str(args.max_appels), "--connexion", args.connexion,
                 "--effort", args.effort, "--reflexion", args.reflexion] + (["--offline"] if args.offline else [])
@@ -131,7 +191,23 @@ def jouer_passe(nom, i, depot, sortie, args):
     fichiers = sorted(dossier.glob("*.json"))
     if code or not fichiers:
         raise RuntimeError(f"{nom}-r{i} : échec (code {code}), voir {dossier / 'journal.txt'}")
-    return nom, mesurer(fichiers)
+    return fichiers
+
+
+def planifier(variantes, commits, args, cache):
+    """Pour chaque passe (variante, numéro) : les parties lues dans le cache, par script, et les
+    scripts qui restent à jouer. La passe i d'un script réemploie sa i-ième partie rangée."""
+    plan = {}
+    for nom in variantes:
+        rangees = {}
+        if cache and commits[nom]:
+            for script in args.scripts:
+                cle = cle_partie(script, args)
+                rangees[script] = parties_en_cache(dossier_parties(cache, commits[nom], cle), cle)
+        for i in range(1, args.repetitions + 1):
+            lues = {s: rangees[s][i - 1] for s in args.scripts if len(rangees.get(s, [])) >= i}
+            plan[(nom, i)] = (lues, [s for s in args.scripts if s not in lues])
+    return plan
 
 
 def main(argv=None):
@@ -146,32 +222,43 @@ def main(argv=None):
     p.add_argument("--max-appels", type=int, default=500)
     p.add_argument("--garder", action="store_true", help="garde les worktrees après le banc")
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle (vérifier le lanceur)")
+    p.add_argument("--sans-cache", action="store_true",
+                   help="rejoue toutes les passes, sans lire ni ranger de partie dans artifacts/references/<commit>/")
     p.add_argument("scripts", nargs="*", type=Path, default=SCRIPTS)
     args = p.parse_args(argv)
     # Les scripts viennent du dépôt du lanceur, même quand la variante jouée
     # précède leur création et possède un autre répertoire courant.
-    args.scripts = [script.resolve() for script in args.scripts]
-    sys.stdout.reconfigure(encoding="utf-8")
+    args.scripts = list(dict.fromkeys(script.resolve() for script in args.scripts))
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     variantes = {}
     for v in args.variante:
         nom, _, ref = v.partition("=")
         variantes[nom] = ref or nom
+    # Seule une variante résolue en commit entre dans le cache ; « . » (le dépôt courant) jamais.
+    commits = {nom: references.resoudre(BASE, ref) for nom, ref in variantes.items()}
+    cache = None if args.sans_cache else references.dossier(BASE)
+    plan = planifier(variantes, commits, args, cache)
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
     # Un dossier de worktrees par lancement : deux bancs simultanés ne se marchent pas dessus.
     racine = Path(tempfile.gettempdir()) / "seuil-bancs" / f"{horodatage}-{os.getpid()}"
     sortie = BASE / "artifacts" / "bancs-multi" / f"{horodatage}-{os.getpid()}"
-    depots = {nom: preparer_variante(nom, ref, racine) for nom, ref in variantes.items()}
+    sortie.mkdir(parents=True, exist_ok=True)
+    # Un worktree seulement pour une variante qui a encore une partie à jouer.
+    depots = {nom: preparer_variante(nom, commits[nom] or ref, racine) for nom, ref in variantes.items()
+              if any(plan[(nom, i)][1] for i in range(1, args.repetitions + 1))}
     # Les passes s'entrelacent : la première de chaque variante part d'abord.
     travaux = [(nom, i) for i in range(1, args.repetitions + 1) for nom in variantes]
-    passes = []
+    jouees = {}
     try:
         with ThreadPoolExecutor(max_workers=args.paralleles) as pool:
-            futurs = {pool.submit(jouer_passe, nom, i, depots[nom], sortie, args): (nom, i) for nom, i in travaux}
+            futurs = {pool.submit(jouer_passe, nom, i, depots[nom], sortie, args, plan[(nom, i)][1]): (nom, i)
+                      for nom, i in travaux if plan[(nom, i)][1]}
             for futur in as_completed(futurs):
                 nom, i = futurs[futur]
                 try:
-                    passes.append(futur.result())
-                    print(f"{nom}-r{i} terminé ({len(passes)}/{len(travaux)})", flush=True)
+                    jouees[(nom, i)] = futur.result()
+                    print(f"{nom}-r{i} terminé ({len(jouees)}/{len(futurs)})", flush=True)
                 except RuntimeError as exc:
                     print(exc, flush=True)
     finally:
@@ -180,15 +267,42 @@ def main(argv=None):
                 if depot != BASE:
                     subprocess.run(["git", "-C", str(BASE), "worktree", "remove", "--force", str(depot)],
                                    capture_output=True)
+    passes, provenance = [], {nom: {"cache": 0, "partielles": 0, "jouees": 0} for nom in variantes}
+    for nom, i in travaux:
+        lues, a_jouer = plan[(nom, i)]
+        if a_jouer and (nom, i) not in jouees:
+            continue  # passe en échec : ni mesurée ni rangée
+        fichiers = list(lues.values()) + jouees.get((nom, i), [])
+        if cache and commits[nom]:
+            for f in jouees.get((nom, i), []):
+                stem = json.loads(f.read_text(encoding="utf-8"))["script"]
+                script = next((s for s in a_jouer if s.stem == stem), None)
+                if script is not None and rangeable(f):
+                    cle = cle_partie(script, args)
+                    ranger_partie(dossier_parties(cache, commits[nom], cle), cle, f)
+        provenance[nom]["cache" if not a_jouer else "partielles" if lues else "jouees"] += 1
+        passes.append((nom, mesurer(fichiers)))
     if not passes:
         print("Aucune passe n'a abouti.")
         return 1
-    tableau = resumer(sorted(passes, key=lambda p: list(variantes).index(p[0])))
+    tableau = resumer(passes)
+    lignes_cache = []
+    for nom in variantes:
+        n = provenance[nom]
+        if not commits[nom] or not cache:
+            lignes_cache.append(f"- {nom} : {'dépôt courant' if not commits[nom] else 'sans cache'}, "
+                                f"{n['jouees']} passes jouées, non mises en cache")
+        else:
+            lignes_cache.append(f"- {nom} ({commits[nom][:10]}) : {n['cache']} passes du cache, "
+                                f"{n['partielles']} en partie du cache, {n['jouees']} jouées ici")
     entete = (f"Banc multiple du {datetime.now():%Y-%m-%d %H:%M} — {args.connexion}, effort {args.effort}, "
               f"réflexion {args.reflexion}\nVariantes : " + ", ".join(f"{n}={r}" for n, r in variantes.items())
-              + "\nMoyenne par passe des trois parties (étendue entre parenthèses).\n\n")
+              + "\nMoyenne par passe des parties (étendue entre parenthèses).\n"
+              + f"Cache ({cache or 'désactivé'}) ; les secondes d'une partie du cache ont été mesurées "
+              "lors de son jeu, dans d'autres conditions de charge :\n" + "\n".join(lignes_cache) + "\n\n")
     (sortie / "resume.md").write_text(entete + tableau + "\n", encoding="utf-8")
-    (sortie / "resume.json").write_text(json.dumps(passes, ensure_ascii=False, indent=1), encoding="utf-8")
+    (sortie / "resume.json").write_text(json.dumps({"passes": passes, "provenance": provenance},
+                                                   ensure_ascii=False, indent=1), encoding="utf-8")
     print("\n" + entete + tableau + f"\n\nDétails : {sortie}")
     return 0
 

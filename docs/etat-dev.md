@@ -2239,6 +2239,26 @@ Non versionnés, donc absents d'un nouveau poste :
   `--empreintes` : 2 h par défaut, identité de chronique, mesures et état final complet (`data`, SHA-256),
   code 1 si divergence. Première nuit dans l'ordre scénarios/graines, première minute observée par un
   rejeu instrumenté uniquement en cas d'écart (exclu des temps). Voir les limites dans le rapport.
+  **Cache des références** : la référence (et `--branche REF`) est résolue en commit ; chaque nuit est
+  lue dans `artifacts/references/<commit>/comparer_bancs/f<format>-i<observation>/` avant d'être jouée,
+  et rangée une fois jouée (un fichier par nuit, nommé par scénario, graine, heures, départ, salle du
+  joueur, empreintes, `-verifier`, `-localiser` ; la clé complète relue avant réemploi ; `i…` est
+  l'empreinte du code de `jouer_nuit` et de `audit_nuits.py`). Une nuit plantée n'est pas rangée ; le
+  worktree courant jamais. Le worktree de la référence n'est créé que s'il reste une nuit à jouer. La
+  sortie dit combien de nuits viennent du cache et que leurs temps ont été mesurés dans d'autres
+  conditions de charge ; `--sans-cache` rejoue tout, pour comparer des temps.
+- Cache commun (`tools/references.py`) : dossier du dépôt principal, partagé par ses worktrees
+  (`SEUIL_REFERENCES` le déplace). `python tools/references.py lister` (commits, sujet, contenu par
+  outil, taille) ; `purger [--garder N] [--simulation]` retire les commits qui ne sont plus des ancêtres
+  de `main` et ceux qui ont plus de N commits de retard ; un dossier qui ne se résout pas en commit
+  est signalé, jamais retiré.
+- Luna en plusieurs passes : `python tools/banc_multi.py --variante main=main --variante lot=. --repetitions
+  1 --connexion chatgpt <scripts>`. Une variante résolue en commit réemploie ses parties déjà jouées,
+  par script : `<commit>/banc_multi/<script>-<connexion>-<effort>-<réflexion>-m<max-appels>[-offline]-<empreinte>/partie-<n>.json`
+  (`cle.json` : contenu du script et de `banc_parties.py`, options) ; la passe i prend la i-ième partie
+  rangée, seuls les scripts manquants se jouent. Une partie arrêtée par le budget ou touchée par une
+  erreur technique n'est pas rangée ; `nom=.` jamais. Le résumé dit, par variante, les passes venues du
+  cache ; `--sans-cache` rejoue tout.
 - Banc moteur seul, sans appel à Luna, avec son récit (`--chronique` pour chaque pas) :
   `python -m donjon.banc_pnj --heures 8 --graine 1985 --joueur chambre_cloche` ; plusieurs nuits
   en parallèle, avec le tableau des mesures et leur moyenne : `--graines 1985 7 42 2024`.
