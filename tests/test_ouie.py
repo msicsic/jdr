@@ -334,7 +334,9 @@ class CroyanceEntendueTests(unittest.TestCase):
         # l'appelle, et ne lui demande sa part qu'une fois retrouvé, aux vannes.
         self.assertIn("Brune appelle : « Gorm ? »", chronique(m))
         self.assertTrue([t for t in chronique(m) if t.startswith("Gorm répond : « ")])
-        self.assertGreater(lire(m, "brune")["croyances"]["marchand"]["lieu"]["minute"], 0)
+        # La recherche peut aboutir dans la minute 0 avec les nouveaux coûts sociaux ;
+        # contrôler le lieu appris, plutôt qu'un délai accidentel.
+        self.assertEqual(lire(m, "brune")["croyances"]["marchand"]["lieu"]["salle"], "crypte")
         self.assertNotIn("Brune demande une part des vivres du refuge à Gorm (refus).", chronique(m))
 
 

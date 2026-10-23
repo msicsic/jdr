@@ -21,3 +21,8 @@ dominance sur la même base a7ecb50 : Lucien, graine 7 à 644 (abri), graine 42 
 le prototype de dominance trouve respectivement un plan de coût 130 et 130,5.
 Le prototype n'est pas utilisé par le moteur. Le test conserve les résultats joués
 et vérifie état complet, rendu et vie du monde après rechargement.
+
+Depuis la fusion de `codex-garde-pret`, la garde coûte selon les valeurs du gardien
+(`planification.prix_gardes`) : Lucien (ambition 70) paie 2,4 par minute loin de ses
+biens au lieu de 2, et l'abri de la graine 7 trouve désormais son plan (aller à la salle
+commune) à 3 855 nœuds, avant la borne. La graine 42 reste une recherche bornée.

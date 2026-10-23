@@ -12,7 +12,7 @@ import unittest
 from donjon.banc_pnj import _oisifs_urgents, creer
 from donjon.deliberation import (INERTIE, REPRISE, attentes, deliberer, eveiller, gardes, seuils, urgents)
 from donjon.esprits import croire, lire, percevoir_tous
-from donjon.planification import GARDE, NOIR
+from donjon.planification import NOIR, Vue
 from tests.support import calme
 from tests.test_tensions import placer, recharger, relais, vivre
 
@@ -155,6 +155,8 @@ class TenirTests(unittest.TestCase):
         m = creer("auberge", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         p = m.objets["lucien"]["profil"]
+        # Ce test oppose deux besoins au poids neutre ; les valeurs propres sont testées ailleurs.
+        p["valeurs"]["ambition"] = 50
         p["pulsions"] = [x for x in p["pulsions"] if x["condition"].get("objet") != "ballot"]
         lire(m, "lucien")["pulsions"] = []
         placer(m, "lucien", "couloir", (2, 1))
@@ -168,12 +170,12 @@ class TenirTests(unittest.TestCase):
         return m
 
     def test_sans_lumiere_a_emporter_le_plus_fort_l_emporte_et_l_autre_s_endure(self):
-        # Aucun plan ne sert les deux. Ses biens laissés lui coûtent plus (GARDE) que le noir à sa
+        # Aucun plan ne sert les deux. Ses biens laissés lui coûtent plus (``prix_gardes``) que le noir à sa
         # peur (0,5) : il retourne au grenier et y reste quand la sécurité presse, qui attend.
         from donjon.planification import garder
         m = self.lucien_au_couloir_sans_lumiere()
         self.assertEqual(gardes(m, "lucien"), ("grenier",))
-        self.assertGreater(GARDE, NOIR * 0.5)
+        self.assertGreater(Vue(m, "lucien").prix_gardes["grenier"], NOIR * 0.5)
         self.assertEqual([x["operation"] for x in garder(m, "lucien", "grenier")], ["aller"])
         m, lieux = suivre(m, "lucien", 10, pas=5)
         self.assertEqual(lieux[-1], "grenier")
@@ -186,7 +188,7 @@ class TenirTests(unittest.TestCase):
         from donjon.planification import garder
         m = self.lucien_au_couloir_sans_lumiere()
         m.objets["lucien"]["profil"]["securite"] = {"noir": 0.8}
-        self.assertGreater(NOIR * 0.8, GARDE)
+        self.assertGreater(NOIR * 0.8, Vue(m, "lucien").prix_gardes["grenier"])
         self.assertIsNone(garder(m, "lucien", "grenier"))
         m, lieux = suivre(m, "lucien", 30, pas=10)
         self.assertEqual(lieux, ["couloir"] * 3)

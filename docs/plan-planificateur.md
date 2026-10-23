@@ -1324,3 +1324,50 @@ pas la lumière, moyen écarté pour un but sans lumière, graphe repris et
 mémoire contrôlés. L'inspection ordinaire reste possible dans le noir ; le test lui compose
 explicitement un but de lumière. Mesures et causalité historique :
 `docs/taches/rapport-codex-9-lampes-suite.md`.
+
+## Garde et chance de demande (branche `codex-garde-pret`, fusionnée)
+
+Les constantes `GARDE` et `PRET` des bilans précédents sont retirées. Les lieux gardés restent
+ceux des pulsions de biens, hors rondes : quand les biens pressent, ou qu'une présence crue
+menace un bien dont il a la charge. Méfiance, rancune ou peur en bande suffisent à cette menace.
+
+`prix_gardes` compte chaque lieu une fois. Son prix de base est `1 + valeur / 50` : ambition
+pour ses biens ou ceux qu'il convoite, loyauté pour le bien d'autrui confié par une permission
+effective. L'ambition pèse la conservation du patrimoine ; la loyauté, la charge acceptée.
+À valeurs 50, le prix est l'ancien 2 ; il va de 1 à 3, sans rendre un détaché indifférent à
+toute garde. Plusieurs biens au même lieu prennent le plus fort de ces attachements.
+Ce prix est multiplié par `1 + risque`, où le risque est le plus fort, parmi les personnes
+qu'il croit à cet endroit, de `max(0, 40 − confiance)/100 + rancune/100 + peur/100`.
+Les valeurs viennent du gardien, les relations de son propre esprit, les positions de ses
+croyances. La peur renchérit l'abandon du bien ; son coût de sécurité propre peut toujours
+le faire fuir. Le coût maximal est 10,2 par minute ; plusieurs suspects ne se cumulent pas.
+
+`relations.chance_demande` est le seul calcul de la chance estimée, bornée à 0,1–0,9 :
+`0,5 + (confiance−40)/200 + affection/500 − rancune/250 − peur/500 + dette/1000`.
+Ce lien est celui du demandeur envers l'autre, un a priori imparfait nourri par ce qu'il a
+vécu, jamais l'attitude réelle de l'autre envers lui. Un refus personnel retenu de moins de
+`REDEMANDE` minutes retire 0,15 (0,3 par méfiance), sans cumul ; une incapacité matérielle
+ne le fait pas. Les refus précis continuent d'interdire la demande selon leur cause.
+Un don ou engagement tenu pour l'autre, retenu dans cette même fenêtre, ajoute 0,1 d'espoir
+de réciprocité, sans cumul ; se savoir vu fauter par lui retire 0,3. Les services reçus et
+les dettes ressenties entrent déjà par les axes. L'auteur retient les témoins qu'il remarque
+pendant le geste (`se_sait_vu`) dans sa mémoire bornée, même s'il les remarque après le début.
+
+Objet porté, part servie, part livrée et tâche payée utilisent tous `DEMANDE / chance`.
+L'ancienne pénalité de tâche issue des refus d'autres personnes disparaît : l'estimation
+porte sur cet interlocuteur. Vente et demande de feu gardent leur contrat existant.
+Les deux cartes calculées de la vue (`prix_gardes`, `chances_demandes`) entrent explicitement
+dans `_entrees`, donc dans les caches de résultat et de graphe et dans `VERIFIER`.
+
+Cas après sauvegarde et rechargement : Gorm et Bram restent près du bien menacé, quittent
+le lieu sans cette méfiance ; garde à valeur neutre, ambition et charge confiée ; positions
+crues indépendantes des positions réelles ; Ilse et Joss choisissent le donneur qui les a
+servis, reçoivent réellement son objet et le joueur lit la remise ; témoin remarqué conservé
+après le geste. `tests/test_garde_pret.py` ; mesures et limites dans le
+[rapport](taches/rapport-codex-13-garde-pret.md).
+
+Limites : cette chance n'est pas une prévision calibrée du jet de persuasion. Les signes lus
+(3c), la proposition avec sa contrepartie, la réparation et les intermédiaires (3e) restent
+à faire. La fenêtre des expériences récentes et les coefficients sont des réglages du moteur.
+Les lieux gardés restent issus des pulsions, pas de tout objet possédé ; l'éloignement se juge
+par salle et le risque n'est pas réévalué selon une réaction hypothétique des tiers au plan.

@@ -1079,21 +1079,23 @@ def _lieux_gardes(monde, id, siens=False):
 
 
 def menaces(monde, id):
-    """Les salles où il croit un bien dont il a la charge et, avec, quelqu'un dont il se méfie : ce
-    bien est menacé à ses yeux. S'en éloigner, c'est le lui laisser (``gardes``) ; ce n'est pas
-    s'abriter de lui (``planification.abri``)."""
+    """Les salles où il croit un bien dont il a la charge et, avec, quelqu'un dont il se méfie, à qui
+    il en veut ou qu'il craint (bandes de ``relations``) : ce bien est menacé à ses yeux. S'en
+    éloigner, c'est le lui laisser (``gardes``) ; ce n'est pas s'abriter de lui (``planification.abri``)."""
     from .esprits import pnjs
     lieux = _lieux_gardes(monde, id, siens=True)
     if not lieux:
         return ()
-    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id and se_mefie(monde, id, x)]
+    from .relations import en_veut, craint
+    mefiants = [x for x in [*pnjs(monde), "joueur"] if x != id
+               and (se_mefie(monde, id, x) or en_veut(monde, id, x) or craint(monde, id, x))]
     return tuple(sorted(s for s in lieux if any(salle_crue(monde, id, x) == s for x in mefiants)))
 
 
 def gardes(monde, id):
     """Les salles où il croit ce qu'il garde (ses pulsions de biens qui ne sont pas des rondes),
-    quand ses biens le pressent, ou quand il y croit quelqu'un dont il se méfie (``menaces``) :
-    s'en tenir loin lui coûte (``planification.GARDE``), quel que soit le plan."""
+    quand ses biens le pressent, ou quand il y croit quelqu'un qui le menace (``menaces``) :
+    s'en tenir loin lui coûte (``planification.prix_gardes``), quel que soit le plan."""
     if "biens" in urgents(monde, id):
         return tuple(sorted(_lieux_gardes(monde, id)))
     return menaces(monde, id)

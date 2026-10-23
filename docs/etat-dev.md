@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-garde-pret`, non fusionnée : `GARDE` et `PRET` retirés.
+  `planification.prix_gardes` pèse l'ambition pour ses biens, la loyauté pour une charge
+  confiée et la méfiance, rancune ou peur envers les présences crues ; à valeurs neutres,
+  un lieu coûte toujours 2 par minute d'éloignement. `relations.chance_demande` centralise
+  l'estimation du demandeur : son lien, ses refus, dettes et services vécus, ses témoins
+  de faute remarqués et conservés après le geste ; jamais l'attitude privée de l'autre.
+  Objets, parts et tâches y passent ; les deux cartes entrent dans `_entrees`.
+  Dix tests ajoutés, état et rendu après rechargement (Gorm/Bram, Ilse/Joss, charge confiée,
+  positions crues, cache, témoins remarqués ou non). Suite complète : **1428 tests, 14 sautés**.
+  `VERIFIER` actif, `spatial.VERIFICATION` à 1 sur 2 h puis à 0,2 sur 8 h, graine 42 de chaque
+  scénario : aucun écart signalé, aucune usurpation ni plantage.
+  Bancs 4 h puis 8 h, quatre scénarios × quatre graines, `main` a7ecb50 puis branche,
+  séquentiellement, quatre processus au plus : aucune usurpation ni violation. À 8 h,
+  départs loin des biens Relais 6,5 → 4,25, auberge 5,75 → 5,25, crue 4,25 → 5,25 ;
+  sans recours Relais 102,5 → 100, auberge 131,25 → 125, autres égaux ; temps processeur
+  mine +12,1 %, auberge +11,2 %. Les alertes d'audit restantes et les limites de cette
+  estimation avant 3c/3e sont détaillées dans le
+  [rapport](taches/rapport-codex-13-garde-pret.md). Aucun scénario ni prompt modifié.
+
 - Branche `codex-cout-suite`, fusionnée, base initiale `main` 9075aea, puis fusion de
   `origin/main` **a7ecb50** par **1efbb12** : certificats d'absence
   sur les graphes déjà développés, indépendants des prix mais conservant permissions et

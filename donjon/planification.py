@@ -34,11 +34,9 @@ from .spatial import porte_par
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
 DEMANDE = 3            # demander : on préfère ce qu'on peut faire seul
-PRET = 0.5             # chance qu'on accède à une demande, d'un objet qu'il porte ou d'une part
 CHERCHER = 3           # chercher quelqu'un qu'on a perdu de vue : on n'est pas sûr de le trouver
 FLAMME_EN_MAIN = 1     # par minute, tant qu'une flamme allumée par le plan se consume en main
 NOIR = 3               # par minute passée dans le noir, fois ce que le noir l'inquiète (``peur_du_noir``)
-GARDE = 2              # par minute loin de chaque lieu où il garde ses biens, quand ils le pressent
 RESTER = 30            # minutes qu'il compte passer là où le mène un but qui se tient en restant
 TACHE = 5              # minutes de travail d'une tâche payée, en plus du chemin (``_engager``)
 SALAIRE = 3            # minutes de peine qu'il paie une pièce, à qui fait une tâche pour lui
@@ -116,6 +114,40 @@ class Etat(tuple):
         return self.faits.get(cle)
 
 
+def prix_gardes(monde, id, lieux):
+    """Prix par minute loin d'un lieu, compté une fois quel que soit le nombre de biens.
+
+    Ambition pour ses biens (ou ce qu'il convoite), loyauté pour une charge
+    confiée. La présence crue qui inquiète le plus renchérit cette garde.
+    """
+    from .caractere import valeur
+    from .deliberation import periodique
+    from .esprits import pnjs
+    from .vol import proprietaire
+    prix = {s: 0 for s in lieux}
+    if not prix:
+        return prix
+    for x in (profil(monde, id) or {}).get("pulsions", ()):
+        c = x["condition"]
+        if x["besoin"] != "biens" or periodique(c) or "objet" not in c:
+            continue
+        o = c["objet"]
+        s = salle_crue(monde, id, o)
+        if s not in prix:
+            continue
+        confie = proprietaire(monde, monde.objets[o]) not in (None, id) and not illicite(monde, id, o)
+        prix[s] = max(prix[s], 1 + valeur(monde, id, "loyaute" if confie else "ambition") / 50)
+    for s in prix:
+        risques = [0]
+        for autre in [*pnjs(monde), "joueur"]:
+            if autre == id or salle_crue(monde, id, autre) != s:
+                continue
+            r = relations.axes(monde, id, autre)
+            risques.append(max(0, 40 - r["confiance"]) / 100 + r["rancune"] / 100 + r["peur"] / 100)
+        prix[s] *= 1 + max(risques)
+    return prix
+
+
 class Vue:
     """Ce que le PNJ croit, corrigé de ce que le plan a déjà changé.
 
@@ -169,9 +201,9 @@ class Vue:
         self.peur = peur_du_noir(monde, id)
         if self.peur and not any(noir_cru(monde, id, s) for s in self.salles):
             self.peur = 0
-        # Les lieux où il garde ses biens, quand ils le pressent : chaque minute loin de l'un d'eux
-        # lui coûte (``GARDE``).
+        # Les lieux gardés et leur prix propre : aucune lecture de l'esprit d'autrui.
         self.gardes = gardes(monde, id)
+        self.prix_gardes = prix_gardes(monde, id, self.gardes)
         # L'eau qu'il croit ou attend dans chaque salle (``eau.attendue``) : ce qu'elle lui coûte par
         # minute (``pression``), les salles où un but qui se tient en restant ne se tient pas
         # (``menacees``), celles où il ne descend pas (``descente``).
@@ -190,6 +222,10 @@ class Vue:
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
+        # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
+        # par un plan de recherche. Il lui faut aussi l'a priori d'un inconnu.
+        interlocuteurs = [x for x, o in self.objets.items() if o["type"] == "personnage" and x != id and o.get("profil")]
+        self.chances_demandes = {x: relations.chance_demande(monde, id, x) for x in [*interlocuteurs, "joueur"]}
         # Les axes restent constants pendant cette vue, comme les croyances. Seule la
         # position crue est rejouée dans chaque état du plan.
         self.peurs_sociales = {x: peur / 50 for x in [*self.personnes(), "joueur"]
@@ -356,15 +392,6 @@ class Vue:
         return self._memo((o, "hausse_faite"), lambda: any(
             s["operation"] == "engager" and s.get("objet") == o and s["raison"] == "cher" and s["minute"] == minute
             for s, _ in self.refus_tenus()))
-
-    def refus_taches(self, o):
-        """Combien ont refusé, depuis ``REDEMANDE`` minutes, une tâche sur ``o`` qu'il leur offrait :
-        chaque refus lui apprend qu'un autre acceptera moins sûrement (``_engager``)."""
-        def compter():
-            minute = self.monde.data["minutes"]
-            return sum(1 for s, _ in self.refus_tenus()
-                       if s["operation"] == "engager" and s.get("objet") == o and minute - s["minute"] < REDEMANDE)
-        return self._memo((o, "refus_taches"), compter)
 
     def personnes(self):
         """Les PNJ qu'il connaît, dans un ordre stable."""
@@ -619,14 +646,16 @@ class Vue:
 
     def pression(self, e):
         """Ce que lui coûte une minute dans cet état, par ce qu'il y laisse monter : le noir, s'il le
-        craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``GARDE``), l'eau qu'il
+        craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``prix_gardes``), l'eau qu'il
         croit ou attend là (au taux où elle l'inquiète, ``NOIR`` par point, comme le noir)."""
         pressions = self._pressions
         if e not in pressions:
             p = NOIR * self.peur if self.peur and self.noir(e) else 0
             peur_sociale = max((peur for x, peur in self.peurs_sociales.items()
                                 if self.salle(e, x) == e.salle), default=0)
-            pressions[e] = p + NOIR * self.taux_mefiance * peur_sociale + GARDE * sum(1 for g in self.gardes if g != e.salle) + NOIR * self.eau.get(e.salle, 0)
+            pressions[e] = (p + NOIR * self.taux_mefiance * peur_sociale
+                           + sum(prix for g, prix in self.prix_gardes.items() if g != e.salle)
+                           + NOIR * self.eau.get(e.salle, 0))
         return pressions[e]
 
     def descente(self, ici, salle):
@@ -810,7 +839,7 @@ def gestes(v, e, vises=None, but=None):
             # Prêté par son propriétaire, il s'en sert sans faute (``biens.permis``).
             permis = [(("permis", o), True)]
             if not v.refuse(porteur, o):
-                yield (0, 1 + DEMANDE / PRET, [_etape("demander", porteur, outil=o)],
+                yield (0, 1 + DEMANDE / v.chances_demandes[porteur], [_etape("demander", porteur, outil=o)],
                        e.apres(portes=e.portes | {o}, faits=permis), 1)
             # L'acheter à son propriétaire, s'il a un prix et qu'il peut le payer.
             prix = objets[o].get("prix")
@@ -956,7 +985,7 @@ def _engager(v, e, condition):
     """Payer quelqu'un, là où il se tient avec lui, pour qu'il fasse en sorte que ``condition`` soit
     vraie (``echanges.engager``), sur ce qu'il pourrait faire lui-même sans faute : il propose ses
     pièces à qui il ne se méfie pas et qui ne vient pas de refuser ; l'autre accepte si ces pièces valent pour lui la peine. Comme une demande, ce n'est pas
-    acquis (``PRET``), d'autant moins que d'autres viennent de refuser (``Vue.refus_taches``) ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
+    acquis (``relations.chance_demande``), selon son expérience de cet interlocuteur ; il paie aussitôt ce que lui coûtent ses pièces (``Vue.depense``), et attend
     que l'autre ait fait la tâche (sa peine). La tâche faite, son but est atteint ; il ne la fait pas
     à sa place tant qu'elle court (``deliberation.tache_payee``).
 
@@ -988,7 +1017,7 @@ def _engager(v, e, condition):
             offre = prix if prix > refus["prix"] else hausse(refus["prix"])
             if v.richesse - (e.fait("depense") or 0) < offre or v.depense(offre) > peine:
                 continue
-        yield (0, 1 + DEMANDE * (1 + v.refus_taches(o)) / PRET + v.depense(offre) + peine,
+        yield (0, 1 + DEMANDE / v.chances_demandes[autre] + v.depense(offre) + peine,
                [_etape("engager", autre, contenu={"condition": dict(condition), "prix": offre})],
                e.apres(faits=effets_tache(condition) + [(("engage", o), autre),
                                                         (("depense",), (e.fait("depense") or 0) + offre)]), 1)
@@ -1051,8 +1080,8 @@ def _parts(v, e, o, dans, vises, but):
         if not promise and not e.fait("promis", o) and not v.refuse(donneur, o):
             if ou == e.salle and utile_part:
                 # Une part demandée n'est pas acquise : comme un objet demandé, elle coûte
-                # selon la chance d'être accordée (``PRET``).
-                yield (0, 1 + DEMANDE / PRET, [_etape("demander", donneur, outil=o,
+                # selon la chance d'être accordée (``relations.chance_demande``).
+                yield (0, 1 + DEMANDE / v.chances_demandes[donneur], [_etape("demander", donneur, outil=o,
                                                 contenu={"foyer": foyer} if foyer else None)],
                        e.apres(faits=promis), 1)
             elif (ou is None and not e.fait("cherche", donneur)
@@ -1098,7 +1127,7 @@ def _parts_remises(v, e, o, dans, vises):
     if ou != e.salle:
         return
     if not v.refuse(donneur, o):
-        yield (0, 1 + DEMANDE / PRET + attente,
+        yield (0, 1 + DEMANDE / v.chances_demandes[donneur] + attente,
                [{**_etape("demander", donneur, outil=o, contenu={"remettre_part": True}), "suppose": True}],
                acquis, 1 + attente)
     prix = v.objets[o].get("prix_part", PRIX_PART)
@@ -1164,7 +1193,7 @@ def _entrees(v, vises, profondeur, noeuds):
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
          for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu", "promesse_annulee", "creance")],
-        # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
+        # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents.
         # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
         _ordre_visites(v.salles, esprit_["visites"]),
@@ -1173,6 +1202,7 @@ def _entrees(v, vises, profondeur, noeuds):
           None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
          for k, o in monde.objets.items()],
         [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
+        v.prix_gardes, v.chances_demandes,
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
@@ -1968,7 +1998,7 @@ def abri(monde, id, salles):
 
     Quitter qui l'inquiète n'est pas un gain là où il garde un bien que cette présence menace
     (``deliberation.menaces``) : s'en aller, c'est le lui laisser, et cet éloignement lui coûte
-    (``GARDE``) comme à tout plan."""
+    (``prix_gardes``) comme à tout plan."""
     from .deliberation import menaces, taux
     v = Vue(monde, id)
     e = depart(monde, id, v)

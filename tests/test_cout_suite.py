@@ -225,8 +225,16 @@ class AbsenceTests(unittest.TestCase):
                     resultat = p.abri(m, meta['pnj'], meta['memo'][1])
                 else:
                     resultat = p.planifier_pulsion(m, meta['pnj'], meta['memo'][1], tache=meta['memo'][2])
-                self.assertIsNone(resultat, graine)
-                self.assertEqual((recherches[-1]['issue'], recherches[-1]['noeuds']), ('borne', 4000))
+                # Depuis `codex-garde-pret`, la garde de Lucien coûte selon son ambition (70 : 2,4 par
+                # minute au lieu de 2) : l'abri de la graine 7 trouve son plan à 3 855 nœuds, avant la
+                # borne ; la graine 42 reste une recherche bornée. Dans les deux cas, la reprise reste
+                # contrôlée par `VERIFIER` et le monde rechargé reste identique.
+                if graine == 7:
+                    self.assertEqual(resultat[1][0]['lieu'], 'salle_commune')
+                    self.assertEqual(recherches[-1]['issue'], 'plan')
+                else:
+                    self.assertIsNone(resultat, graine)
+                    self.assertEqual((recherches[-1]['issue'], recherches[-1]['noeuds']), ('borne', 4000))
                 recharge = recharger(m)
                 self.assertEqual(recharge.data, m.data)
                 self.assertEqual(regarder(recharge), regarder(m))
