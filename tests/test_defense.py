@@ -1,6 +1,6 @@
 """4c : conséquences, perception et sauvegarde sur la chaîne de jeu entière."""
 import copy
-from itertools import cycle
+from itertools import cycle, product
 import unittest
 from unittest.mock import patch
 
@@ -9,7 +9,7 @@ from donjon.esprits import lire, percevoir_tous, croire
 from donjon.esprits import memoriser
 from donjon.monde import ErreurMonde
 from donjon.moteur import Moteur, proposition
-from donjon.rendu import regarder
+from donjon.rendu import regarder, fiche
 from donjon.temps import MINUTE
 from tests.support import regarder as orienter
 from tests.test_combat import scene
@@ -53,7 +53,10 @@ class DefenseTests(unittest.TestCase):
             self.assertTrue(any(e["type"] == "intervention" and e["id"] == "marchand" for e in h))
             self.assertFalse(defense.dangers(m, cible))
             self.assertFalse(m.data.get("defunts"))
-            self.assertNotIn("sans connaissance", regarder(m))
+            vue = " ".join(regarder(m).split())
+            self.assertNotIn("sans connaissance", vue)
+            self.assertNotIn(m.objets[cible]["nom"], vue)
+            self.assertIn(m.objets["brune"]["nom"], vue)
 
     def test_meme_laps_bloc_ou_decoupe_recharge_epreuve_et_autre_victime(self):
         for cible in ("aubin", "ilse"):
@@ -102,7 +105,8 @@ class DefenseTests(unittest.TestCase):
             self.assertTrue(any(e["type"] == "riposte" and e["id"] == cible for e in m.data["historique_corps"]))
             self.assertLess(corps.pv(m, "brune"), avant)
             self.assertFalse(m.data.get("defunts"))
-            self.assertTrue(regarder(m))
+            vue = " ".join(regarder(m).split())
+            self.assertIn("sans connaissance" if not corps.conscient(m, "brune") else "blessé", vue)
 
     def test_joueur_fiches_et_issues_reelles_apres_rechargement(self):
         for auteur in ("brune", "marchand"):
@@ -120,9 +124,11 @@ class DefenseTests(unittest.TestCase):
                     if action == "fuir":
                         self.assertNotEqual(m.joueur["salle"], "antichambre")
                         self.assertIn("autre salle", texte)
+                        self.assertIn(m.data["salles"][m.joueur["salle"]]["nom"].upper(), regarder(m).upper())
                     elif action == "se_rendre":
                         self.assertEqual(corps.corps(m, "joueur")["reddition"]["a"], auteur)
                         self.assertIn("cesses de résister", texte)
+                        self.assertIn("a cessé de résister", fiche(m))
                     else:
                         self.assertIn("frappes", texte)
                     self.assertFalse(m.data.get("defunts"))
@@ -134,6 +140,62 @@ class DefenseTests(unittest.TestCase):
             with self.assertRaises(ErreurMonde) as cm:
                 Moteur(m).preparer(proposition(action))
             self.assertTrue(cm.exception.attendu)
+
+    def test_le_danger_percu_est_fourni_au_mj_et_au_joueur_sans_identite_devinee(self):
+        from donjon.noms import apprendre
+        for auteur in ("brune", "marchand"):
+            m = joueur_attaque(auteur)
+            apprendre(m, "joueur", auteur)
+            m = recharger(m)
+            self.assertEqual(m.contexte()["joueur"]["dangers_percus"], [auteur])
+            self.assertIn("Danger perçu :", fiche(m))
+            self.assertIn(m.objets[auteur]["nom"].split(",")[0], fiche(m))
+            # Même auteur, mais un coup qu'il ne voit pas : la préparation ne livre aucun nom.
+            m = scene()
+            if auteur == "marchand":
+                placer(m, "brune", "echoppe", (3, 3))
+                m.joueur["position"] = [2, 5]
+            m.joueur["orientation"] = "ouest"
+            percevoir_tous(m)
+            with patch.object(type(m), "d20", return_value=20):
+                combat.frapper(m, auteur, "joueur")
+            m = recharger(m)
+            self.assertNotIn("dangers_percus", m.contexte()["joueur"])
+            self.assertNotIn("Danger perçu :", fiche(m))
+
+    def test_fuite_interrompue_par_inconscience_ne_repart_pas_au_reveil(self):
+        for auteur, par_porte in product(("brune", "marchand"), (False, True)):
+            m = scene()
+            if auteur == "marchand":
+                placer(m, "brune", "echoppe", (3, 3))
+                placer(m, auteur, "antichambre", (2, 5))
+            if par_porte:
+                m.joueur.update(salle="beffroi", position=[0, 3], orientation="ouest")
+                placer(m, auteur, "beffroi", (1, 3))
+                m.objets["porte"].update(ouverte=False, verrouillee=False)
+            salle_depart = m.joueur["salle"]
+            # Fixture d'un geste commandé : aucun choix autonome de ce PNJ pendant l'épreuve.
+            for x in ("brune", "marchand", "aubin", "ilse"):
+                m.objets[x].pop("profil")
+                lire(m, x)["intention"] = None
+                lire(m, x)["pulsions"] = []
+                lire(m, x)["besoins"] = {b: v for b, v in lire(m, x)["besoins"].items()
+                                          if b in ("faim", "repos", "chaleur")}
+            e = lire(m, auteur)
+            e.update(libre=0, veille=None, eveil=1, intention={"but": {"type": "frapper", "qui": "joueur"},
+                     "motif": "securite", "depuis": 0, "attente": 0,
+                     "plan": [{"operation": "assommer", "cible": "joueur", "outil": "", "lieu": "", "condition": ""}]})
+            m.data.setdefault("exploration", {}).setdefault(salle_depart, []).append([0, 3])
+            percevoir_tous(m)
+            p = Moteur(m).preparer(proposition("fuir", "ouest" if par_porte else ""))
+            with patch.object(type(m), "d20", return_value=20):
+                texte = Moteur(m).executer(p)
+            m = recharger(m)
+            self.assertIn("Tu reviens à toi.", texte)
+            self.assertTrue(corps.conscient(m))
+            self.assertEqual(m.joueur["salle"], salle_depart)
+            self.assertFalse(m.data["journal"][-1]["reussite"])
+            self.assertIn(m.data["salles"][salle_depart]["nom"].upper(), regarder(m).upper())
 
     def test_reddition_autonome_acculer_deux_victimes_grievement_blessees(self):
         for cible in ("aubin", "ilse"):
@@ -226,7 +288,7 @@ class DefenseTests(unittest.TestCase):
             corps.reveiller(m, "brune")
             m = recharger(m)
             self.assertNotIn("brune", defense.dangers(m, temoin))
-            self.assertTrue(regarder(m))
+            self.assertNotIn("sans connaissance", " ".join(regarder(m).split()))
 
     def test_un_coup_garde_sa_duree_meme_interrompu_et_recharge(self):
         for cible in ("aubin", "ilse"):

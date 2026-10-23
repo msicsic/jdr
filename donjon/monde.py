@@ -400,6 +400,10 @@ class Monde:
         from .corps import etat as etat_corps
         joueur.pop("besoins", None)
         joueur["corps"] = etat_corps(self)
+        from .defense import dangers
+        dangers_percus = dangers(self, "joueur")
+        if dangers_percus:
+            joueur["dangers_percus"] = dangers_percus
         lieux_connus = {id: s["nom"] for id, s in self.data["salles"].items()
                        if id == self.joueur["salle"] or id in self.data["visitees"]}
         souvenirs_visuels = []

@@ -8,7 +8,7 @@ from .esprits import lire, memoriser, reconsiderer
 from .temps import instant
 
 RECENT = 30
-EXPOSITION = 5          # prix d'une minute passée auprès d'un agresseur
+EXPOSITION = 5          # surcoût forfaitaire d'un départ exposé, pondéré par la force crue
 PAROLE = 30
 
 
@@ -21,10 +21,16 @@ def auteurs(monde, id, protege=None):
     if id == "joueur":
         return list(dict.fromkeys(s["auteur"] for s in souvenirs(monde, id)
                                   if not s.get("clos") and monde.data["minutes"] - s["minute"] < RECENT))
-    return [a for a, cs in lire(monde, id)["croyances"].items() if a != id and any(
-        monde.data["minutes"] - s["minute"] < RECENT and
-        s["menace"] and not s["clos"] and (protege is None or victime == protege)
-        for victime, s in cs.get("violence", {}).get("valeur", {}).items())]
+    resultat = []
+    for a, cs in lire(monde, id)["croyances"].items():
+        if a == id or "violence" not in cs:
+            continue
+        for victime, s in cs["violence"]["valeur"].items():
+            if (monde.data["minutes"] - s["minute"] < RECENT and s["menace"] and not s["clos"]
+                    and (protege is None or victime == protege)):
+                resultat.append(a)
+                break
+    return resultat
 
 
 def retenir(monde, id, s):
@@ -264,6 +270,12 @@ def appliquer_joueur(monde, action, cible, valeur, lignes):
     route = chemin_fuite(monde, cible)
     reprendre(monde, "joueur")
     depart = monde.joueur["salle"]
+    debut_corps = len(monde.data.get("historique_corps", ()))
+
+    def interrompue():
+        return any(e["type"] == "inconscience" and e["id"] == "joueur"
+                   for e in monde.data.get("historique_corps", ())[debut_corps:])
+
     for salle, case, porte, vecteur in route:
         if not corps.conscient(monde):
             break
@@ -273,6 +285,8 @@ def appliquer_joueur(monde, action, cible, valeur, lignes):
                 for effet in p.effets:
                     Moteur._appliquer(monde, effet, lignes)
                 Moteur._terminer_etape(monde, p, lignes, p.effets, "ouvrir", "simple")
+                if interrompue():
+                    break
             direction = next(n for n, v in VECTEURS.items() if v == vecteur)
             p = Moteur(monde).preparer(proposition("marcher", direction))
             for effet in p.effets:
@@ -281,11 +295,11 @@ def appliquer_joueur(monde, action, cible, valeur, lignes):
         except ErreurMonde as exc:
             lignes.append(str(exc))
             break
-        if "Tu perds connaissance." in lignes:
+        if interrompue():
             break   # Le réveil automatique ne reprend pas une fuite interrompue.
         if monde.joueur["salle"] != salle or tuple(monde.joueur["position"]) != tuple(case):
             break
-    if monde.joueur["salle"] != depart:
+    if monde.joueur["salle"] != depart and not interrompue():
         corps.evenement(monde, "fuite", "joueur", de=depart)
         lignes.append("Tu as gagné une autre salle.")
         return True

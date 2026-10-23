@@ -1,6 +1,7 @@
 # Plan : le corps des PNJ et la force (étape 4 du plan social)
 
-Les sous-étapes 4a et 4b sont fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c à 4f restent à faire.
+Les sous-étapes 4a et 4b sont fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c est réalisée
+sur `codex-force-4c`, non fusionnée, avec les limites de critère ci-dessous ; 4d à 4f restent à faire.
 Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
@@ -507,7 +508,32 @@ prendre** dans le planificateur, avec l'étape `dans_le_dos`.
   qui la voit faire se méfie ; Gorm réveillé sait qui l'a frappé seulement s'il l'a perçue ; aucun
   mort ; coût du planificateur (nœuds, temps) dans la marge.
 
-### 4c. Se défendre, fuir, protéger, se rendre
+### 4c. Se défendre, fuir, protéger, se rendre — Fait, critères partiels
+
+Réalisé sur `codex-force-4c`, non fusionnée. [Rapport et mesures](taches/rapport-codex-17-force-4c.md).
+Les réactions passent par `defense`, le graphe de `planification`, les gestes de `pnj` et les
+actions communes du joueur. Le prix de l'agression et de la défense vient de `combat.prix_violence` ;
+ses facteurs de gravité ne sont plus réécrits dans le planificateur. Les nouvelles lectures du
+coût et de l'admissibilité font partie de la base des deux graphes et du certificat.
+
+La croyance de violence conserve la cause perçue hors de la mémoire narrative bornée. On ne
+devine pas l'intention privée d'un défenseur ; une riposte est reconnue si l'observateur en
+connaît la cause. L'atteinte se clôt quand il constate une neutralisation ou une reddition ;
+le réveil seul ne la rouvre pas. L'inconscience fait renoncer à son plan. Le mouvement d'un
+coup reste à terminer même si l'auteur reçoit un coup à son tour : pas de ripostes gratuites
+au même instant. Cris reconnus et secours en attente sont enregistrés par l'ouïe commune.
+
+Limites explicites : aux coûts actuels, l'épreuve peut faire fuir Aubin comme Ilse ; elle ne
+garantit donc pas le choix « Aubin riposte ou se dégage ». Une intervention peut consister à
+rejoindre puis examiner le lieu d'un cri quand le protégé s'est déjà éloigné ; elle n'invente
+pas le nom du coupable. Les poursuites des buts d'acquisition gardent les recherches et la
+patience existantes ; ce n'est pas une preuve de terminaison de tout affrontement en dix
+minutes. Le graphe compare une riposte revalidée à la fuite, sans simulation exhaustive de
+duel ni prédiction des pas adverses ; l'exposition ajoute un surcoût forfaitaire aux trajets,
+sans pondération fine des pas près de l'adversaire. Le joueur fuit par les pas ordinaires sans fermeture
+ni verrouillage automatique. `degager` est exécutable sur une prise déclarée ; les gestes
+qui saisissent et lient restent en 4d. Aucune règle de scénario ni consigne de comportement
+supplémentaire à Luna ne remplace ces limites.
 
 Danger perçu ; buts fuir, riposter, se dégager, se rendre ; cri et appel ; le protecteur fondu dans
 l'ouïe commune (but protéger) ; force crue ; poursuite et renoncement de l'agresseur.

@@ -676,8 +676,11 @@ class Vue:
 
     def violence(self, cible, defense=False):
         from .combat import prix_violence
-        return prix_violence(self.monde, self.id, self.motif, defense,
-                             bool((self.cru(cible, "etat") or {}).get("reddition")))
+        rendu = bool((self.cru(cible, "etat") or {}).get("reddition"))
+        # Motif et valeurs sont constants dans cette vue ; seul l'état cru de reddition
+        # distingue les cibles. Partager ce calcul ne change aucun terme du graphe.
+        return self._memo(("prix_violence", defense, rendu),
+                          lambda: prix_violence(self.monde, self.id, self.motif, defense, rendu))
 
     def descente(self, ici, salle):
         """Aller d'``ici`` à ``salle``, c'est descendre dans la crue : là-bas il attend plus d'eau qu'ici

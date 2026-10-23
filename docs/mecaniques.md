@@ -75,6 +75,53 @@ exclut cette agression ; la fonction de prix prévoit la défense future, sans b
 conservent les coups et les états du corps. Voir le [rapport 4b](taches/rapport-codex-12-force-4b.md)
 pour les mesures et réserves de validation.
 
+### Réagir à la violence (4c)
+
+Une violence reçue ou attribuée par la vue ou l'ouïe établit une croyance datée sur son
+auteur. Elle reste disponible pendant trente minutes, indépendamment des quarante lignes
+du récit. Une voix inconnue, un cri sans auteur reconnu ou un coup reçu par surprise ne
+donnent pas une identité. Les positions, blessures et états de conscience sont ceux que
+l'observateur croit, jamais les données privées de l'adversaire.
+
+Un personnage conscient cru tout près devient un danger. La sécurité presse alors au maximum :
+le planificateur compare le coût de partir (trajets, portes à fermer et clé portée pour les
+verrouiller) et celui de riposter. La force estimée vient des armes et blessures connues ;
+le courage pèse le risque. La douceur compte le quart du prix d'une agression ; à douceur 100,
+se défendre ou protéger reste permis. Le prix d'une violence sur quelqu'un qui s'est rendu
+est doublé. Une riposte dont on a vu la cause ne fait pas de son auteur un nouvel agresseur
+pour tous les témoins. Voir le danger neutralisé clôt cette atteinte : son seul réveil ne
+déclenche pas de nouveaux coups. Perdre connaissance fait abandonner son plan en cours.
+
+Le protecteur reçoit le cri reconnu de son protégé par l'ouïe commune. Il rejoint et examine
+le lieu entendu, sans apprendre par le cri qui a frappé. S'il perçoit l'agression et sa cause,
+il peut intervenir contre l'agresseur ; il peut également ranimer par la règle existante.
+Un bruit déjà expliqué par la vue ne fait pas oublier un secours encore à examiner.
+
+Le joueur dispose des actions `fuir`, `riposter`, `se_rendre`, `degager`, toutes avec fiche
+avant tentative et refus guidés. `fuir` suit les pas ordinaires vers une sortie connue,
+revalidés un à un pendant que les PNJ vivent ; il ne garantit aucune avance et ne verrouille
+pas automatiquement. `riposter` frappe un agresseur perçu au contact ; une arme portée peut
+être précisée. `se_rendre` prononce « Je me rends ! » et enregistre la cessation de résistance
+avant de la faire entendre. `degager`, si l'on est retenu, oppose le meilleur de FOR/DEX à
+la FOR de celui qui tient ; cette étape ne crée pas encore de saisie ni de lien.
+
+Un coup garde ses 1,5 seconde de mouvement même si un autre coup l'interrompt ; aucune chaîne
+de ripostes ne peut donner plusieurs coups du même auteur au même instant. Les refus, la
+reddition, les croyances et les fins de mouvement tiennent après sauvegarde et rechargement.
+Le banc compte fuites, ripostes, interventions et redditions lorsqu'elles ont lieu.
+
+La fiche et le contexte du MJ indiquent le danger que le joueur a identifié et perçoit encore.
+La fuite interrompue par une perte de connaissance s'arrête après le réveil ; elle ne reprend
+pas le chemin automatiquement.
+
+Limites : la force estimée n'est pas une simulation complète de duel ; au prix des trajets
+s'ajoute un surcoût d'exposition forfaitaire, sans pondération fine de chaque pas près de
+l'adversaire. La fuite abstraite du
+planificateur ne prédit pas les déplacements adverses. Aucune victoire ni borne universelle
+de dix minutes n'est garantie. Les valeurs du scénario peuvent aussi faire fuir Aubin : aucun
+choix de personnage n'est prescrit. Vérifications et réserves dans le
+[rapport 4c](taches/rapport-codex-17-force-4c.md).
+
 ### Défi du Relais des crues et déplacement en cases
 
 Double-cliquer sur **`lancer-defi.cmd`** pour une nouvelle scène avec **Luna seul**.
@@ -1382,15 +1429,15 @@ moteur reste dans le journal et sert de repli. `--recit-moteur` garde le rendu d
 - Les dialogues des personnages présents tiennent compte du sujet et des faits connus.
   Les engagements économiques sont limités aux récompenses des missions configurées ;
   pas encore de promesses libres, de réputation ou de négociation des prix de boutique.
-  Le bruit modifie l'humeur du marchand ; il n'y a ni combat ni IA tactique.
-  Les PV et PER sont présents sur la fiche mais sans mécanique dédiée pour l'instant.
+  Les violences et les réactions suivent les règles 4a à 4c ci-dessus, sur l'horloge commune.
+  Les PV règlent blessures et conscience ; la PER participe à la perception et à l'ouïe.
 - Le MJ peut compléter à la demande la description de **tout personnage connu ou visible en pleine lumière** :
   âge apparent, silhouette, visage, cheveux, yeux, barbe, mains, voix et tempérament apparent.
   Par exemple : « De quelle couleur sont les yeux de Gorm ? ». Il propose les ajouts au moteur,
   puis reçoit les faits validés pour répondre. Les contrôles de narration et de portée ajoutent
   des appels au modèle. Aucun supplément d'action, de temps ou de jet.
   Les détails corporels deviennent des cibles pour `examiner` et `toucher`, puis sont conservés dans
-  la sauvegarde et la mémoire des rencontres. Le combat et les transformations corporelles restent hors modèle.
+  la sauvegarde et la mémoire des rencontres. Les transformations corporelles libres restent hors modèle.
   `examiner <personnage>` utilise aussi le MJ si le personnage n'a encore aucun portrait ; hors ligne,
   seuls les faits déjà enregistrés sont affichés. Les détails sont enregistrés avant d'afficher la réponse.
   La TUI actualise la scène après leur enregistrement.

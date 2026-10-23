@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-4c`, non fusionnée, base `main` 9520f77 : danger attribué par la
+  perception, croyance datée de violence hors du récit borné, comparaison fuite/riposte par
+  le graphe commun, protection par cri reconnu et examen du lieu, reddition sauvegardée,
+  dégagement d'une prise déclarée. Le joueur dispose de `fuir`, `riposter`, `se_rendre`,
+  `degager`, avec fiche et `attendu`. Le prix de violence est centralisé ; les lectures
+  nouvelles font partie de la base des graphes repris et du certificat. Un mouvement de
+  coup garde sa durée même interrompu ; une neutralisation vue clôt l'atteinte et
+  l'inconscience fait abandonner le plan : pas de coups gratuits au même instant ni de
+  reprise au seul réveil. Le danger identifié est dans la fiche et le contexte du MJ,
+  sans attribution devinée d'un coup non vu. Seize tests 4c vérifient deux cas par règle, état et rendu
+  après rechargement, et même laps découpé. Suite complète : **1 482 tests, 14 sautés**,
+  aucun échec ni erreur, quatre processus à priorité réduite (483,7 s) ; les seize cas 4c
+  sont aussi rejoués sur le dernier code. Empreintes 2 h et 8 h : seize paires identiques
+  aux quatre scénarios ; huit nuits de `rixe` identiques à 9520f77, sans coup ni mort.
+  À placement identique du joueur, sans recours : `rixe` 68,75 contre Relais 64,375 (+6,8 %).
+  CPU final au plus +2,5 % en moyenne par scénario. `VERIFIER` et spatial 1 sur 2 h,
+  puis 0,2 sur 8 h, cinq scénarios : sans écart (les 66 recherches bornées connues de
+  l'auberge). Luna non validée : catalogue disponible, ouverture WebSocket en délai dépassé.
+  Dans l'épreuve, Aubin peut fuir comme Ilse :
+  le choix demandé « riposte ou se dégage » et une borne universelle de dix minutes ne
+  sont pas garantis ; les poursuites d'acquisition gardent la patience existante.
+  Aucun lien ni `tuer`, aucun changement du modèle Luna. Mesures et réserves dans le
+  [rapport 4c](taches/rapport-codex-17-force-4c.md).
+
 - Branche `codex-force-4b`, fusionnée : coups et assommement par la même règle pour le
   joueur et les PNJ, fiche avant tentative, armes et surprise, cris, interruptions, souvenirs
   et relations, registre et prise sur un porteur inconscient. Le recours assommer-pour-prendre
@@ -1620,7 +1644,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite de tests passe : 1466 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Même compte avec `tools/tests.py`.
+- La suite de tests passe sur `codex-force-4c` : 1482 tests (14 sautés sans `jsonschema`, facultatif pour MiMo), sans clé ni connexion (ceux du clic demandent Node). Les tests d'interface emploient des sockets locaux.
 
 ## Décisions en attente
 
@@ -1637,7 +1661,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   souvenir « son » sont fondus dans l'ouïe commune (branche `ouie-commune`).
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
-- **Étape 4 du plan social, le corps et la force** : 4a et 4b fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c à 4f
+- **Étape 4 du plan social, le corps et la force** : 4a et 4b fusionnées (`codex-force-4a`, `codex-force-4b`) ;
+  4c réalisée sur `codex-force-4c`, non fusionnée, avec les limites de critère de son rapport ; 4d à 4f
   restent à réaliser, dans `docs/plan-force.md`. Décisions de
   la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
   ou défendre un protégé. Aucun geste de violence en 4a.
