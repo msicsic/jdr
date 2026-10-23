@@ -31,7 +31,8 @@ def arguments(cible, fonction, entree):
         return {'conforme': True, 'motif': ''}
     if fonction == 'auditer_narration':
         return {'segments': {str(i): {'verdict': 'mecanique', 'sources': ['resultat_resolu'],
-            'locuteur': '', 'citation': '', 'presentation': '', 'entites': [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
+            'locuteur': '', 'citation': '', 'presentation': '', 'entites': [], 'motif': ''}
+            for i, _ in enumerate(entree['segments'])}}
     if fonction == 'repondre_au_joueur':
         if 'resultat_resolu' in entree.get('faits', {}):
             texte = 'Tu prends la clé du veilleur.' if cible == 'cle' else 'Tu prends la bobine de ficelle solide.'
@@ -130,13 +131,13 @@ class ParcoursFournisseursTests(unittest.TestCase):
             with self.subTest(cas=f.name), tempfile.TemporaryDirectory() as temp:
                 sauvegarde = Path(temp) / 'partie.json'
                 shutil.copy2(f / 'avant.json', sauvegarde)
-                # Les captures précèdent les noms opaques : actualiser les symboles de
-                # la vue comme au lancement, avant de vérifier l'absence de mutation du refus.
-                from donjon.spatial import memoriser
-                m = Monde.charger(sauvegarde)
-                memoriser(m)
-                m.sauver(sauvegarde)
-                avant = m.data
+                # La fixture ancienne précède les noms opaques : établir sa perception
+                # actuelle avant de contrôler qu'un rejet ne change plus rien.
+                from donjon.spatial import installer
+                monde = Monde.charger(sauvegarde)
+                installer(monde)
+                monde.sauver(sauvegarde)
+                avant = monde.data
                 p = json.loads((f / 'requete.json').read_text(encoding='utf-8'))
                 intention = json.loads(p['messages'][1]['content'])['requete']['message']
                 fournisseur = MiMo('simulation', relances_format=0)

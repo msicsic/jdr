@@ -149,12 +149,13 @@ class MiMoTests(unittest.TestCase):
             with self.subTest(cas=dossier.name), tempfile.TemporaryDirectory() as temp:
                 save = Path(temp) / 'partie.json'
                 shutil.copy2(dossier / 'avant.json', save)
-                # Captures antérieures aux noms opaques : même vue de départ que le jeu actuel.
-                from donjon.spatial import memoriser
-                m = Monde.charger(save)
-                memoriser(m)
-                m.sauver(save)
-                avant = m.data
+                # Actualiser une fois les symboles de perception de cette scène ancienne,
+                # comme le fait l'ouverture du jeu, avant la comparaison du rejet.
+                from donjon.spatial import installer
+                monde = Monde.charger(save)
+                installer(monde)
+                monde.sauver(save)
+                avant = monde.data
                 p = json.loads((dossier / 'requete.json').read_text(encoding='utf-8'))
                 intention = json.loads(p['messages'][1]['content'])['requete']['message']
                 interface = Interface([intention, 'quitter'], save)

@@ -16,6 +16,8 @@ engagements, gestes illicites du rejeu).
 va-et-vient entre deux salles ou deux buts, PNJ figés avec un besoin qui presse, croyances fausses sur
 ce qu'on voit, appels sans réponse, gestes illicites jamais vus, minutes dans le noir ou l'eau, dettes
 et engagements non soldés. Observation seule : les relevés ne changent pas la nuit (empreintes).
+Les codes bruts restent comparables. ``niveau=observation`` décrit un fait sans prétendre prouver
+un défaut ; ``a_expliquer`` conserve les alertes et les anciens fichiers sans diagnostic suffisant.
 """
 import argparse
 import gzip
@@ -39,7 +41,8 @@ JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", 
 
 def _releve(monde):
     """Un relevé de chaque PNJ vivant à cet instant (lecture seule)."""
-    from donjon.deliberation import autour, peur_du_noir, seuils, urgents
+    from donjon import deliberation
+    from donjon.deliberation import attentes, autour, peur_du_noir, seuils, urgents
     from donjon.eau import active, profondeur
     from donjon.esprits import lire, percus, pnjs
     from donjon.recit_pnj import but_en_mots
@@ -71,6 +74,10 @@ def _releve(monde):
             "b": but_en_mots(monde, i["but"]) if i else None, "bt": i["but"]["type"] if i else None,
             "mo": i["motif"] if i else None, "pl": len(i["plan"]) if i else 0,
             "u": urgents(monde, id), "bes": {k: round(v) for k, v in e["besoins"].items() if k in s and v >= s[k] - 5},
+            # Le comparateur charge aussi cet observateur sur des références plus anciennes.
+            "inactivite": (deliberation.inactivite(monde, id) if hasattr(deliberation, "inactivite")
+                           else "non_relevee"), "attentes": attentes(monde, id),
+            "renoncements": dict(e["renoncements"]),
             "noir": bool(peur_du_noir(monde, id) and o["lieu"] in monde.data["salles"] and not autour(monde, id)["lumiere"]),
             "eau": profondeur(monde, o["lieu"]) if active(monde) and o["lieu"] in monde.data["salles"] else 0,
             "corps": {k: v for k, v in (o.get("corps") or {}).items() if isinstance(v, (int, float, bool))},
@@ -321,9 +328,9 @@ def analyser_nuit(n):
     constats = []
     cle = f'{n["scenario"]} {n["graine"]}'
 
-    def noter(code, pnj, minute, detail, poids=1):
+    def noter(code, pnj, minute, detail, poids=1, niveau="a_expliquer"):
         constats.append({"code": code, "nuit": cle, "scenario": n["scenario"], "graine": n["graine"],
-                         "pnj": pnj, "minute": minute, "detail": detail, "poids": poids})
+                         "pnj": pnj, "minute": minute, "detail": detail, "poids": poids, "niveau": niveau})
     if n.get("plantage"):
         p = n["plantage"]
         noter("plantage", None, p.get("minute"), f'{p["type"]}: {p["message"][:300]}')
@@ -356,7 +363,18 @@ def analyser_nuit(n):
             appels[c["pnj"]].append(c["minute"])
     for pnj, ms in appels.items():
         if len(ms) >= 10:
-            noter("appels_nombreux", pnj, ms[0], f"{len(ms)} appels ({ms[:6]}…)", len(ms))
+            from donjon.deliberation import APPEL_OUBLI
+            vains = [s for s in d.get("recit", {}).get("souvenirs", {}).get(pnj, [])
+                     if s["type"] == "appel_sans_reponse"]
+            par_recherche = defaultdict(list)
+            for s in vains:
+                par_recherche[s["qui"], s["salle"]].append(s["minute"])
+            tournee = Counter(ms) == Counter(s["minute"] for s in vains) and all(
+                b - a >= APPEL_OUBLI for suite in par_recherche.values() for a, b in zip(suite, suite[1:]))
+            detail = (f" ; {len(par_recherche)} couples personne/lieu, tous sans réponse, "
+                      f"sans rappel avant {APPEL_OUBLI} min" if tournee else " ; réponses et trajets à examiner")
+            noter("appels_nombreux", pnj, ms[0], f"{len(ms)} appels ({ms[:6]}…)" + detail, len(ms),
+                  "observation" if tournee else "a_expliquer")
     aides = Counter(c["pnj"] for c in chronique if c["texte"].endswith(" appelle à l'aide."))
     for pnj, k in aides.items():
         if k >= 10:
@@ -393,7 +411,8 @@ def analyser_nuit(n):
         voir = sum(1 for k in range(2, len(buts)) if buts[k][1] == buts[k - 2][1]
                    and any(b.startswith("aller voir") for b in (buts[k][1], buts[k - 1][1])))
         if voir:
-            noter("voir_alterne", pnj, buts[0][0], f"{voir} alternances aller voir / autre but", voir)
+            noter("voir_alterne", pnj, buts[0][0], f"{voir} alternances aller voir / autre but ; "
+                  "les buts seuls ne prouvent pas un retour au même bruit", voir, "observation")
         if alternances >= 10:
             paires = Counter(tuple(sorted((buts[k][1], buts[k - 1][1]))) for k in range(2, len(buts)) if buts[k][1] == buts[k - 2][1])
             noter("buts_alternes", pnj, buts[0][0], f"{alternances} alternances, surtout {paires.most_common(1)[0]}", alternances)
@@ -402,7 +421,11 @@ def analyser_nuit(n):
         for a, b in _plages(fige):
             if b - a >= 120:
                 besoins = Counter(u for m, x in suite if a <= m <= b for u in x["u"])
-                noter("fige_presse", pnj, a, f"{b - a + 5} min sans but, pressé par {dict(besoins)}", (b - a) // 60)
+                raisons = Counter(x.get("inactivite", "non_relevee") for m, x in suite if a <= m <= b)
+                explique = all(r in ("attente", "confiee", "satisfaite") for r in raisons)
+                noter("fige_presse", pnj, a, f"{b - a + 5} min sans but, pressé par {dict(besoins)} ; "
+                      f"causes des relevés : {dict(raisons)}", (b - a) // 60,
+                      "observation" if explique else "a_expliquer")
         # Même but et même case longtemps alors qu'un autre besoin presse (le but ne le sert pas).
         immobile = []
         for m, x in suite:
@@ -418,12 +441,16 @@ def analyser_nuit(n):
         for a, b in _plages(noir):
             if b - a >= 90:
                 ex = next(x for m, x in suite if m == a)
-                noter("noir_long", pnj, a, f"{b - a + 5} min dans le noir qu'il craint ({ex['s']}, but {ex['b']})", (b - a) // 60)
+                noter("noir_long", pnj, a, f"{b - a + 5} min dans le noir qu'il craint ({ex['s']}, but {ex['b']}) ; "
+                      f"inactivité {ex.get('inactivite', 'non_relevee')}, besoins en attente {ex.get('attentes')}",
+                      (b - a) // 60, "observation")
         eau = [m for m, x in suite if x["eau"]]
         for a, b in _plages(eau):
             if b - a >= 60:
                 ex = next(x for m, x in suite if m == a)
-                noter("eau_longue", pnj, a, f"{b - a + 5} min dans l'eau ({ex['s']}, {ex['eau']} cm, but {ex['b']})", (b - a) // 60)
+                profondeurs = [x["eau"] for m, x in suite if a <= m <= b]
+                noter("eau_longue", pnj, a, f"{b - a + 5} min dans l'eau ({ex['s']}, "
+                      f"{min(profondeurs)}–{max(profondeurs)} cm, but {ex['b']})", (b - a) // 60, "observation")
         # Croyances fausses sur ce qu'il perçoit, persistantes (deux relevés de suite au moins).
         faux = defaultdict(list)
         for m, x in suite:
@@ -450,10 +477,16 @@ def analyser_nuit(n):
     for g in n.get("gestes") or []:
         if g.get("entendus"):
             noter("illicite_entendu", g["a"], g["t"] // 600 if isinstance(g["t"], int) else None,
-                  f'{g["op"]} {g["objet"]} dans {g["salle"]}, entendu de {[x for x, _ in g["entendus"]]}', 1)
+                  f'{g["op"]} {g["objet"]} dans {g["salle"]}, entendu de {[x for x, _ in g["entendus"]]}',
+                  1, "observation")
         if not g["temoins"] and not g.get("entendus") and g["dans_la_salle"]:
+            perception = g.get("perception", {})
+            attendus = [x for x, p in perception.items() if not p["exclu"] and p["conscient"]
+                        and (p["voit"] or p["nature"] and p["entend"] is not None and p["situe"])]
             noter("illicite_sans_temoin_avec_present", g["a"], g["t"] // 600 if isinstance(g["t"], int) else None,
-                  f'{g["op"]} {g["objet"]} dans {g["salle"]}, présents {g["dans_la_salle"]}', 1)
+                  f'{g["op"]} {g["objet"]} dans {g["salle"]}, présents {g["dans_la_salle"]} ; '
+                  f'perception au début {perception}, témoins attendus {attendus}', 1,
+                  "observation" if perception and not attendus else "a_expliquer")
 
     # 5. Fin de nuit : dettes, engagements anciens, prêts.
     f = n.get("final") or {}
@@ -488,7 +521,8 @@ def analyser(args):
         par_code[c["code"]].append(c)
     for code, liste in sorted(par_code.items(), key=lambda kv: -len({c["nuit"] for c in kv[1]})):
         touchees = Counter(c["scenario"] for c in {c["nuit"]: c for c in liste}.values())
-        print(f"\n== {code} : {len(liste)} constats, nuits touchées {dict(touchees)}")
+        niveaux = Counter(c["niveau"] for c in liste)
+        print(f"\n== {code} : {len(liste)} constats, nuits touchées {dict(touchees)}, niveaux {dict(niveaux)}")
         for c in sorted(liste, key=lambda c: -c["poids"])[:args.exemples]:
             print(f'  [{c["nuit"]}] {c["pnj"]} min {c["minute"]} : {c["detail"]}')
     # Mesures moyennes par scénario.

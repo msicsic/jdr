@@ -189,3 +189,43 @@ puis la nuit continue à l'identique), `--verification`, `--rejeu`, `--sans-rele
 `croyance_fausse_vue`, `agitation`, `illicite_sans_temoin_avec_present`, `dette_fin`,
 `engagement_ancien`. Les seuils sont des repères de lecture, pas des règles du jeu : chaque constat
 retenu ici a été relu dans la chronique ou par une sonde.
+
+## Signalements de `main` 43fa7ac — Codex 14 (2026-10-23)
+
+Branche `codex-signalements`, non fusionnée ; [rapport détaillé, cas et commandes](taches/rapport-codex-14-signalements.md).
+32 nuits de 12 h, départ tiré, quatre scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500 ; au plus trois
+processus, campagnes successives, aucun appel à Luna. Les seuls observateurs enrichis rejouent
+d'abord les 32 nuits à l'identique (chronique, mesures, empreintes, récit et souvenirs).
+
+| Signalement brut | Avant → après | Cause / suite |
+|---|---:|---|
+| `fige_presse` | 80 → 82 | Attente de moyen, charge confiée ou déjà satisfaite : la lecture commune explique les 80 plages initiales et les 82 finales. |
+| `noir_long` | 57 → 67 | Noir réellement subi, ressources et croyances ; conservé comme observation, aucune amélioration uniforme promise. |
+| `illicite_entendu` | 81 → 106 | Témoin par l'ouïe correctement enregistré, pas une anomalie en soi. |
+| `voir_alterne` | 25 → 19 | Alternance de buts sans identification d'un même bruit : ne prouve pas une boucle. |
+| `illicite_sans_temoin_avec_present` | 21 → 22 | Aucun témoin attendu au début : pas de vue ; bruit sous le seuil ou objet non situé. |
+| `eau_longue` | 5 → 5 | L'eau change pendant la plage : 1–14, 19–43 ou 21–57 cm sur la référence, sans piège démontré. |
+| `appels_nombreux` | 3 → 4 | Boucle d'Anselme 108 → 15 ; pire PNJ-nuit 108 → 16. Restent tournées et demandes distinctes. |
+| `appels_a_l_aide` | 1 → 0 | Gorm réarmait l'appel sous `DESESPOIR` sans être rassuré ; correction sur l'épisode d'urgence, conservé en sauvegarde. |
+| `repetition` | 6 → 0 | Boucle Anselme/Joss : réponse anonyme, rendez-vous ignoré, résultat infructueux non retenu. |
+| `passages_rafale` | 1 → 0 | Même boucle : pire auberge 93 → 38 passages/h. |
+| `buts_alternes` | 3 → 3 | Entretien/garde, examen/garde, entretien/abri sur la nuit entière ; conservés comme repères. |
+| `dette_fin` | 1 → 0 | Tâche devenue impossible, dette et refus enregistrés ; autre trajectoire après correction, sans abolir les dettes. |
+
+Zéro autre famille, zéro plantage, usurpation ou violation. Les codes bruts n'ont pas été supprimés.
+L'analyseur ajoute `niveau` : `observation` indique un fait descriptif ou une cause établie ;
+`a_expliquer` garde les alertes sans preuve suffisante, notamment les anciens fichiers non enrichis.
+Il conserve aussi les cas de recherche avec réponses que le rapport a expliqués : il ne sait pas
+déduire automatiquement de simples textes toutes les raisons d'un changement d'objectif.
+
+Corrections communes : un besoin encore urgent ne réarme pas le même appel ; son suivi survit aux
+quarante souvenirs. Un résultat de recherche infructueuse survit lui aussi aux souvenirs, avec
+`APPEL_OUBLI` et révision par une croyance de lieu nouvelle ; un plan qui vise l'interlocuteur d'un
+rendez-vous emploie le lieu convenu. La clé du planificateur porte ces résultats actifs. Aucune
+identité ou présence n'est déduite d'une réponse anonyme. Le banc, le récit et l'audit partagent la
+lecture des inactivités, sans modifier les besoins ou inventer des ressources.
+
+Le diagnostic des gestes utilise les règles du moteur au début du geste ; il n'est pas une
+reconstitution exhaustive de la perception entre tous les instants. Les recherches restent bornées :
+« en attente » signifie qu'aucun plan n'a été trouvé sur les croyances, pas une preuve d'impossibilité
+absolue. Résultats de la suite, contrôles et comparaison 8 h dans le rapport.

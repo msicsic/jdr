@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-signalements`, fusionnée, base `main` 43fa7ac : audit 32 nuits de 12 h,
+  quatre scénarios × huit graines, sans Luna. Le même désarroi ne réarme plus l'appel sous le seul
+  seuil de désespoir : le suivi de secours survit à la mémoire bornée. Une recherche retient aussi
+  son échec après une réponse anonyme et suit le lieu d'un rendez-vous convenu ; résultats actifs
+  dans la clé du planificateur. Lecture commune de l'inactivité pour le banc, le récit et l'audit
+  (attente de moyen, charge confiée, charge satisfaite), sans changement des besoins. Les codes
+  bruts restent visibles avec leur niveau d'explication. Appels d'Anselme, auberge 3 : 108 → 15 ;
+  répétitions 6 → 0, rafales de passages 1 → 0. Noir long 57 → 67 : pas d'amélioration uniforme
+  promise. Les observateurs seuls ont rejoué les 32 références à l'identique. Quatorze tests
+  nouveaux avec quatre scènes enregistrées, laps découpés et rendu après rechargement. `VERIFIER`
+  et perception 1 sur 2 h, puis 0,2 sur 8 h, graine 42, quatre scénarios : sans écart ni borne.
+  Suite complète verte : **1 438 tests, quatre sautés**, trois processus, 241,3 s. Six échecs
+  MiMo simulés également présents sur la référence avec `jsonschema` sont corrigés dans leurs
+  fixtures (champ `presentation`, initialisation de la perception), sans appel au modèle.
+  [Rapport, causes de chaque famille, commandes et limites](taches/rapport-codex-14-signalements.md).
 - Branche `codex-restes-fusions`, fusionnée, base `main` **5594028**, worktree
   `tmp-worktrees/codex-restes-fusions` : la réception précède la parole tenue dans la remise
   d'un objet ou d'une part promise ; accueil et réponses aux appels lisent les bandes communes
@@ -305,7 +320,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   crue 5,8 → 8,7 s (+15 à +50 %, comme le rapport : à réduire). Restes repris par
   `codex-restes-fusions` (fusionnée) : réception avant `engagement_tenu`, seuils en dur de
   l'accueil et des appels remplacés par les bandes. Les appels à l'aide répétés après un vol vu
-  (désarroi renouvelé) : `codex-signalements`.
+  (désarroi renouvelé) : corrigés par `codex-signalements` (fusionnée).
 - Branche `codex-force-4a`, fusionnée : sous-étape 4a du [plan force](plan-force.md),
   PV pour tous, blessures et malus, repos qui soigne au temps vécu, inconscience et réveil,
   réanimation au contact et par le planificateur du protecteur. Le corps vit hors de la

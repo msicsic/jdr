@@ -63,24 +63,16 @@ def _oisifs_urgents(monde):
     enfin ceux qui n'attendent que ce qu'ils ont confié à un autre qu'ils croient fiable (Gorm et la
     cloche confiée au joueur, qui reste passif au banc). Chaque PNJ oisif compte dans une seule de
     ces catégories, dans cet ordre."""
-    from .deliberation import _delegue, attentes, satisfaite, urgents
+    from .deliberation import inactivite
     oisifs = bloques = attente = confies = 0
     for id in pnjs(monde):
-        p = monde.objets[id].get("profil")
-        if not p or lire(monde, id)["intention"] is not None or not urgents(monde, id):
+        raison = inactivite(monde, id)
+        if raison is None:
             continue
         oisifs += 1
-        rompues = {b: [x for x in p["pulsions"] if x["besoin"] == b and not satisfaite(monde, id, x["condition"])]
-                   for b in urgents(monde, id)}
-        a_faire = [b for b, r in rompues.items()
-                   if any(not _delegue(monde, id, x) for x in r) or not any(x["besoin"] == b for x in p["pulsions"])]
-        sans_plan = attentes(monde, id)
-        if any(b not in sans_plan for b in a_faire):
-            bloques += 1
-        elif a_faire:
-            attente += 1
-        elif any(rompues.values()):
-            confies += 1
+        bloques += raison == "sans_recours"
+        attente += raison == "attente"
+        confies += raison == "confiee"
     return oisifs, bloques, attente, confies
 
 

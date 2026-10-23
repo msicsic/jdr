@@ -234,6 +234,18 @@ class Enregistreur:
                           "dans_la_salle": [x for x in self.personnages if x != auteur and monde.objets[x]["lieu"] == salle],
                           "temoins": [[x, maintenant] for x in geste["temoins"]],
                           "entendus": [[x, maintenant] for x in geste["entendus"]]}
+            # Pourquoi la seule présence ne fait pas un témoin : mêmes lectures que le moteur,
+            # sans inventer une seconde règle de perception dans l'analyseur hors ligne.
+            from .corps import conscient
+            from .esprits import percoit
+            from .ouie import _place, entend, objet_situe
+            _, source = _place(monde, auteur)
+            enregistre["perception"] = {
+                x: {"conscient": conscient(monde, x), "exclu": x in geste["exclus"],
+                    "voit": percoit(monde, x, auteur), "nature": geste["nature"],
+                    "entend": entend(monde, auteur, x, force=geste["nature"]) if geste["nature"] else None,
+                    "situe": objet_situe(monde, x, objet, salle, source) if source is not None else False}
+                for x in enregistre["dans_la_salle"]}
             self.gestes.append(enregistre)
             self._geste_de[id(geste)] = (geste, enregistre)
             return geste
