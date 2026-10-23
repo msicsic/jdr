@@ -361,3 +361,42 @@ class DangerDitAuMjTests(unittest.TestCase):
                 self.assertTrue(titres["riposter"].startswith("Te défendre : riposter contre "))
                 self.assertIn("c'est toi qui cesses de résister", titres["se_rendre"])
                 self.assertTrue(titres["fuir"].startswith("Fuir "))
+
+
+class ForcerNEstPasAgresserTests(unittest.TestCase):
+    """Forcer un contenant emploie le geste ``frapper``, mais sur une chose : c'est un geste illicite
+    contre son propriétaire, pas une violence contre une personne (``pnj.est_contrainte``). Cas réel :
+    Relais 1985, 12 h, minute 690, Aubin force la réserve de Gorm au refuge ; Brune, Ilse et Gorm,
+    le croyant dangereux, fuyaient dans la conduite noire puis revenaient à la lumière, des centaines
+    de fois par heure."""
+
+    def scene(self, temoin):
+        from tests.test_petits_correctifs import ForcerTests
+        m = ForcerTests.brune_aux_vannes(None, douceur=60)
+        placer(m, "brune", "antichambre", (6, 3))
+        for i, id in enumerate(sorted({"marchand", "ilse", "aubin"} - {temoin})):
+            placer(m, id, "beffroi", (2 + i, 3))
+        placer(m, temoin, "antichambre", (6, 5))
+        orienter(m, temoin, "brune")
+        percevoir_tous(m)
+        lire(m, "brune")["besoins"]["faim"] = 96.0  # Au-delà du désespoir : un témoin ne la retient plus.
+        return recharger(m)
+
+    def test_un_temoin_de_l_effraction_ne_la_fuit_pas(self):
+        # Ilse, témoin d'un tort fait à un tiers ; Gorm, témoin du tort fait à son propre bien.
+        for temoin in ("ilse", "marchand"):
+            with self.subTest(temoin=temoin):
+                m = self.scene(temoin)
+                vu = False
+                for _ in range(6):
+                    passer(m, MINUTE)
+                    m = recharger(m)
+                    vu = vu or any(s["type"] == "vu_agir" and s["auteur"] == "brune" and s["operation"] == "frapper"
+                                   and s["objet"] == "reserve" for s in lire(m, temoin)["memoire"])
+                    self.assertNotIn("violence", lire(m, temoin)["croyances"].get("brune", {}))
+                    self.assertEqual(defense.dangers(m, temoin), [])
+                    self.assertNotIn((lire(m, temoin)["intention"] or {}).get("but", {}).get("type"),
+                                     ("fuir", "riposter", "reddition"))
+                self.assertTrue(vu)   # Il l'a bien vue forcer : un geste illicite, retenu comme tel.
+                self.assertFalse([e for e in m.data.get("historique_corps", [])
+                                  if e["id"] == temoin and e["type"] in ("fuite", "riposte", "reddition")])

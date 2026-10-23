@@ -40,6 +40,11 @@ def retenir(monde, id, s):
     op = "pousser" if t == "pousse" else s.get("operation")
     if t not in ("subi", "pousse", "vu_agir") or op not in ("frapper", "assommer", "pousser"):
         return
+    from .pnj import est_contrainte
+    if t == "vu_agir" and not est_contrainte(monde, op, s.get("objet")):
+        # Forcer une chose emploie aussi ``frapper`` : un geste illicite contre son propriétaire,
+        # retenu comme tel (``vu_agir``), pas une violence contre une personne.
+        return
     a = s.get("auteur")
     if not a or a == id:
         return
