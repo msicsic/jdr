@@ -49,10 +49,31 @@ Le point de reprise est `docs/etat-dev.md` : à lire avant tout chantier, et à 
   `main` et de la branche l'un après l'autre, sauf quand le chantier mesure le temps de calcul ;
   pas plus de deux agents qui font des bancs en même temps ; les autres processus Python lourds
   (suite de tests longue) en priorité réduite.
-- Deux niveaux de banc. **Rapide, par défaut** : 4 h de jeu, 4 graines, seulement les scénarios
-  que le changement touche (et le Relais) ; il suffit pour une usurpation, une boucle ou une
-  régression grossière. **Complet** (8 à 12 h, 8 graines, les quatre scénarios, `VERIFIER`) :
-  seulement pour un changement profond du moteur ou une revérification après une série de
-  fusions, de préférence dans le cloud. Un changement censé ne rien changer se prouve par les
-  empreintes sur 2 h (`tools/comparer_bancs.py` quand il existera).
+## Rythme des lots
+
+Un lot doit tenir en 30 à 45 minutes. Le temps va au code, pas à la vérification : le lourd se
+fait une fois, à l'intégration, pour plusieurs lots ensemble.
+
+- **Un invariant par lot.** Un brief qui en porte plusieurs se découpe en lots successifs.
+- **Pas de référence relancée.** Les résultats de `main` (empreintes, banc rapide, Luna) se
+  calculent une fois par commit de `main` et se réutilisent (`artifacts/references/<commit>/`,
+  non versionné) ; un lot ne lance que sa branche. Si la référence manque, la lancer une fois et
+  l'y ranger.
+- **Vérification du lot**, le minimum qui prouve l'invariant :
+  - tests ciblés pendant le travail, suite complète (`tools/tests.py`) **une seule fois**, à la fin ;
+  - un changement censé ne rien changer : empreintes sur 2 h (`tools/comparer_bancs.py
+    --empreintes`), seulement les scénarios touchés et le Relais, 4 graines ;
+  - un changement de comportement : banc rapide, 4 h de jeu, 4 graines, mêmes scénarios ; il suffit
+    pour une usurpation, une boucle ou une régression grossière ;
+  - Luna, si le lot touche le MJ : **une passe**, seulement les scripts qui exercent le changement.
+  - Pas de banc de 8 à 12 h, d'audit de nuits, de `VERIFIER`/`VERIFICATION` sur 8 h, ni de campagne
+    Luna à deux passes dans un lot, sauf si le brief le demande expressément.
+- **Vérification à l'intégration**, groupée tous les deux ou trois lots fusionnés et lancée en fond
+  pendant le lot suivant : banc complet (8 à 12 h, 8 graines, quatre scénarios et `rixe`,
+  `VERIFIER`), audit des nuits, `VERIFIER` et `spatial.VERIFICATION` sur 8 h, Luna deux passes sur
+  les quatre bancs de référence et les bancs ciblés. Un défaut trouvé là devient un petit lot de
+  correction. À la fusion, la suite complète est relancée seulement si la branche et `main` ont
+  touché les mêmes fichiers de code depuis la base.
+- **Rapport d'une page** : ce qui change et pourquoi (l'invariant, les fonctions), les mesures,
+  les limites. Les fils bruts restent dans `artifacts/`.
 
