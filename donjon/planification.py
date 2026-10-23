@@ -60,6 +60,10 @@ _MEMOIRE = {}
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
 _GRAPHES = {}
+# Une impossibilité prouvée sur tout le graphe jusqu'à la profondeur autorisée ne dépend
+# plus des prix. Une seule dernière preuve par PNJ/but ; une preuve bornée n'est jamais reprise.
+_IMPOSSIBLES = {}
+PREUVE_MAX = 4 * NOEUDS
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
 # porter est recalculé par une recherche complète, et comparé.
 VERIFIER = False
@@ -1136,7 +1140,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents (``refus_taches``).
         # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
-        esprit_["visites"],
+        _ordre_visites(v.salles, esprit_["visites"]),
         # Le lieu d'un objet fixe, sans croyance sur son lieu, se sait sans l'avoir vu (``_lieu_cru``).
         [[k, {a: w for a, w in o.items() if a not in CHANGEANTS}, "allume" in o,
           None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
@@ -1151,6 +1155,13 @@ def _entrees(v, vises, profondeur, noeuds):
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
         sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False, check_circular=False)
+
+
+def _ordre_visites(salles, visites):
+    """La recherche ne lit que l'ordre et les égalités des dates (``_chercher``)."""
+    dates = sorted({visites.get(s, -1) for s in salles})
+    rangs = {date: rang for rang, date in enumerate(dates)}
+    return {s: rangs[visites.get(s, -1)] for s in salles}
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
@@ -1190,6 +1201,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     v.seul = seul
     garde = graphe = None
     repris = False
+    absence = False
+    preuve_noeuds, preuve_issue = 0, None
     if memo is not None and depuis is None:
         # Ce que la recherche lit de son caractère et de son état : l'adresse modulée qui fait la
         # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
@@ -1202,6 +1215,11 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
             garde = None
+        signature_vide = (base, faute is None)
+        vide_garde = _IMPOSSIBLES.get(place)
+        if garde is None and vide_garde == (signature_vide, True):
+            garde = (entrees, None, "impossible", False)
+        absence = garde is not None and garde[2] == "impossible"
         if garde is None:
             # Le graphe n'est gardé qu'à la deuxième recherche de suite sur les mêmes entrées : celles
             # qui changent à chaque fois n'en encombrent pas la mémoire.
@@ -1222,6 +1240,14 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                                           noeuds, faute, tenir, graphe)
         borne = examines >= noeuds
         issue = "plan" if trouve else "borne" if borne else "epuise"
+        if (trouve is None and graphe is not None and memo is not None and depuis is None
+                and (vide_garde is None or vide_garde[0] != signature_vide)):
+            vide, preuve_noeuds, preuve_issue = _sans_plan(
+                v, depart(monde, id, v), but, vises, profondeur, faute, tenir, graphe)
+            _IMPOSSIBLES[place] = (signature_vide, vide)
+            if vide:
+                # Le certificat suffit désormais, sans retenir tous les états développés.
+                _GRAPHES[place] = (base, None)
         if endurer is not None and _endure(v, trouve, depuis, endurer):
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
@@ -1229,11 +1255,12 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                issue, borne)
     if VERIFIER and (garde is not None or repris or v.emplois is not None):
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
-                  trouve, borne, "mémoire" if garde is not None else "graphe" if repris else None)
+                  trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else None)
     if DIAGNOSTIC is not None:
         DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
                            "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": garde is not None,
                            "graphe": repris and garde is None, "etapes": len(trouve[1]) if trouve else None,
+                           "impossible": absence, "preuve_noeuds": preuve_noeuds, "preuve_issue": preuve_issue,
                            "duree": round(perf_counter() - debut, 6)})
     return trouve
 
@@ -1275,8 +1302,12 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
             refait = None
         return refait, r[1] >= borne
     if reprise is not None:
-        refait, _ = refaire(v.emplois, noeuds)
+        refait, refait_borne = refaire(v.emplois, noeuds)
         assert refait == trouve, f"Recherche de {id} ({nom}, {reprise}) : {trouve} au lieu de {refait}"
+        if reprise == "impossibilité":
+            # La preuve évite même la recherche bornée : seul le recalcul de contrôle connaît
+            # le nombre de nœuds qu'elle aurait effectivement examinés avec ces nouveaux prix.
+            borne = refait_borne
     if v.emplois is None:
         return
     refait, reference_bornee = refaire(None, REFERENCE)
@@ -1383,6 +1414,40 @@ def _suites(v, e, vises, but):
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
                        v.pression(suivant) if duree else 0))
     return suites
+
+
+def _sans_plan(v, depart_, but, vises, profondeur, faute, tenir, graphe):
+    """Certificat d'absence de but, indépendamment des coûts, jamais une heuristique.
+
+    Parcours en largeur : un état est développé à sa profondeur minimale. Contrairement à
+    l'épuisement d'une recherche pondérée (et a fortiori à sa borne), cela couvre tous les
+    chemins autorisés de longueur au plus ``profondeur``. La permission de commettre une
+    faute reste une condition ; son prix et celui d'abîmer ne créent aucune arête.
+    On ne développe aucun geste supplémentaire : un trou dans le graphe, une rencontre du
+    but ou l'atteinte du plafond de preuve ne conclut rien.
+    """
+    from collections import deque
+    file, vus, examines = deque([(depart_, 0)]), {depart_}, 0
+    while file:
+        if examines >= PREUVE_MAX:
+            return False, examines, "borne"
+        e, n = file.popleft()
+        examines += 1
+        noeud = graphe.get(e)
+        if noeud is None:
+            return False, examines, "lacune"
+        if noeud[0] and not (tenir and e.salle in v.menacees):
+            return False, examines, "but"
+        if n >= profondeur:
+            continue
+        if noeud[3] is None:
+            return False, examines, "lacune"
+        for fautes, _, _, suivant, *_ in noeud[3]:
+            if fautes and faute is None or suivant in vus:
+                continue
+            vus.add(suivant)
+            file.append((suivant, n + 1))
+    return True, examines, "epuise"
 
 
 # --- Buts ---------------------------------------------------------------------------------

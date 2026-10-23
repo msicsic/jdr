@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cout-suite`, non fusionnée, base `main` 9075aea : certificats d'absence
+  sur les graphes déjà développés, indépendants des prix mais conservant permissions et
+  profondeur ; chaque reprise contrôlée par `VERIFIER`. Une recherche pondérée épuisée ou
+  bornée ne suffit pas à prouver cette absence (contre-exemple de profondeur testé).
+  Ordre des visites avec égalités dans la clé ; empreintes visuelles partagées par objet et
+  entre lectures sans changement, mutations ordinaires conservées, contrôle complet par
+  `spatial.VERIFICATION`. 32 nuits de 8 h identiques à la référence (4 scénarios × 4 graines,
+  tiré/fixe), y compris tous les résultats des recherches via `empreintes_nuits.py --calcul`.
+  `VERIFIER` et `VERIFICATION` 1 sur 2 h, puis 0,2 sur 8 h, graine 42 de chaque scénario :
+  sans écart. Nuits de main et branche lancées ensemble, quatre processus au plus : CPU total
+  368,48 → 358,11 s (−2,8 %), pics mémoire comparables. 858 reprises par certificat ; les
+  grosses recherches bornées de la mine restent une limite explicite. Perception de qui bouge
+  conservée après profil. Deux sauvegardes réelles (Rémy à la mine, Brune pendant la crue)
+  testées avec état complet et rendu après rechargement. [Rapport et limites](taches/rapport-codex-10-cout-suite.md).
+  Suite complète : 1 383 tests, 4 sautés, six échecs de sous-tests MiMo préexistants
+  (mêmes six échecs reproduits dans les deux fichiers sur la référence 9075aea) ; 37 tests
+  ciblés verts. La suite complète n'est pas verte.
+  Les axes des relations 3b seront accordés à la fusion, puis les vérifications refaites sur
+  le `main` final.
 - Branche `codex-noms`, fusionnée : nom entendu et relié séparé de l'apparence, de la voix
   et de l'appellation revendiquée ; personnes et éléments opaques, ciblage par désignation,
   mêmes règles pour les PNJ. Présentation typée auditée, identité privée propre au locuteur,

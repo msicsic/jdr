@@ -12,7 +12,7 @@ from contextlib import contextmanager
 import threading
 
 from .geometrie import cases, distance, position_entree, position_objet, placer
-from .perception import CarteLumiere
+from .perception import CarteLumiere, allumee
 
 
 VECTEURS = {
@@ -650,13 +650,71 @@ def etat_vue(m):
     """Empreinte de tout ce dont dépend la perception, hors géométrie des salles : pour chaque objet,
     les clés de ``CLES_VUE``, s'il éclaire, sa case et ses clés de ``CLES_VUE_COMPOSEES`` ; le joueur.
     Deux états de même empreinte se perçoivent de la même façon, par tout acteur."""
-    from .perception import allumee
+    cache = getattr(m, "_cache_vue", None)
+    if cache is None:
+        return _etat_vue_brut(m)
+    j = m.joueur
+    entete = (j.get("salle"), None if j.get("position") is None else tuple(j["position"]), j.get("orientation"))
+    # La plupart des lectures successives ne séparent aucune écriture. Comparer les
+    # dictionnaires en C évite alors même le parcours Python objet par objet. L'ordre des
+    # objets et celui des clés composées comptent aussi dans l'empreinte de référence.
+    if (m.objets == cache.get("objets_sources") and tuple(m.objets) == cache["ordre_objets"]
+            and all(repr(tuple(map(m.objets[cle].get, CLES_VUE_COMPOSEES))) == texte
+                    for cle, texte in cache["composes"])):
+        lignes = cache["lignes_empreinte"]
+    else:
+        lignes = _empreintes_objets(m, cache)
+    etat = (*entete, lignes)
+    precedent = cache.get("empreinte")
+    if precedent is not None and etat == precedent:
+        etat = precedent
+    cache["empreinte"] = etat
+    if a_verifier():
+        assert etat == _etat_vue_brut(m), "Empreinte incrémentale périmée"
+    return etat
+
+
+def _empreintes_objets(m, cache):
+    anciens = cache.get("objets_empreinte", {})
+    nouveaux, lignes = {}, []
+    for cle, o in m.objets.items():
+        compose = None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES)))
+        ancien = anciens.get(cle)
+        if ancien is not None and o == ancien[0] and compose == ancien[1][-1]:
+            signature = ancien[1]
+            nouveaux[cle] = ancien
+        else:
+            signature = _etat_objet(cle, o, compose)
+            # Le dictionnaire se compare en C. Les valeurs étrangères à la vue restent des
+            # références ; celles que la vue lit sont isolées pour voir aussi leurs mutations
+            # en place. Aucun conteneur de data n'est remplacé ni instrumenté.
+            from copy import deepcopy
+            copie = o.copy()
+            for k in (*CLES_VUE, "position", *CLES_VUE_COMPOSEES):
+                valeur = o.get(k)
+                if isinstance(valeur, (dict, list)):
+                    copie[k] = deepcopy(valeur)
+            nouveaux[cle] = (copie, signature)
+        lignes.append(signature)
+    cache["objets_empreinte"] = nouveaux
+    cache["objets_sources"] = {cle: ancien[0] for cle, ancien in nouveaux.items()}
+    cache["ordre_objets"] = tuple(nouveaux)
+    cache["composes"] = [(cle, ancien[1][-1]) for cle, ancien in nouveaux.items() if ancien[1][-1] is not None]
+    cache["lignes_empreinte"] = tuple(lignes)
+    return cache["lignes_empreinte"]
+
+
+def _etat_objet(cle, o, compose):
+    return (cle, tuple(map(o.get, CLES_VUE)), bool(o.get("allume")) and allumee(o),
+            None if o.get("position") is None else tuple(o["position"]), compose)
+
+
+def _etat_vue_brut(m):
+    """Référence complète, indépendante de toute reprise par objet."""
     j = m.joueur
     p = j.get("position")
     return (j.get("salle"), None if p is None else tuple(p), j.get("orientation"), tuple([
-        (cle, tuple(map(o.get, CLES_VUE)), bool(o.get("allume")) and allumee(o),
-         None if (p := o.get("position")) is None else tuple(p),
-         None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES))))
+        _etat_objet(cle, o, None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES))))
         for cle, o in m.objets.items()]))
 
 
@@ -670,6 +728,8 @@ def _memo_vue(m):
     if "fige" in cache:
         return cache["fige"]
     etat = etat_vue(m)
+    if cache.get("etat_courant") is etat:
+        return cache["memo_courant"]
     etats = cache.setdefault("etats", {})
     memo = etats.get(etat)
     if memo is None:
@@ -677,6 +737,7 @@ def _memo_vue(m):
             del etats[next(iter(etats))]
         # L'empreinte elle-même : ce qui a changé d'un état à l'autre (``esprits._percus_depuis``).
         memo = etats[etat] = {"etat": etat}
+    cache["etat_courant"], cache["memo_courant"] = etat, memo
     return memo
 
 
@@ -689,12 +750,12 @@ def etat_fige(m):
         yield
         return
     cache["fige"] = _memo_vue(m)
-    avant = etat_vue(m) if VERIFICATION else None
+    avant = _etat_vue_brut(m) if VERIFICATION else None
     try:
         yield
     finally:
         del cache["fige"]
-    assert avant is None or etat_vue(m) == avant, "État modifié dans un bloc figé"
+    assert avant is None or _etat_vue_brut(m) == avant, "État modifié dans un bloc figé"
 
 
 # Part des lectures mémorisées recomparées à un calcul de zéro (0 : aucune, 1 : toutes) ; un écart

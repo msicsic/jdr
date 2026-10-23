@@ -946,6 +946,52 @@ Limites :
   une lecture de la perception qui dépendrait d'un autre objet que ceux de la chaîne de ses lieux ou de
   son support devrait entrer dans `_percus_depuis`.
 
+### Suite sur `main` 9075aea — branche `codex-cout-suite`, non fusionnée
+
+Les absences de plan ne se reprennent pas sur le seul fait que le prix d'une faute change.
+La recherche pondérée garde le meilleur coût par état, pas par couple (état, profondeur) : un
+chemin moins cher mais plus long peut empêcher de développer un chemin court qui atteindrait le
+but. Même un espace annoncé « épuisé » n'est donc pas une preuve indépendante des prix ; une
+borne de 4 000 nœuds l'est encore moins. Le contre-exemple est testé dans `test_cout_suite.py`.
+
+`_sans_plan` parcourt en largeur le graphe déjà développé, à profondeur minimale par état,
+avec les permissions de gestes inchangées. Il ne conclut à l'impossibilité que si tous les chemins
+autorisés jusqu'à `PROFONDEUR` sont couverts et n'atteignent aucun but. Une lacune, un but ou le
+plafond du certificat font reprendre le calcul habituel. Il ne développe aucun geste supplémentaire :
+une première version qui complétait le graphe coûtait autant qu'elle économisait, avec davantage
+de mémoire. Le certificat garde toutes les entrées structurelles, la profondeur et la permission
+de faute ; seuls les prix peuvent varier. Chaque reprise est recalculée exactement par `VERIFIER`.
+Une seule dernière preuve par PNJ et but ; le graphe volumineux est libéré lorsqu'elle suffit.
+
+Les dates de visites ne servent dans `_chercher` qu'à classer les destinations, avant la longueur
+du trajet et le nom de salle. La clé garde donc leur ordre avec toutes les égalités, y compris la
+date implicite −1, plutôt que les dates absolues. Croyances, refus et moyens restent dans la clé :
+leurs changements sont réels, même si deux explorations successives échouent.
+
+`spatial.etat_vue` partage désormais les signatures des objets inchangés. Des copies de leurs
+dictionnaires isolent les valeurs composées lues par la vue et les positions ; les autres données
+restent des références. Une comparaison des dictionnaires en C permet de partager la liste entière
+des signatures lorsque rien n'a changé. L'ordre des objets et le texte des propriétés composées
+restent contrôlés séparément. Les écritures ordinaires, y compris les mutations en place, sont
+conservées ; aucune instrumentation des objets sauvegardés. Une empreinte identique reprend
+également directement le mémo courant sans rehacher son contenu. `spatial.VERIFICATION` compare
+l'empreinte à la construction complète, en plus des contrôles existants de perception.
+
+`tools/empreintes_nuits.py comparer --calcul` compare tous les résultats des recherches logiques
+(coût exact, étapes, état final ou absence), dans leur ordre, ainsi que toutes les empreintes de
+nuit. Les comptes de recherches effectivement calculées peuvent différer : c'est l'économie visée.
+Le mode strict antérieur reste disponible. Un résultat logique, une empreinte ou une nuit manquants
+font échouer le contrôle.
+
+Mesures, contrôles et limites : [rapport Codex 10](taches/rapport-codex-10-cout-suite.md).
+32 nuits de 8 h identiques à 9075aea, y compris les résultats de chaque recherche ;
+contrôles 2 h à 1 puis 8 h à 0,2 sans écart. CPU total 368,48 → 358,11 s (−2,8 %),
+quatre nuits simultanées au plus. Suite : 1 383 tests, quatre sautés, six échecs MiMo
+préexistants reproduits sur la référence ; 37 tests ciblés verts.
+La perception complète de qui bouge n'est pas modifiée : son poids mesuré ne justifie pas de
+complexifier ce contrat. La reprise des grosses recherches bornées de la mine reste une limite
+explicite ; ce chantier ne change ni les limites ni le choix des plans.
+
 ## VERIFIER et l'eau (branche `verifier-eau`)
 
 Deux défauts de l'audit des nuits (`docs/audit-nuits.md`, V1 et A4).
