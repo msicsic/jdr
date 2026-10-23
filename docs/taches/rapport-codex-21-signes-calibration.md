@@ -62,15 +62,15 @@ par défaut et Gorm/Hugues à PSY 8/11/14/16. Tous les essais, même les
 rafraîchissements sans ligne de chronique, sont enregistrés par l'instrumentation
 de `interpreter` et `_jet`. Aucun état de partie n'est retouché pour les recueillir.
 
-Choix provisoire à confirmer en nuits libres : **pénombre −4, dissimulation +4,
-bande rien 9**. Aucune des 63 combinaisons ne passe les trois bornes ensemble.
+Choix à confirmer en nuits libres : **pénombre −4, dissimulation +3,
+bande rien 8**. Aucune des 63 combinaisons ne passe les trois bornes ensemble.
 Le choix minimise le plus grand dépassement absolu d'une borne de probabilité,
 puis leur somme ; aucune pondération par personnage ou scénario. Dans le corpus
-rejugé : justesse Gorm 14/16 = 0,831/0,888, Hugues 14/16 = 0,806/0,846 ;
-méprises par défaut 19,93 %, abstention 45,59 %. La borne basse manque encore :
-Gorm 8 = 0,638, Hugues 8 = 0,605, pour un plafond de 0,6. Le critère global
+rejugé : justesse Gorm 14/16 = 0,797/0,863, Hugues 14/16 = 0,750/0,815 ;
+méprises par défaut 25,35 %, abstention 42,34 %. La borne basse manque pour
+Gorm 8 = 0,630 (Hugues 8 = 0,583), pour un plafond de 0,6. Le critère global
 n'est donc pas déclaré atteint. Le jet contrôlé de la capture réelle passe de
-18 à 17 pour garder la même marge de frontière avec la DD abaissée d'un point.
+18 à 16 pour garder la même marge de frontière avec la DD abaissée de deux points.
 
 ## 4. Observer sans voir
 

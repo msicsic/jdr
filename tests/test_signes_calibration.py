@@ -59,6 +59,22 @@ class CachesTests(unittest.TestCase):
 
 
 class RelecturesTests(unittest.TestCase):
+    def test_ancienne_sauvegarde_ne_reapprend_pas_une_lecture_active(self):
+        for id, autre in (("ilse", "brune"), ("brune", "ilse")):
+            m = ecarter(scene(), id, autre)
+            with patch("donjon.signes._jet", return_value=20):
+                signes.bilan_signes(m, observer=id)
+            m.data.pop("suivi_signes")
+            for c in m.data["lectures"].values():
+                c.pop("apprise", None)
+                c.pop("episode", None)
+            m = recharger(m)
+            m.data["minutes"] += 10
+            with patch("donjon.signes._jet", return_value=20):
+                lignes = signes.bilan_signes(m, observer=id)
+            self.assertFalse(any("semble" in l for l in lignes))
+            self.assertTrue(signes.impressions(recharger(m)))
+
     def test_relecture_du_guet_reel_relais7_a_441_minutes(self):
         import gzip
         import json

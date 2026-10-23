@@ -18,8 +18,8 @@ ATTITUDE_MAX = 120
 COLERE_DEMIVIE = 15
 GUET = 1                 # minute d'attente avant que sa durée soit un signe
 PENOMBRE = 4
-DISSIMULATION = 4
-BANDE_RIEN = 9
+DISSIMULATION = 3
+BANDE_RIEN = 8
 
 # sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel
 SIGNES = {
@@ -340,12 +340,19 @@ def _presence(m, observateur, signes, complet):
     Une liste partielle (les tons entendus, une personne observée) ne fait pas
     disparaître les autres signes. Les projections pures ne passent pas ici.
     """
+    nouveau = observateur not in m.data.get("suivi_signes", {})
     suivi = m.data.setdefault("suivi_signes", {}).setdefault(
         observateur, {"presents": [], "episodes": {}, "retenus": {}, "conclusions": {}})
     ids = {s["id"] for s in signes}
     for cle in ids - set(suivi["presents"]):
         suivi["episodes"][cle] = suivi["episodes"].get(cle, 0) + 1
     suivi["presents"] = sorted(ids if complet else ids | set(suivi["presents"]))
+    if nouveau:
+        # Reprise d'une sauvegarde antérieure au suivi : une impression active
+        # n'est pas un nouvel apprentissage du seul fait du changement de format.
+        for _, _, c in actives(m, observateur):
+            if c["signe"] in ids:
+                suivi["retenus"][c["signe"]] = suivi["episodes"][c["signe"]]
     return suivi
 
 
@@ -361,7 +368,8 @@ def interpreter(s, jet, bonus, dd):
 def lire(m, observateur, signes=None, expres=False, complet=False):
     """Un essai par signe et par dix minutes ; échec compris. Pas de relance gratuite.
 
-    Les preuves complètes de chaque jet sont dans la chronique omnisciente du rejeu.
+    La chronique omnisciente conserve les nouvelles conclusions et leur jet.
+    Le banc de calibration instrumente aussi les essais sans nouvelle conclusion.
     Aucune fonction de projection ne transmet marge, justesse ou vérité au joueur/MJ.
     """
     from .caractere import modificateur, caracteristiques
@@ -516,7 +524,7 @@ def _bilan_signes(m, observer=None):
 
 
 def _identite(c):
-    return (c["signe"], c["valeur"], c.get("envers"), c.get("apprise", c["minute"]), c.get("episode"))
+    return (c["signe"], c["valeur"], c.get("envers"), c.get("apprise", c["minute"]), c.get("episode", 1))
 
 
 def usages(m, id):

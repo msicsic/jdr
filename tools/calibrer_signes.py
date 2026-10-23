@@ -23,6 +23,7 @@ JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", 
 def nuit(tache):
     from donjon import banc_pnj, signes
     scenario, graine, lecteur, psy, parametres = tache
+    source = hashlib.sha256(Path(signes.__file__).read_bytes()).hexdigest()
     ceder()
     signes.PENOMBRE, signes.DISSIMULATION, signes.BANDE_RIEN = parametres
     preuves = []
@@ -55,7 +56,7 @@ def nuit(tache):
     finally:
         signes.interpreter, signes._jet = calcul, jet
     return {"scenario": scenario, "graine": graine, "lecteur": lecteur, "psy": psy,
-            "code_signes": hashlib.sha256(Path(signes.__file__).read_bytes()).hexdigest(),
+            "code_signes": source,
             "parametres": parametres, "mesures": mesures, "preuves": preuves,
             "chronique": donnees["chronique"]}
 
