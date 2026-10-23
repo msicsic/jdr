@@ -1,7 +1,7 @@
 # Plan : les agendas des PNJ, le mandat et les groupes
 
 Rédigé le 2026-10-23 à la suite d'une discussion de conception. Rien n'est implémenté ; les
-décisions qui reviennent à l'utilisateur sont à la fin.
+décisions de l'utilisateur, prises le même jour, sont à la fin (§ 10) et reportées dans le texte.
 
 ## 1. Point de départ
 
@@ -114,7 +114,8 @@ Diriger n'est pas une sorte : **le mandat** est une manière d'atteindre n'impor
 Tout est dans `data`, sauvegardé ; même laps découpé, même monde. Pas de migration des anciennes
 sauvegardes.
 
-**Un agenda** (`esprit["agendas"]`, liste bornée par PNJ) :
+**Un agenda** (`esprit["agendas"]`, au plus trois actifs ; d'autres peuvent dormir ; au-delà, le
+plus faible au poids du moment, puis le plus ancien, est abandonné avec sa raison) :
 
 ```
 {
@@ -143,8 +144,17 @@ comportement (étape A1).
 
 **Agendas de départ** : `profil["agendas"]` dans le scénario, mêmes champs moins l'état.
 
-**L'autorité** : un lien, comme les relations de départ (`profil["liens"]`). Sa forme est une
-décision (§ 10, question 1).
+**L'autorité** que B reconnaît à A se lit de trois sources (décision 1) :
+- **le statut** de A, une donnée du scénario (grade, responsable des lieux, employeur), que B
+  connaît comme une croyance (un savoir, ou dit par A ou par un autre) ; un statut prétendu peut
+  être une imposture, comme un nom prétendu ;
+- **l'ascendant**, un sixième axe des relations de B envers A, gradué, avec ses épreuves : il monte
+  quand les ordres de A sont suivis et aboutissent, baisse avec ses échecs et ses abus ; les liens
+  de départ peuvent le fixer ;
+- **la lecture dérivée** de la confiance, de la dette et de la peur de B envers A.
+
+Un statut sans ascendant s'use ; un ascendant sans statut fait un chef de fait. Comme les autres
+axes, l'ascendant ne se lit et ne s'écrit que par `relations.py`.
 
 **La réputation** : des croyances sur une personne, portant seulement sur des réactions que le moteur
 sait reconnaître (§ 6.7).
@@ -162,10 +172,11 @@ au-dessus du seuil ; une parole due, son échéance ; une alarme, son rang), et 
 découle, **sans rien changer aux nuits** (empreintes). Les agendas s'y ajoutent ensuite avec leur
 urgence : poids × proximité de l'échéance, ou poids seul s'il n'y en a pas.
 
-Règles retenues dans la proposition :
+Règles (décision 2) :
 - un besoin au-delà de `DESESPOIR`, une alarme et le péril de l'eau passent devant tout agenda ;
 - un agenda passe devant la routine et l'attente ;
-- entre agendas et besoins non désespérés, l'urgence décide, avec la même `INERTIE` qu'entre besoins.
+- entre agendas et besoins pressants non désespérés, l'urgence décide, avec la même `INERTIE`
+  qu'entre besoins : Gorm évacue malgré la faim si l'eau presse davantage.
 
 ### 6.2 Du projet au sous-but
 
@@ -194,8 +205,8 @@ Brune, étendue aux agendas.
   agenda incompatible de poids plus fort de plus que la marge d'hystérésis ; la cause est retenue,
   et un agenda reçu s'annonce abandonné à qui l'a confié (comme `retenir_abandon`).
 - **Hystérésis** : un agenda actif garde la main sur un autre de même rang tant que son poids ne passe
-  pas sous l'autre d'une marge. Si elle dépend du caractère, la volonté (VOL) en est le candidat
-  naturel (§ 10, question 4).
+  pas sous l'autre d'une marge, qui croît avec la volonté (VOL) : un PNJ volontaire tient son agenda,
+  un faible en change plus vite (décision 4).
 - Un même agenda ne renaît pas de la même cause tant qu'aucune croyance nouvelle ne l'y autorise
   (la règle des refus retenus, `deliberation.tient`, `moyens_crus`).
 
@@ -260,10 +271,18 @@ pas ce que les autres ont lu de lui ; il sait seulement ce qu'il croit avoir mon
   lisible sur sa fiche, que le moteur ne lui fait pas tenir ; ne pas le tenir est une parole rompue
   pour le mandant. Il peut mandater par une parole typée (`mandat`), jugée par le mandaté comme celle
   d'un PNJ, et donner un faux ordre.
-- Luna ne reçoit d'un agenda que ce que Corvus en sait : ce qu'un PNJ a dit à voix haute, ce qu'un
-  mandat adressé à Corvus contient, les signes perçus. Un agenda secret n'est jamais dans le contexte du
-  MJ. Une réplique qui promet ou annonce un agenda reste soumise au contrôle des engagements
-  (`don-et-promesses`) : elle doit recopier ce que le moteur a enregistré.
+- **Ce que reçoit Luna** (décision 3). Luna interprète les saisies et met en mots ce que le moteur a
+  décidé, dont les répliques des PNJ. Pour chaque interlocuteur, elle reçoit **ce que ce PNJ est prêt
+  à dire à Corvus maintenant**, décidé par le moteur, plus ce que Corvus a déjà entendu. Quatre cas :
+  - un PNJ dont un agenda concerne Corvus (Gorm veut que tout le monde monte) : ce qu'il attend de
+    Corvus, pour que sa réplique aille dans le sens de ce qu'il fait ;
+  - un mandat adressé à Corvus : son contenu (qui, quoi, où), pour le formuler ;
+  - « pourquoi tu fais ça ? » : le moteur décide si le PNJ répond vrai, ment ou se tait (honnêteté,
+    secret) ; Luna reçoit la réponse décidée, pour un mensonge son contenu, jamais la vérité ;
+  - le contrôle : une réplique qui annonce ou promet un agenda doit recopier ce que le moteur a
+    enregistré (comme les promesses, `don-et-promesses`).
+  Un agenda secret n'est jamais dans le contexte du MJ, ni un agenda annoncé à d'autres hors de
+  portée de Corvus.
 
 ## 7. Contrôles, mesures, récit
 
@@ -317,12 +336,13 @@ brique de l'évacuation.
 sommeil par le risque, révision, fin. Épreuve : la crue, Gorm doté de l'agenda d'évacuer et de prévenir
 (données). Mesures : PNJ à la galerie quand l'eau gagne, minutes en attente, temps de calcul.
 Vérification Luna (bancs de référence et une scène d'évacuation). **Point de décision** : reprendre ici
-le plan de décision (habitudes, réflexion limitée) si le coût le demande.
+le plan de décision (habitudes, réflexion limitée), sur la mesure du coût et de la plausibilité
+(décision 7).
 
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
-l'autorité comme lien ; parole typée du joueur (`mandat`, `compte_rendu`). Épreuve : Gorm confie Brune à
-Aubin ; un groupe de départ avec un chef. Il faudra sans doute plus de personnages (le plan social
-demande six à huit PNJ) : crue étendue aux évacués du hameau, ou scénario nouveau (§ 10, question 5).
+l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
+Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des
+lieux, confie Brune à Aubin.
 
 **A6. La naissance des agendas.** Table des naissances ; occasion (le mercenaire), situation (la dette
 d'Odon), événement (la vengeance), rallier. Épreuve : l'auberge (Anselme, Lucien, Hugues) et la mine
@@ -335,25 +355,25 @@ trouver, ne pas écrire le cas.
 **A8. Tuer (4e) et dissimuler.** L'assassin (cas 5) et Lucien (cas 7). Vérification Luna (agendas
 secrets jamais dits, signes qui fuient, mensonges).
 
-## 10. Décisions à trancher
+## 10. Décisions (2026-10-23)
 
-1. **L'autorité** : un sixième axe des relations (un ascendant reconnu, gradué, qui monte avec les
-   ordres suivis et réussis et baisse avec les échecs et les abus), ou une lecture dérivée de la
-   confiance, de la dette et de la peur ? Recommandation : un axe, parce qu'un lien d'employeur ou de
-   chef ne se réduit pas aux autres.
-2. **Agendas et besoins** : un agenda peut-il passer devant un besoin pressant mais non désespéré ?
-   La proposition (§ 6.1) le permet si son urgence l'emporte ; l'alternative est de laisser toujours
-   passer les besoins d'abord.
-3. **Ce que Luna sait d'un agenda** : seulement ce que Corvus en sait (proposition), ou aussi les
-   agendas publics d'un PNJ qu'il a entendus énoncer à d'autres ?
-4. **La ténacité** : la marge d'hystérésis des agendas est-elle une constante du moteur, ou dépend-elle
-   de la volonté (VOL) ?
-5. **Le banc des groupes** : étendre la crue (évacués du hameau, six à huit PNJ) ou écrire un scénario
-   nouveau avec un groupe et un chef de départ ?
-6. **Combien d'agendas par PNJ** : une borne (par exemple trois actifs, plus ceux en sommeil), avec
-   quel ordre d'éviction ?
-7. **Le plan de décision** (habitudes, réflexion limitée) : le reprendre après A4 sur mesure du coût,
-   comme proposé, ou plus tôt ?
+1. **L'autorité** se lit de trois sources : un statut social prédéfini par le scénario (grade,
+   responsable des lieux, employeur), connu comme une croyance ; un sixième axe des relations,
+   l'ascendant reconnu ; la lecture dérivée de la confiance, de la dette et de la peur (§ 5).
+2. **Agendas et besoins** : un agenda peut passer devant un besoin pressant non désespéré si son
+   urgence l'emporte ; le désespoir, une alarme et le péril de l'eau passent toujours devant (§ 6.1).
+3. **Luna** reçoit, pour chaque interlocuteur, ce que ce PNJ est prêt à dire à Corvus, décidé par le
+   moteur, plus ce que Corvus a déjà entendu ; jamais un agenda secret ni un agenda annoncé hors de
+   portée de Corvus (§ 6.9).
+4. **La ténacité** : la marge d'hystérésis croît avec la volonté (VOL) (§ 6.4).
+5. **Le banc des groupes** : la crue étendue aux évacués du hameau, six à huit PNJ (A5).
+6. **Combien d'agendas** : au plus trois actifs, d'autres en sommeil ; au-delà, le plus faible au poids
+   du moment, puis le plus ancien, est abandonné avec sa raison (§ 5).
+7. **Le plan de décision** (habitudes, réflexion limitée) : repris après A4, sur la mesure du coût et de
+   la plausibilité.
+
+Ordre des lots convenu : le lot trajets réels (Q) d'abord, puis A0, puis A2 (3e) et A3 (3f), l'un après
+l'autre, car tous touchent `planification.py`.
 
 ## 11. Ce qui serait un script, à éviter
 
