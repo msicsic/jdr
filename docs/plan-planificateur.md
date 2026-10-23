@@ -223,8 +223,8 @@ restent à la réserve, et personne n'allume ni ne remplit une lampe. Règles co
 
 Mémoire et vitesse : les lectures nouvelles (peur, contenu, croyances de lumière, salle où il se
 tient) sont dans `_entrees` ; `VERIFIER` passe sur une nuit de chaque scénario. Ce que la lumière
-rend pertinent (sources, flammes, ce qui les recharge) ne l'est que s'il croit le noir quelque
-part, s'il sait crocheter ou si le but est la lumière ; une lampe ou un briquet de plus ne s'explore
+rend pertinent (sources, flammes, ce qui les recharge) vient du coût du noir, d'un but explicite
+de lumière ou d'une lecture de lumière par le but ou ses gestes (voir « Lumière employée ») ; une lampe ou un briquet de plus ne s'explore
 pas quand une source allumée est déjà en main, ou, pour qui n'a que faire de lumière, quand il a
 déjà une flamme ou qu'aucun feu n'est à allumer ; une lampe pleine ne se recharge pas. Sans ces
 élagages, la recherche du poêle de Josse atteignait la borne de nœuds. Temps d'une nuit
@@ -1213,3 +1213,34 @@ Cas et mesures : `docs/taches/rapport-codex-3-lampes.md`. Les tests `test_lampes
 lanterne vide de l'étable et la lampe vide de la mine, le bidon posé, une autre substance déclarée,
 les lots portés, la parole typée du joueur, les refus, la provenance d'une part et le cache ; l'état,
 la perception et le rendu sont vérifiés après sauvegarde et rechargement.
+
+## Lumière employée (branche `codex-lampes-suite`, non fusionnée)
+
+La capacité de crocheter ne décide plus si une source et sa recharge sont des moyens du but.
+`Vue.emploie_lumiere` rassemble le coût du noir, le but explicite de lumière (`vises.eclairer`)
+et les lectures de `Vue.lumiere` / `lumiere_devant` à un niveau que le plan peut améliorer.
+Cela vaut pour tout but ou geste qui lit ce contrat commun. La lecture de chance du crochetage
+reste conditionnée à la capacité qui autorise ce geste ; cette capacité n'est plus un substitut
+à son emploi de lumière. `pertinent`, `gestes` et `_parts_remises` partagent cette dépendance.
+
+Quand une recherche découvre cette dépendance après avoir écarté des moyens lumineux, `_explorer`
+reprend depuis le départ, avec la borne entière et sans les anciennes listes d'objets pertinents.
+La passe de découverte s'arrête dès la première dépendance révélée : poursuivre un graphe qui
+sera jeté ne sert à rien. Il n'y a qu'une reprise : la dépendance reste acquise pendant cette recherche. Le graphe garde
+le marqueur `emploie_lumiere` avec ses nœuds ; la recherche neuve de `VERIFIER` le redécouvre.
+Le nombre de nœuds diagnostiqué et le statut de borne décrivent la passe finale ; le temps
+diagnostiqué comprend aussi la découverte éventuelle. La recherche reste bornée : une dépendance
+jamais atteinte avant sa borne ne se découvre pas par magie.
+
+`_entrees` explicite le coût du noir et le but de lumière. Les autres lectures restent déterminées
+par les croyances, objets, profils et `vises` déjà décrits dans cette clé ; la description `memo`
+doit toujours déterminer le but. Aucun état de découverte ne traverse deux entrées différentes.
+L'ajout est regroupé à la fin de la clé, pour l'intégration après les relations 3b.
+
+`test_lampes_buts` suit une demande, la part réellement livrée, la replanification, la recharge,
+l'allumage et le rendu après rechargement : crochetage sans peur, but d'inspection éclairée sans
+peur ni crochetage (mine et auberge), geste d'inspection visuelle de fixture dont le but ne lit
+pas la lumière, moyen écarté pour un but sans lumière, graphe repris et
+mémoire contrôlés. L'inspection ordinaire reste possible dans le noir ; le test lui compose
+explicitement un but de lumière. Mesures et causalité historique :
+`docs/taches/rapport-codex-9-lampes-suite.md`.

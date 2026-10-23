@@ -204,7 +204,14 @@ class Vue:
         # qu'il vaut la peine de porter, pour que la recherche restreinte et la complète offrent les
         # mêmes gestes propres au but.
         self.eclairer = False
+        # Dépendance constatée dans le but ou dans les gestes réellement explorés,
+        # par les lectures communes de lumière, jamais d'après une capacité du PNJ.
+        self._lumiere_lue = False
         self.seul = None       # par ses seuls moyens : à qui seul il peut demander (``devis_pulsion``)
+
+    @property
+    def emploie_lumiere(self):
+        return bool(self.peur or self.eclairer or self._lumiere_lue)
 
     def depense(self, prix):
         """Ce que lui coûte de payer ce prix, en minutes (``caractere.valeur_pieces``)."""
@@ -235,7 +242,7 @@ class Vue:
         vise le but (``vises`` : leurs noms) ; les vivres si le but peut employer un repas ;
         combustible et flammes s'il peut employer un feu ; outil de crochetage s'il sait
         crocheter ; un outil qui force (choc, coupe) s'il croit une serrure fermée ; de quoi y voir (une source, une flamme pour l'allumer, ce qui la recharge)
-        si le but est la lumière, si le noir l'inquiète ou s'il sait crocheter.
+        si le but ou un geste exploré emploie la lumière, ou si le noir lui coûte.
 
         Porter autre chose ne change ni les gestes possibles ni leur coût : le prendre ne fait
         qu'ajouter des minutes, le plan le moins coûteux n'en passe jamais par là, et la
@@ -245,7 +252,7 @@ class Vue:
         x = self.objets[o]
         usages = x.get("usages", [])
         crochete = "crochetage" in profil(self.monde, self.id)["capacites"]
-        voir = self.eclairer or self.peur > 0 or crochete
+        voir = self.emploie_lumiere
         return bool(x.get("ouvre") or x["type"] == "contenant" or o in vises
                     or self.verrous and set(usages) & set(force.CHOC + force.COUPE)
                     or "manger" in self.emplois and x["type"] == "nourriture"
@@ -578,7 +585,10 @@ class Vue:
         cle = (e.salle, "lumiere")
         if cle not in self._crus:
             self._crus[cle] = lumiere_crue(self.monde, self.id, e.salle)
-        return self._crus[cle]
+        niveau = self._crus[cle]
+        if niveau < 2:
+            self._lumiere_lue = True
+        return niveau
 
     def lumiere_devant(self, e, o):
         """La lumière qu'il croit avoir devant ``o``, là où un geste qui demande d'y voir se fait :
@@ -589,7 +599,10 @@ class Vue:
         if self._eclaire_par_le_plan(e):
             return 2
         vue = self.cru(o, "lumiere")
-        return self.lumiere(e) if vue is None else max(vue, self.apport(o))
+        niveau = self.lumiere(e) if vue is None else max(vue, self.apport(o))
+        if niveau < 2:
+            self._lumiere_lue = True
+        return niveau
 
     def apport(self, o):
         return self._memo((o, "apport"), lambda: apport_cru(self.monde, self.id, o))
@@ -720,12 +733,12 @@ def gestes(v, e, vises=None, but=None):
     v_poser, v_fermer, v_servir = vises.get("poser", ()), vises.get("fermer", ()), vises.get("servir", {})
     noms_vises = frozenset(o for k in ("prendre", "poser", "fermer", "servir") for o in vises.get(k, ()))
     # Une source allumée en main l'éclaire et lui donne une flamme. À qui n'a que faire de lumière
-    # (ni le noir, ni la lumière comme but, ni une serrure à crocheter), une lampe ou un briquet ne
+    # (ni le coût du noir, ni le but, ni les gestes explorés), une lampe ou un briquet ne
     # sert que de flamme, pour un feu qu'il croit éteint : une flamme en main suffit, et sans feu à
     # allumer il n'en faut aucune. Une lampe ou un briquet de plus, à prendre, à recharger ou à
     # allumer, ne lui apporterait alors rien, sauf ce que vise le but.
     eclaire_en_main = any("allume" in objets[k] and v.feu(e, k)[0] for k in e.portes)
-    lumiere_compte = v.peur or v.eclairer or "crochetage" in p["capacites"]
+    lumiere_compte = v.emploie_lumiere
     assez = eclaire_en_main or not lumiere_compte and (
         any(v.flamme(e, k) for k in e.portes)
         or not any(v.feu(e, f)[0] is False for f in v.foyers + list(vises.get("entretenir", ()))))
@@ -833,8 +846,8 @@ def gestes(v, e, vises=None, but=None):
                            e.apres(faits=[(("verrou", o), False), (("touche", o), True)]))
                 # Sa chance est celle du jet à la lumière qu'il croit avoir devant la serrure ; nulle,
                 # il n'essaie pas. L'étape retient cette lumière : devant, il la constate (``pnj.agir``).
-                lumiere = v.lumiere_devant(e, o)
-                chance = chance_crochetage(monde, id, lumiere) if "crochetage" in p["capacites"] else 0
+                lumiere = v.lumiere_devant(e, o) if "crochetage" in p["capacites"] else None
+                chance = chance_crochetage(monde, id, lumiere) if lumiere is not None else 0
                 if chance and v.autorise[o]:
                     for outil in sorted(k for k in e.portes if "crochetage" in objets[k].get("usages", [])):
                         yield (mal, 1 / chance, [_etape("crocheter", o, outil=outil, condition=faute,
@@ -1058,7 +1071,7 @@ def _parts_remises(v, e, o, dans, vises):
     donneur = v.proprietaire[o]
     if donneur in (None, v.id, "joueur") or not v.profil_de(donneur):
         return
-    compte = v.peur or v.eclairer or "crochetage" in profil(v.monde, v.id)["capacites"]
+    compte = v.emploie_lumiere
     deja = any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes)
     besoin = any((s in vises.get("entretenir", ()) or compte and not deja)
                  and v.autorise[s] and not v.feu(e, s)[1] and recharge(v.objets[s], v.objets[o])
@@ -1164,7 +1177,10 @@ def _entrees(v, vises, profondeur, noeuds):
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
-        sorted(v.menacees), sorted(v.noyees), v.monte], ensure_ascii=False, check_circular=False)
+        sorted(v.menacees), sorted(v.noyees), v.monte,
+        # Le coût du noir et le but explicite de lumière ; les autres emplois de
+        # lumière se découvrent dans les gestes à partir des mêmes entrées.
+        v.peur, v.eclairer], ensure_ascii=False, check_circular=False)
 
 
 def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noeuds=NOEUDS, nom="", memo=None,
@@ -1316,6 +1332,30 @@ def _endure(v, trouve, depuis, gain):
 
 
 def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None):
+    """Découvrir les moyens que le but et ses gestes emploient, puis chercher.
+
+    Une lecture de lumière dans un état sombre révèle ce que la lumière peut
+    changer. Si des sources avaient été écartées, la recherche est reprise avec
+    ces moyens, depuis son départ et avec sa borne entière : l'ordre des plans
+    ne dépend pas de l'ordre où les objets ont fait découvrir cette lecture.
+    Le graphe garde cette dépendance avec ses nœuds ; VERIFIER la redécouvre.
+    """
+    if graphe is not None and graphe.get("emploie_lumiere"):
+        v._lumiere_lue = True
+    voir = v.emploie_lumiere
+    resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, graphe,
+                              decouvrir=not voir)
+    if not voir and v.emploie_lumiere:
+        v._agissables.clear()
+        if graphe is not None:
+            graphe.clear()
+            graphe["emploie_lumiere"] = True
+        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, graphe)
+    return resultat
+
+
+def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
+                    decouvrir=False):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
     profondeur atteinte). ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
 
@@ -1337,7 +1377,9 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     vus = {depart_: 0}
     examines = plus_profond = 0
     trouve = None
-    while file and examines < noeuds:
+    # La passe de découverte n'a plus rien à apprendre dès la première lecture :
+    # son graphe incomplet sera jeté, et seule la passe suivante décidera du plan.
+    while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
         cout, _, e, etapes, n, final = heapq.heappop(file)
         if final:
             trouve = cout, copy.deepcopy(etapes), e
