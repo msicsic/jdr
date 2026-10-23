@@ -257,9 +257,16 @@ def esprits_interlocuteurs(monde, presents):
 def noms_pour_repliques(monde, id):
     """Noms que le locuteur peut prononcer ; ne donnent aucune identité au récit."""
     from .voix import connait_appellation
-    return [(monde.joueur if x == "joueur" else monde.objets[x])["nom"].split(",")[0]
-            for x in ["joueur", *monde.objets] if x != id
-            and (x == "joueur" or monde.objets[x]["type"] == "personnage") and connait_appellation(monde,id,x)]
+    noms = []
+    for identifiant in ["joueur", *monde.objets]:
+        if identifiant == id:
+            continue
+        if identifiant != "joueur" and monde.objets[identifiant]["type"] != "personnage":
+            continue
+        if connait_appellation(monde, id, identifiant):
+            personne = monde.joueur if identifiant == "joueur" else monde.objets[identifiant]
+            noms.append(personne["nom"].split(",")[0])
+    return noms
 
 
 def paroles_retenues(monde, id):
@@ -371,13 +378,19 @@ def _personnage(monde, fragment, connu=True):
     if connu:
         from .voix import entendues, designation
         # Une appellation entendue désigne sa voix, jamais le corps réel qui porte ce nom ailleurs.
-        voix = [signature for signature,e in entendues(monde,'joueur').items()
-                if not e['mefiance'] and signature in monde.objets
-                and any(n in monde.objets and texte in {normaliser(monde.objets[n]['nom']),
-                    normaliser(monde.objets[n]['nom'].split(',')[0])}
-                    for n in (e['se_dit'],e.get('appelee')))]
-        if len(voix)==1:
-            return designation(monde,voix[0])
+        voix = []
+        for signature, entree in entendues(monde, 'joueur').items():
+            if entree['mefiance'] or signature not in monde.objets:
+                continue
+            for appellation in (entree['se_dit'], entree.get('appelee')):
+                if appellation not in monde.objets:
+                    continue
+                nom = monde.objets[appellation]['nom']
+                if texte in {normaliser(nom), normaliser(nom.split(',')[0])}:
+                    voix.append(signature)
+                    break
+        if len(voix) == 1:
+            return designation(monde, voix[0])
     trouves = {id for id, o in monde.objets.items() if o["type"] == "personnage"
                and texte in {normaliser(n) for n in (id, o["nom"], o["nom"].split(",")[0], *o.get("aliases", []))}
                and (not connu or _connu_du_joueur(monde, id))}
@@ -847,13 +860,16 @@ def prevue(monde, intention):
     except ParoleImpossible as exc:
         return {"impossible": str(exc)}
     from .voix import designation
-    return {"personnage": designation(monde, personnage(forme, dest)),
-            "audience_libre": audience_libre(forme),
-            **({"audiences": {"individuelle": designation(monde, personnage(forme, dest)),
-                               "groupe": "tous", "cantonade": "personne"}} if audience_libre(forme) else {}),
-            "destinataires": [designation(monde, x) for x in dest],
-            "maniere": "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute",
-            **({"mots": forme["mots"]} if forme["mots"] else {})}
+    prevision = {"personnage": designation(monde, personnage(forme, dest)),
+                 "audience_libre": audience_libre(forme)}
+    if audience_libre(forme):
+        prevision["audiences"] = {"individuelle": designation(monde, personnage(forme, dest)),
+                                 "groupe": "tous", "cantonade": "personne"}
+    prevision["destinataires"] = [designation(monde, identifiant) for identifiant in dest]
+    prevision["maniere"] = "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute"
+    if forme["mots"]:
+        prevision["mots"] = forme["mots"]
+    return prevision
 
 
 def audience_libre(forme):
@@ -866,7 +882,11 @@ def mots_dits(forme, intention):
     """Une question directe, si le MJ en fait une parole, contient déjà ses mots.
     Une demande de la raconter (« je demande si… ») garde l'expression du personnage."""
     from .commandes import est_question
-    return forme["mots"] or (intention.strip() if not forme["explicite"] and est_question(intention) else None)
+    if forme["mots"]:
+        return forme["mots"]
+    if not forme["explicite"] and est_question(intention):
+        return intention.strip()
+    return None
 
 
 def personnage(forme, dest):
@@ -999,8 +1019,12 @@ def _nom_dit(monde, sujet):
     nom = monde.joueur["nom"]
     if normaliser(sujet) in ("joueur", "moi", normaliser(nom), normaliser(nom.split(",")[0])):
         return "joueur"
-    id = _personnage(monde, sujet, connu=False) or resoudre(monde, sujet)
-    return id if id == "joueur" or id in monde.objets and monde.objets[id]["type"] == "personnage" else None
+    identifiant = _personnage(monde, sujet, connu=False) or resoudre(monde, sujet)
+    if identifiant == "joueur":
+        return identifiant
+    if identifiant in monde.objets and monde.objets[identifiant]["type"] == "personnage":
+        return identifiant
+    return None
 
 
 # Les formes par lesquelles une réplique dit qui parle (texte normalisé) : ce qui suit est le nom que se
@@ -1014,13 +1038,13 @@ def nom_dans(monde, replique):
     """Le nom que Corvus se donne dans sa réplique (« C'est moi, Brune », « je suis Corvus ») : le joueur,
     un personnage dont il dit porter le nom, ou None. Le moteur le lit dans les mots dits : le contenu
     « nom » ne peut pas en dire un autre."""
-    for m in SE_NOMMER.finditer(normaliser(replique or "")):
-        mots = m.group(1).split()
-        for k in (2, 1):
-            if len(mots) >= k:
-                id = _nom_dit(monde, " ".join(mots[:k]))
-                if id:
-                    return id
+    for presentation in SE_NOMMER.finditer(normaliser(replique or "")):
+        mots = presentation.group(1).split()
+        for longueur in (2, 1):
+            if len(mots) >= longueur:
+                identifiant = _nom_dit(monde, " ".join(mots[:longueur]))
+                if identifiant:
+                    return identifiant
     return None
 
 
@@ -1034,9 +1058,12 @@ def verifier_nom(monde, contenu, replique):
     if dit is None:
         # « C'est Corvus. » se nomme aussi, mais « c'est X » dit souvent autre chose (« c'est Gorm qui l'a ») :
         # un nom typé que les mots disent ainsi est admis, sans que le moteur le déduise de lui-même.
-        possibles = {_nom_dit(monde, " ".join(m.group(1).split()[:k]))
-                     for m in re.finditer(r"\bc'est\s+((?:\w|['-])+(?:\s+(?:\w|['-])+)?)", normaliser(replique or ""))
-                     for k in (1, 2)}
+        possibles = set()
+        for presentation in re.finditer(r"\bc'est\s+((?:\w|['-])+(?:\s+(?:\w|['-])+)?)",
+                                        normaliser(replique or "")):
+            for longueur in (1, 2):
+                mots = " ".join(presentation.group(1).split()[:longueur])
+                possibles.add(_nom_dit(monde, mots))
         for i, c in enumerate(contenu):
             if isinstance(c, dict) and c.get("type") == "nom" and _nom_dit(monde, c.get("sujet")) not in possibles - {None}:
                 # Des mots imposés (« Qui est là ? ») qui ne disent aucun nom : Corvus ne s'est pas nommé.
@@ -1049,8 +1076,9 @@ def verifier_nom(monde, contenu, replique):
     autres = [c for c in contenu if c not in noms]
     # Un seul nom, celui des mots, à la place du premier nom typé (ou à la fin).
     place = contenu.index(noms[0]) if noms else len(autres)
-    return [*autres[:place], {**(noms[0] if noms else {"attribut": "", "valeur": ""}), "type": "nom", "sujet": dit},
-            *autres[place:]]
+    premier = noms[0] if noms else {"attribut": "", "valeur": ""}
+    contenu_nominal = {**premier, "type": "nom", "sujet": dit}
+    return [*autres[:place], contenu_nominal, *autres[place:]]
 
 
 def _typer(monde, c, auditeur=None):

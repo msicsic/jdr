@@ -398,6 +398,22 @@ class MJ:
                                           "erreur": "Contre-revue illisible deux fois : plan accepté sans elle."})
                     return
 
+    def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision):
+        """Contre-revue de l'audience libre, des mots et du contenu avant enregistrement."""
+        from .paroles import audience_libre
+        from .moteur import Plan
+        if not audience_libre(analyser_parole(monde, intention)):
+            return
+        adresse = {"tous": "groupe", "personne": "cantonade, sans destinataire particulier"}.get(
+            rapport["personnage"], "individuelle")
+        plan = Plan({}, revision, "Prononcer la parole préparée.", parole={
+            "adresse": adresse, "personnage": rapport["personnage"],
+            "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"])})
+        try:
+            self._auditer_action(intention, plan, revision, monde)
+        except ErreurMonde as exc:
+            raise ParoleNonConforme(str(exc), exc.attendu) from exc
+
     def raconter_resultat(self, monde, resultat):
         """Narration seule : le résultat est déjà résolu et sauvegardé par la boucle de jeu."""
         return self._echanger(monde, "Raconte la manœuvre qui vient d'être résolue.", None,
@@ -701,18 +717,7 @@ class MJ:
                                "_intention": intention[:600]}
                 try:
                     travail, rapport = preparer_parole(monde, complements, revision)
-                    from .paroles import audience_libre
-                    if audience_libre(analyser_parole(monde, intention)):
-                        from .moteur import Plan
-                        plan_parole = Plan({}, revision, "Prononcer la parole préparée.", parole={
-                            "adresse": {"tous": "groupe", "personne": "cantonade, sans destinataire particulier"}.get(
-                                rapport["personnage"], "individuelle"),
-                            "personnage": rapport["personnage"], "replique": rapport["replique_joueur"],
-                            "contenu": copy.deepcopy(complements["contenu"])})
-                        try:
-                            self._auditer_action(intention, plan_parole, revision, monde)
-                        except ErreurMonde as exc:
-                            raise ParoleNonConforme(str(exc), exc.attendu) from exc
+                    self._verifier_fidelite_parole(monde, intention, complements, rapport, revision)
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
@@ -863,8 +868,8 @@ class MJ:
             faits.update(paroles)
         if enrichir:
             # Les noms privés ne servent pas à déduire une identité ou une cible d'action.
-            for esprit in faits.get('esprits_interlocuteurs',{}).values():
-                esprit.pop('noms_pour_repliques',None)
+            for esprit in faits.get('esprits_interlocuteurs', {}).values():
+                esprit.pop('noms_pour_repliques', None)
         faits.update({"objet:" + o["id"]: o for o in objets})
         from .noms import public
         faits = public(monde, faits)

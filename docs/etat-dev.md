@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-noms-lisibles`, fusionnée, base `main` **276524c**, worktree
+  `tmp-worktrees/codex-noms-lisibles` : réécriture de lisibilité de `noms.py` et des seuls
+  blocs nominaux de `voix`, `paroles`, `narration`, `mj`, sans changement de contrat ni de
+  consigne au MJ. Variantes/motifs et numéros communs, projection séparée des règles de
+  citation, contrôles nominaux décomposés et contre-revue de parole extraite.
+  Aucun appel à Luna. Bancs d'empreintes 2 h puis 8 h, quatre scénarios × quatre graines,
+  trois processus, contre 276524c : chronique, mesures et état final complet identiques.
+  Corpus de 53 mondes avant/après recharge : 212 requêtes MJ, références, refus, rendus et
+  état complet identiques octet pour octet (18 376 770 octets). Suite finale : **1 508 tests,
+  quatre ignorés**, verte en 257,451 s ; aucun nom indéfini à pyflakes. Coût CPU médian sur
+  neuf lots : `public` −62,32 %, `texte` −1,69 %.
+  [Rapport, fonctions et preuves hors modèle](taches/rapport-codex-18-noms-lisibles.md).
+  Fusionné après `codex-part-estimee` (intégration 1269064) : seul conflit `docs/etat-dev.md` ; ni H, ni N,
+  ni rien d'autre depuis 276524c n'avait touché `noms`, `voix`, `paroles`, `narration` ou `mj` : ces cinq
+  fichiers sont ceux de M octet pour octet, et les appels des signes (`noms.nom`, `noms.connait`) gardent
+  leur contrat. Identité : `tools/comparer_noms.py --reference` (worktree détaché sur 1269064) sur
+  **60 mondes**, dont les bancs `signes-ecart`, `signes-noir`, `signes-guet` et les scènes
+  `tests/data/scenes` (`signes_ecart_relais`, `…_noir`, `guet_relais7`), prises d'office par l'outil
+  depuis que ce dossier existe : corpus identique octet pour octet (20 391 535 octets, SHA-256
+  `ca10fc25…`) ; l'outil rend le code 1 pour son seul critère de temps (`texte` +6,2 %, `public` −50 %,
+  médianes de neuf lots sur un poste chargé ; le rapport mesurait −1,7 %). `comparer_bancs --empreintes`
+  2 h, quatre scénarios × 4 graines, contre 1269064 : chronique, mesures et état final complet
+  identiques nuit par nuit. Suite (`tools/tests.py --processus 4`) **1535 tests, 15 sautés**, verte.
 - Branche `codex-part-estimee`, fusionnée, base intégrée `4fc5212`
   (`main` avec `GARDE`/`PRET` et force 4b) : une remise de combustible termine
   la recherche par un devis depuis le lieu de remise, au lieu d'y développer
