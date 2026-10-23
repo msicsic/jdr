@@ -214,7 +214,8 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     source = source_dite(monde, auditeur, locuteur)
     if noyau["type"] == "intention_lue":
         croire(monde, auditeur, noyau["auteur"], "intention", "guet", source,
-               min(.4, noyau["confiance"] * confiance), signe=noyau["signe"], envers=objet)
+               min(.4, noyau["confiance"] * confiance), signe=noyau["signe"], envers=objet,
+               **({"episode": noyau["episode"]} if "episode" in noyau else {}))
     elif noyau["type"] == "mort_vue":
         actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("etat")
         if not actuelle or actuelle["source"] != "vu":

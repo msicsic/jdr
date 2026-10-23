@@ -59,12 +59,41 @@ class CachesTests(unittest.TestCase):
 
 
 class RelecturesTests(unittest.TestCase):
+    def test_lucien_mine7_continuer_a_trembler_ne_depend_pas_du_regard_de_remy(self):
+        import gzip
+        import json
+        from donjon.monde import Monde
+        from donjon.rendu import regarder
+        source = Path(__file__).parent / "data/scenes/mine7-lucien-signes.json.gz"
+        m = Monde(json.loads(gzip.decompress(source.read_bytes())))
+        s = next(s for s in signes.percus(m, "remy")
+                 if s["personnage"] == "lucien" and s["signe"] == "tremble")
+        with patch("donjon.signes._jet", return_value=20):
+            signes.lire(m, "remy", [s])
+            chronique = copy.deepcopy(m.data["chronique"])
+            orientation = m.objets["remy"]["orientation"]
+            m.objets["remy"]["orientation"] = "est"
+            self.assertFalse(any(s["personnage"] == "lucien" for s in signes.percus(m, "remy")))
+            signes.lire(m, "remy", [])
+            m = recharger(m)
+            m.objets["remy"]["orientation"] = orientation
+            m.data["minutes"] += 10
+            s = next(s for s in signes.percus(m, "remy")
+                     if s["personnage"] == "lucien" and s["signe"] == "tremble")
+            signes.lire(m, "remy", [s])
+        avant = regarder(m)
+        m = recharger(m)
+        self.assertEqual(m.data["chronique"], chronique)
+        self.assertEqual(lire(m, "remy")["croyances"]["lucien"]["emotion"]["minute"], m.data["minutes"])
+        self.assertEqual(regarder(m), avant)
+
     def test_ancienne_sauvegarde_ne_reapprend_pas_une_lecture_active(self):
         for id, autre in (("ilse", "brune"), ("brune", "ilse")):
             m = ecarter(scene(), id, autre)
             with patch("donjon.signes._jet", return_value=20):
                 signes.bilan_signes(m, observer=id)
             m.data.pop("suivi_signes")
+            m.data.pop("occurrences_signes")
             for c in m.data["lectures"].values():
                 c.pop("apprise", None)
                 c.pop("episode", None)
@@ -122,13 +151,13 @@ class RelecturesTests(unittest.TestCase):
             with self.subTest(scenario=scenario):
                 m, lecteur, auteur, s = self._guet(scenario)
                 with patch("donjon.signes._jet", return_value=20):
-                    signes.lire(m, lecteur, [s], complet=True)
+                    signes.lire(m, lecteur, [s])
                 m = recharger(m)
                 avant = copy.deepcopy(lire(m, lecteur)["memoire"])
                 nb = len(m.data["chronique"])
                 m.data["minutes"] += 10
                 with patch("donjon.signes._jet", return_value=20):
-                    signes.lire(m, lecteur, [s], complet=True)
+                    signes.lire(m, lecteur, [s])
                 m = recharger(m)
                 self.assertEqual(lire(m, lecteur)["memoire"], avant)
                 self.assertEqual(len(m.data["chronique"]), nb)
@@ -137,7 +166,7 @@ class RelecturesTests(unittest.TestCase):
                 m.data["minutes"] += 10
                 # DD élevé : ce jet manque dans la bande rien.
                 with patch("donjon.signes.interpreter", return_value=(None, -1)):
-                    signes.lire(m, lecteur, [s], complet=True)
+                    signes.lire(m, lecteur, [s])
                 m = recharger(m)
                 self.assertEqual(lire(m, lecteur)["croyances"][auteur]["intention"], c)
                 self.assertEqual(lire(m, lecteur)["memoire"], avant)
@@ -147,19 +176,53 @@ class RelecturesTests(unittest.TestCase):
         for scenario in ("relais", "auberge"):
             m, lecteur, auteur, s = self._guet(scenario)
             with patch("donjon.signes._jet", return_value=20):
-                signes.lire(m, lecteur, [s], complet=True)
-                signes.lire(m, lecteur, [], complet=True)
+                signes.lire(m, lecteur, [s])
+                intention = copy.deepcopy(lire(m, auteur)["intention"])
+                lire(m, auteur)["intention"] = None
+                signes._occurrences(m)
+                lire(m, auteur)["intention"] = intention
                 m = recharger(m)
                 with patch("donjon.signes._jet", side_effect=AssertionError("relance avant dix minutes")):
-                    signes.lire(m, lecteur, [s], complet=True)
+                    signes.lire(m, lecteur, [s])
                 m.data["minutes"] += 10
-                signes.lire(m, lecteur, [s], complet=True)
+                signes.lire(m, lecteur, [s])
                 m = recharger(m)
                 m.data["minutes"] += 31
-                signes.lire(m, lecteur, [s], complet=True)
+                signes.lire(m, lecteur, [s])
             m = recharger(m)
             self.assertEqual(sum(s["type"] == "intention_lue" for s in lire(m, lecteur)["memoire"]), 3)
             self.assertEqual(sum(c["nature"] == "lecture" and c["pnj"] == lecteur for c in m.data["chronique"]), 3)
+
+    def test_perdre_la_vue_ne_recree_pas_le_signal_physique(self):
+        from tests.support import regarder
+        for scenario in ("relais", "auberge"):
+            m, lecteur, auteur, s = self._guet(scenario)
+            with patch("donjon.signes._jet", return_value=20):
+                signes.lire(m, lecteur, [s])
+                avant = copy.deepcopy(lire(m, lecteur)["memoire"])
+                lignes = copy.deepcopy(m.data["chronique"])
+                m.objets[lecteur]["orientation"] = "nord"
+                signes.lire(m, lecteur, [])
+                m = recharger(m)
+                regarder(m, lecteur, auteur)
+                m.data["minutes"] += 10
+                signes.lire(m, lecteur, [s])
+            m = recharger(m)
+            self.assertEqual(lire(m, lecteur)["memoire"], avant)
+            self.assertEqual(m.data["chronique"], lignes)
+            self.assertTrue(signes.intentions_lues(m, lecteur))
+        for id, autre in (("ilse", "brune"), ("brune", "ilse")):
+            m = ecarter(scene(), id, autre)
+            with patch("donjon.signes._jet", return_value=20):
+                self.assertTrue(any("semble" in l for l in signes.bilan_signes(m, observer=id)))
+                orientation = m.joueur["orientation"]
+                m.joueur["orientation"] = "ouest"
+                signes.bilan_signes(m)
+                m = recharger(m)
+                m.joueur["orientation"] = orientation
+                m.data["minutes"] += 10
+                self.assertFalse(any("semble" in l for l in signes.bilan_signes(m, observer=id)))
+            self.assertTrue(signes.impressions(recharger(m)))
 
     def test_observer_ne_repete_pas_une_impression_apres_reprise(self):
         for id, autre in (("ilse", "brune"), ("brune", "ilse")):
