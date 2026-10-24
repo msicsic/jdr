@@ -841,6 +841,10 @@ class MJ:
         faits = {k: v for k, v in contexte.items() if k != "objets_perceptibles"}
         faits["attestations"] = attestations_narratives(monde, contexte)
         objets = contexte["objets_perceptibles"]
+        # La liste est complète pour la vue actuelle, pas pour la salle ni les contenus
+        # cachés. Les affaires accessibles dans le noir ne sont pas nécessairement vues.
+        faits["perception"] = {**faits["perception"],
+                               "objets_visibles": [o["id"] for o in objets if o["visible"]]}
         from .pnj import peuvent_se_parler
         from .voix import reel
         for objet in objets:

@@ -3,14 +3,18 @@ import copy
 import unittest
 from unittest.mock import patch
 
+from donjon.atelier import nouveau_atelier
+from donjon.commandes import analyser
 from donjon.couverture_action import entree
+from donjon.monde import nouveau_monde
 from donjon.moteur import Moteur, PERCEPTIONS, Plan, proposition
 from donjon.rendu import regarder
+from donjon.spatial import installer
 from tests.test_audits_attendu import jouer, ligne, rapport
 from tests.test_ecoute import au_palier, parler_pendant
 from tests.test_relances_luna import action
 from tests.test_repli_et_appel import dialogue
-from tests.test_tensions import relais
+from tests.test_tensions import recharger, relais
 
 
 class PerceptionGesteTests(unittest.TestCase):
@@ -89,6 +93,96 @@ class PerceptionGesteTests(unittest.TestCase):
                 self.assertEqual(r.data["ambiances"][m.joueur["salle"]][-1]["texte"], ambiance)
                 self.assertNotIn(resultat, str(r.data["conversation"]))
                 self.assertEqual(sum(f == "auditer_narration" for f, _ in appels), 2)
+
+
+class VueCouranteTests(unittest.TestCase):
+    def assertVueFournie(self, monde, appels):
+        faits = next(e["faits"] for f, e in appels if f == "auditer_narration")
+        attendus = {o["id"] for o in monde.contexte()["objets_perceptibles"] if o["visible"]}
+        self.assertEqual(set(faits["perception"]["objets_visibles"]), attendus)
+        self.assertEqual(attendus, {v["id"] for k, v in faits.items()
+                                    if k.startswith("objet:") and v["visible"]})
+        return faits
+
+    def assertSansGeste(self, avant, reprise):
+        for champ in ("minutes", "journal", "objets", "joueur", "jets"):
+            self.assertEqual(reprise.data[champ], avant[champ], champ)
+
+    def test_absence_visible_atelier_et_autre_salle_sans_fouille_apres_recharge(self):
+        atelier = nouveau_atelier()
+        installer(atelier)
+        # Même parcours que le banc réel jusqu'aux questions 9 et 12.
+        moteur = Moteur(atelier)
+        for saisie in ("nord", "est"):
+            moteur.executer(moteur.preparer(analyser(atelier, saisie)))
+        moteur.executer(moteur.preparer(proposition("prendre", "ficelle")))
+        crypte = nouveau_monde()
+        installer(crypte)
+        for m, saisie, phrase in (
+                (atelier, "y a-t-il des outils qui traînent dans la cour ?",
+                 "Tu ne vois pas d'autres outils traîner dans la cour."),
+                (atelier, "je cherche une pierre pour caler une échelle",
+                 "Tu ne vois pas de pierre distincte à portée de main."),
+                (crypte, "y a-t-il des outils posés ici ?",
+                 "Tu ne vois pas d'outil posé ici.")):
+            with self.subTest(saisie=saisie):
+                m = recharger(m)
+                avant = copy.deepcopy(m.data)
+                r, texte, appels = jouer(m, "mj " + saisie, [dialogue(phrase)],
+                                         [rapport(ligne("mecanique", ["perception"]))])
+                self.assertEqual([f for f, _ in appels], ["repondre_au_joueur", "auditer_narration"])
+                self.assertVueFournie(m, appels)
+                self.assertSansGeste(avant, r)
+                self.assertIn(phrase, texte)
+                self.assertEqual(r.data["narrations_mj"][-1]["texte"], phrase)
+                self.assertEqual(r.data["conversation"][-1]["reponse"], phrase)
+                self.assertFalse(r.data.get("ambiances", {}))
+                self.assertEqual(regarder(r), regarder(m))
+
+    def test_absence_hors_vue_fermee_ou_noire_refusee_sans_perception_executee(self):
+        for portee in ("porte", "contenant", "noir"):
+            with self.subTest(portee=portee):
+                m = nouveau_monde()
+                installer(m)
+                if portee == "contenant":
+                    m.joueur.update(salle="crypte", position=[1, 2], orientation="est")
+                    self.assertFalse(m.objets["coffre"]["ouverte"])
+                    resultat = "Le coffre ne contient aucun objet."
+                    attendu_absent = "anneau"
+                elif portee == "noir":
+                    for o in m.objets.values():
+                        if "allume" in o:
+                            o["allume"] = False
+                    resultat = "Il n'y a aucun objet dans cette pièce."
+                    attendu_absent = "cle"
+                else:
+                    self.assertFalse(m.objets["porte"]["ouverte"])
+                    resultat = "Derrière la porte, il n'y a aucun objet."
+                    attendu_absent = "coffre"
+                m = recharger(m)
+                avant = copy.deepcopy(m.data)
+                limite = "Tu ne peux pas en voir le contenu d'ici."
+                r, texte, appels = jouer(m, "mj que vois-tu ?", [dialogue(resultat), dialogue(limite)], [
+                    rapport(ligne("invention_protegee", motif="Absence hors de la vue courante, sans perception exécutée.")),
+                    rapport(ligne("mecanique", ["perception"]))])
+                faits = self.assertVueFournie(m, appels)
+                self.assertNotIn("objet:" + attendu_absent, faits)
+                self.assertNotIn(attendu_absent, faits["perception"]["objets_visibles"])
+                if portee == "noir":
+                    self.assertEqual(faits["perception"]["niveau"], 0)
+                    self.assertEqual(faits["perception"]["objets_visibles"], [])
+                    # Accessible au toucher ne veut pas dire visible.
+                    self.assertIn("objet:couteau", faits)
+                    self.assertFalse(faits["objet:couteau"]["visible"])
+                self.assertSansGeste(avant, r)
+                self.assertNotIn(resultat, texte)
+                self.assertNotIn(resultat, str(r.data["conversation"]))
+                self.assertNotIn(resultat, str(r.data["narrations_mj"]))
+                self.assertIn(limite, texte)
+                self.assertEqual(r.data["narrations_mj"][-1]["texte"], limite)
+                self.assertEqual(regarder(r), regarder(m))
+                relance = [e for f, e in appels if f == "repondre_au_joueur"][1]
+                self.assertIn("invention_protegee", str(relance["controle_narratif"]))
 
 
 if __name__ == "__main__":

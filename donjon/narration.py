@@ -93,12 +93,20 @@ Le jeu distingue deux sortes d'affirmations sur le monde.
 Mécaniques : objets et personnages identifiés, positions, sorties et passages, portes et
 attaches, possession, ressources (or, PV, combustible), lumière, présence des PNJ, missions,
 récompenses, résultats d'action, indices et solutions. Elles doivent découler des faits fournis.
-Le résultat d'une perception active, positif ou négatif, est mécanique : ce qu'écouter,
-chercher ou examiner révèle ou ne révèle pas doit venir d'une perception exécutée par le moteur,
-dans resultat_resolu ou les résultats enregistrés. Une demande, un plan préparé ou le seul
-silence des faits ne prouve aucun résultat. Sans cette source, c'est invention_protegee,
-jamais ambiance ; avec elle, c'est mecanique. Une perception courante fournie par l'état
-reste une source mécanique, dans la seule portée qu'elle décrit.
+La vue courante est déjà fournie par l'état : perception.objets_visibles énumère exactement
+les objets vus maintenant (les objet:<id> dont visible=true). Ce que Corvus voit ou ne voit
+pas dans cette portée est mecanique, source perception, y compris l'absence d'un objet visible.
+Dire « tu ne vois pas de… ici » ne prétend ni avoir fouillé ni prouver que toute la salle
+est vide. Juge ce que la réponse affirme, indépendamment d'une demande de chercher : elle
+peut répondre sur la seule vue actuelle sans prétendre avoir exécuté cette recherche.
+Cette liste ne décrit ni ce qui est caché, ni l'intérieur d'un contenant fermé, ni ce qui
+est hors de vue ou dans le noir ; elle n'en prouve jamais l'absence. Les objets accessibles
+mais visible=false et les souvenirs ne sont pas vus maintenant.
+Un résultat positif ou négatif qui dépasse la perception courante (fouille, recherche de
+traces, écoute derrière une porte, examen d'un contenu caché) doit venir d'une perception
+exécutée par le moteur, dans resultat_resolu ou les résultats enregistrés. Une demande,
+un plan préparé ou le seul silence des faits ne prouve aucun résultat de ce geste.
+Sans cette source, c'est invention_protegee, jamais ambiance ; avec elle, c'est mecanique.
 Ambiance : aspect, odeur, son de fond, température, texture, impression. Elle est libre tant
 qu'elle ne crée ni objet manipulable, ni passage, ni personnage, ni ressource, ni indice.
 Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en entier :
@@ -111,7 +119,7 @@ Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en e
   le fournir ;
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
   des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements).
-  Corvus perçoit exactement les objets objet:<id> fournis : qu'il ne voie pas un objet dont il
+  La vue courante et ses absences ont la source perception ; qu'il ne voie pas un objet dont il
   n'a qu'un souvenir (souvenirs_visuels, hors_de_vue) est mecanique, avec cette source ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; donne son
   identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux.
