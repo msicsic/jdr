@@ -1672,3 +1672,41 @@ conservée ; `perception.substance` garde le module matière au premier appel,
 pour ne pas introduire le cycle de démarrage matière → monde → perception.
 
 Mesures, preuve d'identité et limites : [rapport du lot 38](taches/rapport-codex-38-cout-12h.md).
+
+## Devis sans voie d'allumage — lot 49 (`codex-devis-vides`, non fusionnée)
+
+Avant `part_estimee._preparer`, `_allumable` exige une voie possible d'allumage
+pour la source atteinte et obtenue. Une source déjà allumée satisfait la condition.
+Sinon il faut une autre flamme portable connue, allumée ou outil d'allumage,
+déjà portée ou dont le lieu est accessible. Elle doit pouvoir être prise avec
+autorisation, demandée ou achetée selon les droits, refus, restriction `seul`
+et budget restants ; une source mobile peut aussi demander du feu à son porteur
+ou rejoindre une source fixe allumée. Routes et descentes utilisent les méthodes
+communes. Le retour vers une source fixe et les approches des gestes ne sont pas
+exigés : le filtre reste volontairement optimiste.
+
+**Nécessité.** Toute sortie de `_preparer` passe par sa liste `allumages`. Cette
+liste n'a que quatre origines : source déjà allumée, flamme en main, flamme
+obtenue ou feu demandé au porteur, source fixe rejointe par une source mobile.
+La condition les couvre toutes, en conservant des possibilités supplémentaires
+(retour non vérifié, approches non mesurées). La mesure locale d'`alimenter`
+ajoute seulement `charge` et ne franchit aucune porte ; elle ne change donc ni
+les routes, ni les permissions, ni l'état des autres flammes que lit la condition.
+Si celle-ci est fausse, aucun allumage et donc aucune suite ne peut être produit.
+Si toutes les sources échouent, le devis rend vide sans développer ses préparatifs.
+Ce n'est pas une condition suffisante de conclusion du but, qui reste une fonction
+arbitraire ; les devis sans geste conclusif peuvent encore être développés.
+
+La passe de découverte conserve ses lectures au point historique : tant que
+`emploie_lumiere` est faux, le filtre laisse passer la préparation, dont la pression
+peut découvrir la lumière. Aucun nouvel effet, prix ou plafond n'est introduit.
+
+Le certificat est local à la `Vue`, dans `_crus`, clé par source et **état complet**
+atteint après obtention ; le résultat du devis garde sa clé normalisée complète,
+compatibilité, contexte et emploi de lumière. Toutes les lectures extérieures sont
+déjà dans `_entrees` : objets connus et usages, croyances d'état et de lieu,
+propriétaires, permissions et refus, richesse, `seul`, géométrie, routes et eau.
+Aucun champ du monde nouveau n'est lu ; aucune lecture de vérité physique ne
+remplace une croyance. Sauvegardes et cache des recherches gardent leur contrat.
+
+Mesures et limites : [rapport du lot 49](taches/rapport-codex-49-devis-vides.md).

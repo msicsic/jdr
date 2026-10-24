@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-devis-vides`, **non fusionnée**, lot 49, base moteur `3aba83b` :
+  un certificat nécessaire d'allumage dans `part_estimee` écarte les sources sans
+  voie de flamme, après leur accès et avant `_preparer`. Croyances, permissions,
+  refus, budget et routes communs ; cache local par état complet et source,
+  lectures déjà dans `_entrees`, découverte de lumière conservée. Capture auberge
+  1985, 480–540 : 834 préparations sur 6 182 évitées ; 70 devis entièrement sans
+  préparatif sur 2 025 vides. Les 1 955 autres devis vides restent calculés :
+  aucune prétention à les éliminer tous ni à résoudre le coût des bancs.
+  Empreintes 2 h, quatre scénarios × quatre graines : identiques ; quatre nuits
+  de 12 h, `comparer --calcul` : mêmes mondes et résultats de recherche, mêmes
+  nœuds. CPU moyen base → branche : mine 301,03 → 297,68 s (−1,1 %), auberge
+  182,90 → 178,77 s (−2,3 %), auberge 1985 +0,7 %. Ancien/base/branche mesurés
+  ensemble, quatre nuits au plus. `VERIFIER` et spatial 1, mine/auberge 42, 2 h :
+  aucun écart ni borne, aucune usurpation.
+  Suite complète unique : **1 737 tests, quatre ignorés**, verte, 167 fichiers,
+  trois processus à priorité réduite, 781,4 s. Trois nouveaux tests contrôlent les
+  captures, l'absence de flamme et les suites valables après recharge et rendu.
+  Aucun prix, plafond, scénario, fichier réservé ou appel au modèle modifié.
+  Bilan de validation dans le [rapport du lot 49](taches/rapport-codex-49-devis-vides.md).
+
 - Branche `codex-proposer-recours`, fusionnée, lot 45, base **bafb9b9**, code signé
   **2cb8220** : les PNJ proposent « faute de mieux », après une demande d'objet/part refusée
   ou avant la faute du plan retenu, sans geste nouveau dans la recherche. Pièces et biens/parts
