@@ -9,6 +9,11 @@ Pour chaque objet, localisation indique son lieu réel et sa position par rappor
 meme_salle=true signifie qu'il est dans la pièce actuelle. position_relative est déjà
 calculée : ne la déduis pas d'anciennes réponses. Un objet visible qui bloque_passage
 est un obstacle réel.
+orientation_relative donne ses directions dans le regard actuel : devant, derriere,
+gauche, droite (deux composantes possibles). Un souvenir porte ces mêmes directions
+pour sa dernière position connue, recalculées selon ton regard maintenant ; ce repère
+ne garantit pas que l'objet y soit encore. Une direction relative sans cible univoque
+se remplace par le repère absolu en mètres fourni.
 a_portee_de_main est calculé par le moteur : false interdit de manipuler d'ici et d'en distinguer
 les détails (aspect fin, inscription, portrait, dimensions) : Corvus en voit le nom, la matière
 et la place, rien de plus, et aucun détail ne s'établit d'ici. true signifie que la proximité
@@ -50,17 +55,41 @@ def decrire(monde, id, champ):
                              else "lieu inexploré au-delà du passage",
                 "meme_salle": salle == actuelle, "porte_par_joueur": porte,
                 "direction": "sur toi" if porte else direction,
-                "position_relative": "dans tes affaires" if porte else position}
+                "position_relative": "dans tes affaires" if porte else position,
+                "orientation_relative": [] if porte else orientation_relative(monde, salle, p)}
     return None
 
 
-def relatif(monde, salle, case):
-    """La direction et la position d'une case de ``salle`` par rapport au joueur, en mots."""
+def _ecart(monde, salle, case):
+    """Écart global, y compris à travers un passage entre deux salles."""
     salles = monde.data["salles"]
     ox, oy = salles[salle]["plan"]["origine"]
     jx, jy = salles[monde.joueur["salle"]]["plan"]["origine"]
     dx = ox + case[0] - jx - monde.joueur["position"][0]
     dy = oy + case[1] - jy - monde.joueur["position"][1]
+    return dx, dy
+
+
+def orientation_relative(monde, salle, case):
+    """Demi-plans du regard actuel, sans lire la position d'une entité cachée.
+
+    L'appelant fournit soit la position perçue, soit la dernière position mémorisée.
+    Un point sur le côté n'est ni devant ni derrière ; une diagonale a deux composantes.
+    """
+    from .spatial import VECTEURS
+    regard = VECTEURS.get(monde.joueur.get("orientation"))
+    if regard is None:
+        return []
+    dx, dy = _ecart(monde, salle, case)
+    fx, fy = regard
+    devant, droite = dx * fx + dy * fy, fx * dy - fy * dx
+    return (["devant" if devant > 0 else "derriere"] if devant else []) + (
+            ["droite" if droite > 0 else "gauche"] if droite else [])
+
+
+def relatif(monde, salle, case):
+    """La direction et la position d'une case de ``salle`` par rapport au joueur, en mots."""
+    dx, dy = _ecart(monde, salle, case)
     axes = [(dy, "nord" if dy < 0 else "sud"), (dx, "ouest" if dx < 0 else "est")]
     direction = "-".join(d for n, d in axes if n) or "ici"
     # Le plan est métrique (un mètre par unité) ; son quadrillage est privé.

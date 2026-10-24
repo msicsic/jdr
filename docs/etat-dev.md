@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-orientation`, fusionnée, lot **61**, brief **1008f21**, après
+  intégration de `origin/integration` **04bca30** : objets perçus et dernières positions
+  mémorisées portent leurs demi-plans dans le regard actuel de Corvus (`orientation_relative`).
+  Le contrôle commun compare les locatifs explicites aux repères publics, même si l'auditeur
+  les admet ; chaque refus a son `attendu`, et le garde est refait avant enregistrement avec
+  l'état courant. Aucune position cachée n'est lue pour reprojeter un souvenir. « refus » rejoint
+  le garde existant de voix d'auteur. Dix tests nouveaux, dont console/MJ simulé et recharge :
+  poutre à l'est après rotation ouest, Ilse vue de face puis dans le dos, gauche/droite,
+  absolu admis, huit regards, absence de fuite et regard modifié avant enregistrement. Une réponse
+  pronominale se relie à la cible publique unique de la demande, sans deviner une cible ambiguë.
+  Empreintes Relais 2 h × quatre graines contre **04bca30** : chronique, mesures et état final
+  complet identiques. Suite complète unique à trois processus : **1 815 tests, 16 ignorés**,
+  aucun échec ni erreur, 1 304,7 s ; 109 tests ciblés et dix tests finaux verts. Résultats dans le
+  [rapport du lot 61](taches/rapport-codex-61-orientation.md).
+  Luna, une passe des trois scripts prescrits : aucun repli ni erreur de recharge ; un faux refus
+  pronominal, corrigé ensuite et rejoué avec MJ simulé ; pas de deuxième passe Luna.
+  **Limite explicite** : le garde lexical ne garantit pas l'invariant pour toute paraphrase
+  française ; les directions implicites et la portée temporelle restent sémantiques. Une
+  ambiguïté ou une négation demande une reformulation, sans direction devinée. Ni `main`,
+  ni les fichiers des lots planification/appel, ni le modèle `gpt-6-luna` ne sont modifiés.
+  Fusionné sur l'intégration après les lots 56 à 60 : `narration.py` et `mj.py` touchés aussi par les lots 56 et 59, fusionnés sans conflit ; suite complète relancée.
+
 - Branche `codex-rendez-vous`, fusionnée, lot **60**, base **c592d68**, accordée au début
   avec l'intégration **04bca30** : une clôture commune (`appel.retrouves`, reprise par
   `deliberation.rejoint` pour les dialogues) efface l'attente et la venue des deux avant

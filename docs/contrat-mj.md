@@ -194,6 +194,36 @@ jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un él
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
 
+**Repères et regard courant** (`codex-orientation`, lot 61). La localisation publique de chaque
+objet porte `orientation_relative` : les demi-plans `devant`, `derriere`, `gauche`, `droite`,
+calculés avec la position et le regard actuels de Corvus. Une diagonale peut en avoir deux ;
+un point sur le côté n'est ni devant ni derrière. Le calcul partage l'écart métrique des
+repères absolus et fonctionne aussi à travers une sortie. Sans regard, à ses pieds ou dans
+ses affaires, aucune de ces directions n'est fournie.
+
+Un souvenir de la pièce actuelle porte le même champ, recalculé depuis sa **dernière position
+connue**, sans lire la position cachée de l'entité. Il reste `hors_de_vue` : ce calcul ne
+prouve ni sa présence ni sa position actuelle. `vu_a` conserve son repère absolu en mètres.
+Les souvenirs sauvegardés ne portent aucune direction relative figée.
+
+Le garde commun de narration compare les locatifs explicites adressés au joueur (« devant toi »,
+« derrière toi », « à/sur ta gauche/droite », « dans ton dos », « en face de toi ») avec ces données,
+indépendamment du verdict de l'auditeur et de ses sources. Chaque incompatibilité a son
+`attendu` : segment, locatif reçu tel qu'écrit, référence publique, directions admises et
+repère absolu. Une cible absente ou ambiguë, ou une négation, appelle une localisation absolue
+ou une reformulation séparant les cibles. `reperes_demandes` relie aussi une réponse pronominale
+à la cible publique unique nommée dans la demande ; ce dossier n'interroge aucune entité cachée.
+Le contrôle est refait avant enregistrement avec
+le regard et les repères courants ; le texte refusé n'est ni sauvegardé ni affiché.
+Une réplique citée garde sa liberté de contenu. Le garde de voix d'auteur comprend aussi
+« refus » hors des répliques : la raison se dit dans la fiction.
+
+**Limite du lot.** La comparaison géométrique et le contrôle de ces locatifs sont déterministes,
+mais ils ne constituent pas une analyse générale du français : une direction implicite ou
+une autre paraphrase, la portée temporelle et le sens d'un pronom restent soumis à l'audit
+sémantique. Des formulations correctes à plusieurs cibles ou avec négation peuvent demander
+une révision. L'invariant pour toute prose arbitraire n'est donc pas garanti par ce garde lexical.
+
 **La preuve reste interne** (branche `codex-ambiance`). Le récit dit ce que tu perçois, sais ou
 supposes ; il ne commente jamais ce que le moteur établit, atteste ou indique. Le garde commun de
 la voix d'auteur contrôle aussi ce vocabulaire de preuve et les tours impersonnels d'absence
