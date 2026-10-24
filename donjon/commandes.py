@@ -259,6 +259,20 @@ def attente(texte):
     return proposition("attendre", f"{secondes:g}")
 
 
+def perception_nommee(monde, texte):
+    """La personne connue que vise entièrement une perception locale (« observer Ilse ») ; sinon None.
+
+    Son accès sensoriel (lumière, présence, regard) est tranché par le moteur, qui en dit la cause :
+    le contrôle des noms (``noms.verifier_saisie``) ne le devance pas pour un nom déjà relié.
+    """
+    verbe, sep, reste = normaliser(texte).partition(" ")
+    if not sep or VERBES.get(verbe) not in PERCEPTIONS or " avec " in reste:
+        return None
+    from .noms import PERSONNES
+    cible = _nomme(monde, reste, True)
+    return cible if monde.objets.get(cible, {}).get("type") in PERSONNES else None
+
+
 def analyser(monde, texte):
     """Renvoie None pour une intention libre, sans prétendre comprendre tout le français."""
     from .noms import verifier_saisie

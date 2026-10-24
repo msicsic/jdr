@@ -596,6 +596,11 @@ def verifier_saisie(monde, texte):
     # La mécanique de l'appel exige déjà l'appellation et décide qui répond.
     if hele(monde, texte) is not None:
         return
+    # Une perception d'une personne connue laisse au moteur la cause de son refus
+    # (lumière, présence, regard) : un nom relié n'y a rien à résoudre de plus.
+    from .commandes import perception_nommee
+    if perception_nommee(monde, texte) is not None:
+        return
     forme = analyser(monde, texte)
     if any(forme[k] for k in ("explicite", "incomplete", "nomme", "groupe", "inconnu")):
         return
