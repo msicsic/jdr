@@ -403,12 +403,53 @@ def rencontre(monde, id, qui):
     return percoit(monde, id, qui) or pourraient_se_parler(monde, id, qui)
 
 
+def _retrouver(monde, id, qui):
+    """Une rencontre constatée clôt les deux moitiés du rendez-vous avant leur prochain geste.
+
+    Si l'autre ne le sait pas encore là, il faut d'abord qu'il entende le signal ; le regard de
+    l'un ne donne aucune perception à l'autre. Les deux reprennent ensuite leur but sur leurs
+    connaissances présentes, au lieu de finir une recherche devenue caduque.
+    """
+    if qui != "joueur" and not rencontre(monde, qui, id):
+        if not se_signaler(monde, id, qui):
+            return
+    retrouves(monde, id, qui)
+
+
+def retrouves(monde, id, qui):
+    """Contact constaté ou parole réellement échangée : une clôture, un récit pour les deux.
+
+    Les voies de dialogue appellent aussi cette clôture (``deliberation.rejoint``), sans devoir
+    attendre le prochain choix d'un but. Un autre rendez-vous éventuel reste intact.
+    """
+    from .esprits import percevoir, reconsiderer
+    from .pnj import _chroniquer
+    from .social import _qui
+    attendait = None
+    for x, y in ((id, qui), (qui, id)):
+        if x == "joueur":
+            continue
+        e = esprit(monde, x)
+        change = False
+        for k in ("rejoint", "rejoindre"):
+            if (e[k] or {}).get("qui") == y:
+                if k == "rejoint" and attendait is None:
+                    attendait = x, y
+                e[k] = None
+                change = True
+        if change:
+            percevoir(monde, x)
+            reconsiderer(monde, x)
+    if attendait:
+        x, y = attendait
+        _chroniquer(monde, x, f"{_qui(monde, x)} retrouve {_qui(monde, y)}, comme convenu.", "reponse")
+
+
 def tenir(monde, id, minute):
     """Le rendez-vous de ``id``, d'après ce qu'il voit, à chaque choix de son but (``deliberation.attendre``).
     Il attendait : retrouvé, l'attente est finie ; à l'échéance, il cesse d'attendre et, si l'autre avait
     promis de venir, il le voit : une parole non tenue (``relations``). Il devait venir : arrivé, ou là
     sans y trouver personne, ou à l'échéance, il n'a plus à venir."""
-    from .deliberation import rejoint
     from .pnj import _chroniquer
     from .social import _qui
     from .voix import se_mefier
@@ -417,7 +458,18 @@ def tenir(monde, id, minute):
     if r and r["qui"] != "joueur" and r["qui"] not in monde.objets:
         e["rejoint"] = None
     elif r and rencontre(monde, id, r["qui"]):
-        rejoint(monde, id, r["qui"])
+        qui = r["qui"]
+        d = lire(monde, qui)["rejoindre"] if qui != "joueur" else None
+        if d and d["qui"] == id and minute < r["jusqu_a"]:
+            # Le voyageur traite l'arrivée à son prochain choix, après son geste en cours.
+            # Celui qui attend ne repart pas entre l'aperçu au seuil et ce choix.
+            from .esprits import percevoir, reconsiderer
+            if not rencontre(monde, qui, id):
+                se_signaler(monde, id, qui)
+            percevoir(monde, qui)
+            reconsiderer(monde, qui)
+        else:
+            _retrouver(monde, id, qui)
     elif r and minute >= r["jusqu_a"]:
         e["rejoint"] = None
         if r["vient"]:
@@ -434,9 +486,10 @@ def tenir(monde, id, minute):
         return
     if d["qui"] != "joueur" and d["qui"] not in monde.objets:
         e["rejoindre"] = None
-    elif rencontre(monde, id, d["qui"]):
-        rejoint(monde, id, d["qui"])
-        se_signaler(monde, id, d["qui"])
+    # L'aperçu d'une autre salle ne termine pas le trajet promis : les gestes d'interaction
+    # exigent d'avoir rejoint le lieu. Une parole échangée clôt aussi la venue, via ``rejoint``.
+    elif monde.objets[id]["lieu"] == d["salle"] and rencontre(monde, id, d["qui"]):
+        _retrouver(monde, id, d["qui"])
     elif (monde.objets[id]["lieu"] == d["salle"] and (
               e["visites"].get(d["salle"], -1) > d["depuis"]
               or e["recherches"].get(d["qui"], {}).get(d["salle"], -1) >= d["depuis"])
@@ -449,15 +502,15 @@ ME_VOICI = "Me voici !"
 
 
 def se_signaler(monde, id, qui):
-    """``id``, venu comme promis, a trouvé ``qui`` ; si ``qui`` l'attend sans le savoir là (il ne le voit
-    pas : de dos, dans le noir), ``id`` le lui dit, de sa voix : « Me voici ! » (``ME_VOICI``, une parole
-    qui le nomme). Qui la saisit le croit là ; ils se sont retrouvés."""
-    from .deliberation import rejoint
+    """``id`` voit son interlocuteur du rendez-vous, qui ne le sait pas encore là : il se signale
+    (« Me voici ! »), qu'il soit venu ou qu'il l'attende. Renvoie si les mots lui sont parvenus ;
+    le signal seul ne clôt rien. Une voix connue actualise la présence par l'ouïe commune."""
     from .ouie import retentir, saisit
     from .pnj import _chroniquer
     from .voix import connait_nom, se_nommer
-    if qui == "joueur" or (lire(monde, qui)["rejoint"] or {}).get("qui") != id or rencontre(monde, qui, id):
-        return
+    if qui == "joueur" or not any((lire(monde, qui)[k] or {}).get("qui") == id
+                                   for k in ("rejoint", "rejoindre")):
+        return False
     cri = texte(monde, id, ME_VOICI)
     _chroniquer(monde, id, cri, "reponse")
     entendu = saisit(monde, id, qui, "dire")
@@ -468,7 +521,7 @@ def se_signaler(monde, id, qui):
     if entendu:
         if nomme:
             se_nommer(monde, qui, id, id)
-        rejoint(monde, qui, id)
+    return entendu
 
 
 def plan_venir(monde, id):

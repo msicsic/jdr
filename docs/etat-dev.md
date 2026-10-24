@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-rendez-vous`, fusionnée, lot **60**, base **c592d68**, accordée au début
+  avec l'intégration **04bca30** : une clôture commune (`appel.retrouves`, reprise par
+  `deliberation.rejoint` pour les dialogues) efface l'attente et la venue des deux avant
+  d'écrire une seule retrouvaille ; perception actualisée et choix réveillé. Celui qui attend
+  ne repart pas avant le traitement de l'arrivée par le voyageur après son geste ; l'aperçu
+  au seuil le réveille, la venue se termine au lieu convenu ou à une parole réellement échangée.
+  Capture recréée sur `5c2ce81` (bruts du brief absents) : auberge 42 à 500–510 minutes,
+  appels **9 → 1**, retrouvailles **5 → 1**, la demande reprend. Six tests de recharge,
+  découpage, état complet, rendu, Relais, joueur et rendez-vous manqué. Banc 4 h × quatre
+  scénarios × quatre graines contre `c592d68` : mesures de jeu identiques, zéro plantage,
+  violation ou usurpation ; références en cache. Audit auberge 12 h, graines 42/7 : appels
+  **15/8**, retrouvailles **7/4**, redites à moins de dix minutes **2/0**, passages/PNJ/h
+  maximum **22/31**, aucun plantage ou usurpation. **Réserve : l'absence générale de
+  retrouvailles rapprochées n'est pas acquise** ; à 462–463, Odile repart après la clôture,
+  avant la demande, et les nouveaux appels ouvrent d'autres rendez-vous. Suite complète unique :
+  **1 810 tests**, un ancien attendu social en échec, quatre sauts, **693,1 s**, trois processus
+  à priorité réduite. Après ajustement de cet attendu et reprises ciblées (44 tests), bilan
+  consolidé **1 811 tests, quatre sauts, aucun échec restant** ; aucune seconde suite complète.
+  Limites : clôture au choix après arrivée dans la salle convenue, sauf dialogue ; échéance
+  et urgences conservées, disponibilité ultérieure non garantie. Aucun appel au modèle,
+  `planification.py` et `main` inchangés. [Rapport du lot 60](taches/rapport-codex-60-rendez-vous.md).
+  Fusionné sur l'intégration après les lots 56 à 59 : `deliberation.py` touché aussi par le lot 57 (refus retenus), fusionné sans conflit ; suite complète relancée.
+
 - Branche `codex-eau-plan-marche`, fusionnée, lot **58**, base **c592d68** :
   le désaccord plan/marche de la crue venait de `eau.estimation`, qui rajeunissait
   une ancienne vitesse à chaque vue du niveau dans sa salle. Les deux pentes

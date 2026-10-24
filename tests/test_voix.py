@@ -125,7 +125,10 @@ class HelerTests(unittest.TestCase):
         self.assertIn("anselme", m.data["noms_connus"])
         self.assertEqual(m.data["voix_entendues"]["anselme"]["appelee"], "anselme")
         self.assertNotIn("anselme", m.data["voix_connues"])
-        self.assertFalse(relation(m, "anselme", "lucien")["valeur"])
+        # Une seule confidence est maintenant reçue : elle affecte la relation sans
+        # nécessairement franchir sa bande de confiance (hystérésis).
+        self.assertTrue(any(s["type"] == "avis_recu" and s["sujet"] == "lucien" and s["valeur"] is False
+                            for s in lire(m, "anselme")["memoire"]))
 
     def test_aubin_hele_gorm_a_travers_la_porte_etanche(self):
         """Même nature (Relais) : Aubin, au palier, hèle Gorm, derrière la porte étanche fermée ;
