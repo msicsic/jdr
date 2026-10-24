@@ -36,6 +36,7 @@ SIGNES = {
     "brusque": ("expression", "vue", 1, None, 2, ("colere", "peur"), "fait des gestes brusques"),
     "fort": ("ton", "mots", 0, None, 3, ("colere", "peur"), "parle d'une voix forte"),
     "tremble": ("expression", "vue", 2, 4, 2, ("peur", "froid"), "tremble et se recroqueville"),
+    "fuit": ("place", "vue", 1, None, 0, ("peur", "prudence"), "s'éloigne en fuyant"),
     "observe": ("regard", "vue", 1, None, 0, ("attention", "mefiance"), "regarde attentivement {cible}"),
     "hesite": ("ton", "mots", 0, None, 3, ("mensonge", "hesitation"), "hésite dans ses paroles"),
 }
@@ -115,6 +116,8 @@ def _de(m, id):
     signes = []
     i = e["intention"] or {}
     for a in i.get("attitude", {}).values():
+        if a["signe"] == "fuit" and not _fuit(i):
+            continue
         signes.append(_signe(m, id, a["signe"], a["envers"], a["sens"],
                              dissimule(m, id, a["envers"])))
     objet = guette(m, id)
@@ -142,6 +145,12 @@ def _de(m, id):
     return signes
 
 
+def _fuit(i):
+    # Le déplacement exécuté porte une attitude, comme les autres signes de place.
+    return (i.get("but", {}).get("type") == "fuir" and bool(i.get("plan"))
+            and i["plan"][0]["operation"] == "aller")
+
+
 def de(m, id):
     """Émissions gardées tant que leurs seules causes demeurent identiques.
 
@@ -161,7 +170,7 @@ def de(m, id):
         c = emotion(m, id)
         cle = (relations.signature_signes(m, id),
                (c["contre"] if c and c["niveau"] >= 20 else None),
-               valeur(m, id, "fierte") >= 60, repr(i.get("attitude")),
+               valeur(m, id, "fierte") >= 60, repr(i.get("attitude")), _fuit(i),
                guette(m, id), i.get("attente", 0) >= GUET * 600,
                tuple((x["operation"], x["cible"]) for x in i.get("plan", [])),
                e["besoins"].get("securite", 0) > seuils(m, id).get("securite", 100), conscient(m, id))
@@ -503,7 +512,7 @@ def _impression(m, c):
             "attachement": "être " + accorder(o, "attaché") + " à " + cible, "dependance": "dépendre de " + cible,
             "guet": "guetter " + cible, "garde": "garder " + cible,
             "colere": "être en colère", "peur": "avoir peur", "froid": "avoir froid",
-            "fatigue": "être " + accorder(o, "fatigué"), "honte": "avoir honte", "inquietude": "être " + accorder(o, "inquiet", "inquiète"),
+            "fatigue": "être " + accorder(o, "fatigué"), "honte": "avoir honte", "inquietude": "être " + accorder(o, "inquiet", "inquiète"), "prudence": "agir avec prudence",
             "flatterie": "flatter " + cible, "mensonge": "mentir", "hesitation": "hésiter", "attention": "prêter attention à " + cible}
     return qui[:1].upper() + qui[1:] + " semble " + ("peut-être " if c["confiance"] < .65 else "") + mots[c["valeur"]] + "."
 

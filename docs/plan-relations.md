@@ -347,6 +347,25 @@ pas de reconstruction après coup.
 
 ### 5.3 Les expressions et le ton
 
+**Détresse perçue (lot 53, `codex-peur-transmise`, non fusionnée).** Dans
+`deliberation.autour`, un proche dont on perçoit les tremblements, la fuite ou une
+impression de peur/crainte/inquiétude encore appuyée par un signe présent ne compte
+plus comme compagnie rassurante. Un appel ou cri effectivement entendu et reconnu
+produit le même effet pendant la minute de sa réception ; une mémoire ancienne ne
+vaut pas une détresse actuelle. Les autres compagnons calmes gardent leur effet.
+La fuite porte un signe de place seulement après un pas réellement exécuté dans
+le plan de fuite, sans révéler l'agresseur ni la destination. Le projet privé seul
+ne produit rien. Vue, cône, lumière et portée restent ceux de `signes.percus`.
+
+L'inquiétude transmise vaut **0,5 × (confiance + affection) / 100 point par minute**
+pour le proche le plus lié en détresse (maximum, comme la compagnie, sans cumul
+des signes). La fraction retenue est la moitié d'une unité de détresse observable
+par minute ; aucun niveau privé de sécurité n'est lu pour en estimer l'intensité.
+Le profil peut régler `securite.detresse`. `ecart_securite` transmet ce taux au
+temps vécu commun, sans saut supplémentaire de besoin. Un signe non perçu ne
+change rien à la compagnie ; les appels anonymes gardent seulement l'effet du
+bruit déjà prévu par l'ouïe. Questionner l'allié ou suivre son regard reste à faire.
+
 Ils ne changent rien au monde ; ils se calculent à la demande (`signes.de(monde, id)`), à partir de
 l'esprit, sans être stockés. Le ton accompagne une parole : `social.faire_entendre` et
 `ouie.retentir` portent le signe de ton avec les mots, et qui saisit les mots perçoit le ton.

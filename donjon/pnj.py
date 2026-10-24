@@ -1178,6 +1178,13 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     return _avancer_de(monde, id, chemin_[:n + 1], feutre, lignes)
 
 
+def _noter_fuite(monde, id, depart):
+    i = lire(monde, id)["intention"]
+    o = monde.objets[id]
+    if i and i["but"]["type"] == "fuir" and (o["lieu"], tuple(o["position"])) != depart:
+        i.setdefault("attitude", {})["place"] = {"signe": "fuit", "envers": id, "sens": "peur"}
+
+
 def _avancer_de(monde, id, pas, feutre, lignes):
     """Les pas d'un même geste, chacun précédé de sa rotation et de la durée que lui donne son sens
     (en diagonale, √2 fois un pas droit : ``temps.duree_pas``) ; une porte fermée s'ouvre sur place.
@@ -1186,6 +1193,7 @@ def _avancer_de(monde, id, pas, feutre, lignes):
     from .spatial import QUART, quarts
     from .temps import PAS_FEUTRE, duree_pas
     o, duree, marche = monde.objets[id], 0, False
+    depart = (o["lieu"], tuple(o["position"]))
     for salle, case, porte, sens in pas:
         # Il se tourne d'abord dans le sens du pas : le temps de la rotation s'ajoute.
         vers = next(nom for nom, v in VECTEURS.items() if v == sens)
@@ -1213,6 +1221,7 @@ def _avancer_de(monde, id, pas, feutre, lignes):
                 reussite = jet != 1 and jet + modificateur(monde, id, regle["stat"]) >= regle["dd"]
             if reussite:
                 appliquer(monde, id, porte["cible"], {**regle, "salle": salle, "position": list(case)}, lignes)
+                _noter_fuite(monde, id, depart)
             else:
                 _chroniquer(monde, id, designer(o, debut=True) + " ne parvient pas à escalader "
                             + designer(monde.objets[porte["cible"]]) + ".", "deplacement")
@@ -1237,6 +1246,7 @@ def _avancer_de(monde, id, pas, feutre, lignes):
             placer(o, salle, list(case))
         duree += duree_pas(PAS_FEUTRE if feutre else PAS, sens)
         marche = True
+        _noter_fuite(monde, id, depart)
     if marche:
         retentir(monde, id, "aller", discret=feutre)
         monde._activite = "effort"  # Marcher creuse (``vecu``).

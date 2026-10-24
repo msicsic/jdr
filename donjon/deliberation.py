@@ -47,6 +47,7 @@ SECURITE_FIN = 30      # rassuré : il quitte l'abri
 SECURITE = {"coup": 40, "violence": 25, "mort": 30, "noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
             "eau": 2, "menace": 1, "crue": 10,     # par minute : 50 cm d'eau, l'eau attendue bientôt ;
                                                    # d'un coup : la voir gagner un lieu
+            "detresse": 0.5,                       # demi-point/minute, pondéré par le lien perçu
             "lumiere": 0.2, "compagnie": 0.5, "ronde": 20}                 # rassure
 REDEMANDE = 120        # minutes avant de redemander la même chose à qui vient de refuser
 ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise avant de redemander
@@ -621,7 +622,7 @@ def taux(monde, id, cause):
 
 def autour(monde, id):
     """Ce qui, dans sa salle, l'inquiète ou le rassure : la lumière sur sa case, ceux qu'il y voit
-    ou y entend tout près et croit fiables, ceux qu'il y voit ou entend et ne croit pas fiables."""
+    ou y entend tout près, et la détresse effectivement perçue chez ses proches."""
     from .esprits import pnjs
     from .perception import eclairage
     o = monde.objets[id]
@@ -638,10 +639,25 @@ def autour(monde, id):
         autres = presents if niveau else []
     from .relations import axes, confiance, mefiance
     liens = {x: axes(monde, id, x) for x in autres}
-    return {"compagnie": max([(r["confiance"] + r["affection"]) / 100 for r in liens.values()] or [0]),
+    from .signes import percus, actives
+    signes = percus(monde, id)
+    vus = {s["id"] for s in signes}
+    detresses = {s["personnage"] for s in signes if s["signe"] in ("tremble", "fuit")}
+    detresses.update(x for x, _, c in actives(monde, id)
+                     if c["signe"] in vus and c["valeur"] in ("peur", "crainte", "inquietude"))
+    # Un cri reconnu reste perçu jusqu'à la prochaine minute, même hors de vue.
+    # Aucune lecture de la sécurité, du secours ou de l'intention privée d'autrui.
+    detresses.update(s["qui"] for s in lire(monde, id)["memoire"]
+                     if s["type"] == "detresse" and s["minute"] == monde.data["minutes"])
+    poids = {x: (r["confiance"] + r["affection"]) / 100 for x, r in liens.items()}
+    # Les appels venus d'ailleurs ne procurent pas de compagnie, mais le lien demeure.
+    inquietude = [sum(axes(monde, id, x)[a] for a in ("confiance", "affection")) / 100
+                  for x in sorted(detresses)]
+    return {"compagnie": max([p for x, p in poids.items() if x not in detresses] or [0]),
+            "detresse": max(inquietude or [0]),
             "peur": max([r["peur"] / 50 for r in liens.values()] or [0]),
             "lumiere": niveau > 0,
-            "fiables": sorted(x for x, r in liens.items() if confiance(r)),
+            "fiables": sorted(x for x, r in liens.items() if confiance(r) and x not in detresses),
             "mefiants": sorted(x for x, r in liens.items() if mefiance(r))}
 
 
@@ -655,7 +671,7 @@ def ressentir(monde, id, minutes=1):
 
 def ecart_securite(monde, id):
     """Ce que gagne ou perd sa sécurité par minute, là où il se tient : le noir, la méfiance et l'eau
-    où l'on se tient inquiètent, la lumière et la compagnie de qui l'on croit fiable rassurent. None
+    où l'on se tient inquiètent, comme la détresse perçue ; la lumière et les compagnons calmes rassurent. None
     s'il ne ressent pas sa sécurité."""
     from .corps import conscient
     if not conscient(monde, id):
@@ -666,6 +682,7 @@ def ecart_securite(monde, id):
     ecart = (-taux(monde, id, "lumiere") if a["lumiere"] else taux(monde, id, "noir"))
     ecart += taux(monde, id, "mefiance") if a["mefiants"] else 0
     ecart -= taux(monde, id, "compagnie") * a["compagnie"]
+    ecart += taux(monde, id, "detresse") * a["detresse"]
     ecart += taux(monde, id, "mefiance") * a["peur"]
     # L'eau où il se tient, d'autant plus qu'elle est haute ; sinon l'eau qu'il y attend bientôt.
     from .eau import NOYEE_CM, menacee, profondeur
