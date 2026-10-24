@@ -207,6 +207,8 @@ class Vue:
                               or "allume" in x) for o in self.connus for x in [self.objets[o]]}
         # Les sources qu'il connaît et qu'un combustible recharge (``perception.recharge``).
         self.rechargeables = [o for o in self.connus if brule(self.objets[o])]
+        self.sources_du_lot = {o: frozenset(s for s in self.rechargeables if recharge(self.objets[s], self.objets[o]))
+                               for o in self.connus}
         # Ce qui donne du feu de main en main : un outil d'allumage, une source portable.
         self.flammes_portables = [o for o in self.connus if "allumage" in self.objets[o].get("usages", [])
                                   or "allume" in self.objets[o] and self.objets[o].get("mobile")]
@@ -276,6 +278,8 @@ class Vue:
         self._estimations_parts = {}
         self._depart_estimation = None
         self._devis_differes = self._devis_developpes = 0
+        self._parts_lues, self._sources_vides, self._attentes_parts = {}, {}, {}
+        self._contexte_parts = None
 
     @property
     def emploie_lumiere(self):
@@ -692,6 +696,19 @@ class Vue:
         Promise dans le plan, le donneur s'est mis en route en même temps que lui : le chemin qu'il a
         fait lui-même depuis la promesse (``promis_ou``) n'est plus à attendre. Au moins le geste de
         servir."""
+        # Cette lecture ne lit ni le but, ni les droits, ni les effets terminaux.
+        # Les lieux (porteurs compris), portes prévues, positions compatibles des
+        # anciennes parties et départ de promesse suffisent, avec les possessions
+        # et l'allure. Tout le reste appartient à la Vue figée, jamais au temps.
+        cle = (e.salle, e.portes, e.allure, e.case, e.orientation,
+               frozenset((k, x) for k, x in e.faits.items()
+                         if k[0] in ("lieu", "ouvert", "verrou", "case_objet", "promis_ou", "promis_case")),
+               donneur, o, service, cible)
+        if cle not in self._attentes_parts:
+            self._attentes_parts[cle] = self._attente_part(e, donneur, o, service, cible)
+        return self._attentes_parts[cle]
+
+    def _attente_part(self, e, donneur, o, service, cible):
         reserve = self.salle(e, o)
         depuis = self.salle(e, donneur) or reserve or service
         from .pnj import DUREES
@@ -728,6 +745,25 @@ class Vue:
         if promis_ou is not None:
             temps -= self.trajet(promis_ou, service, case=e.fait("promis_case", o))
         return max(servir, temps)
+
+    def sources_a_charger(self, e, vises):
+        """Le besoin de combustible, une fois pour tous les lots de cet état.
+
+        Lit uniquement possessions, faits allume/charge, emploi de lumière et
+        sources entretenues ; compatibilités, disponibilité et feu cru sont figés.
+        Deux états qui ne diffèrent que par salle, droits ou effets terminaux
+        réemploient donc exactement ce test, sans réemployer leur résultat de but.
+        """
+        entretenus = frozenset(vises.get("entretenir", ()))
+        cle = (e.portes, frozenset((k, x) for k, x in e.faits.items() if k[0] in ("allume", "charge")),
+               self.emploie_lumiere, entretenus)
+        if cle not in self._sources_vides:
+            deja = any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes)
+            disponibles = set().union(*(self.sources_du_lot[k] for k in e.portes if self.disponible(k)))
+            self._sources_vides[cle] = frozenset(s for s in self.rechargeables
+                if (s in entretenus or self.emploie_lumiere and not deja)
+                and not self.feu(e, s)[1] and s not in disponibles)
+        return self._sources_vides[cle]
 
     def trajet(self, depart_, arrivee, *, case=None, cible=None):
         """Temps estimé entre salles et vers une cible ; la case n'intervient pas."""
@@ -1222,6 +1258,23 @@ def _engager(v, e, condition):
 
 
 def _parts(v, e, o, dans, vises, but):
+    if v._estime_part:
+        return
+    # Le but peut lire n'importe quel fait : aucun quotient approximatif de e.
+    # But et visées sont fixes pendant une exploration, enregistrés une fois à
+    # son entrée. La Vue ne traverse ni mutation du monde ni sauvegarde.
+    cle = (v._contexte_parts, e, o, dans, v.emploie_lumiere)
+    if cle in v._parts_lues:
+        yield from v._parts_lues[cle]
+        return
+    resultat = []
+    for g in _parts_calculer(v, e, o, dans, vises, but):
+        resultat.append(g)
+        yield g   # conserver le point de toute lecture de lumière dans _suites
+    v._parts_lues[cle] = resultat
+
+
+def _parts_calculer(v, e, o, dans, vises, but):
     """Une part : l'attendre si elle est promise, là où le donneur viendra la servir (près des
     vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire. Une part de
     combustible va au feu que le but entretient, sinon au premier qu'il croit éteint : le donneur le
@@ -1305,13 +1358,7 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     donneur = v.proprietaire[o]
     if donneur in (None, v.id, "joueur") or not v.profil_de(donneur):
         return
-    compte = v.emploie_lumiere
-    deja = any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes)
-    besoin = any((s in vises.get("entretenir", ()) or compte and not deja)
-                 and not v.feu(e, s)[1] and recharge(v.objets[s], v.objets[o])
-                 and not any(recharge(v.objets[s], v.objets[k]) and v.disponible(k) for k in e.portes)
-                 for s in v.rechargeables)
-    if not besoin:
+    if not (v.sources_du_lot[o] & v.sources_a_charger(e, vises)):
         return
     attente = 0 if dans == donneur and v.salle(e, donneur) == e.salle else v.attente_part(e, donneur, o, e.salle)
     promise = v.promesse(o, True) == donneur
@@ -1700,6 +1747,7 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     neuve la ferait avec ce prix-là (``_explorer_etats``).
     """
     v._depart_estimation = depart_
+    v._contexte_parts = (but, json.dumps(vises, sort_keys=True, ensure_ascii=False))
     sombre = lumineux = None
     if graphe is not None:
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})

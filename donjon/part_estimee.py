@@ -19,7 +19,12 @@ def suites(v, e, lot, vises, but):
               if cle[0] in ("permis", "acquis", "achete", "depense", "faute", "degat")]
     e = (v._depart_estimation or e).apres(salle=e.salle, case=e.case, orientation=e.orientation,
                                         portes=e.portes, faits=droits, allure=e.allure)
-    cle = (e, lot, v.emploie_lumiere)
+    # Le lot ne sert qu'à choisir les sources qu'il recharge ; deux lots de
+    # même compatibilité ont exactement le même devis. Tous les autres moyens,
+    # droits et dépenses restent dans l'état normalisé complet, le but et ses
+    # visées dans le contexte de l'exploration, les lectures du monde dans v.
+    sources = v.sources_du_lot[lot]
+    cle = (v._contexte_parts, e, sources, v.emploie_lumiere)
     if cle in v._estimations_parts:
         return v._estimations_parts[cle]
     resultats = []
@@ -83,7 +88,7 @@ def suites(v, e, lot, vises, but):
     # demande de feu au porteur garde son refus et son prix social habituels.
     for source in v.rechargeables:
         x = v.objets[source]
-        if (not recharge(x, v.objets[lot]) or v.contrarie(source) or v.feu(e, source)[1]):
+        if (source not in sources or v.contrarie(source) or v.feu(e, source)[1]):
             continue
         if source not in vises.get("entretenir", ()) and not v.emploie_lumiere:
             continue

@@ -12,6 +12,27 @@ from tests.test_tensions import recharger
 
 
 class BorneTests(unittest.TestCase):
+    def test_attente_part_reemploie_exactement_les_etats_equivalents(self):
+        m = lampes.LumiereDuButTests().scene("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve")
+        v = p.Vue(recharger(m), "remy")
+        e = p.depart(v.monde, "remy", v)
+        with patch.object(v, "_attente_part", wraps=v._attente_part) as calcul:
+            a = v.attente_part(e, "gaspard", "bidon_huile", e.salle)
+            # Les droits et les effets du but ne changent pas le trajet du donneur.
+            autre = e.apres(faits=[(("inspecte", "reserve"), True), (("depense",), 1)])
+            self.assertEqual(a, v.attente_part(autre, "gaspard", "bidon_huile", e.salle))
+            self.assertEqual(calcul.call_count, 1)
+            # Le lieu du donneur, en revanche, doit invalider la lecture.
+            autre = e.apres(faits=[(("lieu", "gaspard"), "bureau")])
+            v.attente_part(autre, "gaspard", "bidon_huile", e.salle)
+            self.assertEqual(calcul.call_count, 2)
+        v.eclairer = True
+        besoins = v.sources_a_charger(e, {})
+        self.assertIn("lampe_remy", besoins)
+        self.assertIs(besoins, v.sources_a_charger(e.apres(faits=[(("inspecte", "reserve"), True)]), {}))
+        plein = e.apres(faits=[(("charge", "lampe_remy"), True)])
+        self.assertNotIn("lampe_remy", v.sources_a_charger(plein, {}))
+
     def test_la_borne_evite_des_etats_de_devis_meme_plan_et_monde_recharge(self):
         for scenario, qui, donneur, source, lot, salle, arrivee in (
             ("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve", "bureau"),

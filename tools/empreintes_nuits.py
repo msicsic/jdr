@@ -123,6 +123,8 @@ def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0
                            "banc": _h(donnees["empreintes"]), "recherches_neuves": _h(neuves)},
             "mesures": mesures, "recherches": len(recherches), "neuves": len(neuves),
             "noeuds": sum(r["noeuds"] for r in recherches),
+            "devis_differes": sum(r.get("devis_differes", 0) for r in recherches),
+            "devis_developpes": sum(r.get("devis_developpes", 0) for r in recherches),
             "planificateur": round(sum(r.get("duree", 0.0) for r in recherches), 2),
             "choix": dict(deliberation.COMPTES), "secondes": round(secondes, 2), "memoire_mo": _pic_memoire(),
             "cpu_cumule_4h": tranches,
