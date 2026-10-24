@@ -54,7 +54,7 @@ class RecitTests(unittest.TestCase):
         # Un essai, plusieurs résumés en un (« s'acharne »), ou un renoncement devant une serrure trop
         # sombre, selon la nuit (depuis la branche ``temps-reel``, cette nuit-ci renonce).
         self.assertRegex(self.texte, "(crochète|s'acharne sur) la serrure de la réserve de vivres"
-                                     "|renonce à crocheter la réserve de vivres")
+                                     "|renonce à crocheter la réserve de vivres|propose à Gorm .+ contre une part")
         self.assertGreater(self.recit.urgence["brune"]["faim"], 0)
 
     def test_entre_eux_et_temoins(self):

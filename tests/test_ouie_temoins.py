@@ -112,6 +112,9 @@ def odon_au_coffre(bram_le_sait=False):
     esprit(m, "odon")["libre"] = 5
     percevoir_tous(m)
     lire(m, "bram")["croyances"].pop("odon", None)
+    # Cette scène isole le bruit anonyme : Odon n'a aucune contrepartie à proposer.
+    m.data["finances_pnj"]["odon"] = 0
+    m.objets["crochets"]["proprietaire"] = "bram"
     if bram_le_sait:
         croire(m, "bram", "odon", "lieu", "bureau", "entendu", salle="bureau", case=[3, 2])
     return recharger(m)

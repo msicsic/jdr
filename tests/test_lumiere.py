@@ -74,7 +74,8 @@ class MineTests(unittest.TestCase):
         self.assertTrue(m.objets["poele"]["allume"])
         self.assertLess(textes.index("Rémy, jeune mineur allume la lampe de Rémy."),
                         textes.index("Rémy, jeune mineur éteint la lampe de Rémy."))
-        self.assertLess(textes.index("Gaspard, vieux mineur allume le poêle à bois."),
+        # La part peut désormais être négociée puis remise ; celui qui allume peut changer.
+        self.assertLess(next(i for i, t in enumerate(textes) if " allume le poêle à bois." in t),
                         textes.index("Rémy, jeune mineur éteint la lampe de Rémy."))
         self.assertFalse(m.objets["lampe_remy"]["allume"])
         self.assertGreater(m.objets["lampe_remy"]["combustible"], 0)

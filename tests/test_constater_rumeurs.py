@@ -46,6 +46,9 @@ class ContenantFermeTests(unittest.TestCase):
         pénombre, elle tend la main vers les vivres : elle apprend la réserve fermée et
         verrouillée, croit toujours les vivres dedans, et va chercher ses crochets."""
         m = refusee(sans_evacues(relais()))
+        # Même ses outils ne convaincront pas Gorm : on vérifie ici le constat du verrou.
+        from donjon import relations
+        lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
         placer(m, "marchand", "crypte", position_entree(m, "crypte"))
         placer(m, "brune", "antichambre", [6, 3])
         croire(m, "brune", "marchand", "lieu", "crypte", "vu", salle="crypte", case=None)
@@ -322,10 +325,19 @@ class ParlerALaVoixTests(unittest.TestCase):
     def test_odon_demande_sa_part_a_mathe_dans_le_noir(self):
         """Cas réel (mine, graine 1985, 420 minutes) : au baraquement noir, Odon affamé demande sa
         part à Mathe, qui reconnaît sa voix et lui répond."""
-        m = self.baraquement_noir()
-        m, _ = attendre(recharger(m))
-        self.assertIn("Odon demande une part des vivres de la cuisine à Mathe (refus).", chronique(m))
-        # Elle le situe à sa voix (refusé, il est aussitôt allé tenter ailleurs, ce qu'elle entend aussi).
+        m = recharger(self.baraquement_noir())
+        from donjon.moteur import Moteur, proposition
+        for _ in range(120):
+            moteur = Moteur(m)
+            moteur.executer(moteur.preparer(proposition("attendre", "1")))
+            m = recharger(m)
+            if any("Odon demande une part" in c and "à Mathe" in c for c in chronique(m)):
+                break
+        # Les autres marchés peuvent consommer des jets : l'issue ne définit pas la voix reconnue.
+        self.assertTrue(any(c in chronique(m) for c in (
+            "Odon demande une part des vivres de la cuisine à Mathe (refus).",
+            "Odon demande une part des vivres de la cuisine à Mathe (promis).")))
+        # Elle le situe à sa voix, quel que soit le résultat de la demande.
         self.assertEqual(lieu_cru(m, "mathe", "odon"), (m.objets["odon"]["lieu"], "entendu"))
 
     def test_une_voix_jamais_entendue_ne_se_reconnait_pas(self):

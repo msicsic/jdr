@@ -206,6 +206,9 @@ def brune_guette():
     (``test_besoins``, « sous les yeux du joueur »)."""
     from tests.test_besoins import relais as relais_sans_evacues
     m = relais_sans_evacues()
+    # Ce guet n'est pas résolu par la vente des crochets au gardien.
+    from donjon import relations
+    lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
     m.joueur["position"] = [6, 4]
     regarder(m, "joueur", "reserve")
     return m

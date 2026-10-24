@@ -214,7 +214,10 @@ def _executer(monde, minutes, recit=None, empreintes=None):
     entendus = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                 if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
     examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
-    mesures = {"gestes": sum(c.get("nature") not in ("ouie", "lecture") for c in chronique),
+    propositions = [c for c in chronique if c.get("nature") == "social" and " propose à " in c["texte"]]
+    mesures = {"propositions": len(propositions),
+               "acceptees": sum(c["texte"].endswith("(accepte).") for c in propositions),
+               "gestes": sum(c.get("nature") not in ("ouie", "lecture") for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique
                                             if c.get("nature", "geste") in ("geste", "social", "reponse")}),
                # Les échanges entre PNJ, sans les appels de qui cherche quelqu'un ni leurs réponses

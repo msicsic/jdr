@@ -196,6 +196,9 @@ class TachesPayeesTests(unittest.TestCase):
         self.assertTrue(lire(m, "aubin")["engagements"][0]["annule"])
         self.assertEqual(promesse_en_cours(m, "marchand", "planches"), "aubin")
         self.assertTrue(any("abandon à annoncer" in t for t in engagements_enregistres(m, "aubin")))
+        # On éprouve l'annonce de cet abandon, sans conclure un nouveau marché de combustible.
+        from donjon import relations
+        lire(m, "aubin")["relations"]["marchand"] = relations._nouvelle({"confiance": 10})
         m, lignes = vivre(recharger(m), 3)
         self.assertIsNone(promesse_en_cours(m, "marchand", "planches"))
         self.assertFalse(any("promesse" in t for t in lignes), lignes)  # Corvus est loin de l'échange.

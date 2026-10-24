@@ -380,6 +380,9 @@ class ForcerNEstPasAgresserTests(unittest.TestCase):
         orienter(m, temoin, "brune")
         percevoir_tous(m)
         lire(m, "brune")["besoins"]["faim"] = 96.0  # Au-delà du désespoir : un témoin ne la retient plus.
+        # Cette scène porte sur l'effraction observée : un marché ne la remplace pas.
+        from donjon import relations
+        lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
         return recharger(m)
 
     def test_un_temoin_de_l_effraction_ne_la_fuit_pas(self):

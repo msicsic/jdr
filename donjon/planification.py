@@ -1385,11 +1385,14 @@ def _parts_calculer(v, e, o, dans, vises, but):
     part = [(("part", o), donneur)] + ([(("charge", foyer), True), (("allume", foyer), True)]
                                        if foyer else [])
     if donneur not in (None, id, "joueur") and v.profil_de(donneur):
-        promise = v.promesse(o, False) == donneur or e.fait("promis", o) == donneur
+        remise = v.promesse(o, True) == donneur
+        promise = remise or v.promesse(o, False) == donneur or e.fait("promis", o) == donneur
         if promise:
-            service = v.salle(e, foyer) if foyer else v.salle(e, o)
+            # Une part à remettre se reçoit auprès du demandeur ; la part servie
+            # garde son lieu de service. Dans les deux cas, attendre n'est pas la recevoir.
+            service = e.salle if remise else v.salle(e, foyer) if foyer else v.salle(e, o)
             if e.salle == service:
-                attente = v.attente_part(e, donneur, o, service, foyer or o)
+                attente = v.attente_part(e, donneur, o, service, None if remise else foyer or o)
                 yield 0, attente, [], e.apres(faits=part), attente
         elif not e.fait("promis", o):
             ou = v.salle(e, donneur)
