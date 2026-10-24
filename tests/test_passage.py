@@ -152,7 +152,7 @@ class DemanderLePassageTests(unittest.TestCase):
         m = refuge()
         lier(m, "brune", "joueur", False, "vu")
         with patch.object(Monde, "d20", return_value=20):
-            travail, rapport = preparer_parole(m, {"personnage": "brune", "replique": "Laisse-moi passer.",
+            travail, rapport = preparer_parole(m, {"_intention": "je lui dis : Laisse-moi passer.", "personnage": "brune", "replique": "Laisse-moi passer.",
                                                    "contenu": [{"type": "passage", "sujet": "", "attribut": "",
                                                                 "valeur": ""}]})
         self.assertEqual(rapport["faits"], ["Brune, batelière évacuée refuse de s'écarter : elle ne te fait pas confiance."])
@@ -160,7 +160,7 @@ class DemanderLePassageTests(unittest.TestCase):
 
     def test_une_demande_pour_un_autre_n_est_pas_un_passage(self):
         m = refuge()
-        travail, rapport = preparer_parole(m, {"personnage": "brune", "replique": "Dis à Ilse de bouger.",
+        travail, rapport = preparer_parole(m, {"_intention": "je lui dis : Dis à Ilse de bouger.", "personnage": "brune", "replique": "Dis à Ilse de bouger.",
                                                "contenu": [{"type": "passage", "sujet": "ilse", "attribut": "",
                                                             "valeur": ""}]})
         self.assertEqual(rapport["faits"], [])

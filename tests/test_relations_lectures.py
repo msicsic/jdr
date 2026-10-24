@@ -163,7 +163,7 @@ class LecturesTests(unittest.TestCase):
             lignes = []
             if source == "joueur":
                 from donjon.paroles import preparer_parole
-                m, rapport = preparer_parole(m, {"personnage": "ilse", "replique": "Laisse-moi passer.",
+                m, rapport = preparer_parole(m, {"_intention": "Ilse, laisse-moi passer.", "personnage": "ilse", "replique": "Laisse-moi passer.",
                     "contenu": [{"type": "passage", "sujet": "", "attribut": "", "valeur": ""}]})
                 lignes = rapport["faits"]
             else:

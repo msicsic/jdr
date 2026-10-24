@@ -39,32 +39,32 @@ class AdresseTests(unittest.TestCase):
                 self.assertTrue({"aubin", "ilse"} <= set(p["auditeurs"]))
                 self.assertEqual(p["texte"], saisie)
 
-    def test_la_contre_revue_corrige_la_cible_avant_toute_parole(self):
+    def test_le_moteur_corrige_la_cible_avant_la_contre_revue(self):
         for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous donner de quoi manger ?"):
             with self.subTest(saisie=saisie):
                 m = scene()
                 defaut = prevue(m, saisie)["personnage"]
                 r, sortie, appels = jouer(m, saisie, [
-                    parole(saisie, personnage=defaut), parole(saisie, personnage="tous"),
-                    dialogue("Tu as posé ta question à tous.")],
+                    parole(saisie, personnage="aubin"), parole(saisie, personnage=defaut),
+                    dialogue("Tu as posé ta question.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))],
-                    revues=[{"conforme": False, "motif": "La demande vise l'assistance, pas un seul destinataire."},
-                            {"conforme": True, "motif": ""}])
-                self.assertIn("Tu dis à tous", sortie)
+                    revues=[{"conforme": True, "motif": ""}])
+                self.assertIn("Tu dis :", sortie)
                 self.assertNotIn("Tu dis à Aubin", sortie)
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
-                self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "tous")
+                self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "personne")
                 plans = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
-                self.assertEqual([p["adresse"] for p in plans], ["individuelle", "groupe"])
+                self.assertEqual([p["adresse"] for p in plans], ["cantonade"])
 
-    def test_une_cible_refusee_deux_fois_ne_passe_pas_par_le_secours_local(self):
+    def test_un_contenu_refuse_deux_fois_ne_passe_pas_par_le_secours_local(self):
         m = scene()
         avant = copy.deepcopy(m.data.get("sons", []))
         saisie = "je dis : qui peut nous aider ?"
         defaut = prevue(m, saisie)["personnage"]
         r, sortie, _ = jouer(m, saisie, [parole("qui peut nous aider ?", personnage=defaut)] * 2, [],
-            revues=[{"conforme": False, "motif": "Audience réduite."}] * 2)
-        self.assertIn("Précise à qui tu t'adresses", sortie)
+            revues=[{"conforme": False, "motif": "Contenu contraire à la demande."}] * 2)
+        self.assertIn("Précise ce que tu veux dire", sortie)
+        self.assertNotIn("Précise à qui", sortie)
         self.assertNotIn("Tu dis à", sortie)
         self.assertEqual(r.data.get("paroles_joueur", []), [])
         self.assertEqual(r.data.get("sons", []), avant)
@@ -99,16 +99,16 @@ class AdresseTests(unittest.TestCase):
             with self.subTest(saisie=saisie):
                 m = scene(brune=(6, 4))
                 r, sortie, appels = jouer(m, saisie, [
-                    parole("Une réécriture ajoutée par le MJ", ("ressource", besoin, "", ""), personnage="tous"),
-                    dialogue("Tu as posé ta question à tous.")],
+                    parole("Une réécriture ajoutée par le MJ", ("ressource", besoin, "", ""), personnage="personne"),
+                    dialogue("Tu as posé ta question.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
-                self.assertIn(f"Tu dis à tous : « {saisie} »", sortie)
-                self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], "tous")
+                self.assertIn(f"Tu dis : « {saisie} »", sortie)
+                self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], "personne")
                 self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
                 for qui in ("aubin", "ilse"):
                     self.assertEqual(paroles_retenues(r, qui)[-1][2], saisie)
                     self.assertIn(qui, r.data["paroles_joueur"][-1]["auditeurs"])
-                self.assertTrue(appels[0][1]["faits"]["parole_prevue"]["audience_libre"])
+                self.assertEqual(appels[0][1]["faits"]["parole_prevue"]["personnage"], "personne")
                 # Le choix de parler est encore celui de l'interprétation ;
                 # fournir une question au MJ ne la déclare pas déjà prononcée.
                 self.assertNotIn("mots", appels[0][1]["faits"]["parole_prevue"])
@@ -119,7 +119,7 @@ class AdresseTests(unittest.TestCase):
             with self.subTest(saisie=saisie):
                 m = scene()
                 avant = copy.deepcopy(m.data)
-                self.assertFalse(prevue(m, saisie)["audience_libre"])
+                self.assertIn(prevue(m, saisie)["personnage"], ("aubin", "ilse"))
                 with self.assertRaises(ErreurMonde) as e:
                     preparer_parole(m, {"personnage": "tous", "replique": "bonjour", "contenu": [],
                                         "_intention": saisie})

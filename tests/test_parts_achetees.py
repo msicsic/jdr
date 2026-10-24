@@ -38,7 +38,7 @@ def antichambre_du_banc():
 
 
 def parole(qui, texte, type_, sujet, valeur=""):
-    return {"personnage": qui, "replique": texte, "_intention": texte,
+    return {"personnage": qui, "replique": texte, "_intention": "je lui dis : " + texte,
             "contenu": [{"type": type_, "sujet": sujet, "attribut": "", "valeur": valeur}]}
 
 

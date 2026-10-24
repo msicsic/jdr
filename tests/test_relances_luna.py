@@ -93,7 +93,7 @@ class NomTests(unittest.TestCase):
         # Corvus ; le moteur lit Gorm, sans relance : Corvus ne s'est pas dit Corvus.
         from tests.test_parole_corrections import ImpostureTests as Appel, audit, ligne, narration
         m = Appel().appelee()
-        reprise, sortie, appels = jouer(m, "« Je suis Gorm. »", [
+        reprise, sortie, appels = jouer(m, "je lui dis : Je suis Gorm.", [
             parole("Je suis Gorm.", ("nom", "joueur", "", ""), personnage="voix_1"),
             dialogue("La voix : « Gorm ? Ce n'est pas sa voix. »")],
             [audit(ligne("parole", "voix_1", "Gorm ? Ce n'est pas sa voix."))])

@@ -150,9 +150,10 @@ On ne pouvait ni parler à un groupe ni chuchoter.
 
 **Règle acceptée.** Le moteur fixe les contraintes de destinataire (`paroles.analyser`,
 `paroles.destinataires`) : celui que le joueur nomme, le groupe ou la suite de l'échange.
-Sans adresse ni suite, `audience_libre` laisse Luna distinguer l'assistance de la parole
-individuelle ; pour cette dernière, le défaut reste celui d'en face (dans son regard, le plus
-proche à portée de voix) ; à égalité, le joueur précise. « à tous » s'adresse aux présents qui
+Sans adresse ni échange à poursuivre, la parole à voix haute va à la cantonade (`personne`),
+même si un interlocuteur est en face. Le moteur fixe cette adresse avant Luna. Un pronom
+individuel sans antécédent (« je lui dis ») et le chuchotement se résolvent par le regard
+(le plus proche dans son axe) ; à égalité, le joueur précise. « à tous » s'adresse aux présents qui
 saisiraient ses mots, chacun décidant comme d'une demande individuelle. Une saisie qui commence
 par des guillemets vaut « je dis … », ou, quand un ou plusieurs interlocuteurs précédents
 saisissent encore ses mots, « je lui/leur dis … » : elle poursuit l'échange avec eux (de même
@@ -171,10 +172,10 @@ l'atteint ; une demande adressée à un autre ne l'engage pas. Les PNJ entendent
 autres PNJ par la même règle : confidences (`social.bavarder`), affirmations (`echanges`, dire),
 demandes, prières de passage.
 
-Une parole sans conteste (guillemets, à tous, deux-points) que nul présent perçu ne saisirait est
-dite à la cantonade (personnage « personne ») : aucun destinataire, qui l'entend la retient. Le MJ
+Une parole sans adresse ni échange à poursuivre est dite à la cantonade (personnage
+« personne ») : aucun destinataire particulier, qui l'entend la retient, présent perçu ou non. Le MJ
 ne peut ni la remplacer par une action ni la raconter lui-même en dialogue : le moteur la lui fait
-proposer. Seuls les destinataires répondent (`narration.destinataires_parole`, contrôle
+proposer. Seuls les répondants calculés répondent (`narration.destinataires_parole`, contrôle
 déterministe) ; Luna voit ce que chaque présent a entendu (`a_entendu`).
 
 Correctif commun révélé (banc de la mine) : Mathe, qui venait de voir Odon manger le pain de
@@ -1649,14 +1650,19 @@ Limites de l'appel négocié :
 
 ## Parole après les noms (`codex-luna-noms`)
 
-Sans adresse imposée, `parole_prevue.audience_libre` laisse Luna distinguer la parole
-individuelle, le groupe (`tous`) et la cantonade sans destinataire particulier (`personne`),
-même si des personnes sont visibles. La contre-revue de fidélité contrôle ce choix sur la
-copie préparée avant tout enregistrement ; après deux propositions refusées, le joueur doit
-préciser son adresse et ses mots. Le secours local ne contourne pas ce refus. Les
-destinataires explicites, les chuchotements et les suites d'échange restent contraints par
-la saisie. Une question directe devenue parole conserve ses mots. Un verbe sans propos et
-sans réponse locale d'appel demande les mots du joueur sans les inventer.
+Depuis `codex-audience` (lot 47), l'adresse vient uniquement de `paroles.destinataires`,
+comme la prévision et la validation sur copie : nom/vocatif, groupe explicite, suite d'échange,
+puis cantonade à voix haute ; quelqu'un en face n'est pas une adresse. Un « lui » sans
+antécédent et un chuchotement restent individuels, résolus par le regard. Les guillemets
+poursuivent l'échange si ses auditeurs peuvent encore répondre, sinon la cantonade.
+`parole_prevue.personnage` donne une seule référence attendue, sans audience libre.
+Une proposition d'audience contraire est refusée par le moteur avec `attendu` avant la revue.
+La contre-revue des paroles à adresse implicite juge les mots et le contenu (`contenu_conforme`),
+sans rejuger l'adresse ni les conséquences déterministes. Après deux refus de contenu,
+le message demande les mots ; il ne demande plus à qui parler quand l'adresse est fixée.
+Le secours local ne contourne pas un refus de contenu. Une question directe devenue parole
+conserve ses mots. Le choix de la transformer en parole reste à Luna ; une question au MJ
+n'est pas déjà prononcée. Un verbe sans propos demande les mots sans les inventer.
 
 Chaque répondant est entendu avant le récit, même si sa réponse mécanique l'a fait s'écarter
 hors du champ visuel. Une voix qui répond d'une autre salle devient aussi un interlocuteur
@@ -1694,3 +1700,14 @@ l'imitation y rendra (X, une certitude moindre) pour la voix d'un autre, selon u
 contre l'oreille de l'auditeur ; la méfiance, une certitude « douteuse » pour une voix connue. Les
 appelants (`ouie.entendre`, `voix.identifie`, `voix.fiabilite`, `voix.se_nommer`, `ecoute`) lisent
 déjà la certitude ; `voix.connaitre` compare déjà la voix entendue à ce qu'elle a prétendu.
+
+### Cible d'une intention racontée (lot 47)
+
+Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),
+l'analyse commune conserve aussi la cible nominale du prédicat (`cible_intention`), sans liste
+supplémentaire de verbes. Si le MJ en fait une parole, elle va à cette personne ; cela ne
+force pas une parole pour un geste. Une mention dans le corps d'une citation ne devient
+pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
+Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
+des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
+règle publique ; elle n'est pas devinée à partir de la ressource ou du scénario.

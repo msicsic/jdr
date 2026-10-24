@@ -132,7 +132,7 @@ class JoueurReclameTests(unittest.TestCase):
         texte = "Rends-moi ce que tu me dois."
         return {"personnage": qui, "replique": texte,
                 "contenu": [{"type": type_, "sujet": sujet, "attribut": "", "valeur": ""}],
-                "_intention": texte}
+                "_intention": "je lui dis : " + texte}
 
     def test_gorm_rend_ce_qu_il_doit_et_la_fiche_le_montrait(self):
         m = self.devant()
@@ -440,12 +440,12 @@ class EnqueteTests(unittest.TestCase):
         percevoir_tous(m)
         texte = "As-tu du bois ?"
         travail, rapport = preparer_parole(m, {
-            "personnage": "joss", "replique": texte, "_intention": texte,
+            "personnage": "joss", "replique": texte, "_intention": "je lui dis : " + texte,
             "contenu": [{"type": "ressource", "sujet": "chaleur", "attribut": "", "valeur": ""}]})
         self.assertTrue(any("dit avoir les fagots de l'écurie dans l'étable" in f for f in rapport["faits"]),
                         rapport["faits"])
         with self.assertRaises(ErreurMonde) as refus:
-            preparer_parole(m, {"personnage": "joss", "replique": texte, "_intention": texte,
+            preparer_parole(m, {"personnage": "joss", "replique": texte, "_intention": "je lui dis : " + texte,
                                 "contenu": [{"type": "ressource", "sujet": "bois", "attribut": "", "valeur": ""}]})
         self.assertIn("contenu[0].sujet : faim (de quoi manger) ou chaleur (du bois)", refus.exception.attendu)
 

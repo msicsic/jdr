@@ -266,7 +266,7 @@ class VoixInconnueTests(unittest.TestCase):
         contexte = m.contexte()
         self.assertIn(alias, contexte["interlocuteurs"])
         self.assertNotIn("brune", json.dumps(contexte["interlocuteurs"]).lower())
-        reprise, sortie, entrees = jouer(m, "« Qui est là ? »", [
+        reprise, sortie, entrees = jouer(m, "je lui dis : Qui est là ?", [
             parole("Qui est là ?", ("qui", "", "", ""), personnage=alias), reponse_pnj("« C'est Brune. »")])
         self.assertEqual(entrees[0]["faits"]["parole_prevue"]["personnage"], alias)
         self.assertNotIn("Batelière", json.dumps(entrees[0]["faits"]["esprits_interlocuteurs"], ensure_ascii=False))

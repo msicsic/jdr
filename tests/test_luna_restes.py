@@ -187,13 +187,12 @@ class ParoleTests(unittest.TestCase):
 
     def test_audiences_collectives_comparees_par_le_moteur(self):
         for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous aider ?"):
-            for destinataire, adresse in (("personne", "cantonade"), ("tous", "groupe")):
+            for destinataire, adresse in (("personne", "cantonade"),):
                 with self.subTest(saisie=saisie, destinataire=destinataire):
                     r, texte, appels = jouer(scene(), saisie, [
                         parole(saisie, personnage=destinataire), dialogue("Ta question résonne.")],
                         [rapport(ligne("mecanique", sources=["conversation_validee"]))],
-                        revues=[{"audiences_fideles": ["groupe", "cantonade"], "contenu_conforme": True,
-                                 "motif": "L'adresse individuelle ne conviendrait pas."}])
+                        revues=[{"contenu_conforme": True, "motif": ""}])
                     self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], destinataire)
                     self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
                     self.assertNotIn("Précise à qui", texte)
