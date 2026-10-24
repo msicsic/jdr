@@ -190,6 +190,16 @@ La contre-revue des paroles à adresse implicite juge encore le contenu et les m
 elle ne décide plus de l'audience. Deux contenus refusés demandent les mots du joueur,
 sans lui demander à qui parler. Le secours local ne contourne pas ce refus.
 Une question directe choisie comme parole conserve exactement les mots saisis.
+
+Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),
+l'analyse commune conserve aussi la cible nominale du prédicat (`cible_intention`), sans liste
+supplémentaire de verbes. Si le MJ en fait une parole, elle va à cette personne ; cela ne
+force pas une parole pour un geste. Une mention dans le corps d'une citation ne devient
+pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
+Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
+des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
+règle publique ; elle n'est pas devinée à partir de la ressource ou du scénario.
+
 Une question au MJ sur la faisabilité d'un geste ne devient pas une parole à un PNJ voisin :
 le même réexamen exige le geste à préparer. Une question explicitement dite ou adressée à un
 personnage reste une parole.
@@ -546,14 +556,3 @@ contre-revue), cette explication a un seul essai : refusée ou manquée, le joue
 dans l'ordre, une fois chacun, dont les messages s'adressent à lui (« La lumière est trop faible pour
 lire avec précision. La torche n'a plus de combustible. ») ; sinon, après trois essais, un message sûr
 précise qu'aucun geste n'a été tenté.
-
-### Cible d'une intention racontée (lot 47)
-
-Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),
-l'analyse commune conserve aussi la cible nominale du prédicat (`cible_intention`), sans liste
-supplémentaire de verbes. Si le MJ en fait une parole, elle va à cette personne ; cela ne
-force pas une parole pour un geste. Une mention dans le corps d'une citation ne devient
-pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
-Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
-des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
-règle publique ; elle n'est pas devinée à partir de la ressource ou du scénario.

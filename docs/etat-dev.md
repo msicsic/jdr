@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-audience`, **non fusionnée**, lot 47, base d'intégration `60da18c`
+  (brief `d22190d`) : `destinataires` fixe une seule adresse, partagée par la prévision et la
+  validation sur copie. Sans nom, groupe ou échange à poursuivre, la parole à voix haute
+  va à la cantonade même avec quelqu'un en face. Un pronom individuel sans antécédent
+  et le chuchotement gardent le regard ; une cible nominale d'intention racontée est
+  conservée sans forcer le mode parole. Aucun choix d'audience libre de Luna ; revue des
+  mots et du contenu seule, refus d'adresse déterministe avec `attendu` avant elle.
+  Correctif signé SSH `2100c41`, signature vérifiée. Six tests nouveaux : Relais réel,
+  auberge, voix audible, adresse individuelle refusée puis corrigée, contenu contraire,
+  formes sans question et restitution/achat nommés ; sauvegarde et rendu contrôlés.
+  Luna, une passe des quatre scripts prescrits, référence `main` `42bb9c0` en cache :
+  68 → 63 appels, 22 → 19 tours MJ, 3,09 → 3,32 appels/tour ; aucun repli ou défaut
+  technique/de recharge. La question du bois est dite telle quelle à la cantonade,
+  quatre répondants, quatre appels dans les deux scripts, sans clarification d'audience.
+  Cette passe précède le dernier correctif d'analyse des intentions nominales : les
+  propositions initiales de restitution et d'achat qui y furent refusées sont rejouées
+  avec MJ simulé sur le code final, restitution et refus individuel d’achat vérifiés après recharge.
+  Suite complète unique, trois processus à priorité réduite : 1 733 tests, 16 ignorés,
+  1 488,9 s ; six échecs et douze erreurs initiaux (anciennes adresses implicites,
+  désignations tronquées). Après corrections et reprises ciblées : **166 fichiers validés,
+  1 734 tests couverts, 16 ignorés**, aucun défaut restant ; pas de seconde suite complète.
+  Reconnaissance syntaxique bornée, contenu encore sémantique ; aucune seconde passe Luna.
+  Aucun changement de scénario, de `deliberation.py` ou `echanges.py` ni de `planification.py` ;
+  `main` non touchée. [Rapport du lot 47](taches/rapport-codex-47-audience.md).
+
 - Branche `codex-geste-hors-portee`, fusionnée, base d'intégration `cd7195d`, lot 44 :
   une approche d'improvisation n'accorde plus de portée physique ; toutes ses cibles passent
   par `proximite.exiger`, comme le passage d'un obstacle. Le dossier des passages prépare

@@ -1664,6 +1664,16 @@ Le secours local ne contourne pas un refus de contenu. Une question directe deve
 conserve ses mots. Le choix de la transformer en parole reste à Luna ; une question au MJ
 n'est pas déjà prononcée. Un verbe sans propos demande les mots sans les inventer.
 
+
+Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),
+l'analyse commune conserve aussi la cible nominale du prédicat (`cible_intention`), sans liste
+supplémentaire de verbes. Si le MJ en fait une parole, elle va à cette personne ; cela ne
+force pas une parole pour un geste. Une mention dans le corps d'une citation ne devient
+pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
+Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
+des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
+règle publique ; elle n'est pas devinée à partir de la ressource ou du scénario.
+
 Chaque répondant est entendu avant le récit, même si sa réponse mécanique l'a fait s'écarter
 hors du champ visuel. Une voix qui répond d'une autre salle devient aussi un interlocuteur
 tant que chacun saisit les mots de l'autre ; elle ne révèle que son identité perçue. Les
@@ -1700,14 +1710,3 @@ l'imitation y rendra (X, une certitude moindre) pour la voix d'un autre, selon u
 contre l'oreille de l'auditeur ; la méfiance, une certitude « douteuse » pour une voix connue. Les
 appelants (`ouie.entendre`, `voix.identifie`, `voix.fiabilite`, `voix.se_nommer`, `ecoute`) lisent
 déjà la certitude ; `voix.connaitre` compare déjà la voix entendue à ce qu'elle a prétendu.
-
-### Cible d'une intention racontée (lot 47)
-
-Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),
-l'analyse commune conserve aussi la cible nominale du prédicat (`cible_intention`), sans liste
-supplémentaire de verbes. Si le MJ en fait une parole, elle va à cette personne ; cela ne
-force pas une parole pour un geste. Une mention dans le corps d'une citation ne devient
-pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
-Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
-des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
-règle publique ; elle n'est pas devinée à partir de la ressource ou du scénario.
