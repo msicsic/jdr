@@ -109,6 +109,27 @@ contre-revue d'action sait que chercher ou fouiller se fait par une perception s
 silencieux est attesté, que les mots de qui répond ne sont jamais fournis par les faits, et que ce que
 fait sentir un objet perçu dans son état (le feu allumé qui crépite) est ambiance.
 
+**Une perception est un geste complet** (branche `codex-perception-geste`). La table
+`moteur.PERCEPTIONS` déclare les perceptions du moteur ; `Plan.perception` en donne l'opération
+et la cible, sans anticiper ce qu'elle révèle. Ce dossier accompagne le plan et ses étapes
+dans la contre-revue, avec les désignations publiques. `Plan.realise_geste` admet une perception
+comme une information ou un effet, y compris après correction d'une proposition : l'écoute
+et l'observation d'une personne peuvent ne produire leur information qu'à l'exécution.
+La revue juge toujours le choix du geste et de sa cible. Après sauvegarde, `jeu.conclure`
+affiche directement le résultat d'une perception produit par le moteur : ce résultat est
+déjà le rendu de ce qui est perçu et ne demande pas une seconde rédaction et son audit.
+La règle distincte de
+`commandes.PERCEPTIONS`, qui borne l'exécution immédiate d'une question, reste inchangée.
+
+Le résultat positif ou négatif d'une perception active est une affirmation mécanique :
+il doit s'appuyer sur une perception exécutée, dans `resultat_resolu` ou les résultats
+enregistrés. Une proposition, la demande et l'absence de faits ne prouvent pas ce résultat.
+Sans source, l'audit le refuse comme invention mécanique ; une perception courante de l'état
+ne prouve que ce qu'elle décrit. L'ambiance reste libre lorsqu'elle ne conclut ni au résultat
+d'un geste ni à l'absence d'un élément mécanique. La reconnaissance de ce sens dans une phrase
+et le jugement de fidélité de la revue restent sémantiques : ce contrat ne garantit pas
+l'absence de toute mauvaise classification par Luna.
+
 **Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
 mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
 qu'elle est éclairée), ou un objet manipulable présenté comme ambiance, dépend de son
@@ -129,7 +150,8 @@ avec son lieu, sans création d'entité mécanique.
 L'interprétation ne demande plus une ignorance ajoutée à chaque réponse d'information ; la
 révision corrige la rupture désignée sans reprendre le vocabulaire de preuve du verdict.
 L'auditeur juge la compatibilité de l'ambiance et non la connaissance de sa cause : une absence
-de sensation peut aussi être une ambiance libre. Le contrôle lexical n'épuise pas toutes les
+de sensation peut aussi être une ambiance libre, sans conclure au résultat d'une perception active.
+Le contrôle lexical n'épuise pas toutes les
 paraphrases de méta-preuve : leur détection et les contradictions de sens restent sémantiques.
 
 ### Parole, références et audit après les noms (`codex-luna-noms`)

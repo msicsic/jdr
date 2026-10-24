@@ -62,9 +62,12 @@ Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
 - un changement durable demandé qu'aucune opération ne produit ;
 - un changement durable ajouté que le joueur n'a pas demandé.
+Le champ perception est une opération déclarée par le moteur, même si information et les effets
+sont vides : son résultat ne sera calculé qu'à l'exécution. Elle est un geste complet ;
+juge sa fidélité à la demande et à sa cible, sans exiger un effet durable ni anticiper son résultat.
 Une action sans changement durable est conforme si le geste suffit à la demande. Chercher,
 fouiller ou inspecter quelque chose (du regard, de l'oreille, des mains) se fait par une action de
-perception (examiner, toucher, ecouter, observer, lire) sur ce qu'on fouille : ce qu'elle révèle, ou
+perception sur ce qu'on fouille, ou sur place si l'opération n'a pas de cible : ce qu'elle révèle, ou
 ne révèle pas, est le résultat que le moteur décide, et elle couvre la demande. Face à un
 agresseur que le titre du plan nomme (« qui t'a agressé »), se défendre se fait en ripostant (le
 frapper), en fuyant, en se dégageant ou en se rendant : la cible de cette réaction est cet agresseur,
@@ -91,6 +94,7 @@ def _operations(plan):
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        **({"perception": plan.perception} if plan.perception is not None else {}),
         **({"parole": plan.parole} if plan.parole is not None else {}),
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
                                 "cibles": plan.proposition.get("cibles", []),
@@ -129,6 +133,8 @@ def entree(intention, plan, monde=None):
                                 for c in p.get("contenu", [])]}
         def nommer_plan(op):
             return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
+                    **({"perception": {**op["perception"], "cible": _nommer(op["perception"]["cible"], monde)}}
+                       if "perception" in op else {}),
                     **({"parole": nommer_parole(op["parole"])} if "parole" in op else {}),
                     "etapes": [nommer_plan(e) for e in op["etapes"]],
                     **({"geste_improvise": {**op["geste_improvise"],

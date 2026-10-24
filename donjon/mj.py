@@ -584,10 +584,9 @@ class MJ:
                         if p.get("action") not in PERCEPTIONS:
                             refus_du_moteur = exc
                     raise
-                if (premier_refus and not plan.effets and not plan.information
-                        and not any(etape.effets or etape.information for etape in plan.plans)):
+                if premier_refus and not plan.realise_geste:
                     raise ErreurMonde("La proposition corrigée ne réalise aucun effet de la manœuvre demandée.",
-                                      "garde les gestes de l'intention qui changent le monde ; si aucun n'est possible, "
+                                      "garde les gestes de l'intention qui changent le monde ou font percevoir ; si aucun n'est possible, "
                                       "réponds en dialogue sur l'obstacle.")
                 self._auditer_action(intention, plan, revision, monde)
                 break
