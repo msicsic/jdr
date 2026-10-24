@@ -5,9 +5,11 @@ de l'auditeur. L'accord réel appartient exclusivement à echanges.proposer.
 """
 from . import agendas, relations
 from .deliberation import _lieu_cru, salle_crue
+import json
 
 # Un seul devis récent par couple, sous les entrées complètes de la recherche.
 _DEVIS = {}
+_VERIFIES = {}
 
 
 def conditions(v, autre):
@@ -27,10 +29,18 @@ def _taches(v, autre):
     from .echanges import _devis_proposition
     def calculer():
         from . import planification as p
-        cle = v._memo(("entrees_propositions",), lambda: p._entrees(v, {}, p.PROFONDEUR, p.NOEUDS))
+        # Le service est devisé depuis le monde courant, indépendamment du but
+        # de la recherche qui envisage de le proposer.
+        cle = v._memo(("entrees_propositions",), lambda: p._entrees(p.Vue(v.monde, v.id), {}, p.PROFONDEUR, p.NOEUDS))
         precedent = _DEVIS.get((v.id, autre))
-        if precedent is not None and precedent[0] == cle and not p.VERIFIER:
-            return precedent[1]
+        brut = None
+        if p.VERIFIER:
+            # Preuve exhaustive, ordre des dictionnaires compris : dans exactement
+            # le même monde, refaire la même vérification imbriquée n'apprend rien.
+            brut = json.dumps(v.monde.data, ensure_ascii=False, check_circular=False)
+        if precedent is not None and precedent[0] == cle:
+            if not p.VERIFIER or _VERIFIES.get((v.id, autre)) == (cle, brut, precedent[1]):
+                return precedent[1]
         offres = []
         for condition in conditions(v, autre):
             if agendas.en_cours(v.monde, v.id, condition=condition, personne=autre, actifs=True):
@@ -40,6 +50,8 @@ def _taches(v, autre):
                 offres.append(({"type": "tache", "condition": condition}, devis[0]))
         if p.VERIFIER and precedent is not None and precedent[0] == cle:
             assert precedent[1] == offres, f"Devis de proposition périmé ({v.id}, {autre}) : {precedent[1]} au lieu de {offres}"
+        if p.VERIFIER:
+            _VERIFIES[v.id, autre] = cle, brut, offres
         _DEVIS[v.id, autre] = cle, offres
         return offres
     return v._memo(("offres_taches", autre), calculer)
@@ -48,10 +60,12 @@ def _taches(v, autre):
 def offres(v, e, autre):
     from .caractere import prix_faute
     from .echanges import valeur_proposition
+    from .spatial import porte_par
     # Les pièces s'offrent au prix connu du bien demandé ; le montant est ajouté par gestes.
     for o in sorted(e.portes):
         x = v.objets[o]
-        if v.proprietaire.get(o) != v.id or not x.get("mobile") or e.fait("offert", o):
+        if (v.proprietaire.get(o) != v.id or not x.get("mobile") or e.fait("offert", o)
+                or not porte_par(v.monde, o, v.id)):
             continue
         if x["type"] in ("personnage", "depouille"):
             continue
@@ -61,7 +75,7 @@ def offres(v, e, autre):
             continue
         cout = valeur_proposition(v.monde, v.id, terme, autre)
         from .deliberation import parts
-        garde = part and parts(x) > 1
+        garde = part and porte_par(v.monde, o, v.id) and parts(x) > 1
         yield terme, cout, e.portes if garde else e.portes - {o}, [(("offert", o), True),
               *([] if garde else [(("lieu", o), autre)])], 0
     # Un devis porte sur les moyens présents, pas sur des acquisitions encore hypothétiques.

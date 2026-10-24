@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tests.support import refusee, regarder, sans_evacues
+from tests.support import refusee, regarder, sans_evacues, propositions_refusees
 from donjon import banc_pnj
 from donjon.defi import nouveau_defi
 from donjon.esprits import lire, percoit
@@ -75,7 +75,7 @@ class GardeMangerTests(unittest.TestCase):
                         textes.index("Brune, batelière évacuée crochète la serrure de la réserve de vivres sans forcer."))
 
     def test_sous_les_yeux_du_joueur_elle_attend_puis_renonce(self):
-        m = relais()
+        m = propositions_refusees(relais(), "brune")
         # Placement d'auteur : le joueur s'est assis près de la réserve, sa lanterne allumée, et la regarde.
         m.joueur["position"] = [6, 4]
         regarder(m, "joueur", "reserve")
@@ -88,7 +88,7 @@ class GardeMangerTests(unittest.TestCase):
         self.assertNotIn("crochète", texte)
 
     def test_crochets_disparus_elle_replanifie_et_reste_sans_plan(self):
-        m = relais()
+        m = propositions_refusees(relais(), "brune")
         # Cette scène exclut le forçage : à douceur 75, Brune peut désormais prévoir des coups.
         m.objets["brune"]["profil"]["valeurs"]["douceur"] = 100
         # Placement d'auteur : le joueur a pris la trousse avant que Brune ne s'en occupe.
