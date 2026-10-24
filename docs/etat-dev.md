@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-refuge-mouille`, **non fusionnée**, base `63a717c`, lot 39 :
+  **diagnostic seul, conformément au point d'arrêt du brief** (cause dans les trajets réservés
+  au lot 38). Crue 500, même joueur passif que l'audit : Aubin choisit la galerie à 156 min,
+  Brune le poêle à 160, mais la marche refuse leurs salles intermédiaires attendues noyées ;
+  le planificateur ne contrôle que la destination. À 182, la conduite réellement noyée coupe
+  aussi la recherche ; Ilse ne tente son recours au froid qu'à 360, Aubin à 404. Aucun répit
+  de chaleur ou de sécurité ni refus social n'explique le premier blocage. Route estimée
+  0,789 min, eau attendue avec un horizon de 60 min : contrat de traversée/séjour à reprendre
+  ensemble dans `Vue.descente`, `Vue.route`, `trajet_estime.parcours` et `pnj._marcher`.
+  Rejeu de 12 h : empreintes identiques à la nuit `ffcc295` conservée, mesures de jeu identiques
+  (865 minutes·PNJ dans l'eau, 495 sans recours, 1 100 en attente, zéro usurpation/écart).
+  Deux captures livrées (crue 500 à 160 ; scène d'auteur à 100), diagnostic reproductible par
+  `tools/diagnostic_refuge_mouille.py` : plans trouvés, marche impossible, monde et rendu identiques
+  après sauvegarde/recharge et vingt minutes en un bloc ou par minutes. Test historique du détour
+  dangereux vert (deux personnes). Aucun code du jeu ni fichier réservé modifié ; invariant
+  **non garanti**, pas de correctif revendiqué. Pas de banc comparatif ni suite complète relancés
+  pour cette livraison de diagnostic. [Rapport du lot 39](taches/rapport-codex-39-refuge-mouille.md).
+  Bruts : `artifacts/codex-39/` du worktree.
+
 - Branche `codex-chercher-appeler`, fusionnée, base `da13f9d`, lot 37 : les lieux
   cherchés en vain restent écartés jusqu'à un nouvel indice local ; ni une absence, ni le
   temps, ni une recharge ne réactivent la tournée. Réouverture commune par la croyance de
