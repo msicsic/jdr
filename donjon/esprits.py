@@ -81,8 +81,8 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           # Le dernier appel à l'aide et la fin de son désarroi : ce suivi de recours ne doit
           # pas disparaître avec les quarante souvenirs de la mémoire courante.
           "secours": lambda: None,
-          # Salles examinées sans y retrouver la personne cherchée ; mêmes délais que les
-          # appels sans réponse, indépendamment de la mémoire courante et des voix anonymes.
+          # Salles examinées sans y retrouver la personne cherchée, jusqu'à un nouvel indice
+          # local, indépendamment de la mémoire courante et du temps écoulé.
           "recherches": dict}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
@@ -107,11 +107,12 @@ def installer(monde):
     personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
+        migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
         for souvenir in e["memoire"]:
-            if souvenir["type"] == "appel_sans_reponse":
+            if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
                 salles = e["recherches"].setdefault(souvenir["qui"], {})
                 salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
         if e["secours"] is None:
@@ -313,6 +314,11 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
+        # Un indice positif rouvre ce lieu seul, même après un appel dans la même minute.
+        # Une absence ne dit rien de neuf sur les autres salles déjà parcourues.
+        from .deliberation import indice_recherche
+        indice_recherche(monde, id, valeur, sujet)
     if attribut == "etat" and (valeur.get("conscient") is False or valeur.get("reddition")):
         from .defense import constater_fin
         constater_fin(monde, id, sujet)

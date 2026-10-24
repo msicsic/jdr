@@ -53,7 +53,6 @@ ATTENTE_PART = 60      # minutes pendant lesquelles on attend la part promise av
 REVOIR_FEU = 30        # un feu vu vif doit être revu avant que ce qui lui restait ne s'épuise
 DESESPOIR = 95         # au-delà, le besoin l'emporte sur la crainte d'être vu ; sans abri, on appelle
 APPEL_REPIT = 10       # minutes entre deux appels à l'aide
-APPEL_OUBLI = 60       # minutes pendant lesquelles une salle où l'on a hélé en vain compte pour parcourue
 # L'effet de seuil (``urgents``) : apaisé, un besoin ne presse de nouveau qu'à son seuil + REPRISE ;
 # il n'interrompt le plan en cours d'un autre besoin que s'il presse plus que lui d'INERTIE.
 REPRISE = 15
@@ -417,18 +416,22 @@ def moyens_crus(monde, id, s, connus=None):
 
 
 def appels_vains(monde, id, qui):
-    """Salles examinées sans retrouver ``qui``, ou hélées sans réponse, depuis qu'il ne sait plus
-    où il est et depuis moins de ``APPEL_OUBLI`` minutes. Une réponse anonyme ne retrouve pas
-    la personne cherchée : elle ne doit pas effacer le résultat de la recherche sur place."""
-    e = lire(monde, id)
-    depuis = (e["croyances"].get(qui, {}).get("lieu") or {}).get("minute", -1)
-    minute = monde.data["minutes"]
-    return {s for s, t in e["recherches"].get(qui, {}).items() if t >= depuis and minute - t < APPEL_OUBLI}
+    """Lieux cherchés en vain, jusqu'à un nouvel indice dans ce lieu (``esprits.croire``,
+    ``ouie._bruit_inconnu``). Ni le temps écoulé ni un constat d'absence ne les rouvrent."""
+    return set(lire(monde, id)["recherches"].get(qui, {}))
 
 
 def recherche_vaine(monde, id, qui, salle):
     """Le résultat d'une recherche se retient comme celui d'une demande, hors mémoire bornée."""
     esprit(monde, id)["recherches"].setdefault(qui, {})[salle] = monde.data["minutes"]
+
+
+def indice_recherche(monde, id, salle, qui=None):
+    """Un nouvel indice rouvre ce lieu pour la personne identifiée, sinon pour les personnes
+    cherchées, sans attribuer l'indice à l'une d'elles ni rouvrir les autres lieux."""
+    recherches = esprit(monde, id)["recherches"]
+    for sujet in ([qui] if qui is not None else recherches):
+        recherches.get(sujet, {}).pop(salle, None)
 
 
 def cherche(monde, id, qui):

@@ -148,17 +148,13 @@ class RechercheTests(unittest.TestCase):
         from donjon import pnj
         debut = instant(m)
         cris = []
-        derniers = {}
         heler = pnj.heler
         def observer(monde, id, cible, lignes):
             if id == qui:
                 lieu = lire(monde, id)['croyances'].get(cible, {}).get('lieu') or {}
                 t, salle, depuis = instant(monde), monde.objets[id]['lieu'], lieu.get('minute', -1)
                 cris.append((t, cible, salle, depuis))
-                avant = derniers.get((cible, salle))
-                if avant is not None and t - avant < D.APPEL_OUBLI * 600:
-                    self.assertGreater(depuis, avant // 600, cris)
-                derniers[cible, salle] = t
+                self.assertNotIn(salle, D.appels_vains(monde, id, cible), cris)
             return heler(monde, id, cible, lignes)
         # Le journal du monde ne garde que 300 entrées ; observer la période entière évite
         # qu'une rafale d'échanges masque ses propres premiers appels.
