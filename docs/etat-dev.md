@@ -30,7 +30,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `pnj._a_portee_de`, inchangé. `comparer_bancs --empreintes` contre 19b0261, 2 h, quatre scénarios ×
   4 graines : chronique, mesures et état final complet identiques nuit par nuit. `VERIFIER` +
   `spatial.VERIFICATION` 1 sur 2 h, graine 42, mine et auberge : sans écart, aucune borne. Tests
-  `test_trajets_reels`, `test_echelle_choix`, `test_agendas_socle`, `test_planif_cout` : 23 tests, verts.
+  `test_trajets_reels`, `test_echelle_choix`, `test_agendas_socle`, `test_planif_cout` : 23 tests, verts. Suite complète
+  une fois sur la fusion (ecbbed7, `tools/tests.py --processus 4`) : **1 661 tests, 15 sautés**, verte (1 678 s).
 
 - Branche `codex-nom-non-relie`, fusionnée, base `ea4d562` (lot 26 `64351b2`) :
   résolution nominale commune dans `noms.personnage`, contrôle lexical avant saisie locale,
@@ -2303,8 +2304,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite complète passe : **1 659 tests, 15 ignorés**, sans appel au modèle (intégration 2917a62, après
-  R, A0, A1, `cache-references`, lots 25, 26 et 27 ; `tools/tests.py --processus 4`, 1 905 s, aucun échec ni erreur),
+- La suite complète passe : **1 661 tests, 15 ignorés**, sans appel au modèle (intégration ecbbed7, après
+  R, A0, A1, `cache-references`, lots 25, 26, 27 et 28 ; `tools/tests.py --processus 4`, 1 678 s, aucun échec ni erreur),
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
