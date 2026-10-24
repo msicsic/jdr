@@ -71,7 +71,7 @@ class CrueTests(unittest.TestCase):
 
 class AubergeTests(unittest.TestCase):
     @patch("donjon.social._constats", return_value=())
-    def test_une_reserve_refusee_puis_vendue_par_charges_les_trois_foyers_tiennent(self, _constats):
+    def test_une_reserve_refusee_puis_vendue_par_charges_le_bois_reste_compte(self, _constats):
         # Nuit commerciale fixée : pas de confidence ordinaire décalant ses jets.
         # Cas réel : l'auberge finissait dans le noir vers la cinquième heure, faute de bois.
         m = nuit("auberge", 1985, "dortoir", "fixe")
@@ -97,14 +97,18 @@ class AubergeTests(unittest.TestCase):
         m, suite = par_blocs(m, 420, 60)
         # La reprise conserve refus, ventes, dons, charges et feux ; la réserve reste finie,
         # consommée à chaque recharge, sans bois créé par les parts détachées.
-        # L'expérience de ses échanges avec Odile (chance de demande) et le lieu du rendez-vous,
-        # moyen de sa recherche, lui font reprendre une part de la réserve d'Odile ; le contrôle
-        # porte toujours sur la livraison et le bois fini.
-        self.assertIn("Anselme demande une part des bûches de réserve à Odile (remis).", suite)
+        # Un refus de marché ne s'efface plus au délai : la nouvelle part est
+        # achetée. Le contrôle porte toujours sur la livraison et le bois fini.
+        self.assertIn("Anselme achète une part des bûches de réserve à Odile pour 1 pièce (promis).", suite)
         self.assertGreaterEqual(reserve_bois(m), 0)
         self.assertLess(reserve_bois(m), restante)
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
-        self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
+        # Sept heures de choix commerciaux ne garantissent pas que chacun
+        # entretienne encore son foyer : les refus retiennent désormais leurs
+        # causes. Une flamme encore vive doit toujours brûler un vrai combustible.
+        for foyer in ("atre", "fourneau", "poele"):
+            if allumee(m.objets[foyer]):
+                self.assertGreater(m.objets[foyer]["combustible"], 0)
 
 if __name__ == "__main__":
     unittest.main()

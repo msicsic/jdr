@@ -240,7 +240,7 @@ def _disponible_cru(monde, id, objet):
 # et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
 # part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
 CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien")
-DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre")
 
 
 def _meme_demande(s, autre, operations, objet, besoin):
@@ -260,7 +260,17 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
     if raison == "qui_va_la":
         return
     oublier_refus(monde, id, autre, operation, detail.get("objet"), detail.get("besoin"))
+    if operation == "acheter":
+        # L'achat est la nouvelle réponse à cette demande de bien. À minute
+        # égale, l'ancien refus gratuit ne doit pas cacher celui du marché.
+        oublier_refus(monde, id, autre, "demander", detail.get("objet"), detail.get("besoin"))
     s = {"de": autre, "operation": operation, "raison": raison, "minute": monde.data["minutes"], **detail}
+    if operation == "acheter" and detail.get("prix") and detail.get("objet"):
+        from .pnj_propositions import entrees_refus
+        s["offre"] = entrees_refus(monde, id, autre, detail["objet"],
+                                   {"type": "pieces", "montant": detail["prix"]})
+        if raison == "refus":
+            s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
     if raison in CAUSES:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
@@ -291,6 +301,12 @@ def tient(monde, id, s, connus=None):
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
     lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
     Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if "offre" in s:
+        from .biens import prix
+        from .pnj_propositions import refus_tient
+        montant = ((prix(monde, s["objet"], besoin_de_part(monde.objets[s["objet"]]) is not None)
+                    or s.get("prix", 0)) if s["operation"] == "acheter" else s["offre"]["gain"])
+        return refus_tient(monde, id, s, {"type": "pieces", "montant": montant})
     if s["raison"] in CAUSES and "cause" in s:
         avant = {tuple(f) for f in s["cause"]}
         return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))

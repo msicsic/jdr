@@ -153,16 +153,20 @@ class QuoiTests(unittest.TestCase):
     def test_cas_reel_mine_josse_dit_ce_qu_il_veut_gaspard_le_fait_venir(self):
         """Mine (graine 2024) : Josse hèle Gaspard pour une part de ses bûches (le poêle qu'il garde
         baisse). Gaspard demande ce qu'il veut ; une demande de ce qu'il n'a pas sur lui ne le fait pas
-        venir : « Ici, viens ! » ; Josse répond « J'arrive ! », le rejoint, et la part est promise."""
+        venir : « Ici, viens ! » ; Josse répond « J'arrive ! », le rejoint, et demande sa part."""
         m = josse_cherche_gaspard()
         m = suivre(m, 10, lambda m: "Gaspard répond : « Ici, viens ! »" in chronique(m))
         textes = chronique(m)
         suite = ["Gaspard répond : « Qu'est-ce que tu veux ? »", "Josse répond : « J'ai quelque chose à te demander. »",
                  "Gaspard répond : « Ici, viens ! »", "Josse répond : « J'arrive ! »"]
         self.assertEqual([t for t in textes if t in suite], suite)
-        m = suivre(m, 4, lambda m: "Josse demande une part des bûches de Gaspard à Gaspard (promis)." in chronique(m))
+        demande = "Josse demande une part des bûches de Gaspard à Gaspard ("
+        m = suivre(m, 4, lambda m: any(t.startswith(demande) for t in chronique(m)))
         self.assertIn("Gaspard retrouve Josse, comme convenu.", chronique(m))
-        self.assertIn("Josse demande une part des bûches de Gaspard à Gaspard (promis).", chronique(m))
+        self.assertTrue(any(t.startswith(demande) for t in chronique(m)))
+        # L'accord de rendez-vous aboutit à la demande ; le jet de partage
+        # et son éventuel recours ne font pas partie du contrat de l'appel.
+        self.assertIsNone(lire(m, "josse")["rejoindre"])
 
     def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
         d_un_bloc, morcele = decouper(lambda: recharger(hugues_cherche_anselme()), 4)
