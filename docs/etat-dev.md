@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-trajet-estime`, **non fusionnée**, base d'intégration `ecbbed7`
+  (brief `e282120`, code signé SSH `9f4bf2f`, `500d917`) : la recherche estime les trajets par salle,
+  l'exécution garde le parcours réel. `Etat` ne distingue plus case ni orientation ; allure
+  conservée pour les gestes sans témoin. Moyenne des trajets depuis les entrées, propre à la
+  géométrie, obstacles/franchissements crus et portes comptés, pression par salle ; coût unique
+  `obstacles.cout_route`. `Vue` et `part_estimee` partagent ce modèle, `_entrees` l'identifie.
+  74 tests ciblés verts ; suite complète unique : **1 663 tests, quatre ignorés**, 729 s ;
+  cinq échecs initiaux résolus, 96 tests en seules reprises ciblées, tous verts. Relais et mine :
+  même plan depuis deux positions après recharge, durée exécutée et perception persistée ; grande salle plus chère.
+  Erreur locale, 1 898 trajets : médiane 3,20 s, pire 14,05 s ; ce n'est pas une borne globale.
+  CPU, trois versions ensemble, 4 h, 42/1985 : mine 7,102 → 12,484 → 11,648 s,
+  auberge 5,992 → 12,508 → 11,109 s (`42bb9c0` → base → branche) ; nœuds environ divisés
+  par deux contre la base, aucune borne sur ces douze nuits. **Cible ×1,3 non atteinte**
+  (×1,64 / ×1,85 contre l'ancien). Banc rapide quatre scénarios × quatre graines, 4 h :
+  aucun plantage/usurpation/violation ; pas de rafale, mais répétition sociale nouvelle mine 7
+  et alternance supplémentaire mine 7 ; crue : passages maximaux 36 → 32.
+  `VERIFIER` + contrôle spatial 1, 2 h, mine/auberge 42 : aucun écart. Aucun appel Luna ; priorité réduite, quatre travailleurs au plus.
+  Limites : composantes d'une salle coupée, contacts sans entrée accessible, occupation mobile,
+  détours locaux et absence stricte de toute répétition nouvelle. [Rapport du lot 30](taches/rapport-codex-30-trajet-estime.md).
+
+
 - Branche `codex-cout-trajets`, fusionnée, base **0ac6b15** (brief **ff33ef0**) :
   invariant de Q conservé, décisions/coûts/ordre/recherches/nœuds identiques. Deux leviers exacts,
   commits signés : partage LRU des parcours crus sous géométrie, obstacles, portes, clés, origine,
@@ -2372,12 +2393,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   inaccessible aussi dans le plan. Coût : +4 à +5 % au processeur, dont la preuve de domination et sa clé.
 - Trajets réels (`codex-trajets-reels`, fusionnée) : le coût en minutes abstraites par salle est
   réglé (`obstacles.cout_route`, une seule mesure). Restent :
-  - **temps de calcul ×3,7 à ×4,8** (mine, auberge, 8 h) et recherches bornées plus fréquentes dans l'espace
-    enrichi (mine 42 : 8 → 91 ; Bram `lumiere` 463-465 en est une, nouvelle) ; à réduire avant d'empiler
-    d'autres lots sur le planificateur. Après le lot 28 (`codex-cout-trajets`, parcours crus et cases de
-    contact partagés, −18 % / −15 %), le coût reste **×1,70 (mine) et ×2,33 (auberge) contre 42bb9c0 sur
-    4 h** (graines 42 et 1985) ; le temps est dans `_explorer_etats` (39,9 % / 53,1 %), surtout la
-    génération des gestes (22,1 % / 35,0 %) ;
+  - après le lot 30 (`codex-trajet-estime`, non fusionnée), la position est retirée des états
+    et les trajets sont estimés par salle : nœuds environ divisés par deux contre l'intégration
+    `ecbbed7`, mais CPU encore **×1,64 (mine) / ×1,85 (auberge)** contre `42bb9c0` sur 4 h,
+    graines 42/1985. Cible ×1,3 non atteinte ; le lot ne prouve pas l'absence stricte de toute
+    répétition nouvelle (lecture sociale mine 7). Les salles coupées ne distinguent plus la
+    composante de départ ; les approches locales peuvent échouer au contrôle réel ;
   - l'échelle des préférences inchangée (`DEMANDE`, `CHERCHER`, `TACHE`, `RESTER` face à des trajets de
     quelques secondes) ;
   - **fuite ↔ sécurité** (déjà sur `main`, Relais 2024 à 12 h : Ilse 165 passages en une heure ; après la
