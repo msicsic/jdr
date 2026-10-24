@@ -27,12 +27,12 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper", "assommer", "dans_le_dos", "ranimer", "fuite", "se_rendre", "degager",
-              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
+              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
 # demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
 # engager : payer quelqu'un pour une tâche (``echanges.engager``).
-SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager")
+SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes passées à attendre une occasion (ou un passage) avant de renoncer
@@ -263,6 +263,10 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
     if raison in CAUSES:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
+    intention = lire(monde, id)["intention"]
+    if operation in ("demander", "acheter") and detail.get("objet") and intention:
+        esprit(monde, id)["demande_refusee"] = {"de": autre, "objet": detail["objet"],
+                                                "besoin": intention["motif"]}
 
 
 def oublier_refus(monde, id, autre, operation, objet=None, besoin=None):
@@ -1617,6 +1621,10 @@ def choisir(monde, id, minute):
     if resultat:
         besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
         but, etapes = _attendre_qui_vient(monde, id, resultat)
+        from .pnj_propositions import recours
+        offre = recours(monde, id, besoin, etapes)
+        if offre:
+            etapes = [offre]
         if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
             return
         intention = e["intention"]
@@ -1630,7 +1638,12 @@ def choisir(monde, id, minute):
         _classer(monde, id, pressants, liste, essais, minute)
         stratege.occupe(monde, id)
         return
-    e["intention"] = None
+    from .pnj_propositions import recours
+    refusee = e["demande_refusee"]
+    offre = recours(monde, id, refusee["besoin"], []) if refusee else None
+    e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
+                       "motif": refusee["besoin"], "plan": [offre], "depuis": minute, "attente": 0}
+                      if offre else None)
     _classer(monde, id, pressants, liste, essais, minute)
     stratege.desoeuvre(monde, id, minute, urgents(monde, id))
 

@@ -117,7 +117,7 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
     from .spatial import porte_par, proche
     from .vol import proprietaire
     from .propositions import verifier
-    verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie})
+    verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie}, proposant=proposant)
     original, monde = monde, monde.copier()
     for terme, de, a in ((demande, auditeur, proposant), (contrepartie, proposant, auditeur)):
         if terme["type"] == "tache" and agendas.en_cours(
@@ -128,6 +128,10 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
     # Les remises présentes exigent le contact ; parler de loin ne téléporte aucun bien.
     if not proche(monde, auditeur, proposant):
         return {"cause": "portee"}
+    # L'auditeur qui refuse même de traiter n'a aucun devis de livraison à faire.
+    # Même évaluation que pour un marché recevable, avant les recherches matérielles.
+    if accueil(monde, proposant, auditeur):
+        return evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
     for terme, de in ((demande, auditeur), (contrepartie, proposant)):
         if terme["type"] in ("objet", "part"):
             o = monde.objets[terme["objet"]]
@@ -166,7 +170,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
             donner(monde, objet, a)
             deplacer(monde, objet, a)
             if a != "joueur":
-                memoriser(monde, a, {"type": "recu", "de": de, "objet": objet, "livraison": True})
+                memoriser(monde, a, {"type": "recu", "de": de, "objet": objet, "livraison": True,
+                                     **({"lot": terme["objet"]} if t == "part" else {})})
         elif t == "pieces":
             payer(monde, de, a, terme["montant"])
         elif t == "tache":
@@ -180,7 +185,7 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
         from .voix import identifie
         if identifie(monde, auditeur, proposant) and doit(monde, auditeur, proposant):
             memoriser(monde, auditeur, {"type": "dette_honoree", "de": proposant, "service": "demande"})
-    original.data = monde.data
+    original.adopter(monde)
     return dict(bilan, cause=None, accepte=True)
 
 
@@ -993,6 +998,9 @@ def executer(monde, id, etape, lignes):
         transmis = [{"type": "affirmation", **{k: contenu[k] for k in ("sujet", "attribut", "valeur")}}]
         memoriser(monde, id, {"type": "dit", "a": autre, "sujet": contenu["sujet"], "attribut": contenu["attribut"],
                               "valeur": contenu["valeur"]})
+    elif op == "proposer":
+        from .pnj_propositions import executer
+        return executer(monde, id, autre, contenu, lignes)
     elif op == "demander" and "ressource" in contenu:
         # « As-tu du bois ? » : il répond par ce qu'il a vraiment, et l'autre l'apprend.
         issue, dit = enqueter(monde, id, autre, contenu["ressource"])

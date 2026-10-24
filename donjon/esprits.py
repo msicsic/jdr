@@ -48,6 +48,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
+          "recours_propositions": list, "demande_refusee": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
@@ -218,6 +219,8 @@ def verifier(monde):
         assert set(e) == set(CHAMPS), "Esprit mal formé"
         from .relations import verifier as verifier_relations
         verifier_relations(monde, id)
+        from .pnj_propositions import verifier as verifier_recours
+        verifier_recours(e)
         p = monde.objets[id].get("profil")
         if p is not None:
             from .deliberation import verifier_profil

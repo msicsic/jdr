@@ -11,7 +11,7 @@ from unittest.mock import patch
 from tests.support import refusee, regarder, sans_evacues
 from donjon import banc_pnj
 from donjon.defi import nouveau_defi
-from donjon.esprits import lire, percoit
+from donjon.esprits import lire, percoit, percevoir_tous
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
@@ -76,6 +76,8 @@ class GardeMangerTests(unittest.TestCase):
 
     def test_sous_les_yeux_du_joueur_elle_attend_puis_renonce(self):
         m = relais()
+        from donjon import relations
+        lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
         # Placement d'auteur : le joueur s'est assis près de la réserve, sa lanterne allumée, et la regarde.
         m.joueur["position"] = [6, 4]
         regarder(m, "joueur", "reserve")
@@ -131,6 +133,13 @@ class GardeMangerTests(unittest.TestCase):
         # Elle l'a vu s'asseoir dans l'angle et le sait à portée d'oreille (branche ``ouie-temoins``) :
         # à bout de faim, elle force quand même (``pnj.desespere``).
         lire(m, "brune")["besoins"]["faim"] = 96.0
+        # Elle a déjà épuisé le recours avec ses outils : la scène porte sur le guet caché.
+        from donjon.pnj_propositions import _entrees
+        m.objets["crochets"]["lieu"] = "brune"
+        m.objets["crochets"].pop("position", None)
+        percevoir_tous(m)
+        lire(m, "brune")["recours_propositions"] = [_entrees(
+            m, "brune", "marchand", "faim", {"type": "part", "objet": "vivres"})]
         m, _ = attendre(m, 4)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         souvenirs = [s for s in lire(m, "marchand")["memoire"] if s["type"] == "vu_agir"]

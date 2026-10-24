@@ -40,17 +40,16 @@ class CrueTests(unittest.TestCase):
         # Gorm peut refuser Brune ; les trajets et échanges déterminent le bois
         # qu'elle obtient. Toute recharge doit consommer une ressource du monde.
         m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
-        # La traversée brève permise par le contrat commun laisse Brune
-        # rejoindre le feu : elle le rallume avec une des deux planches prises.
-        # Le feu ne doit jamais être entretenu avec du bois fictif.
-        self.assertTrue(allumee(m.objets["poele_guet"]))
+        # Les recours refusés changent les trajets de cette nuit : Brune ne prend
+        # pas les planches et ne rallume pas le poêle. Aucun bois fictif ne le recharge.
+        self.assertFalse(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
         # Les signes changent les occasions : cette nuit ne demande plus les bûches.
         # Le bois gardé reste intact ; une des deux planches prises a alimenté le poêle.
         self.assertEqual(m.objets["bois_guet"]["charges"], 3)
         self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
-        self.assertIn("Brune, batelière évacuée prend les planches de bac.", textes)
-        self.assertEqual(m.objets["planches"]["charges"], 1)
+        self.assertNotIn("Brune, batelière évacuée prend les planches de bac.", textes)
+        self.assertEqual(m.objets["planches"]["charges"], 2)
         self.assertEqual(m.objets["planches"]["proprietaire"], "aubin")
         # La capacité de rejoindre le feu haut reste vérifiée dans la même crue,
         # avant son extinction, depuis le palier voisin (et après recharge).
@@ -82,7 +81,8 @@ class AubergeTests(unittest.TestCase):
         # réserve à Anselme, puis la lui vend ; portée, la réserve ne passe pas entière, il reçoit
         # une charge qu'il consomme et Odile garde le lot. Les trois foyers restent entretenus.
         self.assertIn("Anselme demande une part des bûches de réserve à Odile (refus).", textes)
-        self.assertIn("Anselme achète une part des bûches de réserve à Odile pour 1 pièce (vendu).", textes)
+        self.assertTrue(any("Anselme propose à Odile " in t and
+                            "contre une part des bûches de réserve (accepte)." in t for t in textes))
         self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
         recus = [s["objet"] for s in lire(m, "anselme")["memoire"]
