@@ -2244,6 +2244,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   ressort, après une demande refusée ou avant une faute contre quelqu'un, jamais un geste comparé dans la
   recherche ; contreparties portées et pièces d'abord, tâches promises ensuite. Les lots 33 et 36
   (`codex-pnj-proposent`, `codex-proposer-cout`) ne sont pas fusionnés.
+- **Un gardien en détresse agit sans partir** (Bram, mine 42, 12 h : la paie gardée contre Odon, le bureau
+  noir de 450 à 720, sécurité 100 et faim « en attente » sans aucun geste ; même blocage sur 42bb9c0 après deux
+  allers vers la lumière) : il garde son bien, mais une détresse qui dure le fait appeler à l'aide ou demander
+  qu'on lui apporte de la lumière ou qu'on la lui allume, sans quitter ce qu'il garde. La peur ne lève pas la
+  garde. À vérifier d'abord : pourquoi l'appel à l'aide existant ne part pas, et s'il croit encore Odon là
+  (garde à 100 après le départ d'Odon vers 600).
 - **Le coût des bancs est à résoudre** avant d'avancer `main` : après le lot 38, une nuit de 12 h coûte
   encore ×3 contre 42bb9c0 (mine, auberge).
 
