@@ -29,6 +29,15 @@ Le texte accepté est affiché **tel que Luna l'a écrit**. Les ambiances du lie
 reviennent dans le contexte suivant (`ambiance_etablie`), ce qui permet à Luna de rester
 cohérente et à l'auditeur de refuser une ambiance qui les contredit.
 
+**Portée mécanique indépendante de la forme** (`codex-contenu-vide`, lot 59). Chaque segment
+du rapport d'audit porte aussi `portee_mecanique` : `aucune`, `etablie` (avec sources),
+`sans_fondement` ou `contradictoire` (avec sources). Le moteur vérifie ce champ quel que soit
+le verdict, y compris `parole` : une citation n'autorise pas à fixer les effets ou conditions
+d'une opération. La croyance fausse rapportée par un PNJ n'en devient toujours pas vraie.
+La portée sans fondement ou contradictoire est refusée avant affichage et à l'enregistrement ;
+une portée établie sans source est refusée, un rapport sans ce champ est illisible.
+Reconnaître cette portée et juger la pertinence de sa source restent sémantiques.
+
 **Garde-fou déterministe.** Les noms et alias de toutes les entités du monde, y compris
 cachées, et les noms des salles forment un lexique dérivé de l'état
 ([donjon/lexique.py](../donjon/lexique.py)). Un terme du lexique présent dans le texte mais
@@ -188,8 +197,12 @@ sinon le même défaut par le regard. Cette décision commune alimente `parole_p
 validation avant toute mutation ; Luna ne choisit plus parmi des audiences libres.
 Une audience contraire à la saisie est refusée avec `attendu`, avant la contre-revue.
 La contre-revue des paroles à adresse implicite juge encore le contenu et les mots ;
-elle ne décide plus de l'audience. Deux contenus refusés demandent les mots du joueur,
-sans lui demander à qui parler. Le secours local ne contourne pas ce refus.
+elle ne décide plus de l'audience. Les mots exacts de la saisie avec un contenu vide ou `propos`
+n'ont aucune interprétation ni effet typé à revoir : leur fidélité est déterministe.
+Deux contenus refusés écartent le typage proposé : si la saisie fournit ses mots, le moteur
+les prépare sur l'état original sans contenu typé, avec l'audience commune et ses contrôles
+habituels. Aucune conséquence des copies refusées ne passe. Sinon, le joueur donne ses mots,
+sans devoir préciser une audience déjà fixée.
 Une question directe choisie comme parole conserve exactement les mots saisis.
 
 Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),

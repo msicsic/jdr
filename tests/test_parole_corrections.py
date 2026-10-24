@@ -42,7 +42,7 @@ def banc(nom):
 
 
 def ligne(verdict, locuteur="", citation="", sources=()):
-    return {"verdict": verdict, "sources": list(sources), "locuteur": locuteur, "citation": citation,
+    return {"portee_mecanique": "aucune", "verdict": verdict, "sources": list(sources), "locuteur": locuteur, "citation": citation,
             "entites": [], "motif": ""}
 
 

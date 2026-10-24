@@ -21,7 +21,7 @@ def dialogue(texte):
 
 
 def segment(verdict, sources=(), locuteur="", citation="", motif="", entites=()):
-    return {"segments": [{"indice": 0, "verdict": verdict, "sources": list(sources),
+    return {"segments": [{"portee_mecanique": "aucune", "indice": 0, "verdict": verdict, "sources": list(sources),
                            "locuteur": locuteur, "citation": citation, "entites": list(entites),
                            "motif": motif}]}
 
@@ -47,7 +47,7 @@ class NarrationTests(unittest.TestCase):
     def test_rapport_par_cle_d_indice(self):
         from donjon.narration import AuditIllisible
         texte = "La porte est fermée. Une odeur de cire flotte."
-        ligne = {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "", "entites": [], "motif": ""}
+        ligne = {"portee_mecanique": "aucune", "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "", "entites": [], "motif": ""}
         rapport = controler(texte, {"segments": {"0": ligne, "1": ligne}}, {})
         self.assertEqual([l["indice"] for l in rapport["segments"]], [0, 1])
         # Un segment sauté ou ajouté rend le rapport illisible : une faute de l'auditeur.
@@ -58,7 +58,7 @@ class NarrationTests(unittest.TestCase):
     def test_audit_illisible_redemande_avant_de_refuser_le_texte(self):
         texte = "Une odeur de cire flotte."
         illisible = {"segments": {}}
-        lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+        lisible = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
                                       "entites": [], "motif": ""}}}
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler_brut", side_effect=[dialogue(texte), illisible, lisible]) as appel:
@@ -69,7 +69,7 @@ class NarrationTests(unittest.TestCase):
 
     def test_dialogue_vide_corrige_sans_audit(self):
         texte = "Une odeur de cire flotte."
-        lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+        lisible = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
                                       "entites": [], "motif": ""}}}
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler_brut", side_effect=[dialogue(""), dialogue(texte), lisible]) as appel:
@@ -92,7 +92,7 @@ class NarrationTests(unittest.TestCase):
         citation = "La cloche est dans la galerie de ronde."
         texte = f"Gorm répond : « {citation} »"
         faits = {"interlocuteurs": {"marchand": {"nom": "Gorm"}}}
-        ligne = {"indice": 0, "verdict": "parole", "sources": [], "locuteur": "marchand", "citation": citation,
+        ligne = {"portee_mecanique": "aucune", "indice": 0, "verdict": "parole", "sources": [], "locuteur": "marchand", "citation": citation,
                  "entites": [], "motif": ""}
         reponse = {"texte": texte, "_audit": {"segments": [ligne], "faits": faits, "texte_initial": texte,
                                               "fondement": lexique.corpus("Gorm, la cloche"),
@@ -120,7 +120,7 @@ class NarrationTests(unittest.TestCase):
 
     def test_voix_d_auteur_renvoyee_en_revision(self):
         texte = "Une odeur de cire flotte."
-        lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+        lisible = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
                                       "entites": [], "motif": ""}}}
         auteur = {"segments": {"0": {**lisible["segments"]["0"]}}}
         mj = MJOpenAI("gpt-6-luna")
@@ -142,11 +142,11 @@ class NarrationTests(unittest.TestCase):
     def test_texte_accepte_affiche_tel_quel(self):
         texte = "Prends ton temps. Une odeur de vase monte du sol. Peut-être que l'eau a reflué ici."
         rapport = {"segments": [
-            {"indice": 0, "verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
+            {"portee_mecanique": "aucune", "indice": 0, "verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
              "entites": [], "motif": ""},
-            {"indice": 1, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+            {"portee_mecanique": "aucune", "indice": 1, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
              "entites": ["odeur de vase"], "motif": ""},
-            {"indice": 2, "verdict": "hypothese", "sources": [], "locuteur": "", "citation": "",
+            {"portee_mecanique": "aucune", "indice": 2, "verdict": "hypothese", "sources": [], "locuteur": "", "citation": "",
              "entites": [], "motif": ""}]}
         resultat = controler(texte, rapport, {})
         self.assertFalse(resultat["obstacles"])
@@ -267,7 +267,7 @@ class NarrationTests(unittest.TestCase):
             {"mode": "action", "texte": "", "faits": [],
              "proposition": sequence(etape("allumer", "torche", outil="briquet"))},
             dialogue(explication),
-            {"segments": [{"indice": i, "verdict": "mecanique", "sources": ["attestations"],
+            {"segments": [{"portee_mecanique": "aucune", "indice": i, "verdict": "mecanique", "sources": ["attestations"],
                            "locuteur": "", "citation": "", "entites": [], "motif": ""} for i in range(2)]},
         ]
         with tempfile.TemporaryDirectory() as tmp:
@@ -495,7 +495,7 @@ class NarrationTests(unittest.TestCase):
         # Cas réel du banc de référence : « ça sent quoi, ici ? » finissait en repli.
         texte = "L'air est humide et sent la vase. Une odeur de pierre mouillée flotte autour de toi."
         rapport = {"segments": [
-            {"indice": i, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
+            {"portee_mecanique": "aucune", "indice": i, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
              "entites": [e], "motif": ""} for i, e in enumerate(("odeur de vase", "pierre mouillée"))]}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"

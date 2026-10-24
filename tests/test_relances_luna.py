@@ -79,7 +79,7 @@ class AvisNonLuTests(unittest.TestCase):
             avis("clarifier", "Le joueur veut-il parler à Aubin ?"),
             parole("il fait froid ce soir", ("propos", "", "", ""), personnage="aubin"),
             dialogue("Aubin hausse les épaules : « Comme chaque soir de crue. »")],
-            [{"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "aubin",
+            [{"segments": {"0": {"portee_mecanique": "aucune", "verdict": "parole", "sources": [], "locuteur": "aubin",
                                  "citation": "Comme chaque soir de crue.", "entites": [], "motif": ""}}}])
         self.assertEqual(fonctions(appels).count("auditer_narration"), 1)
         self.assertIn("Tu dis à Aubin", sortie)
@@ -107,7 +107,7 @@ class NomTests(unittest.TestCase):
 
 class CitationTests(unittest.TestCase):
     def rapport(self, citation):
-        return {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "aubin", "citation": citation,
+        return {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "parole", "sources": [], "locuteur": "aubin", "citation": citation,
                                    "entites": [], "motif": ""}}}
 
     def test_cas_reel_la_citation_recopiee_avec_l_attribution(self):
@@ -192,7 +192,7 @@ class ExplicationTests(unittest.TestCase):
 
 
 def replique(locuteur, citation):
-    return {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": locuteur, "citation": citation,
+    return {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "parole", "sources": [], "locuteur": locuteur, "citation": citation,
                                "entites": [], "motif": ""}}}
 
 

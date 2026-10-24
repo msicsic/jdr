@@ -166,7 +166,7 @@ class CoupeTests(unittest.TestCase):
                                      "motif": "La dalle résiste à cette hache."}]}
             explication = {"mode": "dialogue", "texte": phrase,
                            "faits": ["attestations"], "proposition": None}
-            audit = {"segments": [{"indice": 0, "verdict": "mecanique",
+            audit = {"segments": [{"portee_mecanique": "aucune", "indice": 0, "verdict": "mecanique",
                                    "sources": ["attestations"], "locuteur": "",
                                    "citation": "", "entites": [], "motif": ""}]}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),

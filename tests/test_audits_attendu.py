@@ -35,7 +35,7 @@ CHAMPS = {"partie", "segment", "texte", "motif", "attendu"}
 
 
 def ligne(verdict, sources=(), motif="", locuteur="", citation="", entites=()):
-    return {"verdict": verdict, "sources": list(sources), "locuteur": locuteur, "citation": citation,
+    return {"portee_mecanique": "aucune", "verdict": verdict, "sources": list(sources), "locuteur": locuteur, "citation": citation,
             "entites": list(entites), "motif": motif}
 
 

@@ -20,7 +20,7 @@ class ParcoursWebSocketTests(unittest.TestCase):
         if fonction == 'auditer_action':
             args = {'conforme': True, 'motif': ''}
         elif fonction == 'auditer_narration':
-            args = {'segments': {str(i): {'verdict': 'mecanique', 'sources': ['resultat_resolu'],
+            args = {'segments': {str(i): {"portee_mecanique": "aucune", 'verdict': 'mecanique', 'sources': ['resultat_resolu'],
                 'locuteur': '', 'citation': '', 'entites': [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
         elif fonction == 'repondre_au_joueur':
             if 'resultat_resolu' in entree.get('faits', {}):

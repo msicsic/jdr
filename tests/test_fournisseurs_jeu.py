@@ -30,7 +30,7 @@ def arguments(cible, fonction, entree):
     if fonction == 'auditer_action':
         return {'conforme': True, 'motif': ''}
     if fonction == 'auditer_narration':
-        return {'segments': {str(i): {'verdict': 'mecanique', 'sources': ['resultat_resolu'],
+        return {'segments': {str(i): {"portee_mecanique": "aucune", 'verdict': 'mecanique', 'sources': ['resultat_resolu'],
             'locuteur': '', 'citation': '', 'presentation': '', 'entites': [], 'motif': ''}
             for i, _ in enumerate(entree['segments'])}}
     if fonction == 'repondre_au_joueur':

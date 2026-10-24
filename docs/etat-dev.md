@@ -1,8 +1,33 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
 
 ## Où on en est
+
+- Branche `codex-contenu-vide`, non fusionnée, lot **59**, base `18abb2c` (intégration
+  `c592d68`, à jour sur `origin` au départ ; lot 56 encore absent) : mots exacts sans contenu
+  mécanique acceptés sans revue ; après deux typages refusés, reprise des mots fournis sur
+  l'état original, sans effet typé ni effet des copies refusées. Les mots non fournis restent
+  à préciser. La portée mécanique est un champ obligatoire de chaque segment d'audit,
+  indépendant du verdict : une citation `parole` ne peut plus contourner un refus de portée
+  sans fondement ; source exigée pour la portée établie, contrôle refait à l'enregistrement.
+  Quatre tests nouveaux : console/MJ simulé, parole entendue, contrats, missions, or et texte
+  après recharge ; prime inventée et prix à l'auberge, deux questions réelles et secours.
+  Suite complète unique, trois processus à priorité réduite : **1 800 tests, 16 ignorés,
+  un échec préexistant**, 1 088,45 s. `test_appel_negocie.QuoiTests.test_cas_reel_mine_josse_dit_ce_qu_il_veut_gaspard_le_fait_venir`
+  attend une demande promise ; le PNJ refuse puis accepte un échange. Rejoué seul sur une
+  copie de la base 18abb2c : même assertion et chronique identique (encodage normalisé).
+  Aucun correctif PNJ hors lot. Les quatre tests du lot repris sur leurs assertions finales
+  sont verts (8,92 s).
+  Luna une passe, crypte/soir-noir/echanges/noms-dialogue : Gorm offre 20 pièces du moteur,
+  les deux questions sont dites et répondues sans « Précise… », Aubin seul répond au bois.
+  Référence `main` 42bb9c0 relue dans le cache : 69 → 70 appels, 22 → 21 tours MJ,
+  3,14 → 3,33 appels/tour, 12,6 → 13,2 s/tour ; aucun repli ni erreur technique/recharge.
+  Faux positif d'audit sur « ici » dans la condition de remise, corrigé avant affichage.
+  Reconnaissance des effets/conditions et pertinence de leurs sources toujours sémantiques,
+  sans garantie absolue contre les inventions. Aucun changement de `main`, des scénarios,
+  du modèle ou de `paroles.py`/`biens.py` ; pas de fusion. Bruts dans `artifacts/` du worktree.
+  [Cause, contrat, mesures et limites](taches/rapport-codex-59-contenu-vide.md).
 
 - Branche `codex-constats-partages`, fusionnée, lot **55**, base **5b174ad** : les constats matériels
   récents vus ou essayés se confient par les nouvelles communes, après les accusations : ressource

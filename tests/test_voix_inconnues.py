@@ -178,7 +178,7 @@ class RepliquesTests(unittest.TestCase):
 
         def reponse(c):
             texte = f"La voix répond : « {c} »"
-            ligne = {"indice": 0, "verdict": "parole", "sources": [], "locuteur": alias, "citation": c,
+            ligne = {"portee_mecanique": "aucune", "indice": 0, "verdict": "parole", "sources": [], "locuteur": alias, "citation": c,
                      "entites": [], "motif": ""}
             return {"texte": texte, "_audit": {"segments": [ligne], "faits": faits, "texte_initial": texte,
                                                "fondement": lexique.corpus("Gorm, la voix"),
@@ -218,7 +218,7 @@ class VoirParlerTests(unittest.TestCase):
         citation = "Les vivres sont au refuge."
         texte = f"Gorm répond : « {citation} »"
         faits = {"interlocuteurs": {"marchand": {"nom": "Gorm"}}}
-        ligne = {"indice": 0, "verdict": "parole", "sources": [], "locuteur": "marchand", "citation": citation,
+        ligne = {"portee_mecanique": "aucune", "indice": 0, "verdict": "parole", "sources": [], "locuteur": "marchand", "citation": citation,
                  "entites": [], "motif": ""}
         consigner(m, {"texte": texte, "_audit": {"segments": [ligne], "faits": faits, "texte_initial": texte,
                                                  "fondement": lexique.corpus("Gorm, vivres, refuge"),

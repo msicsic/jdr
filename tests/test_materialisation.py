@@ -19,7 +19,7 @@ def portee(nom, texte):
 
 
 def segments(*verdicts):
-    return {"segments": [{"indice": i, "verdict": v, "sources": [], "locuteur": "", "citation": "",
+    return {"segments": [{"portee_mecanique": "aucune", "indice": i, "verdict": v, "sources": [], "locuteur": "", "citation": "",
                           "entites": [], "motif": ""} for i, v in enumerate(verdicts)]}
 
 

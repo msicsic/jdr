@@ -55,13 +55,14 @@ SCHEMA_AUDIT = {
                 "indice": {"type": "integer"},
                 "verdict": {"type": "string", "enum": list(VERDICTS)},
                 "sources": {"type": "array", "items": {"type": "string"}},
+                "portee_mecanique": {"type": "string", "enum": ["aucune", "etablie", "sans_fondement", "contradictoire"]},
                 "locuteur": {"type": "string"},
                 "citation": {"type": "string"},
                 "presentation": {"type": "string", "description": "Nom dont le locuteur se présente dans sa citation, y compris une réponse nominale ; vide pour une mention de tiers ou une autre parole."},
                 "entites": {"type": "array", "maxItems": 8, "items": {"type": "string"}},
                 "motif": {"type": "string"},
             },
-            "required": ["indice", "verdict", "sources", "locuteur", "citation", "presentation", "entites", "motif"]}},
+            "required": ["indice", "verdict", "sources", "portee_mecanique", "locuteur", "citation", "presentation", "entites", "motif"]}},
     },
     "required": ["segments"],
 }
@@ -110,6 +111,13 @@ Sans cette source, c'est invention_protegee, jamais ambiance ; avec elle, c'est 
 Ambiance : aspect, odeur, son de fond, température, texture, impression. Elle est libre tant
 qu'elle ne crée ni objet manipulable, ni passage, ni personnage, ni ressource, ni indice.
 Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en entier :
+Juge aussi sa portee_mecanique, indépendamment de sa forme et de son verdict : aucune,
+etablie (cite les sources qui établissent exactement son effet ou sa condition),
+sans_fondement, ou contradictoire (cite ce qui la contredit). Ce jugement porte aussi sur
+les citations : une parole peut rapporter une croyance fausse sans la rendre vraie, mais
+ne peut fixer elle-même un effet ou les termes d'une opération mécanique. Ces termes
+doivent déjà venir de l'état ou d'une décision typée du moteur. Le fait d'avoir parlé,
+la demande du joueur et un contenu propos vide ne prouvent aucun de ces termes.
 - neutre : aucune affirmation sur le monde (salutation, question, conseil, invitation) ;
 - hypothese : possibilité explicitement présentée comme incertaine ;
 - ambiance : description sensorielle libre ; liste dans entites les éléments évoqués,
@@ -753,6 +761,7 @@ def controler(texte, rapport, faits, partie="texte"):
         if (not isinstance(ligne, dict) or set(ligne) != CHAMPS_AUDIT
                 or type(ligne["indice"]) is not int or ligne["indice"] != indice
                 or ligne["verdict"] not in VERDICTS
+                or ligne.get("portee_mecanique") not in ("aucune", "etablie", "sans_fondement", "contradictoire")
                 or not isinstance(ligne["sources"], list)
                 or any(not isinstance(s, str) for s in ligne["sources"])
                 or not isinstance(ligne["entites"], list)
@@ -767,6 +776,8 @@ def controler(texte, rapport, faits, partie="texte"):
             # Une absence dans le contexte n'est pas une preuve négative. Ce
             # défaut du rapport revient au lecteur, sans faire réécrire le MJ.
             raise AuditIllisible("Une contradiction doit citer le fait qu'elle contredit.")
+        if ligne["portee_mecanique"] == "contradictoire" and not ligne["sources"]:
+            raise AuditIllisible("Une contradiction mécanique doit citer le fait qu'elle contredit.")
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
         if verdict not in ("parole", "engagement"):
@@ -781,7 +792,11 @@ def controler(texte, rapport, faits, partie="texte"):
             # Le verdict est celui de l'auditeur, rendu tel quel avec son motif : rien de plus sûr.
             obstacles.append(audit(motif, accepte, partie=partie, segment=indice, texte=passage, recu=recu,
                                    verdict=(verdict, ligne["motif"])))
-        if verdict == "mecanique" and not ligne["sources"]:
+        if ligne["portee_mecanique"] in ("sans_fondement", "contradictoire"):
+            refuser(ligne["motif"] or "La portée mécanique de cette réponse n'est pas établie.",
+                    "une réponse dont les effets et conditions mécaniques découlent des sources fournies ; "
+                    "sinon ne les affirme pas, même dans une citation")
+        elif (verdict == "mecanique" or ligne["portee_mecanique"] == "etablie") and not ligne["sources"]:
             visees = _cles_visees(faits, passage)
             refuser("Cette affirmation mécanique ne cite aucun fait du moteur.",
                     "une affirmation que soutient un fait fourni, dite comme lui"

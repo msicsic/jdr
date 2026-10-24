@@ -50,10 +50,10 @@ class ExplicationTests(unittest.TestCase):
         # Cas d'une partie : Gorm « disait » au joueur un motif de refus inventé.
         texte = "Gorm te répond : « Pour me la remettre, dis-le-moi clairement. »"
         citation = "Pour me la remettre, dis-le-moi clairement."
-        parole = {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "marchand",
+        parole = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "parole", "sources": [], "locuteur": "marchand",
                                      "citation": citation, "entites": [], "motif": ""}}}
         sobre = "Gorm ne prend pas encore la cloche : rien ne s'est échangé."
-        neutre = {"segments": {"0": {"verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
+        neutre = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
                                      "entites": [], "motif": ""}}}
         faits = {"interlocuteurs": {"marchand": {"nom": "Gorm"}},
                  "retour_moteur": {"propositions_refusees": [["remettre", "refus"]]}}
