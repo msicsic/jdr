@@ -644,6 +644,15 @@ class Moteur:
         if plan.proposition["action"] == "observer" and plan.proposition["cible"] not in self.monde.objets:
             return plan.information
         travail = self.monde.copier()
+        from .spatial import vue_memorisee
+        # La copie de transaction garde les lectures physiques pendant toute
+        # l'action, y compris les souvenirs du joueur, le bilan et son rendu.
+        # etat_vue invalide à chaque changement physique ; les signes ont leur
+        # propre clé sociale. Rien de cette mémoire ne rejoint data ni la copie.
+        with vue_memorisee(travail):
+            return self._executer_simple(plan, travail)
+
+    def _executer_simple(self, plan, travail):
         travail.data["entendus"] = []
         lignes = []
         self._ouvrir_bilan(travail)
@@ -896,8 +905,14 @@ class Moteur:
         lignes.extend(entendu)
 
     def _executer_operations(self, sequence):
+        from .spatial import vue_memorisee
+        travail = self.monde.copier()
+        with vue_memorisee(travail):
+            return self._executer_sequence(sequence, travail)
+
+    def _executer_sequence(self, sequence, travail):
         from .operations import compiler
-        travail, lignes, trace, precedent = self.monde.copier(), [], [], None
+        lignes, trace, precedent = [], [], None
         # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
         self._ouvrir_bilan(travail)
         if sequence.regard:

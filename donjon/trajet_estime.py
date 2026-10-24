@@ -17,32 +17,53 @@ from .eau import noyee_crue
 def tables(v, e, salle):
     cle = (salle, e.allure, e.portes if v.metrique(e.allure) else frozenset())
     if cle not in v._locaux:
-        cru = v._cru_spatial
-        entrees = sorted({_case_interieure(cru, salle, s)
-                          for s in v.salles[salle]["sorties"].values()})
-        if not entrees:
-            entrees = [min(cases(v.salles[salle]))]
-        passages = (transitions(cru, v.id, descriptions_crues(v.monde, v.id), e.portes, e.allure)
-                    if v.metrique(e.allure) else None)
-        v._locaux[cle] = [(c, distances(cru, v.id, salle, c, e.portes, e.allure, passages)) for c in entrees]
+        v._locaux[cle] = _tables(v, e, salle)
     return v._locaux[cle]
 
 
+def _tables(v, e, salle):
+    cru = v._cru_spatial
+    entrees = sorted({_case_interieure(cru, salle, s)
+                      for s in v.salles[salle]["sorties"].values()})
+    if not entrees:
+        entrees = [min(cases(v.salles[salle]))]
+    passages = (transitions(cru, v.id, descriptions_crues(v.monde, v.id), e.portes, e.allure)
+                if v.metrique(e.allure) else None)
+    return [(c, distances(cru, v.id, salle, c, e.portes, e.allure, passages)) for c in entrees]
+
+
 def moyenne(v, e, salle, cibles, sortie=False):
+    """Lecture locale à une Vue figée : corps, équipement utile et obstacles crus
+    y sont constants. L'état ne fournit que salle, allure et possessions métriques ;
+    faits du plan, positions réelles, horloge et portes prévues ne sont pas lus.
+    Chaque reprise contrôlée recalcule aussi les tables locales.
+    """
+    from .spatial import a_verifier
+    cle = (salle, frozenset(cibles), sortie, e.allure,
+           e.portes if v.metrique(e.allure) else frozenset())
+    if cle not in v._moyennes:
+        v._moyennes[cle] = _moyenne(v, e, salle, cibles, sortie)
+    elif a_verifier():
+        assert v._moyennes[cle] == _moyenne(v, e, salle, cibles, sortie, pur=True), "Trajet estimé périmé"
+    return v._moyennes[cle]
+
+
+def _moyenne(v, e, salle, cibles, sortie=False, pur=False):
     """Dixièmes : distance moyenne aux contacts, plus un angle moyen de 90°.
 
     Pour sortir, on exclut le seuil visé des origines ; avec une seule entrée,
     la moyenne sur tout le sol accessible évite une traversée fictivement nulle.
     """
     valeurs = []
-    for origine, table in tables(v, e, salle):
+    locales = _tables(v, e, salle) if pur else tables(v, e, salle)
+    for origine, table in locales:
         if sortie and origine in cibles:
             continue
         proches = [table[c][0] for c in cibles if c in table]
         if proches:
             valeurs.append(min(proches))
     if not valeurs and sortie:
-        table = next((t for c, t in tables(v, e, salle) if c in cibles), {})
+        table = next((t for c, t in locales if c in cibles), {})
         from .spatial import _case_libre
         libres = {c for c in cases(v.salles[salle]) if _case_libre(v._cru_spatial, salle, c)}
         if not libres <= table.keys():
