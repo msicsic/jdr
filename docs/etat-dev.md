@@ -2936,6 +2936,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     des devis) impose une clé exacte que tout lot doit tenir et que `VERIFIER`/`spatial.VERIFICATION` contrôlent.
     Préférer les gains d'algorithme (C1, saillance) ; après chacun, mesurer ce que rapporte encore chaque cache et
     retirer celui qui ne rapporte plus.
+  - **Coût fixe, mêmes nœuds** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06) : gains à décisions et
+    nœuds identiques, à mesurer au profil avant de les classer. (a) `obstacles.metrique_necessaire` sérialise toute la
+    géométrie (`json.dumps(m.data["salles"], …)`) pour sa clé à chaque appel, alors que ses calculs réels sont rares :
+    une clé légère (identité immuable de la carte, obstacles, gabarit, allure). (b) `Vue(monde, id)` et la partie de
+    `_entrees` qui ne dépend pas du but sont refaites pour chaque candidat d'un même `choisir` : les construire une fois
+    par état du monde et de l'esprit (le diagnostic mesurait ~17 % de coût fixe à l'auberge). (c) `_explorer_etats`
+    copie `etapes + ajout` à chaque transition poussée et `deepcopy` le chemin trouvé : un maillon (parent, ajout) et
+    la liste reconstruite une seule fois. (d) `signes.percevoir_tous` recalcule les émissions et une signature (`repr`)
+    de tous les acteurs à chaque événement : à profiler (la mine avait pris +35 % avec 3c). Les imports locaux des
+    fonctions chaudes, aussi relevés, sont déjà sortis (lot 38). Un ou deux lots après C1 (lot 52), qui touche aussi
+    la `Vue`.
   - **Bitsets dans l'état de recherche** : objets portés et faits de `Etat` en entiers à bits au lieu de `frozenset`
     (hachage, comparaison et `Etat.apres` moins chers, mêmes décisions). Lot de coût possible après C1, si la part
     d'`Etat.apres` au profil le justifie.
