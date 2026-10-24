@@ -256,7 +256,9 @@ def main(argv=None, interface=None):
             # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
             affichage = rendre_resultat(resultat)
             m.sauver(args.save)
-            recit = raconter(affichage, intention, gestes_accomplis(plan, m))
+            # Une perception a déjà pour résultat ce que le moteur fait percevoir :
+            # le rendre directement conserve cette portée sans seconde interprétation.
+            recit = None if plan.perception is not None else raconter(affichage, intention, gestes_accomplis(plan, m))
             texte_affiche = recit["texte"] if recit else affichage
             m.memoriser(intention, texte_affiche, "resultat_moteur")
             if recit:

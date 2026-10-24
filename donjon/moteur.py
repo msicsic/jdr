@@ -24,6 +24,9 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
+# Gestes dont le résultat est ce que le moteur fait percevoir. À distinguer de
+# commandes.PERCEPTIONS : cette dernière règle borne l'exécution d'une question.
+PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter")
 
 
 class QualificationRequise(ProprieteInconnue):
@@ -69,6 +72,19 @@ class Plan:
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
+
+    @property
+    def perception(self):
+        """Opération de perception préparée, jamais son résultat anticipé."""
+        if self.proposition.get("action") in PERCEPTIONS:
+            return {"action": self.proposition["action"], "cible": self.proposition.get("cible", "")}
+        return None
+
+    @property
+    def realise_geste(self):
+        """Un plan peut produire une perception seulement lors de son exécution."""
+        return bool(self.effets or self.information or self.perception
+                    or any(p.realise_geste for p in self.plans))
 
     def resume(self, monde, afficher_avis=True):
         from .noms import texte
