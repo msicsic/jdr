@@ -838,6 +838,9 @@ class MJ:
         contexte = monde.contexte()
         faits = {k: v for k, v in contexte.items() if k != "objets_perceptibles"}
         faits["attestations"] = attestations_narratives(monde, contexte)
+        from .biens import etat_comptes_joueur
+        faits["comptes"] = {"etat": etat_comptes_joueur(monde, contexte["interlocuteurs"]),
+                            "issue": (conversation_validee or {}).get("comptes", [])}
         objets = contexte["objets_perceptibles"]
         # La liste est complète pour la vue actuelle, pas pour la salle ni les contenus
         # cachés. Les affaires accessibles dans le noir ne sont pas nécessairement vues.
@@ -980,7 +983,7 @@ class MJ:
                                                 "description": "Réponse finale non vide destinée au joueur."}
             schema["properties"]["proposition"] = {"type": "null"}
             if resultat_resolu is not None:
-                faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie")}
+                faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie", "comptes")}
                 schema["properties"]["faits"]["items"]["enum"] = list(faits)
                 instructions = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
 Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les

@@ -21,7 +21,7 @@ class ParcoursWebSocketTests(unittest.TestCase):
             args = {'conforme': True, 'motif': ''}
         elif fonction == 'auditer_narration':
             args = {'segments': {str(i): {'verdict': 'mecanique', 'sources': ['resultat_resolu'],
-                'locuteur': '', 'citation': '', 'entites': [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
+                'locuteur': '', 'citation': '', 'entites': [], "comptes": [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
         elif fonction == 'repondre_au_joueur':
             if 'resultat_resolu' in entree.get('faits', {}):
                 texte = 'Tu prends la clé du veilleur.' if cible == 'cle' else 'Tu prends la bobine de ficelle solide.'

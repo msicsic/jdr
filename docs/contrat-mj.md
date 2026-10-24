@@ -81,6 +81,32 @@ entendue et ont choisi de répondre (`paroles.repondants`). Seuls ceux de `repon
 mesurent : `a_portee_de_main` (toucher d'ici), `a_portee_de_voix` pour un personnage ; la salle,
 `sorties_connues`, avec leurs positions relatives en mètres (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
 
+**Comptes et sens** (`codex-sens-dette`). `biens.compte` décrit un compte par `debiteur`,
+`creancier`, `objet` (vide pour les pièces), `montant` et `etat` (`du`, `rendu`, `absent`). Pour
+un prêt, le débiteur est l'emprunteur, le créancier est le prêteur. Le MJ reçoit les comptes
+connus de Corvus dans `comptes.etat`, jamais les dettes privées entre PNJ. Une réclamation
+validée porte aussi ses comptes dans `conversation_validee.comptes` et `comptes.issue` :
+quantité effectivement rendue, solde encore dû, ou absence dans le sens demandé. L'absence
+monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conserve son contrat :
+le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
+règlement existant, elle n'est pas devenue une consultation sans effet.
+
+Pour chaque segment, l'auditeur extrait séparément les comptes affirmés dans les mots du
+texte, y compris dans une réplique, indépendamment de son verdict narratif. Le champ est
+obligatoire quand le dossier de comptes est fourni ; un rapport incomplet est illisible.
+Le moteur compare les rôles, l'objet, l'état et toute quantité explicite avec l'issue
+validée, ou les comptes courants hors réclamation. Un compte inversé est refusé même si
+le compte inverse serait lui aussi vide. Chaque compte incompatible produit un refus
+avec le segment, les rôles reçus et un `attendu` citant l'issue ; le même garde est refait
+avant l'enregistrement. Après refus répétés, le joueur lit l'issue du moteur.
+
+Cette comparaison est déterministe **sur les comptes extraits**. Reconnaître une affirmation,
+ses pronoms et sa portée reste sémantique : une omission ou une extraction erronée peut
+laisser passer une contradiction ou provoquer un faux refus. Une parole enregistrée
+n'établit toujours pas la vérité de son contenu. Le contrôle ne crée aucune dette ni
+aucun remboursement ; les mutations précèdent toujours le récit et la sauvegarde précède
+l'affichage.
+
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :
 - un avis (`clarifier`, `impossible`) que la boucle de décision écartera avant de le lire (un

@@ -38,7 +38,7 @@ def parole(replique, *contenu, personnage):
 def verdicts(*lignes):
     """Un rapport d'audit : une ligne (verdict, sources, motif) par segment."""
     return {"segments": {str(i): {"verdict": v, "sources": list(s), "locuteur": "", "citation": "",
-                                  "entites": [], "motif": m} for i, (v, s, m) in enumerate(lignes)}}
+                                  "entites": [], "comptes": [], "motif": m} for i, (v, s, m) in enumerate(lignes)}}
 
 
 NEUTRE = ("neutre", (), "")
@@ -206,7 +206,7 @@ class ReplisTests(unittest.TestCase):
         saisie = "Brune, pousse-toi, ça prend trop de temps"
         promesse = dialogue("Brune soupire : « Je vais me pousser. »")
         engagement = {"segments": {"0": {"verdict": "engagement", "sources": [], "locuteur": "brune",
-                                         "citation": "Je vais me pousser.", "entites": [], "motif": ""}}}
+                                         "citation": "Je vais me pousser.", "entites": [], "comptes": [], "motif": ""}}}
         reprise, sortie, appels = jouer(m, saisie, [parole(saisie, ("passage", "", "", ""), personnage="brune"),
                                                     promesse, promesse, promesse], [engagement] * 3)
         validee = mj(appels)[1]["faits"]["conversation_validee"]
