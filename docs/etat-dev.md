@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-soi-meme`, **non fusionnée**, base `41c1c7c` (brief `2a96b84`),
+  correctif signé SSH `8fa071f` : les accusations directes de `social.bavarder` passent par
+  `social.recevoir`, comme celles entendues par un tiers. L'accusé ne reçoit plus une rumeur sur
+  lui qu'il pourrait répéter ; les anciennes nouvelles contre soi sont écartées, le contenu
+  `aveu` reste la voie explicite pour accuser son locuteur. Aucun choix autonome d'aveu ajouté
+  aux PNJ. La perception et la lecture des signes excluent l'observateur lui-même.
+  Cause reproduite en crue 2024 (421) et 7 (373 puis 391), avec le placement de l'audit : Aubin
+  accuse Brune, qui répète vraiment ; aucun défaut d'attribution du récit ni lecture de ses
+  propres signes à l'origine. Quatre tests nouveaux après recharge, quatorze sous-cas ;
+  58 tests ciblés verts, puis le fichier enrichi revérifié. Deux captures réelles reprises sur
+  quinze minutes et rechargées sans auto-accusation retransmise. Banc rapide 4 h, crue/Relais,
+  quatre graines, contre `41c1c7c` : aucun plantage ni usurpation, constats d'audit inchangés ;
+  seul écart de jeu : un jet de persuasion et une rumeur doutée en moins (crue 1985, Gorm accuse
+  Brune à 203). Suite complète unique, trois processus à priorité réduite, 2 207,3 s :
+  deux erreurs de socket Web et deux fichiers TUI bloqués dans le bac à sable ; seules reprises
+  hors bac à sable, Web 8 tests et TUI 33 tests, vertes. **Bilan consolidé : 1 680 tests,
+  16 ignorés, aucun échec restant**, 156 fichiers. Aucun Luna.
+  Anciennes traces et effets historiques conservés ; pas de garantie sémantique sur toute prose.
+  [Rapport du lot 35](taches/rapport-codex-35-soi-meme.md), bruts `artifacts/codex-35/` du worktree.
+
 - **Vérification d'intégration ffcc295** (lots Q, R, A0, A1, cache, 25 à 30 ; sans Luna ; bruts dans
   `artifacts/verif-integ-ffcc295/` du dépôt principal). Audit 12 h (`tools/audit_nuits.py`), quatre
   scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500, contre `main` 42bb9c0 (référence complétée dans
