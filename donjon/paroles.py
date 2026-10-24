@@ -27,17 +27,19 @@ from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
-TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource")
+TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "proposition")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
     "aveu": ("sujet", "valeur"), "nom": ("sujet",), "qui": (),
     "reclamer": ("sujet",), "ressource": ("sujet",),
+    "proposition": (),
 }
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 # Sens du protocole, commun au schéma d'interprétation et à la revue. Les codes
 # de besoins décrivent la ressource demandée, pas le sujet littéral de la phrase.
 SENS_CONTENU = {
+    "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Propos sans effet mécanique typé.",
     "affirmation": "Affirmer la valeur d'un attribut d'un sujet ; le destinataire décide d'y croire.",
     "demande": "Demander un objet ou une part d'une ressource du destinataire ; valeur est le prix offert, vide sans offre.",
@@ -71,6 +73,10 @@ SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["type"]["descripti
 SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["sujet"]["description"] = (
     "Pour ressource : " + "; ".join(f"{b} = {RESSOURCES_DEMANDEES[b]}" for b in BESOINS_DEMANDES)
     + ". Sinon, la référence du sujet selon le type.")
+from .propositions import SCHEMA as SCHEMA_PROPOSITION
+_contenu_ordinaire = SCHEMA_PAROLE["properties"]["contenu"]["items"]
+_contenu_ordinaire["properties"]["type"]["enum"] = [t for t in TYPES if t != "proposition"]
+SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [_contenu_ordinaire, SCHEMA_PROPOSITION]}
 
 
 def sens_contenu(contenu):
@@ -138,6 +144,13 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
 - ressource {sujet : faim (de quoi manger) ou chaleur (du bois) ; attribut et valeur vides} : Corvus
   demande au personnage s'il en a, sans savoir ce qu'il a ; le moteur dit ce que le personnage répond ;
 - propos {sujet, attribut et valeur vides} pour tout le reste.
+- proposition {demande, contrepartie}, sans sujet/attribut/valeur : chaque terme porte type
+  objet ou part et objet (identifiant), ou type tache et condition {objet, allume:true |
+  verrouillee:true | lieu:salle}. La contrepartie admet aussi {type:pieces,montant:entier}
+  ou {type:rien}. Les biens et pièces sont remis si accepté, une tâche est une promesse
+  différée. Une offre liée à une demande forme un seul contenu proposition, jamais deux
+  demandes indépendantes. Le moteur fixe acceptation, refus, remises et engagements ;
+  la réponse respecte ses faits. Une proposition s'adresse à une seule personne.
 Une voix inconnue (interlocuteur voix_<n>) : Corvus l'entend sans savoir à qui elle est ; ce
 qu'elle dit d'elle-même n'est que ce qu'elle prétend. Ne lui donne pas d'autre nom que le sien
 (« une voix inconnue », « une voix qui se dit … »).
@@ -1078,6 +1091,8 @@ def verifier_nom(monde, contenu, replique):
 
 def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
+    if isinstance(c, dict) and c.get("type") == "proposition":
+        return copy.deepcopy(c)
     if isinstance(c, dict) and c.get("type") == "qui":
         return {"type": "qui"}
     if isinstance(c, dict) and c.get("type") == "reclamer":
@@ -1144,6 +1159,10 @@ def verifier_contenus(monde, contenu):
     """
     for i, c in enumerate(contenu):
         if not isinstance(c, dict):
+            continue
+        if c.get("type") == "proposition":
+            from .propositions import verifier
+            verifier(monde, c, f"contenu[{i}]")
             continue
         utilises = CHAMPS_CONTENU.get(c.get('type'), ())
         for champ in ('sujet', 'attribut', 'valeur'):
@@ -1503,6 +1522,11 @@ def preparer_parole(monde, p, revision=None):
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     verifier_offres(monde, p["contenu"])
     verifier_contenus(monde, p["contenu"])
+    if any(c.get("type") == "proposition" for c in p["contenu"] if isinstance(c, dict)):
+        if len(dest) != 1 or len(p["contenu"]) != 1:
+            raise ErreurMonde("Une offre liée doit être adressée à une seule personne.",
+                              "contenu : une seule proposition ; personnage : un destinataire individuel ; "
+                              f"reçu {len(p['contenu'])} contenus, destinataires {dest}.")
     # Le nom que Corvus se donne est celui que disent ses mots, vrai ou non (une imposture).
     contenu = verifier_nom(monde, p["contenu"], replique)
     from .ouie import _place, retentir, saisissent
@@ -1522,7 +1546,9 @@ def preparer_parole(monde, p, revision=None):
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
-            if c["type"] == "affirmation":
+            if c["type"] == "proposition":
+                _proposer(travail, auditeur, c, faits)
+            elif c["type"] == "affirmation":
                 _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
             elif c["type"] == "passage":
                 _demander_passage(travail, auditeur, faits, c["prix"])
@@ -1572,3 +1598,37 @@ def preparer_parole(monde, p, revision=None):
                "issue": issue(travail, forme, dest, [*dest, *repondent], temoins_vus, replique), "faits": faits,
                **({"regard": vers} if vers else {})}
     return travail, rapport
+
+
+def _proposer(travail, auditeur, c, faits):
+    from .echanges import proposer
+    bilan = proposer(travail, "joueur", auditeur, c["demande"], c["contrepartie"])
+    nom = _personne(travail, auditeur)[0]
+    causes = {"mefiance": "il ne te fait pas confiance", "rancune": "il t'en veut encore",
+              "deja": "cette tâche fait déjà partie d'un engagement entre vous",
+              "qui_va_la": "il ne sait pas qui lui parle", "necessaire": "ce bien lui est nécessaire",
+              "garde": "il garde cette réserve pour ses besoins", "impossible": "il ne voit pas comment faire la tâche",
+              "propriete": "un bien proposé n'appartient pas à celui qui le cède",
+              "absent": "le bien à remettre n'est pas en main", "epuise": "la réserve est épuisée",
+              "pauvre": "tu n'as pas les pièces offertes", "portee": "vous êtes trop éloignés pour échanger",
+              "meme_bien": "les deux termes désignent le même bien",
+              "marche": "ce qu'il y perd l'emporte sur ce qu'il y gagne",
+              "persuasion": "tu ne l'as pas convaincu"}
+    if bilan["cause"]:
+        faits.append(nom + " refuse l'échange : " + causes[bilan["cause"]] + ".")
+        return
+    def terme(t):
+        if t["type"] == "rien":
+            return "sans contrepartie"
+        if t["type"] == "pieces":
+            return str(t["montant"]) + " pièces"
+        if t["type"] == "tache":
+            from .echanges import phrase_condition
+            return "la promesse que " + phrase_condition(travail, t["condition"])
+        o = travail.objets[t["objet"]]
+        return "une part " + complement_de(o) if t["type"] == "part" else designer(o)
+    faits.append(nom + " accepte l'échange : " + terme(c["demande"]) + " contre " + terme(c["contrepartie"]) + ".")
+    faits.append("La contrepartie immédiate est remise ; la demande sera livrée selon l'engagement enregistré."
+                 if bilan.get("livraison_differee") else
+                 "Les biens et pièces convenus sont remis ; les tâches convenues sont enregistrées comme engagements.")
+    faits.extend(agendas.promesses_visibles(travail))

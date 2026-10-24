@@ -77,12 +77,14 @@ def resume_etat(m):
     """Ce que la sauvegarde rechargée établit après le tour : place et temps du joueur, ce qu'il
     porte, les personnages et les formes de passage décrites dans sa salle (relecture des bancs)."""
     from donjon.esprits import pnjs
+    from donjon import agendas
     from donjon.spatial import porte_par
     from donjon.temps import instant
     salle = m.joueur["salle"]
     return {"salle": salle, "position": m.joueur.get("position"), "orientation": m.joueur.get("orientation"),
             "dixiemes": instant(m), "jets": m.data.get("jets"),
             "porte": sorted(i for i in m.objets if porte_par(m, i, "joueur")),
+            "promesses_joueur": agendas.en_cours(m, "joueur"),
             "personnages": {i: [m.objets[i]["lieu"], m.objets[i].get("position")] for i in pnjs(m)},
             "passages": {i: o["passage"] for i, o in m.objets.items() if o.get("lieu") == salle and "passage" in o},
             "bloquants": sorted(i for i, o in m.objets.items()
@@ -223,6 +225,10 @@ def preparer(donnees, sauvegarde):
         esprit(m, id)["besoins"].update(besoins)
     for id, valeurs in prep.get("valeurs", {}).items():
         m.objets[id]["profil"]["valeurs"].update(valeurs)   # Placement d'auteur : un caractère retouché.
+    for id, liens in prep.get("relations", {}).items():
+        from donjon.relations import _nouvelle
+        for autre, axes in liens.items():
+            esprit(m, id)["relations"][autre] = _nouvelle(axes, m.data["minutes"])
     from donjon.biens import rembourser
     for d in prep.get("dettes", []):
         # Placement d'auteur : une contrepartie payée et jamais livrée, comme l'échéance la fait naître.

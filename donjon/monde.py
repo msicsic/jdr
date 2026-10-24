@@ -398,6 +398,11 @@ class Monde:
         salle = copy.deepcopy(self.data["salles"][self.joueur["salle"]])
         salle["id"] = self.joueur["salle"]
         joueur = copy.deepcopy(self.joueur)
+        promesses = agendas.promesses_visibles(self)
+        if promesses:
+            joueur["promesses"] = promesses
+        if self.data.get("journal_promesses"):
+            joueur["journal_promesses"] = self.data["journal_promesses"][-20:]
         joueur["salle_nom"] = salle["nom"]
         # Le corps se lit en mots : faim, froid, fatigue légers, supportables, pressants, extrêmes.
         from .corps import etat as etat_corps
@@ -483,6 +488,7 @@ class Monde:
         try:
             from .noms import verifier as verifier_noms
             verifier_noms(self)
+            agendas.verifier(self, "joueur")
             from .temps import verifier as verifier_temps
             verifier_temps(self)
             if d.get("mode_cases"):

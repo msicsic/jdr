@@ -1,0 +1,25 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre", "position": [1, 3], "orientation": "est",
+  "stats": {"CHA": 20, "ELO": 20},
+  "personnages": {
+   "marchand": {"salle": "antichambre", "position": [2, 3], "orientation": "ouest"},
+   "brune": {"salle": "antichambre", "position": [0, 3], "orientation": "est"}
+  },
+  "calmes": ["marchand", "brune", "aubin", "ilse"],
+  "connus": ["cloche", "vivres", "brasero", "crochets"],
+  "noms_connus": ["marchand", "brune"],
+  "lieux": {"cloche": "joueur", "vivres": "marchand", "cire": "joueur", "crochets": "brune"},
+  "proprietes_objets": {"cloche": {"proprietaire": "joueur", "prix": 5}, "cire": {"proprietaire": "joueur"}},
+  "relations": {"marchand": {"joueur": {"confiance": 70}}, "brune": {"joueur": {"confiance": 10}}}
+ },
+ "tours": [
+  "Gorm, je te donne ma cloche contre une part de vivres.",
+  "Gorm, promets-moi une part de vivres et je te promets d'entretenir le brasero.",
+  "Gorm, je te propose une pièce contre tous tes vivres.",
+  "Brune, je t'offre mon bloc de cire contre tes crochets.",
+  "Gorm, si je m'occupe de garder le brasero allumé, tu me céderais une autre part de pain ?"
+ ]
+}

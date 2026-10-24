@@ -1741,9 +1741,12 @@ def avancer(monde, minutes, lignes, dixiemes=None):
     """Fait vivre les PNJ pendant le temps qui vient de s'écouler (``minutes``, ou ``dixiemes``
     à la seconde près), jusqu'à l'heure courante ; renvoie ceux que le joueur a vus à un moment
     de cette période sans les voir à son début (une réponse à son appel, par exemple)."""
+    from . import agendas
     from .spatial import vue_memorisee
     with vue_memorisee(monde):
-        return _avancer(monde, minutes, lignes, dixiemes)
+        resultat = _avancer(monde, minutes, lignes, dixiemes)
+        agendas.observer_promesses(monde, lignes)
+        return resultat
 
 
 def _prevu(e):

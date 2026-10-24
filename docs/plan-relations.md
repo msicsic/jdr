@@ -487,6 +487,30 @@ d'autrui »).
 
 Une demande devient une **proposition** : ce que je demande, et ce que tu y gagnes.
 
+**A2a, fait sur `codex-propositions`, non fusionnée (2026-10-24).** Le joueur dispose du
+contenu indivisible `proposition` : demande objet/part/tâche, contrepartie objet/part/tâche/
+pièces/rien. `echanges.evaluer_proposition` calcule P/G/L sur les relations perçues et le devis
+cru de l'auditeur ; `proposer` valide les moyens, tire le jet et applique sur copie les remises
+et engagements. Les biens sont cédés ; une part est détachée sans céder le lot. Pour une part,
+`garde` protège la réserve ; `necessaire` protège la cession de l'objet entier (un devoir portant
+sur le lieu du lot ne rend pas chaque part incessible). Les tâches demandées ne peuvent consommer
+une réserve gardée. Une tâche déjà promise ne paie pas une deuxième fois.
+
+Constantes de départ : **pas = 5 minutes de valeur propre par point**, **1 pièce** pour un objet
+sans prix déclaré ; DD de base **12**, pas de supplément d'INT sous 8. Les poids du lien sont ceux
+ci-dessous, sans doubler ceux déjà inclus dans `jet_persuasion`. Un service promis vaut le coût
+du devis évité s'il sert une pulsion ou un engagement de l'auditeur, pondéré par confiance/100.
+Les promesses du joueur passent par `agendas`, sont visibles dans sa fiche après recharge et
+requièrent un effet moteur réalisant la condition puis son observation par le bénéficiaire ;
+attendre devant un état déjà vrai ne suffit pas. Échéance **240 min**, abandon éprouvé quand les
+deux peuvent se parler. Les engagements PNJ gardent leur cycle existant.
+
+Les demandes historiques restent séparées : une vente au prix est sans jet ; un objet durable
+demandé est prêté, tandis qu'une proposition le cède ; la part alimentaire historique est
+servie, la proposition peut la remettre. Les fusionner changerait les nuits PNJ. Le geste PNJ,
+les services de réparation et les intermédiaires restent aux lots suivants. Le typage spontané
+des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rapport-codex-29-propositions.md).
+
 - **Contenu typé** (`echanges`, parole du joueur `paroles.TYPES` : `proposition`) :
   `{"demande": <objet | part | tache | passage>, "contrepartie": <objet | part | tache | service
   futur | pieces | rien>, "raison": <avis, § 7.3, optionnel>}`. Les tâches restent le vocabulaire

@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-propositions`, fusionnée, base `450cebb` (intégration `19b0261`),
+  lot 29 A2a : contenu de parole indivisible demande/contrepartie, évaluation P/G/L et INT
+  dans `echanges`, remises atomiques et engagements par `agendas`. Les promesses du joueur
+  exigent un effet réel puis la perception du bénéficiaire ; fiche et contexte les conservent
+  après recharge. Pas de double paiement d'une même promesse, pas de lot cédé pour une part.
+  Les anciennes demandes restent séparées (vente sans jet, prêt, part servie) afin de préserver
+  les nuits ; aucun fichier réservé au lot 28 touché. Empreintes de 2 h, Relais/mine/auberge,
+  quatre graines : douze nuits identiques à `19b0261`, référence entièrement en cache.
+  Luna, une seule passe de cinq saisies sur copies : 17 appels, aucun repli ni erreur de
+  recharge ; cloche et méfiance typées dès le premier appel, **tâches promises et formulation
+  libre encore mal typées**, mauvais marché corrigé par la revue. Pas de garantie générale
+  du typage ni de toute issue narrative. Suite complète unique à priorité réduite, trois
+  processus : **1 672 tests, 16 ignorés, bilan consolidé vert**, 2 534,6 s. Lancement trop tôt :
+  deux fichiers ont chargé un import transitoire manquant (12 erreurs) ; leurs seules reprises
+  sur le moteur final sont vertes (32 tests), aucun échec restant. Derniers ciblés consolidés :
+  39 tests, un saut facultatif. Code signé et vérifié : `65032f5`, `7595dc7`, `a880ca8`.
+  [Invariant, constantes, tests et limites](taches/rapport-codex-29-propositions.md).
+  Fusionné sur l'intégration 2590c4a (depuis la base 19b0261 : lots 28 et 30) : seul conflit
+  `docs/etat-dev.md`, aucun fichier de code commun depuis la base (lot 29 : `agendas`, `echanges`, `monde`,
+  `moteur`, `paroles`, `pnj`, `propositions`, `rendu` ; lots 28 et 30 : `obstacles`, `planification`,
+  `trajet_estime`) ; pas de suite complète. Tests du lot (`test_propositions`, `test_luna_restes`) et
+  `test_agendas_socle`, `test_trajets_reels` (`tools/tests.py --processus 3`) : 43 tests, un saut, verts.
+
 - Branche `codex-trajet-estime`, **non fusionnée**, base d'intégration `ecbbed7`
   (brief `e282120`, code signé SSH `9f4bf2f`, `500d917`) : la recherche estime les trajets par salle,
   l'exécution garde le parcours réel. `Etat` ne distingue plus case ni orientation ; allure

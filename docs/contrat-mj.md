@@ -283,6 +283,24 @@ et `RESSOURCES_DEMANDEES`, partagés par le schéma d'interprétation et la revu
 Ainsi un besoin typé désigne la ressource recherchée ; il ne devient pas le sujet littéral de
 la question. Cette donnée ne décide pas si le destinataire la possède ni s'il l'accorde.
 
+Le contenu `proposition` d'une `parole_joueur` forme un marché indivisible :
+`{type:"proposition", demande:<terme>, contrepartie:<terme>}`. Il s'adresse à un seul
+destinataire et constitue l'unique élément de `contenu`. Un terme est `{type:"objet"|"part",
+objet:<identifiant connu>}` ou `{type:"tache", condition:{objet, allume:true|verrouillee:true|
+lieu:<salle connue>}}`. La contrepartie admet aussi `{type:"pieces", montant:<entier positif>}`
+et `{type:"rien"}`. Aucun `sujet`, `attribut` ou `valeur` sur cette variante ; le schéma expose
+une union avec les contenus historiques. Toute forme refusée reçoit un `attendu` portant le
+chemin, la valeur reçue et la forme ou les identifiants acceptés.
+
+Le moteur évalue P/G/L, les croyances et les moyens, puis le jet ; il inscrit les remises et
+les engagements avant la réponse. Les contreparties matérielles sont immédiates, les tâches
+sont différées. Un bien demandé ailleurs peut devenir une livraison engagée. Une réplique
+respecte les faits calculés (acceptation, cause unique du refus, remise ou promesse), sans
+transformer une promesse en réalisation. La fiche et le contexte conservent les promesses du
+joueur après rechargement ; un effet réel du joueur et l'observation de la condition sont requis
+pour solder la parole. Le texte libre de Luna reste soumis au contrôle narratif existant ;
+le typage d'une formulation libre en proposition n'est pas garanti.
+
 Toute qualification physique passe d'abord par la validation déterministe sur copie (ancrage,
 propriété encore libre, bornes, masse quand la description la détermine), puis par la revue de
 plausibilité. Celle-ci reçoit les propriétés connues, dont la description physique, le contenu
