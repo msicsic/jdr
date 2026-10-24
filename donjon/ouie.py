@@ -634,6 +634,10 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     if not attente or n in ("appel", "cri"):
         inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
     if not attente:
+        # Ce bruit nouveau peut être la personne cherchée, sans lui en attribuer l'auteur.
+        # Un bruit déjà attendu ou couvert par l'examen ne relance pas la recherche.
+        from .deliberation import indice_recherche
+        indice_recherche(monde, id, salle, qui)
         _chroniquer(monde, id, f"{_qui(monde, id)} entend un bruit : {monde.data['salles'][salle]['nom']}.", "ouie")
     # Tant qu'il ne l'a pas vu, il en retient le plus fort, et qui appelait s'il l'a reconnu ; d'où il
     # vient, le dernier endroit d'où il l'a situé.

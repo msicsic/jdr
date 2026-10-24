@@ -373,16 +373,15 @@ def analyser_nuit(n):
             appels[c["pnj"]].append(c["minute"])
     for pnj, ms in appels.items():
         if len(ms) >= 10:
-            from donjon.deliberation import APPEL_OUBLI
             vains = [s for s in d.get("recit", {}).get("souvenirs", {}).get(pnj, [])
                      if s["type"] == "appel_sans_reponse"]
             par_recherche = defaultdict(list)
             for s in vains:
                 par_recherche[s["qui"], s["salle"]].append(s["minute"])
             tournee = Counter(ms) == Counter(s["minute"] for s in vains) and all(
-                b - a >= APPEL_OUBLI for suite in par_recherche.values() for a, b in zip(suite, suite[1:]))
+                len(suite) == 1 for suite in par_recherche.values())
             detail = (f" ; {len(par_recherche)} couples personne/lieu, tous sans réponse, "
-                      f"sans rappel avant {APPEL_OUBLI} min" if tournee else " ; réponses et trajets à examiner")
+                      "sans rappel au même lieu" if tournee else " ; nouveaux indices, réponses et trajets à examiner")
             noter("appels_nombreux", pnj, ms[0], f"{len(ms)} appels ({ms[:6]}…)" + detail, len(ms),
                   "observation" if tournee else "a_expliquer")
     aides = Counter(c["pnj"] for c in chronique if c["texte"].endswith(" appelle à l'aide."))

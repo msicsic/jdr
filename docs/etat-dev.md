@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-chercher-appeler`, fusionnée, base `da13f9d`, lot 37 : les lieux
+  cherchés en vain restent écartés jusqu'à un nouvel indice local ; ni une absence, ni le
+  temps, ni une recharge ne réactivent la tournée. Réouverture commune par la croyance de
+  lieu ou un bruit nouveau, joueur cherché compris ; migration des souvenirs réservée aux
+  sauvegardes sans registre. `planification.py` et Luna inchangés. Code signé SSH `222f3cf`.
+  Six tests nouveaux : scènes crue 3 à 120 et mine 7 à 469, même état et même rendu après
+  recharge et laps découpé ; autres cas : voix, bruit, absence et délai, joueur, retrouvailles.
+  Banc 4 h contre `da13f9d`, quatre scénarios × quatre graines : mesures identiques pour
+  les seize nuits, zéro violation, usurpation ou plantage. Audit 12 h, crue 3 et mine 7, contre
+  les nuits `ffcc295` conservées : appels 11 → 9 et 23 → 19 ; passages/h 21,5 → 19,5 et
+  20,33 → 18,25 ; aucune nouvelle alerte de boucle. Brune appelle trois fois au lieu de dix
+  avant de retrouver Gorm ; Odon rappelle seulement après les nouveaux bruits des lieux.
+  **Limites** : « appels nombreux » d'Odon subsiste (20 → 15) ; dans la crue, sans recours
+  60 → 240 minutes cumulées, deux observations d'eau longue nouvelles. Aucun gain uniforme
+  des besoins promis. Bilan consolidé : **1 694 tests, 16 ignorés**, zéro échec restant.
+  Suite lancée une fois, trois processus, 1 743,6 s ; deux erreurs Web et deux fichiers TUI
+  bloqués dans le bac à sable, seules reprises des trois fichiers hors bac à sable : 41 tests verts.
+  [Rapport du lot 37](taches/rapport-codex-37-chercher-appeler.md), bruts `artifacts/codex-37/`
+  du worktree ; priorité réduite, quatre processus de calcul au plus, aucun appel au modèle.
+  Fusionné sur l'intégration après les lots 34 et 35 : seul conflit `docs/etat-dev.md` ; aucun fichier de code
+  commun (`deliberation`, `esprits`, `ouie` contre `moteur`, `mj`, `narration`, `signes`, `social`).
+
 - **Fusions des lots 34 et 35 sur l'intégration** (77473f9, base 1f1ea43 ; sans Luna) : `codex-perception-geste`
   (ccc517a) puis `codex-soi-meme` (77473f9), seul conflit `docs/etat-dev.md`. Fichier de code commun : `moteur.py`
   seul (lot 34 contre la vue mémorisée de la transaction), hunks disjoints qui s'accordent ; le lot 35 (`signes`,

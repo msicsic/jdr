@@ -336,6 +336,18 @@ sans voir Odile ; au grenier noir, elle l'appelle, Odile répond, Mireille lui d
 la voir et l'obtient. Même nature : Hugues cherche Anselme au dortoir noir pour le prévenir,
 l'appelle, et le prévient de vive voix. Odile, qui se méfie de Mireille, ne répond pas.
 
+**Une recherche ne recommence pas sous l'effet du temps** (lot 37, branche
+`codex-chercher-appeler`, non fusionnée). Un lieu inspecté sans retrouver la personne, ou appelé
+sans réponse, reste écarté pour cette personne dans `esprits.recherches`. Un constat d'absence,
+un changement de minute, un trajet rapide ou un rechargement ne l'effacent pas. Un nouvel indice
+positif de lieu (`esprits.croire` : vue, voix, bruit attribué, nouvelle) rouvre ce lieu seul ; un
+bruit inconnu nouveau (`ouie._bruit_inconnu`, ni déjà attendu ni couvert par un examen) y permet
+une nouvelle recherche sans attribuer le bruit à quelqu'un. Une voix reconnue ne rouvre que
+la recherche de cette personne. Cela vaut aussi quand le joueur est cherché. Le registre est
+persistant ; les souvenirs d'appels ne servent à le reconstituer que pour les anciennes sauvegardes
+qui n'en possèdent pas. Le planificateur lit les lieux écartés par son contrat existant
+`deliberation.appels_vains`, déjà dans ses clés de reprise ; aucun changement de son graphe.
+
 **Se parler, c'est s'entendre et savoir qui parle** (accepté : deux PNJ peuvent se parler dans le
 noir, mais pas par un raccourci de distance ni d'après la place réelle de l'autre).
 - *S'entendre* (`ouie.saisit`, `ouie.s_entendent`) : chacun saisit les mots de l'autre par
@@ -508,7 +520,8 @@ vaut se nommer : l'appelant qui saisit la réponse croit l'appelé là d'où ell
 connaît sa voix, sur sa parole sinon (`voix.se_nommer`), et qui la surprend l'apprend de même. Un
 appel resté sans réponse est retenu (`appel_sans_reponse`) : la salle compte pour parcourue dans
 cette recherche (`deliberation.appels_vains`, lu par `planification._chercher` et entré dans
-`_entrees`) tant qu'il n'a rien appris de neuf sur l'appelé, 60 minutes au plus (`APPEL_OUBLI`).
+`_entrees`) tant qu'aucun nouvel indice ne rouvre ce lieu (lot 37 : plus d'expiration
+`APPEL_OUBLI`, ni de réouverture des autres lieux par un constat d'absence).
 La réponse est chroniquée en nature `reponse` (une réaction, pas un geste de son but : le récit du
 banc ne la range pas dans ses épisodes ; elle compte parmi les échanges).
 
@@ -1668,8 +1681,8 @@ au moteur. Voir `docs/taches/rapport-codex-8-luna-noms.md` pour les scènes et l
   là), `HABITUDE` (15 min), le courage au-dessus de 50 pour aller voir un fracas.
 - L'inquiétude (15 × niveau reçu / 9) ; l'appel qui inquiète à chaque appel.
 - Les voix (branche `voix`) : `voix.INCONNU` (+2 au DD d'une demande d'une voix inconnue), la prudence
-  (sécurité + 50 − courage ≥ 50), `APPEL_OUBLI` (60 min où une salle hélée en vain compte pour
-  parcourue), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux) ; `REJOINT`
+  (sécurité + 50 − courage ≥ 50), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux) ;
+  l'ancien `APPEL_OUBLI` est remplacé au lot 37 par un nouvel indice local ; `REJOINT`
   (5 min où qui a répondu à un appel attend d'être rejoint, branche `parole-voix`).
 
 ## Suite prévue : imiter une voix (non faite)
