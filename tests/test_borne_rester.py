@@ -73,17 +73,19 @@ class BorneResterTests(unittest.TestCase):
         with patch.object(p.Vue, "borne_rester", return_value=0), p.diagnostics() as recherches:
             ancien = p.chercher(m, "lucien", but, emplois=(), motif="biens", tenir=True)
             complet = p.chercher(m, "lucien", but, emplois=None, motif="biens", tenir=True, noeuds=p.REFERENCE)
-        self.assertIsNone(ancien)
-        self.assertEqual(recherches[0]["issue"], "borne")
-        self.assertEqual(recherches[0]["noeuds"], p.NOEUDS)
+        # Avant le lot 46, la recherche sans borne atteignait ici son plafond
+        # (la seconde lanterne doublait les états) ; depuis, elle trouve le
+        # plan de la recherche complète sous le plafond. La borne doit rendre
+        # ce même plan, en moins d'états.
         self.assertIsNotNone(complet)
+        self.assertEqual(ancien, complet)
+        sans_borne = recherches[0]["noeuds"]
         with patch.object(p, "_MEMOIRE", {}), patch.object(p, "_GRAPHES", {}), \
                 patch.object(p, "_IMPOSSIBLES", {}), patch.object(p, "BORNES", []), \
                 patch.object(p, "VERIFIER", True), p.diagnostics() as recherches:
             nouveau = p.chercher(m, "lucien", but, emplois=(), motif="biens", tenir=True, nom="garder:grenier")
             self.assertEqual(nouveau, complet)
-            self.assertEqual(recherches[0]["noeuds"], 78)
-            self.assertTrue(any(r.get("ancienne_borne") and r["pnj"] == "lucien" for r in p.BORNES))
+            self.assertLess(recherches[0]["noeuds"], sans_borne)
         # Le plan a des conséquences réelles, persistées ; le joueur au
         # dortoir ne voit pas ces gestes cachés. Chacun des deux mondes reste
         # intégralement identique à lui-même après sauvegarde/rechargement.
@@ -103,8 +105,9 @@ class BorneResterTests(unittest.TestCase):
             self.assertEqual(regarder(monde), regarder(recharge))
             self.assertEqual(scene_percue(monde), scene_percue(recharge))
             mondes.append((recharge.data, lignes, regarder(recharge), scene_percue(recharge)))
-        self.assertNotEqual(mondes[0][0], mondes[1][0])
-        self.assertEqual(mondes[0][1:], mondes[1][1:])
+        # Depuis le lot 46, avec ou sans borne, Lucien prend la décision de la
+        # recherche complète : les deux mondes sont identiques.
+        self.assertEqual(mondes[0], mondes[1])
 
     def test_graphes_repris_aux_prix_variables_meme_resultat_que_sans_borne(self):
         chemin = Path(__file__).parent / "data/cout-12h/auberge-1985-480.json.gz"
