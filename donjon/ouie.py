@@ -666,6 +666,11 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     from .esprits import croire, lire, percoit
     from .voix import PRETENDUE, RECONNUE, connaitre, entendre as entendre_voix, reconnaitre
     o = monde.objets[id]
+    if (n in ("appel", "cri") and niveau >= SEUIL
+            and (percoit(monde, id, auteur) or reconnaitre(monde, id, auteur)[1] == RECONNUE)):
+        from .esprits import memoriser, reconsiderer
+        memoriser(monde, id, {"type": "detresse", "qui": auteur})
+        reconsiderer(monde, id)
     # Même vu, le cri est une information ; une voix jamais reconnue ne livre aucun nom.
     # Un seul souvenir du bruit par cri (et une seule inquiétude) : la suite ne le retient pas de nouveau.
     retenu = False
