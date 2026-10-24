@@ -1749,7 +1749,9 @@ suites différées, découvre la discrétion sur leurs gardes `sans_temoin` et
 La première recherche part à l'allure ordinaire. Si elle découvre un tel
 geste, `_explorer` reprend depuis le départ avec les deux allures, la même
 borne et le même ordre ; la découverte de lumière repart elle aussi de son
-état initial. Les plans discrets marchent donc feutré dès le début.
+état initial. Vérifier les filtres du candidat ne déplace pas les lectures
+de lumière : elles se feront dans la reprise, à leur point historique.
+Les plans discrets marchent donc feutré dès le début.
 
 `_GRAPHES[(PNJ, but)]` retient la marque `discretion` dès cette première
 rencontre des entrées. Il ne garde alors que cette marque ; les nœuds des

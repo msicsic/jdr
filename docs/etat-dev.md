@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-depart-feutre`, non fusionnée, lot **51**, base **d60b80a** :
+  les gardes des suites admissibles découvrent le besoin de discrétion ; sans
+  cette découverte, un seul départ ordinaire. Si elle a lieu, reprise depuis
+  le départ avec les deux allures ; marque `discretion` retenue par PNJ/but
+  dès la première recherche, nœuds conservés seulement à la deuxième.
+  Invalidation par les entrées communes ; graphes de lumière et certificat
+  partagent les départs. `VERIFIER` garde le témoin historique et le contrat
+  hors plafond / recherche complète du lot 48. Aucun coût, prix, plafond,
+  scénario, fonction réservée au lot 46 ni appel au modèle modifié.
+  Rémy à 480 min : 4 000 → 2 524 états, même absence de plan ; Brune devant
+  la réserve et un allumage illicite : mêmes plans, conséquences, état et
+  rendu après recharge. Marque conservée puis invalidée avec les permissions.
+  Empreintes 2 h, quatre scénarios × quatre graines : identiques à la base.
+  `VERIFIER` et `spatial.VERIFICATION=1`, mine/auberge 42, 2 h : sans écart,
+  borne ni usurpation. Suite complète unique : **1 760 tests, quatre ignorés**,
+  verte, 170 fichiers, trois processus à priorité réduite, 889,2 s.
+  Correctif signé SSH **453a6f3**, signature vérifiée ; `main` non touchée.
+  Huit nuits de 12 h, mine/auberge × 42/1985 × départ tiré/fixe : `comparer --calcul`
+  entièrement identique, résultats de tous les appels logiques compris ; aucune
+  bifurcation, aucun plantage ni usurpation. Trois versions lancées ensemble,
+  deux processus chacune : CPU global base → branche **2 230,19 → 2 170,67 s
+  (−2,7 %)**, mine −4,2 %, auberge −0,6 % ; nœuds **10 122 834 → 8 823 096**,
+  bornées **1 154 → 867**. Gain limité : mine 1985 tiré **+8,6 %** ; la découverte
+  coûte encore et le prototype local ne se généralise pas à toute la nuit.
+  Mesures et limites dans le [rapport du lot 51](taches/rapport-codex-51-depart-feutre.md).
+
 - Branche `codex-audience`, fusionnée, lot **47 b**, base `e28df5c`, brief `d33e492` :
   décision de l'utilisateur du 24 octobre appliquée : nom/vocatif, groupe explicite,
   échange poursuivi, sinon celui d'en face ; égalité, le joueur précise ; sans

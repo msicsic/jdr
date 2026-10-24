@@ -60,7 +60,7 @@ DIAGNOSTIC = None
 # pas à l'objet monde : le moteur agit sur une copie de travail à chaque action.
 _MEMOIRE = {}
 # Le graphe de la dernière recherche de chaque PNJ pour chaque but (``_explorer``), avec tout ce dont
-# il dépendait (None : des entrées vues une fois, sans graphe gardé) : quand seuls le prix d'une faute
+# il dépendait (None : nœuds relâchés après une preuve d'impossibilité) : quand seuls le prix d'une faute
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
 # Dès la première recherche, une petite marque de discrétion est retenue ;
