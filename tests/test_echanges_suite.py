@@ -164,7 +164,7 @@ class JoueurReclameTests(unittest.TestCase):
     def test_rien_n_est_du(self):
         m = self.devant("ilse")
         travail, rapport = preparer_parole(m, self.parole("ilse"))
-        self.assertTrue(rapport["faits"][0].endswith(" ne te doit rien."), rapport["faits"])
+        self.assertTrue(rapport["faits"][0].endswith(" ne te doit aucune pièce."), rapport["faits"])
 
     def test_son_objet_porte_par_un_autre(self):
         m = self.devant("brune")

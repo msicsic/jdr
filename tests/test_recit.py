@@ -20,7 +20,7 @@ class RecitTests(unittest.TestCase):
                 entree = json.loads(payload["input"][0]["content"])
                 arguments = {"segments": [
                     {"indice": i, "verdict": "mecanique", "sources": ["attestations"],
-                     "locuteur": "", "citation": "", "entites": [], "motif": ""}
+                     "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": ""}
                     for i, _ in enumerate(entree["segments"])]}
             else:
                 if inspecter:

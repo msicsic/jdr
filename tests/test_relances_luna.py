@@ -80,7 +80,7 @@ class AvisNonLuTests(unittest.TestCase):
             parole("il fait froid ce soir", ("propos", "", "", ""), personnage="aubin"),
             dialogue("Aubin hausse les épaules : « Comme chaque soir de crue. »")],
             [{"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "aubin",
-                                 "citation": "Comme chaque soir de crue.", "entites": [], "motif": ""}}}])
+                                 "citation": "Comme chaque soir de crue.", "entites": [], "comptes": [], "motif": ""}}}])
         self.assertEqual(fonctions(appels).count("auditer_narration"), 1)
         self.assertIn("Tu dis à Aubin", sortie)
         self.assertNotIn("Le joueur veut-il", sortie)
@@ -108,7 +108,7 @@ class NomTests(unittest.TestCase):
 class CitationTests(unittest.TestCase):
     def rapport(self, citation):
         return {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "aubin", "citation": citation,
-                                   "entites": [], "motif": ""}}}
+                                   "entites": [], "comptes": [], "motif": ""}}}
 
     def test_cas_reel_la_citation_recopiee_avec_l_attribution(self):
         # Banc soir-noir : l'auditeur citait « C'est Ilse », répond la voix, tout près dans le noir. ; la
@@ -193,7 +193,7 @@ class ExplicationTests(unittest.TestCase):
 
 def replique(locuteur, citation):
     return {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": locuteur, "citation": citation,
-                               "entites": [], "motif": ""}}}
+                               "entites": [], "comptes": [], "motif": ""}}}
 
 
 class NomsConnusTests(unittest.TestCase):
