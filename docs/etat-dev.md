@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-une-source`, non fusionnée, lot 46, base d'intégration `bafb9b9` (lot de coût) :
+  une source de lumière portable de plus, qui n'apporte aucune capacité absente des sources déjà
+  portées, n'ouvre aucun geste de la recherche (prendre, demander, acheter, saisir sur un porteur, faire
+  remettre par une aide sur place), sauf si le but la vise. Capacité définie une fois sur ce que lisent
+  les gestes de lumière (`Vue.capacite` : allumée, chargée, rechargeable de quelle substance, sans
+  faute ; `Vue.couvre`, `Vue.doublon`) ; règle commune de `gestes` et `_aide_sur_place`, indépendante
+  d'`emplois`, donc appliquée aussi par la référence de `VERIFIER` ; aucune lecture nouvelle hors de
+  `_entrees`, aucun coût, prix, borne ni scénario changé. Recherches de la mine 1985 rejouées de 480 à
+  570 : 180 recherches, 0 écart, nœuds −71 %. Empreintes 2 h contre `bafb9b9`, quatre scénarios ×
+  quatre graines : identiques. 12 h, mine et auberge × 42/1985, tiré et fixe, `42bb9c0`, `bafb9b9` et
+  la branche lancés ensemble : mine 2 462,6 → 1 625,1 s CPU (−34 %, encore ×1,55 contre `42bb9c0`),
+  auberge 1 679,2 → 1 708,5 s (bruit) ; cinq nuits sur huit identiques recherches comprises, les trois
+  autres divergent sur une recherche bornée de la base dont la branche rend exactement le résultat de
+  la recherche complète (`REFERENCE`). `VERIFIER` + `spatial.VERIFICATION` 1 sur 2 h, mine et auberge
+  42 : sans écart ni borne. Cinq tests après rechargement (`test_une_source`). Suite complète unique,
+  trois processus à priorité réduite : **1 730 tests, 16 ignorés**, verte, 1 192,7 s. Commits non
+  signés (aucune clé configurée sur ce poste). Aucun appel à Luna.
+  [Règle](plan-planificateur.md), [rapport, temps par tranche et limites](taches/rapport-codex-46-une-source.md).
+
 - Branche `codex-gardien-detresse`, fusionnée, lot 43, base `dd36155` :
   un besoin sans recours ouvre l'aide auprès de sa charge : demander l'allumage
   d'une source locale ou la remise d'un moyen utile, avec les tâches communes et

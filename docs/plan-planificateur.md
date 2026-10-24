@@ -1672,3 +1672,39 @@ conservée ; `perception.substance` garde le module matière au premier appel,
 pour ne pas introduire le cycle de démarrage matière → monde → perception.
 
 Mesures, preuve d'identité et limites : [rapport du lot 38](taches/rapport-codex-38-cout-12h.md).
+
+
+## Une source de plus — lot 46 (`codex-une-source`, non fusionnée)
+
+L'invariant prolonge « on ne porte que ce qui peut servir le but » : **une source de lumière portable
+de plus, qui n'apporte aucune capacité absente des sources déjà portées, n'ouvre aucun geste de la
+recherche** — ni prendre, ni demander, ni acheter, ni la saisir sur un porteur (et donc ni chercher
+son porteur), ni la faire remettre par une aide sur place — sauf si le but la vise (`prendre`,
+`poser`, `fermer`, `servir`, `entretenir`). La règle est dans `gestes` et `_aide_sur_place`, comme
+celle des combustibles sans source à recharger et celle des flammes `superflu` : elle ne dépend pas
+d'`emplois`, la recherche de référence de `VERIFIER` l'applique aussi.
+
+**Capacité** (`Vue.capacite`), définie une fois sur ce que lisent les gestes de lumière (`feu`,
+`flamme`, `brule`, la faute de toucher la source) : un rang, une substance, « sans faute ».
+Rang 3, allumée : elle éclaire et donne une flamme ; 2, éteinte et chargée : une flamme l'allume ;
+1, éteinte et vide : elle se recharge de sa substance (`perception.brule`) puis s'allume ; 0, rien
+(état inconnu, ou vide sans se recharger). « Sans faute » : l'allumer ou la recharger n'est pas une
+faute (bien d'autrui sans permission). `Vue.couvre(a, b)` : allumée couvre tout ; sinon un rang au
+moins aussi haut, la même substance à rang 1, et sans faute si `b` l'est. La source candidate est
+jugée au mieux (« sans faute » : acquise par une demande, elle serait permise). Seules comptent les
+sources qui ne servent qu'à y voir (`Vue.sources_seules` : mobiles, ni foyer, ni clé, ni outil de
+`USAGES` — l'allumage compris —, ni vivres, ni part) ; une source portée à laquelle il ne touche pas
+(`contrarie`) ne couvre rien.
+
+Pourquoi le résultat ne change pas : la lumière d'un état ne dépend que d'une source allumée en main
+ou allumée par le plan (`_eclaire_par_le_plan`), pas de laquelle ni de combien ; recharger, allumer,
+demander du feu se font sur la source portée qui couvre la candidate, avec un coût égal ou moindre
+(pas de détour d'acquisition) ; une seconde source allumée par le plan coûte de plus `FLAMME_EN_MAIN`.
+Un objet de plus ne rend aucun passage possible. Aucune lecture nouvelle : croyances d'état des
+sources, permissions, refus tenus et données d'objets sont déjà dans `_entrees`.
+
+Ce que la règle ne touche pas : allumer ou recharger sur place une source qu'on ne porte pas (une
+lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; le devis d'une part
+remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
+
+Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
