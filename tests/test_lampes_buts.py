@@ -94,6 +94,9 @@ class LumiereDuButTests(unittest.TestCase):
             # ordinaire qui peut se faire au toucher. Seul ce geste de la fixture
             # exige de la lumière ; le but, lui, ne la lit jamais.
             for g in gestes_ordinaires(v, e, vises, but):
+                if isinstance(g, P.SuiteDifferee):
+                    yield g
+                    continue
                 if any(x["operation"] == "inspecter" and x["lieu"] == "reserve" for x in g[2]):
                     if not v.lumiere(e):
                         continue

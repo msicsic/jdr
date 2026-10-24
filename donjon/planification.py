@@ -275,6 +275,7 @@ class Vue:
         self._estime_part = False
         self._estimations_parts = {}
         self._depart_estimation = None
+        self._devis_differes = self._devis_developpes = 0
 
     @property
     def emploie_lumiere(self):
@@ -909,7 +910,9 @@ def gestes(v, e, vises=None, but=None):
 
     ``vises`` ouvre les gestes que seul un but demande, sur les objets ou lieux qu'il vise :
     inspecter une salle, prendre un objet qui ne sert à aucun geste, poser, fermer et
-    verrouiller, servir une part à quelqu'un. Les offrir partout élargirait la recherche sans
+    verrouiller, servir une part à quelqu'un. Une SuiteDifferee décrit un groupe
+    terminal dont la recherche ne calculera le détail qu'à sa borne de coût.
+    Les offrir partout élargirait la recherche sans
     rien lui apprendre."""
     monde, id = v.monde, v.id
     vises = vises or {}
@@ -1335,11 +1338,43 @@ def _parts_remises(v, e, o, dans, vises, but=None):
                         "suppose": True}, 1 + attente, prix))
     if not offres:
         return
+    # Les suites ci-dessous sont toutes terminales. Leur prix contient au moins
+    # celui de l'offre, moins le geste conventionnel que _mesurer remplacera par
+    # une durée positive. Attente, devis, fautes et pressions sont non négatifs.
+    # Borne nulle pour une attente promise : aucun tarif de parole n'y est imposé.
+    borne = min(minutes if promise else max(0, minutes - 1)
+                for minutes, _, _, _ in offres)
+    yield SuiteDifferee(borne, _estimer_remise, (e, o, attente, offres, vises, but))
+
+
+class SuiteDifferee:
+    """Nœud A* intermédiaire d'une suite terminale, sans effet sur le monde.
+
+    Son coût déjà payé est celui du préfixe ; ``borne`` minore tout son reste.
+    Les états ordinaires, dont on ne sait pas borner le reste, gardent h = 0.
+    La borne est cohérente : l'arête vers ce nœud coûte zéro, ses sorties
+    terminales coûtent au moins la borne, et leurs h sont nuls. Aucun résultat
+    estimé n'est employé comme borne. Une seule évaluation par nœud du graphe.
+    """
+    def __init__(self, borne, calcul, arguments):
+        self.borne, self.calcul, self.arguments = borne, calcul, arguments
+        self.suites = None
+
+    def developper(self, v):
+        if self.suites is None:
+            v._devis_developpes += 1
+            self.suites = [(*g, 0) for g in self.calcul(v, *self.arguments)]
+            assert all(g[3].fait("estimation") and g[4] == 0 and g[1] >= self.borne
+                       for g in self.suites), "Borne de suite terminale invalide"
+        return self.suites
+
+
+def _estimer_remise(v, e, o, attente, offres, vises, but):
     from .part_estimee import suites
     en_feu = sum(1 for k in e.portes if e.fait("allume", k))
     for minutes, demande, duree, paye in offres:
         depuis, pression = e, attente * v.pression(e)
-        if not promise:
+        if not demande.get("attendre_remise"):
             mesure = _mesurer(v, e, [demande], e, 1)
             if mesure is None:
                 continue
@@ -1567,14 +1602,15 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
                                issue, borne)
-    if VERIFIER and (garde is not None or repris or v.emplois is not None):
+    if VERIFIER:
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
-                  trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else None)
+                  trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else "borne")
     if DIAGNOSTIC is not None:
         DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
                            "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": garde is not None,
                            "graphe": repris and garde is None, "etapes": len(trouve[1]) if trouve else None,
                            "impossible": absence, "preuve_noeuds": preuve_noeuds, "preuve_issue": preuve_issue,
+                           "devis_differes": v._devis_differes, "devis_developpes": v._devis_developpes,
                            "duree": round(perf_counter() - debut, 6)})
     return trouve
 
@@ -1612,7 +1648,8 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
         brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
         brute.motif = v.motif
         brute.desespere = v.desespere
-        r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir)
+        r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir,
+                      differer=False)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
@@ -1648,7 +1685,7 @@ def _endure(v, trouve, depuis, gain):
     return bool(trouve and trouve[1]) and trouve[0] >= RESTER * v.pression(depuis or depart(v.monde, v.id, v)) + gain
 
 
-def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None):
+def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None, *, differer=True):
     """Découvrir les moyens que le but et ses gestes emploient, puis chercher.
 
     Une lecture de lumière dans un état sombre révèle ce que la lumière peut
@@ -1668,10 +1705,11 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
     voir = v.emploie_lumiere
     resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir,
-                               lumineux if voir else sombre, decouvrir=not voir)
+                               lumineux if voir else sombre, decouvrir=not voir, differer=differer)
     if not voir and v.emploie_lumiere:
         v._agissables.clear()
-        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux)
+        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux,
+                                   differer=differer)
     return resultat
 
 
@@ -1689,7 +1727,7 @@ def _departs(v, e):
 
 
 def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
-                    decouvrir=False):
+                    decouvrir=False, *, differer=True):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
     profondeur atteinte). ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
 
@@ -1709,7 +1747,12 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     infini = float("inf")
     degat = v.degat
     departs = _departs(v, depart_)
-    file = [(0, next(ordre), e, [], 0, False) for e in departs]
+    # Une place dans l'ordre historique est réservée à chaque groupe différé.
+    # Ses sorties gardent cette place et leur ordre interne, même calculées plus
+    # tard : les égalités restent celles de la file en coût uniforme. Les nœuds
+    # différés passent avant les vrais à priorité égale, pour révéler toutes les
+    # sorties susceptibles d'égaler le meilleur prix avant de décider.
+    file = [(0, 1, (next(ordre), 0), 0, e, [], 0, False) for e in departs]
     vus = {e: 0 for e in departs}
     examines = plus_profond = 0
     trouve = None
@@ -1717,7 +1760,18 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     # lumière : seule la passe suivante, avec les moyens d'éclairer, décidera du plan. Ses nœuds
     # restent justes pour la rejouer (le cinquième terme : où elle a lu la lumière).
     while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
-        cout, _, e, etapes, n, final = heapq.heappop(file)
+        _, _, rang, cout, e, etapes, n, final = heapq.heappop(file)
+        if isinstance(final, SuiteDifferee):
+            for i, (fautes, minutes, ajout, suivant, _, abime, _) in enumerate(final.developper(v)):
+                if fautes and faute is None:
+                    continue
+                if ((suivant.allure == 15 or suivant.fait("furtif"))
+                        and (not tenir or suivant.salle not in v.menacees)):
+                    total = cout + fautes * (faute or 0) + ((degat or 0) * abime if abime else 0) + minutes
+                    total += RESTER * v.pression(suivant) if tenir else 0
+                    heapq.heappush(file, (total, 1, (rang[0], i), total,
+                                         suivant, etapes + ajout, n + 1, True))
+            continue
         if final:
             trouve = cout, copy.deepcopy(etapes), e
             break
@@ -1741,7 +1795,8 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                 break
             if noeud[1] is None:
                 noeud[1] = v.pression(e)
-            heapq.heappush(file, (cout + RESTER * noeud[1], next(ordre), e, etapes, n, True))
+            total = cout + RESTER * noeud[1]
+            heapq.heappush(file, (total, 1, (next(ordre), 0), total, e, etapes, n, True))
         if n >= profondeur:
             continue
         if noeud[3] is None:
@@ -1753,7 +1808,20 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         elif noeud[4] == "gestes":
             v._lumiere_lue = True   # ses gestes y ont lu la lumière : seulement s'il les développe
         en_feu = noeud[2]
-        for fautes, minutes, ajout, suivant, duree, abime, pression in noeud[3]:
+        suites = noeud[3]
+        if decouvrir or not differer:
+            # La lecture de lumière définit les moyens offerts à la deuxième
+            # passe : elle doit se produire au point historique, avant tout tri.
+            suites = [g for s in suites for g in (s.developper(v) if isinstance(s, SuiteDifferee) else [s])]
+            if decouvrir and v._lumiere_lue and not noeud[4]:
+                noeud[4] = "gestes"
+        for suite in suites:
+            if isinstance(suite, SuiteDifferee):
+                v._devis_differes += 1
+                heapq.heappush(file, (cout + suite.borne, 0, (next(ordre), 0), cout,
+                                     e, etapes, n, suite))
+                continue
+            fautes, minutes, ajout, suivant, duree, abime, pression = suite
             if fautes and faute is None:
                 continue
             surcout = (degat or 0) * abime if abime else 0   # un prix qui n'est pas du temps (abîmer)
@@ -1765,11 +1833,13 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                 total += duree * pression  # Le temps qu'il passe dans le noir, ou loin de ses biens.
             if estime:
                 if (suivant.allure == 15 or suivant.fait("furtif")) and (not tenir or suivant.salle not in v.menacees):
-                    heapq.heappush(file, (total + (RESTER * v.pression(suivant) if tenir else 0),
-                                         next(ordre), suivant, etapes + ajout, n + 1, True))
+                    total += RESTER * v.pression(suivant) if tenir else 0
+                    heapq.heappush(file, (total, 1, (next(ordre), 0), total,
+                                         suivant, etapes + ajout, n + 1, True))
             elif total < vus.get(suivant, infini):
                 vus[suivant] = total
-                heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1, False))
+                heapq.heappush(file, (total, 1, (next(ordre), 0), total,
+                                     suivant, etapes + ajout, n + 1, False))
     return trouve, examines, len(vus), plus_profond
 
 
@@ -1778,6 +1848,9 @@ def _suites(v, e, vises, but, conclure=False):
     minutes, étapes, état suivant, durée, abîme, ce que l'état suivant laisse monter par minute)."""
     suites = []
     for geste in gestes(v, e, vises, but):
+        if isinstance(geste, SuiteDifferee):
+            suites.append(geste)
+            continue
         fautes, minutes, ajout, suivant = geste[:4]
         furtif = any(x.get("condition") in ("sans_temoin", "dans_le_dos") for x in ajout)
         if furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None:
@@ -1925,7 +1998,15 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
             continue
         if noeud[3] is None:
             return False, examines, "lacune", lue
-        for fautes, _, _, suivant, *_ in noeud[3]:
+        suites = []
+        for s in noeud[3]:
+            if isinstance(s, SuiteDifferee):
+                if s.suites is None:
+                    return False, examines, "lacune", lue
+                suites.extend(s.suites)
+            else:
+                suites.append(s)
+        for fautes, _, _, suivant, *_ in suites:
             if fautes and faute is None or suivant in vus:
                 continue
             vus.add(suivant)

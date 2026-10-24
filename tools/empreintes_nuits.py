@@ -90,15 +90,24 @@ def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0
         return r
 
     planification.chercher = observer
-    capture = {}
+    capture, tranches = {}, []
     creer = banc_pnj.creer
+    relever = banc_pnj._oisifs_urgents
 
     def _creer(*a, **k):
         capture["monde"] = creer(*a, **k)
         return capture["monde"]
     banc_pnj.creer = _creer
     debut = time.process_time()
-    _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, JOUEURS.get(scenario), False, True, None, depart)
+    def _relever(monde):
+        if monde.data["minutes"] >= 240 * (len(tranches) + 1):
+            tranches.append(round(time.process_time() - debut, 4))
+        return relever(monde)
+    banc_pnj._oisifs_urgents = _relever
+    try:
+        _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, JOUEURS.get(scenario), False, True, None, depart)
+    finally:
+        banc_pnj.creer, banc_pnj._oisifs_urgents = creer, relever
     secondes = time.process_time() - debut
     monde = capture["monde"]
     recherches = donnees["diagnostic"]["recherches"]
@@ -116,6 +125,7 @@ def nuit(depot, scenario, graine, heures, depart, verifier=False, verification=0
             "noeuds": sum(r["noeuds"] for r in recherches),
             "planificateur": round(sum(r.get("duree", 0.0) for r in recherches), 2),
             "choix": dict(deliberation.COMPTES), "secondes": round(secondes, 2), "memoire_mo": _pic_memoire(),
+            "cpu_cumule_4h": tranches,
             "recherches_logiques": appels, "trace_recherches": trace.hexdigest()[:16],
             "impossibilites_reprises": sum(bool(r.get("impossible")) for r in recherches),
             "reprises_memoire": sum(bool(r.get("memoire")) for r in recherches),
