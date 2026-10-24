@@ -57,8 +57,12 @@ fait une fois, à l'intégration, pour plusieurs lots ensemble.
 - **Un invariant par lot.** Un brief qui en porte plusieurs se découpe en lots successifs.
 - **Pas de référence relancée.** Les résultats de `main` (empreintes, banc rapide, Luna) se
   calculent une fois par commit de `main` et se réutilisent (`artifacts/references/<commit>/`,
-  non versionné) ; un lot ne lance que sa branche. Si la référence manque, la lancer une fois et
-  l'y ranger.
+  non versionné) ; un lot ne lance que sa branche. `tools/comparer_bancs.py --reference main` et
+  `tools/banc_multi.py --variante main=main` résolvent la référence en commit, y lisent chaque nuit
+  ou partie déjà jouée et ne jouent et rangent que celles qui manquent ; le worktree courant n'y
+  entre jamais. Le temps processeur ou les secondes lus du cache ont été mesurés ailleurs : ne
+  comparer des temps que lancés ensemble (`--sans-cache`). `tools/references.py lister` montre le
+  cache, `purger --garder N` retire ce qui n'est plus un ancêtre de `main` ou trop ancien.
 - **Vérification du lot**, le minimum qui prouve l'invariant :
   - tests ciblés pendant le travail, suite complète (`tools/tests.py`) **une seule fois**, à la fin ;
   - un changement censé ne rien changer : empreintes sur 2 h (`tools/comparer_bancs.py
