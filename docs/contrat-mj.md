@@ -121,11 +121,20 @@ déjà le rendu de ce qui est perçu et ne demande pas une seconde rédaction et
 La règle distincte de
 `commandes.PERCEPTIONS`, qui borne l'exécution immédiate d'une question, reste inchangée.
 
-Le résultat positif ou négatif d'une perception active est une affirmation mécanique :
-il doit s'appuyer sur une perception exécutée, dans `resultat_resolu` ou les résultats
-enregistrés. Une proposition, la demande et l'absence de faits ne prouvent pas ce résultat.
-Sans source, l'audit le refuse comme invention mécanique ; une perception courante de l'état
-ne prouve que ce qu'elle décrit. L'ambiance reste libre lorsqu'elle ne conclut ni au résultat
+**Vue courante et perception active** (branche `codex-absence-vue`). Le fait `perception`
+porte `objets_visibles`, la liste exhaustive des objets vus maintenant (`objet:<id>` avec
+`visible=true`), avec l'éclairage courant. Une absence limitée à cette vue (« tu ne vois pas
+de… ici ») est mécanique, source `perception`, sans exiger une recherche. Cela ne prouve
+aucune absence dans toute la salle, derrière une porte, dans un contenant fermé, hors du
+champ de vision ou dans le noir. Un objet accessible avec `visible=false` ou un souvenir
+ne fait pas partie de cette vue. La portée se juge sur l'affirmation, même si la demande
+du joueur propose de chercher ; répondre sur la vue actuelle n'exécute pas ce geste.
+
+Le résultat positif ou négatif d'une perception active au-delà de cette portée est une
+affirmation mécanique : il doit s'appuyer sur une perception exécutée, dans `resultat_resolu`
+ou les résultats enregistrés. Une proposition, la demande et l'absence de faits ne prouvent
+pas ce résultat. Sans source, l'audit le refuse comme invention mécanique.
+L'ambiance reste libre lorsqu'elle ne conclut ni au résultat
 d'un geste ni à l'absence d'un élément mécanique. La reconnaissance de ce sens dans une phrase
 et le jugement de fidélité de la revue restent sémantiques : ce contrat ne garantit pas
 l'absence de toute mauvaise classification par Luna.

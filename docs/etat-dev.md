@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-absence-vue`, fusionnée, base `8443458`, lot 40 : la vue courante
+  donne `perception.objets_visibles`, limitée aux objets `visible=true`, en références publiques.
+  L'audit admet une absence dans cette vue avec la source `perception` ; un résultat de fouille,
+  d'écoute derrière une porte ou d'examen caché exige toujours une perception exécutée. Aucun
+  changement du prompt d'interprétation ni des fichiers réservés au lot 38. Correctif signé
+  `c5f0b77`, signature SSH vérifiée. Console/MJ simulé/recharge : atelier 9 et 12, antichambre,
+  porte, coffre fermé, noir ; état et texte sauvegardé contrôlés, tests du lot 34 conservés.
+  Ciblés **55 tests verts** ; suite complète unique (`tools/tests.py --processus 3`) :
+  **1 704 tests, 16 ignorés, aucun échec ni erreur**, 1 291,2 s à priorité réduite.
+  Empreintes Relais 2 h × 4 graines identiques à la base (référence manquante calculée et cachée).
+  Luna, une seule passe atelier/crypte/luna-restes-ambiance/signes-noir, `main` lu du cache :
+  86 → 66 appels, 3,44 → 2,75 appels/tour, replis 1 → 0, aucun défaut technique ou de recharge.
+  Zéro refus d'absence visible comme `invention_protegee` ; écoute exécutée en deux appels,
+  trois minutes enregistrées. **Limite** : atelier 9 et 12 restent à six et quatre appels
+  (voix d'auteur et contradictions sémantiques, dont pierre/sol) ; pas de garantie générale du
+  classement. Un commentaire de preuve subsiste dans l'ambiance. Pas de conclusion de vitesse
+  depuis le cache. [Rapport du lot 40](taches/rapport-codex-40-absence-vue.md).
+
+- Branche `codex-refuge-mouille`, **fusionnée**, base `63a717c`, lot 39 :
+  Fusionné sur l'intégration après les lots 38 et 39 : seul conflit `docs/etat-dev.md` ; aucun fichier de code
+  commun (`mj`, `narration` contre `planification`, `part_estimee`, `perception`, `obstacles`, `trajet_estime`).
+
 - Branche `codex-cout-12h`, fusionnée, base moteur `63a717c` (brief `17164f8`), lot 38 :
   mêmes décisions sur les nuits contrôlées, trois leviers de calcul. Une borne admissible sur les
   suites terminales diffère leur devis ; rang historique des égalités réservé, normalisation commune
