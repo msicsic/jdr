@@ -154,12 +154,12 @@ class InterpellationTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "je dis à Aubin : viens m'aider à porter l'échelle", [], [])
         self.assertEqual(appels, [])
         self.assertIn(manque, sortie)
-        self.assertEqual(reprise.data["conversation"][-1]["nature"], "refus_avant_action")
-        # Une interpellation libre va au MJ, qui l'interprète (personne en vue : pas de parole possible).
-        reprise, sortie, appels = jouer(m, "Aubin, viens m'aider à porter l'échelle",
-                                        [dialogue("Tu ne vois pas Aubin d'ici.")], [verdicts(NEUTRE)])
-        self.assertEqual(len(mj(appels)), 1)
-        self.assertNotIn("parole_joueur", str(mj(appels)[0].get("faits", {}).get("retour_moteur", "")))
+        self.assertEqual(reprise.data["conversation"], m.data["conversation"])
+        # L'adresse nommée garde le même accès, même sans verbe de parole explicite.
+        reprise, sortie, appels = jouer(m, "Aubin, viens m'aider à porter l'échelle", [], [])
+        self.assertEqual(appels, [])
+        self.assertIn(manque, sortie)
+        self.assertEqual(reprise.data["conversation"], m.data["conversation"])
         self.assertEqual(reprise.data.get("paroles_joueur", []), [])
 
 
