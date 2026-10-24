@@ -1415,7 +1415,7 @@ def _entrees(v, vises, profondeur, noeuds):
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
     from .signes import actives
-    from .caractere import prix_faute
+    from .caractere import prix_faute, modificateur
     from .deliberation import parts
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
@@ -1443,6 +1443,12 @@ def _entrees(v, vises, profondeur, noeuds):
         [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
         v.prix_gardes, v.chances_demandes,
         agendas.en_cours(monde, id), prix_faute(monde, id),
+        prix_faute(monde, id, nom="douceur"), [modificateur(monde, id, a) for a in ("DEX", "FOR")],
+        # Le devis d'entretien distingue une source observée pendant cette minute
+        # d'un état antérieur : seule la première dispense d'un nouveau travail.
+        [(o, (etat := croyances.get(o, {}).get("etat")) is not None
+          and etat["minute"] == minute and etat["source"] in ("vu", "essai"))
+         for o in v.connus if "allume" in v.objets[o]],
         [(o, parts(v.objets[o])) for o in v.connus if porte_par(monde, o, id) and v.besoin[o]],
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.

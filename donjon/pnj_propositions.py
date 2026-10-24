@@ -39,7 +39,7 @@ def _taches(v, autre):
             if devis and devis[1]:
                 offres.append(({"type": "tache", "condition": condition}, devis[0]))
         if p.VERIFIER and precedent is not None and precedent[0] == cle:
-            assert precedent[1] == offres, "Devis de proposition périmé"
+            assert precedent[1] == offres, f"Devis de proposition périmé ({v.id}, {autre}) : {precedent[1]} au lieu de {offres}"
         _DEVIS[v.id, autre] = cle, offres
         return offres
     return v._memo(("offres_taches", autre), calculer)
