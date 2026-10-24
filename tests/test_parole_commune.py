@@ -202,7 +202,7 @@ class DestinataireTests(unittest.TestCase):
                                           "faits": []}}
 
         def audit(locuteur):
-            return {"segments": [{"indice": 0, "verdict": "parole", "sources": [], "locuteur": locuteur,
+            return {"segments": [{"portee_mecanique": "aucune", "indice": 0, "verdict": "parole", "sources": [], "locuteur": locuteur,
                                   "citation": "Non.", "entites": [], "comptes": [], "motif": ""}]}
         self.assertTrue(controler("Aubin : « Non. »", audit("aubin"), faits)["obstacles"])
         self.assertFalse(controler("Ilse : « Non. »", audit("ilse"), faits)["obstacles"])

@@ -54,21 +54,21 @@ class AdresseTests(unittest.TestCase):
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
                 self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "ilse")
                 plans = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
-                self.assertEqual(len(plans), 1)
-                self.assertEqual(set(plans[0]), {"replique", "contenu", "sens_contenu"})
+                self.assertEqual(plans, [])  # Mots exacts, aucun effet typé à revoir.
 
-    def test_un_contenu_refuse_deux_fois_ne_passe_pas_par_le_secours_local(self):
+    def test_les_mots_exacts_sans_contenu_ne_demandent_pas_de_revue(self):
         m = scene()
-        avant = copy.deepcopy(m.data.get("sons", []))
         saisie = "je dis : qui peut nous aider ?"
         defaut = prevue(m, saisie)["personnage"]
-        r, sortie, _ = jouer(m, saisie, [parole("qui peut nous aider ?", personnage=defaut)] * 2, [],
+        r, sortie, appels = jouer(m, saisie, [parole("qui peut nous aider ?", personnage=defaut),
+            dialogue("Ta question a été entendue.")],
+            [rapport(ligne("mecanique", sources=["conversation_validee"]))],
             revues=[{"conforme": False, "motif": "Contenu contraire à la demande."}] * 2)
-        self.assertIn("Précise ce que tu veux dire", sortie)
+        self.assertNotIn("Précise ce que tu veux dire", sortie)
         self.assertNotIn("Précise à qui", sortie)
-        self.assertNotIn("Tu dis à", sortie)
-        self.assertEqual(r.data.get("paroles_joueur", []), [])
-        self.assertEqual(r.data.get("sons", []), avant)
+        self.assertIn("Tu dis à", sortie)
+        self.assertEqual(r.data["paroles_joueur"][-1]["texte"], "qui peut nous aider ?")
+        self.assertFalse(any(f == "auditer_action" for f, _ in appels))
 
     def test_repondre_apres_s_etre_ecarte_ne_depend_pas_de_rester_en_vue(self):
         from tests.test_parole_corrections import banc

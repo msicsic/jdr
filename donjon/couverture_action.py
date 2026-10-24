@@ -68,7 +68,9 @@ La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence a
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
 Le motif désigne seulement l'écart d'état, sans inventer un fait du monde.
 Pour un plan de parole, rends contenu_conforme : les mots et le contenu typé traduisent-ils
-la demande ? Ne juge dans ce booléen ni l'audience fixée par le moteur, ni les conséquences
+la demande ? Un contenu vide ou propos n'attribue aucun effet mécanique aux mots ; il n'est
+pas infidèle par son seul manque de typage. Juge les mots et les effets des seuls contenus
+typés présents, sans exiger d'en inventer un pour toute question. Ne juge dans ce booléen ni l'audience fixée par le moteur, ni les conséquences
 qu'il a calculées. Pour les autres plans, rends conforme et motif.
 Appelle auditer_action une fois.
 """

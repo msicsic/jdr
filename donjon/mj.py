@@ -217,10 +217,12 @@ def parole_du_moteur(monde, intention):
     joueur, tels quels, à ceux que le moteur a fixés, sans contenu typé. Sans mots imposés, le joueur
     les donne : le moteur ne les invente pas."""
     from .paroles import _nom_court
-    forme, prevue = analyser_parole(monde, intention), parole_annoncee(monde, intention)
-    if forme["mots"]:
+    from .paroles import mots_dits, prevue as prevoir
+    forme, prevue = analyser_parole(monde, intention), prevoir(monde, intention)
+    mots = mots_dits(forme, intention)
+    if mots:
         return {"mode": "parole_joueur", "texte": "", "faits": [],
-                "proposition": {"personnage": prevue["personnage"], "replique": forme["mots"], "contenu": []}}
+                "proposition": {"personnage": prevue["personnage"], "replique": mots, "contenu": []}}
     qui = {"tous": " à tous", "personne": ""}.get(prevue["personnage"]) \
         if prevue["personnage"] in ("tous", "personne") else " à " + _nom_court(monde, prevue["personnage"])
     return {"mode": "dialogue", "texte": f"Dis ce que Corvus dit{qui}, entre guillemets ou après un deux-points.",
@@ -408,9 +410,13 @@ class MJ:
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision):
         """Contre-revue des mots et du contenu, avec l'adresse déjà fixée par le moteur."""
-        from .paroles import adresse_implicite, sens_contenu
+        from .paroles import adresse_implicite, sens_contenu, mots_dits
         from .moteur import Plan
         if not adresse_implicite(analyser_parole(monde, intention)):
+            return
+        if (not any(c.get("type") != "propos" for c in complements["contenu"])
+                and rapport["replique_joueur"] == mots_dits(analyser_parole(monde, intention), intention)):
+            # Identité des mots, aucun effet typé : aucune interprétation à revoir.
             return
         # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
         # font pas partie de la question posée à la revue sémantique du contenu.
@@ -771,8 +777,15 @@ class MJ:
                 except ErreurMonde as exc:
                     fidelite_refusee |= isinstance(exc, ParoleNonConforme)
                     if fidelite_refusee and essai:
-                        return {"mode": "dialogue", "texte": "Précise ce que tu veux dire : les mots ou le contenu "
-                                "proposés ne correspondent pas à ta demande.",
+                        secours = parole_du_moteur(monde, intention)
+                        if secours["mode"] == "parole_joueur":
+                            # Le typage refusé ne rend pas les mots du joueur inexploitables.
+                            # Repréparer sur l'original : aucun effet des copies refusées ne passe.
+                            complements = {**secours["proposition"], "_intention": intention[:600]}
+                            travail, rapport = preparer_parole(monde, complements, revision)
+                            break
+                        return {"mode": "dialogue", "texte": "Précise ce que tu veux dire, entre guillemets ou "
+                                "après un deux-points.",
                                 "faits": [], "proposition": None, "_texte_moteur": True,
                                 "_validation_refusee": True}
                     secours = parole_du_moteur(monde, intention) if essai and parole_attendue(monde, intention) else None

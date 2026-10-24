@@ -156,7 +156,7 @@ class ConnaissancesTests(unittest.TestCase):
             "fragments": [{"texte": souvenir, "portee": "sujet", "preuve": "", "motif": ""}]}]}
         parole = {"mode": "dialogue", "texte": "Gorm dit : « " + citation + " ».",
                   "faits": [], "proposition": None}
-        audit = {"segments": [{"indice": 0, "verdict": "parole", "sources": [],
+        audit = {"segments": [{"portee_mecanique": "aucune", "indice": 0, "verdict": "parole", "sources": [],
             "locuteur": "marchand", "citation": citation, "entites": [], "comptes": [], "motif": ""}]}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"

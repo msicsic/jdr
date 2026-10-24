@@ -197,8 +197,7 @@ class ParoleTests(unittest.TestCase):
                     self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
                     self.assertNotIn("Précise à qui", texte)
                     revues = [e for f, e in appels if f == "auditer_action"]
-                    self.assertEqual(len(revues), 1)
-                    self.assertEqual(set(revues[0]["plan"]["parole"]), {"replique", "contenu", "sens_contenu"})
+                    self.assertEqual(revues, [])  # Mots exacts sans contenu typé.
                     self.assertEqual(paroles_retenues(r, "aubin")[-1][2], saisie)
 
     def test_revue_du_contenu_seule_et_transfert_reel_hors_de_son_dossier(self):

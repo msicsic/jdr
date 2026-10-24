@@ -91,10 +91,10 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         corrige = "Tu te trouves dans : Antichambre."
         reponses = [
             {"mode": "dialogue", "texte": invention, "faits": [], "proposition": None},
-            {"segments": [{"indice": 0, "verdict": "invention_protegee", "sources": [],
+            {"segments": [{"portee_mecanique": "aucune", "indice": 0, "verdict": "invention_protegee", "sources": [],
                            "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": "Aucune seconde cloche établie."}]},
             {"mode": "dialogue", "texte": corrige, "faits": ["attestations"], "proposition": None},
-            {"segments": [{"indice": 0, "verdict": "mecanique", "sources": ["attestations"],
+            {"segments": [{"portee_mecanique": "aucune", "indice": 0, "verdict": "mecanique", "sources": ["attestations"],
                            "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": ""}]},
         ]
         with tempfile.TemporaryDirectory() as tmp, \
