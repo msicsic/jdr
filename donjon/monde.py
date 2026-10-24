@@ -221,6 +221,27 @@ class Monde:
     def copier(self):
         return Monde(copie(self.data))
 
+    def adopter(self, autre):
+        """Publier un état validé sans détacher les références de l'action en cours.
+
+        Les dictionnaires (esprit, intention, objet) et les listes (plan, chronique)
+        déjà ouverts par le moteur continuent de désigner l'état courant.
+        """
+        autre.verifier()
+        def appliquer(destination, source):
+            for cle in tuple(destination):
+                if cle not in source:
+                    del destination[cle]
+            for cle, valeur in source.items():
+                precedente = destination.get(cle)
+                if isinstance(precedente, dict) and isinstance(valeur, dict):
+                    appliquer(precedente, valeur)
+                elif isinstance(precedente, list) and isinstance(valeur, list):
+                    precedente[:] = valeur
+                else:
+                    destination[cle] = valeur
+        appliquer(self.data, autre.data)
+
     def enfants(self, id):
         return [o for o in self.objets.values() if o["lieu"] == id]
 

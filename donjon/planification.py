@@ -47,7 +47,7 @@ HABILE = 0.5           # chance de réussir à partir de laquelle il attend un c
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime")
 # Ce qui compte sur un tiers ; le devis ne permet que de recevoir un bien du commanditaire.
-TIERS = ("demander", "acheter", "engager", "demander_feu", "confier")
+TIERS = ("demander", "acheter", "engager", "demander_feu", "confier", "proposer")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
 USAGES = ("crochetage", "allumage", "combustible", *force.CHOC, *force.COUPE)
 # Chaque recherche s'y consigne quand le banc le demande (``diagnostics``) ; sinon None.
@@ -921,6 +921,9 @@ def gestes(v, e, vises=None, but=None):
     # Les gestes de défense sont offerts seulement aux buts qui les emploient.
     yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)
+    if not v.seul and not v._estime_part:
+        from .pnj_propositions import gestes as proposer
+        yield from proposer(v, e, vises, but)
     portes, faits, sa_salle = e.portes, e.faits, e.salle
     v_prendre, v_entretenir = vises.get("prendre", ()), vises.get("entretenir", ())
     v_poser, v_fermer, v_servir = vises.get("poser", ()), vises.get("fermer", ()), vises.get("servir", {})
@@ -1412,6 +1415,8 @@ def _entrees(v, vises, profondeur, noeuds):
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
     from .signes import actives
+    from .caractere import prix_faute
+    from .deliberation import parts
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
     return json.dumps([
@@ -1437,6 +1442,8 @@ def _entrees(v, vises, profondeur, noeuds):
          for k, o in monde.objets.items()],
         [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
         v.prix_gardes, v.chances_demandes,
+        agendas.en_cours(monde, id), prix_faute(monde, id),
+        [(o, parts(v.objets[o])) for o in v.connus if porte_par(monde, o, id) and v.besoin[o]],
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
@@ -2105,7 +2112,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         # Celui qui le paie le sait à recharger, et éteint s'il ne le croit pas allumé (l'offre le dit) :
         # il le compte comme tel, quoi qu'il en ait vu avant que la tâche ne lui soit payée ; ce qu'il en
         # voit ensuite (qu'il l'a rechargé, rallumé lui-même), il le croit.
-        dit = (_cru(monde, entretenir, o, "etat") or {}) if entretenir != "joueur" else {}
+        dit = _cru(monde, id, o, "etat") or {}
         depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
                                          + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),

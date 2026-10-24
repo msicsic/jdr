@@ -27,7 +27,26 @@ SCHEMA = _forme({"type": {"type": "string", "enum": ["proposition"]},
                  "demande": schema_terme(), "contrepartie": schema_terme(True)})
 
 
-def verifier(monde, c, champ="contenu"):
+def cites_terme(terme):
+    c = terme.get("condition", {})
+    return [x for x in (terme.get("objet"), c.get("objet"), c.get("lieu")) if x]
+
+
+def en_mots(monde, terme):
+    from .francais import designer, complement_de
+    from .echanges import phrase_condition
+    t = terme["type"]
+    if t == "tache":
+        return "la promesse que " + phrase_condition(monde, terme["condition"])
+    if t == "pieces":
+        return f"{terme['montant']} pièces"
+    if t == "rien":
+        return "rien"
+    o = monde.objets[terme["objet"]]
+    return "une part " + complement_de(o) if t == "part" else designer(o)
+
+
+def verifier(monde, c, champ="contenu", proposant="joueur"):
     """Une forme refusée désigne toujours son champ, sa valeur et les valeurs acceptées."""
     def refuser(champ, recu, accepte):
         raise ErreurMonde("Les termes de cet échange doivent être précisés.",
@@ -48,12 +67,14 @@ def verifier(monde, c, champ="contenu"):
             refuser(chemin, sorted(terme), sorted(champs))
         if t in ("objet", "part"):
             from .paroles import resoudre
+            from .deliberation import _connus
             from .deliberation import besoin_de_part
             objet = terme["objet"]
-            if not isinstance(objet, str) or objet not in monde.objets or resoudre(monde, objet) != objet:
+            connu = (lambda x: resoudre(monde, x) == x) if proposant == "joueur" else (lambda x: x in _connus(monde, proposant))
+            if not isinstance(objet, str) or objet not in monde.objets or not connu(objet):
                 from .refus import liste
                 connus = [i for i, o in monde.objets.items() if o.get("mobile")
-                          and o["type"] not in ("personnage", "depouille") and resoudre(monde, i) == i]
+                          and o["type"] not in ("personnage", "depouille") and connu(i)]
                 refuser(chemin + ".objet", objet, "identifiant parmi " + liste(connus))
             o = monde.objets[objet]
             if not o.get("mobile") or o["type"] in ("personnage", "depouille"):
@@ -69,8 +90,13 @@ def verifier(monde, c, champ="contenu"):
                     or not condition_valide(monde, condition) or set(condition) not in
                     ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})):
                 refuser(chemin + ".condition", condition, "{objet, allume:true | verrouillee:true | lieu:salle}")
+            from .deliberation import _connus
             for cle, valeur in condition.items():
-                if cle in ("objet", "lieu") and resoudre(monde, valeur) != valeur:
-                    refuser(chemin + ".condition." + cle, valeur, "identifiant connu de Corvus")
+                if cle not in ("objet", "lieu"):
+                    continue
+                connu = (resoudre(monde, valeur) == valeur if proposant == "joueur" else
+                         valeur in _connus(monde, proposant) or cle == "lieu" and valeur in monde.data["salles"])
+                if cle in ("objet", "lieu") and not connu:
+                    refuser(chemin + ".condition." + cle, valeur, "identifiant connu du proposant")
         elif t == "pieces" and (type(terme["montant"]) is not int or terme["montant"] <= 0):
             refuser(chemin + ".montant", terme["montant"], "entier strictement positif")

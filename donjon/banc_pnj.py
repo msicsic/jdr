@@ -319,6 +319,10 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                "taches_acceptees": sum(" fasse en sorte que " in c["texte"] and c["texte"].endswith("(accepte).")
                                        for c in chronique),
                "taches_faites": sum(" a fait le travail que " in c["texte"] for c in chronique),
+               "propositions": sum(" propose à " in c["texte"] for c in chronique),
+               "acceptees": sum(" propose à " in c["texte"] and c["texte"].endswith("(accepte).") for c in chronique),
+               "contreparties_tenues": sum(c.get("nature") == "contrepartie_tenue" for c in chronique),
+               "trahisons": sum(c.get("nature") == "trahison" for c in chronique),
                "demandes_ressource": sum(bool(re.search(r" demande à .* (s'il|si elle) a ", c["texte"])) for c in chronique),
                "vols_de_bourse": _vols_de_bourse(monde, chronique),
                # Crochetages (``ouie.nature_crochetage``) et marchés de tâches (``planification._engager``).

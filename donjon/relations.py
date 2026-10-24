@@ -212,6 +212,11 @@ def chance_demande(monde, id, autre):
     return min(0.9, max(0.1, chance))
 
 
+def chance_proposition(chance, gain):
+    """La contrepartie crue améliore l'espoir, sans garantir l'accord réel."""
+    return min(0.95, max(0.1, chance + 0.35 * gain / (gain + 3)))
+
+
 def signature(monde, id):
     """Clé pure des lectures d'axes : le cache des signes n'accède pas au stockage.
     Les ancres et bandes comptent aussi, même si l'arrondi actuel ne bouge pas.

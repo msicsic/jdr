@@ -60,8 +60,9 @@ def valeur_proposition(monde, auditeur, terme, pour):
         # Il compte sa propre réserve ; la quantité cachée chez l'autre ne nourrit pas son jugement.
         quantite = parts(monde.objets[objet]) if proprietaire(monde, monde.objets[objet]) == auditeur else 1
         montant = quantite * (prix(monde, objet, True) or PRIX_SANS_PRIX)
-    return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX,
-                         depense=pour != auditeur)
+    # Un bien vaut quelque chose même pour qui n'a aucune pièce. La limite de
+    # dépense d'une bourse ne s'applique pas à la valeur d'un objet cédé.
+    return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX)
 
 
 def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
@@ -117,7 +118,7 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
     from .spatial import porte_par, proche
     from .vol import proprietaire
     from .propositions import verifier
-    verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie})
+    verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie}, proposant=proposant)
     original, monde = monde, monde.copier()
     for terme, de, a in ((demande, auditeur, proposant), (contrepartie, proposant, auditeur)):
         if terme["type"] == "tache" and agendas.en_cours(
@@ -171,6 +172,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
             payer(monde, de, a, terme["montant"])
         elif t == "tache":
             engagement = {"condition": terme["condition"], "pour": a, "minute": monde.data["minutes"]}
+            if de != "joueur":
+                engagement["marche"] = True
             if not agendas.en_cours(monde, de, condition=terme["condition"], personne=a, actifs=True):
                 agendas.prendre(monde, de, engagement)
                 if de != "joueur":
@@ -180,7 +183,7 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
         from .voix import identifie
         if identifie(monde, auditeur, proposant) and doit(monde, auditeur, proposant):
             memoriser(monde, auditeur, {"type": "dette_honoree", "de": proposant, "service": "demande"})
-    original.data = monde.data
+    original.adopter(monde)
     return dict(bilan, cause=None, accepte=True)
 
 
@@ -996,6 +999,16 @@ def executer(monde, id, etape, lignes):
                    + "." if dit else f"{b} dit n'en avoir pas." if issue == "rien" else f"{b} refuse de répondre.")
         cites = [k for k, _ in dit] + [lieu for _, lieu in dit]
         reussi = issue == "dit"
+    elif op == "proposer":
+        demande, contrepartie = contenu["demande"], contenu["contrepartie"]
+        bilan = proposer(monde, id, autre, demande, contrepartie)
+        issue = bilan["cause"] or "accepte"
+        from .propositions import en_mots, cites_terme
+        recit = f"{a} propose à {b} {en_mots(monde, contrepartie)} contre {en_mots(monde, demande)}"
+        clair = recit + "."
+        reponse = f"{b} accepte l'échange." if issue == "accepte" else f"{b} refuse l'échange ({issue})."
+        cites = cites_terme(demande) + cites_terme(contrepartie)
+        reussi = issue == "accepte"
     elif op == "engager":
         condition, prix = contenu["condition"], contenu["prix"]
         issue = engager(monde, id, autre, condition, prix)
@@ -1070,7 +1083,8 @@ def executer(monde, id, etape, lignes):
         # qu'elle vise. Le refus se retient selon sa cause (``deliberation.retenir_refus``) ; accordée,
         # la demande n'a plus de refus qui tienne.
         from .deliberation import oublier_refus, retenir_refus
-        vise = (contenu.get("allumer") if op == "demander_feu" else objet["id"] if objet
+        vise = ((contenu["demande"].get("objet") or contenu["demande"].get("condition", {}).get("objet")) if op == "proposer" else
+                contenu.get("allumer") if op == "demander_feu" else objet["id"] if objet
                 else contenu["condition"]["objet"] if op == "engager" else contenu.get("objet"))
         if reussi:
             for x in (("demander", "acheter") if op in ("demander", "acheter") else (op,)):

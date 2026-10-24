@@ -30,12 +30,12 @@ PAS = 15
 DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
           "crocheter": 600, "frapper": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
           "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50,
-          "demander_feu": 100, "ranimer": 100}
+          "demander_feu": 100, "ranimer": 100, "proposer": 100}
 DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
 # retourner au bruit, retenir un bruit inconnu, aller le voir (``ouie``).
-NATURES = ("lecture", "deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
+NATURES = ("lecture", "deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence", "contrepartie_tenue", "trahison")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
 A_DISTANCE = ("chauffer", "se_rendre", "degager", "fuite")
@@ -1632,7 +1632,11 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         vers, supplement = rotation(monde, id, cible)
         o["orientation"] = vers
         tourner += supplement
+    from . import agendas
+    avant_promesses = agendas.etat_promis(monde, id)
     fait = _executer(monde, id, etape, lignes, gestes)
+    if avant_promesses:
+        agendas.constater_geste_joueur(monde, avant_promesses, id)
     if fait is not False:
         # Ce qu'il fait le temps de ce geste : se reposer délasse, un geste d'effort creuse (``vecu``).
         monde._activite = "repos" if operation == "reposer" else "effort" if operation in EFFORTS else None
