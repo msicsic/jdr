@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-perception-geste`, **non fusionnée**, base d'intégration `ffcc295`
+  (brief `159faff`, correctif signé SSH `b0d5f02`, signature vérifiée) : perceptions déclarées
+  par le moteur, opération/cible dans la contre-revue ; un geste corrigé peut produire
+  seulement une perception. Rendu direct du résultat moteur après sauvegarde. L'audit distingue
+  résultat positif/négatif de perception active et ambiance libre ; classement et fidélité
+  restent sémantiques. Quatre tests nouveaux après recharge ; 104 tests ciblés finaux verts,
+  trois ignorés.
+  Suite complète unique, trois processus à priorité réduite, 1 775,9 s : quatre erreurs
+  d'environnement (deux processus TUI bloqués puis arrêtés, deux sockets web refusés).
+  Reprises des seuls fichiers d'interface hors bac à sable vertes (33 TUI, 11 web/WebSocket) ;
+  **bilan consolidé : 1 680 tests, 16 ignorés, aucun échec ni erreur restant**. Empreintes Relais
+  2 h × quatre graines identiques à la base (référence calculée une fois et rangée).
+  Luna, une seule passe des trois scripts prescrits : 57 appels, aucun repli ni erreur de
+  recharge ; résultat de recherche inventé refusé par l'audit, vraies ambiances admises.
+  **Plafond de trois appels non revérifié avec Luna après le rendu direct final** : écoute
+  4 appels, traces 6 dans cette passe ; leurs réponses archivées rejouées sur le code final
+  donnent 2 appels simulés chacune, résultat moteur et recharge valides.
+  [Rapport et limites du lot 34](taches/rapport-codex-34-perception-geste.md).
+
 - Branche `codex-propositions`, fusionnée, base `450cebb` (intégration `19b0261`),
   lot 29 A2a : contenu de parole indivisible demande/contrepartie, évaluation P/G/L et INT
   dans `echanges`, remises atomiques et engagements par `agendas`. Les promesses du joueur
