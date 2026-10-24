@@ -19,6 +19,10 @@ from tests.support import simuler_couverture
 from donjon.transactions import du_type
 
 
+PORTEE_QUALIFICATION = {"descriptions": [], "usages": [
+    {"perception_requise": False, "indice": False, "motif": ""}]}
+
+
 class CoupeTests(unittest.TestCase):
     def setUp(self):
         simuler_couverture(self)
@@ -48,7 +52,7 @@ class CoupeTests(unittest.TestCase):
                             "coupe_possible": True}]}}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                      action, jugement, {"jugements": [{"compatible": True, "motif": ""}]},
+                      action, jugement, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True, "motif": ""}]},
                       action]) as appel,
                   patch.object(Monde, "d20", return_value=20),
                   patch("builtins.input", side_effect=[
@@ -57,8 +61,8 @@ class CoupeTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
-            self.assertEqual(appel.call_count, 4)
-            self.assertEqual(appel.call_args_list[2].args[1]["qualifications"][0]
+            self.assertEqual(appel.call_count, 5)
+            self.assertEqual(appel.call_args_list[3].args[1]["qualifications"][0]
                              ["moyen"]["id"], "scie")
             fin = Monde.charger(chemin)
             self.assertLess(fin.objets["scie"]["puissance"], fin.objets["hache"]["puissance"])
@@ -119,7 +123,7 @@ class CoupeTests(unittest.TestCase):
                                  "coupe_possible": True}]}}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                      action, qualification, {"jugements": [{"compatible": True,
+                      action, qualification, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True,
                                                                "motif": ""}]}, action]),
                   patch.object(Monde, "d20", return_value=20),
                   patch("builtins.input", side_effect=[
@@ -167,15 +171,15 @@ class CoupeTests(unittest.TestCase):
                                    "citation": "", "entites": [], "motif": ""}]}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut",
-                               side_effect=[action, exclusion, revue, action,
+                               side_effect=[action, exclusion, PORTEE_QUALIFICATION, revue, action,
                                             explication, audit]) as appel,
                   patch("builtins.input", side_effect=[
                       "couper dalle de granit avec hache", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
-            self.assertEqual(appel.call_count, 6)
-            self.assertEqual(appel.call_args_list[2].args[1]["qualifications"][0]
+            self.assertEqual(appel.call_count, 7)
+            self.assertEqual(appel.call_args_list[3].args[1]["qualifications"][0]
                              ["moyen"]["id"], "hache")
             self.assertIn(phrase, sortie.getvalue())
             reprise = Monde.charger(chemin)
@@ -222,7 +226,7 @@ class CoupeTests(unittest.TestCase):
                     "texte": "La dalle de granit résiste à la hache.",
                     "faits": [], "proposition": {}}
         with patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                action, exclusion, {"jugements": [{"compatible": True,
+                action, exclusion, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True,
                     "motif": "Le granit résiste aux outils connus."}]}, invalide]):
             reponse = MJOpenAI().echanger(m, "couper dalle de granit avec hache")
         self.assertEqual(reponse["mode"], "dialogue")
@@ -259,7 +263,7 @@ class CoupeTests(unittest.TestCase):
                         f"couper {depart.objets[cible]['nom']} avec hache", "tenter", "quitter"]
                 with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                       patch.object(MJOpenAI, "_appeler_brut",
-                                   side_effect=[action, qualification, revue, action]),
+                                   side_effect=[action, qualification, PORTEE_QUALIFICATION, revue, action]),
                       patch.object(Monde, "d20", return_value=20),
                       patch("builtins.input", side_effect=[
                           f"couper {depart.objets[cible]['nom']} avec hache",
@@ -310,7 +314,7 @@ class CoupeTests(unittest.TestCase):
                 refus = {"jugements": [{"compatible": False,
                          "motif": "La matière et l'état décrit ne permettent pas cette conclusion."}]}
                 with patch.object(MJOpenAI, "_appeler_brut",
-                                  side_effect=[demande, refus] * 3):
+                                  side_effect=[demande, PORTEE_QUALIFICATION, refus] * 3):
                     reponse = MJOpenAI().echanger(m, "Je coupe la perche avec la hache")
                 self.assertEqual(reponse["mode"], "dialogue")
                 self.assertIsNone(du_type(reponse, "faits"))
@@ -326,7 +330,7 @@ class CoupeTests(unittest.TestCase):
         reponse = {"mode": "etablir_faits", "texte": "",
                    "faits": ["faits_narratifs_proposables"],
                    "proposition": {"ajouts": [ajout]}}
-        rapport = {"descriptions": [{
+        rapport = {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [{
             "representation": representation, "mobilite": [], "placement": "aucun",
             "impact_scenario": "aucun", "capacites": ["tranchable"],
             "fragments": [{"texte": texte, "portee": "sujet", "preuve": "", "motif": ""}]}

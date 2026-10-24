@@ -134,6 +134,19 @@ Le résultat positif ou négatif d'une perception active au-delà de cette port�
 affirmation mécanique : il doit s'appuyer sur une perception exécutée, dans `resultat_resolu`
 ou les résultats enregistrés. Une proposition, la demande et l'absence de faits ne prouvent
 pas ce résultat. Sans source, l'audit le refuse comme invention mécanique.
+Une recherche, une fouille ou un examen actif ne se remplace pas par `etablir_faits`, même
+pour décrire seulement son support ou joindre une `suite`. Avant toute transaction de faits,
+la contre-revue de portée reçoit la demande entière et tous les ajouts, y compris ceux sans
+prose descriptive. Elle juge séparément, pour chaque ajout, s'il remplace une perception
+et s'il crée un indice : un signe de passage, de présence, d'événement ou de chose cachée
+reste un indice sans lien avec la quête. Chaque cause reconnue est refusée avec le champ,
+l'ajout reçu et un `attendu` vers les opérations de `moteur.PERCEPTIONS` sur sa cible.
+Seule la perception exécutée produit son résultat, enregistré avant affichage. La détection
+de cet usage reste sémantique ; le moteur refuse tout rapport incomplet, sans enregistrer
+l'ajout. Une parole de PNJ n'établit toujours que les mots prononcés.
+Les aspects ordinaires et les propriétés matérielles inconnues restent proposables en réponse
+à une demande descriptive. Le rendu d'un `detail` ne lui accole plus « sur » et son support :
+son nom sert à le cibler, son ancrage est sauvegardé, sans construire « un sol sur le sol ».
 L'ambiance reste libre lorsqu'elle ne conclut ni au résultat
 d'un geste ni à l'absence d'un élément mécanique. La reconnaissance de ce sens dans une phrase
 et le jugement de fidélité de la revue restent sémantiques : ce contrat ne garantit pas

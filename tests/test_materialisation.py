@@ -15,7 +15,7 @@ def portee(nom, texte):
         return {"representation": representation, "mobilite": [], "placement": "aucun",
                 "impact_scenario": "aucun", "capacites": [],
                 "fragments": [{"texte": fragment, "portee": "sujet", "preuve": "", "motif": ""}]}
-    return {"descriptions": [ligne(nom, "objet"), ligne(texte, "aspect")]}
+    return {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [ligne(nom, "objet"), ligne(texte, "aspect")]}
 
 
 def segments(*verdicts):

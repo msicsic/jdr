@@ -66,7 +66,7 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
   enrichir pour la facette d'un personnage ; enrichir_savoirs pour ce qu'il sait ;
   enrichir_joueur pour le corps de Corvus. Une question sur l'aspect, la taille, le nombre de
   pièces ou le contenu d'un objet à portée (faits_narratifs_proposables) appelle sa description
-  (etablir_faits, detail ou qualification) : il l'a sous les yeux, il peut en juger comme
+  (etablir_faits, detail ou qualification), sans remplacer un geste de perception : il l'a sous les yeux, il peut en juger comme
   n'importe qui, plutôt que de dire qu'il l'ignore. Un objet plus loin se décrit en dialogue par
   ce que Corvus en voit d'ici, sans détail nouveau : de près, il en saura davantage.
 
@@ -199,7 +199,10 @@ répète. Une odeur, une lueur ou un son se décrivent, sans se prendre.
 
 ## 5. Ajouter un détail persistant
 Le moteur valide l'ajout, l'enregistre, puis construit la réponse : texte reste vide. Un ajout
-précise le monde sans fournir d'objectif, de solution ni d'indice de quête.
+précise le monde sans fournir d'objectif, de solution ni d'indice. Une recherche, une fouille
+ou un examen actif appelle une action de perception sur sa cible : seul le moteur en donne
+le résultat, positif ou négatif. Un ajout, même suivi d'une action, ne peut pas créer ce qui
+serait découvert, ni remplacer ce geste par une description de son support.
 ### etablir_faits : de 1 à 3 faits, ancrés sur les supports de faits_narratifs_proposables
 - detail : type, ancrage, nom, genre (m ou f), texte = un aspect visuel du support.
 - inscription : type, ancrage, texte = le texte littéral écrit sur le support ; nom et genre vides.

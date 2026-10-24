@@ -516,10 +516,14 @@ def preparer_faits(monde, proposition, revision=None):
             else:
                 detail = objet("", nom, "detail", ancrage, aliases=[nom],
                                genre=genre, materiau="", description_visuelle=texte)
-            lien = (relation_physique(detail, support, ajout["relation"]) if nature == "objet"
-                    else "sur " + designer(support))
-            rendus.append("Tu remarques " + designer(detail, "indefini") + " " + lien
-                          + ". " + texte)
+            if nature == "objet":
+                lien = relation_physique(detail, support, ajout["relation"])
+                rendus.append("Tu remarques " + designer(detail, "indefini") + " " + lien
+                              + ". " + texte)
+            else:
+                # Un aspect n'est pas un second exemplaire de son support. Le
+                # texte décrit le détail ; son nom reste une référence ciblable.
+                rendus.append("Tu remarques " + designer(detail, "indefini") + ". " + texte)
         id = f'fait_{monde.data["revision"] + 1}_{index}'
         if id in travail.objets:
             raise refus("Ce détail existe déjà.", "re-propose à partir des faits actuels.")
