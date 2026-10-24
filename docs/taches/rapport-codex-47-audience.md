@@ -3,7 +3,7 @@
 Branche `codex-audience`, **non fusionnée**, base `60da18c`, brief `d22190d`.
 24 octobre 2026. Correctif signé SSH `2100c41`, signature vérifiée.
 
-## Cause et règle
+## Cause et règle du lot 47 (historique, remplacée par 47 b)
 
 `destinataires` choisissait quelqu'un en face, `preparer_parole` pouvait remplacer
 ce choix par `tous` ou `personne`, et la contre-revue jugeait encore cette audience.
@@ -68,3 +68,72 @@ une seule passe ne permettent pas d'attribuer une variation de coût au seul lot
 Bruts : `artifacts/codex-47-*`, `artifacts/analyser-codex-47.py`,
 `artifacts/bancs-multi/20261024-195146-56088/`. Aucun banc long ni seconde suite complète.
 `main` non touchée ; livraison sur cette branche, sans fusion.
+
+
+## 47 b — Celui d’en face redevient le défaut
+
+Décision de l’utilisateur du 24 octobre 2026 ; base `e28df5c`, brief `d33e492`, même
+branche et worktree. La cantonade avec quelqu’un en face, décrite au lot 47 ci-dessus,
+est abandonnée. Correctif signé SSH **`f10f9d3`**, signature vérifiée.
+
+**Règle.** `paroles.destinataires` choisit : nom/vocatif, groupe explicite, échange
+poursuivi, sinon celui d’en face ; à égalité, le joueur précise. Sans interlocuteur
+perçu à portée de voix, la parole à voix haute reste à la cantonade et ses auditeurs
+peuvent répondre. Chuchotement et « lui » sans antécédent gardent leurs contraintes.
+Prévision et préparation suivent cette décision unique ; une proposition contraire
+est refusée avec `attendu` avant revue. Aucun mot-clé collectif, scénario ou cas du bois.
+Les contrats d’ouïe et du MJ sont actualisés.
+
+**Tests adaptés, chacun :**
+
+| Fichier | Attentes modifiées |
+|---|---|
+| `test_audience` | Cas réel → Aubin ; auberge → Lucien ; défaut sans question → Aubin ; refus de contenu → Aubin. |
+| `test_luna_noms` | Défaut, correction d’une autre cible et question conservée → Ilse seule ; Aubin témoin. |
+| `test_luna_restes` | Sens de ressource et adresse fixée → Ilse ; transfert réel vérifié séparément du dossier sémantique. |
+
+Onze autres fichiers de scènes individuelles retrouvent leur saisie antérieure au
+lot 47. Les neuf tests d’audience couvrent aussi « à tous », vocatif, échange poursuivi,
+cantonade sans interlocuteur perçu et refus inchangés de « lui » et du chuchotement.
+Monde, souvenirs et texte sauvegardé contrôlés après recharge : au Relais, Aubin seul
+répond, Brune, Ilse et la voix de l’ouest retiennent ses mots. **234 ciblés**, deux anciens
+doubles adaptés puis **14 tests verts**.
+
+**Constat Luna et contrat final.** La revue rejuge encore l’audience sous « contenu
+non conforme ». Son dossier est ensuite réduit à `replique`, `contenu`, `sens_contenu`,
+sans adresse, auditeur ni effet. Les sens typés décrivent le contenu indépendamment
+de son audience. **70 tests ciblés verts** sur ce contrat final, références publiques
+et transfert réel après recharge compris.
+
+**Une passe Luna**, copies et coffre principal ; `main` `42bb9c0` lu du cache, clé
+vérifiée avec son outil historique, aucun rejeu ni comparaison de temps au cache.
+
+| Script | Appels/tour main → 47 b | Tours MJ main → 47 b |
+|---|---:|---:|
+| noms-dialogue | 3,00 → 3,50 | 4 → 4 |
+| soir-appel | 3,60 → 4,25 | 5 → 4 |
+| echanges | 2,75 → 3,67 | 4 → 3 |
+| relais | 3,00 → 2,75 | 9 → 8 |
+
+**68 → 64 appels**, 22 → 19 tours MJ, 3,09 → 3,37 appels/tour. Zéro repli, erreur technique
+ou recharge invalide. Question du bois : `noms-dialogue`, **six appels**, un faux refus
+puis `Tu dis à Aubin : « est-ce que quelqu'un a du bois ? »` ; Aubin seul répond :
+« Oui. Les planches de bac sont là, à deux mètres vers le sud et un mètre vers l’est.
+Elles sont à moi. » Destinataires et répondants `[aubin]`, témoins perçus `[brune, ilse]`.
+`soir-appel`, **quatre appels**, deux refus de contenu puis « Précise ce que tu veux dire :
+les mots ou le contenu proposés ne correspondent pas à ta demande. » Rien n’est dit.
+Aucun « Précise à qui… » dans les quatre parties.
+
+**Suite :** campagne complète unique, interrompue par le plantage du PC. Résultats
+récupérés : **71 fichiers, 892 tests verts**. Reprise des seuls **95 fichiers sans résultat**,
+trois processus à priorité réduite : **845 tests verts en 79,8 s**. Bilan consolidé avec
+les vérifications du contrat final : **166 fichiers validés, 1 737 tests, 16 ignorés**,
+aucun échec ni erreur. Aucune seconde suite complète. Résultats d’avant interruption,
+reprise et provenance par fichier : `artifacts/codex-47b-suite-*.json` ; consolidation
+reproductible par `artifacts/consolider-codex-47b.py`.
+
+**Limites :** cette passe précède la réduction finale du dossier, validée en simulation ;
+pas de seconde passe Luna. On ne conclut ni à la disparition des faux refus sémantiques,
+ni à un gain de coût final. Reconnaissance grammaticale bornée ; aucune extension de groupe.
+Bruts : `artifacts/codex-47b-*`, `artifacts/analyser-codex-47b.py`,
+`artifacts/bancs-multi/20261024-203012-58008/`. `main` et les scénarios non modifiés.

@@ -4,8 +4,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-audience`, **non fusionnée**, lot **47 b**, base `e28df5c`, brief `d33e492` :
+  décision de l'utilisateur du 24 octobre appliquée : nom/vocatif, groupe explicite,
+  échange poursuivi, sinon celui d'en face ; égalité, le joueur précise ; sans
+  interlocuteur perçu à portée de voix, cantonade et répondants acoustiques.
+  Une seule décision dans `paroles.destinataires`, utilisée par la prévision et la
+  préparation ; refus d'une proposition contraire avec `attendu` avant la revue.
+  La contre-revue reste limitée aux mots et au contenu, sans « Précise à qui… »
+  quand le moteur a fixé l'adresse. Aucun mot-clé de question collective ni nouvelle
+  forme de groupe. Les anciennes scènes individuelles retrouvent leur saisie d'origine.
+  Neuf tests `test_audience` couvrent le Relais réel (Aubin seul répond, les autres
+  retiennent), l'auberge, la cantonade sans interlocuteur perçu, « à tous », vocatif,
+  échange poursuivi, refus de contenu et intentions nominales, après rechargement.
+  Ciblés : 234 tests, deux doubles de `test_luna_restes` adaptés puis 14 tests rejoués verts.
+  Correctif signé SSH `f10f9d3`, signature vérifiée. La passe Luna révèle encore un refus
+  d'audience déguisé en contenu : le dossier de revue est ensuite limité à `replique`,
+  `contenu`, `sens_contenu`, sans adresse, auditeur ni effet ; sens typés indépendants
+  de l'audience. **70 tests ciblés verts** sur ce contrat final ; « lui » et chuchotement
+  sans personne perçue gardent leur refus, neuf tests d'audience verts.
+  Luna, une passe, `main` `42bb9c0` lu du cache : 68 → 64 appels, 22 → 19 tours MJ,
+  3,09 → 3,37 appels/tour ; aucun repli ni erreur technique/de recharge. `noms-dialogue` :
+  question dite à Aubin, Aubin seul répond, six appels (faux refus de contenu puis correction).
+  `soir-appel` : quatre appels puis « Précise ce que tu veux dire… », aucune parole enregistrée.
+  Aucun « Précise à qui… ». Ces mesures précèdent le dossier final, sans seconde passe Luna ;
+  absence de faux refus sémantiques non garantie.
+  Campagne complète interrompue par le plantage du PC : 71 fichiers et 892 tests verts
+  récupérés. Reprise des seuls 95 fichiers sans résultat : 845 tests verts, 79,8 s,
+  trois processus à priorité réduite. Bilan consolidé : **166 fichiers validés,
+  1 737 tests, 16 ignorés**, aucun échec ni erreur ; aucune seconde suite complète.
+  [Rapport, section 47 b](taches/rapport-codex-47-audience.md#47-b--celui-den-face-redevient-le-défaut).
+
 - Branche `codex-audience`, **non fusionnée**, lot 47, base d'intégration `60da18c`
-  (brief `d22190d`) : `destinataires` fixe une seule adresse, partagée par la prévision et la
+  (brief `d22190d`, **règle d’adresse remplacée par le lot 47 b ci-dessus**) : `destinataires` fixe une seule adresse, partagée par la prévision et la
   validation sur copie. Sans nom, groupe ou échange à poursuivre, la parole à voix haute
   va à la cantonade même avec quelqu'un en face. Un pronom individuel sans antécédent
   et le chuchotement gardent le regard ; une cible nominale d'intention racontée est
