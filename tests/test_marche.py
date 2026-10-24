@@ -137,10 +137,14 @@ class ContactTests(unittest.TestCase):
         # (``echanges.engager``), et il a déjà demandé aux autres s'ils avaient du bois
         # (``echanges.enqueter``) ; il reste près du brasero.
         m.data["finances_pnj"]["marchand"] = 0
+        from tests.support import propositions_refusees
+        # Le contact est le contrat testé, sans un marché qui le ferait repartir après le geste.
+        propositions_refusees(m, "marchand")
         from donjon.deliberation import retenir_refus
         for autre in ("brune", "ilse", "aubin"):
             retenir_refus(m, "marchand", autre, "enqueter", "rien", besoin="chaleur", souvenir=False)
-        intention(m, "marchand", [{"operation": "eteindre", "cible": "brasero"}], {"type": "menager"})
+        intention(m, "marchand", [{"operation": "eteindre", "cible": "brasero"}],
+                  {"type": "menager", "lieu": "echoppe"})
         gestes(m, "marchand", 1)
         self.assertTrue(m.objets["brasero"]["allume"])
         self.assertEqual(distance(m.objets["marchand"]["position"], (8, 0)), 1)

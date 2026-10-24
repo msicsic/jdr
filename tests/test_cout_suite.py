@@ -123,7 +123,9 @@ class AbsenceTests(unittest.TestCase):
         from donjon import caractere
         from tests.test_lampes_parts import nuit_noire
         from tests.test_tensions import recharger
+        from tests.support import propositions_refusees
         m = nuit_noire("mine", "remy", "gaspard", "lampe_remy", "bidon_huile", "reserve")
+        propositions_refusees(m, "remy")  # Le domaine synthétique ne contient que les gestes ci-dessous.
         m.objets["remy"]["profil"].setdefault("securite", {})["noir"] = 0
         m.objets["remy"]["profil"]["capacites"] = []
         m = recharger(m)
@@ -148,7 +150,7 @@ class AbsenceTests(unittest.TestCase):
         prix_faute = caractere.prix_faute
 
         def faute(monde, id, besoin=None, nom="honnetete"):
-            return prix["faute"] if nom == "honnetete" else prix_faute(monde, id, besoin, nom)
+            return prix["faute"] if nom == "honnetete" and besoin == "fixture" else prix_faute(monde, id, besoin, nom)
 
         but = lambda v, e: e.fait(*cle) == "fin"
         with patch.object(p, "gestes", gestes), patch.object(caractere, "prix_faute", faute),                 patch.object(p, "VERIFIER", True), patch.object(p, "_MEMOIRE", {}),                 patch.object(p, "_GRAPHES", {}), patch.object(p, "_IMPOSSIBLES", {}),                 p.diagnostics() as recherches:
@@ -156,7 +158,7 @@ class AbsenceTests(unittest.TestCase):
             # La deuxième recherche (entrées de prix différentes, même graphe) garde le graphe.
             for valeur in (0.0, 0.1, 10.0, 0.0, 10.0):
                 prix["faute"] = valeur
-                plans.append(p.chercher(m, "remy", but, {}, memo=["preuve"], emplois=(), profondeur=3))
+                plans.append(p.chercher(m, "remy", but, {}, memo=["preuve"], emplois=(), profondeur=3, motif="fixture"))
             graphe_ = next(g for _, g in p._GRAPHES.values())
             depart = p.depart(m, "remy", p.Vue(m, "remy"))
             seul_sombre = p._parcours(SimpleNamespace(menacees=set()), graphe_["sombre"], depart, 3, 10, False)
@@ -184,6 +186,7 @@ class AbsenceTests(unittest.TestCase):
         from donjon.scene import scene_percue
         from tests.test_planif_cout import Oublieux
         from tests.test_tensions import recharger, vivre
+        from tests.support import propositions_refusees
         dossier = Path(__file__).parent / 'data/cout-suite'
         for scenario in ('mine', 'crue'):
             meta = json.loads((dossier / f'{scenario}-7-meta.json').read_text(encoding='utf-8'))
@@ -191,6 +194,9 @@ class AbsenceTests(unittest.TestCase):
             resultats = []
             for reprendre in (True, False):
                 m = Monde.charger(dossier / f'{scenario}-7.json')
+                # Ces captures prouvent l'absence avec les anciens recours ;
+                # les marchés ont été refusés, par données ordinaires du moteur.
+                propositions_refusees(m, *(x for x, o in m.objets.items() if o.get('profil')))
                 with patch.object(p, '_GRAPHES', {}), patch.object(p, '_MEMOIRE', {}), \
                         patch.object(p, '_IMPOSSIBLES', {} if reprendre else Oublieux()), \
                         patch.object(p, 'VERIFIER', True), p.diagnostics() as recherches:
@@ -216,10 +222,12 @@ class AbsenceTests(unittest.TestCase):
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
         from tests.test_tensions import recharger, vivre
+        from tests.support import propositions_refusees
         dossier = Path(__file__).parent / 'data/cout-suite'
         for graine in (7, 42):
             meta = json.loads((dossier / f'auberge-{graine}-borne-meta.json').read_text(encoding='utf-8'))
             m = Monde(json.loads(gzip.decompress((dossier / f'auberge-{graine}-borne.json.gz').read_bytes())))
+            propositions_refusees(m, *(x for x, o in m.objets.items() if o.get('profil')))
             with patch.object(p, '_MEMOIRE', {}), patch.object(p, '_GRAPHES', {}), \
                     patch.object(p, '_IMPOSSIBLES', {}), patch.object(p, 'VERIFIER', True), p.diagnostics() as recherches:
                 if meta['memo'][0] == 'abri':
