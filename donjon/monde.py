@@ -1,5 +1,6 @@
 """Etat sérialisable, relations spatiales et perception. Aucune dépendance externe."""
 from __future__ import annotations
+from . import agendas
 
 import copy
 import json
@@ -538,7 +539,7 @@ class Monde:
             for id, mission in d["missions"].items():
                 assert mission["donneur"] in d["finances_pnj"] and mission["objet"] in d["objets"], "Mission invalide"
                 assert 0 < mission["prime_base"] <= mission["prime_plafond"], "Récompense invalide"
-            for id, engagement in d["engagements"].items():
+            for id, engagement in agendas.contrats(self).items():
                 assert id in d["missions"], "Engagement sans mission"
                 assert engagement["statut"] in ("propose", "accepte", "refuse", "paye"), "Statut d'engagement invalide"
                 assert type(engagement["montant"]) is int and 0 < engagement["montant"] <= d["missions"][id]["prime_plafond"], "Montant d'engagement invalide"

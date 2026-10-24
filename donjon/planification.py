@@ -12,6 +12,7 @@ allumé, où il se tiendra.
 Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par geste revalidé sur
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
+from . import agendas
 import copy
 from . import relations
 import heapq
@@ -2178,7 +2179,7 @@ def _vu_avant_la_tache(monde, id, condition, payeur):
     rien) ? La tâche date de son engagement ; à l'offre, de maintenant. Ce qu'il a vu ou constaté de
     sa main à cette minute même (les croyances sont datées à la minute) est de son temps ; un savoir ou
     un ouï-dire de cette minute ne dit rien de plus que l'offre."""
-    debut = next((x["minute"] for x in lire(monde, id)["engagements"]
+    debut = next((x["minute"] for x in agendas.en_cours(monde, id)
                   if x["pour"] == payeur and x["condition"] == condition and not x.get("annule")), monde.data["minutes"])
     etat = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
     return etat is None or etat["minute"] < debut or etat["minute"] == debut and etat["source"] not in ("vu", "essai")

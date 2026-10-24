@@ -1,0 +1,154 @@
+"""Accès unique aux engagements et aux agendas ; stockage historique inchangé en A1.
+
+Au premier lot qui en a besoin, chaque engagement deviendra un agenda d'origine
+« contrat » s'il est payé, « parole » sinon, en conservant condition, bénéficiaire et minute.
+Les lectures renvoient des copies : toute mutation passe par une opération nommée.
+"""
+import copy
+
+CHAMPS = {"engagements": list}
+
+
+def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=False):
+    """Dans l'ordre enregistré, annulations à annoncer comprises sauf ``actifs``.
+    ``personne`` vise le bénéficiaire ou une personne de la condition.
+    """
+    from .esprits import lire
+    return [copy.deepcopy(x) for x in lire(monde, id)["engagements"]
+            if (condition is None or x["condition"] == condition)
+            and (objet is None or x["condition"].get("objet") == objet)
+            and (personne is None or x["pour"] == personne
+                 or any(x["condition"].get(k) == personne for k in ("servir", "rendre", "remettre")))
+            and (not actifs or not x.get("annule"))]
+
+
+def prendre(monde, id, engagement):
+    """Inscrire aussi la proposition provisoire, retirée si le devis ou le jet refuse."""
+    from .esprits import esprit
+    esprit(monde, id)["engagements"].append(copy.deepcopy(engagement))
+
+
+def retirer_proposition(monde, id, engagement):
+    from .esprits import esprit
+    esprit(monde, id)["engagements"].remove(engagement)
+
+
+def tenir(monde, id, engagement):
+    """Retirer une parole exécutée ; l'appelant inscrit son souvenir au même instant."""
+    retirer_proposition(monde, id, engagement)
+
+
+def annoncer_abandon(monde, id, engagement):
+    """Retirer une annulation désormais annoncée à son destinataire."""
+    retirer_proposition(monde, id, engagement)
+
+
+def oublier_personne(monde, personne):
+    """Une mort libère tous les engagements visant cette personne."""
+    for e in monde.data["esprits"].values():
+        e["engagements"] = [x for x in e["engagements"] if x.get("pour") != personne
+                            and not any(x["condition"].get(k) == personne for k in ("servir", "rendre", "remettre"))]
+
+
+def depart(monde, id):
+    """Données déclarées par le scénario, sans activation ni écriture dans ``data``."""
+    return copy.deepcopy((monde.objets[id].get("profil") or {}).get("agendas", []))
+
+
+def contrats(monde):
+    """Accords de mission historiques, distincts des paroles de service des PNJ."""
+    return copy.deepcopy(monde.data.get("engagements", {}))
+
+
+def installer_contrats(monde):
+    monde.data.setdefault("engagements", {})
+
+
+def proposer_contrat(monde, mission, montant):
+    monde.data["engagements"][mission] = {"statut": "propose", "montant": montant}
+
+
+def repondre_contrat(monde, mission, accepter):
+    monde.data["engagements"][mission]["statut"] = "accepte" if accepter else "refuse"
+
+
+def payer_contrat(monde, mission):
+    accord = monde.data["engagements"][mission]
+    accord["statut"] = "paye"
+    accord["paye_revision"] = monde.data["revision"] + 1
+
+
+def declares(rapport):
+    """Champ public rendu ou sauvegardé, jamais un esprit de PNJ du monde."""
+    return copy.deepcopy(rapport.get("engagements"))
+
+
+def verifier(monde, id):
+    for engagement in en_cours(monde, id):
+        from .deliberation import condition_valide
+        # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix
+        # reçu (``echanges.engagements_echus``).
+        from .biens import QUOI
+        paye = engagement.get("paye")
+        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule"} == {"condition", "pour", "minute"}
+                and ("objet" not in engagement or isinstance(engagement["objet"], str))
+                and ("annule" not in engagement or engagement["annule"] in ("impossible", "refus"))
+                and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
+                and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
+                and type(engagement["minute"]) is int
+                and ("lot" not in engagement or isinstance(engagement["lot"], str) and engagement["lot"] in monde.objets
+                     and "remettre" in engagement["condition"])
+                and (paye is None or isinstance(paye, dict) and set(paye) == {"objet", "prix", "quoi"}
+                     and paye["quoi"] in QUOI
+                     and isinstance(paye["objet"], str) and type(paye["prix"]) is int and paye["prix"] > 0)
+                ), "Engagement de PNJ invalide"
+
+
+def echoir(monde, id):
+    """Retire les engagements tenus, trop anciens ou qu'il ne peut plus tenir ; les souvenirs gardent
+    la trace. Une part payée d'avance et non servie à l'échéance est rendue, ou due
+    (``biens.rembourser``). Une garde finie, ce qu'il en porte encore (le bien, ses clés) lui reste
+    prêté : il le rendra."""
+    from .echanges import ENGAGEMENT_MAX, tenu, empeche, retenir_abandon, phrase_condition
+    from .esprits import esprit, memoriser
+    from .biens import _cles, preter, rembourser
+    from .spatial import porte_par
+    from .vol import proprietaire
+    e = esprit(monde, id)
+    restants, finis = [], []
+    for engagement in e["engagements"]:
+        if engagement.get("annule"):
+            restants.append(engagement)  # Il doit encore prévenir, sans savoir magiquement l'autre informé.
+        elif tenu(monde, id, engagement["condition"], engagement["minute"]):
+            memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
+                                  "condition": engagement["condition"]})
+            finis.append(engagement)
+            if (engagement.get("paye") or {}).get("quoi") == "tache":
+                from .pnj import _chroniquer
+                from .social import _qui
+                _chroniquer(monde, id, f"{_qui(monde, id)} a fait le travail que {_qui(monde, engagement['pour'])} "
+                                       f"lui avait payé pour que {phrase_condition(monde, engagement['condition'])}.", "compte")
+        elif monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX or empeche(monde, id, engagement):
+            raison = "impossible" if empeche(monde, id, engagement) else "refus"
+            memoriser(monde, id, {"type": "engagement_abandonne", "pour": engagement["pour"],
+                                  "condition": engagement["condition"]})
+            finis.append(engagement)
+            if engagement.get("paye"):
+                paye = engagement["paye"]
+                rembourser(monde, id, engagement["pour"], paye["prix"], paye["objet"], paye["quoi"])
+                retenir_abandon(monde, id, engagement, raison)  # Le prix rendu ne rend pas le service possible.
+            else:
+                engagement["annule"] = raison
+                restants.append(engagement)
+        else:
+            restants.append(engagement)
+    e["engagements"] = restants
+    for engagement in finis:
+        o, de = engagement["condition"].get("objet"), engagement["pour"]
+        if ("rendre" in engagement["condition"] or "remettre" in engagement["condition"] or o not in monde.objets
+                or proprietaire(monde, monde.objets[o]) != de):
+            continue
+        for k in sorted(_cles(monde, o, de)):
+            if porte_par(monde, k, id) and not any(p["objet"] == k for p in monde.data.get("permissions", ())):
+                preter(monde, k, id)
+

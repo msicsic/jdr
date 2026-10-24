@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import jeu
+from donjon import agendas
 from donjon.config import charger_env
 from donjon.corps import valeurs
 from donjon.defi import nouveau_defi
@@ -55,7 +56,7 @@ def main():
                 jeu.main(["--console", "--defi", "--save", str(chemin), "--connexion", "chatgpt"])
             reprise = Monde.charger(chemin)
         texte = sortie.getvalue().split("Le MJ réfléchit…", 1)[-1].split("Partie sauvegardée.", 1)[0].strip()
-        engagements = [x["condition"] for x in lire(reprise, "marchand")["engagements"]]
+        engagements = [x["condition"] for x in agendas.en_cours(reprise, "marchand")]
         if cas == "manger":
             ok = reprise.objets["vivres"]["portions"] == 3 and valeurs(reprise, "joueur")["faim"] < 80 - 40
             bilan = f"portions {reprise.objets['vivres']['portions']}, faim {valeurs(reprise, 'joueur')['faim']:.0f}"

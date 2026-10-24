@@ -7,6 +7,7 @@ domaines est refusée. L'ambiance est libre et enregistrée avec son lieu. Un no
 d'entité absent de tout ce que le MJ a reçu est refusé sans dépendre de l'auditeur.
 Le texte accepté est affiché tel que Luna l'a écrit.
 """
+from . import agendas
 
 import copy
 import re
@@ -384,7 +385,7 @@ def engagements_prevus(faits, locuteur):
     """Ce que le moteur a prévu que ce personnage fera : ses engagements enregistrés et l'issue
     qu'il vient de valider pour lui (conversation_validee)."""
     esprit = (faits.get("esprits_interlocuteurs") or {}).get(locuteur) or {}
-    prevus = list(esprit.get("engagements") or [])
+    prevus = list(agendas.declares(esprit) or [])
     validee = faits.get("conversation_validee")
     if isinstance(validee, dict) and (validee.get("personnage") == locuteur
                                       or locuteur in (validee.get("destinataires") or [])):

@@ -10,6 +10,7 @@ son plan, après un geste manqué, et après un événement qui change sa situat
 ``esprits.reconsiderer``). Les étapes sont ensuite revalidées sur l'état réel par ``pnj.py``.
 Tout est déterministe ; Luna n'intervient pas.
 """
+from . import agendas
 from collections import Counter
 from enum import IntEnum
 from typing import NamedTuple
@@ -1306,7 +1307,7 @@ def retabli_par_son_plan(monde, id, condition):
         return False
     but = {k: v for k, v in i["but"].items() if k != "type"}
     return i["motif"] in urgents(monde, id) or i["motif"] == "engagement" and any(
-        x["condition"] == but for x in e["engagements"])
+        x["condition"] == but for x in agendas.en_cours(monde, id))
 
 
 def candidats(monde, id):
@@ -1411,7 +1412,7 @@ def _candidats(monde, id):
                 ajouter_recours(lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True)
     # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
     from .planification import planifier_engagement
-    for rang, x in enumerate(e["engagements"]):
+    for rang, x in enumerate(agendas.en_cours(monde, id)):
         ajouter("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), Palier.PAROLE_DUE, (rang,))
     # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
     for rang, protege in enumerate(p.get("protege", ())):

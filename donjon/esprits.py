@@ -24,6 +24,7 @@ entendues et ce qu'elles ont prétendu ou comment on les a appelées ; ``noms``,
 le nom en les reconnaissant ; ``echange``, les paroles nettes qu'il vient de saisir (``voix.lier``).
 Le joueur a ``data["voix_connues"]`` et ``data["voix_entendues"]``. Voir quelqu'un ne fait pas connaître sa voix.
 """
+from . import agendas
 import copy
 
 from .biens import permis as _permis
@@ -47,7 +48,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
-          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, "engagements": list,
+          "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
           "voix": list,   # ceux dont il connaît la voix (``voix.py``)
@@ -250,24 +251,7 @@ def verifier(monde):
         verifier_entrees(e["voix_entendues"])
         verifier_echange(e["echange"])
         assert isinstance(e["noms"], list) and all(isinstance(x, str) for x in e["noms"]) and len(set(e["noms"])) == len(e["noms"]), "Noms retenus invalides"
-        for engagement in e["engagements"]:
-            from .deliberation import condition_valide
-            # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix
-            # reçu (``echanges.engagements_echus``).
-            from .biens import QUOI
-            paye = engagement.get("paye")
-            assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule"} == {"condition", "pour", "minute"}
-                    and ("objet" not in engagement or isinstance(engagement["objet"], str))
-                    and ("annule" not in engagement or engagement["annule"] in ("impossible", "refus"))
-                    and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
-                    and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
-                    and type(engagement["minute"]) is int
-                    and ("lot" not in engagement or isinstance(engagement["lot"], str) and engagement["lot"] in monde.objets
-                         and "remettre" in engagement["condition"])
-                    and (paye is None or isinstance(paye, dict) and set(paye) == {"objet", "prix", "quoi"}
-                         and paye["quoi"] in QUOI
-                         and isinstance(paye["objet"], str) and type(paye["prix"]) is int and paye["prix"] > 0)
-                    ), "Engagement de PNJ invalide"
+        agendas.verifier(monde, id)
         for sujet, attributs in e["croyances"].items():
             assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
             for attribut, c in attributs.items():
