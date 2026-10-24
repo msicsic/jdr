@@ -105,6 +105,8 @@ def suites(v, e, lot, vises, but):
         else:
             prises = []
         for sur_place, cout_prise, fautes_source in prises:
+            if not _allumable(v, sur_place, source):
+                continue
             resultats.extend(_preparer(v, e, source, sur_place, lieu, obtenir, aller,
                                        cout_trajet_source + cout_prise, fautes_source, vises, but))
     # Même état conclusif : seuls les termes indépendants du prix d'une faute
@@ -117,6 +119,65 @@ def suites(v, e, lot, vises, but):
     resultat = [(f, c, final, a) for (f, final, a), c in meilleurs.items()]
     v._estimations_parts[cle] = resultat
     return resultat
+
+
+def _allumable(v, e, source):
+    """Condition nécessaire, sans développer de préparatif ni de suite.
+
+    La source est déjà atteinte et obtenue. On ignore le retour de la flamme
+    et les approches des gestes : les possibilités sont un sur-ensemble de
+    celles de _preparer.
+    Un vrai allumage doit néanmoins avoir une flamme déjà en main, obtenable,
+    demandable, ou fixe pour une source mobile. Faux prouve donc le devis vide
+    pour cette source ; vrai ne promet ni accès ni conclusion du but.
+    """
+    # Sans emploi de lumière encore découvert, mesurer la recharge peut le
+    # révéler par sa pression. Garder cette lecture au point historique ; le
+    # certificat ne supprime des préparatifs qu'avec ces moyens déjà définis.
+    if not v.emploie_lumiere:
+        return True
+    cle = ("part-allumable", e, source)
+    if cle not in v._crus:
+        v._crus[cle] = _possibilite_allumage(v, e, source)
+    return v._crus[cle]
+
+
+def _possibilite_allumage(v, e, source):
+    if v.feu(e, source)[0]:
+        return True
+    mobile = v.objets[source].get("mobile")
+    for flamme in v.flammes_portables:
+        if flamme == source or not ("allumage" in v.objets[flamme].get("usages", ())
+                                   or v.feu(e, flamme)[0]):
+            continue
+        if v.flamme(e, flamme):
+            return True
+        lieu = v.salle(e, flamme)
+        if lieu is None or v.descente(e.salle, lieu) or v.route(e, lieu) is None:
+            continue
+        porteur = v.lieu(e, flamme)
+        if mobile and not v.seul and porteur in v.personnes() and not v.refuse_feu(porteur, source):
+            return True
+        if v.contrarie(flamme) or not v.disponible(flamme):
+            continue
+        # L'arrivée peut ouvrir des portes, mais aucun contenant. La source
+        # et ses droits acquis ne changent pas les permissions de la flamme.
+        if v.a_portee(e.apres(salle=lieu), flamme) and v.autorise[flamme]:
+            return True
+        if (porteur not in [*v.personnes(), "joueur"]
+                or v.proprietaire[flamme] not in (None, v.id, porteur)
+                or v.seul and porteur != v.seul):
+            continue
+        if not v.refuse(porteur, flamme):
+            return True
+        prix = v.objets[flamme].get("prix")
+        if (prix and v.piece and v.proprietaire[flamme] == porteur and not v.refuse_achat(porteur, flamme)
+                and v.richesse - (e.fait("depense") or 0) >= prix):
+            return True
+    return bool(mobile and any(fixe != source and "allume" in v.objets[fixe]
+                and not v.objets[fixe].get("mobile") and v.feu(e, fixe)[0]
+                and (lieu := v.salle(e, fixe)) is not None
+                and not v.descente(e.salle, lieu) and v.route(e, lieu) is not None for fixe in v.connus))
 
 
 def _preparer(v, e, source, sur_place, lieu, obtenir, aller, cout_source, fautes_source, vises, but):
