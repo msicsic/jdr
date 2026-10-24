@@ -8,6 +8,7 @@ Chaque cas vérifie l'état du monde après rechargement."""
 
 from tests.support import lier
 import unittest
+from unittest.mock import patch
 
 from donjon.banc_pnj import _oisifs_urgents, creer
 from donjon.deliberation import (INERTIE, REPRISE, attentes, deliberer, eveiller, gardes, seuils, urgents)
@@ -138,7 +139,9 @@ class TenirTests(unittest.TestCase):
         lire(m, "bram")["besoins"].update(biens=70.0, securite=70.0)
         return m
 
-    def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self, _constats):
+        # Isoler ce recours de lumière des nouvelles qui lui feraient choisir un autre moyen.
         from donjon.deliberation import autour
         m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 3)
         self.assertEqual(lieux, ["bureau", "filon", "bureau"])

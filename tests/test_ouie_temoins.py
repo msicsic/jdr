@@ -207,7 +207,9 @@ class TemoinParLOuieTests(unittest.TestCase):
         # Ce qu'il n'a qu'entendu se dit avec moins de certitude : comme de seconde main.
         self.assertEqual({rang for _, _, rang, _ in nouvelles(m, "bram")}, {1})
 
-    def test_cas_reel_anselme_entend_lucien_forcer_son_coffre(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_cas_reel_anselme_entend_lucien_forcer_son_coffre(self, _constats):
+        # Le témoin écoute le geste préparé, sans confidence préalable à l'auteur.
         # Autre cas de même nature : la victime elle-même, qui a entendu entrer le voleur.
         m = attendre(lucien_au_coffre(), 1)
         self.assertIn("Anselme entend que Lucien a tenté de crocheter la serrure du coffre ferré.", chronique(m))

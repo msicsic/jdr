@@ -4,6 +4,7 @@ différents dans les bornes ; le tirage ne décale pas les jets ; le même laps,
 donne le même monde ; le banc compte les nuits distinctes."""
 import json
 import unittest
+from unittest.mock import patch
 
 from donjon.auberge import nouveau_auberge
 from donjon.banc_pnj import REPERES, creer, executer
@@ -137,7 +138,9 @@ class DivergenceDuBancTests(unittest.TestCase):
         self.assertEqual(a, self.nuit(3)[0])  # La même graine : la même nuit.
         self.assertEqual(mesures["jets_par_heure"], mesures["jets"])  # Une heure de nuit.
 
-    def test_le_depart_tire_fait_diverger_les_nuits(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_le_depart_tire_fait_diverger_les_nuits(self, _constats):
+        # Comparer les départs seuls ; la persuasion des nouvelles tire aussi des dés.
         # Départ déclaré : une seule nuit jusqu'à la cinquième minute, quelle que soit la graine.
         fixes = {self.nuit(g, "fixe", 5)[0]["5"] for g in (1, 2, 3, 4)}
         tirees = {self.nuit(g, "tire", 5)[0]["5"] for g in (1, 2, 3, 4)}

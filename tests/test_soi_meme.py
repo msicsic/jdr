@@ -83,7 +83,7 @@ class AccusationTests(unittest.TestCase):
                     self.assertFalse(any(c['nature'] == 'social' and c['pnj'] == accuse
                                          for c in m.data.get('chronique', [])))
                     self.assertNotIn(f'{nom} glisse', texte)
-                    self.assertFalse(list(social.nouvelles(m, accuse)))
+                    self.assertFalse(any(social.accuse(n) == accuse for _, n, *_ in social.nouvelles(m, accuse)))
 
     def test_seul_un_aveu_explicitement_type_accuse_son_locuteur(self):
         for locuteur, auditeur, objet in (('joueur', 'marchand', 'marteau'),

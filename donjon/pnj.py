@@ -63,8 +63,9 @@ def verifier(monde):
         "Gestes en cours invalides"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy"} == {"minute", "pnj", "texte"}
+            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy", "constat_confie"} == {"minute", "pnj", "texte"}
                     and c.get("nature", "geste") in NATURES and type(c.get("instant", 0)) is int
+                    and type(c.get("constat_confie", False)) is bool
                     for c in chronique)), "Chronique invalide"
     from .relations import verifier_chronique
     for c in chronique:

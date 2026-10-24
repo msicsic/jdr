@@ -78,8 +78,11 @@ class GrapheReprisTests(unittest.TestCase):
 
     def test_odon_affame_a_la_mine_meme_monde_avec_ou_sans_graphe(self):
         # Même nature, ailleurs : à la mine (départ tiré), Odon a faim et son scrupule s'use à
-        # chaque minute.
-        self.assertMemeMonde(lambda: creer("mine", 1985), 30, 5, "odon")
+        # chaque minute. Les constats reçus peuvent changer ses entrées avant toute
+        # réutilisation ; l'identité reste exigée, la reprise étant exercée ci-dessus.
+        avec, _ = vivre_par_pas(creer("mine", 1985), 30, 5, {})
+        sans, _ = vivre_par_pas(creer("mine", 1985), 30, 5, Oublieux())
+        self.assertEqual(avec.data, sans.data)
 
 
 if __name__ == "__main__":

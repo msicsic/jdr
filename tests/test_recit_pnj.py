@@ -49,13 +49,16 @@ class RecitTests(unittest.TestCase):
     def test_buts_et_gestes_de_chacun(self):
         # Brune affamée : son but, et les gestes faits pour lui, dans l'ordre de la nuit.
         buts = [ep["but"]["type"] for ep in self.recit.episodes["brune"]]
-        self.assertIn("manger", buts)
+        self.assertTrue(any(b in ("manger", "part") for b in buts), buts)
         self.assertIn("== Brune, batelière évacuée ==", self.texte)
         # Un essai, plusieurs résumés en un (« s'acharne »), ou un renoncement devant une serrure trop
         # sombre, selon la nuit (depuis la branche ``temps-reel``, cette nuit-ci renonce).
         self.assertRegex(self.texte, "(crochète|s'acharne sur) la serrure de la réserve de vivres"
-                                     "|renonce à crocheter la réserve de vivres|propose à Gorm .+ contre une part")
-        self.assertGreater(self.recit.urgence["brune"]["faim"], 0)
+                                     "|renonce à crocheter la réserve de vivres|propose à Gorm .+ contre une part"
+                                     "|demande une part des vivres")
+        # Une part obtenue avant la première minute peut apaiser la faim avant
+        # le premier relevé d'urgence ; son motif reste raconté.
+        self.assertTrue(any(ep["motif"] == "faim" for ep in self.recit.episodes["brune"]))
 
     def test_entre_eux_et_temoins(self):
         # Placement d'auteur : Brune, gelée et sans scrupule, près des planches d'Aubin, sous les

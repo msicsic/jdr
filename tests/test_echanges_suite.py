@@ -399,7 +399,9 @@ class EnqueteTests(unittest.TestCase):
                       [{k: s[k] for k in ("de", "besoin", "objets")} for s in memoires(m, "mireille", "enquete")])
         self.assertTrue(any(t.startswith("Mireille demande une part des fagots de l'écurie à Joss") for t in textes), textes)
 
-    def test_au_relais_gorm_apprend_les_planches_d_aubin(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_au_relais_gorm_apprend_les_planches_d_aubin(self, _constats):
+        # On isole l'enquête et ses jets des confidences spontanées sur les états.
         # Autre cas de même nature, au Relais : le brasero est mort, Gorm (sans le sou) ignore les
         # planches d'Aubin ; il lui demande s'il a du bois, l'apprend, et en obtient une part.
         from tests.test_securite import dans_le_noir

@@ -102,7 +102,9 @@ def brune_crochete_dans_le_dos_de_gorm(gorm_la_sait=True):
 
 
 class GesteBruyantTests(unittest.TestCase):
-    def test_crocheter_dans_son_dos_le_fait_se_retourner_meme_s_il_la_sait_la(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_crocheter_dans_son_dos_le_fait_se_retourner_meme_s_il_la_sait_la(self, _constats):
+        # Aucun échange préparatoire : c'est le crochetage qui le fait se retourner.
         m = brune_crochete_dans_le_dos_de_gorm()
         self.assertFalse(relation(m, "marchand", "brune")["valeur"] is False)
         with patch.object(Monde, "d20", return_value=1):
@@ -113,7 +115,8 @@ class GesteBruyantTests(unittest.TestCase):
         self.assertIn(("brune", "reserve"), vu_agir(m, "marchand"))
         self.assertFalse(relation(m, "marchand", "brune")["valeur"])
 
-    def test_entendre_ne_depend_pas_du_decoupage(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_entendre_ne_depend_pas_du_decoupage(self, _constats):
         # Se retourner au bruit, en être témoin, retenir un bruit : tout est dans ``data``.
         from tests.test_temps_etat import decouper, etat_pnj
         with patch.object(Monde, "d20", return_value=1):

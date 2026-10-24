@@ -8,6 +8,7 @@ la nuit, sans que la rareté disparaisse. Chaque nuit se vit par blocs, recharg�
   (12, au cellier) suffisent aux foyers, mais les refus peuvent en interrompre l'entretien.
 """
 import unittest
+from unittest.mock import patch
 
 from donjon.banc_pnj import creer, executer
 from donjon.esprits import lire
@@ -69,7 +70,9 @@ class CrueTests(unittest.TestCase):
 
 
 class AubergeTests(unittest.TestCase):
-    def test_une_reserve_refusee_puis_vendue_par_charges_les_trois_foyers_tiennent(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_une_reserve_refusee_puis_vendue_par_charges_les_trois_foyers_tiennent(self, _constats):
+        # Nuit commerciale fixée : pas de confidence ordinaire décalant ses jets.
         # Cas réel : l'auberge finissait dans le noir vers la cinquième heure, faute de bois.
         m = nuit("auberge", 1985, "dortoir", "fixe")
         def reserve_bois(monde):

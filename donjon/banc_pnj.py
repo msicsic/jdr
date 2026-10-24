@@ -242,6 +242,7 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                "temoins_vols": len({(s["auteur"], s["objet"], id) for id, s in temoins}),
                "absences": memoire["absence"],
                "confidences": sum(" dit à " in c["texte"] for c in chronique),
+               "constats_confies": sum(bool(c.get("constat_confie")) for c in chronique),
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
                "mefiances": mefiances, "jets": monde.data["jets"],
                "mefiances_levees": sum(bool(c.get("mefiance_levee")) for c in relationnels),
