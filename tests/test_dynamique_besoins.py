@@ -234,6 +234,9 @@ class AttenteTests(unittest.TestCase):
         # Un refus de méfiance tient ``REDEMANDE`` minutes, et payer ne le lève pas ; ce qu'il garde
         # tient tant que rien de ce qu'elle en croit n'a changé (``test_refus_retenus``).
         retenir_refus(m, "ilse", "marchand", "demander", "mefiance", objet="vivres")
+        # L'attente d'un refus est isolée du nouveau recours : son marché a
+        # lui aussi été refusé, et son souvenir vieillit au même instant.
+        retenir_refus(m, "ilse", "marchand", "proposer", "mefiance", objet="vivres")
         # Elle a déjà demandé aux autres s'ils avaient à manger (``echanges.enqueter``) : rien.
         for autre in ("aubin", "brune"):
             retenir_refus(m, "ilse", autre, "enqueter", "rien", besoin="faim", souvenir=False)

@@ -7,7 +7,7 @@ from unittest.mock import patch
 from donjon import pnj
 from donjon.banc_pnj import creer
 from donjon.caractere import modificateur
-from donjon.deliberation import lumiere_crue
+from donjon.deliberation import lumiere_crue, retenir_refus
 from donjon.deplacement_objet import deplacer
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.monde import Monde
@@ -109,6 +109,9 @@ class ChanceCrueTests(unittest.TestCase):
         # Elle croyait les vannes éclairées (vues autrefois) ; la serrure résiste : elle sait
         # désormais la lumière qu'elle avait là, celle qui fait sa chance.
         m = brune_aux_vannes(brasero=False)
+        # Ce cas isole le crochetage : Gorm a refusé aussi le marché, sans quoi
+        # elle peut désormais proposer ses crochets au lieu de forcer dans le noir.
+        retenir_refus(m, "brune", "marchand", "proposer", "refus", objet="vivres")
         croire(m, "brune", "crypte", "etat", {"eclairee": True, "niveau": 2}, "vu")
         with patch.object(Monde, "d20", return_value=20):
             self.assertFalse(pnj._crocheter(m, "brune", "reserve", "crochets")[0])
