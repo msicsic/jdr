@@ -11,7 +11,8 @@
    "ilse": {"salle": "antichambre", "position": [3, 5], "orientation": "nord-ouest"},
    "marchand": {"salle": "echoppe", "position": [4, 1]}
   },
-  "calmes": ["brune", "aubin", "ilse", "marchand"]
+  "calmes": ["brune", "aubin", "ilse", "marchand"],
+  "noms_connus": ["aubin", "brune"]
  },
  "tours": [
   "Aubin, as-tu du bois ?",

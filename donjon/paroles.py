@@ -37,7 +37,8 @@ CHAMPS_CONTENU = {
 }
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 # Sens du protocole, commun au schéma d'interprétation et à la revue. Les codes
-# de besoins décrivent la ressource demandée, pas le sujet littéral de la phrase.
+# de besoins restent disponibles pour les demandes générales ; un bien nommé
+# conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Propos sans effet mécanique typé.",
@@ -48,7 +49,7 @@ SENS_CONTENU = {
     "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
     "qui": "Demander l'identité de l'interlocuteur.",
     "reclamer": "Réclamer son dû : les pièces si sujet est vide, sinon l'objet sujet.",
-    "ressource": "Demander la disponibilité de la ressource répondant au besoin sujet, sans la prendre ni la payer.",
+    "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet (nom, alias, matière ou catégorie), sans le prendre ni le payer. Les codes faim et chaleur demandent plus largement de quoi satisfaire ce besoin ; ils ne remplacent pas un bien précis nommé par le joueur.",
 }
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 SCHEMA_PAROLE = {
@@ -71,7 +72,7 @@ SCHEMA_PAROLE = {
 SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["type"]["description"] = " ".join(
     f"{t} : {SENS_CONTENU[t]}" for t in TYPES)
 SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["sujet"]["description"] = (
-    "Pour ressource : " + "; ".join(f"{b} = {RESSOURCES_DEMANDEES[b]}" for b in BESOINS_DEMANDES)
+    "Pour ressource : le bien nommé, sans article (nom, alias, matière ou catégorie), même inconnu de Corvus ; pour un besoin général seulement : " + "; ".join(f"{b} = {RESSOURCES_DEMANDEES[b]}" for b in BESOINS_DEMANDES)
     + ". Sinon, la référence du sujet selon le type.")
 from .propositions import SCHEMA as SCHEMA_PROPOSITION
 _contenu_ordinaire = SCHEMA_PAROLE["properties"]["contenu"]["items"]
@@ -82,7 +83,7 @@ SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [_contenu_ordinaire,
 def sens_contenu(contenu):
     """Signification des codes validés, sans leur prêter une conséquence non calculée."""
     return [{"type": c.get("type", "propos"), "sens": SENS_CONTENU.get(c.get("type"), SENS_CONTENU["propos"]),
-             **({"ressource_recherchee": RESSOURCES_DEMANDEES[normaliser(c["sujet"])]}
+             **({"ressource_recherchee": RESSOURCES_DEMANDEES.get(normaliser(c["sujet"]), c["sujet"])}
                 if c.get("type") == "ressource" else {})} if isinstance(c, dict)
             else {"type": "propos", "sens": SENS_CONTENU["propos"]} for c in contenu]
 
@@ -139,8 +140,10 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
 - reclamer {sujet : vide pour les pièces que le personnage doit à Corvus, ou un objet de Corvus que le
   personnage porte ; attribut et valeur vides} : Corvus réclame son dû ; le moteur dit si le
   personnage rend, ce qu'il rend, ou qu'il ne doit rien ;
-- ressource {sujet : faim (de quoi manger) ou chaleur (du bois) ; attribut et valeur vides} : Corvus
-  demande au personnage s'il en a, sans savoir ce qu'il a ; le moteur dit ce que le personnage répond ;
+- ressource {sujet : le bien nommé sans article (nom, alias, matière ou catégorie), même inconnu
+  de Corvus ; faim ou chaleur seulement pour une demande générale de quoi satisfaire ce besoin ;
+  attribut et valeur vides} : Corvus demande au personnage s'il en a, sans savoir ce qu'il a ;
+  le moteur dit ce que le personnage répond. Le sens est celui du schéma et de sens_contenu ;
 - propos {sujet, attribut et valeur vides} pour tout le reste.
 - proposition {demande, contrepartie}, sans sujet/attribut/valeur : chaque terme porte type
   objet ou part et objet (identifiant), ou type tache et condition {objet, allume:true |
@@ -1121,7 +1124,7 @@ def _typer(monde, c, auditeur=None):
         return {"type": "reclamer", "objet": objet} if objet or not sujet else None
     if isinstance(c, dict) and c.get("type") == "ressource":
         sujet = normaliser(c.get("sujet") or "")
-        return {"type": "ressource", "besoin": sujet} if sujet in BESOINS_DEMANDES else None
+        return {"type": "ressource", "besoin": sujet} if sujet else None
     if isinstance(c, dict) and c.get("type") == "nom":
         sujet = _nom_dit(monde, c.get("sujet"))
         return {"type": "nom", "sujet": sujet} if sujet else None
@@ -1196,9 +1199,10 @@ def verifier_contenus(monde, contenu):
             raise ErreurMonde("Corvus ne sait pas ce qu'il réclame.",
                               f"contenu[{i}].sujet : vide (les pièces que le personnage doit à Corvus) ou un objet "
                               f"que Corvus connaît, en identifiant ; reçu « {sujet} ».")
-        if c.get("type") == "ressource" and normaliser(sujet) not in BESOINS_DEMANDES:
+        if c.get("type") == "ressource" and not normaliser(sujet):
             raise ErreurMonde("Corvus ne dit pas ce qu'il cherche.",
-                              f"contenu[{i}].sujet : faim (de quoi manger) ou chaleur (du bois) ; reçu « {sujet} ».")
+                              f"contenu[{i}].sujet : un nom de bien, alias, matière ou catégorie non vide ; "
+                              f"faim ou chaleur pour un besoin général ; reçu « {sujet} ».")
 
 
 def aveu(monde, locuteur, objet, geste):

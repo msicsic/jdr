@@ -574,14 +574,33 @@ def siens_a_portee(monde, id):
     return siens
 
 
+def correspond_ressource(o, sujet):
+    """Un bien nommé : correspondance lexicale aux données, sans synonymes inventés.
+
+    Le nom peut être une expression entière à l'intérieur d'un nom composé.
+    La matière et les catégories sont explicites ; aucune capacité n'est déduite.
+    """
+    from .monde import normaliser
+    mots = lambda s: normaliser(s).replace("_", " ").replace("'", " ").split()
+    demande = mots(sujet)
+    for nom in (o["id"], o["nom"], *o.get("aliases", []), o.get("materiau", ""),
+                o.get("type", ""), o.get("ressource", "")):
+        termes = mots(nom)
+        if demande and any(termes[i:i + len(demande)] == demande for i in range(len(termes))):
+            return True
+    return False
+
+
 def enqueter(monde, demandeur, auditeur, besoin):
     """(« mefiance », « qui_va_la », « rien » ou « dit », ce qui a été dit) : ``demandeur`` demande à
     ``auditeur`` s'il a de quoi apaiser ``besoin`` (« As-tu des vivres ? », « du bois ? ») sans rien
-    connaître de ce qu'il a. Il répond par ce qu'il a vraiment : ses ressources comptées pour ce
+    connaître de ce qu'il a. Le sujet peut aussi nommer un bien (nom, alias, matière ou catégorie).
+    Il répond selon ses possessions connues ; pour un besoin général, ses ressources comptées pour ce
     besoin (``deliberation.besoin_de_part``) qu'il croit avoir encore, et où il les croit ; ce qu'il
     porte et ce qui est à lui à portée de main, il le sait (``siens_a_portee``). Le
     demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)]."""
     from .deliberation import _connus, _disponible_cru, _lieu_cru, part_pour, parts
+    from .paroles import BESOINS_DEMANDES
     from .spatial import porte_par
     from .vol import proprietaire
     from .deliberation import oublier_refus, retenir_refus
@@ -597,8 +616,11 @@ def enqueter(monde, demandeur, auditeur, besoin):
         return arret, []
     connus = _connus(monde, auditeur)
     dit = [(k, auditeur if porte_par(monde, k, auditeur) else _lieu_cru(monde, auditeur, k))
-           for k in connus if k in monde.objets and part_pour(monde, auditeur, k, besoin, connus)
-           and proprietaire(monde, monde.objets[k]) == auditeur and parts(monde.objets[k]) > 0
+           for k in connus if k in monde.objets and monde.objets[k]["type"] != "personnage"
+           and (part_pour(monde, auditeur, k, besoin, connus) if besoin in BESOINS_DEMANDES
+                else correspond_ressource(monde.objets[k], besoin))
+           and proprietaire(monde, monde.objets[k]) == auditeur
+           and (besoin not in BESOINS_DEMANDES or parts(monde.objets[k]) > 0)
            and _disponible_cru(monde, auditeur, k)]
     dit = [(k, lieu) for k, lieu in dit if lieu is not None]
     if demandeur != "joueur":

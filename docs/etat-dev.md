@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-ressource`, fusionnée, lot 50, base d'intégration `d60b80a`,
+  brief `d24e7d5` : `ressource.sujet` conserve le bien nommé (nom, alias, matière,
+  catégorie), même inconnu de Corvus ; `faim`/`chaleur` restent les besoins généraux.
+  Même sens dans le schéma, `SENS_CONTENU` et le dossier de contre-revue ; les sujets
+  restent littéraux dans la projection publique. `echanges.enqueter` cherche dans
+  les seules possessions connues de l'interlocuteur, sans transfert ni capacité déduite.
+  Six tests nouveaux après recharge : bois/Aubin au Relais, lampe/Lucien et huile
+  absente dans l'auberge, correction d'un besoin trop large et refus d'un contenu
+  contraire, possession ignorée non révélée et sujet vide avec `attendu`.
+  Banc rapide 4 h × quatre graines, Relais/auberge contre `d60b80a` : chroniques,
+  empreintes aux relevés, récits et souvenirs identiques, mêmes mesures et audits,
+  aucune usurpation ou violation ; référence calculée une fois puis mise en cache.
+  Suite complète unique, trois processus à priorité réduite : **1 760 tests, 16 ignorés**, 170 fichiers verts, 1 929,2 s. Le temps de cette suite fait dépasser les 45 minutes du lot.
+  Luna une passe : bois dit à Aubin, réponse par ses planches dans `noms-dialogue`
+  et `soir-appel` (quatre appels chacun) ; `ressources`, préparation des noms connus
+  rétablie après un lancement sans appel, bois et nourriture en trois appels chacun.
+  Aucun faux refus sur ces demandes, aucun repli ni erreur technique/recharge.
+  Trois scripts comparables à `main` `42bb9c0` lu du cache : 41 → 40 appels,
+  13 → 11 tours MJ, 3,15 → 3,64 appels/tour ; référence `ressources` absente du cache.
+  Faux refus sémantique sur la question du gardien et dette inversée restent hors lot,
+  comme l'élision d'un nom public. Aucun changement de `planification.py` ni de `main`.
+  [Cause, fonctions, mesures et limites](taches/rapport-codex-50-ressource.md).
+  Fusionné sur l'intégration après les lots 46 à 49 : seul conflit `docs/etat-dev.md` ; aucun fichier de code commun.
+
 - Branche `codex-une-source`, fusionnée, lot 46, base d'intégration `bafb9b9` (lot de coût) :
   une source de lumière portable de plus, qui n'apporte aucune capacité absente des sources déjà
   portées, n'ouvre aucun geste de la recherche (prendre, demander, acheter, saisir sur un porteur, faire

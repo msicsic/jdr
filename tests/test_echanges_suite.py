@@ -444,10 +444,9 @@ class EnqueteTests(unittest.TestCase):
             "contenu": [{"type": "ressource", "sujet": "chaleur", "attribut": "", "valeur": ""}]})
         self.assertTrue(any("dit avoir les fagots de l'écurie dans l'étable" in f for f in rapport["faits"]),
                         rapport["faits"])
-        with self.assertRaises(ErreurMonde) as refus:
-            preparer_parole(m, {"personnage": "joss", "replique": texte, "_intention": texte,
-                                "contenu": [{"type": "ressource", "sujet": "bois", "attribut": "", "valeur": ""}]})
-        self.assertIn("contenu[0].sujet : faim (de quoi manger) ou chaleur (du bois)", refus.exception.attendu)
+        _, rapport = preparer_parole(m, {"personnage": "joss", "replique": texte, "_intention": texte,
+                            "contenu": [{"type": "ressource", "sujet": "bois", "attribut": "", "valeur": ""}]})
+        self.assertTrue(any("dit avoir les fagots de l'écurie dans l'étable" in f for f in rapport["faits"]))
 
 
 if __name__ == "__main__":
