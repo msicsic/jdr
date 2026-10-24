@@ -1,8 +1,37 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
 
 ## Où on en est
+
+- Branche `codex-eau-plan-marche`, **non fusionnée**, lot **58**, base **c592d68** :
+  le désaccord plan/marche de la crue venait de `eau.estimation`, qui rajeunissait
+  une ancienne vitesse à chaque vue du niveau dans sa salle. Les deux pentes
+  opposées de Gorm à 368 min se remplaçaient à chaque passage, sans mesure nouvelle.
+  La dernière vue ancre désormais le niveau, le dernier repère mesuré choisit la
+  vitesse ; une première mesure ou un sol sec efface la pente sans ses deux repères.
+  Les croyances sauvegardées suffisent, les entrées de recherche couvrent déjà la
+  prévision ; aucun registre de refus, changement des routes, du MJ ou des scénarios.
+  L'eau inconnue découverte au seuil reste apprise et datée avant la prochaine route.
+  Captures originales de `5c2ce81` rejouée (archives absentes) : Gorm crue 2024 à 368,
+  Ilse crue 1985 à 247, même boucle reproduite avant les minutes citées de l'audit.
+  Sur vingt minutes, refus 9 → 2 / 5 → 1, passages 44 → 14 / 40 → 12 ; monde complet
+  et rendu identiques après recharge, d'un bloc ou par minutes. Le premier refus
+  peut viser le plan ancien déjà inscrit dans la capture ; une mesure nouvelle peut
+  encore interdire une route. Les deux captures du lot 39 gagnent le sec, le détour
+  dangereux reste refusé. Rapide 4 h × quatre graines contre `c592d68` (référence
+  en cache), crue/Relais : aucun plantage, violation ou usurpation ; empreintes du
+  Relais identiques. Crue, maximum horaire moyen 24,75 → 17,75 (pire 46 → 30),
+  eau 83,75 → 87,5 min·PNJ, sans recours 60 → 60. Audit 12 h, 2024/1985/500 :
+  passages/h, pire 20/22/34, eau 220/345/1 090, sans recours 245/230/60,
+  « eau longue » 0/0/4 ; aucun plantage ni écart. Les 49 tests ciblés passent.
+  Suite finale une fois, trois processus, priorité réduite : 1 800 tests, quatre
+  ignorés, un échec (750,9 s), déjà présent avec `eau.py` exact de `c592d68` :
+  `test_appel_negocie.QuoiTests.test_cas_reel_mine_josse_dit_ce_qu_il_veut_gaspard_le_fait_venir`
+  attend une part promise alors que Gaspard refuse puis échange. `VERIFIER` et
+  `spatial.VERIFICATION=1`, 2 h, crue 42/2024 : aucun plantage, écart ni borne.
+  Voir la
+  [règle](plan-crue.md) et le [rapport](taches/rapport-codex-58-eau-plan-marche.md).
 
 - Branche `codex-constats-partages`, fusionnée, lot **55**, base **5b174ad** : les constats matériels
   récents vus ou essayés se confient par les nouvelles communes, après les accusations : ressource

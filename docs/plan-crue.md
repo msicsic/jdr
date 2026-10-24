@@ -440,6 +440,34 @@ conventionnelle par salle. Ce contrat ne garantit pas la disparition des boucles
 entre besoins concurrents ni une baisse uniforme du temps passé dans l'eau.
 Mesures et réserves dans le [rapport du lot 41](taches/rapport-codex-41-route-admissible.md).
 
+## Plan et marche : conserver la date de la vitesse mesurée (lot 58)
+
+Branche `codex-eau-plan-marche`, non fusionnée. La boucle de l'audit `5c2ce81`
+ne venait pas d'une deuxième règle de trajet : `eau.estimation` datait une
+ancienne pente avec la dernière **vue du niveau** dans sa salle. Dans la capture
+de Gorm à 368, deux pentes de +8 et −8 cm/h, mesurées à 354, devenaient tour à tour
+la plus récente selon la salle revue ; la conduite était alternativement jugée
+praticable et menacée. Le refus appris aux vannes était effacé en repassant devant
+une salle portant l'autre pente, sans nouvelle mesure de vitesse.
+
+La lecture commune conserve deux dates : le dernier niveau vu ancre la prévision,
+le dernier **repère mesuré** choisit la vitesse. À date égale, l'ordre des valeurs
+départage toujours les pentes, indépendamment de la salle revue. Revoir un niveau
+ne rajeunit plus une pente. Un premier repère ou le retour au sec efface une pente
+qui n'a plus ses deux mesures. Les croyances existantes contiennent déjà ces
+repères ; ni migration ni registre de destinations interdites. Une mesure nouvelle
+peut établir la baisse et rouvrir une route. `Vue`, la marche et `en_peril` lisent
+cette même estimation ; `eau_route` et `vitesse_eau`, déjà dans `_entrees`, invalident
+la recherche quand elle change. L'eau inconnue découverte au seuil reste constatée
+et datée par `observer(..., "essai")`, avant le prochain plan et dans la sauvegarde.
+
+Les captures réelles de Gorm et d'Ilse sont conservées dans les tests, avec reprise
+et découpage du même laps ; les deux captures du lot 39 gagnent toujours le sec et
+le détour réellement dangereux reste refusé. Ce correctif ne supprime pas un refus
+légitime après une mesure nouvelle et ne garantit pas moins d'eau ni la fin de toute
+alternance entre besoins. Mesures et provenance dans le
+[rapport du lot 58](taches/rapport-codex-58-eau-plan-marche.md).
+
 ## Un feu hors de l'eau (branche `ressources`)
 
 Décision de l'utilisateur après `verifier-eau` : augmenter les ressources, par des données seules. Le
