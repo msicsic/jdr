@@ -1608,6 +1608,73 @@ autre salle pour toucher un objet local ne sont prévus par cette moyenne.
 L'erreur mesurée et les limites du banc figurent dans le rapport du lot 30.
 
 
+## Borne du séjour final — lot 48 (`codex-borne-rester`, non fusionnée)
+
+Pour `tenir`, `Vue.borne_rester` calcule une fois par départ de la Vue :
+`H = RESTER × min_s (somme(prix_gardes[g] pour g != s) + NOIR × eau[s])`.
+Les salles `s` sont celles reliées au départ par les sorties, sans restriction
+de serrure, d'obstacle, d'équipement ou d'eau. C'est une relaxation : chaque
+salle atteignable par un geste ou un devis est dans cet ensemble, même après
+une préparation qui ouvre un passage. Une carte inconnue donne zéro. Le noir
+et la présence inquiétante sont omis : un plan peut les faire disparaître.
+Salles, prix des gardes et eau sont déjà dans `_entrees` ; aucune donnée
+nouvelle du monde n'est lue par le tri, le graphe ou le certificat.
+
+**Admissibilité.** Dans toute salle finale, la pression est au moins le terme
+gardes + eau de cette salle. Les autres termes, comme tous les coûts de
+transition, sont non négatifs. Le séjour réel `RESTER × pression(final)` est
+donc au moins H, même sur une suite estimée. H est zéro pour les buts sans
+séjour et pendant la découverte de lumière : celle-ci doit s'arrêter à la même
+lecture que la recherche historique.
+
+**Cohérence.** H est constant sur les états ordinaires d'une recherche :
+`H <= coût(arête) + H`. L'arête d'un état qui atteint le but vers son résultat
+paie son séjour, au moins H ; le résultat a h = 0. Un nœud `SuiteDifferee` a
+h = H + sa borne B : l'arête entrante coûte zéro (`H <= H+B`), la sortie
+terminale coûte au moins B + son séjour, donc au moins B+H. On n'utilise jamais
+un devis approximatif comme minorant. Une borne nulle reste valide.
+
+**Rang et reprises.** `_explorer_etats` garde g intact et trie les états par
+g+H ; les suites différées par g+B+H ; les résultats par leur coût total. Le
+coût de file historique est la deuxième clé, avant le type et le rang réservé
+du lot 38 : même quand l'addition de H arrondit deux coûts distincts au même
+flottant, l'ordre entre états non terminaux reste historique. Les résultats
+de même coût gardent leur ordre de génération et les suites différées leur
+rang réservé. La recherche peut s'arrêter avant les états dont aucun résultat
+ne peut battre celui déjà trouvé, sans retirer de transition au graphe.
+`_sans_plan`/`_parcours` restent indépendants du coût et une suite inconnue
+reste une lacune. Aucun prix, coût de jeu, profondeur ni plafond ne change.
+
+**Contrat précisé par l'utilisateur le 2026-10-24.** Décisions identiques
+partout où la référence uniforme n'atteint pas son plafond. Si elle l'atteint,
+un résultat différent est permis seulement s'il égale celui de la recherche
+complète (`REFERENCE`, 60 000 nœuds, sans restriction d'emplois) : même coût,
+ou aucun plan si la complète n'en trouve pas. `VERIFIER` recalcule désormais
+la référence uniforme sans H et sans report des devis ; toute différence
+non bornée échoue. Une différence bornée est comparée à la complète et notée
+dans `planification.BORNES` avec `ancienne_borne=True`. La désactivation
+interne `borner=False` sert à ce témoin ; elle n'est pas un mode de jeu.
+
+Première divergence réelle : auberge 42, minute 559, Lucien, `garder:grenier`.
+Uniforme : aucun plan à 4 000 états ; avec H=72 : plan en 78 états ; complète :
+exactement ce plan, coût 78,92250378787878, à 5 759 états. Il recharge et allume
+sa lanterne avant de regagner le grenier. La capture est versionnée dans
+`tests/data/borne-rester/` ; les conséquences et le rendu après rechargement
+sont vérifiés. Cette divergence ne vient ni d'une inadmissibilité ni du rang :
+la référence épuisait son budget avant de retirer le résultat de la file.
+Autre première divergence : auberge 1985, minute 486, Lucien, `garder:etable` :
+aucun plan à 4 000 états dans la référence ; avec H, rester (plan vide, coût 90)
+en 102 états ; la complète rend exactement ce résultat à 4 180 états. Les deux
+reprises passent `VERIFIER` et portent `ancienne_borne=True` dans `BORNES` ;
+`tests/data/borne-rester/contrat.json` garde les résultats et les captures.
+
+Pour chaque nuit divergente, on contrôle sa première recherche différente et
+sa complète ; on ne compare plus les décisions pas à pas après ce point.
+On relève ensuite les mesures de sûreté, les boucles et le CPU de ces nuits,
+dont les trajectoires différentes ne permettent plus d'attribuer tout écart
+de temps à l'optimisation seule. Mesures et limites dans le
+[rapport du lot 48](taches/rapport-codex-48-borne-rester.md).
+
 ## Coût des nuits de 12 h — lot 38 (`codex-cout-12h`, non fusionnée)
 
 L'invariant est de ne calculer une lecture coûteuse qu'une fois pour ses entrées,
