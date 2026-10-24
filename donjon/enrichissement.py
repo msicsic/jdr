@@ -101,9 +101,9 @@ def preparer_complements(monde, proposition, revision=None):
             detail_id = "detail_" + id + "_" + facette
             if detail_id in travail.objets:
                 raise ErreurMonde("Ce détail existe déjà.", f"facette {facette} de {id} déjà décrite : retire-la.")
-            liaison = "d'" if p["nom"][0].lower() in "aàâeéèêiîoôuûy" else "de "
+            from .francais import de
             travail.objets[detail_id] = objet(
-                detail_id, nom + " " + liaison + p["nom"], "partie_corps", id,
+                detail_id, nom + " " + de(p["nom"]), "partie_corps", id,
                 aliases=[nom], genre=genre, pluriel=pluriel, materiau=materiau,
                 facette=facette, description_visuelle=texte, origine_description="MJ")
             valeur = {"objet": detail_id}

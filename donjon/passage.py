@@ -25,7 +25,7 @@ dépend la suite est dans ``data`` (positions, esprits, registre des gestes).
 """
 from .caractere import interdit, penchant, prix_faute, valeur
 from .esprits import esprit, lire, memoriser
-from .francais import designer, sujet
+from .francais import designer, sujet, complement_de
 from .temps import MINUTE, PAS_CHASSE, duree_pas, instant
 
 ECART = PAS_CHASSE     # s'écarter : un pas de côté, 3 s (en biais, √2 fois plus : ``duree_ecart``)
@@ -515,7 +515,7 @@ def preparer_poussee(monde, p, plan):
     plan.titre = "Pousser " + designer(o) + (" vers " + _noms([vecteur])[0] if vecteur else "") + "."
     plan.stat, plan.oppose = "FOR", cible
     plan.minutes, plan.dixiemes, plan.bruit = 0, POUSSEE, 1
-    plan.risque = ("Réussie ou non, la bousculade te coûte la confiance de " + designer(o)
+    plan.risque = ("Réussie ou non, la bousculade te coûte la confiance " + complement_de(o)
                    + " et de quiconque te voit faire.")
     plan.effets = [("pousser", cible, {"salle": arrivee[0], "position": list(arrivee[1])})]
     plan.echec = [("pousser", cible, None)]

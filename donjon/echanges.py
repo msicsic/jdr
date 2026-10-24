@@ -989,7 +989,7 @@ def engagements_echus(monde, id):
 
 def executer(monde, id, etape, lignes):
     """Un geste social d'une minute ; renvoie True s'il a obtenu ce qu'il visait."""
-    from .francais import complement_de, designer
+    from .francais import complement_de, designer, groupe_nominal
     from .pnj import _chroniquer
     from .esprits import percoit
     from .social import _qui, faire_entendre
@@ -1063,7 +1063,7 @@ def executer(monde, id, etape, lignes):
             return False
         issue = demander_feu(monde, id, autre, objet["id"], source["id"])
         recit = f"{a} demande du feu à {b} pour {designer(source)}"
-        clair = recit + "." + (f" {b} l'allume à {designer(objet)}." if issue == "allume" else f" {b} refuse.")
+        clair = recit + "." + (f" {b} l'allume {groupe_nominal(designer(objet), 'à')}." if issue == "allume" else f" {b} refuse.")
         cites, reussi = [objet["id"], source["id"]], issue == "allume"
         if reussi:
             # Allumée dans sa main : il la ménagera quand elle ne lui servira plus (``menager_flamme``).

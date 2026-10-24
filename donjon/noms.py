@@ -3,6 +3,7 @@ import re
 from functools import lru_cache
 
 from .monde import normaliser, ErreurMonde
+from .francais import de, inserer_designation
 
 # Une personne, vivante ou morte : la dépouille garde l'identifiant et le nom du défunt
 # (``corps.mourir``), que le joueur ne lit pas plus qu'avant s'il ne l'a jamais entendu.
@@ -241,7 +242,7 @@ def _complement_defunt(monde, identifiant, designe):
         indefini = designe
     else:
         indefini = article + designe
-    return ("d'" if indefini[:1].lower() in "aeiouhéèê" else "de ") + indefini
+    return de(indefini)
 
 
 def _remplacer_noms(monde, partie, observateur):
@@ -256,6 +257,10 @@ def _remplacer_noms(monde, partie, observateur):
             continue
         reel = monde.joueur["nom"] if identifiant == "joueur" else _nom_reel(monde, identifiant, objet)
         variantes = _variantes_nom(reel)
+        if identifiant != "joueur":
+            ref = designation(monde, identifiant)
+            if partie not in (ref, "objet:" + ref):  # Les clés du dossier typé restent des références.
+                variantes = (*variantes, (ref, re.compile(r"(?<!\w)" + re.escape(ref) + r"(?!\w)")))
         if not any(motif.search(partie) for _, motif in variantes):
             continue
         designe = _designation_texte(monde, identifiant, objet, observateur)
@@ -266,16 +271,11 @@ def _remplacer_noms(monde, partie, observateur):
                 return complement
 
             for variante, _ in variantes:
-                motif = r"(?<!\w)de\s+" + re.escape(variante) + r"(?!\w)"
+                motif = r"(?<!\w)(?:de\s+|d['’])" + re.escape(variante) + r"(?!\w)"
                 partie = re.sub(motif, remplacer_complement, partie, flags=re.I)
 
-        def remplacer_nom(correspondance):
-            if correspondance.group()[:1].isupper():
-                return designe[:1].upper() + designe[1:]
-            return designe
-
         for _, motif in variantes:
-            partie = motif.sub(remplacer_nom, partie)
+            partie = inserer_designation(partie, motif, designe)
     return partie
 
 

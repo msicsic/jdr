@@ -217,6 +217,7 @@ def constater_geste_joueur(monde, avant):
 def promesses_visibles(monde):
     from .echanges import phrase_condition
     from .voix import nom_pour_joueur
-    return ["Tu as promis à " + nom_pour_joueur(monde, x["pour"]) + " que "
+    from .francais import groupe_nominal
+    return ["Tu as promis " + groupe_nominal(nom_pour_joueur(monde, x["pour"]), "à") + " que "
             + phrase_condition(monde, x["condition"]) + "." for x in en_cours(monde, "joueur")]
 

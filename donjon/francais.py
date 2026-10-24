@@ -1,4 +1,59 @@
 """Articles et accords du vocabulaire du scénario, sans modifier les noms des objets."""
+import re
+
+VOYELLES = "aàâäeéèêëiîïoôöuùûüyœæh"
+
+
+def groupe_nominal(nom, preposition="", debut=False):
+    """Insère une désignation déjà déterminée, ou un nom propre sans article.
+
+    Seul le déterminant perd sa capitale en milieu de phrase ; le nom propre
+    conserve la sienne. Le h suit la convention historique d'élision des noms ;
+    pour un objet, son article porte déjà sa propriété explicite ``elision``.
+    """
+    article = re.match(r"(?:le |la |les |l['’]|un |une |des )", nom, re.I)
+    if article:
+        nom = nom[:1].lower() + nom[1:]
+    if preposition == "de":
+        if nom.startswith("le "):
+            texte = "du " + nom[3:]
+        elif nom.startswith("les "):
+            texte = "des " + nom[4:]
+        elif nom.startswith("des "):
+            texte = de(nom[4:])
+        else:
+            texte = ("d'" if not nom.startswith(("la ", "l'", "l’"))
+                     and nom[:1].lower() in VOYELLES else "de ") + nom
+    elif preposition == "à":
+        texte = ("au " + nom[3:] if nom.startswith("le ") else
+                 "aux " + nom[4:] if nom.startswith("les ") else "à " + nom)
+    elif preposition == "defini":
+        # Un article déjà présent dans la phrase ne se double pas devant la désignation.
+        texte = nom
+    else:
+        texte = (preposition + " " if preposition else "") + nom
+    return texte[:1].upper() + texte[1:] if debut else texte
+
+
+def inserer_designation(texte, motif, nom):
+    """Remplace une référence nominale avec sa liaison, hors citations protégées.
+
+    Le motif désigne seulement la référence ; la préposition ou l'article de
+    la phrase appartient au groupe remplacé, jamais au nom de substitution.
+    """
+    forme = re.compile(r"(?<!\w)(?P<liaison>de\s+(?:(?:le|la|les)\s+|l['’])?|d['’]|du\s+|des\s+|"
+                       r"à\s+(?:(?:le|la|les)\s+|l['’])?|au\s+|aux\s+|"
+                       r"le\s+|la\s+|les\s+|l['’])?(?:" + motif.pattern + ")", re.I)
+
+    def remplacer(m):
+        liaison = (m.group("liaison") or "").strip().lower()
+        preposition = ("de" if liaison in ("de", "d'", "d’", "du", "des") or liaison.startswith("de ") else
+                       "à" if liaison in ("à", "au", "aux") or liaison.startswith("à ") else "defini" if liaison else "")
+        avant = texte[:m.start()].rstrip(" \t«\"“(")
+        debut = not avant or avant[-1] in ".!?\n"
+        return groupe_nominal(nom, preposition, debut)
+
+    return forme.sub(remplacer, texte)
 
 # Compatibilité avec les sauvegardes existantes. Un nouvel objet, une nouvelle salle peuvent
 # préciser genre, pluriel, nom_propre et elision dans leurs propriétés.
@@ -52,18 +107,13 @@ def sujet(objet):
 
 
 def de(nom):
-    """« de Gorm », « d'Aubin » : la préposition devant un nom sans article."""
-    return ("d'" if nom[:1].lower() in "aàâäeéèêëiîïoôöuùûüyœæh" else "de ") + nom
+    """Complément d'un nom propre ou d'une désignation déjà déterminée."""
+    return groupe_nominal(nom, "de")
 
 
 def complement_de(objet):
     """Forme le complément nominal avec les contractions françaises usuelles."""
-    nom = designer(objet)
-    if nom.startswith("le "):
-        return "du " + nom[3:]
-    if nom.startswith("les "):
-        return "des " + nom[4:]
-    return "d'" + nom[2:] if nom.startswith("l'") else de(nom)
+    return de(designer(objet))
 
 
 def accorder(objet, masculin, feminin_irregulier=None):
@@ -78,13 +128,7 @@ def relation_physique(objet, support, relation):
         return accorder(objet, "posé") + " sur " + nom_support
     if relation == "contenu":
         return "dans " + nom_support
-    if nom_support.startswith("le "):
-        nom_support = "au " + nom_support[3:]
-    elif nom_support.startswith("les "):
-        nom_support = "aux " + nom_support[4:]
-    else:
-        nom_support = "à " + nom_support
-    return accorder(objet, "fixé") + " " + nom_support
+    return accorder(objet, "fixé") + " " + groupe_nominal(nom_support, "à")
 
 
 def enumerer(elements):

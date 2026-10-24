@@ -9,7 +9,7 @@ import json
 import math
 
 from .monde import ErreurMonde, objet
-from .francais import designer
+from .francais import designer, complement_de
 from .geometrie import placer
 from .perception import eclairage
 from .vol import proprietaire
@@ -138,9 +138,9 @@ def ressource(m, id, nature):
     if o.get("attache"):
         raise ErreurMonde(f"{designer(o, debut=True)} est encore attaché.", f"detacher {id} d'abord, ou choisis parmi les {libres}")
     if not o["mobile"]:
-        raise ErreurMonde(f"Tu ne disposes pas librement de {designer(o)}.", f"{id} est fixe ; {libres}")
+        raise ErreurMonde(f"Tu ne disposes pas librement {complement_de(o)}.", f"{id} est fixe ; {libres}")
     if proprietaire(m, o) not in (None, "joueur"):
-        raise ErreurMonde(f"Tu ne disposes pas librement de {designer(o)}.",
+        raise ErreurMonde(f"Tu ne disposes pas librement {complement_de(o)}.",
                           f"{id} appartient à {proprietaire(m, o)} : obtiens-le d'abord, ou choisis parmi les {libres}")
     if "physique" not in o and not o.get("ressource"):
         raise ErreurMonde(f"{designer(o, debut=True)} n'est pas encore décrit.",
@@ -593,7 +593,7 @@ def preparer_decoupe(m, p, origine):
     if physique["pieces"] > 1:
         raise ErreurMonde(designer(o, debut=True) + " forme un lot.", f"prélève d'abord une pièce de {cible} (prelever).")
     if o.get("attache") or o.get("incorpore") or proprietaire(m, o) not in (None, "joueur"):
-        raise ErreurMonde("Tu ne disposes pas librement de " + designer(o) + ".",
+        raise ErreurMonde("Tu ne disposes pas librement " + complement_de(o) + ".",
                           f"{cible} est attaché, incorporé ou à autrui : obtiens-le ou détache-le d'abord.")
     total = physique["dimensions"]["longueur_cm"]
     if type(longueur) is not int or not 5 <= longueur <= total - 5:

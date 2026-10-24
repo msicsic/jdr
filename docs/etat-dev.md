@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-elision`, fusionnée, lot **54**, base **5125d06** :
+  `francais.groupe_nominal` accorde les désignations avec de/à et leur capitale ;
+  `inserer_designation` reprend la liaison du texte lors de la projection d'un nom
+  ou d'une référence opaque dans la prose. Citations et références typées conservées.
+  Même accord dans les rendus sociaux, dons, promesses, réponses et noms d'objets ;
+  aucune donnée de scénario, règle mécanique, consigne ni modèle changé. Le cas réel
+  donne au MJ « Je me méfie du vieil homme voûté. », en gardant la parole prononcée.
+  Six tests nouveaux : formes françaises, console/MJ et recharge, nouvelle entendue,
+  don et promesse à deux corps désignés. **127 + 106 tests ciblés verts**, puis les
+  six cas finaux rejoués verts. Suite unique : **1 776 tests, 16 ignorés**, 1 556 s,
+  trois processus à priorité réduite ; un ancien attendu grammatical corrigé
+  (19 tests rejoués verts), une `StopIteration` de console non reproduite
+  (six tests rejoués verts, cause non établie). Bilan consolidé avec les contrôles
+  finaux : **173 fichiers, 1 777 tests validés, 16 ignorés** ; aucune seconde suite.
+  Empreintes 2 h, Relais/auberge × quatre graines : mesures identiques ; six états
+  entièrement identiques et cinq chaînes seules changées dans les deux autres
+  (déterminants en milieu de phrase, « près de l'âtre »). États complets diagnostiqués.
+  Luna une passe `echanges`/`noms-dialogue` : 22 appels, sept tours MJ, aucun repli
+  ni erreur technique/recharge ; le chuchotement inaccessible à Brune inconnue est
+  joué seul sur copie préparée, quatre appels, sujet corrigé et citation originale
+  affichée. Refus sémantiques hors lot consignés. Correctif signé SSH **8a9ed47**,
+  signature vérifiée ; aucun changement de `main`, `planification`, `deliberation`
+  ou `signes`. [Rapport, mesures et limites](taches/rapport-codex-54-elision.md).
+  Fusionné sur l'intégration après le lot 53 : seul conflit de documentation ; aucun fichier de code commun.
+
 - Branche `codex-peur-transmise`, fusionnée, lot **53**, base **5125d06** :
   un proche dont la détresse est perçue ne rassure plus ; `autour` le retire de
   la compagnie et `ecart_securite` ajoute 0,5 × (confiance + affection) / 100

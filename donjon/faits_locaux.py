@@ -4,7 +4,7 @@ import copy
 import math
 import re
 
-from .francais import designer, relation_physique
+from .francais import designer, relation_physique, complement_de
 from .geometrie import placer
 from .monde import ErreurMonde, normaliser, objet, reference_exacte
 from .perception import eclairage
@@ -398,7 +398,7 @@ def preparer_faits(monde, proposition, revision=None):
             if "integrite" in nouvelles:
                 nouvelles["integrite"] = cible["integrite"]
             cible.update(nouvelles)
-            rendus.append("Tu précises les propriétés de " + designer(cible) + ".")
+            rendus.append("Tu précises les propriétés " + complement_de(cible) + ".")
             etablis.append({"type": nature, "objet": ancrage,
                             "proprietes": sorted(nouvelles)})
             continue

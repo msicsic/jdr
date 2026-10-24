@@ -3,7 +3,7 @@ from . import agendas
 import copy
 
 from .monde import ErreurMonde, normaliser
-from .francais import designer
+from .francais import designer, groupe_nominal
 from .esprits import dernier_son
 
 
@@ -251,7 +251,7 @@ def payer_remise(monde, mission_id, lignes):
     monde.joueur["or"] += accord["montant"]
     agendas.payer_contrat(monde, mission_id)
     nom = monde.objets[destinataire]["nom"]
-    lignes.append(f"Tu remets {designer(objet)} à {nom}. Tu reçois les {accord['montant']} pièces convenues.")
+    lignes.append(f"Tu remets {designer(objet)} {groupe_nominal(nom, 'à')}. Tu reçois les {accord['montant']} pièces convenues.")
 
 
 def commande_sociale(monde, texte):

@@ -283,7 +283,7 @@ def regler(monde, d, reclamee, lignes):
     pas de sitôt (``creance_vaine``)."""
     from .deliberation import REDEMANDE
     from .esprits import esprit, memoriser
-    from .francais import designer
+    from .francais import designer, groupe_nominal
     from .pnj import _chroniquer
     from .social import _qui
     from .voix import personne_pour_joueur
@@ -331,7 +331,7 @@ def regler(monde, d, reclamee, lignes):
     else:
         memoriser(monde, a, {"type": "rembourse_par", "de": de, "montant": possible})
         if monde.visible(de) or monde.visible(a):
-            lignes.append(f"{designer(monde.objets[de], debut=True)} rend {pieces} à {designer(monde.objets[a])}.")
+            lignes.append(f"{designer(monde.objets[de], debut=True)} rend {pieces} {groupe_nominal(designer(monde.objets[a]), 'à')}.")
     return "partiel" if d["montant"] else "rendu"
 
 
