@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-attendu-designable`, non fusionnée, lot **65**, base **de3e986** :
+  les listes d'entités dans les refus passent par `refus.cibles` : candidats du geste,
+  `Monde.designable`, références publiques, tri et plafond commun. Le champ technique
+  `attendu` conserve `personne_<n>`/`element_<n>` au lieu de les convertir en portraits.
+  Même contrat pour actions, opérations, improvisations, outils, dons, paroles, combat,
+  défense et ajouts. Les souvenirs visuels marqués, corps reconnus, voix récemment
+  entendues et noms appris se désignent sans donner d'accès matériel ; registres existants
+  rechargés, aucune migration. Le cas réel est reproduit en console/MJ simulé et en Luna :
+  plus de `brune`, `marchand`, `barbe_gorm`, `mains_gorm` dans les candidats transmis.
+  Nuance du constat : dans le Relais, `echoppe` est la Conduite basse, dont les surfaces et
+  Gorm sont perçus ici ; leurs références publiques restent légitimes, comme les souvenirs
+  marqués d'ailleurs. Cinq nouveaux tests, état et rendu après recharge ; parcours de toutes
+  les actions et opérations sur deux mondes. Suite complète unique, trois processus :
+  **1 823 tests, 16 ignorés**, 1 092,75 s ; neuf assertions initiales (deux régressions
+  corrigées, sept attentes connaissance/accès adaptées). **103 tests de reprise verts**,
+  plus 24 tests de défense/sauvegarde ; bilan consolidé sans échec restant.
+  Empreintes Relais, 2 h × quatre graines contre de3e986 : chroniques, mesures et états
+  complets identiques. Luna une passe relais/crypte/echanges : cache main 42bb9c0 relu,
+  scripts identiques mais ancien harnais ; 62 → 54 appels, 22 → 20 tours MJ,
+  **2,82 → 2,70 appels/tour**, 12,03 → 11,32 s/tour (temps indicatifs). Aucune erreur
+  technique ni de recharge ; un repli en crypte sur les conditions de prime et le sens
+  d'une offre/dette, hors lot, reste consigné. Candidats bornés déterministement ; aucune
+  garantie nouvelle sur les contradictions sémantiques ou faux refus d'audit. Ni main,
+  ni `planification.py`, ni `social.py`, ni scénarios, ni consignes ou modèle modifiés.
+  [Contrat, mesures et limites](taches/rapport-codex-65-attendu-designable.md).
+
 - Branche `codex-eau-plan-marche`, fusionnée, lot **58**, base **c592d68** :
   le désaccord plan/marche de la crue venait de `eau.estimation`, qui rajeunissait
   une ancienne vitesse à chaque vue du niveau dans sa salle. Les deux pentes

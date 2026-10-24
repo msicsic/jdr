@@ -9,7 +9,7 @@ import math
 from .monde import ErreurMonde, objet
 from .geometrie import cases
 from .perception import eclairage
-from .refus import liste
+from .refus import cibles, liste
 
 
 TERRAINS = ("terre", "pierre", "herbe")
@@ -220,7 +220,7 @@ def compiler_saut(m, e, justification, origine):
     if not m.accessible(e["cible"]):
         bords = sorted(i for i, x in m.objets.items() if x.get("appui_vertical") and m.accessible(i))
         raise ErreurMonde("Il faut un bord visible et identifié pour ce saut.",
-                          f"cible : un bord établi, parmi {liste(bords)} (reçu « {e['cible']} »).")
+                          f"cible : un bord établi, parmi {cibles(m, bords)} (reçu « {e['cible']} »).")
     a = appui(m, e["cible"])
     from .proximite import exiger
     exiger(m, e["cible"])

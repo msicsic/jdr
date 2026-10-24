@@ -1,6 +1,7 @@
 """Compléments descriptifs proposés par le MJ, validés sur une copie du monde."""
 import copy
 
+from .refus import cibles
 from .monde import ErreurMonde, normaliser, objet
 from .perception import eclairage
 
@@ -84,7 +85,7 @@ def preparer_complements(monde, proposition, revision=None):
                                   f"« {id} » est un objet : pour le décrire, etablir_faits (detail, ou qualification "
                                   "avec physique pour sa forme et ses dimensions).")
             raise ErreurMonde("Ce personnage ne peut pas être décrit ici.",
-                              f"personnage « {id} » : parmi {', '.join(sorted(autorises)) or 'aucun'}.")
+                              f"personnage « {id} » : parmi {cibles(monde, autorises)}.")
         if facette not in autorises[id]["facettes_disponibles"] or (id, facette) in traites:
             raise ErreurMonde("Ce détail est déjà établi.",
                               f"facette « {facette} » de {id} déjà établie ou proposée deux fois ; facettes libres : "

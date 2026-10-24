@@ -125,13 +125,14 @@ def reprendre(monde, id):
 
 def se_rendre(monde, id, autre, lignes):
     from .monde import ErreurMonde
+    from .refus import cibles
     from .ouie import retentir, saisissent
     from .combat import voit
     from .francais import sujet
     if not corps.conscient(monde, id):
         raise ErreurMonde("Tu es sans connaissance.", f"auteur={id} : conscient requis.")
     if autre not in dangers(monde, id):
-        raise ErreurMonde("Aucun agresseur perçu ne correspond.", f"cible={autre} : parmi {dangers(monde, id)}, danger perçu requis.")
+        raise ErreurMonde("Aucun agresseur perçu ne correspond.", f"cible={autre} : parmi {cibles(monde, dangers(monde, id))}, danger perçu requis.")
     corps.corps(monde, id)["reddition"] = {"a": autre, "depuis": instant(monde)}
     entendants = saisissent(monde, id, "dire")
     texte = "Je me rends !"
@@ -253,6 +254,7 @@ def chemin_fuite(monde, cible=""):
 
 def preparer_joueur(monde, p, plan):
     from .monde import ErreurMonde
+    from .refus import cibles
     from .combat import preparer
     action = p["action"]
     if p["difficulte"]:
@@ -290,7 +292,7 @@ def preparer_joueur(monde, p, plan):
         if not cible and len(ds) == 1:
             cible = ds[0]
         if cible not in ds:
-            raise ErreurMonde("Précise l'agresseur que tu perçois.", f"cible={cible} : parmi {ds}, danger perçu requis.")
+            raise ErreurMonde("Précise l'agresseur que tu perçois.", f"cible={cible} : parmi {cibles(monde, ds)}, danger perçu requis.")
         if action == "riposter":
             preparer(monde, {**p, "cible": cible}, plan)
             # La fiche et la contre-revue lisent une défense, pas une agression : contre qui, et pourquoi.

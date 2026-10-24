@@ -66,8 +66,10 @@ class QuestionAbsentTests(unittest.TestCase):
                        'Où est Brune', 'Gorm est-il encore en bas ?'):
             with self.subTest(saisie=saisie):
                 m = self.initialiser(scene('signes-guet'))
-                self.assertFalse(m.designable('brune'))
-                self.assertFalse(m.designable('marchand'))
+                self.assertFalse(m.accessible('brune'))
+                self.assertTrue(m.designable('brune'))
+                self.assertFalse(m.accessible('marchand'))
+                self.assertTrue(m.designable('marchand'))
                 self.assertIsNone(analyser(m, saisie))
                 avant, rendu = copy.deepcopy(m.data), regarder(m)
                 texte = 'Tu as entendu des pas en dessous, sans savoir qui les faisait.'
@@ -135,7 +137,8 @@ class QuestionAbsentTests(unittest.TestCase):
                                    ("Gorm, j'arrive !", 'rejoint')):
             with self.subTest(saisie=saisie):
                 m = recharger(gorm_hele_corvus(porte_ouverte=True))
-                self.assertFalse(m.designable('marchand'))
+                self.assertFalse(m.accessible('marchand'))
+                self.assertTrue(m.designable('marchand'))
                 r, sortie, appels = jouer(m, saisie, [], [])
                 self.assertEqual(appels, [])
                 self.assertNotIn('Tu ne vois pas Gorm', sortie)

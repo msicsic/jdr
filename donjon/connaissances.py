@@ -1,6 +1,7 @@
 """Savoirs propres aux PNJ : données d'auteur et compléments narratifs persistants."""
 import copy
 
+from .refus import cibles
 from .monde import ErreurMonde
 
 
@@ -66,7 +67,7 @@ def preparer_savoirs(monde, proposition, revision=None):
     autorises = catalogue(monde)
     if not isinstance(id, str) or id not in autorises:
         raise ErreurMonde("Ce personnage n'est pas présent ou n'a aucun savoir à compléter.",
-                          f"personnage parmi {', '.join(sorted(autorises)) or 'aucun'} (reçu « {id} »).")
+                          f"personnage parmi {cibles(monde, autorises)} (reçu « {id} »).")
     if not isinstance(ajouts, list) or not 1 <= len(ajouts) <= 3:
         raise ErreurMonde("Nombre de connaissances invalide.", "savoirs : une liste de 1 à 3 éléments {sujet, texte}.")
     travail = monde.copier()

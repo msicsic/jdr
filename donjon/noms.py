@@ -359,7 +359,12 @@ def public(monde, valeur, citations=False):
         projection = {}
         for champ, contenu in valeur.items():
             champ_public = public(monde, champ)
-            if champ in ("noms_pour_repliques", "noms_entendus"):
+            if champ == "attendu" and isinstance(contenu, str):
+                # Un attendu est un contrat technique : conserver ses références opaques,
+                # et projeter les identifiants internes encore cités, sans en faire de la prose.
+                projection[champ_public] = re.sub(
+                    r"[\w-]+", lambda mot: reference(monde, mot[0]) if mot[0] in monde.objets else mot[0], contenu)
+            elif champ in ("noms_pour_repliques", "noms_entendus"):
                 projection[champ_public] = contenu
             else:
                 citations_contenu = _garde_citations(valeur, champ, citations)
@@ -410,9 +415,10 @@ def verifier_references(monde, valeur, faits):
         opaque = bool(re.fullmatch(r'(?:personne|element|voix|voix_reconnue)_\d+', valeur))
         prive = identifiant in monde.objets and reference(monde, identifiant) != identifiant
         if (prive and valeur == identifiant) or (opaque and valeur not in publiques):
-            acceptes = sorted(mot for mot in publiques if reel(monde, mot) in monde.objets)
+            from .refus import cibles
+            acceptes = cibles(monde, [reel(monde, mot) for mot in publiques])
             raise RefusDeForme("Cette référence de personne n'a pas été fournie au MJ.",
-                              f"{champ} : reçu « {valeur} » ; une référence publique fournie, parmi {', '.join(acceptes)}, ou vide si le champ ne s'applique pas.")
+                              f"{champ} : reçu « {valeur} » ; une référence publique fournie, parmi {acceptes}, ou vide si le champ ne s'applique pas.")
 
     def parcourir(valeur, chemin='proposition'):
         if isinstance(valeur, list):
@@ -559,9 +565,13 @@ def verifier_nom(monde, nom, *, exiger_perception=True):
     """
     from .dialogues import interlocuteurs
     from .voix import reel
+    from .spatial import regard_vers
+    # Connaître une référence autorise à la désigner, sans attester qu'on la perçoit.
+    def percu(id):
+        return monde.accessible(id) or regard_vers(monde, id)
     reference_ = personnage(monde, nom)
     cible = reel(monde, reference_)
-    if cible in monde.objets and (not exiger_perception or monde.designable(cible)
+    if cible in monde.objets and (not exiger_perception or percu(cible)
                                  or reference_ in interlocuteurs(monde)):
         return cible
     # Même un nom inconnu peut être prononcé : le refus cite les mots du joueur,
@@ -570,7 +580,7 @@ def verifier_nom(monde, nom, *, exiger_perception=True):
     affiche = recu[:1].upper() + recu[1:]
     if reference_:
         message = f"Tu ne vois pas {affiche} d'ici."
-    elif any(o["type"] == "personnage" and monde.designable(i) and not connait(monde, "joueur", i)
+    elif any(o["type"] == "personnage" and percu(i) and not connait(monde, "joueur", i)
              for i, o in monde.objets.items()):
         message = f"Tu ne sais pas lequel d'entre eux est {affiche}."
     else:

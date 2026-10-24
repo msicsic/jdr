@@ -7,7 +7,7 @@ selon son devoir, son courage ou son seuil d'alerte). ``data["sons"]`` garde l'h
 a été émis et de qui l'a entendu.
 """
 from .monde import ErreurMonde
-from .refus import RefusDeForme
+from .refus import cibles, RefusDeForme
 from .francais import designer, groupe_nominal, complement_de
 
 
@@ -107,12 +107,12 @@ def _compiler_heler(m, e, justification, origine):
     if qui in ("", "joueur"):
         raise RefusDeForme("Dis qui tu appelles par son nom.",
                           f"emettre_son heler : cible = l'identifiant du personnage hélé, pas joueur ; parmi "
-                          f"{liste(connus)} (reçu « {qui} ») ; sans nom à appeler, des mots lancés à qui les entend "
+                          f"{cibles(m, connus)} (reçu « {qui} ») ; sans nom à appeler, des mots lancés à qui les entend "
                           "sont une parole (parole_joueur, personnage = parole_prevue.personnage), un cri sans mots "
                           "emettre_son methode cri.")
     if qui not in m.objets or m.objets[qui]["type"] != "personnage" or not _connu_du_joueur(m, qui):
         raise ErreurMonde("Tu ne connais personne de ce nom à appeler.",
-                          f"emettre_son heler : cible = un personnage que Corvus connaît, parmi {liste(connus)} "
+                          f"emettre_son heler : cible = un personnage que Corvus connaît, parmi {cibles(m, connus)} "
                           f"(reçu « {qui} »).")
     if m.joueur.get("peut_parler") is False or m.joueur["pv"] <= 0:
         raise ErreurMonde("Tu n'es pas en état d'appeler qui que ce soit.",
@@ -150,7 +150,7 @@ def _compiler_repondre(m, e, justification, origine):
     qui = reel(m, e["cible"])
     if qui not in appelants:
         raise ErreurMonde("Ce n'est pas cette voix qui vient de t'appeler.",
-                          f"emettre_son {methode} : cible = qui vient d'appeler Corvus, parmi {liste(valables)} "
+                          f"emettre_son {methode} : cible = qui vient d'appeler Corvus, parmi {cibles(m, appelants)} "
                           f"(reçu « {e['cible']} »).")
     if REPONSES[methode] not in permises(attendent[qui]):
         raise ErreurMonde("Tu sais déjà ce qu'on te veut : dis si tu viens ou s'il doit venir.",

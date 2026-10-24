@@ -11,7 +11,7 @@ from .monde import ErreurMonde, objet, normaliser
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
-from .refus import RefusDeForme, inaccessible, liste
+from .refus import cibles, RefusDeForme, inaccessible
 
 
 def effet(operation, cible="", destination="", texte="", valeur=0):
@@ -108,7 +108,7 @@ def compiler_effet(simulation, p, e):
     if cible != "joueur" and cible not in [*p["cibles"], p["outil"]]:
         annonces = [c for c in ["joueur", *p["cibles"], p["outil"]] if c]
         raise RefusDeForme("La conséquence doit viser une cible annoncée.",
-                          f"cible « {cible} » : parmi {', '.join(annonces)} ; si elle est impliquée, ajoute-la à cibles.")
+                          f"cible « {cible} » : parmi joueur, {cibles(simulation, annonces)} ; si elle est impliquée, ajoute-la à cibles.")
     if op not in ("marquer", "son") and texte:
         raise RefusDeForme("Un texte libre ne peut pas définir un effet physique.",
                           f"{op} : texte vide ; seuls marquer et son portent un texte.")
@@ -137,14 +137,14 @@ def compiler_effet(simulation, p, e):
             murs = sorted(i for i, x in simulation.objets.items()
                           if x["type"] == "surface" and simulation.accessible(i))
             raise ErreurMonde("Il faut un support intact et disponible pour y laisser cette marque.",
-                              "marquer : " + " ; ".join(fautes) + f" ; supports libres ici : {liste(murs)}.")
+                              "marquer : " + " ; ".join(fautes) + f" ; supports libres ici : {cibles(simulation, murs)}.")
         usages_marque = {"couper", "couper_bois", "marquer", "graver"}
         if (not t or not simulation.est_porte(p["outil"]) or not t.get("integrite")
                 or not set(t.get("usages", [])) & usages_marque):
             outils = sorted(i for i, x in simulation.objets.items() if simulation.est_porte(i)
                             and x.get("integrite") and set(x.get("usages", [])) & usages_marque)
             raise ErreurMonde("Il faut un outil disponible pour tracer ou graver cette marque.",
-                              f"outil de l'improvisation : un objet porté qui coupe ou grave, parmi {liste(outils)}.")
+                              f"outil de l'improvisation : un objet porté qui coupe ou grave, parmi {cibles(simulation, outils)}.")
         if eclairage(simulation)["niveau"] < 2:
             raise ErreurMonde("Tu ne distingues pas assez bien le support pour y tracer une marque.",
                               "marquer exige une lumière franche : allume d'abord une source.")
@@ -227,7 +227,7 @@ def preparer(m, p, origine):
     if p["outil"] and (not m.accessible(p["outil"]) or not m.est_porte(p["outil"]) or not m.objets[p["outil"]]["integrite"]):
         portes = sorted(i for i, x in m.objets.items() if m.est_porte(i) and x.get("integrite"))
         raise ErreurMonde("L'outil annoncé doit être accessible et porté.",
-                          f"outil « {p['outil']} » : un objet porté et intact, parmi {liste(portes)}, ou vide.")
+                          f"outil « {p['outil']} » : un objet porté et intact, parmi {cibles(m, portes)}, ou vide.")
     for nom in ("reussite", "echec"):
         b = p[nom]
         if not isinstance(b, dict) or set(b) != {"recit", "effets"}:
