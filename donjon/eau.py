@@ -145,13 +145,22 @@ def noyee_crue(monde, id, salle):
 
 
 def estimation(monde, id):
-    """(minute, niveau, montée en cm/h) : ce qu'il a vu de plus récent de l'eau qui monte ou
-    baisse ; None s'il ne l'a pas encore vue changer."""
+    """(minute, niveau, montée en cm/h) : dernier niveau vu et dernière vitesse
+    mesurée entre deux repères ; None sans mesure de vitesse."""
     from .esprits import lire
-    vues = [(c["minute"], c["niveau"], c["montee"]) for c in
-            (a.get("eau") for a in lire(monde, id)["croyances"].values())
-            if c and c.get("montee") is not None and c.get("niveau") is not None]
-    return max(vues) if vues else None
+    vues = [c for a in lire(monde, id)["croyances"].values()
+            if (c := a.get("eau")) and c.get("niveau") is not None]
+    # Revoir une salle rafraîchit son niveau, pas la date de sa vitesse :
+    # celle-ci n'est remesurée qu'au renouvellement du repère. Sinon, passer
+    # devant deux salles promeut tour à tour deux anciennes pentes opposées.
+    # Le niveau est commun à la crue : la dernière vue l'ancre, le dernier
+    # repère mesuré donne la pente, même quand on ne voit plus cette salle.
+    vitesses = [(c["repere"][0], c["montee"]) for c in vues
+                if c.get("repere") is not None and c.get("montee") is not None]
+    if not vitesses:
+        return None
+    minute, niveau_vu = max((c["minute"], c["niveau"]) for c in vues)
+    return minute, niveau_vu, max(vitesses)[1]
 
 
 def monte(monde, id):
@@ -240,11 +249,12 @@ def observer(monde, id, salle, source="vu"):
     niveau_vu = altitude(monde, salle) + vue if vue else None
     repere, montee = avant.get("repere"), avant.get("montee")
     if niveau_vu is None:
-        repere = None
+        repere, montee = None, None
     elif repere is None or t < repere[0]:
         # Le moteur fait voir la fin d'un geste avant d'en dérouler les minutes : un repère
         # postérieur est repris à cette vue.
         repere = [t, niveau_vu]
+        montee = None
     elif t - repere[0] >= REPERE:
         montee = round((niveau_vu - repere[1]) * 60 / (t - repere[0]))
         repere = [t, niveau_vu]
