@@ -125,6 +125,15 @@ Une revue externe recommande la réflexion limitée avant les recettes : filtrer
 suite et donne des oublis crédibles, alors que les recettes sauvegardées compliquent l'invalidation. Cela
 rejoint la question 6 ; à trancher avec elle après A4.
 
+## 8 ter. Pistes humaines (revue externe du 2026-10-24)
+
+Elles changent les décisions, donc relèvent de ce plan et non des lots de coût : **un budget de réflexion selon
+l'enjeu** (peu de nœuds et une faible profondeur pour une routine ou un souhait, la recherche entière pour une
+urgence vitale) ; **A\* pondéré** (f = g + w·h, w de 1,2 à 1,5 : creuser la piste qui rapproche, plan à quelques pour
+cent de l'optimum) ; **jalons mentaux** (adopter d'abord « m'éclairer », puis « ouvrir la porte », au lieu d'un seul
+graphe de neuf étapes ; la double passe sombre/lumière en est une esquisse). À trancher avec les questions ci-dessous,
+après A4.
+
 ## 9. Questions ouvertes, pour l'utilisateur
 
 1. **Accepter des PNJ non optimaux** : recommandé oui ; à confirmer.

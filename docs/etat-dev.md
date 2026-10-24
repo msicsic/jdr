@@ -2936,6 +2936,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     des devis) impose une clé exacte que tout lot doit tenir et que `VERIFIER`/`spatial.VERIFICATION` contrôlent.
     Préférer les gains d'algorithme (C1, saillance) ; après chacun, mesurer ce que rapporte encore chaque cache et
     retirer celui qui ne rapporte plus.
+  - **Réduire l'espace sans perdre un plan** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06). Rappel :
+    68 à 88 % du coût de fin de nuit vient de recherches **sans plan**, qu'une borne A* n'accélère pas (il faut tout
+    parcourir pour prouver l'absence) : seul un espace plus petit les rend moins chères. (P3) **Aller seulement vers une
+    salle d'intérêt** : `gestes` offre un `aller` vers chaque salle accessible (`v.allers`) ; un plan n'a besoin de
+    s'arrêter que là où il agit (objet ou porte en jeu, personne utile, lieu du but, abri), les trajets directs de
+    `allers` couvrant le reste ; à prouver avec les coûts par minute (pression, noir, eau) et les gestes de recherche
+    de personne. (P2) **Pertinence par chaînage arrière** : `Vue.pertinent` rend pertinents tous les outils de choc et
+    de coupe dès qu'une serrure est crue verrouillée quelque part (`self.verrous`) ; ne garder que les moyens qui lèvent
+    un obstacle entre le PNJ et ce que vise le but (contenant fermé, porte verrouillée sur le chemin), par une clôture
+    complète sur les préconditions des gestes, fautes comprises. Prolonge C1 (lot 52). Contrat des lots 46 et 48 pour
+    les deux. (P1) Une borne A* par « ancres de but » (distance minimale à la salle où le but se conclut) n'aide que les
+    recherches qui trouvent un plan ; à mesurer après P2 et P3.
   - **Coût fixe, mêmes nœuds** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06) : gains à décisions et
     nœuds identiques, à mesurer au profil avant de les classer. (a) `obstacles.metrique_necessaire` sérialise toute la
     géométrie (`json.dumps(m.data["salles"], …)`) pour sa clé à chaque appel, alors que ses calculs réels sont rares :
