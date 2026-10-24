@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-depart-feutre`, fusionnée, lot **51**, base **d60b80a** :
+  les gardes des suites admissibles découvrent le besoin de discrétion ; sans
+  cette découverte, un seul départ ordinaire. Si elle a lieu, reprise depuis
+  le départ avec les deux allures ; marque `discretion` retenue par PNJ/but
+  dès la première recherche, nœuds conservés seulement à la deuxième.
+  Invalidation par les entrées communes ; graphes de lumière et certificat
+  partagent les départs. `VERIFIER` garde le témoin historique et le contrat
+  hors plafond / recherche complète du lot 48. Aucun coût, prix, plafond,
+  scénario, fonction réservée au lot 46 ni appel au modèle modifié.
+  Rémy à 480 min : 4 000 → 2 524 états, même absence de plan ; Brune devant
+  la réserve et un allumage illicite : mêmes plans, conséquences, état et
+  rendu après recharge. Marque conservée puis invalidée avec les permissions.
+  Empreintes 2 h, quatre scénarios × quatre graines : identiques à la base.
+  `VERIFIER` et `spatial.VERIFICATION=1`, mine/auberge 42, 2 h : sans écart,
+  borne ni usurpation. Suite complète unique : **1 760 tests, quatre ignorés**,
+  verte, 170 fichiers, trois processus à priorité réduite, 889,2 s.
+  Correctif signé SSH **453a6f3**, signature vérifiée ; `main` non touchée.
+  Huit nuits de 12 h, mine/auberge × 42/1985 × départ tiré/fixe : `comparer --calcul`
+  entièrement identique, résultats de tous les appels logiques compris ; aucune
+  bifurcation, aucun plantage ni usurpation. Trois versions lancées ensemble,
+  deux processus chacune : CPU global base → branche **2 230,19 → 2 170,67 s
+  (−2,7 %)**, mine −4,2 %, auberge −0,6 % ; nœuds **10 122 834 → 8 823 096**,
+  bornées **1 154 → 867**. Gain limité : mine 1985 tiré **+8,6 %** ; la découverte
+  coûte encore et le prototype local ne se généralise pas à toute la nuit.
+  Mesures et limites dans le [rapport du lot 51](taches/rapport-codex-51-depart-feutre.md).
+  Fusionné sur l'intégration après les lots 46 à 50 : `planification.py` fusionné sans conflit avec les lots 46 et 48 (fonctions distinctes) ; suite complète relancée sur la fusion.
+  Accord : `test_une_source` (Rémy, mine 1985 à 480) supposait la base sans la règle du lot 46 plafonnée ; avec le
+  départ feutré découvert au besoin elle peut aboutir sous la borne, et le test exige alors le résultat complet.
+
 - Branche `codex-ressource`, fusionnée, lot 50, base d'intégration `d60b80a`,
   brief `d24e7d5` : `ressource.sujet` conserve le bien nommé (nom, alias, matière,
   catégorie), même inconnu de Corvus ; `faim`/`chaleur` restent les besoins généraux.

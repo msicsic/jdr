@@ -1740,6 +1740,44 @@ pour ne pas introduire le cycle de démarrage matière → monde → perception.
 
 Mesures, preuve d'identité et limites : [rapport du lot 38](taches/rapport-codex-38-cout-12h.md).
 
+## Départ feutré découvert — lot 51 (`codex-depart-feutre`, non fusionnée)
+
+La permission globale de voler ou de frapper ne suffit plus à doubler les
+états initiaux. `_normaliser_suites`, commun aux gestes immédiats et aux
+suites différées, découvre la discrétion sur leurs gardes `sans_temoin` et
+`dans_le_dos`, après les restrictions de tiers et d'effets terminaux utiles.
+La première recherche part à l'allure ordinaire. Si elle découvre un tel
+geste, `_explorer` reprend depuis le départ avec les deux allures, la même
+borne et le même ordre ; la découverte de lumière repart elle aussi de son
+état initial. Vérifier les filtres du candidat ne déplace pas les lectures
+de lumière : elles se feront dans la reprise, à leur point historique.
+Les plans discrets marchent donc feutré dès le début.
+
+`_GRAPHES[(PNJ, but)]` retient la marque `discretion` dès cette première
+rencontre des entrées. Il ne garde alors que cette marque ; les nœuds des
+graphes `sombre` et `lumiere` restent gardés à la deuxième recherche sur les
+mêmes entrées. Un changement des seuls prix reprend directement les deux
+départs, sans refaire la découverte. Un changement des entrées remet la
+marque à zéro. Une marque fausse ne prouve pas une impossibilité : une
+recherche ultérieure peut encore découvrir un geste dans des nœuds que le
+prix précédent n'avait pas fait examiner.
+
+Les gardes lisent les permissions, capacités, visées, refus, moyens et
+croyances déjà couverts par `_entrees` et sa clé complémentaire ; aucune
+nouvelle lecture du monde n'est ajoutée. La marque reste une mémoire de
+calcul, sans modification des sauvegardes. `_sans_plan` et `_parcours`
+partagent `_departs` avec la recherche jouée ; aucun certificat ne développe
+une suite inconnue. `VERIFIER` refait la recherche uniforme avec les départs
+historiques et, si elle plafonne, compare à la complète (`REFERENCE`) selon
+le contrat du lot 48. `decouvrir_discretion=False` sert à ce témoin interne.
+Aucun coût, prix, plafond, scénario ni geste ne change.
+
+Limite : la garde découvre un geste candidat après les filtres communs,
+avant la mesure de son approche. Elle peut donc conserver la discrétion pour
+un geste dont l'approche échouera ensuite ; cette possibilité supplémentaire
+ne retire aucun plan. Les mesures, divergences et contrôles figurent dans le
+[rapport du lot 51](taches/rapport-codex-51-depart-feutre.md).
+
 ## Devis sans voie d'allumage — lot 49 (`codex-devis-vides`, non fusionnée)
 
 Avant `part_estimee._preparer`, `_allumable` exige une voie possible d'allumage

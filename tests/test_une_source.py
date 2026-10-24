@@ -221,7 +221,11 @@ class CaptureTests(unittest.TestCase):
                         r = faire(recharger(m))
                     resultats[cle] = (r, [x for x in diag if x["pnj"] == qui][-1])
                 branche, base, complete = resultats["branche"], resultats["base"], resultats["complete"]
-                self.assertEqual(base[1]["issue"], "borne")
+                # Avant le lot 51, la base sans la règle atteignait ici sa borne ;
+                # le départ feutré découvert seulement au besoin peut la faire
+                # aboutir sous la borne : elle rend alors le résultat complet.
+                if base[1]["issue"] != "borne":
+                    self.assertEqual(base[0], complete[0])
                 self.assertNotEqual(complete[1]["issue"], "borne")
                 self.assertNotEqual(branche[1]["issue"], "borne")
                 self.assertEqual(branche[0], complete[0])
