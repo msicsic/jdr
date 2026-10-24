@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration 5c2ce81** (lots 31, 32, 34, 35, 37 à 49 ; sans Luna ; bruts
+  `artifacts/verif-integ-5c2ce81/` du dépôt principal). Audit 12 h, quatre scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500,
+  contre 42bb9c0 (cache) et ffcc295 : aucun plantage, violation, usurpation ni coup contre une personne. Par nuit,
+  42bb9c0 → ffcc295 → 5c2ce81 : sans recours Relais 206 → 193 → 169, mine 23 → 44 → 25, auberge 188 → 183 → 151, crue
+  141 → 217 → 149 ; noir mine 1 413 → 1 310 → 1 151 ; bascules en baisse (mine 0) ; passages par heure, pire, mine
+  17 → 24 → 35, auberge 28 → 30 → 42, crue 36 → 32 → 49 ; échanges mine 88 → 106, auberge 77 → 117 ; propositions /
+  acceptées par nuit Relais 6,9/1, mine 23,3/1,4, auberge 22/3,6, crue 9,9/0,5. Se dénoncer soi-même : 0 (corrigé).
+  `rixe`/`rixe_douce` 8 h : aucun coup contre une personne. `VERIFIER` + `VERIFICATION` 0,2, 8 h, graine 42, cinq
+  scénarios : aucun écart, aucune recherche bornée. Temps d'horloge 12 h (indicatif, non lancés ensemble) : Relais
+  44,5 → 118 → 76 s, mine 238 → 711 → 419 s, auberge 206 → 739 → 493 s, crue 56 → 100 → 109 s. **Défauts** : (1) **plan
+  et marche en désaccord sur l'eau** : crue 2024 368-383, Gorm monte dix fois galerie → vannes, la marche refuse
+  (« séjour ou retour menacé par l'eau »), il remonte, recommence (49 passages/h) ; crue 1985 258-264, Ilse ; le refus
+  de la marche n'est pas retenu ; (2) chercher en appelant, restes : Odon mine 7 (« Lucien ? » ×10 puis mange la croûte
+  que Lucien lui refusait), Odile auberge 7 et 2024 (« Joss ? » ×9-10) ; (3) **rendez-vous clos d'un seul côté** :
+  auberge 42 501-506, Anselme hèle Odile ×10, « J'arrive ! » ×5, Odile « retrouve Anselme, comme convenu » ×5 ; (4)
+  **propositions du lot 45 redites sans fait nouveau** (Brune à Gorm ×6, crue 11 ; offres identiques en moins d'une
+  heure : 6 / 14 / 16 / 14 sur 8 nuits ; achats refusés repris au même prix) ; (5) **contreparties absurdes** (Bram
+  offre la clé de la paie qu'il garde ; Odon un outil contre toute la paie) ; (6) tâche acceptée puis abandonnée dans
+  la minute (crue 7, Ilse, après une surenchère de Gorm) ; (7) avertissements redits (mine 3, Josse ×5 ; auberge
+  0,6 → 2,9) ; (8) accord : « l'outils de serrurier », « 1 pièces ». Connus : crue 500 en partie (Brune et Aubin au
+  sec ; Gorm et Ilse 235 min au refuge mouillé dès 215) ; Bram agit (appels, achat, hèle) ; Brune crue 3 corrigé.
+
 - **Vérification Luna de l'intégration f033364** (lots 40, 42, 44, 47 b, 50, 54 ; deux passes contre `main` 42bb9c0 en
   cache ; bruts `artifacts/verif-luna-f033364/` du dépôt principal). Onze scripts : 3,15 → 2,96 appels et 12,7 → 11,1 s
   par tour MJ, relances 8 → 2,5, refus 16 → 10,5, replis 0,5 → 0 ; 57 → 53 tours MJ. Les lots 40, 42, 44, 47 b et 50
