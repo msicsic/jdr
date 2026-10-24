@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna de l'intégration f033364** (lots 40, 42, 44, 47 b, 50, 54 ; deux passes contre `main` 42bb9c0 en
+  cache ; bruts `artifacts/verif-luna-f033364/` du dépôt principal). Onze scripts : 3,15 → 2,96 appels et 12,7 → 11,1 s
+  par tour MJ, relances 8 → 2,5, refus 16 → 10,5, replis 0,5 → 0 ; 57 → 53 tours MJ. Les lots 40, 42, 44, 47 b et 50
+  tiennent dans les deux passes ; 54 en partie (le chuchotement n'est pas joué). `ressources` et `comptes` 3,0 appels,
+  `sous-obstacle-*` 1,9 (intégration seule, pas de référence). **Défauts nouveaux** : (1) **prime inventée** : crypte
+  n° 24, « Gorm, combien me donnes-tu pour l'anneau ? » typé `parole_joueur` à `propos` vide (sur `main` :
+  `conversation_pnj`/`proposer`), Gorm offre 10 pièces (passe 2) au lieu des 20 de `prime_base`, l'auditeur l'admet ;
+  (2) faux refus affiché « Précise ce que tu veux dire… » sur un `propos` vide ou un `ressource` « présence »
+  (`soir-noir` n° 1, `echanges` n° 2) ; (3) méta-langage « Le refus précédent ne signifie pas… » (relais n° 22) ; (4)
+  orientation fausse admise d'après un souvenir (poutre « devant toi » après « tourner ouest ») ; (5) `signes-ecart` :
+  « observer Ilse » ne donne plus « semble craindre Brune » (deux passes ; `main` oui), à relier aux lots 53 ou de
+  calibration ; (6) le banc `comptes` n'a pas de `noms_connus` (paroles refusées localement, sans MJ). Persistent : la
+  dette inversée (lot 56 en cours), l'ambiance « aucun autre bruit… », l'`attendu` d'une cible inconnue qui liste des
+  identifiants hors de la salle, « je réponds » sans appel.
+
 - Branche `codex-elision`, fusionnée, lot **54**, base **5125d06** :
   `francais.groupe_nominal` accorde les désignations avec de/à et leur capitale ;
   `inserer_designation` reprend la liaison du texte lors de la projection d'un nom
