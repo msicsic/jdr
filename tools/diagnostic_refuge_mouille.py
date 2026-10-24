@@ -1,10 +1,10 @@
-"""Reproduit le désaccord plan/marche du lot 39 ; ne valide pas une correction.
+"""Vérifie le contrat commun plan/marche sur les captures du lot 39.
 
     python tools/diagnostic_refuge_mouille.py
 
 Deux captures rechargées, puis vingt minutes en un bloc et minute par minute.
-Les assertions caractérisent le défaut actuel pour son diagnostic, hors découverte
-unittest : une correction du contrat commun devra les remplacer par ses critères.
+Le PNJ doit rejoindre le sec ; monde complet et rendu restent identiques après
+rechargement, en un bloc ou minute par minute.
 """
 import copy
 import gzip
@@ -16,7 +16,7 @@ import tempfile
 RACINE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RACINE))
 
-from priorite import ceder
+from tools.priorite import ceder
 from donjon import deliberation, eau, planification, pnj
 from donjon.esprits import lire
 from donjon.monde import Monde
@@ -47,11 +47,13 @@ def diagnostiquer(nom, qui, dossier):
     plan = planification.planifier(monde, qui, 'chaleur')
     assert plan is not None and plan[0] == {'type': 'chaleur', 'objet': 'poele_guet'}
     avant = copy.deepcopy(monde.data)
-    rendu = regarder(monde)
     duree = pnj._marcher(monde, qui, lambda s, p: s == 'chambre_cloche', [])
-    assert duree is None, 'Le désaccord historique a changé : revoir le diagnostic.'
+    assert duree is not None, 'La recherche acceptait pourtant la route.'
     monde = recharger(monde, dossier)
-    assert monde.data == avant and regarder(monde) == rendu
+    assert monde.objets[qui]['lieu'] == avant['objets'][qui]['lieu']  # premier pas local
+    # Le sondage du départ ne consomme pas l'horloge ; le rejeu complet repart
+    # donc de la capture, et laisse l'ordonnanceur accomplir tous les pas.
+    monde = recharger(Monde(avant), dossier)
     risques = [{
         'salle': s, 'reelle_cm': eau.profondeur(monde, s),
         'crue_cm': eau.eau_crue(monde, qui, s),
@@ -64,7 +66,8 @@ def diagnostiquer(nom, qui, dossier):
         coupe = vivre(coupe, 1, dossier)
     assert bloc.data == coupe.data
     assert regarder(bloc) == regarder(coupe)
-    assert bloc.objets[qui]['lieu'] == monde.objets[qui]['lieu']
+    assert bloc.objets[qui]['lieu'] == 'chambre_cloche'
+    assert eau.profondeur(bloc, 'chambre_cloche') == 0
     return {
         'scene': nom, 'minute': debut, 'pnj': qui, 'plan': plan,
         'cout_route_minutes': cout_route(route, depart.orientation),
@@ -83,14 +86,14 @@ def diagnostiquer(nom, qui, dossier):
 
 def main():
     ceder()
-    sortie = RACINE / 'artifacts/codex-39'
+    sortie = RACINE / 'artifacts/codex-41'
     sortie.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=sortie) as dossier:
         resultat = [diagnostiquer('crue500-160', 'brune', dossier),
                     diagnostiquer('auteur-100', 'ilse', dossier)]
     chemin = sortie / 'reproduction.json'
     chemin.write_text(json.dumps(resultat, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(f'Défaut reproduit sur deux scènes ; monde et rendu identiques après recharge et découpage : {chemin}')
+    print(f'Départ et arrivée au sec sur deux scènes ; monde et rendu identiques après recharge et découpage : {chemin}')
 
 
 if __name__ == '__main__':

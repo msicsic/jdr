@@ -112,6 +112,7 @@ class Recit:
         self._derniere = {id: -1 for id in ids}
         self.urgence = {id: Counter() for id in ids}
         self.maximum = {id: Counter() for id in ids}
+        self.routes_ecartees = {id: Counter() for id in ids}
         self.sans_recours = Counter()
         self.en_attente = Counter()
         self.charges_confiees = Counter()
@@ -170,6 +171,14 @@ class Recit:
             compte = {"attente": self.en_attente, "sans_recours": self.sans_recours,
                       "confiee": self.charges_confiees, "satisfaite": self.charges_satisfaites}
             compte[inactivite(monde, id)][id] += 1
+            from . import eau
+            if eau.active(monde):
+                from .planification import Vue, depart
+                v = Vue(monde, id)
+                v.allers(depart(monde, id, v), frozenset())
+                raisons = sorted(set(v.refus_routes.values()))
+                if raisons:
+                    self.routes_ecartees[id][raisons[0]] += 1
         self._episode(monde, id, minute)
 
     def _episode(self, monde, id, minute):
@@ -235,6 +244,8 @@ class Recit:
             lignes.append(f"  Charge confiée à autrui : {self.charges_confiees[id]} min")
         if self.charges_satisfaites[id]:
             lignes.append(f"  Charge déjà satisfaite : {self.charges_satisfaites[id]} min")
+        for raison, minutes in self.routes_ecartees[id].items():
+            lignes.append(f"  Route écartée pendant l'attente : {raison} ({minutes} min)")
         rondes, sans_geste, faits = Counter(), {}, []
         for ep in self.episodes[id]:
             mots = but_en_mots(monde, ep["but"])

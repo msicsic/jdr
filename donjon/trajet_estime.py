@@ -12,7 +12,7 @@ from .spatial import _case_interieure, _pas_possibles, _case_libre, VECTEURS, QU
 from .temps import duree_pas
 from .geometrie import cases
 from .eau import noyee_crue
-from . import pnj
+from . import pnj, route_admissible
 
 
 def tables(v, e, salle):
@@ -79,7 +79,7 @@ def _moyenne(v, e, salle, cibles, sortie=False, pur=False):
     return sum(valeurs) / len(valeurs) + 2 * QUART if valeurs else None
 
 
-def parcours(v, e, ouvertes):
+def parcours(v, e, ouvertes, delai=0, certain=False):
     cru = v._cru_spatial
     cles = [k for k in e.portes if v.objets[k].get("ouvre")]
     ordre = count()
@@ -94,9 +94,8 @@ def parcours(v, e, ouvertes):
         avant = routes[salle]
         for direction, sortie in v.salles[salle]["sorties"].items():
             vers, porte = sortie["vers"], sortie.get("porte")
-            # Même admissibilité intermédiaire que parcours_cru. La descente
-            # attendue de la destination reste jugée par Vue.allers ; le modèle
-            # de coût ne redéfinit pas ici les règles de risque de l'eau.
+            # La règle commune juge les durées du préfixe ; son but sera
+            # contrôlé par Vue.route (un passage ne vaut pas un séjour).
             if vers not in v.salles or noyee_crue(v.monde, v.id, vers):
                 continue
             if (porte and v.verrouille(e, porte) and porte not in ouvertes
@@ -118,6 +117,12 @@ def parcours(v, e, ouvertes):
             route = Route([*avant, sortie], fin=(vers, None),
                           sejours=(*avant.sejours, (salle, marche + gestes), (vers, duree_pas(e.allure, sens))),
                           portes=avant.portes | ({porte} if porte else set()), depart=e.salle)
+            raison = route_admissible.refus(v, e, route, vers, passage=True, delai=delai, certain=certain,
+                                              depart_compris=bool(delai))
+            if raison:
+                if not delai:
+                    v.refus_routes[vers] = raison
+                continue
             total = cout_route(route)
             if total < prix.get(vers, float("inf")):
                 prix[vers], routes[vers] = total, route

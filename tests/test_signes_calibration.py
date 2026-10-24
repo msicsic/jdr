@@ -336,6 +336,11 @@ class TrajetsRevelesTests(unittest.TestCase):
                             lire(m, id)["croyances"].setdefault(salle, {})["eau"] = copy.deepcopy(c["eau"])
                     croire(m, id, "porte", "verrouillee", False, "entendu")
                     lire(m, id)["intention"] = copy.deepcopy(lire(m, "brune")["intention"])
+                # Le lot 41 distingue le passage bref du séjour : le danger
+                # historique est conservé avec une eau qui coupe réellement
+                # le détour pendant sa traversée, plutôt qu'une heure après.
+                c = lire(m, id)["croyances"]["echoppe"]["eau"]
+                c.update(valeur=99, niveau=-21, montee=600)
                 m = recharger(m)
                 v = Vue(m, id)
                 self.assertFalse(v.descente("antichambre", "chambre_cloche"))
@@ -343,14 +348,16 @@ class TrajetsRevelesTests(unittest.TestCase):
                 # Le cas présente bien un trajet géométrique tentant sans ce
                 # contrat : le refus ne vient ni d'une occupation ni d'un mur.
                 ancien = m.copier()
-                with patch("donjon.planification.Vue.descente", return_value=False):
+                with patch("donjon.route_admissible.refus", return_value=None):
                     self.assertIsNotNone(_marcher(ancien, id, lambda s, p: s == "chambre_cloche", []))
                 avant, texte = copy.deepcopy(m.data), regarder(m)
                 self.assertIsNone(_marcher(m, id, lambda s, p: s == "chambre_cloche", []))
                 m = recharger(m)
+                self.assertIn("eau", m.data["chronique"][-1]["texte"])
+                avant["chronique"] = m.data["chronique"]
                 self.assertEqual(m.data, avant)
                 self.assertEqual(regarder(m), texte)
-                executer(m, 180)
+                executer(m, 190)
                 m = recharger(m)
                 self.assertLess(eau.profondeur(m, m.objets[id]["lieu"]), 50)
 

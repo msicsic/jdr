@@ -37,19 +37,20 @@ class CrueTests(unittest.TestCase):
     def test_on_monte_se_chauffer_au_poele_du_guet_et_le_bois_reste_compte(self):
         # Avant (``verifier-eau``), le brasero de la conduite était le seul feu : menacé par l'eau,
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
-        # Les relations graduées changent cette nuit : Gorm refuse Brune, qui prend ensuite
-        # les planches d'Aubin et rallume le poêle à 253. Les ressources restent comptées.
+        # Gorm peut refuser Brune ; les trajets et échanges déterminent le bois
+        # qu'elle obtient. Toute recharge doit consommer une ressource du monde.
         m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
-        # Les trajets et gestes réels changent cette nuit : Brune ne prend plus
-        # les planches et arrive après l'extinction du poêle. Aucun bois fictif.
-        self.assertFalse(allumee(m.objets["poele_guet"]))
+        # La traversée brève permise par le contrat commun laisse Brune
+        # rejoindre le feu : elle le rallume avec une des deux planches prises.
+        # Le feu ne doit jamais être entretenu avec du bois fictif.
+        self.assertTrue(allumee(m.objets["poele_guet"]))
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
         # Les signes changent les occasions : cette nuit ne demande plus les bûches.
         # Le bois gardé reste intact ; une des deux planches prises a alimenté le poêle.
         self.assertEqual(m.objets["bois_guet"]["charges"], 3)
         self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
-        self.assertNotIn("Brune, batelière évacuée prend les planches de bac.", textes)
-        self.assertEqual(m.objets["planches"]["charges"], 2)
+        self.assertIn("Brune, batelière évacuée prend les planches de bac.", textes)
+        self.assertEqual(m.objets["planches"]["charges"], 1)
         self.assertEqual(m.objets["planches"]["proprietaire"], "aubin")
         # La capacité de rejoindre le feu haut reste vérifiée dans la même crue,
         # avant son extinction, depuis le palier voisin (et après recharge).
