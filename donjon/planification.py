@@ -277,6 +277,12 @@ class Vue:
         # La catégorie de ressource comptée ; son emploi pour un besoin dépend de ``part_pour``
         # et une recharge de la source visée (``recharge``).
         self.besoin = {o: besoin_de_part(self.objets[o]) for o in self.connus}
+        # Les sources portables qui ne servent qu'à y voir (``capacite``) : ni foyer, ni clé, ni outil
+        # (``USAGES``, l'allumage compris), ni vivres, ni part.
+        self.sources_seules = frozenset(
+            o for o in self.connus for x in [self.objets[o]]
+            if "allume" in x and x.get("mobile") and not x.get("foyer") and not x.get("ouvre")
+            and not set(x.get("usages", ())) & set(USAGES) and x["type"] != "nourriture" and not self.besoin[o])
         # Les portes de chaque salle : celles qu'il peut crocheter de là.
         self.portes_de = {s: frozenset(x["porte"] for x in d["sorties"].values() if x.get("porte"))
                           for s, d in self.salles.items()}
@@ -360,6 +366,57 @@ class Vue:
                     or crochete and "crochetage" in usages
                     or voir and ("allume" in x or "allumage" in usages or "combustible" in usages and any(
                         recharge(self.objets[s], x) for s in self.rechargeables)))
+
+    def capacite(self, e, o, libre=None):
+        """Ce qu'une source portable apporte aux gestes de lumière, tel qu'ils le lisent (``feu``,
+        ``flamme``, ``brule``, la faute de la toucher) : (rang, substance, sans faute). Rang 3 : allumée,
+        elle éclaire et donne une flamme ; 2 : éteinte et chargée, une flamme l'allume ; 1 : éteinte et
+        vide, elle se recharge de ``substance`` puis s'allume ; 0 : rien (son état inconnu, ou vide sans
+        se recharger). ``libre`` : l'allumer ou la recharger n'est pas une faute (sinon, lu de l'état)."""
+        allume, charge = self.feu(e, o)
+        if allume:
+            rang, substance = 3, None
+        elif allume is False and charge:
+            rang, substance = 2, None
+        else:
+            substance = brule(self.objets[o]) if allume is False else None
+            rang = 1 if substance else 0
+        if libre is None:
+            libre = not (self.illicite[o] and not e.faits.get(("permis", o)))
+        return rang, substance, libre
+
+    @staticmethod
+    def couvre(a, b):
+        """La capacité ``a`` fait-elle tout ce que fait ``b`` ? Allumée, tout ; sinon un rang au moins
+        aussi haut (une source vide, de la même substance), et sans faute si ``b`` l'est."""
+        if a[0] == 3 or b[0] == 0:
+            return True
+        return (a[2] or not b[2]) and (a[0] > b[0] or a[0] == b[0] and (a[0] == 2 or a[1] == b[1]))
+
+    def capacites_portees(self, e):
+        """Les capacités des sources qui ne servent qu'à y voir qu'il porte dans cet état, sauf celles
+        auxquelles il ne touche pas (``contrarie``). Lues une fois par état."""
+        cle = ("capacites", e)
+        if cle not in self._crus:
+            self._crus[cle] = tuple({self.capacite(e, k) for k in e.portes
+                                     if k in self.sources_seules and not self.contrarie(k)})
+        return self._crus[cle]
+
+    def doublon(self, e, o, noms_vises, entretenus=()):
+        """Une source de plus qui n'apporte aucune capacité absente de celles qu'il porte : aucun geste
+        ne l'acquiert (prendre, demander, acheter, la saisir sur un porteur, la faire remettre), sauf si
+        le but la vise. Sa capacité est jugée au mieux : acquise par une demande, il s'en sert sans faute.
+
+        Elle ne change aucun geste de lumière possible ni son coût : tout plan qui l'emploie a son
+        pareil avec la source portée, sans le détour de l'acquérir ; la recherche rend le même résultat
+        sans explorer ces inventaires (« on ne porte que ce qui peut servir le but »)."""
+        if o not in self.sources_seules or o in e.portes or o in noms_vises or o in entretenus:
+            return False
+        portees = self.capacites_portees(e)
+        if not portees:
+            return False
+        b = self.capacite(e, o, libre=True)
+        return any(self.couvre(a, b) for a in portees)
 
     def embuscade_possible(self, e, cible):
         """Le plan ne peut supposer que les témoins crus disparaîtront entre ses gestes.
@@ -1058,6 +1115,9 @@ def gestes(v, e, vises=None, but=None):
         touche_conso = [(("faute", lese_conso, "honnetete"), True)] if lese_conso else []
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
+        # Une source de plus, sans capacité que n'aient déjà celles qu'il porte : rien ne l'acquiert.
+        if utile and v.doublon(e, o, noms_vises, v_entretenir):
+            utile = False
         # Dans la projection, une charge suffisante ne s'épuise pas en chemin.
         # Porter un combustible sans aucune source à recharger ne change donc
         # aucun geste futur ; on ne développe pas ces inventaires équivalents.
@@ -1240,7 +1300,8 @@ def _aide_sur_place(v, e, o, vises, noms_vises):
             and (v.emploie_lumiere or o in vises.get("entretenir", ()))):
         conditions.append({"objet": o, "allume": True})
     if (x.get("mobile") and o not in e.portes and v.salle(e, o) not in (None, e.salle)
-            and v.utile[o] and v.pertinent(o, noms_vises)):
+            and v.utile[o] and v.pertinent(o, noms_vises)
+            and not v.doublon(e, o, noms_vises, vises.get("entretenir", ()))):
         conditions.append({"objet": o, "remettre": v.id})
     for condition in conditions:
         effets = effets_tache(condition)
