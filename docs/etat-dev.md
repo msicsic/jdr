@@ -2238,6 +2238,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   audit 12 h (4 × 4) identique. Temps égaux au bruit près (machine chargée par d'autres calculs). Limites
   dans `docs/plan-relations.md`.
 
+## Décisions prises le 2026-10-24
+
+- **A2b, les PNJ proposent « faute de mieux »** (`docs/plan-relations.md` § 7.2) : un recours de dernier
+  ressort, après une demande refusée ou avant une faute contre quelqu'un, jamais un geste comparé dans la
+  recherche ; contreparties portées et pièces d'abord, tâches promises ensuite. Les lots 33 et 36
+  (`codex-pnj-proposent`, `codex-proposer-cout`) ne sont pas fusionnés.
+- **Le coût des bancs est à résoudre** avant d'avancer `main` : après le lot 38, une nuit de 12 h coûte
+  encore ×3 contre 42bb9c0 (mine, auberge).
+
 ## Décisions prises le 2026-10-22 (à implémenter)
 
 - **Réglages et données** : profils du Relais et de la crue selon `docs/analyse-relais.md` (Brune

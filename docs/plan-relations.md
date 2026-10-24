@@ -535,6 +535,18 @@ des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rappo
 
 ### 7.2 Côté PNJ : proposer, regagner, passer par un autre
 
+**Décision du 2026-10-24 : un PNJ propose « faute de mieux ».** Proposer n'est pas un geste
+envisagé dans chaque état de chaque recherche (lots 33 et 36, non fusionnés : +344 à +534 % de
+calcul, et Brune volait toujours sans avoir rien proposé). C'est un **recours de dernier ressort**,
+tenté une fois quand ses moyens ordinaires échouent : après une demande refusée, ou quand le plan
+retenu contient une faute (voler, forcer) contre quelqu'un, à qui il propose d'abord. Il ne vole
+que si l'offre est refusée ou qu'il n'a rien à offrir. Le planificateur ne compare donc jamais une
+proposition aux autres moyens : une offre ne passe jamais devant une demande simple ou un plan
+sans faute. Contreparties d'abord limitées à ce qu'il porte et à ses pièces ; les tâches promises
+(un devis par recours) dans un lot suivant. L'évaluation par l'auditeur (§ 7.1), les engagements,
+leur tenue et leur trahison restent ceux du joueur. Ce qui suit décrit le projet initial, que
+cette décision remplace pour le geste `proposer`.
+
 - **Un geste `proposer`** dans le planificateur, déclaré une fois, à côté de `demander` : il
   offre ce qu'il porte ou ce qu'il peut promettre, et son coût est divisé par la **chance
   estimée**, calculée sur ce qu'il croit de l'autre : ce qu'il lit de son attitude envers lui, un
