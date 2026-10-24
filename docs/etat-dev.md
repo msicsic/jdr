@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-gardien-detresse`, fusionnée, lot 43, base `dd36155` :
+  un besoin sans recours ouvre l'aide auprès de sa charge : demander l'allumage
+  d'une source locale ou la remise d'un moyen utile, avec les tâches communes et
+  leur réalisation réelle ; aucun effet à l'acceptation. Promesse attendue dans
+  l'esprit du demandeur, sans lecture de l'agenda privé de l'autre ; entrées de
+  recherche complètes. Les autres besoins bloqués peuvent aussi appeler une fois
+  par épisode, sans modifier garde, seuils ni `REPIT`. Sur la base mine 42, Bram
+  appelait déjà à 462, révisait le lieu d'Odon et savait les biscuits épuisés à 139.
+  La branche ajoute sa demande d'allumage à Gaspard à 500 (impossible), puis son
+  appel pour la faim à 638, au bureau ; sécurité 100 et faim 78 encore à la fin.
+  Cinq tests nouveaux, monde complet et rendu utile après recharge et laps découpé,
+  dont allumage, nourriture remise puis mangée, autre gardien et promesse sans
+  effet anticipé ni lecture privée. Rapide 4 h, mine/auberge × quatre graines :
+  aucun plantage, violation ou usurpation ; un appel de plus en auberge 2024,
+  noir 165 → 170, aucune nouvelle bascule ni alerte d'audit. Audit mine 42 de 12 h :
+  attente 1 250 → 1 245 min·PNJ ; les excursions antérieures restent possibles.
+  `VERIFIER` et `spatial.VERIFICATION=1`, mine 42, 2 h : sans écart ni borne.
+  Suite complète unique : **1 720 tests, quatre ignorés**, verte, trois processus
+  à priorité réduite, 636,9 s ; cinq tests du lot et douze tests d'échanges revérifiés.
+  Aucun appel au MJ ni changement de ses fichiers réservés au lot 42.
+  [Règle](plan-planificateur.md), [rapport et limites](taches/rapport-codex-43-gardien-detresse.md).
+  Fusionné sur l'intégration après le lot 42 : seul conflit `docs/etat-dev.md` ; aucun fichier de code commun.
+
 - Branche `codex-fouille-faits`, fusionnée, base d'intégration `de74ec1`, lot 42 :
   correctif signé SSH `5502858`, signature vérifiée ;
   la revue de portée reçoit demande et transaction entière ; chaque ajout, avec ou sans

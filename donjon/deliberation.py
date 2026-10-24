@@ -698,6 +698,18 @@ def appeler_a_l_aide(monde, id, minute):
         return
     from .voix import prudent
     e = esprit(monde, id)
+    # Un besoin durable sans recours peut demander du secours sans lever la garde.
+    # L'épisode est celui du besoin, pas celui des quarante derniers souvenirs.
+    pressants = urgents(monde, id)
+    appelees = e["detresses_appelees"]
+    appelees[:] = [b for b in appelees if b in pressants]
+    detresses = ([b for b in attentes(monde, id) if b != "securite"
+                  and (not any(x["besoin"] == b for x in profil(monde, id)["pulsions"])
+                       or any(x["besoin"] == b and not satisfaite(monde, id, x["condition"])
+                              and not _delegue(monde, id, x) for x in profil(monde, id)["pulsions"]))]
+                 if monde.objets[id]["lieu"] in gardes(monde, id)
+                 and monde.objets[id]["lieu"] in _lieux_gardes(monde, id, siens=True) else [])
+    nouvelle_detresse = any(b not in appelees for b in detresses)
     menace = ("securite" in urgents(monde, id) and prudent(monde, id)
               and monde.objets[id]["lieu"] in menaces(monde, id))
     secours = e["secours"]
@@ -709,13 +721,15 @@ def appeler_a_l_aide(monde, id, minute):
     if (secours and not danger and e["besoins"].get("securite", 0) < DESESPOIR
             and "securite" not in urgents(monde, id)):
         secours["apaise"] = True
-    if e["besoins"].get("securite", 0) < DESESPOIR and not menace and not danger:
+    if e["besoins"].get("securite", 0) < DESESPOIR and not menace and not danger and not nouvelle_detresse:
         return
     # Un appel attend sa réponse : tant que le désarroi qui l'a fait lancer dure, il ne le répète pas,
     # que quelqu'un soit venu sans l'apaiser ou que personne ne vienne.
     if (e["intention"] and e["intention"]["but"]["type"] == "abri"
-            or secours and (not secours["apaise"] or minute - secours["minute"] < APPEL_REPIT)):
+            or secours and (minute - secours["minute"] < APPEL_REPIT
+                            or not secours["apaise"] and not nouvelle_detresse)):
         return
+    appelees.extend(b for b in detresses if b not in appelees)
     e["secours"] = {"minute": minute, "apaise": False}
     memoriser(monde, id, {"type": "appel"})
     from .ecoute import appel

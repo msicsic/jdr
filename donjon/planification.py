@@ -295,6 +295,19 @@ class Vue:
         self._devis_differes = self._devis_developpes = 0
         self._parts_lues, self._sources_vides, self._attentes_parts = {}, {}, {}
         self._contexte_parts = None
+        # Un recours ordinaire épuisé ouvre l'aide sur place ; la garde ne se lève pas.
+        from .deliberation import attentes, _lieux_gardes
+        intention = lire(monde, id)["intention"]
+        en_cours = ([intention["motif"]] if intention and any(
+            x["operation"] == "confier" for x in intention["plan"]) else [])
+        self.detresses = tuple(sorted(set(attentes(monde, id)) | set(en_cours)))
+        self.poste = self.objets[id]["lieu"]
+        self.poste_garde = self.poste in self.gardes and self.poste in _lieux_gardes(monde, id, siens=True)
+        from .echanges import ENGAGEMENT_MAX
+        self.aides = [(x["qui"], x) for x in lire(monde, id)["aides_attendues"].values()
+                      if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
+                      and not se_mefie(monde, id, x["qui"])
+                      and not refus_retenu(monde, id, x["qui"], ("confier",), x["condition"]["objet"])]
 
     @property
     def emploie_lumiere(self):
@@ -1003,6 +1016,7 @@ def gestes(v, e, vises=None, but=None):
     portes_ici = v.portes_de[sa_salle]
     for o in agissables:
         x = objets[o]
+        yield from _aide_sur_place(v, e, o, vises, noms_vises)
         # Un objet qu'il ne porte pas et qu'il croit dans une autre salle (sans être une porte de
         # celle-ci) n'offre ici aucun geste : on ne peut qu'en demander une part.
         if o not in portes and o not in portes_ici:
@@ -1210,6 +1224,45 @@ def gestes(v, e, vises=None, but=None):
         yield from _engager(v, e, condition)
 
 
+def _aide_sur_place(v, e, o, vises, noms_vises):
+    """Demander un moyen sans quitter sa charge, après l'échec des recours ordinaires.
+
+    Les mêmes moyens et effets que les gestes autonomes ; la parole s'exécute par
+    ``confier``. La projection s'arrête à la demande, puis attend la réalisation réelle.
+    Aucun accès aux moyens ou à l'intention privée de l'aidant.
+    """
+    if (v.seul or not v.poste_garde or not (v.motif in v.detresses or v.aides) or e.salle != v.poste
+            or v.illicite[o] or not v.disponible(o) or v.contrarie(o)):
+        return
+    x = v.objets[o]
+    conditions = []
+    if ("allume" in x and v.salle(e, o) == e.salle and v.feu(e, o)[0] is False
+            and (v.emploie_lumiere or o in vises.get("entretenir", ()))):
+        conditions.append({"objet": o, "allume": True})
+    if (x.get("mobile") and o not in e.portes and v.salle(e, o) not in (None, e.salle)
+            and v.utile[o] and v.pertinent(o, noms_vises)):
+        conditions.append({"objet": o, "remettre": v.id})
+    for condition in conditions:
+        effets = effets_tache(condition)
+        suivant = e.apres(faits=effets, portes=e.portes | {o} if "remettre" in condition else e.portes)
+        if all(e.fait(*cle) == valeur for cle, valeur in effets):
+            continue
+        pending = next(((autre, x) for autre, x in v.aides if x["condition"] == condition), None)
+        if pending:
+            # Il ne répète pas une parole en cours. Pas d'effet dans le monde avant le geste.
+            yield 0, TACHE, [{**_etape("inspecter"), "attendre_remise": True}], suivant, TACHE
+            continue
+        if v.motif not in v.detresses:
+            continue   # Une parole en cours n'ouvre pas d'autres demandes.
+        for autre in v.personnes():
+            if v.salle(e, autre) != e.salle or v.se_mefie(autre) or v.retenu(autre, ("confier",), o):
+                continue
+            attente = v.attente_part(e, autre, o, e.salle, o)
+            yield (0, 1 + DEMANDE / v.chances_demandes[autre] + attente,
+                   [{**_etape("confier", autre, contenu=condition), "suppose": True}],
+                   suivant, 1 + attente)
+
+
 def effets_tache(condition):
     """Ce qu'une tâche faite change, dans l'état cru d'un plan : un feu chargé et allumé, un bien
     fermé à clé, un objet en son lieu."""
@@ -1218,6 +1271,8 @@ def effets_tache(condition):
         return [(("charge", o), True), (("allume", o), True)]
     if "verrouillee" in condition:
         return [(("verrou", o), True), (("ouvert", o), False)]
+    if "remettre" in condition:
+        return [(("lieu", o), condition["remettre"])]
     return [(("lieu", o), condition["lieu"])]
 
 
@@ -1547,7 +1602,7 @@ def _entrees(v, vises, profondeur, noeuds):
           None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
          for k, o in monde.objets.items()],
         [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
-        v.prix_gardes, v.chances_demandes,
+        v.prix_gardes, v.chances_demandes, v.detresses, v.poste_garde, v.aides,
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],

@@ -598,6 +598,30 @@ Limites :
 
 ## Lumière et garde (branche `pnj-lumiere-garde`)
 
+**Recours d'un gardien en détresse (lot 43, `codex-gardien-detresse`).** Un besoin
+en attente, faute de plan accepté, ouvre les secours qui le laissent auprès d'un
+bien dont il a la charge. La recherche commune propose de confier l'allumage d'une
+source locale ou la remise d'un moyen utile connu, pour tout but qui l'emploie ;
+les demandes ordinaires d'objet, de part et de feu restent disponibles. L'appel à
+l'aide couvre aussi les autres besoins bloqués, une fois par épisode du besoin ;
+les charges déjà satisfaites ou déléguées ne déclenchent pas cet appel.
+Ni le prix de la garde, ni les seuils, ni `REPIT` ne changent.
+
+La demande utilise `echanges.confier` et son devis autonome, ses droits et son jet.
+Elle ne réalise aucun effet : le plan s'arrête à la parole, puis attend le geste
+réel. Le demandeur garde dans `aides_attendues` ce qu'il a entendu accepter ; il
+ne consulte pas l'agenda privé de l'autre. Un refus reçu ou l'échéance commune
+ferme cette attente. Une remise se fait en main propre, même dans le noir.
+`Vue.detresses`, le poste gardé et les aides connues entrent dans `_entrees` ;
+un recours d'aide en cours se conserve après le classement du besoin en « presse ».
+
+Le secours reste une possibilité, pas une ressource créée : l'autre peut refuser,
+ne rien avoir ou ne pas venir. Sur mine 42, Bram demande à Gaspard de rallumer sa
+lampe (impossible), puis appelle pour la faim ; les biscuits sont déjà connus
+épuisés. L'appel de sécurité existant avait bien eu lieu à 462. Les croyances de
+lieu restent révisées seulement par les indices perçus, sans effacement automatique
+d'une présence dans le noir. Voir le [rapport du lot 43](taches/rapport-codex-43-gardien-detresse.md).
+
 Quatre limites des branches précédentes. Règles communes, aucune branche propre à un personnage, un
 objet ou un lieu ; diagnostics faits sur les bancs (`--chronique`, `--diagnostic`) et sur des copies
 de leurs états (coûts des plans comparés, gestes écartés un à un).

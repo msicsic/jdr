@@ -682,6 +682,9 @@ def confier(monde, demandeur, auditeur, condition):
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "refus"
     memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
+    if demandeur != "joueur" and "objet" in condition:
+        esprit(monde, demandeur)["aides_attendues"][condition["objet"]] = {
+            "qui": auditeur, "condition": dict(condition), "minute": monde.data["minutes"]}
     return "accepte"
 
 
@@ -862,6 +865,9 @@ def _avec_joueur(monde, id, etape, lignes):
 def phrase_condition(monde, condition):
     from .francais import designer, lieu
     o = designer(monde.objets[condition["objet"]])
+    if "remettre" in condition:
+        from .social import _qui
+        return f"{o} soit remis à {_qui(monde, condition['remettre'])}"
     if "lieu" in condition:
         return f"{o} soit dans {lieu(monde.data['salles'][condition['lieu']])}"
     x = monde.objets[condition["objet"]]

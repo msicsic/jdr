@@ -81,6 +81,9 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           # Le dernier appel à l'aide et la fin de son désarroi : ce suivi de recours ne doit
           # pas disparaître avec les quarante souvenirs de la mémoire courante.
           "secours": lambda: None,
+          # Besoins bloqués ayant déjà motivé un appel depuis leur dernier apaisement.
+          "detresses_appelees": list,
+          "aides_attendues": dict,
           # Salles examinées sans y retrouver la personne cherchée, jusqu'à un nouvel indice
           # local, indépendamment de la mémoire courante et du temps écoulé.
           "recherches": dict}
@@ -277,6 +280,15 @@ def verifier(monde):
             isinstance(e["secours"], dict) and set(e["secours"]) == {"minute", "apaise"}
             and type(e["secours"]["minute"]) is int and type(e["secours"]["apaise"]) is bool
         ), "Suivi de secours de PNJ invalide"
+        assert (isinstance(e["detresses_appelees"], list)
+                and all(b in e["besoins"] for b in e["detresses_appelees"])
+                and len(set(e["detresses_appelees"])) == len(e["detresses_appelees"])), "Détresses appelées invalides"
+        from .deliberation import condition_valide
+        assert isinstance(e["aides_attendues"], dict) and all(
+            o in monde.objets and isinstance(x, dict) and set(x) == {"qui", "condition", "minute"}
+            and x["qui"] in monde.objets and type(x["minute"]) is int
+            and x["condition"].get("objet") == o and condition_valide(monde, x["condition"])
+            for o, x in e["aides_attendues"].items()), "Aides attendues invalides"
         assert isinstance(e["recherches"], dict) and all(
             q in monde.objets or q == "joueur" for q in e["recherches"]
         ) and all(isinstance(salles, dict) and all(s in monde.data["salles"] and type(t) is int
