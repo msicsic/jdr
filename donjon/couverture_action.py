@@ -72,8 +72,9 @@ ne révèle pas, est le résultat que le moteur décide, et elle couvre la deman
 agresseur que le titre du plan nomme (« qui t'a agressé »), se défendre se fait en ripostant (le
 frapper), en fuyant, en se dégageant ou en se rendant : la cible de cette réaction est cet agresseur,
 que le moteur fixe seul quand la demande ne le nomme pas ; ce n'est ni une cible ni une action ajoutée. Un geste
-improvisé (geste_improvise) accomplit le geste demandé sur ses cibles : sa forme (coup de
+improvisé (geste_improvise) accomplit un geste sur ses cibles : sa forme (coup de
 pied, poussée, caresse, air sifflé) relève du récit ; juge seulement ses changements durables.
+Il ne déplace pas Corvus : un déplacement demandé exige une opération qui le produit.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.

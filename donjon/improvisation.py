@@ -219,12 +219,11 @@ def preparer(m, p, origine):
     for id in p["cibles"]:
         if not m.accessible(id):
             raise inaccessible(m, id, champ="cibles")
-    if p["approche"] in ("manipulation", "effort"):
-        # Un geste de contact (saisir, pousser, frapper du pied) exige d'être à portée ; l'adresse
-        # (lancer), l'expression et l'observation peuvent viser de loin.
-        from .proximite import exiger
-        for id in p["cibles"]:
-            exiger(m, id)
+    # Les cibles sont les objets impliqués dans le geste, pas son public. L'approche
+    # décrit sa manière ; elle ne donne aucune capacité physique d'agir à distance.
+    from .proximite import exiger
+    for id in p["cibles"]:
+        exiger(m, id)
     if p["outil"] and (not m.accessible(p["outil"]) or not m.est_porte(p["outil"]) or not m.objets[p["outil"]]["integrite"]):
         portes = sorted(i for i, x in m.objets.items() if m.est_porte(i) and x.get("integrite"))
         raise ErreurMonde("L'outil annoncé doit être accessible et porté.",
