@@ -2878,6 +2878,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - **Le stratège Luna des PNJ** (`--stratege`, désactivé par défaut) : son interception des plans illicites
     contourne l'arbitrage moral du moteur (`prix_faute`) et son vocabulaire ignore les gestes récents ; à retirer
     ou à cantonner, lot de ménage.
+  - **Principe : réduire l'espace plutôt qu'ajouter un cache** (revue externe du 2026-10-24, retenue). Chaque cache
+    (`_MEMOIRE`, les deux graphes repris, le certificat `_sans_plan`, la perception incrémentale, le court-circuit
+    des devis) impose une clé exacte que tout lot doit tenir et que `VERIFIER`/`spatial.VERIFICATION` contrôlent.
+    Préférer les gains d'algorithme (C1, saillance) ; après chacun, mesurer ce que rapporte encore chaque cache et
+    retirer celui qui ne rapporte plus.
+  - **Bitsets dans l'état de recherche** : objets portés et faits de `Etat` en entiers à bits au lieu de `frozenset`
+    (hachage, comparaison et `Etat.apres` moins chers, mêmes décisions). Lot de coût possible après C1, si la part
+    d'`Etat.apres` au profil le justifie.
+  - **Rust (PyO3) : rester en Python pendant les agendas.** La lenteur des bancs vient du nombre d'états explorés
+    (planificateur 94-95 % en fin de nuit de 12 h), pas du langage ; PyPy était 1,5 à 1,7 fois plus lent. Option
+    datée, rien avant A5 : extraire le seul noyau géométrique (vue, lumière, ouïe, trajets sur cases) si, après C1
+    et la saillance, il dépasse ~30 % d'une nuit et que son contrat est stable ; condition : empreintes identiques
+    au bit près (arrondis de flottants), chaîne de compilation sur les deux postes.
 - **À vérifier : la compagnie d'un allié qui a peur** (revue externe du 2026-10-24, retenue par l'utilisateur) : si `compagnie` rassure même quand l'allié perçu
   tremble ou fuit, c'est un défaut ; un allié en détresse visible devrait transmettre une part de son inquiétude
   (et faire demander « qu'est-ce qu'il y a ? »), jamais apaiser. Petit lot de correction si confirmé. Suivre le

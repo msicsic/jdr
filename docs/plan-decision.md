@@ -114,6 +114,9 @@ Il se sépare en trois :
   recherches qui butent sur la borne. Difficultés : une borne basse avec une pression variable, les
   buts à plusieurs voies, `RESTER`, la compatibilité avec la mémoire, les graphes repris et le
   certificat d'impossibilité.
+- **Langage** (revue externe du 2026-10-24) : réduire l'espace (saillance, profondeur bornée) rapporte plus
+  qu'une boucle compilée sur une recherche exhaustive. Porter `_explorer_etats` en Rust (bitsets u64/u128) ne
+  se conçoit qu'une fois `Etat` et ces règles figés ; voir `docs/etat-dev.md`, « À revoir », volet coût.
 
 ## 8 bis. Avis externe (2026-10-24)
 
