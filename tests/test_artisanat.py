@@ -301,7 +301,7 @@ class HarnaisTests(unittest.TestCase):
         m = nouveau_atelier()
         self.assertEqual(MODELE_PAR_DEFAUT, "gpt-6-luna")
         def appeler(instructions, entree, *args):
-            self.assertEqual(set(entree["faits"]), {"resultat_resolu", "joueur", "salle", "perception", "attestations", "ambiance_etablie"})
+            self.assertEqual(set(entree["faits"]), {"resultat_resolu", "joueur", "salle", "perception", "attestations", "ambiance_etablie", "comptes"})
             return {"mode": "dialogue", "texte": "Tu poses ton échelle au sol.", "faits": ["resultat_resolu"], "proposition": None}
         with patch.object(MJOpenAI, "_appeler", side_effect=appeler):
             MJOpenAI().raconter_resultat(m, {"faits": ["Une échelle a été créée au sol."]})

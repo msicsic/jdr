@@ -51,10 +51,10 @@ class ExplicationTests(unittest.TestCase):
         texte = "Gorm te répond : « Pour me la remettre, dis-le-moi clairement. »"
         citation = "Pour me la remettre, dis-le-moi clairement."
         parole = {"segments": {"0": {"verdict": "parole", "sources": [], "locuteur": "marchand",
-                                     "citation": citation, "entites": [], "motif": ""}}}
+                                     "citation": citation, "entites": [], "comptes": [], "motif": ""}}}
         sobre = "Gorm ne prend pas encore la cloche : rien ne s'est échangé."
         neutre = {"segments": {"0": {"verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
-                                     "entites": [], "motif": ""}}}
+                                     "entites": [], "comptes": [], "motif": ""}}}
         faits = {"interlocuteurs": {"marchand": {"nom": "Gorm"}},
                  "retour_moteur": {"propositions_refusees": [["remettre", "refus"]]}}
         mj = MJOpenAI("gpt-6-luna")

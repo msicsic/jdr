@@ -20,7 +20,7 @@ def portee(nom, texte):
 
 def segments(*verdicts):
     return {"segments": [{"indice": i, "verdict": v, "sources": [], "locuteur": "", "citation": "",
-                          "entites": [], "motif": ""} for i, v in enumerate(verdicts)]}
+                          "entites": [], "comptes": [], "motif": ""} for i, v in enumerate(verdicts)]}
 
 
 def partie(ambiance):

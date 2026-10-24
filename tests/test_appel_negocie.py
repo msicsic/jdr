@@ -160,9 +160,14 @@ class QuoiTests(unittest.TestCase):
         suite = ["Gaspard répond : « Qu'est-ce que tu veux ? »", "Josse répond : « J'ai quelque chose à te demander. »",
                  "Gaspard répond : « Ici, viens ! »", "Josse répond : « J'arrive ! »"]
         self.assertEqual([t for t in textes if t in suite], suite)
-        m = suivre(m, 4, lambda m: "Josse demande une part des bûches de Gaspard à Gaspard (promis)." in chronique(m))
+        demande = "Josse demande une part des bûches de Gaspard à Gaspard ("
+        m = suivre(m, 4, lambda m: any(t.startswith(demande) for t in chronique(m)))
         self.assertIn("Gaspard retrouve Josse, comme convenu.", chronique(m))
-        self.assertIn("Josse demande une part des bûches de Gaspard à Gaspard (promis).", chronique(m))
+        # La demande est faite après les retrouvailles ; son issue dépend du jet de persuasion,
+        # que les confidences du lot 55 décalent (promis avant, refusé puis offre acceptée depuis).
+        textes = chronique(m)
+        self.assertLess(textes.index("Gaspard retrouve Josse, comme convenu."),
+                        next(i for i, t in enumerate(textes) if t.startswith(demande)))
 
     def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
         d_un_bloc, morcele = decouper(lambda: recharger(hugues_cherche_anselme()), 4)

@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-sens-dette`, fusionnée, lot **56**, base **f033364**, brief
+  **0b2ea87** : les comptes transmis au MJ portent débiteur, créancier, objet ou
+  pièces, quantité et état dû/rendu/absent ; les réclamations donnent leur solde
+  et leurs remises effectives. L'auditeur extrait les rôles de chaque segment,
+  même une réplique ; le moteur les compare à l'issue et refait le contrôle à
+  l'enregistrement. Un rapport incomplet est illisible, chaque compte contraire
+  reçoit un `attendu` citant l'issue. L'absence monétaire dit « aucune pièce ».
+  Neuf tests nouveaux : console, MJ simulé, état/fiche/textes après recharge,
+  deux absences et leurs inversions, remboursement, refus, prêt échu au joueur,
+  restitution d'objet, prose ordinaire, garde persistant et comptes privés exclus.
+  **50 tests ciblés finaux verts**. Suite complète unique : 1 793 tests, 16 ignorés,
+  1 302,4 s, trois processus à priorité réduite ; ancien placement de prêt et
+  liste de faits du harnais artisanat corrigés, trois fichiers rejoués verts.
+  Bilan consolidé : **175 fichiers, 1 793 tests, 16 ignorés**, aucun défaut restant ;
+  aucune seconde suite complète.
+  Empreintes Relais, 2 h × quatre graines : chronique, mesures et état final
+  complet identiques à f033364. Luna une passe : `ressources`, 9 → 13 appels
+  contre le cache intégré f033364, 3 → 4,33 par tour ; inversion refusée trois
+  fois, repli moteur dans le bon sens. `comptes` : zéro appel des deux côtés,
+  noms non appris ; aucun test en ligne du règlement dans ce script. Extraction
+  sémantique encore faillible (un faux refus observé), aucune garantie absolue
+  d'absence d'inversions ; précision finale « aucune pièce » vérifiée sans modèle
+  après cette passe. Pas de changement de `main`, de `planification.py` ou des
+  fonctions sociales réservées au lot 55. [Rapport et limites](taches/rapport-codex-56-sens-dette.md).
+  Fusionné sur l'intégration après le lot 55 : seul conflit de documentation ; aucun fichier de code commun.
+
 - Branche `codex-constats-partages`, fusionnée, lot **55**, base **5b174ad** : les constats matériels
   récents vus ou essayés se confient par les nouvelles communes, après les accusations : ressource
   épuisée, contenant ouvert vide, verrou, source éteinte, eau d'un lieu. `recevoir` en fait du ouï-dire

@@ -1339,11 +1339,11 @@ def _part_vendue(travail, auditeur, lot, nom, il, prix):
             else f"{nom} prend tes {prix} pièces et te remet {part}.")
 
 
-def _reclamer(travail, auditeur, objet, faits):
+def _reclamer(travail, auditeur, objet, faits, comptes):
     """Corvus réclame son dû : les pièces qu'on lui doit (``biens.reclamer_dette`` : le débiteur rend
     ce qu'il peut, s'il le veut), ou son objet que l'auditeur porte (on le redemande comme son
     propriétaire, ``echanges.demander``). Ce qui n'est pas dû, le personnage le dit."""
-    from .biens import dues, reclamer_dette
+    from .biens import compte, dues, reclamer_dette
     from .echanges import accueil, demander
     from .spatial import porte_par
     from .vol import proprietaire
@@ -1355,11 +1355,16 @@ def _reclamer(travail, auditeur, objet, faits):
     if objet is None:
         dettes = dues(travail, auditeur, "joueur")
         if not dettes:
-            faits.append(f"{nom} ne te doit rien.")
+            faits.append(f"{nom} ne te doit aucune pièce.")
+            comptes.append(compte(auditeur, "joueur", etat="absent"))
             return
         montant = sum(d["montant"] for d in dettes)
         lignes = []
         issues = reclamer_dette(travail, "joueur", auditeur, lignes)
+        reste = sum(d["montant"] for d in dues(travail, auditeur, "joueur"))
+        comptes.append(compte(auditeur, "joueur", montant=reste, etat="du" if reste else "absent"))
+        if montant > reste:
+            comptes.append(compte(auditeur, "joueur", montant=montant - reste, etat="rendu"))
         faits.extend(lignes)
         if "sans_le_sou" in issues and not lignes:
             faits.append(f"{nom} n'a pas de quoi te rendre les {montant} pièce{'s' if montant > 1 else ''} "
@@ -1368,10 +1373,13 @@ def _reclamer(travail, auditeur, objet, faits):
     o = travail.objets.get(objet)
     if o is None or o["type"] == "personnage" or proprietaire(travail, o) != "joueur" \
             or not porte_par(travail, objet, auditeur):
-        faits.append(f"{nom} ne te doit pas {designer(o) if o else 'cela'} : {il} ne porte rien à toi de tel."
-                     if o and o["type"] != "personnage" else f"{nom} ne te doit rien de tel.")
+        # L'absence en main ne doit pas devenir une affirmation générale sur les comptes.
+        faits.append(f"{nom} ne te rend pas {designer(o)} : {il} ne porte rien à toi de tel."
+                     if o and o["type"] != "personnage" else f"{nom} ne te rend rien de tel.")
+        comptes.append(compte(auditeur, "joueur", objet, etat="absent"))
         return
     issue = demander(travail, "joueur", auditeur, objet)
+    comptes.append(compte(auditeur, "joueur", objet, 1, "rendu" if issue == "rendu" else "du"))
     faits.append({"rendu": f"{nom} te rend {designer(o)}.",
                   "necessaire": f"{nom} garde {designer(o)} : {il} s'en sert encore.",
                   "qui_va_la": QUI_VA_LA.format(nom=nom, il=il)}.get(
@@ -1563,7 +1571,7 @@ def preparer_parole(monde, p, revision=None):
     temoins = [] if chuchote else sorted(id for id in saisissent(travail, "joueur")
                                          if id not in dest and id not in repondent and travail.objets[id].get("profil"))
     expression = capacite_transmission(_stats_pnj(travail, "joueur")["INT"])
-    faits = []
+    faits, comptes = [], []
     for auditeur in [*dest, *repondent]:
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
@@ -1581,7 +1589,7 @@ def preparer_parole(monde, p, revision=None):
             elif c["type"] == "qui":
                 _qui_est_la(travail, auditeur, faits)
             elif c["type"] == "reclamer":
-                _reclamer(travail, auditeur, c["objet"], faits)
+                _reclamer(travail, auditeur, c["objet"], faits, comptes)
             elif c["type"] == "ressource":
                 _enqueter(travail, auditeur, c["besoin"], faits)
             else:
@@ -1618,6 +1626,7 @@ def preparer_parole(monde, p, revision=None):
                "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
                "operation": "parole_joueur", "replique_joueur": replique,
                "issue": issue(travail, forme, dest, [*dest, *repondent], temoins_vus, replique), "faits": faits,
+               **({"comptes": comptes} if comptes else {}),
                **({"regard": vers} if vers else {})}
     return travail, rapport
 
