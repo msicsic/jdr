@@ -211,7 +211,7 @@ Le récit parle de ce que tu perçois, sais ou supposes, jamais du degré de pre
 (établi, attesté, indiqué, absence d'indication). L'ambiance libre n'a pas à justifier son origine.
 Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxième personne (tu).
 Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
-ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
+ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits, les données ou un refus : une
 incertitude se dit de ce que Corvus sait, à la deuxième personne (« tu ne sais pas si… »).
 Le quadrillage et les coordonnées restent internes : les positions se disent avec les repères
 fournis, des directions et des distances en mètres ou en pas, jamais en cases ni en coordonnées.
@@ -335,7 +335,7 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_
 
 # La voix d'auteur : le texte parle du joueur, du moteur ou de Corvus à la troisième personne, ou le MJ
 # parle de lui-même (« je », hors des répliques citées).
-AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
+AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b|\brefus\b"
                     r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
 
 # Même voix d'auteur quand le récit commente ses preuves sans nommer le moteur.
@@ -370,6 +370,69 @@ def verifier_unites(texte, partie):
     obstacles = unites_moteur(texte, partie)
     if obstacles:
         raise ErreurMonde("Cette description doit employer les repères du lieu.", obstacles[0]["attendu"])
+
+
+# Déictiques de position : ils ne désignent jamais une orientation historique.
+# Les citations des personnages restent des paroles, dont le contenu peut être faux.
+RELATIFS_JOUEUR = re.compile(
+    r"\b(?P<axe>devant|derri[èe]re)\s+toi\b|\b(?:[àa]|sur)\s+ta\s+(?P<cote>gauche|droite)\b"
+    r"|\bdans\s+ton\s+(?P<dos>dos)\b|\b(?P<face>en\s+face\s+de)\s+toi\b", re.I)
+
+
+def reperes_orientation(faits):
+    """Seulement les positions déjà publiques : perception et dernière observation."""
+    objets = {o["id"]: o for o in faits.get("objets_perceptibles", [])}
+    objets.update({k[6:]: o for k, o in faits.items() if k.startswith("objet:")})
+    reperes = {o["id"]: o for o in faits.get("souvenirs_visuels", [])}
+    return {**reperes, **objets}
+
+
+def cibles_orientation(texte, faits):
+    from .noms import motif_designation
+    return {ref for ref, o in reperes_orientation(faits).items() if any(
+        motif_designation(nom).search(texte) for nom in
+        [o.get("nom", "").split(",")[0], *o.get("aliases", [])] if nom)}
+
+
+def orientations(texte, faits, partie="texte"):
+    """Compare les locatifs explicites aux seuls repères publics courants.
+
+    Sans cible univoque, on exige le repère absolu plutôt que de deviner un pronom.
+    Une phrase à plusieurs cibles doit les localiser séparément. Le verdict sémantique
+    n'intervient pas : même un segment classé neutre ou ambiance subit cette comparaison.
+    """
+    fiction = CITATIONS.sub(" ", texte)
+    if not faits.get("mode_cases") or not RELATIFS_JOUEUR.search(fiction):
+        return []
+    reperes = reperes_orientation(faits)
+    nommees = cibles_orientation(fiction, faits)
+    demandees = set(faits.get("reperes_demandes", [])) & reperes.keys()
+    obstacles = []
+    for indice, passage in enumerate(segments(texte)):
+        hors_citations = CITATIONS.sub(" ", passage)
+        visees = cibles_orientation(hors_citations, faits) or (nommees if len(nommees) == 1 else set())
+        if not visees and not nommees and len(demandees) == 1:
+            visees = demandees
+        for m in RELATIFS_JOUEUR.finditer(hors_citations):
+            direction = normaliser(m.group("axe") or m.group("cote") or (
+                "derriere" if m.group("dos") else "devant"))
+            ref = next(iter(visees)) if len(visees) == 1 else None
+            o = reperes.get(ref, {})
+            lieu = o.get("localisation") or o
+            admises = lieu.get("orientation_relative", [])
+            # Une négation peut inverser la portée du locatif.
+            # Sans analyse sémantique, conserver l'absolu plutôt que l'admettre à tort.
+            negatif = re.search(r"\b(?:pas|plus|jamais|ni)\b", normaliser(hors_citations))
+            if ref is not None and direction in admises and not negatif:
+                continue
+            accepte = (f"{ref} : orientation_relative={admises}, "
+                       f"repère absolu={lieu.get('position_relative', lieu.get('vu_a', 'inconnu'))}"
+                       if ref is not None else "une cible publique nommée sans ambiguïté et son repère courant")
+            obstacles.append(audit("Cette direction relative ne correspond pas à un repère courant univoque.",
+                accepte + "; employer sa direction actuelle ou son repère absolu en mètres ; "
+                "un souvenir ne garantit pas la présence actuelle", partie=partie, segment=indice,
+                texte=passage, recu=m.group()))
+    return obstacles
 
 
 def voix_auteur(texte, partie="texte"):
@@ -764,7 +827,7 @@ def controler(texte, rapport, faits, partie="texte"):
     if (not passages or len(passages) > 24 or not isinstance(lignes, list)
             or len(lignes) != len(passages)):
         raise AuditIllisible("Contrôle narratif incomplet.")
-    obstacles, paroles, ambiances, lignes_validees = [], [], [], []
+    obstacles, paroles, ambiances, lignes_validees = orientations(texte, faits, partie), [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
         comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
         if "comptes" in faits or comptes is not None:
@@ -951,6 +1014,12 @@ def consigner(monde, reponse):
         return
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
+    if RELATIFS_JOUEUR.search(CITATIONS.sub(" ", texte)):
+        contraires = orientations(texte, {**monde.contexte(),
+            "reperes_demandes": audit["faits"].get("reperes_demandes", [])})
+        if contraires:
+            raise ErreurMonde("Cette direction ne correspond plus à ton regard actuel.",
+                              contraires[0]["attendu"])
     if (rapport["obstacles"] or rapport["texte_controle"] != texte or voix_auteur(texte)
             or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""),
                         paroles_validees=rapport['paroles'])

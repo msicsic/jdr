@@ -933,6 +933,8 @@ class MJ:
         faits.update({"objet:" + o["id"]: o for o in objets})
         from .noms import public
         faits = public(monde, faits)
+        from .narration import cibles_orientation
+        faits["reperes_demandes"] = sorted(cibles_orientation(intention, faits))
         # Une identité privée sert à la réplique finale, jamais au choix d'une cible mécanique.
         # Elle est ajoutée après projection et ne devient pas une attestation du récit.
         for reference, esprit in (faits.get("esprits_interlocuteurs", {}).items() if not enrichir else ()):
