@@ -552,8 +552,8 @@ class NomNonResolu(ErreurMonde):
     """Une référence nominale manque ; le MJ ne peut pas décider qui elle désigne."""
 
 
-def verifier_nom(monde, nom):
-    """Un nom vise un corps relié ou une voix qui le porte, parmi ce qui est perçu.
+def verifier_nom(monde, nom, *, exiger_perception=True):
+    """Un nom vise un corps relié ou une voix qui le porte ; une cible doit être perçue.
 
     Aucun lien n'est appris et aucun emplacement secret n'entre dans le message.
     """
@@ -561,7 +561,8 @@ def verifier_nom(monde, nom):
     from .voix import reel
     reference_ = personnage(monde, nom)
     cible = reel(monde, reference_)
-    if cible in monde.objets and (monde.designable(cible) or reference_ in interlocuteurs(monde)):
+    if cible in monde.objets and (not exiger_perception or monde.designable(cible)
+                                 or reference_ in interlocuteurs(monde)):
         return cible
     # Même un nom inconnu peut être prononcé : le refus cite les mots du joueur,
     # jamais l'apparence du corps qui porte réellement ce nom.
@@ -574,9 +575,9 @@ def verifier_nom(monde, nom):
         message = f"Tu ne sais pas lequel d'entre eux est {affiche}."
     else:
         message = f"Tu ne connais personne du nom de {affiche} ici."
-    raise NomNonResolu(message,
-                       f"reference : reçu « {recu} » ; une désignation publique perçue et non ambiguë, "
-                       "ou un nom relié à une personne perçue ; aucun lien nominal à inventer.")
+    accepte = ("une désignation publique perçue et non ambiguë, ou un nom relié à une personne perçue"
+               if exiger_perception else "un nom relié et non ambigu, même hors de vue")
+    raise NomNonResolu(message, f"reference : reçu « {recu} » ; {accepte} ; aucun lien nominal à inventer.")
 
 
 def verifier_saisie(monde, texte):
@@ -591,19 +592,28 @@ def verifier_saisie(monde, texte):
     normalise = normaliser(texte)
     if not any(re.search(r"(?<!\w)" + re.escape(n) + r"(?!\w)", normalise) for n in termes):
         return
-    from .paroles import analyser, CITATION_ENTIERE, hele
-    # Héler émet un nom à voix haute ; ce n'est pas un geste sur le corps nommé.
-    # La mécanique de l'appel exige déjà l'appellation et décide qui répond.
-    if hele(monde, texte) is not None:
+    from .paroles import analyser, CITATION_ENTIERE
+    from .commandes import cri, est_question, faisabilite, perception_nommee
+    # Les appels et leurs réponses émettent un son, sans exiger une cible vue.
+    # Leur mécanique commune décide de la portée et de qui répond.
+    if cri(monde, texte) is not None:
         return
     # Une perception d'une personne connue laisse au moteur la cause de son refus
     # (lumière, présence, regard) : un nom relié n'y a rien à résoudre de plus.
-    from .commandes import perception_nommee
     if perception_nommee(monde, texte) is not None:
         return
     forme = analyser(monde, texte)
+    if forme["nomme"]:
+        # L'adresse vise un interlocuteur, même si les mots sont interrogatifs.
+        # La parole garde sa règle d'accès (voix distante et regard compris).
+        from .paroles import destinataires, regard, tourne
+        vers = regard(monde, forme)
+        destinataires(tourne(monde, vers) if vers else monde, forme)
     if any(forme[k] for k in ("explicite", "incomplete", "nomme", "groupe", "inconnu")):
         return
+    # Une demande d'information peut porter sur un absent déjà relié. Une
+    # question de faisabilité vise encore un geste : elle en garde l'accès.
+    question = est_question(texte) and not faisabilite(texte)
     reste = CITATION_ENTIERE.sub(lambda m: " " * len(m.group()), texte)
     # Une désignation publique (y compris « une voix qui se dit X » ou un objet
     # dont le nom contient X) ne transforme pas son complément en cible séparée.
@@ -618,5 +628,5 @@ def verifier_saisie(monde, texte):
     for terme in sorted(termes, key=lambda n: (-len(n), n)):
         motif = re.compile(r"(?<!\w)" + re.escape(terme) + r"(?!\w)")
         if motif.search(reste):
-            verifier_nom(monde, terme)
+            verifier_nom(monde, terme, exiger_perception=not question)
             reste = motif.sub(" ", reste)
