@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cout-exact`, **non fusionnée**, base **2590c4a** (brief `d4c8b66`) :
+  mêmes décisions et même monde, deux leviers exacts, commits signés SSH `3b3b895` et `4773611`.
+  `trajet_estime.moyenne` garde son résultat dans la `Vue` figée : salle, cibles, sortie,
+  allure et possessions si métriques ; corps, géométrie et obstacles crus sont propres à cette vue.
+  Chaque reprise contrôlée recalcule la moyenne et ses tables locales. La copie de transaction du
+  moteur garde la perception jusqu'aux souvenirs, au bilan et au rendu, pour les actions simples
+  et composées ; clés physiques et sociales existantes, aucune mémoire dans la sauvegarde.
+  Empreintes 2 h, quatre scénarios × quatre graines : chronique, mesures et état final identiques.
+  Traces de recherches et nœuds strictement identiques sur ces 16 nuits, durées exclues.
+  `VERIFIER` + `spatial.VERIFICATION=1`, mine/auberge 42, 2 h : aucun écart ni borne.
+  Suite complète unique : **1 668 tests, quatre ignorés**, verte, 707,9 s, trois travailleurs.
+  CPU moyen, trois versions lancées ensemble, 4 h, graines 42/1985 : ancien/base/branche,
+  mine **7,102 / 11,492 / 9,125 s**, auberge **5,609 / 10,547 / 8,695 s** :
+  **−20,6 % / −17,6 %** contre la base, encore **×1,28 / ×1,55** contre `42bb9c0`.
+  Même état, mesures et recherches sur ces quatre nuits de 4 h ; aucun appel Luna,
+  priorité réduite, quatre travailleurs au plus. [Rapport du lot 31](taches/rapport-codex-31-cout-exact.md).
+
 - Branche `codex-trajet-estime`, **non fusionnée**, base d'intégration `ecbbed7`
   (brief `e282120`, code signé SSH `9f4bf2f`, `500d917`) : la recherche estime les trajets par salle,
   l'exécution garde le parcours réel. `Etat` ne distingue plus case ni orientation ; allure
@@ -2330,6 +2347,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
+
+- Coût exact (lot 31, `codex-cout-exact`, non fusionnée) : l'explosion du coût joueur du profil
+  fourni n'est pas reproduite par les profils cProfile des fusions Q, R, 25, 26, 27 et 30 :
+  48 transactions et 49 mémorisations sur chacune des nuits mine 42, 4 h, joueur en galerie.
+  Le départ natif augmente les lectures, mais ancien/base restent comparables sur ces postes.
+  La portée trop courte de la mémoire physique est commune aux deux versions ; le lot l'étend
+  à la transaction. Les symboles de carte recalculés, les copies complètes et les lectures
+  de `deliberation.autour` par le banc ne sont pas réduits. Le CPU reste ×1,28 / ×1,55 contre
+  `42bb9c0` (mine/auberge, 4 h, 42/1985), malgré −20,6 % / −17,6 % contre 2590c4a.
+  Aucun lot fautif affirmé pour la hausse joueur non reproduite.
 
 - Relations 3c, après `codex-signes-calibration` (fusionnée) : cache incrémental,
   relectures sans réapprentissage et refus local d'observation corrigés ; répétitions
