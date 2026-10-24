@@ -547,6 +547,27 @@ sans faute. Contreparties d'abord limitées à ce qu'il porte et à ses pièces 
 leur tenue et leur trahison restent ceux du joueur. Ce qui suit décrit le projet initial, que
 cette décision remplace pour le geste `proposer`.
 
+**A2b, réalisé sur `codex-proposer-recours`, non fusionnée (lot 45).**
+`pnj_propositions.recours`, appelé après le choix du plan ordinaire, remplace celui-ci par
+une seule offre avant une faute signalée par le plan, ou après une demande d'objet/part
+refusée. Le prochain choix reprend les moyens ordinaires. Les pièces (au plus le prix public
+du bien demandé) et les objets/parts possédés et portés sont classés par coût propre divisé
+par chance estimée d'accord, puis par chance. L'estimation reprend `chance_demande` et la
+valeur publique de la contrepartie, doublée pour un besoin observé ; aucune attitude privée
+de l'auditeur n'y entre. Le verdict, les remises et les engagements différés restent ceux
+de `echanges.proposer`, commun au joueur.
+
+Le déclencheur de refus et les tentatives sont sauvegardés dans l'esprit. Une tentative
+vaut pour un couple lésé/besoin, même après le délai des demandes ordinaires ; seuls un
+moyen nouvellement cru, un paiement supplémentaire ou un lien devenu plus favorable
+permettent un nouvel essai. Le récit et le journal perçu conservent l'offre et la réponse.
+Reprises du lot 36 : chance, contreparties matérielles, validation depuis les connaissances
+du proposant et publication atomique conservant les références du moteur. Aucun geste ni
+entrée de recherche ajoutés. Les tâches promises, les intermédiaires et la réparation de
+confiance restent à faire. Le recours couvre le forcement qui vise un bien mobile à obtenir ;
+le passage ou la seule ouverture d'un bien fixe ne sont pas des demandes du contrat A2a.
+Vérification et mesures : [rapport du lot 45](taches/rapport-codex-45-proposer-recours.md).
+
 - **Un geste `proposer`** dans le planificateur, déclaré une fois, à côté de `demander` : il
   offre ce qu'il porte ou ce qu'il peut promettre, et son coût est divisé par la **chance
   estimée**, calculée sur ce qu'il croit de l'autre : ce qu'il lit de son attitude envers lui, un

@@ -82,10 +82,15 @@ class PartsPourSourcesTests(unittest.TestCase):
         from donjon.geometrie import cases, distance
         from donjon.pnj import occupants
         from donjon.spatial import _case_libre
+        prises_joueur = occupants(m, sauf="joueur")
+        place_joueur = min((c for c in cases(m.data["salles"]["etable"])
+                            if ("etable", c) not in prises_joueur and _case_libre(m, "etable", c)),
+                           key=lambda c: (distance(c, (4, 1)), c))
+        m.joueur["position"] = list(place_joueur)
         prises = occupants(m, sauf="odile")
         libres = [c for c in cases(m.data["salles"]["etable"])
                   if ("etable", c) not in prises and _case_libre(m, "etable", c)
-                  and distance(c, (4, 1)) <= 1]
+                  and distance(c, place_joueur) <= 1]
         placer(m, "odile", "etable", min(libres, key=lambda c: (distance(c, (3, 1)), c)))
         regarder(m, "joueur", "odile")
         regarder(m, "odile", "joueur")

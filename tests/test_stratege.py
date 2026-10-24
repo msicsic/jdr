@@ -132,7 +132,13 @@ class StrategeTests(unittest.TestCase):
         self.assertEqual(appels, [("proposer_strategie", "brune")])
         self.assertIn("Brune demande le pied-de-biche à Gorm. Gorm lui remet le pied-de-biche.", sortie.getvalue())
         self.assertNotIn("décide", sortie.getvalue())
-        self.assertEqual(reprise.objets["pied_de_biche"]["lieu"], "brune")
+        # La stratégie a bien obtenu le prêt ; un marché peut ensuite lever le besoin
+        # et faire rendre l'outil avant la fin des cinq minutes d'attente.
+        porteur = reprise.objets["pied_de_biche"]["lieu"]
+        self.assertIn(porteur, ("brune", "marchand"))
+        if porteur == "marchand":
+            self.assertTrue(any(s["type"] == "restitution" and s.get("objet") == "pied_de_biche"
+                                and s.get("de") == "brune" for s in lire(reprise, "marchand")["memoire"]))
         self.assertEqual(reprise.data["stratege"]["bilan"]["plan"], 1)
 
     def test_un_refus_abandonne_la_strategie(self):

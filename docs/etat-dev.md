@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-proposer-recours`, non fusionnée, lot 45, base **bafb9b9**, code signé
+  **2cb8220** : les PNJ proposent « faute de mieux », après une demande d'objet/part refusée
+  ou avant la faute du plan retenu, sans geste nouveau dans la recherche. Pièces et biens/parts
+  possédés et portés ; chance estimée depuis les croyances du proposant, évaluation réelle
+  commune au joueur. Déclencheur et tentatives sauvegardés par lésé/besoin ; pas de réessai par
+  le simple délai. Validation depuis les connaissances du proposant, publication atomique
+  préservant les références moteur. Les parts remises sont attendues auprès du demandeur,
+  distinctement des parts servies au lot ; la réception garde l'identité du lot. Six tests ciblés
+  après recharge, dont Brune/Gorm en crue et Odon/Mathe dans la mine, même laps découpé.
+  Banc rapide quatre scénarios × quatre graines × 4 h : aucun plantage, violation ou usurpation ;
+  propositions/acceptées 1,25/1,25, 4,25/1,75, 2/0,75, 3,25/0 (Relais/mine/auberge/crue), vols
+  tentés 1,5 → 0, 0,5 → 0,25, 0 → 0, 2,25 → 2. CPU sans cache, versions ensemble, 42/1985 :
+  mine −2,0 %, auberge +7,0 %, ensemble +2,1 % : plafond +5 % par scénario non atteint à l'auberge.
+  Tâches promises en contrepartie, réparation, intermédiaires et passage restent à faire ; le
+  forcement se négocie pour le bien mobile visé, pas pour la seule ouverture d'un bien fixe.
+  Suite complète finale : 1 731 tests, 4 ignorés, 614,3 s ; deux scènes de test corrigées puis
+  leurs fichiers repris en entier (30 tests verts), bilan consolidé vert. Une première suite
+  a précédé le correctif d'attente des parts ; le lot dépasse 45 min, vérification comprise.
+  Voir le [rapport du lot 45](taches/rapport-codex-45-proposer-recours.md).
 - Branche `codex-gardien-detresse`, fusionnée, lot 43, base `dd36155` :
   un besoin sans recours ouvre l'aide auprès de sa charge : demander l'allumage
   d'une source locale ou la remise d'un moyen utile, avec les tâches communes et
