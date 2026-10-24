@@ -4,6 +4,45 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-signes-calibration`, fusionnée, base moteur `8855312` :
+  caches des causes d'émission, de perception par observateur et des relations ;
+  continuité **physique** des signes sauvegardée (`677bfd1`) : détourner le regard
+  ne recrée ni lecture, ni souvenir, ni annonce. Échec préservant la lecture active,
+  retour réel/péremption nouveaux, même délai de dix minutes, provenance transmise
+  avec les nouvelles. Refus moteur local d'une personne connue invisible : une cause,
+  présence/lumière/vue, « cette personne », zéro appel au MJ en ligne et hors ligne.
+  **35 tests ciblés**, dont captures réelles Relais 7 à 441 min et Lucien/Rémy mine 7,
+  second guet à l'auberge, joueur et reprises ; suite finale : **1 591 tests, 15 ignorés, un échec**, 754,45 s.
+  Échec historique `test_mine.py:84` (mine 3, 600 min) : Bram conscient, sécurité
+  100 et biens 100, garde dans le noir près d’Odon sans secours. Arbitrage
+  garde/sécurité à reprendre à l’intégration ; test intact, aucun contournement.
+  Nouveau « Rythme des lots » de `main` **42bb9c0** appliqué : campagnes longues
+  arrêtées. Banc final branche seule, référence 8855312 réutilisée : 4 h × quatre
+  graines × quatre scénarios, zéro usurpation/violation, répétitions **27 → 0** ;
+  constats antérieurs conservés, +1 alternance de buts crue 42 (bruit à 185 min,
+  garde à 190 ; pas de boucle au même bruit établie). Luna finale : **une passe**,
+  trois scripts, 12 appels, zéro pour observer Ilse dans le noir, aucune fuite détectée.
+  Réglage commun **provisoire 4/3/8**, aucune exception individuelle : 174/816 méprises
+  au banc rapide final (21,32 %), critère <20 % non atteint. Grille conditionnelle 63
+  réglages et confirmation acquises avant le dernier correctif ; grille libre arrêtée,
+  justesses haute/basse et abstention par sorte à revérifier à l'intégration.
+  Preuves de coût seules, figées `bbf17cb`, acquises avant la consigne : état identique
+  à 8855312 sur 2 h puis 8 h × quatre graines × cinq scénarios ; mine CPU 45,51 → 44,84 s
+  (−1,5 %). Face à 276524c : −8,6 %, **nuits différentes**, pas le gain isolé des signes.
+  Aucun changement de `planification.py` ni `deliberation.py`. Correctif de trajet
+  isolé **8f60441**, à coordonner avec Q : `_marcher` applique `Vue.descente` aux salles
+  du détour (Brune crue 500 et second cas Ilse ; test historique inchangé).
+  [Rapport d'une page, mesures et limites](taches/rapport-codex-21-signes-calibration.md).
+  Fusionné après `codex-trajets-reels` (intégration 0ac6b15 ; depuis la base 8855312 : S, Q, correctif `defense`,
+  plans et « Rythme des lots ») : seul conflit textuel `docs/etat-dev.md` ; `pnj.py`, `moteur.py`, `refus.py`,
+  `tools/empreintes_nuits.py` fusionnés sans conflit. **Trajet de R gardé** : Q ne le couvre pas (son `_marcher`
+  n'écarte que les salles crues noyées) ; le correctif ne crée pas de seconde mesure de route (`obstacles.cout_route`
+  reste la seule, pour le plan) : il réutilise la règle du plan `Vue.descente` pour exclure, dans la marche case par
+  case (`spatial.trajet`, avec le `cout_porte` de Q), les salles du détour où le PNJ attend un piège
+  (`TrajetsRevelesTests`, Brune et Ilse, vert sur la fusion). **`test_mine.py:84` passe sur la fusion** (mine 3,
+  600 min, départ fixe) : la nuit n'est plus celle de R une fois les trajets réels de Q en place ; aucun test adapté.
+  L'arbitrage garde/sécurité de Bram que R avait relevé n'est pas prouvé corrigé, seulement absent de cette nuit
+  (voir « À revoir »). Tests ciblés (`test_mine`, `test_signes`, `test_signes_calibration`) : 40 tests, verts.
 - Branche `codex-trajets-reels`, fusionnée, base `main` **aff9626** :
   coût unique `obstacles.cout_route` en temps réel cru (case réelle puis projetée,
   allure, diagonales, approches, rotations, portes et gestes). Pression par salle
@@ -2118,14 +2157,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## À revoir
 
-- Relations 3c : calibration des lectures (41,3 % de méprises dans le banc de la branche, contre une borne de
-  20 % ; justesse haute ≥ 0,8 atteinte seulement par Gorm à PSY 16) ; coût des signes (mine +35 % au
-  processeur après fusion ; une invalidation sociale incrémentale au lieu de tout recalculer à chaque
-  minute et événement) ; vols vus en baisse à la mine, l'auberge et la crue dans le banc de la branche, sans
-  preuve que ce soit la dissuasion par les guets lus ; « Lecture de … » relue toutes les dix minutes
-  (alertes `repetition` de l'audit) ; dans le noir, `observer` une personne connue est refusé par
-  l'analyse locale avec « cet objet » au lieu du refus du moteur (« cette personne ») et, en ligne, ce refus
-  part au MJ : 4 à 5 appels et 1 à 2 refus avant une réponse juste (Luna, `signes-noir`), au lieu de 0.
+- Relations 3c, après `codex-signes-calibration` (fusionnée) : cache incrémental,
+  relectures sans réapprentissage et refus local d'observation corrigés ; répétitions
+  27 → 0 sur le rapide final. **Calibration ouverte** : réglage provisoire 4/3/8,
+  21,32 % de méprises sur 816 lectures de 4 h, encore au-dessus de 20 % ; les mesures
+  PSY réglées précèdent le dernier correctif de continuité. Refaire grille commune,
+  justesses haute/basse, abstention par sorte et contrôles longs à l'intégration,
+  selon « Rythme des lots » (42bb9c0), sans relancer de campagne dans le lot.
+  `test_mine.py:84`, en échec sur la branche (à 600 min, Bram garde ses biens à 100 malgré sa
+  sécurité à 100, sans lumière ni compagnie fiable), passe après fusion avec Q : la nuit a changé ;
+  l'arbitrage garde/sécurité qu'elle révélait n'est pas tranché en général (aucun test ne le fixe).
+  Le coût isolé économise seulement 1,5 % à la mine face à 8855312 ; la comparaison
+  à 276524c porte sur des nuits différentes. Vols vus : ablations mine 7 et 11,
+  effets de positions/orientations ; tentatives maintenues, aucune dissuasion par
+  les lectures démontrée. Trajet isolé 8f60441 gardé avec Q (`Vue.descente` dans la marche).
 - Force 4c (critère partiel) : aux valeurs actuelles, Aubin fuit comme Ilse au lieu de riposter ou de se
   dégager ; la fin de tout affrontement en moins de dix minutes n'est pas prouvée (les poursuites gardent
   rejoindre, chercher, appeler et la patience) ; le risque d'une riposte est l'estimation `force.force_crue`

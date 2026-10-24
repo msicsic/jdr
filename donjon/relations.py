@@ -117,7 +117,7 @@ def _estompes(monde, id, autre, r):
     return resultat
 
 
-def _lecture(monde, id, autre):
+def _lecture_pure(monde, id, autre):
     from .esprits import lire
     brut = lire(monde, id).get("relations", {}).get(autre)
     if brut is None:
@@ -130,13 +130,58 @@ def _lecture(monde, id, autre):
     return r
 
 
+def _lecture(monde, id, autre):
+    from .esprits import lire
+    profil = monde.objets[id].get("profil") or {}
+    brut = lire(monde, id).get("relations", {}).get(autre)
+    cle = (monde.data["minutes"],
+           (profil.get("liens") or {}).get(autre, {}).get("affection", 0),
+           profil.get("valeurs", {}).get("fierte", 50),
+           profil.get("valeurs", {}).get("douceur", 50))
+    cache = monde.__dict__.setdefault("_lectures_relations", {})
+    entree = cache.get((id, autre))
+    if entree is None or entree[0] != cle or entree[1] != brut:
+        copie = entree[1] if entree is not None and entree[1] == brut else copy.deepcopy(brut)
+        cache[id, autre] = (cle, copie, _lecture_pure(monde, id, autre))
+    resultat = cache[id, autre][2]
+    from .spatial import a_verifier
+    if a_verifier():
+        assert resultat == _lecture_pure(monde, id, autre), "Lecture de relation périmée"
+    return resultat
+
+
+def signature_signes(monde, id):
+    """Seulement les bandes et seuils effectivement lus par les émissions."""
+    from .esprits import lire
+    profil = monde.objets[id].get("profil") or {}
+    brut = lire(monde, id)["relations"]
+    cle = (monde.data["minutes"], repr(profil.get("liens")),
+           profil.get("valeurs", {}).get("fierte", 50), profil.get("valeurs", {}).get("douceur", 50))
+    cache = monde.__dict__.setdefault("_signatures_relations_signes", {})
+    entree = cache.get(id)
+    if entree is None or entree[0] != cle or entree[1] != brut:
+        copie = entree[1] if entree is not None and entree[1] == brut else copy.deepcopy(brut)
+        cache[id] = (cle, copie, _signature_signes_pure(monde, id))
+    resultat = cache[id][2]
+    from .spatial import a_verifier
+    if a_verifier():
+        assert resultat == _signature_signes_pure(monde, id), "Signature sociale périmée"
+    return resultat
+
+
+def _signature_signes_pure(monde, id):
+    return tuple((x, vive(r, "peur"), vive(r, "rancune"), vive(r, "affection"),
+                  peur(r), rancune(r), mefiance(r))
+                 for x in connus(monde, id) for r in [axes(monde, id, x)])
+
+
 def envers(monde, id, autre):
     return copy.deepcopy(_lecture(monde, id, autre))
 
 
 def axes(monde, id, autre):
     r = _lecture(monde, id, autre)
-    return {a: r[a] for a in (*AXES, "bandes")}
+    return {a: r[a] for a in AXES} | {"bandes": dict(r["bandes"])}
 
 
 def chance_demande(monde, id, autre):

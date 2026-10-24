@@ -17,6 +17,9 @@ RELECTURE = 10
 ATTITUDE_MAX = 120
 COLERE_DEMIVIE = 15
 GUET = 1                 # minute d'attente avant que sa durée soit un signe
+PENOMBRE = 4
+DISSIMULATION = 3
+BANDE_RIEN = 8
 
 # sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel
 SIGNES = {
@@ -42,7 +45,8 @@ SENS = {v for s in SIGNES.values() for v in s[5]}
 def installer(m):
     for cle, defaut in (("lectures", {}), ("signes_lus_joueur", {}), ("bilan_signes", {}),
                         ("tirages_lecture", 0), ("tirages_lecture_acteurs", {}), ("mesures_signes", {}), ("tons_percus", []), ("observations_joueur", [])):
-        m.data.setdefault(cle, copy.deepcopy(defaut))
+        if cle not in m.data:
+            m.data[cle] = copy.deepcopy(defaut)
 
 
 def emotion(m, id):
@@ -153,7 +157,11 @@ def de(m, id):
         e = esprit_lu(m, id)
         i = e["intention"] or {}
         from .deliberation import seuils
-        cle = (relations.signature(m, id), repr(e["emotions"]), repr(i.get("attitude")),
+        from .caractere import valeur
+        c = emotion(m, id)
+        cle = (relations.signature_signes(m, id),
+               (c["contre"] if c and c["niveau"] >= 20 else None),
+               valeur(m, id, "fierte") >= 60, repr(i.get("attitude")),
                guette(m, id), i.get("attente", 0) >= GUET * 600,
                tuple((x["operation"], x["cible"]) for x in i.get("plan", [])),
                e["besoins"].get("securite", 0) > seuils(m, id).get("securite", 100), conscient(m, id))
@@ -191,12 +199,27 @@ def _envers_percu(m, observateur, s, vus):
     return salle_crue(m, observateur, cible) == m.objets[observateur]["lieu"]
 
 
-def _percus(m, observateur="joueur", tons=(), emissions=None):
+def _posture(m, s):
+    """Existence physique du signe, indépendante de l'accès d'un observateur."""
+    from .spatial import orientation_vers, position_cible
+    o = m.joueur if s["personnage"] == "joueur" else m.objets[s["personnage"]]
+    q = position_cible(m, s["envers"], o.get("lieu", o.get("salle"))) if s["envers"] else None
+    if s["signe"] in ("ecart", "proche"):
+        return q is not None and (distance(o["position"], q) >= 2 if s["signe"] == "ecart"
+                                  else distance(o["position"], q) <= 1)
+    if s["signe"] in ("surveille", "convoite", "observe"):
+        return q is not None and orientation_vers(tuple(o["position"]), q) == o.get("orientation")
+    return True
+
+
+def _percus(m, observateur="joueur", tons=(), emissions=None, contexte=None):
     from .esprits import percus as objets_percus
     from .corps import conscient
     if not conscient(m, observateur):
         return []
-    if observateur == "joueur":
+    if contexte is not None:
+        vus, niveaux = contexte
+    elif observateur == "joueur":
         vus = {id: None for id, o in m.objets.items() if m.visible(id)}
     else:
         vus, _ = objets_percus(m, observateur)
@@ -204,7 +227,7 @@ def _percus(m, observateur="joueur", tons=(), emissions=None):
     for id in sorted(vus):
         if id != "joueur" and m.objets[id]["type"] != "personnage":
             continue
-        niveau, loin = _niveau_distance(m, observateur, id)
+        niveau, loin = niveaux[id] if contexte is not None else _niveau_distance(m, observateur, id)
         for s in (de(m, id) if emissions is None else emissions.get(id, [])):
             regle = SIGNES[s["signe"]]
             if regle[1] != "vue" or niveau < regle[2] or regle[3] is not None and loin > regle[3]:
@@ -215,17 +238,8 @@ def _percus(m, observateur="joueur", tons=(), emissions=None):
                 continue
             # L'attitude est la cause d'un choix ; son signe exige encore la position
             # et l'orientation réelles. Une attitude périmée n'est pas un fait.
-            from .spatial import orientation_vers, position_cible
-            o = m.joueur if id == "joueur" else m.objets[id]
-            q = position_cible(m, s["envers"], o.get("lieu", o.get("salle"))) if s["envers"] else None
-            if s["signe"] in ("ecart", "proche"):
-                if s["envers"] not in vus and s["envers"] != observateur or q is None:
-                    continue
-                d = distance(o["position"], q)
-                if (s["signe"] == "ecart" and d < 2) or (s["signe"] == "proche" and d > 1):
-                    continue
-            if s["signe"] in ("surveille", "convoite", "observe") and (
-                    q is None or orientation_vers(tuple(o["position"]), q) != o.get("orientation")):
+            if (s["signe"] in ("ecart", "proche") and s["envers"] not in vus
+                    and s["envers"] != observateur) or not _posture(m, s):
                 continue
             resultat.append({**s, "niveau": niveau, "distance": loin})
     # Les tons sont fournis par une parole effectivement saisie, jamais inférés d'un silence.
@@ -242,15 +256,29 @@ def percus(m, observateur="joueur", tons=(), emissions=None):
 
 
 def _percus_gardes(m, observateur, tons, emissions):
-    from .spatial import _memo_vue, etat_signes, a_verifier
-    memo = _memo_vue(m)
-    if memo is None or tons or emissions is not None:
+    from .spatial import a_verifier, position_cible
+    from .esprits import percus as objets_percus
+    from .corps import conscient
+    if tons or not conscient(m, observateur):
         return _percus(m, observateur, tons, emissions)
-    signature = etat_signes(m)
-    cache = memo.setdefault("signes_percus", {})
+    vus = ({id: None for id in m.objets if m.visible(id)} if observateur == "joueur"
+           else objets_percus(m, observateur)[0])
+    personnes = sorted(id for id in vus if id == "joueur" or m.objets[id]["type"] == "personnage")
+    emissions = {id: de(m, id) for id in personnes} if emissions is None else emissions
+    niveaux = {id: _niveau_distance(m, observateur, id) for id in personnes}
+    # Une clé par observateur, indépendante des esprits et objets qu'il ne perçoit pas.
+    # Les cibles crues ne sont jamais remplacées par une présence véritable.
+    signature = tuple((id, niveaux[id], repr(emissions.get(id, [])),
+                       tuple((s["id"], s["envers"] in vus, _envers_percu(m, observateur, s, vus),
+                              position_cible(m, s["envers"], o.get("lieu", o.get("salle")))
+                              if s["envers"] else None) for s in emissions.get(id, [])),
+                       tuple(o.get("position") or ()), o.get("orientation"))
+                      for id in personnes for o in [m.joueur if id == "joueur" else m.objets[id]])
+    cache = m.__dict__.setdefault("_perceptions_signes", {})
     entree = cache.get(observateur)
     if entree is None or entree[0] != signature:
-        cache[observateur] = (signature, _percus(m, observateur))
+        cache[observateur] = (copy.deepcopy(signature), _percus(m, observateur, emissions=emissions,
+                                                              contexte=(vus, niveaux)))
     resultat = cache[observateur][1]
     if a_verifier():
         assert resultat == _percus(m, observateur), "Signes perçus périmés"
@@ -310,10 +338,58 @@ def attribut(s):
     return "attitude:" + (s["envers"] or "")
 
 
-def lire(m, observateur, signes=None, expres=False):
+def _occurrences(m, emissions=None, paroles=()):
+    """Identité des émissions réelles : perdre la vue n'est pas leur disparition.
+
+    Seuls les événements et les lectures enregistrent cette continuité. Les
+    projections n'ont aucun effet ; tous les lecteurs partagent le même épisode.
+    """
+    from .temps import instant
+    if emissions is None:
+        emissions = {id: de(m, id) for id in ["joueur", *m.objets]
+                     if id == "joueur" or m.objets[id]["type"] == "personnage"}
+    suivi = m.data.setdefault("occurrences_signes", {"actifs": [], "episodes": {}, "paroles": {}})
+    ids = {s["id"] for signes in emissions.values() for s in signes
+           if SIGNES[s["signe"]][1] == "vue" and _posture(m, s)
+           and not (s["dissimule"] and SIGNES[s["signe"]][0] == "expression")}
+    for cle in ids - set(suivi["actifs"]):
+        suivi["episodes"][cle] = suivi["episodes"].get(cle, 0) + 1
+    suivi["actifs"] = sorted(ids)
+    for s in paroles:
+        cle = s["id"]
+        if suivi["paroles"].get(cle) != instant(m):
+            suivi["episodes"][cle] = suivi["episodes"].get(cle, 0) + 1
+            suivi["paroles"][cle] = instant(m)
+    return suivi["episodes"]
+
+
+def _suivi(m, observateur, episodes):
+    suivis = m.data.setdefault("suivi_signes", {})
+    suivi = suivis.get(observateur)
+    if suivi is None or suivi.get("version") != 2:
+        # Une migration n'est pas un apprentissage. L'histoire physique absente
+        # des anciennes sauvegardes ne peut pas être reconstruite rétroactivement.
+        suivi = suivis[observateur] = {"version": 2, "retenus": {}, "conclusions": {}}
+        for _, _, c in actives(m, observateur):
+            if c["signe"] in episodes:
+                suivi["retenus"][c["signe"]] = episodes[c["signe"]]
+    return suivi
+
+
+def interpreter(s, jet, bonus, dd):
+    """Calcul pur du résultat ; les paramètres sont communs à tous les lecteurs."""
+    marge = jet + bonus - dd
+    sens = s["vrai"] if marge >= 0 else None
+    if marge < -BANDE_RIEN:
+        sens = "fatigue" if s["dissimule"] else next(x for x in SIGNES[s["signe"]][5] if x != s["vrai"])
+    return sens, marge
+
+
+def lire(m, observateur, signes=None, expres=False, occurrences=None):
     """Un essai par signe et par dix minutes ; échec compris. Pas de relance gratuite.
 
-    Les preuves complètes de chaque jet sont dans la chronique omnisciente du rejeu.
+    La chronique omnisciente conserve les nouvelles conclusions et leur jet.
+    Le banc de calibration instrumente aussi les essais sans nouvelle conclusion.
     Aucune fonction de projection ne transmet marge, justesse ou vérité au joueur/MJ.
     """
     from .caractere import modificateur, caracteristiques
@@ -322,10 +398,15 @@ def lire(m, observateur, signes=None, expres=False):
     joueur = observateur == "joueur"
     e = None if joueur else esprit(m, observateur)
     essais = m.data["signes_lus_joueur"] if joueur else e["signes_lus"]
-    signes = percus(m, observateur) if signes is None else signes
+    if signes is None:
+        signes = percus(m, observateur)
+    episodes = (_occurrences(m, paroles=[s for s in signes if SIGNES[s["signe"]][1] == "mots"])
+                if occurrences is None else occurrences)
+    suivi = _suivi(m, observateur, episodes)
     for s in signes:
         cle = s["id"]
         dernier = essais.get(cle)
+        episode = episodes[cle]
         if dernier is not None and m.data["minutes"] - dernier < RELECTURE:
             continue
         essais[cle] = m.data["minutes"]
@@ -334,14 +415,19 @@ def lire(m, observateur, signes=None, expres=False):
         if not joueur and (relations.familier(relations.axes(m, observateur, s["personnage"]))
                            or e["compagnie"].get(s["personnage"], 0) >= 60):
             bonus += 2
-        bonus -= (4 if s["niveau"] == 1 else 0) + (2 if s["distance"] > 4 else 0)
-        dd = 10 + regle[4] + (modificateur(m, s["personnage"], "ELO" if s["elo"] else "VOL") + 5
+        bonus -= (PENOMBRE if s["niveau"] == 1 else 0) + (2 if s["distance"] > 4 else 0)
+        dd = 10 + regle[4] + (modificateur(m, s["personnage"], "ELO" if s["elo"] else "VOL") + DISSIMULATION
                               if s["dissimule"] else 0)
         jet = _jet(m, observateur)
-        marge = jet + bonus - dd
-        sens = s["vrai"] if marge >= 0 else None
-        if marge < -5:
-            sens = "fatigue" if s["dissimule"] else next(x for x in regle[5] if x != s["vrai"])
+        sens, marge = interpreter(s, jet, bonus, dd)
+        a = attribut(s)
+        actuelle = (m.data["lectures"].get(cle) if joueur else
+                    e["croyances"].get(s["personnage"], {}).get(a))
+        active = actuelle and any(c is actuelle for _, _, c in actives(m, observateur))
+        meme = bool(active and actuelle["valeur"] == sens and actuelle.get("envers") == s["envers"]
+                    and suivi["retenus"].get(cle, actuelle.get("episode")) == episode)
+        nouvelle = not meme if sens is not None else not active and suivi["conclusions"].get(cle) != episode
+        suivi["conclusions"][cle] = episode
         psy = caracteristiques(m, observateur)["PSY"]
         tranche = "basse" if psy <= 9 else "haute" if psy >= 13 else "moyenne"
         _compter(m, "signes_" + regle[0])
@@ -354,7 +440,9 @@ def lire(m, observateur, signes=None, expres=False):
             c = {"valeur": sens, "source": "devine", "minute": m.data["minutes"],
                  "confiance": min(.8, .5 + .05 * (max(0, marge) if marge >= 0 else max(0, -marge - 6))), "signe": cle,
                  "envers": s["envers"], "personnage": s["personnage"], "attribut": attribut(s)}
-            a = attribut(s)
+            c.update(apprise=(actuelle.get("apprise", actuelle["minute"]) if meme else m.data["minutes"]),
+                     episode=episode)
+            suivi["retenus"][cle] = episode
             if joueur:
                 m.data["lectures"][cle] = c
             else:
@@ -362,14 +450,14 @@ def lire(m, observateur, signes=None, expres=False):
                 actuelle = e["croyances"].get(s["personnage"], {}).get(a)
                 if not actuelle or actuelle["source"] not in ("vu", "essai", "savoir"):
                     croire(m, observateur, s["personnage"], a, sens, "devine", c["confiance"],
-                           signe=cle, envers=s["envers"])
+                           signe=cle, envers=s["envers"], apprise=c["apprise"], episode=episode)
                     if usages(m, observateur) != utilisables_avant:
                         reconsiderer(m, observateur)
-                if sens == "guet":
+                if sens == "guet" and nouvelle and (not actuelle or actuelle["source"] not in ("vu", "essai", "savoir")):
                     _compter(m, "guets_reperes")
                     from .esprits import memoriser
                     memoriser(m, observateur, {"type": "intention_lue", "auteur": s["personnage"],
-                                               "objet": s["envers"], "signe": cle,
+                                               "objet": s["envers"], "signe": cle, "episode": episode,
                                                "confiance": c["confiance"], "source": "devine"})
         enregistrement = {"observation": copy.deepcopy(s), "lecture": sens, "jet": jet, "marge": marge,
                           "observateur": observateur, "psy": psy}
@@ -377,7 +465,7 @@ def lire(m, observateur, signes=None, expres=False):
             from .temps import instant
             m.data["observations_joueur"].append({"instant": instant(m), **enregistrement})
             del m.data["observations_joueur"][:-300]
-        else:
+        elif nouvelle:
             from .pnj import _chroniquer
             _chroniquer(m, observateur, f"Lecture de {s['personnage']} : {sens or 'aucune impression'}.", "lecture")
             m.data["chronique"][-1].update(enregistrement)
@@ -437,7 +525,7 @@ def _bilan_signes(m, observer=None):
             id = None
     else:
         id = observer
-    avant_lectures = copy.deepcopy(m.data["lectures"])
+    avant_lectures = {_identite(c) for c in m.data["lectures"].values()}
     if id:
         lire(m, "joueur", [s for s in percus(m) if s["personnage"] == id], expres=observer is not None)
     signes = publics(m)
@@ -450,9 +538,14 @@ def _bilan_signes(m, observer=None):
     lignes += ["Tu ne distingues plus certains signes chez " + _nom(m, x) + "."
                for x in changes]
     m.data["bilan_signes"] = actuels
-    lignes += [s["texte"] for s in impressions(m) if s["personnage"] == id
-               and (observer is not None or avant_lectures != m.data["lectures"])]
+    nouvelles = {cle for cle, c in m.data["lectures"].items() if _identite(c) not in avant_lectures}
+    lignes += list(dict.fromkeys(s["texte"] for s in impressions(m) if s["personnage"] == id
+                                and s["id"].removeprefix("impression:") in nouvelles))
     return lignes
+
+
+def _identite(c):
+    return (c["signe"], c["valeur"], c.get("envers"), c.get("apprise", c["minute"]))
 
 
 def usages(m, id):
@@ -596,12 +689,14 @@ def percevoir_tous(m):
     """Aux événements du monde et aux minutes, jamais à une simple consultation du joueur."""
     from .esprits import pnjs
     from .spatial import vue_memorisee, etat_fige
-    emissions = {id: de(m, id) for id in [*pnjs(m), "joueur"]}
+    emissions = {id: de(m, id) for id in ["joueur", *m.objets]
+                 if id == "joueur" or m.objets[id]["type"] == "personnage"}
+    episodes = _occurrences(m, emissions)
     if not any(emissions.values()):
         return
     with vue_memorisee(m), etat_fige(m):
         for id in pnjs(m):
-            lire(m, id, percus(m, id, emissions=emissions))
+            lire(m, id, percus(m, id, emissions=emissions), occurrences=episodes)
 
 
 def mesures(m):

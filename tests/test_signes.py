@@ -159,7 +159,7 @@ class SignesTests(unittest.TestCase):
                 self.assertTrue(any(s["personnage"] == "brune" and s["signe"] == "attend"
                                     for s in signes.percus(m, "marchand")))
                 # Même dé contrôlé pour isoler l'effet de PSY sur le cas réel.
-                with patch("donjon.signes._jet", return_value=18):
+                with patch("donjon.signes._jet", return_value=16):
                     signes.lire(m, "marchand")
                     Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "0.1")))
                 m = recharger(m)
@@ -169,6 +169,8 @@ class SignesTests(unittest.TestCase):
 
     def test_meprise_meme_rendu_et_persistance_pas_de_relance(self):
         m = ecarter(scene())
+        # Même en observant exprès, cette PSY manque au-delà de la bande rien élargie.
+        m.joueur["stats"]["PSY"] = 4
         s = next(s for s in signes.percus(m) if s["signe"] == "ecart")
         with patch("donjon.signes._jet", return_value=1):
             signes.lire(m, "joueur", [s], expres=True)

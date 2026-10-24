@@ -318,8 +318,10 @@ class Moteur:
                 raise ErreurMonde("Observer n'impose pas de difficulté.", f"observer.difficulte : reçu {p['difficulte']!r} ; accepté : 0.")
             if cible in m.objets and m.objets[cible]["type"] == "personnage":
                 if not m.visible(cible):
-                    raise ErreurMonde("Tu ne vois pas cette personne d'ici.",
-                                      f"observer.cible : reçu {cible!r} hors de vue ; acceptés : '', scene, lumiere, contexte.")
+                    from .refus import perception
+                    acceptes = ["", "scene", "lumiere", "contexte", *sorted(
+                        id for id, o in m.objets.items() if o["type"] == "personnage" and m.visible(id))]
+                    raise perception(m, cible, "observer.cible", acceptes)
                 plan.titre, plan.minutes, plan.dixiemes, plan.effort = "Observer cette personne.", 0, 30, False
                 return plan
             if cible not in ("", "scene", "lumiere", "contexte"):

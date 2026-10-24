@@ -376,9 +376,11 @@ def analyser(monde, texte):
     # Une phrase longue ne doit pas être transformée silencieusement en commande approchante.
     if len(cible.split()) > 9 or (avec and len(outil.split()) > 6):
         return None
-    cible_id = monde.trouver(cible)
-    outil_id = monde.trouver(outil) if avec else ""
     action = VERBES[verbe]
+    # Une perception peut nommer une personne connue hors de vue. C'est le
+    # moteur qui tranche ensuite son accès sensoriel, comme pour la scène.
+    cible_id = (_nomme(monde, cible, True) if action in PERCEPTIONS else None) or monde.trouver(cible)
+    outil_id = monde.trouver(outil) if avec else ""
     methode = "simple"
     if action == "detacher":
         t = monde.objets.get(outil_id, {})

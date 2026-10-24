@@ -368,9 +368,11 @@ un mensonge en paroles (décision 7). L'honnêteté ne l'empêche pas : cacher n
 Un signe se perçoit avec les règles communes : il faut voir celui qui le porte (`percus`), et,
 pour un signe relationnel, savoir qui est X (le voir, ou le croire là) ; les expressions demandent
 le niveau 2 de lumière et 4 cases au plus ; un ton, les mots saisis (`ouie.mots_saisis`). Les
-signes entrent dans l'empreinte de la perception gardée (`spatial.etat_vue`) : les relations, les
-émotions et les attitudes en deviennent des clés, sinon la vue mémorisée serait périmée
-(`spatial.VERIFICATION` le vérifie).
+signes ont une mémoire distincte de la géométrie (`spatial.etat_vue`) : les causes des émissions
+(relations, émotions, attitudes, conscience), puis les personnes réellement perçues, leur lumière,
+leur distance et les cibles accessibles à chaque observateur forment les clés de `signes.de` et
+`_percus_gardes`. `spatial.VERIFICATION` les recompare au calcul pur. Un esprit éloigné ne force
+plus tous les observateurs à recalculer leurs signes.
 
 ## 6. Lire les autres
 
@@ -380,19 +382,32 @@ Quand un observateur perçoit un signe nouveau (ou le même signe 10 minutes plu
 
 d20 + mod(PSY) + 2 s'il l'observe à dessein (§ 6.5) + 2 s'il le connaît bien (affection ≥ 40 ou
 une heure passée ensemble) − 4 en pénombre (niveau 1) − 2 au-delà de 4 cases,
-contre DD = 10 + force du signe (comportement 0, expression 2, ton 3) + (mod(VOL ou ELO) + 5 s'il
+contre DD = 10 + force du signe (comportement 0, expression 2, ton 3) + (mod(VOL ou ELO) + 3 s'il
 dissimule).
 
 - réussi : il lit ce que le signe veut dire vraiment ; confiance 0,5 + 0,05 par point de marge, au
   plus 0,8 ;
-- manqué de 1 à 5 : il ne tire rien ;
-- manqué de plus de 5 : il se **méprend** : il lit l'autre sens que la table donne au signe (un
+- manqué de 1 à 8 : il ne tire rien ;
+- manqué de plus de 8 : il se **méprend** : il lit l'autre sens que la table donne au signe (un
   timide paraît hostile ; un flatteur paraît attaché) ; s'il dissimule, il ne lit **rien** de ce
   qu'il cache, et la méprise prend le sens le plus banal (« fatigue »).
 
 Les jets de lecture tirent d'un **tirage à part** (comme le niveau d'eau, `eau.py`), compté dans
 `data` : ajouter la lecture ne décale pas les autres jets de la nuit, ce qui garde les bancs
 comparables avant et après (décision 8).
+
+Réglage provisoire de `codex-signes-calibration`, non fusionnée : pénombre −4,
+dissimulation +3, bande « rien » 8. Une grille conditionnelle commune de 63 combinaisons
+(pénombre 4/3/2, dissimulation 5/4/3, bande 5 à 11) minimise le plus grand dépassement
+des trois bornes, puis leur somme ; aucun réglage par personnage ou scénario. Le dé,
+les bonus, la distance, les sens erronés et la formule de confiance ne changent pas.
+La confirmation acquise avant la dernière correction de continuité donnait 24,88 %
+de méprises, Gorm PSY 14 à 0,806 et Hugues à 0,769 : **critère non atteint**.
+Le balayage en nuits libres a été arrêté conformément au nouveau « Rythme des lots »
+(`main` 42bb9c0) ; l'intégration doit reprendre la calibration sur le code final,
+avec justesse haute/basse, méprises et abstention par sorte de signe. La grille
+conditionnelle n'est pas une comparaison de nuits libres à décisions identiques.
+[Mesures et limites](taches/rapport-codex-21-signes-calibration.md).
 
 ### 6.2 Ce qu'on en retient
 
@@ -401,6 +416,18 @@ l'observé, attribut `attitude:<X>` (envers X : crainte, hostilité, méfiance, 
 (colère, peur) ou `intention` (guette un objet), valeur, confiance, minute, et le signe qui l'a
 fondée. Elle cède à tout constat (« vu »), et se périme après `RECENT` minutes pour une émotion,
 deux heures pour une attitude. Le joueur a les mêmes lectures dans `data["lectures"]`.
+
+Relire la même valeur envers la même cible pendant la même émission physique
+rafraîchit date et confiance, sans souvenir, nouvelle, confidence ni ligne « Lecture »
+supplémentaire. Un essai sans impression ne défait pas la lecture active. Un autre sens,
+un signe réellement arrêté puis réémis, ou la péremption comptent comme nouveaux ; le
+délai de dix minutes demeure dans tous les cas. Détourner le regard, perdre la lumière
+ou quitter la salle ne recrée pas le signe qui continue à être émis.
+`data.occurrences_signes` conserve l'identité physique commune ; `data.suivi_signes`
+retient les conclusions de chaque lecteur. Les paroles reçues portent leur épisode
+et sa provenance se transmet dans la nouvelle, sans transmettre sa vérité. Les anciennes
+lectures actives sont reprises sans réannonce ; leur histoire physique antérieure,
+absente de la sauvegarde, ne peut être reconstituée. Les projections restent pures.
 
 ### 6.3 Ce que les PNJ en font
 
@@ -445,6 +472,11 @@ d'autrui »).
   par le moteur sans le MJ, comme `commandes.PERCEPTIONS`), est dite comme une impression :
   « Elle semble la craindre. » ; une méprise se dit de la même façon, sans que rien ne la
   distingue. Rien n'est affirmé vrai.
+- **Relecture** : `observer` redonne les signes physiques demandés et n'annonce une impression
+  que lorsqu'elle est nouvelle. La carte, la description et le contexte continuent de présenter
+  l'impression active. Une personne connue peut être nommée hors de vue ; le moteur refuse
+  alors selon une seule cause (présence, lumière ou vue), sans appel à Luna, en ligne comme
+  hors ligne. Une rotation possible garde sa règle ordinaire.
 - **Ce que les PNJ lisent du joueur** : ses comportements (où il se tient, qui il regarde, ce qu'il
   guette), ses tons ne sont pas modélisés (il n'a pas d'état) ; ses mensonges se flairent comme
   ceux d'un PNJ, contre son ELO.
