@@ -1109,14 +1109,34 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     # Il ne cherche pas de chemin par une salle qu'il a vue noyée ; il peut quitter la sienne.
     from .eau import noyee_crue
     noyees = {s for s in monde.data["salles"] if s != o["lieu"] and noyee_crue(monde, id, s)}
+    portes_autorisees = None
     from .eau import active, menacee
     if active(monde) and any(menacee(monde, id, s) for s in monde.data["salles"]):
-        # La destination du plan peut être sûre et son détour réel descendre dans
-        # un piège. La même règle du plan juge aussi chaque salle intermédiaire.
-        from .planification import Vue
+        from .planification import Vue, depart as etat_depart
+        from .geometrie import cases
+        from .obstacles import cout_route
         vue = Vue(monde, id)
-        noyees.update(s for s in vue.salles if s != o["lieu"] and vue.descente(o["lieu"], s))
-    franchissable = lambda porte: _franchissable(monde, id, porte)
+        etat = etat_depart(monde, id, vue).apres(allure=allure)
+        destinations = [s for s in vue.salles if any(arrivee(s, c) for c in cases(vue.salles[s]))]
+        routes = [(r, s) for s in destinations if (r := vue.route(etat, s)) is not None]
+        if not routes:
+            raisons = list(vue.refus_routes.values())
+            if raisons:
+                texte = (designer(o, debut=True) + " reste dans : " + vue.salles[o["lieu"]]["nom"]
+                         + " ; " + raisons[0] + ".")
+                # Le récit garde la cause, sans répéter la même attente à chaque pas.
+                derniere = next((c for c in reversed(monde.data.get("chronique", [])) if c["pnj"] == id), None)
+                if not derniere or derniere["texte"] != texte:
+                    _chroniquer(monde, id, texte, "geste")
+            return None
+        route, destination = min(routes, key=lambda r: (cout_route(r[0]), r[1]))
+        autorisees = {o["lieu"], *(x["vers"] for x in route)}
+        portes_autorisees = {x["porte"] for x in route if x.get("porte")}
+        noyees.update(set(vue.salles) - autorisees)
+        cible = arrivee
+        arrivee = lambda s, c: s == destination and cible(s, c)
+    franchissable = lambda porte: (_franchissable(monde, id, porte)
+                                   and (portes_autorisees is None or porte in portes_autorisees))
     formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id, allure) else {}
     passages = transitions(monde, id, formes, allure=allure) if formes else None
     cout_porte = lambda p: duree_porte(monde, p)

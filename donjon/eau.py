@@ -193,7 +193,24 @@ def noyee_attendue(monde, id, salle):
 def en_peril(monde, id):
     """Il se tient là où il attend l'eau assez haute pour ne plus s'y mouvoir : il faut en sortir."""
     ici = lieu(monde, id)
-    return active(monde) and ici in monde.data["salles"] and noyee_attendue(monde, id, ici)
+    if not (active(monde) and ici in monde.data["salles"] and noyee_attendue(monde, id, ici)):
+        return False
+    # Une traversée en cours ne devient pas un séjour à la minute ronde.
+    # Elle garde la main seulement si la même admissibilité prouve encore
+    # le départ avant la noyade, jusqu'au but sûr ; sinon, évacuation prioritaire.
+    from .esprits import lire
+    intention = lire(monde, id)["intention"]
+    plan = intention["plan"] if intention else []
+    if plan and plan[0]["operation"] == "aller" and plan[0]["lieu"] != ici:
+        from .planification import Vue, depart
+        from .route_admissible import refus
+        v = Vue(monde, id)
+        e = depart(monde, id, v)
+        cible = plan[0]["lieu"]
+        route = v.route(e, cible)
+        if route is not None and refus(v, e, route, cible, depart_compris=True) is None:
+            return False
+    return True
 
 
 def _rang(cm):

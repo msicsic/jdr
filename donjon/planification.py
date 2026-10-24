@@ -34,7 +34,7 @@ from .spatial import porte_par, QUART, VECTEURS, a_verifier
 from .obstacles import Route, cout_route, sejours_route, metrique_necessaire, monde_cru
 from .geometrie import cases
 from .temps import MINUTE
-from . import pnj, trajet_estime
+from . import pnj, trajet_estime, route_admissible
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
@@ -239,6 +239,19 @@ class Vue:
                     # Ce que l'eau l'inquiète par minute là où il s'y tient (``deliberation.ressentir``).
                     self.eau[s] = (2 * taux(monde, id, "eau") * min(cm, eau.NOYEE_CM) / eau.NOYEE_CM if cm
                                    else taux(monde, id, "menace"))
+        # Prévision à l'instant présent, puis pente : toutes les traversées
+        # utilisent cette même photographie, y compris dans la marche.
+        estimation = eau.estimation(monde, id) if eau.active(monde) else None
+        self.vitesse_eau = max(0, estimation[2]) / 60 if estimation else 0
+        niveau = (estimation[1] + self.vitesse_eau * (
+            monde.data["minutes"] + monde.data.get("dixiemes", 0) / MINUTE - estimation[0])
+                  if self.vitesse_eau else None)
+        # Garder la droite sous le sol : borner à zéro avant de projeter
+        # ferait apparaître artificiellement de l'eau dans les salles hautes.
+        self.eau_route = {s: (eau.eau_crue(monde, id, s),
+                             niveau - eau.altitude(monde, s) if niveau is not None else 0)
+                          for s in self.salles} if eau.active(monde) else {}
+        self.refus_routes = {}
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = pnj.chemin, pnj.parcours, {}
         self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
@@ -484,7 +497,7 @@ class Vue:
         if cle not in self._allers:
             allers = []
             for s in self.salles_triees:
-                if s != e.salle and not self.descente(e.salle, s):
+                if s != e.salle:
                     route = self.route(e, s, ouvertes)
                     if route is not None:
                         allers.append((s, cout_route(route, e.orientation)))
@@ -496,15 +509,22 @@ class Vue:
         le plan a déverrouillées (crochetées, ``ouvertes`` si on les a déjà) ; None s'il n'y croit
         aucun passage."""
         if self._cru_spatial is None:
-            return self._chemin(self.monde, self.id, e.salle, arrivee, e.portes,
-                                self.ouvertes(e) if ouvertes is None else ouvertes, metrique=False)
+            route = self._chemin(self.monde, self.id, e.salle, arrivee, e.portes,
+                                 self.ouvertes(e) if ouvertes is None else ouvertes, metrique=False)
+            return route if route is not None and not route_admissible.refus(self, e, route, arrivee) else None
         ouvertes = self.ouvertes(e) if ouvertes is None else ouvertes
         equipement = e.portes if self.metrique(e.allure) else frozenset(
             k for k in e.portes if self.objets[k].get("ouvre"))
         cle = (e.salle, equipement, ouvertes, e.allure, self.portes_prevues(e))
         if cle not in self._parcours:
             self._parcours[cle] = trajet_estime.parcours(self, e, ouvertes)
-        return self._parcours[cle].get(arrivee)
+        route = self._parcours[cle].get(arrivee)
+        if route is not None:
+            raison = route_admissible.refus(self, e, route, arrivee)
+            if raison:
+                self.refus_routes[arrivee] = raison
+                return None
+        return route
 
     def metrique(self, allure):
         if allure not in self._metriques:
@@ -841,7 +861,7 @@ class Vue:
         return self._memo(("prix_violence", defense, rendu),
                           lambda: prix_violence(self.monde, self.id, self.motif, defense, rendu))
 
-    def descente(self, ici, salle):
+    def descente(self, ici, salle, e=None):
         """Aller d'``ici`` à ``salle``, c'est descendre dans la crue : là-bas il attend plus d'eau qu'ici
         (il l'y attend et pas ici ; ou il l'a vue monter, et elle monte par le bas : plus bas, c'est
         plus d'eau à venir), et il l'y attend noyée, ou son retour coupé par une salle qu'il attend
@@ -851,20 +871,20 @@ class Vue:
         revenir reste permis, même en traversant l'eau."""
         if not self.menacees:
             return False
-        cle = (ici, salle)
+        cle = (ici, salle, e)
         if cle not in self._descentes:
             from .spatial import altitude
             plus = (salle in self.menacees and ici not in self.menacees
                     or (salle in self.menacees or self.monte) and altitude(self.monde, salle) < altitude(self.monde, ici))
-            self._descentes[cle] = (plus and (salle in self.noyees or not self._retour(salle, ici))
-                                    or self.monte and self.piege(salle) and not self.piege(ici))
+            self._descentes[cle] = (plus and (salle in self.noyees or not self._retour(salle, ici, e) and self.piege(salle, e))
+                                    or self.monte and self.piege(salle, e) and not self.piege(ici, e))
         return self._descentes[cle]
 
-    def piege(self, salle):
+    def piege(self, salle, e=None):
         """L'eau monte : il attend ce lieu noyé, ou coupé du plus haut lieu qu'il croit pouvoir gagner
         d'où il se tient (une salle qu'il attend noyée entre eux). Elle monte par le bas : le plus haut
         est le dernier qu'elle gagne."""
-        cle = ("piege", salle)
+        cle = ("piege", salle, e)
         if cle not in self._descentes:
             if "sommet" not in self._descentes:
                 from .spatial import altitude
@@ -873,20 +893,38 @@ class Vue:
                 atteintes = self._parcourir(self.monde, self.id, ici, cles, frozenset()) if ici in self.salles else {}
                 self._descentes["sommet"] = max(sorted(atteintes) or [ici], key=lambda s: altitude(self.monde, s))
             sommet = self._descentes["sommet"]
-            self._descentes[cle] = salle in self.noyees or salle != sommet and not self._retour(salle, sommet)
+            self._descentes[cle] = salle in self.noyees or salle != sommet and not self._retour(salle, sommet, e)
         return self._descentes[cle]
 
-    def _retour(self, depuis, vers):
-        """Un passage de ``depuis`` à ``vers`` qui ne traverse aucune salle qu'il attend noyée (les
-        portes : il vient d'y passer)."""
+    def _retour(self, depuis, vers, e=None):
+        """Retour ou évacuation à l'horizon du séjour, avec des portes d'issue
+        certaine et leurs durées ; les ouvertures déjà acquises comptent."""
+        if self._cru_spatial is not None:
+            e = e if e is not None else depart(self.monde, self.id, self)
+            cle = ("retours", depuis, e.portes, e.allure, self.portes_prevues(e))
+            if cle not in self._descentes:
+                # Le même parcours, projeté à l'horizon du séjour. Ses portes
+                # doivent avoir une issue certaine ; leurs durées sont payées
+                # avant de juger l'eau, comme dans le trajet aller.
+                self._descentes[cle] = trajet_estime.parcours(
+                    self, e.apres(salle=depuis), self.ouvertes(e), delai=eau.HORIZON, certain=True)
+            return vers in self._descentes[cle]
         vus, file = {depuis}, [depuis]
         while file:
             lieu = file.pop()
             if lieu == vers:
                 return True
             for sortie in self.salles[lieu]["sorties"].values():
-                suivante = sortie["vers"]
-                if suivante in self.salles and suivante not in vus and (suivante == vers or suivante not in self.noyees):
+                suivante, porte = sortie["vers"], sortie.get("porte")
+                # Un retour garanti ne suppose ni une serrure inconnue ouverte,
+                # ni la réussite future d'un crochetage.
+                equipement = e.portes if e is not None else (
+                    k for k in self.connus if porte_par(self.monde, k, self.id))
+                sure = (not porte or (self.ouvert(e, porte) or porte in self.ouvertes(e) if e is not None else
+                        self.cru(porte, "etat") and self.cru(porte, "etat").get("ouverte"))
+                        or self.cru(porte, "verrouillee") is False
+                        or any(porte in self.objets[k].get("ouvre", ()) for k in equipement))
+                if sure and suivante in self.salles and suivante not in vus and (suivante == vers or suivante not in self.noyees):
                     vus.add(suivante)
                     file.append(suivante)
         return False
@@ -1442,7 +1480,7 @@ def _chercher(v, e, sujet):
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
     visites = lire(v.monde, v.id)["visites"]
     vaines = appels_vains(v.monde, v.id, sujet)
-    routes = {s: v.route(e, s) for s in v.salles if s not in vaines and (s == e.salle or not v.descente(e.salle, s))}
+    routes = {s: v.route(e, s) for s in v.salles if s not in vaines}
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
         return None
@@ -1518,7 +1556,7 @@ def _entrees(v, vises, profondeur, noeuds):
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
-        sorted(v.menacees), sorted(v.noyees), v.monte,
+        sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route, v.vitesse_eau, pnj.DUREES,
         # Le coût du noir et le but explicite de lumière ; les autres emplois de
         # lumière se découvrent dans les gestes à partir des mêmes entrées.
         v.peur, v.eclairer,

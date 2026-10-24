@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-route-admissible`, fusionnée, lot 41, base `750837a` :
+  `route_admissible.refus` juge la route crue salle par salle et porte par porte ;
+  recherche et marche l'emploient. Traversée au temps cumulé, séjour à son horizon,
+  retour ou évacuation par le même parcours projeté, portes certaines et durées comprises.
+  Une porte incertaine exige un repli immédiat possible ; clés et ouvertures acquises comptent.
+  `eau.en_peril` conserve une traversée en cours si la même règle prouve sa sortie avant
+  la noyade : la minute ronde ne la change pas en séjour. Prévision affine et durées dans
+  `_entrees` ; borne terminale du lot 38 toujours admissible (aucun coût minoré réduit).
+  Six tests : captures du lot 39 arrivées au sec, traversée en cours, passage trop long,
+  porte incertaine/repli, état et rendu identiques après recharge et découpage ; test
+  historique du détour adapté à une coupure pendant le passage. Le test des ressources
+  suit Brune, qui consomme une planche pour rallumer le poêle, sans bois créé.
+  Banc rapide 4 h, crue/Relais × quatre graines, contre `750837a` : zéro plantage,
+  violation ou usurpation ; Relais identique ; crue sans recours 75 → 60, eau 110 → 98,75,
+  maximum horaire moyen des passages 17 → 12,75 (pire 32 → 14). Une fermeture de réserve
+  et une enquête isolée de plus en crue 7, aucune nouvelle boucle observée. CPU final,
+  paire sans cache crue 1985, 4 h, un processus : 10,31 → 12,06 s (+17 %, nuits divergentes).
+  Audit 12 h, crue 500/42 : eau 815/285, sans recours 60/185, « eau longue » 3/0,
+  aucun plantage ou usurpation. Archives `verif-integ-ffcc295` absentes de ce poste :
+  comparaison aux chiffres historiques de 500 seulement, pas aux deux nuits complètes.
+  `VERIFIER` + `spatial.VERIFICATION=1`, 2 h, crue 42/500 : aucun écart ni borne.
+  Suite finale : **1 713 tests, quatre ignorés**, verte (3 processus, priorité réduite,
+  563,8 s) ; les six tests du lot repassent après le dernier contrôle du départ du retour,
+  sans changement des chroniques ni mesures du rapide.
+  Ni baisse uniforme de l'eau ni fin générale des boucles garantie. Aucun appel au MJ.
+  [Règle](plan-crue.md), [rapport du lot 41](taches/rapport-codex-41-route-admissible.md).
+  Fusionné sur l'intégration après le lot 40 : seul conflit `docs/etat-dev.md` ; aucun fichier de code commun.
+
 - Branche `codex-absence-vue`, fusionnée, base `8443458`, lot 40 : la vue courante
   donne `perception.objets_visibles`, limitée aux objets `visible=true`, en références publiques.
   L'audit admet une absence dans cette vue avec la source `perception` ; un résultat de fouille,
@@ -2616,6 +2644,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## À revoir
 
+- Routes et eau (lot 41, `codex-route-admissible`, non fusionnée) : les captures du refuge
+  mouillé rejoignent le sec ; les traversées en cours ne sont plus coupées par l'horizon du séjour.
+  Restent la durée moyenne par salle (occupation et actions futures non prédites), les attentes
+  d'un passage mobile et les besoins concurrents ; ne pas promettre la disparition générale des
+  boucles. CPU +17 % sur la paire finale crue 1985 ; archives d'audit `ffcc295` absentes ici,
+  comparaison complète des deux nuits de 12 h à refaire sur le poste qui les possède.
+
+
 - **Coût sur 12 h**, après le lot 38 (`codex-cout-12h`, non fusionnée) : −20,2 % à la mine, −15,6 %
   à l'auberge contre `63a717c`, mais encore ×2,39 à ×3,71 contre `42bb9c0` par nuit (42/1985).
   La borne terminale, les caches exacts des parts/devis et les références des fonctions chaudes sont faits.
@@ -2716,8 +2752,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     conduite basse, que Brune attend noyée (116 cm) ; le parcours n'écarte que les salles crues noyées
     (`noyee_crue`) et `Vue.descente` ne juge que la salle d'arrivée, mais `eau.en_peril` juge la salle
     traversée : prise dans la conduite à une minute ronde, elle remonte s'abriter, puis la faim la renvoie.
-    Déjà possible sur `main` (là, elle passe entre deux minutes et mange) ; correction proposée : une seule
-    règle, la salle traversée jugée comme la salle d'arrivée (`noyee_attendue`, sauf pour sortir d'un péril).
+    Déjà possible sur `main` (là, elle passe entre deux minutes et mange). Le lot 41
+    (`codex-route-admissible`, non fusionnée) remplace cette proposition : même admissibilité pour
+    recherche, marche et traversée en cours, mais durée du passage distincte de l'horizon du séjour.
 
 ## Décisions en attente
 

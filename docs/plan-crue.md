@@ -399,6 +399,47 @@ Audit (12 h, 8 graines) : se chauffer dans l'eau 7 nuits sur 8 → 0 ; minutes·
 (Brune pressée par le froid 7 → 291 minutes par nuit au banc de 8 h). Traité par la branche `ressources` : un feu à la
 galerie (section suivante).
 
+### Traverser, séjourner et pouvoir ressortir — lot 41
+
+Branche `codex-route-admissible`, non fusionnée. `route_admissible.refus` juge
+les séjours estimés d'une route et ses portes, sur la photographie des croyances
+de `Vue`. `trajet_estime.parcours` l'appelle pour les préfixes ; `Vue.route`
+contrôle aussi le but. La marche consulte cette même route avant de partir et
+limite son trajet aux salles et aux portes fermées retenues. Elle apprend encore
+une eau réellement trop haute ou une serrure découverte fermée avant de repartir
+sur une nouvelle délibération.
+
+- **Traversée** : la prévision suit le temps cumulé jusqu'à la sortie de chaque
+  salle, gestes de porte compris ; aucune projection arbitraire d'une heure pour
+  un passage de quelques secondes. `eau.en_peril` laisse terminer une traversée
+  en cours seulement si la même règle prouve encore la sortie avant la noyade
+  et l'accès au but ; la minute ronde ne la transforme pas en séjour. La droite de montée reste sous le sol tant
+  qu'elle ne l'a pas atteint ; l'eau déjà crue reste son minimum.
+- **Séjour** : les exclusions des buts durables et leur horizon restent ceux de
+  `verifier-eau` (`menacees`, `noyees`, `RESTER`, `eau.HORIZON`). Une destination
+  qui ne sera pas noyée ne doit pas créer un enfermement sans retour ou
+  évacuation vers le haut ; sortir d'un péril déjà présent reste possible.
+- **Retour/évacuation** : le parcours futur emploie la même règle et paie les
+  durées des portes à l'horizon du séjour. Une porte inconnue ou un crochetage
+  encore incertain ne garantissent pas cette sortie. Pendant l'aller, une porte
+  inconnue se tente seulement si un repli immédiat reste possible ; sa durée est
+  bornée prudemment par deux fois le trajet estimé entier. Une ouverture déjà
+  acquise dans le plan et une clé portée comptent dans ce contrôle.
+
+La prévision affine exacte et les durées des gestes entrent dans `_entrees` ;
+`VERIFIER` rejoue les mêmes contrôles. La borne terminale du lot 38 reste
+admissible : l'admissibilité retire des arêtes sans réduire aucun des coûts
+positifs dont cette borne est le minorant. Les causes de routes écartées se lisent
+dans le récit d'attente ; un refus du départ est conservé dans la chronique.
+
+Les deux captures du lot 39 rejoignent le poêle au sec, avec monde et rendu
+identiques après recharge et découpage. Les durées demeurent des estimations par
+salle : ni l'attente imposée par les autres acteurs ni leurs actions futures ne
+sont prédites. Le contrôle des anciennes parties sans cases garde leur durée
+conventionnelle par salle. Ce contrat ne garantit pas la disparition des boucles
+entre besoins concurrents ni une baisse uniforme du temps passé dans l'eau.
+Mesures et réserves dans le [rapport du lot 41](taches/rapport-codex-41-route-admissible.md).
+
 ## Un feu hors de l'eau (branche `ressources`)
 
 Décision de l'utilisateur après `verifier-eau` : augmenter les ressources, par des données seules. Le
