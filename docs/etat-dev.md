@@ -24,6 +24,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   touchent des fonctions distinctes ; `contrat-mj.md` sans conflit. Tests `test_designations`, `test_ambiance`,
   `test_narration`, `test_noms`, `test_luna_noms`, `test_voix_inconnues`, `test_relances_luna` : 138 tests, verts.
   L'écart d'appels Luna sur `echanges` du rapport n'est pas relancé (vérification groupée).
+  Suite complète une fois sur la dernière fusion (227d20c, six branches réunies, `tools/tests.py --processus 3`) :
+  **1 650 tests, 15 sautés**, verte (2 202 s) ; `test_mine.py:84` y passe.
 
 - Branche `codex-ambiance`, fusionnée, issue de `main` **42bb9c0** : le contrôle commun de
   la voix d'auteur s'étend aux réserves sur la preuve reçue par le MJ. Il refuse le
@@ -2244,7 +2246,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite complète passe : **1 600 tests, 15 ignorés**, sans appel au modèle,
+- La suite complète passe : **1 650 tests, 15 ignorés**, sans appel au modèle (intégration 227d20c, après
+  R, A0, A1, `cache-references`, lots 25 et 26 ; `tools/tests.py --processus 3`, 2 202 s, aucun échec ni erreur),
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
