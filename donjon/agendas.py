@@ -181,17 +181,36 @@ def observer_promesses(monde, lignes):
         lignes.append(texte)
 
 
-def constater_geste_joueur(monde, effets):
-    """Un effet appliqué réalise une condition ; attendre devant un état déjà vrai ne suffit pas.
+def etat_promis(monde):
+    """Les seuls attributs qu'un effet doit changer pour réaliser les paroles du joueur."""
+    etats = {}
+    for engagement in en_cours(monde, "joueur"):
+        c = engagement["condition"]
+        o = monde.objets.get(c["objet"], {})
+        cles = set(c) - {"objet"}
+        if "allume" in c:
+            cles.add("combustible")  # Entretenir une flamme déjà allumée produit aussi un résultat.
+        etats.setdefault(c["objet"], {}).update({k: o.get(k) for k in cles})
+    return etats
 
-    Cette preuve du moteur est persistante. Le bénéficiaire ne l'apprendra qu'en observant
-    la condition (observer_promesses), avec les règles communes de perception.
+
+def constater_geste_joueur(monde, avant):
+    """Une modification effective réalise la condition ; déplacer une flamme n'est pas l'allumer.
+
+    La preuve du moteur persiste ; le bénéficiaire l'apprend seulement par sa perception.
     """
-    touches = {cible for _, cible, _ in effets}
     for engagement in monde.data.get("promesses_joueur", []):
         c = engagement["condition"]
         o = monde.objets.get(c["objet"], {})
-        if c["objet"] in touches and all(o.get(k) == v for k, v in c.items() if k != "objet"):
+        cles = set(c) - {"objet"}
+        if "allume" in c:
+            cles.add("combustible")
+        ancien = avant.get(c["objet"], {})
+        change = (o.get("allume") != ancien.get("allume") or
+                  o.get("combustible", 0) > (ancien.get("combustible") or 0)) if "allume" in c else any(
+                      o.get(k) != ancien.get(k) for k in cles)
+        if (change
+                and all(o.get(k) == v for k, v in c.items() if k != "objet")):
             engagement["realisee"] = True
 
 

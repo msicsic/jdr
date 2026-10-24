@@ -754,8 +754,6 @@ class Moteur:
             Moteur._attendre_reveil(travail, lignes)
             return
         Moteur._stabiliser(travail, lignes)
-        from . import agendas
-        agendas.constater_geste_joueur(travail, effets)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         from .temps import MINUTE, duree, ecouler, instant
         debut = instant(travail)
@@ -964,6 +962,15 @@ class Moteur:
 
     @staticmethod
     def _appliquer(m, effet, lignes):
+        from . import agendas
+        avant = agendas.etat_promis(m)
+        resultat = Moteur._appliquer_effet(m, effet, lignes)
+        if avant:
+            agendas.constater_geste_joueur(m, avant)
+        return resultat
+
+    @staticmethod
+    def _appliquer_effet(m, effet, lignes):
         from .deliberation import changer_etat
         op, cible, valeur = effet
         if op == "passer_obstacle":

@@ -41,6 +41,21 @@ def parler(m, demande=PART, contrepartie=CLOCHE, texte="Je te donne ma cloche co
 
 
 class PropositionsTests(unittest.TestCase):
+    def test_deplacer_une_flamme_ne_vaut_pas_allumage_deux_sources(self):
+        from donjon.moteur import Moteur, proposition
+        for lampe in ("torche", "lanterne"):
+            m = scene()
+            m.objets[lampe].update(lieu="joueur", proprietaire="joueur", allume=True, combustible=60)
+            m.data["connus"].append(lampe)
+            t = {"type": "tache", "condition": {"objet": lampe, "allume": True}}
+            with patch.object(type(m), "d20", return_value=20):
+                m, _ = parler(m, contrepartie=t, texte="Une part contre ma promesse d'allumer cette source.")
+            moteur = Moteur(m)
+            moteur.executer(moteur.preparer(proposition("poser", lampe)))
+            m = recharger(m)
+            self.assertNotIn("realisee", agendas.en_cours(m, "joueur")[0])
+            self.assertIn("Tu as promis", decrire_comptes(m))
+
     def test_accepter_honore_la_dette_de_deux_auditeurs(self):
         for qui in ("marchand", "aubin"):
             m = scene(qui)
@@ -155,8 +170,10 @@ class PropositionsTests(unittest.TestCase):
             if abandon:
                 croire(m, "marchand", "brasero", "etat", {"allume": False}, "vu")
             else:
+                avant = agendas.etat_promis(m)
                 m.objets["brasero"]["allume"] = True
-                agendas.constater_geste_joueur(m, [("alimenter", "brasero", None)])
+                m.objets["brasero"]["combustible"] += 10
+                agendas.constater_geste_joueur(m, avant)
                 croire(m, "marchand", "brasero", "etat", {"allume": True, "faible": False}, "vu")
             lignes = []
             agendas.observer_promesses(m, lignes)
