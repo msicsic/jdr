@@ -29,7 +29,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   une perception locale dont le complément entier nomme une personne reliée (`commandes.perception_nommee`)
   laisse désormais le moteur trancher (correctif à part, après la fusion), un nom non relié reste refusé par le lexique (« observer Aubin »).
   Les deux refus restent locaux, zéro appel, un `attendu` et une cause chacun. Tests ciblés (noms non
-  reliés, signes, calibration, noms, parole-voix, relances, prises locales) : 114 verts.
+  reliés, signes, calibration, noms, parole-voix, relances, prises locales) : 114 verts. Suite complète
+  une fois sur le correctif (2917a62, `tools/tests.py --processus 4`) : **1 659 tests, 15 sautés**, verte (1 905 s).
 
 - Branche `codex-designations`, fusionnée, base `main` **42bb9c0** : noyaux nominaux
   reconnus par `noms`, qualificatifs conservés et contrôlés séparément. Même mécanisme dans
@@ -2274,8 +2275,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite complète passe : **1 650 tests, 15 ignorés**, sans appel au modèle (intégration 227d20c, après
-  R, A0, A1, `cache-references`, lots 25 et 26 ; `tools/tests.py --processus 3`, 2 202 s, aucun échec ni erreur),
+- La suite complète passe : **1 659 tests, 15 ignorés**, sans appel au modèle (intégration 2917a62, après
+  R, A0, A1, `cache-references`, lots 25, 26 et 27 ; `tools/tests.py --processus 4`, 1 905 s, aucun échec ni erreur),
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
