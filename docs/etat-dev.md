@@ -4,6 +4,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Fusions des lots 34 et 35 sur l'intégration** (77473f9, base 1f1ea43 ; sans Luna) : `codex-perception-geste`
+  (ccc517a) puis `codex-soi-meme` (77473f9), seul conflit `docs/etat-dev.md`. Fichier de code commun : `moteur.py`
+  seul (lot 34 contre la vue mémorisée de la transaction), hunks disjoints qui s'accordent ; le lot 35 (`signes`,
+  `social`) ne croise rien. Tests des lots et `test_question_absent`, `test_nom_non_relie`, `test_signes` : 45 tests,
+  verts. `comparer_bancs --empreintes` contre 1f1ea43, 2 h, Relais et crue × 1985, 7, 42, 2024 : Relais identique ;
+  crue 1985, 7 et 42 : empreintes d'état, chronique et mesures identiques, récit et souvenirs différents par le
+  seul champ `aveu: false` des rumeurs reçues par `social.bavarder` (désormais via `social.recevoir`) et leur
+  `preuve` qui en dépend (première divergence de l'état final, crue 1985, minute 25) ; aucun écart de jeu à 2 h
+  (le jet de moins du rapport est à 203 min). Suite complète une fois (`tools/tests.py --processus 4`) :
+  **1 696 tests, 16 sautés**, verte (1 015,5 s), sans reprise hors bac à sable.
+
 - **Fusions des lots 31 et 32 sur l'intégration** (da13f9d, base 41c1c7c ; sans Luna) : `codex-cout-exact` (f4e95fd)
   puis `codex-question-absent` (da13f9d), seul conflit `docs/etat-dev.md`. `comparer_bancs --empreintes` contre
   41c1c7c, 2 h, quatre scénarios × 1985, 7, 42, 2024 : chronique, mesures et état final complet identiques nuit par
@@ -26,6 +37,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `_parts_remises` 27 %, devis 12 %, `route`/`prix_route` 11 %, et 7 % dans des `from . import` locaux de
   fonctions chaudes (`_mesurer`, `obstacles.sejours_route`, `perception.substance`, `Vue.arrivee`, `prix_route`,
   `route` : 6,3 M appels d'`importlib._bootstrap.parent`). Bruts : `artifacts/cout-12h/` du worktree d'intégration (nuits et profils).
+
 - Branche `codex-soi-meme`, fusionnée, base `41c1c7c` (brief `2a96b84`),
   correctif signé SSH `8fa071f` : les accusations directes de `social.bavarder` passent par
   `social.recevoir`, comme celles entendues par un tiers. L'accusé ne reçoit plus une rumeur sur
@@ -2492,8 +2504,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite complète passe : **1 688 tests, 16 ignorés**, sans appel au modèle (intégration da13f9d, après
-  les lots 29 à 32 ; `tools/tests.py --processus 4`, 981,5 s, aucun échec ni erreur),
+- La suite complète passe : **1 696 tests, 16 ignorés**, sans appel au modèle (intégration 77473f9, après
+  les lots 29 à 35 ; `tools/tests.py --processus 4`, 1 015,5 s, aucun échec ni erreur),
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
