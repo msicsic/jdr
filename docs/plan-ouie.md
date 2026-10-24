@@ -1619,6 +1619,39 @@ Limites de l'appel négocié :
   rien ne la dit (une garde, une ronde). `MARGE` est une constante.
 - `tools/comparer_bancs.py` n'est pas sur `main` : les bancs sont comparés mesure par mesure.
 
+## Clore le rendez-vous pour les deux (lot 60, `codex-rendez-vous`)
+
+Le rendez-vous a une seule clôture (`appel.retrouves`, également appelée par
+`deliberation.rejoint` dans les dialogues). Elle efface l'attente et la venue correspondantes
+des deux participants, révise leurs perceptions et réveille leur choix avant d'écrire une seule
+retrouvaille. Une autre attente éventuelle reste intacte. Les échanges avec le joueur utilisent
+la même clôture ; les conséquences sont donc sauvegardées avant le récit.
+
+L'auberge 42 de l'intégration `5c2ce81` révélait deux problèmes liés : Odile reprenait sa ronde
+dès qu'elle apercevait Anselme à travers une porte, alors qu'il achevait encore son geste ;
+Anselme gardait la venue vers l'ancienne salle et la recherche qui en découlait. Celui qui
+attend conserve désormais l'attente jusqu'au traitement de l'arrivée par le voyageur. L'aperçu
+au seuil réveille ce dernier ; la venue se termine au lieu convenu, en voyant l'autre ou en
+le sachant à portée de voix. Un dialogue effectivement échangé la termine aussi. « Me voici ! »
+fait connaître la présence si la perception est asymétrique, seulement si les mots parviennent.
+
+La capture réelle à 500 minutes est versionnée dans `tests/data/rendez-vous-auberge-42-500.json.gz`.
+Son rejeu sur dix minutes donne un appel et une seule retrouvaille, puis la demande d'Anselme.
+Les tests couvrent aussi le Relais, le joueur dans les deux rôles et dans les deux sens de venue,
+la parole rompue quand l'appelant part, l'absence de clôture d'une autre attente, l'état complet
+et le rendu après recharge et après découpage du temps. Voir le
+[rapport du lot 60](taches/rapport-codex-60-rendez-vous.md) pour les bancs et les limites.
+
+L'audit auberge 12 h de la branche garde **deux retrouvailles rapprochées sur la graine 42**
+(zéro sur 7) : à 462–463 minutes, Odile repart après la clôture, avant la demande, puis de
+nouveaux appels ouvrent d'autres rendez-vous. La clôture commune ne suffit donc pas à garantir
+l'absence générale de ces répétitions ; ce défaut de disponibilité reste ouvert.
+
+**Limite de cadence** : la clôture de la venue reste au prochain choix du voyageur après son
+geste et son arrivée dans la salle convenue, sauf parole échangée. Un aperçu entre deux salles
+ne signifie plus que le trajet promis est terminé. L'attente garde son échéance et cède toujours
+aux urgences ; le lot ne garantit pas qu'une personne retrouvée restera disponible ensuite.
+
 ## Limites
 
 - Un geste long (crocheter, une minute) retentit une fois, quand il commence ; le bruit part de la

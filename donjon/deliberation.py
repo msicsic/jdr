@@ -466,16 +466,8 @@ def _passe_avant(monde, id, intention):
 def rejoint(monde, id, qui):
     """``id`` et ``qui`` se sont retrouvés (ils se voient ou se parlent) : le rendez-vous convenu à un
     appel (``appel``) est tenu, l'attente de l'un et la venue de l'autre sont finies."""
-    from .pnj import _chroniquer
-    from .social import _qui
-    e = lire(monde, id)
-    r, d = e["rejoint"], e["rejoindre"]
-    if d and d["qui"] == qui:
-        esprit(monde, id)["rejoindre"] = None
-    if not r or r["qui"] != qui:
-        return
-    esprit(monde, id)["rejoint"] = None
-    _chroniquer(monde, id, f"{_qui(monde, id)} retrouve {_qui(monde, qui)}, comme convenu.", "reponse")
+    from .appel import retrouves
+    retrouves(monde, id, qui)
 
 
 def attendre(monde, id, minute):

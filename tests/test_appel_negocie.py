@@ -137,6 +137,7 @@ class QuoiTests(unittest.TestCase):
         veux ? » ; Hugues : « J'ai à te prévenir de quelque chose. » ; un avertissement le regarde :
         « J'arrive ! ». Anselme vient au couloir, Hugues l'y attend sans bouger, et le prévient."""
         m = recharger(hugues_cherche_anselme())
+        confiance_avant = envers(m, "anselme", "lucien")["confiance"]
         m, texte = attendre(m)
         textes = chronique(m)
         suite = ["Hugues appelle : « Anselme ? »", "Anselme répond : « Qu'est-ce que tu veux ? »",
@@ -148,7 +149,11 @@ class QuoiTests(unittest.TestCase):
         self.assertEqual(len(appels(m, "hugues")), 1)
         self.assertIsNone(lire(m, "hugues")["rejoint"])
         self.assertIsNone(lire(m, "anselme")["rejoindre"])
-        self.assertFalse(relation(m, "anselme", "lucien")["valeur"])
+        # L'avertissement arrive une fois, plus tôt. Une rumeur baisse la confiance sans
+        # forcément franchir sa bande d'hystérésis ; les retrouvailles ne décident pas l'avis.
+        self.assertLess(envers(m, "anselme", "lucien")["confiance"], confiance_avant)
+        self.assertTrue(any(s["type"] == "avis_recu" and s["sujet"] == "lucien" and s["valeur"] is False
+                            for s in lire(m, "anselme")["memoire"]))
 
     def test_cas_reel_mine_josse_dit_ce_qu_il_veut_gaspard_le_fait_venir(self):
         """Mine (graine 2024) : Josse hèle Gaspard pour une part de ses bûches (le poêle qu'il garde
