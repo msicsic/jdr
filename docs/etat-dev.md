@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-borne-rester`, fusionnée, lot 48, base **3aba83b**, code signé **970d6f5** :
+  borne admissible et cohérente du séjour final (`Vue.borne_rester`, `_explorer_etats`) :
+  `RESTER × min(gardes laissées ailleurs + eau)` sur les sorties relaxées, sans noir ni compagnie ;
+  constante pendant la recherche, nulle pendant la découverte de lumière. Coûts et rang historique
+  conservés, même lors d'arrondis ; graphes et certificat restent indépendants de ce tri.
+  **Contrat précisé par l'utilisateur le 2026-10-24** : mêmes décisions quand la référence uniforme
+  ne plafonne pas ; si elle plafonne, autre résultat permis seulement au coût de la complète
+  (`REFERENCE`, 60 000 nœuds), ou aucun plan si elle n'en trouve pas. `VERIFIER` le contrôle et
+  relève ces cas dans `BORNES` (`ancienne_borne=True`). Premières divergences des nuits longues :
+  Lucien, auberge 42 min 559, `garder:grenier`, aucun plan à 4 000 avant, plan à 78 avec H,
+  complète identique à 5 759 (coût 78,92250378787878) ; auberge 1985 min 486, `garder:etable`,
+  aucun plan à 4 000 avant, rester à 102 avec H, complète identique à 4 180 (coût 90).
+  Les deux mines sont entièrement identiques sur 12 h ; 16 empreintes de 2 h identiques.
+  Contrôles `VERIFIER` + perception à 1, mine/auberge 42, 2 h : sans écart ni borne.
+  Huit tests nouveaux, état et rendu après recharge ; onze ciblés verts ; suite finale unique :
+  **1 742 tests, quatre ignorés, aucun échec**, 736,2 s, trois processus à priorité réduite.
+  Sur la capture de Lucien à 480 min : 3 688→663 états, même résultat et monde.
+  Trois versions lancées ensemble, priorité réduite : CPU moyen ancien/base/branche sur 12 h,
+  mine **69,52 / 300,27 / 300,76 s**, auberge **62,62 / 195,24 / 216,61 s**.
+  **Pas de gain global** (991,01→1 034,72 s, +4,4 %) : auberge 1985 −22,6 %, auberge 42 +38,8 %,
+  après bifurcation autorisée ; le coût de la mine reste ouvert. Aucune violation, usurpation ni
+  nouvelle boucle persistante relevée ; les nuits divergentes ne sont plus comparées pas à pas.
+  Preuve, deux captures, résultats complets, tranches et limites dans le
+  [rapport du lot 48](taches/rapport-codex-48-borne-rester.md). Aucun appel au modèle, `main` non touchée.
+  Fusionné sur l'intégration après le lot 49 : seul conflit `docs/etat-dev.md` ; aucun fichier de code commun.
+
 - Branche `codex-devis-vides`, fusionnée, lot 49, base moteur `3aba83b` :
   un certificat nécessaire d'allumage dans `part_estimee` écarte les sources sans
   voie de flamme, après leur accès et avant `_preparer`. Croyances, permissions,

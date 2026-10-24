@@ -59,9 +59,12 @@ class GrapheReprisTests(unittest.TestCase):
         self.assertEqual(len(set(fautes)), 3)
         self.assertEqual([(r["graphe"], r["memoire"]) for r in recherches],
                          [(False, False), (False, False), (True, False)])
-        self.assertEqual(recherches[1]["noeuds"], recherches[2]["noeuds"])
-        with patch.object(planification, "_GRAPHES", Oublieux()), patch.object(planification, "_MEMOIRE", {}):
+        # Les nouveaux prix peuvent changer l'arrêt devant les résultats
+        # terminaux minorés ; comparer au recalcul avec ces mêmes prix.
+        with patch.object(planification, "_GRAPHES", Oublieux()), patch.object(planification, "_MEMOIRE", {}), \
+                diagnostics() as refaites:
             self.assertEqual(garder(m, "lucien", "grenier"), plans[2])
+        self.assertEqual(recherches[2]["noeuds"], refaites[0]["noeuds"])
         self.assertEqual([x["operation"] for x in plans[0]], [x["operation"] for x in plans[2]])
 
     def assertMemeMonde(self, cree, minutes, pas, qui):
