@@ -4,7 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-refuge-mouille`, **non fusionnée**, base `63a717c`, lot 39 :
+- Branche `codex-cout-12h`, fusionnée, base moteur `63a717c` (brief `17164f8`), lot 38 :
+  mêmes décisions sur les nuits contrôlées, trois leviers de calcul. Une borne admissible sur les
+  suites terminales diffère leur devis ; rang historique des égalités réservé, normalisation commune
+  des gestes, découverte de lumière au même point, certificat d'absence conservateur devant une suite
+  inconnue. La borne reste nulle sur les états ordinaires : ce n'est pas une heuristique positive
+  générale sur tous les buts. Parts par état complet, besoin de combustible et attente du donneur par
+  leurs entrées exactes, devis partagé entre lots de même compatibilité ; imports chauds au module ou
+  par référence gardée. Aucun coût, prix, plafond de nœuds, scénario ni consigne du MJ modifié.
+  Cinq tests nouveaux (mine et auberge : moins d'états internes de devis, même plan, monde et rendu
+  après recharge ; égalités et plafond ; filtres des devis ; cache exact ; certificat réel).
+  Suite complète unique : **1 707 tests, quatre ignorés**, verte, trois processus à priorité réduite,
+  688,6 s ; les cinq tests du lot repassent après ajout du compte des états de devis.
+  Empreintes 2 h, quatre scénarios × quatre graines, contre `63a717c` : identiques.
+  `VERIFIER` + `spatial.VERIFICATION=1`, 2 h, mine/auberge 42 : sans écart ni borne.
+  Quatre nuits de 12 h, mine/auberge × 42/1985 : état complet, chronique, mesures, récit, souvenirs
+  et tous les résultats des recherches strictement identiques à la base (`--calcul`), nœuds et
+  recherches bornées également identiques. Trois versions lancées ensemble, deux processus chacune :
+  CPU moyen ancien/base/branche, mine **82,7 / 311,6 / 248,7 s**, auberge **75,0 / 274,9 / 232,1 s** ;
+  **−20,2 % / −15,6 %** contre la base, encore **×3,01 / ×3,09** contre `42bb9c0`.
+  Leviers isolés, 12 h, 1985, mine/auberge : borne **3,88 % / −0,04 %**, puis cache **1,89 % / 2,14 %**,
+  puis imports **15,63 % / 12,07 %** ; mêmes résultats des recherches à chaque étape.
+  **Visée ×1,5 non atteinte** : la recherche reste dominante en fin de nuit, sans retrait d'états
+  ordinaires ni modification de leur borne. Mesures par levier, tranches et profil dans le
+  [rapport du lot 38](taches/rapport-codex-38-cout-12h.md), bruts `artifacts/codex-38/` du worktree.
+  Aucun appel au modèle.
+  Fusionné sur l'intégration après le lot 39 (diagnostic sans code du jeu) : seul conflit `docs/etat-dev.md`,
+  aucun fichier de code commun depuis 63a717c.
+
+- Branche `codex-refuge-mouille`, fusionnée (diagnostic seul), base `63a717c`, lot 39 :
   **diagnostic seul, conformément au point d'arrêt du brief** (cause dans les trajets réservés
   au lot 38). Crue 500, même joueur passif que l'audit : Aubin choisit la galerie à 156 min,
   Brune le poêle à 160, mais la marche refuse leurs salles intermédiaires attendues noyées ;
@@ -2551,13 +2579,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## À revoir
 
-- **Coût sur 12 h** (intégration da13f9d contre `main` 42bb9c0, lancés ensemble) : ×3,3 à ×4,4 par nuit à la
-  mine et à l'auberge, ×1,3 à ×1,5 sur les quatre premières heures seulement, ×2,3 à ×5,7 de 4 à 8 h, ×3,7 à ×4,5
-  de 8 à 12 h : le surcoût croît avec la nuit. États développés par recherche ×5 à ×9 (auberge 1985 à 8 h : 38 →
-  336) et coût par état ×3 (parts remises et devis `part_estimee` à chaque état, plus la moitié du temps) ;
-  recherches bornées de Rémy `faim` (mine 1985 : 0 → 319 en fin de nuit). À prendre dans un lot de coût : ne
-  développer les parts remises (et leur devis) qu'une fois par état et donneur, et sortir les imports locaux des
-  fonctions chaudes du planificateur ; puis mesurer sur 12 h, pas seulement 4 h.
+- **Coût sur 12 h**, après le lot 38 (`codex-cout-12h`, non fusionnée) : −20,2 % à la mine, −15,6 %
+  à l'auberge contre `63a717c`, mais encore ×2,39 à ×3,71 contre `42bb9c0` par nuit (42/1985).
+  La borne terminale, les caches exacts des parts/devis et les références des fonctions chaudes sont faits.
+  Le surcoût croît toujours en fin de nuit : mêmes 1,60/2,19 M états à la mine, 0,99/0,68 M à l'auberge,
+  mêmes 272/471 et 8/1 recherches bornées que la base. Le profil de reprise à 8 h reste à 94–96 % dans
+  l'exploration ; approches 26 %, devis 18 %, imports moins de 1 %. Une borne positive générale sur les
+  états ordinaires reste ouverte ; ne pas retirer des états dominés ou changer leur plafond en prétendant
+  conserver les recherches bornées. [Mesures, admissibilité et limites](taches/rapport-codex-38-cout-12h.md).
 
 - Coût exact (lot 31, `codex-cout-exact`, fusionnée) : l'explosion du coût joueur du profil
   fourni n'est pas reproduite par les profils cProfile des fusions Q, R, 25, 26, 27 et 30 :

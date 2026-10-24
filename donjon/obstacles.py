@@ -13,6 +13,7 @@ from .monde import ErreurMonde
 from .refus import ProprieteInconnue
 from .francais import designer
 from .temps import PAS_JOUEUR, MINUTE, duree_pas
+from .spatial import QUART, quarts, VECTEURS
 
 METHODES = ("dessous", "dessus")
 # Les manipulations ordinaires du joueur sont encore des Plan à une minute ;
@@ -479,7 +480,6 @@ def _parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, p
 
 def sejours_route(route, orientation=None):
     """Les durées de la route et les rotations précédant ses pas, par salle."""
-    from .spatial import QUART, quarts, VECTEURS
     if orientation in route._sejours:
         return route._sejours[orientation]
     debut = orientation

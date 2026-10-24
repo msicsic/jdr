@@ -30,7 +30,11 @@ from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
 from .relations import se_fie, se_mefie
-from .spatial import porte_par
+from .spatial import porte_par, QUART, VECTEURS, a_verifier
+from .obstacles import Route, cout_route, sejours_route, metrique_necessaire, monde_cru
+from .geometrie import cases
+from .temps import MINUTE
+from . import pnj, trajet_estime
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
@@ -168,7 +172,6 @@ class Vue:
 
     def __init__(self, monde, id):
         from .caractere import interdit
-        from .pnj import chemin, parcours
         from .vol import proprietaire
         self.monde, self.id = monde, id
         self.objets = monde.objets
@@ -207,6 +210,8 @@ class Vue:
                               or "allume" in x) for o in self.connus for x in [self.objets[o]]}
         # Les sources qu'il connaît et qu'un combustible recharge (``perception.recharge``).
         self.rechargeables = [o for o in self.connus if brule(self.objets[o])]
+        self.sources_du_lot = {o: frozenset(s for s in self.rechargeables if recharge(self.objets[s], self.objets[o]))
+                               for o in self.connus}
         # Ce qui donne du feu de main en main : un outil d'allumage, une source portable.
         self.flammes_portables = [o for o in self.connus if "allumage" in self.objets[o].get("usages", [])
                                   or "allume" in self.objets[o] and self.objets[o].get("mobile")]
@@ -235,8 +240,7 @@ class Vue:
                     self.eau[s] = (2 * taux(monde, id, "eau") * min(cm, eau.NOYEE_CM) / eau.NOYEE_CM if cm
                                    else taux(monde, id, "menace"))
         self._descentes = {}
-        self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
-        from .obstacles import metrique_necessaire, monde_cru
+        self._chemin, self._parcourir, self._parcours = pnj.chemin, pnj.parcours, {}
         self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
         self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
         self._metriques = {15: self._metrique}
@@ -275,6 +279,9 @@ class Vue:
         self._estime_part = False
         self._estimations_parts = {}
         self._depart_estimation = None
+        self._devis_differes = self._devis_developpes = 0
+        self._parts_lues, self._sources_vides, self._attentes_parts = {}, {}, {}
+        self._contexte_parts = None
 
     @property
     def emploie_lumiere(self):
@@ -480,7 +487,6 @@ class Vue:
                 if s != e.salle and not self.descente(e.salle, s):
                     route = self.route(e, s, ouvertes)
                     if route is not None:
-                        from .obstacles import cout_route
                         allers.append((s, cout_route(route, e.orientation)))
             self._allers[cle] = allers
         return self._allers[cle]
@@ -492,18 +498,16 @@ class Vue:
         if self._cru_spatial is None:
             return self._chemin(self.monde, self.id, e.salle, arrivee, e.portes,
                                 self.ouvertes(e) if ouvertes is None else ouvertes, metrique=False)
-        from .trajet_estime import parcours
         ouvertes = self.ouvertes(e) if ouvertes is None else ouvertes
         equipement = e.portes if self.metrique(e.allure) else frozenset(
             k for k in e.portes if self.objets[k].get("ouvre"))
         cle = (e.salle, equipement, ouvertes, e.allure, self.portes_prevues(e))
         if cle not in self._parcours:
-            self._parcours[cle] = parcours(self, e, ouvertes)
+            self._parcours[cle] = trajet_estime.parcours(self, e, ouvertes)
         return self._parcours[cle].get(arrivee)
 
     def metrique(self, allure):
         if allure not in self._metriques:
-            from .obstacles import metrique_necessaire
             self._metriques[allure] = metrique_necessaire(self.monde, self.id, allure) if self._passages_crus else False
         return self._metriques[allure]
 
@@ -513,10 +517,8 @@ class Vue:
 
     def arrivee(self, e, salle, route):
         """L'arrivée change la salle et enregistre les portes franchies."""
-        from .obstacles import Route
         if not isinstance(route, Route):
             return e.apres(salle=salle)
-        from .spatial import VECTEURS
         orientation = next((k for k, v in VECTEURS.items() if route.chemin and v == route.chemin[-1][3]), e.orientation)
         faits = [(cle, valeur) for p in sorted(route.portes) if not self.ouvert(e, p) or self.verrouille(e, p)
                  for cle, valeur in ((("ouvert", p), True), (("verrou", p), False))]
@@ -524,8 +526,6 @@ class Vue:
 
     def prix_route(self, e, route):
         """Pression intégrée dans chaque salle parcourue, avant les effets du geste."""
-        from .obstacles import Route, cout_route, sejours_route
-        from .temps import MINUTE
         if not isinstance(route, Route):
             return cout_route(route) * self.pression(e)
         return sum(d / MINUTE * self.pression(e.apres(salle=s))
@@ -553,23 +553,18 @@ class Vue:
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""
-        from .trajet_estime import approche
-        from .obstacles import Route
         if self._cru_spatial is None:
             return Route(fin=(e.salle, None))
-        return approche(self, e, etape, cibles)
+        return trajet_estime.approche(self, e, etape, cibles)
 
     def contacts(self, salle, cibles, centre=False):
         """Cases qui touchent les mêmes cibles ; leur ordre reste celui des tables."""
-        from .spatial import a_verifier
-        from .pnj import _a_portee_de
-        from .geometrie import cases
         cle = (salle, cibles, centre)
 
         def calculer():
             return frozenset(c for c in cases(self._cru_spatial.data["salles"][salle])
                              if (c == cibles[0] if centre else
-                                 all(_a_portee_de(self._cru_spatial, salle, c, cible) for cible in cibles)))
+                                 all(pnj._a_portee_de(self._cru_spatial, salle, c, cible) for cible in cibles)))
 
         if cle not in self._contacts:
             self._contacts[cle] = calculer()
@@ -691,10 +686,22 @@ class Vue:
         Promise dans le plan, le donneur s'est mis en route en même temps que lui : le chemin qu'il a
         fait lui-même depuis la promesse (``promis_ou``) n'est plus à attendre. Au moins le geste de
         servir."""
+        # Cette lecture ne lit ni le but, ni les droits, ni les effets terminaux.
+        # Les lieux (porteurs compris), portes prévues, positions compatibles des
+        # anciennes parties et départ de promesse suffisent, avec les possessions
+        # et l'allure. Tout le reste appartient à la Vue figée, jamais au temps.
+        cle = (e.salle, e.portes, e.allure, e.case, e.orientation,
+               frozenset((k, x) for k, x in e.faits.items()
+                         if k[0] in ("lieu", "ouvert", "verrou", "case_objet", "promis_ou", "promis_case")),
+               donneur, o, service, cible)
+        if cle not in self._attentes_parts:
+            self._attentes_parts[cle] = self._attente_part(e, donneur, o, service, cible)
+        return self._attentes_parts[cle]
+
+    def _attente_part(self, e, donneur, o, service, cible):
         reserve = self.salle(e, o)
         depuis = self.salle(e, donneur) or reserve or service
-        from .pnj import DUREES
-        from .temps import MINUTE
+        DUREES = pnj.DUREES
         portees = frozenset(k for k in self.connus if self.lieu(e, k) == donneur)
         etat = e.apres(salle=depuis, portes=portees,
                        case=self.case_objet(e.apres(salle=depuis), donneur), orientation=None)
@@ -703,7 +710,6 @@ class Vue:
             route = self.route(etat, salle)
             if route is None:
                 return float(ATTENTE_PART)
-            from .obstacles import cout_route
             temps += cout_route(route, etat.orientation)
             etat = self.arrivee(etat, salle, route)
             if objet:
@@ -728,13 +734,31 @@ class Vue:
             temps -= self.trajet(promis_ou, service, case=e.fait("promis_case", o))
         return max(servir, temps)
 
+    def sources_a_charger(self, e, vises):
+        """Le besoin de combustible, une fois pour tous les lots de cet état.
+
+        Lit uniquement possessions, faits allume/charge, emploi de lumière et
+        sources entretenues ; compatibilités, disponibilité et feu cru sont figés.
+        Deux états qui ne diffèrent que par salle, droits ou effets terminaux
+        réemploient donc exactement ce test, sans réemployer leur résultat de but.
+        """
+        entretenus = frozenset(vises.get("entretenir", ()))
+        cle = (e.portes, frozenset((k, x) for k, x in e.faits.items() if k[0] in ("allume", "charge")),
+               self.emploie_lumiere, entretenus)
+        if cle not in self._sources_vides:
+            deja = any("allume" in self.objets[k] and self.feu(e, k)[0] for k in e.portes)
+            disponibles = set().union(*(self.sources_du_lot[k] for k in e.portes if self.disponible(k)))
+            self._sources_vides[cle] = frozenset(s for s in self.rechargeables
+                if (s in entretenus or self.emploie_lumiere and not deja)
+                and not self.feu(e, s)[1] and s not in disponibles)
+        return self._sources_vides[cle]
+
     def trajet(self, depart_, arrivee, *, case=None, cible=None):
         """Temps estimé entre salles et vers une cible ; la case n'intervient pas."""
         etat = depart_ if isinstance(depart_, Etat) else Etat(depart_, (), {}, case)
         cle = ("trajet", etat, arrivee, cible)
         if cle not in self._crus:
             route = self.route(etat, arrivee)
-            from .obstacles import cout_route
             temps = 0 if route is None else cout_route(route, etat.orientation)
             if route is not None and cible:
                 etat = self.arrivee(etat, arrivee, route)
@@ -909,7 +933,9 @@ def gestes(v, e, vises=None, but=None):
 
     ``vises`` ouvre les gestes que seul un but demande, sur les objets ou lieux qu'il vise :
     inspecter une salle, prendre un objet qui ne sert à aucun geste, poser, fermer et
-    verrouiller, servir une part à quelqu'un. Les offrir partout élargirait la recherche sans
+    verrouiller, servir une part à quelqu'un. Une SuiteDifferee décrit un groupe
+    terminal dont la recherche ne calculera le détail qu'à sa borne de coût.
+    Les offrir partout élargirait la recherche sans
     rien lui apprendre."""
     monde, id = v.monde, v.id
     vises = vises or {}
@@ -1219,6 +1245,23 @@ def _engager(v, e, condition):
 
 
 def _parts(v, e, o, dans, vises, but):
+    if v._estime_part:
+        return
+    # Le but peut lire n'importe quel fait : aucun quotient approximatif de e.
+    # But et visées sont fixes pendant une exploration, enregistrés une fois à
+    # son entrée. La Vue ne traverse ni mutation du monde ni sauvegarde.
+    cle = (v._contexte_parts, e, o, dans, v.emploie_lumiere)
+    if cle in v._parts_lues:
+        yield from v._parts_lues[cle]
+        return
+    resultat = []
+    for g in _parts_calculer(v, e, o, dans, vises, but):
+        resultat.append(g)
+        yield g   # conserver le point de toute lecture de lumière dans _suites
+    v._parts_lues[cle] = resultat
+
+
+def _parts_calculer(v, e, o, dans, vises, but):
     """Une part : l'attendre si elle est promise, là où le donneur viendra la servir (près des
     vivres, ou du feu qu'il entretiendra) ; sinon la demander à son propriétaire. Une part de
     combustible va au feu que le but entretient, sinon au premier qu'il croit éteint : le donneur le
@@ -1302,13 +1345,7 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     donneur = v.proprietaire[o]
     if donneur in (None, v.id, "joueur") or not v.profil_de(donneur):
         return
-    compte = v.emploie_lumiere
-    deja = any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes)
-    besoin = any((s in vises.get("entretenir", ()) or compte and not deja)
-                 and not v.feu(e, s)[1] and recharge(v.objets[s], v.objets[o])
-                 and not any(recharge(v.objets[s], v.objets[k]) and v.disponible(k) for k in e.portes)
-                 for s in v.rechargeables)
-    if not besoin:
+    if not (v.sources_du_lot[o] & v.sources_a_charger(e, vises)):
         return
     attente = 0 if dans == donneur and v.salle(e, donneur) == e.salle else v.attente_part(e, donneur, o, e.salle)
     promise = v.promesse(o, True) == donneur
@@ -1335,11 +1372,47 @@ def _parts_remises(v, e, o, dans, vises, but=None):
                         "suppose": True}, 1 + attente, prix))
     if not offres:
         return
+    # Les suites ci-dessous sont toutes terminales. Leur prix contient au moins
+    # celui de l'offre, moins le geste conventionnel que _mesurer remplacera par
+    # une durée positive. Attente, devis, fautes et pressions sont non négatifs.
+    # Borne nulle pour une attente promise : aucun tarif de parole n'y est imposé.
+    borne = min(minutes if promise else max(0, minutes - 1)
+                for minutes, _, _, _ in offres)
+    yield SuiteDifferee(borne, _estimer_remise, (e, o, attente, offres, vises, but),
+                       depuis=e, vises=vises, but=but)
+
+
+class SuiteDifferee:
+    """Nœud A* intermédiaire d'une suite terminale, sans effet sur le monde.
+
+    Son coût déjà payé est celui du préfixe ; ``borne`` minore tout son reste.
+    Les états ordinaires, dont on ne sait pas borner le reste, gardent h = 0.
+    La borne est cohérente : l'arête vers ce nœud coûte zéro, ses sorties
+    terminales coûtent au moins la borne, et leurs h sont nuls. Aucun résultat
+    estimé n'est employé comme borne. Une seule évaluation par nœud du graphe.
+    """
+    def __init__(self, borne, calcul, arguments, *, depuis=None, vises=None, but=None):
+        self.borne, self.calcul, self.arguments = borne, calcul, arguments
+        self.depuis, self.vises, self.but = depuis, vises, but
+        self.suites = None
+
+    def developper(self, v):
+        if self.suites is None:
+            v._devis_developpes += 1
+            gestes_ = self.calcul(v, *self.arguments)
+            self.suites = (_normaliser_suites(v, self.depuis, self.vises, self.but, gestes_)
+                           if self.depuis is not None else [(*g, 0) for g in gestes_])
+            assert all(g[3].fait("estimation") and g[4] == 0 and g[1] >= self.borne
+                       for g in self.suites), "Borne de suite terminale invalide"
+        return self.suites
+
+
+def _estimer_remise(v, e, o, attente, offres, vises, but):
     from .part_estimee import suites
     en_feu = sum(1 for k in e.portes if e.fait("allume", k))
     for minutes, demande, duree, paye in offres:
         depuis, pression = e, attente * v.pression(e)
-        if not promise:
+        if not demande.get("attendre_remise"):
             mesure = _mesurer(v, e, [demande], e, 1)
             if mesure is None:
                 continue
@@ -1373,7 +1446,6 @@ def _chercher(v, e, sujet):
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
         return None
-    from .obstacles import cout_route
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
@@ -1567,14 +1639,15 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
                                issue, borne)
-    if VERIFIER and (garde is not None or repris or v.emplois is not None):
+    if VERIFIER:
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
-                  trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else None)
+                  trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else "borne")
     if DIAGNOSTIC is not None:
         DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
                            "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": garde is not None,
                            "graphe": repris and garde is None, "etapes": len(trouve[1]) if trouve else None,
                            "impossible": absence, "preuve_noeuds": preuve_noeuds, "preuve_issue": preuve_issue,
+                           "devis_differes": v._devis_differes, "devis_developpes": v._devis_developpes,
                            "duree": round(perf_counter() - debut, 6)})
     return trouve
 
@@ -1612,7 +1685,8 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
         brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
         brute.motif = v.motif
         brute.desespere = v.desespere
-        r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir)
+        r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir,
+                      differer=False)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
@@ -1648,7 +1722,7 @@ def _endure(v, trouve, depuis, gain):
     return bool(trouve and trouve[1]) and trouve[0] >= RESTER * v.pression(depuis or depart(v.monde, v.id, v)) + gain
 
 
-def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None):
+def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None, *, differer=True):
     """Découvrir les moyens que le but et ses gestes emploient, puis chercher.
 
     Une lecture de lumière dans un état sombre révèle ce que la lumière peut
@@ -1663,15 +1737,17 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     neuve la ferait avec ce prix-là (``_explorer_etats``).
     """
     v._depart_estimation = depart_
+    v._contexte_parts = (but, json.dumps(vises, sort_keys=True, ensure_ascii=False))
     sombre = lumineux = None
     if graphe is not None:
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
     voir = v.emploie_lumiere
     resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir,
-                               lumineux if voir else sombre, decouvrir=not voir)
+                               lumineux if voir else sombre, decouvrir=not voir, differer=differer)
     if not voir and v.emploie_lumiere:
         v._agissables.clear()
-        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux)
+        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux,
+                                   differer=differer)
     return resultat
 
 
@@ -1689,7 +1765,7 @@ def _departs(v, e):
 
 
 def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
-                    decouvrir=False):
+                    decouvrir=False, *, differer=True):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
     profondeur atteinte). ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
 
@@ -1709,7 +1785,12 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     infini = float("inf")
     degat = v.degat
     departs = _departs(v, depart_)
-    file = [(0, next(ordre), e, [], 0, False) for e in departs]
+    # Une place dans l'ordre historique est réservée à chaque groupe différé.
+    # Ses sorties gardent cette place et leur ordre interne, même calculées plus
+    # tard : les égalités restent celles de la file en coût uniforme. Les nœuds
+    # différés passent avant les vrais à priorité égale, pour révéler toutes les
+    # sorties susceptibles d'égaler le meilleur prix avant de décider.
+    file = [(0, 1, (next(ordre), 0), 0, e, [], 0, False) for e in departs]
     vus = {e: 0 for e in departs}
     examines = plus_profond = 0
     trouve = None
@@ -1717,7 +1798,18 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     # lumière : seule la passe suivante, avec les moyens d'éclairer, décidera du plan. Ses nœuds
     # restent justes pour la rejouer (le cinquième terme : où elle a lu la lumière).
     while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
-        cout, _, e, etapes, n, final = heapq.heappop(file)
+        _, _, rang, cout, e, etapes, n, final = heapq.heappop(file)
+        if isinstance(final, SuiteDifferee):
+            for i, (fautes, minutes, ajout, suivant, _, abime, _) in enumerate(final.developper(v)):
+                if fautes and faute is None:
+                    continue
+                if ((suivant.allure == 15 or suivant.fait("furtif"))
+                        and (not tenir or suivant.salle not in v.menacees)):
+                    total = cout + fautes * (faute or 0) + ((degat or 0) * abime if abime else 0) + minutes
+                    total += RESTER * v.pression(suivant) if tenir else 0
+                    heapq.heappush(file, (total, 1, (rang[0], i), total,
+                                         suivant, etapes + ajout, n + 1, True))
+            continue
         if final:
             trouve = cout, copy.deepcopy(etapes), e
             break
@@ -1741,7 +1833,8 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                 break
             if noeud[1] is None:
                 noeud[1] = v.pression(e)
-            heapq.heappush(file, (cout + RESTER * noeud[1], next(ordre), e, etapes, n, True))
+            total = cout + RESTER * noeud[1]
+            heapq.heappush(file, (total, 1, (next(ordre), 0), total, e, etapes, n, True))
         if n >= profondeur:
             continue
         if noeud[3] is None:
@@ -1753,7 +1846,20 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         elif noeud[4] == "gestes":
             v._lumiere_lue = True   # ses gestes y ont lu la lumière : seulement s'il les développe
         en_feu = noeud[2]
-        for fautes, minutes, ajout, suivant, duree, abime, pression in noeud[3]:
+        suites = noeud[3]
+        if decouvrir or not differer:
+            # La lecture de lumière définit les moyens offerts à la deuxième
+            # passe : elle doit se produire au point historique, avant tout tri.
+            suites = [g for s in suites for g in (s.developper(v) if isinstance(s, SuiteDifferee) else [s])]
+            if decouvrir and v._lumiere_lue and not noeud[4]:
+                noeud[4] = "gestes"
+        for suite in suites:
+            if isinstance(suite, SuiteDifferee):
+                v._devis_differes += 1
+                heapq.heappush(file, (cout + suite.borne, 0, (next(ordre), 0), cout,
+                                     e, etapes, n, suite))
+                continue
+            fautes, minutes, ajout, suivant, duree, abime, pression = suite
             if fautes and faute is None:
                 continue
             surcout = (degat or 0) * abime if abime else 0   # un prix qui n'est pas du temps (abîmer)
@@ -1765,19 +1871,29 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                 total += duree * pression  # Le temps qu'il passe dans le noir, ou loin de ses biens.
             if estime:
                 if (suivant.allure == 15 or suivant.fait("furtif")) and (not tenir or suivant.salle not in v.menacees):
-                    heapq.heappush(file, (total + (RESTER * v.pression(suivant) if tenir else 0),
-                                         next(ordre), suivant, etapes + ajout, n + 1, True))
+                    total += RESTER * v.pression(suivant) if tenir else 0
+                    heapq.heappush(file, (total, 1, (next(ordre), 0), total,
+                                         suivant, etapes + ajout, n + 1, True))
             elif total < vus.get(suivant, infini):
                 vus[suivant] = total
-                heapq.heappush(file, (total, next(ordre), suivant, etapes + ajout, n + 1, False))
+                heapq.heappush(file, (total, 1, (next(ordre), 0), total,
+                                     suivant, etapes + ajout, n + 1, False))
     return trouve, examines, len(vus), plus_profond
 
 
 def _suites(v, e, vises, but, conclure=False):
     """Les gestes depuis ``e`` qui mènent quelque part, chacun avec les termes de son coût : (fautes,
     minutes, étapes, état suivant, durée, abîme, ce que l'état suivant laisse monter par minute)."""
+    return _normaliser_suites(v, e, vises, but, gestes(v, e, vises, but), conclure)
+
+
+def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
+    """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
-    for geste in gestes(v, e, vises, but):
+    for geste in possibles:
+        if isinstance(geste, SuiteDifferee):
+            suites.append(geste)
+            continue
         fautes, minutes, ajout, suivant = geste[:4]
         furtif = any(x.get("condition") in ("sans_temoin", "dans_le_dos") for x in ajout)
         if furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None:
@@ -1819,10 +1935,7 @@ def _mesurer(v, e, ajout, suivant, ancienne_duree):
     Les coûts sociaux restent séparés du temps. Une probabilité multiplie les
     tentatives du geste, jamais la marche d'approche.
     """
-    from .obstacles import cout_route
-    from .pnj import DUREES, DURABLES, TOUR
-    from .temps import MINUTE
-    from .spatial import QUART
+    DUREES, DURABLES, TOUR = pnj.DUREES, pnj.DURABLES, pnj.TOUR
     if v._cru_spatial is None or any(x["operation"] not in (*DUREES, *DURABLES, "aller", "assommer", "dans_le_dos", "fuite")
                                       for x in ajout):
         return ancienne_duree, ancienne_duree * v.pression(e), suivant
@@ -1925,7 +2038,15 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
             continue
         if noeud[3] is None:
             return False, examines, "lacune", lue
-        for fautes, _, _, suivant, *_ in noeud[3]:
+        suites = []
+        for s in noeud[3]:
+            if isinstance(s, SuiteDifferee):
+                if s.suites is None:
+                    return False, examines, "lacune", lue
+                suites.extend(s.suites)
+            else:
+                suites.append(s)
+        for fautes, _, _, suivant, *_ in suites:
             if fautes and faute is None or suivant in vus:
                 continue
             vus.add(suivant)

@@ -6,12 +6,13 @@ par un trajet et un geste conclusif ; les autres préparatifs restent dans le
 préfixe détaillé de la recherche.
 """
 import heapq
+from itertools import count
 
-from .perception import recharge
+from .obstacles import cout_route
+from . import planification as p
 
 
 def suites(v, e, lot, vises, but):
-    from . import planification as p
     # La scène du devis est celle du départ ; seuls les moyens déjà acquis et
     # le budget engagé par le préfixe y sont reportés. Cela partage le devis
     # entre les préparatifs qui ont les mêmes moyens, sans multiplier les suites.
@@ -19,7 +20,12 @@ def suites(v, e, lot, vises, but):
               if cle[0] in ("permis", "acquis", "achete", "depense", "faute", "degat")]
     e = (v._depart_estimation or e).apres(salle=e.salle, case=e.case, orientation=e.orientation,
                                         portes=e.portes, faits=droits, allure=e.allure)
-    cle = (e, lot, v.emploie_lumiere)
+    # Le lot ne sert qu'à choisir les sources qu'il recharge ; deux lots de
+    # même compatibilité ont exactement le même devis. Tous les autres moyens,
+    # droits et dépenses restent dans l'état normalisé complet, le but et ses
+    # visées dans le contexte de l'exploration, les lectures du monde dans v.
+    sources = v.sources_du_lot[lot]
+    cle = (v._contexte_parts, e, sources, v.emploie_lumiere)
     if cle in v._estimations_parts:
         return v._estimations_parts[cle]
     resultats = []
@@ -32,7 +38,6 @@ def suites(v, e, lot, vises, but):
             return None
         suivant = v.arrivee(etat, salle, route)
         # Le même coût de route que la recherche (``obstacles.cout_route`` : passages compris).
-        from .obstacles import cout_route
         return suivant, cout_route(route, etat.orientation) + v.prix_route(etat, route)
 
     def mesurer(etat, etape, suivant, preference=0):
@@ -83,7 +88,7 @@ def suites(v, e, lot, vises, but):
     # demande de feu au porteur garde son refus et son prix social habituels.
     for source in v.rechargeables:
         x = v.objets[source]
-        if (not recharge(x, v.objets[lot]) or v.contrarie(source) or v.feu(e, source)[1]):
+        if (source not in sources or v.contrarie(source) or v.feu(e, source)[1]):
             continue
         if source not in vises.get("entretenir", ()) and not v.emploie_lumiere:
             continue
@@ -115,7 +120,6 @@ def suites(v, e, lot, vises, but):
 
 
 def _preparer(v, e, source, sur_place, lieu, obtenir, aller, cout_source, fautes_source, vises, but):
-    from . import planification as p
     x = v.objets[source]
     # Charger n'éclaire pas. L'accord n'a pas cet effet dans le monde.
     mesure = p._mesurer(v, sur_place, [p._etape("alimenter", source)],
@@ -187,8 +191,6 @@ def _trajets(v, depart, combustion):
     principale ; un détour peut ainsi coûter moins qu'un trajet payé entièrement
     au prix du lieu d'arrivée. Seuls les lieux changent, pas l'inventaire.
     """
-    from itertools import count
-    from .obstacles import cout_route
     ordre = count()
     prix = {depart: 0}
     file = [(0, next(ordre), depart)]

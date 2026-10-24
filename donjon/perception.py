@@ -9,6 +9,10 @@ from collections import deque
 
 from .francais import designer
 
+# matiere importe Monde, qui importe perception : garder la référence après le
+# premier appel, sans ajouter d'import de démarrage ni de cycle.
+_matiere = None
+
 
 def salle_source(monde, source):
     lieu = source["lieu"]
@@ -237,9 +241,12 @@ def brule(source):
 def substance(reserve):
     """Ce que fournit une réserve de combustible : son contenu déclaré (un bidon d'huile), sinon
     la matière dont elle est faite (des bûches de bois)."""
-    from .matiere import SUBSTANCES
+    global _matiere
+    if _matiere is None:
+        from . import matiere
+        _matiere = matiere
     matiere = (reserve.get("contenu") or {}).get("matiere") or reserve.get("materiau")
-    return matiere if matiere in SUBSTANCES else None
+    return matiere if matiere in _matiere.SUBSTANCES else None
 
 
 def recharge(source, reserve):
