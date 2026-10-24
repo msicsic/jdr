@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-capacite-nouvelle`, non fusionnée, lot 52, base `5c2ce81` : la règle du lot 46
+  couvre les capacités des outils, clés, combustibles et sources, réunies sur les moyens portés
+  (`Vue.capacite`, `couvre`, `capacites_portees`, `doublon`) ; les cinq voies d'acquisition utilisent
+  le même contrôle, indépendant d'`emplois`, donc présent dans la référence de `VERIFIER`.
+  Qualité lue des gestes communs, aucune modification de coût, plafond ou scénario ni du lot 51.
+  Sept tests nouveaux après rechargement, dont la capture réelle de Joss à l'auberge 1985, minute
+  491 : 967 → 931 nœuds, même plan que la complète, même monde et rendu. Captures 480–570 :
+  3 783 recherches, aucun écart, seulement 36 nœuds évités à l'auberge ; aucun à la mine.
+  Empreintes 2 h, quatre scénarios × quatre graines identiques ; contrôles `VERIFIER` et spatial 1,
+  mine/auberge 42, 2 h, sans écart ni borne. Les huit nuits de 12 h ont les mêmes décisions et
+  le même monde, recherches comprises (`comparer --calcul`), 486 recherches bornées inchangées.
+  **Pas d'accélération démontrée** : mine CPU 941,02 → 959,53 s, mêmes nœuds ; auberge 835,74 →
+  830,89 s, nœuds −0,10 %. C1 ne résout pas la lenteur actuelle : les préparatifs ne sont presque
+  jamais redondants. Identité des contenants/vivres et budget projeté conservés ; couverture
+  prudente des moyens sans permission, pas de cumul de quantités. Aucun appel à Luna, `main` intacte.
+  Suite complète unique, trois processus à priorité réduite : **1 766 tests, 4 ignorés**, verte, 749,8 s.
+  [Définition et limites](plan-planificateur.md), [rapport et temps par tranche](taches/rapport-codex-52-capacite-nouvelle.md).
+
 - Branche `codex-une-source`, fusionnée, lot 46, base d'intégration `bafb9b9` (lot de coût) :
   une source de lumière portable de plus, qui n'apporte aucune capacité absente des sources déjà
   portées, n'ouvre aucun geste de la recherche (prendre, demander, acheter, saisir sur un porteur, faire
@@ -2869,7 +2887,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     nouvelle n'ouvre aucun geste) à toute catégorie d'objets que lisent les gestes (couper, frapper, combustible,
     clé, contenant) : ne prendre, demander, acheter ou saisir un objet non visé par le but que s'il apporte une
     capacité absente de ce qu'on porte. Le diagnostic mesurait 94 à 99 % d'états de fin de nuit avec préparatifs.
-    Prochain lot de coût, contrat des lots 46 et 48.
+    Lot 52 (`codex-capacite-nouvelle`, non fusionné), contrat des lots 46 et 48 : règle étendue et
+    vérifiée, mais aucun gain CPU démontré ; à 12 h, mêmes nœuds à la mine et −0,10 % à l'auberge.
+    Les inventaires préparés ont surtout des capacités différentes : ne pas présenter C1 comme
+    la solution au coût actuel. Contenants/vivres non interchangeables, budget projeté inchangé.
+    Voir le [rapport du lot 52](taches/rapport-codex-52-capacite-nouvelle.md).
   - **A, les entrées de la mémoire des recherches** : `_entrees` est un relevé écrit à la main (chaque lot qui lit
     une donnée doit l'y ajouter, sinon `VERIFIER` casse) et sérialisé à chaque appel (~17 % de coût fixe à
     l'auberge : 2 200 vues et entrées pour 1 350 recherches). Pistes : un compteur de révision par facette de

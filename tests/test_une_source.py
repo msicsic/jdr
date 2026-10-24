@@ -80,6 +80,9 @@ def scene(scenario, qui, salle, ailleurs, porte, sources, briquet, donneur=None)
 def jouer(test, m, qui, etapes):
     for etape in etapes:
         for _ in range(100):
+            approche = pnj._approcher(m, qui, etape, [])
+            if approche:
+                continue
             if pnj._executer(m, qui, etape, [], []):
                 break
         else:
@@ -105,15 +108,15 @@ class CapaciteTests(unittest.TestCase):
         v = p.Vue(m, "remy")
         e = p.depart(m, "remy", v)
         vide, pleine = v.capacite(e, "lampe_remy"), v.capacite(e, "lampe_rechange_1")
-        self.assertEqual(vide, (1, "huile", True))
-        self.assertEqual(pleine, (2, None, True))
+        self.assertIn(("lumiere", None, (1, "huile"), True), vide)
+        self.assertIn(("lumiere", None, (2, None), True), pleine)
         allumee = v.capacite(e.apres(faits=[(("allume", "lampe_remy"), True)]), "lampe_remy")
-        self.assertEqual(allumee[0], 3)
+        self.assertIn(("lumiere", None, (3, None), True), allumee)
         self.assertTrue(v.couvre(allumee, pleine) and v.couvre(pleine, vide) and v.couvre(vide, vide))
         self.assertFalse(v.couvre(vide, pleine))
         # Une autre substance n'est pas la même capacité ; une faute à toucher non plus.
-        self.assertFalse(v.couvre((1, "cire", True), vide))
-        self.assertFalse(v.couvre((2, None, False), pleine))
+        self.assertFalse(v.couvre({("lumiere", None, (1, "cire"), True)}, vide))
+        self.assertFalse(v.couvre({("lumiere", None, (2, None), False)}, pleine))
         # Une source vide ne couvre pas la pleine : elle s'acquiert ; une autre vide, non.
         self.assertFalse(v.doublon(e, "lampe_rechange_1", frozenset()))
         self.assertTrue(v.doublon(e, "lampe_filon", frozenset()))

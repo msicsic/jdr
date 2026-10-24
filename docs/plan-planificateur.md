@@ -1813,3 +1813,47 @@ lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; 
 remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
 
 Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
+
+## Une capacité nouvelle — lot 52 (`codex-capacite-nouvelle`, non fusionnée)
+
+La règle du lot 46 s'étend aux acquisitions de moyens : un objet non visé par le but n'est
+ni pris, ni demandé, ni acheté, ni saisi sur un porteur, ni fait remettre par une aide sur
+place si toutes ses capacités sont couvertes par ce que le PNJ porte. Le contrôle reste
+`Vue.doublon`, commun à `gestes` et `_aide_sur_place`, indépendant d'`emplois` et donc appliqué
+par la référence de `VERIFIER`. Les objets visés (`prendre`, `poser`, `fermer`, `servir`,
+`entretenir`) restent acquis ; un moyen réservé au but ne couvre pas un autre objet, car
+le plan peut le poser ou le remettre.
+
+`Vue.capacite` définit une seule collection de facettes `(emploi, cible, qualité, sans faute)` :
+les serrures d'une clé ; les sources que recharge un combustible disponible, par `recharge`
+(donc sa substance) ; allumage et crochetage ; pour chaque serrure connue qu'un outil entame,
+le coût en coups attendus, par `force.adapte`, `coups` et `chance` ; nature et puissance que
+lisent les sélecteurs d'arme ; la lumière avec les rangs du lot 46 (allumée, chargée,
+rechargeable de sa substance, inconnue). La candidate est jugée avec autorisation, donc
+optimiste, comme au lot 46. Une capacité portée contrariée ne couvre rien.
+
+`capacites_portees` réunit les facettes : deux clés peuvent couvrir les serrures d'une
+troisième ; un outil et une clé peuvent couvrir les deux emplois d'un objet combiné.
+`couvre` exige pour chaque opération une qualité au moins égale, fournie par un même moyen ;
+elle ne somme ni puissance ni quantités. Les préparatifs équivalents n'ajoutent que le coût
+de leur acquisition ; les gestes qui utilisaient ce moyen peuvent employer ceux déjà portés.
+Les coûts, prix, profondeurs, plafonds et données de scénario ne changent pas.
+
+Toutes les lectures étaient déjà couvertes par les entrées de la recherche : objets connus
+et propriétés physiques (dont qualifications de coupe), croyances de disponibilité, de feu,
+permissions et oppositions dans `_entrees` ; FOR modulée dans la clé commune de `chercher`.
+Les facettes constantes restent dans la `Vue`, les facettes de lumière et permission sont
+recalculées selon l'état projeté. Aucun état de sauvegarde supplémentaire.
+
+**Limites de la preuve.** Les vivres et les contenants gardent une facette d'identité : le
+geste `manger` produit un fait sur cet aliment, et le contenu d'un contenant n'est pas
+interchangeable avec celui d'un autre. Un foyer est également une cible propre. La monnaie
+acquise ne modifie pas le budget projeté (`richesse` est constante) : aucun nouvel achat
+financé par une bourse ramassée n'est inventé ici. La projection actuelle ne consomme pas les
+charges de combustible ; une somme de réserves n'est donc pas modélisée. La couverture ne
+prouve pas la domination entre inventaires avec charge, encombrement ou usure future. Le
+devis d'une part remise reste une estimation. La présence de préparatifs dans les états
+n'implique pas qu'ils contiennent plusieurs moyens substituables : le gain de calcul doit
+être mesuré séparément, sans l'inférer de ce taux.
+
+Mesures, contrat de référence et limites : [rapport du lot 52](taches/rapport-codex-52-capacite-nouvelle.md).

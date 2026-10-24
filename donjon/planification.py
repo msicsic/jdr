@@ -369,55 +369,97 @@ class Vue:
                         recharge(self.objets[s], x) for s in self.rechargeables)))
 
     def capacite(self, e, o, libre=None):
-        """Ce qu'une source portable apporte aux gestes de lumière, tel qu'ils le lisent (``feu``,
-        ``flamme``, ``brule``, la faute de la toucher) : (rang, substance, sans faute). Rang 3 : allumée,
-        elle éclaire et donne une flamme ; 2 : éteinte et chargée, une flamme l'allume ; 1 : éteinte et
-        vide, elle se recharge de ``substance`` puis s'allume ; 0 : rien (son état inconnu, ou vide sans
-        se recharger). ``libre`` : l'allumer ou la recharger n'est pas une faute (sinon, lu de l'état)."""
-        allume, charge = self.feu(e, o)
-        if allume:
-            rang, substance = 3, None
-        elif allume is False and charge:
-            rang, substance = 2, None
-        else:
-            substance = brule(self.objets[o]) if allume is False else None
-            rang = 1 if substance else 0
+        """Facettes substituables lues par les gestes : (emploi, cible, qualité, sans faute).
+
+        Les clés couvrent leurs serrures ; les combustibles leurs sources ; les outils les
+        opérations possibles avec leur qualité effective. Une identité qui reste nécessaire
+        (vivres, contenu, foyer) a sa propre facette et ne se substitue pas. La lumière garde
+        les rangs du lot 46 : allumée, chargée, rechargeable de sa substance, inconnue.
+        ``libre=True`` juge une acquisition au mieux (demande ou achat autorisé)."""
         if libre is None:
             libre = not (self.illicite[o] and not e.faits.get(("permis", o)))
-        return rang, substance, libre
+        def constantes():
+            from .combat import arme
+            x = self.objets[o]
+            usages = x.get("usages", ())
+            r = {("cle", serrure, (1,)) for serrure in x.get("ouvre", ())}
+            for usage in ("allumage", "crochetage"):
+                if usage in usages:
+                    r.add((usage, None, (1,)))
+            if "combustible" in usages and self.disponible(o):
+                r.update(("alimenter", s, (1,)) for s in self.sources_du_lot[o])
+            if set(usages) & set(force.CHOC + force.COUPE):
+                for cible in self.connus:
+                    y = self.objets[cible]
+                    if y["type"] not in ("porte", "contenant") or not force.adapte(y, x):
+                        continue
+                    n, c = force.coups(self.monde, self.id, y, x), force.chance(self.monde, self.id, x)
+                    if n and c:
+                        r.add(("frapper", cible, (-n / c,)))
+            a = arme(x)
+            if a:
+                # Les sélecteurs d'arme (assommer/riposter) lisent nature et puissance.
+                r.add(("arme", (a[0], a[2]), (a[1],)))
+            if x["type"] in ("nourriture", "contenant") or x.get("foyer"):
+                r.add(("identite", o, (1,)))
+            # Les pièces ne s'ajoutent pas au budget projeté : richesse est constante.
+            # Leur identité reste conservée si un but en ouvre explicitement la prise.
+            return frozenset(r)
+        x = self.objets[o]
+        feu = self.feu(e, o) if "allume" in x and x.get("mobile") else None
+        def reunir():
+            r = {(emploi, cible, qualite, libre) for emploi, cible, qualite in
+                 self._memo(("capacite_objet", o), constantes)}
+            if feu is not None:
+                allume, charge = feu
+                substance = brule(x) if allume is False and not charge else None
+                rang = 3 if allume else 2 if allume is False and charge else 1 if substance else 0
+                r.add(("lumiere", None, (rang, substance), libre))
+            return frozenset(r)
+        return self._memo(("capacite", o, libre, feu), reunir)
 
     @staticmethod
     def couvre(a, b):
-        """La capacité ``a`` fait-elle tout ce que fait ``b`` ? Allumée, tout ; sinon un rang au moins
-        aussi haut (une source vide, de la même substance), et sans faute si ``b`` l'est."""
-        if a[0] == 3 or b[0] == 0:
-            return True
-        return (a[2] or not b[2]) and (a[0] > b[0] or a[0] == b[0] and (a[0] == 2 or a[1] == b[1]))
+        """Chaque facette de b est couverte, éventuellement par des objets différents de a.
 
-    def capacites_portees(self, e):
-        """Les capacités des sources qui ne servent qu'à y voir qu'il porte dans cet état, sauf celles
-        auxquelles il ne touche pas (``contrarie``). Lues une fois par état."""
-        cle = ("capacites", e)
+        La qualité d'une opération doit être couverte par un même outil ; on ne combine
+        pas la puissance de l'un et la chance de l'autre. Aucun cumul de quantités."""
+        for emploi, cible, q, libre in b - a:
+            def couvre_facette(f):
+                op, sur, p, permis = f
+                if op != emploi or sur != cible:
+                    return False
+                if emploi == "lumiere":
+                    return (p[0] == 3 or q[0] == 0 or (permis or not libre) and
+                            (p[0] > q[0] or p[0] == q[0] and (p[0] == 2 or p[1] == q[1])))
+                return (permis or not libre) and p >= q
+            if not any(couvre_facette(f) for f in a):
+                return False
+        return True
+
+    def capacites_portees(self, e, reserves=frozenset()):
+        """Réunion des capacités portées, hors moyens contrariés ou réservés au but."""
+        cle = ("capacites", e, reserves)
         if cle not in self._crus:
-            self._crus[cle] = tuple({self.capacite(e, k) for k in e.portes
-                                     if k in self.sources_seules and not self.contrarie(k)})
+            self._crus[cle] = frozenset(f for k in e.portes if k not in reserves and not self.contrarie(k)
+                                      for f in self.capacite(e, k))
         return self._crus[cle]
 
     def doublon(self, e, o, noms_vises, entretenus=()):
-        """Une source de plus qui n'apporte aucune capacité absente de celles qu'il porte : aucun geste
+        """Un objet de plus qui n'apporte aucune capacité absente de ce qu'il porte : aucun geste
         ne l'acquiert (prendre, demander, acheter, la saisir sur un porteur, la faire remettre), sauf si
         le but la vise. Sa capacité est jugée au mieux : acquise par une demande, il s'en sert sans faute.
 
-        Elle ne change aucun geste de lumière possible ni son coût : tout plan qui l'emploie a son
-        pareil avec la source portée, sans le détour de l'acquérir ; la recherche rend le même résultat
+        Elle n'ouvre aucune opération ni qualité absente des moyens portés : tout plan qui l'emploie
+        a son pareil avec ces moyens, sans le détour de l'acquérir ; la recherche rend le même résultat
         sans explorer ces inventaires (« on ne porte que ce qui peut servir le but »)."""
-        if o not in self.sources_seules or o in e.portes or o in noms_vises or o in entretenus:
+        if o in e.portes or o in noms_vises or o in entretenus:
             return False
-        portees = self.capacites_portees(e)
+        portees = self.capacites_portees(e, frozenset(noms_vises) | frozenset(entretenus))
         if not portees:
             return False
         b = self.capacite(e, o, libre=True)
-        return any(self.couvre(a, b) for a in portees)
+        return self.couvre(portees, b)
 
     def embuscade_possible(self, e, cible):
         """Le plan ne peut supposer que les témoins crus disparaîtront entre ses gestes.
@@ -1139,7 +1181,7 @@ def gestes(v, e, vises=None, but=None):
         touche_conso = [(("faute", lese_conso, "honnetete"), True)] if lese_conso else []
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
-        # Une source de plus, sans capacité que n'aient déjà celles qu'il porte : rien ne l'acquiert.
+        # Un moyen de plus sans capacité nouvelle : aucune voie ne l'acquiert.
         if utile and v.doublon(e, o, noms_vises, v_entretenir):
             utile = False
         # Dans la projection, une charge suffisante ne s'épuise pas en chemin.
