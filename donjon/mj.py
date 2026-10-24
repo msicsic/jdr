@@ -432,6 +432,8 @@ class MJ:
 
     def echanger(self, monde, intention, proposition_en_attente=None):
         """Complète les abords autorisés avant l'arbitrage, toujours sur copie."""
+        from .noms import verifier_saisie
+        verifier_saisie(monde, intention)
         from .espace import a_completer, preparer, SCHEMA as SCHEMA_ESPACE
         cadres = a_completer(monde)
         if not cadres:

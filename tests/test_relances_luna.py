@@ -167,7 +167,13 @@ class ExplicationTests(unittest.TestCase):
              "difficulte": 0},
             {"operation": "deplacer", "cible": "crochets", "destination": "joueur", "outil": "",
              "methode": "discret", "difficulte": 0}]})
-        reprise, sortie, appels = jouer(loin_de_la_poutre(),
+        m = loin_de_la_poutre()
+        from tests.test_tensions import placer
+        # La condition porte sur Gorm : il faut le percevoir avant d'attendre son geste.
+        # L'épreuve garde ainsi son objet : les crochets restent hors de portée.
+        placer(m, "marchand", m.joueur["salle"], [4, 3])
+        self.assertTrue(m.designable("marchand"))
+        reprise, sortie, appels = jouer(m,
                                         "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
                                         [prendre, dialogue("Tu ne peux donc pas la prendre d'ici.")], [CONTRADICTOIRE])
         self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)

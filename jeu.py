@@ -13,6 +13,7 @@ from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
+from donjon.noms import NomNonResolu, verifier_saisie
 from donjon.narration import (consigner as consigner_narration, rendre_resultat,
                               chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
@@ -334,6 +335,24 @@ def main(argv=None, interface=None):
                 if cmd == "accords":
                     imprimer(decrire_accords(m))
                     continue
+                if cmd.startswith("etat "):
+                    if not args.debug:
+                        imprimer("Commande réservée au lancement avec --debug.")
+                    else:
+                        imprimer(json.dumps(m.objets[m.trouver(cmd[5:])], ensure_ascii=False, indent=2))
+                    continue
+                # Hors --debug, la phrase reste une saisie ordinaire (« esprit, es-tu là ? »).
+                if args.debug and cmd.startswith("esprit "):
+                    nom = normaliser(cmd[7:])
+                    id = next((i for i, o in m.objets.items() if o["type"] == "personnage"
+                               and nom in [i, normaliser(o["nom"]), *map(normaliser, o.get("aliases", []))]), None)
+                    if id is None:
+                        imprimer("Aucun personnage de ce nom.")
+                    else:
+                        from donjon.esprits import esprit
+                        imprimer(json.dumps(esprit(m, id), ensure_ascii=False, indent=2))
+                    continue
+                verifier_saisie(m, texte[3:] if cmd.startswith("mj ") else texte)
                 try:
                     social = commande_sociale(m, texte)
                 except ErreurMonde:
@@ -366,29 +385,14 @@ def main(argv=None, interface=None):
                         m.sauver(args.save)
                         imprimer("Partie sauvegardée.")
                     continue
-                if cmd.startswith("etat "):
-                    if not args.debug:
-                        imprimer("Commande réservée au lancement avec --debug.")
-                    else:
-                        imprimer(json.dumps(m.objets[m.trouver(cmd[5:])], ensure_ascii=False, indent=2))
-                    continue
-                # Hors --debug, la phrase reste une saisie ordinaire (« esprit, es-tu là ? »).
-                if args.debug and cmd.startswith("esprit "):
-                    nom = normaliser(cmd[7:])
-                    id = next((i for i, o in m.objets.items() if o["type"] == "personnage"
-                               and nom in [i, normaliser(o["nom"]), *map(normaliser, o.get("aliases", []))]), None)
-                    if id is None:
-                        imprimer("Aucun personnage de ce nom.")
-                    else:
-                        from donjon.esprits import esprit
-                        imprimer(json.dumps(esprit(m, id), ensure_ascii=False, indent=2))
-                    continue
                 force_mj = cmd.startswith("mj ")
                 # Héler par son nom, ou répondre à qui vient de héler Corvus, n'est pas une question au MJ,
                 # même avec « ? » (« je crie « Gorm ? » », « « Oui ? » »).
                 question = est_question(texte) and not (heler(m, texte) or repondre_appel(m, texte))
                 try:
                     p = None if force_mj or question else analyser(m, texte)
+                except NomNonResolu:
+                    raise
                 except ErreurMonde:
                     if mj is None:
                         raise

@@ -78,11 +78,14 @@ class NommerTests(unittest.TestCase):
         m = place_videe()
         m.objets["cloche"]["lieu"] = "joueur"
         m = recharger(m)
-        p = commande(m, "je donne la cloche à Ilse")
-        self.assertEqual((p["action"], p["cible"], p["outil"]), ("remettre", "cloche", "ilse"))
+        # Le manque nominal est désormais opposé dès la saisie, avant la proposition.
+        with self.assertRaises(ErreurMonde) as refus:
+            commande(m, "je donne la cloche à Ilse")
+        self.assertEqual(str(refus.exception), "Tu ne vois pas Ilse d'ici.")
+        self.assertTrue(refus.exception.attendu)
         reprise, sortie, appels = jouer(m, "je donne la cloche à Ilse", [], [])
         self.assertEqual(appels, [])
-        self.assertIn("Tu ne vois pas Ilse d'ici : approche-toi pour le lui donner.", sortie)
+        self.assertIn("Tu ne vois pas Ilse d'ici.", sortie)
         self.assertEqual(reprise.objets["cloche"]["lieu"], "joueur")
 
     def test_une_voix_connue_ou_un_nom_donne_suffisent_jamais_une_place(self):

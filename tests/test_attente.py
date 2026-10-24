@@ -40,7 +40,11 @@ class CommandeTests(unittest.TestCase):
                                   "attendre 1,5 s": "1.5", "attendre 1 h 30": "5400",
                                   "attendre 2 min 30": "150", "attendre 10": "600"})
         # Ce que l'analyse ne lit pas sûrement va au MJ, sans durée devinée.
-        self.assertIsNone(analyser(m, "attendre que Gorm revienne"))
+        self.assertIsNone(analyser(m, "attendre que la porte s'ouvre"))
+        # Un nom connu mais non perçu est refusé avant l'interprétation de la durée.
+        with self.assertRaises(ErreurMonde) as refus:
+            analyser(m, "attendre que Gorm revienne")
+        self.assertIn("Tu ne vois pas Gorm d'ici", str(refus.exception))
         self.assertIsNone(analyser(m, "attendre 5 min puis sortir"))
 
     def test_une_duree_refusee_dit_ce_qui_est_attendu(self):
