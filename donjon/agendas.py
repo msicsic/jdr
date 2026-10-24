@@ -14,7 +14,8 @@ def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=Fal
     ``personne`` vise le bénéficiaire ou une personne de la condition.
     """
     from .esprits import lire
-    return [copy.deepcopy(x) for x in lire(monde, id)["engagements"]
+    stock = monde.data.get("promesses_joueur", []) if id == "joueur" else lire(monde, id)["engagements"]
+    return [copy.deepcopy(x) for x in stock
             if (condition is None or x["condition"] == condition)
             and (objet is None or x["condition"].get("objet") == objet)
             and (personne is None or x["pour"] == personne
@@ -25,12 +26,14 @@ def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=Fal
 def prendre(monde, id, engagement):
     """Inscrire aussi la proposition provisoire, retirée si le devis ou le jet refuse."""
     from .esprits import esprit
-    esprit(monde, id)["engagements"].append(copy.deepcopy(engagement))
+    stock = monde.data.setdefault("promesses_joueur", []) if id == "joueur" else esprit(monde, id)["engagements"]
+    stock.append(copy.deepcopy(engagement))
 
 
 def retirer_proposition(monde, id, engagement):
     from .esprits import esprit
-    esprit(monde, id)["engagements"].remove(engagement)
+    stock = monde.data.get("promesses_joueur", []) if id == "joueur" else esprit(monde, id)["engagements"]
+    stock.remove(engagement)
 
 
 def tenir(monde, id, engagement):
@@ -48,6 +51,8 @@ def oublier_personne(monde, personne):
     for e in monde.data["esprits"].values():
         e["engagements"] = [x for x in e["engagements"] if x.get("pour") != personne
                             and not any(x["condition"].get(k) == personne for k in ("servir", "rendre", "remettre"))]
+    if "promesses_joueur" in monde.data:
+        monde.data["promesses_joueur"] = [x for x in monde.data["promesses_joueur"] if x["pour"] != personne]
 
 
 def depart(monde, id):
@@ -90,7 +95,9 @@ def verifier(monde, id):
         # reçu (``echanges.engagements_echus``).
         from .biens import QUOI
         paye = engagement.get("paye")
-        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule"} == {"condition", "pour", "minute"}
+        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule"}
+                - ({"realisee"} if id == "joueur" else set()) == {"condition", "pour", "minute"}
+                and ("realisee" not in engagement or engagement["realisee"] is True)
                 and ("objet" not in engagement or isinstance(engagement["objet"], str))
                 and ("annule" not in engagement or engagement["annule"] in ("impossible", "refus"))
                 and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
@@ -151,4 +158,46 @@ def echoir(monde, id):
         for k in sorted(_cles(monde, o, de)):
             if porte_par(monde, k, id) and not any(p["objet"] == k for p in monde.data.get("permissions", ())):
                 preter(monde, k, id)
+
+
+def observer_promesses(monde, lignes):
+    """Le bénéficiaire juge une promesse du joueur sur ses observations, jamais à distance."""
+    from .echanges import ENGAGEMENT_MAX, tenu, phrase_condition
+    from .esprits import memoriser
+    from .pnj import se_parler
+    from .voix import nom_pour_joueur
+    for engagement in en_cours(monde, "joueur"):
+        a, c = engagement["pour"], engagement["condition"]
+        faite = engagement.get("realisee", False) and tenu(monde, a, c, engagement["minute"])
+        echue = monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX
+        if not faite and not (echue and se_parler(monde, a, "joueur")):
+            continue
+        tenir(monde, "joueur", engagement)
+        memoriser(monde, a, {"type": "engagement_tenu" if faite else "engagement_abandonne",
+                            "de": "joueur", "condition": c})
+        texte = ("Tu as tenu ta promesse envers " if faite else "Tu as abandonné ta promesse envers ")
+        texte += nom_pour_joueur(monde, a) + " : " + phrase_condition(monde, c) + "."
+        monde.data.setdefault("journal_promesses", []).append(texte)
+        lignes.append(texte)
+
+
+def constater_geste_joueur(monde, effets):
+    """Un effet appliqué réalise une condition ; attendre devant un état déjà vrai ne suffit pas.
+
+    Cette preuve du moteur est persistante. Le bénéficiaire ne l'apprendra qu'en observant
+    la condition (observer_promesses), avec les règles communes de perception.
+    """
+    touches = {cible for _, cible, _ in effets}
+    for engagement in monde.data.get("promesses_joueur", []):
+        c = engagement["condition"]
+        o = monde.objets.get(c["objet"], {})
+        if c["objet"] in touches and all(o.get(k) == v for k, v in c.items() if k != "objet"):
+            engagement["realisee"] = True
+
+
+def promesses_visibles(monde):
+    from .echanges import phrase_condition
+    from .voix import nom_pour_joueur
+    return ["Tu as promis à " + nom_pour_joueur(monde, x["pour"]) + " que "
+            + phrase_condition(monde, x["condition"]) + "." for x in en_cours(monde, "joueur")]
 

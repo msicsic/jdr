@@ -754,6 +754,8 @@ class Moteur:
             Moteur._attendre_reveil(travail, lignes)
             return
         Moteur._stabiliser(travail, lignes)
+        from . import agendas
+        agendas.constater_geste_joueur(travail, effets)
         # Le feu se consume minute par minute avec la vie des PNJ (``pnj.avancer``).
         from .temps import MINUTE, duree, ecouler, instant
         debut = instant(travail)

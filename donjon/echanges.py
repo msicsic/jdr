@@ -27,6 +27,156 @@ from .relations import FIABLE, avis, mefiance, percue, rancune
 ENGAGEMENT_MAX = 240   # minutes avant qu'un engagement non tenu soit abandonné
 PARTAGE = 12           # DD d'une demande (une part, un objet prêté), que l'altruisme de celui qui donne abaisse
 TACHE = 12             # DD d'une tâche confiée
+PAS_PROPOSITION = 5.0  # minutes de valeur propre par point de persuasion
+PRIX_SANS_PRIX = 1     # convention commune pour un objet sans prix déclaré
+
+
+def _devis_proposition(monde, id, condition, pour):
+    """Le devis existant, sur ses croyances, avec la permission de la tâche proposée."""
+    from .planification import devis_pulsion
+    copie = monde.copier()
+    agendas.prendre(copie, id, {"condition": condition, "pour": pour, "minute": copie.data["minutes"]})
+    return devis_pulsion(copie, id, condition, pour)
+
+
+def valeur_proposition(monde, auditeur, terme, pour):
+    """Prix propre, en minutes ; les tâches sont chiffrées par le plan cru de l'auditeur."""
+    from .biens import prix
+    from .caractere import valeur_pieces
+    from .deliberation import besoin_de_part, parts
+    from .vol import proprietaire
+    t = terme["type"]
+    if t == "rien":
+        return 0.0
+    if t == "pieces":
+        return valeur_pieces(monde, auditeur, terme["montant"])
+    if t == "tache":
+        devis = _devis_proposition(monde, auditeur, terme["condition"], pour)
+        return None if devis is None else devis[0]
+    # Le prix est une donnée de valeur, pas une lecture de l'état caché du bien.
+    objet = terme["objet"]
+    montant = prix(monde, objet, t == "part")
+    if montant is None and t == "objet" and besoin_de_part(monde.objets[objet]) is not None:
+        # Il compte sa propre réserve ; la quantité cachée chez l'autre ne nourrit pas son jugement.
+        quantite = parts(monde.objets[objet]) if proprietaire(monde, monde.objets[objet]) == auditeur else 1
+        montant = quantite * (prix(monde, objet, True) or PRIX_SANS_PRIX)
+    return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX,
+                         depense=pour != auditeur)
+
+
+def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
+    """P/G/L et DD communs, indépendants de l'identité du proposant. Aucun jet ni mutation."""
+    from .caractere import caracteristique, valeur
+    arret = accueil(monde, proposant, auditeur)
+    if arret:
+        return {"cause": arret}
+    if demande["type"] in ("objet", "part"):
+        objet = demande["objet"]
+        if demande["type"] == "objet" and necessaire(monde, auditeur, objet):
+            return {"cause": "necessaire"}
+        if garde(monde, auditeur, monde.objets[objet]):
+            return {"cause": "garde"}
+    p = valeur_proposition(monde, auditeur, demande, proposant)
+    if p is None:
+        return {"cause": "impossible"}
+    if demande["type"] == "tache":
+        _, etapes = _devis_proposition(monde, auditeur, demande["condition"], proposant)
+        for e in etapes:
+            if e["operation"] in ("alimenter", "manger", "servir"):
+                for x in (e.get("cible"), e.get("outil")):
+                    if x in monde.objets and garde(monde, auditeur, monde.objets[x]):
+                        return {"cause": "garde"}
+    # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
+    buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
+    buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
+    g = valeur_proposition(monde, auditeur, contrepartie, auditeur)
+    if contrepartie["type"] == "tache" and contrepartie["condition"] not in buts:
+        g = 0.0
+    if g is None:
+        g = 0.0  # Aucun moyen cru : il ne compte pas sur ce service.
+    r = percue(monde, auditeur, proposant)
+    if contrepartie["type"] == "tache":
+        g *= r["confiance"] / 100
+    # Une demande peut elle-même réaliser un but : le gain est le devis évité, sans vérité cachée.
+    if demande["type"] == "tache" and demande["condition"] in buts:
+        g += p
+    lien = (penchant(monde, auditeur, "altruisme") + r["affection"] / 25
+            + r["dette"] * valeur(monde, auditeur, "loyaute") / 50 - r["rancune"] / 20)
+    mauvais = max(0, p - g) * max(0, caracteristique(monde, auditeur, "INT") - 8) / PAS_PROPOSITION
+    # jet_persuasion porte déjà affection, rancune et dette/20 : ne les compter qu'une fois.
+    dd = (PARTAGE + (p - g) / PAS_PROPOSITION + mauvais - lien
+          + r["affection"] / 25 + r["dette"] / 20 - r["rancune"] / 20)
+    return {"cause": None, "P": p, "G": g, "L": lien, "dd_base": dd}
+
+
+def proposer(monde, proposant, auditeur, demande, contrepartie):
+    """Marché atomique : devis, jet, transferts et engagements avant publication des faits."""
+    from .biens import donner, payer, richesse
+    from .deliberation import parts
+    from .deplacement_objet import deplacer
+    from .spatial import porte_par, proche
+    from .vol import proprietaire
+    from .propositions import verifier
+    verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie})
+    original, monde = monde, monde.copier()
+    for terme, de, a in ((demande, auditeur, proposant), (contrepartie, proposant, auditeur)):
+        if terme["type"] == "tache" and agendas.en_cours(
+                monde, de, condition=terme["condition"], personne=a, actifs=True):
+            return {"cause": "deja"}
+    if contrepartie.get("objet") and demande.get("objet") == contrepartie["objet"]:
+        return {"cause": "meme_bien"}
+    # Les remises présentes exigent le contact ; parler de loin ne téléporte aucun bien.
+    if not proche(monde, auditeur, proposant):
+        return {"cause": "portee"}
+    for terme, de in ((demande, auditeur), (contrepartie, proposant)):
+        if terme["type"] in ("objet", "part"):
+            o = monde.objets[terme["objet"]]
+            if proprietaire(monde, o) != de:
+                return {"cause": "propriete"}
+            if not porte_par(monde, o["id"], de):
+                if de == proposant:
+                    return {"cause": "absent"}
+                condition = {"objet": o["id"], "remettre": proposant}
+                if _devis_proposition(monde, auditeur, condition, proposant) is None:
+                    return {"cause": "impossible"}
+            if terme["type"] == "part" and parts(o) <= 0:
+                return {"cause": "epuise"}
+        elif terme["type"] == "pieces" and richesse(monde, de) < terme["montant"]:
+            return {"cause": "pauvre"}
+    bilan = evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
+    if bilan["cause"]:
+        return bilan
+    accepte, _ = jet_persuasion(monde, auditeur, proposant, bilan["dd_base"])
+    original.data["jets"] = monde.data["jets"]
+    if not accepte:
+        return dict(bilan, cause="marche" if bilan["P"] > bilan["G"] else "persuasion")
+    for terme, de, a in ((contrepartie, proposant, auditeur), (demande, auditeur, proposant)):
+        t = terme["type"]
+        if t in ("objet", "part"):
+            if de == auditeur and not porte_par(monde, terme["objet"], de):
+                if t == "part":
+                    if _remettre_part(monde, de, a, terme["objet"], 0) == "impossible":
+                        return {"cause": "impossible"}
+                else:
+                    agendas.prendre(monde, de, {"condition": {"objet": terme["objet"], "remettre": a},
+                                               "pour": a, "minute": monde.data["minutes"]})
+                bilan["livraison_differee"] = True
+                continue
+            objet = detacher_part(monde, terme["objet"]) if t == "part" else terme["objet"]
+            donner(monde, objet, a)
+            deplacer(monde, objet, a)
+            if a != "joueur":
+                memoriser(monde, a, {"type": "recu", "de": de, "objet": objet, "livraison": True})
+        elif t == "pieces":
+            payer(monde, de, a, terme["montant"])
+        elif t == "tache":
+            engagement = {"condition": terme["condition"], "pour": a, "minute": monde.data["minutes"]}
+            if not agendas.en_cours(monde, de, condition=terme["condition"], personne=a, actifs=True):
+                agendas.prendre(monde, de, engagement)
+                if de != "joueur":
+                    memoriser(monde, de, {"type": "engagement_pris", "pour": a, "condition": terme["condition"]})
+    original.data = monde.data
+    return dict(bilan, cause=None, accepte=True)
 
 
 def clarte(monde, auditeur):
@@ -265,8 +415,10 @@ def detacher_part(monde, lot):
         prelever_piece(monde, lot, piece)
         return piece
     part = copy.deepcopy(o)
-    part.update(id=piece, charges=1, masse=round(o["masse"] / max(1, o["charges"]), 3))
-    o["charges"] -= 1
+    compteur = "portions" if o["type"] == "nourriture" else "charges"
+    part.update(id=piece, masse=round(o["masse"] / max(1, o[compteur]), 3))
+    part[compteur] = 1
+    o[compteur] -= 1
     o["masse"] = round(o["masse"] - part["masse"], 3)
     monde.objets[piece] = part
     return piece
