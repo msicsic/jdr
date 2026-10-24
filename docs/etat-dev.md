@@ -1,8 +1,25 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
 
 ## Où on en est
+
+- Branche `codex-salles-interet`, non fusionnée, lot **62**, base **04bca30** :
+  **arrêt au diagnostic**, sans modifier le moteur. Deux nuits de 12 h, 1985,
+  mine tiré / auberge fixe : 963 265 / 1 712 879 nœuds, 3 / 289 recherches
+  bornées (après 8 h : 0 / 289). Les chiffres du brief provenaient de `5c2ce81`.
+  Rémy/faim : 84,4 % des nœuds de fin de mine ; Joss/faim et Tilo/faim : 90,5 %
+  de ceux de l'auberge. Arrivées sans suite non mobile offerte : 19,2 % / 23,8 %
+  des états des passes ; cela ne démontre pas que les arrêts sans intérêt dominent.
+  La preuve exigée pour P3 est fausse : les routes minimisent la durée avant
+  l'ajout de pression ; deux allers via une salle vide peuvent éviter le noir
+  et coûter moins que la route directe. Deux géométries vérifiées : complète,
+  exécution du détour, état et perception/rendu après recharge ; contrôle de
+  l'instrumentation sur les deux captures réelles à 480, sans effet sur le monde,
+  les lignes ni les recherches. Deux tests nouveaux verts ; suite complète unique :
+  **1 807 tests, quatre ignorés, 177 fichiers, verte**, trois processus à priorité
+  réduite, 677,7 s. Aucun appel à Luna ni changement de `main`. Outil reproductible
+  `tools/mesurer_salles_interet.py` ; [rapport et limites](taches/rapport-codex-62-salles-interet.md).
 
 - Branche `codex-sens-dette`, fusionnée, lot **56**, base **f033364**, brief
   **0b2ea87** : les comptes transmis au MJ portent débiteur, créancier, objet ou
@@ -3072,10 +3089,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - **Réduire l'espace sans perdre un plan** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06). Rappel :
     68 à 88 % du coût de fin de nuit vient de recherches **sans plan**, qu'une borne A* n'accélère pas (il faut tout
     parcourir pour prouver l'absence) : seul un espace plus petit les rend moins chères. (P3) **Aller seulement vers une
-    salle d'intérêt** : `gestes` offre un `aller` vers chaque salle accessible (`v.allers`) ; un plan n'a besoin de
-    s'arrêter que là où il agit (objet ou porte en jeu, personne utile, lieu du but, abri), les trajets directs de
-    `allers` couvrant le reste ; à prouver avec les coûts par minute (pression, noir, eau) et les gestes de recherche
-    de personne. (P2) **Pertinence par chaînage arrière** : `Vue.pertinent` rend pertinents tous les outils de choc et
+    salle d'intérêt**, lot 62 **diagnostic, non appliqué** : les routes directes minimisent la durée, puis la pression
+    est ajoutée ; un détour par une salle vide évitant le noir peut donc être strictement moins cher (deux géométries,
+    complète et exécution/recharge vérifiées). La domination requise est fausse ; garantir d'abord le contrat des routes
+    et de leurs coûts complets, sans perdre les arrêts d'inspection, de recherche/appel ni les buts de séjour.
+    Sur la base `04bca30`, les deux nuits lourdes montrent surtout les recherches alimentaires répétées ; les comptes
+    n'établissent pas P3 comme cause principale. Voir le [rapport du lot 62](taches/rapport-codex-62-salles-interet.md).
+    (P2) **Pertinence par chaînage arrière** : `Vue.pertinent` rend pertinents tous les outils de choc et
     de coupe dès qu'une serrure est crue verrouillée quelque part (`self.verrous`) ; ne garder que les moyens qui lèvent
     un obstacle entre le PNJ et ce que vise le but (contenant fermé, porte verrouillée sur le chemin), par une clôture
     complète sur les préconditions des gestes, fautes comprises. Prolonge C1 (lot 52). Contrat des lots 46 et 48 pour

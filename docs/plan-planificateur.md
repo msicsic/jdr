@@ -1851,3 +1851,43 @@ lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; 
 remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
 
 Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
+
+## Salles d'intérêt — lot 62 (`codex-salles-interet`, diagnostic, non fusionnée)
+
+La règle envisagée était de n'offrir un `aller` que vers un lieu où le plan
+agit sur un objet, une porte ou une personne, conclut son but, ou reste en
+abri. Une traversée sans action serait remplacée par un trajet direct. **Cette
+règle n'est pas appliquée** : sa condition de domination échoue sur les coûts
+actuels, indépendamment de toute borne de recherche.
+
+Pour supprimer A→C→D sans action en C, il faudrait au minimum une route A→D
+admissible, aux effets compatibles (notamment portes franchies), de coût total
+inférieur ou égal à celui des deux trajets. La positivité des coûts par minute
+ne suffit pas. `trajet_estime.parcours` minimise uniquement `cout_route` ;
+`Vue.prix_route` ajoute ensuite la pression dans chaque salle. Le chemin de
+durée minimale n'est donc pas nécessairement celui de coût total minimal.
+
+Contre-exemple sauvegardé/rechargé dans `test_salles_interet_diagnostic` :
+un losange A–B–D / A–C–D, sans objet, porte ni personne en C, avec du noir
+cru en B. Le trajet direct A→D passe par B : 0,153333 minute et 0,230000 de
+pression, soit 0,383333. Selon la largeur de C (5 ou 9 cases), deux `aller`
+via C coûtent 0,203333 ou 0,303333, sans pression. La recherche complète
+choisit le détour ; le filtre qui ne garde que D perd cet optimum sans
+atteindre son plafond. Le plan non filtré est exécuté, puis sa position et
+ce que le joueur voit sont vérifiés après un nouveau rechargement.
+
+Un éventuel lot de réduction devra d'abord établir cette domination sur les
+routes et leurs coûts complets, avec la pression, la combustion, les effets
+des portes et l'admissibilité commune de l'eau. Le choix de route et cette
+preuve doivent conserver le contrat des lots 46/48/51. Déclarer les salles
+d'inspection, de recherche/appel, les buts de séjour et les cibles implicites
+reste également nécessaire ; une fonction de but Python arbitraire ne livre
+pas à elle seule ces ancrages. Aucun nouvel ensemble d'intérêt, cache ni
+champ de `_entrees` n'est ajouté par ce diagnostic ; `VERIFIER` reste inchangé.
+
+Les deux nuits de 12 h sur `04bca30` montrent surtout des recherches
+alimentaires répétées : Rémy à la mine (84,4 % des nœuds après 8 h), Joss et
+Tilo à l'auberge (90,5 %). Les arrivées sans suite non mobile immédiatement
+offerte représentent 19,2 % / 23,8 % des états, sans prouver que ces arrêts
+peuvent être retirés ni que P3 domine le coût. Arrêt au diagnostic prévu par
+le brief. [Mesures, compteurs et limites](taches/rapport-codex-62-salles-interet.md).
