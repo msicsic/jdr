@@ -547,6 +547,21 @@ simulées qui contredisent volontairement l'état du monde.
 
 ## Refus et échecs
 
+**Sens partagé d'une demande de ressource** (`codex-ressource`). Le contenu `ressource`
+demande une disponibilité, sans remise, achat ni promesse. Son `sujet` conserve le bien
+nommé par le joueur, sans article : un nom, alias, matière ou catégorie explicite des
+objets, même si Corvus ne connaît encore aucun exemplaire. L'enquête compare des suites
+de mots entières dans ces données, sans synonymes déduits. Elle ne cherche que parmi
+les possessions connues de l'interlocuteur, où il les croit et encore disponibles selon
+ses croyances ; ce qu'il porte ou possède à portée est constaté avant sa réponse.
+Une recherche sans résultat établit seulement sa réponse négative, jamais l'absence
+du bien dans le monde. Les codes `faim` et `chaleur` conservent leur sens plus large de
+ressources utilisables pour satisfaire un besoin général ; ils ne remplacent pas un
+bien précis. `paroles.SENS_CONTENU`, le schéma et `sens_contenu` donnent ce même sens
+à l'interprétation et à la contre-revue. Celle-ci peut toujours refuser un autre bien
+ou un élargissement de sens ; la correction littérale est acceptée par le moteur.
+Le choix sémantique du contenu et le jugement de fidélité restent probabilistes.
+
 Un refus de forme (`refus.RefusDeForme` : un champ, une borne, la mauvaise action, « impossible »
 sans réexamen) ne dit rien du monde : il revient au MJ avec son `attendu`, avec une correction à
 part de la correction ordinaire (trois propositions au plus), et ne se montre jamais au joueur ; à
