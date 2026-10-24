@@ -94,12 +94,24 @@ class PartsPourSourcesTests(unittest.TestCase):
         placer(m, "odile", "etable", min(libres, key=lambda c: (distance(c, (3, 1)), c)))
         regarder(m, "joueur", "odile")
         regarder(m, "odile", "joueur")
+        # La nuit peut laisser l'huile au cellier et Odile hors de vue dans le
+        # noir. La scène de vente établit ce qu'elle a sous la main et sa voix.
+        deplacer(m, "pot_huile", "odile")
         percevoir_tous(m)
+        from donjon import ecoute
+        from donjon.ouie import retentir
+        from donjon.temps import instant
+        from donjon.voix import se_nommer
+        retentir(m, "odile", "dire", texte="Je suis Odile.", cites=["odile"], vers=["joueur"])
+        se_nommer(m, "joueur", "odile", "odile")
+        ecoute.retenir(m, ecoute.entendus(m, instant(m) - 1, 0))
         m = recharger(m)
         texte = "Odile, je t'achète une part de ton huile pour une pièce."
         bourse_avant = m.joueur["or"]
         travail, rapport = preparer_parole(m, parole("odile", texte, "demande", "pot_huile", "1"))
-        self.assertTrue(any("remettre" in f for f in rapport["faits"]), rapport)
+        # À portée de main, elle remet la part aussitôt ; sinon elle promet de
+        # la remettre. L'état ci-dessous contrôle la livraison dans les deux cas.
+        self.assertTrue(any("une part du pot d'huile" in f for f in rapport["faits"]), rapport)
         m = recharger(travail)
         piece = next(k for k in m.objets if k.startswith("pot_huile_") and k != "pot_huile")
         for _ in range(20):

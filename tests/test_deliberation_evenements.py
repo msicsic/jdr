@@ -388,7 +388,7 @@ class BouclesTests(unittest.TestCase):
         memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
         self.assertEqual(_plan_prevenir(m, "hugues")[1][-1]["contenu"],
                          {"sujet": "lucien", "attribut": "fiable", "valeur": False})
-        memoriser(m, "hugues", {"type": "dit", "a": "anselme", "sujet": "lucien", "attribut": "fiable"})
+        memoriser(m, "hugues", {"type": "dit", "a": "anselme", "sujet": "lucien", "attribut": "fiable", "valeur": False})
         m.data["minutes"] += 3
         memoriser(m, "hugues", {"type": "a_prevenir", "victime": "anselme", "auteur": "lucien"})
         m = recharger(m)

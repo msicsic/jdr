@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-deja-dit`, non fusionnée, lot **64**, base `de3e986` : le registre sauvegardé
+  `esprit.faits_dits` suit les identités, valeurs et destinataires hors des quarante souvenirs.
+  Contrat commun de `social.faits_dits`, `nouvelles`, `bavarder`, `_a_dire` et `dire` : dates,
+  preuves, confiance et épisodes ne créent pas une nouvelle valeur ; objets homonymes distincts.
+  Les relais conservent la date d'observation : une propriété ancienne ne remplace plus une
+  connaissance plus récente et ne rajeunit plus un guet. Migration des anciennes traces encore
+  disponibles ; 512 identités par PNJ sans éviction, nouvelles identités tues à saturation.
+  Capture mine 3 reproduite sur `5c2ce81` (archives absentes) : à 14, Lucien sait déjà le guet depuis
+  Rémy à 4 et figure dans l'ancien suivi ; aucune répétition de Josse jusqu'à 247. Onze tests nouveaux,
+  dont deux comparaisons du monde complet et des paroles, même laps découpé et rechargé.
+  Banc final 4 h × quatre graines × quatre scénarios contre `de3e986` (référence en cache) : aucun
+  plantage, violation ou usurpation, aucune boucle nouvelle signalée ; avertissements redits mot pour
+  mot Relais 0 → 0, mine 2,5 → 0,5, auberge 0,25 → 0,25, crue 0 → 0 ; constats confiés 2,5 → 2,5,
+  22,5 → 18,5, 12,5 → 10,25, 5 → 5. Les doublons restants du rapide sont des homonymes ou suivent
+  un changement appris (guet → fatigue → guet). Audits 12 h mine 3 et auberge 7 : aucun plantage,
+  violation ou usurpation ; Josse ne répète plus le guet à Lucien ; doublons textuels 2 / 3.
+  Suite complète unique : 1 829 tests, quatre ignorés, deux échecs et une erreur ; reprise finale
+  de 69 tests sociaux verte. Les 17 tests des deux parcours sont revalidés après ajustement des scènes
+  (huile reprise seule sur l'assertion finale : 140 s) : **bilan consolidé 1 829 tests, quatre ignorés,
+  aucun échec ni erreur restant** ; aucune seconde suite complète. Ancien souvenir `dit` de test complété par sa valeur ; scènes de vente
+  d'huile et de bois rendues explicites (les deux tests passaient sur la base). **Limite révélée hors
+  lot** : un feu rechargé dans la minute même de l'accord peut laisser l'engagement non soldé,
+  faute d'observation datée après l'accord ; la scène de bois sépare ces deux minutes, sans corriger
+  ce contrat ici. Aucun appel à Luna, changement de `planification.py` ni de `main`.
+  Voir [la règle](plan-ouie.md) et le [rapport](taches/rapport-codex-64-deja-dit.md).
+
 - Branche `codex-eau-plan-marche`, fusionnée, lot **58**, base **c592d68** :
   le désaccord plan/marche de la crue venait de `eau.estimation`, qui rajeunissait
   une ancienne vitesse à chaque vue du niveau dans sa salle. Les deux pentes

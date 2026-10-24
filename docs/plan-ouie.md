@@ -1352,9 +1352,44 @@ poêle avec son ballot, Hugues qui les voit chaque minute : « Lucien est peu fi
 jamais ; sur `main`, six fois en vingt minutes) ; même nature (Anselme au dortoir, le ballot à l'étable :
 dit une fois ; revu à l'étable, rien ; vu au grenier, dit de nouveau).
 
-Limites : le souvenir `dit` peut sortir de la mémoire bornée (`MEMOIRE_MAX`) : le lieu se redit alors
-une fois ; « sous ses yeux » se juge à la salle où il croit l'un et l'autre, pas à ce que la victime
-voit vraiment (dans le noir, ou le bien dans un contenant fermé, elle peut l'ignorer).
+### Suivi commun des faits dits (branche `codex-deja-dit`, lot 64)
+
+Le suivi ne dépend plus des quarante souvenirs : `esprit.faits_dits` garde pour chaque identité
+de fait sa dernière valeur et ses destinataires. `social.faits_dits` définit le contrat commun :
+les propriétés portent sujet et attribut, les états se séparent par attribut visible, les intentions
+portent personnage et cible, les gestes portent leurs participants, objet et opération. Un lieu
+transmis par un geste rejoint la propriété de lieu ; absence, possession et mort rejoignent aussi
+leurs propriétés. Les identifiants distinguent deux objets homonymes. Date, rang, preuve, signe,
+épisode et confiance ne sont pas une nouvelle valeur du fait.
+
+`bavarder` ne propose que la dernière version apprise d'un fait. Le registre note seulement le contenu
+effectivement prononcé au destinataire, même s'il en doute ; les autres accusations du même incident
+ne sont plus marquées comme dites sans avoir été transmises. `faire_entendre` inscrit le destinataire
+explicite ; surprendre les mots n'apprend pas au locuteur qu'un tiers caché les a entendus. Les constats,
+les rumeurs et `_a_dire` consultent ce même registre ; un ancien plan `dire` est contrôlé à l'exécution.
+`croire` rouvre un fait suivi quand sa valeur change, même si l'état intermédiaire ne se confie pas
+(ressource disponible puis épuisée). `recevoir` juge une intention sur la croyance actuelle et les
+autres nouvelles sur leur contenu, sans distinguer deux preuves du même fait. L'enveloppe commune
+conserve `observe` à travers les relais : une propriété ancienne ne remplace pas une croyance plus
+récente ; à date égale, la perception ou la lecture propre prime sur le ouï-dire. Recevoir une intention
+ne rajeunit pas sa date. Sans cette règle, un ancien guet sur du pain pouvait remplacer le guet de la
+porte appris depuis et rouvrir l'avertissement, bien que le registre ait retenu ce qui avait été dit.
+
+Vérifications : capture mine 3 à la minute 14 sur `5c2ce81`, Josse/Lucien et renouvellements jusqu'à
+247 ; intentions et accusations réapprises après éviction des deux mémoires ; deux ressources
+homonymes ; changement puis retour de valeur ; ancien lieu de bien ; ancienne valeur de dette ;
+même laps d'un bloc ou par tranches, monde complet et paroles comparés après recharge
+(`tests/test_deja_dit.py`). Dans la capture originale, Lucien sait déjà la nouvelle depuis Rémy à
+la minute 4 et figure dans l'ancien suivi de Josse : même l'avertissement de la minute 14 est supprimé.
+
+Limites : 512 identités suivies par PNJ, chacune ne conservant qu'une valeur et la liste des
+destinataires. À saturation, les identités existantes restent suivies et les nouvelles confidences
+sont suspendues ; aucune éviction ne permet de répéter un fait ancien. Les anciens suivis `dit_a`,
+`confie` et souvenirs `dit` encore présents sont migrés ; une parole déjà sortie d'une ancienne
+sauvegarde ne peut pas être reconstituée. Le registre suit les connaissances du PNJ, pas des changements
+qu'il ignore. « Sous ses yeux » reste jugé à la salle crue, pas à ce que la victime voit vraiment.
+Les doublons textuels de l'audit restent possibles pour des objets homonymes ou un état revenu après
+changement ; ils ne prouvent pas une répétition du même fait inchangé.
 
 ## Le bruit du crochetage selon l'adresse (branche `crochetage-surenchere`)
 
