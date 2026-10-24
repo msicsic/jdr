@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-designations`, fusionnée, base `main` **42bb9c0** : noyaux nominaux
+  reconnus par `noms`, qualificatifs conservés et contrôlés séparément. Même mécanisme dans
+  le garde des voix, la projection et les liens publics transmis aux deux revues. Aucun nom
+  appris par la description ; aucune donnée de scénario ni fichier des lots réservés modifié.
+  Sept tests nouveaux en chaîne avec réponses simulées, sauvegarde/recharge et rendu : voix
+  d'Ilse toute proche et de Gorm basse et lointaine, ficelle et couteau qualifiés ; identités
+  ajoutées, négation de revendication et matières contraires refusées avec `attendu` ;
+  appellation rapportée conservée avec apostrophe typographique. Tests nominaux finaux :
+  **88 verts**, complément typographique compris ; suite complète unique : **1 597 tests,
+  15 ignorés**, verte en 560,1 s, trois processus à priorité réduite. Luna, une passe
+  (`soir-noir`, `atelier`, `echanges`) : aucun repli ni recharge
+  invalide, bobine prise et portée, aucun refus nominal dans le noir ; sifflement joyeux
+  (8 appels) et nom saisi non relié (10) restent ouverts, aucun gain de temps général établi.
+  Livraison et mesures dans le [rapport du lot 26](taches/rapport-codex-26-designations.md).
+  Fusionné après `codex-ambiance` (intégration 121afb1) : seul conflit textuel `docs/etat-dev.md` (entrée et
+  « À revoir », les réserves d'ambiance et de désignations gardées côte à côte) ; `narration.py` fusionné sans
+  conflit : la voix d'auteur d'ambiance (lot 25) et `hors_designations` dans `_noms_voix_recit` (lot 26)
+  touchent des fonctions distinctes ; `contrat-mj.md` sans conflit. Tests `test_designations`, `test_ambiance`,
+  `test_narration`, `test_noms`, `test_luna_noms`, `test_voix_inconnues`, `test_relances_luna` : 138 tests, verts.
+  L'écart d'appels Luna sur `echanges` du rapport n'est pas relancé (vérification groupée).
+
 - Branche `codex-ambiance`, fusionnée, issue de `main` **42bb9c0** : le contrôle commun de
   la voix d'auteur s'étend aux réserves sur la preuve reçue par le MJ. Il refuse le
   vocabulaire de preuve, avec segment, mots reçus et `attendu`, même si l'auditeur l'appelle
@@ -2265,9 +2286,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - Luna, après `codex-luna-restes` : le sens des références d'audience est comparé
   par le moteur et la revue reçoit les conséquences des achats ; les positions sont en mètres avec
   garde déterministe des unités. Le choix d'audience reste sémantique (`soir-appel`, une correction
-  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement, une désignation d'objet et
-  un nom non relié. Dans le noir, « la voix toute proche qui se dit Ilse » est refusé par le garde
-  nominal, un repli sûr sur deux passes. Ambiance : la branche `codex-ambiance`, fusionnée,
+  sur deux passes) ; faux refus encore vus sur la manière d'un sifflement et un nom non relié.
+  Le lot `codex-designations` (fusionné) reconnaît les noyaux publics malgré leurs
+  qualificatifs ; les deux revues reçoivent leurs liens canoniques et les faits publics.
+  La compatibilité sémantique des qualificatifs et les paraphrases restent à surveiller :
+  ce lien lexical ne garantit pas toute phrase ni toute absence de faux refus.
+  Ambiance : la branche `codex-ambiance`, fusionnée,
   distingue le vocabulaire de preuve et la perception dans le garde commun et les règles existantes.
   Le garde lexical ne garantit pas la détection de toute paraphrase de méta-preuve ; les
   contradictions de sens et la qualification d'une ambiance restent en partie sémantiques.

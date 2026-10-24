@@ -9,6 +9,66 @@ from .monde import normaliser, ErreurMonde
 PERSONNES = ("personnage", "depouille")
 
 
+REGLE_DESIGNATIONS = """designations joint les noyaux canoniques reconnus aux formes écrites,
+avec leur référence publique. Ce lien lexical désigne la même entité, il ne valide pas les
+qualificatifs du contexte : juge séparément leur compatibilité avec les faits. Une description
+compatible ne change pas la cible ; une autre matière, position ou identité doit être établie.
+Une appellation revendiquée de voix ne donne jamais l'identité de son corps.
+"""
+
+
+@lru_cache(maxsize=256)
+def motif_designation(canonique):
+    """Noyau nominal et complément conservé ; insertion libre après la tête nominale.
+
+    Le complément reste contigu : une relation d'identité (« qui se dit X ») ne peut
+    perdre sa négation ni changer de nom. Aucune liste de qualificatifs n'est requise.
+    Les mots intercalés restent distincts, pour ne jamais exempter leurs noms privés.
+    """
+    noyau = re.sub(r"^(?:une? |les? |la |l['’])", "", canonique, flags=re.I).strip()
+    tete, _, complement = noyau.partition(" ")
+    motif = r"(?<!\w)" + re.escape(tete)
+    if complement:
+        motif += (r"[ \t]+(?P<qualificatifs>(?:[\w'’-]+[ \t]+)*?)"
+                  + re.escape(complement.replace("’", "'")).replace("'", "['’]")
+                    .replace(r"\ ", r"[ \t]+"))
+    return re.compile(motif + r"(?!\w)", re.I)
+
+
+def plages_designation(texte, canonique):
+    """Les seuls mots du noyau ; ni les mots ajoutés, ni le reste de la phrase."""
+    for m in motif_designation(canonique).finditer(texte):
+        if "qualificatifs" in m.re.groupindex:
+            yield m.start(), m.start("qualificatifs")
+            yield m.end("qualificatifs"), m.end()
+        else:
+            yield m.span()
+
+
+def hors_designations(texte, canoniques):
+    """Masque seulement les noyaux admis, en gardant leurs qualificatifs contrôlables."""
+    lettres = list(texte)
+    for canonique in canoniques:
+        for debut, fin in plages_designation(texte, canonique):
+            lettres[debut:fin] = " " * (fin - debut)
+    return "".join(lettres)
+
+
+def reperes_designations(texte, faits):
+    """Liens lexicaux tirés uniquement des entités publiques fournies au contrôleur.
+
+    Le contexte écrit reste entier : aucun adjectif n'est effacé ou déclaré vrai.
+    Plusieurs références ayant le même noyau restent plusieurs candidats.
+    """
+    entrees = {cle[6:]: valeur for cle, valeur in faits.items() if cle.startswith("objet:")}
+    entrees.update(faits.get("interlocuteurs") or {})
+    return [{"reference": ref, "canonique": e["nom"], "noyau": noyau,
+             "noyau_ecrit": m.group(), "forme_ecrite": texte, "faits": e}
+            for ref, e in entrees.items() if isinstance(e, dict) and e.get("nom")
+            for noyau in dict.fromkeys([e["nom"], *e.get("aliases", [])])
+            for m in motif_designation(noyau).finditer(texte)]
+
+
 @lru_cache(maxsize=256)
 def _variantes_nom(nom_reel):
     """Du nom complet au prénom, avec leurs frontières de mot, sans changer leur ordre."""
@@ -219,7 +279,7 @@ def _remplacer_noms(monde, partie, observateur):
     return partie
 
 
-def _motif_citations(monde):
+def _appellations_voix(monde):
     """Protège les citations et les appellations portées par des voix déjà entendues."""
     # Ces désignations proviennent de voix réellement entendues ; elles ne nomment pas leur corps.
     portees = {e.get(k) for e in monde.data.get("voix_entendues", {}).values() for k in ("se_dit", "appelee")}
@@ -229,7 +289,7 @@ def _motif_citations(monde):
             n = (monde.joueur if id == "joueur" else monde.objets[id])["nom"].split(",")[0]
             voix.extend(prefixe + n for prefixe in ("une voix qui se dit ", "la voix qui se dit ",
                                                    "une voix qu'on appelle ", "la voix qu'on appelle "))
-    return r"(«[^»]*»" + ("|" + "|".join(re.escape(v) for v in voix) if voix else "") + ")"
+    return voix
 
 
 def texte(monde, valeur, citations=False, observateur="joueur"):
@@ -238,9 +298,17 @@ def texte(monde, valeur, citations=False, observateur="joueur"):
         return valeur
     if not citations:
         return _remplacer_noms(monde, valeur, observateur)
-    morceaux = re.split(_motif_citations(monde), valeur, flags=re.I)
-    return "".join(morceau if indice % 2 else _remplacer_noms(monde, morceau, observateur)
-                   for indice, morceau in enumerate(morceaux))
+    plages = [m.span() for m in re.finditer(r"«[^»]*»", valeur)]
+    plages += [p for canonique in _appellations_voix(monde)
+               for p in plages_designation(valeur, canonique)]
+    rendu, fin = [], 0
+    for debut, stop in sorted(plages):
+        if debut > fin:
+            rendu.append(_remplacer_noms(monde, valeur[fin:debut], observateur))
+        if stop > fin:
+            rendu.append(valeur[max(fin, debut):stop])
+            fin = stop
+    return "".join([*rendu, _remplacer_noms(monde, valeur[fin:], observateur)])
 
 
 def _elements(monde):

@@ -224,6 +224,29 @@ moteur interne conserve ses identifiants. La contre-revue d'action reçoit aussi
 références publics. L'aperçu d'un plan passe entièrement par cette projection, opposition,
 risque et étapes compris. Aucun substitut textuel ne tire l'apparence d'un corps jamais vu.
 
+### Désignations enrichies (`codex-designations`, non fusionnée)
+
+Le noyau d'une désignation publique et les qualificatifs qui l'entourent ont deux rôles
+distincts. `noms.motif_designation` reconnaît ce noyau, avec une insertion après sa tête
+nominale sans changer son complément : « la voix toute proche qui se dit Ilse » garde la
+revendication « une voix qui se dit Ilse ». Le garde nominal et la projection publique ne
+protègent que les mots du noyau ; les mots ajoutés restent contrôlés. « la voix d'Ilse »,
+un nom privé intercalé ou une autre revendication n'acquièrent aucune identité par ce lien.
+
+L'audit narratif et la contre-revue reçoivent `designations` : référence publique, nom
+canonique, noyau ou alias reconnu, forme écrite entière et faits publics de l'entité.
+Ainsi la demande « bobine de ficelle » et le plan « bobine de ficelle solide » se comparent
+par leurs références et leurs faits, sans réduire la cible à deux chaînes différentes.
+Plusieurs candidats restent plusieurs candidats. Aucun qualificatif n'est effacé du
+texte contrôlé ou déclaré vrai par cette reconnaissance. L'aspect compatible est libre ;
+une matière, une position ou une identité contradictoire reste refusée, avec `attendu`.
+
+La compatibilité sémantique des qualificatifs reste celle des contrôles existants ; ce
+reconnaisseur lexical ne prouve pas toute phrase en langue naturelle. Le complément
+canonique reste contigu, sans paraphrase automatique ni résolution arbitraire d'ambiguïté.
+Il ne matérialise aucun objet et n'apprend aucun nom. Les conséquences acceptées suivent
+toujours l'enregistrement et la sauvegarde avant affichage, puis le contrôle à l'écriture.
+
 ## Contrôle des actions
 
 ### Précisions du contrat (`codex-luna-restes`)

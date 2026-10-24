@@ -15,6 +15,7 @@ import re
 from .monde import ErreurMonde, normaliser
 from . import lexique
 from .refus import RapportIllisible, audit, liste as en_liste
+from .noms import REGLE_DESIGNATIONS, hors_designations
 
 
 VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique",
@@ -148,6 +149,8 @@ empêche est permise. Hors parole et engagement, locuteur et citation
 sont vides ; hors ambiance et engagement, entites est vide.
 Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
+
+INSTRUCTIONS_AUDIT += "\n" + REGLE_DESIGNATIONS
 
 INSTRUCTIONS_REVISION = """\nLe contrôle de tes réponses précédentes dans ce tour (controle_narratif, chaque phrase
 refusée et son motif) a relevé une rupture du contrat narratif. Chaque refus a son attendu : où (partie, segment),
@@ -482,12 +485,11 @@ def _noms_voix_recit(monde, paroles, faits, interlocuteurs, passages, partie, hi
     obstacles = []
     for cle, entree in interlocuteurs.items():
         nom = entree.get("nom", "") if isinstance(entree, dict) and entree.get("voix_inconnue") else ""
-        pretendu = lexique.normaliser(nom.split("(")[0]).replace("une voix", "voix").strip()
         dits = sorted(x for x in lexique.entites_citees(monde, nom)
                       if x in monde.objets and monde.objets[x]["type"] == "personnage")
         for indice, passage in enumerate(passages if dits else []):
             recit = lexique.normaliser(hors_paroles_etablies(monde, passage, paroles, faits, historique))
-            reste = recit.replace(pretendu, " ") if pretendu else recit
+            reste = hors_designations(recit, [lexique.normaliser(nom.split("(")[0])]) if nom else recit
             nommes = [x for x in dits if x in lexique.entites_citees(monde, reste)]
             if nommes:
                 obstacles.append(audit(
