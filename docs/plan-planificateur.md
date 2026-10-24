@@ -1546,3 +1546,39 @@ dès que la salle diffère de celle du danger cru, sans horizon de sécurité du
 Les campagnes de ce lot révèlent des oscillations nouvelles dans ces domaines. Le
 critère d'absence de boucle nouvelle n'est pas satisfait ; les cas et mesures sont
 consignés dans le rapport, sans exception de scénario ni recalibrage masquant le défaut.
+
+
+## Modèle de trajet de recherche — lot 30 (2026-10-24)
+
+Dans la recherche, le trajet s'estime ; il ne se mesure qu'à l'exécution.
+`Etat` identifie salle, possessions et faits. L'allure distingue encore les pas
+ordinaires des pas feutrés : les gestes sans témoin exigent ces derniers dès
+le début du plan. Case et orientation restent des attributs de compatibilité
+vides ; aucun fait de position d'objet posé n'est produit par la recherche.
+
+`trajet_estime.tables` réemploie les tables métriques locales d'`obstacles.distances`,
+partagées sous la géométrie et les obstacles crus, l'allure, le gabarit et
+l'équipement utile aux franchissements. Les origines sont les seuils intérieurs
+triés. Une approche coûte la moyenne des distances au contact depuis ces seuils.
+Une sortie coûte la moyenne depuis les autres seuils ; avec une entrée unique,
+c'est la moyenne sur le sol accessible. Sans sortie, le premier point du sol
+sert d'origine conventionnelle. Un angle moyen de 90° (une seconde) s'ajoute au
+déplacement, puis à l'orientation du geste ciblé. Un Dijkstra par salle choisit
+les routes ; portes et pas de seuil gardent leur tarif propre. La durée passe
+exclusivement par `obstacles.cout_route`, la pression par `Vue.prix_route`,
+avec le temps passé dans chaque salle avant l'effet du geste.
+
+`Vue.allers`, `trajet`, les attentes de parts et `part_estimee` consomment tous
+ces routes estimées. `_entrees` garde la géométrie, les croyances, l'équipement,
+les tarifs et la version du modèle, sans position ni orientation de départ.
+`VERIFIER` refait la recherche avec ce même modèle. `pnj.parcours`, `_marcher`
+et `defense.chemin_fuite` gardent leurs chemins et durées réels, revérifiés
+à l'exécution ; aucun itinéraire estimé n'est exécuté comme un chemin spatial.
+
+Limite de l'abstraction : une salle coupée ne permet plus d'identifier la
+composante où l'acteur se trouve. Une sortie sans origine moyenne accessible est
+refusée conservativement ; une action locale sans entrée accessible est estimée
+sur la composante du contact. Elle peut donc échouer à l'exécution si l'acteur
+est dans une autre composante. Ni l'occupation mobile ni les détours par une
+autre salle pour toucher un objet local ne sont prévus par cette moyenne.
+L'erreur mesurée et les limites du banc figurent dans le rapport du lot 30.
