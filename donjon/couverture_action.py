@@ -20,16 +20,12 @@ SCHEMA = {
     "required": ["conforme", "motif"],
 }
 
-# La revue choisit les audiences compatibles avec la DEMANDE. Le moteur compare
-# ensuite ce choix à l'adresse qu'il a lui-même validée ; le motif libre ne peut
-# plus transformer « tous » en destinataire individuel.
+# L'adresse est fixée par le moteur avant la revue ; seul le sens du contenu
+# reste à contrôler ici.
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
-    "properties": {
-        "audiences_fideles": {"type": "array", "maxItems": 3, "items": {
-            "type": "string", "enum": ["individuelle", "groupe", "cantonade"]}},
-        "contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"}},
-    "required": ["audiences_fideles", "contenu_conforme", "motif"],
+    "properties": {"contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"}},
+    "required": ["contenu_conforme", "motif"],
 }
 
 
@@ -38,19 +34,11 @@ def schema(plan):
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
-Le champ parole décrit une parole préparée : ses mots, son contenu et son adresse individuelle
-ou au groupe, ou son absence de destinataire particulier (cantonade). Une parole à la cantonade
-est entendue par ceux qui en saisissent les mots et chacun peut y répondre ; elle ne sélectionne
-ni une personne ni chacun des membres d'un groupe. Cette audience fait partie de la cible : ne la réduis ni ne l'élargis par
-rapport à la demande. Les mots du joueur peuvent déjà être fixés ; cela ne valide pas le choix
-du destinataire. Juge cette parole avant qu'elle soit prononcée et enregistrée.
-adresse est calculée par le moteur à partir du destinataire typé : groupe (tous) et cantonade
-(personne) ne sont jamais des audiences individuelles. destinataires et repondent sont les personnes
-calculées par l'ouïe, pas une restriction ajoutée par le MJ. L'audience libre reste un choix
-d'interprétation : juge sa fidélité à la demande, pas la validité de ces calculs.
-contenu décrit ce que Corvus demande, pas des opérations à exécuter par lui : consequences_moteur
-donne les effets réels déjà calculés sur une copie (paiement, transfert, refus). Une demande
-n'exige pas d'opération de transfert dans le plan ; le personnage peut la refuser.
+Le champ parole est le dossier de contenu d'une parole préparée : replique, contenu et
+sens_contenu. Compare ces mots et ce contenu à la demande du joueur avant enregistrement.
+L'adresse, les auditeurs et les effets mécaniques sont fixés et validés séparément par le
+moteur ; ils ne font pas partie de ce dossier ni du sens à contrôler. contenu décrit ce
+qui est demandé ou affirmé, pas les opérations de transfert ou de paiement à exécuter.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
 Le plan représente l'état du monde : action, cibles, outil, et changements durables
@@ -79,11 +67,9 @@ N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
 Le motif désigne seulement l'écart d'état, sans inventer un fait du monde.
-Pour un plan de parole, rends audiences_fideles : toutes les audiences compatibles avec la
-DEMANDE (individuelle, groupe, cantonade), indépendamment de l'adresse proposée. Puis
-contenu_conforme : les mots et le contenu typé traduisent-ils cette demande ? Ne juge dans ce
-booléen ni l'audience, ni les conséquences que le moteur a calculées. Le moteur compare lui-même
-audiences_fideles à l'adresse proposée. Pour les autres plans, rends conforme et motif.
+Pour un plan de parole, rends contenu_conforme : les mots et le contenu typé traduisent-ils
+la demande ? Ne juge dans ce booléen ni l'audience fixée par le moteur, ni les conséquences
+qu'il a calculées. Pour les autres plans, rends conforme et motif.
 Appelle auditer_action une fois.
 """
 
@@ -128,9 +114,7 @@ def entree(intention, plan, monde=None):
     if monde is not None:
         def nommer_parole(p):
             # Les références sont nommées, les mots libres restent littéraux.
-            return {**p, **{k: _nommer(p[k], monde) for k in
-                           ("personnage", "destinataires", "repondent", "audiences_autorisees") if k in p},
-                    "contenu": [{**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur") if k in c}}
+            return {**p, "contenu": [{**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur") if k in c}}
                                 for c in p.get("contenu", [])]}
         def nommer_plan(op):
             return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
@@ -167,19 +151,10 @@ def verifier(rapport, plan=None):
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
     if plan is not None and plan.parole is not None:
         if (not isinstance(rapport, dict)
-                or set(rapport) != {"audiences_fideles", "contenu_conforme", "motif"}
-                or not isinstance(rapport["audiences_fideles"], list)
-                or any(a not in ("individuelle", "groupe", "cantonade") for a in rapport["audiences_fideles"])
+                or set(rapport) != {"contenu_conforme", "motif"}
                 or type(rapport["contenu_conforme"]) is not bool or not isinstance(rapport["motif"], str)):
             raise RapportInvalide("La contre-revue de la parole est invalide.")
         motif = rapport["motif"][:MOTIF_MAX]
-        if plan.parole["adresse"] not in rapport["audiences_fideles"]:
-            autorisees = plan.parole.get("audiences_autorisees", {})
-            accepte = ", ".join(f"{a} = {autorisees.get(a, a)}" for a in rapport["audiences_fideles"])
-            raise ErreurMonde("L'audience proposée ne correspond pas à ta parole.",
-                attendu_audit("proposition.personnage", plan.parole["personnage"],
-                              accepte or "préciser à qui s'adresse la parole",
-                              ("audience non conforme", motif)))
         if not rapport["contenu_conforme"]:
             raise ErreurMonde("Les mots ou le contenu proposés ne correspondent pas à ta parole.",
                 attendu_audit("proposition.replique et proposition.contenu",

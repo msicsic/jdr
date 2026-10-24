@@ -51,9 +51,8 @@ def jouer(monde, saisie, reponses, audits, revues=()):
         appels.append((fonction, entree))
         if fonction == "auditer_action":
             revue = revues.pop(0) if revues else {"conforme": True, "motif": ""}
-            if "audiences_fideles" in schema["properties"] and "conforme" in revue:
-                return {"audiences_fideles": ["individuelle", "groupe", "cantonade"] if revue["conforme"] else [],
-                        "contenu_conforme": revue["conforme"], "motif": revue["motif"]}
+            if "contenu_conforme" in schema["properties"] and "conforme" in revue:
+                return {"contenu_conforme": revue["conforme"], "motif": revue["motif"]}
             return revue
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:

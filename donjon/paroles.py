@@ -1,8 +1,8 @@
 """Paroles du joueur aux PNJ : à qui, comment, réplique selon INT et CHA, contenu typé, croyances.
 
 Le joueur écrit ce qu'il veut faire dire à Corvus. Le moteur lit dans sa saisie la forme de la
-parole (``analyser``) et en fixe les destinataires (``destinataires``) : celui qu'il nomme, sinon
-celui qui est en face de lui ; « à tous », tous ceux qui l'entendent ; un chuchotement, un seul,
+parole (``analyser``) et en fixe les destinataires (``destinataires``) : celui qu'il nomme,
+la suite d'un échange, sinon celui d'en face ; « à tous », tous ceux qui l'entendent ; un chuchotement, un seul,
 au contact. Il fixe la bande d'expression (précision selon l'INT, aisance selon le CHA) ; Luna
 écrit la réplique dans cette bande et type son contenu : affirmations (sujet, attribut, valeur),
 demandes d'objet, demandes de passage (s'écarter, laisser passer), aveux, simples propos.
@@ -41,14 +41,14 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 SENS_CONTENU = {
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Propos sans effet mécanique typé.",
-    "affirmation": "Affirmer la valeur d'un attribut d'un sujet ; le destinataire décide d'y croire.",
-    "demande": "Demander un objet ou une part d'une ressource du destinataire ; valeur est le prix offert, vide sans offre.",
-    "passage": "Demander au destinataire de laisser passer ; valeur est le prix offert, vide sans offre.",
+    "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
+    "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
+    "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
     "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
     "qui": "Demander l'identité de l'interlocuteur.",
     "reclamer": "Réclamer son dû : les pièces si sujet est vide, sinon l'objet sujet.",
-    "ressource": "Demander si le destinataire a la ressource répondant au besoin sujet, sans la prendre ni la payer.",
+    "ressource": "Demander la disponibilité de la ressource répondant au besoin sujet, sans la prendre ni la payer.",
 }
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 SCHEMA_PAROLE = {
@@ -100,16 +100,14 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
 REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
 proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le moteur
-fixe les contraintes de destinataire dans parole_prevue : celui que le joueur nomme,
-la suite d'un échange, ou le groupe explicite. Sans adresse ni suite, audience_libre permet
-de choisir personne pour parler à la cantonade sans destinataire particulier, tous pour
-adresser le groupe, ou le destinataire par défaut pour une parole individuelle.
-Le moteur vérifie ce choix et qui l'entend réellement ;
+fixe le destinataire dans parole_prevue : celui que le joueur nomme,
+la suite d'un échange, ou le groupe explicite. Sinon, il choisit celui qui est en face ;
+à égalité, le joueur précise. Sans interlocuteur perçu à portée de voix, la parole
+est dite à la cantonade (personne).
+Le moteur fixe qui l'entend réellement ;
 chuchoter ou murmurer, un seul, au contact ; un nom détaché par une virgule, où qu'il soit
 (« …, X ? »), désigne celui à qui il parle. personnage =
-parole_prevue.personnage quand audience_libre est faux ; sinon choisis selon l'adresse de la
-saisie : sans destinataire particulier (personne, même si des gens sont visibles), au groupe
-(tous) ou individuelle (parole_prevue.personnage). Ce sont des références de destinataire ;
+parole_prevue.personnage. Ce sont des références de destinataire ;
 à la cantonade, qui l'entend peut répondre, le moteur le dit. Une saisie qui commence par des guillemets, par un verbe de parole (« je
 dis… », « je lui dis… », « je demande à Gorm… », « je chuchote… ») ou par « à tous » est une
 parole, même si ses mots annoncent un geste : donner un objet se fait par l'action remettre ; ce
@@ -462,6 +460,27 @@ def _groupe_en(mots, i):
     return 0
 
 
+def _cible_intention(monde, jetons, texte):
+    """Cible nominale d'une intention racontée : « je <verbe> [à] <personne> … ».
+
+    Ce n'est pas une interpellation ni une preuve de parole : le MJ choisit encore
+    geste ou parole. S'il en fait une parole, il ne substitue pas l'assistance à
+    cette personne. Les mots cités et les verbes de parole sont analysés ailleurs.
+    """
+    mots = [normaliser(j.group()) for j in jetons]
+    i = 2 if mots[:1] == ["je"] else 1 if mots and mots[0].startswith(("j'", "j’")) else None
+    if i is None or i >= len(jetons):
+        return None
+    if mots[i] in PREPOSITIONS:
+        i += 1
+    for fin in range(len(jetons), i, -1):
+        fragment = texte[jetons[i].start():jetons[fin - 1].end()]
+        id = _personnage(monde, fragment)
+        if id:
+            return id
+    return None
+
+
 def analyser(monde, intention):
     """La forme de la parole que la saisie annonce : manière (voix ou chuchotement), personnage
     nommé ou groupe (« à tous »), suite de l'échange (``suite`` : « lui », « leur », ou « echange »
@@ -497,7 +516,7 @@ def analyser(monde, intention):
                 forme["groupe"], i = True, i + 1 + n
             else:
                 for connu in (True, False):
-                    for k in range(min(4, len(jetons) - i - 1), 0, -1):
+                    for k in range(len(jetons) - i - 1, 0, -1):
                         fragment = s[jetons[i + 1].start():jetons[i + k].end()]
                         id = _personnage(monde, fragment, connu)
                         if id and connu:
@@ -532,6 +551,8 @@ def analyser(monde, intention):
             _interpeller(monde, forme, forme["mots"])
     if forme["groupe"] or forme["maniere"] == "chuchote":
         forme["explicite"] = True
+    if not (forme["explicite"] or forme["nomme"] or forme["groupe"] or forme["suite"] or forme["inconnu"]):
+        forme["cible_intention"] = _cible_intention(monde, jetons, s)
     return forme
 
 
@@ -712,7 +733,7 @@ def regard(monde, forme):
     d'abord vers lui, comme pour tout geste (``Moteur.preparer``). La direction, sinon None."""
     from .dialogues import interlocuteurs
     from .spatial import regard_vers
-    id = forme.get("nomme")
+    id = forme.get("nomme") or forme.get("cible_intention")
     if not id or id in interlocuteurs(monde):
         return None
     return regard_vers(monde, id)
@@ -760,7 +781,7 @@ def en_face(monde, candidats):
 
 def destinataires(monde, forme):
     """Ceux à qui s'adresse la parole que décrit ``forme`` (``analyser``) : celui que le joueur
-    nomme, sinon celui qui est en face de lui, à portée de voix ; à tous, tous les présents qui en
+    nomme, la suite d'un échange, sinon celui d'en face ; à tous, tous les présents qui en
     saisiraient les mots ; un chuchotement, un seul, au contact. Une parole sans conteste (à tous,
     entre guillemets…) que nul présent ne saisirait est dite à la cantonade : aucun destinataire,
     qui l'entend la retient. ParoleImpossible si le joueur doit préciser ou s'approcher.
@@ -788,8 +809,9 @@ def destinataires(monde, forme):
                                "dialogue ; ne fais pas parler Corvus à un autre personnage à sa place.")
     # Une parole qu'il ne destine à personne en particulier, et que nul présent ne saisirait, est dite à
     # la cantonade : qui l'entend la retient, et répond s'il le veut (``repondants``).
-    cantonade = not forme["nomme"] and not chuchote
-    if not presents and not cantonade and not forme["nomme"]:
+    nomme = forme["nomme"] or forme.get("cible_intention")
+    cantonade = not nomme and not chuchote
+    if not presents and not cantonade and not nomme:
         raise ParoleImpossible("Tu ne vois personne à qui parler. À la cantonade (« à tous : … »), qui "
                                "t'entend retiendra tes mots.",
                                "aucun interlocuteur perçu : réponds en mode dialogue.")
@@ -812,7 +834,7 @@ def destinataires(monde, forme):
             return suite
     if forme["groupe"]:
         return entendent
-    id = forme["nomme"]
+    id = nomme
     voix_nommee = isinstance(id,str) and id.startswith(('voix_','personne_'))
     if voix_nommee:
         id = reel(monde,id)
@@ -846,8 +868,10 @@ def destinataires(monde, forme):
                                f"parler : {liste(entendent)}.")
     if id:
         return [id]
+    # Même défaut pour toute parole sans adresse : celui d'en face ; à défaut
+    # d'interlocuteur perçu à portée de voix, la cantonade et ses répondants.
     candidats = contact if chuchote else entendent
-    if not candidats and cantonade:
+    if not candidats and cantonade and forme["suite"] != "lui":
         return []
     if not candidats:
         raise ParoleImpossible("Personne n'est assez près de toi pour que tu lui chuchotes quoi que ce soit."
@@ -868,11 +892,7 @@ def prevue(monde, intention):
     except ParoleImpossible as exc:
         return {"impossible": str(exc)}
     from .voix import designation
-    prevision = {"personnage": designation(monde, personnage(forme, dest)),
-                 "audience_libre": audience_libre(forme)}
-    if audience_libre(forme):
-        prevision["audiences"] = {"individuelle": designation(monde, personnage(forme, dest)),
-                                 "groupe": "tous", "cantonade": "personne"}
+    prevision = {"personnage": designation(monde, personnage(forme, dest))}
     prevision["destinataires"] = [designation(monde, identifiant) for identifiant in dest]
     prevision["maniere"] = "chuchotement" if forme["maniere"] == "chuchote" else "à voix haute"
     if forme["mots"]:
@@ -880,10 +900,10 @@ def prevue(monde, intention):
     return prevision
 
 
-def audience_libre(forme):
-    """L'adresse explicite, le chuchotement et la suite d'un échange contraignent la cible.
-    Sinon l'interprétation peut distinguer parole individuelle et parole à l'assistance."""
-    return not any(forme[k] for k in ("nomme", "groupe", "inconnu", "suite")) and forme["maniere"] == "voix"
+def adresse_implicite(forme):
+    """Sans nom ni groupe explicite, la fidélité du contenu reste à contrôler.
+    Le moteur fixe seul l'adresse, y compris la suite d'un échange."""
+    return not any(forme[k] for k in ("nomme", "groupe", "inconnu")) and forme["maniere"] == "voix"
 
 
 def mots_dits(forme, intention):
@@ -1476,15 +1496,13 @@ def preparer_parole(monde, p, revision=None):
     if forme["incomplete"]:
         raise ParoleImpossible("Précise ce que tu veux dire, entre guillemets ou après un deux-points.",
                                "la saisie ne fournit aucun propos ; ne lui invente ni appel ni mots.")
-    if p["personnage"] == "tous" and audience_libre(forme):
-        forme["groupe"] = True
     vers = regard(monde, forme)
     if vers:
         # Il se tourne d'abord vers celui qu'il nomme dans son dos.
         monde = tourne(monde, vers)
     # Ne viser personne en particulier ne suppose pas qu'il n'y ait personne
     # en vue : ceux qui saisissent ces mots répondent par repondants.
-    dest = [] if p["personnage"] == "personne" and audience_libre(forme) else destinataires(monde, forme)
+    dest = destinataires(monde, forme)
     from .deliberation import rejoint
     from .voix import designation, identifie
     # Le MJ désigne une voix que Corvus ne sait à qui prêter comme le joueur : voix_<n>.
@@ -1496,8 +1514,8 @@ def preparer_parole(monde, p, revision=None):
                           else "Tu t'adresses à " + _nom_pour(monde, dest[0]) + ".",
                           f"personnage = {attendu} (parole_prevue.personnage : "
                           + ("tous ceux qui entendent Corvus" if forme["groupe"] else
-                             "personne en vue : il parle à la cantonade" if not dest else
-                             "celui que le joueur nomme, sinon celui qui est en face de Corvus")
+                             "aucun interlocuteur perçu à portée de voix : il parle à la cantonade" if not dest else
+                             "celui que le joueur nomme, la suite de l'échange ou l'adresse individuelle en face")
                           + ") ; s'il n'est pas là pour entendre, réponds en mode dialogue, sans parler à un autre "
                           "à sa place.")
     from . import lexique

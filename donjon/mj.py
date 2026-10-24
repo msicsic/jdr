@@ -407,20 +407,16 @@ class MJ:
                     return
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision):
-        """Contre-revue de l'audience libre, des mots et du contenu avant enregistrement."""
-        from .paroles import audience_libre, prevue, sens_contenu
+        """Contre-revue des mots et du contenu, avec l'adresse déjà fixée par le moteur."""
+        from .paroles import adresse_implicite, sens_contenu
         from .moteur import Plan
-        if not audience_libre(analyser_parole(monde, intention)):
+        if not adresse_implicite(analyser_parole(monde, intention)):
             return
-        adresse = {"tous": "groupe", "personne": "cantonade"}.get(
-            rapport["personnage"], "individuelle")
-        plan = Plan({}, revision, "Prononcer la parole préparée.", parole={
-            "adresse": adresse, "personnage": rapport["personnage"],
-            "destinataires": rapport["destinataires"], "repondent": rapport["repondent"],
-            "audiences_autorisees": prevue(monde, intention)["audiences"],
+        # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
+        # font pas partie de la question posée à la revue sémantique du contenu.
+        plan = Plan({}, revision, "Contrôler le contenu de la parole préparée.", parole={
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
-            "sens_contenu": sens_contenu(complements["contenu"]),
-            "consequences_moteur": copy.deepcopy(rapport["faits"])})
+            "sens_contenu": sens_contenu(complements["contenu"])})
         try:
             self._auditer_action(intention, plan, revision, monde)
         except ErreurMonde as exc:
@@ -775,7 +771,8 @@ class MJ:
                 except ErreurMonde as exc:
                     fidelite_refusee |= isinstance(exc, ParoleNonConforme)
                     if fidelite_refusee and essai:
-                        return {"mode": "dialogue", "texte": "Précise à qui tu t'adresses et ce que tu veux lui dire.",
+                        return {"mode": "dialogue", "texte": "Précise ce que tu veux dire : les mots ou le contenu "
+                                "proposés ne correspondent pas à ta demande.",
                                 "faits": [], "proposition": None, "_texte_moteur": True,
                                 "_validation_refusee": True}
                     secours = parole_du_moteur(monde, intention) if essai and parole_attendue(monde, intention) else None

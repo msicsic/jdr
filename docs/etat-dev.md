@@ -4,6 +4,66 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-audience`, fusionnée, lot **47 b**, base `e28df5c`, brief `d33e492` :
+  décision de l'utilisateur du 24 octobre appliquée : nom/vocatif, groupe explicite,
+  échange poursuivi, sinon celui d'en face ; égalité, le joueur précise ; sans
+  interlocuteur perçu à portée de voix, cantonade et répondants acoustiques.
+  Une seule décision dans `paroles.destinataires`, utilisée par la prévision et la
+  préparation ; refus d'une proposition contraire avec `attendu` avant la revue.
+  La contre-revue reste limitée aux mots et au contenu, sans « Précise à qui… »
+  quand le moteur a fixé l'adresse. Aucun mot-clé de question collective ni nouvelle
+  forme de groupe. Les anciennes scènes individuelles retrouvent leur saisie d'origine.
+  Neuf tests `test_audience` couvrent le Relais réel (Aubin seul répond, les autres
+  retiennent), l'auberge, la cantonade sans interlocuteur perçu, « à tous », vocatif,
+  échange poursuivi, refus de contenu et intentions nominales, après rechargement.
+  Ciblés : 234 tests, deux doubles de `test_luna_restes` adaptés puis 14 tests rejoués verts.
+  Correctif signé SSH `f10f9d3`, signature vérifiée. La passe Luna révèle encore un refus
+  d'audience déguisé en contenu : le dossier de revue est ensuite limité à `replique`,
+  `contenu`, `sens_contenu`, sans adresse, auditeur ni effet ; sens typés indépendants
+  de l'audience. **70 tests ciblés verts** sur ce contrat final ; « lui » et chuchotement
+  sans personne perçue gardent leur refus, neuf tests d'audience verts.
+  Luna, une passe, `main` `42bb9c0` lu du cache : 68 → 64 appels, 22 → 19 tours MJ,
+  3,09 → 3,37 appels/tour ; aucun repli ni erreur technique/de recharge. `noms-dialogue` :
+  question dite à Aubin, Aubin seul répond, six appels (faux refus de contenu puis correction).
+  `soir-appel` : quatre appels puis « Précise ce que tu veux dire… », aucune parole enregistrée.
+  Aucun « Précise à qui… ». Ces mesures précèdent le dossier final, sans seconde passe Luna ;
+  absence de faux refus sémantiques non garantie.
+  Campagne complète interrompue par le plantage du PC : 71 fichiers et 892 tests verts
+  récupérés. Reprise des seuls 95 fichiers sans résultat : 845 tests verts, 79,8 s,
+  trois processus à priorité réduite. Bilan consolidé : **166 fichiers validés,
+  1 737 tests, 16 ignorés**, aucun échec ni erreur ; aucune seconde suite complète.
+  [Rapport, section 47 b](taches/rapport-codex-47-audience.md#47-b--celui-den-face-redevient-le-défaut).
+  Passe Luna sur le code final (15c85da, une passe, `artifacts/luna-47b-final/` du dépôt principal) :
+  3,37 → 3,05 appels/tour, aucun repli ni « Précise à qui… » ; paroles sans nom à celui d'en face.
+  Reste un faux refus affiché, hors audience : « est-ce que quelqu'un a du bois ? » finit sur « Précise ce
+  que tu veux dire… » (le moteur n'accepte que `faim`/`chaleur` comme sujet de `ressource`, la contre-revue
+  refuse `chaleur` pour « bois »). Fusionné sur l'intégration après les lots 45, 48 et 49 : seul conflit
+  `docs/etat-dev.md` ; aucun fichier de code commun.
+
+- Branche `codex-audience`, remplacé par 47 b, lot 47, base d'intégration `60da18c`
+  (brief `d22190d`, **règle d’adresse remplacée par le lot 47 b ci-dessus**) : `destinataires` fixe une seule adresse, partagée par la prévision et la
+  validation sur copie. Sans nom, groupe ou échange à poursuivre, la parole à voix haute
+  va à la cantonade même avec quelqu'un en face. Un pronom individuel sans antécédent
+  et le chuchotement gardent le regard ; une cible nominale d'intention racontée est
+  conservée sans forcer le mode parole. Aucun choix d'audience libre de Luna ; revue des
+  mots et du contenu seule, refus d'adresse déterministe avec `attendu` avant elle.
+  Correctif signé SSH `2100c41`, signature vérifiée. Six tests nouveaux : Relais réel,
+  auberge, voix audible, adresse individuelle refusée puis corrigée, contenu contraire,
+  formes sans question et restitution/achat nommés ; sauvegarde et rendu contrôlés.
+  Luna, une passe des quatre scripts prescrits, référence `main` `42bb9c0` en cache :
+  68 → 63 appels, 22 → 19 tours MJ, 3,09 → 3,32 appels/tour ; aucun repli ou défaut
+  technique/de recharge. La question du bois est dite telle quelle à la cantonade,
+  quatre répondants, quatre appels dans les deux scripts, sans clarification d'audience.
+  Cette passe précède le dernier correctif d'analyse des intentions nominales : les
+  propositions initiales de restitution et d'achat qui y furent refusées sont rejouées
+  avec MJ simulé sur le code final, restitution et refus individuel d’achat vérifiés après recharge.
+  Suite complète unique, trois processus à priorité réduite : 1 733 tests, 16 ignorés,
+  1 488,9 s ; six échecs et douze erreurs initiaux (anciennes adresses implicites,
+  désignations tronquées). Après corrections et reprises ciblées : **166 fichiers validés,
+  1 734 tests couverts, 16 ignorés**, aucun défaut restant ; pas de seconde suite complète.
+  Reconnaissance syntaxique bornée, contenu encore sémantique ; aucune seconde passe Luna.
+  Aucun changement de scénario, de `deliberation.py` ou `echanges.py` ni de `planification.py` ;
+  `main` non touchée. [Rapport du lot 47](taches/rapport-codex-47-audience.md).
 - Branche `codex-borne-rester`, fusionnée, lot 48, base **3aba83b**, code signé **970d6f5** :
   borne admissible et cohérente du séjour final (`Vue.borne_rester`, `_explorer_etats`) :
   `RESTER × min(gardes laissées ailleurs + eau)` sur les sorties relaxées, sans noir ni compagnie ;

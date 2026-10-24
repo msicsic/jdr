@@ -178,15 +178,29 @@ paraphrases de méta-preuve : leur détection et les contradictions de sens rest
 
 ### Parole, références et audit après les noms (`codex-luna-noms`)
 
-Le destinataire explicitement désigné, le chuchotement et la suite d'un échange contraignent
-la parole. En leur absence, `parole_prevue.audience_libre` autorise l'interprétation à choisir
-une parole individuelle, `tous` pour le groupe ou `personne` pour la cantonade, même quand
-des personnes sont visibles. Le moteur valide ce choix par les mêmes règles de perception
-et d'ouïe ; la contre-revue de fidélité contrôle l'audience, les mots et le contenu avant
-d'enregistrer la parole. Deux propositions refusées demandent une précision au joueur ; le
-secours local ne contourne pas un refus de fidélité. Une
-question directe choisie comme parole conserve exactement les mots saisis. Le choix sémantique
-de cette audience reste celui de Luna, comme celui des contenus de parole.
+Le moteur fixe seul l'adresse : nom ou vocatif, groupe explicite, suite d'un échange.
+Sans adresse ni échange à poursuivre, il choisit celui d'en face ; à égalité, le joueur
+précise. Sans interlocuteur perçu à portée de voix, une parole à voix haute part à la cantonade
+(`personne`). Cette règle établie est rétablie par le lot 47 b. `tous` exige une adresse de groupe. Un pronom individuel
+sans antécédent (« je lui dis ») et le chuchotement se résolvent par celui d'en face ;
+un chuchotement exige le contact. Des guillemets poursuivent l'échange si possible,
+sinon le même défaut par le regard. Cette décision commune alimente `parole_prevue.personnage` et la
+validation avant toute mutation ; Luna ne choisit plus parmi des audiences libres.
+Une audience contraire à la saisie est refusée avec `attendu`, avant la contre-revue.
+La contre-revue des paroles à adresse implicite juge encore le contenu et les mots ;
+elle ne décide plus de l'audience. Deux contenus refusés demandent les mots du joueur,
+sans lui demander à qui parler. Le secours local ne contourne pas ce refus.
+Une question directe choisie comme parole conserve exactement les mots saisis.
+
+Dans une intention non citée de forme « je <verbe> [à] <personne> … » (ou « j’<verbe> … »),
+l'analyse commune conserve aussi la cible nominale du prédicat (`cible_intention`), sans liste
+supplémentaire de verbes. Si le MJ en fait une parole, elle va à cette personne ; cela ne
+force pas une parole pour un geste. Une mention dans le corps d'une citation ne devient
+pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
+Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
+des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
+règle par défaut (regard, sinon cantonade) ; elle n'est pas devinée à partir de la ressource ou du scénario.
+
 Une question au MJ sur la faisabilité d'un geste ne devient pas une parole à un PNJ voisin :
 le même réexamen exige le geste à préparer. Une question explicitement dite ou adressée à un
 personnage reste une parole.
@@ -347,15 +361,18 @@ Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du qu
 est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d'un savoir. La carte technique conserve ses axes et sa
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
 
-La revue d'une parole sépare deux jugements sémantiques : les `audiences_fideles` à la demande
-(individuelle, groupe, cantonade) et `contenu_conforme` pour les mots et le contenu typé. Le
-moteur compare lui-même cette liste à l'adresse validée (`tous` = groupe, `personne` = cantonade).
-Un motif libre ne peut plus changer le sens de ces références. La revue reçoit les destinataires,
-les répondants et les conséquences réelles calculées sur copie. Une demande d'achat est une
-parole dont le moteur décide l'acceptation, le transfert ou le refus ; elle n'a pas à porter une
-opération de transfert faite par Corvus. Les références sont projetées en noms publics ; les mots
-libres restent littéraux. Un refus d'audience et un refus de contenu ont chacun leur `attendu`.
-La fidélité du choix d'audience et du sens des mots demeure en partie sémantique.
+Depuis `codex-audience` (lots 47 et 47 b), le rapport de fidélité d'une parole porte seulement
+`contenu_conforme` et `motif`. Le dossier de cette revue est limité à `replique`, `contenu`
+et `sens_contenu` : aucune adresse, aucun auditeur ni conséquence mécanique à rejuger.
+Les sens typés décrivent la demande ou l'affirmation, indépendamment de leur audience.
+Le moteur conserve l'autorité sur l'adresse, les répondants et les conséquences calculées
+sur copie ; la narration reçoit ensuite la conversation validée entière.
+Une demande d'achat est une parole dont le moteur décide l'acceptation, le transfert ou
+le refus ; elle n'a pas à porter une opération de transfert faite par Corvus.
+Les références sont projetées en noms publics ; les mots libres restent littéraux.
+Les refus d'adresse déterministe et de contenu ont chacun leur `attendu`.
+La reconnaissance syntaxique de l'adresse reste bornée aux formes de `paroles.analyser` ;
+la fidélité du sens des mots et le choix de parler restent en partie sémantiques.
 Le sens de tous les types de contenu et des codes de ressource vient de `paroles.SENS_CONTENU`
 et `RESSOURCES_DEMANDEES`, partagés par le schéma d'interprétation et la revue (`sens_contenu`).
 Ainsi un besoin typé désigne la ressource recherchée ; il ne devient pas le sujet littéral de

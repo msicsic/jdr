@@ -52,9 +52,8 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
         if fonction == "auditer_action":
-            if "audiences_fideles" in schema["properties"]:
-                return {"audiences_fideles": ["individuelle", "groupe", "cantonade"],
-                        "contenu_conforme": True, "motif": ""}
+            if "contenu_conforme" in schema["properties"]:
+                return {"contenu_conforme": True, "motif": ""}
             return {"conforme": True, "motif": ""}
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:
