@@ -12,6 +12,15 @@ _DEVIS = {}
 _VERIFIES = {}
 
 
+def _utile(v, condition):
+    """Un changement que le proposant croit encore utile à l'auditeur."""
+    o = condition['objet']
+    etat = v.cru(o, 'etat') or {}
+    return ('allume' in condition and (not etat.get('allume', True) or etat.get('faible'))
+            or 'verrouillee' in condition and v.cru(o, 'verrouillee') is False
+            or 'lieu' in condition and _lieu_cru(v.monde, v.id, o) != condition['lieu'])
+
+
 def conditions(v, autre):
     """Services suggérés par les biens connus de l'autre, sans lire son agenda."""
     for o in v.connus:
@@ -43,6 +52,10 @@ def _taches(v, autre):
                 return precedent[1]
         offres = []
         for condition in conditions(v, autre):
+            # Une promesse sans gain cru ne justifie pas de recherche de devis.
+            # Ce filtre porte sur la valeur avant d'en calculer le prix.
+            if not _utile(v, condition):
+                continue
             if agendas.en_cours(v.monde, v.id, condition=condition, personne=autre, actifs=True):
                 continue
             devis = _devis_proposition(v.monde, v.id, condition, autre)
@@ -103,11 +116,7 @@ def valeur_crue(v, autre, terme, cout=0):
         c = terme["condition"]
         # La promesse dite est la même, qu'il compte la tenir ou la trahir.
         cout = next(prix for t, prix in _taches(v, autre) if t == terme)
-        etat = v.cru(c["objet"], "etat") or {}
-        utile = ("allume" in c and (not etat.get("allume", True) or etat.get("faible"))
-                 or "verrouillee" in c and v.cru(c["objet"], "verrouillee") is False
-                 or "lieu" in c and _lieu_cru(v.monde, v.id, c["objet"]) != c["lieu"])
-        return cout / 5 if utile else 0
+        return cout / 5 if _utile(v, c) else 0
     o = terme["objet"]
     besoin = v.besoin[o]
     etat = v.cru(autre, "etat") or {}
@@ -115,7 +124,7 @@ def valeur_crue(v, autre, terme, cout=0):
         2 if besoin and etat.get(besoin) else 1)
 
 
-def gestes(v, e, vises, but):
+def _candidats(v, e, vises, but):
     from . import planification as p
     from .biens import prix
     demandes = []
@@ -178,3 +187,81 @@ def gestes(v, e, vises, but):
             # On ne peut réutiliser comme outil ou comme paiement un bien déjà cédé.
             suivant = final.apres(portes=(final.portes - (e.portes - portes)), faits=faits)
             yield fautes, minutes, [etape], suivant, 1
+
+
+def preparer(v, depart, vises, but):
+    """Figer les marchés sur les croyances et les moyens du départ, avant le graphe.
+
+    Une offre par auditeur et sorte de paiement. Le classement retient son coût
+    honnête, mais ne prédit ni acquisitions ni préparatifs ; tenir ou trahir la
+    même promesse reste le choix du graphe au prix de faute courant.
+    La même sélection sert aux deux graphes de lumière et à leur vérification.
+    """
+    from . import planification as p
+    if v.seul:
+        v._propositions = ()
+        return
+    # Les seuls emplois retenus sont ceux connus au choix du but. Une nouvelle
+    # acquisition ou la découverte ultérieure d'un usage n'élargit pas ce devis.
+    vue = p.Vue(v.monde, v.id)
+    vue.motif, vue.eclairer = v.motif, v.eclairer
+    vue.emplois = v.emplois
+    vue._lumiere_lue = v.emploie_lumiere
+    vue._depart_estimation = depart
+    meilleurs, trahisons = {}, {}
+    salles = dict.fromkeys(vue.salle(depart, x) for x in vue.personnes())
+    for salle in salles:
+        if salle is None:
+            continue
+        origine = depart.apres(salle=salle)
+        for geste in _candidats(vue, origine, vises or {}, but):
+            mal, cout, etapes, fin = geste[:4]
+            etape = etapes[0]
+            cle = etape['cible'], etape['contenu']['contrepartie']['type']
+            if mal:
+                trahisons[json.dumps(etape, sort_keys=True)] = origine, geste
+            elif cle not in meilleurs or cout < meilleurs[cle][0]:
+                meilleurs[cle] = cout, origine, geste
+    retenus = []
+    for _, origine, geste in meilleurs.values():
+        retenus.append((origine, geste))
+        trahison = trahisons.get(json.dumps(geste[2][0], sort_keys=True))
+        if trahison is not None:
+            retenus.append(trahison)
+    v._propositions = tuple(retenus)
+
+
+def gestes(v, e, vises, but):
+    """Rejouer les offres préparées, sans devis ni recherche dans un développement."""
+    if v._propositions is None:
+        # API des tests et des outils inspectant directement les gestes.
+        preparer(v, e, vises, but)
+    for origine, geste in v._propositions:
+        mal, cout, etapes, fin = geste[:4]
+        etape = etapes[0]
+        autre = etape['cible']
+        if e.salle != origine.salle or e.fait('proposition', autre):
+            continue
+        demande = etape['contenu']['demande']
+        objet = demande.get('objet')
+        if objet and (objet in e.portes or e.fait('offert', objet) or e.fait('acquis', objet)):
+            continue
+        retires = origine.portes - fin.portes
+        if not retires <= e.portes or any(e.fait('offert', o) for o in origine.portes
+                                         if fin.fait('offert', o)):
+            continue
+        depense = (fin.fait('depense') or 0) - (origine.fait('depense') or 0)
+        if v.richesse < (e.fait('depense') or 0) + depense:
+            continue
+        # Les effets sont ceux de la seule offre ; les autres préparatifs du
+        # préfixe restent présents. Une promesse déjà cédée n'est pas revendue.
+        faits = [(k, x) for k, x in fin.faits.items() if origine.faits.get(k) != x]
+        if any(k[0] == 'promesse_offerte' and e.fait(*k) for k, _ in faits):
+            continue
+        faits = [(k, x) for k, x in faits if k != ('depense',)]
+        if depense:
+            faits.append((('depense',), (e.fait('depense') or 0) + depense))
+        faits.append((('proposition', autre), True))
+        suivant = e.apres(portes=(e.portes - retires) | (fin.portes - origine.portes), faits=faits,
+                          salle=fin.salle if fin.fait('estimation') else e.salle)
+        yield mal, cout, etapes, suivant, *geste[4:]

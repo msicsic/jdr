@@ -52,6 +52,52 @@ def offre(m, a, b, type):
 
 
 class PnjProposentTests(unittest.TestCase):
+    def test_aucun_devis_ni_evaluation_pendant_un_developpement(self):
+        from donjon import echanges
+        # Le cas réel du feu et un marché de pièces à la mine traversent le
+        # planificateur entier. Les autres tests vérifient exécution et recharge.
+        for scenario in ('crue', 'mine'):
+            m, a, b = scene(scenario)
+            retenir_refus(m, a, b, 'demander', 'refus', objet='vivres')
+            retenir_refus(m, a, b, 'acheter', 'refus', objet='vivres')
+            original, devis = p._explorer_etats, p.devis_pulsion
+            dans = []
+            def explorer(*args, **kwargs):
+                dans.append(True)
+                try:
+                    return original(*args, **kwargs)
+                finally:
+                    dans.pop()
+            def chiffrer(*args, **kwargs):
+                self.assertFalse(dans, 'Un développement a déclenché un devis')
+                return devis(*args, **kwargs)
+            with patch.object(p, '_MEMOIRE', {}), patch.object(p, '_GRAPHES', {}), \
+                    patch.object(p, '_explorer_etats', explorer), \
+                    patch.object(p, 'devis_pulsion', chiffrer), \
+                    patch.object(echanges, 'evaluer_proposition', side_effect=AssertionError('évaluation dans la recherche')):
+                plan = p.planifier(recharger(m), a, 'faim')
+            self.assertIsNotNone(plan)
+            self.assertTrue(offres(m, a), scenario)
+
+    def test_une_offre_par_auditeur_et_sorte_rejouee_sans_calcul(self):
+        from donjon.pnj_propositions import preparer
+        for scenario in ('crue', 'mine'):
+            m, a, b = scene(scenario)
+            v = p.Vue(m, a)
+            v.motif = 'faim'
+            e = p.depart(m, a, v)
+            preparer(v, e, {}, p.a_mange)
+            with patch('donjon.pnj_propositions._candidats', side_effect=AssertionError('recalcul')), \
+                    patch('donjon.pnj_propositions._taches', side_effect=AssertionError('devis')):
+                candidats = list(gestes(v, e, {}, p.a_mange))
+                cles = [(x[2][0]['cible'], x[2][0]['contenu']['contrepartie']['type'])
+                        for x in candidats if not x[0]]
+                self.assertEqual(len(cles), len(set(cles)))
+                self.assertTrue(cles)
+                for x in candidats:
+                    self.assertFalse(any(y[2][0]['cible'] == x[2][0]['cible']
+                                         for y in gestes(v, x[3], {}, p.a_mange)))
+
     def test_offres_meme_laps_decoupe_avec_rechargement(self):
         from donjon.temps import MINUTE
         from tests.test_corps_blessable import passer

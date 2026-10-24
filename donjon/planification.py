@@ -274,6 +274,7 @@ class Vue:
         self._estime_part = False
         self._estimations_parts = {}
         self._depart_estimation = None
+        self._propositions = None
 
     @property
     def emploie_lumiere(self):
@@ -1443,6 +1444,9 @@ def _entrees(v, vises, profondeur, noeuds):
         [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
         v.prix_gardes, v.chances_demandes,
         agendas.en_cours(monde, id), prix_faute(monde, id),
+        # Les marchés sont sélectionnés sur ces entrées au départ, avant les
+        # développements ; les graphes gardent les deux choix tenir/trahir.
+        "propositions:depart-v1",
         prix_faute(monde, id, nom="douceur"), [modificateur(monde, id, a) for a in ("DEX", "FOR")],
         # Le devis d'entretien distingue une source observée pendant cette minute
         # d'un état antérieur : seule la première dispense d'un nouveau travail.
@@ -1621,9 +1625,14 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
     si la référence l'atteint, la restreinte doit seulement ne pas coûter plus qu'elle."""
     def refaire(emplois, borne):
         brute = Vue(monde, id)
-        brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
+        brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, v.emplois, v.eclairer
         brute.motif = v.motif
         brute.desespere = v.desespere
+        # La référence contrôle la recherche parmi les mêmes marchés approchés,
+        # sélectionnés au choix du but, avant d'élargir ses autres outils.
+        from .pnj_propositions import preparer
+        preparer(brute, depuis or depart(monde, id, brute), vises, but)
+        brute.emplois = emplois
         r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
@@ -1675,6 +1684,9 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     neuve la ferait avec ce prix-là (``_explorer_etats``).
     """
     v._depart_estimation = depart_
+    if v._propositions is None:
+        from .pnj_propositions import preparer
+        preparer(v, depart_, vises, but)
     sombre = lumineux = None
     if graphe is not None:
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
