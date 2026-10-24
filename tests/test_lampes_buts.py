@@ -148,7 +148,9 @@ class LumiereDuButTests(unittest.TestCase):
         prix_faute = caractere.prix_faute
 
         def faute(monde, id, besoin=None, nom="honnetete"):
-            return prix["faute"] if nom == "honnetete" else prix_faute(monde, id, besoin, nom)
+            # Varier le prix du besoin, pas celui des devis autonomes qui fait
+            # désormais partie des entrées du graphe.
+            return prix["faute"] if nom == "honnetete" and besoin == "fixture" else prix_faute(monde, id, besoin, nom)
 
         but = lambda v, e: bool(e.fait("inspecte", "reserve"))
         with patch.object(P, "gestes", gestes), patch.object(caractere, "prix_faute", faute),                 patch.object(P, "VERIFIER", True), patch.object(P, "_MEMOIRE", {}),                 patch.object(P, "_GRAPHES", {}), P.diagnostics() as recherches:
@@ -157,7 +159,7 @@ class LumiereDuButTests(unittest.TestCase):
             for valeur in (10.0, 0.0, 10.0, 0.0):
                 prix["faute"] = valeur
                 plans.append(P.chercher(m, "remy", but, {"inspecter": ("reserve",)}, memo=["essai"],
-                                        emplois=(), noeuds=3))
+                                        emplois=(), noeuds=3, motif="fixture"))
         self.assertEqual([r["graphe"] for r in recherches], [False, False, True, True])
         self.assertEqual([r["issue"] for r in recherches], ["plan", "borne", "plan", "borne"])
         self.assertEqual(plans[0], plans[2])

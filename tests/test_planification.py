@@ -148,6 +148,7 @@ class PertinenceTests(unittest.TestCase):
         for refus in (False, True):
             if refus:
                 retenir_refus(m, "aubin", "marchand", "demander", "necessaire", objet="vivres")
+                retenir_refus(m, "aubin", "marchand", "proposer", "necessaire", objet="vivres")
             with diagnostics() as recherches:
                 complet = chercher(m, "aubin", a_mange)
                 borne = chercher(m, "aubin", a_mange, emplois=("manger",))
