@@ -150,7 +150,7 @@ class ParoleTests(unittest.TestCase):
                                  ("qui a de quoi manger ?", "faim")):
             with self.subTest(besoin=besoin):
                 r, texte, appels = jouer(scene(), question, [
-                    parole(question, ("ressource", besoin, "", ""), personnage="personne"),
+                    parole(question, ("ressource", besoin, "", ""), personnage="ilse"),
                     dialogue("Ta question a été entendue.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
                 revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
@@ -185,9 +185,9 @@ class ParoleTests(unittest.TestCase):
                 self.assertFalse(connait_nom(r, "joueur", qui))
                 self.assertNotIn("presentation", r.data["paroles_pnj"][-1])
 
-    def test_audiences_collectives_comparees_par_le_moteur(self):
+    def test_adresse_individuelle_deja_fixee_pour_la_revue(self):
         for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous aider ?"):
-            for destinataire, adresse in (("personne", "cantonade"),):
+            for destinataire, adresse in (("ilse", "individuelle"),):
                 with self.subTest(saisie=saisie, destinataire=destinataire):
                     r, texte, appels = jouer(scene(), saisie, [
                         parole(saisie, personnage=destinataire), dialogue("Ta question résonne.")],
@@ -198,10 +198,10 @@ class ParoleTests(unittest.TestCase):
                     self.assertNotIn("Précise à qui", texte)
                     revues = [e for f, e in appels if f == "auditer_action"]
                     self.assertEqual(len(revues), 1)
-                    self.assertEqual(revues[0]["plan"]["parole"]["adresse"], adresse)
+                    self.assertEqual(set(revues[0]["plan"]["parole"]), {"replique", "contenu", "sens_contenu"})
                     self.assertEqual(paroles_retenues(r, "aubin")[-1][2], saisie)
 
-    def test_contre_revue_recoit_le_transfert_reel_et_les_noms_publics(self):
+    def test_revue_du_contenu_seule_et_transfert_reel_hors_de_son_dossier(self):
         for cible in ("planches", "vivres"):
             with self.subTest(cible=cible):
                 m = scene(ilse=(1, 5), aubin=(2, 3))
@@ -212,14 +212,14 @@ class ParoleTests(unittest.TestCase):
                     ("demande", cible, "", "3"), personnage="aubin"), dialogue("Ta demande a été entendue.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
                 revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
-                self.assertTrue(revue["consequences_moteur"])
+                self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu"})
                 self.assertEqual(r.joueur["or"], m.joueur["or"] - 3)
                 if cible == "planches":
                     self.assertEqual(r.objets[cible]["charges"], m.objets[cible]["charges"] - 1)
                     self.assertEqual(r.objets["planches_1"]["lieu"], "joueur")
                 else:
                     self.assertEqual(r.objets[cible], m.objets[cible])
-                self.assertIn("Aubin", revue["personnage"])
+                self.assertIn(m.objets[cible]["nom"], revue["contenu"][0]["sujet"])
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
                 self.assertIn("Tu dis", texte)
 

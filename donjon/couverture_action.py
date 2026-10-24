@@ -34,17 +34,11 @@ def schema(plan):
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
-Le champ parole décrit une parole préparée : ses mots, son contenu et son adresse individuelle
-ou au groupe, ou son absence de destinataire particulier (cantonade). Une parole à la cantonade
-est entendue par ceux qui en saisissent les mots et chacun peut y répondre ; elle ne sélectionne
-ni une personne ni chacun des membres d'un groupe. L'adresse vient de l'analyse commune du
-moteur : nom ou vocatif, groupe explicite, suite de l'échange ; à défaut, cantonade,
-même avec quelqu'un en face. Elle est déjà validée et ne fait pas l'objet de cette revue.
-destinataires et repondent sont les personnes calculées par l'ouïe, pas une restriction
-ajoutée par le MJ. Juge les mots et le contenu avant enregistrement.
-contenu décrit ce que Corvus demande, pas des opérations à exécuter par lui : consequences_moteur
-donne les effets réels déjà calculés sur une copie (paiement, transfert, refus). Une demande
-n'exige pas d'opération de transfert dans le plan ; le personnage peut la refuser.
+Le champ parole est le dossier de contenu d'une parole préparée : replique, contenu et
+sens_contenu. Compare ces mots et ce contenu à la demande du joueur avant enregistrement.
+L'adresse, les auditeurs et les effets mécaniques sont fixés et validés séparément par le
+moteur ; ils ne font pas partie de ce dossier ni du sens à contrôler. contenu décrit ce
+qui est demandé ou affirmé, pas les opérations de transfert ou de paiement à exécuter.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
 Le plan représente l'état du monde : action, cibles, outil, et changements durables
@@ -120,9 +114,7 @@ def entree(intention, plan, monde=None):
     if monde is not None:
         def nommer_parole(p):
             # Les références sont nommées, les mots libres restent littéraux.
-            return {**p, **{k: _nommer(p[k], monde) for k in
-                           ("personnage", "destinataires", "repondent") if k in p},
-                    "contenu": [{**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur") if k in c}}
+            return {**p, "contenu": [{**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur") if k in c}}
                                 for c in p.get("contenu", [])]}
         def nommer_plan(op):
             return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},

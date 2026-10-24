@@ -324,7 +324,7 @@ class ImpostureTests(unittest.TestCase):
 
     def test_cas_reel_c_est_moi_brune(self):
         m = self.appelee()
-        reprise, sortie, appels = jouer(m, "je lui dis : C'est moi, Brune.", [
+        reprise, sortie, appels = jouer(m, "« C'est moi, Brune. »", [
             parole("C'est moi, Brune.", ("nom", "joueur", "", ""), personnage="voix_1"),
             dialogue("La voix répond : « Brune ? Je ne te reconnais pas. »")],
             [audit(ligne("parole", "voix_1", "Brune ? Je ne te reconnais pas."))])
@@ -342,7 +342,7 @@ class ImpostureTests(unittest.TestCase):
 
     def test_meme_nature_le_nom_que_disent_les_mots_sans_contenu_type(self):
         m = self.appelee()
-        reprise, _, appels = jouer(m, "je lui dis : Je suis Corvus.", [
+        reprise, _, appels = jouer(m, "« Je suis Corvus. »", [
             parole("Je suis Corvus.", ("propos", "", "", ""), personnage="voix_1"),
             dialogue("La voix : « Corvus… »")], [audit(ligne("parole", "voix_1", "Corvus…"))])
         # Le moteur lit le nom dans les mots : Corvus se nomme, même sans contenu typé.
@@ -355,8 +355,8 @@ class ImpostureTests(unittest.TestCase):
         # Banc de la branche : à « « Qui est là ? » », Luna typait « Corvus se nomme » ; la voix le croyait.
         m = self.appelee()
         reprise, _, appels = jouer(m, "« Qui est là ? »", [
-            parole("Qui est là ?", ("nom", "joueur", "", ""), personnage="personne"),
-            parole("Qui est là ?", ("qui", "", "", ""), personnage="personne"),
+            parole("Qui est là ?", ("nom", "joueur", "", ""), personnage="voix_1"),
+            parole("Qui est là ?", ("qui", "", "", ""), personnage="voix_1"),
             dialogue("La voix : « Ilse. »")], [audit(ligne("parole", "voix_1", "Ilse."))])
         self.assertIn("contenu[0] : retire l'élément nom", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
         faits = narration(appels)["faits"]["conversation_validee"]["faits"]

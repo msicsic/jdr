@@ -179,11 +179,12 @@ paraphrases de méta-preuve : leur détection et les contradictions de sens rest
 ### Parole, références et audit après les noms (`codex-luna-noms`)
 
 Le moteur fixe seul l'adresse : nom ou vocatif, groupe explicite, suite d'un échange.
-Sans adresse ni échange à poursuivre, une parole à voix haute part à la cantonade (`personne`),
-même si quelqu'un est en face. `tous` exige une adresse de groupe. Un pronom individuel
+Sans adresse ni échange à poursuivre, il choisit celui d'en face ; à égalité, le joueur
+précise. Sans interlocuteur perçu à portée de voix, une parole à voix haute part à la cantonade
+(`personne`). Cette règle établie est rétablie par le lot 47 b. `tous` exige une adresse de groupe. Un pronom individuel
 sans antécédent (« je lui dis ») et le chuchotement se résolvent par celui d'en face ;
 un chuchotement exige le contact. Des guillemets poursuivent l'échange si possible,
-sinon la cantonade. Cette décision commune alimente `parole_prevue.personnage` et la
+sinon le même défaut par le regard. Cette décision commune alimente `parole_prevue.personnage` et la
 validation avant toute mutation ; Luna ne choisit plus parmi des audiences libres.
 Une audience contraire à la saisie est refusée avec `attendu`, avant la contre-revue.
 La contre-revue des paroles à adresse implicite juge encore le contenu et les mots ;
@@ -198,7 +199,7 @@ force pas une parole pour un geste. Une mention dans le corps d'une citation ne 
 pas une adresse : seuls le vocatif et les formes de parole existantes l'y établissent.
 Cette reconnaissance reste syntaxique : ni analyse grammaticale complète, ni résolution
 des intentions indirectes ou à plusieurs propositions. Une cible non reconnue garde la
-règle publique ; elle n'est pas devinée à partir de la ressource ou du scénario.
+règle par défaut (regard, sinon cantonade) ; elle n'est pas devinée à partir de la ressource ou du scénario.
 
 Une question au MJ sur la faisabilité d'un geste ne devient pas une parole à un PNJ voisin :
 le même réexamen exige le geste à préparer. Une question explicitement dite ou adressée à un
@@ -360,9 +361,12 @@ Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du qu
 est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d'un savoir. La carte technique conserve ses axes et sa
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
 
-Depuis `codex-audience` (lot 47), le rapport de fidélité d'une parole porte seulement
-`contenu_conforme` et `motif`. La revue reçoit l'adresse unique validée par le moteur,
-les destinataires, les répondants et les conséquences réelles calculées sur copie.
+Depuis `codex-audience` (lots 47 et 47 b), le rapport de fidélité d'une parole porte seulement
+`contenu_conforme` et `motif`. Le dossier de cette revue est limité à `replique`, `contenu`
+et `sens_contenu` : aucune adresse, aucun auditeur ni conséquence mécanique à rejuger.
+Les sens typés décrivent la demande ou l'affirmation, indépendamment de leur audience.
+Le moteur conserve l'autorité sur l'adresse, les répondants et les conséquences calculées
+sur copie ; la narration reçoit ensuite la conversation validée entière.
 Une demande d'achat est une parole dont le moteur décide l'acceptation, le transfert ou
 le refus ; elle n'a pas à porter une opération de transfert faite par Corvus.
 Les références sont projetées en noms publics ; les mots libres restent littéraux.

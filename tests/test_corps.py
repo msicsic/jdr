@@ -154,7 +154,7 @@ class PartDuJoueurTests(unittest.TestCase):
         m.joueur.update(salle="echoppe", position=[1, 2])
         # Les vivres sont dans la réserve verrouillée : le joueur ne les a jamais vus.
         self.assertNotIn("vivres", m.data["connus"])
-        p = {"_intention": "je lui demande une part", "personnage": "marchand", "replique": "Gorm, peux-tu me donner une part de vivres ?",
+        p = {"personnage": "marchand", "replique": "Gorm, peux-tu me donner une part de vivres ?",
              "contenu": [{"type": "demande", "sujet": "vivres", "attribut": "", "valeur": ""}]}
         with patch.object(Monde, "d20", return_value=20):
             travail, rapport = preparer_parole(m, p)

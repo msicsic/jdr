@@ -2,7 +2,7 @@
 
 Le joueur écrit ce qu'il veut faire dire à Corvus. Le moteur lit dans sa saisie la forme de la
 parole (``analyser``) et en fixe les destinataires (``destinataires``) : celui qu'il nomme,
-la suite d'un échange, sinon la cantonade ; « à tous », tous ceux qui l'entendent ; un chuchotement, un seul,
+la suite d'un échange, sinon celui d'en face ; « à tous », tous ceux qui l'entendent ; un chuchotement, un seul,
 au contact. Il fixe la bande d'expression (précision selon l'INT, aisance selon le CHA) ; Luna
 écrit la réplique dans cette bande et type son contenu : affirmations (sujet, attribut, valeur),
 demandes d'objet, demandes de passage (s'écarter, laisser passer), aveux, simples propos.
@@ -41,14 +41,14 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 SENS_CONTENU = {
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Propos sans effet mécanique typé.",
-    "affirmation": "Affirmer la valeur d'un attribut d'un sujet ; le destinataire décide d'y croire.",
-    "demande": "Demander un objet ou une part d'une ressource du destinataire ; valeur est le prix offert, vide sans offre.",
-    "passage": "Demander au destinataire de laisser passer ; valeur est le prix offert, vide sans offre.",
+    "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
+    "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
+    "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
     "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
     "qui": "Demander l'identité de l'interlocuteur.",
     "reclamer": "Réclamer son dû : les pièces si sujet est vide, sinon l'objet sujet.",
-    "ressource": "Demander si le destinataire a la ressource répondant au besoin sujet, sans la prendre ni la payer.",
+    "ressource": "Demander la disponibilité de la ressource répondant au besoin sujet, sans la prendre ni la payer.",
 }
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 SCHEMA_PAROLE = {
@@ -101,8 +101,9 @@ REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
 proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le moteur
 fixe le destinataire dans parole_prevue : celui que le joueur nomme,
-la suite d'un échange, ou le groupe explicite. Sans adresse ni suite à poursuivre, une parole
-à voix haute est dite à la cantonade (personne), même avec quelqu'un en face.
+la suite d'un échange, ou le groupe explicite. Sinon, il choisit celui qui est en face ;
+à égalité, le joueur précise. Sans interlocuteur perçu à portée de voix, la parole
+est dite à la cantonade (personne).
 Le moteur fixe qui l'entend réellement ;
 chuchoter ou murmurer, un seul, au contact ; un nom détaché par une virgule, où qu'il soit
 (« …, X ? »), désigne celui à qui il parle. personnage =
@@ -780,7 +781,7 @@ def en_face(monde, candidats):
 
 def destinataires(monde, forme):
     """Ceux à qui s'adresse la parole que décrit ``forme`` (``analyser``) : celui que le joueur
-    nomme, la suite d'un échange, sinon la cantonade ; à tous, tous les présents qui en
+    nomme, la suite d'un échange, sinon celui d'en face ; à tous, tous les présents qui en
     saisiraient les mots ; un chuchotement, un seul, au contact. Une parole sans conteste (à tous,
     entre guillemets…) que nul présent ne saisirait est dite à la cantonade : aucun destinataire,
     qui l'entend la retient. ParoleImpossible si le joueur doit préciser ou s'approcher.
@@ -867,12 +868,11 @@ def destinataires(monde, forme):
                                f"parler : {liste(entendent)}.")
     if id:
         return [id]
-    # Sans adresse individuelle à résoudre, la présence de quelqu'un en face ne
-    # transforme pas une parole publique en échange individuel. Un pronom sans
-    # antécédent (« lui ») ou un chuchotement garde la résolution par le regard.
-    if not chuchote and forme["suite"] != "lui":
-        return []
+    # Même défaut pour toute parole sans adresse : celui d'en face ; à défaut
+    # d'interlocuteur perçu à portée de voix, la cantonade et ses répondants.
     candidats = contact if chuchote else entendent
+    if not candidats and cantonade and forme["suite"] != "lui":
+        return []
     if not candidats:
         raise ParoleImpossible("Personne n'est assez près de toi pour que tu lui chuchotes quoi que ce soit."
                                if chuchote else "Personne n'est assez près pour t'entendre.",
@@ -1514,7 +1514,7 @@ def preparer_parole(monde, p, revision=None):
                           else "Tu t'adresses à " + _nom_pour(monde, dest[0]) + ".",
                           f"personnage = {attendu} (parole_prevue.personnage : "
                           + ("tous ceux qui entendent Corvus" if forme["groupe"] else
-                             "sans adresse ni échange à poursuivre : il parle à la cantonade" if not dest else
+                             "aucun interlocuteur perçu à portée de voix : il parle à la cantonade" if not dest else
                              "celui que le joueur nomme, la suite de l'échange ou l'adresse individuelle en face")
                           + ") ; s'il n'est pas là pour entendre, réponds en mode dialogue, sans parler à un autre "
                           "à sa place.")

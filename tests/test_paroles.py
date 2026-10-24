@@ -212,9 +212,9 @@ class CroyancesTransmisesTests(unittest.TestCase):
         m = relais()
         # Les vivres sont enfermés : Corvus ne les a jamais vus ni entendu nommer.
         with self.assertRaisesRegex(ErreurMonde, "ne connaît pas"):
-            preparer_parole(m, {"_intention": "je lui dis quelque chose", "personnage": "marchand", "replique": "Tes vivres sont dans la galerie.",
+            preparer_parole(m, {"personnage": "marchand", "replique": "Tes vivres sont dans la galerie.",
                                 "contenu": []})
-        travail, rapport = preparer_parole(m, {"_intention": "je lui dis quelque chose", "personnage": "marchand", "replique": "Tout est rangé là-haut.",
+        travail, rapport = preparer_parole(m, {"personnage": "marchand", "replique": "Tout est rangé là-haut.",
                                                "contenu": [{"type": "affirmation", "sujet": "vivres",
                                                             "attribut": "lieu", "valeur": "chambre_cloche"}]})
         self.assertEqual(rapport["faits"], [])

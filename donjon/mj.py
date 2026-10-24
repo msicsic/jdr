@@ -412,14 +412,11 @@ class MJ:
         from .moteur import Plan
         if not adresse_implicite(analyser_parole(monde, intention)):
             return
-        adresse = {"tous": "groupe", "personne": "cantonade"}.get(
-            rapport["personnage"], "individuelle")
-        plan = Plan({}, revision, "Prononcer la parole préparée.", parole={
-            "adresse": adresse, "personnage": rapport["personnage"],
-            "destinataires": rapport["destinataires"], "repondent": rapport["repondent"],
+        # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
+        # font pas partie de la question posée à la revue sémantique du contenu.
+        plan = Plan({}, revision, "Contrôler le contenu de la parole préparée.", parole={
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
-            "sens_contenu": sens_contenu(complements["contenu"]),
-            "consequences_moteur": copy.deepcopy(rapport["faits"])})
+            "sens_contenu": sens_contenu(complements["contenu"])})
         try:
             self._auditer_action(intention, plan, revision, monde)
         except ErreurMonde as exc:

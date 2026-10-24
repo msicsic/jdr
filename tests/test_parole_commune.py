@@ -76,7 +76,7 @@ class FormeTests(unittest.TestCase):
 class DestinataireTests(unittest.TestCase):
     def test_cas_reel_celui_d_en_face_repond_l_autre_retient(self):
         m = scene()
-        saisie = "je lui dis : pouvez-vous m'aider à faire bouger Brune ?"
+        saisie = "je dis : pouvez-vous m'aider à faire bouger Brune ?"
         reprise, sortie, appels = jouer(m, saisie, [
             parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse"),
             reponse_pnj("Ilse : « Je ne sais pas. »")])
@@ -98,7 +98,7 @@ class DestinataireTests(unittest.TestCase):
         m = scene(ilse=(5, 4), aubin=(7, 4), brune=(1, 5))
         m.joueur["position"] = [6, 2]
         m = recharger(m)
-        reprise, sortie, appels = jouer(m, "je lui dis : pouvez-vous m'aider ?", [
+        reprise, sortie, appels = jouer(m, "je dis : pouvez-vous m'aider ?", [
             parole("Pouvez-vous m'aider ?", ("propos", "", "", ""), personnage="ilse")])
         self.assertEqual(len(appels), 0)  # Le joueur précise ; le moteur le dit sans appeler le MJ.
         self.assertIn("Aubin et Ilse sont aussi près de toi l'un que l'autre : précise à qui tu parles", sortie)
@@ -109,7 +109,7 @@ class DestinataireTests(unittest.TestCase):
         """Banc Luna : « bonsoir, vous tenez le coup ? », Brune droit devant, Aubin à son côté, tous
         deux au contact ; le moteur demandait de préciser alors que Corvus fait face à Brune."""
         m = scene(brune=(2, 3), aubin=(1, 2), ilse=(6, 5))
-        reprise, sortie, appels = jouer(m, "je lui dis : bonsoir, vous tenez le coup ?", [
+        reprise, sortie, appels = jouer(m, "bonsoir, vous tenez le coup ?", [
             parole("Bonsoir, vous tenez le coup ?", ("propos", "", "", ""), personnage="brune"),
             reponse_pnj("Brune hausse les épaules.")])
         self.assertEqual(appels[0]["faits"]["parole_prevue"]["personnage"], "brune")
@@ -141,7 +141,7 @@ class DestinataireTests(unittest.TestCase):
 
     def test_luna_ne_choisit_pas_un_autre_destinataire(self):
         m = scene()
-        reprise, sortie, appels = jouer(m, "je lui dis : bonsoir", [
+        reprise, sortie, appels = jouer(m, "je dis : bonsoir", [
             parole("Bonsoir.", ("propos", "", "", ""), personnage="aubin"),
             parole("Bonsoir.", ("propos", "", "", ""), personnage="ilse"),
             reponse_pnj("Ilse hoche la tête.")])
@@ -262,11 +262,11 @@ class SuiteTests(unittest.TestCase):
 
     def test_sans_echange_en_cours_ou_s_il_n_entend_plus_la_regle_commune(self):
         m = scene()
-        self.assertEqual(self.a_qui(m, "« bonsoir »"), [])  # Sans échange : cantonade.
+        self.assertEqual(self.a_qui(m, "« bonsoir »"), ["ilse"])  # Personne avant : celle d'en face.
         m.data["paroles_joueur"] = [{"revision": 0, "auditeur": "brune", "auditeurs": ["brune"],
                                      "texte": "bonsoir", "minute": 0}]
         placer(m, "brune", "echoppe", (7, 1))  # Partie dans la conduite : hors de portée de voix.
-        self.assertEqual(self.a_qui(recharger(m), "« tu es là ? »"), [])
+        self.assertEqual(self.a_qui(recharger(m), "« tu es là ? »"), ["ilse"])
         # Une interpellation dans les guillemets l'emporte sur la suite de l'échange.
         m.data["paroles_joueur"][0].update(auditeur="aubin", auditeurs=["aubin"])
         self.assertEqual(self.a_qui(m, "« Ilse, tu viens ? »"), ["ilse"])

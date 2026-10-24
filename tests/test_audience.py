@@ -14,49 +14,92 @@ from tests.test_tensions import recharger
 
 
 class AudienceTests(unittest.TestCase):
-    def verifier_cantonade(self, m, saisie, besoin):
+    def verifier_parole(self, m, saisie, besoin, personnage, destinataires):
         avant = copy.deepcopy(m.data)
         attendue = prevue(m, saisie)
-        self.assertEqual(attendue["personnage"], "personne")
-        self.assertEqual(attendue["destinataires"], [])
+        self.assertEqual(attendue["personnage"], personnage)
+        self.assertEqual([reel(m, x) for x in attendue["destinataires"]], destinataires)
         self.assertEqual(m.data, avant)  # La prévision ne prononce rien.
         r, sortie, appels = jouer(m, saisie, [
-            parole(saisie, ("ressource", besoin, "", ""), personnage="personne"),
+            parole(saisie, ("ressource", besoin, "", ""), personnage=personnage),
             dialogue("Ta question a été entendue.")],
             [rapport(ligne("mecanique", sources=["conversation_validee"]))])
         validee = next(e["faits"]["conversation_validee"] for f, e in appels
                        if f == "repondre_au_joueur" and "conversation_validee" in e["faits"])
-        self.assertEqual(validee["destinataires"], [])
-        self.assertIn(f"Tu dis : « {saisie} »", sortie)
+        self.assertEqual([reel(r, x) for x in validee["destinataires"]], destinataires)
+        annonce = "Tu dis :" if personnage == "personne" else "Tu dis à "
+        self.assertIn(annonce, sortie)
         self.assertNotIn("Précise à qui", sortie)
         p = r.data["paroles_joueur"][-1]
-        self.assertEqual((p["auditeur"], p["texte"]), ("personne", saisie))
+        mots = analyser(m, saisie)["mots"] or saisie
+        self.assertEqual((p["auditeur"], p["texte"]), (reel(m, personnage), mots))
         self.assertTrue(p["auditeurs"])
         for qui in p["auditeurs"]:
-            self.assertEqual(paroles_retenues(r, qui)[-1], ("joueur", [], saisie))
+            self.assertEqual(paroles_retenues(r, qui)[-1], ("joueur", destinataires, mots))
         self.assertIn("Ta question a été entendue.", str(r.data["conversation"]))
-        revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
-        self.assertEqual(revue["adresse"], "cantonade")
-        self.assertNotIn("audiences_autorisees", revue)
-        return r, validee
+        for f, e in appels:
+            if f == "auditer_action":
+                revue = e["plan"]["parole"]
+                self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu"})
+        return r, validee, sortie
 
     def test_cas_reel_trois_presents_et_une_voix_avec_aubin_en_face(self):
         m = banc("noms-dialogue")
-        # La voix de l'ouest reste une voix audible ; son identité n'est pas devinée.
         from donjon.paroles import entendre_repondant
         entendre_repondant(m, "marchand")
         m = recharger(m)
         self.assertEqual(en_face(m, [reel(m, x) for x in interlocuteurs(m)]), "aubin")
-        r, validee = self.verifier_cantonade(m, "est-ce que quelqu'un a du bois ?", "chaleur")
-        self.assertEqual(set(r.data["paroles_joueur"][-1]["auditeurs"]), {"aubin", "brune", "ilse", "marchand"})
-        self.assertEqual(len(validee["repondent"]), 4)
+        r, validee, sortie = self.verifier_parole(m, "est-ce que quelqu'un a du bois ?", "chaleur", "aubin", ["aubin"])
+        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["aubin"])
+        self.assertEqual(validee["repondent"], ["aubin"])
+        self.assertIn("Tu dis à Aubin : « est-ce que quelqu'un a du bois ? »", sortie)
+        for qui in ("brune", "ilse", "marchand"):
+            self.assertEqual(paroles_retenues(r, qui)[-1], ("joueur", ["aubin"], "est-ce que quelqu'un a du bois ?"))
 
-    def test_autre_scenario_autres_mots_malgre_un_interlocuteur_en_face(self):
+    def test_autre_scenario_autres_mots_au_personnage_en_face(self):
         m = banc("sous-obstacle-auberge")
         m.joueur["orientation"] = "ouest"
         m = recharger(m)
-        self.assertIn("lucien", [reel(m, x) for x in interlocuteurs(m)])
-        self.verifier_cantonade(m, "Avez-vous de quoi manger ?", "faim")
+        cible = prevue(m, "Avez-vous de quoi manger ?")["personnage"]
+        self.assertEqual(reel(m, cible), "lucien")
+        r, validee, _ = self.verifier_parole(m, "Avez-vous de quoi manger ?", "faim", cible, ["lucien"])
+        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["lucien"])
+        self.assertEqual(validee["repondent"], [cible])
+
+    def test_sans_interlocuteur_percu_la_cantonade_garde_ses_repondants(self):
+        m = banc("soir-noir")
+        self.assertFalse(interlocuteurs(m))
+        r, validee, sortie = self.verifier_parole(m, "Avez-vous de quoi manger ?", "faim", "personne", [])
+        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["ilse"])
+        self.assertEqual(validee["repondent"], ["voix_1"])
+        self.assertIn("Tu dis : « Avez-vous de quoi manger ? »", sortie)
+
+        # Une adresse individuelle ne devient pas publique : sans antécédent ni
+        # personne perçue, « lui » garde son refus du lot 47, comme le chuchotement.
+        for saisie in ("je lui dis : bonjour", "je chuchote : bonjour"):
+            with self.subTest(saisie=saisie):
+                seul = banc("soir-noir")
+                r, sortie, appels = jouer(seul, saisie, [], [])
+                self.assertFalse(appels)
+                self.assertFalse(r.data.get("paroles_joueur"))
+                self.assertNotIn("Tu dis", sortie)
+
+    def test_a_tous_adresse_le_groupe_malgre_aubin_en_face(self):
+        m = banc("noms-dialogue")
+        dest = [reel(m, x) for x in prevue(m, "à tous : avez-vous du bois ?")["destinataires"]]
+        r, validee, sortie = self.verifier_parole(m, "à tous : avez-vous du bois ?", "chaleur", "tous", dest)
+        self.assertTrue({"aubin", "brune", "ilse"} <= set(dest))
+        self.assertEqual(set(r.data["paroles_joueur"][-1]["auditeurs"]), {"aubin", "brune", "ilse", "marchand"})
+        self.assertIn("Tu dis à tous", sortie)
+
+    def test_des_guillemets_poursuivent_ilse_malgre_aubin_en_face(self):
+        m = banc("noms-dialogue")
+        r, _, _ = jouer(m, "Ilse, bonsoir", [parole("Ilse, bonsoir", personnage="ilse"),
+            dialogue("Ilse a entendu ta parole.")], [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+        self.assertEqual(en_face(r, [reel(r, x) for x in interlocuteurs(r)]), "aubin")
+        r, validee, sortie = self.verifier_parole(r, "« As-tu de quoi manger ? »", "faim", "ilse", ["ilse"])
+        self.assertEqual(validee["repondent"], ["ilse"])
+        self.assertIn("Tu dis à Ilse", sortie)
 
     def test_une_adresse_contraire_est_refusee_avant_la_revue(self):
         for saisie, cible, faux in (("Aubin, as-tu du bois ?", "aubin", "tous"),
@@ -78,8 +121,8 @@ class AudienceTests(unittest.TestCase):
         m = banc("noms-dialogue")
         saisie = "est-ce que quelqu'un a du bois ?"
         r, sortie, appels = jouer(m, saisie, [
-            parole(saisie, ("ressource", "faim", "", ""), personnage="personne"),
-            parole(saisie, ("ressource", "chaleur", "", ""), personnage="personne"),
+            parole(saisie, ("ressource", "faim", "", ""), personnage="aubin"),
+            parole(saisie, ("ressource", "chaleur", "", ""), personnage="aubin"),
             dialogue("Ta question a été entendue.")],
             [rapport(ligne("mecanique", sources=["conversation_validee"]))],
             revues=[{"conforme": False, "motif": "Du combustible est demandé, pas de la nourriture."},
@@ -93,9 +136,9 @@ class AudienceTests(unittest.TestCase):
         m = banc("noms-dialogue")
         for saisie in ("je dis : bonsoir", "« Bonsoir. »", "Avez-vous faim ?"):
             with self.subTest(saisie=saisie):
-                self.assertEqual(prevue(m, saisie)["personnage"], "personne")
+                self.assertEqual(prevue(m, saisie)["personnage"], "aubin")
                 with self.assertRaises(ErreurMonde):
-                    preparer_parole(m, {"personnage": "aubin", "replique": "Bonsoir.",
+                    preparer_parole(m, {"personnage": "personne", "replique": "Bonsoir.",
                                         "contenu": [], "_intention": saisie})
 
     def test_une_intention_nommee_reste_individuelle_sans_devenir_une_parole_forcee(self):

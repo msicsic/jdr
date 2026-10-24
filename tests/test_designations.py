@@ -42,7 +42,7 @@ class DesignationsTests(unittest.TestCase):
                 ref = designation(m, qui)
                 self.assertTrue(ref.startswith("voix_"))
                 texte = forme + " demeure dans le noir."
-                r, sortie, appels = jouer(m, "je lui dis : C'est moi, Brune.", [
+                r, sortie, appels = jouer(m, "« C'est moi, Brune. »", [
                     parole("C'est moi, Brune.", personnage=ref), dialogue(texte)],
                     [rapport(ligne("mecanique", sources=["interlocuteurs"]))])
                 self.assertIn(texte, sortie)
