@@ -2864,6 +2864,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## À revoir
 
+- **Coût, suites retenues** (revue externe du 2026-10-24, retenue par l'utilisateur) :
+  - **C1, une capacité nouvelle ou rien** : généraliser la règle du lot 46 (une seconde lampe sans capacité
+    nouvelle n'ouvre aucun geste) à toute catégorie d'objets que lisent les gestes (couper, frapper, combustible,
+    clé, contenant) : ne prendre, demander, acheter ou saisir un objet non visé par le but que s'il apporte une
+    capacité absente de ce qu'on porte. Le diagnostic mesurait 94 à 99 % d'états de fin de nuit avec préparatifs.
+    Prochain lot de coût, contrat des lots 46 et 48.
+  - **A, les entrées de la mémoire des recherches** : `_entrees` est un relevé écrit à la main (chaque lot qui lit
+    une donnée doit l'y ajouter, sinon `VERIFIER` casse) et sérialisé à chaque appel (~17 % de coût fixe à
+    l'auberge : 2 200 vues et entrées pour 1 350 recherches). Pistes : un compteur de révision par facette de
+    l'esprit, incrémenté dans les seules portes d'écriture (`esprits.croire`, `relations`, `agendas`, refus,
+    mémoire) ; ou une trace automatique des lectures de la recherche. Après C1 ; lot risqué (toute la mémoire).
+  - **Le stratège Luna des PNJ** (`--stratege`, désactivé par défaut) : son interception des plans illicites
+    contourne l'arbitrage moral du moteur (`prix_faute`) et son vocabulaire ignore les gestes récents ; à retirer
+    ou à cantonner, lot de ménage.
+- **À vérifier : la compagnie d'un allié qui a peur** (revue externe du 2026-10-24, retenue par l'utilisateur) : si `compagnie` rassure même quand l'allié perçu
+  tremble ou fuit, c'est un défaut ; un allié en détresse visible devrait transmettre une part de son inquiétude
+  (et faire demander « qu'est-ce qu'il y a ? »), jamais apaiser. Petit lot de correction si confirmé. Suivre le
+  regard d'un autre (attention conjointe) : plus tard, coût de perception à mesurer.
+
 - Routes et eau (lot 41, `codex-route-admissible`, non fusionnée) : les captures du refuge
   mouillé rejoignent le sec ; les traversées en cours ne sont plus coupées par l'horizon du séjour.
   Restent la durée moyenne par salle (occupation et actions futures non prédites), les attentes

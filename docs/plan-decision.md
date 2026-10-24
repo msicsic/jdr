@@ -115,6 +115,13 @@ Il se sépare en trois :
   buts à plusieurs voies, `RESTER`, la compatibilité avec la mémoire, les graphes repris et le
   certificat d'impossibilité.
 
+## 8 bis. Avis externe (2026-10-24)
+
+Une revue externe recommande la réflexion limitée avant les recettes : filtrer ce que le PNJ remarque
+(saillance, selon la PER) et borner la profondeur selon l'INT et la panique est sans état, accélère tout de
+suite et donne des oublis crédibles, alors que les recettes sauvegardées compliquent l'invalidation. Cela
+rejoint la question 6 ; à trancher avec elle après A4.
+
 ## 9. Questions ouvertes, pour l'utilisateur
 
 1. **Accepter des PNJ non optimaux** : recommandé oui ; à confirmer.

@@ -373,6 +373,11 @@ brique de l'évacuation.
 **A4. Les premiers agendas déclarés.** Sortes `amener`, `informer`, `garder`, `protéger` ; sous-buts,
 sommeil par le risque, révision, fin. Épreuve : la crue, Gorm doté de l'agenda d'évacuer et de prévenir
 (données). Mesures : PNJ à la galerie quand l'eau gagne, minutes en attente, temps de calcul.
+Avec `garder` (revue externe du 2026-10-24, retenue) : **s'interposer** ; quand quelqu'un dont le gardien se
+méfie, ou dont il a lu le guet, approche au contact d'un bien gardé, le gardien occupe la case d'accès sans
+violence et le met en garde par une parole typée ; s'il persiste, méfiance et rancune montent. Et **l'hystérésis
+du choix dans le score** : chaque candidat porte son urgence plus un bonus de stabilité s'il prolonge le but ou le
+motif en cours, au lieu de l'aiguillage `retenu` de `choisir`.
 Vérification Luna (bancs de référence et une scène d'évacuation). **Point de décision** : reprendre ici
 le plan de décision (habitudes, réflexion limitée), sur la mesure du coût et de la plausibilité
 (décision 7).
@@ -385,6 +390,11 @@ lieux, confie Brune à Aubin.
 **A6. La naissance des agendas.** Table des naissances ; occasion (le mercenaire), situation (la dette
 d'Odon), événement (la vengeance), rallier. Épreuve : l'auberge (Anselme, Lucien, Hugues) et la mine
 (Odon).
+
+**Soupçon déduit** (revue externe du 2026-10-24, retenue ; brique des cas 5 et 10, avec A6 et A7) : quand un
+PNJ constate une atteinte à un bien vu intact plus tôt sans avoir vu ni entendu le geste, il cherche dans ses
+souvenirs qui il a perçu dans ce lieu entre les deux constats ; un seul suspect donne une épreuve de soupçon
+dosée par la PSY (surveiller, refuser un prêt, interpeller), jamais une certitude ni un nom qu'il ne connaît pas.
 
 **A7. La réputation, enfermer (4d), punir.** Le tyran et l'obéissance contrainte (cas 14 et 15), sans
 règle propre ; ils doivent venir des pièces précédentes. S'ils ne viennent pas, une pièce manque : la

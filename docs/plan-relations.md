@@ -825,6 +825,11 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
   intermédiaires ; parole du joueur typée.
   Préparé par `codex-garde-pret` : chance estimée centralisée, expériences du demandeur
   et souvenir des témoins remarqués ; `PRET` retiré. Le reste de 3e demeure à réaliser.
+- **Contre-offre** (revue externe du 2026-10-24, retenue) : qui refuse une demande par réticence ou parce qu'un
+  autre besoin le presse peut dire ce qui le ferait céder : un prix (le seuil où sa réticence cède) ou son propre
+  besoin du moment (« apporte-moi de quoi manger et je te prête ma clé »). La condition est retenue avec le refus
+  (`esprit["refus"]`) ; le planificateur du demandeur, ou le joueur, y voit un sous-but. Des chaînes de troc à
+  trois peuvent en naître sans règle propre. Suite d'A2b « faute de mieux », côté de celui qui refuse.
 - **Mesures** : `propositions`, `acceptees`, `contreparties_tenues`, `trahisons`,
   `intermediaires`, `services_rendus` ; vols et minutes sans recours.
 - **Épreuve** : la crue (Brune affamée, dont Gorm se méfie, et les vivres sous clé), la mine (Odon
@@ -841,6 +846,11 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
 
 - Avis sur les prédicats admis, poids des sources, expression gardée par le souci de l'auditeur,
   `contredire`, nature « éclat », témoins, suites.
+- **Partager ses constats** (revue externe du 2026-10-24, retenue) : deux personnes qui se font confiance se disent
+  aussi leurs constats matériels récents (une réserve vue vide, une porte trouvée fermée à clé, l'eau qui monte,
+  un besoin pressant sans recours), par les nouvelles communes ; chacun n'a plus à buter seul sur la même porte,
+  et le joueur entend des échanges qui l'informent. Un PNJ désœuvré peut rejoindre, au plus bas rang, un lieu
+  éclairé où se trouve quelqu'un qu'il apprécie.
 - **Mesures** : `avis_exprimes`, `changements_d_avis` (par source : vu, dit, deviné), `disputes`,
   `disputes_vues` (par un tiers), `partis_pris`, `justesse_avis_fin` (part des PNJ dont l'avis sur
   la menace de leur lieu est vrai en fin de nuit).
