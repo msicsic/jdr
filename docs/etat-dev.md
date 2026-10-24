@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-faim-sans-plan`, **non fusionnée**, lot **63**, base `de3e986`,
+  brief `99de564` : diagnostic et plan, issue prévue si la trace n'est pas
+  prouvée ; aucun code moteur ni nouvelle reprise. L'outil relève les lectures
+  Python des dictionnaires pendant l'exploration et les composantes de `_entrees`
+  qui changent. La couverture reste incomplète : données dérivées avant exploration,
+  refus/prix préchauffés, graphes et caches repris, lecteurs natifs. Les résultats
+  sans changement observé ne sont donc pas des preuves de réutilisation. Le prix
+  de casse varie même lorsque `_entrees` est identique ; la trace du résultat
+  pondéré et celle d'une preuve d'absence doivent être distinguées. Façade immuable,
+  provenance des valeurs consommées et repli sur la clé actuelle décrits dans le
+  [plan](plan-planificateur.md#clé-par-lectures--diagnostic-du-lot-63-non-fusionné).
+  Quatre tests nouveaux verts, dont deux captures réelles : état complet,
+  perception et rendu identiques après une minute jouée et rechargement.
+  Sur 12 h, mine tirée/auberge fixe 1985, après 480 : 293/188 recherches neuves
+  de faim ; 2/292 et 126/178 paires sans plan sans changement **observé**,
+  couverture incomplète (dont prix de faute passé en argument). Dans 266 paires
+  de la mine, seul le prix de casse lu varie. Les deux nuits gardent les mêmes
+  mesures et résultats de recherche avec ou sans instrumentation.
+  Suite complète unique, trois processus, priorité réduite : **1 822 tests,
+  quatre ignorés, 180 fichiers, aucun échec ni erreur**, 814,3 s.
+  Mesures et suite finale : [rapport du lot 63](taches/rapport-codex-63-faim-sans-plan.md).
+  Commit de diagnostic signé SSH `57426af`, signature vérifiée ; `main` non touchée.
+
 - Branche `codex-eau-plan-marche`, fusionnée, lot **58**, base **c592d68** :
   le désaccord plan/marche de la crue venait de `eau.estimation`, qui rajeunissait
   une ancienne vitesse à chaque vue du niveau dans sa salle. Les deux pentes
@@ -3143,6 +3166,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     l'auberge : 2 200 vues et entrées pour 1 350 recherches). Pistes : un compteur de révision par facette de
     l'esprit, incrémenté dans les seules portes d'écriture (`esprits.croire`, `relations`, `agendas`, refus,
     mémoire) ; ou une trace automatique des lectures de la recherche. Après C1 ; lot risqué (toute la mémoire).
+    **Lot 63, diagnostic non fusionné** : une enveloppe des lectures de l'exploration ne suffit pas ;
+    elle manque la provenance des valeurs déjà préparées et des caches repris, et les lecteurs natifs.
+    Le prix `Vue.degat` varie hors de `_entrees` : le résultat pondéré doit le relire ; une absence
+    indépendante des prix exige toujours la preuve en largeur, sans lacune, du graphe admissible.
+    Aucune nouvelle clé livrée. Façade immuable avec provenance consommée à la demande et repli
+    automatique sur toute la clé actuelle à réaliser selon le plan du lot 63 ; gain net à mesurer.
   - **Le stratège Luna des PNJ** (`--stratege`, désactivé par défaut) : son interception des plans illicites
     contourne l'arbitrage moral du moteur (`prix_faute`) et son vocabulaire ignore les gestes récents ; à retirer
     ou à cantonner, lot de ménage.

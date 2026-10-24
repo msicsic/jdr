@@ -6,8 +6,9 @@
 Observe les recherches neuves d'un PNJ/but après --depuis (480 par défaut).
 Les dictionnaires lus pendant _explorer sont enveloppés sans modifier les données.
 Les listes/ensembles sont relevés en entier : sur-approximation volontaire.
-Les caches préparés avant _explorer, les lectures natives de dict et les alias
-non enveloppés empêchent une preuve de couverture. Aucune reprise n'est autorisée
+Les caches préparés avant _explorer, ses arguments scalaires (dont faute), les
+lectures natives de dict et les alias empêchent une preuve de couverture.
+Aucune reprise n'est autorisée
 par cet outil ; « inchangé observé » ne signifie PAS « recherche réutilisable ».
 Les CPU incluent l'instrumentation et ne mesurent aucun gain.
 """
@@ -281,7 +282,8 @@ def mesurer(args):
     resultat = {"scenario": args.scenario, "graine": args.graine, "depart": args.depart,
                 "heures": args.heures, "depuis": args.depuis, "pnj": qui, "but": args.but,
                 "couverture_complete": False,
-                "limites": ["caches de Vue préparés avant exploration", "lectures natives de dict",
+                "limites": ["caches de Vue préparés avant exploration", "arguments scalaires dont faute",
+                            "lectures natives de dict",
                             "alias et caches partagés hors enveloppe", "listes et ensembles relevés en entier"],
                 "cpu_instrumente": time.process_time() - debut, "composantes": composants_entrees(),
                 "mesures": mesures, "recherches": donnees["diagnostic"]["recherches"],

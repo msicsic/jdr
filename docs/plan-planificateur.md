@@ -1851,3 +1851,83 @@ lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; 
 remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
 
 Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
+
+## Clé par lectures — diagnostic du lot 63 (non fusionné)
+
+**Contrat visé, pas encore implémenté.** Une recherche déterministe dont aucune
+entrée effectivement lue n'a changé rend le même résultat sans être refaite.
+La trace doit enregistrer les valeurs, les absences, les ensembles de clés et
+leur ordre, ainsi que les arguments du but, les bornes et les coûts. Une liste
+de champs déclarée à la main ne prouve pas ce contrat. `_entrees`, `_MEMOIRE`,
+`_GRAPHES` et `_IMPOSSIBLES` restent inchangés dans ce lot.
+
+`tools/mesurer_lectures_recherche.py` observe automatiquement les accès Python
+aux dictionnaires de `Vue`, du monde et du monde spatial cru, pendant `_explorer`.
+Les collections non dictionnaires sont relevées en entier, donc plus largement
+que leur consommation effective. Les libellés des 44 composantes de `_entrees`
+sont extraits de son AST ; le JSON distingue composantes changées, chemins lus,
+lectures changées, résultat identique et plafond atteint. Aucun résultat de
+cette observation n'autorise une reprise.
+
+**Pourquoi cette enveloppe ne suffit pas.** `Vue.__init__` dérive déjà permissions,
+propriétaires, richesse, chances de demande, eau et monde spatial. `_entrees`
+préchauffe notamment `_crus` par `refus_tenus`, `personnes` et `violence` ;
+l'exploration peut donc consommer un refus sans relire sa source sous la trace.
+`Vue._memo`, `_lieux_crus`, `_parcours`, `_locaux` et les caches partagés
+`obstacles._DISTANCES`/`spatial._cache_vue` déplacent aussi les lectures. Les
+helpers reçoivent encore `v.monde` : `profil`, `_lieu_cru`, `part_pour`,
+`promesse_en_cours`, `tient`, `prix_violence`, `valeur_pieces`, les routes et
+l'eau ; le but lui-même peut lire le monde (`a_mange`, `rechauffe`). Enfin une
+fonction native peut lire directement une table de `dict`, sans appeler les
+méthodes substituées : un test le démontre. Une absence de changement observé
+n'est donc pas une absence prouvée ; la proportion exacte reste inconnue.
+Les arguments scalaires de `_explorer`, dont `faute`, ne sont pas sous
+l'enveloppe non plus : comparer `_entrees` seul ne couvre pas les prix de
+l'autre partie de la clé, ni les paramètres de la recherche.
+
+**Résultat pondéré et preuve d'absence sont distincts.** Dans la mine, après 8 h,
+le résultat reste `None` sur 292 paires successives, mais `Vue.degat`, un prix
+effectivement lu, change dans 289. Dans 266 paires, c'est le seul changement
+observé. Ne pas invalider ce prix arbitrairement contredirait le contrat d'une
+trace du calcul pondéré. Le certificat existant peut ignorer certains prix
+parce que `_sans_plan`/`_parcours` prouvent autre chose : l'absence de but sur
+le graphe admissible entier jusqu'à la profondeur, et non l'épuisement d'une
+file pondérée. Une recherche bornée ne donne pas cette preuve ; le lot 63 ne
+change pas ses règles de reprise.
+
+**Plan de réalisation et preuve à acquérir :**
+
+1. Introduire une façade d'entrées immuables, dont les opérations de lecture
+   enregistrent automatiquement chemin, opération et valeur. Démarrer avant
+   la construction de `Vue` ; conserver la provenance des valeurs dérivées,
+   puis n'unir leurs dépendances que lorsqu'elles sont consommées. Une valeur
+   fournie par un cache doit porter les dépendances de son calcul initial.
+   Conserver les dates effectivement utilisées et les prédicats temporels ;
+   lire l'horloge brute implique son invalidation à chaque changement.
+2. Interdire les accès non couverts à `Monde` dans l'exploration et les helpers,
+   ou signaler automatiquement leur présence et se rabattre sur **toute la
+   clé actuelle**, paramètres et prix compris. Recenser aussi les alias, les
+   fonctions natives, les buts et les lectures dans les devis imbriqués.
+   Aucune liste de scénarios, de personnes ou de besoins ne peut servir de garde.
+3. Garder une trace de résultat pondéré et une trace de certificat d'absence.
+   La seconde doit suivre la preuve en largeur et les dépendances de chaque
+   arête, notamment permissions, découverte de lumière/discrétion, profondeur
+   et lacunes des devis différés. Ne pas enlever les prix d'une trace pondérée
+   ni transformer son épuisement ou son plafond en certificat.
+4. Preuve conditionnelle : par induction sur les lectures, mêmes valeurs et
+   mêmes arguments donnent les mêmes branches, transitions et départages ;
+   les dépendances d'un cache sont réintroduites lors de sa consommation.
+   Une lecture non couverte impose le repli, donc n'autorise aucune nouvelle
+   reprise. Pour l'absence, compléter cette induction par la couverture en
+   largeur jusqu'à la profondeur, sans lacune ni plafond de preuve atteint.
+5. Étendre `VERIFIER` à chaque reprise nouvelle, avec recalcul sans raccourci.
+   Vérifier Rémy et un second cas après sauvegarde/rechargement : vivre apparu,
+   refus levé, entrée de collection ajoutée, prix changé, but et paramètres
+   changés. Puis les empreintes 2 h sur quatre scénarios et quatre graines,
+   les trois versions simultanées sur 12 h et `comparer --calcul`, comme demandé
+   par le brief. Mesurer ensuite le gain net, y compris coût fixe et mémoire,
+   et retirer la nouvelle voie si elle ne rapporte pas.
+
+Ce plan reste à prouver par le code ; le lot livre le diagnostic prévu par le
+brief quand la couverture ne peut pas être garantie proprement. Mesures et
+vérifications réalisées : [rapport du lot 63](taches/rapport-codex-63-faim-sans-plan.md).
