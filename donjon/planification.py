@@ -244,6 +244,7 @@ class Vue:
         self._approches = {}
         self._contacts = {}
         self._locaux = {}
+        self._moyennes = {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
         # par un plan de recherche. Il lui faut aussi l'a priori d'un inconnu.
