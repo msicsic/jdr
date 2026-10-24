@@ -814,7 +814,7 @@ def sans_memoire(m):
 
 @contextmanager
 def vue_memorisee(m):
-    """Pendant la vie des PNJ, la géométrie ne change pas : cartes de lumière et champs de vision
+    """Pendant une action ou la vie des PNJ, la géométrie des salles ne change pas : cartes de lumière et champs de vision
     sont gardés tant que la signature de la vue ne change pas ; positions et perceptions, tant que
     l'état ne change pas (``etat_vue``). Hors de ce bloc, tout est recalculé.
 
