@@ -567,6 +567,8 @@ def compiler(m, e, justification="", origine="règles"):
     cible, methode = e["cible"], e["methode"]
     if not m.accessible(cible):
         raise inaccessible(m, cible)
+    from .proximite import exiger
+    exiger(m, cible)
     if e["outil"]:
         raise ErreurMonde("Ce passage se fait sans outil.", f"outil={e['outil']!r} : accepté vide.")
     if e["destination"]:
@@ -629,11 +631,16 @@ def appliquer(m, acteur, cible, valeur, lignes):
 def dossier(m):
     resultat = []
     for i, o in m.objets.items():
-        if not o.get("bloque_passage") or not m.accessible(i):
+        if not o.get("bloque_passage") or not m.designable(i):
             continue
         for methode in METHODES:
             try:
-                p = compiler(m, {"cible": i, "methode": methode, "destination": "", "outil": "", "difficulte": 0})
+                # Même préparation que le geste : une cible dans le dos est jugée
+                # tournée vers elle, sans changer l'état ni exécuter la rotation.
+                from .moteur import Moteur
+                from .operations import sequence, etape
+                p = Moteur(m).preparer(sequence(etape("passer_obstacle", i, methode=methode)))
+                p = p.plans[0]
                 resultat.append({"cible": i, "methode": methode, "fiche": p.titre + " " + p.information,
                                  "stat": p.stat, "dd": p.dd})
             except ErreurMonde as exc:

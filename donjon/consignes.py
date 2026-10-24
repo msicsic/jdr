@@ -148,12 +148,17 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
   sans jet, même sans personne en vue ; le moteur décide qui entend. Une réponse ou une arrivée
   se raconte seulement quand les faits l'établissent, et l'absence de témoin visible ne prouve
   pas que personne n'est aux alentours.
+- passer_obstacle : passer sous ou sur un obstacle, cible = cet obstacle, methode dessous ou
+  dessus, destination et outil vides, difficulte 0. Cette opération reste celle du geste quand
+  la cible est loin ou seulement en souvenir ; propose-la, le moteur juge la portée et la forme.
 
 ### Improviser : un geste plausible hors de ces actions
 proposition = {action:"improviser", intention (courte), cibles (identifiants impliqués, hors
 joueur), outil (porté, ou vide), approche (expression, manipulation, effort, adresse ou
 observation), stat, difficulte, minutes 0 à 15, bruit 0 à 3, reussite, echec}. Préfère une
 action spécialisée quand elle convient.
+- Les cibles sont les objets impliqués, à portée de main, quelle que soit l'approche ; un
+  public n'est pas une cible matérielle. L'approche ne donne pas de capacité d'agir à distance.
 - Geste simple (chanter, s'étirer, frapper un rythme, graver un repère grossier avec une lame) :
   stat vide, difficulte 0, echec = {recit:"", effets:[]}. Sinon stat FOR, DEX, INT, PER ou CHA,
   difficulte de 10 à 18, proportionnée, et une branche echec plausible, sans danger gratuit.

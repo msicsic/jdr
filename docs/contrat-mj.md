@@ -318,6 +318,25 @@ toujours l'enregistrement et la sauvegarde avant affichage, puis le contrôle à
 
 ## Contrôle des actions
 
+### Portée des gestes (`codex-geste-hors-portee`, non fusionnée)
+
+La manière d'un geste ne change pas sa portée. Les `cibles` d'`improviser` sont les
+objets impliqués et doivent être à portée de main pour toutes les approches, comme
+les manipulations typées. Un public ne fait pas partie de ces cibles matérielles.
+Une cible désignable que Corvus verrait en se tournant est préparée dans cette
+orientation, sans rotation exécutée à la question. Trop loin, le moteur renvoie
+`HorsDePortee`, message « Approche-toi… » et `attendu` sur l'identifiant ; aucune
+fiche de jet ni tentative n'est enregistrée. Les déplacements restent les pas
+du joueur ; le rapprochement automatique des PNJ ne s'applique pas à lui.
+
+L'opération d'un geste reste disponible quand sa cible est loin ou seulement en
+souvenir. `passer_obstacle` prépare le passage dessous ou dessus ; le moteur juge
+sa portée et sa géométrie. Son dossier emploie la même préparation, rotation
+comprise. Les règles de l'opération ne dépendent plus de ce dossier courant.
+`improviser` ne déplace jamais Corvus : la contre-revue exige une opération de
+déplacement pour une demande qui change sa position. Cette fidélité sémantique
+reste faillible ; le contrôle de portée des cibles, lui, est déterministe.
+
 ### Précisions du contrat (`codex-luna-restes`)
 
 Les localisations transmises au MJ (objets, souvenirs et sorties connues) sont des repères

@@ -322,7 +322,9 @@ def preparer_usage(m, p, origine):
         raise RefusDeForme("Cette opération ne s'applique pas à cette cible.",
                           f"{action}.cible = {id} : attendu un assemblage d'usage échelle ; "
                           "installer, franchir et desinstaller installent, parcourent ou retirent cet assemblage. "
-                          "Pour un autre mouvement, propose l'action qui réalise ce mouvement, ou improviser ; "
+                          "Pour passer sous ou sur un obstacle : composer, operation passer_obstacle, "
+                          "cible de cet obstacle, methode dessous ou dessus, destination et outil vides, difficulte 0. "
+                          "Pour un autre mouvement, propose l'action qui réalise ce mouvement ; "
                           "cette erreur de type ne dit rien de sa possibilité physique.")
     if not m.accessible(id) or not o["integrite"]:
         echelles = sorted(i for i, x in m.objets.items() if x.get("assemblage") and x.get("integrite") and m.accessible(i))

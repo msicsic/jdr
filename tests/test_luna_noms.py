@@ -298,15 +298,17 @@ class TypesActionsTests(unittest.TestCase):
 
     def test_une_question_au_mj_ne_devient_pas_une_question_au_pnj(self):
         from tests.test_paroles import relais
-        for saisie, cible in [("est-ce que je pourrais passer sous la poutre effondrée ?", "poutre_conduite"),
-                              ("est-ce que je peux soulever le brasero ?", "brasero")]:
+        for saisie, cible, attendu in [
+                ("est-ce que je pourrais passer sous la poutre effondrée ?", "poutre_conduite", "Approche-toi"),
+                ("est-ce que je peux soulever le brasero ?", "brasero", "Rien n'est encore tenté")]:
             with self.subTest(saisie=saisie):
                 m = relais()
                 m.joueur.update(position=[3, 3], orientation="sud-est")
                 p = proposition(saisie, issue("Le geste réussit."), cibles=[cible], approche="adresse")
                 r, sortie, appels = jouer(m, saisie, [
                     parole(saisie, personnage="marchand"), action(p)], [])
-                self.assertIn("Rien n'est encore tenté", sortie)
+                # L'adresse ne rend pas la poutre, à deux mètres, manipulable.
+                self.assertIn(attendu, sortie)
                 self.assertNotIn("Tu dis à", sortie)
                 self.assertEqual(r.data.get("paroles_joueur", []), [])
                 self.assertEqual(r.data["journal"], [])
