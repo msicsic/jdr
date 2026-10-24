@@ -8,10 +8,11 @@ import heapq
 from itertools import count
 
 from .obstacles import Route, distances, transitions, descriptions_crues, cout_route
-from .spatial import _case_interieure, _pas_possibles, VECTEURS, QUART
+from .spatial import _case_interieure, _pas_possibles, _case_libre, VECTEURS, QUART, a_verifier
 from .temps import duree_pas
 from .geometrie import cases
 from .eau import noyee_crue
+from . import pnj
 
 
 def tables(v, e, salle):
@@ -38,7 +39,6 @@ def moyenne(v, e, salle, cibles, sortie=False):
     faits du plan, positions réelles, horloge et portes prévues ne sont pas lus.
     Chaque reprise contrôlée recalcule aussi les tables locales.
     """
-    from .spatial import a_verifier
     cle = (salle, frozenset(cibles), sortie, e.allure,
            e.portes if v.metrique(e.allure) else frozenset())
     if cle not in v._moyennes:
@@ -64,7 +64,6 @@ def _moyenne(v, e, salle, cibles, sortie=False, pur=False):
             valeurs.append(min(proches))
     if not valeurs and sortie:
         table = next((t for c, t in locales if c in cibles), {})
-        from .spatial import _case_libre
         libres = {c for c in cases(v.salles[salle]) if _case_libre(v._cru_spatial, salle, c)}
         if not libres <= table.keys():
             return None  # salle coupée : aucune origine réelle ne peut être supposée
@@ -113,7 +112,7 @@ def parcours(v, e, ouvertes):
                 continue
             gestes = 0
             if porte and porte not in avant.portes:
-                from .pnj import DUREES
+                DUREES = pnj.DUREES
                 gestes = (0 if v.ouvert(e, porte) else DUREES["ouvrir"]
                           + (DUREES["deverrouiller"] if v.verrouille(e, porte) and porte not in ouvertes else 0))
             route = Route([*avant, sortie], fin=(vers, None),

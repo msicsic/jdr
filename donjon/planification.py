@@ -30,7 +30,11 @@ from .biens import PRIX_PART
 from .esprits import lire
 from .perception import brule, recharge
 from .relations import se_fie, se_mefie
-from .spatial import porte_par
+from .spatial import porte_par, QUART, VECTEURS, a_verifier
+from .obstacles import Route, cout_route, sejours_route, metrique_necessaire, monde_cru
+from .geometrie import cases
+from .temps import MINUTE
+from . import pnj, trajet_estime
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
@@ -168,7 +172,6 @@ class Vue:
 
     def __init__(self, monde, id):
         from .caractere import interdit
-        from .pnj import chemin, parcours
         from .vol import proprietaire
         self.monde, self.id = monde, id
         self.objets = monde.objets
@@ -237,8 +240,7 @@ class Vue:
                     self.eau[s] = (2 * taux(monde, id, "eau") * min(cm, eau.NOYEE_CM) / eau.NOYEE_CM if cm
                                    else taux(monde, id, "menace"))
         self._descentes = {}
-        self._chemin, self._parcourir, self._parcours = chemin, parcours, {}
-        from .obstacles import metrique_necessaire, monde_cru
+        self._chemin, self._parcourir, self._parcours = pnj.chemin, pnj.parcours, {}
         self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
         self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
         self._metriques = {15: self._metrique}
@@ -485,7 +487,6 @@ class Vue:
                 if s != e.salle and not self.descente(e.salle, s):
                     route = self.route(e, s, ouvertes)
                     if route is not None:
-                        from .obstacles import cout_route
                         allers.append((s, cout_route(route, e.orientation)))
             self._allers[cle] = allers
         return self._allers[cle]
@@ -497,18 +498,16 @@ class Vue:
         if self._cru_spatial is None:
             return self._chemin(self.monde, self.id, e.salle, arrivee, e.portes,
                                 self.ouvertes(e) if ouvertes is None else ouvertes, metrique=False)
-        from .trajet_estime import parcours
         ouvertes = self.ouvertes(e) if ouvertes is None else ouvertes
         equipement = e.portes if self.metrique(e.allure) else frozenset(
             k for k in e.portes if self.objets[k].get("ouvre"))
         cle = (e.salle, equipement, ouvertes, e.allure, self.portes_prevues(e))
         if cle not in self._parcours:
-            self._parcours[cle] = parcours(self, e, ouvertes)
+            self._parcours[cle] = trajet_estime.parcours(self, e, ouvertes)
         return self._parcours[cle].get(arrivee)
 
     def metrique(self, allure):
         if allure not in self._metriques:
-            from .obstacles import metrique_necessaire
             self._metriques[allure] = metrique_necessaire(self.monde, self.id, allure) if self._passages_crus else False
         return self._metriques[allure]
 
@@ -518,10 +517,8 @@ class Vue:
 
     def arrivee(self, e, salle, route):
         """L'arrivée change la salle et enregistre les portes franchies."""
-        from .obstacles import Route
         if not isinstance(route, Route):
             return e.apres(salle=salle)
-        from .spatial import VECTEURS
         orientation = next((k for k, v in VECTEURS.items() if route.chemin and v == route.chemin[-1][3]), e.orientation)
         faits = [(cle, valeur) for p in sorted(route.portes) if not self.ouvert(e, p) or self.verrouille(e, p)
                  for cle, valeur in ((("ouvert", p), True), (("verrou", p), False))]
@@ -529,8 +526,6 @@ class Vue:
 
     def prix_route(self, e, route):
         """Pression intégrée dans chaque salle parcourue, avant les effets du geste."""
-        from .obstacles import Route, cout_route, sejours_route
-        from .temps import MINUTE
         if not isinstance(route, Route):
             return cout_route(route) * self.pression(e)
         return sum(d / MINUTE * self.pression(e.apres(salle=s))
@@ -558,23 +553,18 @@ class Vue:
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""
-        from .trajet_estime import approche
-        from .obstacles import Route
         if self._cru_spatial is None:
             return Route(fin=(e.salle, None))
-        return approche(self, e, etape, cibles)
+        return trajet_estime.approche(self, e, etape, cibles)
 
     def contacts(self, salle, cibles, centre=False):
         """Cases qui touchent les mêmes cibles ; leur ordre reste celui des tables."""
-        from .spatial import a_verifier
-        from .pnj import _a_portee_de
-        from .geometrie import cases
         cle = (salle, cibles, centre)
 
         def calculer():
             return frozenset(c for c in cases(self._cru_spatial.data["salles"][salle])
                              if (c == cibles[0] if centre else
-                                 all(_a_portee_de(self._cru_spatial, salle, c, cible) for cible in cibles)))
+                                 all(pnj._a_portee_de(self._cru_spatial, salle, c, cible) for cible in cibles)))
 
         if cle not in self._contacts:
             self._contacts[cle] = calculer()
@@ -711,8 +701,7 @@ class Vue:
     def _attente_part(self, e, donneur, o, service, cible):
         reserve = self.salle(e, o)
         depuis = self.salle(e, donneur) or reserve or service
-        from .pnj import DUREES
-        from .temps import MINUTE
+        DUREES = pnj.DUREES
         portees = frozenset(k for k in self.connus if self.lieu(e, k) == donneur)
         etat = e.apres(salle=depuis, portes=portees,
                        case=self.case_objet(e.apres(salle=depuis), donneur), orientation=None)
@@ -721,7 +710,6 @@ class Vue:
             route = self.route(etat, salle)
             if route is None:
                 return float(ATTENTE_PART)
-            from .obstacles import cout_route
             temps += cout_route(route, etat.orientation)
             etat = self.arrivee(etat, salle, route)
             if objet:
@@ -771,7 +759,6 @@ class Vue:
         cle = ("trajet", etat, arrivee, cible)
         if cle not in self._crus:
             route = self.route(etat, arrivee)
-            from .obstacles import cout_route
             temps = 0 if route is None else cout_route(route, etat.orientation)
             if route is not None and cible:
                 etat = self.arrivee(etat, arrivee, route)
@@ -1391,7 +1378,8 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     # Borne nulle pour une attente promise : aucun tarif de parole n'y est imposé.
     borne = min(minutes if promise else max(0, minutes - 1)
                 for minutes, _, _, _ in offres)
-    yield SuiteDifferee(borne, _estimer_remise, (e, o, attente, offres, vises, but))
+    yield SuiteDifferee(borne, _estimer_remise, (e, o, attente, offres, vises, but),
+                       depuis=e, vises=vises, but=but)
 
 
 class SuiteDifferee:
@@ -1403,14 +1391,17 @@ class SuiteDifferee:
     terminales coûtent au moins la borne, et leurs h sont nuls. Aucun résultat
     estimé n'est employé comme borne. Une seule évaluation par nœud du graphe.
     """
-    def __init__(self, borne, calcul, arguments):
+    def __init__(self, borne, calcul, arguments, *, depuis=None, vises=None, but=None):
         self.borne, self.calcul, self.arguments = borne, calcul, arguments
+        self.depuis, self.vises, self.but = depuis, vises, but
         self.suites = None
 
     def developper(self, v):
         if self.suites is None:
             v._devis_developpes += 1
-            self.suites = [(*g, 0) for g in self.calcul(v, *self.arguments)]
+            gestes_ = self.calcul(v, *self.arguments)
+            self.suites = (_normaliser_suites(v, self.depuis, self.vises, self.but, gestes_)
+                           if self.depuis is not None else [(*g, 0) for g in gestes_])
             assert all(g[3].fait("estimation") and g[4] == 0 and g[1] >= self.borne
                        for g in self.suites), "Borne de suite terminale invalide"
         return self.suites
@@ -1455,7 +1446,6 @@ def _chercher(v, e, sujet):
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
         return None
-    from .obstacles import cout_route
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
@@ -1894,8 +1884,13 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
 def _suites(v, e, vises, but, conclure=False):
     """Les gestes depuis ``e`` qui mènent quelque part, chacun avec les termes de son coût : (fautes,
     minutes, étapes, état suivant, durée, abîme, ce que l'état suivant laisse monter par minute)."""
+    return _normaliser_suites(v, e, vises, but, gestes(v, e, vises, but), conclure)
+
+
+def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
+    """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
-    for geste in gestes(v, e, vises, but):
+    for geste in possibles:
         if isinstance(geste, SuiteDifferee):
             suites.append(geste)
             continue
@@ -1940,10 +1935,7 @@ def _mesurer(v, e, ajout, suivant, ancienne_duree):
     Les coûts sociaux restent séparés du temps. Une probabilité multiplie les
     tentatives du geste, jamais la marche d'approche.
     """
-    from .obstacles import cout_route
-    from .pnj import DUREES, DURABLES, TOUR
-    from .temps import MINUTE
-    from .spatial import QUART
+    DUREES, DURABLES, TOUR = pnj.DUREES, pnj.DURABLES, pnj.TOUR
     if v._cru_spatial is None or any(x["operation"] not in (*DUREES, *DURABLES, "aller", "assommer", "dans_le_dos", "fuite")
                                       for x in ajout):
         return ancienne_duree, ancienne_duree * v.pression(e), suivant

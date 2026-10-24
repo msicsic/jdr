@@ -6,12 +6,13 @@ par un trajet et un geste conclusif ; les autres préparatifs restent dans le
 préfixe détaillé de la recherche.
 """
 import heapq
+from itertools import count
 
-from .perception import recharge
+from .obstacles import cout_route
+from . import planification as p
 
 
 def suites(v, e, lot, vises, but):
-    from . import planification as p
     # La scène du devis est celle du départ ; seuls les moyens déjà acquis et
     # le budget engagé par le préfixe y sont reportés. Cela partage le devis
     # entre les préparatifs qui ont les mêmes moyens, sans multiplier les suites.
@@ -37,7 +38,6 @@ def suites(v, e, lot, vises, but):
             return None
         suivant = v.arrivee(etat, salle, route)
         # Le même coût de route que la recherche (``obstacles.cout_route`` : passages compris).
-        from .obstacles import cout_route
         return suivant, cout_route(route, etat.orientation) + v.prix_route(etat, route)
 
     def mesurer(etat, etape, suivant, preference=0):
@@ -120,7 +120,6 @@ def suites(v, e, lot, vises, but):
 
 
 def _preparer(v, e, source, sur_place, lieu, obtenir, aller, cout_source, fautes_source, vises, but):
-    from . import planification as p
     x = v.objets[source]
     # Charger n'éclaire pas. L'accord n'a pas cet effet dans le monde.
     mesure = p._mesurer(v, sur_place, [p._etape("alimenter", source)],
@@ -192,8 +191,6 @@ def _trajets(v, depart, combustion):
     principale ; un détour peut ainsi coûter moins qu'un trajet payé entièrement
     au prix du lieu d'arrivée. Seuls les lieux changent, pas l'inventaire.
     """
-    from itertools import count
-    from .obstacles import cout_route
     ordre = count()
     prix = {depart: 0}
     file = [(0, next(ordre), depart)]

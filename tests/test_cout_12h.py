@@ -96,6 +96,15 @@ class BorneTests(unittest.TestCase):
             if noeuds > 1:
                 self.assertEqual(resultats[0][0][1][0]["operation"], "premier")
 
+    def test_suite_differee_respecte_les_memes_filtres_que_les_gestes_immediats(self):
+        e = p.Etat("s", (), {})
+        fin = e.apres(faits=[(("estimation",), True)])
+        def terminal(v):
+            yield 0, 5, [p._etape("demander", "tiers")], fin, 0, False
+        v = SimpleNamespace(seul="commanditaire", _devis_developpes=0)
+        s = p.SuiteDifferee(3, terminal, (), depuis=e, vises={}, but=lambda v, e: True)
+        self.assertEqual(s.developper(v), [])
+
     def test_certificat_non_developpe_reste_inconnu_et_absence_prouvee_apres_recharge(self):
         # Le parcours de preuve n'évalue jamais un devis manquant.
         e = p.Etat("s", (), {})
