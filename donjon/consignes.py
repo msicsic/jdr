@@ -46,7 +46,7 @@ Les faits reçus décrivent le monde tel qu'il est maintenant.
 Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que tu as utilisées.
 - dialogue (proposition=null) : répondre, expliquer, décrire. Une question d'information (ce
   que Corvus voit, sait, ce qu'est une chose) reste un dialogue : dis ce que Corvus perçoit et
-  sait qui s'y rapporte, et ce qu'il ignore encore. Les chances, les risques et le résultat
+  sait qui s'y rapporte. Les chances, les risques et le résultat
   d'un geste que les faits ne donnent pas, c'est le moteur qui les établit : ne les prédis pas.
 - action : le joueur veut agir. texte reste vide, car c'est le moteur qui raconte le résultat
   une fois l'action résolue. Il exécute directement un geste sans risque, et présente avant

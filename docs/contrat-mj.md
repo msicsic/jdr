@@ -116,10 +116,21 @@ jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un él
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
 
-Le renvoi d'une contradiction sans source et la distinction entre ambiance et inconnue mécanique
-ne garantissent pas encore toute rédaction sans précaution : le banc de `codex-luna-restes` garde
-« aucun autre son n'est attesté ici ». Ce critère reste partiel ; une réserve de preuve peut encore
-être classée comme description sensorielle par l'auditeur.
+**La preuve reste interne** (branche `codex-ambiance`). Le récit dit ce que tu perçois, sais ou
+supposes ; il ne commente jamais ce que le moteur établit, atteste ou indique. Le garde commun de
+la voix d'auteur contrôle aussi ce vocabulaire de preuve et les tours impersonnels d'absence
+d'indication, indépendamment du classement de l'auditeur. Chaque refus donne au MJ le segment,
+les mots reçus et un `attendu` : décrire directement l'ambiance compatible comme perçue, ou dire
+la limite de perception ou de savoir d'une inconnue mécanique (« tu ne le vois pas d'ici »).
+Une réplique de PNJ conserve sa liberté de parole ; son contenu ne devient pas une vérité.
+Le garde est refait à l'enregistrement de la narration. La reformulation admise est sauvegardée
+avec son lieu, sans création d'entité mécanique.
+
+L'interprétation ne demande plus une ignorance ajoutée à chaque réponse d'information ; la
+révision corrige la rupture désignée sans reprendre le vocabulaire de preuve du verdict.
+L'auditeur juge la compatibilité de l'ambiance et non la connaissance de sa cause : une absence
+de sensation peut aussi être une ambiance libre. Le contrôle lexical n'épuise pas toutes les
+paraphrases de méta-preuve : leur détection et les contradictions de sens restent sémantiques.
 
 ### Parole, références et audit après les noms (`codex-luna-noms`)
 
