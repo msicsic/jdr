@@ -1,8 +1,33 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
 
 ## Où on en est
+
+- Branche `codex-offre-sensee`, non fusionnée, lot **57**, base **c592d68** : le
+  proposant juge sa contrepartie avec `evaluer_proposition` inversée, au choix
+  et avant exécution : ni ce qu'il garde, ni ce qui lui est nécessaire, ni une
+  perte supérieure au gain. Un bien ne vaut plus zéro faute de pièces en poche.
+  Le refus d'un marché ou d'un achat garde les moyens de cette demande et la
+  force effectivement offerte ; délai, lien qui s'estompe et richesse non
+  offerte ne relancent plus. Nouveau moyen cru ou offre plus forte seulement.
+  **Ilse, crue 7, minute 353**, reproduite sur **5c2ce81** : le devis comptait
+  sur du bois demandé à Gorm, qui ne pouvait pas le livrer. `devis_service`
+  valide les fournitures par les livraisons communes, avant accord et paiement,
+  pour tâche payée, confiée, marché et empêchement ; aucun changement du
+  planificateur. Fixture réelle sauvegardée, second lot de bois vérifié.
+  Banc rapide **4 h × 4 graines × 4 scénarios** contre **c592d68** : aucun
+  plantage, violation ni usurpation ; propositions moyennes Relais **0,75 → 0,5**,
+  mine **5,25 → 5,25**, auberge **2 → 1,5**, crue **5 → 2,75**. Audit **12 h** des
+  seules crue 11/7 et mine 42/1985 : aucun plantage ni usurpation, aucune tâche
+  due aussitôt. Deux paires textuelles : Odon apprend le coffre ouvert (125 → 139),
+  Lucien demande deux lots homonymes distincts (646), pas la même offre répétée.
+  Suite complète unique : **1 800 tests, 4 sauts** ; trois attentes de scénario
+  ajustées et fichiers repris. Avec le cinquième test ciblé ajouté, bilan consolidé
+  **1 801 tests, 4 sauts, aucun échec ni erreur**.
+  Vérification complète et limites dans le
+  [rapport du lot 57](taches/rapport-codex-57-offre-sensee.md).
+  Code **e65310c**, signature SSH vérifiée. Aucun appel à Luna ; `main` non touchée.
 
 - Branche `codex-constats-partages`, fusionnée, lot **55**, base **5b174ad** : les constats matériels
   récents vus ou essayés se confient par les nouvelles communes, après les accusations : ressource
