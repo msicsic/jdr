@@ -33,10 +33,49 @@ PRIX_SANS_PRIX = 1     # convention commune pour un objet sans prix déclaré
 
 def _devis_proposition(monde, id, condition, pour):
     """Le devis existant, sur ses croyances, avec la permission de la tâche proposée."""
-    from .planification import devis_pulsion
     copie = monde.copier()
     agendas.prendre(copie, id, {"condition": condition, "pour": pour, "minute": copie.data["minutes"]})
-    return devis_pulsion(copie, id, condition, pour)
+    return devis_service(copie, id, condition, pour)
+
+
+def devis_service(monde, id, condition, pour):
+    """Le devis autonome et les fournitures que son bénéficiaire peut réellement livrer.
+
+    La recherche autorise une demande au bénéficiaire. Avant tout accord, celui-ci
+    doit pouvoir la fournir selon le même contrat de livraison que lors du geste.
+    Les essais matériels restent sur une copie, sans jet ni publication.
+    """
+    from .deliberation import besoin_de_part
+    from .planification import devis_pulsion
+    from .spatial import porte_par
+    devis = devis_pulsion(monde, id, condition, pour)
+    if devis is None:
+        return None
+    copie = None
+    for etape in devis[1]:
+        if etape["operation"] not in ("demander", "acheter") or etape["cible"] != pour:
+            continue
+        objet = etape["outil"]
+        if objet not in monde.objets:
+            continue
+        if pour == "joueur":
+            return None  # Une réponse future du joueur n'est pas une fourniture acquise.
+        if copie is None:
+            copie = monde.copier()
+        siens_a_portee(copie, pour)
+        if accueil(copie, id, pour) or garde(copie, pour, copie.objets[objet]):
+            return None
+        if besoin_de_part(copie.objets[objet]):
+            if _remettre_part(copie, pour, id, objet, 0) == "impossible":
+                return None
+        elif necessaire(copie, pour, objet):
+            return None
+        elif not porte_par(copie, objet, pour):
+            livraison = {"objet": objet, "remettre": id}
+            agendas.prendre(copie, pour, {"condition": livraison, "pour": id, "minute": copie.data["minutes"]})
+            if devis_pulsion(copie, pour, livraison, id) is None:
+                return None
+    return devis
 
 
 def valeur_proposition(monde, auditeur, terme, pour):
@@ -60,8 +99,9 @@ def valeur_proposition(monde, auditeur, terme, pour):
         # Il compte sa propre réserve ; la quantité cachée chez l'autre ne nourrit pas son jugement.
         quantite = parts(monde.objets[objet]) if proprietaire(monde, monde.objets[objet]) == auditeur else 1
         montant = quantite * (prix(monde, objet, True) or PRIX_SANS_PRIX)
-    return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX,
-                         depense=pour != auditeur)
+    # Céder un bien ne retire aucune pièce de sa bourse : même sans argent, un
+    # outil ou une clé garde sa valeur. ``depense`` plafonne au numéraire possédé.
+    return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX)
 
 
 def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
@@ -107,6 +147,16 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
     dd = (PARTAGE + (p - g) / PAS_PROPOSITION + mauvais - lien
           + r["affection"] / 25 + r["dette"] / 20 - r["rancune"] / 20)
     return {"cause": None, "P": p, "G": g, "L": lien, "dd_base": dd}
+
+
+def offre_sensee(monde, proposant, autre, demande, contrepartie):
+    """Le proposant se juge comme celui à qui l'on demanderait la contrepartie.
+
+    Pas de jet ni d'accès aux dispositions privées de l'autre. Le lien peut rendre
+    un marché acceptable à l'auditeur ; il ne justifie pas de proposer à perte.
+    """
+    bilan = evaluer_proposition(monde, autre, proposant, contrepartie, demande)
+    return not bilan["cause"] and bilan["P"] <= bilan["G"]
 
 
 def proposer(monde, proposant, auditeur, demande, contrepartie):
@@ -512,7 +562,6 @@ def engager(monde, payeur, autre, condition, prix):
     from .biens import payer, richesse
     from .caractere import valeur_pieces
     from .deliberation import illicite
-    from .planification import devis_pulsion
     if payeur != "joueur" and condition["objet"] in monde.objets and illicite(monde, payeur, condition["objet"]):
         return "impossible"   # On ne fait pas faire à un autre ce qui serait, pour soi, une faute.
     arret = accueil(monde, payeur, autre)
@@ -530,7 +579,7 @@ def engager(monde, payeur, autre, condition, prix):
     engagement = {"condition": dict(condition), "pour": payeur, "minute": monde.data["minutes"],
                   "paye": {"objet": condition.get("objet") or condition["lieu"], "prix": prix, "quoi": "tache"}}
     agendas.prendre(monde, autre, engagement)
-    devis = devis_pulsion(monde, autre, condition, payeur)
+    devis = devis_service(monde, autre, condition, payeur)
     if devis is None:
         agendas.retirer_proposition(monde, autre, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
@@ -691,7 +740,6 @@ def tenu(monde, id, condition, depuis=None):
 
 def confier(monde, demandeur, auditeur, condition):
     """« mefiance », « qui_va_la », « deja », « impossible », « refus » ou « accepte »."""
-    from .planification import devis_pulsion
     arret = accueil(monde, demandeur, auditeur)
     if arret:
         return arret
@@ -702,7 +750,7 @@ def confier(monde, demandeur, auditeur, condition):
     # s'il peut s'y prendre avec ce que la garde lui permet.
     engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
     agendas.prendre(monde, auditeur, engagement)
-    if devis_pulsion(monde, auditeur, condition, demandeur) is None:
+    if devis_service(monde, auditeur, condition, demandeur) is None:
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
     if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
@@ -970,7 +1018,6 @@ def empeche(monde, id, engagement):
     gratuite devient un abandon à annoncer (``engagements_echus``). Le prêt à rendre reste en
     suspens tant que l'emprunteur s'en sert : ce n'est pas un service qu'il ne peut plus livrer."""
     from .deliberation import parts
-    from .planification import devis_pulsion
     from .vol import proprietaire
     paye = engagement.get("paye")
     if engagement.get("annule") or "rendre" in engagement["condition"] or "periode" in engagement["condition"]:
@@ -979,7 +1026,7 @@ def empeche(monde, id, engagement):
         o = monde.objets.get(paye["objet"])
         if o is None or proprietaire(monde, o) != id or paye["quoi"] == "part" and parts(o) <= 0:
             return True
-    return devis_pulsion(monde, id, engagement["condition"], engagement["pour"]) is None
+    return devis_service(monde, id, engagement["condition"], engagement["pour"]) is None
 
 
 def engagements_echus(monde, id):
@@ -1114,7 +1161,7 @@ def executer(monde, id, etape, lignes):
         else:
             condition = contenu["condition"] if op == "engager" else contenu if op == "confier" else None
             retenir_refus(monde, id, autre, op, issue, objet=vise,
-                          prix=contenu["prix"] if op == "engager" else None,
+                          prix=contenu["prix"] if op in ("engager", "acheter") else None,
                           tache=tache(condition) if condition else None,
                           flamme=objet["id"] if op == "demander_feu" and objet else None)
     return reussi

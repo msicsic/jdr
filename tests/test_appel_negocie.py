@@ -153,7 +153,7 @@ class QuoiTests(unittest.TestCase):
     def test_cas_reel_mine_josse_dit_ce_qu_il_veut_gaspard_le_fait_venir(self):
         """Mine (graine 2024) : Josse hèle Gaspard pour une part de ses bûches (le poêle qu'il garde
         baisse). Gaspard demande ce qu'il veut ; une demande de ce qu'il n'a pas sur lui ne le fait pas
-        venir : « Ici, viens ! » ; Josse répond « J'arrive ! », le rejoint, et la part est promise."""
+        venir : « Ici, viens ! » ; Josse répond « J'arrive ! », le rejoint, et demande sa part."""
         m = josse_cherche_gaspard()
         m = suivre(m, 10, lambda m: "Gaspard répond : « Ici, viens ! »" in chronique(m))
         textes = chronique(m)
@@ -163,11 +163,12 @@ class QuoiTests(unittest.TestCase):
         demande = "Josse demande une part des bûches de Gaspard à Gaspard ("
         m = suivre(m, 4, lambda m: any(t.startswith(demande) for t in chronique(m)))
         self.assertIn("Gaspard retrouve Josse, comme convenu.", chronique(m))
-        # La demande est faite après les retrouvailles ; son issue dépend du jet de persuasion,
-        # que les confidences du lot 55 décalent (promis avant, refusé puis offre acceptée depuis).
+        # La demande est faite après les retrouvailles ; son issue dépend du jet de partage
+        # et de son éventuel recours, qui ne font pas partie du contrat de l'appel.
         textes = chronique(m)
         self.assertLess(textes.index("Gaspard retrouve Josse, comme convenu."),
                         next(i for i, t in enumerate(textes) if t.startswith(demande)))
+        self.assertIsNone(lire(m, "josse")["rejoindre"])
 
     def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
         d_un_bloc, morcele = decouper(lambda: recharger(hugues_cherche_anselme()), 4)

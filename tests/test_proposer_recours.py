@@ -163,7 +163,7 @@ class RecoursTests(unittest.TestCase):
         m.data["minutes"] += 60
         self.assertIsNone(recours(m, "brune", "faim", [faute]))
         m.data["finances_pnj"]["brune"] += 1
-        self.assertIsNotNone(recours(m, "brune", "faim", [faute]))
+        self.assertIsNone(recours(m, "brune", "faim", [faute]))  # Le montant offert n'a pas changé.
 
 
 if __name__ == "__main__":

@@ -277,6 +277,10 @@ def verifier(monde):
             and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
             and type(s["minute"]) is int and type(s.get("prix", 0)) is int
             and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
+            and ("offre" not in s or isinstance(s["offre"], dict) and set(s["offre"]) == {"cause", "gain"}
+                 and isinstance(s["offre"]["gain"], (int, float)) and s["offre"]["gain"] >= 0
+                 and isinstance(s["offre"]["cause"], list)
+                 and all(isinstance(f, list) and len(f) == 4 for f in s["offre"]["cause"]))
             for s in e.get("refus", [])
         ), "Refus retenus de PNJ invalides"
         from .deliberation import ETATS_DONNES

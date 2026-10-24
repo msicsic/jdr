@@ -29,7 +29,7 @@ def _demande(monde, objet):
 def _contreparties(monde, id, autre, demande):
     from .biens import prix, richesse, proprietaire
     from .deliberation import besoin_de_part, parts
-    from .echanges import valeur_proposition, PRIX_SANS_PRIX
+    from .echanges import valeur_proposition, PRIX_SANS_PRIX, offre_sensee
     from .spatial import porte_par
     for o, x in sorted(monde.objets.items()):
         if (o == demande["objet"] or not porte_par(monde, o, id)
@@ -40,26 +40,23 @@ def _contreparties(monde, id, autre, demande):
         if part and parts(x) <= 0:
             continue
         terme = {"type": "part" if part else "objet", "objet": o}
+        if not offre_sensee(monde, id, autre, demande, terme):
+            continue
         cout = valeur_proposition(monde, id, terme, autre)
         etat = lire(monde, id)["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
         gain = (prix(monde, o, bool(part)) or PRIX_SANS_PRIX) * (2 if part and etat.get(part) else 1)
         yield terme, cout, gain
     montant = min(richesse(monde, id), prix(monde, demande["objet"], demande["type"] == "part") or PRIX_SANS_PRIX)
-    if montant:
+    if montant and offre_sensee(monde, id, autre, demande, {"type": "pieces", "montant": montant}):
         terme = {"type": "pieces", "montant": montant}
         yield terme, valeur_proposition(monde, id, terme, autre), montant
 
 
 def _entrees(monde, id, autre, besoin, demande):
-    from .deliberation import moyens_crus, _connus, parts
+    from .deliberation import moyens_crus, parts
     from .biens import proprietaire, richesse
     from .spatial import porte_par
-    causes = []
-    for o in _connus(monde, id):
-        if proprietaire(monde, o) == autre:
-            for f in moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": o}):
-                if f not in causes:
-                    causes.append(f)
+    causes = moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": demande["objet"]})
     return {"de": autre, "besoin": besoin, "objet": demande["objet"],
             "cause": causes, "lien": dict(relations.axes(monde, id, autre)),
             "pieces": richesse(monde, id),
@@ -74,6 +71,26 @@ def _tient(avant, apres):
             and all(apres["lien"][k] >= avant["lien"][k] for k in ("rancune", "peur"))
             and apres["pieces"] <= avant["pieces"]
             and all(o in avant["biens"] and n <= avant["biens"][o] for o, n in apres["biens"].items()))
+
+
+def entrees_refus(monde, id, autre, objet, terme):
+    """Les moyens de cette demande et la force réellement offerte, pas la fortune disponible."""
+    from .biens import prix
+    from .deliberation import moyens_crus
+    from .echanges import PRIX_SANS_PRIX
+    gain = (terme["montant"] if terme["type"] == "pieces" else
+            prix(monde, terme["objet"], terme["type"] == "part") or PRIX_SANS_PRIX)
+    return {"cause": moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": objet}),
+            "gain": gain}
+
+
+def refus_tient(monde, id, refus, terme):
+    apres = entrees_refus(monde, id, refus["de"], refus["objet"], terme)
+    avant = refus["offre"]
+    # Le temps, le retour d'un bien déjà proposé et l'argent non offert ne sont
+    # pas un meilleur marché. La perte d'un moyen ne lève pas non plus le refus.
+    return (apres["gain"] <= avant["gain"]
+            and all(f in avant["cause"] for f in apres["cause"]))
 
 
 def recours(monde, id, besoin, etapes):
@@ -112,11 +129,14 @@ def recours(monde, id, besoin, etapes):
         # Il sait où le trouver ; la marche sociale normale le rejoint au contact.
         entrees = _entrees(monde, id, autre, besoin, demande)
         avant = next((x for x in e["recours_propositions"] if x["de"] == autre and x["besoin"] == besoin), None)
-        if avant and _tient(avant, entrees):
+        refus = [s for s in e["refus"] if s["de"] == autre and s.get("objet") == demande["objet"]
+                 and s["operation"] in ("acheter", "proposer") and "offre" in s]
+        if not refus and avant and _tient(avant, entrees):
             continue
         chance = relations.chance_demande(monde, id, autre)
         offres = [(relations.chance_proposition(chance, gain), -cout, t)
-                  for t, cout, gain in _contreparties(monde, id, autre, demande)]
+                  for t, cout, gain in _contreparties(monde, id, autre, demande)
+                  if not any(refus_tient(monde, id, s, t) for s in refus)]
         offres = [o for o in offres if o[0] > chance]
         if not offres:
             continue
@@ -128,12 +148,14 @@ def recours(monde, id, besoin, etapes):
 
 
 def executer(monde, id, autre, contenu, lignes):
-    from .echanges import proposer
+    from .echanges import proposer, offre_sensee
     from .deliberation import retenir_refus
     from .propositions import en_mots, cites_terme
     from .pnj import _chroniquer
     from .social import _qui, faire_entendre
     demande, terme = contenu["demande"], contenu["contrepartie"]
+    if not offre_sensee(monde, id, autre, demande, terme):
+        return False
     e = lire(monde, id)
     besoin = e["intention"]["motif"]
     entrees = _entrees(monde, id, autre, besoin, demande)
@@ -147,7 +169,8 @@ def executer(monde, id, autre, contenu, lignes):
     memoriser(monde, id, {"type": "proposition", "a": autre, "demande": demande,
                           "contrepartie": terme, "issue": issue})
     if bilan["cause"]:
-        retenir_refus(monde, id, autre, "proposer", issue, objet=demande["objet"], besoin=besoin)
+        retenir_refus(monde, id, autre, "proposer", issue, objet=demande["objet"], besoin=besoin,
+                      offre=entrees_refus(monde, id, autre, demande["objet"], terme))
     recit = f"{_qui(monde, id)} propose à {_qui(monde, autre)} {en_mots(monde, terme)} contre {en_mots(monde, demande)}"
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
     reponse = (f"{_qui(monde, autre)} accepte l'échange."

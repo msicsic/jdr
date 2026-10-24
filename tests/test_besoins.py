@@ -234,7 +234,9 @@ class ProfilTests(unittest.TestCase):
         self.assertTrue(30 + 6 - 0.1 <= faim <= 30 + 6 * 1.5 + 0.1, faim)
 
     def test_banc_sans_joueur(self):
-        with patch("sys.stdout", io.StringIO()) as sortie:
+        # Ce test vérifie le banc et son récit, pas le tirage d'un marché dont
+        # l'évaluation peut évoluer. La demande de Brune est persuasive ici.
+        with patch("sys.stdout", io.StringIO()) as sortie, patch.object(Monde, "d20", return_value=20):
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
         # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.

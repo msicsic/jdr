@@ -588,6 +588,28 @@ confiance restent à faire. Le recours couvre le forcement qui vise un bien mobi
 le passage ou la seule ouverture d'un bien fixe ne sont pas des demandes du contrat A2a.
 Vérification et mesures : [rapport du lot 45](taches/rapport-codex-45-proposer-recours.md).
 
+**Lot 57, `codex-offre-sensee`, non fusionnée.** Avant de choisir une contrepartie,
+le proposant juge le marché inversé avec `evaluer_proposition` : il ne cède ni ce
+qu'il garde, ni ce qui lui est nécessaire, ni une valeur propre supérieure à son
+gain. Le même contrôle précède l'exécution. La valeur d'un bien ne se plafonne
+plus aux pièces qu'il possède : sans argent, un outil garde son prix.
+Un refus de marché ou d'achat retient les moyens de la demande précise et la
+valeur effectivement offerte, dans `refus`. Le délai, l'estompement du lien,
+une possession sans rapport ou davantage de pièces non offertes ne le lèvent
+pas ; un moyen nouvellement cru ou une contrepartie plus forte le permettent.
+L'achat refusé remplace la réponse à la demande gratuite du même bien.
+Les anciens repères de recours restent lisibles dans les sauvegardes.
+
+Le devis commun des services (`echanges.devis_service`, tâches payées, confiées,
+marchés et empêchement) vérifie aussi les fournitures demandées au bénéficiaire
+avec le contrat de livraison. Ilse (crue 7, minute 353) comptait sur une part de
+bois que Gorm ne pouvait pas livrer : cette tâche est refusée avant paiement.
+Une livraison devenue impossible ou une demande effectivement refusée après
+l'accord reste un fait nouveau. La valeur demeure celle du moteur : prix
+déclaré ou convention sans prix ; aucun accès aux dispositions privées de
+l'autre pour choisir une offre. Détails et limites dans le
+[rapport du lot 57](taches/rapport-codex-57-offre-sensee.md).
+
 - **Un geste `proposer`** dans le planificateur, déclaré une fois, à côté de `demander` : il
   offre ce qu'il porte ou ce qu'il peut promettre, et son coût est divisé par la **chance
   estimée**, calculée sur ce qu'il croit de l'autre : ce qu'il lit de son attitude envers lui, un
