@@ -350,8 +350,9 @@ pas de reconstruction après coup.
 **Détresse perçue (lot 53, `codex-peur-transmise`, non fusionnée).** Dans
 `deliberation.autour`, un proche dont on perçoit les tremblements, la fuite ou une
 impression de peur/crainte/inquiétude encore appuyée par un signe présent ne compte
-plus comme compagnie rassurante. Un appel ou cri effectivement entendu et reconnu
-produit le même effet pendant la minute de sa réception ; une mémoire ancienne ne
+plus comme compagnie rassurante. Un appel ou cri effectivement entendu et attribué
+par la vue ou une voix reconnue produit le même effet pendant la minute de sa
+réception ; une mémoire ancienne ne
 vaut pas une détresse actuelle. Les autres compagnons calmes gardent leur effet.
 La fuite porte un signe de place seulement après un pas réellement exécuté dans
 le plan de fuite, sans révéler l'agresseur ni la destination. Le projet privé seul

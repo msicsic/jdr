@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-peur-transmise`, non fusionnée, lot **53**, base **5125d06** :
+  un proche dont la détresse est perçue ne rassure plus ; `autour` le retire de
+  la compagnie et `ecart_securite` ajoute 0,5 × (confiance + affection) / 100
+  point/minute, maximum des proches concernés, via le temps vécu existant.
+  Signes perçus et impressions encore appuyées par un signe présent seulement ;
+  appel entendu attribué par la vue ou une voix reconnue jusqu'à la prochaine
+  minute. L'appel éveille l'auditeur ; un vrai pas de fuite produit un signe de
+  place sans révéler l'agresseur ni la destination. Le projet privé ne suffit pas.
+  Sept tests nouveaux : épreuve Brune/Aubin/Ilse, appel à l'auberge, compagnie
+  calme, dos/noir, fuite exécutée, lien, impression et voix inconnue ; état et
+  rendu après recharge, même laps découpé. Banc rapide cinq scénarios × quatre
+  graines × 4 h contre `5125d06` : aucun plantage, violation, usurpation ni nouveau
+  signalement de boucle ; référence en cache pour la reprise finale de branche.
+  Relais/mine/rixe inchangés ; appels conservés à l'auberge, plus d'inquiétude et
+  quelques réactions différentes en crue. Correctif **9b8a590**, signature SSH
+  vérifiée. Suite complète unique : **1 776 tests, quatre ignorés**, verte,
+  173 fichiers, trois processus à priorité réduite, 707,2 s ; reprises ciblées
+  sur le dernier raccord de perception, dont les sept nouveaux tests finaux, vertes.
+  Aucun appel à Luna, aucun fichier du MJ ni de `planification.py`
+  modifié, `main` non touchée. Questionner l'allié et attention conjointe reportés.
+  [Réglage, vérification et limites](taches/rapport-codex-53-peur-transmise.md).
+
 - Branche `codex-depart-feutre`, fusionnée, lot **51**, base **d60b80a** :
   les gardes des suites admissibles découvrent le besoin de discrétion ; sans
   cette découverte, un seul départ ordinaire. Si elle a lieu, reprise depuis
@@ -2944,10 +2966,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     datée, rien avant A5 : extraire le seul noyau géométrique (vue, lumière, ouïe, trajets sur cases) si, après C1
     et la saillance, il dépasse ~30 % d'une nuit et que son contrat est stable ; condition : empreintes identiques
     au bit près (arrondis de flottants), chaîne de compilation sur les deux postes.
-- **À vérifier : la compagnie d'un allié qui a peur** (revue externe du 2026-10-24, retenue par l'utilisateur) : si `compagnie` rassure même quand l'allié perçu
-  tremble ou fuit, c'est un défaut ; un allié en détresse visible devrait transmettre une part de son inquiétude
-  (et faire demander « qu'est-ce qu'il y a ? »), jamais apaiser. Petit lot de correction si confirmé. Suivre le
-  regard d'un autre (attention conjointe) : plus tard, coût de perception à mesurer.
+- **Après la peur transmise (lot 53)** : demander « qu'est-ce qu'il y a ? » à l'allié
+  et suivre le regard d'un autre (attention conjointe) restent à faire ; coût de perception à mesurer.
 
 - Routes et eau (lot 41, `codex-route-admissible`, non fusionnée) : les captures du refuge
   mouillé rejoignent le sec ; les traversées en cours ne sont plus coupées par l'horizon du séjour.

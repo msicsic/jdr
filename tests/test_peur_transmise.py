@@ -92,6 +92,9 @@ class PeurTransmiseTests(unittest.TestCase):
                 self.assertIn('SALLE COMMUNE', regarder(m).upper())
                 if not visible:
                     self.assertTrue(any(b['nature'] == 'appel' for b in m.data['bruits']))
+                    from donjon import ecoute
+                    entendu = ecoute.rendre(m, ecoute.entendus(m, -1, ecoute.ENTENDU))
+                    self.assertIn("appel à l'aide", ' '.join(entendu))
 
     def test_calme_et_signe_non_percu_gardent_la_compagnie(self):
         for condition in ('calme', 'dos', 'noir'):
