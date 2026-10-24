@@ -4,23 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-pnj-proposent`, **non fusionnée ; lot non validé**, base `ffcc295` :
-  geste PNJ `proposer`, même évaluation et mêmes engagements que le joueur ; chance
-  estimée sur les connaissances propres, services promis puis réellement accomplis
-  ou abandonnés au prix de faute. Publication atomique conservant les références du
-  moteur et les identifiants publics avant recharge. Commits signés SSH vérifiés :
-  `1bf5be8`, `e58e7ca`, `0353c00`, `684ee70`. Dix tests A2b et douze tests de besoins
-  verts sur le moteur final ; reprises antérieures consolidées de 144 tests et 34
-  tests des marchés. Suite unique, trois processus, interrompue : **120/156 fichiers,
-  1 504 tests exécutés, 36 fichiers non achevés** ; pas de bilan global vert.
-  Banc intermédiaire, quatre scénarios × quatre graines, 4 h : aucun plantage ni
-  usurpation ; nouvelle observation d'alternance au Relais 7, donc absence de boucle
-  nouvelle non garantie. CPU apparié avant dernier mémo : mine **+610 %**, auberge
-  **+578 %** ; mesure finale et cible +10 % non validées. Contrôle crue 2 h/42 achevé
-  sur version intermédiaire ; clé des devis corrigée après défaut à la mine, contrôle
-  final incomplet. Aucun appel Luna ; quatre travailleurs au plus, priorité réduite.
-  Créneau de 45 minutes dépassé. Reprendre validation et coût avant intégration ;
-  critère de 3e toujours ouvert. [Rapport et limites](taches/rapport-codex-33-pnj-proposent.md).
+- Branche `codex-proposer-cout`, **non fusionnée ; lot non validé**, lots 33/36,
+  base `ffcc295`, reprise de `684ee70`, moteur signé SSH `0da76ef` : candidats et
+  devis préparés avant l'expansion, une offre par auditeur/sorte de contrepartie ;
+  tenir/trahir restent deux voies. Marché commun, engagements et publication
+  atomique conservés. `_entrees` identifie l'approximation ; `VERIFIER` contrôle
+  les reprises parmi les mêmes offres, pas l'exhaustivité des marchés.
+  **Cible +20 % non atteinte** : CPU apparié (4 h, 42/1985), mine 11,49→72,88 s
+  (+534 %), auberge 11,45→50,88 s (+344 %) ; gain 36 % / 41 % contre `684ee70`.
+  Sur seize nuits finales : aucun devis ni évaluation dans l'expansion ; restent
+  682 devis à la mine 42 (55,81/88,80 s CPU). Banc 4 h × quatre graines × quatre
+  scénarios : aucun plantage, usurpation ni écart ; offres/acceptées 5/0, 10/2,
+  12/1, 4/0 ; une promesse tenue à l'auberge, aucune trahison. Vols avant→final :
+  6→6, 2→2, 0→0, 9→9 ; sans recours 180→180, 65→50, 80→30, 300→300 minutes.
+  Quinze vols expliqués ; alternance Relais 7 disparue, mine 2024 : devoirs
+  satisfaits, pas de plan bloqué. Douze tests A2b verts avec état/rendu rechargés.
+  `VERIFIER` + spatial 1, 2 h/42, crue/mine : sans écart. Suite finale complète :
+  **1 688 tests, 4 ignorés, bilan consolidé 7 échecs et aucune erreur technique**
+  (une passe, 156 fichiers, 6 023 s, deux travailleurs). Quatre échecs de réemploi
+  (prix global dans la clé), poêle sans flamme après prêt, capture sans appel
+  attendu et approvisionnement d'Anselme différent ; assertions conservées.
+  Six fichiers de scènes repris seuls (63 tests uniques) ; refus de marché
+  ordinaires pour isoler les anciens recours, prix du seul besoin dans les
+  graphes synthétiques. Une assertion de certificat y reste en échec.
+  La sélection manque des offres devenues utiles après acquisition/lumière ou
+  un second marché ; bénéfice intermédiaire du Relais perdu (4→6 vols, 60→180 min
+  sans recours), critère de 3e non atteint. Aucun appel Luna, priorité réduite,
+  ≤ quatre travailleurs ; créneau de 45 min dépassé.
+  [Rapport, mesures et limites](taches/rapport-codex-33-pnj-proposent.md).
 
 - Branche `codex-propositions`, fusionnée, base `450cebb` (intégration `19b0261`),
   lot 29 A2a : contenu de parole indivisible demande/contrepartie, évaluation P/G/L et INT

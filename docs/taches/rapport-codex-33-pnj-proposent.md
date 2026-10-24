@@ -1,57 +1,56 @@
-# Lot 33 — Les PNJ proposent (A2b)
+# Lots 33/36 — Les PNJ proposent, coût du geste (A2b)
 
-**Lot non validé. Branche `codex-pnj-proposent`, non fusionnée**, base `ffcc295`.
-Code signé SSH et vérifié : `1bf5be8`, `e58e7ca`, `0353c00`, `684ee70`.
-Créneau de 45 minutes dépassé ; aucun appel Luna, quatre travailleurs au plus,
-priorité réduite, aucune modification de `main`.
+**`codex-proposer-cout`, non fusionnée ; lot non validé.** Base `ffcc295`, reprise
+de `684ee70`, correctif signé SSH `0da76ef`. Sans Luna, priorité réduite, ≤ 4 travailleurs.
 
-**Invariant réalisé et limites de preuve.** `pnj_propositions.gestes`, déclaré une
-fois dans `planification.gestes`, offre biens/parts déjà portés, pièces et services
-selon le devis commun. `echanges.evaluer_proposition` puis `proposer` tranchent avant
-publication ; les engagements passent par `agendas`. Validation selon les connaissances du proposant. `relations.chance_proposition` ajoute la valeur crue de
-la contrepartie à `chance_demande`, sans lire l'attitude privée de l'auditeur.
-Leurs lectures entrent dans `_entrees`. Les devis sont indépendants du but ; leur
-contrôle se partage sous `VERIFIER` pour un état intégral identique.
+**Invariant.** `pnj_propositions.preparer` calcule candidats et devis avant
+l'expansion, sur les moyens et croyances du départ : une offre par auditeur/sorte.
+`gestes` rejoue les effets sans double cession ; tenir/trahir restent deux voies.
+`_entrees` identifie l'approximation, `VERIFIER` recalcule sa sélection. L'exécution
+garde le marché commun, les engagements et la publication atomique du lot 33.
 
-`Monde.adopter` conserve les références du moteur au plan courant et attribue les
-références publiques des objets nouveaux avant affichage. Une tâche de marché
-exige un effet réel ; `agendas.renonce` compare travail et `prix_faute`. Un bien cédé
-garde une valeur quand son propriétaire n'a aucune pièce.
+**CPU apparié**, versions lancées ensemble, 4 h, 42/1985, moyenne par nuit :
 
-**Mesures intermédiaires, non représentatives d'une validation finale.** Banc 4 h,
-quatre graines, contre `ffcc295` ; référence calculée une fois puis réutilisée.
-Sommes sur quatre graines :
+| Scénario | `ffcc295` / `684ee70` initial | `ffcc295` / final | Surcoût final |
+|---|---:|---:|---:|
+| Mine | 12,18 / 114,31 s | 11,49 / 72,88 s | +534 % |
+| Auberge | 11,25 / 86,16 s | 11,45 / 50,88 s | +344 % |
 
-| Scénario | Offres / acceptées | Tenues / trahisons | Vols tentés avant → après | Minutes sans recours avant → après |
+**Cible +20 % non atteinte**, gain contre `684ee70` : 36 % / 41 %. Profil mine 42 :
+Devis dans l'expansion : 1 374 → **0** ; aucune évaluation dans l'expansion.
+Restent 682 devis en amont : 55,81/88,80 s CPU ; par recherche, 0,370 devis et
+0,0027 évaluation. Offres/développements : 9 831/53 158 → 4 177/33 674.
+Les devis serrure/feu dominent encore ; nœuds : porte de réserve 60 168,
+garde-manger 25 799. Diagnostics complets par but dans les traces.
+
+**Banc final**, 4 h × quatre graines, référence `ffcc295` réutilisée ; sommes :
+
+| Scénario | Offres / acceptées | Tenues / trahisons | Vols avant → final | Minutes sans recours avant → final |
 |---|---:|---:|---:|---:|
-| Relais | 3 / 2 | 0 / 2 | 6 → 4 | 180 → 60 |
+| Relais | 5 / 0 | 0 / 0 | 6 → 6 | 180 → 180 |
 | Mine | 10 / 2 | 0 / 0 | 2 → 2 | 65 → 50 |
-| Auberge | 11 / 1 | 1 / 0 | 0 → 0 | 80 → 20 |
+| Auberge | 12 / 1 | 1 / 0 | 0 → 0 | 80 → 30 |
 | Crue | 4 / 0 | 0 / 0 | 9 → 9 | 300 → 300 |
 
-Seize nuits sans plantage ni usurpation. Nouvelle observation `voir_alterne` au
-Relais 7 ; devoirs satisfaits mais PNJ immobiles à la mine 2024 : absence de boucle
-nouvelle non prouvée. CPU apparié, versions lancées ensemble, 4 h, 42/1985 : mine
-**11,72 → 83,16 s**, auberge **11,53 → 78,16 s** en moyenne (**+610 % / +578 %**),
-avant le dernier mémo. Mesure finale à refaire ; cible +10 % non validée.
+Seize nuits sans plantage, usurpation ni écart. Alternance du Relais 7 disparue ;
+mine 2024, devoirs satisfaits et attente, pas de plan bloqué. Crue 2024 : mêmes
+trois alternances que la référence, bruits distincts.
+[Les quinze vols restants, un par ligne, et ces lectures](../plan-relations.md#lecture-des-nuits-du-lot-36).
 
-**Vérification.** Moteur final : **22 tests ciblés verts**, dont dix A2b : crue/mine,
-méfiance, promesse exécutée, pièces, honnêteté 90/20, crochetage, abandon, état et
-rendu après recharge, découpage temporel. Les anciens parcours isolent leur recours par des
-refus d'offres antérieurs, données de scène ; A2b laisse les offres ouvertes.
-Suite unique sur versions de travail, trois processus, interrompue : **120/156 fichiers achevés,
-1 504 tests exécutés, 36 fichiers non achevés**, sans bilan global vert. Contrôle
-spatial 1 + `VERIFIER`, crue 2 h/42 : achevé sur version intermédiaire ; mine :
-défaut de clé corrigé, reprise interrompue pour son coût. Contrôles finaux incomplets.
+**Vérifications.** Douze tests A2b verts, état/rendu après recharge compris.
+`VERIFIER` + spatial 1, 2 h/42, crue/mine : sans écart. Suite complète :
+**1 688 tests, 4 ignorés ; bilan consolidé : 7 échecs, aucune erreur technique**.
+Une passe de 156 fichiers (6 023 s, deux travailleurs), puis seules reprises de
+six fichiers adaptés (63 tests uniques). Restent quatre échecs de réemploi,
+le poêle éteint, les signalements sans appel et l'achat du bois à Mireille plutôt
+qu'Odile. Assertions conservées ; scènes isolées par des refus de marché ordinaires.
+Créneau de 45 minutes dépassé.
 
-**Reprise.** Valider coût, fichiers manquants et contrôles sur `684ee70` ; expliquer
-chaque vol restant. Critère de 3e (offre avant vol dans la moitié des nuits
-concernées) ouvert. Recherche bornée, contreparties déjà
-portées, services suggérés par sources connues et serrures crues ouvertes, refus
-retenu par objet demandé : toutes les offres possibles ne sont pas explorées.
-Convertir demandes/ventes changerait prêts en cessions, parts servies en remises et
-ventes sans jet en marchés évalués ; conversion, réparation et intermédiaires restent
-hors lot.
+**Limites.** Acquisition, lumière découverte ensuite ou second marché peuvent
+rendre meilleure une offre écartée. Promesses sans gain cru exclues. Le bénéfice
+intermédiaire du Relais est perdu (4→6 vols, 60→180 min sans recours). **3e non
+atteint** : aucune proposition de Brune avant ses vols des sept nuits Relais/crue ;
+autres recours non prouvés exhaustivement. Conversion/réparation/intermédiaires hors lot.
 
-Traces : `artifacts/33-{rapide-final,temps,suite-partielle,reprises,marches-final,cibles-finaux}.json`,
-`33-controles-2h/`, `33-controles-correction/` et journaux (non versionnés).
+Traces non versionnées : `artifacts/36-{temps-avant,temps-apres,profil-avant,rapide,controle,suite-consolidee}`,
+diagnostics et `36-lecture.txt`.

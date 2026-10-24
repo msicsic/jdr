@@ -542,7 +542,7 @@ des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rappo
   retenu dans l'esprit de l'auteur), le besoin qu'il croit à l'autre de la contrepartie. `PRET`
   disparaît. Ces lectures entrent dans `planification._entrees` (la mémoire des recherches) ;
   `planification.VERIFIER` contrôle qu'aucune n'y manque.
-  **A2b, implémenté sur `codex-pnj-proposent`, non fusionnée, lot non validé (2026-10-24).** La constante
+  **A2b, repris sur `codex-proposer-cout`, non fusionnée, lot non validé (2026-10-24).** La constante
   avait déjà disparu dans `codex-garde-pret`. `pnj_propositions.gestes`, appelé une fois
   par `planification.gestes`, offre objets/parts déjà portés, pièces disponibles et tâches
   autonomes selon le devis commun. `relations.chance_proposition` ajoute à la chance
@@ -559,8 +559,13 @@ des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rappo
   coûts comparables : le travail ou la faute, réévaluée à l'abandon par `agendas.renonce`.
   Les demandes, ventes et prêts historiques restent séparés : leur conversion changerait
   les cessions, les jets et les parts servies. `rendre_service` et intermédiaires restent
-  à faire. **Cible de temps +10 % non validée** ; les contrôles finaux restent incomplets,
-  et le critère complet de 3e reste ouvert.
+  à faire. Le lot 36 prépare les offres et devis avant l'expansion, et retient une
+  offre par auditeur et sorte de contrepartie, sur les moyens du départ. La même
+  promesse garde ses deux voies tenir/trahir. Acquisition, nouvel usage de lumière
+  et second marché avec l'auditeur ne relancent pas cette sélection approchée ;
+  une meilleure offre devenue possible en chemin peut manquer. **Cible de temps
+  +20 % non atteinte** : mine +534 %, auberge +344 % contre `ffcc295` ; le bénéfice
+  intermédiaire du Relais est perdu. Le critère complet de 3e reste non atteint.
   [Mesures et limites du lot A2b](taches/rapport-codex-33-pnj-proposent.md).
 - **Regagner la confiance** : un geste `rendre_service` (donner ce que l'autre croit lui manquer,
   tenir une tâche pour lui), dont l'effet projeté dans la recherche est la relation de l'autre
@@ -571,6 +576,99 @@ des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rappo
   servir quelqu'un l'est déjà (`{"objet", "servir"}`). L'intermédiaire la planifie avec ses propres
   relations : Ilse, que Gorm croit, lui demande de servir Brune, qu'il refuse en direct. Le récit
   dit la chaîne.
+
+#### Lecture des nuits du lot 36
+
+Banc final de `0da76ef`, 4 h, graines 1985/7/42/2024. Le compteur de vols distingue
+les couples auteur/objet, y compris la serrure et les vivres d'un même parcours.
+Voici chacun des quinze couples restants au Relais et à la crue ; les causes sont
+les besoins et refus enregistrés, pas une preuve que tous les marchés sont impossibles.
+
+| Nuit | Auteur / objet | Minute | Lecture du parcours |
+|---|---|---:|---|
+| Relais 7 | Brune / réserve | 100 | Faim 95, part refusée par Gorm à 1 ; intrusion pour manger. |
+| Relais 7 | Brune / vivres | 105 | Consommation après cette intrusion, sans marché préalable. |
+| Relais 42 | Brune / réserve | 100 | Faim 95, part refusée par Gorm à 1 ; intrusion pour manger. |
+| Relais 42 | Brune / vivres | 104 | Consommation après cette intrusion, sans marché préalable. |
+| Relais 2024 | Brune / réserve | 99 | Faim 95, part refusée par Gorm à 1 ; intrusion pour manger. |
+| Relais 2024 | Brune / vivres | 104 | Consommation après cette intrusion, sans marché préalable. |
+| Crue 1985 | Brune / réserve | 106 | Faim 81, part refusée par méfiance à 1 ; intrusion pour manger. |
+| Crue 1985 | Brune / vivres | 108 | Consommation après cette intrusion, sans marché préalable. |
+| Crue 1985 | Brune / bois du guet | 201 | Froid 86 ; prend le bois de Gorm pour rallumer le poêle du guet. |
+| Crue 7 | Brune / réserve | 100 | Faim 95, part refusée par méfiance à 1 ; intrusion pour manger. |
+| Crue 7 | Brune / vivres | 103 | Consommation après cette intrusion, sans marché préalable. |
+| Crue 42 | Brune / réserve | 100 | Faim 95, part refusée par méfiance à 1 ; intrusion pour manger. |
+| Crue 42 | Brune / vivres | 104 | Consommation après cette intrusion, sans marché préalable. |
+| Crue 2024 | Brune / réserve | 99 | Faim 95, part refusée par méfiance à 1 ; intrusion pour manger. |
+| Crue 2024 | Brune / vivres | 104 | Consommation après cette intrusion, sans marché préalable. |
+
+Relais 7 : l'alternance de Gorm signalée dans le lot 33 disparaît sur le code final.
+Mine 2024 : Josse (130 min signalées) et Rémy (145 min) sont sans intention mais
+avec `inactivite=satisfaite`, toutes leurs pulsions vraies à la fin, sans engagement
+en souffrance ; Josse circule encore (baraquement, entrée, galerie). Cela décrit
+une attente de devoir satisfait, pas un plan bloqué. Rémy a cédé sa lampe à Mathe
+contre une part dès la minute 1. La crue 2024 conserve les trois alternances de
+Gorm présentes dans `ffcc295` : les bruits du refuge à 66, 99, 170 et 240 et de la
+conduite à 100 et 194 sont des événements distincts, avec d'autres buts entre eux.
+Ces lectures n'établissent pas une absence générale de boucle ni l'exhaustivité
+des offres avant les vols. Traces et diagnostics : `artifacts/36-rapide/` et
+`36-lecture.txt` (non versionnés).
+
+La suite révèle aussi un écart non corrigé dans
+`test_lumiere.MineTests.test_le_poele_rallume_il_menage_sa_lampe` : Josse emprunte
+la lampe de Gaspard (minute 0) ; Gaspard accepte puis abandonne les parts de bois
+payées aux minutes 1 et 3, n'ayant plus de flamme. Une proposition de Josse
+(sa lampe contre le bois, minute 2) est refusée (`marche`) ; les tâches proposées
+aux autres sont impossibles. Josse rend la lampe à 6, mais le poêle reste éteint
+à 15. La scène du test n'est pas modifiée pour forcer son ancien parcours.
+Le devis et la répartition des moyens d'une livraison de combustible restent
+une limite, distincte du déplacement des devis hors de l'expansion. Reproduction
+avec monde et chronique : `artifacts/36-lumiere-{monde,recherches}.json` et
+`36-lumiere-lecture.txt`.
+
+Deux scènes destinées à isoler d'autres contrats supposaient encore que refuser
+une demande épuisait les recours : Brune apprenant le noir après crochetage,
+Ilse attendant qu'un refus vieillisse. Elles déclarent désormais aussi le refus
+antérieur du marché correspondant, enregistré par `retenir_refus` et rechargé,
+sans désactiver le geste. Les deux fichiers repris seuls passent (17 tests).
+Les tests A2b gardent au contraire les marchés ouverts.
+
+Les scènes de contact, de pertinence et de graphe déclarent de même leurs refus
+de marché quand elles isolent les anciens recours. Les graphes synthétiques font
+varier le prix de la faute pour leur seul besoin, plutôt que le prix global qui
+entre désormais dans les devis autonomes. Les reprises portent sur six fichiers
+(63 tests uniques), avec un échec restant de certificat d'absence, en plus du poêle.
+`test_deux_sauvegardes_reelles_meme_monde_et_rendu_apres_reprise` ne retrouve plus
+le certificat : sur la capture mine 7, passer la faim de Rémy de 70 à 72 ne change
+dans `_entrees` que le prix global de faute, 20 → 18,8, qui invalide le graphe même
+avec les marchés refusés. C'est une perte de réemploi conservatrice, non une preuve
+de monde divergent. L'assertion de reprise est conservée en échec ; ni le moteur
+ni les empreintes ne sont ajustés pour la faire passer.
+
+Les trois assertions de `test_planif_cout.GrapheReprisTests` constatent aussi
+l'absence de reprise du graphe (Lucien au grenier, sa garde, Odon affamé).
+Elles restent en échec, avec l'assertion de certificat ci-dessus : quatre échecs
+de réemploi au total. Les comparaisons placées après ces assertions ne sont pas
+prouvées par cette passe. Suite complète : 1 688 tests, quatre ignorés ; après
+remplacement des seuls six fichiers repris, sept échecs, aucune erreur technique
+(`artifacts/36-suite-consolidee.json`). Aucun fichier de la suite complète n'a
+été omis ; seules les scènes modifiées ont été reprises.
+
+Troisième assertion encore en échec :
+`test_signalements.RechercheTests.test_auberge_3_un_rendez_vous_ne_relance_pas_la_tournee`.
+La capture `auberge-3-570` donne le même monde après 30 min d'un bloc et par tranches
+de 5 min, mais Anselme ne lance aucun appel sur la période ; le test n'exerce plus
+son parcours de recherche attendu. La capture et l'exigence d'au moins un appel
+restent inchangées : pas de preuve de ce parcours sur ce code, et pas de divergence
+de sauvegarde constatée par cette assertion.
+
+Quatrième écart conservé : `test_ressources.AubergeTests` attend une nouvelle
+remise des bûches de réserve d'Odile à Anselme entre 300 et 420 min. La chronique
+montre un refus d'Odile, puis Anselme achète les bûches de hêtre de Mireille
+pour une pièce et alimente son poêle. Les trois foyers allumés, la propriété du
+lot et les charges consommées ont passé leurs assertions à 300 min ; la demande
+précise attendue après reprise manque. Les dernières assertions du test, après
+celle en échec, ne sont donc pas prouvées. Scène et assertions conservées.
 
 ### 7.3 Les avis
 
