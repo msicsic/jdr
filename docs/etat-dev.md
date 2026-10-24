@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration ffcc295** (lots Q, R, A0, A1, cache, 25 à 30 ; sans Luna ; bruts dans
+  `artifacts/verif-integ-ffcc295/` du dépôt principal). Audit 12 h (`tools/audit_nuits.py`), quatre
+  scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500, contre `main` 42bb9c0 (référence complétée dans
+  `artifacts/references/42bb9c0/audit-12h/`) : aucun plantage, violation ni usurpation, dans les deux.
+  Par nuit, 42bb9c0 → ffcc295 : sans recours Relais 206 → 193, mine 23 → 44, auberge 188 → 183, crue 141 → 217 ;
+  en attente 131 → 250, 1 400 → 1 350, 462 → 382, 499 → 473 ; noir 199 → 194, 1 413 → 1 310, 1 014 → 849,
+  64 → 98 ; dans l'eau (crue) 229 → 348, constats « eau longue » 2 → 4 ; appels à l'aide 2 → 0,5, 2 → 2,25,
+  1,25 → 1,4, 0,75 → 1 ; appels (héler) 0,5 → 1, 5,3 → 10,5, 17,5 → 16,8, 2,4 → 4,8 ; bascules ≤ 3 partout ;
+  passages par heure, pire : Relais **165 → 10**, mine 17 → 24, auberge 28 → 30, crue 36 → 32. **Fuite ↔ sécurité**
+  (Relais 2024, Ilse) : absente, mais la violence qui la déclenchait (Aubin assomme Brune) n'a plus lieu
+  dans cette nuit : non prouvée corrigée. **Faim ↔ eau** (crue 2024, Brune) : absente sur 42bb9c0 comme sur
+  ffcc295 (Brune mange par une part de Gorm à 365) ; non prouvée corrigée non plus. `rixe` et `rixe_douce`,
+  8 h, 1985, 7, 42, 2024 : aucun coup contre une personne, aucun mort ni usurpation (Aubin force la réserve,
+  rixe 1985 à 422). `VERIFIER` + `spatial.VERIFICATION` 0,2, 8 h, graine 42, Relais, mine, auberge, crue,
+  `rixe` : sans écart ; recherches bornées : mine 4 (Josse `feu:poele`), autres 0. Bram (mine 42, 12 h) :
+  quand biens et sécurité pressent ensemble, il garde ses biens au bureau dans le noir (58 relevés de
+  5 min, sécurité 100 et faim 78 à 710-720), comme sur 42bb9c0 (50) ; l'arbitrage n'est pas tranché.
+  Temps par nuit (horloge, quatre nuits ensemble, non lancés ensemble ; indicatif) : Relais 44,5 → 118,4 s,
+  mine 238 → 711 s, auberge 206 → 739 s, crue 56 → 100 s (×1,8 à ×3,6 sur 12 h) ; `rixe` 8 h 98 s,
+  `rixe_douce` 49 s. Défauts relevés, à prendre en petits lots : (1) **chercher en appelant** : Brune
+  (crue 3, 121-128) hèle « Gorm ? » dix fois en courant refuge ↔ conduite ↔ vannes ↔ galerie, puis crochète
+  la réserve ; Odon (mine 7, 470-474) « Mathe ? » huit fois en repassant quatre fois par le baraquement ;
+  appels doublés à la mine et à la crue ; (2) **crue 500** : Brune, Ilse et Aubin restent 235 min au refuge
+  mouillé (1 à 14 cm), chaleur 73 à 100 sans recours, la faim renoncée entre eux, alors que sur 42bb9c0
+  Brune et Ilse gagnent la galerie vers 300 ; d'où l'eau et le « sans recours » de la crue ; (3) un PNJ se
+  dénonce lui-même : « Brune dit à Gorm que Brune porte les planches de bac, qui n'est pas à elle » (crue
+  2024, 421 ; aussi sur 42bb9c0, Relais 3 et crue 2024), « Brune dit à Ilse que Brune semble guetter la
+  réserve » (crue 7, 391) ; (4) le temps de calcul sur 12 h (mine et auberge ×3 à ×3,6).
+
 - Branche `codex-propositions`, fusionnée, base `450cebb` (intégration `19b0261`),
   lot 29 A2a : contenu de parole indivisible demande/contrepartie, évaluation P/G/L et INT
   dans `echanges`, remises atomiques et engagements par `agendas`. Les promesses du joueur
