@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-fouille-faits`, **non fusionnée**, base d'intégration `de74ec1`, lot 42 :
+  correctif signé SSH `5502858`, signature vérifiée ;
+  la revue de portée reçoit demande et transaction entière ; chaque ajout, avec ou sans
+  prose, est jugé sur la perception qu'il remplace et l'indice qu'il crée, même sans quête.
+  Refus séparés avec `attendu` vers les perceptions du moteur ; rapport incomplet bloquant.
+  Le rendu d'un détail ne juxtapose plus son nom et son support. Cinq nouveaux tests
+  console/MJ simulé/recharge, Relais et atelier, avec et sans suite, qualification sans prose,
+  indice hors quête et ambiance légitime. Suite complète unique, trois processus à priorité
+  réduite : **1 714 tests, 16 ignorés, 1 313,6 s** ; deux erreurs d'un ancien double de parole
+  omettant le nouveau jugement, corrigé puis ses 19 tests rejoués seuls, verts (54,9 s).
+  **162 fichiers validés après correction**, pas de seconde suite complète.
+  Luna, une passe relais/crypte/atelier/luna-restes-ambiance, `main` `42bb9c0` lu du cache :
+  106 → 86 appels, 3,31 → 2,77 appels/tour, replis 1 → 0, aucune erreur technique ou recharge.
+  Relais n° 5 : `examiner antichambre_sol`, deux appels, « Le sol en pierre. », aucun détail
+  inventé. **Limites** : détection sémantique ; pas de mécanique dédiée aux empreintes ;
+  cause du premier choix probabiliste non isolée, dérive de correction démontrée par les fils.
+  Aucun fichier réservé au lot 41 ni scénario modifié ; `main` inchangée.
+  [Rapport du lot 42](taches/rapport-codex-42-fouille-faits.md).
+
 - Branche `codex-absence-vue`, fusionnée, base `8443458`, lot 40 : la vue courante
   donne `perception.objets_visibles`, limitée aux objets `visible=true`, en références publiques.
   L'audit admet une absence dans cette vue avec la source `perception` ; un résultat de fouille,
