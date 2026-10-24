@@ -1582,3 +1582,69 @@ sur la composante du contact. Elle peut donc échouer à l'exécution si l'acteu
 est dans une autre composante. Ni l'occupation mobile ni les détours par une
 autre salle pour toucher un objet local ne sont prévus par cette moyenne.
 L'erreur mesurée et les limites du banc figurent dans le rapport du lot 30.
+
+
+## Coût des nuits de 12 h — lot 38 (`codex-cout-12h`, non fusionnée)
+
+L'invariant est de ne calculer une lecture coûteuse qu'une fois pour ses entrées,
+et de ne développer une suite terminale que si sa borne peut encore battre ou
+égaler le meilleur coût. Aucun tarif, prix, plafond de nœuds ou scénario ne change.
+
+**Borne admissible et cohérente.** La file peut contenir une `SuiteDifferee` :
+un nœud intermédiaire sans effet, entre un préfixe et ses suites terminales.
+Son g est le coût du préfixe, son h le minimum des prix d'offre possibles,
+moins le geste conventionnel d'une minute que `_mesurer` remplacera par une
+approche et un geste de durée positive. Pour une attente déjà promise, h est
+l'attente ; sans justification, h vaut zéro. Tout le devis, les fautes, la
+combustion, les pressions et le séjour final de `tenir` sont non négatifs.
+Ainsi h ne dépasse aucune sortie terminale ; h = 0 aux sorties et aux états
+ordinaires. Les arêtes préfixe → nœud différé coûtent zéro : la cohérence vaut
+sur les deux arêtes. Le devis approximatif de `part_estimee` n'est jamais une
+borne. Ce n'est pas une heuristique positive sur tous les états ordinaires :
+leurs moyens futurs et un but Python arbitraire ne sont pas bornés ici.
+
+La clé de file réserve le rang historique de chaque groupe avant de différer
+son calcul, avec le rang interne de ses sorties. À priorité égale, les nœuds
+intermédiaires se révèlent avant toute décision, puis les vrais résultats se
+départagent par le rang réservé. Ni l'ordre des états ordinaires, ni leur
+compte sous `NOEUDS`, ni les égalités de plans ne changent. Les développements
+économisés sont ceux des devis, pas les états ordinaires comptés par le banc.
+Tous les résultats passent par `_normaliser_suites` : les restrictions des
+devis par leurs seuls moyens, les effets terminaux et les gardes restent communs.
+La découverte des moyens d'éclairer force l'évaluation au point historique ;
+seule la passe aux moyens déjà définis diffère les calculs.
+
+`_GRAPHES` garde les mêmes transitions, éventuellement encore différées, dont
+les termes ne dépendent pas des prix de faute et de dégât. Une suite révélée
+se calcule une seule fois ; une suite encore inconnue n'est pas une preuve
+vide. `_parcours` retourne « lacune » sans l'évaluer ; `_sans_plan` reste un
+parcours indépendant des coûts, sur les deux graphes de lumière. `VERIFIER`
+recompare aussi les recherches neuves à l'évaluation immédiate complète des
+mêmes gestes, avec la même borne et le même rang ; la référence sans restriction
+d'emplois conserve son contrôle de coût antérieur.
+
+**Parts et devis.** Chaque `Vue`, figée pendant la recherche, garde :
+
+- Les résultats de `_parts` par état complet, lot, lieu du lot, emploi de lumière
+  et contexte du but/visées. Aucun fait n'est retiré de cet état : le but peut
+  lire chacun d'eux. La première lecture reste un générateur, afin de conserver
+  l'instant des lectures de lumière.
+- Les sources à recharger par possessions, faits `allume`/`charge`, emploi de
+  lumière et sources entretenues. La disponibilité et les compatibilités de
+  combustible sont des données figées de la vue ; salle, droits et autres effets
+  ne sont pas lus par ce test et peuvent différer.
+- L'attente d'une part par donneur, lot, salle de service, cible, salle de départ,
+  possessions, allure et faits de lieux, portes, positions et départ de promesse.
+  Les lieux incluent le porteur et toute chaîne de contenants ; budget et effets
+  terminaux ne modifient pas ce trajet. Deux états équivalents partagent ce scalaire.
+- Le devis par état normalisé complet déjà employé par `part_estimee`, contexte
+  du but et ensemble exact des sources que recharge le lot. Le lot n'est lu que
+  pour cette compatibilité : deux lots de même compatibilité réemploient le devis.
+
+Ces mémoires restent locales à la vue ; elles ne passent ni mutation du monde ni
+sauvegarde. Toutes les lectures extérieures restent couvertes par `_entrees`.
+Les imports des fonctions chaudes sont au module ou utilisent une référence
+conservée ; `perception.substance` garde le module matière au premier appel,
+pour ne pas introduire le cycle de démarrage matière → monde → perception.
+
+Mesures, preuve d'identité et limites : [rapport du lot 38](taches/rapport-codex-38-cout-12h.md).

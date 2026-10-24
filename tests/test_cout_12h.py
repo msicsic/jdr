@@ -1,12 +1,17 @@
 """Calcul des suites terminales, rang des égalités et état persistant."""
 from types import SimpleNamespace
+import gzip
+import json
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from donjon import planification as p, pnj
+from donjon import planification as p, pnj, part_estimee
 from donjon.esprits import croire
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
+from donjon.monde import Monde
+from donjon.moteur import Moteur, proposition
 from tests import test_lampes_buts as lampes
 from tests.test_tensions import recharger
 
@@ -47,17 +52,26 @@ class BorneTests(unittest.TestCase):
                         x["verrouillee"] = False
                         croire(m, qui, k, "verrouillee", False, "savoir")
                 m = recharger(m)
-                resultats, devis, mondes = [], [], []
+                resultats, devis, etats_devis, mondes = [], [], [], []
                 explorer = p._explorer
+                trajets = part_estimee._trajets
                 for differe in (True, False):
                     monde = recharger(m)
+                    visites = 0
                     def chercher(*a, **k):
                         return explorer(*a, **k, differer=differe)
-                    with patch.object(p, "_explorer", chercher), p.diagnostics() as recherches:
+                    def suivre(*a, **k):
+                        nonlocal visites
+                        for etat in trajets(*a, **k):
+                            visites += 1
+                            yield etat
+                    with patch.object(p, "_explorer", chercher), \
+                            patch.object(part_estimee, "_trajets", suivre), p.diagnostics() as recherches:
                         r = p.chercher(monde, qui, p.eclaire, {"eclairer": True}, emplois=())
                     self.assertIsNotNone(r)
                     resultats.append(r)
                     devis.append(recherches[-1]["devis_developpes"])
+                    etats_devis.append(visites)
                     self.assertTrue(all(x["operation"] == "aller" for x in r[1]))
                     for etape in r[1]:
                         for _ in range(100):
@@ -75,6 +89,7 @@ class BorneTests(unittest.TestCase):
                     mondes.append((recharge.data, regarder(recharge), scene_percue(recharge)))
                 self.assertEqual(resultats[0], resultats[1])
                 self.assertLess(devis[0], devis[1])
+                self.assertLess(etats_devis[0], etats_devis[1])
                 self.assertEqual(mondes[0], mondes[1])
 
     def test_egalite_et_plafond_conservent_l_ordre_de_la_file_historique(self):
@@ -118,3 +133,24 @@ class BorneTests(unittest.TestCase):
         # la reprise du certificat et le rendu après cinq minutes rechargées.
         from tests.test_cout_suite import AbsenceTests
         AbsenceTests().test_deux_sauvegardes_reelles_meme_monde_et_rendu_apres_reprise()
+        # Cas du présent lot : les deux vraies nuits qui ont fourni le profil,
+        # rechargées à 8 h puis vécues par la chaîne moteur/rendu/sauvegarde.
+        explorer = p._explorer
+        for scenario in ("mine", "auberge"):
+            chemin = Path(__file__).parent / f"data/cout-12h/{scenario}-1985-480.json.gz"
+            resultats = []
+            for differe in (True, False):
+                m = recharger(Monde(json.loads(gzip.decompress(chemin.read_bytes()))))
+                def chercher(*a, **k):
+                    return explorer(*a, **k, differer=differe)
+                with patch.object(p, "_explorer", chercher), patch.object(p, "_MEMOIRE", {}), \
+                        patch.object(p, "_GRAPHES", {}), patch.object(p, "_IMPOSSIBLES", {}), \
+                        patch.object(p, "VERIFIER", False):
+                    moteur = Moteur(m)
+                    lignes = moteur.executer(moteur.preparer(proposition("attendre")))
+                recharge = recharger(m)
+                self.assertEqual(m.data, recharge.data)
+                self.assertEqual(regarder(m), regarder(recharge))
+                self.assertEqual(scene_percue(m), scene_percue(recharge))
+                resultats.append((recharge.data, lignes, regarder(recharge), scene_percue(recharge)))
+            self.assertEqual(resultats[0], resultats[1], scenario)
