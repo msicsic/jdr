@@ -11,6 +11,7 @@ from .obstacles import Route, distances, transitions, descriptions_crues, cout_r
 from .spatial import _case_interieure, _pas_possibles, VECTEURS, QUART
 from .temps import duree_pas
 from .geometrie import cases
+from .eau import noyee_crue
 
 
 def tables(v, e, salle):
@@ -73,7 +74,10 @@ def parcours(v, e, ouvertes):
         avant = routes[salle]
         for direction, sortie in v.salles[salle]["sorties"].items():
             vers, porte = sortie["vers"], sortie.get("porte")
-            if vers not in v.salles or v.descente(e.salle, vers):
+            # Même admissibilité intermédiaire que parcours_cru. La descente
+            # attendue de la destination reste jugée par Vue.allers ; le modèle
+            # de coût ne redéfinit pas ici les règles de risque de l'eau.
+            if vers not in v.salles or noyee_crue(v.monde, v.id, vers):
                 continue
             if (porte and v.verrouille(e, porte) and porte not in ouvertes
                     and not any(porte in v.objets[k].get("ouvre", ()) for k in cles)):
