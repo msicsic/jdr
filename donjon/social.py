@@ -88,9 +88,10 @@ def nouvelles(monde, id):
             noyau, rang, source = souvenir["evenement"], souvenir["rang"], souvenir["de"]
         else:
             continue
-        if (any(k not in monde.objets for k in (noyau.get("objet"),) if k and k != "joueur")
+        if (accuse(noyau) == id
+                or any(k not in monde.objets for k in (noyau.get("objet"),) if k and k != "joueur")
                 or not _croit_encore(monde, id, noyau)):
-            continue  # L'objet n'existe plus, ou il a changé d'avis : il n'y a plus rien à en dire.
+            continue  # Sa propre accusation ne se transmet pas, même depuis une ancienne sauvegarde.
         if "lieu" in noyau and _cru_ailleurs(monde, id, noyau):
             noyau = _fait(noyau)  # Il ne le croit plus là : il dit le geste, sans le lieu.
         yield souvenir, noyau, rang, source
@@ -320,6 +321,8 @@ def recevoir(monde, id, locuteur, c):
         from .echanges import affirmer
         return affirmer(monde, locuteur, id, c["sujet"], c["attribut"], c["valeur"])
     noyau = c["evenement"]
+    if c["type"] != "aveu" and accuse(noyau) == locuteur:
+        return None  # Parler contre soi exige un aveu explicite, joueur comme PNJ.
     if accuse(noyau) == id or _sait(monde, id, noyau):
         return None
     if c["type"] == "aveu":
@@ -381,14 +384,17 @@ def bavarder(monde, id, lignes):
         if not inedits:
             continue  # Il le sait déjà : rien à apprendre, la minute n'est pas perdue.
         _, noyau, rang, _ = inedits[-1]
-        issue = _adopter(monde, auditeur, id, noyau, rang)
+        # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
+        # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
+        issue = recevoir(monde, auditeur, id, {"type": "rumeur", "evenement": noyau, "rang": rang})
         if issue == "crue":
-            memoriser(monde, auditeur, {"type": "rumeur", "de": id, "rang": rang + 1, "evenement": noyau})
             siens = [x[1] for x in inedits if _proprietaire(monde, x[1]) == auditeur]
-            if siens:
+            if siens and _proprietaire(monde, noyau) != auditeur:
+                # recevoir a déjà compté le bien nommé ; les autres nouvelles du
+                # même incident peuvent aussi concerner un bien de l'auditeur.
                 from .deliberation import VOL, relancer
                 relancer(monde, auditeur, "biens", 30 if all(x["type"] == "absence" for x in siens) else VOL // 2)
-        _chroniquer(monde, id, f"{_qui(monde, id)} dit à {_qui(monde, auditeur)} que {phrase(monde, noyau)} ({issue}).",
+        _chroniquer(monde, id, f"{_qui(monde, id)} dit à {_qui(monde, auditeur)} que {phrase(monde, noyau)} ({issue or 'connu'}).",
                     "social")
         _entendu(monde, id, auditeur, noyau, rang, lignes)
         return True

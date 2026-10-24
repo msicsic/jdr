@@ -225,7 +225,7 @@ def _percus(m, observateur="joueur", tons=(), emissions=None, contexte=None):
         vus, _ = objets_percus(m, observateur)
     resultat = []
     for id in sorted(vus):
-        if id != "joueur" and m.objets[id]["type"] != "personnage":
+        if id == observateur or id != "joueur" and m.objets[id]["type"] != "personnage":
             continue
         niveau, loin = niveaux[id] if contexte is not None else _niveau_distance(m, observateur, id)
         for s in (de(m, id) if emissions is None else emissions.get(id, [])):
@@ -244,7 +244,7 @@ def _percus(m, observateur="joueur", tons=(), emissions=None, contexte=None):
             resultat.append({**s, "niveau": niveau, "distance": loin})
     # Les tons sont fournis par une parole effectivement saisie, jamais inférés d'un silence.
     for s in tons:
-        if not s["dissimule"] and _envers_percu(m, observateur, s, vus):
+        if s["personnage"] != observateur and not s["dissimule"] and _envers_percu(m, observateur, s, vus):
             resultat.append({**s, "niveau": 2, "distance": 0})
     return resultat
 
@@ -400,6 +400,7 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
     essais = m.data["signes_lus_joueur"] if joueur else e["signes_lus"]
     if signes is None:
         signes = percus(m, observateur)
+    signes = [s for s in signes if s["personnage"] != observateur]
     episodes = (_occurrences(m, paroles=[s for s in signes if SIGNES[s["signe"]][1] == "mots"])
                 if occurrences is None else occurrences)
     suivi = _suivi(m, observateur, episodes)
