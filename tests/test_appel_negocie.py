@@ -26,7 +26,7 @@ from donjon.paroles import reponse_a_l_appel
 from donjon.planification import rejoindre
 from donjon.pnj import appeler
 from donjon.relations import envers, mefiance, percue, se_fie, se_mefie
-from tests.support import lier, relation
+from tests.support import lier, relation, propositions_refusees
 from tests.test_parole_voix import gorm_derriere_la_porte
 from tests.test_repli_et_appel import jouer
 from tests.test_temps_etat import decouper, etat_pnj
@@ -60,7 +60,8 @@ def josse_cherche_gaspard():
     """Cas réel de la mine (graine 2024, départ tiré, enregistré à la minute 340 sur ``main``) : le poêle
     du baraquement baisse ; Josse, qui le garde, cherche Gaspard pour une part de ses bûches et le hèle
     de salle en salle ; Gaspard, à la galerie du filon, finit par l'entendre (minute 346)."""
-    return scene("mine_2024_minute_340.json.gz")
+    # L'appel pour une part reste le recours de cette scène, après refus des offres.
+    return propositions_refusees(scene("mine_2024_minute_340.json.gz"), "josse")
 
 
 def porte_crue_ouverte(m, id):

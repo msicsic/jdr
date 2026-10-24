@@ -52,6 +52,23 @@ def offre(m, a, b, type):
 
 
 class PnjProposentTests(unittest.TestCase):
+    def test_offres_meme_laps_decoupe_avec_rechargement(self):
+        from donjon.temps import MINUTE
+        from tests.test_corps_blessable import passer
+        from donjon.rendu import decrire_perception
+        for scenario in ("crue", "mine"):
+            m, a, b = scene(scenario)
+            retenir_refus(m, a, b, "demander", "refus", objet="vivres")
+            retenir_refus(m, a, b, "acheter", "refus", objet="vivres")
+            bloc, decoupe = recharger(m), recharger(m)
+            with patch.object(type(m), "d20", return_value=20):
+                passer(bloc, 5 * MINUTE)
+                for dt in (15, 85, 500, 4 * MINUTE):
+                    passer(decoupe, dt)
+                    decoupe = recharger(decoupe)
+            self.assertEqual(bloc.data, decoupe.data)
+            self.assertEqual(decrire_perception(bloc), decrire_perception(decoupe))
+
     def test_geste_atomique_retire_du_vrai_plan_deux_scenarios(self):
         from donjon.pnj import agir
         from donjon.temps import instant
@@ -84,6 +101,8 @@ class PnjProposentTests(unittest.TestCase):
                 lignes = []
                 with patch.object(type(m), "d20", return_value=20):
                     accepte = executer(m, a, etape, lignes)
+                if accepte:
+                    self.assertTrue(all(o in m.data["references_personnes"] for o in m.objets))
                 m = recharger(m)
                 self.assertEqual(accepte, confiance == 70)
                 self.assertEqual(len(agendas.en_cours(m, a)), int(accepte))
@@ -121,6 +140,7 @@ class PnjProposentTests(unittest.TestCase):
         cle = p._entrees(p.Vue(m, a), {}, 8, 4000)
         lire(m, b)["relations"][a] = relations._nouvelle({"confiance": 0, "rancune": 90})
         lire(m, b)["besoins"]["faim"] = 100
+        croire(m, b, "brasero", "etat", {"allume": True, "faible": False}, "vu")
         self.assertEqual(offres(m, a), avant)
         self.assertEqual(p._entrees(p.Vue(m, a), {}, 8, 4000), cle)
         croire(m, a, b, "etat", {"faim": True}, "vu")

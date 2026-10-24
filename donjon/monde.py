@@ -227,6 +227,8 @@ class Monde:
         Les dictionnaires (esprit, intention, objet) et les listes (plan, chronique)
         déjà ouverts par le moteur continuent de désigner l'état courant.
         """
+        from .noms import installer as installer_noms
+        installer_noms(autre)
         autre.verifier()
         def appliquer(destination, source):
             for cle in tuple(destination):

@@ -19,7 +19,7 @@ from donjon.geometrie import position_entree
 from donjon.perception import eclairage
 from donjon.pnj import se_parler
 from donjon.spatial import installer
-from tests.support import calme, refusee, regarder, sans_evacues
+from tests.support import calme, refusee, regarder, sans_evacues, propositions_refusees
 from tests.test_temps_etat import intention, plan
 from tests.test_tensions import attendre, chronique, placer, recharger, relais
 
@@ -71,6 +71,7 @@ class ContenantFermeTests(unittest.TestCase):
         """Même nature (auberge) : Lucien croit le coffre d'Anselme ouvert et veut le ballot ; le
         poêle est éteint. Sa main rencontre le coffre fermé à clé : il l'apprend et le force."""
         m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine")
+        propositions_refusees(m, "lucien")  # Ici il doit éprouver la serrure, après refus des marchés.
         m.objets["poele"]["allume"] = False
         placer(m, "anselme", "salle_commune", [1, 1])
         placer(m, "lucien", "chambre_chaude", [1, 3])

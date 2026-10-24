@@ -19,7 +19,7 @@ from donjon.echanges import ENGAGEMENT_MAX, demander
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.moteur import Moteur, proposition
 from donjon.planification import DEMANDE, Vue, depart, gestes, planifier, planifier_pulsion
-from tests.support import calme, refusee, regarder
+from tests.support import calme, refusee, regarder, propositions_refusees
 from tests.test_planif_defauts import MINEURS
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
 
@@ -106,6 +106,7 @@ class LumiereDevantLaSerrureTests(unittest.TestCase):
         # autrefois) : devant la serrure, aucun jet ne réussirait. Elle n'essaie rien, et son plan
         # passe par la lumière.
         m = refusee(calme(relais(), "marchand", "ilse", "aubin"))
+        propositions_refusees(m, "brune")
         lire(m, "brune")["besoins"]["faim"] = 85.0
         deplacer(m, "crochets", "brune")
         m.objets["reserve"].update(lieu="crypte", position_salle="crypte", position=[7, 4])

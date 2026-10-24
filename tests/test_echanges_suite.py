@@ -18,7 +18,7 @@ from donjon.monde import ErreurMonde, Monde
 from donjon.paroles import preparer_parole
 from donjon.rendu import fiche
 from donjon.relations import envers
-from tests.support import calme, regarder
+from tests.support import calme, regarder, propositions_refusees
 from tests.test_entretenir import sans
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
 
@@ -382,6 +382,7 @@ class EnqueteTests(unittest.TestCase):
     def test_mireille_apprend_les_fagots_de_joss_et_les_achete(self):
         # Cas réel (limite de ``entretenir-feu``) : Mireille ne sait rien des fagots de Joss.
         m = creer("auberge", 1985, "fixe")
+        propositions_refusees(m, "mireille")  # L'enquête, une fois les offres refusées.
         deplacer(m, "bois_cuisine", "cellier")
         m.objets["bois_cuisine"]["charges"] = 0
         sans(m, "bois_reserve")   # La réserve d'Odile (branche ``ressources``) est brûlée aussi.
@@ -404,6 +405,7 @@ class EnqueteTests(unittest.TestCase):
         # planches d'Aubin ; il lui demande s'il a du bois, l'apprend, et en obtient une part.
         from tests.test_securite import dans_le_noir
         m = dans_le_noir(calme(relais(), "marchand", "brune", "ilse", "aubin"), "ilse", 75.0)
+        propositions_refusees(m, "marchand")
         m.data["finances_pnj"]["marchand"] = 0
         # Placement d'auteur : ni ses fagots ni la torche ne sont à sa portée, et les planches d'Aubin
         # sont rangées dans la conduite obscure. Gorm, qui choisit désormais à l'événement, irait sinon

@@ -2118,9 +2118,9 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         # Celui qui le paie le sait à recharger, et éteint s'il ne le croit pas allumé (l'offre le dit) :
         # il le compte comme tel, quoi qu'il en ait vu avant que la tâche ne lui soit payée ; ce qu'il en
         # voit ensuite (qu'il l'a rechargé, rallumé lui-même), il le croit.
-        dit = _cru(monde, id, o, "etat") or {}
-        depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
-                                         + ([] if dit.get("allume") else [(("allume", o), False)]))
+        # Un état antérieur ne dispense pas de pouvoir rallumer : l'offre demande
+        # un résultat, sans transmettre les croyances privées du commanditaire.
+        depuis = depart(monde, id).apres(faits=[(("charge", o), False), (("allume", o), False)])
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
                       memo=["pulsion", condition, "confier" in vises, entretenir],
                       emplois=("feu",) if "allume" in condition else (), seul=entretenir or None)

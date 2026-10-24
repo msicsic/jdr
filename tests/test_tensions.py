@@ -19,7 +19,7 @@ from donjon.moteur import Moteur, proposition
 from donjon.operations import etape, sequence
 from donjon.pnj import avancer
 from donjon.spatial import installer
-from tests.support import calme, regarder, sans_le_sou
+from tests.support import calme, regarder, sans_le_sou, propositions_refusees
 
 
 def recharger(monde):
@@ -99,7 +99,8 @@ class FroidTests(unittest.TestCase):
 
 class FeuTests(unittest.TestCase):
     def gorm(self, combustible, **besoins):
-        m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # Ce groupe exerce ses gestes propres ; les marchés sont éprouvés en A2b.
+        m = propositions_refusees(calme(relais(), "marchand", "brune", "ilse", "aubin"), "marchand")
         m.objets["brasero"]["combustible"] = combustible
         lire(m, "marchand")["besoins"].update(devoir=80.0, **besoins)
         # De garde, ses rondes sont dues : elles le mènent là où il voit le feu.

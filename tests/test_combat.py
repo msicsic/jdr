@@ -16,7 +16,7 @@ from donjon.relations import se_mefie
 from donjon.rendu import regarder
 from donjon.francais import sujet
 from donjon.temps import instant, MINUTE
-from tests.support import calme, presentes, regarder as orienter, refusee
+from tests.support import calme, presentes, regarder as orienter, refusee, propositions_refusees
 from tests.test_tensions import placer, recharger
 from tests.test_corps_blessable import passer
 
@@ -36,7 +36,7 @@ def scene(cible="marchand", surprise=True):
 
 
 def epreuve(cible="marchand", douceur=30):
-    m = scene(cible)
+    m = propositions_refusees(scene(cible), "brune")
     m.joueur.update(salle="chambre_cloche", position=[2, 2])
     refusee(m)
     lire(m, "brune")["besoins"]["faim"] = 80

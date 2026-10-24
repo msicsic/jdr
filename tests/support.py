@@ -44,6 +44,20 @@ def sans_le_sou(monde, *ids):
     return monde
 
 
+def propositions_refusees(monde, *ids):
+    """Placement d'auteur : les offres ont déjà été refusées, pour isoler un autre recours.
+
+    Ce sont les refus ordinaires du moteur, persistés et temporaires, sans désactiver
+    le geste. Les tests des propositions laissent au contraire ce recours ouvert.
+    """
+    from donjon.deliberation import retenir_refus
+    for id in ids:
+        for autre, o in monde.objets.items():
+            if autre != id and o.get("profil"):
+                retenir_refus(monde, id, autre, "proposer", "refus")
+    return monde
+
+
 def sans_evacues(monde):
     """Placement d'auteur : le Relais des jalons A à C, sans Ilse, Aubin, ses planches ni le fanal.
 
