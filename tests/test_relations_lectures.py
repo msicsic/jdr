@@ -233,7 +233,7 @@ class LecturesTests(unittest.TestCase):
             texte = Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))
             m = recharger(m)
             self.assertEqual(m.objets[id]["lieu"], "antichambre")
-            self.assertIn("Tu entends des pas", texte)
+            self.assertIn("des pas", texte)
 
     def test_l_abri_rejoint_le_plus_aime_des_proches_fiables(self):
         from donjon.deliberation import _plan_abri

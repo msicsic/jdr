@@ -247,15 +247,18 @@ def galerie_ou_refuge():
 
 
 class RecoursTests(unittest.TestCase):
-    def test_par_le_palier_menace_elles_gagnent_le_refuge(self):
+    def test_par_le_palier_menace_elles_gagnent_un_abri_sans_alternance(self):
         # Sur ``main`` : 16 et 19 passages entre la galerie et le palier en quinze minutes.
         m, _ = attendre(palier_menace(), 3)
         for id in ("brune", "ilse"):
             passages = salles_de(m, id, 404)
             self.assertLessEqual(len(passages), 4, passages)
-            self.assertEqual(sum("Galerie de ronde" in t for t in passages), 0, passages)
-            self.assertEqual(m.objets[id]["lieu"], "antichambre")
-            self.assertEqual(lire(m, id)["intention"]["but"], {"type": "abri", "lieu": "antichambre"})
+            # Les constats partagés peuvent changer son premier abri : un détour
+            # reste possible, jamais l'alternance répétée galerie/palier.
+            self.assertLessEqual(sum("Galerie de ronde" in t for t in passages), 1, passages)
+            self.assertEqual(lire(m, id)["intention"]["but"], {"type": "abri", "lieu": m.objets[id]["lieu"]})
+            from donjon.eau import noyee_crue
+            self.assertFalse(noyee_crue(m, id, m.objets[id]["lieu"]))
 
     def test_palier_menace_meme_laps_decoupe_meme_monde(self):
         d_un_bloc, morcele = decouper(palier_menace, 404 + 10)

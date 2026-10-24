@@ -5,6 +5,7 @@ temps passé dans chaque état (``vecu``), pour les PNJ comme pour le joueur ; l
 par heure ; la patience et le répit se comptent en temps. Chaque cas se vérifie sur l'état du monde
 après rechargement, et le même laps découpé autrement donne le même monde."""
 import unittest
+from unittest.mock import patch
 
 from donjon import vecu
 from donjon.banc_pnj import creer
@@ -35,7 +36,9 @@ def gorm_au_brasero():
 
 
 class HorlogesTests(unittest.TestCase):
-    def test_cas_reel_la_rafale_de_l_auberge_eteint_l_atre_a_sa_minute(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_cas_reel_la_rafale_de_l_auberge_eteint_l_atre_a_sa_minute(self, _constats):
+        # Isoler l'horloge des confidences qui peuvent faire rallumer le feu ensuite.
         # Cas réel : l'horloge ne se déclenchait qu'à la fin d'une action du joueur ; une attente de
         # 5 minutes retardait la rafale, et Hugues, dans la salle commune, ne voyait l'âtre éteint qu'à
         # la minute 5. Placement d'auteur : la rafale avancée à la minute 2.
@@ -117,7 +120,9 @@ class CorpsVecuTests(unittest.TestCase):
             for k, v in reference.items():
                 self.assertAlmostEqual(ecarts[k], v, delta=0.005, msg=k)
 
-    def test_cas_reel_ilse_traverse_le_noir_quelle_que_soit_la_minute(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_cas_reel_ilse_traverse_le_noir_quelle_que_soit_la_minute(self, _constats):
+        # Le trajet corporel comparé reste le même, sans échange intermédiaire.
         # Cas réel : le brasero éteint, la salle des vannes et la conduite sont noires ; Ilse, qui craint
         # le noir et dont la sécurité presse, gagne la lumière du refuge en traversant la conduite.
         def avant(m):

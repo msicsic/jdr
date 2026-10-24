@@ -9,6 +9,7 @@
 
 from tests.support import relation
 import unittest
+from unittest.mock import patch
 
 from donjon import force
 from donjon.banc_pnj import creer
@@ -226,10 +227,12 @@ class ForcerTests(unittest.TestCase):
             m.objets["brune"]["profil"]["valeurs"]["douceur"] = douceur
         return m
 
-    def test_brune_force_la_porte_du_beffroi_qui_n_est_a_personne(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_brune_force_la_porte_du_beffroi_qui_n_est_a_personne(self, _constats):
         # Les vivres sont derrière la porte étanche ; la porte n'est à personne : la forcer ne lèse
         # personne, même à qui a la douceur entière.
         # La Brune du scénario est désormais à 75 ; on pose la douceur entière pour cette scène.
+        # On exerce la force sans nouvelle matérielle qui lui ferait demander la clé.
         m = self.brune_aux_vannes(douceur=100)
         deplacer(m, "vivres", "beffroi", position=[4, 3])
         croire(m, "brune", "vivres", "lieu", "beffroi", "savoir", salle="beffroi", case=[4, 3])

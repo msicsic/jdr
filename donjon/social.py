@@ -16,7 +16,7 @@ affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu
 se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qui prêter reste un
 inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
-from .esprits import croire, lire, memoriser, pnjs
+from .esprits import RECENT, croire, esprit, lire, memoriser, pnjs
 from .francais import complement_de, designer, de, groupe_nominal
 from .relations import se_fie, envers
 
@@ -65,6 +65,9 @@ def _proprietaire(monde, evenement):
 def _croit_encore(monde, id, noyau):
     """On ne répète que ce qu'on croit encore."""
     croyances = lire(monde, id)["croyances"]
+    if noyau["type"] == "constat":
+        c = croyances.get(noyau["objet"], {}).get(noyau["attribut"])
+        return (monde.data["minutes"] - noyau["observe"] <= RECENT and _meme_constat(c, noyau))
     if noyau["type"] == "intention_lue":
         from .signes import intentions_lues
         return any(x == noyau["auteur"] and c.get("envers") == noyau["objet"] for x, c in intentions_lues(monde, id))
@@ -77,7 +80,10 @@ def _croit_encore(monde, id, noyau):
 
 
 def nouvelles(monde, id):
-    """(souvenir, noyau, rang) que le PNJ peut confier, du plus ancien au plus récent."""
+    """Suivi, noyau, rang, source : constats matériels puis souvenirs anciens à récents."""
+    # Les croyances constituent déjà le registre daté des constats, sans souvenir
+    # supplémentaire à chaque perception. Placés d'abord, ils passent après les accusations.
+    yield from _constats(monde, id)
     for souvenir in lire(monde, id)["memoire"]:
         if souvenir["type"] in NOUVELLES:
             # Ce qu'il n'a fait qu'entendre (``pnj._temoins_a_l_oreille``) se dit avec moins de
@@ -88,12 +94,51 @@ def nouvelles(monde, id):
         else:
             continue
         if (accuse(noyau) == id
-                or any(k not in monde.objets for k in (noyau.get("objet"),) if k and k != "joueur")
+                or any(k not in monde.objets and k not in monde.data["salles"]
+                       for k in (noyau.get("objet"),) if k and k != "joueur")
                 or not _croit_encore(monde, id, noyau)):
             continue  # Sa propre accusation ne se transmet pas, même depuis une ancienne sauvegarde.
         if "lieu" in noyau and _cru_ailleurs(monde, id, noyau):
             noyau = _fait(noyau)  # Il ne le croit plus là : il dit le geste, sans le lieu.
+        if noyau["type"] == "constat":
+            c = lire(monde, id)["croyances"][noyau["objet"]][noyau["attribut"]]
+            if c["source"] in ("vu", "essai"):
+                continue  # Son propre constat est déjà offert, de première main.
+            souvenir = c.setdefault("confie", {"valeur": noyau["valeur"], "dit_a": []})
         yield souvenir, noyau, rang, source
+
+
+def _meme_constat(croyance, noyau):
+    if not croyance:
+        return False
+    valeur = croyance["valeur"]
+    return (all(valeur.get(k) == v for k, v in noyau["valeur"].items())
+            if noyau["attribut"] == "etat" else valeur == noyau["valeur"])
+
+
+def _constats(monde, id):
+    for objet, attributs in lire(monde, id)["croyances"].items():
+        if objet not in monde.objets and objet not in monde.data["salles"]:
+            continue
+        for attribut, c in attributs.items():
+            if c["source"] not in ("vu", "essai") or monde.data["minutes"] - c["minute"] > RECENT:
+                continue
+            valeur = c["valeur"]
+            if attribut == "etat":
+                valeur = {k: False for k in ("disponible", "allume") if valeur.get(k) is False}
+                if c["valeur"].get("vide") is True:
+                    valeur["vide"] = True
+                if not valeur:
+                    continue
+            elif not (attribut == "verrouillee" and valeur is True
+                      or attribut == "eau" and valeur > 0):
+                continue
+            confie = c.setdefault("confie", {"valeur": valeur, "dit_a": []})
+            noyau = {"type": "constat", "objet": objet, "attribut": attribut,
+                     "valeur": valeur, "observe": c["minute"]}
+            if attribut == "eau":
+                noyau["details"] = {k: c[k] for k in ("niveau", "montee", "repere") if k in c}
+            yield confie, noyau, 0, None
 
 
 def _cru_ailleurs(monde, id, noyau):
@@ -103,6 +148,10 @@ def _cru_ailleurs(monde, id, noyau):
 
 
 def _sait(monde, id, noyau):
+    if noyau["type"] == "constat":
+        c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
+        return (_meme_constat(c, noyau) or bool(c and c["source"] in ("vu", "essai", "entendu")
+                                               and c["minute"] >= noyau["observe"]))
     fait = _fait(noyau)
     return any((_fait(_noyau(s)) == fait if s["type"] in NOUVELLES
                 else s["type"] == "rumeur" and _fait(s["evenement"]) == fait)
@@ -150,6 +199,16 @@ def _qui(monde, id, locuteur=None):
 def phrase(monde, noyau, locuteur=None):
     o = monde.objets.get(noyau.get("objet") or "")
     t = noyau["type"]
+    if t == "constat":
+        from .francais import accorder, lieu
+        if noyau["attribut"] == "eau":
+            return f"l'eau atteint {noyau['valeur']} cm dans " + lieu(monde.data["salles"][noyau["objet"]])
+        qualite = ("fermé" if noyau["attribut"] == "verrouillee" else
+                   "vide" if "vide" in noyau["valeur"] else
+                   "épuisé" if "disponible" in noyau["valeur"] else "éteint")
+        return (designer(o) + (" sont " if o.get("pluriel") else " est ")
+                + accorder(o, qualite, "vide" if qualite == "vide" else None)
+                + (" à clé" if noyau["attribut"] == "verrouillee" else ""))
     if t == "intention_lue":
         return _qui(monde, noyau["auteur"], locuteur) + " semble guetter " + designer(o)
     if t == "absence":
@@ -201,6 +260,11 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     from .paroles import _stats_pnj, dementi, jet_persuasion
     from .voix import identifie, se_mefier, source_dite
     objet = noyau.get("objet")
+    if noyau["type"] == "constat":
+        actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get(noyau["attribut"])
+        if (actuelle and actuelle["source"] in ("vu", "essai", "entendu")
+                and actuelle["minute"] >= noyau["observe"]):
+            return None  # À date égale aussi, le constat propre prime sur le ouï-dire.
     if noyau["type"] == "absence" and dementi(monde, auditeur, objet, "lieu", None):
         if identifie(monde, auditeur, locuteur):
             memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur, "sujet": objet,
@@ -212,7 +276,13 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
         return "doute"
     confiance = round(0.7 * (0.5 if _stats_pnj(monde, auditeur)["INT"] <= 8 else 1.0) * 0.8 ** rang, 2)
     source = source_dite(monde, auditeur, locuteur)
-    if noyau["type"] == "intention_lue":
+    if noyau["type"] == "constat":
+        attribut, valeur = noyau["attribut"], noyau["valeur"]
+        if attribut == "etat":
+            valeur = {**(actuelle or {}).get("valeur", {}), **valeur}
+        croire(monde, auditeur, objet, attribut, valeur, source, confiance,
+               minute=noyau["observe"], **noyau.get("details", {}))
+    elif noyau["type"] == "intention_lue":
         croire(monde, auditeur, noyau["auteur"], "intention", "guet", source,
                min(.4, noyau["confiance"] * confiance), signe=noyau["signe"], envers=objet,
                **({"episode": noyau["episode"]} if "episode" in noyau else {}))
@@ -336,7 +406,7 @@ def recevoir(monde, id, locuteur, c):
         issue, rang = _adopter(monde, id, locuteur, noyau, c["rang"]), c["rang"] + 1
     if issue == "crue":
         memoriser(monde, id, {"type": "rumeur", "de": locuteur, "rang": rang, "evenement": noyau, "aveu": c["type"] == "aveu"})
-        if _proprietaire(monde, noyau) == id:
+        if noyau["type"] != "constat" and _proprietaire(monde, noyau) == id:
             from .deliberation import VOL, relancer
             relancer(monde, id, "biens", 30 if noyau["type"] == "absence" else VOL // 2)
     return issue
@@ -363,12 +433,15 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
 
 
 def bavarder(monde, id, lignes):
-    """Confie au plus une nouvelle ; renvoie True si la minute y est passée."""
+    """Confie au plus une nouvelle dans la minute courante ; True si une parole est dite."""
     from .pnj import _chroniquer
     if not monde.objets[id].get("profil"):
         return False
+    if lire(monde, id)["derniere_confidence"] == monde.data["minutes"]:
+        return False
     connues = list(nouvelles(monde, id))
-    for souvenir, noyau, rang, source in reversed(connues):
+    # Même une rumeur de constat reste moins urgente qu'une accusation.
+    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: x[1]["type"] == "constat"):
         auditeur = _auditeur(monde, id, souvenir, noyau, source)
         if auditeur is None:
             continue
@@ -393,6 +466,9 @@ def bavarder(monde, id, lignes):
                 relancer(monde, auditeur, "biens", 30 if all(x["type"] == "absence" for x in siens) else VOL // 2)
         _chroniquer(monde, id, f"{_qui(monde, id)} dit {groupe_nominal(_qui(monde, auditeur), 'à')} que {phrase(monde, noyau)} ({issue or 'connu'}).",
                     "social")
+        if noyau["type"] == "constat":
+            monde.data["chronique"][-1]["constat_confie"] = True
+        esprit(monde, id)["derniere_confidence"] = monde.data["minutes"]
         _entendu(monde, id, auditeur, noyau, rang, lignes)
         return True
     return False

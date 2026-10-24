@@ -62,7 +62,8 @@ class BruitDuCrochetageTests(unittest.TestCase):
         self.assertIn(RETOURNE, chronique(m))
         self.assertIn(("brune", "reserve"), vu_agir(m, "marchand"))
 
-    def test_reussi_sans_se_cacher_un_bruit_ordinaire_de_qui_il_sait_la(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_reussi_sans_se_cacher_un_bruit_ordinaire_de_qui_il_sait_la(self, _constats):
         # Autre cas de même nature : sans se cacher, Gorm la sachant là. Manqué, il se retourne même
         # s'il la sait là (``test_ouie``) ; réussi, c'est un geste ordinaire qu'il lui prête sans se
         # retourner. Peu de bruit n'est pas aucun : à trois cases, il l'entend toucher à la réserve
@@ -194,7 +195,9 @@ class TacheAccepteeTests(unittest.TestCase):
         self.assertEqual(engager(m, "odile", "tilo", {"objet": "atre", "allume": True}, 20), "accepte")
         self.assertFalse(empeche(m, "tilo", lire(m, "tilo")["engagements"][0]))
         m, textes = vivre_long(recharger(m), 15)
-        self.assertIn("Tilo, neveu de l'aubergiste allume l'âtre.", textes)
+        # Il peut le faire dès la minute initiale, exclue du relevé de vivre_long.
+        self.assertIn("Tilo, neveu de l'aubergiste allume l'âtre.", chronique(m))
+        self.assertTrue(m.objets["atre"]["allume"])
         self.assertIn("Tilo a fait le travail que Odile lui avait payé pour que l'âtre soit allumé.", textes)
         self.assertEqual(m.data.get("dettes", []), [])
 

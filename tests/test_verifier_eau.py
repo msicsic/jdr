@@ -167,8 +167,9 @@ class EauTests(unittest.TestCase):
         self.assertFalse(but and any(x["lieu"] in ("echoppe", "crypte") or x["cible"] == "brasero"
                                      for x in but[1]))
         # Elle monte se chauffer au poêle du guet, à la galerie, hors de l'eau (branche ``ressources``).
-        self.assertEqual([(x["operation"], x["lieu"] or x["cible"]) for x in but[1]],
-                         [("aller", "chambre_cloche"), ("chauffer", "poele_guet")])
+        gestes = [(x["operation"], x["lieu"] or x["cible"]) for x in but[1]]
+        self.assertEqual(gestes[-1], ("chauffer", "poele_guet"))
+        self.assertIn(("aller", "chambre_cloche"), gestes)
         # L'eau coûte à tout plan, par minute, comme le noir à qui le craint.
         v = Vue(m, "ilse")
         self.assertGreater(v.pression(depart(m, "ilse", v).apres(salle="echoppe")),

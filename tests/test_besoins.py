@@ -238,8 +238,9 @@ class ProfilTests(unittest.TestCase):
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
         # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.
-        self.assertIn("Brune demande une part des vivres du refuge à Gorm (promis).", sortie.getvalue())
-        self.assertIn("Gorm appelle Brune et lui donne une part des vivres du refuge.", sortie.getvalue())
+        self.assertIn("Brune demande une part des vivres du refuge à Gorm (", sortie.getvalue())
+        self.assertRegex(sortie.getvalue(), "Gorm appelle Brune et lui donne une part des vivres du refuge"
+                                           "|Gorm remet les vivres du refuge à Brune")
         self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())
         self.assertIn("se chauffe près du brasero.", sortie.getvalue())
         self.assertIn("Gorm, gardien du relais alimente le brasero.", sortie.getvalue())

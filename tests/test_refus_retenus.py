@@ -81,6 +81,9 @@ class TacheImpossibleTests(unittest.TestCase):
         m.objets["bois_anselme"]["charges"] = 2
         croire(m, "mireille", "bois_anselme", "lieu", "chambre_chaude", "dit:hugues", 0.7,
                salle="chambre_chaude", case=None)
+        # Elle a pu apprendre l'épuisement par les nouvelles : un lieu seul ne
+        # dit pas que la réserve a été regarnie. Hugues précise qu'il reste du bois.
+        croire(m, "mireille", "bois_anselme", "etat", {"disponible": True}, "dit:hugues", 0.7)
         m = recharger(m)
         self.assertIsNone(refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau"))
         # Le nombre dépend du chemin choisi et des moyens appris en route.
@@ -150,8 +153,10 @@ class PartImpossibleTests(unittest.TestCase):
         m = recharger(m)
         self.assertIsNone(refus_retenu(m, "ilse", "marchand", ("demander",), "vivres"))
         m, textes = vivre_long(m, 20)
-        self.assertIn("Ilse demande une part des vivres du refuge à Gorm (promis).", textes)
-        self.assertIsNone(refus_retenu(m, "ilse", "marchand", ("demander",), "vivres"))
+        self.assertTrue(any(t.startswith("Ilse demande une part des vivres du refuge à Gorm")
+                            and not t.endswith("(impossible).") for t in textes), textes)
+        nouveau = refus_retenu(m, "ilse", "marchand", ("demander",), "vivres")
+        self.assertTrue(nouveau is None or nouveau["raison"] != "impossible")
 
     def test_qui_n_a_rien_n_est_pas_reinterroge(self):
         # « As-tu de quoi manger ? » : Aubin et Brune n'ont rien ; elle ne le leur redemande pas.

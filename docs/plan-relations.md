@@ -871,6 +871,18 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
   un besoin pressant sans recours), par les nouvelles communes ; chacun n'a plus à buter seul sur la même porte,
   et le joueur entend des échanges qui l'informent. Un PNJ désœuvré peut rejoindre, au plus bas rang, un lieu
   éclairé où se trouve quelqu'un qu'il apprécie.
+  **Réalisé, lot 55** (`codex-constats-partages`, non fusionnée) : les états matériels récents vus ou
+  essayés (ressource épuisée, contenant ouvert vide, verrou, source éteinte, eau observée) passent par
+  `social.nouvelles` → `bavarder` → `recevoir`, après les accusations, à un interlocuteur de confiance.
+  Croyance en `dit:`, confiance et rang du ouï-dire ; date d'observation conservée, constat propre de
+  même date ou postérieur prioritaire. Les destinataires déjà servis sont sauvegardés dans la croyance,
+  communs à l'observation et aux relais ; revoir le même état ne relance pas la confidence. Une source
+  mobile absente de son ancienne case n'est plus réputée éteinte par cette absence seule.
+  Au plus une confidence par minute du jeu, par un repère sauvegardé commun à toutes les nouvelles ;
+  la durée ordinaire d'une parole reste inchangée.
+  Mesure `constats_confies`, tests d'état et de parole après recharge et même laps découpé ;
+  [rapport](taches/rapport-codex-55-constats-partages.md). Restent pour la suite de 3f le besoin sans
+  recours, les avis/disputes et rejoindre un lieu pour sa compagnie.
 - **Mesures** : `avis_exprimes`, `changements_d_avis` (par source : vu, dit, deviné), `disputes`,
   `disputes_vues` (par un tiers), `partis_pris`, `justesse_avis_fin` (part des PNJ dont l'avis sur
   la menace de leur lieu est vrai en fin de nuit).

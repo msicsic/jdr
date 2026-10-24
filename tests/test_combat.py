@@ -292,7 +292,9 @@ class CombatTests(unittest.TestCase):
         self.assertEqual(m.joueur["orientation"], "est")
         self.assertEqual(instant(m), 20)
 
-    def test_assommer_pour_prendre_cas_reel_et_autre_porteur_apres_recharge(self):
+    @patch("donjon.social._constats", return_value=())
+    def test_assommer_pour_prendre_cas_reel_et_autre_porteur_apres_recharge(self, _constats):
+        # Embuscade préparée sans confidence ordinaire qui ferait tourner la cible.
         from donjon.deliberation import choisir, retenir_refus
         from donjon.pnj import a_pas_feutres
         for cible in ("marchand", "aubin"):

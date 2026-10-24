@@ -82,6 +82,7 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           # Le dernier appel à l'aide et la fin de son désarroi : ce suivi de recours ne doit
           # pas disparaître avec les quarante souvenirs de la mémoire courante.
           "secours": lambda: None,
+          "derniere_confidence": lambda: None,  # minute de la dernière nouvelle confiée
           # Besoins bloqués ayant déjà motivé un appel depuis leur dernier apaisement.
           "detresses_appelees": list,
           "aides_attendues": dict,
@@ -162,6 +163,11 @@ def _croyance_valide(monde, attribut, c):
     assert (isinstance(c, dict) and isinstance(c.get("source"), str)
             and (c["source"] in SOURCES or c["source"].startswith("dit:")) and type(c.get("minute")) is int
             and isinstance(c.get("confiance"), (int, float)) and 0 <= c["confiance"] <= 1), "Croyance mal formée"
+    if "confie" in c:
+        s = c["confie"]
+        assert (isinstance(s, dict) and set(s) == {"valeur", "dit_a"} and isinstance(s["dit_a"], list)
+                and all(isinstance(x, str) for x in s["dit_a"])
+                and len(s["dit_a"]) == len(set(s["dit_a"]))), "Constat confié invalide"
     if attribut == "lieu":
         # Une croyance peut survivre à son objet (détruit, retiré) ; la perception la purge.
         assert (set(c) >= {"valeur", "salle", "case"}
@@ -236,6 +242,8 @@ def verifier(monde):
                    and u["etat"] in ("presse", "apaise", "attente") and type(u["depuis"]) is int
                    for b, u in e["urgences"].items()), "Urgences de PNJ invalides"
         assert type(e["libre"]) is int and e["libre"] >= 0, "Geste en cours de PNJ invalide"
+        assert (e["derniere_confidence"] is None or type(e["derniere_confidence"]) is int
+                and e["derniere_confidence"] >= 0), "Date de confidence invalide"
         assert all(v is None or type(v) is int and v >= 0 for v in (e["veille"], e["eveil"])),             "Attente ou éveil de PNJ invalide"
         assert e["patience"] is None or type(e["patience"]) is int, "Patience de PNJ invalide"
         assert e["manque"] is None or (isinstance(e["manque"], dict) and set(e["manque"]) == {"etape", "minute"}
@@ -328,6 +336,12 @@ def croyance(monde, id, sujet, attribut):
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
+    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut, {})
+    confie = ancienne.get("confie")
+    if confie and (all(valeur.get(k) == v for k, v in confie["valeur"].items())
+                   if attribut == "etat" else valeur == confie["valeur"]):
+        # Revoir le même constat ne donne pas une nouvelle raison de le redire.
+        croyance["confie"] = confie
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
     if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
         # Un indice positif rouvre ce lieu seul, même après un appel dans la même minute.
@@ -710,13 +724,22 @@ def constater(monde, id, sujet, source):
     if etats:
         valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
                    "charge": o.get("combustible", 0) > 0}
-        croire(monde, id, sujet, "etat", {k: bool(valeurs.get(k)) for k in etats}, source)
+        etat = {k: bool(valeurs.get(k)) for k in etats}
+        if o["type"] == "contenant" and o.get("ouverte") and source == "vu":
+            etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+        croire(monde, id, sujet, "etat", etat, source)
 
 
 def _flamme_sous_les_yeux(monde, id, sujet, lieu):
     """La place où il croit la source est-elle sous son regard ? Un objet fixe ne bouge pas."""
     o = monde.objets[sujet]
+    if o.get("mobile", True):
+        return False  # Absente à son ancienne case, une source mobile a pu être déplacée.
     if lieu and lieu["valeur"] is not None:
+        if lieu["valeur"] not in monde.data["salles"]:
+            # Portée ou contenue, elle peut avoir quitté sa dernière case avec
+            # son support. Ne pas y voir sa flamme ne constate pas son extinction.
+            return False
         salle, case = lieu.get("salle"), lieu.get("case")
     elif not o.get("mobile") and o["lieu"] in monde.data["salles"]:
         salle, case = o["lieu"], o.get("position")

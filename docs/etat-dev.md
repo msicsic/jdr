@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-constats-partages`, fusionnée, lot **55**, base **5b174ad** : les constats matériels
+  récents vus ou essayés se confient par les nouvelles communes, après les accusations : ressource
+  épuisée, contenant ouvert vide, verrou, source éteinte, eau d'un lieu. `recevoir` en fait du ouï-dire
+  (`dit:`, confiance/rang communs), daté de l'observation ; un constat propre de même minute ou
+  postérieur prime. `croire` conserve les destinataires du même état, y compris entre observation et
+  relais, après sauvegarde. `moyens_crus`/`tient` et `planification.py` inchangés. Prérequis révélé au banc :
+  une source mobile qu'on ne voit plus à son ancienne case peut avoir bougé ; cette absence seule ne
+  constate plus son extinction. `constater` relève aussi le vide d'un contenant ouvert vu.
+  Au plus une confidence par minute du jeu : repère sauvegardé `derniere_confidence`, commun à toutes
+  les nouvelles ; la durée ordinaire de la parole reste inchangée.
+  Tests de paroles, d'état, de reprise et de découpage ; banc quatre scénarios × quatre graines × 4 h :
+  aucun plantage, violation ni usurpation ; constats confiés moyens Relais **3,5**, mine **22,25**,
+  auberge **12,5**, crue **7**. Pas d'alternance répétée d'états (bascules maximales : 1) ; deux objets
+  homonymes peuvent produire le même texte. **Réserve d'audit** : mine 2024, cinq avertissements redits
+  sur le guet d'Odon et deux lampes homonymes ; un ancien épisode de guet se retransmet. L'absence de
+  toute répétition nouvelle n'est pas acquise ; le partage matériel ne corrige pas ce défaut des rumeurs
+  d'intention préexistantes. Détails dans le rapport.
+  Suite complète unique (3 processus), puis reprise finale de 26 fichiers (294 tests) : bilan consolidé
+  **1 790 tests, 4 sauts, aucun échec ni erreur**. Détails et limites dans le
+  [rapport du lot 55](taches/rapport-codex-55-constats-partages.md).
+  Ni Luna ni comparaison de modèles ; ni fusion ni modification de `main`.
+  Fusionné sur l'intégration après le lot 54 : conflit d'imports dans `social.py` (accord commun du lot 54 et `RECENT`/`esprit` du lot 55), le reste sans conflit ; tests ciblés et suite complète relancés.
+
 - **Vérification d'intégration 5c2ce81** (lots 31, 32, 34, 35, 37 à 49 ; sans Luna ; bruts
   `artifacts/verif-integ-5c2ce81/` du dépôt principal). Audit 12 h, quatre scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500,
   contre 42bb9c0 (cache) et ffcc295 : aucun plantage, violation, usurpation ni coup contre une personne. Par nuit,

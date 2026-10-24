@@ -128,7 +128,8 @@ class RumeurTests(unittest.TestCase):
         placer(m, "brune", "antichambre", [2, 6])
         m, _ = attendre(m, 2, jet=15)
         # De troisième main, Aubin ne la répète plus (Ilse a pu, elle, la lui dire en repassant).
-        self.assertFalse(any(r["de"] == "aubin" for r in rumeurs(m, "brune")))
+        self.assertFalse(any(r["de"] == "aubin" and r["evenement"]["type"] == "vol_surpris"
+                             for r in rumeurs(m, "brune")))
 
     def test_on_ne_dit_rien_a_l_accuse_ni_a_qui_on_se_mefie(self):
         m = self.ilse_a_vu_le_joueur()
