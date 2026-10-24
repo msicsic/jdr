@@ -53,7 +53,7 @@ def jouer(monde, saisies, brut=None):
 
 def ligne(verdict, sources=(), locuteur="", citation="", entites=()):
     return {"verdict": verdict, "sources": list(sources), "locuteur": locuteur, "citation": citation,
-            "entites": list(entites), "motif": ""}
+            "entites": list(entites), "comptes": [], "motif": ""}
 
 
 def audit(*lignes):

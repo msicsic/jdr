@@ -13,7 +13,7 @@ from donjon.monde import ErreurMonde, Monde, nouveau_monde
 def audit(texte):
     from donjon.narration import segments
     return {"segments": [{"indice": i, "verdict": "ambiance", "sources": [], "locuteur": "",
-                          "citation": "", "entites": [], "motif": ""}
+                          "citation": "", "entites": [], "comptes": [], "motif": ""}
                          for i, _ in enumerate(segments(texte))]}
 
 

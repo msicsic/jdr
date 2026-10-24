@@ -67,6 +67,22 @@ SCHEMA_AUDIT = {
 }
 CHAMPS_AUDIT = set(SCHEMA_AUDIT["properties"]["segments"]["items"]["required"])
 
+# L'auditeur extrait des rôles, même dans une réplique ; le moteur les compare.
+# Il ne décide pas lui-même si le compte est conforme. -1 : quantité non dite.
+SCHEMA_COMPTES = {"type": "array", "maxItems": 12,
+    "description": ("Toutes les affirmations sur ce qui est dû ou rendu, même sous verdict parole, "
+        "dans les mots du segment. Résous je/tu par le locuteur et joueur. debiteur = celui qui doit "
+        "ou rend ; creancier = celui à qui c'est dû/rendu ; objet vide pour des pièces, identifiant "
+        "pour un objet prêté ; montant -1 si non dit, 0 si rien. etat du (encore dû, même refusé), "
+        "rendu (remise accomplie), absent (rien dû dans ce sens). Ne recopie pas les rôles des faits : "
+        "extrais ceux du texte, y compris s'ils les inversent. Une question, hypothèse ou citation "
+        "historique n'affirme aucun compte actuel : []."),
+    "items": {"type": "object", "additionalProperties": False,
+        "properties": {"debiteur": {"type": "string"}, "creancier": {"type": "string"},
+                       "objet": {"type": "string"}, "montant": {"type": "integer", "minimum": -1},
+                       "etat": {"type": "string", "enum": ["du", "rendu", "absent"]}},
+        "required": ["debiteur", "creancier", "objet", "montant", "etat"]}}
+
 
 def schema_audit(faits, nombre):
     """Les sources citables sont exactement les clés fournies : une référence inventée
@@ -77,6 +93,9 @@ def schema_audit(faits, nombre):
         item["properties"]["sources"]["items"] = {"type": "string", "enum": sorted(faits)}
         del item["properties"]["indice"]
         item["required"] = [k for k in item["required"] if k != "indice"]
+        if "comptes" in faits:
+            item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
+            item["required"].append("comptes")
         return item
     cles = [str(i) for i in range(nombre)]
     return {"type": "object", "additionalProperties": False,
@@ -747,6 +766,16 @@ def controler(texte, rapport, faits, partie="texte"):
         raise AuditIllisible("Contrôle narratif incomplet.")
     obstacles, paroles, ambiances, lignes_validees = [], [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
+        comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
+        if "comptes" in faits or comptes is not None:
+            if (not isinstance(comptes, list) or len(comptes) > 12 or any(
+                    not isinstance(c, dict) or set(c) != set(SCHEMA_COMPTES["items"]["required"])
+                    or any(not isinstance(c[k], str) for k in ("debiteur", "creancier", "objet"))
+                    or type(c["montant"]) is not int or c["montant"] < -1
+                    or c["etat"] not in ("du", "rendu", "absent") for c in comptes)):
+                raise AuditIllisible("Contrôle des rôles des comptes incomplet ou mal formé.")
+        if comptes is not None:
+            ligne = {k: v for k, v in ligne.items() if k != "comptes"}
         # Les rapports archivés avant le champ de présentation n'établissent aucune présentation.
         if isinstance(ligne,dict) and 'presentation' not in ligne:
             ligne = {**ligne,'presentation':''}
@@ -773,7 +802,17 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
-        lignes_validees.append(ligne)
+        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {})})
+        if comptes:
+            dossier = faits.get("comptes", {})
+            attendus = dossier.get("issue") or dossier.get("etat", [])
+            for c in comptes:
+                if not any(all(c[k] == a[k] for k in ("debiteur", "creancier", "objet", "etat"))
+                           and c["montant"] in (-1, a["montant"]) for a in attendus):
+                    obstacles.append(audit("Le sens du compte ne correspond pas à l'issue du moteur.",
+                        f"comptes : reçu {c} ; respecter les rôles et quantités de {attendus} ; "
+                        + " ; ".join((faits.get("conversation_validee") or {}).get("faits", [])),
+                        partie=partie, segment=indice, texte=passage, recu=str(c)))
         # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle
         # ne la rendent pas fausse (« D'accord » cité « « D'accord » »).
         locuteur, citation = ligne["locuteur"], ligne["citation"].strip().strip("«»\"“”  ")
@@ -828,7 +867,7 @@ def controler(texte, rapport, faits, partie="texte"):
                     # lien nominal. Écarter cette seule donnée ne réécrit ni ne
                     # refuse une réplique contrôlée et ne fait apprendre aucun nom.
                     ligne = {**ligne, "presentation": ""}
-                    lignes_validees[-1] = ligne
+                    lignes_validees[-1] = {**ligne, **({"comptes": comptes} if comptes is not None else {})}
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":

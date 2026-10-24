@@ -23,7 +23,7 @@ def dialogue(texte):
 def segment(verdict, sources=(), locuteur="", citation="", motif="", entites=()):
     return {"segments": [{"indice": 0, "verdict": verdict, "sources": list(sources),
                            "locuteur": locuteur, "citation": citation, "entites": list(entites),
-                           "motif": motif}]}
+                           "comptes": [], "motif": motif}]}
 
 
 class NarrationTests(unittest.TestCase):
@@ -47,7 +47,7 @@ class NarrationTests(unittest.TestCase):
     def test_rapport_par_cle_d_indice(self):
         from donjon.narration import AuditIllisible
         texte = "La porte est fermée. Une odeur de cire flotte."
-        ligne = {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "", "entites": [], "motif": ""}
+        ligne = {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": ""}
         rapport = controler(texte, {"segments": {"0": ligne, "1": ligne}}, {})
         self.assertEqual([l["indice"] for l in rapport["segments"]], [0, 1])
         # Un segment sauté ou ajouté rend le rapport illisible : une faute de l'auditeur.
@@ -59,7 +59,7 @@ class NarrationTests(unittest.TestCase):
         texte = "Une odeur de cire flotte."
         illisible = {"segments": {}}
         lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
-                                      "entites": [], "motif": ""}}}
+                                      "entites": [], "comptes": [], "motif": ""}}}
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler_brut", side_effect=[dialogue(texte), illisible, lisible]) as appel:
             reponse = mj._appeler("instr", {"faits": {}, "conversation": [], "message": "je sens ?"},
@@ -70,7 +70,7 @@ class NarrationTests(unittest.TestCase):
     def test_dialogue_vide_corrige_sans_audit(self):
         texte = "Une odeur de cire flotte."
         lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
-                                      "entites": [], "motif": ""}}}
+                                      "entites": [], "comptes": [], "motif": ""}}}
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler_brut", side_effect=[dialogue(""), dialogue(texte), lisible]) as appel:
             reponse = mj._appeler("instr", {"faits": {}, "conversation": [], "message": "je sens ?"},
@@ -93,7 +93,7 @@ class NarrationTests(unittest.TestCase):
         texte = f"Gorm répond : « {citation} »"
         faits = {"interlocuteurs": {"marchand": {"nom": "Gorm"}}}
         ligne = {"indice": 0, "verdict": "parole", "sources": [], "locuteur": "marchand", "citation": citation,
-                 "entites": [], "motif": ""}
+                 "entites": [], "comptes": [], "motif": ""}
         reponse = {"texte": texte, "_audit": {"segments": [ligne], "faits": faits, "texte_initial": texte,
                                               "fondement": lexique.corpus("Gorm, la cloche"),
                                               "fondement_paroles": lexique.corpus("galerie de ronde")}}
@@ -121,7 +121,7 @@ class NarrationTests(unittest.TestCase):
     def test_voix_d_auteur_renvoyee_en_revision(self):
         texte = "Une odeur de cire flotte."
         lisible = {"segments": {"0": {"verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
-                                      "entites": [], "motif": ""}}}
+                                      "entites": [], "comptes": [], "motif": ""}}}
         auteur = {"segments": {"0": {**lisible["segments"]["0"]}}}
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler_brut", side_effect=[
@@ -143,11 +143,11 @@ class NarrationTests(unittest.TestCase):
         texte = "Prends ton temps. Une odeur de vase monte du sol. Peut-être que l'eau a reflué ici."
         rapport = {"segments": [
             {"indice": 0, "verdict": "neutre", "sources": [], "locuteur": "", "citation": "",
-             "entites": [], "motif": ""},
+             "entites": [], "comptes": [], "motif": ""},
             {"indice": 1, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
-             "entites": ["odeur de vase"], "motif": ""},
+             "entites": ["odeur de vase"], "comptes": [], "motif": ""},
             {"indice": 2, "verdict": "hypothese", "sources": [], "locuteur": "", "citation": "",
-             "entites": [], "motif": ""}]}
+             "entites": [], "comptes": [], "motif": ""}]}
         resultat = controler(texte, rapport, {})
         self.assertFalse(resultat["obstacles"])
         self.assertEqual(resultat["texte_controle"], texte)
@@ -268,7 +268,7 @@ class NarrationTests(unittest.TestCase):
              "proposition": sequence(etape("allumer", "torche", outil="briquet"))},
             dialogue(explication),
             {"segments": [{"indice": i, "verdict": "mecanique", "sources": ["attestations"],
-                           "locuteur": "", "citation": "", "entites": [], "motif": ""} for i in range(2)]},
+                           "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": ""} for i in range(2)]},
         ]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
@@ -496,7 +496,7 @@ class NarrationTests(unittest.TestCase):
         texte = "L'air est humide et sent la vase. Une odeur de pierre mouillée flotte autour de toi."
         rapport = {"segments": [
             {"indice": i, "verdict": "ambiance", "sources": [], "locuteur": "", "citation": "",
-             "entites": [e], "motif": ""} for i, e in enumerate(("odeur de vase", "pierre mouillée"))]}
+             "entites": [e], "comptes": [], "motif": ""} for i, e in enumerate(("odeur de vase", "pierre mouillée"))]}
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),

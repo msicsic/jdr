@@ -168,7 +168,7 @@ class CoupeTests(unittest.TestCase):
                            "faits": ["attestations"], "proposition": None}
             audit = {"segments": [{"indice": 0, "verdict": "mecanique",
                                    "sources": ["attestations"], "locuteur": "",
-                                   "citation": "", "entites": [], "motif": ""}]}
+                                   "citation": "", "entites": [], "comptes": [], "motif": ""}]}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut",
                                side_effect=[action, exclusion, PORTEE_QUALIFICATION, revue, action,

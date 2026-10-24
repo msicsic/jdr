@@ -92,10 +92,10 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
         reponses = [
             {"mode": "dialogue", "texte": invention, "faits": [], "proposition": None},
             {"segments": [{"indice": 0, "verdict": "invention_protegee", "sources": [],
-                           "locuteur": "", "citation": "", "entites": [], "motif": "Aucune seconde cloche établie."}]},
+                           "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": "Aucune seconde cloche établie."}]},
             {"mode": "dialogue", "texte": corrige, "faits": ["attestations"], "proposition": None},
             {"segments": [{"indice": 0, "verdict": "mecanique", "sources": ["attestations"],
-                           "locuteur": "", "citation": "", "entites": [], "motif": ""}]},
+                           "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": ""}]},
         ]
         with tempfile.TemporaryDirectory() as tmp, \
              patch.object(MJOpenAI, "_appeler_brut", side_effect=reponses) as api, \

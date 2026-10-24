@@ -434,6 +434,36 @@ def comptes_joueur(monde):
     return lignes
 
 
+def compte(debiteur, creancier, objet="", montant=0, etat="du"):
+    """Un sens unique, commun aux comptes et aux issues : qui doit/rend quoi à qui.
+
+    Un objet vide désigne les pièces ; pour un prêt, le débiteur est l'emprunteur,
+    indépendamment du sens historique des champs de/a de la permission.
+    """
+    return {"debiteur": debiteur, "creancier": creancier, "objet": objet,
+            "montant": montant, "etat": etat}
+
+
+def etat_comptes_joueur(monde, interlocuteurs=()):
+    """Comptes connus du joueur seulement ; aucune dette privée entre PNJ.
+
+    Les zéros sont bornés aux pièces et aux interlocuteurs fournis, dans les deux
+    sens. L'absence de dette monétaire ne dit rien d'un objet prêté.
+    """
+    from .voix import reel
+    personnes = {reel(monde, x) for x in interlocuteurs}
+    personnes.update(d["de"] if d["a"] == "joueur" else d["a"] for d in dettes(monde)
+                      if "joueur" in (d["de"], d["a"]))
+    comptes = []
+    for personne in sorted(personnes - {"joueur"}):
+        for de, a in ((personne, "joueur"), ("joueur", personne)):
+            montant = sum(d["montant"] for d in dues(monde, de, a))
+            comptes.append(compte(de, a, montant=montant, etat="du" if montant else "absent"))
+    comptes.extend(compte(p["a"], p["de"], p["objet"], 1) for p in prets(monde)
+                   if "joueur" in (p["de"], p["a"]))
+    return comptes
+
+
 def reticence(monde, id, prix_, offre=0):
     """Ce qu'ajoute au DD d'une demande la part du prix qu'on ne lui paie pas : ce qu'elle vaut
     pour lui, au-delà de ce qu'elle vaut pour qui vit modestement. Un riche, pour qui une pièce
