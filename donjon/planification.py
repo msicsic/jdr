@@ -245,6 +245,7 @@ class Vue:
         self._metriques = {15: self._metrique}
         self._cru_spatial = monde_cru(monde, id) if monde.data.get("mode_cases") else None
         self._approches = {}
+        self._contacts = {}
         self._locaux = {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
         # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
@@ -579,7 +580,7 @@ class Vue:
     def approche(self, e, etape, cibles=None):
         """Même contact que l'exécution, sur les positions et obstacles crus."""
         from .obstacles import Route
-        from .pnj import _a_toucher, _a_portee_de
+        from .pnj import _a_toucher
         if self._cru_spatial is None or e.case is None:
             return Route(fin=(e.salle, e.case))
         touches = _a_toucher(self.monde, self.id, etape, e.portes)
@@ -598,7 +599,9 @@ class Vue:
         cle = (e.salle, e.case, e.portes if metrique else frozenset(k for k in e.portes if self.objets[k].get("ouvre")),
                cibles, centre, e.allure, self.ouvertes(e), self.portes_prevues(e))
         if cle not in self._approches:
-            cru = self._cru_spatial
+            # Le contact dépend de la géométrie crue figée dans cette vue et
+            # des cibles, jamais de l'origine ni des possessions du trajet.
+            contacts = self.contacts(e.salle, cibles, centre)
             # Une approche peut sortir puis revenir si la géométrie l'exige ;
             # elle réemploie le même parcours que tous les allers de cet état.
             self.route(e, e.salle)
@@ -610,9 +613,7 @@ class Vue:
                 if salle != e.salle:
                     continue
                 for c, (d, chemin) in table.items():
-                    atteint = (c == cibles[0] if centre else
-                               all(_a_portee_de(cru, salle, c, cible) for cible in cibles))
-                    if not atteint:
+                    if c not in contacts:
                         continue
                     candidats.append((sum(t for _, t in avant.sejours) + d, len(candidats), c, chemin, avant, d))
             if candidats:
@@ -622,6 +623,24 @@ class Vue:
             else:
                 self._approches[cle] = None
         return self._approches[cle]
+
+    def contacts(self, salle, cibles, centre=False):
+        """Cases qui touchent les mêmes cibles ; leur ordre reste celui des tables."""
+        from .spatial import a_verifier
+        from .pnj import _a_portee_de
+        from .geometrie import cases
+        cle = (salle, cibles, centre)
+
+        def calculer():
+            return frozenset(c for c in cases(self._cru_spatial.data["salles"][salle])
+                             if (c == cibles[0] if centre else
+                                 all(_a_portee_de(self._cru_spatial, salle, c, cible) for cible in cibles)))
+
+        if cle not in self._contacts:
+            self._contacts[cle] = calculer()
+        elif a_verifier():
+            assert self._contacts[cle] == calculer(), "Cases de contact crues périmées"
+        return self._contacts[cle]
 
     def ouvertes(self, e):
         """Les portes que le plan a déverrouillées."""

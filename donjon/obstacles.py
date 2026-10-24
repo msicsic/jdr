@@ -335,7 +335,74 @@ def monde_cru(m, acteur):
     return cru
 
 
+_PARCOURS = OrderedDict()
+PARCOURS_MAX = 256
+
+
 def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, position=None,
+                 allure=PAS_JOUEUR, metrique=None, cru=None):
+    """Partage les parcours identiques, sans fusionner les états de recherche.
+
+    La clé conserve l'ordre des salles, sorties et obstacles : il départage les
+    chemins de même coût. Positions et portes viennent du monde de lecture cru.
+    Les ressources, l'orientation et l'horloge ne changent pas ce parcours ;
+    les rotations sont toujours payées ensuite par ``cout_route``.
+    """
+    from .spatial import a_verifier, position_cible
+    from .eau import noyee_crue
+    from .pnj import DUREES
+    cru = monde_cru(m, acteur) if cru is None else cru
+    equipement = portes(m, acteur) if equipement is None else equipement
+    cles = frozenset(cles) | frozenset(k for k in equipement if m.objets[k].get("ouvre"))
+    metrique = metrique_necessaire(m, acteur, allure) if metrique is None else metrique
+    o = m.objets[acteur]
+    position = tuple(position) if position is not None else (
+        tuple(o["position"]) if depart == o["lieu"] and o.get("position") is not None else None)
+    formes = descriptions_crues(m, acteur) if metrique else None
+    obstacles = [(i, x.get("lieu"), position_cible(cru, i, x["lieu"]), x.get("passage"))
+                 for i, x in cru.objets.items() if x.get("bloque_passage") and not x.get("incorpore")
+                 and x.get("lieu") in cru.data["salles"]]
+    ids_portes = {s["porte"] for d in m.data["salles"].values()
+                  for s in d["sorties"].values() if s.get("porte")}
+    portes_sorties = [(i, x.get("ouverte"), x.get("verrouillee")) for i, x in cru.objets.items()
+                      if i in ids_portes]
+    equip = [(i, cru.objets[i].get("masse", 0), cru.objets[i].get("longueur_cm"),
+              cru.objets[i].get("physique", {}).get("dimensions")) for i in sorted(equipement)] if metrique else None
+    cle = json.dumps([m.data["salles"], cru.data["salles"], obstacles, portes_sorties,
+                      depart, position, allure, sorted(ouvertes),
+                      [(k, m.objets[k].get("ouvre")) for k in sorted(cles)],
+                      [s for s in m.data["salles"] if noyee_crue(m, acteur, s)],
+                      metrique, formes, gabarit(cru, acteur) if metrique else None, equip,
+                      DUREES["ouvrir"], DUREES["deverrouiller"]], check_circular=False)
+
+    def calculer():
+        return _parcours_cru(m, acteur, depart, cles, ouvertes, equipement, position=position,
+                             allure=allure, metrique=metrique, cru=cru)
+
+    if cle in _PARCOURS:
+        resultat = _PARCOURS[cle]
+        _PARCOURS.move_to_end(cle)
+        if a_verifier():
+            neuf = calculer()
+            assert _empreinte_parcours(resultat) == _empreinte_parcours(neuf), "Parcours cru périmé"
+        return resultat
+    resultat = calculer()
+    _PARCOURS[cle] = resultat
+    if len(_PARCOURS) > PARCOURS_MAX:
+        _PARCOURS.popitem(last=False)
+    return resultat
+
+
+def _empreinte_parcours(parcours):
+    def route(r):
+        if not isinstance(r, Route):
+            return list(r)
+        return list(r), r.fin, r.chemin, r.sejours, r.portes, r.depart
+    return (list(parcours.items()), [(s, route(r)) for s, r in parcours.routes.items()],
+            [(k, list(t.items()), route(r)) for k, (t, r) in getattr(parcours, "locaux", {}).items()])
+
+
+def _parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, position=None,
                  allure=PAS_JOUEUR, metrique=None, cru=None):
     """Un parcours en cases, partagé par toutes les destinations d'une recherche.
 

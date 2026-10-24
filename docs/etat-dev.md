@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cout-trajets`, fusionnée, base **0ac6b15** (brief **ff33ef0**) :
+  invariant de Q conservé, décisions/coûts/ordre/recherches/nœuds identiques. Deux leviers exacts,
+  commits signés : partage LRU des parcours crus sous géométrie, obstacles, portes, clés, origine,
+  allure, eau et équipement utile ; cases de contact partagées par salle/cibles dans une vue figée,
+  sans changer le départage des approches. Recalcul des reprises par `spatial.VERIFICATION`.
+  50 tests ciblés verts ; 16 nuits de 2 h (quatre scénarios × quatre graines), puis quatre nuits
+  CPU de 4 h : empreintes strictes identiques à Q, recherches et nœuds compris. CPU, trois versions
+  lancées ensemble, graines 42/1985, mine : 6,745 → 14,045 → 11,485 s ; auberge :
+  4,840 → 13,290 → 11,255 s (`42bb9c0` → Q → branche). Gains 18,2 % / 15,3 % contre Q ;
+  **cible ×1,5 non atteinte**, reste ×1,70 / ×2,33 contre l'ancien moteur. Aucune réduction
+  approchée d'`Etat`, aucune correction des recherches bornées. Contrôles `VERIFIER` +
+  `spatial.VERIFICATION=1` sur mine/auberge, 2 h, graine 42 : aucun écart ni borne.
+  Suite complète lancée une fois, trois processus : **1 603 tests, quatre ignorés**, verte,
+  999,7 s (inclut le test existant de nuit de 10 h à la mine).
+  Aucun appel à Luna, priorité réduite, quatre travailleurs au plus, aucune fusion ni banc long.
+  Références réutilisables dans `artifacts/references/{0ac6b15,42bb9c0}/codex-28-*.json`
+  du dépôt principal ; [rapport d'une page](taches/rapport-codex-28-cout-trajets.md).
+  Fusionné sur l'intégration 19b0261 (depuis la base 0ac6b15 : R, A0, A1, cache, lots 25 à 27) : seul
+  conflit `docs/etat-dev.md` ; `planification.py` fusionné sans conflit (l'intégration n'y change que l'accès
+  aux engagements par `agendas.en_cours` ; A0 est dans `deliberation.py`) et `obstacles.py` intact depuis la
+  base côté intégration. Aucune lecture hors clé : `_parcours_cru` ne lit que `obstacles`, `spatial`, `eau`,
+  `geometrie` et `temps`, inchangés depuis la base ; le `_marcher` de R (`Vue.descente` sur les salles du
+  détour) est l'exécution, pas le parcours partagé ; `Vue.contacts` ne lit que la vue crue figée et
+  `pnj._a_portee_de`, inchangé. `comparer_bancs --empreintes` contre 19b0261, 2 h, quatre scénarios ×
+  4 graines : chronique, mesures et état final complet identiques nuit par nuit. `VERIFIER` +
+  `spatial.VERIFICATION` 1 sur 2 h, graine 42, mine et auberge : sans écart, aucune borne. Tests
+  `test_trajets_reels`, `test_echelle_choix`, `test_agendas_socle`, `test_planif_cout` : 23 tests, verts.
+
 - Branche `codex-nom-non-relie`, fusionnée, base `ea4d562` (lot 26 `64351b2`) :
   résolution nominale commune dans `noms.personnage`, contrôle lexical avant saisie locale,
   conversation et MJ (`verifier_saisie`, `verifier_nom`). Un nom sans lien ou relié à un absent
@@ -2346,7 +2374,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   réglé (`obstacles.cout_route`, une seule mesure). Restent :
   - **temps de calcul ×3,7 à ×4,8** (mine, auberge, 8 h) et recherches bornées plus fréquentes dans l'espace
     enrichi (mine 42 : 8 → 91 ; Bram `lumiere` 463-465 en est une, nouvelle) ; à réduire avant d'empiler
-    d'autres lots sur le planificateur ;
+    d'autres lots sur le planificateur. Après le lot 28 (`codex-cout-trajets`, parcours crus et cases de
+    contact partagés, −18 % / −15 %), le coût reste **×1,70 (mine) et ×2,33 (auberge) contre 42bb9c0 sur
+    4 h** (graines 42 et 1985) ; le temps est dans `_explorer_etats` (39,9 % / 53,1 %), surtout la
+    génération des gestes (22,1 % / 35,0 %) ;
   - l'échelle des préférences inchangée (`DEMANDE`, `CHERCHER`, `TACHE`, `RESTER` face à des trajets de
     quelques secondes) ;
   - **fuite ↔ sécurité** (déjà sur `main`, Relais 2024 à 12 h : Ilse 165 passages en une heure ; après la
