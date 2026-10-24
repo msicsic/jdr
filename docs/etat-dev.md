@@ -77,6 +77,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `constater_geste_joueur`, autour de `_appliquer`) lisent les objets bruts de la copie de transaction,
   aucune lecture gardée par `vue_memorisee` ; rien de lu hors clé.
 
+- Branche `codex-question-absent`, fusionnée, base d'intégration **2590c4a**
+  (brief `894187d`, correctif signé SSH **b8a1f84**) : `noms.verifier_saisie` réemploie
+  `est_question` hors parole et hors faisabilité ; `verifier_nom` exige le lien nominal
+  sans imposer la présence pour une demande d'information. Geste et faisabilité gardent
+  leur accès, perception nommée son refus moteur ; adresse nommée validée localement par
+  `paroles.destinataires` (regard et voix distantes conservés). Aucun prompt ajouté.
+  Sept tests nouveaux, **104 ciblés validés** : cas réels Brune/Gorm et peur d'Ilse,
+  autres cas analogues ; état, texte sauvegardé et rendu après recharge, refus à zéro
+  appel en ligne et hors ligne. Suite complète unique, trois processus à priorité réduite
+  (1 522,8 s), puis seules reprises ciblées : **1 670 tests, 15 ignorés**, sans échec
+  restant, bilan consolidé sur 155 fichiers. Régression d'appel distant corrigée par
+  la priorité de `cri` ; attente historique d'adresse à un absent adaptée au refus local ;
+  38 tests puis 10 tests rejoués, tous verts, traces initiales et consolidation conservées.
+  Luna, une passe des quatre scripts prescrits : **32 appels**, aucun repli, arrêt ni
+  recharge invalide ; les trois questions ciblées, une interprétation et un audit chacune,
+  rappellent les pas sans les attribuer ou l'ignorance de la peur, sans révéler le guet.
+  « observer Ilse » et « je pousse Aubin » : zéro appel ; Brune reliée s'écarte, Ilse répond.
+  Deux autres tours corrigent leur audience collective. Appels et réponses négociées
+  passent d'abord par `commandes.cri`, sans contrôle d'adresse de dialogue prématuré.
+  Banc rapide Relais, 4 h × quatre
+  graines, base puis branche : mêmes états finaux, mesures, boucles et constats d'audit ;
+  aucun plantage, usurpation ni violation. Référence rangée dans le cache partagé.
+  Limites : reconnaissance syntaxique des questions, noms absents du lexique et
+  compatibilité mécanique de la prose encore en partie sémantique.
+  [Rapport d'une page](taches/rapport-codex-32-question-absent.md), traces `artifacts/question-absent/`.
+  Fusionné sur l'intégration après le lot 31 (f4e95fd) : seul conflit `docs/etat-dev.md` ; aucun fichier de
+  code commun avec les lots 29 et 31 (`noms` seul côté moteur).
+
 - Branche `codex-trajet-estime`, fusionnée (intégration 2590c4a), base d'intégration `ecbbed7`
   (brief `e282120`, code signé SSH `9f4bf2f`, `500d917`) : la recherche estime les trajets par salle,
   l'exécution garde le parcours réel. `Etat` ne distingue plus case ni orientation ; allure

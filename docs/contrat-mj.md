@@ -152,9 +152,13 @@ au joueur ses mots avant tout appel au MJ. Une adresse nominale non résolue don
 moteur, même sans guillemets. Hors parole, `noms.verifier_saisie` résout les noms du lexique
 avant toute syntaxe locale ou interprétation du MJ, y compris pour une question et `mj …`.
 Un nom sans lien donne « Tu ne sais pas lequel d'entre eux est X » si des inconnus sont
-perçus, sinon « Tu ne connais personne du nom de X ici » ; un nom relié mais non perçu donne
-« Tu ne vois pas X d'ici ». Ce refus ne révèle ni corps ni position privée, ne fait rien
-apprendre et n'appelle aucun modèle, en ligne comme hors ligne. Le contrôle n'énumère pas
+perçus, sinon « Tu ne connais personne du nom de X ici ». Un nom relié mais non perçu donne
+« Tu ne vois pas X d'ici » pour un geste, y compris demandé en faisabilité. Une perception
+locale sur une personne reliée laisse le moteur dire sa cause (lumière, présence, regard).
+Une adresse nominale passe par l'accès commun de la parole, avec ses voix distantes et son
+regard ; une question adressée ne devient pas une demande d'information au MJ.
+Ces refus ne révèlent ni corps ni position privée, ne font rien
+apprendre et n'appellent aucun modèle, en ligne comme hors ligne. Le contrôle n'énumère pas
 les gestes : les références nominales viennent de l'état, par `noms.personnage`, aussi utilisé
 par la parole. Les mots cités, les appellations de voix et les désignations publiques gardent
 leur sens ; héler émet un nom sans exiger la présence de son porteur. Une parole mentionnant
@@ -163,6 +167,17 @@ leurs contrôles. Un nom absent de tout le lexique n'est pas reconnu comme nom p
 contrôle ; l'interprétation et ses gardes de références restent nécessaires. Les formulations
 que le parseur traite comme parole conservent ce contrat : leur contenu n'est pas analysé
 comme une liste de cibles. Les formulations mixtes gardent donc une part sémantique.
+
+**Questions sur un absent connu** (`codex-question-absent`). Le nom doit toujours être relié,
+mais une demande d'information ne requiert pas sa présence : elle va au MJ avec les seuls
+faits publics habituels (souvenirs, bruits, signes reçus), puis son audit et sa sauvegarde
+avant affichage. Elle ne révèle ni position ni intention privée et ne produit aucun geste.
+Le contrôle réemploie `commandes.est_question` (ponctuation interrogative, interrogatifs,
+inversion), après l'analyse de parole, et écarte `commandes.faisabilite` ; aucun nom ni
+exemple particulier ne détermine cette distinction. Ce classement syntaxique n'est pas une
+compréhension générale du français : les formulations mixtes, une question sans marque
+reconnue et le sens de la réponse restent soumis à l'interprétation et à l'audit sémantiques.
+Le refus d'un nom non relié reste le même, questions comprises.
 
 Tous les répondants d'une parole sont entendus avant la narration, y compris un destinataire
 qui vient de s'écarter hors du champ visuel. Une voix entendue depuis une autre salle est un
