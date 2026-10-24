@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-geste-hors-portee`, **non fusionnée**, base d'intégration `cd7195d`, lot 44 :
+  une approche d'improvisation n'accorde plus de portée physique ; toutes ses cibles passent
+  par `proximite.exiger`, comme le passage d'un obstacle. Le dossier des passages prépare
+  les cibles désignables par le moteur, rotation simulée comprise. L'opération reste connue
+  hors de vue et en souvenir ; le refus de type d'échelle oriente vers `passer_obstacle`,
+  la contre-revue exige l'effet d'un déplacement. Le joueur se rapproche par ses pas :
+  à distance, refus commun « Approche-toi… » avec `attendu`, aucune fiche de jet abstraite.
+  Trois nouveaux tests, console/MJ simulé/recharge, Relais et auberge, cinq approches,
+  contexte du cas historique, puis fiche et passage après rapprochement ; ciblés verts.
+  Correctif signé SSH `b758341`, signature vérifiée. Banc rapide Relais/auberge, 4 h × quatre
+  graines contre `cd7195d` : chroniques, mesures, récits, souvenirs et empreintes identiques,
+  aucun plantage, violation ou usurpation, constats inchangés. Luna, une passe, neuf scripts :
+  71 appels / 29 tours MJ, aucun repli, obstacle narratif, défaut technique ou de recharge.
+  Référence `main` en cache : Relais 3,00 → 2,63 appels/tour, atelier 3,91 → 2,82 ; obstacles
+  absents du cache, aucun rejeu de référence. Relais n° 20 : `passer_obstacle` du premier coup,
+  refus « Approche-toi… » en un appel ; n° 21 : refus de portée en quatre appels, état inchangé.
+  Campagne complète appelée une fois, trois processus à priorité réduite : **164 fichiers validés,
+  1 723 tests couverts, 16 ignorés** après reprises ciblées. Exécution initiale : 1 692 décomptés,
+  1 833,6 s ; une ancienne attente de fiche à distance corrigée (19 tests rejoués verts), deux
+  erreurs web de sockets interdites (huit tests hors restriction verts), deux workers TUI bloqués
+  sans calcul dans le bac à sable, arrêtés seuls puis rejoués hors restriction (33 tests verts,
+  186,2 s). Les deux interruptions sont chacune comptées pour un test dans les 1 692 ; aucune
+  seconde suite complète. [Rapport du lot 44](taches/rapport-codex-44-geste-hors-portee.md).
+  Aucun scénario ni fichier réservé au lot 43 modifié ; `main` inchangée.
+
 - Branche `codex-fouille-faits`, fusionnée, base d'intégration `de74ec1`, lot 42 :
   correctif signé SSH `5502858`, signature vérifiée ;
   la revue de portée reçoit demande et transaction entière ; chaque ajout, avec ou sans
