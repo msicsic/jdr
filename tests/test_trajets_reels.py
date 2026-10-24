@@ -70,6 +70,57 @@ def executer_plan(m, qui, etapes):
     return recharger(m), temps, lignes
 
 
+class ParcoursPartagesTests(unittest.TestCase):
+    def test_reprise_entre_vues_et_execution_apres_rechargement(self):
+        from donjon import obstacles
+        for scenario in ("relais", "mine"):
+            with self.subTest(scenario=scenario):
+                m, qui, source, feux = flammes(scenario)
+                obstacles._PARCOURS.clear()
+                v = p.Vue(m, qui)
+                e = p.depart(m, qui, v)
+                a = v.route(e, e.salle)
+                # Une autre vue du même monde cru reprend le parcours, même après
+                # sauvegarde. La route d'approche et le plan restent exécutables.
+                m = recharger(m)
+                with patch.object(spatial, "VERIFICATION", 1):
+                    autre = p.Vue(m, qui)
+                    self.assertIs(autre.route(p.depart(m, qui, autre), e.salle), a)
+                    r = p.chercher(m, qui, lambda v, e: bool(e.fait("allume", source)),
+                                   {"entretenir": [source]}, emplois=("feu",))
+                self.assertEqual(r[1][-1]["outil"], feux[1])
+                m, _, lignes = executer_plan(m, qui, r[1])
+                self.assertTrue(m.objets[source]["allume"])
+                self.assertTrue(any("allume" in ligne for ligne in lignes))
+
+    def test_cle_porte_geometrie_et_controle_des_routes(self):
+        from donjon import obstacles
+        m, qui, _, _ = flammes("relais")
+        obstacles._PARCOURS.clear()
+        v = p.Vue(m, qui)
+        e = p.depart(m, qui, v)
+        route = v.route(e, "beffroi")
+        self.assertIsNotNone(route)
+        # Une porte crue désormais verrouillée invalide le parcours partagé.
+        croire(m, qui, "porte", "verrouillee", True, "savoir")
+        nouveau = p.Vue(recharger(m), qui)
+        self.assertIsNone(nouveau.route(p.depart(nouveau.monde, qui, nouveau), "beffroi"))
+        # Le contrôle compare les chemins et leurs séjours, pas seulement les salles.
+        croire(m, qui, "porte", "verrouillee", False, "savoir")
+        v = p.Vue(m, qui)
+        route = v.route(p.depart(m, qui, v), "beffroi")
+        anciens = route.sejours
+        try:
+            route.sejours = (*anciens, (e.salle, 1))
+            with patch.object(spatial, "VERIFICATION", 1):
+                autre = p.Vue(m, qui)
+                with self.assertRaisesRegex(AssertionError, "Parcours cru périmé"):
+                    autre.route(p.depart(m, qui, autre), "beffroi")
+        finally:
+            route.sejours = anciens
+            obstacles._PARCOURS.clear()
+
+
 class TempsReelsTests(unittest.TestCase):
     def test_fuite_du_joueur_compte_la_duree_reelle_de_sa_porte(self):
         from donjon.temps import instant
