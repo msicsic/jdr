@@ -438,6 +438,28 @@ transie au refuge, elle monte au poêle du guet au lieu du brasero menacé).
 du moteur relevée par `verifier-eau`) ; le savoir du poêle est donné à tous au départ ; quand l'eau monte
 tôt (graine 500), le poêle reste hors d'atteinte et le froid revient.
 
+## Refuge mouillé : désaccord entre plan et marche (lot 39, diagnostic seul)
+
+La crue 500 rejouée sur `63a717c`, avec le joueur à la galerie comme dans l'audit,
+confirme le défaut conservé sur `ffcc295`. Aubin choisit un abri à la galerie à 156 min,
+Brune le poêle à 160 ; ils restent au refuge. `Vue.allers` juge la destination sèche,
+`trajet_estime.parcours` écarte seulement l'eau déjà crue noyée dans les salles traversées,
+mais `pnj._marcher` leur applique aussi `Vue.descente` et sa prévision à soixante minutes.
+À 160, la conduite contient 84 cm d'eau et Brune y attend 124 cm : la marche refuse le
+détour que la recherche vient de proposer (route estimée à 0,789 minute). À 182, la
+conduite atteint réellement 100 cm et coupe aussi le plan. Les refus sociaux et le répit
+de faim ne sont pas la cause de ce départ impossible.
+
+**Contrat à corriger, non livré ici** : un recours doit être praticable selon la même
+règle de risque pendant sa recherche et son exécution, sur toutes les salles traversées,
+avec les mêmes croyances et portes. Il faut distinguer le temps du passage du séjour
+prévu au but, conserver la protection contre un véritable enfermement et dire la raison
+d'une absence de recours. Appliquer partout le seul filtre actuel supprimerait le faux
+plan sans garantir la sortie du refuge ; retirer le filtre de la marche réintroduirait
+le piège historique du crochetage dans l'eau. Le lot 39 s'arrête au diagnostic parce que
+le brief réserve `planification.py` et les obstacles à l'autre poste. Les deux scènes
+rechargeables et les chiffres sont dans le [rapport](taches/rapport-codex-39-refuge-mouille.md).
+
 ## Questions ouvertes
 
 - Le barrage : effet chiffré (ralentir la montée) ou seuil (tenir jusqu'à un niveau) ?
