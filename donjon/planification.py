@@ -71,9 +71,9 @@ PREUVE_MAX = 4 * NOEUDS
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
 # porter est recalculé par une recherche complète, et comparé.
 VERIFIER = False
-# Les écarts que ``VERIFIER`` reconnaît sans les tenir pour un défaut : la recherche jouée a atteint sa
-# borne de nœuds (``NOEUDS``) et la recherche complète trouve mieux. Une limite de la recherche, pas de
-# ce qu'elle restreint ; le banc d'audit les compte.
+# Les écarts de plafond reconnus par ``VERIFIER`` : la recherche jouée est bornée et la complète
+# trouve mieux ; ou l'ancienne recherche uniforme était bornée, et le nouveau résultat égale la
+# complète (``ancienne_borne``). Une limite de recherche, pas de sa restriction ; l'audit les compte.
 BORNES = []
 
 
@@ -263,6 +263,7 @@ class Vue:
         self._locaux = {}
         self._moyennes = {}
         self._routes, self._trajets, self._crus, self._agissables, self._pressions = {}, {}, {}, {}, {}
+        self._bornes_rester = {}
         # Le porteur peut n'être connu que par son bien, puis supposé retrouvé
         # par un plan de recherche. Il lui faut aussi l'a priori d'un inconnu.
         interlocuteurs = [x for x, o in self.objets.items() if o["type"] == "personnage" and x != id and o.get("profil")]
@@ -865,6 +866,29 @@ class Vue:
                            + sum(prix for g, prix in self.prix_gardes.items() if g != e.salle)
                            + NOIR * self.eau.get(e.salle, 0))
         return pressions[cle]
+
+    def borne_rester(self, salle):
+        """Plancher du séjour final, constant pour toute une recherche.
+
+        Les sorties, sans serrures, obstacles ni eau infranchissable, donnent un
+        sur-ensemble des salles que le plan peut atteindre, devis compris. Ne
+        garder que les gardes et l'eau : lumière et compagnie peuvent changer.
+        Ces lectures sont déjà dans ``_entrees`` (salles, prix_gardes, eau).
+        """
+        if salle not in self._bornes_rester:
+            accessibles, file = set(), [salle]
+            while file:
+                s = file.pop()
+                if s in accessibles:
+                    continue
+                if s not in self.salles:
+                    return 0   # aucune minoration connue hors de la carte
+                accessibles.add(s)
+                file.extend(x["vers"] for x in self.salles[s]["sorties"].values())
+            self._bornes_rester[salle] = RESTER * min(
+                sum(prix for g, prix in self.prix_gardes.items() if g != s)
+                + NOIR * self.eau.get(s, 0) for s in accessibles)
+        return self._bornes_rester[salle]
 
     def violence(self, cible, defense=False):
         from .combat import prix_violence
@@ -1482,9 +1506,10 @@ class SuiteDifferee:
     """Nœud A* intermédiaire d'une suite terminale, sans effet sur le monde.
 
     Son coût déjà payé est celui du préfixe ; ``borne`` minore tout son reste.
-    Les états ordinaires, dont on ne sait pas borner le reste, gardent h = 0.
-    La borne est cohérente : l'arête vers ce nœud coûte zéro, ses sorties
-    terminales coûtent au moins la borne, et leurs h sont nuls. Aucun résultat
+    Pour un but qui se tient en restant, le plancher commun du séjour s'ajoute
+    à h ici comme aux états ordinaires (``_explorer_etats``). La borne est
+    cohérente : l'arête vers ce nœud coûte zéro, ses sorties terminales coûtent
+    au moins la borne plus ce plancher, et leurs h sont nuls. Aucun résultat
     estimé n'est employé comme borne. Une seule évaluation par nœud du graphe.
     """
     def __init__(self, borne, calcul, arguments, *, depuis=None, vises=None, but=None):
@@ -1620,6 +1645,7 @@ def _entrees(v, vises, profondeur, noeuds):
         v.peur, v.eclairer,
         # La suite estimée lit les mêmes routes, possessions, refus et gestes ;
         # ses pressions restent celles de la vue, y compris les menaces sociales.
+        # La borne du séjour ne lit que salles, prix_gardes (ci-dessus) et eau.
         "part-estimee:trajet-geste", v.eau, v.peurs_sociales, v.taux_mefiance,
         # Admissibilité de l'agression et coûts des réactions ; ces lectures doivent aussi
         # invalider les deux graphes et le certificat, pas seulement le résultat final.
@@ -1765,8 +1791,9 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
     """``VERIFIER`` : deux contrôles, chacun avec sa référence.
 
     Repris de la mémoire ou du graphe (``reprise``), le résultat doit être exactement celui d'une
-    recherche refaite de zéro avec les mêmes paramètres (mêmes gestes, même borne) : même plan, mêmes
-    égalités.
+    recherche uniforme refaite de zéro avec les mêmes paramètres (mêmes gestes, même plafond) :
+    même plan, mêmes égalités. Si cette référence atteint son plafond, un autre résultat n'est
+    permis que s'il égale le coût de la complète à ``REFERENCE`` ; il est noté dans ``BORNES``.
 
     Cherché parmi ce qu'il vaut la peine de porter (``emplois``), il doit avoir le coût de l'optimum
     d'une recherche complète pour le même but (``emplois`` à None, mêmes gestes propres au but :
@@ -1782,21 +1809,31 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
         brute.motif = v.motif
         brute.desespere = v.desespere
         r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir,
-                      differer=False)
+                      differer=False, borner=False)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
         return refait, r[1] >= borne
+    divergence_bornee = False
     if reprise is not None:
         refait, refait_borne = refaire(v.emplois, noeuds)
-        assert refait == trouve, f"Recherche de {id} ({nom}, {reprise}) : {trouve} au lieu de {refait}"
+        divergence_bornee = refait != trouve and refait_borne
+        assert refait == trouve or divergence_bornee, (
+            f"Recherche de {id} ({nom}, {reprise}) : {trouve} au lieu de {refait}")
         if reprise == "impossibilité":
             # La preuve évite même la recherche bornée : seul le recalcul de contrôle connaît
             # le nombre de nœuds qu'elle aurait effectivement examinés avec ces nouveaux prix.
             borne = refait_borne
-    if v.emplois is None:
+    if v.emplois is None and not divergence_bornee:
         return
     refait, reference_bornee = refaire(None, REFERENCE)
+    if divergence_bornee:
+        assert _egaux(refait, trouve), (
+            f"Recherche de {id} ({nom}, ancienne borne, complète) : {trouve} au lieu de {refait}")
+        BORNES.append({"minute": monde.data["minutes"], "pnj": id, "but": nom,
+                       "trouve": None if trouve is None else trouve[0],
+                       "optimum": None if refait is None else refait[0], "ancienne_borne": True})
+        return
     if borne:
         if refait is not None and (trouve is None or refait[0] < trouve[0]):
             BORNES.append({"minute": monde.data["minutes"], "pnj": id, "but": nom,
@@ -1818,7 +1855,8 @@ def _endure(v, trouve, depuis, gain):
     return bool(trouve and trouve[1]) and trouve[0] >= RESTER * v.pression(depuis or depart(v.monde, v.id, v)) + gain
 
 
-def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None, *, differer=True):
+def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None, *, differer=True,
+              borner=True):
     """Découvrir les moyens que le but et ses gestes emploient, puis chercher.
 
     Une lecture de lumière dans un état sombre révèle ce que la lumière peut
@@ -1839,11 +1877,11 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
     voir = v.emploie_lumiere
     resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir,
-                               lumineux if voir else sombre, decouvrir=not voir, differer=differer)
+                               lumineux if voir else sombre, decouvrir=not voir, differer=differer, borner=borner)
     if not voir and v.emploie_lumiere:
         v._agissables.clear()
         resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux,
-                                   differer=differer)
+                                   differer=differer, borner=borner)
     return resultat
 
 
@@ -1861,7 +1899,7 @@ def _departs(v, e):
 
 
 def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
-                    decouvrir=False, *, differer=True):
+                    decouvrir=False, *, differer=True, borner=True):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
     profondeur atteinte). ``faute`` : le prix d'une personne lésée, None s'il ne l'envisage pas.
 
@@ -1881,12 +1919,22 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     infini = float("inf")
     degat = v.degat
     departs = _departs(v, depart_)
+    # H <= RESTER * pression(final) : gardes et eau sont fixes par salle,
+    # tous les autres termes sont non négatifs. H est constant sur les états
+    # ordinaires, donc H <= coût(arête) + H. Pour une suite différée, h est
+    # H + suite.borne : son arête entrante coûte zéro et sa sortie terminale
+    # paie au moins suite.borne + H. Aux résultats, h = 0.
+    # La découverte doit garder son arrêt historique, y compris les états
+    # qui auraient été évités par un meilleur ordre face aux résultats.
+    sejour = v.borne_rester(depart_.salle) if borner and tenir and not decouvrir else 0
     # Une place dans l'ordre historique est réservée à chaque groupe différé.
     # Ses sorties gardent cette place et leur ordre interne, même calculées plus
     # tard : les égalités restent celles de la file en coût uniforme. Les nœuds
     # différés passent avant les vrais à priorité égale, pour révéler toutes les
     # sorties susceptibles d'égaler le meilleur prix avant de décider.
-    file = [(0, 1, (next(ordre), 0), 0, e, [], 0, False) for e in departs]
+    # Le deuxième terme conserve aussi le coût de file sans H : ajouter une
+    # constante flottante peut arrondir deux coûts distincts au même nombre.
+    file = [(sejour, 0, 1, (next(ordre), 0), 0, e, [], 0, False) for e in departs]
     vus = {e: 0 for e in departs}
     examines = plus_profond = 0
     trouve = None
@@ -1894,7 +1942,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     # lumière : seule la passe suivante, avec les moyens d'éclairer, décidera du plan. Ses nœuds
     # restent justes pour la rejouer (le cinquième terme : où elle a lu la lumière).
     while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
-        _, _, rang, cout, e, etapes, n, final = heapq.heappop(file)
+        _, _, _, rang, cout, e, etapes, n, final = heapq.heappop(file)
         if isinstance(final, SuiteDifferee):
             for i, (fautes, minutes, ajout, suivant, _, abime, _) in enumerate(final.developper(v)):
                 if fautes and faute is None:
@@ -1903,7 +1951,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                         and (not tenir or suivant.salle not in v.menacees)):
                     total = cout + fautes * (faute or 0) + ((degat or 0) * abime if abime else 0) + minutes
                     total += RESTER * v.pression(suivant) if tenir else 0
-                    heapq.heappush(file, (total, 1, (rang[0], i), total,
+                    heapq.heappush(file, (total, total, 1, (rang[0], i), total,
                                          suivant, etapes + ajout, n + 1, True))
             continue
         if final:
@@ -1930,7 +1978,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
             if noeud[1] is None:
                 noeud[1] = v.pression(e)
             total = cout + RESTER * noeud[1]
-            heapq.heappush(file, (total, 1, (next(ordre), 0), total, e, etapes, n, True))
+            heapq.heappush(file, (total, total, 1, (next(ordre), 0), total, e, etapes, n, True))
         if n >= profondeur:
             continue
         if noeud[3] is None:
@@ -1952,7 +2000,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         for suite in suites:
             if isinstance(suite, SuiteDifferee):
                 v._devis_differes += 1
-                heapq.heappush(file, (cout + suite.borne, 0, (next(ordre), 0), cout,
+                heapq.heappush(file, (cout + suite.borne + sejour, cout + suite.borne, 0, (next(ordre), 0), cout,
                                      e, etapes, n, suite))
                 continue
             fautes, minutes, ajout, suivant, duree, abime, pression = suite
@@ -1968,11 +2016,11 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
             if estime:
                 if (suivant.allure == 15 or suivant.fait("furtif")) and (not tenir or suivant.salle not in v.menacees):
                     total += RESTER * v.pression(suivant) if tenir else 0
-                    heapq.heappush(file, (total, 1, (next(ordre), 0), total,
+                    heapq.heappush(file, (total, total, 1, (next(ordre), 0), total,
                                          suivant, etapes + ajout, n + 1, True))
             elif total < vus.get(suivant, infini):
                 vus[suivant] = total
-                heapq.heappush(file, (total, 1, (next(ordre), 0), total,
+                heapq.heappush(file, (total + sejour, total, 1, (next(ordre), 0), total,
                                      suivant, etapes + ajout, n + 1, False))
     return trouve, examines, len(vus), plus_profond
 

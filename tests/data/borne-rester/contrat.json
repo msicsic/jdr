@@ -1,0 +1,88 @@
+[
+  {
+    "scenario": "auberge",
+    "graine": 42,
+    "minute": 559,
+    "pnj": "lucien",
+    "but": "garder:grenier",
+    "cout": 78.92250378787878,
+    "etapes": [
+      {
+        "operation": "alimenter",
+        "cible": "lanterne_etable",
+        "outil": "pot_huile",
+        "lieu": "",
+        "condition": ""
+      },
+      {
+        "operation": "aller",
+        "cible": "",
+        "outil": "",
+        "lieu": "salle_commune",
+        "condition": ""
+      },
+      {
+        "operation": "allumer",
+        "cible": "lanterne_etable",
+        "outil": "atre",
+        "lieu": "",
+        "condition": ""
+      },
+      {
+        "operation": "aller",
+        "cible": "",
+        "outil": "",
+        "lieu": "couloir",
+        "condition": ""
+      },
+      {
+        "operation": "aller",
+        "cible": "",
+        "outil": "",
+        "lieu": "grenier",
+        "condition": ""
+      }
+    ],
+    "noeuds": 78,
+    "BORNES": [
+      {
+        "minute": 559,
+        "pnj": "lucien",
+        "but": "garder:grenier",
+        "trouve": 78.92250378787878,
+        "optimum": 78.92250378787878,
+        "ancienne_borne": true
+      }
+    ],
+    "capture": "auberge-42-559.json.gz",
+    "resultat_reference": null,
+    "noeuds_reference": 4000,
+    "noeuds_complets": 5759,
+    "borne_complete": false
+  },
+  {
+    "scenario": "auberge",
+    "graine": 1985,
+    "minute": 486,
+    "pnj": "lucien",
+    "but": "garder:etable",
+    "cout": 90.0,
+    "etapes": [],
+    "noeuds": 102,
+    "BORNES": [
+      {
+        "minute": 486,
+        "pnj": "lucien",
+        "but": "garder:etable",
+        "trouve": 90.0,
+        "optimum": 90.0,
+        "ancienne_borne": true
+      }
+    ],
+    "capture": "auberge-1985-486.json.gz",
+    "resultat_reference": null,
+    "noeuds_reference": 4000,
+    "noeuds_complets": 4180,
+    "borne_complete": false
+  }
+]
