@@ -701,7 +701,9 @@ def _cles_visees(faits, passage):
 
 ACCEPTE_VERDICT = {
     "invention_protegee": ("le passage sans cet élément mécanique ; un élément mécanique nouveau passe par un "
-                           "fait proposé (etablir_faits) quand le mode est offert ; une inconnue mécanique "
+                           "fait proposé (etablir_faits) quand le mode est offert, sauf un indice ou un résultat "
+                           "de recherche, fouille ou examen : propose alors une action de perception "
+                           "(examiner, toucher, ecouter…) sur sa cible, le moteur seul en donne le résultat ; une inconnue mécanique "
                            "se dit par sa limite de perception ou de savoir dans la fiction ; "
                            "l'ambiance compatible reste libre et se décrit directement comme perçue"),
     "contradictoire": ("le passage accordé aux faits fournis (perception, salle, objet:<id>, ambiance_etablie, "

@@ -37,6 +37,7 @@ from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_
                         mentions as mentions_narratives,
                         mentions_proposees)
 from .portee_narrative import (SCHEMA as SCHEMA_PORTEE, INSTRUCTIONS as INSTRUCTIONS_PORTEE,
+                               SCHEMA_FAITS as SCHEMA_PORTEE_FAITS, controler_usages,
                                descriptions as descriptions_proposees,
                                controler as controler_portee)
 from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
@@ -1236,7 +1237,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 obstacles.extend(mentions_proposees(monde, reponse, base, paroles))
             try:
                 ajouts = descriptions_proposees(reponse)
-                if ajouts:
+                faits_proposes = (reponse.get("proposition")
+                                  if reponse.get("mode") == "etablir_faits" else None)
+                if ajouts or faits_proposes is not None:
                     faits = entree.get("faits", {})
                     contexte = {cle: faits.get(cle) for cle in
                                 ("salle", "scenario", "faits_narratifs_proposables",
@@ -1245,9 +1248,15 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     audit = appeler_brut(INSTRUCTIONS_PORTEE,
                                         {"descriptions": [{"sujet": a["sujet"], "texte": a["texte"]}
                                                           for a in ajouts], "monde": contexte,
-                                         "attestations": faits.get("attestations", [])},
+                                         "attestations": faits.get("attestations", []),
+                                         "demande": intention,
+                                         **({"proposition_faits": faits_proposes}
+                                            if faits_proposes is not None else {})},
                                         "Contrôler la portée des descriptions proposées",
-                                        "auditer_portee", SCHEMA_PORTEE)
+                                        "auditer_portee", SCHEMA_PORTEE_FAITS
+                                        if faits_proposes is not None else SCHEMA_PORTEE)
+                    if faits_proposes is not None:
+                        obstacles.extend(controler_usages(faits_proposes, audit))
                     obstacles.extend(controler_portee(
                         ajouts, audit, faits.get("attestations", [])))
             except (RapportIllisible, ErreurFournisseur) as exc:
@@ -1257,7 +1266,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 obstacles.append(depuis_refus(exc, "description"))
             try:
                 qualifications = qualifications_proposees(reponse, entree.get("faits", {}))
-                if qualifications:
+                if qualifications and not obstacles:
                     if monde is not None:
                         # Forme, bornes, masse et propriétés déjà connues sont
                         # jugées par le moteur avant toute appréciation sémantique.

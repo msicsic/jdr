@@ -23,6 +23,9 @@ def jouer_physique(m, saisies, reponses, jugements=()):
     reponses, jugements, appels = list(reponses), list(jugements), []
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
+        if fonction == "auditer_portee":
+            return {"descriptions": [], "usages": [{"perception_requise": False, "indice": False, "motif": ""}
+                                                    for _ in entree["proposition_faits"]["ajouts"]]}
         if fonction == "auditer_capacites":
             return {"jugements": [jugements.pop(0)]}
         if fonction == "auditer_action":
@@ -91,7 +94,7 @@ class FormeTests(unittest.TestCase):
                 r, texte, appels = jouer_physique(m, [q], [ajout],
                                                 [{"compatible": True, "motif": "Disposition plausible."}])
                 self.assertEqual([f for f, _ in appels],
-                                 ["repondre_au_joueur", "auditer_capacites", "auditer_action"])
+                                 ["repondre_au_joueur", "auditer_portee", "auditer_capacites", "auditer_action"])
                 self.assertIn("Ramper sous", texte)
                 self.assertEqual(r.objets[cible]["passage"], FORME)
                 self.assertEqual(r.joueur["position"], m.joueur["position"])
@@ -131,7 +134,7 @@ class FormeTests(unittest.TestCase):
                         "capacites": [{"nature": "son", "intensite": 1}]}], "suite": suite}}
         r, texte, appels = jouer_physique(m, ["est-ce que je peux faire sonner la hache ?"], [ajout],
                                          [{"compatible": True, "motif": "Un tintement discret est plausible."}])
-        self.assertEqual([f for f, _ in appels], ["repondre_au_joueur", "auditer_capacites", "auditer_action"])
+        self.assertEqual([f for f, _ in appels], ["repondre_au_joueur", "auditer_portee", "auditer_capacites", "auditer_action"])
         self.assertEqual(r.objets["hache"]["sonorite"], 1)
         self.assertEqual(r.data["minutes"], m.data["minutes"])
         self.assertFalse(r.data["journal"])

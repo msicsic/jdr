@@ -46,7 +46,7 @@ class FaitsLocauxTests(unittest.TestCase):
                                 "ancrage": "antichambre_murs", "nom": nom_propose,
                                 "genre": "f", "texte": description}]}}
                 def audit(nom_propose, description, nom_requis, texte_requis):
-                    return {"descriptions": [
+                    return {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [
                         {"representation": nom_requis, "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{
                             "texte": nom_propose, "portee": "sujet", "preuve": "", "motif": ""}]},
                         {"representation": texte_requis, "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{
@@ -91,7 +91,7 @@ class FaitsLocauxTests(unittest.TestCase):
                             "faits": ["faits_narratifs_proposables"],
                             "proposition": {"ajouts": [{**base, "texte": texte}]}}
                 def portee(texte, douteux=False):
-                    return {"descriptions": [
+                    return {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [
                         {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [
                             {"texte": nom, "portee": "sujet", "preuve": "", "motif": ""}]},
                         {"representation": "etat_du_monde" if douteux else "aspect",

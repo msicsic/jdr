@@ -191,7 +191,9 @@ class NarrationTests(unittest.TestCase):
                 ajout = {"mode": "etablir_faits", "texte": "", "faits": [],
                          "proposition": {"ajouts": [{"type": "parole", "ancrage": reference,
                              "nom": "", "genre": "", "texte": "Je t'entends.", "presentation": ""}]}}
-                f, rendu, _ = jouer(apercu, "que dit cette voix ?", [ajout], [])
+                usage = {"descriptions": [], "usages": [
+                    {"perception_requise": False, "indice": False, "motif": "Parole entendue."}]}
+                f, rendu, _ = jouer(apercu, "que dit cette voix ?", [ajout, usage], [])
                 self.assertIn("Je t'entends.", rendu)
                 self.assertEqual(f.data["paroles_pnj"][-1]["salle"], "echoppe")
                 self.assertEqual(f.data["paroles_pnj"][-1]["auditeurs"], r.data["paroles_pnj"][-1]["auditeurs"])

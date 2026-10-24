@@ -4,6 +4,8 @@ Une description d'un sujet ne doit pas établir au passage un autre fait autonom
 Le contrôleur doit couvrir le texte entier et justifier chaque affirmation autonome.
 """
 
+import copy
+
 from .monde import ErreurMonde
 from .refus import RapportIllisible, audit, citer, liste
 from .narration import segments
@@ -39,7 +41,64 @@ SCHEMA = {
     "required": ["descriptions"],
 }
 
+# La portée d'une transaction ne se réduit pas à celle de sa prose : même une
+# qualification sans texte peut remplacer indûment le geste demandé.
+SCHEMA_FAITS = copy.deepcopy(SCHEMA)
+SCHEMA_FAITS["properties"]["usages"] = {
+    "type": "array", "minItems": 1, "maxItems": 3,
+    "items": {"type": "object", "additionalProperties": False,
+              "properties": {"perception_requise": {"type": "boolean"},
+                             "indice": {"type": "boolean"},
+                             "motif": {"type": "string"}},
+              "required": ["perception_requise", "indice", "motif"]}}
+SCHEMA_FAITS["required"].append("usages")
+
+
+def controler_usages(proposition, rapport):
+    """Un jugement par ajout, avant toute mutation ; aucune détection par mots clés."""
+    ajouts = proposition.get("ajouts") if isinstance(proposition, dict) else None
+    usages = rapport.get("usages") if isinstance(rapport, dict) else None
+    if (not isinstance(ajouts, list) or not isinstance(usages, list)
+            or len(ajouts) != len(usages) or not 1 <= len(ajouts) <= 3
+            or any(not isinstance(a, dict) for a in ajouts)
+            or any(not isinstance(u, dict)
+                   or set(u) != {"perception_requise", "indice", "motif"}
+                   or type(u["perception_requise"]) is not bool
+                   or type(u["indice"]) is not bool or not isinstance(u["motif"], str)
+                   for u in usages)):
+        raise RapportIllisible("Contrôle de l'usage des faits incomplet.")
+    from .moteur import PERCEPTIONS
+    obstacles = []
+    for i, (ajout, usage) in enumerate(zip(ajouts, usages)):
+        for cause in ("perception_requise", "indice"):
+            if usage[cause]:
+                obstacles.append(audit(
+                    "Un fait narratif ne peut pas remplacer une perception." if cause == "perception_requise"
+                    else "Un fait narratif ne peut pas créer un indice.",
+                    "mode = action, proposition.action parmi " + liste(sorted(PERCEPTIONS))
+                    + " (examiner pour inspecter, toucher pour fouiller un contenant ouvert) ; "
+                    f"cible = {ajout.get('ancrage')!r}, le support recherché ; le moteur produit et enregistre le résultat, "
+                    "positif ou négatif, sans nouvel ajout etablir_faits",
+                    partie=f"proposition.ajouts[{i}]", recu=ajout,
+                    verdict=(cause, usage["motif"])))
+    return obstacles
+
 INSTRUCTIONS = """Tu fais la contre-revue de descriptions proposées par le MJ.
+Si proposition_faits est fournie, rends aussi usages : un jugement pour CHAQUE ajout, dans
+l'ordre, même sans description libre (qualification, inscription, parole, évolution).
+Compare la demande entière du joueur à ce que l'ajout fait réellement :
+- perception_requise=true si l'ajout répond à une recherche, une fouille ou un examen actif
+  en établissant ce qui serait découvert, au lieu de laisser exécuter cette perception.
+  Cela vaut aussi pour un simple aspect du support qui remplace le geste, un résultat négatif
+  ou hypothétique, et quand une suite d'action accompagne l'ajout. Décrire l'aspect ordinaire
+  ou les propriétés matérielles inconnues en réponse à une question descriptive reste permis ;
+- indice=true si l'ajout crée un signe permettant d'inférer un passage, une présence, un
+  événement ou quelque chose de caché, même sans aucun lien avec l'objectif de la partie.
+  Une parole établit seulement les mots prononcés, pas leur vérité ; une évolution déclarée
+  applique une mécanique du scénario. Ne traite pas leur contenu comme une découverte inventée.
+Le motif explique ce jugement. La demande, le nom et tous les champs de l'ajout comptent ;
+ne te limite pas au texte des descriptions. Une odeur ou une texture sans valeur d'indice
+et sans résultat de geste reste une ambiance légitime.
 Avant d'évaluer les preuves, détermine quelle représentation une phrase impose au jeu :
 - aspect : propriété visuelle locale d'un objet, d'un détail ou de son support, sans autre objet autonome ni message à lire ;
 - objet : chose distincte dont l'existence, la position et les interactions doivent être suivies ;

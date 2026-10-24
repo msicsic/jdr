@@ -249,12 +249,12 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                                                "texte": texte}]}}
         reponses = [
             proposition_mj(invention),
-            {"descriptions": [
+            {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [
                 {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": "tache d'humidité", "portee": "sujet", "preuve": "", "motif": ""}]},
                 {"representation": "etat_du_monde", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": invention, "portee": "sans_preuve", "preuve": "", "motif": "Autre objet."}]},
             ]},
             proposition_mj(corrige),
-            {"descriptions": [
+            {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [
                 {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": "tache d'humidité", "portee": "sujet", "preuve": "", "motif": ""}]},
                 {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [{"texte": corrige, "portee": "sujet", "preuve": "", "motif": ""}]},
             ]},
