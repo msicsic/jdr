@@ -8,7 +8,7 @@ a été émis et de qui l'a entendu.
 """
 from .monde import ErreurMonde
 from .refus import RefusDeForme
-from .francais import designer
+from .francais import designer, groupe_nominal, complement_de
 
 
 VOIX = {
@@ -163,7 +163,7 @@ def _compiler_repondre(m, e, justification, origine):
                           "corps_rythmique).")
     from .voix import nom_pour_joueur
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
-             "Répondre à " + nom_pour_joueur(m, qui) + ".", origine=origine)
+             "Répondre " + groupe_nominal(nom_pour_joueur(m, qui), "à") + ".", origine=origine)
     p.minutes, p.dixiemes, p.effort = 0, HELER, False
     p.effets = [(methode, "joueur", qui)]
     return p
@@ -190,6 +190,6 @@ def appliquer(m, emetteur, mode, lignes):
     lignes.append(texte)
     for id in ecoutants:
         if m.visible(id):
-            entendu = ("le son de " + designer(m.objets[emetteur]) + "." if emetteur != "joueur" else
+            entendu = ("le son " + complement_de(m.objets[emetteur]) + "." if emetteur != "joueur" else
                        "ton " + ("appel à l'aide." if mode == "appel" else "cri." if mode == "cri" else "sifflement."))
             lignes.append(designer(m.objets[id], debut=True) + " entend " + entendu)

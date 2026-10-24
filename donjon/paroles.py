@@ -22,7 +22,7 @@ from contextlib import contextmanager
 
 from . import relations
 from .esprits import RECENT, croire, croyance, esprit, lire, memoriser, percevoir
-from .francais import complement_de, designer, lieu
+from .francais import complement_de, designer, lieu, groupe_nominal, de
 from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
@@ -806,7 +806,7 @@ def destinataires(monde, forme):
     if forme.get("inconnu") and not (forme["nomme"] or forme["groupe"]):
         # Il nomme quelqu'un qu'il ne connaît pas : il ne sait pas s'il est là, et n'en parle pas à un autre.
         nom = " ".join(forme["inconnu"].split())
-        raise ParoleImpossible(f"Tu ne connais personne du nom de {nom[:1].upper() + nom[1:]} ici. À la "
+        raise ParoleImpossible(f"Tu ne connais personne du nom {de(nom[:1].upper() + nom[1:])} ici. À la "
                                "cantonade (« à tous : … »), qui t'entend retiendra tes mots.",
                                f"« {nom} » ne désigne aucun personnage que Corvus connaisse : réponds en mode "
                                "dialogue ; ne fais pas parler Corvus à un autre personnage à sa place.")
@@ -935,7 +935,7 @@ def annonce(monde, rapport):
     # Le nom qu'il lui donnait en parlant (``a_qui``), pas celui qu'elle s'est donné en répondant.
     a = ("tous" if rapport["personnage"] == "tous"
          else rapport.get("a_qui") or nom_pour_joueur(monde, reel(monde, rapport["personnage"])))
-    return f"{tour}Tu {verbe} à {a} : « {rapport['replique_joueur']} »"
+    return f"{tour}Tu {verbe} {groupe_nominal(a, 'à')} : « {rapport['replique_joueur']} »"
 
 
 def identites(monde):
@@ -1310,7 +1310,7 @@ def _demander(travail, auditeur, objet, faits, prix=0):
         "mefiance": f"{nom} refuse : {il} ne te fait pas confiance.",
         "rancune": f"{nom} refuse : {il} t'en veut encore.",
         "qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
-        "necessaire": f"{nom} refuse de se séparer de {o}, qui lui sert.",
+        "necessaire": f"{nom} refuse de se séparer {de(o)}, qui lui sert.",
         "pauvre": f"Tu n'as pas les {prix} pièces que tu lui offres.",
         "refus": f"{nom} n'est pas convaincu{e} et garde {o}"
                  + (f" ; {il} en veut {vend} pièce{'s' if vend > 1 else ''}." if vend and prix < vend else "."),
@@ -1465,7 +1465,7 @@ def issue(monde, forme, dest, repondent, temoins, replique):
         ids = [f"{nom_pour_joueur(monde, x)} ({designation(monde, x)})" for x in ids]
         return ids[0] if len(ids) == 1 else ", ".join(ids[:-1]) + " et " + ids[-1]
     chuchote = forme["maniere"] == "chuchote"
-    a = (" à tous" if forme["groupe"] else f" à {noms(dest)}" if dest else ", à la cantonade")
+    a = (" à tous" if forme["groupe"] else " " + groupe_nominal(noms(dest), "à") if dest else ", à la cantonade")
     phrase = f"Tu as {'chuchoté' if chuchote else 'dit à voix haute'}{a} : « {replique} »."
     if repondent:
         un = len(repondent) == 1
@@ -1515,7 +1515,7 @@ def preparer_parole(monde, p, revision=None):
     if reel(monde, p["personnage"]) != reel(monde, attendu):
         raise ErreurMonde("Tu t'adresses à tous ceux qui t'entendent." if forme["groupe"]
                           else "Tu ne t'adresses à personne en particulier." if not dest
-                          else "Tu t'adresses à " + _nom_pour(monde, dest[0]) + ".",
+                          else "Tu t'adresses " + groupe_nominal(_nom_pour(monde, dest[0]), "à") + ".",
                           f"personnage = {attendu} (parole_prevue.personnage : "
                           + ("tous ceux qui entendent Corvus" if forme["groupe"] else
                              "aucun interlocuteur perçu à portée de voix : il parle à la cantonade" if not dest else

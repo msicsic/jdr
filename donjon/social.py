@@ -17,8 +17,7 @@ se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qu
 inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
 from .esprits import croire, lire, memoriser, pnjs
-from .francais import complement_de, designer
-from .monde import normaliser
+from .francais import complement_de, designer, de, groupe_nominal
 from .relations import se_fie, envers
 
 # ``dette_niee`` : un débiteur refuse de rendre ce qu'il doit ; ``pret_garde`` : un emprunteur garde un
@@ -166,7 +165,7 @@ def phrase(monde, noyau, locuteur=None):
     il = "elle" if monde.objets.get(accuse(noyau), {}).get("genre") == "f" else "il"
     if t == "dette_niee":
         n = noyau["montant"]
-        return f"{qui} garde les {n} pièce{'s' if n > 1 else ''} qu'{il} doit à {_qui(monde, noyau['victime'], locuteur)}"
+        return f"{qui} garde les {n} pièce{'s' if n > 1 else ''} qu'{il} doit " + groupe_nominal(_qui(monde, noyau['victime'], locuteur), "à")
     if t == "pret_garde":
         return (f"{qui} garde {designer(o)} que {_qui(monde, noyau['victime'], locuteur)} lui a "
                 + ("prêtée" if o.get("genre") == "f" else "prêté"))
@@ -295,7 +294,7 @@ def qui_va_la(monde, id, autre, lignes):
 
 def _entendu(monde, id, auditeur, noyau, rang, lignes):
     cites = [x for x in (accuse(noyau), noyau.get("objet"), *_lieu_dit(noyau)) if x]
-    faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse à " + _qui(monde, auditeur, id) + " que "
+    faire_entendre(monde, id, auditeur, _qui(monde, id) + " glisse " + groupe_nominal(_qui(monde, auditeur, id), "à") + " que "
                    + phrase(monde, noyau, id) + ".", cites, lignes,
                    [{"type": "rumeur", "evenement": noyau, "rang": rang}])
 
@@ -358,10 +357,8 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
     if issues:
         from .esprits import reconsiderer
         reconsiderer(monde, id)  # Ce qu'il a surpris lui apprend quelque chose.
-    de = _qui(monde, locuteur)
-    de = ("d'" if normaliser(de)[:1] in "aeiouyh" else "de ") + de
-    _chroniquer(monde, id, f"{_qui(monde, id)} surprend les mots {de} à "
-                + ", ".join(_qui(monde, x) for x in destinataires)
+    _chroniquer(monde, id, f"{_qui(monde, id)} surprend les mots {de(_qui(monde, locuteur))} "
+                + groupe_nominal(", ".join(_qui(monde, x) for x in destinataires), "à")
                 + (f" ({', '.join(issues)})" if issues else "") + ".", "ouie")
 
 
@@ -394,7 +391,7 @@ def bavarder(monde, id, lignes):
                 # même incident peuvent aussi concerner un bien de l'auditeur.
                 from .deliberation import VOL, relancer
                 relancer(monde, auditeur, "biens", 30 if all(x["type"] == "absence" for x in siens) else VOL // 2)
-        _chroniquer(monde, id, f"{_qui(monde, id)} dit à {_qui(monde, auditeur)} que {phrase(monde, noyau)} ({issue or 'connu'}).",
+        _chroniquer(monde, id, f"{_qui(monde, id)} dit {groupe_nominal(_qui(monde, auditeur), 'à')} que {phrase(monde, noyau)} ({issue or 'connu'}).",
                     "social")
         _entendu(monde, id, auditeur, noyau, rang, lignes)
         return True

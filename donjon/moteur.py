@@ -5,7 +5,7 @@ import copy
 from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
-from .francais import accorder, complement_de, designer, sujet
+from .francais import accorder, complement_de, designer, sujet, groupe_nominal
 from .geometrie import position_entree
 from .deplacement_objet import deplacer
 from .rendu import decrire, decrire_contexte, decrire_perception, regarder, prix, toucher
@@ -399,7 +399,7 @@ class Moteur:
             destinataire = verifier_don(m, cible, outil)
             exiger(m, destinataire)
             from .voix import nom_pour_joueur
-            plan.titre = "Donner " + designer(m.objets[cible]) + " à " + nom_pour_joueur(m, destinataire, court=False) + "."
+            plan.titre = "Donner " + designer(m.objets[cible]) + " " + groupe_nominal(nom_pour_joueur(m, destinataire, court=False), "à") + "."
             plan.effets = [("donner", cible, destinataire)]
             return plan
         if not m.accessible(cible):
@@ -458,7 +458,7 @@ class Moteur:
         elif action == "acheter":
             possesseur = proprietaire(m, o)
             if possesseur not in (None, "joueur") and o.get("vole_par") != "joueur" and not o.get("en_vente"):
-                raise ErreurMonde(designer(o, debut=True) + " appartient à " + designer(m.objets[possesseur])
+                raise ErreurMonde(designer(o, debut=True) + " appartient " + groupe_nominal(designer(m.objets[possesseur]), "à")
                                   + " et n'est pas à vendre.",
                                   f"{cible} n'est pas en vente : demande-le en mode parole_joueur, ou propose voler "
                                   "si le joueur l'a explicitement voulu.")
@@ -1103,7 +1103,7 @@ class Moteur:
             o.pop("vole_par", None)
             memoriser(m, valeur, {"type": "restitution" if pret else "don", "de": "joueur", "objet": cible, "ponctuel": ponctuel})
             from .voix import nom_pour_joueur
-            lignes.append("Tu donnes " + designer(o) + " à " + nom_pour_joueur(m, valeur, court=False) + ".")
+            lignes.append("Tu donnes " + designer(o) + " " + groupe_nominal(nom_pour_joueur(m, valeur, court=False), "à") + ".")
             return
         o = m.objets.get(cible)
         if op == "liberer":

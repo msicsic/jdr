@@ -140,12 +140,13 @@ class AdresseTests(unittest.TestCase):
 
     def test_nom_non_resolu_ne_fait_pas_interpreter_un_dementi_au_mj(self):
         from tests.test_noms import relais
-        for saisie in ("Gorm, tu peux décrire le beffroi ?", "Ilse, tu m'entends ?"):
+        for saisie, complement in (("Gorm, tu peux décrire le beffroi ?", "de Gorm"),
+                                   ("Ilse, tu m'entends ?", "d'Ilse")):
             with self.subTest(saisie=saisie):
                 m = relais()
                 r, sortie, appels = jouer(m, saisie, [], [])
                 self.assertEqual(appels, [])
-                self.assertIn("Tu ne connais personne du nom de", sortie)
+                self.assertIn("Tu ne connais personne du nom " + complement, sortie)
                 self.assertEqual(r.data["noms_connus"], [])
                 self.assertEqual(r.data.get("paroles_joueur", []), [])
 

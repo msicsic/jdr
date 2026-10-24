@@ -1,6 +1,6 @@
 """Contrôle commun des interactions manuelles en mode case par case."""
 from .monde import ErreurMonde
-from .francais import complement_de
+from .francais import complement_de, de
 
 
 class HorsDePortee(ErreurMonde):
@@ -19,7 +19,7 @@ def exiger(monde, id):
         if o and o["type"] == "personnage" and designation(monde, id) != id:
             # Une voix qu'il ne sait à qui prêter : il ne l'approche que sous le nom qu'il lui connaît.
             voix = nom_pour_joueur(monde, id)
-            nom = ("d'" if voix[:1].lower() in "aeiouyéèêh" else "de ") + voix
+            nom = de(voix)
         position = position_cible(monde, id)
         if position:
             ox, oy = monde.data["salles"][monde.joueur["salle"]]["plan"]["origine"]
