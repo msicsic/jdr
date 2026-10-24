@@ -63,6 +63,8 @@ _MEMOIRE = {}
 # il dépendait (None : des entrées vues une fois, sans graphe gardé) : quand seuls le prix d'une faute
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
+# Dès la première recherche, une petite marque de discrétion est retenue ;
+# les nœuds ne le sont qu'à la deuxième rencontre des mêmes entrées.
 _GRAPHES = {}
 # Une impossibilité prouvée sur tout le graphe jusqu'à la profondeur autorisée ne dépend
 # plus des prix. Une seule dernière preuve par PNJ/but ; une preuve bornée n'est jamais reprise.
@@ -289,6 +291,9 @@ class Vue:
         # Dépendance constatée dans le but ou dans les gestes réellement explorés,
         # par les lectures communes de lumière, jamais d'après une capacité du PNJ.
         self._lumiere_lue = False
+        # Découverte par les gardes des gestes offerts, avant le filtre d'allure.
+        self._discretion_lue = False
+        self._explore_furtif = False
         self.seul = None       # par ses seuls moyens : à qui seul il peut demander (``devis_pulsion``)
         self._estime_part = False
         self._estimations_parts = {}
@@ -1642,6 +1647,8 @@ def _entrees(v, vises, profondeur, noeuds):
         sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route, v.vitesse_eau, pnj.DUREES,
         # Le coût du noir et le but explicite de lumière ; les autres emplois de
         # lumière se découvrent dans les gestes à partir des mêmes entrées.
+        # La discrétion lit les gardes des mêmes suites : permissions, capacités,
+        # visées, refus, moyens et admissibilité sont déjà couverts ci-dessus.
         v.peur, v.eclairer,
         # La suite estimée lit les mêmes routes, possessions, refus et gestes ;
         # ses pressions restent celles de la vue, y compris les menaces sociales.
@@ -1732,12 +1739,17 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             # qui changent à chaque fois n'en encombrent pas la mémoire.
             vu = _GRAPHES.get(place)
             if vu is None or vu[0] != base:
-                _GRAPHES[place] = (base, None)
+                # Retenir dès la première recherche la découverte, sans garder
+                # tous les nœuds des entrées qui ne reviendront jamais.
+                graphe = {"garder": False, "discretion": False}
+                _GRAPHES[place] = (base, graphe)
             elif vu[1] is None:
                 graphe = {}
                 _GRAPHES[place] = (base, graphe)
             else:
-                graphe, repris = vu[1], True
+                graphe = vu[1]
+                repris = graphe.get("garder", True)
+                graphe["garder"] = True
     if garde is not None:
         _, trouve, issue, borne = garde
         examines = etats = plus_profond = 0
@@ -1748,7 +1760,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                                           noeuds, faute, tenir, graphe)
         borne = examines >= noeuds
         issue = "plan" if trouve else "borne" if borne else "epuise"
-        if (trouve is None and graphe is not None and memo is not None and depuis is None
+        if (trouve is None and graphe is not None and graphe.get("garder", True) and memo is not None and depuis is None
                 and (vide_garde is None or vide_garde[0] != signature_vide)):
             vide, preuve_noeuds, preuve_issue = _sans_plan(
                 v, depart(monde, id, v), but, profondeur, faute, tenir, graphe, voir)
@@ -1809,7 +1821,7 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
         brute.motif = v.motif
         brute.desespere = v.desespere
         r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir,
-                      differer=False, borner=False)
+                      differer=False, borner=False, decouvrir_discretion=False)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
@@ -1856,7 +1868,7 @@ def _endure(v, trouve, depuis, gain):
 
 
 def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None, *, differer=True,
-              borner=True):
+              borner=True, decouvrir_discretion=True):
     """Découvrir les moyens que le but et ses gestes emploient, puis chercher.
 
     Une lecture de lumière dans un état sombre révèle ce que la lumière peut
@@ -1869,19 +1881,47 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     avec (``lumiere``), chacun ne dépendant que des entrées, et chaque nœud du premier retient
     si l'examiner a lu la lumière. Repris, il rejoue la découverte telle qu'une recherche
     neuve la ferait avec ce prix-là (``_explorer_etats``).
+
+    La garde d'un geste admissible découvre aussi le besoin de discrétion.
+    Les deux départs sont alors repris ensemble, puis cette possibilité est
+    retenue par PNJ/but sous les entrées du graphe, indépendamment des prix.
+    ``decouvrir_discretion=False`` ne sert qu'au témoin historique de VERIFIER.
     """
     v._depart_estimation = depart_
     v._contexte_parts = (but, json.dumps(vises, sort_keys=True, ensure_ascii=False))
     sombre = lumineux = None
-    if graphe is not None:
+    if graphe is not None and graphe.get("garder", True):
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
+    v._explore_furtif = bool(graphe and graphe.get("discretion"))
+    v._decouvrir_discretion = decouvrir_discretion
+    if not decouvrir_discretion:
+        # Témoin historique de VERIFIER : les deux allures dès qu'une faute
+        # est autorisée, même sans geste offert qui puisse en avoir besoin.
+        v._explore_furtif = (any(v.illicite[o] and v.autorise[o] for o in v.connus)
+                             or v.degat is not None and any(v.violence(x) is not None for x in v.personnes()))
+    v._discretion_lue = v._explore_furtif
+    lumiere_initiale = v._lumiere_lue
     voir = v.emploie_lumiere
     resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir,
                                lumineux if voir else sombre, decouvrir=not voir, differer=differer, borner=borner)
-    if not voir and v.emploie_lumiere:
+    if not voir and v.emploie_lumiere and not (v._discretion_lue and not v._explore_furtif):
         v._agissables.clear()
         resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux,
                                    differer=differer, borner=borner)
+    if v._discretion_lue and not v._explore_furtif:
+        # Un plan discret marche feutré depuis le départ : reprise entière,
+        # même plafond et même ordre, y compris la découverte de lumière.
+        if graphe is not None:
+            graphe["discretion"] = True
+        v._explore_furtif = True
+        v._lumiere_lue = lumiere_initiale
+        v._agissables.clear()
+        resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir,
+                                   lumineux if voir else sombre, decouvrir=not voir, differer=differer, borner=borner)
+        if not voir and v.emploie_lumiere:
+            v._agissables.clear()
+            resultat = _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir, lumineux,
+                                       differer=differer, borner=borner)
     return resultat
 
 
@@ -1891,9 +1931,7 @@ def _departs(v, e):
     # supplément découvert trop tard au moment de la faute.
     if getattr(v, "_cru_spatial", None) is None:
         return [e]
-    furtif = (any(v.illicite[o] and v.autorise[o] for o in v.connus)
-              or v.degat is not None and any(v.violence(x) is not None for x in v.personnes()))
-    if furtif:
+    if getattr(v, "_explore_furtif", False):
         return [e.apres(allure=15), e.apres(allure=30)]
     return [e]
 
@@ -1941,7 +1979,8 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     # La passe de découverte (``decouvrir``) n'a plus rien à apprendre dès la première lecture de
     # lumière : seule la passe suivante, avec les moyens d'éclairer, décidera du plan. Ses nœuds
     # restent justes pour la rejouer (le cinquième terme : où elle a lu la lumière).
-    while file and examines < noeuds and not (decouvrir and v._lumiere_lue):
+    while (file and examines < noeuds and not (decouvrir and v._lumiere_lue)
+           and not (getattr(v, "_discretion_lue", False) and not v._explore_furtif)):
         _, _, _, rang, cout, e, etapes, n, final = heapq.heappop(file)
         if isinstance(final, SuiteDifferee):
             for i, (fautes, minutes, ajout, suivant, _, abime, _) in enumerate(final.developper(v)):
@@ -2040,22 +2079,36 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
             continue
         fautes, minutes, ajout, suivant = geste[:4]
         furtif = any(x.get("condition") in ("sans_temoin", "dans_le_dos") for x in ajout)
-        if furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None:
-            continue
+        if (furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None
+                and (getattr(v, "_explore_furtif", False) or not getattr(v, "_decouvrir_discretion", True))):
+            continue   # filtre historique ; seule la découverte lit les gardes suivantes
         if furtif:
             suivant = suivant.apres(faits=[(("furtif",), True)])
-        # Le devis a déjà évalué les trajets entre salles ; ne calculer ici que
-        # ses gestes conclusifs, avant leurs pressions coûteuses.
-        if conclure and (any(x["operation"] == "aller" for x in ajout) or not but(v, suivant)):
-            continue
-        if v.seul and any(x["operation"] in TIERS and (x["cible"] != v.seul
-                          or x["operation"] not in ("demander", "acheter"))
-                          or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
-            continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
-        # Écarter les effets terminaux inutiles avant de mesurer leur approche.
-        if (len(suivant.faits) > len(e.faits) and any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits)
-                and not but(v, suivant)):
-            continue
+        decouvre_furtif = furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None
+        lumiere = v._lumiere_lue if decouvre_furtif else None
+        try:
+            # Le devis a déjà évalué les trajets entre salles ; ne calculer ici que
+            # ses gestes conclusifs, avant leurs pressions coûteuses.
+            if conclure and (any(x["operation"] == "aller" for x in ajout) or not but(v, suivant)):
+                continue
+            if v.seul and any(x["operation"] in TIERS and (x["cible"] != v.seul
+                              or x["operation"] not in ("demander", "acheter"))
+                              or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
+                continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
+            # Écarter les effets terminaux inutiles avant de mesurer leur approche.
+            if (len(suivant.faits) > len(e.faits) and any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits)
+                    and not but(v, suivant)):
+                continue
+        finally:
+            if decouvre_furtif:
+                # Ces lectures n'existent pas dans l'allure ordinaire historique.
+                # Seule la reprise feutrée doit les faire découvrir à la lumière.
+                v._lumiere_lue = lumiere
+        if furtif and getattr(v, "_cru_spatial", None) is not None:
+            if getattr(v, "_decouvrir_discretion", True):
+                v._discretion_lue = True
+            if e.allure != 30:
+                continue
         duree = geste[4] if len(geste) > 4 else minutes
         if isinstance(geste, TransitionMesuree):
             pression = geste[6]
@@ -2140,6 +2193,8 @@ def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir):
     Qu'un tel état soit atteignable dans le graphe sombre, un autre prix d'une faute peut l'y faire
     examiner : l'absence n'est prouvée que si le graphe ``lumiere`` la prouve aussi (une lacune
     sinon, s'il n'a pas été développé)."""
+    # La vue conserve la découverte du graphe joué : _parcours et la
+    # recherche partagent _departs, y compris pour une absence sans discrétion.
     if voir:
         return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir)[:3]
     prouve, examines, issue, lue = _parcours(v, graphe.get("sombre", {}), depart_, profondeur, faute, tenir)
