@@ -1,9 +1,26 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-23.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-24.
 
 ## Où on en est
 
+- Branche `codex-cout-trajets`, non fusionnée, base **0ac6b15** (brief **ff33ef0**) :
+  invariant de Q conservé, décisions/coûts/ordre/recherches/nœuds identiques. Deux leviers exacts,
+  commits signés : partage LRU des parcours crus sous géométrie, obstacles, portes, clés, origine,
+  allure, eau et équipement utile ; cases de contact partagées par salle/cibles dans une vue figée,
+  sans changer le départage des approches. Recalcul des reprises par `spatial.VERIFICATION`.
+  50 tests ciblés verts ; 16 nuits de 2 h (quatre scénarios × quatre graines), puis quatre nuits
+  CPU de 4 h : empreintes strictes identiques à Q, recherches et nœuds compris. CPU, trois versions
+  lancées ensemble, graines 42/1985, mine : 6,745 → 14,045 → 11,485 s ; auberge :
+  4,840 → 13,290 → 11,255 s (`42bb9c0` → Q → branche). Gains 18,2 % / 15,3 % contre Q ;
+  **cible ×1,5 non atteinte**, reste ×1,70 / ×2,33 contre l'ancien moteur. Aucune réduction
+  approchée d'`Etat`, aucune correction des recherches bornées. Contrôles `VERIFIER` +
+  `spatial.VERIFICATION=1` sur mine/auberge, 2 h, graine 42 : aucun écart ni borne.
+  Suite complète lancée une fois, trois processus : **1 603 tests, quatre ignorés**, verte,
+  999,7 s (inclut le test existant de nuit de 10 h à la mine).
+  Aucun appel à Luna, priorité réduite, quatre travailleurs au plus, aucune fusion ni banc long.
+  Références réutilisables dans `artifacts/references/{0ac6b15,42bb9c0}/codex-28-*.json`
+  du dépôt principal ; [rapport d'une page](taches/rapport-codex-28-cout-trajets.md).
 - Branche `codex-trajets-reels`, fusionnée, base `main` **aff9626** :
   coût unique `obstacles.cout_route` en temps réel cru (case réelle puis projetée,
   allure, diagonales, approches, rotations, portes et gestes). Pression par salle
