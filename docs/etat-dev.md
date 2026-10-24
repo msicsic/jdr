@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-pnj-proposent`, **non fusionnée ; lot non validé**, base `ffcc295` :
+  geste PNJ `proposer`, même évaluation et mêmes engagements que le joueur ; chance
+  estimée sur les connaissances propres, services promis puis réellement accomplis
+  ou abandonnés au prix de faute. Publication atomique conservant les références du
+  moteur et les identifiants publics avant recharge. Commits signés SSH vérifiés :
+  `1bf5be8`, `e58e7ca`, `0353c00`, `684ee70`. Dix tests A2b et douze tests de besoins
+  verts sur le moteur final ; reprises antérieures consolidées de 144 tests et 34
+  tests des marchés. Suite unique, trois processus, interrompue : **120/156 fichiers,
+  1 504 tests exécutés, 36 fichiers non achevés** ; pas de bilan global vert.
+  Banc intermédiaire, quatre scénarios × quatre graines, 4 h : aucun plantage ni
+  usurpation ; nouvelle observation d'alternance au Relais 7, donc absence de boucle
+  nouvelle non garantie. CPU apparié avant dernier mémo : mine **+610 %**, auberge
+  **+578 %** ; mesure finale et cible +10 % non validées. Contrôle crue 2 h/42 achevé
+  sur version intermédiaire ; clé des devis corrigée après défaut à la mine, contrôle
+  final incomplet. Aucun appel Luna ; quatre travailleurs au plus, priorité réduite.
+  Créneau de 45 minutes dépassé. Reprendre validation et coût avant intégration ;
+  critère de 3e toujours ouvert. [Rapport et limites](taches/rapport-codex-33-pnj-proposent.md).
+
 - Branche `codex-propositions`, fusionnée, base `450cebb` (intégration `19b0261`),
   lot 29 A2a : contenu de parole indivisible demande/contrepartie, évaluation P/G/L et INT
   dans `echanges`, remises atomiques et engagements par `agendas`. Les promesses du joueur

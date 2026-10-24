@@ -542,9 +542,26 @@ des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rappo
   retenu dans l'esprit de l'auteur), le besoin qu'il croit à l'autre de la contrepartie. `PRET`
   disparaît. Ces lectures entrent dans `planification._entrees` (la mémoire des recherches) ;
   `planification.VERIFIER` contrôle qu'aucune n'y manque.
-  La constante a déjà disparu dans `codex-garde-pret` au profit de cette estimation
-  commune aux demandes existantes. Restent ici le geste `proposer`, le prix de la
-  contrepartie et le besoin cru de l'auditeur ; le calcul unique pourra les intégrer.
+  **A2b, implémenté sur `codex-pnj-proposent`, non fusionnée, lot non validé (2026-10-24).** La constante
+  avait déjà disparu dans `codex-garde-pret`. `pnj_propositions.gestes`, appelé une fois
+  par `planification.gestes`, offre objets/parts déjà portés, pièces disponibles et tâches
+  autonomes selon le devis commun. `relations.chance_proposition` ajoute à la chance
+  de demande la valeur crue de la contrepartie : prix publics, besoin perçu, travail
+  évité estimé ; aucun axe privé de l'auditeur. Les tâches suggérées sont l'entretien
+  des sources connues et la fermeture de serrures crues ouvertes, sur les biens connus
+  de l'autre ou les installations communes de son lieu. Les autres formes typées restent
+  exécutables par le contrat commun, sans exploration exhaustive des promesses possibles.
+  Les lectures nouvelles (engagements propres, parts portées, prix de faute des devis)
+  entrent dans `_entrees` ; les devis réemployés se recalculent sous `VERIFIER`.
+  L'offre passe par `echanges.proposer` ; la validation se place du côté du proposant,
+  et l'application atomique conserve les références du moteur (`Monde.adopter`). Une
+  tâche de marché demande un effet réel avant d'être tenue. Tenir et trahir restent deux
+  coûts comparables : le travail ou la faute, réévaluée à l'abandon par `agendas.renonce`.
+  Les demandes, ventes et prêts historiques restent séparés : leur conversion changerait
+  les cessions, les jets et les parts servies. `rendre_service` et intermédiaires restent
+  à faire. **Cible de temps +10 % non validée** ; les contrôles finaux restent incomplets,
+  et le critère complet de 3e reste ouvert.
+  [Mesures et limites du lot A2b](taches/rapport-codex-33-pnj-proposent.md).
 - **Regagner la confiance** : un geste `rendre_service` (donner ce que l'autre croit lui manquer,
   tenir une tâche pour lui), dont l'effet projeté dans la recherche est la relation de l'autre
   relevée d'une bande, et qui ouvre alors `demander`. Brune refusée par méfiance peut, si c'est
