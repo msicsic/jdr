@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Fusions des lots 31 et 32 sur l'intégration** (da13f9d, base 41c1c7c ; sans Luna) : `codex-cout-exact` (f4e95fd)
+  puis `codex-question-absent` (da13f9d), seul conflit `docs/etat-dev.md`. `comparer_bancs --empreintes` contre
+  41c1c7c, 2 h, quatre scénarios × 1985, 7, 42, 2024 : chronique, mesures et état final complet identiques nuit par
+  nuit. Tests des lots (`test_trajet_estime`, `test_vue_action`, `test_question_absent`, `test_repli_et_appel`,
+  `test_propositions`) : 37 tests, un saut, verts. Suite complète une fois (`tools/tests.py --processus 4`) :
+  **1 688 tests, 16 sautés**, verte (981,5 s). **Coût sur 12 h**, `main` 42bb9c0 et l'intégration da13f9d lancés
+  ensemble (deux nuits à la fois par version, priorité réduite, `banc_pnj.nuit` avec diagnostic, temps processeur
+  relevé à chaque heure), joueur passif comme `empreintes_nuits.py` : par nuit, mine 42 184,5 → 655,5 s (×3,55),
+  mine 1985 163,9 → 718,2 s (×4,38), auberge 42 157,5 → 617,2 s (×3,92), auberge 1985 143,5 → 477,8 s (×3,33).
+  Par tranche de 4 h (0-4 / 4-8 / 8-12 h) : mine 42 ×1,26 / ×3,3 / ×3,9 ; mine 1985 ×1,32 / ×5,7 / ×4,3 ; auberge 42
+  ×1,47 / ×2,3 / ×4,5 ; auberge 1985 ×1,30 / ×2,6 / ×3,7 : le surcoût **croît avec la durée de la nuit**, ce que
+  les mesures de 4 h des lots (×1,28 / ×1,55) ne voyaient pas. Presque tout est dans les recherches du
+  planificateur : en fin de nuit, mine Rémy `faim` (42 : 40 → 379 s, 0,68 → 1,12 M nœuds ; 1985 : 32 → 262 s,
+  0,27 → 1,27 M nœuds, bornées 0 → 319) et Josse `feu:poele` ; auberge Tilo et Joss `faim` (42 : 11 → 234 s et
+  20 → 212 s), Mireille `feu:fourneau` (1985 : 9 → 154 s pour 3 167 nœuds), Lucien `garder` et `placer:ballot`.
+  Deux causes cumulées : plus d'états développés par recherche et chaque état plus cher. Profil (cProfile, auberge
+  1985, 8 h-9 h, même fenêtre des deux côtés ; nuits différentes) : 117 → 328 explorations, 4 443 → 110 303 états
+  développés (38 → 336 par exploration), 1,2 → 4 ms par état ; `gestes` → `_parts` → `_parts_remises` 52 % du
+  temps, dont le devis `part_estimee.suites` / `_preparer` 31 % ; `_plan_garder` 44 %. Mine 1985, 7 h-7 h 30 :
+  `_parts_remises` 27 %, devis 12 %, `route`/`prix_route` 11 %, et 7 % dans des `from . import` locaux de
+  fonctions chaudes (`_mesurer`, `obstacles.sejours_route`, `perception.substance`, `Vue.arrivee`, `prix_route`,
+  `route` : 6,3 M appels d'`importlib._bootstrap.parent`). Bruts : `artifacts/cout-12h/` du worktree d'intégration (nuits et profils).
+
 - **Vérification d'intégration ffcc295** (lots Q, R, A0, A1, cache, 25 à 30 ; sans Luna ; bruts dans
   `artifacts/verif-integ-ffcc295/` du dépôt principal). Audit 12 h (`tools/audit_nuits.py`), quatre
   scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500, contre `main` 42bb9c0 (référence complétée dans
@@ -2426,11 +2449,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   35,9 → 28 s, crue 23,7 → 17,9 s en départ tiré (× 1,25 à × 1,34 ; fixe × 1,26 à × 1,34), pic de mémoire
   moindre. Suite 1372 tests. `empreintes_nuits.py comparer` plante à l'affichage (« → ») sous une sortie
   redirigée en cp1252 : lancer avec `PYTHONIOENCODING=utf-8`.
-- La suite complète passe : **1 661 tests, 15 ignorés**, sans appel au modèle (intégration ecbbed7, après
-  R, A0, A1, `cache-references`, lots 25, 26, 27 et 28 ; `tools/tests.py --processus 4`, 1 678 s, aucun échec ni erreur),
+- La suite complète passe : **1 688 tests, 16 ignorés**, sans appel au modèle (intégration da13f9d, après
+  les lots 29 à 32 ; `tools/tests.py --processus 4`, 981,5 s, aucun échec ni erreur),
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
+
+- **Coût sur 12 h** (intégration da13f9d contre `main` 42bb9c0, lancés ensemble) : ×3,3 à ×4,4 par nuit à la
+  mine et à l'auberge, ×1,3 à ×1,5 sur les quatre premières heures seulement, ×2,3 à ×5,7 de 4 à 8 h, ×3,7 à ×4,5
+  de 8 à 12 h : le surcoût croît avec la nuit. États développés par recherche ×5 à ×9 (auberge 1985 à 8 h : 38 →
+  336) et coût par état ×3 (parts remises et devis `part_estimee` à chaque état, plus la moitié du temps) ;
+  recherches bornées de Rémy `faim` (mine 1985 : 0 → 319 en fin de nuit). À prendre dans un lot de coût : ne
+  développer les parts remises (et leur devis) qu'une fois par état et donneur, et sortir les imports locaux des
+  fonctions chaudes du planificateur ; puis mesurer sur 12 h, pas seulement 4 h.
 
 - Coût exact (lot 31, `codex-cout-exact`, fusionnée) : l'explosion du coût joueur du profil
   fourni n'est pas reproduite par les profils cProfile des fusions Q, R, 25, 26, 27 et 30 :
