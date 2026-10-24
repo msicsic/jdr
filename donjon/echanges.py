@@ -175,6 +175,11 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
                 agendas.prendre(monde, de, engagement)
                 if de != "joueur":
                     memoriser(monde, de, {"type": "engagement_pris", "pour": a, "condition": terme["condition"]})
+    if demande["type"] != "tache":
+        from .relations import doit
+        from .voix import identifie
+        if identifie(monde, auditeur, proposant) and doit(monde, auditeur, proposant):
+            memoriser(monde, auditeur, {"type": "dette_honoree", "de": proposant, "service": "demande"})
     original.data = monde.data
     return dict(bilan, cause=None, accepte=True)
 

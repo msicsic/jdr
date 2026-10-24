@@ -41,6 +41,17 @@ def parler(m, demande=PART, contrepartie=CLOCHE, texte="Je te donne ma cloche co
 
 
 class PropositionsTests(unittest.TestCase):
+    def test_accepter_honore_la_dette_de_deux_auditeurs(self):
+        for qui in ("marchand", "aubin"):
+            m = scene(qui)
+            lire(m, qui)["relations"]["joueur"] = relations._nouvelle({"confiance": 70, "dette": 40})
+            with patch.object(type(m), "d20", return_value=20):
+                m, r = parler(m, contrepartie={"type": "rien"}, texte="Une part sans contrepartie.", qui=qui)
+            m = recharger(m)
+            self.assertIn("accepte", " ".join(r["faits"]))
+            self.assertEqual(relations.doit(m, qui, "joueur"), 20)
+            self.assertTrue(any(x["type"] == "dette_honoree" for x in lire(m, qui)["memoire"]))
+
     def test_promesse_de_depot_par_le_vrai_moteur_deux_objets(self):
         from donjon.moteur import Moteur, proposition
         for objet in ("cloche", "cire"):
