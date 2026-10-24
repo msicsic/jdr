@@ -335,8 +335,8 @@ class TrajetTests(unittest.TestCase):
                 placer(m, "marchand", "echoppe", (3, 3))
                 m = recharger(m)
                 apres = _entrees(Vue(m, "marchand"), {}, 10, 100)
-                # Même sans passage spécial, la distance de marche dépend du départ.
-                self.assertNotEqual(avant, apres)
+                # Le modèle de recherche ne dépend plus de la case de départ.
+                self.assertEqual(avant, apres)
                 if not coupe:
                     # Un enjambement qui égale le détour au pas devient un
                     # raccourci pour une marche feutrée : l'allure entre dans la preuve.

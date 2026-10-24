@@ -9,6 +9,7 @@ Chaque test vérifie l'état du monde après rechargement.
 
 from tests.support import lier
 import unittest
+from unittest.mock import patch
 
 from donjon.banc_pnj import creer
 from donjon.biens import bourse
@@ -82,11 +83,26 @@ class TacheImpossibleTests(unittest.TestCase):
                salle="chambre_chaude", case=None)
         m = recharger(m)
         self.assertIsNone(refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau"))
-        m, textes = vivre_long(m, 40)
-        # Une offre ; deux si, choisissant désormais à l'instant (``deliberation-evenements``), elle la
-        # fait avant d'aller voir Anselme : ce qu'elle voit alors de sa chambre (ses abords) est un moyen
-        # qu'elle ne croyait pas à la première, et le refus ne tient plus (``deliberation.tient``).
-        self.assertIn(len(offres(textes, "Mireille", "Mathurine")), (1, 2), textes)
+        # Le nombre dépend du chemin choisi et des moyens appris en route.
+        # Chaque nouvelle offre doit avoir un moyen nouveau, jamais seulement
+        # un délai écoulé ou une autre estimation du trajet.
+        causes = [frozenset(tuple(f) for f in refus["cause"])]
+
+        def noter(monde, id, autre, operation, raison, *args, **detail):
+            vise = (id, autre, operation, raison) == ("mireille", "mathurine", "engager", "impossible")
+            if vise:
+                self.assertIsNone(refus_retenu(monde, id, autre, (operation,), "fourneau"))
+            retenir_refus(monde, id, autre, operation, raison, *args, **detail)
+            if vise:
+                nouveau = refus_retenu(monde, id, autre, (operation,), "fourneau")
+                cause = frozenset(tuple(f) for f in nouveau["cause"])
+                self.assertTrue(cause - causes[-1], (causes[-1], cause))
+                causes.append(cause)
+
+        with patch("donjon.deliberation.retenir_refus", side_effect=noter):
+            m, textes = vivre_long(m, 40)
+        self.assertGreater(len(causes), 1)
+        self.assertEqual(len(offres(textes, "Mireille", "Mathurine")), len(causes) - 1)
         # Mathurine n'en sait pas plus : refusée de nouveau, l'offre retient ce que Mireille croit désormais.
         refus = refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau")
         # (où elle le croit : dans la chambre, ou aux mains d'Anselme si elle l'y a vu depuis)

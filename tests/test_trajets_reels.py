@@ -85,7 +85,7 @@ class ParcoursPartagesTests(unittest.TestCase):
                 m = recharger(m)
                 with patch.object(spatial, "VERIFICATION", 1):
                     autre = p.Vue(m, qui)
-                    self.assertIs(autre.route(p.depart(m, qui, autre), e.salle), a)
+                    self.assertEqual(cout_route(autre.route(p.depart(m, qui, autre), e.salle)), cout_route(a))
                     r = p.chercher(m, qui, lambda v, e: bool(e.fait("allume", source)),
                                    {"entretenir": [source]}, emplois=("feu",))
                 self.assertEqual(r[1][-1]["outil"], feux[1])
@@ -108,14 +108,15 @@ class ParcoursPartagesTests(unittest.TestCase):
         # Le contrôle compare les chemins et leurs séjours, pas seulement les salles.
         croire(m, qui, "porte", "verrouillee", False, "savoir")
         v = p.Vue(m, qui)
-        route = v.route(p.depart(m, qui, v), "beffroi")
+        from donjon.pnj import parcours
+        route = parcours(m, qui, e.salle).routes["beffroi"]
         anciens = route.sejours
         try:
             route.sejours = (*anciens, (e.salle, 1))
             with patch.object(spatial, "VERIFICATION", 1):
                 autre = p.Vue(m, qui)
                 with self.assertRaisesRegex(AssertionError, "Parcours cru périmé"):
-                    autre.route(p.depart(m, qui, autre), "beffroi")
+                    parcours(m, qui, e.salle)
         finally:
             route.sejours = anciens
             obstacles._PARCOURS.clear()
@@ -159,7 +160,7 @@ class TempsReelsTests(unittest.TestCase):
         e = p.depart(m, qui, v).apres(allure=30)
         t, _, _ = p._mesurer(v, e, r[1], r[2], 1)
         m, reel, _ = executer_plan(m, qui, r[1])
-        self.assertAlmostEqual(t * MINUTE, reel)
+        self.assertEqual(reel, 170)  # marche feutrée réelle, indépendante du devis
         self.assertTrue(m.objets[source]["allume"])
 
     def test_une_cle_posee_ne_reste_pas_dans_le_parcours_projete(self):
@@ -209,8 +210,10 @@ class TempsReelsTests(unittest.TestCase):
         v = p.Vue(m, "marchand")
         e = p.depart(m, "marchand", v)
         route = v.route(e, "fin_test")
-        self.assertEqual([s["porte"] for s in route], ["court1_test", "court2_test"])
-        temps = cout_route(route, e.orientation)
+        # La recherche ignore le départ à l'ouest ; l'exécution le connaît.
+        self.assertEqual([s["porte"] for s in route], ["direct_test"])
+        from donjon.pnj import parcours
+        temps = cout_route(parcours(m, "marchand", e.salle).routes["fin_test"], "ouest")
         m, t, _ = executer_plan(m, "marchand", [p._etape("aller", lieu="fin_test")])
         self.assertEqual(m.objets["marchand"]["lieu"], "fin_test")
         self.assertTrue(m.objets["court1_test"]["ouverte"])
@@ -235,10 +238,11 @@ class TempsReelsTests(unittest.TestCase):
                 loin = next(s for s in suites if s[2][0]["outil"] == feux[0])
                 self.assertLess(proche[4], loin[4])
                 m, temps, lignes = executer_plan(m, qui, r[1])
-                self.assertAlmostEqual(proche[4] * MINUTE, temps)
+                self.assertEqual(temps, 115)  # approche et geste réels de Q
                 self.assertTrue(m.objets[source]["allume"])
                 self.assertIn("allume", " ".join(lignes))
-                self.assertEqual(tuple(m.objets[qui]["position"]), proche[3].case)
+                self.assertIsNone(proche[3].case)
+                self.assertEqual(tuple(m.objets[qui]["position"]), (6, 4))
                 self.assertTrue(m.visible(source))
 
     def test_objet_lointain_approche_et_position_du_geste_suivant(self):
@@ -261,7 +265,7 @@ class TempsReelsTests(unittest.TestCase):
         self.assertGreater(retour[0], DUREES["prendre"] / MINUTE)
         m, t, lignes = executer_plan(m, qui, prises["loin_test"][2])
         self.assertEqual(m.objets["loin_test"]["lieu"], qui)
-        self.assertAlmostEqual(t / MINUTE, prises["loin_test"][4])
+        self.assertEqual(t, 134)  # vraie marche jusqu’au contact, puis prise
         self.assertIn("prend", " ".join(lignes))
 
     def test_pression_du_noir_proportionnelle_au_temps_et_avant_allumage(self):

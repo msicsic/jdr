@@ -121,7 +121,11 @@ class DefiRelaisTests(unittest.TestCase):
         self.aller_dans("crypte")
         self.marcher_jusqua((7, 3))
         self.agir("deverrouiller", "porte", "cle")
-        self.agir("ouvrir", "porte")
+        # Les PNJ vivent pendant le déverrouillage et peuvent ouvrir avant
+        # le geste suivant du joueur ; l'itinéraire reste praticable.
+        if not self.m.objets["porte"]["ouverte"]:
+            self.agir("ouvrir", "porte")
+        self.assertTrue(self.m.objets["porte"]["ouverte"])
         self.aller_dans(PIED_BEFFROI)
         self.aller_dans(BEFFROI)
         self.assertEqual(self.m.joueur["salle"], BEFFROI)

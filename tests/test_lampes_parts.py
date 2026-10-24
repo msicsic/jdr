@@ -77,7 +77,16 @@ class PartsPourSourcesTests(unittest.TestCase):
         # Corvus rejoint Odile dans l'étable pour lui demander de l'huile, par la parole typée.
         calme(m, *(k for k, o in m.objets.items() if o.get("profil")))
         m.joueur.update(salle="etable", position=[4, 1])
-        placer(m, "odile", "etable", (3, 1))
+        # La nuit peut laisser un autre PNJ à l'ancien emplacement d'Odile.
+        # Installer la conversation au contact, sans superposer les corps.
+        from donjon.geometrie import cases, distance
+        from donjon.pnj import occupants
+        from donjon.spatial import _case_libre
+        prises = occupants(m, sauf="odile")
+        libres = [c for c in cases(m.data["salles"]["etable"])
+                  if ("etable", c) not in prises and _case_libre(m, "etable", c)
+                  and distance(c, (4, 1)) <= 1]
+        placer(m, "odile", "etable", min(libres, key=lambda c: (distance(c, (3, 1)), c)))
         regarder(m, "joueur", "odile")
         regarder(m, "odile", "joueur")
         percevoir_tous(m)
