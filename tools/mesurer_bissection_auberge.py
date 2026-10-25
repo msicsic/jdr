@@ -7,7 +7,9 @@ Les durées diagnostiques sont ici CPU (l'horloge du diagnostic seule est rempla
 La sérialisation des bruts et le contrôle de recharge sont hors du chronométrage.
 """
 import argparse
+import ctypes
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -93,8 +95,19 @@ def main():
     p.add_argument("--sortie", required=True)
     p.add_argument("--heures", type=float, default=12)
     p.add_argument("--scenario", default="auberge")
+    p.add_argument("--affinite", type=lambda x: int(x, 0),
+                   help="masque CPU Windows, par exemple 0x11 ; à fixer pareil pour les deux versions")
     args = p.parse_args()
+    if args.affinite is not None:
+        if os.name != "nt":
+            p.error("--affinite est réservé à Windows")
+        noyau = ctypes.WinDLL("kernel32", use_last_error=True)
+        noyau.GetCurrentProcess.restype = ctypes.c_void_p
+        noyau.SetProcessAffinityMask.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+        if not noyau.SetProcessAffinityMask(noyau.GetCurrentProcess(), args.affinite):
+            raise ctypes.WinError(ctypes.get_last_error())
     r = mesurer(str(Path(args.depot).resolve()), args.heures, args.scenario)
+    r["affinite_demandee"] = args.affinite
     sortie = Path(args.sortie)
     sortie.parent.mkdir(parents=True, exist_ok=True)
     sortie.write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
