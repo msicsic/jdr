@@ -1177,8 +1177,9 @@ def _plan_lumiere(monde, id):
     """Avoir de la lumière, quand il se tient dans le noir (ce qu'il ressent, ``autour``) et que
     le noir l'inquiète : la recherche (``planification.eclairer``). La lumière se tient là où le
     plan l'a choisie (``planification.RESTER``) : sa lumière en main en chemin, il la porte
-    jusqu'au bout, là où il garde ses biens. La lumière d'un autre ne le suit pas : rien ne se
-    poursuit alors."""
+    jusqu'au bout, là où il garde ses biens. Sans flamme portable, le séjour qui termine
+    le recours reste un progrès de sécurité, au même titre que l'abri. La lumière
+    d'un autre ne le suit pas."""
     if not peur_du_noir(monde, id):
         return None
     from .perception import allumee
@@ -1187,9 +1188,15 @@ def _plan_lumiere(monde, id):
     # case : ``lumiere_crue``, comme le planificateur) ; pas par celle qu'un autre porte, qui le
     # quittera avec lui.
     if porte or lumiere_crue(monde, id, monde.objets[id]["lieu"]):
+        from .eau import menacee
         i = lire(monde, id)["intention"]
-        return ((i["but"], i["plan"]) if porte and i and i["but"]["type"] == "lumiere" and i["plan"]
-                and all(x["operation"] == "aller" for x in i["plan"]) else None)
+        if not i or i["but"]["type"] != "lumiere" or not i["plan"]:
+            return None
+        trajet = porte and all(x["operation"] == "aller" for x in i["plan"])
+        sejour = (not porte and any(x["operation"] == "abriter" for x in i["plan"])
+                  and not menacee(monde, id, monde.objets[id]["lieu"])
+                  and lire(monde, id)["besoins"].get("securite", 0) > SECURITE_FIN)
+        return (i["but"], i["plan"]) if trajet or sejour else None
     from .planification import eclairer
     return eclairer(monde, id)
 
@@ -1427,6 +1434,20 @@ RECOURS = {"securite": (_plan_lumiere,)}
 ENQUETES = ("chaleur",)
 
 
+def _continuer_progres(monde, id, besoin):
+    """Un progrès appartient au recours qui l'a engagé, pas seulement au besoin.
+
+    Chaque méthode revalide son propre état terminal sur les croyances présentes.
+    L'arbitrage commun peut toujours l'interrompre pour une urgence supérieure.
+    """
+    intention = lire(monde, id)["intention"]
+    for methode in (*RECOURS.get(besoin, ()), PROGRES[besoin][0]):
+        resultat = methode(monde, id)
+        if resultat and resultat[0] == intention["but"]:
+            return resultat
+    return None
+
+
 def retabli_par_son_plan(monde, id, condition):
     """Ce qu'il défait lui-même pour un plan qui le rétablit n'est pas à réparer d'abord, tant
     que le motif de ce plan presse encore (un besoin urgent, une parole à tenir)."""
@@ -1591,7 +1612,8 @@ def _candidats(monde, id):
     for rang, (besoin, (methode, fin)) in enumerate(PROGRES.items()):
         if (e["intention"] and e["intention"]["motif"] == besoin and e["besoins"].get(besoin, 0) > fin
                 and any(x["operation"] == GESTE_PROGRES[besoin] for x in e["intention"]["plan"])):
-            ajouter(besoin, methode, Palier.PROGRES_EN_COURS, (rang,), recours=True)
+            ajouter(besoin, lambda m, i, b=besoin: _continuer_progres(m, i, b),
+                    Palier.PROGRES_EN_COURS, (rang,), recours=True)
     # La routine : ses rondes, même quand le besoin qu'elles servent ne presse pas.
     for rang, x in enumerate(p["pulsions"]):
         if (periodique(x["condition"]) and x["besoin"] not in pressants

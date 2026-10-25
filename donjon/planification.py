@@ -2995,7 +2995,14 @@ def eclairer(monde, id):
     if trouve is None:
         return None
     _, etapes, e = trouve
-    return {"type": "lumiere"}, retablir(v, e, _couper(etapes))
+    plan = retablir(v, e, _couper(etapes))
+    # Le coût de ce recours comprend un séjour (tenir=True). Une lumière fixe
+    # n'accompagne pas le PNJ : exporter seulement le trajet perdrait cet état
+    # terminal dès le choix suivant. Le même geste que l'abri fait vivre le
+    # progrès et son terme, sans délai ajouté ni nouvelle mémoire de recherche.
+    if not any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes):
+        plan.append(_etape("abriter", lieu=e.salle))
+    return {"type": "lumiere"}, plan
 
 
 def garder(monde, id, salle):

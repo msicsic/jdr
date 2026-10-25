@@ -271,7 +271,11 @@ class RecoursTests(unittest.TestCase):
         for id in ("brune", "ilse"):
             passages = salles_de(m, id)
             self.assertLessEqual(sum("Galerie de ronde" in t for t in passages), 1, passages)
-            self.assertLessEqual(len(passages), 3, passages)
+            # Le séjour du recours de lumière peut laisser changer le chemin
+            # avant de repartir : quatre salles distinctes restent un trajet,
+            # pas l'ancienne alternance entre le palier et la galerie.
+            self.assertLessEqual(len(passages), 4, passages)
+            self.assertEqual(len(passages), len(set(passages)), passages)
             self.assertEqual(lire(m, id)["intention"]["but"], {"type": "abri", "lieu": m.objets[id]["lieu"]})
         self.assertEqual(m.objets["brune"]["lieu"], m.objets["ilse"]["lieu"])
 
