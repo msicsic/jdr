@@ -1851,3 +1851,35 @@ lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; 
 remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
 
 Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
+
+## Préparation d'un choix — lot 71 (`codex-cout-fixe`, non fusionnée)
+
+`deliberation.choisir` encadre seulement la boucle des méthodes candidates par
+`planification.vues_du_choix`. Ce bloc est en lecture seule : les constatations,
+échéances et attentes le précèdent ; intention, classement des urgences et recours
+proposés le suivent. `VERIFIER` compare l'état complet à l'entrée et à la sortie.
+La préparation de `Vue` est paresseuse, propre au monde et à l'acteur du bloc,
+abandonnée à sa sortie même sur exception. Un nouveau choix après déplacement,
+perception ou changement de croyance ne reprend rien de cette préparation.
+
+`vue` fournit une copie privée de la préparation à chaque appel : paramètres du
+but, découvertes de lumière/discrétion et dictionnaires internes restent locaux à
+la recherche. La base vierge n'est jamais explorée. `_entrees_communes` sérialise
+une fois le relevé indépendant du candidat ; `_entrees` lui adjoint les visées,
+bornes, emplois, but explicite de lumière, admissibilité de violence selon le
+motif et entrées de défense. Aucune lecture de l'ancienne clé n'est supprimée.
+La vérification de référence construit toujours une `Vue` neuve.
+
+`obstacles.cle_carte` conserve une copie témoin des salles et un texte immuable
+du contenu et de l'ordre des salles/sorties. L'égalité avec le témoin détecte les
+éditions en place ; le texte n'est refait qu'au changement. Les trois clés de
+géométrie (`metrique_necessaire`, `distances`, `parcours_cru`) l'utilisent comme
+composante de tuple, sans le réencoder. Obstacles, portes crues, équipement,
+gabarit et allure restent dans leur partie dynamique historique. Aucune lecture
+de vérité ne remplace une croyance, aucun tarif ou ordre de recherche ne change.
+
+Limites : le partage ne franchit pas un choix ; il exige que les méthodes candidates
+restent en lecture seule. La carte reste un dictionnaire JSON éditable : le témoin
+demande encore une comparaison de contenu, et l'ordre des salles et sorties est
+relevé à chaque lecture. Ce lot ne réduit ni l'espace de recherche ni le nombre
+de nœuds. Mesures et validation : [rapport du lot 71](taches/rapport-codex-71-cout-fixe.md).

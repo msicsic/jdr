@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cout-fixe`, fusionnée, lot **71**, base **fbcf0ff**,
+  brief **5ea04cf** : préparation paresseuse de `Vue` et relevé commun des entrées
+  partagés dans la seule sélection en lecture seule de `choisir`. Chaque recherche
+  garde ses paramètres, découvertes et dictionnaires ; aucune vue ne survit au
+  choix. Violence et défense restent dans les entrées propres au candidat.
+  Les trois clés géométriques d'`obstacles` utilisent le texte immuable d'une
+  carte comparée à une copie témoin ; éditions en place et ordre des salles/sorties
+  pris en compte. Mêmes lectures, tarifs, recherches et plafonds. Code signé **63ae2b3**.
+  Douze heures, mine/auberge × départ tiré/fixe, graine 1985 : quatre nuits
+  strictement identiques à la base, résultats et nœuds compris ; trois versions
+  mesurées ensemble, un processus chacune. Gain CPU **1,91 à 2,53 %**,
+  surcoût des longues nuits toujours ouvert. Six tests nouveaux ; empreintes 2 h,
+  quatre scénarios × quatre graines : identiques à la base (référence en cache).
+  `VERIFIER` et spatial à 1, auberge 42 tiré, 2 h : sans écart ni entrée dans `BORNES`.
+  Suite complète unique, trois processus à priorité réduite : **1 864 tests,
+  16 ignorés, aucun échec ni erreur**, 186 fichiers, **1 260,4 s écoulées**. Mesures et
+  limites : [rapport du lot 71](taches/rapport-codex-71-cout-fixe.md).
+  Fusionné sur l'intégration après les lots 69 et 70 ; `planification.py` fusionné sans conflit avec les lots 71/72 voisins ; suite complète relancée.
+
 - **Vérification Luna de l'intégration fbcf0ff**, lot **70**, branche
   `codex-verif-luna-fbcf0ff`, sans modification de code : deux passes des onze scripts
   historiques, de `ressources`, de `comptes` avec noms préparés et des sept
@@ -3349,8 +3368,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     capacité absente de ce qu'on porte. Le diagnostic mesurait 94 à 99 % d'états de fin de nuit avec préparatifs.
     Prochain lot de coût, contrat des lots 46 et 48.
   - **A, les entrées de la mémoire des recherches** : `_entrees` est un relevé écrit à la main (chaque lot qui lit
-    une donnée doit l'y ajouter, sinon `VERIFIER` casse) et sérialisé à chaque appel (~17 % de coût fixe à
-    l'auberge : 2 200 vues et entrées pour 1 350 recherches). Pistes : un compteur de révision par facette de
+    une donnée doit l'y ajouter, sinon `VERIFIER` casse). Le lot 71, non fusionné, partage sa partie commune
+    dans un même choix ; elle est encore refaite au choix suivant. Pistes : un compteur de révision par facette de
     l'esprit, incrémenté dans les seules portes d'écriture (`esprits.croire`, `relations`, `agendas`, refus,
     mémoire) ; ou une trace automatique des lectures de la recherche. Après C1 ; lot risqué (toute la mémoire).
   - **Le stratège Luna des PNJ** (`--stratege`, désactivé par défaut) : son interception des plans illicites
@@ -3374,11 +3393,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     les deux. (P1) Une borne A* par « ancres de but » (distance minimale à la salle où le but se conclut) n'aide que les
     recherches qui trouvent un plan ; à mesurer après P2 et P3.
   - **Coût fixe, mêmes nœuds** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06) : gains à décisions et
-    nœuds identiques, à mesurer au profil avant de les classer. (a) `obstacles.metrique_necessaire` sérialise toute la
-    géométrie (`json.dumps(m.data["salles"], …)`) pour sa clé à chaque appel, alors que ses calculs réels sont rares :
-    une clé légère (identité immuable de la carte, obstacles, gabarit, allure). (b) `Vue(monde, id)` et la partie de
-    `_entrees` qui ne dépend pas du but sont refaites pour chaque candidat d'un même `choisir` : les construire une fois
-    par état du monde et de l'esprit (le diagnostic mesurait ~17 % de coût fixe à l'auberge). (c) `_explorer_etats`
+    nœuds identiques. **(a) et (b), lot 71 non fusionné** : trois clés géométriques sans réencodage de carte,
+    préparation de `Vue` et entrées communes partagées pendant un choix ; la comparaison du témoin de carte
+    reste linéaire, aucun partage d'un choix au suivant. Voir le rapport pour les mesures et limites.
+    **Restent** : (c) `_explorer_etats`
     copie `etapes + ajout` à chaque transition poussée et `deepcopy` le chemin trouvé : un maillon (parent, ajout) et
     la liste reconstruite une seule fois. (d) `signes.percevoir_tous` recalcule les émissions et une signature (`repr`)
     de tous les acteurs à chaque événement : à profiler (la mine avait pris +35 % avec 3c). Les imports locaux des

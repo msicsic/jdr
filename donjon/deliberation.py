@@ -1702,27 +1702,29 @@ def choisir(monde, id, minute):
     courant = intention if intention and intention["plan"] else None
     retenu = None    # (besoin, rang, résultat) : un autre recours de ce besoin, s'il faut y revenir
     resultat = None
-    for n, (besoin, methode, routine, recours, _) in enumerate(tous):
-        if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
-            continue
-        if besoin in e["renoncements"] and e["renoncements"][besoin] + REPIT * MINUTE > maintenant:
-            essais[n] = "renonce"
-            continue
-        resultat = methode(monde, id)
-        if not resultat:
-            essais[n] = "rien"
-            continue
-        essais[n] = "plan"
-        if retenu is not None:
-            if resultat[0] == courant["but"]:
-                break   # Sa méthode rend encore le recours en cours : il le garde.
-            continue
-        if recours and not routine and courant and besoin == courant["motif"] and resultat[0] != courant["but"]:
-            retenu = (besoin, routine, resultat)   # Le sien d'abord, si sa méthode le rend encore.
-            continue
-        break
-    else:
-        resultat = retenu[2] if retenu else None
+    from .planification import vues_du_choix
+    with vues_du_choix(monde, id):
+        for n, (besoin, methode, routine, recours, _) in enumerate(tous):
+            if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
+                continue
+            if besoin in e["renoncements"] and e["renoncements"][besoin] + REPIT * MINUTE > maintenant:
+                essais[n] = "renonce"
+                continue
+            resultat = methode(monde, id)
+            if not resultat:
+                essais[n] = "rien"
+                continue
+            essais[n] = "plan"
+            if retenu is not None:
+                if resultat[0] == courant["but"]:
+                    break   # Sa méthode rend encore le recours en cours : il le garde.
+                continue
+            if recours and not routine and courant and besoin == courant["motif"] and resultat[0] != courant["but"]:
+                retenu = (besoin, routine, resultat)   # Le sien d'abord, si sa méthode le rend encore.
+                continue
+            break
+        else:
+            resultat = retenu[2] if retenu else None
     if resultat:
         besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
         but, etapes = _attendre_qui_vient(monde, id, resultat)

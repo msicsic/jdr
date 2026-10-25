@@ -167,6 +167,45 @@ def prix_gardes(monde, id, lieux):
     return prix
 
 
+@contextmanager
+def vues_du_choix(monde, id):
+    """Préparation paresseuse pendant la sélection, avant toute écriture du choix.
+
+    Les méthodes candidates ne font que proposer des plans. Les mises à jour de
+    l'intention, des urgences et les gestes restent hors de ce bloc. Le témoin de
+    vérification contrôle cette frontière, sans lui-même employer le partage.
+    """
+    ancien = getattr(monde, "_vues_du_choix", None)
+    temoin = copy.deepcopy(monde.data) if VERIFIER else None
+    monde._vues_du_choix = (id, [None, None])
+    try:
+        yield
+    finally:
+        monde._vues_du_choix = ancien
+        if temoin is not None:
+            assert monde.data == temoin, "Une méthode candidate a modifié le monde ou l'esprit"
+
+
+def vue(monde, id):
+    """Une vue de recherche privée, préparée une fois par choix pour cet acteur.
+
+    Aucun dictionnaire de calcul ne passe d'une recherche à l'autre : certains
+    dépendent du motif, des emplois ou des découvertes de lumière/discrétion.
+    La base reste vierge ; seuls ses relevés du monde sont partagés.
+    """
+    bloc = getattr(monde, "_vues_du_choix", None)
+    if bloc is None or bloc[0] != id:
+        return Vue(monde, id)
+    partage = bloc[1]
+    if partage[0] is None:
+        partage[0] = Vue(monde, id)
+    v = copy.copy(partage[0])
+    v.__dict__ = {k: x.copy() if k.startswith("_") and isinstance(x, dict) else x
+                  for k, x in v.__dict__.items()}
+    v._partage_choix = partage
+    return v
+
+
 class Vue:
     """Ce que le PNJ croit, corrigé de ce que le plan a déjà changé.
 
@@ -1647,7 +1686,7 @@ def _chercher(v, e, sujet):
 
 
 def depart(monde, id, v=None):
-    v = v or Vue(monde, id)
+    v = v or vue(monde, id)
     o = monde.objets[id]
     return Etat(o["lieu"], [k for k in v.connus if porte_par(monde, k, id)], {})
 
@@ -1660,6 +1699,22 @@ CHANGEANTS = frozenset(("lieu", "position", "position_salle", "orientation", "co
 
 
 def _entrees(v, vises, profondeur, noeuds):
+    # Seules ces lectures dépendent du candidat. Le relevé commun reste privé
+    # au choix ; hors de ce bloc, une Vue ordinaire est toujours relue.
+    partage = getattr(v, "_partage_choix", None)
+    if partage is None:
+        communes = _entrees_communes(v)
+    else:
+        if partage[1] is None:
+            partage[1] = _entrees_communes(v)
+        communes = partage[1]
+    return communes, json.dumps([
+        vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), v.eclairer,
+        [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises)
+    ], ensure_ascii=False, check_circular=False)
+
+
+def _entrees_communes(v):
     """Tout ce que lit une recherche hors de son but, en JSON (comme une sauvegarde) : où il se
     tient et ce qu'il porte, ce qu'il croit (les valeurs, pas leur date), ses refus et promesses
     avec ce qu'en dit l'horloge, ses visites, les objets hors de ce qui change à chaque minute
@@ -1676,7 +1731,7 @@ def _entrees(v, vises, profondeur, noeuds):
     metrique = v._metrique
     return json.dumps([
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
-        vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), monde.objets[id]["lieu"],
+        monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
@@ -1706,19 +1761,15 @@ def _entrees(v, vises, profondeur, noeuds):
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
         sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route, v.vitesse_eau, pnj.DUREES,
-        # Le coût du noir et le but explicite de lumière ; les autres emplois de
-        # lumière se découvrent dans les gestes à partir des mêmes entrées.
+        # Le coût du noir ; le but explicite de lumière est dans la partie propre
+        # au candidat. Les autres emplois se découvrent dans les gestes.
         # La discrétion lit les gardes des mêmes suites : permissions, capacités,
         # visées, refus, moyens et admissibilité sont déjà couverts ci-dessus.
-        v.peur, v.eclairer,
+        v.peur,
         # La suite estimée lit les mêmes routes, possessions, refus et gestes ;
         # ses pressions restent celles de la vue, y compris les menaces sociales.
         # La borne du séjour ne lit que salles, prix_gardes (ci-dessus) et eau.
         "part-estimee:trajet-geste", v.eau, v.peurs_sociales, v.taux_mefiance,
-        # Admissibilité de l'agression et coûts des réactions ; ces lectures doivent aussi
-        # invalider les deux graphes et le certificat, pas seulement le résultat final.
-        [[x, v.violence(x) is not None] for x in v.personnes()],
-        _entrees_defense(v, vises),
         # Modèle de trajet et positions crues des cibles/obstacles, jamais le départ réel.
         ([metrique, "trajet-estime:entrees-v1",
           [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
@@ -1764,7 +1815,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     compléter ses moyens ; aucun service accompli par autrui, ni recherche d'un tiers (``TIERS``)."""
     from .caractere import modificateur, prix_faute, valeur
     debut = perf_counter()
-    v = Vue(monde, id)
+    v = vue(monde, id)
     v.motif = motif
     faute = prix_faute(monde, id, motif)
     v.degat = prix_faute(monde, id, motif, "douceur")
@@ -2365,7 +2416,7 @@ def planifier(monde, id, besoin):
     if besoin == "chaleur" and eau.active(monde):
         # Se chauffer demande un feu hors de l'eau (``gestes``, ``_parts``) : si chaque foyer qu'il
         # connaît est là où il croit ou attend l'eau, aucun plan ne le réchauffe ; inutile de le chercher.
-        v = Vue(monde, id)
+        v = vue(monde, id)
         if v.foyers and all(salle_crue(monde, id, f) in v.menacees for f in v.foyers):
             return None
     # Se chauffer se tient près du feu : ce que ce lieu laisse monter compte.
@@ -2375,7 +2426,7 @@ def planifier(monde, id, besoin):
     if trouve is None:
         return None
     _, etapes, e = trouve
-    return _resultat(Vue(monde, id), e, _couper(etapes), besoin)
+    return _resultat(vue(monde, id), e, _couper(etapes), besoin)
 
 
 def _couper(etapes):
@@ -2496,7 +2547,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if trouve is None:
         return None
     cout, etapes, e = trouve
-    return cout, {"type": "pulsion", **condition}, retablir(Vue(monde, id), e, _couper(etapes))
+    return cout, {"type": "pulsion", **condition}, retablir(vue(monde, id), e, _couper(etapes))
 
 
 def _vu_avant_la_tache(monde, id, condition, payeur):
@@ -2590,7 +2641,7 @@ def enrichir(monde, id):
     if not bourses:
         return None
     bourses = tuple(bourses)
-    v = Vue(monde, id)
+    v = vue(monde, id)
     trouve = chercher(monde, id, lambda v, e: any(b in e.portes for b in bourses), {"prendre": bourses},
                       nom="argent", memo=["argent"], emplois=(), motif=ARGENT)
     if trouve is None:
@@ -2628,7 +2679,7 @@ def reclamer(monde, id):
     if not du and not objets:
         return None
     vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
-    v = Vue(monde, id)
+    v = vue(monde, id)
     e = depart(monde, id, v)
     meilleur = None
     for de in sorted(set(du) | set(objets)):
@@ -2657,7 +2708,7 @@ def s_enquerir(monde, id, besoin):
     le plus proche de là où il le croit. None s'il n'a personne à qui le demander."""
     if not profil(monde, id):
         return None
-    v = Vue(monde, id)
+    v = vue(monde, id)
     e = depart(monde, id, v)
     # Qui n'en a pas, il ne le lui redemande pas tant que rien de ce qu'il croit de ces ressources n'a
     # changé ; qui s'est méfié, pas avant ``REDEMANDE`` minutes (``deliberation.tient``).
@@ -2707,7 +2758,7 @@ def eclairer(monde, id):
     une source qu'il porte ou qui est à portée, à une flamme qu'il porte ou à une flamme fixe ;
     prendre une source, la recharger du combustible qu'elle brûle ; la demander à qui la porte ;
     rejoindre un lieu qu'il croit éclairé."""
-    v = Vue(monde, id)
+    v = vue(monde, id)
     if not peur_du_noir(monde, id) or eclaire(v, depart(monde, id, v)):
         return None
     trouve = chercher(monde, id, eclaire, {"eclairer": True}, nom="lumiere", memo=["lumiere"], emplois=(),
@@ -2724,7 +2775,7 @@ def garder(monde, id, salle):
     est pas, il n'y va que si cela lui coûte moins que rester où il est, sinon il endure."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="garder:" + salle, memo=["garder", salle],
                       emplois=(), motif="biens", tenir=True, endurer=0)
-    return None if trouve is None else retablir(Vue(monde, id), trouve[2], _couper(trouve[1]))
+    return None if trouve is None else retablir(vue(monde, id), trouve[2], _couper(trouve[1]))
 
 
 def abri(monde, id, salles):
@@ -2738,7 +2789,7 @@ def abri(monde, id, salles):
     (``deliberation.menaces``) : s'en aller, c'est le lui laisser, et cet éloignement lui coûte
     (``prix_gardes``) comme à tout plan."""
     from .deliberation import menaces, taux
-    v = Vue(monde, id)
+    v = vue(monde, id)
     e = depart(monde, id, v)
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
@@ -2765,7 +2816,7 @@ def aller(monde, id, salle):
 def rejoindre(monde, id, sujet):
     """(étapes, trouvé) : aller là où il croit quelqu'un, sinon le chercher là où il est passé le
     moins récemment ; None si rien n'est atteignable."""
-    v = Vue(monde, id)
+    v = vue(monde, id)
     e = depart(monde, id, v)
     salle = v.salle(e, sujet)
     if salle is not None:
@@ -2846,7 +2897,7 @@ def reagir(monde, id, dangers, aide=None):
     if not ennemis:
         return None
     # Fuir un danger et protéger sont des buts distincts : quitter son protégé ne le protège pas.
-    v = Vue(monde, id)
+    v = vue(monde, id)
     portes = sorted({p for a in ennemis for p in v.portes_de.get(salle_crue(monde, id, a), ())})
     vises = {"danger": ennemis, "riposter": True, "fuir": not protection, "fermer": portes}
     but = lambda v, e: bool(e.fait("fui") or any(e.fait("repousse", a) for a in ennemis))

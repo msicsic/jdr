@@ -133,6 +133,29 @@ _GEOMETRIES_CRUES = OrderedDict()
 GEOMETRIES_MAX = 128
 
 
+def cle_carte(m, salle=None):
+    """Identité immuable du contenu de la carte, sans sérialiser à chaque lecture.
+
+    Les salles restent des données JSON librement éditables (y compris en place).
+    Une copie témoin détecte ces éditions par égalité ; l'ordre des salles et
+    sorties, qui départage les parcours, fait aussi partie de l'identité.
+    Le texte n'est construit qu'au changement, puis employé directement comme
+    composante de clé, jamais réencodé dans le JSON de chaque trajet.
+    """
+    salles = m.data["salles"]
+    contenu = salles if salle is None else salles[salle]
+    ordre = (tuple((s, tuple(d["sorties"])) for s, d in salles.items())
+             if salle is None else tuple(contenu["sorties"]))
+    cache = getattr(m, "_cles_cartes", None)
+    if cache is None:
+        cache = m._cles_cartes = {}
+    ancien = cache.get(salle)
+    if ancien is None or ancien[0] != contenu or ancien[1] != ordre:
+        texte = json.dumps([contenu, ordre], sort_keys=True, ensure_ascii=False, check_circular=False)
+        ancien = cache[salle] = (copy.deepcopy(contenu), ordre, texte)
+    return ancien[2]
+
+
 def metrique_necessaire(m, acteur, allure=PAS_JOUEUR):
     """La marche ordinaire suffit-elle, quels que soient les objets qu'il prévoit porter ?
 
@@ -151,7 +174,7 @@ def metrique_necessaire(m, acteur, allure=PAS_JOUEUR):
     obstacles = [(i, o,
                   {k: croyances.get(i, {}).get("lieu", {}).get(k) for k in ("valeur", "salle", "case")},
                   formes.get(i)) for i, o in m.objets.items() if o.get("bloque_passage")]
-    cle = json.dumps([m.data["salles"], obstacles, gabarit(m, acteur), allure], sort_keys=True, ensure_ascii=False)
+    cle = (cle_carte(m), json.dumps([obstacles, gabarit(m, acteur), allure], sort_keys=True, ensure_ascii=False))
     from .spatial import a_verifier
     if cle in _GEOMETRIES_CRUES:
         connu = _GEOMETRIES_CRUES[cle]
@@ -267,8 +290,8 @@ def distances(cru, acteur, salle, depart, equipement, allure, passages):
                  if o.get("bloque_passage") and not o.get("incorpore") and o.get("lieu") == salle]
     equip = [(i, cru.objets[i].get("masse", 0), cru.objets[i].get("longueur_cm"),
               cru.objets[i].get("physique", {}).get("dimensions")) for i in sorted(equipement)] if passages else []
-    cle = json.dumps([cru.data["salles"][salle], obstacles, depart, allure,
-                      gabarit(cru, acteur) if passages else None, equip], sort_keys=True)
+    cle = (cle_carte(cru, salle), json.dumps([obstacles, depart, allure,
+                      gabarit(cru, acteur) if passages else None, equip], sort_keys=True))
 
     def calculer():
         pas_de = _pas_possibles(cru, True)
@@ -369,12 +392,12 @@ def parcours_cru(m, acteur, depart, cles=(), ouvertes=(), equipement=None, *, po
                       if i in ids_portes]
     equip = [(i, cru.objets[i].get("masse", 0), cru.objets[i].get("longueur_cm"),
               cru.objets[i].get("physique", {}).get("dimensions")) for i in sorted(equipement)] if metrique else None
-    cle = json.dumps([m.data["salles"], cru.data["salles"], obstacles, portes_sorties,
+    cle = (cle_carte(m), cle_carte(cru), json.dumps([obstacles, portes_sorties,
                       depart, position, allure, sorted(ouvertes),
                       [(k, m.objets[k].get("ouvre")) for k in sorted(cles)],
                       [s for s in m.data["salles"] if noyee_crue(m, acteur, s)],
                       metrique, formes, gabarit(cru, acteur) if metrique else None, equip,
-                      DUREES["ouvrir"], DUREES["deverrouiller"]], check_circular=False)
+                      DUREES["ouvrir"], DUREES["deverrouiller"]], check_circular=False))
 
     def calculer():
         return _parcours_cru(m, acteur, depart, cles, ouvertes, equipement, position=position,
