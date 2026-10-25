@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-comptes-issue`, **non fusionnée**, lot **73**, brief **6a18952**,
+  mise à jour initiale sur l'intégration **fe85a44** : paiements et remises alimentent
+  les comptes depuis leurs opérations, dans la copie transactionnelle de la parole ;
+  journal retiré avant sauvegarde, essais abandonnés sans effet publié. Les biens à
+  livrer sont lus dans les engagements et reviennent dans les comptes publics et leur
+  rendu après recharge. Le contrôle exige la restitution des comptes rendus ou dus
+  de l'issue, même pour une réplique à portée aucune ; inversion toujours refusée,
+  garde refait à l'enregistrement. Trois tests nouveaux sur cinq parcours, **19 tests
+  ciblés verts**. Suite complète unique : **1 868 tests, 16 ignorés**, 187 fichiers,
+  **2 152,2 s**, trois processus à priorité réduite ; un échec et trois erreurs dans
+  deux anciens récits simulés, complétés et repris verts sur leurs quatre parcours.
+  Bilan consolidé sans défaut restant connu, sans seconde suite complète. Correctif
+  signé **e219008**.
+  Luna une passe soir-appel/ressources/comptes, référence **fbcf0ff** lue du cache :
+  **36 → 30 appels**, neuf tours MJ, **4,00 → 3,33 appels/tour**, trois → zéro
+  relance, un → zéro repli, aucune erreur technique/recharge. Remboursements d'Aubin
+  et de Gorm racontés ; Brune garde les pièces. **Limite : l'achat du soir n'est pas
+  exécuté**, contre-revue du contenu puis précision demandée ; achat payé validé
+  avec MJ simulé sur planches et fagots. Extraction/portée encore sémantiques,
+  aucune garantie de toute paraphrase. Ni `main`, ni `planification.py`/`obstacles.py`,
+  ni modèle ou prompt du MJ modifiés. [Rapport du lot 73](taches/rapport-codex-73-comptes-issue.md).
+
+
 - **Vérification Luna de l'intégration fbcf0ff**, lot **70**, branche
   `codex-verif-luna-fbcf0ff`, sans modification de code : deux passes des onze scripts
   historiques, de `ressources`, de `comptes` avec noms préparés et des sept

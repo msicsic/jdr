@@ -219,6 +219,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
             objet = detacher_part(monde, terme["objet"]) if t == "part" else terme["objet"]
             donner(monde, objet, a)
             deplacer(monde, objet, a)
+            from .biens import compte, noter_compte
+            noter_compte(monde, compte(de, a, objet, 1, "rendu"))
             if a != "joueur":
                 memoriser(monde, a, {"type": "recu", "de": de, "objet": objet, "livraison": True,
                                      **({"lot": terme["objet"]} if t == "part" else {})})
@@ -792,6 +794,8 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     restitution = bool(permission and permission["de"] == receveur and permission["a"] == donneur)
     ponctuel = restitution and monde.data["minutes"] - permission["minute"] <= 240
     deplacer(monde, objet, receveur)
+    from .biens import compte, noter_compte
+    noter_compte(monde, compte(donneur, receveur, objet, 1, "rendu"))
     if receveur != "joueur":
         memoriser(monde, receveur, {"type": "restitution" if restitution else "recu", "objet": objet, "de": donneur,
                                      "pret": any(p["objet"] == objet and p["a"] == receveur for p in monde.data.get("permissions", [])),

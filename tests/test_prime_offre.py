@@ -3,6 +3,7 @@ import copy
 import unittest
 
 from donjon.biens import compte, offres_joueur
+from donjon.matiere import id_piece
 from donjon.dialogues import preparer_conversation
 from donjon.monde import nouveau_monde
 from donjon.propositions import offre
@@ -106,11 +107,11 @@ class PrimeOffreTests(unittest.TestCase):
         mots = "Gorm, une part de vivres contre ma promesse d'allumer le brasero."
         premier = parole(mots, personnage="marchand")
         premier["proposition"]["contenu"] = [{"type": "proposition", "demande": PART, "contrepartie": TACHE}]
-        citation = "J'accepte une part de vivres contre ta promesse d'allumer le brasero."
+        citation = "Je te remets une part de vivres contre ta promesse d'allumer le brasero."
         o = offre("joueur", "marchand", PART, TACHE)
         avant = m.objets["vivres"]["portions"]
         r, sortie, appels = jouer(m, mots, [premier, dialogue(f'Gorm : « {citation} »')],
-                                 [audit(citation, [o])])
+                                 [audit(citation, [o, compte("marchand", "joueur", id_piece(m, "vivres"), 1, "rendu")])])
         self.assertIn(citation, sortie)
         self.assertIn(citation, str(r.data["conversation"]))
         self.assertFalse(any("controle_narratif" in e for _, e in appels))

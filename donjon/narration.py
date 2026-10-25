@@ -75,10 +75,14 @@ SCHEMA_COMPTES = {"type": "array", "maxItems": 12,
     "description": ("Toutes les affirmations sur ce qui est dû ou rendu, même sous verdict parole, "
         "dans les mots du segment. Résous je/tu par le locuteur et joueur. debiteur = celui qui doit "
         "ou rend ; creancier = celui à qui c'est dû/rendu ; objet vide pour des pièces, identifiant "
-        "pour un objet prêté ; montant -1 si non dit, 0 si rien. etat du (encore dû, même refusé), "
+        "pour un objet prêté, remis ou promis (une part détachée a son identifiant) ; "
+        "montant -1 si non dit, 0 si rien. etat du (encore dû, même refusé), "
         "rendu (remise accomplie), absent (rien dû dans ce sens). Ne recopie pas les rôles des faits : "
         "extrais ceux du texte, y compris s'ils les inversent. Une question, hypothèse ou citation "
-        "historique n'affirme aucun compte actuel : []."),
+        "historique n'affirme aucun compte actuel : []. Une non-livraison ne dit pas absence de dette : "
+        "elle peut expliquer un remboursement de pièces sans affirmer de compte-objet. Un paiement "
+        "ou une remise déjà opérés dans comptes.issue sont des résultats du moteur, même racontés "
+        "dans une réplique : ils ne sont pas créés par cette parole."),
     "items": {"type": "object", "additionalProperties": False,
         "properties": {"debiteur": {"type": "string"}, "creancier": {"type": "string"},
                        "objet": {"type": "string"}, "montant": {"type": "integer", "minimum": -1},
@@ -982,9 +986,13 @@ def controler(texte, rapport, faits, partie="texte"):
                                **({"eclairages": lumieres} if lumieres is not None else {})})
         if comptes:
             dossier = faits.get("comptes", {})
-            attendus = dossier.get("issue") or dossier.get("etat", [])
+            attendus = dossier.get("issue", []) + dossier.get("etat", [])
             for c in comptes:
-                compatibles = dossier.get("offres", []) if c["etat"] == "offre" else attendus
+                pertinents = [a for a in dossier.get("issue", [])
+                    if a.get("objet") == c.get("objet") and
+                    {a["debiteur"], a["creancier"]} == {c["debiteur"], c["creancier"]}]
+                compatibles = (dossier.get("offres", []) if c["etat"] == "offre" else
+                    pertinents if c["etat"] == "absent" and pertinents else attendus)
                 conforme = (c in compatibles if c["etat"] == "offre" else any(
                     all(c[k] == a[k] for k in ("debiteur", "creancier", "objet", "etat"))
                     and c["montant"] in (-1, a["montant"]) for a in compatibles))
@@ -1059,6 +1067,15 @@ def controler(texte, rapport, faits, partie="texte"):
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
         elif verdict in ("invention_protegee", "contradictoire"):
             refuser(ligne["motif"] or "Affirmation mécanique non établie.", ACCEPTE_VERDICT[verdict])
+    dits = [c for l in lignes_validees for c in l.get("comptes", [])]
+    for c in faits.get("comptes", {}).get("issue", []):
+        if c["etat"] in ("rendu", "du") and not any(
+                all(d.get(k) == c[k] for k in ("debiteur", "creancier", "objet", "etat"))
+                and d.get("montant") in (-1, c["montant"]) for d in dits):
+            obstacles.append(audit("Le récit omet un compte de l'issue du moteur.",
+                f"comptes : restituer le compte {c}, déjà opéré ou promis par le moteur ; "
+                "ce résultat n'est pas un effet créé par la réplique",
+                partie=partie, segment=0, texte=texte, recu=str(dits)))
     return {"segments": copy.deepcopy(lignes_validees), "paroles": paroles, "ambiances": ambiances,
             "obstacles": obstacles, "texte_controle": texte.strip()}
 
@@ -1135,6 +1152,9 @@ def consigner(monde, reponse):
         return
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
+    if rapport["obstacles"]:
+        raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
+                          rapport["obstacles"][0]["attendu"])
     from .perception import eclairage
     from .noms import public
     courants = {"perception": public(monde, eclairage(monde))}

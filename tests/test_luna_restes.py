@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 import jeu
 from donjon.mj import MJOpenAI
+from donjon.biens import compte
+from donjon.matiere import id_piece
 from donjon.monde import ErreurMonde, Monde
 from donjon.narration import consigner, unites_moteur
 from donjon.rendu import decrire
@@ -207,9 +209,16 @@ class ParoleTests(unittest.TestCase):
                 # Un objet de l'interlocuteur, demandé pour soi ; le moteur décide l'issue.
                 m.objets[cible].update(proprietaire="aubin", lieu="aubin")
                 saisie = f"je paie Aubin trois pièces pour une part de {m.objets[cible]['nom']}"
+                rendu = cible == "planches"
+                recit = "Tes trois pièces sont remises ; " + (
+                    "Aubin te remet la part." if rendu else "Aubin te doit encore la part.")
+                controle = ligne("mecanique", sources=["conversation_validee", "comptes"])
+                controle["comptes"] = [compte("joueur", "aubin", montant=3, etat="rendu"),
+                    compte("aubin", "joueur", id_piece(m, cible) if rendu else cible,
+                           1, "rendu" if rendu else "du")]
                 r, texte, appels = jouer(m, saisie, [parole("Je voudrais une part pour trois pièces.",
-                    ("demande", cible, "", "3"), personnage="aubin"), dialogue("Ta demande a été entendue.")],
-                    [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+                    ("demande", cible, "", "3"), personnage="aubin"), dialogue(recit)],
+                    [rapport(controle)])
                 revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
                 self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu"})
                 self.assertEqual(r.joueur["or"], m.joueur["or"] - 3)
@@ -221,6 +230,8 @@ class ParoleTests(unittest.TestCase):
                 self.assertIn(m.objets[cible]["nom"], revue["contenu"][0]["sujet"])
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
                 self.assertIn("Tu dis", texte)
+                self.assertIn(recit, texte)
+                self.assertIn(recit, str(r.data["conversation"]))
 
 
 class TexteTests(unittest.TestCase):

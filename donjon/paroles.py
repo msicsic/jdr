@@ -1363,8 +1363,6 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         issues = reclamer_dette(travail, "joueur", auditeur, lignes)
         reste = sum(d["montant"] for d in dues(travail, auditeur, "joueur"))
         comptes.append(compte(auditeur, "joueur", montant=reste, etat="du" if reste else "absent"))
-        if montant > reste:
-            comptes.append(compte(auditeur, "joueur", montant=montant - reste, etat="rendu"))
         faits.extend(lignes)
         if "sans_le_sou" in issues and not lignes:
             faits.append(f"{nom} n'a pas de quoi te rendre les {montant} pièce{'s' if montant > 1 else ''} "
@@ -1379,7 +1377,8 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         comptes.append(compte(auditeur, "joueur", objet, etat="absent"))
         return
     issue = demander(travail, "joueur", auditeur, objet)
-    comptes.append(compte(auditeur, "joueur", objet, 1, "rendu" if issue == "rendu" else "du"))
+    if issue != "rendu":
+        comptes.append(compte(auditeur, "joueur", objet, 1, "du"))
     faits.append({"rendu": f"{nom} te rend {designer(o)}.",
                   "necessaire": f"{nom} garde {designer(o)} : {il} s'en sert encore.",
                   "qui_va_la": QUI_VA_LA.format(nom=nom, il=il)}.get(
@@ -1571,6 +1570,9 @@ def preparer_parole(monde, p, revision=None):
     temoins = [] if chuchote else sorted(id for id in saisissent(travail, "joueur")
                                          if id not in dest and id not in repondent and travail.objets[id].get("profil"))
     expression = capacite_transmission(_stats_pnj(travail, "joueur")["INT"])
+    from .biens import livraisons_dues
+    livraisons_avant = livraisons_dues(travail)
+    travail.data["_comptes_echange"] = []
     faits, comptes, offres = [], [], []
     for auditeur in [*dest, *repondent]:
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
@@ -1614,6 +1616,8 @@ def preparer_parole(monde, p, revision=None):
          "texte": replique,
          "minute": travail.data["minutes"]})
     travail.data["paroles_joueur"] = travail.data["paroles_joueur"][-40:]
+    comptes.extend(travail.data.pop("_comptes_echange"))
+    comptes.extend(c for c in livraisons_dues(travail) if c not in livraisons_avant and c not in comptes)
     travail.verifier()
     from .voix import reel
     presents = {reel(monde, d) for d in interlocuteurs(monde)}

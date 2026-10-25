@@ -135,6 +135,26 @@ n'établit toujours pas la vérité de son contenu. Le contrôle ne crée aucune
 aucun remboursement ; les mutations précèdent toujours le récit et la sauvegarde précède
 l'affichage.
 
+**Comptes de l'issue** (`codex-comptes-issue`, lot 73). Les paiements et remises
+sont collectés par leurs opérations, dans la copie transactionnelle de la conversation ;
+un essai abandonné ne publie aucun compte. `conversation_validee.comptes` et
+`comptes.issue` reçoivent ces transferts effectifs, leurs rôles et quantités, ainsi
+que les nouveaux biens à livrer lus dans les engagements. Une part détachée garde
+son identité physique. Les remises encore dues figurent aussi dans l'état public
+des comptes et dans leur rendu après recharge ; aucune dette privée entre PNJ
+n'est exposée, aucun journal technique supplémentaire n'est sauvegardé.
+
+Chaque compte `rendu` ou `du` de l'issue doit être restitué par les comptes extraits
+du récit entier, même si un segment est une réplique ou dit n'avoir aucune portée
+mécanique. Une omission ou un compte inversé entraîne une révision ; le contrôle
+est refait avant enregistrement. Le solde courant reste une source pour les autres
+comptes ; l'absence d'une créance explicitement traitée garde le sens de la demande.
+Raconter un transfert déjà opéré ne crée pas ce transfert par la parole. Une
+non-livraison qui explique un remboursement n'établit pas l'absence d'une dette-objet.
+L'extraction des affirmations et la qualification de leur portée restent sémantiques :
+le moteur compare déterministement les comptes extraits, sans garantir toute paraphrase
+ni neutraliser les autres contradictions d'un segment pourtant pourvu d'un compte juste.
+
 **Offres conditionnelles** (`codex-prime-offre`, lot 67). Le dossier `comptes.offres`
 sépare les contreparties promises des soldes exigibles : `etat: offre`, `debiteur`
 (celui qui promet la contrepartie), `creancier` (celui qui fournit la prestation),
