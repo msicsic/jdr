@@ -12,6 +12,11 @@ from donjon.scene import scene_percue
 
 
 def chercher(monde, id, nom):
+    with p.vues_du_choix(monde, id):
+        return _chercher(monde, id, nom)
+
+
+def _chercher(monde, id, nom):
     if nom in ("faim", "chaleur"):
         return p.planifier(monde, id, nom)
     if nom.startswith("garder:"):

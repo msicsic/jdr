@@ -21,6 +21,11 @@ def joss():
         "data/attente-bornee-joss.json.gz").read_bytes())))
 
 
+def chercher_besoin(m, id, besoin):
+    with p.vues_du_choix(m, id):
+        return p.planifier(m, id, besoin)
+
+
 class AttenteBorneeTests(unittest.TestCase):
     def setUp(self):
         for nom in ("_MEMOIRE", "_GRAPHES", "_IMPOSSIBLES"):
@@ -37,12 +42,12 @@ class AttenteBorneeTests(unittest.TestCase):
     def test_joss_sans_nouveau_ne_recherche_plus_meme_si_le_prix_baisse(self):
         m = joss()
         with p.diagnostics() as recherches:
-            self.assertIsNone(p.planifier(m, "joss", "faim"))
+            self.assertIsNone(chercher_besoin(m, "joss", "faim"))
             self.assertEqual(recherches[-1]["issue"], "borne")
             m = self.recharge_visible(m)
             esprit(m, "joss")["besoins"]["faim"] += .1
             with patch.object(p, "_explorer", side_effect=AssertionError("nouvelle recherche")):
-                self.assertIsNone(p.planifier(m, "joss", "faim"))
+                self.assertIsNone(chercher_besoin(m, "joss", "faim"))
             self.assertEqual(recherches[-1]["issue"], "attente")
         self.recharge_visible(m)
 
@@ -50,7 +55,7 @@ class AttenteBorneeTests(unittest.TestCase):
         for nouveau in ("vivre", "refus"):
             with self.subTest(nouveau=nouveau):
                 m = joss()
-                p.planifier(m, "joss", "faim")
+                chercher_besoin(m, "joss", "faim")
                 m = self.recharge_visible(m)
                 if nouveau == "vivre":
                     m.objets["rations_hugues"].update(lieu="joss", proprietaire="joss", portions=1)
@@ -60,7 +65,7 @@ class AttenteBorneeTests(unittest.TestCase):
                 else:
                     esprit(m, "joss")["refus"] = []
                 with p.diagnostics() as recherches:
-                    r = p.planifier(m, "joss", "faim")
+                    r = chercher_besoin(m, "joss", "faim")
                 self.assertNotEqual(recherches[-1]["issue"], "attente")
                 self.assertGreater(recherches[-1]["noeuds"], 0)
                 if nouveau == "vivre":
@@ -75,8 +80,9 @@ class AttenteBorneeTests(unittest.TestCase):
         m = brune_affamee()
         esprit(m, "brune")["besoins"]["faim"] = 94
         def chercher(m):
-            return p.chercher(m, "brune", p.a_mange, nom="faim", memo=["besoin", "faim"],
-                             emplois=("manger",), motif="faim", noeuds=1)
+            with p.vues_du_choix(m, "brune"):
+                return p.chercher(m, "brune", p.a_mange, nom="faim", memo=["besoin", "faim"],
+                                 emplois=("manger",), motif="faim", noeuds=1)
         with p.diagnostics() as recherches:
             self.assertIsNone(chercher(m))
             self.assertEqual(recherches[-1]["issue"], "borne")
@@ -92,19 +98,20 @@ class AttenteBorneeTests(unittest.TestCase):
         fichier = Path(__file__).parent / "data/cout-12h/auberge-1985-480.json.gz"
         m = Monde(json.loads(gzip.decompress(fichier.read_bytes())))
         with p.diagnostics() as recherches:
-            p.planifier(m, "joss", "faim")
+            chercher_besoin(m, "joss", "faim")
             self.assertNotEqual(recherches[-1]["issue"], "borne")
             self.assertFalse(esprit(m, "joss")["attentes_bornees"])
             m = self.recharge_visible(m)
             esprit(m, "joss")["besoins"]["faim"] += .1
-            p.planifier(m, "joss", "faim")
+            chercher_besoin(m, "joss", "faim")
             self.assertNotEqual(recherches[-1]["issue"], "attente")
 
     def test_recours_sans_motif_explicite_suit_les_paliers_des_besoins(self):
         m = brune_affamee()
         esprit(m, "brune")["besoins"]["faim"] = 94
         def chercher(m):
-            return p.chercher(m, "brune", p.a_mange, memo=["condition"], noeuds=1)
+            with p.vues_du_choix(m, "brune"):
+                return p.chercher(m, "brune", p.a_mange, memo=["condition"], noeuds=1)
         with p.diagnostics() as recherches:
             chercher(m)
             self.assertEqual(recherches[-1]["issue"], "borne")
@@ -130,3 +137,25 @@ class AttenteBorneeTests(unittest.TestCase):
             self.assertEqual(a.data.get(champ), b.data.get(champ), champ)
         self.assertEqual(regarder(a), regarder(b))
         self.assertEqual(scene_percue(a), scene_percue(b))
+
+    def test_seul_le_choix_reel_enregistre_l_effort_apres_les_candidats(self):
+        m = self.recharge_visible(brune_affamee())
+        avant = copy.deepcopy(m.data)
+        def requete():
+            return p.chercher(m, "brune", p.a_mange, memo=["contrat"], noeuds=1)
+        self.assertIsNone(requete())
+        self.assertEqual(m.data, avant)
+        with self.assertRaisesRegex(RuntimeError, "choix interrompu"):
+            with p.vues_du_choix(m, "brune"):
+                requete()
+                raise RuntimeError("choix interrompu")
+        self.assertEqual(m.data, avant)
+        with patch.object(p, "VERIFIER", True), p.vues_du_choix(m, "brune"):
+            # Contrôler ici la frontière de lecture seule, indépendamment du
+            # contrôle de qualité de la recherche à un seul nœud.
+            with patch.object(p, "VERIFIER", False):
+                with p.vues_du_choix(m, "brune"):
+                    self.assertIsNone(requete())
+            self.assertEqual(m.data, avant)
+        self.assertTrue(esprit(m, "brune")["attentes_bornees"])
+        self.recharge_visible(m)
