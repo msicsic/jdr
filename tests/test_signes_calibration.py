@@ -101,7 +101,7 @@ class RelecturesTests(unittest.TestCase):
             m.data["minutes"] += 10
             with patch("donjon.signes._jet", return_value=20):
                 lignes = signes.bilan_signes(m, observer=id)
-            self.assertFalse(any("semble" in l for l in lignes))
+            self.assertTrue(any("semble" in l for l in lignes))
             self.assertTrue(signes.impressions(recharger(m)))
 
     def test_relecture_du_guet_reel_relais7_a_441_minutes(self):
@@ -221,22 +221,22 @@ class RelecturesTests(unittest.TestCase):
                 m = recharger(m)
                 m.joueur["orientation"] = orientation
                 m.data["minutes"] += 10
-                self.assertFalse(any("semble" in l for l in signes.bilan_signes(m, observer=id)))
+                self.assertTrue(any("semble" in l for l in signes.bilan_signes(m, observer=id)))
             self.assertTrue(signes.impressions(recharger(m)))
 
-    def test_observer_ne_repete_pas_une_impression_apres_reprise(self):
+    def test_observer_restitue_une_impression_sans_reapprendre_apres_reprise(self):
         for id, autre in (("ilse", "brune"), ("brune", "ilse")):
             m = ecarter(scene(), id, autre)
             with patch("donjon.signes._jet", return_value=20):
                 premiere = signes.bilan_signes(m, observer=id)
             self.assertTrue(any("semble" in l for l in premiere))
             m = recharger(m)
-            self.assertFalse(any("semble" in l for l in signes.bilan_signes(m, observer=id)))
+            self.assertTrue(any("semble" in l for l in signes.bilan_signes(m, observer=id)))
             m.data["minutes"] += 10
             with patch("donjon.signes._jet", return_value=20):
                 lignes = signes.bilan_signes(m, observer=id)
             m = recharger(m)
-            self.assertFalse(any("semble" in l for l in lignes))
+            self.assertTrue(any("semble" in l for l in lignes))
             self.assertTrue(signes.impressions(m))
 
     def test_meme_laps_d_un_bloc_ou_decoupe_et_recharge(self):

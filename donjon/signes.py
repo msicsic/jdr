@@ -549,8 +549,10 @@ def _bilan_signes(m, observer=None):
                for x in changes]
     m.data["bilan_signes"] = actuels
     nouvelles = {cle for cle, c in m.data["lectures"].items() if _identite(c) not in avant_lectures}
+    # Une demande explicite restitue aussi les lectures déjà acquises ; seul le
+    # bilan spontané se limite aux nouveautés. impressions exige leur appui perçu.
     lignes += list(dict.fromkeys(s["texte"] for s in impressions(m) if s["personnage"] == id
-                                and s["id"].removeprefix("impression:") in nouvelles))
+                                and (observer is not None or s["id"].removeprefix("impression:") in nouvelles)))
     return lignes
 
 

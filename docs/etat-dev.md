@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-impressions-observer`, non fusionnée, lot **68**, base **d78cfcc**,
+  brief **764e040** : `signes._bilan_signes` restitue les impressions actuelles de la
+  cible d'une observation explicite, même déjà annoncées. Le filtre des nouveautés
+  introduit par la calibration **0f16152** reste réservé au bilan spontané ; le lot
+  53 n'avait pas retiré les lectures. Règle commune de lecture, jets mémorisés et
+  exigence du signe encore perçu conservés. Trois tests nouveaux, chacun sur la
+  scène réelle d'Ilse et sur Brune : saisie/moteur/journal, deux observations sans
+  nouveau dé, disparition sélective d'un signe, perte/retour de vue, état complet et
+  rendu après recharge. **49 tests ciblés verts**. Empreintes Relais/crue 2 h ×
+  quatre graines contre **d78cfcc** : chronique, mesures et état final complet
+  identiques ; référence rangée dans le cache. Suite complète unique : **1 837 tests,
+  16 ignorés, aucun échec ni erreur**, 182 fichiers, **1 484,1 s**, trois processus
+  à priorité réduite. Aucun appel à Luna ni changement de
+  `planification.py`, de `deliberation.py` ou de `main`. Une lecture reste faillible,
+  son délai de dix minutes et sa validité inchangés ; calibration hors lot.
+  [Rapport du lot 68](taches/rapport-codex-68-impressions-observer.md).
+
 - Branche `codex-orientation`, fusionnée, lot **61**, brief **1008f21**, après
   intégration de `origin/integration` **04bca30** : objets perçus et dernières positions
   mémorisées portent leurs demi-plans dans le regard actuel de Corvus (`orientation_relative`).

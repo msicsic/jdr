@@ -492,9 +492,12 @@ d'autrui »).
   par le moteur sans le MJ, comme `commandes.PERCEPTIONS`), est dite comme une impression :
   « Elle semble la craindre. » ; une méprise se dit de la même façon, sans que rien ne la
   distingue. Rien n'est affirmé vrai.
-- **Relecture** : `observer` redonne les signes physiques demandés et n'annonce une impression
-  que lorsqu'elle est nouvelle. La carte, la description et le contexte continuent de présenter
-  l'impression active. Une personne connue peut être nommée hors de vue ; le moteur refuse
+- **Relecture** : `observer` redonne les signes physiques et les impressions actuelles de la
+  personne demandée, même déjà annoncées, si leur signe d'appui est encore perçu. Le bilan
+  spontané n'annonce que les impressions nouvelles. La carte, la description et le contexte
+  continuent de présenter l'impression active. Pour un même signe, aucun dé supplémentaire
+  avant le délai commun de dix minutes ; une lecture peut rester une méprise. Une personne
+  connue peut être nommée hors de vue ; le moteur refuse
   alors selon une seule cause (présence, lumière ou vue), sans appel à Luna, en ligne comme
   hors ligne. Une rotation possible garde sa règle ordinaire.
 - **Ce que les PNJ lisent du joueur** : ses comportements (où il se tient, qui il regarde, ce qu'il
@@ -808,6 +811,10 @@ lectures des PNJ/joueur, commande locale `observer` (3 s), rendu/carte, usages d
 hostilité et mensonge, retrait de l’humeur et `--regler` sont réalisés. `relations.py`
 reste l’unique accès aux axes. Le tirage indépendant est séparé **par observateur** :
 observer avec le joueur ne décale ni les dés ordinaires ni ceux d’un PNJ.
+Le lot **68**, branche `codex-impressions-observer` non fusionnée, corrige la restitution
+des lectures déjà acquises : la déduplication des nouveautés reste celle du bilan spontané,
+pas celle d'une demande explicite. La règle commune de lecture, sa mémoire et son appui
+perçu sont conservés. Voir le [rapport et les vérifications après recharge](taches/rapport-codex-68-impressions-observer.md).
 Les lectures entrent dans les clés du planificateur ; une clé sociale séparée et les
 causes des émissions invalident les caches sans rendre une mise à jour d’esprit
 incompatible avec le bloc de géométrie figée.
