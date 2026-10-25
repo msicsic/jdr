@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-avis-menace`, **non fusionnée**, lot **80** (A3, menace d'un lieu),
+  base d'intégration **882907c**, brief **5fd85a1**, code signé **a2bb274** : les nouvelles communes
+  transmettent la prévision d'eau à un auditeur cru concerné, selon le souci
+  (altruisme + empathie + affection ≥ 100). La réception pèse source × conviction ;
+  une estimation propre étayée plus récente dément durablement l'avis. Croyance `prevision`
+  séparée des mesures du lot 58, lue par `eau.attendue` ; raccord des routes et
+  coefficients dans `_entrees`. Algorithmes de recherche et règles de choix des buts inchangés.
+  Le registre du lot 64 suit la valeur « menace » et les destinataires, hors dates
+  et conviction. Une destination n'est connue que par rendez-vous convenu ; aucun
+  accès au plan privé d'autrui. Huit tests nouveaux, dont la crue 500, un autre
+  lieu/locuteur, le doute, le souci, la non-répétition et la reprise découpée.
+  Suite complète unique : **1 903 tests, 16 ignorés**, 193 fichiers, trois processus
+  à priorité réduite, **1 477,7 s** ; seul échec de la nouvelle scène d'écoute sans mode
+  spatial. Scène corrigée puis code final repris : **18 tests verts**, dont les dix
+  tests inchangés des lots 41/58 ; bilan consolidé vert, sans seconde suite complète.
+  Empreintes sans avis 2 h, crue/Relais × quatre graines : identiques à la base.
+  Rapide 4 h, mêmes scénarios/graines : états et chroniques identiques, zéro avis/adoption,
+  aucune usurpation ou plantage ; eau crue **133,75 → 133,75 min·PNJ**, `eau_longue` **1 → 1**.
+  Audits 12 h branche seule, crue 500/2024 : **1 095/275 min·PNJ** dans l'eau,
+  **4/1** constats `eau_longue`, aucun plantage/usurpation, zéro avis/adoption.
+  À 12 h, 500 : Gorm au refuge, Brune à la galerie, Ilse dans la conduite, Aubin aux
+  vannes ; 2024 : tous au refuge. Sept constats d'eau différents d'Ilse expliquent
+  l'alerte de répétition. L'émission est prouvée par les parcours ciblés, pas ces nuits.
+  Contrôle 2 h crue 42, `VERIFIER` + `spatial.VERIFICATION=1` : aucun écart, borne
+  atteinte ou plantage, **586,7 s**. Créneau du lot dépassé ; chiffres et limites dans le rapport.
+  Aucun appel à Luna, changement de scénario ou modification de `main`.
+  [Rapport du lot 80](taches/rapport-codex-80-avis-menace.md).
+
 - Branche `codex-piece-de-lot`, fusionnée, lot **78**, base **6a49036**,
   intégration de départ **38e5d7e** ; correctif signé **69f04db**. Le sens du contenu
   porte référence, noms connus, quantité et unité (`part`/`objet`), pour les demandes

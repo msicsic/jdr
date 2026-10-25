@@ -906,6 +906,19 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
 
 ### 3f. Les avis et les disputes
 
+- **Menace d'un lieu, première partie réalisée, lot 80** (`codex-avis-menace`, non fusionnée) :
+  les repères d'eau fondent un avis de menace dans l'heure, confié par les nouvelles communes
+  à qui le locuteur croit dans ce lieu ou attendu à un rendez-vous convenu, si altruisme +
+  empathie + affection atteint 100. La confiance du locuteur envers l'auditeur n'est pas
+  requise pour cet avertissement ; celle de l'auditeur envers la source pondère son adoption.
+  Poids des sources × conviction, égalité conservatrice, estimation propre étayée plus récente prioritaire.
+  La prévision reçue est une croyance distincte des hauteurs et vitesses observées ;
+  `eau.attendue` la départage et la fournit aussi aux routes, avec ses coefficients dans
+  les entrées de recherche. Le registre du lot 64 suit la menace et son destinataire,
+  sans répétition pour une nouvelle date ou une conviction différente. Témoins auditifs
+  soumis à la même réception. Mesures `avis_exprimes`, `changements_d_avis` (adoptions dites).
+  Ni dispute, ni autre prédicat dans ce lot ; une destination privée n'est pas devinée.
+  [Rapport du lot 80](taches/rapport-codex-80-avis-menace.md).
 - Avis sur les prédicats admis, poids des sources, expression gardée par le souci de l'auditeur,
   `contredire`, nature « éclat », témoins, suites.
 - **Partager ses constats** (revue externe du 2026-10-24, retenue) : deux personnes qui se font confiance se disent
