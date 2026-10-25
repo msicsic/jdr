@@ -33,6 +33,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `main`. [Mesures et limites du lot 81](taches/rapport-codex-81-cout-par-noeud.md).
   Fusionné sur l'intégration après les lots 79, 80 et 82 : `planification.py` touché aussi par le lot 80 (lecture de la prévision d'eau), fusionné sans conflit ; suite complète relancée.
 
+- Branche `codex-verdict-coherent`, **non fusionnée**, lot **83**, brief
+  `13ae231`, intégration du lot 82 `7cce974` reprise par fusion signée `b1dbf65`.
+  Correctifs signés `b2be935`, `be8e175`.
+  `narration.controler` rend illisible un désaccord entre verdict mécanique
+  favorable et portée négative, ou verdict négatif et portée établie ; audit
+  redemandé une fois, garde refait par `consigner`. Les références des comptes
+  extraits passent par la résolution exacte commune, uniquement dans le dossier
+  public conservé : noms, identifiants, alias, personnes connues, souvenirs visuels,
+  nom du joueur et termes imbriqués
+  des offres. Ambiguïté : audit illisible ; aucune identité privée devinée.
+  Sept tests nouveaux de console/recharge, remboursements Gorm/Corvus et
+  Aubin/Corvus, rendus et état vérifiés. Suite complète unique : **1 914 tests,
+  16 ignorés, une erreur**, 195 fichiers, trois processus à priorité réduite,
+  **1 755,2 s**. `test_scenarios_libres.test_empreinte_crypte_visible_apres_rechargement` :
+  saisies simulées épuisées en mode hors ligne (`StopIteration`), hors du nouvel
+  audit ; cause non établie, aucune correction de contournement. Reprise finale :
+  **63 tests verts**, six fichiers, **82,75 s**, dont ce fichier inchangé et les
+  sept tests finaux. Six tests du lot dans la suite, sept après les compléments
+  de références hors de vue : **1 915 tests consolidés, 16 ignorés, aucun défaut
+  restant reproduit** ; aucune seconde suite complète.
+  Luna une passe signes-noir/crypte/comptes, référence `882907c` exclusivement
+  relue du cache : 31 → 38 appels sur 12 tours MJ, 2,58 → 3,17 appels/tour,
+  une relance narrative dans chaque variante, aucun arrêt, erreur/recharge ou
+  repli du harnais. Remboursement de Gorm affiché sans relance, or 24 → 26 ;
+  Brune conserve sa dette. N4 historique exact admis après résolution des noms.
+  **N2/N3 non clos** : leurs rapports exacts restent admis, car seul le motif
+  libre contredit leurs champs typés favorables. Non-reproduits dans cette
+  passe, sans garantie générale nouvelle. Demande de prime en crypte non
+  exécutée après des refus de fidélité, hors lot. Aucun prompt, modèle,
+  scénario, planification ni `main` modifiés. [Rapport et limites du lot 83](taches/rapport-codex-83-verdict-coherent.md).
+
 - Branche `codex-paiement-effectif`, fusionnée, lot **82**, base `a6f9368`
   (brief sur l'intégration `3ffd72d`) : analyse des opérations demandées séparée du
   verdict de fidélité, avec les sens communs de `paroles`. Le moteur compare cette

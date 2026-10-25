@@ -951,6 +951,11 @@ def controler(texte, rapport, faits, partie="texte"):
             if (not isinstance(comptes, list) or len(comptes) > 12 or any(
                     not compte_bien_forme(c) for c in comptes)):
                 raise AuditIllisible("Contrôle des rôles des comptes incomplet ou mal formé.")
+            from .noms import references_fournies
+            try:
+                comptes = references_fournies(comptes, faits)
+            except ErreurMonde as exc:
+                raise AuditIllisible("Une référence de compte est ambiguë dans le dossier fourni.") from exc
         if comptes is not None:
             ligne = {k: v for k, v in ligne.items() if k != "comptes"}
         # Les rapports archivés avant le champ de présentation n'établissent aucune présentation.
@@ -967,6 +972,12 @@ def controler(texte, rapport, faits, partie="texte"):
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "presentation", "motif"))):
             raise AuditIllisible("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
+        # Deux jugements typés d'un même segment ne peuvent simultanément
+        # l'établir et le rejeter. Le motif libre n'est pas un champ de vérité.
+        portee = ligne["portee_mecanique"]
+        if (verdict == "mecanique" and portee in ("sans_fondement", "contradictoire")
+                or verdict in ("invention_protegee", "contradictoire") and portee == "etablie"):
+            raise AuditIllisible("Le verdict narratif et la portée mécanique se contredisent.")
         # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
         # mécanique sans source restante est refusée plus bas.
         ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}

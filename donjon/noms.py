@@ -395,6 +395,44 @@ CHAMPS_REFERENCES = {"cible", "outil", "personnage", "sujet", "valeur", "ancrage
 LISTES_REFERENCES = {"cibles", "destinataires"}
 
 
+def references_fournies(valeur, faits):
+    """Résout les champs de référence dans le seul dossier public du récit.
+
+    Même résolution exacte que les propositions : identifiant, nom ou alias,
+    jamais une identité privée devinée. Le dossier archivé suffit à refaire le
+    contrôle avant enregistrement, sans consulter un autre état du monde.
+    """
+    from .monde import reference_exacte
+
+    entrees = [(cle[6:], objet) for cle, objet in faits.items() if cle.startswith('objet:')]
+    entrees.extend((faits.get('interlocuteurs') or {}).items())
+    entrees.extend((ref, {'nom': nom_}) for ref, nom_ in (faits.get('personnages_connus') or {}).items())
+    entrees.extend((s['id'], s) for s in faits.get('souvenirs_visuels', [])
+                   if isinstance(s, dict) and isinstance(s.get('id'), str))
+    if isinstance(faits.get('joueur'), dict):
+        entrees.append(('joueur', faits['joueur']))
+    objets = {}
+    for ref, objet in entrees:
+        if isinstance(objet, dict):
+            entree = objets.setdefault(ref, {'id': ref, 'nom': ref, 'aliases': []})
+            # Plusieurs sources nomment la même référence : aucune n'efface les
+            # appellations publiques des autres (souvenir, nom appris, alias).
+            entree['aliases'].extend(n for nom_ in appellations(objet)
+                                     for n in (nom_, nom_.split(',')[0]))
+
+    def decoder(contenu):
+        if isinstance(contenu, list):
+            return [decoder(v) for v in contenu]
+        if isinstance(contenu, dict):
+            return {champ: (reference_exacte(objets.values(), v) or v
+                            if champ in CHAMPS_REFERENCES | {'debiteur', 'creancier'}
+                            and isinstance(v, str) else decoder(v))
+                    for champ, v in contenu.items()}
+        return contenu
+
+    return decoder(valeur)
+
+
 def verifier_references(monde, valeur, faits):
     """À l'entrée du MJ, une référence privée devinée ne remplace pas la référence fournie.
 
