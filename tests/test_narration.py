@@ -41,8 +41,9 @@ class NarrationTests(unittest.TestCase):
         segments = schema["properties"]["segments"]
         # Une entrée obligatoire par segment, sous la clé de son indice.
         self.assertEqual(segments["required"], ["0", "1"])
-        sources = segments["properties"]["1"]["properties"]["sources"]["items"]
-        self.assertEqual(sources["enum"], ["objet:cloche", "salle"])
+        for variante in segments["properties"]["1"]["anyOf"]:
+            sources = variante["properties"]["sources"]["items"]
+            self.assertEqual(sources["enum"], ["objet:cloche", "salle"])
 
     def test_rapport_par_cle_d_indice(self):
         from donjon.narration import AuditIllisible
@@ -176,7 +177,7 @@ class NarrationTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--defi", "--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertEqual(appel.call_count, 4)
+        self.assertEqual(appel.call_count, 3)  # la correction exacte du moteur n'appelle plus d'audit
         self.assertNotIn(invention, sortie.getvalue())
         self.assertIn(corrige, sortie.getvalue())
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], corrige)

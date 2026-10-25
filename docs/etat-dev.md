@@ -1,8 +1,50 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-26.
 
 ## Où on en est
+
+- Branche `codex-audit-narratif`, fusionnée, lot **95**, base `036d5f2`,
+  code signé SSH `adb07f7`, correctif `49fa7d6` : preuve exacte des segments moteur, audit des seuls
+  segments libres avec indices conservés ; rapport variant selon verdict/portée,
+  extractions sans objet omises et motif de refus borné à 240 caractères.
+  Preuve refaite à l'enregistrement, attestations courantes revalidées,
+  couverture des comptes par le rendu complet de l'opération typée ; aucun
+  crédit global pour un rendu partiel, contrôles déterministes conservés.
+  Mesure initiale `29ccf1e` : **76 audits, 134 segments, zéro segment exact**,
+  **215,57 jetons de sortie/appel**, dont beaucoup de motifs non utilisés.
+  Deux passes des six scripts, **78 tours par variante** : **13,038 → 11,720
+  s/tour (−10,1 %)**, médiane **12,41 → 10,24 s** ; **251 → 254 appels**,
+  relances **8 → 11**, refus **23 → 21**, replis **1 → 1**. Audits : **76 → 79**,
+  **5,20 → 3,89 s/tour**, sortie **16 383 → 10 431**, entrée **662 887 →
+  1 173 129** (schéma à variantes plus gros). Aucun arrêt, erreur technique
+  ni défaut de recharge sur les 24 parties. Douze références jouées une fois,
+  relues du cache, SHA-256 identiques ; deux exécutions par variante,
+  quatre au chevauchement, priorité réduite, poste partagé.
+  Suite complète unique : **1 961 tests, 16 ignorés, 1 858,74 s**, deux
+  processus réduits ; six échecs et une erreur dans cinq fichiers : attentes
+  d'appels adaptées et lien résultat/comptes corrigé. **30 tests ciblés finaux
+  verts, trois ignorés, 12,64 s**, couvrant les cinq fichiers et les nouveaux
+  tests ; aucun défaut restant reproduit, sans seconde suite complète.
+  Correctif final sans effet sur les 264 requêtes archivées de branche/rejeu
+  (22 résultats résolus, aucun compte d'issue) : mesures Luna conservées.
+  **Réserve levée selon le seuil demandé le 26 octobre : fusionnable.**
+  Le rejeu initial avait perdu un refus juste. Sans changer le code, trente
+  appels supplémentaires, trois audits × deux rapports × cinq répétitions,
+  entrées exactes, deux exécutions au plus à priorité réduite : refus référence
+  → nouveau **1/5 → 0/5** (second préalable aux crochets), **1/5 → 4/5**
+  (premier préalable), **4/5 → 3/5** (ambiance, voix/lueur). Un rapport illisible
+  de chaque côté pour le premier préalable, compté à part ; aucune erreur
+  technique. Les trois cas passent la tolérance d'un refus de moins sur cinq :
+  perte initiale traitée comme variance selon cette règle. Les motifs d'ambiance
+  varient et incluent des faux refus ; aucune garantie sémantique générale.
+  Entrée +77 % : surtout 14 variantes du schéma, **2 245 → 5 999 jetons estimés**
+  sur les mêmes entrées ; cache **25,2 → 28,8 %**, donc pas de perte globale
+  observée. Non-caché/appel **+62 %**, premier delta **+0,174 s** : surcoût
+  compatible, causalité non isolée. Bruts : `variance-refus-95.json`,
+  `variance-refus-95-resume.json`, `analyse-entree-95.json` dans `artifacts/`.
+  [Rapport du lot 95](taches/rapport-codex-95-audit-narratif.md).
+  Fusionné sur l'intégration après le lot 93 : aucun conflit. Règle de décision de l'orchestrateur appliquée au rejeu répété (cinq fois chaque schéma) : refus aussi fréquents à un près, perte observée = variance de Luna.
 
 - Branche `codex-latence-appels`, fusionnée, lot **93**, base `258daab`
   (code d'intégration `119169c`, lot 91), code `4883425` avec Signed-off-by :

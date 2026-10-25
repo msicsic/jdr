@@ -109,7 +109,7 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn(corrige, " ".join(app.sorties))
                 self.assertEqual(Monde.charger(chemin).data["narrations_mj"][-1]["texte"], corrige)
                 await self.fermer(app)
-            self.assertEqual(api.call_count, 4)
+            self.assertEqual(api.call_count, 3)  # la correction exacte ne rappelle pas l'auditeur
 
     async def test_inscription_du_mj_affichee_apres_sauvegarde_et_lisible(self):
         reponse = {"mode": "etablir_faits", "texte": "",

@@ -150,12 +150,88 @@ def schema_audit(faits, nombre):
                     "Une source seulement vue, éteinte, supposée ou rappelée comme souvenir "
                     "n'affirme aucune contribution actuelle : []."}
             item["required"].append("eclairages")
-        return item
-    cles = [str(i) for i in range(nombre)]
+        # Le motif n'intervient que dans un refus sémantique. Les champs
+        # d'extraction ne portent un sens que pour les verdicts correspondants.
+        variantes = []
+        for verdict in VERDICTS:
+            for refuse in (False, True):
+                if verdict in ("invention_protegee", "contradictoire") and not refuse:
+                    continue
+                variante = copy.deepcopy(item)
+                proprietes = variante["properties"]
+                proprietes["verdict"] = {"type": "string", "enum": [verdict]}
+                if verdict not in ("invention_protegee", "contradictoire"):
+                    proprietes["portee_mecanique"]["enum"] = (
+                        ["sans_fondement", "contradictoire"] if refuse else ["aucune", "etablie"])
+                retirer = []
+                if verdict not in ("parole", "engagement"):
+                    retirer.extend(("locuteur", "citation", "presentation"))
+                if verdict not in ("ambiance", "engagement"):
+                    retirer.append("entites")
+                if not refuse:
+                    retirer.append("motif")
+                else:
+                    proprietes["motif"]["maxLength"] = 240
+                for cle in retirer:
+                    del proprietes[cle]
+                    variante["required"].remove(cle)
+                variantes.append(variante)
+        return {"anyOf": variantes}
+    cles = [str(i) for i in (range(nombre) if isinstance(nombre, int) else nombre)]
     return {"type": "object", "additionalProperties": False,
             "properties": {"segments": {"type": "object", "additionalProperties": False,
                                         "properties": {c: ligne() for c in cles}, "required": cles}},
             "required": ["segments"]}
+
+
+def textes_etablis(faits):
+    """Catalogue exact, sans normalisation ni inférence à partir d'une prose libre.
+
+    Seuls les champs de rendu du moteur font autorité, jamais la demande, une
+    proposition refusée, une consigne, une croyance ou un attendu technique.
+    Une citation historique autonome n'établit pas la vérité de son contenu.
+    """
+    catalogue = {}
+    def ajouter(texte, source):
+        if isinstance(texte, str):
+            for passage in segments(texte):
+                catalogue[passage] = source
+    for texte in faits.get("attestations", []):
+        ajouter(texte, "attestations")
+    for cle in ("resultat_resolu", "conversation_validee"):
+        bloc = faits.get(cle) or {}
+        for texte in bloc.get("faits", []):
+            ajouter(texte, cle)
+        ajouter(bloc.get("issue"), cle)
+    ajouter((faits.get("retour_moteur") or {}).get("obstacle"), "retour_moteur")
+    for parole in faits.get("paroles_entendues", []):
+        if isinstance(parole, dict) and isinstance(parole.get("texte"), str):
+            catalogue["« " + parole["texte"] + " »"] = "paroles_entendues"
+    return catalogue
+
+
+def segments_etablis(texte, faits):
+    catalogue = textes_etablis(faits)
+    etablis = {str(i): {"verdict": "mecanique", "sources": [catalogue[p]],
+                     "portee_mecanique": "aucune", "locuteur": "", "citation": "",
+                     "presentation": "", "entites": [], "motif": "",
+                     **({"comptes": []} if "comptes" in faits else {}),
+                     **({"eclairages": []} if "perception" in faits else {})}
+            for i, p in enumerate(segments(texte)) if p in catalogue}
+    # La couverture d'une issue complète est une preuve du moteur, sans
+    # réinterpréter le sens d'une phrase isolée. Ne jamais créditer une issue
+    # partielle ni les comptes d'une autre opération.
+    passages = set(segments(texte))
+    for cle in ("resultat_resolu", "conversation_validee"):
+        bloc = faits.get(cle) or {}
+        compte_issue = faits.get("comptes", {}).get("issue", [])
+        rendus = {s for t in bloc.get("faits", []) if isinstance(t, str) for s in segments(t)}
+        if (compte_issue and bloc.get("comptes") == compte_issue and rendus
+                and rendus <= passages):
+            indice = next((i for i in etablis if segments(texte)[int(i)] in rendus), None)
+            if indice is not None:
+                etablis[indice]["comptes"] = copy.deepcopy(compte_issue)
+    return etablis
 
 
 class AuditIllisible(RapportIllisible):
@@ -240,8 +316,9 @@ posture, mots choisis), est mecanique, source resultat_resolu ; leurs suites son
 resultat_resolu.faits, sans autre effet. Si retour_moteur indique qu'aucune action n'a été exécutée ou que rien n'a été dit, raconter
 comme fait ou commencé un geste du joueur (frapper, saisir, attendre, s'approcher, parler), ou
 qu'un personnage lui répond ou y réagit, est contradictoire : seule l'explication de ce qui l'en
-empêche est permise. Hors parole et engagement, locuteur et citation
-sont vides ; hors ambiance et engagement, entites est vide.
+empêche est permise. Les champs à rendre dépendent du verdict et de la portée,
+selon le schéma : aucun motif pour un segment admis ; un motif de refus bref
+(240 caractères au plus). Ne fournis aucun champ absent de la variante choisie.
 Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
 """
 
@@ -927,16 +1004,35 @@ def controler(texte, rapport, faits, partie="texte"):
     passages = segments(texte)
     lignes = rapport.get("segments") if isinstance(rapport, dict) else None
     if isinstance(lignes, dict):
+        # Refaire la preuve exacte à chaque lecture, y compris lors de la
+        # sauvegarde. Aucun drapeau du MJ ne peut exempter une phrase libre.
+        etablis = segments_etablis(texte, faits)
+        lignes = {**lignes, **etablis}
         # Forme demandée à l'auditeur : une entrée par segment, sous la clé de son indice.
         if set(lignes) != {str(i) for i in range(len(passages))}:
             raise AuditIllisible("Contrôle narratif incomplet.")
         lignes = [{**lignes[str(i)], "indice": i} if isinstance(lignes[str(i)], dict) else lignes[str(i)]
                   for i in range(len(passages))]
+    elif isinstance(lignes, list) and len(lignes) == len(passages):
+        etablis = segments_etablis(texte, faits)
+        lignes = [{**etablis[str(i)], "indice": i} if str(i) in etablis else ligne
+                  for i, ligne in enumerate(lignes)]
     if (not passages or len(passages) > 24 or not isinstance(lignes, list)
             or len(lignes) != len(passages)):
         raise AuditIllisible("Contrôle narratif incomplet.")
     obstacles, paroles, ambiances, lignes_validees = orientations(texte, faits, partie), [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
+        if isinstance(ligne, dict):
+            verdict = ligne.get("verdict")
+            defauts = {}
+            if verdict not in ("parole", "engagement"):
+                defauts.update(locuteur="", citation="", presentation="")
+            if verdict not in ("ambiance", "engagement"):
+                defauts["entites"] = []
+            if (verdict not in ("invention_protegee", "contradictoire")
+                    and ligne.get("portee_mecanique") in ("aucune", "etablie")):
+                defauts["motif"] = ""
+            ligne = {**defauts, **ligne}
         # Champ extrait par les nouveaux audits, conservé pour l'enregistrement.
         # Les anciens rapports ne portaient pas cette extraction.
         lumieres = ligne.get("eclairages") if isinstance(ligne, dict) else None
@@ -1166,6 +1262,14 @@ def consigner(monde, reponse):
     if rapport["obstacles"]:
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
                           rapport["obstacles"][0]["attendu"])
+    etablis = segments_etablis(audit["texte_initial"], audit["faits"])
+    if any(ligne["sources"] == ["attestations"] for ligne in etablis.values()):
+        actuelles = {s for t in attestations(monde, monde.contexte()) for s in segments(t)}
+        for indice, ligne in etablis.items():
+            passage = segments(audit["texte_initial"])[int(indice)]
+            if ligne["sources"] == ["attestations"] and passage not in actuelles:
+                raise ErreurMonde("Cette description ne correspond plus à ce que tu perçois.",
+                                  f"segment {indice} : reçu {passage!r} ; une attestation actuelle du moteur.")
     from .perception import eclairage
     from .noms import public
     courants = {"perception": public(monde, eclairage(monde))}

@@ -178,7 +178,7 @@ class CoupeTests(unittest.TestCase):
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
-            self.assertEqual(appel.call_count, 7)
+            self.assertEqual(appel.call_count, 6)  # la résistance est un constat exact du moteur
             self.assertEqual(appel.call_args_list[3].args[1]["qualifications"][0]
                              ["moyen"]["id"], "hache")
             self.assertIn(phrase, sortie.getvalue())

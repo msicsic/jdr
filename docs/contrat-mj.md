@@ -40,6 +40,30 @@ sémantique : le dossier n'exempte aucun autre objet ni changement de quantité.
 Chaque réponse libre de Luna (dialogue, avis de clarification, explication d'un refus)
 est découpée en segments et relue par un auditeur, qui classe chaque segment :
 
+**Audit limité à la décision** (`codex-audit-narratif`, lot 95). Un segment
+strictement identique à une attestation, une issue, un résultat ou un message
+d'obstacle du moteur reçoit sa preuve localement. Une citation historique
+autonome déjà entendue peut être reprise sans créer une nouvelle parole ni
+établir son contenu comme vrai. Aucun rapprochement approximatif, demande du
+joueur, proposition refusée ou `attendu` technique ne vaut preuve. Les autres
+segments seuls sont envoyés à l'auditeur, avec leurs indices d'origine ; aucun
+appel si tous sont établis. Les gardes déterministes du texte entier demeurent.
+La preuve exacte est reconstruite à l'enregistrement ; une attestation courante
+qui ne correspond plus à la perception est refusée. Les comptes de l'issue
+restent obligatoires : les comptes calculés sur la révision du résultat lui
+sont liés avant le rapprochement. La reprise intégrale des faits de l'opération, liée aux
+mêmes comptes typés, prouve leur couverture ; une reprise partielle ne reçoit
+pas ce crédit global et reste soumise au contrôle des comptes manquants.
+
+Le schéma du rapport dépend du verdict et de la portée. Il demande locuteur,
+citation et présentation seulement pour parole/engagement, les éléments
+seulement pour ambiance/engagement, et un motif de 240 caractères au plus
+seulement pour un refus sémantique. Sources, portée, comptes et contributions
+lumineuses gardent leurs contrôles. Le moteur complète les champs sans objet
+pour conserver le format enregistré et accepte les anciens rapports complets.
+Une prose libre n'est jamais exemptée par son verdict présumé ; la décision
+de l'auditeur et ses extractions restent en partie sémantiques.
+
 | Verdict | Traitement |
 |---|---|
 | `neutre` (salutation, conseil, question) | affiché tel quel |
