@@ -1571,13 +1571,13 @@ def preparer_parole(monde, p, revision=None):
     temoins = [] if chuchote else sorted(id for id in saisissent(travail, "joueur")
                                          if id not in dest and id not in repondent and travail.objets[id].get("profil"))
     expression = capacite_transmission(_stats_pnj(travail, "joueur")["INT"])
-    faits, comptes = [], []
+    faits, comptes, offres = [], [], []
     for auditeur in [*dest, *repondent]:
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
             if c["type"] == "proposition":
-                _proposer(travail, auditeur, c, faits)
+                offres.extend(_proposer(travail, auditeur, c, faits))
             elif c["type"] == "affirmation":
                 _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
             elif c["type"] == "passage":
@@ -1627,6 +1627,7 @@ def preparer_parole(monde, p, revision=None):
                "operation": "parole_joueur", "replique_joueur": replique,
                "issue": issue(travail, forme, dest, [*dest, *repondent], temoins_vus, replique), "faits": faits,
                **({"comptes": comptes} if comptes else {}),
+               **({"offres": offres} if offres else {}),
                **({"regard": vers} if vers else {})}
     return travail, rapport
 
@@ -1647,7 +1648,7 @@ def _proposer(travail, auditeur, c, faits):
               "persuasion": "tu ne l'as pas convaincu"}
     if bilan["cause"]:
         faits.append(nom + " refuse l'échange : " + causes[bilan["cause"]] + ".")
-        return
+        return []
     def terme(t):
         if t["type"] == "rien":
             return "sans contrepartie"
@@ -1663,3 +1664,5 @@ def _proposer(travail, auditeur, c, faits):
                  if bilan.get("livraison_differee") else
                  "Les biens et pièces convenus sont remis ; les tâches convenues sont enregistrées comme engagements.")
     faits.extend(agendas.promesses_visibles(travail))
+    from .propositions import offre
+    return [offre("joueur", auditeur, c["demande"], c["contrepartie"])]

@@ -16,6 +16,7 @@ from .monde import ErreurMonde, normaliser
 from . import lexique
 from .refus import RapportIllisible, audit, liste as en_liste
 from .noms import REGLE_DESIGNATIONS, hors_designations
+from .propositions import SCHEMA_OFFRE
 
 
 VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique",
@@ -83,6 +84,45 @@ SCHEMA_COMPTES = {"type": "array", "maxItems": 12,
                        "objet": {"type": "string"}, "montant": {"type": "integer", "minimum": -1},
                        "etat": {"type": "string", "enum": ["du", "rendu", "absent"]}},
         "required": ["debiteur", "creancier", "objet", "montant", "etat"]}}
+
+SCHEMA_SOLDE = SCHEMA_COMPTES["items"]
+SCHEMA_COMPTES["items"] = {"anyOf": [SCHEMA_SOLDE, SCHEMA_OFFRE]}
+SCHEMA_COMPTES["description"] += (
+    " Une contrepartie promise contre une prestation future est etat offre : debiteur est celui "
+    "qui promet la contrepartie, creancier celui qui fournit la condition ; condition et "
+    "contrepartie sont les termes typés objet/part/tache/pieces/rien. Extrais ces termes du texte. "
+    "L'offre ne dit ni du ni rendu. Sa condition est fondée si elle correspond aux termes fournis "
+    "dans comptes.offres, missions_discutables ou conversation_validee.offres ; une reformulation "
+    "compatible n'ajoute aucune condition. Le texte libre de la mission complète ses termes typés.")
+
+
+def compte_bien_forme(c):
+    if not isinstance(c, dict):
+        return False
+    if c.get("etat") == "offre":
+        def terme(t):
+            if not isinstance(t, dict):
+                return False
+            genre = t.get("type")
+            if genre in ("objet", "part"):
+                return set(t) == {"type", "objet"} and isinstance(t["objet"], str)
+            if genre == "pieces":
+                return set(t) == {"type", "montant"} and type(t["montant"]) is int and t["montant"] > 0
+            if genre == "rien":
+                return set(t) == {"type"}
+            condition = t.get("condition")
+            return (genre == "tache" and set(t) == {"type", "condition"}
+                    and isinstance(condition, dict) and isinstance(condition.get("objet"), str)
+                    and (set(condition) == {"objet", "lieu"} and isinstance(condition["lieu"], str)
+                         or set(condition) in ({"objet", "allume"}, {"objet", "verrouillee"})
+                         and next(v for k, v in condition.items() if k != "objet") is True))
+        return (set(c) == set(SCHEMA_OFFRE["required"])
+                and all(isinstance(c[k], str) for k in ("debiteur", "creancier"))
+                and terme(c["condition"]) and terme(c["contrepartie"]))
+    return (set(c) == set(SCHEMA_SOLDE["required"])
+            and all(isinstance(c[k], str) for k in ("debiteur", "creancier", "objet"))
+            and type(c["montant"]) is int and c["montant"] >= -1
+            and c["etat"] in ("du", "rendu", "absent"))
 
 
 def schema_audit(faits, nombre):
@@ -513,6 +553,9 @@ def engagements_prevus(faits, locuteur):
     qu'il vient de valider pour lui (conversation_validee)."""
     esprit = (faits.get("esprits_interlocuteurs") or {}).get(locuteur) or {}
     prevus = list(agendas.declares(esprit) or [])
+    dossier = faits.get("comptes", {})
+    prevus += [phrase for o, phrase in zip(dossier.get("offres", []), dossier.get("formulations_offres", []))
+               if o["debiteur"] == locuteur]
     validee = faits.get("conversation_validee")
     if isinstance(validee, dict) and (validee.get("personnage") == locuteur
                                       or locuteur in (validee.get("destinataires") or [])):
@@ -840,10 +883,7 @@ def controler(texte, rapport, faits, partie="texte"):
         comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
         if "comptes" in faits or comptes is not None:
             if (not isinstance(comptes, list) or len(comptes) > 12 or any(
-                    not isinstance(c, dict) or set(c) != set(SCHEMA_COMPTES["items"]["required"])
-                    or any(not isinstance(c[k], str) for k in ("debiteur", "creancier", "objet"))
-                    or type(c["montant"]) is not int or c["montant"] < -1
-                    or c["etat"] not in ("du", "rendu", "absent") for c in comptes)):
+                    not compte_bien_forme(c) for c in comptes)):
                 raise AuditIllisible("Contrôle des rôles des comptes incomplet ou mal formé.")
         if comptes is not None:
             ligne = {k: v for k, v in ligne.items() if k != "comptes"}
@@ -881,10 +921,13 @@ def controler(texte, rapport, faits, partie="texte"):
             dossier = faits.get("comptes", {})
             attendus = dossier.get("issue") or dossier.get("etat", [])
             for c in comptes:
-                if not any(all(c[k] == a[k] for k in ("debiteur", "creancier", "objet", "etat"))
-                           and c["montant"] in (-1, a["montant"]) for a in attendus):
+                compatibles = dossier.get("offres", []) if c["etat"] == "offre" else attendus
+                conforme = (c in compatibles if c["etat"] == "offre" else any(
+                    all(c[k] == a[k] for k in ("debiteur", "creancier", "objet", "etat"))
+                    and c["montant"] in (-1, a["montant"]) for a in compatibles))
+                if not conforme:
                     obstacles.append(audit("Le sens du compte ne correspond pas à l'issue du moteur.",
-                        f"comptes : reçu {c} ; respecter les rôles et quantités de {attendus} ; "
+                        f"comptes : reçu {c} ; respecter les rôles et termes de {compatibles} ; "
                         + " ; ".join((faits.get("conversation_validee") or {}).get("faits", [])),
                         partie=partie, segment=indice, texte=passage, recu=str(c)))
         # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle

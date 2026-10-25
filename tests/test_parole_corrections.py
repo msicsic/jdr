@@ -32,9 +32,11 @@ from tools.banc_parties import preparer
 BANCS = Path(__file__).parent / "data" / "bancs"
 
 
-def banc(nom):
+def banc(nom, *, noms_connus=None):
     """L'état de départ d'un banc ciblé du rapport, préparé comme le banc le prépare."""
     donnees = json.loads((BANCS / f"{nom}.json").read_text(encoding="utf-8"))
+    if noms_connus is not None:
+        donnees.setdefault("preparation", {})["noms_connus"] = noms_connus
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / "banc.json"
         preparer(donnees, chemin)
@@ -121,7 +123,7 @@ class VocatifTests(unittest.TestCase):
 class NomInconnuTests(unittest.TestCase):
     def test_cas_reel_un_nom_que_corvus_ne_connait_pas(self):
         # Le banc des comptes : Brune, jamais vue, est dans le dos de Corvus ; Gorm est en face.
-        m = banc("comptes")
+        m = banc("comptes", noms_connus=[])
         reprise, sortie, appels = jouer(m, "« Brune, tu me dois deux pièces, rends-les-moi. »", [], [])
         self.assertEqual(mj(appels), [])  # Le moteur répond seul, sans appel.
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)
@@ -132,7 +134,7 @@ class NomInconnuTests(unittest.TestCase):
         self.assertEqual(paroles_retenues(reprise, "brune"), [])
 
     def test_meme_nature_un_verbe_de_parole_et_une_interpellation_libre(self):
-        m = banc("comptes")
+        m = banc("comptes", noms_connus=[])
         _, sortie, appels = jouer(m, "je dis à Brune : rends-moi mes pièces", [], [])
         self.assertEqual(mj(appels), [])
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)

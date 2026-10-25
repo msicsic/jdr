@@ -464,6 +464,14 @@ def etat_comptes_joueur(monde, interlocuteurs=()):
     return comptes
 
 
+def offres_joueur(monde):
+    """Devis de mission publics, distincts des soldes dus et des paiements."""
+    from .dialogues import missions_discutables, offre_mission
+    from .agendas import contrats
+    ids = set(missions_discutables(monde)) | set(contrats(monde))
+    return [o for id in sorted(ids) if (o := offre_mission(monde, id))]
+
+
 def reticence(monde, id, prix_, offre=0):
     """Ce qu'ajoute au DD d'une demande la part du prix qu'on ne lui paie pas : ce qu'elle vaut
     pour lui, au-delà de ce qu'elle vaut pour qui vit modestement. Un riche, pour qui une pièce
