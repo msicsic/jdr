@@ -23,7 +23,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [Rapport du lot 78](taches/rapport-codex-78-piece-de-lot.md).
   Fusionné sur l'intégration après les lots 73 et 74 ; fichiers de code distincts de l'autre lot du jour ; suite complète relancée.
 
-- Branche `codex-contre-offre`, **non fusionnée**, lot **77**, base d'intégration
+- Branche `codex-contre-offre`, fusionnée, lot **77**, base d'intégration
   **38e5d7e**, brief **c1cb020** : un refus PNJ peut annoncer le prix propre où sa
   réticence cesse, ou le repas servi qui libérerait réellement le bien nécessaire
   à son plan. Offre commune et preuve du service conservées avec le refus avant
