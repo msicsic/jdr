@@ -14,8 +14,12 @@ class PersonnagesTests(unittest.TestCase):
         self.assertIn("grisonnante", souvenir["details"][0]["description"])
         self.assertEqual(len(souvenir["details"]), 2)
         self.assertNotIn("marchand", [o["id"] for o in m.contexte()["objets_perceptibles"]])
+        # Un nom connu se désigne, sans rendre le corps présent ni accessible.
+        self.assertEqual(m.trouver("Gorm"), "marchand")
+        self.assertTrue(m.designable("marchand"))
+        self.assertFalse(m.accessible("marchand"))
         with self.assertRaises(ErreurMonde):
-            m.trouver("Gorm")
+            Moteur(m).preparer(proposition("examiner", m.trouver("Gorm")))
         m.objets["marchand"].update(humeur="inquiet", portrait="Un nouveau portrait.", secret="cachette secrète")
         m.objets["barbe_gorm"]["description_visuelle"] = "Sa barbe a été rasée."
         Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))

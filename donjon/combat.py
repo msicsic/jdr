@@ -55,7 +55,7 @@ def prix_violence(monde, auteur, motif=None, defense=False, rendu=False):
 
 
 def valider(monde, auteur, cible, outil="", methode="simple"):
-    from .refus import liste
+    from .refus import cibles
     from .spatial import porte_par
     if not corps.conscient(monde, auteur):
         raise ErreurMonde("Tu es sans connaissance.", f"auteur={auteur} : auteur conscient requis.")
@@ -65,14 +65,14 @@ def valider(monde, auteur, cible, outil="", methode="simple"):
                           f"auteur={auteur} : instant >= {reprise} requis pour frapper, reçu {instant(monde)}.")
     if not corps.vivant(monde, cible) or cible == auteur:
         acceptes = [x for x in corps.personnages(monde) if x != auteur]
-        raise ErreurMonde("Il faut viser une autre personne vivante.", f"cible={cible} : parmi {liste(acceptes)}.")
+        raise ErreurMonde("Il faut viser une autre personne vivante.", f"cible={cible} : parmi {cibles(monde, acceptes)}.")
     if methode not in ("simple", "assommer"):
         raise ErreurMonde("Cette manière de frapper n'est pas prévue.", f"methode={methode} : simple ou assommer.")
     if not au_contact(monde, auteur, cible):
         raise ErreurMonde("Cette personne est hors de portée.", f"cible={cible} : frapper exige le contact, une case voisine accessible.")
     if outil and not (outil in monde.objets and porte_par(monde, outil, auteur)):
         portes = [x for x in monde.objets if porte_par(monde, x, auteur)]
-        raise ErreurMonde("L'arme doit être en main.", f"outil={outil} : objet porté parmi {liste(portes)}, ou vide.")
+        raise ErreurMonde("L'arme doit être en main.", f"outil={outil} : objet porté parmi {cibles(monde, portes)}, ou vide.")
     regle = arme(monde.objets[outil] if outil else None)
     if regle is None:
         raise ErreurMonde("Cet objet ne convient pas pour frapper.", f"outil={outil} : percussion, levier, couper, couper_bois, objet intact de masse_kg >= 0.5, ou vide.")

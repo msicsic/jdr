@@ -8,7 +8,7 @@ from .francais import designer, relation_physique, complement_de
 from .geometrie import placer
 from .monde import ErreurMonde, normaliser, objet, reference_exacte
 from .perception import eclairage
-from .refus import liste
+from .refus import cibles
 from .matiere import (SCHEMA as SCHEMA_PHYSIQUE, SCHEMA_CONTENU, appliquer as appliquer_physique,
                       decrire as decrire_physique, decrire_contenu, valider as valider_physique,
                       valider_contenu, SCHEMA_PASSAGE, valider_passage, decrire_passage)
@@ -218,7 +218,7 @@ def _outil_de_coupe(monde, cible, identifiant):
         outils = sorted(i for i, o in monde.objets.items() if o.get("lieu") == "joueur" and i != cible
                         and o.get("integrite", 0) > 0 and statut_capacite(o, "couper") == "etablie")
         raise ErreurMonde("La qualification de coupe exige un outil possédé et utilisable.",
-                          f"moyen : un outil tranchant en main, parmi {liste(outils)} (reçu « {identifiant} »).")
+                          f"moyen : un outil tranchant en main, parmi {cibles(monde, outils)} (reçu « {identifiant} »).")
     return moyen
 
 
@@ -291,7 +291,7 @@ def preparer_faits(monde, proposition, revision=None):
                 raise refus(inobservable(monde, ancrage) if ancrage not in autorises["supports"]
                             else "Cet objet ne peut pas être qualifié.",
                             f"ancrage « {ancrage} » : un objet qualifiable d'ici, parmi "
-                            f"{liste(sorted(autorises['qualifiables']))} ; ne le remplace pas par un autre : "
+                            f"{cibles(monde, autorises['qualifiables'])} ; ne le remplace pas par un autre : "
                             "réponds en dialogue avec ce que Corvus en perçoit d'ici, sans détail nouveau.")
             cible = travail.objets[ancrage]
             if "passage" in ajout:
@@ -410,7 +410,7 @@ def preparer_faits(monde, proposition, revision=None):
         if nature == "parole":
             if ancrage not in autorises["locuteurs"]:
                 raise refus("Cette parole ne peut pas être attribuée à ce personnage ici.",
-                            f"ancrage : un personnage présent, parmi {liste(sorted(autorises['locuteurs']))}.")
+                            f"ancrage : un personnage présent, parmi {cibles(monde, autorises['locuteurs'])}.")
             if nom or genre or len(texte) > 240:
                 raise refus("Cette parole ne peut pas être attribuée à ce personnage ici.",
                             "parole : nom et genre vides, texte de 240 caractères au plus.")
@@ -462,7 +462,7 @@ def preparer_faits(monde, proposition, revision=None):
             raise refus(inobservable(monde, ancrage),
                         f"ancrage « {ancrage} » non observable de près ; ne le remplace pas par un autre support : "
                         "réponds en dialogue avec ce que Corvus en perçoit d'ici, sans détail nouveau. Supports "
-                        f"observables : {liste(sorted(autorises['supports']))}.")
+                        f"observables : {cibles(monde, autorises['supports'])}.")
         support = travail.objets[ancrage]
         if nature == "inscription":
             if any(e["lieu"] == ancrage and e.get("inscription") for e in travail.objets.values()):
@@ -485,7 +485,7 @@ def preparer_faits(monde, proposition, revision=None):
                                              for e in travail.enfants(ancrage))):
                 raise refus("Cet élément n'a pas de nom distinct sur son support.",
                             "genre m ou f ; nom de 3 à 60 caractères, différent des éléments déjà sur "
-                            f"{ancrage} ({liste(e['nom'] for e in travail.enfants(ancrage))}).")
+                            f"{ancrage} ({cibles(monde, (e['id'] for e in travail.enfants(ancrage)))}).")
             if nature == "objet":
                 masse, mobile, materiau, relation = (ajout[k] for k in ("masse", "mobile", "materiau", "relation"))
                 if (type(masse) not in (int, float) or not math.isfinite(masse)

@@ -7,7 +7,7 @@ from .monde import ErreurMonde
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
-from .refus import inaccessible, liste, portes_avec_usage
+from .refus import cibles, inaccessible, portes_avec_usage
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
@@ -71,7 +71,7 @@ def traduire(monde, p):
         return ([etape("patienter")] if p["methode"] == "finesse" else []) + [etape("deplacer", cible, "joueur", methode="discret")]
     if action == "poser" and monde.objets.get(cible, {}).get("lieu") != "joueur":
         portes = sorted(i for i, x in monde.objets.items() if x["lieu"] == "joueur")
-        raise ErreurMonde("Tu ne portes pas cet objet.", f"poser vise un objet porté, parmi {liste(portes)}.")
+        raise ErreurMonde("Tu ne portes pas cet objet.", f"poser vise un objet porté, parmi {cibles(monde, portes)}.")
     return [etape("deplacer", cible, "joueur" if action == "prendre" else monde.joueur["salle"])]
 
 
@@ -200,7 +200,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                                       f"{cible} n'éclaire pas (qualification établie) : ne re-propose pas cet allumage.")
             sources = sorted(i for i, x in monde.objets.items() if "allume" in x and monde.accessible(i))
             raise ErreurMonde(designer(o, debut=True) + " ne s'allume ni ne s'éteint.",
-                              f"{op} vise une source lumineuse, parmi {liste(sources)}.")
+                              f"{op} vise une source lumineuse, parmi {cibles(monde, sources)}.")
         allumer = op == "allumer"
         if o["allume"] == allumer:
             raise ErreurMonde("Cette source est déjà " + ("allumée." if allumer else "éteinte."),
@@ -231,7 +231,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 flammes = sorted(x["id"] for x in monde.objets.values()
                                  if x["id"] != cible and flamme(x) and a_portee(monde, x["id"]))
                 raise ErreurMonde("Il faut un outil d'allumage utilisable, ou une autre flamme, porté ou à portée de main.",
-                                  f"outil : un briquet ou une flamme portée ou à portée de main, parmi {liste(flammes)}"
+                                  f"outil : un briquet ou une flamme portée ou à portée de main, parmi {cibles(monde, flammes)}"
                                   + (f" ; {outil} ne donne pas de flamme" if outil else "") + ".")
         elif outil:
             raise ErreurMonde("Éteindre cette source ne demande pas d'outil.", "eteindre : outil vide.")
@@ -249,7 +249,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             sources = sorted(i for i, x in monde.objets.items() if brule(x) and monde.accessible(i))
             raise ErreurMonde(designer(o, debut=True) + " ne se recharge pas.",
                               f"alimenter : cible = un foyer ou une source qui brûle un combustible déclaré, "
-                              f"parmi {liste(sources)} ; le combustible va dans outil.")
+                              f"parmi {cibles(monde, sources)} ; le combustible va dans outil.")
         # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
         t = monde.objets.get(outil) if outil else next(
             (e for e in sorted(monde.objets.values(), key=lambda e: not monde.est_porte(e["id"]))
@@ -261,12 +261,12 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             reserves = sorted(x["id"] for x in monde.objets.values()
                               if combustible(x) and recharge(o, x) and a_portee(monde, x["id"]))
             raise ErreurMonde(designer(o, debut=True) + " brûle " + SUBSTANCES[matiere]["article"] + ".",
-                              f"{cible} se recharge de {matiere} ; {t['id']} n'en est pas : outil parmi {liste(reserves)}.")
+                              f"{cible} se recharge de {matiere} ; {t['id']} n'en est pas : outil parmi {cibles(monde, reserves)}.")
         if not t or not combustible(t) or not a_portee(monde, t["id"]):
             combustibles = sorted(x["id"] for x in monde.objets.values()
                                   if combustible(x) and recharge(o, x) and a_portee(monde, x["id"]))
             raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.",
-                              f"outil : un combustible pour {cible} porté ou à portée de main, parmi {liste(combustibles)}.")
+                              f"outil : un combustible pour {cible} porté ou à portée de main, parmi {cibles(monde, combustibles)}.")
         victime = proprietaire(monde, t)
         if (not monde.est_porte(t["id"]) and victime not in (None, "joueur")
                 and t.get("vole_par") != "joueur"):
@@ -284,7 +284,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if o["type"] != "nourriture":
             vivres = sorted(i for i, x in monde.objets.items() if x["type"] == "nourriture" and monde.accessible(i))
             raise ErreurMonde(designer(o, debut=True) + " ne se mange pas.",
-                              f"manger vise une nourriture, parmi {liste(vivres)}.")
+                              f"manger vise une nourriture, parmi {cibles(monde, vivres)}.")
         if o.get("portions", 0) <= 0:
             raise ErreurMonde("Il ne reste rien " + complement_de(o) + ".", f"{cible} n'a plus de portion.")
         victime = proprietaire(monde, o)
@@ -363,7 +363,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                                  if x["type"] == "contenant" and x.get("ouverte") and monde.accessible(i) and i != cible)
                 raise ErreurMonde("La destination doit être ta besace, le sol ici ou un contenant ouvert et accessible.",
                                   f"destination : joueur, {monde.joueur['salle']} (le sol), ou un contenant ouvert parmi "
-                                  f"{liste(ouverts)} ; reçu « {destination} »"
+                                  f"{cibles(monde, ouverts)} ; reçu « {destination} »"
                                   + (" (fermé : ouvre-le d'abord)" if contenant and contenant["type"] == "contenant"
                                      and not contenant.get("ouverte") else "") + ".")
             exiger(monde, destination)
@@ -431,7 +431,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         fixations = sorted(i for i, x in monde.objets.items()
                            if x.get("attache") and x.get("amovible") and monde.accessible(i))
         raise ErreurMonde(designer(o, debut=True) + " n'est pas une fixation amovible encore attachée.",
-                          f"detacher vise une fixation amovible attachée, parmi {liste(fixations)}"
+                          f"detacher vise une fixation amovible attachée, parmi {cibles(monde, fixations)}"
                           + (f" ; {cible} est libre : deplacer suffit" if o["mobile"] and not o.get("attache") else "") + ".")
     if o.get("extraction", "main") == "main":
         if outil or methode != "simple" or e["difficulte"]:
@@ -450,7 +450,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
     t = monde.objets.get(outil)
     if not t or t["lieu"] != "joueur" or not t["integrite"]:
         raise ErreurMonde("Il faut posséder un outil utilisable pour cette extraction.",
-                          f"outil : un objet en main d'usage levier, levier_fin ou percussion, parmi {liste(leviers)}"
+                          f"outil : un objet en main d'usage levier, levier_fin ou percussion, parmi {cibles(monde, leviers)}"
                           + (f" ; {outil} n'est pas en main ou est brisé" if outil else "") + ".")
     usages = t.get("usages", [])
     if methode not in ("levier", "finesse", "percussion") or (methode == "percussion" and "percussion" not in usages) or (methode != "percussion" and not {"levier", "levier_fin"}.intersection(usages)):

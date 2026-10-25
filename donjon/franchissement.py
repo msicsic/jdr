@@ -11,7 +11,7 @@ from .monde import ErreurMonde
 from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
-from .refus import liste
+from .refus import cibles
 
 
 REGLES = """
@@ -52,13 +52,13 @@ def conditions(m, cible, outil, destination, tenu=True):
     o, t = m.objets.get(cible, {}), m.objets.get(outil, {})
     a = o.get("appui_vertical", {})
     def perches():
-        return liste(sorted(i for i, x in m.objets.items() if m.accessible(i) and x.get("mobile")
+        return cibles(m, sorted(i for i, x in m.objets.items() if m.accessible(i) and x.get("mobile")
                             and (x.get("ressource") == "perche" or "appui_mobile" in x.get("usages", []))
                             and not x.get("attache") and not x.get("installation") and not x.get("incorpore")))
     if not m.accessible(cible) or not o.get("integrite") or not a:
         obstacles = sorted(i for i, x in m.objets.items() if x.get("appui_vertical") and m.accessible(i))
         raise ErreurMonde("L'obstacle et son palier doivent être accessibles et établis.",
-                          f"cible : un obstacle établi, parmi {liste(obstacles)} (reçu « {cible} ») ; un obstacle "
+                          f"cible : un obstacle établi, parmi {cibles(m, obstacles)} (reçu « {cible} ») ; un obstacle "
                           "inconnu s'établit d'abord par espace.")
     if m.joueur["salle"] != a.get("bas") or destination != a.get("haut") or destination not in m.data["salles"]:
         raise ErreurMonde("Ce mouvement part du pied de l'obstacle et mène uniquement à son palier établi.",
@@ -71,7 +71,7 @@ def conditions(m, cible, outil, destination, tenu=True):
         # Un rôle laissé vide : ce qui manque, et s'il y a ici de quoi le tenir (réponse à « puis-je… ? »).
         disponibles = perches()
         raise ErreurMonde("Il te faut un appui long à tenir, une perche par exemple"
-                          + (" : rien de tel n'est à ta disposition ici." if disponibles == liste([]) else "."),
+                          + (" : rien de tel n'est à ta disposition ici." if disponibles == cibles(m, []) else "."),
                           f"outil : une perche portée, parmi {disponibles} ; étape deplacer vers joueur avant, "
                           "dans le même composer.")
     if not m.accessible(outil) or (tenu and not m.est_porte(outil)):

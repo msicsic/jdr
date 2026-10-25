@@ -766,7 +766,7 @@ def precedents(monde, candidats, seul=False):
 def en_face(monde, candidats):
     """Celui à qui Corvus parle sans le nommer, parmi ``candidats`` : celui qu'il a sous les yeux,
     le plus proche. À égalité, le joueur précise."""
-    from .refus import liste
+    from .refus import cibles
     from .voix import designation, nom_pour_joueur
     rangs = {id: _face(monde, id) for id in candidats}
     face = sorted(id for id, r in rangs.items() if r == min(rangs.values()))
@@ -777,7 +777,7 @@ def en_face(monde, candidats):
         raise ParoleImpossible(f"{noms[0].upper() + noms[1:]} sont aussi près de toi l'un que l'autre : précise à "
                                "qui tu parles" + (f" (« {_nom_court(monde, nommable)}, … »)" if nommable else "")
                                + ", ou parle à tous (« à tous : … »).",
-                               f"destinataire ambigu entre {liste([designation(monde, x) for x in face])} : le joueur "
+                               f"destinataire ambigu entre {cibles(monde, face)} : le joueur "
                                "doit le nommer ; réponds en mode dialogue, sans choisir à sa place.")
     return face[0]
 
@@ -796,11 +796,11 @@ def destinataires(monde, forme):
         return []
     from .dialogues import interlocuteurs
     from .ouie import saisissent
-    from .refus import liste as liste_
+    from .refus import cibles
     from .voix import designation, reel
 
     def liste(ids):
-        return liste_([designation(monde, x) for x in ids])
+        return cibles(monde, ids)
     presents = sorted(reel(monde, d) for d in interlocuteurs(monde))
     chuchote = forme["maniere"] == "chuchote"
     if forme.get("inconnu") and not (forme["nomme"] or forme["groupe"]):

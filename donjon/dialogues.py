@@ -2,6 +2,7 @@
 from . import agendas
 import copy
 
+from .refus import cibles
 from .monde import ErreurMonde, normaliser
 from .francais import designer, groupe_nominal
 from .esprits import dernier_son
@@ -182,7 +183,7 @@ def verifier_don(monde, objet_id, destinataire=""):
     if objet_id not in monde.objets or monde.objets[objet_id]["lieu"] != "joueur":
         portes = sorted(i for i, o in monde.objets.items() if o["lieu"] == "joueur")
         raise ErreurMonde("Tu dois porter l'objet pour le donner.",
-                          f"remettre vise un objet porté, parmi {', '.join(portes) or 'aucun'} (reçu « {objet_id} »).")
+                          f"remettre vise un objet porté, parmi {cibles(monde, portes)} (reçu « {objet_id} »).")
     presents = sorted(interlocuteurs(monde))
     from .voix import designation
     if destinataire in monde.objets and str(designation(monde, destinataire)).startswith("personne_") and designation(monde, destinataire) in presents:
@@ -207,7 +208,7 @@ def verifier_don(monde, objet_id, destinataire=""):
                           "pour le lui donner."
                           if nomme else "Il n'y a personne ici pour le recevoir." if not presents
                           else "Précise à qui tu le donnes.",
-                          f"outil = le personnage qui reçoit, parmi les présents : {', '.join(presents) or 'aucun'}.")
+                          f"outil = le personnage qui reçoit, parmi les présents : {cibles(monde, (reel(monde, id) for id in presents))}.")
     return destinataire
 
 
@@ -215,15 +216,15 @@ def verifier_remise(monde, objet_id, destinataire=""):
     if objet_id not in monde.objets or monde.objets[objet_id]["lieu"] != "joueur":
         portes = sorted(i for i, o in monde.objets.items() if o["lieu"] == "joueur")
         raise ErreurMonde("Tu dois porter l'objet pour le remettre.",
-                          f"remettre vise un objet porté, parmi {', '.join(portes) or 'aucun'} (reçu « {objet_id} »).")
+                          f"remettre vise un objet porté, parmi {cibles(monde, portes)} (reçu « {objet_id} »).")
     candidats = [(id, m) for id, m in monde.data["missions"].items() if m["objet"] == objet_id
                   and (not destinataire or m["donneur"] == destinataire)]
     candidats = [(id, m) for id, m in candidats if m["donneur"] in interlocuteurs(monde)]
     if len(candidats) != 1:
         donneurs = sorted({m["donneur"] for m in monde.data["missions"].values() if m["objet"] == objet_id})
         raise ErreurMonde("Le destinataire doit être présent ; précise à qui remettre cet objet.",
-                          f"{objet_id} est attendu par {', '.join(donneurs) or 'personne'} ; présents : "
-                          f"{', '.join(sorted(interlocuteurs(monde))) or 'aucun'}.")
+                          f"{objet_id} est attendu par {cibles(monde, donneurs)} ; présents : "
+                          f"{cibles(monde, reels(monde))}.")
     id, mission = candidats[0]
     from .proximite import exiger
     exiger(monde, mission["donneur"])

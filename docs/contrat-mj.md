@@ -67,6 +67,25 @@ relance reçoit tous les refus du tour dans `controle_narratif`, et la contre-re
 par `retour_moteur` comme un refus du moteur. Ni le motif ni `attendu` ne s'affichent : un texte
 refusé n'est jamais montré, et le repli ne cite que le moteur ou des phrases admises.
 
+**Cibles proposées par un refus** (`codex-attendu-designable`, lot 65). Toute liste
+d'entités acceptables passe par `refus.cibles` : contraintes du geste, puis
+`Monde.designable`, puis référence publique (`personne_<n>`, `element_<n>`, voix ou
+identifiant d'objet déjà public), tri, dédoublonnage et plafond commun de douze entrées.
+Une liste vide dit « aucune cible de ce nom n'est désignable ici ». La même construction
+sert aux gestes simples, opérations, improvisations, dons, paroles et ajouts narratifs.
+Les valeurs qui ne désignent pas des entités (directions, modes d'observation…) gardent
+leur liste propre. La projection d'un champ `attendu` conserve ses références techniques ;
+elle ne les transforme pas en descriptions de personnes. Le reçu et la cause du refus
+restent distincts des candidats proposés, et seul le message du moteur va au joueur.
+
+`designable` distingue connaissance et accès : un souvenir visuel marqué, un corps reconnu,
+une voix récemment entendue ou un nom appris peuvent être désignés sans preuve de présence.
+Le contrôle matériel du geste exige toujours séparément présence, perception et portée.
+Les données persistantes existantes suffisent ; aucun nouveau registre de connaissance.
+Dans le Relais, `echoppe` est l'identifiant interne de la Conduite basse : ses surfaces et
+le corps de Gorm perçu là ne sont pas des entités d'une autre salle. Un souvenir d'ailleurs
+peut également être cité, sans affirmer qu'il est présent ici.
+
 | Voie | Refus (une cause chacun) | `attendu` cite |
 |---|---|---|
 | texte vide | texte vide | la partie |

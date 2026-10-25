@@ -13,7 +13,7 @@ from .francais import designer, complement_de
 from .geometrie import placer
 from .perception import eclairage
 from .vol import proprietaire
-from .refus import inaccessible, liste
+from .refus import cibles, inaccessible
 
 
 def fabrication(montants, traverses, lien, outil, longueur_cm=300, largeur_cm=35,
@@ -132,7 +132,7 @@ def ressource(m, id, nature):
         raise inaccessible(m, id, champ=nature, filtre=lambda x: x.get("ressource") == nature)
     from .proximite import exiger
     exiger(m, id)
-    libres = f"{nature} libres ici : {liste(ressources_libres(m, nature))}."
+    libres = f"{nature} libres ici : {cibles(m, ressources_libres(m, nature))}."
     if o.get("incorpore"):
         raise ErreurMonde(f"{designer(o, debut=True)} fait déjà partie d'un assemblage.", f"{id} est incorporé ; {libres}")
     if o.get("attache"):
@@ -174,8 +174,8 @@ def calculer(m, p):
             or len(p["justification"]) > 1000):
         raise ErreurMonde("Précise deux montants, les traverses, le lien et l'outil.",
                           "montants : liste de deux identifiants ; traverses, lien, outil : un identifiant chacun ; "
-                          f"justification ≤ 1000 caractères ; perches libres : {liste(ressources_libres(m, 'perche'))} ; "
-                          f"liens libres : {liste(ressources_libres(m, 'lien'))}.")
+                          f"justification ≤ 1000 caractères ; perches libres : {cibles(m, ressources_libres(m, 'perche'))} ; "
+                          f"liens libres : {cibles(m, ressources_libres(m, 'lien'))}.")
     ids = [*p["montants"], p["traverses"], p["lien"], p["outil"]]
     # Un rôle laissé vide : ce qui manque, dans l'ordre de l'assemblage, une cause par refus. C'est aussi
     # la réponse à « puis-je fabriquer une échelle ? » quand rien ne peut tenir ce rôle ici.
@@ -189,12 +189,12 @@ def calculer(m, p):
                 and besoin.startswith("deux") else besoin
             raise ErreurMonde(f"Pour une échelle, il te manque {besoin}"
                               + ("." if libres else " : rien de tel n'est à ta disposition ici."),
-                              f"désigne {besoin.split(',')[0]} parmi {liste(libres)} ; un objet qui pourrait servir "
+                              f"désigne {besoin.split(',')[0]} parmi {cibles(m, libres)} ; un objet qui pourrait servir "
                               "mais n'est pas encore décrit se décrit d'abord (etablir_faits, qualification avec physique).")
     if len(set(ids)) != 5:
         raise ErreurMonde("Chaque rôle exige une ressource distincte ; on ne peut pas compter deux fois une perche.",
                           f"cinq identifiants distincts (2 montants, traverses, lien, outil) ; reçu {', '.join(ids)} ; "
-                          f"perches libres : {liste(ressources_libres(m, 'perche'))}.")
+                          f"perches libres : {cibles(m, ressources_libres(m, 'perche'))}.")
     rythme = p.get("rythme", "normal")  # Compatibilité avec les propositions déjà sauvegardées.
     if rythme not in ("normal", "soigne"):
         raise ErreurMonde("Choisis une fabrication normale ou soignée.", f"rythme : normal ou soigne (reçu « {rythme} »).")
@@ -211,7 +211,7 @@ def calculer(m, p):
         haches = sorted(i for i, x in m.objets.items() if m.est_porte(i) and x.get("integrite")
                         and "couper_bois" in x.get("usages", []))
         raise ErreurMonde("Il faut tenir un outil utilisable pour couper du bois, par exemple une hache.",
-                          f"outil : un objet porté d'usage couper_bois, parmi {liste(haches)}"
+                          f"outil : un objet porté d'usage couper_bois, parmi {cibles(m, haches)}"
                           + ("" if haches else " ; prends-en un d'abord") + ".")
     longueur, largeur = p["longueur_cm"], p["largeur_cm"]
     if any(o["longueur_cm"] < longueur for o in bois[:2]):
@@ -301,7 +301,7 @@ def appui(m, support):
             or a.get("haut") not in m.data["salles"] or a["bas"] == a["haut"]):
         appuis = sorted(i for i, x in m.objets.items() if x.get("appui_vertical") and m.accessible(i))
         raise ErreurMonde("Il faut un appui établi reliant un sol et un palier accessible en hauteur.",
-                          f"outil : un appui vertical établi, parmi {liste(appuis)} (reçu « {support} ») ; "
+                          f"outil : un appui vertical établi, parmi {cibles(m, appuis)} (reçu « {support} ») ; "
                           "un appui inconnu s'établit d'abord par espace.")
     if not a.get("sol_stable") or not a.get("sommet_stable"):
         raise ErreurMonde("Le pied et le sommet doivent offrir des appuis stables.",
@@ -329,7 +329,7 @@ def preparer_usage(m, p, origine):
     if not m.accessible(id) or not o["integrite"]:
         echelles = sorted(i for i, x in m.objets.items() if x.get("assemblage") and x.get("integrite") and m.accessible(i))
         raise ErreurMonde("Il faut une échelle accessible et en état de servir.",
-                          f"cible : un assemblage accessible et intact, parmi {liste(echelles)} (reçu « {id} »).")
+                          f"cible : un assemblage accessible et intact, parmi {cibles(m, echelles)} (reçu « {id} »).")
     from .proximite import exiger
     exiger(m, id)
     if p["methode"] != "simple" or p["difficulte"] != 0:
@@ -604,7 +604,7 @@ def preparer_decoupe(m, p, origine):
     if not t or t["lieu"] != "joueur" or not t.get("integrite") or not usages & set(t.get("usages", [])):
         tranchants = sorted(set().union(*(portes_avec_usage(m, u) for u in usages)))
         raise ErreurMonde("Il faut un outil adapté pour couper " + designer(o) + ".",
-                          f"outil : un objet en main d'usage {' ou '.join(sorted(usages))}, parmi {', '.join(tranchants) or 'aucun'}.")
+                          f"outil : un objet en main d'usage {' ou '.join(sorted(usages))}, parmi {cibles(m, tranchants)}.")
     if eclairage(m)["niveau"] < 2:
         raise ErreurMonde("Il faut assez de lumière pour couper à la bonne longueur.",
                           "decouper exige une lumière franche : allume d'abord une source.")
