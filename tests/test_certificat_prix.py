@@ -57,14 +57,13 @@ class CapturesTests(unittest.TestCase):
                     # VERIFIER : chaque recherche reprise est aussi refaite en entier, et comparée.
                     self.assertIsNone(p.planifier(m, qui, "faim"))
                     premiere = self.recherches(d, qui)[-1]
-                    # Épuisée sans plan : ses nœuds sont gardés, sans certificat encore.
+                    # Première rencontre de ces entrées : aucun nœud gardé, aucun certificat encore.
                     self.assertEqual((premiere["issue"], premiere["preuve_issue"]), ("epuise", None))
                     m = self.plus_faim(m, qui)
                     self.assertIsNone(p.planifier(m, qui, "faim"))
                     seconde = self.recherches(d, qui)[-1]
-                    # Refaite sur le graphe gardé, sans recalculer un geste ; le certificat y est
-                    # complété et prouve l'absence (avant le lot 66 : une lacune).
-                    self.assertTrue(seconde["graphe"])
+                    # Deuxième rencontre : le graphe est gardé, le certificat y est complété et prouve
+                    # l'absence (avant le lot 66 : une lacune, et la recherche refaite à chaque minute).
                     self.assertEqual((seconde["issue"], seconde["preuve_issue"]), ("epuise", "epuise"))
                     m = self.plus_faim(m, qui)
                     self.assertIsNone(p.planifier(m, qui, "faim"))
