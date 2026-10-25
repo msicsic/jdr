@@ -133,7 +133,8 @@ class SensDetteTests(unittest.TestCase):
         faits = {"comptes": {"etat": [], "issue": [c]}, "interlocuteurs": {"aubin": {}}}
         texte = 'Aubin répond : « Je ne te dois rien. »'
         sch = schema_audit(faits, 1)["properties"]["segments"]["properties"]["0"]
-        self.assertIn("comptes", sch["required"])
+        for variante in sch['anyOf']:
+            self.assertIn("comptes", variante['required'])
         incomplet = ligne("parole", locuteur="aubin", citation="Je ne te dois rien.")
         incomplet.pop("comptes")
         with self.assertRaises(AuditIllisible):

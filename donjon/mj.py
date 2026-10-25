@@ -1244,16 +1244,19 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     faits["effets_prevus"] = {"branche": nom, "effets": effets,
                                                "intention": reponse["proposition"].get("intention")}
                 decoupage = segments_narratifs(texte)
+                from .narration import segments_etablis
+                etablis = segments_etablis(texte, faits)
+                a_controler = {str(i): s for i, s in enumerate(decoupage) if str(i) not in etablis}
                 rapport = None
                 for essai in range(2):
                     from .noms import reperes_designations
                     audit = appeler_brut(
                         INSTRUCTIONS_AUDIT,
-                        {"faits": faits, "segments": {str(i): s for i, s in enumerate(decoupage)},
-                         "designations": reperes_designations(texte, faits),
+                        {"faits": faits, "segments": a_controler,
+                         "designations": reperes_designations(" ".join(a_controler.values()), faits),
                          "nature": "récit conditionnel d'action" if effets is not None else "réponse du MJ"},
                         "Contrôler chaque segment de la réponse", "auditer_narration",
-                        schema_audit(faits, len(decoupage)))
+                        schema_audit(faits, a_controler)) if a_controler else {"segments": {}}
                     try:
                         rapport = controler_narration(texte, audit, faits, nom)
                         break
