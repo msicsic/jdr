@@ -869,6 +869,10 @@ class MJ:
         # cachés. Les affaires accessibles dans le noir ne sont pas nécessairement vues.
         faits["perception"] = {**faits["perception"],
                                "objets_visibles": [o["id"] for o in objets if o["visible"]]}
+        faits["perception"]["contributions"] = [
+            {**c, "effet_percu": c["niveau"] > 0,
+             "source_visible": c["source"] in faits["perception"]["objets_visibles"]}
+            for c in faits["perception"]["contributions"]]
         from .pnj import peuvent_se_parler
         from .voix import reel
         for objet in objets:

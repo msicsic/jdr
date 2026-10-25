@@ -124,11 +124,10 @@ class OrientationNarrativeTests(unittest.TestCase):
             self.assertTrue(controler(faux, rapport(ligne(verdict, sources=['souvenirs_visuels'])), faits)['obstacles'])
         self.assertFalse(orientations('La poutre effondrée est dans ton dos.', faits))
         self.assertFalse(orientations('Quelqu’un dit : « La poutre effondrée est devant toi. »', faits))
-        self.assertTrue(orientations('Elle est devant toi.', faits))
-        self.assertTrue(orientations('La poutre effondrée et la lanterne sont devant toi.', faits))
+        self.assertFalse(orientations('Elle est devant toi.', faits))
+        self.assertFalse(orientations('La poutre effondrée et la lanterne sont devant toi.', faits))
         negatif = orientations('La poutre effondrée n’est pas derrière toi.', faits)
-        self.assertTrue(negatif)
-        self.assertIn('reçu « derrière toi »', negatif[0]['attendu'])
+        self.assertFalse(negatif)  # La portée d'une négation appartient à l'audit sémantique.
 
     def test_souvenir_mobile_ne_revele_pas_la_position_cachee(self):
         m = relais()
@@ -154,12 +153,12 @@ class OrientationNarrativeTests(unittest.TestCase):
         self.assertEqual(m.data, avant)
 
     def test_meta_refus_et_refus_dans_la_fiction_parlee(self):
-        self.assertTrue(voix_auteur('Le refus précédent ne signifie pas qu’il y en a un ici.'))
+        self.assertTrue(voix_auteur('Le refus du moteur ne signifie pas qu’il y en a un ici.'))
         self.assertFalse(voix_auteur('Aubin dit : « Mon refus tient toujours. »'))
 
     def test_meta_refus_corrige_console_et_rechargement(self):
-        for mauvais in ('Le refus précédent ne signifie pas qu’il y en a un ici.',
-                         'Ce refus ne prouve rien sur ce qui se trouve ici.'):
+        for mauvais in ('Le refus du MJ ne signifie pas qu’il y en a un ici.',
+                         'Ce refus du moteur ne prouve rien sur ce qui se trouve ici.'):
             with self.subTest(mauvais=mauvais):
                 bon = 'Tu peux regarder autour de toi.'
                 r, sortie, appels = jouer(recharger(scene()), 'où est le pied-de-biche ?',

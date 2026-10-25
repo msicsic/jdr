@@ -269,13 +269,30 @@ Le garde commun de narration compare les locatifs explicites adressés au joueur
 « derrière toi », « à/sur ta gauche/droite », « dans ton dos », « en face de toi ») avec ces données,
 indépendamment du verdict de l'auditeur et de ses sources. Chaque incompatibilité a son
 `attendu` : segment, locatif reçu tel qu'écrit, référence publique, directions admises et
-repère absolu. Une cible absente ou ambiguë, ou une négation, appelle une localisation absolue
-ou une reformulation séparant les cibles. `reperes_demandes` relie aussi une réponse pronominale
+repère absolu. Depuis le lot 74, seule une attribution directe à une cible univoque dont le
+repère contredit le locatif peut être refusée par cette garde. Une direction admise ne se
+refuse jamais au seul motif d'une négation ailleurs dans le segment. Une cible absente ou
+ambiguë, une autre construction syntaxique ou une négation de portée indécidable reste à
+l'audit sémantique ; aucune cible n'est héritée d'une autre proposition. `reperes_demandes` relie aussi une réponse pronominale
 à la cible publique unique nommée dans la demande ; ce dossier n'interroge aucune entité cachée.
 Le contrôle est refait avant enregistrement avec
 le regard et les repères courants ; le texte refusé n'est ni sauvegardé ni affiché.
-Une réplique citée garde sa liberté de contenu. Le garde de voix d'auteur comprend aussi
-« refus » hors des répliques : la raison se dit dans la fiction.
+Une réplique citée garde sa liberté de contenu. Depuis le lot 74, « refus » seul n'est plus
+une voix d'auteur : une décision de personnage se raconte aussi hors des répliques. Un
+vocabulaire du jeu déjà contrôlé (moteur, MJ…) établit indépendamment la voix de procédure ;
+« proposition » peut aussi désigner une offre dans la fiction. Un emploi ambigu reste sémantique.
+
+**Effet lumineux et vue de la source** (`codex-gardes-justes`, lot 74). Les contributions
+du moteur portent séparément `effet_percu` et `source_visible` dans les faits transmis au MJ.
+Un niveau positif établit l'effet lumineux ici, même si la source est hors de vue ; il
+n'établit ni ses détails visuels ni sa portée de manipulation. Le schéma d'audit extrait
+`eclairages`, les sources que le narrateur affirme contribuer actuellement, indépendamment
+du verdict. Le moteur compare ces références à `perception.contributions`, puis refait ce
+contrôle sur l'état courant avant l'enregistrement. Chaque source sans contribution a son
+refus et son `attendu`. Une parole citée n'établit toujours pas la vérité de son contenu.
+Les anciens rapports sans cette extraction restent lisibles. L'extraction et le verdict
+sémantiques peuvent encore omettre une affirmation ou refuser à tort un effet pourtant
+établi : la comparaison typée ne garantit pas à elle seule toute prose française.
 
 **Limite du lot.** La comparaison géométrique et le contrôle de ces locatifs sont déterministes,
 mais ils ne constituent pas une analyse générale du français : une direction implicite ou

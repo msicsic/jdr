@@ -141,6 +141,15 @@ def schema_audit(faits, nombre):
         if "comptes" in faits:
             item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
             item["required"].append("comptes")
+        if "perception" in faits:
+            item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
+                "items": {"type": "string"},
+                "description": "Identifiants des sources dont le segment affirme une contribution actuelle "
+                    "à la lumière perçue ici, indépendamment du verdict. Extrais l'affirmation du texte, "
+                    "pas la liste des faits. Une parole citée n'établit pas la vérité de son contenu. "
+                    "Une source seulement vue, éteinte, supposée ou rappelée comme souvenir "
+                    "n'affirme aucune contribution actuelle : []."}
+            item["required"].append("eclairages")
         return item
     cles = [str(i) for i in range(nombre)]
     return {"type": "object", "additionalProperties": False,
@@ -263,7 +272,7 @@ Le récit parle de ce que tu perçois, sais ou supposes, jamais du degré de pre
 (établi, attesté, indiqué, absence d'indication). L'ambiance libre n'a pas à justifier son origine.
 Le joueur lit ton texte tel quel, justification comprise : écris-le à la deuxième personne (tu).
 Hors des répliques citées entre « et », personne n'y dit « je », ni toi ni Corvus, et il ne nomme
-ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits, les données ou un refus : une
+ni Corvus, ni le joueur, ni le moteur, le MJ, le scénario, les faits ou les données : une
 incertitude se dit de ce que Corvus sait, à la deuxième personne (« tu ne sais pas si… »).
 Le quadrillage et les coordonnées restent internes : les positions se disent avec les repères
 fournis, des directions et des distances en mètres ou en pas, jamais en cases ni en coordonnées.
@@ -387,8 +396,12 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_
 
 # La voix d'auteur : le texte parle du joueur, du moteur ou de Corvus à la troisième personne, ou le MJ
 # parle de lui-même (« je », hors des répliques citées).
-AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b|\brefus\b"
+AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
                     r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
+
+# « refus » et « proposition » désignent aussi des décisions dans la fiction.
+# Leur présence seule ne prouve pas une voix d'auteur ; le vocabulaire technique
+# déjà contrôlé (moteur, MJ...) doit l'établir indépendamment.
 
 # Même voix d'auteur quand le récit commente ses preuves sans nommer le moteur.
 # Les tours impersonnels distinguent ce métalangage d'un indice dans la fiction
@@ -446,12 +459,31 @@ def cibles_orientation(texte, faits):
         [o.get("nom", "").split(",")[0], *o.get("aliases", [])] if nom)}
 
 
+def sujet_locatif(proposition, avant_locatif, ref, faits):
+    """Reconnaît seulement une attribution directe ; un nom unique ne suffit pas.
+
+    « Gorm regarde quelque chose derrière toi » ne localise pas Gorm.
+    Les autres constructions restent à lire par l'auditeur.
+    """
+    from .noms import motif_designation
+    objet = reperes_orientation(faits)[ref]
+    for nom in [objet.get("nom", "").split(",")[0], *objet.get("aliases", [])]:
+        if not nom:
+            continue
+        for mention in motif_designation(nom).finditer(proposition[:avant_locatif]):
+            lien = normaliser(proposition[mention.end():avant_locatif]).strip()
+            if (re.match(r"(?:est|se trouve|se tient)\b", lien)
+                    and not re.search(r"\b(?:il|elle|ils|elles|qui|que|mais|puis|tandis|quand)\b", lien)):
+                return True
+    return False
+
+
 def orientations(texte, faits, partie="texte"):
     """Compare les locatifs explicites aux seuls repères publics courants.
 
-    Sans cible univoque, on exige le repère absolu plutôt que de deviner un pronom.
-    Une phrase à plusieurs cibles doit les localiser séparément. Le verdict sémantique
-    n'intervient pas : même un segment classé neutre ou ambiance subit cette comparaison.
+    Une cible ou une polarité ambiguë reste du ressort de l'audit sémantique.
+    La garde ne devine ni antécédent entre propositions, ni portée d'une négation.
+    Même un segment classé neutre ou ambiance subit cette comparaison.
     """
     fiction = CITATIONS.sub(" ", texte)
     if not faits.get("mode_cases") or not RELATIFS_JOUEUR.search(fiction):
@@ -462,20 +494,30 @@ def orientations(texte, faits, partie="texte"):
     obstacles = []
     for indice, passage in enumerate(segments(texte)):
         hors_citations = CITATIONS.sub(" ", passage)
-        visees = cibles_orientation(hors_citations, faits) or (nommees if len(nommees) == 1 else set())
-        if not visees and not nommees and len(demandees) == 1:
-            visees = demandees
         for m in RELATIFS_JOUEUR.finditer(hors_citations):
+            # Un nom dans une autre proposition n'est pas l'antécédent établi
+            # du locatif (« Gorm ... : elle a été vue ... »).
+            debut = max(hors_citations.rfind(sep, 0, m.start()) for sep in ':;') + 1
+            fins = [p for sep in ':;' if (p := hors_citations.find(sep, m.end())) >= 0]
+            proposition = hors_citations[debut:min(fins, default=len(hors_citations))]
+            visees = cibles_orientation(proposition, faits)
+            nommee = bool(visees)
+            if not visees and not nommees and len(demandees) == 1:
+                visees = demandees
             direction = normaliser(m.group("axe") or m.group("cote") or (
                 "derriere" if m.group("dos") else "devant"))
             ref = next(iter(visees)) if len(visees) == 1 else None
             o = reperes.get(ref, {})
             lieu = o.get("localisation") or o
             admises = lieu.get("orientation_relative", [])
-            # Une négation peut inverser la portée du locatif.
-            # Sans analyse sémantique, conserver l'absolu plutôt que l'admettre à tort.
-            negatif = re.search(r"\b(?:pas|plus|jamais|ni)\b", normaliser(hors_citations))
-            if ref is not None and direction in admises and not negatif:
+            if ref is None or not admises or direction in admises:
+                continue
+            if nommee and not sujet_locatif(proposition, m.start() - debut, ref, faits):
+                continue
+            # Une négation peut porter sur un autre prédicat du même segment.
+            # Elle ne prouve donc jamais, à elle seule, un locatif faux.
+            negatif = re.search(r"\b(?:pas|plus|jamais|ni)\b", normaliser(proposition))
+            if negatif:
                 continue
             accepte = (f"{ref} : orientation_relative={admises}, "
                        f"repère absolu={lieu.get('position_relative', lieu.get('vu_a', 'inconnu'))}"
@@ -485,6 +527,17 @@ def orientations(texte, faits, partie="texte"):
                 "un souvenir ne garantit pas la présence actuelle", partie=partie, segment=indice,
                 texte=passage, recu=m.group()))
     return obstacles
+
+
+def eclairages(sources, faits, passage, indice, partie="texte"):
+    """La contribution perçue établit l'effet, indépendamment de la vue de la source."""
+    admises = {c["source"] for c in faits.get("perception", {}).get("contributions", [])
+               if c.get("source") and c.get("niveau", 0) > 0}
+    return [audit("Cette source ne contribue pas à la lumière perçue ici.",
+                  f"perception.contributions : une source avec niveau > 0, parmi {sorted(admises)} ; "
+                  "voir une source ou s'en souvenir ne suffit pas à établir son effet actuel",
+                  partie=partie, segment=indice, texte=passage, recu=source)
+            for source in dict.fromkeys(sources) if source not in admises]
 
 
 def voix_auteur(texte, partie="texte"):
@@ -884,6 +937,15 @@ def controler(texte, rapport, faits, partie="texte"):
         raise AuditIllisible("Contrôle narratif incomplet.")
     obstacles, paroles, ambiances, lignes_validees = orientations(texte, faits, partie), [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
+        # Champ extrait par les nouveaux audits, conservé pour l'enregistrement.
+        # Les anciens rapports ne portaient pas cette extraction.
+        lumieres = ligne.get("eclairages") if isinstance(ligne, dict) else None
+        if lumieres is not None:
+            if (not isinstance(lumieres, list) or len(lumieres) > 12
+                    or any(not isinstance(s, str) for s in lumieres)):
+                raise AuditIllisible("Contrôle des contributions lumineuses mal formé.")
+            ligne = {k: v for k, v in ligne.items() if k != "eclairages"}
+            obstacles.extend(eclairages(lumieres, faits, passage, indice, partie))
         comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
         if "comptes" in faits or comptes is not None:
             if (not isinstance(comptes, list) or len(comptes) > 12 or any(
@@ -920,7 +982,8 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
-        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {})})
+        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {}),
+                               **({"eclairages": lumieres} if lumieres is not None else {})})
         if comptes:
             dossier = faits.get("comptes", {})
             attendus = dossier.get("issue", []) + dossier.get("etat", [])
@@ -1092,6 +1155,14 @@ def consigner(monde, reponse):
     if rapport["obstacles"]:
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
                           rapport["obstacles"][0]["attendu"])
+    from .perception import eclairage
+    from .noms import public
+    courants = {"perception": public(monde, eclairage(monde))}
+    for indice, ligne in enumerate(rapport["segments"]):
+        contraires = eclairages(ligne.get("eclairages", []), courants,
+                               segments(audit["texte_initial"])[indice], indice)
+        if contraires:
+            raise ErreurMonde("Cette lumière ne te parvient plus.", contraires[0]["attendu"])
     if RELATIFS_JOUEUR.search(CITATIONS.sub(" ", texte)):
         contraires = orientations(texte, {**monde.contexte(),
             "reperes_demandes": audit["faits"].get("reperes_demandes", [])})

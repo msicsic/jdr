@@ -4,6 +4,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-gardes-justes`, fusionnée, lot **74**, brief
+  **0a1eda2**, intégration **fe85a44** reprise au départ ; correctifs signés
+  **2549160**, **c65d421**. À la demande de l'utilisateur, lot 73 **29c9ae4** intégré
+  par fusion signée **c84dcf9** ; seul conflit dans `consigner`, deux validations
+  conservées. « Refus » n'est plus interdit comme nom commun ; vocabulaire technique
+  existant conservé. Les locatifs ne sont refusés que sur attribution directe à une
+  cible publique univoque et repère incompatible ; aucune cible héritée entre
+  propositions/segments, direction admise acceptée malgré une négation distincte.
+  Effet lumineux perçu séparé de la vue de sa source, extraction typée `eclairages`,
+  comparaison aux contributions positives et nouveau contrôle avant enregistrement.
+  Sept tests nouveaux console/MJ simulé, état et lecture après recharge ; **66 tests
+  ciblés verts**, puis seconde source revalidée ; **20 tests des deux lots verts après
+  fusion**. Première suite 74 interrompue sans bilan après la demande d'attendre le
+  lot 73. Suite complète finale sur branche réunie : **1 875 tests, 16 ignorés**,
+  188 fichiers, **1 809,8 s**, trois processus à priorité réduite ; une `PermissionError`
+  sur le verrou temporaire de `test_connexion` (deux fichiers inchangés depuis la base).
+  Reprise du fichier : **21 tests verts**, 1,7 s ; incident non reproduit, non corrigé
+  dans ce lot, aucune seconde suite complète. Attente et validation réunie prolongent
+  le créneau initial.
+  Luna une passe avant fusion, crypte/comptes/relais/luna-restes-ambiance, référence
+  **fbcf0ff** exclusivement relue du cache : **55 → 60 appels / 22 tours MJ**,
+  **1 → 4 relances**, aucun arrêt, erreur technique/recharge ou repli historique.
+  Brasero admis, aucun faux rejet spatial déterministe, refus de Brune restitué ;
+  faux audit d'approche des crochets persistant. Resserrements finaux validés ensuite
+  par tests, sans seconde passe Luna. Extraction lumineuse et contradictions encore
+  sémantiques, méta-langage implicite non clos ; aucune garantie générale d'absence
+  de faux refus. `main`, modèle, scénarios et planification inchangés par ce lot.
+  [Rapport du lot 74](taches/rapport-codex-74-gardes-justes.md).
+  Fusionné sur l'intégration après le lot 73 (déjà réuni dans la branche) : seul conflit de documentation.
+
 - Branche `codex-comptes-issue`, fusionnée, lot **73**, brief **6a18952**,
   mise à jour initiale sur l'intégration **fe85a44** : paiements et remises alimentent
   les comptes depuis leurs opérations, dans la copie transactionnelle de la parole ;
