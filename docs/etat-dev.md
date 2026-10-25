@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-piece-de-lot`, non fusionnée, lot **78**, base **6a49036**,
+  intégration de départ **38e5d7e** ; correctif signé **69f04db**. Le sens du contenu
+  porte référence, noms connus, quantité et unité (`part`/`objet`), pour les demandes
+  simples et les termes de marché. Nom, alias et `nom_piece` déclaré sont partagés
+  entre saisie, résolution, lexique et repères de désignation ; aucun singulier deviné.
+  Quatre tests nouveaux console/MJ simulé, transaction, remise et rendu après recharge ;
+  parcours fonctionnels et complément ciblé verts. Suite complète unique : **1 887 tests,
+  16 ignorés, aucun échec ni erreur**, 191 fichiers, trois processus à priorité réduite,
+  **1 576,9 s**. Quatrième test ajouté après chargement du fichier par la suite,
+  repris isolément vert ; **bilan consolidé 1 888 tests, 16 ignorés**, sans seconde suite.
+  Luna une passe soir-appel/ressources/noms-dialogue, référence **fbcf0ff** en cache :
+  **42 → 40 appels / 11 tours MJ**, **3 → 2 relances**, **1 → 0 repli**, aucun arrêt
+  ou erreur de recharge. Achat réel déclaré conforme et exécuté, puis `planches_1`
+  remise et portée après recharge. Fidélité encore sémantique ; formulation finale
+  évoquant une dette antérieure non attestée, limite de portée/extraction consignée.
+  `main`, scénarios, modèle, instructions de Luna, échanges et délibération inchangés.
+  [Rapport du lot 78](taches/rapport-codex-78-piece-de-lot.md).
+
 - Branche `codex-gardes-justes`, fusionnée, lot **74**, brief
   **0a1eda2**, intégration **fe85a44** reprise au départ ; correctifs signés
   **2549160**, **c65d421**. À la demande de l'utilisateur, lot 73 **29c9ae4** intégré
