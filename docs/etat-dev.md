@@ -1,8 +1,40 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-26.
 
 ## Où on en est
+
+- Branche `codex-audit-narratif`, **non fusionnée**, lot **95**, base `036d5f2`,
+  code signé SSH `adb07f7`, correctif `49fa7d6` : preuve exacte des segments moteur, audit des seuls
+  segments libres avec indices conservés ; rapport variant selon verdict/portée,
+  extractions sans objet omises et motif de refus borné à 240 caractères.
+  Preuve refaite à l'enregistrement, attestations courantes revalidées,
+  couverture des comptes par le rendu complet de l'opération typée ; aucun
+  crédit global pour un rendu partiel, contrôles déterministes conservés.
+  Mesure initiale `29ccf1e` : **76 audits, 134 segments, zéro segment exact**,
+  **215,57 jetons de sortie/appel**, dont beaucoup de motifs non utilisés.
+  Deux passes des six scripts, **78 tours par variante** : **13,038 → 11,720
+  s/tour (−10,1 %)**, médiane **12,41 → 10,24 s** ; **251 → 254 appels**,
+  relances **8 → 11**, refus **23 → 21**, replis **1 → 1**. Audits : **76 → 79**,
+  **5,20 → 3,89 s/tour**, sortie **16 383 → 10 431**, entrée **662 887 →
+  1 173 129** (schéma à variantes plus gros). Aucun arrêt, erreur technique
+  ni défaut de recharge sur les 24 parties. Douze références jouées une fois,
+  relues du cache, SHA-256 identiques ; deux exécutions par variante,
+  quatre au chevauchement, priorité réduite, poste partagé.
+  Suite complète unique : **1 961 tests, 16 ignorés, 1 858,74 s**, deux
+  processus réduits ; six échecs et une erreur dans cinq fichiers : attentes
+  d'appels adaptées et lien résultat/comptes corrigé. **30 tests ciblés finaux
+  verts, trois ignorés, 12,64 s**, couvrant les cinq fichiers et les nouveaux
+  tests ; aucun défaut restant reproduit, sans seconde suite complète.
+  Correctif final sans effet sur les 264 requêtes archivées de branche/rejeu
+  (22 résultats résolus, aucun compte d'issue) : mesures Luna conservées.
+  **Validation bloquée** : dix audits refusés rejoués sur leurs entrées exactes,
+  un refus juste du préalable aux crochets disparaît après l'unique redemande
+  d'un rapport illisible ; schéma modifié, aucune exception pour appel inchangé.
+  Six faux refus/extractions erronées disparaissent ; un autre audit reste
+  illisible deux fois, donc non affichable. Le gain de temps ne valide pas
+  la préservation de tous les refus justes ; aucune garantie sémantique nouvelle.
+  [Rapport du lot 95](taches/rapport-codex-95-audit-narratif.md).
 
 - Branche `codex-latence-appels`, fusionnée, lot **93**, base `258daab`
   (code d'intégration `119169c`, lot 91), code `4883425` avec Signed-off-by :
