@@ -221,7 +221,7 @@ def parole_du_moteur(monde, intention):
     forme, prevue = analyser_parole(monde, intention), prevoir(monde, intention)
     mots = mots_dits(forme, intention)
     if mots:
-        return {"mode": "parole_joueur", "texte": "", "faits": [],
+        return {"mode": "parole_joueur", "texte": "", "faits": [], "_parole_moteur": True,
                 "proposition": {"personnage": prevue["personnage"], "replique": mots, "contenu": []}}
     qui = {"tous": " à tous", "personne": ""}.get(prevue["personnage"]) \
         if prevue["personnage"] in ("tous", "personne") else " à " + _nom_court(monde, prevue["personnage"])
@@ -316,7 +316,7 @@ class ExplicationCedee(ErreurMonde):
 
 
 class ParoleNonConforme(ErreurMonde):
-    """Une parole mécaniquement possible dont la contre-revue refuse la fidélité.
+    """Une parole dont la couverture locale ou la contre-revue refuse la fidélité.
     Aucun secours local ne peut la prononcer en contournant ce refus."""
 
 
@@ -417,9 +417,10 @@ class MJ:
                     return
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
-                                 operations_demandees=None):
-        """Contre-revue des mots et du contenu, avec l'adresse déjà fixée par le moteur."""
-        from .couverture_action import sens_parole
+                                 operations_demandees=None, declaration_connue=True):
+        """Couverture locale, puis revue du sens seulement au-delà des mots exacts sans effet."""
+        from .couverture_action import sens_parole, verifier_operations
+        from .paroles import mots_dits, operations_contenu
         from .moteur import Plan
         # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
         # font pas partie de la question posée à la revue sémantique du contenu.
@@ -427,6 +428,11 @@ class MJ:
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
             "sens_contenu": sens_parole(complements["contenu"], monde)})
         try:
+            verifier_operations(plan, operations_demandees or set())
+            mots = mots_dits(analyser_parole(monde, intention), intention)
+            if (declaration_connue and not operations_demandees and not operations_contenu(complements["contenu"])
+                    and rapport["replique_joueur"].strip() == (mots or intention).strip()):
+                return
             self._auditer_action(intention, plan, revision, monde, operations_demandees)
         except ErreurMonde as exc:
             raise ParoleNonConforme(str(exc), exc.attendu) from exc
@@ -771,9 +777,13 @@ class MJ:
                                             or reponse["proposition"].get("replique", "")),
                                "_intention": intention[:600]}
                 try:
+                    from .couverture_action import lire_operations
+                    declaration_connue = not reponse.get("_parole_moteur")
+                    if declaration_connue:
+                        operations_demandees.update(lire_operations(complements.pop("operations_demandees", None)))
                     travail, rapport = preparer_parole(monde, complements, revision)
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
-                                                   operations_demandees)
+                                                   operations_demandees, declaration_connue)
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
@@ -790,7 +800,7 @@ class MJ:
                             travail, rapport = preparer_parole(monde, complements, revision)
                             try:
                                 self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
-                                                               operations_demandees)
+                                                               operations_demandees, False)
                             except ParoleNonConforme:
                                 return {"mode": "dialogue", "texte": "Ta demande n'a pas été exécutée. Reformule-la.",
                                         "faits": [], "proposition": None, "_texte_moteur": True,
@@ -990,13 +1000,17 @@ class MJ:
         schema_faits_suite["required"].append("suite")
         schemas_faits = ([schema_faits_suite] if geste_en_question(monde, intention)
                          else [SCHEMA_FAITS, schema_faits_suite])
+        from .paroles import SCHEMA_OPERATIONS
+        schema_parole = copy.deepcopy(SCHEMA_PAROLE)
+        schema_parole["properties"]["operations_demandees"] = SCHEMA_OPERATIONS
+        schema_parole["required"].append("operations_demandees")
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_PAROLE] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([schema_parole] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }

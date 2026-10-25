@@ -587,10 +587,22 @@ et `sens_contenu` : aucune adresse, aucun auditeur ni conséquence mécanique à
 Les sens typés décrivent la demande ou l'affirmation, indépendamment de leur audience.
 Le moteur conserve l'autorité sur l'adresse, les répondants et les conséquences calculées
 sur copie ; la narration reçoit ensuite la conversation validée entière.
-La fidélité est contrôlée aussi avec une adresse explicite ou des mots littéraux :
-recopier une demande ne suffit pas à en porter l'opération. Le repli sur les mots du
-joueur repasse ce contrôle avant toute parole enregistrée. Une revue illisible est
-redemandée une fois ; sans analyse lisible, la parole reste inexécutée. Une parole
+Depuis `codex-un-appel-de-moins` (lot 91), la proposition de l'interprétation
+`repondre_au_joueur` porte elle-même `operations_demandees`, avec le même schéma
+complet et les mêmes définitions que la revue. Ce champ d'interprétation est retiré
+avant la transaction de parole : la sauvegarde conserve les conséquences validées.
+Le moteur cumule les opérations déclarées sur les corrections de cette saisie et
+vérifie leur couverture avant tout appel de revue. Une opération manquante est
+refusée localement ; une déclaration absente ou mal typée reçoit un refus de forme
+avec `attendu`, sans accumulation partielle.
+Une réplique aux mots exacts, sans opération déclarée ni contenu typé opérant,
+part sans revue. La comparaison utilise les mots imposés par l'analyse commune,
+ou la saisie entière lorsqu'elle constitue la parole. Aucune liste de mots ou de
+verbes ne décide ce raccourci. Une reformulation ou un contenu typé reste soumis
+à la revue de fidélité. Le repli local sans interprétation déclarative conserve
+la revue ; les opérations déjà reconnues y restent exigées et une omission est
+refusée sans nouvel appel. Une revue illisible est redemandée une fois ; sans
+analyse lisible quand elle est requise, la parole reste inexécutée. Une parole
 ordinaire peut toujours avoir `propos` ou un contenu vide et aucune opération demandée.
 Une demande d'achat est une parole dont le moteur décide l'acceptation, le transfert ou
 le refus ; elle n'a pas à porter une opération de transfert faite par Corvus.

@@ -116,6 +116,9 @@ class PropositionsTests(unittest.TestCase):
             reponse = {"mode": "parole_joueur", "texte": "", "faits": ["interlocuteurs"],
                        "proposition": {"personnage": "marchand", "replique": saisie,
                                        "contenu": [{"type": "proposition", "demande": PART, "contrepartie": CLOCHE}]}}
+            from donjon.paroles import OPERATIONS, operations_contenu
+            codes = operations_contenu(reponse["proposition"]["contenu"])
+            reponse["proposition"]["operations_demandees"] = {t: t in codes for t in OPERATIONS}
             m, sortie, _ = jouer(m, saisie, [reponse, reponse_pnj(texte)])
             self.assertIn(texte, sortie)
             self.assertTrue(any(texte in x["reponse"] for x in m.data["conversation"]))

@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-un-appel-de-moins`, fusionnée, lot **91**, base
+  `123cc0c` issue d'intégration : l'interprétation d'une parole déclare ses
+  opérations dans le même appel, avec les définitions communes de `SENS_CONTENU`.
+  Le moteur vérifie localement leur couverture avant revue ; les corrections et
+  le repli ne peuvent effacer une opération reconnue. Mots exacts sans opération
+  ni contenu typé opérant : aucune revue de fidélité. Reformulation, contenu typé
+  et secours local non classé : revue conservée. Déclaration retirée avant la
+  transaction sauvegardée, conséquences moteur inchangées.
+  Code signé **031a86e**. Suite complète unique : **1 935 tests, 16 ignorés**,
+  200 fichiers, trois processus réduits, **1 396,20 s** ; trois échecs et une
+  erreur dans trois anciennes simulations/attentes adaptées. Reprise finale
+  des douze fichiers modifiés : **128 tests verts, un ignoré, 107,86 s**, deux
+  processus réduits ; bilan consolidé sans défaut restant reproduit, aucune
+  seconde suite complète. Luna deux passes des sept scripts distincts, contre
+  `ef86ff1` joué ici et rangé en cache : **280 → 278 appels / 84 tours MJ**,
+  **3,333 → 3,310 appels/tour**, fidélité **50 → 37 appels** ; mais
+  **13,76 → 14,43 s/tour**, objectif de temps non atteint. Relances narratives
+  moyennes **3,5 → 5,5**, refus **11 → 10**, replis **0 → 0,5** ; aucune erreur,
+  arrêt ou défaut de recharge sur 28 parties. Achats du lot exécutés aux deux
+  passes : or **26 → 23**, `planches_1` portée après recharge. Quatre scripts
+  ciblés seuls : **118 → 109 appels / 28 tours**. Vérifications finales dans le
+  [rapport du lot 91](taches/rapport-codex-91-un-appel-de-moins.md).
+  La reconnaissance des opérations et la fidélité des contenus typés demeurent
+  sémantiques : une omission initiale peut encore échapper au contrôle local.
+  Fusionné sur l'intégration après le lot 87 : seul conflit de documentation ; aucun fichier de code commun (lot 87 : `planification`, `esprits`, `banc_pnj`). Fusion décidée sur la baisse des appels de fidélité (F 50 → 37) ; la hausse R/N et le temps par tour viennent surtout de scripts que le lot ne touche pas (relais, crypte), deux passes : à revoir à la vérification Luna groupée.
+
 - Branche `codex-borne-attente`, fusionnée, lot **87**, base **020250e**,
   code signé **a82f469** (première version **a181ada**) :
   un recours borné sans plan retient son effort dans `esprits.attentes_bornees`.

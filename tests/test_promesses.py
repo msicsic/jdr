@@ -78,9 +78,8 @@ def dialogue(texte):
 
 
 def parole(personnage, replique):
-    return {"mode": "parole_joueur", "texte": "", "faits": [],
-            "proposition": {"personnage": personnage, "replique": replique,
-                            "contenu": [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]}}
+    from tests.test_repli_et_appel import parole as interpretation
+    return interpretation(replique, ("propos", "", "", ""), personnage=personnage)
 
 
 class DonLocalTests(unittest.TestCase):

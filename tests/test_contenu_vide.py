@@ -27,7 +27,7 @@ class ContenuVideTests(unittest.TestCase):
                     self.assertEqual(len(r.data['paroles_joueur']), 1)
                     self.assertTrue(r.data['paroles_joueur'][0]['auditeurs'])
                     self.assertIn('Ta question a été entendue.', str(r.data['conversation']))
-                    self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 1)
+                    self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 0)
 
     def test_deux_typages_refuses_repartent_des_mots_sans_effet(self):
         for nom, saisie in [('soir-noir', "il y a quelqu'un ?"),
@@ -36,8 +36,10 @@ class ContenuVideTests(unittest.TestCase):
                 m = banc(nom)
                 cible = prevue(m, saisie)['personnage']
                 avant = m.joueur['or']
-                r, sortie, appels = jouer(m, saisie, [
-                    parole(saisie, ('ressource', 'présence', '', ''), personnage=cible)] * 2 +
+                faux = parole(saisie, ('ressource', 'présence', '', ''), personnage=cible)
+                # La saisie ordinaire ne demande pas la ressource ajoutée par le contenu.
+                faux['proposition']['operations_demandees'] = dict.fromkeys(faux['proposition']['operations_demandees'], False)
+                r, sortie, appels = jouer(m, saisie, [faux] * 2 +
                     [dialogue('Ta question a été entendue.')],
                     [rapport(ligne('mecanique', sources=['conversation_validee']))],
                     revues=[{'conforme': False, 'motif': 'Ce n’est pas une demande de bien.'}] * 2)
