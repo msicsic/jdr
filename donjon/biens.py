@@ -194,6 +194,7 @@ def payer(monde, de, a, montant):
         monde.joueur["or"] += montant
     else:
         monde.data["finances_pnj"][a] = bourse(monde, a) + montant
+    noter_compte(monde, compte(de, a, montant=montant, etat="rendu"))
 
 
 def prix(monde, objet, part=False):
@@ -431,17 +432,63 @@ def comptes_joueur(monde):
             lignes.append(f"Tu as prêté {o} à {personne_pour_joueur(monde, p['a'], court=True)[0]}.")
         elif p["a"] == "joueur" and p["de"] in monde.objets:
             lignes.append(f"{personne_pour_joueur(monde, p['de'], court=True)[0]} t'a prêté {o}.")
+    from .francais import complement_de
+    for c in livraisons_dues(monde):
+        o = monde.objets.get(c["objet"])
+        if o is None:
+            continue
+        servir = any(x["condition"].get("servir") == "joueur" and
+                     x["condition"]["objet"] == c["objet"]
+                     for x in agendas.en_cours(monde, c["debiteur"]))
+        bien = "une part " + complement_de(o) if servir else designer(o)
+        nom = personne_pour_joueur(monde, c["debiteur"], court=True)[0]
+        lignes.append(f"{nom} doit encore te {'servir' if servir else 'remettre'} {bien}.")
     return lignes
 
 
 def compte(debiteur, creancier, objet="", montant=0, etat="du"):
     """Un sens unique, commun aux comptes et aux issues : qui doit/rend quoi à qui.
 
-    Un objet vide désigne les pièces ; pour un prêt, le débiteur est l'emprunteur,
-    indépendamment du sens historique des champs de/a de la permission.
+    Un objet vide désigne les pièces ; sinon l'identité du bien remis ou à livrer.
+    Pour un prêt, le débiteur est l'emprunteur, indépendamment du sens historique
+    des champs de/a de la permission.
     """
     return {"debiteur": debiteur, "creancier": creancier, "objet": objet,
             "montant": montant, "etat": etat}
+
+
+def noter_compte(monde, c):
+    """Journal transactionnel ouvert par la conversation, copié avec ses essais.
+
+    Il n'existe que dans la copie de travail et est retiré avant publication.
+    Un essai abandonné ne publie donc aucun transfert ; aucun compte PNJ privé.
+    """
+    journal = monde.data.get("_comptes_echange")
+    if journal is not None and "joueur" in (c["debiteur"], c["creancier"]):
+        precedent = next((a for a in journal if all(a[k] == c[k] for k in
+                         ("debiteur", "creancier", "objet", "etat"))), None)
+        if precedent is None:
+            journal.append(c)
+        else:
+            precedent["montant"] += c["montant"]
+
+
+def livraisons_dues(monde):
+    """Biens effectivement promis au joueur, depuis les engagements du moteur.
+
+    Une part détachée porte sa propre identité ; un service de part à servir
+    garde le lot et une quantité, sans transformer le lot entier en prêt.
+    """
+    comptes = []
+    for id, o in monde.objets.items():
+        if not o.get("profil"):
+            continue
+        for x in agendas.en_cours(monde, id):
+            c = x["condition"]
+            if not x.get("annule") and x["pour"] == "joueur" and (
+                    c.get("remettre") == "joueur" or c.get("servir") == "joueur"):
+                comptes.append(compte(id, "joueur", c["objet"], 1))
+    return comptes
 
 
 def etat_comptes_joueur(monde, interlocuteurs=()):
@@ -461,7 +508,7 @@ def etat_comptes_joueur(monde, interlocuteurs=()):
             comptes.append(compte(de, a, montant=montant, etat="du" if montant else "absent"))
     comptes.extend(compte(p["a"], p["de"], p["objet"], 1) for p in prets(monde)
                    if "joueur" in (p["de"], p["a"]))
-    return comptes
+    return comptes + livraisons_dues(monde)
 
 
 def offres_joueur(monde):
