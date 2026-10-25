@@ -84,6 +84,10 @@ def _etape(t):
         tete = (f"<div class='titre'>Appel {html.escape(t['fonction'])} — {t.get('secondes', 0)} s, "
                 f"{u.get('input_tokens', u.get('prompt_tokens', 0))} tokens en entrée dont {cache} en cache, "
                 f"{u.get('output_tokens', u.get('completion_tokens', 0))} en sortie</div>")
+        premier = t.get('premier_jeton')
+        reflexion = (u.get('output_tokens_details') or {}).get('reasoning_tokens')
+        tete += (f"<div class='resume'>Premier delta : {premier if premier is not None else 'non mesuré'} s ; "
+                 f"réflexion : {reflexion if reflexion is not None else 'non fournie'} jetons.</div>")
         if t.get("erreur"):
             tete += f"<div class='ko'>Erreur : {html.escape(t['erreur'])}</div>"
         corps = (_replie("Instructions", t.get("instructions", "")) + _replie("Entrée (faits, message)", t.get("entree"))
