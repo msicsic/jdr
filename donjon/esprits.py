@@ -17,6 +17,8 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   lu sur l'objet (``planification.enrichir``).
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
+- ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
+  [minute du niveau, niveau, montée en cm/h], sans modifier les mesures ``eau``.
 
 Voix (``voix.py``) : ``voix`` liste ceux dont il connaît la voix (il les a entendus parler en les
 voyant, ou le scénario les lui fait connaître) ; ``voix_entendues``, les voix inconnues qu'il a
@@ -208,6 +210,10 @@ def _croyance_valide(monde, attribut, c):
                 and all(c.get(k) is None or type(c[k]) is int for k in ("niveau", "montee"))
                 and (c.get("repere") is None or isinstance(c["repere"], list) and len(c["repere"]) == 2
                      and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
+    elif attribut == "prevision":
+        assert (isinstance(c.get("valeur"), list) and len(c["valeur"]) == 3
+                and all(type(v) is int for v in c["valeur"])
+                and type(c.get("rang", 0)) is int and 0 <= c.get("rang", 0) <= 3), "Prévision invalide"
     elif attribut == "verrouillee":
         assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
     elif attribut.startswith("attitude:") or attribut in ("emotion", "intention", "parole_doutee"):
@@ -395,8 +401,18 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut) if attribut == "lieu" else None
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "eau" and source in ("vu", "essai"):
+        # Une preuve propre postérieure dément l'avis durablement : le perdre de vue
+        # ensuite ne doit pas ressusciter une ancienne prévision reçue.
+        avis = [a for a in lire(monde, id)["croyances"].values() if "prevision" in a]
+        propre = prevision_propre(monde, id) if avis else None
+        if propre and propre["source"] in ("vu", "essai"):
+            for a in avis:
+                if propre["minute"] > a["prevision"]["minute"]:
+                    del a["prevision"]
     from .social import reviser_dits
-    reviser_dits(monde, id, sujet, attribut, valeur, **lieu)
+    if attribut != "prevision":  # Le fait dit est la menace, pas les coefficients de sa prévision.
+        reviser_dits(monde, id, sujet, attribut, valeur, **lieu)
     if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
         # Un contenu positif nouveau rouvre ce lieu seul ; une répétition ou une absence,
         # même datée de nouveau, n'annule pas le résultat d'une recherche.
@@ -408,6 +424,69 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     if attribut == "etat" and (valeur.get("conscient") is False or valeur.get("reddition")):
         from .defense import constater_fin
         constater_fin(monde, id, sujet)
+
+
+def poids_source(monde, id, c):
+    """Poids d'un avis (§ 7.3), distinct de sa conviction ; aucune persuasion aléatoire."""
+    source = c["source"]
+    if source.startswith("dit:"):
+        from .voix import auteur_dit
+        from .relations import envers, ETRANGER
+        auteur, inconnue = auteur_dit(source)
+        r = ETRANGER if inconnue else envers(monde, id, auteur)
+        return .7 * r["confiance"] / 100 * (1 + r["affection"] / 200)
+    return {"vu": 1, "essai": 1, "savoir": 1, "entendu": .8, "devine": .4}.get(source, 0)
+
+
+def prevision_propre(monde, id):
+    """L'estimation du lot 58, avec la qualité de ses deux preuves, sans les modifier."""
+    from .eau import estimation
+    e = estimation(monde, id)
+    if e is None:
+        return None
+    vues = [c for a in lire(monde, id)["croyances"].values()
+            if (c := a.get("eau")) and c.get("niveau") is not None]
+    ancre = max(vues, key=lambda c: (c["minute"], c["niveau"]))
+    pente = max((c for c in vues if c.get("repere") is not None and c.get("montee") is not None),
+                key=lambda c: (c["repere"][0], c["montee"]))
+    faible = min((ancre, pente), key=lambda c: poids_source(monde, id, c) * c["confiance"])
+    return {"valeur": list(e), "minute": max(ancre["minute"], pente["repere"][0]),
+            "source": faible["source"], "confiance": faible["confiance"]}
+
+
+def prevision(monde, id, salle):
+    """Prévision retenue pour ce lieu : preuves propres ou avis, jamais une mesure inventée.
+
+    Une estimation propre étayée plus récente dément l'ancien avis ; à défaut, poids × conviction
+    départage, l'égalité gardant la croyance déjà acquise.
+    """
+    propre = prevision_propre(monde, id)
+    recue = lire(monde, id)["croyances"].get(salle, {}).get("prevision")
+    if recue is None:
+        return propre
+    if propre and (propre["source"] in ("vu", "essai") and propre["minute"] > recue["minute"]
+                   or poids_source(monde, id, propre) * propre["confiance"]
+                   > poids_source(monde, id, recue) * recue["confiance"]):
+        return propre
+    return recue
+
+
+def recevoir_prevision(monde, id, locuteur, noyau, rang):
+    from .voix import source_dite
+    from .pnj import _chroniquer
+    actuelle = prevision(monde, id, noyau["objet"])
+    candidate = {"valeur": noyau["prevision"], "minute": noyau["observe"],
+                 "source": source_dite(monde, id, locuteur), "confiance": noyau["conviction"]}
+    if (actuelle and actuelle["source"] in ("vu", "essai") and actuelle["minute"] > candidate["minute"]
+            or poids_source(monde, id, candidate) * candidate["confiance"]
+            <= (poids_source(monde, id, actuelle) * actuelle["confiance"] if actuelle else 0)):
+        return "doute"
+    croire(monde, id, noyau["objet"], "prevision", copy.deepcopy(candidate["valeur"]),
+           candidate["source"], candidate["confiance"], minute=candidate["minute"], rang=rang + 1)
+    _chroniquer(monde, id, f"{monde.objets[id]['nom'].split(',')[0]} révise sa prévision de l'eau.", "social")
+    monde.data["chronique"][-1]["changement_avis"] = "dit"
+    reconsiderer(monde, id)
+    return "crue"
 
 
 def memoriser(monde, id, evenement):

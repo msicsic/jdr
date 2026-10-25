@@ -9,6 +9,10 @@ sa confiance. Une rumeur passe de proche en proche jusqu'au troisième relais, e
 sa confiance. Le joueur entend ce qui se dit dans sa salle, en clair s'il connaît ce dont on
 parle, sinon comme un échange à voix basse. Tout est déterministe ; Luna n'intervient pas.
 
+Un avis de menace prévient plutôt qui le locuteur croit concerné et dont il se soucie.
+L'auditeur pèse sa source et sa conviction, sans jet ; les nouvelles et leurs destinataires
+déjà servis restent suivis par le même registre, hors des souvenirs bornés.
+
 Une parole, du joueur comme d'un PNJ, est entendue de tous ceux qui en saisissent les mots
 (``ouie``) : qui n'en est pas le destinataire la retient aussi (``retenir_parole``), et ce
 qu'elle transmet le touche par la même règle que le destinataire (``recevoir``) : une
@@ -52,7 +56,7 @@ def faits_dits(noyau):
     la date ou la case depuis lesquelles le témoin l'a appris.
     """
     t = noyau["type"]
-    if t in ("affirmation", "constat"):
+    if t in ("affirmation", "constat", "avis"):
         sujet = noyau.get("sujet", noyau.get("objet"))
         attribut, valeur = noyau["attribut"], noyau["valeur"]
         if attribut == "etat":
@@ -182,6 +186,7 @@ def _nouvelles(monde, id):
     # Les croyances constituent déjà le registre daté des constats, sans souvenir
     # supplémentaire à chaque perception. Placés d'abord, ils passent après les accusations.
     yield from _constats(monde, id)
+    yield from _avis(monde, id)
     for souvenir in lire(monde, id)["memoire"]:
         if souvenir["type"] in NOUVELLES:
             # Ce qu'il n'a fait qu'entendre (``pnj._temoins_a_l_oreille``) se dit avec moins de
@@ -212,6 +217,40 @@ def _meme_constat(croyance, noyau):
     valeur = croyance["valeur"]
     return (all(valeur.get(k) == v for k, v in noyau["valeur"].items())
             if noyau["attribut"] == "etat" else valeur == noyau["valeur"])
+
+
+def _avis(monde, id):
+    """Menaces déduites des preuves du locuteur, sans lire l'esprit d'un autre."""
+    from . import eau
+    from .esprits import prevision, poids_source
+    if not eau.active(monde):
+        return
+    for salle in sorted(monde.data["salles"]):
+        c = prevision(monde, id, salle)
+        if not c:
+            continue
+        menace = eau.menacee(monde, id, salle)
+        reviser_dits(monde, id, salle, "menace", menace)
+        if not menace or c.get("rang", 0) >= RANG_MAX:
+            continue
+        from .voix import auteur_dit
+        source = auteur_dit(c["source"])[0] if c["source"].startswith("dit:") else None
+        yield c, {"type": "avis", "objet": salle, "attribut": "menace", "valeur": True,
+                  "prevision": list(c["valeur"]), "observe": c["minute"],
+                  "conviction": min(1, poids_source(monde, id, c) * c["confiance"])}, c.get("rang", 0), source
+
+
+def _concerne(monde, id, autre, salle):
+    from .caractere import valeur
+    from .deliberation import salle_crue
+    if valeur(monde, id, "altruisme") + valeur(monde, id, "empathie") + envers(monde, id, autre)["affection"] < 100:
+        return False
+    if salle_crue(monde, id, autre) == salle:
+        return True
+    # Une destination n'est connue que si elle a été convenue : aucune lecture du plan privé.
+    rendez_vous = lire(monde, id)["rejoint"]
+    return bool(rendez_vous and rendez_vous["qui"] == autre and rendez_vous["vient"]
+                and monde.data["minutes"] < rendez_vous["jusqu_a"] and monde.objets[id]["lieu"] == salle)
 
 
 def _constats(monde, id):
@@ -245,6 +284,10 @@ def _cru_ailleurs(monde, id, noyau):
 
 
 def _sait(monde, id, noyau):
+    if noyau["type"] == "avis":
+        from .esprits import prevision
+        from .eau import menacee
+        return prevision(monde, id, noyau["objet"]) is not None and menacee(monde, id, noyau["objet"])
     if noyau["type"] == "constat":
         c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
         return (_meme_constat(c, noyau) or bool(c and c["source"] in ("vu", "essai", "entendu")
@@ -274,7 +317,9 @@ def _auditeur(monde, id, souvenir, noyau, source):
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
-                or not se_fie(monde, id, autre)):
+                or noyau["type"] == "avis" and _sait(monde, autre, noyau)
+                or (not _concerne(monde, id, autre, noyau["objet"]) if noyau["type"] == "avis"
+                    else not se_fie(monde, id, autre))):
             continue
         if noyau["type"] == "absence" and _proprietaire(monde, noyau) != autre:
             continue  # Un objet manquant ne regarde que son propriétaire.
@@ -300,6 +345,9 @@ def _qui(monde, id, locuteur=None):
 def phrase(monde, noyau, locuteur=None):
     o = monde.objets.get(noyau.get("objet") or "")
     t = noyau["type"]
+    if t == "avis":
+        from .francais import lieu
+        return "l'eau menace " + lieu(monde.data["salles"][noyau["objet"]]) + " dans l'heure"
     if t == "constat":
         from .francais import accorder, lieu
         if noyau["attribut"] == "eau":
@@ -500,6 +548,9 @@ def recevoir(monde, id, locuteur, c):
         from .echanges import affirmer
         return affirmer(monde, locuteur, id, c["sujet"], c["attribut"], c["valeur"])
     noyau = c["evenement"]
+    if noyau["type"] == "avis":
+        from .esprits import recevoir_prevision
+        return recevoir_prevision(monde, id, locuteur, noyau, c["rang"])
     if c["type"] != "aveu" and accuse(noyau) == locuteur:
         return None  # Parler contre soi exige un aveu explicite, joueur comme PNJ.
     if accuse(noyau) == id or _sait(monde, id, noyau):
@@ -551,7 +602,7 @@ def bavarder(monde, id, lignes):
         return False
     connues = list(nouvelles(monde, id))
     # Même une rumeur de constat reste moins urgente qu'une accusation.
-    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: x[1]["type"] == "constat"):
+    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: x[1]["type"] in ("constat", "avis")):
         auditeur = _auditeur(monde, id, souvenir, noyau, source)
         if auditeur is None:
             continue
@@ -564,6 +615,8 @@ def bavarder(monde, id, lignes):
                     "social")
         if noyau["type"] == "constat":
             monde.data["chronique"][-1]["constat_confie"] = True
+        elif noyau["type"] == "avis":
+            monde.data["chronique"][-1]["avis_exprime"] = True
         esprit(monde, id)["derniere_confidence"] = monde.data["minutes"]
         _entendu(monde, id, auditeur, noyau, rang, lignes)
         return True

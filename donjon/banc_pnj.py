@@ -243,6 +243,8 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                "absences": memoire["absence"],
                "confidences": sum(" dit à " in c["texte"] for c in chronique),
                "constats_confies": sum(bool(c.get("constat_confie")) for c in chronique),
+               "avis_exprimes": sum(bool(c.get("avis_exprime")) for c in chronique),
+               "changements_d_avis": sum(c.get("changement_avis") == "dit" for c in chronique),
                "rumeurs_crues": memoire["rumeur"], "rumeurs_doutees": memoire["parole_doutee"],
                "mefiances": mefiances, "jets": monde.data["jets"],
                "mefiances_levees": sum(bool(c.get("mefiance_levee")) for c in relationnels),
