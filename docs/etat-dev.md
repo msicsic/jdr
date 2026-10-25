@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
+  **02c8e8b**, code signé **9f344cd** : lieux et portée partagés par salle,
+  possessions, agissables et faits `lieu`/`ouvert`/`assomme` ; droits et fautes
+  par `permis`/`achete`/`acquis`/`faute`. Préconditions fixes des parts et
+  compatibilités de combustible préparées une fois par `Vue`. Chaque geste
+  compose encore ses effets sur son propre nœud ; aucune lecture de lumière
+  déplacée, aucune modification des coûts, ordres, plafonds ou décisions.
+  Joss/faim, vingt recherches : à 480 min, **149 nœuds**, **335,6 → 288,4 µs
+  CPU/nœud (−14,1 %)** ; à 600 min, **2 065 nœuds**, **554,3 → 425,6 µs
+  (−23,2 %)**. Trois tests nouveaux, **2 138 états / 14 661 successeurs**
+  ordonnés contre la base, coûts hexadécimaux ; clés contre lectures directes,
+  monde, lignes joueur et rendu mine/auberge identiques après recharge.
+  **21 tests ciblés verts**. Douze heures, mine/auberge × fixe/tiré, 1985,
+  trois versions ensemble : **quatre nuits strictement identiques** à la base,
+  traces et nœuds compris. Gains CPU **4,35 à 9,97 %** ; auberge encore
+  **×2,44 / ×3,75** contre `42bb9c0`. Empreintes 2 h, quatre scénarios × quatre
+  graines : **16 nuits identiques**, référence calculée une fois et mise en cache.
+  `VERIFIER` + spatial à 1, auberge 42, 2 h : **sans écart ni borne**, 427,77 s CPU.
+  Suite complète unique : **1 916 tests, 16 ignorés, zéro échec/erreur**,
+  196 fichiers, trois processus à priorité réduite, **1 365,9 s écoulées**.
+  Créneau de 45 min dépassé ; aucun appel à Luna ni modification de `main`.
+  [Rapport du lot 86](taches/rapport-codex-86-gestes-par-noeud.md).
+  Fusionné sur l'intégration après les lots 83 et 84 : seul conflit de documentation ; aucun fichier de code commun.
+
 - Branche `codex-part-proposee`, fusionnée, lot **84**, base d'intégration
   **7cce974**, brief **3dbd225** : une part demandée dans une proposition conserve
   sa valeur propre et la garde de la réserve. Classification commune de la remise

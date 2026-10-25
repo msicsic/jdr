@@ -1954,3 +1954,39 @@ destinations consécutives de cet état partagent le recalcul indépendant ;
 un autre état le remplace. Une dépendance omise d'une clé projetée et une
 corruption de la table restent détectables, sans garder les témoins de tout
 le graphe ni refaire le même parcours pour chacune de ses destinations.
+
+## Préparation des gestes — lot 86 (`codex-gestes-par-noeud`, non fusionnée)
+
+La photographie de `Vue` garde trois préparations supplémentaires, communes à
+tous les buts et familles qui lisent ces données :
+
+- `situations_gestes` : la portée et le lieu de chaque objet agissable, dans
+  l'ordre original. Sa clé contient la salle, les possessions, la liste exacte
+  des agissables et tous les faits `lieu`, `ouvert`, `assomme`. Les lieux couvrent
+  aussi les chaînes de contenants et de porteurs, le joueur et les personnes
+  supposées retrouvées. L'état cru des porteurs et les portes de chaque salle
+  restent figés dans la vue.
+- `droits_gestes` : la permission de toucher, celle de consommer, les victimes,
+  fautes et effets correspondants, selon tous les faits `permis`, `achete`,
+  `acquis`, `faute`. Un budget ou une promesse différente ne change pas ces droits.
+- `lot_partageable` : disponibilité crue, catégorie du lot, propriétaire et
+  profil du donneur, indépendants du nœud. Les mêmes préconditions sont
+  nécessaires aux parts remises et servies ; les développer à nouveau ne peut
+  produire aucun geste lorsqu'elles sont fausses.
+
+Les combustibles qui n'ont aucun autre usage et leurs sources compatibles
+sont préparés une fois, dans l'ordre antérieur des sources. Seule leur charge
+est ensuite relue dans le nœud. Le budget, les promesses, les refus et tarifs
+déjà mémorisés, les allumages, les actions et leurs effets restent à leur point
+historique. Les lectures de lumière ne sont pas anticipées. Les parts dont le
+but peut lire un fait arbitraire gardent leur clé par **état complet**.
+
+Les tables ne contiennent pas de successeur provenant d'un autre nœud : chaque
+geste applique encore ses effets par `Etat.apres` à son état d'origine. Elles
+ne passent ni changement du monde ni sauvegarde ; aucun nouveau champ du monde
+n'est lu et `_entrees` reste inchangé. La référence de `VERIFIER` prépare ses
+propres tables de gestes. Aucun ordre, coût, plafond ou algorithme ne change.
+Les tests contrôlent les clés contre les lectures directes, les successeurs
+contre la base et le monde/rendu après rechargement.
+
+Mesures et limites : [rapport du lot 86](taches/rapport-codex-86-gestes-par-noeud.md).

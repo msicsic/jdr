@@ -254,6 +254,12 @@ class Vue:
         self.rechargeables = [o for o in self.connus if brule(self.objets[o])]
         self.sources_du_lot = {o: frozenset(s for s in self.rechargeables if recharge(self.objets[s], self.objets[o]))
                                for o in self.connus}
+        self.sources_du_lot_triees = {o: tuple(s for s in self.rechargeables if s in sources)
+                                      for o, sources in self.sources_du_lot.items()}
+        self.combustibles_seuls = frozenset(o for o in self.connus for x in [self.objets[o]]
+            if "combustible" in x.get("usages", ())
+            and not set(x.get("usages", ())) & (set(USAGES) - {"combustible"})
+            and not x.get("ouvre") and "allume" not in x)
         # Ce qui donne du feu de main en main : un outil d'allumage, une source portable.
         self.flammes_portables = [o for o in self.connus if "allumage" in self.objets[o].get("usages", [])
                                   or "allume" in self.objets[o] and self.objets[o].get("mobile")]
@@ -320,6 +326,7 @@ class Vue:
                + sum(prix for g, prix in self.prix_gardes.items() if g != s)
                + NOIR * self.eau.get(s, 0) for s in self.salles})
         self._allers, self._lieux_crus = {}, {}
+        self._situations_gestes, self._droits_gestes, self._lots_partageables = {}, {}, {}
         self.salles_triees = sorted(self.salles)
         # La catégorie de ressource comptée ; son emploi pour un besoin dépend de ``part_pour``
         # et une recharge de la source visée (``recharge``).
@@ -416,6 +423,72 @@ class Vue:
                     or crochete and "crochetage" in usages
                     or voir and ("allume" in x or "allumage" in usages or "combustible" in usages and any(
                         recharge(self.objets[s], x) for s in self.rechargeables)))
+
+    def situations_gestes(self, e, agissables):
+        """Localisation et portée, indépendantes des droits et des effets du but.
+
+        Les chaînes de contenants et de porteurs lisent tous les lieux projetés ;
+        seuls l'ouverture d'un contenant et l'état d'un porteur changent la portée.
+        L'ordre des objets reste celui d'agissables, y compris les parts lointaines.
+        """
+        cle = (e.salle, e.portes, tuple(agissables), frozenset(
+            (k, x) for k, x in e.faits.items() if k[0] in ("lieu", "ouvert", "assomme")))
+        if cle not in self._situations_gestes:
+            self._situations_gestes[cle] = self._situations_gestes_calculer(e, agissables)
+        return self._situations_gestes[cle]
+
+    def _situations_gestes_calculer(self, e, agissables):
+        resultat, objets = [], self.objets
+        for o in agissables:
+            if o not in e.portes and o not in self.portes_de[e.salle]:
+                ailleurs = self.salle(e, o)
+                if ailleurs is not None and ailleurs != e.salle:
+                    resultat.append((o, True, self.lieu(e, o), False, None))
+                    continue
+            if o in e.portes:
+                ici, dans = True, self.id
+            else:
+                dans = self.lieu(e, o)
+                ici = dans == e.salle or (dans in objets and objets[dans]["type"] == "contenant"
+                        and self.salle(e, dans) == e.salle and self.ouvert(e, dans))
+            porteur = dans if dans in objets and objets[dans]["type"] == "personnage" and dans != self.id else None
+            if porteur and self.salle(e, porteur) == e.salle:
+                etat_cru = self.cru(porteur, "etat") or {}
+                ici = ici or e.fait("assomme", porteur) or etat_cru.get("conscient") is False
+            contenant = dans if dans in objets and objets[dans]["type"] == "contenant" else None
+            resultat.append((o, False, dans, ici, contenant))
+        return resultat
+
+    def droits_gestes(self, e):
+        """Permissions et fautes : mêmes lectures pour tous les nœuds de cette clé."""
+        cle = frozenset((k, x) for k, x in e.faits.items()
+                        if k[0] in ("permis", "achete", "acquis", "faute"))
+        if cle not in self._droits_gestes:
+            self._droits_gestes[cle] = self._droits_gestes_calculer(e)
+        return self._droits_gestes[cle]
+
+    def _droits_gestes_calculer(self, e):
+        resultat, faits = {}, e.faits
+        for o in self.connus:
+            illicite_ = self.illicite[o] and not faits.get(("permis", o))
+            lese = self.proprietaire[o] if illicite_ else None
+            mal = int(bool(lese) and not faits.get(("faute", lese, "honnetete")))
+            touche = [(("faute", lese, "honnetete"), True)] if lese else []
+            conso = self.consomme_illicite[o] and not (faits.get(("achete", o)) or faits.get(("acquis", o)))
+            lese_conso = self.proprietaire[o] if conso else None
+            mal_conso = int(bool(lese_conso) and not faits.get(("faute", lese_conso, "honnetete")))
+            touche_conso = [(("faute", lese_conso, "honnetete"), True)] if lese_conso else []
+            resultat[o] = (illicite_, "sans_temoin" if illicite_ else "", mal, touche,
+                           "sans_temoin" if conso else "", mal_conso, touche_conso)
+        return resultat
+
+    def lot_partageable(self, o):
+        """Préconditions fixes communes aux parts servies et remises."""
+        if o not in self._lots_partageables:
+            donneur = self.proprietaire[o]
+            self._lots_partageables[o] = bool(self.besoin[o] and self.disponible(o)
+                and donneur not in (None, self.id, "joueur") and self.profil_de(donneur))
+        return self._lots_partageables[o]
 
     def capacite(self, e, o, libre=None):
         """Ce qu'une source portable apporte aux gestes de lumière, tel qu'ils le lisent (``feu``,
@@ -1225,49 +1298,24 @@ def gestes(v, e, vises=None, but=None):
     assez = eclaire_en_main or not lumiere_compte and (
         any(v.flamme(e, k) for k in e.portes)
         or not any(v.feu(e, f)[0] is False for f in v.foyers + list(vises.get("entretenir", ()))))
-    portes_ici = v.portes_de[sa_salle]
-    for o in agissables:
+    droits = v.droits_gestes(e)
+    for o, ailleurs, dans, ici, contenant in v.situations_gestes(e, agissables):
         x = objets[o]
         yield from _aide_sur_place(v, e, o, vises, noms_vises)
         # Un objet qu'il ne porte pas et qu'il croit dans une autre salle (sans être une porte de
         # celle-ci) n'offre ici aucun geste : on ne peut qu'en demander une part.
-        if o not in portes and o not in portes_ici:
-            ailleurs = v.salle(e, o)
-            if ailleurs is not None and ailleurs != sa_salle:
-                if v.besoin[o]:
-                    yield from _parts(v, e, o, v.lieu(e, o), vises, but)
-                continue
+        if ailleurs:
+            if v.besoin[o]:
+                yield from _parts(v, e, o, dans, vises, but)
+            continue
         if v.contrarie(o):
             continue   # On s'oppose à lui sur cette chose : il n'y touche pas tant que cela tient.
         superflu = (assez and ("allume" in x or "allumage" in x.get("usages", [])) and not x.get("foyer")
                     and o not in v_prendre and o not in v_entretenir)
-        # ``Vue.lieu`` et ``Vue.a_portee`` : dans sa main, dans sa salle, ou dans un contenant ouvert
-        # de sa salle.
-        if o in portes:
-            ici, dans = True, v.id
-        else:
-            dans = v.lieu(e, o)
-            ici = dans == sa_salle or (dans in objets and objets[dans]["type"] == "contenant"
-                                   and v.salle(e, dans) == sa_salle and v.ouvert(e, dans))
-        porteur_ici = dans if dans in objets and objets[dans]["type"] == "personnage" and dans != id else None
-        if porteur_ici and v.salle(e, porteur_ici) == sa_salle:
-            etat_cru = v.cru(porteur_ici, "etat") or {}
-            ici = ici or e.fait("assomme", porteur_ici) or etat_cru.get("conscient") is False
-        contenant = dans if dans in objets and objets[dans]["type"] == "contenant" else None
-        touche = [(("touche", contenant), True)] if contenant else []
-        # Prêté ou acheté par le plan, le bien d'autrui s'emploie sans faute ; rien ne permet de
-        # le consommer, sauf ce qu'il a acheté.
-        illicite_ = v.illicite[o] and not faits.get(("permis", o))
-        faute = "sans_temoin" if illicite_ else ""
-        lese = v.proprietaire[o] if illicite_ else None
-        mal = int(bool(lese) and not faits.get(("faute", lese, "honnetete")))
-        if lese:
-            touche = touche + [(("faute", lese, "honnetete"), True)]
-        conso = v.consomme_illicite[o] and not (faits.get(("achete", o)) or faits.get(("acquis", o)))
-        faute_conso = "sans_temoin" if conso else ""
-        lese_conso = v.proprietaire[o] if conso else None
-        mal_conso = int(bool(lese_conso) and not faits.get(("faute", lese_conso, "honnetete")))
-        touche_conso = [(("faute", lese_conso, "honnetete"), True)] if lese_conso else []
+        # Les lieux, la portée et les droits ne lisent pas les effets terminaux,
+        # les promesses ni le budget du nœud ; leurs tables gardent leurs clés exactes.
+        illicite_, faute, mal, touche_droit, faute_conso, mal_conso, touche_conso = droits[o]
+        touche = ([(("touche", contenant), True)] if contenant else []) + touche_droit
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
         utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
         # Une source de plus, sans capacité que n'aient déjà celles qu'il porte : rien ne l'acquiert.
@@ -1276,10 +1324,8 @@ def gestes(v, e, vises=None, but=None):
         # Dans la projection, une charge suffisante ne s'épuise pas en chemin.
         # Porter un combustible sans aucune source à recharger ne change donc
         # aucun geste futur ; on ne développe pas ces inventaires équivalents.
-        if (utile and o not in v_prendre and "combustible" in x.get("usages", ())
-                and not (set(x.get("usages", ())) & (set(USAGES) - {"combustible"}))
-                and not x.get("ouvre") and "allume" not in x
-                and not any(recharge(objets[s], x) and not v.feu(e, s)[1] for s in v.rechargeables)):
+        if (utile and o not in v_prendre and o in v.combustibles_seuls
+                and not any(not v.feu(e, s)[1] for s in v.sources_du_lot_triees[o])):
             utile = False
         if ici and o not in portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=portes | {o}, faits=touche)
@@ -1554,7 +1600,7 @@ def _engager(v, e, condition):
 
 
 def _parts(v, e, o, dans, vises, but):
-    if v._estime_part:
+    if v._estime_part or not v.lot_partageable(o):
         return
     # Le but peut lire n'importe quel fait : aucun quotient approximatif de e.
     # But et visées sont fixes pendant une exploration, enregistrés une fois à

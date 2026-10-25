@@ -1,0 +1,307 @@
+{
+  "mine-1985-480.json.gz/a_mange": {
+    "empreinte": "97d1e95b84bdac9d3957f46b32fe69a038a6603b89f3aa028b77ddee98b38709",
+    "etats": 503,
+    "successeurs": 2383,
+    "noeuds": 576,
+    "resultat": null
+  },
+  "mine-1985-480.json.gz/eclaire": {
+    "empreinte": "f2aaed252a654259a3e849148fab6265cb0dd907b93a2fd5004edc977ff700e5",
+    "etats": 1,
+    "successeurs": 6,
+    "noeuds": 2,
+    "resultat": [
+      "tuple",
+      [
+        [
+          "float",
+          "0x1.828f5c28f5c28p-1"
+        ],
+        [
+          "list",
+          [
+            [
+              "dict",
+              [
+                [
+                  "cible",
+                  ""
+                ],
+                [
+                  "condition",
+                  ""
+                ],
+                [
+                  "lieu",
+                  "bureau"
+                ],
+                [
+                  "operation",
+                  "aller"
+                ],
+                [
+                  "outil",
+                  ""
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          "etat",
+          "bureau",
+          [
+            "lampe_remy"
+          ],
+          [
+            "dict",
+            []
+          ],
+          15
+        ]
+      ]
+    ]
+  },
+  "auberge-1985-480.json.gz/a_mange": {
+    "empreinte": "78b66841b770844c692fceb87838cbd1fd2e06e987f32637362b9c3d91c3c1c4",
+    "etats": 148,
+    "successeurs": 1067,
+    "noeuds": 149,
+    "resultat": [
+      "tuple",
+      [
+        [
+          "float",
+          "0x1.eb69315693156p+3"
+        ],
+        [
+          "list",
+          [
+            [
+              "dict",
+              [
+                [
+                  "cible",
+                  ""
+                ],
+                [
+                  "condition",
+                  ""
+                ],
+                [
+                  "lieu",
+                  "cellier"
+                ],
+                [
+                  "operation",
+                  "aller"
+                ],
+                [
+                  "outil",
+                  ""
+                ]
+              ]
+            ],
+            [
+              "dict",
+              [
+                [
+                  "cible",
+                  ""
+                ],
+                [
+                  "condition",
+                  ""
+                ],
+                [
+                  "contenu",
+                  [
+                    "dict",
+                    [
+                      [
+                        "cherche",
+                        "odile"
+                      ]
+                    ]
+                  ]
+                ],
+                [
+                  "lieu",
+                  "cellier"
+                ],
+                [
+                  "operation",
+                  "inspecter"
+                ],
+                [
+                  "outil",
+                  ""
+                ],
+                [
+                  "suppose",
+                  true
+                ]
+              ]
+            ],
+            [
+              "dict",
+              [
+                [
+                  "cible",
+                  "odile"
+                ],
+                [
+                  "condition",
+                  ""
+                ],
+                [
+                  "lieu",
+                  ""
+                ],
+                [
+                  "operation",
+                  "demander"
+                ],
+                [
+                  "outil",
+                  "vivres"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          "etat",
+          "cellier",
+          [],
+          [
+            "dict",
+            [
+              [
+                [
+                  "tuple",
+                  [
+                    "cherche",
+                    "odile"
+                  ]
+                ],
+                true
+              ],
+              [
+                [
+                  "tuple",
+                  [
+                    "lieu",
+                    "odile"
+                  ]
+                ],
+                "cellier"
+              ],
+              [
+                [
+                  "tuple",
+                  [
+                    "part",
+                    "vivres"
+                  ]
+                ],
+                "odile"
+              ],
+              [
+                [
+                  "tuple",
+                  [
+                    "promis",
+                    "vivres"
+                  ]
+                ],
+                "odile"
+              ],
+              [
+                [
+                  "tuple",
+                  [
+                    "promis_case",
+                    "vivres"
+                  ]
+                ],
+                null
+              ],
+              [
+                [
+                  "tuple",
+                  [
+                    "promis_ou",
+                    "vivres"
+                  ]
+                ],
+                "cellier"
+              ]
+            ]
+          ],
+          15
+        ]
+      ]
+    ]
+  },
+  "auberge-1985-480.json.gz/eclaire": {
+    "empreinte": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "etats": 0,
+    "successeurs": 0,
+    "noeuds": 1,
+    "resultat": [
+      "tuple",
+      [
+        0,
+        [
+          "list",
+          []
+        ],
+        [
+          "etat",
+          "etable",
+          [],
+          [
+            "dict",
+            []
+          ],
+          15
+        ]
+      ]
+    ]
+  },
+  "auberge-1985-600.json.gz/a_mange": {
+    "empreinte": "629be69fd21ca4bd58f6a5f4be6a03705f2f0dc7120743ca92fb466af8d52fdb",
+    "etats": 1486,
+    "successeurs": 11205,
+    "noeuds": 2065,
+    "resultat": null
+  },
+  "auberge-1985-600.json.gz/eclaire": {
+    "empreinte": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "etats": 0,
+    "successeurs": 0,
+    "noeuds": 1,
+    "resultat": [
+      "tuple",
+      [
+        0,
+        [
+          "list",
+          []
+        ],
+        [
+          "etat",
+          "cuisine",
+          [],
+          [
+            "dict",
+            []
+          ],
+          15
+        ]
+      ]
+    ]
+  }
+}
