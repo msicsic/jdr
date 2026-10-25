@@ -1,0 +1,26 @@
+{
+  "reference": "fbcf0ffa255c18b4b7f1c6581e8fab572f462905",
+  "fenetre_minutes": [480, 485],
+  "mine": {
+    "visites": "a3f1e638cac18cb1258b3c760a1bf08bc851f7c660525a3bf52be90ca758a85f",
+    "n_visites": 7212,
+    "plans": "1688c578c0314e6b80c6f0e0127ce6bf278b59044b5932c1b53c193eaddb8ec6",
+    "n_plans": 49,
+    "diagnostics": "3ed888b366e3ecd8459d52e95ae841828e262a158f3a1b475461825f0a0beb73",
+    "monde": "fe7a45ce9dd07888eb852d877b9b814b25c5c2f4372213366f3cc5f926142ed4",
+    "lignes": "07f47639ac75f88daf541f05c742b6635c472e243ded5cb7ded088d6bfd67de2",
+    "regarder": "7e564c83fc86182aca892bd2f78e9d7325ffd1392265cc06c3e4f1743adfc7f5",
+    "scene": "a1cd46181a2607685784abe6449b2b2d7a639be411469d4a445e29e900d76480"
+  },
+  "auberge": {
+    "visites": "7baffe415aa3c9af2cf6bc2131389d9809af4e07fbe97db6448a5f7dc08495b0",
+    "n_visites": 8212,
+    "plans": "4acc37e436722bf4bae5ea783f1214f0c884c0f600f5b00e786c19bdf8ff2680",
+    "n_plans": 25,
+    "diagnostics": "025300a705d15a2c8b60e884ee30cfd51b87663fd3260be64b058712a7c2ac15",
+    "monde": "d3b946e416edc9dd43634b3f2c6f037d92aa4ec30f4c0e113caf0441752345b5",
+    "lignes": "35821cd9d1f91f41c9254b1dbdc9364a9b604fb46e7891c99babaeaeb3c0ab7f",
+    "regarder": "1cc640e51eb8b0f11eb557bfad42275be56469777644fbbb85fe5b32f59fc7fc",
+    "scene": "4d7cbc5ac1fa08aaf84ab450003bf044976a2cab6f919600ebd73ffbaf075a69"
+  }
+}

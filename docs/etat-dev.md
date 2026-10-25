@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-etapes-chainees`, fusionnée, lot **72**, base **fbcf0ff**,
+  brief **f5fec82** : `_explorer_etats` chaîne les ajouts sans copier les préfixes.
+  Le seul chemin retenu est reconstruit et gelé ; `_MEMOIRE` le garde directement,
+  `chercher` rend une liste publique indépendante jusque dans ses contenus imbriqués.
+  Coûts, rangs, états et décisions inchangés ; `_couper` garde ses frontières.
+  Captures mine/auberge : mêmes plans, retraits du tas, diagnostics, monde complet
+  et rendu après recharge. 28 tests existants ciblés et trois nouveaux verts.
+  Empreintes 2 h × quatre scénarios × quatre graines contre la base : identiques.
+  `VERIFIER` + `spatial.VERIFICATION=1`, mine 42, 2 h : aucun écart ni borne.
+  Profil 480–505 : signes sous 1 % du temps cumulé de `percevoir_tous`, laissés
+  inchangés ; les allocations de chemin supprimées pèsent peu dans ce coût.
+  Banc simultané 12 h, mine/auberge 1985, tiré/fixe, un calcul par version :
+  états, récits, chaque plan et nœuds identiques à la base (4,06 millions de nœuds).
+  CPU total 1 604,58 → 1 595,12 s (−0,59 %, une passe), pics mémoire voisins ;
+  `42bb9c0` 699,72 s. La cible générale ×1,3 reste non atteinte (×2,28 agrégé,
+  décisions différentes sur l'ancien main). Suite complète unique : **1 861 tests,
+  16 ignorés, aucun échec ni erreur**, 186 fichiers, 1 144,39 s,
+  trois processus à priorité réduite.
+  Aucun appel à Luna ni changement de `main` ;
+  [rapport du lot 72](taches/rapport-codex-72-etapes-chainees.md).
+  Fusionné sur l'intégration après les lots 69 et 70 ; `planification.py` fusionné sans conflit avec les lots 71/72 voisins ; suite complète relancée.
+
 - Branche `codex-cout-fixe`, fusionnée, lot **71**, base **fbcf0ff**,
   brief **5ea04cf** : préparation paresseuse de `Vue` et relevé commun des entrées
   partagés dans la seule sélection en lecture seule de `choisir`. Chaque recherche
