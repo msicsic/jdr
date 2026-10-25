@@ -4,6 +4,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-latence-appels`, fusionnée, lot **93**, base `258daab`
+  (code d'intégration `119169c`, lot 91), code `4883425` avec Signed-off-by :
+  mesure par appel du premier delta et des jetons, chemin critique dans le fil,
+  médiane et ventilation par fonction dans `banc_multi` ; fournisseur OpenAI :
+  sous-schémas identiques mutualisés par `$defs`/`$ref`, expansion identique,
+  aucun champ, instruction, effort ou contrôle supprimé. Schémas MJ **−30,3 %**,
+  narratifs **−41,4 %** ; entrées Luna **3 005 420 → 2 804 658 jetons (−6,68 %)**.
+  Deux passes des six scripts, **78 tours par variante** : **246 → 249 appels**,
+  **13,794 → 13,249 s/tour (−3,95 %)**, médiane globale **13,045 → 11,915 s**.
+  Relances moyennes **4,5 → 4**, refus **10 → 11**, replis **0,5 → 0** ;
+  aucune erreur technique, interruption ou défaut de recharge sur 24 parties.
+  Douze références jouées une fois ici, rangées et relues du cache, SHA-256 vérifiés.
+  Deux exécutions par variante, quatre pendant le chevauchement, priorité réduite ;
+  poste partagé, gain non uniforme et causalité précise non démontrée.
+  Tests ciblés : équivalence des schémas et console réelle simulée, absence d'Ilse
+  et orientation de Gorm, mêmes refus/relances, état et rendu après recharge.
+  Suite complète unique verte : **1 947 tests, 16 ignorés**, 202 fichiers,
+  **1 349,91 s**, trois processus à priorité réduite.
+  **Validation incomplète** : six des neuf audits narratifs refusés restent
+  refusés au rejeu exact, dont écoute non exécutée, comptoir inventé et comptes
+  inversés ; trois faux refus ou défauts d'extraction disparaissent. L'unique refus
+  juste de contre-revue (écoute à la porte, cible vide) est accepté au rejeu,
+  malgré un schéma strictement inchangé et non mutualisé. Instabilité sémantique
+  non corrigée : critère « aucun refus juste perdu » non satisfait, fusion non validée.
+  Deux achats exécutés, or 23 dans le dossier après paiement et `planches_1`
+  portée après recharge ; récit « pièces rendues » encore ambigu à une passe,
+  comme dans la référence. Aucun changement du planificateur, du modèle ou de `main`.
+  [Rapport du lot 93](taches/rapport-codex-93-latence-par-appel.md).
+  Fusionné sur l'intégration après les lots 90 et 88 : seul conflit de documentation ; aucun fichier de code commun. Réserve du rapport jugée non bloquante : le refus juste de contre-revue qui disparaît au rejeu porte sur un appel dont l'entrée, les instructions et le schéma sont inchangés par le lot (variance de Luna, pas un effet de la mutualisation) ; les trois refus d'audit disparus étaient faux. Mesure par fonction : l'audit narratif (41 % de l'attente) et l'interprétation (37 %) sont les leviers suivants.
+
 - Branche `codex-recours-prioritaire`, fusionnée, lot **90**, base
   `9810f4a` (lot 87 inclus), code signé SSH `e5c71f9`, `0144f92`, `8a6c1b6` :
   le séjour terminal tarifé par `eclairer(tenir=True)` est exporté comme geste

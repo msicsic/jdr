@@ -8,6 +8,7 @@ from ..connexion import jeton, modeles
 from ..monde import ErreurMonde
 from ..transport_openai import WebSocketResponses, ErreurTransport
 from .contrat import Fournisseur, Reponse
+from .schema import mutualiser
 
 
 class OpenAI(Fournisseur):
@@ -40,7 +41,7 @@ class OpenAI(Fournisseur):
             "input": [{"role": "user", "content": json.dumps(entree, ensure_ascii=False)}],
             "tools": [{"type": "function", "name": fonction,
                        "description": "Répond au joueur ou soumet une manœuvre au moteur, sans modifier le monde.",
-                       "parameters": schema, "strict": True}],
+                       "parameters": mutualiser(schema), "strict": True}],
             "tool_choice": {"type": "function", "name": fonction},
             "parallel_tool_calls": False,
             "reasoning": {"effort": demande.effort},

@@ -44,6 +44,7 @@ def mesurer(fichiers):
     """Indicateurs d'une passe, sur l'ensemble de ses parties (fichiers JSON du banc)."""
     m = dict(tours_mj=0, appels=0, secondes=0.0, replis=0, tours_refus=0, obstacles=0, relances=0, refus=0,
              dollars=0.0, appels_traces=0, avec_reflexion=0)
+    durees_tours, fonctions = [], {}
     for f in fichiers:
         for t in json.loads(Path(f).read_text(encoding="utf-8"))["tours"]:
             if t["saisie"] == "quitter":
@@ -51,6 +52,7 @@ def mesurer(fichiers):
             if t["appels"]:
                 m["tours_mj"] += 1
                 m["secondes"] += t["secondes"]
+                durees_tours.append(t["secondes"])
             m["appels"] += t["appels"]
             m["replis"] += bool(t["replis"])
             m["tours_refus"] += bool(t["refus"])
@@ -65,7 +67,29 @@ def mesurer(fichiers):
                 if e.get("etape") != "appel":
                     continue
                 m["appels_traces"] += 1
+                fonction = e.get("fonction", "inconnue")
+                if fonction == "auditer_action":
+                    fonction = ("fidelite" if "contenu_conforme" in (e.get("schema") or {}).get("properties", {})
+                                else "contre_revue")
+                if fonction == "repondre_au_joueur":
+                    entree = e.get("entree") or {}
+                    if "controle_narratif" in entree:
+                        fonction = "revision"
+                    else:
+                        # L'interprétation expose plusieurs modes ; un récit n'en admet qu'un.
+                        modes = ((e.get("schema") or {}).get("properties", {}).get("mode", {}).get("enum", []))
+                        fonction = "interpretation" if len(modes) > 1 else "recit"
+                mesure = fonctions.setdefault(fonction, {"appels": 0, "secondes": 0.,
+                    "premiers_jetons": [], "entree": 0, "cache": 0, "sortie": 0, "reflexion": 0})
+                mesure["appels"] += 1
+                mesure["secondes"] += e.get("secondes", 0.)
+                if e.get("premier_jeton") is not None:
+                    mesure["premiers_jetons"].append(e["premier_jeton"])
                 brut, u = e.get("brut") or {}, e.get("usage") or {}
+                mesure["entree"] += u.get("input_tokens", 0)
+                mesure["cache"] += (u.get("input_tokens_details") or {}).get("cached_tokens", 0)
+                mesure["sortie"] += u.get("output_tokens", 0)
+                mesure["reflexion"] += (u.get("output_tokens_details") or {}).get("reasoning_tokens", 0)
                 blocs = [b.get("type") for b in (brut.get("contenu", []) if isinstance(brut, dict) else brut)
                          if isinstance(b, dict)]
                 if {"thinking", "reasoning"} & set(blocs) or (u.get("output_tokens_details") or {}).get("reasoning_tokens"):
@@ -76,6 +100,8 @@ def mesurer(fichiers):
                                      + u.get("cache_read_input_tokens", 0) * PRIX_HAIKU["lecture"]) / 1e6
     tours = m["tours_mj"] or 1
     return {"appels_par_tour": m["appels"] / tours, "secondes_par_tour": m["secondes"] / tours,
+            "mediane_secondes_par_tour": statistics.median(durees_tours) if durees_tours else 0.,
+            "fonctions": fonctions,
             "replis": m["replis"], "tours_refus": m["tours_refus"], "obstacles": m["obstacles"],
             "relances": m["relances"], "refus": m["refus"],
             "cout": m["dollars"], "reflexion": m["avec_reflexion"] / (m["appels_traces"] or 1),
@@ -84,6 +110,7 @@ def mesurer(fichiers):
 
 INDICATEURS = [("appels_par_tour", "Appels par tour MJ", "{:.2f}"),
                ("secondes_par_tour", "Secondes par tour MJ", "{:.1f}"),
+               ("mediane_secondes_par_tour", "Médiane des secondes par tour MJ", "{:.1f}"),
                ("replis", "Tours en repli", "{:.1f}"),
                ("tours_refus", "Tours avec refus", "{:.1f}"),
                ("obstacles", "Obstacles narratifs", "{:.1f}"),
@@ -108,6 +135,19 @@ def resumer(passes):
                        if len(valeurs) > 1 else "")
             cellules.append(forme.format(moyenne) + etendue)
         lignes.append(f"| {libelle} | " + " | ".join(cellules) + " |")
+    lignes += ["", "| Variante / fonction | Appels | s/tour | Part de l'attente modèle | Premier delta moyen (s) | Jetons entrée / cache / sortie / réflexion |",
+               "|---|---:|---:|---:|---:|---|"]
+    for nom in noms:
+        mesures = [m for v, m in passes if v == nom]
+        tours = sum(m["tours_mj"] for m in mesures) or 1
+        total = sum(f["secondes"] for m in mesures for f in m.get("fonctions", {}).values()) or 1
+        for fonction in sorted({f for m in mesures for f in m.get("fonctions", {})}):
+            fs = [m["fonctions"][fonction] for m in mesures if fonction in m.get("fonctions", {})]
+            secondes = sum(f["secondes"] for f in fs)
+            premiers = [p for f in fs for p in f["premiers_jetons"]]
+            jetons = " / ".join(str(sum(f[k] for f in fs)) for k in ("entree", "cache", "sortie", "reflexion"))
+            premier = f"{statistics.mean(premiers):.2f}" if premiers else "non mesuré"
+            lignes.append(f"| {nom} / {fonction} | {sum(f['appels'] for f in fs)} | {secondes/tours:.2f} | {secondes/total:.1%} | {premier} | {jetons} |")
     return "\n".join(lignes)
 
 

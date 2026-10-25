@@ -5,6 +5,14 @@ construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENT
 
 ## Trois niveaux de vérité
 
+**Schéma envoyé à OpenAI** (lot 93, `codex-latence-appels`). Le fournisseur
+mutualise les sous-schémas strictement identiques dans `$defs`, référencés par
+`$ref`, seulement si la requête devient plus courte. Leur expansion restitue
+le schéma du MJ : mêmes champs obligatoires, types, énumérations et bornes.
+Les schémas ayant déjà des références ou une identité sont conservés. Cette
+représentation ne change ni les propositions permises ni les contrôles avant
+affichage ; les instructions, faits, efforts et réponses attendues restent les mêmes.
+
 | Niveau | Contenu | Autorité | Contrôle avant affichage |
 |---|---|---|---|
 | Mécanique | entités identifiées, positions, sorties et passages, portes et attaches, possession, ressources, lumière, présence des PNJ, missions, résultats d'action, indices | moteur | doit découler des faits fournis ; une invention est refusée et passe par un fait typé |

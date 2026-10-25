@@ -51,23 +51,51 @@ class Compteur:
 
     def installer(self):
         compteur, origine_brut, origine_init = self, MJOpenAI._appeler_brut, MJOpenAI.__init__
+        # Instrumentation du lanceur : identique aussi pour un ancien SEUIL_CODE.
+        from donjon import transport_openai
+        lire = transport_openai.lire_evenements
+        compteur.mesure = None
+
+        def lire_mesure(evenements):
+            def suivre():
+                for evenement in evenements:
+                    if (compteur.mesure is not None and evenement.get("delta")
+                            and evenement.get("type", "").endswith(".delta")):
+                        compteur.mesure.setdefault("premier_jeton", round(
+                            time.monotonic() - compteur.mesure["_debut"], 4))
+                    yield evenement
+            return lire(suivre())
+
+        transport_openai.lire_evenements = lire_mesure
+
+        def observer(trace):
+            if trace.get("etape") == "appel" and compteur.mesure is not None:
+                trace.update({k: v for k, v in compteur.mesure.items() if not k.startswith("_")})
+            compteur.traces.append(trace)
 
         def appeler_brut(mj, instructions, entree, intention, fonction, schema):
             if compteur.total >= compteur.maximum:
                 raise BudgetEpuise(f"Budget du banc atteint ({compteur.maximum} appels).")
             compteur.total += 1
             debut = time.monotonic()
+            compteur.mesure = {"_debut": debut, "debut": debut,
+                               "premier_jeton": None}
+            # setdefault doit pouvoir enregistrer le premier delta.
+            del compteur.mesure["premier_jeton"]
             try:
                 return origine_brut(mj, instructions, entree, intention, fonction, schema)
             finally:
                 usage = mj.derniere_utilisation or {}
-                compteur.appels.append({"fonction": fonction,
+                compteur.appels.append({**{k: v for k, v in compteur.mesure.items() if not k.startswith("_")},
+                                        "fin": time.monotonic(), "fonction": fonction,
                                         "secondes": round(time.monotonic() - debut, 2),
+                                        "usage": usage,
                                         "tokens": usage.get("total_tokens", 0)})
+                compteur.mesure = None
 
         def init(mj, *a, **k):
             origine_init(mj, *a, **k)
-            mj.observateur = compteur.traces.append
+            mj.observateur = observer
             mj.journal_complet, mj.reflexion = compteur.fil, compteur.reflexion
 
         MJOpenAI._appeler_brut, MJOpenAI.__init__ = appeler_brut, init
@@ -115,6 +143,7 @@ class Interface:
             fondement = lexique.corpus(avant.contexte(), apres.contexte(), self.affiches)
             mentions = lexique.mentions_sans_fondement(apres, texte, fondement)
         tour.update(texte=texte, appels=len(appels),
+                    chemin_critique=appels,
                     fonctions=[a["fonction"] for a in appels],
                     secondes=round(sum(a["secondes"] for a in appels), 2),
                     tokens=sum(a["tokens"] for a in appels),
