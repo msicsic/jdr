@@ -352,6 +352,68 @@ def accueil(monde, demandeur, auditeur):
     return "qui_va_la" if qui_va_la(monde, auditeur, demandeur) else None
 
 
+def contre_offre(monde, demandeur, auditeur, objet, raison):
+    """Une condition qu'il sait honorer, jamais une nouvelle chance de persuasion.
+
+    Les gardes et pulsions durables restent des empêchements. Un besoin corporel
+    n'est exprimable que par un service du contrat commun ; le repas servi est
+    aujourd'hui le seul de ces services qui apaise directement le corps.
+    """
+    from .biens import prix, reticence
+    from .deliberation import _connus, SATIETE, urgents
+    from .propositions import offre
+    from .vol import proprietaire
+    if raison not in ("refus", "necessaire") or accueil(monde, demandeur, auditeur):
+        return None
+    part = demande_de_part(monde, demandeur, auditeur, objet)
+    demande = {"type": "part" if part else "objet", "objet": objet}
+    if raison == "refus":
+        if proprietaire(monde, monde.objets[objet]) != auditeur:
+            return None  # Il ne vend pas le bien d'un tiers.
+        montant = prix(monde, objet, part) or PRIX_SANS_PRIX
+        # Recherche monotone du seuil propre : aucune lecture de la bourse adverse.
+        bas, haut = 1, montant
+        while bas < haut:
+            milieu = (bas + haut) // 2
+            if reticence(monde, auditeur, montant, milieu) <= 0:
+                haut = milieu
+            else:
+                bas = milieu + 1
+        condition = {"type": "pieces", "montant": bas}
+    else:
+        intention = lire(monde, auditeur)["intention"]
+        if not intention or intention["motif"] not in urgents(monde, auditeur):
+            return None
+        besoin = intention["motif"]
+        if besoin != "faim":
+            return None  # Pas de condition corporelle correspondante dans les termes communs.
+        copie = monde.copier()
+        e = esprit(copie, auditeur)
+        e["besoins"][besoin] = max(0, e["besoins"][besoin] - SATIETE)
+        e["intention"] = None
+        if besoin in urgents(copie, auditeur) or necessaire(copie, auditeur, objet) or garde(copie, auditeur, copie.objets[objet]):
+            return None
+        nourritures = [o for o in sorted(_connus(monde, auditeur))
+                       if monde.objets[o]["type"] == "nourriture" and o != objet]
+        if not nourritures:
+            return None
+        condition = {"type": "tache", "condition": {"objet": nourritures[0], "servir": auditeur}}
+    return offre(auditeur, demandeur, condition, demande)
+
+
+def offre_retenue(monde, demandeur, auditeur, objet):
+    return next((s for s in reversed(lire(monde, demandeur)["refus"])
+                 if s["de"] == auditeur and s.get("objet") == objet and "contre_offre" in s), None)
+
+
+def condition_remplie(monde, demandeur, refus, prix=0):
+    """Une prestation accomplie depuis l'offre, pas une promesse ni une faim devinée."""
+    terme = refus["contre_offre"]["condition"]
+    if terme["type"] == "pieces":
+        return prix >= terme["montant"]
+    return refus.get("condition_tenue", False)
+
+
 def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_part=False):
     """« absent », « mefiance », « qui_va_la », « necessaire », « impossible », « pauvre »,
     « refus », « remis », « rendu », « promis » ou « vendu ».
@@ -365,11 +427,18 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     from .planification import devis_pulsion
     from .spatial import porte_par
     from .vol import proprietaire
+    retenue = offre_retenue(monde, demandeur, auditeur, objet) if demandeur != "joueur" else None
+    accord = bool(retenue and condition_remplie(monde, demandeur, retenue, prix))
+    if accord and retenue["contre_offre"]["condition"]["type"] == "tache":
+        # Le plan qui motivait la réserve est désormais caduc, après prestation réelle.
+        intention = lire(monde, auditeur)["intention"]
+        if intention and intention["motif"] == "faim":
+            esprit(monde, auditeur)["intention"] = None
     part = demande_de_part(monde, demandeur, auditeur, objet)
     if objet not in monde.objets or not (part or porte_par(monde, objet, auditeur)
                                          or differee(monde, auditeur, objet, prix)):
         return "absent"
-    arret = accueil(monde, demandeur, auditeur)
+    arret = None if accord else accueil(monde, demandeur, auditeur)
     if arret == "qui_va_la":
         return arret
     o = monde.objets[objet]
@@ -391,7 +460,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     # comme lorsqu'on lui demande quelles ressources il possède.
     siens_a_portee(monde, auditeur)
     prix_ = prix_de(monde, objet, part)
-    vente = bool(prix_) and prix >= prix_ and proprietaire(monde, o) == auditeur
+    vente = (bool(prix_) and prix >= prix_ or accord and prix > 0) and proprietaire(monde, o) == auditeur
     # Ce qu'il perd à donner sans être payé : ce qui se consomme. Un objet qui dure, il le prête, et
     # le récupérera.
     perdu = part or besoin_de_part(o) is not None
@@ -408,7 +477,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
             # La part est remise pour les gestes du demandeur, quelle que soit la substance.
             # Sans source compatible, on ne promet jamais d'entretenir un feu avec ce qui n'y brûle pas.
             return _remettre_part(monde, auditeur, demandeur, objet, prix if vente else 0,
-                                  None if vente else dd)
+                                  None if vente or accord else dd)
         else:
             condition = {"objet": source, "allume": True}
         engagements = agendas.en_cours(monde, auditeur)
@@ -421,7 +490,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
             if devis_pulsion(monde, auditeur, condition, demandeur) is None:
                 agendas.retirer_proposition(monde, auditeur, engagement)
                 return "impossible"
-            if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
+            if not vente and not accord and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
                 agendas.retirer_proposition(monde, auditeur, engagement)
                 return "refus"
             # Payée d'avance, la part est due : non servie à l'échéance, le prix est rendu ou dû
@@ -455,7 +524,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     # Prêter ce qui se consomme, c'est en donner les parts : il n'en prête pas ce qu'il garde.
     if necessaire(monde, auditeur, objet) or garde(monde, auditeur, o):
         return "necessaire"
-    if not vente and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
+    if not vente and not accord and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
         return "refus"
     if vente:
         from .biens import donner
@@ -830,6 +899,11 @@ def servir(monde, id, nourriture, pour, lignes):
     if "faim" in besoins:
         besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
+    for refus in lire(monde, id)["refus"]:
+        offre = refus.get("contre_offre")
+        if offre and offre["debiteur"] == pour and offre["condition"] == {
+                "type": "tache", "condition": {"objet": nourriture, "servir": pour}}:
+            refus["condition_tenue"] = True
     constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
     tenus = [x for x in agendas.en_cours(monde, id) if x["condition"] == {"objet": nourriture, "servir": pour}]
@@ -944,6 +1018,10 @@ def _avec_joueur(monde, id, etape, lignes):
 def phrase_condition(monde, condition):
     from .francais import designer, lieu
     o = designer(monde.objets[condition["objet"]])
+    if "servir" in condition:
+        from .social import _qui
+        from .francais import complement_de
+        return f"une part {complement_de(monde.objets[condition['objet']])} soit servie à {_qui(monde, condition['servir'])}"
     if "remettre" in condition:
         from .social import _qui
         return f"{o} soit remis à {_qui(monde, condition['remettre'])}"
@@ -1145,7 +1223,21 @@ def executer(monde, id, etape, lignes):
         issue, recit = ("rendu", f"{a} rend {designer(objet)} à {b}") if rendu else (
             "remis", f"{a} remet {designer(objet)} à {b}")
         clair, cites, reussi = recit + ".", [objet["id"]], True
-    _chroniquer(monde, id, f"{recit} ({issue}).", "social")
+    offre = None
+    retenue = offre_retenue(monde, id, autre, objet["id"]) if op in ("demander", "acheter") and objet else None
+    honoree = bool(reussi and retenue and condition_remplie(monde, id, retenue, contenu.get("prix", 0)))
+    if op in ("demander", "acheter") and objet and not reussi and "ressource" not in contenu:
+        from .deliberation import retenir_refus
+        from .propositions import offre_en_mots, cites_terme
+        offre = contre_offre(monde, id, autre, objet["id"], issue)
+        if offre:
+            # La condition existe avant que sa réponse soit entendue ou affichée.
+            retenir_refus(monde, id, autre, op, issue, objet=objet["id"],
+                          prix=contenu.get("prix"), contre_offre=offre)
+            reponse += " " + offre_en_mots(monde, offre)
+            cites += cites_terme(offre["condition"])
+    detail = " ; contre-offre annoncée" if offre else " ; condition remplie" if honoree else ""
+    _chroniquer(monde, id, f"{recit}{detail} ({issue}).", "social")
     nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]
     if issue == "qui_va_la":
         # Il ne sait à qui est cette voix : « Qui va là ? » ; l'autre se nomme (``voix.se_nommer``),
@@ -1165,7 +1257,7 @@ def executer(monde, id, etape, lignes):
         if reussi:
             for x in (("demander", "acheter") if op in ("demander", "acheter") else (op,)):
                 oublier_refus(monde, id, autre, x, vise)
-        else:
+        elif not offre:
             condition = contenu["condition"] if op == "engager" else contenu if op == "confier" else None
             retenir_refus(monde, id, autre, op, issue, objet=vise,
                           prix=contenu["prix"] if op in ("engager", "acheter") else None,

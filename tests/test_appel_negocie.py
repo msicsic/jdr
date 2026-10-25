@@ -165,7 +165,7 @@ class QuoiTests(unittest.TestCase):
         suite = ["Gaspard répond : « Qu'est-ce que tu veux ? »", "Josse répond : « J'ai quelque chose à te demander. »",
                  "Gaspard répond : « Ici, viens ! »", "Josse répond : « J'arrive ! »"]
         self.assertEqual([t for t in textes if t in suite], suite)
-        demande = "Josse demande une part des bûches de Gaspard à Gaspard ("
+        demande = "Josse demande une part des bûches de Gaspard à Gaspard "
         m = suivre(m, 4, lambda m: any(t.startswith(demande) for t in chronique(m)))
         self.assertIn("Gaspard retrouve Josse, comme convenu.", chronique(m))
         # La demande est faite après les retrouvailles ; son issue dépend du jet de partage

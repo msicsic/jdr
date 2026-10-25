@@ -7,13 +7,15 @@ def _forme(proprietes):
             "properties": proprietes, "required": list(proprietes)}
 
 
-def schema_terme(contrepartie=False):
+def schema_terme(contrepartie=False, service=False):
     formes = [_forme({"type": {"type": "string", "enum": [t]}, "objet": {"type": "string"}})
               for t in ("objet", "part")]
     conditions = [_forme({"objet": {"type": "string"}, cle: valeur}) for cle, valeur in (
         ("allume", {"type": "boolean", "enum": [True]}),
         ("verrouillee", {"type": "boolean", "enum": [True]}),
         ("lieu", {"type": "string"}))]
+    if service:
+        conditions.append(_forme({"objet": {"type": "string"}, "servir": {"type": "string"}}))
     formes.append(_forme({"type": {"type": "string", "enum": ["tache"]},
                           "condition": {"anyOf": conditions}}))
     if contrepartie:
@@ -29,7 +31,7 @@ SCHEMA = _forme({"type": {"type": "string", "enum": ["proposition"]},
 
 SCHEMA_OFFRE = _forme({"etat": {"type": "string", "enum": ["offre"]},
     "debiteur": {"type": "string"}, "creancier": {"type": "string"},
-    "condition": schema_terme(True), "contrepartie": schema_terme(True)})
+    "condition": schema_terme(True, service=True), "contrepartie": schema_terme(True)})
 
 
 def offre(debiteur, creancier, condition, contrepartie):

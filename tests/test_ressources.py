@@ -83,9 +83,8 @@ class AubergeTests(unittest.TestCase):
         # Relations graduées et parts des lampes réunies : Odile refuse de donner une part de sa
         # réserve à Anselme, puis la lui vend ; portée, la réserve ne passe pas entière, il reçoit
         # une charge qu'il consomme et Odile garde le lot. Les trois foyers restent entretenus.
-        self.assertIn("Anselme demande une part des bûches de réserve à Odile (refus).", textes)
-        self.assertTrue(any("Anselme propose à Odile " in t and
-                            "contre une part des bûches de réserve (accepte)." in t for t in textes))
+        self.assertIn("Anselme demande une part des bûches de réserve à Odile ; contre-offre annoncée (refus).", textes)
+        self.assertIn("Anselme achète une part des bûches de réserve à Odile pour 1 pièce ; condition remplie (vendu).", textes)
         self.assertTrue(all(allumee(m.objets[f]) for f in ("atre", "fourneau", "poele")))
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")
         recus = [s["objet"] for s in lire(m, "anselme")["memoire"]
@@ -97,9 +96,10 @@ class AubergeTests(unittest.TestCase):
         m, suite = par_blocs(m, 420, 60)
         # La reprise conserve refus, ventes, dons, charges et feux ; la réserve reste finie,
         # consommée à chaque recharge, sans bois créé par les parts détachées.
-        # Un refus de marché ne s'efface plus au délai : la nouvelle part est
-        # achetée. Le contrôle porte toujours sur la livraison et le bois fini.
-        self.assertIn("Anselme achète une part des bûches de réserve à Odile pour 1 pièce (promis).", suite)
+        # Les parts suivantes restent achetées ; le contrôle porte sur la
+        # livraison et le bois fini, quelle que soit sa disponibilité immédiate.
+        self.assertTrue(any(t.startswith("Anselme achète une part des bûches de réserve à Odile pour 1 pièce")
+                            and t.endswith(("(promis).", "(vendu).")) for t in suite))
         self.assertGreaterEqual(reserve_bois(m), 0)
         self.assertLess(reserve_bois(m), restante)
         self.assertEqual(m.objets["bois_reserve"]["proprietaire"], "odile")

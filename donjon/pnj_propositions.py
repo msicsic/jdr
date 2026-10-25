@@ -93,6 +93,44 @@ def refus_tient(monde, id, refus, terme):
             and all(f in avant["cause"] for f in apres["cause"]))
 
 
+def plan_recours(monde, id, besoin, etapes):
+    """La condition entendue est un moyen, après les moyens ordinaires seulement.
+
+    Aucune comparaison de marchés dans la recherche : le service utilise son
+    planificateur existant, puis le demandeur revient réclamer la contrepartie.
+    """
+    from .biens import richesse
+    from .echanges import condition_remplie
+    from .planification import planifier_pulsion, rejoindre
+    e = lire(monde, id)
+    refusee = e["demande_refusee"]
+    if refusee and refusee["besoin"] == besoin:
+        for s in reversed(e["refus"]):
+            if s["de"] != refusee["de"] or s.get("objet") != refusee["objet"] or "contre_offre" not in s:
+                continue
+            if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
+                return None  # Les moyens ordinaires sans faute gardent la priorité.
+            offre = s["contre_offre"]
+            terme = offre["condition"]
+            autre, objet = s["de"], s["objet"]
+            prix = terme.get("montant", 0)
+            demande = {"operation": "acheter" if prix else "demander", "cible": autre,
+                       "outil": objet, "lieu": "", "condition": "",
+                       "contenu": {"prix": prix} if prix else {}}
+            if prix or condition_remplie(monde, id, s):
+                if prix > richesse(monde, id):
+                    return None
+                route = rejoindre(monde, id, autre)
+                return [*route[0], demande] if route and route[1] else None
+            trouve = planifier_pulsion(monde, id, terme["condition"])
+            if not trouve or any(g["condition"] == "sans_temoin" for g in trouve[1]):
+                return None
+            # Le refus reste le but à poursuivre après le service, même rechargé.
+            return trouve[1]
+    geste = recours(monde, id, besoin, etapes)
+    return [geste] if geste else None
+
+
 def recours(monde, id, besoin, etapes):
     """Une seule offre avant la faute retenue, ou après la demande refusée."""
     from .biens import proprietaire

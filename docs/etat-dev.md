@@ -4,6 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-contre-offre`, **non fusionnée**, lot **77**, base d'intégration
+  **38e5d7e**, brief **c1cb020** : un refus PNJ peut annoncer le prix propre où sa
+  réticence cesse, ou le repas servi qui libérerait réellement le bien nécessaire
+  à son plan. Offre commune et preuve du service conservées avec le refus avant
+  affichage ; ni méfiance, ni garde durable ne donnent de condition inventée.
+  Recours « faute de mieux », hors recherche : payer ou planifier le service puis
+  redemander, sans second jet ; moyens ordinaires sans faute prioritaires,
+  condition impossible retenue sans offre au hasard. `planification.py` inchangé.
+  Sept tests nouveaux, état/rendu après recharge, autre bien et même laps découpé
+  pour paiement et service ; cinq fichiers d'anciennes scènes adaptés à la condition dite.
+  Banc **4 h × quatre scénarios × quatre graines**, trois processus à priorité
+  réduite : **17 contre-offres, 12 conditions remplies**, demandes accordées
+  **21 → 32**, vols tentés **12 → 11** (mine **1 → 2**), aucun plantage,
+  violation ou usurpation. Aucun nouveau code d'audit ; quelques avertissements
+  redits et un appel à l'aide supplémentaires, pas de cycle de contre-offre.
+  Réserve : auberge 2024 **26,89 → 100,95 s CPU**, noir **160 → 170 min·PNJ** ;
+  moyenne auberge **24,05 → 41,48 s**. Suite complète unique : **1 891 tests,
+  16 ignorés, 1 479,1 s**, trois processus à priorité réduite. Sept échecs et une
+  erreur d'anciennes attentes dans cinq fichiers ; ces cinq fichiers repris verts
+  (**72 tests**, dernier fichier **25/25** après correction d'attente de prix),
+  bilan consolidé vert, sans seconde suite complète. Vérification au-delà du
+  créneau initial ; aucun code moteur changé pendant les reprises.
+  Limites : satisfaction corporelle exprimable aujourd'hui par le repas servi
+  seulement ; contrôles matériels de remise maintenus ; contenu joueur à venir.
+  Aucun appel à Luna, ni modification de `main`.
+  [Rapport du lot 77](taches/rapport-codex-77-contre-offre.md).
+
 - Branche `codex-gardes-justes`, fusionnée, lot **74**, brief
   **0a1eda2**, intégration **fe85a44** reprise au départ ; correctifs signés
   **2549160**, **c65d421**. À la demande de l'utilisateur, lot 73 **29c9ae4** intégré

@@ -879,6 +879,19 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
   besoin du moment (« apporte-moi de quoi manger et je te prête ma clé »). La condition est retenue avec le refus
   (`esprit["refus"]`) ; le planificateur du demandeur, ou le joueur, y voit un sous-but. Des chaînes de troc à
   trois peuvent en naître sans règle propre. Suite d'A2b « faute de mieux », côté de celui qui refuse.
+  **Réalisé côté PNJ, lot 77, `codex-contre-offre`, non fusionnée** : le refus conserve une
+  `offre` du contrat commun, annoncée avant affichage ; le prix est le premier montant positif
+  où la réticence propre cesse, sans lire la fortune du demandeur. Un besoin de repas peut
+  donner un service `servir` si un repas suffit réellement à libérer le bien, vérifié sur copie.
+  Ni méfiance, ni garde ou pulsion durable ne produisent de condition inventée. Le recours,
+  hors de la recherche ordinaire, rejoint pour payer ou planifie le service existant puis
+  redemande ; la prestation accomplie est retenue avec le refus, sans dépendre de la mémoire
+  courte. Pas de second jet. Une condition sans moyen reste retenue, sans proposition au
+  hasard à sa place. Les moyens ordinaires sans faute gardent la priorité. Aucun changement
+  de `planification.py` ni de ses entrées : `tient` conserve la condition, son exécution est
+  décidée hors recherche. Limites : les besoins sans service exprimable ne reçoivent pas de
+  contre-offre ; les empêchements matériels restent revalidés ; contenu typé du joueur à venir.
+  [Rapport du lot 77](taches/rapport-codex-77-contre-offre.md).
 - **Mesures** : `propositions`, `acceptees`, `contreparties_tenues`, `trahisons`,
   `intermediaires`, `services_rendus` ; vols et minutes sans recours.
 - **Épreuve** : la crue (Brune affamée, dont Gorm se méfie, et les vivres sous clé), la mine (Odon
