@@ -50,7 +50,9 @@ Les clés valables sont données dans `sources_autorisees`, en tête de l'entré
 variable de la réponse et de l'audit. Dans un rapport narratif, une source non
 résolue est écartée avec un refus distinct et un `attendu` contenant toutes ces
 clés. Ce refus empêche l'affichage et l'enregistrement du texte concerné ; il ne
-va jamais au joueur. Schémas et instructions restent ceux du lot 85.
+va jamais au joueur. Ce correctif ne change ni les instructions ni les schémas
+de la version reprise après intégration du lot 84 ; ils restent constants entre
+scènes, tours, phases et corrections.
 
 ## Trois niveaux de vérité
 

@@ -81,3 +81,82 @@ Créneau de 45 minutes dépassé, avec une suite complète de trente minutes.
 Bruts : `artifacts/lot85/` et quatre dossiers
 `artifacts/bancs-multi/20261025-190213-*` du worktree. Aucun scénario, modèle,
 planificateur ni `main` modifié par le lot.
+
+## 85 b — Sources résolues dans les clés du dossier
+
+25 octobre 2026 — même branche, **non fusionnée**, brief **991ad19**.
+Intégration **1d64b36** reprise par fusion signée **77cb7e9** (lots 83/84) ;
+correctif signé **784d9bb**. **Résolution vérifiée ; les deux objectifs Luna
+restent manqués**, malgré l'amélioration par rapport à 85.
+
+**Invariant.** `sources.resoudre_sources` résout clés exactes, chemins existants
+en entier et identifiants de fiches vers leur rubrique du seul dossier public.
+Une source explicite `objet:<id>` prime ; plusieurs rubriques possibles sans
+source explicite restent ambiguës. Aucun suffixe, nom privé ou mot libre deviné.
+Réponse et audit passent par cette fonction ; `narration.controler`, donc
+`consigner`, la refait sur le dossier archivé. Source d'audit inconnue : écartée avec
+un obstacle distinct et un `attendu` contenant toutes les clés valables.
+`sources_autorisees` vient en tête de l'entrée variable. Instructions et
+schémas constants entre scènes et tours ; le schéma repris du lot 84 ajoute
+un type de condition par rapport à 85, différence de version explicite.
+
+**Preuves.** Quatre nouveaux tests : chemins/indices, signes, impressions,
+objets, ambiguïtés et suffixes invalides ; remboursements Aubin et Gorm,
+console, état, rendu et sources après recharge ; refus et garde d'enregistrement
+dans deux autres scènes, clés au-delà de la douzième. Quatre tests finaux
+verts, 5,48 s, après correction d'une préparation de scène ; six tests de
+préfixe de 85 verts. Rejeu exact des anciens audits : 13 rapports avec sources
+non littérales, références entièrement résolues dans 10, sept désormais sans
+obstacle. `faits`, `objet:joueur`, `engagements.aubin` n'existent pas dans ces
+dossiers et restent refusés. Le résolveur ne juge pas la vérité de la prose.
+Les annotations `faits` de la réponse gardent leur filtrage historique des
+références inconnues ; le refus explicite porte sur les `sources` de l'audit
+qui contrôle l'affichage.
+
+**Luna.** Une passe des onze scripts, uniquement `gpt-6-luna`/ChatGPT,
+medium/libre, quatre exécutions au plus à priorité réduite, copies temporaires.
+22 références **882907c** lues du cache et vérifiées par SHA-256 ; onze bruts
+de 85 relus, aucune référence rejouée.
+
+| Mesure | 882907c (moyenne de deux passes) | 85 | 85 b |
+|---|---:|---:|---:|
+| Appels / 53 tours MJ | 154 | 208 | 187 |
+| Appels/tour | 2,91 | 3,92 | **3,53** |
+| Relances / refus / replis | 5 / 7,5 / 0 | 26 / 8 / 6 | **11 / 13 / 1** |
+| Secondes/tour historiques | 12,82 | 18,68 | 16,14 |
+| Tokens en cache, pondérés | 24,61 % | 62,70 % | **55,72 %** |
+
+Cache 85 b : MJ **64,89 %**, audit narratif **28,44 %**, fidélité **0 %**,
+portée **0 %** (deux appels). Un préfixe par fonction, aucun usage manquant,
+arrêt ou défaut technique/recharge. Trois citations non littérales résolues.
+Signes-écart : 10 → 6 appels ; soir-appel : 30 → 18, achat puis `planches_1`
+portée au déplacement rechargé. Restent l'atelier (41 appels, sifflement jugé
+voix) et la crypte (35, écoute traduite en examen puis faux audits de parole).
+La question sur les savoirs de Gorm produit le seul repli, en huit appels.
+Les onze relances ne viennent pas d'une source non résolue. Le niveau de
+882907c et le seuil de cache **60 %** sont manqués ; 70 % reste non acquis.
+Appels sans cache : MJ 12/95 contre 10/106 en 85, audit 14/59 contre 14/74.
+Moins d'appels chauds, versions et charges différentes : cause de la baisse
+du taux non isolée, aucune conclusion causale de vitesse.
+
+**Diagnostic fidélité.** Le préfixe de 85 est constant : **1 463 tokens**
+(outil 480, instructions 983), entrées 1 550–8 348, 0/28 lectures du cache ;
+85 b confirme 0/31. Quatre appels isolés supplémentaires, hors comparaison :
+deux copies identiques du petit plan (1 550 tokens) restent sans cache ;
+la seconde copie du grand (8 348) reçoit **8 192 tokens en cache**, mêmes
+instructions, schéma, fonction et session. Cela étaye une limite de taille ou
+de borne du cache du forfait : le préfixe fixe est dans la zone courte non
+desservie, la suite varie selon le plan. Le seuil exact n'est pas mesuré ;
+le minimum de 1 024 tokens de l'[API publique](https://developers.openai.com/api/docs/guides/prompt-caching)
+ne suffit pas à prédire ce service. Aucune borne explicite dans le transport,
+aucun remplissage ni changement du protocole. Les écritures annoncées nulles
+dans toutes les fonctions ne prouvent pas l'absence de stockage.
+
+**Validation finale.** Suite complète unique : **1 934 tests, 16 ignorés,
+zéro échec/erreur**, 199 fichiers, trois processus à priorité réduite,
+**1 404,53 s**. Empreintes Relais 2 h, graines 1985/7/42/2024 : **quatre
+nuits identiques** à **1d64b36**, chronique, mesures et état final complet.
+Référence manquante calculée une fois et rangée en cache, puis branche.
+Bruts : `artifacts/lot85b/`, `artifacts/lot85b-*.json/log` et quatre dossiers
+`artifacts/bancs-multi/20261025-195238-*`. Aucun scénario, modèle, planificateur
+ni `main` modifié par le correctif ; pas de seconde campagne Luna.

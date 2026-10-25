@@ -4,6 +4,44 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **85 b — sources vers les clés du dossier**, branche `codex-cache-prompt`,
+  **non fusionnée**, brief **991ad19**. Intégration **1d64b36** reprise par
+  fusion signée **77cb7e9** ; code signé **784d9bb**. Une fonction commune
+  `sources.resoudre_sources` pour réponse, audit et garde à l'enregistrement :
+  clés exactes, chemins entièrement existants, identifiants de fiches fournis,
+  source `objet:<id>` explicite prioritaire ; ambiguïtés et suffixes inventés
+  refusés. Aucune lecture du monde privé. Source d'audit inconnue écartée avec
+  son `attendu` et toutes les clés valables ; celles-ci sont aussi en tête de
+  l'entrée variable. Instructions et schémas constants, aucun ajout au prompt.
+  Quatre tests nouveaux de console/recharge, comptes Aubin/Gorm, signes,
+  impressions, objets, refus et garde ; six tests de préfixe de 85 verts.
+  Rejeu de 13 anciens audits : toutes les références résolues dans 10,
+  sept rapports désormais sans obstacle ; trois références réellement absentes
+  restent refusées. La résolution ne remplace pas le jugement sémantique.
+  **Validation Luna partielle : les deux objectifs restent manqués.**
+  Onze scripts, une passe, 53 tours MJ ; **882907c** exclusivement relue du
+  cache (22 parties, SHA-256), 85 relu dans ses bruts. 882907c → 85 → 85 b :
+  **154 → 208 → 187 appels**, **2,91 → 3,92 → 3,53/tour**, relances
+  **5 → 26 → 11**, refus **7,5 → 8 → 13**, replis **0 → 6 → 1** ; aucun arrêt,
+  défaut technique/recharge ou usage manquant. Cache **24,61 → 62,70 → 55,72 %** ;
+  par fonction en 85 b : MJ **64,89 %**, audit narratif **28,44 %**, fidélité
+  et portée **0 %**. Un préfixe par fonction. Trois citations non littérales,
+  toutes résolues ; les relances restantes sont sémantiques ou liées aux gestes.
+  Signes-écart 10 → 6 appels, soir-appel 30 → 18, `planches_1` portée après
+  recharge ; atelier 41 et crypte 35 appels, dont huit et un repli sur les
+  savoirs de Gorm. Aucun traitement spécial de ces exemples.
+  Diagnostic séparé, quatre appels : le petit plan identique (1 550 tokens)
+  ne sert aucun cache, le grand (8 348) sert 8 192 tokens au second appel.
+  Préfixe fixe de fidélité 1 463 tokens : taille/bornes du forfait en cause
+  probable, seuil exact non mesuré, aucune instruction variable ni remplissage.
+  Suite complète unique verte : **1 934 tests, 16 ignorés**, 199 fichiers,
+  trois processus à priorité réduite, **1 404,53 s**, aucun échec/erreur.
+  Empreintes Relais 2 h, quatre graines : chronique, mesures et état final
+  complet identiques à **1d64b36** ; référence calculée une fois et mise en cache.
+  [Section 85 b du rapport](taches/rapport-codex-85-cache-prompt.md#85-b--sources-résolues-dans-les-clés-du-dossier),
+  bruts dans `artifacts/lot85b/`. Aucun scénario, modèle, planificateur ni `main`
+  modifié par ce correctif ; pas de seconde campagne Luna.
+
 - Branche `codex-cache-prompt`, **non fusionnée**, lot **85**, brief **ae050d4** :
   reprise d'`origin/integration` **a2261e6** et du préalable 83 **f1d198b**
   par fusions signées **589adb4**, **f573250**. Code signé **52991b6**, signatures
