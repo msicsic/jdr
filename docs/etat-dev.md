@@ -4,6 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-bissection-auberge`, fusionnée, lot **76**, moteur **1171fc3**,
+  brief **bf4bf71** : diagnostic seul, **22 révisions**, **32 nuits de 12 h**,
+  auberge 1985 fixe, joueur au dortoir. Quatre marches retenues : trajets réels Q
+  (`1f21384`, 144,44 → 624,03 s CPU dans le sondage, presque autant de nœuds),
+  calibration des signes (`3792eb7`, **+51,3 %** au contrôle), propositions faute
+  de mieux (45, `3aba83b`, **+51,5 %**) et constats partagés (55, `c592d68`,
+  **+66,8 %**, 760 632 → 1 712 879 nœuds). Ces trois derniers changent la nuit,
+  les recherches neuves et les échecs bornés ; Tilo/faim domine la hausse du lot 55.
+  Dix contre-mesures, deux cœurs distincts de même classe (`--affinite 0x11`),
+  deux nuits au plus : le **faux saut du lot 61** tombe de +40,6 % apparent à
+  **+0,55 %** à monde/trace/nœuds identiques ; lot 60 **+4,7 %**, sous le seuil.
+  Les CPU ne se comparent que dans un couple. Bornes de la série libre :
+  `42bb9c0` → `1171fc3`, **144,44 → 511,14 s**, ×3,54 ; référence 12 h calculée
+  une fois. Toutes les nuits contrôlent monde, `regarder` et `scene_percue` après
+  recharge ; chaque contre-mesure retrouve aussi l'état, le rendu et les compteurs
+  de son sondage. Harnais vérifié sur auberge ancienne et mine actuelle.
+  Suite complète unique : **1 874 tests, 16 ignorés, zéro échec/erreur**,
+  188 fichiers, un processus, 3 836,85 s. Aucun changement du moteur, de `main`
+  ou du modèle ; aucun appel à Luna, aucun gain revendiqué. Contrats proposés :
+  génération/tarification par état fixé, puis absence certifiée distincte d'un
+  échec borné, avec dépendances complètes du graphe et des prix. Une seule
+  graine/départ ; une hausse compensée entre points non testés reste possible.
+  Format de 45 minutes dépassé (nuits et contrôle du faux saut CPU).
+  [Rapport du lot 76](taches/rapport-codex-76-bissection-auberge.md) ; bruts dans
+  `artifacts/bissection-auberge/` du worktree de livraison.
+  Fusionné sur l'intégration (rapport et outil, sans moteur).
+
 - Branche `codex-avis-menace`, **non fusionnée**, lot **80** (A3, menace d'un lieu),
   base d'intégration **882907c**, brief **5fd85a1**, code signé **a2bb274** : les nouvelles communes
   transmettent la prévision d'eau à un auditeur cru concerné, selon le souci
