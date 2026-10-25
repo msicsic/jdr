@@ -308,6 +308,12 @@ def entendre(monde, x, y, sorte, lignes, appelant, entendu=True):
         return
     if x == "joueur":
         return
+    # Une réponse adressée et réellement saisie établit un nouveau contact, même si cette
+    # voix avait déjà été entendue au même endroit. Elle ne se déduit pas d'un bruit attribué.
+    from .ouie import _place
+    from .deliberation import contact_recherche
+    salle = _place(monde, y)[0]
+    contact_recherche(monde, x, y, salle)
     if sorte == ARRIVE:
         attendre(monde, x, y, vient=True)
     elif sorte == VIENS:

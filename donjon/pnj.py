@@ -517,6 +517,11 @@ def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     (``croit_present`` : il ne l'a pas vu en parcourant la salle des yeux), il l'appelle (``appeler``)."""
     from .ouie import parcouru
     o = monde.objets[id]
+    if cherche:
+        # Le tour d'horizon peut remplacer le point de départ cru par une absence.
+        # L'examen utilise cet indice : le retenir avant de réviser la croyance.
+        from .deliberation import consommer_indices_recherche
+        consommer_indices_recherche(monde, id, cherche, o["lieu"])
     esprit(monde, id)["visites"][o["lieu"]] = monde.data["minutes"]
     if "orientation" in o:
         tour_d_horizon(monde, id)  # Il parcourt la salle des yeux, tout autour de lui.
