@@ -27,6 +27,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **2 231,5 s** ; créneau de 45 minutes dépassé sous charge partagée.
   Aucun appel à Luna, changement de scénario ou de `main`, ni modification de
   `planification.py`/`deliberation.py`. [Rapport du lot 88](taches/rapport-codex-88-avis-reels.md).
+  **Suite du lot 88, diagnostic seul après refus de fusion : non fusionnable.**
+  Les 237 passages sont ceux d'Aubin, heure 660–719 ; **292** sur 60 min glissantes.
+  Alternance principale **lumière galerie ↔ inspection refuge**, relayée au palier
+  noir par une sécurité toujours urgente ; persiste après extinction du danger.
+  `eclairer` termine sur l'arrivée éclairée, sans progression de sécurité ;
+  `_plan_lumiere` s'efface, `_plan_abri` n'y prend pas le relais, puis `_candidats`
+  et `_pulsion` relancent la ronde dont le parcours sera interrompu. Inertie entre
+  recours d'un même besoin seulement. Base normale : aucun coup à 649 min,
+  pire heure 24 ; mêmes captures à 645 min sur les deux moteurs : **128 passages
+  d'Aubin / 30 min**, monde complet et rendu identiques en bloc/découpé/rechargé,
+  **249 événements** identiques à la vraie nuit. Défaut latent du contrat commun
+  choix/prérequis/progression, pas une boucle causée par les seules violences.
+  Arrêt au diagnostic autorisé au point 3 ; aucun code modifié, aucune suite
+  complète supplémentaire. Audits 12 h refaits, chroniques identiques :
+  2024 **237 passages/h, 6 avis/0 adoption** ; 500 **22 passages/h, 16/0**.
+  [Diagnostic, fonctions et preuves](taches/rapport-codex-88-boucle.md).
 
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
   **02c8e8b**, code signé **9f344cd** : lieux et portée partagés par salle,

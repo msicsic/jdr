@@ -62,3 +62,8 @@ et une confidence par minute conservés : avertissement immédiat non garanti
 pendant un plan actif. Ni priorité nouvelle, dispute, ni autre prédicat.
 Priorité réduite, trois processus au plus (banc à un, suite à deux).
 Créneau de 45 minutes dépassé par la suite complète sous charge partagée.
+
+**Suite après refus de fusion :** [diagnostic précis de la boucle](rapport-codex-88-boucle.md).
+Alternance lumière/inspection d'Aubin, défaut latent reproduit sur le moteur de
+base depuis la même capture ; audits 2024/500 refaits, identiques. Arrêt au
+diagnostic selon le point 3 du complément : **boucle non corrigée, branche non fusionnable**.

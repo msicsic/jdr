@@ -945,6 +945,13 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
   **4 / 1** persistante ; crue 2024 modifiée : rafale de passages après violence
   à 649 min, hors de la correction des avis.
   [Rapport du lot 88](taches/rapport-codex-88-avis-reels.md).
+  **Suite, fusion refusée :** les 237 passages/h sont l'alternance lumière/ronde
+  d'Aubin, persistante sans danger actif. Défaut latent reproduit sur la base
+  depuis une capture commune : même monde et rendu en bloc/découpé/rechargé.
+  Audits 2024/500 refaits, identiques ; arrêt au diagnostic (point 3), aucun code
+  ajouté, **boucle non corrigée, branche non fusionnable**. Le contrat commun
+  choix/prérequis/progression relève d'un lot distinct.
+  [Diagnostic de la boucle du lot 88](taches/rapport-codex-88-boucle.md).
 - Avis sur les prédicats admis, poids des sources, expression gardée par le souci de l'auditeur,
   `contredire`, nature « éclat », témoins, suites.
 - **Partager ses constats** (revue externe du 2026-10-24, retenue) : deux personnes qui se font confiance se disent
