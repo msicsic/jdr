@@ -933,7 +933,7 @@ def controler(texte, rapport, faits, partie="texte"):
         raise AuditIllisible("Contrôle narratif incomplet.")
     obstacles, paroles, ambiances, lignes_validees = orientations(texte, faits, partie), [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
-        # Champ extrait par les nouveaux audits, conservé dans les sauvegardes.
+        # Champ extrait par les nouveaux audits, conservé pour l'enregistrement.
         # Les anciens rapports ne portaient pas cette extraction.
         lumieres = ligne.get("eclairages") if isinstance(ligne, dict) else None
         if lumieres is not None:
@@ -1135,7 +1135,9 @@ def consigner(monde, reponse):
         return
     texte = reponse["texte"]
     rapport = controler(audit["texte_initial"], {"segments": audit["segments"]}, audit["faits"])
-    courants = {"perception": monde.contexte()["perception"]}
+    from .perception import eclairage
+    from .noms import public
+    courants = {"perception": public(monde, eclairage(monde))}
     for indice, ligne in enumerate(rapport["segments"]):
         contraires = eclairages(ligne.get("eclairages", []), courants,
                                segments(audit["texte_initial"])[indice], indice)

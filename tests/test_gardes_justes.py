@@ -3,6 +3,7 @@ import copy
 import unittest
 
 from donjon.biens import compte
+from donjon.geometrie import placer
 from donjon.monde import ErreurMonde
 from donjon.narration import consigner, controler, orientations, schema_audit, voix_auteur
 from donjon.spatial import installer, memoriser
@@ -103,12 +104,19 @@ class GardesJustesTests(unittest.TestCase):
                                      'mais tu ne peux pas encore la prendre.', faits), [])
 
     def test_lumiere_percue_source_non_vue_et_autre_source(self):
-        for m, source in ((crypte(), 'brasero'), (conduite(), 'brasero')):
+        autre = conduite()
+        lampe = autre.objets['lanterne']
+        lampe['lieu'] = autre.joueur['salle']
+        placer(lampe, lampe['lieu'], autre.objets['brasero']['position'])
+        autre.joueur['orientation'] = 'sud-ouest'
+        memoriser(autre)
+        autre.joueur['orientation'] = 'est'
+        for m, source, texte in ((crypte(), 'brasero', 'Le brasero éclaire la pièce.'),
+                                 (autre, 'lanterne', 'La lanterne éclaire la pièce.')):
             with self.subTest(scenario=m.data['scenario']['titre'] if 'titre' in m.data['scenario'] else m.joueur['salle']):
                 self.assertFalse(m.visible(source))
                 self.assertTrue(any(c['source'] == source and c['niveau'] > 0
                                     for c in m.contexte()['perception']['contributions']))
-                texte = 'Le brasero éclaire la pièce.'
                 _, appels = self.accepte(m, 'décris la lumière', texte, audit_lumiere(source))
                 faits = appels[0][1]['faits']
                 c = next(c for c in faits['perception']['contributions'] if c['source'] == source)
