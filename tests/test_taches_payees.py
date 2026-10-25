@@ -199,6 +199,9 @@ class TachesPayeesTests(unittest.TestCase):
         # On éprouve l'annonce de cet abandon, sans conclure un nouveau marché de combustible.
         from donjon import relations
         lire(m, "aubin")["relations"]["marchand"] = relations._nouvelle({"confiance": 10})
+        # Comme le premier test sur cette capture : isoler l'annonce du séjour
+        # de sécurité prioritaire (80,5 dans l'état réel), qui peut la différer.
+        calme(m, "aubin")
         m, lignes = vivre(recharger(m), 3)
         self.assertIsNone(promesse_en_cours(m, "marchand", "planches"))
         self.assertFalse(any("promesse" in t for t in lignes), lignes)  # Corvus est loin de l'échange.

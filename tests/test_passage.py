@@ -314,9 +314,13 @@ class PorteEtroiteTests(unittest.TestCase):
         self.assertIn("Gorm demande à Aubin de le laisser passer (mefiance).", textes)
         self.assertIn("Gorm pousse Aubin ; Aubin recule d'un pas.", textes)
         # Aubin réagit désormais à la violence : le but initial de Gorm peut céder à sa défense.
-        self.assertTrue(any(e["type"] == "poussee" and e["auteur"] == "marchand" and e["reussie"]
-                            for e in m.data["historique_corps"]))
-        self.assertNotEqual(tuple(m.objets["aubin"]["position"]), self.PORTE)
+        poussee = next(e for e in m.data["historique_corps"]
+                       if e["type"] == "poussee" and e["auteur"] == "marchand" and e["reussie"])
+        self.assertEqual(poussee["depart"], ["beffroi", list(self.PORTE)])
+        self.assertNotEqual(poussee["arrivee"], poussee["depart"])
+        # La poussée l'a déplacé à cet instant. Après trois minutes de vie,
+        # sa fuite puis son recours peuvent l'avoir mené à une autre porte,
+        # éventuellement aux mêmes coordonnées dans une autre salle.
         self.assertIs(relation(m, "aubin", "marchand")["valeur"], False)
         from donjon.relations import envers
         self.assertLessEqual(envers(m, "ilse", "marchand")["confiance"], 50)
