@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-paiement-effectif`, fusionnée, lot **82**, base `a6f9368`
+  (brief sur l'intégration `3ffd72d`) : analyse des opérations demandées séparée du
+  verdict de fidélité, avec les sens communs de `paroles`. Le moteur compare cette
+  analyse aux opérations du contenu ; `propos` ne couvre pas un échange, même avec
+  un verdict favorable. Les offres historiques utilisent le montant exécutable
+  de `offre`. Contrôle aussi sur adresse explicite, mots exacts et repli littéral ;
+  les opérations reconnues restent exigées pendant les corrections de la saisie.
+  Une revue illisible ne valide plus une parole. Cinq nouveaux tests console/MJ
+  simulé, monde, texte et inventaire après recharge. Suite complète unique :
+  **1 908 tests, 16 ignorés**, 194 fichiers, trois processus à priorité réduite,
+  **1 683,2 s** ; trois échecs et quatre erreurs d'anciennes attentes et d'une nouvelle
+  scène simulée. Ces scènes corrigées et le code final repris sur huit fichiers :
+  **102 tests verts**, deux processus, **98,0 s**. Bilan consolidé vert, sans seconde suite.
+  Luna une passe soir-appel/ressources/noms-dialogue, référence **882907c** en cache :
+  **44 → 44 appels / 11 tours MJ**, relances **4 → 0**, refus **0 → 2**, aucun arrêt
+  ou erreur technique/recharge. **Validation partielle : achat effectivement typé
+  et arbitré, mais non exécuté.** Deux faux rejets de la question sur le bois
+  confondent contenu et audience ; le repli sans opération reste bloqué, Aubin ne
+  constate pas sa réserve, puis refuse le marché. Même question bloquée dans
+  noms-dialogue ; demande nominative exécutée dans ressources. L'omission initiale
+  d'une opération et la comparaison des biens/montants restent sémantiques ; pas
+  de garantie générale ni de seconde passe. `main`, `planification.py`, scénarios,
+  modèle et prompts d'interprétation/narration inchangés ; protocole de revue étendu.
+  [Rapport du lot 82](taches/rapport-codex-82-paiement-effectif.md) ; bruts dans
+  `artifacts/` du worktree de livraison.
+
 - **Vérification Luna de l'intégration 882907c**, lot **79**, branche
   `codex-verif-luna-882907c`, sans changement de code : deux passes des vingt scripts
   du lot 70, **40 parties, 302 saisies, 388 appels**, uniquement `gpt-6-luna`/ChatGPT,

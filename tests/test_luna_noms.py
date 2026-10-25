@@ -54,21 +54,21 @@ class AdresseTests(unittest.TestCase):
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
                 self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "ilse")
                 plans = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
-                self.assertEqual(plans, [])  # Mots exacts, aucun effet typé à revoir.
+                self.assertEqual(len(plans), 1)  # L'adresse est fixée, le contenu reste contrôlé.
 
-    def test_les_mots_exacts_sans_contenu_ne_demandent_pas_de_revue(self):
+    def test_les_mots_exacts_sans_contenu_passent_la_revue(self):
         m = scene()
         saisie = "je dis : qui peut nous aider ?"
         defaut = prevue(m, saisie)["personnage"]
         r, sortie, appels = jouer(m, saisie, [parole("qui peut nous aider ?", personnage=defaut),
             dialogue("Ta question a été entendue.")],
             [rapport(ligne("mecanique", sources=["conversation_validee"]))],
-            revues=[{"conforme": False, "motif": "Contenu contraire à la demande."}] * 2)
+            revues=[{"conforme": True, "motif": "Parole sans opération demandée."}])
         self.assertNotIn("Précise ce que tu veux dire", sortie)
         self.assertNotIn("Précise à qui", sortie)
         self.assertIn("Tu dis à", sortie)
         self.assertEqual(r.data["paroles_joueur"][-1]["texte"], "qui peut nous aider ?")
-        self.assertFalse(any(f == "auditer_action" for f, _ in appels))
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
 
     def test_repondre_apres_s_etre_ecarte_ne_depend_pas_de_rester_en_vue(self):
         from tests.test_parole_corrections import banc

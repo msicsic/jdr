@@ -89,6 +89,24 @@ def sens_contenu(contenu, monde=None):
             else {"type": "propos", "sens": SENS_CONTENU["propos"]} for c in contenu]
 
 
+def operations_contenu(contenu):
+    """Ce que porte un contenu, indépendamment des mots et de son acceptation.
+
+    Le marché et les offres historiques payées ont la même portée d'échange.
+    Une réplique seule ne porte aucune de ces opérations.
+    """
+    operations = set()
+    for c in contenu:
+        type_ = c.get("type", "propos")
+        if type_ != "propos":
+            operations.add(type_)
+        if type_ in ("demande", "passage") and offre(c) > 0:
+            operations.add("proposition")
+        if type_ == "proposition" and c.get("demande", {}).get("type") in ("objet", "part"):
+            operations.add("demande")
+    return operations
+
+
 def _biens_contenu(monde, contenu):
     """Sens des biens validés avant exécution : identité et quantité séparées.
 
