@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna de l'intégration fbcf0ff**, lot **70**, branche
+  `codex-verif-luna-fbcf0ff`, sans modification de code : deux passes des onze scripts
+  historiques, de `ressources`, de `comptes` avec noms préparés et des sept
+  `sous-obstacle-*`. **40 parties, 302 saisies, 416 appels**, uniquement `gpt-6-luna`
+  via ChatGPT ; aucun arrêt ni erreur technique/recharge. Copies temporaires,
+  quatre exécutions au plus, priorité réduite. Les quarante parties sont rangées
+  dans le cache de **fbcf0ff**, identiques aux bruts par SHA-256 ; **main 42bb9c0
+  et f033364 uniquement relus du cache**, jamais rejoués.
+  Onze scripts, main → f033364 → fbcf0ff : **3,15 → 2,96 → 3,21 appels/tour**,
+  **12,7 → 11,1 → 14,4 s/tour**, relances **8 → 2,5 → 9**, refus
+  **16 → 10,5 → 13,5**, tours avec refus **10,5 → 8,5 → 9,5**, replis **0,5 → 0 → 1**.
+  Temps historiques sous des charges différentes, sans conclusion causale.
+  Vingt scripts : f033364 → fbcf0ff **2,80 → 3,06 appels/tour**, 66 → 68 tours MJ ;
+  `comptes` passe de zéro à deux tours, préparation différente.
+  Prime de vingt pièces, questions sans faux « Précise… », poutre derrière après
+  rotation, impressions d'`observer` et attendu public tiennent aux deux passes.
+  `comptes` rembourse Gorm et maintient Brune débitrice dans le bon sens, or 24 → 26.
+  **Validation des comptes partielle** : `soir-appel` passe 1 n° 4 affiche le démenti
+  d'Aubin sans narrer le remboursement effectué ; passe 2 n° 4 rejette des récits
+  exacts et finit en repli. Autre repli sur le marché payé (passe 1 n° 5), faute
+  de comptes structurés correspondant à l'issue. Nouveaux constats : cible couteau
+  substituée au pied-de-biche, faux refus de directions pourtant conformes, lumière
+  d'un brasero hors de vue pourtant perçue, mot ordinaire « refus » censuré,
+  présentation d'une voix inconnue rejetée. Méta-langage seulement partiellement résolu.
+  Relecture saisie par saisie et limites dans le
+  [rapport du lot 70](taches/rapport-codex-70-verif-luna.md) ; bruts dans
+  `artifacts/verif-luna-fbcf0ff/` du dépôt principal. Aucun correctif ni intervention
+  sur `main` ; le harnais ne capture pas le rendu des panneaux après recharge,
+  seulement l'état résumé et les marqueurs d'affichage : aucune garantie générale nouvelle.
+  Fusionné sur l'intégration après le lot 69 (rapport seulement).
+
 - Branche `codex-appels-restes`, fusionnée, lot **69**, base `be90377`
   (intégration **4acc36c**, déjà à jour au départ) : les indices d'une recherche gardent
   leur contenu hors des quarante souvenirs (`esprit.indices_recherche`), par personne et
