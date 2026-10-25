@@ -240,7 +240,7 @@ def _disponible_cru(monde, id, objet):
 # et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
 # part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
 CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien")
-DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue")
 
 
 def _meme_demande(s, autre, operations, objet, besoin):
@@ -271,7 +271,7 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
                                    {"type": "pieces", "montant": detail["prix"]})
         if raison == "refus":
             s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
-    if raison in CAUSES:
+    if raison in CAUSES and "contre_offre" not in s:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
     intention = lire(monde, id)["intention"]
@@ -301,6 +301,10 @@ def tient(monde, id, s, connus=None):
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
     lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
     Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if "contre_offre" in s:
+        # Ce moyen se poursuit par le recours, hors de la recherche ordinaire.
+        # Un délai ou la perte d'un moyen ne fait pas oublier la condition dite.
+        return True
     if "offre" in s:
         from .biens import prix
         from .pnj_propositions import refus_tient
@@ -1728,10 +1732,10 @@ def choisir(monde, id, minute):
     if resultat:
         besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
         but, etapes = _attendre_qui_vient(monde, id, resultat)
-        from .pnj_propositions import recours
-        offre = recours(monde, id, besoin, etapes)
+        from .pnj_propositions import plan_recours
+        offre = plan_recours(monde, id, besoin, etapes)
         if offre:
-            etapes = [offre]
+            etapes = offre
         if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
             return
         intention = e["intention"]
@@ -1745,11 +1749,11 @@ def choisir(monde, id, minute):
         _classer(monde, id, pressants, liste, essais, minute)
         stratege.occupe(monde, id)
         return
-    from .pnj_propositions import recours
+    from .pnj_propositions import plan_recours
     refusee = e["demande_refusee"]
-    offre = recours(monde, id, refusee["besoin"], []) if refusee else None
+    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee else None
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
-                       "motif": refusee["besoin"], "plan": [offre], "depuis": minute, "attente": 0}
+                       "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)
     _classer(monde, id, pressants, liste, essais, minute)
     stratege.desoeuvre(monde, id, minute, urgents(monde, id))

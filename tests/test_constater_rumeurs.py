@@ -227,7 +227,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
         # Elles conviennent de qui vient (``appel``) : une part de ce qu'Odile n'a pas sur elle.
         self.assertIn("Odile répond : « Qu'est-ce que tu veux ? »", chronique(m))
         self.assertIn("Odile répond : « Ici, viens ! »", chronique(m))
-        self.assertTrue(any(t.startswith("Mireille demande une part des vivres du cellier à Odile (")
+        self.assertTrue(any(t.startswith("Mireille demande une part des vivres du cellier à Odile ")
                             for t in chronique(m)))
         # Le joueur, au grenier, entend l'appel et la réponse sans rien voir.
         self.assertIn("Tu entends, tout près : Mireille appelle : « Odile ? »", texte)
@@ -246,7 +246,7 @@ class ChercherQuelquUnTests(unittest.TestCase):
         m.joueur.update(salle="grenier", position=[6, 3])
         m.data["visitees"] = sorted(set(m.data["visitees"]) | {"grenier"})
         m, texte = attendre(recharger(m))
-        self.assertTrue(any(t.startswith("Mireille demande une part des vivres du cellier à Odile (")
+        self.assertTrue(any(t.startswith("Mireille demande une part des vivres du cellier à Odile ")
                             for t in chronique(m)))
         self.assertIn("Tu entends, tout près, une voix inconnue appeler : « Odile ? »", texte)
         self.assertIn("Tu entends, tout près, une voix qu'on appelle Odile répondre : « Qu'est-ce que tu veux ? »", texte)

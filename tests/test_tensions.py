@@ -421,33 +421,34 @@ class PartTests(unittest.TestCase):
         self.assertLess(lire(m, "brune")["besoins"]["faim"], 70)
 
     def test_refusee_brune_se_tourne_vers_le_vol(self):
-        m = self.affamee("brune")
+        m = sans_le_sou(self.affamee("brune"), "brune")
         m, _ = vivre(m, 8, jet=1)
-        self.assertIn("Brune demande une part des vivres du refuge à Gorm (refus).", chronique(m))
+        self.assertIn("Brune demande une part des vivres du refuge à Gorm ; contre-offre annoncée (refus).", chronique(m))
         intention = lire(m, "brune")["intention"]
         self.assertEqual(intention["but"], {"type": "manger", "objet": "vivres"})
         self.assertEqual(intention["plan"][-1]["condition"], "sans_temoin")
 
-    def test_ilse_refusee_ne_vole_pas_et_redemande_plus_tard(self):
+    def test_ilse_sans_le_sou_retient_la_condition_sans_redemander_avec_le_temps(self):
         m = sans_le_sou(self.affamee("ilse"), "ilse")
         m, _ = vivre(m, 10, jet=1)
-        self.assertEqual(chronique(m).count("Ilse demande une part des vivres du refuge à Gorm (refus)."), 1)
+        self.assertEqual(chronique(m).count("Ilse demande une part des vivres du refuge à Gorm ; contre-offre annoncée (refus)."), 1)
         m, _ = vivre(m, REDEMANDE - 20, jet=1)
-        self.assertEqual(chronique(m).count("Ilse demande une part des vivres du refuge à Gorm (refus)."), 1)
+        self.assertEqual(chronique(m).count("Ilse demande une part des vivres du refuge à Gorm ; contre-offre annoncée (refus)."), 1)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
         self.assertEqual(m.objets["vivres"]["portions"], 4)
         m, _ = vivre(m, 30, jet=20)
-        self.assertIn("Ilse demande une part des vivres du refuge à Gorm (promis).", chronique(m))
+        self.assertNotIn("Ilse demande une part des vivres du refuge à Gorm (promis).", chronique(m))
+        self.assertTrue(any(s.get("objet") == "vivres" and "contre_offre" in s for s in lire(m, "ilse")["refus"]))
 
     def test_refusee_ilse_achete_sa_part_avec_sa_bourse(self):
-        # Même refus, mais elle a huit pièces : elle paie le prix d'une part (2), que Gorm accepte
+        # Même refus, mais elle a huit pièces : elle paie le prix dit (2), que Gorm accepte
         # sans se faire prier, et il la sert.
         m = self.affamee("ilse")
         self.assertEqual((m.data["finances_pnj"]["ilse"], m.data["finances_pnj"]["marchand"]), (8, 50))
         m, _ = vivre(m, 20, jet=1)
         textes = chronique(m)
-        self.assertEqual(textes.count("Ilse demande une part des vivres du refuge à Gorm (refus)."), 1)
-        self.assertIn("Ilse achète une part des vivres du refuge à Gorm pour 2 pièces (vendu).", textes)
+        self.assertEqual(textes.count("Ilse demande une part des vivres du refuge à Gorm ; contre-offre annoncée (refus)."), 1)
+        self.assertIn("Ilse achète une part des vivres du refuge à Gorm pour 2 pièces ; condition remplie (vendu).", textes)
         self.assertTrue(any(t.startswith("Gorm") and "donne une part des vivres du refuge" in t and "Ilse" in t
                             for t in textes))
         self.assertEqual((m.data["finances_pnj"]["ilse"], m.data["finances_pnj"]["marchand"]), (6, 52))

@@ -55,7 +55,7 @@ class RecoursTests(unittest.TestCase):
         self.assertEqual(offres[0]["issue"], "accepte")
         self.assertLess(lire(m, "brune")["besoins"]["faim"], 95)
 
-    def test_mine_odon_propose_apres_demande_refusee_et_mathe_livre(self):
+    def test_mine_odon_paie_la_contre_offre_apres_refus_et_mathe_livre(self):
         from donjon.mine import nouveau_mine
         m = presentes(nouveau_mine(depart="fixe"))
         installer(m)
@@ -69,6 +69,7 @@ class RecoursTests(unittest.TestCase):
         m.objets["mathe"]["profil"]["pulsions"] = []
         lire(m, "mathe")["pulsions"] = []
         lire(m, "odon")["besoins"]["faim"] = 95
+        m.data["finances_pnj"]["odon"] = 5  # Il peut remplir la condition monétaire annoncée.
         for o, x in m.objets.items():
             if x["type"] == "nourriture" and o != "vivres":
                 x["portions"] = 0
@@ -85,10 +86,9 @@ class RecoursTests(unittest.TestCase):
             Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))
         m = recharger(m)
         offres = [s for s in lire(m, "odon")["memoire"] if s["type"] == "proposition"]
-        self.assertTrue(offres)
-        self.assertEqual(offres[0]["issue"], "accepte")
+        self.assertFalse(offres)  # La condition dite dispense d'un marché au hasard.
         self.assertLess(lire(m, "odon")["besoins"]["faim"], 95)
-        self.assertIn("accepte l'échange", " ".join(m.data["journal"][-1]["faits"]))
+        self.assertIn("prend l'argent", " ".join(m.data["journal"][-1]["faits"]))
 
     def test_crue_offre_avant_faute_et_part_acceptee_deux_auditeurs(self):
         for autre in ("marchand", "aubin"):
