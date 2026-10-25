@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-part-proposee`, **non fusionnée**, lot **84**, base d'intégration
+  **7cce974**, brief **3dbd225** : une part demandée dans une proposition conserve
+  sa valeur propre et la garde de la réserve. Classification commune de la remise
+  et du travail ; évaluation, exécution et contre-offre vérifient la livraison
+  sur copie par le chemin des demandes/ventes, sur la pièce détachée au lieu du
+  lot entier. Les propres biens à portée sont constatés avant l'accord. Le service
+  explicite `servir` reste une tâche avec devis et engagement. Quatre tests nouveaux
+  console/MJ simulé, paiement, réserve, autre ressource, soupe et livraison depuis
+  une autre salle, état et inventaire après recharge. Suite complète unique verte :
+  **1 912 tests, 16 ignorés**, trois processus à priorité réduite, **1 763,95 s** ;
+  code final repris sur six fichiers : **39 tests, un ignoré**, **64,47 s**, verts.
+  Banc rapide Relais **4 h × 4 graines**, contre 7cce974 : aucun plantage, violation
+  ni usurpation, mêmes constats d'audit ; autres scénarios non mesurés dans ce lot.
+  Luna une passe soir-appel/ressources, référence **882907c** relue du cache (7cce974
+  absente) : **28 → 39 appels / 7 tours MJ**, relances **2 → 4**, refus **0 → 2**,
+  aucun arrêt, repli ou défaut technique/recharge. **Achat exécuté** : or **26 → 23**,
+  puis `planches_1` remise au déplacement suivant et portée après recharge.
+  Faux refus de fidélité et relances narratives conservés ; aucune garantie générale
+  nouvelle sur les audits sémantiques. `main`, `narration.py`, `mj.py`, planificateur,
+  scénarios et modèle inchangés. [Rapport du lot 84](taches/rapport-codex-84-part-proposee.md).
+
 - Branche `codex-paiement-effectif`, fusionnée, lot **82**, base `a6f9368`
   (brief sur l'intégration `3ffd72d`) : analyse des opérations demandées séparée du
   verdict de fidélité, avec les sens communs de `paroles`. Le moteur compare cette

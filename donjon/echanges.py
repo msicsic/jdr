@@ -104,6 +104,29 @@ def valeur_proposition(monde, auditeur, terme, pour):
     return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX)
 
 
+def _livraison_proposition(monde, donneur, receveur, terme):
+    """Vérifier le bien réellement remis, sur copie, avant tout accord.
+
+    Pour une part, le devis éventuel porte sur la pièce détachée, jamais le lot.
+    Les propres biens à portée sont constatés comme lors d'une demande historique.
+    """
+    from .propositions import prestation
+    from .spatial import porte_par
+    condition = prestation(monde, donneur, receveur, terme)
+    if terme["type"] not in ("objet", "part"):
+        return True
+    if porte_par(monde, terme["objet"], donneur):
+        return True
+    if donneur == "joueur":
+        return False  # Le moteur ne joue pas une prise future à la place du joueur.
+    copie = monde.copier()
+    siens_a_portee(copie, donneur)
+    if terme["type"] == "part":
+        return _remettre_part(copie, donneur, receveur, terme["objet"], 0) != "impossible"
+    condition = condition or {"objet": terme["objet"], "remettre": receveur}
+    return _devis_proposition(copie, donneur, condition, receveur) is not None
+
+
 def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
     """P/G/L et DD communs, indépendants de l'identité du proposant. Aucun jet ni mutation."""
     from .caractere import caracteristique, valeur
@@ -116,6 +139,11 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
             return {"cause": "necessaire"}
         if garde(monde, auditeur, monde.objets[objet]):
             return {"cause": "garde"}
+        from .deliberation import parts
+        if demande["type"] == "part" and parts(monde.objets[objet]) <= 0:
+            return {"cause": "epuise"}
+        if not _livraison_proposition(monde, auditeur, proposant, demande):
+            return {"cause": "impossible"}
     p = valeur_proposition(monde, auditeur, demande, proposant)
     if p is None:
         return {"cause": "impossible"}
@@ -187,12 +215,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
             o = monde.objets[terme["objet"]]
             if proprietaire(monde, o) != de:
                 return {"cause": "propriete"}
-            if not porte_par(monde, o["id"], de):
-                if de == proposant:
-                    return {"cause": "absent"}
-                condition = {"objet": o["id"], "remettre": proposant}
-                if _devis_proposition(monde, auditeur, condition, proposant) is None:
-                    return {"cause": "impossible"}
+            if de == proposant and not porte_par(monde, o["id"], de):
+                return {"cause": "absent"}
             if terme["type"] == "part" and parts(o) <= 0:
                 return {"cause": "epuise"}
         elif terme["type"] == "pieces" and richesse(monde, de) < terme["montant"]:
@@ -208,6 +232,7 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
         t = terme["type"]
         if t in ("objet", "part"):
             if de == auditeur and not porte_par(monde, terme["objet"], de):
+                siens_a_portee(monde, de)
                 if t == "part":
                     if _remettre_part(monde, de, a, terme["objet"], 0) == "impossible":
                         return {"cause": "impossible"}
@@ -367,6 +392,8 @@ def contre_offre(monde, demandeur, auditeur, objet, raison):
         return None
     part = demande_de_part(monde, demandeur, auditeur, objet)
     demande = {"type": "part" if part else "objet", "objet": objet}
+    if not _livraison_proposition(monde, auditeur, demandeur, demande):
+        return None
     if raison == "refus":
         if proprietaire(monde, monde.objets[objet]) != auditeur:
             return None  # Il ne vend pas le bien d'un tiers.

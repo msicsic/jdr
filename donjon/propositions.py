@@ -26,7 +26,7 @@ def schema_terme(contrepartie=False, service=False):
 
 
 SCHEMA = _forme({"type": {"type": "string", "enum": ["proposition"]},
-                 "demande": schema_terme(), "contrepartie": schema_terme(True)})
+                 "demande": schema_terme(service=True), "contrepartie": schema_terme(True, service=True)})
 
 
 SCHEMA_OFFRE = _forme({"etat": {"type": "string", "enum": ["offre"]},
@@ -57,6 +57,20 @@ def offre_en_mots(monde, o):
 def cites_terme(terme):
     c = terme.get("condition", {})
     return [x for x in (terme.get("objet"), c.get("objet"), c.get("lieu")) if x]
+
+
+def prestation(monde, donneur, receveur, terme):
+    """Condition du travail à deviser ; None pour une remise à portée de main.
+
+    Le terme reste une part : une livraison ne cède jamais le lot entier.
+    Un service explicite (dont servir un repas) reste toujours une tâche.
+    """
+    from .biens import disponible_en_main
+    if terme["type"] == "tache":
+        return terme["condition"]
+    if terme["type"] in ("objet", "part") and not disponible_en_main(monde, terme["objet"], donneur):
+        return {"objet": terme["objet"], "remettre": receveur}
+    return None
 
 
 def en_mots(monde, terme):
@@ -118,10 +132,10 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
             if (not isinstance(condition, dict) or not isinstance(condition.get("objet"), str)
                     or any(not isinstance(v, (str, bool)) for v in condition.values())
                     or not condition_valide(monde, condition) or set(condition) not in
-                    ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})):
-                refuser(chemin + ".condition", condition, "{objet, allume:true | verrouillee:true | lieu:salle}")
+                    ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"}, {"objet", "servir"})):
+                refuser(chemin + ".condition", condition, "{objet, allume:true | verrouillee:true | lieu:salle | servir:personnage}")
             for cle, valeur in condition.items():
-                if cle in ("objet", "lieu") and not (connu(valeur) or proposant != "joueur" and cle == "lieu" and valeur in monde.data["salles"]):
+                if cle in ("objet", "lieu", "servir") and not (connu(valeur) or proposant != "joueur" and cle == "lieu" and valeur in monde.data["salles"]):
                     refuser(chemin + ".condition." + cle, valeur, "identifiant connu de Corvus")
         elif t == "pieces" and (type(terme["montant"]) is not int or terme["montant"] <= 0):
             refuser(chemin + ".montant", terme["montant"], "entier strictement positif")

@@ -155,7 +155,23 @@ def leses(monde, objet, id, confies=None):
     return (None if permis(monde, id, objet, None, confies) else de), de, de
 
 
+def disponible_en_main(monde, objet, acteur):
+    """Bien porté, ou atteignable hors d'un contenant fermé et des mains d'autrui."""
+    from .spatial import porte_par, proche, position_acteur
+    if porte_par(monde, objet, acteur):
+        return True
+    lieu, vus = monde.objets[objet]["lieu"], set()
+    while lieu in monde.objets and lieu not in vus:
+        vus.add(lieu)
+        contenant = monde.objets[lieu]
+        if contenant["type"] != "contenant" or not contenant.get("ouverte", True):
+            return False
+        lieu = contenant["lieu"]
+    return lieu == position_acteur(monde, acteur)[0] and proche(monde, objet, acteur)
+
+
 # --- Argent -------------------------------------------------------------------------------
+
 
 def bourse(monde, id):
     """Sa bourse : l'or du joueur ; celle que le scénario déclare à un PNJ, sinon ``BOURSE``."""
