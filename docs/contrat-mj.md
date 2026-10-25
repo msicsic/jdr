@@ -54,6 +54,18 @@ La portée sans fondement ou contradictoire est refusée avant affichage et à l
 une portée établie sans source est refusée, un rapport sans ce champ est illisible.
 Reconnaître cette portée et juger la pertinence de sa source restent sémantiques.
 
+**Cohérence du rapport** (`codex-verdict-coherent`, lot 83). Un verdict
+`mecanique` avec une portée `sans_fondement` ou `contradictoire`, ou un verdict
+`invention_protegee`/`contradictoire` avec une portée `etablie`, est un rapport
+illisible. L'auditeur est rappelé une fois sur le même texte ; ce défaut ne fait
+pas directement réécrire le MJ. Deux rapports illisibles laissent le texte non
+contrôlé, donc non affichable. Le même contrôle est refait avant enregistrement.
+Il porte exclusivement sur les champs typés : si seul le motif libre signale
+une contradiction, alors que verdict et portée l'établissent, elle n'est pas
+détectée par cette règle. Les rapports historiques N2/N3 du lot 79 sont dans ce
+cas et ne sont pas corrigés par ce lot ; aucune garantie générale nouvelle de
+détection des contradictions mécaniques.
+
 **Garde-fou déterministe.** Les noms et alias de toutes les entités du monde, y compris
 cachées, et les noms des salles forment un lexique dérivé de l'état
 ([donjon/lexique.py](../donjon/lexique.py)). Un terme du lexique présent dans le texte mais
@@ -143,6 +155,15 @@ validée, ou les comptes courants hors réclamation. Un compte inversé est refu
 le compte inverse serait lui aussi vide. Chaque compte incompatible produit un refus
 avec le segment, les rôles reçus et un `attendu` citant l'issue ; le même garde est refait
 avant l'enregistrement. Après refus répétés, le joueur lit l'issue du moteur.
+
+Les références des comptes extraits passent d'abord par la résolution exacte
+commune des identifiants, noms publics et alias (`noms.references_fournies`,
+`monde.reference_exacte`). Le catalogue vient exclusivement des objets et
+interlocuteurs fournis et du joueur : son nom désigne `joueur`, sans constante
+propre à Corvus. Cette résolution traverse aussi les termes imbriqués des offres,
+sans changer quantités, états ni prose. Une ambiguïté rend le rapport illisible ;
+une référence inconnue ne reçoit aucune identité privée. Le contrôle refait à
+l'enregistrement utilise le même dossier public conservé avec l'audit.
 
 Cette comparaison est déterministe **sur les comptes extraits**. Reconnaître une affirmation,
 ses pronoms et sa portée reste sémantique : une omission ou une extraction erronée peut

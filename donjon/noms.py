@@ -395,6 +395,37 @@ CHAMPS_REFERENCES = {"cible", "outil", "personnage", "sujet", "valeur", "ancrage
 LISTES_REFERENCES = {"cibles", "destinataires"}
 
 
+def references_fournies(valeur, faits):
+    """Résout les champs de référence dans le seul dossier public du récit.
+
+    Même résolution exacte que les propositions : identifiant, nom ou alias,
+    jamais une identité privée devinée. Le dossier archivé suffit à refaire le
+    contrôle avant enregistrement, sans consulter un autre état du monde.
+    """
+    from .monde import reference_exacte
+
+    entrees = {cle[6:]: objet for cle, objet in faits.items() if cle.startswith('objet:')}
+    entrees.update(faits.get('interlocuteurs') or {})
+    if isinstance(faits.get('joueur'), dict):
+        entrees['joueur'] = faits['joueur']
+    objets = [{'id': ref, 'nom': objet.get('nom', ref),
+               'aliases': list(dict.fromkeys(n for nom_ in appellations(objet)
+                                            for n in (nom_, nom_.split(',')[0])))}
+              for ref, objet in entrees.items() if isinstance(objet, dict)]
+
+    def decoder(contenu):
+        if isinstance(contenu, list):
+            return [decoder(v) for v in contenu]
+        if isinstance(contenu, dict):
+            return {champ: (reference_exacte(objets, v) or v
+                            if champ in CHAMPS_REFERENCES | {'debiteur', 'creancier'}
+                            and isinstance(v, str) else decoder(v))
+                    for champ, v in contenu.items()}
+        return contenu
+
+    return decoder(valeur)
+
+
 def verifier_references(monde, valeur, faits):
     """À l'entrée du MJ, une référence privée devinée ne remplace pas la référence fournie.
 
