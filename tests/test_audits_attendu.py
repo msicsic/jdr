@@ -56,10 +56,14 @@ def jouer(monde, saisie, reponses, audits, revues=()):
                          **({"operations_demandees": revue["operations_demandees"]}
                             if "operations_demandees" in revue else {})}
             if "contenu_conforme" in revue:
+                revue.setdefault("perimetre", "sens")
                 from donjon.paroles import operations_contenu
                 revue.setdefault("operations_demandees",
                     sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))
                     if revue["contenu_conforme"] else [])
+                if isinstance(revue["operations_demandees"], list):
+                    from donjon.couverture_action import OPERATIONS
+                    revue["operations_demandees"] = {t: t in revue["operations_demandees"] for t in OPERATIONS}
             return revue
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:

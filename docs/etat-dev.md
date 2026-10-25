@@ -4,6 +4,73 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-fidelite-audience`, fusionnée, lot **89**, base
+  `96c6396` : contrat de revue de parole séparé des gestes ; `perimetre`
+  obligatoire (`sens`, `adresse`, `validation_moteur`), seul `sens` peut refuser.
+  La couverture des opérations reste obligatoire quel que soit ce périmètre.
+  Sens public enrichi des opérations exécutables et du prix offert ; définition
+  commune de `reclamer` alignée sur les questions de dû admises par le moteur.
+  Relecture des lots 79/82/84 : **40 revues de parole, cinq faux refus**,
+  trois d'audience, un de forme d'achat, un de règlement d'une question de dette.
+  Quatre tests nouveaux console, état, paroles, paiement, livraison et rendu après
+  recharge ; **71 tests ciblés consolidés verts**. Suite complète unique :
+  **1 931 tests, 16 ignorés**, 199 fichiers, trois processus à priorité réduite,
+  **1 444,24 s** ; huit échecs d'attentes de dossier dans deux anciens fichiers,
+  adaptées aux champs ajoutés, et une erreur Windows de remplacement du fichier
+  temporaire du test TUI. Reprise finale : **15 tests verts, 56,40 s**, incluant
+  les deux fichiers adaptés, le seul test TUI en erreur (inchangé) et les quatre
+  nouveaux tests ; bilan consolidé sans défaut restant reproduit, sans seconde suite.
+  Luna une passe, quatre scripts, 882907c uniquement en cache : **53 → 57 appels
+  sur 14 tours MJ**, **3,79 → 4,07 appels/tour**, relances **4 → 2**, refus **0 → 2**,
+  replis du détecteur **0 → 2** ; un tour avec erreur réseau, aucun arrêt ni
+  défaut de recharge. Bois à Aubin accepté au premier audit dans les deux scripts ;
+  achat interrompu par un délai de 203,4 s avant proposition. Question de dette
+  encore bloquée par une mauvaise analyse (`qui`), puis définition partagée
+  clarifiée avant la seconde mesure. **Objectif global d'appels non atteint** ;
+  périmètre et opérations restent classés sémantiquement, pas de garantie générale
+  contre les faux refus ou les écarts mal classés. Aucun changement d'audience,
+  de scénario, du modèle ou de `main`.
+  **Seconde mesure demandée avant fusion**, sur `8c47cc7` : deux passes des quatre
+  scripts, huit références 882907c exclusivement en cache, deux exécutions à
+  priorité réduite ; **104 → 125 appels / 28 tours**, **3,71 → 4,46 appels/tour**,
+  relances moyennes **3,5 → 3,5**, refus **0 → 1**, replis du harnais **0 → 0**,
+  aucun arrêt, erreur technique ou défaut de recharge. Achats exécutés aux deux
+  passes, or **26 → 23**, `planches_1` portée après recharge ; question de dette
+  correctement typée `reclamer` aux deux passes. Champ interdit de `propos` non
+  reproduit ; cinq refus locaux d'identité inconnue dans `echanges` identiques
+  aux références. **Régression trouvée et corrigée** : « Ilse, tu m'entends ? »
+  bloquée aux deux passes par `qui` extrait à tort, sans être comptée en repli
+  par le harnais. Le schéma analyse désormais chaque opération séparément avec
+  son booléen obligatoire et sa définition commune ; contrôle structurel avant
+  accumulation, conservation des opérations reconnues inchangée. Un nouveau
+  test réel/autre question ordinaire, sortie et état après recharge ; **77 tests
+  ciblés verts, six fichiers, 53,93 s**, sans seconde suite complète. Reprise
+  `noms-dialogue` corrigée, deux passes : **3,50 appels/tour**, aucun refus,
+  repli, relance, erreur ou défaut de recharge ; question prononcée au premier
+  contrôle et Ilse répond aux deux passes. Lors de cette reprise, les trois
+  autres scripts ne sont pas rejoués ; leur mesure reste celle de `8c47cc7`.
+  **Comparaison à la base d'intégration**, `96c6396 → c57b1d3`, deux passes des
+  quatre scripts sur chaque commit, seize parties jouées et rangées en cache,
+  quatre exécutions au plus à priorité réduite ; huit références 882907c relues,
+  24 empreintes vérifiées. **122 → 120 appels / 28 tours**, **4,36 → 4,29/tour** ;
+  moyennes par passe : refus **4,5 → 0,5**, relances narratives **1 → 2,5**,
+  replis **0 → 0,5**, sans erreur technique, arrêt ou défaut de recharge.
+  **Aucun appel systématique ajouté par le lot 89** : l'appel de fidélité des
+  paroles explicites et des mots exacts sans effet typé vient du **lot 82,
+  `3510d00`**. Par fonction, totaux base → final : MJ **60 → 60**, narration
+  **25 → 33**, fidélité **37 → 27**, portée **0 → 0**. La base abandonne cinq tours
+  MJ, le final aucun ; un repli final restitue l'issue moteur après trois
+  récits de compte inverse. Le défaut `qui` était aussi présent sur `96c6396` :
+  son attribution antérieure au seul lot 89 n'était pas établie. Pas de code
+  modifié ni de nouvelle suite de tests dans ce complément ; aucun gain général
+  de latence démontré (secondes observées **16,7 → 17,6/tour**).
+  **Limites nouvelles consignées sans correction** : au second achat final,
+  la correction omet la part et fait acquérir le lot entier `planches` ; le récit
+  dit rembourser trois pièces alors que les comptes indiquent un paiement et
+  l'or vaut 23. Fidélité des quantités et audit sémantique toujours incomplets.
+  Décomposition par script/fonction et preuve d'attribution dans « Base d'intégration ».
+  [Rapport et limites du lot 89](taches/rapport-codex-89-fidelite-audience.md).
+
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
   **02c8e8b**, code signé **9f344cd** : lieux et portée partagés par salle,
   possessions, agissables et faits `lieu`/`ouvert`/`assomme` ; droits et fautes

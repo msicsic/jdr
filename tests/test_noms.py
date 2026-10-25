@@ -474,8 +474,9 @@ class NomsTests(unittest.TestCase):
                             audit['presentation']=nom_
                             r=rapport(audit)
                         elif demande.fonction=='auditer_action':
-                            r={'contenu_conforme':True,'motif':'Parole sans opération demandée.',
-                               'operations_demandees':[]}
+                            from donjon.couverture_action import OPERATIONS
+                            r={'contenu_conforme':True,'motif':'Parole sans opération demandée.','perimetre':'sens',
+                               'operations_demandees':dict.fromkeys(OPERATIONS,False)}
                         elif demande.entree['faits'].get('conversation_validee'):
                             r=dialogue(apparence[:1].upper()+apparence[1:]+' dit : « '+nom_+'. »')
                         else:

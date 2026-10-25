@@ -385,11 +385,13 @@ class MJ:
     def _auditer_action(self, intention, plan, revision, monde=None, operations_demandees=None):
         from .couverture_action import (schema as schema_couverture,
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
+                                        INSTRUCTIONS_PAROLE,
                                         RapportInvalide, entree as entree_couverture,
                                         verifier as verifier_couverture)
         for essai in range(2):
             rapport = self._appeler_brut(
-                INSTRUCTIONS_COUVERTURE, entree_couverture(intention, plan, monde),
+                INSTRUCTIONS_PAROLE if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
+                entree_couverture(intention, plan, monde),
                 "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
             if self.observateur:
                 self.observateur({"etape": "couverture de l'action", "modele": self.modele,
@@ -407,7 +409,7 @@ class MJ:
                             f"proposition.contenu reçu {json.dumps(plan.parole['contenu'], ensure_ascii=False)} ; "
                             f"contre-revue reçue {json.dumps(rapport, ensure_ascii=False)} ; "
                             "accepté un contenu couvrant les opérations demandées, "
-                            "après une contre-revue lisible (contenu_conforme, motif, operations_demandees).")
+                            "après une contre-revue lisible (contenu_conforme, motif, operations_demandees, perimetre).")
                     if self.observateur:
                         self.observateur({"etape": "couverture de l'action", "modele": self.modele,
                                           "revision": revision, "intention": intention,
@@ -417,13 +419,13 @@ class MJ:
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
                                  operations_demandees=None):
         """Contre-revue des mots et du contenu, avec l'adresse déjà fixée par le moteur."""
-        from .paroles import sens_contenu
+        from .couverture_action import sens_parole
         from .moteur import Plan
         # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
         # font pas partie de la question posée à la revue sémantique du contenu.
         plan = Plan({}, revision, "Contrôler le contenu de la parole préparée.", parole={
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
-            "sens_contenu": sens_contenu(complements["contenu"], monde)})
+            "sens_contenu": sens_parole(complements["contenu"], monde)})
         try:
             self._auditer_action(intention, plan, revision, monde, operations_demandees)
         except ErreurMonde as exc:

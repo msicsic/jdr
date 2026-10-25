@@ -28,7 +28,9 @@ class RessourceNommeeTests(unittest.TestCase):
                      if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
         revue = [e['plan']['parole'] for f, e in appels if f == 'auditer_action'][-1]
         self.assertEqual(revue['contenu'][-1]['sujet'], sujet)
-        self.assertEqual(revue['sens_contenu'], sens_contenu(revue['contenu']))
+        self.assertEqual([{k: v for k, v in s.items() if k != 'operations'}
+                          for s in revue['sens_contenu']], sens_contenu(revue['contenu']))
+        self.assertTrue(all(s['operations'] == ['ressource'] for s in revue['sens_contenu']))
         return r, texte, faits, appels
 
     def test_cas_reel_bois_aubin_repond_et_ne_donne_rien(self):

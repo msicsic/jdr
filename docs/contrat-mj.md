@@ -367,6 +367,24 @@ sinon le même défaut par le regard. Cette décision commune alimente `parole_p
 validation avant toute mutation ; Luna ne choisit plus parmi des audiences libres.
 Une audience contraire à la saisie est refusée avec `attendu`, avant la contre-revue.
 La contre-revue des paroles juge le contenu et les mots ; elle ne décide plus de l'audience.
+Le lot 89 (`codex-fidelite-audience`) sépare son contrat de celui des gestes.
+Le rapport déclare le `perimetre` de son motif : `sens`, `adresse` ou
+`validation_moteur`. Seul un verdict défavorable de périmètre `sens` refuse les
+mots ou le contenu ; une objection d'adresse, de forme technique ou de conséquence
+déjà validée ne relance pas le MJ. Cela vaut aussi pour les mots qui portent
+l'adresse, sans réécrire la saisie ni modifier `destinataires`.
+`sens_contenu` reçoit les opérations exécutables et, pour une demande ou un
+passage, le prix offert calculé par `paroles.offre`. Ces données rendent explicite
+l'équivalence des représentations admises par le moteur ; la revue compare encore
+le bien, la quantité et la contrepartie à la saisie. Elle n'anticipe ni accord,
+ni réponse, ni règlement d'un dû. La couverture des opérations est contrôlée
+quel que soit le périmètre : une objection hors périmètre ne dispense jamais
+d'une opération demandée. Un rapport sans périmètre est illisible et suit la
+procédure de reprise existante.
+Le respect du périmètre est déterministe sur ce champ typé ; classer le motif
+et reconnaître un écart de sens restent sémantiques. Un faux refus d'audience
+classé à tort `sens` peut encore bloquer la parole, et un véritable écart mal
+classé peut échapper au verdict : aucune garantie générale sur toute formulation.
 Même les mots exacts avec un contenu vide ou `propos` doivent couvrir les opérations
 que la saisie demande (lot 82) ; l'identité textuelle ne prouve pas cette couverture.
 Deux contenus refusés écartent le typage proposé : si la saisie fournit ses mots, le moteur
@@ -547,9 +565,17 @@ est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
 
 Depuis `codex-paiement-effectif` (lot 82), le rapport de fidélité d'une parole porte
-`operations_demandees`, `contenu_conforme` et `motif`. L'analyse sémantique de la saisie
-énumère les opérations demandées dans le vocabulaire commun de `paroles.SENS_CONTENU`,
-indépendamment du verdict. `paroles.operations_contenu` calcule celles que le contenu
+`operations_demandees`, `contenu_conforme` et `motif` (et le `perimetre` du lot 89).
+Depuis la seconde mesure du lot 89, `operations_demandees` est un objet complet :
+chaque opération du vocabulaire commun de `paroles.SENS_CONTENU` a son booléen
+obligatoire et sa propre définition dans le schéma. L'analyse évalue séparément
+chaque sens, indépendamment du verdict, au lieu de choisir des codes dans une
+liste ; tous les booléens peuvent être faux pour une parole ordinaire. Un rapport
+incomplet ou mal typé est illisible avant toute accumulation d'opérations.
+Les opérations vraies restent exigées pendant les corrections et le repli ;
+aucune omission ultérieure ne les efface. L'évaluation de leur sens demeure
+sémantique ; le schéma ne garantit pas l'absence de faux positifs.
+`paroles.operations_contenu` calcule celles que le contenu
 porte réellement ; le moteur refuse une opération manquante même avec un verdict favorable.
 Un échange exige `proposition` (demande et contrepartie), ou une demande historique payée
 (`demande`/`passage`, `offre` strictement positive, calculée comme à l'exécution).

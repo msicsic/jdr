@@ -48,7 +48,7 @@ SENS_CONTENU = {
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
     "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
     "qui": "Demander l'identité de l'interlocuteur.",
-    "reclamer": "Réclamer son dû : les pièces si sujet est vide, sinon l'objet sujet.",
+    "reclamer": "Interroger l'interlocuteur sur ce qu'il doit au locuteur, ou réclamer ce dû : les pièces si sujet est vide, sinon l'objet sujet. Le moteur décide du règlement ; le contenu n'impose pas une formulation impérative.",
     "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet (nom, alias, matière ou catégorie), sans le prendre ni le payer. Les codes faim et chaleur demandent plus largement de quoi satisfaire ce besoin ; ils ne remplacent pas un bien précis nommé par le joueur.",
 }
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
