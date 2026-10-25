@@ -14,6 +14,7 @@ l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même r
 """
 from . import agendas
 from . import relations
+import copy
 import heapq
 import json
 import math
