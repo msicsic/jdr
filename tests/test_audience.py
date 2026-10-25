@@ -3,6 +3,7 @@ import copy
 import unittest
 
 from donjon.dialogues import interlocuteurs
+from donjon.biens import compte
 from donjon.monde import ErreurMonde
 from donjon.paroles import analyser, en_face, preparer_parole, prevue
 from donjon.voix import reel
@@ -153,9 +154,15 @@ class AudienceTests(unittest.TestCase):
         for saisie, replique, contenu, pieces in cas:
             with self.subTest(saisie=saisie):
                 self.assertEqual(prevue(m, saisie)["personnage"], "aubin")
+                recit = ("Aubin te rend les deux pièces." if contenu[0] == "reclamer"
+                         else "Aubin a entendu ta demande.")
+                controle = ligne("mecanique", sources=["conversation_validee", "comptes"])
+                if contenu[0] == "reclamer":
+                    controle["comptes"] = [compte("aubin", "joueur", montant=2, etat="rendu")]
                 m, sortie, appels = jouer(m, saisie, [parole(replique, contenu, personnage="aubin"),
-                    dialogue("Aubin a entendu ta demande.")],
-                    [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+                    dialogue(recit)], [rapport(controle)])
+                self.assertIn(recit, sortie)
+                self.assertIn(recit, str(m.data["conversation"]))
                 self.assertIn("Tu dis à Aubin", sortie)
                 self.assertEqual(m.joueur["or"], pieces)
                 self.assertEqual(m.data["paroles_joueur"][-1]["auditeurs"], ["aubin"])
