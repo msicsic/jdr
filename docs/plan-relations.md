@@ -534,6 +534,18 @@ servie, la proposition peut la remettre. Les fusionner changerait les nuits PNJ.
 les services de réparation et les intermédiaires restent aux lots suivants. Le typage spontané
 des tâches promises par Luna reste partiel ; voir le [rapport A2a](taches/rapport-codex-29-propositions.md).
 
+**Lot 84, `codex-part-proposee`, non fusionnée (2026-10-25).** La classification
+`propositions.prestation` distingue une remise à portée de main d'un travail explicite
+ou d'une livraison à aller chercher. La part demandée garde son prix propre et sa réserve
+protégée ; elle ne devient pas une demande de cession du lot. L'évaluation, l'exécution
+et la contre-offre vérifient la même livraison sur copie (`echanges._livraison_proposition`) :
+les biens propres à portée sont constatés, puis une part est détachée par le chemin commun
+des demandes et ventes. Tout devis de livraison porte sur cette pièce. Le lot reste au
+donneur ; une livraison différée garde l'identité de la part dans l'engagement et les comptes.
+Un repas explicitement demandé comme service (`tache`, condition `servir`) reste devisé et
+engagé, même si la soupe est portée. Aucun changement des ventes historiques sans jet.
+Voir le [rapport du lot 84](taches/rapport-codex-84-part-proposee.md).
+
 - **Contenu typé** (`echanges`, parole du joueur `paroles.TYPES` : `proposition`) :
   `{"demande": <objet | part | tache | passage>, "contrepartie": <objet | part | tache | service
   futur | pieces | rien>, "raison": <avis, § 7.3, optionnel>}`. Les tâches restent le vocabulaire
