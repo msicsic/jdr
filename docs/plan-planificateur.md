@@ -1881,7 +1881,6 @@ et du rendu après recharge. Un plan avec plusieurs ajouts, une égalité avec
 suite différée, l'absence de résultat et les mutations profondes des plans
 publics sont testés. Les profils ne justifient pas un changement des signes
 dans ce lot. Mesures et limites : [rapport du lot 72](taches/rapport-codex-72-etapes-chainees.md).
-  Fusionné sur l'intégration après les lots 69 et 70 ; `planification.py` fusionné sans conflit avec les lots 71/72 voisins ; suite complète relancée.
 
 ## Préparation d'un choix — lot 71 (`codex-cout-fixe`, non fusionnée)
 
