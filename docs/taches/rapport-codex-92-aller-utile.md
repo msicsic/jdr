@@ -4,7 +4,8 @@ Branche `codex-aller-utile`, **non fusionnée**, base `56581f1` : moteur identiq
 à **9810f4a**. **Arrêt après mesure, aucune règle P3 implémentée.** Aucun appel
 à Luna, changement de scénario, du MJ, de `choisir`, de `main` ou du dépôt principal.
 
-**Protocole.** Auberge 1985, départ tiré, 12 h, tranche **[480, 720[ min**.
+**Protocole.** Auberge 1985, départ tiré, 12 h, tranche **[480, 720] min**
+(720 incluse dans ce premier relevé ; le lot 92 b utilise strictement `[480, 720[`).
 Un témoin sans comptage, puis observation des expansions et des gestes par
 `tools/mesurer_allers_utiles.py` ; deux processus au plus pour ce lot, priorité
 réduite. Le témoin n'est pas rejoué. Les points d'observation sont injectés dans

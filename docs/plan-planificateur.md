@@ -65,6 +65,38 @@ effets/admissibilité, partagée par la recherche et `VERIFIER`, ses lectures da
 [rapport 92](taches/rapport-codex-92-aller-utile.md) pour les comptes, le témoin
 CPU, la conservation après recharge et les limites.
 
+### P2 : ascendance des préparatifs — lot 92 b, non implémenté
+
+La mesure se fait sur les expansions descendantes, pas sur le nombre de
+successeurs immédiats. Auberge 1985 tirée, strictement `[480, 720[` :
+**74,33 %** des 1 051 797 expansions ont un `prendre`, `ouvrir` ou `alimenter`
+dans leur préfixe de moindre coût. Les sous-arbres se recoupent ; leur somme
+n'est pas une estimation de gain. La clôture conservatrice, par objets et
+faits, n'établit que **135 descendants sans rapport (0,0128 %)** : P2 reste désactivée.
+
+Pour les prédicats connus faim/chaleur/lumière, les feuilles remontent aux
+vivres/parts, sources, moyens d'accès et de lumière, outils compatibles,
+combustibles et porteurs. Les routes sous pression gardent toutes les portes ;
+les buts opaques et franchissements métriques gardent leurs préparatifs.
+La propriété requise compte : la source peut être utile alors que sa recharge
+ne l'est pas. Dans la projection sans épuisement, charger une source déjà
+allumée ne crée aucune flamme ou lumière nouvelle. Aucun contrat de `Vue.pertinent`,
+`gestes`, `_entrees` ou `VERIFIER` n'est modifié ; la clôture n'est qu'un diagnostic.
+
+La piste mesurée suivante est la preuve d'absence à profondeur minimale :
+une recherche en coût peut atteindre un état à la profondeur 8 et ne pas
+produire ses successeurs, alors que la preuve le rejoint à 6. La lacune ne
+prouve aucune impossibilité ; les variations de prix peuvent donc relancer
+des recherches épuisées : **452 912 expansions**, 170 relances Tilo et 103 Joss
+à clé complète inchangée, dans la tranche mesurée. Rejeu réel Joss à 622, contre Tilo à 566 où la preuve
+aboutit ; monde et rendu conservés après recharge.
+
+Pour P3, choisir directement une route au prix réel, pression comprise,
+retirerait l'obstacle de la durée seule mais **ne suffirait pas** : portes,
+admissibilité et retour restent à dominer. Cette modification pourrait déjà
+changer routes, coûts et décisions hors plafond ; elle n'est pas implémentée.
+Voir le [rapport 92 b](taches/rapport-codex-92b-pertinence.md).
+
 **État de recherche** : une projection des croyances du PNJ, jamais la vérité. Où il est, ce
 qu'il porte, où il croit chaque objet et chaque personne, ce qu'il croit ouvert, verrouillé,
 allumé, chargé ; les promesses qu'on lui a faites ; les refus récents. Le plan simule ce qui

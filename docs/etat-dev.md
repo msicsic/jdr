@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-aller-utile`, **non fusionnée**, lot **92 b**, suite de `dd32414` :
+  P2 mesurée en **sous-arbres**, moteur **9810f4a inchangé**. Auberge 1985 tirée,
+  `[480, 720[` : **1 051 797 expansions** ; **781 841 (74,33 %)** descendent
+  d'au moins un `prendre`/`ouvrir`/`alimenter`, avec recoupements entre préparatifs.
+  Clôture transitive des moyens des buts faim/chaleur/lumière, faits de charge
+  distingués de la source elle-même ; buts opaques et géométrie métrique gardés.
+  **135 expansions (0,0128 %)** seulement établies sans rapport : recharger un
+  fourneau déjà allumé, pour Joss/chaleur. **P2 non implémentée**, seuil de ~15 %
+  manqué par cette clôture conservatrice ; une analyse plus fine pourrait encore aider.
+  Tilo/faim : **376 appels, 266 recherches, 246 327 expansions**, médiane
+  **1 205 états distincts développés** ; Joss/faim : **165 / 133 / 358 430**,
+  médiane **2 741**. L'ampleur vient des combinaisons de moyens de lumière
+  susceptibles de servir et des recherches recommencées, pas du seul nombre de successeurs.
+  Clé complète contrôlée, FOR/DEX compris : **170 relances par les prix seuls**
+  pour Tilo et **103 pour Joss**, soit **180 129 + 272 783 expansions**.
+  Rejeu Joss à 622 : un état développé à profondeur **8**, sans successeurs,
+  est retrouvé à **6** par la preuve : lacune, aucune impossibilité certifiée.
+  Tilo à 566 : quinze états certifiés, puis zéro exploration. Trois outils de
+  diagnostic livrés, mêmes résultats, empreintes, diagnostics hors durées et
+  rendus après recharge ; aucune suite complète ni campagne CPU d'implémentation.
+  Piste proposée : mesurer la complétion de la preuve aux profondeurs minimales.
+  P3 : tarifer directement les routes avec la pression ne suffirait pas à sa preuve
+  (portes et admissibilité/retour) et pourrait déjà changer les décisions hors plafond.
+  [Rapport et limites du lot 92 b](taches/rapport-codex-92b-pertinence.md).
+
 - Branche `codex-aller-utile`, **non fusionnée**, lot **92**, base **56581f1**,
   moteur identique à **9810f4a** : **arrêt après mesure, P3 non implémentée**.
   Auberge 1985 tirée, 8–12 h : `aller` **88,78 %** des successeurs parcourus ;
