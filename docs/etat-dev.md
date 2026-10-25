@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-latence-appels`, **non fusionnée**, lot **93**, base `258daab`
+  (code d'intégration `119169c`, lot 91), code `4883425` avec Signed-off-by :
+  mesure par appel du premier delta et des jetons, chemin critique dans le fil,
+  médiane et ventilation par fonction dans `banc_multi` ; fournisseur OpenAI :
+  sous-schémas identiques mutualisés par `$defs`/`$ref`, expansion identique,
+  aucun champ, instruction, effort ou contrôle supprimé. Schémas MJ **−30,3 %**,
+  narratifs **−41,4 %** ; entrées Luna **3 005 420 → 2 804 658 jetons (−6,68 %)**.
+  Deux passes des six scripts, **78 tours par variante** : **246 → 249 appels**,
+  **13,794 → 13,249 s/tour (−3,95 %)**, médiane globale **13,045 → 11,915 s**.
+  Relances moyennes **4,5 → 4**, refus **10 → 11**, replis **0,5 → 0** ;
+  aucune erreur technique, interruption ou défaut de recharge sur 24 parties.
+  Douze références jouées une fois ici, rangées et relues du cache, SHA-256 vérifiés.
+  Deux exécutions par variante, quatre pendant le chevauchement, priorité réduite ;
+  poste partagé, gain non uniforme et causalité précise non démontrée.
+  Tests ciblés : équivalence des schémas et console réelle simulée, absence d'Ilse
+  et orientation de Gorm, mêmes refus/relances, état et rendu après recharge.
+  Suite complète unique verte : **1 947 tests, 16 ignorés**, 202 fichiers,
+  **1 349,91 s**, trois processus à priorité réduite.
+  **Validation incomplète** : six des neuf audits narratifs refusés restent
+  refusés au rejeu exact, dont écoute non exécutée, comptoir inventé et comptes
+  inversés ; trois faux refus ou défauts d'extraction disparaissent. L'unique refus
+  juste de contre-revue (écoute à la porte, cible vide) est accepté au rejeu,
+  malgré un schéma strictement inchangé et non mutualisé. Instabilité sémantique
+  non corrigée : critère « aucun refus juste perdu » non satisfait, fusion non validée.
+  Deux achats exécutés, or 23 dans le dossier après paiement et `planches_1`
+  portée après recharge ; récit « pièces rendues » encore ambigu à une passe,
+  comme dans la référence. Aucun changement du planificateur, du modèle ou de `main`.
+  [Rapport du lot 93](taches/rapport-codex-93-latence-par-appel.md).
+
 - Branche `codex-un-appel-de-moins`, fusionnée, lot **91**, base
   `123cc0c` issue d'intégration : l'interprétation d'une parole déclare ses
   opérations dans le même appel, avec les définitions communes de `SENS_CONTENU`.
