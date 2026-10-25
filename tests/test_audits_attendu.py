@@ -52,7 +52,14 @@ def jouer(monde, saisie, reponses, audits, revues=()):
         if fonction == "auditer_action":
             revue = revues.pop(0) if revues else {"conforme": True, "motif": ""}
             if "contenu_conforme" in schema["properties"] and "conforme" in revue:
-                return {"contenu_conforme": revue["conforme"], "motif": revue["motif"]}
+                revue = {"contenu_conforme": revue["conforme"], "motif": revue["motif"],
+                         **({"operations_demandees": revue["operations_demandees"]}
+                            if "operations_demandees" in revue else {})}
+            if "contenu_conforme" in revue:
+                from donjon.paroles import operations_contenu
+                revue.setdefault("operations_demandees",
+                    sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))
+                    if revue["contenu_conforme"] else [])
             return revue
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:

@@ -27,7 +27,7 @@ class ContenuVideTests(unittest.TestCase):
                     self.assertEqual(len(r.data['paroles_joueur']), 1)
                     self.assertTrue(r.data['paroles_joueur'][0]['auditeurs'])
                     self.assertIn('Ta question a été entendue.', str(r.data['conversation']))
-                    self.assertFalse(any(f == 'auditer_action' for f, _ in appels))
+                    self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 1)
 
     def test_deux_typages_refuses_repartent_des_mots_sans_effet(self):
         for nom, saisie in [('soir-noir', "il y a quelqu'un ?"),
@@ -47,7 +47,7 @@ class ContenuVideTests(unittest.TestCase):
                 self.assertEqual(r.joueur['or'], avant)
                 validee = next(e['faits']['conversation_validee'] for f, e in appels if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
                 self.assertEqual(validee['faits'], [])
-                self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 2)
+                self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 3)
 
     def test_prime_et_autre_condition_mecanique_refusees_meme_classees_parole(self):
         for nom, saisie, citation in [
