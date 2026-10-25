@@ -285,9 +285,11 @@ def _cru_ailleurs(monde, id, noyau):
 
 def _sait(monde, id, noyau):
     if noyau["type"] == "avis":
-        from .esprits import prevision
-        from .eau import menacee
-        return prevision(monde, id, noyau["objet"]) is not None and menacee(monde, id, noyau["objet"])
+        # Une conclusion commune n'est pas une preuve identique : les prévisions
+        # peuvent différer en date, pente et conviction. Le locuteur n'a pas accès
+        # à celles de l'auditeur ; celui-ci les pèsera seulement en recevant l'avis.
+        # Le registre des faits dits borne les avertissements, même refusés.
+        return False
     if noyau["type"] == "constat":
         c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
         return (_meme_constat(c, noyau) or bool(c and c["source"] in ("vu", "essai", "entendu")
@@ -317,7 +319,6 @@ def _auditeur(monde, id, souvenir, noyau, source):
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
-                or noyau["type"] == "avis" and _sait(monde, autre, noyau)
                 or (not _concerne(monde, id, autre, noyau["objet"]) if noyau["type"] == "avis"
                     else not se_fie(monde, id, autre))):
             continue
