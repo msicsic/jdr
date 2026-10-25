@@ -82,8 +82,27 @@ def contrats_publics(monde):
 
 def missions_discutables(monde):
     presents = interlocuteurs(monde)
-    return {id: {"nom": m["nom"], "donneur": m["donneur"], "condition": m["condition"]}
+    return {id: _mission_publique(monde, id)
             for id, m in monde.data["missions"].items() if m["donneur"] in presents}
+
+
+def _mission_publique(monde, id):
+    m = monde.data["missions"][id]
+    return {"nom": m["nom"], "donneur": m["donneur"], "condition": m["condition"],
+            "lieu_du_donneur": monde.objets[m["donneur"]]["lieu"], "offre": offre_mission(monde, id)}
+
+
+def offre_mission(monde, id):
+    from .propositions import offre
+    mission = monde.data["missions"][id]
+    accord = agendas.contrats(monde).get(id, {})
+    if accord.get("statut") in ("paye", "refuse"):
+        return None
+    montant = accord.get("montant", mission["prime_base"])
+    if disponible(monde, mission["donneur"], sauf=id) < montant:
+        return None
+    return offre(mission["donneur"], "joueur", {"type": "objet", "objet": mission["objet"]},
+                 {"type": "pieces", "montant": montant})
 
 
 def disponible(monde, donneur, sauf=None):
@@ -161,8 +180,9 @@ def preparer_conversation(monde, p, revision=None):
                     rapport["faits"].append(f"Le montant demandé de {p['montant_demande']} pièces est refusé ; la contre-offre est de {montant} pièces.")
                 elif op == "negocier" and ancien == montant:
                     rapport["faits"].append("Il maintient son offre précédente.")
-        rapport["mission"] = {"id": mission_id, "nom": mission["nom"], "condition": mission["condition"]}
+        rapport["mission"] = {"id": mission_id, **_mission_publique(travail, mission_id)}
         rapport["engagement"] = agendas.contrats(travail).get(mission_id)
+        rapport["offres"] = [o] if (o := offre_mission(travail, mission_id)) else []
     travail.data["revision"] += 1
     travail.data.setdefault("echanges_pnj", []).append({"revision": travail.data["revision"], **copy.deepcopy(rapport)})
     travail.verifier()

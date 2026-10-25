@@ -851,9 +851,19 @@ class MJ:
         contexte = monde.contexte()
         faits = {k: v for k, v in contexte.items() if k != "objets_perceptibles"}
         faits["attestations"] = attestations_narratives(monde, contexte)
-        from .biens import etat_comptes_joueur
+        from .biens import etat_comptes_joueur, offres_joueur
         faits["comptes"] = {"etat": etat_comptes_joueur(monde, contexte["interlocuteurs"]),
-                            "issue": (conversation_validee or {}).get("comptes", [])}
+                            "issue": (conversation_validee or {}).get("comptes", []),
+                            "offres": offres_joueur(monde) + (conversation_validee or {}).get("offres", [])}
+        from .propositions import offre_en_mots
+        faits["comptes"]["formulations_offres"] = [offre_en_mots(monde, o) for o in faits["comptes"]["offres"]]
+        if resultat_resolu is not None:
+            from .biens import compte
+            from .agendas import contrats
+            faits["comptes"]["issue"] = [
+                compte(monde.data["missions"][id]["donneur"], "joueur", montant=a["montant"], etat="rendu")
+                for id, a in contrats(monde).items()
+                if a.get("statut") == "paye" and a.get("paye_revision") == monde.data["revision"]]
         objets = contexte["objets_perceptibles"]
         # La liste est complète pour la vue actuelle, pas pour la salle ni les contenus
         # cachés. Les affaires accessibles dans le noir ne sont pas nécessairement vues.

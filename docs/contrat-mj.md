@@ -135,6 +135,26 @@ n'établit toujours pas la vérité de son contenu. Le contrôle ne crée aucune
 aucun remboursement ; les mutations précèdent toujours le récit et la sauvegarde précède
 l'affichage.
 
+**Offres conditionnelles** (`codex-prime-offre`, lot 67). Le dossier `comptes.offres`
+sépare les contreparties promises des soldes exigibles : `etat: offre`, `debiteur`
+(celui qui promet la contrepartie), `creancier` (celui qui fournit la prestation),
+`condition` et `contrepartie`. Ces deux termes suivent le contrat des propositions :
+objet, part, tâche, pièces ou rien. Missions et propositions validées utilisent cette
+même représentation ; les missions donnent aussi leur condition écrite et le lieu
+actuel de leur donneur, pour juger une reformulation dans la situation présente.
+Le devis initial vient de `prime_base`, puis du montant proposé ou accepté ; aucun
+devis nouveau sans les fonds nécessaires. Un refus ou un paiement clôt l'offre.
+
+L'auditeur extrait une offre conditionnelle dans `comptes` avec cette forme, au lieu
+de la déclarer `du`. Le moteur compare exactement ses rôles et ses deux termes aux
+offres fournies. Une dette, une remise et une offre ne se justifient pas entre elles.
+Les formulations produites par le moteur servent également d'appui aux engagements
+racontés ; annoncer la contrepartie conditionnelle ne lance aucune action.
+La remise de mission reste atomique : objet transféré et prime payée, sans solde
+intermédiaire sauvegardé ; son paiement est fourni comme compte `rendu` au récit
+du résultat. La comparaison est déterministe sur les termes extraits ; reconnaître
+une condition dans la prose et juger ses reformulations restent sémantiques.
+
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :
 - un avis (`clarifier`, `impossible`) que la boucle de décision écartera avant de le lire (un

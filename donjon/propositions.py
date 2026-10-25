@@ -27,6 +27,31 @@ SCHEMA = _forme({"type": {"type": "string", "enum": ["proposition"]},
                  "demande": schema_terme(), "contrepartie": schema_terme(True)})
 
 
+SCHEMA_OFFRE = _forme({"etat": {"type": "string", "enum": ["offre"]},
+    "debiteur": {"type": "string"}, "creancier": {"type": "string"},
+    "condition": schema_terme(True), "contrepartie": schema_terme(True)})
+
+
+def offre(debiteur, creancier, condition, contrepartie):
+    """Contrepartie promise par le débiteur contre la prestation du créancier.
+
+    Ces termes conditionnels ne sont ni une dette exigible ni une remise accomplie.
+    Mission et marché utilisent les mêmes termes, sans interpréter leur prose.
+    """
+    import copy
+    return {"etat": "offre", "debiteur": debiteur, "creancier": creancier,
+            "condition": copy.deepcopy(condition), "contrepartie": copy.deepcopy(contrepartie)}
+
+
+def offre_en_mots(monde, o):
+    from .voix import personne_pour_joueur
+    def qui(id):
+        return "toi" if id == "joueur" else personne_pour_joueur(monde, id, court=True)[0]
+    return (f"Offre de {qui(o['debiteur'])} à {qui(o['creancier'])} : "
+            f"{en_mots(monde, o['contrepartie'])} contre {en_mots(monde, o['condition'])}. "
+            "Cette offre conditionnelle n'est pas une dette exigible ni un paiement.")
+
+
 def cites_terme(terme):
     c = terme.get("condition", {})
     return [x for x in (terme.get("objet"), c.get("objet"), c.get("lieu")) if x]

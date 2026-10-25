@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-prime-offre`, fusionnée, lot **67**, base **cd25fcd** :
+  les offres de mission et les propositions utilisent les mêmes termes typés
+  (prestation conditionnelle, contrepartie, débiteur et créancier). Le dossier de
+  comptes distingue `offre`, `du`, `rendu`, `absent` ; les rôles et les deux termes
+  d'une offre sont comparés à l'état fourni, puis contrôlés à l'enregistrement.
+  Le devis de mission vient de `prime_base` ou de l'accord ; le lieu actuel du
+  donneur accompagne sa condition. Remise et paiement restent atomiques, avec
+  compte `rendu` fourni au récit. Cinq tests nouveaux console/MJ simulé/recharge,
+  dont offre réelle sans dette ni repli, remise payée dans le bon sens et récit
+  rechargé, autre échange contre tâche différée, termes faux et garde persistant.
+  44 tests ciblés des contrats existants verts (un ignoré). La suite unique relève
+  deux tests de noms inconnus (préparation `comptes` désormais avec noms appris)
+  et deux lectures directes du stockage ; préparation inconnue explicite et
+  lectures par `agendas.contrats`, puis 22 tests de parole et 28 tests finaux
+  offres/dialogues/socle verts, avec le récit payé rechargé.
+  Suite unique à trois processus, priorité réduite : **1 839 tests, 16 ignorés**,
+  1 973,6 s ; un échec et deux erreurs initiaux, corrigés et rejoués dans les
+  fichiers concernés. Bilan consolidé sans défaut restant connu, sans seconde suite.
+  Luna, une passe : crypte 25 appels / neuf tours, ressources 11 / trois, sans
+  repli ; prime « Vingt pièces, quand tu me remettras l'anneau du veilleur ici »
+  en quatre appels sans refus ni relance. `comptes` préparé avec noms : délai
+  réseau sur Gorm avant opération, puis refus de Brune dans le bon sens ; aucune
+  erreur de recharge. Référence main 42bb9c0 relue en cache (crypte : 24 / neuf) ;
+  lanceur récent incompatible avec ce vieux commit pour les scripts manquants.
+  Comparaison intégrée f033364 également relue, périmètre différent, sans
+  comparaison de latence. Limites : extraction et reformulation encore sémantiques,
+  remboursement de Gorm non validé en ligne par cette passe. Ni `main`, ni les
+  fichiers réservés aux lots 66 et 68 ne sont modifiés.
+  [Rapport du lot 67](taches/rapport-codex-67-prime-offre.md).
+  Fusionné sur l'intégration après les lots 61, 64 et 65 : `mj.py`, `narration.py` et `paroles.py` touchés aussi par les lots 61 et 65, fusionnés sans conflit ; suite complète relancée.
+
 - Branche `codex-attendu-designable`, fusionnée, lot **65**, base **de3e986** :
   les listes d'entités dans les refus passent par `refus.cibles` : candidats du geste,
   `Monde.designable`, références publiques, tri et plafond commun. Le champ technique

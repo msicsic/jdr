@@ -12,6 +12,7 @@
    "aubin": {"salle": "antichambre", "position": [1, 5]}
   },
   "calmes": ["brune", "aubin", "ilse", "marchand"],
+  "noms_connus": ["marchand", "brune"],
   "dettes": [{"de": "marchand", "a": "joueur", "montant": 2, "objet": "vivres", "quoi": "part"},
              {"de": "brune", "a": "joueur", "montant": 2, "objet": "vivres", "quoi": "part"}]
  },
