@@ -158,8 +158,9 @@ avant l'enregistrement. Après refus répétés, le joueur lit l'issue du moteur
 
 Les références des comptes extraits passent d'abord par la résolution exacte
 commune des identifiants, noms publics et alias (`noms.references_fournies`,
-`monde.reference_exacte`). Le catalogue vient exclusivement des objets et
-interlocuteurs fournis et du joueur : son nom désigne `joueur`, sans constante
+`monde.reference_exacte`). Le catalogue vient exclusivement des objets,
+interlocuteurs, personnes connues et souvenirs visuels fournis, et du joueur :
+son nom désigne `joueur`, sans constante
 propre à Corvus. Cette résolution traverse aussi les termes imbriqués des offres,
 sans changer quantités, états ni prose. Une ambiguïté rend le rapport illisible ;
 une référence inconnue ne reçoit aucune identité privée. Le contrôle refait à

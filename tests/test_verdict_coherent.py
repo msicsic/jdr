@@ -130,6 +130,32 @@ class VerdictCoherentTests(unittest.TestCase):
         faits['joueur']['nom'] = 'Alix'
         self.assertEqual(references_fournies({'creancier': 'Alix'}, faits)['creancier'], 'joueur')
         self.assertEqual(references_fournies({'creancier': 'Corvus'}, faits)['creancier'], 'Corvus')
+        faits['souvenirs_visuels'] = [{'id': 'broche_1', 'nom': 'broche argentée', 'hors_de_vue': True}]
+        self.assertEqual(references_fournies({'objet': 'broche argentée'}, faits)['objet'], 'broche_1')
+        faits['personnages_connus'] = {'marchand': 'Gorm, marchand'}
+        faits['souvenirs_visuels'].append({'id': 'marchand', 'nom': 'homme grisonnant'})
+        faits['interlocuteurs']['marchand'] = {'nom': 'homme grisonnant'}
+        self.assertEqual(references_fournies({'debiteur': 'Gorm'}, faits)['debiteur'], 'marchand')
         faits['objet:autre'] = {'nom': 'autre', 'aliases': ['madrier']}
         with self.assertRaises(ValueError):
             references_fournies(c, faits)
+
+    def test_comptes_de_personnes_connues_hors_de_vue_apres_recharge(self):
+        from tests.test_tensions import placer
+        for script, qui, nom, lieu in (('comptes', 'marchand', 'Gorm', 'antichambre'),
+                                       ('soir-appel', 'aubin', 'Aubin', 'echoppe')):
+            with self.subTest(qui=qui):
+                m = banc(script, noms_connus=['marchand', 'aubin', 'brune', 'ilse'])
+                placer(m, qui, lieu, (1, 1))
+                m = recharger(m)
+                self.assertNotIn(qui, m.contexte()['interlocuteurs'])
+                texte = f'{nom} te doit deux pièces.'
+                a = jugement('mecanique', 'etablie', ('comptes',))
+                a['segments']['0']['comptes'] = [compte(nom, 'Corvus', montant=2)]
+                r, sortie, appels = jouer(m, 'qui me doit des pièces ?', [dialogue(texte)], [a])
+                self.assertIn(texte, sortie)
+                self.assertIn(texte, str(recharger(r).data['narrations_mj']))
+                self.assertEqual(r.joueur['or'], m.joueur['or'])
+                self.assertEqual(r.data['dettes'], m.data['dettes'])
+                self.assertIn(f'{nom} te doit 2 pièces', decrire_comptes(r))
+                self.assertFalse(any('controle_narratif' in e for _, e in appels))

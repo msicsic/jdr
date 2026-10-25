@@ -404,20 +404,27 @@ def references_fournies(valeur, faits):
     """
     from .monde import reference_exacte
 
-    entrees = {cle[6:]: objet for cle, objet in faits.items() if cle.startswith('objet:')}
-    entrees.update(faits.get('interlocuteurs') or {})
+    entrees = [(cle[6:], objet) for cle, objet in faits.items() if cle.startswith('objet:')]
+    entrees.extend((faits.get('interlocuteurs') or {}).items())
+    entrees.extend((ref, {'nom': nom_}) for ref, nom_ in (faits.get('personnages_connus') or {}).items())
+    entrees.extend((s['id'], s) for s in faits.get('souvenirs_visuels', [])
+                   if isinstance(s, dict) and isinstance(s.get('id'), str))
     if isinstance(faits.get('joueur'), dict):
-        entrees['joueur'] = faits['joueur']
-    objets = [{'id': ref, 'nom': objet.get('nom', ref),
-               'aliases': list(dict.fromkeys(n for nom_ in appellations(objet)
-                                            for n in (nom_, nom_.split(',')[0])))}
-              for ref, objet in entrees.items() if isinstance(objet, dict)]
+        entrees.append(('joueur', faits['joueur']))
+    objets = {}
+    for ref, objet in entrees:
+        if isinstance(objet, dict):
+            entree = objets.setdefault(ref, {'id': ref, 'nom': ref, 'aliases': []})
+            # Plusieurs sources nomment la même référence : aucune n'efface les
+            # appellations publiques des autres (souvenir, nom appris, alias).
+            entree['aliases'].extend(n for nom_ in appellations(objet)
+                                     for n in (nom_, nom_.split(',')[0]))
 
     def decoder(contenu):
         if isinstance(contenu, list):
             return [decoder(v) for v in contenu]
         if isinstance(contenu, dict):
-            return {champ: (reference_exacte(objets, v) or v
+            return {champ: (reference_exacte(objets.values(), v) or v
                             if champ in CHAMPS_REFERENCES | {'debiteur', 'creancier'}
                             and isinstance(v, str) else decoder(v))
                     for champ, v in contenu.items()}
