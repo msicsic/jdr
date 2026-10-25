@@ -62,7 +62,10 @@ class PieceDeLotTests(unittest.TestCase):
         sens = dossiers[-1]["sens_contenu"][0]["demande"]
         self.assertEqual((sens["objet"], sens["quantite"], sens["unite"]), (lot, 1, "part"))
         self.assertEqual(sens["nom_lot"], m.objets[lot]["nom"])
-        self.assertEqual(dossiers[-1]["sens_contenu"], sens_contenu([contenu], m))
+        # Le dossier conserve les désignations et quantités communes ; la revue
+        # reçoit en plus les opérations exécutables et le prix du lot 89.
+        self.assertEqual([{k: v for k, v in s.items() if k not in ("operations", "prix_offert")}
+                          for s in dossiers[-1]["sens_contenu"]], sens_contenu([contenu], m))
         self.assertIn(bon, str(recharger(r).data["conversation"]))
         r, lignes = vivre(r, 3)
         r = recharger(r)

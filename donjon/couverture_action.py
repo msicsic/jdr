@@ -9,7 +9,7 @@ import json
 from .monde import ErreurMonde
 from .refus import RapportIllisible, attendu_audit
 from .noms import REGLE_DESIGNATIONS, reperes_designations
-from .paroles import SENS_CONTENU, operations_contenu
+from .paroles import SENS_CONTENU, operations_contenu, offre
 
 
 SCHEMA = {
@@ -26,11 +26,13 @@ SCHEMA = {
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {"contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"},
+        "perimetre": {"type": "string", "enum": ["sens", "adresse", "validation_moteur"],
+            "description": "Domaine du motif : sens des mots et du contenu ; adresse des paroles ; forme ou conséquences déjà validées par le moteur. Seul sens peut refuser la fidélité."},
         "operations_demandees": {"type": "array", "items": {
             "type": "string", "enum": [t for t in SENS_CONTENU if t != "propos"]},
             "description": "Analyse de la saisie du joueur seule, indépendamment du contenu proposé et de son verdict : opérations qu'elle demande au moteur de trancher. Une parole ordinaire sans opération donne []. Un échange demandé exige proposition, y compris pour un achat. Sens des opérations : "
                 + " ".join(f"{t} : {s}" for t, s in SENS_CONTENU.items() if t != "propos")}},
-    "required": ["contenu_conforme", "motif", "operations_demandees"],
+    "required": ["contenu_conforme", "motif", "operations_demandees", "perimetre"],
 }
 
 
@@ -82,6 +84,38 @@ Appelle auditer_action une fois.
 
 
 INSTRUCTIONS += "\n" + REGLE_DESIGNATIONS
+
+# Un contrat distinct évite d'appliquer à la parole les critères de cible et
+# d'effet durable des gestes. Le périmètre du verdict reste contrôlé à réception.
+INSTRUCTIONS_PAROLE = """Tu contrôles le sens d'une parole préparée, avant son enregistrement.
+Compare la demande du joueur à replique et au sens exécutable du contenu fourni.
+Analyse séparément operations_demandees dans la saisie, même si le contenu proposé les omet.
+contenu_conforme juge uniquement une contradiction ou une omission de sens : mots,
+biens, quantités, prix, attributs, engagements. Un contenu propos ne couvre pas une
+opération demandée ; le moteur contrôle séparément la couverture des opérations.
+L'adresse est déjà décidée par destinataires, y compris le sens des mots qui la
+portent : pronoms, indéfinis, vocatifs, groupes. Ces mots ne permettent pas de
+refuser le contenu pour l'étendue ou l'identité de son audience. Ils restent dans
+la réplique originale ; n'invente aucune autre décision d'adresse.
+Le contenu et sens_contenu sont validés par le moteur : juge leur signification,
+jamais leur forme technique ni leurs conséquences. Les opérations et le prix
+exécutable fournis font autorité, quelle que soit la représentation du contenu.
+Une question, une demande et une offre n'annoncent pas l'accord ou la réaction du
+destinataire. La réponse, le règlement d'un dû et les transferts relèvent du moteur.
+Ne transforme pas ces conséquences en différences de sens avec la saisie.
+Rends perimetre=sens pour un écart de sens, adresse pour une objection d'audience,
+validation_moteur pour une objection sur la forme ou les conséquences validées.
+Seul un écart de sens justifie contenu_conforme=false. En cas de doute, accepte.
+Le motif explique un seul écart. Appelle auditer_action une fois.
+""" + "\n" + REGLE_DESIGNATIONS
+
+
+def sens_parole(contenu, monde):
+    """Sens public et opérations exécutables : une représentation n'est pas une omission."""
+    from .paroles import sens_contenu
+    return [{**sens, "operations": sorted(operations_contenu([c])),
+             **({"prix_offert": offre(c)} if c.get("type") in ("demande", "passage") else {})}
+            for c, sens in zip(contenu, sens_contenu(contenu, monde))]
 
 
 def _operations(plan):
@@ -164,7 +198,8 @@ def verifier(rapport, plan=None, operations_demandees=None):
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
     if plan is not None and plan.parole is not None:
         if (not isinstance(rapport, dict)
-                or set(rapport) != {"contenu_conforme", "motif", "operations_demandees"}
+                or set(rapport) != {"contenu_conforme", "motif", "operations_demandees", "perimetre"}
+                or rapport["perimetre"] not in ("sens", "adresse", "validation_moteur")
                 or type(rapport["contenu_conforme"]) is not bool or not isinstance(rapport["motif"], str)
                 or not isinstance(rapport["operations_demandees"], list)
                 or any(not isinstance(t, str) or t not in SENS_CONTENU or t == "propos"
@@ -184,7 +219,7 @@ def verifier(rapport, plan=None, operations_demandees=None):
                 attendu_audit("proposition.contenu", json.dumps(plan.parole["contenu"], ensure_ascii=False),
                               forme, ("opération demandée absente", operation)))
         motif = rapport["motif"][:MOTIF_MAX]
-        if not rapport["contenu_conforme"]:
+        if not rapport["contenu_conforme"] and rapport["perimetre"] == "sens":
             raise ErreurMonde("Les mots ou le contenu proposés ne correspondent pas à ta parole.",
                 attendu_audit("proposition.replique et proposition.contenu",
                               json.dumps({k: plan.parole[k] for k in ("replique", "contenu")}, ensure_ascii=False),

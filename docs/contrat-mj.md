@@ -367,6 +367,24 @@ sinon le même défaut par le regard. Cette décision commune alimente `parole_p
 validation avant toute mutation ; Luna ne choisit plus parmi des audiences libres.
 Une audience contraire à la saisie est refusée avec `attendu`, avant la contre-revue.
 La contre-revue des paroles juge le contenu et les mots ; elle ne décide plus de l'audience.
+Le lot 89 (`codex-fidelite-audience`) sépare son contrat de celui des gestes.
+Le rapport déclare le `perimetre` de son motif : `sens`, `adresse` ou
+`validation_moteur`. Seul un verdict défavorable de périmètre `sens` refuse les
+mots ou le contenu ; une objection d'adresse, de forme technique ou de conséquence
+déjà validée ne relance pas le MJ. Cela vaut aussi pour les mots qui portent
+l'adresse, sans réécrire la saisie ni modifier `destinataires`.
+`sens_contenu` reçoit les opérations exécutables et, pour une demande ou un
+passage, le prix offert calculé par `paroles.offre`. Ces données rendent explicite
+l'équivalence des représentations admises par le moteur ; la revue compare encore
+le bien, la quantité et la contrepartie à la saisie. Elle n'anticipe ni accord,
+ni réponse, ni règlement d'un dû. La couverture des opérations est contrôlée
+quel que soit le périmètre : une objection hors périmètre ne dispense jamais
+d'une opération demandée. Un rapport sans périmètre est illisible et suit la
+procédure de reprise existante.
+Le respect du périmètre est déterministe sur ce champ typé ; classer le motif
+et reconnaître un écart de sens restent sémantiques. Un faux refus d'audience
+classé à tort `sens` peut encore bloquer la parole, et un véritable écart mal
+classé peut échapper au verdict : aucune garantie générale sur toute formulation.
 Même les mots exacts avec un contenu vide ou `propos` doivent couvrir les opérations
 que la saisie demande (lot 82) ; l'identité textuelle ne prouve pas cette couverture.
 Deux contenus refusés écartent le typage proposé : si la saisie fournit ses mots, le moteur

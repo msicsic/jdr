@@ -56,6 +56,7 @@ def jouer(monde, saisie, reponses, audits, revues=()):
                          **({"operations_demandees": revue["operations_demandees"]}
                             if "operations_demandees" in revue else {})}
             if "contenu_conforme" in revue:
+                revue.setdefault("perimetre", "sens")
                 from donjon.paroles import operations_contenu
                 revue.setdefault("operations_demandees",
                     sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))

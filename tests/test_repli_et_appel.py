@@ -54,7 +54,7 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
         if fonction == "auditer_action":
             if "contenu_conforme" in schema["properties"]:
                 from donjon.paroles import operations_contenu
-                return {"contenu_conforme": True, "motif": "",
+                return {"contenu_conforme": True, "motif": "", "perimetre": "sens",
                         "operations_demandees": sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))}
             return {"conforme": True, "motif": ""}
         return (audits if fonction == "auditer_narration" else reponses).pop(0)

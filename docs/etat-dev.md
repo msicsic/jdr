@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-fidelite-audience`, **non fusionnée**, lot **89**, base
+  `96c6396` : contrat de revue de parole séparé des gestes ; `perimetre`
+  obligatoire (`sens`, `adresse`, `validation_moteur`), seul `sens` peut refuser.
+  La couverture des opérations reste obligatoire quel que soit ce périmètre.
+  Sens public enrichi des opérations exécutables et du prix offert ; définition
+  commune de `reclamer` alignée sur les questions de dû admises par le moteur.
+  Relecture des lots 79/82/84 : **40 revues de parole, cinq faux refus**,
+  trois d'audience, un de forme d'achat, un de règlement d'une question de dette.
+  Quatre tests nouveaux console, état, paroles, paiement, livraison et rendu après
+  recharge ; **71 tests ciblés consolidés verts**. Suite complète unique :
+  **1 931 tests, 16 ignorés**, 199 fichiers, trois processus à priorité réduite,
+  **1 444,24 s** ; huit échecs d'attentes de dossier dans deux anciens fichiers,
+  adaptées aux champs ajoutés, et une erreur Windows de remplacement du fichier
+  temporaire du test TUI. Reprise finale : **15 tests verts, 56,40 s**, incluant
+  les deux fichiers adaptés, le seul test TUI en erreur (inchangé) et les quatre
+  nouveaux tests ; bilan consolidé sans défaut restant reproduit, sans seconde suite.
+  Luna une passe, quatre scripts, 882907c uniquement en cache : **53 → 57 appels
+  sur 14 tours MJ**, **3,79 → 4,07 appels/tour**, relances **4 → 2**, refus **0 → 2**,
+  replis du détecteur **0 → 2** ; un tour avec erreur réseau, aucun arrêt ni
+  défaut de recharge. Bois à Aubin accepté au premier audit dans les deux scripts ;
+  achat interrompu par un délai de 203,4 s avant proposition. Question de dette
+  encore bloquée par une mauvaise analyse (`qui`), puis définition partagée
+  clarifiée sans seconde passe Luna. **Objectif global d'appels non atteint** ;
+  périmètre et opérations restent classés sémantiquement, pas de garantie générale
+  contre les faux refus ou les écarts mal classés. Aucun changement d'audience,
+  de scénario, du modèle ou de `main`.
+  [Rapport et limites du lot 89](taches/rapport-codex-89-fidelite-audience.md).
+
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
   **02c8e8b**, code signé **9f344cd** : lieux et portée partagés par salle,
   possessions, agissables et faits `lieu`/`ouvert`/`assomme` ; droits et fautes
