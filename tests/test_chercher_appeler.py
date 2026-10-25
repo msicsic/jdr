@@ -32,10 +32,12 @@ class RechercheTests(unittest.TestCase):
         heler = pnj.heler
         indice_recherche = deliberation.indice_recherche
 
-        def indice(monde, id, salle, personne=None):
-            if id == qui and personne in (None, cible) and salle in appels_vains(monde, id, cible):
+        def indice(monde, id, salle, personne=None, **k):
+            vain = salle in appels_vains(monde, id, cible)
+            change = indice_recherche(monde, id, salle, personne, **k)
+            if change and id == qui and personne in (None, cible) and vain:
                 indices.append(salle)
-            return indice_recherche(monde, id, salle, personne)
+            return change
 
         def observer(monde, id, cherche, lignes):
             if id == qui and cherche == cible:
