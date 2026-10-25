@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-pertinence-arriere`, **non fusionnée**, lot **75**, brief
+  **313c458**, intégration **1171fc3** déjà incluse au départ : arrêt au diagnostic
+  prévu par la tâche. Sur la capture auberge 1985 à 480, Joss/faim et Tilo/faim
+  trouvent chacun un plan (149 / 169 nœuds), sans acquisition offerte ni portée
+  dans les états développés ; coût égal à la complète. Aucun outil de choc/coupe
+  dans l'auberge, aucune clé ni aucun crochet connus de ces deux PNJ. Les faits
+  de recherche d'Odile et de passage des portes expliquent les états supplémentaires
+  observés ; ils n'établissent pas la cause générale des nuits lentes de 12 h.
+  Outil de diagnostic reproductible, deux tests nouveaux avec les captures auberge
+  et mine, plans, monde complet et rendu après recharge. Suite complète unique :
+  **1 876 tests, 16 ignorés**, 189 fichiers, aucun échec ni erreur, **1 726,02 s**,
+  trois processus à priorité réduite ; lot au-delà des 45 minutes avec cette suite.
+  Aucun moteur, scénario,
+  coût, plafond ou modèle modifié ; pas de Luna, `main` inchangée.
+  Vérification finale et mesures dans le
+  [rapport du lot 75](taches/rapport-codex-75-pertinence-arriere.md).
+
 - Branche `codex-etapes-chainees`, fusionnée, lot **72**, base **fbcf0ff**,
   brief **f5fec82** : `_explorer_etats` chaîne les ajouts sans copier les préfixes.
   Le seul chemin retenu est reconstruit et gelé ; `_MEMOIRE` le garde directement,
@@ -3412,7 +3429,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     de coupe dès qu'une serrure est crue verrouillée quelque part (`self.verrous`) ; ne garder que les moyens qui lèvent
     un obstacle entre le PNJ et ce que vise le but (contenant fermé, porte verrouillée sur le chemin), par une clôture
     complète sur les préconditions des gestes, fautes comprises. Prolonge C1 (lot 52). Contrat des lots 46 et 48 pour
-    les deux. (P1) Une borne A* par « ancres de but » (distance minimale à la salle où le but se conclut) n'aide que les
+    les deux. **P2, diagnostic du lot 75 non fusionné :** la capture prescrite à 480 ne présente
+    aucune acquisition pour Joss/Tilo et les deux recherches aboutissent sous le plafond.
+    L'auberge n'a aucun outil de choc/coupe ; la clause globale ne peut pas y créer
+    d'acquisition de ces outils. Aucun filtre livré, clôture et preuve ouvertes ; localiser
+    les recherches lentes sur la version mesurée avant de reprendre cette piste.
+    (P1) Une borne A* par « ancres de but » (distance minimale à la salle où le but se conclut) n'aide que les
     recherches qui trouvent un plan ; à mesurer après P2 et P3.
   - **Coût fixe, mêmes nœuds** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06) : gains à décisions et
     nœuds identiques. **(a) et (b), lot 71 non fusionné** : trois clés géométriques sans réencodage de carte,

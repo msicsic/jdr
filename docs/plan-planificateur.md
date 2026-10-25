@@ -1913,3 +1913,33 @@ restent en lecture seule. La carte reste un dictionnaire JSON éditable : le té
 demande encore une comparaison de contenu, et l'ordre des salles et sorties est
 relevé à chaque lecture. Ce lot ne réduit ni l'espace de recherche ni le nombre
 de nœuds. Mesures et validation : [rapport du lot 71](taches/rapport-codex-71-cout-fixe.md).
+
+## Pertinence par chaînage arrière — diagnostic du lot 75, non fusionné
+
+La tâche 75 demande de ne retenir un moyen non visé que s'il lève un obstacle
+entre l'acteur et les moyens de son but. La mesure préalable sur
+`tests/data/cout-12h/auberge-1985-480.json.gz` ne retrouve cependant pas la cause
+annoncée : Joss/faim et Tilo/faim trouvent leur plan en 149 et 169 nœuds, sans
+acquisition offerte ni état portant une acquisition. Les seuls biens portables
+pertinents sont les deux repas ; aucun des deux PNJ ne connaît de clé ou de
+crochets, et le scénario ne contient aucun outil de choc ou de coupe.
+Leur résultat égale le coût de la complète (`REFERENCE`). Le lot s'arrête donc
+au diagnostic, comme le prévoit le brief ; aucune clôture n'est implémentée.
+
+Le principe à prouver pour une future restriction reste une clôture des
+préconditions de **tous** les gestes : moyens du but en couche 0, contenants et
+passages qui en conditionnent l'accès, leurs clés, outils compatibles, puis
+accès à ces moyens récursivement. Lumière, allumage, recharge, permissions et
+fautes doivent y participer. Un moyen peut aussi changer le prix d'un geste
+(arme d'une acquisition par violence, éclairage du crochetage) : se limiter
+aux seules serrures ne prouve pas la conservation de l'optimum.
+
+La preuve attendue serait une induction arrière depuis le dernier geste d'un
+plan optimal : chaque précondition utile et chaque moyen qui en réduit le coût
+doit appartenir à la clôture ; supprimer les autres acquisitions ne doit
+ni changer l'admissibilité ni augmenter le coût de ce plan. **Cette preuve
+n'est pas acquise ici.** Aucun filtre expérimental ne remplace le contrat
+des lots 46/48/51, les entrées de mémoire et la référence de `VERIFIER`.
+La cause générale du surcoût de 12 h reste à localiser sur une capture où il
+se reproduit. Voir le [rapport du lot 75](taches/rapport-codex-75-pertinence-arriere.md)
+et l'outil reproductible `tools/mesurer_pertinence_arriere.py`.
