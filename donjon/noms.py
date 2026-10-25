@@ -10,6 +10,17 @@ from .francais import de, inserer_designation
 PERSONNES = ("personnage", "depouille")
 
 
+def appellations(objet):
+    """Noms d'une même référence, y compris sa pièce explicitement décrite.
+
+    Aucun singulier n'est deviné : un lot peut avoir un nom collectif sans
+    rapport morphologique avec celui d'une pièce.
+    """
+    piece = objet.get("physique", {}).get("nom_piece")
+    return list(dict.fromkeys(n for n in
+        (objet.get("nom"), *objet.get("aliases", []), piece) if n))
+
+
 REGLE_DESIGNATIONS = """designations joint les noyaux canoniques reconnus aux formes écrites,
 avec leur référence publique. Ce lien lexical désigne la même entité, il ne valide pas les
 qualificatifs du contexte : juge séparément leur compatibilité avec les faits. Une description
@@ -66,7 +77,7 @@ def reperes_designations(texte, faits):
     return [{"reference": ref, "canonique": e["nom"], "noyau": noyau,
              "noyau_ecrit": m.group(), "forme_ecrite": texte, "faits": e}
             for ref, e in entrees.items() if isinstance(e, dict) and e.get("nom")
-            for noyau in dict.fromkeys([e["nom"], *e.get("aliases", [])])
+            for noyau in appellations(e)
             for m in motif_designation(noyau).finditer(texte)]
 
 

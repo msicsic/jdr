@@ -18,9 +18,10 @@ def _motif(terme):
 
 def termes(monde):
     """Associe chaque nom ou alias normalisé aux identifiants qui le portent."""
+    from .noms import appellations
     index = {}
     for o in monde.objets.values():
-        for nom in [o.get("nom", ""), *o.get("aliases", [])]:
+        for nom in appellations(o):
             terme = normaliser(nom)
             if len(terme) >= 3:
                 index.setdefault(terme, set()).add(o["id"])

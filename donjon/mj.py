@@ -422,7 +422,7 @@ class MJ:
         # font pas partie de la question posée à la revue sémantique du contenu.
         plan = Plan({}, revision, "Contrôler le contenu de la parole préparée.", parole={
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
-            "sens_contenu": sens_contenu(complements["contenu"])})
+            "sens_contenu": sens_contenu(complements["contenu"], monde)})
         try:
             self._auditer_action(intention, plan, revision, monde)
         except ErreurMonde as exc:
