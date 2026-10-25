@@ -26,10 +26,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   défaut de recharge. Bois à Aubin accepté au premier audit dans les deux scripts ;
   achat interrompu par un délai de 203,4 s avant proposition. Question de dette
   encore bloquée par une mauvaise analyse (`qui`), puis définition partagée
-  clarifiée sans seconde passe Luna. **Objectif global d'appels non atteint** ;
+  clarifiée avant la seconde mesure. **Objectif global d'appels non atteint** ;
   périmètre et opérations restent classés sémantiquement, pas de garantie générale
   contre les faux refus ou les écarts mal classés. Aucun changement d'audience,
   de scénario, du modèle ou de `main`.
+  **Seconde mesure demandée avant fusion**, sur `8c47cc7` : deux passes des quatre
+  scripts, huit références 882907c exclusivement en cache, deux exécutions à
+  priorité réduite ; **104 → 125 appels / 28 tours**, **3,71 → 4,46 appels/tour**,
+  relances moyennes **3,5 → 3,5**, refus **0 → 1**, replis du harnais **0 → 0**,
+  aucun arrêt, erreur technique ou défaut de recharge. Achats exécutés aux deux
+  passes, or **26 → 23**, `planches_1` portée après recharge ; question de dette
+  correctement typée `reclamer` aux deux passes. Champ interdit de `propos` non
+  reproduit ; cinq refus locaux d'identité inconnue dans `echanges` identiques
+  aux références. **Régression trouvée et corrigée** : « Ilse, tu m'entends ? »
+  bloquée aux deux passes par `qui` extrait à tort, sans être comptée en repli
+  par le harnais. Le schéma analyse désormais chaque opération séparément avec
+  son booléen obligatoire et sa définition commune ; contrôle structurel avant
+  accumulation, conservation des opérations reconnues inchangée. Un nouveau
+  test réel/autre question ordinaire, sortie et état après recharge ; **77 tests
+  ciblés verts, six fichiers, 53,93 s**, sans seconde suite complète. Reprise
+  `noms-dialogue` corrigée, deux passes : **3,50 appels/tour**, aucun refus,
+  repli, relance, erreur ou défaut de recharge ; question prononcée au premier
+  contrôle et Ilse répond aux deux passes. Les trois autres scripts ne sont
+  pas rejoués après correction ; leur mesure reste celle de `8c47cc7`.
   [Rapport et limites du lot 89](taches/rapport-codex-89-fidelite-audience.md).
 
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base

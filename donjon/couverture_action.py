@@ -23,15 +23,17 @@ SCHEMA = {
 
 # L'adresse est fixée par le moteur avant la revue ; seul le sens du contenu
 # reste à contrôler ici.
+OPERATIONS = {t: s for t, s in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {"contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"},
         "perimetre": {"type": "string", "enum": ["sens", "adresse", "validation_moteur"],
             "description": "Domaine du motif : sens des mots et du contenu ; adresse des paroles ; forme ou conséquences déjà validées par le moteur. Seul sens peut refuser la fidélité."},
-        "operations_demandees": {"type": "array", "items": {
-            "type": "string", "enum": [t for t in SENS_CONTENU if t != "propos"]},
-            "description": "Analyse de la saisie du joueur seule, indépendamment du contenu proposé et de son verdict : opérations qu'elle demande au moteur de trancher. Une parole ordinaire sans opération donne []. Un échange demandé exige proposition, y compris pour un achat. Sens des opérations : "
-                + " ".join(f"{t} : {s}" for t, s in SENS_CONTENU.items() if t != "propos")}},
+        "operations_demandees": {"type": "object", "additionalProperties": False,
+            "description": "Analyse de la saisie seule : évaluer chaque opération selon sa définition, indépendamment du contenu proposé et du verdict. Une parole ordinaire peut ne demander aucune opération. Un achat demande un échange (proposition).",
+            "properties": {t: {"type": "boolean", "description": s} for t, s in OPERATIONS.items()},
+            "required": list(OPERATIONS)},
+    },
     "required": ["contenu_conforme", "motif", "operations_demandees", "perimetre"],
 }
 
@@ -201,13 +203,13 @@ def verifier(rapport, plan=None, operations_demandees=None):
                 or set(rapport) != {"contenu_conforme", "motif", "operations_demandees", "perimetre"}
                 or rapport["perimetre"] not in ("sens", "adresse", "validation_moteur")
                 or type(rapport["contenu_conforme"]) is not bool or not isinstance(rapport["motif"], str)
-                or not isinstance(rapport["operations_demandees"], list)
-                or any(not isinstance(t, str) or t not in SENS_CONTENU or t == "propos"
-                       for t in rapport["operations_demandees"])):
+                or not isinstance(rapport["operations_demandees"], dict)
+                or set(rapport["operations_demandees"]) != set(OPERATIONS)
+                or any(type(v) is not bool for v in rapport["operations_demandees"].values())):
             raise RapportInvalide("La contre-revue de la parole est invalide.")
         requises = operations_demandees if operations_demandees is not None else set()
         # Une correction du contenu ne peut effacer une demande déjà reconnue.
-        requises.update(rapport["operations_demandees"])
+        requises.update(t for t, demandee in rapport["operations_demandees"].items() if demandee)
         manquantes = requises - operations_contenu(plan.parole["contenu"])
         if manquantes:
             # Une cause à la fois, dans l'ordre commun du protocole :

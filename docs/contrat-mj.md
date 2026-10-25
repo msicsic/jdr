@@ -565,9 +565,17 @@ est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
 
 Depuis `codex-paiement-effectif` (lot 82), le rapport de fidélité d'une parole porte
-`operations_demandees`, `contenu_conforme` et `motif`. L'analyse sémantique de la saisie
-énumère les opérations demandées dans le vocabulaire commun de `paroles.SENS_CONTENU`,
-indépendamment du verdict. `paroles.operations_contenu` calcule celles que le contenu
+`operations_demandees`, `contenu_conforme` et `motif` (et le `perimetre` du lot 89).
+Depuis la seconde mesure du lot 89, `operations_demandees` est un objet complet :
+chaque opération du vocabulaire commun de `paroles.SENS_CONTENU` a son booléen
+obligatoire et sa propre définition dans le schéma. L'analyse évalue séparément
+chaque sens, indépendamment du verdict, au lieu de choisir des codes dans une
+liste ; tous les booléens peuvent être faux pour une parole ordinaire. Un rapport
+incomplet ou mal typé est illisible avant toute accumulation d'opérations.
+Les opérations vraies restent exigées pendant les corrections et le repli ;
+aucune omission ultérieure ne les efface. L'évaluation de leur sens demeure
+sémantique ; le schéma ne garantit pas l'absence de faux positifs.
+`paroles.operations_contenu` calcule celles que le contenu
 porte réellement ; le moteur refuse une opération manquante même avec un verdict favorable.
 Un échange exige `proposition` (demande et contrepartie), ou une demande historique payée
 (`demande`/`passage`, `offre` strictement positive, calculée comme à l'exécution).

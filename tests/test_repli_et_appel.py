@@ -54,8 +54,10 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
         if fonction == "auditer_action":
             if "contenu_conforme" in schema["properties"]:
                 from donjon.paroles import operations_contenu
+                from donjon.couverture_action import OPERATIONS
                 return {"contenu_conforme": True, "motif": "", "perimetre": "sens",
-                        "operations_demandees": sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))}
+                        "operations_demandees": {t: t in operations_contenu(entree["plan"]["parole"]["contenu"])
+                                                 for t in OPERATIONS}}
             return {"conforme": True, "motif": ""}
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:
