@@ -13,6 +13,22 @@ construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENT
 
 ## Contrôle de la prose
 
+**Une pièce d'un lot** (`codex-piece-de-lot`, lot 78). Les noms et alias du lot,
+ainsi que son `physique.nom_piece` lorsqu'il est décrit, désignent la même
+référence pour la saisie et la résolution des contenus. Aucun singulier ni nom
+de pièce n'est inventé à partir d'un nom collectif. Les recherches gardent leurs
+contrôles de connaissance, de perception et d'ambiguïté.
+
+Avant la contre-revue de fidélité, `paroles.sens_contenu` décrit les biens d'une
+demande ou d'un marché : référence publique, nom du lot, désignations connues,
+quantité et unité (`part` ou `objet`). Une demande simple d'une ressource comptée
+porte une part ; un terme `part` de marché porte également une part, même lorsque
+le nom du lot est au pluriel. Un objet entier garde l'unité `objet`. Demande et
+contrepartie sont séparées ; ces données n'anticipent ni acceptation ni paiement.
+La revue reçoit ce sens calculé avant toute mutation, et les objets des termes
+imbriqués sont nommés comme les autres références. Son jugement de fidélité reste
+sémantique : le dossier n'exempte aucun autre objet ni changement de quantité.
+
 Chaque réponse libre de Luna (dialogue, avis de clarification, explication d'un refus)
 est découpée en segments et relue par un auditeur, qui classe chaque segment :
 

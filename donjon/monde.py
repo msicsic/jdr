@@ -335,7 +335,7 @@ class Monde:
             return [o for o in self.objets.values() if self.visible(o["id"])]
 
     def trouver(self, texte):
-        from .noms import resoudre as personne, public, reference
+        from .noms import resoudre as personne, public, reference, appellations
         visuel = personne(self, texte)
         if visuel:
             return visuel
@@ -353,7 +353,7 @@ class Monde:
                 continue
             if texte == normaliser(reference(self,o['id'])):
                 return o["id"]
-            noms = [public(self,n) for n in [o["nom"], *o["aliases"]]]
+            noms = [public(self,n) for n in appellations(o)]
             if texte in [normaliser(n) for n in noms]:
                 exacts.append(o["id"])
             if texte and any(texte in normaliser(n) for n in noms):

@@ -116,9 +116,14 @@ def entree(intention, plan, monde=None):
     if monde is not None:
         def nommer_parole(p):
             # Les références sont nommées, les mots libres restent littéraux.
-            return {**p, "contenu": [{**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur")
-                                             if k in c and c.get("type") != "ressource"}}
-                                for c in p.get("contenu", [])]}
+            def nommer_contenu(c):
+                if c.get("type") == "proposition":
+                    return {**c, **{champ: {**c[champ], "objet": _nommer(c[champ]["objet"], monde)}
+                                    for champ in ("demande", "contrepartie")
+                                    if "objet" in c[champ]}}
+                return {**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur")
+                               if k in c and c.get("type") != "ressource"}}
+            return {**p, "contenu": [nommer_contenu(c) for c in p.get("contenu", [])]}
         def nommer_plan(op):
             return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
                     **({"perception": {**op["perception"], "cible": _nommer(op["perception"]["cible"], monde)}}

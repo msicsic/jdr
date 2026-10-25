@@ -80,12 +80,44 @@ _contenu_ordinaire["properties"]["type"]["enum"] = [t for t in TYPES if t != "pr
 SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [_contenu_ordinaire, SCHEMA_PROPOSITION]}
 
 
-def sens_contenu(contenu):
+def sens_contenu(contenu, monde=None):
     """Signification des codes validés, sans leur prêter une conséquence non calculée."""
     return [{"type": c.get("type", "propos"), "sens": SENS_CONTENU.get(c.get("type"), SENS_CONTENU["propos"]),
+             **(_biens_contenu(monde, c) if monde is not None else {}),
              **({"ressource_recherchee": RESSOURCES_DEMANDEES.get(normaliser(c["sujet"]), c["sujet"])}
                 if c.get("type") == "ressource" else {})} if isinstance(c, dict)
             else {"type": "propos", "sens": SENS_CONTENU["propos"]} for c in contenu]
+
+
+def _biens_contenu(monde, contenu):
+    """Sens des biens validés avant exécution : identité et quantité séparées.
+
+    Une demande de ressource reste une enquête sans quantité à transférer.
+    Seules les références connues sont décrites ; le lexique privé ne fuit pas.
+    """
+    from .deliberation import besoin_de_part
+    from .noms import appellations, public, reference
+
+    def bien(terme):
+        identifiant = resoudre(monde, terme.get("objet"))
+        if identifiant not in monde.objets:
+            return None
+        objet = monde.objets[identifiant]
+        return public(monde, {"objet": reference(monde, identifiant),
+            "nom_lot": objet["nom"], "designations": appellations(objet),
+            "quantite": 1, "unite": terme["type"]})
+
+    if contenu.get("type") == "proposition":
+        return {champ: b for champ in ("demande", "contrepartie")
+                if contenu.get(champ, {}).get("type") in ("objet", "part")
+                and (b := bien(contenu[champ])) is not None}
+    if contenu.get("type") == "demande":
+        identifiant = resoudre(monde, contenu.get("sujet"))
+        if identifiant in monde.objets:
+            b = bien({"objet": identifiant, "type":
+                      "part" if besoin_de_part(monde.objets[identifiant]) else "objet"})
+            return {"demande": b}
+    return {}
 
 PRECISION = ((7, "très pauvre : mots simples, phrases hachées, termes approximatifs"),
              (9, "pauvre : vocabulaire courant restreint, idées une à une, détails perdus"),
@@ -1006,7 +1038,7 @@ def resoudre(monde, reference):
     Un nom partiel (« refuge » pour « Refuge du relais ») vaut s'il ne désigne qu'une entité connue.
     """
     from . import lexique
-    from .noms import resoudre as personne
+    from .noms import resoudre as personne, appellations
     visuel = personne(monde, reference)
     if visuel:
         return visuel
@@ -1020,7 +1052,7 @@ def resoudre(monde, reference):
     mots = lexique.normaliser(reference).split()
     candidats = set()
     for id, nom in [*((i, s.get("nom", "")) for i, s in monde.data["salles"].items()),
-                    *((i, n) for i, o in monde.objets.items() for n in [o["nom"], *o.get("aliases", [])])]:
+                    *((i, n) for i, o in monde.objets.items() for n in appellations(o))]:
         noms = lexique.normaliser(nom).split()
         if mots and any(noms[k:k + len(mots)] == mots for k in range(len(noms))) and _connu_du_joueur(monde, id):
             candidats.add(id)
