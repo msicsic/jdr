@@ -35,31 +35,43 @@ class CapturesTests(unittest.TestCase):
     def recherches(self, d, qui):
         return [x for x in d if x["pnj"] == qui and x["but"] == "faim"]
 
+    def plus_faim(self, m, qui):
+        """La faim monte d'un point, puis le monde est rechargé : des prix changent (celui d'abîmer pour
+        Rémy), aucune permission."""
+        prix = prix_faute(m, qui, "faim"), prix_faute(m, qui, "faim", "douceur")
+        lire(m, qui)["besoins"]["faim"] += 1
+        m = recharger(m)
+        nouveaux = prix_faute(m, qui, "faim"), prix_faute(m, qui, "faim", "douceur")
+        self.assertNotEqual(nouveaux, prix)
+        self.assertEqual([x is None for x in nouveaux], [x is None for x in prix])
+        if qui == "remy":
+            self.assertEqual((prix[0], nouveaux[0]), (None, None))
+        return m
+
     def test_seul_le_prix_d_abimer_change_reprise_par_certificat_meme_resultat(self):
         for scenario, qui in self.CAS:
             with self.subTest(qui=qui):
                 m = capture(scenario)
                 a, b, c = caches_vides()
                 with a, b, c, patch.object(p, "VERIFIER", True), p.diagnostics() as d:
+                    # VERIFIER : chaque recherche reprise est aussi refaite en entier, et comparée.
                     self.assertIsNone(p.planifier(m, qui, "faim"))
                     premiere = self.recherches(d, qui)[-1]
-                    # Épuisée dès la première recherche sur ces entrées : le certificat est complété.
-                    self.assertEqual((premiere["issue"], premiere["preuve_issue"]), ("epuise", "epuise"))
-                    prix = prix_faute(m, qui, "faim"), prix_faute(m, qui, "faim", "douceur")
-                    # La faim monte d'un point, puis le monde est rechargé : des prix changent (celui
-                    # d'abîmer pour Rémy), aucune permission.
-                    lire(m, qui)["besoins"]["faim"] += 1
-                    m = recharger(m)
-                    nouveaux = prix_faute(m, qui, "faim"), prix_faute(m, qui, "faim", "douceur")
-                    self.assertNotEqual(nouveaux, prix)
-                    self.assertEqual([x is None for x in nouveaux], [x is None for x in prix])
-                    if qui == "remy":
-                        self.assertEqual((prix[0], nouveaux[0]), (None, None))
-                    self.assertIsNone(p.planifier(m, qui, "faim"))   # VERIFIER : la recherche complète aussi
+                    # Épuisée sans plan : ses nœuds sont gardés, sans certificat encore.
+                    self.assertEqual((premiere["issue"], premiere["preuve_issue"]), ("epuise", None))
+                    m = self.plus_faim(m, qui)
+                    self.assertIsNone(p.planifier(m, qui, "faim"))
                     seconde = self.recherches(d, qui)[-1]
-                    self.assertTrue(seconde["impossible"])
-                    self.assertTrue(seconde["memoire"])
-                    self.assertEqual(seconde["noeuds"], 0)
+                    # Refaite sur le graphe gardé, sans recalculer un geste ; le certificat y est
+                    # complété et prouve l'absence (avant le lot 66 : une lacune).
+                    self.assertTrue(seconde["graphe"])
+                    self.assertEqual((seconde["issue"], seconde["preuve_issue"]), ("epuise", "epuise"))
+                    m = self.plus_faim(m, qui)
+                    self.assertIsNone(p.planifier(m, qui, "faim"))
+                    troisieme = self.recherches(d, qui)[-1]
+                    self.assertTrue(troisieme["impossible"])
+                    self.assertTrue(troisieme["memoire"])
+                    self.assertEqual(troisieme["noeuds"], 0)
 
     def test_une_faute_devenue_permise_fait_refaire_la_recherche(self):
         m = capture("mine")
@@ -67,6 +79,8 @@ class CapturesTests(unittest.TestCase):
         self.assertIsNone(prix_faute(m, qui, "faim"))
         a, b, c = caches_vides()
         with a, b, c, patch.object(p, "VERIFIER", True), p.diagnostics() as d:
+            self.assertIsNone(p.planifier(m, qui, "faim"))
+            m = self.plus_faim(m, qui)
             self.assertIsNone(p.planifier(m, qui, "faim"))
             self.assertEqual(self.recherches(d, qui)[-1]["preuve_issue"], "epuise")
             # Son honnêteté fléchit : voler devient envisageable, la preuve d'avant ne vaut plus.

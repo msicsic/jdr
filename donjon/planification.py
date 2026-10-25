@@ -64,12 +64,12 @@ _MEMOIRE = {}
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
 # Dès la première recherche, une petite marque de discrétion est retenue ;
-# les nœuds ne le sont qu'à la deuxième rencontre des mêmes entrées (la première les garde le temps
-# de son certificat d'absence).
+# les nœuds ne le sont qu'à la deuxième rencontre des mêmes entrées, ou dès la première si elle
+# s'épuise sans plan (son certificat d'absence se complètera sur eux à la deuxième).
 _GRAPHES = {}
 # Une impossibilité prouvée sur tout le graphe jusqu'à la profondeur autorisée ne dépend
 # plus des prix. Une seule dernière preuve par PNJ/but ; une preuve bornée n'est jamais reprise.
-# Une recherche épuisée sans plan la tente aussitôt, en complétant le graphe (``_sans_plan``).
+# Une deuxième recherche épuisée sans plan sur les mêmes entrées la tente en complétant le graphe.
 _IMPOSSIBLES = {}
 PREUVE_MAX = 4 * NOEUDS
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
@@ -1821,22 +1821,27 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         voir = v.emploie_lumiere   # avant toute lecture : le graphe où la recherche commence (``_explorer``)
         travail = graphe
         if graphe is not None and not graphe.get("garder", True):
-            # Première recherche sur ces entrées : ses nœuds ne sont pas gardés d'une recherche à
-            # l'autre, mais le sont le temps de la recherche, pour son certificat d'absence. La même
-            # exploration que celle de la deuxième recherche, qui les garde (``_explorer``).
+            # Première recherche sur ces entrées : ses nœuds sont gardés le temps de la recherche ;
+            # au-delà, seulement si elle s'épuise sans plan (ci-dessous). La même exploration que celle
+            # de la deuxième recherche, qui les garde (``_explorer``).
             travail = {"discretion": graphe["discretion"]}
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
                                                           noeuds, faute, tenir, travail)
-        if travail is not graphe:
-            graphe["discretion"] = travail["discretion"]
         borne = examines >= noeuds
         issue = "plan" if trouve else "borne" if borne else "epuise"
-        # Épuisée sans plan, le certificat se complète (``_sans_plan``) : seuls des prix changés ensuite
-        # ne la font pas refaire. Bornée, seul un graphe gardé peut le donner, sans rien développer.
-        if (trouve is None and graphe is not None and (not borne or graphe.get("garder", True)) and memo is not None
-                and depuis is None and (vide_garde is None or vide_garde[0] != signature_vide)):
+        if travail is not graphe:
+            graphe["discretion"] = travail["discretion"]
+            if trouve is None and not borne and memo is not None and depuis is None:
+                # Épuisée sans plan : la prochaine recherche sur les mêmes entrées, si seuls des prix ont
+                # changé, se refera sur ce graphe sans recalculer un geste, et le complètera en certificat.
+                _GRAPHES[place] = (base, travail)
+        # Le certificat d'absence se tente sur un graphe gardé, à sa deuxième recherche épuisée sans
+        # plan sur les mêmes entrées : il est alors complété (``_sans_plan``), et seuls des prix changés
+        # ensuite ne la font plus refaire. Bornée, il ne développe rien (une lacune reste une lacune).
+        if (trouve is None and graphe is not None and travail is graphe and graphe.get("garder", True)
+                and memo is not None and depuis is None and (vide_garde is None or vide_garde[0] != signature_vide)):
             vide, preuve_noeuds, preuve_issue = _sans_plan(
-                v, depart(monde, id, v), but, profondeur, faute, tenir, travail, voir, vises, completer=not borne)
+                v, depart(monde, id, v), but, profondeur, faute, tenir, graphe, voir, vises, completer=not borne)
             _IMPOSSIBLES[place] = (signature_vide, vide)
             if vide:
                 # Le certificat suffit désormais, sans retenir tous les états développés.
