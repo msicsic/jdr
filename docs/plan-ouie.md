@@ -349,6 +349,22 @@ persistant ; les souvenirs d'appels ne servent à le reconstituer que pour les a
 qui n'en possèdent pas. Le planificateur lit les lieux écartés par son contrat existant
 `deliberation.appels_vains`, déjà dans ses clés de reprise ; aucun changement de son graphe.
 
+**Le contenu d'un indice ne se renouvelle pas avec son souvenir** (lot 69,
+`codex-appels-restes`, non fusionnée). `esprits.indices_recherche` conserve, par personne et
+lieu, les indices déjà utilisés : présence plus ou moins assurée et située, bruit plus ou
+moins fort, voix reconnue éventuelle et position seulement si elle a été entendue. Les dates,
+la confiance et les relais d'une nouvelle ne créent pas de contenu nouveau. Une information
+moins forte ou moins précise est couverte par celle déjà utilisée ; une autre position, une
+voix distincte ou un bruit plus fort peuvent rouvrir leur lieu. Expliquer le bruit, l'oublier,
+changer de but ou recharger n'efface pas ce suivi. Un échec consomme les indices présents ;
+les anciennes parties reprennent ceux qui restent dans leurs croyances et souvenirs.
+Le dernier lieu positivement appris (`presence_recherche`) survit à un constat d'absence :
+un retour appris vers un ancien lieu ou une ancienne case relance sans effacer les bruits
+déjà consommés. Une simple réécoute à la dernière place connue ne constitue pas ce retour.
+Une réapparition directement vue ou une réponse adressée et saisie établit un nouveau
+contact dans son lieu, même si la voix y avait déjà été entendue. Le silence y reste une
+recherche vaine. Aucun auteur réel d'un bruit inconnu n'entre dans le suivi.
+
 **Se parler, c'est s'entendre et savoir qui parle** (accepté : deux PNJ peuvent se parler dans le
 noir, mais pas par un raccourci de distance ni d'après la place réelle de l'autre).
 - *S'entendre* (`ouie.saisit`, `ouie.s_entendent`) : chacun saisit les mots de l'autre par

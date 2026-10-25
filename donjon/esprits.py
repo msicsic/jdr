@@ -89,7 +89,10 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           "aides_attendues": dict,
           # Salles examinées sans y retrouver la personne cherchée, jusqu'à un nouvel indice
           # local, indépendamment de la mémoire courante et du temps écoulé.
-          "recherches": dict}
+          "recherches": dict,
+          # Contenus des indices déjà utilisés par personne et lieu, hors mémoire bornée.
+          "indices_recherche": dict,
+          "presence_recherche": dict}  # Dernière localisation positive, même après un constat d'absence.
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -115,6 +118,7 @@ def installer(monde):
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
         migrer_confidences = "faits_dits" not in monde.data["esprits"].get(id, {})
         migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
+        migrer_indices = "indices_recherche" not in monde.data["esprits"].get(id, {})
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
@@ -125,6 +129,11 @@ def installer(monde):
             if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
                 salles = e["recherches"].setdefault(souvenir["qui"], {})
                 salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
+        if migrer_indices:
+            from .deliberation import consommer_indices_recherche
+            for qui, salles in e["recherches"].items():
+                for salle in salles:
+                    consommer_indices_recherche(monde, id, qui, salle)
         if e["secours"] is None:
             appels = [s for s in e["memoire"] if s["type"] == "appel"]
             if appels:
@@ -318,6 +327,22 @@ def verifier(monde):
             q in monde.objets or q == "joueur" for q in e["recherches"]
         ) and all(isinstance(salles, dict) and all(s in monde.data["salles"] and type(t) is int
                   for s, t in salles.items()) for salles in e["recherches"].values()), "Recherches de PNJ invalides"
+        assert isinstance(e["indices_recherche"], dict) and all(
+            (q in monde.objets or q == "joueur") and isinstance(salles, dict)
+            and all(s in monde.data["salles"] and isinstance(indices, list)
+                    and all(isinstance(x, list) and len(x) in (3, 4)
+                            and ((x[0] == "presence" and len(x) == 3 and type(x[1]) is int and 0 <= x[1] <= 2)
+                                 or (x[0] == "bruit" and len(x) == 4 and type(x[1]) is int and x[1] > 0
+                                     and (x[2] is None or x[2] == "joueur" or x[2] in monde.objets)))
+                            and (x[-1] is None or isinstance(x[-1], list) and len(x[-1]) == 2
+                                 and all(type(n) is int for n in x[-1])) for x in indices)
+                    for s, indices in salles.items())
+            for q, salles in e["indices_recherche"].items()), "Indices de recherche invalides"
+        assert isinstance(e["presence_recherche"], dict) and all(
+            (q in monde.objets or q == "joueur") and isinstance(p, list) and len(p) == 2
+            and p[0] in monde.data["salles"] and (p[1] is None or isinstance(p[1], list)
+                and len(p[1]) == 2 and all(type(n) is int for n in p[1]))
+            for q, p in e["presence_recherche"].items()), "Présences de recherche invalides"
         i = e["intention"]
         assert i is None or (isinstance(i, dict) and set(i) - {"attitude"} == CLES_INTENTION
                              and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)
@@ -349,14 +374,18 @@ def croyance(monde, id, sujet, attribut):
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
+    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut) if attribut == "lieu" else None
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
     from .social import reviser_dits
     reviser_dits(monde, id, sujet, attribut, valeur, **lieu)
     if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
-        # Un indice positif rouvre ce lieu seul, même après un appel dans la même minute.
-        # Une absence ne dit rien de neuf sur les autres salles déjà parcourues.
-        from .deliberation import indice_recherche
+        # Un contenu positif nouveau rouvre ce lieu seul ; une répétition ou une absence,
+        # même datée de nouveau, n'annule pas le résultat d'une recherche.
+        from .deliberation import contact_recherche, indice_recherche
+        if source == "vu" and (not ancienne or ancienne["valeur"] != valeur
+                               or ancienne.get("case") != lieu.get("case")):
+            contact_recherche(monde, id, sujet, valeur)
         indice_recherche(monde, id, valeur, sujet)
     if attribut == "etat" and (valeur.get("conscient") is False or valeur.get("reddition")):
         from .defense import constater_fin
