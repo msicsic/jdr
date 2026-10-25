@@ -142,10 +142,128 @@ en cache : **14 appels sur quatre tours chacune**, soit **3,50 appels/tour**,
 tu m'entends ? » est prononcée au premier contrôle avec toutes les opérations
 fausses ; Ilse répond « Oui, je t'entends », et la sauvegarde rechargée conserve
 le tour. Bois à Aubin et passage demandé à Brune restent correctement typés.
-Les trois autres scripts ne sont pas rejoués après cette correction : leurs
+Lors de cette reprise, les trois autres scripts ne sont pas rejoués : leurs
 chiffres ci-dessus restent ceux de `8c47cc7`, pas une moyenne artificielle sur
 deux versions du code. Aucun autre changement de code.
 
 Bruts : `artifacts/bancs-multi/20261025-214008-41452/` (mesure de `8c47cc7`),
 `20261025-214903-31636/` (reprise corrigée), `seconde-mesure-analyse.{json,txt}`,
 `reprise-noms-dialogue-analyse.json` et `tests-seconde-mesure.{log,json}`.
+
+## Base d'intégration
+
+25 octobre 2026 — Comparaison demandée **96c6396 → c57b1d3**, deux passes
+des quatre scripts sur chaque commit, ChatGPT medium/libre, quatre exécutions
+au maximum, priorité réduite, copies temporaires. **Seize parties jouées et
+rangées en cache** ; les huit parties de 882907c sont uniquement relues.
+Empreintes SHA-256 des **24 parties** vérifiées contre leur copie en cache.
+Aucun arrêt, erreur technique ou défaut de recharge. **Aucun changement de code
+pour ce complément**, aucune nouvelle suite de tests.
+
+**Conclusion sur le coût du lot 89.** `c57b1d3` n'ajoute **aucun appel
+systématique** par rapport à sa base `96c6396`. Ensemble : **122 → 120 appels
+sur 28 tours MJ**, soit **4,36 → 4,29 appels/tour**. Par passe, moyennes : refus
+**4,5 → 0,5**, relances narratives **1 → 2,5**, replis du détecteur **0 → 0,5**.
+Les fonctions totalisent **60 → 60** `repondre_au_joueur`, **25 → 33**
+`auditer_narration`, **37 → 27** `auditer_action`, **0 → 0** `auditer_portee`.
+Deux passes ne démontrent pas un gain général de temps ; les secondes mesurées
+ici sont **16,7 → 17,6 s/tour**, malgré les deux appels économisés. La comparaison
+avec 882907c seule n'isolait pas le lot 89.
+
+### Décomposition par fonction
+
+Moyennes des deux passes, **appels par tour MJ du script** (4 tours dans
+soir-appel/noms-dialogue, 3 dans ressources/echanges). R = `repondre_au_joueur`
+(interprétation, récit et corrections), N = `auditer_narration`, F =
+`auditer_action` (ici fidélité de parole), P = `auditer_portee`. Toutes les
+fonctions sont comptées : **aucun autre appel** ; arrondi à trois décimales.
+
+| Script | Commit | R | N | F | P | Total |
+|---|---|---|---|---|---|---|
+| soir-appel | 882907c | 2,25 | 1,25 | 0,75 | 0 | 4,25 |
+| soir-appel | 96c6396 | 2,25 | 1 | 1,375 | 0 | 4,625 |
+| soir-appel | c57b1d3 | 2,375 | 1,25 | 1,125 | 0 | 4,75 |
+| noms-dialogue | 882907c | 2,125 | 1,375 | 0,25 | 0 | 3,75 |
+| noms-dialogue | 96c6396 | 1,75 | 0,75 | 1,25 | 0 | 3,75 |
+| noms-dialogue | c57b1d3 | 1,75 | 1 | 0,75 | 0 | 3,5 |
+| ressources | 882907c | 2,333 | 1,333 | 0 | 0 | 3,667 |
+| ressources | 96c6396 | 2,333 | 1 | 1,5 | 0 | 4,833 |
+| ressources | c57b1d3 | 2,5 | 1,5 | 1 | 0 | 5 |
+| echanges | 882907c | 2 | 1 | 0 | 0 | 3 |
+| echanges | 96c6396 | 2,333 | 0,833 | 1,167 | 0 | 4,333 |
+| echanges | c57b1d3 | 2 | 1 | 1 | 0 | 4 |
+
+**Quel lot a ajouté l'appel ?** Le commit du **lot 82, `3510d00`**, supprime
+dans `_verifier_fidelite_parole` les retours anticipés pour adresse explicite,
+et pour mots identiques sans contenu typé. Une parole valide au premier essai
+passe désormais par **R interprétation + F fidélité + R récit + N narration**,
+soit quatre appels, aussi bien sur `96c6396` que sur `c57b1d3`.
+
+- `echanges` : salutation, question du gardien et avertissement à tous passaient
+  sans F sur 882907c ; **+1 F par tour de parole vient du lot 82**, non du 89.
+  Le passage sans incident de la base et les deux passages finaux ont exactement
+  R=2, N=1, F=1 par tour. Les cinq commandes locales refusées pour noms inconnus
+  n'appellent aucun modèle et restent hors du dénominateur MJ.
+- `ressources` : les trois paroles étaient également exemptées de F. Leur coût
+  sans incident passe donc de trois à quatre appels dès le lot 82. Les valeurs
+  supérieures à quatre viennent des corrections ou des relances narratives.
+- `noms-dialogue` : Brune n° 2 et Ilse n° 3 deviennent contrôlées par F au lot 82 ;
+  le bois n° 1 l'était déjà. L'ambiance n° 4 reste **R + N**, sans F ni P. Ainsi,
+  le script final sans incident coûte **3 × 4 + 2 = 14 appels**, soit 3,50/tour.
+- `soir-appel` : dans les deux références 882907c, seule la question à Ilse
+  n° 3 saute F ; les trois autres paroles sont déjà revues. Le plancher devient
+  quatre appels pour chaque parole au lot 82 ; les écarts supplémentaires des
+  tableaux sont des corrections, audits relus ou récits révisés.
+
+Le **lot 83** (`b2be935`, `be8e175`) renforce la cohérence et la résolution des
+comptes audités : un rapport illisible peut nécessiter une relecture N, sans
+nouvel appel normal. Le **lot 84** (`7578a56`) change la remise des parts, sans
+ajouter de fonction Luna. Le **lot 89** change le contrat et le dossier de F,
+mais ni ses points d'appel ni sa boucle de reprise, déjà présents dans la base.
+
+**Pourquoi ne pas retirer F aux paroles apparemment vides ?** Une réplique exacte
+avec `propos` peut avoir perdu une opération demandée : cela ne certifie pas
+qu'il n'y a rien à contrôler. C'est précisément observé ici dans `soir-appel`,
+passe finale 2 : le MJ propose d'abord `propos` pour payer une planche ; F détecte
+`proposition` manquante. Supprimer F sur ce critère réintroduirait la perte de
+paiement corrigée au lot 82 et couverte par `test_paiement_effectif`. Ce raccourci
+retirerait donc un contrôle utile du lot 82. Le lot 89 n'ajoutant pas d'appel
+normal, conformément à la demande, aucun code n'est modifié pour ce complément.
+
+### Effets et limites observés avec la bonne base
+
+La base laisse **cinq tours MJ non exécutés** en passe 1 : bois dans soir-appel
+et noms-dialogue, audition d'Ilse, question de dette et question du gardien.
+Leurs récits absents économisent N sans constituer une réponse réussie.
+Sur `c57b1d3`, **aucun de ces tours n'est abandonné**. Cela explique une partie
+des N supplémentaires, en plus des relances narratives.
+
+**Attribution rectifiée :** l'extraction de `qui` pour « Ilse, tu m'entends ? »
+est également présente sur `96c6396`, qui bloque le tour en passe 1. Le défaut
+constaté dans « Seconde mesure » n'était donc pas attribuable au lot 89 sur la
+seule comparaison à 882907c. Le renforcement commun de `c57b1d3` l'évite dans
+les deux nouvelles passes ; aucune nouvelle garantie générale de classification.
+
+Le **seul refus de validation final** est le `propos` omettant l'achat, décrit
+ci-dessus ; la correction aboutit à une transaction. Le **seul repli narratif
+final**, `ressources` passe 2 n° 2, vient de trois récits qui ajoutent ou substituent
+le compte inverse (« tu ne me dois rien ») au résultat « Aubin ne te doit aucune
+pièce ». Le garde des comptes les refuse ; le joueur lit finalement l'issue
+moteur exacte. Le tour est prononcé, sauvegardé et résolu : ce n'est ni un appel
+de fidélité supplémentaire ni une question de dette bloquée.
+
+**Limite matérielle et narrative restante :** dans l'achat final de la passe 2,
+la correction propose `demande: {type: objet, objet: planches}` au lieu d'une
+part. La revue l'admet ; l'inventaire rechargé contient **`planches` (lot entier)**,
+contre `planches_1` dans l'autre passe finale et les deux passes de la base.
+Le récit admis annonce en outre « Il te rend les trois pièces immédiatement »,
+alors que les comptes fournis portent un paiement joueur → Aubin et l'or vaut
+**23**. Ce sont des défauts sémantiques de fidélité et d'audit, non un appel
+systématique ajouté. Ils restent **non corrigés dans ce complément consacré
+à l'attribution des appels** ; ce rapport ne valide pas l'invariant général du
+sens des quantités ni celui de toute affirmation affichée.
+
+Bruts et preuves : `artifacts/bancs-multi/20261025-215328-39640/`,
+`base-integration-analyse.{json,txt}`, `base-integration-verification.txt`,
+`verification-cache-base-integration.json`. Les compteurs sont contrôlés contre
+la liste des fonctions de chaque tour et leur somme égale exactement les appels.

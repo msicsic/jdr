@@ -47,8 +47,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   ciblés verts, six fichiers, 53,93 s**, sans seconde suite complète. Reprise
   `noms-dialogue` corrigée, deux passes : **3,50 appels/tour**, aucun refus,
   repli, relance, erreur ou défaut de recharge ; question prononcée au premier
-  contrôle et Ilse répond aux deux passes. Les trois autres scripts ne sont
-  pas rejoués après correction ; leur mesure reste celle de `8c47cc7`.
+  contrôle et Ilse répond aux deux passes. Lors de cette reprise, les trois
+  autres scripts ne sont pas rejoués ; leur mesure reste celle de `8c47cc7`.
+  **Comparaison à la base d'intégration**, `96c6396 → c57b1d3`, deux passes des
+  quatre scripts sur chaque commit, seize parties jouées et rangées en cache,
+  quatre exécutions au plus à priorité réduite ; huit références 882907c relues,
+  24 empreintes vérifiées. **122 → 120 appels / 28 tours**, **4,36 → 4,29/tour** ;
+  moyennes par passe : refus **4,5 → 0,5**, relances narratives **1 → 2,5**,
+  replis **0 → 0,5**, sans erreur technique, arrêt ou défaut de recharge.
+  **Aucun appel systématique ajouté par le lot 89** : l'appel de fidélité des
+  paroles explicites et des mots exacts sans effet typé vient du **lot 82,
+  `3510d00`**. Par fonction, totaux base → final : MJ **60 → 60**, narration
+  **25 → 33**, fidélité **37 → 27**, portée **0 → 0**. La base abandonne cinq tours
+  MJ, le final aucun ; un repli final restitue l'issue moteur après trois
+  récits de compte inverse. Le défaut `qui` était aussi présent sur `96c6396` :
+  son attribution antérieure au seul lot 89 n'était pas établie. Pas de code
+  modifié ni de nouvelle suite de tests dans ce complément ; aucun gain général
+  de latence démontré (secondes observées **16,7 → 17,6/tour**).
+  **Limites nouvelles consignées sans correction** : au second achat final,
+  la correction omet la part et fait acquérir le lot entier `planches` ; le récit
+  dit rembourser trois pièces alors que les comptes indiquent un paiement et
+  l'or vaut 23. Fidélité des quantités et audit sémantique toujours incomplets.
+  Décomposition par script/fonction et preuve d'attribution dans « Base d'intégration ».
   [Rapport et limites du lot 89](taches/rapport-codex-89-fidelite-audience.md).
 
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
