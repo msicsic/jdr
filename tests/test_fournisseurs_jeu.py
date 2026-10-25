@@ -28,11 +28,11 @@ except ImportError:
 
 def arguments(cible, fonction, entree):
     if fonction == 'auditer_action':
-        return {'conforme': True, 'motif': ''}
+        return {'rapport': {'conforme': True, 'motif': ''}}
     if fonction == 'auditer_narration':
-        return {'segments': {str(i): {"portee_mecanique": "aucune", 'verdict': 'mecanique', 'sources': ['resultat_resolu'],
+        return {'segments': [{'indice': i, 'eclairages': [], "portee_mecanique": "aucune", 'verdict': 'mecanique', 'sources': ['resultat_resolu'],
             'locuteur': '', 'citation': '', 'presentation': '', 'entites': [], "comptes": [], 'motif': ''}
-            for i, _ in enumerate(entree['segments'])}}
+            for i, _ in enumerate(entree['segments'])]}
     if fonction == 'repondre_au_joueur':
         if 'resultat_resolu' in entree.get('faits', {}):
             texte = 'Tu prends la clé du veilleur.' if cible == 'cle' else 'Tu prends la bobine de ficelle solide.'

@@ -99,7 +99,7 @@ class ConnaissancesTests(unittest.TestCase):
                 return proposition()
             self.assertEqual(entree["faits"]["connaissances_pnj"]["marchand"]["lien_anneau"]["texte"], TEXTE)
             self.assertEqual(entree["faits"]["conversation_validee"]["personnage"], "marchand")
-            self.assertEqual(schema["properties"]["mode"]["enum"], ["dialogue"])
+            self.assertEqual(entree["cadre_du_tour"]["modes_autorises"], ["dialogue"])
             return dialogue()
         avant = copy.deepcopy(self.m.data)
         with patch.object(MJOpenAI, "_appeler", side_effect=appel) as appels:

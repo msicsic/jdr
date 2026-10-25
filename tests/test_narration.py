@@ -35,14 +35,14 @@ class NarrationTests(unittest.TestCase):
         self.assertTrue(rapport["obstacles"])
         self.assertEqual(rapport["segments"][0]["sources"], [])
 
-    def test_schema_d_audit_limite_les_sources_aux_cles_fournies(self):
+    def test_schema_d_audit_constant_couverture_controlee_par_le_moteur(self):
         from donjon.narration import schema_audit
         schema = schema_audit({"salle": {}, "objet:cloche": {}}, 2)
+        self.assertEqual(schema, schema_audit({"joueur": {}}, 1))
         segments = schema["properties"]["segments"]
-        # Une entrée obligatoire par segment, sous la clé de son indice.
-        self.assertEqual(segments["required"], ["0", "1"])
-        sources = segments["properties"]["1"]["properties"]["sources"]["items"]
-        self.assertEqual(sources["enum"], ["objet:cloche", "salle"])
+        self.assertEqual(segments["type"], "array")
+        self.assertEqual(segments["items"]["properties"]["sources"]["items"], {"type": "string"})
+        self.assertIn("indice", segments["items"]["required"])
 
     def test_rapport_par_cle_d_indice(self):
         from donjon.narration import AuditIllisible

@@ -346,6 +346,72 @@ def expliquer_refus(premier, dernier):
     return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
 
 
+def schema_reponse():
+    """Types de la version du jeu ; les autorisations sont dans l'entrée du tour."""
+    suite = copy.deepcopy(SCHEMA_FAITS)
+    geste = copy.deepcopy(SCHEMA)
+    geste["properties"]["action"]["enum"] = [a for a in ACTIONS if a not in ("clarifier", "impossible")]
+    suite["properties"]["suite"] = {
+        "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
+        "anyOf": [geste, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]}
+    suite["required"].append("suite")
+    return {"type": "object", "additionalProperties": False,
+        "properties": {
+            "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
+                "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits"]},
+            "texte": {"type": "string"},
+            "faits": {"type": "array", "items": {"type": "string"}},
+            "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
+                SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, SCHEMA_COMPLEMENTS,
+                SCHEMA_CONVERSATION, SCHEMA_PAROLE, SCHEMA_SAVOIRS, SCHEMA_FAITS, suite]}},
+        "required": ["mode", "texte", "faits", "proposition"]}
+
+
+SCHEMA_REPONSE = schema_reponse()
+
+
+NARRATION_RESULTAT = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
+Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
+événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
+La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
+comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
+les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
+Respecte les réussites partielles, les échecs, les objets réellement déplacés et les témoins
+qui ont effectivement remarqué le geste. Les étapes non exécutées n'ont pas eu lieu.
+N'invente aucun événement, parole, émotion, connaissance, bruit ou nouvelle conséquence.
+L'historique aide à comprendre, mais seul resultat_resolu prouve ce qui vient de se produire.
+Le monde est déjà modifié : ta réponse ne déclenche aucune action. mode=dialogue,
+proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur une seule fois.
+"""
+
+REGLES_CARTE = """\nLe joueur se déplace à pied avec les touches de la carte : une cible trop loin
+(a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
+manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
+salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
+ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplace que par ses pas.
+Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
+objets_perceptibles, mais dans souvenirs_visuels s'il l'a déjà vu. Pour regarder ailleurs sans bouger : action tourner, cible une direction
+(nord, sud-est…). Un geste sur un objet qu'il verrait en se tournant le tourne d'abord vers lui.
+Ses pas s'entendent de près et font se retourner ; à pas feutrés (action faufiler, cible une
+direction), plus lents, ils ne s'entendent que de tout près.
+"""
+
+from .obstacles import REGLES as REGLES_OBSTACLES
+from .espace import REGLES as REGLES_ESPACE
+from .localisation import REGLES as REGLES_LOCALISATION
+
+INSTRUCTIONS_REPONSE = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
+    + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLE_NARRATION + REGLES_LOCALISATION
+    + "\nLes autorisations et la phase figurent dans cadre_du_tour, fourni par le moteur. "
+      "En phase narration, applique ses consignes : dialogue non vide, proposition null, aucun ajout. "
+      "En interprétation, choisis parmi ses modes_autorises ; les catalogues fournis bornent les ajouts. "
+      "faits cite seulement les clés de faits. Si suite_requise, etablir_faits porte aussi la suite du geste. "
+      "Si mode_cases, applique les règles de carte ci-dessous. "
+      "Si retour_moteur est fourni, corrige la proposition ou explique l'obstacle sans exécution ni parole de PNJ ; "
+      "son attendu est destiné au MJ seul. Les propositions refusées n'ont pas été exécutées."
+    + REGLES_CARTE + "\nSi controle_narratif est fourni :" + INSTRUCTIONS_REVISION)
+
+
 class MJ:
     def __init__(self, modele=None, effort=None, timeout=45, connexion="api", *, fournisseur=None):
         defaut_modele, defaut_effort = DEFAUTS_CONNEXION.get(connexion, (os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT), "medium"))
@@ -365,8 +431,8 @@ class MJ:
         self._sans_relance = False     # une explication refusée cède au refus du monde, sans relance
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
-        # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
-        # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
+        # Routage du cache stable par partie et fonction, commun aux corrections.
+        # Chaque demande continue de transmettre tout son contexte.
         import uuid
         self.cle_cache = str(uuid.uuid4())
         self.fournisseur = fournisseur if fournisseur is not None else creer_fournisseur(connexion)
@@ -978,82 +1044,19 @@ class MJ:
             locuteur = reel(monde, reference)
             if locuteur in monde.objets:
                 esprit["nom_du_locuteur"] = monde.objets[locuteur]["nom"].split(",")[0]
-        schema_faits_suite = copy.deepcopy(SCHEMA_FAITS)
-        schema_geste = copy.deepcopy(SCHEMA)
-        schema_geste["properties"]["action"]["enum"] = [
-            a for a in schema_geste["properties"]["action"]["enum"] if a not in ("clarifier", "impossible")]
-        schema_faits_suite["properties"]["suite"] = {
-            "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
-            "anyOf": [schema_geste, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]}
-        schema_faits_suite["required"].append("suite")
-        schemas_faits = ([schema_faits_suite] if geste_en_question(monde, intention)
-                         else [SCHEMA_FAITS, schema_faits_suite])
-        schema = {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
-                "texte": {"type": "string"},
-                "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([SCHEMA_PAROLE] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
-            },
-            "required": ["mode", "texte", "faits", "proposition"],
-        }
-        instructions = INTERPRETATION
-        if atelier:
-            instructions += REGLES_ATELIER
-        if franchissements:
-            instructions += REGLES_FRANCHISSEMENT
-        if passages:
-            instructions += REGLES_OBSTACLES
-        if enrichir and espace:
-            instructions += REGLES_ESPACE
-        if retour_moteur:
-            instructions += ("\nLe retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
-                             "\nSon champ attendu, quand il existe, dit en champs et identifiants ce qu'une proposition corrigée "
-                             "doit contenir : suis-le ; il ne s'adresse jamais au joueur."
-                             "\nSi tu réponds en dialogue, rien n'a eu lieu : c'est toi qui expliques l'obstacle, aucun "
-                             "personnage ne parle ni ne réagit.")
-        if parler:
-            instructions += REGLES_PAROLE
+        schema = SCHEMA_REPONSE
+        instructions = INSTRUCTIONS_REPONSE
+        modes = (["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else [])
+                 + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else [])
+                 + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else [])
+                 + (["etablir_faits"] if any(faits_disponibles.values()) else [])) if enrichir else ["dialogue"]
+        cadre = {"phase": "interpretation" if enrichir else "narration", "modes_autorises": modes,
+                 "suite_requise": geste_en_question(monde, intention), "mode_cases": contexte["mode_cases"]}
         if not enrichir:
-            instructions = NARRATION
-            schema["properties"]["mode"] = {"type": "string", "enum": ["dialogue"]}
-            schema["properties"]["texte"] = {"type": "string", "minLength": 1,
-                                                "description": "Réponse finale non vide destinée au joueur."}
-            schema["properties"]["proposition"] = {"type": "null"}
-            if resultat_resolu is not None:
-                faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie", "comptes")}
-                schema["properties"]["faits"]["items"]["enum"] = list(faits)
-                instructions = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
-Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
-événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
-La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
-comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
-les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
-Respecte les réussites partielles, les échecs, les objets réellement déplacés et les témoins
-qui ont effectivement remarqué le geste. Les étapes non exécutées n'ont pas eu lieu.
-N'invente aucun événement, parole, émotion, connaissance, bruit ou nouvelle conséquence.
-L'historique aide à comprendre, mais seul resultat_resolu prouve ce qui vient de se produire.
-Le monde est déjà modifié : ta réponse ne déclenche aucune action. mode=dialogue,
-proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur une seule fois.
-"""
-            if retour_moteur:
-                instructions += "\nLes propositions précédentes ont été refusées avant toute exécution. Explique les conditions pertinentes à partir des faits fournis. Ne présente pas ces refus comme une tentative de Corvus ni comme une preuve que son intention entière est impossible."
-        instructions += REGLE_NARRATION
-        from .localisation import REGLES as REGLES_LOCALISATION
-        instructions += REGLES_LOCALISATION
-        if monde.data.get("mode_cases") and enrichir:
-            instructions += """\nLe joueur se déplace à pied avec les touches de la carte : une cible trop loin
-(a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
-manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
-salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
-ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplace que par ses pas.
-Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
-objets_perceptibles, mais dans souvenirs_visuels s'il l'a déjà vu. Pour regarder ailleurs sans bouger : action tourner, cible une direction
-(nord, sud-est…). Un geste sur un objet qu'il verrait en se tournant le tourne d'abord vers lui.
-Ses pas s'entendent de près et font se retourner ; à pas feutrés (action faufiler, cible une
-direction), plus lents, ils ne s'entendent que de tout près.
-"""
+            cadre["consignes"] = NARRATION_RESULTAT if resultat_resolu is not None else NARRATION
+        if resultat_resolu is not None:
+            faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu",
+                                         "attestations", "ambiance_etablie", "comptes")}
         conversation = monde.data["conversation"][-2 if resultat_resolu is not None else -6:]
         if enrichir and not est_question(intention) and proposition_en_attente is None:
             from .commandes import analyser
@@ -1064,7 +1067,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
             if action_explicite and action_explicite["action"] not in ("observer", "parler"):
                 # Une commande complète n'a pas besoin des anciennes réponses du MJ.
                 conversation = []
-        entree = {"faits": faits, "conversation": conversation, "message": intention}
+        entree = {"cadre_du_tour": cadre, "faits": faits, "conversation": conversation, "message": intention}
         debut = time.monotonic()
         self.derniere_utilisation = None
         trace = {"modele": self.modele, "revision": monde.data["revision"], "intention": intention,
@@ -1292,8 +1295,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                          **({"proposition_faits": faits_proposes}
                                             if faits_proposes is not None else {})},
                                         "Contrôler la portée des descriptions proposées",
-                                        "auditer_portee", SCHEMA_PORTEE_FAITS
-                                        if faits_proposes is not None else SCHEMA_PORTEE)
+                                        "auditer_portee", SCHEMA_PORTEE_FAITS)
                     if faits_proposes is not None:
                         obstacles.extend(controler_usages(faits_proposes, audit))
                     obstacles.extend(controler_portee(
@@ -1363,7 +1365,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 if o not in refusees:
                     refusees.append(o)
             correction = {**entree, "controle_narratif": refusees}
-            reponse = appeler_brut(instructions + INSTRUCTIONS_REVISION, correction,
+            reponse = appeler_brut(instructions, correction,
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 

@@ -3,6 +3,38 @@
 Ce document décrit le contrat appliqué entre Luna (le MJ) et le moteur, et ce qui reste à
 construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENTS.md).
 
+## Requêtes stables et données du tour
+
+Depuis le lot 85 (`codex-cache-prompt`), chaque fonction du MJ garde le même outil
+(nom, description, schéma) et les mêmes instructions pour une version du jeu,
+y compris pendant les corrections. Le schéma décrit les types et les opérations
+du jeu ; les identifiants, sources citables, catalogues et autorisations de la
+scène restent dans l'entrée. Les règles d'atelier, de passage, d'espace et de
+parole sont toujours présentes ; leurs dossiers déterminent leur application.
+
+`repondre_au_joueur` reçoit `cadre_du_tour` : phase, modes autorisés, nécessité
+d'une suite et déplacement sur carte. Les consignes de narration du résultat
+résolu ou de réponse après enrichissement viennent dans ce cadre. Le schéma
+commun n'autorise aucune mutation supplémentaire : les contrôles du moteur,
+les catalogues disponibles, les refus avec `attendu`, les audits avant affichage
+et les gardes à l'enregistrement restent applicables.
+
+L'audit narratif produit un tableau ordonné avec l'indice de chaque segment ;
+le moteur exige une couverture exacte et contrôle les sources fournies. Les
+anciens rapports à clés d'indices restent lisibles. La contre-revue d'action
+renvoie `rapport` (jugement du geste ou du contenu d'une parole), et l'audit de
+portée porte toujours `usages`, vide sans proposition de faits. Les anciens
+rapports de contre-revue restent acceptés par le validateur commun.
+
+OpenAI reçoit une `prompt_cache_key` stable par partie et fonction, corrections
+comprises. L'identité de transport reste celle de la partie : les fonctions
+partagent la même WebSocket et transmettent toujours leur contexte complet,
+avec `store: false`. Un préfixe constant permet sa réutilisation ; il ne garantit
+ni sa présence dans le cache du fournisseur ni un pourcentage sur chaque appel.
+`tools/mesurer_cache_prompt.py` compte les préfixes distincts des fils de bancs
+et mesure le rapport des tokens en cache aux tokens d'entrée, appels froids
+compris, en signalant les usages manquants.
+
 ## Trois niveaux de vérité
 
 | Niveau | Contenu | Autorité | Contrôle avant affichage |
@@ -617,7 +649,9 @@ mais omis du plan, gardent leur voie de correction. Si Luna commence par une qua
 et le geste est réexaminé selon le contrat existant.
 
 `etablir_faits` peut joindre aux `ajouts` une `suite`, proposition du geste demandé. Pour une
-question de faisabilité, le schéma exige cette suite si Luna choisit d'établir des faits.
+question de faisabilité, `cadre_du_tour.suite_requise` demande cette suite si Luna choisit
+d'établir des faits ; le schéma commun garde les deux formes. Sans suite, le réexamen du
+geste reste celui du moteur, et le nombre minimal d'appels n'est pas garanti.
 Il s'agit de deux propositions dans un même appel : les ajouts passent les contrôles physiques
 sur copie, puis le geste passe la préparation du moteur et sa contre-revue de fidélité sur
 cette copie. Les faits acceptés sont sauvegardés avant la fiche ; la question n'exécute aucun

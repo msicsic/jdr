@@ -129,33 +129,23 @@ def compte_bien_forme(c):
             and c["etat"] in ("du", "rendu", "absent"))
 
 
-def schema_audit(faits, nombre):
-    """Les sources citables sont exactement les clés fournies : une référence inventée
-    ou un chemin approximatif ne peut pas être produit. Une entrée obligatoire par segment,
-    sous la clé de son indice : un rapport ne peut ni sauter, ni fusionner, ni ajouter un segment."""
-    def ligne():
-        item = copy.deepcopy(SCHEMA_AUDIT["properties"]["segments"]["items"])
-        item["properties"]["sources"]["items"] = {"type": "string", "enum": sorted(faits)}
-        del item["properties"]["indice"]
-        item["required"] = [k for k in item["required"] if k != "indice"]
-        if "comptes" in faits:
-            item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
-            item["required"].append("comptes")
-        if "perception" in faits:
-            item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
-                "items": {"type": "string"},
-                "description": "Identifiants des sources dont le segment affirme une contribution actuelle "
-                    "à la lumière perçue ici, indépendamment du verdict. Extrais l'affirmation du texte, "
-                    "pas la liste des faits. Une parole citée n'établit pas la vérité de son contenu. "
-                    "Une source seulement vue, éteinte, supposée ou rappelée comme souvenir "
-                    "n'affirme aucune contribution actuelle : []."}
-            item["required"].append("eclairages")
-        return item
-    cles = [str(i) for i in range(nombre)]
-    return {"type": "object", "additionalProperties": False,
-            "properties": {"segments": {"type": "object", "additionalProperties": False,
-                                        "properties": {c: ligne() for c in cles}, "required": cles}},
-            "required": ["segments"]}
+SCHEMA_AUDIT_COMPLET = copy.deepcopy(SCHEMA_AUDIT)
+_ligne_audit = SCHEMA_AUDIT_COMPLET["properties"]["segments"]["items"]
+_ligne_audit["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
+_ligne_audit["required"].append("comptes")
+_ligne_audit["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
+    "items": {"type": "string"},
+    "description": "Identifiants des sources dont le segment affirme une contribution actuelle "
+        "à la lumière perçue ici, indépendamment du verdict. Extrais l'affirmation du texte, "
+        "pas la liste des faits. Une parole citée n'établit pas la vérité de son contenu. "
+        "Une source seulement vue, éteinte, supposée ou rappelée comme souvenir "
+        "n'affirme aucune contribution actuelle : []."}
+_ligne_audit["required"].append("eclairages")
+
+
+def schema_audit(faits=None, nombre=None):
+    """Un type constant ; couverture exacte et sources sont contrôlées par le moteur."""
+    return copy.deepcopy(SCHEMA_AUDIT_COMPLET)
 
 
 class AuditIllisible(RapportIllisible):
@@ -242,7 +232,7 @@ comme fait ou commencé un geste du joueur (frapper, saisir, attendre, s'approch
 qu'un personnage lui répond ou y réagit, est contradictoire : seule l'explication de ce qui l'en
 empêche est permise. Hors parole et engagement, locuteur et citation
 sont vides ; hors ambiance et engagement, entites est vide.
-Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
+Rends dans segments un tableau ordonné, un contrôle par segment avec son indice exact, sans réécrire ni redécouper les segments. sources cite seulement les clés de faits ; comptes et eclairages sont vides si rien ne les fonde.
 """
 
 INSTRUCTIONS_AUDIT += "\n" + REGLE_DESIGNATIONS

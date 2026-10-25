@@ -86,7 +86,8 @@ class CitationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--connexion", "api", "--save", str(chemin)]), 0)
         self.assertEqual(len(appels), 2)
         for instructions, entree, schema in appels:
-            citables = schema["properties"]["faits"]["items"]["enum"]
+            self.assertEqual(schema["properties"]["faits"]["items"], {"type": "string"})
+            citables = list(entree["faits"])
             self.assertEqual(citables, list(entree["faits"]))
             # Les blocs du contexte de parole, et tout sous-bloc que leurs règles nomment, se citent.
             self.assertLessEqual({"expression_joueur", "esprits_interlocuteurs"}, set(citables))

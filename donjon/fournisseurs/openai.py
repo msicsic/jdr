@@ -48,7 +48,7 @@ class OpenAI(Fournisseur):
             "store": False,
         }
         if demande.cle_cache:
-            payload["prompt_cache_key"] = demande.cle_cache
+            payload["prompt_cache_key"] = demande.cle_cache + ":" + fonction
         if self.chatgpt:
             outil = payload["tools"][0]
             payload["tools"] = [{"type": "namespace", "name": "donjon",

@@ -34,8 +34,12 @@ SCHEMA_PAROLE = {
 }
 
 
-def schema(plan):
-    return SCHEMA_PAROLE if plan.parole is not None else SCHEMA
+SCHEMA_RAPPORT = {"type": "object", "additionalProperties": False,
+    "properties": {"rapport": {"anyOf": [SCHEMA, SCHEMA_PAROLE]}}, "required": ["rapport"]}
+
+
+def schema(plan=None):
+    return SCHEMA_RAPPORT
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
@@ -77,7 +81,7 @@ la demande ? Un contenu vide ou propos n'attribue aucun effet mécanique aux mot
 pas infidèle par son seul manque de typage. Juge les mots et les effets des seuls contenus
 typés présents, sans exiger d'en inventer un pour toute question. Ne juge dans ce booléen ni l'audience fixée par le moteur, ni les conséquences
 qu'il a calculées. Pour les autres plans, rends conforme et motif.
-Appelle auditer_action une fois.
+Rends le jugement dans rapport. Appelle auditer_action une fois.
 """
 
 
@@ -162,6 +166,8 @@ class RapportInvalide(RapportIllisible):
 def verifier(rapport, plan=None, operations_demandees=None):
     """Le verdict de la contre-revue. Non conforme : un refus dont ``attendu`` (``refus.attendu_audit``)
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
+    if isinstance(rapport, dict) and set(rapport) == {"rapport"}:
+        rapport = rapport["rapport"]
     if plan is not None and plan.parole is not None:
         if (not isinstance(rapport, dict)
                 or set(rapport) != {"contenu_conforme", "motif", "operations_demandees"}

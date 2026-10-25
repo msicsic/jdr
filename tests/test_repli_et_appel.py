@@ -52,7 +52,7 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
         if fonction == "auditer_action":
-            if "contenu_conforme" in schema["properties"]:
+            if "parole" in entree["plan"]:
                 from donjon.paroles import operations_contenu
                 return {"contenu_conforme": True, "motif": "",
                         "operations_demandees": sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))}

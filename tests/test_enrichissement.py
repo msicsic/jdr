@@ -135,7 +135,7 @@ class EnrichissementTests(unittest.TestCase):
             if "descriptions_a_completer" in entree["faits"] and entree["faits"]["descriptions_a_completer"]:
                 return reponse_enrichir(ajout())
             self.assertIn("gris clair", json.dumps(entree["faits"]["souvenirs_personnages"]))
-            self.assertNotIn("enrichir", schema["properties"]["mode"]["enum"])
+            self.assertNotIn("enrichir", entree["cadre_du_tour"]["modes_autorises"])
             return copy.deepcopy(DIALOGUE)
         with patch.object(MJOpenAI, "_appeler", side_effect=appel) as appels:
             resultat = MJOpenAI().echanger(m, "De quelle couleur sont les yeux de Gorm ?")

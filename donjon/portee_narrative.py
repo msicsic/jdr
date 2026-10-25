@@ -45,7 +45,7 @@ SCHEMA = {
 # qualification sans texte peut remplacer indûment le geste demandé.
 SCHEMA_FAITS = copy.deepcopy(SCHEMA)
 SCHEMA_FAITS["properties"]["usages"] = {
-    "type": "array", "minItems": 1, "maxItems": 3,
+    "type": "array", "maxItems": 3,
     "items": {"type": "object", "additionalProperties": False,
               "properties": {"perception_requise": {"type": "boolean"},
                              "indice": {"type": "boolean"},
@@ -84,7 +84,7 @@ def controler_usages(proposition, rapport):
     return obstacles
 
 INSTRUCTIONS = """Tu fais la contre-revue de descriptions proposées par le MJ.
-Si proposition_faits est fournie, rends aussi usages : un jugement pour CHAQUE ajout, dans
+Sans proposition_faits, usages est vide. Si proposition_faits est fournie, rends usages : un jugement pour CHAQUE ajout, dans
 l'ordre, même sans description libre (qualification, inscription, parole, évolution).
 Compare la demande entière du joueur à ce que l'ajout fait réellement :
 - perception_requise=true si l'ajout répond à une recherche, une fouille ou un examen actif

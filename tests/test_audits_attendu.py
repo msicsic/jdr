@@ -51,7 +51,7 @@ def jouer(monde, saisie, reponses, audits, revues=()):
         appels.append((fonction, entree))
         if fonction == "auditer_action":
             revue = revues.pop(0) if revues else {"conforme": True, "motif": ""}
-            if "contenu_conforme" in schema["properties"] and "conforme" in revue:
+            if "parole" in entree["plan"] and "conforme" in revue:
                 revue = {"contenu_conforme": revue["conforme"], "motif": revue["motif"],
                          **({"operations_demandees": revue["operations_demandees"]}
                             if "operations_demandees" in revue else {})}

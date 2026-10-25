@@ -148,6 +148,6 @@ class GardesJustesTests(unittest.TestCase):
                 self.assertNotIn(refus[0]['attendu'], sortie)
 
     def test_schema_extraction_et_compatibilite_des_anciens_audits(self):
-        schema = schema_audit({'perception': {}}, 1)['properties']['segments']['properties']['0']
+        schema = schema_audit({'perception': {}}, 1)['properties']['segments']['items']
         self.assertIn('eclairages', schema['required'])
         self.assertFalse(controler('Tu peux regarder.', rapport(ligne('neutre')), {})['obstacles'])
