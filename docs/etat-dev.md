@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-certificat-prix`, non fusionnée (lot 66), issue de l'intégration d78cfcc puis de
+  afd3602 (lots 64 et 65) : une recherche épuisée sans plan dont seuls des prix ont changé depuis ne se
+  refait pas. Mesure (`tools/mesurer_certificat.py`) : Rémy, mine 1985 tirée, 325 recherches de faim
+  épuisées après 8 h, aucun certificat abouti ; chaque preuve tombait sur une lacune, toujours un état
+  examiné à la profondeur limite sans être développé. Le certificat se complète désormais quand la
+  recherche s'épuise (`_sans_plan(..., completer=True)`, `_parcours`) : états, gestes et suites
+  différées manquants développés à part, dans le mode de chaque graphe (sombre puis lumière,
+  ordinaire puis feutré), une suite terminale estimée comptant comme le but ; rien n'est écrit dans le
+  graphe gardé, règle de garde inchangée. Rémy 326 → 73 recherches neuves, 258 reprises par
+  certificat. Identité base/branche (`empreintes_nuits --calcul`) : 16 nuits de 2 h et 4 de 12 h. Temps
+  12 h (mine et auberge 1985, tiré et fixe) ×1,01 à ×1,03, mémoire égale ; deux variantes plus
+  gourmandes écartées. Constat hors lot : à l'auberge, l'intégration est 5 à 8 fois plus lente que
+  `main` 42bb9c0. Tests après rechargement : `test_certificat_prix` (Rémy, Odon, faute devenue permise,
+  cinq minutes avec ou sans certificat, synthèses) ; `VERIFIER` + `VERIFICATION` 1 : 2 h mine et auberge 42
+  sans écart, 60 min depuis la capture de la mine avec 116 reprises contrôlées. Suite 1 857 tests,
+  16 sautés, 2 échecs de `test_parole_commune` déjà présents sur la base (verts sur l'intégration 1171fc3,
+  essai de fusion sans conflit).
+  [Rapport du lot 66](taches/rapport-codex-66-certificat-prix.md).
 - Branche `codex-attendu-designable`, fusionnée, lot **65**, base **de3e986** :
   les listes d'entités dans les refus passent par `refus.cibles` : candidats du geste,
   `Monde.designable`, références publiques, tri et plafond commun. Le champ technique

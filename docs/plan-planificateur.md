@@ -1851,3 +1851,79 @@ lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; 
 remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
 
 Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
+
+## Certificat complété quand seuls les prix changent — lot 66 (`codex-certificat-prix`, non fusionnée)
+
+**Constat** (`tools/mesurer_certificat.py`, base 4708c9d = intégration afd3602, nuits de 12 h,
+recherches de faim après la minute 480). Rémy, mine 1985 tirée : 326 recherches neuves, dont 325
+épuisées sans plan (802 721 nœuds), 43 signatures d'absence distinctes (`base` et permission de
+fauter), aucune reprise par certificat. Le certificat, tenté à la deuxième recherche sur les mêmes
+entrées (graphe gardé), a échoué 29 fois sur 29 en « lacune » ; tenté sur le graphe de chaque
+recherche, 325 fois sur 325. Cause, toujours la même : **un état que la recherche pondérée a
+examiné à la profondeur limite, donc jamais développé** (`noeud[3] is None`), et que le parcours en
+largeur atteint plus tôt par un chemin plus cher. Les suites différées ne sont pas la cause dans
+ces nuits (une recherche épuisée a développé toutes celles qu'elle a poussées) ; une suite
+terminale estimée rencontrée par le parcours en serait une autre : son état n'est jamais un nœud.
+Joss, auberge 1985 fixe : 193 neuves (2 plans, 129 bornées, 62 épuisées), mêmes lacunes. Les
+graphes complétés à part (oracle de l'outil) prouvent l'absence 325 fois sur 325 à la mine.
+
+**Règle.** Une recherche épuisée sans plan, dont seuls des prix ont changé depuis (le prix d'une
+faute, celui d'abîmer, `endurer`), ne se refait pas : le certificat d'absence le prouve. Ce qui
+lui manque se complète au moment où la recherche épuisée le connaît, sur le graphe qu'elle garde.
+
+- `chercher` : inchangé quant aux graphes (les nœuds se gardent à la deuxième recherche sur les
+  mêmes entrées) et au moment du certificat (une recherche sans plan sur un graphe gardé). Épuisée,
+  elle le complète (`_sans_plan(..., vises, completer=True)`) ; bornée, il ne développe rien (une
+  lacune reste une lacune, comme avant).
+- `_sans_plan` complété suit l'ordre des passes de `_explorer` : le graphe `sombre` d'abord (sauf
+  qui emploie la lumière d'office), le graphe `lumiere` si une lecture de lumière y renvoie ; un
+  geste discret découvert hors de l'allure feutrée reprend le tout avec les deux allures. La vue
+  de la recherche est mise dans le mode de chaque graphe par le passage que `_explorer` fait
+  lui-même entre ses passes (`_mode_lumiere` : la lumière lue, les objets agissables oubliés),
+  puis rendue dans son état.
+- `_parcours(..., completer=(but, vises))` : un état absent du graphe gardé, ou jamais développé,
+  l'est ici, **à part** (le graphe gardé et ses suites différées ne sont jamais modifiés) : son
+  but, ses gestes, le détail entier de ses suites différées. Une suite terminale estimée est un
+  résultat quel que soit son prix : sa rencontre, aux conditions d'allure et d'eau de la
+  recherche, est le but. Dans le graphe sombre, un état dont le développement lit la lumière
+  n'est pas suivi, comme un état marqué. Sans `completer` (anciens appels, tests), un trou reste
+  une lacune. Cela remplace, pour une recherche épuisée, la « lacune » d'un candidat estimé
+  (lot 38) et « aucun certificat ne développe une suite inconnue » (lot 51).
+
+**Preuve.** Soit `W(π)` la recherche jouée aux prix `π` sur les mêmes entrées `base` et la même
+permission de fauter. (1) Les gestes d'un état, leurs fautes, ce qu'ils abîment et leurs états
+suivants ne dépendent que de `base` et du mode de la passe (sombre ou lumière, allure ordinaire ou
+feutrée) : les prix n'entrent que dans la somme de `_explorer_etats` (ce qui rend déjà le graphe
+repris exact). (2) `W(π)` ne rend un plan qu'en sortant de sa file un résultat : un état qui
+atteint le but, ou une suite terminale estimée, aux mêmes conditions d'allure et d'eau ; l'un et
+l'autre sont atteints par des arêtes permises en au plus `PROFONDEUR` gestes. (3) Le parcours en
+largeur visite chaque état à sa profondeur minimale ; les suites d'un état ne dépendent pas du
+chemin (l'état porte salle, possessions, faits et allure) : il couvre donc tous les chemins permis
+jusqu'à la profondeur, en évaluant pour chaque état le but et toutes ses suites, différées
+comprises en entier. S'il s'épuise sans but ni résultat estimé, aucune passe de `W(π)` dans ce mode
+ne peut sortir de résultat. (4) La passe sombre de `W(π)` s'arrête à la première lecture de
+lumière et reprend tout sur `lumiere` : le certificat ne suit pas ces états et exige alors la même
+preuve sur `lumiere`, qui couvre toute la passe lumière. (5) `W(π)` ne passe à l'allure feutrée que
+s'il lit une garde discrète sur un état qu'il examine ; ces états sont tous couverts : si le
+certificat n'en lit aucune, aucune `W(π)` ne change d'allure ; s'il en lit une, il reprend lui aussi
+avec les deux allures. Donc `W(π)` ne trouve aucun plan, pour tout `π` de même permission ; si elle
+avait atteint sa borne, elle n'en aurait pas non plus : la décision est la même. Le certificat
+n'écrit rien que la recherche relise (ni nœud, ni suite différée, ni marque). Contrôles : `VERIFIER`
+refait la recherche complète à chaque reprise par certificat et compare ; tests de synthèse
+(`test_certificat_prix.CompletionTests`) : trou développé, suite différée vide, suite différée qui
+mène au but jamais certifiée vide, lumière lue en complétant, discrétion découverte.
+
+**Variantes mesurées et écartées** (12 h, mine et auberge 1985, tiré et fixe, mêmes nuits) :
+compléter dès la première recherche épuisée (graphe de travail) : mine tirée ×1,20 plus rapide
+mais les trois autres nuits ×0,91 à ×0,96, pic de mémoire +9 à +52 Mo (408 à 580 certificats par
+nuit, la plupart pour des entrées qui ne reviennent pas) ; garder le graphe de toute première
+recherche épuisée pour compléter à la deuxième : mine tirée ×1,18, autres ×0,92 à ×0,96, +40 à
++85 Mo, et le ramasse-miettes de l'auberge tirée passe de 36 à 95 s (la complétion elle-même :
+3,3 s). Retenue : la règle de garde d'avant, ×1,01 à ×1,03, mémoire égale.
+
+**Ce qui ne change pas** : aucun coût, prix, borne, profondeur, plafond de preuve (`PREUVE_MAX`) ni
+donnée ; une seule dernière preuve par PNJ et but ; la règle de garde des graphes. Limites : la
+première et la deuxième recherche sur des entrées se font toujours (la preuve vient à la
+deuxième) ; une recherche bornée n'est pas complétée ; deux signatures qui alternent se refont ;
+le gain de temps est faible, les recherches évitées étant surtout des graphes repris, déjà peu
+chers. Mesures : [rapport du lot 66](taches/rapport-codex-66-certificat-prix.md).
