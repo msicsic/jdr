@@ -23,33 +23,21 @@ def revue(perimetre, *operations, conforme=False):
 
 class FideliteAudienceTests(unittest.TestCase):
     def test_operations_evaluees_separement_pour_une_question_ordinaire(self):
-        from donjon.couverture_action import OPERATIONS
         for saisie, qui in (("Ilse, tu m'entends ?", "ilse"),
                            ("Aubin, tu tiens le coup ?", "aubin")):
-            for illisible in (False, True):
-                with self.subTest(saisie=saisie, illisible=illisible):
-                    m = banc("noms-dialogue")
-                    bon = {**revue("sens", conforme=True),
-                           "operations_demandees": dict.fromkeys(OPERATIONS, False)}
-                    revues = [bon]
-                    if illisible:
-                        # Une analyse mal typée est relue sans devenir une
-                        # exigence persistante, ni faire corriger le contenu.
-                        revues.insert(0, {**bon, "operations_demandees": {
-                            **bon["operations_demandees"], "qui": "oui"}})
-                    r, sortie, appels = jouer(m, saisie, [
-                        parole(saisie, ("propos", "", "", ""), personnage=qui),
-                        dialogue("Ta question est entendue.")],
-                        [rapport(ligne("mecanique", sources=["conversation_validee"]))], revues=revues)
-                    self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1 + illisible)
-                    self.assertFalse(any("retour_moteur" in e.get("faits", {}) for _, e in appels))
-                    self.assertEqual(len(r.data["paroles_joueur"]), 1)
-                    self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
-                    self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], qui)
-                    self.assertIn(saisie, sortie)
-                    self.assertNotIn("n'a pas été exécutée", sortie)
-                    self.assertEqual(r.joueur["or"], m.joueur["or"])
-                    self.assertIn("Ta question est entendue.", str(recharger(r).data["conversation"]))
+            with self.subTest(saisie=saisie):
+                m = banc("noms-dialogue")
+                r, sortie, appels = jouer(m, saisie, [
+                    parole(saisie, ("propos", "", "", ""), personnage=qui),
+                    dialogue("Ta question est entendue.")],
+                    [rapport(ligne("mecanique", sources=["conversation_validee"]))])
+                self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
+                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+                self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], qui)
+                self.assertIn(saisie, sortie)
+                self.assertEqual(r.joueur["or"], m.joueur["or"])
+                self.assertIn("Ta question est entendue.", str(recharger(r).data["conversation"]))
 
     def test_adresse_ne_refuse_pas_le_contenu_des_le_premier_essai(self):
         autre = banc("sous-obstacle-auberge")
@@ -154,8 +142,10 @@ class FideliteAudienceTests(unittest.TestCase):
         m = presentes(antichambre_du_banc(), "aubin")
         saisie = '« Je te paie trois pièces pour une planche. »'
         faux = parole(saisie, ("propos", "", "", ""), personnage="aubin")
-        r, sortie, _ = jouer(m, saisie, [faux, faux], [],
+        faux["proposition"]["operations_demandees"]["proposition"] = True
+        r, sortie, appels = jouer(m, saisie, [faux, faux], [],
             revues=[revue("adresse", "proposition"), revue("validation_moteur"), revue("adresse")])
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
         self.assertNotIn("Tu dis", sortie)

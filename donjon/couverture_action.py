@@ -9,7 +9,7 @@ import json
 from .monde import ErreurMonde
 from .refus import RapportIllisible, attendu_audit
 from .noms import REGLE_DESIGNATIONS, reperes_designations
-from .paroles import SENS_CONTENU, operations_contenu, offre
+from .paroles import SENS_CONTENU, operations_contenu, offre, OPERATIONS, SCHEMA_OPERATIONS
 
 
 SCHEMA = {
@@ -23,16 +23,12 @@ SCHEMA = {
 
 # L'adresse est fixée par le moteur avant la revue ; seul le sens du contenu
 # reste à contrôler ici.
-OPERATIONS = {t: s for t, s in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {"contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"},
         "perimetre": {"type": "string", "enum": ["sens", "adresse", "validation_moteur"],
             "description": "Domaine du motif : sens des mots et du contenu ; adresse des paroles ; forme ou conséquences déjà validées par le moteur. Seul sens peut refuser la fidélité."},
-        "operations_demandees": {"type": "object", "additionalProperties": False,
-            "description": "Analyse de la saisie seule : évaluer chaque opération selon sa définition, indépendamment du contenu proposé et du verdict. Une parole ordinaire peut ne demander aucune opération. Un achat demande un échange (proposition).",
-            "properties": {t: {"type": "boolean", "description": s} for t, s in OPERATIONS.items()},
-            "required": list(OPERATIONS)},
+        "operations_demandees": SCHEMA_OPERATIONS,
     },
     "required": ["contenu_conforme", "motif", "operations_demandees", "perimetre"],
 }
@@ -195,6 +191,31 @@ class RapportInvalide(RapportIllisible):
     """Le rapport de la revue est mal formé : une faute de l'auditeur, pas de la proposition."""
 
 
+def lire_operations(declaration):
+    """Même contrat typé à l'interprétation et à la revue."""
+    from .refus import RefusDeForme
+    if (not isinstance(declaration, dict) or set(declaration) != set(OPERATIONS)
+            or any(type(v) is not bool for v in declaration.values())):
+        raise RefusDeForme("Les opérations demandées sont invalides.",
+            "operations_demandees : une carte complète de booléens pour " + ", ".join(OPERATIONS)
+            + " ; reçu : " + repr(declaration))
+    return {t for t, demandee in declaration.items() if demandee}
+
+
+def verifier_operations(plan, requises):
+    """Couverture déterministe, avant tout appel de revue."""
+    manquantes = requises - operations_contenu(plan.parole["contenu"])
+    if manquantes:
+        # Une cause à la fois, dans l'ordre commun du protocole :
+        # le marché porte aussi sa demande, et précise sa contrepartie.
+        operation = next(t for t in SENS_CONTENU if t in manquantes)
+        forme = ("proposition {demande, contrepartie}, ou demande/passage avec valeur = prix offert en chiffres positifs"
+                 if operation == "proposition" else operation + " : " + SENS_CONTENU[operation])
+        raise ErreurMonde("Le contenu proposé ne porte pas ce que tu demandes.",
+            attendu_audit("proposition.contenu", json.dumps(plan.parole["contenu"], ensure_ascii=False),
+                          forme, ("opération demandée absente", operation)))
+
+
 def verifier(rapport, plan=None, operations_demandees=None):
     """Le verdict de la contre-revue. Non conforme : un refus dont ``attendu`` (``refus.attendu_audit``)
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
@@ -210,16 +231,7 @@ def verifier(rapport, plan=None, operations_demandees=None):
         requises = operations_demandees if operations_demandees is not None else set()
         # Une correction du contenu ne peut effacer une demande déjà reconnue.
         requises.update(t for t, demandee in rapport["operations_demandees"].items() if demandee)
-        manquantes = requises - operations_contenu(plan.parole["contenu"])
-        if manquantes:
-            # Une cause à la fois, dans l'ordre commun du protocole :
-            # le marché porte aussi sa demande, et précise sa contrepartie.
-            operation = next(t for t in SENS_CONTENU if t in manquantes)
-            forme = ("proposition {demande, contrepartie}, ou demande/passage avec valeur = prix offert en chiffres positifs"
-                     if operation == "proposition" else operation + " : " + SENS_CONTENU[operation])
-            raise ErreurMonde("Le contenu proposé ne porte pas ce que tu demandes.",
-                attendu_audit("proposition.contenu", json.dumps(plan.parole["contenu"], ensure_ascii=False),
-                              forme, ("opération demandée absente", operation)))
+        verifier_operations(plan, requises)
         motif = rapport["motif"][:MOTIF_MAX]
         if not rapport["contenu_conforme"] and rapport["perimetre"] == "sens":
             raise ErreurMonde("Les mots ou le contenu proposés ne correspondent pas à ta parole.",

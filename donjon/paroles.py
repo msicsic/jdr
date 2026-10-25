@@ -52,6 +52,12 @@ SENS_CONTENU = {
     "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet (nom, alias, matière ou catégorie), sans le prendre ni le payer. Les codes faim et chaleur demandent plus largement de quoi satisfaire ce besoin ; ils ne remplacent pas un bien précis nommé par le joueur.",
 }
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
+OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
+SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
+    "description": "Analyse de la saisie seule, indépendamment du contenu proposé : évaluer chaque opération. Toutes peuvent être fausses pour une parole ordinaire.",
+    "properties": {t: {"type": "boolean", "description": sens} for t, sens in OPERATIONS.items()},
+    "required": list(OPERATIONS)}
+
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -150,7 +156,9 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
 
 REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
-proposition = {personnage, replique (ce que Corvus prononce), contenu}, texte vide. Le moteur
+proposition = {personnage, replique (ce que Corvus prononce), contenu, operations_demandees}, texte vide.
+operations_demandees analyse la saisie seule selon les définitions communes du schéma, indépendamment du contenu proposé.
+Le moteur
 fixe le destinataire dans parole_prevue : celui que le joueur nomme,
 la suite d'un échange, ou le groupe explicite. Sinon, il choisit celui qui est en face ;
 à égalité, le joueur précise. Sans interlocuteur perçu à portée de voix, la parole

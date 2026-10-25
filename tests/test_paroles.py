@@ -31,9 +31,8 @@ def relais():
 
 
 def parole(replique, *contenu, personnage="marchand"):
-    return {"mode": "parole_joueur", "texte": "", "faits": ["interlocuteurs"],
-            "proposition": {"personnage": personnage, "replique": replique,
-                            "contenu": [dict(zip(("type", "sujet", "attribut", "valeur"), c)) for c in contenu]}}
+    from tests.test_repli_et_appel import parole as interpretation
+    return {**interpretation(replique, *contenu, personnage=personnage), "faits": ["interlocuteurs"]}
 
 
 def reponse_pnj(texte):

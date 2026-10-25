@@ -30,8 +30,11 @@ def dialogue(texte):
 
 
 def parole(replique, *contenu, personnage):
+    from donjon.paroles import OPERATIONS, operations_contenu
+    codes = operations_contenu([dict(zip(("type", "sujet", "attribut", "valeur"), c)) for c in contenu])
     return {"mode": "parole_joueur", "texte": "", "faits": [],
             "proposition": {"personnage": personnage, "replique": replique,
+                            "operations_demandees": {t: t in codes for t in OPERATIONS},
                             "contenu": [dict(zip(("type", "sujet", "attribut", "valeur"), c)) for c in contenu]}}
 
 

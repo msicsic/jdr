@@ -54,9 +54,9 @@ class AdresseTests(unittest.TestCase):
                 self.assertEqual(len(r.data["paroles_joueur"]), 1)
                 self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "ilse")
                 plans = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
-                self.assertEqual(len(plans), 1)  # L'adresse est fixée, le contenu reste contrôlé.
+                self.assertEqual(len(plans), 0)  # Adresse fixée et mots exacts sans opération.
 
-    def test_les_mots_exacts_sans_contenu_passent_la_revue(self):
+    def test_les_mots_exacts_sans_contenu_passent_sans_revue(self):
         m = scene()
         saisie = "je dis : qui peut nous aider ?"
         defaut = prevue(m, saisie)["personnage"]
@@ -68,7 +68,7 @@ class AdresseTests(unittest.TestCase):
         self.assertNotIn("Précise à qui", sortie)
         self.assertIn("Tu dis à", sortie)
         self.assertEqual(r.data["paroles_joueur"][-1]["texte"], "qui peut nous aider ?")
-        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
 
     def test_repondre_apres_s_etre_ecarte_ne_depend_pas_de_rester_en_vue(self):
         from tests.test_parole_corrections import banc

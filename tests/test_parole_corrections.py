@@ -356,8 +356,10 @@ class ImpostureTests(unittest.TestCase):
     def test_un_nom_type_que_les_mots_ne_disent_pas(self):
         # Banc de la branche : à « « Qui est là ? » », Luna typait « Corvus se nomme » ; la voix le croyait.
         m = self.appelee()
-        reprise, _, appels = jouer(m, "« Qui est là ? »", [
-            parole("Qui est là ?", ("nom", "joueur", "", ""), personnage="voix_1"),
+        faux = parole("Qui est là ?", ("nom", "joueur", "", ""), personnage="voix_1")
+        # L'opération demandée est l'identité d'autrui, pas se nommer soi-même.
+        faux["proposition"]["operations_demandees"].update(nom=False, qui=True)
+        reprise, _, appels = jouer(m, "« Qui est là ? »", [faux,
             parole("Qui est là ?", ("qui", "", "", ""), personnage="voix_1"),
             dialogue("La voix : « Ilse. »")], [audit(ligne("parole", "voix_1", "Ilse."))])
         self.assertIn("contenu[0] : retire l'élément nom", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
