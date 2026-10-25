@@ -1190,12 +1190,17 @@ def _plan_lumiere(monde, id):
     if porte or lumiere_crue(monde, id, monde.objets[id]["lieu"]):
         from .eau import menacee
         i = lire(monde, id)["intention"]
-        if not i or i["but"]["type"] != "lumiere" or not i["plan"]:
+        if not i or i["but"]["type"] != "lumiere":
             return None
-        trajet = porte and all(x["operation"] == "aller" for x in i["plan"])
-        sejour = (not porte and any(x["operation"] == "abriter" for x in i["plan"])
+        trajet = porte and i["plan"] and all(x["operation"] == "aller" for x in i["plan"])
+        sejour = (not porte and (not i["plan"] or any(x["operation"] == "abriter" for x in i["plan"]))
                   and not menacee(monde, id, monde.objets[id]["lieu"])
                   and lire(monde, id)["besoins"].get("securite", 0) > SECURITE_FIN)
+        if sejour and not i["plan"]:
+            # Une livraison ou un geste incertain a coupé le plan. Le séjour
+            # devient exécutable seulement quand sa lumière est constatée.
+            from .planification import _etape
+            return i["but"], [_etape("abriter", lieu=monde.objets[id]["lieu"])]
         return (i["but"], i["plan"]) if trajet or sejour else None
     from .planification import eclairer
     return eclairer(monde, id)

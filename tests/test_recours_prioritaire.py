@@ -118,6 +118,23 @@ class RecoursPrioritaireTests(unittest.TestCase):
         self.assertEqual(a.objets["lampe_remy"]["lieu"], "bram")
         self.assertEqual(vue(a), vue(recharger(a)))
 
+    def test_fin_de_plan_rechargee_sejour_seulement_apres_lumiere_constatee(self):
+        m = mine()
+        placer(m, "bram", "baraquement", (2, 2))
+        e = lire(m, "bram")
+        # État durable de fin de plan : la suite d'un geste incertain ou
+        # d'une livraison a été coupée ; le moteur rechoisit sur le réel.
+        e["intention"] = {"but": {"type": "lumiere"}, "motif": "securite",
+                          "plan": [], "depuis": 0, "attente": 0}
+        percevoir_tous(m)
+        a = suite(recharger(m), False, 1)
+        i = lire(a, "bram")["intention"]
+        self.assertEqual(i["but"], {"type": "lumiere"})
+        self.assertEqual(i["plan"][-1]["operation"], "abriter")
+        self.assertEqual(a.objets["bram"]["lieu"], "baraquement")
+        self.assertNotIn("puits", lire(a, "bram")["visites"])
+        self.assertEqual(vue(a), vue(recharger(a)))
+
 
 if __name__ == "__main__":
     unittest.main()
