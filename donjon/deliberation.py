@@ -445,14 +445,94 @@ def appels_vains(monde, id, qui):
 def recherche_vaine(monde, id, qui, salle):
     """Le résultat d'une recherche se retient comme celui d'une demande, hors mémoire bornée."""
     esprit(monde, id)["recherches"].setdefault(qui, {})[salle] = monde.data["minutes"]
+    consommer_indices_recherche(monde, id, qui, salle)
 
 
-def indice_recherche(monde, id, salle, qui=None):
-    """Un nouvel indice rouvre ce lieu pour la personne identifiée, sinon pour les personnes
-    cherchées, sans attribuer l'indice à l'une d'elles ni rouvrir les autres lieux."""
+def consommer_indices_recherche(monde, id, qui, salle):
+    """Indices déjà connus au constat d'échec, ou encore disponibles dans une ancienne partie."""
+    # Le constat consomme aussi les indices présents avant la recherche (anciennes parties
+    # comprises). Leur répétition ne doit pas suffire à annuler ce constat.
+    c = lire(monde, id)["croyances"].get(qui, {}).get("lieu")
+    if c and c["valeur"] == salle:
+        _situer_recherche(monde, id, qui, salle, c.get("case"))
+        _retenir_indice(monde, id, qui, salle, _indice_presence(c))
+    for s in lire(monde, id)["memoire"]:
+        if s["type"] in ("bruit", "examen") and s["salle"] == salle:
+            _retenir_indice(monde, id, qui, salle, indice_bruit(s))
+
+
+def _indice_presence(c):
+    # La date, la confiance et la chaîne de relais ne changent pas ce qui a été appris.
+    force = 2 if c["source"] == "vu" else 1 if c["source"] == "entendu" else 0
+    return ["presence", force, c.get("case")]
+
+
+def indice_bruit(s):
+    """Ce qui est perceptible du bruit, sans identité cachée ni date de répétition."""
+    from .ouie import INTENSITES
+    return ["bruit", INTENSITES[s["nature"]], s.get("qui"), s.get("case")]
+
+
+def _retenir_indice(monde, id, qui, salle, indice):
+    from copy import deepcopy
+    connus = esprit(monde, id)["indices_recherche"].setdefault(qui, {}).setdefault(salle, [])
+
+    def couvre(a, b):
+        # Une information moins forte ou moins précise n'ajoute rien. Une autre voix ou
+        # une autre position située constitue en revanche un indice distinct.
+        return (a[0] == b[0] and a[1] >= b[1] and a[2:-1] == b[2:-1]
+                and (b[-1] is None or a[-1] == b[-1]))
+
+    if any(couvre(ancien, indice) for ancien in connus):
+        return False
+    connus[:] = [ancien for ancien in connus if not couvre(indice, ancien)]
+    connus.append(deepcopy(indice))
+    return True
+
+
+def contact_recherche(monde, id, qui, salle):
+    """Une présence directement retrouvée ou une réponse saisie permet un nouveau contact ici."""
+    e = esprit(monde, id)
+    e["recherches"].get(qui, {}).pop(salle, None)
+
+
+def _situer_recherche(monde, id, qui, salle, case):
+    """Un déplacement positivement appris est nouveau, même vers un ancien lieu d'échec.
+
+    L'absence ne déplace pas ce repère ; une localisation moins précise ne l'efface pas.
+    Cela distingue un retour appris de la répétition d'une voix au même endroit.
+    """
+    from copy import deepcopy
+    e = esprit(monde, id)
+    avant = e["presence_recherche"].get(qui)
+    deplace = bool(avant and (avant[0] != salle
+                             or case is not None and avant[1] is not None and case != avant[1]))
+    if not avant or avant[0] != salle or case is not None:
+        e["presence_recherche"][qui] = [salle, deepcopy(case)]
+    return deplace
+
+
+def indice_recherche(monde, id, salle, qui=None, *, indice=None):
+    """Seul un contenu nouveau rouvre son lieu, pour la personne identifiée ou celles cherchées.
+
+    Ce suivi survit aux changements de but, à l'effacement des quarante souvenirs et à la
+    recharge. Réentendre une voix ou réexpliquer un bruit ne crée pas un nouvel indice.
+    """
     recherches = esprit(monde, id)["recherches"]
+    change = False
+    if indice is None:
+        c = lire(monde, id)["croyances"].get(qui, {}).get("lieu")
+        if not c or c["valeur"] != salle:
+            return False
+        indice = _indice_presence(c)
+        if _situer_recherche(monde, id, qui, salle, c.get("case")):
+            change = salle in recherches.get(qui, {})
+            recherches.get(qui, {}).pop(salle, None)
     for sujet in ([qui] if qui is not None else recherches):
-        recherches.get(sujet, {}).pop(salle, None)
+        if _retenir_indice(monde, id, sujet, salle, indice):
+            change |= salle in recherches.get(sujet, {})
+            recherches.get(sujet, {}).pop(salle, None)
+    return change
 
 
 def cherche(monde, id, qui):

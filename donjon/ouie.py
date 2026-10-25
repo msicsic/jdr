@@ -636,8 +636,9 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     if not attente:
         # Ce bruit nouveau peut être la personne cherchée, sans lui en attribuer l'auteur.
         # Un bruit déjà attendu ou couvert par l'examen ne relance pas la recherche.
-        from .deliberation import indice_recherche
-        indice_recherche(monde, id, salle, qui)
+        from .deliberation import indice_bruit, indice_recherche
+        indice_recherche(monde, id, salle, qui, indice=indice_bruit(
+            {"nature": n, "qui": qui, "case": list(case) if case is not None else None}))
         _chroniquer(monde, id, f"{_qui(monde, id)} entend un bruit : {monde.data['salles'][salle]['nom']}.", "ouie")
     # Tant qu'il ne l'a pas vu, il en retient le plus fort, et qui appelait s'il l'a reconnu ; d'où il
     # vient, le dernier endroit d'où il l'a situé.
