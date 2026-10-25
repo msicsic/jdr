@@ -59,6 +59,7 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           "noms": list,   # ceux dont il a retenu le nom en les reconnaissant (``voix.apprendre_nom``)
           "echange": list,   # les paroles nettes qu'il vient de saisir, le temps d'un échange (``voix.lier``)
           "urgences": dict,   # l'effet de seuil de chaque besoin (``deliberation.eveiller``)
+          "attentes_bornees": dict,  # un recours borné, jusqu'au changement de ses moyens/entrées
           # le rendez-vous convenu à un appel (``appel``) : qui il attend là où il est (rejoint), ou
           # à qui il a promis de venir (rejoindre)
           "rejoint": lambda: None, "rejoindre": lambda: None,
@@ -274,6 +275,9 @@ def verifier(monde):
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(v is None or type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
         assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        assert isinstance(e["attentes_bornees"], dict) and all(
+            isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
+        ), "Attentes de recherche invalides"
         assert all(b in seuils(monde, id) and isinstance(u, dict) and set(u) == {"etat", "depuis"}
                    and u["etat"] in ("presse", "apaise", "attente") and type(u["depuis"]) is int
                    for b, u in e["urgences"].items()), "Urgences de PNJ invalides"

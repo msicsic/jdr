@@ -1961,6 +1961,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     repris = False
     absence = False
     preuve_noeuds, preuve_issue = 0, None
+    attente = False
+    retenues = None
     if memo is not None and depuis is None:
         # Ce que la recherche lit de son caractère et de son état : l'adresse modulée qui fait la
         # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
@@ -1975,6 +1977,23 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         if garde is not None and garde[0] != entrees:
             garde = None
         signature_vide = (base, faute is None)
+        # La borne n'est pas une preuve d'impossibilité. Elle épuise l'effort
+        # consacré à ce recours : seuls de nouveaux moyens/lectures ou un
+        # palier du besoin le réveillent, pas la seule baisse de ses prix.
+        from .deliberation import BESOINS, seuils
+        if motif in BESOINS or motif is None:
+            from .esprits import esprit
+            besoins = lire(monde, id)["besoins"]
+            paliers = [[b, besoins.get(b, 0) >= seuil, besoins.get(b, 0) >= DESESPOIR]
+                       for b, seuil in seuils(monde, id).items() if motif is None or b == motif]
+            signature_attente = json.dumps([signature_vide, paliers],
+                                           ensure_ascii=False)
+            retenues = esprit(monde, id)["attentes_bornees"]
+            attente = retenues.get(place[1]) == signature_attente
+            if attente:
+                garde = (entrees, None, "attente", True)
+            else:
+                retenues.pop(place[1], None)
         vide_garde = _IMPOSSIBLES.get(place)
         if garde is None and vide_garde == (signature_vide, True):
             garde = (entrees, None, "impossible", False)
@@ -2016,6 +2035,11 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, trouve, issue, borne)
+    if retenues is not None and not attente:
+        if issue == "borne" and trouve is None:
+            retenues[place[1]] = signature_attente
+        else:
+            retenues.pop(place[1], None)
     if VERIFIER:
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
                   trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else "borne")
