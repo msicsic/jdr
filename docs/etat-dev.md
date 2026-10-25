@@ -4,6 +4,46 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-borne-attente`, fusionnée, lot **87**, base **020250e**,
+  code signé **a82f469** (première version **a181ada**) :
+  un recours borné sans plan retient son effort dans `esprits.attentes_bornees`.
+  Lectures communes et admissibilité inchangées, mêmes paliers d'urgence et de
+  désespoir : il attend, sans délai et après recharge ; la baisse continue des
+  prix ne relance pas seule la recherche. Les recours sans motif explicite
+  suivent les paliers de tous les besoins. Aucun certificat d'impossibilité
+  nouveau ; autres recours, plans, épuisements et endurance inchangés.
+  Quatre nuits mine/auberge × fixe/tiré, 1985, 12 h : **mêmes actions,
+  chroniques, récits, résultats de tous les appels logiques et monde final hors
+  registre d'attente**, mêmes vues après recharge. Quatre plans après borne
+  conservés à **588/622/648/706**, aussi par réinjection de l'attente dans les
+  captures rechargées. Auberge fixe : **211 → 68 bornées neuves**, **257 attentes**,
+  **1 061 077 → 489 077 nœuds**, **284,16 → 222,80 s CPU** ; tirée **63 → 25**,
+  **52 attentes**, **374,94 → 343,12 s**. **Cible ×1,5 manquée : ×1,91 / ×3,63**
+  contre `42bb9c0`. Mine fixe **86,11 → 86,42 s**, tirée **146,69 → 147,92 s**,
+  mêmes nœuds : 207 attentes remplacent des reprises exactes déjà sans exploration.
+  Première simulation de branche rejetée au regroupement (`attente` manquait au
+  consommateur) ; mesures préliminaires archivées, cohorte CPU des trois versions
+  reprise ensemble après correction du contrat pour mesurer le code final.
+  Suite complète unique : **1 933 tests, 16 ignorés, quatre échecs**, 199 fichiers,
+  **1 245,40 s**. Contrat corrigé : candidats en lecture seule, efforts enregistrés
+  à la sortie du choix, aucun effort pour une requête isolée ou un choix interrompu.
+  Deux empreintes historiques normalisent seulement le nouveau registre vide.
+  **44 tests ciblés finaux verts** (dont une nouvelle épreuve de frontière) ;
+  bilan consolidé **1 934 tests, 16 ignorés**, sans seconde suite complète.
+  Vérification finale `VERIFIER` + spatial à 1, auberge 42,
+  2 h : **aucun écart ni borne**, **308,14 s CPU**, monde et vues rechargés.
+  Banc rapide 4 h, quatre scénarios × quatre graines : **chroniques, récits et
+  audits identiques**, aucun plantage, usurpation, violation ou boucle nouvelle ;
+  vols, sans recours et attente inchangés. Auberge 2024 : seules les recherches
+  neuves baissent **173 → 167**. Référence 020250e rangée une fois en cache.
+  Banc rapide final : seize références relues du cache, seize nuits de branche,
+  mêmes chroniques, récits et constats ; même baisse de six recherches neuves.
+  Signature volontairement large : des faits finalement inutiles réveillent
+  encore le but ; un prix seul peut révéler un plan borné et l'attente le retarder
+  hors des nuits vérifiées. Aucun appel à Luna, changement de scénario ou modification
+  de `main`. [Rapport du lot 87](taches/rapport-codex-87-borne-attente.md).
+  Fusionné sur l'intégration après le lot 89 : seul conflit de documentation ; aucun fichier de code commun (lot 89 : `mj`, `couverture_action`, `paroles`).
+
 - Branche `codex-fidelite-audience`, fusionnée, lot **89**, base
   `96c6396` : contrat de revue de parole séparé des gestes ; `perimetre`
   obligatoire (`sens`, `adresse`, `validation_moteur`), seul `sens` peut refuser.

@@ -1990,3 +1990,36 @@ Les tests contrôlent les clés contre les lectures directes, les successeurs
 contre la base et le monde/rendu après rechargement.
 
 Mesures et limites : [rapport du lot 86](taches/rapport-codex-86-gestes-par-noeud.md).
+
+## Attendre après une recherche bornée — lot 87 (`codex-borne-attente`, non fusionnée)
+
+Un recours qui atteint le plafond de nœuds sans plan n'est pas déclaré impossible.
+Il a épuisé l'effort de recherche consacré à ce but et attend. `chercher` conserve
+dans `esprit.attentes_bornees` une signature du but, des lectures communes du
+graphe, de l'admissibilité des fautes et des paliers du besoin (urgence et
+désespoir). Sans motif explicite, les paliers de tous les besoins sont retenus :
+le tarif de la recherche dépend alors du plus pressant. Il n'y a aucun délai.
+
+La baisse continue des prix de faute et de casse ne réveille pas ce recours.
+Un moyen appris, une permission, une porte ou une lumière crue différente, un
+refus levé ou une faute devenue admissible changent ses entrées et le réveillent.
+Les autres recours sont toujours essayés ; `_classer` conserve son rôle : le
+besoin attend seulement si tous ses recours ont été essayés sans plan. Une
+recherche épuisée, un plan et un choix d'endurer gardent leur traitement.
+La mémoire de calcul et les certificats d'impossibilité restent distincts.
+
+L'attente appartient au monde sauvegardé, à la différence des tables de calcul.
+Les candidats la préparent dans le contexte du choix : elle n'est enregistrée
+qu'après leur évaluation, une fois contrôlée leur lecture seule. Une requête
+isolée et un choix interrompu ne consomment aucun effort durable.
+Le diagnostic la nomme `attente`, avec zéro nœud ; le banc la compte et l'affiche.
+`VERIFIER` refait la recherche aux prix présents, y compris une attente : un plan
+ainsi perdu serait signalé, jamais transformé en preuve d'absence.
+
+La signature conserve volontairement toutes les lectures communes existantes :
+elle peut réveiller un recours pour un changement qui ne l'aide finalement pas.
+Elle ne prétend pas reconnaître exactement l'utilité de chaque croyance ni
+prouver qu'un changement de prix ne pourrait jamais faire trouver un plan sous
+le plafond : hors des nuits vérifiées, l'attente peut alors le retarder jusqu'au
+prochain réveil. La conservation des recours et le coût sont contrôlés sur les nuits
+du lot ; leurs limites figurent dans le [rapport](taches/rapport-codex-87-borne-attente.md).

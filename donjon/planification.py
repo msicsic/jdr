@@ -178,13 +178,26 @@ def vues_du_choix(monde, id):
     """
     ancien = getattr(monde, "_vues_du_choix", None)
     temoin = copy.deepcopy(monde.data) if VERIFIER else None
-    monde._vues_du_choix = (id, [None, None])
+    origine = ancien[2] if ancien is not None and ancien[0] == id else lire(monde, id).get("attentes_bornees", {})
+    bloc = (id, [None, None], dict(origine))
+    monde._vues_du_choix = bloc
+    termine = False
     try:
         yield
+        termine = True
     finally:
         monde._vues_du_choix = ancien
         if temoin is not None:
             assert monde.data == temoin, "Une méthode candidate a modifié le monde ou l'esprit"
+        # L'effort appartient au choix réellement fait, pas aux devis et aux
+        # requêtes isolées. La photographie reste en lecture seule jusqu'ici.
+        if termine:
+            if ancien is not None and ancien[0] == id:
+                ancien[2].clear()
+                ancien[2].update(bloc[2])
+            else:
+                from .esprits import esprit
+                esprit(monde, id)["attentes_bornees"] = bloc[2]
 
 
 def vue(monde, id):
@@ -1961,6 +1974,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     repris = False
     absence = False
     preuve_noeuds, preuve_issue = 0, None
+    attente = False
+    retenues = None
     if memo is not None and depuis is None:
         # Ce que la recherche lit de son caractère et de son état : l'adresse modulée qui fait la
         # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
@@ -1975,6 +1990,23 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         if garde is not None and garde[0] != entrees:
             garde = None
         signature_vide = (base, faute is None)
+        # La borne n'est pas une preuve d'impossibilité. Elle épuise l'effort
+        # consacré à ce recours : seuls de nouveaux moyens/lectures ou un
+        # palier du besoin le réveillent, pas la seule baisse de ses prix.
+        from .deliberation import BESOINS, seuils
+        choix = getattr(monde, "_vues_du_choix", None)
+        if choix is not None and choix[0] == id and (motif in BESOINS or motif is None):
+            besoins = lire(monde, id)["besoins"]
+            paliers = [[b, besoins.get(b, 0) >= seuil, besoins.get(b, 0) >= DESESPOIR]
+                       for b, seuil in seuils(monde, id).items() if motif is None or b == motif]
+            signature_attente = json.dumps([signature_vide, paliers],
+                                           ensure_ascii=False)
+            retenues = choix[2]
+            attente = retenues.get(place[1]) == signature_attente
+            if attente:
+                garde = (entrees, None, "attente", True)
+            else:
+                retenues.pop(place[1], None)
         vide_garde = _IMPOSSIBLES.get(place)
         if garde is None and vide_garde == (signature_vide, True):
             garde = (entrees, None, "impossible", False)
@@ -2016,6 +2048,11 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, trouve, issue, borne)
+    if retenues is not None and not attente:
+        if issue == "borne" and trouve is None:
+            retenues[place[1]] = signature_attente
+        else:
+            retenues.pop(place[1], None)
     if VERIFIER:
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
                   trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else "borne")

@@ -69,10 +69,16 @@ def observer_capture(scenario):
     assert m.data == recharge.data
     assert regarder(m) == regarder(recharge)
     assert scene_percue(m) == scene_percue(recharge)
+    historique = copy.deepcopy(recharge.data)
+    for e in historique["esprits"].values():
+        # L'oracle antérieur au registre d'effort ne contient pas ce champ.
+        # Un effort réellement retenu ne serait pas une migration vide.
+        assert not e.get("attentes_bornees"), "La capture historique a changé de décisions"
+        e.pop("attentes_bornees", None)
     return {"visites": visites.hexdigest(), "n_visites": n_visites,
             "plans": plans.hexdigest(), "n_plans": n_plans,
             "diagnostics": _empreinte([{k: v for k, v in d.items() if k != "duree"} for d in diagnostics]),
-            "monde": _empreinte(recharge.data), "lignes": _empreinte(lignes),
+            "monde": _empreinte(historique), "lignes": _empreinte(lignes),
             "regarder": _empreinte(regarder(recharge)), "scene": _empreinte(scene_percue(recharge))}
 
 

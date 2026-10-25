@@ -124,10 +124,12 @@ class NuitsTests(unittest.TestCase):
         # son issue propre : le résumé la compte comme les autres.
         from donjon.banc_pnj import resume_diagnostic, texte_diagnostic
         recherches = [{"pnj": "bram", "but": "lumiere", "issue": issue, "memoire": False, "noeuds": 3,
-                       "profondeur": 1, "duree": 0.001} for issue in ("plan", "borne", "epuise", "endure")]
+                       "profondeur": 1, "duree": 0.001} for issue in ("plan", "borne", "epuise", "endure", "attente")]
         resume = resume_diagnostic(recherches)
         self.assertEqual([(g["plan"], g["borne"], g["epuise"], g["endure"]) for g in resume], [(1, 1, 1, 1)])
         self.assertIn("endure", texte_diagnostic(resume))
+        self.assertEqual(resume[0]["attente"], 1)
+        self.assertIn("attente", texte_diagnostic(resume))
 
 
 if __name__ == "__main__":
