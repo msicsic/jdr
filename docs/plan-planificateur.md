@@ -1851,3 +1851,33 @@ lampe posée allumée par le plan éclaire sa salle sans se consumer en main) ; 
 remise (`part_estimee`), qui reste une estimation ; les coûts, prix, bornes de nœuds et scénarios.
 
 Mesures, divergences et limites : [rapport du lot 46](taches/rapport-codex-46-une-source.md).
+
+## Étapes chaînées — lot 72 (`codex-etapes-chainees`, non fusionnée)
+
+La file de `_explorer_etats` porte un maillon en tuple `(parent, ajout)` par
+transition retenue, sans recopier les étapes du préfixe. Les ajouts appartiennent
+aux suites du graphe, qui se lisent sans mutation pendant la recherche ; ni le
+chemin ni ses maillons ne participent au tri. États, coûts, rangs, égalités,
+plafonds, découverte de lumière et de discrétion restent inchangés. Un résultat
+de séjour et une `SuiteDifferee` partagent le préfixe jusqu'à leur retrait du tas.
+
+Seul le chemin rendu est parcouru par `_reconstruire_etapes`. Ses dictionnaires,
+listes et tuples imbriqués sont gelés dans une séquence immuable, conservée telle
+quelle dans `_MEMOIRE` et comparée telle quelle par `VERIFIER`. `chercher` produit
+une liste publique indépendante, avec les mêmes types de contenus qu'avant,
+pour chaque appel, y compris le premier. Aucune copie profonde n'est nécessaire
+à la restitution ou à la mémoire. `_couper` conserve ses marqueurs et frontières
+de replanification ; les sauvegardes continuent à contenir les listes ordinaires.
+
+Le contrat d'étape est celui des données de geste : dictionnaires à clés scalaires,
+listes, tuples et valeurs scalaires. Le gel ne sert pas à sérialiser des objets
+Python arbitraires ou cycliques. Les étapes des suites restent des données de
+calcul internes, jamais exposées à l'appelant. Les états finaux et les autres
+mémoires ne changent pas de contrat.
+
+Les captures `cout-12h` gardent les empreintes de chaque plan, de l'ordre des
+retraits du tas et des diagnostics de `fbcf0ff`, puis du monde complet, du journal
+et du rendu après recharge. Un plan avec plusieurs ajouts, une égalité avec
+suite différée, l'absence de résultat et les mutations profondes des plans
+publics sont testés. Les profils ne justifient pas un changement des signes
+dans ce lot. Mesures et limites : [rapport du lot 72](taches/rapport-codex-72-etapes-chainees.md).

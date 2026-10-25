@@ -1,0 +1,159 @@
+"""Même recherche et même partie que fbcf0ff, sans copie de préfixe."""
+import copy
+import gzip
+import hashlib
+import json
+from pathlib import Path
+import sys
+from types import SimpleNamespace
+import unittest
+from unittest.mock import patch
+
+from donjon import planification as p
+from donjon.monde import Monde
+from donjon.moteur import Moteur, proposition
+from donjon.rendu import regarder
+from donjon.scene import scene_percue
+from tests.test_planification import relais
+from tests.test_tensions import recharger
+
+
+DONNEES = Path(__file__).parent / "data/cout-12h"
+
+
+def _empreinte(x):
+    return hashlib.sha256(json.dumps(x, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def _etat(e):
+    return e.salle, sorted(e.portes), sorted(e.faits.items(), key=repr), e.allure
+
+
+def observer_capture(scenario):
+    """Oracle enregistré sur la base : toutes les sorties du tas et tous les plans,
+    puis la chaîne moteur, monde, journal et vue après recharge (480–485 min).
+    Les préfixes du tas ne font volontairement pas partie de la projection.
+    """
+    m = recharger(Monde(json.loads(gzip.decompress(
+        (DONNEES / f"{scenario}-1985-480.json.gz").read_bytes()))))
+    visites, plans = hashlib.sha256(), hashlib.sha256()
+    n_visites = n_plans = 0
+    pop, chercher = p.heapq.heappop, p.chercher
+
+    def retirer(file):
+        nonlocal n_visites
+        entree = pop(file)
+        if sys._getframe(1).f_code.co_name == "_explorer_etats":
+            *priorite, e, chemin, profondeur, final = entree
+            terme = ["differe", final.borne] if isinstance(final, p.SuiteDifferee) else final
+            x = [priorite, _etat(e), profondeur, terme]
+            visites.update(json.dumps(x, sort_keys=True, ensure_ascii=False).encode() + b"\n")
+            n_visites += 1
+        return entree
+
+    def rechercher(*a, **k):
+        nonlocal n_plans
+        r = chercher(*a, **k)
+        x = [a[1], k.get("nom"), None if r is None else [r[0], r[1], _etat(r[2])]]
+        plans.update(json.dumps(x, sort_keys=True, ensure_ascii=False).encode() + b"\n")
+        n_plans += 1
+        return r
+
+    with patch.object(p, "_MEMOIRE", {}), patch.object(p, "_GRAPHES", {}), \
+            patch.object(p, "_IMPOSSIBLES", {}), patch.object(p, "VERIFIER", False), \
+            patch.object(p.heapq, "heappop", retirer), patch.object(p, "chercher", rechercher), \
+            p.diagnostics() as diagnostics:
+        moteur = Moteur(m)
+        lignes = moteur.executer(moteur.preparer(proposition("attendre")))
+    recharge = recharger(m)
+    assert m.data == recharge.data
+    assert regarder(m) == regarder(recharge)
+    assert scene_percue(m) == scene_percue(recharge)
+    return {"visites": visites.hexdigest(), "n_visites": n_visites,
+            "plans": plans.hexdigest(), "n_plans": n_plans,
+            "diagnostics": _empreinte([{k: v for k, v in d.items() if k != "duree"} for d in diagnostics]),
+            "monde": _empreinte(recharge.data), "lignes": _empreinte(lignes),
+            "regarder": _empreinte(regarder(recharge)), "scene": _empreinte(scene_percue(recharge))}
+
+
+class EtapesTests(unittest.TestCase):
+    def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
+        attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))
+        for scenario in ("mine", "auberge"):
+            with self.subTest(scenario=scenario):
+                self.assertEqual(observer_capture(scenario), attendu[scenario])
+
+    def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
+        e = p.Etat("s", (), {})
+        a = e.apres(faits=[(("prepare",), True)])
+        fin = a.apres(faits=[(("estimation",), True)])
+        prefixe = [p._etape("prendre"), p._etape("ouvrir")]
+        dernier = [{**p._etape("demander", contenu={"condition": {"objets": ["x", "y"]}}),
+                    "suppose": True}]
+
+        def suites(v, courant, vises, but):
+            if courant == e:
+                return [(0, 1, prefixe, a, 0, False, 0)]
+            return [p.SuiteDifferee(1, lambda v: [(0, 1, dernier, fin, 0, False)], ()),
+                    (0, 1, [p._etape("second")], fin, 0, False, 0)]
+
+        for tenir in (False, True):
+            v = SimpleNamespace(degat=0, menacees=set(), _devis_developpes=0, _devis_differes=0,
+                                borne_rester=lambda s: 0, pression=lambda e: 0)
+            visites = []
+            pop = p.heapq.heappop
+            def retirer(file):
+                x = pop(file)
+                visites.append((x[3], x[5], "differe" if isinstance(x[8], p.SuiteDifferee) else x[8]))
+                return x
+            with patch.object(p, "_suites", suites), \
+                    patch.object(p.heapq, "heappop", retirer), \
+                    patch.object(p, "_reconstruire_etapes", wraps=p._reconstruire_etapes) as reconstruire:
+                r = p._explorer_etats(v, e, lambda v, e: False, {}, 8, 20, 0, tenir=tenir)[0]
+                self.assertEqual(visites, [((0, 0), e, False), ((1, 0), a, False),
+                                          ((2, 0), a, "differe"), ((2, 0), fin, True)])
+                self.assertEqual(reconstruire.call_count, 1)
+                self.assertEqual([x["operation"] for x in r[1]], ["prendre", "ouvrir", "demander"])
+                self.assertEqual(p._couper([p._degeler_etape(x) for x in r[1]]), prefixe +
+                                 [p._etape("demander", contenu={"condition": {"objets": ["x", "y"]}})])
+                with self.assertRaises(TypeError):
+                    r[1][-1]["contenu"]["condition"]["objets"][0] = "corruption"
+                reconstruire.reset_mock()
+                self.assertIsNone(p._explorer_etats(v, e, lambda v, e: False, {}, 8, 1, 0)[0])
+                reconstruire.assert_not_called()
+        # Le graphe lui-même ne peut plus altérer un résultat déjà gelé.
+        prefixe[0]["operation"] = "corruption"
+        dernier[0]["contenu"]["condition"]["objets"].clear()
+        self.assertEqual(r[1][0]["operation"], "prendre")
+        self.assertEqual(list(r[1][-1]["contenu"]["condition"]["objets"]), ["x", "y"])
+
+    def test_memoire_isole_les_mutations_profondes_des_deux_appelants(self):
+        m = relais()
+        suites = p._suites
+
+        def enrichir(*a, **k):
+            resultat = suites(*a, **k)
+            for s in resultat:
+                if not isinstance(s, p.SuiteDifferee):
+                    for x in s[2]:
+                        x["contenu"] = {**x.get("contenu", {}), "trace": [{"objets": ["x"]}],
+                                        "tuple": (1, [2])}
+            return resultat
+
+        with patch.object(p, "_MEMOIRE", {}), patch.object(p, "_GRAPHES", {}), \
+                patch.object(p, "_IMPOSSIBLES", {}), patch.object(p, "_suites", enrichir), p.diagnostics() as ds:
+            def chercher():
+                return p.chercher(m, "brune", p.a_mange, memo="etapes", emplois=("manger",))
+            premier = chercher()
+            attendu = copy.deepcopy(premier[1])
+            self.assertGreater(len(attendu), 2)
+            for resultat in (premier, chercher()):
+                resultat[1][0]["operation"] = "corruption"
+                resultat[1][0]["contenu"]["trace"][0]["objets"].append("corruption")
+                resultat[1][0]["contenu"]["tuple"][1].append(3)
+                resultat[1].clear()
+            self.assertEqual(chercher()[1], attendu)
+            self.assertEqual([d["memoire"] for d in ds], [False, True, True])
+            interne = next(iter(p._MEMOIRE.values()))[1][1]
+            with self.assertRaises(TypeError):
+                interne[0]["operation"] = "corruption"

@@ -13,7 +13,6 @@ Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par ge
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
 from . import agendas
-import copy
 from . import relations
 import heapq
 import json
@@ -21,6 +20,7 @@ import math
 from contextlib import contextmanager
 from itertools import count
 from time import perf_counter
+from types import MappingProxyType
 
 from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
                            _lieu_cru, besoin_de_part, part_pour, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
@@ -1814,7 +1814,6 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     if garde is not None:
         _, trouve, issue, borne = garde
         examines = etats = plus_profond = 0
-        trouve = None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
     else:
         voir = v.emploie_lumiere   # avant toute lecture : le graphe où la recherche commence (``_explorer``)
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
@@ -1832,11 +1831,13 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         if endurer is not None and _endure(v, trouve, depuis, endurer):
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
-            _MEMOIRE[place] = (entrees, None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2]),
-                               issue, borne)
+            _MEMOIRE[place] = (entrees, trouve, issue, borne)
     if VERIFIER:
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
                   trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else "borne")
+    # Une seule liste publique, indépendante du graphe et de la mémoire, même
+    # dans les contenus imbriqués. Le résultat interne reste immuable.
+    rendu = None if trouve is None else (trouve[0], [_degeler_etape(x) for x in trouve[1]], trouve[2])
     if DIAGNOSTIC is not None:
         DIAGNOSTIC.append({"minute": monde.data["minutes"], "pnj": id, "but": nom, "noeuds": examines,
                            "etats": etats, "profondeur": plus_profond, "issue": issue, "memoire": garde is not None,
@@ -1844,7 +1845,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                            "impossible": absence, "preuve_noeuds": preuve_noeuds, "preuve_issue": preuve_issue,
                            "devis_differes": v._devis_differes, "devis_developpes": v._devis_developpes,
                            "duree": round(perf_counter() - debut, 6)})
-    return trouve
+    return rendu
 
 
 # Nœuds de la recherche de référence de ``VERIFIER`` : elle explore tout ce qu'il connaît, plus que la
@@ -1997,6 +1998,45 @@ def _departs(v, e):
     return [e]
 
 
+class _ListeEtape(tuple):
+    """Liste gelée, distinguée des tuples pour restituer exactement le contrat public."""
+    __slots__ = ()
+
+
+def _figer_etape(x):
+    if isinstance(x, dict):
+        return MappingProxyType({k: _figer_etape(v) for k, v in x.items()})
+    if isinstance(x, list):
+        return _ListeEtape(_figer_etape(v) for v in x)
+    if isinstance(x, tuple):
+        return tuple(_figer_etape(v) for v in x)
+    return x
+
+
+def _degeler_etape(x):
+    if isinstance(x, MappingProxyType):
+        return {k: _degeler_etape(v) for k, v in x.items()}
+    if isinstance(x, _ListeEtape):
+        return [_degeler_etape(v) for v in x]
+    if isinstance(x, tuple):
+        return tuple(_degeler_etape(v) for v in x)
+    return x
+
+
+def _reconstruire_etapes(maillon):
+    """Ne parcourir les préfixes que pour le gagnant ; geler ses seules étapes.
+
+    Les ajouts des suites appartiennent au graphe et se lisent sans mutation.
+    Les maillons (parent, ajout) ne copient aucun préfixe. Le résultat gelé ne
+    partage aucun dictionnaire ni liste avec les suites ou avec l'appelant.
+    """
+    ajouts = []
+    while maillon is not None:
+        maillon, ajout = maillon
+        ajouts.append(ajout)
+    return tuple(_figer_etape(x) for ajout in reversed(ajouts) for x in ajout)
+
+
 def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, graphe=None,
                     decouvrir=False, *, differer=True, borner=True):
     """Recherche du moindre coût sur les états crus : (trouvé ou None, nœuds examinés, états vus,
@@ -2033,7 +2073,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
     # sorties susceptibles d'égaler le meilleur prix avant de décider.
     # Le deuxième terme conserve aussi le coût de file sans H : ajouter une
     # constante flottante peut arrondir deux coûts distincts au même nombre.
-    file = [(sejour, 0, 1, (next(ordre), 0), 0, e, [], 0, False) for e in departs]
+    file = [(sejour, 0, 1, (next(ordre), 0), 0, e, None, 0, False) for e in departs]
     vus = {e: 0 for e in departs}
     examines = plus_profond = 0
     trouve = None
@@ -2052,10 +2092,10 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                     total = cout + fautes * (faute or 0) + ((degat or 0) * abime if abime else 0) + minutes
                     total += RESTER * v.pression(suivant) if tenir else 0
                     heapq.heappush(file, (total, total, 1, (rang[0], i), total,
-                                         suivant, etapes + ajout, n + 1, True))
+                                         suivant, (etapes, ajout), n + 1, True))
             continue
         if final:
-            trouve = cout, copy.deepcopy(etapes), e
+            trouve = cout, _reconstruire_etapes(etapes), e
             break
         if vus.get(e, infini) < cout:
             continue
@@ -2073,7 +2113,7 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
         if noeud[0] and not (tenir and e.salle in v.menacees):
             # Un but qui se tient en restant ne se tient pas là où il croit ou attend l'eau.
             if not tenir:
-                trouve = cout, copy.deepcopy(etapes), e
+                trouve = cout, _reconstruire_etapes(etapes), e
                 break
             if noeud[1] is None:
                 noeud[1] = v.pression(e)
@@ -2117,11 +2157,11 @@ def _explorer_etats(v, depart_, but, vises, profondeur, noeuds, faute, tenir=Fal
                 if (suivant.allure == 15 or suivant.fait("furtif")) and (not tenir or suivant.salle not in v.menacees):
                     total += RESTER * v.pression(suivant) if tenir else 0
                     heapq.heappush(file, (total, total, 1, (next(ordre), 0), total,
-                                         suivant, etapes + ajout, n + 1, True))
+                                         suivant, (etapes, ajout), n + 1, True))
             elif total < vus.get(suivant, infini):
                 vus[suivant] = total
                 heapq.heappush(file, (total + sejour, total, 1, (next(ordre), 0), total,
-                                     suivant, etapes + ajout, n + 1, False))
+                                     suivant, (etapes, ajout), n + 1, False))
     return trouve, examines, len(vus), plus_profond
 
 
