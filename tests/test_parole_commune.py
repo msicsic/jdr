@@ -326,7 +326,8 @@ class AveuTests(unittest.TestCase):
             rumeurs = [s for s in lire(reprise, id)["memoire"] if s["type"] == "rumeur"]
             self.assertEqual((rumeurs[-1]["de"], rumeurs[-1]["rang"], rumeurs[-1]["evenement"]), ("joueur", 0, noyau))
         # Le témoin s'en sert plus tard par les mécanismes existants : il le confie au propriétaire.
-        self.assertIn(noyau, [x[1] for x in nouvelles(reprise, "aubin")])
+        # La date d'observation (lot 64) accompagne le fait sans en changer l'identité.
+        self.assertIn(noyau, [{k: v for k, v in x[1].items() if k != "observe"} for x in nouvelles(reprise, "aubin")])
         placer(reprise, "marchand", "antichambre", (1, 4))
         # Il peut désormais rattacher la confidence au joueur qu'il connaît.
         lire(reprise, "marchand")["voix"] = sorted(set(lire(reprise, "marchand")["voix"]) | {"joueur"})
@@ -343,7 +344,7 @@ class AveuTests(unittest.TestCase):
         reprise = recharger(reprise)
         gorm = lire(reprise, "marchand")
         self.assertEqual(relation(reprise, "marchand", "joueur")["source"], "dit:aubin")
-        self.assertIn(noyau, [s["evenement"] for s in gorm["memoire"] if s["type"] == "rumeur"])
+        self.assertIn(noyau, [{k: v for k, v in s["evenement"].items() if k != "observe"} for s in gorm["memoire"] if s["type"] == "rumeur"])
 
     def test_avouer_un_geste_permis_n_apprend_rien(self):
         m = scene()
@@ -374,7 +375,7 @@ class EntreEuxTests(unittest.TestCase):
         # Ilse, à côté, a saisi les mots : elle retient la parole et adopte la rumeur, de seconde main.
         self.assertEqual(paroles_retenues(m, "ilse")[-1][:2], ("aubin", ["marchand"]))
         rumeur = [s for s in lire(m, "ilse")["memoire"] if s["type"] == "rumeur"][-1]
-        self.assertEqual((rumeur["de"], rumeur["rang"], {k: v for k, v in rumeur["evenement"].items() if k != "preuve"}), ("aubin", 1, noyau))
+        self.assertEqual((rumeur["de"], rumeur["rang"], {k: v for k, v in rumeur["evenement"].items() if k not in ("preuve", "observe")}), ("aubin", 1, noyau))
         self.assertEqual(relation(m, "ilse", "brune")["source"], "dit:aubin")
         # Brune, l'accusée, trop loin pour saisir les mots ou non, ne la colporte pas.
         self.assertNotIn(noyau, [x[1] for x in nouvelles(m, "brune")])
