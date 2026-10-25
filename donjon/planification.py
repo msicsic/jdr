@@ -283,15 +283,9 @@ class Vue:
                                    else taux(monde, id, "menace"))
         # Prévision à l'instant présent, puis pente : toutes les traversées
         # utilisent cette même photographie, y compris dans la marche.
-        estimation = eau.estimation(monde, id) if eau.active(monde) else None
-        self.vitesse_eau = max(0, estimation[2]) / 60 if estimation else 0
-        niveau = (estimation[1] + self.vitesse_eau * (
-            monde.data["minutes"] + monde.data.get("dixiemes", 0) / MINUTE - estimation[0])
-                  if self.vitesse_eau else None)
         # Garder la droite sous le sol : borner à zéro avant de projeter
         # ferait apparaître artificiellement de l'eau dans les salles hautes.
-        self.eau_route = {s: (eau.eau_crue(monde, id, s),
-                             niveau - eau.altitude(monde, s) if niveau is not None else 0)
+        self.eau_route = {s: eau.attendue(monde, id, s, projection=True)
                           for s in self.salles} if eau.active(monde) else {}
         self.refus_routes = {}
         self._descentes = {}
@@ -1761,7 +1755,7 @@ def _entrees_communes(v):
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
-        sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route, v.vitesse_eau, pnj.DUREES,
+        sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route, pnj.DUREES,
         # Le coût du noir ; le but explicite de lumière est dans la partie propre
         # au candidat. Les autres emplois se découvrent dans les gestes.
         # La discrétion lit les gardes des mêmes suites : permissions, capacités,

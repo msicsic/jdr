@@ -172,21 +172,26 @@ def monte(monde, id):
 def menacee(monde, id, salle, horizon=None):
     """Il croit l'eau dans la salle, ou l'y attend avant ``HORIZON`` minutes à la vitesse où il l'a
     vue monter."""
-    if eau_crue(monde, id, salle):
-        return True
-    e = estimation(monde, id)
-    if e is None or e[2] <= 0:
-        return False
-    minute, niveau_vu, montee = e
-    attendu = niveau_vu + montee * (monde.data["minutes"] + (HORIZON if horizon is None else horizon) - minute) / 60
-    return attendu > altitude(monde, salle)
+    return attendue(monde, id, salle, horizon) > 0
 
 
-def attendue(monde, id, salle, horizon=None):
+def attendue(monde, id, salle, horizon=None, *, projection=False):
     """La hauteur d'eau, en cm, qu'il attend dans la salle d'ici ``HORIZON`` minutes : celle qu'il y
-    croit, ou plus à la vitesse où il l'a vue monter (``menacee`` : plus de 0)."""
+    croit, ou plus selon sa prévision retenue (``menacee`` : plus de 0).
+
+    ``projection`` fournit aux routes (hauteur crue, droite au présent, pente en cm/min),
+    sans borner la droite au sol avant de la projeter. Les mesures restent intactes.
+    """
+    from .esprits import prevision
     cru = eau_crue(monde, id, salle)
-    e = estimation(monde, id)
+    c = prevision(monde, id, salle)
+    e = c["valeur"] if c else None
+    if projection:
+        # Photographie affine pour les routes : garder la droite sous le sol.
+        vitesse = max(0, e[2]) / 60 if e else 0
+        niveau = (e[1] + vitesse * (monde.data["minutes"] + monde.data.get("dixiemes", 0) / 600 - e[0])
+                  if vitesse else None)
+        return cru, niveau - altitude(monde, salle) if niveau is not None else 0, vitesse
     if e is None or e[2] <= 0:
         return cru
     minute, niveau_vu, montee = e

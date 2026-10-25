@@ -11,8 +11,8 @@ from .temps import MINUTE
 
 
 def attendue(v, salle, delai):
-    crue, droite = v.eau_route[salle]
-    return max(crue, droite + v.vitesse_eau * delai)
+    crue, droite, vitesse = v.eau_route[salle]
+    return max(crue, droite + vitesse * delai)
 
 
 def refus(v, e, route, arrivee, passage=False, delai=0, certain=False, depart_compris=False):
