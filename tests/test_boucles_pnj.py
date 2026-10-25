@@ -256,7 +256,10 @@ class RecoursTests(unittest.TestCase):
             # Les constats partagés peuvent changer son premier abri : un détour
             # reste possible, jamais l'alternance répétée galerie/palier.
             self.assertLessEqual(sum("Galerie de ronde" in t for t in passages), 1, passages)
-            self.assertEqual(lire(m, id)["intention"]["but"], {"type": "abri", "lieu": m.objets[id]["lieu"]})
+            i = lire(m, id)["intention"]
+            self.assertIn(i["but"], ({"type": "abri", "lieu": m.objets[id]["lieu"]}, {"type": "lumiere"}))
+            self.assertEqual(i["plan"][-1]["operation"], "abriter")
+            self.assertEqual(i["plan"][-1]["lieu"], m.objets[id]["lieu"])
             from donjon.eau import noyee_crue
             self.assertFalse(noyee_crue(m, id, m.objets[id]["lieu"]))
 
@@ -266,14 +269,21 @@ class RecoursTests(unittest.TestCase):
 
     def test_brune_et_ilse_ne_se_croisent_plus_entre_la_galerie_et_le_palier(self):
         # Sur ``main`` : 23 passages entre la galerie et le palier en quinze minutes.
-        # L'abri vers lequel chacune est en route garde la main : elles finissent ensemble.
+        # L'abri en route garde la main ; qui gagne d'abord la lumière peut
+        # s'y rassurer avant de rejoindre sa compagnie, sans refaire la boucle.
         m, _ = attendre(galerie_ou_refuge(), 3)
         for id in ("brune", "ilse"):
             passages = salles_de(m, id)
             self.assertLessEqual(sum("Galerie de ronde" in t for t in passages), 1, passages)
-            self.assertLessEqual(len(passages), 3, passages)
-            self.assertEqual(lire(m, id)["intention"]["but"], {"type": "abri", "lieu": m.objets[id]["lieu"]})
-        self.assertEqual(m.objets["brune"]["lieu"], m.objets["ilse"]["lieu"])
+            # Le séjour du recours de lumière peut laisser changer le chemin
+            # avant de repartir : quatre salles distinctes restent un trajet,
+            # pas l'ancienne alternance entre le palier et la galerie.
+            self.assertLessEqual(len(passages), 4, passages)
+            self.assertEqual(len(passages), len(set(passages)), passages)
+            i = lire(m, id)["intention"]
+            self.assertIn(i["but"], ({"type": "abri", "lieu": m.objets[id]["lieu"]}, {"type": "lumiere"}))
+            self.assertEqual(i["plan"][-1]["operation"], "abriter")
+            self.assertEqual(i["plan"][-1]["lieu"], m.objets[id]["lieu"])
 
     def test_meme_laps_decoupe_meme_monde(self):
         d_un_bloc, morcele = decouper(galerie_ou_refuge, 3)

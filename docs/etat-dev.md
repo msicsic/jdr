@@ -4,6 +4,47 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-recours-prioritaire`, fusionnée, lot **90**, base
+  `9810f4a` (lot 87 inclus), code signé SSH `e5c71f9`, `0144f92`, `8a6c1b6` :
+  le séjour terminal tarifé par `eclairer(tenir=True)` est exporté comme geste
+  durable `abriter` sans lumière portée ; `_plan_lumiere` le revalide et
+  `_continuer_progres` retrouve le recours qui porte ce progrès, avec ses replis.
+  L'inertie commune entre besoins continue après l'arrivée, jusqu'au seuil
+  d'apaisement du geste ; une ronde reste possible avec une lumière portée.
+  Aucun délai, registre supplémentaire, coût ou plafond nouveau ; aucune lecture
+  du graphe ajoutée à couvrir par `_entrees`.
+  Capture réelle crue 2024 à 645 min : **128 → 8 passages d'Aubin / 30 min**,
+  même monde complet et même vue description/sons d'un bloc ou par quinze
+  secondes sauvegardées/rechargées ; autre cas de mine, reprise de ronde après
+  apaisement et lumière portable ordinaire contrôlés. Aubin reste inquiet à 675 :
+  aucune inspection sans moyen n'est prétendue dans cet état.
+  Le terminal reste soumis à la coupure des gestes supposés/livraisons ; une
+  attente vide ne devient un séjour qu'après constat de la lumière. Frontière
+  de fin de plan sauvegardée couverte par un cinquième test du lot.
+  Lot 88 `9193904` fusionné **localement** par `3665e94` pour les audits.
+  Rapide final `735165d`, 4 h × quatre scénarios × quatre graines, contre `9810f4a` :
+  seize références relues du cache, mêmes constats d'audit, aucun plantage,
+  violation ou usurpation ; pire heure par PNJ inchangée **8 / 10 / 15 / 24**
+  (Relais/mine/auberge/crue). En crue, bascules **4 → 5**, répétition brute
+  d'avis **0 → 1**, sans alternance durable nouvelle signalée ; la mesure
+  inclut le lot 88, sans attribution de ces écarts au seul lot 90.
+  Suite complète unique : **1 946 tests, 16 ignorés, 1 286,32 s**, 202 fichiers,
+  15 échecs dans cinq fichiers ; erreur de coupure corrigée et quatre attentes
+  historiques adaptées (rang, poussée, annonce et conservation du bois à chaque
+  geste). **68 tests ciblés finaux verts**, bilan consolidé **1 947 tests,
+  16 ignorés, sans échec/erreur restant**, sans seconde suite complète.
+  `VERIFIER`, capture 30 min et mine 3 min : **aucun écart ni borne**.
+  Audits 12 h : crue 2024 **237 → 24 passages/h**, **292 → 30 glissantes** ;
+  crue 500 **22 → 22 / 32 → 32**, chronique et récit identiques, aucun plantage.
+  Bascules inchangées **3 / 2**. Plus de rafale ni va-et-vient signalés ; restent
+  en 2024 45 min de faim sans recours pour Brune puis attente, et **3 → 6 avis
+  textuels redits**, espacés d'au moins 96 min ; causes hors de cette correction,
+  aucune garantie générale d'absence d'autres défauts. Le choix garde ses priorités et `INERTIE`, sans nouveau
+  comparateur universel de tous les plans entre besoins ; un séjour peut
+  durer tant que la sécurité ne s'apaise pas. Aucun appel à Luna ni modification
+  de scénario ou de `main`. [Rapport du lot 90](taches/rapport-codex-90-recours-prioritaire.md).
+  Fusionné sur l'intégration après les lots 87 et 91, avec le lot 88 (`codex-avis-reels`, avis de menace exprimés dans les nuits réelles, réunis par `3665e94`) : seul conflit de documentation ; `planification.py` touché aussi par le lot 87 (attente bornée), fusionné sans conflit. `test_ressources` (auberge) ne fige plus la vente précise d'Odile à 300 : il contrôle chaque transfert de bois ; vérifié à part, mêmes foyers allumés à 120/200/300/420 min sur la branche et l'intégration.
+
 - Branche `codex-un-appel-de-moins`, fusionnée, lot **91**, base
   `123cc0c` issue d'intégration : l'interprétation d'une parole déclare ses
   opérations dans le même appel, avec les définitions communes de `SENS_CONTENU`.
@@ -136,6 +177,45 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'or vaut 23. Fidélité des quantités et audit sémantique toujours incomplets.
   Décomposition par script/fonction et preuve d'attribution dans « Base d'intégration ».
   [Rapport et limites du lot 89](taches/rapport-codex-89-fidelite-audience.md).
+- Branche `codex-avis-reels`, fusionnée (avec le lot 90), lot **88**, base **c9245dd**,
+  code signé SSH **1dffefd** : le locuteur ne consulte plus la prévision privée
+  de l'auditeur pour décider de l'avertir. Une conclusion de menace commune
+  ne vaut pas identité des preuves ; la réception conserve sa comparaison des
+  sources et convictions. Aucun seuil de souci modifié : il ne bloquait aucune
+  paire réelle. Relevés à chaque minute, crues 500/2024 sur 12 h : **3 327 / 44**
+  occasions bloquées par le seul ancien `_sait`. Trois tests nouveaux sur captures
+  réelles juste avant les paroles à 72/102 min, monde complet, sons et rendu
+  identiques après recharge pour dix minutes d'un bloc ou découpées ; **24 tests
+  ciblés verts**. Rapide 4 h, crue/Relais × quatre graines : **0 → 18 avis**,
+  zéro adoption, aucun plantage/violation/usurpation, mêmes constats d'audit et
+  compteurs de boucles ; eau crue **133,75 → 133,75 min·PNJ**. Relais : quatre
+  mondes finaux et chroniques identiques. Huit références calculées une fois
+  et mises en cache. Audits 12 h branche seule : **16 / 6 avis, zéro adoption**,
+  eau **1 095 → 1 085 / 275 → 325 min·PNJ**, `eau_longue` **4 / 1** ; 500 :
+  Gorm refuge, Brune galerie, Ilse conduite, Aubin vannes ; 2024 : tous au refuge.
+  **Limites** : plan actif non interrompu pour prévenir ; crue 2024 modifiée,
+  violence à 649 min puis **237 passages en une heure** et va-et-vient signalés,
+  absence de boucle nouvelle non garantie. Suite complète unique : **1 930 tests,
+  16 ignorés, zéro échec/erreur**, 199 fichiers, deux processus à priorité réduite,
+  **2 231,5 s** ; créneau de 45 minutes dépassé sous charge partagée.
+  Aucun appel à Luna, changement de scénario ou de `main`, ni modification de
+  `planification.py`/`deliberation.py`. [Rapport du lot 88](taches/rapport-codex-88-avis-reels.md).
+  **Suite du lot 88, diagnostic seul après refus de fusion : non fusionnable.**
+  Les 237 passages sont ceux d'Aubin, heure 660–719 ; **292** sur 60 min glissantes.
+  Alternance principale **lumière galerie ↔ inspection refuge**, relayée au palier
+  noir par une sécurité toujours urgente ; persiste après extinction du danger.
+  `eclairer` termine sur l'arrivée éclairée, sans progression de sécurité ;
+  `_plan_lumiere` s'efface, `_plan_abri` n'y prend pas le relais, puis `_candidats`
+  et `_pulsion` relancent la ronde dont le parcours sera interrompu. Inertie entre
+  recours d'un même besoin seulement. Base normale : aucun coup à 649 min,
+  pire heure 24 ; mêmes captures à 645 min sur les deux moteurs : **128 passages
+  d'Aubin / 30 min**, monde complet et rendu identiques en bloc/découpé/rechargé,
+  **249 événements** identiques à la vraie nuit. Défaut latent du contrat commun
+  choix/prérequis/progression, pas une boucle causée par les seules violences.
+  Arrêt au diagnostic autorisé au point 3 ; aucun code modifié, aucune suite
+  complète supplémentaire. Audits 12 h refaits, chroniques identiques :
+  2024 **237 passages/h, 6 avis/0 adoption** ; 500 **22 passages/h, 16/0**.
+  [Diagnostic, fonctions et preuves](taches/rapport-codex-88-boucle.md).
 
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
   **02c8e8b**, code signé **9f344cd** : lieux et portée partagés par salle,
@@ -325,7 +405,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `artifacts/bissection-auberge/` du worktree de livraison.
   Fusionné sur l'intégration (rapport et outil, sans moteur).
 
-- Branche `codex-avis-menace`, **non fusionnée**, lot **80** (A3, menace d'un lieu),
+- Branche `codex-avis-menace`, fusionnée, lot **80** (A3, menace d'un lieu),
   base d'intégration **882907c**, brief **5fd85a1**, code signé **a2bb274** : les nouvelles communes
   transmettent la prévision d'eau à un auditeur cru concerné, selon le souci
   (altruisme + empathie + affection ≥ 100). La réception pèse source × conviction ;

@@ -931,6 +931,27 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
   soumis à la même réception. Mesures `avis_exprimes`, `changements_d_avis` (adoptions dites).
   Ni dispute, ni autre prédicat dans ce lot ; une destination privée n'est pas devinée.
   [Rapport du lot 80](taches/rapport-codex-80-avis-menace.md).
+- **Avis dans les nuits réelles, lot 88** (`codex-avis-reels`, non fusionnée,
+  base `c9245dd`) : `_sait` ne confond plus une conclusion de menace avec une
+  prévision déjà reçue. Le choix de l'auditeur ne consulte plus sa prévision
+  privée ; la réception seule pèse ses preuves. Le seuil de souci reste 100 :
+  il ne bloquait aucune paire des deux crues mesurées. Relevé chaque minute,
+  500/2024 : **3 327 / 44** occasions bloquées par ce seul filtre ; audits 12 h :
+  **16 / 6 avis, aucune adoption**, preuves propres conservées. Les avis dits,
+  même déclinés, restent bornés par le registre commun. Trois tests sur captures
+  réelles à 72/102 min, monde complet et perception après recharge/découpage.
+  Le créneau de confidence et sa limite d'une parole par minute sont inchangés ;
+  pas de garantie d'avertissement immédiat pendant un plan actif. Eau longue
+  **4 / 1** persistante ; crue 2024 modifiée : rafale de passages après violence
+  à 649 min, hors de la correction des avis.
+  [Rapport du lot 88](taches/rapport-codex-88-avis-reels.md).
+  **Suite, fusion refusée :** les 237 passages/h sont l'alternance lumière/ronde
+  d'Aubin, persistante sans danger actif. Défaut latent reproduit sur la base
+  depuis une capture commune : même monde et rendu en bloc/découpé/rechargé.
+  Audits 2024/500 refaits, identiques ; arrêt au diagnostic (point 3), aucun code
+  ajouté, **boucle non corrigée, branche non fusionnable**. Le contrat commun
+  choix/prérequis/progression relève d'un lot distinct.
+  [Diagnostic de la boucle du lot 88](taches/rapport-codex-88-boucle.md).
 - Avis sur les prédicats admis, poids des sources, expression gardée par le souci de l'auditeur,
   `contredire`, nature « éclat », témoins, suites.
 - **Partager ses constats** (revue externe du 2026-10-24, retenue) : deux personnes qui se font confiance se disent

@@ -16,6 +16,7 @@ from donjon.deliberation import (
 from donjon.deliberation import (
     _plan_faim, _plan_enquete, _delegue, _pulsion_a_soi, _plan_garder,
     _plan_prevenir, _plan_attendre, _plan_abri, _plan_creance, _plan_argent,
+    _continuer_progres,
 )
 
 
@@ -108,7 +109,9 @@ def anciens_candidats(monde, id):
     for besoin, (methode, fin) in PROGRES.items():
         if (e["intention"] and e["intention"]["motif"] == besoin and e["besoins"].get(besoin, 0) > fin
                 and any(x["operation"] == GESTE_PROGRES[besoin] for x in e["intention"]["plan"])):
-            buts.append((besoin, methode, False))
+            # Lot 90 : le rang historique est inchangé ; la reprise retrouve
+            # maintenant le recours qui porte le progrès, puis ses replis.
+            buts.append((besoin, lambda m, i, b=besoin: _continuer_progres(m, i, b), False))
     # La routine : ses rondes, même quand le besoin qu'elles servent ne presse pas.
     for x in p["pulsions"]:
         if (periodique(x["condition"]) and x["besoin"] not in pressants
