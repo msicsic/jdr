@@ -4,6 +4,40 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cache-prompt`, **non fusionnée**, lot **85**, brief **ae050d4** :
+  reprise d'`origin/integration` **a2261e6** et du préalable 83 **f1d198b**
+  par fusions signées **589adb4**, **f573250**. Code signé **52991b6**, signatures
+  SSH vérifiées localement. Schéma de réponse et instructions constants, phase
+  et autorisations dans l'entrée ; audit narratif en tableau
+  indexé, compte rendu de fidélité enveloppé dans `rapport`, schéma de portée
+  unique avec `usages`. Clé de cache par partie/fonction, identité WebSocket
+  par partie ; contexte complet toujours transmis. Contrôles du moteur et
+  lecture des rapports anciens conservés. Outil `mesurer_cache_prompt.py`.
+  **Validation partielle : cible globale de 70 % manquée et Luna dégradée.**
+  Onze scripts, une passe, 53 tours MJ ; 22 références **882907c** lues du cache
+  et vérifiées par SHA-256. Préfixes distincts MJ **46 → 1**, audit narratif
+  **40 → 1**, fidélité **2 → 1** ; tokens en cache **24,61 → 62,70 %**,
+  par fonction **71,81 %**, **36,45 %**, **0 %**. Aucun usage manquant.
+  Appels **154 → 208**, **2,91 → 3,92/tour**, relances **5 → 26**, refus
+  **7,5 → 8**, replis **0 → 6** ; aucun arrêt, erreur technique/recharge.
+  Sans énumérations strictes, Luna cite des chemins ou identifiants de signes
+  au lieu des clés du dossier ; le contrôle les écarte, causant des relances
+  et replis. Soir-appel **17 → 30 appels**, trois replis ; signes-écart **6 → 10**.
+  Une affirmation de déplacement reste admise dans noms-dialogue malgré la
+  position rechargée inchangée : aucune nouvelle garantie de vérité narrative.
+  Pas de seconde passe ni d'exception de scénario. Six tests finaux du lot verts,
+  état/rendu après recharge et deux voies de portée. Empreintes 2 h, Relais,
+  quatre graines, un processus : chronique, mesures et état final complet
+  identiques à **a2261e6** ; référence calculée une fois et rangée en cache.
+  Suite complète unique : **1 925 tests, 16 ignorés, zéro échec/erreur**,
+  197 fichiers, trois processus à priorité réduite, **1 806,10 s**.
+  Le sixième test de portée a été ajouté après le passage initial de ce fichier :
+  six tests finaux verts, **1 926 tests consolidés**, aucune seconde suite.
+  Créneau de 45 minutes dépassé (suite complète de trente minutes).
+  Aucun scénario, modèle, planificateur ni `main` modifié par ce lot.
+  [Mesures et limites du lot 85](taches/rapport-codex-85-cache-prompt.md) ;
+  bruts dans `artifacts/lot85/` et `artifacts/bancs-multi/` du worktree.
+
 - Branche `codex-cout-par-noeud`, fusionnée, lot **81**, base **cf08508**,
   brief **f7a558a**, correctif signé **0270367** : géométrie et tarifs partagés
   par les nœuds d'une `Vue` et les références de `VERIFIER`. Clés de route par
