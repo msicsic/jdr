@@ -91,7 +91,8 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           # local, indépendamment de la mémoire courante et du temps écoulé.
           "recherches": dict,
           # Contenus des indices déjà utilisés par personne et lieu, hors mémoire bornée.
-          "indices_recherche": dict}
+          "indices_recherche": dict,
+          "presence_recherche": dict}  # Dernière localisation positive, même après un constat d'absence.
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -337,6 +338,11 @@ def verifier(monde):
                                  and all(type(n) is int for n in x[-1])) for x in indices)
                     for s, indices in salles.items())
             for q, salles in e["indices_recherche"].items()), "Indices de recherche invalides"
+        assert isinstance(e["presence_recherche"], dict) and all(
+            (q in monde.objets or q == "joueur") and isinstance(p, list) and len(p) == 2
+            and p[0] in monde.data["salles"] and (p[1] is None or isinstance(p[1], list)
+                and len(p[1]) == 2 and all(type(n) is int for n in p[1]))
+            for q, p in e["presence_recherche"].items()), "Présences de recherche invalides"
         i = e["intention"]
         assert i is None or (isinstance(i, dict) and set(i) - {"attitude"} == CLES_INTENTION
                              and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)

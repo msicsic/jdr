@@ -17,6 +17,30 @@ from tests.test_voix import aubin_cherche_gorm
 
 
 class IndicesTests(unittest.TestCase):
+    def test_retour_positivement_appris_vers_un_ancien_lieu_ou_une_ancienne_case(self):
+        for cible in ('marchand', 'joueur'):
+            with self.subTest(cible=cible):
+                m = aubin_cherche_gorm()
+                deliberation.recherche_vaine(m, 'aubin', cible, 'beffroi')
+                _bruit_inconnu(m, 'aubin', 'beffroi', 'pas', 3)
+                esprit(m, 'aubin')['memoire'] = []
+                for salle, case in [('beffroi', [1, 1]), ('echoppe', [2, 2]),
+                                    ('beffroi', [1, 1]), ('beffroi', [2, 1]), ('beffroi', [1, 1])]:
+                    # Chaque recherche consomme cet indice, puis constate l'absence.
+                    croire(m, 'aubin', cible, 'lieu', salle, 'entendu', salle=salle, case=case)
+                    self.assertNotIn(salle, deliberation.appels_vains(m, 'aubin', cible))
+                    deliberation.recherche_vaine(m, 'aubin', cible, salle)
+                    croire(m, 'aubin', cible, 'lieu', None, 'essai', salle=None, case=None)
+                    m = recharger(m)
+                # Une réécoute à la dernière position connue n'est toujours pas un déplacement.
+                croire(m, 'aubin', cible, 'lieu', 'beffroi', 'entendu', salle='beffroi', case=[1, 1])
+                m = recharger(m)
+                self.assertIn('beffroi', deliberation.appels_vains(m, 'aubin', cible))
+                _bruit_inconnu(m, 'aubin', 'beffroi', 'pas', 3)
+                m = recharger(m)
+                self.assertIn('beffroi', deliberation.appels_vains(m, 'aubin', cible))
+                self.assertTrue(regarder(m))
+
     def test_examen_consomme_la_presence_crue_avant_le_constat_d_absence(self):
         for cible in ('marchand', 'joueur'):
             with self.subTest(cible=cible):
@@ -126,8 +150,8 @@ class CapturesTests(unittest.TestCase):
         with patch.object(deliberation, 'indice_recherche', noter), patch.object(pnj, 'heler', crier):
             bloc, _ = vivre(recharger(m), 10)
         coupe = recharger(m)
-        for _ in range(10):
-            coupe, _ = vivre(coupe, 1)
+        for duree in (4, 6):
+            coupe, _ = vivre(coupe, duree)
         self.assertEqual(bloc.data, coupe.data)
         self.assertEqual(regarder(bloc), regarder(coupe))
         self.assertEqual(rendre(bloc, entendus(bloc, debut, ENTENDU)),
