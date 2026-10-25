@@ -4,6 +4,46 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-recours-prioritaire`, **non fusionnée**, lot **90**, base
+  `9810f4a` (lot 87 inclus), code signé SSH `e5c71f9`, `0144f92`, `8a6c1b6` :
+  le séjour terminal tarifé par `eclairer(tenir=True)` est exporté comme geste
+  durable `abriter` sans lumière portée ; `_plan_lumiere` le revalide et
+  `_continuer_progres` retrouve le recours qui porte ce progrès, avec ses replis.
+  L'inertie commune entre besoins continue après l'arrivée, jusqu'au seuil
+  d'apaisement du geste ; une ronde reste possible avec une lumière portée.
+  Aucun délai, registre supplémentaire, coût ou plafond nouveau ; aucune lecture
+  du graphe ajoutée à couvrir par `_entrees`.
+  Capture réelle crue 2024 à 645 min : **128 → 8 passages d'Aubin / 30 min**,
+  même monde complet et même vue description/sons d'un bloc ou par quinze
+  secondes sauvegardées/rechargées ; autre cas de mine, reprise de ronde après
+  apaisement et lumière portable ordinaire contrôlés. Aubin reste inquiet à 675 :
+  aucune inspection sans moyen n'est prétendue dans cet état.
+  Le terminal reste soumis à la coupure des gestes supposés/livraisons ; une
+  attente vide ne devient un séjour qu'après constat de la lumière. Frontière
+  de fin de plan sauvegardée couverte par un cinquième test du lot.
+  Lot 88 `9193904` fusionné **localement** par `3665e94` pour les audits.
+  Rapide final `735165d`, 4 h × quatre scénarios × quatre graines, contre `9810f4a` :
+  seize références relues du cache, mêmes constats d'audit, aucun plantage,
+  violation ou usurpation ; pire heure par PNJ inchangée **8 / 10 / 15 / 24**
+  (Relais/mine/auberge/crue). En crue, bascules **4 → 5**, répétition brute
+  d'avis **0 → 1**, sans alternance durable nouvelle signalée ; la mesure
+  inclut le lot 88, sans attribution de ces écarts au seul lot 90.
+  Suite complète unique : **1 946 tests, 16 ignorés, 1 286,32 s**, 202 fichiers,
+  15 échecs dans cinq fichiers ; erreur de coupure corrigée et quatre attentes
+  historiques adaptées (rang, poussée, annonce et conservation du bois à chaque
+  geste). **68 tests ciblés finaux verts**, bilan consolidé **1 947 tests,
+  16 ignorés, sans échec/erreur restant**, sans seconde suite complète.
+  `VERIFIER`, capture 30 min et mine 3 min : **aucun écart ni borne**.
+  Audits 12 h : crue 2024 **237 → 24 passages/h**, **292 → 30 glissantes** ;
+  crue 500 **22 → 22 / 32 → 32**, chronique et récit identiques, aucun plantage.
+  Bascules inchangées **3 / 2**. Plus de rafale ni va-et-vient signalés ; restent
+  en 2024 45 min de faim sans recours pour Brune puis attente, et **3 → 6 avis
+  textuels redits**, espacés d'au moins 96 min ; causes hors de cette correction,
+  aucune garantie générale d'absence d'autres défauts. Le choix garde ses priorités et `INERTIE`, sans nouveau
+  comparateur universel de tous les plans entre besoins ; un séjour peut
+  durer tant que la sécurité ne s'apaise pas. Aucun appel à Luna ni modification
+  de scénario ou de `main`. [Rapport du lot 90](taches/rapport-codex-90-recours-prioritaire.md).
+
 - Branche `codex-borne-attente`, fusionnée, lot **87**, base **020250e**,
   code signé **a82f469** (première version **a181ada**) :
   un recours borné sans plan retient son effort dans `esprits.attentes_bornees`.

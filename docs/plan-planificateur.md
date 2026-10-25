@@ -2023,3 +2023,38 @@ prouver qu'un changement de prix ne pourrait jamais faire trouver un plan sous
 le plafond : hors des nuits vérifiées, l'attente peut alors le retarder jusqu'au
 prochain réveil. La conservation des recours et le coût sont contrôlés sur les nuits
 du lot ; leurs limites figurent dans le [rapport](taches/rapport-codex-87-borne-attente.md).
+
+## Le séjour terminal fait partie du recours (lot 90)
+
+Une recherche avec `tenir=True` compte le séjour dans son état final. Son export
+ne doit pas perdre ce séjour quand le recours apaise un besoin en restant sur
+place : `eclairer` termine par le geste durable `abriter` quand aucune source
+allumée portée ne permet d'emporter la lumière. Le moteur fait alors vivre la
+sécurité dans ce lieu et termine le geste à `SECURITE_FIN`, comme pour l'abri.
+Une source allumée portée conserve le plan ordinaire, sans séjour imposé.
+Ce terminal est ajouté avant `_couper` : une livraison attendue ou un geste
+incertain coupe aussi le séjour qui en dépend. Une attente sans geste reste
+vide ; après réalisation constatée, une fin de plan de lumière peut reprendre
+son séjour sur l'état réel.
+
+`_plan_lumiere` revalide ce séjour sur les croyances présentes (lumière, eau,
+sécurité encore à apaiser). `_continuer_progres` recherche le recours qui porte
+le geste durable, au lieu d'imposer la seule méthode par défaut du besoin ; si
+ce recours n'est plus possible, les autres progrès disponibles restent des
+replis. Le candidat `PROGRES_EN_COURS` prend ainsi le relais même sous le seuil
+d'urgence, jusqu'au terme habituel du geste. Les priorités et l'inertie communes
+entre besoins s'appliquent pendant ce séjour ; alarmes et périls conservent leurs
+rangs. Une ronde inférieure attend, ou se fait avec une lumière portée.
+
+Les trajets continuent de compter le noir, les gardes et l'eau dans
+`Vue.pression`. Aucun coût, horizon, palier ni plafond de recherche n'est ajouté.
+La sélection et l'export lisent l'état courant en dehors de la recherche ;
+aucune lecture nouvelle du graphe ne demande d'étendre `_entrees`. La tenue
+appartient au plan sauvegardé, sans registre supplémentaire ni délai fixe ;
+`pnj._avancer` poursuit le geste durable existant à ses échéances ordinaires.
+Le recours de lumière reste distinct de l'abri avec compagnie : deux PNJ
+peuvent se rassurer dans des lieux différents avant de se rejoindre.
+
+Ce contrat ne remplace pas l'arbitrage existant par une comparaison de tous
+les coûts entre besoins : les rangs et `INERTIE` restent l'autorité du choix.
+Les mesures et limites sont dans le [rapport du lot 90](taches/rapport-codex-90-recours-prioritaire.md).
