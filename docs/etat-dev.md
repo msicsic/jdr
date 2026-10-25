@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna de l'intégration 882907c**, lot **79**, branche
+  `codex-verif-luna-882907c`, sans changement de code : deux passes des vingt scripts
+  du lot 70, **40 parties, 302 saisies, 388 appels**, uniquement `gpt-6-luna`/ChatGPT,
+  medium/libre, quatre exécutions au plus à priorité réduite, copies temporaires.
+  Aucun arrêt, erreur technique/recharge, tour écarté ou repli détecté. Quarante parties
+  rangées en cache, SHA-256 identiques aux bruts ; **42bb9c0, f033364 et fbcf0ff
+  exclusivement relus**, 102 références inchangées et mesures historiques reproduites.
+  Onze scripts, main → f033364 → fbcf0ff → 882907c : **3,15 → 2,96 → 3,21 → 2,91
+  appels/tour**, **12,7 → 11,1 → 14,4 → 12,8 s/tour** ; relances **8 → 2,5 → 9 → 5**,
+  refus **16 → 10,5 → 13,5 → 7,5**, tours avec refus **10,5 → 8,5 → 9,5 → 6,5**,
+  replis **0,5 → 0 → 1 → 0**. Vingt : f033364 → fbcf0ff → 882907c **2,80 → 3,06 → 2,85
+  appels/tour**, 66 → 68 → 68 tours MJ. Temps historiques sous des charges différentes,
+  sans conclusion causale de performance. **Validation partielle** : Aubin et Gorm
+  remboursent, Brune reste débitrice ; brasero hors de vue admis, faux rejet spatial
+  et présentation d'Ilse rejetée non reproduits. Mot « refus » non exercé lexicalement.
+  Achat du soir exécuté **une passe sur deux** : paiement 26 → 23 puis `planches_1`
+  portée après recharge ; autre passe réduite à `propos`, couverture déclarée conforme,
+  aucun paiement ni remise. Faux rejet de compte sur propriété des planches persistant.
+  Nouveaux défauts : absence d'Ilse affirmée dans le noir malgré sa présence rechargée,
+  Gorm dit « face à toi » malgré son orientation, motifs d'audit contradictoires avec
+  leurs verdicts ; compte de Gorm extrait avec noms publics au lieu des identifiants.
+  Quatorze passages/refus sous-obstacle cohérents après recharge. Aucun correctif ni
+  suite moteur supplémentaire ; panneaux non capturés par le harnais, aucune garantie
+  générale nouvelle du rendu ou de l'absence de contradictions. Bruts et preuves dans
+  `artifacts/verif-luna-882907c/` du dépôt principal ;
+  [rapport du lot 79](taches/rapport-codex-79-verif-luna.md). Branche livrée sans fusion dans `main`.
+  Fusionné sur l'intégration (rapport seulement).
+
 - Branche `codex-bissection-auberge`, fusionnée, lot **76**, moteur **1171fc3**,
   brief **bf4bf71** : diagnostic seul, **22 révisions**, **32 nuits de 12 h**,
   auberge 1985 fixe, joueur au dortoir. Quatre marches retenues : trajets réels Q
