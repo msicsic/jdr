@@ -295,6 +295,10 @@ class Vue:
         self._metriques = {15: self._metrique}
         self._cru_spatial = monde_cru(monde, id) if monde.data.get("mode_cases") else None
         self._approches = {}
+        self._contextes_routes, self._tarifs_routes, self._effets_routes = {}, {}, {}
+        self._mesures_allers = {}
+        self._temoin_route = None
+        self._contextes_pressions = {}
         self._contacts = {}
         self._locaux = {}
         self._moyennes = {}
@@ -309,6 +313,12 @@ class Vue:
         self.peurs_sociales = {x: peur / 50 for x in [*self.personnes(), "joueur"]
                               if (peur := relations.axes(monde, id, x)["peur"])}
         self.taux_mefiance = taux(monde, id, "mefiance")
+        # Gardes et eau sont figées par salle. Seules lumière et compagnie
+        # peuvent rendre la pression dépendante des faits d'un nœud.
+        self._pression_fixe = (None if self.peur or self.peurs_sociales else {
+            s: 0 + NOIR * self.taux_mefiance * 0
+               + sum(prix for g, prix in self.prix_gardes.items() if g != s)
+               + NOIR * self.eau.get(s, 0) for s in self.salles})
         self._allers, self._lieux_crus = {}, {}
         self.salles_triees = sorted(self.salles)
         # La catégorie de ressource comptée ; son emploi pour un besoin dépend de ``part_pour``
@@ -603,7 +613,7 @@ class Vue:
     def allers(self, e, ouvertes):
         """[(salle, minutes du trajet)] : chaque autre salle qu'il croit atteindre depuis celle de
         ``e``, avec ce qu'il porte et les portes que le plan a déverrouillées (``route``)."""
-        cle = (e.salle, e.case, e.orientation, e.portes, ouvertes, e.allure, self.portes_prevues(e))
+        cle = (self.contexte_route(e), ouvertes)
         if cle not in self._allers:
             allers = []
             for s in self.salles_triees:
@@ -623,18 +633,37 @@ class Vue:
                                  self.ouvertes(e) if ouvertes is None else ouvertes, metrique=False)
             return route if route is not None and not route_admissible.refus(self, e, route, arrivee) else None
         ouvertes = self.ouvertes(e) if ouvertes is None else ouvertes
-        equipement = e.portes if self.metrique(e.allure) else frozenset(
-            k for k in e.portes if self.objets[k].get("ouvre"))
-        cle = (e.salle, equipement, ouvertes, e.allure, self.portes_prevues(e))
+        cle = (self.contexte_route(e), ouvertes)
         if cle not in self._parcours:
             self._parcours[cle] = trajet_estime.parcours(self, e, ouvertes)
+        admissible = (cle, arrivee)
+        if admissible in self._routes:
+            route, raison = self._routes[admissible]
+            if raison:
+                self.refus_routes[arrivee] = raison
+            return route
         route = self._parcours[cle].get(arrivee)
+        raison = None
         if route is not None:
             raison = route_admissible.refus(self, e, route, arrivee)
             if raison:
                 self.refus_routes[arrivee] = raison
-                return None
+                route = None
+        self._routes[admissible] = route, raison
         return route
+
+    def contexte_route(self, e):
+        """Géométrie et admissibilité : ni droits, ni effets terminaux du plan.
+
+        Les possessions entières ne servent qu'aux franchissements métriques ;
+        sinon seules les clés changent les parcours et les retours devant l'eau.
+        """
+        cle = (e.portes, e[2], e.allure)
+        if cle not in self._contextes_routes:
+            equipement = e.portes if self.metrique(e.allure) else frozenset(
+                k for k in e.portes if self.objets[k].get("ouvre"))
+            self._contextes_routes[cle] = (equipement, e.allure, self.portes_prevues(e))
+        return (e.salle, self._contextes_routes[cle])
 
     def metrique(self, allure):
         if allure not in self._metriques:
@@ -650,16 +679,77 @@ class Vue:
         if not isinstance(route, Route):
             return e.apres(salle=salle)
         orientation = next((k for k, v in VECTEURS.items() if route.chemin and v == route.chemin[-1][3]), e.orientation)
-        faits = [(cle, valeur) for p in sorted(route.portes) if not self.ouvert(e, p) or self.verrouille(e, p)
-                 for cle, valeur in ((("ouvert", p), True), (("verrou", p), False))]
+        if not route.portes:
+            return e.apres(salle=salle, case=route.fin[1], orientation=orientation)
+        cle = (id(route), self.contexte_route(e))
+        if cle not in self._effets_routes:
+            self._effets_routes[cle] = route, tuple((cle, valeur)
+                for p in sorted(route.portes) if not self.ouvert(e, p) or self.verrouille(e, p)
+                for cle, valeur in ((("ouvert", p), True), (("verrou", p), False)))
+        faits = self._effets_routes[cle][1]
         return e.apres(salle=salle, case=route.fin[1], orientation=orientation, faits=faits)
 
     def prix_route(self, e, route):
         """Pression intégrée dans chaque salle parcourue, avant les effets du geste."""
         if not isinstance(route, Route):
             return cout_route(route) * self.pression(e)
-        return sum(d / MINUTE * self.pression(e.apres(salle=s))
-                   for s, d in sejours_route(route, e.orientation) if d)
+        cle = (id(route), e.orientation, self.contexte_pression(e))
+        if cle not in self._tarifs_routes:
+            self._tarifs_routes[cle] = route, sum(d / MINUTE * self.pression(e.apres(salle=s))
+                                                for s, d in sejours_route(route, e.orientation) if d)
+        return self._tarifs_routes[cle][1]
+
+    def mesure_aller(self, e, salle):
+        """Durée, pression et effets de portes d'une arête entre salles.
+
+        Les effets restent des écritures à composer avec le nœud destinataire,
+        jamais un état complet repris d'un autre plan.
+        """
+        cle = (self.contexte_route(e), self.contexte_pression(e), salle)
+        if cle not in self._mesures_allers:
+            route = self.route(e, salle)
+            if route is None:
+                mesure = None
+            else:
+                arrivee = self.arrivee(e, salle, route)
+                mesure = (cout_route(route, e.orientation), self.prix_route(e, route),
+                          tuple((k, x) for k, x in arrivee.faits.items() if k[0] in ("ouvert", "verrou")
+                                and self.objets[k[1]]["type"] == "porte"))
+            self._mesures_allers[cle] = mesure
+        elif self._mesures_allers[cle] is None:
+            self.route(e, salle)  # restituer aussi la cause destinée au récit
+        if a_verifier():
+            # Un seul état complet à la fois, sans la projection contrôlée :
+            # ses destinations consécutives partagent ce recalcul indépendant.
+            # Une dépendance omise de contexte_route reste donc détectable.
+            temoin = (e, e.case, e.orientation)
+            if self._temoin_route is None or self._temoin_route[0] != temoin:
+                self._temoin_route = temoin, trajet_estime.parcours(self, e, self.ouvertes(e))
+            route = self._temoin_route[1].get(salle)
+            if route is not None and route_admissible.refus(self, e, route, salle):
+                route = None
+            direct = None
+            if route is not None:
+                arrivee = self.arrivee(e, salle, route)
+                direct = (sum(d for _, d in sejours_route(route, e.orientation)) / MINUTE,
+                          sum(d / MINUTE * self.pression(e.apres(salle=s))
+                              for s, d in sejours_route(route, e.orientation) if d),
+                          tuple((k, x) for k, x in arrivee.faits.items() if k[0] in ("ouvert", "verrou")
+                                and self.objets[k[1]]["type"] == "porte"))
+            garde = self._mesures_allers[cle]
+            assert ((garde is None and direct is None)
+                    or garde is not None and direct is not None and garde[:2] == direct[:2]
+                    and dict(garde[2]) == dict(direct[2])), "Table des trajets périmée"
+        return self._mesures_allers[cle]
+
+    def contexte_pression(self, e):
+        if self._pression_fixe is not None:
+            return None
+        cle = (e.portes, e[2])
+        if cle not in self._contextes_pressions:
+            self._contextes_pressions[cle] = (e.portes, frozenset(
+                (k, x) for k, x in e.faits.items() if k[0] in ("allume", "lieu")))
+        return self._contextes_pressions[cle]
 
     def case_objet(self, e, objet, vus=()):
         """Position prévue, sinon crue ; le contenant ou le porteur donne sa case."""
@@ -950,10 +1040,12 @@ class Vue:
         """Ce que lui coûte une minute dans cet état, par ce qu'il y laisse monter : le noir, s'il le
         craint (``NOIR``), l'éloignement de chaque lieu où il garde ses biens (``prix_gardes``), l'eau qu'il
         croit ou attend là (au taux où elle l'inquiète, ``NOIR`` par point, comme le noir)."""
+        if self._pression_fixe is not None and e.salle in self._pression_fixe:
+            return self._pression_fixe[e.salle]
         pressions = self._pressions
         # La case et l'orientation changent le trajet, pas le taux par salle.
         # Ne pas multiplier ces mêmes lectures pour tous les seuils d'arrivée.
-        cle = (e.salle, e.portes, frozenset((k, x) for k, x in e.faits.items() if k[0] in ("allume", "lieu")))
+        cle = (e.salle, self.contexte_pression(e))
         if cle not in pressions:
             p = NOIR * self.peur if self.peur and self.noir(e) else 0
             peur_sociale = max((peur for x, peur in self.peurs_sociales.items()
@@ -1925,6 +2017,12 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
     si la référence l'atteint, la restreinte doit seulement ne pas coûter plus qu'elle."""
     def refaire(emplois, borne):
         brute = Vue(monde, id)
+        # Même photographie du monde : géométrie et tarifs ne dépendent ni du
+        # but ni des emplois. Découvertes et graphe de référence restent privés.
+        for nom_table in ("_contextes_routes", "_contextes_pressions", "_parcours", "_routes", "_allers",
+                          "_approches", "_contacts", "_locaux", "_moyennes", "_effets_routes",
+                          "_tarifs_routes", "_mesures_allers"):
+            setattr(brute, nom_table, getattr(v, nom_table))
         brute.degat, brute.seul, brute.emplois, brute.eclairer = v.degat, seul, emplois, v.eclairer
         brute.motif = v.motif
         brute.desespere = v.desespere
@@ -2274,6 +2372,19 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
 
 
 def _mesurer(v, e, ajout, suivant, ancienne_duree):
+    """Lire l'arête entre salles ; composer directement les autres séquences."""
+    if v._cru_spatial is not None and len(ajout) == 1 and ajout[0]["operation"] == "aller":
+        mesure = v.mesure_aller(e, ajout[0]["lieu"])
+        if mesure is None:
+            return None
+        temps, pression, portes = mesure
+        faits = dict(suivant.faits)
+        faits.update((k, x) for k, x in portes if suivant.faits.get(k) == e.faits.get(k))
+        return temps, pression, suivant.apres(faits=faits.items())
+    return _mesurer_direct(v, e, ajout, suivant, ancienne_duree)
+
+
+def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
     """Approches estimées, portes et gestes aux tarifs communs d'exécution.
 
     Les coûts sociaux restent séparés du temps. Une probabilité multiplie les

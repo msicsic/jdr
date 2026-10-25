@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-cout-par-noeud`, fusionnée, lot **81**, base **cf08508**,
+  brief **f7a558a**, correctif signé **0270367** : géométrie et tarifs partagés
+  par les nœuds d'une `Vue` et les références de `VERIFIER`. Clés de route par
+  salle, allure, clés/équipement métrique et faits de portes ; pression fixe
+  par salle quand ni lumière ni compagnie ne la changent, sinon possessions,
+  lieux et lumières dans la clé. Durées sommées une fois, admission et causes
+  gardées, effets de portes composés avec l'état suivant original. Aucun coût,
+  ordre d'addition, modèle de trajet, nœud ou choix changé. Témoin spatial du
+  dernier état complet, indépendant des clés projetées, partagé entre ses
+  destinations ; une clé omise et une corruption restent détectées.
+  Capture Joss/faim, vingt recherches : **149 nœuds chacune**, même coût et
+  résultat, **367,0 → 262,2 µs CPU/nœud (−28,6 %)** ; ancien moteur : 73 nœuds,
+  149,8 µs/nœud, autre modèle. Douze heures, mine/auberge × fixe/tiré, 1985,
+  trois versions ensemble, un processus chacune : **quatre nuits strictement
+  identiques** à la base, traces et nœuds compris. Gain CPU observé **2,10 à
+  8,93 %** ; **cible sous ×2 non atteinte**, auberge fixe ×2,66, tiré ×4,46.
+  Cinq tests nouveaux : tarifs directs, portes, eau attendue, obstacle, lumière,
+  allures et captures réelles mine/auberge vécues puis rechargées, même monde,
+  texte joueur et rendu. Empreintes 2 h, quatre scénarios × quatre graines :
+  **16 nuits identiques**, référence calculée une fois et mise en cache.
+  `VERIFIER` + spatial à 1, auberge 42 tiré, 2 h : **sans écart ni borne**,
+  413,98 s CPU. Suite complète unique : **1 908 tests, 16 ignorés, zéro échec/erreur**,
+  194 fichiers, trois processus à priorité réduite, **1 829,4 s écoulées**.
+  Premier contrôle spatial interrompu pour supprimer ses
+  recalculs par destination ; seul ce contrôle est ajusté après les mesures CPU.
+  Créneau de 45 minutes dépassé ; aucun appel à Luna, aucune modification de
+  `main`. [Mesures et limites du lot 81](taches/rapport-codex-81-cout-par-noeud.md).
+  Fusionné sur l'intégration après les lots 79, 80 et 82 : `planification.py` touché aussi par le lot 80 (lecture de la prévision d'eau), fusionné sans conflit ; suite complète relancée.
+
 - Branche `codex-paiement-effectif`, fusionnée, lot **82**, base `a6f9368`
   (brief sur l'intégration `3ffd72d`) : analyse des opérations demandées séparée du
   verdict de fidélité, avec les sens communs de `paroles`. Le moteur compare cette
