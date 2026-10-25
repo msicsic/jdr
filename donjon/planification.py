@@ -64,10 +64,12 @@ _MEMOIRE = {}
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
 # Dès la première recherche, une petite marque de discrétion est retenue ;
-# les nœuds ne le sont qu'à la deuxième rencontre des mêmes entrées.
+# les nœuds ne le sont qu'à la deuxième rencontre des mêmes entrées (la première les garde le temps
+# de son certificat d'absence).
 _GRAPHES = {}
 # Une impossibilité prouvée sur tout le graphe jusqu'à la profondeur autorisée ne dépend
 # plus des prix. Une seule dernière preuve par PNJ/but ; une preuve bornée n'est jamais reprise.
+# Une recherche épuisée sans plan la tente aussitôt, en complétant le graphe (``_sans_plan``).
 _IMPOSSIBLES = {}
 PREUVE_MAX = 4 * NOEUDS
 # Vrai (tests) : un résultat repris de la mémoire ou cherché parmi ce qu'il vaut la peine de
@@ -1817,14 +1819,24 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
         trouve = None if trouve is None else (trouve[0], copy.deepcopy(trouve[1]), trouve[2])
     else:
         voir = v.emploie_lumiere   # avant toute lecture : le graphe où la recherche commence (``_explorer``)
+        travail = graphe
+        if graphe is not None and not graphe.get("garder", True):
+            # Première recherche sur ces entrées : ses nœuds ne sont pas gardés d'une recherche à
+            # l'autre, mais le sont le temps de la recherche, pour son certificat d'absence. La même
+            # exploration que celle de la deuxième recherche, qui les garde (``_explorer``).
+            travail = {"discretion": graphe["discretion"]}
         trouve, examines, etats, plus_profond = _explorer(v, depuis or depart(monde, id, v), but, vises, profondeur,
-                                                          noeuds, faute, tenir, graphe)
+                                                          noeuds, faute, tenir, travail)
+        if travail is not graphe:
+            graphe["discretion"] = travail["discretion"]
         borne = examines >= noeuds
         issue = "plan" if trouve else "borne" if borne else "epuise"
-        if (trouve is None and graphe is not None and graphe.get("garder", True) and memo is not None and depuis is None
-                and (vide_garde is None or vide_garde[0] != signature_vide)):
+        # Épuisée sans plan, le certificat se complète (``_sans_plan``) : seuls des prix changés ensuite
+        # ne la font pas refaire. Bornée, seul un graphe gardé peut le donner, sans rien développer.
+        if (trouve is None and graphe is not None and (not borne or graphe.get("garder", True)) and memo is not None
+                and depuis is None and (vide_garde is None or vide_garde[0] != signature_vide)):
             vide, preuve_noeuds, preuve_issue = _sans_plan(
-                v, depart(monde, id, v), but, profondeur, faute, tenir, graphe, voir)
+                v, depart(monde, id, v), but, profondeur, faute, tenir, travail, voir, vises, completer=not borne)
             _IMPOSSIBLES[place] = (signature_vide, vide)
             if vide:
                 # Le certificat suffit désormais, sans retenir tous les états développés.
@@ -2242,7 +2254,7 @@ def _mesurer(v, e, ajout, suivant, ancienne_duree):
     return temps, pression, suivant.apres(case=courant.case, orientation=courant.orientation, faits=faits.items())
 
 
-def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir):
+def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir, vises=None, completer=False):
     """Certificat d'absence de but, indépendamment des coûts, jamais une heuristique : (prouvé,
     états examinés, issue). ``graphe`` : les deux graphes gardés de ``_explorer`` ; ``voir`` : s'il
     employait la lumière avant toute lecture (le coût du noir, la lumière comme but).
@@ -2252,32 +2264,87 @@ def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir):
     la lumière (son but, ou ses gestes s'il les développe) la fait reprendre depuis son départ avec
     les moyens d'éclairer, sur le graphe ``lumiere``, et c'est cette reprise qui décide du plan.
     Qu'un tel état soit atteignable dans le graphe sombre, un autre prix d'une faute peut l'y faire
-    examiner : l'absence n'est prouvée que si le graphe ``lumiere`` la prouve aussi (une lacune
-    sinon, s'il n'a pas été développé)."""
-    # La vue conserve la découverte du graphe joué : _parcours et la
-    # recherche partagent _departs, y compris pour une absence sans discrétion.
-    if voir:
-        return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir)[:3]
-    prouve, examines, issue, lue = _parcours(v, graphe.get("sombre", {}), depart_, profondeur, faute, tenir)
-    if not prouve or not lue:
-        return prouve, examines, issue
-    return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir, examines)[:3]
+    examiner : l'absence n'est prouvée que si le graphe ``lumiere`` la prouve aussi.
+
+    ``completer`` (la recherche jouée vient de s'épuiser sans plan ; ``vises`` est le sien) : ce
+    qui manque au graphe gardé (états jamais examinés, gestes jamais développés, suites différées)
+    est développé ici, à part, par la vue de la recherche mise dans le mode de chaque graphe
+    (``_parcours``), dans l'ordre des passes de ``_explorer`` : le graphe sombre, puis le graphe
+    lumière si une lecture de lumière y renvoie ; un geste discret découvert reprend le tout à pas
+    feutrés, comme la recherche. Sans ``completer``, un trou dans le graphe est une lacune."""
+    if not completer:
+        # La vue conserve la découverte du graphe joué : _parcours et la
+        # recherche partagent _departs, y compris pour une absence sans discrétion.
+        if voir:
+            return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir)[:3]
+        prouve, examines, issue, lue = _parcours(v, graphe.get("sombre", {}), depart_, profondeur, faute, tenir)
+        if not prouve or not lue:
+            return prouve, examines, issue
+        return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir, examines)[:3]
+    gardes = v._lumiere_lue, v._explore_furtif, v._discretion_lue
+    examines = 0
+    try:
+        while True:
+            issue, lue = None, True
+            if not voir:
+                _mode_lumiere(v, False)
+                prouve, examines, issue, lue = _parcours(v, graphe.get("sombre", {}), depart_, profondeur, faute,
+                                                         tenir, examines, completer=(but, vises), sombre=True)
+                if issue != "discretion" and (not prouve or not lue):
+                    return prouve, examines, issue
+            if issue != "discretion":
+                _mode_lumiere(v, True)
+                prouve, examines, issue, _ = _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute,
+                                                       tenir, examines, completer=(but, vises))
+                if issue != "discretion":
+                    return prouve, examines, issue
+            # Un geste discret possible : la recherche jouée à un autre prix serait reprise à pas
+            # feutrés depuis le départ (``_explorer``). Le certificat aussi, une seule fois : en
+            # allure feutrée, plus rien n'est à découvrir (``_parcours`` ne rend plus « discretion »).
+            v._explore_furtif = v._discretion_lue = True
+    finally:
+        if (v._lumiere_lue, v._explore_furtif, v._discretion_lue) != gardes:
+            v._lumiere_lue, v._explore_furtif, v._discretion_lue = gardes
+            v._agissables.clear()
 
 
-def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
+def _mode_lumiere(v, lumiere):
+    """Met la vue dans le mode d'un graphe : sans les moyens d'éclairer (``sombre``) ou avec. Le
+    même passage que ``_explorer`` entre ses passes (la lumière lue, les objets agissables
+    oubliés) ; qui emploie la lumière d'office (peur du noir, but d'éclairer) n'en change pas."""
+    if v.peur or v.eclairer:
+        return
+    if v._lumiere_lue != lumiere:
+        v._lumiere_lue = lumiere
+        v._agissables.clear()
+
+
+def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0, *, completer=None, sombre=False):
     """Parcours en largeur d'un graphe gardé : (aucun but, états examinés, issue, lumière lue).
 
     Un état est développé à sa profondeur minimale. Contrairement à l'épuisement d'une recherche
     pondérée (et a fortiori à sa borne), cela couvre tous les chemins autorisés de longueur au plus
     ``profondeur``. La permission de commettre une faute reste une condition ; son prix et celui
-    d'abîmer ne créent aucune arête. On ne développe aucun geste supplémentaire : un trou dans le
-    graphe, une rencontre du but ou l'atteinte du plafond de preuve (``PREUVE_MAX``, compté depuis
-    ``examines``) ne conclut rien. Un état du graphe sombre dont l'examen a lu la lumière (``_explorer_etats``,
-    cinquième terme) n'est pas suivi : y arriver fait reprendre la recherche avec lumière ; le
-    parcours le signale."""
+    d'abîmer ne créent aucune arête. Une rencontre du but ou l'atteinte du plafond de preuve
+    (``PREUVE_MAX``, compté depuis ``examines``) ne conclut rien. Un état du graphe sombre dont
+    l'examen a lu la lumière (``_explorer_etats``, cinquième terme) n'est pas suivi : y arriver fait
+    reprendre la recherche avec lumière ; le parcours le signale.
+
+    Sans ``completer``, on ne développe aucun geste : un trou dans le graphe est une lacune.
+    Avec ``completer`` (le but et les ``vises`` de la recherche), ce qui manque est développé par
+    la vue, dans le mode du graphe, à part : le graphe gardé n'est pas modifié, une suite différée
+    gardée non plus (son détail est recalculé ici, sans être retenu). Une suite terminale estimée
+    (``estimation``) est un résultat de la recherche, quel que soit son prix : la rencontrer, c'est
+    rencontrer le but, aux mêmes conditions d'allure et d'eau que dans ``_explorer_etats``. Dans
+    le graphe ``sombre`` (``sombre``), un état dont le développement lit la lumière n'est pas
+    suivi, comme un état marqué ; un geste discret découvert hors de l'allure feutrée rend
+    l'issue « discretion »."""
     from collections import deque
     departs = _departs(v, depart_)
     file, vus, lue = deque((e, 0) for e in departs), set(departs), False
+    if completer is not None:
+        but, vises = completer
+        lumiere = v._lumiere_lue
     while file:
         if examines >= PREUVE_MAX:
             return False, examines, "borne", lue
@@ -2285,7 +2352,12 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
         examines += 1
         noeud = graphe.get(e)
         if noeud is None:
-            return False, examines, "lacune", lue
+            if completer is None:
+                return False, examines, "lacune", lue
+            noeud = [but(v, e) and (e.allure == 15 or e.fait("furtif")), None, None, None, False]
+            if sombre and v._lumiere_lue != lumiere:
+                noeud[4] = "but"
+                _mode_lumiere(v, lumiere)
         if noeud[4] == "but":
             lue = True   # son but lit la lumière : la recherche reprendrait avec les moyens d'éclairer
             continue
@@ -2296,18 +2368,38 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
         if noeud[4] == "gestes":
             lue = True   # ses gestes lisent la lumière : de même, s'il les développe
             continue
-        if noeud[3] is None:
-            return False, examines, "lacune", lue
+        possibles = noeud[3]
+        if possibles is None:
+            if completer is None:
+                return False, examines, "lacune", lue
+            possibles = _suites(v, e, vises, but)
         suites = []
-        for s in noeud[3]:
-            if isinstance(s, SuiteDifferee):
-                if s.suites is None:
-                    return False, examines, "lacune", lue
-                suites.extend(s.suites)
-            else:
+        for s in possibles:
+            if not isinstance(s, SuiteDifferee):
                 suites.append(s)
+            elif s.suites is not None:
+                suites.extend(s.suites)
+            elif completer is None:
+                return False, examines, "lacune", lue
+            else:
+                # Le détail entier (``SuiteDifferee.developper``), sans le retenir dans la suite gardée.
+                gestes_ = s.calcul(v, *s.arguments)
+                suites.extend(_normaliser_suites(v, s.depuis, s.vises, s.but, gestes_)
+                              if s.depuis is not None else [(*g, 0) for g in gestes_])
+        if completer is not None:
+            if sombre and v._lumiere_lue != lumiere:
+                lue = True   # ses gestes ont lu la lumière : comme un état marqué « gestes »
+                _mode_lumiere(v, lumiere)
+                continue
+            if v._discretion_lue and not v._explore_furtif:
+                return False, examines, "discretion", lue
         for fautes, _, _, suivant, *_ in suites:
             if fautes and faute is None or suivant in vus:
+                continue
+            if completer is not None and suivant.fait("estimation"):
+                # Un résultat de la recherche jouée (``_explorer_etats``), jamais un état à développer.
+                if (suivant.allure == 15 or suivant.fait("furtif")) and not (tenir and suivant.salle in v.menacees):
+                    return False, examines, "but", lue
                 continue
             vus.add(suivant)
             file.append((suivant, n + 1))
