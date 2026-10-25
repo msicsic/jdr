@@ -106,6 +106,18 @@ class RecoursPrioritaireTests(unittest.TestCase):
         self.assertTrue(any("allume la lampe de Rémy" in c["texte"] for c in a.data["chronique"]))
         self.assertEqual(vue(a), vue(recharger(a)))
 
+    def test_ronde_possible_avec_une_lumiere_portee_malgre_la_securite_haute(self):
+        from donjon.deplacement_objet import deplacer
+        m = mine()
+        deplacer(m, "lampe_remy", "bram")
+        m.objets["lampe_remy"].update(allume=True, proprietaire="bram")
+        percevoir_tous(m)
+        a = suite(recharger(m), False, 3)
+        self.assertGreaterEqual(lire(a, "bram")["visites"].get("puits", -1), 0)
+        self.assertTrue(a.objets["lampe_remy"]["allume"])
+        self.assertEqual(a.objets["lampe_remy"]["lieu"], "bram")
+        self.assertEqual(vue(a), vue(recharger(a)))
+
 
 if __name__ == "__main__":
     unittest.main()

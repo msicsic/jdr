@@ -1441,11 +1441,14 @@ def _continuer_progres(monde, id, besoin):
     L'arbitrage commun peut toujours l'interrompre pour une urgence supérieure.
     """
     intention = lire(monde, id)["intention"]
+    repli = None
     for methode in (*RECOURS.get(besoin, ()), PROGRES[besoin][0]):
         resultat = methode(monde, id)
         if resultat and resultat[0] == intention["but"]:
             return resultat
-    return None
+        if resultat and repli is None:
+            repli = resultat
+    return repli
 
 
 def retabli_par_son_plan(monde, id, condition):
