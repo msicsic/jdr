@@ -1898,7 +1898,8 @@ la recherche. La base vierge n'est jamais explorée. `_entrees_communes` sérial
 une fois le relevé indépendant du candidat ; `_entrees` lui adjoint les visées,
 bornes, emplois, but explicite de lumière, admissibilité de violence selon le
 motif et entrées de défense. Aucune lecture de l'ancienne clé n'est supprimée.
-La vérification de référence construit toujours une `Vue` neuve.
+La vérification de référence construit une `Vue` neuve ; depuis le lot 81,
+elle partage les seules tables de géométrie et de tarifs de la vue contrôlée.
 
 `obstacles.cle_carte` conserve une copie témoin des salles et un texte immuable
 du contenu et de l'ordre des salles/sorties. L'égalité avec le témoin détecte les
@@ -1913,3 +1914,43 @@ restent en lecture seule. La carte reste un dictionnaire JSON éditable : le té
 demande encore une comparaison de contenu, et l'ordre des salles et sorties est
 relevé à chaque lecture. Ce lot ne réduit ni l'espace de recherche ni le nombre
 de nœuds. Mesures et validation : [rapport du lot 71](taches/rapport-codex-71-cout-fixe.md).
+
+## Géométrie et tarifs par recherche — lot 81 (`codex-cout-par-noeud`, non fusionnée)
+
+Un état lit les mêmes routes quand sa salle, son allure, ses clés (tout son
+équipement si les franchissements sont métriques) et les faits de portes sont
+identiques. `Vue.contexte_route` projette ces entrées une fois par état ; `route`
+garde aussi l'admissibilité et sa cause de refus, `allers` reprend la même liste
+triée. Les routes d'approche continuent à distinguer les cibles et leurs contacts,
+l'allure et l'équipement métrique (`trajet_estime.approche`). Les durées des
+`Route` sont sommées une fois par orientation par `obstacles.cout_route`.
+
+`prix_route` mémorise l'intégration dans l'ordre original des séjours. Sa clé
+conserve les possessions et les faits de lumière et de lieu qui déterminent
+la pression. Si aucune lumière ni présence ne peut la changer (ni peur du noir
+ni peur sociale), la pression dépend seulement des gardes et de l'eau, figées
+par salle ; elle se lit directement dans cette table. Ce critère vient des
+lectures de `pression`, sans règle de scénario ou de personnage.
+
+`mesure_aller` compose durée, pression et effets de portes, puis `_mesurer`
+applique ces seules écritures à l'état suivant du nœud. Un droit ou un effet
+terminal ne provient jamais du nœud qui a rempli la table. Les séquences
+composées gardent leur calcul pas à pas et emploient les mêmes tarifs de route.
+Les tables indexées par identité retiennent la route elle-même : son identité
+ne peut pas être réattribuée tant qu'un tarif la désigne.
+
+Ces tables appartiennent à la photographie de `Vue`, y compris dans les passes
+de référence de `VERIFIER` ; les emplois, découvertes, graphes et résultats
+restent privés. `spatial.VERIFICATION` refait les parcours, leur admissibilité,
+les sommes et les effets avant de comparer la table des déplacements entre
+salles. Le coût et l'ordre des additions, les nœuds et leurs plafonds, les
+choix et le modèle d'estimation restent les mêmes. Aucune table n'entre dans
+la sauvegarde ou ne franchit un changement du monde. Mesures et limites :
+[rapport du lot 81](taches/rapport-codex-81-cout-par-noeud.md).
+
+Le contrôle garde seulement le parcours témoin du dernier état **complet**,
+avec case et orientation, sans employer la projection qu'il contrôle. Les
+destinations consécutives de cet état partagent le recalcul indépendant ;
+un autre état le remplace. Une dépendance omise d'une clé projetée et une
+corruption de la table restent détectables, sans garder les témoins de tout
+le graphe ni refaire le même parcours pour chacune de ses destinations.

@@ -245,6 +245,7 @@ class Route(list):
         self.portes = frozenset(portes)
         self.depart = depart if depart is not None else (fin[0] if fin else None)
         self._sejours = {}
+        self._couts = {}
 
     @classmethod
     def depuis_pas(cls, m, depart, chemin, allure=PAS_JOUEUR, durees_portes=None):
@@ -524,7 +525,9 @@ def sejours_route(route, orientation=None):
 def cout_route(route, orientation=None):
     """Temps unique d'un trajet, en minutes ; anciennes parties sans cases : leur horloge."""
     if isinstance(route, Route):
-        return sum(d for _, d in sejours_route(route, orientation)) / MINUTE
+        if orientation not in route._couts:
+            route._couts[orientation] = sum(d for _, d in sejours_route(route, orientation)) / MINUTE
+        return route._couts[orientation]
     return route[-1]["duree_trajet"] / MINUTE if route and "duree_trajet" in route[-1] else len(route)
 
 
