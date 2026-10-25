@@ -48,6 +48,7 @@ from .moteur import QualificationRequise
 from .proximite import HorsDePortee
 from .refus import RapportIllisible, RefusDeForme, ProprieteInconnue, audit as refus_audit, audit_illisible, depuis_refus
 from .transactions import ajouter as ajouter_transaction
+from .sources import resoudre_sources
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
 
@@ -1067,7 +1068,8 @@ class MJ:
             if action_explicite and action_explicite["action"] not in ("observer", "parler"):
                 # Une commande complète n'a pas besoin des anciennes réponses du MJ.
                 conversation = []
-        entree = {"cadre_du_tour": cadre, "faits": faits, "conversation": conversation, "message": intention}
+        entree = {"sources_autorisees": list(faits), "cadre_du_tour": cadre,
+                  "faits": faits, "conversation": conversation, "message": intention}
         debut = time.monotonic()
         self.derniere_utilisation = None
         trace = {"modele": self.modele, "revision": monde.data["revision"], "intention": intention,
@@ -1103,7 +1105,7 @@ class MJ:
         if isinstance(reponse, dict) and isinstance(reponse.get("faits"), list):
             # Une citation de fait inconnue ne prouve rien : elle est écartée, comme une source
             # inconnue de l'audit, sans invalider la réponse.
-            reponse["faits"] = [f for f in reponse["faits"] if isinstance(f, str) and f in faits]
+            reponse["faits"], _ = resoudre_sources([f for f in reponse["faits"] if isinstance(f, str)], faits)
         if (set(reponse) not in (champs_reponse, champs_reponse | {"_texte_moteur"})
                 or ("_texte_moteur" in reponse and reponse["mode"] != "dialogue")
                 or not isinstance(reponse["texte"], str) or len(reponse["texte"]) > 4000
@@ -1236,7 +1238,8 @@ class MJ:
                     from .noms import reperes_designations
                     audit = appeler_brut(
                         INSTRUCTIONS_AUDIT,
-                        {"faits": faits, "segments": {str(i): s for i, s in enumerate(decoupage)},
+                        {"sources_autorisees": list(faits), "faits": faits,
+                         "segments": {str(i): s for i, s in enumerate(decoupage)},
                          "designations": reperes_designations(texte, faits),
                          "nature": "récit conditionnel d'action" if effets is not None else "réponse du MJ"},
                         "Contrôler chaque segment de la réponse", "auditer_narration",
@@ -1350,7 +1353,8 @@ class MJ:
                 champs = {"mode", "texte", "faits", "proposition"}
                 faits_connus = entree.get("faits", {})
                 if isinstance(reponse, dict) and isinstance(reponse.get("faits"), list):
-                    reponse["faits"] = [f for f in reponse["faits"] if isinstance(f, str) and f in faits_connus]
+                    reponse["faits"], _ = resoudre_sources(
+                        [f for f in reponse["faits"] if isinstance(f, str)], faits_connus)
                 if (not isinstance(reponse, dict) or set(reponse) != champs
                         or not isinstance(reponse["faits"], list)
                         or any(not isinstance(f, str) or f not in faits_connus

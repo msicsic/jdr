@@ -17,6 +17,7 @@ from . import lexique
 from .refus import RapportIllisible, audit, liste as en_liste
 from .noms import REGLE_DESIGNATIONS, hors_designations
 from .propositions import SCHEMA_OFFRE
+from .sources import resoudre_sources
 
 
 VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique",
@@ -968,14 +969,19 @@ def controler(texte, rapport, faits, partie="texte"):
         if (verdict == "mecanique" and portee in ("sans_fondement", "contradictoire")
                 or verdict in ("invention_protegee", "contradictoire") and portee == "etablie"):
             raise AuditIllisible("Le verdict narratif et la portée mécanique se contredisent.")
-        # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
-        # mécanique sans source restante est refusée plus bas.
-        ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
-        if verdict == "contradictoire" and not ligne["sources"]:
+        sources, inconnues = resoudre_sources(ligne["sources"], faits)
+        ligne = {**ligne, "sources": sources}
+        for source in inconnues:
+            obstacles.append(audit("Cette source ne désigne pas un fait du dossier fourni.",
+                "une clé parmi " + ", ".join(faits) + "; ou un chemin existant ou un identifiant "
+                "de fiche désignant une seule de ces clés",
+                partie=partie, segment=indice, texte=passage, recu=source,
+                lieu=f"{partie}, segment {indice}, sources"))
+        if verdict == "contradictoire" and not sources and not inconnues:
             # Une absence dans le contexte n'est pas une preuve négative. Ce
             # défaut du rapport revient au lecteur, sans faire réécrire le MJ.
             raise AuditIllisible("Une contradiction doit citer le fait qu'elle contredit.")
-        if ligne["portee_mecanique"] == "contradictoire" and not ligne["sources"]:
+        if ligne["portee_mecanique"] == "contradictoire" and not sources and not inconnues:
             raise AuditIllisible("Une contradiction mécanique doit citer le fait qu'elle contredit.")
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
@@ -1013,7 +1019,7 @@ def controler(texte, rapport, faits, partie="texte"):
             refuser(ligne["motif"] or "La portée mécanique de cette réponse n'est pas établie.",
                     "une réponse dont les effets et conditions mécaniques découlent des sources fournies ; "
                     "sinon ne les affirme pas, même dans une citation")
-        elif (verdict == "mecanique" or ligne["portee_mecanique"] == "etablie") and not ligne["sources"]:
+        elif (verdict == "mecanique" or ligne["portee_mecanique"] == "etablie") and not sources and not inconnues:
             visees = _cles_visees(faits, passage)
             refuser("Cette affirmation mécanique ne cite aucun fait du moteur.",
                     "une affirmation que soutient un fait fourni, dite comme lui"

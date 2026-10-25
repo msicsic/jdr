@@ -35,6 +35,23 @@ ni sa présence dans le cache du fournisseur ni un pourcentage sur chaque appel.
 et mesure le rapport des tokens en cache aux tokens d'entrée, appels froids
 compris, en signalant les usages manquants.
 
+**Résolution des sources (85 b).** `sources.resoudre_sources` est l'accès commun
+aux citations de faits de la réponse et de l'audit. Une clé exacte reste une
+clé ; un chemin doit exister entièrement dans son contenu (champs, indices
+de liste ou fiches identifiées). L'identifiant exact d'une fiche renvoie à sa
+rubrique, avec priorité à une source explicite `objet:<id>` lorsqu'elle existe.
+Une fiche partagée par plusieurs rubriques sans source explicite reste ambiguë.
+Aucun nom libre, valeur textuelle ou préfixe de chemin invalide ne prouve une
+référence. La résolution consulte uniquement le dossier public reçu, y compris
+celui archivé pour le contrôle à l'enregistrement ; elle ne consulte pas le monde
+privé et ne change pas le verdict sémantique de l'audit.
+
+Les clés valables sont données dans `sources_autorisees`, en tête de l'entrée
+variable de la réponse et de l'audit. Dans un rapport narratif, une source non
+résolue est écartée avec un refus distinct et un `attendu` contenant toutes ces
+clés. Ce refus empêche l'affichage et l'enregistrement du texte concerné ; il ne
+va jamais au joueur. Schémas et instructions restent ceux du lot 85.
+
 ## Trois niveaux de vérité
 
 | Niveau | Contenu | Autorité | Contrôle avant affichage |
