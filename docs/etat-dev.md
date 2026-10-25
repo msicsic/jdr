@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-aller-utile`, **non fusionnée**, lot **92**, base **56581f1**,
+  moteur identique à **9810f4a** : **arrêt après mesure, P3 non implémentée**.
+  Auberge 1985 tirée, 8–12 h : `aller` **88,78 %** des successeurs parcourus ;
+  **33,80 %** des expansions sans autre successeur ni but immédiat. Ce compte
+  ne prouve pas qu'un arrêt soit supprimable : objets/PNJ connus, pression
+  sur les routes et effets des portes doivent être conservés sans domination
+  prouvée. Majorant d'un filtre conservateur sans pression variable, eau ni
+  effet de porte connue : **5 237 / 1 055 783 expansions, 0,496 %**, sous ~15 %.
+  CPU témoin : **324,52 s** sur la tranche, recherches **301,16 s**,
+  **285,24 µs/expansion**. Tilo/faim **65,13 s**, Lucien/ballot **47,39 s**,
+  Joss/faim **43,02 s** ; préparatifs `ouvrir`, `alimenter`, `prendre` dominent
+  hors trajets. Deux outils de diagnostic livrés ; témoin et relevés conservent
+  empreintes, résultats de tous les appels, monde, regard et scène après recharge.
+  `comparer --calcul` : **une nuit identique**, 1 175 083 nœuds sur 12 h.
+  Aucun moteur, MJ, scénario ou `main` modifié ; aucune suite complète lancée
+  après l'arrêt prescrit. Piste à mesurer : P2, pertinence des préparatifs ;
+  une domination locale des routes sous pression pourrait encore aider P3,
+  sans preuve ni gain général établis ici.
+  [Rapport et limites](taches/rapport-codex-92-aller-utile.md).
+
 - Branche `codex-borne-attente`, fusionnée, lot **87**, base **020250e**,
   code signé **a82f469** (première version **a181ada**) :
   un recours borné sans plan retient son effort dans `esprits.attentes_bornees`.

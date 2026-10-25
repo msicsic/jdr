@@ -33,6 +33,38 @@ les gestes qui durent (se chauffer, se reposer, s'abriter), le stratège Luna en
 
 ## Le modèle
 
+### P3 : mesure préalable des arrêts — lot 92, non implémenté
+
+La règle envisagée est de ne proposer `aller` que vers un lieu où le plan peut
+agir ou tenir son but. **Elle n'est pas appliquée** : la mesure sur `9810f4a`
+(auberge 1985 tirée, 8–12 h) ne justifie pas le filtre conservateur disponible.
+Les trajets représentent 88,78 % des successeurs parcourus, mais le majorant
+des expansions candidates sans pression variable, eau ni effet de porte connue
+est de **0,496 %**, sous le seuil de ~15 % du brief.
+
+La preuve requise dépasse l'absence de geste dans la salle intermédiaire.
+`trajet_estime.parcours` minimise la durée `cout_route`, tandis que le coût
+complet ajoute `Vue.prix_route`, pression intégrée salle par salle. Un détour
+plus long peut éviter une pression coûteuse : sa sélection par deux `aller`
+ne peut pas être remplacée sans preuve par le trajet direct choisi en durée.
+Les écritures de portes de `mesure_aller` doivent aussi être dominées, et
+`route_admissible.refus` impose les mêmes contraintes de passage et de retour.
+Ces salles restent donc d'intérêt tant qu'une preuve locale manque.
+
+Si toute pression est nulle, l'eau absente et toutes les portes traversables
+déjà ouvertes, une concaténation de routes n'ajoute aucun autre effet : le
+plus court trajet direct ne coûte pas plus, y compris la consommation d'une
+flamme portée, et utilise moins d'étapes. Il faut encore conserver les gestes
+possibles, les cibles du but et les séjours. Le diagnostic majore ce cas en
+testant seulement les portes connues et en conservant tout objet agissable
+local et tout PNJ connu ; il ne constitue aucun certificat moteur.
+
+Une P3 plus fine demanderait une domination au coût complet et avec les mêmes
+effets/admissibilité, partagée par la recherche et `VERIFIER`, ses lectures dans
+`_entrees`. Aucun contrat de ces fonctions n'est modifié dans ce lot. Voir le
+[rapport 92](taches/rapport-codex-92-aller-utile.md) pour les comptes, le témoin
+CPU, la conservation après recharge et les limites.
+
 **État de recherche** : une projection des croyances du PNJ, jamais la vérité. Où il est, ce
 qu'il porte, où il croit chaque objet et chaque personne, ce qu'il croit ouvert, verrouillé,
 allumé, chargé ; les promesses qu'on lui a faites ; les refus récents. Le plan simule ce qui
