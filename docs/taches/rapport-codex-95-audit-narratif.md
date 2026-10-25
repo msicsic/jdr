@@ -1,8 +1,8 @@
 # Lot 95 — Rapport narratif limité à la décision
 
 25–26 octobre 2026 — `codex-audit-narratif`, **non fusionnée**, base `036d5f2`,
-code signé SSH `adb07f7`, correctif `49fa7d6`. **Validation pour fusion bloquée : un refus juste
-disparaît au rejeu avec le nouveau rapport.** Aucun changement de modèle,
+code signé SSH `adb07f7`, correctif `49fa7d6`. **Réserve levée selon le seuil
+demandé le 26 octobre : lot fusionnable.** Aucun changement de modèle,
 scénario, planificateur ou `main`.
 
 **Mesure avant changement.** Référence `29ccf1e`, deux passes des six scripts
@@ -44,12 +44,39 @@ mutualisation. Premier delta moyen **1,22 → 1,39 s**. Secondes par tour :
 | Fidélité / contre-revue | 0,52 / 0,53 → 0,58 / 0,48 |
 | Révision | 0,33 → 0,46 |
 
-**Rejeu.** Dix audits refusés, entrées exactes : six faux refus/extractions
-erronées disparaissent ; deux restent refusés, dont un avec une autre cause.
-Deux rapports illisibles sont redemandés une seule fois : géométrie toujours
-illisible, mais **second préalable aux crochets accepté**, auparavant refusé
-à juste titre. Schéma modifié : l'exception pour appel inchangé ne s'applique
-pas. **Critère non satisfait** ; aucun prompt ciblé ni exception ajouté.
+**Origine des +77 %.** Sur les mêmes 76 entrées, le schéma réellement envoyé
+après mutualisation passe de **2 245 à 5 999 jetons** estimés (`o200k_base`) :
+14 variantes verdict/portée ; instructions **+27 jetons**, faits stables.
+Les appels **76 → 79** ajoutent aussi du volume. Le total inclut les jetons
+cachés : une perte de cache n'explique pas cette hausse de volume. Aucune perte globale de cache
+observée : **25,2 → 28,8 %** des jetons d'entrée sont cachés. Le non-caché par
+appel monte néanmoins de **6 528 à 10 574 (+62 %)**. Le premier delta s'allonge de
+**0,174 s (+14,3 %)** : compatible avec ce surcroît, sans causalité isolée sur
+ce poste partagé (`analyse-entree-95.json`).
+
+**Variance, sans changement de code.** Le rejeu initial avait perdu un refus
+juste du second préalable aux crochets. Complément demandé : **30 appels**,
+trois audits × deux rapports × cinq répétitions, entrelacés, deux exécutions
+au plus à priorité réduite, Luna medium/libre. Entrées archivées exactes,
+empreinte identique pour chaque cas ; schéma/instructions et contrôle de
+`29ccf1e` contre ceux de la branche. Un appel par répétition, sans redemande,
+aucune erreur technique. Refus sémantiques et rapports illisibles séparés :
+
+| Audit | Référence | Nouveau | Motifs des refus |
+|---|---:|---:|---|
+| Second préalable aux crochets | **1/5** | **0/5** | Référence : devoir vérifier l'emplacement avant toute tentative invente un préalable ; nouveau : cinq acceptations. |
+| Premier préalable aux crochets | **1/5** | **4/5** | Référence : impossibilité de compter sur un moment hors du regard non établie ; nouveau : même impossibilité, préalable de retrouver les crochets, ou contradiction avec l'approche permise. |
+| Ambiance, voix et lueur d'ouest | **4/5** | **3/5** | Référence : voix actuelles non établies, pierre humide, sources omises ou portée incohérente avec le motif ; nouveau : voix actuelles non établies ou ouverture non établie. |
+
+Premier préalable : **un rapport illisible de chaque côté**, contradiction
+verdict/portée, non compté parmi les refus ci-dessus et non affichable.
+Les motifs d'ambiance changent de segment et comprennent des faux refus :
+ces comptes portent sur l'audit entier, pas sur la préservation de chaque cause.
+**Seuil demandé satisfait pour les trois cas** : jamais plus d'un refus de
+moins sur cinq. La perte initiale est donc traitée comme variance de Luna
+selon cette règle ; **réserve de fusion levée**. Cinq échantillons ne donnent
+pas une garantie générale ; aucune attribution causale à un champ retiré.
+Motifs individuels et rapports dans `variance-refus-95{,-resume}.json`.
 
 **Tests.** Suite complète unique : **1 961 tests, 16 ignorés, 1 858,74 s**, deux
 processus réduits ; six échecs et une erreur dans cinq fichiers. Compteurs

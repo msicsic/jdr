@@ -28,12 +28,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   tests ; aucun défaut restant reproduit, sans seconde suite complète.
   Correctif final sans effet sur les 264 requêtes archivées de branche/rejeu
   (22 résultats résolus, aucun compte d'issue) : mesures Luna conservées.
-  **Validation bloquée** : dix audits refusés rejoués sur leurs entrées exactes,
-  un refus juste du préalable aux crochets disparaît après l'unique redemande
-  d'un rapport illisible ; schéma modifié, aucune exception pour appel inchangé.
-  Six faux refus/extractions erronées disparaissent ; un autre audit reste
-  illisible deux fois, donc non affichable. Le gain de temps ne valide pas
-  la préservation de tous les refus justes ; aucune garantie sémantique nouvelle.
+  **Réserve levée selon le seuil demandé le 26 octobre : fusionnable.**
+  Le rejeu initial avait perdu un refus juste. Sans changer le code, trente
+  appels supplémentaires, trois audits × deux rapports × cinq répétitions,
+  entrées exactes, deux exécutions au plus à priorité réduite : refus référence
+  → nouveau **1/5 → 0/5** (second préalable aux crochets), **1/5 → 4/5**
+  (premier préalable), **4/5 → 3/5** (ambiance, voix/lueur). Un rapport illisible
+  de chaque côté pour le premier préalable, compté à part ; aucune erreur
+  technique. Les trois cas passent la tolérance d'un refus de moins sur cinq :
+  perte initiale traitée comme variance selon cette règle. Les motifs d'ambiance
+  varient et incluent des faux refus ; aucune garantie sémantique générale.
+  Entrée +77 % : surtout 14 variantes du schéma, **2 245 → 5 999 jetons estimés**
+  sur les mêmes entrées ; cache **25,2 → 28,8 %**, donc pas de perte globale
+  observée. Non-caché/appel **+62 %**, premier delta **+0,174 s** : surcoût
+  compatible, causalité non isolée. Bruts : `variance-refus-95.json`,
+  `variance-refus-95-resume.json`, `analyse-entree-95.json` dans `artifacts/`.
   [Rapport du lot 95](taches/rapport-codex-95-audit-narratif.md).
 
 - Branche `codex-latence-appels`, fusionnée, lot **93**, base `258daab`
