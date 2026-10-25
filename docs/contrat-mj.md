@@ -344,12 +344,14 @@ un chuchotement exige le contact. Des guillemets poursuivent l'échange si possi
 sinon le même défaut par le regard. Cette décision commune alimente `parole_prevue.personnage` et la
 validation avant toute mutation ; Luna ne choisit plus parmi des audiences libres.
 Une audience contraire à la saisie est refusée avec `attendu`, avant la contre-revue.
-La contre-revue des paroles à adresse implicite juge encore le contenu et les mots ;
-elle ne décide plus de l'audience. Les mots exacts de la saisie avec un contenu vide ou `propos`
-n'ont aucune interprétation ni effet typé à revoir : leur fidélité est déterministe.
+La contre-revue des paroles juge le contenu et les mots ; elle ne décide plus de l'audience.
+Même les mots exacts avec un contenu vide ou `propos` doivent couvrir les opérations
+que la saisie demande (lot 82) ; l'identité textuelle ne prouve pas cette couverture.
 Deux contenus refusés écartent le typage proposé : si la saisie fournit ses mots, le moteur
 les prépare sur l'état original sans contenu typé, avec l'audience commune et ses contrôles
-habituels. Aucune conséquence des copies refusées ne passe. Sinon, le joueur donne ses mots,
+habituels, couverture comprise. Les opérations déjà reconnues restent exigées pendant
+les corrections et le repli ; elles ne persistent pas au-delà de cette saisie.
+Si ce repli perd une opération, rien n'est dit ni exécuté. Aucune conséquence des copies refusées ne passe. Sinon, le joueur donne ses mots,
 sans devoir préciser une audience déjà fixée.
 Une question directe choisie comme parole conserve exactement les mots saisis.
 
@@ -522,18 +524,36 @@ Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du qu
 est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d'un savoir. La carte technique conserve ses axes et sa
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
 
-Depuis `codex-audience` (lots 47 et 47 b), le rapport de fidélité d'une parole porte seulement
-`contenu_conforme` et `motif`. Le dossier de cette revue est limité à `replique`, `contenu`
+Depuis `codex-paiement-effectif` (lot 82), le rapport de fidélité d'une parole porte
+`operations_demandees`, `contenu_conforme` et `motif`. L'analyse sémantique de la saisie
+énumère les opérations demandées dans le vocabulaire commun de `paroles.SENS_CONTENU`,
+indépendamment du verdict. `paroles.operations_contenu` calcule celles que le contenu
+porte réellement ; le moteur refuse une opération manquante même avec un verdict favorable.
+Un échange exige `proposition` (demande et contrepartie), ou une demande historique payée
+(`demande`/`passage`, `offre` strictement positive, calculée comme à l'exécution).
+`propos` et un contenu vide ne portent aucune
+opération. Un achat reste à trancher par le moteur : la revue n'exige pas sa réussite.
+Le refus nomme le champ reçu et la forme manquante dans son `attendu` privé.
+Le dossier de cette revue est limité à `replique`, `contenu`
 et `sens_contenu` : aucune adresse, aucun auditeur ni conséquence mécanique à rejuger.
 Les sens typés décrivent la demande ou l'affirmation, indépendamment de leur audience.
 Le moteur conserve l'autorité sur l'adresse, les répondants et les conséquences calculées
 sur copie ; la narration reçoit ensuite la conversation validée entière.
+La fidélité est contrôlée aussi avec une adresse explicite ou des mots littéraux :
+recopier une demande ne suffit pas à en porter l'opération. Le repli sur les mots du
+joueur repasse ce contrôle avant toute parole enregistrée. Une revue illisible est
+redemandée une fois ; sans analyse lisible, la parole reste inexécutée. Une parole
+ordinaire peut toujours avoir `propos` ou un contenu vide et aucune opération demandée.
 Une demande d'achat est une parole dont le moteur décide l'acceptation, le transfert ou
 le refus ; elle n'a pas à porter une opération de transfert faite par Corvus.
 Les références sont projetées en noms publics ; les mots libres restent littéraux.
 Les refus d'adresse déterministe et de contenu ont chacun leur `attendu`.
 La reconnaissance syntaxique de l'adresse reste bornée aux formes de `paroles.analyser` ;
 la fidélité du sens des mots et le choix de parler restent en partie sémantiques.
+La reconnaissance des opérations demandées reste elle-même sémantique : si l'analyse
+omet l'échange, la comparaison structurelle ne peut pas le retrouver. Les objets,
+quantités et contreparties sont encore comparés sémantiquement par le verdict de fidélité ;
+ce contrôle ne garantit donc pas toute formulation ni l'absence de faux refus.
 Le sens de tous les types de contenu et des codes de ressource vient de `paroles.SENS_CONTENU`
 et `RESSOURCES_DEMANDEES`, partagés par le schéma d'interprétation et la revue (`sens_contenu`).
 Ainsi un besoin typé désigne la ressource recherchée ; il ne devient pas le sujet littéral de

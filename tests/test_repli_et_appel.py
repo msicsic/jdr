@@ -53,7 +53,9 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
         appels.append((fonction, entree))
         if fonction == "auditer_action":
             if "contenu_conforme" in schema["properties"]:
-                return {"contenu_conforme": True, "motif": ""}
+                from donjon.paroles import operations_contenu
+                return {"contenu_conforme": True, "motif": "",
+                        "operations_demandees": sorted(operations_contenu(entree["plan"]["parole"]["contenu"]))}
             return {"conforme": True, "motif": ""}
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:

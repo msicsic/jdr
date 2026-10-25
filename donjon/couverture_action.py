@@ -9,6 +9,7 @@ import json
 from .monde import ErreurMonde
 from .refus import RapportIllisible, attendu_audit
 from .noms import REGLE_DESIGNATIONS, reperes_designations
+from .paroles import SENS_CONTENU, operations_contenu
 
 
 SCHEMA = {
@@ -24,8 +25,12 @@ SCHEMA = {
 # reste à contrôler ici.
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
-    "properties": {"contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"}},
-    "required": ["contenu_conforme", "motif"],
+    "properties": {"contenu_conforme": {"type": "boolean"}, "motif": {"type": "string"},
+        "operations_demandees": {"type": "array", "items": {
+            "type": "string", "enum": [t for t in SENS_CONTENU if t != "propos"]},
+            "description": "Analyse de la saisie du joueur seule, indépendamment du contenu proposé et de son verdict : opérations qu'elle demande au moteur de trancher. Une parole ordinaire sans opération donne []. Un échange demandé exige proposition, y compris pour un achat. Sens des opérations : "
+                + " ".join(f"{t} : {s}" for t, s in SENS_CONTENU.items() if t != "propos")}},
+    "required": ["contenu_conforme", "motif", "operations_demandees"],
 }
 
 
@@ -154,14 +159,30 @@ class RapportInvalide(RapportIllisible):
     """Le rapport de la revue est mal formé : une faute de l'auditeur, pas de la proposition."""
 
 
-def verifier(rapport, plan=None):
+def verifier(rapport, plan=None, operations_demandees=None):
     """Le verdict de la contre-revue. Non conforme : un refus dont ``attendu`` (``refus.attendu_audit``)
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
     if plan is not None and plan.parole is not None:
         if (not isinstance(rapport, dict)
-                or set(rapport) != {"contenu_conforme", "motif"}
-                or type(rapport["contenu_conforme"]) is not bool or not isinstance(rapport["motif"], str)):
+                or set(rapport) != {"contenu_conforme", "motif", "operations_demandees"}
+                or type(rapport["contenu_conforme"]) is not bool or not isinstance(rapport["motif"], str)
+                or not isinstance(rapport["operations_demandees"], list)
+                or any(not isinstance(t, str) or t not in SENS_CONTENU or t == "propos"
+                       for t in rapport["operations_demandees"])):
             raise RapportInvalide("La contre-revue de la parole est invalide.")
+        requises = operations_demandees if operations_demandees is not None else set()
+        # Une correction du contenu ne peut effacer une demande déjà reconnue.
+        requises.update(rapport["operations_demandees"])
+        manquantes = requises - operations_contenu(plan.parole["contenu"])
+        if manquantes:
+            # Une cause à la fois, dans l'ordre commun du protocole :
+            # le marché porte aussi sa demande, et précise sa contrepartie.
+            operation = next(t for t in SENS_CONTENU if t in manquantes)
+            forme = ("proposition {demande, contrepartie}, ou demande/passage avec valeur = prix offert en chiffres positifs"
+                     if operation == "proposition" else operation + " : " + SENS_CONTENU[operation])
+            raise ErreurMonde("Le contenu proposé ne porte pas ce que tu demandes.",
+                attendu_audit("proposition.contenu", json.dumps(plan.parole["contenu"], ensure_ascii=False),
+                              forme, ("opération demandée absente", operation)))
         motif = rapport["motif"][:MOTIF_MAX]
         if not rapport["contenu_conforme"]:
             raise ErreurMonde("Les mots ou le contenu proposés ne correspondent pas à ta parole.",

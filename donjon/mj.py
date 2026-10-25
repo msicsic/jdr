@@ -382,7 +382,7 @@ class MJ:
         verifier_references(monde,reponse,contexte)
         return references(monde,reponse)
 
-    def _auditer_action(self, intention, plan, revision, monde=None):
+    def _auditer_action(self, intention, plan, revision, monde=None, operations_demandees=None):
         from .couverture_action import (schema as schema_couverture,
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
                                         RapportInvalide, entree as entree_couverture,
@@ -396,35 +396,36 @@ class MJ:
                                   "revision": revision, "intention": intention,
                                   "rapport": copy.deepcopy(rapport)})
             try:
-                verifier_couverture(rapport, plan)
+                verifier_couverture(rapport, plan, operations_demandees)
                 return
             except RapportInvalide:
-                # Une revue illisible ne juge pas la proposition : on la redemande une fois,
-                # puis le plan déjà validé par le moteur passe, comme dans le doute.
+                # Une revue illisible est redemandée une fois. La parole exige
+                # son analyse des opérations ; un geste conserve le repli historique.
                 if essai:
+                    if plan.parole is not None:
+                        raise ErreurMonde("Le contenu de ta parole n'a pas pu être vérifié.",
+                            f"proposition.contenu reçu {json.dumps(plan.parole['contenu'], ensure_ascii=False)} ; "
+                            f"contre-revue reçue {json.dumps(rapport, ensure_ascii=False)} ; "
+                            "accepté un contenu couvrant les opérations demandées, "
+                            "après une contre-revue lisible (contenu_conforme, motif, operations_demandees).")
                     if self.observateur:
                         self.observateur({"etape": "couverture de l'action", "modele": self.modele,
                                           "revision": revision, "intention": intention,
                                           "erreur": "Contre-revue illisible deux fois : plan accepté sans elle."})
                     return
 
-    def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision):
+    def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
+                                 operations_demandees=None):
         """Contre-revue des mots et du contenu, avec l'adresse déjà fixée par le moteur."""
-        from .paroles import adresse_implicite, sens_contenu, mots_dits
+        from .paroles import sens_contenu
         from .moteur import Plan
-        if not adresse_implicite(analyser_parole(monde, intention)):
-            return
-        if (not any(c.get("type") != "propos" for c in complements["contenu"])
-                and rapport["replique_joueur"] == mots_dits(analyser_parole(monde, intention), intention)):
-            # Identité des mots, aucun effet typé : aucune interprétation à revoir.
-            return
         # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
         # font pas partie de la question posée à la revue sémantique du contenu.
         plan = Plan({}, revision, "Contrôler le contenu de la parole préparée.", parole={
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
             "sens_contenu": sens_contenu(complements["contenu"], monde)})
         try:
-            self._auditer_action(intention, plan, revision, monde)
+            self._auditer_action(intention, plan, revision, monde, operations_demandees)
         except ErreurMonde as exc:
             raise ParoleNonConforme(str(exc), exc.attendu) from exc
 
@@ -759,6 +760,7 @@ class MJ:
         rapport = None
         if reponse["mode"] == "parole_joueur":
             fidelite_refusee = False
+            operations_demandees = set()
             for essai in range(3):
                 # Des mots imposés par le joueur (guillemets, deux-points, interpellation) sont dits
                 # tels quels, sans réécriture.
@@ -768,7 +770,8 @@ class MJ:
                                "_intention": intention[:600]}
                 try:
                     travail, rapport = preparer_parole(monde, complements, revision)
-                    self._verifier_fidelite_parole(monde, intention, complements, rapport, revision)
+                    self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
+                                                   operations_demandees)
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
@@ -783,6 +786,13 @@ class MJ:
                             # Repréparer sur l'original : aucun effet des copies refusées ne passe.
                             complements = {**secours["proposition"], "_intention": intention[:600]}
                             travail, rapport = preparer_parole(monde, complements, revision)
+                            try:
+                                self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
+                                                               operations_demandees)
+                            except ParoleNonConforme:
+                                return {"mode": "dialogue", "texte": "Ta demande n'a pas été exécutée. Reformule-la.",
+                                        "faits": [], "proposition": None, "_texte_moteur": True,
+                                        "_validation_refusee": True}
                             break
                         return {"mode": "dialogue", "texte": "Précise ce que tu veux dire, entre guillemets ou "
                                 "après un deux-points.",
