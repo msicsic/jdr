@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-avis-reels`, **non fusionnée**, lot **88**, base **c9245dd**,
+  code signé SSH **1dffefd** : le locuteur ne consulte plus la prévision privée
+  de l'auditeur pour décider de l'avertir. Une conclusion de menace commune
+  ne vaut pas identité des preuves ; la réception conserve sa comparaison des
+  sources et convictions. Aucun seuil de souci modifié : il ne bloquait aucune
+  paire réelle. Relevés à chaque minute, crues 500/2024 sur 12 h : **3 327 / 44**
+  occasions bloquées par le seul ancien `_sait`. Trois tests nouveaux sur captures
+  réelles juste avant les paroles à 72/102 min, monde complet, sons et rendu
+  identiques après recharge pour dix minutes d'un bloc ou découpées ; **24 tests
+  ciblés verts**. Rapide 4 h, crue/Relais × quatre graines : **0 → 18 avis**,
+  zéro adoption, aucun plantage/violation/usurpation, mêmes constats d'audit et
+  compteurs de boucles ; eau crue **133,75 → 133,75 min·PNJ**. Relais : quatre
+  mondes finaux et chroniques identiques. Huit références calculées une fois
+  et mises en cache. Audits 12 h branche seule : **16 / 6 avis, zéro adoption**,
+  eau **1 095 → 1 085 / 275 → 325 min·PNJ**, `eau_longue` **4 / 1** ; 500 :
+  Gorm refuge, Brune galerie, Ilse conduite, Aubin vannes ; 2024 : tous au refuge.
+  **Limites** : plan actif non interrompu pour prévenir ; crue 2024 modifiée,
+  violence à 649 min puis **237 passages en une heure** et va-et-vient signalés,
+  absence de boucle nouvelle non garantie. Suite complète unique : **1 930 tests,
+  16 ignorés, zéro échec/erreur**, 199 fichiers, deux processus à priorité réduite,
+  **2 231,5 s** ; créneau de 45 minutes dépassé sous charge partagée.
+  Aucun appel à Luna, changement de scénario ou de `main`, ni modification de
+  `planification.py`/`deliberation.py`. [Rapport du lot 88](taches/rapport-codex-88-avis-reels.md).
+
 - Branche `codex-gestes-par-noeud`, fusionnée, lot **86**, base
   **02c8e8b**, code signé **9f344cd** : lieux et portée partagés par salle,
   possessions, agissables et faits `lieu`/`ouvert`/`assomme` ; droits et fautes
