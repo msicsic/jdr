@@ -311,9 +311,19 @@ class Monde:
                 or id in self.data["connus"])
 
     def designable(self, id):
-        """Ce que le joueur peut nommer pour agir : ce qui lui est accessible, et ce qu'il verrait en
-        se tournant (le geste le tournera d'abord)."""
-        if self.accessible(id):
+        """Ce que le joueur peut viser : accès, souvenir visuel marqué ou nom appris.
+
+        Désigner un souvenir ne prouve ni présence ni accès ; le moteur les vérifie
+        séparément. Ce qu'il verrait en se tournant reste désignable aussi.
+        """
+        if id not in self.objets:
+            return False
+        from .voix import connait_nom
+        if (id in self.data.get("souvenirs_visuels", {})
+                or id in self.data.get("personnages_vus", [])
+                or id in self.data.get("entendus", [])
+                or self.objets[id]["type"] == "personnage" and connait_nom(self, "joueur", id)
+                or self.accessible(id)):
             return True
         from .spatial import regard_vers
         return bool(self.data.get("mode_cases") and regard_vers(self, id))
@@ -353,7 +363,9 @@ class Monde:
             return candidats[0]
         if candidats:
             raise ErreurMonde(public(self,"Précisez : " + ", ".join(designer(self.objets[i]) for i in candidats) + "."))
-        raise ErreurMonde("Tu ne vois pas cet objet ici. Tape « regarder ».")
+        from .refus import cibles
+        raise ErreurMonde("Tu ne vois pas cet objet ici. Tape « regarder ».",
+                          f"cible : reçu « {texte} » ; références désignables : {cibles(self)}.")
 
     def charge(self):
         return sum(o["masse"] for o in self.objets.values() if self.est_porte(o["id"]))

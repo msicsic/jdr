@@ -75,10 +75,10 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
             from .deliberation import besoin_de_part
             objet = terme["objet"]
             if not isinstance(objet, str) or objet not in monde.objets or not connu(objet):
-                from .refus import liste
+                from .refus import cibles
                 connus = [i for i, o in monde.objets.items() if o.get("mobile")
                           and o["type"] not in ("personnage", "depouille") and connu(i)]
-                refuser(chemin + ".objet", objet, "identifiant parmi " + liste(connus))
+                refuser(chemin + ".objet", objet, "identifiant parmi " + cibles(monde, connus))
             o = monde.objets[objet]
             if not o.get("mobile") or o["type"] in ("personnage", "depouille"):
                 refuser(chemin + ".objet", objet, "objet mobile, hors personnage")

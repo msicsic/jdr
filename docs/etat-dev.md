@@ -4,6 +4,60 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-attendu-designable`, fusionnée, lot **65**, base **de3e986** :
+  les listes d'entités dans les refus passent par `refus.cibles` : candidats du geste,
+  `Monde.designable`, références publiques, tri et plafond commun. Le champ technique
+  `attendu` conserve `personne_<n>`/`element_<n>` au lieu de les convertir en portraits.
+  Même contrat pour actions, opérations, improvisations, outils, dons, paroles, combat,
+  défense et ajouts. Les souvenirs visuels marqués, corps reconnus, voix récemment
+  entendues et noms appris se désignent sans donner d'accès matériel ; registres existants
+  rechargés, aucune migration. Le cas réel est reproduit en console/MJ simulé et en Luna :
+  plus de `brune`, `marchand`, `barbe_gorm`, `mains_gorm` dans les candidats transmis.
+  Nuance du constat : dans le Relais, `echoppe` est la Conduite basse, dont les surfaces et
+  Gorm sont perçus ici ; leurs références publiques restent légitimes, comme les souvenirs
+  marqués d'ailleurs. Cinq nouveaux tests, état et rendu après recharge ; parcours de toutes
+  les actions et opérations sur deux mondes. Suite complète unique, trois processus :
+  **1 823 tests, 16 ignorés**, 1 092,75 s ; neuf assertions initiales (deux régressions
+  corrigées, sept attentes connaissance/accès adaptées). **103 tests de reprise verts**,
+  plus 24 tests de défense/sauvegarde ; bilan consolidé sans échec restant.
+  Empreintes Relais, 2 h × quatre graines contre de3e986 : chroniques, mesures et états
+  complets identiques. Luna une passe relais/crypte/echanges : cache main 42bb9c0 relu,
+  scripts identiques mais ancien harnais ; 62 → 54 appels, 22 → 20 tours MJ,
+  **2,82 → 2,70 appels/tour**, 12,03 → 11,32 s/tour (temps indicatifs). Aucune erreur
+  technique ni de recharge ; un repli en crypte sur les conditions de prime et le sens
+  d'une offre/dette, hors lot, reste consigné. Candidats bornés déterministement ; aucune
+  garantie nouvelle sur les contradictions sémantiques ou faux refus d'audit. Ni main,
+  ni `planification.py`, ni `social.py`, ni scénarios, ni consignes ou modèle modifiés.
+  [Contrat, mesures et limites](taches/rapport-codex-65-attendu-designable.md).
+  Fusionné sur l'intégration après les lots 60, 61 et 64 : `monde.py` et `narration`/`mj` touchés aussi par le lot 61, fusionnés sans conflit ; suite complète relancée.
+
+- Branche `codex-deja-dit`, fusionnée, lot **64**, base `de3e986` : le registre sauvegardé
+  `esprit.faits_dits` suit les identités, valeurs et destinataires hors des quarante souvenirs.
+  Contrat commun de `social.faits_dits`, `nouvelles`, `bavarder`, `_a_dire` et `dire` : dates,
+  preuves, confiance et épisodes ne créent pas une nouvelle valeur ; objets homonymes distincts.
+  Les relais conservent la date d'observation : une propriété ancienne ne remplace plus une
+  connaissance plus récente et ne rajeunit plus un guet. Migration des anciennes traces encore
+  disponibles ; 512 identités par PNJ sans éviction, nouvelles identités tues à saturation.
+  Capture mine 3 reproduite sur `5c2ce81` (archives absentes) : à 14, Lucien sait déjà le guet depuis
+  Rémy à 4 et figure dans l'ancien suivi ; aucune répétition de Josse jusqu'à 247. Onze tests nouveaux,
+  dont deux comparaisons du monde complet et des paroles, même laps découpé et rechargé.
+  Banc final 4 h × quatre graines × quatre scénarios contre `de3e986` (référence en cache) : aucun
+  plantage, violation ou usurpation, aucune boucle nouvelle signalée ; avertissements redits mot pour
+  mot Relais 0 → 0, mine 2,5 → 0,5, auberge 0,25 → 0,25, crue 0 → 0 ; constats confiés 2,5 → 2,5,
+  22,5 → 18,5, 12,5 → 10,25, 5 → 5. Les doublons restants du rapide sont des homonymes ou suivent
+  un changement appris (guet → fatigue → guet). Audits 12 h mine 3 et auberge 7 : aucun plantage,
+  violation ou usurpation ; Josse ne répète plus le guet à Lucien ; doublons textuels 2 / 3.
+  Suite complète unique : 1 829 tests, quatre ignorés, deux échecs et une erreur ; reprise finale
+  de 69 tests sociaux verte. Les 17 tests des deux parcours sont revalidés après ajustement des scènes
+  (huile reprise seule sur l'assertion finale : 140 s) : **bilan consolidé 1 829 tests, quatre ignorés,
+  aucun échec ni erreur restant** ; aucune seconde suite complète. Ancien souvenir `dit` de test complété par sa valeur ; scènes de vente
+  d'huile et de bois rendues explicites (les deux tests passaient sur la base). **Limite révélée hors
+  lot** : un feu rechargé dans la minute même de l'accord peut laisser l'engagement non soldé,
+  faute d'observation datée après l'accord ; la scène de bois sépare ces deux minutes, sans corriger
+  ce contrat ici. Aucun appel à Luna, changement de `planification.py` ni de `main`.
+  Voir [la règle](plan-ouie.md) et le [rapport](taches/rapport-codex-64-deja-dit.md).
+  Fusionné sur l'intégration après les lots 60 et 61 : `deliberation.py` touché aussi par le lot 60, fusionné sans conflit.
+
 - Branche `codex-orientation`, fusionnée, lot **61**, brief **1008f21**, après
   intégration de `origin/integration` **04bca30** : objets perçus et dernières positions
   mémorisées portent leurs demi-plans dans le regard actuel de Corvus (`orientation_relative`).

@@ -470,7 +470,7 @@ def preparer_poussee(monde, p, plan):
     opposé (``Plan.oppose``)."""
     from .esprits import pnjs
     from .monde import ErreurMonde
-    from .refus import inaccessible, liste
+    from .refus import cibles, inaccessible
     from .spatial import VECTEURS
     cible, direction = p["cible"], p["outil"]
     if not monde.data.get("mode_cases"):
@@ -483,7 +483,7 @@ def preparer_poussee(monde, p, plan):
     o = monde.objets.get(cible)
     if o is not None and o["type"] != "personnage":
         raise ErreurMonde("On ne pousse ainsi qu'une personne.",
-                          f"pousser : cible = un personnage au contact de Corvus, parmi {liste(contact)} ; "
+                          f"pousser : cible = un personnage au contact de Corvus, parmi {cibles(monde, contact)} ; "
                           f"{cible} est un objet (pour le déplacer : composer, deplacer).")
     from .voix import designation
     # On pousse qui l'on voit, ou dont on vient de reconnaître la voix : pas une voix inconnue.
@@ -494,7 +494,7 @@ def preparer_poussee(monde, p, plan):
         raise ErreurMonde(designer(o, debut=True) + " est trop loin pour que tu "
                           + ("la" if o.get("genre") == "f" else "le") + " pousses.",
                           f"pousser exige le contact (une case voisine) : approche-toi d'abord de {cible} (marcher) ; "
-                          f"personnages au contact : {liste(contact)}.")
+                          f"personnages au contact : {cibles(monde, contact)}.")
     permis = directions_de_poussee(monde, "joueur", cible)
     vecteur = None
     if direction:

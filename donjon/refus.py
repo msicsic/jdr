@@ -32,11 +32,23 @@ def liste(ids, vide="aucun"):
     return ", ".join(ids[:LISTE_MAX]) + (", …" if len(ids) > LISTE_MAX else "")
 
 
-def a_portee(m, filtre=None):
-    """Identifiants des objets que le joueur peut viser d'ici, triés ; ce qu'il verrait en se
-    tournant en est (``Monde.designable``)."""
-    return sorted(id for id, o in m.objets.items()
-                  if (filtre is None or filtre(o)) and m.designable(id))
+def cibles(m, ids=None, filtre=None):
+    """Références publiques des seules entités désignables, pour tout attendu de cible.
+
+    Les contraintes du geste fournissent les candidats ; la connaissance du joueur
+    borne toujours la liste avant projection et avant la limite d'affichage.
+    """
+    from .noms import reference
+    from .voix import reel, designation
+    def publique(id):
+        # Une appellation connue ne relie pas forcément la voix entendue à son corps.
+        voix = designation(m, id) if m.objets[id]["type"] == "personnage" else id
+        return voix if voix != id else reference(m, id)
+    ids = m.objets if ids is None else ids
+    ids = (reel(m, id) for id in ids)
+    return liste(sorted({publique(id) for id in ids if isinstance(id, str) and id in m.objets
+                         and (filtre is None or filtre(m.objets[id])) and m.designable(id)}),
+                 vide="aucune cible de ce nom n'est désignable ici")
 
 
 def portes_avec_usage(m, usage):
@@ -57,7 +69,7 @@ def _contenant_ferme(m, id):
 
 def inaccessible(m, id, champ="cible", filtre=None):
     """Pourquoi ``id`` ne peut pas être visé d'ici : inconnu, absent, enfermé, ou invisible."""
-    candidats = liste(a_portee(m, filtre))
+    candidats = cibles(m, filtre=filtre)
     valables = f"{champ} : un identifiant visé d'ici, parmi {candidats}."
     if not id:
         return ErreurMonde("Il manque ce que vise ce geste.", f"{champ} est vide ; {valables}")
@@ -77,13 +89,15 @@ def inaccessible(m, id, champ="cible", filtre=None):
                        f"vise ce qui est perçu : {candidats}.")
 
 
-def perception(m, id, champ="cible", acceptes=None):
+def perception(m, id, champ="cible", acceptes=None, valeurs=()):
     """Une seule cause sensorielle, déterminée par le monde avant tout récit."""
     o = m.objets[id]
     designation = "cette personne" if o["type"] == "personnage" else "cet objet"
     if acceptes is None:
-        acceptes = a_portee(m, lambda x: m.visible(x["id"]))
-    valables = f"{champ} : reçu {id!r} hors de vue ; acceptés : {liste(map(repr, acceptes))}."
+        acceptes = [id for id in m.objets if m.visible(id)]
+    valables = f"{champ} : reçu {id!r} hors de vue ; acceptés : {cibles(m, acceptes)}."
+    if valeurs:
+        valables += f" Ou {liste(map(repr, valeurs))}."
     if not m.present_physique(id):
         accord = "présente" if o["type"] == "personnage" else "présent"
         return ErreurMonde(designation.capitalize() + " n'est pas " + accord + " ici.",

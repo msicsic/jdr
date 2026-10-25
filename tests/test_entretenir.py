@@ -112,6 +112,9 @@ class EntretenirUnFeuTests(unittest.TestCase):
         # Placement d'auteur : les étais sont brûlés ; Gaspard, qui a ses bûches, accepte (jet fixé).
         sans(m, "etais")
         m.objets["poele"]["combustible"] = 8
+        # Isoler la livraison de la limite des engagements datés à la minute :
+        # son geste commence après l'accord, pas dans la même minute.
+        lire(m, "gaspard")["libre"] = 600
         with patch.object(Monde, "d20", return_value=15):
             chronique, _ = executer(m, 30)
         m = recharger(m)
