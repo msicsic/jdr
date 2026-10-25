@@ -50,7 +50,8 @@ segments seuls sont envoyés à l'auditeur, avec leurs indices d'origine ; aucun
 appel si tous sont établis. Les gardes déterministes du texte entier demeurent.
 La preuve exacte est reconstruite à l'enregistrement ; une attestation courante
 qui ne correspond plus à la perception est refusée. Les comptes de l'issue
-restent obligatoires : la reprise intégrale des faits de l'opération, liée aux
+restent obligatoires : les comptes calculés sur la révision du résultat lui
+sont liés avant le rapprochement. La reprise intégrale des faits de l'opération, liée aux
 mêmes comptes typés, prouve leur couverture ; une reprise partielle ne reçoit
 pas ce crédit global et reste soumise au contrôle des comptes manquants.
 

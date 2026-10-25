@@ -886,6 +886,12 @@ class MJ:
                 compte(monde.data["missions"][id]["donneur"], "joueur", montant=a["montant"], etat="rendu")
                 for id, a in contrats(monde).items()
                 if a.get("statut") == "paye" and a.get("paye_revision") == monde.data["revision"]]
+            if faits["comptes"]["issue"]:
+                # Le rendu et ses comptes viennent de la même résolution du
+                # moteur. Conserver ce lien permet de prouver leur couverture
+                # par le texte exact, sans extraction sémantique supplémentaire.
+                resultat_resolu = {**resultat_resolu,
+                                   "comptes": copy.deepcopy(faits["comptes"]["issue"])}
         objets = contexte["objets_perceptibles"]
         # La liste est complète pour la vue actuelle, pas pour la salle ni les contenus
         # cachés. Les affaires accessibles dans le noir ne sont pas nécessairement vues.

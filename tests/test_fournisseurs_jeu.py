@@ -30,9 +30,9 @@ def arguments(cible, fonction, entree):
     if fonction == 'auditer_action':
         return {'conforme': True, 'motif': ''}
     if fonction == 'auditer_narration':
-        return {'segments': {str(i): {"portee_mecanique": "aucune", 'verdict': 'mecanique', 'sources': ['resultat_resolu'],
-            'locuteur': '', 'citation': '', 'presentation': '', 'entites': [], "comptes": [], 'motif': ''}
-            for i, _ in enumerate(entree['segments'])}}
+        return {'segments': {i: {"portee_mecanique": "aucune", 'verdict': 'mecanique',
+            'sources': ['resultat_resolu'], "comptes": [], 'eclairages': []}
+            for i in entree['segments']}}
     if fonction == 'repondre_au_joueur':
         if 'resultat_resolu' in entree.get('faits', {}):
             texte = 'Tu prends la clé du veilleur.' if cible == 'cle' else 'Tu prends la bobine de ficelle solide.'
@@ -99,15 +99,22 @@ class ParcoursFournisseursTests(unittest.TestCase):
                 self.assertTrue(r['recit_sauve_avant_affichage'])
                 self.assertTrue(r['etat_identique_apres_reprise'])
                 self.assertEqual(r['executions_action'], 1)
+                recit = next(t['entree'] for t in traces if t['etape'] == 'appel'
+                    and t['fonction'] == 'repondre_au_joueur' and 'resultat_resolu' in t['entree']['faits'])
+                texte = arguments(cible, 'repondre_au_joueur', recit)['texte']
+                audit_requis = texte not in recit['faits']['resultat_resolu']['faits']
+                fonctions = ['repondre_au_joueur', 'auditer_action', 'repondre_au_joueur']
+                if audit_requis:
+                    fonctions.append('auditer_narration')
                 if correction:
-                    self.assertEqual(fournisseur.numero_appel, 5)
-                    self.assertEqual(len(journal.appels), 5)
+                    self.assertEqual(fournisseur.numero_appel, len(fonctions) + 1)
+                    self.assertEqual(len(journal.appels), len(fonctions) + 1)
                     self.assertFalse(journal.appels[0]['schema_valide'])
                     self.assertTrue(journal.appels[1]['schema_valide'])
                     for a in journal.appels:
                         self.assertTrue((Path(dossier_traces) / a['dossier_trace'] / 'reponse.sse').is_file())
                 self.assertEqual([t['fonction'] for t in traces if t['etape'] == 'appel'],
-                    ['repondre_au_joueur', 'auditer_action', 'repondre_au_joueur', 'auditer_narration'])
+                    fonctions)
 
     def test_openai_http_deux_scenes(self):
         self._parcours('api')

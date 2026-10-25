@@ -20,11 +20,13 @@ class ParcoursWebSocketTests(unittest.TestCase):
         if fonction == 'auditer_action':
             args = {'conforme': True, 'motif': ''}
         elif fonction == 'auditer_narration':
-            args = {'segments': {str(i): {"portee_mecanique": "aucune", 'verdict': 'mecanique', 'sources': ['resultat_resolu'],
-                'locuteur': '', 'citation': '', 'entites': [], "comptes": [], 'motif': ''} for i, _ in enumerate(entree['segments'])}}
+            args = {'segments': {i: {"portee_mecanique": "aucune", 'verdict': 'mecanique',
+                'sources': ['resultat_resolu'], "comptes": [], 'eclairages': []} for i in entree['segments']}}
         elif fonction == 'repondre_au_joueur':
             if 'resultat_resolu' in entree.get('faits', {}):
-                texte = 'Tu prends la clé du veilleur.' if cible == 'cle' else 'Tu prends la bobine de ficelle solide.'
+                # Une paraphrase exerce la coupure de transport à l'audit aussi :
+                # un rendu exact du moteur ne passe plus par cette quatrième étape.
+                texte = 'Tu saisis la clé du veilleur.' if cible == 'cle' else 'Tu saisis la bobine de ficelle solide.'
                 args = {'mode': 'dialogue', 'texte': texte, 'faits': ['resultat_resolu'], 'proposition': None}
             else:
                 args = {'mode': 'action', 'texte': '', 'faits': ['joueur'], 'proposition': proposition('prendre', cible)}

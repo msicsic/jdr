@@ -89,10 +89,10 @@ class PrimeOffreTests(unittest.TestCase):
         texte = "Tu reçois les 20 pièces convenues."
         c = compte("marchand", "joueur", montant=20, etat="rendu")
         with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
-              patch.object(MJOpenAI, "_appeler_brut", side_effect=[dialogue(texte),
-                  audit(texte, [c], locuteur="", verdict="mecanique")])):
+              patch.object(MJOpenAI, "_appeler_brut", side_effect=[dialogue(texte)]) as appel):
             recit = MJOpenAI().raconter_resultat(r, {
                 "intention": "remettre l'anneau", "gestes": [], "faits": [texte]})
+        self.assertEqual(appel.call_count, 1)
         self.assertEqual(recit["texte"], texte)
         self.assertEqual(recit["_audit"]["faits"]["comptes"]["issue"], [c])
         consigner(r, recit)
