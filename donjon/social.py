@@ -16,6 +16,9 @@ affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu
 se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qui prêter reste un
 inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
+import copy
+import json
+
 from .esprits import RECENT, croire, esprit, lire, memoriser, pnjs
 from .francais import complement_de, designer, de, groupe_nominal
 from .relations import se_fie, envers
@@ -32,10 +35,94 @@ GESTES = {"prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer
           "manger": "a mangé une part de", "servir": "a servi une part de", "alimenter": "a rechargé",
           "allumer": "a allumé", "eteindre": "a éteint", "pousser": "a poussé", "assommer": "a tenté d’assommer"}
 
+# Indépendant des quarante souvenirs. À saturation, on garde les faits déjà suivis
+# et on tait les nouveaux : évincer une entrée autoriserait une répétition indue.
+DITS_MAX = 512
+
+
+def _cle(fait):
+    return json.dumps(fait, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+
+def faits_dits(noyau):
+    """Identités et valeurs transmises, sans texte, date, preuve ni qualité de la source.
+
+    Les constats et les affirmations partagent la même identité de propriété.
+    Un geste reste un fait distinct d'un état ; son lieu dit est une valeur, pas
+    la date ou la case depuis lesquelles le témoin l'a appris.
+    """
+    t = noyau["type"]
+    if t in ("affirmation", "constat"):
+        sujet = noyau.get("sujet", noyau.get("objet"))
+        attribut, valeur = noyau["attribut"], noyau["valeur"]
+        if attribut == "etat":
+            return [(_cle([sujet, attribut, k]), v) for k, v in sorted(valeur.items())]
+        return [(_cle([sujet, attribut]), valeur)]
+    if t == "intention_lue":
+        return [(_cle([noyau["auteur"], "intention"]), {"valeur": "guet", "envers": noyau["objet"]})]
+    if t in ("absence", "mort_vue", "vu_porter"):
+        sujet, attribut, valeur = (noyau["objet"], "etat", {"mort": True}) if t == "mort_vue" else (
+            noyau["objet"], "lieu", noyau.get("auteur") if t == "vu_porter" else None)
+        return faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur})
+    identite = {k: noyau[k] for k in ("type", "auteur", "objet", "operation", "locuteur", "sujet", "attribut", "victime")
+                if k in noyau}
+    valeur = {k: noyau[k] for k in ("montant",) if k in noyau}
+    faits = [(_cle(identite), valeur)]
+    if "lieu" in noyau:
+        faits.append((_cle([noyau["objet"], "lieu"]), noyau["lieu"]["valeur"]))
+    return faits
+
+
+def deja_dit(monde, id, auditeur, noyau):
+    registre = lire(monde, id)["faits_dits"]
+    return all((cle in registre and registre[cle]["valeur"] == valeur
+                and auditeur in registre[cle]["dit_a"])
+               # Une nouvelle identité ne peut plus être suivie à saturation.
+               or cle not in registre and len(registre) >= DITS_MAX
+               for cle, valeur in faits_dits(noyau))
+
+
+def retenir_dit(monde, id, auditeur, noyau):
+    registre = esprit(monde, id)["faits_dits"]
+    for cle, valeur in faits_dits(noyau):
+        if cle not in registre and len(registre) >= DITS_MAX:
+            continue
+        if cle not in registre or registre[cle]["valeur"] != valeur:
+            registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": []}
+        if auditeur not in registre[cle]["dit_a"]:
+            registre[cle]["dit_a"].append(auditeur)
+
+
+def reviser_dits(monde, id, sujet, attribut, valeur, **details):
+    """Une valeur apprise différente rouvre ce fait, même si elle n'est pas une nouvelle à dire."""
+    if attribut == "intention":
+        valeur = {"valeur": valeur, "envers": details.get("envers")}
+    registre = lire(monde, id)["faits_dits"]
+    for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}):
+        if cle in registre and registre[cle]["valeur"] != v:
+            registre[cle] = {"valeur": copy.deepcopy(v), "dit_a": []}
+
+
+def migrer_dits(monde, id):
+    """Reprendre ce qui reste des anciens suivis ; les souvenirs déjà perdus sont irrécupérables."""
+    e = esprit(monde, id)
+    for s in e["memoire"]:
+        if s["type"] == "dit" and "valeur" in s:
+            retenir_dit(monde, id, s["a"], {"type": "affirmation", **{k: s[k] for k in ("sujet", "attribut", "valeur")}})
+        elif s["type"] in NOUVELLES or s["type"] == "rumeur":
+            for a in s.get("dit_a", []):
+                retenir_dit(monde, id, a, s["evenement"] if s["type"] == "rumeur" else s)
+    for sujet, attributs in e["croyances"].items():
+        for attribut, c in attributs.items():
+            for a in c.get("confie", {}).get("dit_a", []):
+                retenir_dit(monde, id, a, {"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                                         "valeur": c["confie"]["valeur"]})
+
 
 def _noyau(evenement):
-    """Ce que dit la nouvelle, sans la trace de qui l'a dite à qui, ni comment il l'a su (``par``)."""
-    return {k: v for k, v in evenement.items() if k not in ("minute", "dit_a", "par")}
+    """Contenu et date d'observation, sans destinataires ni mode d'acquisition (``par``)."""
+    return {**{k: v for k, v in evenement.items() if k not in ("minute", "dit_a", "par")},
+            "observe": evenement.get("observe", evenement.get("minute", 0))}
 
 
 def _fait(noyau):
@@ -80,6 +167,17 @@ def _croit_encore(monde, id, noyau):
 
 
 def nouvelles(monde, id):
+    """Une seule version d'un fait : la dernière apprise, pas ses anciens souvenirs."""
+    retenues, vus = [], set()
+    for nouvelle in reversed(list(_nouvelles(monde, id))):
+        cles = tuple(cle for cle, _ in faits_dits(nouvelle[1]))
+        if cles not in vus:
+            retenues.append(nouvelle)
+            vus.add(cles)
+    yield from reversed(retenues)
+
+
+def _nouvelles(monde, id):
     """Suivi, noyau, rang, source : constats matériels puis souvenirs anciens à récents."""
     # Les croyances constituent déjà le registre daté des constats, sans souvenir
     # supplémentaire à chaque perception. Placés d'abord, ils passent après les accusations.
@@ -90,7 +188,7 @@ def nouvelles(monde, id):
             # certitude que ce qu'il a vu : comme de seconde main.
             noyau, rang, source = _noyau(souvenir), 1 if souvenir.get("par") == "ouie" else 0, None
         elif souvenir["type"] == "rumeur" and souvenir["rang"] < RANG_MAX:
-            noyau, rang, source = souvenir["evenement"], souvenir["rang"], souvenir["de"]
+            noyau, rang, source = {"observe": souvenir["minute"], **souvenir["evenement"]}, souvenir["rang"], souvenir["de"]
         else:
             continue
         if (accuse(noyau) == id
@@ -104,7 +202,7 @@ def nouvelles(monde, id):
             c = lire(monde, id)["croyances"][noyau["objet"]][noyau["attribut"]]
             if c["source"] in ("vu", "essai"):
                 continue  # Son propre constat est déjà offert, de première main.
-            souvenir = c.setdefault("confie", {"valeur": noyau["valeur"], "dit_a": []})
+            souvenir = c
         yield souvenir, noyau, rang, source
 
 
@@ -133,12 +231,11 @@ def _constats(monde, id):
             elif not (attribut == "verrouillee" and valeur is True
                       or attribut == "eau" and valeur > 0):
                 continue
-            confie = c.setdefault("confie", {"valeur": valeur, "dit_a": []})
             noyau = {"type": "constat", "objet": objet, "attribut": attribut,
                      "valeur": valeur, "observe": c["minute"]}
             if attribut == "eau":
                 noyau["details"] = {k: c[k] for k in ("niveau", "montee", "repere") if k in c}
-            yield confie, noyau, 0, None
+            yield c, noyau, 0, None
 
 
 def _cru_ailleurs(monde, id, noyau):
@@ -152,9 +249,13 @@ def _sait(monde, id, noyau):
         c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
         return (_meme_constat(c, noyau) or bool(c and c["source"] in ("vu", "essai", "entendu")
                                                and c["minute"] >= noyau["observe"]))
-    fait = _fait(noyau)
-    return any((_fait(_noyau(s)) == fait if s["type"] in NOUVELLES
-                else s["type"] == "rumeur" and _fait(s["evenement"]) == fait)
+    if noyau["type"] == "intention_lue":
+        from .signes import intentions_lues
+        return any(x == noyau["auteur"] and c.get("envers") == noyau["objet"]
+                   for x, c in intentions_lues(monde, id))
+    fait = faits_dits(noyau)
+    return any((faits_dits(s) == fait if s["type"] in NOUVELLES
+                else s["type"] == "rumeur" and faits_dits(s["evenement"]) == fait)
                for s in lire(monde, id)["memoire"])
 
 
@@ -165,11 +266,11 @@ def _auditeur(monde, id, souvenir, noyau, source):
     colere = emotion(monde, id)
     accusee = accuse(noyau)
     if (colere and colere["niveau"] >= 20 and colere["contre"] == accusee and accusee in monde.objets
-            and accusee != id and accusee not in souvenir.get("dit_a", ())
+            and accusee != id and not deja_dit(monde, id, accusee, noyau)
             and pourraient_se_parler(monde, id, accusee)):
         return accusee
     for autre in sorted(pnjs(monde), key=lambda x: (-envers(monde, id, x)["affection"], x)):
-        if (autre == id or autre in souvenir.get("dit_a", ()) or autre in (accuse(noyau), source)
+        if (autre == id or deja_dit(monde, id, autre, noyau) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
@@ -260,11 +361,15 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     from .paroles import _stats_pnj, dementi, jet_persuasion
     from .voix import identifie, se_mefier, source_dite
     objet = noyau.get("objet")
-    if noyau["type"] == "constat":
-        actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get(noyau["attribut"])
-        if (actuelle and actuelle["source"] in ("vu", "essai", "entendu")
-                and actuelle["minute"] >= noyau["observe"]):
-            return None  # À date égale aussi, le constat propre prime sur le ouï-dire.
+    observe = noyau.get("observe", monde.data["minutes"])
+    proprietes = [json.loads(cle) for cle, _ in faits_dits(noyau)]
+    if all(isinstance(cle, list) for cle in proprietes):
+        for sujet, attribut, *_ in proprietes:
+            c = lire(monde, auditeur)["croyances"].get(sujet, {}).get(attribut)
+            if c and (c["minute"] > observe or c["minute"] == observe
+                      and c["source"] in ("vu", "essai", "entendu", "devine")):
+                return None  # Toute propriété transmise garde la date de sa source.
+    actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get(noyau.get("attribut"))
     if noyau["type"] == "absence" and dementi(monde, auditeur, objet, "lieu", None):
         if identifie(monde, auditeur, locuteur):
             memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur, "sujet": objet,
@@ -285,15 +390,16 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     elif noyau["type"] == "intention_lue":
         croire(monde, auditeur, noyau["auteur"], "intention", "guet", source,
                min(.4, noyau["confiance"] * confiance), signe=noyau["signe"], envers=objet,
+               minute=observe,
                **({"episode": noyau["episode"]} if "episode" in noyau else {}))
     elif noyau["type"] == "mort_vue":
         actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("etat")
         if not actuelle or actuelle["source"] != "vu":
-            croire(monde, auditeur, objet, "etat", {"mort": True}, source, confiance)
+            croire(monde, auditeur, objet, "etat", {"mort": True}, source, confiance, minute=observe)
             from .deliberation import inquieter
             inquieter(monde, auditeur, "mort")
     elif noyau["type"] == "absence":
-        croire(monde, auditeur, objet, "lieu", None, source, confiance, salle=None, case=None)
+        croire(monde, auditeur, objet, "lieu", None, source, confiance, minute=observe, salle=None, case=None)
     elif accuse(noyau) != auditeur:
         _apprendre_lieu(monde, auditeur, noyau, source, confiance)
     return "crue"
@@ -328,6 +434,10 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     from .corps import conscient
     if not conscient(monde, id):
         return
+    if id != "joueur" and auditeur != "joueur" and conscient(monde, auditeur):
+        for c in contenu:
+            if c["type"] in ("affirmation", "rumeur", "aveu"):
+                retenir_dit(monde, id, auditeur, c if c["type"] == "affirmation" else c["evenement"])
     if suites and id != "joueur" and auditeur != "joueur" and conscient(monde, auditeur):
         from .relations import annoncer_suites
         annoncer_suites(monde, id, auditeur, lignes)
@@ -445,25 +555,11 @@ def bavarder(monde, id, lignes):
         auditeur = _auditeur(monde, id, souvenir, noyau, source)
         if auditeur is None:
             continue
-        # Une seule confidence par incident : ce qu'il sait du même accusé se dit d'un coup.
-        lies = [x for x in connues if x[0] is souvenir or accuse(noyau) and accuse(x[1]) == accuse(noyau)]
-        for autre, *_ in lies:
-            if auditeur not in autre.get("dit_a", ()):
-                autre.setdefault("dit_a", []).append(auditeur)
-        inedits = [x for x in lies if not _sait(monde, auditeur, x[1])]
-        if not inedits:
+        if _sait(monde, auditeur, noyau):
             continue  # Il le sait déjà : rien à apprendre, la minute n'est pas perdue.
-        _, noyau, rang, _ = inedits[-1]
         # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
         # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
         issue = recevoir(monde, auditeur, id, {"type": "rumeur", "evenement": noyau, "rang": rang})
-        if issue == "crue":
-            siens = [x[1] for x in inedits if _proprietaire(monde, x[1]) == auditeur]
-            if siens and _proprietaire(monde, noyau) != auditeur:
-                # recevoir a déjà compté le bien nommé ; les autres nouvelles du
-                # même incident peuvent aussi concerner un bien de l'auditeur.
-                from .deliberation import VOL, relancer
-                relancer(monde, auditeur, "biens", 30 if all(x["type"] == "absence" for x in siens) else VOL // 2)
         _chroniquer(monde, id, f"{_qui(monde, id)} dit {groupe_nominal(_qui(monde, auditeur), 'à')} que {phrase(monde, noyau)} ({issue or 'connu'}).",
                     "social")
         if noyau["type"] == "constat":

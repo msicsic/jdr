@@ -83,6 +83,7 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           # pas disparaître avec les quarante souvenirs de la mémoire courante.
           "secours": lambda: None,
           "derniere_confidence": lambda: None,  # minute de la dernière nouvelle confiée
+          "faits_dits": dict,  # identités et dernières valeurs dites, hors mémoire courante (social)
           # Besoins bloqués ayant déjà motivé un appel depuis leur dernier apaisement.
           "detresses_appelees": list,
           "aides_attendues": dict,
@@ -112,10 +113,14 @@ def installer(monde):
     personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
+        migrer_confidences = "faits_dits" not in monde.data["esprits"].get(id, {})
         migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
+        if migrer_confidences:
+            from .social import migrer_dits
+            migrer_dits(monde, id)
         for souvenir in e["memoire"]:
             if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
                 salles = e["recherches"].setdefault(souvenir["qui"], {})
@@ -291,6 +296,11 @@ def verifier(monde):
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
+        from .social import DITS_MAX
+        assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
+                and all(isinstance(k, str) and isinstance(v, dict) and set(v) == {"valeur", "dit_a"}
+                        and isinstance(v["dit_a"], list) and all(isinstance(a, str) for a in v["dit_a"])
+                        and len(v["dit_a"]) == len(set(v["dit_a"])) for k, v in e["faits_dits"].items())), "Faits dits invalides"
         assert e["secours"] is None or (
             isinstance(e["secours"], dict) and set(e["secours"]) == {"minute", "apaise"}
             and type(e["secours"]["minute"]) is int and type(e["secours"]["apaise"]) is bool
@@ -340,13 +350,9 @@ def croyance(monde, id, sujet, attribut):
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
-    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut, {})
-    confie = ancienne.get("confie")
-    if confie and (all(valeur.get(k) == v for k, v in confie["valeur"].items())
-                   if attribut == "etat" else valeur == confie["valeur"]):
-        # Revoir le même constat ne donne pas une nouvelle raison de le redire.
-        croyance["confie"] = confie
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    from .social import reviser_dits
+    reviser_dits(monde, id, sujet, attribut, valeur, **lieu)
     if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
         # Un indice positif rouvre ce lieu seul, même après un appel dans la même minute.
         # Une absence ne dit rien de neuf sur les autres salles déjà parcourues.
@@ -358,6 +364,10 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
 
 
 def memoriser(monde, id, evenement):
+    if evenement["type"] == "dit" and "valeur" in evenement:
+        from .social import retenir_dit
+        retenir_dit(monde, id, evenement["a"], {"type": "affirmation", **{
+            k: evenement[k] for k in ("sujet", "attribut", "valeur")}})
     memoire = esprit(monde, id)["memoire"]
     souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
     from .relations import identifier

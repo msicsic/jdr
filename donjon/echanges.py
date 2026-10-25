@@ -1060,6 +1060,9 @@ def executer(monde, id, etape, lignes):
     if op == "dire" and "annulation" in contenu:
         return annoncer_abandon(monde, id, autre, contenu["annulation"], lignes)
     if op == "dire":
+        from .social import deja_dit
+        if deja_dit(monde, id, autre, {"type": "affirmation", **contenu}):
+            return True  # Un ancien plan ne fait pas redire un fait appris entre-temps.
         issue = affirmer(monde, id, autre, contenu["sujet"], contenu["attribut"], contenu["valeur"])
         recit = f"{a} dit à {b} que {phrase_affirmee(monde, contenu['sujet'], contenu['attribut'], contenu['valeur'], False)}"
         clair = f"{a} dit à {b} que {phrase_affirmee(monde, contenu['sujet'], contenu['attribut'], contenu['valeur'], True)}."

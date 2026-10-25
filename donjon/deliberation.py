@@ -833,9 +833,9 @@ def _deja_dit(monde, id, a, sujet, attribut, valeur=None):
     """Il a déjà dit à ``a`` ce qu'il croit de ``sujet`` (``attribut``) ; avec ``valeur``, la dernière
     fois qu'il le lui a dit, c'était cette valeur (un fait dit l'est jusqu'à ce que la valeur change,
     quelle que soit la date de ce qu'il en croit)."""
-    dits = [x for x in lire(monde, id)["memoire"]
-            if x["type"] == "dit" and x["a"] == a and x["sujet"] == sujet and x.get("attribut") == attribut]
-    return bool(dits) and (valeur is None or dits[-1].get("valeur") == valeur)
+    from .social import deja_dit
+    return deja_dit(monde, id, a, {"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                                 "valeur": False if valeur is None else valeur})
 
 
 def _a_dire(monde, id, victime, auteur):
