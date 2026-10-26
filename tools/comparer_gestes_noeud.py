@@ -53,6 +53,7 @@ def relever(p, monde, qui, but, emplois, mesurer=False):
     if mesurer:
         r['secondes_suites'] = secondes
         r['us_par_etat'] = secondes * 1e6 / comptes[0] if comptes[0] else None
+        r['us_par_noeud'] = secondes * 1e6 / r['noeuds'] if r['noeuds'] else None
     return r
 
 
@@ -90,6 +91,7 @@ if __name__ == "__main__":
             r['secondes_suites_passes'] = temps
             r['secondes_suites'] = sum(temps) / len(temps)
             r['us_par_etat'] = r['secondes_suites'] * 1e6 / r['etats'] if r['etats'] else None
+            r['us_par_noeud'] = r['secondes_suites'] * 1e6 / r['noeuds'] if r['noeuds'] else None
     Path(args.sortie).write_text(json.dumps(donnees, ensure_ascii=False, indent=2), encoding="utf8")
     print({k: {n: x for n, x in v.items() if n not in ("resultat", "secondes_suites_passes")}
            for k, v in donnees.items()})
