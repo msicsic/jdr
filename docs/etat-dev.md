@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reprises-exactes`, non fusionnée**, lot **118**, base
+  `c3568ae` : A3 partage les tables du monde cru pendant un choix ; A2 réduit
+  la clé transitoire, en maintenant par `_entrees_effort` le contrat durable
+  des attentes sauvegardées ; A1 conserve le premier graphe et tente le
+  certificat dès le premier épuisement. A4 **non appliqué** : `gestes` lit
+  indirectement l'allure par trajets, parts et devis ; Joss à 600 min donne
+  des tarifs différents. Aucun élagage sous plafond, aucun Luna ni scénario.
+  **Résultat de coût négatif : ne pas intégrer comme optimisation.** Paires
+  12 h contre la base, auberge 1985 : fixe **190,48 → 220,05 s (+15,5 %)**,
+  tiré **288,94 → 339,20 s (+17,4 %)** ; mine fixe **81,73 → 85,20 s (+4,2 %)**.
+  Paires contre `42bb9c0` : auberge fixe **×1,93**, tirée **×3,81**,
+  seuil **×1,5 manqué**. A1 seul : **+15,1 % CPU**, preuves **60 → 365**,
+  visites de preuve **59 334 → 281 984**, pic **136,2 → 266,6 Mo**.
+  Captures mine 480/auberge 480/600 et tours moteur rechargés exacts ;
+  `comparer --calcul` : trois nuits finales et trois paires de leviers sans
+  écart, état complet inclus. Empreintes 2 h × 16 : chroniques, état et
+  mesures du monde identiques ; seul compteur `recherches_neuves` réduit
+  sur quatre mines. VERIFIER + spatial 1, auberge 42 tirée 2 h : aucun
+  écart ni BORNES, recharge et rendus identiques, **290,58 s CPU**.
+  Suite complète unique : **2 046 tests, 16 ignorés, 221 fichiers,
+  1 778,82 s**, deux processus réduits. Six assertions de calcul anciennes
+  actualisées dans quatre fichiers ; **18 reprises ciblées vertes en
+  63,90 s**, aucun échec restant consolidé, aucune seconde suite complète.
+  Commits signés SSH, moteur `d782dfc` ; bruts `artifacts/reprises-118/`.
+  [Rapport et limites du lot 118](taches/rapport-codex-118-reprises-exactes.md).
+
 - **Vérification d'intégration 590653e**, lot **114**, branche
   `codex-verif-integ-590653e` : aucun code du jeu changé, sans Luna.
   **32 nuits de 12 h**, **huit rixes de 8 h**, puis **cinq nuits de 8 h

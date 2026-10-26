@@ -1,0 +1,14 @@
+{
+  "reference_historique": "fbcf0ffa255c18b4b7f1c6581e8fab572f462905",
+  "changement": "graphes et preuves dès le premier appel, lot 118",
+  "mine": {
+    "visites": "6ef0eff6047889d73c631affb330c7d2e219ae8b9bb43de14597e305f00f1bb1",
+    "n_visites": 4579,
+    "diagnostics": "a53ee1f3f30a39edc279ffcf4ca87f70be971a284de6fe6f12819b4f261f0c78"
+  },
+  "auberge": {
+    "visites": "7baffe415aa3c9af2cf6bc2131389d9809af4e07fbe97db6448a5f7dc08495b0",
+    "n_visites": 8212,
+    "diagnostics": "a4ad1deb63c113f7f77ebf5b298faaba09422343e4373f2bdf8d11ea22a237ae"
+  }
+}

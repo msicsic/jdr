@@ -85,10 +85,10 @@ def observer_capture(scenario):
 class EtapesTests(unittest.TestCase):
     def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
         attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))
-        calcul = json.loads((DONNEES.parent / "profondeurs-preuve/etapes-calcul.json").read_text(encoding="utf-8"))
+        calcul = json.loads((DONNEES.parent / "reprises-exactes/etapes-calcul.json").read_text(encoding="utf-8"))
         for scenario in ("mine", "auberge"):
             with self.subTest(scenario=scenario):
-                # Le lot 92 c réduit les reprises, donc les visites et diagnostics.
+                # Les lots 92 c et 118 réduisent les reprises et changent les diagnostics.
                 # Plans, monde, lignes et rendus restent ceux de l'oracle historique.
                 nouvelles_mesures = calcul[scenario]
                 self.assertLessEqual(set(nouvelles_mesures), {"visites", "n_visites", "diagnostics"})

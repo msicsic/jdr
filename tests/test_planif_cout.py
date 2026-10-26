@@ -58,7 +58,7 @@ class GrapheReprisTests(unittest.TestCase):
                 plans.append(garder(m, "lucien", "grenier"))
         self.assertEqual(len(set(fautes)), 3)
         self.assertEqual([(r["graphe"], r["memoire"]) for r in recherches],
-                         [(False, False), (False, False), (True, False)])
+                         [(False, False), (True, False), (True, False)])
         # Les nouveaux prix peuvent changer l'arrêt devant les résultats
         # terminaux minorés ; comparer au recalcul avec ces mêmes prix.
         with patch.object(planification, "_GRAPHES", Oublieux()), patch.object(planification, "_MEMOIRE", {}), \

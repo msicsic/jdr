@@ -126,7 +126,7 @@ class LumiereDuButTests(unittest.TestCase):
                      for gain in (1000, 1001, 1002)]
             self.assertIsNotNone(plans[0])
             self.assertEqual(plans, [plans[0]] * 3)
-            self.assertEqual([r["graphe"] for r in recherches], [False, False, True])
+            self.assertEqual([r["graphe"] for r in recherches], [False, True, True])
             graphe = next(g for _, g in P._GRAPHES.values())
             self.assertTrue(graphe["lumiere"])
             self.assertTrue(any(n[4] for n in graphe["sombre"].values()))
@@ -161,7 +161,7 @@ class LumiereDuButTests(unittest.TestCase):
                 prix["faute"] = valeur
                 plans.append(P.chercher(m, "remy", but, {"inspecter": ("reserve",)}, memo=["essai"],
                                         emplois=(), noeuds=3))
-        self.assertEqual([r["graphe"] for r in recherches], [False, False, True, True])
+        self.assertEqual([r["graphe"] for r in recherches], [False, True, True, True])
         self.assertEqual([r["issue"] for r in recherches], ["plan", "borne", "plan", "borne"])
         self.assertEqual(plans[0], plans[2])
         self.assertEqual([x["operation"] for x in plans[0][1]], ["inspecter"])

@@ -121,7 +121,7 @@ class DepartFeutreTests(unittest.TestCase):
             r = chercher(1000)
             g = next(g for _, g in p._GRAPHES.values())
             self.assertTrue(g["discretion"])
-            self.assertNotIn("sombre", g)  # la première recherche ne garde que la marque
+            self.assertTrue(g["sombre"])  # le premier graphe est maintenant conservé aussi
             departs_lus = []
             explorer = p._explorer_etats
             def suivre(v, *a, **k):

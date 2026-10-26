@@ -2181,3 +2181,56 @@ peuvent se rassurer dans des lieux différents avant de se rejoindre.
 Ce contrat ne remplace pas l'arbitrage existant par une comparaison de tous
 les coûts entre besoins : les rangs et `INERTIE` restent l'autorité du choix.
 Les mesures et limites sont dans le [rapport du lot 90](taches/rapport-codex-90-recours-prioritaire.md).
+
+## Reprises dès la première recherche (lot 118)
+
+`vues_du_choix` partage les tables géométriques et les droits d'une photographie
+en lecture seule : `TABLES_DU_CHOIX` en donne la liste fermée. Les clés gardent
+les possessions, faits, salles et allures nécessaires. Les paramètres du
+candidat, `_crus` (qui contient aussi le prix de violence), `_agissables`, les
+parts et les découvertes restent privés. Le relevé JSON commun était déjà
+calculé une fois par choix avant ce lot ; ce contrat est conservé.
+
+La clé commune ne relève plus les signes bruts : `menaces` lit les intentions
+sociales pour préparer `gardes` dans la Vue ; le graphe ne relit pas les
+signes. `gardes` et `prix_gardes`, les relations, l'eau et les autres effets
+dérivés lus par la recherche restent dans la clé. Pour les
+cases, `case_objet` lit les cibles, les outils fixes et les chaînes de porteurs
+et contenants ; `_attente_part` lit aussi le donneur. `_cases_lues` conserve
+ces entités connues, le joueur et leurs contenants, dans toutes les salles.
+La case de l'acteur est ignorée : `Etat` porte toujours une case `None`.
+Les obstacles conservent leurs positions dans le modèle métrique et les objets
+fixes. Les croyances de lieu, ouverture, passage, lumière, ressources et état
+restent intégralement relevées. Les salles de départ ne suffisent pas :
+`_mesurer_direct` appelle `trajet_estime.approche` après les trajets du plan.
+
+La signature durable d'un effort borné est distincte de cette clé de calcul.
+`_entrees_effort` conserve les lectures et la représentation historique de
+réveil (signes et toutes les cases inclus), partagée une fois par choix.
+Réduire la clé transitoire ne réécrit donc pas les attentes sauvegardées et ne
+change pas quand elles se réveillent. Le test de Lucien/auberge à 600 minutes
+compare le registre complet au témoin A3, puis sa reprise et les rendus
+rechargés. Omettre une case réellement lue de la clé transitoire est aussi
+testé comme faute injectée : `VERIFIER` refuse alors la mémoire périmée.
+
+Les graphes sombre et lumineux sont retenus dès le premier appel mémorisé,
+y compris entre ses passes internes. Au premier épuisement non borné,
+`_sans_plan` tente immédiatement le certificat commun à profondeur minimale.
+Une preuve réussie libère les nœuds et conserve la seule marque de discrétion
+sous la même clé PNJ/but/entrées. Aucun cache ni registre nouveau n'est sauvé.
+`VERIFIER` conserve son oracle complet pour les reprises et les certificats.
+
+**A4 écarté dans sa formulation proposée.** L'absence de lecture directe de
+`e.allure` dans `gestes` n'établit pas son indépendance : `Vue.allers` lit
+`contexte_route`, `_chercher` produit une `TransitionMesuree`, `_parts` et
+`_aide_sur_place` lisent `attente_part`, `_engager` lit `peine_tache` ; tous
+peuvent dépendre de l'allure. Les états suivants et `SuiteDifferee` retiennent
+aussi cette allure. Joss à 600 min donne vers le cellier
+0,16916666666666666 contre 0,32166666666666666 minute. Une liste commune
+réutiliserait ces tarifs et états. Un test verrouille cette dépendance.
+Supprimer des feuilles non furtives peut modifier le comptage du plafond,
+donc l'ordre où une recherche bornée s'arrête ; aucun élagage n'est ajouté.
+Une factorisation future devra séparer les recettes de gestes de leurs
+mesures, états et lectures de découverte, puis prouver l'ordre sous plafond.
+
+Mesures, exactitude et limites : [rapport du lot 118](taches/rapport-codex-118-reprises-exactes.md).

@@ -61,7 +61,7 @@ DIAGNOSTIC = None
 # pas à l'objet monde : le moteur agit sur une copie de travail à chaque action.
 _MEMOIRE = {}
 # Le graphe de la dernière recherche de chaque PNJ pour chaque but (``_explorer``), avec tout ce dont
-# il dépendait (None : nœuds relâchés après une preuve d'impossibilité) : quand seuls le prix d'une faute
+# il dépendait (nœuds relâchés après une preuve d'impossibilité) : quand seuls le prix d'une faute
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
 # Dès la première recherche, les passes internes partagent leurs nœuds.
@@ -1932,7 +1932,7 @@ def _cases_lues(v, croyances):
     """Positions que case_objet peut lire, y compris après un trajet du plan.
 
     Toute entité connue peut être cible, outil fixe ou porteur d'une cible ;
-    leurs contenants sont suivis récursivement. La case de l'acteur n'est
+    les croyances de leurs contenants sont aussi couvertes. La case de l'acteur n'est
     jamais lue (Etat n'a pas de position). Une salle n'est pas une cible
     spatiale. On ne réduit pas aux seules entités de la salle initiale :
     trajet_estime.approche lit aussi les cibles des autres salles.

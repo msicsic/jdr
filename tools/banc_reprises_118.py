@@ -18,17 +18,25 @@ def main():
     dossier = (racine / args.dossier).resolve()
     dossier.mkdir(parents=True, exist_ok=True)
     refs = {'ancien': '42bb9c0', 'base': 'c3568ae', 'A3': '2fd4c4a',
-            'A2': '5827a31', 'A1': '96350dc'}
+            'A2': 'd782dfc', 'A1': 'd782dfc'}
     depots = {'branche': racine}
     for nom, ref in refs.items():
-        cible = dossier / nom
+        cible = dossier / (nom + '-corrige' if nom in ('A2', 'A1') else nom)
         depots[nom] = cible
         if not cible.exists():
             cible.mkdir()
             zipfile.ZipFile(io.BytesIO(subprocess.check_output(
                 ['git', 'archive', '--format=zip', ref], cwd=racine))).extractall(cible)
+            if nom == 'A2':
+                # Même correctif de contrat durable des deux côtés ; retirer
+                # seulement A1 permet de mesurer séparément A2 et A1.
+                patch = subprocess.check_output(['git', 'diff', '96350dc^', '96350dc',
+                    '--', 'donjon/planification.py'], cwd=racine)
+                subprocess.run(['git', 'apply', '--reverse', '--directory=' +
+                    cible.relative_to(racine).as_posix()], input=patch, cwd=racine, check=True)
     conditions = {'processus_max': 2, 'priorite': 'BelowNormal', 'cache_temps': False,
-                  'refs': refs, 'branche': subprocess.check_output(
+                  'refs': refs, 'A2_construction': 'd782dfc moins diff A1 96350dc',
+                  'branche': subprocess.check_output(
                       ['git', 'rev-parse', 'HEAD'], cwd=racine, text=True).strip()}
     (dossier / 'conditions-cpu.json').write_text(json.dumps(conditions, indent=2), encoding='utf8')
     paires = []
