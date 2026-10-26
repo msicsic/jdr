@@ -26,6 +26,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   parler <personnage>
   saisir <personnage> | ligoter <personnage> avec <lien>
   délier <personnage> [avec <lame>] | se libérer | se dégager
+  traîner <corps> vers <direction>     une case, mains libres, 4,5 secondes
   ranimer <personnage>                 au contact, après une minute d'inconscience (10 secondes)
   offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
@@ -359,6 +360,9 @@ def analyser(monde, texte):
     for prefixe in DONNER:
         if texte.startswith(prefixe):
             return don(monde, texte[len(prefixe):])
+    if texte.startswith("trainer "):
+        cible, sep, direction = texte[8:].partition(" vers ")
+        return proposition("trainer", monde.trouver(cible), direction.removeprefix("le ").removeprefix("l'"))
     if texte.startswith("pousser "):
         # « pousser brune », « pousser brune vers l'ouest » : la direction est facultative.
         from .spatial import VECTEURS

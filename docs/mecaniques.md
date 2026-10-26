@@ -58,10 +58,17 @@ pas et on ne manipule pas ; on parle, crie et on peut `se libérer` : dix minute
 essai de DEX contre 18. Les PNJ tentent aussi de se libérer et délient leurs protégés perçus.
 Ils ne saisissent ni ne ligotent spontanément quelqu'un.
 
-Les fiches précèdent les tentatives. Ligoter, délier et se libérer n'ont d'effet qu'à la
+`traîner <corps> vers <direction>` déplace une personne inconsciente, ligotée ou rendue,
+ou une dépouille. Les mains doivent être libres : aucun objet mobile directement porté.
+Un geste prend 4,5 secondes (6,4 en diagonale selon le pas commun), plus la rotation vers le pas ; la cible rejoint la case quittée
+par l'auteur. Les deux pas suivent les portes, obstacles et règles d'eau communs ; l'arrivée
+de l'auteur doit être libre. Traîner une personne vivante laisse les souvenirs de contrainte
+communs, une dépouille non. Aucun PNJ ne choisit spontanément ce geste.
+
+Les fiches précèdent les tentatives. Ligoter, délier, traîner et se libérer n'ont d'effet qu'à la
 fin, si leurs conditions tiennent encore ; un coup reçu ou l'inconscience interrompt le
 geste. Le registre des issues, les prises et les liens sont sauvegardés. Le banc accepte
-`--etat aubin:ligote`. Traîner reste à réaliser.
+`--etat aubin:ligote`. Un réveil avant la fin empêche de traîner une victime devenue libre.
 
 ### Le coup et assommer (4b)
 

@@ -61,7 +61,13 @@ def verifier(monde):
         "Gestes en cours invalides"
     assert all("issue" not in g or (g["operation"] in ("ligoter", "delier", "liberer")
                and isinstance(g["issue"], dict) and set(g["issue"]) == {"outil", "lien"}
-               and all(isinstance(v, str) for v in g["issue"].values())) for g in gestes), "Issue de geste invalide"
+               and all(isinstance(v, str) for v in g["issue"].values())) or (g["operation"] == "trainer"
+               and isinstance(g["issue"], dict) and set(g["issue"]) == {"outil", "depart", "victime"}
+               and isinstance(g["issue"]["outil"], str)
+               and all(isinstance(g["issue"][k], list) and len(g["issue"][k]) == 2
+                       and isinstance(g["issue"][k][0], str)
+                       and isinstance(g["issue"][k][1], list) and len(g["issue"][k][1]) == 2
+                       and all(type(x) is int for x in g["issue"][k][1]) for k in ("depart", "victime"))) for g in gestes), "Issue de geste invalide"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
             and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy", "constat_confie", "avis_exprime", "changement_avis", "dispute", "eclat", "dispute_vue", "parti_pris"} == {"minute", "pnj", "texte"}
@@ -311,7 +317,7 @@ def _temoigner(monde, geste):
     """
     from .vol import proprietaire
     id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
-    if operation in ("delier", "liberer"):
+    if operation in ("delier", "liberer") or (operation == "trainer" and not est_contrainte(monde, operation, objet)):
         return
     victime = objet if est_contrainte(monde, operation, objet) else proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet, "victime": victime,
@@ -1873,10 +1879,11 @@ def _avancer(monde, minutes, lignes, dixiemes):
     for e in esprits_.values():
         if e["veille"] is None:
             e["libre"] = max(debut, e["libre"])
-        if e["eveil"] is not None and e["eveil"] <= debut:
+        if e["eveil"] is not None and e["eveil"] <= debut and _prochain(e) <= debut:
             # Ce qu'il a perçu au début de l'action du joueur (son résultat), il y réagit pendant
             # cette action : l'instant même de son début appartient encore à l'action précédente,
             # où tout ce qui s'y passe a été traité et entendu (``ecoute.entendus``).
+            # Un auteur encore occupé conserve son éveil : découper le laps ne le repousse pas.
             e["eveil"] = debut + 1
     # Les horloges du scénario se déclenchent à leur minute, pendant la vie des PNJ, qui vivent ce
     # qu'elles changent ; une échéance déjà passée au début (la minute 0) se déclenche aussitôt.

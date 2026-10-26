@@ -556,8 +556,11 @@ porte saisir, ligoter, délier (main ou lame), se libérer et les validations co
 inconscience et invalidation des conditions empêchent l'effet. Les protecteurs rejoignent un
 protégé ligoté perçu et le délient ; les captifs se libèrent. Aucun PNJ ne choisit de saisir
 ou ligoter. Le joueur dispose des commandes locales et des fiches avant tentative.
-**Reste de ce brief : traîner**, reporté selon sa clause de livraison partielle. Enfermer,
-forcer une porte, inquiétude captive et volonté brisée restent au lot suivant de 4d.
+**Traîner réalisé au lot 134**, branche `codex-trainer`, non fusionnée : validation commune
+joueur/PNJ, deux positions appliquées à l'échéance sauvegardée, 4,5 s par case plus rotation,
+personne sans défense ou dépouille ; passages et contraintes communs, aucun choix autonome.
+Voir le [rapport 134](taches/rapport-codex-134-trainer.md).
+Enfermer, forcer une porte, inquiétude captive et volonté brisée restent au lot suivant de 4d.
 Voir le [rapport 126](taches/rapport-codex-126-force-4d-tenir.md) pour les vérifications et limites.
 
 Saisir, se dégager, ligoter, délier, couper le lien, se libérer seul, traîner ; `verrouiller` pour

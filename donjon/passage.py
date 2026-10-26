@@ -52,7 +52,7 @@ def place_connue(monde, x):
     if x == "joueur":
         return monde.joueur.get("position") is not None
     o = monde.objets.get(x)
-    return bool(o and o["type"] == "personnage" and o.get("lieu") in monde.data["salles"]
+    return bool(o and o["type"] in ("personnage", "depouille") and o.get("lieu") in monde.data["salles"]
                 and o.get("position") is not None)
 
 
