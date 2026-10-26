@@ -1440,14 +1440,15 @@ def gestes(v, e, vises=None, but=None):
                 if v.autorise[o] and not (brise and v.degat is None):
                     degat = [(("degat", brise), True)] if brise else []
                     abime = bool(brise) and not e.fait("degat", brise)
-                    for outil in sorted(k for k in e.portes if force.adapte(x, objets[k])):
-                        n, c = force.coups(monde, id, x, objets[outil]), force.chance(monde, id, objets[outil])
+                    for outil in sorted(k for k in e.portes if force.adapte(x, objets[k])) + ([""] if porte and vises.get("evader") else []):
+                        n, c = force.coups(monde, id, x, objets.get(outil)), force.chance(monde, id, objets.get(outil))
                         if n and c:
-                            yield (int(bool(brise) and not e.fait("faute", brise, "honnetete")), n / c,
+                            cout_coups = n / c * (.05 if porte else 1)
+                            yield (int(bool(brise) and not e.fait("faute", brise, "honnetete")), cout_coups,
                                    [_etape("frapper", o, outil=outil, condition="sans_temoin" if brise else "")],
                                    e.apres(faits=[(("verrou", o), False), (("ouvert", o), True), (("touche", o), True),
                                                   *([(("faute", brise, "honnetete"), True)] if brise else []), *degat]),
-                                   n / c, abime)
+                                   cout_coups, abime)
         # Manger ce qui est à portée.
         if x["type"] == "nourriture" and ici and v.disponible(o) and v.autorise[o]:
             porte = o in e.portes
@@ -3267,7 +3268,8 @@ def reagir(monde, id, dangers, aide=None):
                    and not etat_cru(monde, id, a).get("reddition")]
     if aide and not ennemis:
         protege, salle, _ = aide
-        r = voir(monde, id, salle)
+        trajet = aller(monde, id, salle)
+        r = (salle, trajet) if trajet else voir(monde, id, salle)
         if r:
             return {"type": "proteger", "qui": protege, "lieu": salle}, r[1]
     if not ennemis:

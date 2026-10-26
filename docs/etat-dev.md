@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-enfermer`, **non fusionnée**, lot **136**, base `bce47d8`
+  (lot 134 `codex-trainer`, non fusionné : dépendance voulue) : verrouiller joueur/PNJ,
+  victimes selon les présences crues, contrainte et témoins communs ; constat par essai,
+  appel et but de sortie dans le planificateur, clé/crochetage/outil/épaule. Trois secondes
+  par coup de porte, bris ouvert et déverrouillé. Le protecteur alerté rejoint avec sa clé.
+  Aucun choix autonome supplémentaire d'enfermer, ni inquiétude captive/volonté brisée.
+  Beffroi non refermable (autre issue sans porte) : sur décision utilisateur, aucune donnée
+  de scénario modifiée ; bureau et réserve de la mine employés pour les épreuves.
+  Lucien/Josse au passe ; Bram à la pioche ; joueur assomme et traîne Bram puis l'enferme
+  devant Gaspard ; état complet et rendu identiques après rechargement et laps découpé.
+  **159 ciblés finaux verts**, douze fichiers. Suite complète unique : **2 091 tests,
+  1 094,80 s, huit échecs et une erreur** ; reprises des défauts nouveaux vertes,
+  deux échecs MiMo historiques non corrigés, aucune seconde suite.
+  Banc 4 h × quatre scénarios × quatre graines : **13/16 strictement identiques** ;
+  crue 1985/7/2024 divergent par une étape `frapper` devenue inutile après ouverture
+  par un tiers, désormais 3 s au lieu d'une minute. Rétablir cette durée seule rend
+  les trois états et chroniques identiques à la base (contre-épreuves branche seule).
+  Aucun plantage/usurpation/violation ni nouveau constat ; l'identité des seize nuits
+  n'est pas acquise. Seize références calculées une fois et cachées, sans rejeu.
+  Aucun Luna, au plus deux calculs réduits ; aucune clé de signature Git configurée.
+  [Rapport du lot 136](taches/rapport-codex-136-enfermer.md).
+
 - Branche `codex-trainer`, **non fusionnée**, lot **134**, base `bb31eb5` :
   traîner une personne inconsciente, ligotée ou rendue, ou une dépouille ; même
   validation joueur/PNJ, deux positions appliquées à l'échéance sauvegardée,

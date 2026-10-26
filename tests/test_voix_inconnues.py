@@ -241,7 +241,16 @@ class VoirParlerTests(unittest.TestCase):
         lire(m, "mathe")["besoins"]["securite"] = 60.0
         m.joueur.update(salle="reserve", position=[4, 1])
         m.data["visitees"] = sorted({*m.data["visitees"], "reserve"})
-        m, texte = attendre(recharger(m))
+        # Contrôler la présentation avant l'évasion : une porte brisée peut ensuite
+        # laisser entrer la lumière et rendre la personne visible à Corvus.
+        from donjon.moteur import Moteur, proposition
+        m, textes = recharger(m), []
+        for _ in range(120):
+            textes.append(Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "1"))))
+            m = recharger(m)
+            if m.data["voix_entendues"].get("odon", {}).get("se_dit") == "odon":
+                break
+        texte = " ".join(textes)
         self.assertIn("Odon demande une part des vivres de la cuisine à Mathe (qui_va_la).", chronique(m))
         self.assertIn("une voix inconnue : « Qui va là ? »", texte)
         self.assertEqual(nom_pour_joueur(m, "odon"), "une voix qui se dit Odon")

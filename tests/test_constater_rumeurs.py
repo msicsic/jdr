@@ -352,7 +352,15 @@ class ParlerALaVoixTests(unittest.TestCase):
         lire(m, "mathe")["voix"].remove("odon")
         lire(m, "mathe")["croyances"].pop("odon", None)
         lire(m, "mathe")["besoins"]["securite"] = 60.0
-        m, _ = attendre(recharger(m))
+        # Observer l'échange à son instant : désormais Odon peut ensuite forcer
+        # la porte et quitter réellement cette réserve fermée à clé.
+        from donjon.moteur import Moteur, proposition
+        m = recharger(m)
+        for _ in range(120):
+            Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "1")))
+            m = recharger(m)
+            if lire(m, "mathe")["voix_entendues"].get("odon", {}).get("se_dit") == "odon":
+                break
         self.assertIn("Odon demande une part des vivres de la cuisine à Mathe (qui_va_la).", chronique(m))
         self.assertNotIn("odon", lire(m, "mathe")["voix"])
         self.assertEqual(lire(m, "mathe")["voix_entendues"]["odon"]["se_dit"], "odon")

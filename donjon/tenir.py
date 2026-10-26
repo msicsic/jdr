@@ -12,6 +12,100 @@ IMMOBILES = {"trainer", "marcher", "aller", "faufiler", "chasser", "fuir", "fuit
 SANS_MAINS = PAROLES | {"attendre", "patienter", "reposer", "observer", "examiner", "ecouter", "tourner", "degager", "liberer", "emettre_son"}
 
 
+def valider_verrouillage(monde, auteur, cible, outil):
+    from .spatial import porte_par
+    o = monde.objets.get(cible, {})
+    if o.get("type") not in ("porte", "contenant"):
+        raise ErreurMonde("Il faut viser une porte ou un contenant.", f"cible={cible} : type porte ou contenant requis.")
+    if o.get("ouverte"):
+        raise ErreurMonde("Il faut d'abord fermer.", f"cible={cible}, ouverte=True : ouverte=False requis.")
+    if o.get("verrouillee"):
+        raise ErreurMonde("C'est déjà verrouillé.", f"cible={cible}, verrouillee=True : verrouillee=False requis.")
+    if not o.get("integrite") or o.get("detachee"):
+        raise ErreurMonde("Le battant ne peut plus être verrouillé.", f"cible={cible} : integrite>0 et detachee=False requis.")
+    if not outil or not porte_par(monde, outil, auteur):
+        raise ErreurMonde("Il faut une clé en main.", f"outil={outil} : clé portée par auteur={auteur} requise.")
+    if cible not in monde.objets[outil].get("ouvre", ()):
+        raise ErreurMonde("Cette clé n'ouvre pas la serrure.", f"outil={outil} : ouvre contenant cible={cible} requis.")
+
+
+def sorties_crues(monde, auteur, salle, fermee=None):
+    """Issues connues : inconnu ne signifie jamais verrouillé."""
+    from .esprits import lire
+    sorties = monde.data["salles"][salle].get("sorties", {}).values()
+    croyances = lire(monde, auteur)["croyances"] if auteur != "joueur" else {}
+    resultat = []
+    for s in sorties:
+        p = s.get("porte")
+        if fermee is not None and p == fermee:
+            verrou = True
+        elif auteur == "joueur":
+            # La mémoire de carte ne révèle pas les serrures hors de vue.
+            verrou = monde.data.get("verrous_joueur", {}).get(p) is True
+        else:
+            verrou = croyances.get(p, {}).get("verrouillee", {}).get("valeur") is True
+        resultat.append((p, verrou))
+    return resultat
+
+
+def enfermer(monde, auteur, porte, fin):
+    """Le verrouillage qualifié par les seules présences et issues crues de l'auteur."""
+    from .esprits import lire
+    from .pnj import commencer_geste
+    from .spatial import memoriser as memoriser_vue
+    if monde.objets[porte]["type"] != "porte":
+        return
+    if auteur == "joueur":
+        memoriser_vue(monde)
+        lieux = {i: s["salle"] for i, s in monde.data.get("souvenirs_visuels", {}).items()}
+    else:
+        lieux = {i: c.get("lieu", {}).get("valeur")
+                 for i, c in lire(monde, auteur)["croyances"].items()}
+    for salle, piece in monde.data["salles"].items():
+        if not any(s.get("porte") == porte for s in piece.get("sorties", {}).values()):
+            continue
+        issues = sorties_crues(monde, auteur, salle, porte)
+        if not issues or not all(v for _, v in issues):
+            continue
+        for victime, lieu in sorted(lieux.items()):
+            if victime != auteur and lieu == salle and corps.vivant(monde, victime):
+                g = commencer_geste(monde, auteur, "enfermer", victime, fin, exclus=(victime,) if victime != "joueur" else ())
+                g["porte"] = porte
+                corps.evenement(monde, "enfermer", victime, auteur=auteur, porte=porte)
+
+
+def constater_enfermement(monde, auteur):
+    """Appelé après un essai de porte ; aucune connaissance de son geôlier n'en découle."""
+    from .esprits import memoriser
+    salle = monde.objets[auteur]["lieu"]
+    issues = sorties_crues(monde, auteur, salle)
+    if issues and all(v for _, v in issues):
+        captifs = monde.data.setdefault("captivites_constatees", {})
+        if captifs.get(auteur) != salle:
+            captifs[auteur] = salle
+            memoriser(monde, auteur, {"type": "enferme", "salle": salle})
+            from .ecoute import appel
+            appel(monde, auteur)
+
+
+def evasion(monde, auteur):
+    """Un constat de captivité ouvre un but de sortie dans le graphe ordinaire."""
+    from .planification import chercher, _couper
+    salle = monde.objets[auteur]["lieu"]
+    if monde.data.get("captivites_constatees", {}).get(auteur) != salle:
+        monde.data.get("captivites_constatees", {}).pop(auteur, None)
+        return None
+    issues = sorties_crues(monde, auteur, salle)
+    if not issues or not all(v for _, v in issues):
+        monde.data["captivites_constatees"].pop(auteur, None)
+        return None
+    r = chercher(monde, auteur, lambda v, et: et.salle != salle, {"evader": True},
+                 nom="evader", memo=["evader", salle], emplois=(), motif="securite")
+    if r:
+        return {"type": "evader", "lieu": salle}, _couper(r[1])
+    return {"type": "evader", "lieu": salle}, []
+
+
 def autoriser(monde, auteur, operation):
     """Contrat du corps, consulté avant toute action, y compris les déplacements."""
     c = corps.corps(monde, auteur)

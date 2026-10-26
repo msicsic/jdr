@@ -579,6 +579,16 @@ def appliquer_etats(monde, etats):
             from .corps import corps
             from .temps import instant
             corps(monde, id)["lie"] = {"lien": lien, "par": "joueur", "depuis": instant(monde)}
+        elif etat == "enferme" and len(valeur) == 1 and valeur[0] in monde.data["salles"]:
+            from .deplacement_objet import deplacer
+            from .geometrie import position_entree
+            salle = valeur[0]
+            issues = monde.data["salles"][salle].get("sorties", {})
+            if not issues or any(not x.get("porte") for x in issues.values()):
+                raise ValueError("La salle possède une issue sans porte : " + salle)
+            deplacer(monde, id, salle, position_entree(monde, salle, monde.objets[id]["lieu"]))
+            for x in issues.values():
+                monde.objets[x["porte"]].update(ouverte=False, verrouillee=True)
         elif etat == "mort" and not valeur:
             mourir(monde, id, cause="état d'épreuve")
         elif etat == "blesse" and len(valeur) == 1 and valeur[0].isdigit() and 0 <= int(valeur[0]) <= monde.objets[id]["pv"]:
@@ -613,7 +623,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge", "rixe", "rixe_douce"), default="relais")
     parser.add_argument("--regler", action="append", default=[], help="personnage.PSY=16 ; caractéristique ou valeur (répétable)")
-    parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :ligote, :mort ou :blesse:pv (répétable)")
+    parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :ligote, :mort, :enferme:salle ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)

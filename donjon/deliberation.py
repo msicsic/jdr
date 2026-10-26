@@ -1706,6 +1706,9 @@ def choisir(monde, id, minute):
     # Le danger immédiat se traite avant les besoins ordinaires, avec un choix au coût.
     from .defense import choisir as choisir_defense
     reaction = choisir_defense(monde, id)
+    if reaction is None:
+        from .tenir import evasion
+        reaction = evasion(monde, id)
     if reaction is not None:
         but, etapes = reaction
         ancien = e["intention"]
