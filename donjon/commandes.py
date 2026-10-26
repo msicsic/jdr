@@ -89,7 +89,7 @@ VERBES = {
     "toucher": "toucher", "lire": "lire", "prendre": "prendre", "poser": "poser",
     "acheter": "acheter", "ouvrir": "ouvrir", "fermer": "fermer",
     "voler": "voler", "derober": "voler",
-    "saisir": "saisir", "ligoter": "ligoter", "delier": "delier",
+    "tuer": "tuer", "saisir": "saisir", "ligoter": "ligoter", "delier": "delier",
     "ranimer": "ranimer", "observer": "observer",
     "verrouiller": "verrouiller", "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
