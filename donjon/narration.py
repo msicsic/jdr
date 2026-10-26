@@ -21,6 +21,7 @@ from .propositions import SCHEMA_OFFRE
 
 VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique",
             "invention_protegee", "contradictoire")
+NATURES = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecanique")
 AMBIANCES_PAR_LIEU = 30
 
 
@@ -151,6 +152,15 @@ def schema_audit(faits, nombre):
         item["properties"]["sources"]["items"] = {"type": "string", "enum": sorted(faits)}
         del item["properties"]["indice"]
         item["required"] = [k for k in item["required"] if k != "indice"]
+        # Nature et fondement sont deux questions indépendantes : une absence
+        # non prouvée reste une affirmation de nature mécanique. Le verdict
+        # est déduit à la lecture, jamais demandé une seconde fois au modèle.
+        del item["properties"]["verdict"]
+        item["required"].remove("verdict")
+        item["properties"]["nature"] = {"type": "string", "enum": list(NATURES),
+            "description": "Nature du segment, indépendamment de son fondement mécanique ; "
+                "le moteur déduit le verdict de cette nature et de portee_mecanique."}
+        item["required"].append("nature")
         if "echanges_passes" in faits:
             item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
             item["required"].append("rappels")
@@ -167,22 +177,20 @@ def schema_audit(faits, nombre):
                     "n'affirme aucune contribution actuelle : []."}
             item["required"].append("eclairages")
         # Le motif n'intervient que dans un refus sémantique. Les champs
-        # d'extraction ne portent un sens que pour les verdicts correspondants.
+        # d'extraction ne portent un sens que pour les natures correspondantes.
         variantes = []
-        for verdict in VERDICTS:
+        for nature in NATURES:
             for refuse in (False, True):
-                if verdict in ("invention_protegee", "contradictoire") and not refuse:
-                    continue
                 variante = copy.deepcopy(item)
                 proprietes = variante["properties"]
-                proprietes["verdict"] = {"type": "string", "enum": [verdict]}
-                if verdict not in ("invention_protegee", "contradictoire"):
-                    proprietes["portee_mecanique"]["enum"] = (
-                        ["sans_fondement", "contradictoire"] if refuse else ["aucune", "etablie"])
+                proprietes["nature"] = {"type": "string", "enum": [nature],
+                                       "description": item["properties"]["nature"]["description"]}
+                proprietes["portee_mecanique"]["enum"] = (
+                    ["sans_fondement", "contradictoire"] if refuse else ["aucune", "etablie"])
                 retirer = []
-                if verdict not in ("parole", "engagement"):
+                if nature not in ("parole", "engagement"):
                     retirer.extend(("locuteur", "citation", "presentation"))
-                if verdict not in ("ambiance", "engagement"):
+                if nature not in ("ambiance", "engagement"):
                     retirer.append("entites")
                 if not refuse:
                     retirer.append("motif")
@@ -1089,6 +1097,16 @@ def controler(texte, rapport, faits, partie="texte"):
     obstacles, paroles, ambiances, lignes_validees = orientations(texte, faits, partie), [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
         if isinstance(ligne, dict):
+            if "nature" in ligne:
+                nature, portee = ligne["nature"], ligne.get("portee_mecanique")
+                if ("verdict" in ligne or nature not in NATURES
+                        or not isinstance(portee, str)
+                        or portee not in ("aucune", "etablie", "sans_fondement", "contradictoire")):
+                    raise AuditIllisible("Qualification narrative ambiguë ou mal formée.")
+                verdict = ({"sans_fondement": "invention_protegee", "contradictoire": "contradictoire"}
+                           .get(portee, nature) if nature == "mecanique" else nature)
+                ligne = {k: v for k, v in ligne.items() if k != "nature"}
+                ligne["verdict"] = verdict
             verdict = ligne.get("verdict")
             defauts = {}
             if verdict not in ("parole", "engagement"):

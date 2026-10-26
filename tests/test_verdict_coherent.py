@@ -1,5 +1,7 @@
 """Lot 83 : rapports cohérents et références publiques, console puis recharge."""
 import copy
+import gzip
+import json
 from pathlib import Path
 import unittest
 
@@ -23,6 +25,38 @@ def noir():
 
 
 class VerdictCoherentTests(unittest.TestCase):
+    def test_schema_coherent_refus_direct_console_et_recharge(self):
+        # Première campagne archivée : signes-guet, « Tu es seul… » ;
+        # autre assertion mécanique de même nature : orientation de Gorm.
+        from donjon.narration import schema_audit
+        for m, faux, saisie, portee in (
+                (Monde(json.loads(gzip.decompress((Path(__file__).parent /
+                    'data/scenes/guet_relais7.json.gz').read_bytes()))),
+                 'Tu es seul dans la Galerie de ronde, plongée dans la pénombre.',
+                 'mj Que vois-je ?', 'sans_fondement'),
+                (crypte(), 'Gorm est face à toi.', 'Gorm me fait-il face ?', 'contradictoire')):
+            with self.subTest(texte=faux):
+                avant = copy.deepcopy(m.data)
+                variantes = schema_audit({'perception': {}}, [0])['properties']['segments']['properties']['0']['anyOf']
+                self.assertTrue(all('verdict' not in v['properties'] for v in variantes))
+                self.assertTrue(any(v['properties']['nature']['enum'] == ['mecanique']
+                    and portee in v['properties']['portee_mecanique']['enum'] for v in variantes))
+                bon = 'Tu peux regarder autour de toi.'
+                r, sortie, appels = jouer(recharger(m), saisie,
+                    [dialogue(faux), dialogue(bon)],
+                    [rapport({'nature': 'mecanique', 'portee_mecanique': portee,
+                              'sources': ['perception'], 'motif': 'Affirmation non établie.', 'comptes': []}),
+                     rapport({'nature': 'neutre', 'portee_mecanique': 'aucune', 'sources': [], 'comptes': []})])
+                self.assertNotIn(faux, sortie)
+                self.assertNotIn(faux, str(recharger(r).data.get('narrations_mj')))
+                self.assertIn(bon, sortie)
+                self.assertIn(bon, str(recharger(r).data.get('narrations_mj')))
+                self.assertEqual([f for f, _ in appels], ['repondre_au_joueur', 'auditer_narration',
+                    'repondre_au_joueur', 'auditer_narration'])
+                self.assertEqual(r.objets, avant['objets'])
+                self.assertEqual(r.joueur['position'], m.joueur['position'])
+                self.assertEqual(regarder(recharger(r)), regarder(m))
+
     def test_absence_et_orientation_rapport_redemande_puis_texte_corrige(self):
         scenes = ((noir(), "Elle n'est pas là pour que tu le lui demandes.",
                    'Ilse a-t-elle peur de Brune ?', 'sans_fondement'),
