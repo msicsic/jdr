@@ -482,7 +482,7 @@ class MJ:
                     operations_demandees.update(declarees)
                 raise
             mots = mots_dits(analyser_parole(monde, intention), intention)
-            if (declaration_connue and not operations_demandees and not declarees
+            if (not operations_demandees and not declarees
                     and not operations_contenu(complements["contenu"])
                     and rapport["replique_joueur"].strip() == (mots or intention).strip()):
                 return
@@ -869,7 +869,8 @@ class MJ:
                                 self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
                                                                operations_demandees, False)
                             except ParoleNonConforme:
-                                return {"mode": "dialogue", "texte": "Ta demande n'a pas été exécutée. Reformule-la.",
+                                return {"mode": "dialogue", "texte": "Tu n'as encore rien dit : précise ce que tu veux "
+                                        "demander ou faire savoir à ton interlocuteur.",
                                         "faits": [], "proposition": None, "_texte_moteur": True,
                                         "_validation_refusee": True}
                             break

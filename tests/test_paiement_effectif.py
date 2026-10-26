@@ -111,7 +111,7 @@ class PaiementEffectifTests(unittest.TestCase):
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
         self.assertEqual(r.joueur["or"], avant["joueur"]["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
-        self.assertIn("n'a pas été exécutée", sortie)
+        self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("Tu dis", sortie)
 
     def test_parole_ordinaire_et_autre_operation(self):
@@ -147,5 +147,5 @@ class PaiementEffectifTests(unittest.TestCase):
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
         self.assertNotIn("Tu dis", sortie)
-        self.assertIn("n'a pas été exécutée", sortie)
+        self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("operations_demandees", sortie)

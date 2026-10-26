@@ -1,0 +1,90 @@
+[
+  {
+    "fonction": "repondre_au_joueur",
+    "reponse": {
+      "mode": "parole_joueur",
+      "texte": "",
+      "faits": [
+        "parole_prevue",
+        "perception"
+      ],
+      "proposition": {
+        "personnage": "personne",
+        "replique": "Il y a quelqu'un ?",
+        "contenu": [
+          {
+            "type": "qui",
+            "sujet": "",
+            "attribut": "",
+            "valeur": ""
+          }
+        ],
+        "operations_demandees": {
+          "proposition": false,
+          "affirmation": false,
+          "demande": false,
+          "passage": false,
+          "aveu": false,
+          "nom": false,
+          "qui": true,
+          "reclamer": false,
+          "ressource": false
+        }
+      }
+    }
+  },
+  {
+    "fonction": "auditer_action",
+    "reponse": {
+      "contenu_conforme": false,
+      "motif": "La demande « il y a quelqu'un ? » demande si quelqu’un est présent, tandis que le contenu demande l’identité de l’interlocuteur.",
+      "perimetre": "sens",
+      "operations_demandees": {
+        "proposition": false,
+        "affirmation": false,
+        "demande": false,
+        "passage": false,
+        "aveu": false,
+        "nom": false,
+        "qui": true,
+        "reclamer": false,
+        "ressource": false
+      }
+    }
+  },
+  {
+    "fonction": "repondre_au_joueur",
+    "reponse": {
+      "mode": "parole_joueur",
+      "texte": "",
+      "faits": [
+        "parole_prevue",
+        "retour_moteur",
+        "expression_joueur"
+      ],
+      "proposition": {
+        "personnage": "personne",
+        "replique": "Il y a quelqu’un ?",
+        "contenu": [
+          {
+            "type": "propos",
+            "sujet": "",
+            "attribut": "",
+            "valeur": ""
+          }
+        ],
+        "operations_demandees": {
+          "proposition": false,
+          "affirmation": false,
+          "demande": false,
+          "passage": false,
+          "aveu": false,
+          "nom": false,
+          "qui": false,
+          "reclamer": false,
+          "ressource": false
+        }
+      }
+    }
+  }
+]

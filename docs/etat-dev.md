@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-n3-reformule`, **non fusionnée**, lot **104**, base `e4dbc6a` :
+  le rejeu exact du fil lot 102 reproduit N3 avant correction (trois appels,
+  aucune parole sauvée). La revue refusait le contenu `qui` tout en cochant
+  cette opération ; elle devenait une obligation indue pour la correction et
+  le secours. Le contrat commun distingue les opérations présentes dans le
+  contenu rejeté des omissions reconnues ; les obligations déjà confirmées
+  ou non examinées restent conservées. Le secours aux mots exacts, sans
+  contenu typé ni obligation, ne relance plus une revue redondante.
+  **21 tests ciblés verts**, cinq fichiers (48,05 s puis 37,68 s), console,
+  état et rendu après recharge,
+  cas réel, salle éclairée, correction refusée aussi et saisie inintelligible.
+  Passe Luna unique : **9 tours MJ, 38 appels, 13,40 s/tour**, `soir-noir` et
+  `noms-dialogue`, N3 absent, aucun arrêt, repli ni défaut de recharge.
+  Suite complète unique : **1 990 tests, 16 ignorés, 210 fichiers, 2 133,20 s**,
+  deux processus réduits ; quatre attentes obsolètes corrigées (libellés et
+  comptes d'appels), puis **9 tests verts** dans les deux fichiers repris,
+  aucune seconde suite. Aucun défaut restant reproduit.
+  Le jugement de sens reste sémantique et
+  un contenu non exécutable reste refusé ; la réplique refusant le nom déjà
+  donné subsiste hors invariant. Aucun prompt ni modèle changé.
+  [Rapport du lot 104](taches/rapport-codex-104-n3-reformule.md).
+
 - Branche `codex-absence-noir`, fusionnée, lot **102**, base `e218907` :
   le dossier d'audit porte la couverture réelle de la vue (`aucune`, `partielle`,
   `salle`), calculée sans les entités cachées. Une absence est mécanique,
