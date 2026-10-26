@@ -216,19 +216,21 @@ monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conser
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
 
-**Liens comptables** (`codex-comptes-recit`, lot 117, **non validé pour intégration** :
-recul de refus juste sur une inversion réelle, voir le rapport du lot). Le moteur construit
+**Liens comptables** (`codex-comptes-recit`, lots 117 et 117 b). Le moteur construit
 `references_comptes` depuis les seuls comptes publics `issue`, `etat`, `offres`,
 dans cet ordre. Chaque compte distinct reçoit une référence locale au dossier
 (`issue.0`, `etat.1`, `offres.0`…) ; un doublon garde la référence prioritaire de
 l'issue. Ce catalogue est fourni à toutes les voies d'audit narratif.
 
-Pour chaque segment, le schéma demande `liens_comptes` : un objet dont les clés
-sont toutes les références du catalogue et les valeurs `non_evoque`, `restitue`
-ou `contredit`. Chaque compte reçoit donc un jugement explicite ; une liste
-vide ne peut éluder le contrôle. L'auditeur relie la prose aux comptes
-établis ; il ne réextrait ni rôles, ni quantités, ni termes. Une contradiction
-produit un refus avec la référence, le compte attendu et le segment. Une référence
+Pour chaque segment, le schéma demande `liens_comptes` : toutes les références
+du catalogue ont un `jugement` (`non_evoque`, `restitue`, `contredit`), un `sens`
+choisi entre les deux orientations nommées par les rôles du moteur ou `non_dit`,
+et une `quantite` numérique ou `non_dite`. Un compte non évoqué ne porte ni sens
+ni quantité. L'auditeur relie la prose aux comptes établis ; il ne réextrait
+aucun rôle libre. Le moteur refuse un sens opposé et une quantité différente,
+même si l'auditeur a indiqué `restitue`. `non_dit` et `non_dite` ne créent pas de
+contradiction. Le jugement conserve le contrôle des états et termes. Un refus
+cite la référence, le compte attendu et le segment. Une référence
 inconnue ou un mélange des deux formats est illisible. Une affirmation comptable
 sans compte fourni reste soumise au contrôle commun de portée mécanique.
 
@@ -236,7 +238,7 @@ Le lecteur conserve les liens dans l’audit canonique et résout leurs référe
 depuis le dossier pour contrôler contradictions et couverture. Il refait ce
 contrôle avant enregistrement ; les comptes fournis ne repassent pas par une
 comparaison des rôles extraits de la prose.
-Les anciens audits enregistrés avec des comptes extraits restent lisibles et
+Les anciens audits enregistrés avec des comptes extraits ou des liens simples restent lisibles et
 conservent leurs contrôles de rôles, termes et quantités. Le catalogue est recalculé
 à chaque lecture ; une copie libre fournie dans l'entrée ne fait pas autorité.
 Une parole enregistrée n'établit pas la vérité de son contenu et ne crée ni dette

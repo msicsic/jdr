@@ -16,8 +16,20 @@ def audit_liens(texte, qui, liens):
         l = ligne("parole", sources=["comptes"], locuteur=qui, citation=texte)
         l["nature"] = l.pop("verdict")
         del l["comptes"]
-        l["liens_comptes"] = {ref: "non_evoque" for ref in narration.references_comptes(entree["faits"])}
-        l["liens_comptes"].update(dict(liens))
+        catalogue = narration.references_comptes(entree["faits"])
+        l["liens_comptes"] = {ref: {"jugement": "non_evoque", "sens": "non_dit",
+                                    "quantite": "non_dite"} for ref in catalogue}
+        for ref, valeur in liens:
+            if ref not in catalogue:
+                l["liens_comptes"][ref] = valeur
+                continue
+            jugement, sens, quantite = (valeur if isinstance(valeur, tuple)
+                                        else (valeur, "attendu", "non_dite"))
+            orientations = narration.sens_du_compte(catalogue[ref])
+            l["liens_comptes"][ref] = {"jugement": jugement,
+                "sens": orientations[1] if sens == "inverse" else
+                        orientations[0] if sens == "attendu" else sens,
+                "quantite": quantite}
         return rapport(l)
     return construire
 
@@ -30,23 +42,28 @@ class ComptesLiensTests(unittest.TestCase):
                 avant = m.joueur["or"]
                 mots = "Rends-moi les deux pièces dues."
                 bon = "Je te rends les deux pièces."
-                for inverse in (False, True):
-                    mauvais = "Tu me rends les deux pièces."
+                for anomalie in ("aucune", "sens", "quantite"):
+                    mauvais = ("Tu me rends les deux pièces." if anomalie == "sens" else
+                               "Je te rends trois pièces.")
                     reponses = [parole(mots, ("reclamer", "", "", ""), personnage=qui)]
                     audits = []
-                    if inverse:
+                    if anomalie != "aucune":
                         reponses.append(dialogue(f"« {mauvais} »"))
-                        audits.append(audit_liens(mauvais, qui, [("issue.1", "contredit")]))
+                        audits.append(audit_liens(mauvais, qui,
+                            [("issue.1", ("restitue", "inverse" if anomalie == "sens"
+                                          else "attendu", 3 if anomalie == "quantite" else "non_dite"))]))
                     reponses.append(dialogue(f"« {bon} »"))
                     audits.append(audit_liens(bon, qui, [("issue.1", "restitue")]))
                     r, sortie, appels = jouer(recharger(m), mots, reponses, audits)
                     self.assertEqual(r.joueur["or"], avant + 2)
                     self.assertIn(bon, sortie)
                     self.assertNotIn(mauvais, sortie)
-                    self.assertEqual(sum("controle_narratif" in e for _, e in appels), int(inverse))
+                    self.assertEqual(sum("controle_narratif" in e for _, e in appels),
+                                     int(anomalie != "aucune"))
                     rr = recharger(r)
                     self.assertEqual(rr.data, r.data)
                     self.assertIn(bon, str(rr.data["conversation"]))
+                    self.assertNotIn(mauvais, str(rr.data["conversation"]))
                     self.assertFalse(any(d["de"] == qui and d["a"] == "joueur" for d in rr.data["dettes"]))
                     dossier = next(e["faits"] for f,e in appels if f == "auditer_narration")
                     self.assertEqual(dossier["references_comptes"], narration.references_comptes(dossier))
@@ -81,19 +98,33 @@ class ComptesLiensTests(unittest.TestCase):
         controle = narration.controler(texte, initial, faits)
         self.assertFalse(controle["obstacles"])
         self.assertNotIn("comptes", controle["segments"][0])
-        self.assertEqual(controle["segments"][0]["liens_comptes"], {"issue.0": "restitue"})
+        self.assertEqual(controle["segments"][0]["liens_comptes"], {"issue.0": {
+            "jugement": "restitue", "sens": "a a remis à joueur", "quantite": "non_dite"}})
         self.assertFalse(narration.controler(texte, {"segments": controle["segments"]}, faits)["obstacles"])
-        controle["segments"][0]["liens_comptes"]["issue.0"] = "contredit"
+        controle["segments"][0]["liens_comptes"]["issue.0"]["sens"] = "joueur a remis à a"
         self.assertTrue(narration.controler(texte, {"segments": controle["segments"]}, faits)["obstacles"])
+        controle["segments"][0]["liens_comptes"]["issue.0"]["sens"] = "non_dit"
+        controle["segments"][0]["liens_comptes"]["issue.0"]["quantite"] = 3
+        refus = narration.controler(texte, {"segments": controle["segments"]}, faits)["obstacles"]
+        self.assertTrue(any("references_comptes.issue.0.quantite" in o["attendu"] for o in refus))
+        self.assertFalse(any("references_comptes.issue.0.sens" in o["attendu"] for o in refus))
+        controle["segments"][0]["liens_comptes"]["issue.0"]["quantite"] = "non_dite"
+        self.assertFalse(narration.controler(texte, {"segments": controle["segments"]}, faits)["obstacles"])
         controle["segments"][0]["liens_comptes"] = {}
         with self.assertRaises(narration.AuditIllisible):
             narration.controler(texte, {"segments": controle["segments"]}, faits)
 
-    def test_schema_ne_demande_plus_roles_ni_quantites(self):
+    def test_schema_roles_fermes_et_quantite_dite(self):
         faits = {"comptes": {"issue": [compte("a", "joueur", montant=2, etat="rendu")]}}
         s = narration.schema_audit(faits, {"0": "texte"})
         self.assertIn("liens_comptes", str(s))
         self.assertNotIn("debiteur", str(s))
+        self.assertNotIn("liens_comptes", str(narration.schema_audit(
+            {"comptes": {"issue": [], "etat": [], "offres": []}}, {"0": "texte"})))
+        neutre = audit_liens("Je te rends deux pièces.", "a", [])({"faits": faits})
+        neutre["segments"]["0"]["liens_comptes"]["issue.0"]["quantite"] = 0
+        controle = narration.controler("« Je te rends deux pièces. »", neutre, faits)
+        self.assertEqual(controle["segments"][0]["liens_comptes"]["issue.0"]["quantite"], "non_dite")
         for ref in ("invente", "issue.12"):
             with self.assertRaises(narration.AuditIllisible):
                 narration.controler("« Je te rends deux pièces. »", audit_liens("Je te rends deux pièces.", "a", [(ref,"restitue")])({"faits": faits}), faits)
