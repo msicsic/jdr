@@ -21,6 +21,23 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 
 ## Contrôle de la prose
 
+**Passé des échanges** (`codex-redire-passe`, lot 112). Le dossier
+`echanges_passes` regroupe, par interlocuteur sous sa référence publique actuelle,
+toutes ses paroles enregistrées que Corvus a entendues. Les citations gardent
+leurs mots historiques ; les auditeurs et identifiants privés ne sont pas transmis.
+Cette source ne subit pas la fenêtre globale des dix dernières paroles.
+Le schéma d'audit demande `rappels` pour chaque segment, indépendamment du
+verdict : locuteur, affirmation passée et compatibilité avec les échanges ou
+résultats fournis. Un rappel sans fondement ou contraire est refusé même dans
+une nouvelle réplique ; son `attendu` cite les paroles enregistrées du locuteur.
+Une décision actuelle peut changer, sans réécrire ce qu'il a précédemment dit.
+L'extraction est conservée dans l'audit et revérifiée avant enregistrement.
+Les anciens rapports sans cette extraction restent lisibles. La reconnaissance
+du rappel et sa compatibilité restent sémantiques : ni détection exhaustive des
+paraphrases ni preuve déterministe de toute affirmation passée. Les gestes
+restent fondés sur les résultats publics disponibles, sans nouveau registre
+universel des actes anciens.
+
 **Forme avant narration** (`codex-sans-message-technique`, lot 100). L'enveloppe
 de toute réponse passe par le même contrôle avant ses audits : mode disponible,
 texte adapté au mode, sources en liste, proposition structurée et collections

@@ -24,6 +24,32 @@ VERDICTS = ("neutre", "hypothese", "ambiance", "parole", "engagement", "mecaniqu
 AMBIANCES_PAR_LIEU = 30
 
 
+def echanges_passes(monde, interlocuteurs):
+    """Paroles réellement entendues, sans fenêtre globale ni identité privée.
+
+    Les références sont celles de la scène actuelle, même si une présentation
+    a changé depuis la parole. Le texte enregistré reste une citation historique.
+    """
+    from .voix import reel
+    return {ref: [{k: copy.deepcopy(p[k]) for k in ("texte", "revision", "minute") if k in p}
+                 for p in monde.data.get("paroles_pnj", [])
+                  if p["locuteur"] == reel(monde, ref) and "joueur" in p["auditeurs"]]
+            for ref in interlocuteurs}
+
+
+SCHEMA_RAPPELS = {"type": "array", "maxItems": 12,
+    "description": "Toute affirmation du segment sur ce qu'un interlocuteur a dit ou fait envers "
+        "Corvus auparavant, même dans une nouvelle réplique, quel que soit le verdict. "
+        "Extrais le sens, sans rechercher une formule particulière. Une décision actuelle ou "
+        "une croyance sur le monde n'est pas un rappel. Compare aux echanges_passes et aux "
+        "résultats enregistrés fournis ; compatible ne signifie pas que le contenu ancien est vrai.",
+    "items": {"type": "object", "additionalProperties": False,
+        "properties": {"locuteur": {"type": "string"},
+            "affirmation": {"type": "string"},
+            "compatibilite": {"type": "string", "enum": ["etablie", "sans_fondement", "contradictoire"]}},
+        "required": ["locuteur", "affirmation", "compatibilite"]}}
+
+
 def attestations(monde, contexte):
     """Phrases produites par l'état courant, utiles au MJ pour formuler les faits mécaniques.
 
@@ -125,6 +151,9 @@ def schema_audit(faits, nombre):
         item["properties"]["sources"]["items"] = {"type": "string", "enum": sorted(faits)}
         del item["properties"]["indice"]
         item["required"] = [k for k in item["required"] if k != "indice"]
+        if "echanges_passes" in faits:
+            item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
+            item["required"].append("rappels")
         if "comptes" in faits:
             item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
             item["required"].append("comptes")
@@ -203,6 +232,7 @@ def segments_etablis(texte, faits):
                      "portee_mecanique": "aucune", "locuteur": "", "citation": "",
                      "presentation": "", "entites": [], "motif": "",
                      **({"comptes": []} if "comptes" in faits else {}),
+                     **({"rappels": []} if "echanges_passes" in faits else {}),
                      **({"eclairages": []} if "perception" in faits else {})}
             for i, p in enumerate(segments(texte)) if p in catalogue}
     # La couverture d'une issue complète est une preuve du moteur, sans
@@ -276,8 +306,13 @@ la demande du joueur et un contenu propos vide ne prouvent aucun de ces termes.
   n'a qu'un souvenir (souvenirs_visuels, hors_de_vue) est mecanique, avec cette source ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; donne son
   identifiant exact et la citation littérale présente dans le segment ; son contenu peut être faux.
-  Rappeler ce qu'un personnage a déjà dit (paroles_entendues, conversation) n'est pas une parole :
-  c'est mecanique, avec cette source ; cela atteste qu'il l'a dit, pas que c'est vrai ;
+  Le passé des échanges et des gestes envers Corvus reste mécanique, même affirmé dans
+  une nouvelle réplique. echanges_passes donne par référence publique les mots réellement
+  entendus de chaque interlocuteur ; les résultats enregistrés établissent ses gestes.
+  Extrais ces affirmations dans rappels indépendamment du verdict et juge leur compatibilité.
+  La liberté du contenu d'une parole ne permet pas de réécrire ces échanges. Un rappel sans
+  fondement ou contraire est refusé ; une décision actuelle reste libre de formulation.
+  Un rappel seul est mecanique, avec sa source ; il atteste qu'il l'a dit, pas que c'est vrai ;
 - engagement : un personnage présent s'engage à faire ce qui changerait le monde (se déplacer,
   donner, apporter, ouvrir, payer, aider) ou accepte de le faire, de sa bouche (« je vais me
   pousser », « je te l'apporte », « d'accord, j'y vais ») ou annoncé par le récit (« il va
@@ -1066,6 +1101,23 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**defauts, **ligne}
         # Champ extrait par les nouveaux audits, conservé pour l'enregistrement.
         # Les anciens rapports ne portaient pas cette extraction.
+        rappels = ligne.get("rappels") if isinstance(ligne, dict) else None
+        if rappels is not None:
+            if (not isinstance(rappels, list) or len(rappels) > 12 or any(
+                    not isinstance(r, dict) or set(r) != {"locuteur", "affirmation", "compatibilite"}
+                    or not all(isinstance(r[k], str) for k in r)
+                    or r["compatibilite"] not in ("etablie", "sans_fondement", "contradictoire")
+                    for r in rappels)):
+                raise AuditIllisible("Contrôle des échanges passés mal formé.")
+            ligne = {k: v for k, v in ligne.items() if k != "rappels"}
+            for rappel in rappels:
+                if (rappel["compatibilite"] != "etablie"
+                        or rappel["locuteur"] not in faits.get("echanges_passes", {})):
+                    precedents = faits.get("echanges_passes", {}).get(rappel["locuteur"], [])
+                    obstacles.append(audit("Ce rappel ne correspond pas aux échanges enregistrés.",
+                        f"echanges_passes.{rappel['locuteur']} : {precedents} ; "
+                        "respecter ces paroles et les résultats enregistrés, ou répondre sans affirmer ce passé",
+                        partie=partie, segment=indice, texte=passage, recu=rappel["affirmation"]))
         lumieres = ligne.get("eclairages") if isinstance(ligne, dict) else None
         if lumieres is not None:
             if (not isinstance(lumieres, list) or len(lumieres) > 12
@@ -1121,6 +1173,7 @@ def controler(texte, rapport, faits, partie="texte"):
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
         lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {}),
+                               **({"rappels": rappels} if rappels is not None else {}),
                                **({"eclairages": lumieres} if lumieres is not None else {})})
         if comptes:
             dossier = faits.get("comptes", {})

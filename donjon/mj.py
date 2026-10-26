@@ -1058,6 +1058,10 @@ class MJ:
         faits.update({"objet:" + o["id"]: o for o in objets})
         from .noms import public
         faits = public(monde, faits)
+        from .narration import echanges_passes
+        # Déjà limité aux interlocuteurs publics ; garder les mots historiques
+        # tels qu'ils ont été entendus, même après une présentation.
+        faits["echanges_passes"] = echanges_passes(monde, faits["interlocuteurs"])
         from .narration import cibles_orientation
         faits["reperes_demandes"] = sorted(cibles_orientation(intention, faits))
         # Une identité privée sert à la réplique finale, jamais au choix d'une cible mécanique.

@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-redire-passe`, fusionnée, lot **112**, base `8613fc9` :
+  dossier des paroles entendues par interlocuteur sous ses références publiques,
+  sans fenêtre globale ; extraction des rappels du passé dans tous les verdicts,
+  refus accompagné des mots enregistrés, relecture avant enregistrement.
+  Aucun mot-clé ni exception de scénario ; simulation inchangée.
+  Audit archivé du tour 5 rejoué avant modification : zéro obstacle ; cas réel
+  reconstitué jusqu'à l'imposture puis refus corrigé, autre cas après vrai service
+  de Gorm et rappel conforme admis, console et sauvegarde rechargée vérifiées.
+  Luna une passe soir-noir/soir-voix : **39 appels, 14,4 s/tour MJ**, aucun
+  repli ni erreur de rechargement ; aucun faux rappel observé. Reconnaissance
+  et compatibilité sémantiques, anciens rapports lisibles, pas de registre
+  universel des actes anciens. Suite complète unique : **2 021 tests, 16 ignorés,
+  aucun échec ni erreur, 1 932,23 s**, 217 fichiers, deux processus réduits ;
+  reprise finale **6 tests verts en 4,37 s**, aucune seconde suite.
+  Bruts `artifacts/redire-112/`,
+  `artifacts/bancs-multi/20261026-054955-38148/`.
+  [Rapport du lot 112](taches/rapport-codex-112-redire-passe.md).
+  Fusionné sur l'intégration après les lots 110, 111 et 114 (brief) : seul conflit de documentation ; aucun fichier de code commun. À surveiller : l'extraction `rappels` ajoutée à chaque rapport d'audit narratif allonge la sortie que le lot 95 avait réduite (latence à mesurer à la prochaine vérification Luna).
+
 - Branche `codex-propositions-redites`, fusionnée, lot **110**, base
   `61a4406` : le refus d'un marché se lève seulement pour un moyen pertinent
   à sa cause ; une ouverture incidente ne change pas une garde, une nécessité
