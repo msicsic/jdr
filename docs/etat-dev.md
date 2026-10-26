@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-lieu-ouvertures`, **non fusionnée**, lot **137**, base `97e7198` :
+  `porte.lieu = crypte` dans Relais/crue/rixe/rixe douce, cohérent avec les
+  deux sorties crypte est/beffroi ouest. Validation commune de toute donnée
+  initiale à `relie` dans `depuis_scenario`, refus avec objet/champ/salles admises
+  et `attendu`. Huit scénarios, dix ouvertures contrôlés ; aucune croyance initiale
+  de localisation à modifier, savoir des objets fixes corrigé par la donnée.
+  Trois ciblés verts : capture crue 11 à 210 et Relais, présence/perception,
+  ouverture PNJ des deux côtés, état complet et rendu rechargés. Banc 4 h
+  Relais/crue/rixe × quatre graines : douze chroniques/récits/souvenirs/relevés/
+  projections finales/boucles/constats identiques, zéro plantage/usurpation ;
+  seul compteur crue 7, recherches neuves 629→624. Empreintes complètes différentes
+  avec le champ modifié ; attribution exhaustive des états non conservés non prouvée.
+  Suite complète unique : **2 076 tests, 228 fichiers, deux échecs MiMo historiques
+  `6 != 5`, zéro erreur, 1 073,32 s**. Sans Luna, deux processus réduits au plus.
+  Anciennes sauvegardes et croyances historiques sans migration ; manipulation
+  de la capture remise en état et à portée, sans rejeu de sa promesse autonome.
+  Aucune clé Git de signature configurée. Bruts `artifacts/ouvertures-137/` ;
+  [rapport du lot 137](taches/rapport-codex-137-lieu-ouvertures.md).
+
 - Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
   critère du 2026-10-26 (PSY basse ≤ 0,7, haute ≥ 0,8, méprises globales <20 %).
   Grille commune de **112 réglages**, corpus de 48 nuits de 4 h, aucun admissible ;
