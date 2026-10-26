@@ -691,11 +691,21 @@ l'autre pour choisir une offre. Détails et limites dans le
   La constante a déjà disparu dans `codex-garde-pret` au profit de cette estimation
   commune aux demandes existantes. Restent ici le geste `proposer`, le prix de la
   contrepartie et le besoin cru de l'auditeur ; le calcul unique pourra les intégrer.
-- **Regagner la confiance** : un geste `rendre_service` (donner ce que l'autre croit lui manquer,
-  tenir une tâche pour lui), dont l'effet projeté dans la recherche est la relation de l'autre
-  relevée d'une bande, et qui ouvre alors `demander`. Brune refusée par méfiance peut, si c'est
-  le moins cher, recharger le brasero de Gorm avant de lui redemander une part. Rien ne le lui
-  écrit (décision 14).
+- **Regagner la confiance** (lot 120, décision « faute de mieux » du 2026-10-24) :
+  `rendre_service` est un recours après un refus de méfiance ou de rancune, lorsque les moyens
+  ordinaires sans faute n'aboutissent pas, avant une faute envers ce même personnage. Il ne
+  devient pas un geste comparé dans chaque état de la recherche (précision de la décision 14).
+  Une tentative par couple refus/besoin est conservée, même impossible ; une tâche en cours
+  reprend son devis existant après sauvegarde. Le proposant agit seul, avec ses propres moyens
+  et droits ; aucun mandat du bénéficiaire n'est créé. Le moteur constate le résultat utile,
+  perçu avec son auteur identifié, avant l'épreuve commune `service_rendu` : confiance +20,
+  affection +10 modulée par l'empathie, rancune −15 et dette +20 modulée par la loyauté.
+  Les bandes gardent leur hystérésis ; un lien très dégradé peut demander plusieurs épreuves.
+  Le refus social retenu est levé par ce moyen nouveau, sans garantir l'accord suivant.
+  Les dons spontanés et repas offerts passent aussi par cette épreuve, joueur compris ; les
+  livraisons payées, prêts et engagements ont leurs épreuves propres, sans second crédit du
+  même geste. Brune peut ainsi recharger un feu commun qui sert Gorm avant de redemander
+  une part. Un effet utile effectué hors de son regard ne lui révèle ni l'auteur ni le service.
 - **Intermédiaires** : obtenir un objet porté par autrui est une tâche confiable (« remis ») ;
   servir quelqu'un l'est déjà (`{"objet", "servir"}`). L'intermédiaire la planifie avec ses propres
   relations : Ilse, que Gorm croit, lui demande de servir Brune, qu'il refuse en direct. Le récit
@@ -1122,7 +1132,9 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
     qu'on s'en soucie ; (b) seulement si on le demande ; (c) à tout présent. *Recommandé : (a)*.
 14. **Regagner la confiance délibérément.** (a) un geste `rendre_service` dont la recherche projette
     l'effet, dès 3e ; (b) seulement par les événements, plus tard un but. *Recommandé : (a)*, borné
-    à ce geste.
+    à ce geste. **Précisé par la décision du 2026-10-24 et le lot 120** : recours de dernier ressort
+    hors de la recherche, après refus social et moyens ordinaires, avant la faute envers le même
+    personnage ; effet établi par un service réellement constaté, jamais par la projection seule.
 15. **L'humeur et `relations_pnj`.** (a) les replier dans les relations et les signes, l'humeur
     disparaît ; (b) garder l'humeur comme résumé dérivé. *Recommandé : (a)*, `vols_surpris` gardé
     pour les ventes.
