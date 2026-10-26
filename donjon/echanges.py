@@ -80,7 +80,7 @@ def devis_service(monde, id, condition, pour):
     Les essais matériels restent sur une copie, sans jet ni publication.
     """
     from .deliberation import besoin_de_part
-    from .planification import devis_pulsion
+    from .planification import devis_pulsion, TIERS
     from .spatial import porte_par
     # Ni le joueur ni un personnage sans autonomie n'exécute un plan de PNJ.
     # L'absence de devis n'interdit pas une remise déjà possible en main.
@@ -103,9 +103,12 @@ def devis_service(monde, id, condition, pour):
         siens_a_portee(copie, pour)
         if accueil(copie, id, pour) or garde(copie, pour, copie.objets[objet]):
             return None
+        livraisons = []
         if besoin_de_part(copie.objets[objet]):
             if _remettre_part(copie, pour, id, objet, 0) == "impossible":
                 return None
+            livraisons = [x['condition'] for x in agendas.en_cours(copie, pour)
+                          if x.get('lot') == objet and x['pour'] == id and not x.get('annule')]
         elif necessaire(copie, pour, objet):
             return None
         elif not porte_par(copie, objet, pour):
@@ -113,7 +116,15 @@ def devis_service(monde, id, condition, pour):
                 return None
             livraison = {"objet": objet, "remettre": id}
             agendas.prendre(copie, pour, {"condition": livraison, "pour": id, "minute": copie.data["minutes"]})
-            if devis_pulsion(copie, pour, livraison, id) is None:
+            livraisons = [livraison]
+        for livraison in livraisons:
+            plan = devis_pulsion(copie, pour, livraison, id)
+            # Une fourniture accessoire promise par le commanditaire doit
+            # dépendre de ses moyens acquis, pas de l'accord futur d'un tiers.
+            # Le bien même à livrer reste, lui, l'objet de la demande confiée.
+            if plan is None or any(
+                    g['operation'] in TIERS and (g['cible'] != id or g['operation'] not in ('demander', 'acheter'))
+                    or (g.get('contenu') or {}).get('cherche') not in (None, id) for g in plan[1]):
                 return None
     return devis
 

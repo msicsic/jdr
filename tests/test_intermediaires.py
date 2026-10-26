@@ -39,6 +39,9 @@ def scene(auberge=False):
     percevoir_tous(m)
     croire(m, id, cible, 'attitude:' + via, 'attachement', 'devine', signe='sourit')
     retenir_refus(m, id, cible, 'demander', 'mefiance', objet='vivres')
+    direct = {'operation': 'demander', 'cible': cible, 'outil': 'vivres', 'lieu': '', 'condition': ''}
+    assert not executer(m, id, direct, [])
+    assert any(s['de'] == cible and s['raison'] == 'mefiance' for s in lire(m, id)['refus'])
     return recharger(m), id, cible, via
 
 
@@ -71,6 +74,9 @@ class IntermediairesTests(unittest.TestCase):
             self.assertEqual(m.objets['crochets']['lieu'], cible)
             _, m = attendre(recharger(m))
         self.assertEqual(m.objets['crochets']['lieu'], id)
+        self.assertEqual(m.objets['crochets']['proprietaire'], cible)
+        from donjon.biens import permis
+        self.assertFalse(permis(m, id, 'crochets'))
         self.assertFalse(agendas.en_cours(m, via, condition=c))
         self.assertTrue(any('remet' in f for t in m.data['journal'] for f in t['faits']))
 
@@ -109,6 +115,7 @@ class IntermediairesTests(unittest.TestCase):
                 self.assertEqual(m.data['chronique'], b.data['chronique'])
                 self.assertEqual(lire(m, id), lire(b, id))
                 self.assertLess(lire(m, id)['besoins']['faim'], 95)
+                self.assertTrue(relations.se_mefie(m, cible, id))
                 self.assertEqual(m.objets['vivres']['portions'], 7)
                 s = lire(m, id)['recours_intermediaires'][0]
                 self.assertEqual(s['issue'], 'accepte')
@@ -148,9 +155,11 @@ class IntermediairesTests(unittest.TestCase):
     def test_cible_mefiante_echoue_sans_boucle(self):
         m, id, cible, via = scene()
         plan = plan_recours(m, id, 'faim', [])
+        # La méfiance privée existe déjà à l'acceptation, mais le porteur
+        # l'ignore encore : son devis n'a pas le droit de lire ce verdict.
+        lire(m, cible)['relations'][via] = relations._nouvelle({'confiance': 0})
         with patch.object(Monde, 'd20', return_value=20):
             self.assertTrue(executer(m, id, plan[-1], []))
-            lire(m, cible)['relations'][via] = relations._nouvelle({'confiance': 0})
             _, m = attendre(recharger(m))
         self.assertEqual(m.objets['vivres']['portions'], 8)
         self.assertFalse(lire(m, id)['recours_intermediaires'][0]['abouti'])
