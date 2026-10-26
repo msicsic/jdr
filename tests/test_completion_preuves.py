@@ -73,6 +73,7 @@ class CompletionTests(unittest.TestCase):
                     # L'oracle précède le service spontané. Seuls ses registres
                     # vides peuvent être exclus, jamais une tentative réelle.
                     self.assertEqual(e.pop('recours_services', []), [])
+                    self.assertEqual(e.pop('recours_intermediaires', []), [])
                     self.assertIsNone(e.pop('service_en_cours', None))
                 self.assertEqual(empreinte(historique), attendu[nom]["monde"])
                 self.assertEqual(empreinte((regarder(recharge), scene_percue(recharge))), attendu[nom]["rendu"])

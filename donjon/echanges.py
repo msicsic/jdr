@@ -80,7 +80,7 @@ def devis_service(monde, id, condition, pour):
     Les essais matériels restent sur une copie, sans jet ni publication.
     """
     from .deliberation import besoin_de_part
-    from .planification import devis_pulsion
+    from .planification import devis_pulsion, TIERS
     from .spatial import porte_par
     # Ni le joueur ni un personnage sans autonomie n'exécute un plan de PNJ.
     # L'absence de devis n'interdit pas une remise déjà possible en main.
@@ -103,9 +103,12 @@ def devis_service(monde, id, condition, pour):
         siens_a_portee(copie, pour)
         if accueil(copie, id, pour) or garde(copie, pour, copie.objets[objet]):
             return None
+        livraisons = []
         if besoin_de_part(copie.objets[objet]):
             if _remettre_part(copie, pour, id, objet, 0) == "impossible":
                 return None
+            livraisons = [x['condition'] for x in agendas.en_cours(copie, pour)
+                          if x.get('lot') == objet and x['pour'] == id and not x.get('annule')]
         elif necessaire(copie, pour, objet):
             return None
         elif not porte_par(copie, objet, pour):
@@ -113,7 +116,15 @@ def devis_service(monde, id, condition, pour):
                 return None
             livraison = {"objet": objet, "remettre": id}
             agendas.prendre(copie, pour, {"condition": livraison, "pour": id, "minute": copie.data["minutes"]})
-            if devis_pulsion(copie, pour, livraison, id) is None:
+            livraisons = [livraison]
+        for livraison in livraisons:
+            plan = devis_pulsion(copie, pour, livraison, id)
+            # Une fourniture accessoire promise par le commanditaire doit
+            # dépendre de ses moyens acquis, pas de l'accord futur d'un tiers.
+            # Le bien même à livrer reste, lui, l'objet de la demande confiée.
+            if plan is None or any(
+                    g['operation'] in TIERS and (g['cible'] != id or g['operation'] not in ('demander', 'acheter'))
+                    or (g.get('contenu') or {}).get('cherche') not in (None, id) for g in plan[1]):
                 return None
     return devis
 
@@ -627,9 +638,12 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
         source = foyer_de(monde, auditeur, demandeur, foyer, objet)
         if foyer is not None and source is None:
             return "impossible"  # La cible nommée n'est jamais remplacée par un autre feu.
+        if remettre_part:
+            return _remettre_part(monde, auditeur, demandeur, objet, prix if vente else 0,
+                                  None if vente or accord else dd)
         if besoin_de_part(o) == "faim":
             condition = {"objet": objet, "servir": demandeur}
-        elif remettre_part or vente and foyer is None or source is None:
+        elif vente and foyer is None or source is None:
             # La part est remise pour les gestes du demandeur, quelle que soit la substance.
             # Sans source compatible, on ne promet jamais d'entretenir un feu avec ce qui n'y brûle pas.
             return _remettre_part(monde, auditeur, demandeur, objet, prix if vente else 0,
@@ -977,10 +991,12 @@ def confier(monde, demandeur, auditeur, condition):
     # s'il peut s'y prendre avec ce que la garde lui permet.
     engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
     agendas.prendre(monde, auditeur, engagement)
-    if devis_service(monde, auditeur, condition, demandeur) is None:
+    devis = devis_service(monde, auditeur, condition, demandeur)
+    if devis is None:
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
-    if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
+    if not jet_persuasion(monde, auditeur, demandeur,
+                          TACHE - penchant(monde, auditeur, "altruisme") + devis[0] / PAS_PROPOSITION)[0]:
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "refus"
     memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
@@ -1003,7 +1019,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     o = monde.objets[objet]
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
     livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
-    tenus = []
+    tenus = list(livre)
     if livre and proprietaire(monde, o) == donneur:
         # Ce qu'il a vendu et vient remettre : l'objet passe à l'acheteur, la parole est tenue.
         donner(monde, objet, receveur)
@@ -1021,6 +1037,8 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     restitution = bool(permission and permission["de"] == receveur and permission["a"] == donneur)
     ponctuel = restitution and monde.data["minutes"] - permission["minute"] <= 240
     deplacer(monde, objet, receveur)
+    if livre and 'lot' in livre[0]:
+        agendas.affecter_part(monde, receveur, livre[0]['lot'], objet)
     from .biens import compte, noter_compte
     noter_compte(monde, compte(donneur, receveur, objet, 1, "rendu"))
     if receveur != "joueur":
@@ -1374,6 +1392,9 @@ def executer(monde, id, etape, lignes):
                 constater(monde, id, objet["id"], "vu")
     elif op == "confier":
         issue = confier(monde, id, autre, contenu)
+        for s in lire(monde, id)['recours_intermediaires']:
+            if s['via'] == autre and s['objet'] == contenu['objet'] and s['issue'] == 'preparee':
+                s['issue'] = issue
         recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
         clair = recit + "."
         reponse = f"{b} accepte." if issue in ("accepte", "deja") else f"{b} refuse."

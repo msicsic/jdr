@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-intermediaires`, fusionnée, lot **122**, base **219bc8d** :
+  code signé SSH **fc5f62a**, puis **76c071a**, signatures vérifiées. Commission
+  « faute de mieux » après méfiance/rancune : un candidat choisi sur les seules
+  attitudes crues, une tentative sauvegardée par refus/besoin ; ordre avec le
+  service spontané au devis le moins cher pour le demandeur. `confier` utilise
+  altruisme, lien et coût de son devis, avec son unique jet. Le porteur demande
+  avec ses propres relations, reçoit une part réelle puis la sert ou la remet
+  au bénéficiaire ; aucun transfert à l'acceptation. Acquisition du bien visé
+  permise dans le devis commun, travail délégué exclu ; nourriture à emporter,
+  affectation de la part reçue à une seule tâche et coût des remises communs.
+  Deux scènes après recharge et même laps découpé : Brune/Ilse/Gorm et
+  Joss/Mireille/Odile ; **39 ciblés verts**, un processus à priorité réduite.
+  Banc **4 h × quatre scénarios × quatre graines** : **16/16 chroniques,
+  mesures métier, audits et boucles identiques**, aucune violation/usurpation
+  ni aucun plantage ; **zéro commission naturelle**, preuve par scènes d'auteur.
+  Référence calculée une fois puis cachée, aucune comparaison CPU.
+  Suite complète unique : **2 065 tests, 16 ignorés, 223 fichiers,
+  3 634,73 s**, un processus réduit. Un échec de fourniture : le devis commun
+  vérifie aussi la livraison autonome des fournitures du commanditaire,
+  sans accord futur d'un tiers ; cas réel crue 7 à 353 min et autre lot.
+  Une erreur Windows TUI avant action, sans changement de son code.
+  Reprises finales : **55 verts en 104,54 s**, puis **un TUI vert en 8,42 s** ;
+  **bilan consolidé vert**, aucune seconde suite. Le banc concerne `fc5f62a`,
+  avant le resserrement des fournitures contrôlé par les reprises ciblées,
+  sans second banc. Créneau dépassé par la vérification séquentielle.
+  Aucun Luna. Les permissions d'usage d'un bien durable ne sont pas étendues
+  par sa transmission ; signes interprétés faillibles, fournitures accessoires
+  de tiers exclues. [Rapport du lot 122](taches/rapport-codex-122-intermediaires.md).
 - Branche `codex-mesure-cout`, fusionnée, lot **127**, base **62429a8** :
   `tools/mesure_cout.py`, compteurs déterministes par heure et PNJ × but,
   recherches neuves/reprises, toutes les passes, nœuds de certificats et gestes

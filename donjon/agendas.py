@@ -38,7 +38,29 @@ def retirer_proposition(monde, id, engagement):
 
 def tenir(monde, id, engagement):
     """Retirer une parole exécutée ; l'appelant inscrit son souvenir au même instant."""
+    from .esprits import lire
+    pour = engagement['pour']
+    if pour != 'joueur':
+        for s in lire(monde, pour)['recours_intermediaires']:
+            if s['via'] == id and s['livraison'] == engagement['condition'].get('objet') and s['issue'] == 'accepte':
+                s['abouti'] = True
     retirer_proposition(monde, id, engagement)
+
+
+def affecter_part(monde, id, lot, part):
+    """Une fourniture reçue donne son identité réelle au travail promis sur le lot."""
+    from .esprits import esprit
+    if id == 'joueur':
+        return
+    for x in esprit(monde, id)['engagements']:
+        c = x['condition']
+        if c.get('objet') == lot and any(k in c for k in ('servir', 'remettre')) and not x.get('annule'):
+            c['objet'] = part
+            if x['pour'] != 'joueur':
+                for s in esprit(monde, x['pour'])['recours_intermediaires']:
+                    if s['via'] == id and s['livraison'] == lot and s['issue'] == 'accepte':
+                        s['livraison'] = part
+            break  # Une seule part ne finance pas deux paroles.
 
 
 def annoncer_abandon(monde, id, engagement):

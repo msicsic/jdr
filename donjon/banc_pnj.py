@@ -215,7 +215,11 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                 if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
     examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
     propositions = [c for c in chronique if c.get("nature") == "social" and " propose à " in c["texte"]]
+    intermediaires = [s for id in pnjs(monde) for s in lire(monde, id)['recours_intermediaires']]
     mesures = {"propositions": len(propositions),
+               "intermediaires_sollicites": sum(s['issue'] != 'preparee' for s in intermediaires),
+               "intermediaires_acceptes": sum(s['issue'] == 'accepte' for s in intermediaires),
+               "intermediaires_aboutis": sum(s['abouti'] for s in intermediaires),
                "acceptees": sum(c["texte"].endswith("(accepte).") for c in propositions),
                "gestes": sum(c.get("nature") not in ("ouie", "lecture") for c in chronique),
                "evenements_distincts": len({(c["pnj"], c["texte"]) for c in chronique

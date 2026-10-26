@@ -51,7 +51,7 @@ HABILE = 0.5           # chance de réussir à partir de laquelle il attend un c
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
 TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime")
-# Ce qui compte sur un tiers ; le devis ne permet que de recevoir un bien du commanditaire.
+# Ce qui compte sur un tiers ; un devis exclut la délégation du travail.
 TIERS = ("demander", "acheter", "engager", "demander_feu", "confier")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
 USAGES = ("crochetage", "allumage", "combustible", *force.CHOC, *force.COUPE)
@@ -1711,12 +1711,13 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     la demande ou à l'attente, puis se refait sur la part réellement reçue. Aucune
     source du monde n'est réputée chargée à l'accord.
     """
-    if o in e.portes or "combustible" not in v.objets[o].get("usages", ()) or not v.disponible(o):
+    repas = o in vises.get('servir', {}) and v.besoin[o] == 'faim'
+    if o in e.portes or not (repas or "combustible" in v.objets[o].get("usages", ())) or not v.disponible(o):
         return
     donneur = v.proprietaire[o]
     if donneur in (None, v.id, "joueur") or not v.profil_de(donneur):
         return
-    if not (v.sources_du_lot[o] & v.sources_a_charger(e, vises)):
+    if not repas and not (v.sources_du_lot[o] & v.sources_a_charger(e, vises)):
         return
     attente = 0 if dans == donneur and v.salle(e, donneur) == e.salle else v.attente_part(e, donneur, o, e.salle)
     promise = v.promesse(o, True) == donneur
@@ -1794,8 +1795,23 @@ def _estimer_remise(v, e, o, attente, offres, vises, but):
             pression += pression_demande
         v._estime_part = True
         try:
-            estimations = suites(v, depuis.apres(faits=[(("depense",), (e.fait("depense") or 0) + paye)]),
-                                 o, vises, but or (lambda v, e: True))
+            if o in vises.get('servir', {}) and v.besoin[o] == 'faim':
+                # Une part hypothétique sert le même but que la réserve. Le plan
+                # réel s'arrête à sa demande et attend son identité effective.
+                estimations = []
+                for pour in vises['servir'][o]:
+                    salle = v.salle(depuis, pour)
+                    route = v.route(depuis, salle) if salle is not None else None
+                    if route is None:
+                        continue
+                    fin = v.arrivee(depuis, salle, route).apres(portes=depuis.portes | {o},
+                                                                  faits=[(('permis', o), True), (('servi', o), True)])
+                    mesure = _mesurer(v, fin, [_etape('servir', o, contenu={'pour': pour})], fin, 1)
+                    if mesure:
+                        estimations.append((0, v.trajet(depuis, salle, cible=pour) + mesure[0] + mesure[1], mesure[2], 0))
+            else:
+                estimations = suites(v, depuis.apres(faits=[(("depense",), (e.fait("depense") or 0) + paye)]),
+                                     o, vises, but or (lambda v, e: True))
         finally:
             v._estime_part = False
         for fautes, cout, final, abime in estimations:
@@ -1957,8 +1973,9 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     (``RESTER`` minutes de ce que son état présent laisse monter, plus ce que le but lui apporte
     d'autre, ``endurer``) ; sinon il endure, et rien n'est rendu.
 
-    ``seul`` : servir soi-même. Seuls les biens remis par ``seul`` (le commanditaire) peuvent
-    compléter ses moyens ; aucun service accompli par autrui, ni recherche d'un tiers (``TIERS``)."""
+    ``seul`` : servir soi-même. Le commanditaire peut fournir des moyens ; le bien
+    même à livrer ou servir peut être demandé à son porteur. Aucun travail délégué,
+    ni recherche d'un tiers inconnu (``TIERS``)."""
     from .caractere import modificateur, prix_faute, valeur
     if not monde.objets.get(id, {}).get("profil"):
         raise ValueError(f"chercher : acteur sans profil autonome : {id}")
@@ -2437,10 +2454,11 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
             # ses gestes conclusifs, avant leurs pressions coûteuses.
             if conclure and (any(x["operation"] == "aller" for x in ajout) or not but(v, suivant)):
                 continue
-            if v.seul and any(x["operation"] in TIERS and (x["cible"] != v.seul
-                              or x["operation"] not in ("demander", "acheter"))
+            if v.seul and any(x["operation"] in TIERS and (x["operation"] not in ("demander", "acheter")
+                              or x["cible"] != v.seul and x["outil"] not in
+                              (*vises.get("prendre", ()), *vises.get("servir", ())))
                               or (x.get("contenu") or {}).get("cherche") not in (None, v.seul) for x in ajout):
-                continue   # Un devis ne compte pas sur ce qu'un tiers donnerait, vendrait ou ferait.
+                continue   # Acquisition du bien visé permise, travail délégué exclu.
             # Écarter les effets terminaux inutiles avant de mesurer leur approche.
             if (len(suivant.faits) > len(e.faits) and any(cle[0] in TERMINAUX and cle not in e.faits for cle in suivant.faits)
                     and not but(v, suivant)):
@@ -2841,6 +2859,8 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         trouve = _rendre(monde, id, o, condition)
         return None if trouve is None else (0, *trouve)
     if "remettre" in condition:
+        if entretenir:
+            return _devis_remise(monde, id, o, condition, entretenir)
         trouve = _remettre(monde, id, o, condition, seul=entretenir)
         return None if trouve is None else (0, *trouve)
     if "periode" in condition:
@@ -2921,18 +2941,28 @@ def _rendre(monde, id, o, condition):
     return {"type": "pulsion", **condition}, etapes
 
 
+def _devis_remise(monde, id, o, condition, seul):
+    """Acquisition et livraison chiffrées ensemble, comme tout autre service."""
+    trouve = chercher(monde, id, lambda v, e: o in e.portes and e.salle == v.salle(e, condition['remettre']),
+                      {'prendre': (o,)}, nom='remettre:' + o,
+                      memo=['remettre', o, condition['remettre']], emplois=(), seul=seul)
+    if trouve is None:
+        return None
+    remise = _etape('remettre', condition['remettre'], outil=o)
+    v = vue(monde, id)
+    mesure = _mesurer(v, trouve[2], [remise], trouve[2], 1)
+    if mesure is None:
+        return None
+    cout = trouve[0] + mesure[0] + mesure[1]
+    return cout, {'type': 'pulsion', **condition}, _couper(trouve[1]) + [remise]
+
+
 def _remettre(monde, id, o, condition, seul=None):
     """Un objet qu'il a vendu sans le porter (``echanges.differee``) : l'aller chercher, puis
     rejoindre l'acheteur et le lui remettre."""
     if seul:
-        # Le devis doit couvrir la livraison, pas seulement la prise de l'objet.
-        trouve = chercher(monde, id, lambda v, e: o in e.portes and e.salle == v.salle(e, condition["remettre"]),
-                          {"prendre": (o,)}, nom="remettre:" + o,
-                          memo=["remettre", o, condition["remettre"]], emplois=(), seul=seul)
-        if trouve is None:
-            return None
-        return {"type": "pulsion", **condition}, _couper(trouve[1]) + [
-            _etape("remettre", condition["remettre"], outil=o)]
+        trouve = _devis_remise(monde, id, o, condition, seul)
+        return None if trouve is None else trouve[1:]
     if not porte_par(monde, o, id):
         trouve = chercher(monde, id, lambda v, e: o in e.portes, {"prendre": (o,)}, nom="remettre:" + o,
                           memo=["remettre", o], emplois=())
