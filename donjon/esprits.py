@@ -582,21 +582,43 @@ def percus(monde, acteur):
     return {id: (s, None if c is None else list(c)) for id, (s, c) in vus.items()}, set(champ)
 
 
+def _objets_poses(monde, memo, poses, salles):
+    """Candidats dans ces salles, et objets sans pose unique, dans l'ordre du monde.
+
+    Portes, objets portés, installés ou multisalles restent dans la rubrique None :
+    seul un objet dont la pose unique est prouvée peut être écarté avant la vue.
+    L'index appartient au mémo physique, jamais aux croyances ni à la sauvegarde.
+    """
+    if memo is None:
+        return monde.objets
+    if "objets_par_pose" not in memo:
+        index, rangs = {}, {}
+        for rang, id in enumerate(monde.objets):
+            index.setdefault(poses[id], []).append(id)
+            rangs[id] = rang
+        memo["objets_par_pose"] = index, rangs
+    index, rangs = memo["objets_par_pose"]
+    candidats = [id for salle in {None, *salles} for id in index.get(salle, ())]
+    return sorted(candidats, key=rangs.__getitem__)
+
+
 def _percus(monde, acteur, memo):
     salle = monde.objets[acteur]["lieu"]
     poses = salles_posees(monde, memo)
     # Ce qu'il porte lui-même, il le sait sans le voir.
-    vus = {id: (None, None) for id, o in monde.objets.items()
-           if poses[id] in (None, acteur) and porte_par(monde, id, acteur) and _pertinent(monde, acteur, o)}
+    vus = {id: (None, None) for id in _objets_poses(monde, memo, poses, ())
+           if poses[id] in (None, acteur) and porte_par(monde, id, acteur)
+           and _pertinent(monde, acteur, monde.objets[id])}
     if salle not in monde.data["salles"]:
         return vus, set()
     if monde.data.get("mode_cases"):
         champ = _champ(monde, acteur, memo)
         salles_du_champ = {c[0] for c in champ}
         salles_vues = [s for s in monde.data["salles"] if s in salles_du_champ]
-        for id, o in monde.objets.items():
+        for id in _objets_poses(monde, memo, poses, salles_du_champ):
             if id in vus:
                 continue
+            o = monde.objets[id]
             vu = _vu_dans_le_champ(monde, memo, acteur, id, o, poses[id], champ, salles_du_champ, salles_vues)
             if vu is not None:
                 vus[id] = vu
