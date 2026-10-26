@@ -4,7 +4,8 @@ Les sous-étapes 4a et 4b sont fusionnées (`codex-force-4a`, `codex-force-4b`) 
 sur `codex-force-4c`, fusionnée, avec les limites de critère ci-dessous. La première partie de
 4d est réalisée sur `codex-force-4d-tenir`, non fusionnée (lot 126) : prises, liens et issues
 différées. Traîner (lot 134), puis enfermer et s’évader (lot 136, `codex-enfermer`,
-non fusionnée) sont réalisés ; inquiétude captive et volonté brisée restent à faire, puis 4e et 4f.
+non fusionnée) sont réalisés ; la captivité prolongée termine 4d au lot 140
+(`codex-captivite`, non fusionnée). Restent 4e et 4f.
 Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
@@ -22,7 +23,7 @@ perceptions et contraintes ; les caractéristiques sont modulées par les états
 - **Le corps commun** (`donjon/corps.py`) : faim, froid, fatigue pour tous ; un état qui presse
   coûte 2 aux jets des caractéristiques qu'il touche (`TOUCHE`, `malus`), que toute règle lit par
   `caractere.caracteristique` ou `modificateur`. La volonté brisée (`corps["volonte_brisee"]`, 0 à
-  5) existe comme donnée ; aucune contrainte ne la brise encore (`corps.briser`).
+  5) est entamée par la captivité et rendue par le répit depuis le lot 140 (`corps.briser`).
 - **Les PV n'existent que pour le joueur** : `joueur["pv"]`, `joueur["pv_max"]` (18 dans tous les
   scénarios, FOR 12), contrôlés par `Monde.verifier`. Ils baissent par une chute (`moteur.py`,
   `max(0, …)`), une blessure d'arbitrage (`improvisation`, 1 à 3 PV, jamais mortelle) et, à
@@ -279,9 +280,9 @@ contre une personne, licites ou non ; les témoins n'y sont comptés que pour le
   le `frapper` du joueur sur une porte) : dégâts de l'arme ou de l'épaule (1 + mod FOR) sur
   l'intégrité de la porte, bruyant, jusqu'à la briser ; appeler à l'aide.
 - Enfermé ou ligoté, à ce qu'il croit, un PNJ s'inquiète chaque minute (`captif`).
-- **La volonté brisée** (décision à trancher, recommandé ici) : chaque heure ligoté ou enfermé ôte
-  un point (`corps.briser`), deux heures au calme et libre en rendent un. Son effet (céder plus
-  vite) n'aura d'emploi qu'à l'étape 5.
+- **La volonté brisée** (décision 15 : dès 4d) : chaque heure ligoté ou enfermé ôte
+  un point (`corps.briser`), deux heures au calme et libre en rendent un. La VOL effective
+  existante lit déjà ce malus ; aucun nouvel emploi n’est ajouté avant l’étape 5.
 
 ### Tuer, le corps, la découverte
 
@@ -576,7 +577,15 @@ refermable. Selon la décision utilisateur, aucune donnée de scénario n'est mo
 après reprises ciblées. Banc 4 h × quatre scénarios × quatre graines : 13/16 identiques,
 trois écarts de crue expliqués par la durée commune des coups (contre-épreuve exacte),
 aucun nouveau constat d'audit. Voir le [rapport 136](taches/rapport-codex-136-enfermer.md).
-Inquiétude `captif` et volonté brisée restent au lot suivant de 4d.
+**4d terminé au lot 140**, branche `codex-captivite`, non fusionnée, sur le lot 136 :
+`tenir.captif` lit les liens et les issues crues (une clé portée permet de sortir) ; `vecu` compte la captivité et le répit
+pour tous, sans nouvelle décision autonome. L'inquiétude `captif` ajoute un point par
+minute à la sécurité ; le joueur l'éprouve dans son corps et sa fiche. Une heure captive
+coûte un point de jet de VOL via `corps.briser` (plafond cinq), deux heures libres au calme
+le rendent. Le calme exclut effort, prise, eau et danger perçu ; pour un PNJ, la sécurité
+ne doit pas monter ; pour le joueur, le lieu doit être éclairé. Un répit interrompu repart
+à zéro. Les restes exacts en dixièmes sont sauvegardés ; aucune donnée nouvelle pour un
+personnage libre dont la volonté est intacte. Voir le [rapport 140](taches/rapport-codex-140-captivite.md).
 Voir le [rapport 126](taches/rapport-codex-126-force-4d-tenir.md) pour les vérifications et limites.
 
 Saisir, se dégager, ligoter, délier, couper le lien, se libérer seul, traîner ; `verrouiller` pour
@@ -695,8 +704,8 @@ aucune migration d'ancienne sauvegarde n'est demandée. Voir la [tâche 4a](tach
     protéger ; ligoter, enfermer et tuer à l'étape 5 ; (b) seulement se défendre et protéger, ce
     qui ne se mesure au banc qu'avec un joueur qui frappe ; (c) toutes dès maintenant.
     *Recommandé : (a)* : la première raison donne un initiateur mesurable sans joueur.
-15. **La volonté brisée par la captivité** : dès 4d ou à l'étape 5. *Recommandé : dès 4d* (la
-    donnée attend), son effet ne comptant qu'à l'étape 5.
+15. **La volonté brisée par la captivité** : **décidé dès 4d**, réalisé au lot 140.
+    Le malus de VOL existant reste son seul effet ; aucun nouvel emploi avant l’étape 5.
 16. **Le scénario d'épreuve.** (a) `rixe`, dérivé du Relais par des données, avec sa variante
     douce et `--etat` ; (b) baisser la douceur au Relais même (le banc de référence changerait) ;
     (c) un scénario neuf. *Recommandé : (a)*.

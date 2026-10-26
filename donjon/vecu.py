@@ -30,8 +30,23 @@ def conditions(monde, id, activite):
     if id != "joueur":
         from .deliberation import ecart_securite
         securite = ecart_securite(monde, id)
-    return {"activite": activite, "chaud": au_chaud(monde, id), "eau": dans_l_eau(monde, id),
-            "securite": securite}
+    resultat = {"activite": activite, "chaud": au_chaud(monde, id), "eau": dans_l_eau(monde, id),
+                "securite": securite}
+    from .tenir import captif
+    from .corps import corps
+    if captif(monde, id):
+        resultat["captif"] = True
+    elif corps(monde, id).get("volonte_brisee") or corps(monde, id).get("captivite"):
+        from .defense import dangers
+        from .perception import eclairage
+        o = monde.joueur if id == "joueur" else monde.objets[id]
+        salle = o["salle"] if id == "joueur" else o["lieu"]
+        calme = (activite != "effort" and not corps(monde, id).get("tenu_par")
+                 and not resultat["eau"] and not dangers(monde, id)
+                 and (securite <= 0 if securite is not None else
+                      eclairage(monde, salle, o.get("position"))["niveau"] > 0))
+        resultat["calme"] = calme
+    return resultat
 
 
 def _vecu(monde, id):
@@ -48,6 +63,8 @@ def solder(monde, id, t, lignes=None):
         return
     dixiemes = t - v["depuis"]
     v["depuis"] = t
+    from .corps import vivre_captivite
+    vivre_captivite(monde, id, dixiemes, v.get("captif", False), v.get("calme", False))
     effort, repos = v["activite"] == "effort", v["activite"] == "repos"
     if id == "joueur":
         vivre_joueur(monde, dixiemes, effort, repos, v["chaud"], v["eau"], lignes)
@@ -71,7 +88,7 @@ def noter(monde, id, t, activite):
     from .corps import corps
     nouveau = conditions(monde, id, activite)
     v = _vecu(monde, id)
-    if v is not None and all(v[k] == x for k, x in nouveau.items()):
+    if v is not None and {k: x for k, x in v.items() if k != "depuis"} == nouveau:
         return
     solder(monde, id, t)
     corps(monde, id)["vecu"] = {"depuis": t if v is None else max(t, v["depuis"]), **nouveau}
@@ -87,7 +104,9 @@ def minute(monde, id, t, lignes=None):
 
 
 def verifier(v):
-    assert v is None or (isinstance(v, dict) and set(v) == CLES and type(v["depuis"]) is int and v["depuis"] >= 0
+    assert v is None or (isinstance(v, dict) and CLES <= set(v) <= CLES | {"captif", "calme"}
+                         and all(type(v[k]) is bool for k in ("captif", "calme") if k in v)
+                         and type(v["depuis"]) is int and v["depuis"] >= 0
                          and v["activite"] in ACTIVITES and type(v["chaud"]) is bool and type(v["eau"]) is bool
                          and (v["securite"] is None or isinstance(v["securite"], (int, float)))), \
         "Temps vécu invalide"

@@ -153,9 +153,32 @@ def malus(monde, stat, id="joueur"):
 
 def briser(monde, id, points):
     """Une contrainte entame la volonté (points de jet de VOL perdus) ; le répit la rend (points
-    négatifs). Aucune contrainte ne la brise encore : la donnée et son effet sont prêts."""
+    négatifs). La captivité et le répit sont comptés par le temps vécu commun."""
     faits = corps(monde, id)
     faits["volonte_brisee"] = max(0, min(BRISURE_MAX, faits.get("volonte_brisee", 0) + points))
+
+
+def vivre_captivite(monde, id, dixiemes, captif, calme):
+    """Heures de captivité et de répit continu, en dixièmes sauvegardés, pour tous."""
+    from .temps import MINUTE
+    faits = corps(monde, id)
+    if id == "joueur":
+        if captif and conscient(monde, id):
+            faits["inquietude_captive"] = min(100 * MINUTE, faits.get("inquietude_captive", 0) + dixiemes)
+        elif "inquietude_captive" in faits:
+            faits["inquietude_captive"] = 0
+    mode = "captif" if captif else "calme" if calme and faits.get("volonte_brisee") else None
+    ancien = faits.get("captivite", {})
+    if mode is None:
+        faits.pop("captivite", None)
+        return
+    duree = (ancien.get("duree", 0) if ancien.get("mode") == mode else 0) + dixiemes
+    points, reste = divmod(duree, (60 if captif else 120) * MINUTE)
+    briser(monde, id, points if captif else -points)
+    if not captif and not faits["volonte_brisee"]:
+        faits.pop("captivite", None)
+    else:
+        faits["captivite"] = {"mode": mode, "duree": reste}
 
 
 def vivre_joueur(monde, dixiemes, effort=False, repos=False, chaud=None, eau=None, lignes=None):
@@ -206,10 +229,17 @@ def etat(monde, id="joueur"):
         resultat["prise"] = "retenu"
     if corps(monde, id).get("reddition"):
         resultat["reddition"] = "a cessé de résister"
+    if corps(monde, id).get("volonte_brisee"):
+        resultat["volonté"] = "éprouvée"
+    if id == "joueur" and corps(monde, id).get("inquietude_captive"):
+        from .tenir import captif
+        if captif(monde, id):
+            resultat["captivité"] = "inquiétante"
     return resultat
 
 
 def verifier(monde):
+    from .temps import MINUTE
     for id in personnages(monde):
         faits, v = corps(monde, id), valeurs(monde, id)
         o = monde.joueur if id == "joueur" else monde.objets[id]
@@ -246,6 +276,11 @@ def verifier(monde):
                 and (id != "joueur" or type(faits.get("peine")) is int)), "États du corps invalides"
         from .vecu import verifier as verifier_vecu
         verifier_vecu(faits.get("vecu"))
+        c = faits.get("captivite")
+        assert c is None or (isinstance(c, dict) and set(c) == {"mode", "duree"}
+                             and c["mode"] in ("captif", "calme") and type(c["duree"]) is int
+                             and 0 <= c["duree"] < (60 if c["mode"] == "captif" else 120) * MINUTE), "Durée captive invalide"
+        assert type(faits.get("inquietude_captive", 0)) is int and 0 <= faits.get("inquietude_captive", 0) <= 100 * MINUTE, "Inquiétude captive invalide"
     for id, d in monde.data.get("defunts", {}).items():
         assert id in monde.objets and monde.objets[id]["type"] == "depouille" and id not in monde.data["esprits"], "Dépouille avec esprit"
         assert "profil" not in monde.objets[id] and "orientation" not in monde.objets[id], "Dépouille vivante"

@@ -45,7 +45,7 @@ SECURITE_FIN = 30      # rassuré : il quitte l'abri
 # Ce qui inquiète (+) ou rassure (−) la sécurité, valeurs par défaut que chaque profil nuance
 # (donnée ``securite``) : par minute pour ce qui dure, d'un coup pour un événement.
 SECURITE = {"coup": 40, "violence": 25, "mort": 30, "noir": 0.5, "mefiance": 0.3, "bruit": 15, "illicite": 20,      # inquiète
-            "eau": 2, "menace": 1, "crue": 10,     # par minute : 50 cm d'eau, l'eau attendue bientôt ;
+            "captif": 1, "eau": 2, "menace": 1, "crue": 10,     # par minute : captivité, eau, menace ;
                                                    # d'un coup : la voir gagner un lieu
             "detresse": 0.5,                       # demi-point/minute, pondéré par le lien perçu
             "lumiere": 0.2, "compagnie": 0.5, "ronde": 20}                 # rassure
@@ -784,6 +784,9 @@ def ecart_securite(monde, id):
         ecart += 2 * taux(monde, id, "eau") * min(p, NOYEE_CM) / NOYEE_CM
     elif menacee(monde, id, ici):
         ecart += taux(monde, id, "menace")
+    from .tenir import captif
+    if captif(monde, id):
+        ecart += taux(monde, id, "captif")
     return ecart
 
 
