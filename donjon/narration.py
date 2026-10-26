@@ -561,11 +561,17 @@ AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bMJ\b|\bCorvus\b|\bje\b|\bj['�
 # syntaxique explicite : complément technique, source d'information ou opération
 # du programme. Les emplois ambigus restent du ressort de l'audit sémantique.
 SOURCES_INTERNES = r"(?:faits|donn[ée]es|moteur|sc[ée]nario|champs?|identifiants?)"
+# Le moteur sujet d'une opération du contrat, même au subjonctif ou sous
+# négation/pronom. Un complément concret (« moteur du moulin ») coupe ce lien.
+OPERATIONS_CONTRAT = (r"(?:refus|valid|calcul|d[ée]termin|enregistr|sauvegard|ex[ée]cut|autoris"
+                     r"|fourn|reconna|pr[ée]voi|propos|accept|exig|permet|d[ée]clar|expos)")
 CONTEXTE_TECHNIQUE = re.compile(
     rf"\b{SOURCES_INTERNES}\s+(?:du|de ce)\s+(?:jeu|programme|syst[èe]me|dossier)\b"
     r"|\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
-    r"|\b(?:le|du|au) moteur(?=\s+(?:(?:a|avait)\s+)?"
-    r"(?:refus|valid|calcul|d[ée]termin|enregistr|sauvegard|ex[ée]cut|autoris))"
+    r"|\b(?:le|du|au) moteur(?=\s+(?:(?:ne|pas|plus|jamais|en|y|le|la|les|te|vous|a|avait|ait|doit|devrait|peut|puisse)\s+|n['’]|l['’])*"
+    + OPERATIONS_CONTRAT + r")"
+    r"|\b(?:champs?|identifiants?|propositions?|sch[ée]mas?)\s+"
+    r"(?:techniques?|internes?|typ[ée]e?s?|JSON|du moteur|du programme)\b"
     r"|\b(?:refus|validation|calcul|enregistrement|sauvegarde|ex[ée]cution|autorisation|d[ée]cision)"
     r"\s+(?:du|par le) moteur\b"
     r"|\b(?:les|des|aux) (?:faits|donn[ée]es)(?=\s+(?:ne\s+)?"

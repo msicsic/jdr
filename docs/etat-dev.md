@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-contrats-internes`, non fusionnée**, lot **143**, base
+  `4725388` : N10 venait du lexique de `narration.voix_auteur`, déjà appelé
+  sur les deux voies : justification d'un avis `impossible` après contre-revue
+  et dialogue après refus du monde. Opérations du contrat reconnues avec
+  négation, pronoms et subjonctif ; noms de contrats explicitement techniques
+  contrôlés, emplois ordinaires et répliques conservés. Aucun prompt ni fichier
+  réservé aux lots 140/142 modifié. Deux textes réels corrigés en console,
+  état et rendu contrôlés après recharge ; garde refait à l'enregistrement
+  malgré un audit favorable. **33 ciblés verts**, puis garde d'écriture ajouté
+  et suite complète unique : **2 119 tests, 235 fichiers, 1 241,41 s, deux
+  échecs MiMo historiques `6 != 5`, zéro erreur/ignoré**. Luna une passe sur
+  copies, atelier/Relais/ambiance : **22 tours MJ, 59 appels, 2,68 appels/tour**
+  (références 9a39738 p1/p2 : 61/63, 2,77/2,86), une relance contre 1/4,
+  aucun repli, incident technique ou défaut de recharge ; aucune explication
+  technique affichée, cas pierre et pied-de-biche en fiction. Six références
+  cachées lues, empreintes inchangées, aucun rejeu. N10 non réémis naturellement,
+  rejet exercé en simulation. Deux calculs au plus, priorité réduite, Luna une
+  exécution. Aucune clé de signature Git configurée ; commit non signé.
+  Limite : contrôle lexical, paraphrases et polysémie en partie sémantiques.
+  [Rapport du lot 143](taches/rapport-codex-143-contrats-internes.md).
+
 - **Vérification Luna 9a39738**, lot **141**, branche `codex-verif-luna-9a39738` :
   aucun code du jeu changé ; deux passes, vingt scripts historiques + avis,
   **42 parties, 308 saisies, 142 tours MJ, 445 appels**, quatre processus réduits
