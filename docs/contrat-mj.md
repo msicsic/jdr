@@ -379,22 +379,35 @@ une autre paraphrase, la portée temporelle et le sens d'un pronom restent soumi
 sémantique. Des formulations correctes à plusieurs cibles ou avec négation peuvent demander
 une révision. L'invariant pour toute prose arbitraire n'est donc pas garanti par ce garde lexical.
 
-**La preuve reste interne** (branche `codex-ambiance`). Le récit dit ce que tu perçois, sais ou
-supposes ; il ne commente jamais ce que le moteur établit, atteste ou indique. Le garde commun de
-la voix d'auteur contrôle aussi ce vocabulaire de preuve et les tours impersonnels d'absence
-d'indication, indépendamment du classement de l'auditeur. Chaque refus donne au MJ le segment,
-les mots reçus et un `attendu` : décrire directement l'ambiance compatible comme perçue, ou dire
-la limite de perception ou de savoir d'une inconnue mécanique (« tu ne le vois pas d'ici »).
-Une réplique de PNJ conserve sa liberté de parole ; son contenu ne devient pas une vérité.
-Le garde est refait à l'enregistrement de la narration. La reformulation admise est sauvegardée
-avec son lieu, sans création d'entité mécanique.
+**La preuve reste interne** (branches `codex-ambiance`, `codex-mots-courants`). Le récit dit
+ce que tu perçois, sais ou supposes. Le garde lexical exige un emploi technique, et non
+la présence d'un nom commun : complément désignant le jeu ou le programme, source
+informationnelle, réserve impersonnelle sur la preuve, opération attribuée au moteur,
+identifiant écrit en snake_case,
+ou localisation numérique sur la grille. « données » participe, « faits » au sens d'actes,
+« moteur » qualifié dans la fiction, « scénario » envisagé, participes de preuve et unités
+ordinaires ne suffisent plus à déclencher un refus. La personne du récit (tu, hors répliques)
+reste contrôlée séparément. Un passif de preuve sans support concret, une négation
+impersonnelle de ce qui indique ou confirme, ou une absence d'information restent refusés
+sans qu'une source interne soit nommée : « aucun autre son n'est attesté ici », « rien ne
+t'indique son origine », « Son origine n'est pas indiquée ». Un acte accompli (« a établi
+un camp ») et un support concret (« attestée par le sceau », « indiquée par une flèche »)
+se distinguent par leur construction. Le sujet du monde n'est jamais sélectionné par
+une liste de propriétés ou d'entités. Les formulations de perception (« Tu ignores d'où
+vient cette odeur », « Tu ne le vois pas d'ici ») restent admises. Chaque refus conserve
+son segment, les mots reçus et son `attendu` d'ambiance pour les réserves de preuve.
+Le même garde s'applique avant enregistrement ; les autres contrôles de perception,
+de cohérence et de persistance restent communs à toutes les narrations.
 
-L'interprétation ne demande plus une ignorance ajoutée à chaque réponse d'information ; la
-révision corrige la rupture désignée sans reprendre le vocabulaire de preuve du verdict.
-L'auditeur juge la compatibilité de l'ambiance et non la connaissance de sa cause : une absence
-de sensation peut aussi être une ambiance libre, sans conclure au résultat d'une perception active.
-Le contrôle lexical n'épuise pas toutes les
-paraphrases de méta-preuve : leur détection et les contradictions de sens restent sémantiques.
+Une réplique de PNJ conserve sa liberté de parole ; son contenu ne devient pas une vérité.
+Les localisations techniques restent contrôlées même dans une citation. Les constructions
+lexicales ne constituent pas une analyse générale du français : une source implicite,
+une paraphrase, un homonyme dans une construction informationnelle ou un identifiant sans
+marque distinctive restent en partie sémantiques. L'absence universelle de faux refus
+et de méta-langage n'est donc pas garantie. L'audit doit juger le sens des emplois ambigus ;
+les réserves de preuve reconnues sont refusées lexicalement même sans source interne
+explicite. La distinction grammaticale n'épuise pas les emplois polysémiques et les
+paraphrases ; cette limite ne retire pas les refus historiques du contrat d'ambiance.
 
 ### Parole, références et audit après les noms (`codex-luna-noms`)
 

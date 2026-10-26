@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-mots-courants`, fusionnée, lot **101**, base `31e3f9c`.
+  Révision après `2d54461`/`4920a9e` : les réserves sur la preuve restent refusées
+  lexicalement **sans source interne nommée** ; les tests historiques d'ambiance sont
+  rétablis à l'identique de la base, avec leur `attendu`. Le garde commun distingue
+  passif de preuve, négation impersonnelle et absence d'information d'un acte accompli
+  ou d'un support concret ; aucun sujet du monde sélectionné. Les mots courants,
+  unités ordinaires et phrase réelle de `soir-appel` restent admis. Aucun prompt,
+  chaîne de correction ni repli modifié. **25 tests ciblés verts**, puis **92 tests verts en 36,28 s**,
+  huit fichiers repris à deux processus de priorité réduite ;
+  narration, monde, regard et carte contrôlés après recharge par MJ simulé.
+  Suite complète initiale unique : **1 979 tests, 16 ignorés, 1 976,44 s**, deux
+  échecs nominaux corrigés puis 21 tests verts ; aucune nouvelle suite complète.
+  Luna initiale conservée, sans nouvelle passe : `soir-appel` **18 appels / 4 tours MJ
+  (4,5)**, `ressources` **12 / 3 (4)**, aucun refus, repli ou défaut de recharge.
+  Limite : constructions polysémiques et paraphrases restent en partie sémantiques,
+  sans relâcher les refus historiques de preuve. Aucune garantie universelle
+  d'absence de faux refus.
+  [Rapport du lot 101](taches/rapport-codex-101-mots-courants.md).
+  Fusionné sur l'intégration après le lot 100 : seul conflit de documentation ; aucun fichier de code commun. Première version renvoyée : elle relâchait les réserves de preuve du lot 25 et réécrivait leurs tests ; la révision `abaf283` les rétablit à l'identique (refus lexical) et n'admet que les emplois concrets.
+
 - Branche `codex-sans-message-technique`, fusionnée, lot **100**, base
   `a86fdd7` : enveloppe des réponses contrôlée avant les audits, correction
   `RefusDeForme` distincte, puis repli de perception si la forme reste invalide.

@@ -471,31 +471,65 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_
     return obstacles
 
 
-# La voix d'auteur : le texte parle du joueur, du moteur ou de Corvus à la troisième personne, ou le MJ
-# parle de lui-même (« je », hors des répliques citées).
-AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
-                    r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
+# La personne du récit est un contrat grammatical, distinct du vocabulaire technique.
+AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bMJ\b|\bCorvus\b|\bje\b|\bj['’]", re.IGNORECASE)
 
-# « refus » et « proposition » désignent aussi des décisions dans la fiction.
-# Leur présence seule ne prouve pas une voix d'auteur ; le vocabulaire technique
-# déjà contrôlé (moteur, MJ...) doit l'établir indépendamment.
+# Un nom commun ne désigne pas à lui seul les sources internes. On exige un lien
+# syntaxique explicite : complément technique, source d'information ou opération
+# du programme. Les emplois ambigus restent du ressort de l'audit sémantique.
+SOURCES_INTERNES = r"(?:faits|donn[ée]es|moteur|sc[ée]nario|champs?|identifiants?)"
+CONTEXTE_TECHNIQUE = re.compile(
+    rf"\b{SOURCES_INTERNES}\s+(?:du|de ce)\s+(?:jeu|programme|syst[èe]me|dossier)\b"
+    r"|\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
+    r"|\b(?:le|du|au) moteur(?=\s+(?:(?:a|avait)\s+)?"
+    r"(?:refus|valid|calcul|d[ée]termin|enregistr|sauvegard|ex[ée]cut|autoris))"
+    r"|\b(?:refus|validation|calcul|enregistrement|sauvegarde|ex[ée]cution|autorisation|d[ée]cision)"
+    r"\s+(?:du|par le) moteur\b"
+    r"|\b(?:les|des|aux) (?:faits|donn[ée]es)(?=\s+(?:ne\s+)?"
+    r"(?:disent|pr[ée]cisent|indiquent|montrent|d[ée]crivent|permettent|fournis|re[çc]us))"
+    rf"|\b(?:selon|d['’]apr[èe]s)\s+(?:les? |la |ce |ces |cet )?{SOURCES_INTERNES}\b",
+    re.IGNORECASE)
 
-# Même voix d'auteur quand le récit commente ses preuves sans nommer le moteur.
-# Les tours impersonnels distinguent ce métalangage d'un indice dans la fiction
-# (« la flèche indique le nord », « tu ignores d'où vient cette odeur »).
+# La réserve sur la preuve existe aussi sans nommer ses sources internes. Ce
+# vocabulaire ne suffit cependant pas seul : le passif sans support concret, les
+# sujets impersonnels et l'absence d'information commentent ce que le récit sait.
 PREUVE_MOTEUR = re.compile(
-    r"\b(?:attest[ée]e?s?|[ée]tablie?s?)\b"
+    r"\b(?:attest[ée]e?s?|[ée]tablie?s?|confirm[ée]e?s?|indiqu[ée]e?s?|pr[ée]cis[ée]e?s?)\b"
     r"|\b(?:rien|aucune?\s+\w+)(?:\s+\w+){0,3}\s+"
     r"(?:ne\s+(?:(?:te|lui|vous|nous)\s+|[tm]['’])?|n['’])"
-    r"(?:indique|atteste|[ée]tablit|prouve|confirme)\b"
+    r"(?:indique|atteste|[ée]tablit|prouve|confirme|pr[ée]cise)\b"
     r"|\b(?:faute|manque|absence)\s+d['’](?:indication|information|preuve)s?\b"
     r"|\baucune?\s+(?:indication|information|preuve)s?\b"
-    r"|\b(?:pas|non)(?:\s+\w+){0,3}\s+indiqu[ée]e?s?\b", re.IGNORECASE)
+    r"|\b(?:pas|non)(?:\s+\w+){0,3}\s+(?:indiqu[ée]e?s?|pr[ée]cis[ée]e?s?)\b", re.IGNORECASE)
 
-# Le vocabulaire du quadrillage et les écritures de coordonnées sont une forme de
-# métalangage, même dans une réplique. Les distances physiques restent libres.
+PASSIF_PREUVE = re.compile(
+    r"\b(?:est|sont|[ée]tait|[ée]taient|[ée]t[ée]|[êe]tre|reste|restent|demeure|demeurent)"
+    r"(?:\s+(?:pas|point|jamais|encore|toujours|plus|bien|clairement|explicitement))*\s*$", re.I)
+SUPPORT_CONCRET = re.compile(
+    r"\s+(?:par|[àa]|au|aux|dans|sur|sous|pr[èe]s|contre|depuis|en)\b", re.I)
+
+
+def reserves_preuve(texte):
+    """Emplois de preuve ; un acte ou un support concret n'est pas une réserve.
+
+    Les relations grammaticales sont communes aux sujets : aucun nom d'objet,
+    de sensation ou de propriété du monde n'est sélectionné ici.
+    """
+    for m in PREUVE_MOTEUR.finditer(texte):
+        if SUPPORT_CONCRET.match(texte, m.end()):
+            continue
+        if " " not in m.group() and not PASSIF_PREUVE.search(texte[:m.start()]):
+            continue  # participe d'un acte, ou qualificatif sans assertion de savoir
+        yield m.group()
+
+
+# Même principe pour les unités : une case de maison ou des coordonnées bancaires
+# ne sont pas une localisation sur la grille. Les écritures numériques le sont.
 ESPACE_MOTEUR = re.compile(
-    r"\bcases?\b|\bcoordonn[ée]es?\b|\bquadrillage\b"
+    r"\b(?:quadrillage|coordonn[ée]es?)\s+(?:interne[s]?|du jeu|de la grille)\b"
+    r"|\b(?:aux?|en) coordonn[ée]es?(?=\s*[\[(]?\s*[+-]?\d)"
+    r"|\b(?:\d+|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+cases?"
+    r"(?=\s+(?:vers|au|[àa]|plus|de|du|en|devant|derri[èe]re|sur)\b)"
     r"|[\[(]\s*[+-]?\d+(?:\.\d+)?\s*[,;]\s*[+-]?\d+(?:\.\d+)?\s*[\])]"
     r"|\b[xy]\s*=\s*[+-]?\d+", re.IGNORECASE)
 
@@ -624,8 +658,8 @@ def voix_auteur(texte, partie="texte"):
     obstacles, vus = unites_moteur(texte, partie), set()
     for indice, passage in enumerate(segments(texte)):
         fiction = CITATIONS.sub(" ", passage)
-        for terme in sorted({m.group(0) for regle in (AUTEUR, PREUVE_MOTEUR)
-                             for m in regle.finditer(fiction)}, key=str.lower):
+        for terme in sorted({m.group(0) for regle in (AUTEUR, CONTEXTE_TECHNIQUE)
+                             for m in regle.finditer(fiction)} | set(reserves_preuve(fiction)), key=str.lower):
             if terme.lower() in vus:
                 continue
             vus.add(terme.lower())
