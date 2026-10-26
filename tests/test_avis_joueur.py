@@ -144,6 +144,26 @@ class AvisJoueurTests(unittest.TestCase):
         self.assertEqual(prevision(m, "marchand", "echoppe")["source"], "dit:joueur")
         self.assertEqual(rendu(m), rendu(recharger(m)))
 
+    def test_operation_declaree_ne_peut_rester_propos_aux_mots_exacts(self):
+        # La déclaration porte l'intention, indépendamment du premier contenu.
+        for mots, salle, valeur in (("l'eau va gagner la conduite basse", "echoppe", "oui"),
+                                    ("l'eau ne menace pas le refuge du relais", "antichambre", "non")):
+            with self.subTest(mots=mots):
+                m = preparer()
+                saisie = "je dis à Gorm : " + mots
+                correcte = parole(mots, ("avis", salle, "menace", valeur), personnage="marchand")
+                omise = copy.deepcopy(correcte)
+                omise["proposition"]["contenu"] = [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]
+                m, sortie, appels = jouer(m, saisie, [omise, correcte,
+                    {**dialogue("Gorm t'écoute."), "faits": ["conversation_validee"]}], [verdicts(NEUTRE)])
+                recharge = recharger(m)
+                self.assertEqual(len(recharge.data["paroles_joueur"]), 1)
+                self.assertEqual(prevision(recharge, "marchand", salle)["source"], "dit:joueur")
+                self.assertIn(mots, sortie)
+                self.assertNotIn("Le contenu proposé ne porte pas", sortie)
+                self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
+                self.assertEqual(rendu(m), rendu(recharge))
+
 
 if __name__ == "__main__":
     unittest.main()

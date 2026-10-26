@@ -45,7 +45,7 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 SENS_CONTENU = {
     "avis": "Exprimer une prévision de menace d'eau dans l'heure : sujet est la référence publique d'un lieu connu de Corvus, attribut menace, valeur oui ou non. Une opinion, jamais un fait établi ; conviction calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
-    "propos": "Propos sans effet mécanique typé.",
+    "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
     "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
     "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
     "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
@@ -58,7 +58,7 @@ SENS_CONTENU = {
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
-    "description": "Analyse de la saisie seule, indépendamment du contenu proposé : évaluer chaque opération. Toutes peuvent être fausses pour une parole ordinaire.",
+    "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Pour chaque opération disponible, vrai si les mots du joueur en expriment le sens, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité de la parole et la réussite de ses conséquences ne décident pas de son typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
     "properties": {t: {"type": "boolean", "description": sens} for t, sens in OPERATIONS.items()},
     "required": list(OPERATIONS)}
 
@@ -176,7 +176,7 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
 
 REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
-proposition = {personnage, replique (ce que Corvus prononce), contenu, operations_demandees}, texte vide.
+proposition = {operations_demandees, personnage, replique (ce que Corvus prononce), contenu}, texte vide.
 operations_demandees analyse la saisie seule selon les définitions communes du schéma, indépendamment du contenu proposé.
 Le moteur
 fixe le destinataire dans parole_prevue : celui que le joueur nomme,

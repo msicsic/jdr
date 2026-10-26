@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-avis-typage`, **non fusionnée**, lots **124 + 128**, base du
+  lot 128 `20cd5cf` : contrat d'opérations commun analysé avant le contenu,
+  `propos` réservé à l'absence d'opération applicable, sans lexique ni règle
+  particulière au scénario. Console/MJ simulé : avis positif et négatif omis
+  puis corrigés, réception et rendu rechargés ; parole ordinaire sans revue,
+  achats et paiements conservés. **17 ciblés**, deux erreurs d'attente du nouveau
+  test corrigées, puis **neuf tests d'avis verts** (les huit autres étaient verts).
+  Suite complète unique : **2 066 tests, 223 fichiers, 1 060,85 s**, deux processus
+  réduits ; **deux échecs MiMo historiques**, zéro erreur.
+  Luna sur copies, une passe : **2/3 avis typés contre 0/3**, galerie encore
+  `propos` ; avis **3,00 → 5,00 appels/tour**, noms-dialogue **3,75 → 3,25**,
+  soir-appel **5,00 → 6,00**, références historiques lues sans rejeu ; total
+  **44 → 52 appels / 11 tours**. Aucun refus affiché ni défaut de recharge,
+  un repli narratif à soir-appel. Les deux échecs MiMo préexistants sont liés
+  à la validation `jsonschema` 4.26.0 d'un ancien segment d'audit simulé,
+  rejeté avant reprise (six appels au lieu de cinq), sans modification fournisseur.
+  **L'invariant depuis toute saisie libre reste non garanti**, malgré le seuil
+  Luna du brief atteint ; ce lot ne clôt pas la limite du lot 124.
+  Aucune clé de signature Git configurée.
+  [Rapport du lot 128](taches/rapport-codex-128-avis-typage.md).
+
 - Branche `codex-avis-joueur`, **non fusionnée**, lot **124**, base `85b9204` :
   contenu joueur `avis` (lieu public connu, menace oui/non), validation avec `attendu`,
   conviction sur les observations propres de Corvus mémorisées avec sa perception,
