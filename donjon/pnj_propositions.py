@@ -77,12 +77,17 @@ def _tient(avant, apres):
 
 def entrees_refus(monde, id, autre, objet, terme):
     """Les moyens de cette demande et la force réellement offerte, pas la fortune disponible."""
-    from .biens import prix
+    from .biens import prix, proprietaire
     from .deliberation import moyens_crus
     from .echanges import PRIX_SANS_PRIX
+    from .spatial import porte_par
     gain = (terme["montant"] if terme["type"] == "pieces" else
             prix(monde, terme["objet"], terme["type"] == "part") or PRIX_SANS_PRIX)
-    return {"cause": moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": objet}),
+    cause = moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": objet})
+    cause += [["porte", o, id, None] for o in sorted(monde.objets)
+              if porte_par(monde, o, id) and proprietaire(monde, o) == id]
+    cause.append(["inventaire", id, None, None])
+    return {"cause": cause,
             "gain": gain}
 
 
@@ -91,8 +96,37 @@ def refus_tient(monde, id, refus, terme):
     avant = refus["offre"]
     # Le temps, le retour d'un bien déjà proposé et l'argent non offert ne sont
     # pas un meilleur marché. La perte d'un moyen ne lève pas non plus le refus.
-    return (apres["gain"] <= avant["gain"]
-            and all(f in avant["cause"] for f in apres["cause"]))
+    if apres["gain"] > avant["gain"]:
+        return False
+    # Seul le bien effectivement offert peut être un nouveau moyen porté.
+    # Les captures anciennes, sans inventaire, restent conservatrices.
+    portes = [f for f in avant["cause"] if f[0] == "porte"]
+    nouveau = ["porte", terme.get("objet"), id, None]
+    if ["inventaire", id, None, None] in avant["cause"] and nouveau in apres["cause"] and nouveau not in portes:
+        return False
+    # Les abords d'une salle ne changent ni la garde ni la nécessité d'un bien,
+    # ni le jugement du marché. Ils ne concernent que son exécution matérielle.
+    if refus["raison"] in ("impossible", "absent", "portee", "epuise", "propriete"):
+        from .deliberation import _lieu_cru
+        # Le contenant de la demande conditionne sa remise ; les autres portes
+        # de sa salle ne sont pas des moyens nouveaux pour ce marché.
+        contenants, lieu = set(), _lieu_cru(monde, id, refus["objet"])
+        while lieu in monde.objets and lieu not in contenants and monde.objets[lieu]["type"] == "contenant":
+            contenants.add(lieu)
+            lieu = _lieu_cru(monde, id, lieu)
+        def pertinent(f):
+            return (f[0] == "moyen" or f[0] == "ouvert" and f[1] in contenants
+                    or f[0] == "cle" and any(o in monde.objets[f[1]].get("ouvre", []) for o in contenants))
+        return all(f in avant["cause"] for f in apres["cause"] if pertinent(f))
+    return all(f in avant["cause"] for f in apres["cause"]
+               if f[0] == "moyen" and f[2] == refus["de"])
+
+
+def offre_refusee(monde, id, autre, objet, terme):
+    """Même contrat au choix du recours et à l'exécution d'un marché sauvegardé."""
+    return any(s["de"] == autre and s.get("objet") == objet
+               and s["operation"] in ("acheter", "proposer") and "offre" in s
+               and refus_tient(monde, id, s, terme) for s in lire(monde, id)["refus"])
 
 
 def plan_recours(monde, id, besoin, etapes):
@@ -200,6 +234,8 @@ def executer(monde, id, autre, contenu, lignes):
     from .pnj import _chroniquer
     from .social import _qui, faire_entendre
     demande, terme = contenu["demande"], contenu["contrepartie"]
+    if offre_refusee(monde, id, autre, demande["objet"], terme):
+        return False
     if not offre_sensee(monde, id, autre, demande, terme):
         return False
     e = lire(monde, id)

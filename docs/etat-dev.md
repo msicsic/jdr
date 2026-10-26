@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-propositions-redites`, fusionnée, lot **110**, base
+  `61a4406` : le refus d'un marché se lève seulement pour un moyen pertinent
+  à sa cause ; une ouverture incidente ne change pas une garde, une nécessité
+  ou une réticence. Inventaire au refus retenu ; nouveau bien effectivement
+  offert ou force offerte supérieure permis. Propositions et achats d'un
+  plan rechargé revalidés avant parole, jet ou transfert. Mine 7 à 244 et crue
+  11 à 347 reproduites : portes crues ouvertes indûment comptées comme moyens.
+  **34 tests ciblés verts**, dont les deux captures, monde et rendu rechargés,
+  laps découpé, plan refusé sans publication, offre plus forte et nouveau bien.
+  Banc 4 h × quatre scénarios × quatre graines : propositions/acceptées
+  Relais **0/0 → 0/0**, mine **11/1 → 13/1**, auberge **3/1 → 3/1**, crue
+  **9/0 → 9/0** ; offres identiques à moins d'une heure **1 → 0**, aucun
+  plantage, violation, usurpation ou nouveau code de boucle. Les offres en
+  plus portent une lampe nouvellement ramassée ; la redite est remplacée
+  par un prix réellement supérieur. 16 références en cache réutilisées.
+  Suite complète unique : **2 013 tests, 16 ignorés, 216 fichiers, 1 870,76 s**,
+  deux processus réduits ; une erreur Windows de remplacement de fichier TUI,
+  reprise du seul test verte en **6,13 s**, sans changement de code. Aucun autre
+  échec ni erreur, aucune seconde suite. Aucun Luna ni changement des buts.
+  Anciennes sauvegardes sans inventaire conservatrices sur un nouveau bien
+  de valeur égale ; évolution sociale de la méfiance inchangée. Bruts
+  `artifacts/redites-110/`.
+  Code signé SSH **91f618f**, signature vérifiée.
+  [Rapport et limites](taches/rapport-codex-110-propositions-redites.md).
+  Fusionné sur l'intégration après les lots 108, 109 et 111 : seul conflit de documentation ; aucun fichier de code commun.
+
 - Branche `codex-verif-luna-91a4351`, lot **111**, code **91a4351** : vérification seule, aucun code modifié. Deux passes des vingt scripts du lot 99 : **40 parties, 302 saisies, 136 tours MJ, 459 appels**, **3,38 appels/tour, 11,54 s/tour**, médiane **9,57 s**. Références 42bb9c0/882907c/b0042c9 relues, **177 fichiers inchangés**, quarante parties cachées identiques ; aucun plantage, erreur technique, arrêt ou défaut de recharge, quatorze parcours sous obstacle cohérents. **Validation partielle** : N1/N3 et fausse absence non reproduits ; N2 non reproduit mais phrase exacte non générée. Achats exécutés 2/2, confusion comptable et identité refusée après nom donné toujours présentes. Nouveau faux refus de quantité : remboursement à Gorm perdu 2/2 ; réserve sur « les faits » affichée en ambiance, surcontrôle de la non-perception. Trois replis, charges historiques différentes, aucune conclusion causale de latence ni garantie sémantique générale. Bruts `artifacts/verif-luna-91a4351/`. [Rapport et limites du lot 111](taches/rapport-codex-111-verif-luna.md).
 
 - Branche `codex-avis-redits`, fusionnée, lot **108**, base `a73a35d` :
