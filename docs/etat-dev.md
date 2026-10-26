@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-rapports-illisibles`, **non fusionnée**, lot **116**, base
+  `5ff7ce5`, code signé SSH **6949ca6**, signature vérifiée : le schéma extrait
+  nature et fondement ; le moteur déduit le
+  verdict canonique d'une nature mécanique, sans jugement indépendant.
+  Douze variantes, 24 qualifications ; refus sous parole/ambiance conservés,
+  aucun prompt narratif ni contrôle retiré. Un premier filtrage des paires,
+  abandonné, admettait des absences non prouvées. Cause établie avant changement :
+  7 → 45 segments incompatibles, tous `mecanique` + portée négative,
+  dans 7 → 35 audits. Schéma identique entre 95/b0042c9/91a4351 ; hausse
+  antérieure à 112, pas de causalité sémantique isolée au lot 102.
+  Rejeu exact Luna final : **42/42 illisibles devenus lisibles**, 10 admissions,
+  32 refus ; quinze refus narratifs rejoués, quatre écarts examinés par
+  cinq appels de chaque schéma, aucun recul de refus juste dépassant un
+  sur cinq. Détail des écarts conservé au rapport.
+  Contrôles des **68 rapports archivés identiques** à 91a4351, sources
+  inchangées ; paires forgées refusées, console et recharge vérifiées.
+  Deux passes Luna des six scripts du lot 93 : **18→0 audits illisibles**,
+  265/78→266/80 appels/tours MJ, **3,397→3,325 appels/tour** ; moyenne
+  **11,437→11,661 s/tour**, médiane **9,570→10,755 s**. Relances 17→17,
+  replis 2→1, aucun arrêt ni défaut de recharge ; douze références cachées
+  inchangées. **Aucun gain global de délai observé**, comparaison historique
+  incluant aussi les lots 112/113. Suite complète unique : **2 029 tests,
+  16 ignorés, 219 fichiers, 2 270,43 s**, deux processus réduits, aucun
+  échec ni erreur. Lancée avant le dernier format ; **71 tests finaux verts,
+  sept fichiers, 23,98 s**, aucune seconde suite complète. Cohérence typée
+  garantie, fondement et extractions toujours sémantiques.
+  Bruts `artifacts/illisibles-116/`.
+  [Rapport et limites du lot 116](taches/rapport-codex-116-rapports-illisibles.md).
+
 - Branche `codex-relances-doublees`, fusionnée, lot **113**, code signé
   `4fc1719`, base `2ef7a07` : le dossier commun de fidélité reçoit les comptes
   connus avant règlement de la copie, références nommées ; aucun prompt ni
