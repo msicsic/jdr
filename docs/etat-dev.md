@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna 057766f**, lot **123**, branche `codex-verif-luna-057766f` :
+  aucun code changé, mêmes vingt scripts et deux passes que les lots 99/111.
+  **40 parties, 302 saisies, 136 tours MJ, 437 appels** contre 459 ;
+  **3,38→3,21 appels/tour**, **11,54→12,15 s/tour**, médiane 9,57→10,91 s.
+  **156→135 audits, 35→0 illisibles, trois replis→zéro** ; aucun plantage,
+  erreur réseau, arrêt ni défaut de recharge. Quatre Luna au plus, copies,
+  priorité réduite ; quarante parties cachées sous 057766f, 95 fichiers des
+  références main/91a4351 inchangés, aucun rejeu des références.
+  Gorm remboursé 2/2 sans faux refus de quantité ; achats payés/livrés 2/2,
+  confusion de récit persistante p2. N1/N3 et fausse absence non reproduits,
+  N2 exact non exercé, réserve sur « les faits » non reproduite ; N6 persiste.
+  Nouveau faux refus d'un rappel exact d'Ilse (N7), discours indirect devenu
+  réplique descriptive (N8). Identité seulement partielle, aucune garantie
+  sémantique générale ; quatorze projections sous obstacle rechargées conformes.
+  Temps historiques sur poste partagé : aucune attribution causale de latence.
+  Un refus auxiliaire d'écriture avant Luna, repris ; trace conservée.
+  Aucune clé de signature Git configurée : commit non signé.
+  Bruts `C:\Users\msics\donjon\artifacts\verif-luna-057766f\`.
+  [Rapport du lot 123](taches/rapport-codex-123-verif-luna.md).
+
 - Branche `codex-rendre-service`, fusionnée, lot **120**, base `0a53910`,
   code signé SSH **`7ec9fbc`**, signature vérifiée : recours de service spontané
   après méfiance ou rancune, hors de la recherche, après les moyens ordinaires
