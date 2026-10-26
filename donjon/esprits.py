@@ -278,7 +278,7 @@ def verifier(monde):
     assert isinstance(esprits, dict), "Esprits invalides"
     for id, e in esprits.items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Esprit sans personnage"
-        assert set(e) == set(CHAMPS), "Esprit mal formé"
+        assert agendas.champs_esprit(e) == set(CHAMPS), "Esprit mal formé"
         from .relations import verifier as verifier_relations
         verifier_relations(monde, id)
         from .pnj_propositions import verifier as verifier_recours

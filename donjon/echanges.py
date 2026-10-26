@@ -1324,6 +1324,24 @@ def executer(monde, id, etape, lignes):
     reponse, dite = "", True  # Ce que l'autre y répond, et s'il le dit de sa voix.
     if op == "dire" and "annulation" in contenu:
         return annoncer_abandon(monde, id, autre, contenu["annulation"], lignes)
+    if op == "dire" and "avis" in contenu:
+        from .social import deja_dit, avis_exprime, recevoir, faire_entendre, phrase
+        from .eau import menacee
+        noyau = contenu["avis"]
+        if deja_dit(monde, id, autre, noyau):
+            return True
+        if menacee(monde, id, noyau["objet"]) != noyau["valeur"]:
+            return False
+        noyau = avis_exprime(monde, id, noyau["objet"], noyau["valeur"])
+        transmis = [{"type": "rumeur", "evenement": noyau, "rang": 0}]
+        # La dispute commune doit voir les croyances antérieures à toute réception.
+        from .social import _contradiction, _avis_entendus
+        if not _contradiction(monde, id, noyau, _avis_entendus(monde, id, noyau["objet"])):
+            recevoir(monde, autre, id, transmis[0])
+        texte = f"{a} dit à {b} que {phrase(monde, noyau)}."
+        _chroniquer(monde, id, texte, "social")
+        faire_entendre(monde, id, autre, texte, [noyau["objet"]], lignes, transmis)
+        return True
     if op == "dire":
         from .social import deja_dit
         if deja_dit(monde, id, autre, {"type": "affirmation", **contenu}):

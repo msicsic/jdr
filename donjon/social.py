@@ -80,6 +80,14 @@ def faits_dits(noyau):
     return faits
 
 
+def transmission_attestee(monde, id, auditeur, noyau):
+    """Preuve positive d'une parole ; l'abstention du registre plein n'en est pas une."""
+    registre = lire(monde, id)["faits_dits"]
+    return all(cle in registre and auditeur in registre[cle]["dit_a"]
+               and registre[cle]["dit_a"][auditeur] == valeur
+               for cle, valeur in faits_dits(noyau))
+
+
 def deja_dit(monde, id, auditeur, noyau):
     registre = lire(monde, id)["faits_dits"]
     return all((cle in registre and auditeur in registre[cle]["dit_a"]

@@ -5,8 +5,177 @@ Au premier lot qui en a besoin, chaque engagement deviendra un agenda d'origine
 Les lectures renvoient des copies : toute mutation passe par une opération nommée.
 """
 import copy
+import hashlib
+import json
 
 CHAMPS = {"engagements": list}
+
+
+def champs_esprit(e):
+    """L'état A4 est facultatif : aucune migration des esprits sans déclaration."""
+    return set(e) - {"agendas"}
+
+
+def champs_profil():
+    return {"agendas"}
+
+
+def projets(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("agendas", []))
+
+
+def _croyances(monde, id):
+    """Une nouvelle date de regard ne constitue pas un nouveau moyen."""
+    from .esprits import lire
+    def contenu(x):
+        if isinstance(x, dict):
+            return {k: contenu(v) for k, v in x.items() if k not in ("minute", "depuis")}
+        if isinstance(x, list):
+            return [contenu(v) for v in x]
+        return x
+    return hashlib.sha256(json.dumps(contenu(lire(monde, id)["croyances"]),
+                                    sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def poids(monde, id, agenda):
+    """Valeurs, situation et liens courants ; jamais de score sauvegardé."""
+    from .caractere import valeur
+    from .relations import envers
+    p = monde.objets[id].get("profil") or {}
+    qui = agenda["parametres"]["qui"]
+    qui = [qui] if isinstance(qui, str) else qui
+    liens = [envers(monde, id, a)["affection"] for a in qui]
+    score = (valeur(monde, id, "altruisme") + valeur(monde, id, "loyaute")
+             + p.get("situation", {}).get("projet", 0) + max(liens, default=0)) / 4
+    echeance = agenda.get("echeance")
+    if echeance is not None:
+        score *= 1 + 60 / max(1, echeance - monde.data["minutes"])
+    return score
+
+
+def _changer(monde, id, a, etat, raison, empreinte):
+    from .pnj import _chroniquer
+    from .social import _qui
+    if a.get("etat") == etat and a.get("raison") == raison:
+        a["croyances"] = empreinte
+        return
+    a.update(etat=etat, depuis=monde.data["minutes"], raison=raison, croyances=empreinte)
+    _chroniquer(monde, id, f"{_qui(monde, id)} : agenda {a['id']} {etat} ({raison}).", "decision")
+
+
+def actualiser(monde, id):
+    """Activation unique, révision sur les seules croyances du porteur."""
+    from .esprits import esprit
+    declarations = depart(monde, id)
+    if not declarations:
+        return
+    e = esprit(monde, id)
+    empreinte = _croyances(monde, id)
+    if "agendas" not in e:
+        e["agendas"] = []
+        for n, declaration in enumerate(declarations):
+            a = copy.deepcopy(declaration)
+            a.setdefault("id", f"a{n + 1}")
+            a.setdefault("maniere", {"sans_violence": True})
+            a["origine"] = {"type": "scenario", "de": id, "minute": monde.data["minutes"], "cause": a["id"]}
+            _changer(monde, id, a, "actif", "scenario", empreinte)
+            e["agendas"].append(a)
+    for a in e["agendas"]:
+        if a["etat"] not in ("actif", "sommeil"):
+            continue
+        if a.get("echeance", float("inf")) < monde.data["minutes"]:
+            _changer(monde, id, a, "abandonne", "echeance", empreinte)
+            continue
+        if a["sorte"] != "informer":
+            _changer(monde, id, a, "sommeil", "sorte non prise en charge", empreinte)
+            continue
+        if _informe(monde, id, a):
+            _changer(monde, id, a, "atteint", "parole entendue", empreinte)
+    _limiter(monde, id, empreinte)
+
+
+def _limiter(monde, id, empreinte):
+    from .esprits import esprit
+    actifs = [a for a in esprit(monde, id)["agendas"] if a["etat"] == "actif"]
+    for a in sorted(actifs, key=lambda a: (poids(monde, id, a), a["origine"]["minute"], a["id"]))[:max(0, len(actifs) - 3)]:
+        _changer(monde, id, a, "abandonne", "supplante", empreinte)
+
+
+def essayables(monde, id):
+    """Une nouvelle croyance autorise un essai, pas un réveil sans recours."""
+    empreinte = None
+    for a in projets(monde, id):
+        if a["etat"] == "actif":
+            yield a
+        elif a["etat"] == "sommeil" and a["sorte"] == "informer":
+            if empreinte is None:
+                empreinte = _croyances(monde, id)
+            if a["croyances"] != empreinte:
+                yield a
+
+
+def _destinataires(a):
+    qui = a["parametres"]["qui"]
+    return [qui] if isinstance(qui, str) else qui
+
+
+def _noyau(a):
+    return a["parametres"].get("avis", a["parametres"].get("fait"))
+
+
+def _informe(monde, id, a):
+    from .social import transmission_attestee
+    return all(transmission_attestee(monde, id, qui, _noyau(a)) for qui in _destinataires(a))
+
+
+def planifier(monde, id, identifiant):
+    """Un seul prochain sous-but recherché ; aucun plan conservé dans l'agenda."""
+    from .esprits import esprit, lire
+    from .deliberation import salle_crue
+    from .planification import chercher, _etape
+    from .social import deja_dit, avis_exprime
+    a = next(a for a in esprit(monde, id)["agendas"] if a["id"] == identifiant)
+    empreinte = _croyances(monde, id)
+    noyau = _noyau(a)
+    # Un objectif de parole n'autorise ni une mesure inventée ni un mensonge.
+    if noyau["type"] == "avis":
+        from .eau import menacee
+        connu = menacee(monde, id, noyau["objet"]) == noyau["valeur"]
+        contenu = {"avis": avis_exprime(monde, id, noyau["objet"], noyau["valeur"])}
+    else:
+        cru = lire(monde, id)["croyances"].get(noyau["sujet"], {}).get(noyau["attribut"])
+        connu = cru is not None and cru["valeur"] == noyau["valeur"]
+        contenu = {k: noyau[k] for k in ("sujet", "attribut", "valeur")}
+    if not connu:
+        _changer(monde, id, a, "sommeil", "contenu non cru", empreinte)
+        return None
+    cibles = [qui for qui in _destinataires(a) if not deja_dit(monde, id, qui, noyau)]
+    if not cibles:
+        _changer(monde, id, a, "sommeil", "transmission non attestee", empreinte)
+        return None
+    # La route crue donne le coût de proximité, sans consulter la position réelle.
+    from .planification import vue, depart as etat_depart, cout_route
+    v = vue(monde, id)
+    e = etat_depart(monde, id, v)
+    def distance(qui):
+        salle = salle_crue(monde, id, qui)
+        route = v.route(e, salle) if salle is not None else None
+        return (float("inf") if route is None else cout_route(route, e.orientation), qui)
+    qui = min(cibles, key=distance)
+    salle = salle_crue(monde, id, qui)
+    trouve = None if salle is None else chercher(
+        monde, id, lambda v, e: e.salle == salle, nom="agenda:" + identifiant,
+        memo=["agenda", identifiant, salle], emplois=(), endurer=poids(monde, id, a))
+    if trouve is None:
+        _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
+        return None
+    if a["etat"] == "sommeil":
+        _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
+        _limiter(monde, id, empreinte)
+        if a["etat"] != "actif":
+            return None
+    return {"type": "agenda", "agenda": identifiant, "qui": qui}, trouve[1] + [_etape("dire", qui, contenu=contenu)]
 
 
 def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=False):
@@ -111,6 +280,14 @@ def declares(rapport):
 
 
 def verifier(monde, id):
+    stock = projets(monde, id)
+    assert len([a for a in stock if a["etat"] == "actif"]) <= 3, "Trop d'agendas actifs"
+    assert len({a["id"] for a in stock}) == len(stock), "Identifiants d'agenda dupliqués"
+    for a in stock:
+        assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
+                and type(a["depuis"]) is int and isinstance(a["raison"], str)
+                and a["origine"]["type"] == "scenario" and "plan" not in a
+                and isinstance(a["croyances"], str)), "Agenda invalide"
     for engagement in en_cours(monde, id):
         from .deliberation import condition_valide
         # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix
@@ -242,4 +419,3 @@ def promesses_visibles(monde):
     from .francais import groupe_nominal
     return ["Tu as promis " + groupe_nominal(nom_pour_joueur(monde, x["pour"]), "à") + " que "
             + phrase_condition(monde, x["condition"]) + "." for x in en_cours(monde, "joueur")]
-
