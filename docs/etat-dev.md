@@ -4,6 +4,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-mesure-cout`, fusionnée, lot **127**, base **62429a8** :
+  `tools/mesure_cout.py`, compteurs déterministes par heure et PNJ × but,
+  recherches neuves/reprises, toutes les passes, nœuds de certificats et gestes
+  réellement générés ; aucun fichier de `donjon/` modifié, aucun Luna.
+  Auberge 1985 12 h fixe/tiré et mine 1985 12 h fixe, `42bb9c0` contre `62429a8` :
+  **6/6 nuits**, deux mesures identiques et identité des empreintes au témoin sans
+  sonde ; quatre tests ciblés verts, aucune suite complète. Deux calculs réduits
+  au plus, worktrees détachés nettoyés, résultats dans le cache commun des références.
+  Aucun compteur unique ne suit tous les CPU : recherches en fixe, générations/gestes
+  en tiré ; nœuds examinés (terminaux compris), expansions strictes non exposées.
+  CPU indicatif uniquement ; aucune clé Git de signature configurée, commit non signé.
+  Bruts `artifacts/cout-127.json` ;
+  [rapport du lot 127](taches/rapport-codex-127-mesure-cout.md).
 - Branche `codex-force-4d-tenir`, fusionnée, lot **126**, base `28fa4b2` :
   prises et liens communs joueur/PNJ (`tenir.py`) ; saisir, se dégager, ligoter, délier,
   couper le lien et se libérer. Issues longues sérialisées, appliquées à l'échéance
@@ -4957,6 +4970,24 @@ Non versionnés, donc absents d'un nouveau poste :
 
 ## Outils de mesure
 
+- Coût déterministe, sans Luna : `python tools/mesure_cout.py --reference 42bb9c0
+  --branche integration --verifier --sortie artifacts/cout.json`. Par défaut : auberge 1985
+  12 h fixe/tiré et mine 1985 12 h fixe ; `--scenario`, `--graine`, `--heures`, `--depart`
+  pour une nuit. Références figées en commits, worktrees détachés nettoyés, aucun checkout
+  du worktree courant. Cache commun `<commit>/mesure_cout/`, clé incluant configuration,
+  version de la sonde et vérification ; `--sans-cache` ignore et ne remplit pas le cache.
+  Compteurs entiers par heure et PNJ × but, totaux et moyennes par heure : appels de
+  `choisir` (but `__choix__`, car un choix compare plusieurs buts), recherches, neuves,
+  reprises mémoire, graphes réutilisés, passes, nœuds examinés de toutes les passes,
+  nœuds de certificats, générations et propositions de gestes réellement produites.
+  Une reprise de graphe sans réponse mémorisée reste une recherche neuve selon le banc.
+  Les nœuds incluent les terminaux examinés ; les gestes comptent les sorties du générateur
+  (une proposition immédiate ou différée), pas les gestes exécutés ni les arêtes uniques.
+  Générations des certificats incluses, nœuds des certificats séparés. Ventilation à l'heure
+  de début de recherche ; intervalle `[h*60, (h+1)*60[`. Le CPU instrumenté est indicatif.
+  `--verifier` exige deux mesures identiques et des empreintes identiques au témoin sans
+  sonde (chronique, récit, souvenirs, mesures et état complet). Un seul calcul à la fois
+  par invocation, priorité réduite ; aucune suite complète nécessaire pour cet outil.
 - Suite sans appel au modèle, par fichiers isolés : `python tools/tests.py` ; moitié des cœurs
   par défaut, `--processus N` pour régler la charge. Fichiers en arguments (`tests/test_web.py
   tests/test_tui.py`) ou `--motif "test_*banc*.py"` ; `--sortie artifacts/tests.json` pour les traces
