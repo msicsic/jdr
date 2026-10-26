@@ -4,23 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-mots-courants`, **non fusionnée**, lot **101**, base `31e3f9c`,
-  premier code signé `2d54461`, complété pour les formes nominales : le garde
-  commun cherche une construction technique plutôt
-  qu'un nom commun isolé. Participes de preuve et unités ordinaires suivent la même
-  règle ; personne du récit, identifiants en snake_case et grille numérique restent
-  contrôlés. Aucun prompt ni chaîne de correction modifié. **81 tests ciblés verts**,
-  puis quatre tests avec le contrôle ajouté d'identifiant ; cas réel et actes d'un
-  compagnon affichés et persistés après recharge, vrais emplois techniques corrigés.
-  Luna, une passe sur copies : `soir-appel` **18 appels / 4 tours MJ (4,5)**,
-  `ressources` **12 / 3 (4)** ; aucun refus, repli ou défaut de recharge.
-  Suite complète unique : **1 979 tests, 16 ignorés, 1 976,44 s**, deux processus
-  à priorité réduite ; deux échecs sur la même lacune nominale (« refus du moteur »),
-  corrigée dans le garde commun. **Reprise ciblée de 21 tests verte**, aucune erreur
-  et aucun autre échec dans la suite ; aucune seconde suite complète.
-  Limite explicite : les constructions informationnelles ambiguës, les sources
-  implicites et les identifiants sans marque distinctive restent en partie sémantiques ;
-  aucune garantie universelle d'absence de faux refus.
+- Branche `codex-mots-courants`, **non fusionnée**, lot **101**, base `31e3f9c`.
+  Révision après `2d54461`/`4920a9e` : les réserves sur la preuve restent refusées
+  lexicalement **sans source interne nommée** ; les tests historiques d'ambiance sont
+  rétablis à l'identique de la base, avec leur `attendu`. Le garde commun distingue
+  passif de preuve, négation impersonnelle et absence d'information d'un acte accompli
+  ou d'un support concret ; aucun sujet du monde sélectionné. Les mots courants,
+  unités ordinaires et phrase réelle de `soir-appel` restent admis. Aucun prompt,
+  chaîne de correction ni repli modifié. **25 tests ciblés verts**, puis **92 tests verts en 36,28 s**,
+  huit fichiers repris à deux processus de priorité réduite ;
+  narration, monde, regard et carte contrôlés après recharge par MJ simulé.
+  Suite complète initiale unique : **1 979 tests, 16 ignorés, 1 976,44 s**, deux
+  échecs nominaux corrigés puis 21 tests verts ; aucune nouvelle suite complète.
+  Luna initiale conservée, sans nouvelle passe : `soir-appel` **18 appels / 4 tours MJ
+  (4,5)**, `ressources` **12 / 3 (4)**, aucun refus, repli ou défaut de recharge.
+  Limite : constructions polysémiques et paraphrases restent en partie sémantiques,
+  sans relâcher les refus historiques de preuve. Aucune garantie universelle
+  d'absence de faux refus.
   [Rapport du lot 101](taches/rapport-codex-101-mots-courants.md).
 
 - Branche `codex-promesse-joueur`, fusionnée, lot **97**, base `be5fe50`,

@@ -490,9 +490,38 @@ CONTEXTE_TECHNIQUE = re.compile(
     rf"|\b(?:selon|d['’]apr[èe]s)\s+(?:les? |la |ce |ces |cet )?{SOURCES_INTERNES}\b",
     re.IGNORECASE)
 
-# Les réserves de preuve sans source explicite sont ambiguës : un acte peut être
-# attesté dans la fiction. Le sens est contrôlé par l'audit, pas par le participe.
-PREUVE_MOTEUR = CONTEXTE_TECHNIQUE
+# La réserve sur la preuve existe aussi sans nommer ses sources internes. Ce
+# vocabulaire ne suffit cependant pas seul : le passif sans support concret, les
+# sujets impersonnels et l'absence d'information commentent ce que le récit sait.
+PREUVE_MOTEUR = re.compile(
+    r"\b(?:attest[ée]e?s?|[ée]tablie?s?|confirm[ée]e?s?|indiqu[ée]e?s?|pr[ée]cis[ée]e?s?)\b"
+    r"|\b(?:rien|aucune?\s+\w+)(?:\s+\w+){0,3}\s+"
+    r"(?:ne\s+(?:(?:te|lui|vous|nous)\s+|[tm]['’])?|n['’])"
+    r"(?:indique|atteste|[ée]tablit|prouve|confirme|pr[ée]cise)\b"
+    r"|\b(?:faute|manque|absence)\s+d['’](?:indication|information|preuve)s?\b"
+    r"|\baucune?\s+(?:indication|information|preuve)s?\b"
+    r"|\b(?:pas|non)(?:\s+\w+){0,3}\s+(?:indiqu[ée]e?s?|pr[ée]cis[ée]e?s?)\b", re.IGNORECASE)
+
+PASSIF_PREUVE = re.compile(
+    r"\b(?:est|sont|[ée]tait|[ée]taient|[ée]t[ée]|[êe]tre|reste|restent|demeure|demeurent)"
+    r"(?:\s+(?:pas|point|jamais|encore|toujours|plus|bien|clairement|explicitement))*\s*$", re.I)
+SUPPORT_CONCRET = re.compile(
+    r"\s+(?:par|[àa]|au|aux|dans|sur|sous|pr[èe]s|contre|depuis|en)\b", re.I)
+
+
+def reserves_preuve(texte):
+    """Emplois de preuve ; un acte ou un support concret n'est pas une réserve.
+
+    Les relations grammaticales sont communes aux sujets : aucun nom d'objet,
+    de sensation ou de propriété du monde n'est sélectionné ici.
+    """
+    for m in PREUVE_MOTEUR.finditer(texte):
+        if SUPPORT_CONCRET.match(texte, m.end()):
+            continue
+        if " " not in m.group() and not PASSIF_PREUVE.search(texte[:m.start()]):
+            continue  # participe d'un acte, ou qualificatif sans assertion de savoir
+        yield m.group()
+
 
 # Même principe pour les unités : une case de maison ou des coordonnées bancaires
 # ne sont pas une localisation sur la grille. Les écritures numériques le sont.
@@ -629,8 +658,8 @@ def voix_auteur(texte, partie="texte"):
     obstacles, vus = unites_moteur(texte, partie), set()
     for indice, passage in enumerate(segments(texte)):
         fiction = CITATIONS.sub(" ", passage)
-        for terme in sorted({m.group(0) for regle in (AUTEUR, PREUVE_MOTEUR)
-                             for m in regle.finditer(fiction)}, key=str.lower):
+        for terme in sorted({m.group(0) for regle in (AUTEUR, CONTEXTE_TECHNIQUE)
+                             for m in regle.finditer(fiction)} | set(reserves_preuve(fiction)), key=str.lower):
             if terme.lower() in vus:
                 continue
             vus.add(terme.lower())
