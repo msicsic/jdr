@@ -23,6 +23,8 @@ EPREUVES = {
     "mensonge_decouvert": {"confiance": -35, "affection": -5, "rancune": 15},
     "imposture": {"confiance": -35, "affection": -5, "rancune": 15},
     "mensonge_dementi": {"confiance": -10},
+    "dispute_perdue": {"rancune": 10},
+    "parti_pris": {"affection": 3},
     "rumeur": {"confiance": -20},
     "aveu": {"confiance": -25},
     "refus": {"rancune": 5},

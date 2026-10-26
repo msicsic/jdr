@@ -478,15 +478,16 @@ def prevision(monde, id, salle):
     return recue
 
 
-def recevoir_prevision(monde, id, locuteur, noyau, rang):
+def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
     from .voix import source_dite
     from .pnj import _chroniquer
     actuelle = prevision(monde, id, noyau["objet"])
     candidate = {"valeur": noyau["prevision"], "minute": noyau["observe"],
                  "source": source_dite(monde, id, locuteur), "confiance": noyau["conviction"]}
+    poids = round(poids_source(monde, id, candidate) * candidate["confiance"], 12)
+    acquis = round(poids_source(monde, id, actuelle) * actuelle["confiance"], 12) if actuelle else 0
     if (actuelle and actuelle["source"] in ("vu", "essai") and actuelle["minute"] > candidate["minute"]
-            or poids_source(monde, id, candidate) * candidate["confiance"]
-            <= (poids_source(monde, id, actuelle) * actuelle["confiance"] if actuelle else 0)):
+            or poids < acquis or poids == acquis and not departage):
         return "doute"
     croire(monde, id, noyau["objet"], "prevision", copy.deepcopy(candidate["valeur"]),
            candidate["source"], candidate["confiance"], minute=candidate["minute"], rang=rang + 1)
