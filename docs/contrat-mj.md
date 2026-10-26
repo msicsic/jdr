@@ -303,6 +303,22 @@ champ de vision ou dans le noir. Un objet accessible avec `visible=false` ou un 
 ne fait pas partie de cette vue. La portée se juge sur l'affirmation, même si la demande
 du joueur propose de chercher ; répondre sur la vue actuelle n'exécute pas ce geste.
 
+**Non-perception et absence** (`codex-absence-noir`, lot 102). Le dossier commun
+porte aussi `perception.couverture_vue` : salle courante et portée `aucune`,
+`partielle` ou `salle`. Le moteur la calcule depuis le champ visible actuel en
+mode spatial, depuis l'éclairage en mode par pièce ; ni les souvenirs ni les
+entités cachées ne contribuent à cette couverture. Même une salle couverte
+n'établit rien sur les contenus cachés, ni sur une cible trop discrète pour le
+niveau de visibilité. Une absence dans la salle est une affirmation mécanique ;
+une liste d'objets vus vide établit seulement une non-perception. La portée
+mécanique de l'audit doit refuser une absence hors de cette couverture, même
+dans une phrase mixte ou classée neutre. Son `attendu` restitue la perception
+actuelle, sa liste visible et sa couverture. Une fouille ou une écoute exécutée
+conserve sa propre portée et ses résultats ; une parole de PNJ reste une parole.
+La couverture est déterministe ; reconnaître ce qu'une phrase affirme demeure
+sémantique. Un audit qui classe à tort une absence comme neutre et sans portée
+peut encore la laisser passer : aucune garantie générale sur les paraphrases.
+
 Le résultat positif ou négatif d'une perception active au-delà de cette portée est une
 affirmation mécanique : il doit s'appuyer sur une perception exécutée, dans `resultat_resolu`
 ou les résultats enregistrés. Une proposition, la demande et l'absence de faits ne prouvent

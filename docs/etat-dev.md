@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-absence-noir`, fusionnée, lot **102**, base `e218907` :
+  le dossier d'audit porte la couverture réelle de la vue (`aucune`, `partielle`,
+  `salle`), calculée sans les entités cachées. Une absence est mécanique,
+  distincte d'une non-perception ; les refus de portée restituent la perception
+  courante dans leur `attendu`. Cas réel reproduit : Ilse et Brune présentes
+  dans l'antichambre noire, fausse absence affichée et sauvegardée. Neuf tests
+  ciblés verts : deux personnes, objet, vue éclairée et fouille exécutée,
+  état et rendu après recharge. Passe Luna unique : trois scripts, **17 tours MJ,
+  58 appels, 10,6 s/tour**, fausse absence non reproduite, aucun défaut de recharge.
+  `soir-noir` conserve un abandon de parole avec « Reformule-la » et une réplique
+  incohérente avec les paroles précédentes, hors de l'invariant de ce lot.
+  Suite complète unique : **1 982 tests, 16 ignorés, 208 fichiers, 1 907,24 s**,
+  deux processus réduits ; une erreur Windows TUI de remplacement temporaire
+  avant action (`WinError 5`), **rejeu du seul test vert en 3,05 s**, sans
+  changement de code ni seconde suite complète. La couverture est déterministe ; la reconnaissance
+  d'une absence dans une phrase reste sémantique. Le verdict historique erroné
+  rejoué tel quel passe encore : aucune garantie générale sur les paraphrases.
+  [Rapport du lot 102](taches/rapport-codex-102-absence-noir.md).
+  Fusionné sur l'intégration après le lot 101 : seul conflit de documentation ; `narration.py` touché aussi par le lot 101 (garde lexical), fusionné sans conflit textuel ; suite complète relancée. **À reprendre** : `soir-noir` montre encore « Ta demande n'a pas été exécutée. Reformule-la. » sur une base qui contient le lot 100 (N3 non clos), et une voix qui dit avoir refusé son nom après l'avoir donné.
+
 - Branche `codex-mots-courants`, fusionnée, lot **101**, base `31e3f9c`.
   Révision après `2d54461`/`4920a9e` : les réserves sur la preuve restent refusées
   lexicalement **sans source interne nommée** ; les tests historiques d'ambiance sont
