@@ -1,68 +1,74 @@
-# Lot 117 — Comptes du récit par références : validation non acquise
+# Lots 117 et 117 b — Sens fermé des comptes du récit
 
-26 octobre 2026 — branche `codex-comptes-recit`, **non fusionnée**,
-base `6519588`. **Ne pas intégrer en l'état** : le contrat est implémenté,
-mais le critère de conservation des refus justes échoue ; aucun gain de délai.
+26 octobre 2026 — branche `codex-comptes-recit`, **non fusionnée**, base
+`6519588` ; code 117 b signé SSH **66fe151**, signature vérifiée.
 
-**Cause établie avant modification.** Attribution 113 et entrées exactes des
-archives 91a4351 : le dossier fournit déjà `etat`, `issue`, `offres`, avec
-rôles, quantités et références publiques. Le schéma exige pourtant une seconde
-construction des comptes depuis la prose, y compris les pronoms du locuteur.
-Au soir, « elles sont à moi » devient une absence de dette-objet ; « les pièces
-sont rendues ; la planche te sera remise » perd les deux termes de l'issue.
-Une offre conditionnelle de la crypte devient une dette exigible. L'inversion
-réelle « Tu m'en dois deux » reste un refus juste, distinct de ces erreurs.
-Les quarante fichiers sources relus gardent leurs SHA-256 archivés.
+**Cause et invariant.** Le dossier contient déjà les comptes publics du moteur,
+mais l'ancienne extraction reconstruisait leurs rôles. Le lot 117 les remplace
+par des références ; son seul jugement `restitue`/`contredit` laisse toutefois
+passer une inversion réelle deux fois sur cinq. Le moteur doit comparer le sens
+et la quantité attribués au texte, sans rôle libre réextrait de la prose.
 
-**Changement.** `narration.references_comptes` catalogue les seuls comptes
-publics fournis, avec priorité et dédoublonnage de l'issue ; `mj._appeler`
-transmet ce dossier commun. `schema_audit` demande, par segment, un jugement
-obligatoire pour chaque référence : `non_evoque`, `restitue`, `contredit`.
-Aucun rôle, quantité ou terme n'est réextrait. `controler` conserve ces liens
-dans l'audit canonique, refuse les contradictions et vérifie la couverture de
-l'issue avant enregistrement. L'ancien format reste contrôlé pour les sauvegardes
-historiques. Aucun scénario, `echanges.py`, modèle ou prompt narratif modifié.
-Un essai par listes, puis une reconversion erronée vers l'ancien contrôle,
-ont été abandonnés ; leurs bruts `essai-*` sont exclus des mesures finales.
+**Changement 117 b.** `narration.schema_liens_comptes` demande pour chaque compte
+un jugement, un sens parmi les deux orientations nommées par le moteur ou
+`non_dit`, et un nombre ou `non_dite`. `sens_du_compte` construit les orientations
+depuis les rôles et l'état du compte. `controler` compare sens et quantité :
+inversion ou quantité différente refusées même sous `restitue`, sans contradiction
+pour un champ non dit. Chaque refus identifie son champ, sa valeur reçue et
+l'accepté ; les causes sens et quantité restent distinctes. Le jugement conserve
+le contrôle sémantique des états et termes. Couverture de l'issue et relecture
+canonique restent contrôlées ; anciens audits lisibles. Aucun rôle libre,
+scénario, modèle, prompt narratif ou `echanges.py` modifié.
 
-**Vérifications.** Console et recharge avec MJ simulé : remboursements de Gorm
-et d'Aubin, autre dette et autre bien, refus de Brune, paiement du soir avec
-pièces rendues et planche encore due ; pas de relance sur les récits conformes.
-Une inversion signalée par l'audit reste refusée et non publiée. Conservation,
-relecture et altération des liens contrôlées. Suite complète unique : **2 035
-tests, 16 ignorés, 220 fichiers, 1 865,15 s**, deux processus réduits ; une
-erreur dans le générateur d'exemples d'un test, qui remplissait le nouveau champ
-objet comme une chaîne. Générateur corrigé ; **sept tests du fichier repris
-verts en 2,93 s**, aucune seconde suite complète. Aucun défaut de production
-signalé par la suite.
+**Rejeu exact, cinq fois chacun**, même schéma fermé :
 
-Rejeu Luna des **16 refus narratifs exacts** de 91a4351 : onze refus, cinq
-admissions, aucun illisible ni erreur. Cinq écarts rejoués cinq fois par schéma :
-
-| Cas (passe 2, tour, audit) | Refus ancien → final / 5 |
+| Cas (passe 2, tour, audit) | Ancien / lot 117 / 117 b : refus sur 5 |
 |---|---:|
-| Crypte, 24, 2 : offre | 5 → 0 |
-| Ambiance, 1, 1 | 4 → 0 |
-| Soir-appel, 2, 4 : possession | 3 → 0 |
-| Soir-appel, 2, 7 : **inversion réelle** | **5 → 3** |
-| Soir-appel, 5, 7 : livraison future | 4 → 2 |
+| Crypte, 24, 2 : offre | 5 / 0 / **0** |
+| Ambiance, 1, 1 | 4 / 0 / **0** |
+| Soir-appel, 2, 4 : possession | 3 / 0 / **0** |
+| Soir-appel, 2, 7 : inversion réelle | 5 / 3 / **5** |
+| Soir-appel, 5, 7 : livraison future | 4 / 2 / **5** |
 
-**Deux passes finales**, comptes / soir-appel / ressources / crypte,
-91a4351 en cache (huit parties, aucune référence rejouée) :
+Le seuil demandé de quatre refus justes sur cinq est atteint. L'orientation
+inverse est effectivement extraite dans les cinq audits de l'inversion.
+Les trois faux refus surveillés restent absents. Le cinquième cas reste une
+limite : jugements sur les termes et sur le geste introductif, malgré des sens
+et quantités conformes ; aucune garantie sémantique générale. Le script
+`comptes` conserve un repli sur Brune (association au compte inverse absent, états/termes et rappel).
 
-| Ensemble, 36 tours MJ par variante | Référence → final |
+**Console et recharge.** Gorm et Aubin : restitution admise sans relance,
+inversion et quantité erronée refusées avant affichage même sous `restitue`,
+paiement unique et conversation correcte après recharge. Brune reste débitrice ;
+achat du soir et autre bien : pièces remises, bien encore dû, état et rendu
+rechargés vérifiés. Liens conservés et recontrôlés, référence inconnue refusée.
+**62 tests ciblés verts en 18,64 s**, puis **62 repris verts en 18,84 s**, six
+fichiers, deux processus à priorité réduite. La suite complète unique du lot
+117 reste : 2 035 tests, 16 ignorés, une erreur de générateur corrigée puis sept
+tests repris verts ; aucune seconde suite complète, conformément à la reprise ciblée.
+
+**Une passe Luna 117 b**, comptes / soir-appel / ressources / crypte,
+référence 91a4351 à budget 200, quatre parties du cache, aucune rejouée :
+
+| Ensemble, 18 tours MJ par variante | Référence → 117 b |
 |---|---:|
-| Appels / appels par tour | 149 / 4,139 → 129 / 3,583 |
-| Relances / replis | 13 / 2 → 6 / 1 |
-| Secondes par tour, moyenne | 14,723 → 15,335 |
+| Appels / appels par tour | 71 / 3,944 → 69 / 3,833 |
+| Relances / replis | 5 / 1 → 6 / 1 |
+| Secondes par tour, moyenne / médiane | 14,024 / 12,690 → 20,495 / 18,735 |
+| Obstacles narratifs | 11 → 60 |
 
-Aucun arrêt ni erreur technique ou de recharge. Poste partagé, temps historiques,
-lots 112/113/116 déjà présents : aucune causalité de latence isolée.
+Aucun arrêt, erreur technique ou défaut de recharge. **Aucun gain de délai** ;
+le nombre d'obstacles augmente, y compris plusieurs refus pour un même segment.
+Le seuil des cinq rejeux est acquis, pas une validation générale des faux refus.
+Banc `artifacts/bancs-multi/20261026-081450-42584/` ; huit fichiers cachés
+inchangés après la passe. Une seule passe ne sépare pas hasard et effet du lot.
 
-**Limite décisive.** Les comptes viennent désormais du moteur, mais leur liaison
-au texte reste sémantique. L'inversion réelle est admise deux fois sur cinq,
-contre zéro auparavant ; le seuil des méthodes 93/95/116 est dépassé.
-Des faux refus et une omission de Brune subsistent. Cette branche est un
-candidat refusé à la validation, **pas une solution générale livrée**.
-Bruts et scripts : `artifacts/comptes-117/` ; banc final
-`artifacts/bancs-multi/20261026-073528-44328/`.
+**Historique 117.** Seize refus exacts rejoués : onze refus, cinq admissions.
+Deux passes des quatre scripts : 149→129 appels, 13→6 relances, 2→1 replis,
+14,723→15,335 s/tour ; validation alors refusée (inversion 3/5). Le 117 b
+remplace ce candidat et satisfait le seuil ciblé, sans supprimer ses autres
+limites sémantiques. Temps historiques et poste partagé : aucune causalité de
+latence isolée. Bruts `artifacts/comptes-117/`, `rejeu-117b.json`, tests
+`tests-117b-cibles.json` / `tests-117b-finaux.json` ; sources exactes et huit
+parties cachées vérifiées par SHA-256. Un lancement initial avec budget 500,
+arrêté après une partie de référence, est exclu et n'a pas modifié le cache 200.
