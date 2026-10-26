@@ -104,11 +104,11 @@ class PaiementEffectifTests(unittest.TestCase):
         saisie = '« Je te paie trois pièces pour une planche. »'
         faux = parole(saisie, ("propos", "", "", ""), personnage="aubin")
         faux["proposition"]["operations_demandees"]["proposition"] = True
-        correction = copy.deepcopy(faux)
-        correction["proposition"]["operations_demandees"]["proposition"] = False
+        correction = parole(saisie, personnage="aubin")
+        # L'omission déclarée empêche la correction de contourner la revue.
         r, sortie, appels = jouer(m, saisie, [faux, correction], [],
                                  revues=[revue("proposition"), revue(), revue()])
-        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
         self.assertEqual(r.joueur["or"], avant["joueur"]["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
         self.assertIn("Tu n'as encore rien dit", sortie)
@@ -143,9 +143,9 @@ class PaiementEffectifTests(unittest.TestCase):
         saisie = "Aubin, as-tu du bois ?"
         faux = parole(saisie, ("ressource", "bois", "", ""), personnage="aubin")
         r, sortie, appels = jouer(m, saisie, [faux, faux], [], revues=[{}] * 6)
-        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 4)
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 6)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertFalse(r.data.get("paroles_joueur"))
+        self.assertFalse(recharger(r).data.get('paroles_joueur'))
         self.assertNotIn("Tu dis", sortie)
         self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("operations_demandees", sortie)

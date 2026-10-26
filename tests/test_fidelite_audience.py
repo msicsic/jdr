@@ -143,9 +143,11 @@ class FideliteAudienceTests(unittest.TestCase):
         saisie = '« Je te paie trois pièces pour une planche. »'
         faux = parole(saisie, ("propos", "", "", ""), personnage="aubin")
         faux["proposition"]["operations_demandees"]["proposition"] = True
-        r, sortie, appels = jouer(m, saisie, [faux, faux], [],
+        correction = parole(saisie, personnage="aubin")
+        # L'omission déclarée doit être examinée avant toute parole sans achat.
+        r, sortie, appels = jouer(m, saisie, [faux, correction], [],
             revues=[revue("adresse", "proposition"), revue("validation_moteur"), revue("adresse")])
-        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
         self.assertNotIn("Tu dis", sortie)

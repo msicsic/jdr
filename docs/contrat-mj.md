@@ -727,8 +727,16 @@ opérations reconnues par une revue lisible. Il vérifie leur couverture avant t
 appel de revue. Une déclaration couverte que la revue rejette sans reconnaître
 l'opération ne devient pas une obligation pour les corrections : un mauvais typage
 ne condamne pas les mots exacts du joueur. Les opérations reconnues par la revue
-restent cumulées ; une omission locale ou un audit illisible conserve aussi les
-déclarations encore non examinées, pour empêcher leur effacement. Une opération manquante est
+restent cumulées. Depuis le lot 142, une préparation refusée, une omission locale
+ou une revue illisible ne confirme pas les déclarations de l'interprétation :
+la correction est contrôlée sur sa propre déclaration et les seules obligations
+déjà reconnues par une revue lisible. Une opération déclarée mais absente du
+contenu reste toutefois à examiner : elle interdit le raccourci aux mots exacts
+dans les corrections et le secours jusqu'à une revue lisible, qui la confirme
+ou l'écarte. Une revue illisible conserve aussi les déclarations du contenu
+préparé à examiner ; aucune ne devient automatiquement obligatoire. Un type
+présent dans un contenu refusé par la préparation ne crée pas cette attente.
+Une opération manquante est
 refusée localement ; une déclaration absente ou mal typée reçoit un refus de forme
 avec `attendu`, sans accumulation partielle.
 Une réplique aux mots exacts, sans opération déclarée ni contenu typé opérant,
@@ -965,8 +973,9 @@ sémantiques ; l'invariant général n'est pas garanti pour toute formulation li
 sens du contenu ne confirme pas les opérations présentes dans ce contenu,
 même si elle les coche aussi dans `operations_demandees`. Elles restent des
 hypothèses de typage ; les opérations absentes signalées par la revue restent
-des obligations de correction. Les obligations confirmées antérieurement ou
-non examinées ne sont pas effacées. Sans obligation restante, le secours peut
+des obligations de correction. Les obligations confirmées antérieurement
+ne sont pas effacées ; une déclaration candidate non examinée n'en crée pas.
+Sans obligation ni opération restant à examiner, le secours peut
 prononcer les mots exacts du joueur sans contenu typé. Le choix sémantique
 des opérations reste probabiliste ; cette règle ne certifie pas leur sens.
 
