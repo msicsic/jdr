@@ -21,7 +21,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "deverrouiller", "verrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
-           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer", "trainer",
+           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer", "trainer", "tuer",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
@@ -259,7 +259,7 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
-        if action in ("saisir", "ligoter", "delier", "liberer", "trainer"):
+        if action in ("saisir", "ligoter", "delier", "liberer", "trainer", "tuer"):
             from .tenir import preparer
             return preparer(m, p, plan)
         if action in ("fuir", "riposter", "se_rendre", "degager"):
@@ -737,7 +737,7 @@ class Moteur:
             self._attendre(travail, plan, lignes)
         else:
             self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
-        if plan.proposition["action"] in ("ligoter", "delier", "liberer", "trainer"):
+        if plan.proposition["action"] in ("ligoter", "delier", "liberer", "trainer", "tuer"):
             reussite = any(e["type"] == plan.proposition["action"] and e.get("auteur") == "joueur"
                           for e in travail.data.get("historique_corps", ())[debut_issues:])
             if not reussite:

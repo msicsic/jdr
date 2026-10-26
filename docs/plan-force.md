@@ -5,7 +5,8 @@ sur `codex-force-4c`, fusionnée, avec les limites de critère ci-dessous. La pr
 4d est réalisée sur `codex-force-4d-tenir`, non fusionnée (lot 126) : prises, liens et issues
 différées. Traîner (lot 134), puis enfermer et s’évader (lot 136, `codex-enfermer`,
 non fusionnée) sont réalisés ; la captivité prolongée termine 4d au lot 140
-(`codex-captivite`, non fusionnée). Restent 4e et 4f.
+(`codex-captivite`, non fusionnée). 4e est réalisé au lot 145
+(`codex-force-4e-tuer`, non fusionnée) ; reste 4f.
 Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
@@ -601,6 +602,19 @@ un protégé, s'évadent ; ils ne ligotent ni n'enferment personne de leur propr
   interrompu par un réveil n'a pas lieu.
 
 ### 4e. Tuer, la mort, le corps
+
+**Réalisé au lot 145**, branche `codex-force-4e-tuer`, non fusionnée : `tuer`
+emploie les validations et les issues différées de `tenir` pour le joueur et les PNJ,
+sans nouveau choix autonome. Personne vivante sans défense, au contact ; arme portée
+intacte : cinq secondes, mains nues : trente secondes, sans jet. Une victime consciente
+crie par l'ouïe commune ; le registre conserve la lutte bruyante. À l'échéance,
+revalidation puis `corps.mourir`, découverte et nouvelle typée existantes ; témoins
+et relations précèdent le rendu. Les biens restent au mort et leur prise garde la faute
+d'honnêteté commune. L'horloge retire les esprits morts pendant un laps.
+La découverte visuelle d'un protégé mort relance déjà son devoir de 30 ; aucun changement
+de `deliberation.py`. La chaîne de saisie Luna et sa vérification restent en **4f**,
+ainsi que toute garantie sémantique supplémentaire. Voir le
+[rapport 145](taches/rapport-codex-145-force-4e-tuer.md).
 
 Geste `tuer` (joueur ; déclaré pour les PNJ sans raison de s'en servir) ; dépouille, biens du mort,
 dépouiller ; découverte, nouvelle de mort, devoir du protecteur ; fin de partie du joueur tué.

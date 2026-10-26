@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-4e-tuer`, **non fusionnée**, lot **145**, base `4c57020` :
+  geste `tuer` commun au joueur et aux PNJ, sans choix autonome ; cible vivante sans
+  défense au contact, sans jet, cinq secondes avec arme portée ou trente à mains nues.
+  Issue revalidée à l'échéance sauvegardée, cri d'une victime consciente, témoins,
+  relations, dépouille via `corps.mourir`, découverte et nouvelle typée existantes.
+  Les biens restent au mort ; prise par Brune avec faute et témoin vérifiée.
+  L'horloge retire les esprits morts pendant le laps ; argument de rendu manquant
+  dans l'approche de secours rétabli. État et rendu rechargés, cas Brune et Joss,
+  laps continus/découpés, joueur tué puis commande refusée. La parole du témoin dit
+  « a tenté de tuer » ; la mort découverte est une nouvelle distincte.
+  **62 ciblés verts**, puis huit repris verts ; suite complète unique **2 132 tests,
+  1 774,48 s, deux échecs MiMo historiques `6 != 5`, zéro erreur**, 237 fichiers.
+  Les deux échecs sont reproduits sur la base intacte (13 tests, 10,23 s).
+  Banc 4 h × cinq scénarios × quatre graines : **20/20 états complets, récits,
+  chroniques, souvenirs et mesures identiques** à la base ; zéro mort, plantage,
+  usurpation ou violation. Vingt références manquantes cachées sans rejeu.
+  Aubin mort au Relais et à rixe : trois découvertes chacun, aucun plantage.
+  Aucun Luna, deux calculs réduits au plus ; suite à un processus pour cohabiter
+  avec le banc. Derniers compléments de rendu/refus/tests vérifiés par ciblés.
+  4e moteur réalisé ; saisie/narration Luna et leur vérification restent en 4f.
+  Pas de clé de signature Git configurée : commit non signé, branche poussée.
+  [Rapport 145](taches/rapport-codex-145-force-4e-tuer.md).
+
 - Branche `codex-crue-hameau`, fusionnée, lot **139**, base `3df20ff` :
   nouveau dérivé de données, six PNJ (Maël au refuge, Sève à la galerie), sans
   mesure initiale des salles basses chez ces évacués ; sept parts, quatre charges

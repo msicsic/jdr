@@ -64,7 +64,7 @@ def verifier(monde):
     captifs = monde.data.get("captivites_constatees", {})
     assert isinstance(captifs, dict) and all(a in personnages | set(monde.data.get("defunts", {})) and s in monde.data["salles"]
                for a, s in captifs.items()), "Captivité constatée invalide"
-    assert all("issue" not in g or (g["operation"] in ("ligoter", "delier", "liberer")
+    assert all("issue" not in g or (g["operation"] in ("ligoter", "delier", "liberer", "tuer")
                and isinstance(g["issue"], dict) and set(g["issue"]) == {"outil", "lien"}
                and all(isinstance(v, str) for v in g["issue"].values())) or (g["operation"] == "trainer"
                and isinstance(g["issue"], dict) and set(g["issue"]) == {"outil", "depart", "victime"}
@@ -246,7 +246,7 @@ TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, h
 CONTACT = 1            # case : au contact (une diagonale voisine comprise, ``geometrie.distance``)
 # Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
 # qui sait ce qu'elle a subi ; ceux qui voient faire en sont témoins comme d'un geste illicite.
-CONTRAINTES = ("pousser", "frapper", "assommer", "saisir", "ligoter", "trainer", "enfermer")
+CONTRAINTES = ("pousser", "frapper", "assommer", "saisir", "ligoter", "trainer", "enfermer", "tuer")
 
 
 def est_contrainte(monde, operation, objet):
@@ -340,7 +340,7 @@ def _temoins(monde, geste, souvenir, victime):
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
             geste["temoins"].append(autre)
-            if geste["operation"] in ("frapper", "assommer") and est_contrainte(monde, geste["operation"], geste["objet"]):
+            if geste["operation"] in ("frapper", "assommer", "tuer") and est_contrainte(monde, geste["operation"], geste["objet"]):
                 from .corps import evenement
                 evenement(monde, "violence_vue", geste["objet"], auteur=id, temoin=autre)
             lieu = _lieu_vu(monde, autre, geste)
@@ -839,6 +839,14 @@ def _executer_effet(monde, id, etape, lignes, gestes):
     from .deplacement_objet import deplacer
     o = monde.objets[id]
     op, cible, outil = etape["operation"], etape["cible"], etape["outil"]
+    if op == "tuer":
+        from .tenir import commencer
+        from .monde import ErreurMonde
+        try:
+            commencer(monde, id, op, cible, outil, lignes)
+        except ErreurMonde:
+            return False
+        return True
     if op == "aller":
         route = chemin(monde, id, o["lieu"], etape["lieu"])
         if route:
@@ -1726,6 +1734,10 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         o["orientation"] = vers
         tourner += supplement
     fait = _executer(monde, id, etape, lignes, gestes)
+    if fait and operation == "tuer":
+        for g in monde.data.get("gestes_en_cours", []):
+            if g["auteur"] == id and g["operation"] == operation and "issue" in g:
+                g["fin"] += tourner
     if fait is not False:
         # Ce qu'il fait le temps de ce geste : se reposer délasse, un geste d'effort creuse (``vecu``).
         monde._activite = "repos" if operation == "reposer" else "effort" if operation in EFFORTS else None
@@ -1748,6 +1760,8 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     if operation == "assommer" or operation == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
         from .combat import COUP
         return tourner + COUP, GESTE, None
+    if operation == "tuer":
+        return tourner + (50 if etape["outil"] else 300), GESTE, None
     return tourner + DUREES.get(operation, 20), GESTE, None
 
 
@@ -1896,6 +1910,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     # Les gestes illicites en cours (``data["gestes_en_cours"]``, joueur compris) : quiconque voit
     # leur auteur avant qu'il ait fini en est témoin, même d'une action du joueur à l'autre.
     finir_gestes(monde, debut)
+    ids = pnjs(monde)  # Une issue peut retirer un esprit pendant ce même laps.
     # L'instant où chacun aura fini son geste, ou son attente, est dans son esprit : un bruit qui
     # le fait se retourner le retarde (``ouie``), un événement abrège son attente.
     esprits_ = {id: esprit(monde, id) for id in ids}
@@ -1957,6 +1972,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
         finir_gestes(monde, t)
+        ids = [id for id in ids if id in monde.data["esprits"]]
+        esprits_ = {id: esprits_[id] for id in ids}
         if reveil_joueur == t:
             reveiller(monde, "joueur")
         for id in ids:
