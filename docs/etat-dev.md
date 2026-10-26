@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-trainer`, **non fusionnée**, lot **134**, base `bb31eb5` :
+  traîner une personne inconsciente, ligotée ou rendue, ou une dépouille ; même
+  validation joueur/PNJ, deux positions appliquées à l'échéance sauvegardée,
+  pas commun, arrivée libre, mains libres et interruptions. Allure 4,5 s
+  (diagonale 6,4 s), plus rotation. Témoins, souvenirs, relations et rendu communs ;
+  aucune contrainte pour les dépouilles, aucun choix autonome. Le contact accepte
+  les dépouilles et l'éveil d'un témoin occupé reste stable au découpage du laps.
+  Banc 4 h × Relais/rixe × quatre graines : **8/8 identiques** à la base, état final,
+  empreintes, chroniques, mesures et boucles ; six observations historiques
+  `fige_presse` inchangées, zéro plantage/usurpation/violation. Référence calculée
+  une fois puis cachée ; aucune conclusion CPU sur ce poste partagé.
+  **37 ciblés verts** (7,11 s) ; suite complète unique : **2 082 tests, deux échecs
+  MiMo `6 != 5`, zéro erreur**, 228 fichiers, **1 101,90 s**. Les deux échecs
+  reproduits sur l'archive intacte de la base (13 tests, 10,05 s) ; aucune seconde suite.
+  Aucun Luna, deux calculs réduits au plus ; aucune clé Git de signature configurée,
+  commit non signé, branche poussée. Mains libres = aucun objet mobile directement porté ;
+  pas de nouveau système d'équipement. Enfermer et le reste de 4d restent à faire.
+  [Rapport du lot 134](taches/rapport-codex-134-trainer.md).
+
 - Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
   critère du 2026-10-26 (PSY basse ≤ 0,7, haute ≥ 0,8, méprises globales <20 %).
   Grille commune de **112 réglages**, corpus de 48 nuits de 4 h, aucun admissible ;
@@ -152,7 +171,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   exacte par `pnj.finir_gestes` après revalidation ; coup et inconscience interrompent.
   Contraintes du corps partagées avec les pas, opérations et objets ; états visibles
   après recharge. Protecteurs déliant un protégé perçu, captifs se libérant, aucune
-  saisie ni aucun ligotage autonome. **Traîner reporté**, selon la clause de livraison
+  saisie ni aucun ligotage autonome. **Traîner reporté à ce lot** (réalisé depuis au lot 134), selon la clause de livraison
   partielle du brief ; enfermer et le reste de 4d restent à faire.
   Suite complète unique : **2 063 tests, deux échecs MiMo `6 != 5`, zéro erreur**,
   **1 072,38 s** ; les deux échecs reproduits sur la base intacte (13 tests).
@@ -5056,8 +5075,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   déclarés et le souvenir « son » dans l'ouïe commune.
 - **Étape 4 du plan social, le corps et la force** : 4a, 4b et 4c fusionnées (`codex-force-4a`, `codex-force-4b`, `codex-force-4c`) ;
   4c avec les limites de critère de son rapport (voir « À revoir ») ; 4d partiellement
-  réalisée sur `codex-force-4d-tenir`, non fusionnée (lot 126 : prises et liens ; traîner
-  reporté). Le reste de 4d, puis 4e et 4f restent à réaliser, dans `docs/plan-force.md`. Décisions de
+  réalisée sur `codex-force-4d-tenir` (lot 126 : prises et liens) et `codex-trainer`
+  (lot 134 : traîner), non fusionnées. Le reste de 4d, puis 4e et 4f restent à réaliser,
+  dans `docs/plan-force.md`. Décisions de
   la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
   ou défendre un protégé. Aucun geste de violence en 4a.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche

@@ -115,7 +115,7 @@ def noter_coup(monde, auteur, cible, percu, operation="frapper"):
         memoire.append(dict(type="subi", auteur=auteur, operation=operation, minute=monde.data["minutes"]))
     # Recevoir un coup rompt la reddition envers son auteur, sans obliger à riposter.
     r = corps.corps(monde, cible).get("reddition")
-    if r and r["a"] == auteur:
+    if r and r["a"] == auteur and operation in ("frapper", "assommer", "pousser"):
         reprendre(monde, cible)
 
 

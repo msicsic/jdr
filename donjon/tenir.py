@@ -6,9 +6,9 @@ from .monde import ErreurMonde
 from .passage import au_contact
 from .temps import instant
 
-DUREES = {"saisir": 20, "ligoter": 300, "delier": 100, "liberer": 6000}
+DUREES = {"saisir": 20, "ligoter": 300, "delier": 100, "liberer": 6000, "trainer": 45}
 PAROLES = {"dire", "parler", "crier", "cri", "appeler", "siffler", "se_rendre"}
-IMMOBILES = {"marcher", "aller", "faufiler", "chasser", "fuir", "fuite", "passer_obstacle", "franchir", "sauter", "franchir_obstacle"}
+IMMOBILES = {"trainer", "marcher", "aller", "faufiler", "chasser", "fuir", "fuite", "passer_obstacle", "franchir", "sauter", "franchir_obstacle"}
 SANS_MAINS = PAROLES | {"attendre", "patienter", "reposer", "observer", "examiner", "ecouter", "tourner", "degager", "liberer", "emettre_son"}
 
 
@@ -28,14 +28,16 @@ def bilan(monde, depuis, lignes):
     from .francais import designer, sujet
     for e in monde.data.get("historique_corps", ())[depuis:]:
         op = e["type"]
-        if op not in ("ligoter", "delier", "liberer", "liberation_manquee", "geste_interrompu"):
+        if op not in ("ligoter", "delier", "liberer", "liberation_manquee", "geste_interrompu", "trainer"):
             continue
         a, cible = e["auteur"], e["id"]
         if a == "joueur":
-            textes = {"ligoter": "La personne est maintenant ligotée.", "delier": "Tu as défait ses liens.",
+            textes = {"trainer": "Tu as traîné le corps d’une case.", "ligoter": "La personne est maintenant ligotée.", "delier": "Tu as défait ses liens.",
                       "liberer": "Tu as défait tes liens.", "liberation_manquee": "Tu ne parviens pas à défaire tes liens.",
                       "geste_interrompu": "Les conditions du geste ne tiennent plus ; il n'aboutit pas."}
             lignes.append(textes[op])
+        elif op == "trainer" and voit(monde, "joueur", a) and voit(monde, "joueur", cible):
+            lignes.append(sujet(monde.objets[a]) + " a traîné " + ("ton corps" if cible == "joueur" else designer(monde.objets[cible])) + " d’une case.")
         elif op in ("delier", "liberer") and voit(monde, "joueur", a) and voit(monde, "joueur", cible):
             lignes.append(sujet(monde.objets[a]) + (" se libère de ses liens." if a == cible else
                           " a défait les liens de " + designer(monde.objets[cible]) + "."))
@@ -100,15 +102,92 @@ def valider(monde, auteur, operation, cible, outil=""):
         raise ErreurMonde("Ce geste se fait sans outil.", f"outil={outil} : vide pour {operation}.")
 
 
+def valider_trajet(monde, auteur, cible, direction):
+    """Une paire de pas physiques : l'auteur avance, la cible rejoint son départ."""
+    from .passage import place, sens
+    from .spatial import VECTEURS, pas_vers
+    from .pnj import occupants
+    from .eau import refuser_entree
+    autoriser(monde, auteur, "trainer")
+    if not corps.conscient(monde, auteur):
+        raise ErreurMonde("Tu es sans connaissance.", f"auteur={auteur} : conscient requis.")
+    if cible == auteur:
+        raise ErreurMonde("Il faut viser quelqu'un d'autre.", f"cible={cible} : autre que auteur={auteur} requis.")
+    if cible != "joueur" and monde.objets.get(cible, {}).get("type") not in ("personnage", "depouille"):
+        raise ErreurMonde("Il faut viser un corps.", f"cible={cible} : type personnage ou depouille requis.")
+    if not au_contact(monde, auteur, cible):
+        raise ErreurMonde("Ce corps est hors de portée.", f"cible={cible} : contact avec auteur={auteur} requis.")
+    if corps.vivant(monde, cible) and not (corps.sans_defense(monde, cible) or corps.corps(monde, cible).get("reddition")):
+        raise ErreurMonde("Cette personne peut encore se débattre.", f"cible={cible} : inconscient, lie ou reddition requis.")
+    portes = sorted(i for i, o in monde.objets.items() if o.get("lieu") == auteur
+                    and o.get("mobile") and not o.get("entrave"))
+    if portes:
+        raise ErreurMonde("Il faut libérer tes mains.", f"auteur={auteur}, portes={portes} : aucun objet mobile directement porté requis.")
+    if direction not in VECTEURS:
+        raise ErreurMonde("Précise la direction du pas.", f"outil={direction} : direction parmi {sorted(VECTEURS)} requise.")
+    depart, victime = place(monde, auteur), place(monde, cible)
+    try:
+        pas = pas_vers(monde, *depart, VECTEURS[direction])
+        retour = pas_vers(monde, *victime, sens(monde, victime, depart))
+    except ErreurMonde as exc:
+        raise ErreurMonde(str(exc), f"auteur={auteur}, cible={cible}, outil={direction} : deux pas communs franchissables requis.") from exc
+    if (retour["salle"], tuple(retour["position"])) != depart:
+        raise ErreurMonde("Le corps ne peut pas rejoindre ta case.", f"cible={cible} : pas vers {depart} requis.")
+    arrivee = pas["salle"], tuple(pas["position"])
+    occ = occupants(monde, auteur)
+    if arrivee in occ:
+        raise ErreurMonde("La case d'arrivée est occupée.", f"arrivee={arrivee}, occupant={occ[arrivee]} : case libre requise.")
+    for salle, avant in ((arrivee[0], depart[0]), (depart[0], victime[0])):
+        if salle != avant:
+            refuser_entree(monde, salle)
+    return depart, victime, arrivee
+
+
+def finir_trajet(monde, g):
+    from .deplacement_objet import deplacer
+    from .eau import tremper
+    a, c, issue = g["auteur"], g["objet"], g["issue"]
+    try:
+        depart, victime, arrivee = valider_trajet(monde, a, c, issue["outil"])
+        if [depart[0], list(depart[1])] != issue["depart"] or [victime[0], list(victime[1])] != issue["victime"]:
+            raise ErreurMonde("Le corps a changé de place.")
+    except ErreurMonde:
+        corps.evenement(monde, "geste_interrompu", c, auteur=a, operation="trainer")
+        return
+    if a == "joueur":
+        monde.joueur.update(salle=arrivee[0], position=list(arrivee[1]))
+        if arrivee[0] not in monde.data["visitees"]:
+            monde.data["visitees"].append(arrivee[0])
+    else:
+        deplacer(monde, a, arrivee[0], arrivee[1])
+    if c == "joueur":
+        monde.joueur.update(salle=depart[0], position=list(depart[1]))
+        if depart[0] not in monde.data["visitees"]:
+            monde.data["visitees"].append(depart[0])
+    else:
+        deplacer(monde, c, depart[0], depart[1])
+    for acteur in (a, c):
+        if corps.vivant(monde, acteur):
+            tremper(monde, acteur)
+    corps.evenement(monde, "trainer", c, auteur=a)
+    from .esprits import percevoir_tous
+    percevoir_tous(monde)
+
+
 def commencer(monde, auteur, operation, cible, outil="", lignes=None, rotation_dixiemes=0):
     from .pnj import commencer_geste
-    valider(monde, auteur, operation, cible, outil)
+    trajet = valider_trajet(monde, auteur, cible, outil) if operation == "trainer" else None
+    if trajet is None:
+        valider(monde, auteur, operation, cible, outil)
+    if trajet is not None and auteur != "joueur":
+        from .spatial import QUART, quarts
+        rotation_dixiemes = QUART * quarts(monde.objets[auteur].get("orientation"), outil)
     lacher(monde, auteur, operation)
-    percu = operation in ("saisir", "ligoter") and corps.conscient(monde, cible) and voit(monde, cible, auteur)
+    percu = operation in ("saisir", "ligoter", "trainer") and corps.conscient(monde, cible) and voit(monde, cible, auteur)
     def enregistrer(fin):
         g = commencer_geste(monde, auteur, operation, cible, fin,
-                            exclus=(cible,) if percu and cible != "joueur" and operation in ("saisir", "ligoter") else ())
-        if operation in ("saisir", "ligoter"):
+                            exclus=(cible,) if percu and cible != "joueur" and operation in ("saisir", "ligoter", "trainer") else ())
+        if operation in ("saisir", "ligoter", "trainer") and corps.vivant(monde, cible):
             from .defense import noter_coup
             noter_coup(monde, auteur, cible, percu, operation)
             if cible != "joueur" and corps.conscient(monde, cible):
@@ -132,7 +211,17 @@ def commencer(monde, auteur, operation, cible, outil="", lignes=None, rotation_d
             lignes.append("Tu saisis cette personne." if succes else "La personne échappe à ta prise.")
         return succes
     duree = 30 if operation == "delier" and outil else DUREES[operation]
+    if trajet is not None:
+        from .temps import duree_pas
+        from .spatial import VECTEURS
+        duree = duree_pas(duree, VECTEURS[outil])
     g = enregistrer(instant(monde) + rotation_dixiemes + duree)
+    if trajet is not None:
+        depart, victime, arrivee = trajet
+        g["issue"] = {"outil": outil, "depart": [depart[0], list(depart[1])], "victime": [victime[0], list(victime[1])]}
+        o = monde.joueur if auteur == "joueur" else monde.objets[auteur]
+        o["orientation"] = outil
+        return rotation_dixiemes + duree
     g["issue"] = {"outil": outil, "lien": corps.corps(monde, cible).get("lie", {}).get("lien", "")}
     if lignes is not None and auteur == "joueur":
         lignes.append("Tu commences à " + {"ligoter": "ligoter cette personne.", "delier": "délier cette personne.", "liberer": "défaire tes liens."}[operation])
@@ -168,6 +257,8 @@ def secours(monde, auteur, lignes):
 def finir(monde, g):
     from .deplacement_objet import deplacer
     auteur, cible, operation = g["auteur"], g["objet"], g["operation"]
+    if operation == "trainer":
+        return finir_trajet(monde, g)
     outil = g["issue"]["outil"]
     try:
         valider(monde, auteur, operation, cible, outil)
@@ -206,21 +297,30 @@ def preparer(monde, p, plan):
     operation, cible, outil = p["action"], p["cible"], p["outil"]
     if operation == "liberer":
         cible = "joueur"
-    elif not monde.visible(cible):
+    elif not (monde.designable(cible) if operation == "trainer" else monde.visible(cible)):
         from .refus import inaccessible
         raise inaccessible(monde, cible)
     if p["difficulte"]:
         raise ErreurMonde("Le moteur règle ce geste.", f"difficulte={p['difficulte']} : 0 requis.")
     if p["methode"] != "simple":
         raise ErreurMonde("Cette manière n'est pas prévue.", f"methode={p['methode']} : simple requis.")
-    valider(monde, "joueur", operation, cible, outil)
+    if operation == "trainer":
+        valider_trajet(monde, "joueur", cible, outil)
+    else:
+        valider(monde, "joueur", operation, cible, outil)
     nom = designer(monde.objets[cible]) if cible != "joueur" else "toi"
-    plan.titre = {"saisir": f"Saisir {nom} : FOR contre FOR ou DEX, défense 10 par surprise.",
+    plan.titre = {"trainer": f"Traîner {nom} vers {outil} (4,5 secondes par case).", "saisir": f"Saisir {nom} : FOR contre FOR ou DEX, défense 10 par surprise.",
                   "ligoter": f"Ligoter {nom} (30 secondes).", "delier": f"Délier {nom} ({3 if outil else 10} secondes).",
                   "liberer": "Défaire tes liens : DEX contre 18, dix minutes."}[operation]
     plan.minutes, plan.dixiemes, plan.confirmation = 0, (30 if operation == "delier" and outil else DUREES[operation]), True
     tourner = 0
-    if cible != "joueur":
+    if operation == "trainer":
+        from .spatial import QUART, quarts, VECTEURS
+        from .temps import duree_pas
+        plan.regard = outil
+        tourner = QUART * quarts(monde.joueur.get("orientation"), outil)
+        plan.dixiemes = duree_pas(DUREES[operation], VECTEURS[outil]) + tourner
+    elif cible != "joueur":
         vers, duree = rotation(monde, "joueur", cible)
         plan.regard = vers
         plan.dixiemes += duree

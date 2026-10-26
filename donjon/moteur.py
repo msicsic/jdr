@@ -21,7 +21,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
-           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer",
+           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer", "trainer",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
@@ -158,6 +158,8 @@ class Moteur:
         par exemple), s'il ne le voit pas de face mais le verrait en se tournant ; None sinon."""
         if not isinstance(p, dict):
             return None
+        if p.get("action") == "trainer":
+            return None  # Le regard suit le pas, la cible reste au contact derrière.
         from .spatial import regard_vers
         etapes = p.get("etapes") if isinstance(p.get("etapes"), list) else []
         cibles = p.get("cibles") if isinstance(p.get("cibles"), list) else []
@@ -257,7 +259,7 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
-        if action in ("saisir", "ligoter", "delier", "liberer"):
+        if action in ("saisir", "ligoter", "delier", "liberer", "trainer"):
             from .tenir import preparer
             return preparer(m, p, plan)
         if action in ("fuir", "riposter", "se_rendre", "degager"):
@@ -727,7 +729,7 @@ class Moteur:
             self._attendre(travail, plan, lignes)
         else:
             self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
-        if plan.proposition["action"] in ("ligoter", "delier", "liberer"):
+        if plan.proposition["action"] in ("ligoter", "delier", "liberer", "trainer"):
             reussite = any(e["type"] == plan.proposition["action"] and e.get("auteur") == "joueur"
                           for e in travail.data.get("historique_corps", ())[debut_issues:])
             if not reussite:
