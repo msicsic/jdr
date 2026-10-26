@@ -1100,6 +1100,9 @@ def memoriser(m):
 def _memoriser(m):
     from .carte import objets_visibles_cases, symbole_objet_cases, symbole_porte_cases
     from .francais import designer
+    from . import eau
+    if eau.active(m):
+        eau.percevoir(m, "joueur")
 
     exploration = m.data.setdefault("exploration", {})
     for salle in m.data["salles"]:

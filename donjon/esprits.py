@@ -103,10 +103,14 @@ CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
 def lire(monde, id):
     """Esprit en lecture seule : une consultation ne crée rien dans l'état."""
+    if id == "joueur":
+        return {**{k: f() for k, f in CHAMPS.items()}, **monde.data.get("connaissances_joueur", {})}
     return monde.data.get("esprits", {}).get(id) or {k: f() for k, f in CHAMPS.items()}
 
 
 def esprit(monde, id):
+    if id == "joueur":
+        return monde.data.setdefault("connaissances_joueur", {"croyances": {}, "memoire": [], "faits_dits": {}})
     e = monde.data.setdefault("esprits", {}).setdefault(id, {})
     if not CHAMPS.keys() <= e.keys():
         for cle, defaut in CHAMPS.items():
@@ -216,8 +220,8 @@ def _croyance_valide(monde, attribut, c):
                 and (c.get("repere") is None or isinstance(c["repere"], list) and len(c["repere"]) == 2
                      and all(type(v) is int for v in c["repere"]))), "Croyance d'eau invalide"
     elif attribut == "prevision":
-        assert (isinstance(c.get("valeur"), list) and len(c["valeur"]) == 3
-                and all(type(v) is int for v in c["valeur"])
+        assert ((type(c.get("valeur")) is bool or isinstance(c.get("valeur"), list) and len(c["valeur"]) == 3
+                and all(type(v) is int for v in c["valeur"]))
                 and type(c.get("rang", 0)) is int and 0 <= c.get("rang", 0) <= 3), "Prévision invalide"
     elif attribut == "verrouillee":
         assert type(c.get("valeur")) is bool, "Attribut de croyance inconnu"
@@ -257,6 +261,17 @@ def _contre_offre_valide(monde, id, refus):
 
 
 def verifier(monde):
+    if "connaissances_joueur" in monde.data:
+        e = monde.data["connaissances_joueur"]
+        assert isinstance(e, dict) and set(e) == {"croyances", "memoire", "faits_dits"}, "Connaissances du joueur invalides"
+        assert isinstance(e["croyances"], dict), "Croyances du joueur invalides"
+        for sujet, attributs in e["croyances"].items():
+            assert sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}, "Perception d'eau du joueur invalide"
+            for attribut, c in attributs.items():
+                _croyance_valide(monde, attribut, c)
+        assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
+        from .social import DITS_MAX
+        assert isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX, "Faits dits du joueur invalides"
     from .signes import verifier as verifier_signes
     verifier_signes(monde)
     esprits = monde.data.get("esprits", {})
@@ -492,7 +507,8 @@ def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
         return "doute"
     croire(monde, id, noyau["objet"], "prevision", copy.deepcopy(candidate["valeur"]),
            candidate["source"], candidate["confiance"], minute=candidate["minute"], rang=rang + 1)
-    _chroniquer(monde, id, f"{monde.objets[id]['nom'].split(',')[0]} révise sa prévision de l'eau.", "social")
+    from .social import _qui
+    _chroniquer(monde, id, f"{_qui(monde, id)} révise sa prévision de l'eau.", "social")
     monde.data["chronique"][-1]["changement_avis"] = "dit"
     reconsiderer(monde, id)
     return "crue"

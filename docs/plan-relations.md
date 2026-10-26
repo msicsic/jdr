@@ -716,6 +716,20 @@ l'autre pour choisir une offre. Détails et limites dans le
 
 ### 7.3 Les avis
 
+**Lot 124, branche `codex-avis-joueur`, non fusionnée.** Le contenu joueur `avis`
+porte `sujet` (référence publique d'une salle connue), `attribut: menace`, `valeur: oui|non`.
+Sa conviction vient de l'estimation des observations propres de Corvus ; sans estimation,
+poids deviné 0,4. Les observations d'eau sont conservées à la mémorisation de sa perception.
+La position exprimée reste distincte de ces preuves : une conclusion qualitative n'invente
+aucune hauteur ni vitesse. Reçue, elle porte seulement la menace minimale (1 cm dans
+`attendue`, jamais une noyade) ; une mesure d'eau présente reste prioritaire.
+Auditeurs et témoins passent par `recevoir_prevision` ; la contradiction et les partis pris
+utilisent le circuit du lot 121. Le moteur ne fait ni répliquer ni choisir un parti au joueur.
+**Limite de bout en bout :** la passe Luna donne trois `propos`, aucun `avis` ; le raccourci
+des mots exacts déclarés sans effet évite la revue sémantique. Le typage depuis la saisie libre
+n'est pas garanti ; branche non fusionnable comme réalisation achevée de 3f.
+[Rapport du lot 124](taches/rapport-codex-124-avis-joueur.md).
+
 Un avis est une croyance sur ce qui va arriver ou ce qu'il vaut mieux faire, avec sa conviction (la
 confiance de la croyance). Pour ne rien écrire par scénario, **un avis porte seulement sur un
 prédicat que le moteur sait évaluer**, parce qu'une règle commune s'en sert déjà :

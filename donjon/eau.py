@@ -186,6 +186,12 @@ def attendue(monde, id, salle, horizon=None, *, projection=False):
     cru = eau_crue(monde, id, salle)
     c = prevision(monde, id, salle)
     e = c["valeur"] if c else None
+    if type(e) is bool:
+        # Une conclusion qualitative n'invente ni profondeur ni vitesse.
+        # Le minimum positif porte la menace, jamais une noyade ; la mesure
+        # propre d'eau présente reste prioritaire même face à un avis négatif.
+        attendu = max(cru, int(e))
+        return (attendu, 0, 0) if projection else attendu
     if projection:
         # Photographie affine pour les routes : garder la droite sous le sol.
         vitesse = max(0, e[2]) / 60 if e else 0
@@ -234,9 +240,9 @@ def _rang(cm):
 def percevoir(monde, id):
     """L'eau de sa salle et des salles voisines ouvertes devient croyance ; la voir gagner un
     lieu inquiète. Revue au moins ``REPERE`` minutes plus tard, elle donne sa vitesse."""
-    if not active(monde) or monde.objets[id]["lieu"] not in monde.data["salles"]:
+    ici = monde.joueur["salle"] if id == "joueur" else monde.objets[id]["lieu"]
+    if not active(monde) or ici not in monde.data["salles"]:
         return
-    ici = monde.objets[id]["lieu"]
     for salle in [ici, *voisines(monde, ici)]:
         observer(monde, id, salle)
 
@@ -247,7 +253,7 @@ def observer(monde, id, salle, source="vu"):
     from .esprits import croire, lire
     t, vue = monde.data["minutes"], profondeur(monde, salle)
     avant = lire(monde, id)["croyances"].get(salle, {}).get("eau") or {}
-    if _rang(vue) > _rang(avant.get("valeur", 0)):
+    if id != "joueur" and _rang(vue) > _rang(avant.get("valeur", 0)):
         from .deliberation import inquieter
         inquieter(monde, id, "crue")
     # Sous le sol, le niveau ne se voit pas : seule l'eau présente donne un repère.

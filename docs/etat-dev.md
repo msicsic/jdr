@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-avis-joueur`, **non fusionnée**, lot **124**, base `85b9204` :
+  contenu joueur `avis` (lieu public connu, menace oui/non), validation avec `attendu`,
+  conviction sur les observations propres de Corvus mémorisées avec sa perception,
+  réception commune et dispute du lot 121 avec témoins/partis pris/dispute perdue.
+  Le moteur ne fait pas répliquer Corvus à sa place. Prévisions qualitatives sans
+  mesure inventée ; faits dits et paroles rechargés. **37 ciblés verts**, puis le
+  huitième nouveau parcours, décrue réelle, vert. Suite complète unique : **2 064 tests,
+  223 fichiers, 1 009,24 s, cinq échecs**, zéro erreur/ignoré, deux processus réduits.
+  N3 adapté au nouveau champ `avis:false`, sans changer les réponses ; reprise de
+  24 tests : deux échecs MiMo restants, reproduits identiquement sur l'archive de base
+  `85b9204` (13 tests, deux échecs, atelier : six appels au lieu de cinq). Bilan non
+  entièrement vert ; aucune seconde suite. Banc 4 h crue/Relais × quatre graines :
+  huit nuits terminées, aucun signalement dans les seules chroniques, 36 avis/zéro adoption.
+  **Limite bloquante : Luna 0/3 avis typés**, trois `propos`, 9 appels (3/tour),
+  13,5 s/tour, aucun faux refus affiché ni erreur de recharge. Le raccourci des mots
+  exacts déclarés sans effet évite la revue sémantique. **Non fusionnable comme 3f achevé** ;
+  pas de seconde passe Luna ni de contournement lexical. Aucune clé de signature Git
+  configurée. [Rapport du lot 124](taches/rapport-codex-124-avis-joueur.md).
+
 - Branche `codex-rendre-service`, fusionnée, lot **120**, base `0a53910`,
   code signé SSH **`7ec9fbc`**, signature vérifiée : recours de service spontané
   après méfiance ou rancune, hors de la recherche, après les moyens ordinaires

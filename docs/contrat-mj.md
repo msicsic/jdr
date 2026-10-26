@@ -1,5 +1,17 @@
 # Contrat entre le MJ et le monde
 
+Lot 124 (`codex-avis-joueur`, non fusionnée) : `parole_joueur.contenu` admet `avis`
+avec `sujet` = référence publique d'une salle connue de Corvus, `attribut` = `menace`,
+`valeur` = `oui` ou `non`. Le moteur refuse séparément lieu inconnu, prédicat inconnu
+et valeur invalide, avec `attendu`. Il calcule la conviction sur les observations d'eau
+enregistrées de Corvus (estimation commune des PNJ, poids deviné 0,4 à défaut), reçoit
+l'avis et résout une éventuelle dispute avant affichage. Ni l'avis ni sa réception
+n'établissent sa vérité. Le joueur garde l'initiative de ses répliques et de ses partis.
+Les prévisions reçues peuvent être qualitatives, sans inventer hauteur ni vitesse ;
+elles ne remplacent pas une profondeur observée.
+Limite mesurée : Luna a choisi `propos` sur les trois saisies de l'unique passe ; le
+contrat typé est exercé en console avec MJ simulé, pas garanti depuis le langage libre.
+
 Ce document décrit le contrat appliqué entre Luna (le MJ) et le moteur, et ce qui reste à
 construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENTS.md).
 

@@ -20,6 +20,7 @@
           }
         ],
         "operations_demandees": {
+          "avis": false,
           "proposition": false,
           "affirmation": false,
           "demande": false,
@@ -40,6 +41,7 @@
       "motif": "La demande « il y a quelqu'un ? » demande si quelqu’un est présent, tandis que le contenu demande l’identité de l’interlocuteur.",
       "perimetre": "sens",
       "operations_demandees": {
+        "avis": false,
         "proposition": false,
         "affirmation": false,
         "demande": false,
@@ -74,6 +76,7 @@
           }
         ],
         "operations_demandees": {
+          "avis": false,
           "proposition": false,
           "affirmation": false,
           "demande": false,
