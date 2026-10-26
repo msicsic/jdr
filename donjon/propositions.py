@@ -19,10 +19,12 @@ def schema_terme(contrepartie=False, service=False):
         conditions.append(_forme({"objet": {"type": "string"}, "servir": {"type": "string"}}))
     formes.append(_forme({"type": {"type": "string", "enum": ["tache"]},
                           "condition": {"anyOf": conditions}}))
+    formes.extend([_forme({"type": {"type": "string", "enum": ["pieces"]},
+                           "montant": {"type": "integer", "minimum": 1}}),
+                   _forme({"type": {"type": "string", "enum": ["pieces"]},
+                           "montant": {"type": "integer", "minimum": 1}, "objet": {"type": "string"}})])
     if contrepartie:
-        formes.extend([_forme({"type": {"type": "string", "enum": ["pieces"]},
-                               "montant": {"type": "integer", "minimum": 1}}),
-                       _forme({"type": {"type": "string", "enum": ["rien"]}})])
+        formes.append(_forme({"type": {"type": "string", "enum": ["rien"]}}))
     return {"anyOf": formes}
 
 
@@ -81,11 +83,44 @@ def en_mots(monde, terme):
     if t == "tache":
         return "la promesse que " + phrase_condition(monde, terme["condition"])
     if t == "pieces":
-        return f"{quantite(terme['montant'], 'pièce')}"
+        return (f"{quantite(terme['montant'], 'pièce')}"
+                + ((" prise dans " if terme["montant"] == 1 else " prises dans ")
+                   + designer(monde.objets[terme["objet"]]) if "objet" in terme else ""))
     if t == "rien":
         return "rien"
     o = monde.objets[terme["objet"]]
     return "une part " + complement_de(o) if t == "part" else designer(o)
+
+
+def erreur_terme(terme, contrepartie=True):
+    """Unique contrat structurel, partagé par les propositions et leurs audits.
+
+    Renvoie le champ, la valeur reçue et l'attendu ; les droits et connaissances
+    se valident ensuite dans le monde. Aucun identifiant n'est interprété ici.
+    """
+    types = ("objet", "part", "tache", "pieces") + (("rien",) if contrepartie else ())
+    if not isinstance(terme, dict) or terme.get("type") not in types:
+        return "", terme, types
+    t = terme["type"]
+    champs = {"type", *({"objet"} if t in ("objet", "part") else
+                        {"condition"} if t == "tache" else {"montant"} if t == "pieces" else set())}
+    if t == "pieces" and "objet" in terme:
+        champs.add("objet")
+    if set(terme) != champs:
+        return "", sorted(terme), sorted(champs)
+    if "objet" in terme and not isinstance(terme["objet"], str):
+        return ".objet", terme["objet"], "identifiant"
+    if t == "pieces" and (type(terme["montant"]) is not int or terme["montant"] <= 0):
+        return ".montant", terme["montant"], "entier strictement positif"
+    if t == "tache":
+        c = terme["condition"]
+        if (not isinstance(c, dict) or not isinstance(c.get("objet"), str)
+                or not (set(c) in ({"objet", "allume"}, {"objet", "verrouillee"})
+                        and next(v for k, v in c.items() if k != "objet") is True
+                        or set(c) in ({"objet", "lieu"}, {"objet", "servir"})
+                        and isinstance(next(v for k, v in c.items() if k != "objet"), str))):
+            return ".condition", c, "{objet, allume:true | verrouillee:true | lieu:salle | servir:personnage}"
+    return None
 
 
 def verifier(monde, c, champ="contenu", proposant="joueur"):
@@ -104,14 +139,11 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
     for nom in ("demande", "contrepartie"):
         terme = c[nom]
         chemin = f"{champ}.{nom}"
-        types = ("objet", "part", "tache") + (("pieces", "rien") if nom == "contrepartie" else ())
-        if not isinstance(terme, dict) or terme.get("type") not in types:
-            refuser(chemin, terme, types)
+        erreur = erreur_terme(terme, nom == "contrepartie")
+        if erreur:
+            suffixe, recu, accepte = erreur
+            refuser(chemin + suffixe, recu, accepte)
         t = terme["type"]
-        champs = {"type", *({"objet"} if t in ("objet", "part") else
-                            {"condition"} if t == "tache" else {"montant"} if t == "pieces" else set())}
-        if set(terme) != champs:
-            refuser(chemin, sorted(terme), sorted(champs))
         if t in ("objet", "part"):
             from .paroles import resoudre
             from .deliberation import besoin_de_part
@@ -130,13 +162,80 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
             from .deliberation import condition_valide
             from .paroles import resoudre
             condition = terme["condition"]
-            if (not isinstance(condition, dict) or not isinstance(condition.get("objet"), str)
-                    or any(not isinstance(v, (str, bool)) for v in condition.values())
-                    or not condition_valide(monde, condition) or set(condition) not in
-                    ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"}, {"objet", "servir"})):
-                refuser(chemin + ".condition", condition, "{objet, allume:true | verrouillee:true | lieu:salle | servir:personnage}")
+            if not condition_valide(monde, condition):
+                refuser(chemin + ".condition", condition, "condition exécutable : {objet, allume:true | verrouillee:true | lieu:salle | servir:personnage}")
             for cle, valeur in condition.items():
                 if cle in ("objet", "lieu", "servir") and not (connu(valeur) or proposant != "joueur" and cle == "lieu" and valeur in monde.data["salles"]):
                     refuser(chemin + ".condition." + cle, valeur, "identifiant connu de Corvus")
-        elif t == "pieces" and (type(terme["montant"]) is not int or terme["montant"] <= 0):
-            refuser(chemin + ".montant", terme["montant"], "entier strictement positif")
+        elif t == "pieces":
+            if "objet" in terme:
+                objet = terme["objet"]
+                if (not isinstance(objet, str) or not connu(objet)
+                        or "pieces" not in monde.objets.get(objet, {})):
+                    refuser(chemin + ".objet", objet, "identifiant connu d’un objet à pièces")
+
+
+def demande_utile(monde, id, demande):
+    """Un lot divisible sert une unité ; les pièces couvrent le manque propre.
+
+    La source reste nommée : ni cession du contenant, ni paiement sur une
+    autre bourse. Une quantité inconnue n'est jamais inventée.
+    """
+    from math import ceil
+    from .biens import richesse
+    from .caractere import besoin_d_argent
+    from .deliberation import besoin_de_part
+    from .esprits import croyance
+    objet = demande.get("objet")
+    if objet is None and demande["type"] != "pieces":
+        return demande
+    manque = max(0, ceil(besoin_d_argent(monde, id) - richesse(monde, id)))
+    if objet is None:
+        n = min(demande["montant"], manque)
+        return {**demande, "montant": n} if n > 0 else None
+    o = monde.objets[objet]
+    if "pieces" in o:
+        crue = croyance(monde, id, objet, "pieces")
+        n = min(crue["valeur"] if crue else 0, manque, demande.get("montant", manque))
+        return {"type": "pieces", "objet": objet, "montant": n} if n > 0 else None
+    return {"type": "part" if besoin_de_part(o) else "objet", "objet": objet}
+
+
+def payer_terme(monde, de, a, terme):
+    """Paiement commun, éventuellement prélevé sur la seule source convenue."""
+    from .biens import payer, bourse, noter_compte, compte
+    n = terme["montant"]
+    if "objet" not in terme:
+        payer(monde, de, a, n)
+        return
+    monde.objets[terme["objet"]]["pieces"] -= n
+    if a == "joueur":
+        monde.joueur["or"] += n
+    else:
+        monde.data["finances_pnj"][a] = bourse(monde, a) + n
+    noter_compte(monde, compte(de, a, montant=n, etat="rendu"))
+
+
+def demande_financee(monde, id, demande, contrepartie):
+    """Les pièces demandées ne dépassent ni le manque ni le prix offert.
+
+    Pour les biens indivisibles, l'évaluation commune décide si le marché
+    a encore une chance ; aucune fraction d'outil n'est inventée.
+    """
+    from .biens import prix
+    from .echanges import PRIX_SANS_PRIX
+    from .esprits import croyance
+    if demande["type"] != "pieces":
+        return demande
+    t = contrepartie["type"]
+    if t == "pieces":
+        n = contrepartie["montant"]
+    elif t in ("objet", "part"):
+        objet = contrepartie["objet"]
+        n = prix(monde, objet, t == "part") or PRIX_SANS_PRIX
+        if t == "objet" and "pieces" in monde.objets[objet]:
+            crue = croyance(monde, id, objet, "pieces")
+            n += crue["valeur"] if crue else 0
+    else:
+        return None
+    return {**demande, "montant": min(demande["montant"], n)} if n > 0 else None

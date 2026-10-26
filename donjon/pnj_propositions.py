@@ -31,6 +31,7 @@ def _contreparties(monde, id, autre, demande):
     from .deliberation import besoin_de_part, parts
     from .echanges import valeur_proposition, PRIX_SANS_PRIX, offre_sensee
     from .spatial import porte_par
+    from .propositions import demande_financee
     for o, x in sorted(monde.objets.items()):
         if (o == demande["objet"] or not porte_par(monde, o, id)
                 or proprietaire(monde, o) != id or not x.get("mobile")
@@ -40,13 +41,14 @@ def _contreparties(monde, id, autre, demande):
         if part and parts(x) <= 0:
             continue
         terme = {"type": "part" if part else "objet", "objet": o}
-        if not offre_sensee(monde, id, autre, demande, terme):
+        if not offre_sensee(monde, id, autre, demande_financee(monde, id, demande, terme), terme):
             continue
         cout = valeur_proposition(monde, id, terme, autre)
         etat = lire(monde, id)["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
         gain = (prix(monde, o, bool(part)) or PRIX_SANS_PRIX) * (2 if part and etat.get(part) else 1)
         yield terme, cout, gain
-    montant = min(richesse(monde, id), prix(monde, demande["objet"], demande["type"] == "part") or PRIX_SANS_PRIX)
+    montant = (0 if demande["type"] == "pieces" else min(richesse(monde, id),
+               prix(monde, demande["objet"], demande["type"] == "part") or PRIX_SANS_PRIX))
     if montant and offre_sensee(monde, id, autre, demande, {"type": "pieces", "montant": montant}):
         terme = {"type": "pieces", "montant": montant}
         yield terme, valeur_proposition(monde, id, terme, autre), montant
@@ -161,6 +163,10 @@ def recours(monde, id, besoin, etapes):
             if demande:
                 candidats.append((autre, demande))
     for autre, demande in candidats:
+        from .propositions import demande_utile
+        demande = demande_utile(monde, id, demande)
+        if demande is None:
+            continue
         if (autre not in _connus(monde, id) or not monde.objets.get(autre, {}).get("profil")
                 or salle_crue(monde, id, autre) != monde.objets[id]["lieu"]):
             continue
@@ -180,6 +186,8 @@ def recours(monde, id, besoin, etapes):
             continue
         # Prix propre de l'essai par chance d'accord, puis chance pour les ex aequo.
         _, _, terme = min(offres, key=lambda x: (-x[1] / x[0], -x[0]))
+        from .propositions import demande_financee
+        demande = demande_financee(monde, id, demande, terme)
         return {"operation": "proposer", "cible": autre, "outil": demande["objet"], "lieu": "",
                 "condition": "", "contenu": {"demande": demande, "contrepartie": terme}}
     return None

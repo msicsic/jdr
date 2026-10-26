@@ -105,6 +105,10 @@ def valeur_proposition(monde, auditeur, terme, pour):
     # Le prix est une donnée de valeur, pas une lecture de l'état caché du bien.
     objet = terme["objet"]
     montant = prix(monde, objet, t == "part")
+    if t == "objet" and "pieces" in monde.objets[objet]:
+        crue = croyance(monde, auditeur, objet, "pieces")
+        n = monde.objets[objet]["pieces"] if proprietaire(monde, monde.objets[objet]) == auditeur else (crue["valeur"] if crue else 0)
+        montant = (montant or PRIX_SANS_PRIX) + n
     if montant is None and t == "objet" and besoin_de_part(monde.objets[objet]) is not None:
         # Il compte sa propre réserve ; la quantité cachée chez l'autre ne nourrit pas son jugement.
         quantite = parts(monde.objets[objet]) if proprietaire(monde, monde.objets[objet]) == auditeur else 1
@@ -154,6 +158,13 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
             return {"cause": "epuise"}
         if not _livraison_proposition(monde, auditeur, proposant, demande):
             return {"cause": "impossible"}
+    if demande["type"] == "pieces" and "objet" in demande:
+        from .spatial import porte_par
+        objet = demande["objet"]
+        if garde(monde, auditeur, monde.objets[objet]):
+            return {"cause": "garde"}
+        if not porte_par(monde, objet, auditeur):
+            return {"cause": "impossible"}
     p = valeur_proposition(monde, auditeur, demande, proposant)
     if p is None:
         return {"cause": "impossible"}
@@ -180,7 +191,12 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
         g += p
     lien = (penchant(monde, auditeur, "altruisme") + r["affection"] / 25
             + r["dette"] * valeur(monde, auditeur, "loyaute") / 50 - r["rancune"] / 20)
-    mauvais = max(0, p - g) * max(0, caracteristique(monde, auditeur, "INT") - 8) / PAS_PROPOSITION
+    return _bilan_valeur(p, g, lien, caracteristique(monde, auditeur, "INT"), r)
+
+
+def _bilan_valeur(p, g, lien, intelligence, r):
+    """Même prix de la disproportion pour le verdict et son anticipation."""
+    mauvais = max(0, p - g) * max(0, intelligence - 8) / PAS_PROPOSITION
     # jet_persuasion porte déjà affection, rancune et dette/20 : ne les compter qu'une fois.
     dd = (PARTAGE + (p - g) / PAS_PROPOSITION + mauvais - lien
           + r["affection"] / 25 + r["dette"] / 20 - r["rancune"] / 20)
@@ -193,18 +209,63 @@ def offre_sensee(monde, proposant, autre, demande, contrepartie):
     Pas de jet ni d'accès aux dispositions privées de l'autre. Le lien peut rendre
     un marché acceptable à l'auditeur ; il ne justifie pas de proposer à perte.
     """
+    if demande is None:
+        return False
     bilan = evaluer_proposition(monde, autre, proposant, contrepartie, demande)
-    return not bilan["cause"] and bilan["P"] <= bilan["G"]
+    if bilan["cause"] or bilan["P"] > bilan["G"]:
+        return False
+    # La demande reste bornée au but, y compris pour un plan ancien rechargé.
+    from .propositions import demande_utile, demande_financee
+    if (demande_utile(monde, proposant, demande) != demande
+            or demande_financee(monde, proposant, demande, contrepartie) != demande):
+        return False
+    estimation = anticiper_valeur(monde, proposant, autre, demande, contrepartie)
+    from .caractere import modificateur
+    maximum = 20 + modificateur(monde, proposant, "CHA") + modificateur(monde, proposant, "ELO")
+    return estimation["dd_base"] + 1 <= maximum
+
+
+def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
+    """Évaluation commune de valeur sur les seules connaissances du proposant.
+
+    Les dispositions privées ne sont pas devinées : situation, richesse liquide,
+    intelligence et lien neutres. Les prix sont publics, les pièces d'un objet
+    sont celles qu'il connaît. Aucun jet, livraison ni attitude réelle de l'autre.
+    """
+    from copy import copy
+    from .biens import BOURSE
+    from .esprits import CHAMPS
+    m = copy(monde)
+    m.objets = {i: dict(o) for i, o in monde.objets.items()}
+    m.data = {**monde.data, "objets": m.objets,
+              "finances_pnj": {autre: BOURSE},
+              "esprits": {autre: {k: f() for k, f in CHAMPS.items()}}}
+    m._cache_vue = {}
+    m.objets[autre]["profil"] = None
+    m.objets[autre]["corps"] = {}
+    crues = lire(monde, proposant)["croyances"]
+    m.data["esprits"][autre]["croyances"] = crues
+    for i, o in m.objets.items():
+        if "pieces" in o:
+            o["pieces"] = crues.get(i, {}).get("pieces", {}).get("valeur", 0)
+            # La richesse liquide adverse est inconnue, même si une bourse est visible.
+            o["lieu"] = None
+    p = valeur_proposition(m, autre, demande, proposant)
+    g = valeur_proposition(m, autre, contrepartie, autre)
+    # Les services non connus comme utiles ne sont pas un gain acquis.
+    if p is None:
+        return {"dd_base": float("inf")}
+    return _bilan_valeur(p, g or 0.0, 0, 10, {"affection": 0, "dette": 0, "rancune": 0})
 
 
 def proposer(monde, proposant, auditeur, demande, contrepartie):
     """Marché atomique : devis, jet, transferts et engagements avant publication des faits."""
-    from .biens import donner, payer, richesse
+    from .biens import donner, richesse
     from .deliberation import parts
     from .deplacement_objet import deplacer
     from .spatial import porte_par, proche
     from .vol import proprietaire
-    from .propositions import verifier
+    from .propositions import verifier, payer_terme
     verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie}, proposant=proposant)
     original, monde = monde, monde.copier()
     for terme, de, a in ((demande, auditeur, proposant), (contrepartie, proposant, auditeur)):
@@ -229,8 +290,20 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
                 return {"cause": "absent"}
             if terme["type"] == "part" and parts(o) <= 0:
                 return {"cause": "epuise"}
-        elif terme["type"] == "pieces" and richesse(monde, de) < terme["montant"]:
-            return {"cause": "pauvre"}
+        elif terme["type"] == "pieces":
+            if "objet" in terme:
+                source = monde.objets[terme["objet"]]
+                if proprietaire(monde, source) != de:
+                    return {"cause": "propriete"}
+                if garde(monde, de, source):
+                    return {"cause": "garde"}
+                if not porte_par(monde, source["id"], de):
+                    return {"cause": "absent"}
+                disponible = source["pieces"]
+            else:
+                disponible = richesse(monde, de)
+            if disponible < terme["montant"]:
+                return {"cause": "pauvre"}
     bilan = evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
     if bilan["cause"]:
         return bilan
@@ -260,7 +333,7 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
                 memoriser(monde, a, {"type": "recu", "de": de, "objet": objet, "livraison": True,
                                      **({"lot": terme["objet"]} if t == "part" else {})})
         elif t == "pieces":
-            payer(monde, de, a, terme["montant"])
+            payer_terme(monde, de, a, terme)
         elif t == "tache":
             engagement = {"condition": terme["condition"], "pour": a, "minute": monde.data["minutes"]}
             if not agendas.en_cours(monde, de, condition=terme["condition"], personne=a, actifs=True):
