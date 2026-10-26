@@ -38,7 +38,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Les mesures précédentes concernent `7ec9fbc`, avant cette révision.
   Aucun Luna, scénario, `social.py`, `ouie.py` ou algorithme de recherche modifié.
   [Rapport et limites du lot 120](taches/rapport-codex-120-rendre-service.md).
-  Fusionné sur l'intégration après le lot 121 : seul conflit de documentation ; `relations.py`, `esprits.py` et `pnj.py` touchés aussi par le lot 121, fusionnés sans conflit textuel ; suite complète relancée sur la fusion.
+  Fusionné sur l'intégration après le lot 121 : seul conflit de documentation ; `relations.py`, `esprits.py` et `pnj.py` touchés aussi par le lot 121, fusionnés sans conflit textuel ; suite complète sur la fusion (`tools/tests.py --processus 2`) : **2 057 tests, 16 ignorés**, verte (1 615,6 s).
 
 - Branche `codex-disputes`, fusionnée, lot **121**, base **0a53910** :
   avis de menace contradictoires entre PNJ par la parole commune ; une contradiction,
