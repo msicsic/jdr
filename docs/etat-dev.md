@@ -4,6 +4,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Revue Argon du coût et lots 118–119, non fusionnés** (branches poussées `codex-reprises-exactes` `bb02f3a`,
+  `codex-perception-exacte` `bd6d1eb`). Revue : `docs/taches/rapport-revue-argon-cout.md` (pistes A1 à A5 exactes, B1 à B3
+  qui changent des décisions). Mesures (paires lancées ensemble, auberge 1985 12 h) : A3 tables partagées +2,6 %, A2 clé sans
+  lectures mortes −0,2 %, A1 graphe gardé dès la première recherche **+15 %** (preuves précoces 60 → 365, mémoire ×2), A4 réfuté
+  (les gestes dépendent de l'allure par les trajets) ; lot 118 entier +15,5 % fixe / +17,4 % tiré : non fusionné. A5 perception :
+  −1 %, sous la variation entre répétitions (3 à 5 %) : non fusionné (principe : pas de cache sans gain). Le rapport à `42bb9c0`
+  varie selon la cohorte (tiré ×2,64 à ×3,81) : la mesure du seuil elle-même est bruitée sur ce poste.
+
 - **Vérification d'intégration 590653e**, lot **114**, branche
   `codex-verif-integ-590653e` : aucun code du jeu changé, sans Luna.
   **32 nuits de 12 h**, **huit rixes de 8 h**, puis **cinq nuits de 8 h
