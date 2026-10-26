@@ -401,14 +401,14 @@ plus tous les observateurs à recalculer leurs signes.
 Quand un observateur perçoit un signe nouveau (ou le même signe 10 minutes plus tard), il le lit :
 
 d20 + mod(PSY) + 2 s'il l'observe à dessein (§ 6.5) + 2 s'il le connaît bien (affection ≥ 40 ou
-une heure passée ensemble) − 4 en pénombre (niveau 1) − 2 au-delà de 4 cases,
-contre DD = 10 + force du signe (comportement 0, expression 2, ton 3) + (mod(VOL ou ELO) + 3 s'il
+une heure passée ensemble) − 3 en pénombre (niveau 1) − 2 au-delà de 4 cases,
+contre DD = 10 + force du signe (comportement 0, expression 2, ton 3) + (mod(VOL ou ELO) + 2 s'il
 dissimule).
 
 - réussi : il lit ce que le signe veut dire vraiment ; confiance 0,5 + 0,05 par point de marge, au
   plus 0,8 ;
-- manqué de 1 à 8 : il ne tire rien ;
-- manqué de plus de 8 : il se **méprend** : il lit l'autre sens que la table donne au signe (un
+- manqué de 1 à 7 : il ne tire rien ;
+- manqué de plus de 7 : il se **méprend** : il lit l'autre sens que la table donne au signe (un
   timide paraît hostile ; un flatteur paraît attaché) ; s'il dissimule, il ne lit **rien** de ce
   qu'il cache, et la méprise prend le sens le plus banal (« fatigue »).
 
@@ -416,18 +416,24 @@ Les jets de lecture tirent d'un **tirage à part** (comme le niveau d'eau, `eau.
 `data` : ajouter la lecture ne décale pas les autres jets de la nuit, ce qui garde les bancs
 comparables avant et après (décision 8).
 
-Réglage provisoire de `codex-signes-calibration`, non fusionnée : pénombre −4,
-dissimulation +3, bande « rien » 8. Une grille conditionnelle commune de 63 combinaisons
-(pénombre 4/3/2, dissimulation 5/4/3, bande 5 à 11) minimise le plus grand dépassement
-des trois bornes, puis leur somme ; aucun réglage par personnage ou scénario. Le dé,
-les bonus, la distance, les sens erronés et la formule de confiance ne changent pas.
-La confirmation acquise avant la dernière correction de continuité donnait 24,88 %
-de méprises, Gorm PSY 14 à 0,806 et Hugues à 0,769 : **critère non atteint**.
-Le balayage en nuits libres a été arrêté conformément au nouveau « Rythme des lots »
-(`main` 42bb9c0) ; l'intégration doit reprendre la calibration sur le code final,
-avec justesse haute/basse, méprises et abstention par sorte de signe. La grille
-conditionnelle n'est pas une comparaison de nuits libres à décisions identiques.
-[Mesures et limites](taches/rapport-codex-21-signes-calibration.md).
+**Décision du 2026-10-26 (lot 129)** : plafond de justesse basse révisé de
+0,6 à **0,7** (PSY ≤ 9) ; justesse haute ≥ 0,8 (PSY ≥ 13) et méprises
+strictement < 20 % des lectures conservées. Les abstentions ne sont pas des lectures.
+Réglage commun retenu **3/2/7** (pénombre/dissimulation/bande « rien »), sans
+réglage par personne, sorte ou scénario, sans changer le dé ni la règle du jet.
+La grille conditionnelle de 112 combinaisons (pénombre 2 à 5, dissimulation 2 à 5,
+bande 5 à 11), sur 48 nuits de 4 h, ne fournit **aucun réglage admissible**.
+Le compromis minimise le dépassement maximal, puis leur somme et l'abstention :
+justesse basse 0,75 (+0,05), haute 1,00, méprises globales 26,58 % (+6,58 points),
+abstention combinée 36,18 %. Il réduit l'abstention mais augmente les méprises
+par rapport à 4/3/8 : ce n'est pas une calibration acquise.
+Les nuits libres de confirmation et le rapide contre la base sont détaillés dans
+[le rapport du lot 129](taches/rapport-codex-129-signes-critere.md).
+La grille rejoue les jets à décisions figées ; les échantillons PSY réglés sont petits.
+**Le critère de calibration reste ouvert**, sans garantie sur toutes les scènes.
+Le rapide ajoute une alerte de répétition (mine 2024 : huit lectures « peur »
+contre six, avec méprises intercalées) ; l’absence de répétition nouvelle n’est
+pas acquise. Aucun plantage ni usurpation sur les seize nuits de chaque côté.
 
 ### 6.2 Ce qu'on en retient
 
@@ -944,7 +950,7 @@ du joueur se limitent à son observation explicite, sans état affectif inventé
   PSY 14, manqué à PSY 8 ; Ilse à l'écart de Brune,
   vue par le joueur (« Ilse se tient à l'écart de Brune. ») et, après `observer`, l'impression ;
   la même scène dans le noir : ni signe ni impression.
-- **Critère** : justesse croissante avec la PSY (au moins 0,8 à PSY ≥ 13, au plus 0,6 à PSY ≤ 9),
+- **Critère** (décision du 2026-10-26) : justesse croissante avec la PSY (au moins 0,8 à PSY ≥ 13, au plus 0,7 à PSY ≤ 9),
   des méprises présentes sans dominer (moins d'une lecture sur cinq) ; aucune lecture sans un signe
   perçu à cet instant (contrôle du rejeu) ; vols vus égaux ou en hausse, ou leur baisse expliquée
   par des guets dissuadés ; temps au plus +20 %.

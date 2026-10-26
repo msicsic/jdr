@@ -133,11 +133,12 @@ class SignesTests(unittest.TestCase):
             vus = [s for s in signes.percus(m, lecteur) if s["signe"] == "attend"]
             self.assertTrue(vus)
             m.objets[guetteur]["profil"]["caracteristiques"]["VOL"] = 10
-            # Même signe et même dé ; +2 PSY réussit à DD15, -1 échoue.
+            # Même signe et même dé ; dissimulation commune +2 :
+            # le dé 12 sépare encore PSY 14 et PSY 8 au nouveau seuil.
             for psy, attendu in ((14, True), (8, False)):
                 n = m.copier()
                 n.objets[lecteur]["profil"]["caracteristiques"]["PSY"] = psy
-                with patch("donjon.signes._jet", return_value=13):
+                with patch("donjon.signes._jet", return_value=12):
                     signes.lire(n, lecteur, vus)
                 n = recharger(n)
                 self.assertEqual(bool(signes.intentions_lues(n, lecteur)), attendu)
@@ -158,8 +159,9 @@ class SignesTests(unittest.TestCase):
                 m = recharger(m)
                 self.assertTrue(any(s["personnage"] == "brune" and s["signe"] == "attend"
                                     for s in signes.percus(m, "marchand")))
-                # Même dé contrôlé pour isoler l'effet de PSY sur le cas réel.
-                with patch("donjon.signes._jet", return_value=16):
+                # Pénombre et dissimulation réduites de 1 chacune : le dé
+                # passe de 16 à 14 pour garder le même écart aux seuils.
+                with patch("donjon.signes._jet", return_value=14):
                     signes.lire(m, "marchand")
                     Moteur(m).executer(Moteur(m).preparer(proposition("attendre", "0.1")))
                 m = recharger(m)
