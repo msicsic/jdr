@@ -216,7 +216,8 @@ monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conser
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
 
-**Liens comptables** (`codex-comptes-recit`, lot 117). Le moteur construit
+**Liens comptables** (`codex-comptes-recit`, lot 117, **non validé pour intégration** :
+recul de refus juste sur une inversion réelle, voir le rapport du lot). Le moteur construit
 `references_comptes` depuis les seuls comptes publics `issue`, `etat`, `offres`,
 dans cet ordre. Chaque compte distinct reçoit une référence locale au dossier
 (`issue.0`, `etat.1`, `offres.0`…) ; un doublon garde la référence prioritaire de
@@ -231,8 +232,10 @@ produit un refus avec la référence, le compte attendu et le segment. Une réf�
 inconnue ou un mélange des deux formats est illisible. Une affirmation comptable
 sans compte fourni reste soumise au contrôle commun de portée mécanique.
 
-Le lecteur reconstruit les comptes canoniques depuis le dossier, contrôle leur
-compatibilité et leur couverture, puis refait ce contrôle avant enregistrement.
+Le lecteur conserve les liens dans l’audit canonique et résout leurs références
+depuis le dossier pour contrôler contradictions et couverture. Il refait ce
+contrôle avant enregistrement ; les comptes fournis ne repassent pas par une
+comparaison des rôles extraits de la prose.
 Les anciens audits enregistrés avec des comptes extraits restent lisibles et
 conservent leurs contrôles de rôles, termes et quantités. Le catalogue est recalculé
 à chaque lecture ; une copie libre fournie dans l'entrée ne fait pas autorité.

@@ -1170,6 +1170,7 @@ def controler(texte, rapport, faits, partie="texte"):
                 raise AuditIllisible("Contrôle des contributions lumineuses mal formé.")
             ligne = {k: v for k, v in ligne.items() if k != "eclairages"}
             obstacles.extend(eclairages(lumieres, faits, passage, indice, partie))
+        liens = None
         if isinstance(ligne, dict) and "liens_comptes" in ligne:
             liens = ligne["liens_comptes"]
             catalogue = references_comptes(faits)
@@ -1236,10 +1237,11 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
-        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {}),
+        lignes_validees.append({**ligne, **({"liens_comptes": copy.deepcopy(liens)} if liens is not None else
+                                             {"comptes": comptes} if comptes is not None else {}),
                                **({"rappels": rappels} if rappels is not None else {}),
                                **({"eclairages": lumieres} if lumieres is not None else {})})
-        if comptes:
+        if comptes and liens is None:
             dossier = faits.get("comptes", {})
             attendus = dossier.get("issue", []) + dossier.get("etat", [])
             for c in comptes:
@@ -1316,7 +1318,7 @@ def controler(texte, rapport, faits, partie="texte"):
                     # lien nominal. Écarter cette seule donnée ne réécrit ni ne
                     # refuse une réplique contrôlée et ne fait apprendre aucun nom.
                     ligne = {**ligne, "presentation": ""}
-                    lignes_validees[-1] = {**ligne, **({"comptes": comptes} if comptes is not None else {})}
+                    lignes_validees[-1] = {**lignes_validees[-1], **ligne}
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":
@@ -1324,7 +1326,10 @@ def controler(texte, rapport, faits, partie="texte"):
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
         elif verdict in ("invention_protegee", "contradictoire"):
             refuser(ligne["motif"] or "Affirmation mécanique non établie.", ACCEPTE_VERDICT[verdict])
-    dits = [c for l in lignes_validees for c in l.get("comptes", [])]
+    catalogue = references_comptes(faits)
+    dits = [c for l in lignes_validees for c in (
+        [catalogue[ref] for ref, sens in l["liens_comptes"].items() if sens == "restitue"]
+        if "liens_comptes" in l else l.get("comptes", []))]
     for c in faits.get("comptes", {}).get("issue", []):
         if c["etat"] in ("rendu", "du") and not any(
                 all(d.get(k) == c[k] for k in ("debiteur", "creancier", "objet", "etat"))

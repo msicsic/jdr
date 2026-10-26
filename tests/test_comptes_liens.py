@@ -73,6 +73,22 @@ class ComptesLiensTests(unittest.TestCase):
         self.assertIn("Brune te doit 2 pièces", fiche(rr))
         self.assertIn(bon, str(rr.data["paroles_pnj"]))
 
+    def test_liens_conserves_et_recontroles_dans_audit_canonique(self):
+        c = compte("a", "joueur", montant=2, etat="rendu")
+        faits = {"comptes": {"issue": [c], "etat": [c]}, "interlocuteurs": {"a": {}}}
+        texte = "« Je te rends deux pièces. »"
+        initial = audit_liens("Je te rends deux pièces.", "a", [("issue.0", "restitue")])({"faits": faits})
+        controle = narration.controler(texte, initial, faits)
+        self.assertFalse(controle["obstacles"])
+        self.assertNotIn("comptes", controle["segments"][0])
+        self.assertEqual(controle["segments"][0]["liens_comptes"], {"issue.0": "restitue"})
+        self.assertFalse(narration.controler(texte, {"segments": controle["segments"]}, faits)["obstacles"])
+        controle["segments"][0]["liens_comptes"]["issue.0"] = "contredit"
+        self.assertTrue(narration.controler(texte, {"segments": controle["segments"]}, faits)["obstacles"])
+        controle["segments"][0]["liens_comptes"] = {}
+        with self.assertRaises(narration.AuditIllisible):
+            narration.controler(texte, {"segments": controle["segments"]}, faits)
+
     def test_schema_ne_demande_plus_roles_ni_quantites(self):
         faits = {"comptes": {"issue": [compte("a", "joueur", montant=2, etat="rendu")]}}
         s = narration.schema_audit(faits, {"0": "texte"})
