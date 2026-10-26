@@ -78,7 +78,9 @@ class ComptesIssueTests(unittest.TestCase):
                 piece = id_piece(m, lot)
                 avant = m.joueur["or"]
                 mots = f"Je te paie {prix} pièces pour une part."
-                bon = "Les pièces sont remises et je te dois encore cette part."
+                bon = ("D'accord : trois pièces pour une part des planches de bac. Voilà, les pièces "
+                       "sont rendues ; la planche te sera remise." if qui == "aubin" else
+                       "Les pièces sont remises et je te dois encore cette part.")
                 cs = [compte("joueur", qui, montant=prix, etat="rendu"),
                       compte(qui, "joueur", piece, 1)]
                 premier = parole(mots, ("demande", lot, "", str(prix)), personnage=qui)

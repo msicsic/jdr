@@ -216,31 +216,31 @@ monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conser
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
 
-Pour chaque segment, l'auditeur extrait séparément les comptes affirmés dans les mots du
-texte, y compris dans une réplique, indépendamment de son verdict narratif. Le champ est
-obligatoire quand le dossier de comptes est fourni ; un rapport incomplet est illisible.
-Le moteur compare les rôles, l'objet, l'état et toute quantité explicite avec l'issue
-validée, ou les comptes courants hors réclamation. Un compte inversé est refusé même si
-le compte inverse serait lui aussi vide. Chaque compte incompatible produit un refus
-avec le segment, les rôles reçus et un `attendu` citant l'issue ; le même garde est refait
-avant l'enregistrement. Après refus répétés, le joueur lit l'issue du moteur.
+**Liens comptables** (`codex-comptes-recit`, lot 117). Le moteur construit
+`references_comptes` depuis les seuls comptes publics `issue`, `etat`, `offres`,
+dans cet ordre. Chaque compte distinct reçoit une référence locale au dossier
+(`issue.0`, `etat.1`, `offres.0`…) ; un doublon garde la référence prioritaire de
+l'issue. Ce catalogue est fourni à toutes les voies d'audit narratif.
 
-Les références des comptes extraits passent d'abord par la résolution exacte
-commune des identifiants, noms publics et alias (`noms.references_fournies`,
-`monde.reference_exacte`). Le catalogue vient exclusivement des objets,
-interlocuteurs, personnes connues et souvenirs visuels fournis, et du joueur :
-son nom désigne `joueur`, sans constante
-propre à Corvus. Cette résolution traverse aussi les termes imbriqués des offres,
-sans changer quantités, états ni prose. Une ambiguïté rend le rapport illisible ;
-une référence inconnue ne reçoit aucune identité privée. Le contrôle refait à
-l'enregistrement utilise le même dossier public conservé avec l'audit.
+Pour chaque segment, le schéma demande `liens_comptes` : un objet dont les clés
+sont toutes les références du catalogue et les valeurs `non_evoque`, `restitue`
+ou `contredit`. Chaque compte reçoit donc un jugement explicite ; une liste
+vide ne peut éluder le contrôle. L'auditeur relie la prose aux comptes
+établis ; il ne réextrait ni rôles, ni quantités, ni termes. Une contradiction
+produit un refus avec la référence, le compte attendu et le segment. Une référence
+inconnue ou un mélange des deux formats est illisible. Une affirmation comptable
+sans compte fourni reste soumise au contrôle commun de portée mécanique.
 
-Cette comparaison est déterministe **sur les comptes extraits**. Reconnaître une affirmation,
-ses pronoms et sa portée reste sémantique : une omission ou une extraction erronée peut
-laisser passer une contradiction ou provoquer un faux refus. Une parole enregistrée
-n'établit toujours pas la vérité de son contenu. Le contrôle ne crée aucune dette ni
-aucun remboursement ; les mutations précèdent toujours le récit et la sauvegarde précède
-l'affichage.
+Le lecteur reconstruit les comptes canoniques depuis le dossier, contrôle leur
+compatibilité et leur couverture, puis refait ce contrôle avant enregistrement.
+Les anciens audits enregistrés avec des comptes extraits restent lisibles et
+conservent leurs contrôles de rôles, termes et quantités. Le catalogue est recalculé
+à chaque lecture ; une copie libre fournie dans l'entrée ne fait pas autorité.
+Une parole enregistrée n'établit pas la vérité de son contenu et ne crée ni dette
+ni remboursement. Reconnaître le compte évoqué et juger sa restitution reste
+sémantique : ce contrat supprime la reconstruction concurrente des comptes, sans
+garantir l'absence de faux refus ni de fausse admission. Après refus répétés, le
+joueur lit l'issue du moteur ; les mutations et la sauvegarde précèdent l'affichage.
 
 **Comptes de l'issue** (`codex-comptes-issue`, lot 73). Les paiements et remises
 sont collectés par leurs opérations, dans la copie transactionnelle de la conversation ;
@@ -251,15 +251,15 @@ son identité physique. Les remises encore dues figurent aussi dans l'état publ
 des comptes et dans leur rendu après recharge ; aucune dette privée entre PNJ
 n'est exposée, aucun journal technique supplémentaire n'est sauvegardé.
 
-Chaque compte `rendu` ou `du` de l'issue doit être restitué par les comptes extraits
+Chaque compte `rendu` ou `du` de l'issue doit être couvert par les liens `restitue`
 du récit entier, même si un segment est une réplique ou dit n'avoir aucune portée
 mécanique. Une omission ou un compte inversé entraîne une révision ; le contrôle
 est refait avant enregistrement. Le solde courant reste une source pour les autres
 comptes ; l'absence d'une créance explicitement traitée garde le sens de la demande.
 Raconter un transfert déjà opéré ne crée pas ce transfert par la parole. Une
 non-livraison qui explique un remboursement n'établit pas l'absence d'une dette-objet.
-L'extraction des affirmations et la qualification de leur portée restent sémantiques :
-le moteur compare déterministement les comptes extraits, sans garantir toute paraphrase
+Le rattachement des affirmations et la qualification de leur portée restent sémantiques :
+le moteur compare déterministement les comptes liés, sans garantir toute paraphrase
 ni neutraliser les autres contradictions d'un segment pourtant pourvu d'un compte juste.
 
 **Offres conditionnelles** (`codex-prime-offre`, lot 67). Le dossier `comptes.offres`
@@ -272,14 +272,13 @@ actuel de leur donneur, pour juger une reformulation dans la situation présente
 Le devis initial vient de `prime_base`, puis du montant proposé ou accepté ; aucun
 devis nouveau sans les fonds nécessaires. Un refus ou un paiement clôt l'offre.
 
-L'auditeur extrait une offre conditionnelle dans `comptes` avec cette forme, au lieu
-de la déclarer `du`. Le moteur compare exactement ses rôles et ses deux termes aux
-offres fournies. Une dette, une remise et une offre ne se justifient pas entre elles.
+L'auditeur relie une offre à sa référence dans le catalogue commun, sans la
+reconstruire comme dette `du`. Le moteur conserve ses rôles et ses termes fournis. Une dette, une remise et une offre ne se justifient pas entre elles.
 Les formulations produites par le moteur servent également d'appui aux engagements
 racontés ; annoncer la contrepartie conditionnelle ne lance aucune action.
 La remise de mission reste atomique : objet transféré et prime payée, sans solde
 intermédiaire sauvegardé ; son paiement est fourni comme compte `rendu` au récit
-du résultat. La comparaison est déterministe sur les termes extraits ; reconnaître
+du résultat. La reconstruction est déterministe depuis les comptes fournis ; reconnaître
 une condition dans la prose et juger ses reformulations restent sémantiques.
 
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
