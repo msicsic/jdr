@@ -4937,9 +4937,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   à 276524c porte sur des nuits différentes. Vols vus : ablations mine 7 et 11,
   effets de positions/orientations ; tentatives maintenues, aucune dissuasion par
   les lectures démontrée. Trajet isolé 8f60441 gardé avec Q (`Vue.descente` dans la marche).
-  Lot 129, branche `codex-signes-critere` non fusionnée : critère bas révisé à 0,7 ;
-  grille et confirmation à 4 h ne ferment pas le critère. Compromis 3/2/7 et
-  régressions de répétition détaillés en tête de ce document et dans le rapport.
+  Lot 129 fusionné sans son réglage : critère bas révisé à 0,7, aucun réglage commun
+  admissible ; l'utilisateur garde 4/3/8 (2026-10-26), calibration close en l'état.
 - Force 4c (critère partiel) : aux valeurs actuelles, Aubin fuit comme Ilse au lieu de riposter ou de se
   dégager ; la fin de tout affrontement en moins de dix minutes n'est pas prouvée (les poursuites gardent
   rejoindre, chercher, appeler et la patience) ; le risque d'une riposte est l'estimation `force.force_crue`
