@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-force-4d-tenir`, **non fusionnée**, lot **126**, base `28fa4b2` :
+- Branche `codex-force-4d-tenir`, fusionnée, lot **126**, base `28fa4b2` :
   prises et liens communs joueur/PNJ (`tenir.py`) ; saisir, se dégager, ligoter, délier,
   couper le lien et se libérer. Issues longues sérialisées, appliquées à l'échéance
   exacte par `pnj.finir_gestes` après revalidation ; coup et inconscience interrompent.
