@@ -4,6 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-tache-promise`, **non fusionnée**, lot **115**, base **6910d8e** :
+  une tâche typée peut payer une part dans le recours après les moyens ordinaires.
+  Conditions connues, un candidat et un devis par recours, propres moyens sans
+  demande ni délégation futures ; jugement inversé, marché et agendas communs.
+  Aucun Luna ni changement de recherche/scénario. Brune recharge le brasero de
+  Gorm ; Joss verrouille la réserve d'Odile contre un repas : état, perception,
+  journal rechargé et même laps découpé contrôlés. Rupture annoncée et confiance
+  diminuée, impossibilité et refus sauvegardés vérifiés. Neuf tests nouveaux ;
+  un ancien refus ne remplace plus un nouveau plan ordinaire ni sa demande.
+  Banc 4 h × quatre scénarios × quatre graines : aucun plantage/usurpation,
+  aucun nouveau code d'audit, 10/16 états identiques ; aucune tâche naturelle
+  offerte/acceptée/tenue/rompue dans les 16 nuits finales. Propositions/acceptées
+  Relais 0/0 → 0/0, mine 13/1 → 10/1, auberge 3/1 → 3/1, crue 9/0 → 5/0.
+  Mine : une observation supplémentaire de devoir satisfait chez Rémy (230 min),
+  répétition et avertissement redit disparus ; pas de boucle active nouvelle.
+  **Critère CPU non démontré**, références cachées sous une autre charge.
+  CPU final/nuit Relais/mine/auberge/crue : 6,60/20,35/16,45/22,69 s.
+  Un seul candidat peut masquer un autre service possible ; verrouillage ponctuel,
+  pas de garde permanente nouvelle ni de tarif de service en pièces.
+  Suite complète unique : 2 033 tests, 16 ignorés, 219 fichiers, 2 266,85 s ;
+  trois échecs et deux erreurs de parcours, corrigés dans leurs scènes de test.
+  Reprises 101 tests (une attente de première offre), puis 13 verts en 20,04 s ;
+  bilan consolidé vert, un ignoré, aucune seconde suite. Code signé SSH
+  `d3567d8` / `ee0ab0c`, signatures vérifiées. Créneau dépassé par la vérification.
+  Bruts `artifacts/tache-115/`.
+  [Rapport et limites du lot 115](taches/rapport-codex-115-tache-promise.md).
+
 - Branche `codex-redire-passe`, fusionnée, lot **112**, base `8613fc9` :
   dossier des paroles entendues par interlocuteur sous ses références publiques,
   sans fenêtre globale ; extraction des rappels du passé dans tous les verdicts,
