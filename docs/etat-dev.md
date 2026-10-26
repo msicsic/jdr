@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-mots-courants`, **non fusionnée**, lot **101**, base `31e3f9c`,
+  premier code signé `2d54461`, complété pour les formes nominales : le garde
+  commun cherche une construction technique plutôt
+  qu'un nom commun isolé. Participes de preuve et unités ordinaires suivent la même
+  règle ; personne du récit, identifiants en snake_case et grille numérique restent
+  contrôlés. Aucun prompt ni chaîne de correction modifié. **81 tests ciblés verts**,
+  puis quatre tests avec le contrôle ajouté d'identifiant ; cas réel et actes d'un
+  compagnon affichés et persistés après recharge, vrais emplois techniques corrigés.
+  Luna, une passe sur copies : `soir-appel` **18 appels / 4 tours MJ (4,5)**,
+  `ressources` **12 / 3 (4)** ; aucun refus, repli ou défaut de recharge.
+  Suite complète unique : **1 979 tests, 16 ignorés, 1 976,44 s**, deux processus
+  à priorité réduite ; deux échecs sur la même lacune nominale (« refus du moteur »),
+  corrigée dans le garde commun. **Reprise ciblée de 21 tests verte**, aucune erreur
+  et aucun autre échec dans la suite ; aucune seconde suite complète.
+  Limite explicite : les constructions informationnelles ambiguës, les sources
+  implicites et les identifiants sans marque distinctive restent en partie sémantiques ;
+  aucune garantie universelle d'absence de faux refus.
+  [Rapport du lot 101](taches/rapport-codex-101-mots-courants.md).
+
 - Branche `codex-promesse-joueur`, fusionnée, lot **97**, base `be5fe50`,
   code signé SSH `886eae5` : les devis autonomes et les fournitures futures
   exigent un profil avant toute recherche. Les remises déjà en main restent

@@ -483,6 +483,8 @@ CONTEXTE_TECHNIQUE = re.compile(
     r"|\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
     r"|\b(?:le|du|au) moteur(?=\s+(?:(?:a|avait)\s+)?"
     r"(?:refus|valid|calcul|d[ée]termin|enregistr|sauvegard|ex[ée]cut|autoris))"
+    r"|\b(?:refus|validation|calcul|enregistrement|sauvegarde|ex[ée]cution|autorisation|d[ée]cision)"
+    r"\s+(?:du|par le) moteur\b"
     r"|\b(?:les|des|aux) (?:faits|donn[ée]es)(?=\s+(?:ne\s+)?"
     r"(?:disent|pr[ée]cisent|indiquent|montrent|d[ée]crivent|permettent|fournis|re[çc]us))"
     rf"|\b(?:selon|d['’]apr[èe]s)\s+(?:les? |la |ce |ces |cet )?{SOURCES_INTERNES}\b",
