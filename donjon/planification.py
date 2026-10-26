@@ -2479,9 +2479,13 @@ def _mesurer(v, e, ajout, suivant, ancienne_duree):
         if mesure is None:
             return None
         temps, pression, portes = mesure
-        faits = dict(suivant.faits)
-        faits.update((k, x) for k, x in portes if suivant.faits.get(k) == e.faits.get(k))
-        return temps, pression, suivant.apres(faits=faits.items())
+        # Une mesure garde les portes connues, pas seulement ses écritures.
+        # Composer uniquement les changements effectifs ; les autres faits et
+        # l'état destinataire restent partagés, sans recopier tout le plan.
+        changements = [(k, x) for k, x in portes
+                       if suivant.faits.get(k) == e.faits.get(k)
+                       and (k not in suivant.faits or suivant.faits[k] != x)]
+        return temps, pression, suivant.apres(faits=changements) if changements else suivant
     return _mesurer_direct(v, e, ajout, suivant, ancienne_duree)
 
 
