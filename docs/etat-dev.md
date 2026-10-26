@@ -55,6 +55,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Aucun Luna. Les permissions d'usage d'un bien durable ne sont pas étendues
   par sa transmission ; signes interprétés faillibles, fournitures accessoires
   de tiers exclues. [Rapport du lot 122](taches/rapport-codex-122-intermediaires.md).
+  Fusionné sur l'intégration après les lots 123, 125, 126 et 127 : seul conflit de documentation ; aucun fichier de code commun avec le lot 126 (`pnj.py`, `tenir.py`). Suite complète sur la fusion (`tools/tests.py --processus 2`) : **2 079 tests, 16 ignorés**, verte (2 081,4 s).
 - Branche `codex-mesure-cout`, fusionnée, lot **127**, base **62429a8** :
   `tools/mesure_cout.py`, compteurs déterministes par heure et PNJ × but,
   recherches neuves/reprises, toutes les passes, nœuds de certificats et gestes
