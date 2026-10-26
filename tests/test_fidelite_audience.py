@@ -149,4 +149,4 @@ class FideliteAudienceTests(unittest.TestCase):
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
         self.assertNotIn("Tu dis", sortie)
-        self.assertIn("n'a pas été exécutée", sortie)
+        self.assertIn("Tu n'as encore rien dit", sortie)

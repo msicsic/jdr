@@ -230,7 +230,13 @@ def verifier(rapport, plan=None, operations_demandees=None):
             raise RapportInvalide("La contre-revue de la parole est invalide.")
         requises = operations_demandees if operations_demandees is not None else set()
         # Une correction du contenu ne peut effacer une demande déjà reconnue.
-        requises.update(t for t, demandee in rapport["operations_demandees"].items() if demandee)
+        reconnues = {t for t, demandee in rapport["operations_demandees"].items() if demandee}
+        if not rapport["contenu_conforme"] and rapport["perimetre"] == "sens":
+            # Les opérations présentes appartiennent au contenu que cette même
+            # revue conteste : ce ne sont pas des obligations confirmées. Les
+            # opérations absentes, en revanche, signalent une omission à réparer.
+            reconnues -= operations_contenu(plan.parole["contenu"])
+        requises.update(reconnues)
         verifier_operations(plan, requises)
         motif = rapport["motif"][:MOTIF_MAX]
         if not rapport["contenu_conforme"] and rapport["perimetre"] == "sens":

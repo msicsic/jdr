@@ -49,7 +49,7 @@ class ContenuVideTests(unittest.TestCase):
                 self.assertEqual(r.joueur['or'], avant)
                 validee = next(e['faits']['conversation_validee'] for f, e in appels if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
                 self.assertEqual(validee['faits'], [])
-                self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 3)
+                self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 2)
 
     def test_prime_et_autre_condition_mecanique_refusees_meme_classees_parole(self):
         for nom, saisie, citation in [
