@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-relances-doublees`, **non fusionnée**, lot **113**, code signé
+  `4fc1719`, base `2ef7a07` : le dossier commun de fidélité reçoit les comptes
+  connus avant règlement de la copie, références nommées ; aucun prompt ni
+  garde de décision changé. Attribution sans Luna des 80 parties archivées :
+  406→459 appels, supplémentaires structurels 56→102 ; rapports illisibles
+  9→44 (contrôle ancien lot 83), quantité implicite N4 0→4. Le dossier incomplet
+  est ancien ; la perte du typage contesté passe par les lots 100/104, sans preuve
+  causale de l'apparition du faux verdict. Gorm et autre dette payés une fois
+  après recharge, montant divergent refusé, comptes privés exclus. Deux passes
+  Luna ciblées : Gorm remboursé 2/2, 6/10→4/4 appels sur son tour ; ensemble
+  comptes/guet/soir-noir 95→94 appels, 17,8→18,5 s/tour, relances 7→10,
+  replis 1→2. Aucun arrêt ni défaut de recharge ; pas de gain global de latence.
+  Rejeu local de 275 audits exacts identique à 91a4351 ; rejeu Luna de 21 refus :
+  cinq fidélités toujours refusées, narration huit refus/six admissions/deux
+  illisibles, réserves explicitées au rapport. Suite complète unique : **2 018
+  tests, 16 ignorés, aucune erreur, 217 fichiers, 1 925,76 s**, deux processus
+  réduits ; sept assertions d'anciens champs adaptées, **23 tests repris verts,
+  54,01 s**, aucun échec de test restant reproduit, aucune seconde suite.
+  Les faux refus sémantiques et rapports illisibles
+  restent ouverts. [Rapport du lot 113](taches/rapport-codex-113-relances-doublees.md).
+
 - Branche `codex-verif-luna-91a4351`, lot **111**, code **91a4351** : vérification seule, aucun code modifié. Deux passes des vingt scripts du lot 99 : **40 parties, 302 saisies, 136 tours MJ, 459 appels**, **3,38 appels/tour, 11,54 s/tour**, médiane **9,57 s**. Références 42bb9c0/882907c/b0042c9 relues, **177 fichiers inchangés**, quarante parties cachées identiques ; aucun plantage, erreur technique, arrêt ou défaut de recharge, quatorze parcours sous obstacle cohérents. **Validation partielle** : N1/N3 et fausse absence non reproduits ; N2 non reproduit mais phrase exacte non générée. Achats exécutés 2/2, confusion comptable et identité refusée après nom donné toujours présentes. Nouveau faux refus de quantité : remboursement à Gorm perdu 2/2 ; réserve sur « les faits » affichée en ambiance, surcontrôle de la non-perception. Trois replis, charges historiques différentes, aucune conclusion causale de latence ni garantie sémantique générale. Bruts `artifacts/verif-luna-91a4351/`. [Rapport et limites du lot 111](taches/rapport-codex-111-verif-luna.md).
 
 - Branche `codex-avis-redits`, fusionnée, lot **108**, base `a73a35d` :

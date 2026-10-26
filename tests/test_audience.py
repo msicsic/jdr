@@ -41,7 +41,9 @@ class AudienceTests(unittest.TestCase):
         for f, e in appels:
             if f == "auditer_action":
                 revue = e["plan"]["parole"]
-                self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu"})
+                self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu", "comptes_avant"})
+                self.assertTrue(all("joueur" in (c["debiteur"], c["creancier"])
+                                    for c in revue["comptes_avant"]))
         return r, validee, sortie
 
     def test_cas_reel_trois_presents_et_une_voix_avec_aubin_en_face(self):
