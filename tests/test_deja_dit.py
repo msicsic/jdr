@@ -99,7 +99,7 @@ class DejaDitTests(unittest.TestCase):
         self.assertFalse(dit)
         self.assertEqual(texte, "")
 
-    def test_changement_puis_retour_de_valeur_rouvrent_le_constat(self):
+    def test_changement_puis_retour_connu_du_destinataire_rouvre_le_constat(self):
         m = scene()
         for _ in range(2):
             croire(m, "ilse", "vivres", "etat", {"disponible": False}, "essai")
@@ -112,9 +112,42 @@ class DejaDitTests(unittest.TestCase):
             self.assertFalse(dit)
             m.objets["vivres"]["portions"] = 2
             croire(m, "ilse", "vivres", "etat", {"disponible": True}, "vu")
+            croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
             m = recharger(m)
             m.objets["vivres"]["portions"] = 0
         self.assertEqual(sum(bool(c.get("constat_confie")) for c in m.data["chronique"]), 2)
+
+    def test_retour_vu_du_seul_locuteur_ne_rouvre_pas_les_destinataires(self):
+        m = scene()
+        croire(m, "ilse", "vivres", "etat", {"disponible": False}, "essai")
+        m, dit, _ = confier(recharger(m))
+        self.assertTrue(dit)
+        for n in range(2):
+            ecouler(m, 600)
+            croire(m, "ilse", "vivres", "etat", {"disponible": True}, "vu")
+            croire(m, "ilse", "vivres", "etat", {"disponible": False}, "essai")
+            oublier(m, "ilse", "marchand")
+            m, dit, texte = confier(recharger(m))
+            self.assertFalse(dit)
+            self.assertEqual(texte, "")
+            self.assertEqual(lire(m, "marchand")["croyances"]["vivres"]["etat"]["valeur"],
+                             {"disponible": False})
+            self.assertEqual(m.objets["vivres"]["portions"], 0)
+
+    def test_valeurs_distinctes_par_destinataire_et_reaffirmation_sans_changement(self):
+        m = scene()
+        noyau = {"type": "affirmation", "sujet": "vivres", "attribut": "etat",
+                 "valeur": {"disponible": False}}
+        croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
+        social.retenir_dit(m, "ilse", "marchand", noyau)
+        social.retenir_dit(m, "ilse", "aubin", {**noyau, "valeur": {"disponible": True}})
+        m = recharger(m)
+        self.assertTrue(social.deja_dit(m, "ilse", "marchand", noyau))
+        croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
+        self.assertTrue(social.deja_dit(recharger(m), "ilse", "marchand", noyau))
+        croire(m, "marchand", "vivres", "etat", {"disponible": False}, "dit:ilse")
+        croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
+        self.assertFalse(social.deja_dit(recharger(m), "ilse", "marchand", noyau))
 
     def test_lieu_et_accusation_restent_dits_apres_oubli(self):
         from tests.test_boucles_pnj import ballot_rendu
@@ -142,6 +175,10 @@ class DejaDitTests(unittest.TestCase):
         memoriser(m, "hugues", {"type": "vu_agir", "auteur": "lucien", "operation": "poser", "objet": "ballot",
                                 "lieu": {"valeur": "etable", "salle": "etable", "case": [3, 2], "minute": 10}})
         self.assertEqual(_a_dire(m, "hugues", "anselme", "lucien"), [])
+        # Un aller-retour appris du seul Hugues ne réapprend rien à Anselme.
+        croire(m, "hugues", "ballot", "lieu", "grenier", "vu", salle="grenier", case=[1, 1])
+        croire(m, "hugues", "ballot", "lieu", "etable", "vu", salle="etable", case=[3, 2])
+        self.assertEqual(_a_dire(recharger(m), "hugues", "anselme", "lucien"), [])
         croire(m, "hugues", "ballot", "lieu", "grenier", "vu", salle="grenier", case=[1, 1])
         self.assertEqual(_a_dire(recharger(m), "hugues", "anselme", "lucien"), [
             {"sujet": "ballot", "attribut": "lieu", "valeur": "grenier"}])
@@ -232,3 +269,14 @@ class DejaDitTests(unittest.TestCase):
         self.assertFalse(dit)
         self.assertEqual(texte, "")
         self.assertTrue(lire(m, "ilse")["faits_dits"])
+
+    def test_ancien_registre_migre_chaque_destinataire_sans_reouvrir(self):
+        m = scene()
+        noyau = {"type": "affirmation", "sujet": "vivres", "attribut": "etat",
+                 "valeur": {"disponible": False}}
+        cle, valeur = social.faits_dits(noyau)[0]
+        lire(m, "ilse")["faits_dits"][cle] = {"valeur": valeur, "dit_a": ["marchand", "aubin"]}
+        m = recharger(Monde(copy.deepcopy(m.data)))
+        for id in ("marchand", "aubin"):
+            self.assertTrue(social.deja_dit(m, "ilse", id, noyau))
+        self.assertEqual(m.data, recharger(m).data)

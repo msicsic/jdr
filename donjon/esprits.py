@@ -125,6 +125,9 @@ def installer(monde):
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
+        for fait in e["faits_dits"].values():
+            if isinstance(fait["dit_a"], list):
+                fait["dit_a"] = {a: copy.deepcopy(fait["valeur"]) for a in fait["dit_a"]}
         if migrer_confidences:
             from .social import migrer_dits
             migrer_dits(monde, id)
@@ -336,8 +339,8 @@ def verifier(monde):
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
                 and all(isinstance(k, str) and isinstance(v, dict) and set(v) == {"valeur", "dit_a"}
-                        and isinstance(v["dit_a"], list) and all(isinstance(a, str) for a in v["dit_a"])
-                        and len(v["dit_a"]) == len(set(v["dit_a"])) for k, v in e["faits_dits"].items())), "Faits dits invalides"
+                        and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
+                        for k, v in e["faits_dits"].items())), "Faits dits invalides"
         assert e["secours"] is None or (
             isinstance(e["secours"], dict) and set(e["secours"]) == {"minute", "apaise"}
             and type(e["secours"]["minute"]) is int and type(e["secours"]["apaise"]) is bool
@@ -402,7 +405,7 @@ def croyance(monde, id, sujet, attribut):
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
-    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut) if attribut == "lieu" else None
+    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
     if attribut == "eau" and source in ("vu", "essai"):
@@ -416,7 +419,7 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
                     del a["prevision"]
     from .social import reviser_dits
     if attribut != "prevision":  # Le fait dit est la menace, pas les coefficients de sa prévision.
-        reviser_dits(monde, id, sujet, attribut, valeur, **lieu)
+        reviser_dits(monde, id, sujet, attribut, valeur, precedente=ancienne or {}, **lieu)
     if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
         # Un contenu positif nouveau rouvre ce lieu seul ; une répétition ou une absence,
         # même datée de nouveau, n'annule pas le résultat d'une recherche.

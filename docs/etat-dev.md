@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-avis-redits`, fusionnée, lot **108**, base `a73a35d` :
+  le registre social conserve la dernière valeur dite par destinataire.
+  Un changement connu du seul locuteur ne réinitialise plus tous les auditeurs ;
+  un changement appris du destinataire rouvre ses suivis, une réaffirmation
+  inchangée les conserve. Menaces dérivées, confidences et `_a_dire` partagent
+  le registre ; anciennes listes migrées à la recharge. Aucun Luna ; moteur
+  limité à `social.py`/`esprits.py`. Diagnostic exact `47d4d25` : les six
+  répétitions crue 2024 suivent des rallumages connus des destinataires ;
+  mine 2024 76/79 et mine 7 76/78 portent sur deux lampes homonymes.
+  Ces annonces justifiées restent admises. Captures crue 140/mine 70 : même
+  monde, chronique et rendu rechargés, laps d'un bloc ou découpé.
+  Banc final 4 h × quatre scénarios × quatre graines, base mise en cache
+  une fois puis réutilisée : aucun plantage ni usurpation ; répétitions
+  textuelles **0/7/0/1 → 0/8/0/1**, constats confiés
+  **9/83/37/22 → 9/84/37/22** (Relais/mine/auberge/crue).
+  Suite complète unique : **2 007 tests, 16 ignorés, 1 915,93 s**, 214 fichiers,
+  deux processus réduits ; six seules attentes d'empreinte corrigées après
+  restitution exacte des six SHA-256 historiques par conversion inverse
+  du seul registre ; **11 tests repris verts en 14,23 s**, deux fichiers.
+  Les valeurs intermédiaires déjà effacées
+  dans une ancienne sauvegarde restent irrécupérables. Bruts `artifacts/avis-108/`.
+  [Rapport du lot 108](taches/rapport-codex-108-avis-redits.md).
+  Fusionné sur l'intégration après les lots 105, 107 et 109 : seul conflit de documentation ; aucun fichier de code commun.
+
 - Branche `codex-recherche-tiree`, fusionnée (diagnostic), lot **109**, base
   **70f4fae** : diagnostic seul, arrêt prescrit avant implémentation ; aucun
   moteur, scénario, cadence ou Luna modifié. Auberge 1985, ancien `42bb9c0`
