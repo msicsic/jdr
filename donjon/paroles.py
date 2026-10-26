@@ -82,8 +82,21 @@ SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["sujet"]["descript
     + ". Sinon, la référence du sujet selon le type.")
 from .propositions import SCHEMA as SCHEMA_PROPOSITION
 _contenu_ordinaire = SCHEMA_PAROLE["properties"]["contenu"]["items"]
-_contenu_ordinaire["properties"]["type"]["enum"] = [t for t in TYPES if t != "proposition"]
-SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [_contenu_ordinaire, SCHEMA_PROPOSITION]}
+# Le schéma annonce le même contrat que verifier_contenus : un champ sans
+# sens pour ce type est vide. Chaque variante décrit seulement son type,
+# sans annoncer les sens exclus par son discriminant.
+_variantes_contenu = []
+for _type_contenu in TYPES:
+    if _type_contenu == "proposition":
+        continue
+    _variante = copy.deepcopy(_contenu_ordinaire)
+    _variante["properties"]["type"] = {"type": "string", "enum": [_type_contenu],
+        "description": f"{_type_contenu} : {SENS_CONTENU[_type_contenu]}"}
+    for _champ in ("sujet", "attribut", "valeur"):
+        if _champ not in CHAMPS_CONTENU[_type_contenu]:
+            _variante["properties"][_champ] = {"type": "string", "enum": [""]}
+    _variantes_contenu.append(_variante)
+SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [*_variantes_contenu, SCHEMA_PROPOSITION]}
 
 
 def sens_contenu(contenu, monde=None):

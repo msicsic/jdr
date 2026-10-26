@@ -158,7 +158,8 @@ class ParoleTests(unittest.TestCase):
                 revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
                 from donjon.paroles import RESSOURCES_DEMANDEES, SCHEMA_PAROLE
                 self.assertEqual(revue["sens_contenu"][0]["ressource_recherchee"], RESSOURCES_DEMANDEES[besoin])
-                schema = SCHEMA_PAROLE["properties"]["contenu"]["items"]["anyOf"][0]["properties"]
+                schema = next(v["properties"] for v in SCHEMA_PAROLE["properties"]["contenu"]["items"]["anyOf"]
+                              if "ressource" in v["properties"]["type"]["enum"])
                 self.assertIn(RESSOURCES_DEMANDEES[besoin], schema["sujet"]["description"])
                 self.assertEqual(r.data["paroles_joueur"][-1]["texte"], question)
                 self.assertIn(question, texte)

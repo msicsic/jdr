@@ -4,7 +4,7 @@ import unittest
 
 from donjon.monde import ErreurMonde
 from donjon.refus import RefusDeForme
-from donjon.paroles import verifier_contenus
+from donjon.paroles import CHAMPS_CONTENU, SCHEMA_PAROLE, TYPES, verifier_contenus
 from donjon.voix import connait_nom, designation
 from donjon.carte import carte
 from donjon.rendu import regarder
@@ -19,6 +19,45 @@ def rendus(m):
 
 
 class ContenusParoleTests(unittest.TestCase):
+    def test_schema_et_validateur_partagent_tous_les_champs_sans_sens(self):
+        variantes = SCHEMA_PAROLE['properties']['contenu']['items']['anyOf']
+        for type_ in TYPES:
+            if type_ == 'proposition':
+                continue
+            with self.subTest(type=type_):
+                compatibles = [v for v in variantes if type_ in v['properties']['type']['enum']]
+                self.assertEqual(len(compatibles), 1)
+                types = compatibles[0]['properties']['type']
+                for autre in TYPES:
+                    self.assertEqual(autre + ' :' in types['description'], autre in types['enum'])
+                for champ in ('sujet', 'attribut', 'valeur'):
+                    p = compatibles[0]['properties'][champ]
+                    self.assertEqual(p.get('enum') == [''], champ not in CHAMPS_CONTENU[type_])
+
+    def test_questions_ordinaires_deux_scenarios_sans_correction_apres_recharge(self):
+        from tests.test_gardes_justes import crypte
+        from tests.test_parole_corrections import banc
+        cas = ((crypte(), 'Gorm, que sais-tu de cette crypte ?', 'marchand'),
+               (banc('echanges'), '« Tu sais où est passé le gardien ? »', 'brune'))
+        for m, saisie, qui in cas:
+            with self.subTest(saisie=saisie):
+                m = recharge(m)
+                avant = {id: o.get('lieu') for id, o in m.objets.items()}
+                mots = saisie.strip('«» ')
+                texte = 'Ta question a été entendue.'
+                r, sortie, appels = jouer(m, saisie, [
+                    parole(mots, ('propos', '', '', ''), personnage=designation(m, qui)),
+                    dialogue(texte)], [rapport(ligne('mecanique', sources=['conversation_validee']))])
+                self.assertEqual([f for f, _ in appels],
+                                 ['repondre_au_joueur', 'repondre_au_joueur', 'auditer_narration'])
+                self.assertFalse(any('retour_moteur' in e.get('faits', {}) for _, e in appels))
+                rr = recharge(r)
+                self.assertEqual(rr.data['paroles_joueur'][-1]['texte'], mots)
+                self.assertIn(texte, sortie)
+                self.assertIn(texte, str(rr.data['narrations_mj']))
+                self.assertEqual({id: o.get('lieu') for id, o in rr.objets.items()}, avant)
+                self.assertEqual(rendus(rr), rendus(r))
+
     def test_champs_sans_sens_refuses_pour_chaque_type(self):
         # Contrat de parole : ces champs doivent être vides pour ces types.
         vides={'propos':('sujet','attribut','valeur'), 'qui':('sujet','attribut','valeur'),
