@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
+  critère du 2026-10-26 (PSY basse ≤ 0,7, haute ≥ 0,8, méprises globales <20 %).
+  Grille commune de **112 réglages**, corpus de 48 nuits de 4 h, aucun admissible ;
+  compromis minimax **3/2/7** dans les seules constantes de `signes.py`, sans
+  réglage individuel, par sorte ou scénario, ni changement du jet. Confirmation
+  en 48 nuits libres : basse **9/12 = 0,75**, haute **26/26 = 1,00**, méprises
+  globales **144/658 (21,88 %) → 188/723 (26,00 %)**, abstention **40,93 → 36,91 %**.
+  **Critère non atteint** (+0,05 en bas, +6,00 points de méprises), petits échantillons.
+  Rapide 4 h × quatre scénarios × quatre graines : références manquantes calculées
+  une fois et cachées, zéro plantage/usurpation ; nouvelle alerte de répétition
+  mine 2024 (Mathe lit huit fois peur contre six, après méprises froid supplémentaires),
+  avertissements redits 5→8, alternances aller voir/autre but 1→2 (crue 7 ajoutée).
+  **Absence de répétition nouvelle non acquise** ; aucun contournement ajouté.
+  39 ciblés verts (guet réel et autre guet, état/rendu rechargés), seuls dés contrôlés
+  adaptés aux seuils. Suite complète unique : **2 075 tests, deux échecs MiMo `6 != 5`, zéro erreur**,
+  **995,11 s** ; les deux échecs reproduits seuls sur la base intacte `56afc2e`
+  (2 tests, 1,34 s). Quatre tests finaux de classement verts (0,17 s).
+  Deux calculs réduits au plus, sans Luna ; aucune clé Git de signature configurée,
+  commit non signé. Bruts `artifacts/signes-129/` ;
+  [rapport du lot 129](taches/rapport-codex-129-signes-critere.md).
+  **Décision de l'utilisateur (2026-10-26) : garder 4/3/8.** Fusionnés : l'outil de calibration (`tools/calibrer_signes.py`, `--heures`, `classer`), ses tests et le critère révisé du plan ; `signes.py` et `test_signes.py` restent ceux de la base. Calibration close en l'état (méprises 21,9 %, justesse basse 0,77) : les seules constantes ne peuvent tenir le critère.
+
 - Branche `codex-avis-typage`, fusionnée, lots **124 + 128**, base du
   lot 128 `20cd5cf` : contrat d'opérations commun analysé avant le contenu,
   `propos` réservé à l'absence d'opération applicable, sans lexique ni règle
@@ -4903,7 +4925,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 - Relations 3c, après `codex-signes-calibration` (fusionnée) : cache incrémental,
   relectures sans réapprentissage et refus local d'observation corrigés ; répétitions
-  27 → 0 sur le rapide final. **Calibration ouverte** : réglage provisoire 4/3/8,
+  27 → 0 sur le rapide final. **Calibration ouverte** : historique du réglage provisoire 4/3/8,
   21,32 % de méprises sur 816 lectures de 4 h, encore au-dessus de 20 % ; les mesures
   PSY réglées précèdent le dernier correctif de continuité. Refaire grille commune,
   justesses haute/basse, abstention par sorte et contrôles longs à l'intégration,
@@ -4915,6 +4937,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   à 276524c porte sur des nuits différentes. Vols vus : ablations mine 7 et 11,
   effets de positions/orientations ; tentatives maintenues, aucune dissuasion par
   les lectures démontrée. Trajet isolé 8f60441 gardé avec Q (`Vue.descente` dans la marche).
+  Lot 129, branche `codex-signes-critere` non fusionnée : critère bas révisé à 0,7 ;
+  grille et confirmation à 4 h ne ferment pas le critère. Compromis 3/2/7 et
+  régressions de répétition détaillés en tête de ce document et dans le rapport.
 - Force 4c (critère partiel) : aux valeurs actuelles, Aubin fuit comme Ilse au lieu de riposter ou de se
   dégager ; la fin de tout affrontement en moins de dix minutes n'est pas prouvée (les poursuites gardent
   rejoindre, chercher, appeler et la patience) ; le risque d'une riposte est l'estimation `force.force_crue`

@@ -416,18 +416,24 @@ Les jets de lecture tirent d'un **tirage à part** (comme le niveau d'eau, `eau.
 `data` : ajouter la lecture ne décale pas les autres jets de la nuit, ce qui garde les bancs
 comparables avant et après (décision 8).
 
-Réglage provisoire de `codex-signes-calibration`, non fusionnée : pénombre −4,
-dissimulation +3, bande « rien » 8. Une grille conditionnelle commune de 63 combinaisons
-(pénombre 4/3/2, dissimulation 5/4/3, bande 5 à 11) minimise le plus grand dépassement
-des trois bornes, puis leur somme ; aucun réglage par personnage ou scénario. Le dé,
-les bonus, la distance, les sens erronés et la formule de confiance ne changent pas.
-La confirmation acquise avant la dernière correction de continuité donnait 24,88 %
-de méprises, Gorm PSY 14 à 0,806 et Hugues à 0,769 : **critère non atteint**.
-Le balayage en nuits libres a été arrêté conformément au nouveau « Rythme des lots »
-(`main` 42bb9c0) ; l'intégration doit reprendre la calibration sur le code final,
-avec justesse haute/basse, méprises et abstention par sorte de signe. La grille
-conditionnelle n'est pas une comparaison de nuits libres à décisions identiques.
-[Mesures et limites](taches/rapport-codex-21-signes-calibration.md).
+**Décision du 2026-10-26 (lot 129)** : plafond de justesse basse révisé de
+0,6 à **0,7** (PSY ≤ 9) ; justesse haute ≥ 0,8 (PSY ≥ 13) et méprises
+strictement < 20 % des lectures conservées. Les abstentions ne sont pas des lectures.
+Réglage commun **conservé à 4/3/8** (pénombre/dissimulation/bande « rien ») par décision de
+l'utilisateur : le compromis 3/2/7 mesuré par le lot n'est pas appliqué ; aucun réglage par
+personne, sorte ou scénario, ni changement du dé ou de la règle du jet.
+La grille conditionnelle de 112 combinaisons (pénombre 2 à 5, dissimulation 2 à 5,
+bande 5 à 11), sur 48 nuits de 4 h, ne fournit **aucun réglage admissible**.
+Le compromis minimax 3/2/7 (justesse basse 0,75, méprises 26,58 % sur la grille) réduit
+l'abstention mais augmente les méprises ; à la confirmation (48 nuits libres de 4 h), 4/3/8
+donne 21,88 % de méprises et 0,768 de justesse par défaut, 3/2/7 26,00 % et 0,727.
+**Calibration close en l'état** : 4/3/8 manque la borne des méprises de 1,9 point et la
+justesse basse de quelques centièmes ; pas de nouvelle campagne de réglage des constantes.
+Les nuits libres de confirmation et le rapide contre la base sont détaillés dans
+[le rapport du lot 129](taches/rapport-codex-129-signes-critere.md).
+La grille rejoue les jets à décisions figées ; les échantillons PSY réglés sont petits.
+Le critère n'est donc pas atteint et ne le sera pas par les seules constantes ; le revoir
+supposerait de changer la règle de lecture elle-même, ce qui n'est pas décidé.
 
 ### 6.2 Ce qu'on en retient
 
@@ -986,7 +992,7 @@ du joueur se limitent à son observation explicite, sans état affectif inventé
   PSY 14, manqué à PSY 8 ; Ilse à l'écart de Brune,
   vue par le joueur (« Ilse se tient à l'écart de Brune. ») et, après `observer`, l'impression ;
   la même scène dans le noir : ni signe ni impression.
-- **Critère** : justesse croissante avec la PSY (au moins 0,8 à PSY ≥ 13, au plus 0,6 à PSY ≤ 9),
+- **Critère** (décision du 2026-10-26) : justesse croissante avec la PSY (au moins 0,8 à PSY ≥ 13, au plus 0,7 à PSY ≤ 9),
   des méprises présentes sans dominer (moins d'une lecture sur cinq) ; aucune lecture sans un signe
   perçu à cet instant (contrôle du rejeu) ; vols vus égaux ou en hausse, ou leur baisse expliquée
   par des guets dissuadés ; temps au plus +20 %.

@@ -1,8 +1,10 @@
 """Corpus de nuits réelles puis grille commune des paramètres de lecture.
 
 Les jets enregistrés sont rejugés sans rejouer les décisions : c'est une mesure
-conditionnelle au corpus. ``jouer`` confirme ensuite une configuration en nuits
-libres. Aucun accès aux sauvegardes de partie et aucun appel à un modèle.
+conditionnelle au corpus. ``classer`` applique le critère révisé du 2026-10-26
+et choisit l’abstention minimale, ou un compromis minimax explicite. ``jouer``
+confirme ensuite une configuration en nuits libres (--heures 4 pour un lot).
+Aucun accès aux sauvegardes de partie et aucun appel à un modèle.
 """
 import argparse
 from collections import Counter, defaultdict
@@ -22,7 +24,7 @@ JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", 
 
 def nuit(tache):
     from donjon import banc_pnj, signes
-    scenario, graine, lecteur, psy, parametres = tache
+    scenario, graine, lecteur, psy, parametres, heures = tache
     source = hashlib.sha256(Path(signes.__file__).read_bytes()).hexdigest()
     code = hashlib.sha256(b"".join(p.read_bytes() for p in sorted((RACINE / "donjon").glob("*.py")))).hexdigest()
     ceder()
@@ -52,14 +54,14 @@ def nuit(tache):
 
     signes.interpreter, signes._jet = enregistrer, tirer
     try:
-        _, mesures, donnees = banc_pnj.nuit(scenario, graine, 8, JOUEURS[scenario],
+        _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, JOUEURS[scenario],
                                            reglages=[f"{lecteur}.PSY={psy}"] if lecteur else ())
     finally:
         signes.interpreter, signes._jet = calcul, jet
     return {"scenario": scenario, "graine": graine, "lecteur": lecteur, "psy": psy,
             "code_signes": source,
             "code_moteur": code,
-            "parametres": parametres, "mesures": mesures, "preuves": preuves,
+            "heures": heures, "parametres": parametres, "mesures": mesures, "preuves": preuves,
             "chronique": donnees["chronique"]}
 
 
@@ -91,7 +93,7 @@ def bilan(preuves):
 def grille(nuits):
     from donjon.signes import SIGNES
     resultats = []
-    for penombre, dissimulation, bande in itertools.product((4, 3, 2), (5, 4, 3), range(5, 12)):
+    for penombre, dissimulation, bande in itertools.product((5, 4, 3, 2), (5, 4, 3, 2), range(5, 12)):
         groupes = defaultdict(list)
         for n in nuits:
             origine_p, origine_d, _ = n["parametres"]
@@ -126,18 +128,48 @@ def groupes_nuits(nuits):
     return {k: bilan(v) for k, v in groupes.items()}
 
 
-def jouer_configuration(parametres, processus, sortie):
-    taches = [(s, g, None, None, parametres) for s in JOUEURS for g in (1985, 7, 42, 2024)]
-    taches += [(s, g, l, psy, parametres) for s, l in (("relais", "marchand"), ("auberge", "hugues"))
+def classer(resultats):
+    """Trois bornes révisées ; abstention minimale parmi les admissibles.
+
+    Les tranches PSY viennent des seuls lecteurs réglés. La borne globale
+    des méprises regroupe ces lecteurs et les nuits par défaut.
+    À défaut : dépassement maximal, somme, puis abstention (compromis explicite).
+    """
+    classement = []
+    for r in resultats:
+        g = r["groupes"]
+        bas, haut = (g["regles"].get(t, {}).get("justesse") for t in ("basse", "haute"))
+        if bas is None or haut is None:
+            raise ValueError("Les deux tranches de PSY doivent être échantillonnées")
+        totaux = [g[k]["total"] for k in ("defaut", "regles")]
+        if any(t["part_meprises"] is None for t in totaux):
+            raise ValueError("Lectures par défaut et réglées nécessaires")
+        part = sum(t["meprises"] for t in totaux) / sum(t["lectures"] for t in totaux)
+        ecarts = [max(0, bas - .7), max(0, .8 - haut), max(0, part - .2)]
+        essais = sum(g[k]["total"]["essais"] for k in ("defaut", "regles"))
+        rien = sum(g[k]["total"]["rien"] for k in ("defaut", "regles"))
+        classement.append({**r, "admissible": bas <= .7 and haut >= .8 and part < .2,
+                           "part_meprises_globale": part,
+                           "depassements": ecarts, "abstention": rien / essais})
+    return sorted(classement, key=lambda r: (not r["admissible"],
+                  0 if r["admissible"] else max(r["depassements"]),
+                  0 if r["admissible"] else sum(r["depassements"]),
+                  r["abstention"], r["parametres"]))
+
+
+def jouer_configuration(parametres, processus, sortie, heures=8):
+    taches = [(s, g, None, None, parametres, heures) for s in JOUEURS for g in (1985, 7, 42, 2024)]
+    taches += [(s, g, l, psy, parametres, heures) for s, l in (("relais", "marchand"), ("auberge", "hugues"))
                for psy in (8, 11, 14, 16) for g in (1985, 7, 42, 2024)]
     def cle(n):
         return n["scenario"], n["graine"], n["lecteur"], n["psy"]
     anciens = json.loads(sortie.read_text(encoding="utf-8")) if sortie.exists() else []
     assert all(tuple(n["parametres"]) == tuple(parametres) for n in anciens), "Reprise d'un autre réglage"
+    assert all(n.get("heures", 8) == heures for n in anciens), "Reprise d’une autre durée"
     gardes = {cle(n): n for n in anciens}
     manquantes = [t for t in taches if t[:4] not in gardes]
     sortie.parent.mkdir(parents=True, exist_ok=True)
-    with ProcessPoolExecutor(max_workers=max(1, min(3, processus)), max_tasks_per_child=1) as pool:
+    with ProcessPoolExecutor(max_workers=max(1, min(2, processus)), max_tasks_per_child=1) as pool:
         for r in pool.map(nuit, manquantes):
             gardes[cle(r)] = r
             resultat = [gardes[t[:4]] for t in taches if t[:4] in gardes]
@@ -149,24 +181,29 @@ def jouer_configuration(parametres, processus, sortie):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("mode", choices=("jouer", "grille", "balayer"))
+    p.add_argument("mode", choices=("jouer", "grille", "balayer", "classer"))
     p.add_argument("--sortie", type=Path, required=True)
     p.add_argument("--corpus", type=Path)
-    p.add_argument("--parametres", type=int, nargs=3, default=(4, 5, 5))
-    p.add_argument("--processus", type=int, default=3)
+    p.add_argument("--parametres", type=int, nargs=3, default=(3, 2, 7))
+    p.add_argument("--processus", type=int, default=2)
+    p.add_argument("--heures", type=float, default=8)
     args = p.parse_args()
-    if args.mode == "grille":
+    if args.processus < 1 or not 0 < args.heures < float("inf"):
+        p.error("--processus et --heures doivent être strictement positifs et finis")
+    if args.mode == "classer":
+        resultat = classer(json.loads(args.corpus.read_text(encoding="utf-8")))
+    elif args.mode == "grille":
         resultat = grille(json.loads(args.corpus.read_text(encoding="utf-8")))
     elif args.mode == "balayer":
         resultat = []
         for parametres in itertools.product((4, 3, 2), (5, 4, 3), (5, 8)):
             fichier = args.sortie.parent / "nuits-grille" / ("-".join(map(str, parametres)) + ".json")
-            nuits = jouer_configuration(parametres, args.processus, fichier)
+            nuits = jouer_configuration(parametres, args.processus, fichier, args.heures)
             resultat.append({"parametres": parametres, "groupes": groupes_nuits(nuits)})
             args.sortie.write_text(json.dumps(resultat, ensure_ascii=False, indent=1), encoding="utf-8")
             print("CONFIGURATION TERMINEE", parametres, flush=True)
     else:
-        resultat = jouer_configuration(args.parametres, args.processus, args.sortie)
+        resultat = jouer_configuration(args.parametres, args.processus, args.sortie, args.heures)
     args.sortie.parent.mkdir(parents=True, exist_ok=True)
     args.sortie.write_text(json.dumps(resultat, ensure_ascii=False, indent=1), encoding="utf-8")
 
