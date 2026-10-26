@@ -735,7 +735,8 @@ l'autre pour choisir une offre. Détails et limites dans le
   vaut aussi pour la nourriture ; elle ne nourrit personne à l'accord. La
   réception affecte l'identité réelle de la part à une seule tâche promise,
   puis `servir` ou `remettre` tient cette parole. Les fournitures accessoires
-  restent limitées au commanditaire, comme auparavant. La demande au cédant
+  restent limitées au commanditaire, comme auparavant ; leur propre livraison
+  ne peut pas dépendre d'un accord futur avec un tiers. La demande au cédant
   ne nomme pas le bénéficiaire ; une commission entendue peut le lui révéler.
   Chronique, journal perçu et sauvegarde conservent la chaîne. Le banc compte
   commissions sollicitées, acceptées et abouties. Deux scènes d'auteur et
