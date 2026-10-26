@@ -1,7 +1,7 @@
 """Un recours après le choix ordinaire ; aucune lecture depuis la recherche.
 
-Contreparties portées et chance reprises du lot 36, sans gestes projetés ni devis
-de tâches. L'auditeur seul évalue le marché réel, par le contrat du joueur.
+Contreparties portées puis service autonome, sans geste de marché dans la
+recherche. L'auditeur évalue le marché réel par le contrat du joueur.
 """
 from . import relations
 from .esprits import lire, memoriser
@@ -81,8 +81,12 @@ def entrees_refus(monde, id, autre, objet, terme):
     from .deliberation import moyens_crus
     from .echanges import PRIX_SANS_PRIX
     from .spatial import porte_par
-    gain = (terme["montant"] if terme["type"] == "pieces" else
-            prix(monde, terme["objet"], terme["type"] == "part") or PRIX_SANS_PRIX)
+    if terme["type"] == "tache":
+        from .echanges import valeur_proposition, PAS_PROPOSITION
+        gain = (valeur_proposition(monde, id, terme, autre) or 0) / PAS_PROPOSITION
+    else:
+        gain = (terme["montant"] if terme["type"] == "pieces" else
+                prix(monde, terme["objet"], terme["type"] == "part") or PRIX_SANS_PRIX)
     cause = moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": objet})
     cause += [["porte", o, id, None] for o in sorted(monde.objets)
               if porte_par(monde, o, id) and proprietaire(monde, o) == id]
@@ -216,6 +220,16 @@ def recours(monde, id, besoin, etapes):
                   for t, cout, gain in _contreparties(monde, id, autre, demande)
                   if not any(refus_tient(monde, id, s, t) for s in refus)]
         offres = [o for o in offres if o[0] > chance]
+        if not (avant and _tient(avant, entrees)):
+            from .propositions import taches_crues
+            from .echanges import offre_sensee, valeur_proposition, PAS_PROPOSITION
+            # Un seul service devisé par recours, après les biens et pièces.
+            terme = next(taches_crues(monde, id, autre), None)
+            devis = {}
+            if terme and offre_sensee(monde, id, autre, demande, terme, devis=devis):
+                cout = valeur_proposition(monde, id, terme, autre, devis=devis)
+                if cout is not None and cout > 0 and not any(refus_tient(monde, id, s, terme) for s in refus):
+                    offres.append((relations.chance_proposition(chance, cout / PAS_PROPOSITION), -cout, terme))
         if not offres:
             continue
         # Prix propre de l'essai par chance d'accord, puis chance pour les ex aequo.

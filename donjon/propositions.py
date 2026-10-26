@@ -201,6 +201,40 @@ def demande_utile(monde, id, demande):
     return {"type": "part" if besoin_de_part(o) else "objet", "objet": objet}
 
 
+def taches_crues(monde, id, autre):
+    """Services typés suggérés par un manque observé, jamais par le profil adverse.
+
+    Une propriété publique ne suffit pas : l'état à réparer doit être connu.
+    Les conditions déjà entendues dans un refus sont également réutilisables.
+    """
+    from .deliberation import _connus, _cru, condition_valide, satisfaite, salle_crue
+    from .biens import proprietaire
+    from .esprits import lire
+    conditions = []
+    for refus in lire(monde, id)["refus"]:
+        offre = refus.get("contre_offre", {})
+        terme = offre.get("condition", {})
+        if refus["de"] == autre and terme.get("type") == "tache":
+            conditions.append(terme["condition"])
+    for o in sorted(_connus(monde, id)):
+        if o not in monde.objets:
+            continue
+        possesseur = proprietaire(monde, o)
+        if possesseur != autre and not (possesseur is None and
+                salle_crue(monde, id, o) == salle_crue(monde, id, autre)):
+            continue
+        etat = _cru(monde, id, o, "etat") or {}
+        if "allume" in etat and (not etat["allume"] or etat.get("faible")):
+            conditions.append({"objet": o, "allume": True})
+        if _cru(monde, id, o, "verrouillee") is False:
+            conditions.append({"objet": o, "verrouillee": True})
+    vus = []
+    for c in conditions:
+        if c not in vus and condition_valide(monde, c) and not satisfaite(monde, id, c):
+            vus.append(c)
+            yield {"type": "tache", "condition": c}
+
+
 def payer_terme(monde, de, a, terme):
     """Paiement commun, éventuellement prélevé sur la seule source convenue."""
     from .biens import payer, bourse, noter_compte, compte

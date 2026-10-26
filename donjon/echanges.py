@@ -33,13 +33,19 @@ PAS_PROPOSITION = 5.0  # minutes de valeur propre par point de persuasion
 PRIX_SANS_PRIX = 1     # convention commune pour un objet sans prix déclaré
 
 
-def _devis_proposition(monde, id, condition, pour):
+def _devis_proposition(monde, id, condition, pour, devis=None):
     """Le devis existant, sur ses croyances, avec la permission de la tâche proposée."""
     if not monde.objets.get(id, {}).get("profil"):
         return None
+    cle = (id, tuple(sorted(condition.items())), pour)
+    if devis is not None and cle in devis:
+        return devis[cle]
     copie = monde.copier()
     agendas.prendre(copie, id, {"condition": condition, "pour": pour, "minute": copie.data["minutes"]})
-    return devis_service(copie, id, condition, pour)
+    resultat = devis_service(copie, id, condition, pour)
+    if devis is not None:
+        devis[cle] = resultat
+    return resultat
 
 
 def devis_service(monde, id, condition, pour):
@@ -88,7 +94,7 @@ def devis_service(monde, id, condition, pour):
     return devis
 
 
-def valeur_proposition(monde, auditeur, terme, pour):
+def valeur_proposition(monde, auditeur, terme, pour, *, devis=None):
     """Prix propre, en minutes ; les tâches sont chiffrées par le plan cru de l'auditeur."""
     from .biens import prix
     from .caractere import valeur_pieces
@@ -100,8 +106,8 @@ def valeur_proposition(monde, auditeur, terme, pour):
     if t == "pieces":
         return valeur_pieces(monde, auditeur, terme["montant"])
     if t == "tache":
-        devis = _devis_proposition(monde, auditeur, terme["condition"], pour)
-        return None if devis is None else devis[0]
+        trouve = _devis_proposition(monde, auditeur, terme["condition"], pour, devis)
+        return None if trouve is None else trouve[0]
     # Le prix est une donnée de valeur, pas une lecture de l'état caché du bien.
     objet = terme["objet"]
     montant = prix(monde, objet, t == "part")
@@ -141,7 +147,7 @@ def _livraison_proposition(monde, donneur, receveur, terme):
     return _devis_proposition(copie, donneur, condition, receveur) is not None
 
 
-def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
+def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, devis=None):
     """P/G/L et DD communs, indépendants de l'identité du proposant. Aucun jet ni mutation."""
     from .caractere import caracteristique, valeur
     arret = accueil(monde, proposant, auditeur)
@@ -165,11 +171,11 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
             return {"cause": "garde"}
         if not porte_par(monde, objet, auditeur):
             return {"cause": "impossible"}
-    p = valeur_proposition(monde, auditeur, demande, proposant)
+    p = valeur_proposition(monde, auditeur, demande, proposant, devis=devis)
     if p is None:
         return {"cause": "impossible"}
     if demande["type"] == "tache":
-        _, etapes = _devis_proposition(monde, auditeur, demande["condition"], proposant)
+        _, etapes = _devis_proposition(monde, auditeur, demande["condition"], proposant, devis)
         for e in etapes:
             if e["operation"] in ("alimenter", "manger", "servir"):
                 for x in (e.get("cible"), e.get("outil")):
@@ -178,7 +184,7 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie):
     # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
     buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
     buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
-    g = valeur_proposition(monde, auditeur, contrepartie, auditeur)
+    g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis)
     if contrepartie["type"] == "tache" and contrepartie["condition"] not in buts:
         g = 0.0
     if g is None:
@@ -203,7 +209,7 @@ def _bilan_valeur(p, g, lien, intelligence, r):
     return {"cause": None, "P": p, "G": g, "L": lien, "dd_base": dd}
 
 
-def offre_sensee(monde, proposant, autre, demande, contrepartie):
+def offre_sensee(monde, proposant, autre, demande, contrepartie, *, devis=None):
     """Le proposant se juge comme celui à qui l'on demanderait la contrepartie.
 
     Pas de jet ni d'accès aux dispositions privées de l'autre. Le lien peut rendre
@@ -211,7 +217,11 @@ def offre_sensee(monde, proposant, autre, demande, contrepartie):
     """
     if demande is None:
         return False
-    bilan = evaluer_proposition(monde, autre, proposant, contrepartie, demande)
+    if devis is None:
+        devis = {}
+    if contrepartie["type"] == "tache" and not promesse_autonome(monde, proposant, autre, contrepartie, devis=devis):
+        return False
+    bilan = evaluer_proposition(monde, autre, proposant, contrepartie, demande, devis=devis)
     if bilan["cause"] or bilan["P"] > bilan["G"]:
         return False
     # La demande reste bornée au but, y compris pour un plan ancien rechargé.
@@ -223,6 +233,16 @@ def offre_sensee(monde, proposant, autre, demande, contrepartie):
     from .caractere import modificateur
     maximum = 20 + modificateur(monde, proposant, "CHA") + modificateur(monde, proposant, "ELO")
     return estimation["dd_base"] + 1 <= maximum
+
+
+def promesse_autonome(monde, proposant, autre, terme, *, devis=None):
+    """Un PNJ n'offre que le travail qu'il peut fournir sans réponse d'un tiers."""
+    if proposant == "joueur":
+        return True
+    trouve = _devis_proposition(monde, proposant, terme["condition"], autre, devis)
+    return trouve is not None and bool(trouve[1]) and not any(
+        e["operation"] in ("demander", "acheter", "confier", "engager", "proposer")
+        or e["condition"] == "sans_temoin" for e in trouve[1])
 
 
 def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
@@ -281,6 +301,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
     # Même évaluation que pour un marché recevable, avant les recherches matérielles.
     if accueil(monde, proposant, auditeur):
         return evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
+    if contrepartie["type"] == "tache" and not promesse_autonome(monde, proposant, auditeur, contrepartie):
+        return {"cause": "impossible"}
     for terme, de in ((demande, auditeur), (contrepartie, proposant)):
         if terme["type"] in ("objet", "part"):
             o = monde.objets[terme["objet"]]
