@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-promesse-joueur`, fusionnée, lot **97**, base `be5fe50`,
+  code signé SSH `886eae5` : les devis autonomes et les fournitures futures
+  exigent un profil avant toute recherche. Les remises déjà en main restent
+  possibles ; aucune prise future jouée pour le joueur ou un PNJ sans profil.
+  Gardes explicites dans `chercher` et `devis_pulsion`, sans modification des
+  graphes ni des certificats. Plantage reproduit avant correction par MJ simulé
+  dans la console, crypte et Relais : ici l'acteur sans profil est Gorm,
+  pas le joueur (acteur de la trace initiale inconnu). **17 tests ciblés verts,
+  un ignoré**, état et rendu persistés après recharge ; empreintes Relais
+  **2 h × quatre graines identiques** à la base. Une passe Luna : crypte
+  **42 tours / 22 appels**, ressources **3 tours / 12 appels**, aucun arrêt,
+  erreur technique, repli ou défaut de recharge. Suite complète unique :
+  **1 967 tests, 16 ignorés, 1 912,52 s**, deux processus réduits ; une erreur
+  TUI de remplacement temporaire Windows (`WinError 5`, avant action),
+  **rejeu du seul test vert en 1,73 s**, sans changement de code ni seconde
+  suite complète. Aucun défaut restant reproduit ; pas d'autre calcul
+  simultané pendant la suite de ce lot.
+  Limite : aucun trajet ni service autonome nouveau pour un personnage sans
+  profil ; le jugement sémantique de Luna n'est pas renforcé.
+  [Rapport du lot 97](taches/rapport-codex-97-promesse-joueur.md).
+  Fusionné sur l'intégration après le lot 92 c : seul conflit de documentation ; `planification.py` touché aussi par le lot 92 c (certificats), fusionné sans conflit textuel ; suite complète relancée sur la fusion.
+
 - Branche `codex-verif-luna-b0042c9`, lot **99**, code d’intégration **b0042c9**
   inchangé : deux passes des vingt scripts du lot 79, **40 parties, 302 saisies,
   136 tours MJ, 406 appels**, Luna ChatGPT medium/libre, quatre exécutions au plus
