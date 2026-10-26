@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-discours-indirect`, non fusionnée, lot **138**, base `e48c2cc` :
+  définition de la réplique directe partagée entre interprétation, schéma et fidélité ;
+  les cadres introducteurs reconnus ne passent plus par le raccourci de copie littérale.
+  Secours local sans transposition inventée, guillemets conservés. N8 vient de la première
+  interprétation, admise par la revue pour son contenu `ressource=faim`, sans correction.
+  Console et recharge : cas Brune, autre affirmation, citation, secours sans parole ;
+  ciblés verts après correction d'un nouveau test grammatical. Luna, une passe sur copies,
+  trois scripts : **46 appels / 11 tours**, aucun refus moteur/fidélité, repli ou défaut
+  de recharge ; N8 donne « Tu as de quoi manger ? », opération conservée, quatre appels.
+  Appels/tour ressources **4,00**, soir-appel **4,75**, noms-dialogue **3,75** ; références
+  `057766f` relues sans rejeu. Suite complète unique : **2 077 tests, 228 fichiers,
+  1 107,42 s, deux échecs MiMo `6 != 5`, zéro erreur/ignoré**, deux processus réduits.
+  Les deux échecs sont reproduits sur la base intacte : 13 tests, 11,15 s ; aucun autre
+  défaut restant. Deux calculs au plus, Luna une exécution ; branche poussée.
+  **Limite : transposition et revue sémantiques, invariant universel non garanti** ;
+  garde grammaticale locale limitée aux introducteurs reconnus. Aucune clé de signature
+  Git configurée. [Rapport du lot 138](taches/rapport-codex-138-discours-indirect.md).
+
+
 - Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
   critère du 2026-10-26 (PSY basse ≤ 0,7, haute ≥ 0,8, méprises globales <20 %).
   Grille commune de **112 réglages**, corpus de 48 nuits de 4 h, aucun admissible ;

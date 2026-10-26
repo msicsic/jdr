@@ -14,7 +14,7 @@ from .transport_openai import lire_flux  # réexport pour les anciens outils de 
 from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
 from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
 from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
-from .paroles import (REGLES as REGLES_PAROLE, SCHEMA_PAROLE, ParoleImpossible, analyser as analyser_parole,
+from .paroles import (REGLES as REGLES_PAROLE, SENS_REPLIQUE, SCHEMA_PAROLE, ParoleImpossible, analyser as analyser_parole,
                       annonce as annonce_parole, contexte as contexte_paroles, preparer_parole)
 from .commandes import PERCEPTIONS, est_question, faisabilite
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
@@ -432,7 +432,7 @@ class MJ:
                                         verifier as verifier_couverture)
         for essai in range(2):
             rapport = self._appeler_brut(
-                INSTRUCTIONS_PAROLE if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
+                (INSTRUCTIONS_PAROLE + "\n" + SENS_REPLIQUE) if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
                 entree_couverture(intention, plan, monde),
                 "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
             if self.observateur:
@@ -463,7 +463,7 @@ class MJ:
                                  operations_declarees=None):
         """Couverture locale, puis revue du sens seulement au-delà des mots exacts sans effet."""
         from .couverture_action import sens_parole, verifier_operations
-        from .paroles import mots_dits, operations_contenu
+        from .paroles import mots_dits, operations_contenu, forme_rapportee
         from .moteur import Plan
         from .biens import etat_comptes_joueur
         # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
@@ -488,6 +488,7 @@ class MJ:
             mots = mots_dits(analyser_parole(monde, intention), intention)
             if (not operations_demandees and not declarees
                     and not operations_contenu(complements["contenu"])
+                    and (mots or not forme_rapportee(intention))
                     and rapport["replique_joueur"].strip() == (mots or intention).strip()):
                 return
             try:
