@@ -146,6 +146,38 @@ class AvisMenaceTests(unittest.TestCase):
         self.assertNotIn("menace", texte)
         self.assertEqual(sum(bool(c.get("avis_exprime")) for c in m.data["chronique"]), 2)
 
+    def test_conclusion_contraire_reaffirmee_ne_relance_pas_l_avis_refuse(self):
+        m = scene()
+        for _ in range(2):
+            m, _, _ = confier(m)
+            ecouler(m, 600)
+        avis = {"type": "avis", "objet": "antichambre", "attribut": "menace", "valeur": True}
+        for _ in range(2):
+            social.reviser_dits(m, "marchand", "antichambre", "menace", False)
+            m = recharger(m)
+            self.assertTrue(social.deja_dit(m, "aubin", "marchand", avis))
+        m, _, texte = confier(m)
+        self.assertNotIn("menace", texte)
+        for menace in (True, False):
+            social.reviser_dits(m, "marchand", "antichambre", "menace", menace)
+            m = recharger(m)
+        self.assertFalse(social.deja_dit(m, "aubin", "marchand", avis))
+        m, dit, texte = confier(m)
+        self.assertTrue(dit)
+        self.assertIn("menace", texte)
+
+    def test_retour_de_menace_du_seul_locuteur_ne_rouvre_pas_l_avis(self):
+        m = scene()
+        for _ in range(2):
+            m, _, _ = confier(m)
+            ecouler(m, 600)
+        for menace in (False, True):
+            social.reviser_dits(m, "aubin", "antichambre", "menace", menace)
+            m = recharger(m)
+        m, _, texte = confier(m)
+        self.assertNotIn("menace", texte)
+        self.assertEqual(sum(bool(c.get("avis_exprime")) for c in m.data["chronique"]), 2)
+
     def test_sources_conviction_et_constat_propre_plus_recent(self):
         m = scene()
         noyau = next(n[1] for n in social.nouvelles(m, "aubin") if n[1]["type"] == "avis" and n[1]["objet"] == "antichambre")

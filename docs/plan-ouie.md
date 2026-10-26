@@ -1371,7 +1371,7 @@ dit une fois ; revu à l'étable, rien ; vu au grenier, dit de nouveau).
 ### Suivi commun des faits dits (branche `codex-deja-dit`, lot 64)
 
 Le suivi ne dépend plus des quarante souvenirs : `esprit.faits_dits` garde pour chaque identité
-de fait sa dernière valeur et ses destinataires. `social.faits_dits` définit le contrat commun :
+de fait la dernière valeur transmise à chaque destinataire. `social.faits_dits` définit le contrat commun :
 les propriétés portent sujet et attribut, les états se séparent par attribut visible, les intentions
 portent personnage et cible, les gestes portent leurs participants, objet et opération. Un lieu
 transmis par un geste rejoint la propriété de lieu ; absence, possession et mort rejoignent aussi
@@ -1383,8 +1383,13 @@ effectivement prononcé au destinataire, même s'il en doute ; les autres accusa
 ne sont plus marquées comme dites sans avoir été transmises. `faire_entendre` inscrit le destinataire
 explicite ; surprendre les mots n'apprend pas au locuteur qu'un tiers caché les a entendus. Les constats,
 les rumeurs et `_a_dire` consultent ce même registre ; un ancien plan `dire` est contrôlé à l'exécution.
-`croire` rouvre un fait suivi quand sa valeur change, même si l'état intermédiaire ne se confie pas
-(ressource disponible puis épuisée). `recevoir` juge une intention sur la croyance actuelle et les
+Depuis le lot 108 (`codex-avis-redits`), le registre conserve la dernière valeur dite **par
+destinataire**. Un changement de croyance du seul locuteur ne réinitialise plus les autres
+destinataires. `croire` rouvre leurs suivis seulement quand le destinataire apprend une autre valeur ;
+réaffirmer sa croyance inchangée ne suffit pas. Ainsi, une ressource redevenue disponible puis
+épuisée peut être annoncée de nouveau à qui l'avait crue disponible entre-temps. Le suivi des
+menaces dérivées suit la même règle. Les sauvegardes à listes de destinataires sont migrées à la
+recharge, sans inventer les valeurs intermédiaires perdues. `recevoir` juge une intention sur la croyance actuelle et les
 autres nouvelles sur leur contenu, sans distinguer deux preuves du même fait. L'enveloppe commune
 conserve `observe` à travers les relais : une propriété ancienne ne remplace pas une croyance plus
 récente ; à date égale, la perception ou la lecture propre prime sur le ouï-dire. Recevoir une intention

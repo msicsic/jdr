@@ -81,8 +81,8 @@ def faits_dits(noyau):
 
 def deja_dit(monde, id, auditeur, noyau):
     registre = lire(monde, id)["faits_dits"]
-    return all((cle in registre and registre[cle]["valeur"] == valeur
-                and auditeur in registre[cle]["dit_a"])
+    return all((cle in registre and auditeur in registre[cle]["dit_a"]
+                and registre[cle]["dit_a"][auditeur] == valeur)
                # Une nouvelle identité ne peut plus être suivie à saturation.
                or cle not in registre and len(registre) >= DITS_MAX
                for cle, valeur in faits_dits(noyau))
@@ -93,20 +93,44 @@ def retenir_dit(monde, id, auditeur, noyau):
     for cle, valeur in faits_dits(noyau):
         if cle not in registre and len(registre) >= DITS_MAX:
             continue
-        if cle not in registre or registre[cle]["valeur"] != valeur:
-            registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": []}
-        if auditeur not in registre[cle]["dit_a"]:
-            registre[cle]["dit_a"].append(auditeur)
+        if cle not in registre:
+            registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
+        registre[cle]["valeur"] = copy.deepcopy(valeur)
+        registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
 
 
-def reviser_dits(monde, id, sujet, attribut, valeur, **details):
-    """Une valeur apprise différente rouvre ce fait, même si elle n'est pas une nouvelle à dire."""
+def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
+    """Seul un changement appris par le destinataire rouvre ce qui lui a été dit.
+
+    La dernière valeur crue par le locuteur sert aussi aux conclusions dérivées
+    (menace). Ses changements ne suppriment pas les valeurs dites aux autres.
+    """
     if attribut == "intention":
         valeur = {"valeur": valeur, "envers": details.get("envers")}
     registre = lire(monde, id)["faits_dits"]
+    avant = {}
+    if precedente:
+        ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
+                    if attribut == "intention" else precedente["valeur"])
+        avant = dict(faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                                "valeur": ancienne}))
     for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}):
-        if cle in registre and registre[cle]["valeur"] != v:
-            registre[cle] = {"valeur": copy.deepcopy(v), "dit_a": []}
+        if precedente is None and cle not in registre:
+            # Première conclusion dérivée : aucun changement connu. La suivre
+            # empêche qu'une même conclusion réaffirmée rouvre un avis refusé.
+            if len(registre) < DITS_MAX:
+                esprit(monde, id)["faits_dits"][cle] = {"valeur": copy.deepcopy(v), "dit_a": {}}
+            continue
+        connue = cle in avant if precedente is not None else cle in registre
+        ancienne = avant.get(cle) if precedente is not None else registre.get(cle, {}).get("valeur")
+        if cle in registre:
+            registre[cle]["valeur"] = copy.deepcopy(v)
+        if connue and ancienne == v:
+            continue
+        for e in monde.data.get("esprits", {}).values():
+            dits = e.get("faits_dits", {}).get(cle, {}).get("dit_a", {})
+            if id in dits and dits[id] != v:
+                del dits[id]
 
 
 def migrer_dits(monde, id):
