@@ -95,6 +95,13 @@ def depuis_scenario(chemin, seed=1985, depart="tire"):
     """Un monde créé de l'état initial déclaré d'un scénario. ``depart`` : ``"tire"``, le départ
     tiré de la graine dans les bornes du scénario (``depart.py``) ; ``"fixe"``, le départ déclaré."""
     data = json.loads(Path(chemin).read_text(encoding="utf-8"))
+    # Les scénarios déclarent les attaches initiales ; les anciennes sauvegardes
+    # conservent leurs croyances historiques, sans migration implicite.
+    for id, o in data["objets"].items():
+        if "relie" in o and o.get("lieu") not in o["relie"]:
+            raise ErreurMonde(
+                f"{id}.lieu = {o.get('lieu')!r} ; salles admises : {o['relie']}",
+                attendu=f"{id}.lieu : reçu {o.get('lieu')!r} ; admis {o['relie']}")
     data["seed"] = seed
     data.setdefault("depart", {})["mode"] = depart
     return Monde(data)
