@@ -200,12 +200,18 @@ def vues_du_choix(monde, id):
                 esprit(monde, id)["attentes_bornees"] = bloc[2]
 
 
+TABLES_DU_CHOIX = frozenset((
+    "_contextes_routes", "_contextes_pressions", "_parcours", "_routes", "_allers",
+    "_approches", "_contacts", "_locaux", "_moyennes", "_effets_routes",
+    "_tarifs_routes", "_mesures_allers", "_pressions", "_droits_gestes",
+    "_situations_gestes", "_lieux_crus", "_metriques", "_lots_partageables"))
+
+
 def vue(monde, id):
     """Une vue de recherche privée, préparée une fois par choix pour cet acteur.
 
-    Aucun dictionnaire de calcul ne passe d'une recherche à l'autre : certains
-    dépendent du motif, des emplois ou des découvertes de lumière/discrétion.
-    La base reste vierge ; seuls ses relevés du monde sont partagés.
+    Les tables du monde cru sont communes ; les dictionnaires dépendant du
+    motif, des emplois ou des découvertes de lumière/discrétion restent privés.
     """
     bloc = getattr(monde, "_vues_du_choix", None)
     if bloc is None or bloc[0] != id:
@@ -214,7 +220,7 @@ def vue(monde, id):
     if partage[0] is None:
         partage[0] = Vue(monde, id)
     v = copy.copy(partage[0])
-    v.__dict__ = {k: x.copy() if k.startswith("_") and isinstance(x, dict) else x
+    v.__dict__ = {k: x.copy() if k.startswith("_") and k not in TABLES_DU_CHOIX and isinstance(x, dict) else x
                   for k, x in v.__dict__.items()}
     v._partage_choix = partage
     return v

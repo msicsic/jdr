@@ -20,8 +20,8 @@ from tests.test_tensions import recharger
 
 class CoutFixeTests(unittest.TestCase):
     def test_captures_memes_recherches_noeuds_monde_et_rendu_recharges(self):
-        for scenario in ("mine", "auberge"):
-            chemin = Path(__file__).parent / f"data/cout-12h/{scenario}-1985-480.json.gz"
+        for scenario, minute in (("mine", 480), ("auberge", 480), ("auberge", 600)):
+            chemin = Path(__file__).parent / f"data/cout-12h/{scenario}-1985-{minute}.json.gz"
             donnees = json.loads(gzip.decompress(chemin.read_bytes()))
             resultats, comptes = [], []
             for partage in (False, True):
@@ -73,6 +73,8 @@ class CoutFixeTests(unittest.TestCase):
                 a, b = p.vue(m, "brune"), p.vue(m, "brune")
                 self.assertIs(a.proprietaire, b.proprietaire)
                 self.assertIsNot(a._crus, b._crus)
+                for table in p.TABLES_DU_CHOIX:
+                    self.assertIs(getattr(a, table), getattr(b, table), table)
                 cle = p._entrees(a, {}, 8, 4000)
                 # Une recherche ne transmet ni ses découvertes ni ses prix.
                 a.motif, a._lumiere_lue = "faim", True
