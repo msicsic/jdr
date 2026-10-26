@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-recherche-tiree`, fusionnée (diagnostic), lot **109**, base
+  **70f4fae** : diagnostic seul, arrêt prescrit avant implémentation ; aucun
+  moteur, scénario, cadence ou Luna modifié. Auberge 1985, ancien `42bb9c0`
+  contre base actuelle, 480–720, profils puis témoins appariés, deux calculs
+  réduits. Tiré/fixe actuel : **×2,67 nœuds réellement développés/recherche**,
+  **392,9 contre 418,5 µs/nœud** ; **×3,42 générations de gestes/recherche**.
+  Les passes offrant les deux allures portent **380 850 nœuds, 124,28 s CPU**
+  dans le tiré, dont **58,86 s Tilo/faim** ; gardes et placement de Lucien
+  dominent aussi. Réduire cet espace peut supprimer des plans admissibles :
+  aucun levier principal exact établi, décision demandée avant changement.
+  CPU témoins 12 h, compteurs actifs, ancien→actuel :
+  **121,47→218,84 s fixe (×1,80)**, **102,53→277,31 s tiré (×2,70)** ;
+  aucune nouvelle mesure CPU nue ni gain levant le seuil ×1,5 manqué au lot 105.
+  Quatre nuits profil/témoin identiques (mondes 480/720, recherches, gestes),
+  huit recharges monde/rendus vertes, SHA-256 moteur inchangés. Vérifications
+  conditionnées à l'implémentation non lancées. Bruts `artifacts/recherche-109/`.
+  [Rapport et décision du lot 109](taches/rapport-codex-109-recherche-tiree.md).
+  **Décision en attente de l'utilisateur** : réduire l'exploration des deux allures (58 % du CPU de recherche en départ tiré) peut changer des plans.
+
 - Branche `codex-contreparties`, fusionnée, lot **107**, base `303d38c` :
   le recours demande une part utile ou les pièces manquantes, au plus au prix
   offert, avec une source monétaire explicite conservée. Contrôle inversé du
