@@ -10,8 +10,9 @@ sa confiance. Le joueur entend ce qui se dit dans sa salle, en clair s'il conna�
 parle, sinon comme un échange à voix basse. Tout est déterministe ; Luna n'intervient pas.
 
 Un avis de menace prévient plutôt qui le locuteur croit concerné et dont il se soucie.
-L'auditeur pèse sa source et sa conviction, sans jet ; les nouvelles et leurs destinataires
-déjà servis restent suivis par le même registre, hors des souvenirs bornés.
+L'auditeur pèse sa source et sa conviction ; un avis contraire plus étayé ouvre une dispute
+finie, dont seuls les poids égaux se départagent au jet opposé. Les nouvelles et leurs
+destinataires déjà servis restent suivis par le même registre, hors des souvenirs bornés.
 
 Une parole, du joueur comme d'un PNJ, est entendue de tous ceux qui en saisissent les mots
 (``ouie``) : qui n'en est pas le destinataire la retient aussi (``retenir_parole``), et ce
@@ -524,7 +525,7 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
         from .relations import annoncer_suites
         annoncer_suites(monde, id, auditeur, lignes)
         annoncer_suites(monde, auditeur, id, lignes)
-    from .ouie import retentir
+    from .ouie import retentir, nature
     from .paroles import _connu_du_joueur
     from .noms import texte as nommer_pour
     texte = nommer_pour(monde, texte, observateur=id)
@@ -542,7 +543,8 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
             lignes.append(f"{texte} {reponse}".strip())
         else:
-            lignes.append(designer(a, debut=True) + " parle à voix basse avec " + designer(b) + ".")
+            voix = " hausse la voix en parlant avec " if nature(geste) == "eclat" else " parle à voix basse avec "
+            lignes.append(designer(a, debut=True) + voix + designer(b) + ".")
     elif monde.visible(id):
         lignes.append(designer(a, debut=True) + " parle avec " + designer(b) + ".")
     if opposition:
@@ -662,7 +664,7 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
             continue
         if not identifie(monde, temoin, gagnant):
             continue  # Pas de relation envers l'identité d'une voix inconnue.
-        _chroniquer(monde, temoin, f"{_qui(monde, temoin)} prend le parti {_qui(monde, gagnant)} ({issue}).", "social")
+        _chroniquer(monde, temoin, f"{_qui(monde, temoin)} prend le parti {de(_qui(monde, gagnant))} ({issue}).", "social")
         monde.data["chronique"][-1]["parti_pris"] = True
         recoivent_parti = _avis_entendus(monde, temoin, salle)
         parti = _avis_de(monde, temoin, salle, courant)
@@ -789,7 +791,12 @@ def bavarder(monde, id, lignes):
             continue  # Il le sait déjà : rien à apprendre, la minute n'est pas perdue.
         # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
         # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
-        issue = recevoir(monde, auditeur, id, {"type": "rumeur", "evenement": noyau, "rang": rang})
+        # Si un tiers va contredire, le destinataire est lui aussi témoin des
+        # deux positions : ne pas lui faire adopter la première avant le débat.
+        debat = (noyau["type"] == "avis" and _contradiction(
+            monde, id, noyau, _avis_entendus(monde, id, noyau["objet"])))
+        issue = ("discuté" if debat else recevoir(
+            monde, auditeur, id, {"type": "rumeur", "evenement": noyau, "rang": rang}))
         _chroniquer(monde, id, f"{_qui(monde, id)} dit {groupe_nominal(_qui(monde, auditeur), 'à')} que {phrase(monde, noyau)} ({issue or 'connu'}).",
                     "social")
         if noyau["type"] == "constat":

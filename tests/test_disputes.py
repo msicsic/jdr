@@ -42,6 +42,22 @@ def dispute(locuteur="aubin", contradicteur="ilse", salle="antichambre"):
 
 
 class DisputesTests(unittest.TestCase):
+    def test_le_partisan_relaie_sa_propre_conviction(self):
+        m = dispute()
+        lire(m, "aubin")["croyances"]["antichambre"]["prevision"]["confiance"] = .69
+        relation(m, "aubin", "marchand", confiance=100, affection=0)
+        lignes = []
+        social.bavarder(m, "aubin", lignes)
+        m = recharger(m)
+        self.assertEqual(prevision(m, "marchand", "antichambre")["source"], "dit:ilse")
+        # Gorm ne transforme pas la conviction 1 d'Ilse en preuve directe :
+        # son poids 0,98 donne 0,686 chez Aubin, sous sa preuve propre à 0,69.
+        self.assertTrue(eau.menacee(m, "aubin", "antichambre"))
+        self.assertEqual(prevision(m, "aubin", "antichambre")["source"], "vu")
+        self.assertTrue(any(c.get("parti_pris") for c in m.data["chronique"]))
+        self.assertIn("Non, l'eau ne menace pas", "\n".join(lignes))
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+
     def test_eclat_voisin_et_aller_voir_par_la_regle_commune(self):
         from donjon.deliberation import bruit_a_voir
         m = dispute()
@@ -74,6 +90,15 @@ class DisputesTests(unittest.TestCase):
             social.bavarder(m, "aubin", [])
         self.assertIsNone(prevision(recharger(m), "marchand", "antichambre"))
         self.assertTrue(any(s["type"] == "parole_doutee" for s in lire(m, "marchand")["memoire"]))
+        # Même contrat si ce témoin était le destinataire de la première phrase.
+        m = dispute()
+        relation(m, "aubin", "marchand", confiance=0, affection=100)
+        relation(m, "marchand", "aubin", confiance=100, affection=0)
+        relation(m, "marchand", "ilse", confiance=80, affection=0)
+        with patch("donjon.monde.Monde.d20", return_value=10), \
+                patch("donjon.caractere.modificateur", return_value=0):
+            social.bavarder(m, "aubin", [])
+        self.assertIsNone(prevision(recharger(m), "marchand", "antichambre"))
         m = dispute()
         t = m.data["minutes"]
         croire(m, "marchand", "antichambre", "prevision", [t, 10000, 1], "vu", 1, rang=0)
@@ -103,6 +128,7 @@ class DisputesTests(unittest.TestCase):
                                      for qui in (locuteur, contradicteur, "marchand") for s in lire(m, qui)["memoire"]))
                 self.assertEqual(rendu(m), rendu(recharger(m)))
                 n = sum(bool(c.get("dispute")) for c in m.data["chronique"])
+                self.assertEqual(n, 1)
                 for qui in (locuteur, contradicteur, "marchand"):
                     lire(m, qui)["memoire"].clear()
                 ecouler(m, 600)
@@ -133,6 +159,11 @@ class DisputesTests(unittest.TestCase):
         m.objets["aubin"]["profil"]["valeurs"]["fierte"] = 0
         social.bavarder(m, "aubin", [])
         self.assertFalse(any(c.get("eclat") for c in recharger(m).data["chronique"]))
+        m = dispute()
+        m.objets["aubin"]["profil"]["valeurs"]["fierte"] = 0
+        lire(m, "aubin")["emotions"]["colere"] = {"contre": "ilse", "niveau": 40, "depuis": m.data["minutes"]}
+        social.bavarder(m, "aubin", [])
+        self.assertEqual(sum(bool(c.get("eclat")) for c in recharger(m).data["chronique"]), 1)
 
 
 if __name__ == "__main__":
