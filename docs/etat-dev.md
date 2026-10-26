@@ -4,6 +4,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-verif-luna-91a4351`, lot **111**, code **91a4351** : vérification seule, aucun code modifié. Deux passes des vingt scripts du lot 99 : **40 parties, 302 saisies, 136 tours MJ, 459 appels**, **3,38 appels/tour, 11,54 s/tour**, médiane **9,57 s**. Références 42bb9c0/882907c/b0042c9 relues, **177 fichiers inchangés**, quarante parties cachées identiques ; aucun plantage, erreur technique, arrêt ou défaut de recharge, quatorze parcours sous obstacle cohérents. **Validation partielle** : N1/N3 et fausse absence non reproduits ; N2 non reproduit mais phrase exacte non générée. Achats exécutés 2/2, confusion comptable et identité refusée après nom donné toujours présentes. Nouveau faux refus de quantité : remboursement à Gorm perdu 2/2 ; réserve sur « les faits » affichée en ambiance, surcontrôle de la non-perception. Trois replis, charges historiques différentes, aucune conclusion causale de latence ni garantie sémantique générale. Bruts `artifacts/verif-luna-91a4351/`. [Rapport et limites du lot 111](taches/rapport-codex-111-verif-luna.md).
+
 - Branche `codex-avis-redits`, fusionnée, lot **108**, base `a73a35d` :
   le registre social conserve la dernière valeur dite par destinataire.
   Un changement connu du seul locuteur ne réinitialise plus tous les auditeurs ;
