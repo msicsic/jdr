@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-perception-exacte`, non fusionnée**, lot **119**, base
+  `c3568ae` : quatre leviers A5, commits signés SSH `d158a45`, `9c78827`,
+  `7d0d274`, `5397015` (signatures vérifiées). Perception commune à la minute,
+  signes dans le bloc figé du geste, clé des signes immuable, objets indexés par
+  pose physique sans changer leur ordre. Aucun Luna ni changement du planificateur.
+  Chaque levier : 8/8 empreintes Relais/auberge identiques ; final 16/16 sur
+  quatre scénarios, 2 h, quatre graines. Oracles complets auberge 42, 2 h verts ;
+  captures auberge 480/600, perceptions, croyances et rendu rechargés identiques.
+  Deux nuits 12 h base/branche `--calcul` identiques, ainsi que deux répétitions
+  de branche ; huit recharges CPU contrôlées. CPU base → branche fixe
+  197,08 → 195,16 s (−0,97 %), tiré 330,41 → 327,86 s (−0,77 %), inférieur
+  à la variation entre répétitions. **Seuil ×1,5 contre `42bb9c0` manqué** :
+  fixe 127,28 → 201,80 s (×1,59), tiré 112,27 → 347,09 s (×3,09).
+  Deux calculs réduits au plus, archives locales, aucun changement de `main`.
+  Suite complète unique : **2 040 tests, 16 ignorés, aucun échec ni erreur**,
+  220 fichiers, deux processus réduits, **2 120,42 s**.
+  Bruts `artifacts/perception-119/`.
+  [Rapport du lot 119](taches/rapport-codex-119-perception.md).
+
 - **Vérification d'intégration 590653e**, lot **114**, branche
   `codex-verif-integ-590653e` : aucun code du jeu changé, sans Luna.
   **32 nuits de 12 h**, **huit rixes de 8 h**, puis **cinq nuits de 8 h
