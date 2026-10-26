@@ -863,6 +863,27 @@ class Vue:
             return Route(fin=(e.salle, None))
         return trajet_estime.approche(self, e, etape, cibles)
 
+    def present(self, e, cible):
+        """La présence commune d'exécution, sur les lieux et ouvertures projetés.
+
+        Une coordonnée d'approche ne prouve pas que la cible est matériellement
+        dans la salle. Les contenants et porteurs sont lus sur la même projection,
+        sans apprendre leurs positions réelles ni modifier le monde.
+        """
+        from collections import ChainMap
+        if cible == "joueur":
+            return self.salle(e, cible) == e.salle
+        projetes, x = {}, cible
+        while x in self.objets and x not in projetes:
+            o = self.objets[x]
+            lieu = e.salle if x == self.id else self.lieu(e, x)
+            projetes[x] = {**o, "lieu": lieu, "ouverte": self.ouvert(e, x)}
+            x = lieu
+        m = copy.copy(self.monde)
+        m.data = {**self.monde.data, "objets": ChainMap(projetes, self.objets), "joueur": {
+            **self.monde.joueur, "salle": self.salle(e, "joueur")}}
+        return m.present_physique(cible, salle=e.salle)
+
     def contacts(self, salle, cibles, centre=False):
         """Cases qui touchent les mêmes cibles ; leur ordre reste celui des tables."""
         cle = (salle, cibles, centre)
@@ -2515,7 +2536,7 @@ def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
     tentatives du geste, jamais la marche d'approche.
     """
     DUREES, DURABLES, TOUR = pnj.DUREES, pnj.DURABLES, pnj.TOUR
-    if v._cru_spatial is None or any(x["operation"] not in (*DUREES, *DURABLES, "aller", "assommer", "dans_le_dos", "fuite")
+    if any(x["operation"] not in (*DUREES, *DURABLES, "aller", "assommer", "dans_le_dos", "fuite")
                                       for x in ajout):
         return ancienne_duree, ancienne_duree * v.pression(e), suivant
     courant, temps, pression = e, 0, 0
@@ -2524,6 +2545,9 @@ def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
         if op == "aller":
             route = v.route(courant, etape["lieu"])
         else:
+            if any(not v.present(courant, x)
+                   for x in pnj._a_toucher(v.monde, v.id, etape, courant.portes)):
+                return None
             route = v.approche(courant, etape)
         if route is None:
             return None
@@ -2557,6 +2581,8 @@ def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
             geste += TOUR / MINUTE
         temps += geste
         pression += geste * v.pression(courant)
+    if v._cru_spatial is None:
+        return ancienne_duree, ancienne_duree * v.pression(e), suivant
     faits = dict(suivant.faits)
     faits.update({k: x for k, x in courant.faits.items() if k[0] in ("ouvert", "verrou")
                   and suivant.faits.get(k) == e.faits.get(k)})
