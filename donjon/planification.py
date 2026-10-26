@@ -1878,11 +1878,9 @@ def _entrees_communes(v):
     esprit_ = lire(monde, id)
     croyances = esprit_["croyances"]
     minute = monde.data["minutes"]
-    from .signes import actives
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
     return json.dumps([
-        [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
@@ -1924,11 +1922,31 @@ def _entrees_communes(v):
         "part-estimee:trajet-geste", v.eau, v.peurs_sociales, v.taux_mefiance,
         # Modèle de trajet et positions crues des cibles/obstacles, jamais le départ réel.
         ([metrique, "trajet-estime:entrees-v1",
-          [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
-           if "lieu" in d]], bool(monde.data.get("mode_cases"))),
+          _cases_lues(v, croyances)], bool(monde.data.get("mode_cases"))),
         [[k, o.get("position"), o.get("position_salle"), o.get("positions_salles")]
          for k, o in monde.objets.items() if not o.get("mobile") and o["type"] != "personnage"]
         ], ensure_ascii=False, check_circular=False)
+
+
+def _cases_lues(v, croyances):
+    """Positions que case_objet peut lire, y compris après un trajet du plan.
+
+    Toute entité connue peut être cible, outil fixe ou porteur d'une cible ;
+    leurs contenants sont suivis récursivement. La case de l'acteur n'est
+    jamais lue (Etat n'a pas de position). Une salle n'est pas une cible
+    spatiale. On ne réduit pas aux seules entités de la salle initiale :
+    trajet_estime.approche lit aussi les cibles des autres salles.
+    """
+    lus = set(v.connus) | {"joueur"}
+    file = list(lus)
+    while file:
+        lieu = _lieu_cru(v.monde, v.id, file.pop())
+        if lieu in v.objets and lieu not in lus:
+            lus.add(lieu)
+            file.append(lieu)
+    return [[s, d["lieu"].get("salle"), d["lieu"].get("case")]
+            for s, d in croyances.items()
+            if s in lus and s != v.id and "lieu" in d]
 
 
 def _ordre_visites(salles, visites):

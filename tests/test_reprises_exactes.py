@@ -1,0 +1,38 @@
+"""Dépendances et durée de vie des reprises exactes du planificateur."""
+import copy
+import gzip
+import json
+from pathlib import Path
+import unittest
+from unittest.mock import patch
+
+from donjon import planification as p
+from donjon.monde import Monde
+
+
+def capture():
+    chemin = Path(__file__).parent / 'data/cout-12h/auberge-1985-600.json.gz'
+    return Monde(json.loads(gzip.decompress(chemin.read_bytes())))
+
+
+class EntreesTests(unittest.TestCase):
+    def test_cases_de_toutes_les_salles_conservees_sauf_acteur(self):
+        m = capture()
+        v = p.Vue(m, 'joss')
+        croyances = copy.deepcopy(p.lire(m, 'joss')['croyances'])
+        for qui in ('joss', 'odile'):
+            croyances.setdefault(qui, {})['lieu'] = {
+                'valeur': 'salle_commune', 'salle': 'salle_commune', 'case': [2, 3]}
+        a = p._cases_lues(v, croyances)
+        self.assertNotIn('joss', [x[0] for x in a])
+        self.assertIn(['odile', 'salle_commune', [2, 3]], a)
+        croyances['odile']['lieu']['case'] = [3, 3]
+        self.assertNotEqual(a, p._cases_lues(v, croyances))
+
+    def test_signes_bruts_ne_sont_pas_relus_par_la_cle(self):
+        m = capture()
+        v = p.Vue(m, 'joss')
+        # Les effets déjà dérivés de la garde et des relations restent relevés.
+        with patch('donjon.signes.actives', side_effect=AssertionError('lecture morte')):
+            p._entrees_communes(v)
+
