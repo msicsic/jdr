@@ -33,6 +33,17 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 
 ## Contrôle de la prose
 
+**Contrats internes dans les explications** (lot 143). Le garde commun de voix
+d'auteur contrôle aussi la justification d'un avis `impossible` après réexamen
+et le dialogue qui explique un refus du monde. Les constructions où le moteur
+fournit, reconnaît ou accepte une proposition sont contrôlées sous négation,
+avec pronoms et au subjonctif ; champs, identifiants, propositions et schémas
+explicitement techniques sont également refusés hors des répliques.
+Les noms communs seuls et leurs emplois concrets restent admis (champ, schéma,
+moteur du moulin). Un audit favorable ne dispense pas de ce garde, refait avant
+enregistrement. Les reformulations ambiguës restent en partie sémantiques :
+ce contrôle lexical ne garantit pas toute paraphrase française.
+
 **Passé des échanges** (`codex-redire-passe`, lot 112). Le dossier
 `echanges_passes` regroupe, par interlocuteur sous sa référence publique actuelle,
 toutes ses paroles enregistrées que Corvus a entendues. Les citations gardent
