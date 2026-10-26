@@ -1960,7 +1960,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     observer()
                     if profil:
                         noter(monde, id, t, monde._activite)
-                percevoir_signes(monde)
+                    percevoir_signes(monde)
                 note = True
             else:
                 duree, attend = _jusqu_a_la_minute(t), en_cases
