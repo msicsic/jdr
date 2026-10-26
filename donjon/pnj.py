@@ -1886,7 +1886,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     deliberer(monde, id, minute)
                     menager_flamme(monde, id, minute)
                     appeler_a_l_aide(monde, id, minute)
-                    percevoir(monde, id)
+            # La révision suit toutes les évolutions de la minute, une fois par PNJ.
             percevoir_tous(monde)  # Ce que la minute a changé (un feu, une flamme ménagée), tous le voient.
             percevoir_signes(monde)
             if monde.data.get("dettes"):
