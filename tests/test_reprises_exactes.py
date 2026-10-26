@@ -16,6 +16,30 @@ def capture():
 
 
 class EntreesTests(unittest.TestCase):
+    def test_attente_historique_rechargee_garde_sa_signature_et_son_reveil(self):
+        from tests.test_tensions import recharger
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        fichier = Path(__file__).parent / 'data/reprises-exactes/auberge-1985-600-attentes.json.gz'
+        m = recharger(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
+        avant = copy.deepcopy(m.data)
+        attendu = json.loads(gzip.decompress(fichier.with_name('attentes-temoin.json.gz').read_bytes()))
+        avant['esprits']['lucien']['attentes_bornees'] = attendu['attentes']
+        with patch.object(p, '_MEMOIRE', {}), patch.object(p, '_GRAPHES', {}), \
+                patch.object(p, '_IMPOSSIBLES', {}), p.diagnostics() as ds:
+            with p.vues_du_choix(m, 'lucien'):
+                p.garder(m, 'lucien', 'grenier')
+            self.assertEqual(ds[-1]['issue'], attendu['issue'])
+            with p.vues_du_choix(m, 'lucien'):
+                p.garder(m, 'lucien', 'grenier')
+        self.assertEqual(ds[-1]['issue'], 'attente')
+        self.assertEqual(ds[-1]['noeuds'], 0)
+        self.assertEqual(m.data, avant)
+        recharge = recharger(m)
+        self.assertEqual(recharge.data, avant)
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
+
     def test_gestes_lisent_indirectement_l_allure_des_trajets(self):
         m = capture()
         v = p.Vue(m, 'joss')
@@ -49,6 +73,24 @@ class EntreesTests(unittest.TestCase):
         # Les effets déjà dérivés de la garde et des relations restent relevés.
         with patch('donjon.signes.actives', side_effect=AssertionError('lecture morte')):
             p._entrees_communes(v)
+
+    def test_verifier_refuse_une_case_cible_retiree_a_tort(self):
+        m = capture()
+        salle = m.objets['joss']['lieu']
+        from donjon.esprits import croire
+        def placer(case):
+            croire(m, 'joss', 'odile', 'lieu', salle, 'savoir', salle=salle, case=case)
+        placer([1, 1])
+        but = lambda v, e: v.case_objet(e, 'odile') == (1, 1)
+        # Faute injectée dans la clé : l'oracle complet doit la détecter.
+        with patch.object(p, '_cases_lues', lambda *a: []), \
+                patch.object(p, 'gestes', lambda *a: iter(())), \
+                patch.object(p, '_MEMOIRE', {}), patch.object(p, '_GRAPHES', {}), \
+                patch.object(p, '_IMPOSSIBLES', {}), patch.object(p, 'VERIFIER', True):
+            self.assertIsNotNone(p.chercher(m, 'joss', but, memo=['position'], emplois=()))
+            placer([2, 1])
+            with self.assertRaisesRegex(AssertionError, 'mémoire'):
+                p.chercher(m, 'joss', but, memo=['position'], emplois=())
 
     def test_premier_epuisement_certifie_et_libere_les_noeuds(self):
         chemin = Path(__file__).parent / 'data/cout-12h/mine-1985-480.json.gz'

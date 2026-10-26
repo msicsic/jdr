@@ -179,7 +179,7 @@ def vues_du_choix(monde, id):
     ancien = getattr(monde, "_vues_du_choix", None)
     temoin = copy.deepcopy(monde.data) if VERIFIER else None
     origine = ancien[2] if ancien is not None and ancien[0] == id else lire(monde, id).get("attentes_bornees", {})
-    bloc = (id, [None, None], dict(origine))
+    bloc = (id, [None, None, None], dict(origine))
     monde._vues_du_choix = bloc
     termine = False
     try:
@@ -1937,16 +1937,36 @@ def _cases_lues(v, croyances):
     spatiale. On ne réduit pas aux seules entités de la salle initiale :
     trajet_estime.approche lit aussi les cibles des autres salles.
     """
-    lus = set(v.connus) | {"joueur"}
-    file = list(lus)
-    while file:
-        lieu = _lieu_cru(v.monde, v.id, file.pop())
-        if lieu in v.objets and lieu not in lus:
-            lus.add(lieu)
-            file.append(lieu)
+    # Tout objet ayant une croyance appartient déjà à _connus. Un porteur
+    # ou contenant ayant une case crue est donc lui-même dans ce relevé ;
+    # sans croyance de lieu il n'apporte aucune position supplémentaire.
     return [[s, d["lieu"].get("salle"), d["lieu"].get("case")]
             for s, d in croyances.items()
-            if s in lus and s != v.id and "lieu" in d]
+            if s != v.id and (s in v.objets or s == "joueur") and "lieu" in d]
+
+
+def _entrees_effort(v, base):
+    """Contrat durable de réveil d'un effort, distinct du graphe transitoire.
+
+    Les attentes bornées sont sauvées et dépendent historiquement aussi des
+    signes et de toutes les positions crues. Réduire la clé de calcul ne doit
+    changer ni leur réveil ni leur représentation après rechargement.
+    """
+    partage = getattr(v, "_partage_choix", None)
+    if partage is not None and partage[2] is not None:
+        communes = partage[2]
+    else:
+        from .signes import actives
+        releve = json.loads(base[0][0])
+        releve.insert(0, [(x, a, c["valeur"], c.get("envers"))
+                          for x, a, c in actives(v.monde, v.id)])
+        croyances = lire(v.monde, v.id)["croyances"]
+        releve[-2][0][2] = [[s, d["lieu"].get("salle"), d["lieu"].get("case")]
+                            for s, d in croyances.items() if "lieu" in d]
+        communes = json.dumps(releve, ensure_ascii=False, check_circular=False)
+        if partage is not None:
+            partage[2] = communes
+    return ((communes, base[0][1]), base[1])
 
 
 def _ordre_visites(salles, visites):
@@ -2026,7 +2046,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             besoins = lire(monde, id)["besoins"]
             paliers = [[b, besoins.get(b, 0) >= seuil, besoins.get(b, 0) >= DESESPOIR]
                        for b, seuil in seuils(monde, id).items() if motif is None or b == motif]
-            signature_attente = json.dumps([signature_vide, paliers],
+            signature_attente = json.dumps([(_entrees_effort(v, base), faute is None), paliers],
                                            ensure_ascii=False)
             retenues = choix[2]
             attente = retenues.get(place[1]) == signature_attente

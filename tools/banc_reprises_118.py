@@ -43,8 +43,11 @@ def main():
         resumes = {a: [], b: []}
         for scenario, depart in nuits:
             processus, flux = {}, []
+            achevee = all((cohorte / f'{n}-{scenario}-{depart}.json').exists() for n in (a, b))
             for nom in (a, b):
                 sortie = cohorte / f'{nom}-{scenario}-{depart}.json'
+                if achevee:
+                    continue  # reprise du lanceur : une paire achevée n'est pas rejouée
                 log = sortie.with_suffix('.log').open('w', encoding='utf8')
                 flux.append(log)
                 cmd = [sys.executable, str(racine / 'tools/mesurer_attente_bornee.py'), '--cout',
@@ -69,7 +72,8 @@ def main():
             with (cohorte / 'calcul.log').open('w', encoding='utf8') as log:
                 subprocess.run([sys.executable, str(racine / 'tools/empreintes_nuits.py'), 'comparer',
                     str(cohorte / f'{a}-comparer.json'), str(cohorte / f'{b}-comparer.json'), '--calcul'],
-                    cwd=racine, stdout=log, stderr=subprocess.STDOUT, check=True)
+                    cwd=racine, stdout=log, stderr=subprocess.STDOUT, check=True,
+                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
     return 0
 
 
