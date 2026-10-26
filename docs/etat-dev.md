@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-relances`, **non fusionnée**, lot **96**, base `72ff7ae`
+  (code `7b2691f`), code signé SSH `1c72176` : `SCHEMA_PAROLE` dérive les champs vides obligatoires
+  de `CHAMPS_CONTENU`, comme le validateur, avec une variante et description
+  par type. Aucun effacement de charge ni contrôle supprimé ; l'essai de
+  regroupement par forme, qui détournait les propos vers des échanges, est écarté.
+  Mesure avant code : **78 tours, 257 appels, 11,874 s/tour**, médiane **10,690 s** ;
+  douze références absentes du cache jouées puis rangées, SHA-256 vérifiés.
+  Deux passes finales : **252 appels, 10,784 s/tour (−9,17 %)**, médiane **9,670 s** ;
+  relances narratives **16 → 11**, refus **17 → 18**, replis **2 → 1**.
+  Champs sans sens : **2 corrections / 9,262 s → zéro correction** ; ce faible
+  coût (**0,119 s/tour**) ne permet pas d'attribuer le gain global au correctif.
+  Une partie finale réseau/délai remplacée seule ; un essai antérieur arrêté
+  sur un `profil` nul dans le planificateur, hors périmètre. Aucun défaut de
+  recharge sur les douze parties finales retenues. Deux exécutions réduites
+  par campagne, quatre Luna au plus avec les rejeux, poste partagé.
+  **Réserve de validation : conservation des refus sémantiques non validée.**
+  Paiement inversé refusé des deux côtés ; livraison indûment affirmée,
+  cinq rejeux exacts après deux rapports illisibles initiaux : **4 refus /
+  1 illisible → 0 refus / 4 illisibles / 1 admission**. Les instructions,
+  schémas et contrôles de cet audit sont identiques ; motifs parfois faux,
+  critère non clos. Aucune garantie sémantique générale ; comptes, lumière
+  et portée restent ouverts. Suite complète unique verte : **1 963 tests,
+  16 ignorés**, 205 fichiers, deux processus réduits, **1 910,32 s**.
+  Après affinement de la représentation : **19 tests ciblés finaux verts,
+  38,83 s**, deux scénarios sans correction et même état/rendu après recharge ;
+  les charges interdites restent refusées. Aucune seconde suite complète.
+  [Rapport du lot 96](taches/rapport-codex-96-relances.md).
+
 - Branche `codex-audit-narratif`, fusionnée, lot **95**, base `036d5f2`,
   code signé SSH `adb07f7`, correctif `49fa7d6` : preuve exacte des segments moteur, audit des seuls
   segments libres avec indices conservés ; rapport variant selon verdict/portée,
