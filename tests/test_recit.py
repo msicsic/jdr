@@ -70,9 +70,18 @@ class RecitTests(unittest.TestCase):
                 self.assertEqual(r["faits"], ["attestations"])
 
     def test_action_ne_peut_pas_inclure_un_resultat_narre(self):
-        with self.assertRaises(ErreurMonde):
-            self.appel(nouveau_monde(), {"mode": "action", "texte": "Tu as réussi.",
-                "faits": [], "proposition": proposition("detacher", "axe_haut", "couteau", "levier", 18)})
+        m = nouveau_monde()
+        avant = copy.deepcopy(m.data)
+        resultat = self.appel(m, {"mode": "action", "texte": "Tu as réussi.",
+            "faits": [], "proposition": proposition("detacher", "axe_haut", "couteau", "levier", 18)})
+        # Après sa correction de forme, le résultat inventé cède au repli moteur.
+        self.assertEqual(resultat["mode"], "dialogue")
+        self.assertTrue(resultat["_texte_moteur"])
+        self.assertNotIn("Tu as réussi", resultat["texte"])
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "partie.json"
+            m.sauver(chemin)
+            self.assertEqual(Monde.charger(chemin).data, avant)
 
     def test_migration_preserve_progression_et_recit_au_rechargement(self):
         m = nouveau_monde()

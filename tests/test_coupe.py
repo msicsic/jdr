@@ -225,9 +225,10 @@ class CoupeTests(unittest.TestCase):
         invalide = {"mode": "action",
                     "texte": "La dalle de granit résiste à la hache.",
                     "faits": [], "proposition": {}}
+        # La forme invalide reçoit sa correction propre avant le repli commun.
         with patch.object(MJOpenAI, "_appeler_brut", side_effect=[
                 action, exclusion, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True,
-                    "motif": "Le granit résiste aux outils connus."}]}, invalide]):
+                    "motif": "Le granit résiste aux outils connus."}]}, invalide, invalide]):
             reponse = MJOpenAI().echanger(m, "couper dalle de granit avec hache")
         self.assertEqual(reponse["mode"], "dialogue")
         self.assertTrue(reponse["_texte_moteur"])
