@@ -87,9 +87,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   n'est pas acquise. Seize références calculées une fois et cachées, sans rejeu.
   Aucun Luna, au plus deux calculs réduits ; aucune clé de signature Git configurée.
   [Rapport du lot 136](taches/rapport-codex-136-enfermer.md).
-
-- Branche `codex-trainer`, **non fusionnée**, lot **134**, base `bb31eb5` :
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Base voulue : la branche du lot 134.
+  Fusionné sur l'intégration après le lot 134 (base voulue) : seul conflit de documentation ; `planification.py` touché aussi par le lot 133, fusionné ensuite sans conflit textuel ; suite complète relancée sur l'ensemble des fusions 132 à 138.
 
 - Branche `codex-trainer`, fusionnée, lot **134**, base `bb31eb5` :
   traîner une personne inconsciente, ligotée ou rendue, ou une dépouille ; même
@@ -111,7 +109,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [Rapport du lot 134](taches/rapport-codex-134-trainer.md).
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base.
 
-- Branche `codex-rappel-exact`, non fusionnée, lot **135**, base `d509da1`
+- Branche `codex-rappel-exact`, fusionnée, lot **135**, base `d509da1`
   (lot 132 volontairement non fusionné) : cause N7 confirmée dans les bruts 057766f,
   `paroles_entendues.texte` projetait « Je m’appelle une voix qui se dit Ilse »
   tandis que `echanges_passes` gardait les mots exacts. Projection des événements
@@ -134,9 +132,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   du ciblé final et de la suite déclaré dans le rapport.
   Aucune clé Git de signature configurée : commit non signé.
   [Rapport du lot 135](taches/rapport-codex-135-rappel-exact.md).
+  Fusionné sur l'intégration juste après le lot 132 (base voulue) : aucun conflit ; aucun fichier de code commun depuis la base.
 
 
-- Branche `codex-non-perception`, non fusionnée, lot **132** : dossier commun
+- Branche `codex-non-perception`, fusionnée, lot **132** : dossier commun
   `perception.non_vus_connus`, références et désignations déjà connues sans position
   actuelle ; attestations exactes de non-perception prouvées par le mécanisme du
   lot 95 et recalculées avant sauvegarde. La couverture borne les absences,
@@ -154,6 +153,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Suite complète unique : **2 076 tests, deux échecs MiMo historiques `6 != 5`,
   zéro erreur**, **1 110,50 s**, deux processus réduits ; pas de seconde suite.
   Aucune clé Git de signature configurée, commit non signé, branche poussée. [Rapport du lot 132](taches/rapport-codex-132-non-perception.md).
+  Fusionné sur l'intégration après les lots 130, 124+128 et 129 : aucun conflit ; aucun fichier de code commun depuis la base. Réserve : la liste « connu, non vu » grossit avec la partie (dossier de chaque appel), à surveiller à la vérification Luna groupée.
 
 
 - Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
