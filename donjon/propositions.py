@@ -1,4 +1,5 @@
 """Contrat des termes d'un marché ; aucune interprétation de mots du scénario."""
+from .francais import quantite
 from .monde import ErreurMonde
 
 
@@ -80,7 +81,7 @@ def en_mots(monde, terme):
     if t == "tache":
         return "la promesse que " + phrase_condition(monde, terme["condition"])
     if t == "pieces":
-        return f"{terme['montant']} pièces"
+        return f"{quantite(terme['montant'], 'pièce')}"
     if t == "rien":
         return "rien"
     o = monde.objets[terme["objet"]]

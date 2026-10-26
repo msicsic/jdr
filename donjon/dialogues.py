@@ -1,4 +1,5 @@
 """Dialogues situés, offres et engagements persistants ; aucune écriture directe du LLM."""
+from .francais import quantite
 from . import agendas
 import copy
 
@@ -153,15 +154,15 @@ def preparer_conversation(monde, p, revision=None):
         accord = engagements.get(mission_id)
         statut = accord["statut"] if accord else None
         if statut == "paye":
-            rapport["faits"].append(f"La récompense de {accord['montant']} pièces a déjà été versée. Aucun nouveau paiement.")
+            rapport["faits"].append(f"La récompense de {quantite(accord['montant'], 'pièce')} a déjà été versée. Aucun nouveau paiement.")
         elif statut == "accepte":
-            rapport["faits"].append(f"L'accord accepté reste de {accord['montant']} pièces, payables contre la remise de l'objet. Il ne change pas pendant cette discussion.")
+            rapport["faits"].append(f"L'accord accepté reste de {quantite(accord['montant'], 'pièce')}, payable{'s' if accord['montant'] > 1 else ''} contre la remise de l'objet. Il ne change pas pendant cette discussion.")
         elif op in ("accepter", "refuser"):
             if statut != "propose":
                 raise ErreurMonde("Il n'y a aucune offre en attente à accepter ou refuser.",
                                   f"aucune offre proposée pour {mission_id} : proposer ou negocier d'abord.")
             agendas.repondre_contrat(travail, mission_id, op == "accepter")
-            rapport["faits"].append(f"Offre de {accord['montant']} pièces " + ("acceptée. Le paiement aura lieu à la remise de l'objet." if op == "accepter" else "refusée. Aucun engagement ni paiement."))
+            rapport["faits"].append(f"Offre de {quantite(accord['montant'], 'pièce')} " + ("acceptée. Le paiement aura lieu à la remise de l'objet." if op == "accepter" else "refusée. Aucun engagement ni paiement."))
         else:
             fonds = disponible(travail, acteur, sauf=mission_id)
             base = mission["prime_base"]
@@ -175,9 +176,9 @@ def preparer_conversation(monde, p, revision=None):
                     souhait = p["montant_demande"] or plafond
                     montant = max(montant, min(souhait, plafond))
                 agendas.proposer_contrat(travail, mission_id, montant)
-                rapport["faits"].append(f"Offre de {montant} pièces contre la remise de l'objet. Le joueur ne l'a pas encore acceptée. Aucun paiement immédiat.")
+                rapport["faits"].append(f"Offre de {quantite(montant, 'pièce')} contre la remise de l'objet. Le joueur ne l'a pas encore acceptée. Aucun paiement immédiat.")
                 if op == "negocier" and p["montant_demande"] > montant:
-                    rapport["faits"].append(f"Le montant demandé de {p['montant_demande']} pièces est refusé ; la contre-offre est de {montant} pièces.")
+                    rapport["faits"].append(f"Le montant demandé de {quantite(p['montant_demande'], 'pièce')} est refusé ; la contre-offre est de {quantite(montant, 'pièce')}.")
                 elif op == "negocier" and ancien == montant:
                     rapport["faits"].append("Il maintient son offre précédente.")
         rapport["mission"] = {"id": mission_id, **_mission_publique(travail, mission_id)}
@@ -254,7 +255,7 @@ def verifier_remise(monde, objet_id, destinataire=""):
                           f"mission {id} sans offre acceptée : conversation_pnj (proposer ou negocier, puis accepter) avant remettre.")
     if monde.data["finances_pnj"].get(mission["donneur"], 0) < accord["montant"]:
         raise ErreurMonde("Le destinataire n'a pas l'argent promis. Aucun objet n'a été remis.",
-                          f"{mission['donneur']} ne peut pas payer {accord['montant']} pièces : la remise attendra.")
+                          f"{mission['donneur']} ne peut pas payer {quantite(accord['montant'], 'pièce')} : la remise attendra.")
     return id
 
 
@@ -272,7 +273,7 @@ def payer_remise(monde, mission_id, lignes):
     monde.joueur["or"] += accord["montant"]
     agendas.payer_contrat(monde, mission_id)
     nom = monde.objets[destinataire]["nom"]
-    lignes.append(f"Tu remets {designer(objet)} {groupe_nominal(nom, 'à')}. Tu reçois les {accord['montant']} pièces convenues.")
+    lignes.append(f"Tu remets {designer(objet)} {groupe_nominal(nom, 'à')}. Tu reçois {quantite(accord['montant'], 'pièce', determinant='defini')} convenue{'s' if accord['montant'] > 1 else ''}.")
 
 
 def commande_sociale(monde, texte):

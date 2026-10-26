@@ -314,7 +314,7 @@ function ajouterLigne(texte) {
 }
 function appliquerEtat(e) {
   $("lieu").textContent = e.salle;
-  $("compteurs").textContent = `PV ${e.pv} · ${e.or} pièces · ${e.minutes} min · MJ : ${e.connexion}`;
+  $("compteurs").textContent = `PV ${e.pv} · ${e.or_texte} · ${e.minutes} min · MJ : ${e.connexion}`;
   $("fiche").textContent = e.fiche;
   $("proposition").style.display = e.proposition ? "block" : "none";
   $("proposition-texte").textContent = e.proposition;

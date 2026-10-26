@@ -1,5 +1,6 @@
 """Arbitrage borné et transitions atomiques. Le MJ ne reçoit aucun accès en écriture."""
 from __future__ import annotations
+from .francais import quantite
 
 import copy
 from dataclasses import dataclass, field
@@ -488,7 +489,7 @@ class Moteur:
                                   f"{vendeur_id} ne vend plus au joueur : aucune vente possible avec lui.")
             cout = prix(m, o)
             if cout > m.joueur["or"]:
-                raise ErreurMonde(f"Il te faudrait {cout} pièces ; tu n'en as que {m.joueur['or']}.",
+                raise ErreurMonde(f"Il te faudrait {quantite(cout, 'pièce')} ; tu n'en as que {m.joueur['or']}.",
                                   f"prix {cout} > or {m.joueur['or']} : achat impossible ; une négociation passe par "
                                   "le mode parole_joueur.")
             plan.effets.append(("payer", cible, {"vendeur": vendeur_id, "montant": cout}))
@@ -1146,7 +1147,7 @@ class Moteur:
             o["en_vente"] = False
             o["proprietaire"] = "joueur"
             o.pop("vendeur", None)
-            lignes.append(f"Tu paies {montant} pièces à {m.objets[vendeur]['nom']}.")
+            lignes.append(f"Tu paies {quantite(montant, 'pièce')} à {m.objets[vendeur]['nom']}.")
         elif op == "voyager":
             from .eau import refuser_entree
             refuser_entree(m, cible)  # Par une échelle, un saut, un passage : on n'arrive pas sous l'eau.

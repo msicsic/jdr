@@ -53,7 +53,7 @@ class ContreOffreTests(unittest.TestCase):
                 s = lire(m, "brune")["refus"][-1]
                 self.assertIn("Offre de", " ".join(lignes))
                 prix = s["contre_offre"]["condition"]["montant"]
-                self.assertIn(f"{prix} pièces", " ".join(lignes))
+                self.assertIn(f"{prix} pièce" + ("s" if prix > 1 else ""), " ".join(lignes))
                 avant = copy.deepcopy(m.data["finances_pnj"])
                 plan = plan_recours(m, "brune", "faim", [])
                 self.assertEqual(plan[-1]["operation"], "acheter")

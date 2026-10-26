@@ -23,6 +23,8 @@ inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personn
 import copy
 import json
 
+from .francais import pluriel as nombre_pluriel
+from .francais import quantite
 from .esprits import RECENT, croire, esprit, lire, memoriser, pnjs
 from .francais import complement_de, designer, de, groupe_nominal
 from .relations import se_fie, envers
@@ -356,13 +358,13 @@ def phrase(monde, noyau, locuteur=None):
         qualite = ("fermé" if noyau["attribut"] == "verrouillee" else
                    "vide" if "vide" in noyau["valeur"] else
                    "épuisé" if "disponible" in noyau["valeur"] else "éteint")
-        return (designer(o) + (" sont " if o.get("pluriel") else " est ")
+        return (designer(o) + (" sont " if nombre_pluriel(o) else " est ")
                 + accorder(o, qualite, "vide" if qualite == "vide" else None)
                 + (" à clé" if noyau["attribut"] == "verrouillee" else ""))
     if t == "intention_lue":
         return _qui(monde, noyau["auteur"], locuteur) + " semble guetter " + designer(o)
     if t == "absence":
-        return designer(o) + " " + ("ont" if o.get("pluriel") else "a") + " disparu"
+        return designer(o) + " " + ("ont" if nombre_pluriel(o) else "a") + " disparu"
     if t == "mort_vue":
         defunt = monde.data["defunts"][noyau["objet"]]
         return _qui(monde, noyau["objet"], locuteur) + " est mort" + ("e" if defunt["genre"] == "f" else "")
@@ -374,7 +376,7 @@ def phrase(monde, noyau, locuteur=None):
     il = "elle" if monde.objets.get(accuse(noyau), {}).get("genre") == "f" else "il"
     if t == "dette_niee":
         n = noyau["montant"]
-        return f"{qui} garde les {n} pièce{'s' if n > 1 else ''} qu'{il} doit " + groupe_nominal(_qui(monde, noyau['victime'], locuteur), "à")
+        return f"{qui} garde {quantite(n, 'pièce', determinant='defini')} qu'{il} doit " + groupe_nominal(_qui(monde, noyau['victime'], locuteur), "à")
     if t == "pret_garde":
         return (f"{qui} garde {designer(o)} que {_qui(monde, noyau['victime'], locuteur)} lui a "
                 + ("prêtée" if o.get("genre") == "f" else "prêté"))

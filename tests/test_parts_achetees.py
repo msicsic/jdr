@@ -77,7 +77,7 @@ class PartAcheteeTests(unittest.TestCase):
         or_avant = m.joueur["or"]
         travail, rapport = preparer_parole(m, parole("joss", "Je t'achète une part de tes fagots, une pièce.",
                                                      "demande", "fagots_etable", "1"))
-        self.assertIn("Joss, palefrenier prend tes 1 pièces et ira chercher une part des fagots de l'écurie pour "
+        self.assertIn("Joss, palefrenier prend ta 1 pièce et ira chercher une part des fagots de l'écurie pour "
                       "te la remettre.", rapport["faits"])
         m, lignes = vivre(recharger(travail), 3)
         piece = "fagots_etable_1"

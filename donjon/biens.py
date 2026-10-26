@@ -24,6 +24,7 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from .francais import quantite
 from . import agendas
 from .vol import proprietaire as _possesseur
 
@@ -276,7 +277,7 @@ def _ce_qui(monde, d, joueur=False):
 
 
 def _pieces(n):
-    return f"{n} pièce{'s' if n > 1 else ''}"
+    return quantite(n, "pièce")
 
 
 def nie_recemment(monde, a, de):

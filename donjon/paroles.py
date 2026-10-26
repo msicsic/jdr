@@ -15,6 +15,8 @@ croire le joueur fiable. Tous ceux qui saisissent les mots d'une parole à voix 
 retiennent, destinataires ou non (``ouie``, ``social.retenir_parole``) ; seuls ses destinataires
 y répondent.
 """
+from .francais import pluriel as nombre_pluriel
+from .francais import quantite
 from . import agendas
 import copy
 import re
@@ -292,17 +294,17 @@ def _nom(monde, id):
 
 def _phrase(monde, sujet, attribut, valeur):
     o = monde.objets.get(sujet, {})
-    est = "sont" if o.get("pluriel") else "est"
-    accord = ("e" if o.get("genre") == "f" else "") + ("s" if o.get("pluriel") else "")
+    est = "sont" if nombre_pluriel(o) else "est"
+    accord = ("e" if o.get("genre") == "f" else "") + ("s" if nombre_pluriel(o) else "")
     if attribut == "lieu":
         if valeur is None:
-            return f"{_nom(monde, sujet)} {'ne sont' if o.get('pluriel') else "n'est"} plus là où il l'attendait"
+            return f"{_nom(monde, sujet)} {'ne sont' if nombre_pluriel(o) else "n'est"} plus là où il l'attendait"
         porte = valeur == "joueur" or valeur in monde.objets and monde.objets[valeur]["type"] == "personnage"
         return f"{_nom(monde, sujet)} {est} {'porté' + accord + ' par' if porte else 'dans'} {_nom(monde, valeur)}"
     if attribut == "verrouillee":
         return f"{_nom(monde, sujet)} {est} {'verrouillé' if valeur else 'déverrouillé'}{accord}"
     if attribut == FIABLE:
-        pluriel = "s" if o.get("pluriel") else ""
+        pluriel = "s" if nombre_pluriel(o) else ""
         return f"{_nom(monde, sujet)} {est} {'digne' + pluriel + ' de confiance' if valeur else 'peu fiable' + pluriel}"
     return ""
 
@@ -420,7 +422,7 @@ def engagements_enregistres(monde, id):
         if mission and mission["donneur"] == id and accord["statut"] in ("propose", "accepte"):
             objet = designer(monde.objets[mission["objet"]]) if mission["objet"] in monde.objets else mission["objet"]
             phrases.append(f"{'accord conclu' if accord['statut'] == 'accepte' else 'offre faite'} : "
-                           f"{accord['montant']} pièces à la remise de {objet}")
+                           f"{quantite(accord['montant'], 'pièce')} à la remise de {objet}")
     return phrases
 
 
@@ -1241,7 +1243,7 @@ def verifier_offres(monde, contenu):
         if isinstance(c, dict) and c.get("type") in ("demande", "passage"):
             total += offre(c)
             if total > monde.joueur["or"]:
-                raise ErreurMonde(f"Tu n'as que {monde.joueur['or']} pièces.",
+                raise ErreurMonde(f"Tu n'as que {quantite(monde.joueur['or'], 'pièce')}.",
                                   f"contenu[{i}].valeur : les pièces offertes, en tout de 0 à {monde.joueur['or']} "
                                   f"(or du joueur) ; reçu {offre(c)}, soit {total} avec les offres précédentes.")
 
@@ -1382,17 +1384,17 @@ def _demander(travail, auditeur, objet, faits, prix=0):
         "rancune": f"{nom} refuse : {il} t'en veut encore.",
         "qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
         "necessaire": f"{nom} refuse de se séparer {de(o)}, qui lui sert.",
-        "pauvre": f"Tu n'as pas les {prix} pièces que tu lui offres.",
+        "pauvre": f"Tu n'as pas {quantite(prix, 'pièce', determinant='defini')} que tu lui offres.",
         "refus": f"{nom} n'est pas convaincu{e} et garde {o}"
-                 + (f" ; {il} en veut {vend} pièce{'s' if vend > 1 else ''}." if vend and prix < vend else "."),
+                 + (f" ; {il} en veut {quantite(vend, 'pièce')}." if vend and prix < vend else "."),
         "remis": f"{nom} te remet " + ("une part " + complement_de(travail.objets[objet]) if part else o)
                  + (f" : {il} te le prête." if any(
             p["objet"] == objet and p["a"] == "joueur" for p in travail.data.get("permissions", ())) else "."),
         "rendu": f"{nom} te rend {o}.",
         "vendu": (_part_vendue(travail, auditeur, objet, nom, il, prix) if part and not vivres
-                  else f"{nom} prend tes {prix} pièces et accepte de t'en donner une part : " + servie if part
-                  else f"{nom} prend tes {prix} pièces et ira chercher {o} pour te {_le(travail.objets[objet])} "
-                       "remettre." if differe else f"{nom} prend tes {prix} pièces et te remet {o}."),
+                  else f"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et accepte de t'en donner une part : " + servie if part
+                  else f"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et ira chercher {o} pour te {_le(travail.objets[objet])} "
+                       "remettre." if differe else f"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et te remet {o}."),
         "promis": (f"{nom} a déjà promis de te remettre {o}." if differe else
                    f"{nom} accepte de t'en donner une part : " + servie),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
@@ -1406,8 +1408,8 @@ def _part_vendue(travail, auditeur, lot, nom, il, prix):
     part = "une part " + complement_de(travail.objets[lot])
     a_remettre = any(x["condition"].get("remettre") == "joueur" and x.get("lot") == lot
                      for x in agendas.en_cours(travail, auditeur))
-    return (f"{nom} prend tes {prix} pièces et ira chercher {part} pour te la remettre." if a_remettre
-            else f"{nom} prend tes {prix} pièces et te remet {part}.")
+    return (f"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et ira chercher {part} pour te la remettre." if a_remettre
+            else f"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et te remet {part}.")
 
 
 def _reclamer(travail, auditeur, objet, faits, comptes):
@@ -1436,7 +1438,7 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         comptes.append(compte(auditeur, "joueur", montant=reste, etat="du" if reste else "absent"))
         faits.extend(lignes)
         if "sans_le_sou" in issues and not lignes:
-            faits.append(f"{nom} n'a pas de quoi te rendre les {montant} pièce{'s' if montant > 1 else ''} "
+            faits.append(f"{nom} n'a pas de quoi te rendre {quantite(montant, 'pièce', determinant='defini')} "
                          f"qu'{il} te doit.")
         return
     o = travail.objets.get(objet)
@@ -1473,7 +1475,7 @@ def _enqueter(travail, auditeur, besoin, faits):
 
 
 def _le(o):
-    return "les" if o.get("pluriel") else "la" if o.get("genre") == "f" else "le"
+    return "les" if nombre_pluriel(o) else "la" if o.get("genre") == "f" else "le"
 
 
 def _demander_passage(travail, auditeur, faits, prix=0):
@@ -1483,7 +1485,7 @@ def _demander_passage(travail, auditeur, faits, prix=0):
     faits.append({
         "qui_va_la": QUI_VA_LA.format(nom=nom, il=il),
         "ecarte": f"{nom} s'écarte d'un pas pour te laisser passer.",
-        "paye": f"{nom} prend tes {prix} pièces et s'écarte d'un pas pour te laisser passer.",
+        "paye": f"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et s'écarte d'un pas pour te laisser passer.",
         "geste": f"{nom} ne s'écarte pas : {il} est occupé{e} à ce qu'{il} fait là.",
         "mefiance": f"{nom} refuse de s'écarter : {il} ne te fait pas confiance.",
         "rancune": f"{nom} refuse de s'écarter : {il} t'en veut encore.",
