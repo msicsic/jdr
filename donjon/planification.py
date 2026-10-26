@@ -64,8 +64,8 @@ _MEMOIRE = {}
 # il dépendait (None : nœuds relâchés après une preuve d'impossibilité) : quand seuls le prix d'une faute
 # ou celui d'abîmer ont changé (la détresse qui monte), la recherche se refait sur lui sans
 # recalculer un seul geste.
-# Dès la première recherche, une petite marque de discrétion est retenue ;
-# les nœuds ne le sont qu'à la deuxième rencontre des mêmes entrées.
+# Dès la première recherche, les passes internes partagent leurs nœuds.
+# Un certificat libère les nœuds mais conserve la découverte de discrétion.
 _GRAPHES = {}
 # Une impossibilité prouvée sur tout le graphe jusqu'à la profondeur autorisée ne dépend
 # plus des prix. Une seule dernière preuve par PNJ/but ; une preuve bornée n'est jamais reprise.
@@ -2039,21 +2039,18 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             garde = (entrees, None, "impossible", False)
         absence = garde is not None and garde[2] == "impossible"
         if garde is None:
-            # Le graphe n'est gardé qu'à la deuxième recherche de suite sur les mêmes entrées : celles
-            # qui changent à chaque fois n'en encombrent pas la mémoire.
+            # Dès la première rencontre, les passes internes et la preuve
+            # peuvent relire les mêmes nœuds, sans régénérer leurs gestes.
             vu = _GRAPHES.get(place)
             if vu is None or vu[0] != base:
-                # Retenir dès la première recherche la découverte, sans garder
-                # tous les nœuds des entrées qui ne reviendront jamais.
-                graphe = {"garder": False, "discretion": False}
+                graphe = {"discretion": False}
                 _GRAPHES[place] = (base, graphe)
             elif vu[1] is None:
                 graphe = {}
                 _GRAPHES[place] = (base, graphe)
             else:
                 graphe = vu[1]
-                repris = graphe.get("garder", True)
-                graphe["garder"] = True
+                repris = bool(graphe.get("sombre") or graphe.get("lumiere"))
     if garde is not None:
         _, trouve, issue, borne = garde
         examines = etats = plus_profond = 0
@@ -2063,7 +2060,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                                           noeuds, faute, tenir, graphe)
         borne = examines >= noeuds
         issue = "plan" if trouve else "borne" if borne else "epuise"
-        if (trouve is None and not borne and graphe is not None and graphe.get("garder", True) and memo is not None and depuis is None
+        if (trouve is None and not borne and graphe is not None and memo is not None and depuis is None
                 and (vide_garde is None or vide_garde[0] != signature_vide)):
             completion = {"ajoutes": 0, "completes": 0, "enrichis": 0}
             def preparer_preuve(nom_graphe):
@@ -2076,7 +2073,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             _IMPOSSIBLES[place] = (signature_vide, vide)
             if vide:
                 # Le certificat suffit désormais, sans retenir tous les états développés.
-                _GRAPHES[place] = (base, None)
+                _GRAPHES[place] = (base, {"discretion": graphe.get("discretion", False)})
         if endurer is not None and _endure(v, trouve, depuis, endurer):
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
@@ -2221,7 +2218,7 @@ def _explorer(v, depart_, but, vises, profondeur, noeuds, faute, tenir=False, gr
     v._depart_estimation = depart_
     v._contexte_parts = (but, json.dumps(vises, sort_keys=True, ensure_ascii=False))
     sombre = lumineux = None
-    if graphe is not None and graphe.get("garder", True):
+    if graphe is not None:
         sombre, lumineux = graphe.setdefault("sombre", {}), graphe.setdefault("lumiere", {})
     v._explore_furtif = bool(graphe and graphe.get("discretion"))
     v._decouvrir_discretion = decouvrir_discretion

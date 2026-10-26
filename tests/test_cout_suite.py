@@ -153,7 +153,7 @@ class AbsenceTests(unittest.TestCase):
         but = lambda v, e: e.fait(*cle) == "fin"
         with patch.object(p, "gestes", gestes), patch.object(caractere, "prix_faute", faute),                 patch.object(p, "VERIFIER", True), patch.object(p, "_MEMOIRE", {}),                 patch.object(p, "_GRAPHES", {}), patch.object(p, "_IMPOSSIBLES", {}),                 p.diagnostics() as recherches:
             plans = []
-            # La deuxième recherche (entrées de prix différentes, même graphe) garde le graphe.
+            # Dès la première recherche le graphe est gardé ; la deuxième le reprend.
             for valeur in (0.0, 0.1, 10.0, 0.0, 10.0):
                 prix["faute"] = valeur
                 plans.append(p.chercher(m, "remy", but, {}, memo=["preuve"], emplois=(), profondeur=3))
@@ -163,7 +163,7 @@ class AbsenceTests(unittest.TestCase):
         self.assertIsNotNone(plans[0])
         self.assertEqual(plans, [plans[0], plans[0], None, plans[0], None])
         self.assertEqual([r["issue"] for r in recherches], ["plan", "plan", "epuise", "plan", "epuise"])
-        self.assertEqual([r["graphe"] for r in recherches], [False, False, True, True, True])
+        self.assertEqual([r["graphe"] for r in recherches], [False, True, True, True, True])
         self.assertEqual(recherches[2]["preuve_issue"], "but")
         self.assertFalse(any(r["impossible"] for r in recherches))
         # Le seul graphe sombre ne voit aucun but : sans la règle, l'absence passait pour prouvée.

@@ -36,3 +36,18 @@ class EntreesTests(unittest.TestCase):
         with patch('donjon.signes.actives', side_effect=AssertionError('lecture morte')):
             p._entrees_communes(v)
 
+    def test_premier_epuisement_certifie_et_libere_les_noeuds(self):
+        chemin = Path(__file__).parent / 'data/cout-12h/mine-1985-480.json.gz'
+        m = Monde(json.loads(gzip.decompress(chemin.read_bytes())))
+        with patch.object(p, '_MEMOIRE', {}), patch.object(p, '_GRAPHES', {}), \
+                patch.object(p, '_IMPOSSIBLES', {}), p.diagnostics() as ds:
+            r = p.chercher(m, 'remy', p.a_mange, memo=['faim'], emplois=('manger',), motif='faim')
+            self.assertIsNone(r)
+            self.assertEqual(ds[-1]['preuve_issue'], 'epuise')
+            self.assertTrue(next(iter(p._IMPOSSIBLES.values()))[1])
+            self.assertEqual(set(next(iter(p._GRAPHES.values()))[1]), {'discretion'})
+            p._MEMOIRE.clear()
+            self.assertIsNone(p.chercher(m, 'remy', p.a_mange, memo=['faim'], emplois=('manger',), motif='faim'))
+            self.assertEqual(ds[-1]['noeuds'], 0)
+            self.assertTrue(ds[-1]['impossible'])
+
