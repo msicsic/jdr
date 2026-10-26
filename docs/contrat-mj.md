@@ -775,6 +775,15 @@ avec son lieu ; elle ne réclame pas de réserve qui la démente. La révision d
 mécanique de cette liberté sensorielle. Une source citée à tort ou une contradiction formulée
 sans élément mécanique explicite dépend encore de la lecture sémantique.
 
+Depuis `codex-rapports-illisibles` (lot 116), les variantes du schéma d'audit
+excluent les jugements typés incompatibles : `mecanique` ne peut porter une
+portée `sans_fondement` ou `contradictoire` ; `invention_protegee` et
+`contradictoire` ne peuvent porter une portée `etablie`. Une forme `ambiance`,
+`parole` ou autre peut toujours porter une conséquence mécanique refusée.
+Le contrôleur conserve son refus des paires incompatibles dans un rapport
+forgé ou archivé, avant publication et à la sauvegarde. Le schéma garantit
+cette cohérence de format ; la justesse du classement reste sémantique.
+
 Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare
 la demande du joueur aux opérations du plan. Elle ne juge que l'état : action et cibles,
 changement durable demandé mais absent, changement durable ajouté sans demande. La

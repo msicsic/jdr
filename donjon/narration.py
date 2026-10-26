@@ -173,10 +173,18 @@ def schema_audit(faits, nombre):
             for refuse in (False, True):
                 if verdict in ("invention_protegee", "contradictoire") and not refuse:
                     continue
+                # mecanique signifie établi ; une assertion mécanique non
+                # fondée se classe invention_protegee ou contradictoire.
+                # La forme (ambiance, parole...) peut en revanche porter une
+                # conséquence mécanique refusée. Ne pas perdre ces variantes.
+                if verdict == "mecanique" and refuse:
+                    continue
                 variante = copy.deepcopy(item)
                 proprietes = variante["properties"]
                 proprietes["verdict"] = {"type": "string", "enum": [verdict]}
-                if verdict not in ("invention_protegee", "contradictoire"):
+                if verdict in ("invention_protegee", "contradictoire"):
+                    proprietes["portee_mecanique"]["enum"] = ["aucune", "sans_fondement", "contradictoire"]
+                else:
                     proprietes["portee_mecanique"]["enum"] = (
                         ["sans_fondement", "contradictoire"] if refuse else ["aucune", "etablie"])
                 retirer = []

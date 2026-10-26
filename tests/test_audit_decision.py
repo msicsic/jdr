@@ -10,7 +10,7 @@ import jeu
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.narration import (controler, consigner, schema_audit, segments,
-                              segments_etablis, attestations)
+                              segments_etablis, attestations, VERDICTS, AuditIllisible)
 from donjon.rendu import regarder
 from tests.test_repli_et_appel import dialogue
 from tests.test_tensions import recharger
@@ -18,6 +18,33 @@ from tests.test_verdict_coherent import crypte
 
 
 class AuditDecisionTests(unittest.TestCase):
+    def test_toutes_les_paires_du_schema_sont_coherentes(self):
+        for faits in ({'salle': {}}, {'perception': {}, 'comptes': {}, 'echanges_passes': {}}):
+            variantes = schema_audit(faits, [0])['properties']['segments']['properties']['0']['anyOf']
+            paires = set()
+            for variante in variantes:
+                p = variante['properties']
+                verdict, = p['verdict']['enum']
+                for portee in p['portee_mecanique']['enum']:
+                    paires.add((verdict, portee))
+                    ligne = {'verdict': verdict, 'portee_mecanique': portee, 'sources': list(faits)}
+                    for cle in variante['required']:
+                        if cle not in ligne:
+                            ligne[cle] = [] if p[cle]['type'] == 'array' else ''
+                    # Le contrôleur peut refuser le texte, jamais lire une paire
+                    # produite par le schéma comme deux jugements incompatibles.
+                    controler('Une assertion à contrôler.', {'segments': {'0': ligne}}, faits)
+            interdites = {('mecanique', 'sans_fondement'), ('mecanique', 'contradictoire'),
+                          ('invention_protegee', 'etablie'), ('contradictoire', 'etablie')}
+            toutes = {(v, p) for v in VERDICTS for p in
+                      ('aucune', 'etablie', 'sans_fondement', 'contradictoire')}
+            self.assertEqual(paires, toutes - interdites)
+            for verdict, portee in interdites:
+                with self.subTest(verdict=verdict, portee=portee), self.assertRaises(AuditIllisible):
+                    controler('Une assertion à contrôler.', {'segments': {'0': {
+                        'verdict': verdict, 'portee_mecanique': portee, 'sources': list(faits),
+                        'motif': 'Rapport forgé.'}}}, faits)
+
     def test_console_texte_exact_libre_et_melange_apres_recharge(self):
         for defi in (False, True):
             for melange in ('moteur', 'libre', 'melange'):
