@@ -192,8 +192,7 @@ REGLES_RETOUR_INTERPRETATION = (
     "personnage ne parle ni ne réagit."
 )
 
-REGLES_MODE_CASES = """
-En mode_cases, le joueur se déplace à pied avec les touches de la carte : une cible trop loin
+REGLES_MODE_CASES = """\nLe joueur se déplace à pied avec les touches de la carte : une cible trop loin
 (a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
 manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
 salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
@@ -205,19 +204,19 @@ Ses pas s'entendent de près et font se retourner ; à pas feutrés (action fauf
 direction), plus lents, ils ne s'entendent que de tout près.
 """
 
-INSTRUCTIONS_INTERPRETATION = (
-    INTERPRETATION
-    + REGLES_ATELIER
-    + REGLES_FRANCHISSEMENT
-    + REGLES_OBSTACLES
-    + REGLES_ESPACE
-    + REGLES_RETOUR_INTERPRETATION
-    + REGLES_PAROLE
-    + REGLE_NARRATION
-    + REGLES_LOCALISATION
-    + REGLES_MODE_CASES
-    + INSTRUCTIONS_REVISION
-)
+INSTRUCTIONS_RESULTAT = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
+Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
+événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
+La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
+comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
+les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
+Respecte les réussites partielles, les échecs, les objets réellement déplacés et les témoins
+qui ont effectivement remarqué le geste. Les étapes non exécutées n'ont pas eu lieu.
+N'invente aucun événement, parole, émotion, connaissance, bruit ou nouvelle conséquence.
+L'historique aide à comprendre, mais seul resultat_resolu prouve ce qui vient de se produire.
+Le monde est déjà modifié : ta réponse ne déclenche aucune action. mode=dialogue,
+proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur une seule fois.
+"""
 
 REGLES_RESULTAT_NARRATION = """
 Si resultat_resolu est présent, tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
@@ -1165,19 +1164,38 @@ class MJ:
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([schema_parole] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
-                "texte": {"type": "string"},
                 "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
+                "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([schema_parole] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
-        instructions = INSTRUCTIONS_INTERPRETATION if enrichir else INSTRUCTIONS_NARRATION
+        instructions = INTERPRETATION
+        if atelier:
+            instructions += REGLES_ATELIER
+        if franchissements:
+            instructions += REGLES_FRANCHISSEMENT
+        if passages:
+            instructions += REGLES_OBSTACLES
+        if enrichir and espace:
+            instructions += REGLES_ESPACE
+        if enrichir:
+            instructions += REGLES_RETOUR_INTERPRETATION
+        if enrichir and (social or paroles is not None):
+            instructions += REGLES_PAROLE
         if not enrichir:
+            instructions = INSTRUCTIONS_RESULTAT if resultat_resolu is not None else NARRATION
             schema["properties"]["mode"] = {"type": "string", "enum": ["dialogue"]}
             schema["properties"]["texte"] = {"type": "string", "minLength": 1,
                                              "description": "Réponse finale non vide destinée au joueur."}
             schema["properties"]["proposition"] = {"type": "null"}
+            if retour_moteur:
+                instructions += "\nLes propositions précédentes ont été refusées avant toute exécution. Explique les conditions pertinentes à partir des faits fournis. Ne présente pas ces refus comme une tentative de Corvus ni comme une preuve que son intention entière est impossible."
+        instructions += REGLE_NARRATION
+        instructions += REGLES_LOCALISATION
+        if monde.data.get("mode_cases") and enrichir:
+            instructions += REGLES_MODE_CASES
         conversation = monde.data["conversation"][-2 if resultat_resolu is not None else -6:]
         if enrichir and not est_question(intention) and proposition_en_attente is None:
             from .commandes import analyser
@@ -1495,10 +1513,9 @@ class MJ:
             for o in obstacles:
                 if o not in refusees:
                     refusees.append(o)
-            correction = ordonner_entree({**entree, "controle_narratif": refusees})
-            instructions_revision = (instructions if INSTRUCTIONS_REVISION in instructions
-                                     else instructions + INSTRUCTIONS_REVISION)
-            reponse = appeler_brut(instructions_revision, correction,
+            correction = ordonner_entree({**entree, "controle_narratif": refusees,
+                                          "consigne_revision": INSTRUCTIONS_REVISION.strip()})
+            reponse = appeler_brut(instructions, correction,
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 

@@ -60,11 +60,13 @@ ORDRE_ENTREE = (
     "nature",
     "retour_forme",
     "controle_narratif",
+    "consigne_revision",
 )
 
 SLOTS_VOIE = {
     "interpreter": 0,
     "raconter": 1,
+    "raconter_resultat": 1,
     "auditer_narration": 2,
     "auditer_action": 3,
     "auditer_portee": 3,
@@ -84,7 +86,7 @@ def _ordonner_esprit(esprit):
 
 
 def ordonner_faits(faits):
-    """Range les clés de ``faits`` des plus stables (scène, objets, esprits) aux plus volatiles
+    """Range les clés de ``faits`` des plus stables (scène, objets, catalogues) aux plus volatiles
     (intention du tour, révision, retour moteur) afin que le préfixe JSON soit partagé entre tours,
     relances et phases d'audit."""
     if not isinstance(faits, dict):
@@ -109,7 +111,7 @@ def ordonner_faits(faits):
 
 def ordonner_entree(entree):
     """Place ``faits`` (ordonné par stabilité) en tête de l'entrée JSON et les ajouts de relance
-    (``retour_forme``, ``controle_narratif``) tout à la fin."""
+    (``retour_forme``, ``controle_narratif``, ``consigne_revision``) tout à la fin."""
     if not isinstance(entree, dict):
         return entree
     ordonne = {}
@@ -123,12 +125,13 @@ def ordonner_entree(entree):
 
 
 def voie_cache(fonction, entree, interpretation=None):
-    """Identifie la voie de cache KV d'un appel pour éviter qu'interprétation, narration et audit
-    n'évincent mutuellement leur préfixe."""
+    """Identifie la voie de cache KV d'un appel pour éviter qu'interprétation, narration de dialogue,
+    narration de résultat et audits n'évincent mutuellement leur préfixe."""
     if fonction == "repondre_au_joueur":
         faits = entree.get("faits", {}) if isinstance(entree, dict) else {}
-        if interpretation is False or (isinstance(faits, dict)
-                                       and ("conversation_validee" in faits or "resultat_resolu" in faits)):
+        if isinstance(faits, dict) and "resultat_resolu" in faits:
+            return "raconter_resultat"
+        if interpretation is False or (isinstance(faits, dict) and "conversation_validee" in faits):
             return "raconter"
         return "interpreter"
     return fonction

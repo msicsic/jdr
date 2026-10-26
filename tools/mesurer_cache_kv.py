@@ -1,4 +1,5 @@
-"""Mesure le taux de réutilisation du préfixe KV (1-slot et 4-slots) sur les traces d'appels MJ."""
+"""Mesure le taux de réutilisation du préfixe KV (1-slot et 4-slots) sur les traces d'appels MJ
+ou par simulation hors ligne d'une séquence de tours."""
 import argparse
 import glob
 import json
@@ -9,7 +10,6 @@ RACINE = Path(__file__).resolve().parents[1]
 if str(RACINE) not in sys.path:
     sys.path.insert(0, str(RACINE))
 
-from donjon.mj import INSTRUCTIONS_INTERPRETATION, INSTRUCTIONS_NARRATION
 from donjon.sources import ordonner_entree, slot_cache, voie_cache
 
 BLOC_TOKENS_CHARS = 512  # ~128 tokens (granularité typique de bloc KV Radix / llama.cpp / vLLM)
@@ -24,7 +24,7 @@ def lcp_aligne(a, b, bloc=BLOC_TOKENS_CHARS):
 
 
 def extraire_appels(objet):
-    """Extrait récursivement les étapes d'appel d'un fichier de trace MJ."""
+    """Extrait récursivement les étapes d'appel (``--fil``) d'un fichier de trace MJ."""
     if isinstance(objet, list):
         for element in objet:
             yield from extraire_appels(element)
@@ -50,14 +50,8 @@ def simuler_trace(appels, *, reordonner=True):
         entree = appel["entree"]
         voie = voie_cache(fonction, entree)
         slot = slot_cache(voie) if reordonner else 0
-        if reordonner:
-            instructions = (INSTRUCTIONS_NARRATION if voie == "raconter"
-                            else INSTRUCTIONS_INTERPRETATION if voie == "interpreter"
-                            else appel.get("instructions", ""))
-            entree_flux = ordonner_entree(entree)
-        else:
-            instructions = appel.get("instructions", "")
-            entree_flux = entree
+        instructions = appel.get("instructions", "")
+        entree_flux = ordonner_entree(entree) if reordonner else entree
         schema_str = "" if reordonner else json.dumps(appel.get("schema", {}), ensure_ascii=False)
         entree_str = json.dumps(entree_flux, ensure_ascii=False)
         flux = (schema_str + "\n" if schema_str else "") + instructions + "\n" + entree_str
@@ -99,9 +93,52 @@ def simuler_trace(appels, *, reordonner=True):
     }
 
 
+def generer_appels_simulation():
+    """Génère hors ligne une séquence d'appels représentative (Relais des crues) si aucune trace --fil n'est fournie."""
+    from donjon.defi import nouveau_defi
+    from donjon.mj import MJ
+    from donjon.narration import INSTRUCTIONS_AUDIT, schema_audit
+    from donjon.spatial import installer
+
+    monde = nouveau_defi(depart="fixe")
+    installer(monde)
+    mj = MJ("local", "none", connexion="local")
+    appels = []
+
+    def capter(instructions, entree, intention, fonction, schema):
+        appels.append({"etape": "appel", "fonction": fonction, "instructions": instructions,
+                       "entree": json.loads(json.dumps(entree)), "schema": schema})
+        raise RuntimeError("capter")
+
+    mj._appeler_brut = capter
+    for saisie, kwargs in (
+        ("j'examine la table", {"enrichir": True}),
+        ("« Ilse, que vois-tu d'ici ? »", {"enrichir": True}),
+        ("« Ilse, que vois-tu d'ici ? »", {"enrichir": True, "retour_moteur": {"obstacle": "Test", "consigne": "Corrige."}}),
+        ("« Ilse, que vois-tu d'ici ? »", {"enrichir": False, "conversation_validee": {
+            "personnage": "ilse", "sujet": "vue", "operation": "discuter", "faits": [], "repondent": ["ilse"], "temoins": []}}),
+    ):
+        try:
+            mj._echanger(monde, saisie, None, **kwargs)
+        except RuntimeError:
+            pass
+        monde.data["revision"] += 1
+    faits_audit = appels[-1]["entree"]["faits"]
+    appels.append({
+        "etape": "appel",
+        "fonction": "auditer_narration",
+        "instructions": INSTRUCTIONS_AUDIT,
+        "entree": ordonner_entree({"faits": faits_audit, "segments": {"0": "Ilse te regarde."},
+                                   "designations": {}, "nature": "réponse du MJ"}),
+        "schema": schema_audit(faits_audit, ["0"]),
+    })
+    return [appels]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("chemins", nargs="+", help="Fichiers ou motifs glob de traces JSON")
+    parser.add_argument("chemins", nargs="*", help="Fichiers ou motifs glob de traces JSON (avec --fil)")
+    parser.add_argument("--simuler", action="store_true", help="Simule hors ligne si aucune trace --fil n'est disponible")
     args = parser.parse_args(argv)
     fichiers = []
     for motif in args.chemins:
@@ -118,6 +155,11 @@ def main(argv=None):
             continue
         avant_tot.append(simuler_trace(appels, reordonner=False))
         apres_tot.append(simuler_trace(appels, reordonner=True))
+
+    if not apres_tot and (args.simuler or not args.chemins):
+        for appels in generer_appels_simulation():
+            avant_tot.append(simuler_trace(appels, reordonner=False))
+            apres_tot.append(simuler_trace(appels, reordonner=True))
 
     def agreger(liste):
         appels = sum(x["appels"] for x in liste)

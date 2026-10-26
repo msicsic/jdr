@@ -12,13 +12,12 @@ from donjon.atelier import nouveau_atelier
 from donjon.defi import nouveau_defi
 from donjon.fournisseurs import creer
 from donjon.fournisseurs.local import Local, extraire_json, normaliser_url
-from donjon.mj import INSTRUCTIONS_INTERPRETATION, INSTRUCTIONS_NARRATION, MJ
+from donjon.mj import INSTRUCTIONS_RESULTAT, MJ
 from donjon.monde import Monde, nouveau_monde
-from donjon.moteur import proposition
 from donjon.sources import ordonner_entree, ordonner_faits, slot_cache, voie_cache
 from donjon.spatial import installer
 from tests.test_fournisseurs_jeu import arguments
-from tests.test_repli_et_appel import NEUTRE, dialogue, jouer, mj, parole, verdicts
+from tests.test_repli_et_appel import NEUTRE, dialogue, verdicts
 from tools.verifier_websocket_jeu import CAS, parcours
 
 
@@ -44,38 +43,41 @@ class PrefixeKVTests(unittest.TestCase):
             instance._echanger(monde, intention, None, enrichir=enrichir, **kwargs)
         return recus[0]
 
-    def test_instructions_constantes_par_voie_entre_scenerios_et_relances(self):
+    def test_instructions_stables_dans_la_salle_sans_revision_au_premier_appel_et_ordre_schema_conserve(self):
         m_base = nouveau_monde()
         m_defi = nouveau_defi(depart="fixe")
         installer(m_defi)
-        m_atelier = nouveau_atelier()
-        installer(m_atelier)
 
-        i1, e1, _, s1 = self._capter_appel(m_base, "je regarde autour de moi", enrichir=True)
-        i2, e2, _, s2 = self._capter_appel(m_defi, "« Gorm, ouvre la porte ! »", enrichir=True,
+        i_base, _, _, _ = self._capter_appel(m_base, "je regarde autour de moi", enrichir=True)
+        i1, e1, _, s1 = self._capter_appel(m_defi, "je regarde autour de moi", enrichir=True)
+        i2, e2, _, s2 = self._capter_appel(m_defi, "« Ilse, ouvre la porte ! »", enrichir=True,
                                            retour_moteur={"obstacle": "Test", "consigne": "Corrige."})
-        i3, e3, _, s3 = self._capter_appel(m_atelier, "je fabrique une échelle", enrichir=True)
-        self.assertEqual(i1, INSTRUCTIONS_INTERPRETATION)
+
+        # Dans une même pièce, les instructions restent identiques entre un tour normal, une parole et un retour_moteur.
         self.assertEqual(i1, i2)
-        self.assertEqual(i1, i3)
-        # Dans le schéma de réponse, la volumineuse proposition précède mode et faits.
-        self.assertEqual(list(s1["properties"])[:2], ["proposition", "texte"])
+        # Les règles mode_cases/atelier ne sont pas injectées hors de leur contexte ; révision absente au 1er appel.
+        self.assertNotIn("action faufiler", i_base)
+        self.assertIn("action faufiler", i1)
+        self.assertNotIn("rupture du contrat narratif", i1)
+        # L'ordre causal du schéma (mode -> texte -> faits -> proposition) est intégralement préservé.
+        self.assertEqual(list(s1["properties"]), ["mode", "texte", "faits", "proposition"])
         self.assertEqual(list(e1)[0], "faits")
         self.assertEqual(list(e2)[0], "faits")
 
-        n1, _, _, _ = self._capter_appel(
+        n_conv, e_conv, _, _ = self._capter_appel(
             m_defi, "Gorm ?", enrichir=False,
             conversation_validee={"personnage": "marchand", "sujet": "Gorm ?", "operation": "discuter",
                                   "faits": [], "repondent": ["marchand"], "temoins": []})
-        n2, _, _, _ = self._capter_appel(
+        n_res, e_res, _, _ = self._capter_appel(
             m_defi, "Raconte.", enrichir=False,
             resultat_resolu={"gestes": ["Geste."], "faits": ["Tu avances."], "intention": "j'avance"})
-        n3, _, _, _ = self._capter_appel(
-            m_defi, "Explique.", enrichir=False,
-            retour_moteur={"propositions_refusees": [], "consigne": "Explique."})
-        self.assertEqual(n1, INSTRUCTIONS_NARRATION)
-        self.assertEqual(n1, n2)
-        self.assertEqual(n1, n3)
+        # La narration de résultat garde sa consigne dédiée et sa propre voie de cache.
+        self.assertIn(INSTRUCTIONS_RESULTAT.strip(), n_res)
+        self.assertNotIn("conversation_validee", n_res)
+        self.assertNotIn("rupture du contrat narratif", n_conv)
+        self.assertNotIn("rupture du contrat narratif", n_res)
+        self.assertEqual(voie_cache("repondre_au_joueur", e_conv, False), "raconter")
+        self.assertEqual(voie_cache("repondre_au_joueur", e_res, False), "raconter_resultat")
 
     def test_partage_du_prefixe_entree_entre_tours_relances_et_audit(self):
         m = nouveau_defi(depart="fixe")
@@ -104,7 +106,7 @@ class PrefixeKVTests(unittest.TestCase):
         traces = []
 
         def appel(instructions, entree, intention, fonction, schema):
-            traces.append((instructions, json.dumps(entree, ensure_ascii=False), fonction))
+            traces.append((instructions, entree, json.dumps(entree, ensure_ascii=False), fonction))
             if fonction == "auditer_narration":
                 if len(traces) == 2:
                     return verdicts(("invention_protegee", (), "Invention."))
@@ -125,15 +127,18 @@ class PrefixeKVTests(unittest.TestCase):
 
         self.assertIn("La table est posée devant toi.", sortie.getvalue())
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], "La table est posée devant toi.")
-        appels_mj = [(i, e) for i, e, f in traces if f == "repondre_au_joueur"]
-        appels_audit = [(i, e) for i, e, f in traces if f == "auditer_narration"]
+        appels_mj = [(i, d, e) for i, d, e, f in traces if f == "repondre_au_joueur"]
+        appels_audit = [(i, d, e) for i, d, e, f in traces if f == "auditer_narration"]
         self.assertEqual(len(appels_mj), 2)
-        # Les instructions ne changent pas lors de la relance controle_narratif.
+        # Les instructions ne changent pas lors de la relance controle_narratif ; la consigne est en fin d'entrée.
         self.assertEqual(appels_mj[0][0], appels_mj[1][0])
+        self.assertNotIn("consigne_revision", appels_mj[0][1])
+        self.assertIn("consigne_revision", appels_mj[1][1])
+        self.assertEqual(list(appels_mj[1][1])[-2:], ["controle_narratif", "consigne_revision"])
         # Le préfixe d'entrée avant controle_narratif est conservé à plus de 95 %.
-        self.assertGreater(prefixe_commun(appels_mj[0][1], appels_mj[1][1]) / len(appels_mj[0][1]), 0.95)
+        self.assertGreater(prefixe_commun(appels_mj[0][2], appels_mj[1][2]) / len(appels_mj[0][2]), 0.95)
         # L'audit partage le préfixe de faits avec l'appel du MJ.
-        self.assertGreater(prefixe_commun(appels_mj[0][1], appels_audit[0][1]) / len(appels_audit[0][1]), 0.80)
+        self.assertGreater(prefixe_commun(appels_mj[0][2], appels_audit[0][2]) / len(appels_audit[0][2]), 0.80)
 
 
 class FournisseurLocalTests(unittest.TestCase):
