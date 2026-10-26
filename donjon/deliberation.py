@@ -1457,13 +1457,20 @@ def _continuer_progres(monde, id, besoin):
 
 
 def retabli_par_son_plan(monde, id, condition):
-    """Ce qu'il défait lui-même pour un plan qui le rétablit n'est pas à réparer d'abord, tant
-    que le motif de ce plan presse encore (un besoin urgent, une parole à tenir)."""
+    """La remise sous clé appartient au plan en cours, même sans besoin urgent.
+
+    Le choix continue de revalider le but et les gestes ; leur abandon rend la
+    garde indépendante de nouveau. L'urgence du motif ne dit pas si une
+    précondition temporaire du plan doit être annulée.
+    """
     e = lire(monde, id)
     i = e["intention"]
     if not (condition.get("verrouillee") and i and any(
             x["operation"] == "verrouiller" and x["cible"] == condition["objet"] for x in i["plan"])):
         return False
+    if i["but"] != {"type": "pulsion", **condition}:
+        return True  # Précondition temporaire d'un autre but, urgent ou non.
+    # Pour la garde elle-même, conserver l'arbitrage du recours en cours.
     but = {k: v for k, v in i["but"].items() if k != "type"}
     return i["motif"] in urgents(monde, id) or i["motif"] == "engagement" and any(
         x["condition"] == but for x in agendas.en_cours(monde, id))
