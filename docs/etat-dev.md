@@ -46,7 +46,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Luna du brief atteint ; ce lot ne clôt pas la limite du lot 124.
   Aucune clé de signature Git configurée.
   [Rapport du lot 128](taches/rapport-codex-128-avis-typage.md).
-  Lots 124 et 128 fusionnés ensemble sur l'intégration après les lots 122, 123, 125 à 127, 130 et 131 : seul conflit de documentation ; `esprits.py` et `spatial.py` touchés aussi depuis la base, fusionnés sans conflit textuel ; suite complète relancée. Surcoût d'appels surtout dû aux avis désormais typés et relus (avant : sans revue) ; à revoir à la prochaine vérification Luna groupée.
+  Lots 124 et 128 fusionnés ensemble sur l'intégration après les lots 122, 123, 125 à 127, 130 et 131 : seul conflit de documentation ; `esprits.py` et `spatial.py` touchés aussi depuis la base, fusionnés sans conflit textuel ; suite complète sur l'ensemble des fusions 130, 124+128 et 129 (`tools/tests.py --processus 2`) : **2 073 tests, 16 ignorés**, verte (2 319,9 s). Surcoût d'appels surtout dû aux avis désormais typés et relus (avant : sans revue) ; à revoir à la prochaine vérification Luna groupée.
 
 - Branche `codex-avis-joueur`, fusionnée (avec le lot 128), lot **124**, base `85b9204` :
   contenu joueur `avis` (lieu public connu, menace oui/non), validation avec `attendu`,
