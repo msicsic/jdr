@@ -36,6 +36,12 @@ def creer(scenario, graine=1985, depart="tire"):
         m = nouvelle_rixe(graine, depart, douce=scenario == "rixe_douce")
         installer(m)
         return m
+    if scenario == "crue_hameau":
+        from .crue_hameau import nouvelle_crue_hameau
+        from .spatial import installer
+        m = nouvelle_crue_hameau(graine, depart)
+        installer(m)
+        return m
     if scenario in ("relais", "crue"):
         from .crue import nouvelle_crue
         from .defi import nouveau_defi
@@ -611,7 +617,7 @@ def tableau(graines, mesures):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge", "rixe", "rixe_douce"), default="relais")
+    parser.add_argument("--scenario", choices=("relais", "crue_hameau", "crue", "crypte", "mine", "auberge", "rixe", "rixe_douce"), default="relais")
     parser.add_argument("--regler", action="append", default=[], help="personnage.PSY=16 ; caractéristique ou valeur (répétable)")
     parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :ligote, :mort ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)

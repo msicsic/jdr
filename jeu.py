@@ -82,6 +82,7 @@ def main(argv=None, interface=None):
     parser.add_argument("--mine", action="store_true", help="La mine de Cendrefer, camp coupé du monde, avec sauvegarde séparée")
     parser.add_argument("--auberge", action="store_true",
                         help="L'auberge du Col-Pendu, une nuit de tempête avec huit personnages ; sauvegarde séparée auberge.json")
+    parser.add_argument("--crue-hameau", action="store_true", help="la crue avec les évacués du hameau ; sauvegarde séparée")
     parser.add_argument("--rixe", action="store_true", help="épreuve de force du Relais ; sauvegarde séparée")
     parser.add_argument("--crue", action="store_true",
                         help="la crue du Relais : l'eau monte selon la graine, sauvegarde séparée crue.json")
@@ -111,9 +112,9 @@ def main(argv=None, interface=None):
         args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
     if args.effort is None:
         args.effort = "none" if args.connexion == "mimo" else "medium"
-    if args.atelier + args.defi + args.mine + args.auberge + args.crue + args.rixe > 1:
-        parser.error("Choisis --atelier, --defi, --mine, --auberge, --crue ou --rixe.")
-    for scenario in ("mine", "auberge", "crue", "rixe"):
+    if args.atelier + args.defi + args.mine + args.auberge + args.crue + args.crue_hameau + args.rixe > 1:
+        parser.error("Choisis --atelier, --defi, --mine, --auberge, --crue, --crue-hameau ou --rixe.")
+    for scenario in ("mine", "auberge", "crue", "crue_hameau", "rixe"):
         if getattr(args, scenario) and args.save == BASE / "sauvegardes" / "partie.json":
             args.save = BASE / "sauvegardes" / f"{scenario}.json"
     if args.defi and args.save == BASE / "sauvegardes" / "partie.json":
@@ -173,6 +174,9 @@ def main(argv=None, interface=None):
             elif args.mine:
                 from donjon.mine import nouveau_mine
                 m = nouveau_mine(args.seed)
+            elif args.crue_hameau:
+                from donjon.crue_hameau import nouvelle_crue_hameau
+                m = nouvelle_crue_hameau(args.seed)
             elif args.rixe:
                 from donjon.rixe import nouvelle_rixe
                 m = nouvelle_rixe(args.seed)
@@ -187,7 +191,7 @@ def main(argv=None, interface=None):
                 m = nouveau_auberge(args.seed)
             else:
                 m = nouveau_monde(args.seed)
-        if args.cases or args.defi or args.mine or args.auberge or args.crue or args.rixe or m.data.get("mode_cases"):
+        if args.cases or args.defi or args.mine or args.auberge or args.crue or args.crue_hameau or args.rixe or m.data.get("mode_cases"):
             from donjon.spatial import installer as installer_cases
             installer_cases(m)
         moteur = Moteur(m)

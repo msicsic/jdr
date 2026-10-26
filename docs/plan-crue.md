@@ -535,3 +535,42 @@ rechargeables et les chiffres sont dans le [rapport](taches/rapport-codex-39-ref
 - Le joueur peut-il partir en barque, ce qui finit sa partie ?
 - Un cinquième personnage (un enfant à protéger, quelqu'un d'attendu qui n'arrive pas) ?
 - D'autres moyens de sécher que le feu (se changer, une couverture) avec la crue, ou plus tard ?
+
+
+## Dérivé `crue_hameau` — lot 139 (2026-10-26)
+
+Branche `codex-crue-hameau`, non fusionnée. `scenario_crue_hameau.json` et
+`crue_hameau.py` reprennent la crue sans modifier son scénario ni ses mécaniques.
+Six PNJ ; deux habitants ont suivi la digue depuis le hameau noyé avant la nuit :
+
+- **Maël**, vannier, au refuge : débrouillard, doux et serviable ; connaît Gorm
+  (confiance 75, affection 30) et Aubin (75, 35). Quatre pièces, un baluchon.
+- **Sève**, raccommodeuse de filets, à la galerie : attentive et loyale ; connaît
+  Aubin (80, 40) et Ilse (70, 35). Quatre pièces, un baluchon.
+
+Profils complets, huit caractéristiques et huit valeurs, corps humides, faim et
+fatigue modérées ; besoin de sécurité ordinaire, aucune pulsion propre au scénario.
+Ces personnages sont proposés et peuvent être retouchés. Ils savent que les maisons
+du hameau sont noyées ; ils n'ont aucune mesure initiale de la conduite ni des vannes.
+Gorm et Aubin connaissent ces deux salles sèches au départ : observations à zéro,
+sans niveau sous le sol ni pente inventés. Les deux évacués connaissent les vivres
+et le foyer du guet, sans connaissance initiale de la crue intérieure.
+
+Ressources : sept parts au lieu de quatre, quatre charges de bois du guet au lieu
+de trois ; les deux charges de bois des vannes, les foyers, lumières et accès restent
+ceux de la crue. Banc 4 h, quatre graines : pas de blocage global des nouveaux venus,
+mais les stocks ne garantissent pas leur distribution. En 1985, les deux foyers
+finissent éteints avec du bois restant et Brune a toujours faim ; les besoins des
+deux nouveaux restent sous leurs seuils pressants. Aucun script n'assure leur confort.
+
+Quatre nuits : **32 avis exprimés, deux adoptions** (Aubin et Sève, 1985 à 193 min),
+zéro dispute. Sève adopte l'avis d'Ilse sur le palier ; les mesures des salles basses
+lui viennent encore de paroles, mais elle a déjà vu l'eau du palier. Cela démontre
+une adoption par un évacué, pas une alerte précoce avant toute exposition à l'eau,
+ni une adoption dans chaque nuit. Maël acquiert vite ses observations au refuge.
+Les mandats, la barque et l'évacuation collective restent les étapes ultérieures du plan.
+
+Jeu : `python jeu.py --crue-hameau --new` (sauvegarde séparée `crue_hameau.json`).
+Banc : `python -m donjon.banc_pnj --scenario crue_hameau --heures 4
+--graines 1985 7 42 2024 --joueur chambre_cloche --processus 2`.
+Mesures et limites : [rapport du lot 139](taches/rapport-codex-139-crue-hameau.md).
