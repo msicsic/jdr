@@ -341,6 +341,48 @@ def reponse_du_moteur(exc):
             "_texte_moteur": True, "_validation_refusee": True}
 
 
+def verifier_forme_reponse(reponse, schema):
+    """L'enveloppe commune est corrigée avant tout audit ou choix de voie.
+
+    Les validateurs de chaque proposition gardent les contraintes de leur contenu.
+    Une source inconnue est écartée comme auparavant, sans invalider la réponse.
+    """
+    champs = {"mode", "texte", "faits", "proposition"}
+    if not isinstance(reponse, dict) or set(reponse) != champs:
+        raise RefusDeForme("La réponse doit porter les quatre champs attendus.",
+                           f"réponse reçue {reponse!r} ; accepté : {sorted(champs)}.")
+    modes = schema.get("properties", {}).get("mode", {}).get("enum")
+    if modes is not None and reponse["mode"] not in modes:
+        raise RefusDeForme("Le mode de réponse ne convient pas.",
+                           f"mode reçu {reponse['mode']!r} ; acceptés : {modes!r}.")
+    if not isinstance(reponse["faits"], list):
+        raise RefusDeForme("Les sources de la réponse doivent être une liste.",
+                           f"faits reçu {reponse['faits']!r} ; accepté : une liste de clés des faits fournis.")
+    if (not isinstance(reponse["texte"], str) or len(reponse["texte"]) > 4000
+            or (reponse["mode"] != "dialogue" and reponse["texte"])):
+        raise RefusDeForme("Le texte de la réponse ne convient pas à son mode.",
+                           f"texte reçu {reponse['texte']!r} ; accepté : dialogue non vide de 4000 caractères "
+                           "au plus ; texte vide pour une proposition typée.")
+    if reponse["mode"] == "dialogue" and not reponse["texte"].strip():
+        raise RefusDeForme("Le texte est vide : écris dans texte la réponse destinée au joueur.",
+                           f"texte reçu {reponse['texte']!r} ; accepté : une réponse non vide.")
+    if reponse["mode"] == "dialogue":
+        reponse["proposition"] = None
+    elif not isinstance(reponse["proposition"], dict):
+        raise RefusDeForme("La proposition typée doit être un objet structuré.",
+                           f"proposition reçue {reponse['proposition']!r}, mode {reponse['mode']!r} ; "
+                           "accepté : un objet conforme au schéma de ce mode, distinct de faits (sources citées).")
+    else:
+        for champ in ("ajouts", "contenu"):
+            if champ not in reponse["proposition"]:
+                continue
+            valeur = reponse["proposition"][champ]
+            if not isinstance(valeur, list) or any(not isinstance(v, dict) for v in valeur):
+                raise RefusDeForme("Le contenu typé doit être une liste d'objets structurés.",
+                                   f"proposition.{champ} reçu {valeur!r} ; accepté : une liste "
+                                   "d'objets conformes au schéma, pas une liste de sources citées.")
+
+
 def expliquer_refus(premier, dernier):
     """Une proposition rejetée ne prouve rien sur les capacités de Corvus."""
     return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
@@ -405,7 +447,7 @@ class MJ:
                 # son analyse des opérations ; un geste conserve le repli historique.
                 if essai:
                     if plan.parole is not None:
-                        raise ErreurMonde("Le contenu de ta parole n'a pas pu être vérifié.",
+                        raise RapportIllisible("Le contenu de ta parole n'a pas pu être vérifié.",
                             f"proposition.contenu reçu {json.dumps(plan.parole['contenu'], ensure_ascii=False)} ; "
                             f"contre-revue reçue {json.dumps(rapport, ensure_ascii=False)} ; "
                             "accepté un contenu couvrant les opérations demandées, "
@@ -417,7 +459,8 @@ class MJ:
                     return
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
-                                 operations_demandees=None, declaration_connue=True):
+                                 operations_demandees=None, declaration_connue=True,
+                                 operations_declarees=None):
         """Couverture locale, puis revue du sens seulement au-delà des mots exacts sans effet."""
         from .couverture_action import sens_parole, verifier_operations
         from .paroles import mots_dits, operations_contenu
@@ -428,12 +471,29 @@ class MJ:
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
             "sens_contenu": sens_parole(complements["contenu"], monde)})
         try:
-            verifier_operations(plan, operations_demandees or set())
+            declarees = operations_declarees or set()
+            try:
+                verifier_operations(plan, (operations_demandees or set()) | declarees)
+            except ErreurMonde:
+                # Une omission locale non examinée ne peut effacer la demande.
+                # Une déclaration couverte, en revanche, reste une hypothèse :
+                # seule la revue du sens peut la confirmer pour les corrections.
+                if operations_demandees is not None:
+                    operations_demandees.update(declarees)
+                raise
             mots = mots_dits(analyser_parole(monde, intention), intention)
-            if (declaration_connue and not operations_demandees and not operations_contenu(complements["contenu"])
+            if (declaration_connue and not operations_demandees and not declarees
+                    and not operations_contenu(complements["contenu"])
                     and rapport["replique_joueur"].strip() == (mots or intention).strip()):
                 return
-            self._auditer_action(intention, plan, revision, monde, operations_demandees)
+            try:
+                self._auditer_action(intention, plan, revision, monde, operations_demandees)
+            except (RapportIllisible, ErreurFournisseur):
+                # Aucun jugement lisible n'a infirmé la déclaration : elle ne
+                # disparaît pas avec une correction qui omettrait l'opération.
+                if operations_demandees is not None:
+                    operations_demandees.update(declarees)
+                raise
         except ErreurMonde as exc:
             raise ParoleNonConforme(str(exc), exc.attendu) from exc
 
@@ -779,11 +839,18 @@ class MJ:
                 try:
                     from .couverture_action import lire_operations
                     declaration_connue = not reponse.get("_parole_moteur")
+                    operations_declarees = set()
                     if declaration_connue:
-                        operations_demandees.update(lire_operations(complements.pop("operations_demandees", None)))
-                    travail, rapport = preparer_parole(monde, complements, revision)
+                        operations_declarees = lire_operations(complements.pop("operations_demandees", None))
+                    try:
+                        travail, rapport = preparer_parole(monde, complements, revision)
+                    except ErreurMonde:
+                        # La préparation n'a pas permis de revoir le sens : une
+                        # autre forme ne peut effacer les opérations annoncées.
+                        operations_demandees.update(operations_declarees)
+                        raise
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
-                                                   operations_demandees, declaration_connue)
+                                                   operations_demandees, declaration_connue, operations_declarees)
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
@@ -1188,7 +1255,25 @@ direction), plus lents, ils ne s'entendent que de tout près.
         refusees = []
         # Les segments admis de chaque réponse refusée : le dernier recours avant le repli du moteur.
         rescapes = []
+        forme_corrigee = False
         for tentative in range(3):
+            while True:
+                try:
+                    verifier_forme_reponse(reponse, schema)
+                    break
+                except RefusDeForme as exc:
+                    if self.observateur:
+                        self.observateur({"etape": "validation de forme", "modele": self.modele,
+                                          "intention": intention, **retour_refus(reponse, exc,
+                                          "Corrige la forme sans abandonner l'intention.")})
+                    if self._sans_relance:
+                        raise ExplicationCedee("L'explication n'est pas admise : le refus du monde y répond.")
+                    if forme_corrigee:
+                        return self._repli(entree, intention, rescapes)
+                    forme_corrigee = True
+                    reponse = appeler_brut(instructions, {**entree, "retour_forme":
+                        retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")},
+                        intention, fonction, schema)
             passages = []
             if reponse.get("mode") == "dialogue" and isinstance(reponse.get("texte"), str):
                 passages = [("texte", reponse["texte"], None)]
@@ -1370,19 +1455,6 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 # Le refus du monde répond à la place de cette explication (``_echanger_prepare``).
                 raise ExplicationCedee("L'explication n'est pas admise : le refus du monde y répond.")
             if tentative == 2:
-                champs = {"mode", "texte", "faits", "proposition"}
-                faits_connus = entree.get("faits", {})
-                if isinstance(reponse, dict) and isinstance(reponse.get("faits"), list):
-                    reponse["faits"] = [f for f in reponse["faits"] if isinstance(f, str) and f in faits_connus]
-                if (not isinstance(reponse, dict) or set(reponse) != champs
-                        or not isinstance(reponse["faits"], list)
-                        or any(not isinstance(f, str) or f not in faits_connus
-                               for f in reponse["faits"])
-                        or (reponse["mode"] == "dialogue" and
-                            (reponse["proposition"] is not None
-                             or not isinstance(reponse["texte"], str)
-                             or not reponse["texte"].strip()))):
-                    raise ErreurMonde("Réponse du MJ invalide. Aucune action appliquée.")
                 return self._repli(entree, intention, rescapes)
             for o in obstacles:
                 if o not in refusees:

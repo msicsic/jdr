@@ -21,6 +21,15 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 
 ## Contrôle de la prose
 
+**Forme avant narration** (`codex-sans-message-technique`, lot 100). L'enveloppe
+de toute réponse passe par le même contrôle avant ses audits : mode disponible,
+texte adapté au mode, sources en liste, proposition structurée et collections
+`ajouts`/`contenu` composées d'objets typés. Une forme invalide est un `RefusDeForme`, renvoyé une fois avec son champ,
+sa valeur reçue et la forme acceptée. Cette correction est distincte des trois
+essais narratifs. Si elle échoue, le repli commun restitue les acquis du moteur
+ou la perception disponible ; le refus technique n'est pas affiché. Les
+validateurs propres aux contenus restent responsables de leurs contraintes.
+
 **Une pièce d'un lot** (`codex-piece-de-lot`, lot 78). Les noms et alias du lot,
 ainsi que son `physique.nom_piece` lorsqu'il est décrit, désignent la même
 référence pour la saisie et la résolution des contenus. Aucun singulier ni nom
@@ -623,8 +632,13 @@ Depuis `codex-un-appel-de-moins` (lot 91), la proposition de l'interprétation
 `repondre_au_joueur` porte elle-même `operations_demandees`, avec le même schéma
 complet et les mêmes définitions que la revue. Ce champ d'interprétation est retiré
 avant la transaction de parole : la sauvegarde conserve les conséquences validées.
-Le moteur cumule les opérations déclarées sur les corrections de cette saisie et
-vérifie leur couverture avant tout appel de revue. Une opération manquante est
+Depuis le lot 100, le moteur distingue les déclarations de l'interprétation des
+opérations reconnues par une revue lisible. Il vérifie leur couverture avant tout
+appel de revue. Une déclaration couverte que la revue rejette sans reconnaître
+l'opération ne devient pas une obligation pour les corrections : un mauvais typage
+ne condamne pas les mots exacts du joueur. Les opérations reconnues par la revue
+restent cumulées ; une omission locale ou un audit illisible conserve aussi les
+déclarations encore non examinées, pour empêcher leur effacement. Une opération manquante est
 refusée localement ; une déclaration absente ou mal typée reçoit un refus de forme
 avec `attendu`, sans accumulation partielle.
 Une réplique aux mots exacts, sans opération déclarée ni contenu typé opérant,

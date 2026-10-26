@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-sans-message-technique`, fusionnée, lot **100**, base
+  `a86fdd7` : enveloppe des réponses contrôlée avant les audits, correction
+  `RefusDeForme` distincte, puis repli de perception si la forme reste invalide.
+  Les déclarations candidates de parole ne sont plus confondues avec les
+  opérations reconnues par la revue ; un typage contesté ne condamne plus les
+  mots exacts. Omission locale, préparation refusée et revue illisible conservent
+  les obligations non examinées. N1 préexistait aux lots suspects (`723d7d6`) ;
+  N3 venait du cumul introduit par le lot 91 (`031a86e`).
+  Reproductions console avec recharge avant correction ; passe Luna unique sur
+  atelier, soir-noir, noms-dialogue, échanges : **23 tours, 81 appels, 10,88 s/tour**,
+  aucun arrêt, erreur technique, repli ni défaut de recharge ; N1/N3 absents.
+  Reprises finales : **96 tests verts, 10 fichiers, 133,73 s**, un processus réduit ;
+  suite complète unique : **1 975 tests, 16 ignorés, 207 fichiers, 2 046,41 s**,
+  deux processus réduits ; quatre erreurs et deux échecs corrigés, aucun défaut
+  restant reproduit, sans seconde suite complète. Les contrôles de sens restent sémantiques et
+  une opération exigée sans contenu exécutable reste inexécutée : pas de garantie
+  générale sur toutes les voies historiques de refus.
+  [Rapport du lot 100](taches/rapport-codex-100-sans-message-technique.md).
+  Fusionné sur l'intégration après le lot 97 : seul conflit de documentation ; aucun fichier de code commun. Une passe Luna seulement : appels par tour en hausse sur `soir-noir` et `atelier`, en baisse sur `echanges`, à revoir à la vérification Luna groupée.
+
 - Branche `codex-promesse-joueur`, fusionnée, lot **97**, base `be5fe50`,
   code signé SSH `886eae5` : les devis autonomes et les fournitures futures
   exigent un profil avant toute recherche. Les remises déjà en main restent
