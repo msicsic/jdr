@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration 057766f**, lot **131**, branche
+  `codex-verif-integ-057766f` : analyse des bruts seuls, aucun rejeu, Luna,
+  code du jeu, suite complète ni mesure CPU. **32 nuits de 12 h, huit rixes
+  de 8 h, cinq nuits VERIFIER + spatial 0,2 de 8 h** : aucun plantage,
+  violation signalée, usurpation, coup contre une personne ni décès observé ;
+  aucun écart des contrôles. Borne historique Lucien, auberge 42 à 314,
+  retenu = optimum **73,4743**, inchangée. **Sept services Mathe → Lucien**
+  dans la mine, **deux disputes naturelles** crue 99 (Aubin/Brune à 544,
+  Aubin/Ilse à 557), aucun éclat ; Gorm révise sa prévision à 557.
+  **18 tâches promises offertes, une acceptée, zéro tenue, une rompue** :
+  nouveau défaut crue 11, Ilse à 210, promesse de verrouiller la porte contre
+  le pied-de-biche, annulée pour impossibilité **11 secondes après accord**.
+  À isoler : préconditions communes au devis autonome et à l'engagement,
+  aucune correction ici. Contrepartie d'Odon mine 1985 à 253 toujours correcte ;
+  six avertissements redits crue 2024 persistants avec rallumages, anciens
+  appels d'Odile auberge 7 à 641–644 non observés. Odon mine 2024, 15 appels
+  de 571 à 696 avec nouveaux bruits : alerte nouvelle, pas une boucle prouvée.
+  Comparaison des 96 nuits archivées, références inchangées, un processus réduit.
+  Pas de sauvegarde complète dans les bruts pour vérifier le rendu rechargé.
+  Bruts `C:/Users/msics/donjon/artifacts/verif-integ-057766f/`, analyse `analyse-131/`.
+  Aucune clé Git de signature configurée, commit non signé, branche poussée.
+  [Rapport du lot 131](taches/rapport-codex-131-verif-integ.md).
+
 - Branche `codex-intermediaires`, fusionnée, lot **122**, base **219bc8d** :
   code signé SSH **fc5f62a**, puis **76c071a**, signatures vérifiées. Commission
   « faute de mieux » après méfiance/rancune : un candidat choisi sur les seules
