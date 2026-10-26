@@ -85,9 +85,14 @@ def observer_capture(scenario):
 class EtapesTests(unittest.TestCase):
     def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
         attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))
+        calcul = json.loads((DONNEES.parent / "profondeurs-preuve/etapes-calcul.json").read_text(encoding="utf-8"))
         for scenario in ("mine", "auberge"):
             with self.subTest(scenario=scenario):
-                self.assertEqual(observer_capture(scenario), attendu[scenario])
+                # Le lot 92 c réduit les reprises, donc les visites et diagnostics.
+                # Plans, monde, lignes et rendus restent ceux de l'oracle historique.
+                nouvelles_mesures = calcul[scenario]
+                self.assertLessEqual(set(nouvelles_mesures), {"visites", "n_visites", "diagnostics"})
+                self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

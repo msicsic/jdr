@@ -33,6 +33,113 @@ les gestes qui durent (se chauffer, se reposer, s'abriter), le stratège Luna en
 
 ## Le modèle
 
+### P3 : mesure préalable des arrêts — lot 92, non implémenté
+
+La règle envisagée est de ne proposer `aller` que vers un lieu où le plan peut
+agir ou tenir son but. **Elle n'est pas appliquée** : la mesure sur `9810f4a`
+(auberge 1985 tirée, 8–12 h) ne justifie pas le filtre conservateur disponible.
+Les trajets représentent 88,78 % des successeurs parcourus, mais le majorant
+des expansions candidates sans pression variable, eau ni effet de porte connue
+est de **0,496 %**, sous le seuil de ~15 % du brief.
+
+La preuve requise dépasse l'absence de geste dans la salle intermédiaire.
+`trajet_estime.parcours` minimise la durée `cout_route`, tandis que le coût
+complet ajoute `Vue.prix_route`, pression intégrée salle par salle. Un détour
+plus long peut éviter une pression coûteuse : sa sélection par deux `aller`
+ne peut pas être remplacée sans preuve par le trajet direct choisi en durée.
+Les écritures de portes de `mesure_aller` doivent aussi être dominées, et
+`route_admissible.refus` impose les mêmes contraintes de passage et de retour.
+Ces salles restent donc d'intérêt tant qu'une preuve locale manque.
+
+Si toute pression est nulle, l'eau absente et toutes les portes traversables
+déjà ouvertes, une concaténation de routes n'ajoute aucun autre effet : le
+plus court trajet direct ne coûte pas plus, y compris la consommation d'une
+flamme portée, et utilise moins d'étapes. Il faut encore conserver les gestes
+possibles, les cibles du but et les séjours. Le diagnostic majore ce cas en
+testant seulement les portes connues et en conservant tout objet agissable
+local et tout PNJ connu ; il ne constitue aucun certificat moteur.
+
+Une P3 plus fine demanderait une domination au coût complet et avec les mêmes
+effets/admissibilité, partagée par la recherche et `VERIFIER`, ses lectures dans
+`_entrees`. Aucun contrat de ces fonctions n'est modifié dans ce lot. Voir le
+[rapport 92](taches/rapport-codex-92-aller-utile.md) pour les comptes, le témoin
+CPU, la conservation après recharge et les limites.
+
+### P2 : ascendance des préparatifs — lot 92 b, non implémenté
+
+La mesure se fait sur les expansions descendantes, pas sur le nombre de
+successeurs immédiats. Auberge 1985 tirée, strictement `[480, 720[` :
+**74,33 %** des 1 051 797 expansions ont un `prendre`, `ouvrir` ou `alimenter`
+dans leur préfixe de moindre coût. Les sous-arbres se recoupent ; leur somme
+n'est pas une estimation de gain. La clôture conservatrice, par objets et
+faits, n'établit que **135 descendants sans rapport (0,0128 %)** : P2 reste désactivée.
+
+Pour les prédicats connus faim/chaleur/lumière, les feuilles remontent aux
+vivres/parts, sources, moyens d'accès et de lumière, outils compatibles,
+combustibles et porteurs. Les routes sous pression gardent toutes les portes ;
+les buts opaques et franchissements métriques gardent leurs préparatifs.
+La propriété requise compte : la source peut être utile alors que sa recharge
+ne l'est pas. Dans la projection sans épuisement, charger une source déjà
+allumée ne crée aucune flamme ou lumière nouvelle. Aucun contrat de `Vue.pertinent`,
+`gestes`, `_entrees` ou `VERIFIER` n'est modifié ; la clôture n'est qu'un diagnostic.
+
+La piste mesurée suivante est la preuve d'absence à profondeur minimale :
+une recherche en coût peut atteindre un état à la profondeur 8 et ne pas
+produire ses successeurs, alors que la preuve le rejoint à 6. La lacune ne
+prouve aucune impossibilité ; les variations de prix peuvent donc relancer
+des recherches épuisées : **452 912 expansions**, 170 relances Tilo et 103 Joss
+à clé complète inchangée, dans la tranche mesurée. Rejeu réel Joss à 622, contre Tilo à 566 où la preuve
+aboutit ; monde et rendu conservés après recharge.
+
+Pour P3, choisir directement une route au prix réel, pression comprise,
+retirerait l'obstacle de la durée seule mais **ne suffirait pas** : portes,
+admissibilité et retour restent à dominer. Cette modification pourrait déjà
+changer routes, coûts et décisions hors plafond ; elle n'est pas implémentée.
+Voir le [rapport 92 b](taches/rapport-codex-92b-pertinence.md).
+
+### Certificat complété à profondeur minimale — lot 92 c
+
+Une recherche pondérée peut atteindre un état au moindre coût à profondeur 8,
+sans développer ses gestes, alors qu'un chemin plus court en nombre d'étapes
+l'atteint à 6. Cette coupure ne suffit pas à faire échouer une preuve d'absence.
+`_parcours` conserve son parcours en largeur ; le producteur privé de
+`_preparer_graphe_preuve` complète seulement les buts et listes de successeurs
+qui manquent à la profondeur minimale, par les mêmes `_suites` que la recherche
+jouée. Les autres nœuds sont repris tels quels. Sans producteur, le contrôle
+de graphe reste en lecture seule et signale les trous.
+
+**Preuve.** Chaque état est retiré à sa profondeur minimale ; à la profondeur
+limite, seul son but compte, avant cette limite tous ses arcs admissibles sont
+couverts. Une sortie terminale de devis admise par la recherche compte comme un
+but, même sans relire son prédicat. Si la file se vide sans but ni budget de
+preuve atteint, aucun chemin admissible de longueur au plus `PROFONDEUR` ne
+mène au but. Changer les prix ne crée aucun arc : permissions de faute,
+admissibilité de violence et de casse, moyens, départs et profondeur sont dans
+la signature commune. Une absence ainsi prouvée reste une absence à tout prix.
+Elle est plus forte que le simple rejet d'un plan par `endurer`.
+
+Une lecture de lumière dans le graphe sombre exige aussi la preuve lumineuse.
+Vues de gestes, découvertes et devis restent privés ; seules les tables pures
+de géométrie/tarifs sont partagées. Les compléments sûrs peuvent rejoindre le
+graphe gardé. Une découverte nouvelle de discrétion interrompt la preuve sans
+publier ce graphe, car ses départs ne sont pas encore couverts. Ce refus
+conservateur et le plafond de preuve peuvent encore laisser des reprises ;
+ils ne deviennent jamais des impossibilités.
+
+`chercher` ne lance cette preuve qu'après un épuisement sans plan, jamais après
+une borne : l'attente bornée du lot 87 reste distincte. `_IMPOSSIBLES` utilise
+son emplacement mémoire par but et sa signature existante, sans nouveau cache
+ni donnée sauvegardée. Le producteur ne lit que les entrées de `Vue`, du but et
+des gestes déjà couverts par `_entrees`. `VERIFIER` contrôle toute reprise par
+certificat avec la recherche complète à `REFERENCE`, y compris sans emplois
+restreints ; une complète qui trouve un plan fait échouer le contrôle.
+
+Mesure préalable : au moins 358 057 expansions de faim évitables pour 10 353
+états enrichis sur toute la nuit, soit 33,06 % nets sur la tranche auberge
+1985 tirée. Les captures comprennent Joss 622, Tilo 566, une mine et un plan
+positif ; état du monde et rendu après recharge conservés. Mesures finales et
+limites dans le [rapport 92 c](taches/rapport-codex-92c-preuves.md).
+
 **État de recherche** : une projection des croyances du PNJ, jamais la vérité. Où il est, ce
 qu'il porte, où il croit chaque objet et chaque personne, ce qu'il croit ouvert, verrouillé,
 allumé, chargé ; les promesses qu'on lui a faites ; les refus récents. Le plan simule ce qui

@@ -4,6 +4,81 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-aller-utile`, fusionnée, lot **92 c**,
+  suite de `7598fc4`, base moteur **9810f4a** : une preuve d'absence complète
+  les seuls nœuds manquants à leur profondeur minimale, avec les gestes communs.
+  Mesure auberge 1985 tirée : 31 lacunes de faim certifiables ; borne prudente
+  **358 057 expansions évitables − 10 353 états enrichis = 347 704, 33,06 %**
+  de `[480, 720[`. Pas de nouveau cache ou champ sauvé ; permissions et profondeur
+  restent dans la signature, borne de recherche et attente bornée restent distinctes.
+  Vues de preuve et devis privés, lumière couverte dans les deux graphes ;
+  discrétion nouvelle et budget de preuve ne certifient rien. `VERIFIER` refait
+  toute reprise de certificat avec la complète à `REFERENCE`.
+  Captures Joss 622, Tilo 566, mine 480 et plan positif : mêmes coûts/plans,
+  monde et rendus après recharge ; Joss et mine à zéro nœud au troisième appel.
+  **32 tests ciblés existants + huit nouveaux verts**, 16 empreintes de 2 h
+  identiques contre la base ; `VERIFIER` + spatial 1 auberge 42, 2 h : aucun
+  écart ni borne, **354,34 s CPU**. Suite complète unique : **1 947 tests,
+  16 ignorés, 201 fichiers**, deux processus, **1 828,67 s** ; une empreinte
+  historique de calcul adaptée sans changement du contrat joueur, une erreur
+  Windows TUI de remplacement temporaire non reproduite. **Deux reprises
+  ciblées vertes**, aucun défaut restant consolidé, sans seconde suite complète.
+  CPU 12 h, deux cohortes appariées ancien/branche et base/branche, deux processus :
+  gains contre base **auberge fixe 0,1 %, tirée 5,1 % ; mine fixe 3,0 %, tirée 2,6 %**.
+  Auberge tirée : **335,31 → 318,27 s**, **1 175 083 → 706 709 nœuds**.
+  `comparer --calcul` : quatre nuits identiques contre base et entre répétitions
+  branche ; monde et rendus rechargés identiques. Contre `42bb9c0`, auberge
+  **×1,96 fixe / ×3,22 tirée** : seuil **≤ ×1,5 non atteint**, `main` reste en attente.
+  Mesures 8–12 h, preuve, limites et reproduction dans le rapport ; lot livré
+  par commit signé sur la branche, sans fusion.
+  [Rapport et mesures](taches/rapport-codex-92c-preuves.md).
+
+- Branche `codex-aller-utile`, fusionnée, lot **92 b**, suite de `dd32414` :
+  P2 mesurée en **sous-arbres**, moteur **9810f4a inchangé**. Auberge 1985 tirée,
+  `[480, 720[` : **1 051 797 expansions** ; **781 841 (74,33 %)** descendent
+  d'au moins un `prendre`/`ouvrir`/`alimenter`, avec recoupements entre préparatifs.
+  Clôture transitive des moyens des buts faim/chaleur/lumière, faits de charge
+  distingués de la source elle-même ; buts opaques et géométrie métrique gardés.
+  **135 expansions (0,0128 %)** seulement établies sans rapport : recharger un
+  fourneau déjà allumé, pour Joss/chaleur. **P2 non implémentée**, seuil de ~15 %
+  manqué par cette clôture conservatrice ; une analyse plus fine pourrait encore aider.
+  Tilo/faim : **376 appels, 266 recherches, 246 327 expansions**, médiane
+  **1 205 états distincts développés** ; Joss/faim : **165 / 133 / 358 430**,
+  médiane **2 741**. L'ampleur vient des combinaisons de moyens de lumière
+  susceptibles de servir et des recherches recommencées, pas du seul nombre de successeurs.
+  Clé complète contrôlée, FOR/DEX compris : **170 relances par les prix seuls**
+  pour Tilo et **103 pour Joss**, soit **180 129 + 272 783 expansions**.
+  Rejeu Joss à 622 : un état développé à profondeur **8**, sans successeurs,
+  est retrouvé à **6** par la preuve : lacune, aucune impossibilité certifiée.
+  Tilo à 566 : quinze états certifiés, puis zéro exploration. Trois outils de
+  diagnostic livrés, mêmes résultats, empreintes, diagnostics hors durées et
+  rendus après recharge ; aucune suite complète ni campagne CPU d'implémentation.
+  Piste proposée : mesurer la complétion de la preuve aux profondeurs minimales.
+  P3 : tarifer directement les routes avec la pression ne suffirait pas à sa preuve
+  (portes et admissibilité/retour) et pourrait déjà changer les décisions hors plafond.
+  [Rapport et limites du lot 92 b](taches/rapport-codex-92b-pertinence.md).
+
+- Branche `codex-aller-utile`, fusionnée, lot **92**, base **56581f1**,
+  moteur identique à **9810f4a** : **arrêt après mesure, P3 non implémentée**.
+  Auberge 1985 tirée, 8–12 h : `aller` **88,78 %** des successeurs parcourus ;
+  **33,80 %** des expansions sans autre successeur ni but immédiat. Ce compte
+  ne prouve pas qu'un arrêt soit supprimable : objets/PNJ connus, pression
+  sur les routes et effets des portes doivent être conservés sans domination
+  prouvée. Majorant d'un filtre conservateur sans pression variable, eau ni
+  effet de porte connue : **5 237 / 1 055 783 expansions, 0,496 %**, sous ~15 %.
+  CPU témoin : **324,52 s** sur la tranche, recherches **301,16 s**,
+  **285,24 µs/expansion**. Tilo/faim **65,13 s**, Lucien/ballot **47,39 s**,
+  Joss/faim **43,02 s** ; préparatifs `ouvrir`, `alimenter`, `prendre` dominent
+  hors trajets. Deux outils de diagnostic livrés ; témoin et relevés conservent
+  empreintes, résultats de tous les appels, monde, regard et scène après recharge.
+  `comparer --calcul` : **une nuit identique**, 1 175 083 nœuds sur 12 h.
+  Aucun moteur, MJ, scénario ou `main` modifié ; aucune suite complète lancée
+  après l'arrêt prescrit. Piste à mesurer : P2, pertinence des préparatifs ;
+  une domination locale des routes sous pression pourrait encore aider P3,
+  sans preuve ni gain général établis ici.
+  [Rapport et limites](taches/rapport-codex-92-aller-utile.md).
+  Lots 92, 92 b et 92 c fusionnés ensemble sur l'intégration après les lots 90, 88, 93, 95 et 96 : seul conflit de documentation ; `planification.py` touché aussi par le lot 90 (séjour du recours), fusionné sans conflit textuel ; suite complète relancée sur la fusion. Coût : nœuds auberge tirée 1 175 083 → 706 709, mais CPU −5 % seulement ; seuil ×1,5 non atteint (×1,96 fixe / ×3,22 tiré).
+
 - Branche `codex-relances`, fusionnée, lot **96**, base `72ff7ae`
   (code `7b2691f`), code signé SSH `1c72176` : `SCHEMA_PAROLE` dérive les champs vides obligatoires
   de `CHAMPS_CONTENU`, comme le validateur, avec une variante et description
