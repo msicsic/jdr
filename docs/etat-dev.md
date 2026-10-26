@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-adoption-avis`, **diagnostic, non fusionnée**, lot **125**, base
+  `85b9204` : six nuits crue (4 h × 1985/7/42/2024, 12 h × 500/2024),
+  **40 avis, 70 réceptions, zéro adoption/dispute**. Tous les auditeurs tiennent
+  déjà la même menace sur une preuve propre `vu` de poids 1 ; poids reçus 0 à
+  0,6825, convictions dites 1, dates de preuve égales, aucun contradicteur entendu.
+  Formule du § 7.3 respectée ; aucun défaut du contrat établi, asymétrie des
+  preuves à prévoir dans les données pour rendre un avis utile. État final complet,
+  chronique, empreintes et mesures identiques avec/sans sonde sur les six nuits ;
+  deux captures nouvelles rechargées et trois tests historiques verts (monde,
+  parole, perception et temps découpé). Aucun code du jeu modifié, sans Luna ni
+  suite complète ; au plus deux processus réduits. Aucune clé Git de signature
+  configurée, commit non signé. Bruts `artifacts/adoption-125/` ;
+  [rapport du lot 125](taches/rapport-codex-125-adoption-avis.md).
+
 - Branche `codex-rendre-service`, fusionnée, lot **120**, base `0a53910`,
   code signé SSH **`7ec9fbc`**, signature vérifiée : recours de service spontané
   après méfiance ou rancune, hors de la recherche, après les moyens ordinaires
