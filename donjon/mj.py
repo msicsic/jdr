@@ -1086,8 +1086,11 @@ class MJ:
                          else [SCHEMA_FAITS, schema_faits_suite])
         from .paroles import SCHEMA_OPERATIONS
         schema_parole = copy.deepcopy(SCHEMA_PAROLE)
-        schema_parole["properties"]["operations_demandees"] = SCHEMA_OPERATIONS
-        schema_parole["required"].append("operations_demandees")
+        # L'analyse de la saisie précède le choix du contenu : elle ne doit pas
+        # être une justification a posteriori des seuls types déjà proposés.
+        schema_parole["properties"] = {"operations_demandees": SCHEMA_OPERATIONS,
+                                       **schema_parole["properties"]}
+        schema_parole["required"] = ["operations_demandees", *schema_parole["required"]]
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {

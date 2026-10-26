@@ -29,21 +29,23 @@ from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
-TYPES = ("propos", "affirmation", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "proposition")
+TYPES = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "proposition")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
     "aveu": ("sujet", "valeur"), "nom": ("sujet",), "qui": (),
     "reclamer": ("sujet",), "ressource": ("sujet",),
     "proposition": (),
+    "avis": ("sujet", "attribut", "valeur"),
 }
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 # Sens du protocole, commun au schéma d'interprétation et à la revue. Les codes
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
+    "avis": "Exprimer une prévision de menace d'eau dans l'heure : sujet est la référence publique d'un lieu connu de Corvus, attribut menace, valeur oui ou non. Une opinion, jamais un fait établi ; conviction calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
-    "propos": "Propos sans effet mécanique typé.",
+    "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
     "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
     "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
     "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
@@ -56,7 +58,7 @@ SENS_CONTENU = {
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
-    "description": "Analyse de la saisie seule, indépendamment du contenu proposé : évaluer chaque opération. Toutes peuvent être fausses pour une parole ordinaire.",
+    "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Pour chaque opération disponible, vrai si les mots du joueur en expriment le sens, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité de la parole et la réussite de ses conséquences ne décident pas de son typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
     "properties": {t: {"type": "boolean", "description": sens} for t, sens in OPERATIONS.items()},
     "required": list(OPERATIONS)}
 
@@ -94,6 +96,9 @@ for _type_contenu in TYPES:
     _variante = copy.deepcopy(_contenu_ordinaire)
     _variante["properties"]["type"] = {"type": "string", "enum": [_type_contenu],
         "description": f"{_type_contenu} : {SENS_CONTENU[_type_contenu]}"}
+    if _type_contenu == "avis":
+        _variante["properties"]["attribut"] = {"type": "string", "enum": ["menace"]}
+        _variante["properties"]["valeur"] = {"type": "string", "enum": ["oui", "non"]}
     for _champ in ("sujet", "attribut", "valeur"):
         if _champ not in CHAMPS_CONTENU[_type_contenu]:
             _variante["properties"][_champ] = {"type": "string", "enum": [""]}
@@ -171,7 +176,7 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
 
 REGLES = """
 ## 7. Faire parler Corvus (parole_joueur)
-proposition = {personnage, replique (ce que Corvus prononce), contenu, operations_demandees}, texte vide.
+proposition = {operations_demandees, personnage, replique (ce que Corvus prononce), contenu}, texte vide.
 operations_demandees analyse la saisie seule selon les définitions communes du schéma, indépendamment du contenu proposé.
 Le moteur
 fixe le destinataire dans parole_prevue : celui que le joueur nomme,
@@ -193,6 +198,9 @@ la réplique traduit son intention dans la bande expression_joueur : la précisi
 l'aisance le CHA (très pauvre : quelques mots, des hésitations ; brillante : formules choisies,
 images, tact ; une bande élevée enrichit sans ajouter d'idée).
 contenu (3 éléments au plus) dit ce que la réplique transmet :
+- avis {sujet : référence publique d'un lieu connu ; attribut : menace ; valeur : oui ou non}
+  pour une prévision de menace d'eau dans l'heure. Le moteur calcule sa conviction selon ce
+  que Corvus a perçu ; l'avis peut être faux et susciter une contradiction, sans établir sa vérité ;
 - affirmation {sujet : un objet, un personnage ou "joueur" ; attribut : lieu (valeur = une
   salle ou un porteur), verrouillee ou fiable (valeur oui ou non)} ; elle peut être fausse,
   au personnage d'y croire ou non ;
@@ -1187,6 +1195,10 @@ def verifier_nom(monde, contenu, replique):
 
 def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
+    if isinstance(c, dict) and c.get("type") == "avis":
+        from .social import avis_exprime
+        return {"type": "rumeur", "evenement": avis_exprime(
+            monde, "joueur", resoudre(monde, c["sujet"]), c["valeur"] == "oui"), "rang": 0}
     if isinstance(c, dict) and c.get("type") == "proposition":
         return copy.deepcopy(c)
     if isinstance(c, dict) and c.get("type") == "qui":
@@ -1268,6 +1280,17 @@ def verifier_contenus(monde, contenu):
                                    f"contenu[{i}].{champ} : vide pour type {c.get('type')} ; "
                                    f"reçu « {c[champ]} ».")
         sujet = str(c.get("sujet") or "").strip()
+        if c.get("type") == "avis":
+            if resoudre(monde, sujet) not in monde.data["salles"]:
+                raise ErreurMonde("Corvus ne connaît pas ce lieu.",
+                                  f"contenu[{i}].sujet : salle connue parmi "
+                                  f"{sorted(s for s in monde.data['salles'] if _connu_du_joueur(monde, s))} ; reçu {sujet!r}.")
+            if c.get("attribut") != "menace":
+                raise ErreurMonde("Ce prédicat d'avis n'est pas évaluable.",
+                                  f"contenu[{i}].attribut : menace ; reçu {c.get('attribut')!r}.")
+            if c.get("valeur") not in ("oui", "non"):
+                raise ErreurMonde("L'avis ne précise pas la menace.",
+                                  f"contenu[{i}].valeur : oui ou non ; reçu {c.get('valeur')!r}.")
         if c.get("type") == "reclamer" and sujet and resoudre(monde, sujet) is None:
             raise ErreurMonde("Corvus ne sait pas ce qu'il réclame.",
                               f"contenu[{i}].sujet : vide (les pièces que le personnage doit à Corvus) ou un objet "
@@ -1635,14 +1658,31 @@ def preparer_parole(monde, p, revision=None):
     travail = monde.copier()
     chuchote = forme["maniere"] == "chuchote"
     # Ce qu'en retient qui l'entend sans en être le destinataire : ce qui ne s'adresse pas qu'à lui.
-    publics = [x for x in (_typer(travail, c) for c in contenu) if x and x["type"] in ("affirmation", "aveu", "nom")]
+    types = [x for x in (_typer(travail, c) for c in contenu) if x]
+    publics = [x for x in types if x["type"] in ("affirmation", "aveu", "nom", "rumeur")]
+    from . import social
+    expression = capacite_transmission(_stats_pnj(travail, "joueur")["INT"])
+    debats = []
+    for index, c in enumerate(types[:expression]):
+        if c["type"] != "rumeur":
+            continue
+        noyau = c["evenement"]
+        presents = social._avis_entendus(travail, "joueur", noyau["objet"], "chuchoter" if chuchote else "parler")
+        presents = {qui: preuve for qui, preuve in presents.items()
+                    if (not chuchote or qui in dest)
+                    and index < capacite_transmission(_stats_pnj(travail, qui)["INT"])}
+        opposition = social._contradiction(travail, "joueur", noyau, presents)
+        if opposition:
+            c["dispute"] = True
+        for qui in presents:
+            social.retenir_dit(travail, "joueur", qui, noyau)
+        debats.append((c, presents, opposition))
     # À la cantonade ou à tous, qui l'entend sans que Corvus le sache là répond s'il le veut.
     repondent = repondants(travail, forme, dest, replique, contenu)
     for id in repondent:
         entendre_repondant(travail, id)
     temoins = [] if chuchote else sorted(id for id in saisissent(travail, "joueur")
                                          if id not in dest and id not in repondent and travail.objets[id].get("profil"))
-    expression = capacite_transmission(_stats_pnj(travail, "joueur")["INT"])
     from .biens import livraisons_dues
     livraisons_avant = livraisons_dues(travail)
     travail.data["_comptes_echange"] = []
@@ -1651,7 +1691,14 @@ def preparer_parole(monde, p, revision=None):
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
-            if c["type"] == "proposition":
+            if c["type"] == "rumeur":
+                evenement = c["evenement"]
+                debat = next(d for d in debats if d[0]["evenement"] == evenement)
+                if not debat[2]:
+                    issue_avis = social.recevoir(travail, auditeur, "joueur", c)
+                    faits.append(f"{_personne(travail, auditeur)[0]} " +
+                                 ("retient ton avis sur la menace de l'eau." if issue_avis == "crue" else "doute de ton avis sur la menace de l'eau."))
+            elif c["type"] == "proposition":
                 offres.extend(_proposer(travail, auditeur, c, faits))
             elif c["type"] == "affirmation":
                 _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
@@ -1678,6 +1725,9 @@ def preparer_parole(monde, p, revision=None):
     # Sa voix retentit : qui en saisit les mots la retient (``ouie``) ; un chuchotement ne va qu'à son destinataire.
     retentir(travail, "joueur", "chuchoter" if chuchote else "parler", texte=replique, dits=replique,
              parole=None if chuchote else {"a": [*dest, *repondent], "contenu": publics})
+    for c, presents, opposition in debats:
+        if opposition:
+            social._disputer(travail, "joueur", c["evenement"], c["rang"], presents, faits, opposition)
     for id in [*dest, *repondent]:
         # Toute réponse est entendue, y compris celle d'un destinataire dont le
         # geste vient de le faire sortir du champ visuel (par exemple s'écarter).

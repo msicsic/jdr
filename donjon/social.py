@@ -263,7 +263,7 @@ def _avis(monde, id):
         from .voix import auteur_dit
         source = auteur_dit(c["source"])[0] if c["source"].startswith("dit:") else None
         yield c, {"type": "avis", "objet": salle, "attribut": "menace", "valeur": True,
-                  "prevision": list(c["valeur"]), "observe": c["minute"],
+                  "prevision": copy.deepcopy(c["valeur"]), "observe": c["minute"],
                   "conviction": min(1, poids_source(monde, id, c) * c["confiance"])}, c.get("rang", 0), source
 
 
@@ -536,9 +536,18 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     if avis and avis.get("dispute"):
         for qui in presents:
             retenir_dit(monde, id, qui, avis["evenement"])
+        from .ouie import saisit
+        if id != "joueur" and saisit(monde, id, "joueur", geste):
+            retenir_dit(monde, id, "joueur", avis["evenement"])
     if reponse and dite and conscient(monde, auditeur):
         retentir(monde, auditeur, "dire", texte=reponse, cites=[id], vers=[id])
-    a, b = monde.objets[id], monde.objets[auditeur]
+    a = monde.joueur if id == "joueur" else monde.objets[id]
+    b = monde.joueur if auditeur == "joueur" else monde.objets[auditeur]
+    if id == "joueur" or auditeur == "joueur":
+        lignes.append(f"{texte} {reponse}".strip())
+        if opposition:
+            _disputer(monde, id, avis["evenement"], avis["rang"], presents, lignes, opposition)
+        return
     if a["lieu"] == monde.joueur["salle"] and monde.visible(id):
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
             lignes.append(f"{texte} {reponse}".strip())
@@ -553,19 +562,18 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
 
 def _avis_entendus(monde, locuteur, salle, geste="dire"):
     """Auditeurs qui saisissent les mots, avec leur preuve avant la parole."""
-    from .ouie import entend, mots_saisis
+    from .ouie import saisit
     from .esprits import prevision
     return {id: copy.deepcopy(prevision(monde, id, salle)) for id in sorted(pnjs(monde))
             if id != locuteur and monde.objets[id].get("profil")
-            and (niveau := entend(monde, locuteur, id, geste)) is not None
-            and mots_saisis(monde, id, niveau)}
+            and saisit(monde, locuteur, id, geste)}
 
 
 def _avis_de(monde, id, salle, c):
     from .eau import menacee
     from .esprits import poids_source
     return {"type": "avis", "objet": salle, "attribut": "menace", "valeur": menacee(monde, id, salle),
-            "prevision": list(c["valeur"]), "observe": c["minute"],
+            "prevision": copy.deepcopy(c["valeur"]), "observe": c["minute"],
             "conviction": min(1, poids_source(monde, id, c) * c["confiance"])}
 
 
@@ -575,16 +583,33 @@ def _poids_dit(monde, id, locuteur, avis):
     return round(poids_source(monde, id, {"source": source_dite(monde, id, locuteur)}) * avis["conviction"], 12)
 
 
+def avis_exprime(monde, locuteur, salle, menace):
+    """La position dite est distincte de ses preuves, joueur comme PNJ.
+
+    Seules des observations propres étayent sa conviction. Sans estimation,
+    le poids minimal est celui d'une source devinée, sans mesure inventée.
+    """
+    from .esprits import prevision_propre, poids_source
+    c = prevision_propre(monde, locuteur)
+    conviction = min(1, poids_source(monde, locuteur, c) * c["confiance"]) if c else .4
+    return {"type": "avis", "objet": salle, "attribut": "menace", "valeur": menace,
+            "prevision": menace, "observe": c["minute"] if c else monde.data["minutes"],
+            "conviction": conviction}
+
+
 def _contradiction(monde, locuteur, avis, entendus):
     """Premier auditeur qui tient un avis contraire plus étayé et peut répondre."""
+    from .ouie import saisit
     for id, propre in entendus.items():
+        if id == "joueur":
+            continue  # Ses prises de parole appartiennent à la saisie du joueur.
         if not propre or propre.get("rang", 0) >= RANG_MAX:
             continue
         contraire = _avis_de(monde, id, avis["objet"], propre)
         if (contraire["valeur"] != avis["valeur"]
                 and contraire["conviction"] > _poids_dit(monde, id, locuteur, avis)
                 and not deja_dit(monde, id, locuteur, contraire)
-                and locuteur in _avis_entendus(monde, id, avis["objet"], "contredire")):
+                and saisit(monde, id, locuteur, "contredire")):
             return id, propre, contraire
     return None
 
@@ -604,7 +629,8 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
     salle = avis["objet"]
     contradicteur, propre, contraire = opposition
     recoivent = _avis_entendus(monde, contradicteur, salle, "contredire")
-    if locuteur not in recoivent:
+    from .ouie import saisit
+    if not saisit(monde, contradicteur, locuteur, "contredire"):
         return  # Une réponse reste une parole réellement entendue.
     for qui in entendus:
         retenir_dit(monde, locuteur, qui, avis)
@@ -619,10 +645,11 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
                    [{"type": "rumeur", "evenement": contraire, "rang": propre.get("rang", 0), "dispute": True}],
                    geste="contredire")
     auditeurs_avis = set(entendus)
-    recevoir_prevision(monde, locuteur, contradicteur, contraire, propre.get("rang", 0))
+    if locuteur != "joueur":
+        recevoir_prevision(monde, locuteur, contradicteur, contraire, propre.get("rang", 0))
     actuelle = prevision(monde, locuteur, salle)
     tient = actuelle and _avis_de(monde, locuteur, salle, actuelle)["valeur"] == avis["valeur"]
-    if tient:
+    if tient and locuteur != "joueur":
         auditeurs_avis.update(_avis_entendus(monde, locuteur, salle))
         faire_entendre(monde, locuteur, contradicteur,
                        f"{_qui(monde, locuteur)} : « Je maintiens : {phrase(monde, avis)}. »", [salle], lignes,
@@ -644,6 +671,8 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
     for temoin in sorted(set(recoivent) - auditeurs_avis - {locuteur, contradicteur}):
         recevoir_prevision(monde, temoin, contradicteur, contraire, propre.get("rang", 0))
     for temoin in sorted(auditeurs_avis & set(recoivent) - {locuteur, contradicteur}):
+        if temoin == "joueur":
+            continue  # Il entend les arguments ; le moteur ne choisit pas son parti.
         _chroniquer(monde, temoin, f"{_qui(monde, temoin)} entend les deux avis de la dispute.", "social")
         monde.data["chronique"][-1]["dispute_vue"] = True
         poids = [_poids_dit(monde, temoin, x, a) for x, a in ((locuteur, avis), (contradicteur, contraire))]
@@ -674,10 +703,11 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
                        [{"type": "rumeur", "evenement": parti, "rang": rang_parti, "dispute": True}])
         if rang_parti < RANG_MAX:
             for qui in recoivent_parti:
-                recevoir_prevision(monde, qui, temoin, parti, rang_parti)
-        if gagnant in recoivent_parti and identifie(monde, gagnant, temoin):
+                if qui != "joueur":
+                    recevoir_prevision(monde, qui, temoin, parti, rang_parti)
+        if saisit(monde, temoin, gagnant) and identifie(monde, gagnant, temoin):
             memoriser(monde, gagnant, {"type": "parti_pris", "de": temoin})
-        if locuteur in recoivent_parti and contradicteur in recoivent_parti:
+        if saisit(monde, temoin, locuteur) and saisit(monde, temoin, contradicteur):
             partis[gagnant].append(temoin)
     if len(partis[locuteur]) != len(partis[contradicteur]):
         gagnant, perdant = ((locuteur, contradicteur) if len(partis[locuteur]) > len(partis[contradicteur])

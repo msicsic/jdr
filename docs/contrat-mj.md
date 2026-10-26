@@ -1,5 +1,17 @@
 # Contrat entre le MJ et le monde
 
+Lot 124 (`codex-avis-joueur`, non fusionnée) : `parole_joueur.contenu` admet `avis`
+avec `sujet` = référence publique d'une salle connue de Corvus, `attribut` = `menace`,
+`valeur` = `oui` ou `non`. Le moteur refuse séparément lieu inconnu, prédicat inconnu
+et valeur invalide, avec `attendu`. Il calcule la conviction sur les observations d'eau
+enregistrées de Corvus (estimation commune des PNJ, poids deviné 0,4 à défaut), reçoit
+l'avis et résout une éventuelle dispute avant affichage. Ni l'avis ni sa réception
+n'établissent sa vérité. Le joueur garde l'initiative de ses répliques et de ses partis.
+Les prévisions reçues peuvent être qualitatives, sans inventer hauteur ni vitesse ;
+elles ne remplacent pas une profondeur observée.
+Limite mesurée : Luna a choisi `propos` sur les trois saisies de l'unique passe ; le
+contrat typé est exercé en console avec MJ simulé, pas garanti depuis le langage libre.
+
 Ce document décrit le contrat appliqué entre Luna (le MJ) et le moteur, et ce qui reste à
 construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENTS.md).
 
@@ -707,6 +719,16 @@ la revue ; les opérations déjà reconnues y restent exigées et une omission e
 refusée sans nouvel appel. Une revue illisible est redemandée une fois ; sans
 analyse lisible quand elle est requise, la parole reste inexécutée. Une parole
 ordinaire peut toujours avoir `propos` ou un contenu vide et aucune opération demandée.
+Depuis le lot 128, le schéma demande l'analyse des opérations avant les champs de
+contenu, pour éviter de justifier après coup les seuls types proposés. Sa définition
+commune porte sur le sens exprimé, y compris déclaratif, négatif ou incertain : ni
+la vérité des mots ni une demande explicite d'effet moteur ne conditionnent le typage.
+`propos` signifie qu'aucune opération disponible ne s'applique ; la carte entièrement
+fausse est donc une conclusion sémantique qui autorise le raccourci, pas une valeur
+par défaut. Ce contrat est partagé par l'interprétation et la contre-revue.
+Il ne constitue pas une preuve indépendante : la passe du lot 128 reconnaît deux
+avis sur trois, mais omet encore une opération sur des mots exacts. L'invariant de
+couverture depuis toute saisie libre n'est donc pas garanti.
 Une demande d'achat est une parole dont le moteur décide l'acceptation, le transfert ou
 le refus ; elle n'a pas à porter une opération de transfert faite par Corvus.
 Les références sont projetées en noms publics ; les mots libres restent littéraux.

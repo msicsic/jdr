@@ -4,6 +4,47 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-avis-typage`, fusionnée, lots **124 + 128**, base du
+  lot 128 `20cd5cf` : contrat d'opérations commun analysé avant le contenu,
+  `propos` réservé à l'absence d'opération applicable, sans lexique ni règle
+  particulière au scénario. Console/MJ simulé : avis positif et négatif omis
+  puis corrigés, réception et rendu rechargés ; parole ordinaire sans revue,
+  achats et paiements conservés. **17 ciblés**, deux erreurs d'attente du nouveau
+  test corrigées, puis **neuf tests d'avis verts** (les huit autres étaient verts).
+  Suite complète unique : **2 066 tests, 223 fichiers, 1 060,85 s**, deux processus
+  réduits ; **deux échecs MiMo historiques**, zéro erreur.
+  Luna sur copies, une passe : **2/3 avis typés contre 0/3**, galerie encore
+  `propos` ; avis **3,00 → 5,00 appels/tour**, noms-dialogue **3,75 → 3,25**,
+  soir-appel **5,00 → 6,00**, références historiques lues sans rejeu ; total
+  **44 → 52 appels / 11 tours**. Aucun refus affiché ni défaut de recharge,
+  un repli narratif à soir-appel. Les deux échecs MiMo préexistants sont liés
+  à la validation `jsonschema` 4.26.0 d'un ancien segment d'audit simulé,
+  rejeté avant reprise (six appels au lieu de cinq), sans modification fournisseur.
+  **L'invariant depuis toute saisie libre reste non garanti**, malgré le seuil
+  Luna du brief atteint ; ce lot ne clôt pas la limite du lot 124.
+  Aucune clé de signature Git configurée.
+  [Rapport du lot 128](taches/rapport-codex-128-avis-typage.md).
+  Lots 124 et 128 fusionnés ensemble sur l'intégration après les lots 122, 123, 125 à 127, 130 et 131 : seul conflit de documentation ; `esprits.py` et `spatial.py` touchés aussi depuis la base, fusionnés sans conflit textuel ; suite complète relancée. Surcoût d'appels surtout dû aux avis désormais typés et relus (avant : sans revue) ; à revoir à la prochaine vérification Luna groupée.
+
+- Branche `codex-avis-joueur`, fusionnée (avec le lot 128), lot **124**, base `85b9204` :
+  contenu joueur `avis` (lieu public connu, menace oui/non), validation avec `attendu`,
+  conviction sur les observations propres de Corvus mémorisées avec sa perception,
+  réception commune et dispute du lot 121 avec témoins/partis pris/dispute perdue.
+  Le moteur ne fait pas répliquer Corvus à sa place. Prévisions qualitatives sans
+  mesure inventée ; faits dits et paroles rechargés. **37 ciblés verts**, puis le
+  huitième nouveau parcours, décrue réelle, vert. Suite complète unique : **2 064 tests,
+  223 fichiers, 1 009,24 s, cinq échecs**, zéro erreur/ignoré, deux processus réduits.
+  N3 adapté au nouveau champ `avis:false`, sans changer les réponses ; reprise de
+  24 tests : deux échecs MiMo restants, reproduits identiquement sur l'archive de base
+  `85b9204` (13 tests, deux échecs, atelier : six appels au lieu de cinq). Bilan non
+  entièrement vert ; aucune seconde suite. Banc 4 h crue/Relais × quatre graines :
+  huit nuits terminées, aucun signalement dans les seules chroniques, 36 avis/zéro adoption.
+  **Limite bloquante : Luna 0/3 avis typés**, trois `propos`, 9 appels (3/tour),
+  13,5 s/tour, aucun faux refus affiché ni erreur de recharge. Le raccourci des mots
+  exacts déclarés sans effet évite la revue sémantique. **Non fusionnable comme 3f achevé** ;
+  pas de seconde passe Luna ni de contournement lexical. Aucune clé de signature Git
+  configurée. [Rapport du lot 124](taches/rapport-codex-124-avis-joueur.md).
+
 - Branche `codex-retrait-stratege`, fusionnée, lot **130**, base `56afc2e` :
   retrait du stratège Luna des PNJ, de ses options, outil, tests propres et mesures ;
   délibération ordinaire inchangée. Ancien champ `stratege` ignoré, conservé inerte,

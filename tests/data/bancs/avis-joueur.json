@@ -1,0 +1,9 @@
+{
+  "scenario": "crue",
+  "sauvegarde": "tests/data/avis-joueur-124.json.gz",
+  "tours": [
+    "je dis à Gorm : l'eau va gagner la conduite basse",
+    "je dis à Gorm : l'eau va gagner la galerie de ronde",
+    "à tous : l'eau ne menace pas le refuge du relais"
+  ]
+}
