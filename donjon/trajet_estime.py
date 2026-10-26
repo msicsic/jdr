@@ -8,7 +8,7 @@ import heapq
 from itertools import count
 
 from .obstacles import Route, distances, transitions, descriptions_crues, cout_route
-from .spatial import _case_interieure, _pas_possibles, _case_libre, VECTEURS, QUART, a_verifier
+from .spatial import _case_interieure, _pas_possibles, _case_libre, _bloquantes, VECTEURS, QUART, a_verifier
 from .temps import duree_pas
 from .geometrie import cases
 from .eau import noyee_crue
@@ -64,7 +64,12 @@ def _moyenne(v, e, salle, cibles, sortie=False, pur=False):
             valeurs.append(min(proches))
     if not valeurs and sortie:
         table = next((t for c, t in locales if c in cibles), {})
-        libres = {c for c in cases(v.salles[salle]) if _case_libre(v._cru_spatial, salle, c)}
+        if pur:
+            libres = {c for c in cases(v.salles[salle]) if _case_libre(v._cru_spatial, salle, c)}
+        else:
+            # Même état cru pendant ce calcul : relever les obstacles une fois,
+            # plutôt que parcourir tous les objets pour chaque case du sol.
+            libres = cases(v.salles[salle]) - set(_bloquantes(v._cru_spatial, salle))
         if not libres <= table.keys():
             return None  # salle coupée : aucune origine réelle ne peut être supposée
         valeurs = [d for d, _ in table.values()]

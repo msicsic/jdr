@@ -4,6 +4,49 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-profil-compare`, fusionnée, lot **98 b**, base **677f4c1** :
+  `_moyenne` relève les obstacles une fois par calcul, sans cache supplémentaire,
+  au lieu de rescanner tous les objets par case. Même sol, même projection crue ;
+  chemin `pur` case par case conservé pour `spatial.VERIFICATION`, clé existante
+  inchangée. Aucun changement de relances, coût, décision ou scénario ; aucun Luna.
+  Onze tests ciblés verts, dont captures auberge/mine, tour moteur, monde et rendu
+  rechargés contre oracle direct. CPU 12 h apparié, deux processus réduits :
+  base→branche **250,27→240,92 s fixe (−3,74 %)**, **292,23→286,16 s tiré
+  (−2,08 %)**, **91,72→89,97 s mine fixe (−1,91 %)**. Contre `42bb9c0`,
+  auberge **×1,93 fixe / ×2,85 tiré** : seuil ×1,5 non atteint.
+  `comparer --calcul` : trois nuits base/branche et trois répétitions branche
+  identiques, mêmes choix, recherches et nœuds ; douze recharges vertes.
+  Empreintes 2 h, quatre scénarios × quatre graines : 16 identiques, référence
+  677f4c1 manquante calculée une fois puis rangée en cache depuis l’archive locale.
+  `VERIFIER` + spatial 1, auberge 42 tirée, 2 h : aucun écart ni borne,
+  1 221 nœuds, 392,25 s CPU, recharge correcte. Suite complète unique : **1 972
+  tests, 16 ignorés, aucun échec ni erreur**, 207 fichiers, deux processus réduits,
+  **2 079,91 s**. Même SHA-256 moteur qu’aux mesures ; variations de répétitions
+  branche 1,6–6,0 %, gains non établis statistiquement.
+  Pas de deuxième levier ouvert ; créneau dépassé par les vérifications prescrites.
+  Bruts `artifacts/obstacles-98b/`.
+  [Rapport et limites](taches/rapport-codex-98b-obstacles.md).
+
+- Branche `codex-profil-compare`, fusionnée, lot **98**, base **61c854a** :
+  diagnostic seul, aucun moteur/scénario/MJ modifié, aucun Luna. Auberge 1985,
+  fixe puis tirée, `cProfile` CPU sur 480–720 et témoins sans instrumentation,
+  ancien/intégration appariés, deux calculs à priorité réduite. Choix/minute
+  **14,91→20,17 / 13,84→16,52**, recherches/minute **16,75→26,46 / 10,49→19,48** ;
+  filet minute inchangé (1 920), hausse hors minute **+76 % / +46 %**.
+  Recherche moyenne instrumentée **99,30→92,31 / 123,29→209,10 ms** : fréquence
+  et coût unitaire comptent ; décomposition descriptive des recherches :
+  **58 % fréquence / 42 % coût moyen**, sans causalité établie entre mondes différents.
+  **Arrêt prescrit avant implémentation** : réduire les relances peut changer
+  les décisions. Piste exacte secondaire non codée : relever les obstacles une
+  fois dans `_moyenne`, au lieu d'un balayage d'objets par case ; gain inconnu.
+  CPU normal 12 h : **127,38→244,41 s (×1,92) fixe**, **94,48→273,92 s (×2,90)
+  tiré** ; seuil ×1,5 manqué. Huit recharges vertes ; mêmes compteurs, mesures
+  et états à 480/720 entre profils et témoins, quatre nuits.
+  Pas de suite complète ni de vérification conditionnée à une implémentation.
+  Outils et bruts `artifacts/profil-98/`, créneau dépassé par les profils complets.
+  [Rapport et décision demandée](taches/rapport-codex-98-profil-compare.md).
+  Lots 98 et 98 b fusionnés ensemble sur l'intégration après les lots 97 et 100 à 104 : seul conflit de documentation ; aucun fichier de code commun (`trajet_estime.py` seul). **Décision en attente de l'utilisateur** : 58 % du surcoût de l'auberge vient de la fréquence des choix et recherches (délibération à l'événement, recours) ; la réduire peut changer le moment de certaines réactions des PNJ.
+
 - Branche `codex-n3-reformule`, fusionnée, lot **104**, base `e4dbc6a` :
   le rejeu exact du fil lot 102 reproduit N3 avant correction (trois appels,
   aucune parole sauvée). La revue refusait le contenu `qui` tout en cochant

@@ -1699,6 +1699,12 @@ les routes ; portes et pas de seuil gardent leur tarif propre. La durée passe
 exclusivement par `obstacles.cout_route`, la pression par `Vue.prix_route`,
 avec le temps passé dans chaque salle avant l'effet du geste.
 
+Le contrôle du sol accessible de `_moyenne` relève les cases bloquantes une
+fois pour ce calcul en lecture seule, puis les retire du sol. Ce relevé local
+ne survit pas à l'appel et ne crée pas de clé supplémentaire. Le chemin `pur`
+de `spatial.VERIFICATION` conserve le prédicat spatial direct case par case,
+ainsi que le recalcul des tables ; le contrôle de la moyenne gardée reste indépendant.
+
 `Vue.allers`, `trajet`, les attentes de parts et `part_estimee` consomment tous
 ces routes estimées. `_entrees` garde la géométrie, les croyances, l'équipement,
 les tarifs et la version du modèle, sans position ni orientation de départ.
