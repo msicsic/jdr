@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna 9a39738**, lot **141**, branche `codex-verif-luna-9a39738` :
+  aucun code du jeu changé ; deux passes, vingt scripts historiques + avis,
+  **42 parties, 308 saisies, 142 tours MJ, 445 appels**, quatre processus réduits
+  au plus, copies ; 42 parties cachées, 120 fichiers de référence inchangés,
+  `057766f` et `91a4351` relus sans rejeu. Vingt communs : **437→416 appels**,
+  **3,21→3,06 appels/tour**, **12,15→11,38 s/tour**, médiane 10,91→10,36 s ;
+  zéro audit illisible, un repli, aucun incident technique/recharge.
+  N6/N8 non reproduits 2/2 ; N7 partiel (refus sémantique du nom persistant,
+  rappel exact non exercé) ; avis **2/3 puis 1/3**. Gorm remboursé et achats
+  payés/livrés 2/2 ; confusion comptable narrative p1. N9 : typage `nom`
+  erroné encore imposé après correction `qui`, parole abandonnée ; N10 :
+  explications « moteur/identifiant » affichées. Aucun correctif dans ce lot.
+  Dossier d’audit moyen **12 885→13 807 caractères**, liste non vue seule
+  153 en moyenne/341 au plus (avis 1 327) ; aucune borne en partie longue.
+  Quatorze projections sous obstacle rechargées identiques ; soldes complets
+  non capturés. Pas de conclusion de vitesse sur poste partagé ni de garantie
+  sémantique universelle ; aucune suite moteur. Pas de clé Git de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/verif-luna-9a39738/` ;
+  [rapport du lot 141](taches/rapport-codex-141-verif-luna.md).
+
 - Branche `codex-discours-indirect`, fusionnée, lot **138**, base `e48c2cc` :
   définition de la réplique directe partagée entre interprétation, schéma et fidélité ;
   les cadres introducteurs reconnus ne passent plus par le raccourci de copie littérale.
