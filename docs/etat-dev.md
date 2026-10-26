@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-rappel-exact`, non fusionnée, lot **135**, base `d509da1`
+  (lot 132 volontairement non fusionné) : cause N7 confirmée dans les bruts 057766f,
+  `paroles_entendues.texte` projetait « Je m’appelle une voix qui se dit Ilse »
+  tandis que `echanges_passes` gardait les mots exacts. Projection des événements
+  entendus et du dossier corrigée ; références publiques conservées, paroles privées
+  encore projetées. `rappel_exact` historique et phrases entières du découpage commun
+  prouvés sans audit, sans nouvelle parole ni vérité de leur contenu ; preuve refaite
+  avant sauvegarde. **15 ciblés verts**, cas réel et autre scène en console rechargée,
+  faux rappels refusés, nom inconnu projeté, preuve périmée refusée.
+  Luna finale : **52 appels / 13 tours**, soir-noir **5,40 / 4,60 → 4,20 appels/tour**,
+  soir-voix **4,00** (référence absente), noms-dialogue **3,75 / 3,75 → 3,75**.
+  Zéro repli, erreur de recharge ou fuite de nom observée. Tour 5 sans N7 mais sans
+  rappel, refus actuel de se nommer : jugement libre **non garanti**. Autre faux rappel
+  d’une phrase entière au tour 2 désormais prouvé localement depuis le fil, sans nouvel
+  appel Luna. Premier lancement prématuré interrompu après deux scripts, puis une seule
+  passe finale : écart à la passe unique du brief déclaré dans le rapport.
+  Suite complète unique : **2 081 tests, deux échecs MiMo historiques `6 != 5`,
+  zéro erreur**, **1 101,71 s**, deux processus réduits ; aucune seconde suite.
+  Extension aux phrases vérifiée par les 15 ciblés finaux après son ajout pendant
+  la suite (cinq nouveaux tests déjà exécutés par celle-ci). Bref chevauchement
+  du ciblé final et de la suite déclaré dans le rapport.
+  Aucune clé Git de signature configurée : commit non signé.
+  [Rapport du lot 135](taches/rapport-codex-135-rappel-exact.md).
+
+
 - Branche `codex-non-perception`, non fusionnée, lot **132** : dossier commun
   `perception.non_vus_connus`, références et désignations déjà connues sans position
   actuelle ; attestations exactes de non-perception prouvées par le mécanisme du

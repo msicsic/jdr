@@ -38,6 +38,16 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 toutes ses paroles enregistrées que Corvus a entendues. Les citations gardent
 leurs mots historiques ; les auditeurs et identifiants privés ne sont pas transmis.
 Cette source ne subit pas la fenêtre globale des dix dernières paroles.
+Lot 135 : chaque parole fournit aussi son `rappel_exact`, rendu historique
+construit par le moteur avec le nom public du locuteur et ses mots intacts.
+Sa reprise entière reçoit une preuve locale sans audit. Les phrases entières du
+découpage commun peuvent aussi être citées seules ou dans ce rendu ; aucun
+sous-texte arbitraire n’est prouvé. Cette reprise ne crée ni nouvelle
+parole ni vérité de son contenu. La projection du dossier change les références,
+jamais le champ `texte`. La preuve est recalculée depuis les paroles entendues
+et les interlocuteurs actuels avant sauvegarde. Une attribution libre ou une
+reformulation, même proche, reste soumise à l’audit sémantique.
+
 Le schéma d'audit demande `rappels` pour chaque segment, indépendamment du
 verdict : locuteur, affirmation passée et compatibilité avec les échanges ou
 résultats fournis. Un rappel sans fondement ou contraire est refusé même dans
