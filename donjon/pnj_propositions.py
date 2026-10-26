@@ -1,7 +1,7 @@
 """Un recours après le choix ordinaire ; aucune lecture depuis la recherche.
 
-Contreparties portées et chance reprises du lot 36, sans gestes projetés ni devis
-de tâches. L'auditeur seul évalue le marché réel, par le contrat du joueur.
+Contreparties portées puis service autonome, sans geste de marché dans la
+recherche. L'auditeur évalue le marché réel par le contrat du joueur.
 """
 from . import relations
 from .esprits import lire, memoriser
@@ -75,14 +75,18 @@ def _tient(avant, apres):
             and all(o in avant["biens"] and n <= avant["biens"][o] for o, n in apres["biens"].items()))
 
 
-def entrees_refus(monde, id, autre, objet, terme):
+def entrees_refus(monde, id, autre, objet, terme, *, devis=None):
     """Les moyens de cette demande et la force réellement offerte, pas la fortune disponible."""
     from .biens import prix, proprietaire
     from .deliberation import moyens_crus
     from .echanges import PRIX_SANS_PRIX
     from .spatial import porte_par
-    gain = (terme["montant"] if terme["type"] == "pieces" else
-            prix(monde, terme["objet"], terme["type"] == "part") or PRIX_SANS_PRIX)
+    if terme["type"] == "tache":
+        from .echanges import valeur_proposition, PAS_PROPOSITION
+        gain = (valeur_proposition(monde, id, terme, autre, devis=devis) or 0) / PAS_PROPOSITION
+    else:
+        gain = (terme["montant"] if terme["type"] == "pieces" else
+                prix(monde, terme["objet"], terme["type"] == "part") or PRIX_SANS_PRIX)
     cause = moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": objet})
     cause += [["porte", o, id, None] for o in sorted(monde.objets)
               if porte_par(monde, o, id) and proprietaire(monde, o) == id]
@@ -91,8 +95,8 @@ def entrees_refus(monde, id, autre, objet, terme):
             "gain": gain}
 
 
-def refus_tient(monde, id, refus, terme):
-    apres = entrees_refus(monde, id, refus["de"], refus["objet"], terme)
+def refus_tient(monde, id, refus, terme, *, devis=None):
+    apres = entrees_refus(monde, id, refus["de"], refus["objet"], terme, devis=devis)
     avant = refus["offre"]
     # Le temps, le retour d'un bien déjà proposé et l'argent non offert ne sont
     # pas un meilleur marché. La perte d'un moyen ne lève pas non plus le refus.
@@ -124,9 +128,10 @@ def refus_tient(monde, id, refus, terme):
 
 def offre_refusee(monde, id, autre, objet, terme):
     """Même contrat au choix du recours et à l'exécution d'un marché sauvegardé."""
+    devis = {}
     return any(s["de"] == autre and s.get("objet") == objet
                and s["operation"] in ("acheter", "proposer") and "offre" in s
-               and refus_tient(monde, id, s, terme) for s in lire(monde, id)["refus"])
+               and refus_tient(monde, id, s, terme, devis=devis) for s in lire(monde, id)["refus"])
 
 
 def plan_recours(monde, id, besoin, etapes):
@@ -171,11 +176,14 @@ def recours(monde, id, besoin, etapes):
     """Une seule offre avant la faute retenue, ou après la demande refusée."""
     from .biens import proprietaire
     from .deliberation import _connus, salle_crue, refus_retenu
+    if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
+        return None  # Un ancien refus ne remplace jamais un moyen ordinaire nouveau.
     e, candidats = lire(monde, id), []
+    service_devise = False
     # Les demandes ordinaires du préfixe gardent leur chance avant tout recours.
     for n, geste in enumerate(etapes):
         if geste["operation"] in ("demander", "acheter", "confier", "engager", "proposer"):
-            break
+            return None
         if geste["condition"] != "sans_temoin":
             continue
         cible = geste["cible"]
@@ -216,6 +224,18 @@ def recours(monde, id, besoin, etapes):
                   for t, cout, gain in _contreparties(monde, id, autre, demande)
                   if not any(refus_tient(monde, id, s, t) for s in refus)]
         offres = [o for o in offres if o[0] > chance]
+        if not service_devise and not (avant and _tient(avant, entrees)):
+            from .propositions import taches_crues
+            from .echanges import offre_sensee, valeur_proposition, PAS_PROPOSITION
+            # Un seul service devisé par recours, après les biens et pièces.
+            terme = next(taches_crues(monde, id, autre), None)
+            service_devise = terme is not None
+            devis = {}
+            if terme and offre_sensee(monde, id, autre, demande, terme, devis=devis):
+                cout = valeur_proposition(monde, id, terme, autre, devis=devis)
+                if cout is not None and cout > 0 and not any(
+                        refus_tient(monde, id, s, terme, devis=devis) for s in refus):
+                    offres.append((relations.chance_proposition(chance, cout / PAS_PROPOSITION), -cout, terme))
         if not offres:
             continue
         # Prix propre de l'essai par chance d'accord, puis chance pour les ex aequo.

@@ -570,6 +570,26 @@ Voir le [rapport du lot 84](taches/rapport-codex-84-part-proposee.md).
 
 ### 7.2 Côté PNJ : proposer, regagner, passer par un autre
 
+**Lot 115, branche `codex-tache-promise`, non fusionnée.** Le recours ajoute
+une tâche typée aux contreparties portées, après le choix des moyens ordinaires.
+Un refus ancien ne remplace pas un nouveau plan sans faute ; une demande dans
+le préfixe d'un plan garde aussi sa chance avant une faute prévue plus loin.
+Les conditions proviennent d'un refus entendu ou d'un état connu à réparer :
+feu éteint/faible, bien non verrouillé du destinataire ou bien commun dans sa
+salle crue. Aucun but privé adverse n'est lu. Un seul candidat est devisé par
+recours, même si faute et refus désignent le même interlocuteur ; le devis
+autonome et l'évaluation inversée sont partagés entre les contrôles de coût et
+de refus. Une demande, un achat ou une délégation futurs dans le devis
+interdisent la promesse. Le marché réel réévalue confiance, valeur et relations,
+remet la contrepartie et inscrit l'engagement daté par `agendas` ; le moteur
+exécute, constate et annonce sa tenue ou son abandon selon le cycle existant.
+Les refus de tâche et les tentatives par lésé/besoin survivent à la recharge ;
+un ancien plan est revalidé avant parole. Aucune recherche de marché ni Luna.
+Ce candidat borné ne parcourt pas toutes les tâches imaginables : un premier
+service impossible peut masquer un autre service réalisable. Le verrouillage
+est une tâche ponctuelle ; aucune garde permanente nouvelle n'est introduite.
+Voir le [rapport du lot 115](taches/rapport-codex-115-tache-promise.md).
+
 **Lot 110, `codex-propositions-redites`, non fusionnée.** Un refus de marché
 se compare aux moyens pertinents pour sa cause, au choix et avant exécution
 d'un plan sauvegardé, y compris un achat. Une porte voisine devenue ouverte

@@ -77,6 +77,8 @@ class StrategeTests(unittest.TestCase):
 
     def test_un_plan_illicite_laisse_le_caractere_choisir_puis_la_demande_aboutit(self):
         m = refusee(relais())
+        # Isoler la stratégie : aucun service d'allumage ne remplace ensuite le vol.
+        m.objets['torche'].update(allume=True, combustible=120)
         deplacer(m, "pied_de_biche", "marchand")
         reunir(m, "brune", "marchand")
         m.joueur.update(salle="antichambre", position=[3, 4])

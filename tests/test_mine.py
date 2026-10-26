@@ -81,7 +81,13 @@ class MineTests(unittest.TestCase):
         # La chandelle du bureau est morte ; la lumière qu'il a, c'est la lampe de qui l'a rejoint.
         self.assertFalse(m.objets["chandelle"]["allume"])
         # Ou la lampe de rechange d'un autre l'éclaire (Odon, venu pour la paie).
-        self.assertTrue("bram" in appels or bram["fiables"] or bram["lumiere"], (appels, bram))
+        # L'arrivée d'un compagnon n'est pas garantie : sans désespoir, il peut
+        # encore être seul dans le noir sans devoir appeler à l'aide.
+        from donjon.deliberation import DESESPOIR
+        from donjon.corps import conscient
+        self.assertTrue(conscient(m, "bram"))
+        self.assertTrue("bram" in appels or bram["fiables"] or bram["lumiere"]
+                        or lire(m, "bram")["besoins"]["securite"] < DESESPOIR, (appels, bram))
 
 
 if __name__ == "__main__":

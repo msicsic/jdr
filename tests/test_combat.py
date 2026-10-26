@@ -300,6 +300,9 @@ class CombatTests(unittest.TestCase):
         for cible in ("marchand", "aubin"):
             with self.subTest(cible=cible):
                 m = epreuve(cible)
+                # Cette embuscade isole le combat : le service visible est déjà fait.
+                m.objets['torche'].update(allume=True, combustible=120)
+                percevoir_tous(m)
                 # Les coûts font préférer la demande à l'agression, avant tout refus de la clé.
                 plan = planification.planifier(m, "brune", "faim")
                 self.assertIn("demander", [e["operation"] for e in plan[1]])

@@ -4,6 +4,62 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-tache-promise`, fusionnée, lot **115**, base **6910d8e** :
+  une tâche typée peut payer une part dans le recours après les moyens ordinaires.
+  Conditions connues, un candidat et un devis par recours, propres moyens sans
+  demande ni délégation futures ; jugement inversé, marché et agendas communs.
+  Aucun Luna ni changement de recherche/scénario. Brune recharge le brasero de
+  Gorm ; Joss verrouille la réserve d'Odile contre un repas : état, perception,
+  journal rechargé et même laps découpé contrôlés. Rupture annoncée et confiance
+  diminuée, impossibilité et refus sauvegardés vérifiés. Neuf tests fonctionnels nouveaux ;
+  un ancien refus ne remplace plus un nouveau plan ordinaire ni sa demande.
+  Banc 4 h × quatre scénarios × quatre graines : aucun plantage/usurpation,
+  aucun nouveau code d'audit, 10/16 états identiques ; aucune tâche naturelle
+  offerte/acceptée/tenue/rompue dans les 16 nuits finales. Propositions/acceptées
+  Relais 0/0 → 0/0, mine 13/1 → 10/1, auberge 3/1 → 3/1, crue 9/0 → 5/0.
+  Mine : une observation supplémentaire de devoir satisfait chez Rémy (230 min),
+  répétition et avertissement redit disparus ; pas de boucle active nouvelle.
+  **Réserve CPU levée sur les huit nuits demandées** : base et branche lancées
+  ensemble, un processus réduit chacune, sans cache, 4 h. Première mesure
+  crue +15,66 %, auberge −1,40 % ; profil crue 2024 : recours 7,206 s (12,4 %)
+  sur 58,197 s, dont devis 6,770 s (11,6 %), 32 devis avec échecs répétés.
+  Levier exact `_charge_irrealisable` : sans réservoir rechargeable, une charge
+  initialement fausse/inconnue ne peut devenir vraie dans le devis autonome.
+  Projection datée commune, aucune décision changée ni cache persistant.
+  CPU par nuit, secondes : base `6910d8e` dans les deux mesures ;
+  (1) avant levier, branche `5261663` ; (2) après levier, branche `4167150` :
+
+  | Scénario | Graine | Base (1) | Branche (1) | Base (2) | Branche (2) |
+  | --- | ---: | ---: | ---: | ---: | ---: |
+  | Crue | 1985 | 17,062 | 19,516 | 16,250 | 16,141 |
+  | Crue | 7 | 19,922 | 21,234 | 18,688 | 17,656 |
+  | Crue | 42 | 17,344 | 22,438 | 16,828 | 17,562 |
+  | Crue | 2024 | 21,625 | 24,656 | 21,156 | 21,281 |
+  | **Crue total** | | **75,953** | **87,844 (+15,66 %)** | **72,922** | **72,641 (−0,39 %)** |
+  | Auberge | 1985 | 15,094 | 14,969 | 14,594 | 14,750 |
+  | Auberge | 7 | 16,609 | 16,703 | 16,500 | 16,641 |
+  | Auberge | 42 | 16,469 | 16,062 | 16,312 | 16,094 |
+  | Auberge | 2024 | 14,453 | 14,016 | 14,000 | 14,094 |
+  | **Auberge total** | | **62,625** | **61,750 (−1,40 %)** | **61,406** | **61,578 (+0,28 %)** |
+  | **Ensemble** | | **138,578** | **149,594 (+7,95 %)** | **134,328** | **134,219 (−0,08 %)** |
+
+  33 tests ciblés verts (un ignoré), 36,95 s ; cas réel crue à 17 min et autre
+  source d'auberge, recherche ancienne/nouvelle et rendu rechargé comparés.
+  16/16 états finaux, chroniques, audits et mesures hors compteurs de recherche
+  identiques avant/après optimisation sur les quatre scénarios (4 h, quatre
+  graines) ; 127 recherches neuves évitées en crue. Mesure ponctuelle : le seuil
+  historique ×1,5 contre `42bb9c0` n'est pas remesuré.
+  Un seul candidat peut masquer un autre service possible ; verrouillage ponctuel,
+  pas de garde permanente nouvelle ni de tarif de service en pièces.
+  Suite complète unique : 2 033 tests, 16 ignorés, 219 fichiers, 2 266,85 s ;
+  trois échecs et deux erreurs de parcours, corrigés dans leurs scènes de test.
+  Reprises 101 tests (une attente de première offre), puis 13 verts en 20,04 s ;
+  bilan consolidé vert, un ignoré, aucune seconde suite. Code signé SSH
+  `d3567d8` / `ee0ab0c` / `4167150`, signatures vérifiées. Créneau initial dépassé
+  par la vérification ; pas de seconde suite complète pendant le suivi CPU.
+  Bruts `artifacts/tache-115/`.
+  [Rapport et limites du lot 115](taches/rapport-codex-115-tache-promise.md).
+
 - Branche `codex-rapports-illisibles`, fusionnée, lot **116**, base
   `5ff7ce5`, code signé SSH **6949ca6**, signature vérifiée : le schéma extrait
   nature et fondement ; le moteur déduit le
