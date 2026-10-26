@@ -14,7 +14,7 @@ autres lots tournent sur ce poste : **au plus 2 processus de calcul**, priorité
 Modèles : les lots 114 et 131 (`docs/taches/codex-131-verif-integ-057766f.md`, rapport `rapport-codex-131-verif-integ.md`).
 
 ## Campagnes (les jouer une fois, à priorité réduite)
-Reprends `C:\Users\msics\donjon\artifacts\verif-integ-057766f\campagnes.ps1` (copié sur ce poste) avec
+Reprends `C:\Users\msics\donjon\artifacts\verif-integ-057766f\campagnes.ps1` (copié sur ce poste ; `Set-Location` vers ton worktree) avec
 `$d='C:\Users\msics\donjon\artifacts\verif-integ-2d504ae'` : audit 12 h quatre scénarios × 1985, 7, 42, 2024, 3, 11, 99, 500 ;
 `rixe` et `rixe_douce` 8 h × quatre graines ; `VERIFIER` + `spatial.VERIFICATION` 0,2, 8 h, graine 42, cinq scénarios. Ajoute
 une campagne **`crue_hameau`** 12 h × quatre graines (nouveau scénario du lot 139). Les nuits durent : lance-les en fond et
