@@ -78,6 +78,18 @@ def offrir(fabrique):
 
 
 class TachePromiseTests(unittest.TestCase):
+    def test_un_refus_ancien_ne_supplante_pas_un_plan_ordinaire(self):
+        for fabrique in (feu, reserve):
+            m, id, autre, c = fabrique()
+            self.assertIsNotNone(recours(m, id, 'faim', []))
+            for operation in ('demander', 'acheter', 'manger'):
+                g = {'operation': operation, 'cible': autre, 'outil': 'vivres',
+                     'lieu': '', 'condition': ''}
+                self.assertIsNone(recours(recharger(m), id, 'faim', [g]))
+                if operation != 'manger':
+                    faute = {**g, 'operation': 'prendre', 'cible': 'vivres', 'condition': 'sans_temoin'}
+                    self.assertIsNone(recours(recharger(m), id, 'faim', [g, faute]))
+
     def test_offre_visible_dans_le_journal_moteur_recharge(self):
         for fabrique in (feu, reserve):
             m, id, autre, c = fabrique()
@@ -86,6 +98,11 @@ class TachePromiseTests(unittest.TestCase):
                 if x['type'] == 'nourriture' and o != 'vivres':
                     x['portions'] = 0
             percevoir_tous(m)
+            # Plan de recours sauvegardé : publication par le moteur réel.
+            g = recours(m, id, 'faim', [])
+            self.assertIsNotNone(g)
+            lire(m, id)['intention']['plan'] = [g]
+            m = recharger(m)
             with patch.object(Monde, 'd20', return_value=20):
                 Moteur(m).executer(Moteur(m).preparer(proposition('attendre')))
             m = recharger(m)
@@ -103,6 +120,17 @@ class TachePromiseTests(unittest.TestCase):
         m.objets[autre]['profil']['pulsions'] = []
         lire(m, autre)['pulsions'] = []
         self.assertEqual(recours(m, id, 'faim', []), g)
+
+    def test_le_refus_reutilise_le_devis_du_candidat(self):
+        from donjon.echanges import devis_service
+        from donjon.pnj_propositions import entrees_refus
+        m, id, autre, c = feu()
+        terme = {'type': 'tache', 'condition': c}
+        retenir_refus(m, id, autre, 'proposer', 'garde', objet='vivres',
+                      offre=entrees_refus(m, id, autre, 'vivres', terme))
+        with patch('donjon.echanges.devis_service', wraps=devis_service) as devis:
+            recours(m, id, 'faim', [])
+        self.assertEqual(devis.call_count, 1)
 
     def test_aucune_fourniture_future_d_un_tiers(self):
         m, id, autre, c = feu()
@@ -172,7 +200,12 @@ class TachePromiseTests(unittest.TestCase):
         self.assertFalse(executer(m, id, autre, g['contenu'], lignes))
         self.assertEqual(lignes, [])
         self.assertFalse(agendas.en_cours(m, id))
-        self.assertIsNone(recours(m, id, 'faim', []))
+        from donjon.echanges import devis_service
+        faute = {'operation': 'prendre', 'cible': 'vivres', 'outil': '',
+                 'lieu': '', 'condition': 'sans_temoin'}
+        with patch('donjon.echanges.devis_service', wraps=devis_service) as devis:
+            self.assertIsNone(recours(m, id, 'faim', [faute]))
+        self.assertEqual(devis.call_count, 1)
 
     def test_refus_de_tache_persiste_apres_recharge(self):
         m, id, autre, c = feu()
@@ -183,6 +216,10 @@ class TachePromiseTests(unittest.TestCase):
         self.assertFalse(agendas.en_cours(m, id))
         m.data['minutes'] += 60
         self.assertIsNone(recours(m, id, 'faim', []))
+        lignes = []
+        self.assertFalse(executer(m, id, autre, g['contenu'], lignes))
+        self.assertEqual(lignes, [])
+        self.assertFalse(agendas.en_cours(recharger(m), id))
 
 
 if __name__ == '__main__':

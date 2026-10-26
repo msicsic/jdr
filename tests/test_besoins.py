@@ -93,6 +93,8 @@ class GardeMangerTests(unittest.TestCase):
         m = relais()
         # Cette scène exclut le forçage : à douceur 75, Brune peut désormais prévoir des coups.
         m.objets["brune"]["profil"]["valeurs"]["douceur"] = 100
+        # Cette scène isole l'outil absent : aucun service d'allumage à offrir.
+        m.objets['torche'].update(allume=True, combustible=120)
         # Placement d'auteur : le joueur a pris la trousse avant que Brune ne s'en occupe.
         m.objets["crochets"]["lieu"] = "joueur"
         m.objets["crochets"].pop("position")
