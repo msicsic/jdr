@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-crue-hameau`, fusionnée, lot **139**, base `3df20ff` :
+  nouveau dérivé de données, six PNJ (Maël au refuge, Sève à la galerie), sans
+  mesure initiale des salles basses chez ces évacués ; sept parts, quatre charges
+  de bois du guet. Moteur et scénarios existants intacts ; option `--crue-hameau`.
+  Banc 4 h × quatre graines : **32 avis, deux adoptions** (Aubin et Sève, 1985,
+  193 min), zéro dispute, plantage, écart ou usurpation, aucune boucle signalée.
+  **Limite : une seule adoption par un évacué, déjà exposé à l'eau du palier**,
+  mesures des salles basses encore issues de paroles ; aucune preuve d'alerte
+  précoce ni d'avantage tactique. Ressources restantes mais distribution imparfaite.
+  Témoin 4 h lu du cache `97e7198` (code du jeu identique à la base), quatre
+  empreintes 2 h de la crue strictement identiques ; **quatre ciblés verts**,
+  deux scènes bloc/découpées et deux adoptions capturées, état/rendu rechargés.
+  Suite complète unique : **2 076 tests, 228 fichiers, deux échecs MiMo `6 != 5`,
+  zéro erreur ni ignoré**, 2 061,03 s ; ces deux échecs reproduits seuls sur la
+  base intacte (deux tests, 1,57 s). Un processus réduit, aucun Luna.
+  Aucune clé Git de signature configurée : commit non signé, branche poussée.
+  [Rapport du lot 139](taches/rapport-codex-139-crue-hameau.md).
+  Fusionné sur l'intégration après les lots 132 à 138 et 140 : seul conflit de documentation ; `banc_pnj.py` touché aussi par le lot 136 (épreuves `enferme`), fusionné sans conflit textuel. Accord de fusion : la porte du scénario dérivé recopiait `lieu: antichambre`, refusé depuis le lot 137 ; ramenée à `crypte` comme dans les autres scénarios. Suite complète relancée.
+
 - Branche `codex-captivite`, fusionnée, lot **140**, base `9aab62a`
   (lot 136 `codex-enfermer`, non fusionné : dépendance voulue) : captivité selon les
   liens et les issues crues, inquiétude `captif` par le temps vécu, corps du joueur
