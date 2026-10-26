@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-contreparties`, fusionnée, lot **107**, base `303d38c` :
+  le recours demande une part utile ou les pièces manquantes, au plus au prix
+  offert, avec une source monétaire explicite conservée. Contrôle inversé du
+  lot 57 conservé ; anticipation de valeur par les P/G et le DD communs, sans
+  dispositions privées adverses. Plans rechargés revalidés ; paiement partiel
+  atomique, sans céder le contenant. Validation structurelle des termes commune
+  aux propositions et audits. Aucun Luna, délibération/planification inchangées.
+  Mine 1985 à 253 reproduite puis capture/recharge vérifiées ; auberge, paiement
+  partiel et scènes raisonnables du lot 45 couverts. Banc 4 h × quatre scénarios
+  × quatre graines : **16 états, chroniques et mesures identiques**, aucune
+  usurpation ni boucle nouvelle ; propositions/acceptées Relais **0/0**, mine
+  **12/1**, auberge **3/1**, crue **9/0**. Suite complète unique : **2 001 tests,
+  16 ignorés, 213 fichiers, 1 870,08 s**, deux processus réduits ; une erreur
+  temporaire Windows TUI, reprise isolée verte en **2,66 s** ; reprises finales
+  **34 tests verts, un ignoré, cinq fichiers, 31,34 s**, aucun défaut restant
+  reproduit, aucune seconde suite. Anticipation neutre sans garantie d'accord ;
+  source portée exigée, pas de livraison différée de pièces. Bruts
+  `artifacts/contreparties-107/`.
+  [Rapport et limites](taches/rapport-codex-107-contreparties.md).
+  Fusionné sur l'intégration après les lots 103 et 105 : seul conflit de documentation ; aucun fichier de code commun.
+
 - Branche `codex-suites-par-noeud`, fusionnée, lot **105**, base **dcd7b31**,
   code signé **0aa644a** : `_mesurer` compose les seuls changements de portes
   et reprend le successeur sans reconstruction quand rien ne change. Aucun

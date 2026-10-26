@@ -615,6 +615,29 @@ pas ; un moyen nouvellement cru ou une contrepartie plus forte le permettent.
 L'achat refusé remplace la réponse à la demande gratuite du même bien.
 Les anciens repères de recours restent lisibles dans les sauvegardes.
 
+**Lot 107, `codex-contreparties`, non fusionnée.** Une demande de recours
+porte sur une part utile ou sur le bien indivisible nécessaire. Si le bien visé
+est une réserve de pièces, `demande_utile` borne le prélèvement au manque propre
+(`besoin_d_argent` moins la richesse), puis `demande_financee` au prix public de
+la contrepartie. La source reste explicitement nommée dans le terme
+`{type:"pieces", montant, objet}` ; elle n'est pas cédée et aucune autre bourse
+ne paie à sa place. Le paiement partiel exige une source possédée et portée,
+non gardée, avec les pièces disponibles ; aucune livraison différée de pièces
+n'est promise. Le contrat typé, la validation, le transfert et le rendu sont
+communs au joueur et aux PNJ.
+
+Le proposant garde le contrôle inversé du lot 57 et anticipe aussi la valeur
+pour l'autre : mêmes P/G et même calcul de disproportion que
+`evaluer_proposition`. Il n'essaie pas un marché dont le DD de valeur dépasserait
+son meilleur jet. Prix publics et contenu monétaire connu sont utilisés ;
+situation, richesse liquide, intelligence et lien adverses restent neutres,
+sans lecture des dispositions privées. Cette anticipation ne garantit pas
+l'accord réel. Le contrôle revient avant exécution, notamment pour un ancien
+plan rechargé. Une bourse entière vaut aussi les pièces connues qu'elle contient.
+La validation structurelle des termes (`erreur_terme`) est également celle des
+audits de narration ; elle accepte le prélèvement partiel sans relâcher les
+formes invalides. Aucun changement de recherche ni appel à Luna.
+
 Le devis commun des services (`echanges.devis_service`, tâches payées, confiées,
 marchés et empêchement) vérifie aussi les fournitures demandées au bénéficiaire
 avec le contrat de livraison. Ilse (crue 7, minute 353) comptait sur une part de

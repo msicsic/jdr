@@ -104,22 +104,9 @@ def compte_bien_forme(c):
     if not isinstance(c, dict):
         return False
     if c.get("etat") == "offre":
+        from .propositions import erreur_terme
         def terme(t):
-            if not isinstance(t, dict):
-                return False
-            genre = t.get("type")
-            if genre in ("objet", "part"):
-                return set(t) == {"type", "objet"} and isinstance(t["objet"], str)
-            if genre == "pieces":
-                return set(t) == {"type", "montant"} and type(t["montant"]) is int and t["montant"] > 0
-            if genre == "rien":
-                return set(t) == {"type"}
-            condition = t.get("condition")
-            return (genre == "tache" and set(t) == {"type", "condition"}
-                    and isinstance(condition, dict) and isinstance(condition.get("objet"), str)
-                    and (set(condition) == {"objet", "lieu"} and isinstance(condition["lieu"], str)
-                         or set(condition) in ({"objet", "allume"}, {"objet", "verrouillee"})
-                         and next(v for k, v in condition.items() if k != "objet") is True))
+            return erreur_terme(t) is None
         return (set(c) == set(SCHEMA_OFFRE["required"])
                 and all(isinstance(c[k], str) for k in ("debiteur", "creancier"))
                 and terme(c["condition"]) and terme(c["contrepartie"]))
