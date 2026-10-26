@@ -108,7 +108,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   n'est pas acquise. Seize références calculées une fois et cachées, sans rejeu.
   Aucun Luna, au plus deux calculs réduits ; aucune clé de signature Git configurée.
   [Rapport du lot 136](taches/rapport-codex-136-enfermer.md).
-  Fusionné sur l'intégration après le lot 134 (base voulue) : seul conflit de documentation ; `planification.py` touché aussi par le lot 133, fusionné ensuite sans conflit textuel ; suite complète relancée sur l'ensemble des fusions 132 à 138.
+  Fusionné sur l'intégration après le lot 134 (base voulue) : seul conflit de documentation ; `planification.py` touché aussi par le lot 133, fusionné ensuite sans conflit textuel ; suite complète sur l'ensemble des fusions 132 à 138 (`tools/tests.py --processus 2`) : **2 114 tests, 16 ignorés**, verte (2 328,5 s).
 
 - Branche `codex-trainer`, fusionnée, lot **134**, base `bb31eb5` :
   traîner une personne inconsciente, ligotée ou rendue, ou une dépouille ; même
