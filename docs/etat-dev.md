@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-profil-compare`, **non fusionnée**, lot **98**, base **61c854a** :
+  diagnostic seul, aucun moteur/scénario/MJ modifié, aucun Luna. Auberge 1985,
+  fixe puis tirée, `cProfile` CPU sur 480–720 et témoins sans instrumentation,
+  ancien/intégration appariés, deux calculs à priorité réduite. Choix/minute
+  **14,91→20,17 / 13,84→16,52**, recherches/minute **16,75→26,46 / 10,49→19,48** ;
+  filet minute inchangé (1 920), hausse hors minute **+76 % / +46 %**.
+  Recherche moyenne instrumentée **99,30→92,31 / 123,29→209,10 ms** : fréquence
+  et coût unitaire comptent ; décomposition descriptive des recherches :
+  **58 % fréquence / 42 % coût moyen**, sans causalité établie entre mondes différents.
+  **Arrêt prescrit avant implémentation** : réduire les relances peut changer
+  les décisions. Piste exacte secondaire non codée : relever les obstacles une
+  fois dans `_moyenne`, au lieu d'un balayage d'objets par case ; gain inconnu.
+  CPU normal 12 h : **127,38→244,41 s (×1,92) fixe**, **94,48→273,92 s (×2,90)
+  tiré** ; seuil ×1,5 manqué. Huit recharges vertes ; mêmes compteurs, mesures
+  et états à 480/720 entre profils et témoins, quatre nuits.
+  Pas de suite complète ni de vérification conditionnée à une implémentation.
+  Outils et bruts `artifacts/profil-98/`, créneau dépassé par les profils complets.
+  [Rapport et décision demandée](taches/rapport-codex-98-profil-compare.md).
+
 - Branche `codex-verif-luna-b0042c9`, lot **99**, code d’intégration **b0042c9**
   inchangé : deux passes des vingt scripts du lot 79, **40 parties, 302 saisies,
   136 tours MJ, 406 appels**, Luna ChatGPT medium/libre, quatre exécutions au plus
