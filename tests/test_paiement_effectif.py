@@ -102,13 +102,13 @@ class PaiementEffectifTests(unittest.TestCase):
         m = presentes(antichambre_du_banc(), "aubin")
         avant = copy.deepcopy(m.data)
         saisie = '« Je te paie trois pièces pour une planche. »'
-        faux = parole(saisie, ("propos", "", "", ""), personnage="aubin")
-        faux["proposition"]["operations_demandees"]["proposition"] = True
-        correction = copy.deepcopy(faux)
-        correction["proposition"]["operations_demandees"]["proposition"] = False
+        faux = parole(saisie, ("ressource", "faim", "", ""), personnage="aubin")
+        correction = parole(saisie, personnage="aubin")
+        # Le contenu typé appelle la revue, qui reconnaît l'achat omis.
+        # Une simple déclaration du MJ ne serait pas une confirmation.
         r, sortie, appels = jouer(m, saisie, [faux, correction], [],
                                  revues=[revue("proposition"), revue(), revue()])
-        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
         self.assertEqual(r.joueur["or"], avant["joueur"]["or"])
         self.assertFalse(r.data.get("paroles_joueur"))
         self.assertIn("Tu n'as encore rien dit", sortie)
@@ -138,14 +138,15 @@ class PaiementEffectifTests(unittest.TestCase):
         self.assertIn(bon, sortie)
         self.assertIn(bon, str(r.data["conversation"]))
 
-    def test_revue_illisible_ne_valide_pas_une_parole_sans_operation(self):
+    def test_revue_illisible_permet_secours_sans_operation_non_confirmee(self):
         m = presentes(antichambre_du_banc(), "aubin")
         saisie = "Aubin, as-tu du bois ?"
         faux = parole(saisie, ("ressource", "bois", "", ""), personnage="aubin")
-        r, sortie, appels = jouer(m, saisie, [faux, faux], [], revues=[{}] * 6)
+        r, sortie, appels = jouer(m, saisie, [faux, faux, dialogue('Ta question est entendue.')],
+            [rapport(ligne('mecanique', sources=['conversation_validee']))], revues=[{}] * 6)
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 4)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertFalse(r.data.get("paroles_joueur"))
-        self.assertNotIn("Tu dis", sortie)
-        self.assertIn("Tu n'as encore rien dit", sortie)
+        self.assertEqual(recharger(r).data['paroles_joueur'][-1]['texte'], saisie)
+        self.assertIn("Tu dis", sortie)
+        self.assertNotIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("operations_demandees", sortie)

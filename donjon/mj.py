@@ -476,29 +476,16 @@ class MJ:
             "comptes_avant": etat_comptes_joueur(monde, rapport["destinataires"])})
         try:
             declarees = operations_declarees or set()
-            try:
-                verifier_operations(plan, (operations_demandees or set()) | declarees)
-            except ErreurMonde:
-                # Une omission locale non examinée ne peut effacer la demande.
-                # Une déclaration couverte, en revanche, reste une hypothèse :
-                # seule la revue du sens peut la confirmer pour les corrections.
-                if operations_demandees is not None:
-                    operations_demandees.update(declarees)
-                raise
+            # La déclaration contrôle sa propre proposition, sans devenir une
+            # obligation pour la suivante. Seule la revue confirme le sens.
+            verifier_operations(plan, (operations_demandees or set()) | declarees)
             mots = mots_dits(analyser_parole(monde, intention), intention)
             if (not operations_demandees and not declarees
                     and not operations_contenu(complements["contenu"])
                     and (mots or not forme_rapportee(intention))
                     and rapport["replique_joueur"].strip() == (mots or intention).strip()):
                 return
-            try:
-                self._auditer_action(intention, plan, revision, monde, operations_demandees)
-            except (RapportIllisible, ErreurFournisseur):
-                # Aucun jugement lisible n'a infirmé la déclaration : elle ne
-                # disparaît pas avec une correction qui omettrait l'opération.
-                if operations_demandees is not None:
-                    operations_demandees.update(declarees)
-                raise
+            self._auditer_action(intention, plan, revision, monde, operations_demandees)
         except ErreurMonde as exc:
             raise ParoleNonConforme(str(exc), exc.attendu) from exc
 
@@ -847,13 +834,9 @@ class MJ:
                     operations_declarees = set()
                     if declaration_connue:
                         operations_declarees = lire_operations(complements.pop("operations_demandees", None))
-                    try:
-                        travail, rapport = preparer_parole(monde, complements, revision)
-                    except ErreurMonde:
-                        # La préparation n'a pas permis de revoir le sens : une
-                        # autre forme ne peut effacer les opérations annoncées.
-                        operations_demandees.update(operations_declarees)
-                        raise
+                    # Une préparation refusée ne confirme aucune opération de
+                    # cette interprétation ; les obligations reconnues restent.
+                    travail, rapport = preparer_parole(monde, complements, revision)
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
                                                    operations_demandees, declaration_connue, operations_declarees)
                     break

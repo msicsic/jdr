@@ -75,7 +75,7 @@ class SansMessageTechniqueTests(unittest.TestCase):
             self.assertEqual(r.joueur, m.joueur)
             self.assertIn(recharger(r).data["conversation"][-1]["reponse"], sortie)
 
-    def test_declaration_non_examinee_ne_disparait_pas(self):
+    def test_declaration_non_examinee_ne_lie_pas_la_correction(self):
         for preparation_refusee in (False, True):
             with self.subTest(preparation_refusee=preparation_refusee):
                 m = banc("noms-dialogue")
@@ -84,9 +84,10 @@ class SansMessageTechniqueTests(unittest.TestCase):
                 if preparation_refusee:
                     faux["proposition"]["contenu"][0]["valeur"] = "champ interdit"
                 vide = parole(saisie, personnage="aubin")
-                r, sortie, _ = jouer(m, saisie, [faux, vide], [], revues=[{}] * 6)
-                self.assertNotIn("Tu dis", sortie)
-                self.assertFalse(recharger(r).data.get("paroles_joueur"))
+                r, sortie, _ = jouer(m, saisie, [faux, vide, dialogue('Ta question est entendue.')],
+                    [rapport(ligne('mecanique', sources=['conversation_validee']))], revues=[{}] * 6)
+                self.assertIn("Tu dis", sortie)
+                self.assertEqual(recharger(r).data['paroles_joueur'][-1]['texte'], saisie)
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
 
 
