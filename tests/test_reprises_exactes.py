@@ -16,6 +16,20 @@ def capture():
 
 
 class EntreesTests(unittest.TestCase):
+    def test_gestes_lisent_indirectement_l_allure_des_trajets(self):
+        m = capture()
+        v = p.Vue(m, 'joss')
+        e = p.depart(m, 'joss', v)
+        resultats = []
+        for allure in (15, 30):
+            etat = e.apres(allure=allure)
+            resultats.append([(g[2][0]['lieu'], float(g[1]).hex())
+                for g in p.gestes(v, etat, {}, p.a_mange)
+                if not isinstance(g, p.SuiteDifferee)
+                and g[2] and g[2][0]['operation'] == 'aller'])
+        self.assertEqual([s for s, _ in resultats[0]], [s for s, _ in resultats[1]])
+        self.assertNotEqual(resultats[0], resultats[1])
+
     def test_cases_de_toutes_les_salles_conservees_sauf_acteur(self):
         m = capture()
         v = p.Vue(m, 'joss')
