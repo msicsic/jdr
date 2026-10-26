@@ -4,6 +4,42 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-rendre-service`, fusionnée, lot **120**, base `0a53910`,
+  code signé SSH **`7ec9fbc`**, signature vérifiée : recours de service spontané
+  après méfiance ou rancune, hors de la recherche, après les moyens ordinaires
+  et avant une faute envers le même personnage. Devis autonome existant,
+  tentative sauvegardée par refus/besoin, aucun mandat ou droit inventé.
+  L'effet utile constaté avec son auteur identifié produit l'épreuve commune
+  `service_rendu` (confiance +20, affection +10, rancune −15, dette +20,
+  modulations et hystérésis conservées), dons et joueur compris ; prestations
+  convenues sans double crédit. Brune/Gorm et réserve commune d'auberge :
+  service, méfiance levée, redemande et journal rechargés, même laps découpé.
+  Suite complète unique : **2 048 tests, 16 ignorés, 221 fichiers, 1 860,72 s**,
+  deux processus réduits ; sept anciennes attentes/empreintes adaptées et
+  une erreur Windows TUI, reprises **28 + 1 tests verts**, bilan consolidé vert.
+  Oracles historiques conservés, seuls registres nouveaux vides exclus des
+  projections. Banc 4 h × quatre scénarios × quatre graines : **16/16 audits,
+  boucles et chroniques hors relations identiques**, aucun plantage/usurpation.
+  Trois repas spontanés constatés dans la mine, aucune demande accordée ensuite
+  ni réparation délibérée naturelle ; deux parcours ciblés positifs. CPU des
+  versions lancées ensemble, un processus réduit chacune, sans cache :
+  **213,250 → 213,688 s (+0,21 %)**, mesure ponctuelle sur poste partagé.
+  Bruts `artifacts/service-120/`, cache de base conservé.
+  **Révision d'utilité avant fusion** : un don/repas ne devient `service_rendu`
+  que s'il comble un manque cru avant le geste (besoin du corps pressant,
+  pulsion ou agenda actif non satisfait), auteur identifié. Sinon `recu`/`nourri`
+  historiques ; aucun recalibrage des cadeaux sans usage. Critère partagé avec
+  `services.preparer`, capturé avant transfert/satiété. Les deux fichiers
+  historiques `relations_graduees` et `constater_rumeurs` reviennent exactement
+  à `0a53910` : leurs dons/repas ne comblaient aucun manque cru.
+  Même don utile/inutile/vide, repas avant satiété, pulsion et agenda contrôlés
+  après rechargement. **71 ciblés verts (un ignoré), puis 11 finaux verts** ;
+  aucune seconde suite ni nouveau banc, selon la demande de relecture.
+  Les mesures précédentes concernent `7ec9fbc`, avant cette révision.
+  Aucun Luna, scénario, `social.py`, `ouie.py` ou algorithme de recherche modifié.
+  [Rapport et limites du lot 120](taches/rapport-codex-120-rendre-service.md).
+  Fusionné sur l'intégration après le lot 121 : seul conflit de documentation ; `relations.py`, `esprits.py` et `pnj.py` touchés aussi par le lot 121, fusionnés sans conflit textuel ; suite complète relancée sur la fusion.
+
 - Branche `codex-disputes`, fusionnée, lot **121**, base **0a53910** :
   avis de menace contradictoires entre PNJ par la parole commune ; une contradiction,
   une réponse et un éclat seulement par fierté/colère. Témoins auditifs, poids des sources,

@@ -994,8 +994,11 @@ class Moteur:
     @staticmethod
     def _appliquer(m, effet, lignes):
         from . import agendas
+        from . import services
+        service_avant = services.preparer(m, 'joueur', effet[1], effet[0])
         avant = agendas.etat_promis(m)
         resultat = Moteur._appliquer_effet(m, effet, lignes)
+        services.constater(m, 'joueur', effet[1], service_avant)
         if avant:
             agendas.constater_geste_joueur(m, avant)
         return resultat
@@ -1095,13 +1098,16 @@ class Moteur:
         if op == "donner":
             # L'objet change de mains ; le personnage s'en souvient. Aucune récompense n'est due.
             from .esprits import memoriser
+            from .services import don_utile
+            utile = don_utile(m, valeur, cible)
             o = m.objets[cible]
             pret = next((p for p in m.data.get("permissions", []) if p["objet"] == cible and p["a"] == "joueur" and p["de"] == valeur), None)
             ponctuel = bool(pret and m.data["minutes"] - pret["minute"] <= 240)
             deplacer(m, cible, valeur)
             o["proprietaire"] = valeur
             o.pop("vole_par", None)
-            memoriser(m, valeur, {"type": "restitution" if pret else "don", "de": "joueur", "objet": cible, "ponctuel": ponctuel})
+            memoriser(m, valeur, {"type": "restitution" if pret else "don", "de": "joueur", "objet": cible,
+                                "ponctuel": ponctuel, "service_utile": utile})
             from .voix import nom_pour_joueur
             lignes.append("Tu donnes " + designer(o) + " " + groupe_nominal(nom_pour_joueur(m, valeur, court=False), "à") + ".")
             return

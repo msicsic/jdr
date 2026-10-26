@@ -8,9 +8,17 @@ from .esprits import lire, memoriser
 
 
 def verifier(e):
+    from .propositions import erreur_terme
     def cible(x):
         return isinstance(x, dict) and all(isinstance(x.get(k), str) for k in ("de", "besoin", "objet"))
     assert e["demande_refusee"] is None or cible(e["demande_refusee"]), "Déclencheur de recours invalide"
+    assert e['service_en_cours'] is None or (cible(e['service_en_cours'])
+        and set(e['service_en_cours']) == {'de', 'besoin', 'objet', 'condition'}
+        and erreur_terme({'type': 'tache', 'condition': e['service_en_cours']['condition']}) is None), 'Service en cours invalide'
+    assert isinstance(e['recours_services'], list) and all(
+        isinstance(s, dict) and set(s) == {'de', 'besoin', 'objet', 'operation', 'minute'}
+        and all(isinstance(s[k], str) for k in ('de', 'besoin', 'objet', 'operation'))
+        and type(s['minute']) is int for s in e['recours_services']), 'Tentatives de service invalides'
     assert isinstance(e["recours_propositions"], list) and all(
         cible(x) and isinstance(x.get("cause"), list) and isinstance(x.get("lien"), dict)
         and type(x.get("pieces")) is int and x["pieces"] >= 0 and isinstance(x.get("biens"), dict)
@@ -144,6 +152,21 @@ def plan_recours(monde, id, besoin, etapes):
     from .echanges import condition_remplie
     from .planification import planifier_pulsion, rejoindre
     e = lire(monde, id)
+    en_cours = e['service_en_cours']
+    if en_cours and en_cours['besoin'] == besoin:
+        from .deliberation import satisfaite, refus_retenu
+        refus = refus_retenu(monde, id, en_cours['de'], ('demander', 'acheter', 'proposer'), objet=en_cours['objet'])
+        if (not refus or refus['raison'] not in ('mefiance', 'rancune')
+                or satisfaite(monde, id, en_cours['condition'])):
+            e['service_en_cours'] = None
+        elif _dernier_recours(monde, id, en_cours['de'], etapes):
+            plan = _plan_service(monde, id, en_cours['de'], en_cours['condition'])
+            if plan:
+                return plan
+            e['service_en_cours'] = None
+    service = rendre_service(monde, id, besoin, etapes)
+    if service:
+        return service
     refusee = e["demande_refusee"]
     if refusee and refusee["besoin"] == besoin:
         for s in reversed(e["refus"]):
@@ -170,6 +193,82 @@ def plan_recours(monde, id, besoin, etapes):
             return trouve[1]
     geste = recours(monde, id, besoin, etapes)
     return [geste] if geste else None
+
+
+def _dernier_recours(monde, id, autre, etapes):
+    from .biens import proprietaire
+    if etapes and not any(g['condition'] == 'sans_temoin' for g in etapes):
+        return False
+    for g in etapes:
+        if g['operation'] in ('demander', 'acheter', 'confier', 'engager', 'proposer'):
+            return False
+        if g['condition'] == 'sans_temoin':
+            return proprietaire(monde, g['cible']) == autre
+    return True
+
+
+def _plan_service(monde, id, autre, condition):
+    from .echanges import _devis_proposition, promesse_autonome
+    from .deliberation import illicite
+    terme, devis = {'type': 'tache', 'condition': condition}, {}
+    if not promesse_autonome(monde, id, autre, terme, devis=devis):
+        return None
+    plan = _devis_proposition(monde, id, condition, autre, devis)[1]
+    if any(g['cible'] in monde.objets and illicite(monde, id, g['cible'], g['operation'])
+           for g in plan if g['operation'] not in ('aller', 'inspecter')):
+        return None
+    return plan
+
+
+def rendre_service(monde, id, besoin, etapes):
+    """Après un refus social, un seul service autonome avant une faute ou l'impasse.
+
+    La tentative est durable même impossible ; un délai ou un rechargement ne
+    fait pas deviser à nouveau le même couple refus/besoin.
+    """
+    from .deliberation import refus_retenu, salle_crue
+    from .propositions import taches_crues
+    e = lire(monde, id)
+    refusee = e['demande_refusee']
+    if not refusee or refusee['besoin'] != besoin:
+        return None
+    autre, objet = refusee['de'], refusee['objet']
+    refus = refus_retenu(monde, id, autre, ('demander', 'acheter', 'proposer'), objet=objet)
+    if not refus or refus['raison'] not in ('mefiance', 'rancune'):
+        return None
+    if salle_crue(monde, id, autre) != monde.objets[id]['lieu']:
+        return None
+    # Une faute contre un autre propriétaire ne sert pas de prétexte à ce recours.
+    if not _dernier_recours(monde, id, autre, etapes):
+        return None
+    cle = {'de': autre, 'besoin': besoin, 'objet': objet,
+           'operation': refus['operation'], 'minute': refus['minute']}
+    if cle in e['recours_services']:
+        return None
+    e['recours_services'][:] = [s for s in e['recours_services']
+                               if (s['de'], s['besoin']) != (autre, besoin)]
+    e['recours_services'].append(cle)
+    terme = next(taches_crues(monde, id, autre), None)
+    if terme:
+        plan = _plan_service(monde, id, autre, terme['condition'])
+        if plan:
+            e['service_en_cours'] = {**refusee, 'condition': terme['condition']}
+            return plan
+    # Un bien porté qui répond à un manque observé ne demande aucun devis.
+    from .biens import proprietaire
+    from .spatial import porte_par
+    from .deliberation import besoin_de_part, parts
+    etat = e['croyances'].get(autre, {}).get('etat', {}).get('valeur', {})
+    for o, x in sorted(monde.objets.items()):
+        manque = besoin_de_part(x)
+        if (manque and etat.get(manque) and parts(x) > 0
+                and porte_par(monde, o, id) and proprietaire(monde, o) == id):
+            if manque == 'faim':
+                return [{'operation': 'servir', 'cible': o, 'outil': '', 'lieu': '',
+                         'condition': '', 'contenu': {'pour': autre}}]
+            return [{'operation': 'remettre', 'cible': autre, 'outil': o,
+                     'lieu': '', 'condition': ''}]
+    return None
 
 
 def recours(monde, id, besoin, etapes):

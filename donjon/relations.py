@@ -16,6 +16,7 @@ MEFIANCE, CONFIANCE, RANCUNE, PEUR = 30, 60, 40, 40
 VIF = 60   # un axe qui se montre (``vive``)
 MENTEUSE = 0
 EPREUVES = {
+    "service_rendu": {"confiance": 20, "affection": 10, "rancune": -15, "dette": 20},
     "vu_agir": {"confiance": -40, "affection": -10, "rancune": 40},
     "vol_surpris": {"confiance": -40, "affection": -10, "rancune": 40},
     "vu_porter": {"confiance": -40, "affection": -10, "rancune": 40},
@@ -350,7 +351,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
         effets["rancune"] *= valeur(monde, id, "fierte") / 50
     if effets.get("dette", 0) > 0:
         effets["dette"] *= valeur(monde, id, "loyaute") / 50
-    if cause in ("nourri", "recu"):
+    if cause in ("nourri", "recu", "service_rendu"):
         effets["affection"] *= (50 + valeur(monde, id, "empathie")) / 100
     if effets.get("peur", 0) > 0:
         effets["peur"] *= (100 - valeur(monde, id, "courage")) / 50
@@ -390,15 +391,16 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     from .pnj import _chroniquer
     from .social import _qui
     changes = [b for b in BANDES if bandes[b] != r["bandes"][b]]
-    if changes or cause == "dette_honoree":
+    if changes or cause in ("dette_honoree", "service_rendu"):
         _chroniquer(monde, id, f"{_qui(monde, id)} envers {_qui(monde, autre)} : {resume(r)} ; {cause}.", "relation")
         monde.data["chronique"][-1].update(relation=autre, cause=cause, bandes=copy.deepcopy(r["bandes"]),
-                                          mefiance_levee=bandes["mefiance"] and not r["bandes"]["mefiance"], service=s.get("service"))
+                                          mefiance_levee=bandes["mefiance"] and not r["bandes"]["mefiance"], service=s.get("service", s.get("objet")))
 
 
 def souvenir(monde, id, s):
     """Crochet unique, après inscription. Un effet reçu s'inscrit chez le bénéficiaire."""
     from .esprits import memoriser
+    from . import agendas
     from .voix import identifie, auteur_dit, source_dite
     t = s["type"]
     if t == "rumeur" and s.get("evenement", {}).get("type") == "intention_lue":
@@ -459,6 +461,13 @@ def souvenir(monde, id, s):
         return  # une livraison payée n'est pas un don
     if t == "recu" and s.get("pret"):
         t = "pret_recu"
+    # Une prestation déjà convenue conserve son épreuve d'engagement ;
+    # la réception d'un repas ne crée pas en plus un service spontané.
+    prestation = (t == "nourri" and agendas.en_cours(
+        monde, autre, objet=s.get("objet"), personne=id, actifs=True)) if autre else False
+    if (t in ("recu", "nourri") and not s.get("demande") and not prestation
+            and s.get('service_utile') is True):
+        t = "service_rendu"
     if t == "vol_surpris" and s.get("victime", id) != id:
         _appliquer(monde, id, autre, "tort_tiers", s, tiers=s.get("victime"))
         return
@@ -492,11 +501,16 @@ def souvenir(monde, id, s):
     if t not in EPREUVES:
         return
     if t in ("nourri", "recu", "pret_recu", "prevenu", "engagement_tenu", "engagement_abandonne", "parole_rompue",
-             "refus", "passage_accorde"):
+             "refus", "passage_accorde", "service_rendu"):
         if autre is None or not identifie(monde, id, autre):
             return
+    from .esprits import lire
+    nouveau_service = t == "service_rendu" and autre + ':' + s['preuve'] not in lire(monde, id)['preuves_relations']
     _appliquer(monde, id, autre, t, s)
-    if (t in ("recu", "prevenu", "passage_accorde") or t == "pret_recu" and s.get("demande")) and autre != "joueur" and doit(monde, autre, id):
+    if nouveau_service:
+        from .services import lever_refus
+        lever_refus(monde, id, autre, s.get("preuve"))
+    if (t in ("recu", "service_rendu", "prevenu", "passage_accorde") or t == "pret_recu" and s.get("demande")) and autre != "joueur" and doit(monde, autre, id):
         memoriser(monde, autre, {"type": "dette_honoree", "de": id, "service": "demande" if s.get("demande") else t, "montant": EPREUVES[t].get("dette", 0), "preuve": "solde:" + s["preuve"]})
 
 

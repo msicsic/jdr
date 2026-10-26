@@ -785,6 +785,15 @@ def _assez_de_lumiere(monde, id, etape):
 
 
 def _executer(monde, id, etape, lignes, gestes):
+    from . import services
+    avant = services.preparer(monde, id, etape['cible'], etape['operation'])
+    fait = _executer_effet(monde, id, etape, lignes, gestes)
+    if fait:
+        services.constater(monde, id, etape['cible'], avant)
+    return fait
+
+
+def _executer_effet(monde, id, etape, lignes, gestes):
     """Accomplit une étape ; renvoie True si elle est terminée, False si elle est manquée, None
     pour un geste qui dure et se poursuit (``DURABLES``)."""
     from .deliberation import SATIETE, changer_etat, illicite
