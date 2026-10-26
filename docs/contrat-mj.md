@@ -820,6 +820,17 @@ simulées qui contredisent volontairement l'état du monde.
 
 ## Refus et échecs
 
+**Forme des contenus de parole** (lot 96, `codex-relances`). Le schéma
+d'interprétation est dérivé de `paroles.CHAMPS_CONTENU`, comme le validateur :
+pour chaque type ordinaire, un champ sans sens ne peut contenir que la chaîne
+vide. Chaque type a sa variante et sa propre description ; la proposition
+d'échange garde sa variante propre. Les champs utiles, leurs sens et tous les
+contrôles du moteur sont conservés. Un fournisseur simulé ou ancien qui remplit
+un champ interdit reçoit toujours le refus de forme avec son `attendu` ; le moteur
+n'efface aucune charge pour faire passer une proposition. Cette contrainte évite
+les corrections de forme de cette famille avec une sortie conforme au schéma,
+sans garantir le choix sémantique du type ni la fidélité de la parole.
+
 **Sens partagé d'une demande de ressource** (`codex-ressource`). Le contenu `ressource`
 demande une disponibilité, sans remise, achat ni promesse. Son `sujet` conserve le bien
 nommé par le joueur, sans article : un nom, alias, matière ou catégorie explicite des
