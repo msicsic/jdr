@@ -33,6 +33,8 @@ PRIX_SANS_PRIX = 1     # convention commune pour un objet sans prix déclaré
 
 def _devis_proposition(monde, id, condition, pour):
     """Le devis existant, sur ses croyances, avec la permission de la tâche proposée."""
+    if not monde.objets.get(id, {}).get("profil"):
+        return None
     copie = monde.copier()
     agendas.prendre(copie, id, {"condition": condition, "pour": pour, "minute": copie.data["minutes"]})
     return devis_service(copie, id, condition, pour)
@@ -48,6 +50,10 @@ def devis_service(monde, id, condition, pour):
     from .deliberation import besoin_de_part
     from .planification import devis_pulsion
     from .spatial import porte_par
+    # Ni le joueur ni un personnage sans autonomie n'exécute un plan de PNJ.
+    # L'absence de devis n'interdit pas une remise déjà possible en main.
+    if not monde.objets.get(id, {}).get("profil"):
+        return None
     devis = devis_pulsion(monde, id, condition, pour)
     if devis is None:
         return None
@@ -71,6 +77,8 @@ def devis_service(monde, id, condition, pour):
         elif necessaire(copie, pour, objet):
             return None
         elif not porte_par(copie, objet, pour):
+            if not copie.objets.get(pour, {}).get("profil"):
+                return None
             livraison = {"objet": objet, "remettre": id}
             agendas.prendre(copie, pour, {"condition": livraison, "pour": id, "minute": copie.data["minutes"]})
             if devis_pulsion(copie, pour, livraison, id) is None:
@@ -117,8 +125,8 @@ def _livraison_proposition(monde, donneur, receveur, terme):
         return True
     if porte_par(monde, terme["objet"], donneur):
         return True
-    if donneur == "joueur":
-        return False  # Le moteur ne joue pas une prise future à la place du joueur.
+    if not monde.objets.get(donneur, {}).get("profil"):
+        return False  # Aucune prise future exécutée par un acteur sans autonomie.
     copie = monde.copier()
     siens_a_portee(copie, donneur)
     if terme["type"] == "part":

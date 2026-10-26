@@ -1960,6 +1960,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     ``seul`` : servir soi-même. Seuls les biens remis par ``seul`` (le commanditaire) peuvent
     compléter ses moyens ; aucun service accompli par autrui, ni recherche d'un tiers (``TIERS``)."""
     from .caractere import modificateur, prix_faute, valeur
+    if not monde.objets.get(id, {}).get("profil"):
+        raise ValueError(f"chercher : acteur sans profil autonome : {id}")
     debut = perf_counter()
     v = vue(monde, id)
     v.motif = motif
@@ -2719,6 +2721,8 @@ def devis_pulsion(monde, id, condition, payeur):
     voir : celui qui le paie le sait à entretenir. Par ses seuls moyens, ce que la garde du bien de
     ``payeur`` lui permet et les biens que ``payeur`` lui remettrait : il ne compte sur personne
     pour accomplir le service à sa place (ni part servie, ni feu allumé par un autre)."""
+    if not monde.objets.get(id, {}).get("profil"):
+        raise ValueError(f"devis_pulsion : acteur sans profil autonome : {id}")
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else (trouve[0], trouve[2])
 
