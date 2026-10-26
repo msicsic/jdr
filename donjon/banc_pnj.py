@@ -579,6 +579,13 @@ def appliquer_etats(monde, etats):
             raise ValueError("Personnage inconnu : " + id)
         if etat == "inconscient" and not valeur:
             endormir(monde, id)
+        elif etat == "ligote" and not valeur:
+            from .monde import objet
+            lien = "entrave_" + id
+            monde.objets[lien] = objet(lien, "lien", "outil", id, usages=["lien"], entrave=True)
+            from .corps import corps
+            from .temps import instant
+            corps(monde, id)["lie"] = {"lien": lien, "par": "joueur", "depuis": instant(monde)}
         elif etat == "mort" and not valeur:
             mourir(monde, id, cause="état d'épreuve")
         elif etat == "blesse" and len(valeur) == 1 and valeur[0].isdigit() and 0 <= int(valeur[0]) <= monde.objets[id]["pv"]:
@@ -613,7 +620,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=("relais", "crue", "crypte", "mine", "auberge", "rixe", "rixe_douce"), default="relais")
     parser.add_argument("--regler", action="append", default=[], help="personnage.PSY=16 ; caractéristique ou valeur (répétable)")
-    parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :mort ou :blesse:pv (répétable)")
+    parser.add_argument("--etat", action="append", default=[], help="personnage:inconscient, :ligote, :mort ou :blesse:pv (répétable)")
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)

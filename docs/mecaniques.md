@@ -39,6 +39,30 @@ la découvrent par la vue, s'en inquiètent et peuvent transmettre la nouvelle, 
 coupable. Une partie où le joueur est mort est sauvegardée close et se recharge close.
 Le banc accepte `--etat ilse:inconscient`, `--etat aubin:mort` et `--etat brune:blesse:5`.
 
+### Prises et liens (4d, première partie)
+
+`saisir <personnage>` au contact oppose d20 + FOR à d20 + le meilleur de FOR et DEX,
+ou à 10 si la victime ne voit pas l'auteur. L'égalité reste à la victime. Tenu, on ne peut
+pas se déplacer ; on frappe à −2 et on peut parler ou crier. `se dégager` oppose FOR ou DEX
+à la FOR de celui qui tient. Celui-ci lâche en marchant ou en entreprenant un autre geste
+que frapper ou parler ; sa perte de connaissance libère également sa prise.
+
+`ligoter <personnage> avec <lien>` demande une personne sans défense, rendue, ou tenue par
+quelqu'un d'autre. Le lien doit être porté et intact : usage `lien`, ou forme physique
+`lien` d'au moins un mètre. Le geste dure 30 secondes sans jet. L'objet devient une entrave
+sur la victime ; il ne peut pas être porté ou déplacé tant qu'il la retient.
+
+`délier <personnage>` au contact demande les mains libres et dix secondes ; `avec <lame>`
+coupe le lien en trois secondes. Le lien revient à celui qui délie. Ligoté, on ne marche
+pas et on ne manipule pas ; on parle, crie et on peut `se libérer` : dix minutes pour un
+essai de DEX contre 18. Les PNJ tentent aussi de se libérer et délient leurs protégés perçus.
+Ils ne saisissent ni ne ligotent spontanément quelqu'un.
+
+Les fiches précèdent les tentatives. Ligoter, délier et se libérer n'ont d'effet qu'à la
+fin, si leurs conditions tiennent encore ; un coup reçu ou l'inconscience interrompt le
+geste. Le registre des issues, les prises et les liens sont sauvegardés. Le banc accepte
+`--etat aubin:ligote`. Traîner reste à réaliser.
+
 ### Le coup et assommer (4b)
 
 `frapper` vise aussi une personne au contact. L'outil est une arme portée, ou vide pour les

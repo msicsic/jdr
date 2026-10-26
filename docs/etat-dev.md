@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-4d-tenir`, **non fusionnée**, lot **126**, base `28fa4b2` :
+  prises et liens communs joueur/PNJ (`tenir.py`) ; saisir, se dégager, ligoter, délier,
+  couper le lien et se libérer. Issues longues sérialisées, appliquées à l'échéance
+  exacte par `pnj.finir_gestes` après revalidation ; coup et inconscience interrompent.
+  Contraintes du corps partagées avec les pas, opérations et objets ; états visibles
+  après recharge. Protecteurs déliant un protégé perçu, captifs se libérant, aucune
+  saisie ni aucun ligotage autonome. **Traîner reporté**, selon la clause de livraison
+  partielle du brief ; enfermer et le reste de 4d restent à faire.
+  Suite complète unique : **2 063 tests, deux échecs MiMo `6 != 5`, zéro erreur**,
+  **1 072,38 s** ; les deux échecs reproduits sur la base intacte (13 tests).
+  Derniers ciblés : **63 verts**, 26,14 s. Banc 4 h Relais/rixe × quatre graines :
+  **8/8 états complets et chroniques identiques**, aucune usurpation/violation,
+  aucun ligotage spontané, six alertes `fige_presse` inchangées. Sans Luna,
+  deux processus réduits au plus ; références calculées une fois puis cachées.
+  Danger durable 4c non élargi (`esprits.py` réservé) ; souvenirs `subi`/témoins
+  et réactions corporelles pour les nouvelles contraintes.
+  Aucune clé Git de signature configurée : commits non signés.
+  [Rapport du lot 126](taches/rapport-codex-126-force-4d-tenir.md).
+
 - Branche `codex-adoption-avis`, **diagnostic, fusionné (docs et outil)**, lot **125**, base
   `85b9204` : six nuits crue (4 h × 1985/7/42/2024, 12 h × 500/2024),
   **40 avis, 70 réceptions, zéro adoption/dispute**. Tous les auditeurs tiennent
@@ -4891,8 +4910,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'inquiétude d'un bruit inconnu, le courage qui fait aller voir ; à fondre ensuite : les réflexes
   déclarés et le souvenir « son » dans l'ouïe commune.
 - **Étape 4 du plan social, le corps et la force** : 4a, 4b et 4c fusionnées (`codex-force-4a`, `codex-force-4b`, `codex-force-4c`) ;
-  4c avec les limites de critère de son rapport (voir « À revoir ») ; 4d à 4f
-  restent à réaliser, dans `docs/plan-force.md`. Décisions de
+  4c avec les limites de critère de son rapport (voir « À revoir ») ; 4d partiellement
+  réalisée sur `codex-force-4d-tenir`, non fusionnée (lot 126 : prises et liens ; traîner
+  reporté). Le reste de 4d, puis 4e et 4f restent à réaliser, dans `docs/plan-force.md`. Décisions de
   la tâche 4a appliquées : recommandations retenues, sauf douceur 100 qui pourra se défendre
   ou défendre un protégé. Aucun geste de violence en 4a.
 - **Manques relevés par la mine et l'auberge** : avoir de la lumière comme but (branche

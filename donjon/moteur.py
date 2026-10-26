@@ -21,7 +21,7 @@ ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "ferm
            "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
-           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager",
+           "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer",
            "clarifier", "impossible"]
 TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tranches de 15 s (``_attendre``)
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
@@ -169,6 +169,9 @@ class Moteur:
 
     def preparer(self, p, origine="règles"):
         from .noms import texte
+        from .tenir import autoriser
+        if isinstance(p, dict) and isinstance(p.get("action"), str):
+            autoriser(self.monde, "joueur", p["action"])
         try:
             plan = self._preparer_references(p, origine)
         except ErreurMonde as exc:
@@ -254,6 +257,9 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
+        if action in ("saisir", "ligoter", "delier", "liberer"):
+            from .tenir import preparer
+            return preparer(m, p, plan)
         if action in ("fuir", "riposter", "se_rendre", "degager"):
             from .defense import preparer_joueur
             return preparer_joueur(m, p, plan)
@@ -669,6 +675,9 @@ class Moteur:
             return self._executer_simple(plan, travail)
 
     def _executer_simple(self, plan, travail):
+        from .tenir import lacher
+        lacher(travail, "joueur", plan.proposition["action"])
+        debut_issues = len(travail.data.get("historique_corps", ()))
         travail.data["entendus"] = []
         lignes = []
         self._ouvrir_bilan(travail)
@@ -703,6 +712,8 @@ class Moteur:
             resultat = self._appliquer(travail, effet, lignes)
             if effet[0] == "frapper_personne":
                 reussite, jet = resultat["touche"], resultat["jet"]
+            elif effet[0] == "tenir_personne" and effet[2]["operation"] == "saisir":
+                reussite = bool(resultat)
             elif effet[0] in ("fuir", "degager"):
                 reussite = bool(resultat)
         if plan.proposition["action"] == "fuir":
@@ -716,6 +727,11 @@ class Moteur:
             self._attendre(travail, plan, lignes)
         else:
             self._terminer_etape(travail, plan, lignes, effets, plan.proposition["action"], plan.proposition.get("methode"))
+        if plan.proposition["action"] in ("ligoter", "delier", "liberer"):
+            reussite = any(e["type"] == plan.proposition["action"] and e.get("auteur") == "joueur"
+                          for e in travail.data.get("historique_corps", ())[debut_issues:])
+            if not reussite:
+                lignes.append("La tentative n'aboutit pas.")
         if plan.proposition["action"] == "observer":
             from .signes import bilan_signes
             lignes.extend(bilan_signes(travail, plan.proposition["cible"]) or ["Tu ne discernes aucun signe particulier."])
@@ -993,6 +1009,11 @@ class Moteur:
 
     @staticmethod
     def _appliquer(m, effet, lignes):
+        from .tenir import autoriser, lacher
+        operation = effet[2]["operation"] if effet[0] == "tenir_personne" else effet[0]
+        if operation == "marcher":
+            autoriser(m, "joueur", operation)
+        lacher(m, "joueur", operation)
         from . import agendas
         from . import services
         service_avant = services.preparer(m, 'joueur', effet[1], effet[0])
@@ -1049,6 +1070,10 @@ class Moteur:
             from .improvisation import appliquer
             appliquer(m, effet, lignes)
             return
+        if op == "tenir_personne":
+            from .tenir import commencer
+            return commencer(m, "joueur", valeur["operation"], cible, valeur["outil"], lignes,
+                             valeur["rotation_dixiemes"])
         if op == "frapper_personne":
             from .combat import frapper
             return frapper(m, "joueur", cible, lignes=lignes, **valeur)

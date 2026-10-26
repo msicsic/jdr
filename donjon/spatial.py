@@ -255,6 +255,8 @@ def porte_par(m, id, acteur):
     vus = set()
     while id in m.objets and id not in vus:
         vus.add(id)
+        if m.objets[id].get("entrave"):
+            return False
         id = m.objets[id]["lieu"]
         if id == acteur:
             return True

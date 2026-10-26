@@ -200,6 +200,10 @@ def etat(monde, id="joueur"):
         resultat["blessure"] = "grave" if blessure(monde, id) == 2 else "blessé"
     if not conscient(monde, id):
         resultat["conscience"] = "sans connaissance"
+    if corps(monde, id).get("lie"):
+        resultat["liens"] = "ligoté"
+    if corps(monde, id).get("tenu_par"):
+        resultat["prise"] = "retenu"
     if corps(monde, id).get("reddition"):
         resultat["reddition"] = "a cessé de résister"
     return resultat
@@ -214,6 +218,14 @@ def verifier(monde):
         assert type(faits.get("inconscient")) is int and faits["inconscient"] >= 0, "Inconscience invalide"
         assert o["pv"] > 0 or faits["inconscient"] or (id == "joueur" and monde.data.get("fin")), "PV nuls sans inconscience"
         assert isinstance(faits.get("soin"), (int, float)) and 0 <= faits["soin"] < 60, "Soin invalide"
+        tenu = faits.get("tenu_par")
+        assert tenu is None or (tenu in personnages(monde) and tenu != id), "Prise invalide"
+        lie = faits.get("lie")
+        assert lie is None or (isinstance(lie, dict) and set(lie) == {"lien", "par", "depuis"}
+                               and lie["lien"] in monde.objets and monde.objets[lie["lien"]].get("entrave") is True
+                               and monde.objets[lie["lien"]]["lieu"] == id
+                               and lie["par"] in set(personnages(monde)) | set(monde.data.get("defunts", {}))
+                               and type(lie["depuis"]) is int and lie["depuis"] >= 0), "Liens invalides"
         r = faits.get("reddition")
         assert type(faits.get("reprise", 0)) is int and faits.get("reprise", 0) >= 0, "Fin de mouvement invalide"
         assert r is None or (isinstance(r, dict) and set(r) == {"a", "depuis"}
@@ -264,6 +276,8 @@ def blessure(monde, id="joueur"):
 
 def visible(monde, id):
     return {"blessure": blessure(monde, id), "conscient": conscient(monde, id),
+            **({"lie": True} if corps(monde, id).get("lie") else {}),
+            **({"tenu": True} if corps(monde, id).get("tenu_par") else {}),
             **({"reddition": True} if corps(monde, id).get("reddition") else {})}
 
 
@@ -285,7 +299,10 @@ def endormir(monde, id, hors_combat=False):
     if not conscient(monde, id):
         return
     noter(monde, id, t, None)
+    from .tenir import lacher
+    lacher(monde, id, "inconscience")
     faits = corps(monde, id)
+    faits.pop("tenu_par", None)
     faits["inconscient_depuis"] = t
     faits["inconscient"] = t + ((30 if hors_combat else 5) + monde.d20()) * MINUTE
     evenement(monde, "inconscience", id)
@@ -346,6 +363,8 @@ def ranimer(monde, auteur, id):
                           f"cible={id}, instant={instant(monde)} : ranimer accepte instant >= {minimum} (dixièmes).")
     if not au_contact(monde, auteur, id):
         raise ErreurMonde("Cette personne est hors de portée.", f"cible={id} : ranimer exige le contact.")
+    from .tenir import autoriser
+    autoriser(monde, auteur, "ranimer")
     resultat = reveiller(monde, id)
     if resultat:
         evenement(monde, "ranime", id, auteur=auteur)
@@ -360,6 +379,8 @@ def mourir(monde, id, auteur=None, cause="mort"):
     if not vivant(monde, id):
         return
     t = instant(monde)
+    from .tenir import lacher
+    lacher(monde, id, "mort")
     solder(monde, id, t)
     evenement(monde, "mort", id, auteur=auteur)
     monde.data["gestes_en_cours"] = [g for g in monde.data.get("gestes_en_cours", []) if g["auteur"] != id]

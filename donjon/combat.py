@@ -59,6 +59,8 @@ def valider(monde, auteur, cible, outil="", methode="simple"):
     from .spatial import porte_par
     if not corps.conscient(monde, auteur):
         raise ErreurMonde("Tu es sans connaissance.", f"auteur={auteur} : auteur conscient requis.")
+    from .tenir import autoriser
+    autoriser(monde, auteur, "frapper")
     reprise = corps.corps(monde, auteur).get("reprise", 0)
     if instant(monde) < reprise:
         raise ErreurMonde("Tu n'as pas encore achevé ton mouvement.",
@@ -147,7 +149,7 @@ def frapper(monde, auteur, cible, outil="", methode="simple", lignes=None):
     vu_cible = cible == "joueur" or voit(monde, "joueur", cible)
     jet = None if automatique else monde.d20()
     defense = None if automatique else (monde.d20() + modificateur(monde, cible, "DEX") if percu else 10)
-    touche = automatique or jet + modificateur(monde, auteur, stat) > defense
+    touche = automatique or jet + modificateur(monde, auteur, stat) - (2 if corps.corps(monde, auteur).get("tenu_par") else 0) > defense
     degats = 1 + puissance // 3 + max(0, modificateur(monde, auteur, "FOR")) + int(tranchant) + 2 * (jet == 20)
     perte = min(corps.pv(monde, cible), (1 if methode == "assommer" else degats) if touche else 0)
     assomme = touche and methode == "assommer" and (surprise or automatique or tenu_par or

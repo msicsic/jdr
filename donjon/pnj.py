@@ -52,7 +52,7 @@ def verifier(monde):
     gestes = monde.data.get("gestes_en_cours", [])
     personnages = {id for id, o in monde.objets.items() if o["type"] == "personnage"}
     assert isinstance(gestes, list) and all(
-        isinstance(g, dict) and set(g) == {"auteur", "operation", "objet", "fin", "nature", "temoins", "entendus",
+        isinstance(g, dict) and set(g) - {"issue"} == {"auteur", "operation", "objet", "fin", "nature", "temoins", "entendus",
                                            "se_sait_vu", "exclus"}
         and g["auteur"] in personnages | {"joueur"} and isinstance(g["operation"], str)
         and isinstance(g["objet"], str) and type(g["fin"]) is int and g["fin"] >= 0
@@ -61,6 +61,9 @@ def verifier(monde):
         and set(g["se_sait_vu"]) <= set(g["temoins"])
         and set(g["temoins"]) | set(g["entendus"]) | set(g["exclus"]) <= personnages for g in gestes), \
         "Gestes en cours invalides"
+    assert all("issue" not in g or (g["operation"] in ("ligoter", "delier", "liberer")
+               and isinstance(g["issue"], dict) and set(g["issue"]) == {"outil", "lien"}
+               and all(isinstance(v, str) for v in g["issue"].values())) for g in gestes), "Issue de geste invalide"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
             and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy", "constat_confie", "avis_exprime", "changement_avis", "dispute", "eclat", "dispute_vue", "parti_pris"} == {"minute", "pnj", "texte"}
@@ -234,7 +237,7 @@ TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, h
 CONTACT = 1            # case : au contact (une diagonale voisine comprise, ``geometrie.distance``)
 # Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
 # qui sait ce qu'elle a subi ; ceux qui voient faire en sont témoins comme d'un geste illicite.
-CONTRAINTES = ("pousser", "frapper", "assommer")
+CONTRAINTES = ("pousser", "frapper", "assommer", "saisir", "ligoter", "trainer")
 
 
 def est_contrainte(monde, operation, objet):
@@ -264,7 +267,13 @@ def finir_gestes(monde, avant, auteur=None):
     commence un autre) quittent le registre."""
     gestes = monde.data.get("gestes_en_cours")
     if gestes:
-        gestes[:] = [g for g in gestes if not (g["fin"] < avant or g["auteur"] == auteur and g["fin"] <= avant)]
+        termines = [g for g in gestes if (g["fin"] <= avant if "issue" in g else
+                    g["fin"] < avant or g["auteur"] == auteur and g["fin"] <= avant)]
+        gestes[:] = [g for g in gestes if g not in termines]
+        from .tenir import finir
+        for g in sorted(termines, key=lambda g: g["fin"]):
+            if "issue" in g:
+                finir(monde, g)
 
 
 def temoigner_en_cours(monde):
@@ -304,6 +313,8 @@ def _temoigner(monde, geste):
     """
     from .vol import proprietaire
     id, operation, objet = geste["auteur"], geste["operation"], geste["objet"]
+    if operation in ("delier", "liberer"):
+        return
     victime = objet if est_contrainte(monde, operation, objet) else proprietaire(monde, monde.objets[objet])
     souvenir = {"type": "vu_agir", "auteur": id, "operation": operation, "objet": objet, "victime": victime,
                 "preuve": f"geste:{id}:{operation}:{objet}:{geste['fin']}"}
@@ -630,6 +641,13 @@ def _a_toucher(monde, id, etape, portes=None):
 
 def _pas(monde, id, sortie, lignes):
     """Un geste d'une minute vers la sortie : ouvrir, déverrouiller, essayer ou passer."""
+    from .tenir import autoriser, lacher
+    from .monde import ErreurMonde
+    try:
+        autoriser(monde, id, "aller")
+    except ErreurMonde:
+        return
+    lacher(monde, id, "aller")
     o = monde.objets[id]
     porte = monde.objets.get(sortie.get("porte") or "")
     if porte and not porte.get("ouverte"):
@@ -785,6 +803,13 @@ def _assez_de_lumiere(monde, id, etape):
 
 
 def _executer(monde, id, etape, lignes, gestes):
+    from .tenir import autoriser, lacher
+    from .monde import ErreurMonde
+    try:
+        autoriser(monde, id, etape["operation"])
+    except ErreurMonde:
+        return False
+    lacher(monde, id, etape["operation"])
     from . import services
     avant = services.preparer(monde, id, etape['cible'], etape['operation'])
     fait = _executer_effet(monde, id, etape, lignes, gestes)
@@ -1116,6 +1141,13 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     que d'une case occupée, celui qui s'y tient doit lui faire place : avec ``gestes`` (le
     registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
     (``passage.faire_place``) ; sans, il attend."""
+    from .tenir import autoriser, lacher
+    from .monde import ErreurMonde
+    try:
+        autoriser(monde, id, "marcher")
+    except ErreurMonde:
+        return None
+    lacher(monde, id, "marcher")
     from .spatial import trajet
     from .obstacles import descriptions_crues, transitions, metrique_necessaire, duree_porte
     from .temps import PAS_FEUTRE
@@ -1828,6 +1860,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     from .corps import conscient, corps, reveiller
     from .temps import MINUTE
     from .vecu import minute as vivre_la_minute, noter, solder as solder_vecu
+    debut_issues = len(monde.data.get("historique_corps", ()))
     fin_minutes, fin_dixiemes = monde.data["minutes"], monde.data.get("dixiemes", 0)
     fin = fin_minutes * MINUTE + fin_dixiemes
     debut = fin - (minutes * MINUTE if dixiemes is None else dixiemes)
@@ -1873,7 +1906,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
         frontiere = (t // MINUTE + 1) * MINUTE
         reveil_joueur = corps(monde, "joueur")["inconscient"] or fin + 1
         prochain = min((_prochain(e) for e in esprits_.values()), default=fin + 1)
-        prochain = min(prochain, reveil_joueur)
+        echeance = min((g["fin"] for g in monde.data.get("gestes_en_cours", ()) if "issue" in g), default=fin + 1)
+        prochain = min(prochain, reveil_joueur, echeance)
         if min(frontiere, prochain) > fin:
             break
         if frontiere <= prochain:
@@ -1910,6 +1944,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
         assert tours <= 50 * max(1, len(ids)), "La vie des PNJ tourne sur place"
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
+        finir_gestes(monde, t)
         if reveil_joueur == t:
             reveiller(monde, "joueur")
         for id in ids:
@@ -1939,7 +1974,12 @@ def _avancer(monde, minutes, lignes, dixiemes):
             intention = lire(monde, id)["intention"]
             attend = note = False
             # Désœuvré ou guettant une occasion, il a le temps de confier ce qu'il sait.
-            if (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
+            from .tenir import secours
+            en_cours = next((g for g in monde.data.get("gestes_en_cours", ()) if g["auteur"] == id and "issue" in g), None)
+            secours_duree = en_cours["fin"] - t if en_cours else secours(monde, id, lignes)
+            if secours_duree is not None:
+                duree = secours_duree
+            elif (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
                 duree = DUREES["dire"] if en_cases else _jusqu_a_la_minute(t)
             elif intention:
                 gestes = []
@@ -1986,6 +2026,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     observer()
     finir_gestes(monde, fin)  # Ceux qui durent encore attendent l'action suivante du joueur.
+    from .tenir import bilan
+    bilan(monde, debut_issues, lignes)
     if propre:
         lignes.extend(bilan_presences(monde, suivi))
     return apparus
