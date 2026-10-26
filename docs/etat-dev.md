@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-redire-passe`, non fusionnée, lot **112**, base `8613fc9` :
+  dossier des paroles entendues par interlocuteur sous ses références publiques,
+  sans fenêtre globale ; extraction des rappels du passé dans tous les verdicts,
+  refus accompagné des mots enregistrés, relecture avant enregistrement.
+  Aucun mot-clé ni exception de scénario ; simulation inchangée.
+  Audit archivé du tour 5 rejoué avant modification : zéro obstacle ; cas réel
+  reconstitué jusqu'à l'imposture puis refus corrigé, autre cas après vrai service
+  de Gorm et rappel conforme admis, console et sauvegarde rechargée vérifiées.
+  Luna une passe soir-noir/soir-voix : **39 appels, 14,4 s/tour MJ**, aucun
+  repli ni erreur de rechargement ; aucun faux rappel observé. Reconnaissance
+  et compatibilité sémantiques, anciens rapports lisibles, pas de registre
+  universel des actes anciens. Suite complète unique : **2 021 tests, 16 ignorés,
+  aucun échec ni erreur, 1 932,23 s**, 217 fichiers, deux processus réduits ;
+  reprise finale **6 tests verts en 4,37 s**, aucune seconde suite.
+  Bruts `artifacts/redire-112/`,
+  `artifacts/bancs-multi/20261026-054955-38148/`.
+  [Rapport du lot 112](taches/rapport-codex-112-redire-passe.md).
+
 - Branche `codex-avis-redits`, fusionnée, lot **108**, base `a73a35d` :
   le registre social conserve la dernière valeur dite par destinataire.
   Un changement connu du seul locuteur ne réinitialise plus tous les auditeurs ;

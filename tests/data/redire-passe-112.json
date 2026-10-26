@@ -1,0 +1,122 @@
+{
+  "source": "n3-soir-noir-lot102/20261026-022930-37884/lot-r1/20261026-022930-44384-lot-r1-soir-noir.json, tour 5, dernier audit narratif",
+  "texte": "La voix qui se dit Ilse répond tout près, dans le noir : « Je t’ai déjà dit que je ne te dirai pas qui je suis. »",
+  "rapport": {
+    "segments": {
+      "0": {
+        "verdict": "parole",
+        "sources": [
+          "conversation_validee"
+        ],
+        "portee_mecanique": "etablie",
+        "locuteur": "voix_1",
+        "citation": "Je t’ai déjà dit que je ne te dirai pas qui je suis.",
+        "presentation": "",
+        "comptes": [],
+        "eclairages": []
+      }
+    }
+  },
+  "faits": {
+    "interlocuteurs": {
+      "voix_1": {
+        "nom": "une voix qui se dit Ilse",
+        "voix_inconnue": true,
+        "personne_inconnue": false,
+        "entendue": "tout près",
+        "genre": "féminin"
+      }
+    },
+    "conversation_validee": {
+      "personnage": "voix_1",
+      "destinataires": [
+        "voix_1"
+      ],
+      "a_qui": "une voix qui se dit Ilse",
+      "repondent": [
+        "voix_1"
+      ],
+      "temoins": [],
+      "maniere": "à voix haute",
+      "sujet": "Comment tu t'appelles ?",
+      "operation": "parole_joueur",
+      "replique_joueur": "Comment tu t'appelles ?",
+      "issue": "Tu as dit à voix haute à une voix qui se dit Ilse (voix_1) : « Comment tu t'appelles ? ». Une voix qui se dit Ilse (voix_1) t'a entendu et te répond : ses mots ne sont pas fixés par le moteur, c'est une parole nouvelle, d'après les faits de cette parole, ce qu'il croit et ses valeurs.",
+      "faits": [
+        "Une voix qui se dit Ilse refuse de te dire qui elle est."
+      ]
+    },
+    "paroles_entendues": [
+      {
+        "locuteur": "voix_1",
+        "texte": "C’est une voix qui se dit Ilse. Qui va là ?",
+        "salle": "beffroi",
+        "minute": 0,
+        "auditeurs": [
+          "personne_1",
+          "personne_2",
+          "joueur"
+        ],
+        "revision": 1,
+        "presentation": "Une voix qui se dit Ilse"
+      },
+      {
+        "locuteur": "voix_1",
+        "texte": "Non, je n’en ai pas.",
+        "salle": "beffroi",
+        "minute": 0,
+        "auditeurs": [
+          "personne_1",
+          "personne_2",
+          "joueur"
+        ],
+        "revision": 2
+      },
+      {
+        "locuteur": "voix_1",
+        "texte": "Tu n’es pas une personne inconnue. Qui es-tu ?",
+        "salle": "beffroi",
+        "minute": 0,
+        "auditeurs": [
+          "personne_1",
+          "personne_2",
+          "joueur"
+        ],
+        "revision": 3
+      }
+    ],
+    "comptes": {
+      "etat": [
+        {
+          "debiteur": "voix_1",
+          "creancier": "joueur",
+          "objet": "",
+          "montant": 0,
+          "etat": "absent"
+        },
+        {
+          "debiteur": "joueur",
+          "creancier": "voix_1",
+          "objet": "",
+          "montant": 0,
+          "etat": "absent"
+        }
+      ],
+      "issue": [],
+      "offres": [],
+      "formulations_offres": []
+    },
+    "perception": {
+      "niveau": 0,
+      "etat": "obscurité",
+      "contributions": [],
+      "objets_visibles": [],
+      "couverture_vue": {
+        "salle": "beffroi",
+        "portee": "aucune",
+        "contenus_caches": false,
+        "absence_hors_vue_etablie": false
+      }
+    }
+  }
+}
