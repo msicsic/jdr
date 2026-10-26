@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-promesse-tenable`, **non fusionnée**, lot **133**, base `3cdcab3` :
+  crue 11 rejouée 12 h sur copie, capture avant offre à **126226**, abandon
+  reproduit à **126336**. Cause : présence physique de la cible incompatible
+  avec son `lieu` déclaré, et non intégrité de la porte. `_mesurer_direct` contrôle
+  toutes les cibles touchées par `Monde.present_physique` sur l'état cru/projeté,
+  devis et échéance communs, aussi sans cases ; aucun cas propre au scénario.
+  **42 ciblés existants et quatre nouveaux tests verts** : cas réel et objet
+  incorporé, refus avant accord/transfert, état/mémoire/rendu rechargés et même
+  laps découpé ; service tenable encore accepté et tenu. Rapide final **16 nuits
+  de 4 h** : **16/16 états finaux complets identiques** à la base, mêmes
+  chroniques, mesures métier, boucles et alertes ; zéro plantage/violation/
+  usurpation, aucune répétition supplémentaire. Zéro tâche promise naturelle
+  sur ces nuits dans les deux versions ; tenue prouvée en scènes ciblées.
+  Seul écart : recherches neuves crue 7 **629 → 624**.
+  Suite complète unique : **2 077 tests, 11 échecs, zéro erreur, 1 276,59 s** ;
+  contrôle déplacé hors des estimations de fourniture, puis **139 repris,
+  deux seuls échecs MiMo historiques**, reproduits sur l'archive intacte de
+  `3cdcab3` (13 tests). Aucune garantie ajoutée sur les autres
+  préconditions des gestes, les objets brisés accessibles ou les approches
+  locales estimées. Sans Luna ; aucune clé Git de signature configurée.
+  [Rapport du lot 133](taches/rapport-codex-133-promesse-tenable.md).
+
 - Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
   critère du 2026-10-26 (PSY basse ≤ 0,7, haute ≥ 0,8, méprises globales <20 %).
   Grille commune de **112 réglages**, corpus de 48 nuits de 4 h, aucun admissible ;
