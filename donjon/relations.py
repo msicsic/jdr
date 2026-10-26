@@ -463,7 +463,8 @@ def souvenir(monde, id, s):
     # la réception d'un repas ne crée pas en plus un service spontané.
     prestation = (t == "nourri" and agendas.en_cours(
         monde, autre, objet=s.get("objet"), personne=id, actifs=True)) if autre else False
-    if t in ("recu", "nourri") and not s.get("demande") and not prestation:
+    if (t in ("recu", "nourri") and not s.get("demande") and not prestation
+            and s.get('service_utile') is True):
         t = "service_rendu"
     if t == "vol_surpris" and s.get("victime", id) != id:
         _appliquer(monde, id, autre, "tort_tiers", s, tiers=s.get("victime"))

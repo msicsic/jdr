@@ -3,9 +3,46 @@ from . import agendas
 from .esprits import lire, memoriser, percoit
 
 
+def conditions_manquantes(monde, beneficiaire, objet):
+    """Les mêmes buts crus non satisfaits pour un geste ou une remise."""
+    from .deliberation import satisfaite
+    profil = monde.objets.get(beneficiaire, {}).get('profil') or {}
+    buts = [p['condition'] for p in profil.get('pulsions', [])]
+    buts += [p['condition'] for p in agendas.en_cours(monde, beneficiaire, actifs=True)]
+    return [c for c in buts if c.get('objet') == objet
+            and not any(k in c for k in ('servir', 'rendre', 'remettre', 'periode'))
+            and not satisfaite(monde, beneficiaire, c)]
+
+
+def don_utile(monde, beneficiaire, objet):
+    """Capturer le manque AVANT la remise ou le repas, sans changer le monde.
+
+    Le corps est éprouvé directement. Pour un but, la remise doit réellement
+    le satisfaire ; la seule mention de l'objet dans un projet ne suffit pas.
+    """
+    from .corps import CORPS
+    from .deliberation import besoin_de_part, part_pour, parts, satisfaite
+    from .esprits import croire, constater as voir
+    if not monde.objets.get(beneficiaire, {}).get('profil'):
+        return False
+    besoin = besoin_de_part(monde.objets[objet])
+    if (besoin in CORPS
+            and parts(monde.objets[objet]) > 0
+            and lire(monde, beneficiaire)['besoins'].get(besoin, 0) >= CORPS[besoin]['urgence']
+            and part_pour(monde, beneficiaire, objet, besoin)):
+        return True
+    conditions = conditions_manquantes(monde, beneficiaire, objet)
+    if not conditions:
+        return False
+    copie = monde.copier()
+    copie.objets[objet]['lieu'] = beneficiaire
+    croire(copie, beneficiaire, objet, 'lieu', beneficiaire, 'vu', salle=None, case=None)
+    voir(copie, beneficiaire, objet, 'vu')
+    return any(satisfaite(copie, beneficiaire, c) for c in conditions)
+
+
 def preparer(monde, auteur, objet, operation):
     """Capturer avant le geste les manques de ceux qui peuvent le constater."""
-    from .deliberation import satisfaite
     if not isinstance(objet, str):
         return []
     o = monde.objets.get(objet)
@@ -21,11 +58,7 @@ def preparer(monde, auteur, objet, operation):
     for autre, x in monde.objets.items():
         if autre == auteur or not x.get('profil'):
             continue
-        buts = [p['condition'] for p in x['profil'].get('pulsions', [])]
-        buts += [p['condition'] for p in agendas.en_cours(monde, autre, actifs=True)]
-        conditions = [c for c in buts if c.get('objet') == objet
-                      and not any(k in c for k in ('servir', 'rendre', 'remettre', 'periode'))
-                      and not satisfaite(monde, autre, c)]
+        conditions = conditions_manquantes(monde, autre, objet)
         if conditions and percoit(monde, autre, auteur) and percoit(monde, autre, objet):
             temoins.append((autre, conditions, {k: o.get(k) for k in
                             {'combustible', *(k for c in conditions for k in c if k != 'objet')}}))

@@ -160,6 +160,64 @@ class RendreServiceTests(unittest.TestCase):
         self.assertIsNone(plan_recours(m, id, 'faim', []))
         self.assertIsNone(lire(m, id)['service_en_cours'])
 
+    def test_meme_don_joueur_utile_puis_inutile_recharge_et_visible(self):
+        for faim, portions, cause, confiance in ((95, 8, 'service_rendu', 45),
+                                                (0, 8, 'recu', 35), (95, 0, 'recu', 35)):
+            with self.subTest(faim=faim):
+                m, id, autre, c = scene(feu)
+                lire(m, autre)['besoins']['faim'] = faim
+                lire(m, autre)['relations']['joueur'] = relations._nouvelle({'confiance': 25})
+                m.objets['vivres'].update(lieu='joueur', proprietaire='joueur', portions=portions)
+                regarder(m, autre, 'joueur')
+                regarder(m, 'joueur', autre)
+                m = recharger(m)
+                moteur = Moteur(m)
+                texte = moteur.executer(moteur.preparer(proposition('remettre', 'vivres', autre)))
+                m = recharger(m)
+                self.assertEqual(m.objets['vivres']['lieu'], autre)
+                self.assertEqual(m.objets['vivres']['proprietaire'], autre)
+                r = relations.envers(m, autre, 'joueur')
+                self.assertEqual(r['confiance'], confiance)
+                self.assertEqual(r['motifs'][-1]['type'], cause)
+                self.assertIn('Tu donnes', texte)
+                self.assertIn('Tu donnes', ' '.join(f for t in m.data['journal'] for f in t['faits']))
+
+    def test_repas_utilite_avant_satiation_recharge(self):
+        from donjon.echanges import servir
+        for faim, cause in ((95, 'service_rendu'), (0, 'nourri')):
+            m, id, autre, c = scene(feu)
+            lire(m, autre)['besoins']['faim'] = faim
+            m.objets['vivres'].update(lieu=id, proprietaire=id)
+            lignes = []
+            self.assertTrue(servir(m, id, 'vivres', autre, lignes))
+            m = recharger(m)
+            self.assertEqual(lire(m, autre)['besoins']['faim'], max(0, faim - 50))
+            self.assertEqual(relations.envers(m, autre, id)['motifs'][-1]['type'], cause)
+            self.assertIn('donne une part', ' '.join(lignes))
+
+    def test_don_comble_un_but_cru_pulsion_ou_agenda(self):
+        from donjon import agendas
+        from donjon.esprits import croire
+        from donjon.deliberation import satisfaite
+        for origine in ('pulsion', 'agenda'):
+            m, id, autre, _ = scene(feu)
+            c = {'objet': 'torche', 'allume': True}
+            m.objets[autre]['profil']['pulsions'] = []
+            lire(m, autre)['pulsions'] = []
+            if origine == 'pulsion':
+                m.objets[autre]['profil']['pulsions'] = [{'besoin': 'devoir', 'condition': c}]
+            else:
+                agendas.prendre(m, autre, {'condition': c, 'pour': id, 'minute': 0})
+            m.objets['torche'].update(lieu='joueur', proprietaire='joueur', allume=True, combustible=120)
+            croire(m, autre, 'torche', 'etat', {'allume': False, 'faible': False, 'charge': True}, 'essai')
+            self.assertFalse(satisfaite(m, autre, c))
+            lignes = []
+            Moteur._appliquer(m, ('donner', 'torche', autre), lignes)
+            m = recharger(m)
+            self.assertEqual(relations.envers(m, autre, 'joueur')['motifs'][-1]['type'], 'service_rendu')
+            self.assertEqual(m.objets['torche']['lieu'], autre)
+            self.assertIn('Tu donnes', ' '.join(lignes))
+
 
 if __name__ == '__main__':
     unittest.main()

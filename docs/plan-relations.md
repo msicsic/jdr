@@ -702,7 +702,10 @@ l'autre pour choisir une offre. Détails et limites dans le
   affection +10 modulée par l'empathie, rancune −15 et dette +20 modulée par la loyauté.
   Les bandes gardent leur hystérésis ; un lien très dégradé peut demander plusieurs épreuves.
   Le refus social retenu est levé par ce moyen nouveau, sans garantir l'accord suivant.
-  Les dons spontanés et repas offerts passent aussi par cette épreuve, joueur compris ; les
+  Les dons spontanés et repas offerts passent aussi par cette épreuve, joueur compris,
+  seulement s'ils comblent un manque cru capturé avant la remise ou la satiété : besoin
+  du corps pressant ou condition non satisfaite d'une pulsion ou d'un agenda actif. Sinon,
+  ils gardent l'épreuve historique `recu` ou `nourri`, sans recalibrage des simples cadeaux. Les
   livraisons payées, prêts et engagements ont leurs épreuves propres, sans second crédit du
   même geste. Brune peut ainsi recharger un feu commun qui sert Gorm avant de redemander
   une part. Un effet utile effectué hors de son regard ne lui révèle ni l'auteur ni le service.

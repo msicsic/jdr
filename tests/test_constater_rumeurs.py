@@ -379,7 +379,7 @@ class ParlerALaVoixTests(unittest.TestCase):
         connaitre(m, "odon", "mathe")
         self.assertTrue(servir(m, "mathe", "vivres", "odon", []))
         from donjon.relations import envers
-        self.assertEqual(envers(recharger(m), "odon", "mathe")["confiance"], 60)
+        self.assertEqual(envers(recharger(m), "odon", "mathe")["confiance"], 50)
 
     def test_dans_la_lumiere_on_se_tourne_vers_une_voix_inconnue(self):
         """Une voix inconnue dans son dos, en pleine lumière : il se tourne vers elle et voit qui

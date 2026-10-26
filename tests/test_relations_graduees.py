@@ -53,15 +53,15 @@ class ChainesTests(unittest.TestCase):
         m.objets["bois"].update(lieu="brune", proprietaire="brune")
         remettre(m, "brune", "marchand", "bois")
         m = recharger(m)
-        self.assertEqual(R.envers(m, "marchand", "brune")["confiance"], 40)
-        self.assertIsNone(accueil(m, "brune", "marchand"))
+        self.assertEqual(R.envers(m, "marchand", "brune")["confiance"], 30)
+        self.assertEqual(accueil(m, "brune", "marchand"), "mefiance")
         etape = {**_etape("dire", "marchand"), "contenu": {"sujet": "aubin", "attribut": R.FIABLE, "valeur": False}}
         with patch.object(Monde, "d20", return_value=20):
             self.assertTrue(_echanger(m, "brune", etape, []))
         m = recharger(m)
         r = R.envers(m, "marchand", "brune")
-        self.assertEqual(r["confiance"], 55)
-        self.assertEqual(motifs(m, "marchand", "brune"), ["service_rendu", "prevenu"])
+        self.assertEqual(r["confiance"], 45)
+        self.assertEqual(motifs(m, "marchand", "brune"), ["recu", "prevenu"])
         self.assertIsNone(accueil(m, "brune", "marchand"))
         m.objets["marteau"].update(lieu="marchand", proprietaire="marchand")
         m.objets["marteau"].pop("position", None)
@@ -70,7 +70,7 @@ class ChainesTests(unittest.TestCase):
             self.assertTrue(de.called)
         texte = Recit(m).texte(m, m.data.get("chronique", []))
         self.assertIn("prevenu", texte)
-        self.assertIn("service_rendu", texte)
+        self.assertIn("recu", texte)
 
     def test_autre_service_leve_une_mefiance_sans_effacer_son_motif(self):
         m = reunir(calme(relais(), "brune", "marchand", "aubin", "ilse"), "ilse", "aubin")
@@ -128,7 +128,7 @@ class ChainesTests(unittest.TestCase):
                 texte += moteur.executer(moteur.preparer(proposition("remettre", cible, "marchand")))
                 m = recharger(m)
                 self.assertGreater(R.envers(m, "marchand", "joueur")["confiance"], avant)
-                self.assertEqual(motifs(m, "marchand", "joueur"), ["vol_surpris", "service_rendu"])
+                self.assertEqual(motifs(m, "marchand", "joueur"), ["vol_surpris", "recu"])
                 self.assertEqual(m.data["relations_pnj"]["marchand"]["vols_surpris"], 1)
                 self.assertIn("Tu donnes", texte)
                 self.assertIn("te surprend", texte)
@@ -291,7 +291,7 @@ class TempsEtContratsTests(unittest.TestCase):
                 m = recharger(m)
                 r = R.envers(m, id, autre)
                 resultats.append(r)
-                self.assertIn("service_rendu", Recit(m).texte(m, m.data.get("chronique", [])))
+                self.assertIn("nourri", Recit(m).texte(m, m.data.get("chronique", [])))
             bas, haut = resultats
             self.assertGreater(haut["rancune"], bas["rancune"])
             self.assertGreater(haut["dette"], bas["dette"])
@@ -308,7 +308,7 @@ class TempsEtContratsTests(unittest.TestCase):
                 _, dd = jet_persuasion(m, id, autre, 12)
             self.assertEqual(dd, 12 + (50 - r["confiance"]) / 10 - r["affection"] / 25
                              - r["dette"] / 20 + r["rancune"] / 20 + modificateur(m, id, "VOL"))
-            self.assertIn("service_rendu", Recit(m).texte(m, m.data.get("chronique", [])))
+            self.assertIn("nourri", Recit(m).texte(m, m.data.get("chronique", [])))
 
     def test_dette_soldee_une_fois_par_demande_acceptee(self):
         for id, autre in (("marchand", "brune"), ("aubin", "ilse")):

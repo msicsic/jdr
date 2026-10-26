@@ -998,6 +998,8 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     from .deliberation import besoin_de_part
     from .deplacement_objet import deplacer
     from .vol import proprietaire
+    from .services import don_utile
+    utile = don_utile(monde, receveur, objet)
     o = monde.objets[objet]
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
     livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
@@ -1025,6 +1027,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
         memoriser(monde, receveur, {"type": "restitution" if restitution else "recu", "objet": objet, "de": donneur,
                                      "pret": any(p["objet"] == objet and p["a"] == receveur for p in monde.data.get("permissions", [])),
                                      "livraison": bool(livre) or achat, "demande": demande, "ponctuel": ponctuel,
+                                     "service_utile": utile,
                                      **({"lot": livre[0]["lot"]} if livre and "lot" in livre[0] else {})})
     # La conséquence s'apprend par la réception déjà inscrite, comme pour une part servie.
     # Une réussite sans réception reste une suite à annoncer (relations.souvenir).
@@ -1050,11 +1053,13 @@ def servir(monde, id, nourriture, pour, lignes):
             or autre["lieu"] != monde.objets[id]["lieu"] or not peuvent_se_parler(monde, id, pour)):
         return False
     appel = "" if percoit(monde, id, pour) and percoit(monde, pour, id) else f"appelle {_qui(monde, pour)} et lui "
+    from .services import don_utile
+    utile = don_utile(monde, pour, nourriture)
     o["portions"] -= 1
     besoins = esprit(monde, pour)["besoins"]
     if "faim" in besoins:
         besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
-    memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture})
+    memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture, "service_utile": utile})
     for refus in lire(monde, id)["refus"]:
         offre = refus.get("contre_offre")
         if offre and offre["debiteur"] == pour and offre["condition"] == {

@@ -25,6 +25,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   versions lancées ensemble, un processus réduit chacune, sans cache :
   **213,250 → 213,688 s (+0,21 %)**, mesure ponctuelle sur poste partagé.
   Bruts `artifacts/service-120/`, cache de base conservé.
+  **Révision d'utilité avant fusion** : un don/repas ne devient `service_rendu`
+  que s'il comble un manque cru avant le geste (besoin du corps pressant,
+  pulsion ou agenda actif non satisfait), auteur identifié. Sinon `recu`/`nourri`
+  historiques ; aucun recalibrage des cadeaux sans usage. Critère partagé avec
+  `services.preparer`, capturé avant transfert/satiété. Les deux fichiers
+  historiques `relations_graduees` et `constater_rumeurs` reviennent exactement
+  à `0a53910` : leurs dons/repas ne comblaient aucun manque cru.
+  Même don utile/inutile/vide, repas avant satiété, pulsion et agenda contrôlés
+  après rechargement. **71 ciblés verts (un ignoré), puis 11 finaux verts** ;
+  aucune seconde suite ni nouveau banc, selon la demande de relecture.
+  Les mesures précédentes concernent `7ec9fbc`, avant cette révision.
   Aucun Luna, scénario, `social.py`, `ouie.py` ou algorithme de recherche modifié.
   [Rapport et limites du lot 120](taches/rapport-codex-120-rendre-service.md).
 

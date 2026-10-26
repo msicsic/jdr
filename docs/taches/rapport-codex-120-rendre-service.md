@@ -6,8 +6,8 @@ Sans Luna, sans modification de `social.py`, `ouie.py`, des scénarios ni de la 
 
 **Invariant.** `services.preparer/constater` encadrent les effets de `pnj._executer`
 et `Moteur._appliquer` : manque cru, modification effective, auteur et résultat perçus,
-puis croyance de l'effet et épreuve commune `service_rendu`. Dons et repas spontanés,
-joueur compris : confiance +20, affection +10, rancune −15, dette +20, modulations et
+puis croyance de l'effet et épreuve commune `service_rendu`. Dons et repas spontanés
+utiles seulement, joueur compris : confiance +20, affection +10, rancune −15, dette +20, modulations et
 hystérésis conservées. Une preuve rejouée ne crédite ni relation ni nouveau recours.
 Prestations convenues, prêts et restitutions gardent leurs épreuves, sans double crédit.
 
@@ -24,14 +24,14 @@ obtenus. Monde et journal rechargés ; même laps découpé, chroniques et espri
 Huit tests nouveaux : joueur, absence de témoin, impossibilité, rancune, droits, preuve
 rejouée, prestation payée et ancien refus résolu. Identité inconnue également contrôlée.
 
-**Suite complète unique.** **2 048 tests, 16 ignorés, 221 fichiers, 1 860,72 s**, deux
+**Suite complète unique avant révision.** **2 048 tests, 16 ignorés, 221 fichiers, 1 860,72 s**, deux
 processus réduits. Sept échecs d'ancienne attente de don ou d'empreinte : les nouveaux
 registres sont retirés des projections historiques seulement s'ils sont vides ; oracles,
 plans et rendus inchangés. Une erreur Windows `os.replace` dans la TUI avant le geste.
 Reprises **28 tests métier verts en 20,19 s**, puis **un test TUI vert en 3,17 s**, sans
 modification de son code. **Bilan consolidé vert**, aucune seconde suite complète.
 
-**Banc et CPU.** 4 h × quatre scénarios × quatre graines, départs tirés, copies
+**Banc et CPU avant révision (`7ec9fbc`).** 4 h × quatre scénarios × quatre graines, départs tirés, copies
 locales lancées ensemble, un processus réduit chacune, sans cache pour le temps.
 CPU base → branche, sommes des quatre graines, en secondes :
 
@@ -47,6 +47,19 @@ inscrit. **Aucune réparation délibérée de méfiance observée naturellement*
 parcours est prouvé par les deux scènes ciblées, pas par un gain statistique.
 Mesure ponctuelle sur poste partagé. Base conservée dans le cache autorisé ; bruts
 `artifacts/service-120/`. Aucun banc long ni appel au modèle.
+
+**Révision demandée avant fusion.** `services.don_utile` capture avant transfert ou
+satiété un besoin du corps pressant, ou un but cru non satisfait qu'accomplit la remise.
+Pulsions/agendas utilisent le même filtre que `preparer`. Sans utilité prouvée,
+`relations.souvenir` conserve `recu`/`nourri` ; sans auteur identifié, aucun crédit.
+Les anciens souvenirs sans cette preuve restent historiques. Les deux fichiers
+`test_relations_graduees` et `test_constater_rumeurs` reviennent exactement à leur
+version `0a53910` : bois sans manque, objets du joueur sans usage établi, repas
+pour PNJ rassasiés et souvenirs injectés sans geste utile. Aucune nouvelle attente
+n'y est conservée. Même don utile/inutile/vide, repas avant satiété, pulsion et
+agenda vérifiés après recharge : **71 ciblés verts (un ignoré), puis 11 finaux verts**,
+52,51 et 21,84 s. Pas de seconde suite ni de banc rejoué ; les mesures ci-dessus
+ne sont pas extrapolées à cette révision. Bruts `revision-utilite*.json`.
 
 **Limites.** Choix sur manques observés, sans buts privés ; un seul candidat peut en
 masquer un autre. Sans geste et cible perçus, aucune preuve ; droits antérieurs nécessaires.
