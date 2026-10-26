@@ -1,64 +1,75 @@
 # Lot 115 — Une tâche promise en contrepartie de recours
 
-Branche `codex-tache-promise`, **non fusionnée**, base **6910d8e**. Code signé
-SSH **d3567d8**, **ee0ab0c**, signatures vérifiées. Aucun Luna, scénario,
-choix des besoins ou recherche modifiés.
+Branche `codex-tache-promise`, **non fusionnée**, base **6910d8e**.
+Code signé SSH **d3567d8**, **ee0ab0c**, **4167150**, signatures vérifiées.
+Aucun Luna ni modification des scénarios, des besoins ou de l'algorithme de recherche.
 
-**Invariant et fonctions.** Après les moyens ordinaires, `pnj_propositions.recours`
-peut offrir une tâche typée. `propositions.taches_crues` utilise une condition
-entendue ou un état connu à réparer sur un bien du destinataire ou commun dans
-sa salle crue, sans lire ses buts privés. Un seul candidat est devisé par recours,
-même avec deux déclencheurs ; le devis est partagé avec les contrôles de coût
-et de refus. Demande, achat, délégation futurs et faute interdisent la promesse.
-Même jugement inversé et classement coût/chance que les biens. Un refus ancien
-ne remplace plus un nouveau plan ordinaire ni une demande dans son préfixe.
+**Invariant.** `pnj_propositions.recours` offre une tâche typée après les moyens
+ordinaires, depuis une condition entendue ou un état connu, sans but privé
+adverse. Un candidat et un devis partagé par recours ; propres moyens sans
+demande ni délégation futures, jugement inversé, classement coût/chance et refus
+retenus. `echanges.proposer` revalide avant transfert et inscription datée dans
+`agendas`. Tenue, rupture, annonce et relations utilisent le cycle commun.
 
-`echanges.proposer` revalide l'autonomie avant transfert ; l'accord remet la part
-et inscrit une parole datée dans `agendas`. Planification, tenue, empêchement,
-annonce et relations suivent le cycle existant. Refus de tâche et anciens plans
-rechargés sont contrôlés avant parole. Aucun nom de scénario dans le moteur.
+**Preuves fonctionnelles.** Brune recharge le brasero de Gorm avec son bois ;
+Joss verrouille le garde-manger d'Odile contre un repas. Monde, journal, perception
+et esprits rechargés, même laps découpé, rupture et confiance diminuée, tâche
+impossible, fourniture d'un tiers et refus persistants contrôlés. Suite complète
+unique : **2 033 tests, 16 ignorés, 219 fichiers, 2 266,85 s** ; trois échecs et
+deux erreurs d'attentes de parcours corrigés dans leurs scènes. Reprises :
+**101 tests**, puis dernière attente corrigée et **13 verts en 20,04 s** ; bilan
+consolidé vert, un ignoré, aucune seconde suite. Neuf tests fonctionnels nouveaux.
 
-**Preuves.** Brune/Gorm : part contre recharge effective avec son propre bois,
-vue datée de Gorm et engagement tenu appris. Joss/Odile : verrouillage du
-garde-manger contre un repas. Monde, journal moteur et esprits rechargés ;
-même laps continu/découpé. Rupture annoncée et confiance diminuée, impossibilité,
-fourniture d'un tiers, refus persistant et devis unique vérifiés.
+Banc fonctionnel **4 h × quatre scénarios × quatre graines** : aucun plantage,
+violation ou usurpation ; propositions/acceptées base → branche : Relais
+**0/0 → 0/0**, mine **13/1 → 10/1**, auberge **3/1 → 3/1**, crue **9/0 → 5/0**.
+Aucune tâche naturelle offerte/acceptée/tenue/rompue sur ces 16 nuits finales ;
+les parcours ciblés et rejeux démontrent l'exécution. Mine : observation de
+Rémy, 230 min de devoir déjà satisfait ; pas de boucle active nouvelle.
 
-**Tests.** Suite complète unique : **2 033 tests, 16 ignorés, 219 fichiers,
-2 266,85 s**, trois échecs et deux erreurs dans quatre fichiers. Rejeux : la
-promesse d'allumer la torche obtient un repas sans chercher les crochets,
-révèle l'embuscade, ou permet de rendre l'outil après la stratégie réussie.
-Ces tests isolent maintenant leur sujet avec la torche déjà allumée. Mine :
-Bram conscient, seul, sécurité 60,293 < seuil d'appel 95 ; le test n'exige plus
-l'arrivée contingente d'un compagnon avant ce seuil. Reprises : **101 tests,
-152,26 s**, une dernière attente de première offre corrigée en borne de
-non-répétition, puis **13 tests verts en 20,04 s**. **Bilan consolidé vert**,
-un ignoré dans les reprises, aucune seconde suite. Neuf tests nouveaux.
+**Réserve CPU levée sur la mesure demandée.** Deux versions lancées ensemble,
+un processus chacune, priorité réduite, `--sans-cache`, départ tiré, **4 h**.
+Le lanceur non versionné utilise les mêmes `lancer`/`jouer_nuit` et audits que
+`comparer_bancs.py`, dont le parcours standard est successif. Appels au lanceur
+espacés de **0,96 ms** au premier passage, **0,89 ms** au second. Première mesure : crue
+**75,953 → 87,844 s (+15,66 %)** ; auberge **62,625 → 61,750 s (−1,40 %)**.
+Profil crue 2024 : **58,197 s instrumentées**, recours **7,206 s (12,4 %)**,
+dont devis de proposition **6,770 s (11,6 %)** ; 32 devis, échecs répétés dominants.
 
-**Banc final : 4 h × quatre scénarios × quatre graines**, 16 références relues,
-16 nuits de branche. Aucun plantage, violation, usurpation ou nouveau code
-d'audit ; **10/16 états identiques**. Propositions écartées au profit des moyens
-ordinaires. Aucune tâche naturelle offerte/acceptée/tenue/rompue : **0/0/0/0**,
-comme la référence ; exécution démontrée par les parcours ciblés et les rejeux.
+**Levier exact.** `_charge_irrealisable` déduit l'échec avant copie et exploration :
+le devis existant vise une source allumée **et chargée** ; sans réservoir
+rechargeable, aucun geste autonome ne rend la charge vraie. Si elle est fausse
+ou inconnue au départ, le but est inaccessible. `brule` et la projection datée
+`_vu_avant_la_tache` restent communs au planificateur. Une charge encore crue
+valable conserve la recherche normale. Aucun cache persistant, délai, nom de
+source ou modification de décision.
 
-| Scénario | Propositions/acceptées, base → branche | CPU branche/nuit |
-| --- | --- | --- |
-| Relais | 0/0 → 0/0 | 6,60 s |
-| Mine | 13/1 → 10/1 | 20,35 s |
-| Auberge | 3/1 → 3/1 | 16,45 s |
-| Crue | 9/0 → 5/0 | 22,69 s |
+**Secondes CPU par nuit : (1) avant levier, branche 5261663 ; (2) après levier,
+branche 4167150 ; base 6910d8e dans les deux mesures.**
 
-Mine 2024 : répétition et avertissement redit disparaissent ; observation
-`fige_presse` supplémentaire pour Rémy, **230 min de devoir déjà satisfait**.
-Le devoir satisfait n'engendre pas de boucle active. Autres codes inchangés ;
-aucune offre identique à moins de 60 min, base comme branche.
+| Scénario | Graine | Base (1) | Branche (1) | Base (2) | Branche (2) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Crue | 1985 | 17,062 | 19,516 | 16,250 | 16,141 |
+| Crue | 7 | 19,922 | 21,234 | 18,688 | 17,656 |
+| Crue | 42 | 17,344 | 22,438 | 16,828 | 17,562 |
+| Crue | 2024 | 21,625 | 24,656 | 21,156 | 21,281 |
+| **Crue total** | | **75,953** | **87,844 (+15,66 %)** | **72,922** | **72,641 (−0,39 %)** |
+| Auberge | 1985 | 15,094 | 14,969 | 14,594 | 14,750 |
+| Auberge | 7 | 16,609 | 16,703 | 16,500 | 16,641 |
+| Auberge | 42 | 16,469 | 16,062 | 16,312 | 16,094 |
+| Auberge | 2024 | 14,453 | 14,016 | 14,000 | 14,094 |
+| **Auberge total** | | **62,625** | **61,750 (−1,40 %)** | **61,406** | **61,578 (+0,28 %)** |
+| **Ensemble** | | **138,578** | **149,594 (+7,95 %)** | **134,328** | **134,219 (−0,08 %)** |
 
-**Limites.** **Critère CPU au bruit près non démontré** : références cachées
-mesurées sous une autre charge. Avant le renforcement de priorité, le premier
-banc montrait +15,5 % auberge et +38,9 % crue ; profil crue 2024 : recours
-8,92 s sur 70,64 s instrumentées, devis dominants. Aucun gain causal revendiqué.
-Un candidat impossible peut masquer un autre service réalisable. Dépôt et repas
-peuvent reprendre une condition entendue ; aucun lieu souhaité n'est deviné.
-Verrouillage ponctuel, aucune garde permanente ni tarif en pièces nouveau.
-Le devis reste cru, les moyens réels sont revalidés. Créneau dépassé par les
-vérifications et reprises. Bruts : `artifacts/tache-115/` ; lourd à l'intégration.
+**Équivalence.** **33 tests ciblés verts, un ignoré, 36,95 s**, capture réelle
+crue 2024 à 17 min et bougeoir d'auberge comparés à la recherche non raccourcie,
+monde et rendu rechargés. **16/16 états finaux, chroniques, audits et mesures
+hors compteurs de recherche identiques avant/après optimisation**, 4 h et quatre
+graines sur les quatre scénarios ; Relais/mine seuls rejoués en complément.
+Crue : **127 recherches neuves évitées**, dont 31 en 2024 ; décisions inchangées.
+
+**Limites.** Mesure ponctuelle sur poste partagé ; le seuil global **×1,5 contre
+42bb9c0 n'est pas remesuré**. Un candidat peut masquer un autre service possible ;
+verrouillage ponctuel, aucune garde permanente ni tarif en pièces nouveau.
+Devis cru, moyens réels revalidés. Bruts : `artifacts/tache-115/`, mesures
+appariées et profil dans `cpu/`. Le lourd reste à l'intégration.
