@@ -471,31 +471,34 @@ def mentions(monde, texte, base, paroles="", partie="texte", lieu=None, paroles_
     return obstacles
 
 
-# La voix d'auteur : le texte parle du joueur, du moteur ou de Corvus à la troisième personne, ou le MJ
-# parle de lui-même (« je », hors des répliques citées).
-AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bmoteur\b|\bMJ\b|\bCorvus\b|\bles faits\b|\bdonnées\b"
-                    r"|\bscénario\b|\bje\b|\bj['’]", re.IGNORECASE)
+# La personne du récit est un contrat grammatical, distinct du vocabulaire technique.
+AUTEUR = re.compile(r"\b(?:le|au|du|un) joueur\b|\bMJ\b|\bCorvus\b|\bje\b|\bj['’]", re.IGNORECASE)
 
-# « refus » et « proposition » désignent aussi des décisions dans la fiction.
-# Leur présence seule ne prouve pas une voix d'auteur ; le vocabulaire technique
-# déjà contrôlé (moteur, MJ...) doit l'établir indépendamment.
+# Un nom commun ne désigne pas à lui seul les sources internes. On exige un lien
+# syntaxique explicite : complément technique, source d'information ou opération
+# du programme. Les emplois ambigus restent du ressort de l'audit sémantique.
+SOURCES_INTERNES = r"(?:faits|donn[ée]es|moteur|sc[ée]nario|champs?|identifiants?)"
+CONTEXTE_TECHNIQUE = re.compile(
+    rf"\b{SOURCES_INTERNES}\s+(?:du|de ce)\s+(?:jeu|programme|syst[èe]me|dossier)\b"
+    r"|\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
+    r"|\b(?:le|du|au) moteur(?=\s+(?:(?:a|avait)\s+)?"
+    r"(?:refus|valid|calcul|d[ée]termin|enregistr|sauvegard|ex[ée]cut|autoris))"
+    r"|\b(?:les|des|aux) (?:faits|donn[ée]es)(?=\s+(?:ne\s+)?"
+    r"(?:disent|pr[ée]cisent|indiquent|montrent|d[ée]crivent|permettent|fournis|re[çc]us))"
+    rf"|\b(?:selon|d['’]apr[èe]s)\s+(?:les? |la |ce |ces |cet )?{SOURCES_INTERNES}\b",
+    re.IGNORECASE)
 
-# Même voix d'auteur quand le récit commente ses preuves sans nommer le moteur.
-# Les tours impersonnels distinguent ce métalangage d'un indice dans la fiction
-# (« la flèche indique le nord », « tu ignores d'où vient cette odeur »).
-PREUVE_MOTEUR = re.compile(
-    r"\b(?:attest[ée]e?s?|[ée]tablie?s?)\b"
-    r"|\b(?:rien|aucune?\s+\w+)(?:\s+\w+){0,3}\s+"
-    r"(?:ne\s+(?:(?:te|lui|vous|nous)\s+|[tm]['’])?|n['’])"
-    r"(?:indique|atteste|[ée]tablit|prouve|confirme)\b"
-    r"|\b(?:faute|manque|absence)\s+d['’](?:indication|information|preuve)s?\b"
-    r"|\baucune?\s+(?:indication|information|preuve)s?\b"
-    r"|\b(?:pas|non)(?:\s+\w+){0,3}\s+indiqu[ée]e?s?\b", re.IGNORECASE)
+# Les réserves de preuve sans source explicite sont ambiguës : un acte peut être
+# attesté dans la fiction. Le sens est contrôlé par l'audit, pas par le participe.
+PREUVE_MOTEUR = CONTEXTE_TECHNIQUE
 
-# Le vocabulaire du quadrillage et les écritures de coordonnées sont une forme de
-# métalangage, même dans une réplique. Les distances physiques restent libres.
+# Même principe pour les unités : une case de maison ou des coordonnées bancaires
+# ne sont pas une localisation sur la grille. Les écritures numériques le sont.
 ESPACE_MOTEUR = re.compile(
-    r"\bcases?\b|\bcoordonn[ée]es?\b|\bquadrillage\b"
+    r"\b(?:quadrillage|coordonn[ée]es?)\s+(?:interne[s]?|du jeu|de la grille)\b"
+    r"|\b(?:aux?|en) coordonn[ée]es?(?=\s*[\[(]?\s*[+-]?\d)"
+    r"|\b(?:\d+|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+cases?"
+    r"(?=\s+(?:vers|au|[àa]|plus|de|du|en|devant|derri[èe]re|sur)\b)"
     r"|[\[(]\s*[+-]?\d+(?:\.\d+)?\s*[,;]\s*[+-]?\d+(?:\.\d+)?\s*[\])]"
     r"|\b[xy]\s*=\s*[+-]?\d+", re.IGNORECASE)
 

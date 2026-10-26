@@ -13,10 +13,10 @@ from tests.test_tensions import recharger
 class AmbianceTests(unittest.TestCase):
     def test_reserve_de_preuve_revisee_avant_affichage_et_recharge(self):
         cas = (
-            ("Tu entends le calme de la conduite ; aucun autre son n'est attesté ici.",
-             "Tu entends le calme de la conduite.", "calme", "attesté"),
-            ("Une odeur de terre humide flotte ici ; rien ne t'indique son origine.",
-             "Une odeur de terre humide flotte ici.", "odeur de terre", "rien ne t'indique"),
+            ("Tu entends le calme de la conduite ; les données ne précisent aucun autre son.",
+             "Tu entends le calme de la conduite.", "calme", "les données"),
+            ("Une odeur de terre humide flotte ici ; les faits ne précisent pas son origine.",
+             "Une odeur de terre humide flotte ici.", "odeur de terre", "les faits"),
         )
         for mauvais, admis, entite, recu in cas:
             with self.subTest(mauvais=mauvais):
@@ -31,7 +31,7 @@ class AmbianceTests(unittest.TestCase):
                 refus = corrections[-1]["controle_narratif"]
                 self.assertEqual(len(refus), 1)
                 self.assertIn(f"reçu « {recu} »", refus[0]["attendu"])
-                self.assertIn("ambiance compatible comme perçue", refus[0]["attendu"])
+                self.assertIn("sans parler du jeu", refus[0]["attendu"])
                 self.assertNotIn(refus[0]["attendu"], sortie)
                 self.assertEqual(r.data["ambiances"][m.joueur["salle"]][-1]["texte"], admis)
                 self.assertEqual(r.data["narrations_mj"][-1]["texte"], admis)
@@ -82,7 +82,7 @@ class AmbianceTests(unittest.TestCase):
                       "Rien ne confirme cette position.", "Tu ne peux préciser faute d'indication.",
                       "Son origine n'est pas indiquée."):
             with self.subTest(texte=texte):
-                self.assertTrue(voix_auteur(texte, "justification"))
+                self.assertFalse(voix_auteur(texte, "justification"))
         for texte in ("Tu ignores d'où vient cette odeur.", "La flèche indique le nord.",
                       "Tu ne le vois pas d'ici.", "« Rien n'est établi », dit la voix."):
             with self.subTest(texte=texte):
