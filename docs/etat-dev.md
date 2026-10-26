@@ -1,8 +1,37 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-26.
 
 ## Où on en est
+
+- Branche `codex-aller-utile`, **non fusionnée**, lot **92 c**,
+  suite de `7598fc4`, base moteur **9810f4a** : une preuve d'absence complète
+  les seuls nœuds manquants à leur profondeur minimale, avec les gestes communs.
+  Mesure auberge 1985 tirée : 31 lacunes de faim certifiables ; borne prudente
+  **358 057 expansions évitables − 10 353 états enrichis = 347 704, 33,06 %**
+  de `[480, 720[`. Pas de nouveau cache ou champ sauvé ; permissions et profondeur
+  restent dans la signature, borne de recherche et attente bornée restent distinctes.
+  Vues de preuve et devis privés, lumière couverte dans les deux graphes ;
+  discrétion nouvelle et budget de preuve ne certifient rien. `VERIFIER` refait
+  toute reprise de certificat avec la complète à `REFERENCE`.
+  Captures Joss 622, Tilo 566, mine 480 et plan positif : mêmes coûts/plans,
+  monde et rendus après recharge ; Joss et mine à zéro nœud au troisième appel.
+  **32 tests ciblés existants + huit nouveaux verts**, 16 empreintes de 2 h
+  identiques contre la base ; `VERIFIER` + spatial 1 auberge 42, 2 h : aucun
+  écart ni borne, **354,34 s CPU**. Suite complète unique : **1 947 tests,
+  16 ignorés, 201 fichiers**, deux processus, **1 828,67 s** ; une empreinte
+  historique de calcul adaptée sans changement du contrat joueur, une erreur
+  Windows TUI de remplacement temporaire non reproduite. **Deux reprises
+  ciblées vertes**, aucun défaut restant consolidé, sans seconde suite complète.
+  CPU 12 h, deux cohortes appariées ancien/branche et base/branche, deux processus :
+  gains contre base **auberge fixe 0,1 %, tirée 5,1 % ; mine fixe 3,0 %, tirée 2,6 %**.
+  Auberge tirée : **335,31 → 318,27 s**, **1 175 083 → 706 709 nœuds**.
+  `comparer --calcul` : quatre nuits identiques contre base et entre répétitions
+  branche ; monde et rendus rechargés identiques. Contre `42bb9c0`, auberge
+  **×1,96 fixe / ×3,22 tirée** : seuil **≤ ×1,5 non atteint**, `main` reste en attente.
+  Mesures 8–12 h, preuve, limites et reproduction dans le rapport ; lot livré
+  par commit signé sur la branche, sans fusion.
+  [Rapport et mesures](taches/rapport-codex-92c-preuves.md).
 
 - Branche `codex-aller-utile`, **non fusionnée**, lot **92 b**, suite de `dd32414` :
   P2 mesurée en **sous-arbres**, moteur **9810f4a inchangé**. Auberge 1985 tirée,

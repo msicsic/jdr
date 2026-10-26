@@ -1974,6 +1974,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     repris = False
     absence = False
     preuve_noeuds, preuve_issue = 0, None
+    completion = None
     attente = False
     retenues = None
     if memo is not None and depuis is None:
@@ -2036,10 +2037,16 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                                           noeuds, faute, tenir, graphe)
         borne = examines >= noeuds
         issue = "plan" if trouve else "borne" if borne else "epuise"
-        if (trouve is None and graphe is not None and graphe.get("garder", True) and memo is not None and depuis is None
+        if (trouve is None and not borne and graphe is not None and graphe.get("garder", True) and memo is not None and depuis is None
                 and (vide_garde is None or vide_garde[0] != signature_vide)):
+            completion = {"ajoutes": 0, "completes": 0, "enrichis": 0}
+            def preparer_preuve(nom_graphe):
+                return _preparer_graphe_preuve(v, depuis or depart(monde, id, v), but, vises,
+                                               profondeur, tenir, graphe.get(nom_graphe, {}),
+                                               nom_graphe == "sombre", completion)
             vide, preuve_noeuds, preuve_issue = _sans_plan(
-                v, depart(monde, id, v), but, profondeur, faute, tenir, graphe, voir)
+                v, depart(monde, id, v), but, profondeur, faute, tenir, graphe, voir,
+                preparer=preparer_preuve)
             _IMPOSSIBLES[place] = (signature_vide, vide)
             if vide:
                 # Le certificat suffit désormais, sans retenir tous les états développés.
@@ -2066,6 +2073,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                            "impossible": absence, "preuve_noeuds": preuve_noeuds, "preuve_issue": preuve_issue,
                            "devis_differes": v._devis_differes, "devis_developpes": v._devis_developpes,
                            "duree": round(perf_counter() - debut, 6)})
+        if completion is not None:
+            DIAGNOSTIC[-1].update({"preuve_" + k: x for k, x in completion.items()})
     return rendu
 
 
@@ -2125,9 +2134,16 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
             # La preuve évite même la recherche bornée : seul le recalcul de contrôle connaît
             # le nombre de nœuds qu'elle aurait effectivement examinés avec ces nouveaux prix.
             borne = refait_borne
-    if v.emplois is None and not divergence_bornee:
+    if v.emplois is None and not divergence_bornee and reprise != "impossibilité":
         return
     refait, reference_bornee = refaire(None, REFERENCE)
+    if reprise == "impossibilité":
+        assert trouve is None and refait is None, (
+            f"Recherche de {id} ({nom}, certificat, complète) : {trouve} au lieu de {refait}")
+        if reference_bornee:
+            BORNES.append({"minute": monde.data["minutes"], "pnj": id, "but": nom,
+                           "trouve": None, "optimum": None, "certificat_reference_bornee": True})
+        return
     if divergence_bornee:
         assert _egaux(refait, trouve), (
             f"Recherche de {id} ({nom}, ancienne borne, complète) : {trouve} au lieu de {refait}")
@@ -2522,7 +2538,70 @@ def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
     return temps, pression, suivant.apres(case=courant.case, orientation=courant.orientation, faits=faits.items())
 
 
-def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir):
+def _preparer_graphe_preuve(original, depart_, but, vises, profondeur, tenir, source, sombre, comptes):
+    """Photographie privée pour compléter les seules lectures manquantes du graphe.
+
+    Les tarifs sont ceux de la recherche jouée. Une découverte de lumière reste
+    attachée à son nœud sombre ; une discrétion nouvelle empêche de certifier ce
+    graphe de départs. Ni ces découvertes ni les devis ne modifient la Vue jouée.
+    """
+    v = Vue(original.monde, original.id)
+    for a in ("degat", "seul", "emplois", "eclairer", "motif", "desespere"):
+        setattr(v, a, getattr(original, a))
+    for a in ("_contextes_routes", "_contextes_pressions", "_parcours", "_routes", "_allers",
+              "_approches", "_contacts", "_locaux", "_moyennes", "_effets_routes",
+              "_tarifs_routes", "_mesures_allers"):
+        setattr(v, a, getattr(original, a))
+    v._depart_estimation = depart_
+    v._contexte_parts = (but, json.dumps(vises, sort_keys=True, ensure_ascii=False))
+    v._explore_furtif = original._explore_furtif
+    v._decouvrir_discretion = True
+    v._lumiere_lue = not sombre
+    # La table de pertinence appartient à ce graphe. Un devis sombre peut
+    # découvrir la lumière avant sa première lecture des gestes ; il ne doit
+    # pas préparer alors une table lumineuse pour les autres nœuds sombres.
+    v.agissables(vises or {})
+    g = {}
+    for e, noeud in source.items():
+        n = list(noeud)
+        if n[3] is not None:
+            n[3] = [copy.copy(s) if isinstance(s, SuiteDifferee) else s for s in n[3]]
+        g[e] = n
+
+    def completer(e, n, noeud):
+        v._lumiere_lue = not sombre
+        v._discretion_lue = v._explore_furtif
+        neuf = noeud is None
+        if neuf:
+            noeud = [but(v, e) and (e.allure == 15 or e.fait("furtif")), None, None, None, False]
+            if sombre and v._lumiere_lue:
+                noeud[4] = "but"
+            g[e] = noeud
+            comptes["ajoutes"] += 1
+            comptes["enrichis"] += 1
+        if v._discretion_lue and not v._explore_furtif:
+            return noeud, "discretion"
+        if (noeud[4] == "but" or noeud[0] and not (tenir and e.salle in v.menacees)
+                or n >= profondeur or noeud[4] == "gestes"):
+            return noeud, None
+        if noeud[3] is None:
+            noeud[2] = sum(1 for k in e.portes if e.fait("allume", k))
+            noeud[3] = _suites(v, e, vises, but)
+            comptes["completes"] += 1
+            comptes["enrichis"] += not neuf
+        for s in noeud[3]:
+            if isinstance(s, SuiteDifferee):
+                s.developper(v)
+        if v._discretion_lue and not v._explore_furtif:
+            return noeud, "discretion"
+        if sombre and v._lumiere_lue:
+            noeud[4] = "gestes"
+        return noeud, None
+
+    return v, g, completer
+
+
+def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir, *, preparer=None):
     """Certificat d'absence de but, indépendamment des coûts, jamais une heuristique : (prouvé,
     états examinés, issue). ``graphe`` : les deux graphes gardés de ``_explorer`` ; ``voir`` : s'il
     employait la lumière avant toute lecture (le coût du noir, la lumière comme but).
@@ -2532,26 +2611,37 @@ def _sans_plan(v, depart_, but, profondeur, faute, tenir, graphe, voir):
     la lumière (son but, ou ses gestes s'il les développe) la fait reprendre depuis son départ avec
     les moyens d'éclairer, sur le graphe ``lumiere``, et c'est cette reprise qui décide du plan.
     Qu'un tel état soit atteignable dans le graphe sombre, un autre prix d'une faute peut l'y faire
-    examiner : l'absence n'est prouvée que si le graphe ``lumiere`` la prouve aussi (une lacune
-    sinon, s'il n'a pas été développé)."""
-    # La vue conserve la découverte du graphe joué : _parcours et la
-    # recherche partagent _departs, y compris pour une absence sans discrétion.
+    examiner : l'absence n'est prouvée que si le graphe ``lumiere`` la prouve aussi. Le producteur
+    ``preparer`` fournit une photographie privée qui complète les seuls nœuds manquants ; sans
+    producteur, le parcours reste une lecture de graphe et rend une lacune à leur rencontre."""
+    def parcours(nom, examines=0):
+        if preparer is None:
+            return _parcours(v, graphe.get(nom, {}), depart_, profondeur, faute, tenir, examines)
+        privee, g, completer = preparer(nom)
+        r = _parcours(privee, g, depart_, profondeur, faute, tenir, examines, completer=completer)
+        if r[2] != "discretion":
+            graphe.setdefault(nom, {}).update(g)
+        return r
+
+    # Même graphe admissible et mêmes départs ; les manques sont développés
+    # à leur profondeur minimale seulement si un producteur de nœuds est fourni.
     if voir:
-        return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir)[:3]
-    prouve, examines, issue, lue = _parcours(v, graphe.get("sombre", {}), depart_, profondeur, faute, tenir)
+        return parcours("lumiere")[:3]
+    prouve, examines, issue, lue = parcours("sombre")
     if not prouve or not lue:
         return prouve, examines, issue
-    return _parcours(v, graphe.get("lumiere", {}), depart_, profondeur, faute, tenir, examines)[:3]
+    return parcours("lumiere", examines)[:3]
 
 
-def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
+def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0, *, completer=None):
     """Parcours en largeur d'un graphe gardé : (aucun but, états examinés, issue, lumière lue).
 
     Un état est développé à sa profondeur minimale. Contrairement à l'épuisement d'une recherche
     pondérée (et a fortiori à sa borne), cela couvre tous les chemins autorisés de longueur au plus
     ``profondeur``. La permission de commettre une faute reste une condition ; son prix et celui
-    d'abîmer ne créent aucune arête. On ne développe aucun geste supplémentaire : un trou dans le
-    graphe, une rencontre du but ou l'atteinte du plafond de preuve (``PREUVE_MAX``, compté depuis
+    d'abîmer ne créent aucune arête. Le producteur optionnel complète les nœuds manquants à
+    leur profondeur minimale. Sans lui, un trou reste une lacune. Une rencontre du but ou
+    l'atteinte du plafond de preuve (``PREUVE_MAX``, compté depuis
     ``examines``) ne conclut rien. Un état du graphe sombre dont l'examen a lu la lumière (``_explorer_etats``,
     cinquième terme) n'est pas suivi : y arriver fait reprendre la recherche avec lumière ; le
     parcours le signale."""
@@ -2564,6 +2654,10 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
         e, n = file.popleft()
         examines += 1
         noeud = graphe.get(e)
+        if completer is not None:
+            noeud, cause = completer(e, n, noeud)
+            if cause:
+                return False, examines, cause, lue
         if noeud is None:
             return False, examines, "lacune", lue
         if noeud[4] == "but":
@@ -2587,7 +2681,14 @@ def _parcours(v, graphe, depart_, profondeur, faute, tenir, examines=0):
             else:
                 suites.append(s)
         for fautes, _, _, suivant, *_ in suites:
-            if fautes and faute is None or suivant in vus:
+            if fautes and faute is None:
+                continue
+            if suivant.fait("estimation"):
+                if ((suivant.allure == 15 or suivant.fait("furtif"))
+                        and not (tenir and suivant.salle in v.menacees)):
+                    return False, examines, "but", lue
+                continue
+            if suivant in vus:
                 continue
             vus.add(suivant)
             file.append((suivant, n + 1))
