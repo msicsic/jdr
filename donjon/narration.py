@@ -32,10 +32,40 @@ def echanges_passes(monde, interlocuteurs):
     a changé depuis la parole. Le texte enregistré reste une citation historique.
     """
     from .voix import reel
-    return {ref: [{k: copy.deepcopy(p[k]) for k in ("texte", "revision", "minute") if k in p}
+    dossier = {ref: [{k: copy.deepcopy(p[k]) for k in ("texte", "revision", "minute") if k in p}
                  for p in monde.data.get("paroles_pnj", [])
                   if p["locuteur"] == reel(monde, ref) and "joueur" in p["auditeurs"]]
             for ref in interlocuteurs}
+    for ref, paroles in dossier.items():
+        for parole in paroles:
+            parole['rappel_exact'] = _rappel_exact(interlocuteurs[ref]['nom'], parole['texte'])
+    return dossier
+
+
+def _rappel_exact(nom, texte):
+    return f"Tu as entendu {nom} dire : « {texte} »."
+
+
+def rappels_exacts(faits):
+    """Rendus historiques attribués, jamais des assertions sur leur contenu.
+
+    La phrase entière est construite par le moteur : aucune recherche de mots
+    introducteurs dans la prose du MJ ne peut exempter une affirmation libre.
+    """
+    catalogue = {}
+    for ref, paroles in faits.get('echanges_passes', {}).items():
+        if ref not in faits.get('interlocuteurs', {}):
+            continue
+        for parole in paroles:
+            texte = parole.get('texte')
+            if not isinstance(texte, str) or not texte.strip():
+                continue
+            # Le découpage commun du lot 95 borne les citations : jamais un
+            # sous-texte arbitraire qui pourrait retirer une négation ou condition.
+            for mots in dict.fromkeys([texte, *segments(texte)]):
+                catalogue[_rappel_exact(faits['interlocuteurs'][ref]['nom'], mots)] = ref
+                catalogue[f'« {mots} »'] = ref
+    return catalogue
 
 
 SCHEMA_RAPPELS = {"type": "array", "maxItems": 12,
@@ -234,6 +264,8 @@ def textes_etablis(faits):
     for parole in faits.get("paroles_entendues", []):
         if isinstance(parole, dict) and isinstance(parole.get("texte"), str):
             catalogue["« " + parole["texte"] + " »"] = "paroles_entendues"
+    for texte in rappels_exacts(faits):
+        ajouter(texte, "echanges_passes")
     return catalogue
 
 
@@ -460,13 +492,16 @@ def hors_paroles_etablies(monde, texte, paroles=(), faits=None, historique=True)
                  and sum(c.group()[1:-1].strip() == p['texte'].strip() for c in citations) == 1}
     mots = {p['texte'].strip() for p in monde.data.get('paroles_joueur', [])}
     mots.update(p['texte'].strip() for p in monde.data.get('paroles_pnj',[]) if 'joueur' in p['auditeurs'])
+    mots.update(s for p in monde.data.get('paroles_pnj', []) if 'joueur' in p['auditeurs']
+                for s in segments(p['texte']))
     validee = (faits or {}).get('conversation_validee') or {}
     if validee.get('operation') == 'parole_joueur' and isinstance(validee.get('replique_joueur'), str):
         mots.add(validee['replique_joueur'].strip())
     def remplacer(citation):
         mots_cites = citation.group()[1:-1].strip()
         # Une citation passée peut être répétée seule, sans nouvelle relation d'identité.
-        autonome = historique and texte.strip() == citation.group() and mots_cites in mots
+        autonome = (historique and mots_cites in mots
+                    and (texte.strip() == citation.group() or texte.strip() in rappels_exacts(faits or {})))
         return ' ' if mots_cites in actuelles or autonome else citation.group()
     return CITATIONS.sub(remplacer, texte)
 
@@ -1375,6 +1410,17 @@ def consigner(monde, reponse):
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
                           rapport["obstacles"][0]["attendu"])
     etablis = segments_etablis(audit["texte_initial"], audit["faits"])
+    if any(ligne['sources'] == ['echanges_passes'] for ligne in etablis.values()):
+        from .dialogues import interlocuteurs
+        from .noms import public
+        courants = {'interlocuteurs': public(monde, interlocuteurs(monde))}
+        courants['echanges_passes'] = echanges_passes(monde, courants['interlocuteurs'])
+        actuels = rappels_exacts(courants)
+        for indice, ligne in etablis.items():
+            passage = segments(audit['texte_initial'])[int(indice)]
+            if ligne['sources'] == ['echanges_passes'] and passage not in actuels:
+                raise ErreurMonde("Ce rappel ne correspond plus aux paroles entendues.",
+                                  f"segment {indice} : reçu {passage!r} ; un rappel exact des échanges enregistrés.")
     if any(ligne["sources"] == ["attestations"] for ligne in etablis.values()):
         actuelles = {s for t in attestations(monde, monde.contexte()) for s in segments(t)}
         for indice, ligne in etablis.items():

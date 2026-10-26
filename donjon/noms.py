@@ -370,7 +370,19 @@ def public(monde, valeur, citations=False):
         projection = {}
         for champ, contenu in valeur.items():
             champ_public = public(monde, champ)
-            if champ == "attendu" and isinstance(contenu, str):
+            if (champ in ('texte', 'presentation') and 'locuteur' in valeur
+                    and 'joueur' in valeur.get('auditeurs', []) and 'revision' in valeur):
+                # Un événement de parole porte des mots déjà prononcés, pas
+                # une description à réécrire avec l'identité publique actuelle.
+                projection[champ_public] = contenu
+            elif champ == 'echanges_passes' and isinstance(contenu, dict):
+                # Les clés désignent les locuteurs ; le texte est une citation
+                # enregistrée entière, même sans guillemets dans ce champ.
+                projection[champ_public] = {
+                    public(monde, ref): [{k: (v if k == 'texte' else public(monde, v, True))
+                                         for k, v in parole.items()} for parole in paroles]
+                    for ref, paroles in contenu.items()}
+            elif champ == "attendu" and isinstance(contenu, str):
                 # Un attendu est un contrat technique : conserver ses références opaques,
                 # et projeter les identifiants internes encore cités, sans en faire de la prose.
                 projection[champ_public] = re.sub(
