@@ -33,6 +33,16 @@ les gestes qui durent (se chauffer, se reposer, s'abriter), le stratège Luna en
 
 ## Le modèle
 
+### Garde et préconditions temporaires — lot 103
+
+Un plan qui accède à un bien gardé sous clé porte déjà la remise sous clé à
+sa fin (`retablir`). Tant que cette remise reste dans le plan d'un autre but,
+la garde ne défait pas ses préconditions, même si le motif n'est pas urgent
+(`deliberation.retabli_par_son_plan`). Le choix du but et chaque geste restent
+revalidés ; un plan abandonné ne suspend plus la garde. La garde elle-même
+reste candidate pour poursuivre sa propre fermeture. Aucun délai ni objet de
+scénario ne détermine cette compatibilité.
+
 ### P3 : mesure préalable des arrêts — lot 92, non implémenté
 
 La règle envisagée est de ne proposer `aller` que vers un lieu où le plan peut
