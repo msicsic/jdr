@@ -277,16 +277,17 @@ def _percus_gardes(m, observateur, tons, emissions):
     niveaux = {id: _niveau_distance(m, observateur, id) for id in personnes}
     # Une clé par observateur, indépendante des esprits et objets qu'il ne perçoit pas.
     # Les cibles crues ne sont jamais remplacées par une présence véritable.
-    signature = tuple((id, niveaux[id], repr(emissions.get(id, [])),
+    # Les émissions ont des champs scalaires ; isoler aussi les positions mutables.
+    signature = tuple((id, niveaux[id], tuple(tuple(s.items()) for s in emissions.get(id, [])),
                        tuple((s["id"], s["envers"] in vus, _envers_percu(m, observateur, s, vus),
-                              position_cible(m, s["envers"], o.get("lieu", o.get("salle")))
+                              tuple(position_cible(m, s["envers"], o.get("lieu", o.get("salle"))) or ())
                               if s["envers"] else None) for s in emissions.get(id, [])),
                        tuple(o.get("position") or ()), o.get("orientation"))
                       for id in personnes for o in [m.joueur if id == "joueur" else m.objets[id]])
     cache = m.__dict__.setdefault("_perceptions_signes", {})
     entree = cache.get(observateur)
     if entree is None or entree[0] != signature:
-        cache[observateur] = (copy.deepcopy(signature), _percus(m, observateur, emissions=emissions,
+        cache[observateur] = (signature, _percus(m, observateur, emissions=emissions,
                                                               contexte=(vus, niveaux)))
     resultat = cache[observateur][1]
     if a_verifier():
