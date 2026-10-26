@@ -10,8 +10,9 @@ sa confiance. Le joueur entend ce qui se dit dans sa salle, en clair s'il conna�
 parle, sinon comme un échange à voix basse. Tout est déterministe ; Luna n'intervient pas.
 
 Un avis de menace prévient plutôt qui le locuteur croit concerné et dont il se soucie.
-L'auditeur pèse sa source et sa conviction, sans jet ; les nouvelles et leurs destinataires
-déjà servis restent suivis par le même registre, hors des souvenirs bornés.
+L'auditeur pèse sa source et sa conviction ; un avis contraire plus étayé ouvre une dispute
+finie, dont seuls les poids égaux se départagent au jet opposé. Les nouvelles et leurs
+destinataires déjà servis restent suivis par le même registre, hors des souvenirs bornés.
 
 Une parole, du joueur comme d'un PNJ, est entendue de tous ceux qui en saisissent les mots
 (``ouie``) : qui n'en est pas le destinataire la retient aussi (``retenir_parole``), et ce
@@ -374,7 +375,7 @@ def phrase(monde, noyau, locuteur=None):
     t = noyau["type"]
     if t == "avis":
         from .francais import lieu
-        return "l'eau menace " + lieu(monde.data["salles"][noyau["objet"]]) + " dans l'heure"
+        return ("l'eau menace " if noyau["valeur"] else "l'eau ne menace pas ") + lieu(monde.data["salles"][noyau["objet"]]) + " dans l'heure"
     if t == "constat":
         from .francais import accorder, lieu
         if noyau["attribut"] == "eau":
@@ -498,7 +499,8 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
            case=lieu["case"])
 
 
-def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True, suites=True):
+def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True, suites=True,
+                  geste="dire"):
     """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
     destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). ``reponse`` : ce que
     l'auditeur y répond (accepter, refuser), de sa voix si ``dite`` (sinon un geste, lui remettre
@@ -509,6 +511,12 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     from .corps import conscient
     if not conscient(monde, id):
         return
+    # Photographier les avis AVANT la réception des témoins. Les deux arguments
+    # seront pesés ensemble, sans avantage dû à leur ordre de prononciation.
+    avis = next((c for c in contenu if c.get("evenement", {}).get("type") == "avis"), None)
+    presents = _avis_entendus(monde, id, avis["evenement"]["objet"], geste) if avis else {}
+    opposition = (_contradiction(monde, id, avis["evenement"], presents)
+                  if avis and not avis.get("dispute") else None)
     if id != "joueur" and auditeur != "joueur" and conscient(monde, auditeur):
         for c in contenu:
             if c["type"] in ("affirmation", "rumeur", "aveu"):
@@ -517,13 +525,17 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
         from .relations import annoncer_suites
         annoncer_suites(monde, id, auditeur, lignes)
         annoncer_suites(monde, auditeur, id, lignes)
-    from .ouie import retentir
+    from .ouie import retentir, nature
     from .paroles import _connu_du_joueur
     from .noms import texte as nommer_pour
     texte = nommer_pour(monde, texte, observateur=id)
     reponse = nommer_pour(monde, reponse, observateur=auditeur)
-    retentir(monde, id, "dire", texte=texte, cites=[auditeur, *cites],
-             parole={"a": [auditeur], "contenu": list(contenu)})
+    diffuse = [dict(c, dispute=True) if opposition and c is avis else c for c in contenu]
+    retentir(monde, id, geste, texte=texte, cites=[auditeur, *cites],
+             parole={"a": [auditeur], "contenu": diffuse})
+    if avis and avis.get("dispute"):
+        for qui in presents:
+            retenir_dit(monde, id, qui, avis["evenement"])
     if reponse and dite and conscient(monde, auditeur):
         retentir(monde, auditeur, "dire", texte=reponse, cites=[id], vers=[id])
     a, b = monde.objets[id], monde.objets[auditeur]
@@ -531,9 +543,149 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
         if all(_connu_du_joueur(monde, x) for x in [id, auditeur, *cites] if x != "joueur"):
             lignes.append(f"{texte} {reponse}".strip())
         else:
-            lignes.append(designer(a, debut=True) + " parle à voix basse avec " + designer(b) + ".")
+            voix = " hausse la voix en parlant avec " if nature(geste) == "eclat" else " parle à voix basse avec "
+            lignes.append(designer(a, debut=True) + voix + designer(b) + ".")
     elif monde.visible(id):
         lignes.append(designer(a, debut=True) + " parle avec " + designer(b) + ".")
+    if opposition:
+        _disputer(monde, id, avis["evenement"], avis["rang"], presents, lignes, opposition)
+
+
+def _avis_entendus(monde, locuteur, salle, geste="dire"):
+    """Auditeurs qui saisissent les mots, avec leur preuve avant la parole."""
+    from .ouie import entend, mots_saisis
+    from .esprits import prevision
+    return {id: copy.deepcopy(prevision(monde, id, salle)) for id in sorted(pnjs(monde))
+            if id != locuteur and monde.objets[id].get("profil")
+            and (niveau := entend(monde, locuteur, id, geste)) is not None
+            and mots_saisis(monde, id, niveau)}
+
+
+def _avis_de(monde, id, salle, c):
+    from .eau import menacee
+    from .esprits import poids_source
+    return {"type": "avis", "objet": salle, "attribut": "menace", "valeur": menacee(monde, id, salle),
+            "prevision": list(c["valeur"]), "observe": c["minute"],
+            "conviction": min(1, poids_source(monde, id, c) * c["confiance"])}
+
+
+def _poids_dit(monde, id, locuteur, avis):
+    from .esprits import poids_source
+    from .voix import source_dite
+    return round(poids_source(monde, id, {"source": source_dite(monde, id, locuteur)}) * avis["conviction"], 12)
+
+
+def _contradiction(monde, locuteur, avis, entendus):
+    """Premier auditeur qui tient un avis contraire plus étayé et peut répondre."""
+    for id, propre in entendus.items():
+        if not propre or propre.get("rang", 0) >= RANG_MAX:
+            continue
+        contraire = _avis_de(monde, id, avis["objet"], propre)
+        if (contraire["valeur"] != avis["valeur"]
+                and contraire["conviction"] > _poids_dit(monde, id, locuteur, avis)
+                and not deja_dit(monde, id, locuteur, contraire)
+                and locuteur in _avis_entendus(monde, id, avis["objet"], "contredire")):
+            return id, propre, contraire
+    return None
+
+
+def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
+    """Un épisode fini : contradiction, réponse, éventuellement un éclat.
+
+    Les faits dits bornent aussi les répliques, hors mémoire courte. Une parole
+    de dispute ne déclenche pas une autre dispute ; ses témoins pèsent les deux
+    sources ensemble, seulement s'ils en ont saisi les deux avis.
+    """
+    from .esprits import prevision, recevoir_prevision
+    from .pnj import _chroniquer
+    from .caractere import valeur, modificateur
+    from .signes import emotion
+    from .voix import identifie
+    salle = avis["objet"]
+    contradicteur, propre, contraire = opposition
+    recoivent = _avis_entendus(monde, contradicteur, salle, "contredire")
+    if locuteur not in recoivent:
+        return  # Une réponse reste une parole réellement entendue.
+    for qui in entendus:
+        retenir_dit(monde, locuteur, qui, avis)
+    retenir_dit(monde, contradicteur, locuteur, contraire)
+    # Le même désaccord déjà exposé ne devient pas un nouvel épisode lorsque
+    # l'autre trouve plus tard son créneau de confidence.
+    retenir_dit(monde, locuteur, contradicteur, avis)
+    _chroniquer(monde, contradicteur, f"{_qui(monde, contradicteur)} contredit {_qui(monde, locuteur)}.", "social")
+    monde.data["chronique"][-1]["dispute"] = True
+    faire_entendre(monde, contradicteur, locuteur,
+                   f"{_qui(monde, contradicteur)} : « Non, {phrase(monde, contraire)}. »", [salle], lignes,
+                   [{"type": "rumeur", "evenement": contraire, "rang": propre.get("rang", 0), "dispute": True}],
+                   geste="contredire")
+    auditeurs_avis = set(entendus)
+    recevoir_prevision(monde, locuteur, contradicteur, contraire, propre.get("rang", 0))
+    actuelle = prevision(monde, locuteur, salle)
+    tient = actuelle and _avis_de(monde, locuteur, salle, actuelle)["valeur"] == avis["valeur"]
+    if tient:
+        auditeurs_avis.update(_avis_entendus(monde, locuteur, salle))
+        faire_entendre(monde, locuteur, contradicteur,
+                       f"{_qui(monde, locuteur)} : « Je maintiens : {phrase(monde, avis)}. »", [salle], lignes,
+                       [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}])
+        colere = emotion(monde, locuteur)
+        if valeur(monde, locuteur, "fierte") > 60 or colere and colere["niveau"] >= 20:
+            auditeurs_avis.update(_avis_entendus(monde, locuteur, salle, "disputer"))
+            faire_entendre(monde, locuteur, contradicteur,
+                           f"{_qui(monde, locuteur)} hausse la voix : « {phrase(monde, avis).capitalize()} ! »",
+                           [salle], lignes,
+                           [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], geste="disputer")
+            _chroniquer(monde, locuteur, f"{_qui(monde, locuteur)} hausse la voix dans la dispute.", "social")
+            monde.data["chronique"][-1]["eclat"] = True
+    partis = {locuteur: [], contradicteur: []}
+    # Qui n'a saisi qu'un côté reçoit cet avis par la règle ordinaire ; il
+    # n'assiste pas au débat et ne compte pas dans son désaveu public.
+    for temoin in sorted(auditeurs_avis - set(recoivent) - {locuteur, contradicteur}):
+        recevoir_prevision(monde, temoin, locuteur, avis, rang)
+    for temoin in sorted(set(recoivent) - auditeurs_avis - {locuteur, contradicteur}):
+        recevoir_prevision(monde, temoin, contradicteur, contraire, propre.get("rang", 0))
+    for temoin in sorted(auditeurs_avis & set(recoivent) - {locuteur, contradicteur}):
+        _chroniquer(monde, temoin, f"{_qui(monde, temoin)} entend les deux avis de la dispute.", "social")
+        monde.data["chronique"][-1]["dispute_vue"] = True
+        poids = [_poids_dit(monde, temoin, x, a) for x, a in ((locuteur, avis), (contradicteur, contraire))]
+        if poids[0] == poids[1]:
+            jets = [monde.d20() + modificateur(monde, x, "CHA") + modificateur(monde, x, "ELO")
+                    for x in (locuteur, contradicteur)]
+            if jets[0] == jets[1]:
+                memoriser(monde, temoin, {"type": "parole_doutee", "locuteur": locuteur, "evenement": avis})
+                continue  # Égalité véritable : le témoin garde son avis ou doute.
+            choix = int(jets[1] > jets[0])
+        else:
+            choix = int(poids[1] > poids[0])
+        gagnant, retenu, r = ((locuteur, avis, rang), (contradicteur, contraire, propre.get("rang", 0)))[choix]
+        issue = recevoir_prevision(monde, temoin, gagnant, retenu, r, departage=True)
+        # Un constat propre plus fort/plus récent prime même les deux orateurs.
+        courant = prevision(monde, temoin, salle)
+        if not courant or _avis_de(monde, temoin, salle, courant)["valeur"] != retenu["valeur"]:
+            continue
+        if not identifie(monde, temoin, gagnant):
+            continue  # Pas de relation envers l'identité d'une voix inconnue.
+        _chroniquer(monde, temoin, f"{_qui(monde, temoin)} prend le parti {de(_qui(monde, gagnant))} ({issue}).", "social")
+        monde.data["chronique"][-1]["parti_pris"] = True
+        recoivent_parti = _avis_entendus(monde, temoin, salle)
+        parti = _avis_de(monde, temoin, salle, courant)
+        rang_parti = courant.get("rang", 0)
+        faire_entendre(monde, temoin, gagnant,
+                       f"{_qui(monde, temoin)} : « Je suis de ton avis : {phrase(monde, retenu)}. »", [salle], lignes,
+                       [{"type": "rumeur", "evenement": parti, "rang": rang_parti, "dispute": True}])
+        if rang_parti < RANG_MAX:
+            for qui in recoivent_parti:
+                recevoir_prevision(monde, qui, temoin, parti, rang_parti)
+        if gagnant in recoivent_parti and identifie(monde, gagnant, temoin):
+            memoriser(monde, gagnant, {"type": "parti_pris", "de": temoin})
+        if locuteur in recoivent_parti and contradicteur in recoivent_parti:
+            partis[gagnant].append(temoin)
+    if len(partis[locuteur]) != len(partis[contradicteur]):
+        gagnant, perdant = ((locuteur, contradicteur) if len(partis[locuteur]) > len(partis[contradicteur])
+                           else (contradicteur, locuteur))
+        # Les suites sont celles d'un désaveu public, pas d'un mensonge prouvé.
+        if identifie(monde, perdant, gagnant):
+            memoriser(monde, perdant, {"type": "dispute_perdue", "de": gagnant, "sujet": salle})
+    return
 
 
 def qui_va_la(monde, id, autre, lignes):
@@ -576,6 +728,8 @@ def recevoir(monde, id, locuteur, c):
         return affirmer(monde, locuteur, id, c["sujet"], c["attribut"], c["valeur"])
     noyau = c["evenement"]
     if noyau["type"] == "avis":
+        if c.get("dispute"):
+            return None  # Les deux arguments sont pesés ensemble à la fin de l'épisode.
         from .esprits import recevoir_prevision
         return recevoir_prevision(monde, id, locuteur, noyau, c["rang"])
     if c["type"] != "aveu" and accuse(noyau) == locuteur:
@@ -637,7 +791,12 @@ def bavarder(monde, id, lignes):
             continue  # Il le sait déjà : rien à apprendre, la minute n'est pas perdue.
         # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
         # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
-        issue = recevoir(monde, auditeur, id, {"type": "rumeur", "evenement": noyau, "rang": rang})
+        # Si un tiers va contredire, le destinataire est lui aussi témoin des
+        # deux positions : ne pas lui faire adopter la première avant le débat.
+        debat = (noyau["type"] == "avis" and _contradiction(
+            monde, id, noyau, _avis_entendus(monde, id, noyau["objet"])))
+        issue = ("discuté" if debat else recevoir(
+            monde, auditeur, id, {"type": "rumeur", "evenement": noyau, "rang": rang}))
         _chroniquer(monde, id, f"{_qui(monde, id)} dit {groupe_nominal(_qui(monde, auditeur), 'à')} que {phrase(monde, noyau)} ({issue or 'connu'}).",
                     "social")
         if noyau["type"] == "constat":

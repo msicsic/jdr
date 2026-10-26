@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-disputes`, non fusionnée**, lot **121**, base **0a53910** :
+  avis de menace contradictoires entre PNJ par la parole commune ; une contradiction,
+  une réponse et un éclat seulement par fierté/colère. Témoins auditifs, poids des sources,
+  départage CHA/ELO, partis pris audibles et épreuves relationnelles ; registre des faits
+  dits durable après oubli/recharge. Aucun Luna, scénario ou changement du planificateur.
+  Deux scènes d'auteur (Aubin/Ilse au refuge, Ilse/Aubin au palier), ouïe voisine et
+  `bruit_a_voir`, sauvegarde et même laps découpé vérifiés. Banc 4 h crue/Relais × quatre
+  graines : **8/8 états finaux et chroniques identiques**, 18 avis en crue, zéro adoption,
+  aucune dispute naturelle, aucun plantage/usurpation, mêmes alertes historiques.
+  Suite complète unique : **2 045 tests, 16 ignorés, zéro échec/erreur**, 221 fichiers,
+  deux processus réduits, **1 919,09 s** ; après les derniers resserrements de réception,
+  **53 tests ciblés verts en 68,01 s**, sept fichiers, un processus. Aucune seconde suite.
+  Menace d'eau seulement ; parole typée du joueur et fréquence naturelle non garanties.
+  [Rapport du lot 121](taches/rapport-codex-121-disputes.md).
+
 - **Revue Argon du coût et lots 118–119, non fusionnés** (branches poussées `codex-reprises-exactes` `bb02f3a`,
   `codex-perception-exacte` `bd6d1eb`). Revue : `docs/taches/rapport-revue-argon-cout.md` (pistes A1 à A5 exactes, B1 à B3
   qui changent des décisions). Mesures (paires lancées ensemble, auberge 1985 12 h) : A3 tables partagées +2,6 %, A2 clé sans

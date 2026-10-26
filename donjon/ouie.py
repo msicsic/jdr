@@ -53,9 +53,9 @@ from itertools import count
 
 from .geometrie import distance as _reelle
 
-INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "bruyant": 7, "hele": 9, "appel": 9, "cri": 9}
+INTENSITES = {"feutre": 1, "pas": 3, "geste": 3, "voix": 4, "eclat": 6, "bruyant": 7, "hele": 9, "appel": 9, "cri": 9}
 HABITUELS = ("feutre", "pas", "geste", "voix")
-VOCALES = ("voix", "hele")   # ce qui porte des mots, et fait reconnaître une voix
+VOCALES = ("voix", "eclat", "hele")   # ce qui porte des mots, et fait reconnaître une voix
 NATURES = {
     **dict.fromkeys(("attendre", "patienter", "tourner", "orienter", "observer", "examiner", "lire", "ecouter",
                      "inspecter", "reposer", "chauffer", "abriter"), None),
@@ -69,6 +69,7 @@ NATURES = {
     # Héler quelqu'un par son nom est un cri : même portée qu'un appel ; ce sont les mots qui
     # l'en distinguent, pour qui les saisit (``entendre``).
     "heler": "hele",
+    "contredire": "voix", "disputer": "eclat",
     # Un appel à l'aide, un cri : la voix à pleine force, sans mots qu'on saisisse ; qui connaît
     # cette voix sait qui crie (``entendre``).
     "appel": "appel", "cri": "cri",

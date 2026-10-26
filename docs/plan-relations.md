@@ -726,6 +726,19 @@ avis le jour où un barrage (`docs/plan-crue.md`, « Agir ensemble ») aura sa r
 
 ### 7.4 Les disputes
 
+**Réalisé entre PNJ, lot 121**, branche `codex-disputes`, non fusionnée : menace d'eau seulement.
+`social.faire_entendre` relève les auditeurs par l'ouïe commune, puis ouvre au plus un épisode :
+contradiction du premier avis contraire plus étayé, réponse si le locuteur tient encore au sien,
+troisième réplique en éclat si fierté > 60 ou colère ≥ 20. L'éclat porte à 6 crans, entre voix (4)
+et bruyant (7), et utilise sans modification `bruit_a_voir`. Les témoins ayant saisi les deux
+positions les pèsent ensemble ; égalité départagée par d20 + modificateurs CHA/ELO, égalité des jets
+conservatrice. Qui n'a entendu qu'une position la reçoit comme un avis ordinaire. Le registre des
+faits dits (lots 64/108) borne aussi les répliques et les prises de parti après oubli/recharge.
+Un parti pris audible donne +3 d'affection à son auteur ; un désaveu public majoritaire donne
+10 de rancune au perdant envers l'autre, modulée par la fierté commune. Un désaccord ne prouve
+aucun mensonge et ne baisse pas la confiance. Parole typée `avis` du joueur encore à réaliser.
+[Rapport du lot 121](taches/rapport-codex-121-disputes.md).
+
 Quand un auditeur entend un avis contraire au sien, avec une conviction pondérée plus forte, il
 **contredit** (geste `contredire`, de la voix : son avis, adressé au locuteur). Le locuteur, s'il
 tient encore au sien, répond une fois ; la fierté (> 60) ou la colère le font répéter une
@@ -1008,8 +1021,10 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
   ajouté, **boucle non corrigée, branche non fusionnable**. Le contrat commun
   choix/prérequis/progression relève d'un lot distinct.
   [Diagnostic de la boucle du lot 88](taches/rapport-codex-88-boucle.md).
-- Avis sur les prédicats admis, poids des sources, expression gardée par le souci de l'auditeur,
-  `contredire`, nature « éclat », témoins, suites.
+- **Disputes entre PNJ, lot 121** (`codex-disputes`, non fusionnée) : épisode fini dans la parole
+  commune, `contredire`, nature « éclat », témoins, prises de parti et suites relationnelles (§ 7.4).
+  Aucun nouveau prédicat, scénario ou appel Luna ; la parole typée du joueur reste au lot suivant.
+  [Rapport](taches/rapport-codex-121-disputes.md).
 - **Partager ses constats** (revue externe du 2026-10-24, retenue) : deux personnes qui se font confiance se disent
   aussi leurs constats matériels récents (une réserve vue vide, une porte trouvée fermée à clé, l'eau qui monte,
   un besoin pressant sans recours), par les nouvelles communes ; chacun n'a plus à buter seul sur la même porte,
